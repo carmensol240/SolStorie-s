@@ -133,7 +133,7 @@ const CreateStory = () => {
   const displayStep = step < 3 ? step : 4;
 
   return (
-    <div className="min-h-screen min-h-[100dvh] bg-gradient-to-b from-amber-50 to-orange-50 pb-20 overflow-y-auto overscroll-contain">
+    <div className="min-h-screen min-h-[100dvh] h-auto bg-gradient-to-b from-amber-50 to-orange-50 pb-20 overflow-y-auto overscroll-contain">
       <div className="container max-w-lg mx-auto px-3 py-4">
         
         {/* Compact Header with back button */}

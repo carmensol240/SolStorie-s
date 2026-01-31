@@ -152,7 +152,8 @@ const handler = async (req: Request): Promise<Response> => {
       `,
     });
 
-    console.log("Password reset email sent successfully:", emailResponse);
+    console.log("Password reset email sent successfully");
+    console.log("Resend API response:", JSON.stringify(emailResponse, null, 2));
 
     return new Response(
       JSON.stringify({ success: true, message: "Password reset email sent" }),

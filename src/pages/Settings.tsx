@@ -6,6 +6,7 @@ import { useAuth } from "@/hooks/use-auth";
 import { useCredits } from "@/hooks/use-credits";
 import { useReferral } from "@/hooks/use-referral";
 import MobileNavigation from "@/components/MobileNavigation";
+import GlobalFooter from "@/components/GlobalFooter";
 import profileHero from "@/assets/profile-hero.jpg";
 
 const Settings = () => {
@@ -147,6 +148,7 @@ const Settings = () => {
         <div className="h-12 bg-gradient-to-t from-purple-200/50 to-transparent rounded-t-2xl mt-2 flex-shrink-0" />
       </div>
       
+      <GlobalFooter />
       <MobileNavigation />
     </div>
   );

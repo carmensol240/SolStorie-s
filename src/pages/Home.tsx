@@ -89,13 +89,13 @@ const Home = () => {
       <DebugMenu />
       
       <div className="flex-1 overflow-hidden flex flex-col pb-16">
-        <div className="container max-w-lg mx-auto px-4 py-4 flex-1 flex flex-col">
+        <div className="container max-w-lg mx-auto px-4 py-2 flex-1 flex flex-col">
           
           {/* Logged-in User Dashboard */}
           {isLoggedIn && (
             <div className="flex-1 flex flex-col animate-fade-in">
               {/* Header - Greeting on Right, Credits on Left (RTL) */}
-              <header className="flex items-center justify-between mb-3">
+              <header className="flex items-center justify-between mb-2">
                 {/* Left side: Credits + Avatar */}
                 <div className="flex items-center gap-2">
                   {avatarUrl && (
@@ -123,7 +123,7 @@ const Home = () => {
               </header>
 
               {/* Hero Image - Compact */}
-              <div className="bg-card rounded-2xl p-2 shadow-md border border-border overflow-hidden mb-3">
+              <div className="bg-card rounded-2xl p-2 shadow-md border border-border overflow-hidden mb-2">
                 <img 
                   src={heroChildReading} 
                   alt="ילד קורא סיפור" 
