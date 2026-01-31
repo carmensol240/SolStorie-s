@@ -1,0 +1,705 @@
+export type Json =
+  | string
+  | number
+  | boolean
+  | null
+  | { [key: string]: Json | undefined }
+  | Json[]
+
+export type Database = {
+  // Allows to automatically instantiate createClient with right options
+  // instead of createClient<Database, { PostgrestVersion: 'XX' }>(URL, KEY)
+  __InternalSupabase: {
+    PostgrestVersion: "14.1"
+  }
+  public: {
+    Tables: {
+      analytics_events: {
+        Row: {
+          created_at: string | null
+          device_id: string
+          event_type: string
+          id: string
+          metadata: Json | null
+          page_number: number | null
+          story_id: string | null
+          time_spent_seconds: number | null
+        }
+        Insert: {
+          created_at?: string | null
+          device_id: string
+          event_type: string
+          id?: string
+          metadata?: Json | null
+          page_number?: number | null
+          story_id?: string | null
+          time_spent_seconds?: number | null
+        }
+        Update: {
+          created_at?: string | null
+          device_id?: string
+          event_type?: string
+          id?: string
+          metadata?: Json | null
+          page_number?: number | null
+          story_id?: string | null
+          time_spent_seconds?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "analytics_events_story_id_fkey"
+            columns: ["story_id"]
+            isOneToOne: false
+            referencedRelation: "stories"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      children: {
+        Row: {
+          age: number
+          avatar_url: string | null
+          created_at: string
+          gender: string | null
+          id: string
+          name: string
+          personality_traits: string | null
+          photo_url: string | null
+          user_id: string
+        }
+        Insert: {
+          age: number
+          avatar_url?: string | null
+          created_at?: string
+          gender?: string | null
+          id?: string
+          name: string
+          personality_traits?: string | null
+          photo_url?: string | null
+          user_id: string
+        }
+        Update: {
+          age?: number
+          avatar_url?: string | null
+          created_at?: string
+          gender?: string | null
+          id?: string
+          name?: string
+          personality_traits?: string | null
+          photo_url?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
+      digital_books: {
+        Row: {
+          created_at: string
+          dedication_text: string | null
+          id: string
+          is_public: boolean | null
+          share_token: string
+          story_id: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          dedication_text?: string | null
+          id?: string
+          is_public?: boolean | null
+          share_token?: string
+          story_id: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          dedication_text?: string | null
+          id?: string
+          is_public?: boolean | null
+          share_token?: string
+          story_id?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "digital_books_story_id_fkey"
+            columns: ["story_id"]
+            isOneToOne: false
+            referencedRelation: "stories"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      premium_stories: {
+        Row: {
+          cover_url: string | null
+          created_at: string
+          description: string | null
+          display_order: number | null
+          id: string
+          is_active: boolean | null
+          max_age: number | null
+          min_age: number | null
+          theme: string | null
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          cover_url?: string | null
+          created_at?: string
+          description?: string | null
+          display_order?: number | null
+          id?: string
+          is_active?: boolean | null
+          max_age?: number | null
+          min_age?: number | null
+          theme?: string | null
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          cover_url?: string | null
+          created_at?: string
+          description?: string | null
+          display_order?: number | null
+          id?: string
+          is_active?: boolean | null
+          max_age?: number | null
+          min_age?: number | null
+          theme?: string | null
+          title?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      premium_story_pages: {
+        Row: {
+          created_at: string
+          id: string
+          illustration_url: string | null
+          page_number: number
+          story_id: string
+          text: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          illustration_url?: string | null
+          page_number: number
+          story_id: string
+          text: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          illustration_url?: string | null
+          page_number?: number
+          story_id?: string
+          text?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "premium_story_pages_story_id_fkey"
+            columns: ["story_id"]
+            isOneToOne: false
+            referencedRelation: "premium_stories"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      profiles: {
+        Row: {
+          avatar_changes_count: number | null
+          avatar_emoji: string | null
+          child_avatar_url: string | null
+          child_photo_url: string | null
+          created_at: string
+          daily_edit_credits: number | null
+          display_name: string | null
+          id: string
+          is_subscriber: boolean
+          last_edit_credits_reset: string | null
+          referral_code: string | null
+          share_coins: number | null
+          story_credits: number | null
+          terms_accepted_at: string | null
+          terms_version: string | null
+          updated_at: string
+        }
+        Insert: {
+          avatar_changes_count?: number | null
+          avatar_emoji?: string | null
+          child_avatar_url?: string | null
+          child_photo_url?: string | null
+          created_at?: string
+          daily_edit_credits?: number | null
+          display_name?: string | null
+          id: string
+          is_subscriber?: boolean
+          last_edit_credits_reset?: string | null
+          referral_code?: string | null
+          share_coins?: number | null
+          story_credits?: number | null
+          terms_accepted_at?: string | null
+          terms_version?: string | null
+          updated_at?: string
+        }
+        Update: {
+          avatar_changes_count?: number | null
+          avatar_emoji?: string | null
+          child_avatar_url?: string | null
+          child_photo_url?: string | null
+          created_at?: string
+          daily_edit_credits?: number | null
+          display_name?: string | null
+          id?: string
+          is_subscriber?: boolean
+          last_edit_credits_reset?: string | null
+          referral_code?: string | null
+          share_coins?: number | null
+          story_credits?: number | null
+          terms_accepted_at?: string | null
+          terms_version?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      purchases: {
+        Row: {
+          amount_ils: number
+          created_at: string | null
+          credits_purchased: number
+          id: string
+          package_name: string
+          status: string | null
+          user_id: string
+        }
+        Insert: {
+          amount_ils: number
+          created_at?: string | null
+          credits_purchased: number
+          id?: string
+          package_name: string
+          status?: string | null
+          user_id: string
+        }
+        Update: {
+          amount_ils?: number
+          created_at?: string | null
+          credits_purchased?: number
+          id?: string
+          package_name?: string
+          status?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
+      referrals: {
+        Row: {
+          completed_at: string | null
+          created_at: string | null
+          id: string
+          referral_code: string
+          referred_id: string | null
+          referrer_id: string
+          status: string | null
+        }
+        Insert: {
+          completed_at?: string | null
+          created_at?: string | null
+          id?: string
+          referral_code: string
+          referred_id?: string | null
+          referrer_id: string
+          status?: string | null
+        }
+        Update: {
+          completed_at?: string | null
+          created_at?: string | null
+          id?: string
+          referral_code?: string
+          referred_id?: string | null
+          referrer_id?: string
+          status?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "referrals_referred_id_fkey"
+            columns: ["referred_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "referrals_referrer_id_fkey"
+            columns: ["referrer_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      stories: {
+        Row: {
+          age_range: string
+          audio_url: string | null
+          child_gender: string | null
+          child_id: string | null
+          child_name: string
+          cover_url: string | null
+          created_at: string
+          daily_story_date: string | null
+          edit_count: number
+          id: string
+          is_daily_story: boolean | null
+          is_premium: boolean | null
+          max_age: number | null
+          min_age: number | null
+          nikud: boolean
+          story_type: string | null
+          theme: string | null
+          topic: string
+          user_id: string | null
+        }
+        Insert: {
+          age_range: string
+          audio_url?: string | null
+          child_gender?: string | null
+          child_id?: string | null
+          child_name: string
+          cover_url?: string | null
+          created_at?: string
+          daily_story_date?: string | null
+          edit_count?: number
+          id?: string
+          is_daily_story?: boolean | null
+          is_premium?: boolean | null
+          max_age?: number | null
+          min_age?: number | null
+          nikud?: boolean
+          story_type?: string | null
+          theme?: string | null
+          topic: string
+          user_id?: string | null
+        }
+        Update: {
+          age_range?: string
+          audio_url?: string | null
+          child_gender?: string | null
+          child_id?: string | null
+          child_name?: string
+          cover_url?: string | null
+          created_at?: string
+          daily_story_date?: string | null
+          edit_count?: number
+          id?: string
+          is_daily_story?: boolean | null
+          is_premium?: boolean | null
+          max_age?: number | null
+          min_age?: number | null
+          nikud?: boolean
+          story_type?: string | null
+          theme?: string | null
+          topic?: string
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "stories_child_id_fkey"
+            columns: ["child_id"]
+            isOneToOne: false
+            referencedRelation: "children"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      story_pages: {
+        Row: {
+          created_at: string
+          id: string
+          illustration_prompt: string | null
+          illustration_url: string | null
+          page_number: number
+          story_id: string
+          text: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          illustration_prompt?: string | null
+          illustration_url?: string | null
+          page_number: number
+          story_id: string
+          text: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          illustration_prompt?: string | null
+          illustration_url?: string | null
+          page_number?: number
+          story_id?: string
+          text?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "story_pages_story_id_fkey"
+            columns: ["story_id"]
+            isOneToOne: false
+            referencedRelation: "stories"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      user_feedback: {
+        Row: {
+          created_at: string
+          id: string
+          message: string | null
+          page_url: string | null
+          rating: number | null
+          user_agent: string | null
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          message?: string | null
+          page_url?: string | null
+          rating?: number | null
+          user_agent?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          message?: string | null
+          page_url?: string | null
+          rating?: number | null
+          user_agent?: string | null
+          user_id?: string | null
+        }
+        Relationships: []
+      }
+      user_roles: {
+        Row: {
+          created_at: string | null
+          id: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          role?: Database["public"]["Enums"]["app_role"]
+          user_id?: string
+        }
+        Relationships: []
+      }
+      user_settings: {
+        Row: {
+          age_filter_max: number | null
+          age_filter_min: number | null
+          avatar_emoji: string | null
+          created_at: string | null
+          device_id: string
+          id: string
+          last_active: string | null
+          nickname: string | null
+          screen_time_limit: number | null
+          silent_mode: boolean | null
+          sound_effects_enabled: boolean | null
+        }
+        Insert: {
+          age_filter_max?: number | null
+          age_filter_min?: number | null
+          avatar_emoji?: string | null
+          created_at?: string | null
+          device_id: string
+          id?: string
+          last_active?: string | null
+          nickname?: string | null
+          screen_time_limit?: number | null
+          silent_mode?: boolean | null
+          sound_effects_enabled?: boolean | null
+        }
+        Update: {
+          age_filter_max?: number | null
+          age_filter_min?: number | null
+          avatar_emoji?: string | null
+          created_at?: string | null
+          device_id?: string
+          id?: string
+          last_active?: string | null
+          nickname?: string | null
+          screen_time_limit?: number | null
+          silent_mode?: boolean | null
+          sound_effects_enabled?: boolean | null
+        }
+        Relationships: []
+      }
+    }
+    Views: {
+      [_ in never]: never
+    }
+    Functions: {
+      get_public_book: {
+        Args: { p_share_token: string }
+        Returns: {
+          created_at: string
+          id: string
+          is_public: boolean
+          share_token: string
+          story_id: string
+          updated_at: string
+        }[]
+      }
+      has_role: {
+        Args: {
+          _role: Database["public"]["Enums"]["app_role"]
+          _user_id: string
+        }
+        Returns: boolean
+      }
+    }
+    Enums: {
+      app_role: "admin" | "user"
+    }
+    CompositeTypes: {
+      [_ in never]: never
+    }
+  }
+}
+
+type DatabaseWithoutInternals = Omit<Database, "__InternalSupabase">
+
+type DefaultSchema = DatabaseWithoutInternals[Extract<keyof Database, "public">]
+
+export type Tables<
+  DefaultSchemaTableNameOrOptions extends
+    | keyof (DefaultSchema["Tables"] & DefaultSchema["Views"])
+    | { schema: keyof DatabaseWithoutInternals },
+  TableName extends DefaultSchemaTableNameOrOptions extends {
+    schema: keyof DatabaseWithoutInternals
+  }
+    ? keyof (DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"] &
+        DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Views"])
+    : never = never,
+> = DefaultSchemaTableNameOrOptions extends {
+  schema: keyof DatabaseWithoutInternals
+}
+  ? (DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"] &
+      DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Views"])[TableName] extends {
+      Row: infer R
+    }
+    ? R
+    : never
+  : DefaultSchemaTableNameOrOptions extends keyof (DefaultSchema["Tables"] &
+        DefaultSchema["Views"])
+    ? (DefaultSchema["Tables"] &
+        DefaultSchema["Views"])[DefaultSchemaTableNameOrOptions] extends {
+        Row: infer R
+      }
+      ? R
+      : never
+    : never
+
+export type TablesInsert<
+  DefaultSchemaTableNameOrOptions extends
+    | keyof DefaultSchema["Tables"]
+    | { schema: keyof DatabaseWithoutInternals },
+  TableName extends DefaultSchemaTableNameOrOptions extends {
+    schema: keyof DatabaseWithoutInternals
+  }
+    ? keyof DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"]
+    : never = never,
+> = DefaultSchemaTableNameOrOptions extends {
+  schema: keyof DatabaseWithoutInternals
+}
+  ? DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"][TableName] extends {
+      Insert: infer I
+    }
+    ? I
+    : never
+  : DefaultSchemaTableNameOrOptions extends keyof DefaultSchema["Tables"]
+    ? DefaultSchema["Tables"][DefaultSchemaTableNameOrOptions] extends {
+        Insert: infer I
+      }
+      ? I
+      : never
+    : never
+
+export type TablesUpdate<
+  DefaultSchemaTableNameOrOptions extends
+    | keyof DefaultSchema["Tables"]
+    | { schema: keyof DatabaseWithoutInternals },
+  TableName extends DefaultSchemaTableNameOrOptions extends {
+    schema: keyof DatabaseWithoutInternals
+  }
+    ? keyof DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"]
+    : never = never,
+> = DefaultSchemaTableNameOrOptions extends {
+  schema: keyof DatabaseWithoutInternals
+}
+  ? DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"][TableName] extends {
+      Update: infer U
+    }
+    ? U
+    : never
+  : DefaultSchemaTableNameOrOptions extends keyof DefaultSchema["Tables"]
+    ? DefaultSchema["Tables"][DefaultSchemaTableNameOrOptions] extends {
+        Update: infer U
+      }
+      ? U
+      : never
+    : never
+
+export type Enums<
+  DefaultSchemaEnumNameOrOptions extends
+    | keyof DefaultSchema["Enums"]
+    | { schema: keyof DatabaseWithoutInternals },
+  EnumName extends DefaultSchemaEnumNameOrOptions extends {
+    schema: keyof DatabaseWithoutInternals
+  }
+    ? keyof DatabaseWithoutInternals[DefaultSchemaEnumNameOrOptions["schema"]]["Enums"]
+    : never = never,
+> = DefaultSchemaEnumNameOrOptions extends {
+  schema: keyof DatabaseWithoutInternals
+}
+  ? DatabaseWithoutInternals[DefaultSchemaEnumNameOrOptions["schema"]]["Enums"][EnumName]
+  : DefaultSchemaEnumNameOrOptions extends keyof DefaultSchema["Enums"]
+    ? DefaultSchema["Enums"][DefaultSchemaEnumNameOrOptions]
+    : never
+
+export type CompositeTypes<
+  PublicCompositeTypeNameOrOptions extends
+    | keyof DefaultSchema["CompositeTypes"]
+    | { schema: keyof DatabaseWithoutInternals },
+  CompositeTypeName extends PublicCompositeTypeNameOrOptions extends {
+    schema: keyof DatabaseWithoutInternals
+  }
+    ? keyof DatabaseWithoutInternals[PublicCompositeTypeNameOrOptions["schema"]]["CompositeTypes"]
+    : never = never,
+> = PublicCompositeTypeNameOrOptions extends {
+  schema: keyof DatabaseWithoutInternals
+}
+  ? DatabaseWithoutInternals[PublicCompositeTypeNameOrOptions["schema"]]["CompositeTypes"][CompositeTypeName]
+  : PublicCompositeTypeNameOrOptions extends keyof DefaultSchema["CompositeTypes"]
+    ? DefaultSchema["CompositeTypes"][PublicCompositeTypeNameOrOptions]
+    : never
+
+export const Constants = {
+  public: {
+    Enums: {
+      app_role: ["admin", "user"],
+    },
+  },
+} as const

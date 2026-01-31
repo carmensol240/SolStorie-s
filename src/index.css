@@ -1,0 +1,414 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    direction: rtl;
+    
+    /* Comic Book Inspired Palette */
+    --background: 45 100% 96%;
+    --foreground: 220 20% 15%;
+
+    --card: 0 0% 100%;
+    --card-foreground: 220 20% 15%;
+
+    --popover: 0 0% 100%;
+    --popover-foreground: 220 20% 15%;
+
+    /* Vibrant Comic Primary - Coral Red */
+    --primary: 4 90% 58%;
+    --primary-foreground: 0 0% 100%;
+
+    /* Sky Blue Secondary */
+    --secondary: 199 89% 60%;
+    --secondary-foreground: 0 0% 100%;
+
+    /* Sunny Yellow Accent */
+    --accent: 45 100% 55%;
+    --accent-foreground: 220 20% 15%;
+
+    /* Grass Green */
+    --success: 142 70% 45%;
+    --success-foreground: 0 0% 100%;
+
+    /* Purple Pop */
+    --purple: 280 65% 55%;
+    --purple-foreground: 0 0% 100%;
+
+    --muted: 45 30% 90%;
+    --muted-foreground: 220 10% 40%;
+
+    --destructive: 0 84.2% 60.2%;
+    --destructive-foreground: 210 40% 98%;
+
+    --border: 220 15% 85%;
+    --input: 220 15% 85%;
+    --ring: 4 90% 58%;
+
+    --radius: 1rem;
+
+    /* Comic Shadows */
+    --shadow-comic: 4px 4px 0px hsl(220 20% 15%);
+    --shadow-comic-lg: 6px 6px 0px hsl(220 20% 15%);
+    --shadow-soft: 0 10px 40px -10px hsl(220 20% 15% / 0.15);
+
+    /* WhatsApp Green */
+    --whatsapp: 142 70% 45%;
+    --whatsapp-foreground: 0 0% 100%;
+
+    --sidebar-background: 0 0% 98%;
+    --sidebar-foreground: 240 5.3% 26.1%;
+    --sidebar-primary: 240 5.9% 10%;
+    --sidebar-primary-foreground: 0 0% 98%;
+    --sidebar-accent: 240 4.8% 95.9%;
+    --sidebar-accent-foreground: 240 5.9% 10%;
+    --sidebar-border: 220 13% 91%;
+    --sidebar-ring: 217.2 91.2% 59.8%;
+  }
+
+  .dark {
+    --background: 220 20% 10%;
+    --foreground: 45 100% 96%;
+
+    --card: 220 20% 15%;
+    --card-foreground: 45 100% 96%;
+
+    --popover: 220 20% 15%;
+    --popover-foreground: 45 100% 96%;
+
+    --primary: 4 90% 58%;
+    --primary-foreground: 0 0% 100%;
+
+    --secondary: 199 89% 60%;
+    --secondary-foreground: 0 0% 100%;
+
+    --accent: 45 100% 55%;
+    --accent-foreground: 220 20% 15%;
+
+    --muted: 220 20% 20%;
+    --muted-foreground: 220 10% 60%;
+
+    --destructive: 0 62.8% 30.6%;
+    --destructive-foreground: 210 40% 98%;
+
+    --border: 220 20% 25%;
+    --input: 220 20% 25%;
+    --ring: 4 90% 58%;
+
+    --sidebar-background: 240 5.9% 10%;
+    --sidebar-foreground: 240 4.8% 95.9%;
+    --sidebar-primary: 224.3 76.3% 48%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 240 3.7% 15.9%;
+    --sidebar-accent-foreground: 240 4.8% 95.9%;
+    --sidebar-border: 240 3.7% 15.9%;
+    --sidebar-ring: 217.2 91.2% 59.8%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  html, body {
+    direction: rtl;
+    scroll-behavior: smooth;
+    overflow: hidden;
+    height: 100vh;
+    height: 100dvh;
+  }
+
+  body {
+    @apply bg-background text-foreground;
+    font-family: 'Assistant', 'Heebo', sans-serif;
+    direction: rtl;
+    text-align: right;
+  }
+  
+  /* Hebrew punctuation fix - ensure periods/exclamation marks appear on left */
+  p, span, h1, h2, h3, h4, h5, h6, li, td, th, label, button {
+    unicode-bidi: plaintext;
+    text-align: right;
+  }
+}
+
+@layer utilities {
+  .comic-shadow {
+    box-shadow: var(--shadow-comic);
+  }
+
+  .comic-shadow-lg {
+    box-shadow: var(--shadow-comic-lg);
+  }
+
+  .shadow-soft {
+    box-shadow: var(--shadow-soft);
+  }
+
+  .text-gradient-hero {
+    background: linear-gradient(135deg, hsl(var(--primary)) 0%, hsl(var(--accent)) 50%, hsl(var(--secondary)) 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  .bg-halftone {
+    background-image: radial-gradient(circle, hsl(var(--foreground) / 0.08) 1px, transparent 1px);
+    background-size: 8px 8px;
+  }
+
+  .comic-border {
+    border: 3px solid hsl(var(--foreground));
+  }
+
+  .animate-bounce-gentle {
+    animation: bounce-gentle 2s ease-in-out infinite;
+  }
+
+  .animate-float {
+    animation: float 3s ease-in-out infinite;
+  }
+
+  .animate-pulse-glow {
+    animation: pulse-glow 2s ease-in-out infinite;
+  }
+
+  .starburst {
+    clip-path: polygon(50% 0%, 61% 35%, 98% 35%, 68% 57%, 79% 91%, 50% 70%, 21% 91%, 32% 57%, 2% 35%, 39% 35%);
+  }
+
+  /* Fade In Animation */
+  .animate-fade-in {
+    animation: fade-in 0.5s ease-out forwards;
+  }
+
+  .animate-fade-in-delay-1 {
+    animation: fade-in 0.5s ease-out 0.1s forwards;
+    opacity: 0;
+  }
+
+  .animate-fade-in-delay-2 {
+    animation: fade-in 0.5s ease-out 0.2s forwards;
+    opacity: 0;
+  }
+
+  .animate-fade-in-delay-3 {
+    animation: fade-in 0.5s ease-out 0.3s forwards;
+    opacity: 0;
+  }
+
+  /* Slide Up Animation */
+  .animate-slide-up {
+    animation: slide-up 0.5s ease-out forwards;
+  }
+
+  /* Story Viewer Book Colors */
+  .bg-story-page {
+    background-color: hsl(39 77% 94%);
+  }
+
+  .dark .bg-story-page {
+    background-color: hsl(var(--card));
+  }
+
+  .bg-story-spine {
+    background-color: hsl(25 76% 31%);
+  }
+
+  .dark .bg-story-spine {
+    background-color: hsl(var(--primary));
+  }
+
+  /* Focus visible for accessibility */
+  .focus-ring {
+    @apply focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2;
+  }
+
+  /* Interactive Card - כרטיס אינטראקטיבי */
+  .card-interactive {
+    @apply transition-all duration-200 cursor-pointer;
+    @apply hover:scale-[1.02] hover:-translate-y-1 hover:shadow-lg;
+    @apply active:scale-[0.98];
+    @apply focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2;
+  }
+
+  /* Button Press Effect - אפקט לחיצה */
+  .btn-press {
+    @apply transition-all duration-150;
+    @apply hover:scale-[1.02] hover:brightness-105;
+    @apply active:scale-95 active:brightness-95;
+  }
+
+  /* Icon Button Hover - כפתור אייקון */
+  .icon-btn-hover {
+    @apply transition-all duration-200;
+    @apply hover:scale-110 hover:bg-primary/10;
+    @apply active:scale-95;
+  }
+
+  /* Navigation Button - כפתור ניווט */
+  .nav-btn-hover {
+    @apply transition-all duration-200;
+    @apply hover:scale-105;
+    @apply active:scale-95;
+  }
+}
+
+@keyframes bounce-gentle {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-8px); }
+}
+
+@keyframes float {
+  0%, 100% { transform: translateY(0) rotate(-2deg); }
+  50% { transform: translateY(-12px) rotate(2deg); }
+}
+
+@keyframes pulse-glow {
+  0%, 100% { 
+    box-shadow: 0 0 20px hsl(var(--whatsapp) / 0.4), var(--shadow-comic);
+  }
+  50% { 
+    box-shadow: 0 0 40px hsl(var(--whatsapp) / 0.6), var(--shadow-comic);
+  }
+}
+
+@keyframes fade-in {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes slide-up {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Flipbook page turn animations */
+@keyframes flip-next {
+  0% { transform: perspective(1200px) rotateY(0deg); }
+  50% { transform: perspective(1200px) rotateY(-15deg); }
+  100% { transform: perspective(1200px) rotateY(0deg); }
+}
+
+@keyframes flip-prev {
+  0% { transform: perspective(1200px) rotateY(0deg); }
+  50% { transform: perspective(1200px) rotateY(15deg); }
+  100% { transform: perspective(1200px) rotateY(0deg); }
+}
+
+.animate-flip-next {
+  animation: flip-next 0.4s ease-in-out;
+}
+
+  .animate-flip-prev {
+    animation: flip-prev 0.4s ease-in-out;
+  }
+
+  /* 3D Bubble Logo Styles */
+  .logo-3d-bubble {
+    font-family: 'Baloo 2', 'Heebo', sans-serif;
+  }
+
+  .logo-story {
+    color: #c4b5fd;
+    text-shadow: 
+      0 0 30px rgba(196, 181, 253, 0.6),
+      0 0 60px rgba(196, 181, 253, 0.3),
+      2px 2px 0 rgba(167, 139, 250, 0.8),
+      4px 4px 0 rgba(139, 92, 246, 0.4),
+      0 6px 12px rgba(0, 0, 0, 0.15);
+  }
+
+  .logo-time {
+    color: #fdba74;
+    text-shadow: 
+      0 0 30px rgba(253, 186, 116, 0.6),
+      0 0 60px rgba(253, 186, 116, 0.3),
+      2px 2px 0 rgba(251, 146, 60, 0.8),
+      4px 4px 0 rgba(249, 115, 22, 0.4),
+      0 6px 12px rgba(0, 0, 0, 0.15);
+  }
+
+  /* =========================================
+     HIGH CONTRAST / VISUAL AID MODE
+     Yellow text on black background
+     Larger fonts for readability
+     ========================================= */
+  .visual-aid-mode {
+    --background: 0 0% 0%;
+    --foreground: 50 100% 50%;
+    --card: 0 0% 5%;
+    --card-foreground: 50 100% 50%;
+    --popover: 0 0% 5%;
+    --popover-foreground: 50 100% 50%;
+    --primary: 50 100% 50%;
+    --primary-foreground: 0 0% 0%;
+    --secondary: 50 100% 60%;
+    --secondary-foreground: 0 0% 0%;
+    --accent: 50 100% 50%;
+    --accent-foreground: 0 0% 0%;
+    --muted: 0 0% 15%;
+    --muted-foreground: 50 100% 70%;
+    --border: 50 100% 30%;
+    --input: 50 100% 30%;
+    --ring: 50 100% 50%;
+  }
+
+  .visual-aid-mode body {
+    font-size: 1.15rem;
+    line-height: 1.7;
+    letter-spacing: 0.02em;
+  }
+
+  .visual-aid-mode h1,
+  .visual-aid-mode h2,
+  .visual-aid-mode h3 {
+    font-weight: 800;
+  }
+
+  .visual-aid-mode p,
+  .visual-aid-mode span,
+  .visual-aid-mode button {
+    font-weight: 500;
+  }
+
+  .visual-aid-mode .text-muted-foreground {
+    color: hsl(50 100% 70%) !important;
+  }
+
+  /* Force high contrast on buttons */
+  .visual-aid-mode .bg-primary {
+    background-color: hsl(50 100% 50%) !important;
+    color: hsl(0 0% 0%) !important;
+  }
+
+  .visual-aid-mode .text-primary {
+    color: hsl(50 100% 50%) !important;
+  }
+
+  /* Ensure links are visible */
+  .visual-aid-mode a {
+    color: hsl(50 100% 60%);
+    text-decoration: underline;
+  }
+
+  /* Bigger touch targets */
+  .visual-aid-mode button,
+  .visual-aid-mode [role="button"] {
+    min-height: 48px;
+    font-size: 1.1rem;
+  }

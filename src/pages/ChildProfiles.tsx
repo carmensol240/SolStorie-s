@@ -1,0 +1,804 @@
+import { useState, useEffect, useRef } from "react";
+import { useNavigate } from "react-router-dom";
+import { Plus, Loader2, Camera, Pencil, Trash2, RefreshCw, Heart, ArrowRight, Sparkles } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/hooks/use-auth";
+import { useToast } from "@/hooks/use-toast";
+import MobileNavigation from "@/components/MobileNavigation";
+import AvatarPreviewDialog from "@/components/story/AvatarPreviewDialog";
+
+interface Child {
+  id: string;
+  name: string;
+  age: number;
+  gender: string;
+  photo_url: string | null;
+  avatar_url: string | null;
+  personality_traits: string | null;
+}
+
+const ChildProfiles = () => {
+  const navigate = useNavigate();
+  const { user, loading: authLoading } = useAuth();
+  const { toast } = useToast();
+  const [children, setChildren] = useState<Child[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [dialogOpen, setDialogOpen] = useState(false);
+  const [newChildName, setNewChildName] = useState("");
+  const [newChildAge, setNewChildAge] = useState<string>("");
+  const [newChildGender, setNewChildGender] = useState<"male" | "female">("male");
+  const [newChildTraits, setNewChildTraits] = useState("");
+  const [newChildPhoto, setNewChildPhoto] = useState<File | null>(null);
+  const [photoPreview, setPhotoPreview] = useState<string | null>(null);
+  const [saving, setSaving] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  
+  // Edit states
+  const [editDialogOpen, setEditDialogOpen] = useState(false);
+  const [editingChild, setEditingChild] = useState<Child | null>(null);
+  const [editName, setEditName] = useState("");
+  const [editAge, setEditAge] = useState("");
+  const [editGender, setEditGender] = useState<"male" | "female">("male");
+  const [editTraits, setEditTraits] = useState("");
+  const [editPhoto, setEditPhoto] = useState<File | null>(null);
+  const [editPhotoPreview, setEditPhotoPreview] = useState<string | null>(null);
+  const [editPhotoRemoved, setEditPhotoRemoved] = useState(false);
+  const editFileInputRef = useRef<HTMLInputElement>(null);
+  
+  // Delete states
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [childToDelete, setChildToDelete] = useState<Child | null>(null);
+  const [deleting, setDeleting] = useState(false);
+  
+  // Avatar preview states
+  const [avatarPreviewOpen, setAvatarPreviewOpen] = useState(false);
+  const [pendingAvatarChild, setPendingAvatarChild] = useState<{id: string, name: string, photoUrl: string} | null>(null);
+
+  useEffect(() => {
+    if (!authLoading && !user) {
+      navigate("/auth");
+      return;
+    }
+    if (user) {
+      fetchChildren();
+    }
+  }, [user, authLoading, navigate]);
+
+  const fetchChildren = async () => {
+    try {
+      const { data, error } = await supabase
+        .from("children")
+        .select("id, name, age, gender, photo_url, avatar_url, personality_traits")
+        .order("created_at", { ascending: true });
+
+      if (error) throw error;
+      setChildren(data || []);
+    } catch (error) {
+      console.error("Error fetching children:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handlePhotoSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      setNewChildPhoto(file);
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setPhotoPreview(reader.result as string);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  const uploadPhoto = async (childId: string): Promise<string | null> => {
+    if (!newChildPhoto) return null;
+    
+    const fileExt = newChildPhoto.name.split('.').pop();
+    const fileName = `${childId}.${fileExt}`;
+    
+    const { error } = await supabase.storage
+      .from('child-photos')
+      .upload(fileName, newChildPhoto, { upsert: true });
+      
+    if (error) throw error;
+    
+    const { data } = supabase.storage
+      .from('child-photos')
+      .getPublicUrl(fileName);
+      
+    return data.publicUrl;
+  };
+
+  const handleAddChild = async () => {
+    // Validate user is authenticated FIRST
+    if (!user?.id) {
+      console.error('handleAddChild: User not authenticated', { user });
+      toast({
+        title: "שגיאה",
+        description: "יש להתחבר כדי להוסיף ילד",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    // Then validate required fields
+    if (!newChildName.trim() || !newChildAge) {
+      toast({
+        title: "שגיאה",
+        description: "נא למלא את כל השדות הנדרשים",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setSaving(true);
+    try {
+      // Ensure user_id is explicitly set with validated values
+      const insertData = {
+        user_id: user.id,
+        name: newChildName.trim(),
+        age: parseInt(newChildAge, 10),
+        gender: newChildGender || 'male',
+        personality_traits: newChildTraits?.trim() || null,
+      };
+      
+      console.log('Inserting child with data:', JSON.stringify(insertData, null, 2));
+      
+      const { data: insertedChild, error } = await supabase
+        .from("children")
+        .insert(insertData)
+        .select()
+        .single();
+
+      if (error) {
+        console.error('Database insert error:', JSON.stringify(error, null, 2));
+        throw error;
+      }
+
+      // Upload photo if selected
+      if (newChildPhoto && insertedChild) {
+        const photoUrl = await uploadPhoto(insertedChild.id);
+        if (photoUrl) {
+          await supabase.from("children").update({ photo_url: photoUrl }).eq("id", insertedChild.id);
+          
+          // Open avatar preview dialog
+          setPendingAvatarChild({
+            id: insertedChild.id,
+            name: newChildName.trim(),
+            photoUrl: photoUrl,
+          });
+          setAvatarPreviewOpen(true);
+        }
+      }
+
+      toast({
+        title: "נוסף בהצלחה!",
+        description: `${newChildName} נוסף לרשימת הילדים`,
+      });
+
+      setNewChildName("");
+      setNewChildAge("");
+      setNewChildGender("male");
+      setNewChildTraits("");
+      setNewChildPhoto(null);
+      setPhotoPreview(null);
+      setDialogOpen(false);
+      fetchChildren();
+    } catch (error) {
+      console.error("Error adding child:", error);
+      toast({
+        title: "שגיאה",
+        description: "לא הצלחנו להוסיף את הילד",
+        variant: "destructive",
+      });
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const handleSelectChild = (childId: string) => {
+    localStorage.setItem("selected_child_id", childId);
+    navigate("/library");
+  };
+
+  const handleEditChild = (child: Child, e: React.MouseEvent) => {
+    e.stopPropagation();
+    setEditingChild(child);
+    setEditName(child.name);
+    setEditAge(String(child.age));
+    setEditGender(child.gender as "male" | "female");
+    setEditTraits(child.personality_traits || "");
+    setEditPhoto(null);
+    setEditPhotoPreview(child.photo_url);
+    setEditPhotoRemoved(false);
+    setEditDialogOpen(true);
+  };
+
+  const handleEditPhotoSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      setEditPhoto(file);
+      setEditPhotoRemoved(false);
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setEditPhotoPreview(reader.result as string);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  const deletePhotoFromStorage = async (photoUrl: string) => {
+    try {
+      const fileName = photoUrl.split('/').pop();
+      if (fileName) {
+        await supabase.storage.from('child-photos').remove([fileName]);
+      }
+    } catch (error) {
+      console.error("Error deleting photo from storage:", error);
+    }
+  };
+
+  const handleSaveEdit = async () => {
+    if (!editingChild || !editName.trim() || !editAge) return;
+
+    setSaving(true);
+    try {
+      let photoUrl = editingChild.photo_url;
+
+      // Handle photo changes
+      if (editPhotoRemoved && editingChild.photo_url) {
+        await deletePhotoFromStorage(editingChild.photo_url);
+        photoUrl = null;
+      }
+
+      if (editPhoto) {
+        // Delete old photo if exists
+        if (editingChild.photo_url) {
+          await deletePhotoFromStorage(editingChild.photo_url);
+        }
+        // Upload new photo
+        const fileExt = editPhoto.name.split('.').pop();
+        const fileName = `${editingChild.id}.${fileExt}`;
+        
+        const { error: uploadError } = await supabase.storage
+          .from('child-photos')
+          .upload(fileName, editPhoto, { upsert: true });
+          
+        if (uploadError) throw uploadError;
+        
+        const { data } = supabase.storage
+          .from('child-photos')
+          .getPublicUrl(fileName);
+          
+        photoUrl = data.publicUrl;
+      }
+
+      const { error } = await supabase
+        .from("children")
+        .update({
+          name: editName.trim(),
+          age: parseInt(editAge),
+          gender: editGender,
+          photo_url: photoUrl,
+          personality_traits: editTraits.trim() || null,
+        })
+        .eq("id", editingChild.id);
+
+      if (error) throw error;
+
+      toast({
+        title: "עודכן בהצלחה!",
+        description: `הפרטים של ${editName} עודכנו`,
+      });
+
+      setEditDialogOpen(false);
+      fetchChildren();
+    } catch (error) {
+      console.error("Error updating child:", error);
+      toast({
+        title: "שגיאה",
+        description: "לא הצלחנו לעדכן את הפרטים",
+        variant: "destructive",
+      });
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const handleDeleteChild = (child: Child, e: React.MouseEvent) => {
+    e.stopPropagation();
+    setChildToDelete(child);
+    setDeleteDialogOpen(true);
+  };
+
+  const confirmDelete = async () => {
+    if (!childToDelete) return;
+
+    setDeleting(true);
+    try {
+      // Delete photo from storage if exists
+      if (childToDelete.photo_url) {
+        await deletePhotoFromStorage(childToDelete.photo_url);
+      }
+
+      const { error } = await supabase
+        .from("children")
+        .delete()
+        .eq("id", childToDelete.id);
+
+      if (error) throw error;
+
+      toast({
+        title: "נמחק בהצלחה",
+        description: `${childToDelete.name} הוסר מהרשימה`,
+      });
+
+      setDeleteDialogOpen(false);
+      setChildToDelete(null);
+      fetchChildren();
+    } catch (error) {
+      console.error("Error deleting child:", error);
+      toast({
+        title: "שגיאה",
+        description: "לא הצלחנו למחוק את הילד",
+        variant: "destructive",
+      });
+    } finally {
+      setDeleting(false);
+    }
+  };
+
+  if (authLoading || loading) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <Loader2 className="w-8 h-8 animate-spin text-primary" />
+      </div>
+    );
+  }
+
+  return (
+    <div className="min-h-screen bg-background bg-halftone pb-20">
+      <div className="container max-w-lg mx-auto px-4 py-8">
+        {/* Header with Back Button */}
+        <div className="flex items-center justify-between mb-6">
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => navigate("/")}
+            className="flex items-center gap-1 min-h-[44px]"
+            aria-label="חזרה לדף הבית"
+          >
+            <ArrowRight className="w-4 h-4" />
+            חזרה
+          </Button>
+          <div className="flex-1 text-center">
+            <h1 className="text-2xl font-black text-foreground">
+              בחרו ילד
+            </h1>
+          </div>
+          <div className="w-16" /> {/* Spacer for centering */}
+        </div>
+        <p className="text-muted-foreground text-center mb-6">
+          למי ניצור את הסיפור הבא?
+        </p>
+
+        <div className="space-y-4">
+          {children.map((child) => (
+            <div
+              key={child.id}
+              onClick={() => handleSelectChild(child.id)}
+              onKeyDown={(e) => e.key === 'Enter' && handleSelectChild(child.id)}
+              tabIndex={0}
+              role="button"
+              aria-label={`בחר את ${child.name}`}
+              className="w-full bg-card border-2 border-foreground/10 rounded-2xl p-6 flex items-center gap-4 hover:border-primary hover:shadow-lg transition-all duration-200 comic-shadow cursor-pointer hover:scale-[1.01] hover:-translate-y-0.5 active:scale-[0.99] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+            >
+              {/* Show avatar if available, otherwise photo, otherwise emoji */}
+              {child.avatar_url ? (
+                <div className="relative">
+                  <img 
+                    src={child.avatar_url} 
+                    alt={child.name}
+                    className="w-14 h-14 rounded-full object-cover border-2 border-primary"
+                  />
+                  <div className="absolute -bottom-1 -right-1 w-5 h-5 bg-primary rounded-full flex items-center justify-center">
+                    <Sparkles className="w-3 h-3 text-white" />
+                  </div>
+                </div>
+              ) : child.photo_url ? (
+                <div className="relative">
+                  <img 
+                    src={child.photo_url} 
+                    alt={child.name}
+                    className="w-14 h-14 rounded-full object-cover border-2 border-primary/20"
+                  />
+                  {/* Show button to generate avatar */}
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setPendingAvatarChild({
+                        id: child.id,
+                        name: child.name,
+                        photoUrl: child.photo_url!,
+                      });
+                      setAvatarPreviewOpen(true);
+                    }}
+                    className="absolute -bottom-1 -right-1 w-6 h-6 bg-amber-500 rounded-full flex items-center justify-center hover:bg-amber-600 transition-colors"
+                    title="צור דמות 3D"
+                  >
+                    <Sparkles className="w-3 h-3 text-white" />
+                  </button>
+                </div>
+              ) : (
+                <div className="w-14 h-14 rounded-full bg-primary/10 flex items-center justify-center">
+                  <span className="text-2xl">{child.gender === "female" ? "👧" : "👦"}</span>
+                </div>
+              )}
+              <div className="text-right flex-1">
+                <h3 className="text-xl font-bold text-foreground">{child.name}</h3>
+                <div className="flex items-center gap-2">
+                  <p className="text-muted-foreground">{child.gender === "female" ? "בת" : "בן"} {child.age}</p>
+                  {child.avatar_url && (
+                    <span className="text-xs text-primary bg-primary/10 px-2 py-0.5 rounded-full">דמות מוכנה</span>
+                  )}
+                </div>
+              </div>
+              <div className="flex gap-2">
+                <button
+                  onClick={(e) => handleEditChild(child, e)}
+                  className="p-2 rounded-full hover:bg-primary/10 transition-all duration-200 min-h-[44px] min-w-[44px] flex items-center justify-center hover:scale-110 active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                  aria-label={`ערוך את ${child.name}`}
+                >
+                  <Pencil className="w-5 h-5 text-muted-foreground hover:text-primary" aria-hidden="true" />
+                </button>
+                <button
+                  onClick={(e) => handleDeleteChild(child, e)}
+                  className="p-2 rounded-full hover:bg-destructive/10 transition-all duration-200 min-h-[44px] min-w-[44px] flex items-center justify-center hover:scale-110 active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                  aria-label={`מחק את ${child.name}`}
+                >
+                  <Trash2 className="w-5 h-5 text-muted-foreground hover:text-destructive" aria-hidden="true" />
+                </button>
+              </div>
+            </div>
+          ))}
+
+          <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
+            <DialogTrigger asChild>
+              <button className="w-full border-2 border-dashed border-muted-foreground/30 rounded-2xl p-6 flex items-center justify-center gap-3 hover:border-primary hover:bg-primary/5 transition-all duration-200 hover:scale-[1.01] active:scale-[0.99] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2">
+                <Plus className="w-6 h-6 text-primary" />
+                <span className="text-lg font-medium text-muted-foreground">
+                  הוסף ילד
+                </span>
+              </button>
+            </DialogTrigger>
+            <DialogContent className="max-w-sm">
+              <DialogHeader>
+                <DialogTitle className="text-right">הוספת ילד חדש</DialogTitle>
+              </DialogHeader>
+              <div className="space-y-4 pt-4">
+                {/* Photo Upload */}
+                <div className="flex justify-center">
+                  <button
+                    type="button"
+                    onClick={() => fileInputRef.current?.click()}
+                    className="w-20 h-20 rounded-full bg-primary/10 border-2 border-dashed border-primary/30 flex items-center justify-center hover:border-primary hover:bg-primary/20 transition-all overflow-hidden"
+                  >
+                    {photoPreview ? (
+                      <img src={photoPreview} alt="תצוגה מקדימה" className="w-full h-full object-cover" />
+                    ) : (
+                      <Camera className="w-8 h-8 text-primary/60" />
+                    )}
+                  </button>
+                  <input
+                    type="file"
+                    ref={fileInputRef}
+                    onChange={handlePhotoSelect}
+                    accept="image/*"
+                    className="hidden"
+                  />
+                </div>
+                <p className="text-center text-sm text-muted-foreground -mt-2">הוספת תמונה (אופציונלי)</p>
+                
+                <div className="space-y-2">
+                  <Label htmlFor="childName">שם הילד/ה</Label>
+                  <Input
+                    id="childName"
+                    value={newChildName}
+                    onChange={(e) => setNewChildName(e.target.value)}
+                    placeholder="הכניסו את שם הילד/ה"
+                    className="text-right"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label>מגדר</Label>
+                  <div className="grid grid-cols-2 gap-3">
+                    <button
+                      type="button"
+                      onClick={() => setNewChildGender("male")}
+                      className={`p-3 rounded-xl border-2 transition-all text-center flex items-center justify-center gap-2 ${
+                        newChildGender === "male"
+                          ? "border-primary bg-primary/10"
+                          : "border-muted hover:border-primary/50"
+                      }`}
+                    >
+                      <span className="text-xl">👦</span>
+                      <span className="font-medium">בן</span>
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setNewChildGender("female")}
+                      className={`p-3 rounded-xl border-2 transition-all text-center flex items-center justify-center gap-2 ${
+                        newChildGender === "female"
+                          ? "border-primary bg-primary/10"
+                          : "border-muted hover:border-primary/50"
+                      }`}
+                    >
+                      <span className="text-xl">👧</span>
+                      <span className="font-medium">בת</span>
+                    </button>
+                  </div>
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="childAge">גיל</Label>
+                  <Select value={newChildAge} onValueChange={setNewChildAge}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="בחרו גיל" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {Array.from({ length: 11 }, (_, i) => (
+                        <SelectItem key={i} value={String(i)}>
+                          {i === 0 ? "פחות משנה" : `${i} שנים`}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                
+                {/* Personality Traits */}
+                <div className="space-y-2">
+                  <Label htmlFor="childTraits" className="flex items-center gap-2">
+                    <Heart className="w-4 h-4 text-accent" />
+                    ספרו לנו עוד על הילד/ה (אופציונלי)
+                  </Label>
+                  <Textarea
+                    id="childTraits"
+                    value={newChildTraits}
+                    onChange={(e) => setNewChildTraits(e.target.value)}
+                    placeholder="תכונות אופי, תחביבים, דברים שאוהב/ת..."
+                    className="min-h-[80px] resize-none text-right"
+                    dir="rtl"
+                  />
+                </div>
+                
+                <Button
+                  onClick={handleAddChild}
+                  disabled={!newChildName.trim() || !newChildAge || saving}
+                  className="w-full"
+                >
+                  {saving ? (
+                    <Loader2 className="w-4 h-4 animate-spin" />
+                  ) : (
+                    "הוסף"
+                  )}
+                </Button>
+              </div>
+            </DialogContent>
+          </Dialog>
+
+          {/* Edit Dialog */}
+          <Dialog open={editDialogOpen} onOpenChange={setEditDialogOpen}>
+            <DialogContent className="max-w-sm">
+              <DialogHeader>
+                <DialogTitle className="text-right">עריכת פרטי ילד</DialogTitle>
+              </DialogHeader>
+              <div className="space-y-4 pt-4">
+                {/* Photo Upload/Edit */}
+                <div className="flex flex-col items-center gap-2">
+                  <button
+                    type="button"
+                    onClick={() => editFileInputRef.current?.click()}
+                    className="w-20 h-20 rounded-full bg-primary/10 border-2 border-dashed border-primary/30 flex items-center justify-center hover:border-primary hover:bg-primary/20 transition-all overflow-hidden"
+                  >
+                    {editPhotoPreview && !editPhotoRemoved ? (
+                      <img src={editPhotoPreview} alt="תצוגה מקדימה" className="w-full h-full object-cover" />
+                    ) : (
+                      <Camera className="w-8 h-8 text-primary/60" />
+                    )}
+                  </button>
+                  <input
+                    type="file"
+                    ref={editFileInputRef}
+                    onChange={handleEditPhotoSelect}
+                    accept="image/*"
+                    className="hidden"
+                  />
+                  {(editPhotoPreview && !editPhotoRemoved) && (
+                    <div className="flex gap-3">
+                      <button
+                        type="button"
+                        onClick={() => editFileInputRef.current?.click()}
+                        className="flex items-center gap-1 text-sm text-muted-foreground hover:text-primary transition-colors"
+                      >
+                        <RefreshCw className="w-4 h-4" />
+                        <span>החלפה</span>
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setEditPhotoPreview(null);
+                          setEditPhoto(null);
+                          setEditPhotoRemoved(true);
+                        }}
+                        className="flex items-center gap-1 text-sm text-destructive hover:text-destructive/80 transition-colors"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                        <span>מחיקה</span>
+                      </button>
+                    </div>
+                  )}
+                </div>
+                
+                <div className="space-y-2">
+                  <Label htmlFor="editChildName">שם הילד/ה</Label>
+                  <Input
+                    id="editChildName"
+                    value={editName}
+                    onChange={(e) => setEditName(e.target.value)}
+                    placeholder="הכניסו את שם הילד/ה"
+                    className="text-right"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label>מגדר</Label>
+                  <div className="grid grid-cols-2 gap-3">
+                    <button
+                      type="button"
+                      onClick={() => setEditGender("male")}
+                      className={`p-3 rounded-xl border-2 transition-all text-center flex items-center justify-center gap-2 ${
+                        editGender === "male"
+                          ? "border-primary bg-primary/10"
+                          : "border-muted hover:border-primary/50"
+                      }`}
+                    >
+                      <span className="text-xl">👦</span>
+                      <span className="font-medium">בן</span>
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setEditGender("female")}
+                      className={`p-3 rounded-xl border-2 transition-all text-center flex items-center justify-center gap-2 ${
+                        editGender === "female"
+                          ? "border-primary bg-primary/10"
+                          : "border-muted hover:border-primary/50"
+                      }`}
+                    >
+                      <span className="text-xl">👧</span>
+                      <span className="font-medium">בת</span>
+                    </button>
+                  </div>
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="editChildAge">גיל</Label>
+                  <Select value={editAge} onValueChange={setEditAge}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="בחרו גיל" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {Array.from({ length: 11 }, (_, i) => (
+                        <SelectItem key={i} value={String(i)}>
+                          {i === 0 ? "פחות משנה" : `${i} שנים`}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                
+                {/* Personality Traits */}
+                <div className="space-y-2">
+                  <Label htmlFor="editChildTraits" className="flex items-center gap-2">
+                    <Heart className="w-4 h-4 text-accent" />
+                    ספרו לנו עוד על הילד/ה (אופציונלי)
+                  </Label>
+                  <Textarea
+                    id="editChildTraits"
+                    value={editTraits}
+                    onChange={(e) => setEditTraits(e.target.value)}
+                    placeholder="תכונות אופי, תחביבים, דברים שאוהב/ת..."
+                    className="min-h-[80px] resize-none text-right"
+                    dir="rtl"
+                  />
+                </div>
+                
+                <Button
+                  onClick={handleSaveEdit}
+                  disabled={!editName.trim() || !editAge || saving}
+                  className="w-full"
+                >
+                  {saving ? (
+                    <Loader2 className="w-4 h-4 animate-spin" />
+                  ) : (
+                    "שמור שינויים"
+                  )}
+                </Button>
+              </div>
+            </DialogContent>
+          </Dialog>
+
+          {/* Delete Confirmation Dialog */}
+          <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+            <AlertDialogContent>
+              <AlertDialogHeader>
+                <AlertDialogTitle className="text-right">
+                  האם למחוק את {childToDelete?.name}?
+                </AlertDialogTitle>
+                <AlertDialogDescription className="text-right">
+                  פעולה זו תמחק את הפרופיל לצמיתות ולא ניתן יהיה לשחזר אותו.
+                </AlertDialogDescription>
+              </AlertDialogHeader>
+              <AlertDialogFooter className="flex-row-reverse gap-2">
+                <AlertDialogCancel disabled={deleting}>ביטול</AlertDialogCancel>
+                <AlertDialogAction
+                  onClick={confirmDelete}
+                  disabled={deleting}
+                  className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                >
+                  {deleting ? <Loader2 className="w-4 h-4 animate-spin" /> : "מחיקה"}
+                </AlertDialogAction>
+              </AlertDialogFooter>
+            </AlertDialogContent>
+          </AlertDialog>
+
+          {/* Avatar Preview Dialog */}
+          {pendingAvatarChild && (
+            <AvatarPreviewDialog
+              open={avatarPreviewOpen}
+              onOpenChange={(open) => {
+                setAvatarPreviewOpen(open);
+                if (!open) setPendingAvatarChild(null);
+              }}
+              originalPhoto={pendingAvatarChild.photoUrl}
+              childId={pendingAvatarChild.id}
+              childName={pendingAvatarChild.name}
+              onConfirm={(avatarUrl) => {
+                fetchChildren();
+              }}
+            />
+          )}
+        </div>
+      </div>
+      <MobileNavigation />
+    </div>
+  );
+};
+
+export default ChildProfiles;

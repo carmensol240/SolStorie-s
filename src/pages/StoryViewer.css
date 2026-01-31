@@ -1,0 +1,46 @@
+/* Book Page Flip Animation */
+.book-page {
+  transform-style: preserve-3d;
+  perspective: 1500px;
+  transition: transform 0.5s ease-in-out, box-shadow 0.5s ease-in-out;
+}
+
+/* Flip animation for next page (RTL - flip from left) */
+.flip-next {
+  animation: flipNext 0.5s ease-in-out;
+}
+
+@keyframes flipNext {
+  0% {
+    transform: rotateY(0deg);
+    box-shadow: 8px 8px 30px rgba(0, 0, 0, 0.3), -4px 0 20px rgba(0, 0, 0, 0.1);
+  }
+  50% {
+    transform: rotateY(-15deg) scale(0.95);
+    box-shadow: 20px 8px 40px rgba(0, 0, 0, 0.4), -8px 0 30px rgba(0, 0, 0, 0.2);
+  }
+  100% {
+    transform: rotateY(0deg);
+    box-shadow: 8px 8px 30px rgba(0, 0, 0, 0.3), -4px 0 20px rgba(0, 0, 0, 0.1);
+  }
+}
+
+/* Flip animation for previous page (RTL - flip from right) */
+.flip-prev {
+  animation: flipPrev 0.5s ease-in-out;
+}
+
+@keyframes flipPrev {
+  0% {
+    transform: rotateY(0deg);
+    box-shadow: 8px 8px 30px rgba(0, 0, 0, 0.3), -4px 0 20px rgba(0, 0, 0, 0.1);
+  }
+  50% {
+    transform: rotateY(15deg) scale(0.95);
+    box-shadow: -20px 8px 40px rgba(0, 0, 0, 0.4), 8px 0 30px rgba(0, 0, 0, 0.2);
+  }
+  100% {
+    transform: rotateY(0deg);
+    box-shadow: 8px 8px 30px rgba(0, 0, 0, 0.3), -4px 0 20px rgba(0, 0, 0, 0.1);
+  }
+}

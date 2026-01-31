@@ -1,0 +1,125 @@
+import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+
+const corsHeaders = {
+  "Access-Control-Allow-Origin": "*",
+  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
+};
+
+serve(async (req) => {
+  if (req.method === "OPTIONS") {
+    return new Response(null, { headers: corsHeaders });
+  }
+
+  try {
+    const { childPhoto } = await req.json();
+    
+    if (!childPhoto) {
+      return new Response(
+        JSON.stringify({ error: "No photo provided" }),
+        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
+    // Input validation - max 10MB for base64 photo
+    const MAX_PHOTO_SIZE = 10 * 1024 * 1024;
+    if (childPhoto.length > MAX_PHOTO_SIZE) {
+      return new Response(
+        JSON.stringify({ error: "התמונה גדולה מדי (מקסימום 10MB)" }),
+        { status: 413, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
+    const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
+    if (!LOVABLE_API_KEY) {
+      throw new Error("LOVABLE_API_KEY is not configured");
+    }
+
+    console.log("Generating 3D preview for child photo...");
+
+    const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${LOVABLE_API_KEY}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        model: "google/gemini-2.5-flash-image",
+        modalities: ["image", "text"],
+        messages: [
+          {
+            role: "user",
+            content: [
+              {
+                type: "text",
+                text: `Transform this child's photo into a 3D Pixar/Disney animation style portrait.
+                
+CRITICAL REQUIREMENTS:
+- Keep the EXACT same facial features, hair color, hair style, and skin tone
+- Maintain the same clothing colors and style
+- Make it look like a character from a Pixar movie (like "Coco", "Inside Out", or "Luca")
+- Use soft, warm lighting
+- Friendly, happy expression
+- 3D rounded shapes with smooth surfaces
+- Simple, clean background (soft gradient or solid pastel color)
+- Portrait style, showing head and shoulders
+- High quality, professional animation look
+
+The result should be immediately recognizable as the same child, just in beautiful 3D animation style.`
+              },
+              {
+                type: "image_url",
+                image_url: {
+                  url: childPhoto
+                }
+              }
+            ]
+          }
+        ]
+      })
+    });
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      console.error("AI Gateway error:", response.status, errorText);
+      
+      if (response.status === 429) {
+        return new Response(
+          JSON.stringify({ error: "Rate limit exceeded. Please try again in a moment." }),
+          { status: 429, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        );
+      }
+      if (response.status === 402) {
+        return new Response(
+          JSON.stringify({ error: "Service temporarily unavailable." }),
+          { status: 402, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        );
+      }
+      
+      throw new Error(`AI Gateway error: ${response.status}`);
+    }
+
+    const data = await response.json();
+    console.log("AI response received");
+
+    const previewUrl = data.choices?.[0]?.message?.images?.[0]?.image_url?.url;
+    
+    if (!previewUrl) {
+      console.error("No image in response:", JSON.stringify(data));
+      throw new Error("No preview image generated");
+    }
+
+    console.log("Preview generated successfully");
+
+    return new Response(
+      JSON.stringify({ previewUrl }),
+      { headers: { ...corsHeaders, "Content-Type": "application/json" } }
+    );
+
+  } catch (error) {
+    console.error("Error generating preview:", error);
+    return new Response(
+      JSON.stringify({ error: error instanceof Error ? error.message : "Failed to generate preview" }),
+      { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+    );
+  }
+});
