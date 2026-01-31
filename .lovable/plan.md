@@ -1,86 +1,92 @@
 
-# Password Reset Email Fix Plan
+# Password Reset Email & Global Scroll Fix Plan
 
-## Problem Summary
-The password reset email is not being delivered because Supabase uses its **built-in email system** (not Resend) for authentication emails. The auth logs confirm the request was processed successfully (status 200), but the email delivery is failing.
+## Problem Analysis
 
-## Current State
-- **Resend API Key**: Configured and working (used for contact form and purchase emails)
-- **Verified Domain**: `storytime.org.il` in Resend
-- **Auth Flow**: Uses `supabase.auth.resetPasswordForEmail()` which relies on Supabase's default SMTP
-- **Issue**: Supabase's default email provider has deliverability issues
+### Finding 1: User Does Not Exist in Database
+The logs reveal the **root cause**: the email `carmit1901@gmail.com` is not registered in the system.
 
----
+```
+Error generating reset link: AuthApiError: User with this email not found
+error_code: "user_not_found"
+```
 
-## Solution: Configure Custom SMTP in Supabase
+The edge function is working correctly - it intentionally returns "Email Sent" even when the user doesn't exist. This is a **security best practice** to prevent attackers from discovering which emails are registered (email enumeration attack).
 
-### Option A: Custom SMTP via Resend (Recommended)
+### Finding 2: Sender Domain Test Needed
+You requested testing with `onboarding@resend.dev` to rule out domain issues. This will help confirm whether the `storytime.org.il` domain has any delivery issues.
 
-Configure Supabase to use Resend as the SMTP provider for ALL authentication emails.
-
-**Steps:**
-1. Get SMTP credentials from Resend dashboard
-2. Configure Supabase Auth SMTP settings using the `configure-auth` tool
-3. Set sender email to use verified domain (`noreply@storytime.org.il`)
-
-### Option B: Custom Edge Function for Password Reset
-
-Create a new edge function that handles password reset emails via Resend, then modify the auth flow to use it.
+### Finding 3: Global Scroll Issue
+Current CSS in `src/index.css` prevents scrolling:
+```css
+html, body {
+  overflow: hidden;  /* This blocks scrolling */
+}
+```
 
 ---
 
-## Implementation Details
+## Solution Plan
 
-### Step 1: Configure SMTP Settings
+### Step 1: Test with Existing User
+Before changing code, please verify:
+- Does `carmit1901@gmail.com` have an account?
+- Try the password reset with an email you KNOW is registered
 
-Use Supabase Auth configuration to set up Resend SMTP:
-- **SMTP Host**: `smtp.resend.com`
-- **SMTP Port**: 465 (SSL)
-- **SMTP User**: `resend`
-- **SMTP Password**: Your `RESEND_API_KEY`
-- **Sender Email**: `noreply@storytime.org.il`
-- **Sender Name**: סטורי טיים
+### Step 2: Change Sender to Test Domain (Temporary)
+Modify `supabase/functions/send-password-reset/index.ts`:
+```typescript
+// Line 87: Change from:
+from: "סטורי טיים <noreply@storytime.org.il>",
 
-### Step 2: Verify Email Templates
+// To:
+from: "Story Time <onboarding@resend.dev>",
+```
 
-Ensure the password reset email template in Supabase Auth settings:
-- Uses Hebrew text
-- Contains proper reset link format
-- Matches the app's branding
+### Step 3: Fix Global Scroll
+Modify `src/index.css` to allow scrolling:
+```css
+html, body {
+  direction: rtl;
+  scroll-behavior: smooth;
+  overflow-y: auto;  /* Changed from 'hidden' */
+  overflow-x: hidden;
+  min-height: 100vh;
+  min-height: 100dvh;
+}
+```
 
-### Step 3: Test the Flow
-
-1. Request password reset from `/auth` page
-2. Verify email arrives with correct content
-3. Click reset link → verify `/reset-password` page works
-4. Submit new password → verify success
+### Step 4: Page-Level Scroll Containers
+Update main pages to have proper scroll containers:
+- `Home.tsx` - already has `overflow-hidden` on container (intentional for dashboard layout)
+- `Library.tsx` - add scroll wrapper
+- `CreateStory.tsx` - add scroll wrapper
+- `Auth.tsx` - add scroll wrapper
 
 ---
 
-## Technical Notes
-
-### Why This Works
-- Resend provides enterprise-grade email deliverability
-- Using your verified domain (`storytime.org.il`) ensures emails aren't marked as spam
-- All auth emails (password reset, email verification, magic links) will use Resend
+## Technical Details
 
 ### Files to Modify
-No code changes required - this is a configuration change in Supabase Auth settings
 
-### Prerequisites
-- RESEND_API_KEY is already configured
-- Domain `storytime.org.il` is verified in Resend
-- Resend SMTP access is enabled (may need to request from Resend dashboard)
+| File | Change |
+|------|--------|
+| `supabase/functions/send-password-reset/index.ts` | Change sender to `onboarding@resend.dev` |
+| `src/index.css` | Change `overflow: hidden` to `overflow-y: auto; overflow-x: hidden` |
+
+### Testing Steps After Implementation
+1. Create a NEW test account with a fresh email
+2. Request password reset for that email
+3. Check if email arrives from `onboarding@resend.dev`
+4. Verify pages scroll properly on all devices
+
+### Important Security Note
+The edge function correctly hides whether an email exists - this is intentional. The "Email Sent" message appears even for non-existent users to prevent attackers from discovering valid email addresses.
 
 ---
 
-## Alternative: If SMTP Configuration Not Available
-
-If Supabase Auth SMTP configuration isn't accessible via Lovable Cloud, we'll implement Option B:
-
-1. Create `supabase/functions/send-password-reset/index.ts`
-2. Generate custom reset tokens
-3. Send branded emails via Resend
-4. Handle token verification on the reset password page
-
-This approach requires more code changes but gives full control over the email content and delivery.
+## Expected Outcome
+- Password reset emails will be sent via Resend's test domain
+- If email arrives: Your domain (`storytime.org.il`) may need re-verification
+- If email still fails: Issue is elsewhere (API key scope, Resend account limits)
+- All pages will scroll properly to show full content
