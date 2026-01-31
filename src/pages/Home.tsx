@@ -59,7 +59,7 @@ const Home = () => {
   const actionCards = [
     {
       icon: Wand2,
-      title: "צור סיפור חדש",
+      title: "יוצאים להרפתקה חדשה",
       description: "סיפור מותאם אישית לילד שלך",
       path: "/create",
       iconBg: "bg-purple-100",
@@ -67,7 +67,7 @@ const Home = () => {
     },
     {
       icon: BookOpen,
-      title: "הסיפורים שלי",
+      title: "הספרייה הקסומה שלי",
       description: "צפה בכל הסיפורים שיצרת",
       path: "/library",
       iconBg: "bg-amber-100",
