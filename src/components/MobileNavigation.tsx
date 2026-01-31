@@ -9,7 +9,7 @@ const MobileNavigation = () => {
   // סדר מימין לשמאל (RTL): בית → הספרים שלי → פרופיל
   const navItems = [
     { path: "/", icon: Home, label: "בית", primary: false },
-    { path: "/library", icon: Library, label: "הסיפורים שלי", primary: false },
+    { path: "/library", icon: Library, label: "הספרייה הקסומה שלי", primary: false },
     { path: "/settings", icon: User, label: "פרופיל", primary: false },
   ];
 

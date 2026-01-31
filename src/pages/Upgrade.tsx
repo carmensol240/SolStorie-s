@@ -196,9 +196,9 @@ const Upgrade = () => {
 
       <div className="flex-1 overflow-y-auto pb-32">
         <div className="container max-w-md mx-auto px-4 py-3">
-          {/* Elephant Image */}
+          {/* Elephant Image - Enlarged */}
           <div className="flex justify-center mb-4">
-            <div className="w-28 h-28 rounded-xl overflow-hidden shadow-lg bg-white">
+            <div className="w-40 h-40 rounded-xl overflow-hidden shadow-lg bg-white">
               <img 
                 src={elephantImage} 
                 alt="פיל חמוד קורא ספר" 
@@ -207,9 +207,9 @@ const Upgrade = () => {
             </div>
           </div>
 
-          {/* Header */}
+          {/* Header - Centered */}
           <div className="text-center mb-4">
-            <h1 className="text-2xl font-black text-foreground mb-2">
+            <h1 className="text-2xl font-black text-foreground mb-2 text-center">
               {title}
             </h1>
             <p className="text-muted-foreground text-sm leading-relaxed">
@@ -260,9 +260,9 @@ const Upgrade = () => {
                   {pkg.pricePerStory} לסיפור
                 </div>
                 
-                {/* Free edits badge */}
+                {/* Free edits badge - per story */}
                 <div className="text-[10px] text-green-600 mt-1.5 leading-tight text-center">
-                  ✓ {pkg.freeEdits === 1 ? 'עריכה חינם' : `${pkg.freeEdits} עריכות חינם`}
+                  ✓ עריכה חינם לכל סיפור
                 </div>
               </button>
             ))}

@@ -227,7 +227,7 @@ const Library = () => {
               </button>
             </div>
             {/* Right: Title */}
-            <h1 className="text-xl font-bold">הסיפורים שלי</h1>
+            <h1 className="text-xl font-bold">הספרייה הקסומה שלי</h1>
           </div>
         </div>
 

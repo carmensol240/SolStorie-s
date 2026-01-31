@@ -206,9 +206,9 @@ const ShareAndEarn = () => {
           </Card>
         )}
 
-        {/* Anti-fraud microcopy */}
-        <p className="text-xs text-muted-foreground text-center">
-          המטבע יתווסף לאחר הרשמה מלאה של משתמש חדש.
+        {/* Anti-fraud microcopy - clearer explanation */}
+        <p className="text-xs text-muted-foreground text-center leading-relaxed">
+          הסיפור החינמי יתקבל רק לאחר שהחבר יסיים להירשם וליצור חשבון ב-StoryTime.
         </p>
       </main>
 
