@@ -9,6 +9,7 @@ import GeneratingStep from "@/components/wizard/GeneratingStep";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/hooks/use-auth";
 import { useCredits } from "@/hooks/use-credits";
+import { isDevModeEnabled } from "@/hooks/use-dev-mode";
 
 export interface AdventureLogic {
   outfit: string;
@@ -57,6 +58,12 @@ const CreateStory = () => {
   const [isGenerating, setIsGenerating] = useState(false);
 
   useEffect(() => {
+    // 🔧 DEV MODE: Skip all auth checks
+    if (isDevModeEnabled()) {
+      console.log('🔧 Dev mode: bypassing auth checks in CreateStory');
+      return;
+    }
+
     if (!loading && !user) {
       localStorage.setItem('returnTo', '/create');
       navigate("/auth");
@@ -83,7 +90,7 @@ const CreateStory = () => {
     );
   }
 
-  if (!user || !user.email_confirmed_at) {
+  if (!isDevModeEnabled() && (!user || !user.email_confirmed_at)) {
     return null;
   }
 
