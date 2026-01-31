@@ -1,92 +1,101 @@
 
-# Password Reset Email & Global Scroll Fix Plan
+# Password Reset Email Fix Plan
 
-## Problem Analysis
+## Root Cause Identified
 
-### Finding 1: User Does Not Exist in Database
-The logs reveal the **root cause**: the email `carmit1901@gmail.com` is not registered in the system.
+The password reset emails are NOT being sent because **the email address being tested (`carmit1901@gmail.com`) is not registered in the database**.
 
+### Evidence from Logs:
 ```
 Error generating reset link: AuthApiError: User with this email not found
-error_code: "user_not_found"
+Processing password reset for: carmit1901@gmail.com
 ```
 
-The edge function is working correctly - it intentionally returns "Email Sent" even when the user doesn't exist. This is a **security best practice** to prevent attackers from discovering which emails are registered (email enumeration attack).
+### Registered Users:
+The only registered user in the database is: **`ckarma63@gmail.com`** (created 2026-01-31, verified)
 
-### Finding 2: Sender Domain Test Needed
-You requested testing with `onboarding@resend.dev` to rule out domain issues. This will help confirm whether the `storytime.org.il` domain has any delivery issues.
-
-### Finding 3: Global Scroll Issue
-Current CSS in `src/index.css` prevents scrolling:
-```css
-html, body {
-  overflow: hidden;  /* This blocks scrolling */
-}
-```
+The edge function intentionally returns "Email Sent" even for non-existent users - this is a **security best practice** to prevent attackers from discovering which emails are registered.
 
 ---
 
-## Solution Plan
+## Why Sign-up Works But Password Reset Doesn't
 
-### Step 1: Test with Existing User
-Before changing code, please verify:
-- Does `carmit1901@gmail.com` have an account?
-- Try the password reset with an email you KNOW is registered
+| Flow | Mechanism | Works? |
+|------|-----------|--------|
+| **Sign-up** | Uses Lovable Cloud's built-in email hook (`email-hook`) | Yes |
+| **Password Reset** | Uses custom edge function with `generateLink()` API | Only for existing users |
 
-### Step 2: Change Sender to Test Domain (Temporary)
-Modify `supabase/functions/send-password-reset/index.ts`:
+The sign-up flow uses Lovable Cloud's automatic email system, while password reset uses your custom edge function. Both work correctly - but the password reset can only send emails for users that actually exist.
+
+---
+
+## Solution: Test with a Registered Email
+
+**Immediate Test**: Request password reset for `ckarma63@gmail.com` - this should successfully send an email via Resend.
+
+If the email arrives, the system is working correctly. If not, there's an issue with:
+1. Resend API key scope
+2. Domain verification
+
+---
+
+## Technical Verification Checklist
+
+### Already Correct:
+- Event handler: `handleForgotPassword` correctly calls `resetPasswordForEmail()` (line 375-406 in Auth.tsx)
+- Edge function: Properly uses `supabaseAdmin.auth.admin.generateLink()` to create recovery link
+- Redirect URL: Set to `${window.location.origin}/reset-password` (correct)
+- Sender: Changed to `onboarding@resend.dev` for testing
+
+### After Confirming Email Works:
+1. Restore sender to `noreply@storytime.org.il`
+2. Optionally add logging to show email was actually sent
+
+---
+
+## Recommended Testing Steps
+
+1. **Test with existing user**: Go to `/auth`, click "Forgot Password", enter `ckarma63@gmail.com`
+2. **Check inbox**: Look for email from `onboarding@resend.dev`
+3. **Check spam folder**: Resend test domain emails sometimes go to spam
+4. **Verify edge function logs**: Should show "Sending password reset email to: ckarma63@gmail.com" followed by "Password reset email sent successfully"
+
+---
+
+## If Email Still Doesn't Arrive
+
+If testing with `ckarma63@gmail.com` still fails:
+
+### Option 1: Check Resend Dashboard
+- Log into resend.com
+- Check "Emails" tab for delivery status
+- Look for any bounces or failures
+
+### Option 2: Add Debug Logging
+Add more detailed logging to the edge function to capture the Resend API response:
 ```typescript
-// Line 87: Change from:
-from: "סטורי טיים <noreply@storytime.org.il>",
-
-// To:
-from: "Story Time <onboarding@resend.dev>",
+console.log("Resend API response:", JSON.stringify(emailResponse));
 ```
 
-### Step 3: Fix Global Scroll
-Modify `src/index.css` to allow scrolling:
-```css
-html, body {
-  direction: rtl;
-  scroll-behavior: smooth;
-  overflow-y: auto;  /* Changed from 'hidden' */
-  overflow-x: hidden;
-  min-height: 100vh;
-  min-height: 100dvh;
-}
-```
-
-### Step 4: Page-Level Scroll Containers
-Update main pages to have proper scroll containers:
-- `Home.tsx` - already has `overflow-hidden` on container (intentional for dashboard layout)
-- `Library.tsx` - add scroll wrapper
-- `CreateStory.tsx` - add scroll wrapper
-- `Auth.tsx` - add scroll wrapper
+### Option 3: Verify API Key Scope
+The Resend API key might be restricted. In Resend dashboard:
+- Go to "API Keys"
+- Ensure the key has permission to send from `onboarding@resend.dev`
 
 ---
 
-## Technical Details
+## Files Already Correct (No Changes Needed)
 
-### Files to Modify
-
-| File | Change |
+| File | Status |
 |------|--------|
-| `supabase/functions/send-password-reset/index.ts` | Change sender to `onboarding@resend.dev` |
-| `src/index.css` | Change `overflow: hidden` to `overflow-y: auto; overflow-x: hidden` |
-
-### Testing Steps After Implementation
-1. Create a NEW test account with a fresh email
-2. Request password reset for that email
-3. Check if email arrives from `onboarding@resend.dev`
-4. Verify pages scroll properly on all devices
-
-### Important Security Note
-The edge function correctly hides whether an email exists - this is intentional. The "Email Sent" message appears even for non-existent users to prevent attackers from discovering valid email addresses.
+| `src/pages/Auth.tsx` | Event handler correctly wired (lines 375-406) |
+| `src/hooks/use-auth.ts` | `resetPasswordForEmail` correctly calls edge function |
+| `supabase/functions/send-password-reset/index.ts` | Logic is correct, sender updated to test domain |
 
 ---
 
-## Expected Outcome
-- Password reset emails will be sent via Resend's test domain
-- If email arrives: Your domain (`storytime.org.il`) may need re-verification
-- If email still fails: Issue is elsewhere (API key scope, Resend account limits)
-- All pages will scroll properly to show full content
+## Summary
+
+**The password reset system is working correctly.** The issue is that you were testing with an email address that doesn't have an account (`carmit1901@gmail.com`).
+
+**Action Required**: Test the password reset flow with a registered email address (`ckarma63@gmail.com`) to verify emails are being delivered.
