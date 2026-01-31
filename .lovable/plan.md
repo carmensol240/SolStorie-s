@@ -1,326 +1,290 @@
 
 
-# Unified Update Plan for StoryTime App
+# Developer Bypass & Testimonials Carousel Plan
 
-## Summary of Issues & Solutions
+## Summary of Changes
 
-| Issue | Root Cause | Solution |
-|-------|------------|----------|
-| Image saving error | `child-photos` bucket is public ✓, but upload RLS policy requires `auth.uid() = folder name`, and base64 conversion may fail | Add error handling, verify authentication before upload |
-| Login screen layout | Uses `min-h-screen` causing scrolling on small devices | Change to `h-screen` with `overflow-hidden` and compact layout |
-| Guest screen footer cutoff | `MobileNavigation` not included on Auth page | Add MobileNavigation component to Auth page for guests |
-| Read-aloud button | `audioSupport` toggle exists in Accessibility but no actual read-aloud implementation in StoryViewer | Correctly configured - only appears in Accessibility menu ✓ |
-| Password reset | Already implemented with Resend edge function | Working ✓ - verify by testing with registered email |
-| Credit card payment note | Present in Upgrade.tsx and PayPalButton.tsx only | Keep existing implementation - visible where needed |
-| Age-appropriate story logic | Correctly enforced in generate-story edge function | Already correct ✓ |
+| Task | Description |
+|------|-------------|
+| Developer Bypass Button | Add a visible button on Auth page to bypass login (dev mode only) |
+| Testimonials Carousel | Convert vertical list to horizontal sliding carousel |
+| Add More Testimonials | Expand from 5 to 8 testimonials |
+| Gender Matching | Ensure Hebrew text gender matches profile picture gender |
 
 ---
 
-## Part 1: Image Saving Error Fix (Critical)
+## Part 1: Developer Bypass Button
 
-### Problem Analysis
+### Location
+Add a "מצב מפתחים" (Developer Mode) button on the Auth page that navigates directly to `/library?dev=true`.
 
-The `AvatarPreviewDialog.tsx` handles image saves. Current flow:
-1. Generate 3D preview via `preview-child-avatar` edge function
-2. Convert base64 to blob
-3. Upload to `child-photos` bucket with path `{user.id}/{childId}-avatar.png`
-4. Update `children` table with public URL
-
-**Potential failure points:**
-- RLS policy requires `auth.uid()::text = storage.foldername(name)[1]` - the filename must start with user ID folder
-- Base64 conversion using `fetch()` then `.blob()` can fail for large data URLs
-- Missing error details in catch block
-
-### Solution
-
-Improve the `handleConfirm` function in `AvatarPreviewDialog.tsx`:
-1. Add better base64 to blob conversion using direct `atob()` method (already implemented correctly)
-2. Add more specific error logging
-3. Verify user authentication before upload attempt
-4. Add retry mechanism for transient failures
-
-**File:** `src/components/story/AvatarPreviewDialog.tsx` (lines 78-151)
-
-Add enhanced error handling and validation:
-```typescript
-const handleConfirm = async () => {
-  if (!previewUrl) return;
-  
-  setIsSaving(true);
-  try {
-    // Verify authentication first
-    const { data: { user }, error: authError } = await supabase.auth.getUser();
-    if (authError || !user) {
-      throw new Error('יש להתחבר כדי לשמור תמונות');
-    }
-
-    // ... rest of save logic with enhanced error messages
-```
-
-Also in `Auth.tsx` (lines 106-166), the `handleConfirmPhoto` function uses a problematic base64-to-blob conversion via `fetch()`:
-```typescript
-// Current problematic code:
-const response = await fetch(originalPhoto);
-const blob = await response.blob();
-
-// Better approach using atob():
-const base64Content = originalPhoto.includes(',') 
-  ? originalPhoto.split(',')[1] 
-  : originalPhoto;
-const byteCharacters = atob(base64Content);
-// ... convert to Uint8Array and Blob
-```
-
----
-
-## Part 2: Login Screen Layout Optimization
-
-### Problem
-
-Current `Auth.tsx` main container (line 1008):
-```tsx
-<div className="min-h-screen bg-background flex items-center justify-center p-4 overflow-hidden">
-```
-
-This uses `min-h-screen` which can cause scrolling issues on smaller devices.
-
-### Solution
-
-Change to fixed viewport with internal scrolling if needed:
-```tsx
-<div className="h-screen h-[100dvh] bg-background flex items-center justify-center p-4 overflow-hidden">
-  <div className="w-full max-w-md bg-white rounded-3xl shadow-xl p-6 md:p-8 animate-fade-in max-h-[90vh] overflow-y-auto">
-```
-
-**Additional layout optimizations:**
-- Reduce icon size from `w-20 h-20` to `w-16 h-16`
-- Reduce margin `mb-6` to `mb-4` on decorative elements
-- Compact form field spacing
-
----
-
-## Part 3: Guest Screen Footer Fix
-
-### Problem
-
-The Auth page doesn't include `MobileNavigation` component, so the footer navigation is cut off for guests.
-
-### Solution
-
-Add `MobileNavigation` to the Auth page for the login/signup view (when not in consent or trial steps):
+### Implementation
 
 **File:** `src/pages/Auth.tsx`
 
-Import at top:
+Add a dev bypass button after the signup form (only visible in development mode):
+
 ```tsx
-import MobileNavigation from "@/components/MobileNavigation";
+{/* Developer Bypass - Only in development */}
+{import.meta.env.DEV && (
+  <button
+    type="button"
+    onClick={() => navigate("/library?dev=true")}
+    className="mt-4 w-full text-center text-xs text-gray-400 hover:text-gray-600 underline"
+  >
+    🔧 מצב מפתחים (דלג על התחברות)
+  </button>
+)}
 ```
 
-Add at end of main return (before closing `</div>` on line 1237):
+This button will:
+- Only appear in development mode (`import.meta.env.DEV`)
+- Navigate to `/library?dev=true` which triggers the existing bypass in `RequireTerms.tsx`
+- Be styled subtly to not distract from the main UI
+
+---
+
+## Part 2: Testimonials Carousel
+
+### Current State
+`TestimonialsSection.tsx` displays testimonials in a vertical stack using `testimonials.slice(0, 3).map()`.
+
+### Target State
+Convert to a horizontal sliding carousel using the existing `Carousel` component from `src/components/ui/carousel.tsx`.
+
+### Implementation
+
+**File:** `src/components/home/TestimonialsSection.tsx`
+
+Key changes:
+1. Import Carousel components
+2. Wrap testimonials in Carousel structure
+3. Add auto-play functionality with Embla Autoplay plugin
+4. Add navigation dots for manual control
+
 ```tsx
-      </div>
-      <MobileNavigation />
-    </div>
+import { Carousel, CarouselContent, CarouselItem, CarouselDots } from "@/components/ui/carousel";
+import Autoplay from "embla-carousel-autoplay";
+
+// In the component:
+<Carousel
+  opts={{
+    align: "center",
+    loop: true,
+    direction: "rtl",
+  }}
+  plugins={[
+    Autoplay({
+      delay: 4000,
+      stopOnInteraction: false,
+    }),
+  ]}
+>
+  <CarouselContent className="-ml-2">
+    {testimonials.map((testimonial) => (
+      <CarouselItem key={testimonial.id} className="pl-2 basis-full">
+        {/* Testimonial card content */}
+      </CarouselItem>
+    ))}
+  </CarouselContent>
+  <CarouselDots />
+</Carousel>
 ```
 
-Adjust container to account for navigation height:
-```tsx
-<div className="h-screen h-[100dvh] bg-background flex flex-col overflow-hidden">
-  <div className="flex-1 flex items-center justify-center p-4 pb-20">
+### Note on Autoplay
+The `embla-carousel-autoplay` plugin is part of `embla-carousel-react` ecosystem. Since `embla-carousel-react` is already installed (version ^8.6.0), we need to add the autoplay plugin.
+
+---
+
+## Part 3: Add More Testimonials
+
+Expand from 5 to 8 testimonials with proper gender matching.
+
+### Updated Testimonials Array
+
+| ID | Name | Gender | Avatar | Text Summary |
+|----|------|--------|--------|--------------|
+| 1 | מיכל כ. | Female | testimonial-1 | "הבת שלי מאושרת..." |
+| 2 | יוסי מ. | Male | testimonial-3 | "רעיון גאוני! הילדים..." |
+| 3 | רונית ש. | Female | testimonial-2 | "האיורים מדהימים..." |
+| 4 | אבי ל. | Male | testimonial-4 | "יצרנו סיפור על הפחד..." |
+| 5 | שירה ג. | Female | testimonial-5 | "מתנה מושלמת..." |
+| 6 | דני ר. (NEW) | Male | parent-1 | "הבן שלי לא מפסיק..." |
+| 7 | נועה ב. (NEW) | Female | parent-2 | "איזה רעיון מקסים..." |
+| 8 | עמית ק. (NEW) | Male | parent-3 | "סיפורים באיכות מטורפת..." |
+
+### New Testimonials Text
+
+```typescript
+{
+  id: 6,
+  name: "דני ר.",
+  text: "הבן שלי לא מפסיק לבקש עוד סיפורים! הוא מתלהב כל פעם מחדש כשהוא רואה את עצמו באיורים.",
+  rating: 5,
+  avatar: avatarParent1,
+},
+{
+  id: 7,
+  name: "נועה ב.",
+  text: "איזה רעיון מקסים! הבת שלי כל כך גאה לראות את עצמה כגיבורת הסיפור. תודה על החוויה!",
+  rating: 5,
+  avatar: avatarParent2,
+},
+{
+  id: 8,
+  name: "עמית ק.",
+  text: "סיפורים באיכות מטורפת. הילדים שלי מחכים בקוצר רוח לסיפור הבא. ממליץ לכל הורה!",
+  rating: 5,
+  avatar: avatarParent3,
+}
 ```
 
 ---
 
-## Part 4: Read-Aloud Feature Status
+## Part 4: Gender Matching Verification
 
-### Current State (Verified)
+### Hebrew Gender Rules
 
-- Search for "read-aloud", "ReadAloud", "readAloud" returns **no matches**
-- The `audioSupport` setting in Accessibility menu controls whether a read-aloud button would appear
-- Currently `audioSupport` exists as a toggle but **no actual read-aloud button is implemented** in StoryViewer
+**Female form indicators:**
+- "הבת שלי" (my daughter)
+- Verbs ending in ה/ת: "מאושרת", "מבקשת", "נראית"
+- "ממליצה" (I recommend - female)
 
-### Solution
+**Male form indicators:**
+- "הבן שלי" (my son)
+- Verbs without ה/ת: "התגבר", "מרגישים"
+- "ממליץ" (I recommend - male)
 
-**No changes needed** - Read-aloud is already removed from story pages. The `audioSupport` toggle in Accessibility menu is for future use only and doesn't activate any functionality currently.
+### Current Mapping Analysis
 
----
+| ID | Name | Text Gender | Required Avatar Gender |
+|----|------|-------------|----------------------|
+| 1 | מיכל כ. | Female (הבת, מאושרת, מבקשת, נראית) | Female avatar ✓ |
+| 2 | יוסי מ. | Neutral/Male (הילדים, מרגישים) | Male avatar ✓ |
+| 3 | רונית ש. | Female (ממליצה) | Female avatar ✓ |
+| 4 | אבי ל. | Male (הבן, התגבר) | Male avatar ✓ |
+| 5 | שירה ג. | Neutral (מרוגשים) | Female name = Female avatar |
+| 6 | דני ר. | Male (הבן, מתלהב, רואה) | Male avatar |
+| 7 | נועה ב. | Female (הבת, גאה) | Female avatar |
+| 8 | עמית ק. | Male (ממליץ) | Male avatar |
 
-## Part 5: Password Recovery Status
+### Avatar Assignment
 
-### Current State (Verified)
-
-- `handleForgotPassword` function exists in Auth.tsx (lines 376-407)
-- Calls `resetPasswordForEmail` from `use-auth.ts`
-- Edge function `send-password-reset` is deployed and configured
-- Uses Resend with `onboarding@resend.dev` test sender
-
-### Status: **Already Implemented ✓**
-
-The password recovery flow is complete:
-1. User clicks "שכחתי סיסמה" (line 1152-1158)
-2. Form shown with email input (lines 1025-1053)
-3. Calls edge function which generates recovery link via Supabase Admin API
-4. Sends branded Hebrew email via Resend
-
-**No changes needed** - just verify delivery with a registered email.
-
----
-
-## Part 6: Credit Card Payment Note Status
-
-### Current State (Verified)
-
-The credit card note appears in two places:
-1. **Upgrade.tsx** (lines 271-274):
-   ```tsx
-   <p className="text-[10px] text-center text-muted-foreground mb-3">
-     💳 ניתן לשלם בכרטיס אשראי גם ללא חשבון PayPal
-   </p>
-   ```
-
-2. **PayPalButton.tsx** (lines 222-229):
-   ```tsx
-   <p className="text-sm text-muted-foreground flex items-center justify-center gap-2">
-     <CreditCard className="w-4 h-4" />
-     <span>ניתן לשלם גם בכרטיס אשראי ללא חשבון פייפאל</span>
-   </p>
-   ```
-
-### Status: **Already Implemented ✓**
-
-The note appears where PayPal buttons are shown (Upgrade page). This is the appropriate placement.
+Based on avatar image analysis:
+- `avatar-testimonial-1.png` - Appears to be female
+- `avatar-testimonial-2.png` - Appears to be female
+- `avatar-testimonial-3.png` - Appears to be male
+- `avatar-testimonial-4.png` - Appears to be male
+- `avatar-testimonial-5.png` - Appears to be female
+- `avatar-parent-1.png` - For new male testimonial
+- `avatar-parent-2.png` - For new female testimonial
+- `avatar-parent-3.png` - For new male testimonial
 
 ---
 
-## Part 7: Age-Appropriate Story Logic Status
-
-### Current State (Verified)
-
-The `generate-story` edge function (lines 85-119) strictly enforces:
-
-| Age Group | Pages | Style |
-|-----------|-------|-------|
-| **0-2** | 4 pages exactly | Very short, up to 100 words total, 3-5 word sentences |
-| **3-6** | 5 pages exactly | Medium length, 2-3 sentences per page |
-| **7-8** | 8 pages exactly | Complex, rich vocabulary, 3-4 detailed sentences per page |
-
-### Status: **Correctly Implemented ✓**
-
-No changes needed.
-
----
-
-## Implementation Summary
-
-### Files to Modify
+## Implementation Files
 
 | File | Changes |
 |------|---------|
-| `src/pages/Auth.tsx` | Fix viewport layout (`h-screen`), add `MobileNavigation`, reduce whitespace, fix base64 conversion |
-| `src/components/story/AvatarPreviewDialog.tsx` | Add enhanced error handling and auth verification before upload |
-
-### Changes Not Needed
-
-| Feature | Status |
-|---------|--------|
-| Read-aloud button removal | Already removed ✓ |
-| Password recovery | Already implemented ✓ |
-| Credit card payment note | Already present ✓ |
-| Age-based story logic | Correctly enforced ✓ |
+| `src/pages/Auth.tsx` | Add developer bypass button (dev mode only) |
+| `src/components/home/TestimonialsSection.tsx` | Complete rewrite with carousel, more testimonials, gender matching |
+| `package.json` | Add `embla-carousel-autoplay` dependency |
 
 ---
 
 ## Technical Details
 
-### Auth.tsx Layout Changes
+### TestimonialsSection.tsx - Complete Updated Code Structure
 
-**Line 1007-1009** - Change main container:
 ```tsx
-// Before:
-<div className="min-h-screen bg-background flex items-center justify-center p-4 overflow-hidden">
-  <div className="w-full max-w-md bg-white rounded-3xl shadow-xl p-6 md:p-8 animate-fade-in">
+import { Star } from "lucide-react";
+import { Carousel, CarouselContent, CarouselItem, CarouselDots } from "@/components/ui/carousel";
+import Autoplay from "embla-carousel-autoplay";
 
-// After:
-<div className="h-screen h-[100dvh] bg-background flex flex-col overflow-hidden">
-  <div className="flex-1 flex items-center justify-center p-4 pb-16">
-    <div className="w-full max-w-md bg-white rounded-3xl shadow-xl p-5 md:p-6 animate-fade-in max-h-[85vh] overflow-y-auto">
-```
+// Avatar imports...
+import avatarTestimonial1 from "@/assets/avatar-testimonial-1.png";
+// ... more imports including parent avatars
 
-**Line 1067-1070** - Reduce icon size:
-```tsx
-// Before:
-<div className="w-20 h-20 bg-amber-400 rounded-2xl flex items-center justify-center shadow-md">
-
-// After:
-<div className="w-16 h-16 bg-amber-400 rounded-2xl flex items-center justify-center shadow-md">
-```
-
-**Line 1014-1016** - Reduce forgot password icon:
-```tsx
-// Before:
-<div className="w-20 h-20 bg-amber-400 rounded-2xl flex items-center justify-center shadow-md">
-
-// After:
-<div className="w-16 h-16 bg-amber-400 rounded-2xl flex items-center justify-center shadow-md">
-```
-
-**Line 1235-1237** - Add MobileNavigation:
-```tsx
-      </div>
-    </div>
-  </div>
-  <MobileNavigation />
-</div>
-```
-
-### AvatarPreviewDialog.tsx Error Handling Enhancement
-
-**Lines 78-100** - Add auth check and better error messages:
-```typescript
-const handleConfirm = async () => {
-  if (!previewUrl) return;
-  
-  setIsSaving(true);
-  try {
-    if (skipStorage || childId === 'temp-child') {
-      // ... existing temp handling
-    }
-    
-    // Enhanced auth verification
-    const { data: { user }, error: authError } = await supabase.auth.getUser();
-    if (authError) {
-      console.error('Auth error:', authError);
-      throw new Error('שגיאה באימות המשתמש');
-    }
-    if (!user) {
-      throw new Error('יש להתחבר כדי לשמור תמונות');
-    }
-    
-    console.log('Saving avatar for user:', user.id, 'child:', childId);
-    // ... rest of save logic
-```
-
-### Auth.tsx Base64 Conversion Fix
-
-**Lines 112-114** - Improve base64 to blob conversion:
-```typescript
-// Before:
-const response = await fetch(originalPhoto);
-const blob = await response.blob();
-
-// After:
-// Direct base64 conversion is more reliable
-const base64Content = originalPhoto.includes(',') 
-  ? originalPhoto.split(',')[1] 
-  : originalPhoto;
-const byteCharacters = atob(base64Content);
-const byteNumbers = new Array(byteCharacters.length);
-for (let i = 0; i < byteCharacters.length; i++) {
-  byteNumbers[i] = byteCharacters.charCodeAt(i);
+interface Testimonial {
+  id: number;
+  name: string;
+  text: string;
+  rating: number;
+  avatar: string;
+  gender: 'male' | 'female';
 }
-const byteArray = new Uint8Array(byteNumbers);
-const blob = new Blob([byteArray], { type: 'image/jpeg' });
+
+const testimonials: Testimonial[] = [
+  // 8 testimonials with proper gender matching
+];
+
+const TestimonialsSection = () => {
+  return (
+    <section className="space-y-3" dir="rtl">
+      {/* Header with rating */}
+      <div className="flex items-center justify-between">
+        <h2 className="text-lg font-bold">מה הורים אומרים</h2>
+        <div className="flex items-center gap-2 bg-amber-50 rounded-full px-3 py-1">
+          <StarRating rating={5} />
+          <span className="text-sm font-bold text-amber-700">4.9</span>
+        </div>
+      </div>
+
+      {/* Carousel */}
+      <Carousel
+        opts={{ align: "center", loop: true, direction: "rtl" }}
+        plugins={[Autoplay({ delay: 4000 })]}
+        className="w-full"
+      >
+        <CarouselContent>
+          {testimonials.map((t) => (
+            <CarouselItem key={t.id}>
+              {/* Testimonial card */}
+            </CarouselItem>
+          ))}
+        </CarouselContent>
+        <CarouselDots />
+      </Carousel>
+
+      {/* Stats section - compact */}
+      <div className="flex justify-center gap-4 text-center">
+        {/* Stats */}
+      </div>
+    </section>
+  );
+};
 ```
+
+### Auth.tsx - Dev Bypass Addition
+
+Add after line 1242 (after the signup form's closing `</form>`):
+
+```tsx
+{/* Developer Bypass - Only in development */}
+{import.meta.env.DEV && (
+  <div className="mt-3 pt-3 border-t border-dashed border-gray-200">
+    <button
+      type="button"
+      onClick={() => navigate("/library?dev=true")}
+      className="w-full text-center text-xs text-gray-400 hover:text-purple-500 transition-colors"
+    >
+      🔧 Developer Mode (Skip Auth)
+    </button>
+  </div>
+)}
+```
+
+---
+
+## Dependency Installation
+
+Need to add `embla-carousel-autoplay` for auto-sliding functionality:
+
+```json
+"embla-carousel-autoplay": "^8.6.0"
+```
+
+This package is compatible with the existing `embla-carousel-react` version 8.6.0.
 
 ---
 
@@ -328,20 +292,20 @@ const blob = new Blob([byteArray], { type: 'image/jpeg' });
 
 After implementation:
 
-1. **Image Save**: Upload a child photo, click "אישור ושמירה", verify no error appears
-2. **Login Layout**: Open `/auth` on mobile, verify all fields fit on screen without scrolling
-3. **Footer Navigation**: As guest on `/auth`, verify MobileNavigation is visible at bottom
-4. **Password Reset**: Click "שכחתי סיסמה", enter registered email, verify email arrives
-5. **Credit Card Note**: Go to `/upgrade`, verify credit card payment note is visible
-6. **Story Generation**: Create stories for different age groups, verify correct page counts
+1. **Dev Bypass**: On `/auth`, verify "Developer Mode" button appears (dev only) and navigates to `/library?dev=true`
+2. **Carousel Sliding**: On `/` (guest view), verify testimonials slide automatically every 4 seconds
+3. **Manual Navigation**: Verify dots allow clicking to specific testimonials
+4. **RTL Support**: Verify carousel slides in correct direction for Hebrew
+5. **Gender Matching**: Verify each testimonial's Hebrew text matches the avatar's apparent gender
+6. **Responsiveness**: Test carousel on mobile, tablet, and desktop
 
 ---
 
 ## Expected Outcomes
 
-- Image uploads will save successfully with clear error messages if something fails
-- Login screen will be compact and fit on mobile screens without scrolling
-- Footer navigation will be visible for guests on the login page
-- All existing features (password reset, credit card note, age logic) will continue working
-- Read-aloud remains removed from story pages (only in Accessibility settings)
+- Developers can quickly bypass authentication for testing
+- Testimonials section is more engaging with sliding carousel
+- More social proof with 8 testimonials instead of 3 visible
+- All Hebrew text properly matches the gender of the profile images
+- Carousel auto-advances but stops on user interaction
 
