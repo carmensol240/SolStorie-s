@@ -1,8 +1,17 @@
-import { Rocket, Crown, Moon, Sparkles, Heart, Pencil } from "lucide-react";
+import { Pencil } from "lucide-react";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { StoryFormData } from "@/pages/CreateStory";
 import { cn } from "@/lib/utils";
+
+// Topic images
+import topicToothbrush from "@/assets/topic-toothbrush.jpg";
+import topicBathtime from "@/assets/topic-bathtime.jpg";
+import topicPacifier from "@/assets/topic-pacifier.jpg";
+import topicBedtime from "@/assets/topic-bedtime.jpg";
+import topicFriendship from "@/assets/topic-friendship.jpg";
+import topicSpace from "@/assets/topic-space.jpg";
+import topicKingdom from "@/assets/topic-kingdom.jpg";
 
 interface TopicStepProps {
   formData: StoryFormData;
@@ -12,68 +21,80 @@ interface TopicStepProps {
 // Adventure categories with predefined outfit, background, and theme logic
 const ADVENTURE_CATEGORIES = [
   { 
-    id: "space-adventure", 
-    label: "הרפתקה בחלל", 
-    emoji: "🚀",
-    icon: Rocket, 
-    color: "from-indigo-500 to-purple-600",
-    description: "מסע בין כוכבים ופלאות",
+    id: "body-hero-teeth", 
+    label: "צחצוח שיניים קסום", 
+    image: topicToothbrush,
+    description: "עם פיית השיניים והדרקון",
     logic: {
-      outfit: "astronaut spacesuit with helmet",
-      background: "outer space with stars, planets, and galaxies",
-      theme: "exploration and discovery"
+      outfit: "everyday casual clothes at home",
+      background: "bright magical bathroom with sparkles and friendly dental fairy dragon",
+      theme: "teeth brushing, dental hygiene, making brushing fun"
     }
   },
   { 
-    id: "magic-kingdom", 
-    label: "ממלכת הקסם", 
-    emoji: "👑",
-    icon: Crown, 
-    color: "from-pink-500 to-rose-600",
-    description: "הרפתקה קסומה בארמון",
+    id: "body-hero-bath", 
+    label: "אמבטיה של כיף", 
+    image: topicBathtime,
+    description: "בועות, ברווזון וקצף",
     logic: {
-      outfit: "royal prince/princess attire with crown",
-      background: "magical castle with towers and enchanted gardens",
-      theme: "fantasy and magic"
+      outfit: "bath time with rubber ducky cap",
+      background: "colorful bubble bath with floating toys and rainbow bubbles",
+      theme: "bath time fun, getting clean, water play"
+    }
+  },
+  { 
+    id: "pacifier-fairy", 
+    label: "פיית המוצץ", 
+    image: topicPacifier,
+    description: "נפרדים מהמוצץ בקסם",
+    logic: {
+      outfit: "cozy pajamas",
+      background: "magical nursery with sparkles and gentle fairy",
+      theme: "saying goodbye to pacifier, growing up, milestone transition"
     }
   },
   { 
     id: "bedtime-story", 
     label: "סיפור לפני השינה", 
-    emoji: "🌙",
-    icon: Moon, 
-    color: "from-blue-500 to-indigo-600",
-    description: "סיפור מרגיע ללילה טוב",
+    image: topicBedtime,
+    description: "עם הפיל הקורא ספרים",
     logic: {
       outfit: "cozy pajamas with soft slippers",
-      background: "enchanted forest at twilight with fireflies and moonlight",
-      theme: "calming and peaceful bedtime adventure"
-    }
-  },
-  { 
-    id: "body-hero", 
-    label: "הגיבור ששומר על הגוף", 
-    emoji: "🦷",
-    icon: Sparkles, 
-    color: "from-emerald-500 to-teal-600",
-    description: "לומדים על היגיינה ובריאות",
-    logic: {
-      outfit: "everyday casual clothes at home",
-      background: "bright bathroom and cozy home environment",
-      theme: "hygiene, teeth brushing, and taking care of the body"
+      background: "enchanted bedroom at night with moonlight, stars, and reading elephant friend",
+      theme: "calming and peaceful bedtime adventure, good night routine"
     }
   },
   { 
     id: "friendship-courage", 
-    label: "חברות ואומץ לב", 
-    emoji: "🦁",
-    icon: Heart, 
-    color: "from-amber-500 to-orange-600",
-    description: "חברים חדשים והרפתקאות",
+    label: "חברים בגן", 
+    image: topicFriendship,
+    description: "משחקים בארגז החול",
     logic: {
       outfit: "everyday casual clothes suitable for playing",
-      background: "colorful school playground or sunny park with trees",
-      theme: "social skills, making friends, and showing courage"
+      background: "colorful kindergarten playground with sandbox and sunny weather",
+      theme: "social skills, making friends, playing together, sharing"
+    }
+  },
+  { 
+    id: "space-adventure", 
+    label: "הרפתקה בחלל", 
+    image: topicSpace,
+    description: "מסע בין כוכבים ופלאות",
+    logic: {
+      outfit: "astronaut spacesuit with helmet",
+      background: "outer space with stars, planets, and galaxies",
+      theme: "exploration and discovery in space"
+    }
+  },
+  { 
+    id: "magic-kingdom", 
+    label: "ממלכת הקסם", 
+    image: topicKingdom,
+    description: "הרפתקה קסומה בארמון",
+    logic: {
+      outfit: "royal prince/princess attire with crown",
+      background: "magical castle with towers and enchanted gardens",
+      theme: "fantasy and magic in a royal kingdom"
     }
   },
 ];
@@ -107,8 +128,8 @@ const TopicStep = ({ formData, updateFormData }: TopicStepProps) => {
         <p className="text-muted-foreground">איזה סיפור תרצו ליצור היום?</p>
       </div>
 
-      {/* Adventure Categories Grid */}
-      <div className="space-y-3">
+      {/* Adventure Categories Grid - Visual Cards */}
+      <div className="grid grid-cols-2 gap-3">
         {ADVENTURE_CATEGORIES.map((category) => {
           const isSelected = formData.topic === category.id;
           
@@ -117,35 +138,37 @@ const TopicStep = ({ formData, updateFormData }: TopicStepProps) => {
               key={category.id}
               onClick={() => handleCategorySelect(category.id)}
               className={cn(
-                "w-full flex items-center gap-4 p-4 rounded-2xl border-2 transition-all duration-200",
-                "text-right",
+                "relative overflow-hidden rounded-2xl border-3 transition-all duration-200",
+                "text-right flex flex-col",
                 isSelected
-                  ? "border-primary bg-primary/10 comic-shadow scale-[1.02]"
-                  : "border-foreground/10 bg-card hover:border-primary/50 hover:bg-card/80"
+                  ? "border-primary ring-2 ring-primary/30 scale-[1.02]"
+                  : "border-transparent hover:border-primary/50"
               )}
             >
-              {/* Icon with gradient background */}
-              <div className={cn(
-                "flex-shrink-0 w-14 h-14 rounded-xl bg-gradient-to-br flex items-center justify-center text-2xl",
-                category.color
-              )}>
-                <span role="img" aria-label={category.label}>
-                  {category.emoji}
-                </span>
-              </div>
-              
-              {/* Text content */}
-              <div className="flex-1 text-right">
-                <h3 className="font-bold text-lg">{category.label}</h3>
-                <p className="text-sm text-muted-foreground">{category.description}</p>
-              </div>
-              
-              {/* Selection indicator */}
-              {isSelected && (
-                <div className="flex-shrink-0 w-6 h-6 rounded-full bg-primary flex items-center justify-center">
-                  <span className="text-primary-foreground text-sm">✓</span>
+              {/* Image */}
+              <div className="relative aspect-square w-full overflow-hidden">
+                <img
+                  src={category.image}
+                  alt={category.label}
+                  className="w-full h-full object-cover"
+                />
+                
+                {/* Gradient overlay for text readability */}
+                <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent" />
+                
+                {/* Selection indicator */}
+                {isSelected && (
+                  <div className="absolute top-2 right-2 w-6 h-6 rounded-full bg-primary flex items-center justify-center shadow-lg">
+                    <span className="text-primary-foreground text-sm">✓</span>
+                  </div>
+                )}
+                
+                {/* Text overlay */}
+                <div className="absolute bottom-0 left-0 right-0 p-3 text-white">
+                  <h3 className="font-bold text-sm leading-tight">{category.label}</h3>
+                  <p className="text-[10px] text-white/80 leading-tight mt-0.5">{category.description}</p>
                 </div>
-              )}
+              </div>
             </button>
           );
         })}

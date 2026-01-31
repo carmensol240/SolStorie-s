@@ -14,8 +14,8 @@ const MobileNavigation = () => {
   ];
 
   return (
-    <nav className="fixed bottom-0 left-0 right-0 z-50 bg-card border-t border-border" role="navigation" aria-label="ניווט ראשי">
-      <div className="flex justify-around items-center h-16 max-w-lg mx-auto px-4">
+    <nav className="fixed bottom-0 left-0 right-0 z-[100] bg-card border-t border-border shadow-lg" role="navigation" aria-label="ניווט ראשי">
+      <div className="flex justify-around items-center h-16 max-w-lg mx-auto px-4 pb-safe">
         {navItems.map((item) => {
           const isActive = location.pathname === item.path;
           const Icon = item.icon;
