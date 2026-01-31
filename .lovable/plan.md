@@ -1,47 +1,86 @@
 
-# Story Time App Restoration & Enhancement Plan
+# Password Reset Email Fix Plan
 
-## Summary
-Restore the application to the January 29th stable version, then apply 4 specific improvements to enhance the user experience.
+## Problem Summary
+The password reset email is not being delivered because Supabase uses its **built-in email system** (not Resend) for authentication emails. The auth logs confirm the request was processed successfully (status 200), but the email delivery is failing.
 
----
-
-## Step 1: Restore to January 29th Version
-**Action Required by You:**
-Use Lovable's History feature to restore the project to January 29th. This ensures an exact replica of the stable version without any manual code reconstruction.
-
----
-
-## Step 2: Apply Specific Fixes
-
-### Fix 1: Remove Read-Aloud Button
-- Locate and remove any read-aloud/audio playback button from the story viewer
-- Ensure the Volume/audio controls only remain in settings (AccessibilityMenu and parental settings)
-
-### Fix 2: Add Global Footer with Payment Note
-- Create a new global Footer component
-- Display the Hebrew text: **"ניתן לשלם גם בכרטיס אשראי ללא חשבון פייפאל"** (You can also pay with credit card without a PayPal account)
-- Position consistently at the bottom of all pages
-- Style to match the existing design language
-
-### Fix 3: Age-Based Story Length Configuration
-- Modify the story generation to adjust based on age ranges:
-  - **Ages 0-2 (Babies/Toddlers):** Short stories with fewer pages (4 pages) and simpler, shorter text
-  - **Ages 7-8 (Older children):** Complex stories with more pages (8 pages) and detailed, richer text
-- Pass age-based parameters to the `generate-story` edge function
-- Ensure the AI prompt adjusts vocabulary and narrative complexity accordingly
-
-### Fix 4: Full-Screen Layout Verification
-- Audit all main pages (Landing, /create, /library) for proper full-screen display
-- Fix any scroll issues or cut-off content
-- Ensure mobile navigation doesn't overlap content
-- Add appropriate bottom padding (100px) for navigation clearance
+## Current State
+- **Resend API Key**: Configured and working (used for contact form and purchase emails)
+- **Verified Domain**: `storytime.org.il` in Resend
+- **Auth Flow**: Uses `supabase.auth.resetPasswordForEmail()` which relies on Supabase's default SMTP
+- **Issue**: Supabase's default email provider has deliverability issues
 
 ---
 
-## Expected Outcome
-- All pages restored to their January 29th appearance and functionality
-- Clean story viewer without read-aloud button
-- Payment flexibility message visible site-wide
-- Story content appropriately tailored to the child's age
-- Seamless full-screen experience across all devices
+## Solution: Configure Custom SMTP in Supabase
+
+### Option A: Custom SMTP via Resend (Recommended)
+
+Configure Supabase to use Resend as the SMTP provider for ALL authentication emails.
+
+**Steps:**
+1. Get SMTP credentials from Resend dashboard
+2. Configure Supabase Auth SMTP settings using the `configure-auth` tool
+3. Set sender email to use verified domain (`noreply@storytime.org.il`)
+
+### Option B: Custom Edge Function for Password Reset
+
+Create a new edge function that handles password reset emails via Resend, then modify the auth flow to use it.
+
+---
+
+## Implementation Details
+
+### Step 1: Configure SMTP Settings
+
+Use Supabase Auth configuration to set up Resend SMTP:
+- **SMTP Host**: `smtp.resend.com`
+- **SMTP Port**: 465 (SSL)
+- **SMTP User**: `resend`
+- **SMTP Password**: Your `RESEND_API_KEY`
+- **Sender Email**: `noreply@storytime.org.il`
+- **Sender Name**: סטורי טיים
+
+### Step 2: Verify Email Templates
+
+Ensure the password reset email template in Supabase Auth settings:
+- Uses Hebrew text
+- Contains proper reset link format
+- Matches the app's branding
+
+### Step 3: Test the Flow
+
+1. Request password reset from `/auth` page
+2. Verify email arrives with correct content
+3. Click reset link → verify `/reset-password` page works
+4. Submit new password → verify success
+
+---
+
+## Technical Notes
+
+### Why This Works
+- Resend provides enterprise-grade email deliverability
+- Using your verified domain (`storytime.org.il`) ensures emails aren't marked as spam
+- All auth emails (password reset, email verification, magic links) will use Resend
+
+### Files to Modify
+No code changes required - this is a configuration change in Supabase Auth settings
+
+### Prerequisites
+- RESEND_API_KEY is already configured
+- Domain `storytime.org.il` is verified in Resend
+- Resend SMTP access is enabled (may need to request from Resend dashboard)
+
+---
+
+## Alternative: If SMTP Configuration Not Available
+
+If Supabase Auth SMTP configuration isn't accessible via Lovable Cloud, we'll implement Option B:
+
+1. Create `supabase/functions/send-password-reset/index.ts`
+2. Generate custom reset tokens
+3. Send branded emails via Resend
+4. Handle token verification on the reset password page
+
+This approach requires more code changes but gives full control over the email content and delivery.
