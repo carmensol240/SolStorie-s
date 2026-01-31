@@ -1,7 +1,7 @@
 import { useState, useEffect, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import { ArrowRight, Plus, Coins } from "lucide-react";
-import GlobalFooter from "@/components/GlobalFooter";
+
 import { Button } from "@/components/ui/button";
 import MobileNavigation from "@/components/MobileNavigation";
 import StoryListItem from "@/components/ui/story-list-item";
@@ -306,7 +306,6 @@ const Library = () => {
         />
       )}
 
-      <GlobalFooter />
       <MobileNavigation />
     </div>
   );

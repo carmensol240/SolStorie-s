@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { ArrowRight, ArrowLeft, Loader2, User } from "lucide-react";
-import GlobalFooter from "@/components/GlobalFooter";
+
 import { Button } from "@/components/ui/button";
 import MobileNavigation from "@/components/MobileNavigation";
 import ChildInfoStep from "@/components/wizard/ChildInfoStep";
@@ -133,8 +133,9 @@ const CreateStory = () => {
   const displayStep = step < 3 ? step : 4;
 
   return (
-    <div className="min-h-screen min-h-[100dvh] h-auto bg-gradient-to-b from-amber-50 to-orange-50 pb-20 overflow-y-auto overscroll-contain">
-      <div className="container max-w-lg mx-auto px-3 py-4">
+    <div className="h-screen h-[100dvh] flex flex-col bg-gradient-to-b from-amber-50 to-orange-50 overflow-hidden">
+      <div className="flex-1 overflow-y-auto overscroll-contain pb-20">
+        <div className="container max-w-lg mx-auto px-3 py-4">
         
         {/* Compact Header with back button */}
         <div className="flex items-center justify-between mb-3">
@@ -229,14 +230,10 @@ const CreateStory = () => {
           </div>
         )}
 
+        </div>
       </div>
       
-      {step < 3 && (
-        <>
-          <GlobalFooter />
-          <MobileNavigation />
-        </>
-      )}
+      {step < 3 && <MobileNavigation />}
     </div>
   );
 };
