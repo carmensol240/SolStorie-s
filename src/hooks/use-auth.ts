@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { User, Session } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
+import { isDevModeEnabled, MOCK_DEV_USER, MOCK_DEV_SESSION } from './use-dev-mode';
 
 export const useAuth = () => {
   const [user, setUser] = useState<User | null>(null);
@@ -8,6 +9,15 @@ export const useAuth = () => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    // 🔧 DEV MODE: Return mock user immediately
+    if (isDevModeEnabled()) {
+      console.log('🔧 Dev mode: using mock user');
+      setUser(MOCK_DEV_USER);
+      setSession(MOCK_DEV_SESSION);
+      setLoading(false);
+      return;
+    }
+
     // Set up auth state listener FIRST
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       (event, session) => {

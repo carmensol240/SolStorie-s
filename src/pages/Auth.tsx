@@ -14,6 +14,7 @@ import { useToast } from "@/hooks/use-toast";
 import { useAnalytics } from "@/hooks/use-analytics";
 import { supabase } from "@/integrations/supabase/client";
 import { z } from "zod";
+import { enableDevMode } from "@/hooks/use-dev-mode";
 
 const emailSchema = z.string().email("כתובת אימייל לא תקינה");
 const passwordSchema = z.string().min(6, "הסיסמה חייבת להכיל לפחות 6 תווים");
@@ -1247,7 +1248,10 @@ const Auth = () => {
               <div className="mt-3 pt-3 border-t border-dashed border-gray-200">
                 <button
                   type="button"
-                  onClick={() => navigate("/library?dev=true")}
+                  onClick={() => {
+                    enableDevMode();
+                    navigate("/library");
+                  }}
                   className="w-full text-center text-xs text-gray-400 hover:text-purple transition-colors"
                 >
                   🔧 Developer Mode (Skip Auth)

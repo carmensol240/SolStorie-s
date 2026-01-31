@@ -2,6 +2,7 @@ import { useState, useEffect, ReactNode } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/use-auth";
+import { isDevModeEnabled, MOCK_DEV_PROFILE } from "@/hooks/use-dev-mode";
 
 interface RequireTermsProps {
   children: ReactNode;
@@ -15,12 +16,9 @@ const RequireTerms = ({ children }: RequireTermsProps) => {
 
   useEffect(() => {
     const checkTermsAccepted = async () => {
-      // 🔧 DEV MODE: Skip auth check in development with ?dev=true
-      const urlParams = new URLSearchParams(window.location.search);
-      const isDevMode = urlParams.get('dev') === 'true' && import.meta.env.DEV;
-      
-      if (isDevMode) {
-        console.log('🔧 Dev mode: skipping auth check');
+      // 🔧 DEV MODE: Skip all auth checks
+      if (isDevModeEnabled()) {
+        console.log('🔧 Dev mode: bypassing auth & terms check');
         setTermsChecked(true);
         setChecking(false);
         return;
@@ -85,3 +83,6 @@ const RequireTerms = ({ children }: RequireTermsProps) => {
 };
 
 export default RequireTerms;
+
+// Export mock profile for use in components that need profile data
+export { MOCK_DEV_PROFILE };
