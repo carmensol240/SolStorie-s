@@ -84,7 +84,7 @@ const handler = async (req: Request): Promise<Response> => {
 
     // Send branded password reset email via Resend
     const emailResponse = await resend.emails.send({
-      from: "סטורי טיים <noreply@storytime.org.il>",
+      from: "Story Time <onboarding@resend.dev>",
       to: [email],
       subject: "🔐 איפוס סיסמה - סטורי טיים",
       html: `

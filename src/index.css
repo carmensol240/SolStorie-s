@@ -115,9 +115,10 @@
   html, body {
     direction: rtl;
     scroll-behavior: smooth;
-    overflow: hidden;
-    height: 100vh;
-    height: 100dvh;
+    overflow-y: auto;
+    overflow-x: hidden;
+    min-height: 100vh;
+    min-height: 100dvh;
   }
 
   body {

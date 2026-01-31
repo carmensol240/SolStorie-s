@@ -199,7 +199,7 @@ const Library = () => {
   };
 
   return (
-    <div className="min-h-screen bg-background bg-halftone pb-20">
+    <div className="min-h-screen min-h-[100dvh] bg-background bg-halftone pb-20 overflow-y-auto overscroll-contain">
       <OfflineIndicator isOnline={isOnline} />
       
       <div className="container max-w-lg mx-auto px-4 py-6">
