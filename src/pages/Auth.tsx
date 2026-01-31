@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from "react";
 import { useNavigate, Link, useSearchParams } from "react-router-dom";
 import { Mail, Lock, Loader2, Eye, EyeOff, KeyRound, FileText, Shield, CheckCircle2, Sparkles, Heart, Users, Camera, Check, ArrowRight, RefreshCw } from "lucide-react";
+import MobileNavigation from "@/components/MobileNavigation";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -109,9 +110,17 @@ const Auth = () => {
     setUploadingPhoto(true);
     
     try {
-      // Convert base64 to blob for upload
-      const response = await fetch(originalPhoto);
-      const blob = await response.blob();
+      // Convert base64 to blob for upload using direct atob() method (more reliable)
+      const base64Content = originalPhoto.includes(',') 
+        ? originalPhoto.split(',')[1] 
+        : originalPhoto;
+      const byteCharacters = atob(base64Content);
+      const byteNumbers = new Array(byteCharacters.length);
+      for (let i = 0; i < byteCharacters.length; i++) {
+        byteNumbers[i] = byteCharacters.charCodeAt(i);
+      }
+      const byteArray = new Uint8Array(byteNumbers);
+      const blob = new Blob([byteArray], { type: 'image/jpeg' });
       
       // 1. Upload to Storage
       const fileName = `${user.id}/default-child.jpg`;
@@ -1005,17 +1014,18 @@ const Auth = () => {
   }
 
   return (
-    <div className="min-h-screen bg-background flex items-center justify-center p-4 overflow-hidden">
-      <div className="w-full max-w-md bg-white rounded-3xl shadow-xl p-6 md:p-8 animate-fade-in">
-        {showForgotPassword ? (
-          /* Forgot Password Form */
-          <div className="space-y-6">
-            <div className="text-center">
-              <div className="flex justify-center mb-6">
-                <div className="w-20 h-20 bg-amber-400 rounded-2xl flex items-center justify-center shadow-md">
-                  <KeyRound className="w-10 h-10 text-white" />
+    <div className="h-screen h-[100dvh] bg-background flex flex-col overflow-hidden">
+      <div className="flex-1 flex items-center justify-center p-4 pb-20 overflow-y-auto">
+        <div className="w-full max-w-md bg-white rounded-3xl shadow-xl p-5 md:p-6 animate-fade-in max-h-[85vh] overflow-y-auto">
+          {showForgotPassword ? (
+            /* Forgot Password Form */
+            <div className="space-y-4">
+              <div className="text-center">
+                <div className="flex justify-center mb-4">
+                  <div className="w-16 h-16 bg-amber-400 rounded-2xl flex items-center justify-center shadow-md">
+                    <KeyRound className="w-8 h-8 text-white" />
+                  </div>
                 </div>
-              </div>
               <h2 className="text-2xl font-bold text-foreground mb-2">איפוס סיסמה</h2>
               <p className="text-muted-foreground text-sm">
                 הזינו את כתובת האימייל שלכם ונשלח לכם קישור לאיפוס הסיסמה
@@ -1061,27 +1071,27 @@ const Auth = () => {
               חזרה להתחברות
             </button>
           </div>
-        ) : (
-          <>
-            {/* Waving Hand Icon */}
-            <div className="flex justify-center mb-6 animate-fade-in [animation-delay:100ms]">
-              <div className="w-20 h-20 bg-amber-400 rounded-2xl flex items-center justify-center shadow-md">
-                <span className="text-4xl animate-bounce-gentle">👋</span>
+          ) : (
+            <>
+              {/* Waving Hand Icon */}
+              <div className="flex justify-center mb-4 animate-fade-in [animation-delay:100ms]">
+                <div className="w-16 h-16 bg-amber-400 rounded-2xl flex items-center justify-center shadow-md">
+                  <span className="text-3xl animate-bounce-gentle">👋</span>
+                </div>
               </div>
-            </div>
 
-            {/* Header */}
-            <div className="text-center mb-6 animate-fade-in [animation-delay:200ms] opacity-0 [animation-fill-mode:forwards]">
-              <h1 className="text-2xl font-bold text-foreground mb-2">
-                ברוכים הבאים!
-              </h1>
-              <p className="text-muted-foreground text-sm">
-                התחברו כדי ליצור סיפורים מותאמים אישית
-              </p>
-            </div>
+              {/* Header */}
+              <div className="text-center mb-4 animate-fade-in [animation-delay:200ms] opacity-0 [animation-fill-mode:forwards]">
+                <h1 className="text-xl font-bold text-foreground mb-1">
+                  ברוכים הבאים!
+                </h1>
+                <p className="text-muted-foreground text-sm">
+                  התחברו כדי ליצור סיפורים מותאמים אישית
+                </p>
+              </div>
 
-            {/* Custom Tabs */}
-            <div className="flex gap-2 p-1 bg-gray-100 rounded-full mb-6 animate-fade-in [animation-delay:300ms] opacity-0 [animation-fill-mode:forwards]">
+              {/* Custom Tabs */}
+              <div className="flex gap-2 p-1 bg-gray-100 rounded-full mb-4 animate-fade-in [animation-delay:300ms] opacity-0 [animation-fill-mode:forwards]">
               <button
                 type="button"
                 onClick={() => setActiveTab("login")}
@@ -1231,9 +1241,11 @@ const Auth = () => {
               </form>
               </div>
             )}
-          </>
-        )}
+            </>
+          )}
+        </div>
       </div>
+      <MobileNavigation />
     </div>
   );
 };

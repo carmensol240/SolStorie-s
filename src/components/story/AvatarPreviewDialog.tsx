@@ -92,11 +92,17 @@ const AvatarPreviewDialog = ({
         return;
       }
       
-      // Get current user for folder structure
-      const { data: { user } } = await supabase.auth.getUser();
+      // Enhanced auth verification before upload
+      const { data: { user }, error: authError } = await supabase.auth.getUser();
+      if (authError) {
+        console.error('Auth error:', authError);
+        throw new Error('שגיאה באימות המשתמש');
+      }
       if (!user) {
         throw new Error('יש להתחבר כדי לשמור תמונות');
       }
+      
+      console.log('Saving avatar for user:', user.id, 'child:', childId);
 
       // Convert base64 to blob and upload to storage
       const base64Content = previewUrl.includes(',') 
