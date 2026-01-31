@@ -6,7 +6,7 @@ import { Badge } from "@/components/ui/badge";
 import PurchaseSuccessModal from "@/components/paywall/PurchaseSuccessModal";
 import PurchaseFailedModal from "@/components/paywall/PurchaseFailedModal";
 import PayPalButton from "@/components/paywall/PayPalButton";
-import GlobalFooter from "@/components/GlobalFooter";
+
 import { useCredits } from "@/hooks/use-credits";
 import { useAnalytics } from "@/hooks/use-analytics";
 import { useAuth } from "@/hooks/use-auth";
@@ -181,7 +181,7 @@ const Upgrade = () => {
   };
 
   return (
-    <div className="min-h-screen flex flex-col bg-gradient-to-b from-amber-50 to-white overflow-hidden">
+    <div className="h-screen flex flex-col bg-gradient-to-b from-amber-50 to-white overflow-hidden">
       {/* Close Button */}
       <div className="absolute top-4 left-4 z-10">
         <Button
@@ -382,7 +382,6 @@ const Upgrade = () => {
         onOpenChange={setShowFailed}
         onRetry={handleRetry}
       />
-      <GlobalFooter />
     </div>
   );
 };
