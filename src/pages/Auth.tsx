@@ -1241,6 +1241,19 @@ const Auth = () => {
               </form>
               </div>
             )}
+
+            {/* Developer Bypass - Only in development */}
+            {import.meta.env.DEV && (
+              <div className="mt-3 pt-3 border-t border-dashed border-gray-200">
+                <button
+                  type="button"
+                  onClick={() => navigate("/library?dev=true")}
+                  className="w-full text-center text-xs text-gray-400 hover:text-purple transition-colors"
+                >
+                  🔧 Developer Mode (Skip Auth)
+                </button>
+              </div>
+            )}
             </>
           )}
         </div>
