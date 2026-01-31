@@ -4,14 +4,20 @@ import { Label } from "@/components/ui/label";
 import { StoryFormData } from "@/pages/CreateStory";
 import { cn } from "@/lib/utils";
 
-// Topic images
-import topicToothbrush from "@/assets/topic-toothbrush.jpg";
-import topicBathtime from "@/assets/topic-bathtime.jpg";
+// Topic images - new uploaded images
+import topicTeethBrushing from "@/assets/topic-teeth-brushing.jpg";
+import topicBathShower from "@/assets/topic-bath-shower.jpg";
+import topicNailTrimming from "@/assets/topic-nail-trimming.jpg";
+import topicHandWashing from "@/assets/topic-hand-washing.jpg";
+import topicZoo from "@/assets/topic-zoo.jpg";
+import topicFamilyTrip from "@/assets/topic-family-trip.jpg";
+import topicMagicCastle from "@/assets/topic-magic-castle.jpg";
+import topicSpaceHero from "@/assets/topic-space-hero.jpg";
+import topicBirthday from "@/assets/topic-birthday.jpg";
+// Keep existing images for categories without new uploads
 import topicPacifier from "@/assets/topic-pacifier.jpg";
 import topicBedtime from "@/assets/topic-bedtime.jpg";
 import topicFriendship from "@/assets/topic-friendship.jpg";
-import topicSpace from "@/assets/topic-space.jpg";
-import topicKingdom from "@/assets/topic-kingdom.jpg";
 
 interface TopicStepProps {
   formData: StoryFormData;
@@ -23,7 +29,7 @@ const ADVENTURE_CATEGORIES = [
   { 
     id: "body-hero-teeth", 
     label: "צחצוח שיניים קסום", 
-    image: topicToothbrush,
+    image: topicTeethBrushing,
     description: "עם פיית השיניים והדרקון",
     logic: {
       outfit: "everyday casual clothes at home",
@@ -34,12 +40,34 @@ const ADVENTURE_CATEGORIES = [
   { 
     id: "body-hero-bath", 
     label: "אמבטיה של כיף", 
-    image: topicBathtime,
+    image: topicBathShower,
     description: "בועות, ברווזון וקצף",
     logic: {
       outfit: "bath time with rubber ducky cap",
       background: "colorful bubble bath with floating toys and rainbow bubbles",
       theme: "bath time fun, getting clean, water play"
+    }
+  },
+  { 
+    id: "body-hero-hands", 
+    label: "שטיפת ידיים", 
+    image: topicHandWashing,
+    description: "מנצחים את החיידקים!",
+    logic: {
+      outfit: "everyday casual clothes",
+      background: "bright colorful bathroom with soap bubbles and friendly germs being washed away",
+      theme: "hand hygiene, washing hands, staying healthy"
+    }
+  },
+  { 
+    id: "body-hero-nails", 
+    label: "גזירת ציפורניים", 
+    image: topicNailTrimming,
+    description: "עם הפיות הקסומות",
+    logic: {
+      outfit: "everyday casual clothes",
+      background: "magical bathroom with fairies and sparkles, friendly nail clippers",
+      theme: "nail trimming, grooming routine, overcoming fear of nail cutting"
     }
   },
   { 
@@ -65,6 +93,39 @@ const ADVENTURE_CATEGORIES = [
     }
   },
   { 
+    id: "zoo-adventure", 
+    label: "טיול בגן החיות", 
+    image: topicZoo,
+    description: "פוגשים חיות מדהימות",
+    logic: {
+      outfit: "comfortable outdoor clothes with backpack",
+      background: "colorful zoo with friendly animals, fences, trees",
+      theme: "animal discovery, nature, adventure and exploration"
+    }
+  },
+  { 
+    id: "family-trip", 
+    label: "טיול משפחתי", 
+    image: topicFamilyTrip,
+    description: "הרפתקה בטבע עם המשפחה",
+    logic: {
+      outfit: "hiking clothes with backpack",
+      background: "beautiful nature trail with trees, stream, flowers, and dog",
+      theme: "family bonding, nature exploration, outdoor adventure"
+    }
+  },
+  { 
+    id: "birthday-party", 
+    label: "מסיבת יום הולדת", 
+    image: topicBirthday,
+    description: "חוגגים עם החברים",
+    logic: {
+      outfit: "party clothes, festive attire",
+      background: "colorful kindergarten or party venue with cake, decorations, friends",
+      theme: "birthday celebration, friendship, sharing joy"
+    }
+  },
+  { 
     id: "friendship-courage", 
     label: "חברים בגן", 
     image: topicFriendship,
@@ -78,7 +139,7 @@ const ADVENTURE_CATEGORIES = [
   { 
     id: "space-adventure", 
     label: "הרפתקה בחלל", 
-    image: topicSpace,
+    image: topicSpaceHero,
     description: "מסע בין כוכבים ופלאות",
     logic: {
       outfit: "astronaut spacesuit with helmet",
@@ -89,7 +150,7 @@ const ADVENTURE_CATEGORIES = [
   { 
     id: "magic-kingdom", 
     label: "ממלכת הקסם", 
-    image: topicKingdom,
+    image: topicMagicCastle,
     description: "הרפתקה קסומה בארמון",
     logic: {
       outfit: "royal prince/princess attire with crown",
