@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Loader2, Sparkles, RefreshCw, Check, AlertCircle } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
-
+import { isDevModeEnabled } from '@/hooks/use-dev-mode';
 interface AvatarPreviewDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
@@ -80,8 +80,8 @@ const AvatarPreviewDialog = ({
     
     setIsSaving(true);
     try {
-      // If skipStorage, just return the base64 URL directly
-      if (skipStorage || childId === 'temp-child') {
+      // If skipStorage, dev mode, or temp child - just return the base64 URL directly
+      if (skipStorage || childId === 'temp-child' || isDevModeEnabled()) {
         toast({
           title: 'הדמות נוצרה בהצלחה! ✨',
           description: `הדמות של ${childName} מוכנה לסיפורים`,
