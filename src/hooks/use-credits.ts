@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from './use-auth';
+import { isDevModeEnabled, MOCK_DEV_PROFILE } from './use-dev-mode';
 
 export const useCredits = () => {
   const { user } = useAuth();
@@ -8,6 +9,13 @@ export const useCredits = () => {
   const [loading, setLoading] = useState(true);
 
   const fetchCredits = useCallback(async () => {
+    // 🔧 DEV MODE: Return mock credits
+    if (isDevModeEnabled()) {
+      setCredits(MOCK_DEV_PROFILE.story_credits);
+      setLoading(false);
+      return;
+    }
+
     if (!user) {
       setCredits(null);
       setLoading(false);
@@ -40,6 +48,12 @@ export const useCredits = () => {
   }, [credits]);
 
   const useCredit = useCallback(async () => {
+    // 🔧 DEV MODE: Always succeed without actually decrementing
+    if (isDevModeEnabled()) {
+      console.log('🔧 Dev mode: mock credit used');
+      return true;
+    }
+
     if (!user || !hasCredits()) return false;
 
     try {
@@ -58,6 +72,13 @@ export const useCredits = () => {
   }, [user, credits, hasCredits]);
 
   const addCredits = useCallback(async (amount: number) => {
+    // 🔧 DEV MODE: Always succeed
+    if (isDevModeEnabled()) {
+      console.log('🔧 Dev mode: mock credits added:', amount);
+      setCredits(prev => (prev ?? 0) + amount);
+      return true;
+    }
+
     if (!user) return false;
 
     try {
