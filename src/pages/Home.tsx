@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { Wand2, Coins, BookOpen, ArrowLeft, Sparkles, Gift, Star, Palette, Heart } from "lucide-react";
+import GlobalFooter from "@/components/GlobalFooter";
 import heroChildReading from "@/assets/hero-child-reading.jpg";
 import heroChildTablet from "@/assets/hero-child-tablet-new.jpg";
 import { useNavigate, Link } from "react-router-dom";
@@ -242,6 +243,7 @@ const Home = () => {
         </div>
       </div>
       
+      <GlobalFooter />
       <MobileNavigation />
     </div>
   );
