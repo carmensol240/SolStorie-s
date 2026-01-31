@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { ArrowRight, ArrowLeft, Loader2, User } from "lucide-react";
+import GlobalFooter from "@/components/GlobalFooter";
 import { Button } from "@/components/ui/button";
 import MobileNavigation from "@/components/MobileNavigation";
 import ChildInfoStep from "@/components/wizard/ChildInfoStep";
@@ -230,7 +231,12 @@ const CreateStory = () => {
 
       </div>
       
-      {step < 3 && <MobileNavigation />}
+      {step < 3 && (
+        <>
+          <GlobalFooter />
+          <MobileNavigation />
+        </>
+      )}
     </div>
   );
 };
