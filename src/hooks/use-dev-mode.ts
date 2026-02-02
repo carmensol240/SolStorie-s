@@ -18,9 +18,9 @@ export const isDevModeEnabled = (): boolean => {
   return false;
 };
 
-// Mock user for dev mode
+// Mock user for dev mode - using a valid UUID format for database compatibility
 export const MOCK_DEV_USER: User = {
-  id: 'dev-user-12345',
+  id: '00000000-0000-0000-0000-000000000000', // Valid UUID for dev mode
   aud: 'authenticated',
   role: 'authenticated',
   email: 'testuser@example.com',
@@ -47,7 +47,7 @@ export const MOCK_DEV_SESSION: Session = {
 
 // Mock profile data for dev mode
 export const MOCK_DEV_PROFILE = {
-  id: 'dev-user-12345',
+  id: '00000000-0000-0000-0000-000000000000', // Valid UUID matching MOCK_DEV_USER
   display_name: 'Test User',
   avatar_emoji: '🧪',
   story_credits: 5,
