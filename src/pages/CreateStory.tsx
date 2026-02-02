@@ -140,12 +140,10 @@ const CreateStory = () => {
   const displayStep = step < 3 ? step : 4;
 
   return (
-    <div className="h-screen h-[100dvh] flex flex-col bg-gradient-to-b from-amber-50 to-orange-50 overflow-hidden">
-      <div className="flex-1 overflow-y-auto overscroll-contain pb-20">
-        <div className="container max-w-lg mx-auto px-3 py-4">
-        
-        {/* Compact Header with back button */}
-        <div className="flex items-center justify-between mb-3">
+    <div className="min-h-screen flex flex-col bg-gradient-to-b from-amber-50 to-orange-50">
+      {/* Header - Fixed at top */}
+      <header className="sticky top-0 z-20 bg-gradient-to-b from-amber-50 to-amber-50/95 backdrop-blur-sm px-3 py-2 border-b border-amber-200/50">
+        <div className="container max-w-lg mx-auto flex items-center justify-between">
           <Button
             variant="ghost"
             size="sm"
@@ -156,11 +154,18 @@ const CreateStory = () => {
             <ArrowRight className="w-4 h-4" aria-hidden="true" />
             חזרה
           </Button>
+          
+          {/* Compact User Icon for Step 1 */}
+          {step === 1 && (
+            <div className="w-10 h-10 bg-gradient-to-br from-orange-400 to-pink-500 rounded-xl flex items-center justify-center shadow-sm">
+              <User className="w-5 h-5 text-white" />
+            </div>
+          )}
         </div>
-
+        
         {/* Compact Progress Bar - 4 Steps */}
         {step < 3 && (
-          <div className="mb-4">
+          <div className="container max-w-lg mx-auto mt-2">
             <div className="flex items-center justify-between">
               {steps.map((s, index) => (
                 <div key={s.number} className="flex items-center">
@@ -190,15 +195,11 @@ const CreateStory = () => {
             </div>
           </div>
         )}
+      </header>
 
-        {/* Compact User Icon */}
-        {step === 1 && (
-          <div className="flex justify-center mb-3">
-            <div className="w-14 h-14 bg-gradient-to-br from-orange-400 to-pink-500 rounded-2xl flex items-center justify-center shadow-md">
-              <User className="w-7 h-7 text-white" />
-            </div>
-          </div>
-        )}
+      {/* Main Content - Fills remaining space */}
+      <main className="flex-1 overflow-y-auto pb-24">
+        <div className="container max-w-lg mx-auto px-3 py-4">
 
         {/* Step Content */}
         {step === 1 && (
@@ -224,7 +225,7 @@ const CreateStory = () => {
 
         {/* Compact Navigation Buttons */}
         {step < 3 && (
-          <div className="mt-4">
+          <div className="mt-6 pb-4">
             <Button
               onClick={handleNext}
               disabled={step === 1 ? !canProceedStep1 : !canProceedStep2}
@@ -238,7 +239,7 @@ const CreateStory = () => {
         )}
 
         </div>
-      </div>
+      </main>
       
       {step < 3 && <MobileNavigation />}
     </div>

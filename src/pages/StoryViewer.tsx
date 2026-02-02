@@ -490,7 +490,7 @@ const StoryViewer = () => {
                     <div className="rounded-xl overflow-hidden shadow-xl border-4 border-[#D4A574]">
                       <img
                         src={story.pages[0].illustration_url}
-                        alt="כריכת הסיפור"
+                        alt={`איור מהסיפור של ${story.child_name}`}
                         className="w-full aspect-[3/4] object-cover"
                       />
                     </div>
