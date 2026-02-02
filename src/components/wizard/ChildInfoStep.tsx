@@ -9,6 +9,7 @@ import { StoryFormData } from "@/pages/CreateStory";
 import { cn } from "@/lib/utils";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/use-auth";
+import { isDevModeEnabled } from "@/hooks/use-dev-mode";
 import { toast } from "sonner";
 import AvatarPreviewDialog from "@/components/story/AvatarPreviewDialog";
 interface SavedChild {
@@ -153,8 +154,11 @@ const ChildInfoStep = ({ formData, updateFormData }: ChildInfoStepProps) => {
         }
       };
 
-      // Check if we have a user for database save
-      if (user) {
+      // In dev mode or for non-logged users, always save to localStorage
+      const isDevMode = isDevModeEnabled();
+      const shouldUseLocalStorage = isDevMode || !user;
+
+      if (!shouldUseLocalStorage && user) {
         // Check if child already exists
         const existingChild = savedChildren.find(c => c.name === formData.childName);
         
@@ -211,7 +215,7 @@ const ChildInfoStep = ({ formData, updateFormData }: ChildInfoStepProps) => {
         
         toast.success("הפרטים נשמרו בהצלחה! 🎉");
       } else {
-        // Save to localStorage for non-logged users (guests/dev mode)
+        // Save to localStorage for dev mode or non-logged users
         const savedChild = {
           id: `local-${Date.now()}`,
           name: formData.childName,
