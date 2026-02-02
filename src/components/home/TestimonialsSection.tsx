@@ -19,6 +19,8 @@ interface Testimonial {
 }
 
 // Gender-matched testimonials: Hebrew text gender matches avatar gender
+// Gender-matched testimonials: Hebrew text gender matches avatar gender
+// CRITICAL: אבי, דני, יוסי, עמית = Male avatars | מיכל, רונית, שירה, נועה = Female avatars
 const testimonials: Testimonial[] = [
   {
     id: 1,
@@ -26,7 +28,7 @@ const testimonials: Testimonial[] = [
     // Female: הבת, מאושרת, מבקשת, נראית
     text: "הבת שלי מאושרת! כל לילה מבקשת לקרוא את הסיפור שלה שוב ושוב. הדמות שלה נראית בדיוק כמוה!",
     rating: 5,
-    avatar: avatarTestimonial1, // Female avatar
+    avatar: avatarTestimonial1, // Female avatar (מיכל = woman)
   },
   {
     id: 2,
@@ -34,7 +36,7 @@ const testimonials: Testimonial[] = [
     // Male: הילדים, מרגישים (neutral/male)
     text: "רעיון גאוני! הילדים שלי מתים על הסיפורים. הם מרגישים כמו גיבורים אמיתיים בכל סיפור.",
     rating: 5,
-    avatar: avatarTestimonial3, // Male avatar
+    avatar: avatarTestimonial3, // Male avatar (יוסי = man)
   },
   {
     id: 3,
@@ -42,7 +44,7 @@ const testimonials: Testimonial[] = [
     // Female: ממליצה
     text: "האיורים מדהימים והסיפורים מותאמים בצורה מושלמת לגיל. ממליצה בחום!",
     rating: 5,
-    avatar: avatarTestimonial2, // Female avatar
+    avatar: avatarTestimonial2, // Female avatar (רונית = woman)
   },
   {
     id: 4,
@@ -50,7 +52,7 @@ const testimonials: Testimonial[] = [
     // Male: הבן, התגבר
     text: "יצרנו סיפור על הפחד מהחושך והבן שלי התגבר על הפחד תוך שבוע! קסם.",
     rating: 5,
-    avatar: avatarTestimonial4, // Male avatar
+    avatar: avatarParent1, // Male avatar (אבי = man) - FIXED!
   },
   {
     id: 5,
@@ -58,7 +60,7 @@ const testimonials: Testimonial[] = [
     // Female name, neutral text (מרוגשים is plural)
     text: "מתנה מושלמת לסבא וסבתא - סיפור עם הנכדים בתור הגיבורים. הם היו מרוגשים!",
     rating: 4,
-    avatar: avatarTestimonial5, // Female avatar
+    avatar: avatarTestimonial5, // Female avatar (שירה = woman)
   },
   {
     id: 6,
@@ -66,7 +68,7 @@ const testimonials: Testimonial[] = [
     // Male: הבן, מתלהב, רואה
     text: "הבן שלי לא מפסיק לבקש עוד סיפורים! הוא מתלהב כל פעם מחדש כשהוא רואה את עצמו באיורים.",
     rating: 5,
-    avatar: avatarParent1, // Male avatar
+    avatar: avatarTestimonial4, // Male avatar (דני = man) - FIXED!
   },
   {
     id: 7,
@@ -74,7 +76,7 @@ const testimonials: Testimonial[] = [
     // Female: הבת, גאה
     text: "איזה רעיון מקסים! הבת שלי כל כך גאה לראות את עצמה כגיבורת הסיפור. תודה על החוויה!",
     rating: 5,
-    avatar: avatarParent2, // Female avatar
+    avatar: avatarParent2, // Female avatar (נועה = woman)
   },
   {
     id: 8,
@@ -82,7 +84,7 @@ const testimonials: Testimonial[] = [
     // Male: ממליץ
     text: "סיפורים באיכות מטורפת. הילדים שלי מחכים בקוצר רוח לסיפור הבא. ממליץ לכל הורה!",
     rating: 5,
-    avatar: avatarParent3, // Male avatar
+    avatar: avatarParent3, // Male avatar (עמית = man)
   },
 ];
 
