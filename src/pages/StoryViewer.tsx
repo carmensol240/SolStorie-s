@@ -119,7 +119,7 @@ const StoryViewer = () => {
 
   // Sound effects disabled - silent reading experience
 
-  const fetchStory = async () => {
+  const fetchStory = async (retryCount = 0) => {
     try {
       if (!isOnline && storyId) {
         const cached = getCachedStory(storyId);
@@ -130,18 +130,33 @@ const StoryViewer = () => {
         }
       }
 
+      console.log(`Fetching story ${storyId}, attempt ${retryCount + 1}`);
+
       const { data: storyData, error: storyError } = await supabase
         .from("stories")
         .select("*")
         .eq("id", storyId)
         .maybeSingle();
 
-      if (storyError) throw storyError;
+      if (storyError) {
+        console.error("Story fetch error:", storyError);
+        throw storyError;
+      }
+      
       if (!storyData) {
+        // Story not found - might be RLS or timing issue after creation
+        // Retry a couple of times with delay for newly created stories
+        if (retryCount < 3) {
+          console.log(`Story not found, retrying in 1s (attempt ${retryCount + 1}/3)...`);
+          setTimeout(() => fetchStory(retryCount + 1), 1000);
+          return;
+        }
+        
+        console.error("Story not found after retries:", storyId);
         toast({
           variant: "destructive",
           title: "שגיאה",
-          description: "הסיפור לא נמצא",
+          description: "הסיפור לא נמצא. ייתכן שהסיפור עדיין נוצר - נסו לרענן את הדף.",
         });
         navigate("/library");
         return;
@@ -154,6 +169,15 @@ const StoryViewer = () => {
         .order("page_number", { ascending: true });
 
       if (pagesError) throw pagesError;
+
+      // If no pages yet, retry (generation in progress)
+      if (!pagesData || pagesData.length === 0) {
+        if (retryCount < 5) {
+          console.log(`No pages found, retrying in 2s (attempt ${retryCount + 1}/5)...`);
+          setTimeout(() => fetchStory(retryCount + 1), 2000);
+          return;
+        }
+      }
 
       const storyObj = {
         id: storyData.id,

@@ -56,6 +56,11 @@ const GeneratingStep = ({ formData, onComplete }: GeneratingStepProps) => {
         ? formData.customTopic 
         : getTopicLabel(formData.topic);
 
+      console.log("Starting story generation...", { 
+        childName: formData.childName, 
+        topic: topicLabel 
+      });
+
       const { data, error: apiError } = await supabase.functions.invoke("generate-story", {
         body: {
           childName: formData.childName,
@@ -71,7 +76,31 @@ const GeneratingStep = ({ formData, onComplete }: GeneratingStepProps) => {
       });
 
       if (apiError) {
+        console.error("API error:", apiError);
         throw apiError;
+      }
+
+      if (!data?.storyId) {
+        console.error("No storyId in response:", data);
+        throw new Error("לא התקבל מזהה סיפור מהשרת");
+      }
+
+      console.log("Story created successfully with ID:", data.storyId);
+
+      // Verify the story exists before redirecting
+      const { data: verifiedStory, error: verifyError } = await supabase
+        .from("stories")
+        .select("id")
+        .eq("id", data.storyId)
+        .maybeSingle();
+
+      if (verifyError) {
+        console.error("Verification error:", verifyError);
+        // Still proceed if we got a storyId - RLS might prevent reading but story exists
+      }
+
+      if (!verifiedStory) {
+        console.warn("Story not immediately readable (may be RLS), proceeding anyway");
       }
 
       setProgress(100);
@@ -82,7 +111,8 @@ const GeneratingStep = ({ formData, onComplete }: GeneratingStepProps) => {
       
     } catch (err) {
       console.error("Error generating story:", err);
-      setError("אירעה שגיאה ביצירת הסיפור. אנא נסו שוב.");
+      const errorMessage = err instanceof Error ? err.message : "שגיאה לא ידועה";
+      setError(`אירעה שגיאה ביצירת הסיפור: ${errorMessage}`);
       toast({
         variant: "destructive",
         title: "שגיאה",
