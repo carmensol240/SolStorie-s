@@ -20,6 +20,7 @@ interface SavedChild {
   photo_url: string | null;
   avatar_url: string | null;
   personality_traits: string | null;
+  avatar_regeneration_count?: number;
 }
 
 interface ChildInfoStepProps {
@@ -52,6 +53,8 @@ const ChildInfoStep = ({ formData, updateFormData }: ChildInfoStepProps) => {
   const [tempChildId, setTempChildId] = useState<string | null>(null);
   const [isSavingChild, setIsSavingChild] = useState(false);
   const [isUploadingPhoto, setIsUploadingPhoto] = useState(false);
+  const [avatarRegenerationCount, setAvatarRegenerationCount] = useState(0);
+  const [existingAvatarForDialog, setExistingAvatarForDialog] = useState<string | null>(null);
 
   useEffect(() => {
     const fetchChildren = async () => {
@@ -108,8 +111,24 @@ const ChildInfoStep = ({ formData, updateFormData }: ChildInfoStepProps) => {
 
   const handleAvatarConfirm = (avatarUrl: string) => {
     updateFormData({ childAvatarUrl: avatarUrl });
+    setExistingAvatarForDialog(avatarUrl);
     setAvatarPreviewOpen(false);
     setPendingPhotoForAvatar(null);
+  };
+
+  const handleRegenerationCountChange = (count: number) => {
+    setAvatarRegenerationCount(count);
+    // Update in saved children if exists
+    const currentChild = savedChildren.find(c => c.name === formData.childName);
+    if (currentChild) {
+      const updatedChildren = savedChildren.map(c => 
+        c.name === formData.childName ? { ...c, avatar_regeneration_count: count } : c
+      );
+      setSavedChildren(updatedChildren);
+      
+      // Persist to localStorage for all users
+      localStorage.setItem('savedChildren', JSON.stringify(updatedChildren));
+    }
   };
 
   const loadChildProfile = (child: SavedChild) => {
@@ -128,6 +147,10 @@ const ChildInfoStep = ({ formData, updateFormData }: ChildInfoStepProps) => {
       childAvatarUrl: child.avatar_url,
       personalityTraits: child.personality_traits || "",
     });
+    
+    // Load avatar regeneration count
+    setAvatarRegenerationCount(child.avatar_regeneration_count || 0);
+    setExistingAvatarForDialog(child.avatar_url);
     
     if (child.personality_traits) {
       setShowPersonalityField(true);
@@ -569,6 +592,9 @@ const ChildInfoStep = ({ formData, updateFormData }: ChildInfoStepProps) => {
         childName={formData.childName || 'הילד/ה'}
         onConfirm={handleAvatarConfirm}
         skipStorage={true}
+        regenerationCount={avatarRegenerationCount}
+        onRegenerationCountChange={handleRegenerationCountChange}
+        existingAvatarUrl={existingAvatarForDialog}
       />
     </div>
   );

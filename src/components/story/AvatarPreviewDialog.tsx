@@ -1,10 +1,13 @@
 import { useState, useEffect, useCallback } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
-import { Loader2, Sparkles, RefreshCw, Check, AlertCircle } from 'lucide-react';
+import { Loader2, Sparkles, RefreshCw, Check, AlertCircle, Lock } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { isDevModeEnabled } from '@/hooks/use-dev-mode';
+
+const MAX_AVATAR_REGENERATIONS = 2;
+
 interface AvatarPreviewDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
@@ -13,6 +16,9 @@ interface AvatarPreviewDialogProps {
   childName: string;
   onConfirm: (avatarUrl: string) => void;
   skipStorage?: boolean;
+  regenerationCount?: number;
+  onRegenerationCountChange?: (count: number) => void;
+  existingAvatarUrl?: string | null;
 }
 
 const AvatarPreviewDialog = ({
@@ -23,15 +29,43 @@ const AvatarPreviewDialog = ({
   childName,
   onConfirm,
   skipStorage = false,
+  regenerationCount = 0,
+  onRegenerationCountChange,
+  existingAvatarUrl,
 }: AvatarPreviewDialogProps) => {
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [isGenerating, setIsGenerating] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [localRegenerationCount, setLocalRegenerationCount] = useState(regenerationCount);
   const { toast } = useToast();
+  
+  const canRegenerate = localRegenerationCount < MAX_AVATAR_REGENERATIONS;
+
+  // Use existing avatar if available
+  useEffect(() => {
+    if (existingAvatarUrl && !previewUrl) {
+      setPreviewUrl(existingAvatarUrl);
+    }
+  }, [existingAvatarUrl, previewUrl]);
+
+  // Sync regeneration count from props
+  useEffect(() => {
+    setLocalRegenerationCount(regenerationCount);
+  }, [regenerationCount]);
 
   const generatePreview = useCallback(async () => {
     if (!originalPhoto || isGenerating) return;
+    
+    // Check regeneration limit
+    if (localRegenerationCount >= MAX_AVATAR_REGENERATIONS) {
+      toast({
+        title: 'הגעת למגבלת היצירות',
+        description: `ניתן ליצור דמות חדשה עד ${MAX_AVATAR_REGENERATIONS} פעמים בלבד`,
+        variant: 'destructive',
+      });
+      return;
+    }
     
     setIsGenerating(true);
     setErrorMessage(null);
@@ -57,7 +91,11 @@ const AvatarPreviewDialog = ({
 
       if (data?.previewUrl) {
         setPreviewUrl(data.previewUrl);
-        console.log('Avatar generated successfully');
+        // Increment regeneration count
+        const newCount = localRegenerationCount + 1;
+        setLocalRegenerationCount(newCount);
+        onRegenerationCountChange?.(newCount);
+        console.log('Avatar generated successfully, count:', newCount);
       } else {
         throw new Error('לא התקבלה תמונה מהשרת');
       }
@@ -73,7 +111,7 @@ const AvatarPreviewDialog = ({
     } finally {
       setIsGenerating(false);
     }
-  }, [originalPhoto, isGenerating, toast]);
+  }, [originalPhoto, isGenerating, toast, localRegenerationCount, onRegenerationCountChange]);
 
   const handleConfirm = async () => {
     if (!previewUrl) return;
@@ -157,20 +195,22 @@ const AvatarPreviewDialog = ({
     }
   };
 
-  // Auto-generate preview when dialog opens
+  // Auto-generate preview when dialog opens (only if no existing avatar)
   useEffect(() => {
-    if (open && originalPhoto && !previewUrl && !isGenerating && !errorMessage) {
+    if (open && originalPhoto && !previewUrl && !isGenerating && !errorMessage && !existingAvatarUrl) {
       generatePreview();
     }
-  }, [open, originalPhoto, previewUrl, isGenerating, errorMessage, generatePreview]);
+  }, [open, originalPhoto, previewUrl, isGenerating, errorMessage, generatePreview, existingAvatarUrl]);
 
-  // Reset state when dialog closes
+  // Reset state when dialog closes (but keep existing avatar)
   useEffect(() => {
     if (!open) {
-      setPreviewUrl(null);
+      if (!existingAvatarUrl) {
+        setPreviewUrl(null);
+      }
       setErrorMessage(null);
     }
-  }, [open]);
+  }, [open, existingAvatarUrl]);
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -252,6 +292,17 @@ const AvatarPreviewDialog = ({
               <p className="text-xs text-muted-foreground">
                 💡 הדמות הזו תופיע בכל הסיפורים של {childName} כדי לשמור על עקביות
               </p>
+              {/* Show remaining regenerations */}
+              <p className="text-xs text-muted-foreground mt-1">
+                {canRegenerate ? (
+                  <>נותרו לך <strong>{MAX_AVATAR_REGENERATIONS - localRegenerationCount}</strong> יצירות מחדש</>
+                ) : (
+                  <span className="text-amber-600 flex items-center justify-center gap-1">
+                    <Lock className="w-3 h-3" />
+                    ניצלת את כל יצירות האווטאר
+                  </span>
+                )}
+              </p>
             </div>
           )}
         </div>
@@ -275,15 +326,15 @@ const AvatarPreviewDialog = ({
             )}
           </Button>
           
-          {previewUrl && !isGenerating && (
+          {previewUrl && !isGenerating && canRegenerate && (
             <Button
               variant="outline"
               onClick={generatePreview}
-              disabled={isGenerating}
+              disabled={isGenerating || !canRegenerate}
               className="gap-2"
             >
               <RefreshCw className="w-4 h-4" />
-              יצירה מחדש
+              יצירה מחדש ({MAX_AVATAR_REGENERATIONS - localRegenerationCount})
             </Button>
           )}
           
