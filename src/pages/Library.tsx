@@ -57,6 +57,7 @@ const Library = () => {
     fetchStories();
   }, []);
 
+  // Library is accessible to all users - shows empty state for unauthenticated users
   const fetchStories = async () => {
     try {
       // First fetch stories - this will return empty if user is not logged in due to RLS
