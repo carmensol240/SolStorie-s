@@ -1,13 +1,15 @@
 import { useRef, useEffect, useState } from "react";
-import { User, Camera, Sparkles, RefreshCw, Trash2, Heart, ChevronDown, ChevronUp, Check, X, Loader2 } from "lucide-react";
+import { User, Camera, Sparkles, RefreshCw, Trash2, Heart, ChevronDown, ChevronUp, Check, X, Loader2, Save, Shield } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
+import { Button } from "@/components/ui/button";
 import { StoryFormData } from "@/pages/CreateStory";
 import { cn } from "@/lib/utils";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/use-auth";
+import { toast } from "sonner";
 import AvatarPreviewDialog from "@/components/story/AvatarPreviewDialog";
 interface SavedChild {
   id: string;
@@ -47,6 +49,7 @@ const ChildInfoStep = ({ formData, updateFormData }: ChildInfoStepProps) => {
   const [avatarPreviewOpen, setAvatarPreviewOpen] = useState(false);
   const [pendingPhotoForAvatar, setPendingPhotoForAvatar] = useState<string | null>(null);
   const [tempChildId, setTempChildId] = useState<string | null>(null);
+  const [isSavingChild, setIsSavingChild] = useState(false);
   const [isUploadingPhoto, setIsUploadingPhoto] = useState(false);
 
   useEffect(() => {
@@ -120,6 +123,111 @@ const ChildInfoStep = ({ formData, updateFormData }: ChildInfoStepProps) => {
     
     if (child.personality_traits) {
       setShowPersonalityField(true);
+    }
+  };
+
+  const handleSaveChildProfile = async () => {
+    if (!formData.childName.trim()) {
+      toast.error("נא להזין את שם הילד/ה");
+      return;
+    }
+
+    setIsSavingChild(true);
+
+    try {
+      // Convert age range to number
+      const ageFromRange = (range: string): number => {
+        switch (range) {
+          case "0-2": return 1;
+          case "2-4": return 3;
+          case "5-7": return 6;
+          case "8-10": return 9;
+          default: return 3;
+        }
+      };
+
+      // Check if we have a user for database save
+      if (user) {
+        // Check if child already exists
+        const existingChild = savedChildren.find(c => c.name === formData.childName);
+        
+        if (existingChild) {
+          // Update existing child
+          const { error } = await supabase
+            .from("children")
+            .update({
+              age: ageFromRange(formData.ageRange),
+              gender: formData.childGender,
+              photo_url: formData.childPhoto,
+              avatar_url: formData.childAvatarUrl,
+              personality_traits: formData.personalityTraits || null,
+            })
+            .eq("id", existingChild.id);
+
+          if (error) throw error;
+          
+          // Update local state
+          setSavedChildren(prev => prev.map(c => 
+            c.id === existingChild.id 
+              ? { ...c, age: ageFromRange(formData.ageRange), gender: formData.childGender, photo_url: formData.childPhoto, avatar_url: formData.childAvatarUrl, personality_traits: formData.personalityTraits }
+              : c
+          ));
+        } else {
+          // Create new child
+          const { data, error } = await supabase
+            .from("children")
+            .insert({
+              user_id: user.id,
+              name: formData.childName,
+              age: ageFromRange(formData.ageRange),
+              gender: formData.childGender,
+              photo_url: formData.childPhoto,
+              avatar_url: formData.childAvatarUrl,
+              personality_traits: formData.personalityTraits || null,
+            })
+            .select()
+            .single();
+
+          if (error) throw error;
+          
+          // Add to local state
+          if (data) {
+            setSavedChildren(prev => [...prev, data]);
+          }
+        }
+        
+        toast.success("הפרטים נשמרו בהצלחה! 🎉");
+      } else {
+        // Save to localStorage for non-logged users
+        const savedChild = {
+          id: `local-${Date.now()}`,
+          name: formData.childName,
+          age: ageFromRange(formData.ageRange),
+          gender: formData.childGender,
+          photo_url: formData.childPhoto,
+          avatar_url: formData.childAvatarUrl,
+          personality_traits: formData.personalityTraits,
+        };
+        
+        const existingChildren = JSON.parse(localStorage.getItem('savedChildren') || '[]');
+        const existingIndex = existingChildren.findIndex((c: SavedChild) => c.name === formData.childName);
+        
+        if (existingIndex >= 0) {
+          existingChildren[existingIndex] = savedChild;
+        } else {
+          existingChildren.push(savedChild);
+        }
+        
+        localStorage.setItem('savedChildren', JSON.stringify(existingChildren));
+        setSavedChildren(existingChildren);
+        
+        toast.success("הפרטים נשמרו בהצלחה! 🎉");
+      }
+    } catch (error) {
+      console.error('Error saving child profile:', error);
+      toast.error("שגיאה בשמירת הפרטים, נסו שוב");
+    } finally {
+      setIsSavingChild(false);
     }
   };
 
@@ -394,6 +502,39 @@ const ChildInfoStep = ({ formData, updateFormData }: ChildInfoStepProps) => {
           </div>
         )}
       </div>
+
+      {/* Save Child Profile Button */}
+      {formData.childName.trim() && (
+        <div className="space-y-2 pt-2">
+          <Button
+            type="button"
+            onClick={handleSaveChildProfile}
+            disabled={isSavingChild}
+            className="w-full bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white font-bold py-3 rounded-xl shadow-md transition-all"
+          >
+            {isSavingChild ? (
+              <>
+                <Loader2 className="w-5 h-5 ml-2 animate-spin" />
+                שומר...
+              </>
+            ) : (
+              <>
+                <Save className="w-5 h-5 ml-2" />
+                שמור פרטים לסיפורים הבאים
+              </>
+            )}
+          </Button>
+          
+          {/* Privacy Notice */}
+          <div className="flex items-start gap-2 text-xs text-muted-foreground bg-blue-50 rounded-lg p-3">
+            <Shield className="w-4 h-4 text-blue-500 mt-0.5 shrink-0" />
+            <p>
+              המידע נשמר באופן מאובטח ומשמש אך ורק להתאמת הסיפורים אישית עבור ילדכם. 
+              אנו מקפידים על הגנת פרטיות בהתאם לתקנות.
+            </p>
+          </div>
+        </div>
+      )}
 
       {/* Avatar Preview Dialog - Always mounted, controlled by open prop to prevent hydration issues */}
       <AvatarPreviewDialog
