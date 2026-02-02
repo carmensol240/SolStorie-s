@@ -83,23 +83,55 @@ const ChildProfiles = () => {
   const [pendingAvatarChild, setPendingAvatarChild] = useState<{id: string, name: string, photoUrl: string} | null>(null);
 
   useEffect(() => {
-    if (!authLoading) {
-      // Load data from localStorage first (for dev mode/guests)
-      loadLocalChildren();
+    const loadData = async () => {
+      if (authLoading) return;
       
-      // Then load from database if user is authenticated
-      if (user) {
-        fetchChildren();
-      } else {
-        setLoading(false);
-      }
-    }
-  }, [user, authLoading, navigate]);
+      setLoading(true);
+      
+      // First, always load from localStorage (for dev mode/guests and offline access)
+      const localChildren = loadLocalChildren();
+      
+      // For authenticated users with valid UUID, also fetch from database
+      const isValidUser = user?.id && user.id !== '00000000-0000-0000-0000-000000000000';
+      
+      if (isValidUser) {
+        try {
+          const { data, error } = await supabase
+            .from("children")
+            .select("id, name, age, gender, photo_url, avatar_url, personality_traits")
+            .order("created_at", { ascending: true });
 
-  const loadLocalChildren = () => {
+          if (!error && data && data.length > 0) {
+            setChildren(data);
+            // Sync to localStorage for offline access
+            localStorage.setItem('savedChildren', JSON.stringify(data));
+          } else if (!error && data && data.length === 0) {
+            // User has no children in DB, use localStorage if available
+            if (localChildren.length > 0) {
+              setChildren(localChildren);
+            }
+          }
+        } catch (error) {
+          console.error("Error fetching children from DB:", error);
+          // Keep localStorage data on error
+        }
+      } else {
+        // For guests/dev mode, use localStorage data
+        if (localChildren.length > 0) {
+          setChildren(localChildren);
+        }
+      }
+      
+      setLoading(false);
+    };
+    
+    loadData();
+  }, [user, authLoading]);
+
+  const loadLocalChildren = (): Child[] => {
     try {
       const localChildren = JSON.parse(localStorage.getItem('savedChildren') || '[]');
-      if (localChildren.length > 0 && children.length === 0) {
+      if (localChildren.length > 0) {
         // Convert localStorage format to Child format
         const converted: Child[] = localChildren.map((c: any, index: number) => ({
           id: c.id || `local-${index}`,
@@ -110,35 +142,35 @@ const ChildProfiles = () => {
           avatar_url: c.avatar_url || null,
           personality_traits: c.personality_traits || null,
         }));
-        setChildren(converted);
+        return converted;
       }
     } catch (error) {
       console.error('Error loading local children:', error);
     }
+    return [];
   };
 
-  const fetchChildren = async () => {
-    try {
-      const { data, error } = await supabase
-        .from("children")
-        .select("id, name, age, gender, photo_url, avatar_url, personality_traits")
-        .order("created_at", { ascending: true });
+  const refetchChildren = async () => {
+    const isValidUser = user?.id && user.id !== '00000000-0000-0000-0000-000000000000';
+    
+    if (isValidUser) {
+      try {
+        const { data, error } = await supabase
+          .from("children")
+          .select("id, name, age, gender, photo_url, avatar_url, personality_traits")
+          .order("created_at", { ascending: true });
 
-      if (error) {
-        console.error("Error fetching children from DB:", error);
-        // Keep localStorage data if DB fails
-        return;
+        if (!error && data) {
+          setChildren(data);
+          localStorage.setItem('savedChildren', JSON.stringify(data));
+        }
+      } catch (error) {
+        console.error("Error fetching children:", error);
       }
-      
-      if (data && data.length > 0) {
-        setChildren(data);
-        // Also sync to localStorage for offline access
-        localStorage.setItem('savedChildren', JSON.stringify(data));
-      }
-    } catch (error) {
-      console.error("Error fetching children:", error);
-    } finally {
-      setLoading(false);
+    } else {
+      // For guests, reload from localStorage
+      const localChildren = loadLocalChildren();
+      setChildren(localChildren);
     }
   };
 
@@ -264,7 +296,7 @@ const ChildProfiles = () => {
       
       // Only fetch from DB if authenticated
       if (isValidUser) {
-        fetchChildren();
+        refetchChildren();
       }
     } catch (error) {
       console.error("Error adding child:", error);
@@ -374,7 +406,7 @@ const ChildProfiles = () => {
       });
 
       setEditDialogOpen(false);
-      fetchChildren();
+      refetchChildren();
     } catch (error) {
       console.error("Error updating child:", error);
       toast({
@@ -417,7 +449,7 @@ const ChildProfiles = () => {
 
       setDeleteDialogOpen(false);
       setChildToDelete(null);
-      fetchChildren();
+      refetchChildren();
     } catch (error) {
       console.error("Error deleting child:", error);
       toast({
@@ -842,7 +874,7 @@ const ChildProfiles = () => {
               childId={pendingAvatarChild.id}
               childName={pendingAvatarChild.name}
               onConfirm={(avatarUrl) => {
-                fetchChildren();
+                refetchChildren();
               }}
             />
           )}

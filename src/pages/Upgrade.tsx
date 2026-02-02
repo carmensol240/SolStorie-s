@@ -183,7 +183,7 @@ const Upgrade = () => {
   return (
     <div className="h-screen flex flex-col bg-gradient-to-b from-amber-50 to-white overflow-hidden">
       {/* Close Button */}
-      <div className="absolute top-4 left-4 z-10">
+      <div className="absolute top-2 left-2 z-10">
         <Button
           variant="ghost"
           size="icon"
@@ -194,11 +194,11 @@ const Upgrade = () => {
         </Button>
       </div>
 
-      <div className="flex-1 overflow-y-auto pb-28">
-        <div className="container max-w-md mx-auto px-3 pt-2">
-          {/* Elephant Image - LARGER */}
-          <div className="flex justify-center mb-4">
-            <div className="w-48 h-48 rounded-2xl overflow-hidden shadow-xl bg-white border-4 border-amber-200">
+      <div className="flex-1 overflow-y-auto pb-24">
+        <div className="container max-w-md mx-auto px-3 pt-1">
+          {/* Elephant Image - LARGER & CLOSER TO TOP */}
+          <div className="flex justify-center mb-3">
+            <div className="w-56 h-56 rounded-2xl overflow-hidden shadow-2xl bg-white border-4 border-amber-300">
               <img 
                 src={elephantImage} 
                 alt="פיל חמוד קורא ספר" 
@@ -208,24 +208,24 @@ const Upgrade = () => {
           </div>
 
           {/* Header - Bigger & Bolder */}
-          <div className="text-center mb-4">
-            <h1 className="text-2xl font-black text-foreground mb-2">
+          <div className="text-center mb-3">
+            <h1 className="text-3xl font-black text-foreground mb-1">
               {title}
             </h1>
-            <p className="text-muted-foreground text-sm font-medium leading-relaxed">
+            <p className="text-foreground text-base font-semibold leading-snug">
               {subtitle}
             </p>
           </div>
 
           {/* Credit Badge - Bigger */}
-          <div className="flex justify-center mb-4">
-            <Badge className="bg-purple text-purple-foreground px-4 py-1.5 text-sm font-bold rounded-full">
+          <div className="flex justify-center mb-3">
+            <Badge className="bg-purple text-purple-foreground px-5 py-2 text-base font-black rounded-full shadow-md">
               ✨ 1 קרדיט = 1 סיפור מלא + איורים
             </Badge>
           </div>
 
           {/* Package Selection - Bigger Text */}
-          <div className="grid grid-cols-3 gap-2 mb-4">
+          <div className="grid grid-cols-3 gap-2 mb-3">
             {PRICING_PACKAGES.map((pkg) => (
               <button
                 key={pkg.id}
@@ -239,29 +239,29 @@ const Upgrade = () => {
               >
                 {/* Badge */}
                 {pkg.badge && (
-                  <div className="absolute -top-2 left-1/2 -translate-x-1/2 bg-purple text-purple-foreground text-[10px] font-bold px-2.5 py-0.5 rounded-full whitespace-nowrap">
+                  <div className="absolute -top-2.5 left-1/2 -translate-x-1/2 bg-purple text-purple-foreground text-xs font-black px-3 py-0.5 rounded-full whitespace-nowrap shadow">
                     {pkg.badge}
                   </div>
                 )}
 
                 {/* Stories count - BIGGER */}
-                <div className="text-2xl font-black text-foreground">
+                <div className="text-3xl font-black text-foreground">
                   {pkg.stories}
                 </div>
-                <div className="text-xs text-muted-foreground font-medium mb-1">סיפורים</div>
+                <div className="text-sm text-foreground font-bold mb-1">סיפורים</div>
 
                 {/* Total Price - BIGGER */}
-                <div className="text-xl font-black text-foreground">
+                <div className="text-2xl font-black text-foreground">
                   ₪{pkg.price}
                 </div>
 
                 {/* Price per story */}
-                <div className="text-xs text-purple font-bold">
+                <div className="text-sm text-purple font-black">
                   {pkg.pricePerStory} לסיפור
                 </div>
                 
                 {/* Free edits badge */}
-                <div className="text-[10px] text-green-600 font-semibold mt-1 leading-tight text-center">
+                <div className="text-xs text-green-600 font-bold mt-1 leading-tight text-center">
                   ✓ עריכה חינם
                 </div>
               </button>
@@ -269,7 +269,7 @@ const Upgrade = () => {
           </div>
         
           {/* Credit Card Note - More prominent */}
-          <p className="text-xs text-center text-muted-foreground font-medium mb-3">
+          <p className="text-sm text-center text-foreground font-bold mb-2">
             💳 ניתן לשלם בכרטיס אשראי גם ללא חשבון PayPal
           </p>
 
@@ -318,11 +318,11 @@ const Upgrade = () => {
           </div>
 
           {/* Privacy Policy Link */}
-          <p className="text-[10px] text-center text-muted-foreground mt-3">
+          <p className="text-xs text-center text-muted-foreground mt-2">
             בלחיצה על "רכשו" הינך מסכים/ה ל
-            <a href="/privacy" className="text-primary underline mx-1">מדיניות הפרטיות</a>
+            <a href="/privacy" className="text-primary underline font-semibold mx-1">מדיניות הפרטיות</a>
             ול
-            <a href="/terms" className="text-primary underline mx-1">תנאי השימוש</a>
+            <a href="/terms" className="text-primary underline font-semibold mx-1">תנאי השימוש</a>
           </p>
         </div>
       </div>
