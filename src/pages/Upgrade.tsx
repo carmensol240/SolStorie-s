@@ -195,10 +195,10 @@ const Upgrade = () => {
       </div>
 
       <div className="flex-1 overflow-y-auto pb-28">
-        <div className="container max-w-md mx-auto px-3 py-2">
-          {/* Elephant Image - Compact */}
-          <div className="flex justify-center mb-3">
-            <div className="w-32 h-32 rounded-xl overflow-hidden shadow-lg bg-white">
+        <div className="container max-w-md mx-auto px-3 pt-2">
+          {/* Elephant Image - LARGER */}
+          <div className="flex justify-center mb-4">
+            <div className="w-48 h-48 rounded-2xl overflow-hidden shadow-xl bg-white border-4 border-amber-200">
               <img 
                 src={elephantImage} 
                 alt="פיל חמוד קורא ספר" 
@@ -207,31 +207,31 @@ const Upgrade = () => {
             </div>
           </div>
 
-          {/* Header - Centered */}
-          <div className="text-center mb-3">
-            <h1 className="text-xl font-black text-foreground mb-1 text-center">
+          {/* Header - Bigger & Bolder */}
+          <div className="text-center mb-4">
+            <h1 className="text-2xl font-black text-foreground mb-2">
               {title}
             </h1>
-            <p className="text-muted-foreground text-xs leading-relaxed">
+            <p className="text-muted-foreground text-sm font-medium leading-relaxed">
               {subtitle}
             </p>
           </div>
 
-          {/* Credit Badge */}
-          <div className="flex justify-center mb-3">
-            <Badge className="bg-purple text-purple-foreground px-3 py-1 text-xs font-medium rounded-full">
+          {/* Credit Badge - Bigger */}
+          <div className="flex justify-center mb-4">
+            <Badge className="bg-purple text-purple-foreground px-4 py-1.5 text-sm font-bold rounded-full">
               ✨ 1 קרדיט = 1 סיפור מלא + איורים
             </Badge>
           </div>
 
-          {/* Package Selection */}
-          <div className="grid grid-cols-3 gap-2 mb-3">
+          {/* Package Selection - Bigger Text */}
+          <div className="grid grid-cols-3 gap-2 mb-4">
             {PRICING_PACKAGES.map((pkg) => (
               <button
                 key={pkg.id}
                 onClick={() => handleSelectPackage(pkg.id)}
                 className={cn(
-                  "relative flex flex-col items-center p-2 rounded-lg border-2 transition-all duration-200 bg-card",
+                  "relative flex flex-col items-center p-3 rounded-xl border-2 transition-all duration-200 bg-card",
                   selectedPackage === pkg.id
                     ? "border-purple shadow-lg scale-[1.02]"
                     : "border-border hover:border-purple/50"
@@ -239,58 +239,58 @@ const Upgrade = () => {
               >
                 {/* Badge */}
                 {pkg.badge && (
-                  <div className="absolute -top-2 left-1/2 -translate-x-1/2 bg-purple text-purple-foreground text-[9px] font-bold px-2 py-0.5 rounded-full whitespace-nowrap">
+                  <div className="absolute -top-2 left-1/2 -translate-x-1/2 bg-purple text-purple-foreground text-[10px] font-bold px-2.5 py-0.5 rounded-full whitespace-nowrap">
                     {pkg.badge}
                   </div>
                 )}
 
-                {/* Stories count */}
-                <div className="text-xl font-black text-foreground">
+                {/* Stories count - BIGGER */}
+                <div className="text-2xl font-black text-foreground">
                   {pkg.stories}
                 </div>
-                <div className="text-[10px] text-muted-foreground mb-0.5">סיפורים</div>
+                <div className="text-xs text-muted-foreground font-medium mb-1">סיפורים</div>
 
-                {/* Total Price */}
-                <div className="text-lg font-bold text-foreground">
+                {/* Total Price - BIGGER */}
+                <div className="text-xl font-black text-foreground">
                   ₪{pkg.price}
                 </div>
 
                 {/* Price per story */}
-                <div className="text-[10px] text-purple font-medium">
+                <div className="text-xs text-purple font-bold">
                   {pkg.pricePerStory} לסיפור
                 </div>
                 
-                {/* Free edits badge - per story */}
-                <div className="text-[9px] text-green-600 mt-1 leading-tight text-center">
-                  ✓ עריכה חינם לכל סיפור
+                {/* Free edits badge */}
+                <div className="text-[10px] text-green-600 font-semibold mt-1 leading-tight text-center">
+                  ✓ עריכה חינם
                 </div>
               </button>
             ))}
           </div>
         
-          {/* Credit Card Note */}
-          <p className="text-[9px] text-center text-muted-foreground mb-2">
+          {/* Credit Card Note - More prominent */}
+          <p className="text-xs text-center text-muted-foreground font-medium mb-3">
             💳 ניתן לשלם בכרטיס אשראי גם ללא חשבון PayPal
           </p>
 
-          {/* Earn Free Section */}
-          <div className="bg-gradient-to-l from-secondary/20 via-primary/10 to-accent/20 rounded-lg p-2.5 border border-foreground/10">
-            <div className="flex items-center gap-2 mb-1.5">
-              <div className="w-8 h-8 rounded-full bg-accent/30 flex items-center justify-center">
-                <Gift className="w-4 h-4 text-orange-500" />
+          {/* Earn Free Section - Compact but visible */}
+          <div className="bg-gradient-to-l from-secondary/20 via-primary/10 to-accent/20 rounded-xl p-3 border border-foreground/10">
+            <div className="flex items-center gap-2 mb-2">
+              <div className="w-9 h-9 rounded-full bg-accent/30 flex items-center justify-center">
+                <Gift className="w-5 h-5 text-orange-500" />
               </div>
               <div className="flex-1">
-                <h4 className="font-bold text-xs text-foreground">או הרוויחו חינם 🎁</h4>
-                <p className="text-[9px] text-muted-foreground">שתפו וקבלו קרדיטים</p>
+                <h4 className="font-bold text-sm text-foreground">או הרוויחו חינם 🎁</h4>
+                <p className="text-[10px] text-muted-foreground">שתפו וקבלו קרדיטים</p>
               </div>
             </div>
             
             {/* Share Buttons */}
-            <div className="flex gap-1.5">
+            <div className="flex gap-2">
               <Button 
                 onClick={handleWhatsAppShare} 
                 size="sm"
-                className="flex-1 h-7 text-[10px] bg-[#25D366] hover:bg-[#20BD5A] text-white"
+                className="flex-1 h-8 text-xs bg-[#25D366] hover:bg-[#20BD5A] text-white font-bold"
               >
                 וואטסאפ
               </Button>
@@ -298,10 +298,10 @@ const Upgrade = () => {
                 onClick={handleCopyLink} 
                 variant="outline" 
                 size="sm"
-                className="flex-1 h-7 text-[10px]"
+                className="flex-1 h-8 text-xs font-medium"
               >
-                {copied ? <Check className="w-2.5 h-2.5" /> : <Copy className="w-2.5 h-2.5" />}
-                <span className="mr-0.5">{copied ? 'הועתק!' : 'העתק'}</span>
+                {copied ? <Check className="w-3 h-3" /> : <Copy className="w-3 h-3" />}
+                <span className="mr-1">{copied ? 'הועתק!' : 'העתק'}</span>
               </Button>
             </div>
             
@@ -310,12 +310,20 @@ const Upgrade = () => {
               <Button 
                 onClick={handleRedeemCoin}
                 size="sm"
-                className="w-full mt-1.5 h-7 text-[10px] bg-amber-500 hover:bg-amber-600 text-white font-bold"
+                className="w-full mt-2 h-8 text-xs bg-amber-500 hover:bg-amber-600 text-white font-bold"
               >
                 🪙 {shareCoins} מטבעות - השתמשו!
               </Button>
             )}
           </div>
+
+          {/* Privacy Policy Link */}
+          <p className="text-[10px] text-center text-muted-foreground mt-3">
+            בלחיצה על "רכשו" הינך מסכים/ה ל
+            <a href="/privacy" className="text-primary underline mx-1">מדיניות הפרטיות</a>
+            ול
+            <a href="/terms" className="text-primary underline mx-1">תנאי השימוש</a>
+          </p>
         </div>
       </div>
 

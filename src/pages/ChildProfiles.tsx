@@ -83,14 +83,39 @@ const ChildProfiles = () => {
   const [pendingAvatarChild, setPendingAvatarChild] = useState<{id: string, name: string, photoUrl: string} | null>(null);
 
   useEffect(() => {
-    if (!authLoading && !user) {
-      navigate("/auth");
-      return;
-    }
-    if (user) {
-      fetchChildren();
+    if (!authLoading) {
+      // Load data from localStorage first (for dev mode/guests)
+      loadLocalChildren();
+      
+      // Then load from database if user is authenticated
+      if (user) {
+        fetchChildren();
+      } else {
+        setLoading(false);
+      }
     }
   }, [user, authLoading, navigate]);
+
+  const loadLocalChildren = () => {
+    try {
+      const localChildren = JSON.parse(localStorage.getItem('savedChildren') || '[]');
+      if (localChildren.length > 0 && children.length === 0) {
+        // Convert localStorage format to Child format
+        const converted: Child[] = localChildren.map((c: any, index: number) => ({
+          id: c.id || `local-${index}`,
+          name: c.name || 'ילד',
+          age: c.age || 3,
+          gender: c.gender || 'male',
+          photo_url: c.photo_url || null,
+          avatar_url: c.avatar_url || null,
+          personality_traits: c.personality_traits || null,
+        }));
+        setChildren(converted);
+      }
+    } catch (error) {
+      console.error('Error loading local children:', error);
+    }
+  };
 
   const fetchChildren = async () => {
     try {
@@ -99,8 +124,17 @@ const ChildProfiles = () => {
         .select("id, name, age, gender, photo_url, avatar_url, personality_traits")
         .order("created_at", { ascending: true });
 
-      if (error) throw error;
-      setChildren(data || []);
+      if (error) {
+        console.error("Error fetching children from DB:", error);
+        // Keep localStorage data if DB fails
+        return;
+      }
+      
+      if (data && data.length > 0) {
+        setChildren(data);
+        // Also sync to localStorage for offline access
+        localStorage.setItem('savedChildren', JSON.stringify(data));
+      }
     } catch (error) {
       console.error("Error fetching children:", error);
     } finally {
@@ -140,18 +174,7 @@ const ChildProfiles = () => {
   };
 
   const handleAddChild = async () => {
-    // Validate user is authenticated FIRST
-    if (!user?.id) {
-      console.error('handleAddChild: User not authenticated', { user });
-      toast({
-        title: "שגיאה",
-        description: "יש להתחבר כדי להוסיף ילד",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    // Then validate required fields
+    // Validate required fields first
     if (!newChildName.trim() || !newChildAge) {
       toast({
         title: "שגיאה",
@@ -163,42 +186,67 @@ const ChildProfiles = () => {
 
     setSaving(true);
     try {
-      // Ensure user_id is explicitly set with validated values
-      const insertData = {
-        user_id: user.id,
-        name: newChildName.trim(),
-        age: parseInt(newChildAge, 10),
-        gender: newChildGender || 'male',
-        personality_traits: newChildTraits?.trim() || null,
-      };
-      
-      console.log('Inserting child with data:', JSON.stringify(insertData, null, 2));
-      
-      const { data: insertedChild, error } = await supabase
-        .from("children")
-        .insert(insertData)
-        .select()
-        .single();
+      // Check if user is authenticated with valid UUID
+      const isValidUser = user?.id && user.id !== '00000000-0000-0000-0000-000000000000';
 
-      if (error) {
-        console.error('Database insert error:', JSON.stringify(error, null, 2));
-        throw error;
-      }
+      if (isValidUser) {
+        // Save to database for authenticated users
+        const insertData = {
+          user_id: user.id,
+          name: newChildName.trim(),
+          age: parseInt(newChildAge, 10),
+          gender: newChildGender || 'male',
+          personality_traits: newChildTraits?.trim() || null,
+        };
+        
+        console.log('Inserting child to DB:', JSON.stringify(insertData, null, 2));
+        
+        const { data: insertedChild, error } = await supabase
+          .from("children")
+          .insert(insertData)
+          .select()
+          .single();
 
-      // Upload photo if selected
-      if (newChildPhoto && insertedChild) {
-        const photoUrl = await uploadPhoto(insertedChild.id);
-        if (photoUrl) {
-          await supabase.from("children").update({ photo_url: photoUrl }).eq("id", insertedChild.id);
-          
-          // Open avatar preview dialog
-          setPendingAvatarChild({
-            id: insertedChild.id,
-            name: newChildName.trim(),
-            photoUrl: photoUrl,
-          });
-          setAvatarPreviewOpen(true);
+        if (error) {
+          console.error('Database insert error:', JSON.stringify(error, null, 2));
+          throw error;
         }
+
+        // Upload photo if selected
+        if (newChildPhoto && insertedChild) {
+          const photoUrl = await uploadPhoto(insertedChild.id);
+          if (photoUrl) {
+            await supabase.from("children").update({ photo_url: photoUrl }).eq("id", insertedChild.id);
+            
+            // Open avatar preview dialog
+            setPendingAvatarChild({
+              id: insertedChild.id,
+              name: newChildName.trim(),
+              photoUrl: photoUrl,
+            });
+            setAvatarPreviewOpen(true);
+          }
+        }
+      } else {
+        // Save to localStorage for guests/dev mode
+        console.log('Saving child to localStorage (guest/dev mode)');
+        
+        const localChildren = JSON.parse(localStorage.getItem('savedChildren') || '[]');
+        const newChild = {
+          id: `local-${Date.now()}`,
+          name: newChildName.trim(),
+          age: parseInt(newChildAge, 10),
+          gender: newChildGender || 'male',
+          personality_traits: newChildTraits?.trim() || null,
+          photo_url: photoPreview, // Use base64 preview for guests
+          avatar_url: null,
+        };
+        
+        localChildren.push(newChild);
+        localStorage.setItem('savedChildren', JSON.stringify(localChildren));
+        
+        // Add to local state
+        setChildren(prev => [...prev, newChild as Child]);
       }
 
       toast({
@@ -213,7 +261,11 @@ const ChildProfiles = () => {
       setNewChildPhoto(null);
       setPhotoPreview(null);
       setDialogOpen(false);
-      fetchChildren();
+      
+      // Only fetch from DB if authenticated
+      if (isValidUser) {
+        fetchChildren();
+      }
     } catch (error) {
       console.error("Error adding child:", error);
       toast({
