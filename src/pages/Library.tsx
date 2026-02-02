@@ -199,17 +199,17 @@ const Library = () => {
   };
 
   return (
-    <div className="min-h-screen min-h-[100dvh] bg-background bg-halftone pb-20 overflow-y-auto overscroll-contain">
+    <div className="h-screen h-[100dvh] bg-background bg-halftone pb-20 overflow-y-auto overscroll-contain">
       <OfflineIndicator isOnline={isOnline} />
       
-      <div className="container max-w-lg mx-auto px-4 py-6">
+      <div className="container max-w-lg mx-auto px-3 py-3">
         {/* Header with Avatar + Credits */}
-        <div className="bg-card border-b-2 border-foreground/10 p-4 -mx-4 -mt-6 mb-6">
+        <div className="bg-card border-b-2 border-foreground/10 p-3 -mx-3 -mt-3 mb-3">
           <div className="flex items-center justify-between">
             {/* Left: Avatar + Credits */}
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-1.5">
               {avatarUrl && (
-                <div className="w-8 h-8 rounded-full overflow-hidden border-2 border-primary shadow-sm">
+                <div className="w-7 h-7 rounded-full overflow-hidden border-2 border-primary shadow-sm">
                   <img 
                     src={avatarUrl} 
                     alt="דמות הילד" 
@@ -219,35 +219,35 @@ const Library = () => {
               )}
               <button 
                 onClick={() => navigate("/upgrade")}
-                className="flex items-center gap-2 bg-amber-50 dark:bg-amber-950/30 rounded-full px-3 py-1.5 hover:bg-amber-100 dark:hover:bg-amber-900/40 transition-colors"
+                className="flex items-center gap-1.5 bg-amber-50 dark:bg-amber-950/30 rounded-full px-2 py-1 hover:bg-amber-100 dark:hover:bg-amber-900/40 transition-colors"
                 aria-label="צפה בקרדיטים ושדרג"
               >
-                <Coins className="w-4 h-4 text-amber-500" aria-hidden="true" />
-                <span className="font-semibold text-amber-700 dark:text-amber-400 text-sm">{totalCredits}</span>
+                <Coins className="w-3.5 h-3.5 text-amber-500" aria-hidden="true" />
+                <span className="font-semibold text-amber-700 dark:text-amber-400 text-xs">{totalCredits}</span>
               </button>
             </div>
             {/* Right: Title */}
-            <h1 className="text-xl font-bold">הספרייה הקסומה שלי</h1>
+            <h1 className="text-lg font-bold">הספרייה הקסומה שלי</h1>
           </div>
         </div>
 
         {/* Filters */}
         {stories.length > 0 && (
-          <StoryFilters onFilterChange={setFilters} className="mb-6" />
+          <StoryFilters onFilterChange={setFilters} className="mb-3" />
         )}
 
         {/* Content */}
         {isLoading ? (
-          <div className="flex flex-col gap-3">
+          <div className="flex flex-col gap-2">
             {[1, 2, 3, 4].map((i) => (
               <div 
                 key={i} 
-                className="flex items-center gap-3 p-3 rounded-xl bg-muted animate-pulse"
+                className="flex items-center gap-2.5 p-2.5 rounded-xl bg-muted animate-pulse"
                 aria-hidden="true"
               >
-                <div className="w-16 h-16 rounded-lg bg-muted-foreground/20 flex-shrink-0" />
-                <div className="flex-1 space-y-2">
-                  <div className="h-4 w-3/4 bg-muted-foreground/20 rounded" />
+                <div className="w-14 h-14 rounded-lg bg-muted-foreground/20 flex-shrink-0" />
+                <div className="flex-1 space-y-1.5">
+                  <div className="h-3.5 w-3/4 bg-muted-foreground/20 rounded" />
                   <div className="h-3 w-1/2 bg-muted-foreground/20 rounded" />
                 </div>
               </div>
@@ -256,14 +256,14 @@ const Library = () => {
         ) : stories.length === 0 ? (
           <EmptyState onCreateClick={() => navigate("/create")} />
         ) : filteredStories.length === 0 ? (
-          <div className="text-center py-12 space-y-4">
-            <p className="text-muted-foreground">אין סיפורים התואמים לסינון</p>
-            <Button variant="outline" onClick={() => setFilters({ ageRange: null, theme: null, storyType: null })}>
+          <div className="text-center py-8 space-y-3">
+            <p className="text-muted-foreground text-sm">אין סיפורים התואמים לסינון</p>
+            <Button variant="outline" size="sm" onClick={() => setFilters({ ageRange: null, theme: null, storyType: null })}>
               נקה סינון
             </Button>
           </div>
         ) : (
-          <div className="flex flex-col gap-3">
+          <div className="flex flex-col gap-2">
             {filteredStories.map((story) => (
               <StoryListItem
                 key={story.id}
@@ -281,14 +281,14 @@ const Library = () => {
 
         {/* Create Button */}
         {stories.length > 0 && (
-          <div className="fixed left-4 bottom-24 z-40">
+          <div className="fixed left-3 bottom-20 z-40">
             <Button
               onClick={() => navigate("/create")}
               size="lg"
-              className="w-14 h-14 rounded-full bg-primary hover:bg-primary/90 comic-shadow min-h-[56px] min-w-[56px]"
+              className="w-12 h-12 rounded-full bg-primary hover:bg-primary/90 comic-shadow min-h-[48px] min-w-[48px]"
               aria-label="צור סיפור חדש"
             >
-              <Plus className="w-6 h-6" aria-hidden="true" />
+              <Plus className="w-5 h-5" aria-hidden="true" />
             </Button>
           </div>
         )}

@@ -59,7 +59,7 @@ const Settings = () => {
     <div className="h-screen h-[100dvh] flex flex-col bg-gradient-to-b from-purple-100/50 to-background overflow-hidden">
       {/* Hero Section with Background Image */}
       <div 
-        className="relative h-36 flex-shrink-0 bg-cover bg-center"
+        className="relative h-28 flex-shrink-0 bg-cover bg-center"
         style={{ backgroundImage: `url(${profileHero})` }}
       >
         {/* Gradient overlay for text readability */}
@@ -67,38 +67,38 @@ const Settings = () => {
         
         {/* User info - minimal glass badge top-right */}
         {user && (
-          <div className="absolute top-2 right-2">
-            <div className="bg-white/10 backdrop-blur-md rounded-lg px-2 py-1 flex items-center gap-2 border border-white/10">
+          <div className="absolute top-1.5 right-1.5">
+            <div className="bg-white/10 backdrop-blur-md rounded-lg px-1.5 py-0.5 flex items-center gap-1.5 border border-white/10">
               <button 
                 onClick={() => navigate("/upgrade")}
-                className="flex items-center gap-1 bg-amber-500/20 rounded-full px-1.5 py-0.5 hover:bg-amber-500/30 transition-colors"
+                className="flex items-center gap-0.5 bg-amber-500/20 rounded-full px-1 py-0.5 hover:bg-amber-500/30 transition-colors"
               >
                 <Coins className="w-2.5 h-2.5 text-amber-300" aria-hidden="true" />
-                <span className="font-medium text-amber-200 text-[10px]">{totalCredits}</span>
+                <span className="font-medium text-amber-200 text-[9px]">{totalCredits}</span>
               </button>
-              <p className="text-white/80 text-[10px] truncate max-w-[100px]">{user.email?.split('@')[0]}</p>
+              <p className="text-white/80 text-[9px] truncate max-w-[80px]">{user.email?.split('@')[0]}</p>
             </div>
           </div>
         )}
       </div>
 
       {/* Menu Items - Glassmorphism Style */}
-      <div className="flex-1 overflow-hidden flex flex-col justify-between px-4 py-4">
-        <div className="space-y-2.5">
+      <div className="flex-1 overflow-hidden flex flex-col justify-between px-3 py-3">
+        <div className="space-y-2">
           {menuItems.map((item, index) => {
             const Icon = item.icon;
             return (
               <button
                 key={index}
                 onClick={item.onClick}
-                className="w-full flex items-center justify-between bg-white/60 dark:bg-white/10 backdrop-blur-md rounded-xl px-4 py-3 border border-white/50 dark:border-white/20 hover:bg-white/80 dark:hover:bg-white/20 transition-all text-right shadow-sm"
+                className="w-full flex items-center justify-between bg-white/60 dark:bg-white/10 backdrop-blur-md rounded-lg px-3 py-2.5 border border-white/50 dark:border-white/20 hover:bg-white/80 dark:hover:bg-white/20 transition-all text-right shadow-sm"
                 aria-label={item.label}
               >
-                <ArrowRight className="w-4 h-4 text-muted-foreground" aria-hidden="true" />
-                <div className="flex items-center gap-3">
-                  <span className="font-medium text-foreground">{item.label}</span>
-                  <div className="w-9 h-9 bg-primary/10 rounded-xl flex items-center justify-center flex-shrink-0">
-                    <Icon className="w-4 h-4 text-primary" aria-hidden="true" />
+                <ArrowRight className="w-3.5 h-3.5 text-muted-foreground" aria-hidden="true" />
+                <div className="flex items-center gap-2.5">
+                  <span className="font-medium text-sm text-foreground">{item.label}</span>
+                  <div className="w-8 h-8 bg-primary/10 rounded-lg flex items-center justify-center flex-shrink-0">
+                    <Icon className="w-3.5 h-3.5 text-primary" aria-hidden="true" />
                   </div>
                 </div>
               </button>
@@ -110,42 +110,44 @@ const Settings = () => {
         {isAccessibilityDismissed && (
           <button
             onClick={handleRestoreAccessibility}
-            className="w-full flex items-center justify-between bg-blue-50 dark:bg-blue-950/30 backdrop-blur-md rounded-xl px-4 py-3 border border-blue-200 dark:border-blue-800 hover:bg-blue-100 dark:hover:bg-blue-900/40 transition-all text-right"
+            className="w-full flex items-center justify-between bg-blue-50 dark:bg-blue-950/30 backdrop-blur-md rounded-lg px-3 py-2.5 border border-blue-200 dark:border-blue-800 hover:bg-blue-100 dark:hover:bg-blue-900/40 transition-all text-right"
             aria-label="הצג כפתור נגישות"
           >
-            <ArrowRight className="w-4 h-4 text-blue-500" aria-hidden="true" />
-            <div className="flex items-center gap-3">
-              <span className="font-medium text-blue-700 dark:text-blue-300">הצג כפתור נגישות</span>
-              <div className="w-9 h-9 bg-blue-100 dark:bg-blue-900/50 rounded-xl flex items-center justify-center flex-shrink-0">
-                <Accessibility className="w-4 h-4 text-blue-500" aria-hidden="true" />
+            <ArrowRight className="w-3.5 h-3.5 text-blue-500" aria-hidden="true" />
+            <div className="flex items-center gap-2.5">
+              <span className="font-medium text-sm text-blue-700 dark:text-blue-300">הצג כפתור נגישות</span>
+              <div className="w-8 h-8 bg-blue-100 dark:bg-blue-900/50 rounded-lg flex items-center justify-center flex-shrink-0">
+                <Accessibility className="w-3.5 h-3.5 text-blue-500" aria-hidden="true" />
               </div>
             </div>
           </button>
         )}
 
         {/* Danger Zone */}
-        <div className="space-y-2 pt-2 border-t border-border/50">
+        <div className="space-y-1.5 pt-2 border-t border-border/50">
           <Button
             variant="ghost"
+            size="sm"
             onClick={handleSignOut}
-            className="w-full justify-between text-muted-foreground hover:text-foreground bg-white/40 dark:bg-white/5 backdrop-blur-sm"
+            className="w-full justify-between text-muted-foreground hover:text-foreground bg-white/40 dark:bg-white/5 backdrop-blur-sm text-sm h-9"
           >
-            <LogOut className="w-4 h-4" />
+            <LogOut className="w-3.5 h-3.5" />
             <span>התנתקות</span>
           </Button>
 
           <Button
             variant="ghost"
+            size="sm"
             onClick={() => navigate("/account-exit")}
-            className="w-full justify-between text-destructive hover:text-destructive hover:bg-destructive/10 bg-white/40 dark:bg-white/5 backdrop-blur-sm"
+            className="w-full justify-between text-destructive hover:text-destructive hover:bg-destructive/10 bg-white/40 dark:bg-white/5 backdrop-blur-sm text-sm h-9"
           >
-            <Trash2 className="w-4 h-4" />
+            <Trash2 className="w-3.5 h-3.5" />
             <span>מחיקת חשבון</span>
           </Button>
         </div>
 
         {/* Footer Placeholder */}
-        <div className="h-12 bg-gradient-to-t from-purple-200/50 to-transparent rounded-t-2xl mt-2 flex-shrink-0" />
+        <div className="h-8 bg-gradient-to-t from-purple-200/50 to-transparent rounded-t-2xl mt-1 flex-shrink-0" />
       </div>
       
       <MobileNavigation />

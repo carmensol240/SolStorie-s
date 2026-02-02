@@ -194,11 +194,11 @@ const Upgrade = () => {
         </Button>
       </div>
 
-      <div className="flex-1 overflow-y-auto pb-32">
-        <div className="container max-w-md mx-auto px-4 py-3">
-          {/* Elephant Image - Enlarged */}
-          <div className="flex justify-center mb-4">
-            <div className="w-40 h-40 rounded-xl overflow-hidden shadow-lg bg-white">
+      <div className="flex-1 overflow-y-auto pb-28">
+        <div className="container max-w-md mx-auto px-3 py-2">
+          {/* Elephant Image - Compact */}
+          <div className="flex justify-center mb-3">
+            <div className="w-32 h-32 rounded-xl overflow-hidden shadow-lg bg-white">
               <img 
                 src={elephantImage} 
                 alt="פיל חמוד קורא ספר" 
@@ -208,30 +208,30 @@ const Upgrade = () => {
           </div>
 
           {/* Header - Centered */}
-          <div className="text-center mb-4">
-            <h1 className="text-2xl font-black text-foreground mb-2 text-center">
+          <div className="text-center mb-3">
+            <h1 className="text-xl font-black text-foreground mb-1 text-center">
               {title}
             </h1>
-            <p className="text-muted-foreground text-sm leading-relaxed">
+            <p className="text-muted-foreground text-xs leading-relaxed">
               {subtitle}
             </p>
           </div>
 
           {/* Credit Badge */}
-          <div className="flex justify-center mb-5">
-            <Badge className="bg-purple text-purple-foreground px-4 py-1.5 text-sm font-medium rounded-full">
+          <div className="flex justify-center mb-3">
+            <Badge className="bg-purple text-purple-foreground px-3 py-1 text-xs font-medium rounded-full">
               ✨ 1 קרדיט = 1 סיפור מלא + איורים
             </Badge>
           </div>
 
           {/* Package Selection */}
-          <div className="grid grid-cols-3 gap-3 mb-5">
+          <div className="grid grid-cols-3 gap-2 mb-3">
             {PRICING_PACKAGES.map((pkg) => (
               <button
                 key={pkg.id}
                 onClick={() => handleSelectPackage(pkg.id)}
                 className={cn(
-                  "relative flex flex-col items-center p-3 rounded-xl border-2 transition-all duration-200 bg-card",
+                  "relative flex flex-col items-center p-2 rounded-lg border-2 transition-all duration-200 bg-card",
                   selectedPackage === pkg.id
                     ? "border-purple shadow-lg scale-[1.02]"
                     : "border-border hover:border-purple/50"
@@ -239,29 +239,29 @@ const Upgrade = () => {
               >
                 {/* Badge */}
                 {pkg.badge && (
-                  <div className="absolute -top-2.5 left-1/2 -translate-x-1/2 bg-purple text-purple-foreground text-[10px] font-bold px-2.5 py-0.5 rounded-full whitespace-nowrap">
+                  <div className="absolute -top-2 left-1/2 -translate-x-1/2 bg-purple text-purple-foreground text-[9px] font-bold px-2 py-0.5 rounded-full whitespace-nowrap">
                     {pkg.badge}
                   </div>
                 )}
 
                 {/* Stories count */}
-                <div className="text-2xl font-black text-foreground">
+                <div className="text-xl font-black text-foreground">
                   {pkg.stories}
                 </div>
-                <div className="text-xs text-muted-foreground mb-1">סיפורים</div>
+                <div className="text-[10px] text-muted-foreground mb-0.5">סיפורים</div>
 
                 {/* Total Price */}
-                <div className="text-xl font-bold text-foreground">
+                <div className="text-lg font-bold text-foreground">
                   ₪{pkg.price}
                 </div>
 
                 {/* Price per story */}
-                <div className="text-xs text-purple font-medium">
+                <div className="text-[10px] text-purple font-medium">
                   {pkg.pricePerStory} לסיפור
                 </div>
                 
                 {/* Free edits badge - per story */}
-                <div className="text-[10px] text-green-600 mt-1.5 leading-tight text-center">
+                <div className="text-[9px] text-green-600 mt-1 leading-tight text-center">
                   ✓ עריכה חינם לכל סיפור
                 </div>
               </button>
@@ -269,28 +269,28 @@ const Upgrade = () => {
           </div>
         
           {/* Credit Card Note */}
-          <p className="text-[10px] text-center text-muted-foreground mb-3">
+          <p className="text-[9px] text-center text-muted-foreground mb-2">
             💳 ניתן לשלם בכרטיס אשראי גם ללא חשבון PayPal
           </p>
 
           {/* Earn Free Section */}
-          <div className="bg-gradient-to-l from-secondary/20 via-primary/10 to-accent/20 rounded-xl p-3 border border-foreground/10">
-            <div className="flex items-center gap-2 mb-2">
-              <div className="w-9 h-9 rounded-full bg-accent/30 flex items-center justify-center">
-                <Gift className="w-5 h-5 text-orange-500" />
+          <div className="bg-gradient-to-l from-secondary/20 via-primary/10 to-accent/20 rounded-lg p-2.5 border border-foreground/10">
+            <div className="flex items-center gap-2 mb-1.5">
+              <div className="w-8 h-8 rounded-full bg-accent/30 flex items-center justify-center">
+                <Gift className="w-4 h-4 text-orange-500" />
               </div>
               <div className="flex-1">
-                <h4 className="font-bold text-sm text-foreground">או הרוויחו חינם 🎁</h4>
-                <p className="text-[10px] text-muted-foreground">שתפו וקבלו קרדיטים</p>
+                <h4 className="font-bold text-xs text-foreground">או הרוויחו חינם 🎁</h4>
+                <p className="text-[9px] text-muted-foreground">שתפו וקבלו קרדיטים</p>
               </div>
             </div>
             
             {/* Share Buttons */}
-            <div className="flex gap-2">
+            <div className="flex gap-1.5">
               <Button 
                 onClick={handleWhatsAppShare} 
                 size="sm"
-                className="flex-1 h-8 text-xs bg-[#25D366] hover:bg-[#20BD5A] text-white"
+                className="flex-1 h-7 text-[10px] bg-[#25D366] hover:bg-[#20BD5A] text-white"
               >
                 וואטסאפ
               </Button>
@@ -298,10 +298,10 @@ const Upgrade = () => {
                 onClick={handleCopyLink} 
                 variant="outline" 
                 size="sm"
-                className="flex-1 h-8 text-xs"
+                className="flex-1 h-7 text-[10px]"
               >
-                {copied ? <Check className="w-3 h-3" /> : <Copy className="w-3 h-3" />}
-                <span className="mr-1">{copied ? 'הועתק!' : 'העתק'}</span>
+                {copied ? <Check className="w-2.5 h-2.5" /> : <Copy className="w-2.5 h-2.5" />}
+                <span className="mr-0.5">{copied ? 'הועתק!' : 'העתק'}</span>
               </Button>
             </div>
             
@@ -310,7 +310,7 @@ const Upgrade = () => {
               <Button 
                 onClick={handleRedeemCoin}
                 size="sm"
-                className="w-full mt-2 h-8 text-xs bg-amber-500 hover:bg-amber-600 text-white font-bold"
+                className="w-full mt-1.5 h-7 text-[10px] bg-amber-500 hover:bg-amber-600 text-white font-bold"
               >
                 🪙 {shareCoins} מטבעות - השתמשו!
               </Button>
@@ -320,12 +320,12 @@ const Upgrade = () => {
       </div>
 
       {/* Fixed CTA */}
-      <div className="fixed bottom-0 left-0 right-0 bg-background/95 backdrop-blur border-t border-border p-2 safe-area-bottom">
-        <div className="container max-w-md mx-auto flex flex-col items-center gap-1">
+      <div className="fixed bottom-0 left-0 right-0 bg-background/95 backdrop-blur border-t border-border p-1.5 safe-area-bottom">
+        <div className="container max-w-md mx-auto flex flex-col items-center gap-0.5">
           {showPayPal ? (
-            <div className="w-full space-y-2">
+            <div className="w-full space-y-1.5">
               <div className="text-center">
-                <p className="text-sm font-bold text-foreground">
+                <p className="text-xs font-bold text-foreground">
                   {selectedPkg?.stories} סיפורים תמורת ₪{selectedPkg?.price}
                 </p>
               </div>
@@ -337,7 +337,7 @@ const Upgrade = () => {
               />
               <button
                 onClick={() => setShowPayPal(false)}
-                className="w-full text-center text-muted-foreground text-xs py-0.5 hover:text-foreground transition-colors"
+                className="w-full text-center text-muted-foreground text-[10px] py-0.5 hover:text-foreground transition-colors"
               >
                 ביטול
               </button>
@@ -346,7 +346,7 @@ const Upgrade = () => {
             <>
               <Button
                 onClick={handlePurchase}
-                className="bg-gradient-to-r from-amber-400 to-orange-500 hover:from-amber-500 hover:to-orange-600 text-white font-bold text-base py-5 px-8 rounded-xl shadow-lg"
+                className="bg-gradient-to-r from-amber-400 to-orange-500 hover:from-amber-500 hover:to-orange-600 text-white font-bold text-sm py-4 px-6 rounded-xl shadow-lg"
               >
                 רכשו {selectedPkg?.stories} סיפורים ב-₪{selectedPkg?.price} ✨
               </Button>
@@ -354,14 +354,14 @@ const Upgrade = () => {
               {firstStoryId ? (
                 <button
                   onClick={() => navigate(`/story/${firstStoryId}`)}
-                  className="text-muted-foreground text-xs py-0.5 hover:text-foreground transition-colors"
+                  className="text-muted-foreground text-[10px] py-0.5 hover:text-foreground transition-colors"
                 >
                   אולי מאוחר יותר
                 </button>
               ) : (
                 <button
                   onClick={() => navigate('/')}
-                  className="text-muted-foreground text-xs py-0.5 hover:text-foreground transition-colors"
+                  className="text-muted-foreground text-[10px] py-0.5 hover:text-foreground transition-colors"
                 >
                   אולי מאוחר יותר
                 </button>
