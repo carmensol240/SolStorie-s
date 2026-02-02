@@ -420,43 +420,65 @@ const StoryViewer = () => {
             />
             
             {isCoverPage ? (
-              /* Cover Page */
-              <div className="min-h-[70vh] md:min-h-[75vh] flex flex-col md:flex-row">
-                {/* Illustration Page */}
-                <div className="flex-1 flex flex-col items-center justify-center p-6 md:p-10 border-b md:border-b-0 md:border-l-2 border-[#D4A574]/30">
-                  {story.pages[0]?.illustration_url && (
+              /* Cover Page - RTL: Illustration on RIGHT, Title on LEFT */
+              <div className="min-h-[70vh] md:min-h-[75vh] flex flex-col md:flex-row-reverse">
+                {/* Illustration Page - Always on RIGHT for RTL */}
+                <div className="flex-1 flex flex-col items-center justify-center p-6 md:p-10 border-b md:border-b-0 md:border-r-2 border-[#D4A574]/30 bg-gradient-to-br from-[#FFFBF5] to-[#F5E6D3]">
+                  {story.pages[0]?.illustration_url ? (
                     <div className="w-full max-w-sm mx-auto">
-                      <div className="rounded-xl overflow-hidden shadow-2xl border-4 border-[#D4A574]">
+                      <div className="rounded-2xl overflow-hidden shadow-2xl border-4 border-[#D4A574] transform hover:scale-[1.02] transition-transform duration-300">
                         <img
                           src={story.pages[0].illustration_url}
-                          alt="כריכת הסיפור"
+                          alt={`איור הסיפור של ${story.child_name}`}
                           className="w-full aspect-[4/5] object-cover"
                         />
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="w-full max-w-sm mx-auto">
+                      <div className="rounded-2xl border-4 border-dashed border-[#D4A574]/50 aspect-[4/5] flex items-center justify-center bg-[#F5E6D3]/50">
+                        <div className="text-center text-[#A08060]">
+                          <BookOpen className="w-16 h-16 mx-auto mb-2 opacity-40" />
+                          <p className="text-sm">טוען איור...</p>
+                        </div>
                       </div>
                     </div>
                   )}
                 </div>
                 
-                {/* Title Page */}
-                <div className="flex-1 flex flex-col items-center justify-center p-6 md:p-10 text-center">
-                  <div className="space-y-4">
-                    <p className="text-lg md:text-xl text-[#8B7355] font-serif italic">סיפור מיוחד</p>
-                    <h1 className="text-3xl md:text-4xl lg:text-5xl font-bold text-[#5D3A1A]">
-                      {story.child_name}
+                {/* Title Page - On LEFT for RTL */}
+                <div className="flex-1 flex flex-col items-center justify-center p-6 md:p-10 text-center bg-gradient-to-bl from-[#FFFBF5] to-[#FAF3E8]">
+                  <div className="space-y-5">
+                    {/* Large child-friendly title */}
+                    <h1 className="text-4xl md:text-5xl lg:text-6xl font-black text-[#5D3A1A] leading-tight" style={{ fontFamily: "'Heebo', 'Comic Sans MS', cursive, sans-serif" }}>
+                      הסיפור של
+                      <br />
+                      <span className="text-5xl md:text-6xl lg:text-7xl bg-gradient-to-r from-[#FF6B6B] via-[#FFE66D] to-[#4ECDC4] bg-clip-text text-transparent">
+                        {story.child_name}
+                      </span>
                     </h1>
-                    <div className="w-24 h-1 bg-gradient-to-r from-[#D4A574] via-[#8B5A2B] to-[#D4A574] mx-auto rounded-full" />
-                    <p className="text-base md:text-lg text-[#6B4423] max-w-xs mx-auto">
+                    
+                    {/* Decorative divider */}
+                    <div className="flex items-center justify-center gap-3">
+                      <div className="w-16 h-1 bg-gradient-to-r from-transparent to-[#D4A574] rounded-full" />
+                      <span className="text-2xl">✨</span>
+                      <div className="w-16 h-1 bg-gradient-to-l from-transparent to-[#D4A574] rounded-full" />
+                    </div>
+                    
+                    {/* Topic */}
+                    <p className="text-lg md:text-xl text-[#6B4423] max-w-xs mx-auto font-medium">
                       {story.topic}
                     </p>
                   </div>
                   
+                  {/* Colorful, prominent button */}
                   <Button 
                     size="lg"
                     onClick={() => handlePageChange('next')}
-                    className="mt-8 bg-[#8B5A2B] hover:bg-[#6B4423] text-white px-8 py-6 text-lg rounded-full shadow-lg hover:shadow-xl transition-all"
+                    className="mt-10 bg-gradient-to-r from-[#FF6B6B] via-[#FFE66D] to-[#4ECDC4] hover:from-[#FF5252] hover:via-[#FFD93D] hover:to-[#26A69A] text-[#2D3436] font-bold px-10 py-7 text-xl rounded-full shadow-xl hover:shadow-2xl transition-all transform hover:scale-105 border-2 border-white/50"
                   >
-                    <BookOpen className="w-5 h-5 ml-2" />
-                    פתח את הספר
+                    <BookOpen className="w-6 h-6 ml-3" />
+                    פתח את הספר 📖
                   </Button>
                 </div>
               </div>
