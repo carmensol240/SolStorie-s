@@ -1008,6 +1008,20 @@ const Auth = () => {
                 יש לסמן את שתי ההסכמות כדי להמשיך
               </p>
             )}
+            
+            {/* Developer Bypass - Only in development */}
+            {import.meta.env.DEV && (
+              <button
+                type="button"
+                onClick={() => {
+                  enableDevMode();
+                  navigate("/library");
+                }}
+                className="mt-4 w-full text-center text-sm text-purple-500 hover:text-purple-700 transition-colors py-2 border border-dashed border-purple-300 rounded-xl hover:bg-purple-50"
+              >
+                🔧 דלג על אישור (Developer Mode)
+              </button>
+            )}
           </div>
         </div>
       </div>
