@@ -89,17 +89,17 @@ const Home = () => {
       <DebugMenu />
       
       <div className="flex-1 overflow-hidden flex flex-col pb-16">
-        <div className="container max-w-lg mx-auto px-4 py-2 flex-1 flex flex-col">
+        <div className="container max-w-lg mx-auto px-3 py-1.5 flex-1 flex flex-col">
           
           {/* Logged-in User Dashboard */}
           {isLoggedIn && (
             <div className="flex-1 flex flex-col animate-fade-in">
               {/* Header - Greeting on Right, Credits on Left (RTL) */}
-              <header className="flex items-center justify-between mb-2">
+              <header className="flex items-center justify-between mb-1">
                 {/* Left side: Credits + Avatar */}
-                <div className="flex items-center gap-2">
+                <div className="flex items-center gap-1.5">
                   {avatarUrl && (
-                    <div className="w-8 h-8 rounded-full overflow-hidden border-2 border-primary shadow-sm">
+                    <div className="w-7 h-7 rounded-full overflow-hidden border-2 border-primary shadow-sm">
                       <img 
                         src={avatarUrl} 
                         alt="דמות הילד" 
@@ -109,54 +109,54 @@ const Home = () => {
                   )}
                   <button 
                     onClick={() => navigate("/upgrade")}
-                    className="flex items-center gap-2 bg-amber-50 dark:bg-amber-950/30 rounded-full px-3 py-1.5 hover:bg-amber-100 dark:hover:bg-amber-900/40 transition-colors"
+                    className="flex items-center gap-1.5 bg-amber-50 dark:bg-amber-950/30 rounded-full px-2 py-1 hover:bg-amber-100 dark:hover:bg-amber-900/40 transition-colors"
                     aria-label="צפה בקרדיטים ושדרג"
                   >
-                    <Coins className="w-4 h-4 text-amber-500" aria-hidden="true" />
-                    <span className="font-semibold text-amber-700 dark:text-amber-400 text-sm">{totalCredits}</span>
+                    <Coins className="w-3.5 h-3.5 text-amber-500" aria-hidden="true" />
+                    <span className="font-semibold text-amber-700 dark:text-amber-400 text-xs">{totalCredits}</span>
                   </button>
                 </div>
                 {/* Right side: Greeting with actual username */}
-                <h1 className="text-xl font-bold text-foreground">
+                <h1 className="text-lg font-bold text-foreground">
                   שלום, {displayName || user?.email?.split('@')[0] || "משתמש"} 👋
                 </h1>
               </header>
 
               {/* Hero Image - Compact */}
-              <div className="bg-card rounded-2xl p-2 shadow-md border border-border overflow-hidden mb-2">
+              <div className="bg-card rounded-xl p-1.5 shadow-md border border-border overflow-hidden mb-1.5">
                 <img 
                   src={heroChildReading} 
                   alt="ילד קורא סיפור" 
-                  className="w-full rounded-xl object-cover aspect-[16/9]"
+                  className="w-full rounded-lg object-cover aspect-[16/9]"
                   loading="eager"
                 />
               </div>
 
               {/* Action Cards - Compact */}
-              <div className="space-y-2 flex-1">
+              <div className="space-y-1.5 flex-1">
                 {actionCards.map((card, index) => {
                   const Icon = card.icon;
                   return (
                     <button
                       key={index}
                       onClick={() => navigate(card.path)}
-                      className="w-full flex items-center gap-3 bg-card rounded-xl p-3 shadow-sm border border-border hover:shadow-md hover:scale-[1.01] transition-all text-right"
+                      className="w-full flex items-center gap-2.5 bg-card rounded-xl p-2.5 shadow-sm border border-border hover:shadow-md hover:scale-[1.01] transition-all text-right"
                     >
-                      <div className={`w-11 h-11 ${card.iconBg} rounded-xl flex items-center justify-center flex-shrink-0`}>
-                        <Icon className={`w-5 h-5 ${card.iconColor}`} aria-hidden="true" />
+                      <div className={`w-10 h-10 ${card.iconBg} rounded-lg flex items-center justify-center flex-shrink-0`}>
+                        <Icon className={`w-4.5 h-4.5 ${card.iconColor}`} aria-hidden="true" />
                       </div>
                       <div className="flex-1 min-w-0">
-                        <h3 className="font-bold text-base text-foreground">{card.title}</h3>
-                        <p className="text-xs text-muted-foreground truncate">{card.description}</p>
+                        <h3 className="font-bold text-sm text-foreground">{card.title}</h3>
+                        <p className="text-[11px] text-muted-foreground truncate">{card.description}</p>
                       </div>
-                      <ArrowLeft className="w-4 h-4 text-muted-foreground flex-shrink-0" aria-hidden="true" />
+                      <ArrowLeft className="w-3.5 h-3.5 text-muted-foreground flex-shrink-0" aria-hidden="true" />
                     </button>
                   );
                 })}
               </div>
 
               {/* Footer Placeholder */}
-              <div className="h-10 bg-gradient-to-t from-purple-100/50 to-transparent rounded-t-2xl mt-auto" />
+              <div className="h-6 bg-gradient-to-t from-purple-100/50 to-transparent rounded-t-2xl mt-auto" />
             </div>
           )}
 
@@ -165,78 +165,78 @@ const Home = () => {
             <div className="flex-1 flex flex-col animate-fade-in">
               
               {/* Logo - 3D Bubble Style */}
-              <h1 className="text-5xl font-black text-center tracking-tight logo-3d-bubble mb-3">
+              <h1 className="text-4xl font-black text-center tracking-tight logo-3d-bubble mb-2">
                 <span className="logo-story">Story</span>
                 <span className="logo-time"> Time</span>
               </h1>
 
               {/* Hero Image Card */}
-              <div className="bg-card rounded-2xl p-2 shadow-lg border border-border mb-3">
+              <div className="bg-card rounded-xl p-1.5 shadow-lg border border-border mb-2">
                 <img 
                   src={heroChildTablet} 
                   alt="ילד קורא סיפור בטאבלט" 
-                  className="w-full rounded-xl object-cover aspect-[4/3]"
+                  className="w-full rounded-lg object-cover aspect-[4/3]"
                   loading="eager"
                 />
               </div>
 
               {/* Title Section */}
-              <div className="text-center space-y-1 mb-3">
-                <h2 className="text-2xl font-black text-purple-700 flex items-center justify-center gap-2">
-                  <Sparkles className="w-5 h-5 text-pink-400" aria-hidden="true" />
+              <div className="text-center space-y-0.5 mb-2">
+                <h2 className="text-xl font-black text-purple-700 flex items-center justify-center gap-1.5">
+                  <Sparkles className="w-4 h-4 text-pink-400" aria-hidden="true" />
                   סיפורים קסומים
-                  <Sparkles className="w-5 h-5 text-orange-400" aria-hidden="true" />
+                  <Sparkles className="w-4 h-4 text-orange-400" aria-hidden="true" />
                 </h2>
-                <p className="text-base text-muted-foreground">הילד שלכם כגיבור הסיפור!</p>
+                <p className="text-sm text-muted-foreground">הילד שלכם כגיבור הסיפור!</p>
               </div>
 
               {/* Feature Cards */}
-              <div className="flex justify-center gap-4 mb-4">
+              <div className="flex justify-center gap-3 mb-3">
                 <div className="flex flex-col items-center text-center">
-                  <div className="w-14 h-14 bg-purple-100 rounded-2xl flex items-center justify-center mb-2">
-                    <Star className="w-6 h-6 text-purple-500" aria-hidden="true" />
+                  <div className="w-11 h-11 bg-purple-100 rounded-xl flex items-center justify-center mb-1">
+                    <Star className="w-5 h-5 text-purple-500" aria-hidden="true" />
                   </div>
-                  <span className="text-xs font-medium text-muted-foreground">סיפור מותאם</span>
-                  <span className="text-xs font-medium text-muted-foreground">אישית</span>
+                  <span className="text-[10px] font-medium text-muted-foreground leading-tight">סיפור מותאם</span>
+                  <span className="text-[10px] font-medium text-muted-foreground leading-tight">אישית</span>
                 </div>
                 <div className="flex flex-col items-center text-center">
-                  <div className="w-14 h-14 bg-amber-100 rounded-2xl flex items-center justify-center mb-2">
-                    <Palette className="w-6 h-6 text-amber-500" aria-hidden="true" />
+                  <div className="w-11 h-11 bg-amber-100 rounded-xl flex items-center justify-center mb-1">
+                    <Palette className="w-5 h-5 text-amber-500" aria-hidden="true" />
                   </div>
-                  <span className="text-xs font-medium text-muted-foreground">איורים תלת-</span>
-                  <span className="text-xs font-medium text-muted-foreground">מימדיים מקסימים</span>
+                  <span className="text-[10px] font-medium text-muted-foreground leading-tight">איורים תלת-</span>
+                  <span className="text-[10px] font-medium text-muted-foreground leading-tight">מימדיים מקסימים</span>
                 </div>
                 <div className="flex flex-col items-center text-center">
-                  <div className="w-14 h-14 bg-pink-100 rounded-2xl flex items-center justify-center mb-2">
-                    <Heart className="w-6 h-6 text-pink-500" aria-hidden="true" />
+                  <div className="w-11 h-11 bg-pink-100 rounded-xl flex items-center justify-center mb-1">
+                    <Heart className="w-5 h-5 text-pink-500" aria-hidden="true" />
                   </div>
-                  <span className="text-xs font-medium text-muted-foreground">חוויה ייחודית</span>
+                  <span className="text-[10px] font-medium text-muted-foreground leading-tight">חוויה ייחודית</span>
                 </div>
               </div>
 
               {/* Login/Register Button */}
               <Button
                 onClick={() => navigate("/auth")}
-                className="w-full bg-gradient-to-r from-purple-500 to-purple-600 hover:from-purple-600 hover:to-purple-700 text-white font-bold text-base py-5 rounded-full shadow-lg hover:shadow-xl hover:scale-[1.02] transition-all mb-2"
+                className="w-full bg-gradient-to-r from-purple-500 to-purple-600 hover:from-purple-600 hover:to-purple-700 text-white font-bold text-sm py-4 rounded-full shadow-lg hover:shadow-xl hover:scale-[1.02] transition-all mb-1.5"
                 size="lg"
                 aria-label="התחברות או הרשמה"
               >
                 התחברות / הרשמה
-                <ArrowLeft className="w-5 h-5 mr-2" aria-hidden="true" />
+                <ArrowLeft className="w-4 h-4 mr-2" aria-hidden="true" />
               </Button>
 
               {/* Secondary text */}
-              <p className="text-center text-sm text-muted-foreground mb-3">
+              <p className="text-center text-xs text-muted-foreground mb-2">
                 הצטרפו לאלפי משפחות שכבר יוצרות סיפורים מותאמים אישית
               </p>
 
               {/* Testimonials Section - Compact */}
-              <div className="flex-1 overflow-hidden">
+              <div className="flex-1 overflow-hidden min-h-0">
                 <TestimonialsSection />
               </div>
 
               {/* Footer Placeholder */}
-              <div className="h-8 bg-gradient-to-t from-purple-100/50 to-transparent rounded-t-2xl mt-auto" />
+              <div className="h-4 bg-gradient-to-t from-purple-100/50 to-transparent rounded-t-2xl mt-auto" />
             </div>
           )}
 
