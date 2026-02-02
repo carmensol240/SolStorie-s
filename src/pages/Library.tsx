@@ -59,16 +59,23 @@ const Library = () => {
 
   const fetchStories = async () => {
     try {
-      // First fetch stories
+      // First fetch stories - this will return empty if user is not logged in due to RLS
       const { data: storiesData, error: storiesError } = await supabase
         .from("stories")
         .select("id, child_name, topic, created_at, cover_url, theme, story_type, min_age, max_age, is_premium")
         .order("created_at", { ascending: false });
 
-      if (storiesError) throw storiesError;
+      // Gracefully handle RLS errors for non-authenticated users
+      if (storiesError) {
+        console.log('📚 Stories fetch info:', storiesError.message);
+        setStories([]);
+        setIsLoading(false);
+        return;
+      }
 
       if (!storiesData || storiesData.length === 0) {
         setStories([]);
+        setIsLoading(false);
         return;
       }
 
@@ -92,8 +99,6 @@ const Library = () => {
         }
       });
 
-      console.log('📚 Cover map entries:', Array.from(coverMap.entries()));
-
       // Merge stories with their cover images
       const storiesWithCovers: Story[] = storiesData.map(story => ({
         ...story,
@@ -102,22 +107,11 @@ const Library = () => {
           : []
       }));
 
-      console.log('📚 Stories with covers:', storiesWithCovers.map(s => ({
-        id: s.id,
-        child_name: s.child_name,
-        cover_url: s.cover_url,
-        story_pages: s.story_pages,
-        computed_cover: s.cover_url || s.story_pages?.[0]?.illustration_url
-      })));
-
       setStories(storiesWithCovers);
     } catch (error) {
       console.error("Error fetching stories:", error);
-      toast({
-        variant: "destructive",
-        title: "שגיאה",
-        description: "לא הצלחנו לטעון את הסיפורים",
-      });
+      // Don't show error toast for auth issues - just show empty state
+      setStories([]);
     } finally {
       setIsLoading(false);
     }
