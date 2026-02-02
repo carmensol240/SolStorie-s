@@ -54,15 +54,22 @@ const ChildInfoStep = ({ formData, updateFormData }: ChildInfoStepProps) => {
 
   useEffect(() => {
     const fetchChildren = async () => {
-      if (!user) return;
-      
-      const { data, error } = await supabase
-        .from("children")
-        .select("id, name, age, gender, photo_url, avatar_url, personality_traits")
-        .eq("user_id", user.id);
-      
-      if (!error && data) {
-        setSavedChildren(data);
+      if (user) {
+        // Fetch from database for authenticated users
+        const { data, error } = await supabase
+          .from("children")
+          .select("id, name, age, gender, photo_url, avatar_url, personality_traits")
+          .eq("user_id", user.id);
+        
+        if (!error && data) {
+          setSavedChildren(data);
+        }
+      } else {
+        // Load from localStorage for guest/dev mode users
+        const localChildren = JSON.parse(localStorage.getItem('savedChildren') || '[]');
+        if (localChildren.length > 0) {
+          setSavedChildren(localChildren);
+        }
       }
     };
     
@@ -164,7 +171,10 @@ const ChildInfoStep = ({ formData, updateFormData }: ChildInfoStepProps) => {
             })
             .eq("id", existingChild.id);
 
-          if (error) throw error;
+          if (error) {
+            console.error('Supabase update error:', error);
+            throw new Error(error.message);
+          }
           
           // Update local state
           setSavedChildren(prev => prev.map(c => 
@@ -188,7 +198,10 @@ const ChildInfoStep = ({ formData, updateFormData }: ChildInfoStepProps) => {
             .select()
             .single();
 
-          if (error) throw error;
+          if (error) {
+            console.error('Supabase insert error:', error);
+            throw new Error(error.message);
+          }
           
           // Add to local state
           if (data) {
@@ -198,7 +211,7 @@ const ChildInfoStep = ({ formData, updateFormData }: ChildInfoStepProps) => {
         
         toast.success("הפרטים נשמרו בהצלחה! 🎉");
       } else {
-        // Save to localStorage for non-logged users
+        // Save to localStorage for non-logged users (guests/dev mode)
         const savedChild = {
           id: `local-${Date.now()}`,
           name: formData.childName,
@@ -225,7 +238,8 @@ const ChildInfoStep = ({ formData, updateFormData }: ChildInfoStepProps) => {
       }
     } catch (error) {
       console.error('Error saving child profile:', error);
-      toast.error("שגיאה בשמירת הפרטים, נסו שוב");
+      const errorMessage = error instanceof Error ? error.message : "שגיאה לא ידועה";
+      toast.error(`שגיאה בשמירה: ${errorMessage}`);
     } finally {
       setIsSavingChild(false);
     }
