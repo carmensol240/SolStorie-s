@@ -3,7 +3,7 @@ import { User, Camera, Sparkles, RefreshCw, Trash2, Heart, ChevronDown, ChevronU
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { Switch } from "@/components/ui/switch";
+import { Slider } from "@/components/ui/slider";
 import { Button } from "@/components/ui/button";
 import { StoryFormData } from "@/pages/CreateStory";
 import { cn } from "@/lib/utils";
@@ -12,6 +12,7 @@ import { useAuth } from "@/hooks/use-auth";
 import { isDevModeEnabled } from "@/hooks/use-dev-mode";
 import { toast } from "sonner";
 import AvatarPreviewDialog from "@/components/story/AvatarPreviewDialog";
+
 interface SavedChild {
   id: string;
   name: string;
@@ -42,6 +43,25 @@ const photoTips: PhotoTip[] = [
   { text: "יותר מילד אחד", isGood: false },
 ];
 
+// Helper to convert age number to age range
+const ageToRange = (age: number): "0-2" | "2-4" | "5-7" | "8-10" => {
+  if (age <= 2) return "0-2";
+  if (age <= 4) return "2-4";
+  if (age <= 7) return "5-7";
+  return "8-10";
+};
+
+// Helper to get a representative age from range
+const rangeToAge = (range: string): number => {
+  switch (range) {
+    case "0-2": return 1;
+    case "2-4": return 3;
+    case "5-7": return 6;
+    case "8-10": return 9;
+    default: return 3;
+  }
+};
+
 const ChildInfoStep = ({ formData, updateFormData }: ChildInfoStepProps) => {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const { user } = useAuth();
@@ -55,7 +75,11 @@ const ChildInfoStep = ({ formData, updateFormData }: ChildInfoStepProps) => {
   const [isUploadingPhoto, setIsUploadingPhoto] = useState(false);
   const [avatarRegenerationCount, setAvatarRegenerationCount] = useState(0);
   const [existingAvatarForDialog, setExistingAvatarForDialog] = useState<string | null>(null);
+  
+  // Slider age state (0-10)
+  const [sliderAge, setSliderAge] = useState<number>(rangeToAge(formData.ageRange));
 
+  // Load saved children and auto-populate form on mount
   useEffect(() => {
     const fetchChildren = async () => {
       if (user) {
@@ -65,7 +89,23 @@ const ChildInfoStep = ({ formData, updateFormData }: ChildInfoStepProps) => {
           .select("id, name, age, gender, photo_url, avatar_url, personality_traits")
           .eq("user_id", user.id);
         
-        if (!error && data) {
+        if (!error && data && data.length > 0) {
+          setSavedChildren(data);
+          // Auto-load the first child's data
+          const firstChild = data[0];
+          setSliderAge(firstChild.age);
+          updateFormData({
+            childName: firstChild.name,
+            childGender: firstChild.gender as "male" | "female",
+            ageRange: ageToRange(firstChild.age),
+            childPhoto: firstChild.photo_url,
+            childAvatarUrl: firstChild.avatar_url,
+            personalityTraits: firstChild.personality_traits || "",
+          });
+          if (firstChild.personality_traits) {
+            setShowPersonalityField(true);
+          }
+        } else if (!error && data) {
           setSavedChildren(data);
         }
       } else {
@@ -73,12 +113,33 @@ const ChildInfoStep = ({ formData, updateFormData }: ChildInfoStepProps) => {
         const localChildren = JSON.parse(localStorage.getItem('savedChildren') || '[]');
         if (localChildren.length > 0) {
           setSavedChildren(localChildren);
+          // Auto-load the first child
+          const firstChild = localChildren[0];
+          setSliderAge(firstChild.age);
+          updateFormData({
+            childName: firstChild.name,
+            childGender: firstChild.gender as "male" | "female",
+            ageRange: ageToRange(firstChild.age),
+            childPhoto: firstChild.photo_url,
+            childAvatarUrl: firstChild.avatar_url,
+            personalityTraits: firstChild.personality_traits || "",
+          });
+          if (firstChild.personality_traits) {
+            setShowPersonalityField(true);
+          }
         }
       }
     };
     
     fetchChildren();
   }, [user]);
+
+  // Update age range when slider changes
+  const handleSliderChange = (value: number[]) => {
+    const age = value[0];
+    setSliderAge(age);
+    updateFormData({ ageRange: ageToRange(age) });
+  };
 
   const handlePhotoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -132,13 +193,7 @@ const ChildInfoStep = ({ formData, updateFormData }: ChildInfoStepProps) => {
   };
 
   const loadChildProfile = (child: SavedChild) => {
-    const ageToRange = (age: number): "0-2" | "2-4" | "5-7" | "8-10" => {
-      if (age <= 2) return "0-2";
-      if (age <= 4) return "2-4";
-      if (age <= 7) return "5-7";
-      return "8-10";
-    };
-
+    setSliderAge(child.age);
     updateFormData({
       childName: child.name,
       childGender: child.gender as "male" | "female",
@@ -166,22 +221,22 @@ const ChildInfoStep = ({ formData, updateFormData }: ChildInfoStepProps) => {
     setIsSavingChild(true);
 
     try {
-      // Convert age range to number
-      const ageFromRange = (range: string): number => {
-        switch (range) {
-          case "0-2": return 1;
-          case "2-4": return 3;
-          case "5-7": return 6;
-          case "8-10": return 9;
-          default: return 3;
-        }
-      };
-
       // In dev mode or for non-logged users, always save to localStorage
       const isDevMode = isDevModeEnabled();
       const shouldUseLocalStorage = isDevMode || !user;
 
       if (!shouldUseLocalStorage && user) {
+        // Use upsert for database persistence
+        const childData = {
+          user_id: user.id,
+          name: formData.childName,
+          age: sliderAge,
+          gender: formData.childGender,
+          photo_url: formData.childPhoto,
+          avatar_url: formData.childAvatarUrl,
+          personality_traits: formData.personalityTraits || null,
+        };
+
         // Check if child already exists
         const existingChild = savedChildren.find(c => c.name === formData.childName);
         
@@ -190,7 +245,7 @@ const ChildInfoStep = ({ formData, updateFormData }: ChildInfoStepProps) => {
           const { error } = await supabase
             .from("children")
             .update({
-              age: ageFromRange(formData.ageRange),
+              age: sliderAge,
               gender: formData.childGender,
               photo_url: formData.childPhoto,
               avatar_url: formData.childAvatarUrl,
@@ -206,22 +261,14 @@ const ChildInfoStep = ({ formData, updateFormData }: ChildInfoStepProps) => {
           // Update local state
           setSavedChildren(prev => prev.map(c => 
             c.id === existingChild.id 
-              ? { ...c, age: ageFromRange(formData.ageRange), gender: formData.childGender, photo_url: formData.childPhoto, avatar_url: formData.childAvatarUrl, personality_traits: formData.personalityTraits }
+              ? { ...c, age: sliderAge, gender: formData.childGender, photo_url: formData.childPhoto, avatar_url: formData.childAvatarUrl, personality_traits: formData.personalityTraits }
               : c
           ));
         } else {
           // Create new child
           const { data, error } = await supabase
             .from("children")
-            .insert({
-              user_id: user.id,
-              name: formData.childName,
-              age: ageFromRange(formData.ageRange),
-              gender: formData.childGender,
-              photo_url: formData.childPhoto,
-              avatar_url: formData.childAvatarUrl,
-              personality_traits: formData.personalityTraits || null,
-            })
+            .insert(childData)
             .select()
             .single();
 
@@ -242,7 +289,7 @@ const ChildInfoStep = ({ formData, updateFormData }: ChildInfoStepProps) => {
         const savedChild = {
           id: `local-${Date.now()}`,
           name: formData.childName,
-          age: ageFromRange(formData.ageRange),
+          age: sliderAge,
           gender: formData.childGender,
           photo_url: formData.childPhoto,
           avatar_url: formData.childAvatarUrl,
@@ -272,19 +319,26 @@ const ChildInfoStep = ({ formData, updateFormData }: ChildInfoStepProps) => {
     }
   };
 
+  // Get age label for display
+  const getAgeLabel = (age: number): string => {
+    if (age === 0) return "0 - תינוק/ת";
+    if (age === 1) return "שנה 1";
+    return `${age} שנים`;
+  };
+
   return (
-    <div className="space-y-6">
+    <div className="w-full space-y-5 px-0">
       {/* Title */}
-      <div className="text-center space-y-2">
-        <h1 className="text-2xl font-bold">ספרו לנו על הילד/ה</h1>
-        <p className="text-muted-foreground">בחרו פרופיל קיים או צרו חדש</p>
+      <div className="text-center space-y-1">
+        <h1 className="text-2xl font-bold text-foreground">ספרו לנו על הילד/ה</h1>
+        <p className="text-sm text-muted-foreground">בחרו פרופיל קיים או צרו חדש</p>
       </div>
 
       {/* Saved Children Quick Select */}
       {savedChildren.length > 0 && (
-        <div className="space-y-3">
-          <Label className="text-base font-medium flex items-center gap-2">
-            <User className="w-4 h-4 text-purple-500" />
+        <div className="space-y-2">
+          <Label className="text-sm font-medium flex items-center gap-2">
+            <User className="w-4 h-4 text-primary" />
             בחרו פרופיל שמור
           </Label>
           <div className="flex gap-2 flex-wrap">
@@ -294,14 +348,14 @@ const ChildInfoStep = ({ formData, updateFormData }: ChildInfoStepProps) => {
                 type="button"
                 onClick={() => loadChildProfile(child)}
                 className={cn(
-                  "px-4 py-2 rounded-xl border-2 transition-all flex items-center gap-2",
+                  "px-4 py-2.5 rounded-2xl border-2 transition-all flex items-center gap-2 text-sm font-medium",
                   formData.childName === child.name
-                    ? "border-purple-500 bg-purple-50"
-                    : "border-gray-200 bg-white hover:border-purple-300"
+                    ? "border-primary bg-primary/10 text-primary"
+                    : "border-border bg-card hover:border-primary/50"
                 )}
               >
                 <span>{child.gender === "female" ? "👧" : "👦"}</span>
-                <span className="font-medium">{child.name}</span>
+                <span>{child.name}</span>
               </button>
             ))}
           </div>
@@ -310,7 +364,7 @@ const ChildInfoStep = ({ formData, updateFormData }: ChildInfoStepProps) => {
 
       {/* Child Name */}
       <div className="space-y-2">
-        <Label htmlFor="childName" className="text-base font-medium">
+        <Label htmlFor="childName" className="text-sm font-medium">
           שם הילד/ה
         </Label>
         <Input
@@ -319,76 +373,73 @@ const ChildInfoStep = ({ formData, updateFormData }: ChildInfoStepProps) => {
           placeholder="לדוגמה: נועה"
           value={formData.childName}
           onChange={(e) => updateFormData({ childName: e.target.value })}
-          className="h-12 text-lg bg-white border-2 border-gray-200 rounded-xl focus:border-purple-500"
+          className="h-12 text-base bg-card border-2 border-border rounded-2xl focus:border-primary px-4"
           dir="rtl"
         />
       </div>
 
       {/* Gender Selection */}
-      <div className="space-y-3">
-        <Label className="text-base font-medium">מגדר</Label>
+      <div className="space-y-2">
+        <Label className="text-sm font-medium">מגדר</Label>
         <div className="grid grid-cols-2 gap-3">
           <button
             onClick={() => updateFormData({ childGender: "male" })}
             className={cn(
-              "p-4 rounded-xl border-2 transition-all text-center flex items-center justify-center gap-2",
+              "p-3.5 rounded-2xl border-2 transition-all text-center flex items-center justify-center gap-2",
               formData.childGender === "male"
-                ? "border-purple-500 bg-purple-50"
-                : "border-gray-200 bg-white hover:border-purple-300"
+                ? "border-primary bg-primary/10"
+                : "border-border bg-card hover:border-primary/50"
             )}
           >
             <span className="text-2xl">👦</span>
-            <span className="text-lg font-bold">בן</span>
+            <span className="text-base font-bold">בן</span>
           </button>
           <button
             onClick={() => updateFormData({ childGender: "female" })}
             className={cn(
-              "p-4 rounded-xl border-2 transition-all text-center flex items-center justify-center gap-2",
+              "p-3.5 rounded-2xl border-2 transition-all text-center flex items-center justify-center gap-2",
               formData.childGender === "female"
-                ? "border-purple-500 bg-purple-50"
-                : "border-gray-200 bg-white hover:border-purple-300"
+                ? "border-primary bg-primary/10"
+                : "border-border bg-card hover:border-primary/50"
             )}
           >
             <span className="text-2xl">👧</span>
-            <span className="text-lg font-bold">בת</span>
+            <span className="text-base font-bold">בת</span>
           </button>
         </div>
       </div>
 
-      {/* Age Range */}
+      {/* Age Slider */}
       <div className="space-y-3">
-        <Label className="text-base font-medium">טווח גיל</Label>
-        <div className="grid grid-cols-2 gap-3">
-          <AgeButton
-            label="0-2"
-            description="סיפורים ראשונים"
-            isSelected={formData.ageRange === "0-2"}
-            onClick={() => updateFormData({ ageRange: "0-2" })}
+        <div className="flex items-center justify-between">
+          <Label className="text-sm font-medium">גיל</Label>
+          <span className="text-sm font-bold text-primary bg-primary/10 px-3 py-1 rounded-full">
+            {getAgeLabel(sliderAge)}
+          </span>
+        </div>
+        <div className="px-1">
+          <Slider
+            value={[sliderAge]}
+            onValueChange={handleSliderChange}
+            min={0}
+            max={10}
+            step={1}
+            className="w-full"
           />
-          <AgeButton
-            label="2-4"
-            description="משפטים קצרים ופשוטים"
-            isSelected={formData.ageRange === "2-4"}
-            onClick={() => updateFormData({ ageRange: "2-4" })}
-          />
-          <AgeButton
-            label="5-7"
-            description="אוצר מילים עשיר יותר"
-            isSelected={formData.ageRange === "5-7"}
-            onClick={() => updateFormData({ ageRange: "5-7" })}
-          />
-          <AgeButton
-            label="8-10"
-            description="סיפורים מורכבים יותר"
-            isSelected={formData.ageRange === "8-10"}
-            onClick={() => updateFormData({ ageRange: "8-10" })}
-          />
+          <div className="flex justify-between text-xs text-muted-foreground mt-2 px-1">
+            <span>0</span>
+            <span>2</span>
+            <span>4</span>
+            <span>6</span>
+            <span>8</span>
+            <span>10</span>
+          </div>
         </div>
       </div>
 
       {/* Photo Upload */}
-      <div className="space-y-3">
-        <Label className="text-base font-medium">תמונה של הילד/ה (אופציונלי)</Label>
+      <div className="space-y-2">
+        <Label className="text-sm font-medium">תמונה של הילד/ה (אופציונלי)</Label>
         <div className="relative">
           <input
             ref={fileInputRef}
@@ -399,13 +450,13 @@ const ChildInfoStep = ({ formData, updateFormData }: ChildInfoStepProps) => {
             id="photo-upload"
           />
           {isUploadingPhoto ? (
-            <div className="flex flex-col items-center justify-center w-full h-24 bg-white border-2 border-purple-500 bg-purple-50 rounded-xl">
-              <Loader2 className="w-6 h-6 animate-spin text-purple-500 mb-1" />
+            <div className="flex flex-col items-center justify-center w-full h-24 bg-card border-2 border-primary bg-primary/5 rounded-2xl">
+              <Loader2 className="w-6 h-6 animate-spin text-primary mb-1" />
               <span className="text-xs text-muted-foreground">מעלה תמונה...</span>
             </div>
           ) : formData.childPhoto ? (
-            <div className="flex flex-col items-center justify-center w-full h-24 bg-white border-2 border-purple-500 bg-purple-50 rounded-xl py-2">
-              <div className="relative w-14 h-14 rounded-full overflow-hidden border-2 border-purple-500">
+            <div className="flex flex-col items-center justify-center w-full h-24 bg-card border-2 border-primary bg-primary/5 rounded-2xl py-2">
+              <div className="relative w-14 h-14 rounded-full overflow-hidden border-2 border-primary">
                 <img
                   src={formData.childAvatarUrl || formData.childPhoto}
                   alt="תמונת הילד"
@@ -413,7 +464,7 @@ const ChildInfoStep = ({ formData, updateFormData }: ChildInfoStepProps) => {
                 />
                 {formData.childAvatarUrl && (
                   <div className="absolute bottom-0 right-0 w-5 h-5 bg-primary rounded-full flex items-center justify-center">
-                    <Sparkles className="w-2.5 h-2.5 text-white" />
+                    <Sparkles className="w-2.5 h-2.5 text-primary-foreground" />
                   </div>
                 )}
               </div>
@@ -425,7 +476,7 @@ const ChildInfoStep = ({ formData, updateFormData }: ChildInfoStepProps) => {
                       setPendingPhotoForAvatar(formData.childPhoto);
                       setAvatarPreviewOpen(true);
                     }}
-                    className="flex items-center gap-1 text-xs text-primary hover:text-purple-600 transition-colors font-medium"
+                    className="flex items-center gap-1 text-xs text-primary hover:text-primary/80 transition-colors font-medium"
                   >
                     <Sparkles className="w-3 h-3" />
                     <span>צור דמות</span>
@@ -434,7 +485,7 @@ const ChildInfoStep = ({ formData, updateFormData }: ChildInfoStepProps) => {
                 <button
                   type="button"
                   onClick={() => fileInputRef.current?.click()}
-                  className="flex items-center gap-1 text-xs text-muted-foreground hover:text-purple-500 transition-colors"
+                  className="flex items-center gap-1 text-xs text-muted-foreground hover:text-primary transition-colors"
                 >
                   <RefreshCw className="w-3 h-3" />
                   <span>החלף</span>
@@ -442,7 +493,7 @@ const ChildInfoStep = ({ formData, updateFormData }: ChildInfoStepProps) => {
                 <button
                   type="button"
                   onClick={() => updateFormData({ childPhoto: null, childAvatarUrl: null })}
-                  className="flex items-center gap-1 text-xs text-red-500 hover:text-red-600 transition-colors"
+                  className="flex items-center gap-1 text-xs text-destructive hover:text-destructive/80 transition-colors"
                 >
                   <Trash2 className="w-3 h-3" />
                   <span>מחק</span>
@@ -452,7 +503,7 @@ const ChildInfoStep = ({ formData, updateFormData }: ChildInfoStepProps) => {
           ) : (
             <label
               htmlFor="photo-upload"
-              className="flex flex-col items-center justify-center w-full h-24 bg-white border border-dashed border-gray-300 hover:border-purple-400 rounded-xl cursor-pointer transition-colors"
+              className="flex flex-col items-center justify-center w-full h-24 bg-card border-2 border-dashed border-border hover:border-primary/50 rounded-2xl cursor-pointer transition-colors"
             >
               <Camera className="w-6 h-6 text-muted-foreground mb-1" />
               <span className="text-xs text-muted-foreground">העלו תמונה</span>
@@ -464,40 +515,40 @@ const ChildInfoStep = ({ formData, updateFormData }: ChildInfoStepProps) => {
         <button
           type="button"
           onClick={() => setShowPhotoTips(!showPhotoTips)}
-          className="text-sm text-purple-500 hover:text-purple-600 transition-colors flex items-center gap-1"
+          className="text-xs text-primary hover:text-primary/80 transition-colors flex items-center gap-1"
         >
-          {showPhotoTips ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
+          {showPhotoTips ? <ChevronUp className="w-3 h-3" /> : <ChevronDown className="w-3 h-3" />}
           איך לבחור את התמונה הטובה ביותר?
         </button>
 
         {/* Photo Tips Card */}
         {showPhotoTips && (
-          <div className="bg-sky-50 rounded-2xl p-5 space-y-3 animate-in slide-in-from-top-2 duration-200">
-            <h3 className="font-bold text-lg text-foreground">איך לבחור את התמונה הטובה ביותר?</h3>
-            <div className="space-y-2">
+          <div className="bg-accent/50 rounded-2xl p-4 space-y-2 animate-in slide-in-from-top-2 duration-200">
+            <h3 className="font-bold text-sm text-foreground">איך לבחור את התמונה הטובה ביותר?</h3>
+            <div className="space-y-1.5">
               {photoTips.map((tip, index) => (
                 <div
                   key={index}
                   className={cn(
-                    "flex items-center justify-between px-4 py-3 rounded-full border-2",
+                    "flex items-center justify-between px-3 py-2 rounded-xl border",
                     tip.isGood
-                      ? "bg-green-50 border-green-500"
-                      : "bg-red-50 border-red-300"
+                      ? "bg-green-50 border-green-300"
+                      : "bg-red-50 border-red-200"
                   )}
                 >
-                  <span className={tip.isGood ? "text-green-700" : "text-red-700"}>
+                  <span className={cn("text-xs", tip.isGood ? "text-green-700" : "text-red-700")}>
                     {tip.text}
                   </span>
                   <div
                     className={cn(
-                      "w-8 h-8 rounded-full flex items-center justify-center",
-                      tip.isGood ? "bg-green-500" : "bg-red-500"
+                      "w-6 h-6 rounded-full flex items-center justify-center",
+                      tip.isGood ? "bg-green-500" : "bg-red-400"
                     )}
                   >
                     {tip.isGood ? (
-                      <Check className="w-5 h-5 text-white" />
+                      <Check className="w-3.5 h-3.5 text-white" />
                     ) : (
-                      <X className="w-5 h-5 text-white" />
+                      <X className="w-3.5 h-3.5 text-white" />
                     )}
                   </div>
                 </div>
@@ -508,36 +559,36 @@ const ChildInfoStep = ({ formData, updateFormData }: ChildInfoStepProps) => {
       </div>
 
       {/* Personality Traits */}
-      <div className="space-y-3">
+      <div className="space-y-2">
         <button
           type="button"
           onClick={() => setShowPersonalityField(!showPersonalityField)}
-          className="w-full flex items-center justify-between bg-white rounded-xl p-4 border-2 border-gray-200 hover:border-purple-300 transition-colors"
+          className="w-full flex items-center justify-between bg-card rounded-2xl p-4 border-2 border-border hover:border-primary/50 transition-colors"
         >
           <div className="flex items-center gap-3">
             <Heart className="w-5 h-5 text-pink-500" />
             <div className="text-right">
-              <p className="font-medium">ספרו לנו עוד על הילד/ה</p>
+              <p className="font-medium text-sm">ספרו לנו עוד על הילד/ה</p>
               <p className="text-xs text-muted-foreground">תכונות אופי, תחביבים ופרטים חשובים</p>
             </div>
           </div>
           {showPersonalityField ? (
-            <ChevronUp className="w-5 h-5 text-muted-foreground" />
+            <ChevronUp className="w-4 h-4 text-muted-foreground" />
           ) : (
-            <ChevronDown className="w-5 h-5 text-muted-foreground" />
+            <ChevronDown className="w-4 h-4 text-muted-foreground" />
           )}
         </button>
         
         {showPersonalityField && (
           <div className="space-y-2 animate-in slide-in-from-top-2 duration-200">
-            <p className="text-sm text-muted-foreground px-1">
+            <p className="text-xs text-muted-foreground px-1">
               כתבו כמה שיותר פרטים כדי שהסיפור יהיה מושלם ✨
             </p>
             <Textarea
               placeholder="לדוגמה: אוהבת דינוזאורים, ביישנית קצת, יש לה כלב בשם לילי, מתחילה בגן החודש..."
               value={formData.personalityTraits}
               onChange={(e) => updateFormData({ personalityTraits: e.target.value })}
-              className="min-h-[100px] resize-none bg-white border-2 border-gray-200 rounded-xl focus:border-purple-500"
+              className="min-h-[80px] resize-none bg-card border-2 border-border rounded-2xl focus:border-primary text-sm"
               dir="rtl"
             />
           </div>
@@ -546,12 +597,12 @@ const ChildInfoStep = ({ formData, updateFormData }: ChildInfoStepProps) => {
 
       {/* Save Child Profile Button */}
       {formData.childName.trim() && (
-        <div className="space-y-2 pt-2">
+        <div className="space-y-3 pt-1">
           <Button
             type="button"
             onClick={handleSaveChildProfile}
             disabled={isSavingChild}
-            className="w-full bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white font-bold py-3 rounded-xl shadow-md transition-all"
+            className="w-full bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white font-bold py-3 rounded-2xl shadow-md transition-all"
           >
             {isSavingChild ? (
               <>
@@ -565,17 +616,16 @@ const ChildInfoStep = ({ formData, updateFormData }: ChildInfoStepProps) => {
               </>
             )}
           </Button>
-          
-          {/* Privacy Notice */}
-          <div className="flex items-start gap-2 text-xs text-muted-foreground bg-blue-50 rounded-lg p-3">
-            <Shield className="w-4 h-4 text-blue-500 mt-0.5 shrink-0" />
-            <p>
-              המידע נשמר באופן מאובטח ומשמש אך ורק להתאמת הסיפורים אישית עבור ילדכם. 
-              אנו מקפידים על הגנת פרטיות בהתאם לתקנות.
-            </p>
-          </div>
         </div>
       )}
+
+      {/* Privacy Notice - Always visible at bottom */}
+      <div className="flex items-start gap-2 text-xs text-muted-foreground bg-accent/30 rounded-2xl p-3 border border-border">
+        <Shield className="w-4 h-4 text-primary mt-0.5 shrink-0" />
+        <p>
+          פרטי הילד/ה נשמרים בצורה מאובטחת ופרטית בהתאם לתקנות הפרטיות.
+        </p>
+      </div>
 
       {/* Avatar Preview Dialog - Always mounted, controlled by open prop to prevent hydration issues */}
       <AvatarPreviewDialog
@@ -599,27 +649,5 @@ const ChildInfoStep = ({ formData, updateFormData }: ChildInfoStepProps) => {
     </div>
   );
 };
-
-interface AgeButtonProps {
-  label: string;
-  description: string;
-  isSelected: boolean;
-  onClick: () => void;
-}
-
-const AgeButton = ({ label, description, isSelected, onClick }: AgeButtonProps) => (
-  <button
-    onClick={onClick}
-    className={cn(
-      "p-4 rounded-xl border-2 transition-all text-center",
-      isSelected
-        ? "border-purple-500 bg-purple-50"
-        : "border-gray-200 bg-white hover:border-purple-300"
-    )}
-  >
-    <span className="text-2xl font-bold block">{label}</span>
-    <span className="text-xs text-muted-foreground">{description}</span>
-  </button>
-);
 
 export default ChildInfoStep;

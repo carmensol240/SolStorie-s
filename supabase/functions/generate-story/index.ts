@@ -548,8 +548,9 @@ ${personalityTraits}
 `
       : '';
     
-    // Determine story length based on age
+    // Determine story length based on age - Updated logic for granular age ranges
     const getAgeLengthInstruction = (age: string) => {
+      // Age 0-2: Short and simple stories for toddlers
       if (age === "0-2") {
         return {
           pages: 4,
@@ -560,23 +561,42 @@ ${personalityTraits}
 - דגש על חוויות חושיות ומרגיעות
 - כל עמוד: משפט אחד בלבד!`
         };
-      } else if (age === "2-4" || age === "5-7") {
+      } 
+      // Age 2-4 (around age 3-4): Medium-length imaginative stories
+      else if (age === "2-4") {
         return {
           pages: 5,
-          instruction: `- גיל 3-6: סיפור באורך בינוני (5 עמודים)
+          instruction: `- גיל 3-4: סיפור באורך בינוני (5 עמודים)
+- נושאים דמיוניים ומעניינים
 - משפטים קצרים וברורים (2-3 משפטים בעמוד)
 - סיבה ותוצאה ברורות
+- דמויות חמודות ומצחיקות
 - אינטראקציות חברתיות פשוטות`
         };
-      } else {
+      }
+      // Age 5-7: Engaging stories with more depth
+      else if (age === "5-7") {
+        return {
+          pages: 6,
+          instruction: `- גיל 5-7: סיפור מעניין (6 עמודים)
+- עלילה ברורה עם התחלה, אמצע וסוף
+- משפטים מפורטים יותר (3 משפטים בעמוד)
+- דמויות עם אופי מפותח
+- מסר חינוכי או רגשי
+- אוצר מילים עשיר אך נגיש`
+        };
+      }
+      // Age 8-10: Complex stories for advanced readers
+      else {
         return {
           pages: 8,
-          instruction: `- גיל 7-8: סיפור ארוך ומורכב (8 עמודים!)
+          instruction: `- גיל 8-10: סיפור ארוך ומורכב (8 עמודים!)
 - אוצר מילים עשיר יותר (עם הסברים בסוגריים!)
 - עלילה מורכבת עם רגשות פנימיים ומספר אירועים
 - מצבים חברתיים מורכבים יותר
 - דמויות משנה ודיאלוגים עשירים
-- 3-4 משפטים מפורטים בעמוד`
+- 3-4 משפטים מפורטים בעמוד
+- נושאים מעמיקים כמו חברות, אתגרים, ולמידה`
         };
       }
     };
