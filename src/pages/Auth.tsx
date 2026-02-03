@@ -255,15 +255,32 @@ const Auth = () => {
       
       setCheckingTerms(true);
       try {
+        // First, try to get existing profile
         const { data, error } = await supabase
           .from("profiles")
           .select("terms_accepted_at, display_name, story_credits")
           .eq("id", user.id)
-          .single();
+          .maybeSingle();
 
-        if (error) {
-          console.error("Error checking terms:", error);
+        // If no profile exists (error or null data), create one
+        if (error || !data) {
+          console.log("No profile found, creating one for user:", user.id);
+          const { error: insertError } = await supabase
+            .from("profiles")
+            .insert({
+              id: user.id,
+              display_name: user.email?.split('@')[0] || null,
+            });
+          
+          if (insertError) {
+            console.error("Error creating profile:", insertError);
+          }
+          
+          // Set defaults and show consent
+          setDisplayName(user.email?.split('@')[0] || "");
+          setStoryCredits(1);
           setShowConsentStep(true);
+          setCheckingTerms(false);
           return;
         }
 
