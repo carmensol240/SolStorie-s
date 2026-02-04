@@ -600,11 +600,12 @@ const ChildInfoStep = ({ formData, updateFormData }: ChildInfoStepProps) => {
       <AvatarPreviewDialog
         open={avatarPreviewOpen}
         onOpenChange={setAvatarPreviewOpen}
-        photoUrl={pendingPhotoForAvatar}
+        originalPhoto={pendingPhotoForAvatar || ""}
+        childId="temp-child"
         childName={formData.childName}
-        childGender={formData.childGender}
         existingAvatarUrl={existingAvatarForDialog}
         onConfirm={handleAvatarConfirm}
+        skipStorage={true}
         regenerationCount={avatarRegenerationCount}
         onRegenerationCountChange={handleRegenerationCountChange}
       />
