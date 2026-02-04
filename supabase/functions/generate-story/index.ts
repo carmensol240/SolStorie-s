@@ -603,16 +603,61 @@ ${personalityTraits}
 
     const ageLengthConfig = getAgeLengthInstruction(ageRange);
     
+    // === COMBINED CONTENT LOGIC ===
+    // Determine how to frame the story based on what inputs were provided
+    let contentFraming = "";
+    
+    // Check if we have both a structured topic AND a custom description
+    const hasStructuredTopic = adventureLogic && topic !== "custom";
+    const hasCustomDescription = personalityTraits && personalityTraits.trim().length > 0;
+    
+    if (hasStructuredTopic && hasCustomDescription) {
+      // COMBINATION MODE: Use structured topic as world/setting, custom text as conflict
+      contentFraming = `
+## 🎭 מצב שילוב - חשוב מאוד!
+הנושא המובנה ("${topic}") ישמש כעולם התוכן והתפאורה של הסיפור.
+התיאור החופשי שכתב ההורה ישמש כקונפליקט המרכזי בעלילה.
+
+**עולם הסיפור:** ${adventureLogic.theme}
+**סביבה:** ${adventureLogic.background}
+**לבוש:** ${adventureLogic.outfit}
+
+**הקונפליקט שצריך לשלב בעלילה:**
+${personalityTraits}
+
+הדמות תחווה את האירוע/הקונפליקט בתוך עולם התוכן שנבחר.
+`;
+    } else if (hasStructuredTopic) {
+      // STRUCTURED TOPIC ONLY: Classic story based on the topic
+      contentFraming = `
+## 📚 סיפור קלאסי
+צור סיפור קלאסי על הנושא שנבחר.
+**עולם הסיפור:** ${adventureLogic.theme}
+**סביבה:** ${adventureLogic.background}
+**לבוש:** ${adventureLogic.outfit}
+`;
+    } else if (hasCustomDescription) {
+      // CUSTOM DESCRIPTION ONLY: Original story based on the description
+      contentFraming = `
+## ✍️ סיפור מקורי
+צור סיפור מקורי המבוסס על התיאור החופשי שנתן ההורה:
+${personalityTraits}
+
+התאם את עולם הסיפור והסביבה לתוכן שתואר.
+`;
+    }
+    
     const userPrompt = `## הוראות יצירת סיפור
 
 **פרטי הילד/ה:**
 - שם: ${childName}
 - מגדר: ${genderText}
 - גיל: ${ageRange}
-${personalitySection}
-${adventureSection}
+
+${contentFraming}
 
 **נושא הסיפור:** ${topic}
+${hasCustomDescription ? `**תיאור חופשי:** ${personalityTraits}` : ""}
 
 **ניקוד:** ${nikud ? "כן - הוסף ניקוד מלא ונכון לכל המילים" : "לא - ללא ניקוד"}
 
