@@ -15,6 +15,7 @@ import { useAnalytics } from "@/hooks/use-analytics";
 import { supabase } from "@/integrations/supabase/client";
 import { z } from "zod";
 import { enableDevMode } from "@/hooks/use-dev-mode";
+import authHeroChild from "@/assets/auth-hero-child.jpg";
 
 const emailSchema = z.string().email("כתובת אימייל לא תקינה");
 const passwordSchema = z.string().min(6, "הסיסמה חייבת להכיל לפחות 6 תווים");
@@ -1047,8 +1048,19 @@ const Auth = () => {
 
   return (
     <div className="h-screen h-[100dvh] bg-background flex flex-col overflow-hidden">
-      <div className="flex-1 flex items-center justify-center p-4 pb-20 overflow-y-auto">
-        <div className="w-full max-w-md bg-white rounded-3xl shadow-xl p-5 md:p-6 animate-fade-in max-h-[85vh] overflow-y-auto">
+      <div className="flex-1 flex flex-col items-center justify-start p-4 pb-20 overflow-y-auto">
+        {/* Hero Image with Frame */}
+        <div className="w-full max-w-md mb-4 animate-fade-in">
+          <div className="bg-gradient-to-br from-purple-100 via-pink-50 to-amber-50 rounded-3xl p-2 shadow-lg border border-purple-200/50">
+            <img 
+              src={authHeroChild} 
+              alt="ילד קורא סיפור על טאבלט" 
+              className="w-full h-48 object-cover rounded-2xl"
+            />
+          </div>
+        </div>
+
+        <div className="w-full max-w-md bg-white rounded-3xl shadow-xl p-5 md:p-6 animate-fade-in max-h-[70vh] overflow-y-auto">
           {showForgotPassword ? (
             /* Forgot Password Form */
             <div className="space-y-4">
