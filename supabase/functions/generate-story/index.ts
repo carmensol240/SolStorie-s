@@ -323,17 +323,25 @@ Any deviation from this profile is a FAILURE.
 `
       : "";
     
-    const enhancedPrompt = `Create a beautiful children's book illustration in 3D Pixar/Disney style. Soft lighting, warm colors, child-friendly and safe.
+    // MANDATORY STYLE PREFIX - must start every illustration prompt
+    const stylePrefix = `In the style of modern 3D Disney-Pixar animation, high resolution, magical atmosphere, magical glowing light, dreamy warm and inviting atmosphere. Characters with large expressive emotional eyes, detailed hair, soft textures.`;
+    
+    const enhancedPrompt = `${stylePrefix}
+
 ${characterInstruction}
 ${adventureInstruction}
 SCENE TO ILLUSTRATE: ${prompt}
 
 STYLE REQUIREMENTS:
-- 3D rounded shapes like Pixar/Disney
-- Expressive, friendly characters with consistent proportions
-- Magical, warm atmosphere
+- Modern 3D Disney-Pixar animation style (like Coco, Encanto, Inside Out)
+- Magical glowing light throughout the scene
+- Dreamy, warm, and inviting atmosphere
+- Characters with large, expressive emotional eyes
+- Detailed hair with realistic textures and flow
+- Soft, smooth character textures
+- Rich, vibrant colors with warm undertones
+- Professional children's book illustration quality
 - No text in the image
-- High quality, professional children's book illustration
 - MAINTAIN CHARACTER CONSISTENCY: Same face shape, same features, same proportions`;
 
     let requestBody: any = {
