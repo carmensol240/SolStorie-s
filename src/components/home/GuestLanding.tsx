@@ -1,7 +1,7 @@
 import { ArrowLeft, Sparkles, Star, Palette, Heart } from "lucide-react";
 import { useNavigate, Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import heroChildTablet from "@/assets/hero-child-tablet-new.jpg";
+import magicalReadingHero from "@/assets/magical-reading-hero.jpg";
 
 const GuestLanding = () => {
   const navigate = useNavigate();
@@ -14,11 +14,11 @@ const GuestLanding = () => {
         <span className="logo-time"> Time</span>
       </h1>
 
-      {/* Hero Image Card */}
+      {/* Hero Image Card - Magical Reading Scene */}
       <div className="bg-card rounded-xl p-1.5 shadow-lg border border-border mb-3">
         <img 
-          src={heroChildTablet} 
-          alt="ילד קורא סיפור בטאבלט" 
+          src={magicalReadingHero} 
+          alt="ילדה קוראת ספר באווירה קסומה" 
           className="w-full rounded-lg object-cover aspect-[4/3]"
           loading="eager"
         />
