@@ -323,20 +323,39 @@ const CategoryCarousel = ({
 };
 
 const TopicStep = ({ formData, updateFormData }: TopicStepProps) => {
+  // Handle topic selection - ALLOW keeping customTopic for combination
   const handleTopicSelect = (topic: AdventureTopic) => {
-    updateFormData({ 
-      topic: topic.id,
-      customTopic: "",
-      adventureLogic: topic.logic
-    });
+    // If same topic clicked, deselect it
+    if (formData.topic === topic.id) {
+      updateFormData({ 
+        topic: formData.customTopic.trim() ? "custom" : "",
+        adventureLogic: undefined
+      });
+    } else {
+      // Select topic but KEEP customTopic for combination
+      updateFormData({ 
+        topic: topic.id,
+        adventureLogic: topic.logic
+      });
+    }
   };
 
+  // Handle custom topic change - KEEP selected topic for combination
   const handleCustomTopicChange = (value: string) => {
-    updateFormData({ 
-      customTopic: value,
-      topic: value.trim() ? "custom" : "",
-      adventureLogic: undefined
-    });
+    // If there's a structured topic selected, keep it (for combination mode)
+    // Otherwise set topic to "custom" if there's text
+    if (!formData.topic || formData.topic === "custom") {
+      updateFormData({ 
+        customTopic: value,
+        topic: value.trim() ? "custom" : "",
+        adventureLogic: undefined
+      });
+    } else {
+      // Keep the structured topic, just update the customTopic
+      updateFormData({ 
+        customTopic: value
+      });
+    }
   };
 
   return (
