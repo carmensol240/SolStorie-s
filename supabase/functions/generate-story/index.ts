@@ -526,28 +526,6 @@ serve(async (req) => {
     const pronounHe = childGender === "female" ? "היא" : "הוא";
     const pronounHer = childGender === "female" ? "שלה" : "שלו";
     
-    // Build personality section if traits are provided
-    const personalitySection = personalityTraits 
-      ? `
-פרטים נוספים על הילד/ה שחשוב לשלב בסיפור:
-${personalityTraits}
-
-השתמש בפרטים האלה כדי להפוך את הסיפור לאישי יותר - שלב תחביבים, תכונות אופי, או פרטים אחרים בצורה טבעית בעלילה.
-` 
-      : '';
-
-    // Build adventure logic section if provided (outfit, background, theme)
-    const adventureSection = adventureLogic
-      ? `
-## הנחיות הרפתקה מיוחדות (חובה!)
-- **לבוש הדמות:** ${adventureLogic.outfit}
-- **רקע/סביבה:** ${adventureLogic.background}
-- **נושא/תמה:** ${adventureLogic.theme}
-
-**חשוב:** השתמש בהנחיות אלה בכל תיאורי האיורים!
-`
-      : '';
-    
     // Determine story length based on age - Updated logic for granular age ranges
     const getAgeLengthInstruction = (age: string) => {
       // Age 0-2: Short and simple stories for toddlers
