@@ -347,6 +347,13 @@ const TopicStep = ({ formData, updateFormData }: TopicStepProps) => {
         <p className="text-muted-foreground text-sm">איזה סיפור תרצו ליצור היום?</p>
       </div>
 
+      {/* Explanatory Text - How to use */}
+      <div className="px-3">
+        <p className="text-center text-sm text-muted-foreground bg-accent/30 rounded-xl py-3 px-4 border border-accent/50">
+          ✨ ניתן לבחור נושא מובנה, לספר לנו מה עבר על הילד/ה, או לשלב את שניהם יחד לסיפור מותאם אישית
+        </p>
+      </div>
+
       {/* NLP Smart Input - At Top */}
       <div className="space-y-3 px-3 bg-gradient-to-r from-primary/5 via-primary/10 to-primary/5 py-4 rounded-2xl mx-3 border border-primary/20">
         <div className="flex items-center gap-2 justify-center">
