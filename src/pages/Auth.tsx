@@ -15,6 +15,7 @@ import { useAnalytics } from "@/hooks/use-analytics";
 import { supabase } from "@/integrations/supabase/client";
 import { z } from "zod";
 import { enableDevMode } from "@/hooks/use-dev-mode";
+import authHeroChild from "@/assets/auth-hero-child.jpg";
 
 const emailSchema = z.string().email("כתובת אימייל לא תקינה");
 const passwordSchema = z.string().min(6, "הסיסמה חייבת להכיל לפחות 6 תווים");
