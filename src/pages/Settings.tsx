@@ -1,7 +1,6 @@
 import { useNavigate } from "react-router-dom";
-import { ArrowRight, Users, Mail, Trash2, LogOut, FileText, Shield, Coins, Accessibility } from "lucide-react";
+import { ArrowRight, Users, Mail, Trash2, LogOut, FileText, Shield, Coins, Accessibility, Eye } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Switch } from "@/components/ui/switch";
 import { useAuth } from "@/hooks/use-auth";
 import { useCredits } from "@/hooks/use-credits";
 import { useReferral } from "@/hooks/use-referral";
@@ -104,24 +103,22 @@ const Settings = () => {
               </button>
             );
           })}
-        </div>
 
-        {/* Accessibility Toggle - show if button was dismissed */}
-        {isAccessibilityDismissed && (
+          {/* Accessibility Settings - Blue Button */}
           <button
             onClick={handleRestoreAccessibility}
-            className="w-full flex items-center justify-between bg-blue-50 dark:bg-blue-950/30 backdrop-blur-md rounded-lg px-3 py-2.5 border border-blue-200 dark:border-blue-800 hover:bg-blue-100 dark:hover:bg-blue-900/40 transition-all text-right"
-            aria-label="הצג כפתור נגישות"
+            className="w-full flex items-center justify-between bg-blue-50 dark:bg-blue-950/30 backdrop-blur-md rounded-lg px-3 py-2.5 border border-blue-200 dark:border-blue-800 hover:bg-blue-100 dark:hover:bg-blue-900/40 transition-all text-right shadow-sm"
+            aria-label="הגדרות נגישות"
           >
             <ArrowRight className="w-3.5 h-3.5 text-blue-500" aria-hidden="true" />
             <div className="flex items-center gap-2.5">
-              <span className="font-medium text-sm text-blue-700 dark:text-blue-300">הצג כפתור נגישות</span>
+              <span className="font-medium text-sm text-blue-700 dark:text-blue-300">הגדרות נגישות</span>
               <div className="w-8 h-8 bg-blue-100 dark:bg-blue-900/50 rounded-lg flex items-center justify-center flex-shrink-0">
-                <Accessibility className="w-3.5 h-3.5 text-blue-500" aria-hidden="true" />
+                <Eye className="w-3.5 h-3.5 text-blue-500" aria-hidden="true" />
               </div>
             </div>
           </button>
-        )}
+        </div>
 
         {/* Danger Zone */}
         <div className="space-y-1.5 pt-2 border-t border-border/50">
