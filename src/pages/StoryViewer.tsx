@@ -554,33 +554,94 @@ const StoryViewer = () => {
                 </div>
               </div>
             ) : (
-              /* Story Pages - Dual Page Layout */
+              /* Story Pages - Dual Page Layout with Illustrations */
               <div className={cn(
                 "min-h-[70vh] md:min-h-[75vh] flex",
                 isMobile ? "flex-col" : "flex-row"
               )}>
-                {/* Right Page (Illustration) - First in RTL */}
-                <BookPage
-                  type="illustration"
-                  illustrationUrl={page?.illustration_url}
-                  pageNumber={page?.page_number}
-                  className={cn(
-                    isMobile ? "border-b-2" : "border-l-2",
-                    "border-[#D4A574]/30"
+                {/* Right Page (Illustration) - First in RTL - Disney Pixar Style */}
+                <div className={cn(
+                  "flex-1 flex flex-col items-center justify-center p-4 md:p-6",
+                  "bg-gradient-to-br from-[#FFFBF5] to-[#F5E6D3]",
+                  isMobile ? "border-b-2" : "border-l-2",
+                  "border-[#D4A574]/30"
+                )}>
+                  {page?.illustration_url ? (
+                    <div className="relative w-full max-w-md mx-auto">
+                      <div className="relative rounded-2xl overflow-hidden shadow-2xl border-4 border-[#E8D5C4]">
+                        <img
+                          src={page.illustration_url}
+                          alt={`איור לעמוד ${page.page_number} - סגנון דיסני פיקסאר`}
+                          className="w-full aspect-[4/5] object-cover"
+                          loading="lazy"
+                        />
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="relative w-full max-w-md mx-auto">
+                      <div className="rounded-2xl border-4 border-dashed border-[#D4A574]/50 aspect-[4/5] flex items-center justify-center bg-[#F5E6D3]/50">
+                        <div className="text-center text-[#A08060]">
+                          <BookOpen className="w-16 h-16 mx-auto mb-2 opacity-40" />
+                          <p className="text-sm">טוען איור...</p>
+                        </div>
+                      </div>
+                    </div>
                   )}
-                />
+                </div>
                 
                 {/* Left Page (Text) - Second in RTL */}
-                <BookPage
-                  type="text"
-                  text={page?.text}
-                  pageNumber={page?.page_number}
-                  totalPages={story.pages.length}
-                  fontSize={currentFontSize.size}
-                />
+                <div className={cn(
+                  "flex-1 flex flex-col justify-center p-6 md:p-8 lg:p-10",
+                  "bg-gradient-to-bl from-[#FFFBF5] to-[#FAF3E8]"
+                )}>
+                  <div className="flex-1 flex items-center justify-center">
+                    <p 
+                      className={cn(
+                        "leading-loose text-[#3D2914] text-right font-medium transition-all",
+                        currentFontSize.size
+                      )} 
+                      dir="rtl"
+                    >
+                      {page?.text}
+                    </p>
+                  </div>
+                  
+                  {/* Page number */}
+                  {page?.page_number !== undefined && (
+                    <div className="text-center pt-4 border-t border-[#D4A574]/20 mt-4">
+                      <span className="text-sm text-[#8B7355] font-serif italic">
+                        עמוד {page.page_number} מתוך {story.pages.length}
+                      </span>
+                    </div>
+                  )}
+                </div>
               </div>
             )}
           </BookFrame>
+          
+          {/* Bottom Navigation Buttons - Clear Back/Next */}
+          {!isCoverPage && !isEndPage && (
+            <div className="flex items-center justify-center gap-4 mt-6">
+              <Button
+                variant="outline"
+                size="lg"
+                onClick={() => handlePageChange('prev')}
+                disabled={currentPage <= -1 || isFlipping}
+                className="rounded-full border-2 border-[#8B5A2B] text-[#8B5A2B] hover:bg-[#8B5A2B]/10 px-8 py-5 font-bold"
+              >
+                חזרה
+              </Button>
+              
+              <Button
+                size="lg"
+                onClick={() => handlePageChange('next')}
+                disabled={!story || currentPage >= story.pages.length || isFlipping}
+                className="rounded-full bg-[#8B5A2B] hover:bg-[#6B4423] text-white px-8 py-5 font-bold"
+              >
+                הבא
+              </Button>
+            </div>
+          )}
         </div>
       </main>
 

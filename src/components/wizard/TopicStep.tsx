@@ -1,5 +1,5 @@
 import { useRef } from "react";
-import { Pencil, ChevronLeft, ChevronRight } from "lucide-react";
+import { Pencil, ChevronLeft, ChevronRight, Brain, Sparkles } from "lucide-react";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
@@ -48,66 +48,33 @@ interface AdventureCategory {
   topics: AdventureTopic[];
 }
 
-// Organized by category with Hebrew headers
+// Reorganized by NEW categories
 const ADVENTURE_CATEGORIES: AdventureCategory[] = [
   {
-    id: "habits-daily",
-    title: "הרגלים ויומיום",
-    emoji: "🧼",
+    id: "emotion-detectors",
+    title: "גלאי רגשות",
+    emoji: "💕",
     topics: [
       { 
-        id: "body-hero-teeth", 
-        label: "צחצוח שיניים קסום", 
-        image: topicTeethBrushing,
-        description: "עם פיית השיניים והדרקון",
+        id: "friendship-courage", 
+        label: "חברים בגן", 
+        image: topicFriendship,
+        description: "משחקים ומתגברים על קשיים",
         logic: {
-          outfit: "everyday casual clothes at home",
-          background: "bright magical bathroom with sparkles and friendly dental fairy dragon",
-          theme: "teeth brushing, dental hygiene, making brushing fun"
-        }
-      },
-      { 
-        id: "body-hero-bath", 
-        label: "אמבטיה של כיף", 
-        image: topicBathShower,
-        description: "בועות, ברווזון וקצף",
-        logic: {
-          outfit: "bath time with rubber ducky cap",
-          background: "colorful bubble bath with floating toys and rainbow bubbles",
-          theme: "bath time fun, getting clean, water play"
-        }
-      },
-      { 
-        id: "body-hero-hands", 
-        label: "שטיפת ידיים", 
-        image: topicHandWashing,
-        description: "מנצחים את החיידקים!",
-        logic: {
-          outfit: "everyday casual clothes",
-          background: "bright colorful bathroom with soap bubbles and friendly germs being washed away",
-          theme: "hand hygiene, washing hands, staying healthy"
-        }
-      },
-      { 
-        id: "body-hero-nails", 
-        label: "גזירת ציפורניים", 
-        image: topicNailTrimming,
-        description: "עם הפיות הקסומות",
-        logic: {
-          outfit: "everyday casual clothes",
-          background: "magical bathroom with fairies and sparkles, friendly nail clippers",
-          theme: "nail trimming, grooming routine, overcoming fear of nail cutting"
+          outfit: "everyday casual clothes suitable for playing",
+          background: "colorful kindergarten playground with sandbox and sunny weather",
+          theme: "social skills, making friends, playing together, sharing, managing emotions"
         }
       },
       { 
         id: "bedtime-story", 
         label: "סיפור לפני השינה", 
         image: topicBedtime,
-        description: "עם הפיל הקורא ספרים",
+        description: "מתמודדים עם פחדים ורגשות",
         logic: {
           outfit: "cozy pajamas with soft slippers",
           background: "enchanted bedroom at night with moonlight, stars, and reading elephant friend",
-          theme: "calming and peaceful bedtime adventure, good night routine"
+          theme: "calming and peaceful bedtime adventure, overcoming fears, emotional regulation"
         }
       },
       { 
@@ -118,36 +85,25 @@ const ADVENTURE_CATEGORIES: AdventureCategory[] = [
         logic: {
           outfit: "cozy pajamas",
           background: "magical nursery with sparkles and gentle fairy",
-          theme: "saying goodbye to pacifier, growing up, milestone transition"
+          theme: "saying goodbye to pacifier, growing up, milestone transition, managing change"
         }
       },
     ]
   },
   {
-    id: "friends-emotions",
-    title: "חברים ורגשות",
-    emoji: "💕",
+    id: "social-missions",
+    title: "משימות חברתיות",
+    emoji: "🤝",
     topics: [
-      { 
-        id: "friendship-courage", 
-        label: "חברים בגן", 
-        image: topicFriendship,
-        description: "משחקים בארגז החול",
-        logic: {
-          outfit: "everyday casual clothes suitable for playing",
-          background: "colorful kindergarten playground with sandbox and sunny weather",
-          theme: "social skills, making friends, playing together, sharing"
-        }
-      },
       { 
         id: "zoo-adventure", 
         label: "טיול בגן החיות", 
         image: topicZoo,
-        description: "פוגשים חיות מדהימות",
+        description: "פוגשים חיות ומתרגלים שיתוף",
         logic: {
           outfit: "comfortable outdoor clothes with backpack",
           background: "colorful zoo with friendly animals, fences, trees",
-          theme: "animal discovery, nature, adventure and exploration"
+          theme: "animal discovery, nature, sharing with friends, taking turns"
         }
       },
       { 
@@ -158,32 +114,76 @@ const ADVENTURE_CATEGORIES: AdventureCategory[] = [
         logic: {
           outfit: "hiking clothes with backpack",
           background: "beautiful nature trail with trees, stream, flowers, and dog",
-          theme: "family bonding, nature exploration, outdoor adventure"
+          theme: "family bonding, nature exploration, teamwork, helping others"
         }
       },
-    ]
-  },
-  {
-    id: "celebrating",
-    title: "חוגגים ונהנים",
-    emoji: "🎉",
-    topics: [
       { 
         id: "birthday-party", 
         label: "מסיבת יום הולדת", 
         image: topicBirthday,
-        description: "חוגגים עם החברים",
+        description: "חוגגים ומשתפים עם חברים",
         logic: {
           outfit: "party clothes, festive attire",
           background: "colorful kindergarten or party venue with cake, decorations, friends",
-          theme: "birthday celebration, friendship, sharing joy"
+          theme: "birthday celebration, friendship, sharing joy, being a good host"
         }
       },
     ]
   },
   {
-    id: "adventures-magic",
-    title: "הרפתקאות וקסמים",
+    id: "sensory-cloud",
+    title: "ענן החושים",
+    emoji: "🧼",
+    topics: [
+      { 
+        id: "body-hero-teeth", 
+        label: "צחצוח שיניים קסום", 
+        image: topicTeethBrushing,
+        description: "עם פיית השיניים והדרקון",
+        logic: {
+          outfit: "everyday casual clothes at home",
+          background: "bright magical bathroom with sparkles and friendly dental fairy dragon",
+          theme: "teeth brushing, dental hygiene, making brushing fun, sensory experience"
+        }
+      },
+      { 
+        id: "body-hero-bath", 
+        label: "אמבטיה של כיף", 
+        image: topicBathShower,
+        description: "בועות, ברווזון וקצף",
+        logic: {
+          outfit: "bath time with rubber ducky cap",
+          background: "colorful bubble bath with floating toys and rainbow bubbles",
+          theme: "bath time fun, getting clean, water play, sensory experience"
+        }
+      },
+      { 
+        id: "body-hero-hands", 
+        label: "שטיפת ידיים", 
+        image: topicHandWashing,
+        description: "מנצחים את החיידקים!",
+        logic: {
+          outfit: "everyday casual clothes",
+          background: "bright colorful bathroom with soap bubbles and friendly germs being washed away",
+          theme: "hand hygiene, washing hands, staying healthy, sensory experience"
+        }
+      },
+      { 
+        id: "body-hero-nails", 
+        label: "גזירת ציפורניים", 
+        image: topicNailTrimming,
+        description: "עם הפיות הקסומות",
+        logic: {
+          outfit: "everyday casual clothes",
+          background: "magical bathroom with fairies and sparkles, friendly nail clippers",
+          theme: "nail trimming, grooming routine, overcoming sensory discomfort"
+        }
+      },
+    ]
+  },
+  {
+    id: "daily-heroes",
+    title: "גיבורי היומיום",
     emoji: "✨",
     topics: [
       { 
@@ -194,7 +194,7 @@ const ADVENTURE_CATEGORIES: AdventureCategory[] = [
         logic: {
           outfit: "astronaut spacesuit with helmet",
           background: "outer space with stars, planets, and galaxies",
-          theme: "exploration and discovery in space"
+          theme: "exploration and discovery in space, bravery, daily heroism"
         }
       },
       { 
@@ -205,7 +205,7 @@ const ADVENTURE_CATEGORIES: AdventureCategory[] = [
         logic: {
           outfit: "royal prince/princess attire with crown",
           background: "magical castle with towers and enchanted gardens",
-          theme: "fantasy and magic in a royal kingdom"
+          theme: "fantasy and magic in a royal kingdom, kindness, helping others"
         }
       },
     ]
@@ -347,6 +347,42 @@ const TopicStep = ({ formData, updateFormData }: TopicStepProps) => {
         <p className="text-muted-foreground text-sm">איזה סיפור תרצו ליצור היום?</p>
       </div>
 
+      {/* NLP Smart Input - At Top */}
+      <div className="space-y-3 px-3 bg-gradient-to-r from-primary/5 via-primary/10 to-primary/5 py-4 rounded-2xl mx-3 border border-primary/20">
+        <div className="flex items-center gap-2 justify-center">
+          <Brain className="w-5 h-5 text-primary" />
+          <Label className="text-base font-bold text-primary">
+            מערכת חכמה לניתוח רגשות
+          </Label>
+          <Sparkles className="w-4 h-4 text-primary" />
+        </div>
+        <Textarea
+          placeholder="ספרו לנו מה עבר על הילד/ה היום. המערכת החכמה שלנו תנתח את הרגשות והסיטואציה ותתפור עבורכם סיפור מותאם אישית ללימוד ותיווך."
+          value={formData.customTopic}
+          onChange={(e) => handleCustomTopicChange(e.target.value)}
+          className={cn(
+            "min-h-20 text-base bg-background border-2 rounded-xl resize-none",
+            formData.customTopic.trim() 
+              ? "border-primary" 
+              : "border-foreground/10"
+          )}
+          dir="rtl"
+        />
+        <p className="text-xs text-center text-muted-foreground">
+          תארו את המצב והמערכת תיצור סיפור מותאם ✨
+        </p>
+      </div>
+
+      {/* Divider */}
+      <div className="relative py-2 px-3">
+        <div className="absolute inset-0 flex items-center px-3">
+          <div className="w-full border-t border-foreground/10" />
+        </div>
+        <div className="relative flex justify-center">
+          <span className="bg-background px-4 text-sm text-muted-foreground">או בחרו נושא מוכן</span>
+        </div>
+      </div>
+
       {/* Category Carousels */}
       <div className="space-y-5">
         {ADVENTURE_CATEGORIES.map((category) => (
@@ -357,42 +393,6 @@ const TopicStep = ({ formData, updateFormData }: TopicStepProps) => {
             onSelect={handleTopicSelect}
           />
         ))}
-      </div>
-
-      {/* Divider */}
-      <div className="relative py-2 px-3">
-        <div className="absolute inset-0 flex items-center px-3">
-          <div className="w-full border-t border-foreground/10" />
-        </div>
-        <div className="relative flex justify-center">
-          <span className="bg-background px-4 text-sm text-muted-foreground">או</span>
-        </div>
-      </div>
-
-      {/* Custom Topic */}
-      <div className="space-y-2 px-3">
-        <div className="flex items-center gap-2">
-          <Pencil className="w-4 h-4 text-accent" />
-          <Label htmlFor="customTopic" className="text-base font-medium">
-            נושא משלכם
-          </Label>
-        </div>
-        <Textarea
-          id="customTopic"
-          placeholder="ספרו לנו על מה הסיפור, מי הדמויות, מה קורה בהתחלה ובסוף - ככל שתוסיפו יותר פרטים, כך הסיפור יהיה מדויק ומותאם אישית יותר!"
-          value={formData.customTopic}
-          onChange={(e) => handleCustomTopicChange(e.target.value)}
-          className={cn(
-            "min-h-24 text-base bg-card border-2 rounded-xl resize-none",
-            formData.customTopic.trim() 
-              ? "border-primary comic-shadow" 
-              : "border-foreground/10"
-          )}
-          dir="rtl"
-        />
-        <p className="text-xs text-muted-foreground">
-          כתבו כמה שיותר פרטים על מנת שהספר יהיה מושלם ✨
-        </p>
       </div>
     </div>
   );
