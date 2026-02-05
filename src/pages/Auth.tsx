@@ -15,7 +15,7 @@ import { useAnalytics } from "@/hooks/use-analytics";
 import { supabase } from "@/integrations/supabase/client";
 import { z } from "zod";
 import { enableDevMode } from "@/hooks/use-dev-mode";
-import authHeroChild from "@/assets/auth-hero-child.jpg";
+import soliBackground from "@/assets/soli-tree-background.png";
 
 const emailSchema = z.string().email("כתובת אימייל לא תקינה");
 const passwordSchema = z.string().min(6, "הסיסמה חייבת להכיל לפחות 6 תווים");
@@ -1047,20 +1047,19 @@ const Auth = () => {
   }
 
   return (
-    <div className="h-screen h-[100dvh] bg-background flex flex-col overflow-hidden">
-      <div className="flex-1 flex flex-col items-center justify-start p-4 pb-20 overflow-y-auto">
-        {/* Hero Image with Frame */}
-        <div className="w-full max-w-md mb-4 animate-fade-in">
-          <div className="bg-gradient-to-br from-purple-100 via-pink-50 to-amber-50 rounded-3xl p-2 shadow-lg border border-purple-200/50">
-            <img 
-              src={authHeroChild} 
-              alt="ילד קורא סיפור על טאבלט" 
-              className="w-full h-48 object-cover rounded-2xl"
-            />
-          </div>
-        </div>
+    <div className="h-screen h-[100dvh] flex flex-col overflow-hidden relative">
+      {/* Full-screen Background Image */}
+      <div 
+        className="absolute inset-0 bg-cover bg-center bg-no-repeat"
+        style={{ backgroundImage: `url(${soliBackground})` }}
+      >
+        {/* Gradient overlay for better text readability */}
+        <div className="absolute inset-0 bg-gradient-to-b from-black/30 via-transparent to-black/50" />
+      </div>
 
-        <div className="w-full max-w-md bg-white rounded-3xl shadow-xl p-5 md:p-6 animate-fade-in max-h-[70vh] overflow-y-auto">
+      <div className="relative z-10 flex-1 flex flex-col items-center justify-center p-4 pb-20 overflow-y-auto">
+        {/* Glassmorphism Login Container */}
+        <div className="w-full max-w-md bg-white/80 backdrop-blur-xl rounded-3xl shadow-2xl shadow-black/20 p-5 md:p-6 animate-fade-in max-h-[80vh] overflow-y-auto border border-white/50">
           {showForgotPassword ? (
             /* Forgot Password Form */
             <div className="space-y-4">
@@ -1070,15 +1069,15 @@ const Auth = () => {
                     <KeyRound className="w-8 h-8 text-white" />
                   </div>
                 </div>
-              <h2 className="text-2xl font-bold text-foreground mb-2">איפוס סיסמה</h2>
-              <p className="text-muted-foreground text-sm">
+              <h2 className="text-2xl font-black text-black mb-2">איפוס סיסמה</h2>
+              <p className="text-black/70 text-sm font-medium">
                 הזינו את כתובת האימייל שלכם ונשלח לכם קישור לאיפוס הסיסמה
               </p>
             </div>
 
             <form onSubmit={handleForgotPassword} className="space-y-4">
               <div className="space-y-2">
-                <Label htmlFor="reset-email" className="text-foreground font-medium">אימייל</Label>
+                <Label htmlFor="reset-email" className="text-black font-bold">אימייל</Label>
                 <div className="relative">
                   <Mail className="absolute right-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
                   <Input
@@ -1097,7 +1096,7 @@ const Auth = () => {
                 type="submit"
                 disabled={isSubmitting}
                 size="lg"
-                className="w-full bg-purple hover:bg-purple/90 text-white font-bold text-lg h-14 rounded-full"
+                className="w-full bg-gradient-to-r from-orange-400 via-pink-500 to-purple-600 hover:from-orange-500 hover:via-pink-600 hover:to-purple-700 text-white font-black text-lg h-14 rounded-full shadow-xl shadow-black/25 hover:shadow-2xl hover:scale-[1.02] transition-all"
               >
                 {isSubmitting ? (
                   <Loader2 className="w-5 h-5 animate-spin" />
@@ -1126,10 +1125,10 @@ const Auth = () => {
 
               {/* Header */}
               <div className="text-center mb-4 animate-fade-in [animation-delay:200ms] opacity-0 [animation-fill-mode:forwards]">
-                <h1 className="text-xl font-bold text-foreground mb-1">
+                <h1 className="text-xl font-black text-black mb-1">
                   ברוכים הבאים!
                 </h1>
-                <p className="text-muted-foreground text-sm">
+                <p className="text-black/70 text-sm font-medium">
                   התחברו כדי ליצור סיפורים מותאמים אישית
                 </p>
               </div>
@@ -1165,7 +1164,7 @@ const Auth = () => {
               <div className="animate-fade-in">
               <form onSubmit={handleEmailSignIn} className="space-y-4">
                 <div className="space-y-2">
-                  <Label htmlFor="login-email" className="text-foreground font-medium">אימייל</Label>
+                  <Label htmlFor="login-email" className="text-black font-bold">אימייל</Label>
                   <div className="relative">
                     <Mail className="absolute right-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
                     <Input
@@ -1181,7 +1180,7 @@ const Auth = () => {
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="login-password" className="text-foreground font-medium">סיסמה</Label>
+                  <Label htmlFor="login-password" className="text-black font-bold">סיסמה</Label>
                   <div className="relative">
                     <Lock className="absolute right-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
                     <Input
@@ -1215,7 +1214,7 @@ const Auth = () => {
                   type="submit"
                   disabled={isSubmitting}
                   size="lg"
-                  className="w-full bg-purple hover:bg-purple/90 text-white font-bold text-lg h-14 rounded-full"
+                  className="w-full bg-gradient-to-r from-orange-400 via-pink-500 to-purple-600 hover:from-orange-500 hover:via-pink-600 hover:to-purple-700 text-white font-black text-lg h-14 rounded-full shadow-xl shadow-black/25 hover:shadow-2xl hover:scale-[1.02] transition-all"
                 >
                   {isSubmitting ? (
                     <Loader2 className="w-5 h-5 animate-spin" />
@@ -1232,7 +1231,7 @@ const Auth = () => {
               <div className="animate-fade-in">
               <form onSubmit={handleEmailSignUp} className="space-y-4">
                 <div className="space-y-2">
-                  <Label htmlFor="signup-email" className="text-foreground font-medium">אימייל</Label>
+                  <Label htmlFor="signup-email" className="text-black font-bold">אימייל</Label>
                   <div className="relative">
                     <Mail className="absolute right-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
                     <Input
@@ -1248,7 +1247,7 @@ const Auth = () => {
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="signup-password" className="text-foreground font-medium">סיסמה</Label>
+                  <Label htmlFor="signup-password" className="text-black font-bold">סיסמה</Label>
                   <div className="relative">
                     <Lock className="absolute right-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
                     <Input
@@ -1274,7 +1273,7 @@ const Auth = () => {
                   type="submit"
                   disabled={isSubmitting}
                   size="lg"
-                  className="w-full bg-purple hover:bg-purple/90 text-white font-bold text-lg h-14 rounded-full"
+                  className="w-full bg-gradient-to-r from-orange-400 via-pink-500 to-purple-600 hover:from-orange-500 hover:via-pink-600 hover:to-purple-700 text-white font-black text-lg h-14 rounded-full shadow-xl shadow-black/25 hover:shadow-2xl hover:scale-[1.02] transition-all"
                 >
                   {isSubmitting ? (
                     <Loader2 className="w-5 h-5 animate-spin" />
