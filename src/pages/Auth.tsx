@@ -1077,7 +1077,7 @@ const Auth = () => {
 
             <form onSubmit={handleForgotPassword} className="space-y-4">
               <div className="space-y-2">
-                <Label htmlFor="reset-email" className="text-foreground font-medium">אימייל</Label>
+                <Label htmlFor="reset-email" className="text-black font-bold">אימייל</Label>
                 <div className="relative">
                   <Mail className="absolute right-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
                   <Input
