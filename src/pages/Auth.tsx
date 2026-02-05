@@ -1125,10 +1125,10 @@ const Auth = () => {
 
               {/* Header */}
               <div className="text-center mb-4 animate-fade-in [animation-delay:200ms] opacity-0 [animation-fill-mode:forwards]">
-                <h1 className="text-xl font-bold text-foreground mb-1">
+                <h1 className="text-xl font-black text-black mb-1">
                   ברוכים הבאים!
                 </h1>
-                <p className="text-muted-foreground text-sm">
+                <p className="text-black/70 text-sm font-medium">
                   התחברו כדי ליצור סיפורים מותאמים אישית
                 </p>
               </div>
