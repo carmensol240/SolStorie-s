@@ -345,14 +345,14 @@ STYLE REQUIREMENTS:
 - MAINTAIN CHARACTER CONSISTENCY: Same face shape, same features, same proportions`;
 
     let requestBody: any = {
-      model: "google/gemini-2.5-flash-image-preview",
+      model: "google/gemini-3-pro-image-preview",
       modalities: ["image", "text"],
       messages: [
         {
           role: "user",
           content: childPhoto
             ? [
-                { type: "text", text: `Based on this child's photo, create a cartoon/Pixar-style illustration of them in this scene: ${enhancedPrompt}. IMPORTANT: Keep the character's appearance (hair color, hair style, clothing) consistent with the reference photo throughout all illustrations.` },
+                { type: "text", text: `Based on this child's photo, create a HIGH QUALITY 3D Disney-Pixar style illustration of them in this scene: ${enhancedPrompt}. CRITICAL: Keep the character's appearance (hair color, hair style, skin tone, clothing) IDENTICAL to the reference photo. This MUST look like a premium children's book illustration.` },
                 { type: "image_url", image_url: { url: childPhoto } }
               ]
             : enhancedPrompt
