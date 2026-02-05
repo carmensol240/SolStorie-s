@@ -444,7 +444,7 @@ serve(async (req) => {
   }
 
   try {
-    const { childName, childGender = "male", ageRange, topic, nikud, childPhoto, childAvatarUrl, personalityTraits, adventureLogic } = await req.json();
+    const { childName, childGender = "male", ageRange, storyLength = "short", topic, nikud, childPhoto, childAvatarUrl, personalityTraits, adventureLogic } = await req.json();
 
     // === INPUT VALIDATION ===
     // Validate required fields
