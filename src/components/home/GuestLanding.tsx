@@ -41,31 +41,31 @@ const GuestLanding = () => {
         {/* Spacer to push content to bottom */}
         <div className="flex-1" />
 
-        {/* Feature Cards with glassmorphism - Updated marketing content */}
-        <div className="flex justify-center gap-3 mb-4">
-          <div className="flex flex-col items-center justify-center text-center bg-white/60 backdrop-blur-[5px] rounded-[20px] p-4 shadow-lg shadow-black/15 flex-1 max-w-[110px]" dir="rtl">
-            <div className="w-10 h-10 bg-purple-100 rounded-xl flex items-center justify-center mb-1.5 shadow-sm">
-              <Star className="w-4 h-4 text-purple-500" aria-hidden="true" />
+        {/* Feature Cards - transparent glassmorphism */}
+        <div className="flex justify-center gap-2 mb-4 px-2">
+          <div className="flex flex-col items-center text-center bg-white/30 backdrop-blur-sm rounded-2xl p-3 flex-1 max-w-[100px]" dir="rtl">
+            <div className="w-9 h-9 bg-purple-200/60 rounded-full flex items-center justify-center mb-2">
+              <Star className="w-4 h-4 text-purple-600" aria-hidden="true" />
             </div>
-            <span className="text-[10px] font-bold text-black leading-tight">טכנולוגיית NLP</span>
-            <span className="text-[10px] font-bold text-black leading-tight">מתקדמת ליצירת</span>
-            <span className="text-[10px] font-bold text-black leading-tight">תוכן חינוכי מדויק</span>
+            <p className="text-[9px] font-black text-gray-900 leading-snug">
+              טכנולוגיית NLP מתקדמת ליצירת תוכן חינוכי מדויק
+            </p>
           </div>
-          <div className="flex flex-col items-center justify-center text-center bg-white/60 backdrop-blur-[5px] rounded-[20px] p-4 shadow-lg shadow-black/15 flex-1 max-w-[110px]" dir="rtl">
-            <div className="w-10 h-10 bg-amber-100 rounded-xl flex items-center justify-center mb-1.5 shadow-sm">
-              <Palette className="w-4 h-4 text-amber-500" aria-hidden="true" />
+          <div className="flex flex-col items-center text-center bg-white/30 backdrop-blur-sm rounded-2xl p-3 flex-1 max-w-[100px]" dir="rtl">
+            <div className="w-9 h-9 bg-amber-200/60 rounded-full flex items-center justify-center mb-2">
+              <Palette className="w-4 h-4 text-amber-600" aria-hidden="true" />
             </div>
-            <span className="text-[10px] font-bold text-black leading-tight">חיזוק מיומנויות</span>
-            <span className="text-[10px] font-bold text-black leading-tight">תקשורת והבנה</span>
-            <span className="text-[10px] font-bold text-black leading-tight">חברתית</span>
+            <p className="text-[9px] font-black text-gray-900 leading-snug">
+              חיזוק מיומנויות תקשורת והבנה חברתית
+            </p>
           </div>
-          <div className="flex flex-col items-center justify-center text-center bg-white/60 backdrop-blur-[5px] rounded-[20px] p-4 shadow-lg shadow-black/15 flex-1 max-w-[110px]" dir="rtl">
-            <div className="w-10 h-10 bg-pink-100 rounded-xl flex items-center justify-center mb-1.5 shadow-sm">
-              <Heart className="w-4 h-4 text-pink-500" aria-hidden="true" />
+          <div className="flex flex-col items-center text-center bg-white/30 backdrop-blur-sm rounded-2xl p-3 flex-1 max-w-[100px]" dir="rtl">
+            <div className="w-9 h-9 bg-pink-200/60 rounded-full flex items-center justify-center mb-2">
+              <Heart className="w-4 h-4 text-pink-600" aria-hidden="true" />
             </div>
-            <span className="text-[10px] font-bold text-black leading-tight">סיפורים מעצימים</span>
-            <span className="text-[10px] font-bold text-black leading-tight">לבניית ביטחון</span>
-            <span className="text-[10px] font-bold text-black leading-tight">עצמי</span>
+            <p className="text-[9px] font-black text-gray-900 leading-snug">
+              סיפורים מעצימים לבניית ביטחון עצמי
+            </p>
           </div>
         </div>
 
