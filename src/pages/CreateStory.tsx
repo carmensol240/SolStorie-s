@@ -35,6 +35,7 @@ const INITIAL_DATA: StoryFormData = {
   childName: "",
   childGender: "male",
   ageRange: "2-4",
+  storyLength: "short",
   childPhoto: null,
   childAvatarUrl: null,
   nikud: true,
