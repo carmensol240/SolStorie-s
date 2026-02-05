@@ -1180,7 +1180,7 @@ const Auth = () => {
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="login-password" className="text-foreground font-medium">סיסמה</Label>
+                  <Label htmlFor="login-password" className="text-black font-bold">סיסמה</Label>
                   <div className="relative">
                     <Lock className="absolute right-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
                     <Input
