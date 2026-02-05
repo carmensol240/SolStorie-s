@@ -874,6 +874,22 @@ ${adventureLogic ? `
       throw pagesError;
     }
 
+    // Update story with cover_url from first page illustration
+    const firstPageIllustration = pagesWithIllustrations.find(p => p.page_number === 1)?.illustration_url;
+    if (firstPageIllustration) {
+      const { error: coverError } = await supabase
+        .from("stories")
+        .update({ cover_url: firstPageIllustration })
+        .eq("id", story.id);
+      
+      if (coverError) {
+        console.error("Error updating cover_url:", coverError);
+        // Don't throw - story is still valid without cover
+      } else {
+        console.log("Cover URL saved successfully:", firstPageIllustration);
+      }
+    }
+
     console.log("Story pages created successfully with illustrations");
 
     return new Response(
