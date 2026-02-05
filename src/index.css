@@ -262,6 +262,19 @@
   }
 }
 
+/* Glassmorphism styles for cards and boxes */
+.card, .info-box, .menu-item {
+  background-color: rgba(255, 255, 255, 0.4) !important;
+  backdrop-filter: blur(8px);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  direction: rtl;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
 @keyframes bounce-gentle {
   0%, 100% { transform: translateY(0); }
   50% { transform: translateY(-8px); }
