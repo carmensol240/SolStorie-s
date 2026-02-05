@@ -92,18 +92,31 @@ const LoggedInHome = ({ user, displayName }: LoggedInHomeProps) => {
           </div>
         </header>
 
-        {/* Spacer to push buttons to bottom */}
+        {/* Spacer to push content to bottom */}
         <div className="flex-1" />
 
-        {/* Action Cards - At Bottom with Professional Shadows */}
-        <div className="space-y-3 pb-2">
+        {/* Child Avatar - Above Action Cards */}
+        {avatarUrl && (
+          <div className="flex justify-center mb-4">
+            <div className="w-28 h-28 rounded-full overflow-hidden border-4 border-white shadow-2xl shadow-black/30">
+              <img 
+                src={avatarUrl} 
+                alt="דמות הילד" 
+                className="w-full h-full object-cover"
+              />
+            </div>
+          </div>
+        )}
+
+        {/* Action Cards - At Bottom with Transparent Shadows */}
+        <div className="space-y-3 pb-4">
           {actionCards.map((card, index) => {
             const Icon = card.icon;
             return (
               <button
                 key={index}
                 onClick={() => navigate(card.path)}
-                className="w-full flex items-center gap-4 bg-white/90 backdrop-blur-md rounded-2xl p-4 shadow-xl shadow-black/20 border border-white/50 hover:shadow-2xl hover:scale-[1.01] hover:bg-white transition-all text-right"
+                className="w-full flex items-center gap-4 bg-white/80 backdrop-blur-lg rounded-2xl p-4 shadow-lg shadow-black/15 border border-white/40 hover:shadow-xl hover:shadow-black/20 hover:scale-[1.01] hover:bg-white/90 transition-all text-right"
               >
                 <div className={`w-14 h-14 ${card.iconBg} rounded-xl flex items-center justify-center flex-shrink-0 shadow-md`}>
                   <Icon className={`w-7 h-7 ${card.iconColor}`} aria-hidden="true" />
