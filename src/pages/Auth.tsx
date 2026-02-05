@@ -1069,8 +1069,8 @@ const Auth = () => {
                     <KeyRound className="w-8 h-8 text-white" />
                   </div>
                 </div>
-              <h2 className="text-2xl font-bold text-foreground mb-2">איפוס סיסמה</h2>
-              <p className="text-muted-foreground text-sm">
+              <h2 className="text-2xl font-black text-black mb-2">איפוס סיסמה</h2>
+              <p className="text-black/70 text-sm font-medium">
                 הזינו את כתובת האימייל שלכם ונשלח לכם קישור לאיפוס הסיסמה
               </p>
             </div>
