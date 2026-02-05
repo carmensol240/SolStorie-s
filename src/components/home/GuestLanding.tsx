@@ -55,9 +55,9 @@ const GuestLanding = () => {
             <div className="w-10 h-10 bg-amber-100 rounded-xl flex items-center justify-center mb-1.5 shadow-sm">
               <Palette className="w-4 h-4 text-amber-500" aria-hidden="true" />
             </div>
-            <span className="text-[10px] font-semibold text-foreground leading-tight">חיזוק מיומנויות</span>
-            <span className="text-[10px] font-semibold text-foreground leading-tight">תקשורת והבנה</span>
-            <span className="text-[10px] font-semibold text-foreground leading-tight">חברתית</span>
+            <span className="text-[10px] font-bold text-black leading-tight">חיזוק מיומנויות</span>
+            <span className="text-[10px] font-bold text-black leading-tight">תקשורת והבנה</span>
+            <span className="text-[10px] font-bold text-black leading-tight">חברתית</span>
           </div>
           <div className="flex flex-col items-center text-center bg-white/80 backdrop-blur-lg rounded-xl p-3 shadow-lg shadow-black/15 flex-1 max-w-[110px]">
             <div className="w-10 h-10 bg-pink-100 rounded-xl flex items-center justify-center mb-1.5 shadow-sm">
