@@ -1214,7 +1214,7 @@ const Auth = () => {
                   type="submit"
                   disabled={isSubmitting}
                   size="lg"
-                  className="w-full bg-purple hover:bg-purple/90 text-white font-bold text-lg h-14 rounded-full"
+                  className="w-full bg-gradient-to-r from-orange-400 via-pink-500 to-purple-600 hover:from-orange-500 hover:via-pink-600 hover:to-purple-700 text-white font-black text-lg h-14 rounded-full shadow-xl shadow-black/25 hover:shadow-2xl hover:scale-[1.02] transition-all"
                 >
                   {isSubmitting ? (
                     <Loader2 className="w-5 h-5 animate-spin" />
