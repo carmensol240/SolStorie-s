@@ -1047,20 +1047,19 @@ const Auth = () => {
   }
 
   return (
-    <div className="h-screen h-[100dvh] bg-background flex flex-col overflow-hidden">
-      <div className="flex-1 flex flex-col items-center justify-start p-4 pb-20 overflow-y-auto">
-        {/* Hero Image with Frame */}
-        <div className="w-full max-w-md mb-4 animate-fade-in">
-          <div className="bg-gradient-to-br from-purple-100 via-pink-50 to-amber-50 rounded-3xl p-2 shadow-lg border border-purple-200/50">
-            <img 
-              src={authHeroChild} 
-              alt="ילד קורא סיפור על טאבלט" 
-              className="w-full h-48 object-cover rounded-2xl"
-            />
-          </div>
-        </div>
+    <div className="h-screen h-[100dvh] flex flex-col overflow-hidden relative">
+      {/* Full-screen Background Image */}
+      <div 
+        className="absolute inset-0 bg-cover bg-center bg-no-repeat"
+        style={{ backgroundImage: `url(${soliBackground})` }}
+      >
+        {/* Gradient overlay for better text readability */}
+        <div className="absolute inset-0 bg-gradient-to-b from-black/30 via-transparent to-black/50" />
+      </div>
 
-        <div className="w-full max-w-md bg-white rounded-3xl shadow-xl p-5 md:p-6 animate-fade-in max-h-[70vh] overflow-y-auto">
+      <div className="relative z-10 flex-1 flex flex-col items-center justify-center p-4 pb-20 overflow-y-auto">
+        {/* Glassmorphism Login Container */}
+        <div className="w-full max-w-md bg-white/80 backdrop-blur-xl rounded-3xl shadow-2xl shadow-black/20 p-5 md:p-6 animate-fade-in max-h-[80vh] overflow-y-auto border border-white/50">
           {showForgotPassword ? (
             /* Forgot Password Form */
             <div className="space-y-4">
