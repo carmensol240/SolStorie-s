@@ -43,7 +43,7 @@ const GuestLanding = () => {
 
         {/* Feature Cards with glassmorphism - Updated marketing content */}
         <div className="flex justify-center gap-3 mb-4">
-          <div className="flex flex-col items-center text-center bg-white/80 backdrop-blur-lg rounded-xl p-3 shadow-lg shadow-black/15 flex-1 max-w-[110px]">
+          <div className="flex flex-col items-center justify-center text-center bg-white/60 backdrop-blur-[5px] rounded-[20px] p-4 shadow-lg shadow-black/15 flex-1 max-w-[110px]" dir="rtl">
             <div className="w-10 h-10 bg-purple-100 rounded-xl flex items-center justify-center mb-1.5 shadow-sm">
               <Star className="w-4 h-4 text-purple-500" aria-hidden="true" />
             </div>
@@ -51,7 +51,7 @@ const GuestLanding = () => {
             <span className="text-[10px] font-bold text-black leading-tight">מתקדמת ליצירת</span>
             <span className="text-[10px] font-bold text-black leading-tight">תוכן חינוכי מדויק</span>
           </div>
-          <div className="flex flex-col items-center text-center bg-white/80 backdrop-blur-lg rounded-xl p-3 shadow-lg shadow-black/15 flex-1 max-w-[110px]">
+          <div className="flex flex-col items-center justify-center text-center bg-white/60 backdrop-blur-[5px] rounded-[20px] p-4 shadow-lg shadow-black/15 flex-1 max-w-[110px]" dir="rtl">
             <div className="w-10 h-10 bg-amber-100 rounded-xl flex items-center justify-center mb-1.5 shadow-sm">
               <Palette className="w-4 h-4 text-amber-500" aria-hidden="true" />
             </div>
@@ -59,7 +59,7 @@ const GuestLanding = () => {
             <span className="text-[10px] font-bold text-black leading-tight">תקשורת והבנה</span>
             <span className="text-[10px] font-bold text-black leading-tight">חברתית</span>
           </div>
-          <div className="flex flex-col items-center text-center bg-white/80 backdrop-blur-lg rounded-xl p-3 shadow-lg shadow-black/15 flex-1 max-w-[110px]">
+          <div className="flex flex-col items-center justify-center text-center bg-white/60 backdrop-blur-[5px] rounded-[20px] p-4 shadow-lg shadow-black/15 flex-1 max-w-[110px]" dir="rtl">
             <div className="w-10 h-10 bg-pink-100 rounded-xl flex items-center justify-center mb-1.5 shadow-sm">
               <Heart className="w-4 h-4 text-pink-500" aria-hidden="true" />
             </div>
