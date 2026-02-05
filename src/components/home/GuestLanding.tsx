@@ -63,9 +63,9 @@ const GuestLanding = () => {
             <div className="w-10 h-10 bg-pink-100 rounded-xl flex items-center justify-center mb-1.5 shadow-sm">
               <Heart className="w-4 h-4 text-pink-500" aria-hidden="true" />
             </div>
-            <span className="text-[10px] font-semibold text-foreground leading-tight">סיפורים מעצימים</span>
-            <span className="text-[10px] font-semibold text-foreground leading-tight">לבניית ביטחון</span>
-            <span className="text-[10px] font-semibold text-foreground leading-tight">עצמי</span>
+            <span className="text-[10px] font-bold text-black leading-tight">סיפורים מעצימים</span>
+            <span className="text-[10px] font-bold text-black leading-tight">לבניית ביטחון</span>
+            <span className="text-[10px] font-bold text-black leading-tight">עצמי</span>
           </div>
         </div>
 
