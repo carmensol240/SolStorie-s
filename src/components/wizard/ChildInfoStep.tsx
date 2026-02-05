@@ -443,6 +443,39 @@ const ChildInfoStep = ({ formData, updateFormData }: ChildInfoStepProps) => {
         </div>
       </div>
 
+      {/* Story Length Selection */}
+      <div className="space-y-2">
+        <Label className="text-sm font-medium">אורך הסיפור</Label>
+        <div className="grid grid-cols-2 gap-3">
+          <button
+            onClick={() => updateFormData({ storyLength: "short" })}
+            className={cn(
+              "p-3.5 rounded-2xl border-2 transition-all text-center flex flex-col items-center justify-center gap-1",
+              formData.storyLength === "short"
+                ? "border-primary bg-primary/10"
+                : "border-border bg-card hover:border-primary/50"
+            )}
+          >
+            <span className="text-2xl">📖</span>
+            <span className="text-base font-bold">קצר</span>
+            <span className="text-xs text-muted-foreground">4-5 עמודים</span>
+          </button>
+          <button
+            onClick={() => updateFormData({ storyLength: "long" })}
+            className={cn(
+              "p-3.5 rounded-2xl border-2 transition-all text-center flex flex-col items-center justify-center gap-1",
+              formData.storyLength === "long"
+                ? "border-primary bg-primary/10"
+                : "border-border bg-card hover:border-primary/50"
+            )}
+          >
+            <span className="text-2xl">📚</span>
+            <span className="text-base font-bold">ארוך</span>
+            <span className="text-xs text-muted-foreground">6-8 עמודים</span>
+          </button>
+        </div>
+      </div>
+
       {/* Photo Upload */}
       <div className="space-y-2">
         <Label className="text-sm font-medium">תמונה של הילד/ה (אופציונלי)</Label>

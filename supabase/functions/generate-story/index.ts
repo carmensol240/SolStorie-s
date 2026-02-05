@@ -444,7 +444,7 @@ serve(async (req) => {
   }
 
   try {
-    const { childName, childGender = "male", ageRange, topic, nikud, childPhoto, childAvatarUrl, personalityTraits, adventureLogic } = await req.json();
+    const { childName, childGender = "male", ageRange, storyLength = "short", topic, nikud, childPhoto, childAvatarUrl, personalityTraits, adventureLogic } = await req.json();
 
     // === INPUT VALIDATION ===
     // Validate required fields
@@ -505,7 +505,7 @@ serve(async (req) => {
     }
     // === END INPUT VALIDATION ===
 
-    console.log("Generating story for:", { childName, childGender, ageRange, topic, nikud, hasPhoto: !!childPhoto, hasAvatar: !!childAvatarUrl, hasTraits: !!personalityTraits, hasAdventureLogic: !!adventureLogic });
+    console.log("Generating story for:", { childName, childGender, ageRange, storyLength, topic, nikud, hasPhoto: !!childPhoto, hasAvatar: !!childAvatarUrl, hasTraits: !!personalityTraits, hasAdventureLogic: !!adventureLogic });
     
     // Use avatar URL if available (for character consistency), otherwise use original photo
     const effectivePhoto = childAvatarUrl || childPhoto;
@@ -534,13 +534,22 @@ serve(async (req) => {
     const pronounHe = childGender === "female" ? "היא" : "הוא";
     const pronounHer = childGender === "female" ? "שלה" : "שלו";
     
-    // Determine story length based on age - Updated logic for granular age ranges
-    const getAgeLengthInstruction = (age: string) => {
+    // Determine story length based on age AND user preference
+    const getAgeLengthInstruction = (age: string, preferredLength: string) => {
+      const isLong = preferredLength === "long";
+      
       // Age 0-2: Short and simple stories for toddlers
       if (age === "0-2") {
         return {
-          pages: 4,
-          instruction: `- גיל 0-2: סיפור קצר מאוד (4 עמודים בלבד!)
+          pages: isLong ? 5 : 4,
+          instruction: isLong 
+            ? `- גיל 0-2: סיפור קצר (5 עמודים)
+- עד 120 מילים סה"כ לכל הסיפור
+- משפטים קצרצרים (3-5 מילים בלבד)
+- מילים פשוטות עם חזרות מרגיעות
+- דגש על חוויות חושיות ומרגיעות
+- כל עמוד: משפט אחד עד שניים!`
+            : `- גיל 0-2: סיפור קצר מאוד (4 עמודים בלבד!)
 - עד 100 מילים סה"כ לכל הסיפור
 - משפטים קצרצרים (3-5 מילים בלבד)
 - מילים פשוטות עם חזרות מרגיעות
@@ -551,8 +560,15 @@ serve(async (req) => {
       // Age 2-4 (around age 3-4): Medium-length imaginative stories
       else if (age === "2-4") {
         return {
-          pages: 5,
-          instruction: `- גיל 3-4: סיפור באורך בינוני (5 עמודים)
+          pages: isLong ? 6 : 5,
+          instruction: isLong
+            ? `- גיל 3-4: סיפור באורך בינוני-ארוך (6 עמודים)
+- נושאים דמיוניים ומעניינים
+- משפטים קצרים וברורים (2-3 משפטים בעמוד)
+- עלילה מפותחת עם סיבה ותוצאה
+- דמויות חמודות ומצחיקות
+- אינטראקציות חברתיות מפורטות`
+            : `- גיל 3-4: סיפור באורך בינוני (5 עמודים)
 - נושאים דמיוניים ומעניינים
 - משפטים קצרים וברורים (2-3 משפטים בעמוד)
 - סיבה ותוצאה ברורות
@@ -563,8 +579,16 @@ serve(async (req) => {
       // Age 5-7: Engaging stories with more depth
       else if (age === "5-7") {
         return {
-          pages: 6,
-          instruction: `- גיל 5-7: סיפור מעניין (6 עמודים)
+          pages: isLong ? 8 : 6,
+          instruction: isLong
+            ? `- גיל 5-7: סיפור ארוך ומרתק (8 עמודים)
+- עלילה מפותחת עם התחלה, אמצע וסוף דרמטיים
+- משפטים מפורטים (3-4 משפטים בעמוד)
+- דמויות עם אופי מפותח ועומק
+- מסר חינוכי או רגשי משמעותי
+- דיאלוגים ואירועים מגוונים
+- אוצר מילים עשיר אך נגיש`
+            : `- גיל 5-7: סיפור מעניין (6 עמודים)
 - עלילה ברורה עם התחלה, אמצע וסוף
 - משפטים מפורטים יותר (3 משפטים בעמוד)
 - דמויות עם אופי מפותח
@@ -575,8 +599,16 @@ serve(async (req) => {
       // Age 8-10: Complex stories for advanced readers
       else {
         return {
-          pages: 8,
-          instruction: `- גיל 8-10: סיפור ארוך ומורכב (8 עמודים!)
+          pages: isLong ? 10 : 8,
+          instruction: isLong
+            ? `- גיל 8-10: סיפור ארוך ומורכב במיוחד (10 עמודים!)
+- אוצר מילים עשיר יותר (עם הסברים בסוגריים!)
+- עלילה מורכבת עם רגשות פנימיים, מתח ומספר אירועים
+- מצבים חברתיים מורכבים ומעמיקים
+- דמויות משנה רבות ודיאלוגים עשירים
+- 4-5 משפטים מפורטים בעמוד
+- נושאים מעמיקים כמו חברות, אתגרים, התמודדות ולמידה`
+            : `- גיל 8-10: סיפור ארוך ומורכב (8 עמודים!)
 - אוצר מילים עשיר יותר (עם הסברים בסוגריים!)
 - עלילה מורכבת עם רגשות פנימיים ומספר אירועים
 - מצבים חברתיים מורכבים יותר
@@ -587,7 +619,7 @@ serve(async (req) => {
       }
     };
 
-    const ageLengthConfig = getAgeLengthInstruction(ageRange);
+    const ageLengthConfig = getAgeLengthInstruction(ageRange, storyLength);
     
     // === COMBINED CONTENT LOGIC ===
     // Determine how to frame the story based on what inputs were provided
