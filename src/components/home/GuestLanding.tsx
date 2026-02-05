@@ -35,7 +35,7 @@ const GuestLanding = () => {
             סיפורים קסומים
             <Sparkles className="w-5 h-5 text-orange-400" aria-hidden="true" />
           </h2>
-          <p className="text-base text-white font-semibold text-center w-full drop-shadow-md">הילד שלכם כגיבור הסיפור!</p>
+          <p className="text-lg text-white font-bold text-center w-full drop-shadow-md">הילד שלכם כגיבור הסיפור!</p>
         </div>
 
         {/* Spacer to push content to bottom */}
