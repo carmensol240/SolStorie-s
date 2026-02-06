@@ -32,21 +32,21 @@ const FeatureCard = ({ icon, title, subtitle, gradientFrom, gradientTo }: Featur
 const GuestLanding = () => {
   const features = [
     {
-      icon: <span className="flex items-center justify-center"><Sparkles className="w-5 h-5 text-white" aria-hidden="true" /></span>,
+      icon: <span className="flex items-center justify-center"><Sparkles className="w-3.5 h-3.5 text-white" aria-hidden="true" /></span>,
       title: "טכנולוגיית NLP מתקדמת",
       subtitle: "ליצירת תוכן חינוכי מדוייק ומותאם אישית",
       gradientFrom: "from-purple-500",
       gradientTo: "to-pink-500",
     },
     {
-      icon: <span className="flex items-center justify-center"><Users className="w-5 h-5 text-white" aria-hidden="true" /></span>,
+      icon: <span className="flex items-center justify-center"><Users className="w-3.5 h-3.5 text-white" aria-hidden="true" /></span>,
       title: "חיזוק מיומנויות תקשורת",
       subtitle: "והבנה חברתית, מותאם גם לילדים על הרצף האוטיסטי",
       gradientFrom: "from-amber-500",
       gradientTo: "to-orange-500",
     },
     {
-      icon: <span className="flex items-center justify-center"><Star className="w-5 h-5 text-white" aria-hidden="true" /></span>,
+      icon: <span className="flex items-center justify-center"><Star className="w-3.5 h-3.5 text-white" aria-hidden="true" /></span>,
       title: "סיפורים מעצימים",
       subtitle: "לבניית ביטחון עצמי ודימוי עצמי חיובי בדמות הילד",
       gradientFrom: "from-pink-500",
