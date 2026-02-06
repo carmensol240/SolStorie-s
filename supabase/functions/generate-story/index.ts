@@ -453,6 +453,34 @@ serve(async (req) => {
   }
 
   try {
+    // === AUTHENTICATION CHECK ===
+    const authHeader = req.headers.get("Authorization") || req.headers.get("authorization");
+    if (!authHeader?.startsWith("Bearer ")) {
+      return new Response(
+        JSON.stringify({ error: "נדרשת התחברות" }),
+        { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
+    const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
+    const supabaseAnonKey = Deno.env.get("SUPABASE_ANON_KEY")!;
+    
+    const supabase = createClient(supabaseUrl, supabaseAnonKey, {
+      global: { headers: { Authorization: authHeader } }
+    });
+
+    const { data: { user }, error: authError } = await supabase.auth.getUser();
+    if (authError || !user) {
+      return new Response(
+        JSON.stringify({ error: "טוקן לא תקין או שפג תוקפו" }),
+        { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+    
+    const userId = user.id;
+    console.log("Authenticated user:", userId);
+    // === END AUTHENTICATION CHECK ===
+
     const { childName, childGender = "male", ageRange, storyLength = "short", topic, nikud, childPhoto, childAvatarUrl, personalityTraits, adventureLogic } = await req.json();
 
     // === INPUT VALIDATION ===
@@ -522,21 +550,6 @@ serve(async (req) => {
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
     if (!LOVABLE_API_KEY) {
       throw new Error("LOVABLE_API_KEY is not configured");
-    }
-
-    // Extract user_id from authorization header for gallery privacy
-    let userId: string | null = null;
-    const authHeader = req.headers.get("authorization");
-    if (authHeader?.startsWith("Bearer ")) {
-      const token = authHeader.slice(7);
-      try {
-        // Decode JWT to get user_id (the token is validated by Supabase)
-        const payload = JSON.parse(atob(token.split(".")[1]));
-        userId = payload.sub || null;
-        console.log("User ID extracted:", userId);
-      } catch (e) {
-        console.log("Could not extract user_id from token");
-      }
     }
 
     const genderText = childGender === "female" ? "ילדה" : "ילד";

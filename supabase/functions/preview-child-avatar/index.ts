@@ -1,4 +1,5 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2.39.3";
 import { checkRateLimit, getClientIP, rateLimitResponse, RATE_LIMITS } from "../_shared/rate-limiter.ts";
 
 const corsHeaders = {
@@ -12,11 +13,35 @@ serve(async (req) => {
   }
 
   try {
-    // Rate limit by IP (10 requests per minute for AI functions)
-    const clientIP = getClientIP(req);
-    const rateLimit = checkRateLimit(clientIP, "preview-avatar", RATE_LIMITS.aiFunction);
+    // === AUTHENTICATION CHECK ===
+    const authHeader = req.headers.get("Authorization");
+    if (!authHeader?.startsWith("Bearer ")) {
+      return new Response(
+        JSON.stringify({ error: "נדרשת התחברות" }),
+        { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
+    const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
+    const supabaseAnonKey = Deno.env.get("SUPABASE_ANON_KEY")!;
+    
+    const supabase = createClient(supabaseUrl, supabaseAnonKey, {
+      global: { headers: { Authorization: authHeader } }
+    });
+
+    const { data: { user }, error: authError } = await supabase.auth.getUser();
+    if (authError || !user) {
+      return new Response(
+        JSON.stringify({ error: "טוקן לא תקין או שפג תוקפו" }),
+        { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+    // === END AUTHENTICATION CHECK ===
+
+    // Rate limit by user ID (more reliable than IP)
+    const rateLimit = checkRateLimit(user.id, "preview-avatar", RATE_LIMITS.aiFunction);
     if (!rateLimit.allowed) {
-      console.log(`Preview avatar rate limit exceeded for IP: ${clientIP}`);
+      console.log(`Preview avatar rate limit exceeded for user: ${user.id}`);
       return rateLimitResponse(rateLimit, corsHeaders, "יותר מדי בקשות. נסה שוב מאוחר יותר.");
     }
 
