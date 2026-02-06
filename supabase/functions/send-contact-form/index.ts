@@ -24,6 +24,18 @@ const subjectLabels: Record<string, string> = {
   other: "אחר",
 };
 
+// HTML escape function to prevent XSS in email templates
+function escapeHtml(text: string): string {
+  const map: Record<string, string> = {
+    '&': '&amp;',
+    '<': '&lt;',
+    '>': '&gt;',
+    '"': '&quot;',
+    "'": '&#039;'
+  };
+  return text.replace(/[&<>"']/g, (m) => map[m]);
+}
+
 const handler = async (req: Request): Promise<Response> => {
   // Handle CORS preflight requests
   if (req.method === "OPTIONS") {
@@ -68,6 +80,12 @@ const handler = async (req: Request): Promise<Response> => {
 
     const subjectLabel = subjectLabels[subject] || subject;
 
+    // Escape all user input to prevent XSS in email clients
+    const safeName = escapeHtml(name);
+    const safeEmail = escapeHtml(email);
+    const safeMessage = escapeHtml(message);
+    const safeSubjectLabel = escapeHtml(subjectLabel);
+
     const emailHtml = `
       <div dir="rtl" style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
         <h2 style="color: #7c3aed; border-bottom: 2px solid #7c3aed; padding-bottom: 10px;">
@@ -77,21 +95,21 @@ const handler = async (req: Request): Promise<Response> => {
         <table style="width: 100%; border-collapse: collapse; margin: 20px 0;">
           <tr>
             <td style="padding: 10px; background: #f8f9fa; font-weight: bold; width: 120px;">שם השולח:</td>
-            <td style="padding: 10px; background: #f8f9fa;">${name}</td>
+            <td style="padding: 10px; background: #f8f9fa;">${safeName}</td>
           </tr>
           <tr>
             <td style="padding: 10px; font-weight: bold;">אימייל:</td>
-            <td style="padding: 10px;"><a href="mailto:${email}">${email}</a></td>
+            <td style="padding: 10px;"><a href="mailto:${safeEmail}">${safeEmail}</a></td>
           </tr>
           <tr>
             <td style="padding: 10px; background: #f8f9fa; font-weight: bold;">נושא:</td>
-            <td style="padding: 10px; background: #f8f9fa;">${subjectLabel}</td>
+            <td style="padding: 10px; background: #f8f9fa;">${safeSubjectLabel}</td>
           </tr>
         </table>
         
         <div style="background: #faf5ff; border-right: 4px solid #7c3aed; padding: 20px; margin: 20px 0;">
           <h3 style="margin-top: 0; color: #5b21b6;">תוכן ההודעה:</h3>
-          <p style="white-space: pre-wrap; line-height: 1.6;">${message}</p>
+          <p style="white-space: pre-wrap; line-height: 1.6;">${safeMessage}</p>
         </div>
         
         <p style="color: #6b7280; font-size: 12px; margin-top: 30px;">

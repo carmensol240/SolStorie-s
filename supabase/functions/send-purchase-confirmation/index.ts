@@ -30,7 +30,9 @@ const handler = async (req: Request): Promise<Response> => {
       throw new Error("Missing required fields");
     }
 
-    console.log(`Sending purchase confirmation to ${email} for ${credits} credits`);
+    // Mask email in logs to protect PII
+    const maskEmail = (e: string) => e.substring(0, 3) + '***@' + e.split('@')[1];
+    console.log(`Sending purchase confirmation to ${maskEmail(email)} for ${credits} credits`);
 
     const emailResponse = await resend.emails.send({
       from: "סיפורי ילדים <hello@storytime.org.il>",
@@ -112,7 +114,8 @@ const handler = async (req: Request): Promise<Response> => {
       `,
     });
 
-    console.log("Purchase confirmation email sent successfully:", emailResponse);
+    // Only log success status, not full response which may contain email
+    console.log("Purchase confirmation email sent successfully, id:", emailResponse?.id || "unknown");
 
     return new Response(JSON.stringify(emailResponse), {
       status: 200,

@@ -51,7 +51,9 @@ const handler = async (req: Request): Promise<Response> => {
       throw new Error("Invalid email format");
     }
 
-    console.log(`Processing password reset for: ${email}`);
+    // Mask email in logs to protect PII
+    const maskEmail = (e: string) => e.substring(0, 3) + '***@' + e.split('@')[1];
+    console.log(`Processing password reset for: ${maskEmail(email)}`);
 
     // Create Supabase admin client to generate password reset link
     const supabaseUrl = Deno.env.get("SUPABASE_URL");
@@ -96,7 +98,7 @@ const handler = async (req: Request): Promise<Response> => {
       throw new Error("Failed to generate reset link");
     }
 
-    console.log(`Sending password reset email to: ${email}`);
+    console.log(`Sending password reset email to: ${maskEmail(email)}`);
 
     // Send branded password reset email via Resend
     const emailResponse = await resend.emails.send({
@@ -169,7 +171,8 @@ const handler = async (req: Request): Promise<Response> => {
     });
 
     console.log("Password reset email sent successfully");
-    console.log("Resend API response:", JSON.stringify(emailResponse, null, 2));
+    // Only log success status, not full response which may contain email
+    console.log("Resend API response status:", emailResponse?.id ? "success" : "unknown");
 
     return new Response(
       JSON.stringify({ success: true, message: "Password reset email sent" }),

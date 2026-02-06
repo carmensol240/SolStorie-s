@@ -42,7 +42,8 @@ serve(async (req) => {
     // Rate limit by user ID (more reliable than IP)
     const rateLimit = checkRateLimit(user.id, "add-nikud", RATE_LIMITS.aiFunction);
     if (!rateLimit.allowed) {
-      console.log(`Add nikud rate limit exceeded for user: ${user.id}`);
+      // Mask user ID in logs to protect PII
+      console.log(`Add nikud rate limit exceeded for user: ${user.id.substring(0, 8)}...`);
       return rateLimitResponse(rateLimit, corsHeaders, "יותר מדי בקשות. נסה שוב מאוחר יותר.");
     }
 

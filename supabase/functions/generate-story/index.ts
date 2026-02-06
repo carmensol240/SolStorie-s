@@ -478,7 +478,8 @@ serve(async (req) => {
     }
     
     const userId = user.id;
-    console.log("Authenticated user:", userId);
+    // Mask user ID in logs to protect PII
+    console.log("Authenticated user:", userId.substring(0, 8) + "...");
     // === END AUTHENTICATION CHECK ===
 
     const { childName, childGender = "male", ageRange, storyLength = "short", topic, nikud, childPhoto, childAvatarUrl, personalityTraits, adventureLogic } = await req.json();
