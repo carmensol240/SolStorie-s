@@ -1,4 +1,5 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+import { checkRateLimit, getClientIP, rateLimitResponse, RATE_LIMITS } from "../_shared/rate-limiter.ts";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -11,6 +12,14 @@ serve(async (req) => {
   }
 
   try {
+    // Rate limit by IP (10 requests per minute for AI functions)
+    const clientIP = getClientIP(req);
+    const rateLimit = checkRateLimit(clientIP, "enhance-text", RATE_LIMITS.aiFunction);
+    if (!rateLimit.allowed) {
+      console.log(`Enhance text rate limit exceeded for IP: ${clientIP}`);
+      return rateLimitResponse(rateLimit, corsHeaders, "יותר מדי בקשות. נסה שוב מאוחר יותר.");
+    }
+
     const { text } = await req.json();
     
     if (!text || typeof text !== 'string') {
