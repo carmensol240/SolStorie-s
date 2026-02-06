@@ -22,23 +22,23 @@ export const BookFrame: React.FC<BookFrameProps> = ({
       {/* Outer Book Frame - Golden/Worn edges */}
       <div className={cn(
         "relative rounded-xl overflow-hidden book-page",
-        // 3D Book Shadow Effect
-        "shadow-[0_20px_60px_rgba(0,0,0,0.4),0_0_0_4px_#8B5A2B,0_0_0_8px_#5D3A1A,inset_0_0_60px_rgba(139,90,43,0.1)]",
+        // 3D Book Shadow Effect with purple theme
+        "shadow-[0_20px_60px_rgba(0,0,0,0.3),0_0_0_4px_theme(colors.purple.400),0_0_0_8px_theme(colors.purple.600),inset_0_0_60px_rgba(147,51,234,0.1)]",
         // Book flip animation classes
         isFlipping && flipDirection === 'next' && "flip-next",
         isFlipping && flipDirection === 'prev' && "flip-prev"
       )}>
-        {/* Decorative Frame Border - Golden vintage effect */}
+        {/* Decorative Frame Border - Purple-pink gradient effect */}
         <div className="absolute inset-0 pointer-events-none z-20">
           {/* Top ornament */}
-          <div className="absolute top-0 left-1/2 -translate-x-1/2 w-32 h-6 bg-gradient-to-b from-[#D4A574] to-[#B8956B]" 
+          <div className="absolute top-0 left-1/2 -translate-x-1/2 w-32 h-6 bg-gradient-to-b from-purple-400 to-pink-400" 
                style={{ clipPath: 'polygon(10% 0, 90% 0, 100% 100%, 0 100%)' }} />
           
           {/* Corner ornaments */}
-          <div className="absolute top-2 right-2 w-12 h-12 border-t-3 border-r-3 border-[#D4A574] rounded-tr-2xl opacity-80" />
-          <div className="absolute top-2 left-2 w-12 h-12 border-t-3 border-l-3 border-[#D4A574] rounded-tl-2xl opacity-80" />
-          <div className="absolute bottom-2 right-2 w-12 h-12 border-b-3 border-r-3 border-[#D4A574] rounded-br-2xl opacity-80" />
-          <div className="absolute bottom-2 left-2 w-12 h-12 border-b-3 border-l-3 border-[#D4A574] rounded-bl-2xl opacity-80" />
+          <div className="absolute top-2 right-2 w-12 h-12 border-t-3 border-r-3 border-purple-400 rounded-tr-2xl opacity-80" />
+          <div className="absolute top-2 left-2 w-12 h-12 border-t-3 border-l-3 border-purple-400 rounded-tl-2xl opacity-80" />
+          <div className="absolute bottom-2 right-2 w-12 h-12 border-b-3 border-r-3 border-pink-400 rounded-br-2xl opacity-80" />
+          <div className="absolute bottom-2 left-2 w-12 h-12 border-b-3 border-l-3 border-pink-400 rounded-bl-2xl opacity-80" />
         </div>
 
         {/* Paper Texture Background */}
@@ -53,7 +53,7 @@ export const BookFrame: React.FC<BookFrameProps> = ({
           }}
         >
           {/* Book Spine Shadow (center) */}
-          <div className="absolute left-1/2 -translate-x-1/2 top-0 bottom-0 w-8 md:w-12 bg-gradient-to-r from-transparent via-black/10 to-transparent z-10 pointer-events-none hidden md:block" />
+          <div className="absolute left-1/2 -translate-x-1/2 top-0 bottom-0 w-8 md:w-12 bg-gradient-to-r from-transparent via-purple-900/10 to-transparent z-10 pointer-events-none hidden md:block" />
           
           {/* Inner content */}
           <div className="relative z-0">
