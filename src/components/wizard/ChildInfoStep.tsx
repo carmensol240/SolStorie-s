@@ -340,10 +340,10 @@ const ChildInfoStep = ({ formData, updateFormData }: ChildInfoStepProps) => {
   };
 
   return (
-    <div className="w-full space-y-5 px-0">
+    <div className="w-full space-y-6 px-1">
       {/* Title */}
       <div className="text-center space-y-1">
-        <h1 className="text-2xl font-bold text-foreground">ספרו לנו על הילד/ה</h1>
+        <h1 className="text-xl font-bold text-foreground">ספרו לנו על הילד/ה</h1>
         <p className="text-sm text-muted-foreground">בחרו פרופיל קיים או צרו חדש</p>
       </div>
 
