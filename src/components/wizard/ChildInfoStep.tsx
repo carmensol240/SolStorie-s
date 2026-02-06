@@ -383,7 +383,7 @@ const ChildInfoStep = ({ formData, updateFormData }: ChildInfoStepProps) => {
         <Input
           id="childName"
           type="text"
-          placeholder="לדוגמה: נועה"
+          placeholder="שם הילד/ה"
           value={formData.childName}
           onChange={(e) => updateFormData({ childName: e.target.value })}
           className="h-12 text-base bg-card border-2 border-border rounded-2xl focus:border-primary px-4"
