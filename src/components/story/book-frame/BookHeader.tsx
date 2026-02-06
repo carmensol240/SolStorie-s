@@ -56,7 +56,7 @@ export const BookHeader: React.FC<BookHeaderProps> = ({
   showPageActions = false,
 }) => {
   return (
-    <header className="sticky top-0 z-40 bg-gradient-to-b from-[#5D3A1A] to-[#4A2D15] px-3 py-2 shadow-lg border-b-2 border-[#8B5A2B]">
+    <header className="sticky top-0 z-40 bg-gradient-to-r from-purple-600 via-pink-500 to-orange-400 px-3 py-2 shadow-lg">
       <div className="flex items-center justify-between max-w-6xl mx-auto">
         {/* Back Button */}
         <Tooltip>

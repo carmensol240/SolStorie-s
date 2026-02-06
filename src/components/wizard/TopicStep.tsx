@@ -20,6 +20,9 @@ import topicBirthday from "@/assets/topic-birthday.jpg";
 import topicPacifier from "@/assets/topic-pacifier.jpg";
 import topicBedtime from "@/assets/topic-bedtime.jpg";
 import topicFriendship from "@/assets/topic-friendship.jpg";
+// New topics
+import topicPottyTraining from "@/assets/topic-potty-training.jpeg";
+import topicCleanRoom from "@/assets/topic-clean-room.jpeg";
 
 interface TopicStepProps {
   formData: StoryFormData;
@@ -186,6 +189,28 @@ const ADVENTURE_CATEGORIES: AdventureCategory[] = [
     title: "גיבורי היומיום",
     emoji: "✨",
     topics: [
+      { 
+        id: "potty-training", 
+        label: "גמילה מחיתולים", 
+        image: topicPottyTraining,
+        description: "מסע גדול לשירותים",
+        logic: {
+          outfit: "everyday casual clothes with easy-pull pants",
+          background: "cheerful bathroom with colorful potty, encouraging teddy bear, stickers on wall",
+          theme: "potty training, growing up, independence milestone, using the toilet like a big kid"
+        }
+      },
+      { 
+        id: "clean-room", 
+        label: "לסדר את החדר", 
+        image: topicCleanRoom,
+        description: "קסם של סדר וארגון",
+        logic: {
+          outfit: "everyday casual clothes suitable for playing",
+          background: "colorful children's room with toys, toy boxes, shelves, magical sparkles",
+          theme: "cleaning up, organizing toys, responsibility, teamwork, making room tidy"
+        }
+      },
       { 
         id: "space-adventure", 
         label: "הרפתקה בחלל", 
@@ -359,58 +384,49 @@ const TopicStep = ({ formData, updateFormData }: TopicStepProps) => {
   };
 
   return (
-    <div className="space-y-6 -mx-3">
-      {/* Title */}
-      <div className="text-center space-y-1 px-3">
-        <h1 className="text-xl font-bold">בחרו את ההרפתקה</h1>
-        <p className="text-muted-foreground text-sm">איזה סיפור תרצו ליצור היום?</p>
+    <div className="space-y-4 -mx-3 -mt-2">
+      {/* Compact Title */}
+      <div className="text-center px-3 pt-1">
+        <h1 className="text-lg font-bold bg-gradient-to-r from-purple-600 via-pink-500 to-orange-400 bg-clip-text text-transparent">
+          בחרו את ההרפתקה
+        </h1>
       </div>
 
-      {/* Explanatory Text - How to use */}
-      <div className="px-4">
-        <p className="text-center text-sm text-muted-foreground bg-muted/50 rounded-xl py-3 px-4 border border-border/50">
-          ✨ ניתן לבחור נושא מובנה, לספר לנו מה עבר על הילד/ה, או לשלב את שניהם יחד
-        </p>
-      </div>
-
-      {/* NLP Smart Input */}
-      <div className="space-y-3 px-4 bg-muted/30 py-4 rounded-xl mx-3 border border-border/50">
+      {/* NLP Smart Input - More compact */}
+      <div className="space-y-2 px-4 bg-purple-50/50 py-3 rounded-xl mx-3 border border-purple-200/50">
         <div className="flex items-center gap-2 justify-center">
-          <Brain className="w-4 h-4 text-primary" />
-          <Label className="text-sm font-bold text-foreground">
-            מערכת חכמה לניתוח רגשות
+          <Brain className="w-4 h-4 text-purple-500" />
+          <Label className="text-xs font-bold text-purple-700">
+            ספרו לנו מה עבר על הילד/ה
           </Label>
-          <Sparkles className="w-4 h-4 text-primary" />
+          <Sparkles className="w-4 h-4 text-pink-500" />
         </div>
         <Textarea
-          placeholder="ספרו לנו מה עבר על הילד/ה היום..."
+          placeholder="למשל: היום היה קשה בגן עם חבר..."
           value={formData.customTopic}
           onChange={(e) => handleCustomTopicChange(e.target.value)}
           className={cn(
-            "min-h-16 text-sm resize-none",
+            "min-h-14 text-sm resize-none",
             formData.customTopic.trim() 
-              ? "border-primary" 
+              ? "border-purple-400" 
               : ""
           )}
           dir="rtl"
         />
-        <p className="text-xs text-center text-muted-foreground">
-          תארו את המצב והמערכת תיצור סיפור מותאם ✨
-        </p>
       </div>
 
-      {/* Divider */}
-      <div className="relative py-2 px-4">
+      {/* Divider - Compact */}
+      <div className="relative py-1 px-4">
         <div className="absolute inset-0 flex items-center px-4">
-          <div className="w-full border-t border-border/50" />
+          <div className="w-full border-t border-purple-200/50" />
         </div>
         <div className="relative flex justify-center">
-          <span className="bg-background px-4 text-sm text-muted-foreground">או בחרו נושא מוכן</span>
+          <span className="bg-background px-3 text-xs text-muted-foreground">או בחרו נושא</span>
         </div>
       </div>
 
       {/* Category Carousels */}
-      <div className="space-y-5">
+      <div className="space-y-4">
         {ADVENTURE_CATEGORIES.map((category) => (
           <CategoryCarousel
             key={category.id}

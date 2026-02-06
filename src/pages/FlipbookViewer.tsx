@@ -172,10 +172,10 @@ const FlipbookViewer = () => {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-amber-50 via-orange-50 to-rose-50 flex items-center justify-center">
+      <div className="min-h-screen bg-gradient-to-br from-purple-50 via-pink-50 to-orange-50 flex items-center justify-center">
         <div className="text-center space-y-4">
-          <div className="w-16 h-16 border-4 border-amber-500 border-t-transparent rounded-full animate-spin mx-auto" />
-          <p className="text-amber-800 font-medium">טוען את הספרון...</p>
+          <div className="w-16 h-16 border-4 border-purple-500 border-t-transparent rounded-full animate-spin mx-auto" />
+          <p className="text-purple-800 font-medium">טוען את הספרון...</p>
         </div>
       </div>
     );
@@ -183,11 +183,11 @@ const FlipbookViewer = () => {
 
   if (!digitalBook || !story) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-amber-50 via-orange-50 to-rose-50 flex items-center justify-center">
+      <div className="min-h-screen bg-gradient-to-br from-purple-50 via-pink-50 to-orange-50 flex items-center justify-center">
         <div className="text-center space-y-4">
-          <BookOpen className="w-16 h-16 text-amber-400 mx-auto" />
-          <p className="text-xl font-bold text-amber-800">הספרון לא נמצא</p>
-          <Button onClick={() => navigate("/")} variant="outline">
+          <BookOpen className="w-16 h-16 text-purple-400 mx-auto" />
+          <p className="text-xl font-bold text-purple-800">הספרון לא נמצא</p>
+          <Button onClick={() => navigate("/")} variant="outline" className="border-purple-300 text-purple-700 hover:bg-purple-50">
             חזרה לדף הבית
           </Button>
         </div>
@@ -201,7 +201,7 @@ const FlipbookViewer = () => {
 
   return (
     <div 
-      className="min-h-screen bg-gradient-to-br from-amber-50 via-orange-50 to-rose-50 flex flex-col" 
+      className="min-h-screen bg-gradient-to-br from-purple-50 via-pink-50 to-orange-50 flex flex-col" 
       dir="rtl"
     >
       {/* Minimal Header */}
@@ -210,14 +210,14 @@ const FlipbookViewer = () => {
           variant="ghost"
           size="sm"
           onClick={() => navigate("/library")}
-          className="text-amber-700 hover:bg-amber-100 gap-1"
+          className="text-purple-700 hover:bg-purple-100 gap-1"
           aria-label="חזרה לספרייה"
         >
           <ArrowRight className="w-5 h-5" />
           <span className="text-sm">לספרייה</span>
         </Button>
         
-        <h1 className="font-serif text-lg text-amber-800 font-semibold">
+        <h1 className="font-serif text-lg font-semibold bg-gradient-to-r from-purple-600 via-pink-500 to-orange-400 bg-clip-text text-transparent">
           הספרון של {story.child_name}
         </h1>
 
@@ -226,7 +226,7 @@ const FlipbookViewer = () => {
             variant="ghost"
             size="sm"
             onClick={handleShare}
-            className="text-amber-700 hover:bg-amber-100"
+            className="text-purple-700 hover:bg-purple-100"
           >
             {copied ? <Check className="w-5 h-5" /> : <Share2 className="w-5 h-5" />}
           </Button>
@@ -241,38 +241,38 @@ const FlipbookViewer = () => {
             className={cn(
               "relative bg-white rounded-2xl overflow-hidden book-page",
               "shadow-[0_25px_50px_-12px_rgba(0,0,0,0.25)]",
-              "border border-amber-200",
+              "border border-purple-200",
               isFlipping && flipDirection === 'next' && "flip-next",
               isFlipping && flipDirection === 'prev' && "flip-prev"
             )}
           >
-            {/* Gold edge decoration */}
-            <div className="absolute left-0 top-0 bottom-0 w-2 bg-gradient-to-r from-amber-300 to-amber-100" />
+            {/* Purple edge decoration */}
+            <div className="absolute left-0 top-0 bottom-0 w-2 bg-gradient-to-r from-purple-400 to-pink-300" />
             
             {/* Page Content */}
             <div className="p-8 md:p-12 min-h-[500px] md:min-h-[600px] flex flex-col mr-2">
               {isDedicationPage ? (
                 /* Dedication Page */
                 <div className="flex-1 flex flex-col items-center justify-center text-center">
-                  <Heart className="w-12 h-12 text-rose-400 mb-6" />
-                  <p className="font-serif text-xl md:text-2xl text-amber-900 leading-relaxed whitespace-pre-line max-w-md">
+                  <Heart className="w-12 h-12 text-pink-400 mb-6" />
+                  <p className="font-serif text-xl md:text-2xl text-purple-900 leading-relaxed whitespace-pre-line max-w-md">
                     {digitalBook.dedication_text}
                   </p>
                 </div>
               ) : currentPage === -1 || currentPage === 0 && !hasDedication ? (
                 /* Cover/Title Page */
                 <div className="flex-1 flex flex-col items-center justify-center text-center space-y-6">
-                  <div className="w-20 h-1 bg-gradient-to-r from-transparent via-amber-400 to-transparent" />
-                  <h2 className="font-serif text-3xl md:text-4xl font-bold text-amber-900 leading-relaxed">
+                  <div className="w-20 h-1 bg-gradient-to-r from-transparent via-purple-400 to-transparent" />
+                  <h2 className="font-serif text-3xl md:text-4xl font-bold text-purple-900 leading-relaxed">
                     הסיפור של
                   </h2>
-                  <h3 className="font-serif text-4xl md:text-5xl font-bold text-amber-700">
+                  <h3 className="font-serif text-4xl md:text-5xl font-bold bg-gradient-to-r from-purple-600 via-pink-500 to-orange-400 bg-clip-text text-transparent">
                     {story.child_name}
                   </h3>
-                  <p className="font-serif text-lg text-amber-600 mt-4 max-w-xs">
+                  <p className="font-serif text-lg text-purple-600 mt-4 max-w-xs">
                     {story.topic}
                   </p>
-                  <div className="w-20 h-1 bg-gradient-to-r from-transparent via-amber-400 to-transparent mt-8" />
+                  <div className="w-20 h-1 bg-gradient-to-r from-transparent via-pink-400 to-transparent mt-8" />
                 </div>
               ) : page ? (
                 /* Story Page */
@@ -294,14 +294,14 @@ const FlipbookViewer = () => {
 
                   {/* Elegant Typography */}
                   <div className="flex-1 flex items-center">
-                    <p className="font-serif text-xl md:text-2xl leading-loose text-amber-900 text-right">
+                    <p className="font-serif text-xl md:text-2xl leading-loose text-purple-900 text-right">
                       {page.text}
                     </p>
                   </div>
 
                   {/* Page Number */}
-                  <div className="text-center pt-6 border-t border-amber-100 mt-6">
-                    <span className="font-serif text-amber-500 text-sm">
+                  <div className="text-center pt-6 border-t border-purple-100 mt-6">
+                    <span className="font-serif text-purple-500 text-sm">
                       עמוד {currentPage + 1} מתוך {pages.length}
                     </span>
                   </div>
@@ -320,7 +320,7 @@ const FlipbookViewer = () => {
             size="lg"
             onClick={() => handlePageChange('prev')}
             disabled={currentPage <= (hasDedication ? -1 : 0)}
-            className="rounded-full border-2 border-amber-300 bg-white/80 hover:bg-amber-50 text-amber-700 px-6"
+            className="rounded-full border-2 border-purple-300 bg-white/80 hover:bg-purple-50 text-purple-700 px-6"
           >
             <ArrowRight className="w-5 h-5 ml-2" />
             הקודם
@@ -331,7 +331,7 @@ const FlipbookViewer = () => {
             size="lg"
             onClick={() => handlePageChange('next')}
             disabled={currentPage >= pages.length - 1}
-            className="rounded-full border-2 border-amber-300 bg-white/80 hover:bg-amber-50 text-amber-700 px-6"
+            className="rounded-full border-2 border-purple-300 bg-white/80 hover:bg-purple-50 text-purple-700 px-6"
           >
             הבא
             <ArrowLeft className="w-5 h-5 mr-2" />
