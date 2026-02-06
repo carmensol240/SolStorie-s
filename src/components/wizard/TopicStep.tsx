@@ -23,6 +23,8 @@ import topicFriendship from "@/assets/topic-friendship.jpg";
 // New topics
 import topicPottyTraining from "@/assets/topic-potty-training.jpeg";
 import topicCleanRoom from "@/assets/topic-clean-room.jpeg";
+import topicNewSibling from "@/assets/topic-new-sibling.jpeg";
+import topicDentistVisit from "@/assets/topic-dentist-visit.jpeg";
 
 interface TopicStepProps {
   formData: StoryFormData;
@@ -91,6 +93,17 @@ const ADVENTURE_CATEGORIES: AdventureCategory[] = [
           theme: "saying goodbye to pacifier, growing up, milestone transition, managing change"
         }
       },
+      { 
+        id: "new-sibling", 
+        label: "נולד לי אח/ות", 
+        image: topicNewSibling,
+        description: "מקבלים תינוק חדש במשפחה",
+        logic: {
+          outfit: "comfortable home clothes",
+          background: "warm nursery room with crib, mobile, soft lighting, and family atmosphere",
+          theme: "welcoming new sibling, sharing attention, becoming a big brother/sister, family changes, emotions about new baby"
+        }
+      },
     ]
   },
   {
@@ -129,6 +142,17 @@ const ADVENTURE_CATEGORIES: AdventureCategory[] = [
           outfit: "party clothes, festive attire",
           background: "colorful kindergarten or party venue with cake, decorations, friends",
           theme: "birthday celebration, friendship, sharing joy, being a good host"
+        }
+      },
+      { 
+        id: "clean-room", 
+        label: "לסדר את החדר", 
+        image: topicCleanRoom,
+        description: "קסם של סדר וארגון",
+        logic: {
+          outfit: "everyday casual clothes suitable for playing",
+          background: "colorful children's room with toys, toy boxes, shelves, magical sparkles",
+          theme: "cleaning up, organizing toys, responsibility, teamwork, making room tidy"
         }
       },
     ]
@@ -201,14 +225,14 @@ const ADVENTURE_CATEGORIES: AdventureCategory[] = [
         }
       },
       { 
-        id: "clean-room", 
-        label: "לסדר את החדר", 
-        image: topicCleanRoom,
-        description: "קסם של סדר וארגון",
+        id: "dentist-visit", 
+        label: "ביקור אצל רופא השיניים", 
+        image: topicDentistVisit,
+        description: "מגלים שאין מה לפחד",
         logic: {
-          outfit: "everyday casual clothes suitable for playing",
-          background: "colorful children's room with toys, toy boxes, shelves, magical sparkles",
-          theme: "cleaning up, organizing toys, responsibility, teamwork, making room tidy"
+          outfit: "everyday casual comfortable clothes",
+          background: "friendly colorful dental clinic with smiling dentist, fun dental chair, tooth decorations",
+          theme: "visiting the dentist, overcoming fear of dental checkups, bravery, oral health"
         }
       },
       { 
