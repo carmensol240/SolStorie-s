@@ -94,3 +94,41 @@ serve(async (req) => {
     )
   }
 })
+
+// Helper function to sanitize metadata values
+function sanitizeMetadata(obj: Record<string, unknown>, depth = 0): Record<string, unknown> {
+  // Prevent deep nesting attacks
+  if (depth > 3) {
+    return {};
+  }
+  
+  const sanitized: Record<string, unknown> = {};
+  
+  for (const [key, value] of Object.entries(obj)) {
+    // Only allow alphanumeric keys with underscores
+    if (!/^[a-zA-Z0-9_]+$/.test(key)) {
+      continue;
+    }
+    
+    // Limit key length
+    if (key.length > 50) {
+      continue;
+    }
+    
+    if (typeof value === 'string') {
+      // Limit string length and sanitize
+      sanitized[key] = value.slice(0, 500).replace(/[<>]/g, '');
+    } else if (typeof value === 'number' && isFinite(value)) {
+      sanitized[key] = value;
+    } else if (typeof value === 'boolean') {
+      sanitized[key] = value;
+    } else if (value === null) {
+      sanitized[key] = null;
+    } else if (typeof value === 'object' && !Array.isArray(value)) {
+      sanitized[key] = sanitizeMetadata(value as Record<string, unknown>, depth + 1);
+    }
+    // Arrays and other types are ignored for security
+  }
+  
+  return sanitized;
+}

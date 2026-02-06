@@ -1,6 +1,7 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import { Resend } from "https://esm.sh/resend@2.0.0";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.39.3";
+import { checkRateLimit, getClientIP, rateLimitResponse, RATE_LIMITS } from "../_shared/rate-limiter.ts";
 
 const resend = new Resend(Deno.env.get("RESEND_API_KEY"));
 
@@ -23,6 +24,21 @@ const handler = async (req: Request): Promise<Response> => {
 
   try {
     const { email, redirectUrl }: PasswordResetRequest = await req.json();
+
+    // Rate limit by email address (3 requests per hour per email)
+    const emailRateLimit = checkRateLimit(email.toLowerCase(), "password-reset-email", RATE_LIMITS.passwordReset);
+    if (!emailRateLimit.allowed) {
+      console.log(`Rate limit exceeded for email: ${email.substring(0, 3)}***`);
+      return rateLimitResponse(emailRateLimit, corsHeaders, "יותר מדי בקשות לאיפוס סיסמה. נסה שוב מאוחר יותר.");
+    }
+
+    // Also rate limit by IP (3 requests per hour per IP)
+    const clientIP = getClientIP(req);
+    const ipRateLimit = checkRateLimit(clientIP, "password-reset-ip", RATE_LIMITS.passwordReset);
+    if (!ipRateLimit.allowed) {
+      console.log(`Rate limit exceeded for IP: ${clientIP}`);
+      return rateLimitResponse(ipRateLimit, corsHeaders, "יותר מדי בקשות לאיפוס סיסמה. נסה שוב מאוחר יותר.");
+    }
 
     // Validate required fields
     if (!email || !redirectUrl) {

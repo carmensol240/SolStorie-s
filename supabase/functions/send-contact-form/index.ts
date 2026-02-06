@@ -1,4 +1,5 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
+import { checkRateLimit, getClientIP, rateLimitResponse, RATE_LIMITS } from "../_shared/rate-limiter.ts";
 
 const RESEND_API_KEY = Deno.env.get("RESEND_API_KEY");
 
@@ -30,6 +31,14 @@ const handler = async (req: Request): Promise<Response> => {
   }
 
   try {
+    // Rate limit by IP (5 requests per hour per IP)
+    const clientIP = getClientIP(req);
+    const ipRateLimit = checkRateLimit(clientIP, "contact-form", RATE_LIMITS.contactForm);
+    if (!ipRateLimit.allowed) {
+      console.log(`Contact form rate limit exceeded for IP: ${clientIP}`);
+      return rateLimitResponse(ipRateLimit, corsHeaders, "יותר מדי הודעות נשלחו. נסה שוב מאוחר יותר.");
+    }
+
     const { name, email, subject, message }: ContactFormRequest = await req.json();
 
     // Validate required fields
