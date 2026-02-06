@@ -814,10 +814,7 @@ ${adventureLogic ? `
       throw new Error("Invalid JSON response from AI");
     }
 
-    // Initialize Supabase client
-    const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
-    const supabaseKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
-    const supabase = createClient(supabaseUrl, supabaseKey);
+    // Use existing supabase client for database operations
 
     // Create the story first - include user_id for gallery privacy
     const storyInsertData: any = {
