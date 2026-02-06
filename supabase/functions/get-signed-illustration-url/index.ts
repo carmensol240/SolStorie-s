@@ -145,7 +145,7 @@ serve(async (req) => {
   } catch (error) {
     console.error("Error in get-signed-illustration-url:", error);
     return new Response(
-      JSON.stringify({ error: error instanceof Error ? error.message : "Unknown error" }),
+      JSON.stringify({ error: "שגיאה בטעינת התמונות" }),
       { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
   }

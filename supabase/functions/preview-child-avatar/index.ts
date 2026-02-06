@@ -118,18 +118,18 @@ The result should be immediately recognizable as the same child, just in beautif
       
       if (response.status === 429) {
         return new Response(
-          JSON.stringify({ error: "Rate limit exceeded. Please try again in a moment." }),
+          JSON.stringify({ error: "יותר מדי בקשות. נסו שוב בעוד כמה דקות." }),
           { status: 429, headers: { ...corsHeaders, "Content-Type": "application/json" } }
         );
       }
       if (response.status === 402) {
         return new Response(
-          JSON.stringify({ error: "Service temporarily unavailable." }),
+          JSON.stringify({ error: "השירות אינו זמין זמנית." }),
           { status: 402, headers: { ...corsHeaders, "Content-Type": "application/json" } }
         );
       }
       
-      throw new Error(`AI Gateway error: ${response.status}`);
+      throw new Error("שגיאה ביצירת התצוגה המקדימה");
     }
 
     const data = await response.json();
@@ -139,7 +139,7 @@ The result should be immediately recognizable as the same child, just in beautif
     
     if (!previewUrl) {
       console.error("No image in response:", JSON.stringify(data));
-      throw new Error("No preview image generated");
+      throw new Error("שגיאה ביצירת התצוגה המקדימה");
     }
 
     console.log("Preview generated successfully");
@@ -151,8 +151,12 @@ The result should be immediately recognizable as the same child, just in beautif
 
   } catch (error) {
     console.error("Error generating preview:", error);
+    // Return generic error message to client, keep details in server logs
+    const userMessage = error instanceof Error && error.message.startsWith("שגיאה") 
+      ? error.message 
+      : "שגיאה בעיבוד הבקשה";
     return new Response(
-      JSON.stringify({ error: error instanceof Error ? error.message : "Failed to generate preview" }),
+      JSON.stringify({ error: userMessage }),
       { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
   }

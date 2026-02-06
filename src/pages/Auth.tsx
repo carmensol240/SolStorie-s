@@ -244,9 +244,14 @@ const Auth = () => {
     }
   };
 
-  // Get return URL - default to home page
+  // Get return URL - default to home page (with open redirect protection)
   const getReturnTo = () => {
-    return searchParams.get('returnTo') || localStorage.getItem('returnTo') || '/';
+    const returnTo = searchParams.get('returnTo') || localStorage.getItem('returnTo') || '/';
+    // Only allow relative paths starting with / but not // (protocol-relative)
+    if (returnTo.startsWith('/') && !returnTo.startsWith('//')) {
+      return returnTo;
+    }
+    return '/';
   };
 
   // Check terms acceptance when user is logged in

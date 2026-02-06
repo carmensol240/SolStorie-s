@@ -13,10 +13,14 @@ const VerifyEmail = () => {
   const [isResending, setIsResending] = useState(false);
   const [resendCooldown, setResendCooldown] = useState(0);
 
-  // If user is verified, redirect to consent/library
+  // If user is verified, redirect to consent/library (with open redirect protection)
   useEffect(() => {
     if (!loading && user?.email_confirmed_at) {
-      const returnTo = localStorage.getItem('returnTo') || '/consent';
+      const storedReturnTo = localStorage.getItem('returnTo') || '/consent';
+      // Only allow relative paths starting with / but not // (protocol-relative)
+      const returnTo = storedReturnTo.startsWith('/') && !storedReturnTo.startsWith('//') 
+        ? storedReturnTo 
+        : '/consent';
       navigate(returnTo, { replace: true });
     }
   }, [user, loading, navigate]);
