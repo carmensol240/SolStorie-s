@@ -1,8 +1,57 @@
-import { ArrowLeft, Sparkles, Star, Palette, Heart } from "lucide-react";
+import { ArrowLeft, Sparkles, Star, Users } from "lucide-react";
 import { Link } from "react-router-dom";
 import soliBackground from "@/assets/soli-tree-background.png";
 
+interface FeatureCardProps {
+  icon: React.ReactNode;
+  title: string;
+  subtitle: string;
+  gradientFrom: string;
+  gradientTo: string;
+}
+
+const FeatureCard = ({ icon, title, subtitle, gradientFrom, gradientTo }: FeatureCardProps) => (
+  <div 
+    className="flex flex-col items-center text-center bg-white/20 backdrop-blur-lg rounded-2xl p-3 flex-1 border border-white/30 shadow-lg shadow-black/10 hover:bg-white/30 hover:scale-[1.02] transition-all duration-300" 
+    dir="rtl"
+  >
+    <div className={`w-10 h-10 bg-gradient-to-br ${gradientFrom} ${gradientTo} rounded-xl flex items-center justify-center mb-2 shadow-md`}>
+      {icon}
+    </div>
+    <h3 className="text-[11px] font-black text-white leading-tight mb-1 drop-shadow-md">
+      {title}
+    </h3>
+    <p className="text-[9px] font-bold text-white/90 leading-snug drop-shadow-sm">
+      {subtitle}
+    </p>
+  </div>
+);
+
 const GuestLanding = () => {
+  const features = [
+    {
+      icon: <span className="flex items-center justify-center"><Sparkles className="w-5 h-5 text-white" aria-hidden="true" /></span>,
+      title: "טכנולוגיית NLP מתקדמת",
+      subtitle: "ליצירת תוכן חינוכי מדוייק ומותאם אישית",
+      gradientFrom: "from-purple-500",
+      gradientTo: "to-pink-500",
+    },
+    {
+      icon: <span className="flex items-center justify-center"><Users className="w-5 h-5 text-white" aria-hidden="true" /></span>,
+      title: "חיזוק מיומנויות תקשורת",
+      subtitle: "והבנה חברתית, מותאם גם לילדים על הרצף האוטיסטי",
+      gradientFrom: "from-amber-500",
+      gradientTo: "to-orange-500",
+    },
+    {
+      icon: <span className="flex items-center justify-center"><Star className="w-5 h-5 text-white" aria-hidden="true" /></span>,
+      title: "סיפורים מעצימים",
+      subtitle: "לבניית ביטחון עצמי ודימוי עצמי חיובי בדמות הילד",
+      gradientFrom: "from-pink-500",
+      gradientTo: "to-rose-500",
+    },
+  ];
+
   return (
     <div className="flex-1 flex flex-col animate-fade-in relative">
       {/* Full-screen Background Image */}
@@ -14,7 +63,7 @@ const GuestLanding = () => {
         }}
       >
         {/* Gradient overlay for better text readability */}
-        <div className="absolute inset-0 bg-gradient-to-b from-black/20 via-transparent to-black/40" />
+        <div className="absolute inset-0 bg-gradient-to-b from-black/20 via-transparent to-black/50" />
       </div>
 
       {/* Content Container */}
@@ -42,38 +91,11 @@ const GuestLanding = () => {
         {/* Spacer to push content to bottom */}
         <div className="flex-1" />
 
-        {/* Feature Cards - compact glassmorphism */}
-        <div className="flex justify-center gap-2 mb-3 px-2">
-          <div className="flex flex-col items-center text-center bg-white/30 backdrop-blur-sm rounded-2xl p-2 flex-1 max-w-[100px]" dir="rtl">
-            <div className="w-8 h-8 bg-purple-200/60 rounded-full flex items-center justify-center mb-1">
-              <span className="flex items-center justify-center">
-                <Star className="w-4 h-4 text-purple-600" aria-hidden="true" />
-              </span>
-            </div>
-            <p className="text-[9px] font-black text-gray-900 leading-snug">
-              טכנולוגיית NLP מתקדמת ליצירת תוכן חינוכי מדויק
-            </p>
-          </div>
-          <div className="flex flex-col items-center text-center bg-white/30 backdrop-blur-sm rounded-2xl p-2 flex-1 max-w-[100px]" dir="rtl">
-            <div className="w-8 h-8 bg-amber-200/60 rounded-full flex items-center justify-center mb-1">
-              <span className="flex items-center justify-center">
-                <Palette className="w-4 h-4 text-amber-600" aria-hidden="true" />
-              </span>
-            </div>
-            <p className="text-[9px] font-black text-gray-900 leading-snug">
-              חיזוק מיומנויות תקשורת והבנה חברתית
-            </p>
-          </div>
-          <div className="flex flex-col items-center text-center bg-white/30 backdrop-blur-sm rounded-2xl p-2 flex-1 max-w-[100px]" dir="rtl">
-            <div className="w-8 h-8 bg-pink-200/60 rounded-full flex items-center justify-center mb-1">
-              <span className="flex items-center justify-center">
-                <Heart className="w-4 h-4 text-pink-600" aria-hidden="true" />
-              </span>
-            </div>
-            <p className="text-[9px] font-black text-gray-900 leading-snug">
-              סיפורים מעצימים לבניית ביטחון עצמי
-            </p>
-          </div>
+        {/* Feature Cards - Striking Glassmorphism */}
+        <div className="flex justify-center gap-3 mb-4 px-2">
+          {features.map((feature, index) => (
+            <FeatureCard key={index} {...feature} />
+          ))}
         </div>
 
         {/* Login/Register CTA - Gradient style */}
