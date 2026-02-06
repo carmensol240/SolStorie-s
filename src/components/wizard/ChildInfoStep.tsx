@@ -608,17 +608,17 @@ const ChildInfoStep = ({ formData, updateFormData }: ChildInfoStepProps) => {
         )}
       </div>
 
-      {/* Save Button */}
+      {/* Save Button - Matching Landing Page CTA exactly */}
       <Button
         type="button"
         onClick={handleSaveChildProfile}
         disabled={isSavingChild || !formData.childName.trim()}
-        className="w-full h-12 bg-gradient-to-r from-secondary via-pink-500 to-purple-600 hover:from-secondary/90 hover:via-pink-600 hover:to-purple-700 text-white font-black rounded-xl shadow-lg hover:shadow-xl transition-all"
+        className="w-full h-11 bg-gradient-to-r from-primary via-pink-500 to-purple-600 hover:from-primary/90 hover:via-pink-600 hover:to-purple-700 text-white font-black text-sm rounded-xl shadow-lg hover:shadow-xl transition-all"
       >
         {isSavingChild ? (
-          <Loader2 className="w-5 h-5 animate-spin ml-2" />
+          <Loader2 className="w-4 h-4 animate-spin ml-2" />
         ) : (
-          <Save className="w-5 h-5 ml-2" />
+          <Save className="w-4 h-4 ml-2" />
         )}
         שמור פרטים לסיפורים הבאים
       </Button>

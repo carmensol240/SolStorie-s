@@ -373,24 +373,24 @@ const TopicStep = ({ formData, updateFormData }: TopicStepProps) => {
         </p>
       </div>
 
-      {/* NLP Smart Input - At Top */}
-      <div className="space-y-3 px-3 bg-gradient-to-r from-primary/5 via-primary/10 to-primary/5 py-4 rounded-xl mx-3 border border-primary/20">
+      {/* NLP Smart Input */}
+      <div className="space-y-3 px-4 bg-muted/30 py-4 rounded-xl mx-3 border border-border/50">
         <div className="flex items-center gap-2 justify-center">
-          <Brain className="w-5 h-5 text-primary" />
-          <Label className="text-base font-bold text-primary">
+          <Brain className="w-4 h-4 text-primary" />
+          <Label className="text-sm font-bold text-foreground">
             מערכת חכמה לניתוח רגשות
           </Label>
           <Sparkles className="w-4 h-4 text-primary" />
         </div>
         <Textarea
-          placeholder="ספרו לנו מה עבר על הילד/ה היום. המערכת החכמה שלנו תנתח את הרגשות והסיטואציה ותתפור עבורכם סיפור מותאם אישית ללימוד ותיווך."
+          placeholder="ספרו לנו מה עבר על הילד/ה היום..."
           value={formData.customTopic}
           onChange={(e) => handleCustomTopicChange(e.target.value)}
           className={cn(
-            "min-h-20 text-base bg-card border-2 rounded-xl resize-none font-medium",
+            "min-h-16 text-sm resize-none",
             formData.customTopic.trim() 
               ? "border-primary" 
-              : "border-border"
+              : ""
           )}
           dir="rtl"
         />
@@ -400,9 +400,9 @@ const TopicStep = ({ formData, updateFormData }: TopicStepProps) => {
       </div>
 
       {/* Divider */}
-      <div className="relative py-2 px-3">
-        <div className="absolute inset-0 flex items-center px-3">
-          <div className="w-full border-t border-foreground/10" />
+      <div className="relative py-2 px-4">
+        <div className="absolute inset-0 flex items-center px-4">
+          <div className="w-full border-t border-border/50" />
         </div>
         <div className="relative flex justify-center">
           <span className="bg-background px-4 text-sm text-muted-foreground">או בחרו נושא מוכן</span>

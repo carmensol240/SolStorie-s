@@ -227,12 +227,12 @@ const CreateStory = () => {
 
         {/* Compact Navigation Buttons */}
         {step < 3 && (
-          <div className="mt-6 pb-4">
+          <div className="mt-8 pb-4">
             <Button
               onClick={handleNext}
               disabled={step === 1 ? !canProceedStep1 : !canProceedStep2}
               size="lg"
-              className="w-full bg-gradient-to-r from-secondary via-pink-500 to-purple-600 hover:from-secondary/90 hover:via-pink-600 hover:to-purple-700 text-white font-black text-base py-4 rounded-xl disabled:opacity-50 disabled:cursor-not-allowed shadow-lg hover:shadow-xl transition-all"
+              className="w-full bg-gradient-to-r from-primary via-pink-500 to-purple-600 hover:from-primary/90 hover:via-pink-600 hover:to-purple-700 text-white font-black text-base py-4 rounded-xl disabled:opacity-50 disabled:cursor-not-allowed shadow-lg hover:shadow-xl transition-all"
             >
               {step === 2 ? "צרו את הסיפור" : "המשיכו"}
               <ArrowLeft className="w-5 h-5 mr-2" />
