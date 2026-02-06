@@ -1,10 +1,10 @@
 import React from "react";
-import { Wand2, Coins, BookOpen, ArrowLeft, Gift, LucideIcon } from "lucide-react";
+import { Wand2, Coins } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useCredits } from "@/hooks/use-credits";
 import { useReferral } from "@/hooks/use-referral";
 import { useChildAvatar } from "@/hooks/use-child-avatar";
-import heroBackground from "@/assets/hero-child-reading.jpg";
+import heroBackground from "@/assets/soli-tree-background.png";
 
 interface LoggedInHomeProps {
   user: any;
@@ -19,44 +19,9 @@ const LoggedInHome = ({ user, displayName }: LoggedInHomeProps) => {
 
   const totalCredits = (credits ?? 0) + shareCoins;
 
-  // Action Cards
-  const actionCards: Array<{
-    icon: LucideIcon;
-    title: string;
-    description: string;
-    path: string;
-    iconBg: string;
-    iconColor: string;
-  }> = [
-    {
-      icon: Wand2,
-      title: "יוצאים להרפתקה חדשה",
-      description: "סיפור מותאם אישית לילד שלך",
-      path: "/create",
-      iconBg: "bg-gradient-to-br from-[#F5E6D3] to-[#E8D5C4]",
-      iconColor: "text-[#5D3A1A]",
-    },
-    {
-      icon: BookOpen,
-      title: "הספרייה הקסומה שלי",
-      description: "צפה בכל הסיפורים שיצרת",
-      path: "/library",
-      iconBg: "bg-gradient-to-br from-[#FAF3E8] to-[#F5E6D3]",
-      iconColor: "text-[#6B4423]",
-    },
-    {
-      icon: Gift,
-      title: "הרויחו סיפורים חינם",
-      description: "הזמינו חברים וקבלו קרדיטים",
-      path: "/upgrade",
-      iconBg: "bg-gradient-to-br from-[#E8D5C4] to-[#D4C4B0]",
-      iconColor: "text-[#8B5A2B]",
-    },
-  ];
-
   return (
     <div className="flex-1 flex flex-col animate-fade-in relative">
-      {/* Full-screen Background Image */}
+      {/* Full-screen Background Image - Sol and the Tree theme */}
       <div 
         className="absolute inset-0 -mx-4 -mt-3 bg-cover bg-center bg-no-repeat"
         style={{ 
@@ -64,18 +29,18 @@ const LoggedInHome = ({ user, displayName }: LoggedInHomeProps) => {
           marginBottom: '-4rem'
         }}
       >
-        {/* Gradient overlay for better text readability */}
-        <div className="absolute inset-0 bg-gradient-to-b from-black/30 via-transparent to-black/50" />
+        {/* Subtle gradient overlay for text readability */}
+        <div className="absolute inset-0 bg-gradient-to-b from-black/20 via-transparent to-black/40" />
       </div>
 
       {/* Content Container */}
       <div className="relative z-10 flex-1 flex flex-col">
-        {/* Header - Greeting on Right, Credits on Left (RTL) with more padding */}
-        <header className="flex items-center justify-between mb-4 px-2 pt-2">
-          {/* Left side: Credits + Avatar - larger size with natural tones */}
-          <div className="flex items-center gap-3">
+        {/* Header - Greeting on Right, Credits on Left (RTL) */}
+        <header className="flex items-center justify-between px-2 pt-3">
+          {/* Left side: Credits pill with avatar thumbnail */}
+          <div className="flex items-center gap-2">
             {avatarUrl && (
-              <div className="w-14 h-14 rounded-full overflow-hidden border-3 border-[#8B5A2B] shadow-lg">
+              <div className="w-10 h-10 rounded-full overflow-hidden border-2 border-[#D4A574] shadow-md">
                 <img 
                   src={avatarUrl} 
                   alt="דמות הילד" 
@@ -85,64 +50,39 @@ const LoggedInHome = ({ user, displayName }: LoggedInHomeProps) => {
             )}
             <button 
               onClick={() => navigate("/upgrade")}
-              className="flex items-center gap-2 bg-[#FAF3E8]/95 backdrop-blur-sm border-2 border-[#D4A574] rounded-full px-5 py-3 hover:bg-[#F5E6D3] transition-colors shadow-lg"
+              className="flex items-center gap-2 bg-[#FAF3E8]/90 backdrop-blur-sm border-2 border-[#D4A574] rounded-full px-4 py-2 hover:bg-[#F5E6D3] transition-colors shadow-md"
               aria-label="צפה בקרדיטים ושדרג"
             >
-              <span className="flex items-center justify-center">
-                <Coins className="w-7 h-7 text-[#8B5A2B]" />
-              </span>
-              <span className="font-bold text-[#5D3A1A] text-2xl">{totalCredits}</span>
+              <Coins className="w-5 h-5 text-[#8B5A2B]" />
+              <span className="font-bold text-[#5D3A1A] text-lg">{totalCredits}</span>
             </button>
           </div>
-          {/* Right side: Greeting - natural theme */}
-          <div className="bg-[#5D3A1A]/80 backdrop-blur-sm rounded-full px-6 py-3 shadow-lg">
-            <h1 className="text-2xl font-black text-[#FAF3E8] drop-shadow-md">
+
+          {/* Right side: Greeting pill */}
+          <div className="bg-[#5D3A1A]/85 backdrop-blur-sm rounded-full px-5 py-2.5 shadow-md">
+            <h1 className="text-lg font-bold text-[#FAF3E8]">
               שלום, {displayName || user?.email?.split('@')[0] || "משתמש"} 👋
             </h1>
           </div>
         </header>
 
-        {/* Spacer to push content to bottom */}
+        {/* Spacer to push CTA to bottom-center area */}
         <div className="flex-1" />
 
-        {/* Child Avatar - Above Action Cards - Enlarged with earth-tone border */}
-        {avatarUrl && (
-          <div className="flex justify-center mb-4">
-            <div className="w-32 h-32 rounded-full overflow-hidden border-4 border-[#8B5A2B] shadow-2xl shadow-black/30">
-              <img 
-                src={avatarUrl} 
-                alt="דמות הילד" 
-                className="w-full h-full object-cover"
-              />
+        {/* Single Primary CTA Button - Centered at bottom */}
+        <div className="pb-8 px-4">
+          <button
+            onClick={() => navigate("/create")}
+            className="w-full flex items-center justify-center gap-4 bg-gradient-to-r from-[#8B5A2B] to-[#6B4423] rounded-2xl p-5 shadow-xl shadow-black/30 border-2 border-[#D4A574]/50 hover:from-[#9B6A3B] hover:to-[#7B5433] hover:shadow-2xl hover:scale-[1.02] transition-all"
+          >
+            <div className="w-12 h-12 bg-[#FAF3E8]/20 rounded-xl flex items-center justify-center">
+              <Wand2 className="w-7 h-7 text-[#FAF3E8]" />
             </div>
-          </div>
-        )}
-
-        {/* Action Cards - Natural Glassmorphism style */}
-        <div className="space-y-3 pb-4">
-          {actionCards.map((card, index) => {
-            const CardIcon = card.icon;
-            return (
-              <button
-                key={index}
-                onClick={() => navigate(card.path)}
-                className="w-full flex items-center gap-4 bg-[#FAF3E8]/85 backdrop-blur-md rounded-2xl p-4 shadow-lg shadow-black/15 border border-[#D4A574]/40 hover:bg-[#F5E6D3]/90 hover:shadow-xl hover:shadow-black/20 hover:scale-[1.01] transition-all text-right"
-              >
-                <div className={`w-14 h-14 ${card.iconBg} rounded-xl flex items-center justify-center flex-shrink-0 shadow-md`}>
-                  <span className="flex items-center justify-center">
-                    <CardIcon className={`w-7 h-7 ${card.iconColor}`} />
-                  </span>
-                </div>
-                <div className="flex-1 min-w-0">
-                  <h3 className="font-black text-lg text-[#3D2914]">{card.title}</h3>
-                  <p className="text-sm text-[#6B4423]">{card.description}</p>
-                </div>
-                <span className="flex items-center justify-center flex-shrink-0">
-                  <ArrowLeft className="w-5 h-5 text-[#8B5A2B]" />
-                </span>
-              </button>
-            );
-          })}
+            <div className="text-right">
+              <h3 className="font-black text-xl text-[#FAF3E8]">יוצאים להרפתקה חדשה</h3>
+              <p className="text-sm text-[#F5E6D3]/80">סיפור מותאם אישית לילד שלך ✨</p>
+            </div>
+          </button>
         </div>
       </div>
     </div>
