@@ -1,1 +1,31 @@
 project_id = "qvdwmkxviaqcgmjotsxe"
+
+[functions.generate-story]
+verify_jwt = false
+
+[functions.add-nikud]
+verify_jwt = false
+
+[functions.enhance-text]
+verify_jwt = false
+
+[functions.get-settings]
+verify_jwt = false
+
+[functions.get-signed-photo-url]
+verify_jwt = false
+
+[functions.preview-child-avatar]
+verify_jwt = false
+
+[functions.send-contact-form]
+verify_jwt = false
+
+[functions.track-event]
+verify_jwt = false
+
+[functions.send-password-reset]
+verify_jwt = false
+
+[functions.send-purchase-confirmation]
+verify_jwt = false
