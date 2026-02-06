@@ -359,17 +359,17 @@ const TopicStep = ({ formData, updateFormData }: TopicStepProps) => {
   };
 
   return (
-    <div className="space-y-5 -mx-3">
+    <div className="space-y-6 -mx-3">
       {/* Title */}
       <div className="text-center space-y-1 px-3">
-        <h1 className="text-2xl font-bold">בחרו את ההרפתקה</h1>
+        <h1 className="text-xl font-bold">בחרו את ההרפתקה</h1>
         <p className="text-muted-foreground text-sm">איזה סיפור תרצו ליצור היום?</p>
       </div>
 
       {/* Explanatory Text - How to use */}
-      <div className="px-3">
-        <p className="text-center text-sm text-muted-foreground bg-accent/50 rounded-xl py-3 px-4 border border-primary/20 font-medium">
-          ✨ ניתן לבחור נושא מובנה, לספר לנו מה עבר על הילד/ה, או לשלב את שניהם יחד לסיפור מותאם אישית
+      <div className="px-4">
+        <p className="text-center text-sm text-muted-foreground bg-muted/50 rounded-xl py-3 px-4 border border-border/50">
+          ✨ ניתן לבחור נושא מובנה, לספר לנו מה עבר על הילד/ה, או לשלב את שניהם יחד
         </p>
       </div>
 
