@@ -6,27 +6,27 @@
   :root {
     direction: rtl;
     
-    /* Natural Earth Tones Palette - Inspired by Sol & Tree */
-    --background: 45 40% 96%;
-    --foreground: 140 20% 20%;
+    /* Clean Natural Palette - Matching Landing Page */
+    --background: 40 30% 97%;
+    --foreground: 25 20% 20%;
 
-    --card: 45 30% 98%;
-    --card-foreground: 140 20% 20%;
+    --card: 0 0% 100%;
+    --card-foreground: 25 20% 20%;
 
-    --popover: 45 30% 98%;
-    --popover-foreground: 140 20% 20%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 25 20% 20%;
 
-    /* Soft Forest Green Primary */
-    --primary: 142 45% 42%;
+    /* Warm Orange Primary - From Landing Button */
+    --primary: 28 90% 55%;
     --primary-foreground: 0 0% 100%;
 
-    /* Warm Orange Secondary */
-    --secondary: 28 85% 55%;
-    --secondary-foreground: 0 0% 100%;
+    /* Soft Cream Secondary */
+    --secondary: 35 40% 92%;
+    --secondary-foreground: 25 20% 25%;
 
-    /* Warm Cream Accent */
-    --accent: 40 60% 90%;
-    --accent-foreground: 140 20% 20%;
+    /* Light Cream Accent */
+    --accent: 40 35% 95%;
+    --accent-foreground: 25 20% 20%;
 
     /* Success Green */
     --success: 142 70% 45%;
@@ -36,35 +36,35 @@
     --purple: 280 50% 60%;
     --purple-foreground: 0 0% 100%;
 
-    --muted: 45 25% 92%;
-    --muted-foreground: 140 10% 45%;
+    --muted: 40 20% 94%;
+    --muted-foreground: 25 15% 45%;
 
     --destructive: 0 84.2% 60.2%;
     --destructive-foreground: 210 40% 98%;
 
-    --border: 140 15% 85%;
-    --input: 140 15% 85%;
-    --ring: 142 45% 42%;
+    --border: 35 20% 88%;
+    --input: 35 20% 88%;
+    --ring: 28 90% 55%;
 
     --radius: 1rem;
 
     /* Soft Shadows */
-    --shadow-comic: 3px 3px 0px hsl(140 20% 30%);
-    --shadow-comic-lg: 5px 5px 0px hsl(140 20% 30%);
-    --shadow-soft: 0 10px 40px -10px hsl(140 20% 20% / 0.12);
+    --shadow-comic: 3px 3px 0px hsl(25 20% 30%);
+    --shadow-comic-lg: 5px 5px 0px hsl(25 20% 30%);
+    --shadow-soft: 0 10px 40px -10px hsl(25 20% 20% / 0.1);
 
     /* WhatsApp Green */
     --whatsapp: 142 70% 45%;
     --whatsapp-foreground: 0 0% 100%;
 
-    --sidebar-background: 45 30% 98%;
-    --sidebar-foreground: 140 15% 30%;
-    --sidebar-primary: 142 45% 42%;
+    --sidebar-background: 40 30% 98%;
+    --sidebar-foreground: 25 15% 30%;
+    --sidebar-primary: 28 90% 55%;
     --sidebar-primary-foreground: 0 0% 98%;
-    --sidebar-accent: 45 25% 95%;
-    --sidebar-accent-foreground: 140 15% 25%;
-    --sidebar-border: 140 10% 90%;
-    --sidebar-ring: 142 45% 42%;
+    --sidebar-accent: 40 25% 95%;
+    --sidebar-accent-foreground: 25 15% 25%;
+    --sidebar-border: 35 15% 90%;
+    --sidebar-ring: 28 90% 55%;
   }
 
   .dark {
