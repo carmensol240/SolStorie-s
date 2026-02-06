@@ -1,0 +1,417 @@
+import "https://deno.land/x/xhr@0.1.0/mod.ts";
+import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2.39.3";
+
+const corsHeaders = {
+  "Access-Control-Allow-Origin": "*",
+  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
+};
+
+// Character Profile interface for consistency across illustrations
+interface CharacterProfile {
+  gender: string;
+  genderHebrew: string;
+  hairDescription: string;
+  clothingDescription: string;
+  ageDescription: string;
+  skinTone: string;
+  eyeColor: string;
+}
+
+// Helper function to extract character profile from photo using AI
+async function extractCharacterProfile(
+  childPhoto: string,
+  childGender: string,
+  ageRange: string,
+  apiKey: string
+): Promise<CharacterProfile> {
+  try {
+    const genderHebrew = childGender === "female" ? "ילדה" : "ילד";
+    
+    const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${apiKey}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        model: "google/gemini-2.5-flash",
+        messages: [
+          {
+            role: "user",
+            content: [
+              { 
+                type: "text", 
+                text: `CRITICAL: Analyze this child's photo and extract detailed visual features for character consistency across a storybook.
+Return ONLY a JSON object with these exact fields:
+{
+  "hair_color": "specific color (e.g., dark brown, light blonde, black, auburn)",
+  "hair_style": "specific style (e.g., short curly, long straight with bangs, pigtails, buzz cut)",
+  "clothing_color": "primary clothing color",
+  "clothing_type": "type of clothing (e.g., red t-shirt, blue dress, green sweater)",
+  "skin_tone": "skin tone description (e.g., fair, medium, olive, dark)",
+  "eye_color": "eye color if visible (e.g., brown, blue, green)"
+}
+Be very specific and detailed. This profile will be used to ensure the character looks IDENTICAL in every illustration.
+Return only the JSON, no other text.`
+              },
+              { type: "image_url", image_url: { url: childPhoto } }
+            ]
+          }
+        ],
+      }),
+    });
+
+    if (!response.ok) {
+      console.error("Profile extraction failed, using defaults");
+      return getDefaultProfile(childGender, genderHebrew, ageRange);
+    }
+
+    const data = await response.json();
+    const content = data.choices?.[0]?.message?.content || "";
+    
+    try {
+      const cleanedContent = content.replace(/```json\n?/g, '').replace(/```\n?/g, '').trim();
+      const profile = JSON.parse(cleanedContent);
+      
+      return {
+        gender: childGender,
+        genderHebrew: genderHebrew,
+        hairDescription: `${profile.hair_color || "brown"} ${profile.hair_style || "hair"}`,
+        clothingDescription: `${profile.clothing_color || "colorful"} ${profile.clothing_type || "clothes"}`,
+        ageDescription: ageRange,
+        skinTone: profile.skin_tone || "medium",
+        eyeColor: profile.eye_color || "brown",
+      };
+    } catch {
+      console.log("Could not parse profile, using defaults");
+      return getDefaultProfile(childGender, genderHebrew, ageRange);
+    }
+  } catch (error) {
+    console.error("Error extracting character profile:", error);
+    return getDefaultProfile(childGender, genderHebrew, ageRange);
+  }
+}
+
+function getDefaultProfile(childGender: string, genderHebrew: string, ageRange: string): CharacterProfile {
+  return {
+    gender: childGender,
+    genderHebrew: genderHebrew,
+    hairDescription: childGender === "female" ? "long brown hair" : "short brown hair",
+    clothingDescription: "colorful casual clothes",
+    ageDescription: ageRange,
+    skinTone: "medium",
+    eyeColor: "brown",
+  };
+}
+
+// Helper function to generate illustration using Lovable AI with character consistency
+async function generateIllustration(
+  prompt: string,
+  childPhoto: string | null,
+  characterProfile: CharacterProfile | null,
+  apiKey: string,
+  adventureLogic?: { outfit: string; background: string; theme: string }
+): Promise<string | null> {
+  try {
+    const characterSeed = characterProfile 
+      ? `CHARACTER_SEED_${characterProfile.gender}_${characterProfile.hairDescription.replace(/\s+/g, '_')}_${characterProfile.skinTone}_${characterProfile.eyeColor}`.toUpperCase()
+      : "";
+    
+    const characterInstruction = characterProfile 
+      ? `
+=== 🔒 LOCKED CHARACTER PROFILE - DO NOT MODIFY ===
+CHARACTER SEED: ${characterSeed}
+
+The main character is a ${characterProfile.gender === "female" ? "girl" : "boy"} aged ${characterProfile.ageDescription}.
+
+MANDATORY APPEARANCE (MUST BE IDENTICAL IN EVERY FRAME):
+- Gender: ${characterProfile.gender === "female" ? "Female girl" : "Male boy"}
+- Hair: ${characterProfile.hairDescription} (EXACT color and style - never change!)
+- Skin: ${characterProfile.skinTone} skin tone (consistent across all lighting)
+- Eyes: ${characterProfile.eyeColor} eyes
+- Clothing: ${adventureLogic?.outfit || characterProfile.clothingDescription} (same outfit throughout!)
+
+⚠️ CRITICAL: This character MUST be visually IDENTICAL in every single illustration.
+The same child, same features, same clothing - as if photographed from different angles.
+Any deviation from this profile is a FAILURE.
+=== END LOCKED PROFILE ===
+`
+      : "";
+    
+    const adventureInstruction = adventureLogic
+      ? `
+=== ADVENTURE THEME REQUIREMENTS ===
+- Character outfit: ${adventureLogic.outfit}
+- Background/Setting: ${adventureLogic.background}
+- Theme/Mood: ${adventureLogic.theme}
+=== END ADVENTURE THEME ===
+`
+      : "";
+    
+    const stylePrefix = `In the style of modern 3D Disney-Pixar animation, high resolution, magical atmosphere, magical glowing light, dreamy warm and inviting atmosphere. Characters with large expressive emotional eyes, detailed hair, soft textures.`;
+    
+    const enhancedPrompt = `${stylePrefix}
+
+${characterInstruction}
+${adventureInstruction}
+SCENE TO ILLUSTRATE: ${prompt}
+
+STYLE REQUIREMENTS:
+- Modern 3D Disney-Pixar animation style (like Coco, Encanto, Inside Out)
+- Magical glowing light throughout the scene
+- Dreamy, warm, and inviting atmosphere
+- Characters with large, expressive emotional eyes
+- Detailed hair with realistic textures and flow
+- Soft, smooth character textures
+- Rich, vibrant colors with warm undertones
+- Professional children's book illustration quality
+- No text in the image
+- MAINTAIN CHARACTER CONSISTENCY: Same face shape, same features, same proportions`;
+
+    const requestBody: any = {
+      model: "google/gemini-3-pro-image-preview",
+      modalities: ["image", "text"],
+      messages: [
+        {
+          role: "user",
+          content: childPhoto
+            ? [
+                { type: "text", text: `Based on this child's photo, create a HIGH QUALITY 3D Disney-Pixar style illustration of them in this scene: ${enhancedPrompt}. CRITICAL: Keep the character's appearance (hair color, hair style, skin tone, clothing) IDENTICAL to the reference photo. This MUST look like a premium children's book illustration.` },
+                { type: "image_url", image_url: { url: childPhoto } }
+              ]
+            : enhancedPrompt
+        }
+      ]
+    };
+
+    console.log("Generating illustration...");
+
+    const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${apiKey}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(requestBody),
+    });
+
+    if (!response.ok) {
+      console.error("Image generation failed:", response.status);
+      return null;
+    }
+
+    const data = await response.json();
+    const imageUrl = data.choices?.[0]?.message?.images?.[0]?.image_url?.url;
+    
+    if (imageUrl) {
+      console.log("Illustration generated successfully");
+      return imageUrl;
+    }
+    
+    return null;
+  } catch (error) {
+    console.error("Error generating illustration:", error);
+    return null;
+  }
+}
+
+// Helper function to upload base64 image to Supabase Storage
+async function uploadImageToStorage(
+  supabase: any,
+  base64Data: string,
+  storyId: string,
+  pageNumber: number
+): Promise<string | null> {
+  try {
+    const base64Content = base64Data.includes(",") 
+      ? base64Data.split(",")[1] 
+      : base64Data;
+    
+    const binaryString = atob(base64Content);
+    const bytes = new Uint8Array(binaryString.length);
+    for (let i = 0; i < binaryString.length; i++) {
+      bytes[i] = binaryString.charCodeAt(i);
+    }
+
+    const fileName = `${storyId}/page-${pageNumber}.png`;
+    
+    const { data, error } = await supabase.storage
+      .from("story-illustrations")
+      .upload(fileName, bytes, {
+        contentType: "image/png",
+        upsert: true,
+      });
+
+    if (error) {
+      console.error("Error uploading image:", error);
+      return null;
+    }
+
+    const { data: urlData } = supabase.storage
+      .from("story-illustrations")
+      .getPublicUrl(fileName);
+
+    console.log("Image uploaded successfully:", urlData.publicUrl);
+    return urlData.publicUrl;
+  } catch (error) {
+    console.error("Error in uploadImageToStorage:", error);
+    return null;
+  }
+}
+
+serve(async (req) => {
+  if (req.method === "OPTIONS") {
+    return new Response(null, { headers: corsHeaders });
+  }
+
+  try {
+    // This function is called internally by generate-story, so we use service role
+    const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
+    const supabaseServiceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
+    
+    const supabase = createClient(supabaseUrl, supabaseServiceKey);
+
+    const { storyId, childPhoto, childAvatarUrl, childGender, ageRange, adventureLogic } = await req.json();
+
+    if (!storyId) {
+      return new Response(
+        JSON.stringify({ error: "Missing storyId" }),
+        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
+    console.log(`Starting illustration generation for story ${storyId}`);
+
+    // Get the story pages
+    const { data: pages, error: pagesError } = await supabase
+      .from("story_pages")
+      .select("*")
+      .eq("story_id", storyId)
+      .order("page_number", { ascending: true });
+
+    if (pagesError || !pages || pages.length === 0) {
+      console.error("Error fetching pages:", pagesError);
+      
+      // Update story status to failed
+      await supabase
+        .from("stories")
+        .update({ generation_status: "failed" })
+        .eq("id", storyId);
+      
+      return new Response(
+        JSON.stringify({ error: "Story pages not found" }),
+        { status: 404, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
+    const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
+    if (!LOVABLE_API_KEY) {
+      throw new Error("LOVABLE_API_KEY is not configured");
+    }
+
+    // Use avatar URL if available, otherwise use original photo
+    const effectivePhoto = childAvatarUrl || childPhoto;
+
+    // Extract character profile for consistency if photo is provided
+    let characterProfile: CharacterProfile | null = null;
+    if (effectivePhoto) {
+      console.log("Extracting character profile...");
+      characterProfile = await extractCharacterProfile(effectivePhoto, childGender || "male", ageRange || "3-6", LOVABLE_API_KEY);
+      console.log("Character profile extracted:", characterProfile);
+    }
+
+    // Generate illustrations ONE BY ONE to avoid timeout and allow incremental updates
+    let firstIllustrationUrl: string | null = null;
+
+    for (const page of pages) {
+      console.log(`Generating illustration for page ${page.page_number}...`);
+      
+      const base64Image = await generateIllustration(
+        page.illustration_prompt || `A cheerful children's book illustration for page ${page.page_number}`,
+        effectivePhoto,
+        characterProfile,
+        LOVABLE_API_KEY,
+        adventureLogic
+      );
+
+      let illustrationUrl = null;
+      
+      if (base64Image) {
+        illustrationUrl = await uploadImageToStorage(
+          supabase,
+          base64Image,
+          storyId,
+          page.page_number
+        );
+      }
+
+      // Update this page immediately
+      if (illustrationUrl) {
+        const { error: updateError } = await supabase
+          .from("story_pages")
+          .update({ illustration_url: illustrationUrl })
+          .eq("id", page.id);
+
+        if (updateError) {
+          console.error(`Error updating page ${page.page_number}:`, updateError);
+        } else {
+          console.log(`Page ${page.page_number} illustration saved`);
+        }
+
+        // Save first illustration as cover
+        if (page.page_number === 1) {
+          firstIllustrationUrl = illustrationUrl;
+          await supabase
+            .from("stories")
+            .update({ cover_url: illustrationUrl })
+            .eq("id", storyId);
+        }
+      }
+    }
+
+    // Update story status to ready
+    const { error: statusError } = await supabase
+      .from("stories")
+      .update({ generation_status: "ready" })
+      .eq("id", storyId);
+
+    if (statusError) {
+      console.error("Error updating story status:", statusError);
+    }
+
+    console.log(`Story ${storyId} illustrations completed!`);
+
+    return new Response(
+      JSON.stringify({ 
+        success: true,
+        storyId,
+        message: "Illustrations generated successfully" 
+      }),
+      { headers: { ...corsHeaders, "Content-Type": "application/json" } }
+    );
+
+  } catch (error) {
+    console.error("Error in generate-illustrations:", error);
+    
+    // Try to update story status to failed
+    try {
+      const { storyId } = await req.json();
+      if (storyId) {
+        const supabase = createClient(
+          Deno.env.get("SUPABASE_URL")!,
+          Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!
+        );
+        await supabase
+          .from("stories")
+          .update({ generation_status: "failed" })
+          .eq("id", storyId);
+      }
+    } catch {}
+    
+    return new Response(
+      JSON.stringify({ error: "Error generating illustrations" }),
+      { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+    );
+  }
+});

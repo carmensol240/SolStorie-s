@@ -282,7 +282,7 @@ const GeneratingStep = ({ formData, onComplete }: GeneratingStepProps) => {
       {/* Tip Card with theme colors */}
       <div className="bg-white/80 backdrop-blur-sm rounded-xl p-4 shadow-md border border-purple-200 max-w-xs">
         <p className="text-sm text-purple-700">
-          💡 <strong className="text-purple-800">טיפ:</strong> התהליך לוקח בערך 1-2 דקות. בינתיים תוכלו להכין כוס קפה ☕
+          💡 <strong className="text-purple-800">טיפ:</strong> הטקסט נוצר תוך שניות! האיורים יופיעו בזמן שתקראו ✨
         </p>
       </div>
     </div>
