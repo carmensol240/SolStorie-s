@@ -41,7 +41,8 @@ serve(async (req) => {
     // Rate limit by user ID (more reliable than IP)
     const rateLimit = checkRateLimit(user.id, "enhance-text", RATE_LIMITS.aiFunction);
     if (!rateLimit.allowed) {
-      console.log(`Enhance text rate limit exceeded for user: ${user.id}`);
+      // Mask user ID in logs to protect PII
+      console.log(`Enhance text rate limit exceeded for user: ${user.id.substring(0, 8)}...`);
       return rateLimitResponse(rateLimit, corsHeaders, "יותר מדי בקשות. נסה שוב מאוחר יותר.");
     }
 
