@@ -374,7 +374,7 @@ const TopicStep = ({ formData, updateFormData }: TopicStepProps) => {
       </div>
 
       {/* NLP Smart Input - At Top */}
-      <div className="space-y-3 px-3 bg-gradient-to-r from-primary/5 via-primary/10 to-primary/5 py-4 rounded-2xl mx-3 border border-primary/20">
+      <div className="space-y-3 px-3 bg-gradient-to-r from-primary/5 via-primary/10 to-primary/5 py-4 rounded-xl mx-3 border border-primary/20">
         <div className="flex items-center gap-2 justify-center">
           <Brain className="w-5 h-5 text-primary" />
           <Label className="text-base font-bold text-primary">
@@ -387,10 +387,10 @@ const TopicStep = ({ formData, updateFormData }: TopicStepProps) => {
           value={formData.customTopic}
           onChange={(e) => handleCustomTopicChange(e.target.value)}
           className={cn(
-            "min-h-20 text-base bg-background border-2 rounded-xl resize-none",
+            "min-h-20 text-base bg-card border-2 rounded-xl resize-none font-medium",
             formData.customTopic.trim() 
               ? "border-primary" 
-              : "border-foreground/10"
+              : "border-border"
           )}
           dir="rtl"
         />
