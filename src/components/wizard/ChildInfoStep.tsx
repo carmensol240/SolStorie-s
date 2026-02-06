@@ -361,10 +361,10 @@ const ChildInfoStep = ({ formData, updateFormData }: ChildInfoStepProps) => {
                 type="button"
                 onClick={() => loadChildProfile(child)}
                 className={cn(
-                  "px-4 py-2.5 rounded-2xl border-2 transition-all flex items-center gap-2 text-sm font-bold",
+                  "px-4 py-2 rounded-xl border-2 transition-all flex items-center gap-2 text-sm font-medium",
                   formData.childName === child.name
-                    ? "border-secondary bg-secondary/15 text-secondary"
-                    : "border-border bg-card hover:border-secondary/50"
+                    ? "border-primary bg-primary/10 text-primary"
+                    : "border-border bg-card hover:border-primary/30"
                 )}
               >
                 <span>{child.gender === "female" ? "👧" : "👦"}</span>
