@@ -868,7 +868,7 @@ ${adventureLogic ? `
 
     // Fire-and-forget: Trigger illustration generation in background
     // This function will run separately and update the pages with illustrations
-    const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
+    // Note: supabaseUrl is already defined above at line ~465, reusing it
     const serviceRoleKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
     
     fetch(`${supabaseUrl}/functions/v1/generate-illustrations`, {
