@@ -431,13 +431,13 @@ const ChildInfoStep = ({ formData, updateFormData }: ChildInfoStepProps) => {
               key={button.id}
               onClick={() => handleAgeButtonSelect(button.id)}
               className={cn(
-                "p-4 rounded-2xl border-2 transition-all text-center",
+                "p-3 rounded-xl border-2 transition-all text-center",
                 selectedAgeButton === button.id
-                  ? "border-primary bg-primary text-primary-foreground font-bold"
-                  : "border-border bg-card hover:border-primary/50"
+                  ? "border-secondary bg-secondary text-secondary-foreground font-bold shadow-md"
+                  : "border-border bg-card hover:border-secondary/50"
               )}
             >
-              <span className="text-xl font-bold">{button.label}</span>
+              <span className="text-lg font-bold">{button.label}</span>
             </button>
           ))}
         </div>
