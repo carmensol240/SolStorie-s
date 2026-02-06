@@ -453,7 +453,7 @@ const StoryViewer = () => {
                       <div className="rounded-2xl overflow-hidden shadow-2xl border-4 border-[#D4A574] transform hover:scale-[1.02] transition-transform duration-300">
                         <img
                           src={story.pages[0].illustration_url}
-                          alt={`איור הסיפור של ${story.child_name}`}
+                          alt=""
                           className="w-full aspect-[4/5] object-cover"
                         />
                       </div>
@@ -514,7 +514,7 @@ const StoryViewer = () => {
                     <div className="rounded-xl overflow-hidden shadow-xl border-4 border-[#D4A574]">
                       <img
                         src={story.pages[0].illustration_url}
-                        alt={`איור מהסיפור של ${story.child_name}`}
+                        alt=""
                         className="w-full aspect-[3/4] object-cover"
                       />
                     </div>
@@ -571,7 +571,7 @@ const StoryViewer = () => {
                       <div className="relative rounded-2xl overflow-hidden shadow-2xl border-4 border-[#E8D5C4]">
                         <img
                           src={page.illustration_url}
-                          alt={`איור לעמוד ${page.page_number} - סגנון דיסני פיקסאר`}
+                          alt=""
                           className="w-full aspect-[4/5] object-cover"
                           loading="lazy"
                         />

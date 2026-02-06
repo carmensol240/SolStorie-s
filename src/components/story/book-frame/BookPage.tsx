@@ -39,7 +39,7 @@ export const BookPage: React.FC<BookPageProps> = ({
             <div className="relative rounded-lg overflow-hidden shadow-xl border-4 border-[#E8D5C4]">
               <img
                 src={illustrationUrl}
-                alt={`איור לעמוד ${pageNumber}`}
+                alt=""
                 className="w-full aspect-[4/5] object-cover"
                 loading="lazy"
               />
