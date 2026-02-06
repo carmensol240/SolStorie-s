@@ -35,22 +35,22 @@ const GuestLanding = () => {
       icon: <span className="flex items-center justify-center"><Sparkles className="w-3.5 h-3.5 text-white" aria-hidden="true" /></span>,
       title: "טכנולוגיית NLP מתקדמת",
       subtitle: "ליצירת תוכן חינוכי מדוייק ומותאם אישית",
-      gradientFrom: "from-purple-500",
-      gradientTo: "to-pink-500",
+      gradientFrom: "from-[#8B5A2B]",
+      gradientTo: "to-[#6B4423]",
     },
     {
       icon: <span className="flex items-center justify-center"><Users className="w-3.5 h-3.5 text-white" aria-hidden="true" /></span>,
       title: "חיזוק מיומנויות תקשורת",
       subtitle: "והבנה חברתית, מותאם גם לילדים על הרצף האוטיסטי",
-      gradientFrom: "from-amber-500",
-      gradientTo: "to-orange-500",
+      gradientFrom: "from-[#D4A574]",
+      gradientTo: "to-[#C4956B]",
     },
     {
       icon: <span className="flex items-center justify-center"><Star className="w-3.5 h-3.5 text-white" aria-hidden="true" /></span>,
       title: "סיפורים מעצימים",
       subtitle: "לבניית ביטחון עצמי ודימוי עצמי חיובי בדמות הילד",
-      gradientFrom: "from-pink-500",
-      gradientTo: "to-rose-500",
+      gradientFrom: "from-[#A08060]",
+      gradientTo: "to-[#8B7355]",
     },
   ];
 
@@ -78,13 +78,13 @@ const GuestLanding = () => {
 
         {/* Title Section - transparent */}
         <div className="text-center space-y-1 mb-2 py-2 px-4 mx-auto">
-          <h2 className="text-2xl font-black text-purple-700 flex items-center justify-center gap-2 drop-shadow-lg">
+          <h2 className="text-2xl font-black text-[#5D3A1A] flex items-center justify-center gap-2 drop-shadow-lg">
             <span className="flex items-center justify-center">
-              <Sparkles className="w-5 h-5 text-pink-400" aria-hidden="true" />
+              <Sparkles className="w-5 h-5 text-[#D4A574]" aria-hidden="true" />
             </span>
             סיפורים קסומים
             <span className="flex items-center justify-center">
-              <Sparkles className="w-5 h-5 text-orange-400" aria-hidden="true" />
+              <Sparkles className="w-5 h-5 text-[#D4A574]" aria-hidden="true" />
             </span>
           </h2>
           <p className="text-lg text-white font-bold text-center w-full drop-shadow-md">הילד שלכם כגיבור הסיפור!</p>
@@ -100,10 +100,10 @@ const GuestLanding = () => {
           ))}
         </div>
 
-        {/* Login/Register CTA - Gradient style */}
+        {/* Login/Register CTA - Natural Earth Tone Gradient */}
         <Link
           to="/auth"
-          className="w-full bg-gradient-to-r from-orange-400 via-pink-500 to-purple-600 hover:from-orange-500 hover:via-pink-600 hover:to-purple-700 text-white font-black text-base py-4 rounded-full shadow-xl shadow-black/25 hover:shadow-2xl hover:scale-[1.02] transition-all mb-2 text-center flex items-center justify-center gap-2"
+          className="w-full bg-gradient-to-r from-[#8B5A2B] via-[#A07046] to-[#6B4423] hover:from-[#6B4423] hover:via-[#8B5A2B] hover:to-[#5D3A1A] text-white font-black text-base py-4 rounded-full shadow-xl shadow-black/25 hover:shadow-2xl hover:scale-[1.02] transition-all mb-2 text-center flex items-center justify-center gap-2"
         >
           להתחברות והרשמה לחצו כאן
           <span className="flex items-center justify-center">
