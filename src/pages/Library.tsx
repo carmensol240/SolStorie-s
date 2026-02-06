@@ -1,6 +1,6 @@
 import { useState, useEffect, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
-import { ArrowRight, Plus, Coins } from "lucide-react";
+import { ArrowRight, Plus, Coins, Wand2 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import MobileNavigation from "@/components/MobileNavigation";
@@ -222,7 +222,10 @@ const Library = () => {
               </button>
             </div>
             {/* Right: Title */}
-            <h1 className="text-xl font-black text-[#5D3A1A]">הספרייה הקסומה שלי</h1>
+            <h1 className="text-xl font-black flex items-center gap-2">
+              <span className="bg-gradient-to-r from-purple-600 via-pink-500 to-orange-400 bg-clip-text text-transparent">הספרייה הקסומה שלי</span>
+              <Wand2 className="w-5 h-5 text-purple-500" />
+            </h1>
           </div>
         </div>
 
