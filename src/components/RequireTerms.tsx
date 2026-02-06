@@ -27,9 +27,14 @@ const RequireTerms = ({ children }: RequireTermsProps) => {
       if (authLoading) return;
       
       if (!user) {
+        // Only store path if it's a relative path (prevent open redirect)
         const currentPath = window.location.pathname + window.location.search;
-        localStorage.setItem('returnTo', currentPath);
-        navigate(`/auth?returnTo=${encodeURIComponent(currentPath)}`);
+        if (currentPath.startsWith('/') && !currentPath.startsWith('//')) {
+          localStorage.setItem('returnTo', currentPath);
+          navigate(`/auth?returnTo=${encodeURIComponent(currentPath)}`);
+        } else {
+          navigate('/auth');
+        }
         return;
       }
 

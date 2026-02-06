@@ -32,9 +32,14 @@ const LegalConsent = () => {
 
   const canSubmit = hasReadTerms && isParentConsent;
   
-  // Get return URL from params or localStorage
+  // Get return URL from params or localStorage (with open redirect protection)
   const getReturnTo = () => {
-    return searchParams.get('returnTo') || localStorage.getItem('returnTo') || '/library';
+    const returnTo = searchParams.get('returnTo') || localStorage.getItem('returnTo') || '/library';
+    // Only allow relative paths starting with / but not // (protocol-relative)
+    if (returnTo.startsWith('/') && !returnTo.startsWith('//')) {
+      return returnTo;
+    }
+    return '/library';
   };
 
   // Redirect if not logged in

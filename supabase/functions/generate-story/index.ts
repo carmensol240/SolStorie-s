@@ -768,14 +768,14 @@ ${adventureLogic ? `
       }
       const errorText = await response.text();
       console.error("AI Gateway error:", response.status, errorText);
-      throw new Error(`AI Gateway error: ${response.status}`);
+      throw new Error("שגיאה ביצירת הסיפור. נסו שוב מאוחר יותר.");
     }
 
     const aiData = await response.json();
     const content = aiData.choices?.[0]?.message?.content;
     
     if (!content) {
-      throw new Error("No content received from AI");
+      throw new Error("שגיאה ביצירת הסיפור. נסו שוב.");
     }
 
     console.log("AI response received, parsing...");
@@ -931,10 +931,12 @@ ${adventureLogic ? `
 
   } catch (error) {
     console.error("Error in generate-story:", error);
+    // Return generic error message to client, keep details in server logs
+    const userMessage = error instanceof Error && error.message.startsWith("שגיאה") 
+      ? error.message 
+      : "שגיאה בעיבוד הבקשה. נסו שוב מאוחר יותר.";
     return new Response(
-      JSON.stringify({ 
-        error: error instanceof Error ? error.message : "Unknown error occurred" 
-      }),
+      JSON.stringify({ error: userMessage }),
       { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
   }
