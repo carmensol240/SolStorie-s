@@ -408,17 +408,14 @@ const StoryViewer = () => {
     <div className="min-h-screen bg-gradient-to-b from-[#E8D5C4] to-[#D4C4B0] flex flex-col" dir="rtl">
       <OfflineIndicator isOnline={isOnline} />
       
-      {/* Header */}
+      {/* Header - Clean toolbar with essentials only */}
       <BookHeader
         onBack={() => navigate("/library")}
         onShare={handleShare}
         onDownload={() => setShowPdfFormatDialog(true)}
-        onDigitalBook={handleCreateDigitalBook}
         onToggleFontSize={() => setFontSizeIndex((fontSizeIndex + 1) % FONT_SIZES.length)}
         onEdit={showPageActions ? handleEditClick : undefined}
         onAddNikud={showPageActions ? handleAddNikud : undefined}
-        onDraw={showPageActions ? handleDrawingOpen : undefined}
-        onRate={handleRateStory}
         onReport={handleReportIssue}
         fontSizeLabel={currentFontSize.label}
         isExporting={isExporting}

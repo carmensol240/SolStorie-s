@@ -26,7 +26,7 @@ interface BookHeaderProps {
   onBack: () => void;
   onShare: () => void;
   onDownload: () => void;
-  onDigitalBook: () => void;
+  onDigitalBook?: () => void;
   onToggleFontSize: () => void;
   onEdit?: () => void;
   onRate?: () => void;
@@ -43,13 +43,13 @@ export const BookHeader: React.FC<BookHeaderProps> = ({
   onBack,
   onShare,
   onDownload,
-  onDigitalBook,
+  // onDigitalBook removed - feature disabled
   onToggleFontSize,
   onEdit,
-  onRate,
+  // onRate removed - feature disabled
   onReport,
   onAddNikud,
-  onDraw,
+  // onDraw removed - not in essential list
   fontSizeLabel,
   isExporting = false,
   isAddingNikud = false,
@@ -74,7 +74,7 @@ export const BookHeader: React.FC<BookHeaderProps> = ({
           <TooltipContent side="bottom">חזרה לספרייה</TooltipContent>
         </Tooltip>
 
-        {/* Center Actions */}
+        {/* Center Actions - Essentials Only */}
         <div className="flex items-center gap-1 md:gap-2">
           {/* Font Size Toggle */}
           <Tooltip>
@@ -90,22 +90,6 @@ export const BookHeader: React.FC<BookHeaderProps> = ({
               </Button>
             </TooltipTrigger>
             <TooltipContent side="bottom">שנה גודל טקסט ({fontSizeLabel})</TooltipContent>
-          </Tooltip>
-
-          {/* Digital Book */}
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={onDigitalBook}
-                className="text-[#F5E6D3] hover:bg-white/10 min-h-[44px] min-w-[44px] p-2"
-                aria-label="ספרון דיגיטלי"
-              >
-                <Book className="w-5 h-5" />
-              </Button>
-            </TooltipTrigger>
-            <TooltipContent side="bottom">הפוך לספרון דיגיטלי לשיתוף</TooltipContent>
           </Tooltip>
 
           {/* Download PDF */}
@@ -178,20 +162,8 @@ export const BookHeader: React.FC<BookHeaderProps> = ({
                       <span>{isAddingNikud ? 'מוסיף ניקוד...' : 'הוסף ניקוד'}</span>
                     </DropdownMenuItem>
                   )}
-                  {onDraw && (
-                    <DropdownMenuItem onClick={onDraw} className="gap-2 cursor-pointer">
-                      <span>🎨</span>
-                      <span>ציור על העמוד</span>
-                    </DropdownMenuItem>
-                  )}
                   <DropdownMenuSeparator />
                 </>
-              )}
-              {onRate && (
-                <DropdownMenuItem onClick={onRate} className="gap-2 cursor-pointer">
-                  <span>⭐</span>
-                  <span>דרג סיפור</span>
-                </DropdownMenuItem>
               )}
               {onReport && (
                 <DropdownMenuItem onClick={onReport} className="gap-2 cursor-pointer text-destructive">

@@ -14,7 +14,7 @@ import { useOfflineStorage } from "@/hooks/use-offline-storage";
 import { useCredits } from "@/hooks/use-credits";
 import { useReferral } from "@/hooks/use-referral";
 import { useChildAvatar } from "@/hooks/use-child-avatar";
-import girlReadingBed from "@/assets/girl-reading-bed.jpg";
+// Removed girl-reading-bed import - no longer used
 
 interface StoryPage {
   illustration_url: string | null;
@@ -194,17 +194,17 @@ const Library = () => {
   };
 
   return (
-    <div className="h-screen h-[100dvh] bg-background bg-halftone pb-20 overflow-y-auto overscroll-contain">
+    <div className="h-screen h-[100dvh] bg-background pb-20 overflow-y-auto overscroll-contain">
       <OfflineIndicator isOnline={isOnline} />
       
       <div className="container max-w-lg mx-auto px-3 py-3">
-        {/* Header with Avatar + Credits */}
-        <div className="bg-card border-b-2 border-foreground/10 p-3 -mx-3 -mt-3 mb-3">
+        {/* Header with Avatar + Credits - Natural Earth Tones */}
+        <div className="bg-gradient-to-r from-[#FAF3E8] to-[#F5E6D3] border-b-2 border-[#D4C4B0] p-4 -mx-3 -mt-3 mb-4 shadow-sm">
           <div className="flex items-center justify-between">
-            {/* Left: Avatar + Credits */}
-            <div className="flex items-center gap-1.5">
+            {/* Left: Avatar + Credits - ENLARGED */}
+            <div className="flex items-center gap-3">
               {avatarUrl && (
-                <div className="w-7 h-7 rounded-full overflow-hidden border-2 border-primary shadow-sm">
+                <div className="w-12 h-12 rounded-full overflow-hidden border-3 border-[#8B5A2B] shadow-lg">
                   <img 
                     src={avatarUrl} 
                     alt="דמות הילד" 
@@ -214,15 +214,15 @@ const Library = () => {
               )}
               <button 
                 onClick={() => navigate("/upgrade")}
-                className="flex items-center gap-1.5 bg-amber-50 dark:bg-amber-950/30 rounded-full px-2 py-1 hover:bg-amber-100 dark:hover:bg-amber-900/40 transition-colors"
+                className="flex items-center gap-2 bg-[#FAF3E8] border-2 border-[#D4A574] rounded-full px-4 py-2 hover:bg-[#F5E6D3] transition-colors shadow-md"
                 aria-label="צפה בקרדיטים ושדרג"
               >
-                <Coins className="w-3.5 h-3.5 text-amber-500" aria-hidden="true" />
-                <span className="font-semibold text-amber-700 dark:text-amber-400 text-xs">{totalCredits}</span>
+                <Coins className="w-6 h-6 text-[#8B5A2B]" aria-hidden="true" />
+                <span className="font-bold text-[#5D3A1A] text-lg">{totalCredits}</span>
               </button>
             </div>
             {/* Right: Title */}
-            <h1 className="text-lg font-bold">הספרייה הקסומה שלי</h1>
+            <h1 className="text-xl font-black text-[#5D3A1A]">הספרייה הקסומה שלי</h1>
           </div>
         </div>
 
@@ -308,21 +308,14 @@ const Library = () => {
 
 const EmptyState = ({ onCreateClick }: { onCreateClick: () => void }) => (
   <div className="text-center py-8 space-y-6">
-    <div className="w-48 h-48 mx-auto rounded-2xl overflow-hidden shadow-lg border-4 border-primary/20">
-      <img 
-        src={girlReadingBed} 
-        alt="ילדה קוראת סיפור" 
-        className="w-full h-full object-cover"
-      />
-    </div>
     <div className="space-y-2">
-      <h2 className="text-xl font-bold">עדיין אין לכם סיפורים</h2>
-      <p className="text-muted-foreground">צרו את הסיפור הראשון שלכם עכשיו!</p>
+      <h2 className="text-2xl font-black text-[#5D3A1A]">הספרייה שלך מחכה לסיפור הראשון!</h2>
+      <p className="text-[#6B4423]">בואו נתחיל?</p>
     </div>
     <Button
       onClick={onCreateClick}
       size="lg"
-      className="bg-primary hover:bg-primary/90 text-primary-foreground font-bold px-8 py-6 rounded-2xl comic-shadow"
+      className="bg-gradient-to-r from-[#8B5A2B] to-[#6B4423] hover:from-[#6B4423] hover:to-[#5D3A1A] text-white font-bold px-8 py-6 rounded-2xl shadow-lg"
     >
       <Plus className="w-5 h-5 ml-2" />
       צרו סיפור חדש
