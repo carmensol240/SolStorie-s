@@ -269,9 +269,14 @@ const Upgrade = () => {
           </div>
         
           {/* Credit Card Note - More prominent */}
-          <p className="text-sm text-center text-foreground font-bold mb-2">
-            💳 ניתן לשלם בכרטיס אשראי גם ללא חשבון PayPal
-          </p>
+          <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 mb-3">
+            <p className="text-sm text-center text-blue-800 font-bold flex items-center justify-center gap-2">
+              💳 ניתן לשלם בכרטיס אשראי גם ללא חשבון PayPal
+            </p>
+            <p className="text-xs text-center text-blue-600 mt-1">
+              Visa, Mastercard, American Express ועוד
+            </p>
+          </div>
 
           {/* Earn Free Section - Compact but visible */}
           <div className="bg-gradient-to-l from-secondary/20 via-primary/10 to-accent/20 rounded-xl p-3 border border-foreground/10">
