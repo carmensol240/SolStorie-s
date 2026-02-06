@@ -613,7 +613,7 @@ const ChildInfoStep = ({ formData, updateFormData }: ChildInfoStepProps) => {
         type="button"
         onClick={handleSaveChildProfile}
         disabled={isSavingChild || !formData.childName.trim()}
-        className="w-full h-12 bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70 text-primary-foreground font-bold rounded-2xl"
+        className="w-full h-12 bg-gradient-to-r from-secondary via-pink-500 to-purple-600 hover:from-secondary/90 hover:via-pink-600 hover:to-purple-700 text-white font-black rounded-xl shadow-lg hover:shadow-xl transition-all"
       >
         {isSavingChild ? (
           <Loader2 className="w-5 h-5 animate-spin ml-2" />
