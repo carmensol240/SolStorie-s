@@ -1,9 +1,18 @@
+import React from "react";
 import { Wand2, Coins, BookOpen, ArrowLeft, Gift } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useCredits } from "@/hooks/use-credits";
 import { useReferral } from "@/hooks/use-referral";
 import { useChildAvatar } from "@/hooks/use-child-avatar";
 import heroBackground from "@/assets/hero-child-reading.jpg";
+
+// Wrapper to forward refs for Lucide icons (prevents "Function components cannot be given refs" warning)
+const IconWrapper = React.forwardRef<SVGSVGElement, { icon: React.ComponentType<any>; className?: string }>(
+  ({ icon: Icon, className, ...props }, ref) => (
+    <Icon ref={ref} className={className} {...props} />
+  )
+);
+IconWrapper.displayName = "IconWrapper";
 
 interface LoggedInHomeProps {
   user: any;
@@ -62,12 +71,12 @@ const LoggedInHome = ({ user, displayName }: LoggedInHomeProps) => {
 
       {/* Content Container */}
       <div className="relative z-10 flex-1 flex flex-col">
-        {/* Header - Greeting on Right, Credits on Left (RTL) */}
-        <header className="flex items-center justify-between mb-4">
-          {/* Left side: Credits + Avatar */}
+        {/* Header - Greeting on Right, Credits on Left (RTL) with more padding */}
+        <header className="flex items-center justify-between mb-4 px-2 pt-2">
+          {/* Left side: Credits + Avatar - larger size */}
           <div className="flex items-center gap-3">
             {avatarUrl && (
-              <div className="w-10 h-10 rounded-full overflow-hidden border-2 border-white shadow-lg">
+              <div className="w-12 h-12 rounded-full overflow-hidden border-2 border-white shadow-lg">
                 <img 
                   src={avatarUrl} 
                   alt="דמות הילד" 
@@ -77,16 +86,16 @@ const LoggedInHome = ({ user, displayName }: LoggedInHomeProps) => {
             )}
             <button 
               onClick={() => navigate("/upgrade")}
-              className="flex items-center gap-2 bg-white/90 backdrop-blur-sm rounded-full px-4 py-2 hover:bg-white transition-colors shadow-lg"
+              className="flex items-center gap-2 bg-white/90 backdrop-blur-sm rounded-full px-5 py-3 hover:bg-white transition-colors shadow-lg"
               aria-label="צפה בקרדיטים ושדרג"
             >
-              <Coins className="w-5 h-5 text-amber-500" aria-hidden="true" />
-              <span className="font-bold text-amber-700 text-lg">{totalCredits}</span>
+              <IconWrapper icon={Coins} className="w-6 h-6 text-amber-500" aria-hidden="true" />
+              <span className="font-bold text-amber-700 text-xl">{totalCredits}</span>
             </button>
           </div>
-          {/* Right side: Greeting */}
-          <div className="bg-black/40 backdrop-blur-sm rounded-full px-5 py-2 shadow-lg">
-            <h1 className="text-xl font-black text-white drop-shadow-md">
+          {/* Right side: Greeting - larger font */}
+          <div className="bg-black/40 backdrop-blur-sm rounded-full px-6 py-3 shadow-lg">
+            <h1 className="text-2xl font-black text-white drop-shadow-md">
               שלום, {displayName || user?.email?.split('@')[0] || "משתמש"} 👋
             </h1>
           </div>
@@ -108,7 +117,7 @@ const LoggedInHome = ({ user, displayName }: LoggedInHomeProps) => {
           </div>
         )}
 
-        {/* Action Cards - At Bottom with Transparent Shadows */}
+        {/* Action Cards - Glassmorphism style */}
         <div className="space-y-3 pb-4">
           {actionCards.map((card, index) => {
             const Icon = card.icon;
@@ -116,16 +125,16 @@ const LoggedInHome = ({ user, displayName }: LoggedInHomeProps) => {
               <button
                 key={index}
                 onClick={() => navigate(card.path)}
-                className="w-full flex items-center gap-4 bg-white/80 backdrop-blur-lg rounded-2xl p-4 shadow-lg shadow-black/15 border border-white/40 hover:shadow-xl hover:shadow-black/20 hover:scale-[1.01] hover:bg-white/90 transition-all text-right"
+                className="w-full flex items-center gap-4 bg-white/40 backdrop-blur-md rounded-2xl p-4 shadow-lg shadow-black/15 border border-white/30 hover:bg-white/60 hover:shadow-xl hover:shadow-black/20 hover:scale-[1.01] transition-all text-right"
               >
                 <div className={`w-14 h-14 ${card.iconBg} rounded-xl flex items-center justify-center flex-shrink-0 shadow-md`}>
-                  <Icon className={`w-7 h-7 ${card.iconColor}`} aria-hidden="true" />
+                  <IconWrapper icon={Icon} className={`w-7 h-7 ${card.iconColor}`} aria-hidden="true" />
                 </div>
                 <div className="flex-1 min-w-0">
                   <h3 className="font-black text-lg text-foreground">{card.title}</h3>
                   <p className="text-sm text-muted-foreground">{card.description}</p>
                 </div>
-                <ArrowLeft className="w-5 h-5 text-muted-foreground flex-shrink-0" aria-hidden="true" />
+                <IconWrapper icon={ArrowLeft} className="w-5 h-5 text-muted-foreground flex-shrink-0" aria-hidden="true" />
               </button>
             );
           })}
