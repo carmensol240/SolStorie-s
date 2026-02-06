@@ -66,7 +66,7 @@ serve(async (req) => {
       story_id: story_id || null,
       page_number: page_number ?? null,
       time_spent_seconds: time_spent_seconds ?? null,
-      metadata: metadata || null,
+      metadata: validatedMetadata,
     })
 
     if (error) {
