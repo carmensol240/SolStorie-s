@@ -15,6 +15,7 @@ import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { ArrowRight, Mail, Send, Loader2, CheckCircle } from "lucide-react";
 import { z } from "zod";
+import { cn } from "@/lib/utils";
 
 const contactSchema = z.object({
   name: z
@@ -112,18 +113,18 @@ const Contact = () => {
 
   if (isSuccess) {
     return (
-      <div className="min-h-screen bg-gradient-to-b from-amber-50/50 to-white" dir="rtl">
+      <div className="min-h-screen bg-gradient-to-b from-purple-50/50 to-white" dir="rtl">
         <div className="container max-w-lg mx-auto px-4 py-16">
-          <div className="bg-card rounded-2xl border shadow-sm p-8 text-center">
-            <div className="inline-flex items-center justify-center w-20 h-20 rounded-full bg-green-100 mb-6">
-              <CheckCircle className="w-10 h-10 text-green-600" />
+          <div className="bg-card rounded-2xl border border-purple-200 shadow-sm p-8 text-center">
+            <div className="inline-flex items-center justify-center w-20 h-20 rounded-full bg-gradient-to-r from-purple-100 to-pink-100 mb-6">
+              <CheckCircle className="w-10 h-10 text-purple-600" />
             </div>
-            <h1 className="text-2xl font-bold text-foreground mb-3">ההודעה נשלחה בהצלחה!</h1>
+            <h1 className="text-2xl font-bold bg-gradient-to-r from-purple-600 via-pink-500 to-orange-400 bg-clip-text text-transparent mb-3">ההודעה נשלחה בהצלחה!</h1>
             <p className="text-muted-foreground mb-6">
               תודה על פנייתך. נחזור אליך בהקדם האפשרי, בדרך כלל תוך 1-3 ימי עסקים.
             </p>
             <div className="flex flex-col gap-3">
-              <Button onClick={() => navigate("/")} className="gap-2">
+              <Button onClick={() => navigate("/")} className="gap-2 bg-gradient-to-r from-purple-600 via-pink-500 to-orange-400 hover:from-purple-700 hover:via-pink-600 hover:to-orange-500 text-white">
                 <ArrowRight className="w-4 h-4" />
                 חזרה לדף הבית
               </Button>
@@ -133,6 +134,7 @@ const Contact = () => {
                   setIsSuccess(false);
                   setForm({ name: "", email: "", subject: "", message: "" });
                 }}
+                className="border-purple-200 hover:bg-purple-50"
               >
                 שליחת פנייה נוספת
               </Button>
@@ -144,21 +146,21 @@ const Contact = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-amber-50/50 to-white" dir="rtl">
+    <div className="min-h-screen bg-gradient-to-b from-purple-50/50 to-white" dir="rtl">
       <div className="container max-w-2xl mx-auto px-4 py-8">
         {/* Header */}
         <div className="text-center mb-8">
-          <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-primary/10 mb-4">
-            <Mail className="w-8 h-8 text-primary" />
+          <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-gradient-to-r from-purple-100 to-pink-100 mb-4">
+            <Mail className="w-8 h-8 text-purple-600" />
           </div>
-          <h1 className="text-3xl font-bold text-foreground mb-2">צור קשר</h1>
+          <h1 className="text-3xl font-bold bg-gradient-to-r from-purple-600 via-pink-500 to-orange-400 bg-clip-text text-transparent mb-2">צור קשר</h1>
           <p className="text-muted-foreground">
             יש לך שאלה או הצעה? נשמח לשמוע ממך!
           </p>
         </div>
 
         {/* Contact Form */}
-        <div className="bg-card rounded-2xl border shadow-sm p-6">
+        <div className="bg-card rounded-2xl border border-purple-200 shadow-sm p-6">
           <form onSubmit={handleSubmit} className="space-y-5">
             {/* Name */}
             <div className="space-y-2">
@@ -168,7 +170,7 @@ const Contact = () => {
                 value={form.name}
                 onChange={(e) => handleChange("name", e.target.value)}
                 placeholder="הזן את שמך"
-                className={errors.name ? "border-destructive" : ""}
+                className={cn("border-purple-200 focus:border-purple-400", errors.name && "border-destructive")}
                 disabled={isSubmitting}
               />
               {errors.name && (
@@ -244,7 +246,7 @@ const Contact = () => {
             {/* Submit Button */}
             <Button
               type="submit"
-              className="w-full gap-2"
+              className="w-full gap-2 bg-gradient-to-r from-purple-600 via-pink-500 to-orange-400 hover:from-purple-700 hover:via-pink-600 hover:to-orange-500 text-white"
               disabled={isSubmitting}
             >
               {isSubmitting ? (
@@ -267,7 +269,7 @@ const Contact = () => {
           <Button
             variant="outline"
             onClick={() => navigate(-1)}
-            className="gap-2"
+            className="gap-2 border-purple-200 hover:bg-purple-50"
           >
             <ArrowRight className="w-4 h-4" />
             חזרה
