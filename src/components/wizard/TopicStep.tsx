@@ -281,11 +281,11 @@ const CategoryCarousel = ({
               key={topic.id}
               onClick={() => onSelect(topic)}
               className={cn(
-                "flex-shrink-0 w-36 overflow-hidden rounded-2xl border-3 transition-all duration-200",
+                "flex-shrink-0 w-36 overflow-hidden rounded-xl border-3 transition-all duration-200",
                 "text-right flex flex-col shadow-md",
                 isSelected
-                  ? "border-primary ring-2 ring-primary/30 scale-[1.02]"
-                  : "border-transparent hover:border-primary/50"
+                  ? "border-secondary ring-2 ring-secondary/30 scale-[1.02]"
+                  : "border-transparent hover:border-secondary/50"
               )}
               style={{ scrollSnapAlign: 'start' }}
             >
@@ -303,8 +303,8 @@ const CategoryCarousel = ({
                 
                 {/* Selection indicator */}
                 {isSelected && (
-                  <div className="absolute top-2 right-2 w-6 h-6 rounded-full bg-primary flex items-center justify-center shadow-lg">
-                    <span className="text-primary-foreground text-sm">✓</span>
+                  <div className="absolute top-2 right-2 w-6 h-6 rounded-full bg-secondary flex items-center justify-center shadow-lg">
+                    <span className="text-secondary-foreground text-sm">✓</span>
                   </div>
                 )}
                 
@@ -368,13 +368,13 @@ const TopicStep = ({ formData, updateFormData }: TopicStepProps) => {
 
       {/* Explanatory Text - How to use */}
       <div className="px-3">
-        <p className="text-center text-sm text-muted-foreground bg-accent/30 rounded-xl py-3 px-4 border border-accent/50">
+        <p className="text-center text-sm text-muted-foreground bg-accent/50 rounded-xl py-3 px-4 border border-primary/20 font-medium">
           ✨ ניתן לבחור נושא מובנה, לספר לנו מה עבר על הילד/ה, או לשלב את שניהם יחד לסיפור מותאם אישית
         </p>
       </div>
 
       {/* NLP Smart Input - At Top */}
-      <div className="space-y-3 px-3 bg-gradient-to-r from-primary/5 via-primary/10 to-primary/5 py-4 rounded-2xl mx-3 border border-primary/20">
+      <div className="space-y-3 px-3 bg-gradient-to-r from-primary/5 via-primary/10 to-primary/5 py-4 rounded-xl mx-3 border border-primary/20">
         <div className="flex items-center gap-2 justify-center">
           <Brain className="w-5 h-5 text-primary" />
           <Label className="text-base font-bold text-primary">
@@ -387,10 +387,10 @@ const TopicStep = ({ formData, updateFormData }: TopicStepProps) => {
           value={formData.customTopic}
           onChange={(e) => handleCustomTopicChange(e.target.value)}
           className={cn(
-            "min-h-20 text-base bg-background border-2 rounded-xl resize-none",
+            "min-h-20 text-base bg-card border-2 rounded-xl resize-none font-medium",
             formData.customTopic.trim() 
               ? "border-primary" 
-              : "border-foreground/10"
+              : "border-border"
           )}
           dir="rtl"
         />

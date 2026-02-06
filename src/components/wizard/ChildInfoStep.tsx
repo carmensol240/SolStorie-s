@@ -361,10 +361,10 @@ const ChildInfoStep = ({ formData, updateFormData }: ChildInfoStepProps) => {
                 type="button"
                 onClick={() => loadChildProfile(child)}
                 className={cn(
-                  "px-4 py-2.5 rounded-2xl border-2 transition-all flex items-center gap-2 text-sm font-medium",
+                  "px-4 py-2.5 rounded-2xl border-2 transition-all flex items-center gap-2 text-sm font-bold",
                   formData.childName === child.name
-                    ? "border-primary bg-primary/10 text-primary"
-                    : "border-border bg-card hover:border-primary/50"
+                    ? "border-secondary bg-secondary/15 text-secondary"
+                    : "border-border bg-card hover:border-secondary/50"
                 )}
               >
                 <span>{child.gender === "female" ? "👧" : "👦"}</span>
@@ -386,7 +386,7 @@ const ChildInfoStep = ({ formData, updateFormData }: ChildInfoStepProps) => {
           placeholder="שם הילד/ה"
           value={formData.childName}
           onChange={(e) => updateFormData({ childName: e.target.value })}
-          className="h-12 text-base bg-card border-2 border-border rounded-2xl focus:border-primary px-4"
+          className="h-11 text-base font-medium bg-card border-2 border-border rounded-xl focus:border-primary px-4"
           dir="rtl"
         />
       </div>
@@ -398,25 +398,25 @@ const ChildInfoStep = ({ formData, updateFormData }: ChildInfoStepProps) => {
           <button
             onClick={() => updateFormData({ childGender: "male" })}
             className={cn(
-              "p-3.5 rounded-2xl border-2 transition-all text-center flex items-center justify-center gap-2",
+              "p-3 rounded-xl border-2 transition-all text-center flex items-center justify-center gap-2",
               formData.childGender === "male"
-                ? "border-primary bg-primary/10"
-                : "border-border bg-card hover:border-primary/50"
+                ? "border-secondary bg-secondary/15 shadow-md"
+                : "border-border bg-card hover:border-secondary/50"
             )}
           >
-            <span className="text-2xl">👦</span>
+            <span className="text-xl">👦</span>
             <span className="text-base font-bold">בן</span>
           </button>
           <button
             onClick={() => updateFormData({ childGender: "female" })}
             className={cn(
-              "p-3.5 rounded-2xl border-2 transition-all text-center flex items-center justify-center gap-2",
+              "p-3 rounded-xl border-2 transition-all text-center flex items-center justify-center gap-2",
               formData.childGender === "female"
-                ? "border-primary bg-primary/10"
-                : "border-border bg-card hover:border-primary/50"
+                ? "border-secondary bg-secondary/15 shadow-md"
+                : "border-border bg-card hover:border-secondary/50"
             )}
           >
-            <span className="text-2xl">👧</span>
+            <span className="text-xl">👧</span>
             <span className="text-base font-bold">בת</span>
           </button>
         </div>
@@ -431,13 +431,13 @@ const ChildInfoStep = ({ formData, updateFormData }: ChildInfoStepProps) => {
               key={button.id}
               onClick={() => handleAgeButtonSelect(button.id)}
               className={cn(
-                "p-4 rounded-2xl border-2 transition-all text-center",
+                "p-3 rounded-xl border-2 transition-all text-center",
                 selectedAgeButton === button.id
-                  ? "border-primary bg-primary text-primary-foreground font-bold"
-                  : "border-border bg-card hover:border-primary/50"
+                  ? "border-secondary bg-secondary text-secondary-foreground font-bold shadow-md"
+                  : "border-border bg-card hover:border-secondary/50"
               )}
             >
-              <span className="text-xl font-bold">{button.label}</span>
+              <span className="text-lg font-bold">{button.label}</span>
             </button>
           ))}
         </div>
@@ -450,26 +450,26 @@ const ChildInfoStep = ({ formData, updateFormData }: ChildInfoStepProps) => {
           <button
             onClick={() => updateFormData({ storyLength: "short" })}
             className={cn(
-              "p-3.5 rounded-2xl border-2 transition-all text-center flex flex-col items-center justify-center gap-1",
+              "p-3 rounded-xl border-2 transition-all text-center flex flex-col items-center justify-center gap-1",
               formData.storyLength === "short"
-                ? "border-primary bg-primary/10"
-                : "border-border bg-card hover:border-primary/50"
+                ? "border-secondary bg-secondary/15 shadow-md"
+                : "border-border bg-card hover:border-secondary/50"
             )}
           >
-            <span className="text-2xl">📖</span>
+            <span className="text-xl">📖</span>
             <span className="text-base font-bold">קצר</span>
             <span className="text-xs text-muted-foreground">4-5 עמודים</span>
           </button>
           <button
             onClick={() => updateFormData({ storyLength: "long" })}
             className={cn(
-              "p-3.5 rounded-2xl border-2 transition-all text-center flex flex-col items-center justify-center gap-1",
+              "p-3 rounded-xl border-2 transition-all text-center flex flex-col items-center justify-center gap-1",
               formData.storyLength === "long"
-                ? "border-primary bg-primary/10"
-                : "border-border bg-card hover:border-primary/50"
+                ? "border-secondary bg-secondary/15 shadow-md"
+                : "border-border bg-card hover:border-secondary/50"
             )}
           >
-            <span className="text-2xl">📚</span>
+            <span className="text-xl">📚</span>
             <span className="text-base font-bold">ארוך</span>
             <span className="text-xs text-muted-foreground">6-8 עמודים</span>
           </button>
@@ -613,7 +613,7 @@ const ChildInfoStep = ({ formData, updateFormData }: ChildInfoStepProps) => {
         type="button"
         onClick={handleSaveChildProfile}
         disabled={isSavingChild || !formData.childName.trim()}
-        className="w-full h-12 bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70 text-primary-foreground font-bold rounded-2xl"
+        className="w-full h-12 bg-gradient-to-r from-secondary via-pink-500 to-purple-600 hover:from-secondary/90 hover:via-pink-600 hover:to-purple-700 text-white font-black rounded-xl shadow-lg hover:shadow-xl transition-all"
       >
         {isSavingChild ? (
           <Loader2 className="w-5 h-5 animate-spin ml-2" />

@@ -142,15 +142,15 @@ const CreateStory = () => {
   const displayStep = step < 3 ? step : 4;
 
   return (
-    <div className="min-h-screen flex flex-col bg-gradient-to-b from-amber-50 to-orange-50">
-      {/* Header - Fixed at top */}
-      <header className="sticky top-0 z-20 bg-gradient-to-b from-amber-50 to-amber-50/95 backdrop-blur-sm px-3 py-2 border-b border-amber-200/50">
+    <div className="min-h-screen flex flex-col bg-gradient-to-b from-accent/50 via-background to-background">
+      {/* Header - Fixed at top with cream/light green */}
+      <header className="sticky top-0 z-20 bg-gradient-to-b from-accent to-accent/95 backdrop-blur-sm px-3 py-2 border-b border-primary/20">
         <div className="container max-w-lg mx-auto flex items-center justify-between">
           <Button
             variant="ghost"
             size="sm"
             onClick={handleBack}
-            className="flex items-center gap-1 min-h-[40px] px-2 py-1 text-sm"
+            className="flex items-center gap-1 min-h-[40px] px-2 py-1 text-sm text-foreground hover:bg-primary/10"
             aria-label="חזרה לשלב הקודם"
           >
             <ArrowRight className="w-4 h-4" aria-hidden="true" />
@@ -159,7 +159,7 @@ const CreateStory = () => {
           
           {/* Compact User Icon for Step 1 */}
           {step === 1 && (
-            <div className="w-10 h-10 bg-gradient-to-br from-orange-400 to-pink-500 rounded-xl flex items-center justify-center shadow-sm">
+            <div className="w-10 h-10 bg-gradient-to-br from-secondary to-pink-500 rounded-xl flex items-center justify-center shadow-sm">
               <User className="w-5 h-5 text-white" />
             </div>
           )}
@@ -175,8 +175,8 @@ const CreateStory = () => {
                     <div
                       className={`w-8 h-8 rounded-full flex items-center justify-center font-bold text-xs transition-all ${
                         displayStep >= s.number
-                          ? "bg-purple-500 text-white"
-                          : "bg-gray-200 text-gray-500"
+                          ? "bg-primary text-primary-foreground"
+                          : "bg-muted text-muted-foreground"
                       }`}
                     >
                       {s.number}
@@ -188,7 +188,7 @@ const CreateStory = () => {
                   {index < steps.length - 1 && (
                     <div
                       className={`h-0.5 w-6 sm:w-10 mx-0.5 rounded-full transition-all ${
-                        displayStep > s.number ? "bg-purple-500" : "bg-gray-200"
+                        displayStep > s.number ? "bg-primary" : "bg-muted"
                       }`}
                     />
                   )}
@@ -232,7 +232,7 @@ const CreateStory = () => {
               onClick={handleNext}
               disabled={step === 1 ? !canProceedStep1 : !canProceedStep2}
               size="lg"
-              className="w-full bg-gradient-to-r from-purple-500 to-purple-600 hover:from-purple-600 hover:to-purple-700 text-white font-bold text-base py-4 rounded-xl disabled:opacity-50 disabled:cursor-not-allowed"
+              className="w-full bg-gradient-to-r from-secondary via-pink-500 to-purple-600 hover:from-secondary/90 hover:via-pink-600 hover:to-purple-700 text-white font-black text-base py-4 rounded-xl disabled:opacity-50 disabled:cursor-not-allowed shadow-lg hover:shadow-xl transition-all"
             >
               {step === 2 ? "צרו את הסיפור" : "המשיכו"}
               <ArrowLeft className="w-5 h-5 mr-2" />
