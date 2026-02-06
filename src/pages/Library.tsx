@@ -263,6 +263,7 @@ const Library = () => {
               <StoryListItem
                 key={story.id}
                 id={story.id}
+                storyId={story.id}
                 childName={story.child_name}
                 topic={story.topic}
                 coverUrl={getCoverImage(story)}

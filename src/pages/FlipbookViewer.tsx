@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
+import { SignedImage } from "@/components/ui/signed-image";
 import "./StoryViewer.css"; // Import shared book animation styles
 
 interface StoryPage {
@@ -280,11 +281,12 @@ const FlipbookViewer = () => {
                   {page.illustration_url && (
                     <div className="relative mb-8 rounded-xl overflow-hidden shadow-lg">
                       <div className="aspect-[4/3]">
-                        <img
+                        <SignedImage
                           src={page.illustration_url}
+                          storyId={story.id}
+                          shareToken={shareToken || undefined}
                           alt=""
                           className="w-full h-full object-cover"
-                          loading="lazy"
                         />
                       </div>
                     </div>
