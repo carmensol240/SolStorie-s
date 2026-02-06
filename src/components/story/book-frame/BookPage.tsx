@@ -1,6 +1,7 @@
 import React from "react";
 import { cn } from "@/lib/utils";
 import { BookOpen } from "lucide-react";
+import { SignedImage } from "@/components/ui/signed-image";
 
 interface BookPageProps {
   type: 'illustration' | 'text';
@@ -11,6 +12,7 @@ interface BookPageProps {
   fontSize?: string;
   isLoading?: boolean;
   className?: string;
+  storyId?: string;
 }
 
 export const BookPage: React.FC<BookPageProps> = ({
@@ -22,6 +24,7 @@ export const BookPage: React.FC<BookPageProps> = ({
   fontSize = 'text-xl md:text-2xl',
   isLoading = false,
   className,
+  storyId,
 }) => {
   if (type === 'illustration') {
     return (
@@ -37,11 +40,11 @@ export const BookPage: React.FC<BookPageProps> = ({
         {illustrationUrl ? (
           <div className="relative w-full max-w-md mx-auto">
             <div className="relative rounded-lg overflow-hidden shadow-xl border-4 border-[#E8D5C4]">
-              <img
+              <SignedImage
                 src={illustrationUrl}
+                storyId={storyId}
                 alt=""
                 className="w-full aspect-[4/5] object-cover"
-                loading="lazy"
               />
             </div>
           </div>

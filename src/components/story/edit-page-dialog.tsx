@@ -8,6 +8,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { useNikud } from '@/hooks/use-nikud';
 import { useStoryEdit } from '@/hooks/use-story-edit';
+import { SignedImage } from '@/components/ui/signed-image';
 import { Sparkles, Bold, Check, AlertCircle, Coins, Gift } from 'lucide-react';
 import {
   AlertDialog,
@@ -207,8 +208,9 @@ const EditPageDialog = ({
             {/* Image Preview */}
             {illustrationUrl && (
               <div className="flex justify-center">
-                <img
+                <SignedImage
                   src={illustrationUrl}
+                  storyId={storyId}
                   alt={`איור עמוד ${pageNumber}`}
                   className="w-24 h-16 object-cover rounded-lg border border-border shadow-sm"
                 />
