@@ -368,7 +368,7 @@ const TopicStep = ({ formData, updateFormData }: TopicStepProps) => {
 
       {/* Explanatory Text - How to use */}
       <div className="px-3">
-        <p className="text-center text-sm text-muted-foreground bg-accent/30 rounded-xl py-3 px-4 border border-accent/50">
+        <p className="text-center text-sm text-muted-foreground bg-accent/50 rounded-xl py-3 px-4 border border-primary/20 font-medium">
           ✨ ניתן לבחור נושא מובנה, לספר לנו מה עבר על הילד/ה, או לשלב את שניהם יחד לסיפור מותאם אישית
         </p>
       </div>
