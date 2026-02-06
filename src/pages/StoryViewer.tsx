@@ -1,6 +1,6 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { Home, BookOpen } from "lucide-react";
+import { Home, BookOpen, Sparkles, Palette, Wand2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
@@ -46,6 +46,7 @@ interface Story {
   child_name: string;
   topic: string;
   pages: StoryPage[];
+  generation_status?: string;
 }
 
 const FONT_SIZES = [
@@ -68,6 +69,9 @@ const StoryViewer = () => {
   const [isDrawingMode, setIsDrawingMode] = useState(false);
   const [fontSizeIndex, setFontSizeIndex] = useState(1);
   const [isEditingPage, setIsEditingPage] = useState(false);
+  const [generationStatus, setGenerationStatus] = useState<string>('ready');
+  const [illustrationProgress, setIllustrationProgress] = useState(0);
+  const pollingIntervalRef = useRef<NodeJS.Timeout | null>(null);
   
   const [showDedicationDialog, setShowDedicationDialog] = useState(false);
   const [isCreatingDigitalBook, setIsCreatingDigitalBook] = useState(false);
@@ -82,22 +86,15 @@ const StoryViewer = () => {
   const { user } = useAuth();
   const hasTrackedStart = useRef(false);
   
-  // Swipe gesture handlers for page navigation
-  const swipeHandlers = useSwipe({
-    onSwipeLeft: () => {
-      // In RTL, swipe left = next page
-      if (story && currentPage < story.pages.length) {
-        handlePageChange('next');
+
+  // Cleanup polling on unmount
+  useEffect(() => {
+    return () => {
+      if (pollingIntervalRef.current) {
+        clearInterval(pollingIntervalRef.current);
       }
-    },
-    onSwipeRight: () => {
-      // In RTL, swipe right = prev page
-      if (currentPage > -1) {
-        handlePageChange('prev');
-      }
-    },
-    threshold: 50,
-  });
+    };
+  }, []);
 
   useEffect(() => {
     if (storyId) {
@@ -117,6 +114,64 @@ const StoryViewer = () => {
       trackPageViewed(story.id, currentPage);
     }
   }, [currentPage, story?.id]);
+
+  // Poll for illustration updates when status is generating_illustrations
+  const pollForUpdates = useCallback(async () => {
+    if (!storyId) return;
+
+    try {
+      // Check story status
+      const { data: storyData, error: storyError } = await supabase
+        .from("stories")
+        .select("generation_status")
+        .eq("id", storyId)
+        .maybeSingle();
+
+      if (storyError || !storyData) return;
+
+      const status = (storyData as any).generation_status || 'ready';
+      setGenerationStatus(status);
+
+      // If still generating, check pages for updates
+      if (status === 'generating_illustrations') {
+        const { data: pagesData } = await supabase
+          .from("story_pages")
+          .select("*")
+          .eq("story_id", storyId)
+          .order("page_number", { ascending: true });
+
+        if (pagesData) {
+          // Count pages with illustrations
+          const pagesWithIllustrations = pagesData.filter(p => p.illustration_url).length;
+          const progress = Math.round((pagesWithIllustrations / pagesData.length) * 100);
+          setIllustrationProgress(progress);
+
+          // Update story with new pages data
+          setStory(prev => prev ? { ...prev, pages: pagesData } : null);
+        }
+      } else if (status === 'ready') {
+        // Stop polling when done
+        if (pollingIntervalRef.current) {
+          clearInterval(pollingIntervalRef.current);
+          pollingIntervalRef.current = null;
+        }
+
+        // Fetch final pages
+        const { data: pagesData } = await supabase
+          .from("story_pages")
+          .select("*")
+          .eq("story_id", storyId)
+          .order("page_number", { ascending: true });
+
+        if (pagesData) {
+          setStory(prev => prev ? { ...prev, pages: pagesData, generation_status: 'ready' } : null);
+          setIllustrationProgress(100);
+        }
+      }
+    } catch (error) {
+      console.error("Polling error:", error);
+    }
+  }, [storyId]);
 
   // Sound effects disabled - silent reading experience
 
@@ -163,6 +218,10 @@ const StoryViewer = () => {
         return;
       }
 
+      // Check generation status
+      const status = (storyData as any).generation_status || 'ready';
+      setGenerationStatus(status);
+
       const { data: pagesData, error: pagesError } = await supabase
         .from("story_pages")
         .select("*")
@@ -180,14 +239,28 @@ const StoryViewer = () => {
         }
       }
 
-      const storyObj = {
+      const storyObj: Story = {
         id: storyData.id,
         child_name: storyData.child_name,
         topic: storyData.topic,
         pages: pagesData || [],
+        generation_status: status,
       };
       
       setStory(storyObj);
+
+      // Calculate initial progress
+      if (pagesData && pagesData.length > 0) {
+        const pagesWithIllustrations = pagesData.filter(p => p.illustration_url).length;
+        const progress = Math.round((pagesWithIllustrations / pagesData.length) * 100);
+        setIllustrationProgress(progress);
+      }
+
+      // Start polling if illustrations are still generating
+      if (status === 'generating_illustrations' && !pollingIntervalRef.current) {
+        console.log("Starting polling for illustration updates...");
+        pollingIntervalRef.current = setInterval(pollForUpdates, 3000);
+      }
       
       if (storyId) {
         cacheStory(storyId, storyObj);
@@ -230,6 +303,23 @@ const StoryViewer = () => {
       setIsFlipping(false);
     }, 500); // Trigger page change at 500ms for smooth visual transition
   };
+
+  // Swipe gesture handlers for page navigation - must be after handlePageChange is defined
+  const swipeHandlers = useSwipe({
+    onSwipeLeft: () => {
+      // In RTL, swipe left = next page
+      if (story && currentPage < story.pages.length) {
+        handlePageChange('next');
+      }
+    },
+    onSwipeRight: () => {
+      // In RTL, swipe right = prev page
+      if (currentPage > -1) {
+        handlePageChange('prev');
+      }
+    },
+    threshold: 50,
+  });
 
   const handleShare = async () => {
     try {
@@ -373,13 +463,96 @@ const StoryViewer = () => {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-gradient-to-b from-purple-50 to-pink-50 flex items-center justify-center">
+      <div className="min-h-screen bg-gradient-to-b from-[#FAF3E8] to-[#F5E6D3] flex items-center justify-center" dir="rtl">
         <div className="text-center space-y-4">
           <div className="relative w-20 h-20 mx-auto">
             <div className="absolute inset-0 border-4 border-purple-500 border-t-transparent rounded-full animate-spin" />
             <BookOpen className="absolute inset-0 m-auto w-8 h-8 text-purple-600" />
           </div>
           <p className="bg-gradient-to-r from-purple-600 via-pink-500 to-orange-400 bg-clip-text text-transparent font-bold text-lg">פותחים את הספר...</p>
+        </div>
+      </div>
+    );
+  }
+
+  // Show special loading state when illustrations are being generated
+  if (generationStatus === 'generating_illustrations' && story) {
+    return (
+      <div className="min-h-screen bg-gradient-to-b from-[#FAF3E8] to-[#F5E6D3] flex flex-col items-center justify-center p-6" dir="rtl">
+        <div className="text-center space-y-8 max-w-md mx-auto">
+          {/* Animated Icon */}
+          <div className="relative">
+            <div className="w-28 h-28 bg-gradient-to-br from-purple-500/20 via-pink-500/20 to-orange-400/20 rounded-full flex items-center justify-center shadow-lg mx-auto">
+              <div className="relative">
+                <Palette className="w-12 h-12 text-pink-500 animate-bounce" />
+                <Wand2 
+                  className="absolute -top-2 -right-4 w-8 h-8 text-purple-600 animate-wiggle"
+                  style={{ filter: 'drop-shadow(0 0 4px rgba(168, 85, 247, 0.5))' }}
+                />
+              </div>
+            </div>
+            
+            {/* Floating sparkles */}
+            <div className="absolute inset-0">
+              {[...Array(6)].map((_, i) => (
+                <Sparkles
+                  key={i}
+                  className="absolute w-4 h-4 text-orange-400 animate-pulse"
+                  style={{
+                    top: `${15 + Math.random() * 70}%`,
+                    left: `${15 + Math.random() * 70}%`,
+                    animationDelay: `${i * 0.2}s`,
+                    opacity: 0.7,
+                  }}
+                />
+              ))}
+            </div>
+          </div>
+
+          {/* Title */}
+          <div className="space-y-2">
+            <h2 className="text-2xl font-bold bg-gradient-to-r from-purple-600 via-pink-500 to-orange-400 bg-clip-text text-transparent">
+              מציירים את האיורים...
+            </h2>
+            <p className="text-purple-700/70">
+              הסיפור של {story.child_name} כבר מוכן!
+            </p>
+          </div>
+
+          {/* Progress Bar */}
+          <div className="w-full max-w-xs mx-auto space-y-2">
+            <div className="relative h-3 w-full overflow-hidden rounded-full bg-purple-100">
+              <div 
+                className="h-full bg-gradient-to-r from-purple-600 via-pink-500 to-orange-400 transition-all duration-500"
+                style={{ width: `${illustrationProgress}%` }}
+              />
+            </div>
+            <p className="text-sm text-purple-600 font-medium">
+              {illustrationProgress}% מהאיורים מוכנים
+            </p>
+          </div>
+
+          {/* Action buttons */}
+          <div className="flex flex-col gap-3">
+            <Button
+              size="lg"
+              onClick={() => setCurrentPage(-1)}
+              className="bg-gradient-to-r from-purple-600 via-pink-500 to-orange-400 hover:from-purple-700 hover:via-pink-600 hover:to-orange-500 text-white font-bold px-8 py-6 text-lg rounded-full shadow-xl"
+            >
+              <BookOpen className="w-5 h-5 ml-2" />
+              התחילו לקרוא עכשיו!
+            </Button>
+            <p className="text-sm text-purple-500">
+              האיורים יופיעו בזמן שתקראו ✨
+            </p>
+          </div>
+
+          {/* Tip */}
+          <div className="bg-white/80 backdrop-blur-sm rounded-xl p-4 shadow-md border border-purple-200 max-w-xs mx-auto">
+            <p className="text-sm text-purple-700">
+              💡 <strong className="text-purple-800">טיפ:</strong> אפשר להתחיל לקרוא! האיורים יופיעו אוטומטית כשהם מוכנים.
+            </p>
+          </div>
         </div>
       </div>
     );

@@ -352,6 +352,7 @@ export type Database = {
           created_at: string
           daily_story_date: string | null
           edit_count: number
+          generation_status: string | null
           id: string
           is_daily_story: boolean | null
           is_premium: boolean | null
@@ -373,6 +374,7 @@ export type Database = {
           created_at?: string
           daily_story_date?: string | null
           edit_count?: number
+          generation_status?: string | null
           id?: string
           is_daily_story?: boolean | null
           is_premium?: boolean | null
@@ -394,6 +396,7 @@ export type Database = {
           created_at?: string
           daily_story_date?: string | null
           edit_count?: number
+          generation_status?: string | null
           id?: string
           is_daily_story?: boolean | null
           is_premium?: boolean | null

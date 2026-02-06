@@ -817,12 +817,14 @@ ${adventureLogic ? `
     // Use existing supabase client for database operations
 
     // Create the story first - include user_id for gallery privacy
+    // Set generation_status to 'generating_illustrations' - illustrations will be created async
     const storyInsertData: any = {
       child_name: childName,
       child_gender: childGender,
       age_range: ageRange,
       topic: topic,
       nikud: nikud,
+      generation_status: "generating_illustrations",
     };
     
     // Only add user_id if we have one (for gallery privacy)
@@ -843,86 +845,58 @@ ${adventureLogic ? `
 
     console.log("Story created:", story.id);
 
-    // Extract character profile for consistency if photo is provided
-    // Prioritize avatar_url (3D generated character) for better consistency
-    let characterProfile: CharacterProfile | null = null;
-    if (effectivePhoto) {
-      console.log("Extracting character profile from photo/avatar...", { hasAvatar: !!childAvatarUrl });
-      characterProfile = await extractCharacterProfile(effectivePhoto, childGender, ageRange, LOVABLE_API_KEY);
-      console.log("Character profile extracted:", characterProfile);
-    }
+    // Insert pages WITHOUT illustrations first (text only)
+    // Illustrations will be generated asynchronously
+    const pagesWithoutIllustrations = storyData.pages.map((page: any) => ({
+      story_id: story.id,
+      page_number: page.page_number,
+      text: page.text,
+      illustration_prompt: page.illustration_prompt,
+      illustration_url: null, // Will be filled by generate-illustrations
+    }));
 
-    // Generate illustrations for each page
-    console.log("Starting illustration generation...");
-    
-    const pagesWithIllustrations = await Promise.all(
-      storyData.pages.map(async (page: any, index: number) => {
-        console.log(`Generating illustration for page ${page.page_number}...`);
-        
-        // Generate the illustration with character profile and adventure logic for consistency
-        // Use effectivePhoto (avatar if available, otherwise original photo)
-        const base64Image = await generateIllustration(
-          page.illustration_prompt,
-          effectivePhoto,
-          characterProfile,
-          LOVABLE_API_KEY,
-          adventureLogic
-        );
-
-        let illustrationUrl = null;
-        
-        if (base64Image) {
-          // Upload to storage
-          illustrationUrl = await uploadImageToStorage(
-            supabase,
-            base64Image,
-            story.id,
-            page.page_number
-          );
-        }
-
-        return {
-          story_id: story.id,
-          page_number: page.page_number,
-          text: page.text,
-          illustration_prompt: page.illustration_prompt,
-          illustration_url: illustrationUrl,
-        };
-      })
-    );
-
-    // Insert all pages
     const { error: pagesError } = await supabase
       .from("story_pages")
-      .insert(pagesWithIllustrations);
+      .insert(pagesWithoutIllustrations);
 
     if (pagesError) {
       console.error("Error creating pages:", pagesError);
       throw pagesError;
     }
 
-    // Update story with cover_url from first page illustration
-    const firstPageIllustration = pagesWithIllustrations.find(p => p.page_number === 1)?.illustration_url;
-    if (firstPageIllustration) {
-      const { error: coverError } = await supabase
-        .from("stories")
-        .update({ cover_url: firstPageIllustration })
-        .eq("id", story.id);
-      
-      if (coverError) {
-        console.error("Error updating cover_url:", coverError);
-        // Don't throw - story is still valid without cover
-      } else {
-        console.log("Cover URL saved successfully:", firstPageIllustration);
-      }
-    }
+    console.log("Story pages created (text only), triggering illustration generation...");
 
-    console.log("Story pages created successfully with illustrations");
+    // Fire-and-forget: Trigger illustration generation in background
+    // This function will run separately and update the pages with illustrations
+    const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
+    const serviceRoleKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
+    
+    fetch(`${supabaseUrl}/functions/v1/generate-illustrations`, {
+      method: "POST",
+      headers: {
+        "Authorization": `Bearer ${serviceRoleKey}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        storyId: story.id,
+        childPhoto: childPhoto,
+        childAvatarUrl: childAvatarUrl,
+        childGender: childGender,
+        ageRange: ageRange,
+        adventureLogic: adventureLogic,
+      }),
+    }).catch(err => {
+      console.error("Error triggering illustration generation:", err);
+      // Don't throw - the story text is already saved
+    });
+
+    console.log("Illustration generation triggered, returning storyId immediately");
 
     return new Response(
       JSON.stringify({ 
         storyId: story.id,
-        message: "Story generated successfully" 
+        message: "Story text created, illustrations generating in background",
+        status: "generating_illustrations"
       }),
       { headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
