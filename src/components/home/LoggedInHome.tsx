@@ -73,14 +73,14 @@ const LoggedInHome = ({ user, displayName }: LoggedInHomeProps) => {
         <div className="pb-8 px-4">
           <button
             onClick={() => navigate("/create")}
-            className="w-full flex items-center justify-center gap-4 bg-gradient-to-r from-[#8B5A2B] to-[#6B4423] rounded-2xl p-5 shadow-xl shadow-black/30 border-2 border-[#D4A574]/50 hover:from-[#9B6A3B] hover:to-[#7B5433] hover:shadow-2xl hover:scale-[1.02] transition-all"
+            className="w-full flex items-center justify-center gap-4 bg-gradient-to-r from-purple-700 via-purple-600 to-[#8B5A2B] rounded-2xl p-5 shadow-xl shadow-black/30 border-2 border-purple-400/30 hover:from-purple-800 hover:via-purple-700 hover:to-[#6B4423] hover:shadow-2xl hover:scale-[1.02] transition-all"
           >
-            <div className="w-12 h-12 bg-[#FAF3E8]/20 rounded-xl flex items-center justify-center">
-              <Wand2 className="w-7 h-7 text-[#FAF3E8]" />
+            <div className="w-12 h-12 bg-white/20 rounded-xl flex items-center justify-center">
+              <Wand2 className="w-7 h-7 text-white" />
             </div>
             <div className="text-right">
-              <h3 className="font-black text-xl text-[#FAF3E8]">יוצאים להרפתקה חדשה</h3>
-              <p className="text-sm text-[#F5E6D3]/80">סיפור מותאם אישית לילד שלך ✨</p>
+              <h3 className="font-black text-xl text-white">יוצאים להרפתקה חדשה</h3>
+              <p className="text-sm text-purple-200/90">סיפור מותאם אישית לילד שלך ✨</p>
             </div>
           </button>
         </div>

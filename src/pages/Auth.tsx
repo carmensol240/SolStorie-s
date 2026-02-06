@@ -244,9 +244,9 @@ const Auth = () => {
     }
   };
 
-  // Get return URL
+  // Get return URL - default to home page
   const getReturnTo = () => {
-    return searchParams.get('returnTo') || localStorage.getItem('returnTo') || '/library';
+    return searchParams.get('returnTo') || localStorage.getItem('returnTo') || '/';
   };
 
   // Check terms acceptance when user is logged in
@@ -454,9 +454,10 @@ const Auth = () => {
         description: "תודה על אישור התנאים. אפשר להתחיל ליצור סיפורים!",
       });
       
-      // Show trial offer step instead of navigating
-      setShowConsentStep(false);
-      setShowTrialOfferStep(true);
+      // Navigate to home page after accepting terms
+      const returnTo = getReturnTo();
+      localStorage.removeItem('returnTo');
+      navigate(returnTo);
     } catch (error) {
       console.error("Error accepting terms:", error);
       toast({
