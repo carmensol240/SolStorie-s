@@ -16,16 +16,17 @@ export const BookFrame: React.FC<BookFrameProps> = ({
 }) => {
   return (
     <div className={cn(
-      "relative w-full max-w-6xl mx-auto",
+      "relative w-full max-w-6xl mx-auto book-container",
       className
     )}>
       {/* Outer Book Frame - Golden/Worn edges */}
       <div className={cn(
-        "relative rounded-xl overflow-hidden",
+        "relative rounded-xl overflow-hidden book-page",
         // 3D Book Shadow Effect
         "shadow-[0_20px_60px_rgba(0,0,0,0.4),0_0_0_4px_#8B5A2B,0_0_0_8px_#5D3A1A,inset_0_0_60px_rgba(139,90,43,0.1)]",
-        // Book flip animation
-        isFlipping && (flipDirection === 'next' ? "animate-flip-next" : "animate-flip-prev")
+        // Book flip animation classes
+        isFlipping && flipDirection === 'next' && "flip-next",
+        isFlipping && flipDirection === 'prev' && "flip-prev"
       )}>
         {/* Decorative Frame Border - Golden vintage effect */}
         <div className="absolute inset-0 pointer-events-none z-20">

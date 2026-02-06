@@ -214,6 +214,7 @@ const StoryViewer = () => {
     setFlipDirection(direction);
     setIsFlipping(true);
     
+    // Match the animation duration (0.7s = 700ms)
     setTimeout(() => {
       if (direction === 'next' && story && currentPage < maxPage) {
         const newPage = currentPage + 1;
@@ -226,7 +227,7 @@ const StoryViewer = () => {
         setCurrentPage(currentPage - 1);
       }
       setIsFlipping(false);
-    }, 400);
+    }, 500); // Trigger page change at 500ms for smooth visual transition
   };
 
   const handleShare = async () => {

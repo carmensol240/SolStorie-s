@@ -1,46 +1,177 @@
-/* Book Page Flip Animation */
+/* ==========================================
+   Realistic 3D Book Page Flip Animation
+   ========================================== */
+
+/* Container setup for 3D perspective */
+.book-container {
+  perspective: 2000px;
+  perspective-origin: center center;
+}
+
+/* Base book page styling */
 .book-page {
   transform-style: preserve-3d;
-  perspective: 1500px;
-  transition: transform 0.5s ease-in-out, box-shadow 0.5s ease-in-out;
+  transition: transform 0.6s cubic-bezier(0.23, 1, 0.32, 1), 
+              box-shadow 0.6s cubic-bezier(0.23, 1, 0.32, 1);
+  backface-visibility: visible;
+  position: relative;
 }
 
-/* Flip animation for next page (RTL - flip from left) */
+/* Paper texture overlay for realism */
+.book-page::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    90deg,
+    rgba(0, 0, 0, 0.03) 0%,
+    transparent 5%,
+    transparent 95%,
+    rgba(0, 0, 0, 0.03) 100%
+  );
+  pointer-events: none;
+  z-index: 1;
+}
+
+/* ==========================================
+   Next Page Flip (RTL - flips from left)
+   ========================================== */
 .flip-next {
-  animation: flipNext 0.5s ease-in-out;
+  animation: flipNextPage 0.7s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+  transform-origin: left center;
 }
 
-@keyframes flipNext {
+@keyframes flipNextPage {
   0% {
-    transform: rotateY(0deg);
-    box-shadow: 8px 8px 30px rgba(0, 0, 0, 0.3), -4px 0 20px rgba(0, 0, 0, 0.1);
+    transform: perspective(2000px) rotateY(0deg) translateZ(0);
+    box-shadow: 
+      0 10px 40px rgba(0, 0, 0, 0.2),
+      inset 0 0 0 rgba(0, 0, 0, 0);
+  }
+  15% {
+    transform: perspective(2000px) rotateY(-3deg) translateZ(20px) scale(1.02);
+    box-shadow: 
+      15px 15px 50px rgba(0, 0, 0, 0.35),
+      inset -3px 0 10px rgba(0, 0, 0, 0.05);
   }
   50% {
-    transform: rotateY(-15deg) scale(0.95);
-    box-shadow: 20px 8px 40px rgba(0, 0, 0, 0.4), -8px 0 30px rgba(0, 0, 0, 0.2);
+    transform: perspective(2000px) rotateY(-25deg) translateZ(50px) scale(0.98);
+    box-shadow: 
+      30px 20px 60px rgba(0, 0, 0, 0.4),
+      inset -8px 0 20px rgba(0, 0, 0, 0.1);
+  }
+  85% {
+    transform: perspective(2000px) rotateY(-5deg) translateZ(10px) scale(1.01);
+    box-shadow: 
+      10px 10px 40px rgba(0, 0, 0, 0.25),
+      inset -2px 0 8px rgba(0, 0, 0, 0.03);
   }
   100% {
-    transform: rotateY(0deg);
-    box-shadow: 8px 8px 30px rgba(0, 0, 0, 0.3), -4px 0 20px rgba(0, 0, 0, 0.1);
+    transform: perspective(2000px) rotateY(0deg) translateZ(0);
+    box-shadow: 
+      0 10px 40px rgba(0, 0, 0, 0.2),
+      inset 0 0 0 rgba(0, 0, 0, 0);
   }
 }
 
-/* Flip animation for previous page (RTL - flip from right) */
+/* ==========================================
+   Previous Page Flip (RTL - flips from right)
+   ========================================== */
 .flip-prev {
-  animation: flipPrev 0.5s ease-in-out;
+  animation: flipPrevPage 0.7s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+  transform-origin: right center;
 }
 
-@keyframes flipPrev {
+@keyframes flipPrevPage {
   0% {
-    transform: rotateY(0deg);
-    box-shadow: 8px 8px 30px rgba(0, 0, 0, 0.3), -4px 0 20px rgba(0, 0, 0, 0.1);
+    transform: perspective(2000px) rotateY(0deg) translateZ(0);
+    box-shadow: 
+      0 10px 40px rgba(0, 0, 0, 0.2),
+      inset 0 0 0 rgba(0, 0, 0, 0);
+  }
+  15% {
+    transform: perspective(2000px) rotateY(3deg) translateZ(20px) scale(1.02);
+    box-shadow: 
+      -15px 15px 50px rgba(0, 0, 0, 0.35),
+      inset 3px 0 10px rgba(0, 0, 0, 0.05);
   }
   50% {
-    transform: rotateY(15deg) scale(0.95);
-    box-shadow: -20px 8px 40px rgba(0, 0, 0, 0.4), 8px 0 30px rgba(0, 0, 0, 0.2);
+    transform: perspective(2000px) rotateY(25deg) translateZ(50px) scale(0.98);
+    box-shadow: 
+      -30px 20px 60px rgba(0, 0, 0, 0.4),
+      inset 8px 0 20px rgba(0, 0, 0, 0.1);
+  }
+  85% {
+    transform: perspective(2000px) rotateY(5deg) translateZ(10px) scale(1.01);
+    box-shadow: 
+      -10px 10px 40px rgba(0, 0, 0, 0.25),
+      inset 2px 0 8px rgba(0, 0, 0, 0.03);
   }
   100% {
-    transform: rotateY(0deg);
-    box-shadow: 8px 8px 30px rgba(0, 0, 0, 0.3), -4px 0 20px rgba(0, 0, 0, 0.1);
+    transform: perspective(2000px) rotateY(0deg) translateZ(0);
+    box-shadow: 
+      0 10px 40px rgba(0, 0, 0, 0.2),
+      inset 0 0 0 rgba(0, 0, 0, 0);
   }
+}
+
+/* ==========================================
+   Page curl/lift effect on hover
+   ========================================== */
+.book-page:hover:not(.flip-next):not(.flip-prev) {
+  transform: perspective(2000px) rotateY(-2deg) translateZ(5px);
+  box-shadow: 
+    8px 12px 45px rgba(0, 0, 0, 0.25),
+    inset -2px 0 8px rgba(0, 0, 0, 0.02);
+}
+
+/* ==========================================
+   Page spine shadow effect
+   ========================================== */
+.book-spine-shadow {
+  position: absolute;
+  left: 50%;
+  top: 0;
+  bottom: 0;
+  width: 40px;
+  transform: translateX(-50%);
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    rgba(0, 0, 0, 0.08) 30%,
+    rgba(0, 0, 0, 0.12) 50%,
+    rgba(0, 0, 0, 0.08) 70%,
+    transparent 100%
+  );
+  pointer-events: none;
+  z-index: 10;
+}
+
+/* ==========================================
+   Page edge texture for depth
+   ========================================== */
+.book-page-edge {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 4px;
+  background: linear-gradient(
+    180deg,
+    #e8dcc8 0%,
+    #d4c4a8 20%,
+    #c8b898 50%,
+    #d4c4a8 80%,
+    #e8dcc8 100%
+  );
+  box-shadow: inset 1px 0 2px rgba(0, 0, 0, 0.1);
+}
+
+.book-page-edge.left {
+  left: 0;
+  border-radius: 2px 0 0 2px;
+}
+
+.book-page-edge.right {
+  right: 0;
+  border-radius: 0 2px 2px 0;
 }

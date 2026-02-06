@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
+import "./StoryViewer.css"; // Import shared book animation styles
 
 interface StoryPage {
   id: string;
@@ -139,10 +140,11 @@ const FlipbookViewer = () => {
     setFlipDirection(direction);
     setIsFlipping(true);
 
+    // Match animation duration for smooth page flip
     setTimeout(() => {
       setCurrentPage(prev => direction === 'next' ? prev + 1 : prev - 1);
       setIsFlipping(false);
-    }, 400);
+    }, 500);
   };
 
   const handleShare = async () => {
@@ -232,15 +234,15 @@ const FlipbookViewer = () => {
 
       {/* Book Container */}
       <main className="flex-1 flex items-center justify-center p-4 md:p-8">
-        <div className="w-full max-w-xl">
+        <div className="w-full max-w-xl book-container">
           {/* Elegant Book Frame */}
           <div 
             className={cn(
-              "relative bg-white rounded-2xl overflow-hidden",
+              "relative bg-white rounded-2xl overflow-hidden book-page",
               "shadow-[0_25px_50px_-12px_rgba(0,0,0,0.25)]",
               "border border-amber-200",
-              "transition-transform duration-400",
-              isFlipping && (flipDirection === 'next' ? "animate-flip-next" : "animate-flip-prev")
+              isFlipping && flipDirection === 'next' && "flip-next",
+              isFlipping && flipDirection === 'prev' && "flip-prev"
             )}
           >
             {/* Gold edge decoration */}
