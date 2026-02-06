@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback, useRef } from "react";
-import { Sparkles, BookOpen, Palette, FileText, RefreshCw } from "lucide-react";
+import { Sparkles, BookOpen, Palette, FileText, RefreshCw, Wand2 } from "lucide-react";
 import { Progress } from "@/components/ui/progress";
 import { Button } from "@/components/ui/button";
 import { StoryFormData } from "@/pages/CreateStory";
@@ -12,14 +12,14 @@ interface GeneratingStepProps {
 }
 
 const LOADING_MESSAGES = [
-  { icon: Sparkles, text: "מכינים את הקסם...", color: "text-accent" },
-  { icon: BookOpen, text: "כותבים את הסיפור...", color: "text-primary" },
-  { icon: Palette, text: "מציירים את האיורים...", color: "text-secondary" },
-  { icon: FileText, text: "מסיימים את הספר...", color: "text-success" },
+  { icon: Sparkles, text: "מכינים את הקסם...", color: "text-purple-500" },
+  { icon: BookOpen, text: "כותבים את הסיפור...", color: "text-pink-500" },
+  { icon: Palette, text: "מציירים את האיורים...", color: "text-orange-400" },
+  { icon: FileText, text: "מסיימים את הספר...", color: "text-purple-600" },
 ];
 
 const EMPOWERING_SENTENCES = [
-  "המילים שאתם בוחרים היום, אתם מעצבים את עולמו הפנימי של ילדכם מחר",
+  "במילים שאתם בוחרים היום, אתם מעצבים את עולמו הפנימי של ילדכם מחר",
   "הזמן שאתם משקיעים עכשיו בסיפור משותף, בונה את הביטחון של הילד שלכם מחר",
   "כל סיפור שאתם יוצרים הוא מתנה של דמיון ומרחב בטוח עבור ילדכם",
   "כל מילה שאתה מקריא היא זרע של סקרנות וצמיחה",
@@ -206,41 +206,58 @@ const GeneratingStep = ({ formData, onComplete }: GeneratingStepProps) => {
   }
 
   return (
-    <div className="flex flex-col items-center justify-center min-h-[60vh] text-center space-y-8">
-      {/* Animated Icon */}
+    <div className="flex flex-col items-center justify-center min-h-[60vh] text-center space-y-8 bg-gradient-to-b from-[#FAF3E8] to-[#F5E6D3] rounded-2xl p-6">
+      {/* Animated Icon with Magic Wand */}
       <div className="relative">
-        <div className="w-24 h-24 bg-gradient-to-br from-primary/20 via-secondary/20 to-accent/20 rounded-full flex items-center justify-center animate-pulse">
-          <Icon className={`w-12 h-12 ${currentMessage.color} animate-bounce-gentle`} />
+        <div className="w-28 h-28 bg-gradient-to-br from-purple-500/20 via-pink-500/20 to-orange-400/20 rounded-full flex items-center justify-center shadow-lg">
+          <div className="relative">
+            <Icon className={`w-12 h-12 ${currentMessage.color} animate-bounce`} />
+            {/* Animated Magic Wand */}
+            <Wand2 
+              className="absolute -top-2 -right-4 w-8 h-8 text-purple-600 animate-wiggle"
+              style={{
+                filter: 'drop-shadow(0 0 4px rgba(168, 85, 247, 0.5))'
+              }}
+            />
+          </div>
         </div>
         
-        {/* Floating particles */}
+        {/* Floating sparkles */}
         <div className="absolute inset-0">
-          {[...Array(6)].map((_, i) => (
+          {[...Array(8)].map((_, i) => (
             <Sparkles
               key={i}
-              className="absolute w-4 h-4 text-accent animate-float"
+              className="absolute w-4 h-4 text-orange-400 animate-pulse"
               style={{
-                top: `${Math.random() * 100}%`,
-                left: `${Math.random() * 100}%`,
-                animationDelay: `${i * 0.3}s`,
+                top: `${10 + Math.random() * 80}%`,
+                left: `${10 + Math.random() * 80}%`,
+                animationDelay: `${i * 0.2}s`,
+                opacity: 0.7,
               }}
             />
           ))}
         </div>
       </div>
 
-      {/* Message */}
+      {/* Message with gradient text */}
       <div className="space-y-2">
-        <h2 className="text-2xl font-bold">{currentMessage.text}</h2>
-        <p className="text-muted-foreground">
+        <h2 className="text-2xl font-bold bg-gradient-to-r from-purple-600 via-pink-500 to-orange-400 bg-clip-text text-transparent">
+          {currentMessage.text}
+        </h2>
+        <p className="text-purple-700/70">
           יצירת סיפור מותאם אישית עבור {formData.childName}
         </p>
       </div>
 
-      {/* Progress Bar */}
+      {/* Progress Bar with gradient */}
       <div className="w-full max-w-xs space-y-2">
-        <Progress value={progress} className="h-3" />
-        <p className="text-sm text-muted-foreground">
+        <div className="relative h-3 w-full overflow-hidden rounded-full bg-purple-100">
+          <div 
+            className="h-full bg-gradient-to-r from-purple-600 via-pink-500 to-orange-400 transition-all duration-300"
+            style={{ width: `${progress}%` }}
+          />
+        </div>
+        <p className="text-sm text-purple-600 font-medium">
           {Math.round(progress)}%
         </p>
       </div>
@@ -262,10 +279,10 @@ const GeneratingStep = ({ formData, onComplete }: GeneratingStepProps) => {
         </p>
       </div>
 
-      {/* Tip */}
-      <div className="bg-card rounded-xl p-4 comic-shadow border-2 border-foreground/10 max-w-xs">
-        <p className="text-sm text-muted-foreground">
-          💡 <strong>טיפ:</strong> התהליך לוקח בערך 1-2 דקות. בינתיים תוכלו להכין כוס קפה ☕
+      {/* Tip Card with theme colors */}
+      <div className="bg-white/80 backdrop-blur-sm rounded-xl p-4 shadow-md border border-purple-200 max-w-xs">
+        <p className="text-sm text-purple-700">
+          💡 <strong className="text-purple-800">טיפ:</strong> התהליך לוקח בערך 1-2 דקות. בינתיים תוכלו להכין כוס קפה ☕
         </p>
       </div>
     </div>
