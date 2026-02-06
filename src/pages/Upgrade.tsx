@@ -181,7 +181,7 @@ const Upgrade = () => {
   };
 
   return (
-    <div className="min-h-screen flex flex-col bg-gradient-to-b from-amber-50 to-white">
+    <div className="min-h-screen flex flex-col bg-gradient-to-b from-purple-50 to-white">
       {/* Close Button */}
       <div className="absolute top-2 left-2 z-10">
         <Button
@@ -198,7 +198,7 @@ const Upgrade = () => {
         <div className="container max-w-md mx-auto px-4 pt-2">
           {/* Elephant Image */}
           <div className="flex justify-center mb-2">
-            <div className="w-32 h-32 rounded-2xl overflow-hidden shadow-xl bg-white border-2 border-amber-300">
+            <div className="w-32 h-32 rounded-2xl overflow-hidden shadow-xl bg-white border-2 border-purple-300">
               <img 
                 src={elephantImage} 
                 alt="פיל חמוד קורא ספר" 
@@ -209,7 +209,7 @@ const Upgrade = () => {
 
           {/* Header - Bigger & Bolder */}
           <div className="text-center mb-3">
-            <h1 className="text-3xl font-black text-foreground mb-1">
+            <h1 className="text-3xl font-black bg-gradient-to-r from-purple-600 via-pink-500 to-orange-400 bg-clip-text text-transparent mb-1">
               {title}
             </h1>
             <p className="text-foreground text-base font-semibold leading-snug">
@@ -219,7 +219,7 @@ const Upgrade = () => {
 
           {/* Credit Badge - Bigger */}
           <div className="flex justify-center mb-3">
-            <Badge className="bg-purple text-purple-foreground px-5 py-2 text-base font-black rounded-full shadow-md">
+            <Badge className="bg-gradient-to-r from-purple-600 via-pink-500 to-orange-400 text-white px-5 py-2 text-base font-black rounded-full shadow-md">
               ✨ 1 קרדיט = 1 סיפור מלא + איורים
             </Badge>
           </div>
@@ -233,19 +233,19 @@ const Upgrade = () => {
                 className={cn(
                   "relative flex flex-col items-center p-3 rounded-xl border-2 transition-all duration-200 bg-card",
                   selectedPackage === pkg.id
-                    ? "border-purple shadow-lg scale-[1.02]"
-                    : "border-border hover:border-purple/50"
+                    ? "border-purple-500 shadow-lg scale-[1.02] bg-gradient-to-b from-purple-50 to-white"
+                    : "border-purple-200 hover:border-purple-400"
                 )}
               >
                 {/* Badge */}
                 {pkg.badge && (
-                  <div className="absolute -top-2.5 left-1/2 -translate-x-1/2 bg-purple text-purple-foreground text-xs font-black px-3 py-0.5 rounded-full whitespace-nowrap shadow">
+                  <div className="absolute -top-2.5 left-1/2 -translate-x-1/2 bg-gradient-to-r from-purple-600 via-pink-500 to-orange-400 text-white text-xs font-black px-3 py-0.5 rounded-full whitespace-nowrap shadow">
                     {pkg.badge}
                   </div>
                 )}
 
                 {/* Stories count - BIGGER */}
-                <div className="text-3xl font-black text-foreground">
+                <div className="text-3xl font-black bg-gradient-to-r from-purple-600 via-pink-500 to-orange-400 bg-clip-text text-transparent">
                   {pkg.stories}
                 </div>
                 <div className="text-sm text-foreground font-bold mb-1">סיפורים</div>
@@ -256,7 +256,7 @@ const Upgrade = () => {
                 </div>
 
                 {/* Price per story */}
-                <div className="text-sm text-purple font-black">
+                <div className="text-sm text-purple-600 font-black">
                   {pkg.pricePerStory} לסיפור
                 </div>
                 
@@ -269,23 +269,23 @@ const Upgrade = () => {
           </div>
         
           {/* Credit Card Note - More prominent */}
-          <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 mb-3">
-            <p className="text-sm text-center text-blue-800 font-bold flex items-center justify-center gap-2">
+          <div className="bg-purple-50 border border-purple-200 rounded-lg p-3 mb-3">
+            <p className="text-sm text-center text-purple-800 font-bold flex items-center justify-center gap-2">
               💳 ניתן לשלם בכרטיס אשראי גם ללא חשבון PayPal
             </p>
-            <p className="text-xs text-center text-blue-600 mt-1">
+            <p className="text-xs text-center text-purple-600 mt-1">
               Visa, Mastercard, American Express ועוד
             </p>
           </div>
 
           {/* Earn Free Section - Compact but visible */}
-          <div className="bg-gradient-to-l from-secondary/20 via-primary/10 to-accent/20 rounded-xl p-3 border border-foreground/10">
+          <div className="bg-gradient-to-l from-purple-100/50 via-pink-50 to-orange-50 rounded-xl p-3 border border-purple-200">
             <div className="flex items-center gap-2 mb-2">
-              <div className="w-9 h-9 rounded-full bg-accent/30 flex items-center justify-center">
-                <Gift className="w-5 h-5 text-orange-500" />
+              <div className="w-9 h-9 rounded-full bg-gradient-to-r from-purple-500/30 to-pink-500/30 flex items-center justify-center">
+                <Gift className="w-5 h-5 text-purple-600" />
               </div>
               <div className="flex-1">
-                <h4 className="font-bold text-sm text-foreground">או הרוויחו חינם 🎁</h4>
+                <h4 className="font-bold text-sm bg-gradient-to-r from-purple-600 via-pink-500 to-orange-400 bg-clip-text text-transparent">או הרוויחו חינם 🎁</h4>
                 <p className="text-[10px] text-muted-foreground">שתפו וקבלו קרדיטים</p>
               </div>
             </div>
@@ -303,7 +303,7 @@ const Upgrade = () => {
                 onClick={handleCopyLink} 
                 variant="outline" 
                 size="sm"
-                className="flex-1 h-8 text-xs font-medium"
+                className="flex-1 h-8 text-xs font-medium border-purple-200 hover:bg-purple-50"
               >
                 {copied ? <Check className="w-3 h-3" /> : <Copy className="w-3 h-3" />}
                 <span className="mr-1">{copied ? 'הועתק!' : 'העתק'}</span>
@@ -315,7 +315,7 @@ const Upgrade = () => {
               <Button 
                 onClick={handleRedeemCoin}
                 size="sm"
-                className="w-full mt-2 h-8 text-xs bg-amber-500 hover:bg-amber-600 text-white font-bold"
+                className="w-full mt-2 h-8 text-xs bg-gradient-to-r from-purple-600 via-pink-500 to-orange-400 hover:from-purple-700 hover:via-pink-600 hover:to-orange-500 text-white font-bold"
               >
                 🪙 {shareCoins} מטבעות - השתמשו!
               </Button>
@@ -355,11 +355,11 @@ const Upgrade = () => {
 
       {/* Fixed CTA - Only show when PayPal is NOT open */}
       {!showPayPal && (
-        <div className="fixed bottom-0 left-0 right-0 bg-background/95 backdrop-blur border-t border-border px-4 py-3 safe-area-bottom">
+        <div className="fixed bottom-0 left-0 right-0 bg-background/95 backdrop-blur border-t border-purple-200 px-4 py-3 safe-area-bottom">
           <div className="container max-w-md mx-auto flex flex-col items-center gap-1">
             <Button
               onClick={handlePurchase}
-              className="w-full bg-gradient-to-r from-amber-400 to-orange-500 hover:from-amber-500 hover:to-orange-600 text-white font-bold text-sm py-3 rounded-xl shadow-lg"
+              className="w-full bg-gradient-to-r from-purple-600 via-pink-500 to-orange-400 hover:from-purple-700 hover:via-pink-600 hover:to-orange-500 text-white font-bold text-sm py-3 rounded-xl shadow-lg"
             >
               רכשו {selectedPkg?.stories} סיפורים ב-₪{selectedPkg?.price} ✨
             </Button>

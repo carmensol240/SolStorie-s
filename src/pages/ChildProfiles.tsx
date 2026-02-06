@@ -471,7 +471,7 @@ const ChildProfiles = () => {
   }
 
   return (
-    <div className="min-h-screen bg-background bg-halftone pb-20">
+    <div className="min-h-screen bg-gradient-to-b from-purple-50/50 to-background bg-halftone pb-20">
       <div className="container max-w-lg mx-auto px-4 py-8">
         {/* Header with Back Button */}
         <div className="flex items-center justify-between mb-6">
@@ -479,14 +479,14 @@ const ChildProfiles = () => {
             variant="ghost"
             size="sm"
             onClick={() => navigate("/")}
-            className="flex items-center gap-1 min-h-[44px]"
+            className="flex items-center gap-1 min-h-[44px] text-purple-600 hover:text-purple-700 hover:bg-purple-50"
             aria-label="חזרה לדף הבית"
           >
             <ArrowRight className="w-4 h-4" />
             חזרה
           </Button>
           <div className="flex-1 text-center">
-            <h1 className="text-2xl font-black text-foreground">
+            <h1 className="text-2xl font-black bg-gradient-to-r from-purple-600 via-pink-500 to-orange-400 bg-clip-text text-transparent">
               בחרו ילד
             </h1>
           </div>
