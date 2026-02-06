@@ -232,7 +232,7 @@ const CreateStory = () => {
               onClick={handleNext}
               disabled={step === 1 ? !canProceedStep1 : !canProceedStep2}
               size="lg"
-              className="w-full bg-gradient-to-r from-[#8B5A2B] via-[#A07046] to-[#6B4423] hover:from-[#6B4423] hover:via-[#8B5A2B] hover:to-[#5D3A1A] text-white font-black text-base py-4 rounded-xl disabled:opacity-50 disabled:cursor-not-allowed shadow-lg hover:shadow-xl transition-all"
+              className="w-full bg-gradient-to-r from-purple-700 via-purple-600 to-[#8B5A2B] hover:from-purple-800 hover:via-purple-700 hover:to-[#6B4423] text-white font-black text-base py-4 rounded-xl disabled:opacity-50 disabled:cursor-not-allowed shadow-lg hover:shadow-xl transition-all"
             >
               {step === 2 ? "צרו את הסיפור" : "המשיכו"}
               <ArrowLeft className="w-5 h-5 mr-2" />
