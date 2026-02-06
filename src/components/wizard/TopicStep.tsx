@@ -281,11 +281,11 @@ const CategoryCarousel = ({
               key={topic.id}
               onClick={() => onSelect(topic)}
               className={cn(
-                "flex-shrink-0 w-36 overflow-hidden rounded-2xl border-3 transition-all duration-200",
+                "flex-shrink-0 w-36 overflow-hidden rounded-xl border-3 transition-all duration-200",
                 "text-right flex flex-col shadow-md",
                 isSelected
-                  ? "border-primary ring-2 ring-primary/30 scale-[1.02]"
-                  : "border-transparent hover:border-primary/50"
+                  ? "border-secondary ring-2 ring-secondary/30 scale-[1.02]"
+                  : "border-transparent hover:border-secondary/50"
               )}
               style={{ scrollSnapAlign: 'start' }}
             >
