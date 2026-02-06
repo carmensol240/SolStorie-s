@@ -373,13 +373,13 @@ const StoryViewer = () => {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-gradient-to-b from-[#F5E6D3] to-[#E8D5C4] flex items-center justify-center">
+      <div className="min-h-screen bg-gradient-to-b from-purple-50 to-pink-50 flex items-center justify-center">
         <div className="text-center space-y-4">
           <div className="relative w-20 h-20 mx-auto">
-            <div className="absolute inset-0 border-4 border-[#8B5A2B] border-t-transparent rounded-full animate-spin" />
-            <BookOpen className="absolute inset-0 m-auto w-8 h-8 text-[#8B5A2B]" />
+            <div className="absolute inset-0 border-4 border-purple-500 border-t-transparent rounded-full animate-spin" />
+            <BookOpen className="absolute inset-0 m-auto w-8 h-8 text-purple-600" />
           </div>
-          <p className="text-[#5D3A1A] font-medium text-lg">פותחים את הספר...</p>
+          <p className="bg-gradient-to-r from-purple-600 via-pink-500 to-orange-400 bg-clip-text text-transparent font-bold text-lg">פותחים את הספר...</p>
         </div>
       </div>
     );
@@ -387,10 +387,10 @@ const StoryViewer = () => {
 
   if (!story || story.pages.length === 0) {
     return (
-      <div className="min-h-screen bg-gradient-to-b from-[#F5E6D3] to-[#E8D5C4] flex items-center justify-center">
+      <div className="min-h-screen bg-gradient-to-b from-purple-50 to-pink-50 flex items-center justify-center">
         <div className="text-center space-y-4">
-          <p className="text-xl font-bold text-[#5D3A1A]">הסיפור לא נמצא</p>
-          <Button onClick={() => navigate("/")} className="bg-[#8B5A2B] hover:bg-[#6B4423]">
+          <p className="text-xl font-bold bg-gradient-to-r from-purple-600 via-pink-500 to-orange-400 bg-clip-text text-transparent">הסיפור לא נמצא</p>
+          <Button onClick={() => navigate("/")} className="bg-gradient-to-r from-purple-600 via-pink-500 to-orange-400 hover:from-purple-700 hover:via-pink-600 hover:to-orange-500">
             <Home className="w-4 h-4 ml-2" />
             חזרה לדף הבית
           </Button>
@@ -406,7 +406,7 @@ const StoryViewer = () => {
   const showPageActions = !isCoverPage && !isEndPage && page !== null;
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-[#E8D5C4] to-[#D4C4B0] flex flex-col" dir="rtl">
+    <div className="min-h-screen bg-gradient-to-b from-purple-50 via-pink-50 to-orange-50 flex flex-col" dir="rtl">
       <OfflineIndicator isOnline={isOnline} />
       
       {/* Header - Clean toolbar with essentials only */}
@@ -474,23 +474,23 @@ const StoryViewer = () => {
                 <div className="flex-1 flex flex-col items-center justify-center p-6 md:p-10 text-center bg-gradient-to-bl from-[#FFFBF5] to-[#FAF3E8]">
                   <div className="space-y-5">
                     {/* Large child-friendly title */}
-                    <h1 className="text-4xl md:text-5xl lg:text-6xl font-black text-[#5D3A1A] leading-tight" style={{ fontFamily: "'Heebo', 'Comic Sans MS', cursive, sans-serif" }}>
+                    <h1 className="text-4xl md:text-5xl lg:text-6xl font-black text-purple-900 leading-tight" style={{ fontFamily: "'Heebo', 'Comic Sans MS', cursive, sans-serif" }}>
                       הסיפור של
                       <br />
-                      <span className="text-5xl md:text-6xl lg:text-7xl bg-gradient-to-r from-[#FF6B6B] via-[#FFE66D] to-[#4ECDC4] bg-clip-text text-transparent">
+                      <span className="text-5xl md:text-6xl lg:text-7xl bg-gradient-to-r from-purple-600 via-pink-500 to-orange-400 bg-clip-text text-transparent">
                         {story.child_name}
                       </span>
                     </h1>
                     
                     {/* Decorative divider */}
                     <div className="flex items-center justify-center gap-3">
-                      <div className="w-16 h-1 bg-gradient-to-r from-transparent to-[#D4A574] rounded-full" />
+                      <div className="w-16 h-1 bg-gradient-to-r from-transparent to-purple-400 rounded-full" />
                       <span className="text-2xl">✨</span>
-                      <div className="w-16 h-1 bg-gradient-to-l from-transparent to-[#D4A574] rounded-full" />
+                      <div className="w-16 h-1 bg-gradient-to-l from-transparent to-purple-400 rounded-full" />
                     </div>
                     
                     {/* Topic */}
-                    <p className="text-lg md:text-xl text-[#6B4423] max-w-xs mx-auto font-medium">
+                    <p className="text-lg md:text-xl text-purple-700 max-w-xs mx-auto font-medium">
                       {story.topic}
                     </p>
                   </div>
@@ -499,7 +499,7 @@ const StoryViewer = () => {
                   <Button 
                     size="lg"
                     onClick={() => handlePageChange('next')}
-                    className="mt-10 bg-gradient-to-r from-[#FF6B6B] via-[#FFE66D] to-[#4ECDC4] hover:from-[#FF5252] hover:via-[#FFD93D] hover:to-[#26A69A] text-[#2D3436] font-bold px-10 py-7 text-xl rounded-full shadow-xl hover:shadow-2xl transition-all transform hover:scale-105 border-2 border-white/50"
+                    className="mt-10 bg-gradient-to-r from-purple-600 via-pink-500 to-orange-400 hover:from-purple-700 hover:via-pink-600 hover:to-orange-500 text-white font-bold px-10 py-7 text-xl rounded-full shadow-xl hover:shadow-2xl transition-all transform hover:scale-105 border-2 border-white/50"
                   >
                     <BookOpen className="w-6 h-6 ml-3" />
                     פתח את הספר 📖
@@ -523,13 +523,13 @@ const StoryViewer = () => {
                 )}
                 
                 <div className="space-y-4">
-                  <p className="text-3xl md:text-4xl font-bold text-[#5D3A1A]">
+                  <p className="text-3xl md:text-4xl font-bold bg-gradient-to-r from-purple-600 via-pink-500 to-orange-400 bg-clip-text text-transparent">
                     ✦ סוף ✦
                   </p>
-                  <p className="text-xl text-[#6B4423]">
+                  <p className="text-xl text-purple-700">
                     תודה שקראתם!
                   </p>
-                  <p className="text-base text-[#8B7355]">
+                  <p className="text-base text-purple-500">
                     הסיפור של {story.child_name}
                   </p>
                 </div>
@@ -539,7 +539,7 @@ const StoryViewer = () => {
                     variant="outline"
                     size="lg"
                     onClick={() => setCurrentPage(-1)}
-                    className="border-2 border-[#8B5A2B] text-[#8B5A2B] hover:bg-[#8B5A2B]/10 px-6 py-5 rounded-full"
+                    className="border-2 border-purple-500 text-purple-600 hover:bg-purple-50 px-6 py-5 rounded-full"
                   >
                     <BookOpen className="w-5 h-5 ml-2" />
                     קרא שוב
@@ -547,7 +547,7 @@ const StoryViewer = () => {
                   <Button 
                     size="lg"
                     onClick={() => navigate('/library')}
-                    className="bg-[#8B5A2B] hover:bg-[#6B4423] text-white px-6 py-5 rounded-full"
+                    className="bg-gradient-to-r from-purple-600 via-pink-500 to-orange-400 hover:from-purple-700 hover:via-pink-600 hover:to-orange-500 text-white px-6 py-5 rounded-full"
                   >
                     <Home className="w-5 h-5 ml-2" />
                     לספרייה
@@ -628,7 +628,7 @@ const StoryViewer = () => {
                 size="lg"
                 onClick={() => handlePageChange('prev')}
                 disabled={currentPage <= -1 || isFlipping}
-                className="rounded-full border-2 border-[#8B5A2B] text-[#8B5A2B] hover:bg-[#8B5A2B]/10 px-8 py-5 font-bold"
+                className="rounded-full border-2 border-purple-500 text-purple-600 hover:bg-purple-50 px-8 py-5 font-bold"
               >
                 חזרה
               </Button>
@@ -637,7 +637,7 @@ const StoryViewer = () => {
                 size="lg"
                 onClick={() => handlePageChange('next')}
                 disabled={!story || currentPage >= story.pages.length || isFlipping}
-                className="rounded-full bg-[#8B5A2B] hover:bg-[#6B4423] text-white px-8 py-5 font-bold"
+                className="rounded-full bg-gradient-to-r from-purple-600 via-pink-500 to-orange-400 hover:from-purple-700 hover:via-pink-600 hover:to-orange-500 text-white px-8 py-5 font-bold"
               >
                 הבא
               </Button>
