@@ -307,9 +307,38 @@ const Library = () => {
   );
 };
 
+import libraryChildReading from "@/assets/library-child-reading.jpeg";
+
 const EmptyState = ({ onCreateClick }: { onCreateClick: () => void }) => (
-  <div className="text-center py-8 space-y-6">
-    <div className="space-y-2">
+  <div className="text-center py-6 space-y-5">
+    {/* Image with reflection effect */}
+    <div className="relative mx-auto w-48 h-48">
+      <div className="relative">
+        <img 
+          src={libraryChildReading} 
+          alt="ילד קורא בטאבלט" 
+          className="w-48 h-48 rounded-2xl object-cover shadow-xl border-2 border-[#D4A574]"
+        />
+      </div>
+      {/* Reflection */}
+      <div 
+        className="absolute top-full left-0 right-0 h-16 overflow-hidden opacity-30 pointer-events-none"
+        style={{
+          transform: 'scaleY(-1)',
+          maskImage: 'linear-gradient(to top, transparent 0%, black 100%)',
+          WebkitMaskImage: 'linear-gradient(to top, transparent 0%, black 100%)',
+        }}
+      >
+        <img 
+          src={libraryChildReading} 
+          alt="" 
+          className="w-48 h-48 rounded-2xl object-cover mx-auto"
+          aria-hidden="true"
+        />
+      </div>
+    </div>
+    
+    <div className="space-y-2 pt-4">
       <h2 className="text-2xl font-black text-[#5D3A1A]">הספרייה שלך מחכה לסיפור הראשון!</h2>
       <p className="text-[#6B4423]">בואו נתחיל?</p>
     </div>
