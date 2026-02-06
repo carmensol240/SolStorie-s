@@ -181,7 +181,7 @@ const Upgrade = () => {
   };
 
   return (
-    <div className="h-screen flex flex-col bg-gradient-to-b from-amber-50 to-white overflow-hidden">
+    <div className="min-h-screen flex flex-col bg-gradient-to-b from-amber-50 to-white">
       {/* Close Button */}
       <div className="absolute top-2 left-2 z-10">
         <Button
@@ -194,8 +194,8 @@ const Upgrade = () => {
         </Button>
       </div>
 
-      <div className="flex-1 overflow-y-auto pb-24">
-        <div className="container max-w-md mx-auto px-3 pt-1">
+      <div className="flex-1 overflow-y-auto pb-32">
+        <div className="container max-w-md mx-auto px-4 pt-2">
           {/* Elephant Image */}
           <div className="flex justify-center mb-2">
             <div className="w-32 h-32 rounded-2xl overflow-hidden shadow-xl bg-white border-2 border-amber-300">
@@ -323,21 +323,17 @@ const Upgrade = () => {
           </div>
 
           {/* Privacy Policy Link */}
-          <p className="text-xs text-center text-muted-foreground mt-2">
+          <p className="text-xs text-center text-muted-foreground mt-2 mb-4">
             בלחיצה על "רכשו" הינך מסכים/ה ל
             <a href="/privacy" className="text-primary underline font-semibold mx-1">מדיניות הפרטיות</a>
             ול
             <a href="/terms" className="text-primary underline font-semibold mx-1">תנאי השימוש</a>
           </p>
-        </div>
-      </div>
 
-      {/* Fixed CTA - Compact */}
-      <div className="fixed bottom-0 left-0 right-0 bg-background/95 backdrop-blur border-t border-border px-3 py-2 safe-area-bottom">
-        <div className="container max-w-md mx-auto">
-          {showPayPal ? (
-            <div className="w-full space-y-1">
-              <p className="text-xs font-bold text-foreground text-center">
+          {/* PayPal Section - In scrollable area for better mobile UX */}
+          {showPayPal && (
+            <div className="bg-card rounded-xl border border-border p-4 mb-4 shadow-lg">
+              <p className="text-sm font-bold text-foreground text-center mb-3">
                 {selectedPkg?.stories} סיפורים תמורת ₪{selectedPkg?.price}
               </p>
               <PayPalButton
@@ -348,29 +344,34 @@ const Upgrade = () => {
               />
               <button
                 onClick={() => setShowPayPal(false)}
-                className="w-full text-center text-muted-foreground text-[10px] hover:text-foreground transition-colors"
+                className="w-full text-center text-muted-foreground text-xs mt-3 hover:text-foreground transition-colors"
               >
                 ביטול
-              </button>
-            </div>
-          ) : (
-            <div className="flex flex-col items-center gap-1">
-              <Button
-                onClick={handlePurchase}
-                className="w-full bg-gradient-to-r from-amber-400 to-orange-500 hover:from-amber-500 hover:to-orange-600 text-white font-bold text-sm py-3 rounded-xl shadow-lg"
-              >
-                רכשו {selectedPkg?.stories} סיפורים ב-₪{selectedPkg?.price} ✨
-              </Button>
-              <button
-                onClick={() => firstStoryId ? navigate(`/story/${firstStoryId}`) : navigate('/')}
-                className="text-muted-foreground text-[10px] hover:text-foreground transition-colors"
-              >
-                אולי מאוחר יותר
               </button>
             </div>
           )}
         </div>
       </div>
+
+      {/* Fixed CTA - Only show when PayPal is NOT open */}
+      {!showPayPal && (
+        <div className="fixed bottom-0 left-0 right-0 bg-background/95 backdrop-blur border-t border-border px-4 py-3 safe-area-bottom">
+          <div className="container max-w-md mx-auto flex flex-col items-center gap-1">
+            <Button
+              onClick={handlePurchase}
+              className="w-full bg-gradient-to-r from-amber-400 to-orange-500 hover:from-amber-500 hover:to-orange-600 text-white font-bold text-sm py-3 rounded-xl shadow-lg"
+            >
+              רכשו {selectedPkg?.stories} סיפורים ב-₪{selectedPkg?.price} ✨
+            </Button>
+            <button
+              onClick={() => firstStoryId ? navigate(`/story/${firstStoryId}`) : navigate('/')}
+              className="text-muted-foreground text-xs hover:text-foreground transition-colors"
+            >
+              אולי מאוחר יותר
+            </button>
+          </div>
+        </div>
+      )}
 
       {/* Modals */}
       <PurchaseSuccessModal
