@@ -224,7 +224,7 @@ const Library = () => {
             {/* Right: Title */}
             <h1 className="text-xl font-black flex items-center gap-2">
               <span className="bg-gradient-to-r from-purple-600 via-pink-500 to-orange-400 bg-clip-text text-transparent">הספרייה הקסומה שלי</span>
-              <Wand2 className="w-5 h-5 text-purple-500" />
+              <Wand2 className="w-5 h-5 text-purple-500 animate-wiggle" />
             </h1>
           </div>
         </div>
