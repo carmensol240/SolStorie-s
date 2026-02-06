@@ -280,7 +280,7 @@ const FlipbookViewer = () => {
                       <div className="aspect-[4/3]">
                         <img
                           src={page.illustration_url}
-                          alt={`איור לעמוד ${page.page_number}`}
+                          alt=""
                           className="w-full h-full object-cover"
                           loading="lazy"
                         />
