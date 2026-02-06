@@ -320,7 +320,7 @@ const EmptyState = ({ onCreateClick }: { onCreateClick: () => void }) => (
         <img 
           src={libraryChildReading} 
           alt="ילד קורא בטאבלט" 
-          className="w-48 h-48 rounded-2xl object-cover shadow-xl border-2 border-[#D4A574]"
+          className="w-48 h-48 rounded-2xl object-cover border-2 border-purple-300"
         />
       </div>
       {/* Reflection */}
@@ -348,7 +348,7 @@ const EmptyState = ({ onCreateClick }: { onCreateClick: () => void }) => (
     <Button
       onClick={onCreateClick}
       size="lg"
-      className="bg-gradient-to-r from-[#8B5A2B] to-[#6B4423] hover:from-[#6B4423] hover:to-[#5D3A1A] text-white font-bold px-8 py-6 rounded-2xl shadow-lg"
+      className="bg-gradient-to-r from-purple-600 via-pink-500 to-orange-400 hover:from-purple-700 hover:via-pink-600 hover:to-orange-500 text-white font-bold px-8 py-6 rounded-2xl shadow-lg"
     >
       <Plus className="w-5 h-5 ml-2" />
       צרו סיפור חדש

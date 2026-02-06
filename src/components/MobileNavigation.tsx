@@ -14,7 +14,7 @@ const MobileNavigation = () => {
   ];
 
   return (
-    <nav className="fixed bottom-0 left-0 right-0 z-[100] bg-card border-t border-border shadow-lg" role="navigation" aria-label="ניווט ראשי">
+    <nav className="fixed bottom-0 left-0 right-0 z-[100] bg-card border-t border-purple-200 shadow-lg" role="navigation" aria-label="ניווט ראשי">
       <div className="flex justify-around items-center h-16 max-w-lg mx-auto px-4 pb-safe">
         {navItems.map((item) => {
           const isActive = location.pathname === item.path;
@@ -28,11 +28,10 @@ const MobileNavigation = () => {
               aria-current={isActive ? "page" : undefined}
               className={cn(
                 "flex flex-col items-center justify-center gap-1 px-3 py-2 rounded-xl transition-all duration-200 min-h-[44px] min-w-[40px]",
-                "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2",
-                item.primary && !isActive && "bg-primary/10 text-primary",
+                "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-purple-400 focus-visible:ring-offset-2",
                 isActive 
-                  ? "bg-primary text-primary-foreground" 
-                  : !item.primary && "text-muted-foreground hover:text-foreground hover:bg-muted"
+                  ? "bg-gradient-to-r from-purple-600 via-pink-500 to-orange-400 text-white" 
+                  : "text-purple-600 hover:text-pink-500 hover:bg-purple-50"
               )}
             >
               <Icon className="w-5 h-5" />
