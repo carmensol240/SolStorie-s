@@ -3,6 +3,16 @@ import { jsPDF } from 'jspdf';
 import html2canvas from 'html2canvas';
 import { useToast } from '@/hooks/use-toast';
 
+// Helper function to escape HTML entities and prevent XSS
+const escapeHtml = (unsafe: string): string => {
+  return unsafe
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#039;");
+};
+
 interface StoryPage {
   page_number: number;
   text: string;
@@ -112,13 +122,13 @@ export const usePdfExport = () => {
             font-size: 42px;
             font-weight: bold;
             margin: 0 0 24px 0;
-          ">${story.child_name}</h2>
+          ">${escapeHtml(story.child_name)}</h2>
           <p style="
             color: #6B4423;
             font-size: 18px;
             margin: 0;
             line-height: 1.6;
-          ">${story.topic}</p>
+          ">${escapeHtml(story.topic)}</p>
         </div>
       `;
       container.innerHTML = '';
@@ -200,7 +210,7 @@ export const usePdfExport = () => {
                 margin: 0;
                 font-family: Heebo, Assistant, sans-serif;
                 max-width: 90%;
-              ">${page.text}</p>
+              ">${escapeHtml(page.text)}</p>
             </div>
             
             <div style="
@@ -281,13 +291,13 @@ export const usePdfExport = () => {
           font-size: 56px;
           font-weight: bold;
           margin: 0 0 28px 0;
-        ">${story.child_name}</h2>
+        ">${escapeHtml(story.child_name)}</h2>
         <p style="
           color: #6B4423;
           font-size: 24px;
           margin: 0;
           line-height: 1.6;
-        ">${story.topic}</p>
+        ">${escapeHtml(story.topic)}</p>
       </div>
     `;
     container.innerHTML = '';
@@ -382,7 +392,7 @@ export const usePdfExport = () => {
             margin: 0;
             font-family: Heebo, Assistant, sans-serif;
             max-width: 85%;
-          ">${page.text}</p>
+          ">${escapeHtml(page.text)}</p>
           
           <!-- Page number -->
           <div style="
