@@ -177,8 +177,16 @@
     animation: float 3s ease-in-out infinite;
   }
 
+  .animate-float-gentle {
+    animation: float-gentle 2.5s ease-in-out infinite;
+  }
+
   .animate-pulse-glow {
     animation: pulse-glow 2s ease-in-out infinite;
+  }
+
+  .animate-pulse-glow-soft {
+    animation: pulse-glow-soft 3s ease-in-out infinite;
   }
 
   .starburst {
@@ -285,12 +293,26 @@
   50% { transform: translateY(-12px) rotate(2deg); }
 }
 
+@keyframes float-gentle {
+  0%, 100% { transform: translateY(0) scale(1); }
+  50% { transform: translateY(-3px) scale(1.05); }
+}
+
 @keyframes pulse-glow {
   0%, 100% { 
     box-shadow: 0 0 20px hsl(var(--whatsapp) / 0.4), var(--shadow-comic);
   }
   50% { 
     box-shadow: 0 0 40px hsl(var(--whatsapp) / 0.6), var(--shadow-comic);
+  }
+}
+
+@keyframes pulse-glow-soft {
+  0%, 100% { 
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2), 0 0 20px rgba(255, 255, 255, 0.15);
+  }
+  50% { 
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3), 0 0 35px rgba(255, 255, 255, 0.25);
   }
 }
 
