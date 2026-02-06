@@ -281,11 +281,11 @@ const CategoryCarousel = ({
               key={topic.id}
               onClick={() => onSelect(topic)}
               className={cn(
-                "flex-shrink-0 w-36 overflow-hidden rounded-xl border-3 transition-all duration-200",
-                "text-right flex flex-col shadow-md",
+                "flex-shrink-0 w-36 overflow-hidden rounded-xl border-2 transition-all duration-200",
+                "text-right flex flex-col shadow-sm",
                 isSelected
-                  ? "border-secondary ring-2 ring-secondary/30 scale-[1.02]"
-                  : "border-transparent hover:border-secondary/50"
+                  ? "border-primary ring-2 ring-primary/20 scale-[1.02]"
+                  : "border-transparent hover:border-primary/30"
               )}
               style={{ scrollSnapAlign: 'start' }}
             >
@@ -303,8 +303,8 @@ const CategoryCarousel = ({
                 
                 {/* Selection indicator */}
                 {isSelected && (
-                  <div className="absolute top-2 right-2 w-6 h-6 rounded-full bg-secondary flex items-center justify-center shadow-lg">
-                    <span className="text-secondary-foreground text-sm">✓</span>
+                  <div className="absolute top-2 right-2 w-5 h-5 rounded-full bg-primary flex items-center justify-center shadow-md">
+                    <span className="text-primary-foreground text-xs">✓</span>
                   </div>
                 )}
                 
@@ -359,38 +359,38 @@ const TopicStep = ({ formData, updateFormData }: TopicStepProps) => {
   };
 
   return (
-    <div className="space-y-5 -mx-3">
+    <div className="space-y-6 -mx-3">
       {/* Title */}
       <div className="text-center space-y-1 px-3">
-        <h1 className="text-2xl font-bold">בחרו את ההרפתקה</h1>
+        <h1 className="text-xl font-bold">בחרו את ההרפתקה</h1>
         <p className="text-muted-foreground text-sm">איזה סיפור תרצו ליצור היום?</p>
       </div>
 
       {/* Explanatory Text - How to use */}
-      <div className="px-3">
-        <p className="text-center text-sm text-muted-foreground bg-accent/50 rounded-xl py-3 px-4 border border-primary/20 font-medium">
-          ✨ ניתן לבחור נושא מובנה, לספר לנו מה עבר על הילד/ה, או לשלב את שניהם יחד לסיפור מותאם אישית
+      <div className="px-4">
+        <p className="text-center text-sm text-muted-foreground bg-muted/50 rounded-xl py-3 px-4 border border-border/50">
+          ✨ ניתן לבחור נושא מובנה, לספר לנו מה עבר על הילד/ה, או לשלב את שניהם יחד
         </p>
       </div>
 
-      {/* NLP Smart Input - At Top */}
-      <div className="space-y-3 px-3 bg-gradient-to-r from-primary/5 via-primary/10 to-primary/5 py-4 rounded-xl mx-3 border border-primary/20">
+      {/* NLP Smart Input */}
+      <div className="space-y-3 px-4 bg-muted/30 py-4 rounded-xl mx-3 border border-border/50">
         <div className="flex items-center gap-2 justify-center">
-          <Brain className="w-5 h-5 text-primary" />
-          <Label className="text-base font-bold text-primary">
+          <Brain className="w-4 h-4 text-primary" />
+          <Label className="text-sm font-bold text-foreground">
             מערכת חכמה לניתוח רגשות
           </Label>
           <Sparkles className="w-4 h-4 text-primary" />
         </div>
         <Textarea
-          placeholder="ספרו לנו מה עבר על הילד/ה היום. המערכת החכמה שלנו תנתח את הרגשות והסיטואציה ותתפור עבורכם סיפור מותאם אישית ללימוד ותיווך."
+          placeholder="ספרו לנו מה עבר על הילד/ה היום..."
           value={formData.customTopic}
           onChange={(e) => handleCustomTopicChange(e.target.value)}
           className={cn(
-            "min-h-20 text-base bg-card border-2 rounded-xl resize-none font-medium",
+            "min-h-16 text-sm resize-none",
             formData.customTopic.trim() 
               ? "border-primary" 
-              : "border-border"
+              : ""
           )}
           dir="rtl"
         />
@@ -400,9 +400,9 @@ const TopicStep = ({ formData, updateFormData }: TopicStepProps) => {
       </div>
 
       {/* Divider */}
-      <div className="relative py-2 px-3">
-        <div className="absolute inset-0 flex items-center px-3">
-          <div className="w-full border-t border-foreground/10" />
+      <div className="relative py-2 px-4">
+        <div className="absolute inset-0 flex items-center px-4">
+          <div className="w-full border-t border-border/50" />
         </div>
         <div className="relative flex justify-center">
           <span className="bg-background px-4 text-sm text-muted-foreground">או בחרו נושא מוכן</span>

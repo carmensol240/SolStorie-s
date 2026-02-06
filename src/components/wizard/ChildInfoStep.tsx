@@ -340,10 +340,10 @@ const ChildInfoStep = ({ formData, updateFormData }: ChildInfoStepProps) => {
   };
 
   return (
-    <div className="w-full space-y-5 px-0">
+    <div className="w-full space-y-6 px-1">
       {/* Title */}
       <div className="text-center space-y-1">
-        <h1 className="text-2xl font-bold text-foreground">ספרו לנו על הילד/ה</h1>
+        <h1 className="text-xl font-bold text-foreground">ספרו לנו על הילד/ה</h1>
         <p className="text-sm text-muted-foreground">בחרו פרופיל קיים או צרו חדש</p>
       </div>
 
@@ -361,10 +361,10 @@ const ChildInfoStep = ({ formData, updateFormData }: ChildInfoStepProps) => {
                 type="button"
                 onClick={() => loadChildProfile(child)}
                 className={cn(
-                  "px-4 py-2.5 rounded-2xl border-2 transition-all flex items-center gap-2 text-sm font-bold",
+                  "px-4 py-2 rounded-xl border-2 transition-all flex items-center gap-2 text-sm font-medium",
                   formData.childName === child.name
-                    ? "border-secondary bg-secondary/15 text-secondary"
-                    : "border-border bg-card hover:border-secondary/50"
+                    ? "border-primary bg-primary/10 text-primary"
+                    : "border-border bg-card hover:border-primary/30"
                 )}
               >
                 <span>{child.gender === "female" ? "👧" : "👦"}</span>
@@ -386,7 +386,7 @@ const ChildInfoStep = ({ formData, updateFormData }: ChildInfoStepProps) => {
           placeholder="שם הילד/ה"
           value={formData.childName}
           onChange={(e) => updateFormData({ childName: e.target.value })}
-          className="h-11 text-base font-medium bg-card border-2 border-border rounded-xl focus:border-primary px-4"
+          className="h-10 text-base font-medium"
           dir="rtl"
         />
       </div>
@@ -400,30 +400,30 @@ const ChildInfoStep = ({ formData, updateFormData }: ChildInfoStepProps) => {
             className={cn(
               "p-3 rounded-xl border-2 transition-all text-center flex items-center justify-center gap-2",
               formData.childGender === "male"
-                ? "border-secondary bg-secondary/15 shadow-md"
-                : "border-border bg-card hover:border-secondary/50"
+                ? "border-primary bg-primary/10"
+                : "border-border bg-card hover:border-primary/30"
             )}
           >
             <span className="text-xl">👦</span>
-            <span className="text-base font-bold">בן</span>
+            <span className="text-sm font-bold">בן</span>
           </button>
           <button
             onClick={() => updateFormData({ childGender: "female" })}
             className={cn(
               "p-3 rounded-xl border-2 transition-all text-center flex items-center justify-center gap-2",
               formData.childGender === "female"
-                ? "border-secondary bg-secondary/15 shadow-md"
-                : "border-border bg-card hover:border-secondary/50"
+                ? "border-primary bg-primary/10"
+                : "border-border bg-card hover:border-primary/30"
             )}
           >
             <span className="text-xl">👧</span>
-            <span className="text-base font-bold">בת</span>
+            <span className="text-sm font-bold">בת</span>
           </button>
         </div>
       </div>
 
       {/* Age Selection - 3 Distinct Buttons */}
-      <div className="space-y-3">
+      <div className="space-y-2">
         <Label className="text-sm font-medium">גיל</Label>
         <div className="grid grid-cols-3 gap-3">
           {AGE_BUTTONS.map((button) => (
@@ -433,8 +433,8 @@ const ChildInfoStep = ({ formData, updateFormData }: ChildInfoStepProps) => {
               className={cn(
                 "p-3 rounded-xl border-2 transition-all text-center",
                 selectedAgeButton === button.id
-                  ? "border-secondary bg-secondary text-secondary-foreground font-bold shadow-md"
-                  : "border-border bg-card hover:border-secondary/50"
+                  ? "border-primary bg-primary text-primary-foreground font-bold"
+                  : "border-border bg-card hover:border-primary/30"
               )}
             >
               <span className="text-lg font-bold">{button.label}</span>
@@ -452,26 +452,26 @@ const ChildInfoStep = ({ formData, updateFormData }: ChildInfoStepProps) => {
             className={cn(
               "p-3 rounded-xl border-2 transition-all text-center flex flex-col items-center justify-center gap-1",
               formData.storyLength === "short"
-                ? "border-secondary bg-secondary/15 shadow-md"
-                : "border-border bg-card hover:border-secondary/50"
+                ? "border-primary bg-primary/10"
+                : "border-border bg-card hover:border-primary/30"
             )}
           >
             <span className="text-xl">📖</span>
-            <span className="text-base font-bold">קצר</span>
-            <span className="text-xs text-muted-foreground">4-5 עמודים</span>
+            <span className="text-sm font-bold">קצר</span>
+            <span className="text-[11px] text-muted-foreground">4-5 עמודים</span>
           </button>
           <button
             onClick={() => updateFormData({ storyLength: "long" })}
             className={cn(
               "p-3 rounded-xl border-2 transition-all text-center flex flex-col items-center justify-center gap-1",
               formData.storyLength === "long"
-                ? "border-secondary bg-secondary/15 shadow-md"
-                : "border-border bg-card hover:border-secondary/50"
+                ? "border-primary bg-primary/10"
+                : "border-border bg-card hover:border-primary/30"
             )}
           >
             <span className="text-xl">📚</span>
-            <span className="text-base font-bold">ארוך</span>
-            <span className="text-xs text-muted-foreground">6-8 עמודים</span>
+            <span className="text-sm font-bold">ארוך</span>
+            <span className="text-[11px] text-muted-foreground">6-8 עמודים</span>
           </button>
         </div>
       </div>
@@ -608,17 +608,17 @@ const ChildInfoStep = ({ formData, updateFormData }: ChildInfoStepProps) => {
         )}
       </div>
 
-      {/* Save Button */}
+      {/* Save Button - Matching Landing Page CTA exactly */}
       <Button
         type="button"
         onClick={handleSaveChildProfile}
         disabled={isSavingChild || !formData.childName.trim()}
-        className="w-full h-12 bg-gradient-to-r from-secondary via-pink-500 to-purple-600 hover:from-secondary/90 hover:via-pink-600 hover:to-purple-700 text-white font-black rounded-xl shadow-lg hover:shadow-xl transition-all"
+        className="w-full h-11 bg-gradient-to-r from-primary via-pink-500 to-purple-600 hover:from-primary/90 hover:via-pink-600 hover:to-purple-700 text-white font-black text-sm rounded-xl shadow-lg hover:shadow-xl transition-all"
       >
         {isSavingChild ? (
-          <Loader2 className="w-5 h-5 animate-spin ml-2" />
+          <Loader2 className="w-4 h-4 animate-spin ml-2" />
         ) : (
-          <Save className="w-5 h-5 ml-2" />
+          <Save className="w-4 h-4 ml-2" />
         )}
         שמור פרטים לסיפורים הבאים
       </Button>
