@@ -142,53 +142,53 @@ const CreateStory = () => {
   const displayStep = step < 3 ? step : 4;
 
   return (
-    <div className="min-h-screen flex flex-col bg-background">
-      {/* Header - Soft neutral cream */}
-      <header className="sticky top-0 z-20 bg-card/95 backdrop-blur-sm px-4 py-3 border-b border-border/50 shadow-sm">
+    <div className="min-h-screen min-h-[100dvh] flex flex-col bg-background">
+      {/* Header - Compact with gradient theme */}
+      <header className="sticky top-0 z-20 bg-gradient-to-r from-[#FAF3E8] to-[#F5E6D3] px-3 py-2 border-b border-purple-200 shadow-sm">
         <div className="container max-w-lg mx-auto flex items-center justify-between">
           <Button
             variant="ghost"
             size="sm"
             onClick={handleBack}
-            className="flex items-center gap-1 min-h-[40px] px-3 py-1 text-sm text-muted-foreground hover:text-foreground hover:bg-muted/50"
+            className="flex items-center gap-1 min-h-[36px] px-2 py-1 text-xs text-purple-600 hover:text-purple-700 hover:bg-purple-50"
             aria-label="חזרה לשלב הקודם"
           >
-            <ArrowRight className="w-4 h-4" aria-hidden="true" />
+            <ArrowRight className="w-3.5 h-3.5" aria-hidden="true" />
             חזרה
           </Button>
           
           {/* Compact User Icon for Step 1 */}
           {step === 1 && (
-            <div className="w-10 h-10 bg-gradient-to-br from-primary via-pink-500 to-purple-600 rounded-xl flex items-center justify-center shadow-md">
-              <User className="w-5 h-5 text-white" />
+            <div className="w-8 h-8 bg-gradient-to-br from-purple-600 via-pink-500 to-orange-400 rounded-lg flex items-center justify-center shadow-md">
+              <User className="w-4 h-4 text-white" />
             </div>
           )}
         </div>
         
         {/* Compact Progress Bar - 4 Steps */}
         {step < 3 && (
-          <div className="container max-w-lg mx-auto mt-3">
+          <div className="container max-w-lg mx-auto mt-2">
             <div className="flex items-center justify-between">
               {steps.map((s, index) => (
                 <div key={s.number} className="flex items-center">
                   <div className="flex flex-col items-center">
                     <div
-                      className={`w-8 h-8 rounded-full flex items-center justify-center font-bold text-xs transition-all ${
+                      className={`w-6 h-6 rounded-full flex items-center justify-center font-bold text-[10px] transition-all ${
                         displayStep >= s.number
-                          ? "bg-primary text-primary-foreground shadow-md"
-                          : "bg-muted text-muted-foreground"
+                          ? "bg-gradient-to-r from-purple-600 via-pink-500 to-orange-400 text-white shadow-md"
+                          : "bg-purple-100 text-purple-400"
                       }`}
                     >
                       {s.number}
                     </div>
-                    <span className="text-[10px] mt-1 text-muted-foreground whitespace-nowrap">
+                    <span className="text-[9px] mt-0.5 text-purple-500 whitespace-nowrap">
                       {s.label}
                     </span>
                   </div>
                   {index < steps.length - 1 && (
                     <div
-                      className={`h-0.5 w-6 sm:w-10 mx-1 rounded-full transition-all ${
-                        displayStep > s.number ? "bg-primary" : "bg-muted"
+                      className={`h-0.5 w-4 sm:w-8 mx-0.5 rounded-full transition-all ${
+                        displayStep > s.number ? "bg-gradient-to-r from-purple-500 to-pink-500" : "bg-purple-100"
                       }`}
                     />
                   )}
@@ -200,8 +200,8 @@ const CreateStory = () => {
       </header>
 
       {/* Main Content - Fills remaining space */}
-      <main className="flex-1 overflow-y-auto pb-24">
-        <div className="container max-w-lg mx-auto px-3 py-4">
+      <main className="flex-1 overflow-y-auto overscroll-contain pb-20">
+        <div className="container max-w-lg mx-auto px-3 py-3">
 
         {/* Step Content */}
         {step === 1 && (
@@ -227,15 +227,15 @@ const CreateStory = () => {
 
         {/* Compact Navigation Buttons */}
         {step < 3 && (
-          <div className="mt-8 pb-4">
+          <div className="mt-4 pb-2">
             <Button
               onClick={handleNext}
               disabled={step === 1 ? !canProceedStep1 : !canProceedStep2}
               size="lg"
-              className="w-full bg-gradient-to-r from-purple-700 via-purple-600 to-[#8B5A2B] hover:from-purple-800 hover:via-purple-700 hover:to-[#6B4423] text-white font-black text-base py-4 rounded-xl disabled:opacity-50 disabled:cursor-not-allowed shadow-lg hover:shadow-xl transition-all"
+              className="w-full bg-gradient-to-r from-purple-600 via-pink-500 to-orange-400 hover:from-purple-700 hover:via-pink-600 hover:to-orange-500 text-white font-black text-sm py-3 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed shadow-md hover:shadow-lg transition-all"
             >
               {step === 2 ? "צרו את הסיפור" : "המשיכו"}
-              <ArrowLeft className="w-5 h-5 mr-2" />
+              <ArrowLeft className="w-4 h-4 mr-1.5" />
             </Button>
           </div>
         )}
