@@ -6,6 +6,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
 import { DrawingCanvas } from "@/components/ui/drawing-canvas";
+import { SignedImage } from "@/components/ui/signed-image";
 import OfflineIndicator from "@/components/ui/offline-indicator";
 import EditPageDialog from "@/components/story/edit-page-dialog";
 import DedicationDialog from "@/components/story/DedicationDialog";
@@ -449,8 +450,9 @@ const StoryViewer = () => {
                   {story.pages[0]?.illustration_url ? (
                     <div className="w-full max-w-sm mx-auto">
                       <div className="rounded-2xl overflow-hidden shadow-2xl border-4 border-[#D4A574] transform hover:scale-[1.02] transition-transform duration-300">
-                        <img
+                        <SignedImage
                           src={story.pages[0].illustration_url}
+                          storyId={story.id}
                           alt=""
                           className="w-full aspect-[4/5] object-cover"
                         />
@@ -510,8 +512,9 @@ const StoryViewer = () => {
                 {story.pages[0]?.illustration_url && (
                   <div className="w-full max-w-xs mx-auto mb-6">
                     <div className="rounded-xl overflow-hidden shadow-xl border-4 border-[#D4A574]">
-                      <img
+                      <SignedImage
                         src={story.pages[0].illustration_url}
+                        storyId={story.id}
                         alt=""
                         className="w-full aspect-[3/4] object-cover"
                       />
@@ -567,11 +570,11 @@ const StoryViewer = () => {
                   {page?.illustration_url ? (
                     <div className="relative w-full max-w-md mx-auto">
                       <div className="relative rounded-2xl overflow-hidden shadow-2xl border-4 border-[#E8D5C4]">
-                        <img
+                        <SignedImage
                           src={page.illustration_url}
+                          storyId={story.id}
                           alt=""
                           className="w-full aspect-[4/5] object-cover"
-                          loading="lazy"
                         />
                       </div>
                     </div>

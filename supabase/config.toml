@@ -15,6 +15,9 @@ verify_jwt = false
 [functions.get-signed-photo-url]
 verify_jwt = false
 
+[functions.get-signed-illustration-url]
+verify_jwt = false
+
 [functions.preview-child-avatar]
 verify_jwt = false
 
