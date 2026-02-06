@@ -1,10 +1,14 @@
 import { serve } from 'https://deno.land/std@0.168.0/http/server.ts'
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
+import { checkRateLimit, rateLimitResponse, RATE_LIMITS } from "../_shared/rate-limiter.ts";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 }
+
+// Maximum metadata size in bytes (10KB)
+const MAX_METADATA_SIZE = 10 * 1024;
 
 serve(async (req) => {
   // Handle CORS preflight requests
@@ -19,10 +23,34 @@ serve(async (req) => {
       throw new Error('device_id and event_type are required')
     }
 
+    // Rate limit by device_id (100 requests per minute)
+    const rateLimit = checkRateLimit(device_id, "track-event", RATE_LIMITS.trackEvent);
+    if (!rateLimit.allowed) {
+      console.log(`Track event rate limit exceeded for device: ${device_id.substring(0, 8)}...`);
+      return rateLimitResponse(rateLimit, corsHeaders, "Too many requests");
+    }
+
     // Validate event type
     const validEventTypes = ['story_started', 'story_completed', 'page_viewed', 'feature_used', 'drawing_used']
     if (!validEventTypes.includes(event_type)) {
       throw new Error('Invalid event_type')
+    }
+
+    // Validate metadata size and structure
+    let validatedMetadata = null;
+    if (metadata !== undefined && metadata !== null) {
+      const metadataStr = JSON.stringify(metadata);
+      if (metadataStr.length > MAX_METADATA_SIZE) {
+        throw new Error(`Metadata too large (max ${MAX_METADATA_SIZE / 1024}KB)`);
+      }
+      
+      // Only allow object type metadata
+      if (typeof metadata !== 'object' || Array.isArray(metadata)) {
+        throw new Error('Metadata must be an object');
+      }
+      
+      // Sanitize string values to prevent XSS
+      validatedMetadata = sanitizeMetadata(metadata);
     }
 
     console.log(`Tracking event: ${event_type} for device: ${device_id.substring(0, 8)}...`)
