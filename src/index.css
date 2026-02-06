@@ -177,8 +177,16 @@
     animation: float 3s ease-in-out infinite;
   }
 
+  .animate-float-gentle {
+    animation: float-gentle 2.5s ease-in-out infinite;
+  }
+
   .animate-pulse-glow {
     animation: pulse-glow 2s ease-in-out infinite;
+  }
+
+  .animate-pulse-glow-soft {
+    animation: pulse-glow-soft 3s ease-in-out infinite;
   }
 
   .starburst {
