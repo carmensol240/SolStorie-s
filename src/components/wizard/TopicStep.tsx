@@ -303,8 +303,8 @@ const CategoryCarousel = ({
                 
                 {/* Selection indicator */}
                 {isSelected && (
-                  <div className="absolute top-2 right-2 w-6 h-6 rounded-full bg-secondary flex items-center justify-center shadow-lg">
-                    <span className="text-secondary-foreground text-sm">✓</span>
+                  <div className="absolute top-2 right-2 w-5 h-5 rounded-full bg-primary flex items-center justify-center shadow-md">
+                    <span className="text-primary-foreground text-xs">✓</span>
                   </div>
                 )}
                 
