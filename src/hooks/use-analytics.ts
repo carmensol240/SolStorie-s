@@ -39,14 +39,22 @@ export const useAnalytics = () => {
       if (!deviceId) return;
 
       try {
-        await supabase.from('analytics_events').insert({
-          device_id: deviceId,
-          event_type: eventType,
-          story_id: storyId || null,
-          page_number: pageNumber ?? null,
-          time_spent_seconds: timeSpentSeconds ?? null,
-          metadata: metadata || null,
+        // Use edge function instead of direct database insert
+        // This ensures all analytics goes through validated, rate-limited endpoint
+        const { error } = await supabase.functions.invoke('track-event', {
+          body: {
+            device_id: deviceId,
+            event_type: eventType,
+            story_id: storyId || null,
+            page_number: pageNumber ?? null,
+            time_spent_seconds: timeSpentSeconds ?? null,
+            metadata: metadata || null,
+          },
         });
+        
+        if (error) {
+          console.warn('Analytics event failed:', error.message);
+        }
       } catch (error) {
         // Silently fail - analytics should not break the app
         console.warn('Analytics event failed:', error);
