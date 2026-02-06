@@ -15,15 +15,15 @@ const FeatureCard = ({ icon, title, subtitle, gradientFrom, gradientTo }: Featur
     className="flex flex-col items-center text-center bg-white/20 backdrop-blur-lg rounded-2xl p-3 flex-1 border border-white/30 shadow-lg shadow-black/10 hover:bg-white/30 hover:scale-[1.02] transition-all duration-300" 
     dir="rtl"
   >
-    <div className={`w-10 h-10 bg-gradient-to-br ${gradientFrom} ${gradientTo} rounded-xl flex items-center justify-center mb-2 shadow-lg animate-pulse-glow-soft`}>
+    <div className={`w-7 h-7 bg-gradient-to-br ${gradientFrom} ${gradientTo} rounded-lg flex items-center justify-center mb-2 shadow-lg animate-pulse-glow-soft`}>
       <span className="animate-float-gentle">
         {icon}
       </span>
     </div>
-    <h3 className="text-[11px] font-black text-white leading-tight mb-1 drop-shadow-md">
+    <h3 className="text-xs font-black text-white leading-tight mb-1 drop-shadow-md">
       {title}
     </h3>
-    <p className="text-[9px] font-bold text-white/90 leading-snug drop-shadow-sm">
+    <p className="text-[10px] font-bold text-white/90 leading-snug drop-shadow-sm">
       {subtitle}
     </p>
   </div>
