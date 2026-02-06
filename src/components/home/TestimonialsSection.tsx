@@ -19,72 +19,71 @@ interface Testimonial {
 }
 
 // Gender-matched testimonials: Hebrew text gender matches avatar gender
-// Gender-matched testimonials: Hebrew text gender matches avatar gender
-// CRITICAL: אבי, דני, יוסי, עמית = Male avatars | מיכל, רונית, שירה, נועה = Female avatars
+// Using anonymous initials instead of real names for privacy
 const testimonials: Testimonial[] = [
   {
     id: 1,
-    name: "מיכל כ.",
+    name: "הורה מ.",
     // Female: הבת, מאושרת, מבקשת, נראית
-    text: "הבת שלי מאושרת! כל לילה מבקשת לקרוא את הסיפור שלה שוב ושוב. הדמות שלה נראית בדיוק כמוה!",
+    text: "הילדה שלי מאושרת! כל לילה מבקשת לקרוא את הסיפור שלה שוב ושוב. הדמות שלה נראית בדיוק כמוה!",
     rating: 5,
-    avatar: avatarTestimonial1, // Female avatar (מיכל = woman)
+    avatar: avatarTestimonial1,
   },
   {
     id: 2,
-    name: "יוסי מ.",
+    name: "הורה י.",
     // Male: הילדים, מרגישים (neutral/male)
     text: "רעיון גאוני! הילדים שלי מתים על הסיפורים. הם מרגישים כמו גיבורים אמיתיים בכל סיפור.",
     rating: 5,
-    avatar: avatarTestimonial3, // Male avatar (יוסי = man)
+    avatar: avatarTestimonial3,
   },
   {
     id: 3,
-    name: "רונית ש.",
+    name: "הורה ר.",
     // Female: ממליצה
     text: "האיורים מדהימים והסיפורים מותאמים בצורה מושלמת לגיל. ממליצה בחום!",
     rating: 5,
-    avatar: avatarTestimonial2, // Female avatar (רונית = woman)
+    avatar: avatarTestimonial2,
   },
   {
     id: 4,
-    name: "אבי ל.",
-    // Male: הבן, התגבר
-    text: "יצרנו סיפור על הפחד מהחושך והבן שלי התגבר על הפחד תוך שבוע! קסם.",
+    name: "הורה א.",
+    // Male: הילד, התגבר
+    text: "יצרנו סיפור על הפחד מהחושך והילד שלי התגבר על הפחד תוך שבוע! קסם.",
     rating: 5,
-    avatar: avatarParent1, // Male avatar (אבי = man) - FIXED!
+    avatar: avatarParent1,
   },
   {
     id: 5,
-    name: "שירה ג.",
+    name: "הורה ש.",
     // Female name, neutral text (מרוגשים is plural)
     text: "מתנה מושלמת לסבא וסבתא - סיפור עם הנכדים בתור הגיבורים. הם היו מרוגשים!",
     rating: 4,
-    avatar: avatarTestimonial5, // Female avatar (שירה = woman)
+    avatar: avatarTestimonial5,
   },
   {
     id: 6,
-    name: "דני ר.",
-    // Male: הבן, מתלהב, רואה
-    text: "הבן שלי לא מפסיק לבקש עוד סיפורים! הוא מתלהב כל פעם מחדש כשהוא רואה את עצמו באיורים.",
+    name: "הורה ד.",
+    // Male: הילד, מתלהב, רואה
+    text: "הילד שלי לא מפסיק לבקש עוד סיפורים! הוא מתלהב כל פעם מחדש כשהוא רואה את עצמו באיורים.",
     rating: 5,
-    avatar: avatarTestimonial4, // Male avatar (דני = man) - FIXED!
+    avatar: avatarTestimonial4,
   },
   {
     id: 7,
-    name: "נועה ב.",
-    // Female: הבת, גאה
-    text: "איזה רעיון מקסים! הבת שלי כל כך גאה לראות את עצמה כגיבורת הסיפור. תודה על החוויה!",
+    name: "הורה נ.",
+    // Female: הילדה, גאה
+    text: "איזה רעיון מקסים! הילדה שלי כל כך גאה לראות את עצמה כגיבורת הסיפור. תודה על החוויה!",
     rating: 5,
-    avatar: avatarParent2, // Female avatar (נועה = woman)
+    avatar: avatarParent2,
   },
   {
     id: 8,
-    name: "עמית ק.",
+    name: "הורה ע.",
     // Male: ממליץ
     text: "סיפורים באיכות מטורפת. הילדים שלי מחכים בקוצר רוח לסיפור הבא. ממליץ לכל הורה!",
     rating: 5,
-    avatar: avatarParent3, // Male avatar (עמית = man)
+    avatar: avatarParent3,
   },
 ];
 
