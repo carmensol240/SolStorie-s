@@ -452,26 +452,26 @@ const ChildInfoStep = ({ formData, updateFormData }: ChildInfoStepProps) => {
             className={cn(
               "p-3 rounded-xl border-2 transition-all text-center flex flex-col items-center justify-center gap-1",
               formData.storyLength === "short"
-                ? "border-secondary bg-secondary/15 shadow-md"
-                : "border-border bg-card hover:border-secondary/50"
+                ? "border-primary bg-primary/10"
+                : "border-border bg-card hover:border-primary/30"
             )}
           >
             <span className="text-xl">📖</span>
-            <span className="text-base font-bold">קצר</span>
-            <span className="text-xs text-muted-foreground">4-5 עמודים</span>
+            <span className="text-sm font-bold">קצר</span>
+            <span className="text-[11px] text-muted-foreground">4-5 עמודים</span>
           </button>
           <button
             onClick={() => updateFormData({ storyLength: "long" })}
             className={cn(
               "p-3 rounded-xl border-2 transition-all text-center flex flex-col items-center justify-center gap-1",
               formData.storyLength === "long"
-                ? "border-secondary bg-secondary/15 shadow-md"
-                : "border-border bg-card hover:border-secondary/50"
+                ? "border-primary bg-primary/10"
+                : "border-border bg-card hover:border-primary/30"
             )}
           >
             <span className="text-xl">📚</span>
-            <span className="text-base font-bold">ארוך</span>
-            <span className="text-xs text-muted-foreground">6-8 עמודים</span>
+            <span className="text-sm font-bold">ארוך</span>
+            <span className="text-[11px] text-muted-foreground">6-8 עמודים</span>
           </button>
         </div>
       </div>
