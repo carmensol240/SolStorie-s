@@ -423,7 +423,7 @@ const ChildInfoStep = ({ formData, updateFormData }: ChildInfoStepProps) => {
       </div>
 
       {/* Age Selection - 3 Distinct Buttons */}
-      <div className="space-y-3">
+      <div className="space-y-2">
         <Label className="text-sm font-medium">גיל</Label>
         <div className="grid grid-cols-3 gap-3">
           {AGE_BUTTONS.map((button) => (
@@ -433,8 +433,8 @@ const ChildInfoStep = ({ formData, updateFormData }: ChildInfoStepProps) => {
               className={cn(
                 "p-3 rounded-xl border-2 transition-all text-center",
                 selectedAgeButton === button.id
-                  ? "border-secondary bg-secondary text-secondary-foreground font-bold shadow-md"
-                  : "border-border bg-card hover:border-secondary/50"
+                  ? "border-primary bg-primary text-primary-foreground font-bold"
+                  : "border-border bg-card hover:border-primary/30"
               )}
             >
               <span className="text-lg font-bold">{button.label}</span>
