@@ -6,65 +6,65 @@
   :root {
     direction: rtl;
     
-    /* Comic Book Inspired Palette */
-    --background: 45 100% 96%;
-    --foreground: 220 20% 15%;
+    /* Natural Earth Tones Palette - Inspired by Sol & Tree */
+    --background: 45 40% 96%;
+    --foreground: 140 20% 20%;
 
-    --card: 0 0% 100%;
-    --card-foreground: 220 20% 15%;
+    --card: 45 30% 98%;
+    --card-foreground: 140 20% 20%;
 
-    --popover: 0 0% 100%;
-    --popover-foreground: 220 20% 15%;
+    --popover: 45 30% 98%;
+    --popover-foreground: 140 20% 20%;
 
-    /* Vibrant Comic Primary - Coral Red */
-    --primary: 4 90% 58%;
+    /* Soft Forest Green Primary */
+    --primary: 142 45% 42%;
     --primary-foreground: 0 0% 100%;
 
-    /* Sky Blue Secondary */
-    --secondary: 199 89% 60%;
+    /* Warm Orange Secondary */
+    --secondary: 28 85% 55%;
     --secondary-foreground: 0 0% 100%;
 
-    /* Sunny Yellow Accent */
-    --accent: 45 100% 55%;
-    --accent-foreground: 220 20% 15%;
+    /* Warm Cream Accent */
+    --accent: 40 60% 90%;
+    --accent-foreground: 140 20% 20%;
 
-    /* Grass Green */
+    /* Success Green */
     --success: 142 70% 45%;
     --success-foreground: 0 0% 100%;
 
-    /* Purple Pop */
-    --purple: 280 65% 55%;
+    /* Soft Purple for highlights */
+    --purple: 280 50% 60%;
     --purple-foreground: 0 0% 100%;
 
-    --muted: 45 30% 90%;
-    --muted-foreground: 220 10% 40%;
+    --muted: 45 25% 92%;
+    --muted-foreground: 140 10% 45%;
 
     --destructive: 0 84.2% 60.2%;
     --destructive-foreground: 210 40% 98%;
 
-    --border: 220 15% 85%;
-    --input: 220 15% 85%;
-    --ring: 4 90% 58%;
+    --border: 140 15% 85%;
+    --input: 140 15% 85%;
+    --ring: 142 45% 42%;
 
     --radius: 1rem;
 
-    /* Comic Shadows */
-    --shadow-comic: 4px 4px 0px hsl(220 20% 15%);
-    --shadow-comic-lg: 6px 6px 0px hsl(220 20% 15%);
-    --shadow-soft: 0 10px 40px -10px hsl(220 20% 15% / 0.15);
+    /* Soft Shadows */
+    --shadow-comic: 3px 3px 0px hsl(140 20% 30%);
+    --shadow-comic-lg: 5px 5px 0px hsl(140 20% 30%);
+    --shadow-soft: 0 10px 40px -10px hsl(140 20% 20% / 0.12);
 
     /* WhatsApp Green */
     --whatsapp: 142 70% 45%;
     --whatsapp-foreground: 0 0% 100%;
 
-    --sidebar-background: 0 0% 98%;
-    --sidebar-foreground: 240 5.3% 26.1%;
-    --sidebar-primary: 240 5.9% 10%;
+    --sidebar-background: 45 30% 98%;
+    --sidebar-foreground: 140 15% 30%;
+    --sidebar-primary: 142 45% 42%;
     --sidebar-primary-foreground: 0 0% 98%;
-    --sidebar-accent: 240 4.8% 95.9%;
-    --sidebar-accent-foreground: 240 5.9% 10%;
-    --sidebar-border: 220 13% 91%;
-    --sidebar-ring: 217.2 91.2% 59.8%;
+    --sidebar-accent: 45 25% 95%;
+    --sidebar-accent-foreground: 140 15% 25%;
+    --sidebar-border: 140 10% 90%;
+    --sidebar-ring: 142 45% 42%;
   }
 
   .dark {
