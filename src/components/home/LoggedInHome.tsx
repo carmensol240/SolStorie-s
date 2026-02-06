@@ -1,18 +1,10 @@
 import React from "react";
-import { Wand2, Coins, BookOpen, ArrowLeft, Gift } from "lucide-react";
+import { Wand2, Coins, BookOpen, ArrowLeft, Gift, LucideIcon } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useCredits } from "@/hooks/use-credits";
 import { useReferral } from "@/hooks/use-referral";
 import { useChildAvatar } from "@/hooks/use-child-avatar";
 import heroBackground from "@/assets/hero-child-reading.jpg";
-
-// Wrapper to forward refs for Lucide icons (prevents "Function components cannot be given refs" warning)
-const IconWrapper = React.forwardRef<SVGSVGElement, { icon: React.ComponentType<any>; className?: string }>(
-  ({ icon: Icon, className, ...props }, ref) => (
-    <Icon ref={ref} className={className} {...props} />
-  )
-);
-IconWrapper.displayName = "IconWrapper";
 
 interface LoggedInHomeProps {
   user: any;
@@ -28,7 +20,14 @@ const LoggedInHome = ({ user, displayName }: LoggedInHomeProps) => {
   const totalCredits = (credits ?? 0) + shareCoins;
 
   // Action Cards
-  const actionCards = [
+  const actionCards: Array<{
+    icon: LucideIcon;
+    title: string;
+    description: string;
+    path: string;
+    iconBg: string;
+    iconColor: string;
+  }> = [
     {
       icon: Wand2,
       title: "יוצאים להרפתקה חדשה",
@@ -89,7 +88,9 @@ const LoggedInHome = ({ user, displayName }: LoggedInHomeProps) => {
               className="flex items-center gap-2 bg-white/90 backdrop-blur-sm rounded-full px-5 py-3 hover:bg-white transition-colors shadow-lg"
               aria-label="צפה בקרדיטים ושדרג"
             >
-              <IconWrapper icon={Coins} className="w-6 h-6 text-amber-500" aria-hidden="true" />
+              <span className="flex items-center justify-center">
+                <Coins className="w-6 h-6 text-amber-500" />
+              </span>
               <span className="font-bold text-amber-700 text-xl">{totalCredits}</span>
             </button>
           </div>
@@ -120,7 +121,7 @@ const LoggedInHome = ({ user, displayName }: LoggedInHomeProps) => {
         {/* Action Cards - Glassmorphism style */}
         <div className="space-y-3 pb-4">
           {actionCards.map((card, index) => {
-            const Icon = card.icon;
+            const CardIcon = card.icon;
             return (
               <button
                 key={index}
@@ -128,13 +129,17 @@ const LoggedInHome = ({ user, displayName }: LoggedInHomeProps) => {
                 className="w-full flex items-center gap-4 bg-white/40 backdrop-blur-md rounded-2xl p-4 shadow-lg shadow-black/15 border border-white/30 hover:bg-white/60 hover:shadow-xl hover:shadow-black/20 hover:scale-[1.01] transition-all text-right"
               >
                 <div className={`w-14 h-14 ${card.iconBg} rounded-xl flex items-center justify-center flex-shrink-0 shadow-md`}>
-                  <IconWrapper icon={Icon} className={`w-7 h-7 ${card.iconColor}`} aria-hidden="true" />
+                  <span className="flex items-center justify-center">
+                    <CardIcon className={`w-7 h-7 ${card.iconColor}`} />
+                  </span>
                 </div>
                 <div className="flex-1 min-w-0">
                   <h3 className="font-black text-lg text-foreground">{card.title}</h3>
                   <p className="text-sm text-muted-foreground">{card.description}</p>
                 </div>
-                <IconWrapper icon={ArrowLeft} className="w-5 h-5 text-muted-foreground flex-shrink-0" aria-hidden="true" />
+                <span className="flex items-center justify-center flex-shrink-0">
+                  <ArrowLeft className="w-5 h-5 text-muted-foreground" />
+                </span>
               </button>
             );
           })}
