@@ -142,15 +142,15 @@ const CreateStory = () => {
   const displayStep = step < 3 ? step : 4;
 
   return (
-    <div className="min-h-screen flex flex-col bg-gradient-to-b from-accent/50 via-background to-background">
-      {/* Header - Fixed at top with cream/light green */}
-      <header className="sticky top-0 z-20 bg-gradient-to-b from-accent to-accent/95 backdrop-blur-sm px-3 py-2 border-b border-primary/20">
+    <div className="min-h-screen flex flex-col bg-background">
+      {/* Header - Soft neutral cream */}
+      <header className="sticky top-0 z-20 bg-card/95 backdrop-blur-sm px-4 py-3 border-b border-border/50 shadow-sm">
         <div className="container max-w-lg mx-auto flex items-center justify-between">
           <Button
             variant="ghost"
             size="sm"
             onClick={handleBack}
-            className="flex items-center gap-1 min-h-[40px] px-2 py-1 text-sm text-foreground hover:bg-primary/10"
+            className="flex items-center gap-1 min-h-[40px] px-3 py-1 text-sm text-muted-foreground hover:text-foreground hover:bg-muted/50"
             aria-label="חזרה לשלב הקודם"
           >
             <ArrowRight className="w-4 h-4" aria-hidden="true" />
@@ -159,7 +159,7 @@ const CreateStory = () => {
           
           {/* Compact User Icon for Step 1 */}
           {step === 1 && (
-            <div className="w-10 h-10 bg-gradient-to-br from-secondary to-pink-500 rounded-xl flex items-center justify-center shadow-sm">
+            <div className="w-10 h-10 bg-gradient-to-br from-primary via-pink-500 to-purple-600 rounded-xl flex items-center justify-center shadow-md">
               <User className="w-5 h-5 text-white" />
             </div>
           )}
@@ -167,7 +167,7 @@ const CreateStory = () => {
         
         {/* Compact Progress Bar - 4 Steps */}
         {step < 3 && (
-          <div className="container max-w-lg mx-auto mt-2">
+          <div className="container max-w-lg mx-auto mt-3">
             <div className="flex items-center justify-between">
               {steps.map((s, index) => (
                 <div key={s.number} className="flex items-center">
@@ -175,19 +175,19 @@ const CreateStory = () => {
                     <div
                       className={`w-8 h-8 rounded-full flex items-center justify-center font-bold text-xs transition-all ${
                         displayStep >= s.number
-                          ? "bg-primary text-primary-foreground"
+                          ? "bg-primary text-primary-foreground shadow-md"
                           : "bg-muted text-muted-foreground"
                       }`}
                     >
                       {s.number}
                     </div>
-                    <span className="text-[10px] mt-0.5 text-muted-foreground whitespace-nowrap">
+                    <span className="text-[10px] mt-1 text-muted-foreground whitespace-nowrap">
                       {s.label}
                     </span>
                   </div>
                   {index < steps.length - 1 && (
                     <div
-                      className={`h-0.5 w-6 sm:w-10 mx-0.5 rounded-full transition-all ${
+                      className={`h-0.5 w-6 sm:w-10 mx-1 rounded-full transition-all ${
                         displayStep > s.number ? "bg-primary" : "bg-muted"
                       }`}
                     />
