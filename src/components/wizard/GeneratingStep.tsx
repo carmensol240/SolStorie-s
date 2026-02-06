@@ -18,6 +18,17 @@ const LOADING_MESSAGES = [
   { icon: FileText, text: "מסיימים את הספר...", color: "text-success" },
 ];
 
+const EMPOWERING_SENTENCES = [
+  "המילים שאתם בוחרים היום, אתם מעצבים את עולמו הפנימי של ילדכם מחר",
+  "הזמן שאתם משקיעים עכשיו בסיפור משותף, בונה את הביטחון של הילד שלכם מחר",
+  "כל סיפור שאתם יוצרים הוא מתנה של דמיון ומרחב בטוח עבור ילדכם",
+  "כל מילה שאתה מקריא היא זרע של סקרנות וצמיחה",
+  "בזמן שהסיפור נכתב, אתה כותב ביטחון ודמיון בלב של הילד שלך",
+  "יש לך את הכוח להפוך כל רגע פשוט להרפתקה שתלווה אותו לכל החיים",
+  "הקריאה המשותפת היא המקום שבו הילד שלך לומד לחלום בלי גבולות",
+  "אתה המדריך הכי טוב של הילד שלך בעולמות הדמיון",
+];
+
 const getTopicLabel = (topicId: string): string => {
   const topics: Record<string, string> = {
     "space-adventure": "הרפתקה בחלל - מסע בין כוכבים ופלאות",
@@ -47,6 +58,8 @@ const GeneratingStep = ({ formData, onComplete }: GeneratingStepProps) => {
   const { toast } = useToast();
   const [progress, setProgress] = useState(0);
   const [messageIndex, setMessageIndex] = useState(0);
+  const [sentenceIndex, setSentenceIndex] = useState(0);
+  const [isSentenceVisible, setIsSentenceVisible] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const hasStartedRef = useRef(false);
 
@@ -136,6 +149,15 @@ const GeneratingStep = ({ formData, onComplete }: GeneratingStepProps) => {
       setMessageIndex((prev) => (prev + 1) % LOADING_MESSAGES.length);
     }, 3000);
 
+    // Empowering sentence rotation with fade effect
+    const sentenceInterval = setInterval(() => {
+      setIsSentenceVisible(false);
+      setTimeout(() => {
+        setSentenceIndex((prev) => (prev + 1) % EMPOWERING_SENTENCES.length);
+        setIsSentenceVisible(true);
+      }, 500);
+    }, 4500);
+
     // Generate story only once
     if (!hasStartedRef.current) {
       hasStartedRef.current = true;
@@ -145,6 +167,7 @@ const GeneratingStep = ({ formData, onComplete }: GeneratingStepProps) => {
     return () => {
       clearInterval(progressInterval);
       clearInterval(messageInterval);
+      clearInterval(sentenceInterval);
     };
   }, [generateStory]);
 
@@ -219,6 +242,23 @@ const GeneratingStep = ({ formData, onComplete }: GeneratingStepProps) => {
         <Progress value={progress} className="h-3" />
         <p className="text-sm text-muted-foreground">
           {Math.round(progress)}%
+        </p>
+      </div>
+
+      {/* Empowering NLP Sentence */}
+      <div className="w-full max-w-sm px-4 min-h-[80px] flex items-center justify-center">
+        <p
+          className={`text-center text-lg leading-relaxed transition-opacity duration-500 ${
+            isSentenceVisible ? "opacity-100" : "opacity-0"
+          }`}
+          style={{
+            fontFamily: "'Varela Round', 'Heebo', sans-serif",
+            color: "#5B3E96",
+            textShadow: "0 1px 2px rgba(255,255,255,0.8)",
+            fontWeight: 500,
+          }}
+        >
+          "{EMPOWERING_SENTENCES[sentenceIndex]}"
         </p>
       </div>
 
