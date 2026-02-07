@@ -1,10 +1,9 @@
-import { useState, useEffect } from 'react';
 import { Book, Trash2 } from 'lucide-react';
 import { format } from 'date-fns';
 import { he } from 'date-fns/locale';
 import { Button } from './button';
 import { cn } from '@/lib/utils';
-import { useSignedUrls } from '@/hooks/use-signed-urls';
+import { SignedImage } from './signed-image';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -40,31 +39,6 @@ const StoryListItem = ({
   className,
   storyId,
 }: StoryListItemProps) => {
-  const [imageLoaded, setImageLoaded] = useState(false);
-  const [imageError, setImageError] = useState(false);
-  const [signedUrl, setSignedUrl] = useState<string | null>(null);
-  const { fetchSignedUrls } = useSignedUrls();
-
-  // Fetch signed URL when coverUrl changes
-  useEffect(() => {
-    if (!coverUrl) {
-      setSignedUrl(null);
-      return;
-    }
-
-    const fetchUrl = async () => {
-      try {
-        const urls = await fetchSignedUrls([coverUrl], storyId || id);
-        setSignedUrl(urls[coverUrl] || coverUrl);
-      } catch (err) {
-        console.error('Error fetching signed cover URL:', err);
-        setSignedUrl(coverUrl); // Fallback to original
-      }
-    };
-
-    fetchUrl();
-  }, [coverUrl, storyId, id, fetchSignedUrls]);
-
   const formattedDate = format(new Date(createdAt), 'd בMMMM yyyy', { locale: he });
 
   const handleClick = () => {
@@ -97,34 +71,17 @@ const StoryListItem = ({
     >
       {/* Right: Square Thumbnail - Always visible */}
       <div className="w-20 h-20 rounded-xl overflow-hidden flex-shrink-0 bg-gradient-to-br from-primary/10 to-accent/10 border-2 border-primary/20">
-        {!imageError && (signedUrl || coverUrl) ? (
-          <>
-            {!imageLoaded && (
-              <div className="w-full h-full bg-gradient-to-br from-primary/20 to-accent/20 animate-pulse flex items-center justify-center">
-                <Book className="w-6 h-6 text-primary/30" />
-              </div>
-            )}
-            <img
-              src={signedUrl || coverUrl || ''}
-              alt={topic}
-              loading="lazy"
-              onLoad={() => {
-                setImageLoaded(true);
-              }}
-              onError={() => {
-                setImageError(true);
-              }}
-              className={cn(
-                'w-full h-full object-cover transition-opacity duration-300',
-                imageLoaded ? 'opacity-100' : 'opacity-0'
-              )}
-            />
-          </>
-        ) : (
-          <div className="w-full h-full bg-gradient-to-br from-primary/20 to-accent/20 flex items-center justify-center">
-            <Book className="w-8 h-8 text-primary/40" />
-          </div>
-        )}
+        <SignedImage
+          src={coverUrl}
+          storyId={storyId || id}
+          alt={topic}
+          className="w-full h-full object-cover"
+          fallback={
+            <div className="w-full h-full bg-gradient-to-br from-primary/20 to-accent/20 flex items-center justify-center">
+              <Book className="w-8 h-8 text-primary/40" />
+            </div>
+          }
+        />
       </div>
 
       {/* Center: Title + Date */}

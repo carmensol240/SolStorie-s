@@ -63,9 +63,27 @@ serve(async (req) => {
           if (story?.user_id === userId) {
             isAuthorized = true;
           }
-        } else {
-          // If no storyId, check ownership based on path
-          isAuthorized = true; // Will validate per-path below
+        } else if (paths.length > 0) {
+          // If no storyId provided, extract from first path and check ownership
+          // Path format: uuid/filename.png
+          const firstPathParts = paths[0].split("/");
+          if (firstPathParts.length >= 2) {
+            const extractedStoryId = firstPathParts[0];
+            
+            // Validate UUID format
+            if (extractedStoryId.match(/^[a-f0-9-]{36}$/i)) {
+              const { data: story } = await supabaseAdmin
+                .from("stories")
+                .select("user_id")
+                .eq("id", extractedStoryId)
+                .maybeSingle();
+              
+              if (story?.user_id === userId) {
+                isAuthorized = true;
+                console.log(`Authorized user ${userId} for story ${extractedStoryId} via path extraction`);
+              }
+            }
+          }
         }
       }
     }
