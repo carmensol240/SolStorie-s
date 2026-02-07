@@ -1,74 +1,135 @@
 
-# שינוי ניתוב לאחר התחברות
 
-## סיכום השינויים
+# החזרת כפתורי התנתקות ומחיקת חשבון + הוספת תיבת "אודות"
 
-לאחר התחברות, המשתמשים יופנו לדף **הספרייה** (`/library`) או **יצירת סיפור** (`/create`) במקום לדף הבית.
+## סיכום
 
----
-
-## מה קורה היום
-
-נכון לעכשיו, ישנם שלושה מקומות שמגדירים לאן משתמש מופנה לאחר התחברות:
-
-| קובץ | ברירת מחדל נוכחית |
-|------|-------------------|
-| `Auth.tsx` (התחברות אימייל) | `/` (דף הבית) |
-| `LegalConsent.tsx` (אישור תנאים) | `/library` |
-| `use-auth.ts` (Google OAuth) | `/library` |
-
-חוסר האחידות הזה גורם לחוויה לא עקבית.
+הכפתורים קיימים בקוד אך ייתכן שנדחפים מחוץ לאזור הנראה. נשפר את הנראות שלהם ונוסיף תיבת "אודות" עם הטקסט המלא.
 
 ---
 
-## הפתרון המוצע
+## שינויים נדרשים
 
-### אפשרות 1: הפניה לספרייה (מומלץ)
-הספרייה מציגה את הסיפורים שנוצרו ומאפשרת גישה מהירה ליצירת סיפור חדש.
+### 1. שיפור נראות כפתורי התנתקות ומחיקת חשבון
+- הכפתורים קיימים (שורות 125-143) אך עשויים להידחף למטה
+- נוודא שהם בולטים יותר עם רקע וגבולות ברורים
 
-### אפשרות 2: הפניה ליצירת סיפור
-מתאים אם רוצים לעודד יצירה מיידית.
-
-**ההמלצה:** `/library` - כי היא מציגה גם סיפורים קיימים וגם כפתור ליצירת סיפור חדש.
+### 2. הוספת תיבת "אודות" עם דיאלוג
+מכיוון שהטקסט ארוך מאוד, נוסיף:
+- **כפתור "אודות"** ברשימת התפריט עם אייקון `Info`
+- **דיאלוג (Dialog)** שייפתח בלחיצה ויכיל את כל הטקסט עם גלילה
 
 ---
 
 ## פרטים טכניים
 
-### קובץ 1: `src/pages/Auth.tsx`
-**שורה 247** - שינוי ברירת המחדל מ-`/` ל-`/library`:
-```typescript
-// לפני
-const returnTo = searchParams.get('returnTo') || localStorage.getItem('returnTo') || '/';
+### קובץ: `src/pages/Settings.tsx`
 
-// אחרי
-const returnTo = searchParams.get('returnTo') || localStorage.getItem('returnTo') || '/library';
+#### שינוי 1: ייבוא רכיבים נוספים
+```tsx
+import { useState } from "react";
+import { Info } from "lucide-react";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
+import { ScrollArea } from "@/components/ui/scroll-area";
 ```
 
-### קובץ 2: `src/pages/LegalConsent.tsx`
-**שורה 37** - כבר מוגדר כ-`/library`, ללא שינוי נדרש.
+#### שינוי 2: הוספת state לדיאלוג
+```tsx
+const [aboutOpen, setAboutOpen] = useState(false);
+```
 
-### קובץ 3: `src/hooks/use-auth.ts`
-**שורה 42** - כבר מוגדר כ-`/library`, ללא שינוי נדרש.
+#### שינוי 3: הוספת כפתור "אודות" לתפריט
+יתווסף מיד אחרי כפתור "הגדרות נגישות":
+```tsx
+{/* About Button */}
+<button
+  onClick={() => setAboutOpen(true)}
+  className="w-full flex items-center justify-between bg-white/60 dark:bg-white/10 backdrop-blur-md rounded-lg px-3 py-2 border border-purple-200 dark:border-purple-800 hover:bg-purple-50 dark:hover:bg-purple-900/20 transition-all text-right shadow-sm"
+  aria-label="אודות StoryTime"
+>
+  <ArrowRight className="w-3.5 h-3.5 text-purple-400" aria-hidden="true" />
+  <div className="flex items-center gap-2">
+    <span className="font-medium text-sm text-foreground">אודות</span>
+    <div className="w-7 h-7 bg-gradient-to-r from-purple-500/20 to-pink-500/20 rounded-lg flex items-center justify-center flex-shrink-0">
+      <Info className="w-3.5 h-3.5 text-purple-600" aria-hidden="true" />
+    </div>
+  </div>
+</button>
+```
+
+#### שינוי 4: הוספת דיאלוג "אודות" עם כל הטקסט
+הדיאלוג יכיל את הטקסט המלא שסופק עם:
+- כותרת "📖 אודות StoryTime ✨"
+- אזור גלילה (ScrollArea) לתוכן הארוך
+- עיצוב RTL מותאם
+
+```tsx
+<Dialog open={aboutOpen} onOpenChange={setAboutOpen}>
+  <DialogContent className="max-w-lg max-h-[80vh]" dir="rtl">
+    <DialogHeader>
+      <DialogTitle className="text-center text-lg font-bold bg-gradient-to-r from-purple-600 via-pink-500 to-orange-400 bg-clip-text text-transparent">
+        📖 להפוך את הקושי לסיפור קסום – StoryTime ✨
+      </DialogTitle>
+    </DialogHeader>
+    <ScrollArea className="h-[60vh] pr-4">
+      <div className="space-y-4 text-sm text-foreground/90 leading-relaxed">
+        {/* כל הטקסט המלא */}
+      </div>
+    </ScrollArea>
+  </DialogContent>
+</Dialog>
+```
+
+#### שינוי 5: שיפור נראות כפתורי התנתקות ומחיקה
+שינוי מ-`bg-white/40` ל-`bg-white/70` ושינוי ה-height ל-`h-9`:
+```tsx
+<Button
+  variant="ghost"
+  size="sm"
+  onClick={handleSignOut}
+  className="w-full justify-between text-muted-foreground hover:text-foreground bg-white/70 dark:bg-white/10 backdrop-blur-sm text-sm h-9 border border-purple-100"
+>
+  <LogOut className="w-4 h-4" />
+  <span>התנתקות</span>
+</Button>
+
+<Button
+  variant="ghost"
+  size="sm"
+  onClick={() => navigate("/account-exit")}
+  className="w-full justify-between text-destructive hover:text-destructive hover:bg-destructive/10 bg-white/70 dark:bg-white/10 backdrop-blur-sm text-sm h-9 border border-red-100"
+>
+  <Trash2 className="w-4 h-4" />
+  <span>מחיקת חשבון</span>
+</Button>
+```
 
 ---
 
-## מה לא משתנה
-
-✅ **סרגל הניווט התחתון** - יישאר גלוי בכל הדפים (כולל `/library` ו-`/create`)
-✅ **הגדרות נגישות** - יישארו בדף הפרופיל (`/settings`)
-✅ **כפתור "הקראה"** - כבר הוסר מדפים קודמים כפי שהתבקש
-
----
-
-## תוצאה צפויה
+## מבנה המסך המעודכן
 
 ```text
-משתמש מתחבר → מופנה לספרייה (/library)
-                    ↓
-        רואה את הסיפורים שלו + כפתור "צור סיפור חדש"
-                    ↓
-        סרגל ניווט תחתון זמין לגישה לפרופיל/הגדרות
+┌──────────────────────────────┐
+│  Hero (תמונת רקע + פרטי משתמש)  │
+├──────────────────────────────┤
+│  ניהול ילדים                   │
+│  יצירת קשר                     │
+│  תנאי שימוש                    │
+│  מדיניות פרטיות                │
+│  הגדרות נגישות                 │
+│  אודות  ← חדש!                 │
+├──────────────────────────────┤
+│  [התנתקות]                     │
+│  [מחיקת חשבון]                 │
+└──────────────────────────────┘
+│  MobileNavigation              │
+└──────────────────────────────┘
 ```
 
 ---
@@ -77,4 +138,5 @@ const returnTo = searchParams.get('returnTo') || localStorage.getItem('returnTo'
 
 | קובץ | סוג שינוי |
 |------|-----------|
-| `src/pages/Auth.tsx` | שינוי ברירת מחדל מ-`/` ל-`/library` |
+| `src/pages/Settings.tsx` | הוספת כפתור "אודות", דיאלוג עם טקסט מלא, שיפור נראות כפתורי התנתקות/מחיקה |
+
