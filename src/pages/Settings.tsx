@@ -132,7 +132,7 @@ const Settings = () => {
           >
             <ArrowRight className="w-3.5 h-3.5 text-purple-400" aria-hidden="true" />
             <div className="flex items-center gap-2">
-              <span className="font-medium text-sm text-foreground">אודות</span>
+              <span className="font-medium text-sm text-foreground">אודות StoryTime</span>
               <div className="w-7 h-7 bg-gradient-to-r from-purple-500/20 to-pink-500/20 rounded-lg flex items-center justify-center flex-shrink-0">
                 <Info className="w-3.5 h-3.5 text-purple-600" aria-hidden="true" />
               </div>
@@ -176,11 +176,6 @@ const Settings = () => {
           </DialogHeader>
           <ScrollArea className="h-[60vh] pr-4">
             <div className="space-y-4 text-sm text-foreground/90 leading-relaxed">
-              <div className="text-center mb-4">
-                <span className="text-2xl font-bold bg-gradient-to-r from-purple-600 via-pink-500 to-orange-400 bg-clip-text text-transparent">
-                  StoryTime
-                </span>
-              </div>
               <p>כאימא יחידנית לילדה על הרצף, מצאתי את עצמי כל ערב יושבת ליד המיטה שלה וממציאה סיפורים. לא סתם סיפורים, אלא כאלו שעוזרים לה לעבד את היום שעבר, להתמודד עם קשיים בגן ולמצוא כוחות.</p>
               
               <p>מתוך הצורך האישי שלי, ומהידע המקצועי שצברתי בלימודי NLP, נולדה StoryTime. באפליקציה הזו הטמעתי כלים מעולם ה-NLP בתוך הלוגיקה של הסיפורים, כך שהם מדברים לילד בשפה הנכונה לו, משתמשים בסוגסטיות מעצימות ועוזרים לו לבנות ביטחון עצמי וחוסן פנימי דרך חוויית הקריאה.</p>
