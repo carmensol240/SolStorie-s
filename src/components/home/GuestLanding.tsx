@@ -64,16 +64,26 @@ const GuestLanding = () => {
         <div className="absolute top-24 left-1/3 w-28 h-14 bg-white/40 rounded-full blur-md" />
         <div className="absolute top-32 right-1/4 w-18 h-9 bg-white/35 rounded-full blur-md" />
         
-        {/* Hero flying girl image - positioned between titles and feature boxes */}
-        <div className="absolute top-44 sm:top-48 left-1/2 -translate-x-1/2 w-44 h-44 sm:w-52 sm:h-52">
-          <img 
-            src={heroFlyingGirl} 
-            alt="ילדה עפה בשמיים" 
-            className="w-full h-full object-contain drop-shadow-2xl"
-            style={{ 
-              filter: 'drop-shadow(0 10px 25px rgba(0,0,0,0.2))'
+        {/* Hero flying children image - positioned between titles and feature boxes with glass effect */}
+        <div className="absolute top-44 sm:top-48 left-1/2 -translate-x-1/2 w-52 h-52 sm:w-64 sm:h-64">
+          <div 
+            className="w-full h-full rounded-3xl overflow-hidden backdrop-blur-sm"
+            style={{
+              background: 'rgba(255, 255, 255, 0.15)',
+              boxShadow: '0 8px 32px rgba(135, 206, 235, 0.3), inset 0 0 20px rgba(255, 255, 255, 0.2)',
+              border: '1px solid rgba(255, 255, 255, 0.3)'
             }}
-          />
+          >
+            <img 
+              src={heroFlyingGirl} 
+              alt="ילדים עפים בשמיים" 
+              className="w-full h-full object-cover opacity-90"
+              style={{ 
+                filter: 'drop-shadow(0 4px 15px rgba(0,0,0,0.1))',
+                mixBlendMode: 'normal'
+              }}
+            />
+          </div>
         </div>
         
         {/* Subtle warm overlay at bottom for depth */}
