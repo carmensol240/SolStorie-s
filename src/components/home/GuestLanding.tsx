@@ -10,17 +10,17 @@ interface FeatureCardProps {
 
 const FeatureCard = ({ icon, title, subtitle }: FeatureCardProps) => (
   <div 
-    className="flex items-center gap-3 bg-white/90 backdrop-blur-lg rounded-xl p-3 w-full border border-purple-200 shadow-md" 
+    className="flex items-center gap-4 bg-white/80 backdrop-blur-xl rounded-2xl p-4 w-full border border-white/30 shadow-sm transition-all hover:shadow-md" 
     dir="rtl"
   >
-    <div className="w-10 h-10 bg-gradient-to-br from-purple-500 to-purple-700 rounded-xl flex items-center justify-center shadow-lg flex-shrink-0">
+    <div className="w-11 h-11 bg-gradient-to-br from-purple-500 to-purple-700 rounded-xl flex items-center justify-center shadow-lg flex-shrink-0">
       {icon}
     </div>
     <div className="flex-1">
       <h3 className="text-sm font-bold text-purple-800 leading-tight">
         {title}
       </h3>
-      <p className="text-xs font-medium text-purple-600 leading-snug">
+      <p className="text-sm font-medium text-purple-600 leading-relaxed">
         {subtitle}
       </p>
     </div>
@@ -48,7 +48,7 @@ const GuestLanding = () => {
 
   return (
     <div className="flex-1 flex flex-col animate-fade-in relative">
-      {/* Soft blue sky background with clouds */}
+      {/* Soft blue sky background with distributed clouds */}
       <div 
         className="absolute inset-0 -mx-4 -mt-3"
         style={{ 
@@ -56,22 +56,32 @@ const GuestLanding = () => {
           background: 'linear-gradient(180deg, #87CEEB 0%, #B0E0E6 40%, #E0F4FF 70%, #F0F8FF 100%)'
         }}
       >
-        {/* Cloud decorations */}
+        {/* Top clouds */}
         <div className="absolute top-8 left-4 w-24 h-12 bg-white/60 rounded-full blur-sm" />
         <div className="absolute top-12 left-12 w-16 h-8 bg-white/50 rounded-full blur-sm" />
         <div className="absolute top-6 right-8 w-20 h-10 bg-white/55 rounded-full blur-sm" />
         <div className="absolute top-10 right-16 w-14 h-7 bg-white/45 rounded-full blur-sm" />
-        <div className="absolute top-24 left-1/3 w-28 h-14 bg-white/40 rounded-full blur-md" />
-        <div className="absolute top-32 right-1/4 w-18 h-9 bg-white/35 rounded-full blur-md" />
         
-        {/* Hero flying children image - positioned between titles and feature boxes with glass effect */}
-        <div className="absolute top-44 sm:top-48 left-1/2 -translate-x-1/2 w-52 h-52 sm:w-64 sm:h-64">
+        {/* Middle section clouds */}
+        <div className="absolute top-[35%] left-6 w-28 h-14 bg-white/35 rounded-full blur-md" />
+        <div className="absolute top-[40%] right-4 w-20 h-10 bg-white/40 rounded-full blur-md" />
+        <div className="absolute top-[45%] left-1/4 w-16 h-8 bg-white/30 rounded-full blur-lg" />
+        <div className="absolute top-[50%] right-1/3 w-24 h-12 bg-white/25 rounded-full blur-lg" />
+        
+        {/* Lower section clouds */}
+        <div className="absolute top-[65%] left-8 w-22 h-11 bg-white/30 rounded-full blur-lg" />
+        <div className="absolute top-[70%] right-6 w-18 h-9 bg-white/35 rounded-full blur-md" />
+        <div className="absolute top-[75%] left-1/3 w-26 h-13 bg-white/25 rounded-full blur-lg" />
+        <div className="absolute top-[80%] right-1/4 w-20 h-10 bg-white/30 rounded-full blur-lg" />
+        
+        {/* Hero flying children image - positioned between titles and feature boxes */}
+        <div className="absolute top-48 sm:top-52 left-1/2 -translate-x-1/2 w-44 h-44 sm:w-56 sm:h-56 animate-pulse-glow-soft">
           <div 
             className="w-full h-full rounded-3xl overflow-hidden backdrop-blur-sm"
             style={{
               background: 'rgba(255, 255, 255, 0.15)',
-              boxShadow: '0 8px 32px rgba(135, 206, 235, 0.3), inset 0 0 20px rgba(255, 255, 255, 0.2)',
-              border: '1px solid rgba(255, 255, 255, 0.3)'
+              boxShadow: '0 8px 32px rgba(135, 206, 235, 0.4), 0 0 60px rgba(255, 255, 255, 0.3), inset 0 0 20px rgba(255, 255, 255, 0.2)',
+              border: '2px solid rgba(255, 255, 255, 0.4)'
             }}
           >
             <img 
@@ -92,14 +102,14 @@ const GuestLanding = () => {
 
       {/* Content Container */}
       <div className="relative z-10 flex-1 flex flex-col">
-        {/* Logo - 3D Bubble Style - LARGER */}
-        <h1 className="text-6xl sm:text-7xl font-black text-center tracking-tight logo-3d-bubble mb-2 drop-shadow-2xl">
+        {/* Logo - 3D Bubble Style */}
+        <h1 className="text-6xl sm:text-7xl font-black text-center tracking-tight logo-3d-bubble mb-4 drop-shadow-2xl">
           <span className="logo-story">Story</span>
           <span className="logo-time"> Time</span>
         </h1>
 
         {/* Title Section */}
-        <div className="text-center space-y-1 mb-2 py-2 px-4 mx-auto">
+        <div className="text-center space-y-1 mb-6 py-2 px-4 mx-auto">
           <h2 className="text-2xl font-black text-purple-700 flex items-center justify-center gap-2 drop-shadow-lg" style={{ textShadow: '1px 1px 2px rgba(255,255,255,0.8)' }}>
             <Sparkles className="w-6 h-6 text-purple-600" aria-hidden="true" />
             סיפורים קסומים
@@ -112,23 +122,26 @@ const GuestLanding = () => {
         <div className="flex-1" />
 
         {/* Feature Cards - Horizontal Stack */}
-        <div className="flex flex-col gap-2 mb-4 px-2">
+        <div className="flex flex-col gap-3 mb-6 px-2">
           {features.map((feature, index) => (
             <FeatureCard key={index} {...feature} />
           ))}
         </div>
 
-        {/* Login/Register CTA - Pink Gradient */}
+        {/* Login/Register CTA - Pink Gradient with enhanced shadow */}
         <Link
           to="/auth"
-          className="w-full bg-gradient-to-r from-pink-500 via-pink-600 to-purple-600 hover:from-pink-600 hover:via-pink-700 hover:to-purple-700 text-white font-black text-base py-4 rounded-full shadow-xl shadow-pink-500/25 hover:shadow-2xl hover:scale-[1.02] transition-all mb-2 text-center flex items-center justify-center gap-2"
+          className="w-full bg-gradient-to-r from-pink-500 via-pink-600 to-purple-600 hover:from-pink-600 hover:via-pink-700 hover:to-purple-700 text-white font-black text-base py-4 rounded-full shadow-2xl hover:shadow-2xl hover:scale-[1.02] transition-all mt-2 mb-4 text-center flex items-center justify-center gap-2"
+          style={{
+            boxShadow: '0 10px 40px -10px rgba(236, 72, 153, 0.5), 0 4px 20px -5px rgba(147, 51, 234, 0.3)'
+          }}
         >
           להתחברות והרשמה לחצו כאן
           <ArrowLeft className="w-5 h-5" aria-hidden="true" />
         </Link>
 
         {/* Privacy Link */}
-        <p className="text-center text-xs text-gray-700 drop-shadow-sm pb-3">
+        <p className="text-center text-xs text-gray-700 font-medium drop-shadow-sm pb-3">
           בהמשך, אתם מסכימים ל
           <Link to="/privacy" className="text-purple-700 font-bold hover:underline mx-1">מדיניות הפרטיות</Link>
         </p>
