@@ -404,8 +404,8 @@ const ChildInfoStep = ({ formData, updateFormData }: ChildInfoStepProps) => {
                 : "border-border bg-card hover:border-purple-300"
             )}
           >
-            <span className="text-lg">👦</span>
-            <span className="text-xs font-bold">בן</span>
+            <span className="text-lg">🦸‍♂️</span>
+            <span className="text-xs font-bold">גיבור</span>
           </button>
           <button
             onClick={() => updateFormData({ childGender: "female" })}
@@ -416,8 +416,8 @@ const ChildInfoStep = ({ formData, updateFormData }: ChildInfoStepProps) => {
                 : "border-border bg-card hover:border-purple-300"
             )}
           >
-            <span className="text-lg">👧</span>
-            <span className="text-xs font-bold">בת</span>
+            <span className="text-lg">🦸‍♀️</span>
+            <span className="text-xs font-bold">גיבורה</span>
           </button>
         </div>
       </div>
