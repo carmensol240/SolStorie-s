@@ -82,7 +82,7 @@ const GuestLanding = () => {
             סיפורים קסומים
             <Sparkles className="w-6 h-6 text-purple-600" aria-hidden="true" />
           </h2>
-          <p className="text-lg text-gray-800 font-black text-center w-full drop-shadow-sm" style={{ textShadow: '1px 1px 2px rgba(255,255,255,0.6)' }}>הילד שלכם כגיבור הסיפור!</p>
+          <p className="text-lg text-pink-600 font-black text-center w-full drop-shadow-sm" style={{ textShadow: '1px 1px 2px rgba(255,255,255,0.6)' }}>הילד שלכם כגיבור הסיפור!</p>
         </div>
 
         {/* Spacer to push content to bottom */}
@@ -95,10 +95,10 @@ const GuestLanding = () => {
           ))}
         </div>
 
-        {/* Login/Register CTA - Purple & Brown Gradient */}
+        {/* Login/Register CTA - Pink Gradient */}
         <Link
           to="/auth"
-          className="w-full bg-gradient-to-r from-purple-700 via-purple-600 to-[#8B5A2B] hover:from-purple-800 hover:via-purple-700 hover:to-[#6B4423] text-white font-black text-base py-4 rounded-full shadow-xl shadow-black/25 hover:shadow-2xl hover:scale-[1.02] transition-all mb-2 text-center flex items-center justify-center gap-2"
+          className="w-full bg-gradient-to-r from-pink-500 via-pink-600 to-purple-600 hover:from-pink-600 hover:via-pink-700 hover:to-purple-700 text-white font-black text-base py-4 rounded-full shadow-xl shadow-pink-500/25 hover:shadow-2xl hover:scale-[1.02] transition-all mb-2 text-center flex items-center justify-center gap-2"
         >
           להתחברות והרשמה לחצו כאן
           <ArrowLeft className="w-5 h-5" aria-hidden="true" />
