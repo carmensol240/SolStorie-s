@@ -1,5 +1,6 @@
 import { useNavigate } from "react-router-dom";
 import { ChevronLeft, BookOpen } from "lucide-react";
+import { SignedImage } from "@/components/ui/signed-image";
 
 interface Story {
   id: string;
@@ -45,18 +46,17 @@ const RecentStories = ({ stories }: RecentStoriesProps) => {
           >
             {/* Cover Image */}
             <div className="w-28 h-36 rounded-xl overflow-hidden comic-shadow border-2 border-foreground/10 bg-muted group-hover:scale-[1.03] transition-transform">
-              {story.cover_url ? (
-                <img
-                  src={story.cover_url}
-                  alt={`שער הסיפור של ${story.child_name}`}
-                  className="w-full h-full object-cover"
-                  loading="lazy"
-                />
-              ) : (
-                <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-primary/20 to-secondary/20">
-                  <BookOpen className="w-8 h-8 text-primary/40" aria-hidden="true" />
-                </div>
-              )}
+              <SignedImage
+                src={story.cover_url}
+                storyId={story.id}
+                alt={`שער הסיפור של ${story.child_name}`}
+                className="w-full h-full object-cover"
+                fallback={
+                  <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-primary/20 to-secondary/20">
+                    <BookOpen className="w-8 h-8 text-primary/40" aria-hidden="true" />
+                  </div>
+                }
+              />
             </div>
             
             {/* Title */}
