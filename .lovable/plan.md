@@ -1,49 +1,63 @@
 
 
-# עדכון כפתור "אודות" והסרת כפילות
+# Deploy Edge Functions + הגדלת טקסט "ספרו לנו על הילד/ה"
 
-## השינויים הנדרשים
+## משימה 1: Deploy כל ה-Edge Functions
 
-### שינוי 1: עדכון טקסט הכפתור (שורה 135)
-לשנות את הטקסט בכפתור מ-"אודות" ל-"אודות StoryTime"
+אבצע Deploy לכל ה-Edge Functions הבאות:
+- `generate-story`
+- `generate-illustrations`
+- `add-nikud`
+- `enhance-text`
+- `get-settings`
+- `get-signed-photo-url`
+- `get-signed-illustration-url`
+- `preview-child-avatar`
+- `send-contact-form`
+- `send-password-reset`
+- `send-purchase-confirmation`
+- `track-event`
+
+## משימה 2: הגדלת הטקסט
+
+### קובץ: `src/components/wizard/TopicStep.tsx`
+
+### שינוי בשורות 421-427:
 
 **לפני:**
 ```tsx
-<span className="font-medium text-sm text-foreground">אודות</span>
+<div className="flex items-center gap-2 justify-center">
+  <Brain className="w-4 h-4 text-purple-500" />
+  <Label className="text-xs font-bold text-purple-700">
+    ספרו לנו מה עבר על הילד/ה
+  </Label>
+  <Sparkles className="w-4 h-4 text-pink-500" />
+</div>
 ```
 
 **אחרי:**
 ```tsx
-<span className="font-medium text-sm text-foreground">אודות StoryTime</span>
-```
-
-### שינוי 2: הסרת StoryTime הכפול מהדיאלוג (שורות 179-183)
-להסיר את הבלוק הזה לגמרי כי StoryTime כבר מופיע בכותרת הדיאלוג:
-
-```tsx
-// למחוק את זה:
-<div className="text-center mb-4">
-  <span className="text-2xl font-bold bg-gradient-to-r from-purple-600 via-pink-500 to-orange-400 bg-clip-text text-transparent">
-    StoryTime
-  </span>
+<div className="flex items-center gap-2 justify-center">
+  <Brain className="w-5 h-5 text-purple-500" />
+  <Label className="text-sm font-bold text-purple-700">
+    ספרו לנו מה עבר על הילד/ה
+  </Label>
+  <Sparkles className="w-5 h-5 text-pink-500" />
 </div>
 ```
 
----
-
-## התוצאה הסופית
-
-**כפתור בתפריט:** "אודות StoryTime"
-
-**כותרת הדיאלוג:** "📖 להפוך את הקושי לסיפור קסום – StoryTime ✨" (נשארת כמו שהיא)
-
-**תוכן הדיאלוג:** מתחיל ישירות עם הפסקה הראשונה - "כאימא יחידנית לילדה על הרצף..."
+### סיכום השינויים:
+| אלמנט | לפני | אחרי |
+|-------|------|------|
+| גודל טקסט | `text-xs` | `text-sm` |
+| גודל אייקונים | `w-4 h-4` | `w-5 h-5` |
 
 ---
 
-## קובץ לעדכון
+## קבצים לעדכון
 
-| קובץ | סוג שינוי |
-|------|-----------|
-| `src/pages/Settings.tsx` | עדכון טקסט כפתור + הסרת כפילות |
+| קובץ | פעולה |
+|------|-------|
+| `src/components/wizard/TopicStep.tsx` | הגדלת טקסט הכותרת |
+| Edge Functions | Deploy לכולן |
 
