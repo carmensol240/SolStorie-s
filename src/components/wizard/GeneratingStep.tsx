@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { StoryFormData } from "@/pages/CreateStory";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+import { useNavigate } from "react-router-dom";
 
 interface GeneratingStepProps {
   formData: StoryFormData;
@@ -56,6 +57,7 @@ const getTopicLabel = (topicId: string): string => {
 
 const GeneratingStep = ({ formData, onComplete }: GeneratingStepProps) => {
   const { toast } = useToast();
+  const navigate = useNavigate();
   const [progress, setProgress] = useState(0);
   const [messageIndex, setMessageIndex] = useState(0);
   const [sentenceIndex, setSentenceIndex] = useState(0);
@@ -112,7 +114,14 @@ const GeneratingStep = ({ formData, onComplete }: GeneratingStepProps) => {
         console.error("API error:", apiError);
         // Check for specific error types
         if (apiError.message?.includes("401") || apiError.message?.includes("נדרשת התחברות")) {
-          throw new Error("נדרשת התחברות. אנא התחברו מחדש.");
+          toast({
+            variant: "destructive",
+            title: "נדרשת התחברות",
+            description: "אנא התחברו כדי ליצור סיפורים.",
+          });
+          // Redirect to login with return path
+          navigate("/auth?returnTo=/create");
+          return;
         }
         if (apiError.message?.includes("429")) {
           throw new Error("יותר מדי בקשות. נסו שוב בעוד מספר דקות.");
@@ -175,7 +184,7 @@ const GeneratingStep = ({ formData, onComplete }: GeneratingStepProps) => {
         description: "לא הצלחנו ליצור את הסיפור. אנא נסו שוב.",
       });
     }
-  }, [formData, onComplete, toast]);
+  }, [formData, onComplete, toast, navigate]);
 
   useEffect(() => {
     // Progress animation
