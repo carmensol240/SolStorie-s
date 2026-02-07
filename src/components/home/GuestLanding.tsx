@@ -64,16 +64,14 @@ const GuestLanding = () => {
         <div className="absolute top-24 left-1/3 w-28 h-14 bg-white/40 rounded-full blur-md" />
         <div className="absolute top-32 right-1/4 w-18 h-9 bg-white/35 rounded-full blur-md" />
         
-        {/* Hero flying girl image - positioned to not block text */}
-        <div className="absolute top-20 left-1/2 -translate-x-1/2 w-48 h-48 sm:w-56 sm:h-56">
+        {/* Hero flying girl image - positioned between titles and feature boxes */}
+        <div className="absolute top-44 sm:top-48 left-1/2 -translate-x-1/2 w-44 h-44 sm:w-52 sm:h-52">
           <img 
             src={heroFlyingGirl} 
             alt="ילדה עפה בשמיים" 
-            className="w-full h-full object-contain opacity-85 drop-shadow-2xl"
+            className="w-full h-full object-contain drop-shadow-2xl"
             style={{ 
-              filter: 'drop-shadow(0 10px 25px rgba(0,0,0,0.15))',
-              maskImage: 'linear-gradient(to bottom, black 70%, transparent 100%)',
-              WebkitMaskImage: 'linear-gradient(to bottom, black 70%, transparent 100%)'
+              filter: 'drop-shadow(0 10px 25px rgba(0,0,0,0.2))'
             }}
           />
         </div>
