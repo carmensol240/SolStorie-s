@@ -187,10 +187,11 @@ const ChildProfiles = () => {
   };
 
   const uploadPhoto = async (childId: string): Promise<string | null> => {
-    if (!newChildPhoto) return null;
+    if (!newChildPhoto || !user) return null;
     
     const fileExt = newChildPhoto.name.split('.').pop();
-    const fileName = `${childId}.${fileExt}`;
+    // Use user folder structure for RLS compliance
+    const fileName = `${user.id}/${childId}.${fileExt}`;
     
     const { error } = await supabase.storage
       .from('child-photos')
@@ -198,11 +199,9 @@ const ChildProfiles = () => {
       
     if (error) throw error;
     
-    const { data } = supabase.storage
-      .from('child-photos')
-      .getPublicUrl(fileName);
-      
-    return data.publicUrl;
+    // Return file path only (not public URL) for private bucket security
+    // Signed URLs will be fetched when displaying photos
+    return fileName;
   };
 
   const handleAddChild = async () => {
@@ -365,14 +364,14 @@ const ChildProfiles = () => {
         photoUrl = null;
       }
 
-      if (editPhoto) {
+      if (editPhoto && user) {
         // Delete old photo if exists
         if (editingChild.photo_url) {
           await deletePhotoFromStorage(editingChild.photo_url);
         }
-        // Upload new photo
+        // Upload new photo with user folder structure for RLS
         const fileExt = editPhoto.name.split('.').pop();
-        const fileName = `${editingChild.id}.${fileExt}`;
+        const fileName = `${user.id}/${editingChild.id}.${fileExt}`;
         
         const { error: uploadError } = await supabase.storage
           .from('child-photos')
@@ -380,11 +379,8 @@ const ChildProfiles = () => {
           
         if (uploadError) throw uploadError;
         
-        const { data } = supabase.storage
-          .from('child-photos')
-          .getPublicUrl(fileName);
-          
-        photoUrl = data.publicUrl;
+        // Store file path only (not public URL) for private bucket security
+        photoUrl = fileName;
       }
 
       const { error } = await supabase

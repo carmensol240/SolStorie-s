@@ -133,18 +133,16 @@ const Auth = () => {
       
       if (uploadError) throw uploadError;
       
-      // 2. Get public URL
-      const { data } = supabase.storage
-        .from('child-photos')
-        .getPublicUrl(fileName);
+      // 2. Store file path (not public URL) for private bucket security
+      // Signed URLs will be fetched when displaying
       
-      // 3. Save to children table
+      // 3. Save to children table with file path
       const { error: upsertError } = await supabase.from('children').upsert({
         user_id: user.id,
         name: 'הילד/ה שלי',
         age: 5,
         gender: 'boy',
-        photo_url: data.publicUrl,
+        photo_url: fileName,
       }, { onConflict: 'user_id,name' });
       
       if (upsertError) {
@@ -153,11 +151,11 @@ const Auth = () => {
           name: 'הילד/ה שלי',
           age: 5,
           gender: 'boy',
-          photo_url: data.publicUrl,
+          photo_url: fileName,
         });
       }
       
-      setChildPhoto(data.publicUrl);
+      setChildPhoto(fileName);
       setPreviewStep("saved");
       
       toast({

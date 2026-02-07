@@ -164,14 +164,11 @@ const AvatarPreviewDialog = ({
         
       if (uploadError) throw uploadError;
       
-      const { data: urlData } = supabase.storage
-        .from('child-photos')
-        .getPublicUrl(fileName);
-      
-      // Update child record with avatar URL
+      // Store only the file path (not public URL) for private bucket
+      // Update child record with file path - signed URLs will be fetched when displaying
       const { error: updateError } = await supabase
         .from('children')
-        .update({ avatar_url: urlData.publicUrl })
+        .update({ avatar_url: fileName })
         .eq('id', childId);
         
       if (updateError) throw updateError;
@@ -181,7 +178,8 @@ const AvatarPreviewDialog = ({
         description: `הדמות של ${childName} תופיע בכל הסיפורים`,
       });
       
-      onConfirm(urlData.publicUrl);
+      // Return the file path - caller should fetch signed URL when needed
+      onConfirm(fileName);
       onOpenChange(false);
     } catch (error) {
       console.error('Error saving avatar:', error);
