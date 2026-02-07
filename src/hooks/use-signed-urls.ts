@@ -33,12 +33,14 @@ export const useSignedUrls = () => {
   }, []);
 
   // Extract storage path from a Supabase storage URL or return path if already just a path
+  // Supports both legacy full URLs and new storage path format
   const extractPathFromUrl = useCallback((url: string): string | null => {
     if (!url) return null;
     
     try {
       // If it's already just a storage path (e.g., "uuid/page-1.png")
-      if (url.match(/^[a-f0-9-]+\/page-\d+\.png$/)) {
+      // More flexible regex: accepts UUIDs with various filename patterns
+      if (url.match(/^[a-f0-9-]+\/[^\/]+\.(png|jpg|jpeg|webp)$/i)) {
         return url;
       }
       
@@ -47,11 +49,24 @@ export const useSignedUrls = () => {
       // or: https://xxx.supabase.co/storage/v1/object/sign/story-illustrations/uuid/page-1.png?token=...
       const match = url.match(/story-illustrations\/([^?]+)/);
       if (match) {
-        return match[1];
+        const extractedPath = match[1];
+        // Validate extracted path looks like a valid storage path
+        if (extractedPath.match(/^[a-f0-9-]+\/[^\/]+\.(png|jpg|jpeg|webp)$/i)) {
+          return extractedPath;
+        }
+        // Try to normalize common variations
+        return extractedPath;
+      }
+      
+      // Handle edge case: just a filename without path (shouldn't happen but be safe)
+      if (url.match(/^page-\d+\.png$/)) {
+        console.warn("SignedUrls: Got filename without storyId prefix:", url);
+        return null;
       }
       
       return null;
-    } catch {
+    } catch (err) {
+      console.error("SignedUrls: Error extracting path:", err);
       return null;
     }
   }, []);

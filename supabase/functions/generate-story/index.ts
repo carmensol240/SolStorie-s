@@ -874,26 +874,44 @@ ${adventureLogic ? `
     // Fire-and-forget: Trigger illustration generation in background
     // This function will run separately and update the pages with illustrations
     // Note: supabaseUrl is already defined above at line ~465, reusing it
-    const serviceRoleKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
+    const serviceRoleKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
     
-    fetch(`${supabaseUrl}/functions/v1/generate-illustrations`, {
-      method: "POST",
-      headers: {
-        "Authorization": `Bearer ${serviceRoleKey}`,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        storyId: story.id,
-        childPhoto: childPhoto,
-        childAvatarUrl: childAvatarUrl,
-        childGender: childGender,
-        ageRange: ageRange,
-        adventureLogic: adventureLogic,
-      }),
-    }).catch(err => {
-      console.error("Error triggering illustration generation:", err);
-      // Don't throw - the story text is already saved
-    });
+    if (!serviceRoleKey) {
+      console.error("SUPABASE_SERVICE_ROLE_KEY is not configured! Illustration generation will fail.");
+      // Update story status to indicate problem
+      await supabase
+        .from("stories")
+        .update({ generation_status: "failed" })
+        .eq("id", story.id);
+    } else {
+      console.log(`Triggering generate-illustrations for story ${story.id}...`);
+      
+      fetch(`${supabaseUrl}/functions/v1/generate-illustrations`, {
+        method: "POST",
+        headers: {
+          "Authorization": `Bearer ${serviceRoleKey}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          storyId: story.id,
+          childPhoto: childPhoto,
+          childAvatarUrl: childAvatarUrl,
+          childGender: childGender,
+          ageRange: ageRange,
+          adventureLogic: adventureLogic,
+        }),
+      }).then(response => {
+        console.log(`generate-illustrations response status: ${response.status}`);
+        if (!response.ok) {
+          response.text().then(text => {
+            console.error("generate-illustrations error response:", text);
+          });
+        }
+      }).catch(err => {
+        console.error("Error triggering illustration generation:", err);
+        // Don't throw - the story text is already saved
+      });
+    }
 
     console.log("Illustration generation triggered, returning storyId immediately");
 
