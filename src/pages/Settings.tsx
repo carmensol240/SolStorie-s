@@ -55,10 +55,10 @@ const Settings = () => {
   ];
 
   return (
-    <div className="h-screen h-[100dvh] flex flex-col bg-gradient-to-b from-purple-50/50 to-background overflow-hidden">
+    <div className="h-[100dvh] flex flex-col bg-gradient-to-b from-purple-50/50 to-background overflow-hidden">
       {/* Hero Section with Background Image */}
       <div 
-        className="relative h-28 flex-shrink-0 bg-cover bg-center"
+        className="relative h-24 flex-shrink-0 bg-cover bg-center"
         style={{ backgroundImage: `url(${profileHero})` }}
       >
         {/* Gradient overlay for text readability */}
@@ -81,22 +81,22 @@ const Settings = () => {
         )}
       </div>
 
-      {/* Menu Items - Glassmorphism Style */}
-      <div className="flex-1 overflow-hidden flex flex-col justify-between px-3 py-3">
-        <div className="space-y-2">
+      {/* Menu Items - Compact Layout */}
+      <div className="flex-1 flex flex-col justify-between px-3 py-2">
+        <div className="space-y-1.5">
           {menuItems.map((item, index) => {
             const Icon = item.icon;
             return (
               <button
                 key={index}
                 onClick={item.onClick}
-                className="w-full flex items-center justify-between bg-white/60 dark:bg-white/10 backdrop-blur-md rounded-lg px-3 py-2.5 border border-purple-200 dark:border-purple-800 hover:bg-purple-50 dark:hover:bg-purple-900/20 transition-all text-right shadow-sm"
+                className="w-full flex items-center justify-between bg-white/60 dark:bg-white/10 backdrop-blur-md rounded-lg px-3 py-2 border border-purple-200 dark:border-purple-800 hover:bg-purple-50 dark:hover:bg-purple-900/20 transition-all text-right shadow-sm"
                 aria-label={item.label}
               >
                 <ArrowRight className="w-3.5 h-3.5 text-purple-400" aria-hidden="true" />
-                <div className="flex items-center gap-2.5">
+                <div className="flex items-center gap-2">
                   <span className="font-medium text-sm text-foreground">{item.label}</span>
-                  <div className="w-8 h-8 bg-gradient-to-r from-purple-500/20 to-pink-500/20 rounded-lg flex items-center justify-center flex-shrink-0">
+                  <div className="w-7 h-7 bg-gradient-to-r from-purple-500/20 to-pink-500/20 rounded-lg flex items-center justify-center flex-shrink-0">
                     <Icon className="w-3.5 h-3.5 text-purple-600" aria-hidden="true" />
                   </div>
                 </div>
@@ -107,26 +107,26 @@ const Settings = () => {
           {/* Accessibility Settings - Purple Gradient Button */}
           <button
             onClick={handleRestoreAccessibility}
-            className="w-full flex items-center justify-between bg-gradient-to-r from-purple-50 to-pink-50 dark:from-purple-950/30 dark:to-pink-950/30 backdrop-blur-md rounded-lg px-3 py-2.5 border border-purple-200 dark:border-purple-800 hover:from-purple-100 hover:to-pink-100 dark:hover:from-purple-900/40 dark:hover:to-pink-900/40 transition-all text-right shadow-sm"
+            className="w-full flex items-center justify-between bg-gradient-to-r from-purple-50 to-pink-50 dark:from-purple-950/30 dark:to-pink-950/30 backdrop-blur-md rounded-lg px-3 py-2 border border-purple-200 dark:border-purple-800 hover:from-purple-100 hover:to-pink-100 dark:hover:from-purple-900/40 dark:hover:to-pink-900/40 transition-all text-right shadow-sm"
             aria-label="הגדרות נגישות"
           >
             <ArrowRight className="w-3.5 h-3.5 text-purple-500" aria-hidden="true" />
-            <div className="flex items-center gap-2.5">
+            <div className="flex items-center gap-2">
               <span className="font-medium text-sm bg-gradient-to-r from-purple-600 via-pink-500 to-orange-400 bg-clip-text text-transparent">הגדרות נגישות</span>
-              <div className="w-8 h-8 bg-gradient-to-r from-purple-500/20 to-pink-500/20 rounded-lg flex items-center justify-center flex-shrink-0">
+              <div className="w-7 h-7 bg-gradient-to-r from-purple-500/20 to-pink-500/20 rounded-lg flex items-center justify-center flex-shrink-0">
                 <Eye className="w-3.5 h-3.5 text-purple-500" aria-hidden="true" />
               </div>
             </div>
           </button>
         </div>
 
-        {/* Danger Zone */}
-        <div className="space-y-1.5 pt-2 border-t border-purple-200/50">
+        {/* Danger Zone - Compact */}
+        <div className="space-y-1 pt-1.5 border-t border-purple-200/50">
           <Button
             variant="ghost"
             size="sm"
             onClick={handleSignOut}
-            className="w-full justify-between text-muted-foreground hover:text-foreground bg-white/40 dark:bg-white/5 backdrop-blur-sm text-sm h-9"
+            className="w-full justify-between text-muted-foreground hover:text-foreground bg-white/40 dark:bg-white/5 backdrop-blur-sm text-sm h-8"
           >
             <LogOut className="w-3.5 h-3.5" />
             <span>התנתקות</span>
@@ -136,15 +136,12 @@ const Settings = () => {
             variant="ghost"
             size="sm"
             onClick={() => navigate("/account-exit")}
-            className="w-full justify-between text-destructive hover:text-destructive hover:bg-destructive/10 bg-white/40 dark:bg-white/5 backdrop-blur-sm text-sm h-9"
+            className="w-full justify-between text-destructive hover:text-destructive hover:bg-destructive/10 bg-white/40 dark:bg-white/5 backdrop-blur-sm text-sm h-8"
           >
             <Trash2 className="w-3.5 h-3.5" />
             <span>מחיקת חשבון</span>
           </Button>
         </div>
-
-        {/* Footer Placeholder */}
-        <div className="h-8 bg-gradient-to-t from-purple-100/50 to-transparent rounded-t-2xl mt-1 flex-shrink-0" />
       </div>
       
       <MobileNavigation />
