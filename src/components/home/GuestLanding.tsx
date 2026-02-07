@@ -1,5 +1,6 @@
 import { ArrowLeft, Sparkles, Star, Users } from "lucide-react";
 import { Link } from "react-router-dom";
+import heroFlyingGirl from "@/assets/hero-flying-girl.jpeg";
 
 interface FeatureCardProps {
   icon: React.ReactNode;
@@ -62,6 +63,20 @@ const GuestLanding = () => {
         <div className="absolute top-10 right-16 w-14 h-7 bg-white/45 rounded-full blur-sm" />
         <div className="absolute top-24 left-1/3 w-28 h-14 bg-white/40 rounded-full blur-md" />
         <div className="absolute top-32 right-1/4 w-18 h-9 bg-white/35 rounded-full blur-md" />
+        
+        {/* Hero flying girl image - positioned to not block text */}
+        <div className="absolute top-20 left-1/2 -translate-x-1/2 w-48 h-48 sm:w-56 sm:h-56">
+          <img 
+            src={heroFlyingGirl} 
+            alt="ילדה עפה בשמיים" 
+            className="w-full h-full object-contain opacity-85 drop-shadow-2xl"
+            style={{ 
+              filter: 'drop-shadow(0 10px 25px rgba(0,0,0,0.15))',
+              maskImage: 'linear-gradient(to bottom, black 70%, transparent 100%)',
+              WebkitMaskImage: 'linear-gradient(to bottom, black 70%, transparent 100%)'
+            }}
+          />
+        </div>
         
         {/* Subtle warm overlay at bottom for depth */}
         <div className="absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-amber-50/30" />
