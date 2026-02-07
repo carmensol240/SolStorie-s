@@ -217,6 +217,7 @@ STYLE REQUIREMENTS:
 }
 
 // Helper function to upload base64 image to Supabase Storage
+// Returns the storage PATH (not URL) for private bucket access via signed URLs
 async function uploadImageToStorage(
   supabase: any,
   base64Data: string,
@@ -234,11 +235,11 @@ async function uploadImageToStorage(
       bytes[i] = binaryString.charCodeAt(i);
     }
 
-    const fileName = `${storyId}/page-${pageNumber}.png`;
+    const filePath = `${storyId}/page-${pageNumber}.png`;
     
     const { data, error } = await supabase.storage
       .from("story-illustrations")
-      .upload(fileName, bytes, {
+      .upload(filePath, bytes, {
         contentType: "image/png",
         upsert: true,
       });
@@ -248,12 +249,10 @@ async function uploadImageToStorage(
       return null;
     }
 
-    const { data: urlData } = supabase.storage
-      .from("story-illustrations")
-      .getPublicUrl(fileName);
-
-    console.log("Image uploaded successfully:", urlData.publicUrl);
-    return urlData.publicUrl;
+    // Return the storage PATH (not public URL) since bucket is private
+    // Frontend will use SignedImage component to get signed URLs
+    console.log("Image uploaded successfully, path:", filePath);
+    return filePath;
   } catch (error) {
     console.error("Error in uploadImageToStorage:", error);
     return null;
