@@ -30,32 +30,41 @@ const GuestLanding = () => {
   const features = [
     {
       icon: <Sparkles className="w-5 h-5 text-white" aria-hidden="true" />,
-      title: "טכנולוגיית NLP מתקדמת",
-      subtitle: "ליצירת תוכן חינוכי מדוייק ומותאם אישית",
+      title: "התאמה אישית מתקדמת",
+      subtitle: "שימוש בטכנולוגיית NLP להתאמה אישית לילדים על הרצף התקשורתי.",
     },
     {
       icon: <Users className="w-5 h-5 text-white" aria-hidden="true" />,
-      title: "חיזוק מיומנויות תקשורת",
-      subtitle: "מותאם גם לילדים על הרצף האוטיסטי",
+      title: "הדפסה חינמית",
+      subtitle: "קבלת כל סיפור בקובץ PDF להדפסה בחינם.",
     },
     {
       icon: <Star className="w-5 h-5 text-white" aria-hidden="true" />,
-      title: "סיפורים מעצימים",
-      subtitle: "לבניית ביטחון עצמי ודימוי עצמי חיובי",
+      title: "גלריה חינמית",
+      subtitle: "גישה מלאה לגלריית סיפורים חינמית תמיד.",
     },
   ];
 
   return (
     <div className="flex-1 flex flex-col animate-fade-in relative">
-      {/* Clean gradient background without image */}
+      {/* Soft blue sky background with clouds */}
       <div 
-        className="absolute inset-0 -mx-4 -mt-3 bg-gradient-to-b from-purple-900 via-purple-800 to-amber-900"
+        className="absolute inset-0 -mx-4 -mt-3"
         style={{ 
-          marginBottom: '-4rem'
+          marginBottom: '-4rem',
+          background: 'linear-gradient(180deg, #87CEEB 0%, #B0E0E6 40%, #E0F4FF 70%, #F0F8FF 100%)'
         }}
       >
-        {/* Subtle overlay for depth */}
-        <div className="absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-black/30" />
+        {/* Cloud decorations */}
+        <div className="absolute top-8 left-4 w-24 h-12 bg-white/60 rounded-full blur-sm" />
+        <div className="absolute top-12 left-12 w-16 h-8 bg-white/50 rounded-full blur-sm" />
+        <div className="absolute top-6 right-8 w-20 h-10 bg-white/55 rounded-full blur-sm" />
+        <div className="absolute top-10 right-16 w-14 h-7 bg-white/45 rounded-full blur-sm" />
+        <div className="absolute top-24 left-1/3 w-28 h-14 bg-white/40 rounded-full blur-md" />
+        <div className="absolute top-32 right-1/4 w-18 h-9 bg-white/35 rounded-full blur-md" />
+        
+        {/* Subtle warm overlay at bottom for depth */}
+        <div className="absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-amber-50/30" />
       </div>
 
       {/* Content Container */}
@@ -68,12 +77,12 @@ const GuestLanding = () => {
 
         {/* Title Section */}
         <div className="text-center space-y-1 mb-2 py-2 px-4 mx-auto">
-          <h2 className="text-2xl font-black text-purple-300 flex items-center justify-center gap-2 drop-shadow-lg" style={{ textShadow: '2px 2px 4px rgba(0,0,0,0.8)' }}>
-            <Sparkles className="w-6 h-6 text-purple-400" aria-hidden="true" />
+          <h2 className="text-2xl font-black text-purple-700 flex items-center justify-center gap-2 drop-shadow-lg" style={{ textShadow: '1px 1px 2px rgba(255,255,255,0.8)' }}>
+            <Sparkles className="w-6 h-6 text-purple-600" aria-hidden="true" />
             סיפורים קסומים
-            <Sparkles className="w-6 h-6 text-purple-400" aria-hidden="true" />
+            <Sparkles className="w-6 h-6 text-purple-600" aria-hidden="true" />
           </h2>
-          <p className="text-lg text-white font-black text-center w-full drop-shadow-lg" style={{ textShadow: '2px 2px 4px rgba(0,0,0,0.8)' }}>הילד שלכם כגיבור הסיפור!</p>
+          <p className="text-lg text-gray-800 font-black text-center w-full drop-shadow-sm" style={{ textShadow: '1px 1px 2px rgba(255,255,255,0.6)' }}>הילד שלכם כגיבור הסיפור!</p>
         </div>
 
         {/* Spacer to push content to bottom */}
@@ -96,9 +105,9 @@ const GuestLanding = () => {
         </Link>
 
         {/* Privacy Link */}
-        <p className="text-center text-xs text-white/90 drop-shadow-md pb-3">
+        <p className="text-center text-xs text-gray-700 drop-shadow-sm pb-3">
           בהמשך, אתם מסכימים ל
-          <Link to="/privacy" className="text-purple-300 font-bold hover:underline mx-1">מדיניות הפרטיות</Link>
+          <Link to="/privacy" className="text-purple-700 font-bold hover:underline mx-1">מדיניות הפרטיות</Link>
         </p>
       </div>
     </div>
