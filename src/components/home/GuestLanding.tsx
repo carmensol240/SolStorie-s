@@ -1,6 +1,5 @@
 import { ArrowLeft, Sparkles, Star, Users } from "lucide-react";
 import { Link } from "react-router-dom";
-import childReadingBackground from "@/assets/child-reading-tablet.jpeg";
 
 interface FeatureCardProps {
   icon: React.ReactNode;
@@ -48,16 +47,15 @@ const GuestLanding = () => {
 
   return (
     <div className="flex-1 flex flex-col animate-fade-in relative">
-      {/* Full-screen Background Image - Child Reading */}
+      {/* Clean gradient background without image */}
       <div 
-        className="absolute inset-0 -mx-4 -mt-3 bg-cover bg-center bg-no-repeat"
+        className="absolute inset-0 -mx-4 -mt-3 bg-gradient-to-b from-purple-900 via-purple-800 to-amber-900"
         style={{ 
-          backgroundImage: `url(${childReadingBackground})`,
           marginBottom: '-4rem'
         }}
       >
-        {/* Gradient overlay for better text readability */}
-        <div className="absolute inset-0 bg-gradient-to-b from-purple-900/40 via-transparent to-black/70" />
+        {/* Subtle overlay for depth */}
+        <div className="absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-black/30" />
       </div>
 
       {/* Content Container */}
