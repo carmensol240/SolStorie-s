@@ -1,12 +1,22 @@
 
+# תיקון כפתור נגישות + שיפור תיבת משתמש + הוספת StoryTime לאודות
 
-# התאמת מסך פרופיל - הגדלת תיבת משתמש ושיפור נגישות כפתורים
+## סיכום הבעיות והפתרונות
 
-## סיכום השינויים
+### בעיה 1: כפתור "הגדרות נגישות" לא מגיב
+**הבעיה:** הכפתור הנוכחי קורא ל-`handleRestoreAccessibility` שרק מסיר את ה-localStorage ומרענן את הדף - זה לא פותח את הגדרות הנגישות.
 
-1. **הגדלת תיבת שם משתמש וקרדיטים** - טקסט גדול יותר וריווח נוח יותר
-2. **הגדלת ה-Hero לכיוון מטה** - מ-`h-24` ל-`h-32` לניצול השטח הריק
-3. **וידוא נגישות כפתורי התנתקות ומחיקת חשבון** - העלאתם למעלה על ידי שינוי מבנה ה-layout
+**הפתרון:** להחליף את הכפתור לדיאלוג שמציג את הגדרות הנגישות ישירות (מצב ניגודיות גבוהה + תמיכה קולית) - בדיוק כמו ב-`AccessibilityMenu.tsx` אבל כדיאלוג.
+
+### בעיה 2: תיבת שם משתמש וקרדיטים מפריעה לתמונה
+**הבעיה:** התיבה מסתירה חלק מהתמונה של הילדה הקוראת.
+
+**הפתרון:** 
+- להזיז את התיבה לתחתית ה-Hero (מ-`top-3` ל-`bottom-3`)
+- להגביר את השקיפות עם אפקט זכוכית עדין יותר
+
+### בעיה 3: חסר "StoryTime" בתיבת אודות
+**הפתרון:** להוסיף את השם "StoryTime" בבולטות בתחילת הדיאלוג
 
 ---
 
@@ -14,76 +24,122 @@
 
 ### קובץ: `src/pages/Settings.tsx`
 
-#### שינוי 1: הגדלת תיבת שם משתמש וקרדיטים (שורות 77-90)
+#### שינוי 1: ייבוא רכיבים נוספים
 
-**לפני:**
 ```tsx
-<div className="absolute top-1.5 right-1.5">
-  <div className="bg-white/10 backdrop-blur-md rounded-lg px-1.5 py-0.5 flex items-center gap-1.5 border border-white/10">
-    <button className="... px-1 py-0.5 ...">
-      <Coins className="w-2.5 h-2.5 ..." />
-      <span className="... text-[9px]">{totalCredits}</span>
-    </button>
-    <p className="... text-[9px] truncate max-w-[80px]">{user.email?.split('@')[0]}</p>
-  </div>
-</div>
+// הוספות לייבוא
+import { Switch } from "@/components/ui/switch";
+import { Volume2, Accessibility } from "lucide-react";
+import { useAccessibility } from "@/hooks/use-accessibility";
 ```
 
-**אחרי:**
+#### שינוי 2: הוספת hook ו-state לדיאלוג נגישות
+
+```tsx
+const { visualAidMode, audioSupport, setVisualAidMode, setAudioSupport } = useAccessibility();
+const [accessibilityOpen, setAccessibilityOpen] = useState(false);
+```
+
+#### שינוי 3: הזזת תיבת המשתמש לתחתית עם אפקט זכוכית שקוף יותר (שורות 77-90)
+
+**לפני:**
 ```tsx
 <div className="absolute top-3 right-3">
   <div className="bg-white/20 backdrop-blur-md rounded-xl px-3 py-2 flex items-center gap-2 border border-white/20 shadow-lg">
-    <button className="... px-2 py-1 ...">
-      <Coins className="w-4 h-4 ..." />
-      <span className="... text-sm font-bold">{totalCredits}</span>
-    </button>
-    <p className="... text-sm truncate max-w-[120px]">{user.email?.split('@')[0]}</p>
-  </div>
-</div>
-```
-
-**שינויים עיקריים:**
-- טקסט מ-`text-[9px]` ל-`text-sm`
-- אייקון קרדיטים מ-`w-2.5 h-2.5` ל-`w-4 h-4`
-- ריווח פנימי מ-`px-1.5 py-0.5` ל-`px-3 py-2`
-- רוחב שם משתמש מ-`max-w-[80px]` ל-`max-w-[120px]`
-
-#### שינוי 2: הגדלת גובה ה-Hero (שורה 70)
-
-**לפני:**
-```tsx
-className="relative h-24 flex-shrink-0 bg-cover bg-center"
 ```
 
 **אחרי:**
 ```tsx
-className="relative h-32 flex-shrink-0 bg-cover bg-center"
+<div className="absolute bottom-3 right-3">
+  <div className="bg-white/10 backdrop-blur-sm rounded-xl px-3 py-2 flex items-center gap-2 border border-white/10 shadow-lg">
 ```
 
-#### שינוי 3: שינוי מבנה האזור הראשי (שורה 94)
-
-הבעיה הנוכחית היא ש-`justify-between` דוחף את כפתורי ההתנתקות למטה מדי. נשנה את המבנה כך שהכפתורים יהיו חלק מהרשימה עצמה.
+#### שינוי 4: החלפת כפתור נגישות לפתוח דיאלוג (שורות 117-129)
 
 **לפני:**
 ```tsx
-<div className="flex-1 flex flex-col justify-between px-3 py-2">
-  <div className="space-y-1.5">
-    {/* Menu items */}
-  </div>
-  
-  {/* Danger Zone - נדחף למטה */}
-  <div className="space-y-1 pt-1.5 border-t ...">
+<button
+  onClick={handleRestoreAccessibility}
+  ...
 ```
 
 **אחרי:**
 ```tsx
-<div className="flex-1 flex flex-col px-3 py-2 overflow-y-auto">
-  <div className="space-y-1.5">
-    {/* Menu items */}
+<button
+  onClick={() => setAccessibilityOpen(true)}
+  ...
+```
+
+#### שינוי 5: הוספת דיאלוג הגדרות נגישות (אחרי דיאלוג האודות)
+
+```tsx
+{/* Accessibility Dialog */}
+<Dialog open={accessibilityOpen} onOpenChange={setAccessibilityOpen}>
+  <DialogContent className="max-w-sm" dir="rtl">
+    <DialogHeader>
+      <DialogTitle className="text-center text-lg font-bold flex items-center justify-center gap-2">
+        <Accessibility className="h-5 w-5 text-purple-500" />
+        הגדרות נגישות
+      </DialogTitle>
+    </DialogHeader>
+    <div className="space-y-4 py-2">
+      {/* Visual Aid Mode */}
+      <div className="flex items-center justify-between gap-3 p-3 rounded-xl bg-muted/50">
+        <div className="flex items-center gap-3">
+          <div className="h-9 w-9 rounded-lg bg-amber-100 dark:bg-amber-900/30 flex items-center justify-center">
+            <Eye className="h-5 w-5 text-amber-600 dark:text-amber-400" />
+          </div>
+          <div className="text-right">
+            <p className="font-medium text-sm text-foreground">מצב ניגודיות גבוהה</p>
+            <p className="text-xs text-muted-foreground">גופן גדול וצבעים ברורים</p>
+          </div>
+        </div>
+        <Switch
+          checked={visualAidMode}
+          onCheckedChange={setVisualAidMode}
+          aria-label="הפעל מצב ניגודיות גבוהה"
+        />
+      </div>
+
+      {/* Audio Support */}
+      <div className="flex items-center justify-between gap-3 p-3 rounded-xl bg-muted/50">
+        <div className="flex items-center gap-3">
+          <div className="h-9 w-9 rounded-lg bg-blue-100 dark:bg-blue-900/30 flex items-center justify-center">
+            <Volume2 className="h-5 w-5 text-blue-600 dark:text-blue-400" />
+          </div>
+          <div className="text-right">
+            <p className="font-medium text-sm text-foreground">תמיכה קולית</p>
+            <p className="text-xs text-muted-foreground">הצג כפתור הקראה בסיפורים</p>
+          </div>
+        </div>
+        <Switch
+          checked={audioSupport}
+          onCheckedChange={setAudioSupport}
+          aria-label="הפעל תמיכה קולית"
+        />
+      </div>
+    </div>
+  </DialogContent>
+</Dialog>
+```
+
+#### שינוי 6: הוספת "StoryTime" לדיאלוג אודות (שורה 182)
+
+**לפני:**
+```tsx
+<div className="space-y-4 text-sm text-foreground/90 leading-relaxed">
+  <p>כאימא יחידנית לילדה על הרצף...
+```
+
+**אחרי:**
+```tsx
+<div className="space-y-4 text-sm text-foreground/90 leading-relaxed">
+  <div className="text-center mb-4">
+    <span className="text-2xl font-bold bg-gradient-to-r from-purple-600 via-pink-500 to-orange-400 bg-clip-text text-transparent">
+      StoryTime
+    </span>
   </div>
-  
-  {/* Danger Zone - מיד אחרי התפריט */}
-  <div className="space-y-1.5 mt-3 pt-2 border-t ...">
+  <p>כאימא יחידנית לילדה על הרצף...
 ```
 
 ---
@@ -92,20 +148,21 @@ className="relative h-32 flex-shrink-0 bg-cover bg-center"
 
 ```text
 ┌──────────────────────────────┐
-│  Hero (h-32 במקום h-24)       │
+│  Hero (תמונת רקע)             │
+│                               │
 │     ┌──────────────────┐     │
-│     │ 💰 5 │ username   │     │  ← תיבה מוגדלת
+│     │ 💰 5 │ username   │     │  ← תיבה שקופה בתחתית
 │     └──────────────────┘     │
 ├──────────────────────────────┤
 │  ניהול ילדים                   │
 │  יצירת קשר                     │
 │  תנאי שימוש                    │
 │  מדיניות פרטיות                │
-│  הגדרות נגישות                 │
-│  אודות                         │
+│  הגדרות נגישות → פותח דיאלוג   │
+│  אודות → עם StoryTime         │
 │  ─────────────────────────    │
-│  [התנתקות]                     │  ← נגיש יותר
-│  [מחיקת חשבון]                 │  ← כבר קיים ומוביל ל-/account-exit
+│  [התנתקות]                     │
+│  [מחיקת חשבון]                 │
 └──────────────────────────────┘
 │  MobileNavigation              │
 └──────────────────────────────┘
@@ -117,5 +174,4 @@ className="relative h-32 flex-shrink-0 bg-cover bg-center"
 
 | קובץ | סוג שינוי |
 |------|-----------|
-| `src/pages/Settings.tsx` | הגדלת תיבת משתמש, הגדלת Hero, שיפור נגישות כפתורים |
-
+| `src/pages/Settings.tsx` | תיקון פונקציונליות נגישות, הזזת תיבת משתמש, הוספת StoryTime לאודות |
