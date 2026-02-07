@@ -608,12 +608,12 @@ const ChildInfoStep = ({ formData, updateFormData }: ChildInfoStepProps) => {
         )}
       </div>
 
-      {/* Save Button - Matching gradient theme */}
+      {/* Save Button - Light purple theme matching saved profiles */}
       <Button
         type="button"
         onClick={handleSaveChildProfile}
         disabled={isSavingChild || !formData.childName.trim()}
-        className="w-full h-10 bg-gradient-to-r from-purple-600 via-pink-500 to-orange-400 hover:from-purple-700 hover:via-pink-600 hover:to-orange-500 text-white font-black text-xs rounded-lg shadow-md hover:shadow-lg transition-all"
+        className="w-full h-10 bg-gradient-to-r from-purple-100 to-pink-100 hover:from-purple-200 hover:to-pink-200 text-purple-700 font-bold text-xs rounded-lg border-2 border-purple-300 shadow-sm hover:shadow-md transition-all"
       >
         {isSavingChild ? (
           <Loader2 className="w-3.5 h-3.5 animate-spin ml-1.5" />
