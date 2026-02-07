@@ -1,10 +1,12 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { ArrowRight, Users, Mail, Trash2, LogOut, FileText, Shield, Coins, Eye, Info } from "lucide-react";
+import { ArrowRight, Users, Mail, Trash2, LogOut, FileText, Shield, Coins, Eye, Info, Volume2, Accessibility } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Switch } from "@/components/ui/switch";
 import { useAuth } from "@/hooks/use-auth";
 import { useCredits } from "@/hooks/use-credits";
 import { useReferral } from "@/hooks/use-referral";
+import { useAccessibility } from "@/hooks/use-accessibility";
 import MobileNavigation from "@/components/MobileNavigation";
 import {
   Dialog,
@@ -21,17 +23,11 @@ const Settings = () => {
   const { user, signOut } = useAuth();
   const { credits } = useCredits();
   const { shareCoins } = useReferral();
+  const { visualAidMode, audioSupport, setVisualAidMode, setAudioSupport } = useAccessibility();
   const [aboutOpen, setAboutOpen] = useState(false);
+  const [accessibilityOpen, setAccessibilityOpen] = useState(false);
 
   const totalCredits = (credits ?? 0) + shareCoins;
-  
-  // Accessibility button visibility
-  const isAccessibilityDismissed = localStorage.getItem('accessibility_dismissed') === 'true';
-  
-  const handleRestoreAccessibility = () => {
-    localStorage.removeItem('accessibility_dismissed');
-    window.location.reload();
-  };
 
   const handleSignOut = async () => {
     await signOut();
@@ -73,10 +69,10 @@ const Settings = () => {
         {/* Gradient overlay for text readability */}
         <div className="absolute inset-0 bg-gradient-to-b from-purple-900/40 to-purple-900/70" />
         
-        {/* User info - enlarged glass badge top-right */}
+        {/* User info - transparent glass badge bottom-right */}
         {user && (
-          <div className="absolute top-3 right-3">
-            <div className="bg-white/20 backdrop-blur-md rounded-xl px-3 py-2 flex items-center gap-2 border border-white/20 shadow-lg">
+          <div className="absolute bottom-3 right-3">
+            <div className="bg-white/10 backdrop-blur-sm rounded-xl px-3 py-2 flex items-center gap-2 border border-white/10 shadow-lg">
               <button 
                 onClick={() => navigate("/upgrade")}
                 className="flex items-center gap-1 bg-gradient-to-r from-purple-500/30 to-pink-500/30 rounded-full px-2 py-1 hover:from-purple-500/40 hover:to-pink-500/40 transition-colors"
@@ -115,7 +111,7 @@ const Settings = () => {
 
           {/* Accessibility Settings - Purple Gradient Button */}
           <button
-            onClick={handleRestoreAccessibility}
+            onClick={() => setAccessibilityOpen(true)}
             className="w-full flex items-center justify-between bg-gradient-to-r from-purple-50 to-pink-50 dark:from-purple-950/30 dark:to-pink-950/30 backdrop-blur-md rounded-lg px-3 py-2 border border-purple-200 dark:border-purple-800 hover:from-purple-100 hover:to-pink-100 dark:hover:from-purple-900/40 dark:hover:to-pink-900/40 transition-all text-right shadow-sm"
             aria-label="הגדרות נגישות"
           >
@@ -180,6 +176,11 @@ const Settings = () => {
           </DialogHeader>
           <ScrollArea className="h-[60vh] pr-4">
             <div className="space-y-4 text-sm text-foreground/90 leading-relaxed">
+              <div className="text-center mb-4">
+                <span className="text-2xl font-bold bg-gradient-to-r from-purple-600 via-pink-500 to-orange-400 bg-clip-text text-transparent">
+                  StoryTime
+                </span>
+              </div>
               <p>כאימא יחידנית לילדה על הרצף, מצאתי את עצמי כל ערב יושבת ליד המיטה שלה וממציאה סיפורים. לא סתם סיפורים, אלא כאלו שעוזרים לה לעבד את היום שעבר, להתמודד עם קשיים בגן ולמצוא כוחות.</p>
               
               <p>מתוך הצורך האישי שלי, ומהידע המקצועי שצברתי בלימודי NLP, נולדה StoryTime. באפליקציה הזו הטמעתי כלים מעולם ה-NLP בתוך הלוגיקה של הסיפורים, כך שהם מדברים לילד בשפה הנכונה לו, משתמשים בסוגסטיות מעצימות ועוזרים לו לבנות ביטחון עצמי וחוסן פנימי דרך חוויית הקריאה.</p>
@@ -217,6 +218,55 @@ const Settings = () => {
               </p>
             </div>
           </ScrollArea>
+        </DialogContent>
+      </Dialog>
+
+      {/* Accessibility Dialog */}
+      <Dialog open={accessibilityOpen} onOpenChange={setAccessibilityOpen}>
+        <DialogContent className="max-w-sm" dir="rtl">
+          <DialogHeader>
+            <DialogTitle className="text-center text-lg font-bold flex items-center justify-center gap-2">
+              <Accessibility className="h-5 w-5 text-purple-500" />
+              הגדרות נגישות
+            </DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4 py-2">
+            {/* Visual Aid Mode */}
+            <div className="flex items-center justify-between gap-3 p-3 rounded-xl bg-muted/50">
+              <div className="flex items-center gap-3">
+                <div className="h-9 w-9 rounded-lg bg-amber-100 dark:bg-amber-900/30 flex items-center justify-center">
+                  <Eye className="h-5 w-5 text-amber-600 dark:text-amber-400" />
+                </div>
+                <div className="text-right">
+                  <p className="font-medium text-sm text-foreground">מצב ניגודיות גבוהה</p>
+                  <p className="text-xs text-muted-foreground">גופן גדול וצבעים ברורים</p>
+                </div>
+              </div>
+              <Switch
+                checked={visualAidMode}
+                onCheckedChange={setVisualAidMode}
+                aria-label="הפעל מצב ניגודיות גבוהה"
+              />
+            </div>
+
+            {/* Audio Support */}
+            <div className="flex items-center justify-between gap-3 p-3 rounded-xl bg-muted/50">
+              <div className="flex items-center gap-3">
+                <div className="h-9 w-9 rounded-lg bg-blue-100 dark:bg-blue-900/30 flex items-center justify-center">
+                  <Volume2 className="h-5 w-5 text-blue-600 dark:text-blue-400" />
+                </div>
+                <div className="text-right">
+                  <p className="font-medium text-sm text-foreground">תמיכה קולית</p>
+                  <p className="text-xs text-muted-foreground">הצג כפתור הקראה בסיפורים</p>
+                </div>
+              </div>
+              <Switch
+                checked={audioSupport}
+                onCheckedChange={setAudioSupport}
+                aria-label="הפעל תמיכה קולית"
+              />
+            </div>
+          </div>
         </DialogContent>
       </Dialog>
     </div>
