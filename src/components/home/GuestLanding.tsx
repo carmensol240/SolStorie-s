@@ -10,7 +10,7 @@ interface FeatureCardProps {
 
 const FeatureCard = ({ icon, title, subtitle }: FeatureCardProps) => (
   <div 
-    className="flex items-center gap-4 rounded-2xl p-5 w-full transition-all hover:shadow-lg" 
+    className="flex items-center gap-3 rounded-2xl p-3 w-full transition-all hover:shadow-lg" 
     dir="rtl"
     style={{
       background: 'rgba(255, 255, 255, 0.6)',
@@ -20,14 +20,14 @@ const FeatureCard = ({ icon, title, subtitle }: FeatureCardProps) => (
       boxShadow: '0 4px 30px rgba(0, 0, 0, 0.1)'
     }}
   >
-    <div className="w-11 h-11 bg-gradient-to-br from-purple-500 to-purple-700 rounded-xl flex items-center justify-center shadow-lg flex-shrink-0">
+    <div className="w-9 h-9 bg-gradient-to-br from-purple-500 to-purple-700 rounded-xl flex items-center justify-center shadow-lg flex-shrink-0">
       {icon}
     </div>
     <div className="flex-1">
-      <h3 className="text-sm font-bold text-purple-800 leading-tight">
+      <h3 className="text-xs font-bold text-purple-800 leading-tight">
         {title}
       </h3>
-      <p className="text-sm font-medium text-purple-600 leading-relaxed">
+      <p className="text-xs font-medium text-purple-600 leading-relaxed">
         {subtitle}
       </p>
     </div>
@@ -39,7 +39,7 @@ const GuestLanding = () => {
     {
       icon: <Sparkles className="w-5 h-5 text-white" aria-hidden="true" />,
       title: "התאמה אישית מתקדמת",
-      subtitle: "שימוש בטכנולוגיית NLP להתאמה אישית גם לילדים על הרצף התקשורתי.",
+      subtitle: "שימוש בטכנולוגיית NLP להתאמה אישית לילדים על הרצף התקשורתי.",
     },
     {
       icon: <Users className="w-5 h-5 text-white" aria-hidden="true" />,
@@ -148,9 +148,9 @@ const GuestLanding = () => {
         </Link>
 
         {/* Privacy Link */}
-        <p className="text-center text-xs text-gray-700 font-medium drop-shadow-sm pb-3">
+        <p className="text-center text-sm text-gray-800 font-medium drop-shadow-sm pb-3">
           בהמשך, אתם מסכימים ל
-          <Link to="/privacy" className="text-purple-700 font-bold hover:underline mx-1">מדיניות הפרטיות</Link>
+          <Link to="/privacy" className="text-purple-800 font-bold hover:underline mx-1">מדיניות הפרטיות</Link>
         </p>
       </div>
     </div>
