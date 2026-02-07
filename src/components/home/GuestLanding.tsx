@@ -27,10 +27,10 @@ const FeatureCard = ({ icon, title, subtitle }: FeatureCardProps) => (
       <h3 className="text-xs font-bold text-purple-800 leading-tight">
         {title}
       </h3>
-      <p 
-        className="font-medium text-purple-600"
-        style={{ fontSize: '0.9rem', lineHeight: '1.2' }}
-      >
+        <p 
+          className="font-medium text-purple-600"
+          style={{ fontSize: '0.9rem', lineHeight: '1.4' }}
+        >
         {subtitle}
       </p>
     </div>
@@ -85,7 +85,7 @@ const GuestLanding = () => {
         <div className="absolute top-[80%] right-1/4 w-20 h-10 bg-white/30 rounded-full blur-lg" />
         
         {/* Hero flying children image - positioned between titles and feature boxes */}
-        <div className="absolute top-48 sm:top-52 left-1/2 -translate-x-1/2 w-44 h-44 sm:w-56 sm:h-56 animate-pulse-glow-soft">
+        <div className="absolute top-48 sm:top-52 left-1/2 -translate-x-1/2 w-52 h-52 sm:w-64 sm:h-64 animate-pulse-glow-soft">
           <div 
             className="w-full h-full rounded-3xl overflow-hidden backdrop-blur-sm"
             style={{
