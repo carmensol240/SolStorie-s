@@ -67,31 +67,31 @@ const Settings = () => {
     <div className="h-[100dvh] flex flex-col bg-gradient-to-b from-purple-50/50 to-background overflow-hidden">
       {/* Hero Section with Background Image */}
       <div 
-        className="relative h-24 flex-shrink-0 bg-cover bg-center"
+        className="relative h-32 flex-shrink-0 bg-cover bg-center"
         style={{ backgroundImage: `url(${profileHero})` }}
       >
         {/* Gradient overlay for text readability */}
         <div className="absolute inset-0 bg-gradient-to-b from-purple-900/40 to-purple-900/70" />
         
-        {/* User info - minimal glass badge top-right */}
+        {/* User info - enlarged glass badge top-right */}
         {user && (
-          <div className="absolute top-1.5 right-1.5">
-            <div className="bg-white/10 backdrop-blur-md rounded-lg px-1.5 py-0.5 flex items-center gap-1.5 border border-white/10">
+          <div className="absolute top-3 right-3">
+            <div className="bg-white/20 backdrop-blur-md rounded-xl px-3 py-2 flex items-center gap-2 border border-white/20 shadow-lg">
               <button 
                 onClick={() => navigate("/upgrade")}
-                className="flex items-center gap-0.5 bg-gradient-to-r from-purple-500/30 to-pink-500/30 rounded-full px-1 py-0.5 hover:from-purple-500/40 hover:to-pink-500/40 transition-colors"
+                className="flex items-center gap-1 bg-gradient-to-r from-purple-500/30 to-pink-500/30 rounded-full px-2 py-1 hover:from-purple-500/40 hover:to-pink-500/40 transition-colors"
               >
-                <Coins className="w-2.5 h-2.5 text-purple-200" aria-hidden="true" />
-                <span className="font-medium text-purple-100 text-[9px]">{totalCredits}</span>
+                <Coins className="w-4 h-4 text-purple-200" aria-hidden="true" />
+                <span className="font-bold text-purple-100 text-sm">{totalCredits}</span>
               </button>
-              <p className="text-white/80 text-[9px] truncate max-w-[80px]">{user.email?.split('@')[0]}</p>
+              <p className="text-white/90 text-sm truncate max-w-[120px] font-medium">{user.email?.split('@')[0]}</p>
             </div>
           </div>
         )}
       </div>
 
       {/* Menu Items - Compact Layout */}
-      <div className="flex-1 flex flex-col justify-between px-3 py-2">
+      <div className="flex-1 flex flex-col px-3 py-2 overflow-y-auto">
         <div className="space-y-1.5">
           {menuItems.map((item, index) => {
             const Icon = item.icon;
@@ -144,8 +144,8 @@ const Settings = () => {
           </button>
         </div>
 
-        {/* Danger Zone - Compact */}
-        <div className="space-y-1 pt-1.5 border-t border-purple-200/50">
+        {/* Danger Zone - Accessible */}
+        <div className="space-y-1.5 mt-3 pt-2 border-t border-purple-200/50">
           <Button
             variant="ghost"
             size="sm"
