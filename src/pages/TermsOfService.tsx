@@ -220,7 +220,14 @@ const TermsOfService = () => {
         <div className="flex justify-center">
           <Button
             variant="outline"
-            onClick={() => navigate(-1)}
+            onClick={() => {
+              // If there's history, go back; otherwise go to settings or home
+              if (window.history.length > 1) {
+                navigate(-1);
+              } else {
+                navigate("/settings");
+              }
+            }}
             className="gap-2 min-h-[44px]"
             aria-label="חזרה לעמוד הקודם"
           >
