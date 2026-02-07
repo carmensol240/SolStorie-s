@@ -419,11 +419,11 @@ const TopicStep = ({ formData, updateFormData }: TopicStepProps) => {
       {/* NLP Smart Input - More compact */}
       <div className="space-y-2 px-4 bg-purple-50/50 py-3 rounded-xl mx-3 border border-purple-200/50">
         <div className="flex items-center gap-2 justify-center">
-          <Brain className="w-4 h-4 text-purple-500" />
-          <Label className="text-xs font-bold text-purple-700">
+          <Brain className="w-5 h-5 text-purple-500" />
+          <Label className="text-sm font-bold text-purple-700">
             ספרו לנו מה עבר על הילד/ה
           </Label>
-          <Sparkles className="w-4 h-4 text-pink-500" />
+          <Sparkles className="w-5 h-5 text-pink-500" />
         </div>
         <Textarea
           placeholder="למשל: היום היה קשה בגן עם חבר..."
