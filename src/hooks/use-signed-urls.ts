@@ -32,21 +32,22 @@ export const useSignedUrls = () => {
     return () => clearInterval(interval);
   }, []);
 
-  // Extract storage path from a Supabase storage URL
+  // Extract storage path from a Supabase storage URL or return path if already just a path
   const extractPathFromUrl = useCallback((url: string): string | null => {
     if (!url) return null;
     
     try {
+      // If it's already just a storage path (e.g., "uuid/page-1.png")
+      if (url.match(/^[a-f0-9-]+\/page-\d+\.png$/)) {
+        return url;
+      }
+      
       // Handle full Supabase storage URLs
       // Format: https://xxx.supabase.co/storage/v1/object/public/story-illustrations/uuid/page-1.png
+      // or: https://xxx.supabase.co/storage/v1/object/sign/story-illustrations/uuid/page-1.png?token=...
       const match = url.match(/story-illustrations\/([^?]+)/);
       if (match) {
         return match[1];
-      }
-      
-      // If it's already just a path
-      if (url.match(/^[a-f0-9-]+\/page-\d+\.png$/)) {
-        return url;
       }
       
       return null;
