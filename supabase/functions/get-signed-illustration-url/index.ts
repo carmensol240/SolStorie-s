@@ -109,7 +109,14 @@ serve(async (req) => {
     
     for (const path of paths) {
       // Validate path format to prevent directory traversal
-      if (typeof path !== "string" || path.includes("..") || !path.match(/^[a-f0-9-]+\/page-\d+\.png$/)) {
+      // More flexible regex: accepts UUIDs with various filename patterns (page-X.png, cover.png, etc.)
+      if (typeof path !== "string" || path.includes("..")) {
+        console.log(`Invalid path (contains ..): ${path}`);
+        continue;
+      }
+      
+      // Accept paths like: uuid/page-1.png, uuid/cover.png, uuid/filename.png
+      if (!path.match(/^[a-f0-9-]+\/[^\/]+\.(png|jpg|jpeg|webp)$/i)) {
         console.log(`Invalid path format: ${path}`);
         continue;
       }
@@ -134,6 +141,7 @@ serve(async (req) => {
 
       if (data?.signedUrl) {
         signedUrls[path] = data.signedUrl;
+        console.log(`Generated signed URL for: ${path}`);
       }
     }
 

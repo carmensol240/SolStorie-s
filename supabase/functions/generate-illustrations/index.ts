@@ -260,20 +260,41 @@ async function uploadImageToStorage(
 }
 
 serve(async (req) => {
+  console.log("=== generate-illustrations function called ===");
+  
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
   }
 
   try {
     // This function is called internally by generate-story, so we use service role
-    const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
-    const supabaseServiceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
+    const supabaseUrl = Deno.env.get("SUPABASE_URL");
+    const supabaseServiceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
+    
+    if (!supabaseUrl || !supabaseServiceKey) {
+      console.error("Missing required environment variables: SUPABASE_URL or SUPABASE_SERVICE_ROLE_KEY");
+      return new Response(
+        JSON.stringify({ error: "Server configuration error" }),
+        { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
     
     const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
-    const { storyId, childPhoto, childAvatarUrl, childGender, ageRange, adventureLogic } = await req.json();
+    const requestBody = await req.json();
+    const { storyId, childPhoto, childAvatarUrl, childGender, ageRange, adventureLogic } = requestBody;
+    
+    console.log("Request body received:", { 
+      storyId, 
+      hasChildPhoto: !!childPhoto, 
+      hasChildAvatarUrl: !!childAvatarUrl,
+      childGender,
+      ageRange,
+      hasAdventureLogic: !!adventureLogic
+    });
 
     if (!storyId) {
+      console.error("Missing storyId in request");
       return new Response(
         JSON.stringify({ error: "Missing storyId" }),
         { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
@@ -289,8 +310,23 @@ serve(async (req) => {
       .eq("story_id", storyId)
       .order("page_number", { ascending: true });
 
-    if (pagesError || !pages || pages.length === 0) {
+    if (pagesError) {
       console.error("Error fetching pages:", pagesError);
+      
+      // Update story status to failed
+      await supabase
+        .from("stories")
+        .update({ generation_status: "failed" })
+        .eq("id", storyId);
+      
+      return new Response(
+        JSON.stringify({ error: "Database error fetching pages" }),
+        { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+    
+    if (!pages || pages.length === 0) {
+      console.error("No pages found for story:", storyId);
       
       // Update story status to failed
       await supabase
@@ -303,11 +339,26 @@ serve(async (req) => {
         { status: 404, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
+    
+    console.log(`Found ${pages.length} pages for story ${storyId}`);
 
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
     if (!LOVABLE_API_KEY) {
-      throw new Error("LOVABLE_API_KEY is not configured");
+      console.error("LOVABLE_API_KEY is not configured");
+      
+      // Update story status to failed
+      await supabase
+        .from("stories")
+        .update({ generation_status: "failed" })
+        .eq("id", storyId);
+        
+      return new Response(
+        JSON.stringify({ error: "API key not configured" }),
+        { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
     }
+    
+    console.log("LOVABLE_API_KEY is configured, proceeding with illustration generation...");
 
     // Use avatar URL if available, otherwise use original photo
     const effectivePhoto = childAvatarUrl || childPhoto;

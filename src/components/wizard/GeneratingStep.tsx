@@ -74,28 +74,58 @@ const GeneratingStep = ({ formData, onComplete }: GeneratingStepProps) => {
         topic: topicLabel 
       });
 
-      const { data, error: apiError } = await supabase.functions.invoke("generate-story", {
-        body: {
-          childName: formData.childName,
-          childGender: formData.childGender,
-          ageRange: formData.ageRange,
-          storyLength: formData.storyLength,
-          topic: topicLabel,
-          nikud: formData.nikud,
-          childPhoto: formData.childPhoto,
-          childAvatarUrl: formData.childAvatarUrl,
-          personalityTraits: formData.personalityTraits,
-          adventureLogic: formData.adventureLogic,
-        },
-      });
+      // Create an AbortController for timeout handling
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 120000); // 2 minute timeout
+
+      let data, apiError;
+      
+      try {
+        const result = await supabase.functions.invoke("generate-story", {
+          body: {
+            childName: formData.childName,
+            childGender: formData.childGender,
+            ageRange: formData.ageRange,
+            storyLength: formData.storyLength,
+            topic: topicLabel,
+            nikud: formData.nikud,
+            childPhoto: formData.childPhoto,
+            childAvatarUrl: formData.childAvatarUrl,
+            personalityTraits: formData.personalityTraits,
+            adventureLogic: formData.adventureLogic,
+          },
+        });
+        
+        data = result.data;
+        apiError = result.error;
+      } catch (fetchError) {
+        clearTimeout(timeoutId);
+        if (fetchError instanceof Error && fetchError.name === 'AbortError') {
+          throw new Error("הבקשה נכשלה בגלל timeout. נסו שוב.");
+        }
+        throw fetchError;
+      } finally {
+        clearTimeout(timeoutId);
+      }
 
       if (apiError) {
         console.error("API error:", apiError);
+        // Check for specific error types
+        if (apiError.message?.includes("401") || apiError.message?.includes("נדרשת התחברות")) {
+          throw new Error("נדרשת התחברות. אנא התחברו מחדש.");
+        }
+        if (apiError.message?.includes("429")) {
+          throw new Error("יותר מדי בקשות. נסו שוב בעוד מספר דקות.");
+        }
         throw apiError;
       }
 
       if (!data?.storyId) {
         console.error("No storyId in response:", data);
+        // Check if there's an error message in the response
+        if (data?.error) {
+          throw new Error(data.error);
+        }
         throw new Error("לא התקבל מזהה סיפור מהשרת");
       }
 
@@ -125,7 +155,19 @@ const GeneratingStep = ({ formData, onComplete }: GeneratingStepProps) => {
       
     } catch (err) {
       console.error("Error generating story:", err);
-      const errorMessage = err instanceof Error ? err.message : "שגיאה לא ידועה";
+      
+      // Extract meaningful error message
+      let errorMessage = "שגיאה לא ידועה";
+      if (err instanceof Error) {
+        errorMessage = err.message;
+        // Clean up technical error messages
+        if (errorMessage.includes("FunctionsHttpError")) {
+          errorMessage = "שגיאה בשרת. נסו שוב מאוחר יותר.";
+        } else if (errorMessage.includes("FunctionsRelayError")) {
+          errorMessage = "בעיית תקשורת. בדקו את החיבור לאינטרנט.";
+        }
+      }
+      
       setError(`אירעה שגיאה ביצירת הסיפור: ${errorMessage}`);
       toast({
         variant: "destructive",
