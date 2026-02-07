@@ -1,133 +1,154 @@
 
-# תוכנית לתיקון בעיית יצירת סיפורים ותמונות
+# תוכנית לתיקון בעיית טעינת תמונות מ-Supabase Storage
 
-## סיכום הבעיות שזוהו
+## סיכום הבדיקה
 
-לאחר בדיקה מקיפה של הקוד, הלוגים, ובסיס הנתונים, זוהו מספר בעיות שגורמות לכישלון הטעינה:
+לאחר בדיקה מקיפה, זיהיתי את שורש הבעיה:
 
-### בעיה 1: אי-התאמה בין פורמט ה-URL לבין ה-SignedImage component
+### בעיה 1: נתונים ישנים עם URLs ציבוריים
 
-**מה קורה:**
-- הקוד החדש ב-Edge Functions שומר **נתיבי Storage** (למשל `uuid/page-1.png`)
-- אבל סיפורים ישנים שמורים עם **URLs מלאים ציבוריים** (למשל `https://xxx.supabase.co/storage/v1/object/public/...`)
-- ה-`extractPathFromUrl` ב-`use-signed-urls.ts` מנסה לחלץ נתיב מ-URLs ציבוריים, אבל המערכת ב-`get-signed-illustration-url` מאמתת רק נתיבים בפורמט `uuid/page-X.png`
+ה-bucket `story-illustrations` הוא **פרטי** (private), אבל הנתונים במסד הנתונים מכילים **URLs ציבוריים** ישנים:
 
-**התוצאה:** התמונות לא נטענות כי ה-SignedImage לא מצליח לקבל signed URL עבור URLs ישנים
+```
+https://qvdwmkxviaqcgmjotsxe.supabase.co/storage/v1/object/public/story-illustrations/uuid/page-1.png
+```
 
-### בעיה 2: הפונקציה `generate-illustrations` לא רושמת לוגים
+URLs אלו מחזירים שגיאת 403 כי ה-bucket פרטי.
 
-**מה קורה:**
-- בדיקת הלוגים של `generate-illustrations` מראה "No logs found"
-- זה יכול להצביע על כך שהפונקציה לא נקראת כלל או נכשלת לפני שהיא מתחילה
+### בעיה 2: דרישת אימות ב-Edge Function
 
-### בעיה 3: ה-`generate-story` דורש authentication
+ה-Edge Function `get-signed-illustration-url` דורשת אחד מהתנאים:
+- משתמש מחובר שהוא הבעלים של הסיפור
+- שיתוף ציבורי עם `shareToken`
+- ספרון דיגיטלי ציבורי
 
-**מה קורה:**
-- הפונקציה מחזירה 401 אם אין Authorization header
-- זה נכון ומוגדר כמו שצריך, אבל צריך לוודא שה-frontend שולח את ה-token כראוי
+כשמשתמש לא מחובר מנסה לטעון תמונות מהספרייה - הוא מקבל 401.
+
+### בעיה 3: רכיב RecentStories לא משתמש ב-SignedImage
+
+הרכיב `RecentStories.tsx` מציג תמונות שער באמצעות `<img src={story.cover_url}>` ישירות, בלי לעבור דרך `SignedImage` שמביא signed URLs.
 
 ---
 
 ## שלבי התיקון
 
-### שלב 1: תיקון `use-signed-urls.ts` לתמוך בשני פורמטים
+### שלב 1: עדכון RecentStories להשתמש ב-SignedImage
+**קובץ:** `src/components/home/RecentStories.tsx`
 
-הבעיה העיקרית: ה-Regex ב-`extractPathFromUrl` מחזיר את הנתיב מ-URL ציבורי, אבל ה-Edge Function `get-signed-illustration-url` מסנן נתיבים שלא מתאימים לפורמט `uuid/page-X.png`.
+שינויים:
+- להחליף את ה-`<img>` ב-`SignedImage` component
+- להעביר את ה-`storyId` לצורך אימות
 
-**הפתרון:** לשפר את ה-`extractPathFromUrl` כך שיחזיר נתיב תקין גם עבור URLs ציבוריים:
+### שלב 2: הוספת אפשרות גישה לבעלים בלי storyId
+**קובץ:** `supabase/functions/get-signed-illustration-url/index.ts`
 
-```text
-┌─────────────────────────────────────────────────────────────┐
-│  extractPathFromUrl - לפני התיקון                            │
-├─────────────────────────────────────────────────────────────┤
-│  קלט: "https://xxx/storage/.../story-illustrations/abc/p.png"│
-│  פלט: "abc/p.png" ← לא עובר validation (צריך "page-X.png")    │
-└─────────────────────────────────────────────────────────────┘
+שינויים:
+- כאשר משתמש מחובר, לאפשר לו גישה לתמונות של הסיפורים שלו
+- לחלץ את ה-storyId מהנתיב אם לא הועבר במפורש
+- לבדוק בעלות על הסיפור לפי ה-path
 
-┌─────────────────────────────────────────────────────────────┐
-│  extractPathFromUrl - אחרי התיקון                            │
-├─────────────────────────────────────────────────────────────┤
-│  קלט: "https://xxx/storage/.../story-illustrations/abc/p.png"│
-│  פלט: "abc/page-1.png" ← תיקון הפורמט                         │
-└─────────────────────────────────────────────────────────────┘
+### שלב 3: עדכון StoryListItem לשימוש ב-SignedImage
+**קובץ:** `src/components/ui/story-list-item.tsx`
+
+שינויים:
+- להחליף את ה-`<img>` הידני ב-`SignedImage` component
+- לנצל את הקוד הקיים שכבר מביא signed URLs
+
+### שלב 4: תיקון fallback במקרה של שגיאה
+**קובץ:** `src/components/ui/signed-image.tsx`
+
+שינויים:
+- להוסיף placeholder מותאם אם ה-signed URL נכשל
+- לוודא שה-UI לא נשבר אם אין תמונה
+
+---
+
+## פירוט טכני
+
+### RecentStories.tsx - לפני ואחרי
+
+**לפני:**
+```tsx
+{story.cover_url ? (
+  <img
+    src={story.cover_url}
+    alt={`שער הסיפור של ${story.child_name}`}
+    className="w-full h-full object-cover"
+  />
+) : (
+  <div className="...">
+    <BookOpen />
+  </div>
+)}
 ```
 
-### שלב 2: תיקון ה-Edge Function `get-signed-illustration-url`
+**אחרי:**
+```tsx
+<SignedImage
+  src={story.cover_url}
+  storyId={story.id}
+  alt={`שער הסיפור של ${story.child_name}`}
+  className="w-full h-full object-cover"
+  fallback={
+    <div className="...">
+      <BookOpen />
+    </div>
+  }
+/>
+```
 
-הבעיה: ה-Regex validation קשוח מדי:
+### get-signed-illustration-url - לוגיקת אימות משופרת
+
+שינוי עיקרי: כאשר משתמש מחובר ולא הועבר `storyId` - לחלץ את ה-storyId מהנתיב ולבדוק בעלות:
+
 ```typescript
-path.match(/^[a-f0-9-]+\/page-\d+\.png$/)
+// If authenticated user but no storyId provided, extract from paths
+if (userId && !storyId && paths.length > 0) {
+  // Extract storyId from first path (format: uuid/filename.png)
+  const firstPathStoryId = paths[0].split("/")[0];
+  
+  // Check if user owns this story
+  const { data: story } = await supabaseAdmin
+    .from("stories")
+    .select("user_id")
+    .eq("id", firstPathStoryId)
+    .maybeSingle();
+  
+  if (story?.user_id === userId) {
+    isAuthorized = true;
+  }
+}
 ```
 
-**הפתרון:** להרחיב את ה-validation לתמוך גם בפורמטים אחרים או להמיר URLs לנתיבים בצד השרת
+---
 
-### שלב 3: ווידוא שה-`generate-illustrations` נקרא נכון
+## קבצים שישתנו
 
-הבעיה האפשרית: ב-`generate-story` יש קריאה ל-`generate-illustrations` עם Service Role Key, אבל אם ה-key לא מוגדר, זה ייכשל בשקט.
+1. **`src/components/home/RecentStories.tsx`**
+   - החלפת `<img>` ב-`SignedImage`
+   - הוספת import ל-SignedImage
 
-**בדיקה נדרשת:**
-- לוודא ש-`SUPABASE_SERVICE_ROLE_KEY` מוגדר ב-Secrets
-- להוסיף לוגים טובים יותר לקריאה ל-generate-illustrations
+2. **`supabase/functions/get-signed-illustration-url/index.ts`**
+   - הוספת לוגיקה לחילוץ storyId מהנתיב
+   - שיפור בדיקת בעלות למשתמשים מחוברים
 
-### שלב 4: הוספת Error Handling משופרת ב-GeneratingStep
+3. **`src/components/ui/story-list-item.tsx`**
+   - שימוש ב-SignedImage במקום img ידני
+   - הסרת לוגיקת signed URL כפולה
 
-הבעיה: ה-frontend לא מציג הודעות שגיאה מפורטות כאשר הקריאה ל-Edge Function נכשלת.
-
-**הפתרון:**
-- לתפוס שגיאות ספציפיות מה-Edge Function
-- להציג הודעות שגיאה ברורות למשתמש
-- להוסיף timeout handling
+4. **`src/components/ui/signed-image.tsx`**
+   - שיפור ה-fallback handling
+   - הוספת תמיכה ב-skeleton loading
 
 ---
 
-## פירוט טכני לכל קובץ
+## הערות חשובות
 
-### 1. `src/hooks/use-signed-urls.ts`
+### לגבי ה-Supabase Project
+הפרויקט מחובר ל-Lovable Cloud עם Project ID `qvdwmkxviaqcgmjotsxe`. **לא ניתן לשנות** לפרויקט אחר (`xqoxoxxyfimlbekfjxo`). כל ה-environment variables מוגדרים אוטומטית.
 
-שינויים נדרשים:
-- שיפור ה-`extractPathFromUrl` לטפל בכל פורמטי ה-URL
-- הוספת fallback כאשר לא ניתן לחלץ נתיב
-- הוספת לוגים לדיבאג
-
-### 2. `supabase/functions/get-signed-illustration-url/index.ts`
-
-שינויים נדרשים:
-- הרחבת ה-validation להיות גמיש יותר
-- הוספת ניסיון לחלץ נתיב מ-URL מלא
-- לוגים משופרים
-
-### 3. `supabase/functions/generate-story/index.ts`
-
-שינויים נדרשים:
-- הוספת בדיקה ש-`SUPABASE_SERVICE_ROLE_KEY` קיים
-- לוגים משופרים לקריאה ל-generate-illustrations
-- טיפול בכישלון הקריאה ל-generate-illustrations
-
-### 4. `src/components/wizard/GeneratingStep.tsx`
-
-שינויים נדרשים:
-- טיפול טוב יותר בשגיאות מה-Edge Function
-- הצגת הודעות שגיאה ספציפיות
-- הוספת timeout ו-retry logic
-
----
-
-## בדיקות חובה לאחר התיקון
-
-1. **בדיקת סיפורים קיימים** - לוודא שתמונות מסיפורים ישנים עם URLs מלאים נטענות
-2. **בדיקת יצירת סיפור חדש** - לוודא שהתהליך מתחיל ועד הסוף עובד
-3. **בדיקת לוגים** - לוודא שיש לוגים ב-generate-story וב-generate-illustrations
-
----
-
-## הערה חשובה לגבי ה-Supabase Project
-
-הפרויקט הזה מחובר ל-Lovable Cloud עם Project ID `qvdwmkxviaqcgmjotsxe`. **לא ניתן לשנות את החיבור** לפרויקט Supabase חיצוני (`xqoxoxxyfimlbekfjxo`). כל ה-Secrets (כולל `OPENAI_API_KEY`) חייבים להיות מוגדרים ב-Lovable Cloud דרך Settings → Cloud → Secrets.
-
-**הסודות שקיימים כרגע:**
-- ✅ `LOVABLE_API_KEY` (אוטומטי)
-- ✅ `OPENAI_API_KEY` (הוגדר)
-- ✅ `RESEND_API_KEY`
-
-**חסר (ייתכן):**
-- `SUPABASE_SERVICE_ROLE_KEY` - צריך לוודא שזה מוגדר, כי הוא נדרש לקריאה ל-generate-illustrations
+### סדר הפעולות
+1. תיקון Edge Function לאפשר גישה לבעלים
+2. עדכון הרכיבים להשתמש ב-SignedImage
+3. בדיקה עם משתמש מחובר
+4. וידוא שתמונות נטענות בספרייה ובדף הבית
