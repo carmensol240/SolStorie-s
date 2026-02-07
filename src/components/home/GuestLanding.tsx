@@ -9,17 +9,17 @@ interface FeatureCardProps {
 
 const FeatureCard = ({ icon, title, subtitle }: FeatureCardProps) => (
   <div 
-    className="flex items-center gap-3 bg-gradient-to-r from-purple-900/80 to-[#5D3A1A]/80 backdrop-blur-lg rounded-xl p-3 w-full border border-purple-400/30 shadow-lg shadow-black/20" 
+    className="flex items-center gap-3 bg-white/90 backdrop-blur-lg rounded-xl p-3 w-full border border-purple-200 shadow-md" 
     dir="rtl"
   >
     <div className="w-10 h-10 bg-gradient-to-br from-purple-500 to-purple-700 rounded-xl flex items-center justify-center shadow-lg flex-shrink-0">
       {icon}
     </div>
     <div className="flex-1">
-      <h3 className="text-sm font-black text-white leading-tight drop-shadow-md">
+      <h3 className="text-sm font-bold text-purple-800 leading-tight">
         {title}
       </h3>
-      <p className="text-sm font-black text-purple-200 leading-snug drop-shadow-sm">
+      <p className="text-xs font-medium text-purple-600 leading-snug">
         {subtitle}
       </p>
     </div>
