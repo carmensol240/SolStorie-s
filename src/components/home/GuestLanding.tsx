@@ -27,7 +27,10 @@ const FeatureCard = ({ icon, title, subtitle }: FeatureCardProps) => (
       <h3 className="text-xs font-bold text-purple-800 leading-tight">
         {title}
       </h3>
-      <p className="text-xs font-medium text-purple-600 leading-relaxed">
+      <p 
+        className="font-medium text-purple-600"
+        style={{ fontSize: '0.9rem', lineHeight: '1.2' }}
+      >
         {subtitle}
       </p>
     </div>
@@ -38,8 +41,8 @@ const GuestLanding = () => {
   const features = [
     {
       icon: <Sparkles className="w-5 h-5 text-white" aria-hidden="true" />,
-      title: "התאמה אישית מתקדמת",
-      subtitle: "שימוש בטכנולוגיית NLP להתאמה אישית לילדים על הרצף התקשורתי.",
+      title: "התאמה אישית חכמה",
+      subtitle: "סיפורים שנבנים עבור ילדכם, עם התאמה רגישה גם לרצף התקשורתי.",
     },
     {
       icon: <Users className="w-5 h-5 text-white" aria-hidden="true" />,
