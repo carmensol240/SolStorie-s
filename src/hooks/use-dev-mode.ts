@@ -76,11 +76,10 @@ export const MOCK_DEV_PROFILE = {
   updated_at: new Date().toISOString(),
 };
 
-// Helper to clear dev mode
+// Helper to clear dev mode - always clears, safe to call in production
 export const clearDevMode = () => {
-  if (import.meta.env.DEV) {
-    sessionStorage.removeItem('devMode');
-  }
+  // Always clear - safe to call in production even though devMode shouldn't be set there
+  sessionStorage.removeItem('devMode');
 };
 
 // Helper to enable dev mode programmatically - ONLY works in development
