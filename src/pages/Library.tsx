@@ -8,6 +8,7 @@ import StoryListItem from "@/components/ui/story-list-item";
 import StoryFilters, { FilterState } from "@/components/ui/story-filters";
 import OfflineIndicator from "@/components/ui/offline-indicator";
 import EditStoryDialog from "@/components/story/edit-story-dialog";
+import { GenderSwapDialog } from "@/components/story/GenderSwapDialog";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { useOfflineStorage } from "@/hooks/use-offline-storage";
@@ -32,6 +33,7 @@ interface Story {
   min_age: number | null;
   max_age: number | null;
   is_premium: boolean | null;
+  child_gender: string | null;
   story_pages: StoryPage[];
 }
 
@@ -50,6 +52,7 @@ const Library = () => {
     storyType: null,
   });
   const [editingStory, setEditingStory] = useState<Story | null>(null);
+  const [genderSwapStory, setGenderSwapStory] = useState<Story | null>(null);
   
   const totalCredits = (credits ?? 0) + shareCoins;
 
@@ -63,7 +66,7 @@ const Library = () => {
       // First fetch stories - this will return empty if user is not logged in due to RLS
       const { data: storiesData, error: storiesError } = await supabase
         .from("stories")
-        .select("id, child_name, topic, created_at, cover_url, theme, story_type, min_age, max_age, is_premium")
+        .select("id, child_name, topic, created_at, cover_url, theme, story_type, min_age, max_age, is_premium, child_gender")
         .order("created_at", { ascending: false });
 
       // Gracefully handle RLS errors for non-authenticated users
@@ -137,6 +140,21 @@ const Library = () => {
         description: "לא הצלחנו למחוק את הסיפור",
       });
     }
+  };
+
+  const handleGenderSwap = (storyId: string) => {
+    const story = stories.find((s) => s.id === storyId);
+    if (story) {
+      setGenderSwapStory(story);
+    }
+  };
+
+  const handleGenderSwapSuccess = () => {
+    fetchStories();
+    toast({
+      title: "✨ הסיפור עודכן!",
+      description: "המגדר הוחלף בהצלחה בכל הטקסט",
+    });
   };
 
   const handleEditStory = (storyId: string) => {
@@ -271,7 +289,9 @@ const Library = () => {
                 topic={story.topic}
                 coverUrl={getCoverImage(story)}
                 createdAt={story.created_at}
+                childGender={story.child_gender as 'male' | 'female' | undefined}
                 onDelete={handleDeleteStory}
+                onGenderSwap={handleGenderSwap}
                 onClick={(id) => navigate(`/story/${id}`)}
               />
             ))}
@@ -302,6 +322,17 @@ const Library = () => {
           childName={editingStory.child_name}
           topic={editingStory.topic}
           onUpdate={fetchStories}
+        />
+      )}
+
+      {/* Gender Swap Dialog */}
+      {genderSwapStory && (
+        <GenderSwapDialog
+          open={!!genderSwapStory}
+          onOpenChange={(open) => !open && setGenderSwapStory(null)}
+          storyId={genderSwapStory.id}
+          currentGender={(genderSwapStory.child_gender as 'male' | 'female') || 'male'}
+          onSuccess={handleGenderSwapSuccess}
         />
       )}
 
