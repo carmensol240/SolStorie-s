@@ -13,6 +13,7 @@ import ResetPassword from "./pages/ResetPassword";
 import TermsOfService from "./pages/TermsOfService";
 import PrivacyPolicy from "./pages/PrivacyPolicy";
 import LegalConsent from "./pages/LegalConsent";
+import Onboarding from "./pages/Onboarding";
 import ChildProfiles from "./pages/ChildProfiles";
 import CreateStory from "./pages/CreateStory";
 import StoryViewer from "./pages/StoryViewer";
@@ -48,6 +49,7 @@ const App = () => (
             <Route path="/terms" element={<TermsOfService />} />
             <Route path="/privacy" element={<PrivacyPolicy />} />
             <Route path="/consent" element={<LegalConsent />} />
+            <Route path="/onboarding" element={<Onboarding />} />
             {/* Public flipbook viewer - accessible via share link */}
             <Route path="/flipbook" element={<FlipbookViewer />} />
             {/* Protected routes - require terms acceptance */}

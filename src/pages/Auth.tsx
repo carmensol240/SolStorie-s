@@ -298,12 +298,12 @@ const Auth = () => {
           localStorage.removeItem('returnTo');
           navigate(returnTo);
         } else {
-          // Show consent step
-          setShowConsentStep(true);
+          // Redirect to onboarding page for consent
+          navigate("/onboarding");
         }
       } catch (error) {
         console.error("Error checking terms:", error);
-        setShowConsentStep(true);
+        navigate("/onboarding");
       } finally {
         setCheckingTerms(false);
       }
