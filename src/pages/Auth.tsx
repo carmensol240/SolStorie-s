@@ -391,8 +391,8 @@ const Auth = () => {
         await processReferral(data.user.id);
       }
       toast({
-        title: "נרשמתם בהצלחה! 🎉",
-        description: "ברוכים הבאים לסיפורי הקומיקס!",
+        title: "ברוכים הבאים ל-StoryTime! 🎉",
+        description: "מחכה לך סיפור ראשון במתנה מאיתנו כדי להתחיל בקסם ✨",
       });
       // The useEffect will handle redirect after checking terms
     }
@@ -448,8 +448,8 @@ const Auth = () => {
       if (error) throw error;
 
       toast({
-        title: "ברוכים הבאים! 🎉",
-        description: "תודה על אישור התנאים. אפשר להתחיל ליצור סיפורים!",
+        title: "ברוכים הבאים ל-StoryTime! 🎉",
+        description: "מחכה לך סיפור ראשון במתנה מאיתנו כדי להתחיל בקסם ✨",
       });
       
       // Navigate to home page after accepting terms

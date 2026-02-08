@@ -71,8 +71,8 @@ const Onboarding = () => {
       if (error) throw error;
 
       toast({
-        title: "ברוכים הבאים! 🎉",
-        description: "אפשר להתחיל ליצור סיפורים!",
+        title: "ברוכים הבאים ל-StoryTime! 🎉",
+        description: "מחכה לך סיפור ראשון במתנה מאיתנו כדי להתחיל בקסם ✨",
       });
       
       navigate("/library");

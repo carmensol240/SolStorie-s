@@ -1,10 +1,13 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
 import { Wand2, Coins } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useCredits } from "@/hooks/use-credits";
 import { useReferral } from "@/hooks/use-referral";
 import { useChildAvatar } from "@/hooks/use-child-avatar";
+import { useAuth } from "@/hooks/use-auth";
+import { supabase } from "@/integrations/supabase/client";
 import heroBackground from "@/assets/soli-tree-background.png";
+import WelcomeGiftBanner from "./WelcomeGiftBanner";
 
 interface LoggedInHomeProps {
   user: any;
@@ -16,6 +19,25 @@ const LoggedInHome = ({ user, displayName }: LoggedInHomeProps) => {
   const { credits } = useCredits();
   const { shareCoins } = useReferral();
   const { avatarUrl } = useChildAvatar();
+  const [storyCount, setStoryCount] = useState<number>(0);
+
+  // Fetch story count for welcome banner logic
+  useEffect(() => {
+    const fetchStoryCount = async () => {
+      if (!user?.id) return;
+      
+      const { count, error } = await supabase
+        .from("stories")
+        .select("*", { count: "exact", head: true })
+        .eq("user_id", user.id);
+      
+      if (!error && count !== null) {
+        setStoryCount(count);
+      }
+    };
+    
+    fetchStoryCount();
+  }, [user?.id]);
 
   const totalCredits = (credits ?? 0) + shareCoins;
 
@@ -75,8 +97,11 @@ const LoggedInHome = ({ user, displayName }: LoggedInHomeProps) => {
           </div>
         </header>
 
-        {/* Spacer to push CTA to bottom-center area */}
+        {/* Spacer to push content to bottom */}
         <div className="flex-1" />
+
+        {/* Welcome Gift Banner - shows only for new users */}
+        <WelcomeGiftBanner credits={credits} storyCount={storyCount} />
 
         {/* Single Primary CTA Button - SMALLER, bottom-center, maximum transparency */}
         <div className="pb-24 flex justify-center">
