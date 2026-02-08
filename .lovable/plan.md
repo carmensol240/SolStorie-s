@@ -1,154 +1,163 @@
 
-# תוכנית לתיקון בעיית טעינת תמונות מ-Supabase Storage
+# תוכנית לעדכון מסך הבית
 
-## סיכום הבדיקה
-
-לאחר בדיקה מקיפה, זיהיתי את שורש הבעיה:
-
-### בעיה 1: נתונים ישנים עם URLs ציבוריים
-
-ה-bucket `story-illustrations` הוא **פרטי** (private), אבל הנתונים במסד הנתונים מכילים **URLs ציבוריים** ישנים:
-
-```
-https://qvdwmkxviaqcgmjotsxe.supabase.co/storage/v1/object/public/story-illustrations/uuid/page-1.png
-```
-
-URLs אלו מחזירים שגיאת 403 כי ה-bucket פרטי.
-
-### בעיה 2: דרישת אימות ב-Edge Function
-
-ה-Edge Function `get-signed-illustration-url` דורשת אחד מהתנאים:
-- משתמש מחובר שהוא הבעלים של הסיפור
-- שיתוף ציבורי עם `shareToken`
-- ספרון דיגיטלי ציבורי
-
-כשמשתמש לא מחובר מנסה לטעון תמונות מהספרייה - הוא מקבל 401.
-
-### בעיה 3: רכיב RecentStories לא משתמש ב-SignedImage
-
-הרכיב `RecentStories.tsx` מציג תמונות שער באמצעות `<img src={story.cover_url}>` ישירות, בלי לעבור דרך `SignedImage` שמביא signed URLs.
+## סיכום הבקשה
+יש לבצע 4 שינויים במסך הבית (GuestLanding):
+1. הוספת טקסט "בשילוב כלים מעולם ה-NLP" לתיבה הראשונה
+2. הגדרת תמונת הרקע כ-fixed ו-cover
+3. שינוי התיבות לשקופות לחלוטין עם אפקט Glassmorphism
+4. הסרת כפתור הנגישות הצף מה-App
 
 ---
 
-## שלבי התיקון
+## שלבי הביצוע
 
-### שלב 1: עדכון RecentStories להשתמש ב-SignedImage
-**קובץ:** `src/components/home/RecentStories.tsx`
+### שלב 1: עדכון טקסט בתיבה הראשונה
+**קובץ:** `src/components/home/GuestLanding.tsx`
 
-שינויים:
-- להחליף את ה-`<img>` ב-`SignedImage` component
-- להעביר את ה-`storyId` לצורך אימות
+שינוי:
+- בתיבה עם הכותרת "התאמה אישית חכמה" (שורה 44-45)
+- הוספת "בשילוב כלים מעולם ה-NLP" לתיאור
 
-### שלב 2: הוספת אפשרות גישה לבעלים בלי storyId
-**קובץ:** `supabase/functions/get-signed-illustration-url/index.ts`
+**לפני:**
+```typescript
+{
+  icon: <Sparkles className="w-5 h-5 text-white" aria-hidden="true" />,
+  title: "התאמה אישית חכמה",
+  subtitle: "סיפורים שנבנים עבור ילדכם, עם התאמה רגישה גם לרצף התקשורתי.",
+}
+```
 
-שינויים:
-- כאשר משתמש מחובר, לאפשר לו גישה לתמונות של הסיפורים שלו
-- לחלץ את ה-storyId מהנתיב אם לא הועבר במפורש
-- לבדוק בעלות על הסיפור לפי ה-path
-
-### שלב 3: עדכון StoryListItem לשימוש ב-SignedImage
-**קובץ:** `src/components/ui/story-list-item.tsx`
-
-שינויים:
-- להחליף את ה-`<img>` הידני ב-`SignedImage` component
-- לנצל את הקוד הקיים שכבר מביא signed URLs
-
-### שלב 4: תיקון fallback במקרה של שגיאה
-**קובץ:** `src/components/ui/signed-image.tsx`
-
-שינויים:
-- להוסיף placeholder מותאם אם ה-signed URL נכשל
-- לוודא שה-UI לא נשבר אם אין תמונה
+**אחרי:**
+```typescript
+{
+  icon: <Sparkles className="w-5 h-5 text-white" aria-hidden="true" />,
+  title: "התאמה אישית חכמה",
+  subtitle: "סיפורים שנבנים עבור ילדכם בשילוב כלים מעולם ה-NLP, עם התאמה רגישה גם לרצף התקשורתי.",
+}
+```
 
 ---
 
-## פירוט טכני
+### שלב 2: הגדרת רקע כ-fixed ו-cover
+**קובץ:** `src/components/home/GuestLanding.tsx`
 
-### RecentStories.tsx - לפני ואחרי
+שינוי ב-div הראשי של הרקע (שורות 62-68):
+- הוספת `position: 'fixed'`
+- הוספת `backgroundSize: 'cover'`
+- הוספת `left: 0, right: 0, top: 0, bottom: 0`
 
 **לפני:**
 ```tsx
-{story.cover_url ? (
-  <img
-    src={story.cover_url}
-    alt={`שער הסיפור של ${story.child_name}`}
-    className="w-full h-full object-cover"
-  />
-) : (
-  <div className="...">
-    <BookOpen />
-  </div>
-)}
+<div 
+  className="absolute inset-0 -mx-4 -mt-3"
+  style={{ 
+    marginBottom: '-4rem',
+    background: 'linear-gradient(180deg, #87CEEB 0%, #B0E0E6 40%, #E0F4FF 70%, #F0F8FF 100%)'
+  }}
+>
 ```
 
 **אחרי:**
 ```tsx
-<SignedImage
-  src={story.cover_url}
-  storyId={story.id}
-  alt={`שער הסיפור של ${story.child_name}`}
-  className="w-full h-full object-cover"
-  fallback={
-    <div className="...">
-      <BookOpen />
-    </div>
-  }
-/>
+<div 
+  className="fixed inset-0"
+  style={{ 
+    background: 'linear-gradient(180deg, #87CEEB 0%, #B0E0E6 40%, #E0F4FF 70%, #F0F8FF 100%)',
+    backgroundSize: 'cover',
+    backgroundAttachment: 'fixed',
+    zIndex: 0
+  }}
+>
 ```
 
-### get-signed-illustration-url - לוגיקת אימות משופרת
+---
 
-שינוי עיקרי: כאשר משתמש מחובר ולא הועבר `storyId` - לחלץ את ה-storyId מהנתיב ולבדוק בעלות:
+### שלב 3: שקיפות מלאה עם Glassmorphism לתיבות
+**קובץ:** `src/components/home/GuestLanding.tsx`
 
-```typescript
-// If authenticated user but no storyId provided, extract from paths
-if (userId && !storyId && paths.length > 0) {
-  // Extract storyId from first path (format: uuid/filename.png)
-  const firstPathStoryId = paths[0].split("/")[0];
-  
-  // Check if user owns this story
-  const { data: story } = await supabaseAdmin
-    .from("stories")
-    .select("user_id")
-    .eq("id", firstPathStoryId)
-    .maybeSingle();
-  
-  if (story?.user_id === userId) {
-    isAuthorized = true;
-  }
-}
+שינוי ב-FeatureCard component (שורות 11-21):
+- הפחתת ה-opacity לשקיפות גבוהה יותר
+- שמירה על backdrop-filter: blur(10px)
+- שיפור קריאות הטקסט
+
+**לפני:**
+```tsx
+style={{
+  background: 'rgba(255, 255, 255, 0.6)',
+  backdropFilter: 'blur(10px)',
+  WebkitBackdropFilter: 'blur(10px)',
+  border: '1px solid rgba(255, 255, 255, 0.3)',
+  boxShadow: '0 4px 30px rgba(0, 0, 0, 0.1)'
+}}
+```
+
+**אחרי:**
+```tsx
+style={{
+  background: 'rgba(255, 255, 255, 0.25)',
+  backdropFilter: 'blur(12px)',
+  WebkitBackdropFilter: 'blur(12px)',
+  border: '1px solid rgba(255, 255, 255, 0.4)',
+  boxShadow: '0 8px 32px rgba(0, 0, 0, 0.08)'
+}}
+```
+
+בנוסף, שיפור צבעי הטקסטים לקריאות מוגברת:
+- שינוי צבע הכותרת מ-`text-purple-800` ל-`text-purple-900 drop-shadow-sm`
+- שינוי צבע התיאור מ-`text-purple-600` ל-`text-purple-800 drop-shadow-sm`
+
+---
+
+### שלב 4: הסרת כפתור הנגישות הצף
+**קובץ:** `src/App.tsx`
+
+שינויים:
+- הסרת `AccessibilityMenu` מה-JSX (שורה 40)
+- הסרת ה-import של `AccessibilityMenu` (שורה 9)
+
+**לפני:**
+```tsx
+import AccessibilityMenu from "@/components/AccessibilityMenu";
+...
+<BetaBanner />
+<AccessibilityMenu />
+<Toaster />
+```
+
+**אחרי:**
+```tsx
+// הסרת ה-import של AccessibilityMenu
+...
+<BetaBanner />
+<Toaster />
 ```
 
 ---
 
 ## קבצים שישתנו
 
-1. **`src/components/home/RecentStories.tsx`**
-   - החלפת `<img>` ב-`SignedImage`
-   - הוספת import ל-SignedImage
+1. **`src/components/home/GuestLanding.tsx`**
+   - הוספת "בשילוב כלים מעולם ה-NLP" לתיאור התיבה הראשונה
+   - הגדרת הרקע כ-fixed עם cover
+   - שקיפות מוגברת לתיבות עם Glassmorphism
+   - שיפור קריאות הטקסטים
 
-2. **`supabase/functions/get-signed-illustration-url/index.ts`**
-   - הוספת לוגיקה לחילוץ storyId מהנתיב
-   - שיפור בדיקת בעלות למשתמשים מחוברים
-
-3. **`src/components/ui/story-list-item.tsx`**
-   - שימוש ב-SignedImage במקום img ידני
-   - הסרת לוגיקת signed URL כפולה
-
-4. **`src/components/ui/signed-image.tsx`**
-   - שיפור ה-fallback handling
-   - הוספת תמיכה ב-skeleton loading
+2. **`src/App.tsx`**
+   - הסרת AccessibilityMenu מה-JSX וה-import
 
 ---
 
-## הערות חשובות
+## הערות טכניות
 
-### לגבי ה-Supabase Project
-הפרויקט מחובר ל-Lovable Cloud עם Project ID `qvdwmkxviaqcgmjotsxe`. **לא ניתן לשנות** לפרויקט אחר (`xqoxoxxyfimlbekfjxo`). כל ה-environment variables מוגדרים אוטומטית.
+### קריאות טקסט על רקע שקוף
+- הטקסטים יקבלו `drop-shadow-sm` לשיפור הקריאות
+- צבעי הטקסט יהיו כהים יותר (purple-800/900) כדי לבלוט על הרקע
 
-### סדר הפעולות
-1. תיקון Edge Function לאפשר גישה לבעלים
-2. עדכון הרכיבים להשתמש ב-SignedImage
-3. בדיקה עם משתמש מחובר
-4. וידוא שתמונות נטענות בספרייה ובדף הבית
+### תמיכה בדפדפנים
+- `backdrop-filter` נתמך ברוב הדפדפנים המודרניים
+- `WebkitBackdropFilter` מבטיח תמיכה ב-Safari
+
+### הסרת נגישות קולית
+- רכיב AccessibilityMenu יוסר מה-App
+- הגדרות הנגישות יישארו זמינות רק דרך דף ההגדרות (Settings)
