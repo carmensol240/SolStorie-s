@@ -349,11 +349,16 @@ const Auth = () => {
       if (error.message.includes("Invalid login credentials")) {
         message = "אימייל או סיסמה שגויים";
       } else if (error.message.includes("Email not confirmed")) {
-        message = "יש לאמת את כתובת האימייל. בדקו את תיבת הדואר שלכם.";
-        setPendingEmail(email);
-        setShowEmailVerificationMessage(true);
-        setIsSubmitting(false);
-        return;
+        // For users who signed up before auto-confirm was enabled
+        message = "האימייל שלך טרם אומת. שלחנו לך קישור חדש לאימות.";
+        try {
+          await supabase.auth.resend({
+            type: 'signup',
+            email: email,
+          });
+        } catch (e) {
+          console.warn('Could not resend verification:', e);
+        }
       }
       toast({
         title: "שגיאה בהתחברות",
@@ -381,25 +386,16 @@ const Auth = () => {
         description: message,
         variant: "destructive",
       });
-    } else {
-      // Check if email confirmation is required
-      if (data?.user && !data.user.confirmed_at) {
-        // User needs to verify email
-        setPendingEmail(email);
-        setShowEmailVerificationMessage(true);
-        if (data?.user?.id) {
-          await processReferral(data.user.id);
-        }
-      } else if (data?.user) {
-        // Email auto-confirmed (development mode)
-        if (data?.user?.id) {
-          await processReferral(data.user.id);
-        }
-        toast({
-          title: "נרשמתם בהצלחה!",
-          description: "ברוכים הבאים לסיפורי הקומיקס!",
-        });
+    } else if (data?.user) {
+      // Signup successful - user is auto-confirmed and logged in
+      if (data?.user?.id) {
+        await processReferral(data.user.id);
       }
+      toast({
+        title: "נרשמתם בהצלחה! 🎉",
+        description: "ברוכים הבאים לסיפורי הקומיקס!",
+      });
+      // The useEffect will handle redirect after checking terms
     }
     setIsSubmitting(false);
   };
