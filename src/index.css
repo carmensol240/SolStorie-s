@@ -310,6 +310,15 @@
   box-shadow: 0 2px 12px rgba(0, 0, 0, 0.06) !important;
 }
 
+/* Landing page feature cards - more opaque for better readability */
+.landing-feature-card-opaque {
+  background: rgba(255, 255, 255, 0.88) !important;
+  backdrop-filter: blur(12px) !important;
+  -webkit-backdrop-filter: blur(12px) !important;
+  border: 1px solid rgba(255, 255, 255, 0.6) !important;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08) !important;
+}
+
 /* Logged-in user action box - high transparency glassmorphism */
 .logged-in-action-box {
   background: rgba(255, 255, 255, 0.25) !important;

@@ -14,7 +14,7 @@ const MobileNavigation = () => {
   ];
 
   return (
-    <nav className="fixed bottom-0 left-0 right-0 z-[100] bg-card border-t border-purple-200 shadow-lg" role="navigation" aria-label="ניווט ראשי">
+    <nav className="fixed bottom-0 left-0 right-0 z-[100] bg-white/80 backdrop-blur-lg border-t border-purple-100 shadow-lg" role="navigation" aria-label="ניווט ראשי">
       <div className="flex justify-around items-center h-16 max-w-lg mx-auto px-4 pb-safe">
         {navItems.map((item) => {
           const isActive = location.pathname === item.path;

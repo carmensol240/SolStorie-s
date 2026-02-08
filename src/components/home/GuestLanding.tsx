@@ -13,17 +13,17 @@ interface FeatureCardProps {
 
 const FeatureCard = ({ icon, title, subtitle }: FeatureCardProps) => (
   <div 
-    className="landing-feature-card flex items-center gap-2 rounded-xl p-2.5 w-full transition-all" 
+    className="landing-feature-card-opaque flex items-center gap-3 rounded-2xl p-3 w-full transition-all" 
     dir="rtl"
   >
-    <div className="w-8 h-8 bg-gradient-to-br from-purple-500 to-purple-700 rounded-lg flex items-center justify-center shadow-md flex-shrink-0">
+    <div className="w-9 h-9 bg-gradient-to-br from-purple-500 to-purple-700 rounded-xl flex items-center justify-center shadow-md flex-shrink-0">
       {icon}
     </div>
     <div className="flex-1 min-w-0">
-      <h3 className="text-xs font-bold text-purple-900 leading-tight">
+      <h3 className="text-sm font-bold text-purple-900 leading-tight">
         {title}
       </h3>
-      <p className="text-xs font-medium text-purple-800/90 leading-snug line-clamp-2">
+      <p className="text-xs font-semibold text-gray-700 leading-relaxed">
         {subtitle}
       </p>
     </div>
@@ -136,18 +136,18 @@ const GuestLanding = ({ user, isLoggedIn }: GuestLandingProps) => {
         {/* Spacer to push content to bottom */}
         <div className="flex-1 min-h-4" />
 
-        {/* Feature Cards - Compact with reduced spacing */}
-        <div className="flex flex-col gap-2 mb-3 px-1">
+        {/* Feature Cards - with proper spacing */}
+        <div className="flex flex-col gap-2.5 mb-5 px-1">
           {features.map((feature, index) => (
             <FeatureCard key={index} {...feature} />
           ))}
         </div>
 
-        {/* Login/Register CTA - Fully visible with safe margins */}
+        {/* Login/Register CTA - with proper bottom margin */}
         <button
           onClick={handleStart}
           disabled={isNavigating}
-          className="w-full bg-gradient-to-r from-pink-500 via-pink-600 to-purple-600 hover:from-pink-600 hover:via-pink-700 hover:to-purple-700 text-white font-black text-sm py-3.5 rounded-full shadow-xl transition-all flex items-center justify-center gap-2 disabled:opacity-70 disabled:cursor-not-allowed mx-auto"
+          className="w-full bg-gradient-to-r from-pink-500 via-pink-600 to-purple-600 hover:from-pink-600 hover:via-pink-700 hover:to-purple-700 text-white font-black text-base py-4 rounded-full shadow-xl transition-all flex items-center justify-center gap-2 disabled:opacity-70 disabled:cursor-not-allowed mx-auto mb-4"
           style={{
             boxShadow: '0 8px 30px -8px rgba(236, 72, 153, 0.5), 0 4px 15px -4px rgba(147, 51, 234, 0.3)'
           }}
@@ -162,10 +162,10 @@ const GuestLanding = ({ user, isLoggedIn }: GuestLandingProps) => {
           )}
         </button>
 
-        {/* Privacy Link - Compact */}
-        <p className="text-center text-xs text-gray-800 font-medium mt-2">
+        {/* Privacy Link - More prominent */}
+        <p className="text-center text-sm text-gray-900 font-semibold mb-2">
           בהמשך, אתם מסכימים ל
-          <a href="/privacy" className="text-purple-800 font-bold hover:underline mx-1">מדיניות הפרטיות</a>
+          <a href="/privacy" className="text-purple-700 font-bold hover:underline mx-1">מדיניות הפרטיות</a>
         </p>
       </div>
     </div>
