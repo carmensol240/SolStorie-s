@@ -25,7 +25,7 @@ export const NavigationArrows: React.FC<NavigationArrowsProps> = ({
 }) => {
   return (
     <>
-      {/* Previous Arrow (Right side for RTL) */}
+      {/* Previous Arrow (Right side for RTL) - Subtle, semi-transparent */}
       <Tooltip>
         <TooltipTrigger asChild>
           <Button
@@ -34,16 +34,16 @@ export const NavigationArrows: React.FC<NavigationArrowsProps> = ({
             onClick={onPrev}
             disabled={!canGoPrev || isFlipping}
             className={cn(
-              "absolute right-0 md:-right-16 lg:-right-20 top-1/2 -translate-y-1/2 z-30",
-              "w-12 h-20 md:w-14 md:h-24 rounded-l-full md:rounded-full",
-              "bg-[#8B5A2B]/90 hover:bg-[#6B4423] text-white",
-              "shadow-lg hover:shadow-xl transition-all duration-200",
-              "disabled:opacity-30 disabled:cursor-not-allowed",
-              "border-2 border-[#D4A574]"
+              "absolute right-2 md:-right-14 lg:-right-16 top-1/2 -translate-y-1/2 z-30",
+              "w-10 h-10 md:w-12 md:h-12 rounded-full",
+              "bg-white/40 hover:bg-white/70 text-purple-600/60 hover:text-purple-700",
+              "backdrop-blur-sm transition-all duration-300",
+              "disabled:opacity-20 disabled:cursor-not-allowed",
+              "border border-purple-200/50 shadow-sm hover:shadow-md"
             )}
             aria-label="עמוד קודם"
           >
-            <ChevronRight className="w-8 h-8 md:w-10 md:h-10" />
+            <ChevronRight className="w-6 h-6 md:w-7 md:h-7" />
           </Button>
         </TooltipTrigger>
         <TooltipContent side="right" className="font-medium">
@@ -51,7 +51,7 @@ export const NavigationArrows: React.FC<NavigationArrowsProps> = ({
         </TooltipContent>
       </Tooltip>
 
-      {/* Next Arrow (Left side for RTL) */}
+      {/* Next Arrow (Left side for RTL) - Subtle, semi-transparent */}
       <Tooltip>
         <TooltipTrigger asChild>
           <Button
@@ -60,16 +60,16 @@ export const NavigationArrows: React.FC<NavigationArrowsProps> = ({
             onClick={onNext}
             disabled={!canGoNext || isFlipping}
             className={cn(
-              "absolute left-0 md:-left-16 lg:-left-20 top-1/2 -translate-y-1/2 z-30",
-              "w-12 h-20 md:w-14 md:h-24 rounded-r-full md:rounded-full",
-              "bg-[#8B5A2B]/90 hover:bg-[#6B4423] text-white",
-              "shadow-lg hover:shadow-xl transition-all duration-200",
-              "disabled:opacity-30 disabled:cursor-not-allowed",
-              "border-2 border-[#D4A574]"
+              "absolute left-2 md:-left-14 lg:-left-16 top-1/2 -translate-y-1/2 z-30",
+              "w-10 h-10 md:w-12 md:h-12 rounded-full",
+              "bg-white/40 hover:bg-white/70 text-purple-600/60 hover:text-purple-700",
+              "backdrop-blur-sm transition-all duration-300",
+              "disabled:opacity-20 disabled:cursor-not-allowed",
+              "border border-purple-200/50 shadow-sm hover:shadow-md"
             )}
             aria-label="עמוד הבא"
           >
-            <ChevronLeft className="w-8 h-8 md:w-10 md:h-10" />
+            <ChevronLeft className="w-6 h-6 md:w-7 md:h-7" />
           </Button>
         </TooltipTrigger>
         <TooltipContent side="left" className="font-medium">

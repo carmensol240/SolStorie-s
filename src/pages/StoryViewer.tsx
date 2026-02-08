@@ -291,7 +291,7 @@ const StoryViewer = () => {
     setFlipDirection(direction);
     setIsFlipping(true);
     
-    // Match the animation duration (0.7s = 700ms)
+    // Soft fade transition (300ms fade out, change page, 300ms fade in)
     setTimeout(() => {
       if (direction === 'next' && story && currentPage < maxPage) {
         const newPage = currentPage + 1;
@@ -304,7 +304,7 @@ const StoryViewer = () => {
         setCurrentPage(currentPage - 1);
       }
       setIsFlipping(false);
-    }, 500); // Trigger page change at 500ms for smooth visual transition
+    }, 300); // Shorter duration for gentle fade transition
   };
 
   // Swipe gesture handlers for page navigation - must be after handlePageChange is defined
@@ -758,7 +758,7 @@ const StoryViewer = () => {
               )}>
                 {/* Right Page (Illustration) - First in RTL - Disney Pixar Style */}
                 <div className={cn(
-                  "flex-1 flex flex-col items-center justify-center p-4 md:p-6",
+                  "flex-1 flex flex-col items-center justify-center p-6 md:p-8 lg:p-10",
                   "bg-gradient-to-br from-[#FFFBF5] to-[#F5E6D3]",
                   isMobile ? "border-b-2" : "border-l-2",
                   "border-[#D4A574]/30"
@@ -786,28 +786,29 @@ const StoryViewer = () => {
                   )}
                 </div>
                 
-                {/* Left Page (Text) - Second in RTL */}
+                {/* Left Page (Text) - Second in RTL - Better typography */}
                 <div className={cn(
-                  "flex-1 flex flex-col justify-center p-6 md:p-8 lg:p-10",
+                  "flex-1 flex flex-col justify-center p-8 md:p-10 lg:p-12",
                   "bg-gradient-to-bl from-[#FFFBF5] to-[#FAF3E8]"
                 )}>
-                  <div className="flex-1 flex items-center justify-center">
+                  <div className="flex-1 flex items-center justify-center px-4 md:px-6">
                     <p 
                       className={cn(
-                        "leading-loose text-[#3D2914] text-right font-medium transition-all",
+                        "text-[#3D2914] text-right font-medium transition-all",
                         currentFontSize.size
                       )} 
+                      style={{ lineHeight: '1.7' }}
                       dir="rtl"
                     >
                       {page?.text}
                     </p>
                   </div>
                   
-                  {/* Page number */}
+                  {/* Discreet page indicator - small gray text at bottom center */}
                   {page?.page_number !== undefined && (
-                    <div className="text-center pt-4 border-t border-[#D4A574]/20 mt-4">
-                      <span className="text-sm text-[#8B7355] font-serif italic">
-                        עמוד {page.page_number} מתוך {story.pages.length}
+                    <div className="text-center pt-6 mt-auto">
+                      <span className="text-xs text-gray-400 font-light">
+                        {page.page_number} / {story.pages.length}
                       </span>
                     </div>
                   )}
@@ -815,30 +816,6 @@ const StoryViewer = () => {
               </div>
             )}
           </BookFrame>
-          
-          {/* Bottom Navigation Buttons - Clear Back/Next */}
-          {!isCoverPage && !isEndPage && (
-            <div className="flex items-center justify-center gap-4 mt-6">
-              <Button
-                variant="outline"
-                size="lg"
-                onClick={() => handlePageChange('prev')}
-                disabled={currentPage <= -1 || isFlipping}
-                className="rounded-full border-2 border-purple-500 text-purple-600 hover:bg-purple-50 px-8 py-5 font-bold"
-              >
-                חזרה
-              </Button>
-              
-              <Button
-                size="lg"
-                onClick={() => handlePageChange('next')}
-                disabled={!story || currentPage >= story.pages.length || isFlipping}
-                className="rounded-full bg-gradient-to-r from-purple-600 via-pink-500 to-orange-400 hover:from-purple-700 hover:via-pink-600 hover:to-orange-500 text-white px-8 py-5 font-bold"
-              >
-                הבא
-              </Button>
-            </div>
-          )}
         </div>
       </main>
 

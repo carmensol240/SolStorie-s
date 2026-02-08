@@ -141,11 +141,11 @@ const FlipbookViewer = () => {
     setFlipDirection(direction);
     setIsFlipping(true);
 
-    // Match animation duration for smooth page flip
+    // Soft fade transition (300ms)
     setTimeout(() => {
       setCurrentPage(prev => direction === 'next' ? prev + 1 : prev - 1);
       setIsFlipping(false);
-    }, 500);
+    }, 300);
   };
 
   const handleShare = async () => {
@@ -234,16 +234,35 @@ const FlipbookViewer = () => {
       </header>
 
       {/* Book Container */}
-      <main className="flex-1 flex items-center justify-center p-4 md:p-8">
-        <div className="w-full max-w-xl book-container">
-          {/* Elegant Book Frame */}
+      <main className="flex-1 flex items-center justify-center p-4 md:p-8 relative">
+        <div className="w-full max-w-xl">
+          {/* Subtle navigation arrows on sides */}
+          <button
+            onClick={() => handlePageChange('prev')}
+            disabled={currentPage <= (hasDedication ? -1 : 0) || isFlipping}
+            className="absolute right-4 md:right-8 top-1/2 -translate-y-1/2 z-30 w-10 h-10 md:w-12 md:h-12 rounded-full bg-white/40 hover:bg-white/70 text-purple-600/60 hover:text-purple-700 backdrop-blur-sm transition-all duration-300 disabled:opacity-20 disabled:cursor-not-allowed border border-purple-200/50 shadow-sm hover:shadow-md flex items-center justify-center"
+            aria-label="עמוד קודם"
+          >
+            <ArrowRight className="w-5 h-5 md:w-6 md:h-6" />
+          </button>
+          
+          <button
+            onClick={() => handlePageChange('next')}
+            disabled={currentPage >= pages.length - 1 || isFlipping}
+            className="absolute left-4 md:left-8 top-1/2 -translate-y-1/2 z-30 w-10 h-10 md:w-12 md:h-12 rounded-full bg-white/40 hover:bg-white/70 text-purple-600/60 hover:text-purple-700 backdrop-blur-sm transition-all duration-300 disabled:opacity-20 disabled:cursor-not-allowed border border-purple-200/50 shadow-sm hover:shadow-md flex items-center justify-center"
+            aria-label="עמוד הבא"
+          >
+            <ArrowLeft className="w-5 h-5 md:w-6 md:h-6" />
+          </button>
+
+          {/* Elegant Book Frame with fade transition */}
           <div 
             className={cn(
-              "relative bg-white rounded-2xl overflow-hidden book-page",
+              "relative bg-white rounded-2xl overflow-hidden",
               "shadow-[0_25px_50px_-12px_rgba(0,0,0,0.25)]",
               "border border-purple-200",
-              isFlipping && flipDirection === 'next' && "flip-next",
-              isFlipping && flipDirection === 'prev' && "flip-prev"
+              "transition-opacity duration-300 ease-in-out",
+              isFlipping && "opacity-0"
             )}
           >
             {/* Purple edge decoration */}
@@ -255,7 +274,7 @@ const FlipbookViewer = () => {
                 /* Dedication Page */
                 <div className="flex-1 flex flex-col items-center justify-center text-center">
                   <Heart className="w-12 h-12 text-pink-400 mb-6" />
-                  <p className="font-serif text-xl md:text-2xl text-purple-900 leading-relaxed whitespace-pre-line max-w-md">
+                  <p className="font-serif text-xl md:text-2xl text-purple-900 whitespace-pre-line max-w-md" style={{ lineHeight: '1.7' }}>
                     {digitalBook.dedication_text}
                   </p>
                 </div>
@@ -263,13 +282,13 @@ const FlipbookViewer = () => {
                 /* Cover/Title Page */
                 <div className="flex-1 flex flex-col items-center justify-center text-center space-y-6">
                   <div className="w-20 h-1 bg-gradient-to-r from-transparent via-purple-400 to-transparent" />
-                  <h2 className="font-serif text-3xl md:text-4xl font-bold text-purple-900 leading-relaxed">
+                  <h2 className="font-serif text-3xl md:text-4xl font-bold text-purple-900" style={{ lineHeight: '1.5' }}>
                     הסיפור של
                   </h2>
                   <h3 className="font-serif text-4xl md:text-5xl font-bold bg-gradient-to-r from-purple-600 via-pink-500 to-orange-400 bg-clip-text text-transparent">
                     {story.child_name}
                   </h3>
-                  <p className="font-serif text-lg text-purple-600 mt-4 max-w-xs">
+                  <p className="font-serif text-lg text-purple-600 mt-4 max-w-xs" style={{ lineHeight: '1.6' }}>
                     {story.topic}
                   </p>
                   <div className="w-20 h-1 bg-gradient-to-r from-transparent via-pink-400 to-transparent mt-8" />
@@ -292,17 +311,17 @@ const FlipbookViewer = () => {
                     </div>
                   )}
 
-                  {/* Elegant Typography */}
-                  <div className="flex-1 flex items-center">
-                    <p className="font-serif text-xl md:text-2xl leading-loose text-purple-900 text-right">
+                  {/* Elegant Typography with better line-height */}
+                  <div className="flex-1 flex items-center px-2 md:px-4">
+                    <p className="font-serif text-xl md:text-2xl text-purple-900 text-right" style={{ lineHeight: '1.7' }}>
                       {page.text}
                     </p>
                   </div>
 
-                  {/* Page Number */}
-                  <div className="text-center pt-6 border-t border-purple-100 mt-6">
-                    <span className="font-serif text-purple-500 text-sm">
-                      עמוד {currentPage + 1} מתוך {pages.length}
+                  {/* Discreet page indicator */}
+                  <div className="text-center pt-6 mt-6">
+                    <span className="text-xs text-gray-400 font-light">
+                      {currentPage + 1} / {pages.length}
                     </span>
                   </div>
                 </div>
@@ -311,33 +330,6 @@ const FlipbookViewer = () => {
           </div>
         </div>
       </main>
-
-      {/* Navigation */}
-      <footer className="p-4 md:p-6">
-        <nav className="flex items-center justify-center gap-6 max-w-xl mx-auto">
-          <Button
-            variant="outline"
-            size="lg"
-            onClick={() => handlePageChange('prev')}
-            disabled={currentPage <= (hasDedication ? -1 : 0)}
-            className="rounded-full border-2 border-purple-300 bg-white/80 hover:bg-purple-50 text-purple-700 px-6"
-          >
-            <ArrowRight className="w-5 h-5 ml-2" />
-            הקודם
-          </Button>
-          
-          <Button
-            variant="outline"
-            size="lg"
-            onClick={() => handlePageChange('next')}
-            disabled={currentPage >= pages.length - 1}
-            className="rounded-full border-2 border-purple-300 bg-white/80 hover:bg-purple-50 text-purple-700 px-6"
-          >
-            הבא
-            <ArrowLeft className="w-5 h-5 mr-2" />
-          </Button>
-        </nav>
-      </footer>
     </div>
   );
 };
