@@ -93,7 +93,7 @@ const handler = async (req: Request): Promise<Response> => {
               
               <!-- CTA Button -->
               <div style="text-align: center; margin-bottom: 30px;">
-                <a href="https://id-preview--cc8c1180-5dc9-4849-9798-d96e4a36e7af.lovable.app/create" 
+              <a href="https://www.storytime.org.il/create" 
                    style="display: inline-block; background: linear-gradient(135deg, #f59e0b 0%, #ea580c 100%); color: white; text-decoration: none; padding: 14px 32px; border-radius: 12px; font-weight: bold; font-size: 16px;">
                   צרו סיפור חדש עכשיו →
                 </a>
