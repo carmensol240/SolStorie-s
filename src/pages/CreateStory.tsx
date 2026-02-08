@@ -201,8 +201,8 @@ const CreateStory = () => {
       </header>
 
       {/* Main Content - Scrollable area */}
-      <main className="flex-1 overflow-y-auto overscroll-contain">
-        <div className="container max-w-lg mx-auto px-3 py-3 pb-36">
+      <main className="flex-1 overflow-y-auto overscroll-contain" style={{ WebkitOverflowScrolling: 'touch' }}>
+        <div className="container max-w-lg mx-auto px-3 py-3 pb-40">
 
         {/* Step Content */}
         {step === 1 && (
@@ -231,7 +231,7 @@ const CreateStory = () => {
 
       {/* Fixed Bottom Continue Button */}
       {step < 3 && (
-        <div className="fixed bottom-16 left-0 right-0 z-50 bg-gradient-to-t from-background via-background to-transparent pt-4 pb-2 px-3">
+        <div className="fixed bottom-[4.5rem] left-0 right-0 z-[60] bg-gradient-to-t from-background via-background to-transparent pt-4 pb-2 px-3 pb-safe">
           <div className="container max-w-lg mx-auto">
             <Button
               onClick={handleNext}

@@ -38,7 +38,7 @@ const Home = () => {
     <div className="h-screen h-[100dvh] flex flex-col bg-gradient-to-b from-amber-50/50 to-background overflow-hidden">
       <OfflineIndicator isOnline={isOnline} />
       
-      <div className="flex-1 overflow-hidden flex flex-col pb-16">
+      <div className="flex-1 overflow-y-auto flex flex-col pb-20" style={{ WebkitOverflowScrolling: 'touch' }}>
         <div className="container max-w-lg mx-auto px-4 py-3 flex-1 flex flex-col">
           
           {/* Show LoggedInHome (Sol/Tree) for authenticated users, GuestLanding for guests */}
