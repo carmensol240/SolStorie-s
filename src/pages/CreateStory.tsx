@@ -6,6 +6,7 @@ import MobileNavigation from "@/components/MobileNavigation";
 import ChildInfoStep from "@/components/wizard/ChildInfoStep";
 import TopicStep from "@/components/wizard/TopicStep";
 import GeneratingStep from "@/components/wizard/GeneratingStep";
+import InspirationScreen from "@/components/story/InspirationScreen";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/hooks/use-auth";
 import { useCredits } from "@/hooks/use-credits";
@@ -55,7 +56,7 @@ const CreateStory = () => {
   const navigate = useNavigate();
   const { user, loading } = useAuth();
   const { credits, loading: creditsLoading, hasCredits, useCredit } = useCredits();
-  const [step, setStep] = useState(1);
+  const [step, setStep] = useState(0); // Start at inspiration screen (step 0)
   const [formData, setFormData] = useState<StoryFormData>(INITIAL_DATA);
   const [isGenerating, setIsGenerating] = useState(false);
 
@@ -118,11 +119,17 @@ const CreateStory = () => {
   };
 
   const handleBack = () => {
-    if (step > 1) {
+    if (step === 0) {
+      navigate("/");
+    } else if (step > 1) {
       setStep(step - 1);
     } else {
-      navigate("/");
+      setStep(0); // Go back to inspiration screen
     }
+  };
+
+  const handleInspirationContinue = () => {
+    setStep(1);
   };
 
   const handleStoryGenerated = async (storyId: string) => {
@@ -140,6 +147,20 @@ const CreateStory = () => {
 
   // Map internal step to display step (1,2 -> display steps, 3 -> generating)
   const displayStep = step < 3 ? step : 4;
+
+  // Inspiration screen (step 0) - full screen without header
+  if (step === 0) {
+    return (
+      <div className="min-h-screen min-h-[100dvh] flex flex-col bg-background">
+        <main className="flex-1 overflow-y-auto">
+          <div className="container max-w-lg mx-auto px-3 py-3">
+            <InspirationScreen onContinue={handleInspirationContinue} />
+          </div>
+        </main>
+        <MobileNavigation />
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen min-h-[100dvh] flex flex-col bg-background">
@@ -166,7 +187,7 @@ const CreateStory = () => {
         </div>
         
         {/* Compact Progress Bar - 4 Steps */}
-        {step < 3 && (
+        {step >= 1 && step < 3 && (
           <div className="container max-w-lg mx-auto mt-2">
             <div className="flex items-center justify-between">
               {steps.map((s, index) => (
