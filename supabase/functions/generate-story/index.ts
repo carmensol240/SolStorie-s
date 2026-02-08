@@ -550,17 +550,14 @@ serve(async (req) => {
     // Use avatar URL if available (for character consistency), otherwise use original photo
     const effectivePhoto = childAvatarUrl || childPhoto;
 
-    // Try multiple API key options - prioritize user-configured keys, fall back to Lovable AI
-    const LOVABLE_API_KEY = Deno.env.get("OPENAI_API_KEY") 
-      || Deno.env.get("AI_API_KEY") 
-      || Deno.env.get("LOVABLE_API_KEY");
-    
+    // Use LOVABLE_API_KEY exclusively for ai.gateway.lovable.dev
+    const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
     if (!LOVABLE_API_KEY) {
-      console.error("No API key configured. Please set OPENAI_API_KEY, AI_API_KEY, or LOVABLE_API_KEY");
+      console.error("LOVABLE_API_KEY is not configured");
       throw new Error("API key not configured");
     }
     
-    console.log("Using API key from server secrets");
+    console.log("Using LOVABLE_API_KEY for AI Gateway");
 
     const genderText = childGender === "female" ? "ילדה" : "ילד";
     const pronounHe = childGender === "female" ? "היא" : "הוא";
