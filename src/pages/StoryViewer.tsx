@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef, useCallback } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { Home, BookOpen, Sparkles, Palette, Wand2 } from "lucide-react";
+import { Home, BookOpen, Sparkles, Palette, Wand2, RefreshCw } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
@@ -10,6 +10,7 @@ import { SignedImage } from "@/components/ui/signed-image";
 import OfflineIndicator from "@/components/ui/offline-indicator";
 import EditPageDialog from "@/components/story/edit-page-dialog";
 import DedicationDialog from "@/components/story/DedicationDialog";
+import { GenderSwapDialog } from "@/components/story/GenderSwapDialog";
 import {
   AlertDialog,
   AlertDialogCancel,
@@ -24,7 +25,6 @@ import { useOfflineStorage } from "@/hooks/use-offline-storage";
 import { useSettings } from "@/hooks/use-settings";
 import { usePdfExport } from "@/hooks/use-pdf-export";
 import { useNikud } from "@/hooks/use-nikud";
-
 
 import { useAuth } from "@/hooks/use-auth";
 import { useIsMobile } from "@/hooks/use-mobile";
@@ -44,6 +44,7 @@ interface StoryPage {
 interface Story {
   id: string;
   child_name: string;
+  child_gender?: string;
   topic: string;
   pages: StoryPage[];
   generation_status?: string;
@@ -76,6 +77,7 @@ const StoryViewer = () => {
   const [showDedicationDialog, setShowDedicationDialog] = useState(false);
   const [isCreatingDigitalBook, setIsCreatingDigitalBook] = useState(false);
   const [showPdfFormatDialog, setShowPdfFormatDialog] = useState(false);
+  const [showGenderSwapDialog, setShowGenderSwapDialog] = useState(false);
   
   const { trackStoryStarted, trackStoryCompleted, trackPageViewed, trackFeatureUsed } = useAnalytics();
   const { isOnline, cacheStory, getCachedStory } = useOfflineStorage();
@@ -242,6 +244,7 @@ const StoryViewer = () => {
       const storyObj: Story = {
         id: storyData.id,
         child_name: storyData.child_name,
+        child_gender: (storyData as any).child_gender || 'male',
         topic: storyData.topic,
         pages: pagesData || [],
         generation_status: status,
@@ -726,6 +729,17 @@ const StoryViewer = () => {
                     לספרייה
                   </Button>
                 </div>
+
+                {/* Gender Swap Button */}
+                <Button
+                  variant="link"
+                  size="sm"
+                  onClick={() => setShowGenderSwapDialog(true)}
+                  className="mt-4 text-purple-500 hover:text-purple-700 text-sm"
+                >
+                  <RefreshCw className="w-4 h-4 ml-1" />
+                  התבלבלתם במגדר? לחצו לתיקון מהיר
+                </Button>
               </div>
             ) : (
               /* Story Pages - Dual Page Layout with Illustrations */
@@ -887,6 +901,17 @@ const StoryViewer = () => {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      {/* Gender Swap Dialog */}
+      {storyId && story?.child_gender && (
+        <GenderSwapDialog
+          open={showGenderSwapDialog}
+          onOpenChange={setShowGenderSwapDialog}
+          storyId={storyId}
+          currentGender={story.child_gender as "male" | "female"}
+          onSuccess={fetchStory}
+        />
+      )}
     </div>
   );
 };
