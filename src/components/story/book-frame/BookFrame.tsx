@@ -19,14 +19,14 @@ export const BookFrame: React.FC<BookFrameProps> = ({
       "relative w-full max-w-6xl mx-auto book-container",
       className
     )}>
-      {/* Outer Book Frame - Golden/Worn edges */}
+      {/* Outer Book Frame - Elegant with fade transitions */}
       <div className={cn(
-        "relative rounded-xl overflow-hidden book-page",
-        // 3D Book Shadow Effect with purple theme
-        "shadow-[0_20px_60px_rgba(0,0,0,0.3),0_0_0_4px_theme(colors.purple.400),0_0_0_8px_theme(colors.purple.600),inset_0_0_60px_rgba(147,51,234,0.1)]",
-        // Book flip animation classes
-        isFlipping && flipDirection === 'next' && "flip-next",
-        isFlipping && flipDirection === 'prev' && "flip-prev"
+        "relative rounded-xl overflow-hidden",
+        // Elegant shadow with purple theme
+        "shadow-[0_20px_60px_rgba(0,0,0,0.15),0_0_0_4px_theme(colors.purple.300),0_0_0_8px_theme(colors.purple.500),inset_0_0_60px_rgba(147,51,234,0.05)]",
+        // Gentle fade transition instead of flip
+        "transition-opacity duration-300 ease-in-out",
+        isFlipping && "opacity-0"
       )}>
         {/* Decorative Frame Border - Purple-pink gradient effect */}
         <div className="absolute inset-0 pointer-events-none z-20">
