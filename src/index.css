@@ -507,3 +507,31 @@
     min-height: 48px;
     font-size: 1.1rem;
   }
+}
+
+/* Font Size Accessibility Classes */
+.font-size-small {
+  --story-font-size: 1rem;
+  --story-font-size-md: 1.125rem;
+}
+
+.font-size-medium {
+  --story-font-size: 1.25rem;
+  --story-font-size-md: 1.5rem;
+}
+
+.font-size-large {
+  --story-font-size: 1.5rem;
+  --story-font-size-md: 1.875rem;
+}
+
+/* Apply font size to story viewer text */
+.story-text {
+  font-size: var(--story-font-size, 1.25rem);
+}
+
+@media (min-width: 768px) {
+  .story-text {
+    font-size: var(--story-font-size-md, 1.5rem);
+  }
+}

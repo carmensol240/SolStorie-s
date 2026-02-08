@@ -1,13 +1,17 @@
 import { useState, useEffect, createContext, useContext } from "react";
 
+export type FontSize = 'small' | 'medium' | 'large';
+
 interface AccessibilitySettings {
   visualAidMode: boolean;
   audioSupport: boolean;
+  fontSize: FontSize;
 }
 
 interface AccessibilityContextValue extends AccessibilitySettings {
   setVisualAidMode: (enabled: boolean) => void;
   setAudioSupport: (enabled: boolean) => void;
+  setFontSize: (size: FontSize) => void;
 }
 
 const STORAGE_KEY = "accessibility_settings";
@@ -15,6 +19,7 @@ const STORAGE_KEY = "accessibility_settings";
 const defaultSettings: AccessibilitySettings = {
   visualAidMode: false,
   audioSupport: false,
+  fontSize: 'medium',
 };
 
 export const AccessibilityContext = createContext<AccessibilityContextValue | null>(null);
@@ -43,6 +48,12 @@ export const useAccessibilityState = (): AccessibilityContextValue => {
     }
   }, [settings.visualAidMode]);
 
+  // Apply font size to document
+  useEffect(() => {
+    document.documentElement.classList.remove("font-size-small", "font-size-medium", "font-size-large");
+    document.documentElement.classList.add(`font-size-${settings.fontSize}`);
+  }, [settings.fontSize]);
+
   // Persist settings
   useEffect(() => {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(settings));
@@ -56,9 +67,14 @@ export const useAccessibilityState = (): AccessibilityContextValue => {
     setSettings((prev) => ({ ...prev, audioSupport: enabled }));
   };
 
+  const setFontSize = (size: FontSize) => {
+    setSettings((prev) => ({ ...prev, fontSize: size }));
+  };
+
   return {
     ...settings,
     setVisualAidMode,
     setAudioSupport,
+    setFontSize,
   };
 };

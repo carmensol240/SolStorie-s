@@ -5,7 +5,10 @@ import {
   FileDown, 
   Menu,
   Type,
-  Book
+  Book,
+  Volume2,
+  VolumeX,
+  Loader2
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
@@ -33,10 +36,15 @@ interface BookHeaderProps {
   onReport?: () => void;
   onAddNikud?: () => void;
   onDraw?: () => void;
+  onReadAloud?: () => void;
+  onStopReading?: () => void;
   fontSizeLabel: string;
   isExporting?: boolean;
   isAddingNikud?: boolean;
   showPageActions?: boolean;
+  showReadAloud?: boolean;
+  isReading?: boolean;
+  isLoadingAudio?: boolean;
 }
 
 export const BookHeader: React.FC<BookHeaderProps> = ({
@@ -50,10 +58,15 @@ export const BookHeader: React.FC<BookHeaderProps> = ({
   onReport,
   onAddNikud,
   // onDraw removed - not in essential list
+  onReadAloud,
+  onStopReading,
   fontSizeLabel,
   isExporting = false,
   isAddingNikud = false,
   showPageActions = false,
+  showReadAloud = false,
+  isReading = false,
+  isLoadingAudio = false,
 }) => {
   return (
     <header className="sticky top-0 z-40 bg-gradient-to-r from-purple-600 via-pink-500 to-orange-400 px-3 py-2 shadow-lg">
@@ -76,6 +89,36 @@ export const BookHeader: React.FC<BookHeaderProps> = ({
 
         {/* Center Actions - Essentials Only */}
         <div className="flex items-center gap-1 md:gap-2">
+          {/* Read Aloud Toggle - Only shows when audioSupport is enabled */}
+          {showReadAloud && showPageActions && (
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={isReading ? onStopReading : onReadAloud}
+                  disabled={isLoadingAudio}
+                  className={cn(
+                    "text-[#F5E6D3] hover:bg-white/10 min-h-[44px] min-w-[44px] p-2",
+                    isReading && "bg-white/20"
+                  )}
+                  aria-label={isReading ? "עצור הקראה" : "הקראת הטקסט"}
+                >
+                  {isLoadingAudio ? (
+                    <Loader2 className="w-5 h-5 animate-spin" />
+                  ) : isReading ? (
+                    <VolumeX className="w-5 h-5" />
+                  ) : (
+                    <Volume2 className="w-5 h-5" />
+                  )}
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent side="bottom">
+                {isLoadingAudio ? 'טוען...' : isReading ? 'עצור הקראה' : 'הקראת הטקסט'}
+              </TooltipContent>
+            </Tooltip>
+          )}
+
           {/* Font Size Toggle */}
           <Tooltip>
             <TooltipTrigger asChild>

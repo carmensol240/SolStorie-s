@@ -25,10 +25,13 @@ import { useOfflineStorage } from "@/hooks/use-offline-storage";
 import { useSettings } from "@/hooks/use-settings";
 import { usePdfExport } from "@/hooks/use-pdf-export";
 import { useNikud } from "@/hooks/use-nikud";
+import { useTextToSpeech } from "@/hooks/use-text-to-speech";
+import { useAccessibility } from "@/hooks/use-accessibility";
 
 import { useAuth } from "@/hooks/use-auth";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { useSwipe } from "@/hooks/use-swipe";
+import { useSignedUrls } from "@/hooks/use-signed-urls";
 import { BookFrame, BookPage, BookHeader, NavigationArrows } from "@/components/story/book-frame";
 import { FileDown } from "lucide-react";
 
@@ -84,6 +87,9 @@ const StoryViewer = () => {
   const { settings } = useSettings();
   const { exportToPdf, isExporting } = usePdfExport();
   const { addNikud, isLoading: isAddingNikud } = useNikud();
+  const { startReading, stopReading, isReading, isLoading: isLoadingAudio } = useTextToSpeech();
+  const { audioSupport } = useAccessibility();
+  const { getSignedUrl } = useSignedUrls();
   
   const { user } = useAuth();
   const hasTrackedStart = useRef(false);
@@ -114,8 +120,20 @@ const StoryViewer = () => {
   useEffect(() => {
     if (story && currentPage >= 0) {
       trackPageViewed(story.id, currentPage);
+      
+      // Pre-fetch next image for smooth transitions
+      if (currentPage < story.pages.length - 1) {
+        const nextPage = story.pages[currentPage + 1];
+        if (nextPage?.illustration_url) {
+          const signedUrl = getSignedUrl(nextPage.illustration_url);
+          if (signedUrl) {
+            const img = new Image();
+            img.src = signedUrl;
+          }
+        }
+      }
     }
-  }, [currentPage, story?.id]);
+  }, [currentPage, story?.id, getSignedUrl]);
 
   // Poll for illustration updates when status is generating_illustrations
   const pollForUpdates = useCallback(async () => {
@@ -597,10 +615,15 @@ const StoryViewer = () => {
         onEdit={showPageActions ? handleEditClick : undefined}
         onAddNikud={showPageActions ? handleAddNikud : undefined}
         onReport={handleReportIssue}
+        onReadAloud={page?.text ? () => startReading(page.text) : undefined}
+        onStopReading={stopReading}
         fontSizeLabel={currentFontSize.label}
         isExporting={isExporting}
         isAddingNikud={isAddingNikud}
         showPageActions={showPageActions}
+        showReadAloud={audioSupport}
+        isReading={isReading}
+        isLoadingAudio={isLoadingAudio}
       />
 
       {/* Book Container with Swipe Support */}
