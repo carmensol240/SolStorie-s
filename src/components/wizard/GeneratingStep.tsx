@@ -126,7 +126,18 @@ const GeneratingStep = ({ formData, onComplete }: GeneratingStepProps) => {
         if (apiError.message?.includes("429")) {
           throw new Error("יותר מדי בקשות. נסו שוב בעוד מספר דקות.");
         }
+        // Check for commercial abuse (403)
+        if (apiError.message?.includes("403") || apiError.message?.includes("COMMERCIAL_ABUSE") || apiError.message?.includes("שימוש פרטי")) {
+          setError("זוהי מערכת לשימוש פרטי בלבד. נראה שחרגת ממכסת השמות המותרת. לשימוש עסקי, אנא פנה לשירות הלקוחות.");
+          return;
+        }
         throw apiError;
+      }
+
+      // Check if response data contains commercial abuse error
+      if (data?.code === "COMMERCIAL_ABUSE") {
+        setError(data.error || "זוהי מערכת לשימוש פרטי בלבד. נראה שחרגת ממכסת השמות המותרת. לשימוש עסקי, אנא פנה לשירות הלקוחות.");
+        return;
       }
 
       if (!data?.storyId) {
