@@ -51,37 +51,23 @@ const GuestLanding = () => {
 
   return (
     <div className="flex-1 flex flex-col animate-fade-in relative">
-      {/* Fixed sky gradient background - z-index -2 to stay behind everything */}
+      {/* Fixed full-screen hero image background */}
       <div 
-        className="fixed inset-0"
+        className="fixed inset-0 pointer-events-none"
         style={{ 
-          background: 'linear-gradient(180deg, #87CEEB 0%, #B0E0E6 40%, #E0F4FF 70%, #F0F8FF 100%)',
+          backgroundImage: `url(${heroFlyingGirl})`,
+          backgroundSize: 'cover',
+          backgroundPosition: 'center',
+          backgroundRepeat: 'no-repeat',
           zIndex: -2
         }}
       />
 
-      {/* Fixed hero image - z-index -1 to stay behind content but above gradient */}
+      {/* Soft overlay for text readability */}
       <div 
-        className="fixed inset-0 flex items-center justify-center pointer-events-none"
-        style={{ zIndex: -1, top: '15%' }}
-      >
-        <div 
-          className="w-52 h-52 sm:w-64 sm:h-64 rounded-3xl animate-pulse-glow-soft"
-          style={{
-            backgroundImage: `url(${heroFlyingGirl})`,
-            backgroundSize: 'cover',
-            backgroundPosition: 'center',
-            boxShadow: '0 8px 32px rgba(135, 206, 235, 0.4), 0 0 60px rgba(255, 255, 255, 0.3), inset 0 0 20px rgba(255, 255, 255, 0.2)',
-            border: '2px solid rgba(255, 255, 255, 0.4)'
-          }}
-        />
-      </div>
-
-      {/* Subtle warm overlay at bottom for depth */}
-      <div 
-        className="fixed inset-0 pointer-events-none" 
+        className="fixed inset-0 pointer-events-none"
         style={{ 
-          background: 'linear-gradient(to bottom, transparent 60%, rgba(255, 251, 235, 0.3) 100%)',
+          background: 'linear-gradient(180deg, rgba(135, 206, 235, 0.4) 0%, rgba(255, 255, 255, 0.5) 50%, rgba(255, 251, 235, 0.6) 100%)',
           zIndex: -1 
         }} 
       />
