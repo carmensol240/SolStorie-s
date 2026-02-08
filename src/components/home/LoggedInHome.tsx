@@ -103,18 +103,18 @@ const LoggedInHome = ({ user, displayName }: LoggedInHomeProps) => {
         {/* Welcome Gift Banner - shows only for new users */}
         <WelcomeGiftBanner credits={credits} storyCount={storyCount} />
 
-        {/* Single Primary CTA Button - SMALLER, bottom-center, maximum transparency */}
-        <div className="pb-24 flex justify-center">
+        {/* Single Primary CTA Button - Proportional sizing, bottom-center, maximum transparency */}
+        <div className="pb-24 flex justify-center px-4">
           <button
             onClick={() => navigate("/create")}
-            className="logged-in-action-box flex items-center justify-center gap-3 rounded-2xl px-6 py-3 hover:scale-[1.02] transition-all"
+            className="logged-in-action-box flex items-center justify-center gap-3 rounded-2xl px-6 py-3 md:px-8 md:py-4 hover:scale-[1.02] transition-all w-full max-w-[280px]"
           >
-            <div className="w-9 h-9 bg-gradient-to-r from-purple-600 to-pink-500 rounded-xl flex items-center justify-center shadow-md">
-              <Wand2 className="w-4 h-4 text-white" />
+            <div className="w-9 h-9 md:w-10 md:h-10 bg-gradient-to-r from-purple-600 to-pink-500 rounded-xl flex items-center justify-center shadow-md flex-shrink-0">
+              <Wand2 className="w-4 h-4 md:w-5 md:h-5 text-white" />
             </div>
             <div className="text-right">
-              <h3 className="font-black text-base bg-gradient-to-r from-purple-700 via-pink-600 to-orange-500 bg-clip-text text-transparent">יוצאים להרפתקה</h3>
-              <p className="text-xs text-purple-900/70">סיפור מותאם אישית ✨</p>
+              <h3 className="font-black text-base md:text-lg bg-gradient-to-r from-purple-700 via-pink-600 to-orange-500 bg-clip-text text-transparent">יוצאים להרפתקה</h3>
+              <p className="text-xs md:text-sm text-purple-900/70">סיפור מותאם אישית ✨</p>
             </div>
           </button>
         </div>

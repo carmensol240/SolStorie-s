@@ -1252,6 +1252,9 @@ const Auth = () => {
                       {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
                     </button>
                   </div>
+                  <p className="text-xs text-muted-foreground mt-1 text-right">
+                    💡 לידיעתך: יש ליצור סיסמה חדשה לאפליקציה (זו לא חייבת להיות סיסמת המייל שלך)
+                  </p>
                 </div>
 
                 <Button

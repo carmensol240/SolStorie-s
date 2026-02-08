@@ -6,6 +6,7 @@ import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import ErrorBoundary from "@/components/ErrorBoundary";
 import BetaBanner from "@/components/BetaBanner";
 import AccessibilityProvider from "@/components/AccessibilityProvider";
+import AccessibilityMenu from "@/components/AccessibilityMenu";
 import Home from "./pages/Home";
 import Auth from "./pages/Auth";
 import VerifyEmail from "./pages/VerifyEmail";
@@ -37,6 +38,7 @@ const App = () => (
       <AccessibilityProvider>
         <TooltipProvider>
           <BetaBanner />
+          <AccessibilityMenu />
         <Toaster />
         <Sonner />
         <BrowserRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
