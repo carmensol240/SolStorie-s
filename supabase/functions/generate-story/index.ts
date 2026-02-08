@@ -461,13 +461,17 @@ serve(async (req) => {
     }
 
     const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
-    const supabaseAnonKey = Deno.env.get("SUPABASE_ANON_KEY")!;
+    const supabaseServiceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
     
-    const supabase = createClient(supabaseUrl, supabaseAnonKey, {
-      global: { headers: { Authorization: authHeader } }
-    });
+    // Create client with SERVICE_ROLE_KEY for server-side operations
+    const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
-    const { data: { user }, error: authError } = await supabase.auth.getUser();
+    // Extract token and validate directly with getUser(token)
+    const token = authHeader.replace("Bearer ", "");
+    console.log("Validating token...");
+    const { data: { user }, error: authError } = await supabase.auth.getUser(token);
+    console.log("getUser result - user exists:", !!user, "error:", authError?.message);
+    
     if (authError || !user) {
       return new Response(
         JSON.stringify({ error: "טוקן לא תקין או שפג תוקפו" }),
