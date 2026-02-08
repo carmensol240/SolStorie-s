@@ -119,6 +119,7 @@
     overflow-x: hidden;
     min-height: 100vh;
     min-height: 100dvh;
+    -webkit-overflow-scrolling: touch; /* Momentum scrolling for iOS */
   }
 
   body {
@@ -138,6 +139,23 @@
 @layer utilities {
   /* Safe area padding for mobile devices with notches/home indicators */
   .pb-safe {
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+  }
+
+  /* Scroll container with safe bottom padding for fixed nav */
+  .scroll-container {
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+    overscroll-behavior-y: contain;
+  }
+
+  /* Fixed bottom action button container */
+  .fixed-bottom-action {
+    position: fixed;
+    bottom: 4.5rem; /* 72px - above mobile nav */
+    left: 0;
+    right: 0;
+    z-index: 60;
     padding-bottom: env(safe-area-inset-bottom, 0px);
   }
 
