@@ -69,18 +69,18 @@ const LoggedInHome = ({ user, displayName }: LoggedInHomeProps) => {
         {/* Spacer to push CTA to bottom-center area */}
         <div className="flex-1" />
 
-        {/* Single Primary CTA Button - Centered at bottom */}
-        <div className="pb-8 px-4">
+        {/* Single Primary CTA Button - Lower, narrower, glass effect */}
+        <div className="pb-28 px-4 mb-4">
           <button
             onClick={() => navigate("/create")}
-            className="w-full flex items-center justify-center gap-4 bg-gradient-to-r from-purple-700 via-purple-600 to-[#8B5A2B] rounded-2xl p-5 shadow-xl shadow-black/30 border-2 border-purple-400/30 hover:from-purple-800 hover:via-purple-700 hover:to-[#6B4423] hover:shadow-2xl hover:scale-[1.02] transition-all"
+            className="max-w-xs mx-auto flex items-center justify-center gap-3 bg-white/30 backdrop-blur-md border border-white/40 rounded-2xl p-4 shadow-lg hover:bg-white/40 hover:scale-[1.02] transition-all"
           >
-            <div className="w-12 h-12 bg-white/20 rounded-xl flex items-center justify-center">
-              <Wand2 className="w-7 h-7 text-white" />
+            <div className="w-10 h-10 bg-gradient-to-r from-purple-600 to-pink-500 rounded-xl flex items-center justify-center shadow-md">
+              <Wand2 className="w-5 h-5 text-white" />
             </div>
             <div className="text-right">
-              <h3 className="font-black text-xl text-white">יוצאים להרפתקה חדשה</h3>
-              <p className="text-sm text-purple-200/90">סיפור מותאם אישית לילד שלך ✨</p>
+              <h3 className="font-black text-lg bg-gradient-to-r from-purple-700 via-pink-600 to-orange-500 bg-clip-text text-transparent">יוצאים להרפתקה</h3>
+              <p className="text-xs text-purple-800/80">סיפור מותאם אישית ✨</p>
             </div>
           </button>
         </div>

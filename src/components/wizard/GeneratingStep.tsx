@@ -256,15 +256,38 @@ const GeneratingStep = ({ formData, onComplete }: GeneratingStepProps) => {
     );
   }
 
-  // Parent recommendations that rotate
-  const PARENT_RECOMMENDATIONS = [
-    { quote: "הילד שלי מבקש סיפור חדש כל לילה!", author: "מיכל", role: "אמא לבן 4" },
-    { quote: "סוף סוף הבנתי שצחצוח שיניים זה כיף!", author: "דניאל", role: "אבא לבת 3" },
-    { quote: "התאהבנו בסיפורים! הם עזרו לנו להתמודד עם פחד מהחושך", author: "שירה", role: "אמא לבן 5" },
+  // Parent testimonials carousel with professional cards
+  const PARENT_TESTIMONIALS = [
+    { 
+      name: "הורה מ.", 
+      quote: "הילדה שלי מאושרת! כל לילה מבקשת לקרוא את הסיפור שלה שוב ושוב.",
+      rating: 5 
+    },
+    { 
+      name: "הורה י.", 
+      quote: "הילדים שלי מתים על הסיפורים. הם מרגישים כמו גיבורים אמיתיים.",
+      rating: 5 
+    },
+    { 
+      name: "הורה ר.", 
+      quote: "האיורים מדהימים והסיפורים מותאמים בצורה מושלמת לגיל.",
+      rating: 5 
+    },
+    { 
+      name: "הורה א.", 
+      quote: "יצרנו סיפור על הפחד מהחושך והילד שלי התגבר על הפחד תוך שבוע!",
+      rating: 5 
+    },
   ];
 
-  // Use the same rotation index as sentences for variety
-  const currentRecommendation = PARENT_RECOMMENDATIONS[sentenceIndex % PARENT_RECOMMENDATIONS.length];
+  const currentTestimonial = PARENT_TESTIMONIALS[sentenceIndex % PARENT_TESTIMONIALS.length];
+  
+  // Render 5 golden stars
+  const renderStars = (count: number) => {
+    return Array(count).fill(0).map((_, i) => (
+      <span key={i} className="text-yellow-400 text-sm">★</span>
+    ));
+  };
 
   return (
     <div className="flex flex-col items-center justify-center min-h-screen min-h-[100dvh] text-center space-y-6 bg-gradient-to-b from-[#FAF3E8] to-[#F5E6D3] p-6">
@@ -340,29 +363,28 @@ const GeneratingStep = ({ formData, onComplete }: GeneratingStepProps) => {
         </p>
       </div>
 
-      {/* Tip Card with theme colors */}
-      <div className="bg-white/80 backdrop-blur-sm rounded-xl p-3 shadow-md border border-purple-200 max-w-xs">
-        <p className="text-sm text-purple-700">
-          💡 <strong className="text-purple-800">טיפ:</strong> הטקסט נוצר תוך שניות! האיורים יופיעו בזמן שתקראו ✨
-        </p>
-      </div>
-
-      {/* Parent Recommendations - Social Proof */}
-      <div className="w-full max-w-sm mt-4 space-y-2">
-        <h3 className="text-center text-sm font-semibold text-purple-700">
+      {/* Parent Testimonials - Professional Carousel Cards */}
+      <div className="w-full max-w-sm space-y-2">
+        <h3 className="text-center text-sm font-bold text-purple-700">
           הורים ממליצים ✨
         </h3>
         <div
-          className={`bg-white/60 rounded-lg p-3 border border-purple-100 transition-opacity duration-500 ${
+          className={`bg-white rounded-xl p-4 shadow-lg border border-purple-100 transition-opacity duration-500 ${
             isSentenceVisible ? "opacity-100" : "opacity-0"
           }`}
         >
-          <p className="text-xs text-purple-600 italic">
-            "{currentRecommendation.quote}"
+          {/* Parent name */}
+          <p className="text-sm font-bold text-purple-800 mb-2">
+            {currentTestimonial.name}
           </p>
-          <p className="text-[10px] text-purple-400 mt-1">
-            - {currentRecommendation.author}, {currentRecommendation.role}
+          {/* Quote */}
+          <p className="text-sm text-purple-600 italic leading-relaxed mb-2">
+            "{currentTestimonial.quote}"
           </p>
+          {/* 5 Golden Stars */}
+          <div className="flex justify-center gap-0.5">
+            {renderStars(currentTestimonial.rating)}
+          </div>
         </div>
       </div>
     </div>

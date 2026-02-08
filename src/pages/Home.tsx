@@ -1,5 +1,4 @@
 import MobileNavigation from "@/components/MobileNavigation";
-import DebugMenu from "@/components/DebugMenu";
 import OfflineIndicator from "@/components/ui/offline-indicator";
 import GuestLanding from "@/components/home/GuestLanding";
 import { useOfflineStorage } from "@/hooks/use-offline-storage";
@@ -13,7 +12,6 @@ const Home = () => {
   return (
     <div className="h-screen h-[100dvh] flex flex-col bg-gradient-to-b from-amber-50/50 to-background overflow-hidden">
       <OfflineIndicator isOnline={isOnline} />
-      <DebugMenu />
       
       <div className="flex-1 overflow-hidden flex flex-col pb-16">
         <div className="container max-w-lg mx-auto px-4 py-3 flex-1 flex flex-col">

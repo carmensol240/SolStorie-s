@@ -173,6 +173,37 @@ const SYSTEM_PROMPT = `## 🧠 מערכת סיפורי ילדים טיפוליי
   ]
 }`;
 
+// Hebrew topic translation map for displaying in library
+const TOPIC_HEBREW_MAP: Record<string, string> = {
+  "space-adventure": "הרפתקה בחלל",
+  "magic-kingdom": "ממלכת הקסם",
+  "bedtime-story": "סיפור לפני השינה",
+  "body-hero-teeth": "צחצוח שיניים",
+  "body-hero-bath": "אמבטיה של כיף",
+  "body-hero-hands": "שטיפת ידיים",
+  "body-hero-nails": "גזירת ציפורניים",
+  "pacifier-fairy": "פיית המוצץ",
+  "friendship-courage": "חברים בגן",
+  "zoo-adventure": "טיול בגן החיות",
+  "family-trip": "טיול משפחתי",
+  "birthday-party": "מסיבת יום הולדת",
+  "clean-room": "לסדר את החדר",
+  "potty-training": "גמילה מחיתולים",
+  "dentist-visit": "ביקור אצל רופא השיניים",
+  "new-sibling": "נולד לי אח/ות",
+  "fears": "התמודדות עם פחדים",
+  "friends": "חברויות חדשות",
+  "kindergarten": "יום ראשון בגן",
+  "siblings": "אח או אחות חדשה",
+  "confidence": "ביטחון עצמי",
+  "nature": "הרפתקה בטבע",
+};
+
+// Helper function to translate topic ID to Hebrew
+function getHebrewTopic(topicId: string): string {
+  return TOPIC_HEBREW_MAP[topicId] || topicId;
+}
+
 // Character Profile interface for consistency across illustrations
 // This "locked" profile is extracted once and injected into EVERY page illustration
 interface CharacterProfile {
@@ -824,11 +855,14 @@ ${adventureLogic ? `
 
     // Create the story first - include user_id for gallery privacy
     // Set generation_status to 'generating_illustrations' - illustrations will be created async
+    // Save topic in Hebrew for library display
+    const hebrewTopic = getHebrewTopic(topic);
+    
     const storyInsertData: any = {
       child_name: childName,
       child_gender: childGender,
       age_range: ageRange,
-      topic: topic,
+      topic: hebrewTopic, // Store Hebrew topic for display
       nikud: nikud,
       generation_status: "generating_illustrations",
     };
