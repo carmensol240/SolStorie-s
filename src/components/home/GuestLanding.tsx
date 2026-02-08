@@ -13,22 +13,22 @@ const FeatureCard = ({ icon, title, subtitle }: FeatureCardProps) => (
     className="flex items-center gap-3 rounded-2xl p-3 w-full transition-all hover:shadow-lg" 
     dir="rtl"
     style={{
-      background: 'rgba(255, 255, 255, 0.6)',
-      backdropFilter: 'blur(10px)',
-      WebkitBackdropFilter: 'blur(10px)',
-      border: '1px solid rgba(255, 255, 255, 0.3)',
-      boxShadow: '0 4px 30px rgba(0, 0, 0, 0.1)'
+      background: 'rgba(255, 255, 255, 0.25)',
+      backdropFilter: 'blur(12px)',
+      WebkitBackdropFilter: 'blur(12px)',
+      border: '1px solid rgba(255, 255, 255, 0.4)',
+      boxShadow: '0 8px 32px rgba(0, 0, 0, 0.08)'
     }}
   >
     <div className="w-9 h-9 bg-gradient-to-br from-purple-500 to-purple-700 rounded-xl flex items-center justify-center shadow-lg flex-shrink-0">
       {icon}
     </div>
     <div className="flex-1">
-      <h3 className="text-xs font-bold text-purple-800 leading-tight">
+      <h3 className="text-xs font-bold text-purple-900 leading-tight drop-shadow-sm">
         {title}
       </h3>
         <p 
-          className="font-medium text-purple-600"
+          className="font-medium text-purple-800 drop-shadow-sm"
           style={{ fontSize: '0.9rem', lineHeight: '1.4' }}
         >
         {subtitle}
@@ -42,7 +42,7 @@ const GuestLanding = () => {
     {
       icon: <Sparkles className="w-5 h-5 text-white" aria-hidden="true" />,
       title: "התאמה אישית חכמה",
-      subtitle: "סיפורים שנבנים עבור ילדכם, עם התאמה רגישה גם לרצף התקשורתי.",
+      subtitle: "סיפורים שנבנים עבור ילדכם בשילוב כלים מעולם ה-NLP, עם התאמה רגישה גם לרצף התקשורתי.",
     },
     {
       icon: <Users className="w-5 h-5 text-white" aria-hidden="true" />,
@@ -60,10 +60,12 @@ const GuestLanding = () => {
     <div className="flex-1 flex flex-col animate-fade-in relative">
       {/* Soft blue sky background with distributed clouds */}
       <div 
-        className="absolute inset-0 -mx-4 -mt-3"
+        className="fixed inset-0"
         style={{ 
-          marginBottom: '-4rem',
-          background: 'linear-gradient(180deg, #87CEEB 0%, #B0E0E6 40%, #E0F4FF 70%, #F0F8FF 100%)'
+          background: 'linear-gradient(180deg, #87CEEB 0%, #B0E0E6 40%, #E0F4FF 70%, #F0F8FF 100%)',
+          backgroundSize: 'cover',
+          backgroundAttachment: 'fixed',
+          zIndex: 0
         }}
       >
         {/* Top clouds */}
