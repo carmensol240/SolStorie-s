@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Accessibility, Eye, Volume2, X } from "lucide-react";
+import { Accessibility, Eye, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   Popover,
@@ -14,7 +14,7 @@ const AccessibilityMenu = () => {
     return localStorage.getItem('accessibility_dismissed') === 'true';
   });
   
-  const { visualAidMode, audioSupport, setVisualAidMode, setAudioSupport } = useAccessibility();
+  const { visualAidMode, setVisualAidMode } = useAccessibility();
 
   const handleDismiss = (e: React.MouseEvent) => {
     e.stopPropagation();
@@ -74,24 +74,6 @@ const AccessibilityMenu = () => {
               checked={visualAidMode}
               onCheckedChange={setVisualAidMode}
               aria-label="הפעל מצב ניגודיות גבוהה"
-            />
-          </div>
-
-          {/* Audio Support */}
-          <div className="flex items-center justify-between gap-3 p-3 rounded-xl bg-muted/50">
-            <div className="flex items-center gap-3">
-              <div className="h-9 w-9 rounded-lg bg-blue-100 dark:bg-blue-900/30 flex items-center justify-center">
-                <Volume2 className="h-5 w-5 text-blue-600 dark:text-blue-400" />
-              </div>
-              <div className="text-right">
-                <p className="font-medium text-sm text-foreground">תמיכה קולית</p>
-                <p className="text-xs text-muted-foreground">הצג כפתור הקראה בסיפורים</p>
-              </div>
-            </div>
-            <Switch
-              checked={audioSupport}
-              onCheckedChange={setAudioSupport}
-              aria-label="הפעל תמיכה קולית"
             />
           </div>
         </div>

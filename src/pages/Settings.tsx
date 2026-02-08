@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { ArrowRight, Users, Mail, Trash2, LogOut, FileText, Shield, Coins, Eye, Info, Volume2, Accessibility } from "lucide-react";
+import { ArrowRight, Users, Mail, Trash2, LogOut, FileText, Shield, Coins, Eye, Info, Accessibility } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
 import { useAuth } from "@/hooks/use-auth";
@@ -24,7 +24,7 @@ const Settings = () => {
   const { user, signOut } = useAuth();
   const { credits } = useCredits();
   const { shareCoins } = useReferral();
-  const { visualAidMode, audioSupport, setVisualAidMode, setAudioSupport } = useAccessibility();
+  const { visualAidMode, setVisualAidMode } = useAccessibility();
   const [aboutOpen, setAboutOpen] = useState(false);
   const [accessibilityOpen, setAccessibilityOpen] = useState(false);
 
@@ -208,24 +208,6 @@ const Settings = () => {
                 checked={visualAidMode}
                 onCheckedChange={setVisualAidMode}
                 aria-label="הפעל מצב ניגודיות גבוהה"
-              />
-            </div>
-
-            {/* Audio Support */}
-            <div className="flex items-center justify-between gap-3 p-3 rounded-xl bg-muted/50">
-              <div className="flex items-center gap-3">
-                <div className="h-9 w-9 rounded-lg bg-blue-100 dark:bg-blue-900/30 flex items-center justify-center">
-                  <Volume2 className="h-5 w-5 text-blue-600 dark:text-blue-400" />
-                </div>
-                <div className="text-right">
-                  <p className="font-medium text-sm text-foreground">תמיכה קולית</p>
-                  <p className="text-xs text-muted-foreground">הצג כפתור הקראה בסיפורים</p>
-                </div>
-              </div>
-              <Switch
-                checked={audioSupport}
-                onCheckedChange={setAudioSupport}
-                aria-label="הפעל תמיכה קולית"
               />
             </div>
           </div>

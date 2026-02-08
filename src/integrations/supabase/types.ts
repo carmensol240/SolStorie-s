@@ -127,6 +127,74 @@ export type Database = {
         }
         Relationships: []
       }
+      coupon_redemptions: {
+        Row: {
+          coupon_id: string
+          id: string
+          redeemed_at: string | null
+          user_id: string
+        }
+        Insert: {
+          coupon_id: string
+          id?: string
+          redeemed_at?: string | null
+          user_id: string
+        }
+        Update: {
+          coupon_id?: string
+          id?: string
+          redeemed_at?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "coupon_redemptions_coupon_id_fkey"
+            columns: ["coupon_id"]
+            isOneToOne: false
+            referencedRelation: "coupons"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      coupons: {
+        Row: {
+          code: string
+          coupon_type: string
+          created_at: string | null
+          current_uses: number | null
+          discount_percent: number | null
+          expires_at: string | null
+          free_stories: number | null
+          id: string
+          is_active: boolean | null
+          max_uses: number | null
+        }
+        Insert: {
+          code: string
+          coupon_type: string
+          created_at?: string | null
+          current_uses?: number | null
+          discount_percent?: number | null
+          expires_at?: string | null
+          free_stories?: number | null
+          id?: string
+          is_active?: boolean | null
+          max_uses?: number | null
+        }
+        Update: {
+          code?: string
+          coupon_type?: string
+          created_at?: string | null
+          current_uses?: number | null
+          discount_percent?: number | null
+          expires_at?: string | null
+          free_stories?: number | null
+          id?: string
+          is_active?: boolean | null
+          max_uses?: number | null
+        }
+        Relationships: []
+      }
       digital_books: {
         Row: {
           created_at: string
@@ -167,6 +235,27 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      pdf_downloads: {
+        Row: {
+          downloaded_at: string | null
+          id: string
+          story_id: string
+          user_id: string
+        }
+        Insert: {
+          downloaded_at?: string | null
+          id?: string
+          story_id: string
+          user_id: string
+        }
+        Update: {
+          downloaded_at?: string | null
+          id?: string
+          story_id?: string
+          user_id?: string
+        }
+        Relationships: []
       }
       premium_stories: {
         Row: {

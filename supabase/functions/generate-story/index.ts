@@ -617,30 +617,6 @@ serve(async (req) => {
     }
     // === END CREDIT CHECK ===
 
-    // === COMMERCIAL ABUSE CHECK ===
-    // Check if user is already flagged for commercial abuse
-    const { data: abuseCheckProfile, error: abuseCheckError } = await supabase
-      .from("profiles")
-      .select("commercial_abuse_flagged")
-      .eq("id", userId)
-      .single();
-    
-    if (abuseCheckError) {
-      console.error("Error checking abuse flag:", abuseCheckError);
-    }
-    
-    if (abuseCheckProfile?.commercial_abuse_flagged) {
-      console.log("User is flagged for commercial abuse - blocking request");
-      return new Response(
-        JSON.stringify({
-          error: "זוהי מערכת לשימוש פרטי בלבד. נראה שחרגת ממכסת השמות המותרת. לשימוש עסקי, אנא פנה לשירות הלקוחות.",
-          code: "COMMERCIAL_ABUSE"
-        }),
-        { status: 403, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-      );
-    }
-    // === END COMMERCIAL ABUSE CHECK (PART 1) ===
-
     const { childName, childGender = "male", ageRange, storyLength = "short", topic, nikud, childPhoto, childAvatarUrl, personalityTraits, adventureLogic } = await req.json();
 
     // === INPUT VALIDATION ===
@@ -715,80 +691,6 @@ serve(async (req) => {
     }
     
     console.log("Using LOVABLE_API_KEY for AI Gateway");
-
-    // === COMMERCIAL ABUSE CHECK (PART 2) - Count unique names ===
-    // Get stories from last 30 days to count unique child names
-    const thirtyDaysAgo = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString();
-    const { data: recentStories, error: recentStoriesError } = await supabase
-      .from("stories")
-      .select("child_name")
-      .eq("user_id", userId)
-      .gte("created_at", thirtyDaysAgo);
-    
-    if (recentStoriesError) {
-      console.error("Error fetching recent stories:", recentStoriesError);
-    }
-    
-    // Normalize and count unique names
-    const normalizeHebrewName = (name: string): string => {
-      // Remove nikud (Hebrew diacritics), trim whitespace, lowercase
-      return name
-        .replace(/[\u0591-\u05C7]/g, '') // Remove Hebrew diacritics/nikud
-        .replace(/\s+/g, ' ') // Normalize whitespace
-        .trim()
-        .toLowerCase();
-    };
-    
-    const existingNames = new Set(
-      (recentStories || []).map(s => normalizeHebrewName(s.child_name))
-    );
-    
-    // Add the current name being requested
-    const normalizedNewName = normalizeHebrewName(childName);
-    existingNames.add(normalizedNewName);
-    
-    const UNIQUE_NAMES_THRESHOLD = 7;
-    
-    if (existingNames.size > UNIQUE_NAMES_THRESHOLD) {
-      console.log(`Commercial abuse detected: User has ${existingNames.size} unique names (threshold: ${UNIQUE_NAMES_THRESHOLD})`);
-      
-      // Flag the user
-      const { error: flagError } = await supabase
-        .from("profiles")
-        .update({
-          commercial_abuse_flagged: true,
-          commercial_abuse_flagged_at: new Date().toISOString()
-        })
-        .eq("id", userId);
-      
-      if (flagError) {
-        console.error("Error flagging user:", flagError);
-      }
-      
-      // Create admin alert
-      const { error: alertError } = await supabase
-        .from("admin_alerts")
-        .insert({
-          user_id: userId,
-          alert_type: "commercial_abuse",
-          message: `משתמש יצר סיפורים עבור ${existingNames.size} שמות ילדים ייחודיים ב-30 יום. שמות: ${Array.from(existingNames).join(', ')}`
-        });
-      
-      if (alertError) {
-        console.error("Error creating admin alert:", alertError);
-      }
-      
-      return new Response(
-        JSON.stringify({
-          error: "זוהי מערכת לשימוש פרטי בלבד. נראה שחרגת ממכסת השמות המותרת. לשימוש עסקי, אנא פנה לשירות הלקוחות.",
-          code: "COMMERCIAL_ABUSE"
-        }),
-        { status: 403, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-      );
-    }
-    
-    console.log(`Unique names in last 30 days: ${existingNames.size} (threshold: ${UNIQUE_NAMES_THRESHOLD})`);
-    // === END COMMERCIAL ABUSE CHECK (PART 2) ===
 
     const genderText = childGender === "female" ? "ילדה" : "ילד";
     const pronounHe = childGender === "female" ? "היא" : "הוא";
