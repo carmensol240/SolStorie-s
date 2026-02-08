@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Bug } from "lucide-react";
+import { Bug, LogOut } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import {
@@ -10,6 +10,7 @@ import {
   DrawerTitle,
   DrawerTrigger,
 } from "@/components/ui/drawer";
+import { clearDevMode, isDevModeEnabled } from "@/hooks/use-dev-mode";
 
 const debugRoutes = [
   { path: "/", label: "🏠 בית" },
@@ -56,6 +57,21 @@ const DebugMenu = () => {
           </DrawerTitle>
         </DrawerHeader>
         <div className="px-4 pb-6 overflow-y-auto">
+          {/* Exit Dev Mode Button - Only shown when in dev mode */}
+          {isDevModeEnabled() && (
+            <button
+              onClick={() => {
+                clearDevMode();
+                setOpen(false);
+                window.location.replace("/");
+              }}
+              className="w-full flex items-center justify-center gap-2 text-center px-4 py-3 rounded-xl bg-red-100 hover:bg-red-200 dark:bg-red-900/30 dark:hover:bg-red-900/50 transition-colors text-red-700 dark:text-red-300 font-medium mb-4"
+            >
+              <LogOut className="w-4 h-4" />
+              יציאה מ-Dev Mode
+            </button>
+          )}
+          
           <div className="grid gap-2">
             {debugRoutes.map((route) => (
               <DrawerClose asChild key={route.path}>
