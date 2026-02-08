@@ -1,83 +1,98 @@
 
+# תוכנית: תיקון הצגת איורי הסיפורים ותמונות השער
 
-# תיקון קריטי: שגיאת API Key ב-generate-story
+## סקירת הבעיה
 
-## 🔴 שורש הבעיה שזוהתה
+### מה עובד:
+- יצירת סיפורים עובדת (תוקן בשלב הקודם)
+- יצירת איורים עובדת - כפי שנראה בלוגים:
+  ```
+  Illustration generated successfully
+  Image uploaded successfully, path: ea82cf85-69b6-4f05-a5a4-5309d3faf71c/page-1.png
+  Page 1 illustration saved
+  Story illustrations completed!
+  ```
+- האיורים נשמרים בהצלחה בסטוראג' ובמסד הנתונים
 
-מהלוגים של Edge Function:
+### מה לא עובד:
+הפונקציה `get-signed-illustration-url` מחזירה שגיאת 401 Unauthorized:
 ```
-AI Gateway error: 401 {"type":"unauthorized","message":"Invalid API key format. Key must start with 'sk_' prefix.","details":""}
-Using API key from server secrets
+{"error":"Unauthorized access to illustrations"}
 ```
 
-### הבעיה הטכנית
-
-| פונקציה | API Key בשימוש | תוצאה |
-|---------|---------------|--------|
-| `preview-child-avatar` | `LOVABLE_API_KEY` בלבד | ✅ עובד |
-| `generate-story` | `OPENAI_API_KEY` → `AI_API_KEY` → `LOVABLE_API_KEY` | ❌ נכשל |
-
-הפונקציה `generate-story` מנסה להשתמש ב-`OPENAI_API_KEY` **לפני** `LOVABLE_API_KEY`:
+### גורם הבעיה:
+הפונקציה משתמשת באותו **דפוס אימות ישן ושבור** שתוקן כבר בפונקציות האחרות:
 
 ```typescript
-// ❌ הקוד הנוכחי - בוחר מפתח לא תקין!
-const LOVABLE_API_KEY = Deno.env.get("OPENAI_API_KEY") 
-  || Deno.env.get("AI_API_KEY") 
-  || Deno.env.get("LOVABLE_API_KEY");
+// ❌ הקוד הנוכחי - לא עובד!
+const supabaseClient = createClient(supabaseUrl, supabaseAnonKey, {
+  global: { headers: { Authorization: authHeader } }
+});
+const { data: { user } } = await supabaseClient.auth.getUser();
 ```
 
-ה-`OPENAI_API_KEY` מוגדר במערכת אבל **אינו בפורמט הנכון** לשער ה-AI של Lovable (צריך להתחיל ב-`'sk_'`).
+**זה אותו הבאג בדיוק** שתוקן ב-`generate-story` וב-`preview-child-avatar`.
 
 ---
 
 ## פתרון
 
-### שינוי בקובץ `supabase/functions/generate-story/index.ts`
+### שינוי בקובץ `supabase/functions/get-signed-illustration-url/index.ts`
 
-שינוי סדר העדיפויות של מפתחות ה-API - `LOVABLE_API_KEY` ראשון:
+החלפת דפוס האימות לשיטה התקינה (שורות 45-52):
 
-**לפני (שורות 553-556):**
+**לפני:**
 ```typescript
-const LOVABLE_API_KEY = Deno.env.get("OPENAI_API_KEY") 
-  || Deno.env.get("AI_API_KEY") 
-  || Deno.env.get("LOVABLE_API_KEY");
+if (authHeader?.startsWith("Bearer ")) {
+  const supabaseClient = createClient(supabaseUrl, supabaseAnonKey, {
+    global: { headers: { Authorization: authHeader } }
+  });
+  
+  const { data: { user }, error: authError } = await supabaseClient.auth.getUser();
 ```
 
 **אחרי:**
 ```typescript
-// Prioritize LOVABLE_API_KEY for ai.gateway.lovable.dev
-const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
-if (!LOVABLE_API_KEY) {
-  console.error("LOVABLE_API_KEY is not configured");
-  throw new Error("API key not configured");
-}
+if (authHeader?.startsWith("Bearer ")) {
+  // Extract token and validate directly using service role client
+  const token = authHeader.replace("Bearer ", "");
+  const { data: { user }, error: authError } = await supabaseAdmin.auth.getUser(token);
 ```
 
-**הסבר:** מכיוון שהפונקציה משתמשת ב-`ai.gateway.lovable.dev`, היא חייבת להשתמש ב-`LOVABLE_API_KEY` ולא ב-`OPENAI_API_KEY`.
+**הסבר:**
+- במקום ליצור קליינט נפרד עם ANON_KEY והעברת Authorization header
+- נשתמש בקליינט ה-Admin שכבר קיים בפונקציה
+- נעביר את הטוקן ישירות ל-`getUser(token)`
+- זו אותה שיטה שעובדת בשאר הפונקציות
 
 ---
 
-## סיכום הפעולות
+## תוכנית הפעולה
 
-| קובץ | פעולה |
-|------|--------|
-| `supabase/functions/generate-story/index.ts` | החלפת לוגיקת בחירת API Key - שימוש ב-LOVABLE_API_KEY בלבד |
-| פריסה מחדש | פריסת הפונקציה המעודכנת |
+| שלב | פעולה |
+|-----|--------|
+| 1 | עדכון `get-signed-illustration-url/index.ts` - תיקון דפוס האימות |
+| 2 | פריסה מחדש של הפונקציה |
+| 3 | בדיקה שהאיורים מוצגים |
+
+---
+
+## סיכום הבעיה והפתרון
+
+| רכיב | סטטוס | פעולה |
+|------|--------|--------|
+| generate-story | עובד | תוקן קודם |
+| generate-illustrations | עובד | לא צריך שינוי |
+| get-signed-illustration-url | **נכשל** | **תיקון אימות** |
+| SignedImage component | עובד | לא צריך שינוי |
+| StoryListItem (ספרייה) | עובד | לא צריך שינוי |
 
 ---
 
 ## תוצאה צפויה
 
 לאחר התיקון:
-1. הפונקציה תשתמש ב-`LOVABLE_API_KEY` התקין
-2. הקריאה ל-AI Gateway תעבוד בהצלחה
-3. הסיפורים ייווצרו ללא שגיאות
-
----
-
-## הערות אבטחה
-
-- ה-`LOVABLE_API_KEY` מוגדר אוטומטית על ידי המערכת ומסומן כ-"cannot be deleted"
-- זה המפתח הנכון לשימוש עם `ai.gateway.lovable.dev`
-- ה-`OPENAI_API_KEY` עדיין קיים במערכת אך אינו רלוונטי לשער זה
-
+1. הפונקציה `get-signed-illustration-url` תחזיר URLs חתומים במקום שגיאת 401
+2. תמונות השער יופיעו בספרייה
+3. האיורים יופיעו בעמודי הסיפור
+4. כל סיפור חדש יציג את כל האיורים שלו
