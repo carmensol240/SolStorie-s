@@ -106,11 +106,13 @@ function getDefaultProfile(childGender: string, genderHebrew: string, ageRange: 
 }
 
 // Helper function to generate illustration using Lovable AI with character consistency
+// IMPORTANT: This function now enforces SAME OUTFIT across all pages of a story
 async function generateIllustration(
   prompt: string,
   childPhoto: string | null,
   characterProfile: CharacterProfile | null,
   apiKey: string,
+  storyOutfit: string, // The SINGLE outfit chosen for this entire story
   adventureLogic?: { outfit: string; background: string; theme: string }
 ): Promise<string | null> {
   try {
@@ -118,22 +120,31 @@ async function generateIllustration(
       ? `CHARACTER_SEED_${characterProfile.gender}_${characterProfile.hairDescription.replace(/\s+/g, '_')}_${characterProfile.skinTone}_${characterProfile.eyeColor}`.toUpperCase()
       : "";
     
+    // Use the storyOutfit that was determined at the START of generation for ALL pages
+    const finalOutfit = storyOutfit || adventureLogic?.outfit || characterProfile?.clothingDescription || "colorful casual clothes";
+    
     const characterInstruction = characterProfile 
       ? `
-=== 🔒 LOCKED CHARACTER PROFILE - DO NOT MODIFY ===
+=== 🔒 LOCKED CHARACTER PROFILE - NEVER MODIFY ACROSS ANY PAGE ===
 CHARACTER SEED: ${characterSeed}
 
 The main character is a ${characterProfile.gender === "female" ? "girl" : "boy"} aged ${characterProfile.ageDescription}.
 
-MANDATORY APPEARANCE (MUST BE IDENTICAL IN EVERY FRAME):
+MANDATORY APPEARANCE (IDENTICAL IN EVERY SINGLE PAGE):
 - Gender: ${characterProfile.gender === "female" ? "Female girl" : "Male boy"}
-- Hair: ${characterProfile.hairDescription} (EXACT color and style - never change!)
+- Hair: ${characterProfile.hairDescription} (EXACT color and style - NEVER change!)
 - Skin: ${characterProfile.skinTone} skin tone (consistent across all lighting)
 - Eyes: ${characterProfile.eyeColor} eyes
-- Clothing: ${adventureLogic?.outfit || characterProfile.clothingDescription} (same outfit throughout!)
+- Face: Same face shape, nose, and proportions throughout
+
+=== 🎽 LOCKED OUTFIT FOR ENTIRE STORY ===
+CLOTHING: ${finalOutfit}
+⚠️ CRITICAL: The character wears THIS EXACT OUTFIT on EVERY page of the story.
+The character does NOT change clothes during the story.
+=== END LOCKED OUTFIT ===
 
 ⚠️ CRITICAL: This character MUST be visually IDENTICAL in every single illustration.
-The same child, same features, same clothing - as if photographed from different angles.
+Same child, same face, same hair, same outfit - as if photographed from different angles.
 Any deviation from this profile is a FAILURE.
 === END LOCKED PROFILE ===
 `
@@ -142,9 +153,9 @@ Any deviation from this profile is a FAILURE.
     const adventureInstruction = adventureLogic
       ? `
 === ADVENTURE THEME REQUIREMENTS ===
-- Character outfit: ${adventureLogic.outfit}
 - Background/Setting: ${adventureLogic.background}
 - Theme/Mood: ${adventureLogic.theme}
+(Note: Character outfit is locked above and must not change)
 === END ADVENTURE THEME ===
 `
       : "";
@@ -167,7 +178,7 @@ STYLE REQUIREMENTS:
 - Rich, vibrant colors with warm undertones
 - Professional children's book illustration quality
 - No text in the image
-- MAINTAIN CHARACTER CONSISTENCY: Same face shape, same features, same proportions`;
+- MAINTAIN CHARACTER CONSISTENCY: Same face shape, same features, same proportions, SAME OUTFIT`;
 
     const requestBody: any = {
       model: "google/gemini-3-pro-image-preview",
@@ -488,6 +499,11 @@ serve(async (req) => {
       }
     }
 
+    // === DETERMINE SINGLE OUTFIT FOR ENTIRE STORY ===
+    // This outfit will be used for ALL pages to ensure consistency
+    const storyOutfit = effectiveAdventureLogic?.outfit || characterProfile?.clothingDescription || "colorful casual clothes";
+    console.log(`🎽 Story outfit locked for all pages: "${storyOutfit}"`);
+
     // Generate illustrations ONE BY ONE to avoid timeout and allow incremental updates
     let firstIllustrationUrl: string | null = null;
 
@@ -499,6 +515,7 @@ serve(async (req) => {
         effectivePhoto,
         characterProfile,
         LOVABLE_API_KEY,
+        storyOutfit, // Pass the SAME outfit for every page
         effectiveAdventureLogic // Use the enhanced adventure logic with theme outfits
       );
 
