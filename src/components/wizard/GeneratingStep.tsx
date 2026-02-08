@@ -234,7 +234,7 @@ const GeneratingStep = ({ formData, onComplete }: GeneratingStepProps) => {
 
   if (error) {
     return (
-      <div className="flex flex-col items-center justify-center min-h-[60vh] text-center space-y-6 px-4">
+      <div className="flex flex-col items-center justify-center min-h-screen min-h-[100dvh] text-center space-y-6 px-4 bg-gradient-to-b from-[#FAF3E8] to-[#F5E6D3]">
         <div className="w-24 h-24 bg-destructive/10 rounded-full flex items-center justify-center">
           <span className="text-5xl">😔</span>
         </div>
@@ -256,8 +256,18 @@ const GeneratingStep = ({ formData, onComplete }: GeneratingStepProps) => {
     );
   }
 
+  // Parent recommendations that rotate
+  const PARENT_RECOMMENDATIONS = [
+    { quote: "הילד שלי מבקש סיפור חדש כל לילה!", author: "מיכל", role: "אמא לבן 4" },
+    { quote: "סוף סוף הבנתי שצחצוח שיניים זה כיף!", author: "דניאל", role: "אבא לבת 3" },
+    { quote: "התאהבנו בסיפורים! הם עזרו לנו להתמודד עם פחד מהחושך", author: "שירה", role: "אמא לבן 5" },
+  ];
+
+  // Use the same rotation index as sentences for variety
+  const currentRecommendation = PARENT_RECOMMENDATIONS[sentenceIndex % PARENT_RECOMMENDATIONS.length];
+
   return (
-    <div className="flex flex-col items-center justify-center min-h-[60vh] text-center space-y-8 bg-gradient-to-b from-[#FAF3E8] to-[#F5E6D3] rounded-2xl p-6">
+    <div className="flex flex-col items-center justify-center min-h-screen min-h-[100dvh] text-center space-y-6 bg-gradient-to-b from-[#FAF3E8] to-[#F5E6D3] p-6">
       {/* Animated Icon with Magic Wand */}
       <div className="relative">
         <div className="w-28 h-28 bg-gradient-to-br from-purple-500/20 via-pink-500/20 to-orange-400/20 rounded-full flex items-center justify-center shadow-lg">
@@ -314,9 +324,9 @@ const GeneratingStep = ({ formData, onComplete }: GeneratingStepProps) => {
       </div>
 
       {/* Empowering NLP Sentence */}
-      <div className="w-full max-w-sm px-4 min-h-[80px] flex items-center justify-center">
+      <div className="w-full max-w-sm px-4 min-h-[60px] flex items-center justify-center">
         <p
-          className={`text-center text-lg leading-relaxed transition-opacity duration-500 ${
+          className={`text-center text-base leading-relaxed transition-opacity duration-500 ${
             isSentenceVisible ? "opacity-100" : "opacity-0"
           }`}
           style={{
@@ -331,10 +341,29 @@ const GeneratingStep = ({ formData, onComplete }: GeneratingStepProps) => {
       </div>
 
       {/* Tip Card with theme colors */}
-      <div className="bg-white/80 backdrop-blur-sm rounded-xl p-4 shadow-md border border-purple-200 max-w-xs">
+      <div className="bg-white/80 backdrop-blur-sm rounded-xl p-3 shadow-md border border-purple-200 max-w-xs">
         <p className="text-sm text-purple-700">
           💡 <strong className="text-purple-800">טיפ:</strong> הטקסט נוצר תוך שניות! האיורים יופיעו בזמן שתקראו ✨
         </p>
+      </div>
+
+      {/* Parent Recommendations - Social Proof */}
+      <div className="w-full max-w-sm mt-4 space-y-2">
+        <h3 className="text-center text-sm font-semibold text-purple-700">
+          הורים ממליצים ✨
+        </h3>
+        <div
+          className={`bg-white/60 rounded-lg p-3 border border-purple-100 transition-opacity duration-500 ${
+            isSentenceVisible ? "opacity-100" : "opacity-0"
+          }`}
+        >
+          <p className="text-xs text-purple-600 italic">
+            "{currentRecommendation.quote}"
+          </p>
+          <p className="text-[10px] text-purple-400 mt-1">
+            - {currentRecommendation.author}, {currentRecommendation.role}
+          </p>
+        </div>
       </div>
     </div>
   );
