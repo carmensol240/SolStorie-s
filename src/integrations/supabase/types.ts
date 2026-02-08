@@ -14,6 +14,39 @@ export type Database = {
   }
   public: {
     Tables: {
+      admin_alerts: {
+        Row: {
+          alert_type: string
+          created_at: string | null
+          id: string
+          is_resolved: boolean | null
+          message: string
+          resolved_at: string | null
+          resolved_by: string | null
+          user_id: string
+        }
+        Insert: {
+          alert_type: string
+          created_at?: string | null
+          id?: string
+          is_resolved?: boolean | null
+          message: string
+          resolved_at?: string | null
+          resolved_by?: string | null
+          user_id: string
+        }
+        Update: {
+          alert_type?: string
+          created_at?: string | null
+          id?: string
+          is_resolved?: boolean | null
+          message?: string
+          resolved_at?: string | null
+          resolved_by?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
       analytics_events: {
         Row: {
           created_at: string | null
@@ -218,6 +251,8 @@ export type Database = {
           avatar_emoji: string | null
           child_avatar_url: string | null
           child_photo_url: string | null
+          commercial_abuse_flagged: boolean | null
+          commercial_abuse_flagged_at: string | null
           created_at: string
           daily_edit_credits: number | null
           display_name: string | null
@@ -236,6 +271,8 @@ export type Database = {
           avatar_emoji?: string | null
           child_avatar_url?: string | null
           child_photo_url?: string | null
+          commercial_abuse_flagged?: boolean | null
+          commercial_abuse_flagged_at?: string | null
           created_at?: string
           daily_edit_credits?: number | null
           display_name?: string | null
@@ -254,6 +291,8 @@ export type Database = {
           avatar_emoji?: string | null
           child_avatar_url?: string | null
           child_photo_url?: string | null
+          commercial_abuse_flagged?: boolean | null
+          commercial_abuse_flagged_at?: string | null
           created_at?: string
           daily_edit_credits?: number | null
           display_name?: string | null
