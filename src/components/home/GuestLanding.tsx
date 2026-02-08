@@ -1,6 +1,9 @@
-import { ArrowLeft, Sparkles, Star, Users } from "lucide-react";
-import { Link } from "react-router-dom";
+import { useState } from "react";
+import { ArrowLeft, Sparkles, Star, Users, Loader2 } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 import heroFlyingGirl from "@/assets/hero-flying-girl.jpeg";
+import { supabase } from "@/integrations/supabase/client";
+import type { User } from "@supabase/supabase-js";
 
 interface FeatureCardProps {
   icon: React.ReactNode;
@@ -30,7 +33,15 @@ const FeatureCard = ({ icon, title, subtitle }: FeatureCardProps) => (
   </div>
 );
 
-const GuestLanding = () => {
+interface GuestLandingProps {
+  user?: User | null;
+  isLoggedIn?: boolean;
+}
+
+const GuestLanding = ({ user, isLoggedIn }: GuestLandingProps) => {
+  const navigate = useNavigate();
+  const [isNavigating, setIsNavigating] = useState(false);
+
   const features = [
     {
       icon: <Sparkles className="w-5 h-5 text-white" aria-hidden="true" />,
@@ -48,6 +59,41 @@ const GuestLanding = () => {
       subtitle: "גישה מלאה לגלריית סיפורים חינמית תמיד.",
     },
   ];
+
+  const handleStart = async () => {
+    if (!isLoggedIn || !user) {
+      // Not logged in - go to auth
+      navigate("/auth");
+      return;
+    }
+
+    setIsNavigating(true);
+    try {
+      // Check if user has accepted terms
+      const { data } = await supabase
+        .from("profiles")
+        .select("terms_accepted_at")
+        .eq("id", user.id)
+        .maybeSingle();
+
+      if (data?.terms_accepted_at) {
+        // Terms accepted - go directly to library
+        navigate("/library");
+      } else {
+        // Terms not accepted - go to onboarding
+        navigate("/onboarding");
+      }
+    } catch (error) {
+      console.error("Error checking user terms:", error);
+      // Fallback to library on error
+      navigate("/library");
+    } finally {
+      setIsNavigating(false);
+    }
+  };
+
+  // Determine button text based on login state
+  const buttonText = isLoggedIn ? "להתחלה לחצו כאן" : "להתחברות והרשמה לחצו כאן";
 
   return (
     <div className="flex-1 flex flex-col animate-fade-in relative">
@@ -101,21 +147,28 @@ const GuestLanding = () => {
         </div>
 
         {/* Login/Register CTA - Pink Gradient with enhanced shadow */}
-        <Link
-          to="/auth"
-          className="w-full bg-gradient-to-r from-pink-500 via-pink-600 to-purple-600 hover:from-pink-600 hover:via-pink-700 hover:to-purple-700 text-white font-black text-base py-4 rounded-full shadow-2xl hover:shadow-2xl hover:scale-[1.02] transition-all mt-2 mb-4 text-center flex items-center justify-center gap-2"
+        <button
+          onClick={handleStart}
+          disabled={isNavigating}
+          className="w-full bg-gradient-to-r from-pink-500 via-pink-600 to-purple-600 hover:from-pink-600 hover:via-pink-700 hover:to-purple-700 text-white font-black text-base py-4 rounded-full shadow-2xl hover:shadow-2xl hover:scale-[1.02] transition-all mt-2 mb-4 text-center flex items-center justify-center gap-2 disabled:opacity-70 disabled:cursor-not-allowed"
           style={{
             boxShadow: '0 10px 40px -10px rgba(236, 72, 153, 0.5), 0 4px 20px -5px rgba(147, 51, 234, 0.3)'
           }}
         >
-          להתחברות והרשמה לחצו כאן
-          <ArrowLeft className="w-5 h-5" aria-hidden="true" />
-        </Link>
+          {isNavigating ? (
+            <Loader2 className="w-5 h-5 animate-spin" />
+          ) : (
+            <>
+              {buttonText}
+              <ArrowLeft className="w-5 h-5" aria-hidden="true" />
+            </>
+          )}
+        </button>
 
         {/* Privacy Link */}
         <p className="text-center text-sm text-gray-800 font-medium drop-shadow-sm pb-3">
           בהמשך, אתם מסכימים ל
-          <Link to="/privacy" className="text-purple-800 font-bold hover:underline mx-1">מדיניות הפרטיות</Link>
+          <a href="/privacy" className="text-purple-800 font-bold hover:underline mx-1">מדיניות הפרטיות</a>
         </p>
       </div>
     </div>
