@@ -200,9 +200,9 @@ const CreateStory = () => {
         )}
       </header>
 
-      {/* Main Content - Fills remaining space */}
-      <main className="flex-1 overflow-y-auto overscroll-contain pb-20">
-        <div className="container max-w-lg mx-auto px-3 py-3">
+      {/* Main Content - Scrollable area */}
+      <main className="flex-1 overflow-y-auto overscroll-contain">
+        <div className="container max-w-lg mx-auto px-3 py-3 pb-36">
 
         {/* Step Content */}
         {step === 1 && (
@@ -226,23 +226,25 @@ const CreateStory = () => {
           />
         )}
 
-        {/* Compact Navigation Buttons */}
-        {step < 3 && (
-          <div className="mt-4 pb-2">
+        </div>
+      </main>
+
+      {/* Fixed Bottom Continue Button */}
+      {step < 3 && (
+        <div className="fixed bottom-16 left-0 right-0 z-50 bg-gradient-to-t from-background via-background to-transparent pt-4 pb-2 px-3">
+          <div className="container max-w-lg mx-auto">
             <Button
               onClick={handleNext}
               disabled={step === 1 ? !canProceedStep1 : !canProceedStep2}
               size="lg"
-              className="w-full bg-gradient-to-r from-purple-600 via-pink-500 to-orange-400 hover:from-purple-700 hover:via-pink-600 hover:to-orange-500 text-white font-black text-sm py-3 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed shadow-md hover:shadow-lg transition-all"
+              className="w-full bg-gradient-to-r from-purple-600 via-pink-500 to-orange-400 hover:from-purple-700 hover:via-pink-600 hover:to-orange-500 text-white font-black text-sm py-3 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed shadow-lg hover:shadow-xl transition-all"
             >
               {step === 2 ? "צרו את הסיפור" : "המשיכו"}
               <ArrowLeft className="w-4 h-4 mr-1.5" />
             </Button>
           </div>
-        )}
-
         </div>
-      </main>
+      )}
       
       {step < 3 && <MobileNavigation />}
     </div>
