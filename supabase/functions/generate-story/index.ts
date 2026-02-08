@@ -547,6 +547,76 @@ serve(async (req) => {
     console.log("Authenticated user:", userId.substring(0, 8) + "...");
     // === END AUTHENTICATION CHECK ===
 
+    // === CREDIT CHECK WITH WELCOME CREDIT SAFETY NET ===
+    console.log("Checking story credits for user...");
+    
+    // Get current credits
+    const { data: profile, error: profileError } = await supabase
+      .from("profiles")
+      .select("story_credits")
+      .eq("id", userId)
+      .maybeSingle();
+    
+    if (profileError) {
+      console.error("Error fetching profile:", profileError);
+      return new Response(
+        JSON.stringify({ error: "שגיאה בטעינת פרטי המשתמש" }),
+        { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+    
+    const currentCredits = profile?.story_credits ?? 0;
+    console.log("Current credits:", currentCredits);
+    
+    // If user has 0 credits, check if they're a brand new user who missed their welcome credit
+    if (currentCredits <= 0) {
+      // Count their existing stories
+      const { count: storyCount, error: countError } = await supabase
+        .from("stories")
+        .select("*", { count: "exact", head: true })
+        .eq("user_id", userId);
+      
+      if (countError) {
+        console.error("Error counting stories:", countError);
+      }
+      
+      console.log("Story count for user:", storyCount);
+      
+      // New user with 0 stories = should have gotten welcome credit but didn't
+      if (storyCount === 0 || storyCount === null) {
+        console.log("New user without welcome credit detected - auto-fixing...");
+        
+        // Auto-fix: Grant the welcome credit
+        const { error: updateError } = await supabase
+          .from("profiles")
+          .update({ story_credits: 1 })
+          .eq("id", userId);
+        
+        if (updateError) {
+          console.error("Error granting welcome credit:", updateError);
+          return new Response(
+            JSON.stringify({ error: "שגיאה בהענקת קרדיט פתיחה" }),
+            { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+          );
+        }
+        
+        console.log("Welcome credit granted successfully!");
+        // Continue with story generation - they now have 1 credit
+      } else {
+        // User has stories but no credits = genuinely out of credits
+        console.log("User has used all credits");
+        return new Response(
+          JSON.stringify({ 
+            error: "נגמרו הקרדיטים",
+            code: "NO_CREDITS",
+            message: "אין לך קרדיטים נותרים. רכוש קרדיטים חדשים כדי ליצור סיפורים."
+          }),
+          { status: 402, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        );
+      }
+    }
+    // === END CREDIT CHECK ===
+
     const { childName, childGender = "male", ageRange, storyLength = "short", topic, nikud, childPhoto, childAvatarUrl, personalityTraits, adventureLogic } = await req.json();
 
     // === INPUT VALIDATION ===
