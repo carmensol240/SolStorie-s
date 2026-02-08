@@ -59,14 +59,23 @@ export const useAuth = () => {
   };
 
   const signUpWithEmail = async (email: string, password: string) => {
-    const redirectUrl = `${window.location.origin}/consent`;
     const { data, error } = await supabase.auth.signUp({
       email,
       password,
-      options: {
-        emailRedirectTo: redirectUrl,
-      },
     });
+    
+    // Auto-login after successful signup (when auto-confirm is enabled)
+    if (!error && data?.user) {
+      const { error: signInError } = await supabase.auth.signInWithPassword({
+        email,
+        password,
+      });
+      
+      if (signInError) {
+        console.warn('Auto-login after signup failed:', signInError.message);
+      }
+    }
+    
     return { data, error };
   };
 
