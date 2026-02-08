@@ -1,94 +1,165 @@
 
+# תוכנית לתיקון מצב ההתחברות - יציאה מ-Dev Mode
 
-# תוכנית לתיקון שגיאות Edge Functions - עדכון CORS Headers
+## הבעיה שזוהתה
 
-## סיכום הבעיה
+אתה תקוע במצב "dev mode" כי:
 
-מספר Edge Functions חסרים את ה-CORS headers המורחבים שנדרשים עבור Supabase SDK. ה-SDK שולח headers נוספים שאם לא מוגדרים ב-`Access-Control-Allow-Headers`, הבקשות ייכשלו.
+1. **Dev mode נשמר ב-sessionStorage**: כשמוסיפים `?dev=true` ל-URL, הערך נשמר ב-sessionStorage ונשאר שם לצמיתות
+2. **פונקציית signOut לא מנקה את dev mode**: הפונקציה `signOut` ב-`use-auth.ts` לא קוראת ל-`clearDevMode()`
+3. **אין דרך לצאת מ-dev mode**: הפונקציה `clearDevMode` קיימת אבל לא משמשת בשום מקום בקוד
 
----
-
-## הפונקציות שצריכות תיקון
-
-| פונקציה | CORS נוכחי | סטטוס |
-|---------|-----------|-------|
-| `send-purchase-confirmation` | headers בסיסיים | ❌ צריך עדכון |
-| `send-contact-form` | headers בסיסיים | ❌ צריך עדכון |
-| `preview-child-avatar` | headers בסיסיים | ❌ צריך עדכון |
-| `add-nikud` | headers בסיסיים | ❌ צריך עדכון |
-| `track-event` | headers בסיסיים | ❌ צריך עדכון |
-| `get-signed-photo-url` | headers בסיסיים | ❌ צריך עדכון |
-| `enhance-text` | headers בסיסיים | ❌ צריך עדכון |
-| `get-settings` | headers בסיסיים | ❌ צריך עדכון |
-
----
-
-## השינוי הנדרש
-
-לכל פונקציה, יש לעדכן את ה-CORS headers מ:
-```typescript
-const corsHeaders = {
-  "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
-};
-```
-
-ל:
-```typescript
-const corsHeaders = {
-  "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
-};
+### הזרימה הנוכחית (שבורה):
+```text
+┌─────────────────────────┐
+│ URL עם ?dev=true        │
+└───────────┬─────────────┘
+            ▼
+┌─────────────────────────┐
+│ sessionStorage.devMode  │
+│ = 'true'                │
+└───────────┬─────────────┘
+            ▼
+┌─────────────────────────┐
+│ isDevModeEnabled()      │
+│ מחזיר true              │
+└───────────┬─────────────┘
+            ▼
+┌─────────────────────────┐
+│ useAuth מחזיר           │
+│ MOCK_DEV_USER           │
+│ (devmode-local)         │
+└───────────┬─────────────┘
+            ▼
+┌─────────────────────────┐
+│ לחיצה על התנתקות       │
+│ = שום דבר לא קורה      │  ← הבעיה!
+└─────────────────────────┘
 ```
 
 ---
 
-## קבצים שישתנו
+## שלבי התיקון
 
-### 1. `supabase/functions/send-purchase-confirmation/index.ts`
-שורות 6-9: עדכון corsHeaders
+### שלב 1: עדכון signOut ב-use-auth.ts
+**קובץ:** `src/hooks/use-auth.ts`
 
-### 2. `supabase/functions/send-contact-form/index.ts`
-שורות 6-10: עדכון corsHeaders
+הוספת קריאה ל-`clearDevMode()` בפונקציית signOut:
 
-### 3. `supabase/functions/preview-child-avatar/index.ts`
-שורות 5-8: עדכון corsHeaders
+**לפני:**
+```typescript
+const signOut = async () => {
+  const { error } = await supabase.auth.signOut();
+  return { error };
+};
+```
 
-### 4. `supabase/functions/add-nikud/index.ts`
-שורות 5-8: עדכון corsHeaders
+**אחרי:**
+```typescript
+import { isDevModeEnabled, MOCK_DEV_USER, MOCK_DEV_SESSION, clearDevMode } from './use-dev-mode';
 
-### 5. `supabase/functions/track-event/index.ts`
-שורות 5-8: עדכון corsHeaders
+const signOut = async () => {
+  // Clear dev mode if active
+  clearDevMode();
+  
+  const { error } = await supabase.auth.signOut();
+  return { error };
+};
+```
 
-### 6. `supabase/functions/get-signed-photo-url/index.ts`
-שורות 3-6: עדכון corsHeaders
+### שלב 2: עדכון handleSignOut ב-Settings.tsx
+**קובץ:** `src/pages/Settings.tsx`
 
-### 7. `supabase/functions/enhance-text/index.ts`
-שורות 5-8: עדכון corsHeaders
+הוספת ניקוי sessionStorage נוסף לביטחון:
 
-### 8. `supabase/functions/get-settings/index.ts`
-שורות 3-6: עדכון corsHeaders
+**לפני:**
+```typescript
+const handleSignOut = async () => {
+  await signOut();
+  localStorage.removeItem('returnTo');
+  window.location.replace("/");
+};
+```
+
+**אחרי:**
+```typescript
+const handleSignOut = async () => {
+  await signOut();
+  localStorage.removeItem('returnTo');
+  // Clear dev mode from sessionStorage
+  sessionStorage.removeItem('devMode');
+  window.location.replace("/");
+};
+```
+
+### שלב 3: הוספת כפתור "יציאה מ-Dev Mode" ב-DebugMenu
+**קובץ:** `src/components/DebugMenu.tsx`
+
+הוספת כפתור ייעודי לניקוי dev mode בתפריט הדיבאג:
+
+```typescript
+import { clearDevMode, isDevModeEnabled } from "@/hooks/use-dev-mode";
+
+// בתוך הקומפוננט, לפני רשימת הניווט:
+{isDevModeEnabled() && (
+  <button
+    onClick={() => {
+      clearDevMode();
+      window.location.replace("/");
+    }}
+    className="w-full text-center px-4 py-3 rounded-xl bg-red-100 hover:bg-red-200 transition-colors text-red-700 font-medium mb-4"
+  >
+    🚪 יציאה מ-Dev Mode
+  </button>
+)}
+```
 
 ---
 
-## אימות נוסף שכבר הושלם
+## סיכום הקבצים שישתנו
 
-- ✅ **קריאות Edge Functions בצד הלקוח:** כל הקריאות משתמשות ב-`supabase.functions.invoke()` (לא `fetch` ידני)
-- ✅ **כתובות זמניות:** אין כתובות Lovable/Netlify זמניות בקוד
-- ✅ **Site URL:** הכתובת `https://www.storytime.org.il/create` מוגדרת נכון באימייל הרכישה
-- ✅ **Environment Variables:** כל ה-Edge Functions משתמשות ב-`Deno.env.get()` לקריאת secrets
+| קובץ | שינוי |
+|------|-------|
+| `src/hooks/use-auth.ts` | הוספת `clearDevMode()` לפונקציית `signOut` |
+| `src/pages/Settings.tsx` | הוספת `sessionStorage.removeItem('devMode')` ל-`handleSignOut` |
+| `src/components/DebugMenu.tsx` | הוספת כפתור "יציאה מ-Dev Mode" שמופיע רק במצב dev |
 
 ---
 
-## פעולות נוספות לאחר התיקון
+## הזרימה לאחר התיקון:
+```text
+┌─────────────────────────┐
+│ לחיצה על התנתקות       │
+└───────────┬─────────────┘
+            ▼
+┌─────────────────────────┐
+│ clearDevMode()          │
+│ sessionStorage.devMode  │
+│ = נמחק                  │
+└───────────┬─────────────┘
+            ▼
+┌─────────────────────────┐
+│ supabase.auth.signOut() │
+└───────────┬─────────────┘
+            ▼
+┌─────────────────────────┐
+│ window.location.replace │
+│ ("/")                   │
+└───────────┬─────────────┘
+            ▼
+┌─────────────────────────┐
+│ isDevModeEnabled()      │
+│ מחזיר false             │
+│ = משתמש אמיתי או אורח  │
+└─────────────────────────┘
+```
 
-לאחר עדכון הקבצים, יש לבצע Deploy לכל ה-Edge Functions:
-- send-purchase-confirmation
-- send-contact-form  
-- preview-child-avatar
-- add-nikud
-- track-event
-- get-signed-photo-url
-- enhance-text
-- get-settings
+---
 
+## הערות חשובות
+
+### לגבי Preview:
+ה-Preview של Lovable משתמש ב-Supabase אמיתי - הבעיה היא רק ב-dev mode שנשאר פעיל ב-sessionStorage. אחרי התיקון והתנתקות, תוכל להתחבר עם משתמש אמיתי.
+
+### לניקוי מיידי (עד שהתיקון נכנס):
+אפשר לפתוח את Developer Tools בדפדפן (F12), ללכת ל-Application > Session Storage, ולמחוק את `devMode` ידנית.
