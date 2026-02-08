@@ -1,74 +1,122 @@
 
-# תוכנית: Phase 2 - Core Logic, UI Refinement & Profile Persistence
+# UI/UX Fix: Global Mobile Scrolling & Button Visibility
 
-## ✅ סיכום שינויים שבוצעו
-
-| נושא | סטטוס | עדיפות |
-|------|--------|---------|
-| קרדיט יחיד למשתמש חדש | ✅ הושלם | 🔴 גבוהה |
-| Referral Logic - הפניה רק לאחר הרשמה מלאה | ✅ קיים | - |
-| שמירת פרופיל ילד (persistence) | ✅ קיים | 🟡 בינונית |
-| עקביות אווטאר לסיפורים עתידיים | ✅ הושלם | 🔴 גבוהה |
-| לבוש דינמי לפי נושא | ✅ הושלם | 🟡 בינונית |
-| מסך Hero - רקע מלא + כפתור שקוף נמוך | ✅ מעודכן | - |
-| Swipe navigation במובייל | ✅ הושלם | שיפור |
-| עקביות שפה עברית | ✅ הושלם | 🟡 בינונית |
-| הסרת Developer Mode מהתחברות | ✅ הושלם | 🔴 גבוהה |
-| WCAG Accessibility | ✅ הושלם | 🟡 בינונית |
+## Summary
+Fix global scrolling behavior across the app and ensure the "Continue" button on the story creation screen is always visible and accessible on mobile devices.
 
 ---
 
-## שינויים שבוצעו
+## Current Issues Identified
 
-### 1. קרדיט יחיד למשתמש חדש ✅
-- עודכנה פונקציית `handle_new_user` להגדרת `story_credits = 1` באופן מפורש
-- הוגדר `DEFAULT 1` על עמודת `story_credits` בטבלת `profiles`
-
-### 2. שמירת אווטאר (Persistence Layer) ✅
-- נוספה עמודת `avatar_description` לטבלת `children`
-- Edge Function `generate-illustrations` בודקת אווטאר קיים לפני יצירת חדש
-- תיאור הדמות (JSON) נשמר לשימוש חוזר בסיפורים עתידיים
-- מאפיינים פיזיים (פנים, שיער, עיניים) נשמרים קבועים
-
-### 3. לבוש דינמי לפי נושא ✅
-- נוסף מיפוי `THEME_OUTFITS` ב-`generate-illustrations`:
-  - `space-adventure` → חליפת חלל כסופה
-  - `bedtime-story` → פיג'מה עם כוכבים
-  - `magic-kingdom` → שמלת/גלימת נסיך/נסיכה
-  - `body-hero-bath` → חלוק רחצה
-  - ועוד...
-- הלבוש משתנה לפי הנושא בעוד הפנים נשארות זהות
-
-### 4. הסרת Developer Mode מהתחברות ✅
-- הוסר import של `enableDevMode` מ-`Auth.tsx`
-- הוסרו שני כפתורי Dev Mode (בטופס consent ובטופס login/signup)
-- Dev mode עדיין זמין רק דרך URL עם `?dev=true`
-
-### 5. Swipe Navigation משופר ✅
-- Hook `use-swipe.ts` מחזיר עכשיו `swipeOffset` לאנימציה חזותית
-- `StoryViewer.tsx` מיישם transform עם `translateX` לפידבק חזותי
-- מעבר חלק בסיום הswipe עם `transition: 0.3s ease-out`
-
-### 6. WCAG Accessibility ✅
-- `SignedImage` מוסיפה `aria-label` ו-`role="img"`
-- Alt text דינמי לאיורים: `איור לעמוד X: [טקסט מקוצר]`
-- Alt text לעטיפה: `עטיפת הסיפור: [שם] ב[נושא]`
+1. **Fixed button at `bottom-16` may still be hidden** on some devices where the mobile nav bar height varies
+2. **No momentum scrolling** (`-webkit-overflow-scrolling: touch`) for smooth iOS scrolling
+3. **Inconsistent padding** across different screens - some have `pb-20`, others have `pb-36`
+4. **Z-index layering** may conflict with other elements
 
 ---
 
-## תזכורת: פיצ'רים קיימים שעובדים
+## Implementation Plan
 
-- ✅ **Referral System**: הקוד ב-`Auth.tsx` כבר מעבד הפניות רק לאחר הרשמה מלאה
-- ✅ **Child Profile Saving**: `ChildInfoStep.tsx` ו-`ChildProfiles.tsx` שומרים פרופילים
-- ✅ **Gender Swap**: פונקציה `swap-gender` עובדת ללא עלות קרדיטים
-- ✅ **Hebrew Topic Map**: `TOPIC_HEBREW_MAP` קיים ומשמש לשמירת נושאים בעברית
+### 1. Global CSS Improvements
+**File: `src/index.css`**
+
+Add universal mobile scrolling utilities:
+- Add `-webkit-overflow-scrolling: touch` for smooth iOS momentum scrolling
+- Create standardized safe-area bottom padding class
+- Ensure consistent bottom padding for fixed navigation (120px minimum)
+
+```text
+Key Changes:
+- Add momentum scrolling property to html/body
+- Create .scroll-container utility class with safe padding
+- Create .fixed-bottom-action class for action buttons with proper z-index (z-60)
+```
+
+### 2. CreateStory Page Fix
+**File: `src/pages/CreateStory.tsx`**
+
+Update the layout structure:
+- Increase bottom fixed button position from `bottom-16` to `bottom-[4.5rem]` (72px) to account for varying nav heights
+- Ensure main content has `pb-40` (160px) to provide scroll room
+- Add higher z-index (`z-[60]`) to the fixed button container
+- Apply momentum scrolling class to main content area
+
+```text
+Current Structure:
+- Main: pb-36, overflow-y-auto
+- Fixed Button: bottom-16 z-50
+- Mobile Nav: bottom-0 z-[100]
+
+New Structure:
+- Main: pb-40, touch-action manipulation, -webkit-overflow-scrolling: touch
+- Fixed Button: bottom-[4.5rem] z-[60], increased padding
+- Mobile Nav: unchanged (z-[100])
+```
+
+### 3. ChildInfoStep Layout Optimization
+**File: `src/components/wizard/ChildInfoStep.tsx`**
+
+Reduce vertical spacing between sections:
+- Change `space-y-2.5` to `space-y-2` for tighter layout
+- Reduce gender/age button padding from `p-2` to `p-1.5`
+- Compact title margins
+
+### 4. TopicStep Adjustment
+**File: `src/components/wizard/TopicStep.tsx`**
+
+Ensure consistent scrolling behavior:
+- The negative margins (`-mx-3 -mt-2`) are fine but ensure parent handles scroll correctly
+
+### 5. Home Page Scrolling
+**File: `src/pages/Home.tsx`**
+
+Update container to support proper scrolling:
+- Add overflow-y-auto to content area
+- Ensure proper bottom padding for safe area
+
+### 6. MobileNavigation Height Reference
+**File: `src/components/MobileNavigation.tsx`**
+
+The navigation bar is `h-16` (64px) with `pb-safe` for safe area inset. This means the fixed buttons need to be at least `64px + 8px buffer = 72px` from the bottom.
 
 ---
 
-## בדיקות מומלצות
+## Technical Details
 
-1. ✅ וידוא שאין אופציית Developer Mode במסך התחברות
-2. ⏳ רישום משתמש חדש ובדיקה שמקבל בדיוק קרדיט 1
-3. ⏳ יצירת סיפור ראשון ושמירת האווטאר
-4. ⏳ יצירת סיפור שני לאותו ילד - וידוא שהפנים זהות והלבוש משתנה
-5. ⏳ בדיקת swipe בסיפור במובייל
+### Z-Index Hierarchy (from bottom to top)
+- Background elements: z-0 to z-10
+- Content elements: z-10 to z-20
+- Header: z-20
+- Fixed action buttons: z-50 to z-60
+- Mobile navigation: z-100
+- Modals/overlays: z-[200]+
+
+### Safe Bottom Padding Calculation
+- Mobile nav height: 64px (`h-16`)
+- Safe area inset: variable (up to 34px on iPhone with home bar)
+- Buffer space: 8px
+- Total: approximately 106px minimum, rounded to 120px for safety
+
+### Momentum Scrolling
+Adding `-webkit-overflow-scrolling: touch` enables native-like scrolling on iOS devices with proper momentum and rubber-banding effects.
+
+---
+
+## Files to Modify
+
+| File | Changes |
+|------|---------|
+| `src/index.css` | Add momentum scrolling, safe-area utilities |
+| `src/pages/CreateStory.tsx` | Increase bottom padding, adjust fixed button position |
+| `src/components/wizard/ChildInfoStep.tsx` | Compact spacing between sections |
+| `src/pages/Home.tsx` | Ensure proper overflow handling |
+
+---
+
+## Expected Result
+
+After implementation:
+- The "המשיכו" (Continue) button will always be visible and clickable on all mobile devices
+- Scrolling will feel smooth and native on iOS devices
+- All form sections will be reachable by scrolling
+- Consistent bottom padding prevents content from being hidden behind navigation
