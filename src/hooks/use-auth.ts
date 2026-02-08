@@ -78,27 +78,18 @@ export const useAuth = () => {
   const resetPasswordForEmail = async (email: string) => {
     const redirectUrl = `${window.location.origin}/reset-password`;
     
-    // Use custom edge function to send password reset email via Resend
     try {
-      const response = await fetch(
-        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/send-password-reset`,
-        {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'apikey': import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
-          },
-          body: JSON.stringify({
-            email,
-            redirectUrl,
-          }),
-        }
-      );
+      const { data, error } = await supabase.functions.invoke('send-password-reset', {
+        body: { email, redirectUrl },
+      });
       
-      const data = await response.json();
+      if (error) {
+        console.error('Password reset error:', error);
+        return { error: new Error(error.message || 'Failed to send reset email') };
+      }
       
-      if (!response.ok) {
-        return { error: new Error(data.error || 'Failed to send reset email') };
+      if (data?.error) {
+        return { error: new Error(data.error) };
       }
       
       return { error: null };
