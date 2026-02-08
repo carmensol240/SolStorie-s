@@ -9,6 +9,7 @@ import { Badge } from "@/components/ui/badge";
 import PurchaseSuccessModal from "@/components/paywall/PurchaseSuccessModal";
 import PurchaseFailedModal from "@/components/paywall/PurchaseFailedModal";
 import PayPalButton from "@/components/paywall/PayPalButton";
+import CouponInput from "@/components/paywall/CouponInput";
 
 import { useCredits } from "@/hooks/use-credits";
 import { useAnalytics } from "@/hooks/use-analytics";
@@ -36,6 +37,7 @@ const Upgrade = () => {
   const [showFailed, setShowFailed] = useState(false);
   const [purchasedCredits, setPurchasedCredits] = useState(0);
   const [copied, setCopied] = useState(false);
+  const [discountPercent, setDiscountPercent] = useState(0);
 
   // Dynamic content based on state
   const title = firstStoryId 
@@ -340,6 +342,16 @@ const Upgrade = () => {
             ))}
           </div>
         
+          {/* Coupon Input Section */}
+          <div className="mb-3">
+            <CouponInput 
+              onDiscountApplied={(percent) => setDiscountPercent(percent)}
+              onStoriesAdded={(stories) => {
+                refetchCredits();
+              }}
+            />
+          </div>
+
           {/* Credit Card Note - More prominent */}
           <div className="bg-purple-50 border border-purple-200 rounded-lg p-3 mb-3">
             <p className="text-sm text-center text-purple-800 font-bold flex items-center justify-center gap-2">
