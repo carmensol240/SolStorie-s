@@ -14,7 +14,6 @@ import { useToast } from "@/hooks/use-toast";
 import { useAnalytics } from "@/hooks/use-analytics";
 import { supabase } from "@/integrations/supabase/client";
 import { z } from "zod";
-import { enableDevMode } from "@/hooks/use-dev-mode";
 import soliBackground from "@/assets/soli-tree-background.png";
 
 const emailSchema = z.string().email("כתובת אימייל לא תקינה");
@@ -1026,20 +1025,6 @@ const Auth = () => {
                 יש לסמן את שתי ההסכמות כדי להמשיך
               </p>
             )}
-            
-            {/* Developer Bypass - Only in development */}
-            {import.meta.env.DEV && (
-              <button
-                type="button"
-                onClick={() => {
-                  enableDevMode();
-                  navigate("/library");
-                }}
-                className="mt-4 w-full text-center text-sm text-purple-500 hover:text-purple-700 transition-colors py-2 border border-dashed border-purple-300 rounded-xl hover:bg-purple-50"
-              >
-                🔧 דלג על אישור (Developer Mode)
-              </button>
-            )}
           </div>
         </div>
       </div>
@@ -1285,21 +1270,6 @@ const Auth = () => {
               </div>
             )}
 
-            {/* Developer Bypass - Only in development */}
-            {import.meta.env.DEV && (
-              <div className="mt-3 pt-3 border-t border-dashed border-gray-200">
-                <button
-                  type="button"
-                  onClick={() => {
-                    enableDevMode();
-                    navigate("/library");
-                  }}
-                  className="w-full text-center text-xs text-gray-400 hover:text-purple transition-colors"
-                >
-                  🔧 Developer Mode (Skip Auth)
-                </button>
-              </div>
-            )}
             </>
           )}
         </div>

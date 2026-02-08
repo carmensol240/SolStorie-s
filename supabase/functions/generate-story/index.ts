@@ -934,6 +934,10 @@ ${adventureLogic ? `
           childGender: childGender,
           ageRange: ageRange,
           adventureLogic: adventureLogic,
+          // Pass additional info for avatar persistence
+          userId: userId,
+          childName: childName,
+          topic: topic,
         }),
       }).then(response => {
         console.log(`generate-illustrations response status: ${response.status}`);

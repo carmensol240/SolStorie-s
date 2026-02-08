@@ -308,7 +308,7 @@ const StoryViewer = () => {
   };
 
   // Swipe gesture handlers for page navigation - must be after handlePageChange is defined
-  const swipeHandlers = useSwipe({
+  const { onTouchStart, onTouchMove, onTouchEnd, swipeOffset } = useSwipe({
     onSwipeLeft: () => {
       // In RTL, swipe left = next page
       if (story && currentPage < story.pages.length) {
@@ -323,6 +323,9 @@ const StoryViewer = () => {
     },
     threshold: 50,
   });
+  
+  // Create swipeHandlers object for spreading onto elements
+  const swipeHandlers = { onTouchStart, onTouchMove, onTouchEnd };
 
   const handleShare = async () => {
     try {
@@ -607,7 +610,13 @@ const StoryViewer = () => {
         onTouchMove={swipeHandlers.onTouchMove}
         onTouchEnd={swipeHandlers.onTouchEnd}
       >
-        <div className="relative w-full">
+        <div 
+          className="relative w-full"
+          style={{ 
+            transform: `translateX(${swipeOffset}px)`,
+            transition: swipeOffset === 0 ? 'transform 0.3s ease-out' : 'none'
+          }}
+        >
           <BookFrame isFlipping={isFlipping} flipDirection={flipDirection}>
             {/* Navigation Arrows on Book Frame */}
             <NavigationArrows
@@ -629,7 +638,7 @@ const StoryViewer = () => {
                         <SignedImage
                           src={story.pages[0].illustration_url}
                           storyId={story.id}
-                          alt=""
+                          alt={`עטיפת הסיפור: ${story.child_name} ב${story.topic}`}
                           className="w-full aspect-[4/5] object-cover"
                         />
                       </div>
@@ -760,7 +769,7 @@ const StoryViewer = () => {
                         <SignedImage
                           src={page.illustration_url}
                           storyId={story.id}
-                          alt=""
+                          alt={`איור לעמוד ${page.page_number}: ${page.text?.substring(0, 60) || 'איור מהסיפור'}...`}
                           className="w-full aspect-[4/5] object-cover"
                         />
                       </div>

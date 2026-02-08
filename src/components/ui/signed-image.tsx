@@ -72,15 +72,18 @@ export const SignedImage = ({
     return <>{fallback}</>;
   }
 
+  // Generate a meaningful alt text if none provided
+  const effectiveAlt = alt || 'איור מהסיפור';
+
   return (
-    <div className={cn('relative', className)}>
+    <div className={cn('relative', className)} role="img" aria-label={effectiveAlt}>
       {/* Show loading skeleton until image loads */}
       {!imageLoaded && !hasError && (
-        <div className={cn('absolute inset-0 animate-pulse bg-muted', className)} />
+        <div className={cn('absolute inset-0 animate-pulse bg-muted', className)} aria-hidden="true" />
       )}
       <img
         src={signedUrl || src}
-        alt={alt}
+        alt={effectiveAlt}
         loading="lazy"
         onLoad={() => {
           setImageLoaded(true);
