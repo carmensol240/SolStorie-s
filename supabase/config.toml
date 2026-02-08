@@ -35,3 +35,6 @@ verify_jwt = false
 
 [functions.generate-illustrations]
 verify_jwt = false
+
+[functions.swap-gender]
+verify_jwt = false
