@@ -97,23 +97,23 @@ const GuestLanding = ({ user, isLoggedIn }: GuestLandingProps) => {
 
   return (
     <div className="flex-1 flex flex-col animate-fade-in relative">
-      {/* Fixed full-screen hero image background */}
+      {/* Fixed full-screen hero image background - background-size: cover */}
       <div 
         className="fixed inset-0 pointer-events-none"
         style={{ 
           backgroundImage: `url(${heroFlyingGirl})`,
           backgroundSize: 'cover',
-          backgroundPosition: 'center',
+          backgroundPosition: 'center center',
           backgroundRepeat: 'no-repeat',
           zIndex: -2
         }}
       />
 
-      {/* Soft overlay for text readability */}
+      {/* Lighter overlay for better image visibility */}
       <div 
         className="fixed inset-0 pointer-events-none"
         style={{ 
-          background: 'linear-gradient(180deg, rgba(135, 206, 235, 0.4) 0%, rgba(255, 255, 255, 0.5) 50%, rgba(255, 251, 235, 0.6) 100%)',
+          background: 'linear-gradient(180deg, rgba(135, 206, 235, 0.25) 0%, rgba(255, 255, 255, 0.3) 50%, rgba(255, 251, 235, 0.35) 100%)',
           zIndex: -1 
         }} 
       />

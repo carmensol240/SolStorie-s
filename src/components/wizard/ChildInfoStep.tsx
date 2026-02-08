@@ -340,7 +340,7 @@ const ChildInfoStep = ({ formData, updateFormData }: ChildInfoStepProps) => {
   };
 
   return (
-    <div className="w-full space-y-3 px-1">
+    <div className="w-full space-y-3 px-1 overflow-y-auto max-h-[calc(100vh-180px)]">
       {/* Title */}
       <div className="text-center space-y-0.5">
         <h1 className="text-lg font-black bg-gradient-to-r from-purple-600 via-pink-500 to-orange-400 bg-clip-text text-transparent">ספרו לנו על הילד/ה</h1>
