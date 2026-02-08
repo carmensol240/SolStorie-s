@@ -4,6 +4,7 @@ interface SwipeHandlers {
   onTouchStart: (e: React.TouchEvent) => void;
   onTouchMove: (e: React.TouchEvent) => void;
   onTouchEnd: () => void;
+  swipeOffset: number;
 }
 
 interface UseSwipeOptions {
@@ -22,21 +23,30 @@ export const useSwipe = ({
   const touchStartX = useRef<number>(0);
   const touchEndX = useRef<number>(0);
   const [isSwiping, setIsSwiping] = useState(false);
+  const [swipeOffset, setSwipeOffset] = useState(0);
 
   const onTouchStart = useCallback((e: React.TouchEvent) => {
     touchStartX.current = e.touches[0].clientX;
     touchEndX.current = e.touches[0].clientX;
     setIsSwiping(true);
+    setSwipeOffset(0);
   }, []);
 
   const onTouchMove = useCallback(
     (e: React.TouchEvent) => {
       if (!isSwiping) return;
-      touchEndX.current = e.touches[0].clientX;
+      const currentX = e.touches[0].clientX;
+      const diff = currentX - touchStartX.current;
+      
+      // Apply visual offset during swipe (clamped for smooth feedback)
+      const clampedOffset = Math.max(-100, Math.min(100, diff * 0.3));
+      setSwipeOffset(clampedOffset);
+      
+      touchEndX.current = currentX;
       
       if (preventDefaultTouchmove) {
-        const diff = Math.abs(touchEndX.current - touchStartX.current);
-        if (diff > 10) {
+        const absDiff = Math.abs(diff);
+        if (absDiff > 10) {
           e.preventDefault();
         }
       }
@@ -47,6 +57,7 @@ export const useSwipe = ({
   const onTouchEnd = useCallback(() => {
     if (!isSwiping) return;
     setIsSwiping(false);
+    setSwipeOffset(0); // Reset visual offset with smooth transition
 
     const diff = touchStartX.current - touchEndX.current;
 
@@ -65,6 +76,7 @@ export const useSwipe = ({
     onTouchStart,
     onTouchMove,
     onTouchEnd,
+    swipeOffset,
   };
 };
 

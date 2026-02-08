@@ -259,6 +259,70 @@ async function uploadImageToStorage(
   }
 }
 
+// Theme-based outfit mapping for dynamic character clothing
+const THEME_OUTFITS: Record<string, { outfit: string; background: string; theme: string }> = {
+  "space-adventure": {
+    outfit: "silver space suit with transparent helmet",
+    background: "cosmic space station with stars and planets",
+    theme: "exciting space exploration adventure"
+  },
+  "bedtime-story": {
+    outfit: "cozy pajamas with star patterns",
+    background: "warm bedroom with soft moonlight",
+    theme: "peaceful nighttime"
+  },
+  "magic-kingdom": {
+    outfit: "royal prince/princess gown with sparkly crown",
+    background: "magical castle with glowing towers and fairy dust",
+    theme: "enchanted fairy tale adventure"
+  },
+  "body-hero-bath": {
+    outfit: "white fluffy bathrobe with duckie slippers",
+    background: "colorful bathroom with rainbow bubbles",
+    theme: "fun bath time adventure"
+  },
+  "body-hero-teeth": {
+    outfit: "superhero cape with toothbrush emblem",
+    background: "sparkling bathroom with magical mirror",
+    theme: "tooth brushing hero adventure"
+  },
+  "body-hero-hands": {
+    outfit: "colorful apron with soap bubble patterns",
+    background: "bright kitchen sink with bubbles",
+    theme: "hand washing adventure"
+  },
+  "clean-room": {
+    outfit: "comfortable play clothes with tool belt",
+    background: "child's bedroom with toys scattered around",
+    theme: "organizing adventure"
+  },
+  "potty-training": {
+    outfit: "colorful underwear with crown pattern",
+    background: "cheerful bathroom with step stool",
+    theme: "growing up adventure"
+  },
+  "dentist-visit": {
+    outfit: "comfortable clothes with brave badge",
+    background: "friendly dentist office with colorful decorations",
+    theme: "brave dental visit"
+  },
+  "friendship-courage": {
+    outfit: "colorful playground clothes",
+    background: "sunny playground with friends",
+    theme: "friendship adventure"
+  },
+  "zoo-adventure": {
+    outfit: "safari explorer outfit with binoculars",
+    background: "colorful zoo with friendly animals",
+    theme: "animal discovery adventure"
+  },
+  "family-trip": {
+    outfit: "comfortable travel clothes with backpack",
+    background: "scenic nature landscape",
+    theme: "family adventure"
+  },
+};
+
 serve(async (req) => {
   console.log("=== generate-illustrations function called ===");
   
@@ -282,7 +346,7 @@ serve(async (req) => {
     const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
     const requestBody = await req.json();
-    const { storyId, childPhoto, childAvatarUrl, childGender, ageRange, adventureLogic } = requestBody;
+    const { storyId, childPhoto, childAvatarUrl, childGender, ageRange, adventureLogic, userId, childName, topic } = requestBody;
     
     console.log("Request body received:", { 
       storyId, 
@@ -290,7 +354,10 @@ serve(async (req) => {
       hasChildAvatarUrl: !!childAvatarUrl,
       childGender,
       ageRange,
-      hasAdventureLogic: !!adventureLogic
+      hasAdventureLogic: !!adventureLogic,
+      userId: userId ? userId.substring(0, 8) + "..." : "none",
+      childName,
+      topic
     });
 
     if (!storyId) {
@@ -363,12 +430,62 @@ serve(async (req) => {
     // Use avatar URL if available, otherwise use original photo
     const effectivePhoto = childAvatarUrl || childPhoto;
 
-    // Extract character profile for consistency if photo is provided
+    // === AVATAR PERSISTENCE LOGIC ===
+    // Check if we already have a saved character profile for this child
     let characterProfile: CharacterProfile | null = null;
-    if (effectivePhoto) {
-      console.log("Extracting character profile...");
+    let savedProfileFromDb = false;
+    
+    if (userId && childName) {
+      console.log(`Checking for existing avatar profile for ${childName}...`);
+      const { data: existingChild } = await supabase
+        .from('children')
+        .select('avatar_description, avatar_url')
+        .eq('user_id', userId)
+        .eq('name', childName)
+        .maybeSingle();
+      
+      if (existingChild?.avatar_description) {
+        try {
+          characterProfile = JSON.parse(existingChild.avatar_description);
+          savedProfileFromDb = true;
+          console.log(`✅ Reusing saved avatar profile for ${childName}:`, characterProfile);
+        } catch (e) {
+          console.log("Could not parse saved profile, will generate new one");
+        }
+      }
+    }
+    
+    // If no saved profile, extract from photo
+    if (!characterProfile && effectivePhoto) {
+      console.log("Extracting character profile from photo...");
       characterProfile = await extractCharacterProfile(effectivePhoto, childGender || "male", ageRange || "3-6", LOVABLE_API_KEY);
       console.log("Character profile extracted:", characterProfile);
+      
+      // Save the profile for future stories (only if we have userId and childName)
+      if (userId && childName && characterProfile) {
+        console.log(`Saving avatar profile for ${childName} for future stories...`);
+        const { error: updateError } = await supabase
+          .from('children')
+          .update({ avatar_description: JSON.stringify(characterProfile) })
+          .eq('user_id', userId)
+          .eq('name', childName);
+        
+        if (updateError) {
+          console.warn("Could not save avatar profile:", updateError);
+        } else {
+          console.log("✅ Avatar profile saved for future stories");
+        }
+      }
+    }
+    
+    // === DYNAMIC OUTFIT BASED ON TOPIC ===
+    // Get theme-appropriate outfit while keeping physical features locked
+    let effectiveAdventureLogic = adventureLogic;
+    if (!effectiveAdventureLogic && topic) {
+      effectiveAdventureLogic = THEME_OUTFITS[topic] || null;
+      if (effectiveAdventureLogic) {
+        console.log(`Using theme outfit for "${topic}":`, effectiveAdventureLogic);
+      }
     }
 
     // Generate illustrations ONE BY ONE to avoid timeout and allow incremental updates
@@ -382,7 +499,7 @@ serve(async (req) => {
         effectivePhoto,
         characterProfile,
         LOVABLE_API_KEY,
-        adventureLogic
+        effectiveAdventureLogic // Use the enhanced adventure logic with theme outfits
       );
 
       let illustrationUrl = null;
@@ -395,7 +512,6 @@ serve(async (req) => {
           page.page_number
         );
       }
-
       // Update this page immediately
       if (illustrationUrl) {
         const { error: updateError } = await supabase
@@ -436,7 +552,8 @@ serve(async (req) => {
       JSON.stringify({ 
         success: true,
         storyId,
-        message: "Illustrations generated successfully" 
+        message: "Illustrations generated successfully",
+        usedSavedProfile: savedProfileFromDb
       }),
       { headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
