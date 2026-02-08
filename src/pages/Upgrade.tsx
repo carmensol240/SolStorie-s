@@ -1,6 +1,9 @@
 import { useState, useEffect } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
-import { X, BookOpen, Gift, Copy, Check } from "lucide-react";
+import { X, BookOpen, Gift, Copy, Check, FlaskConical } from "lucide-react";
+
+// Whitelisted test email - hardcoded for security
+const WHITELISTED_TEST_EMAIL = "carmit1901+test@gmail.com";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import PurchaseSuccessModal from "@/components/paywall/PurchaseSuccessModal";
@@ -52,6 +55,9 @@ const Upgrade = () => {
     trackEvent({ eventType: 'feature_used', metadata: { feature: 'paywall_view', view_type: viewType } });
   }, [trackEvent, firstStoryId, noCredits]);
 
+  // Check if current user is whitelisted tester
+  const isTestUser = user?.email?.toLowerCase() === WHITELISTED_TEST_EMAIL.toLowerCase();
+
   const handleSelectPackage = (packageId: string) => {
     setSelectedPackage(packageId);
     const pkg = PRICING_PACKAGES.find(p => p.id === packageId);
@@ -61,11 +67,75 @@ const Upgrade = () => {
     });
   };
 
+  // Test user bypass - instant credit grant without payment
+  const handleTestPurchase = async () => {
+    if (!isTestUser || !user) return;
+    
+    const pkg = PRICING_PACKAGES.find(p => p.id === selectedPackage);
+    if (!pkg) return;
+
+    try {
+      // Save test purchase record
+      const { error: purchaseError } = await supabase
+        .from('purchases')
+        .insert({
+          user_id: user.id,
+          package_name: `test_${pkg.id}`,
+          credits_purchased: pkg.stories,
+          amount_ils: 0, // Free for test user
+          status: 'test_completed',
+        });
+
+      if (purchaseError) throw purchaseError;
+
+      // Add credits instantly
+      const success = await addCredits(pkg.stories);
+      
+      if (success) {
+        setPurchasedCredits(pkg.stories);
+        setShowSuccess(true);
+        trackEvent({ 
+          eventType: 'feature_used', 
+          metadata: { feature: 'test_purchase_completed', package: pkg.id, stories: pkg.stories } 
+        });
+        toast.success(`🧪 קרדיטים נוספו בהצלחה (מצב בדיקה)`);
+      } else {
+        throw new Error('Failed to add credits');
+      }
+    } catch (error) {
+      console.error('Test purchase failed:', error);
+      toast.error('שגיאה בהוספת קרדיטים');
+    }
+  };
+
+  // Quick add test credits (for testing purposes)
+  const handleAddTestCredits = async (amount: number) => {
+    if (!isTestUser || !user) return;
+    
+    const success = await addCredits(amount);
+    if (success) {
+      toast.success(`🧪 נוספו ${amount} קרדיטים לבדיקה`);
+      trackEvent({ 
+        eventType: 'feature_used', 
+        metadata: { feature: 'test_credits_added', amount } 
+      });
+    } else {
+      toast.error('שגיאה בהוספת קרדיטים');
+    }
+  };
+
   const handlePurchase = () => {
     if (!user) {
       navigate("/auth");
       return;
     }
+    
+    // Test user bypass - skip PayPal entirely
+    if (isTestUser) {
+      handleTestPurchase();
+      return;
+    }
+    
     setShowPayPal(true);
   };
 
@@ -323,6 +393,44 @@ const Upgrade = () => {
               </Button>
             )}
           </div>
+
+          {/* Hidden Test Credits Section - Only visible to whitelisted tester */}
+          {isTestUser && (
+            <div className="bg-amber-50 border-2 border-amber-400 border-dashed rounded-xl p-3 mb-3">
+              <div className="flex items-center gap-2 mb-2">
+                <FlaskConical className="w-5 h-5 text-amber-600" />
+                <h4 className="font-bold text-sm text-amber-800">🧪 מצב בדיקה (Test Mode)</h4>
+              </div>
+              <p className="text-xs text-amber-700 mb-2">
+                משתמש מורשה - קרדיטים יתווספו ללא תשלום
+              </p>
+              <div className="flex gap-2">
+                <Button 
+                  onClick={() => handleAddTestCredits(5)}
+                  size="sm"
+                  variant="outline"
+                  className="flex-1 h-8 text-xs border-amber-400 text-amber-700 hover:bg-amber-100"
+                >
+                  +5 קרדיטים
+                </Button>
+                <Button 
+                  onClick={() => handleAddTestCredits(10)}
+                  size="sm"
+                  variant="outline"
+                  className="flex-1 h-8 text-xs border-amber-400 text-amber-700 hover:bg-amber-100"
+                >
+                  +10 קרדיטים
+                </Button>
+                <Button 
+                  onClick={() => handleAddTestCredits(50)}
+                  size="sm"
+                  className="flex-1 h-8 text-xs bg-amber-500 hover:bg-amber-600 text-white"
+                >
+                  +50 קרדיטים
+                </Button>
+              </div>
+            </div>
+          )}
 
           {/* Privacy Policy Link */}
           <p className="text-xs text-center text-muted-foreground mt-2 mb-4">
