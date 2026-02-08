@@ -1,175 +1,293 @@
 
-# תוכנית: כפתור החלפת מגדר מהירה + אימות תקינות תמונות
+# תוכנית מקיפה: שיפורי אפליקציה ותיקוני באגים
 
-## סיכום הבעיות והבקשות
+## סיכום הבעיות שזוהו
 
-### ✅ תמונות וכיסויים - כבר עובדים!
-מהלוגים של הפונקציה `get-signed-illustration-url`:
-```
-Generated signed URL for: ea82cf85-69b6-4f05-a5a4-5309d3faf71c/page-1.png
-Generated signed URL for: ea82cf85-69b6-4f05-a5a4-5309d3faf71c/page-2.png
-...
-Generated signed URL for: ea82cf85-69b6-4f05-a5a4-5309d3faf71c/page-5.png
-```
-
-ממסד הנתונים:
-| סיפור | cover_url | generation_status |
-|-------|-----------|-------------------|
-| סולי | `ea82cf85-.../page-1.png` | `ready` |
-
-**התמונות נשמרות ומוצגות בהצלחה!** התיקון הקודם לפונקציית `get-signed-illustration-url` עובד.
-
-### 🆕 בקשה חדשה: כפתור "החלפת מגדר מהירה"
-
-**דרישות:**
-- כפתור/קישור עדין בסוף יצירת הסיפור
-- טקסט: "התבלבלתם במגדר? לחצו כאן לתיקון מהיר"
-- אפשרות להחליף בין בן (גיבור) לבת (גיבורה)
-- **ללא עלות קרדיטים** - זו החלפת טקסט בלבד, לא יצירה מחדש
-- לוגיקה: החלפת כל הפעלים והכינויים (הלך→הלכה, הוא→היא, וכו')
+| בעיה | סטטוס | קובץ רלוונטי |
+|------|--------|--------------|
+| עדכון חבילות תמחור | נדרש | `src/config/pricing.ts`, `src/pages/Upgrade.tsx` |
+| Social Proof במסך טעינה - קרוסלה עם כרטיסיות | נדרש | `src/components/wizard/GeneratingStep.tsx` |
+| הסרת תיבת ה-"טיפ" | נדרש | `src/components/wizard/GeneratingStep.tsx` |
+| כותרות סיפורים באנגלית | נדרש | `src/components/wizard/TopicStep.tsx` + DB logic |
+| מסך Hero (Sol/Tree) - תיבת פעולה נמוכה יותר | נדרש | `src/components/home/LoggedInHome.tsx` |
+| הסרת DebugMenu מהמסך הראשי | נדרש | `src/pages/Home.tsx` |
+| שמירת אווטאר לסיפורים עתידיים | נדרש | `supabase/functions/generate-story/index.ts` |
+| עדכון לבוש דינמי לפי נושא | נדרש | `supabase/functions/generate-story/index.ts` |
+| הקטנת פוטר במסך רכישה | נדרש | `src/pages/Upgrade.tsx` |
 
 ---
 
-## ארכיטקטורת הפתרון
+## 1. עדכון חבילות התמחור
 
-### זרימת העבודה
+### קובץ: `src/config/pricing.ts`
 
-```text
-[משתמש מסיים יצירת סיפור]
-         ↓
-[מופיע כפתור "התבלבלתם במגדר?"]
-         ↓
-[משתמש לוחץ]
-         ↓
-[Dialog לבחירת מגדר נכון]
-         ↓
-[קריאה ל-Edge Function: swap-gender]
-         ↓
-[הפונקציה מחליפה טקסט בכל העמודים]
-         ↓
-[עדכון מסד נתונים + רענון הסיפור]
+**לפני:**
+```typescript
+{ id: "basic", stories: 5, price: 39, freeEdits: 1, ... }
+{ id: "popular", stories: 10, price: 59, freeEdits: 2, ... }
+{ id: "premium", stories: 20, price: 99, freeEdits: 3, ... }
 ```
+
+**אחרי:**
+```typescript
+{ id: "basic", stories: 5, price: 49, pricePerStory: "9.8₪", freeEdits: 5, ... }
+{ id: "popular", stories: 10, price: 89, pricePerStory: "8.9₪", freeEdits: 12, badge: "⭐ מומלץ", ... }
+{ id: "premium", stories: 15, price: 115, pricePerStory: "7.67₪", freeEdits: 20, ... }
+```
+
+### קובץ: `src/pages/Upgrade.tsx`
+
+עדכון תצוגת "עריכות חינם" בכרטיסי החבילות:
+- הצגת מספר העריכות החינמיות בצורה בולטת: `+{freeEdits} עריכות חינם`
+- הקטנת הפוטר הקבוע (מ-py-3 ל-py-2)
+- הסרת הרווח הריק בין הפסקאות
 
 ---
 
-## פירוט טכני
+## 2. מסך טעינה - Social Proof מקצועי
 
-### שלב 1: יצירת Edge Function חדשה - `swap-gender`
+### קובץ: `src/components/wizard/GeneratingStep.tsx`
 
-**קובץ חדש:** `supabase/functions/swap-gender/index.ts`
+**שינויים:**
 
-**לוגיקת ההחלפה:**
+1. **הסרת תיבת "טיפ"** (שורות 344-348)
+   - מחיקת הקוד של התיבה הסגולה עם הטיפ
+
+2. **החלפת ההמלצות הפשוטות בקרוסלת כרטיסיות מקצועית:**
 
 ```typescript
-const GENDER_SWAP_RULES = {
-  // מזכר לנקבה
-  male_to_female: {
-    // כינויים
-    "הוא": "היא", "שלו": "שלה", "אותו": "אותה",
-    // פעלים - עבר
-    "הלך": "הלכה", "רץ": "רצה", "שמח": "שמחה",
-    "אמר": "אמרה", "ראה": "ראתה", "עשה": "עשתה",
-    "יצא": "יצאה", "בא": "באה", "ישב": "ישבה",
-    "עמד": "עמדה", "התחיל": "התחילה", "סיים": "סיימה",
-    "הבין": "הבינה", "החליט": "החליטה", "הרגיש": "הרגישה",
-    // תארים
-    "שמח": "שמחה", "עצוב": "עצובה", "אמיץ": "אמיצה",
-    "חכם": "חכמה", "יפה": "יפה", "גאה": "גאה",
-    // שמות פעולה
-    "גיבור": "גיבורה", "ילד": "ילדה", "בן": "בת"
+const PARENT_TESTIMONIALS = [
+  { 
+    name: "הורה מ.", 
+    quote: "הילדה שלי מאושרת! כל לילה מבקשת לקרוא את הסיפור שלה שוב ושוב.",
+    rating: 5 
   },
-  // מנקבה לזכר - ההיפוך
-  female_to_male: { /* הפוך מהנ"ל */ }
+  { 
+    name: "הורה י.", 
+    quote: "הילדים שלי מתים על הסיפורים. הם מרגישים כמו גיבורים אמיתיים.",
+    rating: 5 
+  },
+  { 
+    name: "הורה ר.", 
+    quote: "האיורים מדהימים והסיפורים מותאמים בצורה מושלמת לגיל.",
+    rating: 5 
+  },
+  { 
+    name: "הורה א.", 
+    quote: "יצרנו סיפור על הפחד מהחושך והילד שלי התגבר על הפחד תוך שבוע!",
+    rating: 5 
+  },
+];
+```
+
+**עיצוב הכרטיסיות:**
+- רקע לבן עם border-radius
+- שם ההורה בולט
+- ציטוט באיטליק
+- 5 כוכבים זהובים מתחת לכל ציטוט
+- החלפה אוטומטית כל 4 שניות עם אפקט fade
+
+---
+
+## 3. תיקון כותרות סיפורים באנגלית
+
+### בעיה:
+הנושאים נשמרים באנגלית במסד הנתונים (למשל `clean-room` במקום `סדר בחדר`)
+
+### פתרון:
+
+#### א. קובץ: `src/components/wizard/TopicStep.tsx`
+העברת ה-topic label בעברית לפונקציית ה-generate במקום ה-ID
+
+#### ב. קובץ: `supabase/functions/generate-story/index.ts`
+שמירת התרגום העברי של הנושא בטבלת `stories`:
+
+```typescript
+// Map English topic IDs to Hebrew
+const TOPIC_HEBREW_MAP: Record<string, string> = {
+  "clean-room": "סדר בחדר",
+  "space-adventure": "הרפתקה בחלל",
+  "magic-kingdom": "ממלכת הקסם",
+  "bedtime-story": "סיפור לפני השינה",
+  "body-hero-teeth": "צחצוח שיניים",
+  "body-hero-bath": "אמבטיה",
+  "friendship-courage": "חברות ואומץ",
+  // ... all topics
 };
 ```
 
-**תהליך:**
-1. קבלת `storyId` ו-`targetGender` מהלקוח
-2. אימות הבעלות על הסיפור
-3. שליפת כל עמודי הסיפור
-4. הרצת החלפת מילים על כל טקסט
-5. עדכון כל העמודים במסד הנתונים
-6. עדכון שדה `child_gender` בטבלת `stories`
-7. **אין חיוב קרדיטים** - זו פעולה חינמית
+---
 
-### שלב 2: Dialog לבחירת מגדר
+## 4. מסך Hero (Sol/Tree) - תיבת פעולה מעודכנת
 
-**קובץ חדש:** `src/components/story/GenderSwapDialog.tsx`
+### קובץ: `src/components/home/LoggedInHome.tsx`
 
-**מראה:**
-```text
-┌─────────────────────────────────────┐
-│  🔄 תיקון מגדר מהיר                  │
-├─────────────────────────────────────┤
-│  בחרו את המגדר הנכון:               │
-│                                     │
-│  [👦 בן - גיבור]   [👧 בת - גיבורה]  │
-│                                     │
-│  הטקסט יותאם אוטומטית              │
-│  ללא עלות נוספת ✨                  │
-│                                     │
-│  [ביטול]              [תקנו עכשיו]  │
-└─────────────────────────────────────┘
-```
+**שינויים:**
 
-### שלב 3: הוספת הכפתור ל-StoryViewer
+1. **הורדת התיבה נמוך יותר:**
+   - שינוי מ-`pb-8` ל-`pb-24` (רחוק יותר מהתחתית)
+   - הוספת `mb-20` לרווח מהניווט
 
-**מיקום:** דף הסיום של הסיפור (End Page) או דף הכריכה
+2. **הצרת הכפתור:**
+   - שינוי מ-`w-full` ל-`max-w-xs mx-auto`
 
-**קוד:**
+3. **אפקט זכוכית:**
+   - הוספת `bg-white/30 backdrop-blur-md`
+   - `border border-white/20`
+   - `shadow-lg`
+
 ```typescript
-// בדף הסיום (isEndPage)
-<div className="mt-4">
-  <Button
-    variant="link"
-    size="sm"
-    onClick={() => setShowGenderSwapDialog(true)}
-    className="text-purple-500 hover:text-purple-700 text-sm"
+<div className="pb-24 px-4">
+  <button
+    onClick={() => navigate("/create")}
+    className="max-w-xs mx-auto flex items-center justify-center gap-4 
+               bg-white/30 backdrop-blur-md border border-white/20
+               rounded-2xl p-4 shadow-lg hover:bg-white/40 transition-all"
   >
-    🔄 התבלבלתם במגדר? לחצו לתיקון מהיר
-  </Button>
+    {/* ... content ... */}
+  </button>
 </div>
 ```
 
 ---
 
-## סיכום הקבצים לשינוי/יצירה
+## 5. הסרת DebugMenu מהמסך הראשי
 
-| קובץ | פעולה | עדיפות |
-|------|--------|--------|
-| `supabase/functions/swap-gender/index.ts` | **יצירה** - Edge Function חדשה | 🔴 גבוהה |
-| `src/components/story/GenderSwapDialog.tsx` | **יצירה** - דיאלוג בחירת מגדר | 🔴 גבוהה |
-| `src/pages/StoryViewer.tsx` | עדכון - הוספת כפתור ו-state | 🟡 בינונית |
-| `supabase/config.toml` | עדכון - הוספת הפונקציה החדשה | 🔴 גבוהה |
+### קובץ: `src/pages/Home.tsx`
+
+**לפני:**
+```typescript
+import DebugMenu from "@/components/DebugMenu";
+// ...
+<DebugMenu />
+```
+
+**אחרי:**
+- הסרת ה-import של `DebugMenu`
+- מחיקת `<DebugMenu />` מה-JSX
+
+**הערה:** ה-DebugMenu עדיין קיים בקוד אבל לא יופיע - רק בסביבות פיתוח ספציפיות עם `?dev=true`
 
 ---
 
-## מדיניות קרדיטים
+## 6. שמירת אווטאר והתאמת לבוש דינמית
 
-| פעולה | עלות |
-|-------|------|
-| יצירת סיפור חדש | 1 קרדיט |
-| עריכת טקסט (ראשונה) | חינם |
-| עריכת טקסט (נוספות) | 1 קרדיט כל אחת |
-| **החלפת מגדר** | **חינם** ✨ |
+### קובץ: `supabase/functions/generate-story/index.ts`
 
-הסיבה: החלפת מגדר היא תיקון שגיאה טכנית של המשתמש, לא יצירת תוכן חדש. זה מעודד שימוש ומפחית תסכול.
+**לוגיקת האווטאר:**
+
+1. **בדיקה אם קיים אווטאר שמור לילד:**
+```typescript
+// Check for existing avatar in children table
+const { data: existingChild } = await supabaseAdmin
+  .from('children')
+  .select('avatar_url, avatar_description')
+  .eq('user_id', userId)
+  .eq('name', childName)
+  .maybeSingle();
+```
+
+2. **שימוש חוזר באווטאר קיים:**
+```typescript
+if (existingChild?.avatar_url) {
+  // Use existing character visual description
+  characterDescription = existingChild.avatar_description;
+  console.log('Using saved avatar for', childName);
+} else {
+  // Generate new avatar and save it
+  // ...
+}
+```
+
+3. **התאמת לבוש לפי נושא:**
+```typescript
+const THEME_OUTFITS: Record<string, string> = {
+  "space-adventure": "חליפת חלל כסופה עם קסדה שקופה",
+  "bedtime-story": "פיג'מה נעימה עם כוכבים",
+  "magic-kingdom": "שמלת/גלימת נסיך/נסיכה מלכותית",
+  "body-hero-bath": "חלוק רחצה לבן רך",
+  "clean-room": "בגדים יומיומיים צבעוניים",
+  // ... more themes
+};
+
+// In illustration prompt:
+const outfit = THEME_OUTFITS[topic] || "בגדים יומיומיים צבעוניים";
+const illustrationPrompt = `
+  ${characterDescription}
+  לבוש: ${outfit}
+  (הפנים, השיער והעיניים חייבים להישאר זהים לתיאור המקורי)
+`;
+```
+
+---
+
+## 7. הקטנת פוטר במסך רכישה
+
+### קובץ: `src/pages/Upgrade.tsx`
+
+**שינויים בפוטר הקבוע (שורות 357-374):**
+
+```typescript
+// Before
+<div className="fixed bottom-0 ... py-3 ...">
+
+// After
+<div className="fixed bottom-0 ... py-2 ...">
+  <div className="container max-w-md mx-auto flex flex-col items-center gap-0.5">
+```
+
+- שינוי `py-3` ל-`py-2`
+- שינוי `gap-1` ל-`gap-0.5`
+- הקטנת כפתור "אולי מאוחר יותר" מ-`text-xs` ל-`text-[10px]`
+
+---
+
+## 8. עריכות חינם בולטות יותר
+
+### קובץ: `src/pages/Upgrade.tsx`
+
+עדכון הצגת העריכות החינמיות בכרטיסיות:
+
+```typescript
+{/* Free edits badge - MORE PROMINENT */}
+<div className="bg-green-100 border border-green-300 rounded-lg px-2 py-1 mt-2">
+  <span className="text-sm text-green-700 font-black">
+    +{pkg.freeEdits} עריכות חינם
+  </span>
+</div>
+```
+
+---
+
+## סיכום הקבצים לשינוי
+
+| קובץ | סוג שינוי |
+|------|-----------|
+| `src/config/pricing.ts` | עדכון מחירים וכמויות |
+| `src/pages/Upgrade.tsx` | UI - פוטר, עריכות חינם |
+| `src/components/wizard/GeneratingStep.tsx` | קרוסלת המלצות, הסרת טיפ |
+| `src/components/home/LoggedInHome.tsx` | תיבת פעולה שקופה ונמוכה |
+| `src/pages/Home.tsx` | הסרת DebugMenu |
+| `supabase/functions/generate-story/index.ts` | אווטאר persistent + לבוש דינמי + תרגום נושאים |
+| `src/components/wizard/TopicStep.tsx` | העברת שם נושא בעברית |
+
+---
+
+## תזכורת: כפתור החלפת מגדר ✅
+
+הפיצ'ר כבר מיושם ועובד:
+- כפתור "התבלבלתם במגדר?" בסוף הסיפור
+- Edge Function `swap-gender` שמחליפה פעלים וכינויים
+- ללא עלות קרדיטים
 
 ---
 
 ## בדיקות נדרשות לאחר היישום
 
-1. ✅ אימות שהתמונות מוצגות (כבר עובד!)
-2. ⏳ יצירת סיפור חדש ובדיקת הזרימה המלאה
-3. ⏳ שימוש בכפתור החלפת המגדר
-4. ⏳ אימות שהטקסט התעדכן נכון בכל העמודים
-5. ⏳ אימות שלא נגבה קרדיט
-
----
-
-## תוצאה צפויה
-
-1. ✅ תמונות וכיסויים מוצגים בספרייה ובצופה הסיפורים
-2. ✨ כפתור עדין בסוף הסיפור להחלפת מגדר
-3. ✨ תהליך מהיר וחינמי לתיקון שגיאות מגדר
-4. 💚 חוויית משתמש משופרת
+1. יצירת סיפור חדש ובדיקת שמירת האווטאר
+2. יצירת סיפור שני לאותו ילד - וידוא שהאווטאר זהה
+3. בדיקת מסך הטעינה עם הקרוסלה החדשה
+4. בדיקת מסך התמחור עם המחירים החדשים
+5. וידוא שה-DebugMenu לא מופיע בדף הבית
+6. בדיקת מסך Hero שהכפתור שקוף ונמוך יותר
+7. בדיקה שכותרות הסיפורים בספרייה מופיעות בעברית
