@@ -33,12 +33,25 @@ serve(async (req) => {
     });
 
     const { data: { user }, error: authError } = await supabase.auth.getUser();
-    if (authError || !user) {
+    console.log("getUser result - user exists:", !!user, "error:", authError?.message);
+    
+    if (authError) {
+      console.error("Auth validation failed:", authError.message, "status:", authError.status);
       return new Response(
         JSON.stringify({ error: "טוקן לא תקין או שפג תוקפו" }),
         { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
+    
+    if (!user) {
+      console.error("No user found in token - user object is null/undefined");
+      return new Response(
+        JSON.stringify({ error: "לא נמצא משתמש" }),
+        { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+    
+    console.log("User authenticated successfully, user id:", user.id.substring(0, 8) + "...");
     // === END AUTHENTICATION CHECK ===
 
     // Rate limit by user ID (more reliable than IP)
