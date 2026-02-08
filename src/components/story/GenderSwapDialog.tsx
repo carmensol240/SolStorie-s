@@ -146,7 +146,9 @@ export function GenderSwapDialog({
             {isLoading ? (
               <>
                 <Loader2 className="w-4 h-4 ml-2 animate-spin" />
-                מעדכן את המגדר בסיפור...
+                {selectedGender === "female" 
+                  ? "הקסם מתאים את הסיפור לגיבורה..." 
+                  : "הקסם מתאים את הסיפור לגיבור..."}
               </>
             ) : (
               <>
