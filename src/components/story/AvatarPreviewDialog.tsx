@@ -7,6 +7,7 @@ import { useToast } from '@/hooks/use-toast';
 import { isDevModeEnabled } from '@/hooks/use-dev-mode';
 
 const MAX_AVATAR_REGENERATIONS = 2;
+const MAX_AUTH_RETRIES = 1;
 
 interface AvatarPreviewDialogProps {
   open: boolean;
@@ -38,6 +39,7 @@ const AvatarPreviewDialog = ({
   const [isSaving, setIsSaving] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [localRegenerationCount, setLocalRegenerationCount] = useState(regenerationCount);
+  const [authRetryCount, setAuthRetryCount] = useState(0);
   const { toast } = useToast();
   
   const canRegenerate = localRegenerationCount < MAX_AVATAR_REGENERATIONS;
@@ -54,7 +56,7 @@ const AvatarPreviewDialog = ({
     setLocalRegenerationCount(regenerationCount);
   }, [regenerationCount]);
 
-  const generatePreview = useCallback(async () => {
+  const generatePreview = useCallback(async (isRetry = false) => {
     if (!originalPhoto || isGenerating) return;
     
     // Check regeneration limit
@@ -67,12 +69,25 @@ const AvatarPreviewDialog = ({
       return;
     }
     
+    // Verify session before calling the function
+    const { data: { session } } = await supabase.auth.getSession();
+    if (!session) {
+      console.error('No active session found');
+      setErrorMessage("יש להתחבר מחדש כדי ליצור דמות");
+      toast({
+        title: 'נדרשת התחברות',
+        description: 'אנא התחברו מחדש וננסה שוב',
+        variant: 'destructive',
+      });
+      return;
+    }
+    
     setIsGenerating(true);
     setErrorMessage(null);
     setPreviewUrl(null);
     
     try {
-      console.log('Starting avatar generation...');
+      console.log('Starting avatar generation, session valid:', !!session.access_token);
       
       const { data, error } = await supabase.functions.invoke('preview-child-avatar', {
         body: { childPhoto: originalPhoto }
@@ -82,10 +97,39 @@ const AvatarPreviewDialog = ({
 
       if (error) {
         console.error('Supabase function error:', error);
+        
+        // Handle 401 with retry after session refresh
+        const is401 = error.message?.includes('401') || error.message?.includes('נדרשת התחברות');
+        if (is401 && !isRetry && authRetryCount < MAX_AUTH_RETRIES) {
+          console.log('Got 401, attempting session refresh and retry...');
+          setAuthRetryCount(prev => prev + 1);
+          setIsGenerating(false);
+          
+          // Refresh session and retry
+          const { error: refreshError } = await supabase.auth.refreshSession();
+          if (!refreshError) {
+            setTimeout(() => generatePreview(true), 500);
+            return;
+          }
+        }
+        
         throw new Error(error.message || 'שגיאה בשרת');
       }
 
       if (data?.error) {
+        // Handle 401 error from response body
+        const is401 = data.error.includes('נדרשת התחברות');
+        if (is401 && !isRetry && authRetryCount < MAX_AUTH_RETRIES) {
+          console.log('Got 401 in response, attempting session refresh and retry...');
+          setAuthRetryCount(prev => prev + 1);
+          setIsGenerating(false);
+          
+          const { error: refreshError } = await supabase.auth.refreshSession();
+          if (!refreshError) {
+            setTimeout(() => generatePreview(true), 500);
+            return;
+          }
+        }
         throw new Error(data.error);
       }
 
@@ -95,6 +139,7 @@ const AvatarPreviewDialog = ({
         const newCount = localRegenerationCount + 1;
         setLocalRegenerationCount(newCount);
         onRegenerationCountChange?.(newCount);
+        setAuthRetryCount(0); // Reset retry count on success
         console.log('Avatar generated successfully, count:', newCount);
       } else {
         throw new Error('לא התקבלה תמונה מהשרת');
@@ -111,7 +156,7 @@ const AvatarPreviewDialog = ({
     } finally {
       setIsGenerating(false);
     }
-  }, [originalPhoto, isGenerating, toast, localRegenerationCount, onRegenerationCountChange]);
+  }, [originalPhoto, isGenerating, toast, localRegenerationCount, onRegenerationCountChange, authRetryCount]);
 
   const handleConfirm = async () => {
     if (!previewUrl) return;
@@ -275,7 +320,7 @@ const AvatarPreviewDialog = ({
               <Button
                 variant="outline"
                 size="sm"
-                onClick={generatePreview}
+                onClick={() => generatePreview()}
                 className="gap-2"
               >
                 <RefreshCw className="w-4 h-4" />
@@ -327,7 +372,7 @@ const AvatarPreviewDialog = ({
           {previewUrl && !isGenerating && canRegenerate && (
             <Button
               variant="outline"
-              onClick={generatePreview}
+              onClick={() => generatePreview()}
               disabled={isGenerating || !canRegenerate}
               className="gap-2"
             >
