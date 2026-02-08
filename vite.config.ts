@@ -15,13 +15,13 @@ export default defineConfig(({ mode }) => ({
     mode === "development" && componentTagger(),
     VitePWA({
       registerType: "autoUpdate",
-      includeAssets: ["favicon.png", "favicon.ico"],
+      includeAssets: ["favicon.png", "favicon.ico", "pwa-icon-192.png", "pwa-icon-512.png"],
       manifest: {
-        name: "StoryTime - סיפורים קסומים לילדים",
+        name: "StoryTime - סיפורי ילדים בהתאמה אישית",
         short_name: "StoryTime",
         description: "צרו סיפורים קסומים עם הילד שלכם כגיבור הראשי",
-        theme_color: "#9333ea",
-        background_color: "#fffbeb",
+        theme_color: "#87CEEB",
+        background_color: "#87CEEB",
         display: "standalone",
         orientation: "portrait",
         scope: "/",
@@ -30,16 +30,28 @@ export default defineConfig(({ mode }) => ({
         lang: "he",
         icons: [
           {
-            src: "/favicon.png",
+            src: "/pwa-icon-192.png",
             sizes: "192x192",
             type: "image/png",
-            purpose: "any maskable"
+            purpose: "any"
           },
           {
-            src: "/favicon.png",
+            src: "/pwa-icon-512.png",
             sizes: "512x512",
             type: "image/png",
-            purpose: "any maskable"
+            purpose: "any"
+          },
+          {
+            src: "/pwa-icon-192.png",
+            sizes: "192x192",
+            type: "image/png",
+            purpose: "maskable"
+          },
+          {
+            src: "/pwa-icon-512.png",
+            sizes: "512x512",
+            type: "image/png",
+            purpose: "maskable"
           }
         ]
       },
