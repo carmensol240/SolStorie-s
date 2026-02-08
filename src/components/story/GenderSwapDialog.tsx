@@ -146,7 +146,7 @@ export function GenderSwapDialog({
             {isLoading ? (
               <>
                 <Loader2 className="w-4 h-4 ml-2 animate-spin" />
-                מעדכן...
+                מעדכן את המגדר בסיפור...
               </>
             ) : (
               <>
