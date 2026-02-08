@@ -10,15 +10,8 @@ interface FeatureCardProps {
 
 const FeatureCard = ({ icon, title, subtitle }: FeatureCardProps) => (
   <div 
-    className="flex items-center gap-3 rounded-2xl p-3 w-full transition-all hover:shadow-lg" 
+    className="landing-feature-card flex items-center gap-3 rounded-2xl p-3 w-full transition-all hover:shadow-lg" 
     dir="rtl"
-    style={{
-      background: 'rgba(255, 255, 255, 0.25)',
-      backdropFilter: 'blur(12px)',
-      WebkitBackdropFilter: 'blur(12px)',
-      border: '1px solid rgba(255, 255, 255, 0.4)',
-      boxShadow: '0 8px 32px rgba(0, 0, 0, 0.08)'
-    }}
   >
     <div className="w-9 h-9 bg-gradient-to-br from-purple-500 to-purple-700 rounded-xl flex items-center justify-center shadow-lg flex-shrink-0">
       {icon}
@@ -58,59 +51,40 @@ const GuestLanding = () => {
 
   return (
     <div className="flex-1 flex flex-col animate-fade-in relative">
-      {/* Soft blue sky background with distributed clouds */}
+      {/* Fixed sky gradient background - z-index -2 to stay behind everything */}
       <div 
         className="fixed inset-0"
         style={{ 
           background: 'linear-gradient(180deg, #87CEEB 0%, #B0E0E6 40%, #E0F4FF 70%, #F0F8FF 100%)',
-          backgroundSize: 'cover',
-          backgroundAttachment: 'fixed',
-          zIndex: 0
+          zIndex: -2
         }}
+      />
+
+      {/* Fixed hero image - z-index -1 to stay behind content but above gradient */}
+      <div 
+        className="fixed inset-0 flex items-center justify-center pointer-events-none"
+        style={{ zIndex: -1, top: '15%' }}
       >
-        {/* Top clouds */}
-        <div className="absolute top-8 left-4 w-24 h-12 bg-white/60 rounded-full blur-sm" />
-        <div className="absolute top-12 left-12 w-16 h-8 bg-white/50 rounded-full blur-sm" />
-        <div className="absolute top-6 right-8 w-20 h-10 bg-white/55 rounded-full blur-sm" />
-        <div className="absolute top-10 right-16 w-14 h-7 bg-white/45 rounded-full blur-sm" />
-        
-        {/* Middle section clouds */}
-        <div className="absolute top-[35%] left-6 w-28 h-14 bg-white/35 rounded-full blur-md" />
-        <div className="absolute top-[40%] right-4 w-20 h-10 bg-white/40 rounded-full blur-md" />
-        <div className="absolute top-[45%] left-1/4 w-16 h-8 bg-white/30 rounded-full blur-lg" />
-        <div className="absolute top-[50%] right-1/3 w-24 h-12 bg-white/25 rounded-full blur-lg" />
-        
-        {/* Lower section clouds */}
-        <div className="absolute top-[65%] left-8 w-22 h-11 bg-white/30 rounded-full blur-lg" />
-        <div className="absolute top-[70%] right-6 w-18 h-9 bg-white/35 rounded-full blur-md" />
-        <div className="absolute top-[75%] left-1/3 w-26 h-13 bg-white/25 rounded-full blur-lg" />
-        <div className="absolute top-[80%] right-1/4 w-20 h-10 bg-white/30 rounded-full blur-lg" />
-        
-        {/* Hero flying children image - positioned between titles and feature boxes */}
-        <div className="absolute top-48 sm:top-52 left-1/2 -translate-x-1/2 w-52 h-52 sm:w-64 sm:h-64 animate-pulse-glow-soft">
-          <div 
-            className="w-full h-full rounded-3xl overflow-hidden backdrop-blur-sm"
-            style={{
-              background: 'rgba(255, 255, 255, 0.15)',
-              boxShadow: '0 8px 32px rgba(135, 206, 235, 0.4), 0 0 60px rgba(255, 255, 255, 0.3), inset 0 0 20px rgba(255, 255, 255, 0.2)',
-              border: '2px solid rgba(255, 255, 255, 0.4)'
-            }}
-          >
-            <img 
-              src={heroFlyingGirl} 
-              alt="ילדים עפים בשמיים" 
-              className="w-full h-full object-cover opacity-90"
-              style={{ 
-                filter: 'drop-shadow(0 4px 15px rgba(0,0,0,0.1))',
-                mixBlendMode: 'normal'
-              }}
-            />
-          </div>
-        </div>
-        
-        {/* Subtle warm overlay at bottom for depth */}
-        <div className="absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-amber-50/30" />
+        <div 
+          className="w-52 h-52 sm:w-64 sm:h-64 rounded-3xl animate-pulse-glow-soft"
+          style={{
+            backgroundImage: `url(${heroFlyingGirl})`,
+            backgroundSize: 'cover',
+            backgroundPosition: 'center',
+            boxShadow: '0 8px 32px rgba(135, 206, 235, 0.4), 0 0 60px rgba(255, 255, 255, 0.3), inset 0 0 20px rgba(255, 255, 255, 0.2)',
+            border: '2px solid rgba(255, 255, 255, 0.4)'
+          }}
+        />
       </div>
+
+      {/* Subtle warm overlay at bottom for depth */}
+      <div 
+        className="fixed inset-0 pointer-events-none" 
+        style={{ 
+          background: 'linear-gradient(to bottom, transparent 60%, rgba(255, 251, 235, 0.3) 100%)',
+          zIndex: -1 
+        }} 
+      />
 
       {/* Content Container */}
       <div className="relative z-10 flex-1 flex flex-col">
