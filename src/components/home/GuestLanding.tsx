@@ -13,20 +13,17 @@ interface FeatureCardProps {
 
 const FeatureCard = ({ icon, title, subtitle }: FeatureCardProps) => (
   <div 
-    className="landing-feature-card flex items-center gap-3 rounded-2xl p-3 w-full transition-all hover:shadow-lg" 
+    className="landing-feature-card flex items-center gap-2 rounded-xl p-2.5 w-full transition-all" 
     dir="rtl"
   >
-    <div className="w-9 h-9 bg-gradient-to-br from-purple-500 to-purple-700 rounded-xl flex items-center justify-center shadow-lg flex-shrink-0">
+    <div className="w-8 h-8 bg-gradient-to-br from-purple-500 to-purple-700 rounded-lg flex items-center justify-center shadow-md flex-shrink-0">
       {icon}
     </div>
-    <div className="flex-1">
-      <h3 className="text-xs font-bold text-purple-900 leading-tight drop-shadow-sm">
+    <div className="flex-1 min-w-0">
+      <h3 className="text-xs font-bold text-purple-900 leading-tight">
         {title}
       </h3>
-        <p 
-          className="font-medium text-purple-800 drop-shadow-sm"
-          style={{ fontSize: '0.9rem', lineHeight: '1.4' }}
-        >
+      <p className="text-xs font-medium text-purple-800/90 leading-snug line-clamp-2">
         {subtitle}
       </p>
     </div>
@@ -118,41 +115,41 @@ const GuestLanding = ({ user, isLoggedIn }: GuestLandingProps) => {
         }} 
       />
 
-      {/* Content Container */}
-      <div className="relative z-10 flex-1 flex flex-col">
+      {/* Content Container - with safe bottom padding for mobile */}
+      <div className="relative z-10 flex-1 flex flex-col px-3 pb-20">
         {/* Logo - 3D Bubble Style */}
-        <h1 className="text-6xl sm:text-7xl font-black text-center tracking-tight logo-3d-bubble mb-4 drop-shadow-2xl">
+        <h1 className="text-5xl sm:text-6xl font-black text-center tracking-tight logo-3d-bubble mb-2 drop-shadow-2xl pt-2">
           <span className="logo-story">Story</span>
           <span className="logo-time"> Time</span>
         </h1>
 
-        {/* Title Section */}
-        <div className="text-center space-y-1 mb-6 py-2 px-4 mx-auto">
-          <h2 className="text-2xl font-black text-purple-700 flex items-center justify-center gap-2 drop-shadow-lg" style={{ textShadow: '1px 1px 2px rgba(255,255,255,0.8)' }}>
-            <Sparkles className="w-6 h-6 text-purple-600" aria-hidden="true" />
+        {/* Title Section - Compact */}
+        <div className="text-center space-y-0.5 mb-4 px-2">
+          <h2 className="text-xl font-black text-purple-700 flex items-center justify-center gap-2" style={{ textShadow: '1px 1px 2px rgba(255,255,255,0.8)' }}>
+            <Sparkles className="w-5 h-5 text-purple-600" aria-hidden="true" />
             סיפורים קסומים
-            <Sparkles className="w-6 h-6 text-purple-600" aria-hidden="true" />
+            <Sparkles className="w-5 h-5 text-purple-600" aria-hidden="true" />
           </h2>
-          <p className="text-lg text-pink-600 font-black text-center w-full drop-shadow-sm" style={{ textShadow: '1px 1px 2px rgba(255,255,255,0.6)' }}>הילד שלכם כגיבור הסיפור!</p>
+          <p className="text-base text-pink-600 font-black" style={{ textShadow: '1px 1px 2px rgba(255,255,255,0.6)' }}>הילד שלכם כגיבור הסיפור!</p>
         </div>
 
         {/* Spacer to push content to bottom */}
-        <div className="flex-1" />
+        <div className="flex-1 min-h-4" />
 
-        {/* Feature Cards - Horizontal Stack */}
-        <div className="flex flex-col gap-3 mb-6 px-2">
+        {/* Feature Cards - Compact with reduced spacing */}
+        <div className="flex flex-col gap-2 mb-3 px-1">
           {features.map((feature, index) => (
             <FeatureCard key={index} {...feature} />
           ))}
         </div>
 
-        {/* Login/Register CTA - Pink Gradient with enhanced shadow */}
+        {/* Login/Register CTA - Fully visible with safe margins */}
         <button
           onClick={handleStart}
           disabled={isNavigating}
-          className="w-full bg-gradient-to-r from-pink-500 via-pink-600 to-purple-600 hover:from-pink-600 hover:via-pink-700 hover:to-purple-700 text-white font-black text-base py-4 rounded-full shadow-2xl hover:shadow-2xl hover:scale-[1.02] transition-all mt-2 mb-4 text-center flex items-center justify-center gap-2 disabled:opacity-70 disabled:cursor-not-allowed"
+          className="w-full bg-gradient-to-r from-pink-500 via-pink-600 to-purple-600 hover:from-pink-600 hover:via-pink-700 hover:to-purple-700 text-white font-black text-sm py-3.5 rounded-full shadow-xl transition-all flex items-center justify-center gap-2 disabled:opacity-70 disabled:cursor-not-allowed mx-auto"
           style={{
-            boxShadow: '0 10px 40px -10px rgba(236, 72, 153, 0.5), 0 4px 20px -5px rgba(147, 51, 234, 0.3)'
+            boxShadow: '0 8px 30px -8px rgba(236, 72, 153, 0.5), 0 4px 15px -4px rgba(147, 51, 234, 0.3)'
           }}
         >
           {isNavigating ? (
@@ -160,13 +157,13 @@ const GuestLanding = ({ user, isLoggedIn }: GuestLandingProps) => {
           ) : (
             <>
               {buttonText}
-              <ArrowLeft className="w-5 h-5" aria-hidden="true" />
+              <ArrowLeft className="w-4 h-4" aria-hidden="true" />
             </>
           )}
         </button>
 
-        {/* Privacy Link */}
-        <p className="text-center text-sm text-gray-800 font-medium drop-shadow-sm pb-3">
+        {/* Privacy Link - Compact */}
+        <p className="text-center text-xs text-gray-800 font-medium mt-2">
           בהמשך, אתם מסכימים ל
           <a href="/privacy" className="text-purple-800 font-bold hover:underline mx-1">מדיניות הפרטיות</a>
         </p>
