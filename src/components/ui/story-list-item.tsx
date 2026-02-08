@@ -1,4 +1,4 @@
-import { Book, Trash2 } from 'lucide-react';
+import { Book, Trash2, MoreVertical, RefreshCw } from 'lucide-react';
 import { format } from 'date-fns';
 import { he } from 'date-fns/locale';
 import { Button } from './button';
@@ -15,6 +15,12 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from './alert-dialog';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from './dropdown-menu';
 
 interface StoryListItemProps {
   id: string;
@@ -22,8 +28,10 @@ interface StoryListItemProps {
   topic: string;
   coverUrl: string | null;
   createdAt: string;
+  childGender?: 'male' | 'female';
   onDelete: (id: string) => void;
   onClick: (id: string) => void;
+  onGenderSwap?: (id: string) => void;
   className?: string;
   storyId?: string; // For signed URL fetching
 }
@@ -34,8 +42,10 @@ const StoryListItem = ({
   topic,
   coverUrl,
   createdAt,
+  childGender,
   onDelete,
   onClick,
+  onGenderSwap,
   className,
   storyId,
 }: StoryListItemProps) => {
@@ -45,12 +55,16 @@ const StoryListItem = ({
     onClick(id);
   };
 
-  const handleDelete = (e: React.MouseEvent) => {
+  const handleMenuClick = (e: React.MouseEvent) => {
     e.stopPropagation();
   };
 
   const confirmDelete = () => {
     onDelete(id);
+  };
+
+  const handleGenderSwap = () => {
+    onGenderSwap?.(id);
   };
 
   return (
@@ -93,34 +107,53 @@ const StoryListItem = ({
         <p className="text-xs text-muted-foreground/70 mt-0.5">{formattedDate}</p>
       </div>
 
-      {/* Left: Delete Button */}
-      <AlertDialog>
-        <AlertDialogTrigger asChild>
+      {/* Left: Actions Menu */}
+      <DropdownMenu>
+        <DropdownMenuTrigger asChild>
           <Button
             size="icon"
             variant="ghost"
-            className="flex-shrink-0 h-10 w-10 min-h-[44px] min-w-[44px] text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-colors"
-            onClick={handleDelete}
-            aria-label="מחיקת סיפור"
+            className="flex-shrink-0 h-10 w-10 min-h-[44px] min-w-[44px] text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
+            onClick={handleMenuClick}
+            aria-label="אפשרויות נוספות"
           >
-            <Trash2 className="w-4 h-4" />
+            <MoreVertical className="w-4 h-4" />
           </Button>
-        </AlertDialogTrigger>
-        <AlertDialogContent dir="rtl">
-          <AlertDialogHeader>
-            <AlertDialogTitle>למחוק את הסיפור?</AlertDialogTitle>
-            <AlertDialogDescription>
-              פעולה זו תמחק את הסיפור לצמיתות. לא ניתן לבטל פעולה זו.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter className="gap-2 sm:gap-0">
-            <AlertDialogCancel>ביטול</AlertDialogCancel>
-            <AlertDialogAction onClick={confirmDelete}>
-              מחק
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
+        </DropdownMenuTrigger>
+        <DropdownMenuContent align="end" className="min-w-[180px]">
+          {onGenderSwap && (
+            <DropdownMenuItem onClick={handleGenderSwap} className="gap-2 cursor-pointer">
+              <RefreshCw className="w-4 h-4 text-primary" />
+              <span>שינוי מגדר הגיבור/ה</span>
+            </DropdownMenuItem>
+          )}
+          <AlertDialog>
+            <AlertDialogTrigger asChild>
+              <DropdownMenuItem 
+                onSelect={(e) => e.preventDefault()} 
+                className="gap-2 cursor-pointer text-destructive focus:text-destructive"
+              >
+                <Trash2 className="w-4 h-4" />
+                <span>מחיקת סיפור</span>
+              </DropdownMenuItem>
+            </AlertDialogTrigger>
+            <AlertDialogContent dir="rtl">
+              <AlertDialogHeader>
+                <AlertDialogTitle>למחוק את הסיפור?</AlertDialogTitle>
+                <AlertDialogDescription>
+                  פעולה זו תמחק את הסיפור לצמיתות. לא ניתן לבטל פעולה זו.
+                </AlertDialogDescription>
+              </AlertDialogHeader>
+              <AlertDialogFooter className="gap-2 sm:gap-0">
+                <AlertDialogCancel>ביטול</AlertDialogCancel>
+                <AlertDialogAction onClick={confirmDelete}>
+                  מחק
+                </AlertDialogAction>
+              </AlertDialogFooter>
+            </AlertDialogContent>
+          </AlertDialog>
+        </DropdownMenuContent>
+      </DropdownMenu>
     </div>
   );
 };
