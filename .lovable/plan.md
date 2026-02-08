@@ -1,163 +1,153 @@
 
-# תוכנית לעדכון מסך הבית
+# תוכנית לתיקון עיצוב המובייל - רקע קבוע ושקיפות מלאה
 
-## סיכום הבקשה
-יש לבצע 4 שינויים במסך הבית (GuestLanding):
-1. הוספת טקסט "בשילוב כלים מעולם ה-NLP" לתיבה הראשונה
-2. הגדרת תמונת הרקע כ-fixed ו-cover
-3. שינוי התיבות לשקופות לחלוטין עם אפקט Glassmorphism
-4. הסרת כפתור הנגישות הצף מה-App
+## הבעיה שזוהתה
+
+### בעיה 1: `background-attachment: fixed` לא עובד ב-iOS
+ב-iOS Safari, `background-attachment: fixed` לא נתמך כראוי - הוא גורם לרקע להיראות מתוח או אטום. הפתרון הוא להשתמש ב-`position: fixed` על div עם תמונת הרקע.
+
+### בעיה 2: סגנון גלובלי דורס את השקיפות
+ב-`src/index.css` (שורות 273-284) יש סגנון גלובלי:
+```css
+.card, .info-box, .menu-item {
+  background-color: rgba(255, 255, 255, 0.4) !important;
+  backdrop-filter: blur(8px);
+  ...
+}
+```
+זה דורס את הסגנונות הספציפיים של ה-FeatureCard.
 
 ---
 
 ## שלבי הביצוע
 
-### שלב 1: עדכון טקסט בתיבה הראשונה
-**קובץ:** `src/components/home/GuestLanding.tsx`
+### שלב 1: הגדרת תמונת הילדים כרקע גלובלי
+**קובץ:** `src/index.css`
 
-שינוי:
-- בתיבה עם הכותרת "התאמה אישית חכמה" (שורה 44-45)
-- הוספת "בשילוב כלים מעולם ה-NLP" לתיאור
-
-**לפני:**
-```typescript
-{
-  icon: <Sparkles className="w-5 h-5 text-white" aria-hidden="true" />,
-  title: "התאמה אישית חכמה",
-  subtitle: "סיפורים שנבנים עבור ילדכם, עם התאמה רגישה גם לרצף התקשורתי.",
+הוספת סגנון חדש ל-body ספציפית עבור דף הנחיתה:
+```css
+/* Landing page hero background - full screen fixed */
+.landing-hero-bg {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  z-index: -1;
 }
 ```
 
-**אחרי:**
-```typescript
-{
-  icon: <Sparkles className="w-5 h-5 text-white" aria-hidden="true" />,
-  title: "התאמה אישית חכמה",
-  subtitle: "סיפורים שנבנים עבור ילדכם בשילוב כלים מעולם ה-NLP, עם התאמה רגישה גם לרצף התקשורתי.",
-}
-```
-
----
-
-### שלב 2: הגדרת רקע כ-fixed ו-cover
+### שלב 2: עדכון GuestLanding עם רקע fixed נכון
 **קובץ:** `src/components/home/GuestLanding.tsx`
 
-שינוי ב-div הראשי של הרקע (שורות 62-68):
-- הוספת `position: 'fixed'`
-- הוספת `backgroundSize: 'cover'`
-- הוספת `left: 0, right: 0, top: 0, bottom: 0`
+שינויים:
+- הוספת div עם תמונת הילדים כ-background-image במקום img tag
+- שימוש ב-`position: fixed` במקום `background-attachment: fixed`
+- הסרת העננים המיותרים לפשטות
 
 **לפני:**
-```tsx
-<div 
-  className="absolute inset-0 -mx-4 -mt-3"
-  style={{ 
-    marginBottom: '-4rem',
-    background: 'linear-gradient(180deg, #87CEEB 0%, #B0E0E6 40%, #E0F4FF 70%, #F0F8FF 100%)'
-  }}
->
-```
-
-**אחרי:**
 ```tsx
 <div 
   className="fixed inset-0"
   style={{ 
-    background: 'linear-gradient(180deg, #87CEEB 0%, #B0E0E6 40%, #E0F4FF 70%, #F0F8FF 100%)',
+    background: 'linear-gradient(180deg, #87CEEB 0%, ...)',
     backgroundSize: 'cover',
     backgroundAttachment: 'fixed',
     zIndex: 0
   }}
 >
+  {/* clouds and hero image inside */}
+</div>
 ```
 
----
+**אחרי:**
+```tsx
+{/* Fixed sky gradient background */}
+<div 
+  className="fixed inset-0"
+  style={{ 
+    background: 'linear-gradient(180deg, #87CEEB 0%, #B0E0E6 40%, #E0F4FF 70%, #F0F8FF 100%)',
+    zIndex: -2
+  }}
+/>
 
-### שלב 3: שקיפות מלאה עם Glassmorphism לתיבות
+{/* Fixed hero image overlay */}
+<div 
+  className="fixed inset-0 flex items-center justify-center"
+  style={{ zIndex: -1 }}
+>
+  <div 
+    className="w-64 h-64 sm:w-80 sm:h-80 rounded-3xl overflow-hidden"
+    style={{
+      backgroundImage: `url(${heroFlyingGirl})`,
+      backgroundSize: 'cover',
+      backgroundPosition: 'center',
+      boxShadow: '0 8px 32px rgba(135, 206, 235, 0.4), 0 0 60px rgba(255, 255, 255, 0.3)',
+      border: '2px solid rgba(255, 255, 255, 0.4)'
+    }}
+  />
+</div>
+```
+
+### שלב 3: שקיפות אגרסיבית עם !important
+**קובץ:** `src/index.css`
+
+עדכון הסגנון הגלובלי ב-`.card` והוספת class חדש ספציפי לדף הנחיתה:
+```css
+/* Landing page feature cards - aggressive transparency */
+.landing-feature-card {
+  background: rgba(255, 255, 255, 0.3) !important;
+  backdrop-filter: blur(12px) !important;
+  -webkit-backdrop-filter: blur(12px) !important;
+  border: 1px solid rgba(255, 255, 255, 0.4) !important;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.08) !important;
+}
+```
+
+### שלב 4: החלת ה-class החדש על FeatureCard
 **קובץ:** `src/components/home/GuestLanding.tsx`
 
-שינוי ב-FeatureCard component (שורות 11-21):
-- הפחתת ה-opacity לשקיפות גבוהה יותר
-- שמירה על backdrop-filter: blur(10px)
-- שיפור קריאות הטקסט
-
-**לפני:**
+עדכון ה-FeatureCard להשתמש ב-class החדש:
 ```tsx
-style={{
-  background: 'rgba(255, 255, 255, 0.6)',
-  backdropFilter: 'blur(10px)',
-  WebkitBackdropFilter: 'blur(10px)',
-  border: '1px solid rgba(255, 255, 255, 0.3)',
-  boxShadow: '0 4px 30px rgba(0, 0, 0, 0.1)'
-}}
-```
-
-**אחרי:**
-```tsx
-style={{
-  background: 'rgba(255, 255, 255, 0.25)',
-  backdropFilter: 'blur(12px)',
-  WebkitBackdropFilter: 'blur(12px)',
-  border: '1px solid rgba(255, 255, 255, 0.4)',
-  boxShadow: '0 8px 32px rgba(0, 0, 0, 0.08)'
-}}
-```
-
-בנוסף, שיפור צבעי הטקסטים לקריאות מוגברת:
-- שינוי צבע הכותרת מ-`text-purple-800` ל-`text-purple-900 drop-shadow-sm`
-- שינוי צבע התיאור מ-`text-purple-600` ל-`text-purple-800 drop-shadow-sm`
-
----
-
-### שלב 4: הסרת כפתור הנגישות הצף
-**קובץ:** `src/App.tsx`
-
-שינויים:
-- הסרת `AccessibilityMenu` מה-JSX (שורה 40)
-- הסרת ה-import של `AccessibilityMenu` (שורה 9)
-
-**לפני:**
-```tsx
-import AccessibilityMenu from "@/components/AccessibilityMenu";
-...
-<BetaBanner />
-<AccessibilityMenu />
-<Toaster />
-```
-
-**אחרי:**
-```tsx
-// הסרת ה-import של AccessibilityMenu
-...
-<BetaBanner />
-<Toaster />
+const FeatureCard = ({ icon, title, subtitle }: FeatureCardProps) => (
+  <div 
+    className="landing-feature-card flex items-center gap-3 rounded-2xl p-3 w-full transition-all hover:shadow-lg" 
+    dir="rtl"
+  >
+    {/* content */}
+  </div>
+);
 ```
 
 ---
 
 ## קבצים שישתנו
 
-1. **`src/components/home/GuestLanding.tsx`**
-   - הוספת "בשילוב כלים מעולם ה-NLP" לתיאור התיבה הראשונה
-   - הגדרת הרקע כ-fixed עם cover
-   - שקיפות מוגברת לתיבות עם Glassmorphism
-   - שיפור קריאות הטקסטים
+### 1. `src/index.css`
+- הוספת class `.landing-feature-card` עם שקיפות אגרסיבית ו-!important
+- וידוא ש-webkit-backdrop-filter מוגדר לתמיכה ב-Safari/iOS
 
-2. **`src/App.tsx`**
-   - הסרת AccessibilityMenu מה-JSX וה-import
+### 2. `src/components/home/GuestLanding.tsx`
+- שינוי מבנה הרקע: שני divs נפרדים עם `position: fixed` ו-`z-index` שלילי
+- הסרת העננים לפשטות
+- החלפת `<img>` ל-`background-image` על div
+- החלת class `landing-feature-card` על התיבות
 
 ---
 
 ## הערות טכניות
 
-### קריאות טקסט על רקע שקוף
-- הטקסטים יקבלו `drop-shadow-sm` לשיפור הקריאות
-- צבעי הטקסט יהיו כהים יותר (purple-800/900) כדי לבלוט על הרקע
+### למה זה יעבוד במובייל
+1. **`position: fixed`** עובד טוב יותר מ-`background-attachment: fixed` ב-iOS
+2. **`z-index: -1/-2`** מבטיח שהרקע נשאר מאחורי התוכן
+3. **`!important`** דורס את הסגנונות הגלובליים של `.card`
+4. **`-webkit-backdrop-filter`** מבטיח תמיכה ב-Safari/iOS
 
-### תמיכה בדפדפנים
-- `backdrop-filter` נתמך ברוב הדפדפנים המודרניים
-- `WebkitBackdropFilter` מבטיח תמיכה ב-Safari
-
-### הסרת נגישות קולית
-- רכיב AccessibilityMenu יוסר מה-App
-- הגדרות הנגישות יישארו זמינות רק דרך דף ההגדרות (Settings)
+### בדיקה מומלצת
+לאחר ה-Deploy, בדוק במובייל אמיתי (לא סימולטור) את:
+- הרקע קבוע ולא זז בגלילה
+- התיבות שקופות ורואים את הרקע דרכן
+- הטקסטים קריאים וברורים
