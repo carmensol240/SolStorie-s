@@ -20,27 +20,36 @@ const LoggedInHome = ({ user, displayName }: LoggedInHomeProps) => {
   const totalCredits = (credits ?? 0) + shareCoins;
 
   return (
-    <div className="flex-1 flex flex-col animate-fade-in relative">
-      {/* Full-screen Background Image - Sol and the Tree theme */}
+    <div className="flex-1 flex flex-col animate-fade-in relative -mx-4 -my-3">
+      {/* Full-screen Background Image - Sol and the Tree theme - COVER entire screen */}
       <div 
-        className="absolute inset-0 -mx-4 -mt-3 bg-cover bg-center bg-no-repeat"
+        className="fixed inset-0 pointer-events-none"
         style={{ 
           backgroundImage: `url(${heroBackground})`,
-          marginBottom: '-4rem'
+          backgroundSize: 'cover',
+          backgroundPosition: 'center center',
+          backgroundRepeat: 'no-repeat',
+          zIndex: -2
         }}
-      >
-        {/* Subtle gradient overlay for text readability */}
-        <div className="absolute inset-0 bg-gradient-to-b from-black/20 via-transparent to-black/40" />
-      </div>
+      />
+      
+      {/* Very subtle overlay for readability - mostly transparent */}
+      <div 
+        className="fixed inset-0 pointer-events-none"
+        style={{ 
+          background: 'linear-gradient(180deg, rgba(0,0,0,0.1) 0%, transparent 30%, transparent 70%, rgba(0,0,0,0.2) 100%)',
+          zIndex: -1 
+        }} 
+      />
 
       {/* Content Container */}
-      <div className="relative z-10 flex-1 flex flex-col">
+      <div className="relative z-10 flex-1 flex flex-col px-4 pt-4">
         {/* Header - Greeting on Right, Credits on Left (RTL) */}
-        <header className="flex items-center justify-between px-2 pt-3">
+        <header className="flex items-center justify-between">
           {/* Left side: Credits pill with avatar thumbnail */}
           <div className="flex items-center gap-2">
             {avatarUrl && (
-              <div className="w-10 h-10 rounded-full overflow-hidden border-2 border-[#D4A574] shadow-md">
+              <div className="w-10 h-10 rounded-full overflow-hidden border-2 border-white/50 shadow-lg">
                 <img 
                   src={avatarUrl} 
                   alt="דמות הילד" 
@@ -50,17 +59,17 @@ const LoggedInHome = ({ user, displayName }: LoggedInHomeProps) => {
             )}
             <button 
               onClick={() => navigate("/upgrade")}
-              className="flex items-center gap-2 bg-[#FAF3E8]/90 backdrop-blur-sm border-2 border-[#D4A574] rounded-full px-4 py-2 hover:bg-[#F5E6D3] transition-colors shadow-md"
+              className="flex items-center gap-2 bg-white/20 backdrop-blur-xl border border-white/30 rounded-full px-4 py-2 hover:bg-white/30 transition-colors shadow-lg"
               aria-label="צפה בקרדיטים ושדרג"
             >
-              <Coins className="w-5 h-5 text-[#8B5A2B]" />
-              <span className="font-bold text-[#5D3A1A] text-lg">{totalCredits}</span>
+              <Coins className="w-5 h-5 text-amber-700" />
+              <span className="font-bold text-amber-900 text-lg">{totalCredits}</span>
             </button>
           </div>
 
-          {/* Right side: Greeting pill */}
-          <div className="bg-[#5D3A1A]/85 backdrop-blur-sm rounded-full px-5 py-2.5 shadow-md">
-            <h1 className="text-lg font-bold text-[#FAF3E8]">
+          {/* Right side: Greeting pill - more transparent */}
+          <div className="bg-black/40 backdrop-blur-xl rounded-full px-5 py-2.5 shadow-lg border border-white/10">
+            <h1 className="text-lg font-bold text-white">
               שלום, {displayName || user?.email?.split('@')[0] || "משתמש"} 👋
             </h1>
           </div>
@@ -69,18 +78,18 @@ const LoggedInHome = ({ user, displayName }: LoggedInHomeProps) => {
         {/* Spacer to push CTA to bottom-center area */}
         <div className="flex-1" />
 
-        {/* Single Primary CTA Button - Lower, narrower, glass effect */}
-        <div className="pb-28 px-4 mb-4">
+        {/* Single Primary CTA Button - SMALLER, bottom-center, maximum transparency */}
+        <div className="pb-24 flex justify-center">
           <button
             onClick={() => navigate("/create")}
-            className="max-w-xs mx-auto flex items-center justify-center gap-3 bg-white/30 backdrop-blur-md border border-white/40 rounded-2xl p-4 shadow-lg hover:bg-white/40 hover:scale-[1.02] transition-all"
+            className="logged-in-action-box flex items-center justify-center gap-3 rounded-2xl px-6 py-3 hover:scale-[1.02] transition-all"
           >
-            <div className="w-10 h-10 bg-gradient-to-r from-purple-600 to-pink-500 rounded-xl flex items-center justify-center shadow-md">
-              <Wand2 className="w-5 h-5 text-white" />
+            <div className="w-9 h-9 bg-gradient-to-r from-purple-600 to-pink-500 rounded-xl flex items-center justify-center shadow-md">
+              <Wand2 className="w-4 h-4 text-white" />
             </div>
             <div className="text-right">
-              <h3 className="font-black text-lg bg-gradient-to-r from-purple-700 via-pink-600 to-orange-500 bg-clip-text text-transparent">יוצאים להרפתקה</h3>
-              <p className="text-xs text-purple-800/80">סיפור מותאם אישית ✨</p>
+              <h3 className="font-black text-base bg-gradient-to-r from-purple-700 via-pink-600 to-orange-500 bg-clip-text text-transparent">יוצאים להרפתקה</h3>
+              <p className="text-xs text-purple-900/70">סיפור מותאם אישית ✨</p>
             </div>
           </button>
         </div>
