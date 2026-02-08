@@ -44,11 +44,9 @@ serve(async (req) => {
 
     // Case 1: Authenticated user
     if (authHeader?.startsWith("Bearer ")) {
-      const supabaseClient = createClient(supabaseUrl, supabaseAnonKey, {
-        global: { headers: { Authorization: authHeader } }
-      });
-      
-      const { data: { user }, error: authError } = await supabaseClient.auth.getUser();
+      // Extract token and validate directly using service role client
+      const token = authHeader.replace("Bearer ", "");
+      const { data: { user }, error: authError } = await supabaseAdmin.auth.getUser(token);
       if (!authError && user) {
         userId = user.id;
         
