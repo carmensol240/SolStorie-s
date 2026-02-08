@@ -15,7 +15,10 @@ serve(async (req) => {
   try {
     // === AUTHENTICATION CHECK ===
     const authHeader = req.headers.get("Authorization");
+    console.log("Auth header present:", !!authHeader, "starts with Bearer:", authHeader?.startsWith("Bearer "));
+    
     if (!authHeader?.startsWith("Bearer ")) {
+      console.error("Missing or invalid auth header. Header value:", authHeader ? `${authHeader.substring(0, 15)}...` : "null");
       return new Response(
         JSON.stringify({ error: "נדרשת התחברות" }),
         { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } }
