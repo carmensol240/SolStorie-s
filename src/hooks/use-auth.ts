@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { User, Session } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
-import { isDevModeEnabled, MOCK_DEV_USER, MOCK_DEV_SESSION } from './use-dev-mode';
+import { isDevModeEnabled, MOCK_DEV_USER, MOCK_DEV_SESSION, clearDevMode } from './use-dev-mode';
 
 export const useAuth = () => {
   const [user, setUser] = useState<User | null>(null);
@@ -71,6 +71,9 @@ export const useAuth = () => {
   };
 
   const signOut = async () => {
+    // Clear dev mode if active
+    clearDevMode();
+    
     const { error } = await supabase.auth.signOut();
     return { error };
   };

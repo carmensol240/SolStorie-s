@@ -32,6 +32,8 @@ const Settings = () => {
   const handleSignOut = async () => {
     await signOut();
     localStorage.removeItem('returnTo');
+    // Clear dev mode from sessionStorage as a safety measure
+    sessionStorage.removeItem('devMode');
     window.location.replace("/");
   };
 
