@@ -292,6 +292,7 @@ const StoryViewer = () => {
       // Start polling if illustrations are still generating
       if (status === 'generating_illustrations' && !pollingIntervalRef.current) {
         console.log("Starting polling for illustration updates...");
+        pollingStartTimeRef.current = Date.now();
         pollingIntervalRef.current = setInterval(pollForUpdates, 3000);
       }
       
