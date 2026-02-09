@@ -88,7 +88,7 @@ const ShareAndEarn = () => {
   ];
 
   return (
-    <div className="h-screen h-[100dvh] flex flex-col bg-background overflow-hidden" dir="rtl">
+    <div className="min-h-[100dvh] flex flex-col bg-background overflow-y-auto pb-20" dir="rtl" style={{ WebkitOverflowScrolling: 'touch' }}>
       {/* Header */}
       <header className="flex-shrink-0 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 border-b border-border">
         <div className="container flex h-12 items-center px-4">

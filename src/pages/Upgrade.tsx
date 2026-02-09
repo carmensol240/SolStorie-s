@@ -253,7 +253,7 @@ const Upgrade = () => {
   };
 
   return (
-    <div className="min-h-screen flex flex-col bg-gradient-to-b from-purple-50 to-white">
+    <div className="min-h-[100dvh] flex flex-col bg-gradient-to-b from-purple-50 to-white overflow-y-auto" style={{ WebkitOverflowScrolling: 'touch' }}>
       {/* Close Button */}
       <div className="absolute top-2 left-2 z-10">
         <Button

@@ -63,7 +63,7 @@ const Settings = () => {
   ];
 
   return (
-    <div className="h-[100dvh] flex flex-col bg-gradient-to-b from-purple-50/50 to-background overflow-hidden">
+    <div className="min-h-[100dvh] flex flex-col bg-gradient-to-b from-purple-50/50 to-background pb-20 overflow-y-auto" style={{ WebkitOverflowScrolling: 'touch' }}>
       {/* Hero Section with Background Image */}
       <div 
         className="relative h-32 flex-shrink-0 bg-cover bg-center"

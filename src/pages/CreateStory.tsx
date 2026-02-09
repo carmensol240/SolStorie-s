@@ -143,7 +143,7 @@ const CreateStory = () => {
   const displayStep = step < 3 ? step : 4;
 
   return (
-    <div className="min-h-screen min-h-[100dvh] flex flex-col bg-background">
+    <div className="min-h-[100dvh] flex flex-col bg-background overflow-y-auto" style={{ WebkitOverflowScrolling: 'touch' }}>
       {/* Header - Compact with gradient theme */}
       <header className="sticky top-0 z-20 bg-gradient-to-r from-[#FAF3E8] to-[#F5E6D3] px-3 py-2 border-b border-purple-200 shadow-sm">
         <div className="container max-w-lg mx-auto flex items-center justify-between">

@@ -111,7 +111,7 @@ const AccountExit = () => {
   };
 
   return (
-    <div className="h-screen h-[100dvh] flex flex-col bg-background overflow-hidden" dir="rtl">
+    <div className="min-h-[100dvh] flex flex-col bg-background overflow-y-auto" dir="rtl" style={{ WebkitOverflowScrolling: 'touch' }}>
       {/* Header */}
       <div className="bg-card border-b-2 border-foreground/10 p-3 flex-shrink-0">
         <div className="flex items-center justify-between max-w-lg mx-auto">

@@ -9,7 +9,7 @@ const PrivacyPolicy = () => {
   const navigate = useNavigate();
 
   return (
-    <div className="min-h-screen bg-background" dir="rtl">
+    <div className="min-h-[100dvh] bg-background pb-8 overflow-y-auto" dir="rtl" style={{ WebkitOverflowScrolling: 'touch' }}>
       <div className="container max-w-4xl mx-auto px-4 py-8">
         {/* Header */}
         <div className="text-center mb-8">
