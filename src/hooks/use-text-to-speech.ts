@@ -1,6 +1,5 @@
 import { useState, useRef, useCallback } from 'react';
 import { useToast } from '@/hooks/use-toast';
-import { supabase } from '@/integrations/supabase/client';
 
 interface UseTextToSpeechReturn {
   startReading: (text: string) => Promise<void>;
@@ -43,23 +42,43 @@ export const useTextToSpeech = (): UseTextToSpeechReturn => {
     setIsLoading(true);
 
     try {
-      // Use supabase.functions.invoke instead of direct fetch
-      const { data, error } = await supabase.functions.invoke('azure-speech-tts', {
-        body: { text },
-      });
+      // CRITICAL FIX: Use fetch() with .blob() instead of supabase.functions.invoke()
+      // supabase.functions.invoke defaults to JSON parsing which corrupts binary audio data
+      const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
+      const supabaseKey = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY;
 
-      if (error) {
-        throw new Error(error.message || 'TTS request failed');
+      const response = await fetch(
+        `${supabaseUrl}/functions/v1/azure-speech-tts`,
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'apikey': supabaseKey,
+            'Authorization': `Bearer ${supabaseKey}`,
+          },
+          body: JSON.stringify({ text }),
+        }
+      );
+
+      if (!response.ok) {
+        const errorBody = await response.text();
+        console.error('TTS API error:', response.status, errorBody);
+        throw new Error(`TTS request failed: ${response.status}`);
       }
 
-      // Handle blob response
-      let audioBlob: Blob;
-      if (data instanceof Blob) {
-        audioBlob = data;
-      } else if (data instanceof ArrayBuffer) {
-        audioBlob = new Blob([data], { type: 'audio/mpeg' });
-      } else {
-        throw new Error('Unexpected response format');
+      const contentType = response.headers.get('Content-Type') || '';
+      
+      // If we got JSON back, it's an error response
+      if (contentType.includes('application/json')) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'TTS returned error');
+      }
+
+      // Get audio as blob directly - no JSON parsing corruption
+      const audioBlob = await response.blob();
+      
+      if (audioBlob.size === 0) {
+        throw new Error('Empty audio response');
       }
 
       const audioUrl = URL.createObjectURL(audioBlob);

@@ -76,10 +76,18 @@ export const SignedImage = ({
   const effectiveAlt = alt || 'איור מהסיפור';
 
   return (
-    <div className={cn('relative', className)} role="img" aria-label={effectiveAlt}>
-      {/* Show loading skeleton until image loads */}
+    <div className={cn('relative overflow-hidden', className)} role="img" aria-label={effectiveAlt}>
+      {/* Loading placeholder with animated gradient */}
       {!imageLoaded && !hasError && (
-        <div className={cn('absolute inset-0 animate-pulse bg-muted', className)} aria-hidden="true" />
+        <div className={cn('absolute inset-0 flex items-center justify-center', className)} aria-hidden="true">
+          <div className="absolute inset-0 bg-gradient-to-br from-purple-100 via-pink-50 to-orange-50 animate-pulse" />
+          <div className="relative z-10 text-center text-purple-400">
+            <svg className="w-10 h-10 mx-auto mb-1 animate-spin opacity-40" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              <path d="M12 2v4m0 12v4m-7.07-3.93l2.83-2.83m8.49-8.49l2.83-2.83M2 12h4m12 0h4M4.93 4.93l2.83 2.83m8.49 8.49l2.83 2.83" />
+            </svg>
+            <p className="text-xs">טוען...</p>
+          </div>
+        </div>
       )}
       <img
         src={signedUrl || src}
@@ -96,7 +104,7 @@ export const SignedImage = ({
           onError?.();
         }}
         className={cn(
-          'transition-opacity duration-300',
+          'transition-opacity duration-500',
           imageLoaded ? 'opacity-100' : 'opacity-0',
           hasError && fallback ? 'hidden' : '',
           className
