@@ -290,7 +290,7 @@ const GeneratingStep = ({ formData, onComplete }: GeneratingStepProps) => {
   };
 
   return (
-    <div className="flex flex-col items-center justify-center min-h-screen min-h-[100dvh] text-center space-y-6 bg-gradient-to-b from-[#FAF3E8] to-[#F5E6D3] p-6">
+    <div className="flex flex-col items-center justify-center min-h-[100dvh] text-center space-y-6 bg-gradient-to-b from-[#FAF3E8] to-[#F5E6D3] p-6">
       {/* Animated Icon with Magic Wand */}
       <div className="relative">
         <div className="w-28 h-28 bg-gradient-to-br from-purple-500/20 via-pink-500/20 to-orange-400/20 rounded-full flex items-center justify-center shadow-lg">
