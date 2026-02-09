@@ -1,5 +1,6 @@
 import { useState, useRef, useCallback } from 'react';
 import { useToast } from '@/hooks/use-toast';
+import { supabase } from '@/integrations/supabase/client';
 
 interface UseTextToSpeechReturn {
   startReading: (text: string) => Promise<void>;
@@ -29,7 +30,8 @@ export const useTextToSpeech = (): UseTextToSpeechReturn => {
   }, []);
 
   const startReading = useCallback(async (text: string) => {
-    if (!text || text.trim().length === 0) {
+    // Defensive: ensure text is a string
+    if (!text || typeof text !== 'string' || text.trim().length === 0) {
       toast({
         title: 'אין טקסט להקריא',
         variant: 'destructive',
@@ -37,45 +39,37 @@ export const useTextToSpeech = (): UseTextToSpeechReturn => {
       return;
     }
 
-    // Stop any existing playback
     cleanup();
     setIsLoading(true);
 
     try {
-      // Call the Azure TTS edge function
-      const response = await fetch(
-        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/azure-speech-tts`,
-        {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'apikey': import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
-            'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
-          },
-          body: JSON.stringify({ text }),
-        }
-      );
+      // Use supabase.functions.invoke instead of direct fetch
+      const { data, error } = await supabase.functions.invoke('azure-speech-tts', {
+        body: { text },
+      });
 
-      if (!response.ok) {
-        const errorData = await response.json().catch(() => ({}));
-        throw new Error(errorData.error || `TTS request failed: ${response.status}`);
+      if (error) {
+        throw new Error(error.message || 'TTS request failed');
       }
 
-      // Get audio blob
-      const audioBlob = await response.blob();
+      // Handle blob response
+      let audioBlob: Blob;
+      if (data instanceof Blob) {
+        audioBlob = data;
+      } else if (data instanceof ArrayBuffer) {
+        audioBlob = new Blob([data], { type: 'audio/mpeg' });
+      } else {
+        throw new Error('Unexpected response format');
+      }
+
       const audioUrl = URL.createObjectURL(audioBlob);
       blobUrlRef.current = audioUrl;
 
-      // Create and play audio
       const audio = new Audio(audioUrl);
       audioRef.current = audio;
 
-      audio.onended = () => {
-        cleanup();
-      };
-
-      audio.onerror = (e) => {
-        console.error('Audio playback error:', e);
+      audio.onended = () => cleanup();
+      audio.onerror = () => {
         cleanup();
         toast({
           title: 'שגיאה בניגון השמע',
@@ -98,14 +92,7 @@ export const useTextToSpeech = (): UseTextToSpeechReturn => {
     }
   }, [cleanup, toast]);
 
-  const stopReading = useCallback(() => {
-    cleanup();
-  }, [cleanup]);
+  const stopReading = useCallback(() => cleanup(), [cleanup]);
 
-  return {
-    startReading,
-    stopReading,
-    isReading,
-    isLoading,
-  };
+  return { startReading, stopReading, isReading, isLoading };
 };
