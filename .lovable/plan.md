@@ -1,39 +1,82 @@
 
-# תיקוני טקסט ועיצוב בתיבת "אודות StoryTime"
+# תיקון מסך יצירת סיפור - תקוע + החזרת משפטי NLP
 
-## שינויים נדרשים בקובץ `src/components/shared/AboutStoryTimeContent.tsx`
+## בעיות שזוהו
 
-### 1. צבע המילה StoryTime בפסקה השנייה (שורה 8)
-כרגע המילה "StoryTime" מופיעה כטקסט רגיל. נוסיף לה את הגרדיאנט המותגי (סגול-ורוד-כתום) בדיוק כמו שמופיע בכפתור "הגדרות נגישות" בדף ההגדרות.
+### 1. בעיית Layout - מסך היצירה "תקוע"
+ה-GeneratingStep מגדיר `min-h-screen min-h-[100dvh]` אבל הוא נמצא **בתוך** container עם `pb-40` ו-header sticky. זה יוצר התנגשות: מסך מלא בתוך מסך מלא עם padding, מה שגורם לגלילה תקועה ולתצוגה לא נכונה במובייל.
 
-**לפני:** `נולדה StoryTime.`
-**אחרי:** `נולדה` + `<span>` עם `bg-gradient-to-r from-purple-600 via-pink-500 to-orange-400 bg-clip-text text-transparent font-semibold`
+### 2. תיבת הטיפ
+תיבת הטיפ כבר הוסרה בעבר מ-GeneratingStep - אין צורך בפעולה נוספת.
 
-### 2. תיקון טקסט בפסקת "כלים להתמודדות ועיבוד" (שורה 14)
-**לפני:** `סיטואציות מאתגרות בבית או בבית הספר`
-**אחרי:** `סיטואציות מאתגרות בבית, בגן או בבית הספר`
+### 3. משפטי NLP מעצימים
+המשפטים המעצימים (EMPOWERING_SENTENCES) קיימים בקוד ומוצגים כבר. הם מתחלפים כל 4.5 שניות עם אנימציית fade. אין צורך בשינוי - הם פעילים.
 
-### 3. תיקון פסקת המחיר (שורה 32)
-**לפני:** `והמחיר? שווה לכל כיס.`
-**אחרי:** `והמחיר? פחות מ-9.90₪ לסיפור דיגיטלי וקובץ PDF להדפסה.`
+## פתרון
 
----
+### שינוי 1: CreateStory.tsx - הפרדת GeneratingStep מהלייאוט הרגיל
+כש-step=3, ה-GeneratingStep צריך לתפוס את כל המסך **בלי** ה-header, ה-padding וה-container הרגילים. זה ימנע את ה"תקיעה".
+
+```text
+לפני:
+  header (sticky)
+    main (overflow-y-auto, pb-40)
+      GeneratingStep (min-h-[100dvh])  <-- מסך מלא בתוך container = תקוע!
+
+אחרי:
+  if step < 3:
+    header + main + button (כרגיל)
+  if step === 3:
+    GeneratingStep (min-h-[100dvh])    <-- ישירות, בלי עטיפות!
+```
+
+### שינוי 2: GeneratingStep.tsx - תיקוני Layout קלים
+- וידוא שהרכיב עובד כמסך עצמאי מלא
+- שמירת כל המשפטים המעצימים וקרוסלת ההמלצות
 
 ## פרטים טכניים
 
-קובץ אחד לעדכון: `src/components/shared/AboutStoryTimeContent.tsx`
+### קובץ: `src/pages/CreateStory.tsx`
 
-**שורה 8** - עטיפת "StoryTime" בספאן עם גרדיאנט:
+שינוי מרכזי - כש-step===3, להציג את GeneratingStep ישירות בלי ה-header וה-main wrapper:
+
+**שורות 145-250** - שינוי ה-return block:
+- כשנמצאים ב-step 3: להחזיר רק את GeneratingStep עם div פשוט, בלי header/main/footer
+- כשנמצאים ב-step 1 או 2: להשאיר את ה-layout הנוכחי כפי שהוא
+
 ```tsx
-נולדה <span className="font-semibold bg-gradient-to-r from-purple-600 via-pink-500 to-orange-400 bg-clip-text text-transparent">StoryTime</span>.
+// Step 3 - Full screen generating, no header/footer
+if (step === 3) {
+  return (
+    <GeneratingStep
+      formData={formData}
+      onComplete={handleStoryGenerated}
+    />
+  );
+}
+
+// Steps 1-2 - Regular wizard layout
+return (
+  <div className="min-h-[100dvh] flex flex-col bg-background overflow-y-auto" ...>
+    <header>...</header>
+    <main>...</main>
+    <footer button>...</footer>
+    <MobileNavigation />
+  </div>
+);
 ```
 
-**שורה 14** - הוספת "בגן" לטקסט:
-```
-סיטואציות מאתגרות בבית, בגן או בבית הספר
-```
+### קובץ: `src/components/wizard/GeneratingStep.tsx`
 
-**שורה 32** - החלפת טקסט המחיר:
-```tsx
-<p className="font-semibold text-foreground">והמחיר? פחות מ-9.90₪ לסיפור דיגיטלי וקובץ PDF להדפסה.</p>
-```
+שינוי קטן - עדכון ה-container הראשי כדי שיעבוד גם בלי parent container:
+
+**שורה 293** - החלפת `min-h-screen min-h-[100dvh]` ב-`min-h-[100dvh]` בלבד (הסרת ה-min-h-screen הכפול).
+
+ללא שינוי במשפטי NLP המעצימים ובקרוסלת ההמלצות - הם נשארים כפי שהם.
+
+## תוצאה צפויה
+- מסך יצירת הסיפור יעבוד חלק ללא תקיעות
+- משפטי NLP מעצימים ימשיכו להתחלף כל 4.5 שניות
+- קרוסלת המלצות הורים תמשיך לפעול
+- ללא תיבת טיפ (כבר הוסרה)
+- ללא שינוי בתמונת הנושא
