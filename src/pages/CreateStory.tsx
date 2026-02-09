@@ -139,12 +139,21 @@ const CreateStory = () => {
     }
   };
 
-  // Map internal step to display step (1,2 -> display steps, 3 -> generating)
-  const displayStep = step < 3 ? step : 4;
+  // Step 3 - Full screen generating, no header/footer
+  if (step === 3) {
+    return (
+      <GeneratingStep
+        formData={formData}
+        onComplete={handleStoryGenerated}
+      />
+    );
+  }
+
+  // Steps 1-2 - Regular wizard layout
+  const displayStep = step;
 
   return (
     <div className="min-h-[100dvh] flex flex-col bg-background overflow-y-auto" style={{ WebkitOverflowScrolling: 'touch' }}>
-      {/* Header - Compact with gradient theme */}
       <header className="sticky top-0 z-20 bg-gradient-to-r from-[#FAF3E8] to-[#F5E6D3] px-3 py-2 border-b border-purple-200 shadow-sm">
         <div className="container max-w-lg mx-auto flex items-center justify-between">
           <Button
@@ -158,7 +167,6 @@ const CreateStory = () => {
             חזרה
           </Button>
           
-          {/* Compact User Icon for Step 1 */}
           {step === 1 && (
             <div className="w-8 h-8 bg-gradient-to-br from-purple-600 via-pink-500 to-orange-400 rounded-lg flex items-center justify-center shadow-md">
               <User className="w-4 h-4 text-white" />
@@ -166,87 +174,63 @@ const CreateStory = () => {
           )}
         </div>
         
-        {/* Compact Progress Bar - 4 Steps */}
-        {step >= 1 && step < 3 && (
-          <div className="container max-w-lg mx-auto mt-2">
-            <div className="flex items-center justify-between">
-              {steps.map((s, index) => (
-                <div key={s.number} className="flex items-center">
-                  <div className="flex flex-col items-center">
-                    <div
-                      className={`w-6 h-6 rounded-full flex items-center justify-center font-bold text-[10px] transition-all ${
-                        displayStep >= s.number
-                          ? "bg-gradient-to-r from-purple-600 via-pink-500 to-orange-400 text-white shadow-md"
-                          : "bg-purple-100 text-purple-400"
-                      }`}
-                    >
-                      {s.number}
-                    </div>
-                    <span className="text-[9px] mt-0.5 text-purple-500 whitespace-nowrap">
-                      {s.label}
-                    </span>
+        <div className="container max-w-lg mx-auto mt-2">
+          <div className="flex items-center justify-between">
+            {steps.map((s, index) => (
+              <div key={s.number} className="flex items-center">
+                <div className="flex flex-col items-center">
+                  <div
+                    className={`w-6 h-6 rounded-full flex items-center justify-center font-bold text-[10px] transition-all ${
+                      displayStep >= s.number
+                        ? "bg-gradient-to-r from-purple-600 via-pink-500 to-orange-400 text-white shadow-md"
+                        : "bg-purple-100 text-purple-400"
+                    }`}
+                  >
+                    {s.number}
                   </div>
-                  {index < steps.length - 1 && (
-                    <div
-                      className={`h-0.5 w-4 sm:w-8 mx-0.5 rounded-full transition-all ${
-                        displayStep > s.number ? "bg-gradient-to-r from-purple-500 to-pink-500" : "bg-purple-100"
-                      }`}
-                    />
-                  )}
+                  <span className="text-[9px] mt-0.5 text-purple-500 whitespace-nowrap">
+                    {s.label}
+                  </span>
                 </div>
-              ))}
-            </div>
+                {index < steps.length - 1 && (
+                  <div
+                    className={`h-0.5 w-4 sm:w-8 mx-0.5 rounded-full transition-all ${
+                      displayStep > s.number ? "bg-gradient-to-r from-purple-500 to-pink-500" : "bg-purple-100"
+                    }`}
+                  />
+                )}
+              </div>
+            ))}
           </div>
-        )}
+        </div>
       </header>
 
-      {/* Main Content - Scrollable area */}
       <main className="flex-1 overflow-y-auto overscroll-contain" style={{ WebkitOverflowScrolling: 'touch' }}>
         <div className="container max-w-lg mx-auto px-3 py-3 pb-40">
-
-        {/* Step Content */}
-        {step === 1 && (
-          <ChildInfoStep
-            formData={formData}
-            updateFormData={updateFormData}
-          />
-        )}
-
-        {step === 2 && (
-          <TopicStep
-            formData={formData}
-            updateFormData={updateFormData}
-          />
-        )}
-
-        {step === 3 && (
-          <GeneratingStep
-            formData={formData}
-            onComplete={handleStoryGenerated}
-          />
-        )}
-
+          {step === 1 && (
+            <ChildInfoStep formData={formData} updateFormData={updateFormData} />
+          )}
+          {step === 2 && (
+            <TopicStep formData={formData} updateFormData={updateFormData} />
+          )}
         </div>
       </main>
 
-      {/* Fixed Bottom Continue Button */}
-      {step < 3 && (
-        <div className="fixed bottom-[4.5rem] left-0 right-0 z-[60] bg-gradient-to-t from-background via-background to-transparent pt-4 pb-2 px-3 pb-safe">
-          <div className="container max-w-lg mx-auto">
-            <Button
-              onClick={handleNext}
-              disabled={step === 1 ? !canProceedStep1 : !canProceedStep2}
-              size="lg"
-              className="w-full bg-gradient-to-r from-purple-600 via-pink-500 to-orange-400 hover:from-purple-700 hover:via-pink-600 hover:to-orange-500 text-white font-black text-sm py-3 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed shadow-lg hover:shadow-xl transition-all"
-            >
-              {step === 2 ? "צרו את הסיפור" : "המשיכו"}
-              <ArrowLeft className="w-4 h-4 mr-1.5" />
-            </Button>
-          </div>
+      <div className="fixed bottom-[4.5rem] left-0 right-0 z-[60] bg-gradient-to-t from-background via-background to-transparent pt-4 pb-2 px-3 pb-safe">
+        <div className="container max-w-lg mx-auto">
+          <Button
+            onClick={handleNext}
+            disabled={step === 1 ? !canProceedStep1 : !canProceedStep2}
+            size="lg"
+            className="w-full bg-gradient-to-r from-purple-600 via-pink-500 to-orange-400 hover:from-purple-700 hover:via-pink-600 hover:to-orange-500 text-white font-black text-sm py-3 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed shadow-lg hover:shadow-xl transition-all"
+          >
+            {step === 2 ? "צרו את הסיפור" : "המשיכו"}
+            <ArrowLeft className="w-4 h-4 mr-1.5" />
+          </Button>
         </div>
-      )}
+      </div>
       
-      {step < 3 && <MobileNavigation />}
+      <MobileNavigation />
     </div>
   );
 };
