@@ -113,7 +113,7 @@ const Contact = () => {
 
   if (isSuccess) {
     return (
-      <div className="min-h-screen bg-gradient-to-b from-purple-50/50 to-white" dir="rtl">
+      <div className="min-h-[100dvh] bg-gradient-to-b from-purple-50/50 to-white overflow-y-auto" dir="rtl" style={{ WebkitOverflowScrolling: 'touch' }}>
         <div className="container max-w-lg mx-auto px-4 py-16">
           <div className="bg-card rounded-2xl border border-purple-200 shadow-sm p-8 text-center">
             <div className="inline-flex items-center justify-center w-20 h-20 rounded-full bg-gradient-to-r from-purple-100 to-pink-100 mb-6">
@@ -146,7 +146,7 @@ const Contact = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-purple-50/50 to-white" dir="rtl">
+    <div className="min-h-[100dvh] bg-gradient-to-b from-purple-50/50 to-white pb-8 overflow-y-auto" dir="rtl" style={{ WebkitOverflowScrolling: 'touch' }}>
       <div className="container max-w-2xl mx-auto px-4 py-8">
         {/* Header */}
         <div className="text-center mb-8">

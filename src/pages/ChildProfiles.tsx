@@ -467,7 +467,7 @@ const ChildProfiles = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-purple-50/50 to-background bg-halftone pb-20">
+    <div className="min-h-[100dvh] bg-gradient-to-b from-purple-50/50 to-background bg-halftone pb-24 overflow-y-auto" style={{ WebkitOverflowScrolling: 'touch' }}>
       <div className="container max-w-lg mx-auto px-4 py-8">
         {/* Header with Back Button */}
         <div className="flex items-center justify-between mb-6">

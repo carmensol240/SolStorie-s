@@ -98,7 +98,7 @@ const Onboarding = () => {
   }
 
   return (
-    <div className="min-h-[100dvh] flex flex-col bg-gradient-to-b from-purple-50 via-pink-50 to-orange-50" dir="rtl">
+    <div className="min-h-[100dvh] flex flex-col bg-gradient-to-b from-purple-50 via-pink-50 to-orange-50 overflow-y-auto" dir="rtl" style={{ WebkitOverflowScrolling: 'touch' }}>
       {/* Header */}
       <div className="flex-shrink-0 px-4 pt-6 pb-4 text-center">
         <h1 className="text-2xl font-black bg-gradient-to-r from-purple-600 via-pink-500 to-orange-400 bg-clip-text text-transparent">

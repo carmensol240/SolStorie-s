@@ -35,7 +35,7 @@ const Home = () => {
   }, [user]);
 
   return (
-    <div className="h-screen h-[100dvh] flex flex-col bg-gradient-to-b from-amber-50/50 to-background overflow-hidden">
+    <div className="min-h-[100dvh] flex flex-col bg-gradient-to-b from-amber-50/50 to-background overflow-y-auto" style={{ WebkitOverflowScrolling: 'touch' }}>
       <OfflineIndicator isOnline={isOnline} />
       
       <div className="flex-1 overflow-y-auto flex flex-col pb-20" style={{ WebkitOverflowScrolling: 'touch' }}>
