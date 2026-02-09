@@ -29,7 +29,7 @@ export const AboutStoryTimeContent = () => {
       
       <p className="text-muted-foreground">רוצים גישה מהירה? הוסיפו את StoryTime למסך הבית שלכם: לחצו על 'שיתוף' (ב-iPhone) או על שלוש הנקודות (באנדרואיד) ובחרו ב-'הוספה למסך הבית'.</p>
       
-      <p className="font-semibold text-foreground">והמחיר? שווה לכל כיס.</p>
+      <p className="font-semibold text-foreground">והמחיר? פחות מ-9.90₪ לסיפור דיגיטלי וקובץ PDF להדפסה.</p>
       
       <p>כי אני יודעת בדיוק מה חסר לנו ההורים ומצאתי פתרון עבור כולנו.</p>
       
