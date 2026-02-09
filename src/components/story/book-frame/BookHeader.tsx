@@ -89,8 +89,8 @@ export const BookHeader: React.FC<BookHeaderProps> = ({
 
         {/* Center Actions - Essentials Only */}
         <div className="flex items-center gap-1 md:gap-2">
-          {/* Read Aloud Toggle - Only shows when audioSupport is enabled */}
-          {showReadAloud && showPageActions && onReadAloud && (
+          {/* Read Aloud Toggle - Always visible when enabled, independent of page actions */}
+          {showReadAloud && onReadAloud && (
             <Tooltip>
               <TooltipTrigger asChild>
                 <Button
