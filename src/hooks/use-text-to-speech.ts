@@ -74,27 +74,39 @@ export const useTextToSpeech = (): UseTextToSpeechReturn => {
         throw new Error(errorData.error || 'TTS returned error');
       }
 
-      // Get audio as blob directly - no JSON parsing corruption
-      const audioBlob = await response.blob();
+      // Get audio as blob with explicit MIME type
+      const rawBlob = await response.blob();
       
-      if (audioBlob.size === 0) {
+      if (rawBlob.size === 0) {
         throw new Error('Empty audio response');
       }
 
+      console.log('TTS audio blob:', { size: rawBlob.size, type: rawBlob.type });
+
+      // Re-create blob with correct MIME type in case the response didn't set it
+      const audioBlob = new Blob([rawBlob], { type: 'audio/mpeg' });
       const audioUrl = URL.createObjectURL(audioBlob);
       blobUrlRef.current = audioUrl;
 
-      const audio = new Audio(audioUrl);
+      const audio = new Audio();
+      audio.preload = 'auto';
       audioRef.current = audio;
 
       audio.onended = () => cleanup();
       audio.onerror = () => {
+        const code = audio.error?.code;
+        const msg = audio.error?.message;
+        console.error('Audio playback error:', { code, msg, mediaError: audio.error });
         cleanup();
         toast({
           title: 'שגיאה בניגון השמע',
+          description: `קוד שגיאה: ${code ?? 'unknown'}`,
           variant: 'destructive',
         });
       };
+
+      // Set src after attaching handlers
+      audio.src = audioUrl;
 
       setIsLoading(false);
       setIsReading(true);
