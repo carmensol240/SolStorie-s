@@ -621,7 +621,7 @@ const StoryViewer = () => {
         isExporting={isExporting}
         isAddingNikud={isAddingNikud}
         showPageActions={showPageActions}
-        showReadAloud={audioSupport}
+        showReadAloud={true}
         isReading={isReading}
         isLoadingAudio={isLoadingAudio}
       />

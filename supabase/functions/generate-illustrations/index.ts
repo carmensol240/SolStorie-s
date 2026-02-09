@@ -504,53 +504,68 @@ serve(async (req) => {
     const storyOutfit = effectiveAdventureLogic?.outfit || characterProfile?.clothingDescription || "colorful casual clothes";
     console.log(`🎽 Story outfit locked for all pages: "${storyOutfit}"`);
 
-    // Generate illustrations ONE BY ONE to avoid timeout and allow incremental updates
+    // Generate illustrations in PARALLEL BATCHES for speed optimization
+    const BATCH_SIZE = 2;
     let firstIllustrationUrl: string | null = null;
 
-    for (const page of pages) {
-      console.log(`Generating illustration for page ${page.page_number}...`);
-      
-      const base64Image = await generateIllustration(
-        page.illustration_prompt || `A cheerful children's book illustration for page ${page.page_number}`,
-        effectivePhoto,
-        characterProfile,
-        LOVABLE_API_KEY,
-        storyOutfit, // Pass the SAME outfit for every page
-        effectiveAdventureLogic // Use the enhanced adventure logic with theme outfits
+    for (let i = 0; i < pages.length; i += BATCH_SIZE) {
+      const batch = pages.slice(i, i + BATCH_SIZE);
+      console.log(`Processing batch ${Math.floor(i / BATCH_SIZE) + 1}: pages ${batch.map(p => p.page_number).join(', ')}`);
+
+      const results = await Promise.allSettled(
+        batch.map(async (page) => {
+          console.log(`Generating illustration for page ${page.page_number}...`);
+          
+          const base64Image = await generateIllustration(
+            page.illustration_prompt || `A cheerful children's book illustration for page ${page.page_number}`,
+            effectivePhoto,
+            characterProfile,
+            LOVABLE_API_KEY,
+            storyOutfit,
+            effectiveAdventureLogic
+          );
+
+          if (!base64Image) return null;
+
+          const illustrationUrl = await uploadImageToStorage(
+            supabase,
+            base64Image,
+            storyId,
+            page.page_number
+          );
+
+          if (illustrationUrl) {
+            const { error: updateError } = await supabase
+              .from("story_pages")
+              .update({ illustration_url: illustrationUrl })
+              .eq("id", page.id);
+
+            if (updateError) {
+              console.error(`Error updating page ${page.page_number}:`, updateError);
+            } else {
+              console.log(`Page ${page.page_number} illustration saved`);
+            }
+
+            if (page.page_number === 1) {
+              firstIllustrationUrl = illustrationUrl;
+              await supabase
+                .from("stories")
+                .update({ cover_url: illustrationUrl })
+                .eq("id", storyId);
+            }
+          }
+          return illustrationUrl;
+        })
       );
 
-      let illustrationUrl = null;
-      
-      if (base64Image) {
-        illustrationUrl = await uploadImageToStorage(
-          supabase,
-          base64Image,
-          storyId,
-          page.page_number
-        );
-      }
-      // Update this page immediately
-      if (illustrationUrl) {
-        const { error: updateError } = await supabase
-          .from("story_pages")
-          .update({ illustration_url: illustrationUrl })
-          .eq("id", page.id);
-
-        if (updateError) {
-          console.error(`Error updating page ${page.page_number}:`, updateError);
+      results.forEach((r, idx) => {
+        const pg = batch[idx];
+        if (r.status === 'fulfilled') {
+          console.log(`Page ${pg.page_number}: ${r.value ? 'success' : 'no image'}`);
         } else {
-          console.log(`Page ${page.page_number} illustration saved`);
+          console.error(`Page ${pg.page_number} failed:`, r.reason);
         }
-
-        // Save first illustration as cover
-        if (page.page_number === 1) {
-          firstIllustrationUrl = illustrationUrl;
-          await supabase
-            .from("stories")
-            .update({ cover_url: illustrationUrl })
-            .eq("id", storyId);
-        }
-      }
+      });
     }
 
     // Update story status to ready
