@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { ArrowLeft, Sparkles, Star, Users, Loader2 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
-import heroFlyingGirl from "@/assets/hero-flying-girl.jpeg";
+import heroChildrenFloating from "@/assets/hero-children-floating-sky.jpg";
 import { supabase } from "@/integrations/supabase/client";
 import type { User } from "@supabase/supabase-js";
 
@@ -98,7 +98,7 @@ const GuestLanding = ({ user, isLoggedIn }: GuestLandingProps) => {
       <div 
         className="fixed inset-0 pointer-events-none"
         style={{ 
-          backgroundImage: `url(${heroFlyingGirl})`,
+          backgroundImage: `url(${heroChildrenFloating})`,
           backgroundSize: 'cover',
           backgroundPosition: 'center center',
           backgroundRepeat: 'no-repeat',
