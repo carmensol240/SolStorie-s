@@ -76,6 +76,7 @@ const StoryViewer = () => {
   const [generationStatus, setGenerationStatus] = useState<string>('ready');
   const [illustrationProgress, setIllustrationProgress] = useState(0);
   const pollingIntervalRef = useRef<NodeJS.Timeout | null>(null);
+  const pollingStartTimeRef = useRef<number | null>(null);
   
   const [showDedicationDialog, setShowDedicationDialog] = useState(false);
   const [isCreatingDigitalBook, setIsCreatingDigitalBook] = useState(false);
