@@ -875,7 +875,7 @@ ${adventureLogic ? `
 - במקום "כסמה" → "חבשה קסדה"
 - במקום "עטתה" → "לבשה"
 - במקום "הביטה" → "הסתכלה"
-- הוסף הסברים בסוגריים למילים מורכבות!`;
+- הסבר מילים מורכבות בזרימה טבעית, ללא סוגריים!`;
 
     const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
       method: "POST",
