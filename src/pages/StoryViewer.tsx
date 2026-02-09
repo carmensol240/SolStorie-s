@@ -730,15 +730,15 @@ const StoryViewer = () => {
                 </div>
               </div>
             ) : isEndPage ? (
-              /* End Page */
+              /* End Page - Uses last page's illustration */
               <div className="min-h-[70vh] md:min-h-[75vh] flex flex-col items-center justify-center p-8 text-center">
-                {story.pages[0]?.illustration_url && (
+                {story.pages[story.pages.length - 1]?.illustration_url && (
                   <div className="w-full max-w-xs mx-auto mb-6">
                     <div className="rounded-xl overflow-hidden shadow-xl border-4 border-[#D4A574]">
                       <SignedImage
-                        src={story.pages[0].illustration_url}
+                        src={story.pages[story.pages.length - 1].illustration_url}
                         storyId={story.id}
-                        alt=""
+                        alt={`סיום הסיפור של ${story.child_name}`}
                         className="w-full aspect-[3/4] object-cover"
                       />
                     </div>
@@ -764,7 +764,7 @@ const StoryViewer = () => {
                     onClick={() => setCurrentPage(-1)}
                     className="border-2 border-purple-500 text-purple-600 hover:bg-purple-50 px-6 py-5 rounded-full"
                   >
-                    <BookOpen className="w-5 h-5 ml-2" />
+                    <span className="ml-2"><BookOpen className="w-5 h-5" /></span>
                     קרא שוב
                   </Button>
                   <Button 
@@ -772,7 +772,7 @@ const StoryViewer = () => {
                     onClick={() => navigate('/library')}
                     className="bg-gradient-to-r from-purple-600 via-pink-500 to-orange-400 hover:from-purple-700 hover:via-pink-600 hover:to-orange-500 text-white px-6 py-5 rounded-full"
                   >
-                    <Home className="w-5 h-5 ml-2" />
+                    <span className="ml-2"><Home className="w-5 h-5" /></span>
                     לספרייה
                   </Button>
                 </div>
@@ -784,7 +784,7 @@ const StoryViewer = () => {
                   onClick={() => setShowGenderSwapDialog(true)}
                   className="mt-4 text-purple-500 hover:text-purple-700 text-sm"
                 >
-                  <RefreshCw className="w-4 h-4 ml-1" />
+                  <span className="ml-1"><RefreshCw className="w-4 h-4" /></span>
                   התבלבלתם במגדר? לחצו לתיקון מהיר
                 </Button>
               </div>
