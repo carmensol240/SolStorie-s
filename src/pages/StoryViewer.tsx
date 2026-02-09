@@ -76,6 +76,7 @@ const StoryViewer = () => {
   const [generationStatus, setGenerationStatus] = useState<string>('ready');
   const [illustrationProgress, setIllustrationProgress] = useState(0);
   const pollingIntervalRef = useRef<NodeJS.Timeout | null>(null);
+  const pollingStartTimeRef = useRef<number | null>(null);
   
   const [showDedicationDialog, setShowDedicationDialog] = useState(false);
   const [isCreatingDigitalBook, setIsCreatingDigitalBook] = useState(false);
@@ -161,13 +162,24 @@ const StoryViewer = () => {
           .order("page_number", { ascending: true });
 
         if (pagesData) {
-          // Count pages with illustrations
           const pagesWithIllustrations = pagesData.filter(p => p.illustration_url).length;
           const progress = Math.round((pagesWithIllustrations / pagesData.length) * 100);
           setIllustrationProgress(progress);
-
-          // Update story with new pages data
           setStory(prev => prev ? { ...prev, pages: pagesData } : null);
+        }
+
+        // 60-second timeout: allow viewing even if illustrations aren't done
+        const elapsed = pollingStartTimeRef.current
+          ? (Date.now() - pollingStartTimeRef.current) / 1000
+          : 0;
+        if (elapsed >= 60) {
+          console.log("⏱️ 60s timeout reached - allowing story access without all illustrations");
+          if (pollingIntervalRef.current) {
+            clearInterval(pollingIntervalRef.current);
+            pollingIntervalRef.current = null;
+          }
+          setGenerationStatus('ready');
+          setStory(prev => prev ? { ...prev, generation_status: 'ready' } : null);
         }
       } else if (status === 'ready') {
         // Stop polling when done
@@ -280,6 +292,7 @@ const StoryViewer = () => {
       // Start polling if illustrations are still generating
       if (status === 'generating_illustrations' && !pollingIntervalRef.current) {
         console.log("Starting polling for illustration updates...");
+        pollingStartTimeRef.current = Date.now();
         pollingIntervalRef.current = setInterval(pollForUpdates, 3000);
       }
       
