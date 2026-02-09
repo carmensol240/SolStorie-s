@@ -628,7 +628,9 @@ const StoryViewer = () => {
         onEdit={showPageActions ? handleEditClick : undefined}
         onAddNikud={showPageActions ? handleAddNikud : undefined}
         onReport={handleReportIssue}
-        onReadAloud={page?.text ? () => startReading(page.text) : undefined}
+        onReadAloud={() => {
+          if (page?.text) startReading(page.text);
+        }}
         onStopReading={stopReading}
         fontSizeLabel={currentFontSize.label}
         isExporting={isExporting}
