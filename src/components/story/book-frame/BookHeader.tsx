@@ -77,38 +77,6 @@ export const BookHeader: React.FC<BookHeaderProps> = ({
 
         {/* Center Actions - Essentials Only */}
         <div className="flex items-center gap-1 md:gap-2">
-          {/* Read Aloud Toggle - Always visible when enabled, independent of page actions */}
-          {showReadAloud && onReadAloud && (
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={isReading ? onStopReading : onReadAloud}
-                  disabled={isLoadingAudio}
-                  className={cn(
-                    "text-[#F5E6D3] hover:bg-white/10 min-h-[44px] min-w-[44px] p-2",
-                    isReading && "bg-white/20"
-                  )}
-                  aria-label={hasAudioError ? "נסו שוב" : isReading ? "עצור הקראה" : "הקראת הטקסט"}
-                >
-                  {isLoadingAudio ? (
-                    <Loader2 className="w-5 h-5 animate-spin" />
-                  ) : hasAudioError ? (
-                    <RefreshCw className="w-5 h-5 text-yellow-200" />
-                  ) : isReading ? (
-                    <VolumeX className="w-5 h-5" />
-                  ) : (
-                    <Volume2 className="w-5 h-5" />
-                  )}
-                </Button>
-              </TooltipTrigger>
-              <TooltipContent side="bottom">
-                {isLoadingAudio ? 'טוען...' : hasAudioError ? 'נסו שוב' : isReading ? 'עצור הקראה' : 'הקראת הטקסט'}
-              </TooltipContent>
-            </Tooltip>
-          )}
-
           {/* Font Size Toggle */}
           <Tooltip>
             <TooltipTrigger asChild>
