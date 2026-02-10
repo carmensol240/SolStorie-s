@@ -85,7 +85,7 @@ const PWAInstallPrompt = () => {
             <Download className="w-5 h-5" />
           </div>
           <div className="flex-1 min-w-0">
-            <p className="font-bold text-sm">הוסיפו את StoryTime למסך הבית</p>
+            <p className="font-bold text-sm">הוסיפו את SoulStory למסך הבית</p>
             <p className="text-xs opacity-80">לגישה מהירה בלי דפדפן</p>
           </div>
           <div className="flex items-center gap-2 flex-shrink-0">
@@ -122,7 +122,7 @@ const PWAInstallPrompt = () => {
               <Share className="w-5 h-5" />
             </div>
             <div className="flex-1 min-w-0">
-              <p className="font-bold text-sm mb-1">הוסיפו את StoryTime למסך הבית</p>
+              <p className="font-bold text-sm mb-1">הוסיפו את SoulStory למסך הבית</p>
               <p className="text-xs opacity-90 leading-relaxed">
                 לחצו על כפתור השיתוף 
                 <Share className="w-3 h-3 inline mx-1" />

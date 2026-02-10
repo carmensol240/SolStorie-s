@@ -5,7 +5,7 @@ export const AboutStoryTimeContent = () => {
     <div className="space-y-4 text-sm text-foreground/90 leading-relaxed" dir="rtl">
       <p>כאימא יחידנית לילדה עם עולם פנימי עשיר שחווה את העולם בדרך ייחודית ומרגשת, מצאתי את עצמי כל ערב יושבת ליד המיטה שלה וממציאה סיפורים. לא סתם סיפורים, אלא כאלו שעוזרים לה לעבד את היום שעבר, להתמודד עם קשיים בגן ולמצוא כוחות.</p>
       
-      <p>מתוך הצורך האישי שלי, ומהידע המקצועי שצברתי בלימודי NLP, נולדה <span className="font-semibold bg-gradient-to-r from-purple-600 via-pink-500 to-orange-400 bg-clip-text text-transparent">StoryTime</span>. באפליקציה הזו הטמעתי כלים מעולם ה-NLP בתוך הלוגיקה של הסיפורים, כך שהם מדברים לילד בשפה הנכונה לו, משתמשים בסוגסטיות מעצימות ועוזרים לו לבנות ביטחון עצמי וחוסן פנימי דרך חוויית הקריאה.</p>
+      <p>מתוך הצורך האישי שלי, ומהידע המקצועי שצברתי בלימודי NLP, נולדה <span dir="ltr" className="inline-block font-semibold bg-gradient-to-r from-purple-600 via-pink-500 to-orange-400 bg-clip-text text-transparent">SoulStory</span>. באפליקציה הזו הטמעתי כלים מעולם ה-NLP בתוך הלוגיקה של הסיפורים, כך שהם מדברים לילד בשפה הנכונה לו, משתמשים בסוגסטיות מעצימות ועוזרים לו לבנות ביטחון עצמי וחוסן פנימי דרך חוויית הקריאה.</p>
       
       <p className="font-semibold text-foreground">למה כדאי לכם להצטרף למשפחה שלנו?</p>
       

@@ -23,7 +23,7 @@ const PrivacyPolicy = () => {
         <article className="bg-card rounded-2xl border shadow-sm p-6 mb-6">
           <div className="space-y-6 text-right leading-relaxed">
             <p className="text-muted-foreground leading-relaxed">
-              ברוכים הבאים למדיניות הפרטיות של StoryTime. אנו מחויבים להגנה על פרטיות המשתמשים שלנו, ובפרט על פרטיותם של קטינים המשתמשים בשירות.
+              ברוכים הבאים למדיניות הפרטיות של SoulStory. אנו מחויבים להגנה על פרטיות המשתמשים שלנו, ובפרט על פרטיותם של קטינים המשתמשים בשירות.
             </p>
 
             <section>

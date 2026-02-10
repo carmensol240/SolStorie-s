@@ -155,11 +155,11 @@ const Settings = () => {
           <button
             onClick={() => setAboutOpen(true)}
             className="w-full flex items-center justify-between bg-white/60 dark:bg-white/10 backdrop-blur-md rounded-lg px-3 py-2 border border-purple-200 dark:border-purple-800 hover:bg-purple-50 dark:hover:bg-purple-900/20 transition-all text-right shadow-sm"
-            aria-label="אודות StoryTime"
+            aria-label="אודות SoulStory"
           >
             <ArrowRight className="w-3.5 h-3.5 text-purple-400" aria-hidden="true" />
             <div className="flex items-center gap-2">
-              <span className="font-medium text-sm text-foreground">אודות StoryTime</span>
+              <span className="font-medium text-sm text-foreground">אודות SoulStory</span>
               <div className="w-7 h-7 bg-gradient-to-r from-purple-500/20 to-pink-500/20 rounded-lg flex items-center justify-center flex-shrink-0">
                 <Info className="w-3.5 h-3.5 text-purple-600" aria-hidden="true" />
               </div>
@@ -198,7 +198,7 @@ const Settings = () => {
         <DialogContent className="max-w-lg max-h-[80vh]" dir="rtl">
           <DialogHeader>
             <DialogTitle className="text-center text-lg font-bold bg-gradient-to-r from-purple-600 via-pink-500 to-orange-400 bg-clip-text text-transparent">
-              📖 להפוך את הקושי לסיפור קסום – StoryTime ✨
+              📖 להפוך את הקושי לסיפור קסום – SoulStory ✨
             </DialogTitle>
           </DialogHeader>
           <ScrollArea className="h-[60vh] pr-4">
