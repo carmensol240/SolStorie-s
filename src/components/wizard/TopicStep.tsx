@@ -356,6 +356,17 @@ const ADVENTURE_CATEGORIES: AdventureCategory[] = [
           theme: "moving to a new house, change, leaving friends, making new friends, adapting, feeling safe in a new place, family support"
         }
       },
+      {
+        id: "first-day-kindergarten",
+        label: "היום הראשון בגן",
+        image: topicFirstDayKindergarten,
+        description: "מתחילים הרפתקה חדשה בגן",
+        logic: {
+          outfit: "everyday clothes with a small colorful backpack",
+          background: "whimsical kindergarten entrance decorated with oversized crayons, floating magical ABC letters, warm golden sunlight and sparkles",
+          theme: "first day at kindergarten, separation anxiety, making new friends, new beginnings, bravery, excitement, adapting to new environment, feeling safe"
+        }
+      },
     ]
   },
   {
