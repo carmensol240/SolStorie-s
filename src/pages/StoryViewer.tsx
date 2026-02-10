@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef, useCallback } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { Home, BookOpen, Sparkles, Palette, Wand2, RefreshCw, Volume2, VolumeX, Loader2 } from "lucide-react";
+import { Home, BookOpen, Sparkles, Palette, Wand2, RefreshCw, Volume2, VolumeX, Loader2, ImageOff } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
@@ -78,6 +78,7 @@ const StoryViewer = () => {
   const [illustrationProgress, setIllustrationProgress] = useState(0);
   const pollingIntervalRef = useRef<NodeJS.Timeout | null>(null);
   const pollingStartTimeRef = useRef<number | null>(null);
+  const [retryingPageId, setRetryingPageId] = useState<string | null>(null);
   
   const [showDedicationDialog, setShowDedicationDialog] = useState(false);
   const [isCreatingDigitalBook, setIsCreatingDigitalBook] = useState(false);
@@ -545,6 +546,44 @@ const StoryViewer = () => {
     toast({ title: 'תודה על הדיווח! נבדוק את הנושא' });
   };
 
+  const handleRetryIllustration = async (pageId: string) => {
+    if (!storyId || retryingPageId) return;
+    
+    setRetryingPageId(pageId);
+    try {
+      const { data, error } = await supabase.functions.invoke('retry-illustration', {
+        body: { storyId, pageId },
+      });
+
+      if (error) throw error;
+
+      if (data?.illustrationUrl) {
+        // Update the page in local state
+        setStory(prev => {
+          if (!prev) return prev;
+          return {
+            ...prev,
+            pages: prev.pages.map(p => 
+              p.id === pageId ? { ...p, illustration_url: data.illustrationUrl } : p
+            ),
+          };
+        });
+        toast({ title: "האיור נוצר בהצלחה! 🎨" });
+      } else {
+        throw new Error("No illustration returned");
+      }
+    } catch (error) {
+      console.error("Retry illustration error:", error);
+      toast({
+        variant: "destructive",
+        title: "שגיאה ביצירת האיור",
+        description: "נסו שוב מאוחר יותר",
+      });
+    } finally {
+      setRetryingPageId(null);
+    }
+  };
+
   if (isLoading) {
     return (
       <div className="min-h-screen bg-gradient-to-b from-[#FAF3E8] to-[#F5E6D3] flex items-center justify-center" dir="rtl">
@@ -724,11 +763,26 @@ const StoryViewer = () => {
                     </div>
                   ) : (
                     <div className="w-full max-w-sm mx-auto">
-                      <div className="rounded-2xl border-4 border-dashed border-[#D4A574]/50 aspect-[4/5] flex items-center justify-center bg-[#F5E6D3]/50">
+                      <div className="rounded-2xl border-4 border-dashed border-[#D4A574]/50 aspect-[4/5] flex flex-col items-center justify-center bg-[#F5E6D3]/50 gap-3">
                         <div className="text-center text-[#A08060]">
-                          <BookOpen className="w-16 h-16 mx-auto mb-2 opacity-40" />
-                          <p className="text-sm">טוען איור...</p>
+                          <ImageOff className="w-12 h-12 mx-auto mb-2 opacity-40" />
+                          <p className="text-sm">{generationStatus === 'ready' ? 'האיור לא נוצר' : 'טוען איור...'}</p>
                         </div>
+                        {generationStatus === 'ready' && story.pages[0]?.id && (
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            onClick={() => handleRetryIllustration(story.pages[0].id)}
+                            disabled={retryingPageId === story.pages[0].id}
+                            className="border-[#D4A574] text-[#8B7355] hover:bg-[#F5E6D3]"
+                          >
+                            {retryingPageId === story.pages[0].id ? (
+                              <><Loader2 className="w-4 h-4 animate-spin ml-2" />מייצר...</>
+                            ) : (
+                              <><RefreshCw className="w-4 h-4 ml-2" />נסה לייצר איור שוב</>
+                            )}
+                          </Button>
+                        )}
                       </div>
                     </div>
                   )}
@@ -855,11 +909,26 @@ const StoryViewer = () => {
                     </div>
                   ) : (
                     <div className="relative w-full max-w-md mx-auto">
-                      <div className="rounded-2xl border-4 border-dashed border-[#D4A574]/50 aspect-[4/5] flex items-center justify-center bg-[#F5E6D3]/50">
+                      <div className="rounded-2xl border-4 border-dashed border-[#D4A574]/50 aspect-[4/5] flex flex-col items-center justify-center bg-[#F5E6D3]/50 gap-3">
                         <div className="text-center text-[#A08060]">
-                          <BookOpen className="w-16 h-16 mx-auto mb-2 opacity-40" />
-                          <p className="text-sm">טוען איור...</p>
+                          <ImageOff className="w-12 h-12 mx-auto mb-2 opacity-40" />
+                          <p className="text-sm">{generationStatus === 'ready' ? 'האיור לא נוצר' : 'טוען איור...'}</p>
                         </div>
+                        {generationStatus === 'ready' && page?.id && (
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            onClick={() => handleRetryIllustration(page.id)}
+                            disabled={retryingPageId === page.id}
+                            className="border-[#D4A574] text-[#8B7355] hover:bg-[#F5E6D3]"
+                          >
+                            {retryingPageId === page.id ? (
+                              <><Loader2 className="w-4 h-4 animate-spin ml-2" />מייצר...</>
+                            ) : (
+                              <><RefreshCw className="w-4 h-4 ml-2" />נסה לייצר איור שוב</>
+                            )}
+                          </Button>
+                        )}
                       </div>
                     </div>
                   )}
