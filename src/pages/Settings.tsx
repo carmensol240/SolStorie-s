@@ -61,26 +61,9 @@ const Settings = () => {
       {/* Hero Section with Background Image */}
       <div 
         className="relative h-32 flex-shrink-0 bg-cover bg-center"
-        style={{ backgroundImage: `url(${profileHero})` }}
-      >
-        {/* Gradient overlay for text readability */}
-        <div className="absolute inset-0 bg-gradient-to-b from-purple-900/40 to-purple-900/70" />
-        
-        {/* User info - transparent glass badge bottom-right */}
-        {user && (
-          <div className="absolute bottom-3 right-3">
-            <div className="bg-white/10 backdrop-blur-sm rounded-xl px-3 py-2 flex items-center gap-2 border border-white/10 shadow-lg">
-              <button 
-                onClick={() => navigate("/upgrade")}
-                className="flex items-center gap-1 bg-gradient-to-r from-purple-500/30 to-pink-500/30 rounded-full px-2 py-1 hover:from-purple-500/40 hover:to-pink-500/40 transition-colors"
-              >
-                <Coins className="w-4 h-4 text-purple-200" aria-hidden="true" />
-                <span className="font-bold text-purple-100 text-sm">{totalCredits}</span>
-              </button>
-              <p className="text-white/90 text-sm truncate max-w-[120px] font-medium">{user.email?.split('@')[0]}</p>
-            </div>
-          </div>
-        )}
+      {/* Simple header */}
+      <div className="bg-gradient-to-r from-purple-100 to-pink-50 px-4 py-4 border-b border-purple-100">
+        <h1 className="text-lg font-bold text-purple-800">הגדרות</h1>
       </div>
 
       {/* Menu Items - Compact Layout */}
