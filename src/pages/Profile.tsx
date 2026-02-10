@@ -1,6 +1,6 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
-import { Coins, Users, ChevronLeft, Heart, BookOpen, Star, Notebook, MessageCircle, Target, Sparkles, Save } from "lucide-react";
+import { Coins, Users, ChevronLeft, Heart, BookOpen, Star, Notebook, MessageCircle, Target, Sparkles, Save, Lightbulb } from "lucide-react";
 import { useAuth } from "@/hooks/use-auth";
 import { useCredits } from "@/hooks/use-credits";
 import { useChildAvatar } from "@/hooks/use-child-avatar";
@@ -8,6 +8,15 @@ import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import MobileNavigation from "@/components/MobileNavigation";
+
+const CARMIT_TIPS = [
+  "כשקוראים סיפור יחד, נסו לעצור רגע ולשאול: מה הגיבור מרגיש עכשיו? זה מפתח אמפתיה מדהימה.",
+  "תנו לילד לבחור את הנושא של הסיפור — כשהוא מרגיש שליטה, הוא נפתח רגשית.",
+  "אחרי סיפור, שאלו: מה היית עושה במקום הגיבור? זה בונה חשיבה ביקורתית וביטחון.",
+  "הקריאה המשותפת היא לא רק על הסיפור — זה הזמן שלכם יחד. תחבקו חזק.",
+  "ילדים לומדים הכי טוב דרך דמויות שהם מזדהים איתן. לכן הילד שלכם הוא תמיד הגיבור.",
+  "אל תפחדו מנושאים קשים בסיפור — ילדים צריכים מרחב בטוח לעבד רגשות.",
+];
 
 interface ChildProfile {
   id: string;
