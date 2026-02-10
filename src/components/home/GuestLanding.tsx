@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { ArrowLeft, Sparkles, Star, Users, Loader2 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
-import heroChildrenFloating from "@/assets/hero-children-floating-sky.jpg";
+import heroBackground from "@/assets/hero-soli-tree.png";
 import { supabase } from "@/integrations/supabase/client";
 import type { User } from "@supabase/supabase-js";
 
