@@ -1,11 +1,14 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { Coins, Users, Sparkles, Crown, ChevronLeft } from "lucide-react";
+import { Coins, Users, Sparkles, Crown, ChevronLeft, Gift, Copy, Check } from "lucide-react";
 import { useAuth } from "@/hooks/use-auth";
 import { useCredits } from "@/hooks/use-credits";
 import { useReferral } from "@/hooks/use-referral";
 import { useChildAvatar } from "@/hooks/use-child-avatar";
+import { useAnalytics } from "@/hooks/use-analytics";
 import { supabase } from "@/integrations/supabase/client";
+import { Button } from "@/components/ui/button";
+import { toast } from "sonner";
 import MobileNavigation from "@/components/MobileNavigation";
 import profileHero from "@/assets/profile-hero.jpg";
 
