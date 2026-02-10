@@ -29,6 +29,7 @@ import topicBraveTaster from "@/assets/topic-brave-taster.jpg";
 import topicPocketKiss from "@/assets/topic-pocket-kiss.jpg";
 import topicApologize from "@/assets/topic-apologize.jpg";
 import topicRainParty from "@/assets/topic-rain-party.jpg";
+import topicWeAreSpecial from "@/assets/topic-we-are-special.jpg";
 
 interface TopicStepProps {
   formData: StoryFormData;
