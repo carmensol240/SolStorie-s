@@ -1100,6 +1100,29 @@ ${adventureLogic ? `
       throw new Error("Invalid JSON response from AI");
     }
 
+    // === PASS 2: DOUBLE-PASS NIQQUD PIPELINE ===
+    // If nikud is requested, send each page text to the Hebrew Grammarian agent
+    if (nikud) {
+      console.log("Starting Pass 2: Hebrew Grammarian nikud pipeline...");
+      
+      // Process all pages in parallel for speed
+      const nikudPromises = storyData.pages.map(async (page: any, index: number) => {
+        console.log(`Adding nikud to page ${index + 1}...`);
+        const nikudText = await addNikudToText(page.text, LOVABLE_API_KEY);
+        return { ...page, text: nikudText };
+      });
+
+      try {
+        storyData.pages = await Promise.all(nikudPromises);
+        console.log("Pass 2 complete: nikud added to all pages successfully");
+      } catch (nikudError) {
+        console.error("Nikud pipeline error (using original text):", nikudError);
+        // Pages remain with original text if nikud fails
+      }
+    } else {
+      console.log("Nikud not requested, skipping Pass 2");
+    }
+
     // Use existing supabase client for database operations
 
     // Create the story first - include user_id for gallery privacy
