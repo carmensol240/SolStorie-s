@@ -52,7 +52,7 @@ const About = () => {
 
         {/* Personal intro */}
         <p className="text-base font-bold text-white/90 leading-relaxed mb-1">
-          שלום, אני כרמן
+          שלום, אני כרמית
         </p>
         <p className="text-sm text-white/75 leading-relaxed mb-3 px-1">
           יצרתי את StoryTime עבור בתי סול, מתוך רצון להעניק לה עולם של דמיון שמבין את הקצב הייחודי שלה. רציתי ליצור עבורה מרחב שבו מילים הופכות לקסם מחבק, המותאם בדיוק לדרך שבה היא חווה את העולם.
