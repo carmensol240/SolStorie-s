@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { jsPDF } from 'jspdf';
 import html2canvas from 'html2canvas';
 import { useToast } from '@/hooks/use-toast';
+import { useSignedUrls } from '@/hooks/use-signed-urls';
 
 // Helper function to escape HTML entities and prevent XSS
 const escapeHtml = (unsafe: string): string => {
