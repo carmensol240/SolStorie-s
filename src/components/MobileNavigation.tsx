@@ -10,7 +10,7 @@ const MobileNavigation = () => {
   const navItems = [
     { path: "/", icon: Home, label: "בית", primary: false },
     { path: "/library", icon: Library, label: "הספרייה הקסומה שלי", primary: false },
-    { path: "/settings", icon: User, label: "פרופיל", primary: false },
+    { path: "/settings", icon: Settings, label: "הגדרות", primary: false },
   ];
 
   return (
