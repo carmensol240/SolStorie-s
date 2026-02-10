@@ -567,3 +567,8 @@
 .large-cursor textarea {
   cursor: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='48' height='48' viewBox='0 0 24 24'%3E%3Cpath fill='black' stroke='white' stroke-width='1' d='M5 3l14 8-6 2-4 6z'/%3E%3C/svg%3E") 4 4, pointer !important;
 }
+
+@keyframes glow-pulse {
+  0%, 100% { box-shadow: 0 0 30px rgba(251,191,36,0.4), 0 0 60px rgba(251,146,60,0.2); }
+  50% { box-shadow: 0 0 45px rgba(251,191,36,0.6), 0 0 90px rgba(251,146,60,0.35); }
+}
