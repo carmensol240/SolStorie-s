@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { jsPDF } from 'jspdf';
 import html2canvas from 'html2canvas';
 import { useToast } from '@/hooks/use-toast';
+import { useSignedUrls } from '@/hooks/use-signed-urls';
 
 // Helper function to escape HTML entities and prevent XSS
 const escapeHtml = (unsafe: string): string => {
@@ -31,6 +32,7 @@ export type PdfLayout = 'portrait' | 'landscape-book';
 export const usePdfExport = () => {
   const [isExporting, setIsExporting] = useState(false);
   const { toast } = useToast();
+  const { fetchSignedUrls } = useSignedUrls();
 
   const loadImage = (url: string): Promise<HTMLImageElement> => {
     return new Promise((resolve, reject) => {
@@ -86,6 +88,12 @@ export const usePdfExport = () => {
   };
 
   const exportPortrait = async (story: Story) => {
+    // Pre-fetch signed URLs for all illustrations
+    const illustrationUrls = story.pages
+      .map(p => p.illustration_url)
+      .filter((url): url is string => !!url);
+    const signedUrlMap = await fetchSignedUrls(illustrationUrls, story.id);
+    
     const pdf = new jsPDF({
       orientation: 'portrait',
       unit: 'mm',
@@ -174,7 +182,8 @@ export const usePdfExport = () => {
         let illustrationHtml = '';
         if (page.illustration_url) {
           try {
-            const img = await loadImage(page.illustration_url);
+            const resolvedUrl = signedUrlMap[page.illustration_url] || page.illustration_url;
+            const img = await loadImage(resolvedUrl);
             illustrationHtml = `
               <div style="
                 flex: 0 0 65%;
@@ -184,7 +193,7 @@ export const usePdfExport = () => {
                 margin-bottom: 8px;
               ">
                 <img 
-                  src="${page.illustration_url}" 
+                  src="${resolvedUrl}" 
                   style="
                     max-width: 95%;
                     max-height: 100%;
@@ -258,6 +267,12 @@ export const usePdfExport = () => {
   };
 
   const exportLandscapeBook = async (story: Story) => {
+    // Pre-fetch signed URLs for all illustrations
+    const illustrationUrls = story.pages
+      .map(p => p.illustration_url)
+      .filter((url): url is string => !!url);
+    const signedUrlMap = await fetchSignedUrls(illustrationUrls, story.id);
+
     const pdf = new jsPDF({
       orientation: 'landscape',
       unit: 'mm',
@@ -340,10 +355,11 @@ export const usePdfExport = () => {
       let illustrationHtml = '';
       if (page.illustration_url) {
         try {
-          await loadImage(page.illustration_url);
+          const resolvedUrl = signedUrlMap[page.illustration_url] || page.illustration_url;
+          await loadImage(resolvedUrl);
           illustrationHtml = `
             <img 
-              src="${page.illustration_url}" 
+              src="${resolvedUrl}" 
               style="
                 max-width: 90%;
                 max-height: 90%;
