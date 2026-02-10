@@ -41,8 +41,8 @@ const Onboarding = () => {
           .maybeSingle();
 
         if (data?.terms_accepted_at) {
-          // Already accepted - redirect to library
-          navigate("/library");
+          // Already accepted - redirect to home
+          navigate("/adventure");
           return;
         }
       } catch (error) {
