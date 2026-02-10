@@ -202,6 +202,17 @@ const ADVENTURE_CATEGORIES: AdventureCategory[] = [
           theme: "separation anxiety, morning goodbye, feeling safe, love and comfort, transitioning to kindergarten"
         }
       },
+      {
+        id: "we-are-special",
+        label: "כולנו מיוחדים ודומים",
+        image: topicWeAreSpecial,
+        description: "שונים מבחוץ, אותו דבר מבפנים",
+        logic: {
+          outfit: "everyday casual clothes",
+          background: "colorful magical garden with diverse flowers, rainbow-colored glowing hearts and stars, children of different appearances holding hands",
+          theme: "diversity and inclusion, different family structures (single-parent, same-sex parents, grandparent-led), different appearances (skin color, hair, height), celebrating uniqueness, empathy, the core message: we look different on the outside and our homes may look different but inside our hearts we all feel love and dream the same way. Use parent NLP input to tailor to the specific family or social situation"
+        }
+      },
     ]
   },
   {
