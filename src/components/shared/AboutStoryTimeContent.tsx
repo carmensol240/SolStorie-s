@@ -31,7 +31,7 @@ export const AboutStoryTimeContent = () => {
       
       <p className="font-semibold text-foreground">והמחיר? פחות מ-9.90₪ לסיפור דיגיטלי וקובץ PDF להדפסה.</p>
       
-      <p>כי אני יודעת בדיוק מה חסר לנו ההורים ומצאתי פתרון עבור כולנו.</p>
+      <p>כי אני יודעת בדיוק מה חסר לנו ההורים ומצאתי פתרון עבורנו.</p>
       
       <p className="text-center pt-2 border-t border-purple-100">
         נבנה באהבה גדולה עבור הילדים של כולנו.<br />
