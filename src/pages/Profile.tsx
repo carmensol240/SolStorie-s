@@ -172,12 +172,13 @@ const Profile = () => {
             key={i}
             className="absolute rounded-full bg-white animate-pulse"
             style={{
-              width: `${2 + Math.random() * 3}px`,
-              height: `${2 + Math.random() * 3}px`,
+              width: `${2 + Math.random() * 4}px`,
+              height: `${2 + Math.random() * 4}px`,
               top: `${Math.random() * 100}%`,
               left: `${Math.random() * 100}%`,
               animationDelay: `${Math.random() * 4}s`,
               animationDuration: `${2 + Math.random() * 3}s`,
+              boxShadow: `0 0 ${4 + Math.random() * 8}px ${2 + Math.random() * 4}px rgba(255, 255, 255, 0.6)`,
             }}
           />
         ))}
