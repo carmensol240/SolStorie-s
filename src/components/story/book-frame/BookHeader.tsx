@@ -105,10 +105,12 @@ export const BookHeader: React.FC<BookHeaderProps> = ({
                     "text-[#F5E6D3] hover:bg-white/10 min-h-[44px] min-w-[44px] p-2",
                     isReading && "bg-white/20"
                   )}
-                  aria-label={isReading ? "עצור הקראה" : "הקראת הטקסט"}
+                  aria-label={hasAudioError ? "נסו שוב" : isReading ? "עצור הקראה" : "הקראת הטקסט"}
                 >
                   {isLoadingAudio ? (
                     <Loader2 className="w-5 h-5 animate-spin" />
+                  ) : hasAudioError ? (
+                    <RefreshCw className="w-5 h-5 text-yellow-200" />
                   ) : isReading ? (
                     <VolumeX className="w-5 h-5" />
                   ) : (
@@ -117,7 +119,7 @@ export const BookHeader: React.FC<BookHeaderProps> = ({
                 </Button>
               </TooltipTrigger>
               <TooltipContent side="bottom">
-                {isLoadingAudio ? 'טוען...' : isReading ? 'עצור הקראה' : 'הקראת הטקסט'}
+                {isLoadingAudio ? 'טוען...' : hasAudioError ? 'נסו שוב' : isReading ? 'עצור הקראה' : 'הקראת הטקסט'}
               </TooltipContent>
             </Tooltip>
           )}
