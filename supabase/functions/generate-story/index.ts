@@ -1000,7 +1000,7 @@ ${personalityTraits}
 - שם: ${childName}
 - מגדר: ${genderText}
 - גיל: ${ageRange}
-
+${childPersonalization}
 ${contentFraming}
 
 **נושא הסיפור:** ${topic}
