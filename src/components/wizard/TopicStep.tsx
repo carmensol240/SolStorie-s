@@ -18,7 +18,6 @@ import topicSpaceHero from "@/assets/topic-space-hero.jpg";
 import topicBirthday from "@/assets/topic-birthday.jpg";
 import topicPacifier from "@/assets/topic-pacifier.jpg";
 import topicFriendship from "@/assets/topic-friendship.jpg";
-import topicCleanRoom from "@/assets/topic-clean-room.jpeg";
 import topicNewSibling from "@/assets/topic-new-sibling.jpeg";
 import topicDentistVisit from "@/assets/topic-dentist-visit.jpeg";
 import topicBarberVisit from "@/assets/topic-barber-visit.jpg";
@@ -26,6 +25,10 @@ import topicLostTooth from "@/assets/topic-lost-tooth.jpg";
 import topicSharing from "@/assets/topic-sharing.jpg";
 import topicCloudAdventure from "@/assets/topic-cloud-adventure.jpg";
 import topicFearOfDark from "@/assets/topic-fear-of-dark.jpg";
+import topicBraveTaster from "@/assets/topic-brave-taster.jpg";
+import topicPocketKiss from "@/assets/topic-pocket-kiss.jpg";
+import topicApologize from "@/assets/topic-apologize.jpg";
+import topicRainParty from "@/assets/topic-rain-party.jpg";
 
 interface TopicStepProps {
   formData: StoryFormData;
