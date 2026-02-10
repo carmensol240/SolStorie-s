@@ -98,7 +98,7 @@ const GuestLanding = ({ user, isLoggedIn }: GuestLandingProps) => {
       <div 
         className="fixed inset-0 pointer-events-none"
         style={{ 
-          backgroundImage: `url(${heroChildrenFloating})`,
+          backgroundImage: `url(${heroBackground})`,
           backgroundSize: 'cover',
           backgroundPosition: 'center center',
           backgroundRepeat: 'no-repeat',
