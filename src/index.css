@@ -319,13 +319,13 @@
   box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08) !important;
 }
 
-/* Landing page feature cards - more transparent to show background */
+/* Landing page feature cards - glass effect to show background */
 .landing-feature-card-transparent {
-  background: rgba(255, 255, 255, 0.55) !important;
-  backdrop-filter: blur(8px) !important;
-  -webkit-backdrop-filter: blur(8px) !important;
-  border: 1px solid rgba(255, 255, 255, 0.4) !important;
-  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.06) !important;
+  background: rgba(255, 255, 255, 0.25) !important;
+  backdrop-filter: blur(12px) !important;
+  -webkit-backdrop-filter: blur(12px) !important;
+  border: 1px solid rgba(255, 255, 255, 0.3) !important;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08) !important;
 }
 
 /* Logged-in user action box - high transparency glassmorphism */
