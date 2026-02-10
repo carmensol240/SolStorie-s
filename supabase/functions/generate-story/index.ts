@@ -825,6 +825,28 @@ serve(async (req) => {
 
     console.log("Generating story for:", { childName, childGender, ageRange, storyLength, topic, nikud, hasPhoto: !!childPhoto, hasAvatar: !!childAvatarUrl, hasTraits: !!personalityTraits, hasAdventureLogic: !!adventureLogic });
     
+    // === FETCH CHILD PERSONALIZATION FROM DB ===
+    let childPersonalization = "";
+    if (userId) {
+      const { data: childData } = await supabase
+        .from("children")
+        .select("hobbies, challenges, favorite_friends")
+        .eq("user_id", userId)
+        .eq("name", childName)
+        .maybeSingle();
+      
+      if (childData) {
+        const parts: string[] = [];
+        if (childData.hobbies?.trim()) parts.push(`תחביבים ואהבות: ${childData.hobbies.trim()}`);
+        if (childData.challenges?.trim()) parts.push(`אתגרים נוכחיים: ${childData.challenges.trim()}`);
+        if (childData.favorite_friends?.trim()) parts.push(`חברים וצעצועים אהובים: ${childData.favorite_friends.trim()}`);
+        if (parts.length > 0) {
+          childPersonalization = `\n## 🎯 פרטים אישיים על הילד/ה (שלב בסיפור בצורה טבעית!):\n${parts.join("\n")}\n`;
+          console.log("Using child personalization:", childPersonalization);
+        }
+      }
+    }
+
     // Use avatar URL if available (for character consistency), otherwise use original photo
     const effectivePhoto = childAvatarUrl || childPhoto;
 
@@ -978,7 +1000,7 @@ ${personalityTraits}
 - שם: ${childName}
 - מגדר: ${genderText}
 - גיל: ${ageRange}
-
+${childPersonalization}
 ${contentFraming}
 
 **נושא הסיפור:** ${topic}
