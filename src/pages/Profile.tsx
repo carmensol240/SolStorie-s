@@ -214,9 +214,10 @@ const Profile = () => {
       <div className="w-full max-w-[550px] lg:max-w-[450px] mx-auto px-4 py-6 space-y-5">
         {/* Header */}
         <div className="flex items-center gap-3">
-          {avatarUrl && (
-            <div className="w-12 h-12 rounded-full overflow-hidden border-2 border-white/30 shadow-lg flex-shrink-0">
-              <img src={avatarUrl} alt="אווטר" className="w-full h-full object-cover" />
+          {/* Child profile photo or avatar */}
+          {(childPhotoUrl || avatarUrl) && (
+            <div className="w-14 h-14 rounded-full overflow-hidden border-2 border-purple-400/50 shadow-lg shadow-purple-500/20 flex-shrink-0">
+              <img src={childPhotoUrl || avatarUrl!} alt="תמונת הילד/ה" className="w-full h-full object-cover" />
             </div>
           )}
           <div className="flex-1 min-w-0">
@@ -235,6 +236,28 @@ const Profile = () => {
             <span className="text-white/70 text-[10px]">קרדיטים</span>
           </button>
         </div>
+
+        {/* Carmit's Expert Tip */}
+        <section className="bg-gradient-to-br from-amber-500/10 via-orange-500/10 to-pink-500/10 backdrop-blur-md border border-amber-400/20 rounded-2xl p-4 space-y-3">
+          <div className="flex items-center gap-2">
+            <span className="w-7 h-7 bg-gradient-to-r from-amber-400/30 to-orange-400/30 rounded-lg flex items-center justify-center">
+              <Lightbulb className="w-4 h-4 text-amber-300" />
+            </span>
+            <h2 className="font-bold text-sm text-amber-200">הטיפ של כרמית</h2>
+          </div>
+          <p className="text-sm text-white/80 leading-relaxed transition-opacity duration-500" key={tipIndex}>
+            &ldquo;{CARMIT_TIPS[tipIndex]}&rdquo;
+          </p>
+          <p className="text-[10px] text-amber-300/50 text-left">— כרמית כהן, מייסדת StoryTime</p>
+          
+          {/* CTA for coaching */}
+          <button
+            className="w-full mt-1 py-2.5 bg-white/[0.06] hover:bg-white/10 border border-white/10 rounded-xl text-xs text-purple-200 hover:text-white font-medium transition-all flex items-center justify-center gap-1.5"
+          >
+            <Sparkles className="w-3.5 h-3.5 text-purple-300" />
+            רוצה ליווי אישי וכלים נוספים? לחצי כאן
+          </button>
+        </section>
 
         {/* Section A: The Child's World */}
         <section className="space-y-3">
