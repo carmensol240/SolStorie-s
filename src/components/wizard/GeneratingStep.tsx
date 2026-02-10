@@ -1,5 +1,13 @@
 import { useState, useEffect, useCallback, useRef } from "react";
-import { Sparkles, BookOpen, Palette, FileText, RefreshCw, Wand2 } from "lucide-react";
+import { Sparkles, BookOpen, Palette, FileText, RefreshCw, Wand2, Star } from "lucide-react";
+import avatarTestimonial1 from "@/assets/avatar-testimonial-1.png";
+import avatarTestimonial2 from "@/assets/avatar-testimonial-2.png";
+import avatarTestimonial3 from "@/assets/avatar-testimonial-3.png";
+import avatarTestimonial4 from "@/assets/avatar-testimonial-4.png";
+import avatarTestimonial5 from "@/assets/avatar-testimonial-5.png";
+import avatarParent1 from "@/assets/avatar-parent-1.png";
+import avatarParent2 from "@/assets/avatar-parent-2.png";
+import avatarParent3 from "@/assets/avatar-parent-3.png";
 import { Progress } from "@/components/ui/progress";
 import { Button } from "@/components/ui/button";
 import { StoryFormData } from "@/pages/CreateStory";
@@ -256,38 +264,47 @@ const GeneratingStep = ({ formData, onComplete }: GeneratingStepProps) => {
     );
   }
 
-  // Parent testimonials carousel with professional cards
+  // Parent testimonials with real names and gender-matched avatars
   const PARENT_TESTIMONIALS = [
     { 
-      name: "הורה מ.", 
+      name: "מיכל כהן", 
       quote: "הילדה שלי מאושרת! כל לילה מבקשת לקרוא את הסיפור שלה שוב ושוב.",
-      rating: 5 
+      rating: 5,
+      avatar: avatarTestimonial1,
     },
     { 
-      name: "הורה י.", 
+      name: "ערן לוי", 
       quote: "הילדים שלי מתים על הסיפורים. הם מרגישים כמו גיבורים אמיתיים.",
-      rating: 5 
+      rating: 5,
+      avatar: avatarParent1,
     },
     { 
-      name: "הורה ר.", 
+      name: "שירה אברהם", 
       quote: "האיורים מדהימים והסיפורים מותאמים בצורה מושלמת לגיל.",
-      rating: 5 
+      rating: 5,
+      avatar: avatarTestimonial2,
     },
     { 
-      name: "הורה א.", 
+      name: "יוסי דוד", 
       quote: "יצרנו סיפור על הפחד מהחושך והילד שלי התגבר על הפחד תוך שבוע!",
-      rating: 5 
+      rating: 5,
+      avatar: avatarTestimonial4,
+    },
+    { 
+      name: "נועה פרידמן", 
+      quote: "מתנה מושלמת לסבא וסבתא – סיפור עם הנכדים בתור הגיבורים!",
+      rating: 5,
+      avatar: avatarTestimonial5,
+    },
+    { 
+      name: "דני רוזנברג", 
+      quote: "הילד שלי לא מפסיק לבקש עוד סיפורים! מתלהב כל פעם מחדש.",
+      rating: 5,
+      avatar: avatarParent3,
     },
   ];
 
   const currentTestimonial = PARENT_TESTIMONIALS[sentenceIndex % PARENT_TESTIMONIALS.length];
-  
-  // Render 5 golden stars
-  const renderStars = (count: number) => {
-    return Array(count).fill(0).map((_, i) => (
-      <span key={i} className="text-yellow-400 text-sm">★</span>
-    ));
-  };
 
   return (
     <div className="flex flex-col items-center justify-center min-h-[100dvh] text-center space-y-6 bg-gradient-to-b from-[#FAF3E8] to-[#F5E6D3] p-6">
@@ -372,18 +389,28 @@ const GeneratingStep = ({ formData, onComplete }: GeneratingStepProps) => {
           className={`bg-white rounded-xl p-4 shadow-lg border border-purple-100 transition-opacity duration-500 ${
             isSentenceVisible ? "opacity-100" : "opacity-0"
           }`}
+          dir="rtl"
         >
-          {/* Parent name */}
-          <p className="text-sm font-bold text-purple-800 mb-2">
-            {currentTestimonial.name}
-          </p>
-          {/* Quote */}
-          <p className="text-sm text-purple-600 italic leading-relaxed mb-2">
-            "{currentTestimonial.quote}"
-          </p>
-          {/* 5 Golden Stars */}
-          <div className="flex justify-center gap-0.5">
-            {renderStars(currentTestimonial.rating)}
+          <div className="flex items-start gap-3">
+            {/* Avatar */}
+            <img
+              src={currentTestimonial.avatar}
+              alt={currentTestimonial.name}
+              className="w-10 h-10 rounded-full object-cover border-2 border-amber-200 shrink-0"
+            />
+            <div className="flex-1 space-y-1">
+              <div className="flex items-center justify-between">
+                <span className="text-sm font-bold text-purple-800">{currentTestimonial.name}</span>
+                <div className="flex gap-0.5">
+                  {[1,2,3,4,5].map((s) => (
+                    <Star key={s} className={`w-3.5 h-3.5 ${s <= currentTestimonial.rating ? 'fill-amber-400 text-amber-400' : 'text-muted-foreground/30'}`} />
+                  ))}
+                </div>
+              </div>
+              <p className="text-sm text-purple-600 leading-relaxed">
+                "{currentTestimonial.quote}"
+              </p>
+            </div>
           </div>
         </div>
       </div>
