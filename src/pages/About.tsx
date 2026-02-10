@@ -52,7 +52,7 @@ const About = () => {
         </div>
 
         {/* Invitation text */}
-        <p className="text-sm text-foreground/80 leading-relaxed mb-2 px-2">
+        <p className="text-sm text-foreground/80 leading-relaxed mt-4 mb-4 px-2 font-bold">
           אני מזמינה אתכם להצטרף אלינו למסע. כדי שתוכלו להרגיש את הקסם בעצמכם, הסיפור הראשון הוא עלינו – במתנה.
         </p>
 
