@@ -621,22 +621,20 @@ async function addNikudToText(text: string, apiKey: string): Promise<string> {
 // Review step: validate nikud output for common AI mistakes
 function validateNikud(nikudText: string, originalText: string): string {
   // 1. Check that nikud text is not drastically different in word count
-  const originalWords = originalText.replace(/[\\u0591-\\u05C7]/g, "").split(/\\s+/).filter(w => w.length > 0);
-  const nikudWords = nikudText.replace(/[\\u0591-\\u05C7]/g, "").split(/\\s+/).filter(w => w.length > 0);
+  const originalWords = originalText.replace(/[\u0591-\u05C7]/g, "").split(/\s+/).filter(w => w.length > 0);
+  const nikudWords = nikudText.replace(/[\u0591-\u05C7]/g, "").split(/\s+/).filter(w => w.length > 0);
   
   // If word count differs by more than 20%, something went wrong - return original
   if (Math.abs(originalWords.length - nikudWords.length) > originalWords.length * 0.2) {
-    console.warn(\`Nikud validation failed: word count mismatch (original: \${originalWords.length}, nikud: \${nikudWords.length})\`);
+    console.warn(`Nikud validation failed: word count mismatch (original: ${originalWords.length}, nikud: ${nikudWords.length})`);
     return originalText;
   }
 
   // 2. Check for double-nikud on single characters (common AI mistake)
-  // Hebrew nikud range: \\u0591-\\u05C7
-  const doubleNikudPattern = /[\\u0591-\\u05C7]{3,}/;
+  const doubleNikudPattern = /[\u0591-\u05C7]{3,}/;
   if (doubleNikudPattern.test(nikudText)) {
     console.warn("Nikud validation: found excessive nikud stacking, cleaning up...");
-    // Remove excessive nikud stacking (keep max 2 marks per char)
-    nikudText = nikudText.replace(/([\\u0591-\\u05C7]){3,}/g, "$1");
+    nikudText = nikudText.replace(/([\u0591-\u05C7]){3,}/g, "$1");
   }
 
   // 3. Verify the text still contains Hebrew characters
