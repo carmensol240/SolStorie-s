@@ -1,5 +1,13 @@
 import { useState, useEffect, useCallback, useRef } from "react";
-import { Sparkles, BookOpen, Palette, FileText, RefreshCw, Wand2 } from "lucide-react";
+import { Sparkles, BookOpen, Palette, FileText, RefreshCw, Wand2, Star } from "lucide-react";
+import avatarTestimonial1 from "@/assets/avatar-testimonial-1.png";
+import avatarTestimonial2 from "@/assets/avatar-testimonial-2.png";
+import avatarTestimonial3 from "@/assets/avatar-testimonial-3.png";
+import avatarTestimonial4 from "@/assets/avatar-testimonial-4.png";
+import avatarTestimonial5 from "@/assets/avatar-testimonial-5.png";
+import avatarParent1 from "@/assets/avatar-parent-1.png";
+import avatarParent2 from "@/assets/avatar-parent-2.png";
+import avatarParent3 from "@/assets/avatar-parent-3.png";
 import { Progress } from "@/components/ui/progress";
 import { Button } from "@/components/ui/button";
 import { StoryFormData } from "@/pages/CreateStory";
