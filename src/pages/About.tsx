@@ -53,7 +53,7 @@ const About = () => {
 
         {/* Continue button */}
         <button
-          onClick={() => navigate("/welcome")}
+          onClick={() => navigate("/adventure")}
           className="w-full max-w-xs mx-auto flex items-center justify-center bg-gradient-to-r from-purple-600 via-pink-500 to-orange-500 hover:from-purple-700 hover:via-pink-600 hover:to-orange-600 text-white font-black text-lg py-3.5 rounded-full shadow-xl transition-all hover:scale-[1.02]"
           style={{
             boxShadow: '0 8px 30px -8px rgba(147, 51, 234, 0.5), 0 4px 15px -4px rgba(236, 72, 153, 0.3)'
