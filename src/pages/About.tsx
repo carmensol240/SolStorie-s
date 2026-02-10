@@ -7,9 +7,9 @@ const About = () => {
 
   return (
     <div className="min-h-[100dvh] flex flex-col bg-gradient-to-b from-purple-50 via-pink-50 to-amber-50" dir="rtl">
-      <div className="flex-1 flex flex-col items-center justify-center px-5 pt-0 pb-2 max-w-lg mx-auto text-center">
+      <div className="flex-1 flex flex-col items-center justify-center px-5 pt-0 pb-1 max-w-lg mx-auto text-center">
         {/* Welcome text */}
-        <div className="space-y-2 mb-3">
+        <div className="space-y-1.5 mb-2">
           <h1 className="text-2xl font-black text-purple-800 leading-snug">
             ברוכים הבאים ל-<span className="bg-gradient-to-r from-purple-600 via-pink-500 to-orange-400 bg-clip-text text-transparent">StoryTime</span>! 🌟
           </h1>
