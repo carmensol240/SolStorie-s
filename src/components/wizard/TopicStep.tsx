@@ -36,6 +36,7 @@ import topicAngerCloud from "@/assets/topic-anger-cloud.jpg";
 import topicBodySafety from "@/assets/topic-body-safety.jpg";
 import topicNewHouse from "@/assets/topic-new-house.jpg";
 import topicUnderwater from "@/assets/topic-underwater.jpg";
+import topicSuperheroes from "@/assets/topic-superheroes.jpg";
 
 interface TopicStepProps {
   formData: StoryFormData;
@@ -64,6 +65,24 @@ interface AdventureCategory {
 }
 
 const ADVENTURE_CATEGORIES: AdventureCategory[] = [
+  {
+    id: "superheroes",
+    title: "גיבורי על",
+    emoji: "🦸",
+    topics: [
+      {
+        id: "we-are-superheroes",
+        label: "אנחנו גיבורי על",
+        image: topicSuperheroes,
+        description: "מעופפים בשמיים עם גלימות קסומות",
+        logic: {
+          outfit: "colorful superhero suit with a flowing cape and a glowing emblem on the chest",
+          background: "bright blue sky filled with fluffy white clouds, golden sunlight, sparkles and rays of light streaming through",
+          theme: "superheroes, bravery, teamwork, flying, empowerment, confidence, helping others, imagination, friendship, believing in yourself"
+        }
+      },
+    ]
+  },
   {
     id: "daily-heroes",
     title: "גיבורי היומיום",
