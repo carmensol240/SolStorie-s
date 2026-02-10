@@ -6,7 +6,7 @@ import { useReferral } from "@/hooks/use-referral";
 import { useChildAvatar } from "@/hooks/use-child-avatar";
 import { useAuth } from "@/hooks/use-auth";
 import { supabase } from "@/integrations/supabase/client";
-import heroBackground from "@/assets/hero-children-floating-sky.jpg";
+import heroBackground from "@/assets/hero-children-flying-sky.jpg";
 import WelcomeGiftBanner from "./WelcomeGiftBanner";
 
 interface LoggedInHomeProps {
