@@ -28,12 +28,14 @@ const AGE_RANGE_MAP: Record<number, string> = {
 const Profile = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
-  const { credits } = useCredits();
-  const { shareCoins } = useReferral();
+  const { credits, refetch: refetchCredits } = useCredits();
+  const { shareCoins, shareToWhatsApp, copyToClipboard, redeemCoin } = useReferral();
   const { avatarUrl } = useChildAvatar();
+  const { trackEvent } = useAnalytics();
   const [displayName, setDisplayName] = useState<string | null>(null);
   const [isSubscriber, setIsSubscriber] = useState(false);
   const [children, setChildren] = useState<ChildProfile[]>([]);
+  const [copied, setCopied] = useState(false);
 
   const totalCredits = (credits ?? 0) + shareCoins;
 
