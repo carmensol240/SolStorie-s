@@ -6,7 +6,6 @@ import { Switch } from "@/components/ui/switch";
 import { useAuth } from "@/hooks/use-auth";
 import { useAccessibility, type FontSize } from "@/hooks/use-accessibility";
 import MobileNavigation from "@/components/MobileNavigation";
-import MobileNavigation from "@/components/MobileNavigation";
 import {
   Dialog,
   DialogContent,
