@@ -361,10 +361,10 @@ export const usePdfExport = () => {
       if (page.illustration_url) {
         try {
           const resolvedUrl = signedUrlMap[page.illustration_url] || page.illustration_url;
-          await loadImage(resolvedUrl);
+          const dataUrl = await loadImageAsDataUrl(resolvedUrl);
           illustrationHtml = `
             <img 
-              src="${resolvedUrl}" 
+              src="${dataUrl}" 
               style="
                 max-width: 90%;
                 max-height: 90%;
@@ -372,7 +372,6 @@ export const usePdfExport = () => {
                 box-shadow: 0 8px 32px rgba(139, 69, 19, 0.25);
                 object-fit: contain;
               "
-              crossorigin="anonymous"
             />
           `;
         } catch (e) {
