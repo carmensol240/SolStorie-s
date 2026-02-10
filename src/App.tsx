@@ -66,6 +66,7 @@ const App = () => (
             
             <Route path="/library" element={<Library />} />
             <Route path="/flipbook/:bookId" element={<RequireTerms><FlipbookViewer /></RequireTerms>} />
+            <Route path="/profile" element={<RequireTerms><Profile /></RequireTerms>} />
             <Route path="/settings" element={<RequireTerms><Settings /></RequireTerms>} />
             <Route path="/account-exit" element={<RequireTerms><AccountExit /></RequireTerms>} />
             <Route path="/upgrade" element={<RequireTerms><Upgrade /></RequireTerms>} />
