@@ -34,14 +34,20 @@ export const usePdfExport = () => {
   const { toast } = useToast();
   const { fetchSignedUrls } = useSignedUrls();
 
-  const loadImage = (url: string): Promise<HTMLImageElement> => {
-    return new Promise((resolve, reject) => {
-      const img = new Image();
-      img.crossOrigin = 'anonymous';
-      img.onload = () => resolve(img);
-      img.onerror = reject;
-      img.src = url;
-    });
+  const loadImageAsDataUrl = async (url: string): Promise<string> => {
+    try {
+      const response = await fetch(url);
+      const blob = await response.blob();
+      return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onloadend = () => resolve(reader.result as string);
+        reader.onerror = reject;
+        reader.readAsDataURL(blob);
+      });
+    } catch {
+      console.warn('Failed to convert image to data URL, using original');
+      return url;
+    }
   };
 
   // Add watermark to PDF page
