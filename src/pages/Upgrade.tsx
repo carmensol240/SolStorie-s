@@ -41,13 +41,13 @@ const Upgrade = () => {
 
   // Dynamic content based on state
   const title = firstStoryId 
-    ? "🎉 הסיפור הראשון שלכם מוכן!"
+    ? "אהבתם את הקסם?"
     : noCredits 
       ? "✨ בואו נמשיך את הקסם"
       : "✨ רכשו עוד סיפורים";
 
   const subtitle = firstStoryId
-    ? "המשיכו ליצור עוד סיפורים קסומים עם איורים מרהיבים בסגנון עכשווי שהילדים אוהבים!"
+    ? "המשיכו ליצור סיפורים מופלאים עם חבילות הקרדיטים שלנו"
     : noCredits
       ? "אבל אפשר להמשיך ליצור סיפורים מדהימים! בחרו חבילה או שתפו עם חברים והרוויחו חינם."
       : "בחרו חבילה שמתאימה לכם והמשיכו ליצור סיפורים קסומים!";
@@ -486,10 +486,10 @@ const Upgrade = () => {
               רכשו {selectedPkg?.stories} סיפורים ב-₪{selectedPkg?.price} ✨
             </Button>
             <button
-              onClick={() => firstStoryId ? navigate(`/story/${firstStoryId}`) : navigate('/')}
-              className="text-muted-foreground text-[10px] hover:text-foreground transition-colors"
+              onClick={() => navigate('/adventure')}
+              className="text-purple-600 text-sm font-semibold hover:text-purple-800 transition-colors py-1"
             >
-              אולי מאוחר יותר
+              חזרה לדף הבית ←
             </button>
           </div>
         </div>
