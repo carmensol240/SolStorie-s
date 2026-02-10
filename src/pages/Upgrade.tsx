@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
-import { X, FlaskConical } from "lucide-react";
+import { X, FlaskConical, Crown } from "lucide-react";
 
 // Whitelisted test email - hardcoded for security
 const WHITELISTED_TEST_EMAIL = "carmit1901+test@gmail.com";
@@ -12,13 +12,14 @@ import PayPalButton from "@/components/paywall/PayPalButton";
 import CouponInput from "@/components/paywall/CouponInput";
 
 import { useCredits } from "@/hooks/use-credits";
+import { useSubscription } from "@/hooks/use-subscription";
 import { useAnalytics } from "@/hooks/use-analytics";
 import { useAuth } from "@/hooks/use-auth";
 import { supabase } from "@/integrations/supabase/client";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 import elephantImage from "@/assets/elephant-hero.jpeg";
-import { PRICING_PACKAGES } from "@/config/pricing";
+import { PRICING_PACKAGES, TOOLKIT_SUBSCRIPTION } from "@/config/pricing";
 
 const Upgrade = () => {
   const navigate = useNavigate();
@@ -27,11 +28,15 @@ const Upgrade = () => {
   const noCredits = searchParams.get('noCredits') === 'true';
   const { user } = useAuth();
   const { addCredits, refetch: refetchCredits } = useCredits();
+  const { isSubscriber, refetch: refetchSubscription } = useSubscription();
   const { trackEvent } = useAnalytics();
+  const showToolkit = searchParams.get('toolkit') === 'true';
   
   const [selectedPackage, setSelectedPackage] = useState<string>("popular");
   const [showPayPal, setShowPayPal] = useState(false);
+  const [showToolkitPayPal, setShowToolkitPayPal] = useState(false);
   const [showSuccess, setShowSuccess] = useState(false);
+  const [showSubscriptionSuccess, setShowSubscriptionSuccess] = useState(false);
   const [showFailed, setShowFailed] = useState(false);
   const [purchasedCredits, setPurchasedCredits] = useState(0);
   const [discountPercent, setDiscountPercent] = useState(0);
@@ -159,6 +164,46 @@ const Upgrade = () => {
 
   const handleRetry = () => { setShowFailed(false); setShowPayPal(true); };
 
+  const handleToolkitPurchase = () => {
+    if (!user) { navigate("/auth"); return; }
+    setShowToolkitPayPal(true);
+  };
+
+  const handleToolkitPayPalSuccess = async () => {
+    if (!user) return;
+    try {
+      const { error: purchaseError } = await supabase
+        .from('purchases')
+        .insert({
+          user_id: user.id,
+          package_name: TOOLKIT_SUBSCRIPTION.id,
+          credits_purchased: 0,
+          amount_ils: TOOLKIT_SUBSCRIPTION.price,
+          status: 'completed',
+        });
+      if (purchaseError) throw purchaseError;
+      const { error: profileError } = await supabase
+        .from('profiles')
+        .update({ is_subscriber: true })
+        .eq('id', user.id);
+      if (profileError) throw profileError;
+      refetchSubscription();
+      setShowToolkitPayPal(false);
+      setShowSubscriptionSuccess(true);
+      trackEvent({ eventType: 'feature_used', metadata: { feature: 'toolkit_subscription_completed', payment_method: 'paypal' } });
+    } catch (error) {
+      console.error('Toolkit purchase failed:', error);
+      setShowToolkitPayPal(false);
+      setShowFailed(true);
+    }
+  };
+
+  const handleToolkitPayPalError = (error: any) => {
+    console.error('Toolkit PayPal error:', error);
+    setShowToolkitPayPal(false);
+    setShowFailed(true);
+  };
+
   const selectedPkg = PRICING_PACKAGES.find(p => p.id === selectedPackage);
 
   return (
@@ -271,7 +316,67 @@ const Upgrade = () => {
               </button>
             ))}
           </div>
-        
+
+          {/* Toolkit Subscription Card */}
+          {!isSubscriber && (
+            <div
+              className="relative rounded-2xl p-[2px] mb-4 overflow-hidden"
+              style={{
+                background: 'linear-gradient(135deg, hsl(45,90%,60%), hsl(35,95%,50%), hsl(280,60%,60%), hsl(45,90%,60%))',
+                backgroundSize: '300% 300%',
+                animation: 'sparkle-border 4s ease-in-out infinite',
+              }}
+            >
+              <style>{`
+                @keyframes sparkle-border {
+                  0%, 100% { background-position: 0% 50%; }
+                  50% { background-position: 100% 50%; }
+                }
+              `}</style>
+              <div className="bg-[hsl(260,50%,13%)]/95 backdrop-blur-md rounded-[14px] p-4 space-y-3">
+                <div className="flex items-center gap-2">
+                  <Crown className="w-5 h-5 text-amber-300" />
+                  <h3 className="font-black text-sm text-amber-200">{TOOLKIT_SUBSCRIPTION.label}</h3>
+                </div>
+                <p className="text-xs text-white/70 leading-relaxed">
+                  {TOOLKIT_SUBSCRIPTION.description}
+                </p>
+                <div className="flex items-center justify-between">
+                  <span className="text-xl font-black text-white">₪{TOOLKIT_SUBSCRIPTION.price} <span className="text-xs font-bold text-white/60">לשנה</span></span>
+                  <Button
+                    onClick={handleToolkitPurchase}
+                    size="sm"
+                    className="bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white font-bold rounded-xl text-xs px-4"
+                  >
+                    <Crown className="w-3.5 h-3.5 ml-1" />
+                    הירשמו למנוי
+                  </Button>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Toolkit PayPal */}
+          {showToolkitPayPal && (
+            <div className="bg-white/15 backdrop-blur-md rounded-xl border border-amber-400/30 p-4 mb-4 shadow-lg">
+              <p className="text-sm font-bold text-white text-center mb-3">
+                {TOOLKIT_SUBSCRIPTION.label} — ₪{TOOLKIT_SUBSCRIPTION.price} לשנה
+              </p>
+              <PayPalButton
+                amount={TOOLKIT_SUBSCRIPTION.price}
+                onSuccess={handleToolkitPayPalSuccess}
+                onError={handleToolkitPayPalError}
+                onCancel={() => setShowToolkitPayPal(false)}
+              />
+              <button
+                onClick={() => setShowToolkitPayPal(false)}
+                className="w-full text-center text-white/50 text-xs mt-3 hover:text-white/70 transition-colors"
+              >
+                ביטול
+              </button>
+            </div>
+          )}
+
           {/* Coupon */}
           <div className="mb-4">
             <CouponInput 
@@ -362,6 +467,7 @@ const Upgrade = () => {
 
       {/* Modals */}
       <PurchaseSuccessModal open={showSuccess} onOpenChange={setShowSuccess} creditsAdded={purchasedCredits} />
+      <PurchaseSuccessModal open={showSubscriptionSuccess} onOpenChange={setShowSubscriptionSuccess} creditsAdded={0} isSubscription />
       <PurchaseFailedModal open={showFailed} onOpenChange={setShowFailed} onRetry={handleRetry} />
     </div>
   );

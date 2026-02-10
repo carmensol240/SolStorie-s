@@ -1,8 +1,9 @@
 import { useState, useEffect, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
-import { Coins, Users, ChevronLeft, Heart, BookOpen, Star, Notebook, MessageCircle, Target, Sparkles, Save, Lightbulb } from "lucide-react";
+import { Coins, Users, ChevronLeft, Heart, BookOpen, Star, Notebook, MessageCircle, Target, Sparkles, Save, Lightbulb, Lock, Crown } from "lucide-react";
 import { useAuth } from "@/hooks/use-auth";
 import { useCredits } from "@/hooks/use-credits";
+import { useSubscription } from "@/hooks/use-subscription";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
@@ -46,6 +47,7 @@ const Profile = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
   const { credits } = useCredits();
+  const { isSubscriber } = useSubscription();
   const [displayName, setDisplayName] = useState<string | null>(null);
   const [children, setChildren] = useState<ChildProfile[]>([]);
   const [expandedChild, setExpandedChild] = useState<string | null>(null);
@@ -244,18 +246,67 @@ const Profile = () => {
           </div>
         )}
 
-        {/* Carmit's Expert Tip */}
-        <section className="bg-white/[0.07] backdrop-blur-md border border-white/15 rounded-2xl p-4 space-y-2.5">
-          <div className="flex items-center gap-2">
-            <span className="w-7 h-7 bg-gradient-to-r from-amber-400/30 to-orange-400/30 rounded-lg flex items-center justify-center">
-              <Lightbulb className="w-4 h-4 text-amber-300" />
-            </span>
-            <h2 className="font-bold text-sm text-amber-200">הטיפ של כרמית</h2>
+        {/* Carmit's Premium Toolkit */}
+        <section
+          className="relative rounded-2xl p-[2px] overflow-hidden"
+          style={{
+            background: isSubscriber
+              ? 'linear-gradient(135deg, hsl(45,90%,60%), hsl(35,95%,50%), hsl(280,60%,60%), hsl(45,90%,60%))'
+              : 'linear-gradient(135deg, hsl(45,50%,40%), hsl(280,30%,40%))',
+            backgroundSize: '300% 300%',
+            animation: isSubscriber ? 'sparkle-border 4s ease-in-out infinite' : 'none',
+          }}
+        >
+          <style>{`
+            @keyframes sparkle-border {
+              0%, 100% { background-position: 0% 50%; }
+              50% { background-position: 100% 50%; }
+            }
+          `}</style>
+          <div className="bg-[hsl(260,50%,13%)]/95 backdrop-blur-md rounded-[14px] p-4 space-y-2.5">
+            <div className="flex items-center gap-2">
+              <span className="w-7 h-7 bg-gradient-to-r from-amber-400/30 to-orange-400/30 rounded-lg flex items-center justify-center">
+                {isSubscriber ? (
+                  <Crown className="w-4 h-4 text-amber-300" />
+                ) : (
+                  <Lock className="w-4 h-4 text-amber-300/60" />
+                )}
+              </span>
+              <h2 className="font-bold text-sm text-amber-200">
+                ערכת הכלים של כרמית: NLP וחינוך מקרב
+              </h2>
+              <Sparkles className="w-3.5 h-3.5 text-amber-300/70 mr-auto" />
+            </div>
+
+            {isSubscriber ? (
+              <>
+                <p className="text-sm text-white/80 leading-relaxed transition-opacity duration-500" key={tipIndex}>
+                  &ldquo;{CARMIT_TIPS[tipIndex]}&rdquo;
+                </p>
+                <p className="text-[10px] text-amber-300/50 text-left">— כרמית כהן, מייסדת StoryTime</p>
+              </>
+            ) : (
+              <>
+                <p className="text-sm text-white/40 leading-relaxed blur-[2px] select-none">
+                  &ldquo;{CARMIT_TIPS[0]}&rdquo;
+                </p>
+                <div className="flex flex-col items-center gap-2 pt-1">
+                  <p className="text-xs text-white/60 text-center">
+                    גלו כלים מעולם ה-NLP שיעזרו לכם להפוך כל סיפור לרגע של חיבור עמוק
+                  </p>
+                  <Button
+                    onClick={() => navigate("/upgrade?toolkit=true")}
+                    size="sm"
+                    className="bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white font-bold rounded-xl text-xs px-4"
+                  >
+                    <Crown className="w-3.5 h-3.5 ml-1" />
+                    פתחו את המדריך השנתי המלא ב-19.90 ש״ח
+                  </Button>
+                </div>
+                <p className="text-[10px] text-amber-300/40 text-left">— כרמית כהן, מייסדת StoryTime</p>
+              </>
+            )}
           </div>
-          <p className="text-sm text-white/80 leading-relaxed transition-opacity duration-500" key={tipIndex}>
-            &ldquo;{CARMIT_TIPS[tipIndex]}&rdquo;
-          </p>
-          <p className="text-[10px] text-amber-300/50 text-left">— כרמית כהן, מייסדת StoryTime</p>
         </section>
 
         {/* Section A: The Child's World */}
