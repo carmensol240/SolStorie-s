@@ -40,6 +40,7 @@ const LoggedInHome = ({ user, displayName }: LoggedInHomeProps) => {
   }, [user?.id]);
 
   const totalCredits = (credits ?? 0) + shareCoins;
+  const showWelcomeBanner = credits === 1 && storyCount === 0;
 
   return (
     <div className="flex-1 flex flex-col animate-fade-in relative -mx-4 -my-3">
