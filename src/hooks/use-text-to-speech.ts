@@ -105,28 +105,48 @@ export const useTextToSpeech = (): UseTextToSpeechReturn => {
       blobUrlRef.current = audioUrl;
 
       const audio = new Audio();
+      audio.preload = 'auto';
       audioRef.current = audio;
 
       // Attach all handlers BEFORE setting src
       audio.onended = () => {
         console.log('Audio playback finished successfully');
-        cleanup();
+        setIsReading(false);
+        // Revoke blob URL only AFTER playback completes
+        if (blobUrlRef.current) {
+          URL.revokeObjectURL(blobUrlRef.current);
+          blobUrlRef.current = null;
+        }
+        audioRef.current = null;
       };
       
       audio.onerror = () => {
         const code = audio.error?.code;
         const msg = audio.error?.message;
-        console.error('Audio playback error:', { code, msg, blobSize: audioBlob.size, blobType: audioBlob.type });
-        cleanup();
+        console.error('Audio playback error:', { code, msg, blobSize: audioBlob.size, blobType: audioBlob.type, src: audio.src?.substring(0, 50) });
+        setIsReading(false);
+        setIsLoading(false);
+        // Revoke blob URL only on error
+        if (blobUrlRef.current) {
+          URL.revokeObjectURL(blobUrlRef.current);
+          blobUrlRef.current = null;
+        }
+        audioRef.current = null;
         toast({
           title: 'שגיאה בניגון השמע',
-          description: `קוד שגיאה: ${code ?? 'unknown'}`,
+          description: `קוד שגיאה: ${code ?? 'unknown'} - ${msg ?? ''}`,
           variant: 'destructive',
         });
       };
 
-      // Use canplaythrough to ensure enough data is buffered before playing
+      // Set src and explicitly call load() to trigger buffering
+      audio.src = audioUrl;
+      audio.load();
+
+      // Wait for enough data to be buffered, then play
       audio.oncanplaythrough = async () => {
+        // Guard: only play once
+        audio.oncanplaythrough = null;
         try {
           setIsLoading(false);
           setIsReading(true);
@@ -142,9 +162,6 @@ export const useTextToSpeech = (): UseTextToSpeechReturn => {
           });
         }
       };
-
-      // Set src last to trigger loading
-      audio.src = audioUrl;
     } catch (error) {
       console.error('TTS error:', error);
       setIsLoading(false);
