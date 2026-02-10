@@ -389,18 +389,28 @@ const GeneratingStep = ({ formData, onComplete }: GeneratingStepProps) => {
           className={`bg-white rounded-xl p-4 shadow-lg border border-purple-100 transition-opacity duration-500 ${
             isSentenceVisible ? "opacity-100" : "opacity-0"
           }`}
+          dir="rtl"
         >
-          {/* Parent name */}
-          <p className="text-sm font-bold text-purple-800 mb-2">
-            {currentTestimonial.name}
-          </p>
-          {/* Quote */}
-          <p className="text-sm text-purple-600 italic leading-relaxed mb-2">
-            "{currentTestimonial.quote}"
-          </p>
-          {/* 5 Golden Stars */}
-          <div className="flex justify-center gap-0.5">
-            {renderStars(currentTestimonial.rating)}
+          <div className="flex items-start gap-3">
+            {/* Avatar */}
+            <img
+              src={currentTestimonial.avatar}
+              alt={currentTestimonial.name}
+              className="w-10 h-10 rounded-full object-cover border-2 border-amber-200 shrink-0"
+            />
+            <div className="flex-1 space-y-1">
+              <div className="flex items-center justify-between">
+                <span className="text-sm font-bold text-purple-800">{currentTestimonial.name}</span>
+                <div className="flex gap-0.5">
+                  {[1,2,3,4,5].map((s) => (
+                    <Star key={s} className={`w-3.5 h-3.5 ${s <= currentTestimonial.rating ? 'fill-amber-400 text-amber-400' : 'text-muted-foreground/30'}`} />
+                  ))}
+                </div>
+              </div>
+              <p className="text-sm text-purple-600 leading-relaxed">
+                "{currentTestimonial.quote}"
+              </p>
+            </div>
           </div>
         </div>
       </div>
