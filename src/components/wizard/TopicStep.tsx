@@ -327,6 +327,7 @@ const ADVENTURE_CATEGORIES: AdventureCategory[] = [
       },
     ]
   },
+];
 
 // Flatten all topics for lookup
 const ALL_TOPICS = ADVENTURE_CATEGORIES.flatMap(cat => cat.topics);
