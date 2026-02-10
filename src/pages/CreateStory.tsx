@@ -146,7 +146,7 @@ const CreateStory = () => {
   const displayStep = step;
 
   return (
-    <div className="min-h-[100dvh] flex flex-col bg-background overflow-y-auto" style={{ WebkitOverflowScrolling: 'touch' }}>
+    <div className="flex flex-col bg-background" style={{ minHeight: '100dvh', height: 'auto', WebkitOverflowScrolling: 'touch' }}>
       <header className="sticky top-0 z-20 bg-gradient-to-r from-[#FAF3E8] to-[#F5E6D3] px-3 py-2 border-b border-purple-200 shadow-sm">
         <div className="container max-w-lg mx-auto flex items-center justify-between">
           <Button
@@ -198,8 +198,8 @@ const CreateStory = () => {
         </div>
       </header>
 
-      <main className="flex-1 overflow-y-auto overscroll-contain" style={{ WebkitOverflowScrolling: 'touch' }}>
-        <div className="container max-w-lg mx-auto px-3 py-3 pb-40">
+      <main className="flex-1" style={{ WebkitOverflowScrolling: 'touch' }}>
+        <div className="container max-w-lg mx-auto px-3 py-3" style={{ paddingBottom: '120px' }}>
           {step === 1 && (
             <ChildInfoStep formData={formData} updateFormData={updateFormData} />
           )}

@@ -450,28 +450,24 @@ const ChildInfoStep = ({ formData, updateFormData }: ChildInfoStepProps) => {
           <button
             onClick={() => updateFormData({ storyLength: "short" })}
             className={cn(
-              "p-1.5 rounded-lg border-2 transition-all text-center flex flex-col items-center justify-center gap-0.5",
+              "p-1.5 rounded-lg border-2 transition-all text-center",
               formData.storyLength === "short"
-                ? "border-purple-500 bg-gradient-to-r from-purple-100 to-pink-100"
+                ? "border-purple-500 bg-gradient-to-r from-purple-600 via-pink-500 to-orange-400 text-white font-bold"
                 : "border-border bg-card hover:border-purple-300"
             )}
           >
-            <span className="text-base">📖</span>
-            <span className="text-xs font-bold">קצר</span>
-            <span className="text-[10px] text-muted-foreground">4-5 עמודים</span>
+            <span className="text-sm font-bold">קצר · 4-5 עמ׳</span>
           </button>
           <button
             onClick={() => updateFormData({ storyLength: "long" })}
             className={cn(
-              "p-1.5 rounded-lg border-2 transition-all text-center flex flex-col items-center justify-center gap-0.5",
+              "p-1.5 rounded-lg border-2 transition-all text-center",
               formData.storyLength === "long"
-                ? "border-purple-500 bg-gradient-to-r from-purple-100 to-pink-100"
+                ? "border-purple-500 bg-gradient-to-r from-purple-600 via-pink-500 to-orange-400 text-white font-bold"
                 : "border-border bg-card hover:border-purple-300"
             )}
           >
-            <span className="text-base">📚</span>
-            <span className="text-xs font-bold">ארוך</span>
-            <span className="text-[10px] text-muted-foreground">6-8 עמודים</span>
+            <span className="text-sm font-bold">ארוך · 6-8 עמ׳</span>
           </button>
         </div>
       </div>
