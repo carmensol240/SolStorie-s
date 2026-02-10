@@ -87,10 +87,15 @@ const Profile = () => {
       if (!user) return;
       const { data } = await supabase
         .from("children")
-        .select("id, name, age, gender, hobbies, challenges, favorite_friends")
+        .select("id, name, age, gender, hobbies, challenges, favorite_friends, photo_url")
         .eq("user_id", user.id)
         .order("created_at", { ascending: false });
-      setChildren((data as ChildProfile[]) ?? []);
+      const childrenData = (data as (ChildProfile & { photo_url?: string })[]) ?? [];
+      setChildren(childrenData);
+      // Set the first child's photo
+      if (childrenData.length > 0 && childrenData[0].photo_url) {
+        setChildPhotoUrl(childrenData[0].photo_url);
+      }
     };
     fetchChildren();
   }, [user]);
