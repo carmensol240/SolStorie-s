@@ -267,6 +267,12 @@ export const usePdfExport = () => {
   };
 
   const exportLandscapeBook = async (story: Story) => {
+    // Pre-fetch signed URLs for all illustrations
+    const illustrationUrls = story.pages
+      .map(p => p.illustration_url)
+      .filter((url): url is string => !!url);
+    const signedUrlMap = await fetchSignedUrls(illustrationUrls, story.id);
+
     const pdf = new jsPDF({
       orientation: 'landscape',
       unit: 'mm',
