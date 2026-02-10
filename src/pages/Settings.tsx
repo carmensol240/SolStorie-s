@@ -58,9 +58,6 @@ const Settings = () => {
 
   return (
     <div className="min-h-[100dvh] flex flex-col bg-gradient-to-b from-purple-50/50 to-background pb-20 overflow-y-auto" style={{ WebkitOverflowScrolling: 'touch' }}>
-      {/* Hero Section with Background Image */}
-      <div 
-        className="relative h-32 flex-shrink-0 bg-cover bg-center"
       {/* Simple header */}
       <div className="bg-gradient-to-r from-purple-100 to-pink-50 px-4 py-4 border-b border-purple-100">
         <h1 className="text-lg font-bold text-purple-800">הגדרות</h1>
