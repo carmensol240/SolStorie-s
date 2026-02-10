@@ -243,7 +243,7 @@ const Profile = () => {
                 return (
                   <div
                     key={child.id}
-                    className="bg-white/10 backdrop-blur-md border border-white/15 rounded-2xl overflow-hidden transition-all"
+                    className="bg-white/[0.06] backdrop-blur-md border border-white/10 rounded-2xl overflow-hidden transition-all"
                   >
                     {/* Child header */}
                     <button
