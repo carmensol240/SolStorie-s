@@ -149,15 +149,6 @@ const ADVENTURE_CATEGORIES: AdventureCategory[] = [
       { id: "underwater-journey", label: "מסע במצולות הים", image: topicUnderwater, description: "הרפתקה קסומה מתחת למים", logic: { outfit: "magical diving suit with glowing accents", background: "vibrant underwater world with coral reefs, bioluminescent jellyfish, friendly sea turtle, bubbles and sparkles, sunlight filtering through water", theme: "underwater exploration, ocean discovery, sensory wonder, marine life, imagination, courage, nature beauty" } },
     ]
   },
-  {
-    id: "my-special-family",
-    title: "המשפחה המיוחדת שלי",
-    emoji: "👨‍👩‍👧",
-    subtitle: "חוגגים את כל סוגי המשפחות ואת האהבה שעוטפת אותנו.",
-    topics: [
-      { id: "my-special-family", label: "המשפחה המיוחדת שלי", image: topicMySpecialFamily, description: "חוגגים את כל סוגי המשפחות", logic: { outfit: "comfortable cozy home clothes", background: "warm loving living room with family photos on the wall showing diverse families, soft golden light, floating hearts and sparkles, cozy couch with blankets", theme: "celebrating all family types, single-parent families, same-sex parents, grandparent-led families, blended families, adoptive families, unconditional love, feeling safe, belonging, every family is special, the love that surrounds us is what makes a family, NLP reframe: family is defined by love not by structure" } },
-    ]
-  },
 ];
 
 const ALL_TOPICS = ADVENTURE_CATEGORIES.flatMap(cat => cat.topics);
