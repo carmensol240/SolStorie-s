@@ -206,21 +206,15 @@ const SYSTEM_PROMPT = `## 🧠 מערכת סיפורי ילדים טיפוליי
 ## 🎵 טון כללי
 אמפתי, רגוע, תומך ומעצים. שפה שבונה ביטחון עצמי וחשיבה צמיחתית.
 
-## 🔤 ניקוד ובדיקת "נקדן AI" - קריטי!
-- אם ניקוד = ON: הוסף ניקוד מלא ונכון לכל מילה
-- אם ניקוד = OFF: עברית נקייה ללא ניקוד
-
-### 🛡️ בדיקת נקדן (Nakdan Verification) - חובה לפני סיום!
-**לפני שאתה מחזיר את הסיפור, בצע בדיקה פנימית לכל מילה:**
-1. **האם המילה קיימת בעברית מודרנית?** אם לא - החלף אותה במילה פשוטה וקיימת.
-2. **האם הניקוד תקני?** השתמש רק בתבניות ניקוד תקניות של עברית מודרנית. אסור להמציא ניקוד.
-3. **האם המילה מתאימה לגיל 4?** אם לא - החלף בפועל פשוט יותר.
-4. **העדף פעלים פשוטים:** במקום "עיניים מוּפְנוֹת למסך" כתוב "סוֹל מִסְתַּכֶּלֶת עַל הַמָּסָךְ".
-5. **אסור להמציא מילים!** דוגמאות למילים שאסור להשתמש בהן:
-   - ❌ "מְהֻפְנֹת" (לא קיימת!) → ✅ "מוּפְנוֹת" או "מִסְתַּכְּלוֹת"
-   - ❌ "מִתְעַנְּגֶת" (מורכב מדי לגיל 4) → ✅ "נֶהֱנֵית"
-   - ❌ "מְהַרְהֶרֶת" (מורכב) → ✅ "חוֹשֶׁבֶת"
-6. **כלל זהב:** אם אתה לא בטוח ב-100% שהמילה קיימת ושהניקוד נכון - השתמש במילה פשוטה יותר שאתה בטוח לגביה.
+## 🔤 ניקוד - הנחיה חשובה!
+- **אל תוסיף ניקוד לטקסט!** כתוב עברית נקייה ללא ניקוד כלל.
+- הניקוד יתווסף בשלב נפרד על ידי מומחה ניקוד ייעודי.
+- התמקד בכתיבת מילים נכונות, פשוטות ומודרניות בלבד.
+- **אסור להמציא מילים!** דוגמאות:
+   - ❌ "מהופנות" (לא קיימת!) → ✅ "מופנות" או "מסתכלות"
+   - ❌ "מתענגת" (מורכב מדי לגיל 4) → ✅ "נהנית"
+   - ❌ "מהרהרת" (מורכב) → ✅ "חושבת"
+- **כלל זהב:** אם לא בטוח ב-100% שהמילה קיימת - השתמש באלטרנטיבה פשוטה.
 
 ## ✅ פורמט פלט (חובה)
 
@@ -535,6 +529,122 @@ async function uploadImageToStorage(
     console.error("Error in uploadImageToStorage:", error);
     return null;
   }
+}
+
+// === DOUBLE-PASS NIQQUD PIPELINE ===
+// Pass 2: Specialized Hebrew Grammarian agent for vocalization
+const NIKUD_GRAMMARIAN_PROMPT = `אתה מומחה ניקוד עברי (נקדן מקצועי). התפקיד שלך הוא להוסיף ניקוד מלא, מדויק ותקני לטקסט בעברית מודרנית.
+
+## כללים מחייבים:
+
+### 1. ניקוד תקני בלבד
+- השתמש רק בתבניות ניקוד סטנדרטיות של עברית מודרנית.
+- אסור בהחלט להמציא ניקוד או תבניות שלא קיימות.
+
+### 2. קמץ קטן (O-sound)
+- "כָּל" מנוקד עם קמץ קטן (נשמע כ-"כֹּל").
+- "בְּכָל" מנוקד עם קמץ קטן.
+- "כָּל-כָּך" עם קמץ קטן בשני המקרים.
+
+### 3. איסור מוחלט על המצאת מילים
+- אם מילה לא קיימת בעברית מודרנית - החלף אותה במילה פשוטה וקיימת.
+- דוגמאות:
+  - ❌ "מְהֻפְנֹת" → ✅ "מוּפְנוֹת" או "מִסְתַּכְּלוֹת"
+  - ❌ "מִתְעַנְּגֶת" → ✅ "נֶהֱנֵית"
+  - ❌ "מְהַרְהֶרֶת" → ✅ "חוֹשֶׁבֶת"
+
+### 4. ניקוד מלא
+- פתח, קמץ, צירי, סגול, חולם, שורוק, קובוץ, חיריק, שווא
+- דגש כשצריך (דגש קל ודגש חזק)
+- מפיק ה"א בסוף מילה כשצריך
+
+### 5. שמירה על המקור
+- שמור על כל המילים והמשפטים המקוריים
+- אל תשנה סימני פיסוק או רווחים
+- אל תוסיף או תמחק מילים (אלא אם מילה שגויה - החלף בנכונה)
+
+### 6. העדפה למילים פשוטות
+- אם מילה מורכבת ואתה לא בטוח ב-100% בניקוד שלה - החלף במילה פשוטה שהניקוד שלה ודאי.
+- דוגמה: במקום "עֵינַיִם מוּפְנוֹת" → "מִסְתַּכֶּלֶת עַל"
+
+### 7. בדיקת שגיאות נפוצות של AI
+לפני שאתה מחזיר, סרוק את הטקסט ובדוק:
+- שאין מילים עם ניקוד כפול או סותר
+- שכל שורוק (וּ) וחולם (וֹ) במקום הנכון
+- שהדגש לא חסר בבג"ד כפ"ת אחרי תנועה
+- שהשווא נע ושווא נח מנוקדים נכון
+
+### פורמט:
+החזר רק את הטקסט המנוקד, ללא הסברים או תוספות.`;
+
+// Function to add nikud to a single page text using the Grammarian agent
+async function addNikudToText(text: string, apiKey: string): Promise<string> {
+  try {
+    const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${apiKey}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        model: "google/gemini-2.5-flash",
+        messages: [
+          { role: "system", content: NIKUD_GRAMMARIAN_PROMPT },
+          { role: "user", content: `הוסף ניקוד מלא ומדויק לטקסט הבא:\n\n${text}` },
+        ],
+      }),
+    });
+
+    if (!response.ok) {
+      console.error("Nikud grammarian failed:", response.status);
+      return text; // Fallback to original text without nikud
+    }
+
+    const data = await response.json();
+    const nikudText = data.choices?.[0]?.message?.content?.trim();
+
+    if (!nikudText) {
+      console.error("No nikud text returned from grammarian");
+      return text;
+    }
+
+    // === REVIEW STEP: Validate nikud quality ===
+    // Check for common AI nikud mistakes
+    const validated = validateNikud(nikudText, text);
+    return validated;
+  } catch (error) {
+    console.error("Error in nikud grammarian:", error);
+    return text; // Fallback to original
+  }
+}
+
+// Review step: validate nikud output for common AI mistakes
+function validateNikud(nikudText: string, originalText: string): string {
+  // 1. Check that nikud text is not drastically different in word count
+  const originalWords = originalText.replace(/[\u0591-\u05C7]/g, "").split(/\s+/).filter(w => w.length > 0);
+  const nikudWords = nikudText.replace(/[\u0591-\u05C7]/g, "").split(/\s+/).filter(w => w.length > 0);
+  
+  // If word count differs by more than 20%, something went wrong - return original
+  if (Math.abs(originalWords.length - nikudWords.length) > originalWords.length * 0.2) {
+    console.warn(`Nikud validation failed: word count mismatch (original: ${originalWords.length}, nikud: ${nikudWords.length})`);
+    return originalText;
+  }
+
+  // 2. Check for double-nikud on single characters (common AI mistake)
+  const doubleNikudPattern = /[\u0591-\u05C7]{3,}/;
+  if (doubleNikudPattern.test(nikudText)) {
+    console.warn("Nikud validation: found excessive nikud stacking, cleaning up...");
+    nikudText = nikudText.replace(/([\u0591-\u05C7]){3,}/g, "$1");
+  }
+
+  // 3. Verify the text still contains Hebrew characters
+  const hebrewCharCount = (nikudText.match(/[\u05D0-\u05EA]/g) || []).length;
+  if (hebrewCharCount < 5) {
+    console.warn("Nikud validation: too few Hebrew characters in result");
+    return originalText;
+  }
+
+  return nikudText;
 }
 
 serve(async (req) => {
@@ -868,7 +978,7 @@ ${contentFraming}
 **נושא הסיפור:** ${topic}
 ${hasCustomDescription ? `**תיאור חופשי:** ${personalityTraits}` : ""}
 
-**ניקוד:** ${nikud ? "כן - הוסף ניקוד מלא ונכון לכל המילים" : "לא - ללא ניקוד"}
+**ניקוד:** לא - כתוב עברית נקייה ללא ניקוד (הניקוד יתווסף בשלב נפרד)
 
 ## דקדוק מגדרי - קריטי!
 המגדר הוא: ${childGender === "female" ? "נקבה" : "זכר"}
@@ -906,10 +1016,9 @@ ${adventureLogic ? `
 - במקום "הביטה" → "הסתכלה"
 - הסבר מילים מורכבות בזרימה טבעית, ללא סוגריים!
 
-## 🛡️ בדיקת נקדן AI - חובה לפני סיום!
-**לפני שאתה מחזיר את הסיפור, בדוק כל מילה:**
-- האם כל מילה קיימת בעברית מודרנית? אם לא - החלף בפשוטה יותר.
-- האם הניקוד תקני ונכון? אל תמציא תבניות ניקוד.
+## 🛡️ שפה נקייה - חובה!
+**כתוב עברית נקייה ללא ניקוד!** הניקוד יתווסף אוטומטית בשלב נפרד.
+- וודא שכל מילה קיימת בעברית מודרנית.
 - העדף פעלים פשוטים: "מסתכלת" במקום "מופנות", "חושבת" במקום "מהרהרת".
 - כלל: אם לא בטוח ב-100% שהמילה קיימת - השתמש באלטרנטיבה פשוטה.`;
 
@@ -987,6 +1096,29 @@ ${adventureLogic ? `
       console.error("Failed to parse AI response:", content);
       console.error("Parse error:", e);
       throw new Error("Invalid JSON response from AI");
+    }
+
+    // === PASS 2: DOUBLE-PASS NIQQUD PIPELINE ===
+    // If nikud is requested, send each page text to the Hebrew Grammarian agent
+    if (nikud) {
+      console.log("Starting Pass 2: Hebrew Grammarian nikud pipeline...");
+      
+      // Process all pages in parallel for speed
+      const nikudPromises = storyData.pages.map(async (page: any, index: number) => {
+        console.log(`Adding nikud to page ${index + 1}...`);
+        const nikudText = await addNikudToText(page.text, LOVABLE_API_KEY);
+        return { ...page, text: nikudText };
+      });
+
+      try {
+        storyData.pages = await Promise.all(nikudPromises);
+        console.log("Pass 2 complete: nikud added to all pages successfully");
+      } catch (nikudError) {
+        console.error("Nikud pipeline error (using original text):", nikudError);
+        // Pages remain with original text if nikud fails
+      }
+    } else {
+      console.log("Nikud not requested, skipping Pass 2");
     }
 
     // Use existing supabase client for database operations
