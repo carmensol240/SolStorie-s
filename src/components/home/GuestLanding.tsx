@@ -118,19 +118,19 @@ const GuestLanding = ({ user, isLoggedIn }: GuestLandingProps) => {
       {/* Content Container - with minimal bottom padding */}
       <div className="relative z-10 flex-1 flex flex-col px-3 pb-16">
         {/* Logo - 3D Bubble Style */}
-        <h1 className="text-5xl sm:text-6xl font-black text-center tracking-tight logo-3d-bubble mb-1 drop-shadow-2xl pt-2">
+        <h1 className="text-6xl sm:text-7xl font-black text-center tracking-tight logo-3d-bubble mb-1 drop-shadow-2xl pt-2">
           <span className="logo-story">Story</span>
           <span className="logo-time"> Time</span>
         </h1>
 
         {/* Title Section - Compact & Centered */}
         <div className="text-center mb-2 px-2">
-          <h2 className="text-xl font-black text-purple-700 flex items-center justify-center gap-2 mb-0.5" style={{ textShadow: '1px 1px 2px rgba(255,255,255,0.8)' }}>
-            <Sparkles className="w-5 h-5 text-purple-600" aria-hidden="true" />
+          <h2 className="text-2xl sm:text-3xl font-black text-purple-700 flex items-center justify-center gap-2 mb-1" style={{ textShadow: '1px 1px 3px rgba(255,255,255,0.9)' }}>
+            <Sparkles className="w-6 h-6 text-purple-600" aria-hidden="true" />
             סיפורים קסומים
-            <Sparkles className="w-5 h-5 text-purple-600" aria-hidden="true" />
+            <Sparkles className="w-6 h-6 text-purple-600" aria-hidden="true" />
           </h2>
-          <p className="text-base text-pink-600 font-black text-center" style={{ textShadow: '1px 1px 2px rgba(255,255,255,0.6)' }}>הילד שלכם כגיבור הסיפור!</p>
+          <p className="text-lg text-pink-600 font-black text-center" style={{ textShadow: '1px 1px 3px rgba(255,255,255,0.8)' }}>הילד שלכם כגיבור הסיפור!</p>
         </div>
 
         {/* Spacer to push content to bottom */}
