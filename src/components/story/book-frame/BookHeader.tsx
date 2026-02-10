@@ -37,15 +37,10 @@ interface BookHeaderProps {
   onReport?: () => void;
   onAddNikud?: () => void;
   onDraw?: () => void;
-  onReadAloud?: () => void;
-  onStopReading?: () => void;
   fontSizeLabel: string;
   isExporting?: boolean;
   isAddingNikud?: boolean;
   showPageActions?: boolean;
-  showReadAloud?: boolean;
-  isReading?: boolean;
-  isLoadingAudio?: boolean;
   hasAudioError?: boolean;
 }
 
