@@ -6,12 +6,16 @@ interface UseTextToSpeechReturn {
   stopReading: () => void;
   isReading: boolean;
   isLoading: boolean;
+  lastError: string | null;
+  retry: () => void;
 }
 
 export const useTextToSpeech = (): UseTextToSpeechReturn => {
   const [isReading, setIsReading] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const [lastError, setLastError] = useState<string | null>(null);
   const audioRef = useRef<HTMLAudioElement | null>(null);
+  const lastTextRef = useRef<string>('');
   const { toast } = useToast();
 
   const cleanup = useCallback(() => {
@@ -24,21 +28,17 @@ export const useTextToSpeech = (): UseTextToSpeechReturn => {
   }, []);
 
   const startReading = useCallback(async (text: string) => {
-    // Defensive: ensure text is a string
     if (!text || typeof text !== 'string' || text.trim().length === 0) {
-      toast({
-        title: 'אין טקסט להקריא',
-        variant: 'destructive',
-      });
+      toast({ title: 'אין טקסט להקריא', variant: 'destructive' });
       return;
     }
 
+    lastTextRef.current = text;
+    setLastError(null);
     cleanup();
     setIsLoading(true);
 
     try {
-      // CRITICAL FIX: Use fetch() with .blob() instead of supabase.functions.invoke()
-      // supabase.functions.invoke defaults to JSON parsing which corrupts binary audio data
       const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
       const supabaseKey = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY;
 
@@ -62,48 +62,43 @@ export const useTextToSpeech = (): UseTextToSpeechReturn => {
       }
 
       const contentType = response.headers.get('Content-Type') || '';
-      
-      // If we got JSON back, it's an error response
       if (contentType.includes('application/json')) {
         const errorData = await response.json();
         throw new Error(errorData.error || 'TTS returned error');
       }
 
-      // Use arrayBuffer to avoid any blob corruption from fetch layer
       const arrayBuffer = await response.arrayBuffer();
-      
+
       if (arrayBuffer.byteLength === 0) {
         throw new Error('Empty audio response');
       }
-
       if (arrayBuffer.byteLength < 1024) {
         const errorText = new TextDecoder().decode(arrayBuffer);
         console.error('TTS response too small, likely error:', errorText);
         throw new Error('תגובת השמע קטנה מדי - ייתכן שהשירות לא זמין');
       }
 
-      // Convert to base64 data URI to avoid blob: URL tracking prevention issues
+      // Convert to base64 data URI to bypass blob: tracking prevention
       const uint8Array = new Uint8Array(arrayBuffer);
       let binary = '';
       for (let i = 0; i < uint8Array.length; i++) {
         binary += String.fromCharCode(uint8Array[i]);
       }
-      const base64 = btoa(binary);
-      const dataUri = `data:audio/mpeg;base64,${base64}`;
+      const dataUri = `data:audio/mpeg;base64,${btoa(binary)}`;
 
-      console.log('TTS audio: dataUri length', dataUri.length);
+      console.log('TTS audio ready, dataUri length:', dataUri.length);
 
       const audio = new Audio();
+      audio.crossOrigin = 'anonymous';
       audio.preload = 'auto';
       audioRef.current = audio;
 
-      // Attach all handlers BEFORE setting src
       audio.onended = () => {
-        console.log('Audio playback finished successfully');
+        console.log('Audio playback finished');
         setIsReading(false);
         audioRef.current = null;
       };
-      
+
       audio.onerror = () => {
         const code = audio.error?.code;
         const msg = audio.error?.message;
@@ -111,18 +106,18 @@ export const useTextToSpeech = (): UseTextToSpeechReturn => {
         setIsReading(false);
         setIsLoading(false);
         audioRef.current = null;
+        const errorMsg = `שגיאת שמע (${code ?? '?'})`;
+        setLastError(errorMsg);
         toast({
-          title: 'שגיאה בניגון השמע',
-          description: `קוד שגיאה: ${code ?? 'unknown'} - ${msg ?? ''}`,
+          title: 'לא הצלחנו לנגן את השמע',
+          description: 'לחצו על כפתור ההקראה שוב לניסיון חוזר',
           variant: 'destructive',
         });
       };
 
-      // Use data URI instead of blob URL to bypass tracking prevention
       audio.src = dataUri;
       audio.load();
 
-      // Wait for enough data to be buffered, then play
       audio.oncanplaythrough = async () => {
         audio.oncanplaythrough = null;
         try {
@@ -133,9 +128,10 @@ export const useTextToSpeech = (): UseTextToSpeechReturn => {
         } catch (playError) {
           console.error('Play() failed:', playError);
           cleanup();
+          setLastError('הדפדפן חסם את ניגון השמע');
           toast({
-            title: 'שגיאה בניגון השמע',
-            description: 'הדפדפן חסם את ניגון השמע',
+            title: 'הדפדפן חסם את ניגון השמע',
+            description: 'נסו ללחוץ שוב על כפתור ההקראה',
             variant: 'destructive',
           });
         }
@@ -144,15 +140,23 @@ export const useTextToSpeech = (): UseTextToSpeechReturn => {
       console.error('TTS error:', error);
       setIsLoading(false);
       cleanup();
+      const msg = error instanceof Error ? error.message : 'נסו שוב מאוחר יותר';
+      setLastError(msg);
       toast({
         title: 'שגיאה בהקראה',
-        description: error instanceof Error ? error.message : 'נסו שוב מאוחר יותר',
+        description: msg,
         variant: 'destructive',
       });
     }
   }, [cleanup, toast]);
 
+  const retry = useCallback(() => {
+    if (lastTextRef.current) {
+      startReading(lastTextRef.current);
+    }
+  }, [startReading]);
+
   const stopReading = useCallback(() => cleanup(), [cleanup]);
 
-  return { startReading, stopReading, isReading, isLoading };
+  return { startReading, stopReading, isReading, isLoading, lastError, retry };
 };
