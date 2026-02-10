@@ -649,15 +649,16 @@ const StoryViewer = () => {
             transition: swipeOffset === 0 ? 'transform 0.3s ease-out' : 'none'
           }}
         >
+          {/* Navigation Arrows - Outside BookFrame so they aren't clipped */}
+          <NavigationArrows
+            onPrev={() => handlePageChange('prev')}
+            onNext={() => handlePageChange('next')}
+            canGoPrev={currentPage > -1}
+            canGoNext={story !== null && currentPage < story.pages.length}
+            isFlipping={isFlipping}
+          />
+          
           <BookFrame isFlipping={isFlipping} flipDirection={flipDirection}>
-            {/* Navigation Arrows on Book Frame */}
-            <NavigationArrows
-              onPrev={() => handlePageChange('prev')}
-              onNext={() => handlePageChange('next')}
-              canGoPrev={currentPage > -1}
-              canGoNext={story !== null && currentPage < story.pages.length}
-              isFlipping={isFlipping}
-            />
             
             {isCoverPage ? (
               /* Cover Page - RTL: Illustration on RIGHT, Title on LEFT */
