@@ -246,15 +246,8 @@ const CategoryCarousel = ({
           <p className="text-[10px] text-muted-foreground mt-0.5 pr-7">{category.subtitle}</p>
         )}
       </div>
-        <div className="flex items-center gap-0.5">
-          <Button variant="ghost" size="icon" className="h-7 w-7 rounded-full" onClick={() => scroll('right')} aria-label="הקודם">
-            <ChevronRight className="h-3.5 w-3.5" />
-          </Button>
-          <Button variant="ghost" size="icon" className="h-7 w-7 rounded-full" onClick={() => scroll('left')} aria-label="הבא">
-            <ChevronLeft className="h-3.5 w-3.5" />
-          </Button>
-        </div>
-      </div>
+
+
 
       {/* Carousel */}
       <div
