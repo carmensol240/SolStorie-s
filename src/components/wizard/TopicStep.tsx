@@ -31,6 +31,11 @@ import topicApologize from "@/assets/topic-apologize.jpg";
 import topicRainParty from "@/assets/topic-rain-party.jpg";
 import topicWeAreSpecial from "@/assets/topic-we-are-special.jpg";
 import topicPottyTraining from "@/assets/topic-potty-training.jpeg";
+import topicIndependence from "@/assets/topic-independence.jpg";
+import topicAngerCloud from "@/assets/topic-anger-cloud.jpg";
+import topicBodySafety from "@/assets/topic-body-safety.jpg";
+import topicNewHouse from "@/assets/topic-new-house.jpg";
+import topicUnderwater from "@/assets/topic-underwater.jpg";
 
 interface TopicStepProps {
   formData: StoryFormData;
@@ -152,6 +157,17 @@ const ADVENTURE_CATEGORIES: AdventureCategory[] = [
           theme: "potty training, transitioning from diapers, growing up milestone, independence, positive reinforcement, celebrating success"
         }
       },
+      {
+        id: "independence",
+        label: "אני יכול/ה לבד!",
+        image: topicIndependence,
+        description: "מתלבשים ומסתדרים לבד",
+        logic: {
+          outfit: "mismatched fun clothes the child picked themselves",
+          background: "bright cheerful bedroom with open wardrobe, clothes scattered playfully, warm morning sunlight and sparkles",
+          theme: "independence, self-dressing, doing things alone, growing up, confidence, pride in self-reliance"
+        }
+      },
     ]
   },
   {
@@ -225,6 +241,28 @@ const ADVENTURE_CATEGORIES: AdventureCategory[] = [
           theme: "diversity and inclusion, different family structures (single-parent, same-sex parents, grandparent-led), different appearances (skin color, hair, height), celebrating uniqueness, empathy, the core message: we look different on the outside and our homes may look different but inside our hearts we all feel love and dream the same way. Use parent NLP input to tailor to the specific family or social situation"
         }
       },
+      {
+        id: "anger-cloud",
+        label: "ענן הכעס שלי",
+        image: topicAngerCloud,
+        description: "לומדים להתמודד עם כעס",
+        logic: {
+          outfit: "comfortable home clothes",
+          background: "cozy room with a dark fluffy cloud above that transforms into a rainbow cloud with sparkles and deep breaths",
+          theme: "anger management, emotional regulation, tantrums, deep breathing, calming down, naming emotions, self-control"
+        }
+      },
+      {
+        id: "body-safety",
+        label: "הגוף שלי הוא רק שלי",
+        image: topicBodySafety,
+        description: "לומדים על גבולות וביטחון",
+        logic: {
+          outfit: "everyday casual clothes",
+          background: "warm safe environment with a gentle glowing protective bubble around the child, soft hearts and stars",
+          theme: "body boundaries, personal safety, consent, saying no, good touch bad touch, body autonomy, empowerment, telling a trusted adult"
+        }
+      },
     ]
   },
   {
@@ -287,6 +325,17 @@ const ADVENTURE_CATEGORIES: AdventureCategory[] = [
           theme: "apologizing, taking responsibility, empathy, repairing friendships, emotional growth"
         }
       },
+      {
+        id: "new-house",
+        label: "עוברים לבית חדש",
+        image: topicNewHouse,
+        description: "הרפתקה של מעבר דירה",
+        logic: {
+          outfit: "comfortable casual clothes",
+          background: "new colorful house with moving boxes, a magical garden with flowers blooming, warm golden sunlight, sparkles in the air",
+          theme: "moving to a new house, change, leaving friends, making new friends, adapting, feeling safe in a new place, family support"
+        }
+      },
     ]
   },
   {
@@ -347,6 +396,17 @@ const ADVENTURE_CATEGORIES: AdventureCategory[] = [
           outfit: "rain boots and a colorful raincoat with hood",
           background: "garden in the rain with puddles, rainbow reflections, colorful umbrellas, and sparkling raindrops",
           theme: "sensory play, rain, nature, joy, jumping in puddles, weather exploration"
+        }
+      },
+      {
+        id: "underwater-journey",
+        label: "מסע במצולות הים",
+        image: topicUnderwater,
+        description: "הרפתקה קסומה מתחת למים",
+        logic: {
+          outfit: "magical diving suit with glowing accents",
+          background: "vibrant underwater world with coral reefs, bioluminescent jellyfish, friendly sea turtle, bubbles and sparkles, sunlight filtering through water",
+          theme: "underwater exploration, ocean discovery, sensory wonder, marine life, imagination, courage, nature beauty"
         }
       },
     ]
