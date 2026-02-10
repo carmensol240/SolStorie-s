@@ -1,38 +1,40 @@
 
 
-## Update Privacy Policy and Terms of Use Content
+# עדכון טקסט מסך אודות (About)
 
-Replace the lengthy legal text in both existing pages with the concise, user-friendly versions provided, while keeping the current page structure, styling, and RTL layout intact.
+## מה ישתנה
 
----
+עדכון תוכן בלבד בקובץ `src/pages/About.tsx` -- ללא שינוי במבנה, בעיצוב או בסגנונות.
 
-### 1. Privacy Policy (`src/pages/PrivacyPolicy.tsx`)
+## שינויים מפורטים
 
-**What changes:**
-- Remove the `ScrollArea` wrapper (no longer needed -- the content is short)
-- Replace all 10 numbered sections with 5 simple paragraphs/bullet points:
-  - Opening statement (header subtitle already has it)
-  - "המידע שאנו אוספים" -- name, age, email
-  - "אבטחה" -- secured servers, no third-party sharing
-  - "בינה מלאכותית" -- data used only for story creation
-  - "זכות המחיקה" -- delete account anytime via Settings
-- Keep the header (Shield icon, title), the card wrapper, RTL direction, and the back button unchanged
+### 1. הסרת הציטוט (שורות 53-56)
+הציטוט "לפעמים, הסיפורים הכי מרגשים..." יוסר לחלוטין.
 
-### 2. Terms of Use (`src/pages/TermsOfService.tsx`)
+### 2. עדכון הפסקה השנייה (שורה 65-67)
+הטקסט הקיים יוחלף ב:
+"זהו מקום שעוזר לעבד רגשות, בונה חוסן פנימי ומאפשר לה להיות הגיבורה בסיפור שלה -- בכל ערב מחדש."
 
-**What changes:**
-- Remove the `ScrollArea` wrapper (content is now short)
-- Replace all 14 numbered sections with 5 simple items:
-  - Opening statement: "השימוש ב-StoryTime מהווה הסכמה לתנאים הבאים"
-  - "אחריות" -- AI content, parent responsibility
-  - "קרדיטים" -- credit deduction, non-refundable
-  - "תשלום" -- credit card payment without PayPal account
-  - "שימוש הוגן" -- no offensive content
-- Keep the header (FileText icon, title), the card wrapper, RTL direction, and the back button unchanged
+ותתווסף פסקת גשר חדשה:
+"אני נרגשת לחלוק את הקסם הזה גם אתכם. הנה מה שתמצאו בתוך StoryTime:"
 
-### Technical Details
+### 3. עדכון כותרת ותוכן הפיצ'רים (שורות 69-91)
+כותרת משנה חדשה: **"מה הופך את הסיפורים שלנו למיוחדים?"**
 
-- Both files: remove the `ScrollArea` import and component since the content fits without scrolling
-- Keep the existing `bg-card rounded-2xl border shadow-sm p-6` card styling
-- Present each topic as a bold label followed by its description, using the same `text-muted-foreground` styling
-- No new routes, components, or dependencies needed
+שלושת הפיצ'רים הקיימים יוחלפו בתוכן החדש:
+- **הילד שלכם הוא הגיבור** -- הופכים תמונה פשוטה לדמות מצוירת בסגנון אנימציה קלאסי, שמלווה את הילד לאורך כל ההרפתקה.
+- **התאמה מושלמת לפי גיל** -- סיפורים מותאמים אישית מפעוטות (0-2), דרך ילדי גן (3-6), ועד ילדים שלומדים לקרוא (7-8).
+- **סיפורים מעצימים** -- כל סיפור נבנה עם דגש על בניית ביטחון עצמי, חוסן רגשי ומסרים חיוביים.
+
+### 4. עדכון טקסט ההזמנה (שורה 94-96)
+יוחלף ב: "אני מזמינה אתכם להצטרף אלינו למסע. כדי שתוכלו להרגיש את הקסם בעצמכם, הסיפור הראשון הוא מתנה ממני."
+
+### 5. ללא שינוי
+- כפתור ה-CTA נשאר זהה
+- החתימה נשארת זהה
+- הרקע הקסום, הכוכבים והאורות -- ללא שינוי
+- ה-Layout וכל הסגנונות נשמרים
+
+## קובץ שישתנה
+- `src/pages/About.tsx`
+
