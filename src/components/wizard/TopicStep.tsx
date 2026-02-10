@@ -322,10 +322,19 @@ const ADVENTURE_CATEGORIES: AdventureCategory[] = [
           theme: "apologizing, taking responsibility, empathy, repairing friendships, emotional growth"
         }
       },
+      {
+        id: "new-house",
+        label: "עוברים לבית חדש",
+        image: topicNewHouse,
+        description: "הרפתקה של מעבר דירה",
+        logic: {
+          outfit: "comfortable casual clothes",
+          background: "new colorful house with moving boxes, a magical garden with flowers blooming, warm golden sunlight, sparkles in the air",
+          theme: "moving to a new house, change, leaving friends, making new friends, adapting, feeling safe in a new place, family support"
+        }
+      },
     ]
   },
-  {
-    id: "sensory-cloud",
     title: "ענן החושים",
     emoji: "☁️",
     topics: [
