@@ -37,6 +37,7 @@ import topicBodySafety from "@/assets/topic-body-safety.jpg";
 import topicNewHouse from "@/assets/topic-new-house.jpg";
 import topicUnderwater from "@/assets/topic-underwater.jpg";
 import topicSuperheroes from "@/assets/topic-superheroes.jpg";
+import topicFirstDayKindergarten from "@/assets/topic-first-day-kindergarten.jpg";
 
 interface TopicStepProps {
   formData: StoryFormData;
@@ -353,6 +354,17 @@ const ADVENTURE_CATEGORIES: AdventureCategory[] = [
           outfit: "comfortable casual clothes",
           background: "new colorful house with moving boxes, a magical garden with flowers blooming, warm golden sunlight, sparkles in the air",
           theme: "moving to a new house, change, leaving friends, making new friends, adapting, feeling safe in a new place, family support"
+        }
+      },
+      {
+        id: "first-day-kindergarten",
+        label: "היום הראשון בגן",
+        image: topicFirstDayKindergarten,
+        description: "מתחילים הרפתקה חדשה בגן",
+        logic: {
+          outfit: "everyday clothes with a small colorful backpack",
+          background: "whimsical kindergarten entrance decorated with oversized crayons, floating magical ABC letters, warm golden sunlight and sparkles",
+          theme: "first day at kindergarten, separation anxiety, making new friends, new beginnings, bravery, excitement, adapting to new environment, feeling safe"
         }
       },
     ]
