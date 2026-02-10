@@ -1,83 +1,101 @@
 import { useNavigate } from "react-router-dom";
-import { Sparkles, Brain, BookOpen } from "lucide-react";
 import MobileNavigation from "@/components/MobileNavigation";
 
 const About = () => {
   const navigate = useNavigate();
 
   return (
-    <div className="min-h-[100dvh] flex flex-col bg-gradient-to-b from-purple-50 via-pink-50 to-amber-50" dir="rtl">
-      <div className="flex-1 flex flex-col items-center justify-center px-5 pt-0 pb-1 max-w-lg mx-auto text-center">
-        {/* Welcome text */}
-        <div className="space-y-1.5 mb-2">
-          <h1 className="text-2xl font-black text-purple-800 leading-snug">
-            ברוכים הבאים ל-<span className="bg-gradient-to-r from-purple-600 via-pink-500 to-orange-400 bg-clip-text text-transparent">StoryTime</span>! 🌟
-          </h1>
-          <p className="text-sm text-foreground/70 italic leading-relaxed">
-            "לפעמים, הסיפורים הכי מרגשים נולדים מאהבה גדולה וצורך אמיתי."
-          </p>
-          <p className="text-base font-bold text-foreground/90 leading-relaxed">
-            שלום, אני כרמן
-          </p>
-          <p className="text-base text-foreground/80 leading-relaxed">
-            יצרתי את StoryTime עבור בתי סול, מתוך רצון להעניק לה עולם של דמיון שמבין את הקצב הייחודי שלה. רציתי ליצור עבורה מרחב שבו מילים הופכות לקסם מחבק, המותאם בדיוק לדרך שבה היא חווה את העולם.
-          </p>
-          <p className="text-base text-foreground/80 leading-relaxed">
-            זהו מקום שעוזר לעבד רגשות, בונה חוסן פנימי ומאפשר לה להיות הגיבורה בסיפור שלה – בכל ערב מחדש.
-          </p>
-          <p className="text-sm text-foreground/70 leading-relaxed font-bold">
-            כדי להפוך את החזון הזה למציאות עבור כל ילד וילדה, רתמנו את הכלים המתקדמים ביותר ליצירת חוויה מושלמת:
-          </p>
+    <div className="min-h-[100dvh] flex flex-col relative overflow-hidden" dir="rtl">
+      {/* Magical background */}
+      <div className="absolute inset-0 bg-gradient-to-b from-[hsl(260,60%,15%)] via-[hsl(270,40%,20%)] to-[hsl(250,50%,12%)]" />
+      
+      {/* Floating stars / sparkles */}
+      <div className="absolute inset-0 overflow-hidden pointer-events-none">
+        {[...Array(20)].map((_, i) => (
+          <div
+            key={i}
+            className="absolute rounded-full bg-white/60 animate-pulse"
+            style={{
+              width: `${2 + Math.random() * 3}px`,
+              height: `${2 + Math.random() * 3}px`,
+              top: `${Math.random() * 100}%`,
+              left: `${Math.random() * 100}%`,
+              animationDelay: `${Math.random() * 4}s`,
+              animationDuration: `${2 + Math.random() * 3}s`,
+            }}
+          />
+        ))}
+        {/* Soft glowing orbs */}
+        <div className="absolute top-10 left-10 w-40 h-40 rounded-full bg-purple-500/10 blur-3xl" />
+        <div className="absolute top-1/3 right-5 w-56 h-56 rounded-full bg-pink-400/8 blur-3xl" />
+        <div className="absolute bottom-32 left-1/4 w-48 h-48 rounded-full bg-amber-400/8 blur-3xl" />
+      </div>
+
+      <div className="flex-1 flex flex-col items-center justify-center px-6 pt-0 pb-1 max-w-lg mx-auto text-center relative z-10">
+        
+        {/* Title */}
+        <h1 className="text-2xl font-black text-white/95 leading-snug mb-3">
+          ברוכים הבאים ל-<span className="bg-gradient-to-r from-purple-300 via-pink-300 to-orange-300 bg-clip-text text-transparent">StoryTime</span> ✨
+        </h1>
+
+        {/* Opening quote — larger, italic, emotional */}
+        <p className="text-lg italic text-purple-200/90 leading-relaxed mb-5 px-2">
+          "לפעמים, הסיפורים הכי מרגשים נולדים מאהבה גדולה וצורך אמיתי."
+        </p>
+
+        {/* Personal intro */}
+        <p className="text-base font-bold text-white/90 leading-relaxed mb-1">
+          שלום, אני כרמן
+        </p>
+        <p className="text-sm text-white/75 leading-relaxed mb-3 px-1">
+          יצרתי את StoryTime עבור בתי סול, מתוך רצון להעניק לה עולם של דמיון שמבין את הקצב הייחודי שלה. רציתי ליצור עבורה מרחב שבו מילים הופכות לקסם מחבק, המותאם בדיוק לדרך שבה היא חווה את העולם.
+        </p>
+        <p className="text-sm text-white/75 leading-relaxed mb-5 px-1">
+          זהו מקום שעוזר לעבד רגשות, בונה חוסן פנימי ומאפשר לה להיות הגיבורה בסיפור שלה – בכל ערב מחדש.
+        </p>
+
+        {/* Features — floating, no boxes */}
+        <div className="space-y-4 mb-5 w-full">
+          <div className="flex flex-col items-center gap-1.5">
+            <span className="text-3xl">🪄</span>
+            <p className="text-sm text-white/80 leading-snug px-4">
+              <strong className="text-purple-200">סיפורים מעצימים</strong> — כלים מעולם עיבוד השפה הטבעית משולבים בתוך הסיפורים, עם סוגסטיות שעוזרות לילד לבנות ביטחון עצמי.
+            </p>
+          </div>
+
+          <div className="flex flex-col items-center gap-1.5">
+            <span className="text-3xl">🌙</span>
+            <p className="text-sm text-white/80 leading-snug px-4">
+              <strong className="text-pink-200">קסם מותאם אישית</strong> — סיפורים בעברית פשוטה וחמה, עם ניקוד מלא ומדויק להקראה מושלמת.
+            </p>
+          </div>
+
+          <div className="flex flex-col items-center gap-1.5">
+            <span className="text-3xl">⭐</span>
+            <p className="text-sm text-white/80 leading-snug px-4">
+              <strong className="text-amber-200">הילד שלכם הוא הגיבור</strong> — תמונת הילד הופכת לדמות מצוירת בסגנון אנימציה קלאסי שמלווה אותו בכל הרפתקה.
+            </p>
+          </div>
         </div>
 
-        {/* Technology cards */}
-        <div className="space-y-2 mb-2 w-full">
-          <div className="flex items-center gap-3 bg-white/60 backdrop-blur-sm rounded-2xl p-4 border border-purple-100 shadow-sm">
-            <div className="w-10 h-10 bg-gradient-to-br from-purple-500 to-purple-700 rounded-xl flex items-center justify-center flex-shrink-0">
-              <Brain className="w-5 h-5 text-white" />
-            </div>
-            <p className="text-sm text-foreground/80 text-right leading-snug">
-              <strong className="text-purple-800">טכנולוגיית NLP מתקדמת</strong> — כלים מעולם עיבוד השפה הטבעית משולבים בתוך הסיפורים, עם סוגסטיות מעצימות שעוזרות לילד לבנות ביטחון עצמי.
-            </p>
-          </div>
-
-          <div className="flex items-center gap-3 bg-white/60 backdrop-blur-sm rounded-2xl p-4 border border-pink-100 shadow-sm">
-            <div className="w-10 h-10 bg-gradient-to-br from-pink-500 to-pink-700 rounded-xl flex items-center justify-center flex-shrink-0">
-              <Sparkles className="w-5 h-5 text-white" />
-            </div>
-            <p className="text-sm text-foreground/80 text-right leading-snug">
-              <strong className="text-pink-800">בינה מלאכותית חכמה</strong> — סיפורים מותאמים אישית בזמן הווה, בעברית פשוטה וחמה, עם ניקוד מלא ומדויק להקראה מושלמת.
-            </p>
-          </div>
-
-          <div className="flex items-center gap-3 bg-white/60 backdrop-blur-sm rounded-2xl p-4 border border-amber-100 shadow-sm">
-            <div className="w-10 h-10 bg-gradient-to-br from-amber-500 to-orange-600 rounded-xl flex items-center justify-center flex-shrink-0">
-              <BookOpen className="w-5 h-5 text-white" />
-            </div>
-            <p className="text-sm text-foreground/80 text-right leading-snug">
-              <strong className="text-amber-800">הילד שלכם הוא הגיבור</strong> — תמונת הילד הופכת לדמות מצוירת בסגנון אנימציה קלאסי שמלווה אותו בכל הרפתקה.
-            </p>
-          </div>
-        </div>
-
-        {/* Invitation text */}
-        <p className="text-sm text-foreground/80 leading-relaxed mt-4 mb-4 px-2 font-bold">
+        {/* Invitation */}
+        <p className="text-sm text-white/80 leading-relaxed mb-5 px-3 font-semibold">
           אני מזמינה אתכם להצטרף אלינו למסע. כדי שתוכלו להרגיש את הקסם בעצמכם, הסיפור הראשון הוא עלינו – במתנה.
         </p>
 
-        {/* Continue button */}
+        {/* CTA Button */}
         <button
           onClick={() => navigate("/adventure")}
-          className="w-full max-w-xs mx-auto flex items-center justify-center bg-gradient-to-r from-purple-600 via-pink-500 to-orange-500 hover:from-purple-700 hover:via-pink-600 hover:to-orange-600 text-white font-black text-base py-3.5 rounded-full shadow-xl transition-all hover:scale-[1.02]"
+          className="w-full max-w-xs mx-auto flex items-center justify-center bg-gradient-to-r from-purple-500 via-pink-500 to-orange-500 hover:from-purple-400 hover:via-pink-400 hover:to-orange-400 text-white font-black text-base py-3.5 rounded-full shadow-xl transition-all hover:scale-[1.02]"
           style={{
-            boxShadow: '0 8px 30px -8px rgba(147, 51, 234, 0.5), 0 4px 15px -4px rgba(236, 72, 153, 0.3)'
+            boxShadow: '0 0 40px rgba(168, 85, 247, 0.4), 0 0 80px rgba(236, 72, 153, 0.2)'
           }}
         >
           בואו נתחיל (סיפור ראשון חינם) ✨
         </button>
 
         {/* Signature */}
-        <p className="text-sm font-semibold bg-gradient-to-r from-purple-600 via-pink-500 to-orange-400 bg-clip-text text-transparent mt-2">
+        <p className="text-sm font-semibold bg-gradient-to-r from-purple-300 via-pink-300 to-orange-300 bg-clip-text text-transparent mt-3">
           באהבה, כרמית כהן
         </p>
       </div>
