@@ -63,6 +63,17 @@ const ADVENTURE_CATEGORIES: AdventureCategory[] = [
     emoji: "✨",
     topics: [
       {
+        id: "dentist-visit",
+        label: "ביקור אצל רופא/ת השיניים",
+        image: topicDentistVisit,
+        description: "הולכים לרופא שיניים בלי פחד",
+        logic: {
+          outfit: "everyday casual clothes",
+          background: "friendly colorful dental clinic with sparkles, kind dentist, and fun dental chair",
+          theme: "visiting the dentist, overcoming fear, dental checkup, bravery, health"
+        }
+      },
+      {
         id: "pacifier-fairy",
         label: "פיית המוצץ",
         image: topicPacifier,
@@ -96,17 +107,6 @@ const ADVENTURE_CATEGORIES: AdventureCategory[] = [
         }
       },
       {
-        id: "clean-room",
-        label: "לסדר את החדר",
-        image: topicCleanRoom,
-        description: "קסם של סדר וארגון",
-        logic: {
-          outfit: "everyday casual clothes suitable for playing",
-          background: "colorful children's room with toys, toy boxes, shelves, magical sparkles",
-          theme: "cleaning up, organizing toys, responsibility, teamwork, making room tidy"
-        }
-      },
-      {
         id: "body-hero-nails",
         label: "גזירת ציפורניים",
         image: topicNailTrimming,
@@ -128,6 +128,17 @@ const ADVENTURE_CATEGORIES: AdventureCategory[] = [
           theme: "visiting the barber, haircut, overcoming fear, grooming, bravery"
         }
       },
+      {
+        id: "brave-taster",
+        label: "הטועם האמיץ",
+        image: topicBraveTaster,
+        description: "טועמים אוכל חדש באומץ",
+        logic: {
+          outfit: "everyday casual clothes with a chef hat or apron",
+          background: "warm colorful kitchen with fruits, vegetables, and sparkles on the table",
+          theme: "trying new foods, picky eating, bravery, sensory exploration, healthy eating"
+        }
+      },
     ]
   },
   {
@@ -144,17 +155,6 @@ const ADVENTURE_CATEGORIES: AdventureCategory[] = [
           outfit: "comfortable home clothes",
           background: "warm nursery room with crib, mobile, soft lighting, and family atmosphere",
           theme: "welcoming new sibling, sharing attention, becoming a big brother/sister, family changes, emotions about new baby"
-        }
-      },
-      {
-        id: "lost-tooth",
-        label: "נפלה לי שן",
-        image: topicLostTooth,
-        description: "פיית השיניים באה לבקר",
-        logic: {
-          outfit: "everyday casual clothes",
-          background: "magical bedroom at night with a tiny glowing tooth fairy, sparkles, and a little tooth under a pillow",
-          theme: "losing a tooth, growing up, tooth fairy, excitement and courage, body changes"
         }
       },
       {
@@ -177,6 +177,28 @@ const ADVENTURE_CATEGORIES: AdventureCategory[] = [
           outfit: "cozy pajamas with soft slippers",
           background: "enchanted bedroom at night with a protective glowing nightlight, stars, and friendly shadows",
           theme: "overcoming fear of darkness, bravery, emotional regulation, calming bedtime, feeling safe"
+        }
+      },
+      {
+        id: "lost-tooth",
+        label: "נפלה לי שן",
+        image: topicLostTooth,
+        description: "פיית השיניים באה לבקר",
+        logic: {
+          outfit: "everyday casual clothes",
+          background: "magical bedroom at night with a tiny glowing tooth fairy, sparkles, and a little tooth under a pillow",
+          theme: "losing a tooth, growing up, tooth fairy, excitement and courage, body changes"
+        }
+      },
+      {
+        id: "pocket-kiss",
+        label: "נשיקה בכיס",
+        image: topicPocketKiss,
+        description: "פרידה בבוקר עם אהבה",
+        logic: {
+          outfit: "everyday clothes with a small backpack",
+          background: "kindergarten entrance at morning with warm sunlight, parent giving a kiss, a tiny glowing heart tucked in pocket",
+          theme: "separation anxiety, morning goodbye, feeling safe, love and comfort, transitioning to kindergarten"
         }
       },
     ]
@@ -230,6 +252,17 @@ const ADVENTURE_CATEGORIES: AdventureCategory[] = [
           theme: "family bonding, nature exploration, teamwork, helping others"
         }
       },
+      {
+        id: "apologize",
+        label: "ללמוד לבקש סליחה",
+        image: topicApologize,
+        description: "לומר סליחה ולתקן",
+        logic: {
+          outfit: "everyday casual clothes",
+          background: "colorful kindergarten with soft lighting, two children facing each other with gentle expressions",
+          theme: "apologizing, taking responsibility, empathy, repairing friendships, emotional growth"
+        }
+      },
     ]
   },
   {
@@ -281,9 +314,19 @@ const ADVENTURE_CATEGORIES: AdventureCategory[] = [
           theme: "imagination, flying, dreaming, sensory wonder, freedom, creativity"
         }
       },
+      {
+        id: "rain-party",
+        label: "מסיבת הגשם",
+        image: topicRainParty,
+        description: "רוקדים בגשם עם מטריות צבעוניות",
+        logic: {
+          outfit: "rain boots and a colorful raincoat with hood",
+          background: "garden in the rain with puddles, rainbow reflections, colorful umbrellas, and sparkling raindrops",
+          theme: "sensory play, rain, nature, joy, jumping in puddles, weather exploration"
+        }
+      },
     ]
   },
-];
 
 // Flatten all topics for lookup
 const ALL_TOPICS = ADVENTURE_CATEGORIES.flatMap(cat => cat.topics);
