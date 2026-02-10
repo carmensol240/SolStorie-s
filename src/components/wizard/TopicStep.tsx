@@ -40,6 +40,7 @@ import topicSuperheroes from "@/assets/topic-superheroes.jpg";
 import topicFirstDayKindergarten from "@/assets/topic-first-day-kindergarten.jpg";
 import topicMomDontGo from "@/assets/topic-mom-dont-go.jpg";
 import topicJustBeMe from "@/assets/topic-just-be-me.jpg";
+import topicMySpecialFamily from "@/assets/topic-my-special-family.jpg";
 
 interface TopicStepProps {
   formData: StoryFormData;
@@ -64,6 +65,7 @@ interface AdventureCategory {
   id: string;
   title: string;
   emoji: string;
+  subtitle?: string;
   topics: AdventureTopic[];
 }
 
@@ -146,6 +148,15 @@ const ADVENTURE_CATEGORIES: AdventureCategory[] = [
       { id: "underwater-journey", label: "מסע במצולות הים", image: topicUnderwater, description: "הרפתקה קסומה מתחת למים", logic: { outfit: "magical diving suit with glowing accents", background: "vibrant underwater world with coral reefs, bioluminescent jellyfish, friendly sea turtle, bubbles and sparkles, sunlight filtering through water", theme: "underwater exploration, ocean discovery, sensory wonder, marine life, imagination, courage, nature beauty" } },
     ]
   },
+  {
+    id: "my-special-family",
+    title: "המשפחה המיוחדת שלי",
+    emoji: "👨‍👩‍👧",
+    subtitle: "חוגגים את כל סוגי המשפחות ואת האהבה שעוטפת אותנו.",
+    topics: [
+      { id: "my-special-family", label: "המשפחה המיוחדת שלי", image: topicMySpecialFamily, description: "חוגגים את כל סוגי המשפחות", logic: { outfit: "comfortable cozy home clothes", background: "warm loving living room with family photos on the wall showing diverse families, soft golden light, floating hearts and sparkles, cozy couch with blankets", theme: "celebrating all family types, single-parent families, same-sex parents, grandparent-led families, blended families, adoptive families, unconditional love, feeling safe, belonging, every family is special, the love that surrounds us is what makes a family, NLP reframe: family is defined by love not by structure" } },
+    ]
+  },
 ];
 
 const ALL_TOPICS = ADVENTURE_CATEGORIES.flatMap(cat => cat.topics);
@@ -215,21 +226,28 @@ const CategoryCarousel = ({
   return (
     <div id={`cat-${category.id}`}>
       {/* Category Header */}
-      <div className="flex items-center justify-between px-4 mb-1.5">
-        <div className="flex items-center gap-1.5">
-          <span className="text-base">{category.emoji}</span>
-          <h3 className="text-sm font-bold text-foreground">{category.title}</h3>
-          <span className="text-[10px] font-normal text-muted-foreground">({category.topics.length})</span>
+      <div className="flex flex-col px-4 mb-1.5">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-1.5">
+            <span className="text-base">{category.emoji}</span>
+            <h3 className="text-sm font-bold text-foreground">{category.title}</h3>
+            <span className="text-[10px] font-normal text-muted-foreground">({category.topics.length})</span>
+          </div>
+          <div className="flex items-center gap-0.5">
+            <Button variant="ghost" size="icon" className="h-7 w-7 rounded-full" onClick={() => scroll('right')} aria-label="הקודם">
+              <ChevronRight className="h-3.5 w-3.5" />
+            </Button>
+            <Button variant="ghost" size="icon" className="h-7 w-7 rounded-full" onClick={() => scroll('left')} aria-label="הבא">
+              <ChevronLeft className="h-3.5 w-3.5" />
+            </Button>
+          </div>
         </div>
-        <div className="flex items-center gap-0.5">
-          <Button variant="ghost" size="icon" className="h-7 w-7 rounded-full" onClick={() => scroll('right')} aria-label="הקודם">
-            <ChevronRight className="h-3.5 w-3.5" />
-          </Button>
-          <Button variant="ghost" size="icon" className="h-7 w-7 rounded-full" onClick={() => scroll('left')} aria-label="הבא">
-            <ChevronLeft className="h-3.5 w-3.5" />
-          </Button>
-        </div>
+        {category.subtitle && (
+          <p className="text-[10px] text-muted-foreground mt-0.5 pr-7">{category.subtitle}</p>
+        )}
       </div>
+
+
 
       {/* Carousel */}
       <div
