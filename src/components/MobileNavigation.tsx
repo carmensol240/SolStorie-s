@@ -7,7 +7,7 @@ const MobileNavigation = () => {
   const navigate = useNavigate();
 
   const navItems = [
-    { path: "/", icon: Home, label: "בית" },
+    { path: "/adventure", icon: Home, label: "בית" },
     { path: "/library", icon: Library, label: "ספרייה" },
     { path: "/profile", icon: User, label: "פרופיל" },
     { path: "/settings", icon: Settings, label: "הגדרות" },

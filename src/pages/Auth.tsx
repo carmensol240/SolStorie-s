@@ -241,14 +241,14 @@ const Auth = () => {
     }
   };
 
-  // Get return URL - default to library page (with open redirect protection)
+  // Get return URL - default to home/adventure page (with open redirect protection)
   const getReturnTo = () => {
-    const returnTo = searchParams.get('returnTo') || localStorage.getItem('returnTo') || '/library';
+    const returnTo = searchParams.get('returnTo') || localStorage.getItem('returnTo') || '/adventure';
     // Only allow relative paths starting with / but not // (protocol-relative)
     if (returnTo.startsWith('/') && !returnTo.startsWith('//')) {
       return returnTo;
     }
-    return '/library';
+    return '/adventure';
   };
 
   // Check terms acceptance when user is logged in

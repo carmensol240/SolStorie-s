@@ -75,7 +75,7 @@ const Onboarding = () => {
         description: "מחכה לך סיפור ראשון במתנה מאיתנו כדי להתחיל בקסם ✨",
       });
       
-      navigate("/library");
+      navigate("/adventure");
     } catch (error) {
       console.error("Error saving consent:", error);
       toast({
