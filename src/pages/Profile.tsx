@@ -223,7 +223,7 @@ const Profile = () => {
           <div className="flex justify-center gap-5 overflow-x-auto pb-2">
             {children.map((child) => (
               <div key={child.id} className="flex flex-col items-center flex-shrink-0">
-                <div className="w-28 h-28 rounded-full overflow-hidden border-[3px] border-transparent bg-gradient-to-br from-purple-400 to-pink-400 p-[3px] shadow-lg shadow-purple-500/20">
+                <div className="w-40 h-40 rounded-full overflow-hidden border-[3px] border-transparent bg-gradient-to-br from-purple-400 to-pink-400 p-[4px] shadow-xl shadow-purple-500/30">
                   <div className="w-full h-full rounded-full overflow-hidden bg-[hsl(260,60%,15%)]">
                     {child.photo_url ? (
                       <SignedImage
