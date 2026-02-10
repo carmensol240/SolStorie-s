@@ -16,7 +16,7 @@ const About = () => {
           <p className="text-base text-foreground/80 leading-relaxed">
             האפליקציה נוצרה על ידי <span className="font-bold bg-gradient-to-r from-purple-600 via-pink-500 to-orange-400 bg-clip-text text-transparent">כרמית (כרמן) כהן</span> עבור בתי סול, מתוך אהבה ורצון לעזור לילדים לעבד רגשות ולבנות חוסן פנימי דרך סיפורים קסומים.
           </p>
-          <p className="text-sm text-foreground/70 leading-relaxed">
+          <p className="text-sm text-foreground/70 leading-relaxed font-bold">
             כדי להפוך את החזון הזה למציאות עבור כל ילד וילדה, רתמנו את הכלים המתקדמים ביותר ליצירת חוויה מושלמת:
           </p>
         </div>
