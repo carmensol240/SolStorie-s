@@ -141,6 +141,17 @@ const ADVENTURE_CATEGORIES: AdventureCategory[] = [
           theme: "trying new foods, picky eating, bravery, sensory exploration, healthy eating"
         }
       },
+      {
+        id: "potty-training",
+        label: "גמילה מחיתולים",
+        image: topicPottyTraining,
+        description: "הופכים לילד/ה גדול/ה!",
+        logic: {
+          outfit: "everyday casual clothes",
+          background: "cheerful colorful bathroom with a friendly potty chair, stickers on the wall, and a supportive teddy bear",
+          theme: "potty training, transitioning from diapers, growing up milestone, independence, positive reinforcement, celebrating success"
+        }
+      },
     ]
   },
   {
