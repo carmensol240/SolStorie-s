@@ -102,21 +102,23 @@ const LoggedInHome = ({ user, displayName }: LoggedInHomeProps) => {
         {/* Welcome Gift Banner - shows only for new users */}
         <WelcomeGiftBanner credits={credits} storyCount={storyCount} />
 
-        {/* Primary CTA Button - Large, glowing, magical */}
-        <div className="pb-24 flex justify-center px-6">
-          <button
-            onClick={() => navigate("/create")}
-            className="group flex items-center justify-center gap-4 rounded-[2rem] px-10 py-5 md:px-14 md:py-6 w-full max-w-[380px] bg-gradient-to-r from-amber-400 via-orange-400 to-pink-400 shadow-[0_0_30px_rgba(251,191,36,0.4),0_0_60px_rgba(251,146,60,0.2)] hover:shadow-[0_0_40px_rgba(251,191,36,0.6),0_0_80px_rgba(251,146,60,0.3)] hover:scale-[1.04] active:scale-95 transition-all duration-300 animate-[glow-pulse_2.5s_ease-in-out_infinite] border-2 border-white/30"
-          >
-            <div className="w-12 h-12 md:w-14 md:h-14 bg-white/25 backdrop-blur-sm rounded-2xl flex items-center justify-center flex-shrink-0 group-hover:rotate-12 transition-transform duration-300">
-              <Wand2 className="w-6 h-6 md:w-7 md:h-7 text-white drop-shadow-md" />
-            </div>
-            <div className="text-right">
-              <h3 className="font-black text-xl md:text-2xl text-white drop-shadow-md">יוצאים להרפתקה</h3>
-              <p className="text-sm md:text-base text-white/80 font-medium">סיפור מותאם אישית ✨</p>
-            </div>
-          </button>
-        </div>
+        {/* Primary CTA Button - only shown when welcome banner is NOT visible */}
+        {!showWelcomeBanner && (
+          <div className="pb-24 flex justify-center px-6">
+            <button
+              onClick={() => navigate("/create")}
+              className="group flex items-center justify-center gap-4 rounded-[2rem] px-10 py-5 md:px-14 md:py-6 w-full max-w-[380px] bg-gradient-to-r from-amber-400 via-orange-400 to-pink-400 shadow-[0_0_30px_rgba(251,191,36,0.4),0_0_60px_rgba(251,146,60,0.2)] hover:shadow-[0_0_40px_rgba(251,191,36,0.6),0_0_80px_rgba(251,146,60,0.3)] hover:scale-[1.04] active:scale-95 transition-all duration-300 animate-[glow-pulse_2.5s_ease-in-out_infinite] border-2 border-white/30"
+            >
+              <div className="w-12 h-12 md:w-14 md:h-14 bg-white/25 backdrop-blur-sm rounded-2xl flex items-center justify-center flex-shrink-0 group-hover:rotate-12 transition-transform duration-300">
+                <Wand2 className="w-6 h-6 md:w-7 md:h-7 text-white drop-shadow-md" />
+              </div>
+              <div className="text-right">
+                <h3 className="font-black text-xl md:text-2xl text-white drop-shadow-md">יוצאים להרפתקה</h3>
+                <p className="text-sm md:text-base text-white/80 font-medium">סיפור מותאם אישית ✨</p>
+              </div>
+            </button>
+          </div>
+        )}
       </div>
     </div>
   );
