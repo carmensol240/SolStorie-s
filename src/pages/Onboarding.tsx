@@ -41,8 +41,8 @@ const Onboarding = () => {
           .maybeSingle();
 
         if (data?.terms_accepted_at) {
-          // Already accepted - redirect to library
-          navigate("/library");
+          // Already accepted - redirect to home
+          navigate("/adventure");
           return;
         }
       } catch (error) {
@@ -75,7 +75,7 @@ const Onboarding = () => {
         description: "מחכה לך סיפור ראשון במתנה מאיתנו כדי להתחיל בקסם ✨",
       });
       
-      navigate("/library");
+      navigate("/adventure");
     } catch (error) {
       console.error("Error saving consent:", error);
       toast({
