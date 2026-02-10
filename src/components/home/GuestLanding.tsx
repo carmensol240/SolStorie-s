@@ -106,11 +106,11 @@ const GuestLanding = ({ user, isLoggedIn }: GuestLandingProps) => {
         }}
       />
 
-      {/* Lighter overlay for better image visibility */}
+      {/* Very subtle overlay - keep image visible */}
       <div 
         className="fixed inset-0 pointer-events-none"
         style={{ 
-          background: 'linear-gradient(180deg, rgba(135, 206, 235, 0.25) 0%, rgba(255, 255, 255, 0.3) 50%, rgba(255, 251, 235, 0.35) 100%)',
+          background: 'linear-gradient(180deg, rgba(255,255,255,0.1) 0%, transparent 40%, transparent 60%, rgba(255,255,255,0.15) 100%)',
           zIndex: -1 
         }} 
       />
