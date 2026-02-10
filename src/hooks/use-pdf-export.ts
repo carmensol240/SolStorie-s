@@ -182,7 +182,8 @@ export const usePdfExport = () => {
         let illustrationHtml = '';
         if (page.illustration_url) {
           try {
-            const img = await loadImage(page.illustration_url);
+            const resolvedUrl = signedUrlMap[page.illustration_url] || page.illustration_url;
+            const img = await loadImage(resolvedUrl);
             illustrationHtml = `
               <div style="
                 flex: 0 0 65%;
@@ -192,7 +193,7 @@ export const usePdfExport = () => {
                 margin-bottom: 8px;
               ">
                 <img 
-                  src="${page.illustration_url}" 
+                  src="${resolvedUrl}" 
                   style="
                     max-width: 95%;
                     max-height: 100%;
