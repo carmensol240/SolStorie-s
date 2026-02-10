@@ -531,6 +531,124 @@ async function uploadImageToStorage(
   }
 }
 
+// === DOUBLE-PASS NIQQUD PIPELINE ===
+// Pass 2: Specialized Hebrew Grammarian agent for vocalization
+const NIKUD_GRAMMARIAN_PROMPT = `אתה מומחה ניקוד עברי (נקדן מקצועי). התפקיד שלך הוא להוסיף ניקוד מלא, מדויק ותקני לטקסט בעברית מודרנית.
+
+## כללים מחייבים:
+
+### 1. ניקוד תקני בלבד
+- השתמש רק בתבניות ניקוד סטנדרטיות של עברית מודרנית.
+- אסור בהחלט להמציא ניקוד או תבניות שלא קיימות.
+
+### 2. קמץ קטן (O-sound)
+- "כָּל" מנוקד עם קמץ קטן (נשמע כ-"כֹּל").
+- "בְּכָל" מנוקד עם קמץ קטן.
+- "כָּל-כָּך" עם קמץ קטן בשני המקרים.
+
+### 3. איסור מוחלט על המצאת מילים
+- אם מילה לא קיימת בעברית מודרנית - החלף אותה במילה פשוטה וקיימת.
+- דוגמאות:
+  - ❌ "מְהֻפְנֹת" → ✅ "מוּפְנוֹת" או "מִסְתַּכְּלוֹת"
+  - ❌ "מִתְעַנְּגֶת" → ✅ "נֶהֱנֵית"
+  - ❌ "מְהַרְהֶרֶת" → ✅ "חוֹשֶׁבֶת"
+
+### 4. ניקוד מלא
+- פתח, קמץ, צירי, סגול, חולם, שורוק, קובוץ, חיריק, שווא
+- דגש כשצריך (דגש קל ודגש חזק)
+- מפיק ה"א בסוף מילה כשצריך
+
+### 5. שמירה על המקור
+- שמור על כל המילים והמשפטים המקוריים
+- אל תשנה סימני פיסוק או רווחים
+- אל תוסיף או תמחק מילים (אלא אם מילה שגויה - החלף בנכונה)
+
+### 6. העדפה למילים פשוטות
+- אם מילה מורכבת ואתה לא בטוח ב-100% בניקוד שלה - החלף במילה פשוטה שהניקוד שלה ודאי.
+- דוגמה: במקום "עֵינַיִם מוּפְנוֹת" → "מִסְתַּכֶּלֶת עַל"
+
+### 7. בדיקת שגיאות נפוצות של AI
+לפני שאתה מחזיר, סרוק את הטקסט ובדוק:
+- שאין מילים עם ניקוד כפול או סותר
+- שכל שורוק (וּ) וחולם (וֹ) במקום הנכון
+- שהדגש לא חסר בבג"ד כפ"ת אחרי תנועה
+- שהשווא נע ושווא נח מנוקדים נכון
+
+### פורמט:
+החזר רק את הטקסט המנוקד, ללא הסברים או תוספות.`;
+
+// Function to add nikud to a single page text using the Grammarian agent
+async function addNikudToText(text: string, apiKey: string): Promise<string> {
+  try {
+    const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+      method: "POST",
+      headers: {
+        Authorization: \`Bearer \${apiKey}\`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        model: "google/gemini-2.5-flash",
+        messages: [
+          { role: "system", content: NIKUD_GRAMMARIAN_PROMPT },
+          { role: "user", content: \`הוסף ניקוד מלא ומדויק לטקסט הבא:\\n\\n\${text}\` },
+        ],
+      }),
+    });
+
+    if (!response.ok) {
+      console.error("Nikud grammarian failed:", response.status);
+      return text; // Fallback to original text without nikud
+    }
+
+    const data = await response.json();
+    const nikudText = data.choices?.[0]?.message?.content?.trim();
+
+    if (!nikudText) {
+      console.error("No nikud text returned from grammarian");
+      return text;
+    }
+
+    // === REVIEW STEP: Validate nikud quality ===
+    // Check for common AI nikud mistakes
+    const validated = validateNikud(nikudText, text);
+    return validated;
+  } catch (error) {
+    console.error("Error in nikud grammarian:", error);
+    return text; // Fallback to original
+  }
+}
+
+// Review step: validate nikud output for common AI mistakes
+function validateNikud(nikudText: string, originalText: string): string {
+  // 1. Check that nikud text is not drastically different in word count
+  const originalWords = originalText.replace(/[\\u0591-\\u05C7]/g, "").split(/\\s+/).filter(w => w.length > 0);
+  const nikudWords = nikudText.replace(/[\\u0591-\\u05C7]/g, "").split(/\\s+/).filter(w => w.length > 0);
+  
+  // If word count differs by more than 20%, something went wrong - return original
+  if (Math.abs(originalWords.length - nikudWords.length) > originalWords.length * 0.2) {
+    console.warn(\`Nikud validation failed: word count mismatch (original: \${originalWords.length}, nikud: \${nikudWords.length})\`);
+    return originalText;
+  }
+
+  // 2. Check for double-nikud on single characters (common AI mistake)
+  // Hebrew nikud range: \\u0591-\\u05C7
+  const doubleNikudPattern = /[\\u0591-\\u05C7]{3,}/;
+  if (doubleNikudPattern.test(nikudText)) {
+    console.warn("Nikud validation: found excessive nikud stacking, cleaning up...");
+    // Remove excessive nikud stacking (keep max 2 marks per char)
+    nikudText = nikudText.replace(/([\\u0591-\\u05C7]){3,}/g, "$1");
+  }
+
+  // 3. Verify the text still contains Hebrew characters
+  const hebrewCharCount = (nikudText.match(/[\\u05D0-\\u05EA]/g) || []).length;
+  if (hebrewCharCount < 5) {
+    console.warn("Nikud validation: too few Hebrew characters in result");
+    return originalText;
+  }
+
+  return nikudText;
+}
+
 serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
