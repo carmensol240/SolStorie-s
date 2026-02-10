@@ -31,6 +31,11 @@ import topicApologize from "@/assets/topic-apologize.jpg";
 import topicRainParty from "@/assets/topic-rain-party.jpg";
 import topicWeAreSpecial from "@/assets/topic-we-are-special.jpg";
 import topicPottyTraining from "@/assets/topic-potty-training.jpeg";
+import topicIndependence from "@/assets/topic-independence.jpg";
+import topicAngerCloud from "@/assets/topic-anger-cloud.jpg";
+import topicBodySafety from "@/assets/topic-body-safety.jpg";
+import topicNewHouse from "@/assets/topic-new-house.jpg";
+import topicUnderwater from "@/assets/topic-underwater.jpg";
 
 interface TopicStepProps {
   formData: StoryFormData;
