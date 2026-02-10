@@ -20,10 +20,6 @@ export const useTextToSpeech = (): UseTextToSpeechReturn => {
       audioRef.current.src = '';
       audioRef.current = null;
     }
-    if (blobUrlRef.current) {
-      URL.revokeObjectURL(blobUrlRef.current);
-      blobUrlRef.current = null;
-    }
     setIsReading(false);
   }, []);
 
