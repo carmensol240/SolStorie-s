@@ -21,30 +21,38 @@ const PrivacyPolicy = () => {
 
         {/* Privacy Content */}
         <article className="bg-card rounded-2xl border shadow-sm p-6 mb-6">
-          <div className="space-y-5 text-right leading-relaxed">
+          <div className="space-y-6 text-right leading-relaxed">
             <p className="text-muted-foreground leading-relaxed">
-              הגנה על פרטיותכם ופרטיות ילדיכם היא בראש סדר העדיפויות שלנו.
+              ברוכים הבאים למדיניות הפרטיות של StoryTime. אנו מחויבים להגנה על פרטיות המשתמשים שלנו, ובפרט על פרטיותם של קטינים המשתמשים בשירות.
             </p>
 
-            <p className="text-muted-foreground leading-relaxed">
-              <strong className="text-foreground">המידע שאנו אוספים:</strong>{" "}
-              אנו שומרים רק את שם הילד/ה וגילם לצורך התאמת הסיפור, ואת כתובת האימייל שלכם להתחברות.
-            </p>
+            <section>
+              <h2 className="text-lg font-bold text-foreground mb-2">איסוף מידע ושימוש בו</h2>
+              <p className="text-muted-foreground leading-relaxed">
+                לצורך אספקת השירות, אנו אוספים מידע מינימלי הכולל את שם הילד/ה וגילם. מידע זה משמש אך ורק את מנוע הבינה המלאכותית ליצירת תוכן מותאם גיל. איננו אוספים מידע אישי מזהה מעבר לנדרש לתפעול השירות.
+              </p>
+            </section>
 
-            <p className="text-muted-foreground leading-relaxed">
-              <strong className="text-foreground">אבטחה:</strong>{" "}
-              המידע מאובטח בשרתים מוגנים ואינו מועבר לצד שלישי.
-            </p>
+            <section>
+              <h2 className="text-lg font-bold text-foreground mb-2">אבטחת מידע</h2>
+              <p className="text-muted-foreground leading-relaxed">
+                אנו נוקטים באמצעי אבטחה מתקדמים להגנה על המידע השמור במערכותינו. המידע אינו מועבר, נמכר או משותף עם צדדים שלישיים לצרכים מסחריים או שיווקיים.
+              </p>
+            </section>
 
-            <p className="text-muted-foreground leading-relaxed">
-              <strong className="text-foreground">בינה מלאכותית:</strong>{" "}
-              המידע מעובד רק לצורך יצירת הסיפור האישי שלכם.
-            </p>
+            <section>
+              <h2 className="text-lg font-bold text-foreground mb-2">עיבוד נתונים באמצעות AI</h2>
+              <p className="text-muted-foreground leading-relaxed">
+                המשתמש מאשר כי התוכן המוזן על ידו מעובד באמצעות טכנולוגיית צד שלישי (AI) לצורך הפקת הסיפור. אנו מוודאים כי ספקי הטכנולוגיה עומדים בתקני אבטחה מחמירים.
+              </p>
+            </section>
 
-            <p className="text-muted-foreground leading-relaxed">
-              <strong className="text-foreground">זכות המחיקה:</strong>{" "}
-              ניתן למחוק את החשבון והמידע בכל עת דרך מסך ההגדרות.
-            </p>
+            <section>
+              <h2 className="text-lg font-bold text-foreground mb-2">זכויות המשתמש</h2>
+              <p className="text-muted-foreground leading-relaxed">
+                למשתמש זכות מלאה לעיין במידע, לעדכנו או לבקש את מחיקתו לצמיתות בכל עת דרך הגדרות החשבון.
+              </p>
+            </section>
           </div>
         </article>
 
