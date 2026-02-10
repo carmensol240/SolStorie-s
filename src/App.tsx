@@ -10,6 +10,7 @@ import AccessibilityMenu from "@/components/AccessibilityMenu";
 import About from "./pages/About";
 
 import Adventure from "./pages/Adventure";
+import Profile from "./pages/Profile";
 import Auth from "./pages/Auth";
 import VerifyEmail from "./pages/VerifyEmail";
 import ResetPassword from "./pages/ResetPassword";
