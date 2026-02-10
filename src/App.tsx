@@ -45,7 +45,9 @@ const App = () => (
         <Sonner />
         <BrowserRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
           <Routes>
-            <Route path="/" element={<Home />} />
+            <Route path="/" element={<About />} />
+            <Route path="/welcome" element={<Welcome />} />
+            <Route path="/adventure" element={<RequireTerms><Adventure /></RequireTerms>} />
             <Route path="/auth" element={<Auth />} />
             <Route path="/verify-email" element={<VerifyEmail />} />
             <Route path="/login" element={<Navigate to="/auth" replace />} />
