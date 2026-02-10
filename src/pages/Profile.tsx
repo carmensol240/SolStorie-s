@@ -320,7 +320,7 @@ const Profile = () => {
             פנקס הקסם להורה
           </h2>
 
-          <div className="bg-white/10 backdrop-blur-md border border-white/15 rounded-2xl p-4 space-y-4">
+          <div className="bg-white/[0.06] backdrop-blur-md border border-white/10 rounded-2xl p-4 space-y-4">
             <NotebookField
               icon={<MessageCircle className="w-3.5 h-3.5 text-purple-300" />}
               label="נקודות לשיחה"
