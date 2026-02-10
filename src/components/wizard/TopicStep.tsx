@@ -337,6 +337,8 @@ const ADVENTURE_CATEGORIES: AdventureCategory[] = [
       },
     ]
   },
+  {
+    id: "sensory-cloud",
     title: "ענן החושים",
     emoji: "☁️",
     topics: [
