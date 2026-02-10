@@ -930,6 +930,9 @@ const StoryViewer = () => {
           onSuccess={fetchStory}
         />
       )}
+
+      {/* PDF Feature Popup - one-time per user */}
+      <PdfFeaturePopup userId={user?.id} />
     </div>
   );
 };
