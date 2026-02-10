@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { StoryFormData } from "@/pages/CreateStory";
 import { cn } from "@/lib/utils";
 
-// Topic images - new uploaded images
+// Topic images
 import topicTeethBrushing from "@/assets/topic-teeth-brushing.jpg";
 import topicBathShower from "@/assets/topic-bath-shower.jpg";
 import topicNailTrimming from "@/assets/topic-nail-trimming.jpg";
@@ -16,22 +16,22 @@ import topicFamilyTrip from "@/assets/topic-family-trip.jpg";
 import topicMagicCastle from "@/assets/topic-magic-castle.jpg";
 import topicSpaceHero from "@/assets/topic-space-hero.jpg";
 import topicBirthday from "@/assets/topic-birthday.jpg";
-// Keep existing images for categories without new uploads
 import topicPacifier from "@/assets/topic-pacifier.jpg";
-import topicBedtime from "@/assets/topic-bedtime.jpg";
 import topicFriendship from "@/assets/topic-friendship.jpg";
-// New topics
-import topicPottyTraining from "@/assets/topic-potty-training.jpeg";
 import topicCleanRoom from "@/assets/topic-clean-room.jpeg";
 import topicNewSibling from "@/assets/topic-new-sibling.jpeg";
 import topicDentistVisit from "@/assets/topic-dentist-visit.jpeg";
+import topicBarberVisit from "@/assets/topic-barber-visit.jpg";
+import topicLostTooth from "@/assets/topic-lost-tooth.jpg";
+import topicSharing from "@/assets/topic-sharing.jpg";
+import topicCloudAdventure from "@/assets/topic-cloud-adventure.jpg";
+import topicFearOfDark from "@/assets/topic-fear-of-dark.jpg";
 
 interface TopicStepProps {
   formData: StoryFormData;
   updateFormData: (updates: Partial<StoryFormData>) => void;
 }
 
-// Define adventure logic type
 interface AdventureLogic {
   outfit: string;
   background: string;
@@ -53,38 +53,15 @@ interface AdventureCategory {
   topics: AdventureTopic[];
 }
 
-// Reorganized by NEW categories
 const ADVENTURE_CATEGORIES: AdventureCategory[] = [
   {
-    id: "emotion-detectors",
-    title: "גלאי רגשות",
-    emoji: "💕",
+    id: "daily-heroes",
+    title: "גיבורי היומיום",
+    emoji: "✨",
     topics: [
-      { 
-        id: "friendship-courage", 
-        label: "חברים בגן", 
-        image: topicFriendship,
-        description: "משחקים ומתגברים על קשיים",
-        logic: {
-          outfit: "everyday casual clothes suitable for playing",
-          background: "colorful kindergarten playground with sandbox and sunny weather",
-          theme: "social skills, making friends, playing together, sharing, managing emotions"
-        }
-      },
-      { 
-        id: "bedtime-story", 
-        label: "סיפור לפני השינה", 
-        image: topicBedtime,
-        description: "מתמודדים עם פחדים ורגשות",
-        logic: {
-          outfit: "cozy pajamas with soft slippers",
-          background: "enchanted bedroom at night with moonlight, stars, and reading elephant friend",
-          theme: "calming and peaceful bedtime adventure, overcoming fears, emotional regulation"
-        }
-      },
-      { 
-        id: "pacifier-fairy", 
-        label: "פיית המוצץ", 
+      {
+        id: "pacifier-fairy",
+        label: "פיית המוצץ",
         image: topicPacifier,
         description: "נפרדים מהמוצץ בקסם",
         logic: {
@@ -93,15 +70,110 @@ const ADVENTURE_CATEGORIES: AdventureCategory[] = [
           theme: "saying goodbye to pacifier, growing up, milestone transition, managing change"
         }
       },
-      { 
-        id: "new-sibling", 
-        label: "נולד לי אח/ות", 
+      {
+        id: "body-hero-teeth",
+        label: "צחצוח שיניים קסום",
+        image: topicTeethBrushing,
+        description: "עם פיית השיניים והדרקון",
+        logic: {
+          outfit: "everyday casual clothes at home",
+          background: "bright magical bathroom with sparkles and friendly dental fairy dragon",
+          theme: "teeth brushing, dental hygiene, making brushing fun, sensory experience"
+        }
+      },
+      {
+        id: "body-hero-bath",
+        label: "אמבטיה של כיף",
+        image: topicBathShower,
+        description: "בועות, ברווזון וקצף",
+        logic: {
+          outfit: "bath time with rubber ducky cap",
+          background: "colorful bubble bath with floating toys and rainbow bubbles",
+          theme: "bath time fun, getting clean, water play, sensory experience"
+        }
+      },
+      {
+        id: "clean-room",
+        label: "לסדר את החדר",
+        image: topicCleanRoom,
+        description: "קסם של סדר וארגון",
+        logic: {
+          outfit: "everyday casual clothes suitable for playing",
+          background: "colorful children's room with toys, toy boxes, shelves, magical sparkles",
+          theme: "cleaning up, organizing toys, responsibility, teamwork, making room tidy"
+        }
+      },
+      {
+        id: "body-hero-nails",
+        label: "גזירת ציפורניים",
+        image: topicNailTrimming,
+        description: "עם הפיות הקסומות",
+        logic: {
+          outfit: "everyday casual clothes",
+          background: "magical bathroom with fairies and sparkles, friendly nail clippers",
+          theme: "nail trimming, grooming routine, overcoming sensory discomfort"
+        }
+      },
+      {
+        id: "barber-visit",
+        label: "ביקור אצל הספר",
+        image: topicBarberVisit,
+        description: "תספורת קסומה וכיפית",
+        logic: {
+          outfit: "everyday casual clothes with barber cape",
+          background: "friendly colorful barber shop with mirrors, sparkles, and fun chair",
+          theme: "visiting the barber, haircut, overcoming fear, grooming, bravery"
+        }
+      },
+    ]
+  },
+  {
+    id: "emotion-detectors",
+    title: "גלאי רגשות",
+    emoji: "💕",
+    topics: [
+      {
+        id: "new-sibling",
+        label: "נולד לי אח/ות",
         image: topicNewSibling,
         description: "מקבלים תינוק חדש במשפחה",
         logic: {
           outfit: "comfortable home clothes",
           background: "warm nursery room with crib, mobile, soft lighting, and family atmosphere",
           theme: "welcoming new sibling, sharing attention, becoming a big brother/sister, family changes, emotions about new baby"
+        }
+      },
+      {
+        id: "lost-tooth",
+        label: "נפלה לי שן",
+        image: topicLostTooth,
+        description: "פיית השיניים באה לבקר",
+        logic: {
+          outfit: "everyday casual clothes",
+          background: "magical bedroom at night with a tiny glowing tooth fairy, sparkles, and a little tooth under a pillow",
+          theme: "losing a tooth, growing up, tooth fairy, excitement and courage, body changes"
+        }
+      },
+      {
+        id: "body-hero-hands",
+        label: "שטיפת ידיים",
+        image: topicHandWashing,
+        description: "מנצחים את החיידקים!",
+        logic: {
+          outfit: "everyday casual clothes",
+          background: "bright colorful bathroom with soap bubbles and friendly germs being washed away",
+          theme: "hand hygiene, washing hands, staying healthy, sensory experience"
+        }
+      },
+      {
+        id: "fear-of-dark",
+        label: "פחד מהחושך",
+        image: topicFearOfDark,
+        description: "מגלים שאין מה לפחד",
+        logic: {
+          outfit: "cozy pajamas with soft slippers",
+          background: "enchanted bedroom at night with a protective glowing nightlight, stars, and friendly shadows",
+          theme: "overcoming fear of darkness, bravery, emotional regulation, calming bedtime, feeling safe"
         }
       },
     ]
@@ -111,31 +183,31 @@ const ADVENTURE_CATEGORIES: AdventureCategory[] = [
     title: "משימות חברתיות",
     emoji: "🤝",
     topics: [
-      { 
-        id: "zoo-adventure", 
-        label: "טיול בגן החיות", 
-        image: topicZoo,
-        description: "פוגשים חיות ומתרגלים שיתוף",
+      {
+        id: "friendship-courage",
+        label: "חברים בגן",
+        image: topicFriendship,
+        description: "משחקים ומתגברים על קשיים",
         logic: {
-          outfit: "comfortable outdoor clothes with backpack",
-          background: "colorful zoo with friendly animals, fences, trees",
-          theme: "animal discovery, nature, sharing with friends, taking turns"
+          outfit: "everyday casual clothes suitable for playing",
+          background: "colorful kindergarten playground with sandbox and sunny weather",
+          theme: "social skills, making friends, playing together, sharing, managing emotions"
         }
       },
-      { 
-        id: "family-trip", 
-        label: "טיול משפחתי", 
-        image: topicFamilyTrip,
-        description: "הרפתקה בטבע עם המשפחה",
+      {
+        id: "sharing-fun",
+        label: "כמה כיף לחלוק",
+        image: topicSharing,
+        description: "לחלוק זה כיף!",
         logic: {
-          outfit: "hiking clothes with backpack",
-          background: "beautiful nature trail with trees, stream, flowers, and dog",
-          theme: "family bonding, nature exploration, teamwork, helping others"
+          outfit: "everyday casual clothes",
+          background: "colorful kindergarten with toys and snacks, children playing together happily",
+          theme: "sharing toys, generosity, kindness, social skills, taking turns"
         }
       },
-      { 
-        id: "birthday-party", 
-        label: "מסיבת יום הולדת", 
+      {
+        id: "birthday-party",
+        label: "מסיבת יום הולדת",
         image: topicBirthday,
         description: "חוגגים ומשתפים עם חברים",
         logic: {
@@ -144,15 +216,15 @@ const ADVENTURE_CATEGORIES: AdventureCategory[] = [
           theme: "birthday celebration, friendship, sharing joy, being a good host"
         }
       },
-      { 
-        id: "clean-room", 
-        label: "לסדר את החדר", 
-        image: topicCleanRoom,
-        description: "קסם של סדר וארגון",
+      {
+        id: "family-trip",
+        label: "טיול משפחתי",
+        image: topicFamilyTrip,
+        description: "הרפתקה בטבע עם המשפחה",
         logic: {
-          outfit: "everyday casual clothes suitable for playing",
-          background: "colorful children's room with toys, toy boxes, shelves, magical sparkles",
-          theme: "cleaning up, organizing toys, responsibility, teamwork, making room tidy"
+          outfit: "hiking clothes with backpack",
+          background: "beautiful nature trail with trees, stream, flowers, and dog",
+          theme: "family bonding, nature exploration, teamwork, helping others"
         }
       },
     ]
@@ -160,101 +232,50 @@ const ADVENTURE_CATEGORIES: AdventureCategory[] = [
   {
     id: "sensory-cloud",
     title: "ענן החושים",
-    emoji: "🧼",
+    emoji: "☁️",
     topics: [
-      { 
-        id: "body-hero-teeth", 
-        label: "צחצוח שיניים קסום", 
-        image: topicTeethBrushing,
-        description: "עם פיית השיניים והדרקון",
-        logic: {
-          outfit: "everyday casual clothes at home",
-          background: "bright magical bathroom with sparkles and friendly dental fairy dragon",
-          theme: "teeth brushing, dental hygiene, making brushing fun, sensory experience"
-        }
-      },
-      { 
-        id: "body-hero-bath", 
-        label: "אמבטיה של כיף", 
-        image: topicBathShower,
-        description: "בועות, ברווזון וקצף",
-        logic: {
-          outfit: "bath time with rubber ducky cap",
-          background: "colorful bubble bath with floating toys and rainbow bubbles",
-          theme: "bath time fun, getting clean, water play, sensory experience"
-        }
-      },
-      { 
-        id: "body-hero-hands", 
-        label: "שטיפת ידיים", 
-        image: topicHandWashing,
-        description: "מנצחים את החיידקים!",
-        logic: {
-          outfit: "everyday casual clothes",
-          background: "bright colorful bathroom with soap bubbles and friendly germs being washed away",
-          theme: "hand hygiene, washing hands, staying healthy, sensory experience"
-        }
-      },
-      { 
-        id: "body-hero-nails", 
-        label: "גזירת ציפורניים", 
-        image: topicNailTrimming,
-        description: "עם הפיות הקסומות",
-        logic: {
-          outfit: "everyday casual clothes",
-          background: "magical bathroom with fairies and sparkles, friendly nail clippers",
-          theme: "nail trimming, grooming routine, overcoming sensory discomfort"
-        }
-      },
-    ]
-  },
-  {
-    id: "daily-heroes",
-    title: "גיבורי היומיום",
-    emoji: "✨",
-    topics: [
-      { 
-        id: "potty-training", 
-        label: "גמילה מחיתולים", 
-        image: topicPottyTraining,
-        description: "מסע גדול לשירותים",
-        logic: {
-          outfit: "everyday casual clothes with easy-pull pants",
-          background: "cheerful bathroom with colorful potty, encouraging teddy bear, stickers on wall",
-          theme: "potty training, growing up, independence milestone, using the toilet like a big kid"
-        }
-      },
-      { 
-        id: "dentist-visit", 
-        label: "ביקור אצל רופא השיניים", 
-        image: topicDentistVisit,
-        description: "מגלים שאין מה לפחד",
-        logic: {
-          outfit: "everyday casual comfortable clothes",
-          background: "friendly colorful dental clinic with smiling dentist, fun dental chair, tooth decorations",
-          theme: "visiting the dentist, overcoming fear of dental checkups, bravery, oral health"
-        }
-      },
-      { 
-        id: "space-adventure", 
-        label: "הרפתקה בחלל", 
+      {
+        id: "space-adventure",
+        label: "הרפתקה בחלל",
         image: topicSpaceHero,
         description: "מסע בין כוכבים ופלאות",
         logic: {
           outfit: "astronaut spacesuit with helmet",
           background: "outer space with stars, planets, and galaxies",
-          theme: "exploration and discovery in space, bravery, daily heroism"
+          theme: "exploration and discovery in space, bravery, imagination"
         }
       },
-      { 
-        id: "magic-kingdom", 
-        label: "ממלכת הקסם", 
+      {
+        id: "magic-kingdom",
+        label: "ממלכת הקסם",
         image: topicMagicCastle,
         description: "הרפתקה קסומה בארמון",
         logic: {
           outfit: "royal prince/princess attire with crown",
           background: "magical castle with towers and enchanted gardens",
           theme: "fantasy and magic in a royal kingdom, kindness, helping others"
+        }
+      },
+      {
+        id: "zoo-adventure",
+        label: "טיול בגן החיות",
+        image: topicZoo,
+        description: "פוגשים חיות ומתרגלים שיתוף",
+        logic: {
+          outfit: "comfortable outdoor clothes with backpack",
+          background: "colorful zoo with friendly animals, fences, trees",
+          theme: "animal discovery, nature, sharing with friends, taking turns"
+        }
+      },
+      {
+        id: "cloud-adventure",
+        label: "טיול בעננים",
+        image: topicCloudAdventure,
+        description: "מעופפים בין עננים קסומים",
+        logic: {
+          outfit: "light airy clothes with tiny wings",
+          background: "dreamy sky filled with fluffy magical clouds, rainbows, floating islands, and sparkling stars",
+          theme: "imagination, flying, dreaming, sensory wonder, freedom, creativity"
         }
       },
     ]
@@ -372,16 +393,13 @@ const CategoryCarousel = ({
 };
 
 const TopicStep = ({ formData, updateFormData }: TopicStepProps) => {
-  // Handle topic selection - ALLOW keeping customTopic for combination
   const handleTopicSelect = (topic: AdventureTopic) => {
-    // If same topic clicked, deselect it
     if (formData.topic === topic.id) {
       updateFormData({ 
         topic: formData.customTopic.trim() ? "custom" : "",
         adventureLogic: undefined
       });
     } else {
-      // Select topic but KEEP customTopic for combination
       updateFormData({ 
         topic: topic.id,
         adventureLogic: topic.logic
@@ -389,10 +407,7 @@ const TopicStep = ({ formData, updateFormData }: TopicStepProps) => {
     }
   };
 
-  // Handle custom topic change - KEEP selected topic for combination
   const handleCustomTopicChange = (value: string) => {
-    // If there's a structured topic selected, keep it (for combination mode)
-    // Otherwise set topic to "custom" if there's text
     if (!formData.topic || formData.topic === "custom") {
       updateFormData({ 
         customTopic: value,
@@ -400,10 +415,7 @@ const TopicStep = ({ formData, updateFormData }: TopicStepProps) => {
         adventureLogic: undefined
       });
     } else {
-      // Keep the structured topic, just update the customTopic
-      updateFormData({ 
-        customTopic: value
-      });
+      updateFormData({ customTopic: value });
     }
   };
 
@@ -416,7 +428,7 @@ const TopicStep = ({ formData, updateFormData }: TopicStepProps) => {
         </h1>
       </div>
 
-      {/* NLP Smart Input - More compact */}
+      {/* NLP Smart Input */}
       <div className="space-y-2 px-4 bg-purple-50/50 py-3 rounded-xl mx-3 border border-purple-200/50">
         <div className="flex items-center gap-2 justify-center">
           <Brain className="w-5 h-5 text-purple-500" />
@@ -431,15 +443,13 @@ const TopicStep = ({ formData, updateFormData }: TopicStepProps) => {
           onChange={(e) => handleCustomTopicChange(e.target.value)}
           className={cn(
             "min-h-14 text-sm resize-none",
-            formData.customTopic.trim() 
-              ? "border-purple-400" 
-              : ""
+            formData.customTopic.trim() ? "border-purple-400" : ""
           )}
           dir="rtl"
         />
       </div>
 
-      {/* Divider - Compact */}
+      {/* Divider */}
       <div className="relative py-1 px-4">
         <div className="absolute inset-0 flex items-center px-4">
           <div className="w-full border-t border-purple-200/50" />
