@@ -34,14 +34,20 @@ export const usePdfExport = () => {
   const { toast } = useToast();
   const { fetchSignedUrls } = useSignedUrls();
 
-  const loadImage = (url: string): Promise<HTMLImageElement> => {
-    return new Promise((resolve, reject) => {
-      const img = new Image();
-      img.crossOrigin = 'anonymous';
-      img.onload = () => resolve(img);
-      img.onerror = reject;
-      img.src = url;
-    });
+  const loadImageAsDataUrl = async (url: string): Promise<string> => {
+    try {
+      const response = await fetch(url);
+      const blob = await response.blob();
+      return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onloadend = () => resolve(reader.result as string);
+        reader.onerror = reject;
+        reader.readAsDataURL(blob);
+      });
+    } catch {
+      console.warn('Failed to convert image to data URL, using original');
+      return url;
+    }
   };
 
   // Add watermark to PDF page
@@ -69,7 +75,7 @@ export const usePdfExport = () => {
     const canvas = await html2canvas(content, {
       scale: 2,
       useCORS: true,
-      allowTaint: true,
+      allowTaint: false,
       backgroundColor: null,
     });
 
@@ -183,7 +189,7 @@ export const usePdfExport = () => {
         if (page.illustration_url) {
           try {
             const resolvedUrl = signedUrlMap[page.illustration_url] || page.illustration_url;
-            const img = await loadImage(resolvedUrl);
+            const dataUrl = await loadImageAsDataUrl(resolvedUrl);
             illustrationHtml = `
               <div style="
                 flex: 0 0 65%;
@@ -193,7 +199,7 @@ export const usePdfExport = () => {
                 margin-bottom: 8px;
               ">
                 <img 
-                  src="${resolvedUrl}" 
+                  src="${dataUrl}" 
                   style="
                     max-width: 95%;
                     max-height: 100%;
@@ -202,7 +208,6 @@ export const usePdfExport = () => {
                     box-shadow: 0 8px 24px rgba(139, 69, 19, 0.2);
                     object-fit: contain;
                   "
-                  crossorigin="anonymous"
                 />
               </div>
             `;
@@ -356,10 +361,10 @@ export const usePdfExport = () => {
       if (page.illustration_url) {
         try {
           const resolvedUrl = signedUrlMap[page.illustration_url] || page.illustration_url;
-          await loadImage(resolvedUrl);
+          const dataUrl = await loadImageAsDataUrl(resolvedUrl);
           illustrationHtml = `
             <img 
-              src="${resolvedUrl}" 
+              src="${dataUrl}" 
               style="
                 max-width: 90%;
                 max-height: 90%;
@@ -367,7 +372,6 @@ export const usePdfExport = () => {
                 box-shadow: 0 8px 32px rgba(139, 69, 19, 0.25);
                 object-fit: contain;
               "
-              crossorigin="anonymous"
             />
           `;
         } catch (e) {
