@@ -46,7 +46,7 @@ const App = () => (
         <BrowserRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
           <Routes>
             <Route path="/" element={<About />} />
-            <Route path="/welcome" element={<Welcome />} />
+            <Route path="/welcome" element={<Navigate to="/adventure" replace />} />
             <Route path="/adventure" element={<RequireTerms><Adventure /></RequireTerms>} />
             <Route path="/auth" element={<Auth />} />
             <Route path="/verify-email" element={<VerifyEmail />} />
