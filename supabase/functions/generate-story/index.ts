@@ -638,7 +638,7 @@ function validateNikud(nikudText: string, originalText: string): string {
   }
 
   // 3. Verify the text still contains Hebrew characters
-  const hebrewCharCount = (nikudText.match(/[\\u05D0-\\u05EA]/g) || []).length;
+  const hebrewCharCount = (nikudText.match(/[\u05D0-\u05EA]/g) || []).length;
   if (hebrewCharCount < 5) {
     console.warn("Nikud validation: too few Hebrew characters in result");
     return originalText;
