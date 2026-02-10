@@ -22,7 +22,7 @@ const About = () => {
         </div>
 
         {/* Technology cards */}
-        <div className="space-y-3 mb-3 w-full">
+        <div className="space-y-2 mb-2 w-full">
           <div className="flex items-center gap-3 bg-white/60 backdrop-blur-sm rounded-2xl p-4 border border-purple-100 shadow-sm">
             <div className="w-10 h-10 bg-gradient-to-br from-purple-500 to-purple-700 rounded-xl flex items-center justify-center flex-shrink-0">
               <Brain className="w-5 h-5 text-white" />
