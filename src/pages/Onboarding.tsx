@@ -56,6 +56,14 @@ const Onboarding = () => {
     checkTermsAcceptance();
   }, [user, loading, navigate]);
 
+  const getReturnTo = () => {
+    const returnTo = searchParams.get('returnTo') || '/adventure';
+    if (returnTo.startsWith('/') && !returnTo.startsWith('//')) {
+      return returnTo;
+    }
+    return '/adventure';
+  };
+
   const handleContinue = async () => {
     if (!user || !hasAgreed) return;
     
@@ -76,7 +84,7 @@ const Onboarding = () => {
         description: "מחכה לך סיפור ראשון במתנה מאיתנו כדי להתחיל בקסם ✨",
       });
       
-      navigate("/adventure");
+      navigate(getReturnTo(), { replace: true });
     } catch (error) {
       console.error("Error saving consent:", error);
       toast({
