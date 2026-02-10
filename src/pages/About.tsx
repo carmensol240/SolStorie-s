@@ -7,9 +7,9 @@ const About = () => {
 
   return (
     <div className="min-h-[100dvh] flex flex-col bg-gradient-to-b from-purple-50 via-pink-50 to-amber-50" dir="rtl">
-      <div className="flex-1 flex flex-col items-center justify-center px-5 pt-0 pb-2 max-w-lg mx-auto text-center">
+      <div className="flex-1 flex flex-col items-center justify-center px-5 pt-0 pb-1 max-w-lg mx-auto text-center">
         {/* Welcome text */}
-        <div className="space-y-2 mb-3">
+        <div className="space-y-1.5 mb-2">
           <h1 className="text-2xl font-black text-purple-800 leading-snug">
             ברוכים הבאים ל-<span className="bg-gradient-to-r from-purple-600 via-pink-500 to-orange-400 bg-clip-text text-transparent">StoryTime</span>! 🌟
           </h1>
@@ -22,7 +22,7 @@ const About = () => {
         </div>
 
         {/* Technology cards */}
-        <div className="space-y-3 mb-3 w-full">
+        <div className="space-y-2 mb-2 w-full">
           <div className="flex items-center gap-3 bg-white/60 backdrop-blur-sm rounded-2xl p-4 border border-purple-100 shadow-sm">
             <div className="w-10 h-10 bg-gradient-to-br from-purple-500 to-purple-700 rounded-xl flex items-center justify-center flex-shrink-0">
               <Brain className="w-5 h-5 text-white" />
@@ -51,16 +51,26 @@ const About = () => {
           </div>
         </div>
 
+        {/* Invitation text */}
+        <p className="text-sm text-foreground/80 leading-relaxed mb-2 px-2">
+          אני מזמינה אתכם להצטרף אלינו למסע. כדי שתוכלו להרגיש את הקסם בעצמכם, הסיפור הראשון הוא עלינו – במתנה.
+        </p>
+
         {/* Continue button */}
         <button
           onClick={() => navigate("/adventure")}
-          className="w-full max-w-xs mx-auto flex items-center justify-center bg-gradient-to-r from-purple-600 via-pink-500 to-orange-500 hover:from-purple-700 hover:via-pink-600 hover:to-orange-600 text-white font-black text-lg py-3.5 rounded-full shadow-xl transition-all hover:scale-[1.02]"
+          className="w-full max-w-xs mx-auto flex items-center justify-center bg-gradient-to-r from-purple-600 via-pink-500 to-orange-500 hover:from-purple-700 hover:via-pink-600 hover:to-orange-600 text-white font-black text-base py-3.5 rounded-full shadow-xl transition-all hover:scale-[1.02]"
           style={{
             boxShadow: '0 8px 30px -8px rgba(147, 51, 234, 0.5), 0 4px 15px -4px rgba(236, 72, 153, 0.3)'
           }}
         >
-          להמשך ✨
+          בואו נתחיל (סיפור ראשון חינם) ✨
         </button>
+
+        {/* Signature */}
+        <p className="text-sm font-semibold bg-gradient-to-r from-purple-600 via-pink-500 to-orange-400 bg-clip-text text-transparent mt-2">
+          באהבה, כרמית כהן
+        </p>
       </div>
 
       <MobileNavigation />
