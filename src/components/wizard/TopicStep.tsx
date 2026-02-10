@@ -65,6 +65,7 @@ interface AdventureCategory {
   id: string;
   title: string;
   emoji: string;
+  subtitle?: string;
   topics: AdventureTopic[];
 }
 
