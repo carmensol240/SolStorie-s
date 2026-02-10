@@ -40,13 +40,8 @@ const Settings = () => {
     window.location.replace("/");
   };
 
-  // All menu items combined
+  // Settings menu items - legal & support only
   const menuItems = [
-    {
-      icon: Users,
-      label: "ניהול ילדים",
-      onClick: () => navigate("/children"),
-    },
     {
       icon: Mail,
       label: "יצירת קשר",
