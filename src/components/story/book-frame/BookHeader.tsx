@@ -69,6 +69,7 @@ export const BookHeader: React.FC<BookHeaderProps> = ({
   showReadAloud = false,
   isReading = false,
   isLoadingAudio = false,
+  hasAudioError = false,
 }) => {
   return (
     <header className="sticky top-0 z-40 bg-gradient-to-r from-purple-600 via-pink-500 to-orange-400 px-3 py-2 shadow-lg">
