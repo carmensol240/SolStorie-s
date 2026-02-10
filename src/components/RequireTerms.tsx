@@ -53,7 +53,8 @@ const RequireTerms = ({ children }: RequireTermsProps) => {
         }
 
         if (!data?.terms_accepted_at) {
-          navigate(`/auth?returnTo=${encodeURIComponent(window.location.pathname + window.location.search)}`);
+          const returnTo = encodeURIComponent(window.location.pathname + window.location.search);
+          navigate(`/onboarding?returnTo=${returnTo}`);
           return;
         }
 

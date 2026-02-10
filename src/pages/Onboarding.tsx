@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { useNavigate, Link } from "react-router-dom";
+import { useNavigate, Link, useSearchParams } from "react-router-dom";
 import { CreditCard, Loader2, ArrowLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -14,6 +14,7 @@ const TERMS_VERSION = "1.0";
 
 const Onboarding = () => {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const { user, loading } = useAuth();
   const { toast } = useToast();
   
@@ -55,6 +56,14 @@ const Onboarding = () => {
     checkTermsAcceptance();
   }, [user, loading, navigate]);
 
+  const getReturnTo = () => {
+    const returnTo = searchParams.get('returnTo') || '/adventure';
+    if (returnTo.startsWith('/') && !returnTo.startsWith('//')) {
+      return returnTo;
+    }
+    return '/adventure';
+  };
+
   const handleContinue = async () => {
     if (!user || !hasAgreed) return;
     
@@ -75,7 +84,7 @@ const Onboarding = () => {
         description: "מחכה לך סיפור ראשון במתנה מאיתנו כדי להתחיל בקסם ✨",
       });
       
-      navigate("/adventure");
+      navigate(getReturnTo(), { replace: true });
     } catch (error) {
       console.error("Error saving consent:", error);
       toast({

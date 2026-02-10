@@ -258,51 +258,25 @@ const Auth = () => {
       
       setCheckingTerms(true);
       try {
-        // First, try to get existing profile
-        const { data, error } = await supabase
+        const { data } = await supabase
           .from("profiles")
-          .select("terms_accepted_at, display_name, story_credits")
+          .select("terms_accepted_at")
           .eq("id", user.id)
           .maybeSingle();
-
-        // If no profile exists (error or null data), create one
-        if (error || !data) {
-          console.log("No profile found, creating one for user:", user.id);
-          const { error: insertError } = await supabase
-            .from("profiles")
-            .insert({
-              id: user.id,
-              display_name: user.email?.split('@')[0] || null,
-            });
-          
-          if (insertError) {
-            console.error("Error creating profile:", insertError);
-          }
-          
-          // Set defaults and show consent
-          setDisplayName(user.email?.split('@')[0] || "");
-          setStoryCredits(1);
-          setShowConsentStep(true);
-          setCheckingTerms(false);
-          return;
-        }
-
-        // Store profile data for trial offer screen
-        setDisplayName(data?.display_name || user.email?.split('@')[0] || "");
-        setStoryCredits(data?.story_credits ?? 1);
 
         if (data?.terms_accepted_at) {
           // Terms already accepted - redirect to destination
           const returnTo = getReturnTo();
           localStorage.removeItem('returnTo');
-          navigate(returnTo);
+          navigate(returnTo, { replace: true });
         } else {
-          // Redirect to onboarding page for consent
-          navigate("/onboarding");
+          // Terms not yet accepted - redirect to onboarding
+          const returnTo = getReturnTo();
+          navigate(`/onboarding?returnTo=${encodeURIComponent(returnTo)}`, { replace: true });
         }
       } catch (error) {
         console.error("Error checking terms:", error);
-        navigate("/onboarding");
+        navigate("/onboarding", { replace: true });
       } finally {
         setCheckingTerms(false);
       }
