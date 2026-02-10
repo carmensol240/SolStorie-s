@@ -360,18 +360,64 @@ const StoryViewer = () => {
   const swipeHandlers = { onTouchStart, onTouchMove, onTouchEnd };
 
   const handleShare = async () => {
+    if (!story || !user) return;
+
     try {
-      await navigator.share({
-        title: `הסיפור של ${story?.child_name}`,
-        text: "ראו את הסיפור המדהים שיצרתי!",
-        url: window.location.href,
-      });
-    } catch {
+      // Find or create a public digital book for sharing
+      let shareToken: string;
+
+      const { data: existing } = await supabase
+        .from('digital_books')
+        .select('share_token')
+        .eq('story_id', story.id)
+        .eq('user_id', user.id)
+        .maybeSingle();
+
+      if (existing) {
+        // Ensure it's public
+        await supabase
+          .from('digital_books')
+          .update({ is_public: true })
+          .eq('story_id', story.id)
+          .eq('user_id', user.id);
+        shareToken = existing.share_token;
+      } else {
+        const { data: newBook, error } = await supabase
+          .from('digital_books')
+          .insert({
+            story_id: story.id,
+            user_id: user.id,
+            is_public: true,
+          })
+          .select('share_token')
+          .single();
+
+        if (error) throw error;
+        shareToken = newBook.share_token;
+      }
+
+      const shareUrl = `${window.location.origin}/flipbook?token=${shareToken}`;
+
+      try {
+        await navigator.share({
+          title: `הסיפור של ${story.child_name}`,
+          text: "ראו את הסיפור המדהים שיצרתי!",
+          url: shareUrl,
+        });
+      } catch {
+        await navigator.clipboard.writeText(shareUrl);
+        toast({
+          title: "הקישור הועתק!",
+          description: "תוכלו לשתף אותו עם חברים",
+        });
+      }
+    } catch (error) {
+      console.error('Error sharing story:', error);
       toast({
-        title: "הקישור הועתק!",
-        description: "תוכלו לשתף אותו עם חברים",
+        title: "שגיאה בשיתוף",
+        description: "נסו שוב מאוחר יותר",
+        variant: "destructive",
       });
-      navigator.clipboard.writeText(window.location.href);
     }
   };
 
