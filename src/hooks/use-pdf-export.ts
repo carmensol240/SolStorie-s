@@ -32,6 +32,7 @@ export type PdfLayout = 'portrait' | 'landscape-book';
 export const usePdfExport = () => {
   const [isExporting, setIsExporting] = useState(false);
   const { toast } = useToast();
+  const { fetchSignedUrls } = useSignedUrls();
 
   const loadImage = (url: string): Promise<HTMLImageElement> => {
     return new Promise((resolve, reject) => {
