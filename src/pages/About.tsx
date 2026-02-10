@@ -50,11 +50,6 @@ const About = () => {
           ברוכים הבאים ל-<span className="bg-gradient-to-r from-purple-300 via-pink-300 to-orange-300 bg-clip-text text-transparent">StoryTime</span> ✨
         </h1>
 
-        {/* Opening quote — larger, italic, emotional */}
-        <p className="text-lg italic text-purple-200/90 leading-relaxed mb-5 px-2">
-          "לפעמים, הסיפורים הכי מרגשים נולדים מאהבה גדולה וצורך אמיתי."
-        </p>
-
         {/* Personal intro */}
         <p className="text-base font-bold text-white/90 leading-relaxed mb-1">
           שלום, אני כרמן
@@ -62,37 +57,45 @@ const About = () => {
         <p className="text-sm text-white/75 leading-relaxed mb-3 px-1">
           יצרתי את StoryTime עבור בתי סול, מתוך רצון להעניק לה עולם של דמיון שמבין את הקצב הייחודי שלה. רציתי ליצור עבורה מרחב שבו מילים הופכות לקסם מחבק, המותאם בדיוק לדרך שבה היא חווה את העולם.
         </p>
-        <p className="text-sm text-white/75 leading-relaxed mb-5 px-1">
+        <p className="text-sm text-white/75 leading-relaxed mb-3 px-1">
           זהו מקום שעוזר לעבד רגשות, בונה חוסן פנימי ומאפשר לה להיות הגיבורה בסיפור שלה – בכל ערב מחדש.
+        </p>
+        <p className="text-sm text-white/75 leading-relaxed mb-5 px-1">
+          אני נרגשת לחלוק את הקסם הזה גם אתכם. הנה מה שתמצאו בתוך StoryTime:
+        </p>
+
+        {/* Section title */}
+        <p className="text-base font-bold text-white/90 leading-relaxed mb-4">
+          מה הופך את הסיפורים שלנו למיוחדים?
         </p>
 
         {/* Features — floating, no boxes */}
         <div className="space-y-4 mb-5 w-full">
           <div className="flex flex-col items-center gap-1.5">
-            <span className="text-3xl">🪄</span>
+            <span className="text-3xl">⭐</span>
             <p className="text-sm text-white/80 leading-snug px-4">
-              <strong className="text-purple-200">סיפורים מעצימים</strong> — כלים מעולם עיבוד השפה הטבעית משולבים בתוך הסיפורים, עם סוגסטיות שעוזרות לילד לבנות ביטחון עצמי.
+              <strong className="text-amber-200">הילד שלכם הוא הגיבור</strong> — הופכים תמונה פשוטה לדמות מצוירת בסגנון אנימציה קלאסי, שמלווה את הילד לאורך כל ההרפתקה.
             </p>
           </div>
 
           <div className="flex flex-col items-center gap-1.5">
             <span className="text-3xl">🌙</span>
             <p className="text-sm text-white/80 leading-snug px-4">
-              <strong className="text-pink-200">קסם מותאם אישית</strong> — סיפורים בעברית פשוטה וחמה, עם ניקוד מלא ומדויק להקראה מושלמת.
+              <strong className="text-pink-200">התאמה מושלמת לפי גיל</strong> — אנחנו יודעים שכל גיל הוא עולם ומלואו. הסיפורים שלנו מותאמים אישית – מסיפורים קצרצרים לפעוטות (0-2), דרך עלילות מרתקות לילדי גן (3-6), ועד לסיפורים מורכבים ועשירים לילדים שכבר לומדים לקרוא (7-8).
             </p>
           </div>
 
           <div className="flex flex-col items-center gap-1.5">
-            <span className="text-3xl">⭐</span>
+            <span className="text-3xl">🪄</span>
             <p className="text-sm text-white/80 leading-snug px-4">
-              <strong className="text-amber-200">הילד שלכם הוא הגיבור</strong> — תמונת הילד הופכת לדמות מצוירת בסגנון אנימציה קלאסי שמלווה אותו בכל הרפתקה.
+              <strong className="text-purple-200">סיפורים מעצימים</strong> — כל סיפור נבנה עם דגש על בניית ביטחון עצמי, חוסן רגשי ומסרים חיוביים שנטמעים בילד בצורה טבעית ומהנה.
             </p>
           </div>
         </div>
 
         {/* Invitation */}
         <p className="text-sm text-white/80 leading-relaxed mb-5 px-3 font-semibold">
-          אני מזמינה אתכם להצטרף אלינו למסע. כדי שתוכלו להרגיש את הקסם בעצמכם, הסיפור הראשון הוא עלינו – במתנה.
+          אני מזמינה אתכם להצטרף אלינו למסע. כדי שתוכלו להרגיש את הקסם בעצמכם, הסיפור הראשון הוא מתנה ממני.
         </p>
 
         {/* CTA Button */}
