@@ -39,16 +39,27 @@ const Home = () => {
       <OfflineIndicator isOnline={isOnline} />
       
       <div className="flex-1 overflow-y-auto flex flex-col pb-20" style={{ WebkitOverflowScrolling: 'touch' }}>
-        <div className="container max-w-lg mx-auto px-4 py-3 flex-1 flex flex-col">
-          
-          {/* Show LoggedInHome (Sol/Tree) for authenticated users, GuestLanding for guests */}
-          {isLoggedIn ? (
-            <LoggedInHome user={user} displayName={displayName} />
-          ) : (
+        {isLoggedIn ? (
+          <>
+            {/* Screen 1: Soli tree landing (full viewport height) */}
+            <div className="min-h-[100dvh] flex flex-col">
+              <div className="container max-w-lg mx-auto px-4 py-3 flex-1 flex flex-col">
+                <GuestLanding user={user} isLoggedIn={isLoggedIn} />
+              </div>
+            </div>
+            
+            {/* Screen 2: Flying kids with greeting + CTA (full viewport height) */}
+            <div className="min-h-[100dvh] flex flex-col">
+              <div className="container max-w-lg mx-auto px-4 py-3 flex-1 flex flex-col">
+                <LoggedInHome user={user} displayName={displayName} />
+              </div>
+            </div>
+          </>
+        ) : (
+          <div className="container max-w-lg mx-auto px-4 py-3 flex-1 flex flex-col">
             <GuestLanding user={user} isLoggedIn={isLoggedIn} />
-          )}
-
-        </div>
+          </div>
+        )}
       </div>
       
       {/* PWA Install Prompt */}
