@@ -170,7 +170,7 @@ const Profile = () => {
         {[...Array(18)].map((_, i) => (
           <div
             key={i}
-            className="absolute rounded-full bg-white/50 animate-pulse"
+            className="absolute rounded-full bg-white animate-pulse"
             style={{
               width: `${2 + Math.random() * 3}px`,
               height: `${2 + Math.random() * 3}px`,
