@@ -20,10 +20,10 @@ export const PRICING_PACKAGES = [
   {
     id: "premium",
     stories: 15,
-    price: 115,
-    pricePerStory: "7.67₪",
+    price: 129,
+    pricePerStory: "8.6₪",
     label: "משתלם",
-    freeEdits: 20,
+    freeEdits: 10,
     badge: undefined as string | undefined,
   },
 ] as const;
