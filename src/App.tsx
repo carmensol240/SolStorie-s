@@ -8,7 +8,7 @@ import BetaBanner from "@/components/BetaBanner";
 import AccessibilityProvider from "@/components/AccessibilityProvider";
 import AccessibilityMenu from "@/components/AccessibilityMenu";
 import About from "./pages/About";
-import Welcome from "./pages/Welcome";
+
 import Adventure from "./pages/Adventure";
 import Auth from "./pages/Auth";
 import VerifyEmail from "./pages/VerifyEmail";
