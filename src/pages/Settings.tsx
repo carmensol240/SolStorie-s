@@ -28,7 +28,7 @@ const Settings = () => {
   const [reducedMotion, setReducedMotion] = useState(() => document.documentElement.classList.contains('reduced-motion'));
   const [largeCursor, setLargeCursor] = useState(() => document.documentElement.classList.contains('large-cursor'));
 
-  const totalCredits = (credits ?? 0) + shareCoins;
+  
 
   const handleSignOut = async () => {
     await signOut();
