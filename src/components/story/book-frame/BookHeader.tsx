@@ -6,10 +6,6 @@ import {
   Menu,
   Type,
   Book,
-  Volume2,
-  VolumeX,
-  Loader2,
-  RefreshCw
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
