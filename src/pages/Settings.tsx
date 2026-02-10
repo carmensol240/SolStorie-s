@@ -4,7 +4,6 @@ import { ArrowRight, Mail, Trash2, LogOut, FileText, Shield, Eye, Info, Accessib
 import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
 import { useAuth } from "@/hooks/use-auth";
-import { useCredits } from "@/hooks/use-credits";
 import { useReferral } from "@/hooks/use-referral";
 import { useAccessibility, type FontSize } from "@/hooks/use-accessibility";
 import MobileNavigation from "@/components/MobileNavigation";
