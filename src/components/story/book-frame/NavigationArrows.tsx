@@ -36,10 +36,11 @@ export const NavigationArrows: React.FC<NavigationArrowsProps> = ({
             className={cn(
               "absolute right-2 md:-right-16 lg:-right-20 top-1/2 -translate-y-1/2 z-30",
               "w-10 h-10 md:w-14 md:h-14 rounded-full",
-              "bg-white/60 hover:bg-white/90 text-purple-600 hover:text-purple-700",
+              "bg-white/80 hover:bg-white text-purple-600 hover:text-purple-700",
               "backdrop-blur-md transition-all duration-300",
               "disabled:opacity-20 disabled:cursor-not-allowed",
-              "border-2 border-purple-300 shadow-lg hover:shadow-xl"
+              "border-2 border-purple-300 shadow-lg hover:shadow-xl",
+              "hidden md:flex"
             )}
             aria-label="עמוד קודם"
           >
@@ -62,10 +63,11 @@ export const NavigationArrows: React.FC<NavigationArrowsProps> = ({
             className={cn(
               "absolute left-2 md:-left-16 lg:-left-20 top-1/2 -translate-y-1/2 z-30",
               "w-10 h-10 md:w-14 md:h-14 rounded-full",
-              "bg-white/60 hover:bg-white/90 text-purple-600 hover:text-purple-700",
+              "bg-white/80 hover:bg-white text-purple-600 hover:text-purple-700",
               "backdrop-blur-md transition-all duration-300",
               "disabled:opacity-20 disabled:cursor-not-allowed",
-              "border-2 border-purple-300 shadow-lg hover:shadow-xl"
+              "border-2 border-purple-300 shadow-lg hover:shadow-xl",
+              "hidden md:flex"
             )}
             aria-label="עמוד הבא"
           >

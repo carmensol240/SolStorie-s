@@ -60,7 +60,13 @@ const PrivacyPolicy = () => {
         <div className="flex justify-center">
           <Button
             variant="outline"
-            onClick={() => navigate(-1)}
+            onClick={() => {
+              if (window.history.length > 1) {
+                navigate(-1);
+              } else {
+                navigate("/settings");
+              }
+            }}
             className="gap-2 min-h-[44px]"
             aria-label="חזרה לעמוד הקודם"
           >
