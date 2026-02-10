@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { ArrowRight, Mail, Trash2, LogOut, FileText, Shield, Eye, Info, Accessibility, Volume2, Type, MousePointer, Link2, MonitorOff, Wand2, Sparkles } from "lucide-react";
+import { ArrowRight, Mail, Trash2, LogOut, FileText, Shield, Eye, Info, Accessibility, Volume2, Type, MousePointer, Link2, MonitorOff, Wand2, Sparkles, Download, Share, Smartphone } from "lucide-react";
+import { usePwaInstall } from "@/hooks/use-pwa-install";
 import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
 import { useAuth } from "@/hooks/use-auth";
@@ -19,6 +20,7 @@ const Settings = () => {
   const navigate = useNavigate();
   const { user, signOut } = useAuth();
   const { visualAidMode, setVisualAidMode, audioSupport, setAudioSupport, fontSize, setFontSize } = useAccessibility();
+  const { canPrompt, isInstalled, isIOS, promptInstall } = usePwaInstall();
   const [aboutOpen, setAboutOpen] = useState(false);
   const [accessibilityOpen, setAccessibilityOpen] = useState(false);
   const [highlightLinks, setHighlightLinks] = useState(() => document.documentElement.classList.contains('highlight-links'));
@@ -104,6 +106,34 @@ const Settings = () => {
               </div>
             </div>
           </button>
+
+          {/* PWA Install - Home Screen Shortcut */}
+          {!isInstalled && (
+            <div className="bg-gradient-to-r from-amber-50 to-orange-50 dark:from-amber-950/20 dark:to-orange-950/20 rounded-lg px-3 py-3 border border-amber-200 dark:border-amber-800 space-y-2">
+              <div className="flex items-center gap-2 justify-end">
+                <div className="text-right">
+                  <span className="font-bold text-sm text-foreground block">קיצור דרך למסך הבית</span>
+                  <span className="text-[11px] text-muted-foreground block">גישה מהירה לכל הסיפורים שלכם ישירות ממסך הבית.</span>
+                </div>
+                <div className="w-8 h-8 bg-gradient-to-r from-amber-400/20 to-orange-400/20 rounded-lg flex items-center justify-center flex-shrink-0">
+                  <Smartphone className="w-4 h-4 text-amber-600 dark:text-amber-400" />
+                </div>
+              </div>
+              {canPrompt ? (
+                <button
+                  onClick={promptInstall}
+                  className="w-full py-2 bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white font-bold text-sm rounded-xl transition-all flex items-center justify-center gap-1.5"
+                >
+                  <Download className="w-3.5 h-3.5" />
+                  הוסף קיצור דרך למסך הבית
+                </button>
+              ) : isIOS ? (
+                <p className="text-xs text-muted-foreground text-center leading-relaxed">
+                  לחצו על <Share className="w-3 h-3 inline mx-0.5" /> בסרגל הדפדפן ובחרו "הוסף למסך הבית"
+                </p>
+              ) : null}
+            </div>
+          )}
 
           <button
             onClick={() => setAccessibilityOpen(true)}
