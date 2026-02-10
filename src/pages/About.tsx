@@ -22,30 +22,30 @@ const About = () => {
         </div>
 
         {/* Technology cards */}
-        <div className="space-y-2 mb-3 w-full">
-          <div className="flex items-center gap-3 bg-white/60 backdrop-blur-sm rounded-2xl p-3 border border-purple-100 shadow-sm">
-            <div className="w-9 h-9 bg-gradient-to-br from-purple-500 to-purple-700 rounded-xl flex items-center justify-center flex-shrink-0">
-              <Brain className="w-4 h-4 text-white" />
+        <div className="space-y-3 mb-3 w-full">
+          <div className="flex items-center gap-3 bg-white/60 backdrop-blur-sm rounded-2xl p-4 border border-purple-100 shadow-sm">
+            <div className="w-10 h-10 bg-gradient-to-br from-purple-500 to-purple-700 rounded-xl flex items-center justify-center flex-shrink-0">
+              <Brain className="w-5 h-5 text-white" />
             </div>
-            <p className="text-xs text-foreground/80 text-right leading-snug">
+            <p className="text-sm text-foreground/80 text-right leading-snug">
               <strong className="text-purple-800">טכנולוגיית NLP מתקדמת</strong> — כלים מעולם עיבוד השפה הטבעית משולבים בתוך הסיפורים, עם סוגסטיות מעצימות שעוזרות לילד לבנות ביטחון עצמי.
             </p>
           </div>
 
-          <div className="flex items-center gap-3 bg-white/60 backdrop-blur-sm rounded-2xl p-3 border border-pink-100 shadow-sm">
-            <div className="w-9 h-9 bg-gradient-to-br from-pink-500 to-pink-700 rounded-xl flex items-center justify-center flex-shrink-0">
-              <Sparkles className="w-4 h-4 text-white" />
+          <div className="flex items-center gap-3 bg-white/60 backdrop-blur-sm rounded-2xl p-4 border border-pink-100 shadow-sm">
+            <div className="w-10 h-10 bg-gradient-to-br from-pink-500 to-pink-700 rounded-xl flex items-center justify-center flex-shrink-0">
+              <Sparkles className="w-5 h-5 text-white" />
             </div>
-            <p className="text-xs text-foreground/80 text-right leading-snug">
+            <p className="text-sm text-foreground/80 text-right leading-snug">
               <strong className="text-pink-800">בינה מלאכותית חכמה</strong> — סיפורים מותאמים אישית בזמן הווה, בעברית פשוטה וחמה, עם ניקוד מלא ומדויק להקראה מושלמת.
             </p>
           </div>
 
-          <div className="flex items-center gap-3 bg-white/60 backdrop-blur-sm rounded-2xl p-3 border border-amber-100 shadow-sm">
-            <div className="w-9 h-9 bg-gradient-to-br from-amber-500 to-orange-600 rounded-xl flex items-center justify-center flex-shrink-0">
-              <BookOpen className="w-4 h-4 text-white" />
+          <div className="flex items-center gap-3 bg-white/60 backdrop-blur-sm rounded-2xl p-4 border border-amber-100 shadow-sm">
+            <div className="w-10 h-10 bg-gradient-to-br from-amber-500 to-orange-600 rounded-xl flex items-center justify-center flex-shrink-0">
+              <BookOpen className="w-5 h-5 text-white" />
             </div>
-            <p className="text-xs text-foreground/80 text-right leading-snug">
+            <p className="text-sm text-foreground/80 text-right leading-snug">
               <strong className="text-amber-800">הילד שלכם הוא הגיבור</strong> — תמונת הילד הופכת לדמות מצוירת בסגנון Disney-Pixar שמלווה אותו בכל הרפתקה.
             </p>
           </div>
