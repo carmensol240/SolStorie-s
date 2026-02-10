@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { ArrowRight, Users, Mail, Trash2, LogOut, FileText, Shield, Coins, Eye, Info, Accessibility, Volume2, Type, MousePointer, Link2, MonitorOff } from "lucide-react";
+import { ArrowRight, Mail, Trash2, LogOut, FileText, Shield, Eye, Info, Accessibility, Volume2, Type, MousePointer, Link2, MonitorOff } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
 import { useAuth } from "@/hooks/use-auth";
