@@ -1,54 +1,49 @@
 
 
-## Redesign of the "Child's World" (עולם הילד) Profile Screen
+## Unified Updates for StoryTime
 
-### Overview
-A comprehensive visual and structural redesign of `/profile` to create a premium parent-child dashboard. The screen will be reorganized with dominant child profile photos at the top, a cleaner tips section, and removal of CTA/accessibility elements.
+### 1. Sky Screen (Home) - Remove Redundant Button
 
-### Changes to `src/pages/Profile.tsx`
+**File: `src/components/home/LoggedInHome.tsx`**
 
-#### 1. Dominant Profile Header with All Children
-- Replace the current compact header (small 56px avatar + name + credits inline) with a new prominent section:
-  - Center-aligned greeting ("שלום, [name]") at the very top with credits badge
-  - Below it, a horizontal row of **all** children's profile photos as large circular frames (80x80px each)
-  - Each circle shows the child's photo (via `SignedImage` for private storage paths) with a gradient border (purple-to-pink)
-  - Below each photo: the child's name in white text
-  - If no photo exists, show the child's initial letter in a gradient circle (existing pattern, but larger)
-- Store all children's `photo_url` values (not just the first child) for rendering
+The "Sky Screen" currently shows two action buttons for new users:
+- The `WelcomeGiftBanner` with a "צור סיפור חדש" button
+- The main "יוצאים להרפתקה" CTA button
 
-#### 2. Redesigned "הטיפ של כרמית" Section
-- Keep the rotating tips mechanism (12-second interval, same `CARMIT_TIPS` array)
-- Add the new NLP-focused tip: "נסו להשתמש בשאלות 'איך' במקום 'למה' כדי לעודד את הילד לשתף פעולה ולחשוב על פתרונות."
-- Visual refinement: cleaner glassmorphism box, right-aligned text, attribution line "כרמית כהן, מייסדת StoryTime"
-- **Remove** the coaching CTA button ("רוצה ליווי אישי וכלים נוספים? לחצי כאן") entirely
+**Change:** When the `WelcomeGiftBanner` is visible (new users with 1 credit, 0 stories), hide the bottom "יוצאים להרפתקה" button to avoid redundancy. This means:
+- Pass a flag or use the same `credits === 1 && storyCount === 0` condition
+- Conditionally hide the bottom CTA when the welcome banner is shown
+- For returning users (who don't see the banner), the "יוצאים להרפתקה" button remains as the sole CTA
 
-#### 3. Keep Existing Functionality
-- "עולם הילד" expandable child cards with hobbies/challenges/friends fields -- unchanged
-- "פנקס הקסם להורה" notebook fields (discussion topics, goals, magic moments) -- unchanged
-- Save buttons and toast notifications -- unchanged
-- All data fetching and saving logic -- unchanged
-
-#### 4. UI Cleanup
-- Remove the `Sparkles` icon import and coaching CTA button (lines 253-259)
-- Ensure all images use `object-cover` (already applied, will verify)
-- No accessibility/read-aloud buttons on this screen (none present currently)
-- Name consistency: "כרמית כהן" remains as-is in the tips attribution
-
-#### 5. Technical Details
+### 2. Child's World (Profile) - Larger Profile Frames
 
 **File: `src/pages/Profile.tsx`**
 
-- **State changes**: Replace single `childPhotoUrl` state with a `childPhotos: Record<string, string>` mapping child ID to photo_url, populated from the existing `fetchChildren` query
-- **Import**: Add `SignedImage` component for rendering private storage photos
-- **Header section** (lines 216-238): Replace with centered greeting + horizontal children photo row
-- **Tips section** (lines 240-260): Remove CTA button, add new tip to array, clean up styling
-- **No other files need changes** -- all data queries already fetch the necessary fields
+Enlarge the child profile photo circles from 80x80px to 112x112px (w-28 h-28) for a more dominant, premium feel:
+- Update the circular frame dimensions from `w-20 h-20` to `w-28 h-28`
+- Increase the fallback initial letter size from `text-2xl` to `text-4xl`
+- Keep the gradient border, SignedImage with object-cover, and child name label beneath
+- NLP tips box ("הטיפ של כרמית") stays unchanged
+- Core input fields (hobbies, challenges, friends) stay unchanged
 
-### Visual Layout (top to bottom)
-1. Greeting + credits badge (compact row)
-2. Children photo circles (horizontal, centered, scrollable if many)
-3. "הטיפ של כרמית" box (clean, no CTA)
-4. "עולם הילד" expandable cards (unchanged)
-5. "פנקס הקסם להורה" notebook (unchanged)
-6. Mobile navigation bar
+### 3. PWA and Settings - Already Implemented
 
+The PWA configuration (manifest, service worker) and the Settings screen shortcut card ("קיצור דרך למסך הבית") are already in place from the previous implementation. No changes needed.
+
+### 4. Branding and UI Consistency
+
+- "כרמית כהן" is already consistently used in the About sections and tips -- will verify no regressions
+- No read-aloud or accessibility icons are visible on main screens (they are tucked inside the Settings accessibility dialog) -- no changes needed
+- All images already use `object-cover` -- will be maintained
+
+---
+
+### Technical Details
+
+**Files to modify:**
+
+1. **`src/components/home/LoggedInHome.tsx`** -- Conditionally hide the bottom CTA when `WelcomeGiftBanner` is visible (credits === 1 and storyCount === 0)
+
+2. **`src/pages/Profile.tsx`** -- Increase child photo circle size from `w-20 h-20` to `w-28 h-28`, adjust font size for initials fallback
+
+No new files or dependencies required.
