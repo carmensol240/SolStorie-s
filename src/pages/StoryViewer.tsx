@@ -628,17 +628,10 @@ const StoryViewer = () => {
         onEdit={showPageActions ? handleEditClick : undefined}
         onAddNikud={showPageActions ? handleAddNikud : undefined}
         onReport={handleReportIssue}
-        onReadAloud={() => {
-          if (page?.text) startReading(page.text);
-        }}
-        onStopReading={stopReading}
         fontSizeLabel={currentFontSize.label}
         isExporting={isExporting}
         isAddingNikud={isAddingNikud}
         showPageActions={showPageActions}
-        showReadAloud={true}
-        isReading={isReading}
-        isLoadingAudio={isLoadingAudio}
       />
 
       {/* Book Container with Swipe Support */}
