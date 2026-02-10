@@ -5,6 +5,7 @@ import { useCredits } from "@/hooks/use-credits";
 import { useReferral } from "@/hooks/use-referral";
 import { useChildAvatar } from "@/hooks/use-child-avatar";
 import { useAuth } from "@/hooks/use-auth";
+import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import heroBackground from "@/assets/hero-children-flying-sky.jpg";
 import WelcomeGiftBanner from "@/components/home/WelcomeGiftBanner";
