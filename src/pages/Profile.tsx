@@ -185,6 +185,66 @@ const Profile = () => {
           )}
         </section>
 
+        {/* Share & Earn */}
+        <section className="bg-gradient-to-l from-purple-100/50 via-pink-50 to-orange-50 rounded-2xl p-4 border border-purple-200 space-y-3">
+          <div className="flex items-center gap-2">
+            <div className="w-9 h-9 rounded-full bg-gradient-to-r from-purple-500/30 to-pink-500/30 flex items-center justify-center">
+              <Gift className="w-5 h-5 text-purple-600" />
+            </div>
+            <div className="flex-1">
+              <h3 className="font-bold text-sm bg-gradient-to-r from-purple-600 via-pink-500 to-orange-400 bg-clip-text text-transparent">הרוויחו סיפורים חינם 🎁</h3>
+              <p className="text-[10px] text-muted-foreground">שתפו עם חברים וקבלו קרדיטים</p>
+            </div>
+          </div>
+          <div className="flex gap-2">
+            <Button 
+              onClick={() => {
+                shareToWhatsApp();
+                trackEvent({ eventType: 'feature_used', metadata: { feature: 'share_whatsapp', source: 'profile' } });
+              }}
+              size="sm"
+              className="flex-1 h-8 text-xs bg-[#25D366] hover:bg-[#20BD5A] text-white font-bold"
+            >
+              וואטסאפ
+            </Button>
+            <Button 
+              onClick={async () => {
+                const success = await copyToClipboard();
+                if (success) {
+                  setCopied(true);
+                  toast.success("הקישור הועתק!");
+                  setTimeout(() => setCopied(false), 2000);
+                  trackEvent({ eventType: 'feature_used', metadata: { feature: 'share_link_copied', source: 'profile' } });
+                }
+              }}
+              variant="outline" 
+              size="sm"
+              className="flex-1 h-8 text-xs font-medium border-purple-200 hover:bg-purple-50"
+            >
+              {copied ? <Check className="w-3 h-3" /> : <Copy className="w-3 h-3" />}
+              <span className="mr-1">{copied ? 'הועתק!' : 'העתק'}</span>
+            </Button>
+          </div>
+          {shareCoins > 0 && (
+            <Button 
+              onClick={async () => {
+                const success = await redeemCoin();
+                if (success) {
+                  toast.success("🎉 קיבלתם קרדיט סיפור נוסף!");
+                  await refetchCredits();
+                  trackEvent({ eventType: 'feature_used', metadata: { feature: 'coin_redeemed', source: 'profile' } });
+                } else {
+                  toast.error("לא הצלחנו להמיר את המטבע");
+                }
+              }}
+              size="sm"
+              className="w-full h-8 text-xs bg-gradient-to-r from-purple-600 via-pink-500 to-orange-400 hover:from-purple-700 hover:via-pink-600 hover:to-orange-500 text-white font-bold"
+            >
+              🪙 {shareCoins} מטבעות - השתמשו!
+            </Button>
+          )}
+        </section>
+
         {/* Quick action */}
         <button
           onClick={() => navigate("/create")}
