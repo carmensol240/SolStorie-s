@@ -8,7 +8,8 @@ import {
   Book,
   Volume2,
   VolumeX,
-  Loader2
+  Loader2,
+  RefreshCw
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
@@ -45,6 +46,7 @@ interface BookHeaderProps {
   showReadAloud?: boolean;
   isReading?: boolean;
   isLoadingAudio?: boolean;
+  hasAudioError?: boolean;
 }
 
 export const BookHeader: React.FC<BookHeaderProps> = ({
@@ -67,6 +69,7 @@ export const BookHeader: React.FC<BookHeaderProps> = ({
   showReadAloud = false,
   isReading = false,
   isLoadingAudio = false,
+  hasAudioError = false,
 }) => {
   return (
     <header className="sticky top-0 z-40 bg-gradient-to-r from-purple-600 via-pink-500 to-orange-400 px-3 py-2 shadow-lg">
@@ -102,10 +105,12 @@ export const BookHeader: React.FC<BookHeaderProps> = ({
                     "text-[#F5E6D3] hover:bg-white/10 min-h-[44px] min-w-[44px] p-2",
                     isReading && "bg-white/20"
                   )}
-                  aria-label={isReading ? "עצור הקראה" : "הקראת הטקסט"}
+                  aria-label={hasAudioError ? "נסו שוב" : isReading ? "עצור הקראה" : "הקראת הטקסט"}
                 >
                   {isLoadingAudio ? (
                     <Loader2 className="w-5 h-5 animate-spin" />
+                  ) : hasAudioError ? (
+                    <RefreshCw className="w-5 h-5 text-yellow-200" />
                   ) : isReading ? (
                     <VolumeX className="w-5 h-5" />
                   ) : (
@@ -114,7 +119,7 @@ export const BookHeader: React.FC<BookHeaderProps> = ({
                 </Button>
               </TooltipTrigger>
               <TooltipContent side="bottom">
-                {isLoadingAudio ? 'טוען...' : isReading ? 'עצור הקראה' : 'הקראת הטקסט'}
+                {isLoadingAudio ? 'טוען...' : hasAudioError ? 'נסו שוב' : isReading ? 'עצור הקראה' : 'הקראת הטקסט'}
               </TooltipContent>
             </Tooltip>
           )}
