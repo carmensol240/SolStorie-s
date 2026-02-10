@@ -56,6 +56,18 @@ const Profile = () => {
   });
   const [savingNotes, setSavingNotes] = useState(false);
   const [savingChild, setSavingChild] = useState<string | null>(null);
+  const [tipIndex, setTipIndex] = useState(() => Math.floor(Math.random() * CARMIT_TIPS.length));
+
+  // Rotate tip every 12 seconds
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setTipIndex((prev) => (prev + 1) % CARMIT_TIPS.length);
+    }, 12000);
+    return () => clearInterval(interval);
+  }, []);
+
+  // Fetch child photo URL for the first child
+  const [childPhotoUrl, setChildPhotoUrl] = useState<string | null>(null);
 
   useEffect(() => {
     const fetchProfile = async () => {
