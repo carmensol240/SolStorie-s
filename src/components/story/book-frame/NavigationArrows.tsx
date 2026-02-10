@@ -60,12 +60,12 @@ export const NavigationArrows: React.FC<NavigationArrowsProps> = ({
             onClick={onNext}
             disabled={!canGoNext || isFlipping}
             className={cn(
-              "absolute left-2 md:-left-14 lg:-left-16 top-1/2 -translate-y-1/2 z-30",
-              "w-10 h-10 md:w-12 md:h-12 rounded-full",
-              "bg-white/40 hover:bg-white/70 text-purple-600/60 hover:text-purple-700",
-              "backdrop-blur-sm transition-all duration-300",
+              "absolute left-2 md:-left-16 lg:-left-20 top-1/2 -translate-y-1/2 z-30",
+              "w-10 h-10 md:w-14 md:h-14 rounded-full",
+              "bg-white/60 hover:bg-white/90 text-purple-600 hover:text-purple-700",
+              "backdrop-blur-md transition-all duration-300",
               "disabled:opacity-20 disabled:cursor-not-allowed",
-              "border border-purple-200/50 shadow-sm hover:shadow-md"
+              "border-2 border-purple-300 shadow-lg hover:shadow-xl"
             )}
             aria-label="עמוד הבא"
           >
