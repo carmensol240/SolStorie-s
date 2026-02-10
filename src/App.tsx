@@ -7,7 +7,9 @@ import ErrorBoundary from "@/components/ErrorBoundary";
 import BetaBanner from "@/components/BetaBanner";
 import AccessibilityProvider from "@/components/AccessibilityProvider";
 import AccessibilityMenu from "@/components/AccessibilityMenu";
-import Home from "./pages/Home";
+import About from "./pages/About";
+import Welcome from "./pages/Welcome";
+import Adventure from "./pages/Adventure";
 import Auth from "./pages/Auth";
 import VerifyEmail from "./pages/VerifyEmail";
 import ResetPassword from "./pages/ResetPassword";
@@ -43,7 +45,9 @@ const App = () => (
         <Sonner />
         <BrowserRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
           <Routes>
-            <Route path="/" element={<Home />} />
+            <Route path="/" element={<About />} />
+            <Route path="/welcome" element={<Welcome />} />
+            <Route path="/adventure" element={<RequireTerms><Adventure /></RequireTerms>} />
             <Route path="/auth" element={<Auth />} />
             <Route path="/verify-email" element={<VerifyEmail />} />
             <Route path="/login" element={<Navigate to="/auth" replace />} />
