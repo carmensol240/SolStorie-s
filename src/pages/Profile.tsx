@@ -1,13 +1,13 @@
-import { useState, useEffect, useCallback, useMemo } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import { Coins, Users, ChevronLeft, Heart, BookOpen, Star, Notebook, MessageCircle, Target, Sparkles, Save, Lightbulb } from "lucide-react";
 import { useAuth } from "@/hooks/use-auth";
 import { useCredits } from "@/hooks/use-credits";
-import { useChildAvatar } from "@/hooks/use-child-avatar";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import MobileNavigation from "@/components/MobileNavigation";
+import { SignedImage } from "@/components/ui/signed-image";
 
 const CARMIT_TIPS = [
   "כשקוראים סיפור יחד, נסו לעצור רגע ולשאול: מה הגיבור מרגיש עכשיו? זה מפתח אמפתיה מדהימה.",
@@ -16,6 +16,7 @@ const CARMIT_TIPS = [
   "הקריאה המשותפת היא לא רק על הסיפור — זה הזמן שלכם יחד. תחבקו חזק.",
   "ילדים לומדים הכי טוב דרך דמויות שהם מזדהים איתן. לכן הילד שלכם הוא תמיד הגיבור.",
   "אל תפחדו מנושאים קשים בסיפור — ילדים צריכים מרחב בטוח לעבד רגשות.",
+  "נסו להשתמש בשאלות 'איך' במקום 'למה' כדי לעודד את הילד לשתף פעולה ולחשוב על פתרונות.",
 ];
 
 interface ChildProfile {
@@ -26,6 +27,7 @@ interface ChildProfile {
   hobbies: string | null;
   challenges: string | null;
   favorite_friends: string | null;
+  photo_url: string | null;
 }
 
 interface ParentNotes {
@@ -44,7 +46,6 @@ const Profile = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
   const { credits } = useCredits();
-  const { avatarUrl } = useChildAvatar();
   const [displayName, setDisplayName] = useState<string | null>(null);
   const [children, setChildren] = useState<ChildProfile[]>([]);
   const [expandedChild, setExpandedChild] = useState<string | null>(null);
@@ -58,16 +59,12 @@ const Profile = () => {
   const [savingChild, setSavingChild] = useState<string | null>(null);
   const [tipIndex, setTipIndex] = useState(() => Math.floor(Math.random() * CARMIT_TIPS.length));
 
-  // Rotate tip every 12 seconds
   useEffect(() => {
     const interval = setInterval(() => {
       setTipIndex((prev) => (prev + 1) % CARMIT_TIPS.length);
     }, 12000);
     return () => clearInterval(interval);
   }, []);
-
-  // Fetch child photo URL for the first child
-  const [childPhotoUrl, setChildPhotoUrl] = useState<string | null>(null);
 
   useEffect(() => {
     const fetchProfile = async () => {
@@ -90,12 +87,7 @@ const Profile = () => {
         .select("id, name, age, gender, hobbies, challenges, favorite_friends, photo_url")
         .eq("user_id", user.id)
         .order("created_at", { ascending: false });
-      const childrenData = (data as (ChildProfile & { photo_url?: string })[]) ?? [];
-      setChildren(childrenData);
-      // Set the first child's photo
-      if (childrenData.length > 0 && childrenData[0].photo_url) {
-        setChildPhotoUrl(childrenData[0].photo_url);
-      }
+      setChildren((data as ChildProfile[]) ?? []);
     };
     fetchChildren();
   }, [user]);
@@ -210,23 +202,12 @@ const Profile = () => {
         ))}
       </div>
 
-      {/* Centered container */}
       <div className="w-full max-w-[550px] lg:max-w-[450px] mx-auto px-4 py-6 space-y-5">
-        {/* Header */}
-        <div className="flex items-center gap-3">
-          {/* Child profile photo or avatar */}
-          {(childPhotoUrl || avatarUrl) && (
-            <div className="w-14 h-14 rounded-full overflow-hidden border-2 border-purple-400/50 shadow-lg shadow-purple-500/20 flex-shrink-0">
-              <img src={childPhotoUrl || avatarUrl!} alt="תמונת הילד/ה" className="w-full h-full object-cover" />
-            </div>
-          )}
-          <div className="flex-1 min-w-0">
-            <h1 className="text-white text-lg font-bold truncate">
-              שלום, {displayName || "משתמש"} 👋
-            </h1>
-            <p className="text-white/60 text-xs truncate">{user?.email}</p>
-          </div>
-          {/* Credits badge */}
+        {/* Header: Greeting + Credits */}
+        <div className="flex items-center justify-between">
+          <h1 className="text-white text-lg font-bold">
+            שלום, {displayName || "משתמש"} 👋
+          </h1>
           <button
             onClick={() => navigate("/upgrade")}
             className="flex items-center gap-1.5 bg-white/15 backdrop-blur-md border border-white/20 rounded-full px-3 py-1.5 hover:bg-white/25 transition-all"
@@ -237,8 +218,34 @@ const Profile = () => {
           </button>
         </div>
 
+        {/* Children Photo Row */}
+        {children.length > 0 && (
+          <div className="flex justify-center gap-5 overflow-x-auto pb-2">
+            {children.map((child) => (
+              <div key={child.id} className="flex flex-col items-center flex-shrink-0">
+                <div className="w-20 h-20 rounded-full overflow-hidden border-[3px] border-transparent bg-gradient-to-br from-purple-400 to-pink-400 p-[3px] shadow-lg shadow-purple-500/20">
+                  <div className="w-full h-full rounded-full overflow-hidden bg-[hsl(260,60%,15%)]">
+                    {child.photo_url ? (
+                      <SignedImage
+                        src={child.photo_url}
+                        alt={`תמונת ${child.name}`}
+                        className="w-full h-full object-cover"
+                      />
+                    ) : (
+                      <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-purple-500 to-pink-500 text-white text-2xl font-bold">
+                        {child.name.charAt(0)}
+                      </div>
+                    )}
+                  </div>
+                </div>
+                <span className="mt-1.5 text-white text-xs font-medium">{child.name}</span>
+              </div>
+            ))}
+          </div>
+        )}
+
         {/* Carmit's Expert Tip */}
-        <section className="bg-gradient-to-br from-amber-500/10 via-orange-500/10 to-pink-500/10 backdrop-blur-md border border-amber-400/20 rounded-2xl p-4 space-y-3">
+        <section className="bg-white/[0.07] backdrop-blur-md border border-white/15 rounded-2xl p-4 space-y-2.5">
           <div className="flex items-center gap-2">
             <span className="w-7 h-7 bg-gradient-to-r from-amber-400/30 to-orange-400/30 rounded-lg flex items-center justify-center">
               <Lightbulb className="w-4 h-4 text-amber-300" />
@@ -249,14 +256,6 @@ const Profile = () => {
             &ldquo;{CARMIT_TIPS[tipIndex]}&rdquo;
           </p>
           <p className="text-[10px] text-amber-300/50 text-left">— כרמית כהן, מייסדת StoryTime</p>
-          
-          {/* CTA for coaching */}
-          <button
-            className="w-full mt-1 py-2.5 bg-white/[0.06] hover:bg-white/10 border border-white/10 rounded-xl text-xs text-purple-200 hover:text-white font-medium transition-all flex items-center justify-center gap-1.5"
-          >
-            <Sparkles className="w-3.5 h-3.5 text-purple-300" />
-            רוצה ליווי אישי וכלים נוספים? לחצי כאן
-          </button>
         </section>
 
         {/* Section A: The Child's World */}
@@ -294,7 +293,6 @@ const Profile = () => {
                     key={child.id}
                     className="bg-white/[0.06] backdrop-blur-md border border-white/10 rounded-2xl overflow-hidden transition-all"
                   >
-                    {/* Child header */}
                     <button
                       onClick={() => setExpandedChild(isExpanded ? null : child.id)}
                       className="w-full flex items-center justify-between px-4 py-3 text-right"
@@ -313,7 +311,6 @@ const Profile = () => {
                       <ChevronLeft className={`w-4 h-4 text-white/40 transition-transform ${isExpanded ? "rotate-90" : ""}`} />
                     </button>
 
-                    {/* Expandable fields */}
                     {isExpanded && (
                       <div className="px-4 pb-4 space-y-3 border-t border-white/10 pt-3">
                         <ChildField
@@ -412,24 +409,14 @@ const Profile = () => {
   );
 };
 
-/* Reusable child field component */
 const ChildField = ({
-  icon,
-  label,
-  placeholder,
-  value,
-  onChange,
+  icon, label, placeholder, value, onChange,
 }: {
-  icon: React.ReactNode;
-  label: string;
-  placeholder: string;
-  value: string;
-  onChange: (v: string) => void;
+  icon: React.ReactNode; label: string; placeholder: string; value: string; onChange: (v: string) => void;
 }) => (
   <div className="space-y-1">
     <label className="flex items-center gap-1.5 text-xs font-medium text-white/70">
-      {icon}
-      {label}
+      {icon} {label}
     </label>
     <textarea
       value={value}
@@ -441,24 +428,14 @@ const ChildField = ({
   </div>
 );
 
-/* Reusable notebook field component */
 const NotebookField = ({
-  icon,
-  label,
-  placeholder,
-  value,
-  onChange,
+  icon, label, placeholder, value, onChange,
 }: {
-  icon: React.ReactNode;
-  label: string;
-  placeholder: string;
-  value: string;
-  onChange: (v: string) => void;
+  icon: React.ReactNode; label: string; placeholder: string; value: string; onChange: (v: string) => void;
 }) => (
   <div className="space-y-1.5">
     <label className="flex items-center gap-1.5 text-xs font-bold text-white/80">
-      {icon}
-      {label}
+      {icon} {label}
     </label>
     <textarea
       value={value}
