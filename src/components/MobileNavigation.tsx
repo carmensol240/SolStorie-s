@@ -1,4 +1,4 @@
-import { Library, Home, User } from "lucide-react";
+import { Library, Home, Settings } from "lucide-react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { cn } from "@/lib/utils";
 
