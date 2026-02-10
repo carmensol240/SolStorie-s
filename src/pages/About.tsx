@@ -7,16 +7,16 @@ const About = () => {
 
   return (
     <div className="min-h-[100dvh] flex flex-col bg-gradient-to-b from-purple-50 via-pink-50 to-amber-50" dir="rtl">
-      <div className="flex-1 flex flex-col items-center justify-center px-5 py-1 max-w-lg mx-auto text-center">
+      <div className="flex-1 flex flex-col items-center justify-center px-5 pt-0 pb-2 max-w-lg mx-auto text-center">
         {/* Welcome text */}
-        <div className="space-y-1 mb-2">
-          <h1 className="text-xl font-black text-purple-800 leading-snug">
+        <div className="space-y-2 mb-3">
+          <h1 className="text-2xl font-black text-purple-800 leading-snug">
             ברוכים הבאים ל-<span className="bg-gradient-to-r from-purple-600 via-pink-500 to-orange-400 bg-clip-text text-transparent">StoryTime</span>! 🌟
           </h1>
-          <p className="text-sm text-foreground/80 leading-relaxed">
+          <p className="text-base text-foreground/80 leading-relaxed">
             האפליקציה נוצרה על ידי <span className="font-bold bg-gradient-to-r from-purple-600 via-pink-500 to-orange-400 bg-clip-text text-transparent">כרמית (כרמן) כהן</span> עבור בתי סול, מתוך אהבה ורצון לעזור לילדים לעבד רגשות ולבנות חוסן פנימי דרך סיפורים קסומים.
           </p>
-          <p className="text-xs text-foreground/70 leading-relaxed">
+          <p className="text-sm text-foreground/70 leading-relaxed">
             כדי להפוך את החזון הזה למציאות עבור כל ילד וילדה, רתמנו את הכלים המתקדמים ביותר ליצירת חוויה מושלמת:
           </p>
         </div>
