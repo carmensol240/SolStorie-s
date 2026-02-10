@@ -21,7 +21,6 @@ import profileHero from "@/assets/profile-hero.jpg";
 const Settings = () => {
   const navigate = useNavigate();
   const { user, signOut } = useAuth();
-  const { credits } = useCredits();
   const { shareCoins } = useReferral();
   const { visualAidMode, setVisualAidMode, audioSupport, setAudioSupport, fontSize, setFontSize } = useAccessibility();
   const [aboutOpen, setAboutOpen] = useState(false);
