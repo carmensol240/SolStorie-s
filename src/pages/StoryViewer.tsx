@@ -763,11 +763,26 @@ const StoryViewer = () => {
                     </div>
                   ) : (
                     <div className="w-full max-w-sm mx-auto">
-                      <div className="rounded-2xl border-4 border-dashed border-[#D4A574]/50 aspect-[4/5] flex items-center justify-center bg-[#F5E6D3]/50">
+                      <div className="rounded-2xl border-4 border-dashed border-[#D4A574]/50 aspect-[4/5] flex flex-col items-center justify-center bg-[#F5E6D3]/50 gap-3">
                         <div className="text-center text-[#A08060]">
-                          <BookOpen className="w-16 h-16 mx-auto mb-2 opacity-40" />
-                          <p className="text-sm">טוען איור...</p>
+                          <ImageOff className="w-12 h-12 mx-auto mb-2 opacity-40" />
+                          <p className="text-sm">{generationStatus === 'ready' ? 'האיור לא נוצר' : 'טוען איור...'}</p>
                         </div>
+                        {generationStatus === 'ready' && story.pages[0]?.id && (
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            onClick={() => handleRetryIllustration(story.pages[0].id)}
+                            disabled={retryingPageId === story.pages[0].id}
+                            className="border-[#D4A574] text-[#8B7355] hover:bg-[#F5E6D3]"
+                          >
+                            {retryingPageId === story.pages[0].id ? (
+                              <><Loader2 className="w-4 h-4 animate-spin ml-2" />מייצר...</>
+                            ) : (
+                              <><RefreshCw className="w-4 h-4 ml-2" />נסה לייצר איור שוב</>
+                            )}
+                          </Button>
+                        )}
                       </div>
                     </div>
                   )}
