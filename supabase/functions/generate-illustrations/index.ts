@@ -516,14 +516,30 @@ serve(async (req) => {
         batch.map(async (page) => {
           console.log(`Generating illustration for page ${page.page_number}...`);
           
-          const base64Image = await generateIllustration(
-            page.illustration_prompt || `A cheerful children's book illustration for page ${page.page_number}`,
-            effectivePhoto,
-            characterProfile,
-            LOVABLE_API_KEY,
-            storyOutfit,
-            effectiveAdventureLogic
-          );
+          // Auto-retry up to 3 times for each page
+          let base64Image: string | null = null;
+          const MAX_RETRIES = 3;
+          
+          for (let attempt = 1; attempt <= MAX_RETRIES; attempt++) {
+            base64Image = await generateIllustration(
+              page.illustration_prompt || `A cheerful children's book illustration for page ${page.page_number}`,
+              effectivePhoto,
+              characterProfile,
+              LOVABLE_API_KEY,
+              storyOutfit,
+              effectiveAdventureLogic
+            );
+            
+            if (base64Image) {
+              if (attempt > 1) console.log(`✅ Page ${page.page_number} succeeded on retry ${attempt}`);
+              break;
+            }
+            
+            console.warn(`⚠️ Page ${page.page_number} attempt ${attempt}/${MAX_RETRIES} failed, ${attempt < MAX_RETRIES ? 'retrying...' : 'giving up'}`);
+            if (attempt < MAX_RETRIES) {
+              await new Promise(r => setTimeout(r, 2000)); // Wait 2s before retry
+            }
+          }
 
           if (!base64Image) return null;
 
