@@ -274,9 +274,9 @@ const GeneratingStep = ({ formData, onComplete }: GeneratingStepProps) => {
     },
     { 
       name: "ערן לוי", 
-      quote: "הילדים שלי מתים על הסיפורים. הם מרגישים כמו גיבורים אמיתיים.",
+      quote: "הילדים שלי אוהבים את הסיפורים. הם מרגישים כמו גיבורים אמיתיים.",
       rating: 5,
-      avatar: avatarParent1,
+      avatar: avatarParent2,
     },
     { 
       name: "שירה אברהם", 
@@ -288,13 +288,13 @@ const GeneratingStep = ({ formData, onComplete }: GeneratingStepProps) => {
       name: "יוסי דוד", 
       quote: "יצרנו סיפור על הפחד מהחושך והילד שלי התגבר על הפחד תוך שבוע!",
       rating: 5,
-      avatar: avatarTestimonial4,
+      avatar: avatarParent1,
     },
     { 
       name: "נועה פרידמן", 
       quote: "מתנה מושלמת לסבא וסבתא – סיפור עם הנכדים בתור הגיבורים!",
       rating: 5,
-      avatar: avatarTestimonial5,
+      avatar: avatarTestimonial3,
     },
     { 
       name: "דני רוזנברג", 
