@@ -157,10 +157,20 @@ const ADVENTURE_CATEGORIES: AdventureCategory[] = [
           theme: "potty training, transitioning from diapers, growing up milestone, independence, positive reinforcement, celebrating success"
         }
       },
+      {
+        id: "independence",
+        label: "אני יכול/ה לבד!",
+        image: topicIndependence,
+        description: "מתלבשים ומסתדרים לבד",
+        logic: {
+          outfit: "mismatched fun clothes the child picked themselves",
+          background: "bright cheerful bedroom with open wardrobe, clothes scattered playfully, warm morning sunlight and sparkles",
+          theme: "independence, self-dressing, doing things alone, growing up, confidence, pride in self-reliance"
+        }
+      },
     ]
   },
   {
-    id: "emotion-detectors",
     title: "גלאי רגשות",
     emoji: "💕",
     topics: [
