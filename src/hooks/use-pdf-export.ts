@@ -355,10 +355,11 @@ export const usePdfExport = () => {
       let illustrationHtml = '';
       if (page.illustration_url) {
         try {
-          await loadImage(page.illustration_url);
+          const resolvedUrl = signedUrlMap[page.illustration_url] || page.illustration_url;
+          await loadImage(resolvedUrl);
           illustrationHtml = `
             <img 
-              src="${page.illustration_url}" 
+              src="${resolvedUrl}" 
               style="
                 max-width: 90%;
                 max-height: 90%;
