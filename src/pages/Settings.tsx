@@ -15,8 +15,6 @@ import {
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { AboutStoryTimeContent } from "@/components/shared/AboutStoryTimeContent";
 
-import profileHero from "@/assets/profile-hero.jpg";
-
 const Settings = () => {
   const navigate = useNavigate();
   const { user, signOut } = useAuth();
