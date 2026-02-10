@@ -46,7 +46,7 @@ const About = () => {
               <BookOpen className="w-5 h-5 text-white" />
             </div>
             <p className="text-sm text-foreground/80 text-right leading-snug">
-              <strong className="text-amber-800">הילד שלכם הוא הגיבור</strong> — תמונת הילד הופכת לדמות מצוירת בסגנון Disney-Pixar שמלווה אותו בכל הרפתקה.
+              <strong className="text-amber-800">הילד שלכם הוא הגיבור</strong> — תמונת הילד הופכת לדמות מצוירת בסגנון אנימציה קלאסי שמלווה אותו בכל הרפתקה.
             </p>
           </div>
         </div>
