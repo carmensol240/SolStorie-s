@@ -28,6 +28,13 @@ export const PRICING_PACKAGES = [
   },
 ] as const;
 
+export const TOOLKIT_SUBSCRIPTION = {
+  id: "toolkit_yearly",
+  price: 19.90,
+  label: "מנוי שנתי לערכת הכלים של כרמית",
+  description: "ליווי רגשי וכלים מעולם ה-NLP שמתעדכנים בכל חודש. הפכו כל סיפור לרגע של חיבור עמוק וצמיחה עבור הילד שלכם.",
+};
+
 export const CURRENCY = "ILS";
 export const CURRENCY_SYMBOL = "₪";
 
