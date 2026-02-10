@@ -7,19 +7,22 @@ const About = () => {
 
   return (
     <div className="min-h-[100dvh] flex flex-col bg-gradient-to-b from-purple-50 via-pink-50 to-amber-50" dir="rtl">
-      <div className="flex-1 flex flex-col items-center justify-center px-6 py-4 max-w-lg mx-auto text-center">
+      <div className="flex-1 flex flex-col items-center justify-center px-6 py-2 max-w-lg mx-auto text-center">
         {/* Welcome text */}
-        <div className="space-y-4 mb-8">
+        <div className="space-y-2 mb-3">
           <h1 className="text-2xl font-black text-purple-800 leading-relaxed">
             ברוכים הבאים ל-<span className="bg-gradient-to-r from-purple-600 via-pink-500 to-orange-400 bg-clip-text text-transparent">StoryTime</span>! 🌟
           </h1>
           <p className="text-base text-foreground/80 leading-relaxed">
-            נוצרה על ידי <span className="font-bold bg-gradient-to-r from-purple-600 via-pink-500 to-orange-400 bg-clip-text text-transparent">כרמית (כרמן) כהן</span> עבור בתה סול, מתוך אהבה ורצון לעזור לילדים לעבד רגשות ולבנות חוסן פנימי דרך סיפורים קסומים.
+            האפליקציה נוצרה על ידי <span className="font-bold bg-gradient-to-r from-purple-600 via-pink-500 to-orange-400 bg-clip-text text-transparent">כרמית (כרמן) כהן</span> עבור בתי סול, מתוך אהבה ורצון לעזור לילדים לעבד רגשות ולבנות חוסן פנימי דרך סיפורים קסומים.
+          </p>
+          <p className="text-sm text-foreground/70 leading-relaxed">
+            כדי להפוך את החזון הזה למציאות עבור כל ילד וילדה, רתמנו את הכלים המתקדמים ביותר ליצירת חוויה מושלמת:
           </p>
         </div>
 
         {/* Technology cards */}
-        <div className="space-y-3 mb-8 w-full">
+        <div className="space-y-3 mb-4 w-full">
           <div className="flex items-center gap-3 bg-white/60 backdrop-blur-sm rounded-2xl p-4 border border-purple-100 shadow-sm">
             <div className="w-10 h-10 bg-gradient-to-br from-purple-500 to-purple-700 rounded-xl flex items-center justify-center flex-shrink-0">
               <Brain className="w-5 h-5 text-white" />
