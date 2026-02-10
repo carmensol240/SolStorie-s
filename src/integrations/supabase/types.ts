@@ -93,8 +93,11 @@ export type Database = {
           age: number
           avatar_description: string | null
           avatar_url: string | null
+          challenges: string | null
           created_at: string
+          favorite_friends: string | null
           gender: string | null
+          hobbies: string | null
           id: string
           name: string
           personality_traits: string | null
@@ -105,8 +108,11 @@ export type Database = {
           age: number
           avatar_description?: string | null
           avatar_url?: string | null
+          challenges?: string | null
           created_at?: string
+          favorite_friends?: string | null
           gender?: string | null
+          hobbies?: string | null
           id?: string
           name: string
           personality_traits?: string | null
@@ -117,8 +123,11 @@ export type Database = {
           age?: number
           avatar_description?: string | null
           avatar_url?: string | null
+          challenges?: string | null
           created_at?: string
+          favorite_friends?: string | null
           gender?: string | null
+          hobbies?: string | null
           id?: string
           name?: string
           personality_traits?: string | null
@@ -235,6 +244,36 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      parent_notes: {
+        Row: {
+          created_at: string
+          discussion_topics: string | null
+          goals_reinforcements: string | null
+          id: string
+          magic_moments: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          discussion_topics?: string | null
+          goals_reinforcements?: string | null
+          id?: string
+          magic_moments?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          discussion_topics?: string | null
+          goals_reinforcements?: string | null
+          id?: string
+          magic_moments?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
       }
       pdf_downloads: {
         Row: {
