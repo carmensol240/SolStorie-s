@@ -43,7 +43,7 @@ const About = () => {
         <div className="absolute bottom-32 left-1/4 w-48 h-48 rounded-full bg-amber-400/8 blur-3xl" />
       </div>
 
-      <div className="flex-1 flex flex-col items-center justify-center px-6 pt-0 pb-1 max-w-lg mx-auto text-center relative z-10">
+      <div className="flex-1 flex flex-col items-center justify-center px-6 pt-0 pb-24 max-w-lg mx-auto text-center relative z-10">
         
         {/* Title */}
         <h1 className="text-2xl font-black text-white/95 leading-snug mb-3">
