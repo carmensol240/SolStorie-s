@@ -1,76 +1,54 @@
 
 
-# שדרוג מנוע יצירת הסיפורים לסגנון שירה וחרוזים
+## Redesign of the "Child's World" (עולם הילד) Profile Screen
 
-## סקירה
+### Overview
+A comprehensive visual and structural redesign of `/profile` to create a premium parent-child dashboard. The screen will be reorganized with dominant child profile photos at the top, a cleaner tips section, and removal of CTA/accessibility elements.
 
-המנוע הנוכחי מייצר סיפורים ב**פרוזה** ואף אוסר במפורש חרוזים ושירה. הבקשה היא לשנות את הגישה לחלוטין -- ליצור סיפורים בסגנון **שירת ילדים עברית מקצועית** עם חרוזים, קצב ומשקל, בדומה ליצירות של דתיה בן דור או יונתן גפן.
+### Changes to `src/pages/Profile.tsx`
 
-## שינויים עיקריים
+#### 1. Dominant Profile Header with All Children
+- Replace the current compact header (small 56px avatar + name + credits inline) with a new prominent section:
+  - Center-aligned greeting ("שלום, [name]") at the very top with credits badge
+  - Below it, a horizontal row of **all** children's profile photos as large circular frames (80x80px each)
+  - Each circle shows the child's photo (via `SignedImage` for private storage paths) with a gradient border (purple-to-pink)
+  - Below each photo: the child's name in white text
+  - If no photo exists, show the child's initial letter in a gradient circle (existing pattern, but larger)
+- Store all children's `photo_url` values (not just the first child) for rendering
 
-### 1. החלפת מודל ה-AI
-- **מצב נוכחי:** `google/gemini-2.5-flash` (מהיר אך פחות מדויק בשירה עברית)
-- **מודל חדש:** `google/gemini-2.5-pro` (חזק יותר לחרוזים, קצב ודקדוק עברי)
+#### 2. Redesigned "הטיפ של כרמית" Section
+- Keep the rotating tips mechanism (12-second interval, same `CARMIT_TIPS` array)
+- Add the new NLP-focused tip: "נסו להשתמש בשאלות 'איך' במקום 'למה' כדי לעודד את הילד לשתף פעולה ולחשוב על פתרונות."
+- Visual refinement: cleaner glassmorphism box, right-aligned text, attribution line "כרמית כהן, מייסדת StoryTime"
+- **Remove** the coaching CTA button ("רוצה ליווי אישי וכלים נוספים? לחצי כאן") entirely
 
-### 2. שכתוב מערכת ההנחיות (System Prompt)
-השינויים המרכזיים ב-`SYSTEM_PROMPT`:
+#### 3. Keep Existing Functionality
+- "עולם הילד" expandable child cards with hobbies/challenges/friends fields -- unchanged
+- "פנקס הקסם להורה" notebook fields (discussion topics, goals, magic moments) -- unchanged
+- Save buttons and toast notifications -- unchanged
+- All data fetching and saving logic -- unchanged
 
-- **הסרת האיסור על חרוזים** -- הכלל "חרוזים או שירה - פרוזה בלבד!" יוסר
-- **תפקיד חדש:** "אתה משורר ילדים ישראלי מקצועי בסגנון דתיה בן דור ויונתן גפן"
-- **חרוזים חובה:** כל בית (stanza) ייכתב בחרוזים -- תבנית AABB או ABCB
-- **קצב ומשקל:** הטקסט חייב להיות קצבי, קליל לקריאה בקול רם
-- **מבנה:** בתים קצרים של 4 שורות מקסימום (מותאם למובייל)
-- **ניקוד מלא:** הפלט חייב לכלול ניקוד מדויק ישירות (ללא שלב נפרד)
-- **דוגמת סגנון:** הדוגמה שסיפקת תשולב כדוגמה מנחה
+#### 4. UI Cleanup
+- Remove the `Sparkles` icon import and coaching CTA button (lines 253-259)
+- Ensure all images use `object-cover` (already applied, will verify)
+- No accessibility/read-aloud buttons on this screen (none present currently)
+- Name consistency: "כרמית כהן" remains as-is in the tips attribution
 
-### 3. עדכון הנחיות הניקוד
-- **מצב נוכחי:** הטקסט נוצר ללא ניקוד, ומנוקד בשלב שני
-- **מצב חדש:** ה-AI יתבקש ליצור את הטקסט **עם ניקוד מלא מובנה** כבר בשלב היצירה, כפי שהדוגמה מראה
+#### 5. Technical Details
 
-### 4. עדכון פורמט הפלט
-שינוי ההנחיה בפורמט ה-JSON מ:
-- "טקסט בעברית פשוטה ונגישה (2-3 משפטים בפרוזה, לא בחרוזים!)"
-- ל: "בית שיר מחורז בעברית עם ניקוד מלא (4 שורות מקסימום, תבנית AABB או ABCB)"
+**File: `src/pages/Profile.tsx`**
 
-## פרטים טכניים
+- **State changes**: Replace single `childPhotoUrl` state with a `childPhotos: Record<string, string>` mapping child ID to photo_url, populated from the existing `fetchChildren` query
+- **Import**: Add `SignedImage` component for rendering private storage photos
+- **Header section** (lines 216-238): Replace with centered greeting + horizontal children photo row
+- **Tips section** (lines 240-260): Remove CTA button, add new tip to array, clean up styling
+- **No other files need changes** -- all data queries already fetch the necessary fields
 
-### קובץ שישתנה
-- `supabase/functions/generate-story/index.ts`
+### Visual Layout (top to bottom)
+1. Greeting + credits badge (compact row)
+2. Children photo circles (horizontal, centered, scrollable if many)
+3. "הטיפ של כרמית" box (clean, no CTA)
+4. "עולם הילד" expandable cards (unchanged)
+5. "פנקס הקסם להורה" notebook (unchanged)
+6. Mobile navigation bar
 
-### שינויים ספציפיים בקוד
-
-**1. ב-SYSTEM_PROMPT (שורות 10-245):**
-- הוספת סעיף "חרוזים וקצב" עם כללים מפורטים
-- הסרת השורה `- **חרוזים או שירה** - פרוזה בלבד!` (שורה 209)
-- עדכון פורמט הפלט (שורה 241)
-- שילוב דוגמת הסגנון שסופקה
-- שינוי ההנחיה לכתוב ניקוד מלא ישירות (שורות 224-232)
-
-**2. במודל AI (שורה 1091):**
-- שינוי מ-`google/gemini-2.5-flash` ל-`google/gemini-2.5-pro`
-
-**3. ב-userPrompt (סביב שורה 1018):**
-- הסרת ההנחיה "כתוב עברית נקייה ללא ניקוד"
-- הוספת הנחיה "כתוב עם ניקוד מלא ומדויק"
-
-**4. התאמת לוגיקת הניקוד:**
-- כאשר המודל מייצר ניקוד ישירות, אין צורך לדלג על שלב הניקוד הנפרד, אך נשאיר אותו כ-fallback/validation
-
-### דוגמת סגנון שתשולב
-
-```text
-הַשֶּׁמֶשׁ זָרְחָה לָהּ בְּבֹקֶר בָּהִיר,
-וְסוֹל הִתְעוֹרְרָה עִם חִיּוּךְ מֵאִיר.
-צִחְצְחָה שִׁנַּיִים, שָׁטְפָה אֶת פָּנֶיהָ,
-וְרָצָה לַגַּן עִם כָּל חֲבֵרֶיהָ.
-```
-
-### השפעה על חוויית המשתמש
-- הסיפורים יהיו קצביים וקליטים יותר לקריאה בקול רם
-- ניקוד מובנה יעזור להורים לקרוא נכון
-- מבנה בתים קצרים מותאם למסכי מובייל
-- איכות ספרותית גבוהה יותר
-
-### הערות
-- שימוש ב-`gemini-2.5-pro` עלול להיות יקר/איטי יותר מ-`flash`, אך הוא חיוני לאיכות חרוזים בעברית
-- שלב הניקוד הנפרד (`addNikudToText`) יישאר כ-fallback למקרים שהמודל לא מנקד מספיק טוב
