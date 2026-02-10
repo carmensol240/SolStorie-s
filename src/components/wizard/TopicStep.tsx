@@ -393,6 +393,17 @@ const ADVENTURE_CATEGORIES: AdventureCategory[] = [
           theme: "sensory play, rain, nature, joy, jumping in puddles, weather exploration"
         }
       },
+      {
+        id: "underwater-journey",
+        label: "מסע במצולות הים",
+        image: topicUnderwater,
+        description: "הרפתקה קסומה מתחת למים",
+        logic: {
+          outfit: "magical diving suit with glowing accents",
+          background: "vibrant underwater world with coral reefs, bioluminescent jellyfish, friendly sea turtle, bubbles and sparkles, sunlight filtering through water",
+          theme: "underwater exploration, ocean discovery, sensory wonder, marine life, imagination, courage, nature beauty"
+        }
+      },
     ]
   },
 ];
