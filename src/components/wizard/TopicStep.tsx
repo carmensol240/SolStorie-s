@@ -264,6 +264,8 @@ const ADVENTURE_CATEGORIES: AdventureCategory[] = [
       },
     ]
   },
+  {
+    id: "social-missions",
     title: "משימות חברתיות",
     emoji: "🤝",
     topics: [
