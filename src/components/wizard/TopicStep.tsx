@@ -226,12 +226,26 @@ const CategoryCarousel = ({
   return (
     <div id={`cat-${category.id}`}>
       {/* Category Header */}
-      <div className="flex items-center justify-between px-4 mb-1.5">
-        <div className="flex items-center gap-1.5">
-          <span className="text-base">{category.emoji}</span>
-          <h3 className="text-sm font-bold text-foreground">{category.title}</h3>
-          <span className="text-[10px] font-normal text-muted-foreground">({category.topics.length})</span>
+      <div className="flex flex-col px-4 mb-1.5">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-1.5">
+            <span className="text-base">{category.emoji}</span>
+            <h3 className="text-sm font-bold text-foreground">{category.title}</h3>
+            <span className="text-[10px] font-normal text-muted-foreground">({category.topics.length})</span>
+          </div>
+          <div className="flex items-center gap-0.5">
+            <Button variant="ghost" size="icon" className="h-7 w-7 rounded-full" onClick={() => scroll('right')} aria-label="הקודם">
+              <ChevronRight className="h-3.5 w-3.5" />
+            </Button>
+            <Button variant="ghost" size="icon" className="h-7 w-7 rounded-full" onClick={() => scroll('left')} aria-label="הבא">
+              <ChevronLeft className="h-3.5 w-3.5" />
+            </Button>
+          </div>
         </div>
+        {category.subtitle && (
+          <p className="text-[10px] text-muted-foreground mt-0.5 pr-7">{category.subtitle}</p>
+        )}
+      </div>
         <div className="flex items-center gap-0.5">
           <Button variant="ghost" size="icon" className="h-7 w-7 rounded-full" onClick={() => scroll('right')} aria-label="הקודם">
             <ChevronRight className="h-3.5 w-3.5" />
