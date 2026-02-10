@@ -240,10 +240,30 @@ const ADVENTURE_CATEGORIES: AdventureCategory[] = [
           theme: "diversity and inclusion, different family structures (single-parent, same-sex parents, grandparent-led), different appearances (skin color, hair, height), celebrating uniqueness, empathy, the core message: we look different on the outside and our homes may look different but inside our hearts we all feel love and dream the same way. Use parent NLP input to tailor to the specific family or social situation"
         }
       },
+      {
+        id: "anger-cloud",
+        label: "ענן הכעס שלי",
+        image: topicAngerCloud,
+        description: "לומדים להתמודד עם כעס",
+        logic: {
+          outfit: "comfortable home clothes",
+          background: "cozy room with a dark fluffy cloud above that transforms into a rainbow cloud with sparkles and deep breaths",
+          theme: "anger management, emotional regulation, tantrums, deep breathing, calming down, naming emotions, self-control"
+        }
+      },
+      {
+        id: "body-safety",
+        label: "הגוף שלי הוא רק שלי",
+        image: topicBodySafety,
+        description: "לומדים על גבולות וביטחון",
+        logic: {
+          outfit: "everyday casual clothes",
+          background: "warm safe environment with a gentle glowing protective bubble around the child, soft hearts and stars",
+          theme: "body boundaries, personal safety, consent, saying no, good touch bad touch, body autonomy, empowerment, telling a trusted adult"
+        }
+      },
     ]
   },
-  {
-    id: "social-missions",
     title: "משימות חברתיות",
     emoji: "🤝",
     topics: [
