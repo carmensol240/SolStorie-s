@@ -14,6 +14,7 @@ const TERMS_VERSION = "1.0";
 
 const Onboarding = () => {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const { user, loading } = useAuth();
   const { toast } = useToast();
   
