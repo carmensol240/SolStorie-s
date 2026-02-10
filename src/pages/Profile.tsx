@@ -170,14 +170,15 @@ const Profile = () => {
         {[...Array(18)].map((_, i) => (
           <div
             key={i}
-            className="absolute rounded-full bg-white/50 animate-pulse"
+            className="absolute rounded-full bg-white animate-pulse"
             style={{
-              width: `${2 + Math.random() * 3}px`,
-              height: `${2 + Math.random() * 3}px`,
+              width: `${2 + Math.random() * 4}px`,
+              height: `${2 + Math.random() * 4}px`,
               top: `${Math.random() * 100}%`,
               left: `${Math.random() * 100}%`,
               animationDelay: `${Math.random() * 4}s`,
               animationDuration: `${2 + Math.random() * 3}s`,
+              boxShadow: `0 0 ${4 + Math.random() * 8}px ${2 + Math.random() * 4}px rgba(255, 255, 255, 0.6)`,
             }}
           />
         ))}
@@ -242,7 +243,7 @@ const Profile = () => {
                 return (
                   <div
                     key={child.id}
-                    className="bg-white/10 backdrop-blur-md border border-white/15 rounded-2xl overflow-hidden transition-all"
+                    className="bg-white/[0.06] backdrop-blur-md border border-white/10 rounded-2xl overflow-hidden transition-all"
                   >
                     {/* Child header */}
                     <button
@@ -319,7 +320,7 @@ const Profile = () => {
             פנקס הקסם להורה
           </h2>
 
-          <div className="bg-white/10 backdrop-blur-md border border-white/15 rounded-2xl p-4 space-y-4">
+          <div className="bg-white/[0.06] backdrop-blur-md border border-white/10 rounded-2xl p-4 space-y-4">
             <NotebookField
               icon={<MessageCircle className="w-3.5 h-3.5 text-purple-300" />}
               label="נקודות לשיחה"
