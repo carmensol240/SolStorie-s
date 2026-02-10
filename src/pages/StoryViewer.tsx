@@ -34,6 +34,7 @@ import { useSwipe } from "@/hooks/use-swipe";
 import { useSignedUrls } from "@/hooks/use-signed-urls";
 import { BookFrame, BookPage, BookHeader, NavigationArrows } from "@/components/story/book-frame";
 import { FileDown } from "lucide-react";
+import PdfFeaturePopup from "@/components/story/PdfFeaturePopup";
 
 import "./StoryViewer.css";
 
