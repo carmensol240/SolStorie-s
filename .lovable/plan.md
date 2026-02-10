@@ -1,89 +1,69 @@
 
 
-## Premium Tips Toolkit and Subscription Feature
+## Global Brand Migration: StoryTime to SoulStory
 
 ### Overview
-Transform the existing "הטיפ של כרמית" tips box in the Profile screen into a premium "sparkly" toolkit with subscriber/non-subscriber states, add a yearly subscription option to the Upgrade screen, and update the purchase success modal with a warm welcome message.
-
-### 1. Premium "Sparkly" Tips Box in Profile
-
-**File: `src/pages/Profile.tsx`**
-
-Replace the current plain tips section (lines 248-259) with a premium toolkit:
-
-- **Title**: "ערכת הכלים של כרמית: NLP וחינוך מקרב"
-- **Design**: Animated sparkle border using CSS keyframes (golden gradient border that shimmers), a soft amber/purple glow shadow, and a Sparkles icon
-- **Subscriber state** (using `useSubscription` hook):
-  - If `isSubscriber === true`: Show the rotating monthly NLP tips (same cycling logic, same tips array)
-  - If `isSubscriber === false`: Show a "locked/preview" state with a blurred or faded first tip, a lock icon overlay, and a CTA button: "פתחו את המדריך השנתי המלא ב-19.90 ש״ח" that navigates to `/upgrade?toolkit=true`
-- **Attribution**: "כרמית כהן, מייסדת StoryTime"
-- Add CSS animation for the sparkle border effect using Tailwind's `animate` and inline `@keyframes`
-
-### 2. Yearly Subscription on Upgrade Screen
-
-**File: `src/pages/Upgrade.tsx`**
-
-Add a new subscription card **above** the existing credit packages:
-
-- **Design**: A distinct glassmorphism card with a golden/amber gradient border and a Crown icon
-- **Title**: "מנוי שנתי לערכת הכלים של כרמית"
-- **Price**: "19.90 ש״ח לשנה"
-- **Description**: "ליווי רגשי וכלים מעולם ה-NLP שמתעדכנים בכל חודש. הפכו כל סיפור לרגע של חיבור עמוק וצמיחה עבור הילד שלכם."
-- **CTA button**: "הירשמו למנוי" -- triggers PayPal flow with amount 19.90
-- On success: update `profiles.is_subscriber = true` via Supabase, show success modal with warm welcome
-- Conditionally shown: only visible when `?toolkit=true` query param is present OR always shown as a separate section below the credit packages
-
-**File: `src/config/pricing.ts`**
-
-Add a new subscription constant:
-```typescript
-export const TOOLKIT_SUBSCRIPTION = {
-  id: "toolkit_yearly",
-  price: 19.90,
-  label: "מנוי שנתי לערכת הכלים של כרמית",
-  description: "ליווי רגשי וכלים מעולם ה-NLP שמתעדכנים בכל חודש.",
-};
-```
-
-### 3. Purchase Success Modal - Warm Welcome for Subscribers
-
-**File: `src/components/paywall/PurchaseSuccessModal.tsx`**
-
-Add an optional `isSubscription` prop. When true, show a different message:
-- Heading: "ברוכים הבאים למשפחת StoryTime!"
-- Body: "שמחה שהצטרפתם. מעכשיו תקבלו כל חודש כלים חדשים מעולם ה-NLP והחינוך המקרב שיעזרו לכם להפוך כל סיפור לרגע של חיבור אמיתי.\n\nבהצלחה ובשמחה,\nכרמית כהן"
-- Navigate to `/profile` instead of `/library`
-
-### 4. Subscriber Status Update
-
-**File: `src/pages/Upgrade.tsx`** (subscription purchase handler)
-
-On successful toolkit subscription purchase:
-- Insert into `purchases` table with `package_name: 'toolkit_yearly'`
-- Update `profiles` table: set `is_subscriber = true` for the user
-- Show the subscription-specific success modal
-
-### 5. Items Already Done (No Changes Needed)
-
-- **Sky Screen (Home)**: Bottom CTA already hidden when welcome banner is visible
-- **Profile header**: 160px child profile circles already in place
-- **PWA Settings**: "קיצור דרך למסך הבית" already functional with install/installed states
-- **Branding**: "כרמית כהן" consistently used
-- **UI cleanup**: No read-aloud/accessibility icons on main screens
-- **Image fitting**: All images use `object-cover`
+Rename every occurrence of "StoryTime" / "סטורי טיים" / "Story Time" across the entire application to the new brand: **SoulStory** (with the full tagline "SoulStory™ -- כרמית כהן | סיפורים עם נשמה ברוח ה-NLP" used in key branded locations). Update the PDF watermark/footer with the new branded copyright line.
 
 ---
 
-### Technical Details
+### 1. Files to Update (Frontend -- 12 files)
+
+| File | Current text | New text |
+|------|-------------|----------|
+| **index.html** | `<title>StoryTime Magic - סיפורים קסומים לילדים</title>` | `<title>SoulStory™ – סיפורים עם נשמה ברוח ה-NLP</title>` |
+| **index.html** | OG title "הסיפור שלי..." | Updated to SoulStory branding |
+| **vite.config.ts** | PWA manifest `name: "StoryTime..."`, `short_name: "StoryTime"` | `name: "SoulStory™ – סיפורים עם נשמה"`, `short_name: "SoulStory"` |
+| **src/pages/About.tsx** | 3 occurrences of "StoryTime" in headings and body text | Replace with `SoulStory` (wrapped in RTL `dir="rtl"` spans) |
+| **src/pages/Auth.tsx** | 2 toast messages: "ברוכים הבאים ל-StoryTime!" | "ברוכים הבאים ל-SoulStory!" |
+| **src/pages/Onboarding.tsx** | Toast + heading "ברוכים הבאים ל-StoryTime!" | "ברוכים הבאים ל-SoulStory!" |
+| **src/pages/Profile.tsx** | 2 attributions: "כרמית כהן, מייסדת StoryTime" | "כרמית כהן, מייסדת SoulStory" |
+| **src/pages/Settings.tsx** | aria-label, button text, dialog title with "StoryTime" | Replace all with "SoulStory" |
+| **src/pages/PrivacyPolicy.tsx** | "מדיניות הפרטיות של StoryTime" | "מדיניות הפרטיות של SoulStory" |
+| **src/pages/TermsOfService.tsx** | "StoryTime מספקת פלטפורמה..." | "SoulStory מספקת פלטפורמה..." |
+| **src/components/shared/AboutStoryTimeContent.tsx** | Component name stays (internal), but display text "StoryTime" in body | Replace display text with "SoulStory" |
+| **src/components/paywall/PurchaseSuccessModal.tsx** | "ברוכים הבאים למשפחת StoryTime!" | "ברוכים הבאים למשפחת SoulStory!" |
+| **src/components/pwa/PWAInstallPrompt.tsx** | 2 occurrences: "הוסיפו את StoryTime למסך הבית" | "הוסיפו את SoulStory למסך הבית" |
+
+### 2. PDF Export Branding
+
+**File: `src/hooks/use-pdf-export.ts`**
+
+Replace the watermark text in the `addWatermark` function:
+- **Current**: `"Generated by StoryTime - For Personal Use Only"`
+- **New**: `"SoulStory™ – כרמית כהן | סיפורים עם נשמה ברוח ה-NLP | © 2026 | www.soulstory.org.il"`
+
+The watermark is already rendered in small gray font at the bottom center of every PDF page. This text will be updated in-place. Since it contains mixed RTL/LTR text, we will keep the `align: 'center'` setting which works well for this layout in jsPDF.
+
+### 3. Edge Functions (Backend -- 4 files)
 
 | File | Change |
 |------|--------|
-| `src/pages/Profile.tsx` | Import `useSubscription`, replace tips section with premium sparkly toolkit (subscriber/locked states) |
-| `src/pages/Upgrade.tsx` | Add yearly toolkit subscription card with PayPal flow and `is_subscriber` update |
-| `src/config/pricing.ts` | Add `TOOLKIT_SUBSCRIPTION` constant |
-| `src/components/paywall/PurchaseSuccessModal.tsx` | Add `isSubscription` prop with warm welcome message signed by "כרמית כהן" |
+| **supabase/functions/send-password-reset/index.ts** | `from: "Story Time <noreply@storytime.org.il>"` becomes `"SoulStory <noreply@storytime.org.il>"`, subject "סטורי טיים" becomes "SoulStory", body "צוות סטורי טיים" becomes "צוות SoulStory" |
+| **supabase/functions/send-purchase-confirmation/index.ts** | `from:` sender name updated, link URL stays (domain unchanged) |
+| **supabase/functions/send-contact-form/index.ts** | "סטורי טיים" becomes "SoulStory" in sender name and footer text |
+| **supabase/functions/azure-speech-tts/index.ts** | `User-Agent: 'StoryTime-TTS'` becomes `'SoulStory-TTS'` |
 
-**No database changes needed** -- the `profiles.is_subscriber` column already exists with a `boolean` type and `false` default.
+Note: Email domain `storytime.org.il` will remain unchanged since domain migration is outside the scope of code changes. The user mentioned `www.soulstory.org.il` for PDF footer -- this will be used in the PDF watermark.
 
-**No new dependencies required.**
+### 4. RTL Handling for Mixed Text
 
+For locations where "SoulStory™" appears alongside Hebrew text, each instance will be wrapped in a container or element with `dir="rtl"` to prevent the English trademark from flipping. Key patterns:
+- In JSX: Use `<span dir="ltr" className="inline-block">SoulStory™</span>` within RTL containers to keep the English text properly ordered
+- In plain strings (toasts, etc.): The text naturally flows correctly since "SoulStory" is a single word without spaces
+
+### 5. Items Already Complete (No Changes Needed)
+
+- Child's World 160px profile frames -- already implemented
+- Premium "Sparkly" tips box with subscriber/locked states -- already implemented
+- Home Screen CTA cleanup (redundant button hidden) -- already implemented
+- PWA install prompt in Settings -- already functional with installed state feedback
+- UI cleanup (no accessibility icons on main screens) -- already done
+- Image object-cover consistency -- already maintained
+- "כרמית כהן" expert branding -- already consistent
+
+---
+
+### Summary
+
+Total files to modify: **16 files** (12 frontend + 4 edge functions). This is a text replacement operation across all branded surfaces, plus a PDF footer update. No structural, database, or dependency changes are needed.
