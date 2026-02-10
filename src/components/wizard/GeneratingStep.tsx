@@ -264,38 +264,47 @@ const GeneratingStep = ({ formData, onComplete }: GeneratingStepProps) => {
     );
   }
 
-  // Parent testimonials carousel with professional cards
+  // Parent testimonials with real names and gender-matched avatars
   const PARENT_TESTIMONIALS = [
     { 
-      name: "הורה מ.", 
+      name: "מיכל כהן", 
       quote: "הילדה שלי מאושרת! כל לילה מבקשת לקרוא את הסיפור שלה שוב ושוב.",
-      rating: 5 
+      rating: 5,
+      avatar: avatarTestimonial1,
     },
     { 
-      name: "הורה י.", 
+      name: "ערן לוי", 
       quote: "הילדים שלי מתים על הסיפורים. הם מרגישים כמו גיבורים אמיתיים.",
-      rating: 5 
+      rating: 5,
+      avatar: avatarParent1,
     },
     { 
-      name: "הורה ר.", 
+      name: "שירה אברהם", 
       quote: "האיורים מדהימים והסיפורים מותאמים בצורה מושלמת לגיל.",
-      rating: 5 
+      rating: 5,
+      avatar: avatarTestimonial2,
     },
     { 
-      name: "הורה א.", 
+      name: "יוסי דוד", 
       quote: "יצרנו סיפור על הפחד מהחושך והילד שלי התגבר על הפחד תוך שבוע!",
-      rating: 5 
+      rating: 5,
+      avatar: avatarTestimonial4,
+    },
+    { 
+      name: "נועה פרידמן", 
+      quote: "מתנה מושלמת לסבא וסבתא – סיפור עם הנכדים בתור הגיבורים!",
+      rating: 5,
+      avatar: avatarTestimonial5,
+    },
+    { 
+      name: "דני רוזנברג", 
+      quote: "הילד שלי לא מפסיק לבקש עוד סיפורים! מתלהב כל פעם מחדש.",
+      rating: 5,
+      avatar: avatarParent3,
     },
   ];
 
   const currentTestimonial = PARENT_TESTIMONIALS[sentenceIndex % PARENT_TESTIMONIALS.length];
-  
-  // Render 5 golden stars
-  const renderStars = (count: number) => {
-    return Array(count).fill(0).map((_, i) => (
-      <span key={i} className="text-yellow-400 text-sm">★</span>
-    ));
-  };
 
   return (
     <div className="flex flex-col items-center justify-center min-h-[100dvh] text-center space-y-6 bg-gradient-to-b from-[#FAF3E8] to-[#F5E6D3] p-6">
