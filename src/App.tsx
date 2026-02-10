@@ -6,7 +6,7 @@ import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import ErrorBoundary from "@/components/ErrorBoundary";
 import BetaBanner from "@/components/BetaBanner";
 import AccessibilityProvider from "@/components/AccessibilityProvider";
-import AccessibilityMenu from "@/components/AccessibilityMenu";
+
 import About from "./pages/About";
 
 import Adventure from "./pages/Adventure";
