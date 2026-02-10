@@ -51,16 +51,26 @@ const About = () => {
           </div>
         </div>
 
+        {/* Invitation text */}
+        <p className="text-sm text-foreground/80 leading-relaxed mb-2 px-2">
+          אני מזמינה אתכם להצטרף אלינו למסע. כדי שתוכלו להרגיש את הקסם בעצמכם, הסיפור הראשון הוא עלינו – במתנה.
+        </p>
+
         {/* Continue button */}
         <button
           onClick={() => navigate("/adventure")}
-          className="w-full max-w-xs mx-auto flex items-center justify-center bg-gradient-to-r from-purple-600 via-pink-500 to-orange-500 hover:from-purple-700 hover:via-pink-600 hover:to-orange-600 text-white font-black text-lg py-3.5 rounded-full shadow-xl transition-all hover:scale-[1.02]"
+          className="w-full max-w-xs mx-auto flex items-center justify-center bg-gradient-to-r from-purple-600 via-pink-500 to-orange-500 hover:from-purple-700 hover:via-pink-600 hover:to-orange-600 text-white font-black text-base py-3.5 rounded-full shadow-xl transition-all hover:scale-[1.02]"
           style={{
             boxShadow: '0 8px 30px -8px rgba(147, 51, 234, 0.5), 0 4px 15px -4px rgba(236, 72, 153, 0.3)'
           }}
         >
-          להמשך ✨
+          בואו נתחיל (סיפור ראשון חינם) ✨
         </button>
+
+        {/* Signature */}
+        <p className="text-sm font-semibold bg-gradient-to-r from-purple-600 via-pink-500 to-orange-400 bg-clip-text text-transparent mt-2">
+          באהבה, כרמית כהן
+        </p>
       </div>
 
       <MobileNavigation />
