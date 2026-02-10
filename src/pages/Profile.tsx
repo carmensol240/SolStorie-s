@@ -238,7 +238,7 @@ const Profile = () => {
                     )}
                   </div>
                 </div>
-                <span className="mt-1.5 text-white text-xs font-medium">{child.name}</span>
+                <span className="mt-2 text-white text-sm font-medium">{child.name}</span>
               </div>
             ))}
           </div>
