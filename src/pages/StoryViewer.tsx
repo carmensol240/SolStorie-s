@@ -837,14 +837,45 @@ const StoryViewer = () => {
                     </p>
                   </div>
                   
-                  {/* Discreet page indicator - small gray text at bottom center */}
-                  {page?.page_number !== undefined && (
-                    <div className="text-center pt-6 mt-auto">
+                  {/* Bottom area: page indicator + TTS button */}
+                  <div className="flex items-center justify-center pt-6 mt-auto relative">
+                    {page?.page_number !== undefined && (
                       <span className="text-xs text-gray-400 font-light">
                         {page.page_number} / {story.pages.length}
                       </span>
-                    </div>
-                  )}
+                    )}
+                    
+                    {/* TTS Read Aloud - only visible when audioSupport is enabled in accessibility */}
+                    {audioSupport && page?.text && (
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => {
+                          if (isReading) {
+                            stopReading();
+                          } else {
+                            startReading(page.text);
+                          }
+                        }}
+                        disabled={isLoadingAudio}
+                        className={cn(
+                          "absolute left-2 bottom-0 min-h-[40px] min-w-[40px] p-2 rounded-full transition-colors",
+                          isReading 
+                            ? "text-purple-600 bg-purple-100 hover:bg-purple-200" 
+                            : "text-[#8B7355] hover:bg-[#F5E6D3]"
+                        )}
+                        aria-label={isReading ? "עצור הקראה" : "הקרא את הטקסט"}
+                      >
+                        {isLoadingAudio ? (
+                          <Loader2 className="w-5 h-5 animate-spin" />
+                        ) : isReading ? (
+                          <VolumeX className="w-5 h-5" />
+                        ) : (
+                          <Volume2 className="w-5 h-5" />
+                        )}
+                      </Button>
+                    )}
+                  </div>
                 </div>
               </div>
             )}
