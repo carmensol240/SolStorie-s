@@ -38,6 +38,7 @@ import topicNewHouse from "@/assets/topic-new-house.jpg";
 import topicUnderwater from "@/assets/topic-underwater.jpg";
 import topicSuperheroes from "@/assets/topic-superheroes.jpg";
 import topicFirstDayKindergarten from "@/assets/topic-first-day-kindergarten.jpg";
+import topicMomDontGo from "@/assets/topic-mom-dont-go.jpg";
 
 interface TopicStepProps {
   formData: StoryFormData;
@@ -281,6 +282,17 @@ const ADVENTURE_CATEGORIES: AdventureCategory[] = [
           outfit: "everyday casual clothes",
           background: "warm safe environment with a gentle glowing protective bubble around the child, soft hearts and stars",
           theme: "body boundaries, personal safety, consent, saying no, good touch bad touch, body autonomy, empowerment, telling a trusted adult"
+        }
+      },
+      {
+        id: "mom-dont-go",
+        label: "אמא אל תלכי",
+        image: topicMomDontGo,
+        description: "מתמודדים עם פרידה בבוקר",
+        logic: {
+          outfit: "everyday clothes with a small backpack",
+          background: "kindergarten entrance at morning with warm golden sunlight streaming through the door, magical sparkles in the air, a glowing heart in the child's pocket",
+          theme: "separation anxiety, missing mom, morning goodbye, magical invisible string connecting parent and child, a kiss or glowing heart placed in the pocket as a comforting magical tool, feeling safe and loved even apart, building confidence, emotional validation, the child discovers they carry love with them all day, NLP reframe: missing someone means you love them and love never disappears"
         }
       },
     ]
