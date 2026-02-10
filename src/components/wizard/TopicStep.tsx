@@ -171,6 +171,7 @@ const ADVENTURE_CATEGORIES: AdventureCategory[] = [
     ]
   },
   {
+    id: "emotion-detectors",
     title: "גלאי רגשות",
     emoji: "💕",
     topics: [
