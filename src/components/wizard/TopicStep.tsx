@@ -30,6 +30,7 @@ import topicPocketKiss from "@/assets/topic-pocket-kiss.jpg";
 import topicApologize from "@/assets/topic-apologize.jpg";
 import topicRainParty from "@/assets/topic-rain-party.jpg";
 import topicWeAreSpecial from "@/assets/topic-we-are-special.jpg";
+import topicPottyTraining from "@/assets/topic-potty-training.jpeg";
 
 interface TopicStepProps {
   formData: StoryFormData;
@@ -138,6 +139,17 @@ const ADVENTURE_CATEGORIES: AdventureCategory[] = [
           outfit: "everyday casual clothes with a chef hat or apron",
           background: "warm colorful kitchen with fruits, vegetables, and sparkles on the table",
           theme: "trying new foods, picky eating, bravery, sensory exploration, healthy eating"
+        }
+      },
+      {
+        id: "potty-training",
+        label: "גמילה מחיתולים",
+        image: topicPottyTraining,
+        description: "הופכים לילד/ה גדול/ה!",
+        logic: {
+          outfit: "everyday casual clothes",
+          background: "cheerful colorful bathroom with a friendly potty chair, stickers on the wall, and a supportive teddy bear",
+          theme: "potty training, transitioning from diapers, growing up milestone, independence, positive reinforcement, celebrating success"
         }
       },
     ]
