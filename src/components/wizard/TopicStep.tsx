@@ -38,6 +38,7 @@ import topicNewHouse from "@/assets/topic-new-house.jpg";
 import topicUnderwater from "@/assets/topic-underwater.jpg";
 import topicSuperheroes from "@/assets/topic-superheroes.jpg";
 import topicFirstDayKindergarten from "@/assets/topic-first-day-kindergarten.jpg";
+import topicMomDontGo from "@/assets/topic-mom-dont-go.jpg";
 
 interface TopicStepProps {
   formData: StoryFormData;
