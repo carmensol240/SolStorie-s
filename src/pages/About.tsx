@@ -14,7 +14,7 @@ const About = () => {
             ברוכים הבאים ל-<span className="bg-gradient-to-r from-purple-600 via-pink-500 to-orange-400 bg-clip-text text-transparent">StoryTime</span>! 🌟
           </h1>
           <p className="text-base text-foreground/80 leading-relaxed">
-            האפליקציה נוצרה על ידי <span className="font-bold bg-gradient-to-r from-purple-600 via-pink-500 to-orange-400 bg-clip-text text-transparent">כרמית (כרמן) כהן</span> עבור בתי סול, מתוך אהבה ורצון לעזור לילדים לעבד רגשות ולבנות חוסן פנימי דרך סיפורים קסומים.
+            יצרתי את האפליקציה עבור בתי, סול, מתוך רצון להעניק לה עולם של דמיון שמבין את הקצב הייחודי שלה. רציתי ליצור עבורה מרחב שבו מילים הופכות לקסם מונגש, פשוט ומחבק, שמותאם בדיוק לדרך שבה היא חווה את העולם.
           </p>
           <p className="text-sm text-foreground/70 leading-relaxed font-bold">
             כדי להפוך את החזון הזה למציאות עבור כל ילד וילדה, רתמנו את הכלים המתקדמים ביותר ליצירת חוויה מושלמת:
