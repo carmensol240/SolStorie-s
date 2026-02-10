@@ -1,8 +1,20 @@
 import { useNavigate } from "react-router-dom";
 import MobileNavigation from "@/components/MobileNavigation";
+import { useAuth } from "@/hooks/use-auth";
+import { useEffect } from "react";
 
 const About = () => {
   const navigate = useNavigate();
+  const { user, loading } = useAuth();
+
+  // Logged-in users skip the about screen entirely
+  useEffect(() => {
+    if (!loading && user) {
+      navigate("/adventure", { replace: true });
+    }
+  }, [user, loading, navigate]);
+
+  if (loading || user) return null;
 
   return (
     <div className="min-h-[100dvh] flex flex-col relative overflow-hidden" dir="rtl">
@@ -85,7 +97,7 @@ const About = () => {
 
         {/* CTA Button */}
         <button
-          onClick={() => navigate("/adventure")}
+          onClick={() => navigate("/auth")}
           className="w-full max-w-xs mx-auto flex items-center justify-center bg-gradient-to-r from-purple-500 via-pink-500 to-orange-500 hover:from-purple-400 hover:via-pink-400 hover:to-orange-400 text-white font-black text-base py-3.5 rounded-full shadow-xl transition-all hover:scale-[1.02]"
           style={{
             boxShadow: '0 0 40px rgba(168, 85, 247, 0.4), 0 0 80px rgba(236, 72, 153, 0.2)'
