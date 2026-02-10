@@ -1,59 +1,89 @@
 
 
-## Comprehensive UI/UX Finalization
+## Premium Tips Toolkit and Subscription Feature
 
-### 1. Child's World - Enlarged Profile Header (160px diameter)
+### Overview
+Transform the existing "הטיפ של כרמית" tips box in the Profile screen into a premium "sparkly" toolkit with subscriber/non-subscriber states, add a yearly subscription option to the Upgrade screen, and update the purchase success modal with a warm welcome message.
+
+### 1. Premium "Sparkly" Tips Box in Profile
 
 **File: `src/pages/Profile.tsx`**
 
-The child profile circles are currently `w-28 h-28` (112px). They need to be enlarged to a minimum 160px diameter to serve as the dominant focal point.
+Replace the current plain tips section (lines 248-259) with a premium toolkit:
 
-**Changes:**
-- Increase circle dimensions from `w-28 h-28` to `w-40 h-40` (160px)
-- Increase the gradient border padding from `p-[3px]` to `p-[4px]` for a more prominent border at this size
-- Increase fallback initial letter from `text-4xl` to `text-5xl`
-- Increase child name label from `text-xs` to `text-sm` to match the larger frames
-- Add `shadow-xl shadow-purple-500/30` for a more premium glow effect
-- Keep horizontal scrollable row with `overflow-x-auto` for multi-child support
-- All images already use `object-cover` via the SignedImage component -- will be maintained
+- **Title**: "ערכת הכלים של כרמית: NLP וחינוך מקרב"
+- **Design**: Animated sparkle border using CSS keyframes (golden gradient border that shimmers), a soft amber/purple glow shadow, and a Sparkles icon
+- **Subscriber state** (using `useSubscription` hook):
+  - If `isSubscriber === true`: Show the rotating monthly NLP tips (same cycling logic, same tips array)
+  - If `isSubscriber === false`: Show a "locked/preview" state with a blurred or faded first tip, a lock icon overlay, and a CTA button: "פתחו את המדריך השנתי המלא ב-19.90 ש״ח" that navigates to `/upgrade?toolkit=true`
+- **Attribution**: "כרמית כהן, מייסדת StoryTime"
+- Add CSS animation for the sparkle border effect using Tailwind's `animate` and inline `@keyframes`
 
-### 2. PWA Home Screen Shortcut -- Already Functional
+### 2. Yearly Subscription on Upgrade Screen
 
-The Settings screen (`src/pages/Settings.tsx` lines 110-136) already has a fully functional PWA install section:
-- Uses `usePwaInstall()` hook which captures `beforeinstallprompt`
-- Shows install button when `canPrompt` is true
-- Shows iOS instructions when on iOS
-- Hides the section entirely when `isInstalled` is true
+**File: `src/pages/Upgrade.tsx`**
 
-**One improvement:** When the app is already installed, currently the entire section is hidden. Per the request, we should instead show the section with disabled text "האפליקציה כבר מותקנת" (The app is already installed).
+Add a new subscription card **above** the existing credit packages:
 
-**Changes to `src/pages/Settings.tsx`:**
-- Remove the `!isInstalled &&` conditional wrapper (line 111) so the section always renders
-- When `isInstalled` is true, show a success message "האפליקציה כבר מותקנת" with a checkmark icon instead of hiding the section
-- Keep the install button and iOS instructions for non-installed states as-is
+- **Design**: A distinct glassmorphism card with a golden/amber gradient border and a Crown icon
+- **Title**: "מנוי שנתי לערכת הכלים של כרמית"
+- **Price**: "19.90 ש״ח לשנה"
+- **Description**: "ליווי רגשי וכלים מעולם ה-NLP שמתעדכנים בכל חודש. הפכו כל סיפור לרגע של חיבור עמוק וצמיחה עבור הילד שלכם."
+- **CTA button**: "הירשמו למנוי" -- triggers PayPal flow with amount 19.90
+- On success: update `profiles.is_subscriber = true` via Supabase, show success modal with warm welcome
+- Conditionally shown: only visible when `?toolkit=true` query param is present OR always shown as a separate section below the credit packages
 
-### 3. Sky Screen (Home) -- Already Fixed
+**File: `src/config/pricing.ts`**
 
-The `LoggedInHome.tsx` already conditionally hides the bottom CTA when the welcome banner is visible (`!showWelcomeBanner` on line 106). For returning users (who have stories), only the "יוצאים להרפתקה" button shows. No further changes needed.
+Add a new subscription constant:
+```typescript
+export const TOOLKIT_SUBSCRIPTION = {
+  id: "toolkit_yearly",
+  price: 19.90,
+  label: "מנוי שנתי לערכת הכלים של כרמית",
+  description: "ליווי רגשי וכלים מעולם ה-NLP שמתעדכנים בכל חודש.",
+};
+```
 
-### 4. NLP Expert Tips -- Already in Place
+### 3. Purchase Success Modal - Warm Welcome for Subscribers
 
-The "הטיפ של כרמית" section in `Profile.tsx` (lines 248-259) is already functional with 7 rotating tips and the attribution "כרמית כהן, מייסדת StoryTime". No changes needed.
+**File: `src/components/paywall/PurchaseSuccessModal.tsx`**
 
-### 5. Global UI Polish -- Verification
+Add an optional `isSubscription` prop. When true, show a different message:
+- Heading: "ברוכים הבאים למשפחת StoryTime!"
+- Body: "שמחה שהצטרפתם. מעכשיו תקבלו כל חודש כלים חדשים מעולם ה-NLP והחינוך המקרב שיעזרו לכם להפוך כל סיפור לרגע של חיבור אמיתי.\n\nבהצלחה ובשמחה,\nכרמית כהן"
+- Navigate to `/profile` instead of `/library`
 
-- "כרמית כהן" is already consistent in About and tips sections
-- Accessibility buttons are tucked inside the Settings dialog only -- not visible on main screens
-- All gallery/profile images use `object-cover`
-- Purple/pink gradient aesthetic is maintained throughout
+### 4. Subscriber Status Update
+
+**File: `src/pages/Upgrade.tsx`** (subscription purchase handler)
+
+On successful toolkit subscription purchase:
+- Insert into `purchases` table with `package_name: 'toolkit_yearly'`
+- Update `profiles` table: set `is_subscriber = true` for the user
+- Show the subscription-specific success modal
+
+### 5. Items Already Done (No Changes Needed)
+
+- **Sky Screen (Home)**: Bottom CTA already hidden when welcome banner is visible
+- **Profile header**: 160px child profile circles already in place
+- **PWA Settings**: "קיצור דרך למסך הבית" already functional with install/installed states
+- **Branding**: "כרמית כהן" consistently used
+- **UI cleanup**: No read-aloud/accessibility icons on main screens
+- **Image fitting**: All images use `object-cover`
 
 ---
 
-### Summary of File Changes
+### Technical Details
 
 | File | Change |
 |------|--------|
-| `src/pages/Profile.tsx` | Enlarge child photo circles from 112px to 160px, increase border, shadow, and label sizes |
-| `src/pages/Settings.tsx` | Show "האפליקציה כבר מותקנת" message when PWA is installed instead of hiding the section |
+| `src/pages/Profile.tsx` | Import `useSubscription`, replace tips section with premium sparkly toolkit (subscriber/locked states) |
+| `src/pages/Upgrade.tsx` | Add yearly toolkit subscription card with PayPal flow and `is_subscriber` update |
+| `src/config/pricing.ts` | Add `TOOLKIT_SUBSCRIPTION` constant |
+| `src/components/paywall/PurchaseSuccessModal.tsx` | Add `isSubscription` prop with warm welcome message signed by "כרמית כהן" |
 
-No new files or dependencies required.
+**No database changes needed** -- the `profiles.is_subscriber` column already exists with a `boolean` type and `false` default.
+
+**No new dependencies required.**
+
