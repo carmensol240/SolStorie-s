@@ -1,5 +1,5 @@
-import { useRef } from "react";
-import { Pencil, ChevronLeft, ChevronRight, Brain, Sparkles } from "lucide-react";
+import { useState, useRef } from "react";
+import { Pencil, ChevronLeft, ChevronRight, Brain, Sparkles, LayoutGrid } from "lucide-react";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
@@ -95,99 +95,63 @@ const ADVENTURE_CATEGORIES: AdventureCategory[] = [
         label: "ביקור אצל רופא/ת השיניים",
         image: topicDentistVisit,
         description: "הולכים לרופא שיניים בלי פחד",
-        logic: {
-          outfit: "everyday casual clothes",
-          background: "friendly colorful dental clinic with sparkles, kind dentist, and fun dental chair",
-          theme: "visiting the dentist, overcoming fear, dental checkup, bravery, health"
-        }
+        logic: { outfit: "everyday casual clothes", background: "friendly colorful dental clinic with sparkles, kind dentist, and fun dental chair", theme: "visiting the dentist, overcoming fear, dental checkup, bravery, health" }
       },
       {
         id: "pacifier-fairy",
         label: "פיית המוצץ",
         image: topicPacifier,
         description: "נפרדים מהמוצץ בקסם",
-        logic: {
-          outfit: "cozy pajamas",
-          background: "magical nursery with sparkles and gentle fairy",
-          theme: "saying goodbye to pacifier, growing up, milestone transition, managing change"
-        }
+        logic: { outfit: "cozy pajamas", background: "magical nursery with sparkles and gentle fairy", theme: "saying goodbye to pacifier, growing up, milestone transition, managing change" }
       },
       {
         id: "body-hero-teeth",
         label: "צחצוח שיניים קסום",
         image: topicTeethBrushing,
         description: "עם פיית השיניים והדרקון",
-        logic: {
-          outfit: "everyday casual clothes at home",
-          background: "bright magical bathroom with sparkles and friendly dental fairy dragon",
-          theme: "teeth brushing, dental hygiene, making brushing fun, sensory experience"
-        }
+        logic: { outfit: "everyday casual clothes at home", background: "bright magical bathroom with sparkles and friendly dental fairy dragon", theme: "teeth brushing, dental hygiene, making brushing fun, sensory experience" }
       },
       {
         id: "body-hero-bath",
         label: "אמבטיה של כיף",
         image: topicBathShower,
         description: "בועות, ברווזון וקצף",
-        logic: {
-          outfit: "bath time with rubber ducky cap",
-          background: "colorful bubble bath with floating toys and rainbow bubbles",
-          theme: "bath time fun, getting clean, water play, sensory experience"
-        }
+        logic: { outfit: "bath time with rubber ducky cap", background: "colorful bubble bath with floating toys and rainbow bubbles", theme: "bath time fun, getting clean, water play, sensory experience" }
       },
       {
         id: "body-hero-nails",
         label: "גזירת ציפורניים",
         image: topicNailTrimming,
         description: "עם הפיות הקסומות",
-        logic: {
-          outfit: "everyday casual clothes",
-          background: "magical bathroom with fairies and sparkles, friendly nail clippers",
-          theme: "nail trimming, grooming routine, overcoming sensory discomfort"
-        }
+        logic: { outfit: "everyday casual clothes", background: "magical bathroom with fairies and sparkles, friendly nail clippers", theme: "nail trimming, grooming routine, overcoming sensory discomfort" }
       },
       {
         id: "barber-visit",
         label: "ביקור אצל הספר",
         image: topicBarberVisit,
         description: "תספורת קסומה וכיפית",
-        logic: {
-          outfit: "everyday casual clothes with barber cape",
-          background: "friendly colorful barber shop with mirrors, sparkles, and fun chair",
-          theme: "visiting the barber, haircut, overcoming fear, grooming, bravery"
-        }
+        logic: { outfit: "everyday casual clothes with barber cape", background: "friendly colorful barber shop with mirrors, sparkles, and fun chair", theme: "visiting the barber, haircut, overcoming fear, grooming, bravery" }
       },
       {
         id: "brave-taster",
         label: "הטועם האמיץ",
         image: topicBraveTaster,
         description: "טועמים אוכל חדש באומץ",
-        logic: {
-          outfit: "everyday casual clothes with a chef hat or apron",
-          background: "warm colorful kitchen with fruits, vegetables, and sparkles on the table",
-          theme: "trying new foods, picky eating, bravery, sensory exploration, healthy eating"
-        }
+        logic: { outfit: "everyday casual clothes with a chef hat or apron", background: "warm colorful kitchen with fruits, vegetables, and sparkles on the table", theme: "trying new foods, picky eating, bravery, sensory exploration, healthy eating" }
       },
       {
         id: "potty-training",
         label: "גמילה מחיתולים",
         image: topicPottyTraining,
         description: "הופכים לילד/ה גדול/ה!",
-        logic: {
-          outfit: "everyday casual clothes",
-          background: "cheerful colorful bathroom with a friendly potty chair, stickers on the wall, and a supportive teddy bear",
-          theme: "potty training, transitioning from diapers, growing up milestone, independence, positive reinforcement, celebrating success"
-        }
+        logic: { outfit: "everyday casual clothes", background: "cheerful colorful bathroom with a friendly potty chair, stickers on the wall, and a supportive teddy bear", theme: "potty training, transitioning from diapers, growing up milestone, independence, positive reinforcement, celebrating success" }
       },
       {
         id: "independence",
         label: "אני יכול/ה לבד!",
         image: topicIndependence,
         description: "מתלבשים ומסתדרים לבד",
-        logic: {
-          outfit: "mismatched fun clothes the child picked themselves",
-          background: "bright cheerful bedroom with open wardrobe, clothes scattered playfully, warm morning sunlight and sparkles",
-          theme: "independence, self-dressing, doing things alone, growing up, confidence, pride in self-reliance"
-        }
+        logic: { outfit: "mismatched fun clothes the child picked themselves", background: "bright cheerful bedroom with open wardrobe, clothes scattered playfully, warm morning sunlight and sparkles", theme: "independence, self-dressing, doing things alone, growing up, confidence, pride in self-reliance" }
       },
     ]
   },
@@ -201,99 +165,63 @@ const ADVENTURE_CATEGORIES: AdventureCategory[] = [
         label: "נולד לי אח/ות",
         image: topicNewSibling,
         description: "מקבלים תינוק חדש במשפחה",
-        logic: {
-          outfit: "comfortable home clothes",
-          background: "warm nursery room with crib, mobile, soft lighting, and family atmosphere",
-          theme: "welcoming new sibling, sharing attention, becoming a big brother/sister, family changes, emotions about new baby"
-        }
+        logic: { outfit: "comfortable home clothes", background: "warm nursery room with crib, mobile, soft lighting, and family atmosphere", theme: "welcoming new sibling, sharing attention, becoming a big brother/sister, family changes, emotions about new baby" }
       },
       {
         id: "body-hero-hands",
         label: "שטיפת ידיים",
         image: topicHandWashing,
         description: "מנצחים את החיידקים!",
-        logic: {
-          outfit: "everyday casual clothes",
-          background: "bright colorful bathroom with soap bubbles and friendly germs being washed away",
-          theme: "hand hygiene, washing hands, staying healthy, sensory experience"
-        }
+        logic: { outfit: "everyday casual clothes", background: "bright colorful bathroom with soap bubbles and friendly germs being washed away", theme: "hand hygiene, washing hands, staying healthy, sensory experience" }
       },
       {
         id: "fear-of-dark",
         label: "פחד מהחושך",
         image: topicFearOfDark,
         description: "מגלים שאין מה לפחד",
-        logic: {
-          outfit: "cozy pajamas with soft slippers",
-          background: "enchanted bedroom at night with a protective glowing nightlight, stars, and friendly shadows",
-          theme: "overcoming fear of darkness, bravery, emotional regulation, calming bedtime, feeling safe"
-        }
+        logic: { outfit: "cozy pajamas with soft slippers", background: "enchanted bedroom at night with a protective glowing nightlight, stars, and friendly shadows", theme: "overcoming fear of darkness, bravery, emotional regulation, calming bedtime, feeling safe" }
       },
       {
         id: "lost-tooth",
         label: "נפלה לי שן",
         image: topicLostTooth,
         description: "פיית השיניים באה לבקר",
-        logic: {
-          outfit: "everyday casual clothes",
-          background: "magical bedroom at night with a tiny glowing tooth fairy, sparkles, and a little tooth under a pillow",
-          theme: "losing a tooth, growing up, tooth fairy, excitement and courage, body changes"
-        }
+        logic: { outfit: "everyday casual clothes", background: "magical bedroom at night with a tiny glowing tooth fairy, sparkles, and a little tooth under a pillow", theme: "losing a tooth, growing up, tooth fairy, excitement and courage, body changes" }
       },
       {
         id: "pocket-kiss",
         label: "נשיקה בכיס",
         image: topicPocketKiss,
         description: "פרידה בבוקר עם אהבה",
-        logic: {
-          outfit: "everyday clothes with a small backpack",
-          background: "kindergarten entrance at morning with warm sunlight, parent giving a kiss, a tiny glowing heart tucked in pocket",
-          theme: "separation anxiety, morning goodbye, feeling safe, love and comfort, transitioning to kindergarten"
-        }
+        logic: { outfit: "everyday clothes with a small backpack", background: "kindergarten entrance at morning with warm sunlight, parent giving a kiss, a tiny glowing heart tucked in pocket", theme: "separation anxiety, morning goodbye, feeling safe, love and comfort, transitioning to kindergarten" }
       },
       {
         id: "we-are-special",
         label: "כולנו מיוחדים ודומים",
         image: topicWeAreSpecial,
         description: "שונים מבחוץ, אותו דבר מבפנים",
-        logic: {
-          outfit: "everyday casual clothes",
-          background: "colorful magical garden with diverse flowers, rainbow-colored glowing hearts and stars, children of different appearances holding hands",
-          theme: "diversity and inclusion, different family structures (single-parent, same-sex parents, grandparent-led), different appearances (skin color, hair, height), celebrating uniqueness, empathy, the core message: we look different on the outside and our homes may look different but inside our hearts we all feel love and dream the same way. Use parent NLP input to tailor to the specific family or social situation"
-        }
+        logic: { outfit: "everyday casual clothes", background: "colorful magical garden with diverse flowers, rainbow-colored glowing hearts and stars, children of different appearances holding hands", theme: "diversity and inclusion, different family structures (single-parent, same-sex parents, grandparent-led), different appearances (skin color, hair, height), celebrating uniqueness, empathy, the core message: we look different on the outside and our homes may look different but inside our hearts we all feel love and dream the same way. Use parent NLP input to tailor to the specific family or social situation" }
       },
       {
         id: "anger-cloud",
         label: "ענן הכעס שלי",
         image: topicAngerCloud,
         description: "לומדים להתמודד עם כעס",
-        logic: {
-          outfit: "comfortable home clothes",
-          background: "cozy room with a dark fluffy cloud above that transforms into a rainbow cloud with sparkles and deep breaths",
-          theme: "anger management, emotional regulation, tantrums, deep breathing, calming down, naming emotions, self-control"
-        }
+        logic: { outfit: "comfortable home clothes", background: "cozy room with a dark fluffy cloud above that transforms into a rainbow cloud with sparkles and deep breaths", theme: "anger management, emotional regulation, tantrums, deep breathing, calming down, naming emotions, self-control" }
       },
       {
         id: "body-safety",
         label: "הגוף שלי הוא רק שלי",
         image: topicBodySafety,
         description: "לומדים על גבולות וביטחון",
-        logic: {
-          outfit: "everyday casual clothes",
-          background: "warm safe environment with a gentle glowing protective bubble around the child, soft hearts and stars",
-          theme: "body boundaries, personal safety, consent, saying no, good touch bad touch, body autonomy, empowerment, telling a trusted adult"
-        }
+        logic: { outfit: "everyday casual clothes", background: "warm safe environment with a gentle glowing protective bubble around the child, soft hearts and stars", theme: "body boundaries, personal safety, consent, saying no, good touch bad touch, body autonomy, empowerment, telling a trusted adult" }
       },
       {
         id: "mom-dont-go",
         label: "אמא אל תלכי",
         image: topicMomDontGo,
         description: "מתמודדים עם פרידה בבוקר",
-        logic: {
-          outfit: "everyday clothes with a small backpack",
-          background: "kindergarten entrance at morning with warm golden sunlight streaming through the door, magical sparkles in the air, a glowing heart in the child's pocket",
-          theme: "separation anxiety, missing mom, morning goodbye, magical invisible string connecting parent and child, a kiss or glowing heart placed in the pocket as a comforting magical tool, feeling safe and loved even apart, building confidence, emotional validation, the child discovers they carry love with them all day, NLP reframe: missing someone means you love them and love never disappears"
-        }
+        logic: { outfit: "everyday clothes with a small backpack", background: "kindergarten entrance at morning with warm golden sunlight streaming through the door, magical sparkles in the air, a glowing heart in the child's pocket", theme: "separation anxiety, missing mom, morning goodbye, magical invisible string connecting parent and child, a kiss or glowing heart placed in the pocket as a comforting magical tool, feeling safe and loved even apart, building confidence, emotional validation, the child discovers they carry love with them all day, NLP reframe: missing someone means you love them and love never disappears" }
       },
     ]
   },
@@ -307,77 +235,49 @@ const ADVENTURE_CATEGORIES: AdventureCategory[] = [
         label: "חברים בגן",
         image: topicFriendship,
         description: "משחקים ומתגברים על קשיים",
-        logic: {
-          outfit: "everyday casual clothes suitable for playing",
-          background: "colorful kindergarten playground with sandbox and sunny weather",
-          theme: "social skills, making friends, playing together, sharing, managing emotions"
-        }
+        logic: { outfit: "everyday casual clothes suitable for playing", background: "colorful kindergarten playground with sandbox and sunny weather", theme: "social skills, making friends, playing together, sharing, managing emotions" }
       },
       {
         id: "sharing-fun",
         label: "כמה כיף לחלוק",
         image: topicSharing,
         description: "לחלוק זה כיף!",
-        logic: {
-          outfit: "everyday casual clothes",
-          background: "colorful kindergarten with toys and snacks, children playing together happily",
-          theme: "sharing toys, generosity, kindness, social skills, taking turns"
-        }
+        logic: { outfit: "everyday casual clothes", background: "colorful kindergarten with toys and snacks, children playing together happily", theme: "sharing toys, generosity, kindness, social skills, taking turns" }
       },
       {
         id: "birthday-party",
         label: "מסיבת יום הולדת",
         image: topicBirthday,
         description: "חוגגים ומשתפים עם חברים",
-        logic: {
-          outfit: "party clothes, festive attire",
-          background: "colorful kindergarten or party venue with cake, decorations, friends",
-          theme: "birthday celebration, friendship, sharing joy, being a good host"
-        }
+        logic: { outfit: "party clothes, festive attire", background: "colorful kindergarten or party venue with cake, decorations, friends", theme: "birthday celebration, friendship, sharing joy, being a good host" }
       },
       {
         id: "family-trip",
         label: "טיול משפחתי",
         image: topicFamilyTrip,
         description: "הרפתקה בטבע עם המשפחה",
-        logic: {
-          outfit: "hiking clothes with backpack",
-          background: "beautiful nature trail with trees, stream, flowers, and dog",
-          theme: "family bonding, nature exploration, teamwork, helping others"
-        }
+        logic: { outfit: "hiking clothes with backpack", background: "beautiful nature trail with trees, stream, flowers, and dog", theme: "family bonding, nature exploration, teamwork, helping others" }
       },
       {
         id: "apologize",
         label: "ללמוד לבקש סליחה",
         image: topicApologize,
         description: "לומר סליחה ולתקן",
-        logic: {
-          outfit: "everyday casual clothes",
-          background: "colorful kindergarten with soft lighting, two children facing each other with gentle expressions",
-          theme: "apologizing, taking responsibility, empathy, repairing friendships, emotional growth"
-        }
+        logic: { outfit: "everyday casual clothes", background: "colorful kindergarten with soft lighting, two children facing each other with gentle expressions", theme: "apologizing, taking responsibility, empathy, repairing friendships, emotional growth" }
       },
       {
         id: "new-house",
         label: "עוברים לבית חדש",
         image: topicNewHouse,
         description: "הרפתקה של מעבר דירה",
-        logic: {
-          outfit: "comfortable casual clothes",
-          background: "new colorful house with moving boxes, a magical garden with flowers blooming, warm golden sunlight, sparkles in the air",
-          theme: "moving to a new house, change, leaving friends, making new friends, adapting, feeling safe in a new place, family support"
-        }
+        logic: { outfit: "comfortable casual clothes", background: "new colorful house with moving boxes, a magical garden with flowers blooming, warm golden sunlight, sparkles in the air", theme: "moving to a new house, change, leaving friends, making new friends, adapting, feeling safe in a new place, family support" }
       },
       {
         id: "first-day-kindergarten",
         label: "היום הראשון בגן",
         image: topicFirstDayKindergarten,
         description: "מתחילים הרפתקה חדשה בגן",
-        logic: {
-          outfit: "everyday clothes with a small colorful backpack",
-          background: "whimsical kindergarten entrance decorated with oversized crayons, floating magical ABC letters, warm golden sunlight and sparkles",
-          theme: "first day at kindergarten, separation anxiety, making new friends, new beginnings, bravery, excitement, adapting to new environment, feeling safe"
-        }
+        logic: { outfit: "everyday clothes with a small colorful backpack", background: "whimsical kindergarten entrance decorated with oversized crayons, floating magical ABC letters, warm golden sunlight and sparkles", theme: "first day at kindergarten, separation anxiety, making new friends, new beginnings, bravery, excitement, adapting to new environment, feeling safe" }
       },
     ]
   },
@@ -391,66 +291,42 @@ const ADVENTURE_CATEGORIES: AdventureCategory[] = [
         label: "הרפתקה בחלל",
         image: topicSpaceHero,
         description: "מסע בין כוכבים ופלאות",
-        logic: {
-          outfit: "astronaut spacesuit with helmet",
-          background: "outer space with stars, planets, and galaxies",
-          theme: "exploration and discovery in space, bravery, imagination"
-        }
+        logic: { outfit: "astronaut spacesuit with helmet", background: "outer space with stars, planets, and galaxies", theme: "exploration and discovery in space, bravery, imagination" }
       },
       {
         id: "magic-kingdom",
         label: "ממלכת הקסם",
         image: topicMagicCastle,
         description: "הרפתקה קסומה בארמון",
-        logic: {
-          outfit: "royal prince/princess attire with crown",
-          background: "magical castle with towers and enchanted gardens",
-          theme: "fantasy and magic in a royal kingdom, kindness, helping others"
-        }
+        logic: { outfit: "royal prince/princess attire with crown", background: "magical castle with towers and enchanted gardens", theme: "fantasy and magic in a royal kingdom, kindness, helping others" }
       },
       {
         id: "zoo-adventure",
         label: "טיול בגן החיות",
         image: topicZoo,
         description: "פוגשים חיות ומתרגלים שיתוף",
-        logic: {
-          outfit: "comfortable outdoor clothes with backpack",
-          background: "colorful zoo with friendly animals, fences, trees",
-          theme: "animal discovery, nature, sharing with friends, taking turns"
-        }
+        logic: { outfit: "comfortable outdoor clothes with backpack", background: "colorful zoo with friendly animals, fences, trees", theme: "animal discovery, nature, sharing with friends, taking turns" }
       },
       {
         id: "cloud-adventure",
         label: "טיול בעננים",
         image: topicCloudAdventure,
         description: "מעופפים בין עננים קסומים",
-        logic: {
-          outfit: "light airy clothes with tiny wings",
-          background: "dreamy sky filled with fluffy magical clouds, rainbows, floating islands, and sparkling stars",
-          theme: "imagination, flying, dreaming, sensory wonder, freedom, creativity"
-        }
+        logic: { outfit: "light airy clothes with tiny wings", background: "dreamy sky filled with fluffy magical clouds, rainbows, floating islands, and sparkling stars", theme: "imagination, flying, dreaming, sensory wonder, freedom, creativity" }
       },
       {
         id: "rain-party",
         label: "מסיבת הגשם",
         image: topicRainParty,
         description: "רוקדים בגשם עם מטריות צבעוניות",
-        logic: {
-          outfit: "rain boots and a colorful raincoat with hood",
-          background: "garden in the rain with puddles, rainbow reflections, colorful umbrellas, and sparkling raindrops",
-          theme: "sensory play, rain, nature, joy, jumping in puddles, weather exploration"
-        }
+        logic: { outfit: "rain boots and a colorful raincoat with hood", background: "garden in the rain with puddles, rainbow reflections, colorful umbrellas, and sparkling raindrops", theme: "sensory play, rain, nature, joy, jumping in puddles, weather exploration" }
       },
       {
         id: "underwater-journey",
         label: "מסע במצולות הים",
         image: topicUnderwater,
         description: "הרפתקה קסומה מתחת למים",
-        logic: {
-          outfit: "magical diving suit with glowing accents",
-          background: "vibrant underwater world with coral reefs, bioluminescent jellyfish, friendly sea turtle, bubbles and sparkles, sunlight filtering through water",
-          theme: "underwater exploration, ocean discovery, sensory wonder, marine life, imagination, courage, nature beauty"
-        }
+        logic: { outfit: "magical diving suit with glowing accents", background: "vibrant underwater world with coral reefs, bioluminescent jellyfish, friendly sea turtle, bubbles and sparkles, sunlight filtering through water", theme: "underwater exploration, ocean discovery, sensory wonder, marine life, imagination, courage, nature beauty" }
       },
     ]
   },
@@ -459,122 +335,64 @@ const ADVENTURE_CATEGORIES: AdventureCategory[] = [
 // Flatten all topics for lookup
 const ALL_TOPICS = ADVENTURE_CATEGORIES.flatMap(cat => cat.topics);
 
-// Carousel component for each category
-const CategoryCarousel = ({ 
-  category, 
-  selectedTopic, 
-  onSelect 
-}: { 
-  category: AdventureCategory;
-  selectedTopic: string;
+// Topic card used in both carousel and grid views
+const TopicCard = ({
+  topic,
+  isSelected,
+  onSelect,
+  compact = false,
+}: {
+  topic: AdventureTopic;
+  isSelected: boolean;
   onSelect: (topic: AdventureTopic) => void;
-}) => {
-  const scrollRef = useRef<HTMLDivElement>(null);
-
-  const scroll = (direction: 'left' | 'right') => {
-    if (scrollRef.current) {
-      const scrollAmount = 180;
-      scrollRef.current.scrollBy({
-        left: direction === 'left' ? scrollAmount : -scrollAmount,
-        behavior: 'smooth'
-      });
-    }
-  };
-
-  return (
-    <div className="space-y-2">
-      {/* Category Header */}
-      <div className="flex items-center justify-between px-1">
-        <h3 className="text-lg font-bold flex items-center gap-2">
-          <span>{category.emoji}</span>
-          <span>{category.title}</span>
-        </h3>
-        <div className="flex gap-1">
-          <Button
-            variant="ghost"
-            size="icon"
-            className="h-8 w-8 rounded-full"
-            onClick={() => scroll('right')}
-            aria-label="הקודם"
-          >
-            <ChevronRight className="h-4 w-4" />
-          </Button>
-          <Button
-            variant="ghost"
-            size="icon"
-            className="h-8 w-8 rounded-full"
-            onClick={() => scroll('left')}
-            aria-label="הבא"
-          >
-            <ChevronLeft className="h-4 w-4" />
-          </Button>
+  compact?: boolean;
+}) => (
+  <button
+    onClick={() => onSelect(topic)}
+    className={cn(
+      "overflow-hidden rounded-xl border-2 transition-all duration-200 text-right flex flex-col shadow-sm",
+      compact ? "flex-shrink-0 w-32" : "w-full",
+      isSelected
+        ? "border-primary ring-2 ring-primary/20 scale-[1.02]"
+        : "border-transparent hover:border-primary/30"
+    )}
+    style={compact ? { scrollSnapAlign: 'start' } : undefined}
+  >
+    <div className="relative aspect-[4/4] w-full overflow-hidden">
+      <img
+        src={topic.image}
+        alt={topic.label}
+        className="w-full h-full object-cover"
+        loading="lazy"
+      />
+      <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent" />
+      {isSelected && (
+        <div className="absolute top-1.5 right-1.5 w-5 h-5 rounded-full bg-primary flex items-center justify-center shadow-md">
+          <span className="text-primary-foreground text-xs">✓</span>
         </div>
-      </div>
-
-      {/* Horizontal Scrolling Cards */}
-      <div 
-        ref={scrollRef}
-        className="flex gap-3 overflow-x-auto pb-2 scrollbar-hide -mx-4 px-4"
-        style={{ scrollSnapType: 'x mandatory' }}
-      >
-        {category.topics.map((topic) => {
-          const isSelected = selectedTopic === topic.id;
-          
-          return (
-            <button
-              key={topic.id}
-              onClick={() => onSelect(topic)}
-              className={cn(
-                "flex-shrink-0 w-36 overflow-hidden rounded-xl border-2 transition-all duration-200",
-                "text-right flex flex-col shadow-sm",
-                isSelected
-                  ? "border-primary ring-2 ring-primary/20 scale-[1.02]"
-                  : "border-transparent hover:border-primary/30"
-              )}
-              style={{ scrollSnapAlign: 'start' }}
-            >
-              {/* Image */}
-              <div className="relative aspect-[4/5] w-full overflow-hidden">
-                <img
-                  src={topic.image}
-                  alt={topic.label}
-                  className="w-full h-full object-cover"
-                  loading="lazy"
-                />
-                
-                {/* Gradient overlay for text readability */}
-                <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-transparent" />
-                
-                {/* Selection indicator */}
-                {isSelected && (
-                  <div className="absolute top-2 right-2 w-5 h-5 rounded-full bg-primary flex items-center justify-center shadow-md">
-                    <span className="text-primary-foreground text-xs">✓</span>
-                  </div>
-                )}
-                
-                {/* Text overlay */}
-                <div className="absolute bottom-0 left-0 right-0 p-2.5 text-white">
-                  <h4 className="font-bold text-sm leading-tight">{topic.label}</h4>
-                  <p className="text-[10px] text-white/80 leading-tight mt-0.5 line-clamp-2">{topic.description}</p>
-                </div>
-              </div>
-            </button>
-          );
-        })}
+      )}
+      <div className="absolute bottom-0 left-0 right-0 p-2 text-white">
+        <h4 className="font-bold text-xs leading-tight">{topic.label}</h4>
       </div>
     </div>
-  );
-};
+  </button>
+);
 
 const TopicStep = ({ formData, updateFormData }: TopicStepProps) => {
+  const [activeCategory, setActiveCategory] = useState(ADVENTURE_CATEGORIES[0].id);
+  const [showGrid, setShowGrid] = useState(false);
+  const scrollRef = useRef<HTMLDivElement>(null);
+
+  const activeCat = ADVENTURE_CATEGORIES.find(c => c.id === activeCategory)!;
+
   const handleTopicSelect = (topic: AdventureTopic) => {
     if (formData.topic === topic.id) {
-      updateFormData({ 
+      updateFormData({
         topic: formData.customTopic.trim() ? "custom" : "",
         adventureLogic: undefined
       });
     } else {
-      updateFormData({ 
+      updateFormData({
         topic: topic.id,
         adventureLogic: topic.logic
       });
@@ -583,7 +401,7 @@ const TopicStep = ({ formData, updateFormData }: TopicStepProps) => {
 
   const handleCustomTopicChange = (value: string) => {
     if (!formData.topic || formData.topic === "custom") {
-      updateFormData({ 
+      updateFormData({
         customTopic: value,
         topic: value.trim() ? "custom" : "",
         adventureLogic: undefined
@@ -593,9 +411,23 @@ const TopicStep = ({ formData, updateFormData }: TopicStepProps) => {
     }
   };
 
+  const handleCategoryChange = (catId: string) => {
+    setActiveCategory(catId);
+    setShowGrid(false);
+  };
+
+  const scroll = (direction: 'left' | 'right') => {
+    if (scrollRef.current) {
+      scrollRef.current.scrollBy({
+        left: direction === 'left' ? 160 : -160,
+        behavior: 'smooth'
+      });
+    }
+  };
+
   return (
-    <div className="space-y-4 -mx-3 -mt-2">
-      {/* Compact Title */}
+    <div className="space-y-3 -mx-3 -mt-2">
+      {/* Title */}
       <div className="text-center px-3 pt-1">
         <h1 className="text-lg font-bold bg-gradient-to-r from-purple-600 via-pink-500 to-orange-400 bg-clip-text text-transparent">
           בחרו את ההרפתקה
@@ -603,20 +435,20 @@ const TopicStep = ({ formData, updateFormData }: TopicStepProps) => {
       </div>
 
       {/* NLP Smart Input */}
-      <div className="space-y-2 px-4 bg-purple-50/50 py-3 rounded-xl mx-3 border border-purple-200/50">
+      <div className="space-y-2 px-4 bg-purple-50/50 py-2.5 rounded-xl mx-3 border border-purple-200/50">
         <div className="flex items-center gap-2 justify-center">
-          <Brain className="w-5 h-5 text-purple-500" />
-          <Label className="text-sm font-bold text-purple-700">
+          <Brain className="w-4 h-4 text-purple-500" />
+          <Label className="text-xs font-bold text-purple-700">
             ספרו לנו מה עבר על הילד/ה
           </Label>
-          <Sparkles className="w-5 h-5 text-pink-500" />
+          <Sparkles className="w-4 h-4 text-pink-500" />
         </div>
         <Textarea
           placeholder="למשל: היום היה קשה בגן עם חבר..."
           value={formData.customTopic}
           onChange={(e) => handleCustomTopicChange(e.target.value)}
           className={cn(
-            "min-h-14 text-sm resize-none",
+            "min-h-12 text-sm resize-none",
             formData.customTopic.trim() ? "border-purple-400" : ""
           )}
           dir="rtl"
@@ -624,26 +456,94 @@ const TopicStep = ({ formData, updateFormData }: TopicStepProps) => {
       </div>
 
       {/* Divider */}
-      <div className="relative py-1 px-4">
+      <div className="relative py-0.5 px-4">
         <div className="absolute inset-0 flex items-center px-4">
           <div className="w-full border-t border-purple-200/50" />
         </div>
         <div className="relative flex justify-center">
-          <span className="bg-background px-3 text-xs text-muted-foreground">או בחרו נושא</span>
+          <span className="bg-background px-3 text-[11px] text-muted-foreground">או בחרו נושא</span>
         </div>
       </div>
 
-      {/* Category Carousels */}
-      <div className="space-y-4">
-        {ADVENTURE_CATEGORIES.map((category) => (
-          <CategoryCarousel
-            key={category.id}
-            category={category}
-            selectedTopic={formData.topic}
-            onSelect={handleTopicSelect}
-          />
+      {/* Category Buttons */}
+      <div className="flex gap-2 overflow-x-auto px-4 pb-1 scrollbar-hide" style={{ scrollSnapType: 'x mandatory' }}>
+        {ADVENTURE_CATEGORIES.map((cat) => (
+          <button
+            key={cat.id}
+            onClick={() => handleCategoryChange(cat.id)}
+            className={cn(
+              "flex-shrink-0 flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold transition-all duration-200 border",
+              activeCategory === cat.id
+                ? "bg-gradient-to-r from-purple-600 via-pink-500 to-orange-400 text-white border-transparent shadow-md scale-[1.03]"
+                : "bg-white/80 text-purple-700 border-purple-200 hover:border-purple-400"
+            )}
+            style={{ scrollSnapAlign: 'start' }}
+          >
+            <span>{cat.emoji}</span>
+            <span>{cat.title}</span>
+          </button>
         ))}
       </div>
+
+      {/* Active Category Header + See All */}
+      <div className="flex items-center justify-between px-4">
+        <h3 className="text-sm font-bold flex items-center gap-1.5">
+          <span>{activeCat.emoji}</span>
+          <span>{activeCat.title}</span>
+          <span className="text-[10px] font-normal text-muted-foreground">({activeCat.topics.length})</span>
+        </h3>
+        <div className="flex items-center gap-1">
+          {!showGrid && (
+            <>
+              <Button variant="ghost" size="icon" className="h-7 w-7 rounded-full" onClick={() => scroll('right')} aria-label="הקודם">
+                <ChevronRight className="h-3.5 w-3.5" />
+              </Button>
+              <Button variant="ghost" size="icon" className="h-7 w-7 rounded-full" onClick={() => scroll('left')} aria-label="הבא">
+                <ChevronLeft className="h-3.5 w-3.5" />
+              </Button>
+            </>
+          )}
+          <Button
+            variant="ghost"
+            size="sm"
+            className="h-7 px-2 text-[11px] text-purple-600 hover:text-purple-700"
+            onClick={() => setShowGrid(!showGrid)}
+          >
+            <LayoutGrid className="h-3.5 w-3.5 ml-1" />
+            {showGrid ? "קרוסלה" : "צפה בהכל"}
+          </Button>
+        </div>
+      </div>
+
+      {/* Topics: Carousel or Grid */}
+      {showGrid ? (
+        <div className="grid grid-cols-2 gap-2.5 px-4 pb-8">
+          {activeCat.topics.map((topic) => (
+            <TopicCard
+              key={topic.id}
+              topic={topic}
+              isSelected={formData.topic === topic.id}
+              onSelect={handleTopicSelect}
+            />
+          ))}
+        </div>
+      ) : (
+        <div
+          ref={scrollRef}
+          className="flex gap-2.5 overflow-x-auto pb-2 scrollbar-hide -mx-4 px-4"
+          style={{ scrollSnapType: 'x mandatory' }}
+        >
+          {activeCat.topics.map((topic) => (
+            <TopicCard
+              key={topic.id}
+              topic={topic}
+              isSelected={formData.topic === topic.id}
+              onSelect={handleTopicSelect}
+              compact
+            />
+          ))}
+        </div>
+      )}
     </div>
   );
 };
