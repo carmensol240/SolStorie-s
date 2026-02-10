@@ -46,6 +46,7 @@ interface BookHeaderProps {
   showReadAloud?: boolean;
   isReading?: boolean;
   isLoadingAudio?: boolean;
+  hasAudioError?: boolean;
 }
 
 export const BookHeader: React.FC<BookHeaderProps> = ({
