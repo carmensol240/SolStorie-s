@@ -84,7 +84,27 @@ const Settings = () => {
             );
           })}
 
-          {/* Accessibility Settings - Purple Gradient Button */}
+          {/* Buy Credits / Premium Upgrade Box */}
+          <button
+            onClick={() => navigate("/upgrade")}
+            className="w-full flex items-center justify-between bg-gradient-to-r from-purple-600/90 via-pink-500/90 to-orange-400/90 backdrop-blur-md rounded-lg px-3 py-3 border border-white/20 hover:from-purple-700 hover:via-pink-600 hover:to-orange-500 transition-all text-right shadow-lg"
+            aria-label="רכישת חבילת סיפורים"
+          >
+            <span className="flex items-center gap-1">
+              <Sparkles className="w-3.5 h-3.5 text-yellow-200" aria-hidden="true" />
+              <ArrowRight className="w-3.5 h-3.5 text-white/70" aria-hidden="true" />
+            </span>
+            <div className="flex items-center gap-2">
+              <div className="text-right">
+                <span className="font-bold text-sm text-white block">רכישת חבילת סיפורים</span>
+                <span className="text-[11px] text-white/80 block">המשיכו את הקסם עם חבילת קרדיטים חדשה</span>
+              </div>
+              <div className="w-8 h-8 bg-white/20 backdrop-blur-sm rounded-lg flex items-center justify-center flex-shrink-0">
+                <Wand2 className="w-4 h-4 text-yellow-200" aria-hidden="true" />
+              </div>
+            </div>
+          </button>
+
           <button
             onClick={() => setAccessibilityOpen(true)}
             className="w-full flex items-center justify-between bg-gradient-to-r from-purple-50 to-pink-50 dark:from-purple-950/30 dark:to-pink-950/30 backdrop-blur-md rounded-lg px-3 py-2 border border-purple-200 dark:border-purple-800 hover:from-purple-100 hover:to-pink-100 dark:hover:from-purple-900/40 dark:hover:to-pink-900/40 transition-all text-right shadow-sm"
