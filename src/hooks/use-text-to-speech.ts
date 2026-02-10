@@ -12,7 +12,6 @@ export const useTextToSpeech = (): UseTextToSpeechReturn => {
   const [isReading, setIsReading] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const audioRef = useRef<HTMLAudioElement | null>(null);
-  const blobUrlRef = useRef<string | null>(null);
   const { toast } = useToast();
 
   const cleanup = useCallback(() => {
