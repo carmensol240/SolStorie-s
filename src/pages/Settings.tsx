@@ -1,11 +1,9 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { ArrowRight, Users, Mail, Trash2, LogOut, FileText, Shield, Coins, Eye, Info, Accessibility, Volume2, Type, MousePointer, Link2, MonitorOff } from "lucide-react";
+import { ArrowRight, Mail, Trash2, LogOut, FileText, Shield, Eye, Info, Accessibility, Volume2, Type, MousePointer, Link2, MonitorOff } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
 import { useAuth } from "@/hooks/use-auth";
-import { useCredits } from "@/hooks/use-credits";
-import { useReferral } from "@/hooks/use-referral";
 import { useAccessibility, type FontSize } from "@/hooks/use-accessibility";
 import MobileNavigation from "@/components/MobileNavigation";
 import {
@@ -17,13 +15,9 @@ import {
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { AboutStoryTimeContent } from "@/components/shared/AboutStoryTimeContent";
 
-import profileHero from "@/assets/profile-hero.jpg";
-
 const Settings = () => {
   const navigate = useNavigate();
   const { user, signOut } = useAuth();
-  const { credits } = useCredits();
-  const { shareCoins } = useReferral();
   const { visualAidMode, setVisualAidMode, audioSupport, setAudioSupport, fontSize, setFontSize } = useAccessibility();
   const [aboutOpen, setAboutOpen] = useState(false);
   const [accessibilityOpen, setAccessibilityOpen] = useState(false);
@@ -31,7 +25,7 @@ const Settings = () => {
   const [reducedMotion, setReducedMotion] = useState(() => document.documentElement.classList.contains('reduced-motion'));
   const [largeCursor, setLargeCursor] = useState(() => document.documentElement.classList.contains('large-cursor'));
 
-  const totalCredits = (credits ?? 0) + shareCoins;
+  
 
   const handleSignOut = async () => {
     await signOut();
@@ -41,13 +35,8 @@ const Settings = () => {
     window.location.replace("/");
   };
 
-  // All menu items combined
+  // Settings menu items - legal & support only
   const menuItems = [
-    {
-      icon: Users,
-      label: "ניהול ילדים",
-      onClick: () => navigate("/children"),
-    },
     {
       icon: Mail,
       label: "יצירת קשר",
@@ -67,29 +56,9 @@ const Settings = () => {
 
   return (
     <div className="min-h-[100dvh] flex flex-col bg-gradient-to-b from-purple-50/50 to-background pb-20 overflow-y-auto" style={{ WebkitOverflowScrolling: 'touch' }}>
-      {/* Hero Section with Background Image */}
-      <div 
-        className="relative h-32 flex-shrink-0 bg-cover bg-center"
-        style={{ backgroundImage: `url(${profileHero})` }}
-      >
-        {/* Gradient overlay for text readability */}
-        <div className="absolute inset-0 bg-gradient-to-b from-purple-900/40 to-purple-900/70" />
-        
-        {/* User info - transparent glass badge bottom-right */}
-        {user && (
-          <div className="absolute bottom-3 right-3">
-            <div className="bg-white/10 backdrop-blur-sm rounded-xl px-3 py-2 flex items-center gap-2 border border-white/10 shadow-lg">
-              <button 
-                onClick={() => navigate("/upgrade")}
-                className="flex items-center gap-1 bg-gradient-to-r from-purple-500/30 to-pink-500/30 rounded-full px-2 py-1 hover:from-purple-500/40 hover:to-pink-500/40 transition-colors"
-              >
-                <Coins className="w-4 h-4 text-purple-200" aria-hidden="true" />
-                <span className="font-bold text-purple-100 text-sm">{totalCredits}</span>
-              </button>
-              <p className="text-white/90 text-sm truncate max-w-[120px] font-medium">{user.email?.split('@')[0]}</p>
-            </div>
-          </div>
-        )}
+      {/* Simple header */}
+      <div className="bg-gradient-to-r from-purple-100 to-pink-50 px-4 py-4 border-b border-purple-100">
+        <h1 className="text-lg font-bold text-purple-800">הגדרות</h1>
       </div>
 
       {/* Menu Items - Compact Layout */}

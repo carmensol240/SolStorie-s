@@ -1,4 +1,4 @@
-import { Library, Home, Settings } from "lucide-react";
+import { Library, Home, User, Settings } from "lucide-react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { cn } from "@/lib/utils";
 
@@ -6,11 +6,11 @@ const MobileNavigation = () => {
   const location = useLocation();
   const navigate = useNavigate();
 
-  // סדר מימין לשמאל (RTL): בית → הספרים שלי → פרופיל
   const navItems = [
-    { path: "/", icon: Home, label: "בית", primary: false },
-    { path: "/library", icon: Library, label: "הספרייה הקסומה שלי", primary: false },
-    { path: "/settings", icon: Settings, label: "הגדרות", primary: false },
+    { path: "/", icon: Home, label: "בית" },
+    { path: "/library", icon: Library, label: "ספרייה" },
+    { path: "/profile", icon: User, label: "פרופיל" },
+    { path: "/settings", icon: Settings, label: "הגדרות" },
   ];
 
   return (
@@ -27,7 +27,7 @@ const MobileNavigation = () => {
               aria-label={`מעבר ל${item.label}`}
               aria-current={isActive ? "page" : undefined}
               className={cn(
-                "flex flex-col items-center justify-center gap-1 px-3 py-2 rounded-xl transition-all duration-200 min-h-[44px] min-w-[40px]",
+                "flex flex-col items-center justify-center gap-0.5 px-2 py-1.5 rounded-xl transition-all duration-200 min-h-[44px] min-w-[40px]",
                 "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-purple-400 focus-visible:ring-offset-2",
                 isActive 
                   ? "bg-gradient-to-r from-purple-600 via-pink-500 to-orange-400 text-white" 
@@ -35,7 +35,7 @@ const MobileNavigation = () => {
               )}
             >
               <Icon className="w-5 h-5" />
-              <span className="text-xs font-medium">{item.label}</span>
+              <span className="text-[10px] font-medium leading-tight">{item.label}</span>
             </button>
           );
         })}
