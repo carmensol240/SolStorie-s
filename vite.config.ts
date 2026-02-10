@@ -17,8 +17,8 @@ export default defineConfig(({ mode }) => ({
       registerType: "autoUpdate",
       includeAssets: ["favicon.png", "favicon.ico", "pwa-icon-192.png", "pwa-icon-512.png"],
       manifest: {
-        name: "StoryTime - סיפורי ילדים בהתאמה אישית",
-        short_name: "StoryTime",
+        name: "SoulStory™ – סיפורים עם נשמה",
+        short_name: "SoulStory",
         description: "צרו סיפורים קסומים עם הילד שלכם כגיבור הראשי",
         theme_color: "#87CEEB",
         background_color: "#87CEEB",

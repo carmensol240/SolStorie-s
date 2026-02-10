@@ -29,7 +29,7 @@ const TermsOfService = () => {
             <section>
               <h2 className="text-lg font-bold text-foreground mb-2">מהות השירות</h2>
               <p className="text-muted-foreground leading-relaxed">
-                StoryTime מספקת פלטפורמה ליצירת תוכן ספרותי מותאם אישית לילדים בגילאי 0-8.
+                SoulStory מספקת פלטפורמה ליצירת תוכן ספרותי מותאם אישית לילדים בגילאי 0-8.
               </p>
             </section>
 

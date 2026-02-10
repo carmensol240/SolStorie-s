@@ -80,7 +80,7 @@ const Onboarding = () => {
       if (error) throw error;
 
       toast({
-        title: "ברוכים הבאים ל-StoryTime! 🎉",
+        title: "ברוכים הבאים ל-SoulStory! 🎉",
         description: "מחכה לך סיפור ראשון במתנה מאיתנו כדי להתחיל בקסם ✨",
       });
       
@@ -111,7 +111,7 @@ const Onboarding = () => {
       {/* Header */}
       <div className="flex-shrink-0 px-4 pt-6 pb-4 text-center">
         <h1 className="text-2xl font-black bg-gradient-to-r from-purple-600 via-pink-500 to-orange-400 bg-clip-text text-transparent">
-          📖 ברוכים הבאים ל-StoryTime! ✨
+          📖 ברוכים הבאים ל-SoulStory! ✨
         </h1>
         <p className="text-muted-foreground text-sm mt-1">
           לפני שמתחילים, קראו על האפליקציה

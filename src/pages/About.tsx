@@ -47,7 +47,7 @@ const About = () => {
         
         {/* Title */}
         <h1 className="text-2xl font-black text-white/95 leading-snug mb-3">
-          ברוכים הבאים ל-<span className="bg-gradient-to-r from-purple-300 via-pink-300 to-orange-300 bg-clip-text text-transparent">StoryTime</span> ✨
+          ברוכים הבאים ל-<span dir="ltr" className="inline-block bg-gradient-to-r from-purple-300 via-pink-300 to-orange-300 bg-clip-text text-transparent">SoulStory™</span> ✨
         </h1>
 
         {/* Personal intro */}
@@ -55,13 +55,13 @@ const About = () => {
           שלום, אני כרמית
         </p>
         <p className="text-sm text-white/75 leading-relaxed mb-3 px-1">
-          יצרתי את StoryTime עבור בתי סול, מתוך רצון להעניק לה עולם של דמיון שמבין את הקצב הייחודי שלה. רציתי ליצור עבורה מרחב שבו מילים הופכות לקסם מחבק, המותאם בדיוק לדרך שבה היא חווה את העולם.
+          יצרתי את SoulStory עבור בתי סול, מתוך רצון להעניק לה עולם של דמיון שמבין את הקצב הייחודי שלה. רציתי ליצור עבורה מרחב שבו מילים הופכות לקסם מחבק, המותאם בדיוק לדרך שבה היא חווה את העולם.
         </p>
         <p className="text-sm text-white/75 leading-relaxed mb-3 px-1">
           זהו מקום שעוזר לעבד רגשות, בונה חוסן פנימי ומאפשר לה להיות הגיבורה בסיפור שלה – בכל ערב מחדש.
         </p>
         <p className="text-sm text-white/75 leading-relaxed mb-5 px-1">
-          אני נרגשת לחלוק את הקסם הזה גם אתכם. הנה מה שתמצאו בתוך StoryTime:
+          אני נרגשת לחלוק את הקסם הזה גם אתכם. הנה מה שתמצאו בתוך SoulStory:
         </p>
 
         {/* Section title */}

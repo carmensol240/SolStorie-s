@@ -35,7 +35,7 @@ const handler = async (req: Request): Promise<Response> => {
     console.log(`Sending purchase confirmation to ${maskEmail(email)} for ${credits} credits`);
 
     const emailResponse = await resend.emails.send({
-      from: "סיפורי ילדים <hello@storytime.org.il>",
+      from: "SoulStory <hello@storytime.org.il>",
       to: [email],
       subject: `✅ אישור רכישה - ${credits} קרדיטים`,
       html: `
@@ -103,7 +103,7 @@ const handler = async (req: Request): Promise<Response> => {
               <div style="border-top: 1px solid #e5e7eb; padding-top: 20px; text-align: center;">
                 <p style="color: #9ca3af; font-size: 14px; margin: 0;">
                   בברכה,<br/>
-                  צוות סיפורי ילדים 🐘
+                  צוות SoulStory 🐘
                 </p>
               </div>
               

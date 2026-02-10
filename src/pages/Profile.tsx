@@ -283,7 +283,7 @@ const Profile = () => {
                 <p className="text-sm text-white/80 leading-relaxed transition-opacity duration-500" key={tipIndex}>
                   &ldquo;{CARMIT_TIPS[tipIndex]}&rdquo;
                 </p>
-                <p className="text-[10px] text-amber-300/50 text-left">— כרמית כהן, מייסדת StoryTime</p>
+                <p className="text-[10px] text-amber-300/50 text-left">— כרמית כהן, מייסדת SoulStory</p>
               </>
             ) : (
               <>
@@ -303,7 +303,7 @@ const Profile = () => {
                     פתחו את המדריך השנתי המלא ב-19.90 ש״ח
                   </Button>
                 </div>
-                <p className="text-[10px] text-amber-300/40 text-left">— כרמית כהן, מייסדת StoryTime</p>
+                <p className="text-[10px] text-amber-300/40 text-left">— כרמית כהן, מייסדת SoulStory</p>
               </>
             )}
           </div>

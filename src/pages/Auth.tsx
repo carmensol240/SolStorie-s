@@ -365,7 +365,7 @@ const Auth = () => {
         await processReferral(data.user.id);
       }
       toast({
-        title: "ברוכים הבאים ל-StoryTime! 🎉",
+        title: "ברוכים הבאים ל-SoulStory! 🎉",
         description: "מחכה לך סיפור ראשון במתנה מאיתנו כדי להתחיל בקסם ✨",
       });
       // The useEffect will handle redirect after checking terms
@@ -422,7 +422,7 @@ const Auth = () => {
       if (error) throw error;
 
       toast({
-        title: "ברוכים הבאים ל-StoryTime! 🎉",
+        title: "ברוכים הבאים ל-SoulStory! 🎉",
         description: "מחכה לך סיפור ראשון במתנה מאיתנו כדי להתחיל בקסם ✨",
       });
       
