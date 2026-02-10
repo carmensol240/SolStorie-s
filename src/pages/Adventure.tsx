@@ -17,8 +17,26 @@ const Adventure = () => {
   const { credits } = useCredits();
   const { shareCoins } = useReferral();
   const { avatarUrl } = useChildAvatar();
+  const { toast } = useToast();
   const [displayName, setDisplayName] = useState<string | null>(null);
   const [storyCount, setStoryCount] = useState<number>(0);
+
+  // Show welcome toast for new users on first visit
+  useEffect(() => {
+    if (!user) return;
+    const welcomeKey = `welcome_shown_${user.id}`;
+    if (!sessionStorage.getItem(welcomeKey)) {
+      sessionStorage.setItem(welcomeKey, "true");
+      // Small delay so the page renders first
+      const timer = setTimeout(() => {
+        toast({
+          title: "ברוכים הבאים! 🎉",
+          description: "קיבלתם סיפור ראשון במתנה. בואו נתחיל ליצור קסם ✨",
+        });
+      }, 800);
+      return () => clearTimeout(timer);
+    }
+  }, [user]);
 
   useEffect(() => {
     const fetchProfile = async () => {

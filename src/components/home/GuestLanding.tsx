@@ -74,16 +74,13 @@ const GuestLanding = ({ user, isLoggedIn }: GuestLandingProps) => {
         .maybeSingle();
 
       if (data?.terms_accepted_at) {
-        // Terms accepted - go directly to library
-        navigate("/library");
+        navigate("/adventure");
       } else {
-        // Terms not accepted - go to onboarding
         navigate("/onboarding");
       }
     } catch (error) {
       console.error("Error checking user terms:", error);
-      // Fallback to library on error
-      navigate("/library");
+      navigate("/adventure");
     } finally {
       setIsNavigating(false);
     }
