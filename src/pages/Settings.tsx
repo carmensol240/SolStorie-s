@@ -188,32 +188,152 @@ const Settings = () => {
 
       {/* Accessibility Dialog */}
       <Dialog open={accessibilityOpen} onOpenChange={setAccessibilityOpen}>
-        <DialogContent className="max-w-sm" dir="rtl">
+        <DialogContent className="max-w-sm max-h-[80vh]" dir="rtl">
           <DialogHeader>
             <DialogTitle className="text-center text-lg font-bold flex items-center justify-center gap-2">
               <Accessibility className="h-5 w-5 text-purple-500" />
               הגדרות נגישות
             </DialogTitle>
           </DialogHeader>
-          <div className="space-y-4 py-2">
-            {/* Visual Aid Mode */}
-            <div className="flex items-center justify-between gap-3 p-3 rounded-xl bg-muted/50">
-              <div className="flex items-center gap-3">
-                <div className="h-9 w-9 rounded-lg bg-amber-100 dark:bg-amber-900/30 flex items-center justify-center">
-                  <Eye className="h-5 w-5 text-amber-600 dark:text-amber-400" />
+          <ScrollArea className="h-[60vh] pr-2">
+            <div className="space-y-3 py-2">
+              {/* High Contrast Mode */}
+              <div className="flex items-center justify-between gap-3 p-3 rounded-xl bg-muted/50">
+                <div className="flex items-center gap-3">
+                  <div className="h-9 w-9 rounded-lg bg-amber-100 dark:bg-amber-900/30 flex items-center justify-center">
+                    <Eye className="h-5 w-5 text-amber-600 dark:text-amber-400" />
+                  </div>
+                  <div className="text-right">
+                    <p className="font-medium text-sm text-foreground">ניגודיות גבוהה</p>
+                    <p className="text-xs text-muted-foreground">צבעים בולטים וברורים</p>
+                  </div>
                 </div>
-                <div className="text-right">
-                  <p className="font-medium text-sm text-foreground">מצב ניגודיות גבוהה</p>
-                  <p className="text-xs text-muted-foreground">גופן גדול וצבעים ברורים</p>
+                <Switch checked={visualAidMode} onCheckedChange={setVisualAidMode} aria-label="הפעל ניגודיות גבוהה" />
+              </div>
+
+              {/* Font Size */}
+              <div className="p-3 rounded-xl bg-muted/50 space-y-2">
+                <div className="flex items-center gap-3">
+                  <div className="h-9 w-9 rounded-lg bg-blue-100 dark:bg-blue-900/30 flex items-center justify-center">
+                    <Type className="h-5 w-5 text-blue-600 dark:text-blue-400" />
+                  </div>
+                  <div className="text-right">
+                    <p className="font-medium text-sm text-foreground">גודל גופן</p>
+                    <p className="text-xs text-muted-foreground">בחרו גודל נוח לקריאה</p>
+                  </div>
+                </div>
+                <div className="flex gap-2 pt-1">
+                  {([
+                    { value: 'small' as FontSize, label: 'קטן' },
+                    { value: 'medium' as FontSize, label: 'בינוני' },
+                    { value: 'large' as FontSize, label: 'גדול' },
+                  ]).map((option) => (
+                    <button
+                      key={option.value}
+                      onClick={() => setFontSize(option.value)}
+                      className={`flex-1 py-2 px-3 rounded-lg text-sm font-medium transition-all ${
+                        fontSize === option.value
+                          ? 'bg-primary text-primary-foreground shadow-sm'
+                          : 'bg-background hover:bg-muted border border-border'
+                      }`}
+                      aria-label={`גודל גופן ${option.label}`}
+                      aria-pressed={fontSize === option.value}
+                    >
+                      {option.label}
+                    </button>
+                  ))}
                 </div>
               </div>
-              <Switch
-                checked={visualAidMode}
-                onCheckedChange={setVisualAidMode}
-                aria-label="הפעל מצב ניגודיות גבוהה"
-              />
+
+              {/* Audio Support */}
+              <div className="flex items-center justify-between gap-3 p-3 rounded-xl bg-muted/50">
+                <div className="flex items-center gap-3">
+                  <div className="h-9 w-9 rounded-lg bg-green-100 dark:bg-green-900/30 flex items-center justify-center">
+                    <Volume2 className="h-5 w-5 text-green-600 dark:text-green-400" />
+                  </div>
+                  <div className="text-right">
+                    <p className="font-medium text-sm text-foreground">הקראה קולית</p>
+                    <p className="text-xs text-muted-foreground">הפעלת כפתור הקראה בסיפורים</p>
+                  </div>
+                </div>
+                <Switch checked={audioSupport} onCheckedChange={setAudioSupport} aria-label="הפעל הקראה קולית" />
+              </div>
+
+              {/* Highlight Links */}
+              <div className="flex items-center justify-between gap-3 p-3 rounded-xl bg-muted/50">
+                <div className="flex items-center gap-3">
+                  <div className="h-9 w-9 rounded-lg bg-purple-100 dark:bg-purple-900/30 flex items-center justify-center">
+                    <Link2 className="h-5 w-5 text-purple-600 dark:text-purple-400" />
+                  </div>
+                  <div className="text-right">
+                    <p className="font-medium text-sm text-foreground">הדגשת קישורים</p>
+                    <p className="text-xs text-muted-foreground">סימון בולט לכל הקישורים</p>
+                  </div>
+                </div>
+                <Switch
+                  checked={highlightLinks}
+                  onCheckedChange={(val) => {
+                    setHighlightLinks(val);
+                    document.documentElement.classList.toggle('highlight-links', val);
+                    localStorage.setItem('a11y_highlight_links', String(val));
+                  }}
+                  aria-label="הדגשת קישורים"
+                />
+              </div>
+
+              {/* Reduced Motion */}
+              <div className="flex items-center justify-between gap-3 p-3 rounded-xl bg-muted/50">
+                <div className="flex items-center gap-3">
+                  <div className="h-9 w-9 rounded-lg bg-rose-100 dark:bg-rose-900/30 flex items-center justify-center">
+                    <MonitorOff className="h-5 w-5 text-rose-600 dark:text-rose-400" />
+                  </div>
+                  <div className="text-right">
+                    <p className="font-medium text-sm text-foreground">הפחתת אנימציות</p>
+                    <p className="text-xs text-muted-foreground">הפסקת תנועות והנפשות</p>
+                  </div>
+                </div>
+                <Switch
+                  checked={reducedMotion}
+                  onCheckedChange={(val) => {
+                    setReducedMotion(val);
+                    document.documentElement.classList.toggle('reduced-motion', val);
+                    localStorage.setItem('a11y_reduced_motion', String(val));
+                  }}
+                  aria-label="הפחתת אנימציות"
+                />
+              </div>
+
+              {/* Large Cursor */}
+              <div className="flex items-center justify-between gap-3 p-3 rounded-xl bg-muted/50">
+                <div className="flex items-center gap-3">
+                  <div className="h-9 w-9 rounded-lg bg-orange-100 dark:bg-orange-900/30 flex items-center justify-center">
+                    <MousePointer className="h-5 w-5 text-orange-600 dark:text-orange-400" />
+                  </div>
+                  <div className="text-right">
+                    <p className="font-medium text-sm text-foreground">סמן מוגדל</p>
+                    <p className="text-xs text-muted-foreground">הגדלת סמן העכבר</p>
+                  </div>
+                </div>
+                <Switch
+                  checked={largeCursor}
+                  onCheckedChange={(val) => {
+                    setLargeCursor(val);
+                    document.documentElement.classList.toggle('large-cursor', val);
+                    localStorage.setItem('a11y_large_cursor', String(val));
+                  }}
+                  aria-label="סמן מוגדל"
+                />
+              </div>
+
+              {/* Accessibility Statement */}
+              <div className="p-3 rounded-xl bg-muted/30 border border-border">
+                <p className="text-xs text-muted-foreground text-center leading-relaxed">
+                  אתר זה פועל בהתאם לחוק שוויון זכויות לאנשים עם מוגבלות ותקן WCAG 2.1 AA.
+                  נתקלתם בבעיית נגישות? <button onClick={() => { setAccessibilityOpen(false); navigate('/contact'); }} className="text-primary underline font-medium">צרו קשר</button>
+                </p>
+              </div>
             </div>
-          </div>
+          </ScrollArea>
         </DialogContent>
       </Dialog>
     </div>
