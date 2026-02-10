@@ -1,8 +1,20 @@
 import { useNavigate } from "react-router-dom";
 import MobileNavigation from "@/components/MobileNavigation";
+import { useAuth } from "@/hooks/use-auth";
+import { useEffect } from "react";
 
 const About = () => {
   const navigate = useNavigate();
+  const { user, loading } = useAuth();
+
+  // Logged-in users skip the about screen entirely
+  useEffect(() => {
+    if (!loading && user) {
+      navigate("/adventure", { replace: true });
+    }
+  }, [user, loading, navigate]);
+
+  if (loading || user) return null;
 
   return (
     <div className="min-h-[100dvh] flex flex-col relative overflow-hidden" dir="rtl">
