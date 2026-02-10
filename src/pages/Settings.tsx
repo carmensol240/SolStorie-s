@@ -135,7 +135,7 @@ const Settings = () => {
             </div>
           )}
 
-
+          <button
             onClick={() => setAccessibilityOpen(true)}
             className="w-full flex items-center justify-between bg-gradient-to-r from-purple-50 to-pink-50 dark:from-purple-950/30 dark:to-pink-950/30 backdrop-blur-md rounded-lg px-3 py-2 border border-purple-200 dark:border-purple-800 hover:from-purple-100 hover:to-pink-100 dark:hover:from-purple-900/40 dark:hover:to-pink-900/40 transition-all text-right shadow-sm"
             aria-label="הגדרות נגישות"
