@@ -546,6 +546,44 @@ const StoryViewer = () => {
     toast({ title: 'תודה על הדיווח! נבדוק את הנושא' });
   };
 
+  const handleRetryIllustration = async (pageId: string) => {
+    if (!storyId || retryingPageId) return;
+    
+    setRetryingPageId(pageId);
+    try {
+      const { data, error } = await supabase.functions.invoke('retry-illustration', {
+        body: { storyId, pageId },
+      });
+
+      if (error) throw error;
+
+      if (data?.illustrationUrl) {
+        // Update the page in local state
+        setStory(prev => {
+          if (!prev) return prev;
+          return {
+            ...prev,
+            pages: prev.pages.map(p => 
+              p.id === pageId ? { ...p, illustration_url: data.illustrationUrl } : p
+            ),
+          };
+        });
+        toast({ title: "האיור נוצר בהצלחה! 🎨" });
+      } else {
+        throw new Error("No illustration returned");
+      }
+    } catch (error) {
+      console.error("Retry illustration error:", error);
+      toast({
+        variant: "destructive",
+        title: "שגיאה ביצירת האיור",
+        description: "נסו שוב מאוחר יותר",
+      });
+    } finally {
+      setRetryingPageId(null);
+    }
+  };
+
   if (isLoading) {
     return (
       <div className="min-h-screen bg-gradient-to-b from-[#FAF3E8] to-[#F5E6D3] flex items-center justify-center" dir="rtl">
