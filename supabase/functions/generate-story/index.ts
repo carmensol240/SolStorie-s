@@ -583,14 +583,14 @@ async function addNikudToText(text: string, apiKey: string): Promise<string> {
     const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
       method: "POST",
       headers: {
-        Authorization: \`Bearer \${apiKey}\`,
+        Authorization: `Bearer ${apiKey}`,
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
         model: "google/gemini-2.5-flash",
         messages: [
           { role: "system", content: NIKUD_GRAMMARIAN_PROMPT },
-          { role: "user", content: \`הוסף ניקוד מלא ומדויק לטקסט הבא:\\n\\n\${text}\` },
+          { role: "user", content: `הוסף ניקוד מלא ומדויק לטקסט הבא:\n\n${text}` },
         ],
       }),
     });
