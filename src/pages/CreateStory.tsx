@@ -127,16 +127,9 @@ const CreateStory = () => {
   };
 
   const handleStoryGenerated = async (storyId: string) => {
-    // Check if this was the free credit (credits was 1 before using)
-    const wasFirstStory = credits === 1;
     await useCredit();
-    
-    // After first story, show upgrade screen with package options
-    if (wasFirstStory) {
-      navigate(`/upgrade?firstStory=${storyId}`);
-    } else {
-      navigate(`/story/${storyId}`);
-    }
+    // Always navigate to story reader first - let them enjoy the story
+    navigate(`/story/${storyId}`);
   };
 
   // Step 3 - Full screen generating, no header/footer

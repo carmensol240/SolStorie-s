@@ -486,10 +486,10 @@ const Upgrade = () => {
               רכשו {selectedPkg?.stories} סיפורים ב-₪{selectedPkg?.price} ✨
             </Button>
             <button
-              onClick={() => firstStoryId ? navigate(`/story/${firstStoryId}`) : navigate('/')}
-              className="text-muted-foreground text-[10px] hover:text-foreground transition-colors"
+              onClick={() => navigate('/adventure')}
+              className="text-purple-600 text-sm font-semibold hover:text-purple-800 transition-colors py-1"
             >
-              אולי מאוחר יותר
+              חזרה לדף הבית ←
             </button>
           </div>
         </div>
