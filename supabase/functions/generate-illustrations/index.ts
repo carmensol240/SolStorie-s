@@ -188,7 +188,7 @@ STYLE REQUIREMENTS:
           role: "user",
           content: childPhoto
             ? [
-                { type: "text", text: `Based on this child's photo, create a HIGH QUALITY 3D Disney-Pixar style illustration of them in this scene: ${enhancedPrompt}. CRITICAL: Keep the character's appearance (hair color, hair style, skin tone, clothing) IDENTICAL to the reference photo. This MUST look like a premium children's book illustration.` },
+                { type: "text", text: `Based on this child's photo, create a HIGH QUALITY 3D Disney-Pixar style illustration of them in this scene: ${enhancedPrompt}. CRITICAL: Keep the character's FACE (hair color, hair style, skin tone, eye color, face shape) IDENTICAL to the reference photo. HOWEVER, IGNORE the clothing in the photo — the character MUST wear EXACTLY: ${finalOutfit}. Do NOT copy or reference the clothes from the photo. This MUST look like a premium children's book illustration.` },
                 { type: "image_url", image_url: { url: childPhoto } }
               ]
             : enhancedPrompt
