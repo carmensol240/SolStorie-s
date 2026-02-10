@@ -21,30 +21,45 @@ const TermsOfService = () => {
 
         {/* Terms Content */}
         <article className="bg-card rounded-2xl border shadow-sm p-6 mb-6">
-          <div className="space-y-5 text-right leading-relaxed">
+          <div className="space-y-6 text-right leading-relaxed">
             <p className="text-muted-foreground leading-relaxed">
-              השימוש ב-StoryTime מהווה הסכמה לתנאים הבאים:
+              תקנון שימוש זה מהווה הסכם משפטי מחייב בין המשתמש לבין הנהלת האפליקציה.
             </p>
 
-            <p className="text-muted-foreground leading-relaxed">
-              <strong className="text-foreground">אחריות:</strong>{" "}
-              התוכן נוצר על ידי AI. באחריות ההורה לוודא את התאמתו לילד לפני ההקראה.
-            </p>
+            <section>
+              <h2 className="text-lg font-bold text-foreground mb-2">מהות השירות</h2>
+              <p className="text-muted-foreground leading-relaxed">
+                StoryTime מספקת פלטפורמה ליצירת תוכן ספרותי מותאם אישית לילדים בגילאי 0-8.
+              </p>
+            </section>
 
-            <p className="text-muted-foreground leading-relaxed">
-              <strong className="text-foreground">קרדיטים:</strong>{" "}
-              יצירת סיפור מנכה קרדיט. קרדיטים אינם ניתנים להחזרה.
-            </p>
+            <section>
+              <h2 className="text-lg font-bold text-foreground mb-2">אחריות המשתמש והורה</h2>
+              <p className="text-muted-foreground leading-relaxed">
+                השימוש באפליקציה מיועד להורים או לאפוטרופוסים חוקיים. באחריות המבוגר האחראי לבחון את התוכן שנוצר על ידי הבינה המלאכותית ולוודא את התאמתו לילד בטרם הקראתו. הנהלת האפליקציה אינה נושאת באחריות לתוכן אוטונומי שנוצר על ידי המערכת.
+              </p>
+            </section>
 
-            <p className="text-muted-foreground leading-relaxed">
-              <strong className="text-foreground">תשלום:</strong>{" "}
-              ניתן לשלם בכרטיס אשראי גם ללא חשבון פייפאל.
-            </p>
+            <section>
+              <h2 className="text-lg font-bold text-foreground mb-2">מערכת קרדיטים ורכישות</h2>
+              <p className="text-muted-foreground leading-relaxed">
+                השימוש בשירות מותנה ביתרת קרדיטים. ניתן לבצע רכישות באמצעות כרטיס אשראי (גם ללא חשבון פייפאל). קרדיטים שנוצלו אינם ניתנים להחזר.
+              </p>
+            </section>
 
-            <p className="text-muted-foreground leading-relaxed">
-              <strong className="text-foreground">שימוש הוגן:</strong>{" "}
-              אין להפיק תוכן פוגעני או לא ראוי.
-            </p>
+            <section>
+              <h2 className="text-lg font-bold text-foreground mb-2">קניין רוחני</h2>
+              <p className="text-muted-foreground leading-relaxed">
+                העיצוב, הקוד והטכנולוגיה הם קניינה הבלעדי של האפליקציה. הסיפורים הנוצרים מיועדים לשימוש אישי ופרטי בלבד.
+              </p>
+            </section>
+
+            <section>
+              <h2 className="text-lg font-bold text-foreground mb-2">סיום התקשרות</h2>
+              <p className="text-muted-foreground leading-relaxed">
+                הנהלת האפליקציה שומרת לעצמה את הזכות להפסיק שירות למשתמש שיעשה שימוש לרעה במערכת או יזין תכנים פוגעניים.
+              </p>
+            </section>
           </div>
         </article>
 
