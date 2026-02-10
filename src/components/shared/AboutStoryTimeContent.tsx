@@ -36,7 +36,7 @@ export const AboutStoryTimeContent = () => {
       <p className="text-center pt-2 border-t border-purple-100">
         נבנה באהבה גדולה עבור הילדים של כולנו.<br />
         מקווה שתהנו מכל רגע של סיפור,<br />
-        <span className="font-semibold bg-gradient-to-r from-purple-600 via-pink-500 to-orange-400 bg-clip-text text-transparent">כרמן.</span>
+        <span className="font-semibold bg-gradient-to-r from-purple-600 via-pink-500 to-orange-400 bg-clip-text text-transparent">כרמית.</span>
       </p>
     </div>
   );
