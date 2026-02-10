@@ -24,9 +24,12 @@ const Settings = () => {
   const { user, signOut } = useAuth();
   const { credits } = useCredits();
   const { shareCoins } = useReferral();
-  const { visualAidMode, setVisualAidMode } = useAccessibility();
+  const { visualAidMode, setVisualAidMode, audioSupport, setAudioSupport, fontSize, setFontSize } = useAccessibility();
   const [aboutOpen, setAboutOpen] = useState(false);
   const [accessibilityOpen, setAccessibilityOpen] = useState(false);
+  const [highlightLinks, setHighlightLinks] = useState(() => document.documentElement.classList.contains('highlight-links'));
+  const [reducedMotion, setReducedMotion] = useState(() => document.documentElement.classList.contains('reduced-motion'));
+  const [largeCursor, setLargeCursor] = useState(() => document.documentElement.classList.contains('large-cursor'));
 
   const totalCredits = (credits ?? 0) + shareCoins;
 
