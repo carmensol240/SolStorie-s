@@ -8,19 +8,13 @@ const About = () => {
   return (
     <div className="min-h-[100dvh] flex flex-col bg-gradient-to-b from-purple-50 via-pink-50 to-amber-50" dir="rtl">
       <div className="flex-1 flex flex-col items-center justify-center px-6 py-8 max-w-lg mx-auto text-center">
-        {/* Logo */}
-        <h1 className="text-5xl sm:text-6xl font-black tracking-tight logo-3d-bubble mb-6 drop-shadow-2xl">
-          <span className="logo-story">Story</span>
-          <span className="logo-time"> Time</span>
-        </h1>
-
         {/* Welcome text */}
         <div className="space-y-4 mb-8">
-          <p className="text-xl font-bold text-purple-800 leading-relaxed">
-            ברוכים הבאים ל-StoryTime! 🌟
-          </p>
+          <h1 className="text-2xl font-black text-purple-800 leading-relaxed">
+            ברוכים הבאים ל-<span className="bg-gradient-to-r from-purple-600 via-pink-500 to-orange-400 bg-clip-text text-transparent">StoryTime</span>! 🌟
+          </h1>
           <p className="text-base text-foreground/80 leading-relaxed">
-            StoryTime נוצרה על ידי <span className="font-bold bg-gradient-to-r from-purple-600 via-pink-500 to-orange-400 bg-clip-text text-transparent">כרמית (כרמן) כהן</span> עבור בתה סול, מתוך אהבה ורצון לעזור לילדים לעבד רגשות ולבנות חוסן פנימי דרך סיפורים קסומים.
+            נוצרה על ידי <span className="font-bold bg-gradient-to-r from-purple-600 via-pink-500 to-orange-400 bg-clip-text text-transparent">כרמית (כרמן) כהן</span> עבור בתה סול, מתוך אהבה ורצון לעזור לילדים לעבד רגשות ולבנות חוסן פנימי דרך סיפורים קסומים.
           </p>
         </div>
 
