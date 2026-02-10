@@ -12,7 +12,6 @@ export const useTextToSpeech = (): UseTextToSpeechReturn => {
   const [isReading, setIsReading] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const audioRef = useRef<HTMLAudioElement | null>(null);
-  const blobUrlRef = useRef<string | null>(null);
   const { toast } = useToast();
 
   const cleanup = useCallback(() => {
@@ -20,10 +19,6 @@ export const useTextToSpeech = (): UseTextToSpeechReturn => {
       audioRef.current.pause();
       audioRef.current.src = '';
       audioRef.current = null;
-    }
-    if (blobUrlRef.current) {
-      URL.revokeObjectURL(blobUrlRef.current);
-      blobUrlRef.current = null;
     }
     setIsReading(false);
   }, []);
@@ -81,28 +76,22 @@ export const useTextToSpeech = (): UseTextToSpeechReturn => {
         throw new Error('Empty audio response');
       }
 
-      // Validate it looks like an MP3 (check for common MP3 headers)
-      const header = new Uint8Array(arrayBuffer.slice(0, 4));
-      const isMP3 = (header[0] === 0xFF && (header[1] & 0xE0) === 0xE0) || // MP3 sync word
-                     (header[0] === 0x49 && header[1] === 0x44 && header[2] === 0x33); // ID3 tag
-      
-      console.log('TTS audio:', { 
-        byteLength: arrayBuffer.byteLength, 
-        headerBytes: Array.from(header).map(b => b.toString(16)).join(' '),
-        isMP3 
-      });
-
       if (arrayBuffer.byteLength < 1024) {
-        // Likely an error response, try to decode as text
         const errorText = new TextDecoder().decode(arrayBuffer);
         console.error('TTS response too small, likely error:', errorText);
         throw new Error('תגובת השמע קטנה מדי - ייתכן שהשירות לא זמין');
       }
 
-      // Create blob from arrayBuffer with explicit MIME type
-      const audioBlob = new Blob([arrayBuffer], { type: 'audio/mpeg' });
-      const audioUrl = URL.createObjectURL(audioBlob);
-      blobUrlRef.current = audioUrl;
+      // Convert to base64 data URI to avoid blob: URL tracking prevention issues
+      const uint8Array = new Uint8Array(arrayBuffer);
+      let binary = '';
+      for (let i = 0; i < uint8Array.length; i++) {
+        binary += String.fromCharCode(uint8Array[i]);
+      }
+      const base64 = btoa(binary);
+      const dataUri = `data:audio/mpeg;base64,${base64}`;
+
+      console.log('TTS audio: dataUri length', dataUri.length);
 
       const audio = new Audio();
       audio.preload = 'auto';
@@ -112,25 +101,15 @@ export const useTextToSpeech = (): UseTextToSpeechReturn => {
       audio.onended = () => {
         console.log('Audio playback finished successfully');
         setIsReading(false);
-        // Revoke blob URL only AFTER playback completes
-        if (blobUrlRef.current) {
-          URL.revokeObjectURL(blobUrlRef.current);
-          blobUrlRef.current = null;
-        }
         audioRef.current = null;
       };
       
       audio.onerror = () => {
         const code = audio.error?.code;
         const msg = audio.error?.message;
-        console.error('Audio playback error:', { code, msg, blobSize: audioBlob.size, blobType: audioBlob.type, src: audio.src?.substring(0, 50) });
+        console.error('Audio playback error:', { code, msg });
         setIsReading(false);
         setIsLoading(false);
-        // Revoke blob URL only on error
-        if (blobUrlRef.current) {
-          URL.revokeObjectURL(blobUrlRef.current);
-          blobUrlRef.current = null;
-        }
         audioRef.current = null;
         toast({
           title: 'שגיאה בניגון השמע',
@@ -139,13 +118,12 @@ export const useTextToSpeech = (): UseTextToSpeechReturn => {
         });
       };
 
-      // Set src and explicitly call load() to trigger buffering
-      audio.src = audioUrl;
+      // Use data URI instead of blob URL to bypass tracking prevention
+      audio.src = dataUri;
       audio.load();
 
       // Wait for enough data to be buffered, then play
       audio.oncanplaythrough = async () => {
-        // Guard: only play once
         audio.oncanplaythrough = null;
         try {
           setIsLoading(false);
