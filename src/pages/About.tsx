@@ -58,7 +58,7 @@ const About = () => {
           יצרתי את SoulStory עבור בתי סול, מתוך רצון להעניק לה עולם של דמיון שמבין את הקצב הייחודי שלה. רציתי ליצור עבורה מרחב שבו מילים הופכות לקסם מחבק, המותאם בדיוק לדרך שבה היא חווה את העולם.
         </p>
         <p className="text-sm text-white/75 leading-relaxed mb-3 px-1">
-          זהו מקום שעוזר לעבד רגשות, בונה חוסן פנימי ומאפשר לסול להיות הגיבורה בסיפור שלה – בכל ערב מחדש.
+          באפליקציה תמצאו <strong className="text-amber-200">34 נושאים מובנים</strong> לפתרון סיטואציות מחיי היום-יום – מפחד מהחושך, דרך יום ראשון בגן ועד הגעת אח חדש. כל סיפור נבנה בשילוב כלים מעולם ה-NLP, בונה חוסן פנימי ומאפשר לילד להיות הגיבור בסיפור שלו.
         </p>
         <p className="text-sm text-white/75 leading-relaxed mb-5 px-1">
           אני נרגשת לחלוק את הקסם הזה גם אתכם. הנה מה שתמצאו בתוך SoulStory:
@@ -89,6 +89,13 @@ const About = () => {
             <span className="text-3xl">🪄</span>
             <p className="text-sm text-white/80 leading-snug px-4">
               <strong className="text-purple-200">סיפורים מעצימים</strong> — כל סיפור נבנה עם דגש על בניית ביטחון עצמי, חוסן רגשי ומסרים חיוביים שנטמעים בילד בצורה טבעית ומהנה.
+            </p>
+          </div>
+
+          <div className="flex flex-col items-center gap-1.5">
+            <span className="text-3xl">🇺🇸</span>
+            <p className="text-sm text-white/80 leading-snug px-4">
+              <strong className="text-green-200">לומדים אנגלית בכיף</strong> — סיפורים והקראה קולית איכותית של ילדה ללמידת שפה בצורה חווייתית ומהנה.
             </p>
           </div>
         </div>
@@ -122,6 +129,9 @@ const About = () => {
         </div>
         <p className="text-xs text-white/45 font-bold mt-1">
           <span dir="ltr" className="inline-block">SoulStory</span> זמינה עבורכם בכל מקום: בטלפון, בטאבלט ובמחשב האישי
+        </p>
+        <p className="text-xs text-white/40 mt-1">
+          ניתן לשלם בכרטיס אשראי ללא חשבון פייפאל
         </p>
       </div>
 
