@@ -135,11 +135,11 @@ const Toolkit = () => {
               <Crown className="w-8 h-8 text-amber-300" />
             </div>
             <h1 className="text-2xl font-black mb-2">
-              <span className="bg-gradient-to-r from-amber-200 via-orange-200 to-pink-200 bg-clip-text text-transparent">
-                ארגז הכלים של{" "}
-              </span>
               <span dir="ltr" className="inline-block bg-gradient-to-r from-purple-300 via-pink-300 to-orange-300 bg-clip-text text-transparent">
                 SoulStory™
+              </span>
+              <span className="bg-gradient-to-r from-amber-200 via-orange-200 to-pink-200 bg-clip-text text-transparent">
+                {" "}ארגז הכלים של
               </span>
             </h1>
             <p className="text-white/70 text-sm leading-relaxed max-w-xs mx-auto">
