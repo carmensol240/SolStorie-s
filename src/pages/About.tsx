@@ -121,7 +121,7 @@ const About = () => {
           <span className="text-lg">💻</span>
         </div>
         <p className="text-xs text-white/45 font-bold mt-1">
-          זמין בנייד, בטאבלט ובמחשב
+          <span dir="ltr" className="inline-block">SoulStory</span> זמינה עבורכם בכל מקום: בטלפון, בטאבלט ובמחשב האישי
         </p>
       </div>
 
