@@ -94,25 +94,38 @@ Return only the JSON, no other text.`
 }
 
 function getDefaultProfile(childGender: string, genderHebrew: string, ageRange: string): CharacterProfile {
+  // Richer defaults based on gender for better visual anchoring when no photo is provided
+  const isFemale = childGender === "female";
   return {
     gender: childGender,
     genderHebrew: genderHebrew,
-    hairDescription: childGender === "female" ? "long brown hair" : "short brown hair",
+    hairDescription: isFemale ? "long wavy dark brown hair with soft bangs" : "short tousled dark brown hair",
     clothingDescription: "colorful casual clothes",
     ageDescription: ageRange,
-    skinTone: "medium",
-    eyeColor: "brown",
+    skinTone: "warm medium olive",
+    eyeColor: "large dark brown",
   };
+}
+
+// Generate a single-paragraph "Visual Anchor" text that will be prepended to EVERY illustration prompt
+// This ensures the AI has a consistent mental image of the character across all pages
+function buildVisualAnchor(profile: CharacterProfile, storyOutfit: string): string {
+  const genderWord = profile.gender === "female" ? "girl" : "boy";
+  return `VISUAL ANCHOR (use this EXACT description for the main character in EVERY illustration):
+A ${genderWord} aged ${profile.ageDescription} with ${profile.hairDescription}, ${profile.skinTone} skin, and ${profile.eyeColor} eyes. Wearing ${storyOutfit}. 
+CRITICAL INSTRUCTION: Maintain strict visual character continuity across ALL generated images for this story sequence. The character must look like the SAME child in every single illustration — same face shape, same proportions, same hair, same outfit, same skin tone. Any visual deviation between pages is a FAILURE.`;
 }
 
 // Helper function to generate illustration using Lovable AI with character consistency
 // IMPORTANT: This function now enforces SAME OUTFIT across all pages of a story
+// and uses a Visual Anchor for strict character continuity
 async function generateIllustration(
   prompt: string,
   childPhoto: string | null,
   characterProfile: CharacterProfile | null,
   apiKey: string,
   storyOutfit: string, // The SINGLE outfit chosen for this entire story
+  visualAnchor: string, // Pre-built visual anchor text for consistency
   adventureLogic?: { outfit: string; background: string; theme: string }
 ): Promise<string | null> {
   try {
@@ -164,6 +177,8 @@ Any deviation from this profile is a FAILURE.
     
     const enhancedPrompt = `${stylePrefix}
 
+${visualAnchor}
+
 ${characterInstruction}
 ${adventureInstruction}
 SCENE TO ILLUSTRATE: ${prompt}
@@ -178,7 +193,7 @@ STYLE REQUIREMENTS:
 - Rich, vibrant colors with warm undertones
 - Professional children's book illustration quality
 - No text in the image
-- MAINTAIN CHARACTER CONSISTENCY: Same face shape, same features, same proportions, SAME OUTFIT`;
+- MAINTAIN STRICT VISUAL CHARACTER CONTINUITY: Same face shape, same features, same proportions, SAME OUTFIT across all pages`;
 
     const requestBody: any = {
       model: "google/gemini-3-pro-image-preview",
@@ -504,6 +519,13 @@ serve(async (req) => {
     const storyOutfit = effectiveAdventureLogic?.outfit || characterProfile?.clothingDescription || "colorful casual clothes";
     console.log(`🎽 Story outfit locked for all pages: "${storyOutfit}"`);
 
+    // === BUILD VISUAL ANCHOR ===
+    // A single-paragraph description generated ONCE and injected into EVERY illustration prompt
+    const visualAnchor = characterProfile 
+      ? buildVisualAnchor(characterProfile, storyOutfit)
+      : `VISUAL ANCHOR: A child wearing ${storyOutfit}. Maintain strict visual character continuity across ALL illustrations.`;
+    console.log(`🔒 Visual Anchor created for character consistency`);
+
     // Only generate illustrations for pages that have an illustration_prompt (spread layout)
     const pagesToIllustrate = pages.filter(p => p.illustration_prompt);
     console.log(`${pagesToIllustrate.length} of ${pages.length} pages need illustrations (spread layout)`);
@@ -530,6 +552,7 @@ serve(async (req) => {
               characterProfile,
               LOVABLE_API_KEY,
               storyOutfit,
+              visualAnchor,
               effectiveAdventureLogic
             );
             
