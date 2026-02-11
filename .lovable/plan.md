@@ -1,74 +1,38 @@
 
-## הפיכת מסך הפרופיל ל"יומן המסע של סול"
+## Plan: Fix PWA Shortcut Button + Update Device Availability Text
 
-### סקירה כללית
-שינוי מקיף של מסך הפרופיל (`/profile`) כך שיהפוך למסך "יומן המסע" של הילד -- ממוקד בילד הראשון ברשימה, עם סטטיסטיקות סיפורים, מחברת הורה פשוטה יותר, וכפתור ניווט לארגז הכלים.
+### Task 1: Fix "Home Screen Shortcut" Button in Settings
 
-### שינויים נדרשים
+**Problem**: When the app is not installed AND cannot trigger the native install prompt (common on many browsers), the PWA section shows nothing -- no button, no instructions. The user clicks and nothing happens.
 
-#### 1. מסד נתונים -- טבלה חדשה `user_story_stats`
+**Solution**: Add a modal dialog that opens when the user taps the shortcut area, showing platform-specific installation instructions:
 
-יצירת טבלה לעקוב אחר כמה פעמים כל סיפור נקרא:
+**Changes in `src/pages/Settings.tsx`**:
+1. Add a new `installHelpOpen` state for the modal
+2. Replace the current PWA section logic: instead of showing nothing when `!canPrompt && !isIOS && !isInstalled`, show a clickable button that opens the help modal
+3. The modal will contain:
+   - **iOS section**: Icon of Share button + text "לחצו על כפתור השיתוף (Share) ובחרו ב-'הוספה למסך הבית' (Add to Home Screen)"
+   - **Android section**: Icon of three dots + text "לחצו על שלוש הנקודות בתפריט הדפדפן ובחרו ב-'התקן אפליקציה' או 'הוסף למסך הבית'"
+   - Auto-detect platform to highlight the relevant instruction, but show both
+4. Keep existing behavior: if `canPrompt` is true, the native install button still works; if `isInstalled`, show the green checkmark
 
-- `id` (uuid, primary key)
-- `user_id` (uuid, not null)
-- `story_id` (uuid, not null, references stories)
-- `read_count` (integer, default 1)
-- `last_read` (timestamptz, default now())
-- Unique constraint על `(user_id, story_id)`
-- RLS: משתמשים יכולים לקרוא/לעדכן/להוסיף רק את הנתונים שלהם
+### Task 2: Update Device Availability Text
 
-**הערה**: טבלת `tips` לא נוצרת כרגע -- הטיפים כבר מנוהלים כמערך קבוע בקוד (CARMIT_TIPS) ובעתיד ניתן להעביר לטבלה.
+**Changes in `src/pages/Auth.tsx`** (login screen):
+- Update the existing text from "קראו בכל מקום: בנייד, בטאבלט או במחשב" to the requested text: "SoulStory זמינה עבורכם בכל מקום: בטלפון, בטאבלט ובמחשב האישי"
+- Wrap "SoulStory" in `dir="ltr"` span per branding convention
 
-#### 2. שינוי מסך הפרופיל (`src/pages/Profile.tsx`)
+**Changes in `src/pages/About.tsx`** (footer/landing):
+- Update the existing footer text from "זמין בנייד, בטאבלט ובמחשב" to match: "SoulStory זמינה עבורכם בכל מקום: בטלפון, בטאבלט ובמחשב האישי"
+- Same RTL branding treatment for "SoulStory"
 
-**חלק עליון -- תמונת הילד וכותרת:**
-- הצגת תמונת הילד הראשון בעיגול גדול (160px+) עם מסגרת gradient
-- כותרת חמה מתחת: "העולם של [שם הילד]"
-- הסרת שורת הברכה הקיימת והחלפתה בפורמט הזה
+### Technical Details
 
-**כרטיסי סטטיסטיקה (2 כרטיסים):**
-- כרטיס 1: "סיפורים שיצרנו יחד" -- ספירה מטבלת `stories` לפי `user_id`
-- כרטיס 2: "הסיפור שהכי אוהב/ת" -- שם הסיפור עם read_count הגבוה ביותר מ-`user_story_stats`, או הסיפור האחרון שנוצר כברירת מחדל
+**Files to modify**:
+1. `src/pages/Settings.tsx` -- Add install help Dialog with platform detection and visual instructions
+2. `src/pages/Auth.tsx` -- Update device availability text (line ~1094)
+3. `src/pages/About.tsx` -- Update footer device availability text (lines ~114-125)
 
-**מחברת ההורה (פשוטה יותר):**
-- שדה טקסט אחד מאוחד בסגנון "נייר" (רקע חם, בהיר) תחת הכותרת "מחברת ההורה"
-- placeholder: "תחומי עניין, אבני דרך, פחדים -- כל מה שחשוב לכלול בסיפורים הבאים..."
-- שמירה לעמודה `discussion_topics` בטבלת `parent_notes` (שימוש חוזר בתשתית קיימת)
+**No new dependencies needed** -- uses existing Dialog component and lucide icons.
 
-**כפתור ניווט לארגז הכלים:**
-- כפתור בולט בתחתית: "לארגז הכלים של SoulStory" עם gradient חם
-- מפנה ל-`/toolkit`
-
-**הסרות:**
-- הסרת הקופסה המטושטשת (Carmit toolkit locked/unlocked)
-- הסרת סעיף "עולם הילד" המורחב עם שדות תחביבים/אתגרים/חברים (הנתונים עדיין קיימים בDB, רק לא מוצגים כאן)
-- הסרת כפתורי נגישות (כבר אין)
-- הסרת שורת הקרדיטים מהכותרת
-
-#### 3. הערה לגבי DNS
-עדכון שרתי DNS ב-Box.co.il לפי הגדרות Netlify -- זה שינוי שצריך לבצע בממשק של Box.co.il ולא בקוד. זה מחוץ לתחום השינויים הטכניים כאן.
-
-### פרטים טכניים
-
-```text
-+------------------------------------------+
-|        [תמונה עגולה גדולה 160px]          |
-|          "העולם של סול"                    |
-+------------------------------------------+
-|  [סיפורים: 12]   [הסיפור האהוב: ...]     |
-+------------------------------------------+
-|  מחברת ההורה                              |
-|  +--------------------------------------+ |
-|  | (שדה טקסט בסגנון נייר)               | |
-|  +--------------------------------------+ |
-|  [שמירה]                                  |
-+------------------------------------------+
-|  [לארגז הכלים של SoulStory -- כפתור]      |
-+------------------------------------------+
-```
-
-- **קבצים חדשים:** אין
-- **קבצים לעריכה:** `src/pages/Profile.tsx`
-- **מיגרציה:** יצירת טבלת `user_story_stats` עם RLS
-- **תלויות חדשות:** אין
+**All previous changes preserved** -- this plan only touches Settings PWA UI, Auth footer text, and About footer text. Story generation, illustration consistency, and book layout code are untouched.
