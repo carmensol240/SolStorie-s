@@ -113,6 +113,16 @@ const About = () => {
         <p className="text-sm font-semibold bg-gradient-to-r from-purple-300 via-pink-300 to-orange-300 bg-clip-text text-transparent mt-3">
           באהבה, כרמית כהן
         </p>
+
+        {/* Device availability footer */}
+        <div className="mt-6 flex items-center justify-center gap-3 text-white/50">
+          <span className="text-lg">📱</span>
+          <span className="text-lg">📲</span>
+          <span className="text-lg">💻</span>
+        </div>
+        <p className="text-xs text-white/45 font-bold mt-1">
+          זמין בנייד, בטאבלט ובמחשב
+        </p>
       </div>
 
       <MobileNavigation />
