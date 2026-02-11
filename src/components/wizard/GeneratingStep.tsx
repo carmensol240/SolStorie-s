@@ -77,12 +77,22 @@ const GeneratingStep = ({ formData, onComplete }: GeneratingStepProps) => {
   // Shuffle testimonials once on mount for variety
   const [shuffledTestimonials] = useState(() => {
     const testimonials = [
+      // Female name + female avatar + female Hebrew grammar
       { name: "מיכל כהן", quote: "הילדה שלי מאושרת! כל לילה מבקשת לקרוא את הסיפור שלה שוב ושוב.", rating: 5, avatar: avatarTestimonial1 },
-      { name: "ערן לוי", quote: "הילדים שלי אוהבים את הסיפורים. הם מרגישים כמו גיבורים אמיתיים.", rating: 5, avatar: avatarParent2 },
-      { name: "שירה אברהם", quote: "האיורים מדהימים והסיפורים מותאמים בצורה מושלמת לגיל.", rating: 5, avatar: avatarTestimonial2 },
-      { name: "יוסי דוד", quote: "יצרנו סיפור על הפחד מהחושך והילד שלי התגבר על הפחד תוך שבוע!", rating: 5, avatar: avatarParent1 },
-      { name: "נועה פרידמן", quote: "מתנה מושלמת לסבא וסבתא – סיפור עם הנכדים בתור הגיבורים!", rating: 5, avatar: avatarTestimonial3 },
-      { name: "דני רוזנברג", quote: "הילד שלי לא מפסיק לבקש עוד סיפורים! מתלהב כל פעם מחדש.", rating: 5, avatar: avatarParent3 },
+      // Male name + male avatar + male Hebrew grammar
+      { name: "ערן לוי", quote: "הילדים שלי אוהבים את הסיפורים. הם מרגישים כמו גיבורים אמיתיים.", rating: 5, avatar: avatarParent1 },
+      // Female name + female avatar + female Hebrew grammar
+      { name: "שירה אברהם", quote: "האיורים מדהימים והסיפורים מותאמים בצורה מושלמת לגיל. ממליצה בחום!", rating: 5, avatar: avatarTestimonial2 },
+      // Male name + male avatar + male Hebrew grammar
+      { name: "יוסי דוד", quote: "יצרנו סיפור על הפחד מהחושך והילד שלי התגבר על הפחד תוך שבוע!", rating: 5, avatar: avatarParent2 },
+      // Female name + female avatar + female Hebrew grammar
+      { name: "נועה פרידמן", quote: "מתנה מושלמת לסבא וסבתא – סיפור עם הנכדים בתור הגיבורים! מרוגשת!", rating: 5, avatar: avatarTestimonial3 },
+      // Male name + male avatar + male Hebrew grammar
+      { name: "דני רוזנברג", quote: "הילד שלי לא מפסיק לבקש עוד סיפורים! מתלהב כל פעם מחדש.", rating: 5, avatar: avatarTestimonial4 },
+      // Female name + female avatar + female Hebrew grammar
+      { name: "רונית שמעון", quote: "איזה רעיון מקסים! הילדה שלי כל כך גאה לראות את עצמה כגיבורת הסיפור.", rating: 5, avatar: avatarTestimonial5 },
+      // Male name + male avatar + male Hebrew grammar
+      { name: "אמיר בן חיים", quote: "סיפורים באיכות מטורפת. הילדים שלי מחכים בקוצר רוח לסיפור הבא. ממליץ!", rating: 5, avatar: avatarParent3 },
     ];
     for (let i = testimonials.length - 1; i > 0; i--) {
       const j = Math.floor(Math.random() * (i + 1));
