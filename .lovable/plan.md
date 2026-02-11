@@ -1,64 +1,74 @@
 
-## Premium Upgrade Screen: "ארגז הכלים של SoulStory"
+## הפיכת מסך הפרופיל ל"יומן המסע של סול"
 
-### Overview
-Create a new dedicated page (`/toolkit`) for the SoulStory premium toolkit subscription. This is a focused, warm landing page -- separate from the existing `/upgrade` credits page -- that sells only the yearly toolkit subscription with the updated pricing (29.90 ILS) and messaging.
+### סקירה כללית
+שינוי מקיף של מסך הפרופיל (`/profile`) כך שיהפוך למסך "יומן המסע" של הילד -- ממוקד בילד הראשון ברשימה, עם סטטיסטיקות סיפורים, מחברת הורה פשוטה יותר, וכפתור ניווט לארגז הכלים.
 
-### 1. New Page: `src/pages/Toolkit.tsx`
+### שינויים נדרשים
 
-A standalone screen with the magical dark theme (matching existing app style):
+#### 1. מסד נתונים -- טבלה חדשה `user_story_stats`
 
-**Header Section:**
-- Warm gradient background with floating stars (reuse existing pattern)
-- Close/back button (top-left)
-- Title: "ארגז הכלים של SoulStory" with gradient text
-- Subtitle: Warm introductory text about connecting deeply with children
+יצירת טבלה לעקוב אחר כמה פעמים כל סיפור נקרא:
 
-**Benefits Cards (3 glassmorphism cards):**
-- Card 1: "10 טיפים משני חיים בכל חודש" -- icon: Lightbulb or Sparkles
-- Card 2: "איך לדבר בשפה שלהם ולמנוע 'אנטי'" -- icon: MessageCircleHeart or Heart
-- Card 3: "כלים פרקטיים ליצירת חיבור עמוק עם הילדים" -- icon: HandHeart or Users
+- `id` (uuid, primary key)
+- `user_id` (uuid, not null)
+- `story_id` (uuid, not null, references stories)
+- `read_count` (integer, default 1)
+- `last_read` (timestamptz, default now())
+- Unique constraint על `(user_id, story_id)`
+- RLS: משתמשים יכולים לקרוא/לעדכן/להוסיף רק את הנתונים שלהם
 
-Each card: `bg-white/10 backdrop-blur-md border border-white/15 rounded-2xl` with a colored icon and Hebrew text.
+**הערה**: טבלת `tips` לא נוצרת כרגע -- הטיפים כבר מנוהלים כמערך קבוע בקוד (CARMIT_TIPS) ובעתיד ניתן להעביר לטבלה.
 
-**Pricing Section:**
-- Large price display: "29.90 ₪ לשנה שלמה"
-- Trust line: "תשלום חד-פעמי - ללא מנוי מתחדש וללא הפתעות"
-- Small lock/shield icon next to the trust line
+#### 2. שינוי מסך הפרופיל (`src/pages/Profile.tsx`)
 
-**CTA Button (fixed bottom):**
-- Warm gradient: `from-amber-500 to-orange-500`
-- Text: "אני רוצה את ארגז הכלים"
-- Glow effect matching existing CTA style
+**חלק עליון -- תמונת הילד וכותרת:**
+- הצגת תמונת הילד הראשון בעיגול גדול (160px+) עם מסגרת gradient
+- כותרת חמה מתחת: "העולם של [שם הילד]"
+- הסרת שורת הברכה הקיימת והחלפתה בפורמט הזה
 
-**"Maybe Later" link:**
-- Below the CTA: "אולי אחר כך" text link navigating to `/adventure`
+**כרטיסי סטטיסטיקה (2 כרטיסים):**
+- כרטיס 1: "סיפורים שיצרנו יחד" -- ספירה מטבלת `stories` לפי `user_id`
+- כרטיס 2: "הסיפור שהכי אוהב/ת" -- שם הסיפור עם read_count הגבוה ביותר מ-`user_story_stats`, או הסיפור האחרון שנוצר כברירת מחדל
 
-**Payment Flow:**
-- Reuse existing PayPalButton component and toolkit purchase logic from Upgrade.tsx
-- Reuse PurchaseSuccessModal (subscription variant) and PurchaseFailedModal
+**מחברת ההורה (פשוטה יותר):**
+- שדה טקסט אחד מאוחד בסגנון "נייר" (רקע חם, בהיר) תחת הכותרת "מחברת ההורה"
+- placeholder: "תחומי עניין, אבני דרך, פחדים -- כל מה שחשוב לכלול בסיפורים הבאים..."
+- שמירה לעמודה `discussion_topics` בטבלת `parent_notes` (שימוש חוזר בתשתית קיימת)
 
-**No mention of:** Read Aloud, Accessibility, or credit packages.
+**כפתור ניווט לארגז הכלים:**
+- כפתור בולט בתחתית: "לארגז הכלים של SoulStory" עם gradient חם
+- מפנה ל-`/toolkit`
 
-### 2. Update Pricing Config: `src/config/pricing.ts`
+**הסרות:**
+- הסרת הקופסה המטושטשת (Carmit toolkit locked/unlocked)
+- הסרת סעיף "עולם הילד" המורחב עם שדות תחביבים/אתגרים/חברים (הנתונים עדיין קיימים בDB, רק לא מוצגים כאן)
+- הסרת כפתורי נגישות (כבר אין)
+- הסרת שורת הקרדיטים מהכותרת
 
-- Change `TOOLKIT_SUBSCRIPTION.price` from `19.90` to `29.90`
-- Update `TOOLKIT_SUBSCRIPTION.label` to `"ארגז הכלים של SoulStory"`
-- Update `TOOLKIT_SUBSCRIPTION.description` to match the new messaging
+#### 3. הערה לגבי DNS
+עדכון שרתי DNS ב-Box.co.il לפי הגדרות Netlify -- זה שינוי שצריך לבצע בממשק של Box.co.il ולא בקוד. זה מחוץ לתחום השינויים הטכניים כאן.
 
-### 3. Add Route: `src/App.tsx`
+### פרטים טכניים
 
-- Add route: `<Route path="/toolkit" element={<RequireTerms><Toolkit /></RequireTerms>} />`
+```text
++------------------------------------------+
+|        [תמונה עגולה גדולה 160px]          |
+|          "העולם של סול"                    |
++------------------------------------------+
+|  [סיפורים: 12]   [הסיפור האהוב: ...]     |
++------------------------------------------+
+|  מחברת ההורה                              |
+|  +--------------------------------------+ |
+|  | (שדה טקסט בסגנון נייר)               | |
+|  +--------------------------------------+ |
+|  [שמירה]                                  |
++------------------------------------------+
+|  [לארגז הכלים של SoulStory -- כפתור]      |
++------------------------------------------+
+```
 
-### 4. Update Existing References
-
-- In `src/pages/Profile.tsx` and `src/components/story/SubscriberUpsellModal.tsx`: Update any "upgrade" navigation links that point to the toolkit to use `/toolkit` instead of `/upgrade`
-- The existing `/upgrade` page for credit packages remains unchanged
-
-### Technical Details
-
-- **Files to create:** 1 (`src/pages/Toolkit.tsx`)
-- **Files to modify:** 3 (`src/config/pricing.ts`, `src/App.tsx`, `src/pages/Profile.tsx`)
-- **Dependencies:** None new -- uses existing components (PayPalButton, PurchaseSuccessModal, PurchaseFailedModal, Button, Badge)
-- **Database:** No changes -- reuses existing `purchases` table and `is_subscriber` profile flag
-- **Icons:** Lucide icons only (Sparkles, Heart, Users, Crown, Shield)
+- **קבצים חדשים:** אין
+- **קבצים לעריכה:** `src/pages/Profile.tsx`
+- **מיגרציה:** יצירת טבלת `user_story_stats` עם RLS
+- **תלויות חדשות:** אין
