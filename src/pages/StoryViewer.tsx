@@ -312,46 +312,32 @@ const StoryViewer = () => {
     }
   };
 
+  // Page change is now handled by handleSpreadChange defined later
+  // Keep this for legacy compatibility but it's no longer the primary navigation
   const handlePageChange = (direction: 'next' | 'prev') => {
+    // This will be overridden by spread navigation in the render
     if (isFlipping) return;
-    
-    const maxPage = story ? story.pages.length : 0;
-    
-    if (direction === 'next' && (!story || currentPage >= maxPage)) return;
-    if (direction === 'prev' && currentPage <= -1) return;
-    
     setFlipDirection(direction);
     setIsFlipping(true);
-    
-    // Soft fade transition (300ms fade out, change page, 300ms fade in)
     setTimeout(() => {
-      if (direction === 'next' && story && currentPage < maxPage) {
-        const newPage = currentPage + 1;
-        setCurrentPage(newPage);
-        
-        if (newPage === story.pages.length) {
-          trackStoryCompleted(story.id);
-        }
-      } else if (direction === 'prev' && currentPage > -1) {
-        setCurrentPage(currentPage - 1);
+      if (direction === 'next') {
+        setCurrentPage(prev => prev + 1);
+      } else if (direction === 'prev') {
+        setCurrentPage(prev => prev - 1);
       }
       setIsFlipping(false);
-    }, 300); // Shorter duration for gentle fade transition
+    }, 300);
   };
 
-  // Swipe gesture handlers for page navigation - must be after handlePageChange is defined
+  // Swipe gesture handlers for spread navigation
   const { onTouchStart, onTouchMove, onTouchEnd, swipeOffset } = useSwipe({
     onSwipeLeft: () => {
-      // In RTL, swipe left = next page
-      if (story && currentPage < story.pages.length) {
-        handlePageChange('next');
-      }
+      // In RTL, swipe left = next spread
+      handlePageChange('next');
     },
     onSwipeRight: () => {
-      // In RTL, swipe right = prev page
-      if (currentPage > -1) {
-        handlePageChange('prev');
-      }
+      // In RTL, swipe right = prev spread
+      handlePageChange('prev');
     },
     threshold: 50,
   });
@@ -695,16 +681,61 @@ const StoryViewer = () => {
   }
 
   const isCoverPage = currentPage === -1;
-  const isEndPage = currentPage === story.pages.length;
-  const page = (!isCoverPage && !isEndPage) ? story.pages[currentPage] : null;
+  const isEndPage = currentPage >= Math.ceil(story.pages.length / 2);
+  
+  // Build spreads: group pages into pairs, each spread has 1 illustration + 2 text blocks
+  const spreads: { illustration: string | null; illustrationPageId: string | null; pages: StoryPage[] }[] = [];
+  for (let i = 0; i < story.pages.length; i += 2) {
+    const firstPage = story.pages[i];
+    const secondPage = story.pages[i + 1] || null;
+    // The illustration comes from the first page of each pair (odd page_number)
+    const illustrationUrl = firstPage?.illustration_url || secondPage?.illustration_url || null;
+    const illustrationPageId = firstPage?.illustration_url ? firstPage.id : (secondPage?.illustration_url ? secondPage.id : firstPage?.id || null);
+    const pagesInSpread = secondPage ? [firstPage, secondPage] : [firstPage];
+    spreads.push({ illustration: illustrationUrl, illustrationPageId, pages: pagesInSpread });
+  }
+  
+  const currentSpread = (!isCoverPage && !isEndPage && currentPage >= 0) ? spreads[currentPage] : null;
+  const page = currentSpread?.pages[0] || null; // For edit/nikud actions, use first page
   const currentFontSize = FONT_SIZES[fontSizeIndex];
-  const showPageActions = !isCoverPage && !isEndPage && page !== null;
+  const showPageActions = !isCoverPage && !isEndPage && currentSpread !== null;
+  
+  // Calculate page numbers for display
+  const spreadStartPage = currentPage >= 0 ? currentPage * 2 + 1 : 0;
+  const spreadEndPage = currentSpread ? spreadStartPage + currentSpread.pages.length - 1 : 0;
+
+  // Override navigation for spread-based stepping
+  const handleSpreadChange = (direction: 'next' | 'prev') => {
+    if (isFlipping) return;
+    
+    const maxSpread = spreads.length;
+    
+    if (direction === 'next' && currentPage >= maxSpread) return;
+    if (direction === 'prev' && currentPage <= -1) return;
+    
+    setFlipDirection(direction);
+    setIsFlipping(true);
+    
+    setTimeout(() => {
+      if (direction === 'next' && currentPage < maxSpread) {
+        const newPage = currentPage + 1;
+        setCurrentPage(newPage);
+        
+        if (newPage >= maxSpread) {
+          trackStoryCompleted(story.id);
+        }
+      } else if (direction === 'prev' && currentPage > -1) {
+        setCurrentPage(currentPage - 1);
+      }
+      setIsFlipping(false);
+    }, 300);
+  };
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-purple-50 via-pink-50 to-orange-50 flex flex-col" dir="rtl">
       <OfflineIndicator isOnline={isOnline} />
       
-      {/* Header - Clean toolbar with essentials only */}
+      {/* Header */}
       <BookHeader
         onBack={() => navigate("/library")}
         onShare={handleShare}
@@ -733,12 +764,12 @@ const StoryViewer = () => {
             transition: swipeOffset === 0 ? 'transform 0.3s ease-out' : 'none'
           }}
         >
-          {/* Navigation Arrows - Outside BookFrame so they aren't clipped */}
+          {/* Navigation Arrows */}
           <NavigationArrows
-            onPrev={() => handlePageChange('prev')}
-            onNext={() => handlePageChange('next')}
+            onPrev={() => handleSpreadChange('prev')}
+            onNext={() => handleSpreadChange('next')}
             canGoPrev={currentPage > -1}
-            canGoNext={story !== null && currentPage < story.pages.length}
+            canGoNext={currentPage < spreads.length}
             isFlipping={isFlipping}
           />
           
@@ -747,7 +778,7 @@ const StoryViewer = () => {
             {isCoverPage ? (
               /* Cover Page - RTL: Illustration on RIGHT, Title on LEFT */
               <div className="min-h-[70vh] md:min-h-[75vh] flex flex-col md:flex-row-reverse">
-                {/* Illustration Page - Always on RIGHT for RTL */}
+                {/* Illustration Page */}
                 <div className="flex-1 flex flex-col items-center justify-center p-6 md:p-10 border-b md:border-b-0 md:border-r-2 border-[#D4A574]/30 bg-gradient-to-br from-[#FFFBF5] to-[#F5E6D3]">
                   {story.pages[0]?.illustration_url ? (
                     <div className="w-full max-w-sm mx-auto">
@@ -787,10 +818,9 @@ const StoryViewer = () => {
                   )}
                 </div>
                 
-                {/* Title Page - On LEFT for RTL */}
+                {/* Title Page */}
                 <div className="flex-1 flex flex-col items-center justify-center p-6 md:p-10 text-center bg-gradient-to-bl from-[#FFFBF5] to-[#FAF3E8]">
                   <div className="space-y-5">
-                    {/* Large child-friendly title */}
                     <h1 className="text-4xl md:text-5xl lg:text-6xl font-black text-purple-900 leading-tight" style={{ fontFamily: "'Heebo', 'Comic Sans MS', cursive, sans-serif" }}>
                       הסיפור של
                       <br />
@@ -799,23 +829,20 @@ const StoryViewer = () => {
                       </span>
                     </h1>
                     
-                    {/* Decorative divider */}
                     <div className="flex items-center justify-center gap-3">
                       <div className="w-16 h-1 bg-gradient-to-r from-transparent to-purple-400 rounded-full" />
                       <span className="text-2xl">✨</span>
                       <div className="w-16 h-1 bg-gradient-to-l from-transparent to-purple-400 rounded-full" />
                     </div>
                     
-                    {/* Topic */}
                     <p className="text-lg md:text-xl text-purple-700 max-w-xs mx-auto font-medium">
                       {story.topic}
                     </p>
                   </div>
                   
-                  {/* Colorful, prominent button */}
                   <Button 
                     size="lg"
-                    onClick={() => handlePageChange('next')}
+                    onClick={() => handleSpreadChange('next')}
                     className="mt-10 bg-gradient-to-r from-purple-600 via-pink-500 to-orange-400 hover:from-purple-700 hover:via-pink-600 hover:to-orange-500 text-white font-bold px-10 py-7 text-xl rounded-full shadow-xl hover:shadow-2xl transition-all transform hover:scale-105 border-2 border-white/50"
                   >
                     <BookOpen className="w-6 h-6 ml-3" />
@@ -824,7 +851,7 @@ const StoryViewer = () => {
                 </div>
               </div>
             ) : isEndPage ? (
-              /* End Page - Uses last page's illustration */
+              /* End Page */
               <div className="min-h-[70vh] md:min-h-[75vh] flex flex-col items-center justify-center p-8 text-center">
                 {story.pages[story.pages.length - 1]?.illustration_url && (
                   <div className="w-full max-w-xs mx-auto mb-6">
@@ -871,7 +898,6 @@ const StoryViewer = () => {
                   </Button>
                 </div>
 
-                {/* Gender Swap Button */}
                 <Button
                   variant="link"
                   size="sm"
@@ -882,46 +908,57 @@ const StoryViewer = () => {
                   התבלבלתם במגדר? לחצו לתיקון מהיר
                 </Button>
               </div>
-            ) : (
-              /* Story Pages - Dual Page Layout with Illustrations */
+            ) : currentSpread ? (
+              /* SPREAD LAYOUT: One illustration + Two text blocks */
               <div className={cn(
                 "min-h-[70vh] md:min-h-[75vh] flex",
-                isMobile ? "flex-col" : "flex-row"
+                isMobile ? "flex-col" : "flex-row-reverse"
               )}>
-                {/* Right Page (Illustration) - First in RTL - Disney Pixar Style */}
+                {/* Illustration Side (Right in RTL desktop, Top in mobile) */}
                 <div className={cn(
-                  "flex-1 flex flex-col items-center justify-center p-6 md:p-8 lg:p-10",
+                  "flex flex-col items-center justify-center",
+                  isMobile ? "p-4" : "flex-1 p-6 md:p-8 lg:p-10",
                   "bg-gradient-to-br from-[#FFFBF5] to-[#F5E6D3]",
-                  isMobile ? "border-b-2" : "border-l-2",
-                  "border-[#D4A574]/30"
+                  !isMobile && "border-l-2 border-[#D4A574]/30 relative"
                 )}>
-                  {page?.illustration_url ? (
+                  {/* Gutter shadow effect for book spine feel (desktop only) */}
+                  {!isMobile && (
+                    <div className="absolute left-0 top-0 bottom-0 w-6 bg-gradient-to-r from-black/[0.07] via-black/[0.03] to-transparent pointer-events-none z-10" />
+                  )}
+                  
+                  {currentSpread.illustration ? (
                     <div className="relative w-full max-w-md mx-auto">
                       <div className="relative rounded-2xl overflow-hidden shadow-2xl border-4 border-[#E8D5C4]">
                         <SignedImage
-                          src={page.illustration_url}
+                          src={currentSpread.illustration}
                           storyId={story.id}
-                          alt={`איור לעמוד ${page.page_number}: ${page.text?.substring(0, 60) || 'איור מהסיפור'}...`}
-                          className="w-full aspect-[4/5] object-cover"
+                          alt={`איור לעמודים ${spreadStartPage}-${spreadEndPage}`}
+                          className={cn(
+                            "w-full object-cover",
+                            isMobile ? "aspect-[16/10]" : "aspect-[4/5]"
+                          )}
                         />
                       </div>
                     </div>
                   ) : (
                     <div className="relative w-full max-w-md mx-auto">
-                      <div className="rounded-2xl border-4 border-dashed border-[#D4A574]/50 aspect-[4/5] flex flex-col items-center justify-center bg-[#F5E6D3]/50 gap-3">
+                      <div className={cn(
+                        "rounded-2xl border-4 border-dashed border-[#D4A574]/50 flex flex-col items-center justify-center bg-[#F5E6D3]/50 gap-3",
+                        isMobile ? "aspect-[16/10]" : "aspect-[4/5]"
+                      )}>
                         <div className="text-center text-[#A08060]">
                           <ImageOff className="w-12 h-12 mx-auto mb-2 opacity-40" />
                           <p className="text-sm">{generationStatus === 'ready' ? 'האיור לא נוצר' : 'טוען איור...'}</p>
                         </div>
-                        {generationStatus === 'ready' && page?.id && (
+                        {generationStatus === 'ready' && currentSpread.illustrationPageId && (
                           <Button
                             size="sm"
                             variant="outline"
-                            onClick={() => handleRetryIllustration(page.id)}
-                            disabled={retryingPageId === page.id}
+                            onClick={() => handleRetryIllustration(currentSpread.illustrationPageId!)}
+                            disabled={retryingPageId === currentSpread.illustrationPageId}
                             className="border-[#D4A574] text-[#8B7355] hover:bg-[#F5E6D3]"
                           >
-                            {retryingPageId === page.id ? (
+                            {retryingPageId === currentSpread.illustrationPageId ? (
                               <><Loader2 className="w-4 h-4 animate-spin ml-2" />מייצר...</>
                             ) : (
                               <><RefreshCw className="w-4 h-4 ml-2" />נסה לייצר איור שוב</>
@@ -933,26 +970,44 @@ const StoryViewer = () => {
                   )}
                 </div>
                 
-                {/* Left Page (Text) - Second in RTL - Better typography */}
+                {/* Text Side (Left in RTL desktop, Bottom in mobile) - Two text blocks stacked */}
                 <div className={cn(
-                  "flex-1 flex flex-col justify-center p-8 md:p-10 lg:p-12",
+                  "flex flex-col justify-center relative",
+                  isMobile ? "p-5" : "flex-1 p-8 md:p-10 lg:p-12",
                   "bg-gradient-to-bl from-[#FFFBF5] to-[#FAF3E8]"
                 )}>
-                  <div className="flex-1 flex items-center justify-center px-4 md:px-6">
-                    <p 
-                      className={cn(
-                        "text-[#3D2914] text-right font-medium transition-all",
-                        currentFontSize.size
-                      )} 
-                      style={{ lineHeight: '1.7' }}
-                      dir="rtl"
-                    >
-                      {page?.text}
-                    </p>
+                  {/* Gutter shadow on right side for book spine feel (desktop only) */}
+                  {!isMobile && (
+                    <div className="absolute right-0 top-0 bottom-0 w-6 bg-gradient-to-l from-black/[0.07] via-black/[0.03] to-transparent pointer-events-none z-10" />
+                  )}
+                  
+                  <div className="flex-1 flex flex-col justify-center gap-6 md:gap-8">
+                    {currentSpread.pages.map((spreadPage, idx) => (
+                      <div key={spreadPage.id} className="relative">
+                        {/* Subtle separator between the two text blocks */}
+                        {idx > 0 && (
+                          <div className="flex items-center justify-center mb-4 md:mb-6">
+                            <div className="w-12 h-px bg-[#D4A574]/40" />
+                            <span className="mx-3 text-[#D4A574]/60 text-xs">✦</span>
+                            <div className="w-12 h-px bg-[#D4A574]/40" />
+                          </div>
+                        )}
+                        <p 
+                          className={cn(
+                            "text-[#3D2914] text-right font-medium transition-all whitespace-pre-line",
+                            currentFontSize.size
+                          )} 
+                          style={{ lineHeight: '1.8' }}
+                          dir="rtl"
+                        >
+                          {spreadPage.text}
+                        </p>
+                      </div>
+                    ))}
                   </div>
                   
                   {/* Read Aloud Button - only when audioSupport is enabled */}
-                  {audioSupport && page?.text && (
+                  {audioSupport && currentSpread.pages[0]?.text && (
                     <div className="flex items-center justify-center pt-2">
                       <Button
                         size="sm"
@@ -961,7 +1016,9 @@ const StoryViewer = () => {
                           if (isReading) {
                             stopReading();
                           } else {
-                            startReading(page.text);
+                            // Combine all spread page texts for reading
+                            const fullText = currentSpread.pages.map(p => p.text).join('\n\n');
+                            startReading(fullText);
                           }
                         }}
                         disabled={isTtsLoading}
@@ -983,17 +1040,15 @@ const StoryViewer = () => {
                     </div>
                   )}
 
-                  {/* Bottom area: page indicator */}
+                  {/* Page indicator */}
                   <div className="flex items-center justify-center pt-4 mt-auto">
-                    {page?.page_number !== undefined && (
-                      <span className="text-xs text-gray-400 font-light">
-                        {page.page_number} / {story.pages.length}
-                      </span>
-                    )}
+                    <span className="text-xs text-gray-400 font-light">
+                      {spreadStartPage}{spreadEndPage > spreadStartPage ? `-${spreadEndPage}` : ''} / {story.pages.length}
+                    </span>
                   </div>
                 </div>
               </div>
-            )}
+            ) : null}
           </BookFrame>
         </div>
       </main>
