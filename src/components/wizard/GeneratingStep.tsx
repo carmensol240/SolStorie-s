@@ -68,10 +68,28 @@ const GeneratingStep = ({ formData, onComplete }: GeneratingStepProps) => {
   const navigate = useNavigate();
   const [progress, setProgress] = useState(0);
   const [messageIndex, setMessageIndex] = useState(0);
-  const [sentenceIndex, setSentenceIndex] = useState(0);
+  // Randomize initial indices so different content shows each time
+  const [sentenceIndex, setSentenceIndex] = useState(() => Math.floor(Math.random() * EMPOWERING_SENTENCES.length));
   const [isSentenceVisible, setIsSentenceVisible] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const hasStartedRef = useRef(false);
+
+  // Shuffle testimonials once on mount for variety
+  const [shuffledTestimonials] = useState(() => {
+    const testimonials = [
+      { name: "מיכל כהן", quote: "הילדה שלי מאושרת! כל לילה מבקשת לקרוא את הסיפור שלה שוב ושוב.", rating: 5, avatar: avatarTestimonial1 },
+      { name: "ערן לוי", quote: "הילדים שלי אוהבים את הסיפורים. הם מרגישים כמו גיבורים אמיתיים.", rating: 5, avatar: avatarParent2 },
+      { name: "שירה אברהם", quote: "האיורים מדהימים והסיפורים מותאמים בצורה מושלמת לגיל.", rating: 5, avatar: avatarTestimonial2 },
+      { name: "יוסי דוד", quote: "יצרנו סיפור על הפחד מהחושך והילד שלי התגבר על הפחד תוך שבוע!", rating: 5, avatar: avatarParent1 },
+      { name: "נועה פרידמן", quote: "מתנה מושלמת לסבא וסבתא – סיפור עם הנכדים בתור הגיבורים!", rating: 5, avatar: avatarTestimonial3 },
+      { name: "דני רוזנברג", quote: "הילד שלי לא מפסיק לבקש עוד סיפורים! מתלהב כל פעם מחדש.", rating: 5, avatar: avatarParent3 },
+    ];
+    for (let i = testimonials.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [testimonials[i], testimonials[j]] = [testimonials[j], testimonials[i]];
+    }
+    return testimonials;
+  });
 
   const generateStory = useCallback(async () => {
     try {
@@ -322,47 +340,7 @@ const GeneratingStep = ({ formData, onComplete }: GeneratingStepProps) => {
     );
   }
 
-  // Parent testimonials with real names and gender-matched avatars
-  const PARENT_TESTIMONIALS = [
-    { 
-      name: "מיכל כהן", 
-      quote: "הילדה שלי מאושרת! כל לילה מבקשת לקרוא את הסיפור שלה שוב ושוב.",
-      rating: 5,
-      avatar: avatarTestimonial1,
-    },
-    { 
-      name: "ערן לוי", 
-      quote: "הילדים שלי אוהבים את הסיפורים. הם מרגישים כמו גיבורים אמיתיים.",
-      rating: 5,
-      avatar: avatarParent2,
-    },
-    { 
-      name: "שירה אברהם", 
-      quote: "האיורים מדהימים והסיפורים מותאמים בצורה מושלמת לגיל.",
-      rating: 5,
-      avatar: avatarTestimonial2,
-    },
-    { 
-      name: "יוסי דוד", 
-      quote: "יצרנו סיפור על הפחד מהחושך והילד שלי התגבר על הפחד תוך שבוע!",
-      rating: 5,
-      avatar: avatarParent1,
-    },
-    { 
-      name: "נועה פרידמן", 
-      quote: "מתנה מושלמת לסבא וסבתא – סיפור עם הנכדים בתור הגיבורים!",
-      rating: 5,
-      avatar: avatarTestimonial3,
-    },
-    { 
-      name: "דני רוזנברג", 
-      quote: "הילד שלי לא מפסיק לבקש עוד סיפורים! מתלהב כל פעם מחדש.",
-      rating: 5,
-      avatar: avatarParent3,
-    },
-  ];
-
-  const currentTestimonial = PARENT_TESTIMONIALS[sentenceIndex % PARENT_TESTIMONIALS.length];
+  const currentTestimonial = shuffledTestimonials[sentenceIndex % shuffledTestimonials.length];
 
   return (
     <div className="flex flex-col items-center justify-center min-h-[100dvh] text-center space-y-6 bg-gradient-to-b from-[#FAF3E8] to-[#F5E6D3] p-6">
@@ -405,6 +383,9 @@ const GeneratingStep = ({ formData, onComplete }: GeneratingStepProps) => {
         </h2>
         <p className="text-purple-700/70">
           יצירת סיפור מותאם אישית עבור {formData.childName}
+        </p>
+        <p className="text-sm text-purple-500/80 mt-1 animate-pulse">
+          ✨ עוד רגע קט והקסם מתחיל...
         </p>
       </div>
 
