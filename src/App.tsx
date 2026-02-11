@@ -32,6 +32,7 @@ import ShareAndEarn from "./pages/ShareAndEarn";
 import Contact from "./pages/Contact";
 import NotFound from "./pages/NotFound";
 import RequireTerms from "./components/RequireTerms";
+import Toolkit from "./pages/Toolkit";
 
 const queryClient = new QueryClient();
 
@@ -71,6 +72,7 @@ const App = () => (
             <Route path="/account-exit" element={<RequireTerms><AccountExit /></RequireTerms>} />
             <Route path="/upgrade" element={<RequireTerms><Upgrade /></RequireTerms>} />
             
+            <Route path="/toolkit" element={<RequireTerms><Toolkit /></RequireTerms>} />
             <Route path="/share" element={<RequireTerms><ShareAndEarn /></RequireTerms>} />
             <Route path="/contact" element={<Contact />} />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
