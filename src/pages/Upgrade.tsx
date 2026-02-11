@@ -1,8 +1,7 @@
 import { useState, useEffect } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
-import { X, FlaskConical, Crown } from "lucide-react";
+import { X, Crown } from "lucide-react";
 
-// Whitelisted test email - hardcoded for security
 const WHITELISTED_TEST_EMAIL = "carmit1901+test@gmail.com";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -394,24 +393,6 @@ const Upgrade = () => {
               Visa, Mastercard, American Express ועוד
             </p>
           </div>
-
-          {/* Test User Section */}
-          {isTestUser && (
-            <div className="bg-amber-500/10 backdrop-blur-sm border border-amber-400/30 border-dashed rounded-xl p-3 mb-4">
-              <div className="flex items-center gap-2 mb-2">
-                <FlaskConical className="w-5 h-5 text-amber-300" />
-                <h4 className="font-bold text-sm text-amber-200">🧪 מצב בדיקה (Test Mode)</h4>
-              </div>
-              <p className="text-xs text-amber-200/70 mb-2">
-                משתמש מורשה - קרדיטים יתווספו ללא תשלום
-              </p>
-              <div className="flex gap-2">
-                <Button onClick={() => handleAddTestCredits(5)} size="sm" variant="outline" className="flex-1 h-8 text-xs border-amber-400/40 text-amber-200 hover:bg-amber-500/20 bg-transparent">+5 קרדיטים</Button>
-                <Button onClick={() => handleAddTestCredits(10)} size="sm" variant="outline" className="flex-1 h-8 text-xs border-amber-400/40 text-amber-200 hover:bg-amber-500/20 bg-transparent">+10 קרדיטים</Button>
-                <Button onClick={() => handleAddTestCredits(50)} size="sm" className="flex-1 h-8 text-xs bg-amber-500/30 hover:bg-amber-500/40 text-amber-100 border border-amber-400/30">+50 קרדיטים</Button>
-              </div>
-            </div>
-          )}
 
           {/* Privacy */}
           <p className="text-xs text-center text-white/40 mt-2 mb-4">
