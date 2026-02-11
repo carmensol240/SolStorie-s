@@ -109,11 +109,11 @@ const Settings = () => {
             </div>
           </button>
 
-          {/* PWA Install - Home Screen Shortcut */}
+          {/* PWA Install - SoulStory App */}
           <div className="bg-gradient-to-r from-amber-50 to-orange-50 dark:from-amber-950/20 dark:to-orange-950/20 rounded-lg px-3 py-3 border border-amber-200 dark:border-amber-800 space-y-2">
             <div className="flex items-center gap-2 justify-end">
               <div className="text-right">
-                <span className="font-bold text-sm text-foreground block">קיצור דרך למסך הבית</span>
+                <span className="font-bold text-sm text-foreground block" dir="ltr">התקנת SoulStory</span>
                 <span className="text-[11px] text-muted-foreground block">גישה מהירה לכל הסיפורים שלכם ישירות ממסך הבית.</span>
               </div>
               <div className="w-8 h-8 bg-gradient-to-r from-amber-400/20 to-orange-400/20 rounded-lg flex items-center justify-center flex-shrink-0">
@@ -130,7 +130,7 @@ const Settings = () => {
                 className="w-full py-2 bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white font-bold text-sm rounded-xl transition-all flex items-center justify-center gap-1.5"
               >
                 <Download className="w-3.5 h-3.5" />
-                הוסף קיצור דרך למסך הבית
+                התקנת אפליקציה על מסך הבית
               </button>
             ) : (
               <button
@@ -138,7 +138,7 @@ const Settings = () => {
                 className="w-full py-2 bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white font-bold text-sm rounded-xl transition-all flex items-center justify-center gap-1.5"
               >
                 <Download className="w-3.5 h-3.5" />
-                איך מוסיפים למסך הבית?
+                איך מתקינים את SoulStory?
               </button>
             )}
           </div>
@@ -218,7 +218,7 @@ const Settings = () => {
         <DialogContent className="max-w-sm" dir="rtl">
           <DialogHeader>
             <DialogTitle className="text-center text-lg font-bold">
-              📲 הוספה למסך הבית
+              📲 התקנת <span dir="ltr">SoulStory</span>
             </DialogTitle>
           </DialogHeader>
           <div className="space-y-4 py-2">
