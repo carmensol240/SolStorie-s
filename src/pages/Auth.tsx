@@ -1091,7 +1091,7 @@ const Auth = () => {
                   התחברו כדי ליצור סיפורים מותאמים אישית
                 </p>
                 <p className="text-black/50 text-xs font-bold mt-1.5 flex items-center justify-center gap-1.5">
-                  📱 קראו בכל מקום: בנייד, בטאבלט או במחשב
+                  📱 <span dir="ltr" className="inline-block">SoulStory</span> זמינה עבורכם בכל מקום: בטלפון, בטאבלט ובמחשב האישי
                 </p>
               </div>
 

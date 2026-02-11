@@ -23,6 +23,8 @@ const Settings = () => {
   const { canPrompt, isInstalled, isIOS, promptInstall } = usePwaInstall();
   const [aboutOpen, setAboutOpen] = useState(false);
   const [accessibilityOpen, setAccessibilityOpen] = useState(false);
+  const [installHelpOpen, setInstallHelpOpen] = useState(false);
+  const isAndroid = /android/i.test(navigator.userAgent);
   const [highlightLinks, setHighlightLinks] = useState(() => document.documentElement.classList.contains('highlight-links'));
   const [reducedMotion, setReducedMotion] = useState(() => document.documentElement.classList.contains('reduced-motion'));
   const [largeCursor, setLargeCursor] = useState(() => document.documentElement.classList.contains('large-cursor'));
@@ -130,11 +132,15 @@ const Settings = () => {
                 <Download className="w-3.5 h-3.5" />
                 הוסף קיצור דרך למסך הבית
               </button>
-            ) : isIOS ? (
-              <p className="text-xs text-muted-foreground text-center leading-relaxed">
-                לחצו על <Share className="w-3 h-3 inline mx-0.5" /> בסרגל הדפדפן ובחרו "הוסף למסך הבית"
-              </p>
-            ) : null}
+            ) : (
+              <button
+                onClick={() => setInstallHelpOpen(true)}
+                className="w-full py-2 bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white font-bold text-sm rounded-xl transition-all flex items-center justify-center gap-1.5"
+              >
+                <Download className="w-3.5 h-3.5" />
+                איך מוסיפים למסך הבית?
+              </button>
+            )}
           </div>
 
           <button
@@ -204,6 +210,46 @@ const Settings = () => {
           <ScrollArea className="h-[60vh] pr-4">
             <AboutStoryTimeContent />
           </ScrollArea>
+        </DialogContent>
+      </Dialog>
+
+      {/* Install Help Dialog */}
+      <Dialog open={installHelpOpen} onOpenChange={setInstallHelpOpen}>
+        <DialogContent className="max-w-sm" dir="rtl">
+          <DialogHeader>
+            <DialogTitle className="text-center text-lg font-bold">
+              📲 הוספה למסך הבית
+            </DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4 py-2">
+            {/* iOS Instructions */}
+            <div className={`p-3 rounded-xl border ${!isAndroid ? 'border-amber-300 bg-amber-50 dark:bg-amber-950/30' : 'border-border bg-muted/30'}`}>
+              <div className="flex items-center gap-2 mb-2">
+                <div className="w-7 h-7 bg-gray-200 dark:bg-gray-700 rounded-lg flex items-center justify-center">
+                  <Share className="w-4 h-4 text-blue-500" />
+                </div>
+                <span className="font-bold text-sm">iPhone / iPad</span>
+                {!isAndroid && <span className="text-xs bg-amber-200 dark:bg-amber-800 text-amber-800 dark:text-amber-200 px-1.5 py-0.5 rounded-full font-medium">המכשיר שלך</span>}
+              </div>
+              <p className="text-sm text-muted-foreground leading-relaxed">
+                לחצו על כפתור השיתוף <Share className="w-3.5 h-3.5 inline mx-0.5 text-blue-500" /> בסרגל הדפדפן ובחרו ב-<strong>"הוספה למסך הבית"</strong> (Add to Home Screen).
+              </p>
+            </div>
+
+            {/* Android Instructions */}
+            <div className={`p-3 rounded-xl border ${isAndroid ? 'border-amber-300 bg-amber-50 dark:bg-amber-950/30' : 'border-border bg-muted/30'}`}>
+              <div className="flex items-center gap-2 mb-2">
+                <div className="w-7 h-7 bg-gray-200 dark:bg-gray-700 rounded-lg flex items-center justify-center">
+                  <span className="text-sm font-bold text-gray-600 dark:text-gray-300">⋮</span>
+                </div>
+                <span className="font-bold text-sm">Android</span>
+                {isAndroid && <span className="text-xs bg-amber-200 dark:bg-amber-800 text-amber-800 dark:text-amber-200 px-1.5 py-0.5 rounded-full font-medium">המכשיר שלך</span>}
+              </div>
+              <p className="text-sm text-muted-foreground leading-relaxed">
+                לחצו על שלוש הנקודות <strong>⋮</strong> בתפריט הדפדפן ובחרו ב-<strong>"התקן אפליקציה"</strong> או <strong>"הוסף למסך הבית"</strong>.
+              </p>
+            </div>
+          </div>
         </DialogContent>
       </Dialog>
 
