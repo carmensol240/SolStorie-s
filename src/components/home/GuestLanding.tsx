@@ -42,18 +42,18 @@ const GuestLanding = ({ user, isLoggedIn }: GuestLandingProps) => {
   const features = [
     {
       icon: <Sparkles className="w-5 h-5 text-white" aria-hidden="true" />,
-      title: "התאמה אישית חכמה",
-      subtitle: "סיפורים שנבנים עבור ילדכם בשילוב כלים מעולם ה-NLP, עם התאמה רגישה גם לרצף התקשורתי.",
-    },
-    {
-      icon: <Users className="w-5 h-5 text-white" aria-hidden="true" />,
-      title: "הדפסה חינמית",
-      subtitle: "קבלת כל סיפור בקובץ PDF להדפסה בחינם.",
+      title: "34 נושאים מובנים",
+      subtitle: "סיפורים שנבנים עבור ילדכם בשילוב כלים מעולם ה-NLP, עם 34 נושאים מובנים לפתרון סיטואציות מחיי היום-יום.",
     },
     {
       icon: <Star className="w-5 h-5 text-white" aria-hidden="true" />,
-      title: "גלריה חינמית",
-      subtitle: "גישה מלאה לגלריית סיפורים חינמית תמיד.",
+      title: "לומדים אנגלית בכיף",
+      subtitle: "סיפורים והקראה קולית איכותית של ילדה ללמידת שפה בצורה חווייתית.",
+    },
+    {
+      icon: <Users className="w-5 h-5 text-white" aria-hidden="true" />,
+      title: "הדפסה וגלריה חינם",
+      subtitle: "קבלו כל סיפור בקובץ PDF להדפסה + גלריית סיפורים חינמית לתמיד.",
     },
   ];
 
@@ -156,6 +156,11 @@ const GuestLanding = ({ user, isLoggedIn }: GuestLandingProps) => {
             </>
           )}
         </button>
+
+        {/* Device availability */}
+        <p className="text-center text-xs text-gray-800 font-bold mb-1" style={{ textShadow: '1px 1px 2px rgba(255,255,255,0.7)' }}>
+          זמינה בכל המכשירים: נייד, טאבלט ומחשב · ניתן לשלם בכרטיס אשראי ללא חשבון פייפאל
+        </p>
 
         {/* Privacy Link */}
         <p className="text-center text-xs text-gray-800 font-semibold">
