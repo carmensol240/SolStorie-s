@@ -1,38 +1,34 @@
 
-## Plan: Fix PWA Shortcut Button + Update Device Availability Text
 
-### Task 1: Fix "Home Screen Shortcut" Button in Settings
+## Plan: Functional PWA Install Button in Settings
 
-**Problem**: When the app is not installed AND cannot trigger the native install prompt (common on many browsers), the PWA section shows nothing -- no button, no instructions. The user clicks and nothing happens.
+### What Changes
 
-**Solution**: Add a modal dialog that opens when the user taps the shortcut area, showing platform-specific installation instructions:
+Replace the current fallback "How to add to home screen?" button (which opens a manual instructions dialog) with a proper functional install button that triggers the browser's native PWA install prompt. When the prompt is unavailable (iOS or unsupported browsers), keep the instructional fallback.
 
-**Changes in `src/pages/Settings.tsx`**:
-1. Add a new `installHelpOpen` state for the modal
-2. Replace the current PWA section logic: instead of showing nothing when `!canPrompt && !isIOS && !isInstalled`, show a clickable button that opens the help modal
-3. The modal will contain:
-   - **iOS section**: Icon of Share button + text "לחצו על כפתור השיתוף (Share) ובחרו ב-'הוספה למסך הבית' (Add to Home Screen)"
-   - **Android section**: Icon of three dots + text "לחצו על שלוש הנקודות בתפריט הדפדפן ובחרו ב-'התקן אפליקציה' או 'הוסף למסך הבית'"
-   - Auto-detect platform to highlight the relevant instruction, but show both
-4. Keep existing behavior: if `canPrompt` is true, the native install button still works; if `isInstalled`, show the green checkmark
+### Changes
 
-### Task 2: Update Device Availability Text
+**File: `src/pages/Settings.tsx`**
 
-**Changes in `src/pages/Auth.tsx`** (login screen):
-- Update the existing text from "קראו בכל מקום: בנייד, בטאבלט או במחשב" to the requested text: "SoulStory זמינה עבורכם בכל מקום: בטלפון, בטאבלט ובמחשב האישי"
-- Wrap "SoulStory" in `dir="ltr"` span per branding convention
+1. **Update button label** from "הוסף קיצור דרך למסך הבית" to "התקנת אפליקציה על מסך הבית" when `canPrompt` is true
+2. **Update section title** from "קיצור דרך למסך הבית" to "התקנת SoulStory"
+3. **Update the fallback button** (when `!canPrompt && !isInstalled`): keep the install help dialog for iOS/unsupported browsers, but update the label to mention SoulStory
+4. **Update the install help dialog title** to reference SoulStory instead of generic text
 
-**Changes in `src/pages/About.tsx`** (footer/landing):
-- Update the existing footer text from "זמין בנייד, בטאבלט ובמחשב" to match: "SoulStory זמינה עבורכם בכל מקום: בטלפון, בטאבלט ובמחשב האישי"
-- Same RTL branding treatment for "SoulStory"
+**File: `src/hooks/use-pwa-install.ts`** -- No changes needed. The existing hook already implements the exact `beforeinstallprompt` capture and `promptInstall()` logic requested.
+
+**File: `src/components/pwa/PWAInstallPrompt.tsx`** -- No changes needed. The floating banner already works correctly.
 
 ### Technical Details
 
-**Files to modify**:
-1. `src/pages/Settings.tsx` -- Add install help Dialog with platform detection and visual instructions
-2. `src/pages/Auth.tsx` -- Update device availability text (line ~1094)
-3. `src/pages/About.tsx` -- Update footer device availability text (lines ~114-125)
+The existing `usePwaInstall` hook already:
+- Listens for `beforeinstallprompt` and stores the deferred event
+- Exposes `canPrompt` (true when native prompt is available)
+- Exposes `promptInstall()` which calls `deferredPrompt.prompt()` and handles `userChoice`
+- Detects iOS and standalone mode
 
-**No new dependencies needed** -- uses existing Dialog component and lucide icons.
+The Settings page already uses this hook correctly. The main changes are cosmetic/branding:
+- Rename labels to "התקנת SoulStory" and "התקנת אפליקציה על מסך הבית"
+- Ensure the dialog mentions SoulStory
+- Keep the fallback instructions dialog for browsers that don't support `beforeinstallprompt`
 
-**All previous changes preserved** -- this plan only touches Settings PWA UI, Auth footer text, and About footer text. Story generation, illustration consistency, and book layout code are untouched.
