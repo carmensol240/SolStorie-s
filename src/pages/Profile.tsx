@@ -126,23 +126,6 @@ const Profile = () => {
     >
       {/* Magical dark background */}
       <div className="fixed inset-0 bg-gradient-to-b from-[hsl(260,60%,15%)] via-[hsl(270,40%,20%)] to-[hsl(250,50%,12%)] -z-10" />
-      <div className="fixed inset-0 overflow-hidden pointer-events-none -z-10">
-        {[...Array(18)].map((_, i) => (
-          <div
-            key={i}
-            className="absolute rounded-full bg-white animate-pulse"
-            style={{
-              width: `${2 + Math.random() * 4}px`,
-              height: `${2 + Math.random() * 4}px`,
-              top: `${Math.random() * 100}%`,
-              left: `${Math.random() * 100}%`,
-              animationDelay: `${Math.random() * 4}s`,
-              animationDuration: `${2 + Math.random() * 3}s`,
-              boxShadow: `0 0 ${4 + Math.random() * 8}px ${2 + Math.random() * 4}px rgba(255, 255, 255, 0.6)`,
-            }}
-          />
-        ))}
-      </div>
 
       <div className="w-full max-w-[550px] lg:max-w-[450px] mx-auto px-4 py-6 space-y-6">
         {/* Child Photo + Title */}
