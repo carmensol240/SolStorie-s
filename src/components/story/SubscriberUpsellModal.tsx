@@ -75,7 +75,7 @@ const SubscriberUpsellModal = ({ open, onOpenChange }: SubscriberUpsellModalProp
             size="lg"
             onClick={() => {
               onOpenChange(false);
-              navigate("/upgrade");
+              navigate("/toolkit");
             }}
             className="w-full bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white font-bold py-6 rounded-xl"
           >

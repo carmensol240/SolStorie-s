@@ -294,13 +294,13 @@ const Profile = () => {
                   <p className="text-xs text-white/60 text-center">
                     גלו כלים מעולם ה-NLP שיעזרו לכם להפוך כל סיפור לרגע של חיבור עמוק
                   </p>
-                  <Button
-                    onClick={() => navigate("/upgrade?toolkit=true")}
+                   <Button
+                    onClick={() => navigate("/toolkit")}
                     size="sm"
                     className="bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white font-bold rounded-xl text-xs px-4"
                   >
                     <Crown className="w-3.5 h-3.5 ml-1" />
-                    פתחו את המדריך השנתי המלא ב-19.90 ש״ח
+                    פתחו את המדריך השנתי המלא ב-29.90 ש״ח
                   </Button>
                 </div>
                 <p className="text-[10px] text-amber-300/40 text-left">— כרמית כהן, מייסדת SoulStory</p>
