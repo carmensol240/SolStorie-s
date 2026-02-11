@@ -14,7 +14,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { AboutStoryTimeContent } from "@/components/shared/AboutStoryTimeContent";
+import { AboutSoulStoryContent } from "@/components/shared/AboutSoulStoryContent";
 
 const Settings = () => {
   const navigate = useNavigate();
@@ -208,7 +208,7 @@ const Settings = () => {
             </DialogTitle>
           </DialogHeader>
           <ScrollArea className="h-[60vh] pr-4">
-            <AboutStoryTimeContent />
+            <AboutSoulStoryContent />
           </ScrollArea>
         </DialogContent>
       </Dialog>
