@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef, useCallback } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { Home, BookOpen, Sparkles, Palette, Wand2, RefreshCw, Loader2, ImageOff } from "lucide-react";
+import { Home, BookOpen, Sparkles, Palette, Wand2, RefreshCw, Loader2, ImageOff, Volume2, VolumeX, Loader } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
@@ -25,6 +25,8 @@ import { useOfflineStorage } from "@/hooks/use-offline-storage";
 import { useSettings } from "@/hooks/use-settings";
 import { usePdfExport } from "@/hooks/use-pdf-export";
 import { useNikud } from "@/hooks/use-nikud";
+import { useTextToSpeech } from "@/hooks/use-text-to-speech";
+import { useAccessibility } from "@/hooks/use-accessibility";
 
 import { useAuth } from "@/hooks/use-auth";
 import { useIsMobile } from "@/hooks/use-mobile";
@@ -92,7 +94,8 @@ const StoryViewer = () => {
   
   const { user } = useAuth();
   const hasTrackedStart = useRef(false);
-  
+  const { startReading, stopReading, isReading, isLoading: isTtsLoading, lastError, retry } = useTextToSpeech();
+  const { audioSupport } = useAccessibility();
 
   // Cleanup polling on unmount
   useEffect(() => {
@@ -948,8 +951,40 @@ const StoryViewer = () => {
                     </p>
                   </div>
                   
+                  {/* Read Aloud Button - only when audioSupport is enabled */}
+                  {audioSupport && page?.text && (
+                    <div className="flex items-center justify-center pt-2">
+                      <Button
+                        size="sm"
+                        variant="ghost"
+                        onClick={() => {
+                          if (isReading) {
+                            stopReading();
+                          } else {
+                            startReading(page.text);
+                          }
+                        }}
+                        disabled={isTtsLoading}
+                        className="text-purple-600 hover:text-purple-800 hover:bg-purple-50 gap-1.5"
+                      >
+                        {isTtsLoading ? (
+                          <><Loader className="w-4 h-4 animate-spin" /> טוען הקראה...</>
+                        ) : isReading ? (
+                          <><VolumeX className="w-4 h-4" /> עצור הקראה</>
+                        ) : (
+                          <><Volume2 className="w-4 h-4" /> הקראה קולית</>
+                        )}
+                      </Button>
+                      {lastError && (
+                        <Button size="sm" variant="ghost" onClick={retry} className="text-orange-500 text-xs">
+                          נסו שוב
+                        </Button>
+                      )}
+                    </div>
+                  )}
+
                   {/* Bottom area: page indicator */}
-                  <div className="flex items-center justify-center pt-6 mt-auto">
+                  <div className="flex items-center justify-center pt-4 mt-auto">
                     {page?.page_number !== undefined && (
                       <span className="text-xs text-gray-400 font-light">
                         {page.page_number} / {story.pages.length}
