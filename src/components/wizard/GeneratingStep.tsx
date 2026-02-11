@@ -127,6 +127,7 @@ const GeneratingStep = ({ formData, onComplete }: GeneratingStepProps) => {
             storyLength: formData.storyLength,
             topic: topicLabel,
             nikud: formData.nikud,
+            language: formData.language,
             childPhoto: formData.childPhoto,
             childAvatarUrl: formData.childAvatarUrl,
             personalityTraits: formData.personalityTraits,

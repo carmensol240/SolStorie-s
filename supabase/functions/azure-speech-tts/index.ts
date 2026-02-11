@@ -12,7 +12,7 @@ serve(async (req) => {
   }
 
   try {
-    const { text } = await req.json();
+    const { text, language = 'he' } = await req.json();
     
     if (!text || typeof text !== 'string') {
       return new Response(
@@ -40,12 +40,16 @@ serve(async (req) => {
       .replace(/"/g, '&quot;')
       .replace(/'/g, '&apos;');
 
-    // Build SSML for Hebrew voice with 0.9x rate (gentle bedtime story pace)
-    // Using he-IL-HilaNeural - warm, feminine Hebrew voice perfect for children's stories
+    // Select voice based on language
+    const voiceName = language === 'en' ? 'en-US-AnaNeural' : 'he-IL-HilaNeural';
+    const langCode = language === 'en' ? 'en-US' : 'he-IL';
+    const rate = language === 'en' ? '0.85' : '0.9';
+
+    // Build SSML with appropriate voice
     const ssml = `<?xml version="1.0" encoding="UTF-8"?>
-<speak version="1.0" xmlns="http://www.w3.org/2001/10/synthesis" xml:lang="he-IL">
-  <voice name="he-IL-HilaNeural">
-    <prosody rate="0.9">
+<speak version="1.0" xmlns="http://www.w3.org/2001/10/synthesis" xml:lang="${langCode}">
+  <voice name="${voiceName}">
+    <prosody rate="${rate}">
       ${escapedText}
     </prosody>
   </voice>

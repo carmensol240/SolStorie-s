@@ -26,6 +26,7 @@ export interface StoryFormData {
   childPhoto: string | null;
   childAvatarUrl: string | null;
   nikud: boolean;
+  language: "he" | "en";
   topic: string;
   customTopic: string;
   personalityTraits: string;
@@ -40,6 +41,7 @@ const INITIAL_DATA: StoryFormData = {
   childPhoto: null,
   childAvatarUrl: null,
   nikud: true,
+  language: "he",
   topic: "",
   customTopic: "",
   personalityTraits: "",

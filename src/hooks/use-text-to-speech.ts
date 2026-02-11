@@ -2,7 +2,7 @@ import { useState, useRef, useCallback } from 'react';
 import { useToast } from '@/hooks/use-toast';
 
 interface UseTextToSpeechReturn {
-  startReading: (text: string) => Promise<void>;
+  startReading: (text: string, language?: string) => Promise<void>;
   stopReading: () => void;
   isReading: boolean;
   isLoading: boolean;
@@ -16,6 +16,7 @@ export const useTextToSpeech = (): UseTextToSpeechReturn => {
   const [lastError, setLastError] = useState<string | null>(null);
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const lastTextRef = useRef<string>('');
+  const lastLanguageRef = useRef<string>('he');
   const { toast } = useToast();
 
   const cleanup = useCallback(() => {
@@ -27,13 +28,14 @@ export const useTextToSpeech = (): UseTextToSpeechReturn => {
     setIsReading(false);
   }, []);
 
-  const startReading = useCallback(async (text: string) => {
+  const startReading = useCallback(async (text: string, language: string = 'he') => {
     if (!text || typeof text !== 'string' || text.trim().length === 0) {
-      toast({ title: 'אין טקסט להקריא', variant: 'destructive' });
+      toast({ title: language === 'en' ? 'No text to read' : 'אין טקסט להקריא', variant: 'destructive' });
       return;
     }
 
     lastTextRef.current = text;
+    lastLanguageRef.current = language;
     setLastError(null);
     cleanup();
     setIsLoading(true);
@@ -51,7 +53,7 @@ export const useTextToSpeech = (): UseTextToSpeechReturn => {
             'apikey': supabaseKey,
             'Authorization': `Bearer ${supabaseKey}`,
           },
-          body: JSON.stringify({ text }),
+          body: JSON.stringify({ text, language }),
         }
       );
 
@@ -152,7 +154,7 @@ export const useTextToSpeech = (): UseTextToSpeechReturn => {
 
   const retry = useCallback(() => {
     if (lastTextRef.current) {
-      startReading(lastTextRef.current);
+      startReading(lastTextRef.current, lastLanguageRef.current);
     }
   }, [startReading]);
 

@@ -480,7 +480,7 @@ serve(async (req) => {
     }
     // === END CREDIT CHECK ===
 
-    const { childName, childGender = "male", ageRange, storyLength = "short", topic, nikud, childPhoto, childAvatarUrl, personalityTraits, adventureLogic } = await req.json();
+    const { childName, childGender = "male", ageRange, storyLength = "short", topic, nikud, childPhoto, childAvatarUrl, personalityTraits, adventureLogic, language = "he" } = await req.json();
 
     // === INPUT VALIDATION ===
     // Validate required fields
@@ -577,9 +577,7 @@ serve(async (req) => {
     
     console.log("Using LOVABLE_API_KEY for AI Gateway");
 
-    const genderText = childGender === "female" ? "ילדה" : "ילד";
-    const pronounHe = childGender === "female" ? "היא" : "הוא";
-    const pronounHer = childGender === "female" ? "שלה" : "שלו";
+    // Gender text variables moved into language-specific prompt building below
     
     // Determine story length based on age AND user preference
     const getAgeLengthInstruction = (age: string, preferredLength: string) => {
@@ -711,8 +709,83 @@ ${personalityTraits}
 התאם את עולם הסיפור והסביבה לתוכן שתואר.
 `;
     }
+    // === BUILD PROMPT BASED ON LANGUAGE ===
+    const isEnglish = language === "en";
     
-    const userPrompt = `## הוראות יצירת סיפור
+    let userPrompt: string;
+    let systemPrompt: string;
+    
+    if (isEnglish) {
+      // English system prompt for children's stories
+      systemPrompt = `You are an award-winning English children's story author. You write magical, warm, and empowering stories for children.
+
+## Rules:
+1. Write in simple, age-appropriate English.
+2. Use rhyming couplets (AABB) or alternating rhyme (ABCB) patterns.
+3. Write in present tense only.
+4. Use positive, growth-mindset language.
+5. Include gentle educational messages woven naturally into the story.
+6. Each stanza: max 4 lines, with a blank line between stanzas.
+7. Use simple, everyday vocabulary appropriate for the child's age.
+8. Gender-match all pronouns and adjectives to the character.
+
+## Story structure by age:
+- Ages 0-2: Very short, simple sentences, sensory words, repetition
+- Ages 3-6: Simple plot with cause and effect, cute characters
+- Ages 7-8: Richer vocabulary, deeper emotions, more complex plot
+
+## Output format (mandatory):
+Return ONLY valid JSON:
+{
+  "pages": [
+    {
+      "page_number": 1,
+      "text": "Rhyming stanza in English (4 lines max)",
+      "illustration_prompt": "English description including EXACT character appearance: gender, hair color/style, skin tone, clothing. Character must look IDENTICAL in every page."
+    }
+  ]
+}`;
+
+      const genderWordEn = childGender === "female" ? "girl" : "boy";
+      const pronounEn = childGender === "female" ? "she/her" : "he/him";
+      
+      userPrompt = `## Story Creation Instructions
+
+**Child details:**
+- Name: ${childName}
+- Gender: ${genderWordEn} (use ${pronounEn} pronouns)
+- Age: ${ageRange}
+${childPersonalization}
+${contentFraming}
+
+**Story topic:** ${topic}
+${hasCustomDescription ? `**Custom description:** ${personalityTraits}` : ""}
+
+## Story length:
+**Create exactly ${ageLengthConfig.pages} pages!**
+${ageLengthConfig.instruction}
+
+## Quality requirements:
+- Every stanza MUST rhyme (AABB or ABCB pattern)
+- Consistent rhythm - similar syllable count per line
+- Age-appropriate vocabulary
+- Warm, empowering tone
+- No archaic or complex words for young children
+- Present tense only
+
+${adventureLogic ? `
+## Adventure theme:
+- Outfit: ${adventureLogic.outfit}
+- Background: ${adventureLogic.background}  
+- Theme: ${adventureLogic.theme}
+` : ''}`;
+    } else {
+      // Hebrew prompt (existing)
+      systemPrompt = SYSTEM_PROMPT;
+      
+      const genderText = childGender === "female" ? "ילדה" : "ילד";
+      
+      userPrompt = `## הוראות יצירת סיפור
 
 **פרטי הילד/ה:**
 - שם: ${childName}
@@ -798,6 +871,7 @@ ${adventureLogic ? `
 - העדף פעלים פשוטים: "מסתכלת" במקום "מופנות", "חושבת" במקום "מהרהרת".
 - כלל: אם לא בטוח ב-100% שהמילה קיימת - השתמש באלטרנטיבה פשוטה.
 - כלל ניקוד: אם לא בטוח ב-100% בניקוד - השתמש במילה שאתה בטוח בניקוד שלה.`;
+    }
 
     const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
       method: "POST",
@@ -808,7 +882,7 @@ ${adventureLogic ? `
       body: JSON.stringify({
         model: "google/gemini-2.5-pro",
         messages: [
-          { role: "system", content: SYSTEM_PROMPT },
+          { role: "system", content: systemPrompt },
           { role: "user", content: userPrompt },
         ],
         response_format: { type: "json_object" },
@@ -876,8 +950,8 @@ ${adventureLogic ? `
     }
 
     // === PASS 2: DOUBLE-PASS NIQQUD PIPELINE ===
-    // If nikud is requested, send each page text to the Hebrew Grammarian agent
-    if (nikud) {
+    // Only apply nikud for Hebrew stories
+    if (nikud && language === "he") {
       console.log("Starting Pass 2: Hebrew Grammarian nikud pipeline...");
       
       // Process all pages in parallel for speed
@@ -911,6 +985,7 @@ ${adventureLogic ? `
       age_range: ageRange,
       topic: hebrewTopic, // Store Hebrew topic for display
       nikud: nikud,
+      language: language,
       generation_status: "generating_illustrations",
     };
     

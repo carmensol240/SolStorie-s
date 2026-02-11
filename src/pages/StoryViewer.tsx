@@ -50,6 +50,7 @@ interface Story {
   child_name: string;
   child_gender?: string;
   topic: string;
+  language?: string;
   pages: StoryPage[];
   generation_status?: string;
 }
@@ -277,6 +278,7 @@ const StoryViewer = () => {
         child_name: storyData.child_name,
         child_gender: (storyData as any).child_gender || 'male',
         topic: storyData.topic,
+        language: (storyData as any).language || 'he',
         pages: pagesData || [],
         generation_status: status,
       };
@@ -1006,8 +1008,8 @@ const StoryViewer = () => {
                     ))}
                   </div>
                   
-                  {/* Read Aloud Button - only when audioSupport is enabled */}
-                  {audioSupport && currentSpread.pages[0]?.text && (
+                  {/* Read Aloud Button - for English stories always, for Hebrew only when audioSupport is enabled */}
+                  {((story?.language === 'en') || audioSupport) && currentSpread.pages[0]?.text && (
                     <div className="flex items-center justify-center pt-2">
                       <Button
                         size="sm"
@@ -1018,23 +1020,23 @@ const StoryViewer = () => {
                           } else {
                             // Combine all spread page texts for reading
                             const fullText = currentSpread.pages.map(p => p.text).join('\n\n');
-                            startReading(fullText);
+                            startReading(fullText, story?.language || 'he');
                           }
                         }}
                         disabled={isTtsLoading}
                         className="text-purple-600 hover:text-purple-800 hover:bg-purple-50 gap-1.5"
                       >
                         {isTtsLoading ? (
-                          <><Loader className="w-4 h-4 animate-spin" /> טוען הקראה...</>
+                          <><Loader className="w-4 h-4 animate-spin" /> {story?.language === 'en' ? 'Loading...' : 'טוען הקראה...'}</>
                         ) : isReading ? (
-                          <><VolumeX className="w-4 h-4" /> עצור הקראה</>
+                          <><VolumeX className="w-4 h-4" /> {story?.language === 'en' ? 'Stop' : 'עצור הקראה'}</>
                         ) : (
-                          <><Volume2 className="w-4 h-4" /> הקראה קולית</>
+                          <><Volume2 className="w-4 h-4" /> {story?.language === 'en' ? 'Read Aloud 🔊' : 'הקראה קולית'}</>
                         )}
                       </Button>
                       {lastError && (
                         <Button size="sm" variant="ghost" onClick={retry} className="text-orange-500 text-xs">
-                          נסו שוב
+                          {story?.language === 'en' ? 'Try again' : 'נסו שוב'}
                         </Button>
                       )}
                     </div>

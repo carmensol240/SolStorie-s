@@ -1,5 +1,5 @@
 import { useRef, useEffect, useState } from "react";
-import { User, Camera, Sparkles, RefreshCw, Trash2, Heart, ChevronDown, ChevronUp, Check, X, Loader2, Save, Shield } from "lucide-react";
+import { User, Camera, Sparkles, RefreshCw, Trash2, Heart, ChevronDown, ChevronUp, Check, X, Loader2, Save, Shield, Globe } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
@@ -468,6 +468,40 @@ const ChildInfoStep = ({ formData, updateFormData }: ChildInfoStepProps) => {
             )}
           >
             <span className="text-sm font-bold">ארוך · 6-8 עמ׳</span>
+          </button>
+        </div>
+      </div>
+
+      {/* Language Selection */}
+      <div className="space-y-1">
+        <Label className="text-xs font-medium flex items-center gap-1.5">
+          <Globe className="w-3.5 h-3.5 text-purple-500" />
+          שפת הסיפור
+        </Label>
+        <div className="grid grid-cols-2 gap-2">
+          <button
+            onClick={() => updateFormData({ language: "he", nikud: true })}
+            className={cn(
+              "p-1.5 rounded-lg border-2 transition-all text-center flex items-center justify-center gap-1.5",
+              formData.language === "he"
+                ? "border-purple-500 bg-gradient-to-r from-purple-600 via-pink-500 to-orange-400 text-white font-bold"
+                : "border-border bg-card hover:border-purple-300"
+            )}
+          >
+            <span className="text-base">🇮🇱</span>
+            <span className="text-sm font-bold">עברית</span>
+          </button>
+          <button
+            onClick={() => updateFormData({ language: "en", nikud: false })}
+            className={cn(
+              "p-1.5 rounded-lg border-2 transition-all text-center flex items-center justify-center gap-1.5",
+              formData.language === "en"
+                ? "border-purple-500 bg-gradient-to-r from-purple-600 via-pink-500 to-orange-400 text-white font-bold"
+                : "border-border bg-card hover:border-purple-300"
+            )}
+          >
+            <span className="text-base">🇺🇸</span>
+            <span className="text-sm font-bold">English</span>
           </button>
         </div>
       </div>
