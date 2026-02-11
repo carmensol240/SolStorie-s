@@ -526,6 +526,7 @@ export type Database = {
           id: string
           is_daily_story: boolean | null
           is_premium: boolean | null
+          language: string
           max_age: number | null
           min_age: number | null
           nikud: boolean
@@ -548,6 +549,7 @@ export type Database = {
           id?: string
           is_daily_story?: boolean | null
           is_premium?: boolean | null
+          language?: string
           max_age?: number | null
           min_age?: number | null
           nikud?: boolean
@@ -570,6 +572,7 @@ export type Database = {
           id?: string
           is_daily_story?: boolean | null
           is_premium?: boolean | null
+          language?: string
           max_age?: number | null
           min_age?: number | null
           nikud?: boolean
