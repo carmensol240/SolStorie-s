@@ -1193,13 +1193,13 @@ ${adventureLogic ? `
 
     console.log("Story created:", story.id);
 
-    // Insert pages WITHOUT illustrations first (text only)
-    // Illustrations will be generated asynchronously
+    // Insert pages - only odd pages (1, 3, 5...) get illustration prompts (spread layout)
+    // This halves the number of illustrations while maintaining visual richness
     const pagesWithoutIllustrations = storyData.pages.map((page: any) => ({
       story_id: story.id,
       page_number: page.page_number,
       text: page.text,
-      illustration_prompt: page.illustration_prompt,
+      illustration_prompt: (page.page_number % 2 === 1) ? page.illustration_prompt : null,
       illustration_url: null, // Will be filled by generate-illustrations
     }));
 
