@@ -504,12 +504,15 @@ serve(async (req) => {
     const storyOutfit = effectiveAdventureLogic?.outfit || characterProfile?.clothingDescription || "colorful casual clothes";
     console.log(`🎽 Story outfit locked for all pages: "${storyOutfit}"`);
 
-    // Generate illustrations in PARALLEL BATCHES for speed optimization
+    // Only generate illustrations for pages that have an illustration_prompt (spread layout)
+    const pagesToIllustrate = pages.filter(p => p.illustration_prompt);
+    console.log(`${pagesToIllustrate.length} of ${pages.length} pages need illustrations (spread layout)`);
+    
     const BATCH_SIZE = 2;
     let firstIllustrationUrl: string | null = null;
 
-    for (let i = 0; i < pages.length; i += BATCH_SIZE) {
-      const batch = pages.slice(i, i + BATCH_SIZE);
+    for (let i = 0; i < pagesToIllustrate.length; i += BATCH_SIZE) {
+      const batch = pagesToIllustrate.slice(i, i + BATCH_SIZE);
       console.log(`Processing batch ${Math.floor(i / BATCH_SIZE) + 1}: pages ${batch.map(p => p.page_number).join(', ')}`);
 
       const results = await Promise.allSettled(

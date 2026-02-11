@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef, useCallback } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { Home, BookOpen, Sparkles, Palette, Wand2, RefreshCw, Volume2, VolumeX, Loader2, ImageOff } from "lucide-react";
+import { Home, BookOpen, Sparkles, Palette, Wand2, RefreshCw, Loader2, ImageOff } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
@@ -25,8 +25,6 @@ import { useOfflineStorage } from "@/hooks/use-offline-storage";
 import { useSettings } from "@/hooks/use-settings";
 import { usePdfExport } from "@/hooks/use-pdf-export";
 import { useNikud } from "@/hooks/use-nikud";
-import { useTextToSpeech } from "@/hooks/use-text-to-speech";
-import { useAccessibility } from "@/hooks/use-accessibility";
 
 import { useAuth } from "@/hooks/use-auth";
 import { useIsMobile } from "@/hooks/use-mobile";
@@ -90,8 +88,6 @@ const StoryViewer = () => {
   const { settings } = useSettings();
   const { exportToPdf, isExporting } = usePdfExport();
   const { addNikud, isLoading: isAddingNikud } = useNikud();
-  const { startReading, stopReading, isReading, isLoading: isLoadingAudio } = useTextToSpeech();
-  const { audioSupport } = useAccessibility();
   const { getSignedUrl } = useSignedUrls();
   
   const { user } = useAuth();
@@ -952,43 +948,12 @@ const StoryViewer = () => {
                     </p>
                   </div>
                   
-                  {/* Bottom area: page indicator + TTS button */}
-                  <div className="flex items-center justify-center pt-6 mt-auto relative">
+                  {/* Bottom area: page indicator */}
+                  <div className="flex items-center justify-center pt-6 mt-auto">
                     {page?.page_number !== undefined && (
                       <span className="text-xs text-gray-400 font-light">
                         {page.page_number} / {story.pages.length}
                       </span>
-                    )}
-                    
-                    {/* TTS Read Aloud - only visible when audioSupport is enabled in accessibility */}
-                    {audioSupport && page?.text && (
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => {
-                          if (isReading) {
-                            stopReading();
-                          } else {
-                            startReading(page.text);
-                          }
-                        }}
-                        disabled={isLoadingAudio}
-                        className={cn(
-                          "absolute left-2 bottom-0 min-h-[40px] min-w-[40px] p-2 rounded-full transition-colors",
-                          isReading 
-                            ? "text-purple-600 bg-purple-100 hover:bg-purple-200" 
-                            : "text-[#8B7355] hover:bg-[#F5E6D3]"
-                        )}
-                        aria-label={isReading ? "עצור הקראה" : "הקרא את הטקסט"}
-                      >
-                        {isLoadingAudio ? (
-                          <Loader2 className="w-5 h-5 animate-spin" />
-                        ) : isReading ? (
-                          <VolumeX className="w-5 h-5" />
-                        ) : (
-                          <Volume2 className="w-5 h-5" />
-                        )}
-                      </Button>
                     )}
                   </div>
                 </div>

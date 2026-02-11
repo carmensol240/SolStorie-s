@@ -23,8 +23,8 @@ interface GeneratingStepProps {
 const LOADING_MESSAGES = [
   { icon: Sparkles, text: "מכינים את הקסם...", color: "text-purple-500" },
   { icon: BookOpen, text: "כותבים את הסיפור...", color: "text-pink-500" },
-  { icon: Palette, text: "מציירים את האיורים...", color: "text-orange-400" },
-  { icon: FileText, text: "מסיימים את הספר...", color: "text-purple-600" },
+  { icon: Palette, text: "מציירים איורים באיכות גבוהה...", color: "text-orange-400" },
+  { icon: FileText, text: "עוד רגע והספר מוכן...", color: "text-purple-600" },
 ];
 
 const EMPOWERING_SENTENCES = [
