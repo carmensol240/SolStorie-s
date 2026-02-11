@@ -1,14 +1,12 @@
 import { useState, useEffect } from "react";
 import { useNavigate, Link, useSearchParams } from "react-router-dom";
-import { CreditCard, Loader2, ArrowLeft } from "lucide-react";
+import { Loader2, ArrowLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
-import { ScrollArea } from "@/components/ui/scroll-area";
 import { useAuth } from "@/hooks/use-auth";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
-import { AboutStoryTimeContent } from "@/components/shared/AboutStoryTimeContent";
 
 const TERMS_VERSION = "1.0";
 
@@ -26,23 +24,18 @@ const Onboarding = () => {
   useEffect(() => {
     const checkTermsAcceptance = async () => {
       if (loading) return;
-      
-      // Not logged in - redirect to auth
       if (!user) {
         navigate("/auth");
         return;
       }
-      
       setCheckingTerms(true);
       try {
-        const { data, error } = await supabase
+        const { data } = await supabase
           .from("profiles")
           .select("terms_accepted_at")
           .eq("id", user.id)
           .maybeSingle();
-
         if (data?.terms_accepted_at) {
-          // Already accepted - redirect to home
           navigate("/adventure");
           return;
         }
@@ -52,7 +45,6 @@ const Onboarding = () => {
         setCheckingTerms(false);
       }
     };
-
     checkTermsAcceptance();
   }, [user, loading, navigate]);
 
@@ -66,7 +58,6 @@ const Onboarding = () => {
 
   const handleContinue = async () => {
     if (!user || !hasAgreed) return;
-    
     setIsSubmitting(true);
     try {
       const { error } = await supabase
@@ -76,14 +67,11 @@ const Onboarding = () => {
           terms_version: TERMS_VERSION,
         })
         .eq("id", user.id);
-
       if (error) throw error;
-
       toast({
         title: "ברוכים הבאים ל-SoulStory! 🎉",
         description: "מחכה לך סיפור ראשון במתנה מאיתנו כדי להתחיל בקסם ✨",
       });
-      
       navigate(getReturnTo(), { replace: true });
     } catch (error) {
       console.error("Error saving consent:", error);
@@ -97,68 +85,136 @@ const Onboarding = () => {
     }
   };
 
-  // Show loading while checking
   if (loading || checkingTerms) {
     return (
-      <div className="min-h-[100dvh] flex items-center justify-center bg-gradient-to-b from-purple-50 via-pink-50 to-orange-50">
-        <Loader2 className="h-8 w-8 animate-spin text-purple-600" />
+      <div className="min-h-[100dvh] flex items-center justify-center bg-gradient-to-b from-[hsl(260,60%,15%)] via-[hsl(270,40%,20%)] to-[hsl(250,50%,12%)]">
+        <Loader2 className="h-8 w-8 animate-spin text-purple-300" />
       </div>
     );
   }
 
   return (
-    <div className="min-h-[100dvh] flex flex-col bg-gradient-to-b from-purple-50 via-pink-50 to-orange-50 overflow-y-auto" dir="rtl" style={{ WebkitOverflowScrolling: 'touch' }}>
-      {/* Header */}
-      <div className="flex-shrink-0 px-4 pt-6 pb-4 text-center">
-        <h1 className="text-2xl font-black bg-gradient-to-r from-purple-600 via-pink-500 to-orange-400 bg-clip-text text-transparent">
-          📖 ברוכים הבאים ל-SoulStory! ✨
+    <div className="min-h-[100dvh] flex flex-col relative overflow-y-auto" dir="rtl" style={{ WebkitOverflowScrolling: 'touch' }}>
+      {/* Magical background */}
+      <div className="fixed inset-0 bg-gradient-to-b from-[hsl(260,60%,15%)] via-[hsl(270,40%,20%)] to-[hsl(250,50%,12%)]" />
+      
+      {/* Floating stars */}
+      <div className="fixed inset-0 overflow-hidden pointer-events-none">
+        {[...Array(20)].map((_, i) => (
+          <div
+            key={i}
+            className="absolute rounded-full bg-white/60 animate-pulse"
+            style={{
+              width: `${2 + Math.random() * 3}px`,
+              height: `${2 + Math.random() * 3}px`,
+              top: `${Math.random() * 100}%`,
+              left: `${Math.random() * 100}%`,
+              animationDelay: `${Math.random() * 4}s`,
+              animationDuration: `${2 + Math.random() * 3}s`,
+            }}
+          />
+        ))}
+        <div className="absolute top-10 left-10 w-40 h-40 rounded-full bg-purple-500/10 blur-3xl" />
+        <div className="absolute top-1/3 right-5 w-56 h-56 rounded-full bg-pink-400/8 blur-3xl" />
+        <div className="absolute bottom-32 left-1/4 w-48 h-48 rounded-full bg-amber-400/8 blur-3xl" />
+      </div>
+
+      {/* Content */}
+      <div className="flex-1 flex flex-col items-center px-6 pt-6 pb-6 max-w-lg mx-auto text-center relative z-10">
+        
+        {/* Title */}
+        <h1 className="text-2xl font-black text-white/95 leading-snug mb-3">
+          ברוכים הבאים ל-<span dir="ltr" className="inline-block bg-gradient-to-r from-purple-300 via-pink-300 to-orange-300 bg-clip-text text-transparent">SoulStory™</span> ✨
         </h1>
-        <p className="text-muted-foreground text-sm mt-1">
-          לפני שמתחילים, קראו על האפליקציה
+
+        {/* Personal intro */}
+        <p className="text-base font-bold text-white/90 leading-relaxed mb-1">
+          שלום, אני כרמית
         </p>
-      </div>
+        <p className="text-sm text-white/75 leading-relaxed mb-3 px-1">
+          יצרתי את SoulStory עבור בתי סול, מתוך רצון להעניק לה עולם של דמיון שמבין את הקצב הייחודי שלה. רציתי ליצור עבורה מרחב שבו מילים הופכות לקסם מחבק, המותאם בדיוק לדרך שבה היא חווה את העולם.
+        </p>
+        <p className="text-sm text-white/75 leading-relaxed mb-3 px-1">
+          באפליקציה תמצאו <strong className="text-amber-200">34 נושאים מובנים</strong> לפתרון סיטואציות מחיי היום-יום – מפחד מהחושך, דרך יום ראשון בגן ועד הגעת אח חדש. כל סיפור נבנה בשילוב כלים מעולם ה-NLP, בונה חוסן פנימי ומאפשר לילד להיות הגיבור בסיפור שלו.
+        </p>
+        <p className="text-sm text-white/75 leading-relaxed mb-5 px-1">
+          אני נרגשת לחלוק את הקסם הזה גם אתכם. הנה מה שתמצאו בתוך SoulStory:
+        </p>
 
-      {/* Scrollable About Content */}
-      <div className="flex-1 px-4 overflow-hidden">
-        <div className="bg-white/80 backdrop-blur-sm rounded-2xl border border-purple-100 shadow-lg h-full max-h-[50vh]">
-          <ScrollArea className="h-full p-4">
-            <AboutStoryTimeContent />
-          </ScrollArea>
+        {/* Section title */}
+        <p className="text-base font-bold text-white/90 leading-relaxed mb-4">
+          הופכים את הקושי לסיפור קסום ✨
+        </p>
+
+        {/* Features */}
+        <div className="space-y-4 mb-5 w-full">
+          <div className="flex flex-col items-center gap-1.5">
+            <span className="text-3xl">⭐</span>
+            <p className="text-sm text-white/80 leading-snug px-4">
+              <strong className="text-amber-200">הילד שלכם הוא הגיבור</strong> — הופכים תמונה פשוטה לדמות מצוירת בסגנון אנימציה קלאסי, שמלווה את הילד לאורך כל ההרפתקה.
+            </p>
+          </div>
+
+          <div className="flex flex-col items-center gap-1.5">
+            <span className="text-3xl">🌙</span>
+            <p className="text-sm text-white/80 leading-snug px-4">
+              <strong className="text-pink-200">התאמה מושלמת לפי גיל</strong> — הסיפורים מותאמים אישית – מסיפורים קצרצרים לפעוטות (0-2), דרך עלילות מרתקות לילדי גן (3-6), ועד לסיפורים מורכבים ועשירים לילדים שכבר לומדים לקרוא (7-8).
+            </p>
+          </div>
+
+          <div className="flex flex-col items-center gap-1.5">
+            <span className="text-3xl">🪄</span>
+            <p className="text-sm text-white/80 leading-snug px-4">
+              <strong className="text-purple-200">סיפורים מעצימים</strong> — כל סיפור נבנה עם דגש על בניית ביטחון עצמי, חוסן רגשי ומסרים חיוביים שנטמעים בילד בצורה טבעית ומהנה.
+            </p>
+          </div>
+
+          <div className="flex flex-col items-center gap-1.5">
+            <span className="text-3xl">🇺🇸</span>
+            <p className="text-sm text-white/80 leading-snug px-4">
+              <strong className="text-green-200">לומדים אנגלית בכיף</strong> — סיפורים והקראה קולית איכותית של ילדה ללמידת שפה בצורה חווייתית ומהנה.
+            </p>
+          </div>
         </div>
-      </div>
 
-      {/* Bottom Section - Fixed */}
-      <div className="flex-shrink-0 px-4 py-4 space-y-4">
+        {/* Invitation */}
+        <p className="text-sm text-white/80 leading-relaxed mb-5 px-3 font-semibold">
+          אני מזמינה אתכם להצטרף אלינו למסע. כדי שתוכלו להרגיש את הקסם בעצמכם, הסיפור הראשון הוא מתנה ממני.
+        </p>
+
+        {/* Signature */}
+        <p className="text-sm font-semibold bg-gradient-to-r from-purple-300 via-pink-300 to-orange-300 bg-clip-text text-transparent mb-6">
+          באהבה, כרמית כהן
+        </p>
+
         {/* Terms Checkbox */}
-        <div className="flex items-start gap-3 bg-white/80 backdrop-blur-sm rounded-xl p-4 border border-purple-100 shadow-sm">
+        <div className="flex items-start gap-3 bg-white/[0.08] backdrop-blur-md rounded-xl p-4 border border-white/10 w-full mb-3">
           <Checkbox
             id="terms-agreement"
             checked={hasAgreed}
             onCheckedChange={(checked) => setHasAgreed(checked === true)}
-            className="h-5 w-5 mt-0.5 border-purple-300 data-[state=checked]:bg-purple-600 data-[state=checked]:border-purple-600"
+            className="h-5 w-5 mt-0.5 border-purple-300 data-[state=checked]:bg-purple-500 data-[state=checked]:border-purple-500"
           />
           <Label 
             htmlFor="terms-agreement" 
-            className="text-sm leading-relaxed cursor-pointer"
+            className="text-sm leading-relaxed cursor-pointer text-white/80"
           >
             אני מסכים/ה ל
-            <Link to="/terms" className="text-purple-600 hover:underline font-medium mx-1">
+            <Link to="/terms" className="text-purple-300 hover:underline font-medium mx-1">
               תנאי השימוש
             </Link>
             ול
-            <Link to="/privacy" className="text-purple-600 hover:underline font-medium mx-1">
+            <Link to="/privacy" className="text-purple-300 hover:underline font-medium mx-1">
               מדיניות הפרטיות
             </Link>
           </Label>
         </div>
 
         {/* PayPal Notice */}
-        <div className="flex items-center gap-3 bg-gradient-to-r from-blue-50 to-purple-50 rounded-xl p-4 border border-blue-100">
-          <div className="h-10 w-10 rounded-full bg-gradient-to-r from-blue-500 to-purple-500 flex items-center justify-center flex-shrink-0">
-            <CreditCard className="h-5 w-5 text-white" />
-          </div>
-          <p className="text-sm text-foreground font-medium">
-            💳 ניתן לשלם גם בכרטיס אשראי ללא חשבון פייפאל
+        <div className="flex items-center justify-center gap-2 mb-4 text-white/50">
+          <span>💳</span>
+          <p className="text-xs font-bold">
+            ניתן לשלם גם בכרטיס אשראי ללא חשבון פייפאל
           </p>
         </div>
 
@@ -166,11 +222,14 @@ const Onboarding = () => {
         <Button
           onClick={handleContinue}
           disabled={!hasAgreed || isSubmitting}
-          className={`w-full h-14 rounded-xl text-lg font-bold shadow-lg transition-all duration-300 ${
+          className={`w-full max-w-xs mx-auto h-14 rounded-full text-lg font-black shadow-xl transition-all ${
             hasAgreed 
-              ? "bg-gradient-to-r from-purple-600 via-pink-500 to-orange-400 hover:from-purple-700 hover:via-pink-600 hover:to-orange-500 text-white" 
-              : "bg-gray-200 text-gray-400 cursor-not-allowed"
+              ? "bg-gradient-to-r from-purple-500 via-pink-500 to-orange-500 hover:from-purple-400 hover:via-pink-400 hover:to-orange-400 text-white" 
+              : "bg-white/10 text-white/30 cursor-not-allowed"
           }`}
+          style={hasAgreed ? {
+            boxShadow: '0 0 40px rgba(168, 85, 247, 0.4), 0 0 80px rgba(236, 72, 153, 0.2)'
+          } : undefined}
         >
           {isSubmitting ? (
             <Loader2 className="h-5 w-5 animate-spin" />
