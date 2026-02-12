@@ -470,46 +470,44 @@ const CategoryCarousel = ({
 
   return (
     <div id={`cat-${category.id}`}>
-      {/* Category Header */}
-      <div className="flex flex-col px-4 mb-1.5">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            {category.castImage ? (
-              <img
-                src={category.castImage}
-                alt={category.castName || category.title}
-                className="w-9 h-9 rounded-full object-cover border-2 border-amber-300 shadow-sm"
-              />
-            ) : (
-              <span className="text-base">{category.emoji}</span>
-            )}
-            <div className="flex items-center gap-1.5">
-              <h3 className="text-sm font-bold text-foreground">{category.title}</h3>
-              <span className="text-[10px] font-normal text-muted-foreground">({category.topics.length})</span>
+      {/* Category Hero Card */}
+      <div className="px-4 mb-2">
+        <div className="relative w-full rounded-2xl overflow-hidden shadow-lg" style={{ aspectRatio: '16/7' }}>
+          {category.castImage ? (
+            <img
+              src={category.castImage}
+              alt={category.castName || category.title}
+              className="w-full h-full object-cover"
+            />
+          ) : (
+            <div className="w-full h-full bg-gradient-to-br from-purple-400 to-pink-400" />
+          )}
+          <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent" />
+          <div className="absolute bottom-0 left-0 right-0 p-3 flex items-end justify-between">
+            <div>
+              <h3 className="text-base font-black text-white drop-shadow-md">{category.title}</h3>
+              <span className="text-[10px] text-white/70 font-medium">{category.topics.length} נושאים</span>
+            </div>
+            <div className="flex items-center gap-0.5">
+              <button
+                onClick={onToggleExpand}
+                className="text-[10px] font-bold text-white/90 hover:text-white bg-white/20 backdrop-blur-sm px-2.5 py-1 rounded-full transition-colors"
+              >
+                {isExpanded ? "סגור" : "צפה בהכל"}
+              </button>
+              {!isExpanded && (
+                <>
+                  <Button variant="ghost" size="icon" className="h-7 w-7 rounded-full text-white hover:bg-white/20" onClick={() => scroll('right')} aria-label="הקודם">
+                    <ChevronRight className="h-3.5 w-3.5" />
+                  </Button>
+                  <Button variant="ghost" size="icon" className="h-7 w-7 rounded-full text-white hover:bg-white/20" onClick={() => scroll('left')} aria-label="הבא">
+                    <ChevronLeft className="h-3.5 w-3.5" />
+                  </Button>
+                </>
+              )}
             </div>
           </div>
-          <div className="flex items-center gap-0.5">
-            <button
-              onClick={onToggleExpand}
-              className="text-[10px] font-bold text-purple-600 hover:text-purple-800 px-2 py-1 rounded-full hover:bg-purple-50 transition-colors"
-            >
-              {isExpanded ? "סגור" : "צפה בהכל"}
-            </button>
-            {!isExpanded && (
-              <>
-                <Button variant="ghost" size="icon" className="h-7 w-7 rounded-full" onClick={() => scroll('right')} aria-label="הקודם">
-                  <ChevronRight className="h-3.5 w-3.5" />
-                </Button>
-                <Button variant="ghost" size="icon" className="h-7 w-7 rounded-full" onClick={() => scroll('left')} aria-label="הבא">
-                  <ChevronLeft className="h-3.5 w-3.5" />
-                </Button>
-              </>
-            )}
-          </div>
         </div>
-        {category.subtitle && (
-          <p className="text-[10px] text-muted-foreground mt-0.5 pr-11">{category.subtitle}</p>
-        )}
       </div>
 
       {isExpanded ? (
