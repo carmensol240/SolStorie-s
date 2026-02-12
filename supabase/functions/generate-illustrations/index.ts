@@ -95,13 +95,13 @@ Return only the JSON, no other text.`
 
 function getDefaultProfile(childGender: string, genderHebrew: string, ageRange: string): CharacterProfile {
   // Default profiles based on gender for visual anchoring when no photo is provided
-  // Female default is modeled after Sol: 4yo, curly brown hair, brown eyes, pink dress
+  // Female default is modeled after Sol: 4yo, long straight brown hair in high ponytail, brown eyes, bright yellow dress
   const isFemale = childGender === "female";
   return {
     gender: childGender,
     genderHebrew: genderHebrew,
-    hairDescription: isFemale ? "curly brown hair with soft natural curls" : "short tousled dark brown hair",
-    clothingDescription: isFemale ? "a pretty pink dress" : "colorful casual clothes",
+    hairDescription: isFemale ? "long straight to slightly wavy brown hair in a high ponytail" : "short tousled dark brown hair",
+    clothingDescription: isFemale ? "a bright yellow dress" : "colorful casual clothes",
     ageDescription: ageRange || (isFemale ? "4" : "3-6"),
     skinTone: "warm medium olive",
     eyeColor: isFemale ? "large warm brown" : "large dark brown",
