@@ -57,7 +57,7 @@ const PurchaseSuccessModal = ({
             שמחה שהצטרפתם. מעכשיו תקבלו כל חודש כלים חדשים מעולם ה-NLP והחינוך המקרב שיעזרו לכם להפוך כל סיפור לרגע של חיבור אמיתי.
           </p>
           <p className="text-sm text-foreground font-medium whitespace-pre-line mb-4">
-            {`בהצלחה ובשמחה,\nכרמית כהן`}
+            {`בהצלחה ובשמחה,\nאמא של סול`}
           </p>
 
           <Button

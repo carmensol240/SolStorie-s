@@ -60,7 +60,7 @@ export const usePdfExport = () => {
     
     // Bottom watermark
     pdf.text(
-      "SolStorie's – כרמית כהן | סיפורים עם נשמה | © 2026 | www.SolStories.co.il",
+      "SolStorie's – סיפורים עם נשמה | © 2026 | www.SolStories.co.il",
       pageWidth / 2,
       pageHeight - 5,
       { align: 'center' }

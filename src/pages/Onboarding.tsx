@@ -124,21 +124,21 @@ const Onboarding = () => {
         
         {/* Title */}
         <h1 className="text-2xl font-black text-white/95 leading-snug mb-3">
-          ברוכים הבאים ל-<span dir="ltr" className="inline-block bg-gradient-to-r from-purple-300 via-pink-300 to-orange-300 bg-clip-text text-transparent">SoulStory™</span> ✨
+          ברוכים הבאים ל-<span dir="ltr" className="inline-block bg-gradient-to-r from-purple-300 via-pink-300 to-orange-300 bg-clip-text text-transparent">SolStorie's</span> ✨
         </h1>
 
         {/* Personal intro */}
         <p className="text-base font-bold text-white/90 leading-relaxed mb-1">
-          שלום, אני כרמית
+          שלום, אני אמא של סול
         </p>
         <p className="text-sm text-white/75 leading-relaxed mb-3 px-1">
-          יצרתי את SoulStory עבור בתי סול, מתוך רצון להעניק לה עולם של דמיון שמבין את הקצב הייחודי שלה. רציתי ליצור עבורה מרחב שבו מילים הופכות לקסם מחבק, המותאם בדיוק לדרך שבה היא חווה את העולם.
+          יצרתי את <span dir="ltr" className="inline-block">SolStorie's</span> עבור בתי סול, מתוך רצון להעניק לה עולם של דמיון שמבין את הקצב הייחודי שלה. האפליקציה נולדה מאהבה של אמא לבתה, וכל התכנים והדמויות הם קניין רוחני מוגן.
         </p>
         <p className="text-sm text-white/75 leading-relaxed mb-3 px-1">
           באפליקציה תמצאו <strong className="text-amber-200">34 נושאים מובנים</strong> לפתרון סיטואציות מחיי היום-יום – מפחד מהחושך, דרך יום ראשון בגן ועד הגעת אח חדש. כל סיפור נבנה בשילוב כלים מעולם ה-NLP, בונה חוסן פנימי ומאפשר לילד להיות הגיבור בסיפור שלו.
         </p>
         <p className="text-sm text-white/75 leading-relaxed mb-5 px-1">
-          אני נרגשת לחלוק את הקסם הזה גם אתכם. הנה מה שתמצאו בתוך SoulStory:
+          אני נרגשת לחלוק את הקסם הזה גם אתכם. הנה מה שתמצאו בתוך <span dir="ltr" className="inline-block">SolStorie's</span>:
         </p>
 
         {/* Section title */}
@@ -172,7 +172,7 @@ const Onboarding = () => {
           <div className="flex flex-col items-center gap-1.5">
             <span className="text-3xl">🇺🇸</span>
             <p className="text-sm text-white/80 leading-snug px-4">
-              <strong className="text-green-200">לומדים אנגלית בכיף</strong> — סיפורים והקראה קולית איכותית של ילדה ללמידת שפה בצורה חווייתית ומהנה.
+              <strong className="text-green-200">לומדים אנגלית בכיף</strong> — סיפורים ללמידת שפה בצורה חווייתית ומהנה.
             </p>
           </div>
         </div>
@@ -184,7 +184,7 @@ const Onboarding = () => {
 
         {/* Signature */}
         <p className="text-sm font-semibold bg-gradient-to-r from-purple-300 via-pink-300 to-orange-300 bg-clip-text text-transparent mb-6">
-          באהבה, כרמית כהן
+          באהבה, אמא של סול
         </p>
 
         {/* Terms Checkbox */}

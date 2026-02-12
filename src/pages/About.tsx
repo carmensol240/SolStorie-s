@@ -55,10 +55,10 @@ const About = () => {
 
         {/* Personal intro */}
         <p className="text-base font-bold text-white/90 leading-relaxed mb-1">
-          שלום, אני כרמית
+          שלום, אני אמא של סול
         </p>
         <p className="text-sm text-white/75 leading-relaxed mb-3 px-1">
-          יצרתי את <span dir="ltr" className="inline-block">SolStorie's</span> עבור בתי סול, מתוך רצון להעניק לה עולם של דמיון שמבין את הקצב הייחודי שלה. רציתי ליצור עבורה מרחב שבו מילים הופכות לקסם מחבק, המותאם בדיוק לדרך שבה היא חווה את העולם.
+          יצרתי את <span dir="ltr" className="inline-block">SolStorie's</span> עבור בתי סול, מתוך רצון להעניק לה עולם של דמיון שמבין את הקצב הייחודי שלה. האפליקציה נולדה מאהבה של אמא לבתה, וכל התכנים והדמויות הם קניין רוחני מוגן של <span dir="ltr" className="inline-block">SolStorie's</span>.
         </p>
         <p className="text-sm text-white/75 leading-relaxed mb-3 px-1">
           באפליקציה תמצאו <strong className="text-amber-200">34 נושאים מובנים</strong> לפתרון סיטואציות מחיי היום-יום – מפחד מהחושך, דרך יום ראשון בגן ועד הגעת אח חדש. כל סיפור נבנה בשילוב כלים מעולם ה-NLP, בונה חוסן פנימי ומאפשר לילד להיות הגיבור בסיפור שלו.
@@ -128,7 +128,7 @@ const About = () => {
 
         {/* Signature */}
         <p className="text-sm font-semibold bg-gradient-to-r from-purple-300 via-pink-300 to-orange-300 bg-clip-text text-transparent mt-3">
-          באהבה, כרמית כהן
+          באהבה, אמא של סול
         </p>
 
         {/* Device availability footer */}
