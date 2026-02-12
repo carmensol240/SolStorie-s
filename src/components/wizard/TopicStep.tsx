@@ -1,4 +1,4 @@
-import { useRef, useState } from "react";
+import { useRef, useState, useEffect } from "react";
 import { Pencil, ChevronLeft, ChevronRight, Brain, Sparkles, Heart, Grid3X3 } from "lucide-react";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
@@ -458,6 +458,19 @@ const CategoryCarousel = ({
   onToggleLike: (topicId: string) => void;
 }) => {
   const scrollRef = useRef<HTMLDivElement>(null);
+  const heroRef = useRef<HTMLDivElement>(null);
+  const [heroVisible, setHeroVisible] = useState(false);
+
+  useEffect(() => {
+    const el = heroRef.current;
+    if (!el) return;
+    const observer = new IntersectionObserver(
+      ([entry]) => setHeroVisible(entry.isIntersecting),
+      { threshold: 0.2 }
+    );
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, []);
 
   const scroll = (direction: 'left' | 'right') => {
     if (scrollRef.current) {
@@ -472,7 +485,15 @@ const CategoryCarousel = ({
     <div id={`cat-${category.id}`}>
       {/* Category Hero Card */}
       <div className="px-4 mb-2">
-        <div className="relative w-full rounded-2xl overflow-hidden shadow-lg" style={{ aspectRatio: '16/9' }}>
+        <div
+          ref={heroRef}
+          className="relative w-full rounded-2xl overflow-hidden shadow-lg transition-all duration-700 ease-out"
+          style={{
+            aspectRatio: '16/9',
+            transform: heroVisible ? 'scale(1)' : 'scale(0.93)',
+            opacity: heroVisible ? 1 : 0.6,
+          }}
+        >
           {category.castImage ? (
             <img
               src={category.castImage}
