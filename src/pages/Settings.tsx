@@ -113,7 +113,7 @@ const Settings = () => {
           <div className="bg-gradient-to-r from-amber-50 to-orange-50 dark:from-amber-950/20 dark:to-orange-950/20 rounded-lg px-3 py-3 border border-amber-200 dark:border-amber-800 space-y-2">
             <div className="flex items-center gap-2 justify-end">
               <div className="text-right">
-                <span className="font-bold text-sm text-foreground block" dir="ltr">התקנת SolStorie's</span>
+                <span className="font-bold text-sm text-foreground block" dir="ltr">התקנת SolStories</span>
                 <span className="text-[11px] text-muted-foreground block">גישה מהירה לכל הסיפורים שלכם ישירות ממסך הבית.</span>
               </div>
               <div className="w-8 h-8 bg-gradient-to-r from-amber-400/20 to-orange-400/20 rounded-lg flex items-center justify-center flex-shrink-0">
@@ -138,7 +138,7 @@ const Settings = () => {
                 className="w-full py-2 bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white font-bold text-sm rounded-xl transition-all flex items-center justify-center gap-1.5"
               >
                 <Download className="w-3.5 h-3.5" />
-                איך מתקינים את SolStorie's?
+                איך מתקינים את SolStories?
               </button>
             )}
           </div>
@@ -161,11 +161,11 @@ const Settings = () => {
           <button
             onClick={() => setAboutOpen(true)}
             className="w-full flex items-center justify-between bg-white/60 dark:bg-white/10 backdrop-blur-md rounded-lg px-3 py-2 border border-purple-200 dark:border-purple-800 hover:bg-purple-50 dark:hover:bg-purple-900/20 transition-all text-right shadow-sm"
-            aria-label="אודות SolStorie's"
+            aria-label="אודות SolStories"
           >
             <ArrowRight className="w-3.5 h-3.5 text-purple-400" aria-hidden="true" />
             <div className="flex items-center gap-2">
-              <span className="font-medium text-sm text-foreground">אודות SolStorie's</span>
+              <span className="font-medium text-sm text-foreground">אודות SolStories</span>
               <div className="w-7 h-7 bg-gradient-to-r from-purple-500/20 to-pink-500/20 rounded-lg flex items-center justify-center flex-shrink-0">
                 <Info className="w-3.5 h-3.5 text-purple-600" aria-hidden="true" />
               </div>
@@ -204,7 +204,7 @@ const Settings = () => {
         <DialogContent className="max-w-lg max-h-[80vh]" dir="rtl">
           <DialogHeader>
             <DialogTitle className="text-center text-lg font-bold bg-gradient-to-r from-purple-600 via-pink-500 to-orange-400 bg-clip-text text-transparent">
-              📖 להפוך את הקושי לסיפור קסום – <span dir="ltr" className="inline-block">SolStorie's</span> ✨
+              📖 להפוך את הקושי לסיפור קסום – <span dir="ltr" className="inline-block">SolStories</span> ✨
             </DialogTitle>
           </DialogHeader>
           <ScrollArea className="h-[60vh] pr-4">
@@ -218,7 +218,7 @@ const Settings = () => {
         <DialogContent className="max-w-sm" dir="rtl">
           <DialogHeader>
             <DialogTitle className="text-center text-lg font-bold">
-              📲 התקנת <span dir="ltr">SolStorie's</span>
+              📲 התקנת <span dir="ltr">SolStories</span>
             </DialogTitle>
           </DialogHeader>
           <div className="space-y-4 py-2">

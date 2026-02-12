@@ -69,7 +69,7 @@ const Onboarding = () => {
         .eq("id", user.id);
       if (error) throw error;
       toast({
-        title: "ברוכים הבאים ל-SoulStory! 🎉",
+        title: "ברוכים הבאים ל-SolStories! 🎉",
         description: "מחכה לך סיפור ראשון במתנה מאיתנו כדי להתחיל בקסם ✨",
       });
       navigate(getReturnTo(), { replace: true });
@@ -124,7 +124,7 @@ const Onboarding = () => {
         
         {/* Title */}
         <h1 className="text-2xl font-black text-white/95 leading-snug mb-3">
-          ברוכים הבאים ל-<span dir="ltr" className="inline-block bg-gradient-to-r from-purple-300 via-pink-300 to-orange-300 bg-clip-text text-transparent">SolStorie's</span> ✨
+          ברוכים הבאים ל-<span dir="ltr" className="inline-block bg-gradient-to-r from-purple-300 via-pink-300 to-orange-300 bg-clip-text text-transparent">SolStories</span> ✨
         </h1>
 
         {/* Personal intro */}
@@ -132,13 +132,13 @@ const Onboarding = () => {
           שלום, אני אמא של סול
         </p>
         <p className="text-sm text-white/75 leading-relaxed mb-3 px-1">
-          יצרתי את <span dir="ltr" className="inline-block">SolStorie's</span> עבור בתי סול, מתוך רצון להעניק לה עולם של דמיון שמבין את הקצב הייחודי שלה. האפליקציה נולדה מאהבה של אמא לבתה, וכל התכנים והדמויות הם קניין רוחני מוגן.
+          יצרתי את <span dir="ltr" className="inline-block">SolStories</span> עבור בתי סול, מתוך רצון להעניק לה עולם של דמיון שמבין את הקצב הייחודי שלה. האפליקציה נולדה מאהבה של אמא לבתה, וכל התכנים והדמויות הם קניין רוחני מוגן.
         </p>
         <p className="text-sm text-white/75 leading-relaxed mb-3 px-1">
           באפליקציה תמצאו <strong className="text-amber-200">34 נושאים מובנים</strong> לפתרון סיטואציות מחיי היום-יום – מפחד מהחושך, דרך יום ראשון בגן ועד הגעת אח חדש. כל סיפור נבנה בשילוב כלים מעולם ה-NLP, בונה חוסן פנימי ומאפשר לילד להיות הגיבור בסיפור שלו.
         </p>
         <p className="text-sm text-white/75 leading-relaxed mb-5 px-1">
-          אני נרגשת לחלוק את הקסם הזה גם אתכם. הנה מה שתמצאו בתוך <span dir="ltr" className="inline-block">SolStorie's</span>:
+          אני נרגשת לחלוק את הקסם הזה גם אתכם. הנה מה שתמצאו בתוך <span dir="ltr" className="inline-block">SolStories</span>:
         </p>
 
         {/* Section title */}
