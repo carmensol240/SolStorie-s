@@ -348,6 +348,15 @@ const Auth = () => {
   const handleEmailSignUp = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!validateForm()) return;
+    
+    if (!signupTermsAccepted) {
+      toast({
+        title: "יש לאשר את התנאים",
+        description: "אנא אשרו את תנאי השימוש ומדיניות הפרטיות כדי להמשיך",
+        variant: "destructive",
+      });
+      return;
+    }
 
     setIsSubmitting(true);
     const { error, data } = await signUpWithEmail(email, password);
@@ -363,15 +372,23 @@ const Auth = () => {
         variant: "destructive",
       });
     } else if (data?.user) {
-      // Signup successful - user is auto-confirmed and logged in
+      // Signup successful - save terms acceptance immediately
       if (data?.user?.id) {
         await processReferral(data.user.id);
+        // Save terms acceptance so user skips onboarding
+        await supabase
+          .from("profiles")
+          .update({
+            terms_accepted_at: new Date().toISOString(),
+            terms_version: TERMS_VERSION,
+          })
+          .eq("id", data.user.id);
       }
       toast({
         title: "ברוכים הבאים ל-SoulStory! 🎉",
         description: "מחכה לך סיפור ראשון במתנה מאיתנו כדי להתחיל בקסם ✨",
       });
-      // The useEffect will handle redirect after checking terms
+      // The useEffect will handle redirect - terms already accepted so goes straight to /adventure
     }
     setIsSubmitting(false);
   };
