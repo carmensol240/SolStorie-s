@@ -45,6 +45,9 @@ const Auth = () => {
   const [isParentConsent, setIsParentConsent] = useState(false);
   const [checkingTerms, setCheckingTerms] = useState(false);
   
+  // Signup terms consent (inline in registration form)
+  const [signupTermsAccepted, setSignupTermsAccepted] = useState(false);
+  
   // Profile data for trial offer
   const [displayName, setDisplayName] = useState<string>("");
   const [storyCredits, setStoryCredits] = useState<number>(1);
