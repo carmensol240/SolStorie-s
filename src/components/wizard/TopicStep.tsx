@@ -580,6 +580,9 @@ const TopicStep = ({ formData, updateFormData }: TopicStepProps) => {
         <h1 className="text-lg font-bold bg-gradient-to-r from-purple-600 via-pink-500 to-orange-400 bg-clip-text text-transparent">
           בחרו את ההרפתקה
         </h1>
+        <p className="text-[11px] text-muted-foreground mt-1 leading-relaxed">
+          ✨ כל סיפור נכתב מחדש במיוחד עבור הילד/ה שלך ומשלב את שמו/ה בעלילה
+        </p>
       </div>
 
       {/* NLP Smart Input */}
