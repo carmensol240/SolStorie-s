@@ -94,16 +94,17 @@ Return only the JSON, no other text.`
 }
 
 function getDefaultProfile(childGender: string, genderHebrew: string, ageRange: string): CharacterProfile {
-  // Richer defaults based on gender for better visual anchoring when no photo is provided
+  // Default profiles based on gender for visual anchoring when no photo is provided
+  // Female default is modeled after Sol: 4yo, curly brown hair, brown eyes, pink dress
   const isFemale = childGender === "female";
   return {
     gender: childGender,
     genderHebrew: genderHebrew,
-    hairDescription: isFemale ? "long wavy dark brown hair with soft bangs" : "short tousled dark brown hair",
-    clothingDescription: "colorful casual clothes",
-    ageDescription: ageRange,
+    hairDescription: isFemale ? "curly brown hair with soft natural curls" : "short tousled dark brown hair",
+    clothingDescription: isFemale ? "a pretty pink dress" : "colorful casual clothes",
+    ageDescription: ageRange || (isFemale ? "4" : "3-6"),
     skinTone: "warm medium olive",
-    eyeColor: "large dark brown",
+    eyeColor: isFemale ? "large warm brown" : "large dark brown",
   };
 }
 

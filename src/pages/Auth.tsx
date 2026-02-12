@@ -45,6 +45,9 @@ const Auth = () => {
   const [isParentConsent, setIsParentConsent] = useState(false);
   const [checkingTerms, setCheckingTerms] = useState(false);
   
+  // Signup terms consent (inline in registration form)
+  const [signupTermsAccepted, setSignupTermsAccepted] = useState(false);
+  
   // Profile data for trial offer
   const [displayName, setDisplayName] = useState<string>("");
   const [storyCredits, setStoryCredits] = useState<number>(1);
@@ -345,6 +348,15 @@ const Auth = () => {
   const handleEmailSignUp = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!validateForm()) return;
+    
+    if (!signupTermsAccepted) {
+      toast({
+        title: "יש לאשר את התנאים",
+        description: "אנא אשרו את תנאי השימוש ומדיניות הפרטיות כדי להמשיך",
+        variant: "destructive",
+      });
+      return;
+    }
 
     setIsSubmitting(true);
     const { error, data } = await signUpWithEmail(email, password);
@@ -360,15 +372,23 @@ const Auth = () => {
         variant: "destructive",
       });
     } else if (data?.user) {
-      // Signup successful - user is auto-confirmed and logged in
+      // Signup successful - save terms acceptance immediately
       if (data?.user?.id) {
         await processReferral(data.user.id);
+        // Save terms acceptance so user skips onboarding
+        await supabase
+          .from("profiles")
+          .update({
+            terms_accepted_at: new Date().toISOString(),
+            terms_version: TERMS_VERSION,
+          })
+          .eq("id", data.user.id);
       }
       toast({
         title: "ברוכים הבאים ל-SoulStory! 🎉",
         description: "מחכה לך סיפור ראשון במתנה מאיתנו כדי להתחיל בקסם ✨",
       });
-      // The useEffect will handle redirect after checking terms
+      // The useEffect will handle redirect - terms already accepted so goes straight to /adventure
     }
     setIsSubmitting(false);
   };
@@ -1234,11 +1254,30 @@ const Auth = () => {
                   </p>
                 </div>
 
+                {/* Terms consent checkbox */}
+                <div className="flex items-start gap-3 p-3 bg-gray-50 rounded-xl border border-gray-200">
+                  <Checkbox
+                    id="signup-terms"
+                    checked={signupTermsAccepted}
+                    onCheckedChange={(checked) => setSignupTermsAccepted(checked === true)}
+                    className="mt-0.5 h-5 w-5"
+                  />
+                  <Label 
+                    htmlFor="signup-terms" 
+                    className="text-sm leading-relaxed cursor-pointer text-black/80"
+                  >
+                    אני הורה/אפוטרופוס, קראתי ומסכים/ה ל
+                    <Link to="/terms" className="text-purple underline mx-1">תנאי השימוש</Link>
+                    ול
+                    <Link to="/privacy" className="text-purple underline mx-1">מדיניות הפרטיות</Link>
+                  </Label>
+                </div>
+
                 <Button
                   type="submit"
-                  disabled={isSubmitting}
+                  disabled={isSubmitting || !signupTermsAccepted}
                   size="lg"
-                  className="w-full bg-gradient-to-r from-orange-400 via-pink-500 to-purple-600 hover:from-orange-500 hover:via-pink-600 hover:to-purple-700 text-white font-black text-lg h-14 rounded-full shadow-xl shadow-black/25 hover:shadow-2xl hover:scale-[1.02] transition-all"
+                  className="w-full bg-gradient-to-r from-orange-400 via-pink-500 to-purple-600 hover:from-orange-500 hover:via-pink-600 hover:to-purple-700 text-white font-black text-lg h-14 rounded-full shadow-xl shadow-black/25 hover:shadow-2xl hover:scale-[1.02] transition-all disabled:opacity-50"
                 >
                   {isSubmitting ? (
                     <Loader2 className="w-5 h-5 animate-spin" />

@@ -73,14 +73,14 @@ const Adventure = () => {
         style={{
           backgroundImage: `url(${heroBackground})`,
           backgroundSize: 'cover',
-          backgroundPosition: 'center',
+          backgroundPosition: 'center 20%',
           backgroundRepeat: 'no-repeat',
         }}
       />
       <div
         className="absolute inset-0"
         style={{
-          background: 'linear-gradient(180deg, rgba(0,0,0,0.1) 0%, transparent 30%, transparent 70%, rgba(0,0,0,0.2) 100%)',
+          background: 'linear-gradient(180deg, rgba(0,0,0,0.05) 0%, transparent 30%, transparent 75%, rgba(0,0,0,0.15) 100%)',
         }}
       />
 

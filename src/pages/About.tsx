@@ -7,6 +7,11 @@ const About = () => {
   const navigate = useNavigate();
   const { user, loading } = useAuth();
 
+  // Scroll to top on mount
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, []);
+
   // Logged-in users skip the about screen entirely
   useEffect(() => {
     if (!loading && user) {
