@@ -1254,11 +1254,30 @@ const Auth = () => {
                   </p>
                 </div>
 
+                {/* Terms consent checkbox */}
+                <div className="flex items-start gap-3 p-3 bg-gray-50 rounded-xl border border-gray-200">
+                  <Checkbox
+                    id="signup-terms"
+                    checked={signupTermsAccepted}
+                    onCheckedChange={(checked) => setSignupTermsAccepted(checked === true)}
+                    className="mt-0.5 h-5 w-5"
+                  />
+                  <Label 
+                    htmlFor="signup-terms" 
+                    className="text-sm leading-relaxed cursor-pointer text-black/80"
+                  >
+                    אני הורה/אפוטרופוס, קראתי ומסכים/ה ל
+                    <Link to="/terms" className="text-purple underline mx-1">תנאי השימוש</Link>
+                    ול
+                    <Link to="/privacy" className="text-purple underline mx-1">מדיניות הפרטיות</Link>
+                  </Label>
+                </div>
+
                 <Button
                   type="submit"
-                  disabled={isSubmitting}
+                  disabled={isSubmitting || !signupTermsAccepted}
                   size="lg"
-                  className="w-full bg-gradient-to-r from-orange-400 via-pink-500 to-purple-600 hover:from-orange-500 hover:via-pink-600 hover:to-purple-700 text-white font-black text-lg h-14 rounded-full shadow-xl shadow-black/25 hover:shadow-2xl hover:scale-[1.02] transition-all"
+                  className="w-full bg-gradient-to-r from-orange-400 via-pink-500 to-purple-600 hover:from-orange-500 hover:via-pink-600 hover:to-purple-700 text-white font-black text-lg h-14 rounded-full shadow-xl shadow-black/25 hover:shadow-2xl hover:scale-[1.02] transition-all disabled:opacity-50"
                 >
                   {isSubmitting ? (
                     <Loader2 className="w-5 h-5 animate-spin" />
