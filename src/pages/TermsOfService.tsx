@@ -1,13 +1,14 @@
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { FileText, ArrowRight } from "lucide-react";
+import GlobalFooter from "@/components/shared/GlobalFooter";
 
 const TermsOfService = () => {
   const navigate = useNavigate();
 
   return (
-    <div className="min-h-[100dvh] bg-background pb-8 overflow-y-auto" dir="rtl" style={{ WebkitOverflowScrolling: 'touch' }}>
-      <div className="container max-w-4xl mx-auto px-4 py-8">
+    <div className="min-h-[100dvh] flex flex-col bg-background pb-8 overflow-y-auto" dir="rtl" style={{ WebkitOverflowScrolling: 'touch' }}>
+      <div className="container max-w-4xl mx-auto px-4 py-8 flex-1">
         {/* Header */}
         <div className="text-center mb-8">
           <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-primary/10 mb-4">
@@ -29,7 +30,7 @@ const TermsOfService = () => {
             <section>
               <h2 className="text-lg font-bold text-foreground mb-2">מהות השירות</h2>
               <p className="text-muted-foreground leading-relaxed">
-                SoulStory מספקת פלטפורמה ליצירת תוכן ספרותי מותאם אישית לילדים בגילאי 0-8.
+                <span dir="ltr" className="inline-block">SolStorie's</span> מספקת פלטפורמה ליצירת תוכן ספרותי מותאם אישית לילדים בגילאי 0-8.
               </p>
             </section>
 
@@ -50,7 +51,7 @@ const TermsOfService = () => {
             <section>
               <h2 className="text-lg font-bold text-foreground mb-2">קניין רוחני</h2>
               <p className="text-muted-foreground leading-relaxed">
-                העיצוב, הקוד והטכנולוגיה הם קניינה הבלעדי של האפליקציה. הסיפורים הנוצרים מיועדים לשימוש אישי ופרטי בלבד.
+                העיצוב, הקוד, הדמויות (סול וחבריה), האיורים והטכנולוגיה הם קניינה הבלעדי של המפתחת, כרמית כהן. כל הסיפורים, עיצובי הדמויות והנכסים הויזואליים מוגנים בזכויות יוצרים ואין לעשות בהם שימוש מסחרי ללא אישור בכתב מהמפתחת. הסיפורים הנוצרים מיועדים לשימוש אישי ופרטי בלבד.
               </p>
             </section>
 
@@ -82,6 +83,8 @@ const TermsOfService = () => {
           </Button>
         </div>
       </div>
+
+      <GlobalFooter />
     </div>
   );
 };

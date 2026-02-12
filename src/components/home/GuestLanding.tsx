@@ -113,9 +113,9 @@ const GuestLanding = ({ user, isLoggedIn }: GuestLandingProps) => {
       {/* Content Container - with minimal bottom padding */}
       <div className="relative z-10 flex-1 flex flex-col px-3 pb-16">
         {/* Logo - 3D Bubble Style */}
-        <h1 className="text-6xl sm:text-7xl font-black text-center tracking-tight logo-3d-bubble mb-1 drop-shadow-2xl pt-2">
-          <span className="logo-story">Soul</span>
-          <span className="logo-time">Story</span>
+        <h1 className="text-5xl sm:text-6xl font-black text-center tracking-tight logo-3d-bubble mb-1 drop-shadow-2xl pt-2">
+          <span className="logo-story">Sol</span>
+          <span className="logo-time">Storie's</span>
         </h1>
 
         {/* Title Section - Compact & Centered */}

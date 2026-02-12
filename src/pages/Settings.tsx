@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { ArrowRight, Mail, Trash2, LogOut, FileText, Shield, Eye, Info, Accessibility, Type, MousePointer, Link2, MonitorOff, Wand2, Sparkles, Download, Share, Smartphone, Volume2 } from "lucide-react";
+import { ArrowRight, Mail, Trash2, LogOut, FileText, Shield, Eye, Info, Accessibility, Type, MousePointer, Link2, MonitorOff, Wand2, Sparkles, Download, Share, Smartphone } from "lucide-react";
 import { usePwaInstall } from "@/hooks/use-pwa-install";
 import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
@@ -19,7 +19,7 @@ import { AboutSoulStoryContent } from "@/components/shared/AboutSoulStoryContent
 const Settings = () => {
   const navigate = useNavigate();
   const { user, signOut } = useAuth();
-  const { visualAidMode, setVisualAidMode, audioSupport, setAudioSupport, fontSize, setFontSize } = useAccessibility();
+  const { visualAidMode, setVisualAidMode, fontSize, setFontSize } = useAccessibility();
   const { canPrompt, isInstalled, isIOS, promptInstall } = usePwaInstall();
   const [aboutOpen, setAboutOpen] = useState(false);
   const [accessibilityOpen, setAccessibilityOpen] = useState(false);
@@ -113,7 +113,7 @@ const Settings = () => {
           <div className="bg-gradient-to-r from-amber-50 to-orange-50 dark:from-amber-950/20 dark:to-orange-950/20 rounded-lg px-3 py-3 border border-amber-200 dark:border-amber-800 space-y-2">
             <div className="flex items-center gap-2 justify-end">
               <div className="text-right">
-                <span className="font-bold text-sm text-foreground block" dir="ltr">התקנת SoulStory</span>
+                <span className="font-bold text-sm text-foreground block" dir="ltr">התקנת SolStorie's</span>
                 <span className="text-[11px] text-muted-foreground block">גישה מהירה לכל הסיפורים שלכם ישירות ממסך הבית.</span>
               </div>
               <div className="w-8 h-8 bg-gradient-to-r from-amber-400/20 to-orange-400/20 rounded-lg flex items-center justify-center flex-shrink-0">
@@ -138,7 +138,7 @@ const Settings = () => {
                 className="w-full py-2 bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white font-bold text-sm rounded-xl transition-all flex items-center justify-center gap-1.5"
               >
                 <Download className="w-3.5 h-3.5" />
-                איך מתקינים את SoulStory?
+                איך מתקינים את SolStorie's?
               </button>
             )}
           </div>
@@ -161,11 +161,11 @@ const Settings = () => {
           <button
             onClick={() => setAboutOpen(true)}
             className="w-full flex items-center justify-between bg-white/60 dark:bg-white/10 backdrop-blur-md rounded-lg px-3 py-2 border border-purple-200 dark:border-purple-800 hover:bg-purple-50 dark:hover:bg-purple-900/20 transition-all text-right shadow-sm"
-            aria-label="אודות SoulStory"
+            aria-label="אודות SolStorie's"
           >
             <ArrowRight className="w-3.5 h-3.5 text-purple-400" aria-hidden="true" />
             <div className="flex items-center gap-2">
-              <span className="font-medium text-sm text-foreground">אודות SoulStory</span>
+              <span className="font-medium text-sm text-foreground">אודות SolStorie's</span>
               <div className="w-7 h-7 bg-gradient-to-r from-purple-500/20 to-pink-500/20 rounded-lg flex items-center justify-center flex-shrink-0">
                 <Info className="w-3.5 h-3.5 text-purple-600" aria-hidden="true" />
               </div>
@@ -204,7 +204,7 @@ const Settings = () => {
         <DialogContent className="max-w-lg max-h-[80vh]" dir="rtl">
           <DialogHeader>
             <DialogTitle className="text-center text-lg font-bold bg-gradient-to-r from-purple-600 via-pink-500 to-orange-400 bg-clip-text text-transparent">
-              📖 להפוך את הקושי לסיפור קסום – SoulStory ✨
+              📖 להפוך את הקושי לסיפור קסום – <span dir="ltr" className="inline-block">SolStorie's</span> ✨
             </DialogTitle>
           </DialogHeader>
           <ScrollArea className="h-[60vh] pr-4">
@@ -218,7 +218,7 @@ const Settings = () => {
         <DialogContent className="max-w-sm" dir="rtl">
           <DialogHeader>
             <DialogTitle className="text-center text-lg font-bold">
-              📲 התקנת <span dir="ltr">SoulStory</span>
+              📲 התקנת <span dir="ltr">SolStorie's</span>
             </DialogTitle>
           </DialogHeader>
           <div className="space-y-4 py-2">
@@ -312,19 +312,7 @@ const Settings = () => {
                 </div>
               </div>
 
-              {/* Audio Support / Read Aloud */}
-              <div className="flex items-center justify-between gap-3 p-3 rounded-xl bg-muted/50">
-                <div className="flex items-center gap-3">
-                  <div className="h-9 w-9 rounded-lg bg-green-100 dark:bg-green-900/30 flex items-center justify-center">
-                    <Volume2 className="h-5 w-5 text-green-600 dark:text-green-400" />
-                  </div>
-                  <div className="text-right">
-                    <p className="font-medium text-sm text-foreground">הקראה קולית</p>
-                    <p className="text-xs text-muted-foreground">הצגת כפתור הקראה בסיפורים</p>
-                  </div>
-                </div>
-                <Switch checked={audioSupport} onCheckedChange={setAudioSupport} aria-label="הפעל הקראה קולית" />
-              </div>
+              {/* Audio Support removed per brand requirements */}
 
 
               {/* Highlight Links */}

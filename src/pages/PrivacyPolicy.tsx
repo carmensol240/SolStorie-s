@@ -1,13 +1,14 @@
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Shield, ArrowRight } from "lucide-react";
+import GlobalFooter from "@/components/shared/GlobalFooter";
 
 const PrivacyPolicy = () => {
   const navigate = useNavigate();
 
   return (
-    <div className="min-h-[100dvh] bg-background pb-8 overflow-y-auto" dir="rtl" style={{ WebkitOverflowScrolling: 'touch' }}>
-      <div className="container max-w-4xl mx-auto px-4 py-8">
+    <div className="min-h-[100dvh] flex flex-col bg-background pb-8 overflow-y-auto" dir="rtl" style={{ WebkitOverflowScrolling: 'touch' }}>
+      <div className="container max-w-4xl mx-auto px-4 py-8 flex-1">
         {/* Header */}
         <div className="text-center mb-8">
           <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-primary/10 mb-4">
@@ -23,7 +24,7 @@ const PrivacyPolicy = () => {
         <article className="bg-card rounded-2xl border shadow-sm p-6 mb-6">
           <div className="space-y-6 text-right leading-relaxed">
             <p className="text-muted-foreground leading-relaxed">
-              ברוכים הבאים למדיניות הפרטיות של SoulStory. אנו מחויבים להגנה על פרטיות המשתמשים שלנו, ובפרט על פרטיותם של קטינים המשתמשים בשירות.
+              ברוכים הבאים למדיניות הפרטיות של <span dir="ltr" className="inline-block">SolStorie's</span>. אנו מחויבים להגנה על פרטיות המשתמשים שלנו, ובפרט על פרטיותם של קטינים המשתמשים בשירות.
             </p>
 
             <section>
@@ -75,6 +76,8 @@ const PrivacyPolicy = () => {
           </Button>
         </div>
       </div>
+
+      <GlobalFooter />
     </div>
   );
 };
