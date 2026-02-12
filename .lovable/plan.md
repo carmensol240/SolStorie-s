@@ -1,32 +1,35 @@
 
 
-# תיקון שוליים שחורים ב-11 תמונות נושא
+# תיקון תמונות Hero בקטגוריות + תיקון תוויות
+
+## הבעיה
+תמונות ה-Hero של הקטגוריות "ממלכת הדמיון" ו"יוצאים להרפתקה" חתוכות ולא ברורות ביחס 16:9, בניגוד ל"גיבורי על" ו"גדלים ביחד" שנראות טוב.
 
 ## מה ייעשה
-הסרת השוליים השחורים מ-11 תמונות נושא קיימות באמצעות עריכת תמונה (image editing) - **ללא יצירה מחדש**. התמונות יישארו אותו הדבר, רק ללא המסגרת השחורה.
 
-## התמונות לתיקון
+### 1. תיקון 2 תמונות Hero קטגוריה
+עריכת התמונות הקיימות להתאמה ליחס 16:9 (ללא יצירה מחדש):
 
-| # | קובץ | נושא |
-|---|-------|------|
-| 1 | `topic-body-safety.jpg` | הגוף שלי הוא רק שלי |
-| 2 | `topic-just-be-me.jpg` | פשוט להיות אני |
-| 3 | `topic-grandparents-night.jpg` | הלילה המיוחד בממלכת סבא וסבתא |
-| 4 | `topic-stranger-danger.jpg` | שומר הסודות |
-| 5 | `topic-bath-shower.jpg` | אמבטיה של כייף |
-| 6 | `topic-hand-washing.jpg` | שטיפת ידיים |
-| 7 | `topic-independence.jpg` | אני יכול/ה לבד! |
-| 8 | `topic-new-sibling.jpeg` | נולד לי אח/ות |
-| 9 | `topic-new-house.jpg` | עוברים לבית חדש |
-| 10 | `topic-first-day-kindergarten.jpg` | היום הראשון בגן |
-| 11 | `topic-rain-party.jpg` | רוקדים בגשם |
+| קובץ | קטגוריה |
+|-------|---------|
+| `cast-leo-science.jpg` | ממלכת הדמיון |
+| `cast-zoe-sports.jpg` | יוצאים להרפתקה |
 
-## שיטת העבודה
-שימוש במודל עריכת תמונות (google/gemini-2.5-flash-image) עם הוראה: "Remove the black borders/letterbox bars from this image. Extend the scene content to fill the entire frame edge-to-edge. Keep the same art style, characters and composition."
+שימוש ב-AI image editing עם הוראה להרחיב את התמונה ליחס 16:9 תוך שמירה על הדמות והסגנון.
 
-כל תמונה תיערך בנפרד ותוחלף באותו שם קובץ - **ללא שינויי קוד**.
+### 2. תיקון תוויות טקסט
+בדיקה בקוד מעלה שהתוויות **כבר מתוקנות**:
+- שורה 235: `"נולד לי אח/ות"` (נכון)
+- שורה 230: `"אני יכול/ה לבד!"` (נכון)
+
+הפונקציה `renderTopicLabel` מבצעת המרה מגדרית אוטומטית - כלומר אם נבחר מגדר נקבה, היא מציגה "נולד לי אחות" ו"אני יכולה לבד". זו התנהגות מכוונת. אם רוצים שתמיד יופיע הנוסח הדו-מגדרי, צריך לשנות את הלוגיקה.
+
+**האם לשנות שהתוויות תמיד יציגו את הנוסח הדו-מגדרי (אח/ות, יכול/ה) ללא תלות במגדר שנבחר?**
+
+### 3. ללא שינויי קוד נוספים
+שמות הקבצים נשארים זהים - אין צורך בשינוי קוד.
 
 ## פרטים טכניים
-- כל 11 הקבצים נמצאים בתיקיית `src/assets/`
-- התמונות ייערכו אחת-אחת דרך ה-AI image editing API
-- אין צורך בשינוי קוד כי שמות הקבצים נשארים זהים
+- הקבצים בתיקיית `src/assets/`
+- שימוש ב-`google/gemini-2.5-flash-image` לעריכת התמונות
+- הוראה: "Reframe this image to fit a 16:9 landscape aspect ratio. Extend the scene to fill the frame edge-to-edge while keeping the main character centered and fully visible. Keep the same art style, characters and composition."
