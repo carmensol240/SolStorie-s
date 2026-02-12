@@ -244,6 +244,7 @@ const Profile = () => {
                 disabled={savingNote}
                 size="sm"
                 className="bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white font-bold rounded-xl text-xs px-4 h-8"
+                style={{ boxShadow: "0 0 16px rgba(245, 158, 11, 0.4)" }}
               >
                 <Save className="w-3.5 h-3.5 ml-1" />
                 {savingNote ? "שומר..." : "שמירה"}
@@ -255,10 +256,11 @@ const Profile = () => {
         {/* Toolkit Navigation */}
         <Button
           onClick={() => navigate("/toolkit")}
-          className="w-full py-6 bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white font-black text-lg rounded-2xl shadow-lg shadow-amber-500/20"
+          className="w-full py-6 bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white font-black text-lg rounded-2xl"
+          style={{ boxShadow: "0 0 24px rgba(245, 158, 11, 0.35), 0 8px 20px rgba(0,0,0,0.1)" }}
         >
           <span><Crown className="w-5 h-5 ml-2" /></span>
-          לארגז הכלים של SolStories
+          לארגז הכלים של <span dir="ltr">SolStories</span>
           <span><Sparkles className="w-4 h-4 mr-2" /></span>
         </Button>
       </div>
