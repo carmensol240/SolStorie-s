@@ -8,6 +8,11 @@ import { cn } from "@/lib/utils";
 import { useTopicWishlist } from "@/hooks/use-topic-wishlist";
 
 // Topic images
+import castSol from "@/assets/cast-sol-adventure.jpg";
+import castMia from "@/assets/cast-mia-nature.jpg";
+import castLeo from "@/assets/cast-leo-science.jpg";
+import castZoe from "@/assets/cast-zoe-sports.jpg";
+import castBen from "@/assets/cast-ben-art.jpg";
 import topicTeethBrushing from "@/assets/topic-teeth-brushing.jpg";
 import topicBathShower from "@/assets/topic-bath-shower.jpg";
 import topicNailTrimming from "@/assets/topic-nail-trimming.jpg";
@@ -81,6 +86,8 @@ interface AdventureCategory {
   title: string;
   emoji: string;
   subtitle?: string;
+  castImage?: string;
+  castName?: string;
   topics: AdventureTopic[];
 }
 
@@ -100,6 +107,8 @@ const ADVENTURE_CATEGORIES: AdventureCategory[] = [
     id: "superheroes",
     title: "גיבורי על",
     emoji: "🦸",
+    castImage: castSol,
+    castName: "סול",
     topics: [
       {
         id: "we-are-superheroes", label: "אנחנו גיבורי על", image: topicSuperheroes,
@@ -142,6 +151,8 @@ const ADVENTURE_CATEGORIES: AdventureCategory[] = [
     id: "growing-together",
     title: "גדלים ביחד",
     emoji: "🌱",
+    castImage: castMia,
+    castName: "מיה",
     topics: [
       // NEW topics
       {
@@ -286,6 +297,8 @@ const ADVENTURE_CATEGORIES: AdventureCategory[] = [
     id: "imagination-kingdom",
     title: "ממלכת הדמיון",
     emoji: "🏰",
+    castImage: castLeo,
+    castName: "ליאו",
     topics: [
       {
         id: "underwater-journey", label: "הרפתקה במצולות הים", image: topicUnderwater,
@@ -323,6 +336,8 @@ const ADVENTURE_CATEGORIES: AdventureCategory[] = [
     id: "adventure-time",
     title: "יוצאים להרפתקה",
     emoji: "🚀",
+    castImage: castZoe,
+    castName: "זואי",
     topics: [
       {
         id: "flying-vacation", label: "{childName} כובש/ת את השמיים", image: topicFlyingVacation,
@@ -458,10 +473,20 @@ const CategoryCarousel = ({
       {/* Category Header */}
       <div className="flex flex-col px-4 mb-1.5">
         <div className="flex items-center justify-between">
-          <div className="flex items-center gap-1.5">
-            <span className="text-base">{category.emoji}</span>
-            <h3 className="text-sm font-bold text-foreground">{category.title}</h3>
-            <span className="text-[10px] font-normal text-muted-foreground">({category.topics.length})</span>
+          <div className="flex items-center gap-2">
+            {category.castImage ? (
+              <img
+                src={category.castImage}
+                alt={category.castName || category.title}
+                className="w-9 h-9 rounded-full object-cover border-2 border-amber-300 shadow-sm"
+              />
+            ) : (
+              <span className="text-base">{category.emoji}</span>
+            )}
+            <div className="flex items-center gap-1.5">
+              <h3 className="text-sm font-bold text-foreground">{category.title}</h3>
+              <span className="text-[10px] font-normal text-muted-foreground">({category.topics.length})</span>
+            </div>
           </div>
           <div className="flex items-center gap-0.5">
             <button
@@ -483,7 +508,7 @@ const CategoryCarousel = ({
           </div>
         </div>
         {category.subtitle && (
-          <p className="text-[10px] text-muted-foreground mt-0.5 pr-7">{category.subtitle}</p>
+          <p className="text-[10px] text-muted-foreground mt-0.5 pr-11">{category.subtitle}</p>
         )}
       </div>
 
