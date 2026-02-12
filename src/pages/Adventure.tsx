@@ -27,7 +27,6 @@ const Adventure = () => {
     const welcomeKey = `welcome_shown_${user.id}`;
     if (!sessionStorage.getItem(welcomeKey)) {
       sessionStorage.setItem(welcomeKey, "true");
-      // Small delay so the page renders first
       const timer = setTimeout(() => {
         toast({
           title: "ברוכים הבאים! 🎉",
@@ -66,63 +65,64 @@ const Adventure = () => {
   const totalCredits = (credits ?? 0) + shareCoins;
 
   return (
-    <div className="min-h-[100dvh] flex flex-col relative" dir="rtl">
-      {/* Background */}
-      <div
-        className="absolute inset-0 flex items-end justify-center"
-      >
-        <img 
-          src={heroBackground} 
-          alt="" 
-          className="w-full h-full object-contain object-bottom"
-        />
-      </div>
+    <div className="h-[100dvh] relative overflow-hidden" dir="rtl">
+      {/* Background - full bleed cover */}
+      <img
+        src={heroBackground}
+        alt=""
+        className="absolute inset-0 w-full h-full object-cover object-center"
+      />
+      {/* Gradient overlay for text readability */}
       <div
         className="absolute inset-0"
         style={{
-          background: 'linear-gradient(180deg, rgba(0,0,0,0.05) 0%, transparent 30%, transparent 75%, rgba(0,0,0,0.15) 100%)',
+          background:
+            "linear-gradient(180deg, rgba(0,0,0,0.3) 0%, transparent 25%, transparent 70%, rgba(0,0,0,0.25) 100%)",
         }}
       />
 
-      {/* Content */}
-      <div className="relative z-10 flex-1 flex flex-col px-4 pt-4">
-        {/* Header - compact */}
-        <header className="flex items-center justify-between">
-          <div className="flex items-center gap-1.5">
-            {avatarUrl && (
-              <div className="w-8 h-8 rounded-full overflow-hidden border-2 border-white/50 shadow">
-                <img src={avatarUrl} alt="דמות הילד" className="w-full h-full object-cover" />
-              </div>
-            )}
-            <button
-              onClick={() => navigate("/upgrade")}
-              className="flex items-center gap-1.5 bg-white/20 backdrop-blur-xl border border-white/30 rounded-full px-3 py-1.5 hover:bg-white/30 transition-colors shadow"
-              aria-label="צפה בקרדיטים ושדרג"
-            >
-              <Coins className="w-4 h-4 text-amber-700" />
-              <span className="font-bold text-amber-900 text-sm">{totalCredits}</span>
-            </button>
-          </div>
+      {/* Header - floating over image */}
+      <header className="absolute top-0 left-0 right-0 z-20 flex items-center justify-between px-4 pt-4">
+        <div className="flex items-center gap-1.5">
+          {avatarUrl && (
+            <div className="w-8 h-8 rounded-full overflow-hidden border-2 border-white/50 shadow">
+              <img src={avatarUrl} alt="דמות הילד" className="w-full h-full object-cover" />
+            </div>
+          )}
+          <button
+            onClick={() => navigate("/upgrade")}
+            className="flex items-center gap-1.5 bg-white/20 backdrop-blur-xl border border-white/30 rounded-full px-3 py-1.5 hover:bg-white/30 transition-colors shadow"
+            aria-label="צפה בקרדיטים ושדרג"
+          >
+            <Coins className="w-4 h-4 text-amber-700" />
+            <span className="font-bold text-amber-900 text-sm">{totalCredits}</span>
+          </button>
+        </div>
 
-          <div className="bg-black/40 backdrop-blur-xl rounded-full px-3 py-1.5 shadow border border-white/10">
-            <h1 className="text-sm font-bold text-white">
-              שלום, {displayName || user?.email?.split('@')[0] || "משתמש"} 👋
-            </h1>
-          </div>
-        </header>
+        <div className="bg-black/40 backdrop-blur-xl rounded-full px-3 py-1.5 shadow border border-white/10">
+          <h1
+            className="text-sm font-bold text-white"
+            style={{ textShadow: "0 1px 3px rgba(0,0,0,0.4)" }}
+          >
+            שלום, {displayName || user?.email?.split("@")[0] || "משתמש"} 👋
+          </h1>
+        </div>
+      </header>
 
-        <div className="flex-1" />
-
+      {/* Bottom content area - overlaid on image */}
+      <div className="absolute bottom-0 left-0 right-0 z-10 flex flex-col items-center px-4">
         <WelcomeGiftBanner credits={credits} storyCount={storyCount} />
 
-        {/* Primary CTA Button - compact, positioned above the logo */}
-        <div className="pb-[72px] flex justify-center px-6">
+        {/* Primary CTA Button */}
+        <div className="pb-[72px] flex justify-center w-full">
           <button
             onClick={() => navigate("/create")}
             className="group flex items-center justify-center gap-2.5 rounded-full px-6 py-3 max-w-[260px] bg-gradient-to-r from-amber-400 via-orange-400 to-pink-400 shadow-[0_0_20px_rgba(251,191,36,0.4)] hover:shadow-[0_0_30px_rgba(251,191,36,0.6)] hover:scale-[1.03] active:scale-95 transition-all duration-300 animate-[glow-pulse_2.5s_ease-in-out_infinite] border border-white/30"
           >
             <Wand2 className="w-5 h-5 text-white drop-shadow-md group-hover:rotate-12 transition-transform duration-300" />
-            <span className="font-black text-base text-white drop-shadow-md">יוצאים להרפתקה ✨</span>
+            <span className="font-black text-base text-white drop-shadow-md">
+              יוצאים להרפתקה ✨
+            </span>
           </button>
         </div>
       </div>
