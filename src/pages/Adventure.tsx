@@ -69,14 +69,14 @@ const Adventure = () => {
     <div className="min-h-[100dvh] flex flex-col relative" dir="rtl">
       {/* Background */}
       <div
-        className="absolute inset-0"
-        style={{
-          backgroundImage: `url(${heroBackground})`,
-          backgroundSize: 'cover',
-          backgroundPosition: 'center 20%',
-          backgroundRepeat: 'no-repeat',
-        }}
-      />
+        className="absolute inset-0 flex items-end justify-center"
+      >
+        <img 
+          src={heroBackground} 
+          alt="" 
+          className="w-full h-full object-contain object-bottom"
+        />
+      </div>
       <div
         className="absolute inset-0"
         style={{
@@ -86,26 +86,26 @@ const Adventure = () => {
 
       {/* Content */}
       <div className="relative z-10 flex-1 flex flex-col px-4 pt-4">
-        {/* Header */}
+        {/* Header - compact */}
         <header className="flex items-center justify-between">
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-1.5">
             {avatarUrl && (
-              <div className="w-10 h-10 rounded-full overflow-hidden border-2 border-white/50 shadow-lg">
+              <div className="w-8 h-8 rounded-full overflow-hidden border-2 border-white/50 shadow">
                 <img src={avatarUrl} alt="דמות הילד" className="w-full h-full object-cover" />
               </div>
             )}
             <button
               onClick={() => navigate("/upgrade")}
-              className="flex items-center gap-2 bg-white/20 backdrop-blur-xl border border-white/30 rounded-full px-4 py-2 hover:bg-white/30 transition-colors shadow-lg"
+              className="flex items-center gap-1.5 bg-white/20 backdrop-blur-xl border border-white/30 rounded-full px-3 py-1.5 hover:bg-white/30 transition-colors shadow"
               aria-label="צפה בקרדיטים ושדרג"
             >
-              <Coins className="w-5 h-5 text-amber-700" />
-              <span className="font-bold text-amber-900 text-lg">{totalCredits}</span>
+              <Coins className="w-4 h-4 text-amber-700" />
+              <span className="font-bold text-amber-900 text-sm">{totalCredits}</span>
             </button>
           </div>
 
-          <div className="bg-black/40 backdrop-blur-xl rounded-full px-5 py-2.5 shadow-lg border border-white/10">
-            <h1 className="text-lg font-bold text-white">
+          <div className="bg-black/40 backdrop-blur-xl rounded-full px-3 py-1.5 shadow border border-white/10">
+            <h1 className="text-sm font-bold text-white">
               שלום, {displayName || user?.email?.split('@')[0] || "משתמש"} 👋
             </h1>
           </div>
@@ -115,19 +115,14 @@ const Adventure = () => {
 
         <WelcomeGiftBanner credits={credits} storyCount={storyCount} />
 
-        {/* Primary CTA Button - Large, glowing, magical */}
-        <div className="pb-24 flex justify-center px-6">
+        {/* Primary CTA Button - compact, positioned above the logo */}
+        <div className="pb-[72px] flex justify-center px-6">
           <button
             onClick={() => navigate("/create")}
-            className="group flex items-center justify-center gap-4 rounded-[2rem] px-10 py-5 md:px-14 md:py-6 w-full max-w-[380px] bg-gradient-to-r from-amber-400 via-orange-400 to-pink-400 shadow-[0_0_30px_rgba(251,191,36,0.4),0_0_60px_rgba(251,146,60,0.2)] hover:shadow-[0_0_40px_rgba(251,191,36,0.6),0_0_80px_rgba(251,146,60,0.3)] hover:scale-[1.04] active:scale-95 transition-all duration-300 animate-[glow-pulse_2.5s_ease-in-out_infinite] border-2 border-white/30"
+            className="group flex items-center justify-center gap-2.5 rounded-full px-6 py-3 max-w-[260px] bg-gradient-to-r from-amber-400 via-orange-400 to-pink-400 shadow-[0_0_20px_rgba(251,191,36,0.4)] hover:shadow-[0_0_30px_rgba(251,191,36,0.6)] hover:scale-[1.03] active:scale-95 transition-all duration-300 animate-[glow-pulse_2.5s_ease-in-out_infinite] border border-white/30"
           >
-            <div className="w-12 h-12 md:w-14 md:h-14 bg-white/25 backdrop-blur-sm rounded-2xl flex items-center justify-center flex-shrink-0 group-hover:rotate-12 transition-transform duration-300">
-              <Wand2 className="w-6 h-6 md:w-7 md:h-7 text-white drop-shadow-md" />
-            </div>
-            <div className="text-right">
-              <h3 className="font-black text-xl md:text-2xl text-white drop-shadow-md">יוצאים להרפתקה</h3>
-              <p className="text-sm md:text-base text-white/80 font-medium">סיפור מותאם אישית ✨</p>
-            </div>
+            <Wand2 className="w-5 h-5 text-white drop-shadow-md group-hover:rotate-12 transition-transform duration-300" />
+            <span className="font-black text-base text-white drop-shadow-md">יוצאים להרפתקה ✨</span>
           </button>
         </div>
       </div>
