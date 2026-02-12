@@ -1,41 +1,32 @@
 
 
-## Plan: Refine Anti-Template Instruction in Story Generation Prompt
+## Plan: Make Topic Handling Flexible (No Hardcoded List)
 
 ### Problem
 
-The current "דיוק מוחלט לנושא - אפס תבניות!" instruction is too aggressive -- it could be interpreted as "ignore the 34 built-in topics." The user clarifies that the selected topic should be the **anchor**, personal details should be woven in organically, and each generation should produce **fresh, original content** around the same topic.
+The current prompt says "השתמש בנושא שההורה בחר **מתוך הרשימה**" which implies a fixed list. Since topics are added dynamically to the database, the prompt should treat any topic sent from the app as valid.
 
 ### Change
 
-**File: `supabase/functions/generate-story/index.ts`** (lines 882-885)
+**File: `supabase/functions/generate-story/index.ts`** (line 883)
 
-Replace the current anti-template block with a refined version:
-
-**Before:**
+Replace:
 ```
-## דיוק מוחלט לנושא - אפס תבניות!
-- אל תשתמש בתבניות מוכנות או סיפורים גנריים.
-- אם ההורה בחר נושא ספציפי - כל פרט בסיפור חייב להיות קשור ישירות לנושא הזה.
-- למשל: אם הנושא הוא "הפחד של סול מהים" - כל עמוד חייב לעסוק בים, בגלים, ובהתמודדות עם הפחד הזה.
-```
-
-**After:**
-```
-## דיוק לנושא ומקוריות - חובה!
 - השתמש בנושא שההורה בחר מתוך הרשימה כ**עוגן המרכזי** של הסיפור.
-- שלב את הפרטים האישיים (שם הילד, תכונות, תחביבים, חברים) בתוך הנושא בצורה אורגנית וטבעית.
-- צור תוכן מקורי וחדש בכל פעם סביב אותו נושא - הסיפור חייב להרגיש מותאם אישית ולא כמו טקסט קבוע מראש.
-- אל תכתוב סיפור שטחי או גנרי. כל סצנה צריכה להיות ספציפית, עשירה ומפתיעה.
-- למשל: אם הנושא הוא "הפחד מהחושך" והילד אוהב דינוזאורים - שלב דינוזאור חבר שעוזר להתמודד עם החושך.
+```
+
+With:
+```
+- השתמש בנושא שנשלח אליך מהאפליקציה כ**עוגן המרכזי** של הסיפור - התייחס אליו כאל הנושא המחייב, ללא קשר לרשימה קבועה.
 ```
 
 ### Technical Notes
 
 | Area | Detail |
 |------|--------|
-| File | `supabase/functions/generate-story/index.ts`, lines 882-885 |
-| Scope | 4 lines replaced with 5 lines |
-| Deployment | `generate-story` edge function will be redeployed automatically |
+| File | `supabase/functions/generate-story/index.ts`, line 883 |
+| Scope | 1 line text change |
+| Deployment | `generate-story` edge function redeployed automatically |
 
 No other files or database changes needed.
+
