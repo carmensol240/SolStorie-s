@@ -472,7 +472,7 @@ const CategoryCarousel = ({
     <div id={`cat-${category.id}`}>
       {/* Category Hero Card */}
       <div className="px-4 mb-2">
-        <div className="relative w-full rounded-2xl overflow-hidden shadow-lg" style={{ aspectRatio: '16/7' }}>
+        <div className="relative w-full rounded-2xl overflow-hidden shadow-lg" style={{ aspectRatio: '16/9' }}>
           {category.castImage ? (
             <img
               src={category.castImage}
