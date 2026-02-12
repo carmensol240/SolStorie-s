@@ -43,6 +43,19 @@ import topicMomDontGo from "@/assets/topic-mom-dont-go.jpg";
 import topicJustBeMe from "@/assets/topic-just-be-me.jpg";
 import topicMySpecialFamily from "@/assets/topic-my-special-family.jpg";
 
+// New topic images
+import topicRoadSafety from "@/assets/topic-road-safety.jpg";
+import topicEnvironment from "@/assets/topic-environment.jpg";
+import topicHelpingOthers from "@/assets/topic-helping-others.jpg";
+import topicTryingAgain from "@/assets/topic-trying-again.jpg";
+import topicGrandparentsNight from "@/assets/topic-grandparents-night.jpg";
+import topicSiblingLove from "@/assets/topic-sibling-love.jpg";
+import topicMagicKeys from "@/assets/topic-magic-keys.jpg";
+import topicStrangerDanger from "@/assets/topic-stranger-danger.jpg";
+import topicFlyingVacation from "@/assets/topic-flying-vacation.jpg";
+import topicMagicalForest from "@/assets/topic-magical-forest.jpg";
+import topicSeatbeltSafety from "@/assets/topic-seatbelt-safety.jpg";
+
 interface TopicStepProps {
   formData: StoryFormData;
   updateFormData: (updates: Partial<StoryFormData>) => void;
@@ -71,6 +84,17 @@ interface AdventureCategory {
   topics: AdventureTopic[];
 }
 
+// Helper: replace {childName} and handle gender suffixes
+function renderTopicLabel(label: string, childName: string, childGender: "male" | "female"): string {
+  let result = label.replace(/\{childName\}/g, childName || "הילד/ה");
+  // Handle gender suffix: כובש/ת → כובש or כובשת
+  result = result.replace(/(\p{L}+)\/(\p{L}+)/gu, (match, base, suffix) => {
+    if (childGender === "female") return base + suffix;
+    return base;
+  });
+  return result;
+}
+
 const ADVENTURE_CATEGORIES: AdventureCategory[] = [
   {
     id: "superheroes",
@@ -78,78 +102,253 @@ const ADVENTURE_CATEGORIES: AdventureCategory[] = [
     emoji: "🦸",
     topics: [
       {
-        id: "we-are-superheroes",
-        label: "אנחנו גיבורי על",
-        image: topicSuperheroes,
-        description: "מעופפים בשמיים עם גלימות קסומות",
-        ageLabel: "3-8",
-        logic: {
-          outfit: "colorful superhero suit with a flowing cape and a glowing emblem on the chest",
-          background: "bright blue sky filled with fluffy white clouds, golden sunlight, sparkles and rays of light streaming through",
-          theme: "superheroes, bravery, teamwork, flying, empowerment, confidence, helping others, imagination, friendship, believing in yourself"
-        }
+        id: "we-are-superheroes", label: "אנחנו גיבורי על", image: topicSuperheroes,
+        description: "מעופפים בשמיים עם גלימות קסומות", ageLabel: "3-8",
+        logic: { outfit: "colorful superhero suit with a flowing cape and a glowing emblem on the chest", background: "bright blue sky filled with fluffy white clouds, golden sunlight, sparkles and rays of light streaming through", theme: "superheroes, bravery, teamwork, flying, empowerment, confidence, helping others, imagination, friendship, believing in yourself" }
+      },
+      {
+        id: "road-safety", label: "שומרי הדרכים", image: topicRoadSafety,
+        description: "לומדים זהירות בדרכים בכיף", ageLabel: "3-6",
+        logic: { outfit: "bright reflective yellow safety vest and a small crossing guard hat", background: "colorful safe street crossing with traffic lights, sparkly crosswalk, friendly road signs", theme: "road safety, crossing the street, traffic lights, pedestrian rules, looking both ways, being careful, responsibility, independence in the street" }
+      },
+      {
+        id: "environment-heroes", label: "שומרי כדור הארץ", image: topicEnvironment,
+        description: "שומרים על הטבע והסביבה", ageLabel: "3-8",
+        logic: { outfit: "green nature-themed clothes and gardening gloves", background: "lush green garden with butterflies, flowers, Earth globe, recycling bins, sparkles", theme: "environment protection, recycling, planting trees, saving water, caring for animals, nature love, responsibility for the planet" }
+      },
+      {
+        id: "helping-heart", label: "הלב של {childName}", image: topicHelpingOthers,
+        description: "עוזרים לאחרים מכל הלב", ageLabel: "3-8",
+        logic: { outfit: "red heart-themed shirt with caring accessories", background: "warm neighborhood with houses, golden sunlight, floating hearts and sparkles", theme: "helping others, kindness, empathy, generosity, volunteering, caring for elderly, sharing with those in need, the joy of giving" }
+      },
+      {
+        id: "body-safety", label: "הגוף שלי הוא רק שלי", image: topicBodySafety,
+        description: "לומדים על גבולות וביטחון", ageLabel: "4-8",
+        logic: { outfit: "everyday casual clothes", background: "warm safe environment with a gentle glowing protective bubble around the child, soft hearts and stars", theme: "body boundaries, personal safety, consent, saying no, good touch bad touch, body autonomy, empowerment, telling a trusted adult" }
+      },
+      {
+        id: "just-be-me", label: "פשוט להיות אני", image: topicJustBeMe,
+        description: "כל ילד מיוחד בדרך שלו", ageLabel: "4-8",
+        logic: { outfit: "colorful casual clothes expressing individuality", background: "sunny inclusive park with diverse children playing together, bubbles floating, butterflies, wheelchairs and crutches visible naturally", theme: "disability awareness, inclusion, celebrating differences, self-acceptance, every child is special, being proud of who you are, kindness, accessibility" }
+      },
+      {
+        id: "we-are-special", label: "כולנו מיוחדים ודומים", image: topicWeAreSpecial,
+        description: "שונים מבחוץ, אותו דבר מבפנים", ageLabel: "3-6",
+        logic: { outfit: "everyday casual clothes", background: "colorful magical garden with diverse flowers, rainbow-colored glowing hearts and stars, children of different appearances holding hands", theme: "diversity and inclusion, different family structures, different appearances, celebrating uniqueness, empathy, we look different on the outside but inside our hearts we all feel love and dream the same way" }
       },
     ]
   },
   {
-    id: "daily-heroes",
-    title: "גיבורי היומיום",
-    emoji: "✨",
+    id: "growing-together",
+    title: "גדלים ביחד",
+    emoji: "🌱",
     topics: [
-      { id: "dentist-visit", label: "ביקור אצל רופא/ת השיניים", image: topicDentistVisit, description: "הולכים לרופא שיניים בלי פחד", ageLabel: "3-6", logic: { outfit: "everyday casual clothes", background: "friendly colorful dental clinic with sparkles, kind dentist, and fun dental chair", theme: "visiting the dentist, overcoming fear, dental checkup, bravery, health" } },
-      { id: "pacifier-fairy", label: "פיית המוצץ", image: topicPacifier, description: "נפרדים מהמוצץ בקסם", ageLabel: "0-3", logic: { outfit: "cozy pajamas", background: "magical nursery with sparkles and gentle fairy", theme: "saying goodbye to pacifier, growing up, milestone transition, managing change" } },
-      { id: "body-hero-teeth", label: "צחצוח שיניים קסום", image: topicTeethBrushing, description: "עם פיית השיניים והדרקון", ageLabel: "3-6", logic: { outfit: "everyday casual clothes at home", background: "bright magical bathroom with sparkles and friendly dental fairy dragon", theme: "teeth brushing, dental hygiene, making brushing fun, sensory experience" } },
-      { id: "body-hero-bath", label: "אמבטיה של כיף", image: topicBathShower, description: "בועות, ברווזון וקצף", ageLabel: "3-6", logic: { outfit: "bath time with rubber ducky cap", background: "colorful bubble bath with floating toys and rainbow bubbles", theme: "bath time fun, getting clean, water play, sensory experience" } },
-      { id: "body-hero-nails", label: "גזירת ציפורניים", image: topicNailTrimming, description: "עם הפיות הקסומות", ageLabel: "3-6", logic: { outfit: "everyday casual clothes", background: "magical bathroom with fairies and sparkles, friendly nail clippers", theme: "nail trimming, grooming routine, overcoming sensory discomfort" } },
-      { id: "barber-visit", label: "ביקור אצל הספר", image: topicBarberVisit, description: "תספורת קסומה וכיפית", ageLabel: "3-6", logic: { outfit: "everyday casual clothes with barber cape", background: "friendly colorful barber shop with mirrors, sparkles, and fun chair", theme: "visiting the barber, haircut, overcoming fear, grooming, bravery" } },
-      { id: "brave-taster", label: "הטועם האמיץ", image: topicBraveTaster, description: "טועמים אוכל חדש באומץ", ageLabel: "3-6", logic: { outfit: "everyday casual clothes with a chef hat or apron", background: "warm colorful kitchen with fruits, vegetables, and sparkles on the table", theme: "trying new foods, picky eating, bravery, sensory exploration, healthy eating" } },
-      { id: "potty-training", label: "גמילה מחיתולים", image: topicPottyTraining, description: "הופכים לילד/ה גדול/ה!", ageLabel: "0-3", logic: { outfit: "everyday casual clothes", background: "cheerful colorful bathroom with a friendly potty chair, stickers on the wall, and a supportive teddy bear", theme: "potty training, transitioning from diapers, growing up milestone, independence, positive reinforcement, celebrating success" } },
-      { id: "independence", label: "אני יכול/ה לבד!", image: topicIndependence, description: "מתלבשים ומסתדרים לבד", ageLabel: "4-8", logic: { outfit: "mismatched fun clothes the child picked themselves", background: "bright cheerful bedroom with open wardrobe, clothes scattered playfully, warm morning sunlight and sparkles", theme: "independence, self-dressing, doing things alone, growing up, confidence, pride in self-reliance" } },
-      { id: "just-be-me", label: "פשוט להיות אני", image: topicJustBeMe, description: "כל ילד מיוחד בדרך שלו", ageLabel: "4-8", logic: { outfit: "colorful casual clothes expressing individuality", background: "sunny inclusive park with diverse children playing together, bubbles floating, butterflies, a sign saying 'Different & Amazing', wheelchairs and crutches visible naturally", theme: "disability awareness, inclusion, celebrating differences, self-acceptance, every child is special, wheelchair, physical differences, empathy, friendship beyond appearances, being proud of who you are, kindness, accessibility" } },
-      { id: "my-special-family", label: "המשפחה המיוחדת שלי", image: topicMySpecialFamily, description: "חוגגים את כל סוגי המשפחות", ageLabel: "3-6", logic: { outfit: "comfortable cozy home clothes", background: "warm loving living room with family photos on the wall showing diverse families, soft golden light, floating hearts and sparkles, cozy couch with blankets", theme: "celebrating all family types, single-parent families, same-sex parents, grandparent-led families, blended families, adoptive families, unconditional love, feeling safe, belonging, every family is special, the love that surrounds us is what makes a family, NLP reframe: family is defined by love not by structure" } },
+      // NEW topics
+      {
+        id: "magic-of-trying", label: "הקסם שבניסיון", image: topicTryingAgain,
+        description: "לומדים שנפילה היא חלק מההצלחה", ageLabel: "3-6",
+        logic: { outfit: "comfortable casual clothes", background: "bright playroom with colorful blocks, some fallen and some built into a tower, sparkles of magic around", theme: "dealing with failure, perseverance, trying again, growth mindset, resilience, not giving up, learning from mistakes, the magic of persistence" }
+      },
+      {
+        id: "grandparents-night", label: "הלילה המיוחד בממלכת סבא וסבתא", image: topicGrandparentsNight,
+        description: "לילה קסום אצל סבא וסבתא", ageLabel: "3-6",
+        logic: { outfit: "cozy pajamas", background: "warm cozy living room at night with lamp light, family photos on wall, cookies on table, magical sparkles", theme: "grandparents, family bonding, sleeping at grandparents house, intergenerational love, bedtime stories, feeling safe away from home, special traditions" }
+      },
+      {
+        id: "sibling-team", label: "צוות מנצח - אהבת אחים", image: topicSiblingLove,
+        description: "אחים ואחיות - צוות לכל החיים", ageLabel: "3-6",
+        logic: { outfit: "matching team jerseys", background: "colorful kids bedroom with toys, team banner, sparkles and stars", theme: "sibling love, teamwork between brothers and sisters, sharing, resolving conflicts, supporting each other, being a team, family bonds" }
+      },
+      {
+        id: "magic-keys", label: "מפתחות הקסם", image: topicMagicKeys,
+        description: "תודה, בבקשה וסליחה - המילים הקסומות", ageLabel: "3-6",
+        logic: { outfit: "everyday casual clothes", background: "magical golden doorway with warm light streaming through, sparkles and floating hearts, three glowing keys", theme: "manners, saying thank you, saying please, saying sorry, politeness, social skills, magic words, kindness in communication, respect" }
+      },
+      {
+        id: "secret-keeper", label: "שומר הסודות", image: topicStrangerDanger,
+        description: "לא הולכים עם זרים", ageLabel: "4-8",
+        logic: { outfit: "superhero cape with protective shield", background: "safe neighborhood street, confident child with glowing protective shield", theme: "stranger danger, not going with strangers, personal safety, telling a trusted adult, saying no to strangers, body safety, empowerment, knowing safe adults" }
+      },
+      // Existing topics moved here
+      {
+        id: "body-hero-teeth", label: "צחצוח שיניים קסום", image: topicTeethBrushing,
+        description: "עם פיית השיניים והדרקון", ageLabel: "3-6",
+        logic: { outfit: "everyday casual clothes at home", background: "bright magical bathroom with sparkles and friendly dental fairy dragon", theme: "teeth brushing, dental hygiene, making brushing fun, sensory experience" }
+      },
+      {
+        id: "body-hero-bath", label: "אמבטיה של כיף", image: topicBathShower,
+        description: "בועות, ברווזון וקצף", ageLabel: "3-6",
+        logic: { outfit: "bath time with rubber ducky cap", background: "colorful bubble bath with floating toys and rainbow bubbles", theme: "bath time fun, getting clean, water play, sensory experience" }
+      },
+      {
+        id: "body-hero-nails", label: "גזירת ציפורניים", image: topicNailTrimming,
+        description: "עם הפיות הקסומות", ageLabel: "3-6",
+        logic: { outfit: "everyday casual clothes", background: "magical bathroom with fairies and sparkles, friendly nail clippers", theme: "nail trimming, grooming routine, overcoming sensory discomfort" }
+      },
+      {
+        id: "body-hero-hands", label: "שטיפת ידיים", image: topicHandWashing,
+        description: "מנצחים את החיידקים!", ageLabel: "3-6",
+        logic: { outfit: "everyday casual clothes", background: "bright colorful bathroom with soap bubbles and friendly germs being washed away", theme: "hand hygiene, washing hands, staying healthy, sensory experience" }
+      },
+      {
+        id: "barber-visit", label: "ביקור אצל הספר", image: topicBarberVisit,
+        description: "תספורת קסומה וכיפית", ageLabel: "3-6",
+        logic: { outfit: "everyday casual clothes with barber cape", background: "friendly colorful barber shop with mirrors, sparkles, and fun chair", theme: "visiting the barber, haircut, overcoming fear, grooming, bravery" }
+      },
+      {
+        id: "dentist-visit", label: "ביקור אצל רופא/ת השיניים", image: topicDentistVisit,
+        description: "הולכים לרופא שיניים בלי פחד", ageLabel: "3-6",
+        logic: { outfit: "everyday casual clothes", background: "friendly colorful dental clinic with sparkles, kind dentist, and fun dental chair", theme: "visiting the dentist, overcoming fear, dental checkup, bravery, health" }
+      },
+      {
+        id: "pacifier-fairy", label: "פיית המוצץ", image: topicPacifier,
+        description: "נפרדים מהמוצץ בקסם", ageLabel: "0-3",
+        logic: { outfit: "cozy pajamas", background: "magical nursery with sparkles and gentle fairy", theme: "saying goodbye to pacifier, growing up, milestone transition, managing change" }
+      },
+      {
+        id: "potty-training", label: "גמילה מחיתולים", image: topicPottyTraining,
+        description: "הופכים לילד/ה גדול/ה!", ageLabel: "0-3",
+        logic: { outfit: "everyday casual clothes", background: "cheerful colorful bathroom with a friendly potty chair, stickers on the wall, and a supportive teddy bear", theme: "potty training, transitioning from diapers, growing up milestone, independence, positive reinforcement" }
+      },
+      {
+        id: "brave-taster", label: "הטועם האמיץ", image: topicBraveTaster,
+        description: "טועמים אוכל חדש באומץ", ageLabel: "3-6",
+        logic: { outfit: "everyday casual clothes with a chef hat or apron", background: "warm colorful kitchen with fruits, vegetables, and sparkles on the table", theme: "trying new foods, picky eating, bravery, sensory exploration, healthy eating" }
+      },
+      {
+        id: "independence", label: "אני יכול/ה לבד!", image: topicIndependence,
+        description: "מתלבשים ומסתדרים לבד", ageLabel: "4-8",
+        logic: { outfit: "mismatched fun clothes the child picked themselves", background: "bright cheerful bedroom with open wardrobe, clothes scattered playfully, warm morning sunlight and sparkles", theme: "independence, self-dressing, doing things alone, growing up, confidence, pride in self-reliance" }
+      },
+      {
+        id: "new-sibling", label: "נולד לי אח/ות", image: topicNewSibling,
+        description: "מקבלים תינוק חדש במשפחה", ageLabel: "3-6",
+        logic: { outfit: "comfortable home clothes", background: "warm nursery room with crib, mobile, soft lighting, and family atmosphere", theme: "welcoming new sibling, sharing attention, becoming a big brother/sister, family changes, emotions about new baby" }
+      },
+      {
+        id: "fear-of-dark", label: "פחד מהחושך", image: topicFearOfDark,
+        description: "מגלים שאין מה לפחד", ageLabel: "3-6",
+        logic: { outfit: "cozy pajamas with soft slippers", background: "enchanted bedroom at night with a protective glowing nightlight, stars, and friendly shadows", theme: "overcoming fear of darkness, bravery, emotional regulation, calming bedtime, feeling safe" }
+      },
+      {
+        id: "lost-tooth", label: "נפלה לי שן", image: topicLostTooth,
+        description: "פיית השיניים באה לבקר", ageLabel: "3-6",
+        logic: { outfit: "everyday casual clothes", background: "magical bedroom at night with a tiny glowing tooth fairy, sparkles, and a little tooth under a pillow", theme: "losing a tooth, growing up, tooth fairy, excitement and courage, body changes" }
+      },
+      {
+        id: "pocket-kiss", label: "נשיקה בכיס", image: topicPocketKiss,
+        description: "פרידה בבוקר עם אהבה", ageLabel: "3-6",
+        logic: { outfit: "everyday clothes with a small backpack", background: "kindergarten entrance at morning with warm sunlight, parent giving a kiss, a tiny glowing heart tucked in pocket", theme: "separation anxiety, morning goodbye, feeling safe, love and comfort, transitioning to kindergarten" }
+      },
+      {
+        id: "anger-cloud", label: "ענן הכעס שלי", image: topicAngerCloud,
+        description: "לומדים להתמודד עם כעס", ageLabel: "3-6",
+        logic: { outfit: "comfortable home clothes", background: "cozy room with a dark fluffy cloud above that transforms into a rainbow cloud with sparkles and deep breaths", theme: "anger management, emotional regulation, tantrums, deep breathing, calming down, naming emotions, self-control" }
+      },
+      {
+        id: "mom-dont-go", label: "אמא אל תלכי", image: topicMomDontGo,
+        description: "מתמודדים עם פרידה בבוקר", ageLabel: "3-6",
+        logic: { outfit: "everyday clothes with a small backpack", background: "kindergarten entrance at morning with warm golden sunlight, magical sparkles, a glowing heart in the child's pocket", theme: "separation anxiety, missing mom, morning goodbye, magical invisible string connecting parent and child, feeling safe and loved even apart, building confidence" }
+      },
+      {
+        id: "friendship-courage", label: "חברים בגן", image: topicFriendship,
+        description: "משחקים ומתגברים על קשיים", ageLabel: "3-6",
+        logic: { outfit: "everyday casual clothes suitable for playing", background: "colorful kindergarten playground with sandbox and sunny weather", theme: "social skills, making friends, playing together, sharing, managing emotions" }
+      },
+      {
+        id: "sharing-fun", label: "כמה כיף לחלוק", image: topicSharing,
+        description: "לחלוק זה כיף!", ageLabel: "3-6",
+        logic: { outfit: "everyday casual clothes", background: "colorful kindergarten with toys and snacks, children playing together happily", theme: "sharing toys, generosity, kindness, social skills, taking turns" }
+      },
+      {
+        id: "apologize", label: "ללמוד לבקש סליחה", image: topicApologize,
+        description: "לומר סליחה ולתקן", ageLabel: "4-8",
+        logic: { outfit: "everyday casual clothes", background: "colorful kindergarten with soft lighting, two children facing each other with gentle expressions", theme: "apologizing, taking responsibility, empathy, repairing friendships, emotional growth" }
+      },
+      {
+        id: "new-house", label: "עוברים לבית חדש", image: topicNewHouse,
+        description: "הרפתקה של מעבר דירה", ageLabel: "3-6",
+        logic: { outfit: "comfortable casual clothes", background: "new colorful house with moving boxes, a magical garden with flowers blooming, warm golden sunlight, sparkles", theme: "moving to a new house, change, leaving friends, making new friends, adapting, feeling safe in a new place, family support" }
+      },
+      {
+        id: "first-day-kindergarten", label: "היום הראשון בגן", image: topicFirstDayKindergarten,
+        description: "מתחילים הרפתקה חדשה בגן", ageLabel: "3-6",
+        logic: { outfit: "everyday clothes with a small colorful backpack", background: "whimsical kindergarten entrance with oversized crayons, floating magical ABC letters, warm golden sunlight and sparkles", theme: "first day at kindergarten, separation anxiety, making new friends, new beginnings, bravery, excitement, adapting to new environment" }
+      },
+      {
+        id: "my-special-family", label: "המשפחה המיוחדת שלי", image: topicMySpecialFamily,
+        description: "חוגגים את כל סוגי המשפחות", ageLabel: "3-6",
+        logic: { outfit: "comfortable cozy home clothes", background: "warm loving living room with family photos on the wall showing diverse families, soft golden light, floating hearts and sparkles", theme: "celebrating all family types, single-parent families, same-sex parents, grandparent-led families, blended families, adoptive families, unconditional love, feeling safe, belonging" }
+      },
     ]
   },
   {
-    id: "emotion-detectors",
-    title: "גלאי רגשות",
-    emoji: "💕",
+    id: "imagination-kingdom",
+    title: "ממלכת הדמיון",
+    emoji: "🏰",
     topics: [
-      { id: "new-sibling", label: "נולד לי אח/ות", image: topicNewSibling, description: "מקבלים תינוק חדש במשפחה", ageLabel: "3-6", logic: { outfit: "comfortable home clothes", background: "warm nursery room with crib, mobile, soft lighting, and family atmosphere", theme: "welcoming new sibling, sharing attention, becoming a big brother/sister, family changes, emotions about new baby" } },
-      { id: "body-hero-hands", label: "שטיפת ידיים", image: topicHandWashing, description: "מנצחים את החיידקים!", ageLabel: "3-6", logic: { outfit: "everyday casual clothes", background: "bright colorful bathroom with soap bubbles and friendly germs being washed away", theme: "hand hygiene, washing hands, staying healthy, sensory experience" } },
-      { id: "fear-of-dark", label: "פחד מהחושך", image: topicFearOfDark, description: "מגלים שאין מה לפחד", ageLabel: "3-6", logic: { outfit: "cozy pajamas with soft slippers", background: "enchanted bedroom at night with a protective glowing nightlight, stars, and friendly shadows", theme: "overcoming fear of darkness, bravery, emotional regulation, calming bedtime, feeling safe" } },
-      { id: "lost-tooth", label: "נפלה לי שן", image: topicLostTooth, description: "פיית השיניים באה לבקר", ageLabel: "3-6", logic: { outfit: "everyday casual clothes", background: "magical bedroom at night with a tiny glowing tooth fairy, sparkles, and a little tooth under a pillow", theme: "losing a tooth, growing up, tooth fairy, excitement and courage, body changes" } },
-      { id: "pocket-kiss", label: "נשיקה בכיס", image: topicPocketKiss, description: "פרידה בבוקר עם אהבה", ageLabel: "3-6", logic: { outfit: "everyday clothes with a small backpack", background: "kindergarten entrance at morning with warm sunlight, parent giving a kiss, a tiny glowing heart tucked in pocket", theme: "separation anxiety, morning goodbye, feeling safe, love and comfort, transitioning to kindergarten" } },
-      { id: "we-are-special", label: "כולנו מיוחדים ודומים", image: topicWeAreSpecial, description: "שונים מבחוץ, אותו דבר מבפנים", ageLabel: "3-6", logic: { outfit: "everyday casual clothes", background: "colorful magical garden with diverse flowers, rainbow-colored glowing hearts and stars, children of different appearances holding hands", theme: "diversity and inclusion, different family structures (single-parent, same-sex parents, grandparent-led), different appearances (skin color, hair, height), celebrating uniqueness, empathy, the core message: we look different on the outside and our homes may look different but inside our hearts we all feel love and dream the same way. Use parent NLP input to tailor to the specific family or social situation" } },
-      { id: "anger-cloud", label: "ענן הכעס שלי", image: topicAngerCloud, description: "לומדים להתמודד עם כעס", ageLabel: "3-6", logic: { outfit: "comfortable home clothes", background: "cozy room with a dark fluffy cloud above that transforms into a rainbow cloud with sparkles and deep breaths", theme: "anger management, emotional regulation, tantrums, deep breathing, calming down, naming emotions, self-control" } },
-      { id: "body-safety", label: "הגוף שלי הוא רק שלי", image: topicBodySafety, description: "לומדים על גבולות וביטחון", ageLabel: "4-8", logic: { outfit: "everyday casual clothes", background: "warm safe environment with a gentle glowing protective bubble around the child, soft hearts and stars", theme: "body boundaries, personal safety, consent, saying no, good touch bad touch, body autonomy, empowerment, telling a trusted adult" } },
-      { id: "mom-dont-go", label: "אמא אל תלכי", image: topicMomDontGo, description: "מתמודדים עם פרידה בבוקר", ageLabel: "3-6", logic: { outfit: "everyday clothes with a small backpack", background: "kindergarten entrance at morning with warm golden sunlight streaming through the door, magical sparkles in the air, a glowing heart in the child's pocket", theme: "separation anxiety, missing mom, morning goodbye, magical invisible string connecting parent and child, a kiss or glowing heart placed in the pocket as a comforting magical tool, feeling safe and loved even apart, building confidence, emotional validation, the child discovers they carry love with them all day, NLP reframe: missing someone means you love them and love never disappears" } },
+      {
+        id: "underwater-journey", label: "הרפתקה במצולות הים", image: topicUnderwater,
+        description: "הרפתקה קסומה מתחת למים", ageLabel: "3-8",
+        logic: { outfit: "magical diving suit with glowing accents", background: "vibrant underwater world with coral reefs, bioluminescent jellyfish, friendly sea turtle, bubbles and sparkles", theme: "underwater exploration, ocean discovery, sensory wonder, marine life, imagination, courage, nature beauty" }
+      },
+      {
+        id: "rain-party", label: "רוקדים בגשם", image: topicRainParty,
+        description: "רוקדים בגשם עם מטריות צבעוניות", ageLabel: "3-6",
+        logic: { outfit: "rain boots and a colorful raincoat with hood", background: "garden in the rain with puddles, rainbow reflections, colorful umbrellas, and sparkling raindrops", theme: "sensory play, rain, nature, joy, jumping in puddles, weather exploration" }
+      },
+      {
+        id: "space-adventure", label: "טיסה בחלל", image: topicSpaceHero,
+        description: "מסע בין כוכבים ופלאות", ageLabel: "3-8",
+        logic: { outfit: "astronaut spacesuit with helmet", background: "outer space with stars, planets, and galaxies", theme: "exploration and discovery in space, bravery, imagination" }
+      },
+      {
+        id: "magic-kingdom", label: "ממלכת הקסם", image: topicMagicCastle,
+        description: "הרפתקה קסומה בארמון", ageLabel: "3-6",
+        logic: { outfit: "royal prince/princess attire with crown", background: "magical castle with towers and enchanted gardens", theme: "fantasy and magic in a royal kingdom, kindness, helping others" }
+      },
+      {
+        id: "cloud-adventure", label: "טיול בעננים", image: topicCloudAdventure,
+        description: "מעופפים בין עננים קסומים", ageLabel: "3-6",
+        logic: { outfit: "light airy clothes with tiny wings", background: "dreamy sky filled with fluffy magical clouds, rainbows, floating islands, and sparkling stars", theme: "imagination, flying, dreaming, sensory wonder, freedom, creativity" }
+      },
+      {
+        id: "zoo-adventure", label: "טיול בגן החיות", image: topicZoo,
+        description: "פוגשים חיות ומתרגלים שיתוף", ageLabel: "3-6",
+        logic: { outfit: "comfortable outdoor clothes with backpack", background: "colorful zoo with friendly animals, fences, trees", theme: "animal discovery, nature, sharing with friends, taking turns" }
+      },
     ]
   },
   {
-    id: "social-missions",
-    title: "משימות חברתיות",
-    emoji: "🤝",
+    id: "adventure-time",
+    title: "יוצאים להרפתקה",
+    emoji: "🚀",
     topics: [
-      { id: "friendship-courage", label: "חברים בגן", image: topicFriendship, description: "משחקים ומתגברים על קשיים", ageLabel: "3-6", logic: { outfit: "everyday casual clothes suitable for playing", background: "colorful kindergarten playground with sandbox and sunny weather", theme: "social skills, making friends, playing together, sharing, managing emotions" } },
-      { id: "sharing-fun", label: "כמה כיף לחלוק", image: topicSharing, description: "לחלוק זה כיף!", ageLabel: "3-6", logic: { outfit: "everyday casual clothes", background: "colorful kindergarten with toys and snacks, children playing together happily", theme: "sharing toys, generosity, kindness, social skills, taking turns" } },
-      { id: "birthday-party", label: "מסיבת יום הולדת", image: topicBirthday, description: "חוגגים ומשתפים עם חברים", ageLabel: "3-6", logic: { outfit: "party clothes, festive attire", background: "colorful kindergarten or party venue with cake, decorations, friends", theme: "birthday celebration, friendship, sharing joy, being a good host" } },
-      { id: "family-trip", label: "טיול משפחתי", image: topicFamilyTrip, description: "הרפתקה בטבע עם המשפחה", ageLabel: "3-6", logic: { outfit: "hiking clothes with backpack", background: "beautiful nature trail with trees, stream, flowers, and dog", theme: "family bonding, nature exploration, teamwork, helping others" } },
-      { id: "apologize", label: "ללמוד לבקש סליחה", image: topicApologize, description: "לומר סליחה ולתקן", ageLabel: "4-8", logic: { outfit: "everyday casual clothes", background: "colorful kindergarten with soft lighting, two children facing each other with gentle expressions", theme: "apologizing, taking responsibility, empathy, repairing friendships, emotional growth" } },
-      { id: "new-house", label: "עוברים לבית חדש", image: topicNewHouse, description: "הרפתקה של מעבר דירה", ageLabel: "3-6", logic: { outfit: "comfortable casual clothes", background: "new colorful house with moving boxes, a magical garden with flowers blooming, warm golden sunlight, sparkles in the air", theme: "moving to a new house, change, leaving friends, making new friends, adapting, feeling safe in a new place, family support" } },
-      { id: "first-day-kindergarten", label: "היום הראשון בגן", image: topicFirstDayKindergarten, description: "מתחילים הרפתקה חדשה בגן", ageLabel: "3-6", logic: { outfit: "everyday clothes with a small colorful backpack", background: "whimsical kindergarten entrance decorated with oversized crayons, floating magical ABC letters, warm golden sunlight and sparkles", theme: "first day at kindergarten, separation anxiety, making new friends, new beginnings, bravery, excitement, adapting to new environment, feeling safe" } },
-    ]
-  },
-  {
-    id: "sensory-cloud",
-    title: "ענן החושים",
-    emoji: "☁️",
-    topics: [
-      { id: "space-adventure", label: "הרפתקה בחלל", image: topicSpaceHero, description: "מסע בין כוכבים ופלאות", ageLabel: "3-8", logic: { outfit: "astronaut spacesuit with helmet", background: "outer space with stars, planets, and galaxies", theme: "exploration and discovery in space, bravery, imagination" } },
-      { id: "magic-kingdom", label: "ממלכת הקסם", image: topicMagicCastle, description: "הרפתקה קסומה בארמון", ageLabel: "3-6", logic: { outfit: "royal prince/princess attire with crown", background: "magical castle with towers and enchanted gardens", theme: "fantasy and magic in a royal kingdom, kindness, helping others" } },
-      { id: "zoo-adventure", label: "טיול בגן החיות", image: topicZoo, description: "פוגשים חיות ומתרגלים שיתוף", ageLabel: "3-6", logic: { outfit: "comfortable outdoor clothes with backpack", background: "colorful zoo with friendly animals, fences, trees", theme: "animal discovery, nature, sharing with friends, taking turns" } },
-      { id: "cloud-adventure", label: "טיול בעננים", image: topicCloudAdventure, description: "מעופפים בין עננים קסומים", ageLabel: "3-6", logic: { outfit: "light airy clothes with tiny wings", background: "dreamy sky filled with fluffy magical clouds, rainbows, floating islands, and sparkling stars", theme: "imagination, flying, dreaming, sensory wonder, freedom, creativity" } },
-      { id: "rain-party", label: "מסיבת הגשם", image: topicRainParty, description: "רוקדים בגשם עם מטריות צבעוניות", ageLabel: "3-6", logic: { outfit: "rain boots and a colorful raincoat with hood", background: "garden in the rain with puddles, rainbow reflections, colorful umbrellas, and sparkling raindrops", theme: "sensory play, rain, nature, joy, jumping in puddles, weather exploration" } },
-      { id: "underwater-journey", label: "מסע במצולות הים", image: topicUnderwater, description: "הרפתקה קסומה מתחת למים", ageLabel: "3-8", logic: { outfit: "magical diving suit with glowing accents", background: "vibrant underwater world with coral reefs, bioluminescent jellyfish, friendly sea turtle, bubbles and sparkles, sunlight filtering through water", theme: "underwater exploration, ocean discovery, sensory wonder, marine life, imagination, courage, nature beauty" } },
+      {
+        id: "flying-vacation", label: "{childName} כובש/ת את השמיים", image: topicFlyingVacation,
+        description: "טסים לחופשה משפחתית!", ageLabel: "3-8",
+        logic: { outfit: "cute travel outfit with small backpack and stuffed animal", background: "inside a magical airplane with clouds visible through window, sparkles, suitcases with stickers", theme: "flying on an airplane, family vacation, travel excitement, first flight, overcoming fear of flying, new experiences, adventure" }
+      },
+      {
+        id: "magical-forest", label: "מסע ביער הקסום", image: topicMagicalForest,
+        description: "הרפתקה ביער מלא קסם ופלאים", ageLabel: "3-8",
+        logic: { outfit: "adventure clothes with small explorer backpack", background: "enchanted forest with glowing mushrooms, fairy lights, towering trees, bioluminescent flowers, friendly woodland creatures", theme: "magical forest journey, exploration, nature discovery, courage, friendly creatures, imagination, wonder, adventure" }
+      },
+      {
+        id: "seatbelt-friend", label: "החגורה היא חברה", image: topicSeatbeltSafety,
+        description: "לומדים לחגור חגורת בטיחות", ageLabel: "3-6",
+        logic: { outfit: "casual clothes sitting in a car seat with seatbelt", background: "inside a colorful family car, window showing sunny road, sparkles around the seatbelt", theme: "seatbelt safety, car safety, buckling up, road safety, responsibility, the seatbelt as a protective friend, staying safe in the car" }
+      },
+      {
+        id: "family-trip", label: "טיול משפחתי", image: topicFamilyTrip,
+        description: "הרפתקה בטבע עם המשפחה", ageLabel: "3-6",
+        logic: { outfit: "hiking clothes with backpack", background: "beautiful nature trail with trees, stream, flowers, and dog", theme: "family bonding, nature exploration, teamwork, helping others" }
+      },
+      {
+        id: "birthday-party", label: "מסיבת יום הולדת", image: topicBirthday,
+        description: "חוגגים ומשתפים עם חברים", ageLabel: "3-6",
+        logic: { outfit: "party clothes, festive attire", background: "colorful kindergarten or party venue with cake, decorations, friends", theme: "birthday celebration, friendship, sharing joy, being a good host" }
+      },
     ]
   },
 ];
@@ -163,6 +362,7 @@ const TopicCard = ({
   isLiked,
   onToggleLike,
   compact = false,
+  displayLabel,
 }: {
   topic: AdventureTopic;
   isSelected: boolean;
@@ -170,6 +370,7 @@ const TopicCard = ({
   isLiked: boolean;
   onToggleLike: (topicId: string) => void;
   compact?: boolean;
+  displayLabel: string;
 }) => (
   <button
     onClick={() => onSelect(topic)}
@@ -185,7 +386,7 @@ const TopicCard = ({
     <div className="relative w-full overflow-hidden" style={{ aspectRatio: '3/4' }}>
       <img
         src={topic.image}
-        alt={topic.label}
+        alt={displayLabel}
         className="w-full h-full object-cover"
         loading="lazy"
       />
@@ -218,7 +419,7 @@ const TopicCard = ({
       </div>
 
       <div className="absolute bottom-0 left-0 right-0 p-2 text-white">
-        <h4 className="font-bold text-xs leading-tight">{topic.label}</h4>
+        <h4 className="font-bold text-xs leading-tight">{displayLabel}</h4>
       </div>
     </div>
   </button>
@@ -297,6 +498,7 @@ const CategoryCarousel = ({
               onSelect={onTopicSelect}
               isLiked={likedTopics.has(topic.id)}
               onToggleLike={onToggleLike}
+              displayLabel={renderTopicLabel(topic.label, formData.childName, formData.childGender)}
             />
           ))}
         </div>
@@ -316,6 +518,7 @@ const CategoryCarousel = ({
               isLiked={likedTopics.has(topic.id)}
               onToggleLike={onToggleLike}
               compact
+              displayLabel={renderTopicLabel(topic.label, formData.childName, formData.childGender)}
             />
           ))}
         </div>
