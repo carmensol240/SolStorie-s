@@ -88,6 +88,7 @@ interface AdventureCategory {
   subtitle?: string;
   castImage?: string;
   castName?: string;
+  castNameEn?: string;
   topics: AdventureTopic[];
 }
 
@@ -109,6 +110,7 @@ const ADVENTURE_CATEGORIES: AdventureCategory[] = [
     emoji: "🦸",
     castImage: castSol,
     castName: "סול",
+    castNameEn: "Sol",
     topics: [
       {
         id: "we-are-superheroes", label: "אנחנו גיבורי על", image: topicSuperheroes,
@@ -153,6 +155,7 @@ const ADVENTURE_CATEGORIES: AdventureCategory[] = [
     emoji: "🌱",
     castImage: castMia,
     castName: "מיה",
+    castNameEn: "Mia",
     topics: [
       // NEW topics
       {
@@ -299,6 +302,7 @@ const ADVENTURE_CATEGORIES: AdventureCategory[] = [
     emoji: "🏰",
     castImage: castLeo,
     castName: "ליאו",
+    castNameEn: "Leo",
     topics: [
       {
         id: "underwater-journey", label: "הרפתקה במצולות הים", image: topicUnderwater,
@@ -338,6 +342,7 @@ const ADVENTURE_CATEGORIES: AdventureCategory[] = [
     emoji: "🚀",
     castImage: castZoe,
     castName: "זואי",
+    castNameEn: "Zoe",
     topics: [
       {
         id: "flying-vacation", label: "{childName} כובש/ת את השמיים", image: topicFlyingVacation,
@@ -507,6 +512,9 @@ const CategoryCarousel = ({
           <div className="absolute bottom-0 left-0 right-0 p-3 flex items-end justify-between">
             <div>
               <h3 className="text-base font-black text-white drop-shadow-md">{category.title}</h3>
+              {category.castName && category.castNameEn && (
+                <span className="text-[11px] text-white/80 font-bold">{category.castName} | {category.castNameEn}</span>
+              )}
               <span className="text-[10px] text-white/70 font-medium">{category.topics.length} נושאים</span>
             </div>
             <div className="flex items-center gap-0.5">
