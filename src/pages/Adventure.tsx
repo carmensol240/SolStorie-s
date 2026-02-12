@@ -113,6 +113,14 @@ const Adventure = () => {
       <div className="absolute bottom-0 left-0 right-0 z-10 flex flex-col items-center px-4">
         <WelcomeGiftBanner credits={credits} storyCount={storyCount} />
 
+        {/* Welcome message */}
+        <p
+          className="text-white text-sm font-bold mb-2 animate-fade-in text-center"
+          style={{ textShadow: "0 2px 8px rgba(0,0,0,0.5)" }}
+        >
+          ברוכים הבאים לעולמה הקסום של סול ✨
+        </p>
+
         {/* Primary CTA Button */}
         <div className="pb-[72px] flex justify-center w-full">
           <button
