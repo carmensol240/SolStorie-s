@@ -1,5 +1,6 @@
 import { useNavigate } from "react-router-dom";
 import MobileNavigation from "@/components/MobileNavigation";
+import GlobalFooter from "@/components/shared/GlobalFooter";
 import { useAuth } from "@/hooks/use-auth";
 import { useEffect } from "react";
 
@@ -7,12 +8,10 @@ const About = () => {
   const navigate = useNavigate();
   const { user, loading } = useAuth();
 
-  // Scroll to top on mount
   useEffect(() => {
     window.scrollTo(0, 0);
   }, []);
 
-  // Logged-in users skip the about screen entirely
   useEffect(() => {
     if (!loading && user) {
       navigate("/adventure", { replace: true });
@@ -42,7 +41,6 @@ const About = () => {
             }}
           />
         ))}
-        {/* Soft glowing orbs */}
         <div className="absolute top-10 left-10 w-40 h-40 rounded-full bg-purple-500/10 blur-3xl" />
         <div className="absolute top-1/3 right-5 w-56 h-56 rounded-full bg-pink-400/8 blur-3xl" />
         <div className="absolute bottom-32 left-1/4 w-48 h-48 rounded-full bg-amber-400/8 blur-3xl" />
@@ -52,7 +50,7 @@ const About = () => {
         
         {/* Title */}
         <h1 className="text-2xl font-black text-white/95 leading-snug mb-3">
-          ברוכים הבאים ל-<span dir="ltr" className="inline-block bg-gradient-to-r from-purple-300 via-pink-300 to-orange-300 bg-clip-text text-transparent">SoulStory™</span> ✨
+          ברוכים הבאים ל-<span dir="ltr" className="inline-block bg-gradient-to-r from-purple-300 via-pink-300 to-orange-300 bg-clip-text text-transparent">SolStorie's</span> ✨
         </h1>
 
         {/* Personal intro */}
@@ -60,13 +58,13 @@ const About = () => {
           שלום, אני כרמית
         </p>
         <p className="text-sm text-white/75 leading-relaxed mb-3 px-1">
-          יצרתי את SoulStory עבור בתי סול, מתוך רצון להעניק לה עולם של דמיון שמבין את הקצב הייחודי שלה. רציתי ליצור עבורה מרחב שבו מילים הופכות לקסם מחבק, המותאם בדיוק לדרך שבה היא חווה את העולם.
+          יצרתי את <span dir="ltr" className="inline-block">SolStorie's</span> עבור בתי סול, מתוך רצון להעניק לה עולם של דמיון שמבין את הקצב הייחודי שלה. רציתי ליצור עבורה מרחב שבו מילים הופכות לקסם מחבק, המותאם בדיוק לדרך שבה היא חווה את העולם.
         </p>
         <p className="text-sm text-white/75 leading-relaxed mb-3 px-1">
           באפליקציה תמצאו <strong className="text-amber-200">34 נושאים מובנים</strong> לפתרון סיטואציות מחיי היום-יום – מפחד מהחושך, דרך יום ראשון בגן ועד הגעת אח חדש. כל סיפור נבנה בשילוב כלים מעולם ה-NLP, בונה חוסן פנימי ומאפשר לילד להיות הגיבור בסיפור שלו.
         </p>
         <p className="text-sm text-white/75 leading-relaxed mb-5 px-1">
-          אני נרגשת לחלוק את הקסם הזה גם אתכם. הנה מה שתמצאו בתוך SoulStory:
+          אני נרגשת לחלוק את הקסם הזה גם אתכם. הנה מה שתמצאו בתוך <span dir="ltr" className="inline-block">SolStorie's</span>:
         </p>
 
         {/* Section title */}
@@ -74,7 +72,7 @@ const About = () => {
           הופכים את הקושי לסיפור קסום ✨
         </p>
 
-        {/* Features — floating, no boxes */}
+        {/* Features */}
         <div className="space-y-4 mb-5 w-full">
           <div className="flex flex-col items-center gap-1.5">
             <span className="text-3xl">⭐</span>
@@ -100,9 +98,16 @@ const About = () => {
           <div className="flex flex-col items-center gap-1.5">
             <span className="text-3xl">🇺🇸</span>
             <p className="text-sm text-white/80 leading-snug px-4">
-              <strong className="text-green-200">לומדים אנגלית בכיף</strong> — סיפורים והקראה קולית איכותית של ילדה ללמידת שפה בצורה חווייתית ומהנה.
+              <strong className="text-green-200">לומדים אנגלית בכיף</strong> — סיפורים ללמידת שפה בצורה חווייתית ומהנה.
             </p>
           </div>
+        </div>
+
+        {/* IP Statement */}
+        <div className="bg-white/5 border border-white/10 rounded-xl p-3 mb-4 w-full">
+          <p className="text-xs text-white/60 leading-relaxed">
+            📌 התוכן, הדמויות (סול וחבריה), והאיורים באפליקציה הם קניין רוחני בלעדי של המפתחת.
+          </p>
         </div>
 
         {/* Invitation */}
@@ -133,11 +138,16 @@ const About = () => {
           <span className="text-lg">💻</span>
         </div>
         <p className="text-xs text-white/45 font-bold mt-1">
-          <span dir="ltr" className="inline-block">SoulStory</span> זמינה עבורכם בכל מקום: בטלפון, בטאבלט ובמחשב האישי
+          <span dir="ltr" className="inline-block">SolStorie's</span> זמינה עבורכם בכל מקום: בטלפון, בטאבלט ובמחשב האישי
         </p>
         <p className="text-xs text-white/40 mt-1">
           ניתן לשלם בכרטיס אשראי ללא חשבון פייפאל
         </p>
+      </div>
+
+      {/* Global Footer */}
+      <div className="relative z-10">
+        <GlobalFooter />
       </div>
 
       <MobileNavigation />

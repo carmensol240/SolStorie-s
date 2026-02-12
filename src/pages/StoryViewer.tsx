@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef, useCallback } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { Home, BookOpen, Sparkles, Palette, Wand2, RefreshCw, Loader2, ImageOff, Volume2, VolumeX, Loader } from "lucide-react";
+import { Home, BookOpen, Sparkles, Palette, Wand2, RefreshCw, Loader2, ImageOff } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
@@ -25,8 +25,7 @@ import { useOfflineStorage } from "@/hooks/use-offline-storage";
 import { useSettings } from "@/hooks/use-settings";
 import { usePdfExport } from "@/hooks/use-pdf-export";
 import { useNikud } from "@/hooks/use-nikud";
-import { useTextToSpeech } from "@/hooks/use-text-to-speech";
-import { useAccessibility } from "@/hooks/use-accessibility";
+// TTS and accessibility removed per brand requirements
 
 import { useAuth } from "@/hooks/use-auth";
 import { useIsMobile } from "@/hooks/use-mobile";
@@ -95,8 +94,7 @@ const StoryViewer = () => {
   
   const { user } = useAuth();
   const hasTrackedStart = useRef(false);
-  const { startReading, stopReading, isReading, isLoading: isTtsLoading, lastError, retry } = useTextToSpeech();
-  const { audioSupport } = useAccessibility();
+  // TTS and accessibility hooks removed
 
   // Cleanup polling on unmount
   useEffect(() => {
@@ -1008,39 +1006,7 @@ const StoryViewer = () => {
                     ))}
                   </div>
                   
-                  {/* Read Aloud Button - for English stories always, for Hebrew only when audioSupport is enabled */}
-                  {((story?.language === 'en') || audioSupport) && currentSpread.pages[0]?.text && (
-                    <div className="flex items-center justify-center pt-2">
-                      <Button
-                        size="sm"
-                        variant="ghost"
-                        onClick={() => {
-                          if (isReading) {
-                            stopReading();
-                          } else {
-                            // Combine all spread page texts for reading
-                            const fullText = currentSpread.pages.map(p => p.text).join('\n\n');
-                            startReading(fullText, story?.language || 'he');
-                          }
-                        }}
-                        disabled={isTtsLoading}
-                        className="text-purple-600 hover:text-purple-800 hover:bg-purple-50 gap-1.5"
-                      >
-                        {isTtsLoading ? (
-                          <><Loader className="w-4 h-4 animate-spin" /> {story?.language === 'en' ? 'Loading...' : 'טוען הקראה...'}</>
-                        ) : isReading ? (
-                          <><VolumeX className="w-4 h-4" /> {story?.language === 'en' ? 'Stop' : 'עצור הקראה'}</>
-                        ) : (
-                          <><Volume2 className="w-4 h-4" /> {story?.language === 'en' ? 'Read Aloud 🔊' : 'הקראה קולית'}</>
-                        )}
-                      </Button>
-                      {lastError && (
-                        <Button size="sm" variant="ghost" onClick={retry} className="text-orange-500 text-xs">
-                          {story?.language === 'en' ? 'Try again' : 'נסו שוב'}
-                        </Button>
-                      )}
-                    </div>
-                  )}
+                  {/* Read Aloud removed per brand requirements */}
 
                   {/* Page indicator */}
                   <div className="flex items-center justify-center pt-4 mt-auto">
