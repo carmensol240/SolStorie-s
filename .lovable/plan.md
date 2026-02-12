@@ -1,34 +1,103 @@
 
 
-## Plan: Functional PWA Install Button in Settings
+## Plan: Screen Flow & UI Optimization for SoulStory
 
-### What Changes
+This plan covers 4 areas: onboarding flow cleanup, home screen simplification, PWA install (already done), and character consistency.
 
-Replace the current fallback "How to add to home screen?" button (which opens a manual instructions dialog) with a proper functional install button that triggers the browser's native PWA install prompt. When the prompt is unavailable (iOS or unsupported browsers), keep the instructional fallback.
+---
 
-### Changes
+### 1. Fix About Screen Scroll Position (scroll to top)
 
-**File: `src/pages/Settings.tsx`**
+**File: `src/pages/About.tsx`**
 
-1. **Update button label** from "הוסף קיצור דרך למסך הבית" to "התקנת אפליקציה על מסך הבית" when `canPrompt` is true
-2. **Update section title** from "קיצור דרך למסך הבית" to "התקנת SoulStory"
-3. **Update the fallback button** (when `!canPrompt && !isInstalled`): keep the install help dialog for iOS/unsupported browsers, but update the label to mention SoulStory
-4. **Update the install help dialog title** to reference SoulStory instead of generic text
+Add a `useEffect` that scrolls the window to the top on mount, so users always see the content from the beginning.
 
-**File: `src/hooks/use-pwa-install.ts`** -- No changes needed. The existing hook already implements the exact `beforeinstallprompt` capture and `promptInstall()` logic requested.
+```tsx
+useEffect(() => {
+  window.scrollTo(0, 0);
+}, []);
+```
 
-**File: `src/components/pwa/PWAInstallPrompt.tsx`** -- No changes needed. The floating banner already works correctly.
+---
 
-### Technical Details
+### 2. Remove Redundant Onboarding Screen -- Merge Consent into Registration
 
-The existing `usePwaInstall` hook already:
-- Listens for `beforeinstallprompt` and stores the deferred event
-- Exposes `canPrompt` (true when native prompt is available)
-- Exposes `promptInstall()` which calls `deferredPrompt.prompt()` and handles `userChoice`
-- Detects iOS and standalone mode
+Currently, after signup, users go through: About -> Auth -> Onboarding (terms consent) -> Adventure. The Onboarding page (`/onboarding`) is essentially a duplicate of the About screen with a terms checkbox.
 
-The Settings page already uses this hook correctly. The main changes are cosmetic/branding:
-- Rename labels to "התקנת SoulStory" and "התקנת אפליקציה על מסך הבית"
-- Ensure the dialog mentions SoulStory
-- Keep the fallback instructions dialog for browsers that don't support `beforeinstallprompt`
+**Changes:**
+
+**File: `src/pages/Auth.tsx`**
+- In the signup tab, add a terms/privacy checkbox directly into the registration form (similar to what's already in Onboarding)
+- On signup, automatically save `terms_accepted_at` to the profile so users skip Onboarding entirely
+- Remove the redirect to `/onboarding` after signup -- go straight to `/adventure`
+
+**File: `src/pages/Auth.tsx` (useEffect for terms check)**
+- After login (existing users), keep the existing check: if terms not accepted, redirect to `/onboarding`
+- After signup (new users), terms are accepted during registration, so redirect directly to `/adventure`
+
+**File: `src/components/RequireTerms.tsx`**
+- No changes needed -- it already handles the flow correctly
+
+**File: `src/pages/Onboarding.tsx`**
+- Keep the page for existing users who haven't accepted terms yet (backward compatibility)
+- No removal needed
+
+---
+
+### 3. Home Screen Cleanup (Adventure Screen)
+
+**File: `src/pages/Adventure.tsx`**
+- The Adventure screen already has only one CTA button ("יוצאים להרפתקה") which is hidden when the WelcomeGiftBanner is visible
+- Adjust background image positioning to ensure the floating kids are fully visible: change `backgroundPosition` from `'center'` to `'center top'` or `'center 20%'` so the kids aren't cut off
+- Reduce overlay darkness to make the image more visible
+
+---
+
+### 4. PWA Install Button (Already Implemented)
+
+The functional PWA install button is already implemented in Settings with SoulStory branding. No additional changes needed.
+
+---
+
+### 5. Character Consistency -- Sol's Fixed Profile
+
+**File: `supabase/functions/generate-illustrations/index.ts`**
+
+Update the `getDefaultProfile` function to use Sol's specific characteristics as the default female profile:
+- Age: 4 years old
+- Hair: curly brown hair
+- Eyes: brown eyes
+- Default outfit: pink dress
+
+```typescript
+function getDefaultProfile(...): CharacterProfile {
+  const isFemale = childGender === "female";
+  return {
+    gender: childGender,
+    genderHebrew: genderHebrew,
+    hairDescription: isFemale 
+      ? "curly brown hair with soft natural curls" 
+      : "short tousled dark brown hair",
+    clothingDescription: isFemale 
+      ? "a pretty pink dress" 
+      : "colorful casual clothes",
+    ageDescription: ageRange || (isFemale ? "4" : "3-6"),
+    skinTone: "warm medium olive",
+    eyeColor: isFemale ? "large warm brown" : "large dark brown",
+  };
+}
+```
+
+This ensures that when no photo is provided, the default female character matches Sol's appearance. The Visual Anchor system already enforces outfit consistency across all pages.
+
+---
+
+### Technical Summary of Files to Edit
+
+| File | Change |
+|------|--------|
+| `src/pages/About.tsx` | Add scroll-to-top on mount |
+| `src/pages/Auth.tsx` | Add terms checkbox to signup form; save terms on signup; skip onboarding for new users |
+| `src/pages/Adventure.tsx` | Adjust background image position for better visibility |
+| `supabase/functions/generate-illustrations/index.ts` | Update default female profile to match Sol |
 
