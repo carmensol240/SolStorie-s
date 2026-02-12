@@ -73,7 +73,7 @@ const Adventure = () => {
         style={{
           backgroundImage: `url(${heroBackground})`,
           backgroundSize: 'cover',
-          backgroundPosition: 'center',
+          backgroundPosition: 'center 20%',
           backgroundRepeat: 'no-repeat',
         }}
       />
