@@ -1,51 +1,32 @@
 
 
-# עדכון גלריית הנושאים - תיקון תמונות ותוויות
+# תיקון שוליים שחורים ב-11 תמונות נושא
 
-## סקירת השינויים
+## מה ייעשה
+הסרת השוליים השחורים מ-11 תמונות נושא קיימות באמצעות עריכת תמונה (image editing) - **ללא יצירה מחדש**. התמונות יישארו אותו הדבר, רק ללא המסגרת השחורה.
 
-### 1. תיקון 11 תמונות נושא עם שוליים שחורים
-התמונות החדשות שנוצרו ע"י AI מכילות שוליים שחורים. יש ליצור מחדש את כל 11 התמונות הבאות בפורמט מרובע (1:1) ללא שוליים, בסגנון 3D Disney-Pixar:
+## התמונות לתיקון
 
-- `topic-road-safety.jpg` - שומרי הדרכים
-- `topic-environment.jpg` - שומרי כדור הארץ
-- `topic-helping-others.jpg` - הלב של הילד
-- `topic-trying-again.jpg` - הקסם שבניסיון
-- `topic-grandparents-night.jpg` - לילה אצל סבא וסבתא
-- `topic-sibling-love.jpg` - אהבת אחים
-- `topic-magic-keys.jpg` - מפתחות הקסם
-- `topic-stranger-danger.jpg` - שומר הסודות
-- `topic-magical-forest.jpg` - מסע ביער הקסום
-- `topic-seatbelt-safety.jpg` - חגורת בטיחות
+| # | קובץ | נושא |
+|---|-------|------|
+| 1 | `topic-body-safety.jpg` | הגוף שלי הוא רק שלי |
+| 2 | `topic-just-be-me.jpg` | פשוט להיות אני |
+| 3 | `topic-grandparents-night.jpg` | הלילה המיוחד בממלכת סבא וסבתא |
+| 4 | `topic-stranger-danger.jpg` | שומר הסודות |
+| 5 | `topic-bath-shower.jpg` | אמבטיה של כייף |
+| 6 | `topic-hand-washing.jpg` | שטיפת ידיים |
+| 7 | `topic-independence.jpg` | אני יכול/ה לבד! |
+| 8 | `topic-new-sibling.jpeg` | נולד לי אח/ות |
+| 9 | `topic-new-house.jpg` | עוברים לבית חדש |
+| 10 | `topic-first-day-kindergarten.jpg` | היום הראשון בגן |
+| 11 | `topic-rain-party.jpg` | רוקדים בגשם |
 
-### 2. תמונת "כובש/ת את השמיים" (טיסה)
-- `topic-flying-vacation.jpg` - יצירת תמונה חדשה של סול (שמלה צהובה, קוקו) יושבת בכיסא מטוס ומסתכלת מהחלון, במקום התמונה הנוכחית
+## שיטת העבודה
+שימוש במודל עריכת תמונות (google/gemini-2.5-flash-image) עם הוראה: "Remove the black borders/letterbox bars from this image. Extend the scene content to fill the entire frame edge-to-edge. Keep the same art style, characters and composition."
 
-### 3. תמונת Hero של קטגוריית "גיבורי על"
-- העתקת התמונה שהועלתה (הילדה המעופפת בחליפת גיבורת-על) כתמונת ה-Hero של קטגוריית "גיבורי על"
-- שמירה כ-`cast-sol-adventure.jpg` (החלפת הקובץ הקיים)
-
-### 4. תיקוני תוויות טקסט
-בדיקה בקוד העלתה שהתוויות כבר מתוקנות:
-- "נולד לי אח/ות" - כבר נכון (שורה 235)
-- "אני יכול/ה לבד!" - כבר נכון (שורה 230)
-
----
+כל תמונה תיערך בנפרד ותוחלף באותו שם קובץ - **ללא שינויי קוד**.
 
 ## פרטים טכניים
-
-### קבצים שישתנו
-- **`src/assets/cast-sol-adventure.jpg`** - החלפה בתמונה המועלית
-- **`src/assets/topic-flying-vacation.jpg`** - יצירת תמונה חדשה של סול במטוס
-- **11 קבצי topic-*.jpg** - יצירה מחדש ללא שוליים שחורים
-
-### שיטת יצירת התמונות
-שימוש ב-Nano banana (google/gemini-2.5-flash-image) ליצירת כל תמונת נושא בסגנון 3D Disney-Pixar עם:
-- פורמט מרובע
-- ללא שוליים/מסגרות שחורים
-- תאורה חמה, עומק קולנועי ואפקטים קסומים
-- עקביות עם הסגנון הויזואלי הקיים
-
-### ללא שינויי קוד
-כל התמונות מוחלפות באותם שמות קבצים, כך שאין צורך בשינוי קוד ב-TopicStep.tsx.
-
+- כל 11 הקבצים נמצאים בתיקיית `src/assets/`
+- התמונות ייערכו אחת-אחת דרך ה-AI image editing API
+- אין צורך בשינוי קוד כי שמות הקבצים נשארים זהים
