@@ -1,103 +1,76 @@
 
 
-## Plan: Screen Flow & UI Optimization for SoulStory
+## Plan: Enhance Story Generation Prompt -- Depth, Length & Sensory Richness
 
-This plan covers 4 areas: onboarding flow cleanup, home screen simplification, PWA install (already done), and character consistency.
+### Problem
 
----
+The current prompt focuses on page counts and rhyming rules but lacks explicit word-count minimums and sensory depth instructions. Stories can end up feeling short or rushed, especially for older children.
 
-### 1. Fix About Screen Scroll Position (scroll to top)
+### Changes
 
-**File: `src/pages/About.tsx`**
+**File: `supabase/functions/generate-story/index.ts`**
 
-Add a `useEffect` that scrolls the window to the top on mount, so users always see the content from the beginning.
+#### 1. Add Word Count Minimums to SYSTEM_PROMPT
 
-```tsx
-useEffect(() => {
-  window.scrollTo(0, 0);
-}, []);
+In the `## 👶 מבנה סיפור לפי גיל` section (around lines 144-161), add explicit minimum word counts:
+
+- Ages 0-2: ~60-100 words (unchanged)
+- Ages 3-6: **minimum 300-400 words total**
+- Ages 7-8: **minimum 500-600 words with richer vocabulary**
+
+#### 2. Add Sensory & Pacing Instructions to SYSTEM_PROMPT
+
+Add a new section after the NLP principles block (after line ~70), before the language section:
+
+```
+## 🌙 עומק סיפורי וקצב - חובה!
+
+### מבנה עלילתי מלא
+כל סיפור חייב לכלול את כל ארבעת השלבים:
+1. **פתיחה** - הצגת הדמויות, העולם והאווירה
+2. **התפתחות** - בניית העלילה, הכרות עם המצב
+3. **שיא** - בעיה, אתגר או רגע מכריע
+4. **פתרון** - סיום מספק ומעצים
+
+### אל תסיים מהר מדי!
+- **אסור לקפוץ ישר לפתרון.** תן לעלילה להתפתח בטבעיות.
+- תאר ריחות, צבעים ותחושות כדי להכניס את הילד לתוך החוויה.
+- דוגמה: "הָרוּחַ מְלַטֶּפֶת אֶת לְחָיֶיהָ, / וְרֵיחַ הַפְּרָחִים עוֹלֶה מֵהַגִּנָּה"
+- השתמש בתיאורים חושיים: מה הדמות רואה, שומעת, מריחה, מרגישה בגוף
+
+### טון שעת שינה
+- חם, מחבק ומרגיע
+- קצב שיורד בהדרגה לקראת סוף הסיפור
+- הסיום תמיד מרגיע ובטוח - מתאים לקריאה לפני השינה
 ```
 
----
+#### 3. Update `getAgeLengthInstruction` Function (lines 583-665)
 
-### 2. Remove Redundant Onboarding Screen -- Merge Consent into Registration
+Add word-count minimum instructions to each age bracket:
 
-Currently, after signup, users go through: About -> Auth -> Onboarding (terms consent) -> Adventure. The Onboarding page (`/onboarding`) is essentially a duplicate of the About screen with a terms checkbox.
+- **Ages 2-4 (3-6):** Add `- מינימום 300-400 מילים סה"כ לכל הסיפור` and `- אל תסיים מהר! תאר ריחות, צבעים ותחושות גופניות`
+- **Ages 5-7:** Add `- מינימום 400-500 מילים סה"כ` and sensory depth instruction
+- **Ages 8-10:** Add `- מינימום 500-600 מילים סה"כ עם אוצר מילים עשיר` and sensory depth instruction
 
-**Changes:**
+#### 4. Add Anti-Template Instruction to User Prompt
 
-**File: `src/pages/Auth.tsx`**
-- In the signup tab, add a terms/privacy checkbox directly into the registration form (similar to what's already in Onboarding)
-- On signup, automatically save `terms_accepted_at` to the profile so users skip Onboarding entirely
-- Remove the redirect to `/onboarding` after signup -- go straight to `/adventure`
+In the Hebrew user prompt section (around line 846), add:
 
-**File: `src/pages/Auth.tsx` (useEffect for terms check)**
-- After login (existing users), keep the existing check: if terms not accepted, redirect to `/onboarding`
-- After signup (new users), terms are accepted during registration, so redirect directly to `/adventure`
-
-**File: `src/components/RequireTerms.tsx`**
-- No changes needed -- it already handles the flow correctly
-
-**File: `src/pages/Onboarding.tsx`**
-- Keep the page for existing users who haven't accepted terms yet (backward compatibility)
-- No removal needed
-
----
-
-### 3. Home Screen Cleanup (Adventure Screen)
-
-**File: `src/pages/Adventure.tsx`**
-- The Adventure screen already has only one CTA button ("יוצאים להרפתקה") which is hidden when the WelcomeGiftBanner is visible
-- Adjust background image positioning to ensure the floating kids are fully visible: change `backgroundPosition` from `'center'` to `'center top'` or `'center 20%'` so the kids aren't cut off
-- Reduce overlay darkness to make the image more visible
-
----
-
-### 4. PWA Install Button (Already Implemented)
-
-The functional PWA install button is already implemented in Settings with SoulStory branding. No additional changes needed.
-
----
-
-### 5. Character Consistency -- Sol's Fixed Profile
-
-**File: `supabase/functions/generate-illustrations/index.ts`**
-
-Update the `getDefaultProfile` function to use Sol's specific characteristics as the default female profile:
-- Age: 4 years old
-- Hair: curly brown hair
-- Eyes: brown eyes
-- Default outfit: pink dress
-
-```typescript
-function getDefaultProfile(...): CharacterProfile {
-  const isFemale = childGender === "female";
-  return {
-    gender: childGender,
-    genderHebrew: genderHebrew,
-    hairDescription: isFemale 
-      ? "curly brown hair with soft natural curls" 
-      : "short tousled dark brown hair",
-    clothingDescription: isFemale 
-      ? "a pretty pink dress" 
-      : "colorful casual clothes",
-    ageDescription: ageRange || (isFemale ? "4" : "3-6"),
-    skinTone: "warm medium olive",
-    eyeColor: isFemale ? "large warm brown" : "large dark brown",
-  };
-}
+```
+## דיוק מוחלט לנושא - אפס תבניות!
+- אל תשתמש בתבניות מוכנות או סיפורים גנריים.
+- אם ההורה בחר נושא ספציפי - כל פרט בסיפור חייב להיות קשור ישירות לנושא הזה.
+- למשל: אם הנושא הוא "הפחד של סול מהים" - כל עמוד חייב לעסוק בים, בגלים, ובהתמודדות עם הפחד הזה.
 ```
 
-This ensures that when no photo is provided, the default female character matches Sol's appearance. The Visual Anchor system already enforces outfit consistency across all pages.
+### Technical Notes
 
----
-
-### Technical Summary of Files to Edit
-
-| File | Change |
+| Area | Change |
 |------|--------|
-| `src/pages/About.tsx` | Add scroll-to-top on mount |
-| `src/pages/Auth.tsx` | Add terms checkbox to signup form; save terms on signup; skip onboarding for new users |
-| `src/pages/Adventure.tsx` | Adjust background image position for better visibility |
-| `supabase/functions/generate-illustrations/index.ts` | Update default female profile to match Sol |
+| `SYSTEM_PROMPT` (line 10) | Add sensory/pacing section, update age-based word counts |
+| `getAgeLengthInstruction()` (line 583) | Add word-count minimums per age bracket |
+| Hebrew user prompt (line 788) | Add anti-template and topic-accuracy reinforcement |
+| Edge function redeployment | `generate-story` will be redeployed automatically |
+
+No database or frontend changes needed -- this is purely a prompt engineering update to the story generation backend function.
 
