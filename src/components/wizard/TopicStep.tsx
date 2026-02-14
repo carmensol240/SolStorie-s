@@ -373,7 +373,33 @@ const ADVENTURE_CATEGORIES: AdventureCategory[] = [
   },
 ];
 
-const ALL_TOPICS = ADVENTURE_CATEGORIES.flatMap(cat => cat.topics);
+// Educational Toolbox Category
+const EDUCATIONAL_TOOLBOX: AdventureCategory = {
+  id: "educational-toolbox",
+  title: "ארגז כלים חינוכי",
+  emoji: "📚",
+  subtitle: "כלים חינוכיים לגננות ומחנכות",
+  topics: [
+    {
+      id: "social-skills-edu", label: "מיומנויות חברתיות", image: topicFriendship,
+      description: "לומדים לשתף פעולה ולתקשר", ageLabel: "3-8",
+      logic: { outfit: "everyday casual clothes", background: "warm classroom with children sitting in circle, colorful posters on walls, sparkles", theme: "social skills for classroom, cooperation, communication, listening, turn-taking, empathy, group work, classroom behavior" }
+    },
+    {
+      id: "holidays-seasons-edu", label: "חגים ועונות השנה", image: topicBirthday,
+      description: "סיפורים לחגים ולעונות", ageLabel: "3-8",
+      logic: { outfit: "festive holiday-themed outfit", background: "colorful seasonal scene with holiday decorations, autumn leaves or spring flowers, festive lights and sparkles", theme: "Jewish holidays, seasons of the year, Rosh Hashana, Sukkot, Hanukkah, Purim, Passover, Shavuot, autumn, winter, spring, summer, nature cycles, traditions" }
+    },
+    {
+      id: "emotional-development-edu", label: "פיתוח רגשי", image: topicAngerCloud,
+      description: "מזהים ומבינים רגשות", ageLabel: "3-8",
+      logic: { outfit: "comfortable casual clothes", background: "safe cozy corner in classroom with emotion faces on wall, soft cushions, warm lighting, sparkles and hearts", theme: "emotional intelligence, identifying emotions, expressing feelings, self-regulation, empathy, emotional vocabulary, coping strategies, mindfulness for children" }
+    },
+  ]
+};
+
+const ALL_CATEGORIES = [...ADVENTURE_CATEGORIES, EDUCATIONAL_TOOLBOX];
+const ALL_TOPICS = ALL_CATEGORIES.flatMap(cat => cat.topics);
 
 const TopicCard = ({
   topic,
@@ -670,7 +696,7 @@ const TopicStep = ({ formData, updateFormData }: TopicStepProps) => {
 
       {/* Quick-scroll Category Buttons */}
       <div className="flex gap-2 overflow-x-auto px-4 pb-1 scrollbar-hide" style={{ scrollSnapType: 'x mandatory' }}>
-        {ADVENTURE_CATEGORIES.map((cat) => (
+        {ALL_CATEGORIES.map((cat) => (
           <button
             key={cat.id}
             onClick={() => scrollToCategory(cat.id)}
@@ -685,7 +711,7 @@ const TopicStep = ({ formData, updateFormData }: TopicStepProps) => {
 
       {/* All Category Carousels */}
       <div className="space-y-4 pb-8">
-        {ADVENTURE_CATEGORIES.map((cat, index) => (
+        {ALL_CATEGORIES.map((cat, index) => (
           <div key={cat.id}>
             <CategoryCarousel
               category={cat}
@@ -696,7 +722,7 @@ const TopicStep = ({ formData, updateFormData }: TopicStepProps) => {
               likedTopics={likedTopics}
               onToggleLike={toggleLike}
             />
-            {index < ADVENTURE_CATEGORIES.length - 1 && (
+            {index < ALL_CATEGORIES.length - 1 && (
               <div className="mx-4 mt-2 border-t border-purple-100/60" />
             )}
           </div>

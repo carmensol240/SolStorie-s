@@ -58,10 +58,13 @@ export const useAuth = () => {
     return { error };
   };
 
-  const signUpWithEmail = async (email: string, password: string) => {
+  const signUpWithEmail = async (email: string, password: string, metadata?: Record<string, string>) => {
     const { data, error } = await supabase.auth.signUp({
       email,
       password,
+      options: {
+        data: metadata,
+      },
     });
     
     // Auto-login after successful signup (when auto-confirm is enabled)

@@ -74,6 +74,7 @@ const StoryViewer = () => {
   const [isDrawingMode, setIsDrawingMode] = useState(false);
   const [fontSizeIndex, setFontSizeIndex] = useState(1);
   const [isEditingPage, setIsEditingPage] = useState(false);
+  const [showNikud, setShowNikud] = useState(true);
   const [generationStatus, setGenerationStatus] = useState<string>('ready');
   const [illustrationProgress, setIllustrationProgress] = useState(0);
   const pollingIntervalRef = useRef<NodeJS.Timeout | null>(null);
@@ -744,6 +745,8 @@ const StoryViewer = () => {
         onEdit={showPageActions ? handleEditClick : undefined}
         onAddNikud={showPageActions ? handleAddNikud : undefined}
         onReport={handleReportIssue}
+        onToggleNikud={() => setShowNikud(prev => !prev)}
+        showNikud={showNikud}
         fontSizeLabel={currentFontSize.label}
         isExporting={isExporting}
         isAddingNikud={isAddingNikud}
@@ -1000,7 +1003,7 @@ const StoryViewer = () => {
                           style={{ lineHeight: '1.8' }}
                           dir="rtl"
                         >
-                          {spreadPage.text}
+                          {showNikud ? spreadPage.text : spreadPage.text.replace(/[\u0591-\u05C7]/g, '')}
                         </p>
                       </div>
                     ))}

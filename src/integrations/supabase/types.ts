@@ -393,6 +393,7 @@ export type Database = {
           terms_accepted_at: string | null
           terms_version: string | null
           updated_at: string
+          user_role: string
         }
         Insert: {
           avatar_changes_count?: number | null
@@ -413,6 +414,7 @@ export type Database = {
           terms_accepted_at?: string | null
           terms_version?: string | null
           updated_at?: string
+          user_role?: string
         }
         Update: {
           avatar_changes_count?: number | null
@@ -433,6 +435,7 @@ export type Database = {
           terms_accepted_at?: string | null
           terms_version?: string | null
           updated_at?: string
+          user_role?: string
         }
         Relationships: []
       }

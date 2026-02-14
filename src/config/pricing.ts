@@ -28,6 +28,16 @@ export const PRICING_PACKAGES = [
   },
 ] as const;
 
+export const EDUCATOR_PACKAGE = {
+  id: "educator",
+  stories: 40,
+  price: 299,
+  pricePerStory: "7.5₪",
+  label: "חבילת מחנכים",
+  freeEdits: 40,
+  badge: "🏫 למחנכים" as string | undefined,
+};
+
 export const TOOLKIT_SUBSCRIPTION = {
   id: "toolkit_yearly",
   price: 29.90,

@@ -33,6 +33,8 @@ interface BookHeaderProps {
   onReport?: () => void;
   onAddNikud?: () => void;
   onDraw?: () => void;
+  onToggleNikud?: () => void;
+  showNikud?: boolean;
   fontSizeLabel: string;
   isExporting?: boolean;
   isAddingNikud?: boolean;
@@ -51,6 +53,8 @@ export const BookHeader: React.FC<BookHeaderProps> = ({
   onReport,
   onAddNikud,
   // onDraw removed - not in essential list
+  onToggleNikud,
+  showNikud = true,
   fontSizeLabel,
   isExporting = false,
   isAddingNikud = false,
@@ -77,6 +81,27 @@ export const BookHeader: React.FC<BookHeaderProps> = ({
 
         {/* Center Actions - Essentials Only */}
         <div className="flex items-center gap-1 md:gap-2">
+          {/* Nikud Toggle */}
+          {onToggleNikud && (
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={onToggleNikud}
+                  className={cn(
+                    "text-[#F5E6D3] hover:bg-white/10 min-h-[44px] min-w-[44px] p-2",
+                    !showNikud && "opacity-60"
+                  )}
+                  aria-label={showNikud ? "הסתר ניקוד" : "הצג ניקוד"}
+                >
+                  <span className="text-sm font-bold">אָ</span>
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent side="bottom">{showNikud ? 'הסתר ניקוד' : 'הצג ניקוד'}</TooltipContent>
+            </Tooltip>
+          )}
+
           {/* Font Size Toggle */}
           <Tooltip>
             <TooltipTrigger asChild>
