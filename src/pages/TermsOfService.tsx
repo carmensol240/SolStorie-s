@@ -30,7 +30,14 @@ const TermsOfService = () => {
             <section>
               <h2 className="text-lg font-bold text-foreground mb-2">מהות השירות</h2>
               <p className="text-muted-foreground leading-relaxed">
-                <span dir="ltr" className="inline-block">SolStories</span> מספקת פלטפורמה ליצירת תוכן ספרותי מותאם אישית לילדים בגילאי 0-8.
+                <span dir="ltr" className="inline-block">SolStories</span> מספקת פלטפורמה ליצירת תוכן ספרותי מותאם אישית לילדים בגילאי 0-8, המיועדת להורים, אפוטרופוסים חוקיים ואנשי חינוך וטיפול (מחנכים, גננות, מטפלים, קלינאים ואנשי מקצוע טיפוליים).
+              </p>
+            </section>
+
+            <section>
+              <h2 className="text-lg font-bold text-foreground mb-2">הגבלת אחריות מקצועית</h2>
+              <p className="text-muted-foreground leading-relaxed">
+                השימוש באפליקציה הינו כלי עזר טכנולוגי בלבד ואינו מהווה תחליף לייעוץ מקצועי, חינוכי או רפואי. התוכן שנוצר באמצעות המערכת אינו מהווה המלצה טיפולית או חינוכית ואין להסתמך עליו ככזה.
               </p>
             </section>
 
@@ -44,7 +51,7 @@ const TermsOfService = () => {
             <section>
               <h2 className="text-lg font-bold text-foreground mb-2">מערכת קרדיטים ורכישות</h2>
               <p className="text-muted-foreground leading-relaxed">
-                השימוש בשירות מותנה ביתרת קרדיטים. ניתן לבצע רכישות באמצעות כרטיס אשראי (גם ללא חשבון פייפאל). קרדיטים שנוצלו אינם ניתנים להחזר.
+                השימוש בשירות מותנה ביתרת קרדיטים. ניתן לבצע רכישות באמצעות כרטיס אשראי גם ללא חשבון פייפאל. תשלומי כרטיס אשראי מעובדים באופן מאובטח באמצעות ספק תשלומים חיצוני. קרדיטים שנוצלו אינם ניתנים להחזר.
               </p>
             </section>
 
