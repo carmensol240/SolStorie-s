@@ -386,9 +386,19 @@ const EDUCATIONAL_TOOLBOX: AdventureCategory = {
       logic: { outfit: "everyday casual clothes", background: "warm classroom with children sitting in circle, colorful posters on walls, sparkles", theme: "social skills for classroom, cooperation, communication, listening, turn-taking, empathy, group work, classroom behavior" }
     },
     {
+      id: "values-emotions-edu", label: "ערכים ורגשות", image: topicAngerCloud,
+      description: "כבוד, אמפתיה, אחריות והכרת הטוב", ageLabel: "3-8",
+      logic: { outfit: "comfortable casual clothes", background: "warm classroom with heart-shaped decorations, children helping each other, golden sparkles and gentle light", theme: "values education, respect, empathy, responsibility, gratitude, kindness, caring for others, emotional awareness, recognizing feelings, appreciating what we have" }
+    },
+    {
       id: "holidays-seasons-edu", label: "חגים ועונות השנה", image: topicBirthday,
       description: "סיפורים לחגים ולעונות", ageLabel: "3-8",
       logic: { outfit: "festive holiday-themed outfit", background: "colorful seasonal scene with holiday decorations, autumn leaves or spring flowers, festive lights and sparkles", theme: "Jewish holidays, seasons of the year, Rosh Hashana, Sukkot, Hanukkah, Purim, Passover, Shavuot, autumn, winter, spring, summer, nature cycles, traditions" }
+    },
+    {
+      id: "life-skills-edu", label: "מיומנויות חיים", image: topicIndependence,
+      description: "עצמאות, סדר, ביטחון והתנהגות בטוחה", ageLabel: "3-8",
+      logic: { outfit: "everyday casual clothes", background: "bright organized children's room with shelves, clock, safety signs, warm sunlight and sparkles", theme: "life skills, independence, organization, tidiness, personal safety, safe behavior, daily routines, self-reliance, responsibility, following rules, being organized" }
     },
     {
       id: "emotional-development-edu", label: "פיתוח רגשי", image: topicAngerCloud,

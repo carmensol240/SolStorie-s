@@ -30,11 +30,11 @@ export const PRICING_PACKAGES = [
 
 export const EDUCATOR_PACKAGE = {
   id: "educator",
-  stories: 40,
-  price: 299,
-  pricePerStory: "7.5₪",
+  stories: 30,
+  price: 199,
+  pricePerStory: "6.6₪",
   label: "חבילת מחנכים",
-  freeEdits: 40,
+  freeEdits: 30,
   badge: "🏫 למחנכים" as string | undefined,
 };
 
