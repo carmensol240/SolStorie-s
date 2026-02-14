@@ -132,6 +132,7 @@ const GeneratingStep = ({ formData, onComplete }: GeneratingStepProps) => {
             childAvatarUrl: formData.childAvatarUrl,
             personalityTraits: formData.personalityTraits,
             adventureLogic: formData.adventureLogic,
+            className: formData.className || undefined,
           },
         });
         
