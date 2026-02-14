@@ -33,9 +33,9 @@ export const EDUCATOR_PACKAGE = {
   stories: 30,
   price: 199,
   pricePerStory: "6.6₪",
-  label: "חבילת מחנכים",
-  freeEdits: 30,
-  badge: "🏫 למחנכים" as string | undefined,
+  label: "חבילת אנשי חינוך וטיפול",
+  freeEdits: 2,
+  badge: "🏫 לאנשי חינוך וטיפול" as string | undefined,
 };
 
 export const TOOLKIT_SUBSCRIPTION = {

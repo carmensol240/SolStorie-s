@@ -378,7 +378,7 @@ const EDUCATIONAL_TOOLBOX: AdventureCategory = {
   id: "educational-toolbox",
   title: "ארגז כלים חינוכי",
   emoji: "📚",
-  subtitle: "כלים חינוכיים לגננות ומחנכות",
+  subtitle: "כלים חינוכיים לאנשי חינוך וטיפול",
   topics: [
     {
       id: "social-skills-edu", label: "מיומנויות חברתיות", image: topicFriendship,
