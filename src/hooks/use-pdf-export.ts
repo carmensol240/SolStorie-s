@@ -27,7 +27,28 @@ interface Story {
   pages: StoryPage[];
 }
 
+interface Spread {
+  illustration_url: string | null;
+  texts: string[];
+  pageNumbers: number[];
+}
+
 export type PdfLayout = 'portrait' | 'landscape-book';
+
+/** Build spreads: pair pages so one illustration covers two text blocks */
+const buildSpreads = (pages: StoryPage[]): Spread[] => {
+  const spreads: Spread[] = [];
+  for (let i = 0; i < pages.length; i += 2) {
+    const first = pages[i];
+    const second = pages[i + 1];
+    spreads.push({
+      illustration_url: first.illustration_url,
+      texts: second ? [first.text, second.text] : [first.text],
+      pageNumbers: second ? [first.page_number, second.page_number] : [first.page_number],
+    });
+  }
+  return spreads;
+};
 
 export const usePdfExport = () => {
   const [isExporting, setIsExporting] = useState(false);
@@ -50,15 +71,11 @@ export const usePdfExport = () => {
     }
   };
 
-  // Add watermark to PDF page
   const addWatermark = (pdf: jsPDF) => {
     const pageWidth = pdf.internal.pageSize.getWidth();
     const pageHeight = pdf.internal.pageSize.getHeight();
-    
     pdf.setFontSize(9);
-    pdf.setTextColor(200, 200, 200); // Light gray
-    
-    // Bottom watermark
+    pdf.setTextColor(200, 200, 200);
     pdf.text(
       "SolStories – סיפורים עם נשמה | © 2026 | www.SolStories.co.il",
       pageWidth / 2,
@@ -78,400 +95,215 @@ export const usePdfExport = () => {
       allowTaint: false,
       backgroundColor: null,
     });
-
     const imgData = canvas.toDataURL('image/png');
     const pageWidth = pdf.internal.pageSize.getWidth();
     const pageHeight = pdf.internal.pageSize.getHeight();
-
-    if (!isFirstPage) {
-      pdf.addPage();
-    }
-
+    if (!isFirstPage) pdf.addPage();
     pdf.addImage(imgData, 'PNG', 0, 0, pageWidth, pageHeight);
-    
-    // Add watermark to every page
     addWatermark(pdf);
   };
 
-  const exportPortrait = async (story: Story) => {
-    // Pre-fetch signed URLs for all illustrations
-    const illustrationUrls = story.pages
-      .map(p => p.illustration_url)
-      .filter((url): url is string => !!url);
-    const signedUrlMap = await fetchSignedUrls(illustrationUrls, story.id);
-    
-    const pdf = new jsPDF({
-      orientation: 'portrait',
-      unit: 'mm',
-      format: 'a4',
-    });
-
-      const pageWidth = pdf.internal.pageSize.getWidth();
-      const pageHeight = pdf.internal.pageSize.getHeight();
-
-      // Create a temporary container for rendering
-      const container = document.createElement('div');
-      container.style.position = 'absolute';
-      container.style.left = '-9999px';
-      container.style.top = '0';
-      container.style.width = `${pageWidth * 3.78}px`; // Convert mm to px (roughly)
-      container.style.height = `${pageHeight * 3.78}px`;
-      container.style.fontFamily = 'Heebo, Assistant, sans-serif';
-      container.style.direction = 'rtl';
-      document.body.appendChild(container);
-
-      // Create cover page
-      const coverPage = document.createElement('div');
-      coverPage.style.cssText = `
-        width: 100%;
-        height: 100%;
-        background: linear-gradient(135deg, #F5E6D3 0%, #FFF8E7 100%);
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        justify-content: center;
-        padding: 40px;
-        box-sizing: border-box;
-        direction: rtl;
-      `;
-      coverPage.innerHTML = `
-        <div style="
-          border: 4px double #8B4513;
-          border-radius: 16px;
-          padding: 48px;
-          background: rgba(255,248,231,0.9);
-          text-align: center;
-          max-width: 80%;
-        ">
-          <div style="color: #8B4513; font-size: 14px; margin-bottom: 24px;">✦ סיפור מיוחד ✦</div>
-          <h1 style="
-            color: #8B4513;
-            font-size: 32px;
-            font-weight: bold;
-            margin: 0 0 16px 0;
-            line-height: 1.4;
-          ">הסיפור של</h1>
-          <h2 style="
-            color: #9333ea;
-            font-size: 42px;
-            font-weight: bold;
-            margin: 0 0 24px 0;
-          ">${escapeHtml(story.child_name)}</h2>
-          <p style="
-            color: #6B4423;
-            font-size: 18px;
-            margin: 0;
-            line-height: 1.6;
-          ">${escapeHtml(story.topic)}</p>
-        </div>
-      `;
-      container.innerHTML = '';
-      container.appendChild(coverPage);
-      await createPdfPage(container as any, pdf, true);
-
-      // Create story pages
-      for (let i = 0; i < story.pages.length; i++) {
-        const page = story.pages[i];
-        
-        const storyPage = document.createElement('div');
-        storyPage.style.cssText = `
-          width: 100%;
-          height: 100%;
-          background: linear-gradient(to bottom, #FFF8E7 0%, #F5E6D3 100%);
-          padding: 20px 24px;
-          box-sizing: border-box;
-          display: flex;
-          flex-direction: column;
-          direction: rtl;
-        `;
-
-        let illustrationHtml = '';
-        if (page.illustration_url) {
-          try {
-            const resolvedUrl = signedUrlMap[page.illustration_url] || page.illustration_url;
-            const dataUrl = await loadImageAsDataUrl(resolvedUrl);
-            illustrationHtml = `
-              <div style="
-                flex: 0 0 65%;
-                display: flex;
-                justify-content: center;
-                align-items: center;
-                margin-bottom: 8px;
-              ">
-                <img 
-                  src="${dataUrl}" 
-                  style="
-                    max-width: 95%;
-                    max-height: 100%;
-                    border-radius: 16px;
-                    border: 3px solid #D4A574;
-                    box-shadow: 0 8px 24px rgba(139, 69, 19, 0.2);
-                    object-fit: contain;
-                  "
-                />
-              </div>
-            `;
-          } catch (e) {
-            console.log('Could not load illustration for page', i + 1);
-          }
-        }
-
-        storyPage.innerHTML = `
-          <div style="
-            border: 3px solid #8B4513;
-            border-radius: 16px;
-            padding: 16px 20px;
-            flex: 1;
-            display: flex;
-            flex-direction: column;
-            background: rgba(255, 248, 231, 0.95);
-            box-shadow: inset 0 2px 8px rgba(139, 69, 19, 0.1);
-          ">
-            ${illustrationHtml}
-            
-            <div style="
-              flex: ${page.illustration_url ? '0 0 25%' : '1'};
-              display: flex;
-              align-items: ${page.illustration_url ? 'flex-start' : 'center'};
-              justify-content: center;
-              padding: 8px 16px;
-            ">
-              <p style="
-                color: #4A3728;
-                font-size: 28px;
-                line-height: 1.8;
-                text-align: center;
-                margin: 0;
-                font-family: Heebo, Assistant, sans-serif;
-                max-width: 90%;
-              ">${escapeHtml(page.text)}</p>
-            </div>
-            
-            <div style="
-              flex: 0 0 auto;
-              text-align: center;
-              color: #8B4513;
-              font-size: 16px;
-              padding-top: 8px;
-              border-top: 2px solid #D4A574;
-            ">✦ ${i + 1} / ${story.pages.length} ✦</div>
-          </div>
-        `;
-
-        container.innerHTML = '';
-        container.appendChild(storyPage);
-        await createPdfPage(container as any, pdf, false);
-      }
-
-      // Cleanup
-      document.body.removeChild(container);
-
-    // Download the PDF
-    const fileName = `סיפור-${story.child_name.replace(/\s+/g, '-')}.pdf`;
-    pdf.save(fileName);
-  };
-
-  const exportLandscapeBook = async (story: Story) => {
-    // Pre-fetch signed URLs for all illustrations
-    const illustrationUrls = story.pages
-      .map(p => p.illustration_url)
-      .filter((url): url is string => !!url);
-    const signedUrlMap = await fetchSignedUrls(illustrationUrls, story.id);
-
-    const pdf = new jsPDF({
-      orientation: 'landscape',
-      unit: 'mm',
-      format: 'a4',
-    });
-
-    const pageWidth = pdf.internal.pageSize.getWidth();   // 297mm
-    const pageHeight = pdf.internal.pageSize.getHeight(); // 210mm
-
-    // Create a temporary container for rendering
-    const container = document.createElement('div');
-    container.style.position = 'absolute';
-    container.style.left = '-9999px';
-    container.style.top = '0';
-    container.style.width = `${pageWidth * 3.78}px`;
-    container.style.height = `${pageHeight * 3.78}px`;
-    container.style.fontFamily = 'Heebo, Assistant, sans-serif';
-    container.style.direction = 'rtl';
-    document.body.appendChild(container);
-
-    // Create cover page (full width centered)
+  const renderCoverPage = (childName: string, topic: string): HTMLDivElement => {
     const coverPage = document.createElement('div');
     coverPage.style.cssText = `
-      width: 100%;
-      height: 100%;
-      background: linear-gradient(135deg, #F5E6D3 0%, #FFF8E7 50%, #F5E6D3 100%);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      direction: rtl;
+      width: 100%; height: 100%;
+      background: linear-gradient(135deg, #F5E6D3 0%, #FFF8E7 100%);
+      display: flex; flex-direction: column; align-items: center; justify-content: center;
+      padding: 40px; box-sizing: border-box; direction: rtl;
     `;
     coverPage.innerHTML = `
-      <div style="
-        border: 4px double #8B4513;
-        border-radius: 20px;
-        padding: 48px 80px;
-        background: rgba(255,248,231,0.95);
-        text-align: center;
-        box-shadow: 0 12px 40px rgba(139, 69, 19, 0.25);
-      ">
-        <div style="color: #8B4513; font-size: 16px; margin-bottom: 28px; letter-spacing: 4px;">✦ סיפור מיוחד ✦</div>
-        <h1 style="
-          color: #8B4513;
-          font-size: 40px;
-          font-weight: bold;
-          margin: 0 0 16px 0;
-          line-height: 1.4;
-        ">הסיפור של</h1>
-        <h2 style="
-          color: #9333ea;
-          font-size: 56px;
-          font-weight: bold;
-          margin: 0 0 28px 0;
-        ">${escapeHtml(story.child_name)}</h2>
-        <p style="
-          color: #6B4423;
-          font-size: 24px;
-          margin: 0;
-          line-height: 1.6;
-        ">${escapeHtml(story.topic)}</p>
+      <div style="border: 4px double #8B4513; border-radius: 16px; padding: 48px;
+        background: rgba(255,248,231,0.9); text-align: center; max-width: 80%;">
+        <div style="color: #8B4513; font-size: 14px; margin-bottom: 24px;">✦ סיפור מיוחד ✦</div>
+        <h1 style="color: #8B4513; font-size: 32px; font-weight: bold; margin: 0 0 16px 0; line-height: 1.4;">הסיפור של</h1>
+        <h2 style="color: #9333ea; font-size: 42px; font-weight: bold; margin: 0 0 24px 0;">${escapeHtml(childName)}</h2>
+        <p style="color: #6B4423; font-size: 18px; margin: 0; line-height: 1.6;">${escapeHtml(topic)}</p>
       </div>
     `;
+    return coverPage;
+  };
+
+  // ─── Portrait ───────────────────────────────────────────────
+  const exportPortrait = async (story: Story) => {
+    const illustrationUrls = story.pages
+      .map(p => p.illustration_url)
+      .filter((url): url is string => !!url);
+    const signedUrlMap = await fetchSignedUrls(illustrationUrls, story.id);
+
+    const pdf = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
+    const pageWidth = pdf.internal.pageSize.getWidth();
+    const pageHeight = pdf.internal.pageSize.getHeight();
+
+    const container = document.createElement('div');
+    container.style.cssText = `position:absolute;left:-9999px;top:0;width:${pageWidth * 3.78}px;height:${pageHeight * 3.78}px;font-family:Heebo,Assistant,sans-serif;direction:rtl;`;
+    document.body.appendChild(container);
+
+    // Cover
     container.innerHTML = '';
-    container.appendChild(coverPage);
+    container.appendChild(renderCoverPage(story.child_name, story.topic));
     await createPdfPage(container as any, pdf, true);
 
-    // Create story spreads (image on right, text on left - RTL)
-    for (let i = 0; i < story.pages.length; i++) {
-      const page = story.pages[i];
-      
-      const spreadPage = document.createElement('div');
-      spreadPage.style.cssText = `
-        width: 100%;
-        height: 100%;
-        display: flex;
-        direction: rtl;
-        background: linear-gradient(to right, #FFF8E7 0%, #FFF8E7 49.5%, #D4A574 49.5%, #8B4513 50%, #D4A574 50.5%, #FFF8E7 50.5%, #FFF8E7 100%);
-      `;
+    // Spreads
+    const spreads = buildSpreads(story.pages);
+    const totalPages = story.pages.length;
+
+    for (let si = 0; si < spreads.length; si++) {
+      const spread = spreads[si];
+      const pageLabel = spread.pageNumbers.length > 1
+        ? `${spread.pageNumbers[0]}-${spread.pageNumbers[1]} / ${totalPages}`
+        : `${spread.pageNumbers[0]} / ${totalPages}`;
 
       let illustrationHtml = '';
-      if (page.illustration_url) {
+      if (spread.illustration_url) {
         try {
-          const resolvedUrl = signedUrlMap[page.illustration_url] || page.illustration_url;
+          const resolvedUrl = signedUrlMap[spread.illustration_url] || spread.illustration_url;
           const dataUrl = await loadImageAsDataUrl(resolvedUrl);
           illustrationHtml = `
-            <img 
-              src="${dataUrl}" 
-              style="
-                max-width: 90%;
-                max-height: 90%;
-                border-radius: 16px;
-                box-shadow: 0 8px 32px rgba(139, 69, 19, 0.25);
-                object-fit: contain;
-              "
-            />
-          `;
-        } catch (e) {
-          console.log('Could not load illustration for page', i + 1);
-        }
+            <div style="flex: 0 0 50%; display:flex; justify-content:center; align-items:center; margin-bottom:8px;">
+              <img src="${dataUrl}" style="max-width:95%; max-height:100%; border-radius:16px;
+                border:3px solid #D4A574; box-shadow:0 8px 24px rgba(139,69,19,0.2); object-fit:contain;" />
+            </div>`;
+        } catch { /* skip */ }
       }
 
+      const textBlocks = spread.texts.map((t, idx) => `
+        ${idx > 0 ? '<div style="width:60%; height:2px; background:#D4A574; margin:8px auto; border-radius:1px;"></div>' : ''}
+        <p style="color:#4A3728; font-size:26px; line-height:1.8; text-align:center; margin:0;
+          font-family:Heebo,Assistant,sans-serif; max-width:90%;">${escapeHtml(t)}</p>
+      `).join('');
+
+      const textFlex = spread.illustration_url ? '0 0 40%' : '1';
+
+      const spreadPage = document.createElement('div');
+      spreadPage.style.cssText = `width:100%;height:100%;background:linear-gradient(to bottom,#FFF8E7 0%,#F5E6D3 100%);
+        padding:20px 24px;box-sizing:border-box;display:flex;flex-direction:column;direction:rtl;`;
       spreadPage.innerHTML = `
-        <!-- Right side - Illustration (in RTL this appears first/right) -->
-        <div style="
-          flex: 1;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          background: linear-gradient(135deg, #FFF8E7 0%, #F5E6D3 100%);
-          padding: 24px;
-        ">
-          ${illustrationHtml || `
-            <div style="
-              width: 80%;
-              height: 80%;
-              background: linear-gradient(135deg, #F5E6D3, #E8D4BC);
-              border-radius: 16px;
-              display: flex;
-              align-items: center;
-              justify-content: center;
-              color: #8B4513;
-              font-size: 48px;
-            ">📖</div>
-          `}
-        </div>
-        
-        <!-- Left side - Text (in RTL this appears second/left) -->
-        <div style="
-          flex: 1;
-          display: flex;
-          flex-direction: column;
-          align-items: center;
-          justify-content: center;
-          background: #FFF8E7;
-          padding: 40px;
-          position: relative;
-        ">
-          <!-- Decorative corner -->
-          <div style="
-            position: absolute;
-            top: 20px;
-            right: 20px;
-            color: #D4A574;
-            font-size: 24px;
-          ">❧</div>
-          
-          <p style="
-            color: #4A3728;
-            font-size: 32px;
-            line-height: 2;
-            text-align: center;
-            margin: 0;
-            font-family: Heebo, Assistant, sans-serif;
-            max-width: 85%;
-          ">${escapeHtml(page.text)}</p>
-          
-          <!-- Page number -->
-          <div style="
-            position: absolute;
-            bottom: 24px;
-            left: 50%;
-            transform: translateX(-50%);
-            color: #8B4513;
-            font-size: 18px;
-          ">✦ ${i + 1} / ${story.pages.length} ✦</div>
-          
-          <!-- Decorative corner -->
-          <div style="
-            position: absolute;
-            bottom: 20px;
-            left: 20px;
-            color: #D4A574;
-            font-size: 24px;
-            transform: rotate(180deg);
-          ">❧</div>
-        </div>
-      `;
+        <div style="border:3px solid #8B4513;border-radius:16px;padding:16px 20px;flex:1;display:flex;flex-direction:column;
+          background:rgba(255,248,231,0.95);box-shadow:inset 0 2px 8px rgba(139,69,19,0.1);">
+          ${illustrationHtml}
+          <div style="flex:${textFlex};display:flex;flex-direction:column;align-items:center;justify-content:center;padding:8px 16px;">
+            ${textBlocks}
+          </div>
+          <div style="flex:0 0 auto;text-align:center;color:#8B4513;font-size:16px;padding-top:8px;border-top:2px solid #D4A574;">
+            ✦ ${pageLabel} ✦
+          </div>
+        </div>`;
 
       container.innerHTML = '';
       container.appendChild(spreadPage);
       await createPdfPage(container as any, pdf, false);
     }
 
-    // Cleanup
     document.body.removeChild(container);
+    pdf.save(`סיפור-${story.child_name.replace(/\s+/g, '-')}.pdf`);
+  };
 
-    // Download the PDF
-    const fileName = `ספר-${story.child_name.replace(/\s+/g, '-')}.pdf`;
-    pdf.save(fileName);
+  // ─── Landscape Book ─────────────────────────────────────────
+  const exportLandscapeBook = async (story: Story) => {
+    const illustrationUrls = story.pages
+      .map(p => p.illustration_url)
+      .filter((url): url is string => !!url);
+    const signedUrlMap = await fetchSignedUrls(illustrationUrls, story.id);
+
+    const pdf = new jsPDF({ orientation: 'landscape', unit: 'mm', format: 'a4' });
+    const pageWidth = pdf.internal.pageSize.getWidth();
+    const pageHeight = pdf.internal.pageSize.getHeight();
+
+    const container = document.createElement('div');
+    container.style.cssText = `position:absolute;left:-9999px;top:0;width:${pageWidth * 3.78}px;height:${pageHeight * 3.78}px;font-family:Heebo,Assistant,sans-serif;direction:rtl;`;
+    document.body.appendChild(container);
+
+    // Cover
+    const coverPage = document.createElement('div');
+    coverPage.style.cssText = `width:100%;height:100%;background:linear-gradient(135deg,#F5E6D3 0%,#FFF8E7 50%,#F5E6D3 100%);
+      display:flex;align-items:center;justify-content:center;direction:rtl;`;
+    coverPage.innerHTML = `
+      <div style="border:4px double #8B4513;border-radius:20px;padding:48px 80px;
+        background:rgba(255,248,231,0.95);text-align:center;box-shadow:0 12px 40px rgba(139,69,19,0.25);">
+        <div style="color:#8B4513;font-size:16px;margin-bottom:28px;letter-spacing:4px;">✦ סיפור מיוחד ✦</div>
+        <h1 style="color:#8B4513;font-size:40px;font-weight:bold;margin:0 0 16px 0;line-height:1.4;">הסיפור של</h1>
+        <h2 style="color:#9333ea;font-size:56px;font-weight:bold;margin:0 0 28px 0;">${escapeHtml(story.child_name)}</h2>
+        <p style="color:#6B4423;font-size:24px;margin:0;line-height:1.6;">${escapeHtml(story.topic)}</p>
+      </div>`;
+    container.innerHTML = '';
+    container.appendChild(coverPage);
+    await createPdfPage(container as any, pdf, true);
+
+    // Spreads
+    const spreads = buildSpreads(story.pages);
+    const totalPages = story.pages.length;
+
+    for (let si = 0; si < spreads.length; si++) {
+      const spread = spreads[si];
+      const pageLabel = spread.pageNumbers.length > 1
+        ? `${spread.pageNumbers[0]}-${spread.pageNumbers[1]} / ${totalPages}`
+        : `${spread.pageNumbers[0]} / ${totalPages}`;
+
+      const hasIllustration = !!spread.illustration_url;
+      let illustrationHtml = '';
+
+      if (hasIllustration) {
+        try {
+          const resolvedUrl = signedUrlMap[spread.illustration_url!] || spread.illustration_url!;
+          const dataUrl = await loadImageAsDataUrl(resolvedUrl);
+          illustrationHtml = `
+            <img src="${dataUrl}" style="max-width:90%;max-height:90%;border-radius:16px;
+              box-shadow:0 8px 32px rgba(139,69,19,0.25);object-fit:contain;" />`;
+        } catch { /* skip */ }
+      }
+
+      const textBlocks = spread.texts.map((t, idx) => `
+        ${idx > 0 ? '<div style="width:50%;height:2px;background:#D4A574;margin:16px auto;border-radius:1px;"></div>' : ''}
+        <p style="color:#4A3728;font-size:30px;line-height:2;text-align:center;margin:0;
+          font-family:Heebo,Assistant,sans-serif;max-width:85%;">${escapeHtml(t)}</p>
+      `).join('');
+
+      const spreadPage = document.createElement('div');
+
+      if (hasIllustration && illustrationHtml) {
+        // Two-column layout: illustration right, text left (RTL)
+        spreadPage.style.cssText = `width:100%;height:100%;display:flex;direction:rtl;
+          background:linear-gradient(to right,#FFF8E7 0%,#FFF8E7 49.5%,#D4A574 49.5%,#8B4513 50%,#D4A574 50.5%,#FFF8E7 50.5%,#FFF8E7 100%);`;
+        spreadPage.innerHTML = `
+          <div style="flex:1;display:flex;align-items:center;justify-content:center;
+            background:linear-gradient(135deg,#FFF8E7 0%,#F5E6D3 100%);padding:24px;">
+            ${illustrationHtml}
+          </div>
+          <div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;
+            background:#FFF8E7;padding:40px;position:relative;">
+            <div style="position:absolute;top:20px;right:20px;color:#D4A574;font-size:24px;">❧</div>
+            ${textBlocks}
+            <div style="position:absolute;bottom:24px;left:50%;transform:translateX(-50%);color:#8B4513;font-size:18px;">
+              ✦ ${pageLabel} ✦
+            </div>
+            <div style="position:absolute;bottom:20px;left:20px;color:#D4A574;font-size:24px;transform:rotate(180deg);">❧</div>
+          </div>`;
+      } else {
+        // Full-width text layout (no illustration, no placeholder)
+        spreadPage.style.cssText = `width:100%;height:100%;display:flex;align-items:center;justify-content:center;
+          background:linear-gradient(135deg,#FFF8E7 0%,#F5E6D3 100%);direction:rtl;`;
+        spreadPage.innerHTML = `
+          <div style="display:flex;flex-direction:column;align-items:center;justify-content:center;
+            padding:40px;max-width:80%;position:relative;">
+            <div style="position:absolute;top:-20px;right:0;color:#D4A574;font-size:24px;">❧</div>
+            ${textBlocks}
+            <div style="position:absolute;bottom:-30px;left:50%;transform:translateX(-50%);color:#8B4513;font-size:18px;">
+              ✦ ${pageLabel} ✦
+            </div>
+          </div>`;
+      }
+
+      container.innerHTML = '';
+      container.appendChild(spreadPage);
+      await createPdfPage(container as any, pdf, false);
+    }
+
+    document.body.removeChild(container);
+    pdf.save(`ספר-${story.child_name.replace(/\s+/g, '-')}.pdf`);
   };
 
   const exportToPdf = async (story: Story, layout: PdfLayout = 'portrait') => {
     if (isExporting) return;
-    
     setIsExporting(true);
     toast({ title: 'מכין את קובץ ה-PDF...' });
 
@@ -481,14 +313,10 @@ export const usePdfExport = () => {
       } else {
         await exportPortrait(story);
       }
-
       toast({ title: 'ה-PDF הורד בהצלחה!' });
     } catch (error) {
       console.error('Error exporting PDF:', error);
-      toast({ 
-        title: 'שגיאה ביצירת ה-PDF', 
-        variant: 'destructive' 
-      });
+      toast({ title: 'שגיאה ביצירת ה-PDF', variant: 'destructive' });
     } finally {
       setIsExporting(false);
     }
