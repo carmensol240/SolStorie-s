@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { Wand2, Coins } from "lucide-react";
+import { Wand2, Coins, X, GraduationCap } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useCredits } from "@/hooks/use-credits";
 import { useReferral } from "@/hooks/use-referral";
@@ -20,27 +20,39 @@ const LoggedInHome = ({ user, displayName }: LoggedInHomeProps) => {
   const { shareCoins } = useReferral();
   const { avatarUrl } = useChildAvatar();
   const [storyCount, setStoryCount] = useState<number>(0);
+  const [userRole, setUserRole] = useState<string | null>(null);
+  const [showEducatorBanner, setShowEducatorBanner] = useState(true);
 
-  // Fetch story count for welcome banner logic
+  // Check localStorage for dismissed state
   useEffect(() => {
-    const fetchStoryCount = async () => {
+    const dismissed = localStorage.getItem('educator_welcome_dismissed');
+    if (dismissed === 'true') setShowEducatorBanner(false);
+  }, []);
+
+  // Fetch story count and user_role
+  useEffect(() => {
+    const fetchData = async () => {
       if (!user?.id) return;
       
-      const { count, error } = await supabase
-        .from("stories")
-        .select("*", { count: "exact", head: true })
-        .eq("user_id", user.id);
+      const [storiesRes, profileRes] = await Promise.all([
+        supabase.from("stories").select("*", { count: "exact", head: true }).eq("user_id", user.id),
+        supabase.from("profiles").select("user_role").eq("id", user.id).maybeSingle(),
+      ]);
       
-      if (!error && count !== null) {
-        setStoryCount(count);
-      }
+      if (!storiesRes.error && storiesRes.count !== null) setStoryCount(storiesRes.count);
+      if (profileRes.data?.user_role) setUserRole(profileRes.data.user_role);
     };
-    
-    fetchStoryCount();
+    fetchData();
   }, [user?.id]);
 
   const totalCredits = (credits ?? 0) + shareCoins;
   const showWelcomeBanner = credits === 1 && storyCount === 0;
+  const isEducator = userRole === 'educator';
+
+  const dismissEducatorBanner = () => {
+    setShowEducatorBanner(false);
+    localStorage.setItem('educator_welcome_dismissed', 'true');
+  };
 
   return (
     <div className="flex-1 flex flex-col animate-fade-in relative -mx-4 -my-3">
@@ -98,6 +110,27 @@ const LoggedInHome = ({ user, displayName }: LoggedInHomeProps) => {
 
         {/* Spacer to push content to bottom */}
         <div className="flex-1" />
+
+        {/* Educator Welcome Banner */}
+        {isEducator && showEducatorBanner && (
+          <div className="mx-4 mb-4 relative overflow-hidden rounded-2xl bg-white/20 backdrop-blur-xl border border-white/30 p-4 shadow-lg">
+            <button
+              onClick={dismissEducatorBanner}
+              className="absolute top-2 left-2 w-6 h-6 flex items-center justify-center rounded-full bg-white/20 hover:bg-white/40 transition-colors"
+              aria-label="סגור"
+            >
+              <X className="w-4 h-4 text-white" />
+            </button>
+            <div className="flex items-center gap-3">
+              <div className="flex-shrink-0 w-12 h-12 bg-white/25 backdrop-blur-sm rounded-full flex items-center justify-center">
+                <GraduationCap className="w-6 h-6 text-white" />
+              </div>
+              <p className="text-white font-bold text-sm leading-relaxed pr-2">
+                ברוכים הבאים צוות החינוך היקר! כאן תמצאו כלים ליצירת קסם לימודי וערכי עבור הילדים. 🎓
+              </p>
+            </div>
+          </div>
+        )}
 
         {/* Welcome Gift Banner - shows only for new users */}
         <WelcomeGiftBanner credits={credits} storyCount={storyCount} />
