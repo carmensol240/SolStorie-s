@@ -48,6 +48,9 @@ const Auth = () => {
   // Signup terms consent (inline in registration form)
   const [signupTermsAccepted, setSignupTermsAccepted] = useState(false);
   
+  // User role selection
+  const [userRole, setUserRole] = useState<"parent" | "educator">("parent");
+  
   // Profile data for trial offer
   const [displayName, setDisplayName] = useState<string>("");
   const [storyCredits, setStoryCredits] = useState<number>(1);
@@ -359,7 +362,7 @@ const Auth = () => {
     }
 
     setIsSubmitting(true);
-    const { error, data } = await signUpWithEmail(email, password);
+    const { error, data } = await signUpWithEmail(email, password, { user_role: userRole });
     
     if (error) {
       let message = "לא הצלחנו ליצור חשבון. נסו שוב.";
@@ -1254,6 +1257,42 @@ const Auth = () => {
                   </p>
                 </div>
 
+                {/* Role Selection */}
+                <div className="space-y-2">
+                  <Label className="text-black font-bold">אני...</Label>
+                  <div className="grid grid-cols-2 gap-2">
+                    <button
+                      type="button"
+                      onClick={() => setUserRole("parent")}
+                      className={`flex flex-col items-center gap-1 p-3 rounded-xl border-2 transition-all ${
+                        userRole === "parent"
+                          ? "border-purple-500 bg-purple-50 shadow-sm"
+                          : "border-gray-200 hover:border-gray-300"
+                      }`}
+                    >
+                      <span className="text-2xl">👨‍👩‍👧</span>
+                      <span className="text-sm font-bold text-black">הורה</span>
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setUserRole("educator")}
+                      className={`flex flex-col items-center gap-1 p-3 rounded-xl border-2 transition-all ${
+                        userRole === "educator"
+                          ? "border-purple-500 bg-purple-50 shadow-sm"
+                          : "border-gray-200 hover:border-gray-300"
+                      }`}
+                    >
+                      <span className="text-2xl">🏫</span>
+                      <span className="text-sm font-bold text-black">מחנכ/ת</span>
+                    </button>
+                  </div>
+                  {userRole === "educator" && (
+                    <p className="text-xs text-green-600 font-medium text-center">
+                      🎁 מחנכים מקבלים 3 סיפורים במתנה!
+                    </p>
+                  )}
+                </div>
+
                 {/* Terms consent checkbox */}
                 <div className="flex items-start gap-3 p-3 bg-gray-50 rounded-xl border border-gray-200">
                   <Checkbox
@@ -1266,7 +1305,7 @@ const Auth = () => {
                     htmlFor="signup-terms" 
                     className="text-sm leading-relaxed cursor-pointer text-black/80"
                   >
-                    אני הורה/אפוטרופוס, קראתי ומסכים/ה ל
+                    {userRole === "educator" ? "אני מחנך/ת, קראתי ומסכים/ה ל" : "אני הורה/אפוטרופוס, קראתי ומסכים/ה ל"}
                     <Link to="/terms" className="text-purple underline mx-1">תנאי השימוש</Link>
                     ול
                     <Link to="/privacy" className="text-purple underline mx-1">מדיניות הפרטיות</Link>

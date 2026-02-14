@@ -18,7 +18,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 import elephantImage from "@/assets/elephant-hero.jpeg";
-import { PRICING_PACKAGES, TOOLKIT_SUBSCRIPTION } from "@/config/pricing";
+import { PRICING_PACKAGES, TOOLKIT_SUBSCRIPTION, EDUCATOR_PACKAGE } from "@/config/pricing";
 
 const Upgrade = () => {
   const navigate = useNavigate();
@@ -33,6 +33,8 @@ const Upgrade = () => {
   
   const [selectedPackage, setSelectedPackage] = useState<string>("popular");
   const [showPayPal, setShowPayPal] = useState(false);
+  const [userRole, setUserRole] = useState<string>("parent");
+  const [showEducatorPayPal, setShowEducatorPayPal] = useState(false);
   const [showToolkitPayPal, setShowToolkitPayPal] = useState(false);
   const [showSuccess, setShowSuccess] = useState(false);
   const [showSubscriptionSuccess, setShowSubscriptionSuccess] = useState(false);
@@ -47,6 +49,20 @@ const Upgrade = () => {
     const viewType = firstStoryId ? 'first_story' : noCredits ? 'no_credits' : 'regular';
     trackEvent({ eventType: 'feature_used', metadata: { feature: 'paywall_view', view_type: viewType } });
   }, [trackEvent, firstStoryId, noCredits]);
+
+  // Fetch user role
+  useEffect(() => {
+    const fetchRole = async () => {
+      if (!user) return;
+      const { data } = await supabase
+        .from('profiles')
+        .select('user_role')
+        .eq('id', user.id)
+        .maybeSingle();
+      if (data?.user_role) setUserRole(data.user_role);
+    };
+    fetchRole();
+  }, [user]);
 
   const isTestUser = user?.email?.toLowerCase() === WHITELISTED_TEST_EMAIL.toLowerCase();
 
@@ -371,6 +387,82 @@ const Upgrade = () => {
                 onClick={() => setShowToolkitPayPal(false)}
                 className="w-full text-center text-white/50 text-xs mt-3 hover:text-white/70 transition-colors"
               >
+                ביטול
+              </button>
+            </div>
+          )}
+
+          {/* Educator Package */}
+          {userRole === 'educator' && (
+            <div className="relative rounded-2xl p-[2px] mb-4 overflow-hidden"
+              style={{
+                background: 'linear-gradient(135deg, hsl(200,80%,50%), hsl(260,60%,60%), hsl(200,80%,50%))',
+                backgroundSize: '300% 300%',
+                animation: 'sparkle-border 4s ease-in-out infinite',
+              }}>
+              <div className="bg-[hsl(260,50%,13%)]/95 backdrop-blur-md rounded-[14px] p-4 space-y-3">
+                <div className="flex items-center gap-2">
+                  <span className="text-xl">🏫</span>
+                  <h3 className="font-black text-sm text-blue-200">{EDUCATOR_PACKAGE.label}</h3>
+                  <span className="bg-blue-500/30 text-blue-200 text-[10px] font-bold px-2 py-0.5 rounded-full">חבילה מיוחדת</span>
+                </div>
+                <p className="text-xs text-white/70 leading-relaxed">
+                  40 סיפורים + 40 עריכות חינם. מושלם לכיתה או לגן.
+                </p>
+                <div className="flex items-center justify-between">
+                  <div>
+                    <span className="text-xl font-black text-white">₪{EDUCATOR_PACKAGE.price}</span>
+                    <span className="text-xs text-white/60 mr-1">({EDUCATOR_PACKAGE.pricePerStory} לסיפור)</span>
+                  </div>
+                  <Button
+                    onClick={() => {
+                      if (!user) { navigate("/auth"); return; }
+                      setShowEducatorPayPal(true);
+                    }}
+                    size="sm"
+                    className="bg-gradient-to-r from-blue-500 to-purple-500 hover:from-blue-600 hover:to-purple-600 text-white font-bold rounded-xl text-xs px-4"
+                  >
+                    🏫 רכשו חבילת מחנכים
+                  </Button>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Educator PayPal */}
+          {showEducatorPayPal && (
+            <div className="bg-white/15 backdrop-blur-md rounded-xl border border-blue-400/30 p-4 mb-4 shadow-lg">
+              <p className="text-sm font-bold text-white text-center mb-3">
+                {EDUCATOR_PACKAGE.label} — {EDUCATOR_PACKAGE.stories} סיפורים תמורת ₪{EDUCATOR_PACKAGE.price}
+              </p>
+              <PayPalButton
+                amount={EDUCATOR_PACKAGE.price}
+                onSuccess={async () => {
+                  if (!user) return;
+                  try {
+                    await supabase.from('purchases').insert({
+                      user_id: user.id,
+                      package_name: EDUCATOR_PACKAGE.id,
+                      credits_purchased: EDUCATOR_PACKAGE.stories,
+                      amount_ils: EDUCATOR_PACKAGE.price,
+                      status: 'completed',
+                    });
+                    const success = await addCredits(EDUCATOR_PACKAGE.stories);
+                    if (success) {
+                      setPurchasedCredits(EDUCATOR_PACKAGE.stories);
+                      setShowEducatorPayPal(false);
+                      setShowSuccess(true);
+                    }
+                  } catch (error) {
+                    console.error('Educator purchase failed:', error);
+                    setShowEducatorPayPal(false);
+                    setShowFailed(true);
+                  }
+                }}
+                onError={() => { setShowEducatorPayPal(false); setShowFailed(true); }}
+                onCancel={() => setShowEducatorPayPal(false)}
+              />
+              <button onClick={() => setShowEducatorPayPal(false)} className="w-full text-center text-white/50 text-xs mt-3 hover:text-white/70 transition-colors">
                 ביטול
               </button>
             </div>
