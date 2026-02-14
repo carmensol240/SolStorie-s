@@ -387,10 +387,17 @@ const Auth = () => {
           })
           .eq("id", data.user.id);
       }
-      toast({
-        title: "ברוכים הבאים ל-SolStories! 🎉",
-        description: "מחכה לך סיפור ראשון במתנה מאיתנו כדי להתחיל בקסם ✨",
-      });
+      if (userRole === "educator") {
+        toast({
+          title: "ברוכים הבאים, צוות החינוך! 🎓",
+          description: "הוספנו לחשבון שלך 3 סיפורים במתנה כדי להתחיל ✨",
+        });
+      } else {
+        toast({
+          title: "ברוכים הבאים ל-SolStories! 🎉",
+          description: "מחכה לך סיפור ראשון במתנה מאיתנו כדי להתחיל בקסם ✨",
+        });
+      }
       // The useEffect will handle redirect - terms already accepted so goes straight to /adventure
     }
     setIsSubmitting(false);
@@ -1286,11 +1293,6 @@ const Auth = () => {
                       <span className="text-sm font-bold text-black">מחנכ/ת</span>
                     </button>
                   </div>
-                  {userRole === "educator" && (
-                    <p className="text-xs text-green-600 font-medium text-center">
-                      🎁 מחנכים מקבלים 3 סיפורים במתנה!
-                    </p>
-                  )}
                 </div>
 
                 {/* Terms consent checkbox */}
