@@ -407,7 +407,7 @@ const Upgrade = () => {
                   <span className="bg-blue-500/30 text-blue-200 text-[10px] font-bold px-2 py-0.5 rounded-full">חבילה מיוחדת</span>
                 </div>
                 <p className="text-xs text-white/70 leading-relaxed">
-                  40 סיפורים + 40 עריכות חינם. מושלם לכיתה או לגן.
+                  30 סיפורים + 2 עריכות לסיפור. מושלם לכיתה, לגן או לקליניקה.
                 </p>
                 <div className="flex items-center justify-between">
                   <div>
@@ -422,7 +422,7 @@ const Upgrade = () => {
                     size="sm"
                     className="bg-gradient-to-r from-blue-500 to-purple-500 hover:from-blue-600 hover:to-purple-600 text-white font-bold rounded-xl text-xs px-4"
                   >
-                    🏫 רכשו חבילת מחנכים
+                    🏫 רכשו חבילת אנשי חינוך וטיפול
                   </Button>
                 </div>
               </div>
@@ -462,6 +462,7 @@ const Upgrade = () => {
                 onError={() => { setShowEducatorPayPal(false); setShowFailed(true); }}
                 onCancel={() => setShowEducatorPayPal(false)}
               />
+              <p className="text-center text-white/60 text-[11px] mt-2">💳 ניתן לשלם גם בכרטיס אשראי ללא חשבון פייפאל</p>
               <button onClick={() => setShowEducatorPayPal(false)} className="w-full text-center text-white/50 text-xs mt-3 hover:text-white/70 transition-colors">
                 ביטול
               </button>

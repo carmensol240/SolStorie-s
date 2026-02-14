@@ -390,7 +390,7 @@ const Auth = () => {
       if (userRole === "educator") {
         toast({
           title: "ברוכים הבאים, צוות החינוך! 🎓",
-          description: "הוספנו לחשבון שלך 3 סיפורים במתנה כדי להתחיל ✨",
+          description: "לאנשי החינוך והטיפול שלנו, באהבה! הוספתי לך 3 סיפורים במתנה וקובץ PDF להדפסה לכל סיפור שתצרי 💜",
         });
       } else {
         toast({
@@ -1290,7 +1290,7 @@ const Auth = () => {
                       }`}
                     >
                       <span className="text-2xl">🏫</span>
-                      <span className="text-sm font-bold text-black">מחנכ/ת</span>
+                      <span className="text-sm font-bold text-black">איש/ת חינוך או טיפול</span>
                     </button>
                   </div>
                 </div>
