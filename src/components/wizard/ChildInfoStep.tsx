@@ -92,6 +92,7 @@ const ChildInfoStep = ({ formData, updateFormData }: ChildInfoStepProps) => {
   const [isUploadingPhoto, setIsUploadingPhoto] = useState(false);
   const [avatarRegenerationCount, setAvatarRegenerationCount] = useState(0);
   const [existingAvatarForDialog, setExistingAvatarForDialog] = useState<string | null>(null);
+  const [userRole, setUserRole] = useState<string | null>(null);
   
   // Selected age button
   const [selectedAgeButton, setSelectedAgeButton] = useState<string>(rangeToDisplayButton(formData.ageRange));
@@ -100,6 +101,14 @@ const ChildInfoStep = ({ formData, updateFormData }: ChildInfoStepProps) => {
   useEffect(() => {
     const fetchChildren = async () => {
       if (user) {
+        // Fetch role
+        const { data: profileData } = await supabase
+          .from("profiles")
+          .select("user_role")
+          .eq("id", user.id)
+          .maybeSingle();
+        if (profileData) setUserRole(profileData.user_role);
+
         // Fetch from database for authenticated users
         const { data, error } = await supabase
           .from("children")
@@ -505,6 +514,26 @@ const ChildInfoStep = ({ formData, updateFormData }: ChildInfoStepProps) => {
           </button>
         </div>
       </div>
+
+      {/* Class/Kindergarten Name - Educators only */}
+      {userRole === "educator" && (
+        <div className="space-y-1">
+          <Label htmlFor="className" className="text-xs font-medium flex items-center gap-1.5">
+            🏫 שם הכיתה / הגן
+          </Label>
+          <Input
+            id="className"
+            type="text"
+            placeholder="לדוגמה: כיתת הדבורים, גן חבצלת"
+            value={formData.className || ""}
+            onChange={(e) => updateFormData({ className: e.target.value })}
+            className="h-9 text-sm font-medium border-purple-200 focus:border-purple-400"
+            dir="rtl"
+            maxLength={100}
+          />
+          <p className="text-[10px] text-muted-foreground">שם הכיתה ישולב בסיפור בצורה טבעית</p>
+        </div>
+      )}
 
       {/* Photo Upload */}
       <div className="space-y-1.5">
