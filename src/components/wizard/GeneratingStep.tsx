@@ -1,19 +1,15 @@
 import { useState, useEffect, useCallback, useRef } from "react";
-import { Sparkles, BookOpen, Palette, FileText, RefreshCw, Wand2, Star } from "lucide-react";
+import { Sparkles, BookOpen, Palette, FileText, RefreshCw, Wand2, Star, Send } from "lucide-react";
 import avatarTestimonial1 from "@/assets/avatar-testimonial-1.png";
 import avatarTestimonial2 from "@/assets/avatar-testimonial-2.png";
 import avatarTestimonial3 from "@/assets/avatar-testimonial-3.png";
-import avatarTestimonial4 from "@/assets/avatar-testimonial-4.png";
-import avatarTestimonial5 from "@/assets/avatar-testimonial-5.png";
-import avatarParent1 from "@/assets/avatar-parent-1.png";
-import avatarParent2 from "@/assets/avatar-parent-2.png";
-import avatarParent3 from "@/assets/avatar-parent-3.png";
-import { Progress } from "@/components/ui/progress";
 import { Button } from "@/components/ui/button";
+import { Textarea } from "@/components/ui/textarea";
 import { StoryFormData } from "@/pages/CreateStory";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { useNavigate } from "react-router-dom";
+import { useAuth } from "@/hooks/use-auth";
 
 interface GeneratingStepProps {
   formData: StoryFormData;
@@ -63,9 +59,34 @@ const getTopicLabel = (topicId: string): string => {
   return topics[topicId] || topicId;
 };
 
+const PROFESSIONAL_TESTIMONIALS = [
+  {
+    name: "דנה כהן",
+    role: "מורה",
+    quote: "הסיפורים האישיים מעשירים את אוצר המילים ומפתחים את אהבת הקריאה בצורה מדהימה. ממליצה בחום.",
+    rating: 5,
+    avatar: avatarTestimonial1,
+  },
+  {
+    name: "שירה לוי",
+    role: "גננת",
+    quote: "הילדים בגן מתחברים רגשית לסיפורים כשהם הגיבורים. זה מפתח דמיון וכישורים חברתיים-רגשיים.",
+    rating: 5,
+    avatar: avatarTestimonial2,
+  },
+  {
+    name: "רונית אברהם",
+    role: "קלינאית תקשורת",
+    quote: "סיפורים מנוקדים לגילאי 7-8 תורמים לפיתוח מודעות פונולוגית ואוצר מילים. כלי מעולה להעשרה לשונית.",
+    rating: 5,
+    avatar: avatarTestimonial3,
+  },
+];
+
 const GeneratingStep = ({ formData, onComplete }: GeneratingStepProps) => {
   const { toast } = useToast();
   const navigate = useNavigate();
+  const { user } = useAuth();
   const [progress, setProgress] = useState(0);
   const [messageIndex, setMessageIndex] = useState(0);
   // Randomize initial indices so different content shows each time
@@ -74,32 +95,29 @@ const GeneratingStep = ({ formData, onComplete }: GeneratingStepProps) => {
   const [error, setError] = useState<string | null>(null);
   const hasStartedRef = useRef(false);
 
-  // Shuffle testimonials once on mount for variety
-  const [shuffledTestimonials] = useState(() => {
-    const testimonials = [
-      // Female name + female avatar + female Hebrew grammar
-      { name: "מיכל כהן", quote: "הילדה שלי מאושרת! כל לילה מבקשת לקרוא את הסיפור שלה שוב ושוב.", rating: 5, avatar: avatarTestimonial1 },
-      // Male name + male avatar + male Hebrew grammar
-      { name: "ערן לוי", quote: "הילדים שלי אוהבים את הסיפורים. הם מרגישים כמו גיבורים אמיתיים.", rating: 5, avatar: avatarParent1 },
-      // Female name + female avatar + female Hebrew grammar
-      { name: "שירה אברהם", quote: "האיורים מדהימים והסיפורים מותאמים בצורה מושלמת לגיל. ממליצה בחום!", rating: 5, avatar: avatarTestimonial2 },
-      // Male name + male avatar + male Hebrew grammar
-      { name: "יוסי דוד", quote: "יצרנו סיפור על הפחד מהחושך והילד שלי התגבר על הפחד תוך שבוע!", rating: 5, avatar: avatarParent2 },
-      // Female name + female avatar + female Hebrew grammar
-      { name: "נועה פרידמן", quote: "מתנה מושלמת לסבא וסבתא – סיפור עם הנכדים בתור הגיבורים! מרוגשת!", rating: 5, avatar: avatarTestimonial3 },
-      // Male name + male avatar + male Hebrew grammar
-      { name: "דני רוזנברג", quote: "הילד שלי לא מפסיק לבקש עוד סיפורים! מתלהב כל פעם מחדש.", rating: 5, avatar: avatarTestimonial4 },
-      // Female name + female avatar + female Hebrew grammar
-      { name: "רונית שמעון", quote: "איזה רעיון מקסים! הילדה שלי כל כך גאה לראות את עצמה כגיבורת הסיפור.", rating: 5, avatar: avatarTestimonial5 },
-      // Male name + male avatar + male Hebrew grammar
-      { name: "אמיר בן חיים", quote: "סיפורים באיכות מטורפת. הילדים שלי מחכים בקוצר רוח לסיפור הבא. ממליץ!", rating: 5, avatar: avatarParent3 },
-    ];
-    for (let i = testimonials.length - 1; i > 0; i--) {
-      const j = Math.floor(Math.random() * (i + 1));
-      [testimonials[i], testimonials[j]] = [testimonials[j], testimonials[i]];
+  // Feedback state
+  const [feedbackRating, setFeedbackRating] = useState(0);
+  const [feedbackHover, setFeedbackHover] = useState(0);
+  const [feedbackMessage, setFeedbackMessage] = useState("");
+  const [feedbackSent, setFeedbackSent] = useState(false);
+  const [feedbackSending, setFeedbackSending] = useState(false);
+  const handleSubmitFeedback = async () => {
+    if (feedbackRating === 0) return;
+    setFeedbackSending(true);
+    try {
+      await supabase.from("user_feedback").insert({
+        rating: feedbackRating,
+        message: feedbackMessage.trim() || null,
+        page_url: "generating",
+        user_id: user?.id || null,
+      });
+      setFeedbackSent(true);
+    } catch (err) {
+      console.error("Feedback error:", err);
+    } finally {
+      setFeedbackSending(false);
     }
-    return testimonials;
-  });
+  };
 
   const generateStory = useCallback(async () => {
     try {
@@ -352,7 +370,7 @@ const GeneratingStep = ({ formData, onComplete }: GeneratingStepProps) => {
     );
   }
 
-  const currentTestimonial = shuffledTestimonials[sentenceIndex % shuffledTestimonials.length];
+  const currentTestimonial = PROFESSIONAL_TESTIMONIALS[sentenceIndex % PROFESSIONAL_TESTIMONIALS.length];
 
   return (
     <div className="flex flex-col items-center justify-center min-h-[100dvh] text-center space-y-6 bg-gradient-to-b from-[#FAF3E8] to-[#F5E6D3] p-6">
@@ -431,10 +449,57 @@ const GeneratingStep = ({ formData, onComplete }: GeneratingStepProps) => {
         </p>
       </div>
 
-      {/* Parent Testimonials - Professional Carousel Cards */}
+      {/* Quick Feedback Card - only during generation */}
+      {progress < 100 && !feedbackSent && (
+        <div className="w-full max-w-sm bg-white rounded-xl p-4 shadow-lg border border-purple-100 space-y-3" dir="rtl">
+          <h3 className="text-center text-sm font-bold text-purple-700">
+            נשמח לדירוג שלכם! ⭐
+          </h3>
+          <div className="flex justify-center gap-1">
+            {[1, 2, 3, 4, 5].map((s) => (
+              <button
+                key={s}
+                onClick={() => setFeedbackRating(s)}
+                onMouseEnter={() => setFeedbackHover(s)}
+                onMouseLeave={() => setFeedbackHover(0)}
+                className="p-1 transition-transform hover:scale-110"
+                aria-label={`דירוג ${s} כוכבים`}
+              >
+                <Star className={`w-7 h-7 ${s <= (feedbackHover || feedbackRating) ? 'fill-amber-400 text-amber-400' : 'text-purple-200'} transition-colors`} />
+              </button>
+            ))}
+          </div>
+          <Textarea
+            value={feedbackMessage}
+            onChange={(e) => setFeedbackMessage(e.target.value)}
+            placeholder="ספרו לנו במשפט קצר מה דעתכם או שתפו טיפ להורים אחרים"
+            className="text-sm min-h-[60px] resize-none"
+            dir="rtl"
+          />
+          <Button
+            onClick={handleSubmitFeedback}
+            disabled={feedbackRating === 0 || feedbackSending}
+            size="sm"
+            className="w-full gap-1.5 bg-gradient-to-r from-purple-600 to-pink-500 hover:from-purple-700 hover:to-pink-600"
+          >
+            <Send className="w-3.5 h-3.5" />
+            {feedbackSending ? "שולח..." : "שליחה"}
+          </Button>
+        </div>
+      )}
+
+      {/* Thank you message after feedback */}
+      {feedbackSent && progress < 100 && (
+        <div className="w-full max-w-sm bg-gradient-to-r from-purple-50 to-pink-50 rounded-xl p-4 shadow-lg border border-purple-100 text-center animate-fade-in" dir="rtl">
+          <p className="text-lg font-bold text-purple-700">תודה רבה! 💜</p>
+          <p className="text-sm text-purple-500 mt-1">המשוב שלכם עוזר לנו להשתפר</p>
+        </div>
+      )}
+
+      {/* Professional Testimonials Carousel */}
       <div className="w-full max-w-sm space-y-2">
         <h3 className="text-center text-sm font-bold text-purple-700">
-          הורים ממליצים ✨
+          אנשי מקצוע ממליצים ✨
         </h3>
         <div
           className={`bg-white rounded-xl p-4 shadow-lg border border-purple-100 transition-opacity duration-500 ${
@@ -443,7 +508,6 @@ const GeneratingStep = ({ formData, onComplete }: GeneratingStepProps) => {
           dir="rtl"
         >
           <div className="flex items-start gap-3">
-            {/* Avatar */}
             <img
               src={currentTestimonial.avatar}
               alt={currentTestimonial.name}
@@ -451,9 +515,12 @@ const GeneratingStep = ({ formData, onComplete }: GeneratingStepProps) => {
             />
             <div className="flex-1 space-y-1">
               <div className="flex items-center justify-between">
-                <span className="text-sm font-bold text-purple-800">{currentTestimonial.name}</span>
+                <div>
+                  <span className="text-sm font-bold text-purple-800">{currentTestimonial.name}</span>
+                  <span className="block text-xs text-purple-500 font-medium">{currentTestimonial.role}</span>
+                </div>
                 <div className="flex gap-0.5">
-                  {[1,2,3,4,5].map((s) => (
+                  {[1, 2, 3, 4, 5].map((s) => (
                     <Star key={s} className={`w-3.5 h-3.5 ${s <= currentTestimonial.rating ? 'fill-amber-400 text-amber-400' : 'text-muted-foreground/30'}`} />
                   ))}
                 </div>
