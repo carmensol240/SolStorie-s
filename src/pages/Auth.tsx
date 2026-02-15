@@ -1049,7 +1049,7 @@ const Auth = () => {
 
       <div className="relative z-10 flex-1 flex flex-col items-center justify-center p-4 pb-20 overflow-y-auto">
         {/* Rainbow Logo */}
-        <h1 dir="ltr" className="text-3xl font-black text-center logo-3d-bubble mb-3 animate-fade-in">
+        <h1 dir="ltr" className="text-2xl sm:text-3xl font-black text-center logo-3d-bubble mb-3 animate-fade-in px-4">
           <span className="logo-rainbow">SolStorie's™</span>
         </h1>
 

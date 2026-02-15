@@ -102,9 +102,9 @@ const handler = async (req: Request): Promise<Response> => {
 
     // Send branded password reset email via Resend
     const emailResponse = await resend.emails.send({
-      from: "SoulStory <noreply@storytime.org.il>",
+      from: "SolStorie's™ <noreply@storytime.org.il>",
       to: [email],
-      subject: "🔐 איפוס סיסמה - SoulStory",
+      subject: "🔐 איפוס סיסמה - SolStorie's™",
       html: `
         <!DOCTYPE html>
         <html dir="rtl" lang="he">
@@ -159,7 +159,7 @@ const handler = async (req: Request): Promise<Response> => {
               <div style="border-top: 1px solid #e5e7eb; padding-top: 20px; margin-top: 30px; text-align: center;">
                 <p style="color: #9ca3af; font-size: 14px; margin: 0;">
                   בברכה,<br/>
-                  צוות SoulStory 🐘
+                  צוות SolStorie's™ 🐘
                 </p>
               </div>
               

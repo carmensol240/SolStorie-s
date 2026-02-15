@@ -41,7 +41,7 @@ export const EDUCATOR_PACKAGE = {
 export const TOOLKIT_SUBSCRIPTION = {
   id: "toolkit_yearly",
   price: 29.90,
-  label: "ארגז הכלים של SoulStory",
+  label: "ארגז הכלים של SolStorie's™",
   description: "כלים מעולם ה-NLP וחינוך מקרב שמתעדכנים בכל חודש. הפכו כל רגע עם הילדים לרגע של חיבור עמוק וצמיחה.",
 };
 

@@ -49,7 +49,7 @@ const PurchaseSuccessModal = ({
               <span className="text-4xl">✨</span>
             </div>
             <DialogTitle className="text-2xl font-black text-foreground">
-              ברוכים הבאים למשפחת SoulStory!
+              ברוכים הבאים למשפחת <span dir="ltr" className="inline-block">SolStorie's™</span>!
             </DialogTitle>
           </DialogHeader>
 

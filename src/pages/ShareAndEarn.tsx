@@ -208,7 +208,7 @@ const ShareAndEarn = () => {
 
         {/* Anti-fraud microcopy - clearer explanation */}
         <p className="text-xs text-muted-foreground text-center leading-relaxed">
-          הסיפור החינמי יתקבל רק לאחר שהחבר יסיים להירשם וליצור חשבון ב-SoulStory.
+          הסיפור החינמי יתקבל רק לאחר שהחבר יסיים להירשם וליצור חשבון ב-<span dir="ltr" className="inline-block">SolStorie's™</span>.
         </p>
       </main>
 
