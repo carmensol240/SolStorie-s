@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { X, Sparkles, Heart, Users, Crown, Shield } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -44,6 +44,10 @@ const Toolkit = () => {
   const [showPayPal, setShowPayPal] = useState(false);
   const [showSuccess, setShowSuccess] = useState(false);
   const [showFailed, setShowFailed] = useState(false);
+
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, []);
 
   const handlePurchase = () => {
     if (!user) {
