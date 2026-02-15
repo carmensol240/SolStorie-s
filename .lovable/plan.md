@@ -1,18 +1,20 @@
 
 
-# הוספת תמונה לתיבת ארגז הכלים החינוכי
+# החלפת תמונת הרקע במסך הבית (Adventure)
 
 ## סקירה
-כרגע הקטגוריה "ארגז כלים חינוכי" בגלריית הנושאים מציגה רקע סגול גרדיאנטי כי אין לה תמונת hero מוגדרת. התמונה שהועלתה תוכנס כתמונת ה-hero של הקטגוריה.
+החלפת תמונת הרקע הנוכחית (`hero-solstories-library.png`) במסך ה-Adventure — המסך שמציג "שלום [שם משתמש]" ו"ברוכים הבאים לעולמה הקסום של סול" — בתמונה שהועלתה.
 
 ## שינויים
 
-### 1. העתקת התמונה לפרויקט
-- העתקה מ-`user-uploads://ארגז_הכלים.jpeg` אל `src/assets/topic-educational-toolbox.jpeg`
+### 1. שמירת התמונה
+- העתקה מ-`user-uploads://WhatsApp_Image_2026-02-15_at_02.08.52.jpeg` אל `src/assets/hero-solstories-library-new.jpeg`
 
-### 2. קובץ: `src/components/wizard/TopicStep.tsx`
-- ייבוא התמונה החדשה בראש הקובץ: `import topicEducationalToolbox from "@/assets/topic-educational-toolbox.jpeg"`
-- הוספת `castImage: topicEducationalToolbox` להגדרת `EDUCATIONAL_TOOLBOX` (שורה 377-381)
+### 2. קובץ: `src/pages/Adventure.tsx`
+- עדכון שורת הייבוא: החלפת `hero-solstories-library.png` בתמונה החדשה `hero-solstories-library-new.jpeg`
 
-## תוצאה
-התיבה הסגולה תציג את התמונה של הילדים עם ארגז הכלים במקום הרקע הגרדיאנטי הריק.
+| קובץ | שינוי |
+|-------|-------|
+| `src/assets/hero-solstories-library-new.jpeg` | תמונה חדשה |
+| `src/pages/Adventure.tsx` | עדכון ייבוא תמונת הרקע |
+
