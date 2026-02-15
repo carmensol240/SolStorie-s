@@ -1,66 +1,37 @@
 
+# Update About Page Content
 
-# Comprehensive Master Prompt -- SolStorie's™ Launch
+## What Changes
 
-## Already Done (No Changes Needed)
+Replace the entire content section (lines 49-153) of `src/pages/About.tsx` with the new comprehensive text provided. The magical purple background, floating stars, footer, and navigation remain unchanged.
 
-- Domain set to soulstory.co.il in index.html
-- Brand name SolStorie's™ applied globally
-- Character "Noi" already renamed to Zoe everywhere
-- Footer already correct: "SolStorie's™ | כל הזכויות שמורות"
-- Logo scaled for mobile (text-2xl sm:text-3xl)
-- Read-aloud button removed
-- Age-based story length logic implemented in generate-story edge function
-- Privacy policy updated with new domain
-- Golden Heart rewards (certificate + coloring page) already implemented
-- PDF footer branding correct
+## New Content Structure
 
-## Changes Required (3 items)
+The page will be reorganized into these sections:
 
-### 1. Update Educator Package: 30 stories -> 25 stories
-
-**File:** `src/config/pricing.ts`
-
-Change the EDUCATOR_PACKAGE from 30 stories to 25 stories, and update the price-per-story calculation accordingly (199/25 = 7.96, displayed as "8₪").
-
-### 2. Update Educator Welcome Banner Text
-
-**File:** `src/components/home/LoggedInHome.tsx`
-
-Replace the current generic educator banner text with the specific festive message in singular feminine Hebrew:
-
-Current: "ברוכים הבאים צוות החינוך היקר! כאן תמצאו כלים ליצירת קסם לימודי וערכי עבור הילדים."
-
-New: "ברוכה הבאה לנבחרת המחנכות של SolStorie's™! כפי שהובטח, 3 סיפורים במתנה מחכים לך בחשבון. אל תשכחי לבדוק את החבילה המיוחדת עבורך: 25 סיפורים ב-199 ש״ח בלבד."
-
-The banner already has the correct behavior: shows only after login for educators, dismissible, saved in localStorage.
-
-### 3. Update Certificate Text to Feature Zoe
-
-**File:** `src/components/profile/GoldenHeartRewards.tsx`
-
-Update the certificate content to match the requested text:
-
-- Change subtitle from "תעודת חברות רשמית" to "תעודת חבר/ה רשמי/ת בנבחרת של זואי!"
-- Change body text from "החבר/ה הרשמי/ת של סול" to a multi-line message:
-  - "בזכות הסקרנות והדמיון שלך, פתחת את לב הזהב."
-  - "מעכשיו, את/ה חלק מהעולם הקסום שלנו."
-- Change signature line to: "על החתום: זואי (Zoe)"
-- Add a golden heart shape to the coloring page (Zoe holding the Golden Heart) as a lead illustration element
-
----
+1. **Title**: "✨ ברוכים הבאים לממלכת הסיפורים של SolStorie's™ ✨" + subtitle "המקום שבו הילד שלכם הופך לגיבור הסיפור"
+2. **Personal intro**: "שלום, אני אמא של סול" + the origin story paragraph
+3. **Features section** ("למה SolStorie's היא הרבה מעבר לאפליקציה?"): 7 feature items with emoji icons
+   - הילד שלכם בלב העלילה
+   - החבורה של סול
+   - סיפורים חברתיים מתוך הלב
+   - חיבור עמוק לרצף התקשורתי
+   - ארגז כלים לאנשי חינוך
+   - העולם מדבר אנגלית
+   - בכל מקום ובכל זמן
+4. **Age section** ("דיוק מושלם לכל שלב התפתחותי"): 3 age ranges (0-2, 3-6, 7-8)
+5. **Gift section** ("להעניק קסם במתנה"): Gift voucher + payment info
+6. **Safety section** ("מחויבות לבטיחות ואחריות"): Privacy + IP statement
+7. **CTA button**: "בואו נתחיל! (סיפור ראשון חינם) ✨"
+8. **Disclaimer box**: Medical/professional disclaimer
 
 ## Technical Details
 
-### pricing.ts (line 33-35)
-- `stories: 30` -> `stories: 25`
-- `pricePerStory: "6.6₪"` -> `pricePerStory: "8₪"`
-
-### LoggedInHome.tsx (line 128-129)
-- Replace banner paragraph text with the new singular feminine message
-- Wrap "SolStorie's™" in `<span dir="ltr" className="inline-block">` for correct RTL rendering
-
-### GoldenHeartRewards.tsx
-- Update `generateCertificate()` function: change subtitle text (line 59), body text (line 73), and add signature line
-- Update `generateColoringPage()` function: add a heart shape in Zoe's hands as the lead coloring element
-
+### File: `src/pages/About.tsx`
+- Lines 49-153: Replace entire content div with new structured content
+- Keep the same styling patterns (glassmorphism cards, gradient text, white/opacity text classes)
+- All SolStorie's™ mentions wrapped in `<span dir="ltr" className="inline-block">`
+- Feature items use the same `flex flex-col items-center gap-1.5` card pattern with emoji headers
+- Age ranges displayed as compact cards
+- Signature line removed (not in new text)
+- Device availability section removed (merged into features as "בכל מקום ובכל זמן")
