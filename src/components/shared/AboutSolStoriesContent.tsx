@@ -1,4 +1,4 @@
-export const AboutSoulStoryContent = () => {
+export const AboutSolStoriesContent = () => {
   return (
     <div className="space-y-4 text-sm text-foreground/90 leading-relaxed" dir="rtl">
       <p>כאימא לסול, עם עולם פנימי עשיר שחווה את העולם בדרך ייחודית ומרגשת, מצאתי את עצמי כל ערב יושבת ליד המיטה שלה וממציאה סיפורים. לא סתם סיפורים, אלא כאלו שעוזרים לה לעבד את היום שעבר, להתמודד עם קשיים בגן ולמצוא כוחות.</p>

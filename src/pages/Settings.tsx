@@ -14,7 +14,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { AboutSoulStoryContent } from "@/components/shared/AboutSolStoriesContent";
+import { AboutSolStoriesContent } from "@/components/shared/AboutSolStoriesContent";
 
 const Settings = () => {
   const navigate = useNavigate();
@@ -109,7 +109,7 @@ const Settings = () => {
             </div>
           </button>
 
-          {/* PWA Install - SoulStory App */}
+          {/* PWA Install - SolStorie's App */}
           <div className="bg-gradient-to-r from-amber-50 to-orange-50 dark:from-amber-950/20 dark:to-orange-950/20 rounded-lg px-3 py-3 border border-amber-200 dark:border-amber-800 space-y-2">
             <div className="flex items-center gap-2 justify-end">
               <div className="text-right">
@@ -208,7 +208,7 @@ const Settings = () => {
             </DialogTitle>
           </DialogHeader>
           <ScrollArea className="h-[60vh] pr-4">
-            <AboutSoulStoryContent />
+            <AboutSolStoriesContent />
           </ScrollArea>
         </DialogContent>
       </Dialog>
