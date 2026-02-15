@@ -70,24 +70,24 @@ const Adventure = () => {
   const totalCredits = (credits ?? 0) + shareCoins;
 
   return (
-    <div className="h-[100dvh] relative overflow-hidden" dir="rtl">
+    <div className="h-[100dvh] relative overflow-hidden flex flex-col" dir="rtl">
       {/* Background - full bleed cover */}
       <img
         src={heroBackground}
         alt=""
-        className="absolute inset-0 w-full h-full object-cover object-center"
+        className="absolute inset-0 w-full h-full object-cover object-top"
       />
-      {/* Gradient overlay for text readability */}
+      {/* Gradient overlay - stronger at bottom for text readability */}
       <div
         className="absolute inset-0"
         style={{
           background:
-            "linear-gradient(180deg, rgba(0,0,0,0.3) 0%, transparent 25%, transparent 70%, rgba(0,0,0,0.25) 100%)",
+            "linear-gradient(180deg, transparent 0%, transparent 55%, rgba(0,0,0,0.35) 75%, rgba(0,0,0,0.6) 100%)",
         }}
       />
 
-      {/* Header - floating over image */}
-      <header className="absolute top-0 left-0 right-0 z-20 flex items-center justify-between px-5 pt-6">
+      {/* Header - floating over image with safe top padding */}
+      <header className="relative z-20 flex items-center justify-between px-5 pt-12 pb-2">
         <div className="flex items-center gap-1.5">
           {avatarUrl && (
             <div className="w-8 h-8 rounded-full overflow-hidden border-2 border-white/50 shadow">
@@ -114,30 +114,31 @@ const Adventure = () => {
         </div>
       </header>
 
-      {/* Bottom content area - overlaid on image */}
-      <div className="absolute bottom-0 left-0 right-0 z-10 flex flex-col items-center px-4">
+      {/* Spacer - lets the image characters show */}
+      <div className="flex-1" />
+
+      {/* Bottom content - CTA area over dark gradient */}
+      <div className="relative z-10 flex flex-col items-center px-5 pb-20">
         <WelcomeGiftBanner credits={credits} storyCount={storyCount} />
 
         {/* Welcome message */}
         <p
-          className="text-white text-sm font-bold mb-2 animate-fade-in text-center"
+          className="text-white text-sm font-bold mb-3 animate-fade-in text-center"
           style={{ textShadow: "0 2px 8px rgba(0,0,0,0.5)" }}
         >
           ברוכים הבאים לעולמה הקסום של סול ✨
         </p>
 
         {/* Primary CTA Button */}
-        <div className="pb-[72px] flex justify-center w-full">
-          <button
-            onClick={() => navigate("/create")}
-            className="group flex items-center justify-center gap-2.5 rounded-full px-6 py-3 max-w-[260px] bg-gradient-to-r from-amber-400 via-orange-400 to-pink-400 shadow-[0_0_20px_rgba(251,191,36,0.4)] hover:shadow-[0_0_30px_rgba(251,191,36,0.6)] hover:scale-[1.03] active:scale-95 transition-all duration-300 animate-[glow-pulse_2.5s_ease-in-out_infinite] border border-white/30"
-          >
-            <Wand2 className="w-5 h-5 text-white drop-shadow-md group-hover:rotate-12 transition-transform duration-300" />
-            <span className="font-black text-base text-white drop-shadow-md">
-              יוצאים להרפתקה ✨
-            </span>
-          </button>
-        </div>
+        <button
+          onClick={() => navigate("/create")}
+          className="group flex items-center justify-center gap-2.5 rounded-full px-6 py-3 max-w-[260px] bg-gradient-to-r from-amber-400 via-orange-400 to-pink-400 shadow-[0_0_20px_rgba(251,191,36,0.4)] hover:shadow-[0_0_30px_rgba(251,191,36,0.6)] hover:scale-[1.03] active:scale-95 transition-all duration-300 animate-[glow-pulse_2.5s_ease-in-out_infinite] border border-white/30"
+        >
+          <Wand2 className="w-5 h-5 text-white drop-shadow-md group-hover:rotate-12 transition-transform duration-300" />
+          <span className="font-black text-base text-white drop-shadow-md">
+            יוצאים להרפתקה ✨
+          </span>
+        </button>
       </div>
 
       <MobileNavigation />
