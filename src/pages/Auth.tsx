@@ -15,6 +15,7 @@ import { useAnalytics } from "@/hooks/use-analytics";
 import { supabase } from "@/integrations/supabase/client";
 import { z } from "zod";
 import soliBackground from "@/assets/soli-tree-background.png";
+import solWaving from "@/assets/sol-waving-hello.png";
 
 const emailSchema = z.string().email("כתובת אימייל לא תקינה");
 const passwordSchema = z.string().min(6, "הסיסמה חייבת להכיל לפחות 6 תווים");
@@ -1047,8 +1048,29 @@ const Auth = () => {
       </div>
 
       <div className="relative z-10 flex-1 flex flex-col items-center justify-center p-4 pb-20 overflow-y-auto">
-        {/* Glassmorphism Login Container */}
-        <div className="w-full max-w-md bg-white/80 backdrop-blur-xl rounded-3xl shadow-2xl shadow-black/20 p-5 md:p-6 animate-fade-in max-h-[80vh] overflow-y-auto border border-white/50">
+        {/* Rainbow Logo */}
+        <h1 dir="ltr" className="text-3xl font-black text-center logo-3d-bubble mb-3 animate-fade-in">
+          <span className="logo-rainbow">SolStorie's™</span>
+        </h1>
+
+        {/* Container wrapper for peeking character */}
+        <div className="relative w-full max-w-md">
+          {/* Sol peeking from top-right */}
+          <div className="absolute -top-8 -left-4 z-20 pointer-events-none animate-float-gentle" style={{ transform: 'translate(-20%, -40%)' }}>
+            <img src={solWaving} alt="Sol waving hello" className="w-20 h-20 sm:w-24 sm:h-24 object-contain drop-shadow-lg" />
+          </div>
+
+          {/* Speech bubble */}
+          <div className="absolute -top-14 left-16 sm:left-20 z-20 pointer-events-none animate-fade-in-delay-3">
+            <div className="relative bg-white rounded-2xl px-3 py-1.5 shadow-lg border border-white/60">
+              <p className="text-xs font-black text-purple-700 whitespace-nowrap">!שלום! בואו נתחיל בהרפתקה</p>
+              {/* Triangle pointer */}
+              <div className="absolute -bottom-2 left-4 w-0 h-0" style={{ borderLeft: '6px solid transparent', borderRight: '6px solid transparent', borderTop: '8px solid white' }} />
+            </div>
+          </div>
+
+          {/* Glassmorphism Login Container */}
+          <div className="w-full bg-white/80 backdrop-blur-xl rounded-3xl shadow-2xl shadow-black/20 p-5 md:p-6 animate-fade-in max-h-[80vh] overflow-y-auto border border-white/50">
           {showForgotPassword ? (
             /* Forgot Password Form */
             <div className="space-y-4">
@@ -1332,6 +1354,7 @@ const Auth = () => {
 
             </>
           )}
+          </div>
         </div>
       </div>
       <MobileNavigation />
