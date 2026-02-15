@@ -1050,19 +1050,19 @@ const Auth = () => {
 
       <div className="relative z-10 flex-1 flex flex-col items-center justify-center p-4 pb-20 overflow-y-auto">
         {/* Rainbow Logo */}
-        <h1 dir="ltr" className="text-3xl sm:text-4xl font-black text-center logo-3d-bubble mb-3 animate-fade-in px-4">
+        <h1 dir="ltr" className="text-3xl sm:text-4xl font-black text-center logo-3d-bubble mb-1 animate-fade-in px-4">
           <span className="bg-gradient-to-r from-purple-600 via-pink-500 to-amber-400 bg-clip-text text-transparent" style={{ filter: 'drop-shadow(0 0 12px rgba(255,255,255,0.8)) drop-shadow(0 0 24px rgba(255,255,255,0.4))' }}>SolStorie's™</span>
         </h1>
 
         {/* Container wrapper for peeking character */}
-        <div className="relative w-full max-w-md">
+        <div className="relative w-full max-w-md overflow-visible pt-20 sm:pt-24">
           {/* Sol peeking from behind the box */}
-          <div className="absolute -top-36 -left-14 z-[5] pointer-events-none animate-slide-peek">
+          <div className="absolute -top-32 -left-10 z-[5] pointer-events-none animate-slide-peek">
             <img src={solWaving} alt="Sol waving hello" className="w-72 h-72 sm:w-80 sm:h-80 object-contain drop-shadow-lg" />
           </div>
 
           {/* Glassmorphism Login Container */}
-          <div className="relative z-10 w-full bg-white/80 backdrop-blur-xl rounded-3xl shadow-2xl shadow-black/20 p-5 md:p-6 animate-fade-in max-h-[80vh] overflow-y-auto border border-white/50">
+          <div className="relative z-10 w-full bg-white/80 backdrop-blur-xl rounded-3xl shadow-2xl shadow-black/20 p-4 md:p-5 animate-fade-in max-h-[80vh] overflow-y-auto border border-white/50">
           {showForgotPassword ? (
             /* Forgot Password Form */
             <div className="space-y-4">
