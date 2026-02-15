@@ -17,7 +17,7 @@ import { useAuth } from "@/hooks/use-auth";
 import { supabase } from "@/integrations/supabase/client";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
-import elephantImage from "@/assets/elephant-hero.jpeg";
+import heroImage from "@/assets/cast-group-forest.png";
 import { PRICING_PACKAGES, TOOLKIT_SUBSCRIPTION, EDUCATOR_PACKAGE } from "@/config/pricing";
 
 const Upgrade = () => {
@@ -267,8 +267,8 @@ const Upgrade = () => {
               style={{ boxShadow: '0 0 40px rgba(168, 85, 247, 0.3), 0 0 80px rgba(236, 72, 153, 0.15)' }}
             >
               <img 
-                src={elephantImage} 
-                alt="פיל חמוד קורא ספר" 
+                src={heroImage} 
+                alt="דמויות SolStorie's" 
                 className="w-full h-full object-cover"
               />
             </div>
