@@ -28,6 +28,7 @@ import topicNewSibling from "@/assets/topic-new-sibling.jpeg";
 import topicDentistVisit from "@/assets/topic-dentist-visit.jpeg";
 import topicBarberVisit from "@/assets/topic-barber-visit.jpg";
 import topicLostTooth from "@/assets/topic-lost-tooth.jpg";
+import topicEducationalToolbox from "@/assets/topic-educational-toolbox.jpeg";
 import topicSharing from "@/assets/topic-sharing.jpg";
 import topicCloudAdventure from "@/assets/topic-cloud-adventure.jpg";
 import topicFearOfDark from "@/assets/topic-fear-of-dark.jpg";
@@ -378,6 +379,7 @@ const EDUCATIONAL_TOOLBOX: AdventureCategory = {
   id: "educational-toolbox",
   title: "ארגז כלים חינוכי",
   emoji: "📚",
+  castImage: topicEducationalToolbox,
   subtitle: "כלים חינוכיים לאנשי חינוך וטיפול",
   topics: [
     {
