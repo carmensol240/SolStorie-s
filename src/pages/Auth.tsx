@@ -48,6 +48,7 @@ const Auth = () => {
   
   // Signup terms consent (inline in registration form)
   const [signupTermsAccepted, setSignupTermsAccepted] = useState(false);
+  const [rememberMe, setRememberMe] = useState(false);
   
   // User role selection
   const [userRole, setUserRole] = useState<"parent" | "educator">("parent");
@@ -1203,8 +1204,8 @@ const Auth = () => {
                   <div className="flex items-center gap-2">
                     <Checkbox
                       id="remember-me"
-                      checked={false}
-                      onCheckedChange={() => {}}
+                      checked={rememberMe}
+                      onCheckedChange={(checked) => setRememberMe(checked === true)}
                     />
                     <Label htmlFor="remember-me" className="text-sm text-black/70 font-medium cursor-pointer">
                       זכור אותי
