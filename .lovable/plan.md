@@ -1,102 +1,59 @@
 
+# Final Launch Configuration for SolStorie's™
 
-# Final Branding & Domain Setup
+## Status Check - What's Already Done
 
-## סיכום השינויים
+Most items from the previous branding update are already in place:
+- Domain set to soulstory.co.il in index.html
+- SolStorie's™ branding across most files
+- Character already named Zoe (no "Noi" found anywhere)
+- Logo sized for mobile
+- Footer updated correctly
+- Read-aloud removed from standard story UI
+- Privacy policy has all required regulatory content with the correct brand name and domain
 
-5 משימות מיתוג ודומיין שיש לבצע ב-14 קבצים:
+## Remaining Fixes (3 files)
 
----
+### 1. Fix export name in AboutSolStoriesContent.tsx
+The file was renamed but the exported function is still called `AboutSoulStoryContent`. Rename to `AboutSolStoriesContent`.
 
-## 1. דומיין: שינוי מ-solstories.co.il ל-soulstory.co.il
+### 2. Fix import + comment in Settings.tsx
+- Line 17: Update import from `AboutSoulStoryContent` to `AboutSolStoriesContent`
+- Line 112: Change comment from "SoulStory App" to "SolStorie's App"
+- Line 211: Update component usage `<AboutSoulStoryContent />` to `<AboutSolStoriesContent />`
 
-**קבצים:** `index.html`
+### 3. Remove "read-aloud" marketing text from GuestLanding.tsx
+Line 51 says "סיפורים והקראה קולית איכותית של ילדה ללמידת שפה בצורה חווייתית" -- the "הקראה קולית" mention should be replaced since read-aloud was removed. Suggested replacement: "סיפורים באנגלית עם ניקוד ותרגום ללמידת שפה בצורה חווייתית."
 
-| שורה | מ- | ל- |
-|------|----|----|
-| canonical | `solstories.co.il` | `soulstory.co.il` |
-| og:url | `solstories.co.il` | `soulstory.co.il` |
-| og:image | `solstories.co.il/favicon.png` | `soulstory.co.il/favicon.png` |
-| twitter:image | `solstories.co.il/favicon.png` | `soulstory.co.il/favicon.png` |
+## New Feature: Golden Heart Rewards (PDF Coloring Page + Certificate)
 
-**הערה:** לאחר שינוי הקוד, יש להגדיר את הדומיין `soulstory.co.il` בהגדרות הפרויקט (Domains) ולעדכן רשומות DNS (A record ל-185.158.133.1).
+When the "לב זהב" (Golden Heart) badge is unlocked in the Profile page, two new downloadable items become available:
 
----
+### What gets added:
+1. **Coloring Page PDF** -- A printable coloring page featuring the Sol character, generated client-side using jspdf (already installed)
+2. **"Official Friend" Certificate** -- A branded certificate with the child's name, date, and the footer "SolStorie's™ | כל הזכויות שמורות"
 
-## 2. שם המותג: החלפת כל "SoulStory" ל-"SolStorie's™"
+### Implementation Details:
 
-**10 קבצים לעדכון:**
+**New file: `src/components/profile/GoldenHeartRewards.tsx`**
+- A component that renders two download buttons (coloring page + certificate) when the badge is unlocked
+- Uses jspdf to generate both PDFs client-side
+- Certificate includes: child name, date, Sol character branding, and the required footer
+- Coloring page includes: simple line-art layout with "SolStorie's™" header and branded footer
 
-| קובץ | שינוי |
-|-------|-------|
-| `vite.config.ts` | PWA manifest name/short_name |
-| `src/config/pricing.ts` | "ארגז הכלים של SoulStory" |
-| `src/pages/Settings.tsx` | הערה + import name |
-| `src/components/shared/AboutSoulStoryContent.tsx` | שם הקובץ (rename) + תוכן |
-| `src/components/paywall/PurchaseSuccessModal.tsx` | "ברוכים הבאים למשפחת SoulStory" |
-| `src/pages/ShareAndEarn.tsx` | "חשבון ב-SoulStory" |
-| `src/pages/Toolkit.tsx` | "SoulStory™" בלוגו |
-| `supabase/functions/send-password-reset/index.ts` | from, subject, חתימה |
-| `supabase/functions/send-purchase-confirmation/index.ts` | from, חתימה |
-| `supabase/functions/send-contact-form/index.ts` | from, חתימה |
-| `supabase/functions/azure-speech-tts/index.ts` | User-Agent header |
+**Modified file: `src/pages/Profile.tsx`**
+- Import and render `GoldenHeartRewards` component below the badge grid
+- Pass `childName`, `isUnlocked` (from the "לב זהב" badge state), and the badge data
+- Only visible when the Golden Heart badge is unlocked
+- Styled consistently with the existing glassmorphism card design
 
----
+### Technical Notes
+- jspdf is already installed -- no new dependencies needed
+- PDFs are generated entirely client-side (no backend calls)
+- Hebrew text in jspdf requires embedding the Heebo font (already available at `src/assets/fonts/Heebo-Regular.woff2`) -- it will be loaded as base64 for PDF rendering
+- Both PDFs include the branded footer: "SolStorie's™ | כל הזכויות שמורות"
+- The coloring page uses simple geometric shapes and line art (no external images needed)
+- The certificate uses a decorative border with gradient-inspired colors rendered as PDF drawing commands
 
-## 3. דמות "Noi" -> Zoe
-
-**לא נדרש שינוי** -- הדמות כבר נקראת Zoe/זואי בכל הקבצים. אין הופעה של "Noi" כשם דמות באפליקציה.
-
----
-
-## 4. לוגו -- התאמת גודל למובייל
-
-**קבצים:** `src/components/home/GuestLanding.tsx`, `src/pages/Auth.tsx`
-
-שינוי גודל הלוגו כדי שלא ייחתך במסכים צרים:
-- הקטנת text-3xl ל-text-2xl במובייל עם sm:text-3xl ל-desktop
-- הוספת padding אופקי (`px-4`) למניעת חיתוך
-
----
-
-## 5. פוטר -- עדכון הזכויות
-
-**קובץ:** `src/components/shared/GlobalFooter.tsx`
-
-```text
-מ-: © 2026 SolStorie's™. כל הזכויות שמורות לאמא של סול.
-ל-: SolStorie's™ | כל הזכויות שמורות
-```
-
----
-
-## פירוט טכני מלא
-
-### index.html (4 שינויים)
-- שורה 27: canonical -> `soulstory.co.il`
-- שורה 33: og:url -> `soulstory.co.il`
-- שורה 35: og:image -> `soulstory.co.il/favicon.png`
-- שורה 38: twitter:image -> `soulstory.co.il/favicon.png`
-
-### vite.config.ts (2 שינויים)
-- שורה 20: `"SoulStory™ – סיפורים עם נשמה"` -> `"SolStorie's™ – סיפורים עם נשמה"`
-- שורה 21: `"SoulStory"` -> `"SolStorie's™"`
-
-### GlobalFooter.tsx (1 שינוי)
-- הטקסט המלא מוחלף לפורמט החדש ללא סימן (c) וללא "לאמא של סול"
-
-### GuestLanding.tsx (1 שינוי)
-- שורה 116: הקטנת גודל פונט ל-`text-2xl sm:text-3xl`
-
-### Auth.tsx (1 שינוי)
-- שורה 1052: הקטנת גודל פונט ל-`text-2xl sm:text-3xl`
-
-### pricing.ts, Settings.tsx, PurchaseSuccessModal.tsx, ShareAndEarn.tsx, Toolkit.tsx (5 קבצים)
-- החלפת כל "SoulStory" ל-`SolStorie's™` עם עטיפת dir="ltr" היכן שרלוונטי
-
-### AboutSoulStoryContent.tsx (1 קובץ)
-- שינוי שם הרכיב ל-`AboutSolStoriesContent` (ועדכון ה-import ב-Settings.tsx)
-
-### 3 Edge Functions (send-password-reset, send-purchase-confirmation, send-contact-form, azure-speech-tts)
-- החלפת "SoulStory" ל-"SolStorie's™" בשולח, נושא וחתימה
-
+### Story Length Logic
+Already correctly implemented in the `generate-story` edge function per the saved project memory. No changes needed -- ages 0-2 get short stories, 3-6 medium, 7-8 complex with full vocalization.
