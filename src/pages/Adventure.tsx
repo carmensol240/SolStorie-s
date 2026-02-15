@@ -7,7 +7,7 @@ import { useChildAvatar } from "@/hooks/use-child-avatar";
 import { useAuth } from "@/hooks/use-auth";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
-import heroBackground from "@/assets/hero-solstories-library-new.jpeg";
+import heroBackground from "@/assets/hero-solstories-welcome.png";
 import WelcomeGiftBanner from "@/components/home/WelcomeGiftBanner";
 import MobileNavigation from "@/components/MobileNavigation";
 
