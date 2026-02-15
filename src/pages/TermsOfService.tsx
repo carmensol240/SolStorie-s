@@ -30,7 +30,7 @@ const TermsOfService = () => {
             <section>
               <h2 className="text-lg font-bold text-foreground mb-2">מהות השירות</h2>
               <p className="text-muted-foreground leading-relaxed">
-                <span dir="ltr" className="inline-block">SolStories</span> מספקת פלטפורמה ליצירת תוכן ספרותי מותאם אישית לילדים בגילאי 0-8, המיועדת להורים, אפוטרופוסים חוקיים ואנשי חינוך וטיפול (מחנכים, גננות, מטפלים, קלינאים ואנשי מקצוע טיפוליים).
+                <span dir="ltr" className="inline-block">SolStorie's™</span> מספקת פלטפורמה ליצירת תוכן ספרותי מותאם אישית לילדים בגילאי 0-8, המיועדת להורים, אפוטרופוסים חוקיים ואנשי חינוך וטיפול (מחנכים, גננות, מטפלים, קלינאים ואנשי מקצוע טיפוליים).
               </p>
             </section>
 
@@ -58,7 +58,7 @@ const TermsOfService = () => {
             <section>
               <h2 className="text-lg font-bold text-foreground mb-2">קניין רוחני</h2>
               <p className="text-muted-foreground leading-relaxed">
-                העיצוב, הקוד, הדמויות (סול וחבריה), האיורים והטכנולוגיה הם קניינה הבלעדי של <span dir="ltr" className="inline-block">SolStories</span>. כל הסיפורים, עיצובי הדמויות והנכסים הויזואליים מוגנים בזכויות יוצרים ואין לעשות בהם שימוש מסחרי ללא אישור בכתב. הסיפורים הנוצרים מיועדים לשימוש אישי ופרטי בלבד.
+                העיצוב, הקוד, הדמויות (סול וחבריה), האיורים והטכנולוגיה הם קניינה הבלעדי של <span dir="ltr" className="inline-block">SolStorie's™</span>. כל הסיפורים, עיצובי הדמויות והנכסים הויזואליים מוגנים בזכויות יוצרים ואין לעשות בהם שימוש מסחרי ללא אישור בכתב. הסיפורים הנוצרים מיועדים לשימוש אישי ופרטי בלבד.
               </p>
             </section>
 
