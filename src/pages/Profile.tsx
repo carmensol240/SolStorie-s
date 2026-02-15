@@ -39,6 +39,7 @@ interface Badge {
   name: string;
   description: string;
   unlocked: boolean;
+  unlockHint: string;
 }
 
 interface FavoriteStory {
@@ -108,11 +109,11 @@ const Profile = () => {
         const hasEmotional = stories.some((s) => s.theme === "emotional");
 
         setBadges([
-          { emoji: "🌱", name: "נבט הדמיון", description: "יצירת סיפור ראשון", unlocked: stories.length >= 1 },
-          { emoji: "⭐", name: "חוקר כוכבים", description: "סיפורי הרפתקה", unlocked: hasAdventure },
-          { emoji: "💛", name: "לב זהב", description: "סיפורים רגשיים", unlocked: hasEmotional },
-          { emoji: "📖", name: "קוסם מילים", description: "5+ סיפורים", unlocked: stories.length >= 5 },
-          { emoji: "🤝", name: "החבר/ה של סול", description: "10+ סיפורים", unlocked: stories.length >= 10 },
+          { emoji: "🌱", name: "נבט הדמיון", description: "יצירת סיפור ראשון", unlocked: stories.length >= 1, unlockHint: "צרו את הסיפור הראשון שלכם כדי לפתוח את הנבט!" },
+          { emoji: "⭐", name: "חוקר כוכבים", description: "סיפורי הרפתקה", unlocked: hasAdventure, unlockHint: "קראו 5 סיפורי הרפתקה כדי להפוך לחוקרי כוכבים!" },
+          { emoji: "💛", name: "לב זהב", description: "סיפורים רגשיים", unlocked: hasEmotional, unlockHint: "כדי לפתוח את לב הזהב של סול ולהפוך לחברים הכי טובים, המשיכו להיכנס וליצור סיפורים במשך 7 ימים רצופים. אתם כמעט שם!" },
+          { emoji: "📖", name: "קוסם מילים", description: "5+ סיפורים", unlocked: stories.length >= 5, unlockHint: "צרו 5 סיפורים או יותר כדי להפוך לקוסמי מילים!" },
+          { emoji: "🤝", name: "החבר/ה של סול", description: "10+ סיפורים", unlocked: stories.length >= 10, unlockHint: "צרו 10 סיפורים כדי להפוך לחברים הכי טובים של סול!" },
         ]);
       });
 
@@ -359,8 +360,16 @@ const Profile = () => {
                 <div
                   key={i}
                   className={`flex flex-col items-center gap-1 transition-all ${
-                    badge.unlocked ? "" : "opacity-40 grayscale"
+                    badge.unlocked ? "" : "opacity-40 grayscale cursor-pointer"
                   }`}
+                  onClick={() => {
+                    if (!badge.unlocked) {
+                      toast(badge.name, {
+                        description: badge.unlockHint,
+                        icon: badge.emoji,
+                      });
+                    }
+                  }}
                 >
                   <div
                     className="w-12 h-12 rounded-xl flex items-center justify-center text-2xl"
