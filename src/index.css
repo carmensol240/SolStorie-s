@@ -573,6 +573,21 @@
   );
 }
 
+@keyframes slide-peek {
+  0% {
+    opacity: 0;
+    transform: translate(20%, 40%);
+  }
+  100% {
+    opacity: 1;
+    transform: translate(-10%, -30%);
+  }
+}
+
+.animate-slide-peek {
+  animation: slide-peek 1.8s ease-out forwards;
+}
+
 .rainbow-arc {
   background: radial-gradient(
     ellipse 120% 60% at 50% 80%,

@@ -1056,22 +1056,13 @@ const Auth = () => {
 
         {/* Container wrapper for peeking character */}
         <div className="relative w-full max-w-md">
-          {/* Sol peeking from top-right */}
-           <div className="absolute -top-28 -left-10 z-20 pointer-events-none animate-float-gentle" style={{ transform: 'translate(-10%, -30%)' }}>
-            <img src={solWaving} alt="Sol waving hello" className="w-48 h-48 sm:w-52 sm:h-52 object-contain drop-shadow-lg" />
-          </div>
-
-          {/* Speech bubble */}
-          <div className="absolute -top-6 left-24 sm:left-28 z-20 pointer-events-none animate-fade-in-delay-3">
-            <div className="relative bg-white rounded-2xl px-3 py-1.5 shadow-lg border border-white/60">
-              <p className="text-xs font-black text-purple-700 whitespace-nowrap">!שלום! בואו נתחיל בהרפתקה</p>
-              {/* Triangle pointer */}
-              <div className="absolute -bottom-2 left-2 w-0 h-0" style={{ borderLeft: '6px solid transparent', borderRight: '6px solid transparent', borderTop: '8px solid white' }} />
-            </div>
+          {/* Sol peeking from behind the box */}
+          <div className="absolute -top-36 -left-14 z-[5] pointer-events-none animate-slide-peek">
+            <img src={solWaving} alt="Sol waving hello" className="w-72 h-72 sm:w-80 sm:h-80 object-contain drop-shadow-lg" />
           </div>
 
           {/* Glassmorphism Login Container */}
-          <div className="w-full bg-white/80 backdrop-blur-xl rounded-3xl shadow-2xl shadow-black/20 p-5 md:p-6 animate-fade-in max-h-[80vh] overflow-y-auto border border-white/50">
+          <div className="relative z-10 w-full bg-white/80 backdrop-blur-xl rounded-3xl shadow-2xl shadow-black/20 p-5 md:p-6 animate-fade-in max-h-[80vh] overflow-y-auto border border-white/50">
           {showForgotPassword ? (
             /* Forgot Password Form */
             <div className="space-y-4">
@@ -1214,13 +1205,25 @@ const Auth = () => {
                   </div>
                 </div>
 
-                <button
-                  type="button"
-                  onClick={() => setShowForgotPassword(true)}
-                  className="text-purple hover:underline text-sm font-medium"
-                >
-                  שכחתי סיסמה
-                </button>
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <Checkbox
+                      id="remember-me"
+                      checked={false}
+                      onCheckedChange={() => {}}
+                    />
+                    <Label htmlFor="remember-me" className="text-sm text-black/70 font-medium cursor-pointer">
+                      זכור אותי
+                    </Label>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => setShowForgotPassword(true)}
+                    className="text-purple hover:underline text-sm font-medium"
+                  >
+                    שכחתי סיסמה
+                  </button>
+                </div>
 
                 <Button
                   type="submit"
