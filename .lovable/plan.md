@@ -1,64 +1,63 @@
 
-# עדכון מסך טעינה + המלצות מקצועיות + מיתוג
+# Rainbow Logo, Scaling & Layout Fixes
 
-## סקירה
-שלושה חלקים עיקריים: (1) כרטיס משוב אינטראקטיבי בזמן טעינת הסיפור, (2) החלפת המלצות הורים בהמלצות אנשי מקצוע, (3) תיקוני מיתוג שנותרו.
-
----
-
-## מה כבר מומש (לא נדרש שינוי)
-- **PDF Footer**: כבר `"SolStorie's™ | כל הזכויות שמורות"`
-- **Disclaimer**: כבר מופיע רק ב-About ו-Welcome
-- **TM** ב-About, Welcome, Profile, GlobalFooter, GuestLanding, Auth, AboutSoulStoryContent -- כבר עודכן
+## Overview
+Update the GuestLanding logo to use a vibrant rainbow gradient with a glowing contrast effect, scale it down to fit comfortably, and fix padding/spacing on both the GuestLanding and Adventure (logged-in) screens.
 
 ---
 
-## שינויים נדרשים
+## Changes
 
-### 1. כרטיס "משוב מהיר" בזמן טעינה (`src/components/wizard/GeneratingStep.tsx`)
+### 1. Rainbow Logo CSS (`src/index.css`)
 
-**הוספת כרטיס משוב** שמופיע מתחת למד ההתקדמות, **רק בזמן שהסיפור נוצר** (נעלם כשה-progress מגיע ל-100%):
+**Replace** the existing `.logo-story`, `.logo-time`, and `.logo-3d-bubble` styles (lines 416-439) with a unified rainbow gradient approach:
 
-- כותרת: **"נשמח לדירוג שלכם!"**
-- 5 כוכבים אינטראקטיביים (clickable)
-- שדה טקסט קצר עם placeholder: **"ספרו לנו במשפט קצר מה דעתכם או שתפו טיפ להורים אחרים"**
-- כפתור "שליחה" קטן
-- שמירה לטבלת `user_feedback` הקיימת (rating, message, page_url='generating', user_id)
-- לאחר שליחה: הודעת "תודה!" עם אנימציה עדינה, הכרטיס מוחלף בהודעת תודה
+- Remove the separate `.logo-story` / `.logo-time` color classes
+- Add a new `.logo-rainbow` class that uses `background: linear-gradient(90deg, #ff0000, #ff8c00, #ffd700, #00c853, #2196f3, #9c27b0, #e91e63)` with `-webkit-background-clip: text` and `color: transparent`
+- Add a bright outer glow via `filter: drop-shadow(0 0 12px rgba(255,255,255,0.8)) drop-shadow(0 0 24px rgba(255,255,255,0.4))` for contrast against the busy background
+- Keep `.logo-3d-bubble` font-family as-is
 
-### 2. החלפת המלצות הורים בהמלצות מקצועיות (`src/components/wizard/GeneratingStep.tsx`)
+### 2. GuestLanding Logo Markup (`src/components/home/GuestLanding.tsx`)
 
-**החלפת מערך ה-testimonials** (שורות 78-102) בהמלצות של 3 פרסונות מקצועיות:
+**Update lines 116-119** -- the logo `<h1>`:
 
-| תפקיד | שם | אווטאר | ציטוט (לשון נקבה יחידה) |
-|--------|-----|---------|------------------------|
-| מורה | דנה כהן, מורה | avatarTestimonial1 | "הסיפורים האישיים מעשירים את אוצר המילים ומפתחים את אהבת הקריאה בצורה מדהימה. ממליצה בחום." |
-| גננת | שירה לוי, גננת | avatarTestimonial2 | "הילדים בגן מתחברים רגשית לסיפורים כשהם הגיבורים. זה מפתח דמיון וכישורים חברתיים-רגשיים." |
-| קלינאית תקשורת | רונית אברהם, קלינאית תקשורת | avatarTestimonial3 | "סיפורים מנוקדים לגילאי 7-8 תורמים לפיתוח מודעות פונולוגית ואוצר מילים. כלי מעולה להעשרה לשונית." |
+- Replace `text-5xl sm:text-6xl` with `text-3xl sm:text-4xl` to scale down
+- Remove `logo-3d-bubble` and individual `logo-story`/`logo-time` spans
+- Use a single `<span>` with the new `logo-rainbow` class wrapping `SolStorie's™`
+- Wrap in `dir="ltr"` for RTL compatibility
+- Keep `text-center` and add `px-6` for side margins
 
-- כל הציטוטים בלשון נקבה יחידה (ממליצה, לא ממליץ)
-- אווטארים -- נשתמש באווטארי נשים קיימים (testimonial 1-3)
-- תגית תפקיד מקצועי מופיעה מתחת לשם בצבע סגול
+### 3. Adventure Header Padding (`src/pages/Adventure.tsx`)
 
-### 3. תיקוני מיתוג -- Settings.tsx
+**Update line 85** -- the header:
 
-**`src/pages/Settings.tsx`** -- 4 מופעים של `SolStories` ללא TM:
-- שורה 116: `"התקנת SolStories"` -> `"התקנת SolStorie's™"`
-- שורה 141: `"איך מתקינים את SolStories?"` -> `"איך מתקינים את SolStorie's™?"`
-- שורה 164/168: `"אודות SolStories"` -> `"אודות SolStorie's™"`
-- שורה 207/221: `"SolStories"` בדיאלוגים -> `"SolStorie's™"`
+- Change `px-4 pt-4` to `px-5 pt-6` to add more breathing room from screen edges
+
+### 4. GuestLanding General Padding
+
+**Update line 114** -- content container:
+
+- Change `px-3 pb-16` to `px-5 pb-16` for more side padding
+
+### 5. Background Image Positioning (GuestLanding)
+
+**Update lines 98-101** -- background style:
+
+- Change `backgroundPosition` from `'center center'` to `'center top'` so the tree/characters are less cropped at edges
+- Add `backgroundSize: 'contain'` as a fallback consideration (keep `cover` but adjust position)
 
 ---
 
-## סיכום קבצים
+## Summary
 
-| קובץ | שינוי |
-|-------|-------|
-| `src/components/wizard/GeneratingStep.tsx` | הוספת כרטיס משוב + החלפת המלצות הורים בהמלצות מקצועיות |
-| `src/pages/Settings.tsx` | עדכון 4-6 מופעי SolStories ל-SolStorie's™ |
+| File | Change |
+|------|--------|
+| `src/index.css` | Replace `.logo-story`/`.logo-time` with unified `.logo-rainbow` gradient + glow |
+| `src/components/home/GuestLanding.tsx` | Scale down logo, apply rainbow class, add side padding |
+| `src/pages/Adventure.tsx` | Increase header padding (px-5 pt-6) |
 
-## הערות טכניות
-- טבלת `user_feedback` כבר קיימת עם עמודות `rating`, `message`, `page_url`, `user_id` -- לא נדרשת מיגרציה
-- כרטיס המשוב מוצג רק כש-`progress < 100` ולא נשלח כבר (state: `feedbackSent`)
-- המלצות מקצועיות מסתובבות עם אותו מנגנון fade קיים (sentenceIndex)
-- כל שם מותג בתוך RTL נעטף ב-`dir="ltr"` כמו בשאר האפליקציה
+## Technical Notes
+- Rainbow gradient uses `-webkit-background-clip: text` (widely supported in all modern browsers)
+- White drop-shadow via `filter: drop-shadow()` creates the contrast glow behind the text
+- Logo text remains wrapped in `dir="ltr"` for correct rendering in RTL layout
+- No database changes required
