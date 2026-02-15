@@ -21,6 +21,11 @@ const Adventure = () => {
   const [displayName, setDisplayName] = useState<string | null>(null);
   const [storyCount, setStoryCount] = useState<number>(0);
 
+  // Always open at top of page
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, []);
+
   // Show welcome toast for new users on first visit
   useEffect(() => {
     if (!user) return;
