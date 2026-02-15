@@ -1,37 +1,35 @@
 
-# Update About Page Content
 
-## What Changes
+# Fix Auth Screen UI/UX -- Character, Bubble & Hierarchy
 
-Replace the entire content section (lines 49-153) of `src/pages/About.tsx` with the new comprehensive text provided. The magical purple background, floating stars, footer, and navigation remain unchanged.
+## File: `src/pages/Auth.tsx`
 
-## New Content Structure
+### 1. Sol Character Positioning (lines 1059-1061)
 
-The page will be reorganized into these sections:
+The Sol character image (`sol-waving-hello.png`) is already using a transparent PNG. The fix is adjusting its position so it sits more naturally in the top-left corner of the glassmorphism box, peeking from behind it.
 
-1. **Title**: "✨ ברוכים הבאים לממלכת הסיפורים של SolStorie's™ ✨" + subtitle "המקום שבו הילד שלכם הופך לגיבור הסיפור"
-2. **Personal intro**: "שלום, אני אמא של סול" + the origin story paragraph
-3. **Features section** ("למה SolStorie's היא הרבה מעבר לאפליקציה?"): 7 feature items with emoji icons
-   - הילד שלכם בלב העלילה
-   - החבורה של סול
-   - סיפורים חברתיים מתוך הלב
-   - חיבור עמוק לרצף התקשורתי
-   - ארגז כלים לאנשי חינוך
-   - העולם מדבר אנגלית
-   - בכל מקום ובכל זמן
-4. **Age section** ("דיוק מושלם לכל שלב התפתחותי"): 3 age ranges (0-2, 3-6, 7-8)
-5. **Gift section** ("להעניק קסם במתנה"): Gift voucher + payment info
-6. **Safety section** ("מחויבות לבטיחות ואחריות"): Privacy + IP statement
-7. **CTA button**: "בואו נתחיל! (סיפור ראשון חינם) ✨"
-8. **Disclaimer box**: Medical/professional disclaimer
+**Current**: `className="absolute -top-8 -left-4"` with `style={{ transform: 'translate(-20%, -40%)' }}`
 
-## Technical Details
+**New**: Change to `className="absolute -top-10 -left-6"` with `style={{ transform: 'translate(-10%, -35%)' }}` -- this shifts Sol slightly more to the left and higher, creating a cleaner "peeking" effect without the white-square look.
 
-### File: `src/pages/About.tsx`
-- Lines 49-153: Replace entire content div with new structured content
-- Keep the same styling patterns (glassmorphism cards, gradient text, white/opacity text classes)
-- All SolStorie's™ mentions wrapped in `<span dir="ltr" className="inline-block">`
-- Feature items use the same `flex flex-col items-center gap-1.5` card pattern with emoji headers
-- Age ranges displayed as compact cards
-- Signature line removed (not in new text)
-- Device availability section removed (merged into features as "בכל מקום ובכל זמן")
+### 2. Speech Bubble Repositioning (lines 1064-1070)
+
+Move the bubble down and right by ~15-20px to prevent it from overlapping the SolStorie's™ logo above.
+
+**Current**: `className="absolute -top-14 left-16 sm:left-20"`
+
+**New**: `className="absolute -top-10 left-20 sm:left-24"` -- shifts it ~16px down (from -top-14 to -top-10) and ~16px right (from left-16 to left-20).
+
+### 3. Visual Hierarchy (lines 1138-1148)
+
+Make the "ברוכים הבאים!" title more prominent and reduce the device-availability subtitle.
+
+**Current**:
+- Title: `text-xl font-black`
+- Subtitle (device info): `text-black/50 text-xs font-bold`
+
+**Changes**:
+- Title: Increase to `text-2xl font-black` for more prominence
+- Subtitle "התחברו כדי ליצור סיפורים מותאמים אישית": Keep as `text-sm`
+- Device availability line: Reduce from `text-xs font-bold` to `text-[10px] font-medium text-black/40` to make it less visually dominant
+
