@@ -112,8 +112,10 @@ CRITICAL REQUIREMENTS:
 - Friendly, happy expression
 - 3D rounded shapes with smooth surfaces
 - Simple, clean background (soft gradient or solid pastel color)
-- Portrait style, showing head and shoulders
+- Portrait style, showing head and upper body (shoulders and chest visible — NOT just a floating head)
 - High quality, professional animation look
+
+NEGATIVE PROMPT / EXCLUDE: floating head, disembodied head, head without body, missing body, missing limbs, extra limbs, deformed, distorted, scary, grotesque, mutated, disfigured, cropped head only.
 
 The result should be immediately recognizable as the same child, just in beautiful 3D animation style.`
               },

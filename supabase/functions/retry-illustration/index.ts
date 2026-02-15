@@ -102,7 +102,7 @@ serve(async (req) => {
       try { characterProfile = JSON.parse(child.avatar_description); } catch {}
     }
 
-    const stylePrefix = `In the style of modern 3D Disney-Pixar animation, high resolution, magical atmosphere, magical glowing light, dreamy warm and inviting atmosphere. Characters with large expressive emotional eyes, detailed hair, soft textures.`;
+    const stylePrefix = `In the style of modern 3D Disney-Pixar animation, high resolution, magical atmosphere, magical glowing light, dreamy warm and inviting atmosphere. Characters with large expressive emotional eyes, detailed hair, soft textures. ALWAYS show characters as FULL BODY (head to toe) or at minimum from waist up — NEVER just a head or face. 9:16 portrait aspect ratio. NEGATIVE PROMPT / EXCLUDE: floating head, disembodied head, head without body, missing body, missing limbs, extra limbs, deformed, distorted, scary, horror, grotesque, mutated, disfigured, severed, decapitated, cropped head only, face only, no body, text, watermark, UI elements, buttons, audio icons.`;
     const prompt = page.illustration_prompt || `A cheerful children's book illustration for page ${page.page_number}`;
 
     const requestBody: any = {
