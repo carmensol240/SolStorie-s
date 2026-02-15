@@ -1056,12 +1056,12 @@ const Auth = () => {
         {/* Container wrapper for peeking character */}
         <div className="relative w-full max-w-md">
           {/* Sol peeking from top-right */}
-          <div className="absolute -top-8 -left-4 z-20 pointer-events-none animate-float-gentle" style={{ transform: 'translate(-20%, -40%)' }}>
+          <div className="absolute -top-10 -left-6 z-20 pointer-events-none animate-float-gentle" style={{ transform: 'translate(-10%, -35%)' }}>
             <img src={solWaving} alt="Sol waving hello" className="w-20 h-20 sm:w-24 sm:h-24 object-contain drop-shadow-lg" />
           </div>
 
           {/* Speech bubble */}
-          <div className="absolute -top-14 left-16 sm:left-20 z-20 pointer-events-none animate-fade-in-delay-3">
+          <div className="absolute -top-10 left-20 sm:left-24 z-20 pointer-events-none animate-fade-in-delay-3">
             <div className="relative bg-white rounded-2xl px-3 py-1.5 shadow-lg border border-white/60">
               <p className="text-xs font-black text-purple-700 whitespace-nowrap">!שלום! בואו נתחיל בהרפתקה</p>
               {/* Triangle pointer */}
@@ -1136,13 +1136,13 @@ const Auth = () => {
 
               {/* Header */}
               <div className="text-center mb-4 animate-fade-in [animation-delay:200ms] opacity-0 [animation-fill-mode:forwards]">
-        <h1 className="text-xl font-black text-black mb-1">
+        <h1 className="text-2xl font-black text-black mb-1">
                   ברוכים הבאים!
                 </h1>
                 <p className="text-black/70 text-sm font-medium">
                   התחברו כדי ליצור סיפורים מותאמים אישית
                 </p>
-                <p className="text-black/50 text-xs font-bold mt-1.5 flex items-center justify-center gap-1.5">
+                <p className="text-black/40 text-[10px] font-medium mt-1.5 flex items-center justify-center gap-1.5">
                   📱 <span dir="ltr" className="inline-block">SolStorie's™</span> זמינה עבורכם בכל מקום: בטלפון, בטאבלט ובמחשב האישי
                 </p>
               </div>
