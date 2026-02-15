@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { ArrowRight, Mail, Trash2, LogOut, FileText, Shield, Eye, Info, Accessibility, Type, MousePointer, Link2, MonitorOff, Wand2, Sparkles, Download, Share, Smartphone } from "lucide-react";
 import { usePwaInstall } from "@/hooks/use-pwa-install";
@@ -29,7 +29,11 @@ const Settings = () => {
   const [reducedMotion, setReducedMotion] = useState(() => document.documentElement.classList.contains('reduced-motion'));
   const [largeCursor, setLargeCursor] = useState(() => document.documentElement.classList.contains('large-cursor'));
 
-  
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, []);
+
+
 
   const handleSignOut = async () => {
     await signOut();
