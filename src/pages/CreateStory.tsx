@@ -132,6 +132,8 @@ const CreateStory = () => {
 
   const handleStoryGenerated = async (storyId: string) => {
     await useCredit();
+    // Mark that a story was just created so the PDF popup shows
+    sessionStorage.setItem("just_created_story", "true");
     // Always navigate to story reader first - let them enjoy the story
     navigate(`/story/${storyId}`);
   };

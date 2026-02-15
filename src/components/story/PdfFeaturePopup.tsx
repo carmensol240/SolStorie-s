@@ -20,6 +20,10 @@ const PdfFeaturePopup = ({ userId }: PdfFeaturePopupProps) => {
 
   useEffect(() => {
     if (!userId) return;
+    // Only show after a new story was just created
+    const justCreated = sessionStorage.getItem("just_created_story");
+    if (!justCreated) return;
+    
     const key = `${STORAGE_KEY}_${userId}`;
     if (!localStorage.getItem(key)) {
       const timer = setTimeout(() => setOpen(true), 1200);
@@ -31,6 +35,7 @@ const PdfFeaturePopup = ({ userId }: PdfFeaturePopupProps) => {
     if (userId) {
       localStorage.setItem(`${STORAGE_KEY}_${userId}`, "true");
     }
+    sessionStorage.removeItem("just_created_story");
     setOpen(false);
   };
 
