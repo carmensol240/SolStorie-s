@@ -68,7 +68,10 @@ serve(async (req) => {
     const setting = getSettingForTopic(topic || "");
     const isHebrew = language === "he" || !language;
     const fontLanguage = isHebrew ? "Hebrew" : "English";
-    const displayTitle = title || topic || "סיפור קסום";
+    // For Hebrew stories, always use the Hebrew title; never fall back to English topic ID
+    const displayTitle = isHebrew 
+      ? (title && !/^[a-z\-]+$/.test(title) ? title : "סיפור קסום")
+      : (title || topic || "A Magical Story");
 
     const coverPrompt = `In the style of modern 3D Disney-Pixar animation, 8K resolution, soft cinematic lighting, vibrant harmonious colors. Portrait orientation (9:16 aspect ratio).
 
