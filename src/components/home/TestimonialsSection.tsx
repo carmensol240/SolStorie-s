@@ -1,3 +1,4 @@
+import { useState, useEffect } from "react";
 import { Star } from "lucide-react";
 import { Carousel, CarouselContent, CarouselItem, CarouselDots } from "@/components/ui/carousel";
 import Autoplay from "embla-carousel-autoplay";
@@ -9,22 +10,21 @@ import avatarTestimonial5 from "@/assets/avatar-testimonial-5.png";
 import avatarParent1 from "@/assets/avatar-parent-1.png";
 import avatarParent2 from "@/assets/avatar-parent-2.png";
 import avatarParent3 from "@/assets/avatar-parent-3.png";
+import { supabase } from "@/integrations/supabase/client";
 
 interface Testimonial {
-  id: number;
+  id: number | string;
   name: string;
   text: string;
   rating: number;
   avatar: string;
 }
 
-// Gender-matched testimonials: Hebrew text gender matches avatar gender
-// Using anonymous initials instead of real names for privacy
-const testimonials: Testimonial[] = [
+// Static testimonials (always shown)
+const staticTestimonials: Testimonial[] = [
   {
     id: 1,
     name: "הורה מ.",
-    // Female: הבת, מאושרת, מבקשת, נראית
     text: "הילדה שלי מאושרת! כל לילה מבקשת לקרוא את הסיפור שלה שוב ושוב. הדמות שלה נראית בדיוק כמוה!",
     rating: 5,
     avatar: avatarTestimonial1,
@@ -32,7 +32,6 @@ const testimonials: Testimonial[] = [
   {
     id: 2,
     name: "הורה י.",
-    // Male: הילדים, מרגישים (neutral/male)
     text: "רעיון גאוני! הילדים שלי מתים על הסיפורים. הם מרגישים כמו גיבורים אמיתיים בכל סיפור.",
     rating: 5,
     avatar: avatarTestimonial3,
@@ -40,7 +39,6 @@ const testimonials: Testimonial[] = [
   {
     id: 3,
     name: "הורה ר.",
-    // Female: ממליצה
     text: "האיורים מדהימים והסיפורים מותאמים בצורה מושלמת לגיל. ממליצה בחום!",
     rating: 5,
     avatar: avatarTestimonial2,
@@ -48,7 +46,6 @@ const testimonials: Testimonial[] = [
   {
     id: 4,
     name: "הורה א.",
-    // Male: הילד, התגבר
     text: "יצרנו סיפור על הפחד מהחושך והילד שלי התגבר על הפחד תוך שבוע! קסם.",
     rating: 5,
     avatar: avatarParent1,
@@ -56,7 +53,6 @@ const testimonials: Testimonial[] = [
   {
     id: 5,
     name: "הורה ש.",
-    // Female name, neutral text (מרוגשים is plural)
     text: "מתנה מושלמת לסבא וסבתא - סיפור עם הנכדים בתור הגיבורים. הם היו מרוגשים!",
     rating: 4,
     avatar: avatarTestimonial5,
@@ -64,7 +60,6 @@ const testimonials: Testimonial[] = [
   {
     id: 6,
     name: "הורה ד.",
-    // Male: הילד, מתלהב, רואה
     text: "הילד שלי לא מפסיק לבקש עוד סיפורים! הוא מתלהב כל פעם מחדש כשהוא רואה את עצמו באיורים.",
     rating: 5,
     avatar: avatarTestimonial4,
@@ -72,7 +67,6 @@ const testimonials: Testimonial[] = [
   {
     id: 7,
     name: "הורה נ.",
-    // Female: הילדה, גאה
     text: "איזה רעיון מקסים! הילדה שלי כל כך גאה לראות את עצמה כגיבורת הסיפור. תודה על החוויה!",
     rating: 5,
     avatar: avatarParent2,
@@ -80,12 +74,14 @@ const testimonials: Testimonial[] = [
   {
     id: 8,
     name: "הורה ע.",
-    // Male: ממליץ
     text: "סיפורים באיכות מטורפת. הילדים שלי מחכים בקוצר רוח לסיפור הבא. ממליץ לכל הורה!",
     rating: 5,
     avatar: avatarParent3,
   },
 ];
+
+// Default avatar for user-submitted reviews
+const defaultUserAvatar = avatarParent1;
 
 const StarRating = ({ rating }: { rating: number }) => (
   <div className="flex gap-0.5">
@@ -101,11 +97,49 @@ const StarRating = ({ rating }: { rating: number }) => (
 );
 
 const TestimonialsSection = () => {
-  const averageRating = (testimonials.reduce((sum, t) => sum + t.rating, 0) / testimonials.length).toFixed(1);
+  const [allTestimonials, setAllTestimonials] = useState<Testimonial[]>(staticTestimonials);
+
+  useEffect(() => {
+    const fetchApprovedReviews = async () => {
+      try {
+        const { data, error } = await (supabase
+          .from("user_feedback")
+          .select("id, rating, message, display_name, created_at") as any)
+          .eq("is_approved", true)
+          .gte("rating", 4)
+          .not("message", "is", null)
+          .order("created_at", { ascending: false })
+          .limit(20);
+
+        if (error || !data) return;
+
+        const dynamicTestimonials: Testimonial[] = data
+          .filter((r: any) => r.message && r.message.trim().length > 5)
+          .map((review: any) => ({
+            id: `db-${review.id}`,
+            name: review.display_name
+              ? `${review.display_name.charAt(0)}. הורה`
+              : "הורה מרוצה",
+            text: review.message,
+            rating: review.rating,
+            avatar: defaultUserAvatar,
+          }));
+
+        if (dynamicTestimonials.length > 0) {
+          setAllTestimonials([...staticTestimonials, ...dynamicTestimonials]);
+        }
+      } catch (err) {
+        console.error("Error fetching approved reviews:", err);
+      }
+    };
+
+    fetchApprovedReviews();
+  }, []);
+
+  const averageRating = (allTestimonials.reduce((sum, t) => sum + t.rating, 0) / allTestimonials.length).toFixed(1);
 
   return (
     <section className="space-y-3" dir="rtl">
-      {/* Section Header with Average Rating */}
       <div className="flex items-center justify-between">
         <h2 className="text-lg font-bold text-foreground">מה הורים אומרים</h2>
         <div className="flex items-center gap-2 bg-amber-50 rounded-full px-3 py-1">
@@ -114,7 +148,6 @@ const TestimonialsSection = () => {
         </div>
       </div>
 
-      {/* Testimonials Carousel */}
       <Carousel
         opts={{
           align: "center",
@@ -130,18 +163,15 @@ const TestimonialsSection = () => {
         className="w-full"
       >
         <CarouselContent className="-mr-2">
-          {testimonials.map((testimonial) => (
+          {allTestimonials.map((testimonial) => (
             <CarouselItem key={testimonial.id} className="pr-2 basis-full">
               <div className="bg-white rounded-xl p-4 border border-border/50 shadow-sm">
                 <div className="flex items-start gap-3">
-                  {/* Avatar */}
                   <img
                     src={testimonial.avatar}
                     alt={testimonial.name}
                     className="w-10 h-10 rounded-full object-cover border-2 border-amber-200"
                   />
-                  
-                  {/* Content */}
                   <div className="flex-1 space-y-1">
                     <div className="flex items-center justify-between">
                       <span className="font-medium text-foreground">{testimonial.name}</span>
@@ -159,7 +189,6 @@ const TestimonialsSection = () => {
         <CarouselDots className="mt-3" />
       </Carousel>
 
-      {/* Summary Stats */}
       <div className="flex items-center justify-center gap-6 pt-2">
         <div className="text-center">
           <p className="text-2xl font-bold text-primary">500+</p>

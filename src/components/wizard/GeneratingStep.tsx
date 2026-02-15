@@ -105,12 +105,24 @@ const GeneratingStep = ({ formData, onComplete }: GeneratingStepProps) => {
     if (feedbackRating === 0) return;
     setFeedbackSending(true);
     try {
+      // Fetch user display name for approved testimonials
+      let displayName: string | null = null;
+      if (user?.id) {
+        const { data: profile } = await supabase
+          .from("profiles")
+          .select("display_name")
+          .eq("id", user.id)
+          .maybeSingle();
+        displayName = profile?.display_name || null;
+      }
       await supabase.from("user_feedback").insert({
         rating: feedbackRating,
         message: feedbackMessage.trim() || null,
         page_url: "generating",
         user_id: user?.id || null,
-      });
+        display_name: displayName,
+        is_approved: false,
+      } as any);
       setFeedbackSent(true);
     } catch (err) {
       console.error("Feedback error:", err);
