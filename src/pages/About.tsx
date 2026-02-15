@@ -50,7 +50,7 @@ const About = () => {
         
         {/* Title */}
         <h1 className="text-2xl font-black text-white/95 leading-snug mb-3">
-          ברוכים הבאים ל-<span dir="ltr" className="inline-block bg-gradient-to-r from-purple-300 via-pink-300 to-orange-300 bg-clip-text text-transparent">SolStories</span> ✨
+          ברוכים הבאים ל-<span dir="ltr" className="inline-block bg-gradient-to-r from-purple-300 via-pink-300 to-orange-300 bg-clip-text text-transparent">SolStorie's™</span> ✨
         </h1>
 
         {/* Personal intro */}
@@ -58,13 +58,13 @@ const About = () => {
           שלום, אני אמא של סול
         </p>
         <p className="text-sm text-white/75 leading-relaxed mb-3 px-1">
-          יצרתי את <span dir="ltr" className="inline-block">SolStories</span> עבור בתי סול, מתוך רצון להעניק לה עולם של דמיון שמבין את הקצב הייחודי שלה. האפליקציה נולדה מאהבה של אמא לבתה, וכל התכנים והדמויות הם קניין רוחני מוגן של <span dir="ltr" className="inline-block">SolStories</span>.
+          יצרתי את <span dir="ltr" className="inline-block">SolStorie's™</span> עבור בתי סול, מתוך רצון להעניק לה עולם של דמיון שמבין את הקצב הייחודי שלה. האפליקציה נולדה מאהבה של אמא לבתה, וכל התכנים והדמויות הם קניין רוחני מוגן של <span dir="ltr" className="inline-block">SolStorie's™</span>.
         </p>
         <p className="text-sm text-white/75 leading-relaxed mb-3 px-1">
           באפליקציה תמצאו <strong className="text-amber-200">34 נושאים מובנים</strong> לפתרון סיטואציות מחיי היום-יום – מפחד מהחושך, דרך יום ראשון בגן ועד הגעת אח חדש. כל סיפור נבנה בשילוב כלים מעולם ה-NLP, בונה חוסן פנימי ומאפשר לילד להיות הגיבור בסיפור שלו.
         </p>
         <p className="text-sm text-white/75 leading-relaxed mb-5 px-1">
-          אני נרגשת לחלוק את הקסם הזה גם אתכם. הנה מה שתמצאו בתוך <span dir="ltr" className="inline-block">SolStories</span>:
+          אני נרגשת לחלוק את הקסם הזה גם אתכם. הנה מה שתמצאו בתוך <span dir="ltr" className="inline-block">SolStorie's™</span>:
         </p>
 
         {/* Section title */}
@@ -103,10 +103,17 @@ const About = () => {
           </div>
         </div>
 
+        {/* Disclaimer */}
+        <div className="bg-white/5 border border-white/10 rounded-xl p-3 mb-3 w-full">
+          <p className="text-xs text-white/60 leading-relaxed">
+            ⚕️ השימוש באפליקציה הינו כלי עזר טכנולוגי בלבד ואינו מהווה תחליף לייעוץ מקצועי, חינוכי או רפואי.
+          </p>
+        </div>
+
         {/* IP Statement */}
         <div className="bg-white/5 border border-white/10 rounded-xl p-3 mb-4 w-full">
           <p className="text-xs text-white/60 leading-relaxed">
-            📌 התוכן, הדמויות (סול וחבריה), והאיורים באפליקציה הם קניין רוחני בלעדי של SolStories.
+            📌 התוכן, הדמויות (סול וחבריה), והאיורים באפליקציה הם קניין רוחני בלעדי של <span dir="ltr" className="inline-block">SolStorie's™</span>.
           </p>
         </div>
 
@@ -138,7 +145,7 @@ const About = () => {
           <span className="text-lg">💻</span>
         </div>
         <p className="text-xs text-white/45 font-bold mt-1">
-          <span dir="ltr" className="inline-block">SolStories</span> זמינה עבורכם בכל מקום: בטלפון, בטאבלט ובמחשב האישי
+          <span dir="ltr" className="inline-block">SolStorie's™</span> זמינה עבורכם בכל מקום: בטלפון, בטאבלט ובמחשב האישי
         </p>
         <p className="text-xs text-white/40 mt-1">
           ניתן לשלם בכרטיס אשראי ללא חשבון פייפאל
