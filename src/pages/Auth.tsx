@@ -1355,11 +1355,24 @@ const Auth = () => {
         {/* Device availability icons */}
         <div className="flex flex-col items-center gap-1.5 mt-6 mb-4 animate-fade-in-delay-3">
           <div className="flex items-center gap-4">
-            <span className="text-white/60"><Smartphone className="w-5 h-5" /></span>
-            <span className="text-white/60"><Tablet className="w-5 h-5" /></span>
-            <span className="text-white/60"><Monitor className="w-5 h-5" /></span>
+            <svg width="0" height="0" className="absolute">
+              <defs>
+                <linearGradient id="rainbow-icon-gradient" x1="0%" y1="0%" x2="100%" y2="0%">
+                  <stop offset="0%" stopColor="#ff0000" />
+                  <stop offset="16%" stopColor="#ff8c00" />
+                  <stop offset="33%" stopColor="#ffd700" />
+                  <stop offset="50%" stopColor="#00c853" />
+                  <stop offset="66%" stopColor="#2196f3" />
+                  <stop offset="83%" stopColor="#9c27b0" />
+                  <stop offset="100%" stopColor="#e91e63" />
+                </linearGradient>
+              </defs>
+            </svg>
+            <Smartphone className="w-5 h-5" style={{ stroke: 'url(#rainbow-icon-gradient)' }} />
+            <Tablet className="w-5 h-5" style={{ stroke: 'url(#rainbow-icon-gradient)' }} />
+            <Monitor className="w-5 h-5" style={{ stroke: 'url(#rainbow-icon-gradient)' }} />
           </div>
-          <p className="text-white/60 text-xs font-medium">זמינה עבורכם בכל מקום</p>
+          <p className="logo-rainbow text-xs font-semibold">זמינה עבורכם בכל מקום</p>
         </div>
       </div>
       <MobileNavigation />
