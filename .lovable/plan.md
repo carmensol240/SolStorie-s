@@ -1,118 +1,64 @@
 
-
-# עדכון מערכתי ל-SolStorie's™ -- פרופיל, מיתוג ושיפורים
+# עדכון מסך טעינה + המלצות מקצועיות + מיתוג
 
 ## סקירה
-בקשה זו כוללת מספר חלקים. חלקם **כבר מומשו** בשיחות קודמות (PDF footer, PWA banner, הסרת Read Aloud מה-StoryViewer). התוכנית מתמקדת בשינויים שטרם בוצעו.
+שלושה חלקים עיקריים: (1) כרטיס משוב אינטראקטיבי בזמן טעינת הסיפור, (2) החלפת המלצות הורים בהמלצות אנשי מקצוע, (3) תיקוני מיתוג שנותרו.
 
 ---
 
 ## מה כבר מומש (לא נדרש שינוי)
-- **PDF Footer**: כבר מעודכן ל-`"SolStorie's™ | כל הזכויות שמורות"` (use-pdf-export.ts)
-- **PWA Install Banner**: כבר גלובלי ב-App.tsx, מופיע בכל מסך עד התקנה
-- **Read Aloud**: כבר הוסר מה-StoryViewer (שורה 1012: "Read Aloud removed per brand requirements")
-- **Age-Appropriate Logic**: כבר קיים במנוע יצירת הסיפורים
-- **Payments**: כבר תומך בכרטיס אשראי ללא PayPal (מצוין בטקסט ב-About, GuestLanding, PrivacyPolicy)
-- **Educator Access**: חבילת מחנכים כבר מוגבלת ל-`userRole === 'educator'` ב-Upgrade.tsx
+- **PDF Footer**: כבר `"SolStorie's™ | כל הזכויות שמורות"`
+- **Disclaimer**: כבר מופיע רק ב-About ו-Welcome
+- **TM** ב-About, Welcome, Profile, GlobalFooter, GuestLanding, Auth, AboutSoulStoryContent -- כבר עודכן
 
 ---
 
 ## שינויים נדרשים
 
-### 1. פרופיל -- שדרוג מקיף (`src/pages/Profile.tsx`)
+### 1. כרטיס "משוב מהיר" בזמן טעינה (`src/components/wizard/GeneratingStep.tsx`)
 
-**א. בחירת אווטאר מדמויות הסיפור**
-- הוספת 5 דמויות לבחירה: סול, בן, מיה, ליאו, זואי (תמונות מ-`src/assets/cast-*.jpg`)
-- שמירת הבחירה ב-`profiles.avatar_emoji` (נשתמש בשדה קיים לשמור מזהה דמות: `sol`, `ben`, `mia`, `leo`, `zoe`)
-- הצגת הדמות שנבחרה כאווטאר ראשי (מעל השם)
+**הוספת כרטיס משוב** שמופיע מתחת למד ההתקדמות, **רק בזמן שהסיפור נוצר** (נעלם כשה-progress מגיע ל-100%):
 
-**ב. ארון תגים "המסע שלי" (Badge Case)**
-- 5 תגים עם אייקונים ושמות בעברית:
-  - 🌱 **נבט הדמיון** -- יצירת סיפור ראשון (storyCount >= 1)
-  - ⭐ **חוקר כוכבים** -- סיפורי הרפתקה (theme === 'adventure')
-  - 💛 **לב זהב** -- סיפורים רגשיים (theme === 'emotional')
-  - 📖 **קוסם מילים** -- 5+ סיפורים (storyCount >= 5)
-  - 🤝 **החבר/ה של סול** -- 10+ סיפורים (storyCount >= 10)
-- תגים שלא הושגו מוצגים באפור (נעולים)
-- שאילתת נתונים מטבלת `stories` לבדיקת תנאים
+- כותרת: **"נשמח לדירוג שלכם!"**
+- 5 כוכבים אינטראקטיביים (clickable)
+- שדה טקסט קצר עם placeholder: **"ספרו לנו במשפט קצר מה דעתכם או שתפו טיפ להורים אחרים"**
+- כפתור "שליחה" קטן
+- שמירה לטבלת `user_feedback` הקיימת (rating, message, page_url='generating', user_id)
+- לאחר שליחה: הודעת "תודה!" עם אנימציה עדינה, הכרטיס מוחלף בהודעת תודה
 
-**ג. מחברת ההורה -- שדרוג ויזואלי**
-- שמירת העיצוב הנוכחי (כבר נראה כמחברת עם שורות וגוון קרם) עם שיפורים:
-  - הוספת אימוג'י עט בפינה
-  - אנימציית "שמירה מוצלחת" עדינה
-  - הרחבת שורות הטקסט
+### 2. החלפת המלצות הורים בהמלצות מקצועיות (`src/components/wizard/GeneratingStep.tsx`)
 
-**ד. קרוסלת 3 סיפורים אהובים**
-- שליפת 3 הסיפורים עם הכי הרבה קריאות מ-`user_story_stats` (עם JOIN ל-`stories` לקבלת `cover_url`)
-- תצוגה אופקית עם כריכות מעוצבות
-- לחיצה מנווטת לסיפור
+**החלפת מערך ה-testimonials** (שורות 78-102) בהמלצות של 3 פרסונות מקצועיות:
 
-**ה. Footer ממותג**
-- הוספת `"SolStorie's™"` בתחתית העמוד
+| תפקיד | שם | אווטאר | ציטוט (לשון נקבה יחידה) |
+|--------|-----|---------|------------------------|
+| מורה | דנה כהן, מורה | avatarTestimonial1 | "הסיפורים האישיים מעשירים את אוצר המילים ומפתחים את אהבת הקריאה בצורה מדהימה. ממליצה בחום." |
+| גננת | שירה לוי, גננת | avatarTestimonial2 | "הילדים בגן מתחברים רגשית לסיפורים כשהם הגיבורים. זה מפתח דמיון וכישורים חברתיים-רגשיים." |
+| קלינאית תקשורת | רונית אברהם, קלינאית תקשורת | avatarTestimonial3 | "סיפורים מנוקדים לגילאי 7-8 תורמים לפיתוח מודעות פונולוגית ואוצר מילים. כלי מעולה להעשרה לשונית." |
 
-### 2. מיתוג -- הוספת TM לכל הופעה של SolStories
+- כל הציטוטים בלשון נקבה יחידה (ממליצה, לא ממליץ)
+- אווטארים -- נשתמש באווטארי נשים קיימים (testimonial 1-3)
+- תגית תפקיד מקצועי מופיעה מתחת לשם בצבע סגול
 
-**קבצים לעדכון (החלפת `SolStories` ב-`SolStorie's™` או `SolStorie's`):**
+### 3. תיקוני מיתוג -- Settings.tsx
 
-| קובץ | שינוי |
-|-------|-------|
-| `src/components/shared/GlobalFooter.tsx` | `SolStories` -> `SolStorie's™` |
-| `src/pages/About.tsx` | כל הופעה של `SolStories` -> `SolStorie's™` (6 מקומות) |
-| `src/pages/PrivacyPolicy.tsx` | `SolStories` -> `SolStorie's™` (3 מקומות) |
-| `src/pages/Auth.tsx` | `SolStories` -> `SolStorie's™` (3 מקומות) |
-| `src/components/shared/AboutSoulStoryContent.tsx` | `SolStories` -> `SolStorie's™` (2 מקומות) |
-| `src/components/home/GuestLanding.tsx` | `SolStories` -> `SolStorie's™` (לוגו + טקסט) |
-| `src/pages/Profile.tsx` | `SolStories` -> `SolStorie's™` בכפתור ארגז הכלים |
-
-### 3. הצהרת אי-אחריות (Disclaimer)
-
-**About.tsx** -- הוספת הצהרה לפני ה-IP Statement:
-```
-השימוש באפליקציה הינו כלי עזר טכנולוגי בלבד ואינו מהווה
-תחליף לייעוץ מקצועי, חינוכי או רפואי.
-```
-
-**Welcome.tsx** -- הוספת שורת disclaimer קטנה מתחת לכפתור:
-```
-כלי עזר טכנולוגי בלבד · אינו תחליף לייעוץ מקצועי
-```
-
-### 4. מדיניות פרטיות -- סעיף קניין רוחני והגבלת אחריות
-
-**PrivacyPolicy.tsx** -- הוספת 2 סעיפים חדשים לפני כפתור "חזרה":
-
-**א. קניין רוחני:**
-```
-כל התכנים, הדמויות (סול וחבריה), האיורים והטקסטים באפליקציה הם
-קניין רוחני מוגן ובלעדי של SolStorie's™. אין לעשות שימוש מסחרי
-בנכסים ללא אישור בכתב.
-```
-
-**ב. הגבלת אחריות מקצועית:**
-```
-השימוש באפליקציה הינו כלי עזר טכנולוגי בלבד ואינו מהווה תחליף
-לייעוץ מקצועי, חינוכי או רפואי. התוכן שנוצר באמצעות המערכת
-אינו מהווה המלצה טיפולית או חינוכית.
-```
+**`src/pages/Settings.tsx`** -- 4 מופעים של `SolStories` ללא TM:
+- שורה 116: `"התקנת SolStories"` -> `"התקנת SolStorie's™"`
+- שורה 141: `"איך מתקינים את SolStories?"` -> `"איך מתקינים את SolStorie's™?"`
+- שורה 164/168: `"אודות SolStories"` -> `"אודות SolStorie's™"`
+- שורה 207/221: `"SolStories"` בדיאלוגים -> `"SolStorie's™"`
 
 ---
 
 ## סיכום קבצים
 
-| קובץ | סוג שינוי |
-|-------|-----------|
-| `src/pages/Profile.tsx` | שכתוב מקיף -- אווטאר, תגים, קרוסלה, footer |
-| `src/components/shared/GlobalFooter.tsx` | עדכון שם מותג ל-SolStorie's™ |
-| `src/pages/About.tsx` | TM + disclaimer |
-| `src/pages/Welcome.tsx` | disclaimer |
-| `src/pages/PrivacyPolicy.tsx` | TM + IP clause + disclaimer |
-| `src/pages/Auth.tsx` | TM |
-| `src/components/shared/AboutSoulStoryContent.tsx` | TM |
-| `src/components/home/GuestLanding.tsx` | TM |
+| קובץ | שינוי |
+|-------|-------|
+| `src/components/wizard/GeneratingStep.tsx` | הוספת כרטיס משוב + החלפת המלצות הורים בהמלצות מקצועיות |
+| `src/pages/Settings.tsx` | עדכון 4-6 מופעי SolStories ל-SolStorie's™ |
 
 ## הערות טכניות
-- לא נדרשת מיגרציית DB -- נשתמש בשדה `profiles.avatar_emoji` הקיים לשמור בחירת דמות
-- תגים מחושבים בצד הלקוח מנתוני `stories` שכבר נשלפים
-- הקרוסלה תשתמש ב-`embla-carousel-react` שכבר מותקן בפרויקט
-- כל הופעה של SolStories ב-RTL תישאר עטופה ב-`dir="ltr"` למניעת היפוך
-
+- טבלת `user_feedback` כבר קיימת עם עמודות `rating`, `message`, `page_url`, `user_id` -- לא נדרשת מיגרציה
+- כרטיס המשוב מוצג רק כש-`progress < 100` ולא נשלח כבר (state: `feedbackSent`)
+- המלצות מקצועיות מסתובבות עם אותו מנגנון fade קיים (sentenceIndex)
+- כל שם מותג בתוך RTL נעטף ב-`dir="ltr"` כמו בשאר האפליקציה
