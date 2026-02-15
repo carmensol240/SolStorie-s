@@ -1119,12 +1119,6 @@ const Auth = () => {
           </div>
           ) : (
             <>
-              {/* Waving Hand Icon */}
-              <div className="flex justify-center mb-4 animate-fade-in [animation-delay:100ms]">
-                <div className="w-16 h-16 bg-amber-400 rounded-2xl flex items-center justify-center shadow-md">
-                  <span className="text-3xl animate-bounce-gentle">👋</span>
-                </div>
-              </div>
 
               {/* Header */}
               <div className="text-center mb-4 animate-fade-in [animation-delay:200ms] opacity-0 [animation-fill-mode:forwards]">
