@@ -87,7 +87,7 @@ TITLE TEXT: Display the text "${displayTitle}" prominently at the top or center-
 
 COMPOSITION: This is a BOOK COVER. The 5 characters should be arranged as a group in the lower two-thirds of the image, with the magical setting filling the background. The title text occupies the upper portion. Leave clean space around the title for readability.
 
-EXCLUDE: No UI elements, no buttons, no audio icons, no play buttons, no watermarks, no text beyond the story title. No additional characters beyond the 5 described.`;
+EXCLUDE / NEGATIVE PROMPT: No UI elements, no buttons, no audio icons, no play buttons, no watermarks, no text beyond the story title. No additional characters beyond the 5 described. No floating heads, no disembodied heads, no missing bodies, no missing limbs, no extra limbs, no deformed characters, no distorted faces, no scary imagery, no grotesque elements, no mutated features. All characters must be shown as FULL BODY from head to toe.`;
 
     const requestBody = {
       model: "google/gemini-3-pro-image-preview",

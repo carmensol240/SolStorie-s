@@ -174,7 +174,7 @@ Any deviation from this profile is a FAILURE.
 `
       : "";
     
-    const stylePrefix = `In the style of modern 3D Disney-Pixar animation, high resolution, magical atmosphere, magical glowing light, dreamy warm and inviting atmosphere. Characters with large expressive emotional eyes, detailed hair, soft textures.`;
+    const stylePrefix = `In the style of modern 3D Disney-Pixar animation, high resolution, magical atmosphere, magical glowing light, dreamy warm and inviting atmosphere. Characters with large expressive emotional eyes, detailed hair, soft textures. ALWAYS show characters as FULL BODY (head to toe) or at minimum from waist up — NEVER just a head or face.`;
     
     const enhancedPrompt = `${stylePrefix}
 
@@ -194,7 +194,11 @@ STYLE REQUIREMENTS:
 - Rich, vibrant colors with warm undertones
 - Professional children's book illustration quality
 - No text in the image
-- MAINTAIN STRICT VISUAL CHARACTER CONTINUITY: Same face shape, same features, same proportions, SAME OUTFIT across all pages`;
+- MAINTAIN STRICT VISUAL CHARACTER CONTINUITY: Same face shape, same features, same proportions, SAME OUTFIT across all pages
+- ALWAYS show the character as a FULL BODY or at minimum from waist up — NEVER just a head or face
+- 9:16 portrait aspect ratio
+
+NEGATIVE PROMPT / EXCLUDE: floating head, disembodied head, head without body, missing body, missing limbs, extra limbs, deformed, distorted, scary, horror, grotesque, mutated, disfigured, severed, decapitated, cropped head only, face only, no body, text, watermark, UI elements, buttons, audio icons.`;
 
     const requestBody: any = {
       model: "google/gemini-3-pro-image-preview",
