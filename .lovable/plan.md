@@ -1,59 +1,37 @@
 
 
-# Global Branding Update: SolStories → SolStorie's™
+# עדכון דמות סול בתמונת Hero של מסך ההרפתקה
 
-## Overview
-Most of the app already uses the correct "SolStorie's™" branding. A few files still use "SolStories" (without apostrophe and trademark). No instances of "Noi" character were found -- all search hits were Hebrew words like "מנוי" (subscription).
+## מה ישתנה
+
+### 1. יצירת תמונת Hero מעודכנת באמצעות עריכת AI
+
+שימוש ב-API של עריכת תמונה (Gemini Image) כדי לעדכן את התמונה `hero-solstories-library-new.jpeg`:
+
+- **קלט**: התמונה הנוכחית של כל הילדים + תמונת הרפרנס של סול
+- **הנחיה**: להחליף את הפנים של סול (הילדה עם החולצת פסים במרכז) כך שיתאימו בדיוק לרפרנס -- אותו שיער חום ארוך וגלי בקוקו גבוה עם גומייה ורודה, אותן עיניים חומות גדולות, אותן תווי פנים
+- **שימור**: כל שאר הדמויות (מיה, ליאו, בן, זואי), הרקע הקסום, הלוגו "SolStorie's" -- הכל נשאר כמו שהוא
+
+### 2. שמירת התמונה המעודכנת
+
+- התמונה החדשה תישמר כ-`hero-solstories-library-new.jpeg` (החלפת הקובץ הקיים)
+- אין צורך בשינוי קוד -- הקובץ כבר מיובא ב-`Adventure.tsx` (שורה 10)
+
+### 3. אין שינויי קוד
+
+מסך ההרפתקה (`Adventure.tsx`) כבר מציג את התמונה הזו כרקע מלא. הטקסט "שלום (שם משתמש)" והודעת "ברוכים הבאים לעולמה הקסום של סול" כבר קיימים. אין צורך בשינוי קוד.
 
 ---
 
-## Files Requiring Changes
+## סיכום
 
-### 1. `index.html` (2 changes)
-- Line 6: Update `<title>` from "SolStories" to "SolStorie's™"
-- Line 30: Update `og:title` from "SolStorie's" to "SolStorie's™" (already has apostrophe, just missing in title tag)
+| פעולה | פירוט |
+|-------|-------|
+| עריכת תמונה | עדכון פניה של סול בתמונת הקבוצה להתאמה לרפרנס |
+| קובץ מוחלף | `src/assets/hero-solstories-library-new.jpeg` |
+| שינויי קוד | אין |
 
-### 2. `src/pages/Onboarding.tsx` (3 changes)
-- Line 72: Toast message "ברוכים הבאים ל-SolStories!" → "ברוכים הבאים ל-SolStorie's™!"
-- Line 127: Title span "SolStories" → "SolStorie's™"
-- Line 135: Inline text "SolStories" → "SolStorie's™"
-- Line 141: Inline text "SolStories" → "SolStorie's™"
-
-### 3. `src/pages/TermsOfService.tsx` (2 changes)
-- Line 33: "SolStories" → "SolStorie's™"
-- Line 61: "SolStories" → "SolStorie's™"
-
-### 4. `supabase/functions/generate-story/index.ts` (4 changes)
-- Line 901: "עולם SolStories" → "עולם SolStorie's™"
-- Line 903: "עולם SolStories" → "עולם SolStorie's™"
-- All other occurrences of "SolStories" in the AI prompt text
-
-## No Changes Needed
-
-These files already use the correct "SolStorie's™" branding:
-
-| File | Status |
-|------|--------|
-| `src/pages/About.tsx` | Correct |
-| `src/pages/Settings.tsx` | Correct |
-| `src/pages/PrivacyPolicy.tsx` | Correct |
-| `src/pages/Profile.tsx` | Correct |
-| `src/components/shared/GlobalFooter.tsx` | Correct |
-| `src/components/shared/AboutSoulStoryContent.tsx` | Correct |
-| `src/components/home/GuestLanding.tsx` | Correct |
-| `src/hooks/use-pdf-export.ts` | Correct (footer: "SolStorie's™ | כל הזכויות שמורות") |
-
-## Character Name "Noi"
-No instances of "Noi" or "נוי" as a character name were found. All search hits were Hebrew words like "מנוי" (subscription) or "שינוי" (change). Zoe (זואי) is already correctly referenced throughout the codebase.
-
-## Summary
-
-| File | Changes |
-|------|---------|
-| `index.html` | Fix title tag to "SolStorie's™" |
-| `src/pages/Onboarding.tsx` | Replace 4 instances of "SolStories" with "SolStorie's™" |
-| `src/pages/TermsOfService.tsx` | Replace 2 instances of "SolStories" with "SolStorie's™" |
-| `supabase/functions/generate-story/index.ts` | Replace ~4 instances in AI prompt text |
-
-Total: 4 files, ~12 text replacements. No structural or layout changes needed.
-
+## הערות טכניות
+- שימוש ב-Gemini Image Edit API עם שתי התמונות (המקורית + הרפרנס)
+- אם התוצאה לא מספקת, ניתן לבצע איטרציה נוספת עד שהדמות תהיה עקבית
+- כל שאר האלמנטים בתמונה (דמויות, רקע, לוגו) יישארו ללא שינוי
