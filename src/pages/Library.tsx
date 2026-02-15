@@ -342,7 +342,7 @@ const Library = () => {
   );
 };
 
-import libraryChildReading from "@/assets/library-child-reading.jpeg";
+import libraryEmptyState from "@/assets/library-empty-state.png";
 
 const EmptyState = ({ onCreateClick }: { onCreateClick: () => void }) => (
   <div className="text-center py-6 space-y-5">
@@ -350,7 +350,7 @@ const EmptyState = ({ onCreateClick }: { onCreateClick: () => void }) => (
     <div className="relative mx-auto w-48 h-48">
       <div className="relative">
         <img 
-          src={libraryChildReading} 
+          src={libraryEmptyState} 
           alt="ילד קורא בטאבלט" 
           className="w-48 h-48 rounded-2xl object-cover border-2 border-purple-300"
         />
@@ -365,7 +365,7 @@ const EmptyState = ({ onCreateClick }: { onCreateClick: () => void }) => (
         }}
       >
         <img 
-          src={libraryChildReading} 
+          src={libraryEmptyState} 
           alt="" 
           className="w-48 h-48 rounded-2xl object-cover mx-auto"
           aria-hidden="true"
