@@ -1,58 +1,102 @@
 
 
-# תיקון: כפתור מחיקה וכפתור עריכה בגלריית הסיפורים
+# Final Branding & Domain Setup
 
-## בעיות שנמצאו
+## סיכום השינויים
 
-### 1. כפתור המחיקה לא עובד
-ה-`AlertDialog` (חלון אישור המחיקה) מוטמע בתוך `DropdownMenuItem`. כאשר לוחצים על "מחיקת סיפור", ה-Dropdown נסגר ולכן ה-AlertDialog מאבד את ההקשר שלו ולא מופיע -- מה שגורם לכך שהמחיקה לא מתבצעת.
-
-### 2. כפתור עריכה חסר
-הפונקציה `handleEditStory` קיימת ב-`Library.tsx` (שורה 160), אבל היא **לא מועברת** כ-prop ל-`StoryListItem`. בנוסף, ל-`StoryListItem` אין כלל prop בשם `onEdit` בממשק שלו.
+5 משימות מיתוג ודומיין שיש לבצע ב-14 קבצים:
 
 ---
 
-## תיקונים
+## 1. דומיין: שינוי מ-solstories.co.il ל-soulstory.co.il
 
-### קובץ 1: `src/components/ui/story-list-item.tsx`
+**קבצים:** `index.html`
 
-**שינוי א -- הוספת prop של onEdit:**
-- הוספת `onEdit?: (id: string) => void` לממשק `StoryListItemProps`
-- הוספת אפשרות עריכה בתפריט הנפתח (אייקון עיפרון + "עריכת סיפור")
+| שורה | מ- | ל- |
+|------|----|----|
+| canonical | `solstories.co.il` | `soulstory.co.il` |
+| og:url | `solstories.co.il` | `soulstory.co.il` |
+| og:image | `solstories.co.il/favicon.png` | `soulstory.co.il/favicon.png` |
+| twitter:image | `solstories.co.il/favicon.png` | `soulstory.co.il/favicon.png` |
 
-**שינוי ב -- תיקון מחיקה:**
-- הוצאת ה-`AlertDialog` מתוך ה-`DropdownMenu` החוצה, כדי שלחיצה על "מחיקת סיפור" תפתח את חלון האישור בנפרד, בלי תלות בסטטוס הDropdown
-- הDropdownMenuItem רק ישנה state (`showDeleteDialog`) והDialog יהיה ברמה העליונה של הרכיב
-
-### קובץ 2: `src/pages/Library.tsx`
-
-- העברת `onEdit={handleEditStory}` כ-prop ל-`StoryListItem` (שורה 295 בערך)
+**הערה:** לאחר שינוי הקוד, יש להגדיר את הדומיין `soulstory.co.il` בהגדרות הפרויקט (Domains) ולעדכן רשומות DNS (A record ל-185.158.133.1).
 
 ---
 
-## פירוט טכני
+## 2. שם המותג: החלפת כל "SoulStory" ל-"SolStorie's™"
 
-### story-list-item.tsx -- מבנה חדש
+**10 קבצים לעדכון:**
+
+| קובץ | שינוי |
+|-------|-------|
+| `vite.config.ts` | PWA manifest name/short_name |
+| `src/config/pricing.ts` | "ארגז הכלים של SoulStory" |
+| `src/pages/Settings.tsx` | הערה + import name |
+| `src/components/shared/AboutSoulStoryContent.tsx` | שם הקובץ (rename) + תוכן |
+| `src/components/paywall/PurchaseSuccessModal.tsx` | "ברוכים הבאים למשפחת SoulStory" |
+| `src/pages/ShareAndEarn.tsx` | "חשבון ב-SoulStory" |
+| `src/pages/Toolkit.tsx` | "SoulStory™" בלוגו |
+| `supabase/functions/send-password-reset/index.ts` | from, subject, חתימה |
+| `supabase/functions/send-purchase-confirmation/index.ts` | from, חתימה |
+| `supabase/functions/send-contact-form/index.ts` | from, חתימה |
+| `supabase/functions/azure-speech-tts/index.ts` | User-Agent header |
+
+---
+
+## 3. דמות "Noi" -> Zoe
+
+**לא נדרש שינוי** -- הדמות כבר נקראת Zoe/זואי בכל הקבצים. אין הופעה של "Noi" כשם דמות באפליקציה.
+
+---
+
+## 4. לוגו -- התאמת גודל למובייל
+
+**קבצים:** `src/components/home/GuestLanding.tsx`, `src/pages/Auth.tsx`
+
+שינוי גודל הלוגו כדי שלא ייחתך במסכים צרים:
+- הקטנת text-3xl ל-text-2xl במובייל עם sm:text-3xl ל-desktop
+- הוספת padding אופקי (`px-4`) למניעת חיתוך
+
+---
+
+## 5. פוטר -- עדכון הזכויות
+
+**קובץ:** `src/components/shared/GlobalFooter.tsx`
 
 ```text
-StoryListItem
-+-- div (clickable card)
-|   +-- Image
-|   +-- Text (name, topic, date)
-|   +-- DropdownMenu
-|       +-- "עריכת סיפור" (calls onEdit)
-|       +-- "שינוי מגדר" (calls onGenderSwap)
-|       +-- "מחיקת סיפור" (sets showDeleteDialog=true)
-+-- AlertDialog (at root level, controlled by showDeleteDialog state)
+מ-: © 2026 SolStorie's™. כל הזכויות שמורות לאמא של סול.
+ל-: SolStorie's™ | כל הזכויות שמורות
 ```
 
-### Library.tsx -- שינוי קטן
+---
 
-הוספת שורה אחת בלבד:
+## פירוט טכני מלא
 
-```
-onEdit={handleEditStory}
-```
+### index.html (4 שינויים)
+- שורה 27: canonical -> `soulstory.co.il`
+- שורה 33: og:url -> `soulstory.co.il`
+- שורה 35: og:image -> `soulstory.co.il/favicon.png`
+- שורה 38: twitter:image -> `soulstory.co.il/favicon.png`
 
-ב-props של StoryListItem (ליד onDelete ו-onGenderSwap).
+### vite.config.ts (2 שינויים)
+- שורה 20: `"SoulStory™ – סיפורים עם נשמה"` -> `"SolStorie's™ – סיפורים עם נשמה"`
+- שורה 21: `"SoulStory"` -> `"SolStorie's™"`
+
+### GlobalFooter.tsx (1 שינוי)
+- הטקסט המלא מוחלף לפורמט החדש ללא סימן (c) וללא "לאמא של סול"
+
+### GuestLanding.tsx (1 שינוי)
+- שורה 116: הקטנת גודל פונט ל-`text-2xl sm:text-3xl`
+
+### Auth.tsx (1 שינוי)
+- שורה 1052: הקטנת גודל פונט ל-`text-2xl sm:text-3xl`
+
+### pricing.ts, Settings.tsx, PurchaseSuccessModal.tsx, ShareAndEarn.tsx, Toolkit.tsx (5 קבצים)
+- החלפת כל "SoulStory" ל-`SolStorie's™` עם עטיפת dir="ltr" היכן שרלוונטי
+
+### AboutSoulStoryContent.tsx (1 קובץ)
+- שינוי שם הרכיב ל-`AboutSolStoriesContent` (ועדכון ה-import ב-Settings.tsx)
+
+### 3 Edge Functions (send-password-reset, send-purchase-confirmation, send-contact-form, azure-speech-tts)
+- החלפת "SoulStory" ל-"SolStorie's™" בשולח, נושא וחתימה
 
