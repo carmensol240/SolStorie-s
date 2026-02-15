@@ -1,35 +1,38 @@
 
 
-# Fix Auth Screen UI/UX -- Character, Bubble & Hierarchy
+# Fix Login Screen -- Sol Character & Speech Bubble
 
 ## File: `src/pages/Auth.tsx`
 
-### 1. Sol Character Positioning (lines 1059-1061)
+### 1. Enlarge Sol Character (line 1060)
 
-The Sol character image (`sol-waving-hello.png`) is already using a transparent PNG. The fix is adjusting its position so it sits more naturally in the top-left corner of the glassmorphism box, peeking from behind it.
+Increase the character size by ~20% to make her more prominent and clear.
 
-**Current**: `className="absolute -top-8 -left-4"` with `style={{ transform: 'translate(-20%, -40%)' }}`
+**Current**: `className="w-20 h-20 sm:w-24 sm:h-24 object-contain drop-shadow-lg"`
 
-**New**: Change to `className="absolute -top-10 -left-6"` with `style={{ transform: 'translate(-10%, -35%)' }}` -- this shifts Sol slightly more to the left and higher, creating a cleaner "peeking" effect without the white-square look.
+**New**: `className="w-24 h-24 sm:w-28 sm:h-28 object-contain drop-shadow-lg"` (from 80px to 96px on mobile, 96px to 112px on desktop)
 
-### 2. Speech Bubble Repositioning (lines 1064-1070)
+### 2. Reposition Sol Higher to Create "Peeking" Effect (line 1059)
 
-Move the bubble down and right by ~15-20px to prevent it from overlapping the SolStorie's™ logo above.
+Shift the character further up so her lower body is hidden behind the white login box, creating a natural "peeking from behind" look.
 
-**Current**: `className="absolute -top-14 left-16 sm:left-20"`
+**Current**: `className="absolute -top-10 -left-6"` with `style={{ transform: 'translate(-10%, -35%)' }}`
 
-**New**: `className="absolute -top-10 left-20 sm:left-24"` -- shifts it ~16px down (from -top-14 to -top-10) and ~16px right (from left-16 to left-20).
+**New**: `className="absolute -top-14 -left-6"` with `style={{ transform: 'translate(-10%, -30%)' }}` -- moves her higher so the box edge cuts across her midsection naturally.
 
-### 3. Visual Hierarchy (lines 1138-1148)
+### 3. Reposition Speech Bubble to Avoid Logo Overlap (line 1064)
 
-Make the "ברוכים הבאים!" title more prominent and reduce the device-availability subtitle.
+Move the bubble further right and slightly down so it sits clearly to the right of Sol and below the SolStorie's™ logo.
 
-**Current**:
-- Title: `text-xl font-black`
-- Subtitle (device info): `text-black/50 text-xs font-bold`
+**Current**: `className="absolute -top-10 left-20 sm:left-24"`
 
-**Changes**:
-- Title: Increase to `text-2xl font-black` for more prominence
-- Subtitle "התחברו כדי ליצור סיפורים מותאמים אישית": Keep as `text-sm`
-- Device availability line: Reduce from `text-xs font-bold` to `text-[10px] font-medium text-black/40` to make it less visually dominant
+**New**: `className="absolute -top-6 left-24 sm:left-28"` -- shifts it ~16px down and ~16px right, ensuring no overlap with the logo above.
+
+Also move the triangle pointer from `left-4` to `left-2` so it points more toward Sol's position.
+
+### Summary of Visual Result
+
+- Sol is larger (20% increase) and positioned higher, so the login box naturally "clips" her lower body -- creating a peeking effect
+- The speech bubble sits clearly to the right of Sol and below the logo line
+- No changes to the login form content, glassmorphism styling, or visual hierarchy (those were already fixed in the previous edit)
 
