@@ -1,59 +1,66 @@
 
-# Final Launch Configuration for SolStorie's™
 
-## Status Check - What's Already Done
+# Comprehensive Master Prompt -- SolStorie's™ Launch
 
-Most items from the previous branding update are already in place:
+## Already Done (No Changes Needed)
+
 - Domain set to soulstory.co.il in index.html
-- SolStorie's™ branding across most files
-- Character already named Zoe (no "Noi" found anywhere)
-- Logo sized for mobile
-- Footer updated correctly
-- Read-aloud removed from standard story UI
-- Privacy policy has all required regulatory content with the correct brand name and domain
+- Brand name SolStorie's™ applied globally
+- Character "Noi" already renamed to Zoe everywhere
+- Footer already correct: "SolStorie's™ | כל הזכויות שמורות"
+- Logo scaled for mobile (text-2xl sm:text-3xl)
+- Read-aloud button removed
+- Age-based story length logic implemented in generate-story edge function
+- Privacy policy updated with new domain
+- Golden Heart rewards (certificate + coloring page) already implemented
+- PDF footer branding correct
 
-## Remaining Fixes (3 files)
+## Changes Required (3 items)
 
-### 1. Fix export name in AboutSolStoriesContent.tsx
-The file was renamed but the exported function is still called `AboutSoulStoryContent`. Rename to `AboutSolStoriesContent`.
+### 1. Update Educator Package: 30 stories -> 25 stories
 
-### 2. Fix import + comment in Settings.tsx
-- Line 17: Update import from `AboutSoulStoryContent` to `AboutSolStoriesContent`
-- Line 112: Change comment from "SoulStory App" to "SolStorie's App"
-- Line 211: Update component usage `<AboutSoulStoryContent />` to `<AboutSolStoriesContent />`
+**File:** `src/config/pricing.ts`
 
-### 3. Remove "read-aloud" marketing text from GuestLanding.tsx
-Line 51 says "סיפורים והקראה קולית איכותית של ילדה ללמידת שפה בצורה חווייתית" -- the "הקראה קולית" mention should be replaced since read-aloud was removed. Suggested replacement: "סיפורים באנגלית עם ניקוד ותרגום ללמידת שפה בצורה חווייתית."
+Change the EDUCATOR_PACKAGE from 30 stories to 25 stories, and update the price-per-story calculation accordingly (199/25 = 7.96, displayed as "8₪").
 
-## New Feature: Golden Heart Rewards (PDF Coloring Page + Certificate)
+### 2. Update Educator Welcome Banner Text
 
-When the "לב זהב" (Golden Heart) badge is unlocked in the Profile page, two new downloadable items become available:
+**File:** `src/components/home/LoggedInHome.tsx`
 
-### What gets added:
-1. **Coloring Page PDF** -- A printable coloring page featuring the Sol character, generated client-side using jspdf (already installed)
-2. **"Official Friend" Certificate** -- A branded certificate with the child's name, date, and the footer "SolStorie's™ | כל הזכויות שמורות"
+Replace the current generic educator banner text with the specific festive message in singular feminine Hebrew:
 
-### Implementation Details:
+Current: "ברוכים הבאים צוות החינוך היקר! כאן תמצאו כלים ליצירת קסם לימודי וערכי עבור הילדים."
 
-**New file: `src/components/profile/GoldenHeartRewards.tsx`**
-- A component that renders two download buttons (coloring page + certificate) when the badge is unlocked
-- Uses jspdf to generate both PDFs client-side
-- Certificate includes: child name, date, Sol character branding, and the required footer
-- Coloring page includes: simple line-art layout with "SolStorie's™" header and branded footer
+New: "ברוכה הבאה לנבחרת המחנכות של SolStorie's™! כפי שהובטח, 3 סיפורים במתנה מחכים לך בחשבון. אל תשכחי לבדוק את החבילה המיוחדת עבורך: 25 סיפורים ב-199 ש״ח בלבד."
 
-**Modified file: `src/pages/Profile.tsx`**
-- Import and render `GoldenHeartRewards` component below the badge grid
-- Pass `childName`, `isUnlocked` (from the "לב זהב" badge state), and the badge data
-- Only visible when the Golden Heart badge is unlocked
-- Styled consistently with the existing glassmorphism card design
+The banner already has the correct behavior: shows only after login for educators, dismissible, saved in localStorage.
 
-### Technical Notes
-- jspdf is already installed -- no new dependencies needed
-- PDFs are generated entirely client-side (no backend calls)
-- Hebrew text in jspdf requires embedding the Heebo font (already available at `src/assets/fonts/Heebo-Regular.woff2`) -- it will be loaded as base64 for PDF rendering
-- Both PDFs include the branded footer: "SolStorie's™ | כל הזכויות שמורות"
-- The coloring page uses simple geometric shapes and line art (no external images needed)
-- The certificate uses a decorative border with gradient-inspired colors rendered as PDF drawing commands
+### 3. Update Certificate Text to Feature Zoe
 
-### Story Length Logic
-Already correctly implemented in the `generate-story` edge function per the saved project memory. No changes needed -- ages 0-2 get short stories, 3-6 medium, 7-8 complex with full vocalization.
+**File:** `src/components/profile/GoldenHeartRewards.tsx`
+
+Update the certificate content to match the requested text:
+
+- Change subtitle from "תעודת חברות רשמית" to "תעודת חבר/ה רשמי/ת בנבחרת של זואי!"
+- Change body text from "החבר/ה הרשמי/ת של סול" to a multi-line message:
+  - "בזכות הסקרנות והדמיון שלך, פתחת את לב הזהב."
+  - "מעכשיו, את/ה חלק מהעולם הקסום שלנו."
+- Change signature line to: "על החתום: זואי (Zoe)"
+- Add a golden heart shape to the coloring page (Zoe holding the Golden Heart) as a lead illustration element
+
+---
+
+## Technical Details
+
+### pricing.ts (line 33-35)
+- `stories: 30` -> `stories: 25`
+- `pricePerStory: "6.6₪"` -> `pricePerStory: "8₪"`
+
+### LoggedInHome.tsx (line 128-129)
+- Replace banner paragraph text with the new singular feminine message
+- Wrap "SolStorie's™" in `<span dir="ltr" className="inline-block">` for correct RTL rendering
+
+### GoldenHeartRewards.tsx
+- Update `generateCertificate()` function: change subtitle text (line 59), body text (line 73), and add signature line
+- Update `generateColoringPage()` function: add a heart shape in Zoe's hands as the lead coloring element
+
