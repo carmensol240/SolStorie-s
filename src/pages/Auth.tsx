@@ -1056,16 +1056,16 @@ const Auth = () => {
         {/* Container wrapper for peeking character */}
         <div className="relative w-full max-w-md">
           {/* Sol peeking from top-right */}
-          <div className="absolute -top-10 -left-6 z-20 pointer-events-none animate-float-gentle" style={{ transform: 'translate(-10%, -35%)' }}>
-            <img src={solWaving} alt="Sol waving hello" className="w-20 h-20 sm:w-24 sm:h-24 object-contain drop-shadow-lg" />
+          <div className="absolute -top-14 -left-6 z-20 pointer-events-none animate-float-gentle" style={{ transform: 'translate(-10%, -30%)' }}>
+            <img src={solWaving} alt="Sol waving hello" className="w-24 h-24 sm:w-28 sm:h-28 object-contain drop-shadow-lg" />
           </div>
 
           {/* Speech bubble */}
-          <div className="absolute -top-10 left-20 sm:left-24 z-20 pointer-events-none animate-fade-in-delay-3">
+          <div className="absolute -top-6 left-24 sm:left-28 z-20 pointer-events-none animate-fade-in-delay-3">
             <div className="relative bg-white rounded-2xl px-3 py-1.5 shadow-lg border border-white/60">
               <p className="text-xs font-black text-purple-700 whitespace-nowrap">!שלום! בואו נתחיל בהרפתקה</p>
               {/* Triangle pointer */}
-              <div className="absolute -bottom-2 left-4 w-0 h-0" style={{ borderLeft: '6px solid transparent', borderRight: '6px solid transparent', borderTop: '8px solid white' }} />
+              <div className="absolute -bottom-2 left-2 w-0 h-0" style={{ borderLeft: '6px solid transparent', borderRight: '6px solid transparent', borderTop: '8px solid white' }} />
             </div>
           </div>
 
