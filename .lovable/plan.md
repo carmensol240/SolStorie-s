@@ -1,58 +1,53 @@
 
 
-# Interactivity for Locked Badges in "My Journey"
+# Domain Migration to solstories.co.il
 
 ## Overview
-Add click-to-reveal tooltips on locked badges in the Profile page, explaining how to unlock each one. Styled to match the whimsical glassmorphism aesthetic.
+Migrate SEO, metadata, and social sharing references to the new official domain `solstories.co.il`. Most internal links already use relative paths or `window.location.origin`, so the migration is focused on static metadata and OG tags.
 
 ---
 
 ## Changes
 
-### 1. Badge Unlock Messages (`src/pages/Profile.tsx`)
+### 1. SEO & OpenGraph Metadata (`index.html`)
 
-**Extend the Badge interface** (line 37-42) to include an `unlockHint` field:
+Update lines 27-34 to reference the new domain:
 
-```ts
-interface Badge {
-  emoji: string;
-  name: string;
-  description: string;
-  unlocked: boolean;
-  unlockHint: string;
-}
-```
+- Add `<meta property="og:url" content="https://solstories.co.il" />`
+- Update `og:image` and `twitter:image` from `https://lovable.dev/opengraph-image-p98pqg.png` to `https://solstories.co.il/favicon.png` (or a dedicated OG image if uploaded later)
+- Add `<link rel="canonical" href="https://solstories.co.il" />` for SEO
 
-**Update the badges array** (lines 110-116) with specific unlock messages:
+### 2. No Changes Required (Already Dynamic)
 
-| Badge | unlockHint |
-|-------|-----------|
-| נבט הדמיון | "צרו את הסיפור הראשון שלכם כדי לפתוח את הנבט!" |
-| חוקר כוכבים | "קראו 5 סיפורי הרפתקה כדי להפוך לחוקרי כוכבים!" |
-| לב זהב | "כדי לפתוח את לב הזהב של סול ולהפוך לחברים הכי טובים, המשיכו להיכנס וליצור סיפורים במשך 7 ימים רצופים. אתם כמעט שם!" |
-| קוסם מילים | "צרו 5 סיפורים או יותר כדי להפוך לקוסמי מילים!" |
-| החבר/ה של סול | "צרו 10 סיפורים כדי להפוך לחברים הכי טובים של סול!" |
+These areas use `window.location.origin` at runtime, so they automatically adapt to whichever domain serves the app:
 
-### 2. Click Handler on Locked Badges (`src/pages/Profile.tsx`)
+| Area | File | Why no change |
+|------|------|---------------|
+| Referral/Share links | `src/hooks/use-referral.ts` | Uses `window.location.origin` (line 65) |
+| WhatsApp sharing | `src/hooks/use-referral.ts` | Built from dynamic share link (line 70) |
+| PWA manifest | `vite.config.ts` | Uses relative paths (`/`, `/pwa-icon-192.png`) |
+| PDF footer | `src/hooks/use-pdf-export.ts` | Shows `SolStorie's(TM)` branding, no domain |
+| Privacy Policy | `src/pages/PrivacyPolicy.tsx` | References brand name, no domain URLs |
+| Terms of Service | `src/pages/TermsOfService.tsx` | References brand name, no domain URLs |
+| Payment (PayPal) | `src/config/pricing.ts` | Client ID is domain-independent; PayPal handles redirect via `window.location` |
 
-**Update lines 358-382** -- the badge rendering loop:
+### 3. Domain Connection (Manual Step)
 
-- Add an `onClick` handler to locked badges that calls `toast()` (sonner) with the badge's `unlockHint`
-- Add `cursor-pointer` class to locked badges
-- Use sonner toast with a whimsical style: icon of the badge emoji, and the hint text
-- Unlocked badges remain non-clickable (no change)
+After code changes, connect the custom domain in Lovable:
 
-The toast call:
-```ts
-onClick={() => {
-  if (!badge.unlocked) {
-    toast(badge.name, {
-      description: badge.unlockHint,
-      icon: badge.emoji,
-    });
-  }
-}}
-```
+1. Go to **Project Settings** then **Domains**
+2. Click **Connect Domain** and enter `solstories.co.il`
+3. Add a second entry for `www.solstories.co.il`
+4. At your domain registrar, add:
+   - **A Record** for `@` pointing to `185.158.133.1`
+   - **A Record** for `www` pointing to `185.158.133.1`
+   - **TXT Record** as provided by Lovable for verification
+5. Set one as Primary (the other will redirect)
+6. SSL is provisioned automatically
+
+### 4. PayPal Domain Verification (Manual Step)
+
+In the PayPal developer dashboard, add `solstories.co.il` as an allowed domain/return URL to ensure payment callbacks work on the new domain.
 
 ---
 
@@ -60,11 +55,11 @@ onClick={() => {
 
 | File | Change |
 |------|--------|
-| `src/pages/Profile.tsx` | Add `unlockHint` to Badge interface, populate hints, add onClick toast for locked badges |
+| `index.html` | Add canonical URL, og:url, update og:image/twitter:image to new domain |
 
 ## Technical Notes
-- Uses existing `sonner` toast (already imported on line 7) -- no new dependencies
-- Toast appears at the bottom of the screen in the app's existing style
-- Only locked badges respond to clicks; unlocked badges remain static
-- No database changes required
+- Only 1 file needs code changes -- the rest is infrastructure/DNS setup
+- All share links, referral URLs, and PWA scope are already relative/dynamic
+- Branding elements (rainbow logo, trademark, PDF footer) contain no domain references
+- PayPal client-side SDK uses return URLs from `window.location`, but the PayPal dashboard may need the new domain whitelisted
 
