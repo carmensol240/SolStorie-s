@@ -17,7 +17,7 @@ export default defineConfig(({ mode }) => ({
       registerType: "autoUpdate",
       includeAssets: ["favicon.png", "favicon.ico", "pwa-icon-192.png", "pwa-icon-512.png"],
       manifest: {
-        name: "SolStorie's™ – סיפורים עם נשמה",
+        name: "SolStorie's™ – עולמה הקסום של סול",
         short_name: "SolStorie's™",
         description: "צרו סיפורים קסומים עם הילד שלכם כגיבור הראשי",
         theme_color: "#87CEEB",
