@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import { useNavigate, Link, useSearchParams } from "react-router-dom";
-import { Mail, Lock, Loader2, Eye, EyeOff, KeyRound, FileText, Shield, CheckCircle2, Sparkles, Heart, Users, Camera, Check, ArrowRight, RefreshCw } from "lucide-react";
+import { Mail, Lock, Loader2, Eye, EyeOff, KeyRound, FileText, Shield, CheckCircle2, Sparkles, Heart, Users, Camera, Check, ArrowRight, RefreshCw, Smartphone, Tablet, Monitor } from "lucide-react";
 import MobileNavigation from "@/components/MobileNavigation";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -14,7 +14,7 @@ import { useToast } from "@/hooks/use-toast";
 import { useAnalytics } from "@/hooks/use-analytics";
 import { supabase } from "@/integrations/supabase/client";
 import { z } from "zod";
-import soliBackground from "@/assets/soli-tree-background.png";
+// Background is now CSS-only (adventure sky theme)
 import solWaving from "@/assets/sol-waving-hello.png";
 
 const emailSchema = z.string().email("כתובת אימייל לא תקינה");
@@ -1039,18 +1039,19 @@ const Auth = () => {
   return (
     <div className="h-screen h-[100dvh] flex flex-col overflow-hidden relative">
       {/* Full-screen Background Image */}
-      <div 
-        className="absolute inset-0 bg-cover bg-center bg-no-repeat"
-        style={{ backgroundImage: `url(${soliBackground})` }}
-      >
-        {/* Gradient overlay for better text readability */}
-        <div className="absolute inset-0 bg-gradient-to-b from-black/30 via-transparent to-black/50" />
+      {/* Adventure Sky Background */}
+      <div className="absolute inset-0 bg-adventure-sky">
+        <div className="absolute inset-0 rainbow-arc" />
+        {/* Soft cloud shapes */}
+        <div className="absolute top-[15%] left-[10%] w-40 h-20 bg-white/30 rounded-full blur-2xl" />
+        <div className="absolute top-[20%] right-[15%] w-52 h-24 bg-white/25 rounded-full blur-3xl" />
+        <div className="absolute top-[10%] left-[50%] w-36 h-16 bg-white/20 rounded-full blur-2xl" />
       </div>
 
       <div className="relative z-10 flex-1 flex flex-col items-center justify-center p-4 pb-20 overflow-y-auto">
         {/* Rainbow Logo */}
-        <h1 dir="ltr" className="text-2xl sm:text-3xl font-black text-center logo-3d-bubble mb-3 animate-fade-in px-4">
-          <span className="logo-rainbow">SolStorie's™</span>
+        <h1 dir="ltr" className="text-3xl sm:text-4xl font-black text-center logo-3d-bubble mb-3 animate-fade-in px-4">
+          <span className="bg-gradient-to-r from-purple-600 via-pink-500 to-amber-400 bg-clip-text text-transparent" style={{ filter: 'drop-shadow(0 0 12px rgba(255,255,255,0.8)) drop-shadow(0 0 24px rgba(255,255,255,0.4))' }}>SolStorie's™</span>
         </h1>
 
         {/* Container wrapper for peeking character */}
@@ -1141,9 +1142,6 @@ const Auth = () => {
                 </h1>
                 <p className="text-black/70 text-sm font-medium">
                   התחברו כדי ליצור סיפורים מותאמים אישית
-                </p>
-                <p className="text-black/40 text-[10px] font-medium mt-1.5 flex items-center justify-center gap-1.5">
-                  📱 <span dir="ltr" className="inline-block">SolStorie's™</span> זמינה עבורכם בכל מקום: בטלפון, בטאבלט ובמחשב האישי
                 </p>
               </div>
 
@@ -1355,6 +1353,16 @@ const Auth = () => {
             </>
           )}
           </div>
+        </div>
+
+        {/* Device availability icons */}
+        <div className="flex flex-col items-center gap-1.5 mt-6 mb-4 animate-fade-in-delay-3">
+          <div className="flex items-center gap-4">
+            <span className="text-white/60"><Smartphone className="w-5 h-5" /></span>
+            <span className="text-white/60"><Tablet className="w-5 h-5" /></span>
+            <span className="text-white/60"><Monitor className="w-5 h-5" /></span>
+          </div>
+          <p className="text-white/60 text-xs font-medium">זמינה עבורכם בכל מקום</p>
         </div>
       </div>
       <MobileNavigation />
