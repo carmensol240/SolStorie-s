@@ -112,7 +112,7 @@ const handler = async (req: Request): Promise<Response> => {
         </div>
         
         <p style="color: #6b7280; font-size: 12px; margin-top: 30px;">
-          הודעה זו נשלחה מטופס צור קשר באפליקציית SoulStory.
+          הודעה זו נשלחה מטופס צור קשר באפליקציית SolStorie's™.
           <br>
           להשיב לפנייה, לחץ על "השב" והמייל יישלח ישירות לשולח.
         </p>
@@ -127,7 +127,7 @@ const handler = async (req: Request): Promise<Response> => {
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        from: "SoulStory <noreply@storytime.org.il>",
+        from: "SolStorie's™ <noreply@storytime.org.il>",
         to: ["souldesign06@gmail.com"],
         reply_to: email,
         subject: `פנייה חדשה - ${subjectLabel}`,

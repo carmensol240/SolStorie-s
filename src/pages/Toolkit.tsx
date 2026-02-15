@@ -136,7 +136,7 @@ const Toolkit = () => {
             </div>
             <h1 className="text-2xl font-black mb-2">
               <span dir="ltr" className="inline-block bg-gradient-to-r from-purple-300 via-pink-300 to-orange-300 bg-clip-text text-transparent">
-                SoulStory™
+                SolStorie's™
               </span>
               <span className="bg-gradient-to-r from-amber-200 via-orange-200 to-pink-200 bg-clip-text text-transparent">
                 {" "}ארגז הכלים של

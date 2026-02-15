@@ -113,7 +113,7 @@ const GuestLanding = ({ user, isLoggedIn }: GuestLandingProps) => {
       {/* Content Container - with minimal bottom padding */}
       <div className="relative z-10 flex-1 flex flex-col px-5 pb-16">
         {/* Logo - Rainbow Gradient */}
-        <h1 className="text-3xl sm:text-4xl font-black text-center tracking-tight logo-3d-bubble mb-1 pt-2 px-6" dir="ltr">
+        <h1 className="text-2xl sm:text-3xl font-black text-center tracking-tight logo-3d-bubble mb-1 pt-2 px-4" dir="ltr">
           <span className="logo-rainbow">SolStorie's™</span>
         </h1>
 

@@ -65,7 +65,7 @@ serve(async (req) => {
           'Ocp-Apim-Subscription-Key': AZURE_SPEECH_KEY,
           'Content-Type': 'application/ssml+xml',
           'X-Microsoft-OutputFormat': 'audio-16khz-128kbitrate-mono-mp3',
-          'User-Agent': 'SoulStory-TTS',
+          'User-Agent': 'SolStories-TTS',
         },
         body: ssml,
       }

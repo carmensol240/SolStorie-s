@@ -14,7 +14,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { AboutSoulStoryContent } from "@/components/shared/AboutSoulStoryContent";
+import { AboutSoulStoryContent } from "@/components/shared/AboutSolStoriesContent";
 
 const Settings = () => {
   const navigate = useNavigate();
