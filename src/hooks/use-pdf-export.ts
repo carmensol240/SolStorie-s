@@ -77,7 +77,7 @@ export const usePdfExport = () => {
     pdf.setFontSize(9);
     pdf.setTextColor(200, 200, 200);
     pdf.text(
-      "SolStories – סיפורים עם נשמה | © 2026 | www.SolStories.co.il",
+      "SolStorie's™ | כל הזכויות שמורות",
       pageWidth / 2,
       pageHeight - 5,
       { align: 'center' }
