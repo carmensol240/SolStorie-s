@@ -48,7 +48,7 @@ const GuestLanding = ({ user, isLoggedIn }: GuestLandingProps) => {
     {
       icon: <Star className="w-5 h-5 text-white" aria-hidden="true" />,
       title: "לומדים אנגלית בכיף",
-      subtitle: "סיפורים והקראה קולית איכותית של ילדה ללמידת שפה בצורה חווייתית.",
+      subtitle: "סיפורים באנגלית עם ניקוד ותרגום ללמידת שפה בצורה חווייתית.",
     },
     {
       icon: <Users className="w-5 h-5 text-white" aria-hidden="true" />,

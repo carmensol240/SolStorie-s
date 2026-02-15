@@ -8,6 +8,7 @@ import { toast } from "sonner";
 import MobileNavigation from "@/components/MobileNavigation";
 import { SignedImage } from "@/components/ui/signed-image";
 import GlobalFooter from "@/components/shared/GlobalFooter";
+import GoldenHeartRewards from "@/components/profile/GoldenHeartRewards";
 import heroBackground from "@/assets/hero-solstories-library.png";
 import useEmblaCarousel from "embla-carousel-react";
 
@@ -392,6 +393,12 @@ const Profile = () => {
             </div>
           </div>
         </section>
+
+        {/* Golden Heart Rewards */}
+        <GoldenHeartRewards
+          childName={childName}
+          isUnlocked={badges.find(b => b.emoji === "💛")?.unlocked ?? false}
+        />
 
         {/* Favorites Slider */}
         {topStories.length > 0 && (
