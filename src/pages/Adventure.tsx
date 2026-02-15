@@ -7,7 +7,7 @@ import { useChildAvatar } from "@/hooks/use-child-avatar";
 import { useAuth } from "@/hooks/use-auth";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
-import heroBackground from "@/assets/hero-solstories-welcome.png";
+import heroVideo from "@/assets/hero-solstories-animation.mp4";
 import WelcomeGiftBanner from "@/components/home/WelcomeGiftBanner";
 import MobileNavigation from "@/components/MobileNavigation";
 
@@ -71,11 +71,14 @@ const Adventure = () => {
 
   return (
     <div className="h-[100dvh] relative overflow-hidden flex flex-col" dir="rtl">
-      {/* Background - full bleed cover, object-center to show characters & title */}
-      <img
-        src={heroBackground}
-        alt=""
-        className="absolute inset-0 w-full h-full object-cover object-center"
+      {/* Background video - full bleed cover, auto-loop */}
+      <video
+        src={heroVideo}
+        autoPlay
+        loop
+        muted
+        playsInline
+        className="absolute inset-0 w-full h-full object-cover"
       />
 
       {/* Very subtle vignette - only at very bottom for CTA readability */}
