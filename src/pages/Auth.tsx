@@ -1057,8 +1057,8 @@ const Auth = () => {
         {/* Container wrapper for peeking character */}
         <div className="relative w-full max-w-md">
           {/* Sol peeking from top-right */}
-           <div className="absolute -top-20 -left-8 z-20 pointer-events-none animate-float-gentle" style={{ transform: 'translate(-10%, -30%)' }}>
-            <img src={solWaving} alt="Sol waving hello" className="w-32 h-32 sm:w-36 sm:h-36 object-contain drop-shadow-lg" />
+           <div className="absolute -top-28 -left-10 z-20 pointer-events-none animate-float-gentle" style={{ transform: 'translate(-10%, -30%)' }}>
+            <img src={solWaving} alt="Sol waving hello" className="w-48 h-48 sm:w-52 sm:h-52 object-contain drop-shadow-lg" />
           </div>
 
           {/* Speech bubble */}
