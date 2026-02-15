@@ -71,65 +71,65 @@ const Adventure = () => {
 
   return (
     <div className="h-[100dvh] relative overflow-hidden flex flex-col" dir="rtl">
-      {/* Background - full bleed cover */}
+      {/* Background - full bleed cover, object-center to show characters & title */}
       <img
         src={heroBackground}
         alt=""
-        className="absolute inset-0 w-full h-full object-cover object-top"
+        className="absolute inset-0 w-full h-full object-cover object-center"
       />
-      {/* Gradient overlay - stronger at bottom for text readability */}
+
+      {/* Very subtle vignette - only at very bottom for CTA readability */}
       <div
-        className="absolute inset-0"
+        className="absolute inset-0 pointer-events-none"
         style={{
           background:
-            "linear-gradient(180deg, transparent 0%, transparent 55%, rgba(0,0,0,0.35) 75%, rgba(0,0,0,0.6) 100%)",
+            "linear-gradient(180deg, transparent 0%, transparent 65%, rgba(0,0,0,0.4) 85%, rgba(0,0,0,0.65) 100%)",
         }}
       />
 
-      {/* Header - floating over image with safe top padding */}
-      <header className="relative z-20 flex items-center justify-between px-5 pt-12 pb-2">
-        <div className="flex items-center gap-1.5">
+      {/* Credits pill - top left, small and transparent */}
+      <div className="absolute top-12 left-4 z-20">
+        <button
+          onClick={() => navigate("/upgrade")}
+          className="flex items-center gap-1.5 bg-black/25 backdrop-blur-md border border-white/20 rounded-full px-2.5 py-1 hover:bg-black/40 transition-colors"
+          aria-label="צפה בקרדיטים ושדרג"
+        >
+          <Coins className="w-3.5 h-3.5 text-amber-300" />
+          <span className="font-bold text-white/90 text-xs">{totalCredits}</span>
+        </button>
+      </div>
+
+      {/* Greeting pill - top right, small and transparent */}
+      <div className="absolute top-12 right-4 z-20">
+        <div className="flex items-center gap-2 bg-black/25 backdrop-blur-md border border-white/20 rounded-full px-3 py-1">
           {avatarUrl && (
-            <div className="w-8 h-8 rounded-full overflow-hidden border-2 border-white/50 shadow">
-              <img src={avatarUrl} alt="דמות הילד" className="w-full h-full object-cover" />
+            <div className="w-6 h-6 rounded-full overflow-hidden border border-white/40">
+              <img src={avatarUrl} alt="" className="w-full h-full object-cover" />
             </div>
           )}
-          <button
-            onClick={() => navigate("/upgrade")}
-            className="flex items-center gap-1.5 bg-white/20 backdrop-blur-xl border border-white/30 rounded-full px-3 py-1.5 hover:bg-white/30 transition-colors shadow"
-            aria-label="צפה בקרדיטים ושדרג"
-          >
-            <Coins className="w-4 h-4 text-amber-700" />
-            <span className="font-bold text-amber-900 text-sm">{totalCredits}</span>
-          </button>
-        </div>
-
-        <div className="bg-black/40 backdrop-blur-xl rounded-full px-3 py-1.5 shadow border border-white/10">
-          <h1
-            className="text-sm font-bold text-white"
-            style={{ textShadow: "0 1px 3px rgba(0,0,0,0.4)" }}
+          <span
+            className="text-xs font-bold text-white/90"
+            style={{ textShadow: "0 1px 2px rgba(0,0,0,0.3)" }}
           >
             שלום, {displayName || user?.email?.split("@")[0] || "משתמש"} 👋
-          </h1>
+          </span>
         </div>
-      </header>
+      </div>
 
-      {/* Spacer - lets the image characters show */}
+      {/* Spacer - lets the image characters and title show fully */}
       <div className="flex-1" />
 
-      {/* Bottom content - CTA area over dark gradient */}
-      <div className="relative z-10 flex flex-col items-center px-5 pb-20">
+      {/* Bottom CTA area - compact, centered, above nav */}
+      <div className="relative z-10 flex flex-col items-center px-5 pb-[72px]">
         <WelcomeGiftBanner credits={credits} storyCount={storyCount} />
 
-        {/* Welcome message */}
         <p
-          className="text-white text-sm font-bold mb-3 animate-fade-in text-center"
-          style={{ textShadow: "0 2px 8px rgba(0,0,0,0.5)" }}
+          className="text-white text-sm font-bold mb-2 text-center animate-fade-in"
+          style={{ textShadow: "0 2px 6px rgba(0,0,0,0.6)" }}
         >
           ברוכים הבאים לעולמה הקסום של סול ✨
         </p>
 
-        {/* Primary CTA Button */}
         <button
           onClick={() => navigate("/create")}
           className="group flex items-center justify-center gap-2.5 rounded-full px-6 py-3 max-w-[260px] bg-gradient-to-r from-amber-400 via-orange-400 to-pink-400 shadow-[0_0_20px_rgba(251,191,36,0.4)] hover:shadow-[0_0_30px_rgba(251,191,36,0.6)] hover:scale-[1.03] active:scale-95 transition-all duration-300 animate-[glow-pulse_2.5s_ease-in-out_infinite] border border-white/30"
