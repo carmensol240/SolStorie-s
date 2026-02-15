@@ -82,7 +82,7 @@ const Adventure = () => {
       />
 
       {/* Header - floating over image */}
-      <header className="absolute top-0 left-0 right-0 z-20 flex items-center justify-between px-4 pt-4">
+      <header className="absolute top-0 left-0 right-0 z-20 flex items-center justify-between px-5 pt-6">
         <div className="flex items-center gap-1.5">
           {avatarUrl && (
             <div className="w-8 h-8 rounded-full overflow-hidden border-2 border-white/50 shadow">

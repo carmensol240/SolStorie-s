@@ -418,24 +418,12 @@
     font-family: 'Baloo 2', 'Heebo', sans-serif;
   }
 
-  .logo-story {
-    color: #c4b5fd;
-    text-shadow: 
-      0 0 30px rgba(196, 181, 253, 0.6),
-      0 0 60px rgba(196, 181, 253, 0.3),
-      2px 2px 0 rgba(167, 139, 250, 0.8),
-      4px 4px 0 rgba(139, 92, 246, 0.4),
-      0 6px 12px rgba(0, 0, 0, 0.15);
-  }
-
-  .logo-time {
-    color: #fdba74;
-    text-shadow: 
-      0 0 30px rgba(253, 186, 116, 0.6),
-      0 0 60px rgba(253, 186, 116, 0.3),
-      2px 2px 0 rgba(251, 146, 60, 0.8),
-      4px 4px 0 rgba(249, 115, 22, 0.4),
-      0 6px 12px rgba(0, 0, 0, 0.15);
+  .logo-rainbow {
+    background: linear-gradient(90deg, #ff0000, #ff8c00, #ffd700, #00c853, #2196f3, #9c27b0, #e91e63);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+    filter: drop-shadow(0 0 12px rgba(255,255,255,0.8)) drop-shadow(0 0 24px rgba(255,255,255,0.4));
   }
 
   /* =========================================

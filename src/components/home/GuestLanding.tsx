@@ -97,7 +97,7 @@ const GuestLanding = ({ user, isLoggedIn }: GuestLandingProps) => {
         style={{ 
           backgroundImage: `url(${heroBackground})`,
           backgroundSize: 'cover',
-          backgroundPosition: 'center center',
+          backgroundPosition: 'center top',
           backgroundRepeat: 'no-repeat',
         }}
       />
@@ -111,11 +111,10 @@ const GuestLanding = ({ user, isLoggedIn }: GuestLandingProps) => {
       />
 
       {/* Content Container - with minimal bottom padding */}
-      <div className="relative z-10 flex-1 flex flex-col px-3 pb-16">
-        {/* Logo - 3D Bubble Style */}
-        <h1 className="text-5xl sm:text-6xl font-black text-center tracking-tight logo-3d-bubble mb-1 drop-shadow-2xl pt-2">
-          <span className="logo-story">Sol</span>
-          <span className="logo-time">Storie's™</span>
+      <div className="relative z-10 flex-1 flex flex-col px-5 pb-16">
+        {/* Logo - Rainbow Gradient */}
+        <h1 className="text-3xl sm:text-4xl font-black text-center tracking-tight logo-3d-bubble mb-1 pt-2 px-6" dir="ltr">
+          <span className="logo-rainbow">SolStorie's™</span>
         </h1>
 
         {/* Title Section - Compact & Centered */}
