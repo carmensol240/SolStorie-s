@@ -291,6 +291,7 @@ const Library = () => {
                 createdAt={story.created_at}
                 childGender={story.child_gender as 'male' | 'female' | undefined}
                 onDelete={handleDeleteStory}
+                onEdit={handleEditStory}
                 onGenderSwap={handleGenderSwap}
                 onClick={(id) => navigate(`/story/${id}`)}
               />
