@@ -56,7 +56,7 @@ async function generateCertificate(childName: string) {
   // Subtitle
   doc.setFontSize(22);
   doc.setTextColor(60, 60, 60);
-  doc.text("\u202B" + "תעודת חברות רשמית" + "\u202C", w / 2, 55, { align: "center" });
+  doc.text("\u202B" + "תעודת חבר/ה רשמי/ת בנבחרת של זואי!" + "\u202C", w / 2, 55, { align: "center" });
 
   // Heart emoji
   doc.setFontSize(40);
@@ -67,16 +67,22 @@ async function generateCertificate(childName: string) {
   doc.setTextColor(168, 85, 247);
   doc.text("\u202B" + childName + "\u202C", w / 2, 100, { align: "center" });
 
-  // Official friend text
-  doc.setFontSize(18);
+  // Body text
+  doc.setFontSize(16);
   doc.setTextColor(80, 80, 80);
-  doc.text("\u202B" + "החבר/ה הרשמי/ת של סול" + "\u202C", w / 2, 118, { align: "center" });
+  doc.text("\u202B" + "בזכות הסקרנות והדמיון שלך, פתחת את לב הזהב." + "\u202C", w / 2, 115, { align: "center" });
+  doc.text("\u202B" + "מעכשיו, את/ה חלק מהעולם הקסום שלנו." + "\u202C", w / 2, 128, { align: "center" });
+
+  // Signature
+  doc.setFontSize(14);
+  doc.setTextColor(168, 85, 247);
+  doc.text("\u202B" + "על החתום: זואי (Zoe)" + "\u202C", w / 2, 148, { align: "center" });
 
   // Date
   const dateStr = new Date().toLocaleDateString("he-IL");
   doc.setFontSize(12);
   doc.setTextColor(120, 120, 120);
-  doc.text("\u202B" + `תאריך: ${dateStr}` + "\u202C", w / 2, 140, { align: "center" });
+  doc.text("\u202B" + `תאריך: ${dateStr}` + "\u202C", w / 2, 165, { align: "center" });
 
   // Footer
   doc.setFontSize(9);
@@ -107,21 +113,49 @@ async function generateColoringPage(childName: string) {
   doc.setTextColor(80, 80, 80);
   doc.text("\u202B" + `דף צביעה מיוחד עבור ${childName}` + "\u202C", w / 2, 30, { align: "center" });
 
-  // Draw Sol character outline (simple geometric shapes)
+  // Draw golden heart (Zoe holding the Golden Heart)
   const cx = w / 2;
-  const cy = 110;
+  const cy = 90;
+
+  // Large golden heart shape
+  doc.setDrawColor(218, 165, 32); // gold
+  doc.setLineWidth(1.5);
+  // Left arc of heart
+  for (let i = 0; i <= 30; i++) {
+    const angle = Math.PI + (Math.PI * i) / 30;
+    const x1 = cx - 15 + 15 * Math.cos(angle);
+    const y1 = cy - 5 + 15 * Math.sin(angle);
+    const x2 = cx - 15 + 15 * Math.cos(angle + Math.PI / 30);
+    const y2 = cy - 5 + 15 * Math.sin(angle + Math.PI / 30);
+    doc.line(x1, y1, x2, y2);
+  }
+  // Right arc of heart
+  for (let i = 0; i <= 30; i++) {
+    const angle = Math.PI + (Math.PI * i) / 30;
+    const x1 = cx + 15 + 15 * Math.cos(angle);
+    const y1 = cy - 5 + 15 * Math.sin(angle);
+    const x2 = cx + 15 + 15 * Math.cos(angle + Math.PI / 30);
+    const y2 = cy - 5 + 15 * Math.sin(angle + Math.PI / 30);
+    doc.line(x1, y1, x2, y2);
+  }
+  // Bottom point of heart
+  doc.line(cx - 30, cy - 5, cx, cy + 30);
+  doc.line(cx + 30, cy - 5, cx, cy + 30);
+
+  // Sol/Zoe character outline below the heart
+  const zy = cy + 60;
 
   // Body (dress/triangle)
   doc.setDrawColor(168, 85, 247);
   doc.setLineWidth(1.2);
-  doc.triangle(cx - 30, cy + 50, cx + 30, cy + 50, cx, cy);
+  doc.triangle(cx - 30, zy + 50, cx + 30, zy + 50, cx, zy);
 
   // Head
-  doc.circle(cx, cy - 15, 18);
+  doc.circle(cx, zy - 15, 18);
 
   // Eyes
-  doc.circle(cx - 7, cy - 18, 3);
-  doc.circle(cx + 7, cy - 18, 3);
+  doc.circle(cx - 7, zy - 18, 3);
+  doc.circle(cx + 7, zy - 18, 3);
 
   // Smile
   doc.setDrawColor(236, 72, 153);
@@ -129,7 +163,7 @@ async function generateColoringPage(childName: string) {
   const smilePoints: [number, number][] = [];
   for (let i = 0; i <= 20; i++) {
     const angle = (Math.PI * i) / 20;
-    smilePoints.push([cx - 8 + 16 * (i / 20), cy - 8 + Math.sin(angle) * 4]);
+    smilePoints.push([cx - 8 + 16 * (i / 20), zy - 8 + Math.sin(angle) * 4]);
   }
   for (let i = 1; i < smilePoints.length; i++) {
     doc.line(smilePoints[i - 1][0], smilePoints[i - 1][1], smilePoints[i][0], smilePoints[i][1]);
@@ -138,23 +172,22 @@ async function generateColoringPage(childName: string) {
   // Hair (arcs on top)
   doc.setDrawColor(168, 85, 247);
   doc.setLineWidth(1.2);
-  doc.line(cx - 18, cy - 28, cx - 5, cy - 38);
-  doc.line(cx - 5, cy - 38, cx + 5, cy - 38);
-  doc.line(cx + 5, cy - 38, cx + 18, cy - 28);
+  doc.line(cx - 18, zy - 28, cx - 5, zy - 38);
+  doc.line(cx - 5, zy - 38, cx + 5, zy - 38);
+  doc.line(cx + 5, zy - 38, cx + 18, zy - 28);
 
-  // Arms
-  doc.line(cx - 30, cy + 20, cx - 45, cy + 5);
-  doc.line(cx + 30, cy + 20, cx + 45, cy + 5);
+  // Arms reaching up to hold the heart
+  doc.line(cx - 20, zy, cx - 10, cy + 25);
+  doc.line(cx + 20, zy, cx + 10, cy + 25);
 
-  // Stars around
+  // Stars and hearts around
   doc.setFontSize(20);
   doc.setTextColor(200, 200, 200);
-  const starPositions = [[30, 70], [w - 30, 70], [30, 170], [w - 30, 170], [cx, 190]];
+  const starPositions = [[30, 70], [w - 30, 70], [30, 220], [w - 30, 220], [cx, 240]];
   starPositions.forEach(([x, y]) => doc.text("☆", x, y, { align: "center" }));
 
-  // Hearts to color
   doc.setFontSize(24);
-  [[40, 220], [w - 40, 220], [cx, 230]].forEach(([x, y]) => doc.text("♡", x, y, { align: "center" }));
+  [[40, 250], [w - 40, 250], [cx, 260]].forEach(([x, y]) => doc.text("♡", x, y, { align: "center" }));
 
   // Instruction text
   doc.setFont("Heebo");
