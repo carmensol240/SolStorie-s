@@ -1051,7 +1051,7 @@ const Auth = () => {
       <div className="relative z-10 flex-1 flex flex-col items-center justify-center p-4 pb-20 overflow-y-auto">
         {/* Rainbow Logo */}
         <h1 dir="ltr" className="text-3xl sm:text-4xl font-black text-center logo-3d-bubble mb-4 animate-fade-in px-4">
-          <span className="bg-gradient-to-r from-purple-600 via-pink-500 to-amber-400 bg-clip-text text-transparent" style={{ filter: 'drop-shadow(0 0 12px rgba(255,255,255,0.8)) drop-shadow(0 0 24px rgba(255,255,255,0.4))' }}>SolStorie's™</span>
+          <span className="logo-rainbow">SolStorie's™</span>
         </h1>
 
         {/* Container wrapper for peeking character */}
