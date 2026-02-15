@@ -172,13 +172,8 @@ serve(async (req) => {
       .update({ illustration_url: filePath })
       .eq("id", pageId);
 
-    // Update cover if page 1
-    if (page.page_number === 1) {
-      await supabase
-        .from("stories")
-        .update({ cover_url: filePath })
-        .eq("id", storyId);
-    }
+    // Cover is now handled by the dedicated generate-cover function
+    // Retrying page 1 no longer updates cover_url
 
     console.log(`✅ Retry illustration success for page ${page.page_number}`);
 

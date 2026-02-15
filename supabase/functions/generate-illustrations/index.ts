@@ -589,12 +589,9 @@ serve(async (req) => {
               console.log(`Page ${page.page_number} illustration saved`);
             }
 
+            // Cover is now handled by the dedicated generate-cover function
             if (page.page_number === 1) {
               firstIllustrationUrl = illustrationUrl;
-              await supabase
-                .from("stories")
-                .update({ cover_url: illustrationUrl })
-                .eq("id", storyId);
             }
           }
           return illustrationUrl;
