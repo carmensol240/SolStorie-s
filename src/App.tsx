@@ -6,6 +6,7 @@ import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import ErrorBoundary from "@/components/ErrorBoundary";
 import BetaBanner from "@/components/BetaBanner";
 import AccessibilityProvider from "@/components/AccessibilityProvider";
+import PWAInstallPrompt from "@/components/pwa/PWAInstallPrompt";
 
 import About from "./pages/About";
 
@@ -46,6 +47,7 @@ const App = () => (
         <Toaster />
         <Sonner />
         <BrowserRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
+          <PWAInstallPrompt />
           <Routes>
             <Route path="/" element={<About />} />
             <Route path="/welcome" element={<Navigate to="/adventure" replace />} />

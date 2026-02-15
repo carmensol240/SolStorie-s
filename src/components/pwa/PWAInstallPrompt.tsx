@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { X, Download, Share } from "lucide-react";
+import { Download, Share, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 interface BeforeInstallPromptEvent extends Event {
@@ -9,134 +9,103 @@ interface BeforeInstallPromptEvent extends Event {
 
 const PWAInstallPrompt = () => {
   const [deferredPrompt, setDeferredPrompt] = useState<BeforeInstallPromptEvent | null>(null);
-  const [showInstallBanner, setShowInstallBanner] = useState(false);
-  const [showIOSTip, setShowIOSTip] = useState(false);
-  const [dismissed, setDismissed] = useState(false);
+  const [isStandalone, setIsStandalone] = useState(false);
+  const [isIOS, setIsIOS] = useState(false);
+  const [iosDismissed, setIosDismissed] = useState(false);
+  const [installed, setInstalled] = useState(false);
 
   useEffect(() => {
-    // Check if already dismissed in this session
-    const wasDismissed = sessionStorage.getItem("pwa-prompt-dismissed");
-    if (wasDismissed) {
-      setDismissed(true);
+    const standalone =
+      window.matchMedia("(display-mode: standalone)").matches ||
+      (window.navigator as any).standalone === true;
+    setIsStandalone(standalone);
+
+    if (localStorage.getItem("pwa-installed") === "true") {
+      setInstalled(true);
       return;
     }
 
-    // Check if already installed (standalone mode)
-    const isStandalone = window.matchMedia("(display-mode: standalone)").matches 
-      || (window.navigator as any).standalone === true;
-    
-    if (isStandalone) {
-      return; // Already installed, don't show prompts
+    if (standalone) return;
+
+    const ios = /iPad|iPhone|iPod/.test(navigator.userAgent) && !(window as any).MSStream;
+    setIsIOS(ios);
+
+    if (ios) {
+      const dismissed = sessionStorage.getItem("pwa-ios-dismissed");
+      if (dismissed) setIosDismissed(true);
+      return;
     }
 
-    // Detect iOS
-    const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !(window as any).MSStream;
-    
-    if (isIOS) {
-      // Show iOS tip after a short delay
-      const timer = setTimeout(() => setShowIOSTip(true), 2000);
-      return () => clearTimeout(timer);
-    }
-
-    // For Android/Desktop - listen for beforeinstallprompt
-    const handleBeforeInstallPrompt = (e: Event) => {
+    const handler = (e: Event) => {
       e.preventDefault();
       setDeferredPrompt(e as BeforeInstallPromptEvent);
-      setShowInstallBanner(true);
     };
 
-    window.addEventListener("beforeinstallprompt", handleBeforeInstallPrompt);
-
-    return () => {
-      window.removeEventListener("beforeinstallprompt", handleBeforeInstallPrompt);
-    };
+    window.addEventListener("beforeinstallprompt", handler);
+    return () => window.removeEventListener("beforeinstallprompt", handler);
   }, []);
 
-  const handleInstallClick = async () => {
+  const handleInstall = async () => {
     if (!deferredPrompt) return;
-
     await deferredPrompt.prompt();
     const { outcome } = await deferredPrompt.userChoice;
-    
-    if (outcome === "accepted") {
-      setShowInstallBanner(false);
-    }
     setDeferredPrompt(null);
+    if (outcome === "accepted") {
+      localStorage.setItem("pwa-installed", "true");
+      setInstalled(true);
+    }
   };
 
-  const handleDismiss = () => {
-    setShowInstallBanner(false);
-    setShowIOSTip(false);
-    setDismissed(true);
-    sessionStorage.setItem("pwa-prompt-dismissed", "true");
+  const handleIOSDismiss = () => {
+    setIosDismissed(true);
+    sessionStorage.setItem("pwa-ios-dismissed", "true");
   };
 
-  if (dismissed) return null;
+  // Don't show if installed or standalone
+  if (isStandalone || installed) return null;
 
-  // Android/Desktop install banner
-  if (showInstallBanner && deferredPrompt) {
+  // iOS instructions
+  if (isIOS && !iosDismissed) {
     return (
-      <div 
-        className="fixed bottom-20 left-4 right-4 z-50 animate-fade-in"
-        dir="rtl"
-      >
-        <div className="bg-gradient-to-r from-primary to-accent text-primary-foreground rounded-2xl p-4 shadow-xl flex items-center gap-3">
-          <div className="w-10 h-10 bg-primary-foreground/20 rounded-xl flex items-center justify-center flex-shrink-0">
-            <Download className="w-5 h-5" />
+      <div className="fixed top-0 left-0 right-0 z-[200]" dir="rtl">
+        <div className="bg-gradient-to-l from-primary to-accent text-primary-foreground px-4 py-3 flex items-center gap-3 shadow-lg">
+          <div className="w-8 h-8 bg-primary-foreground/20 rounded-lg flex items-center justify-center flex-shrink-0">
+            <Share className="w-4 h-4" />
           </div>
           <div className="flex-1 min-w-0">
-            <p className="font-bold text-sm">הוסיפו את SoulStory למסך הבית</p>
-            <p className="text-xs opacity-80">לגישה מהירה בלי דפדפן</p>
+            <p className="font-bold text-xs leading-tight">התקינו את האפליקציה לגישה מהירה</p>
+            <p className="text-[10px] opacity-80 leading-tight mt-0.5">
+              לחצו <Share className="w-3 h-3 inline mx-0.5" /> ואז "הוסף למסך הבית"
+            </p>
           </div>
-          <div className="flex items-center gap-2 flex-shrink-0">
-            <Button
-              size="sm"
-              onClick={handleInstallClick}
-              className="bg-background text-primary hover:bg-background/90 font-bold text-xs px-3 h-8"
-            >
-              התקנה
-            </Button>
-            <button
-              onClick={handleDismiss}
-              className="p-1.5 hover:bg-primary-foreground/20 rounded-full transition-colors"
-              aria-label="סגור"
-            >
-              <X className="w-4 h-4" />
-            </button>
-          </div>
+          <button
+            onClick={handleIOSDismiss}
+            className="p-1.5 hover:bg-primary-foreground/20 rounded-full transition-colors flex-shrink-0"
+            aria-label="סגור"
+          >
+            <X className="w-4 h-4" />
+          </button>
         </div>
       </div>
     );
   }
 
-  // iOS install tip
-  if (showIOSTip) {
+  // Android/Desktop with beforeinstallprompt
+  if (deferredPrompt) {
     return (
-      <div 
-        className="fixed bottom-20 left-4 right-4 z-50 animate-fade-in"
-        dir="rtl"
-      >
-        <div className="bg-gradient-to-r from-secondary to-accent text-secondary-foreground rounded-2xl p-4 shadow-xl">
-          <div className="flex items-start gap-3">
-            <div className="w-10 h-10 bg-secondary-foreground/20 rounded-xl flex items-center justify-center flex-shrink-0">
-              <Share className="w-5 h-5" />
-            </div>
-            <div className="flex-1 min-w-0">
-              <p className="font-bold text-sm mb-1">הוסיפו את SoulStory למסך הבית</p>
-              <p className="text-xs opacity-90 leading-relaxed">
-                לחצו על כפתור השיתוף 
-                <Share className="w-3 h-3 inline mx-1" />
-                בסרגל הדפדפן, ואז בחרו "הוסף למסך הבית"
-              </p>
-            </div>
-            <button
-              onClick={handleDismiss}
-              className="p-1.5 hover:bg-secondary-foreground/20 rounded-full transition-colors flex-shrink-0"
-              aria-label="סגור"
-            >
-              <X className="w-4 h-4" />
-            </button>
+      <div className="fixed top-0 left-0 right-0 z-[200]" dir="rtl">
+        <div className="bg-gradient-to-l from-primary to-accent text-primary-foreground px-4 py-3 flex items-center gap-3 shadow-lg">
+          <div className="w-8 h-8 bg-primary-foreground/20 rounded-lg flex items-center justify-center flex-shrink-0">
+            <Download className="w-4 h-4" />
           </div>
+          <p className="flex-1 font-bold text-xs">התקינו את האפליקציה לגישה מהירה</p>
+          <Button
+            size="sm"
+            onClick={handleInstall}
+            className="bg-background text-primary hover:bg-background/90 font-bold text-xs px-3 h-7"
+          >
+            התקנה
+          </Button>
         </div>
       </div>
     );

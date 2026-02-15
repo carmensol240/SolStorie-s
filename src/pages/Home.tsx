@@ -3,7 +3,7 @@ import MobileNavigation from "@/components/MobileNavigation";
 import OfflineIndicator from "@/components/ui/offline-indicator";
 import GuestLanding from "@/components/home/GuestLanding";
 import LoggedInHome from "@/components/home/LoggedInHome";
-import PWAInstallPrompt from "@/components/pwa/PWAInstallPrompt";
+
 import { useOfflineStorage } from "@/hooks/use-offline-storage";
 import { useAuth } from "@/hooks/use-auth";
 import { supabase } from "@/integrations/supabase/client";
@@ -62,8 +62,6 @@ const Home = () => {
         )}
       </div>
       
-      {/* PWA Install Prompt */}
-      <PWAInstallPrompt />
       
       <MobileNavigation />
     </div>
