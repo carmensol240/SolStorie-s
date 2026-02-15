@@ -46,110 +46,136 @@ const About = () => {
         <div className="absolute bottom-32 left-1/4 w-48 h-48 rounded-full bg-amber-400/8 blur-3xl" />
       </div>
 
-      <div className="flex-1 flex flex-col items-center justify-center px-6 pt-0 pb-24 max-w-lg mx-auto text-center relative z-10">
+      <div className="flex-1 flex flex-col items-center px-6 pt-8 pb-24 max-w-lg mx-auto text-center relative z-10">
         
         {/* Title */}
-        <h1 className="text-2xl font-black text-white/95 leading-snug mb-3">
-          ברוכים הבאים ל-<span dir="ltr" className="inline-block bg-gradient-to-r from-purple-300 via-pink-300 to-orange-300 bg-clip-text text-transparent">SolStorie's™</span> ✨
+        <h1 className="text-2xl font-black text-white/95 leading-snug mb-2">
+          ✨ ברוכים הבאים לממלכת הסיפורים של <span dir="ltr" className="inline-block bg-gradient-to-r from-purple-300 via-pink-300 to-orange-300 bg-clip-text text-transparent">SolStorie's™</span> ✨
         </h1>
+        <p className="text-base font-bold text-white/80 mb-5">
+          המקום שבו הילד שלכם הופך לגיבור הסיפור
+        </p>
 
         {/* Personal intro */}
         <p className="text-base font-bold text-white/90 leading-relaxed mb-1">
-          שלום, אני אמא של סול
-        </p>
-        <p className="text-sm text-white/75 leading-relaxed mb-3 px-1">
-          יצרתי את <span dir="ltr" className="inline-block">SolStorie's™</span> עבור בתי סול, מתוך רצון להעניק לה עולם של דמיון שמבין את הקצב הייחודי שלה. האפליקציה נולדה מאהבה של אמא לבתה, וכל התכנים והדמויות הם קניין רוחני מוגן של <span dir="ltr" className="inline-block">SolStorie's™</span>.
-        </p>
-        <p className="text-sm text-white/75 leading-relaxed mb-3 px-1">
-          באפליקציה תמצאו <strong className="text-amber-200">34 נושאים מובנים</strong> לפתרון סיטואציות מחיי היום-יום – מפחד מהחושך, דרך יום ראשון בגן ועד הגעת אח חדש. כל סיפור נבנה בשילוב כלים מעולם ה-NLP, בונה חוסן פנימי ומאפשר לילד להיות הגיבור בסיפור שלו.
+          שלום, אני אמא של סול.
         </p>
         <p className="text-sm text-white/75 leading-relaxed mb-5 px-1">
-          אני נרגשת לחלוק את הקסם הזה גם אתכם. הנה מה שתמצאו בתוך <span dir="ltr" className="inline-block">SolStorie's™</span>:
+          <span dir="ltr" className="inline-block">SolStorie's</span> נולדה מתוך אהבה עמוקה לבת שלי, והרצון להעניק לה עולם של דמיון שמבין את הקצב הייחודי שלה ומעמיד אותה במרכז. מה שהתחיל כמתנת אהבה אישית, הפך למיזם טכנולוגי שמאפשר לילדים בכל העולם להוביל את העלילה בסיפור האישי שלהם.
         </p>
 
-        {/* Section title */}
+        {/* Features section */}
         <p className="text-base font-bold text-white/90 leading-relaxed mb-4">
-          הופכים את הקושי לסיפור קסום ✨
+          🌟 למה <span dir="ltr" className="inline-block">SolStorie's</span> היא הרבה מעבר לאפליקציה?
         </p>
 
-        {/* Features */}
         <div className="space-y-4 mb-5 w-full">
           <div className="flex flex-col items-center gap-1.5">
             <span className="text-3xl">⭐</span>
             <p className="text-sm text-white/80 leading-snug px-4">
-              <strong className="text-amber-200">הילד שלכם הוא הגיבור</strong> — הופכים תמונה פשוטה לדמות מצוירת בסגנון אנימציה קלאסי, שמלווה את הילד לאורך כל ההרפתקה.
+              <strong className="text-amber-200">הילד שלכם בלב העלילה</strong> — תמונת הילד הופכת לדמות מאוירת בסגנון קלאסי שמובילה את הסיפור לאורך כל הדרך.
             </p>
           </div>
 
           <div className="flex flex-col items-center gap-1.5">
-            <span className="text-3xl">🌙</span>
+            <span className="text-3xl">👫</span>
             <p className="text-sm text-white/80 leading-snug px-4">
-              <strong className="text-pink-200">התאמה מושלמת לפי גיל</strong> — אנחנו יודעים שכל גיל הוא עולם ומלואו. הסיפורים שלנו מותאמים אישית – מסיפורים קצרצרים לפעוטות (0-2), דרך עלילות מרתקות לילדי גן (3-6), ועד לסיפורים מורכבים ועשירים לילדים שכבר לומדים לקרוא (7-8).
+              <strong className="text-pink-200">החבורה של סול</strong> — הילד שלכם מצטרף לסול, ליאו, זואי, בן ומיה – חבורה של חברים טובים שיוצאים יחד איתו למסעות ומלמדים על חברות ואומץ.
             </p>
           </div>
 
           <div className="flex flex-col items-center gap-1.5">
-            <span className="text-3xl">🪄</span>
+            <span className="text-3xl">💜</span>
             <p className="text-sm text-white/80 leading-snug px-4">
-              <strong className="text-purple-200">סיפורים מעצימים</strong> — כל סיפור נבנה עם דגש על בניית ביטחון עצמי, חוסן רגשי ומסרים חיוביים שנטמעים בילד בצורה טבעית ומהנה.
+              <strong className="text-purple-200">סיפורים חברתיים מתוך הלב</strong> — הספרייה שלנו כוללת למעלה מ-50 נושאים מהיומיום שנבחרו בקפידה כדי לתווך סיטואציות רגשיות מורכבות בשילוב כלי NLP.
+            </p>
+          </div>
+
+          <div className="flex flex-col items-center gap-1.5">
+            <span className="text-3xl">🧩</span>
+            <p className="text-sm text-white/80 leading-snug px-4">
+              <strong className="text-green-200">חיבור עמוק לרצף התקשורתי</strong> — האפליקציה מונגשת לבעלי מוגבלויות והתוכן מותאם במיוחד גם עבור ילדים על הרצף. הדיוק הזה מגיע מתוך הבנה עמוקה וניסיון אישי בחשיבותם המכרעת של סיפורים חברתיים ככלי לתווך את המציאות, להנגיש סיטואציות חברתיות ולייצר ביטחון עצמי.
+            </p>
+          </div>
+
+          <div className="flex flex-col items-center gap-1.5">
+            <span className="text-3xl">🎓</span>
+            <p className="text-sm text-white/80 leading-snug px-4">
+              <strong className="text-amber-200">ארגז כלים לאנשי חינוך</strong> — קטגוריה ייעודית הכוללת תכנים פדגוגיים מבוססי NLP לעבודה רגשית וחברתית בקבוצות ובגנים.
             </p>
           </div>
 
           <div className="flex flex-col items-center gap-1.5">
             <span className="text-3xl">🇺🇸</span>
             <p className="text-sm text-white/80 leading-snug px-4">
-              <strong className="text-green-200">לומדים אנגלית בכיף</strong> — סיפורים ללמידת שפה בצורה חווייתית ומהנה.
+              <strong className="text-blue-200">העולם מדבר אנגלית</strong> — גרסה אנגלית מלאה המאפשרת חשיפה לשפה ולמידה חווייתית.
+            </p>
+          </div>
+
+          <div className="flex flex-col items-center gap-1.5">
+            <span className="text-3xl">📱</span>
+            <p className="text-sm text-white/80 leading-snug px-4">
+              <strong className="text-pink-200">בכל מקום ובכל זמן</strong> — הקסם מלווה אתכם בטלפון, בטאבלט ובמחשב האישי.
             </p>
           </div>
         </div>
 
-        {/* Disclaimer */}
-        <div className="bg-white/5 border border-white/10 rounded-xl p-3 mb-3 w-full">
-          <p className="text-xs text-white/60 leading-relaxed">
-            ⚕️ השימוש באפליקציה הינו כלי עזר טכנולוגי בלבד ואינו מהווה תחליף לייעוץ מקצועי, חינוכי או רפואי.
-          </p>
-        </div>
-
-        {/* IP Statement */}
-        <div className="bg-white/5 border border-white/10 rounded-xl p-3 mb-4 w-full">
-          <p className="text-xs text-white/60 leading-relaxed">
-            📌 התוכן, הדמויות (סול וחבריה), והאיורים באפליקציה הם קניין רוחני בלעדי של <span dir="ltr" className="inline-block">SolStorie's™</span>.
-          </p>
-        </div>
-
-        {/* Invitation */}
-        <p className="text-sm text-white/80 leading-relaxed mb-5 px-3 font-semibold">
-          אני מזמינה אתכם להצטרף אלינו למסע. כדי שתוכלו להרגיש את הקסם בעצמכם, הסיפור הראשון הוא מתנה ממני.
+        {/* Age section */}
+        <p className="text-base font-bold text-white/90 leading-relaxed mb-3">
+          🎯 דיוק מושלם לכל שלב התפתחותי
         </p>
+        <p className="text-sm text-white/70 mb-3">
+          הסיפורים מותאמים אישית לגיל ולצרכים של הילד:
+        </p>
+        <div className="grid grid-cols-3 gap-2 mb-5 w-full">
+          <div className="bg-white/5 border border-white/10 rounded-xl p-2.5 text-center">
+            <p className="text-lg font-black text-amber-200">0-2</p>
+            <p className="text-xs text-white/70 leading-snug">סיפורים קצרצרים וחווייתיים</p>
+          </div>
+          <div className="bg-white/5 border border-white/10 rounded-xl p-2.5 text-center">
+            <p className="text-lg font-black text-pink-200">3-6</p>
+            <p className="text-xs text-white/70 leading-snug">עלילות מרתקות ומרחיבות דמיון</p>
+          </div>
+          <div className="bg-white/5 border border-white/10 rounded-xl p-2.5 text-center">
+            <p className="text-lg font-black text-purple-200">7-8</p>
+            <p className="text-xs text-white/70 leading-snug">שפה עשירה וקריינות לראשית קריאה</p>
+          </div>
+        </div>
+
+        {/* Gift section */}
+        <div className="bg-white/5 border border-white/10 rounded-xl p-3 mb-3 w-full">
+          <p className="text-sm text-white/80 leading-relaxed">
+            🎁 <strong className="text-amber-200">להעניק קסם במתנה</strong> — ניתן לרכוש שובר GIFT מעוצב המאפשר לכל ילד להפוך לגיבור הסיפור.
+          </p>
+          <p className="text-xs text-white/60 mt-1.5">
+            הצטרפות קלה: ניתן לשלם בכרטיס אשראי (גם ללא חשבון פייפאל).
+          </p>
+        </div>
+
+        {/* Safety section */}
+        <div className="bg-white/5 border border-white/10 rounded-xl p-3 mb-4 w-full">
+          <p className="text-sm text-white/80 leading-relaxed">
+            🛡️ <strong className="text-green-200">מחויבות לבטיחות ואחריות</strong> — אנו שומרים על פרטיותכם לפי התקנות המחמירות ביותר. כל התכנים והדמויות הם קניין רוחני בלעדי של <span dir="ltr" className="inline-block">SolStorie's™</span>.
+          </p>
+        </div>
 
         {/* CTA Button */}
         <button
           onClick={() => navigate("/auth")}
-          className="w-full max-w-xs mx-auto flex items-center justify-center bg-gradient-to-r from-purple-500 via-pink-500 to-orange-500 hover:from-purple-400 hover:via-pink-400 hover:to-orange-400 text-white font-black text-base py-3.5 rounded-full shadow-xl transition-all hover:scale-[1.02]"
+          className="w-full max-w-xs mx-auto flex items-center justify-center bg-gradient-to-r from-purple-500 via-pink-500 to-orange-500 hover:from-purple-400 hover:via-pink-400 hover:to-orange-400 text-white font-black text-base py-3.5 rounded-full shadow-xl transition-all hover:scale-[1.02] mb-4"
           style={{
             boxShadow: '0 0 40px rgba(168, 85, 247, 0.4), 0 0 80px rgba(236, 72, 153, 0.2)'
           }}
         >
-          בואו נתחיל (סיפור ראשון חינם) ✨
+          בואו נתחיל! (סיפור ראשון חינם) ✨
         </button>
 
-        {/* Signature */}
-        <p className="text-sm font-semibold bg-gradient-to-r from-purple-300 via-pink-300 to-orange-300 bg-clip-text text-transparent mt-3">
-          באהבה, אמא של סול
-        </p>
-
-        {/* Device availability footer */}
-        <div className="mt-6 flex items-center justify-center gap-3 text-white/50">
-          <span className="text-lg">📱</span>
-          <span className="text-lg">📲</span>
-          <span className="text-lg">💻</span>
+        {/* Disclaimer */}
+        <div className="bg-white/5 border border-white/10 rounded-xl p-3 w-full">
+          <p className="text-xs text-white/60 leading-relaxed">
+            ⚕️ השימוש באפליקציה הוא כלי עזר טכנולוגי וחווייתי בלבד ואינו מהווה תחליף לייעוץ מקצועי, חינוכי או רפואי.
+          </p>
         </div>
-        <p className="text-xs text-white/45 font-bold mt-1">
-          <span dir="ltr" className="inline-block">SolStorie's™</span> זמינה עבורכם בכל מקום: בטלפון, בטאבלט ובמחשב האישי
-        </p>
-        <p className="text-xs text-white/40 mt-1">
-          ניתן לשלם בכרטיס אשראי ללא חשבון פייפאל
-        </p>
       </div>
 
       {/* Global Footer */}
