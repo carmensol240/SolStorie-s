@@ -1,87 +1,71 @@
 
 
-# שינויים במסך ההתחברות -- סול מוגדלת, אפקט הצצה, שמירת סיסמה, והסרת בועה
+# תיקון שלמות דמות סול ומניעת חיתוך + ניקוי מסך הכניסה
 
 ## סקירה
 
-שלושה שינויים עיקריים במסך ההתחברות:
-1. הסרת בועת הדיבור ("!שלום! בואו נתחיל בהרפתקה")
-2. הגדלת דמות סול ב-50% נוספים + אפקט "הצצה" (Peeking Animation) עם שכבתיות נכונה
-3. הוספת צ'קבוקס "זכור אותי" (שמירת סיסמה) בטופס ההתחברות
+עדכון מסך ההתחברות כך שדמות סול תוצג בשלמותה ללא חיתוך, עם התאמות רספונסיביות ועיצוב נקי יותר.
 
 ## שינויים טכניים
 
-### 1. הסרת בועת הדיבור
+### 1. מניעת חיתוך דמות סול (overflow)
 
-**קובץ: `src/pages/Auth.tsx` (שורות 1064-1071)**
+**קובץ: `src/pages/Auth.tsx` (שורה 1058)**
 
-מחיקת כל בלוק ה-Speech Bubble (הדיב עם הטקסט "!שלום! בואו נתחיל בהרפתקה" והמשולש).
+המכולה `relative w-full max-w-md` לא חותכת כרגע (אין לה overflow:hidden), אבל השורש של ה-scroll container בשורה 1051 כולל `overflow-y-auto` שעלול לחתוך אלמנטים שבולטים מעבר לגבולות. הפתרון:
 
-### 2. הגדלת סול ב-50% + אפקט הצצה
+- הוספת `overflow-visible` למכולת ה-wrapper (שורה 1058) כדי להבטיח שסול לא תיחתך
+- הוספת `pt-20 sm:pt-24` (padding-top) למכולת ה-wrapper כדי ליצור מרחב בטוח לראש סול מעל התיבה, במקום לסמוך על absolute positioning שיוצא מגבולות המסך
+- שינוי מיקום סול מ-`-top-36` ל-`-top-32` כדי שהראש והשיער יהיו בתוך ה-safe area
 
-**קובץ: `src/pages/Auth.tsx` (שורות 1059-1062)**
-
-- גודל נוכחי: `w-48 h-48 sm:w-52 sm:h-52`
-- גודל חדש (50% יותר): `w-72 h-72 sm:w-80 sm:h-80`
-- שינוי z-index של סול ל-`z-[5]` (מאחורי התיבה) כדי ליצור אפקט "הצצה מאחורי התיבה"
-- שינוי z-index של תיבת ההתחברות (שורה 1074) ל-`z-10` (מלפנים)
-- התאמת מיקום: `-top-36 -left-14` כדי שסול תיראה מציצה מאחורי הפינה השמאלית-עליונה
-- החלפת `animate-float-gentle` באנימציית כניסה חדשה: slide-and-peek (עולה באלכסון מאחורי התיבה)
-
-**קובץ: `src/index.css`**
-
-הוספת keyframe חדש לאנימציית ההצצה:
-
-```css
-@keyframes slide-peek {
-  0% {
-    opacity: 0;
-    transform: translate(20%, 40%);
-  }
-  100% {
-    opacity: 1;
-    transform: translate(-10%, -30%);
-  }
-}
-
-.animate-slide-peek {
-  animation: slide-peek 1.8s ease-out forwards;
-}
+**שורה 1058 - מכולת wrapper:**
+```
+מקור: <div className="relative w-full max-w-md">
+חדש:  <div className="relative w-full max-w-md overflow-visible pt-20 sm:pt-24">
 ```
 
-### 3. הוספת "זכור אותי" (שמירת סיסמה)
-
-**קובץ: `src/pages/Auth.tsx`**
-
-- הוספת state חדש: `const [rememberMe, setRememberMe] = useState(false);`
-- הוספת צ'קבוקס בין שדה הסיסמה לכפתור "שכחתי סיסמה" בטופס ההתחברות (שורה ~1216):
-
-```tsx
-<div className="flex items-center justify-between">
-  <div className="flex items-center gap-2">
-    <Checkbox
-      id="remember-me"
-      checked={rememberMe}
-      onCheckedChange={(checked) => setRememberMe(!!checked)}
-    />
-    <Label htmlFor="remember-me" className="text-sm text-black/70 font-medium cursor-pointer">
-      זכור אותי
-    </Label>
-  </div>
-  <button type="button" onClick={() => setShowForgotPassword(true)} className="text-purple hover:underline text-sm font-medium">
-    שכחתי סיסמה
-  </button>
-</div>
+**שורה 1060 - מיקום סול:**
+```
+מקור: <div className="absolute -top-36 -left-14 z-[5] pointer-events-none animate-slide-peek">
+חדש:  <div className="absolute -top-32 -left-10 z-[5] pointer-events-none animate-slide-peek">
 ```
 
-- הסרת כפתור "שכחתי סיסמה" הנפרד (שורות 1217-1223) כי הוא עובר לשורה המשותפת עם הצ'קבוקס
+### 2. הקטנת תיבת ההתחברות
 
-הערה: מנגנון ה-session של Supabase כבר שומר את ההתחברות ב-localStorage כברירת מחדל, כך שהצ'קבוקס משקף את ההתנהגות הקיימת ומעניק למשתמש תחושת שליטה.
+**קובץ: `src/pages/Auth.tsx` (שורה 1065)**
 
-## סיכום ויזואלי
+הקטנת ה-padding הפנימי כדי לתת יותר מרחב לדמות ולרקע:
 
-- סול מציצה מאחורי התיבה הלבנה (z-index נמוך יותר) עם אנימציית כניסה רכה של 1.8 שניות
-- בועת הדיבור מוסרת לחלוטין
-- צ'קבוקס "זכור אותי" מופיע באותה שורה עם "שכחתי סיסמה"
-- האפקט רספונסיבי ומותאם לטלפון, טאבלט ומחשב
+```
+מקור: p-5 md:p-6
+חדש:  p-4 md:p-5
+```
+
+### 3. הסרת אייקון היד הצהובה
+
+צריך לאתר אם יש אייקון כזה בקוד. לפי סריקת הקובץ, אין כרגע אייקון יד צהובה גלוי -- ייתכן שכבר הוסר בעדכונים קודמים.
+
+### 4. הוספת margin-bottom לכותרת
+
+**קובץ: `src/pages/Auth.tsx` (שורה 1053)**
+
+הגדלת המרווח בין הכותרת לתיבה כדי שהכותרת לא "תשב" על ראש סול:
+
+```
+מקור: mb-3
+חדש:  mb-1
+```
+
+הקטנת ה-margin-bottom של הכותרת כי ה-padding-top של ה-wrapper כבר יוצר את המרחב הנדרש.
+
+### 5. אימות רספונסיביות
+
+הערך `pt-20 sm:pt-24` יבטיח שגם במסכי מובייל קטנים יהיה מספיק מקום לראש סול. בשילוב עם `-top-32` במקום `-top-36`, ראש הדמות יהיה תמיד בתוך אזור הגלילה ולא מעבר לקצה המסך.
+
+## סיכום
+
+- סול תוצג בשלמותה ללא חיתוך בכל גודל מסך
+- padding-top במכולה יוצר safe area לדמות
+- התיבה הלבנה מעט יותר קומפקטית
+- הכותרת לא תסתיר את ראש סול
 
