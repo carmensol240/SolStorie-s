@@ -394,7 +394,7 @@ const Auth = () => {
         });
       } else {
         toast({
-          title: "ברוכים הבאים ל-SolStories! 🎉",
+          title: "ברוכים הבאים ל-SolStorie's™! 🎉",
           description: "מחכה לך סיפור ראשון במתנה מאיתנו כדי להתחיל בקסם ✨",
         });
       }
@@ -452,7 +452,7 @@ const Auth = () => {
       if (error) throw error;
 
       toast({
-        title: "ברוכים הבאים ל-SolStories! 🎉",
+        title: "ברוכים הבאים ל-SolStorie's™! 🎉",
         description: "מחכה לך סיפור ראשון במתנה מאיתנו כדי להתחיל בקסם ✨",
       });
       
@@ -1121,7 +1121,7 @@ const Auth = () => {
                   התחברו כדי ליצור סיפורים מותאמים אישית
                 </p>
                 <p className="text-black/50 text-xs font-bold mt-1.5 flex items-center justify-center gap-1.5">
-                  📱 <span dir="ltr" className="inline-block">SolStories</span> זמינה עבורכם בכל מקום: בטלפון, בטאבלט ובמחשב האישי
+                  📱 <span dir="ltr" className="inline-block">SolStorie's™</span> זמינה עבורכם בכל מקום: בטלפון, בטאבלט ובמחשב האישי
                 </p>
               </div>
 

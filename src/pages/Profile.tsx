@@ -1,13 +1,22 @@
 import { useState, useEffect, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
-import { BookOpen, Heart, Save, Notebook, Crown, Sparkles } from "lucide-react";
+import { BookOpen, Heart, Save, Notebook, Crown, Sparkles, Lock } from "lucide-react";
 import { useAuth } from "@/hooks/use-auth";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import MobileNavigation from "@/components/MobileNavigation";
 import { SignedImage } from "@/components/ui/signed-image";
+import GlobalFooter from "@/components/shared/GlobalFooter";
 import heroBackground from "@/assets/hero-solstories-library.png";
+import useEmblaCarousel from "embla-carousel-react";
+
+// Character assets
+import castSol from "@/assets/cast-sol-adventure.jpg";
+import castBen from "@/assets/cast-ben-art.jpg";
+import castMia from "@/assets/cast-mia-nature.jpg";
+import castLeo from "@/assets/cast-leo-science.jpg";
+import castZoe from "@/assets/cast-zoe-sports.jpg";
 
 interface ChildProfile {
   id: string;
@@ -15,6 +24,27 @@ interface ChildProfile {
   age: number;
   gender: string | null;
   photo_url: string | null;
+}
+
+const CHARACTER_AVATARS = [
+  { id: "sol", name: "סול", image: castSol },
+  { id: "ben", name: "בן", image: castBen },
+  { id: "mia", name: "מיה", image: castMia },
+  { id: "leo", name: "ליאו", image: castLeo },
+  { id: "zoe", name: "זואי", image: castZoe },
+] as const;
+
+interface Badge {
+  emoji: string;
+  name: string;
+  description: string;
+  unlocked: boolean;
+}
+
+interface FavoriteStory {
+  id: string;
+  topic: string;
+  cover_url: string | null;
 }
 
 const Profile = () => {
@@ -25,6 +55,11 @@ const Profile = () => {
   const [favoriteStory, setFavoriteStory] = useState<string | null>(null);
   const [parentNote, setParentNote] = useState("");
   const [savingNote, setSavingNote] = useState(false);
+  const [noteSaved, setNoteSaved] = useState(false);
+  const [selectedAvatar, setSelectedAvatar] = useState<string | null>(null);
+  const [badges, setBadges] = useState<Badge[]>([]);
+  const [topStories, setTopStories] = useState<FavoriteStory[]>([]);
+  const [emblaRef] = useEmblaCarousel({ direction: "rtl", align: "start" });
 
   // Fetch first child
   useEffect(() => {
@@ -41,18 +76,47 @@ const Profile = () => {
       });
   }, [user]);
 
-  // Fetch story count + favorite story
+  // Fetch avatar selection
+  useEffect(() => {
+    if (!user) return;
+    supabase
+      .from("profiles")
+      .select("avatar_emoji")
+      .eq("id", user.id)
+      .maybeSingle()
+      .then(({ data }) => {
+        if (data?.avatar_emoji && ["sol", "ben", "mia", "leo", "zoe"].includes(data.avatar_emoji)) {
+          setSelectedAvatar(data.avatar_emoji);
+        }
+      });
+  }, [user]);
+
+  // Fetch story count + favorite story + badges + top stories
   useEffect(() => {
     if (!user) return;
 
-    // Story count
+    // Story count + themes for badges
     supabase
       .from("stories")
-      .select("id", { count: "exact", head: true })
+      .select("id, theme, topic, cover_url")
       .eq("user_id", user.id)
-      .then(({ count }) => setStoryCount(count ?? 0));
+      .then(({ data, count }) => {
+        const stories = data ?? [];
+        setStoryCount(stories.length);
 
-    // Favorite story: most read from user_story_stats, fallback to latest story
+        const hasAdventure = stories.some((s) => s.theme === "adventure");
+        const hasEmotional = stories.some((s) => s.theme === "emotional");
+
+        setBadges([
+          { emoji: "🌱", name: "נבט הדמיון", description: "יצירת סיפור ראשון", unlocked: stories.length >= 1 },
+          { emoji: "⭐", name: "חוקר כוכבים", description: "סיפורי הרפתקה", unlocked: hasAdventure },
+          { emoji: "💛", name: "לב זהב", description: "סיפורים רגשיים", unlocked: hasEmotional },
+          { emoji: "📖", name: "קוסם מילים", description: "5+ סיפורים", unlocked: stories.length >= 5 },
+          { emoji: "🤝", name: "החבר/ה של סול", description: "10+ סיפורים", unlocked: stories.length >= 10 },
+        ]);
+      });
+
+    // Favorite story: most read from user_story_stats
     supabase
       .from("user_story_stats" as any)
       .select("story_id, read_count")
@@ -72,7 +136,6 @@ const Profile = () => {
             return;
           }
         }
-        // Fallback: latest story
         const { data: latest } = await supabase
           .from("stories")
           .select("topic")
@@ -81,6 +144,23 @@ const Profile = () => {
           .limit(1)
           .maybeSingle();
         setFavoriteStory(latest?.topic ?? null);
+      });
+
+    // Top 3 stories by read count
+    supabase
+      .from("user_story_stats" as any)
+      .select("story_id, read_count")
+      .eq("user_id", user.id)
+      .order("read_count", { ascending: false })
+      .limit(3)
+      .then(async ({ data }: any) => {
+        if (!data?.length) return;
+        const storyIds = data.map((d: any) => d.story_id);
+        const { data: stories } = await supabase
+          .from("stories")
+          .select("id, topic, cover_url")
+          .in("id", storyIds);
+        if (stories) setTopStories(stories as FavoriteStory[]);
       });
   }, [user]);
 
@@ -108,7 +188,9 @@ const Profile = () => {
           { onConflict: "user_id" }
         );
       if (error) throw error;
+      setNoteSaved(true);
       toast.success("המחברת נשמרה בהצלחה ✨");
+      setTimeout(() => setNoteSaved(false), 2000);
     } catch {
       toast.error("שגיאה בשמירה");
     } finally {
@@ -116,8 +198,19 @@ const Profile = () => {
     }
   }, [user, parentNote]);
 
+  const handleAvatarSelect = async (avatarId: string) => {
+    if (!user) return;
+    setSelectedAvatar(avatarId);
+    await supabase
+      .from("profiles")
+      .update({ avatar_emoji: avatarId })
+      .eq("id", user.id);
+    toast.success("הדמות נבחרה! ✨");
+  };
+
   const childName = firstChild?.name ?? "הילד/ה";
   const isFemale = firstChild?.gender === "female";
+  const avatarChar = CHARACTER_AVATARS.find((c) => c.id === selectedAvatar);
 
   return (
     <div
@@ -137,7 +230,7 @@ const Profile = () => {
       </div>
 
       <div className="w-full max-w-[550px] lg:max-w-[450px] mx-auto px-4 py-6 space-y-6">
-        {/* Child Photo + Title */}
+        {/* Avatar + Title */}
         <div className="flex flex-col items-center gap-3 pt-4">
           <div
             className="w-44 h-44 rounded-full overflow-hidden shadow-xl p-[5px]"
@@ -147,7 +240,13 @@ const Profile = () => {
             }}
           >
             <div className="w-full h-full rounded-full overflow-hidden bg-white">
-              {firstChild?.photo_url ? (
+              {avatarChar ? (
+                <img
+                  src={avatarChar.image}
+                  alt={avatarChar.name}
+                  className="w-full h-full object-cover"
+                />
+              ) : firstChild?.photo_url ? (
                 <SignedImage
                   src={firstChild.photo_url}
                   alt={`תמונת ${childName}`}
@@ -168,7 +267,43 @@ const Profile = () => {
           </h1>
         </div>
 
-        {/* Stats Cards - Glassmorphism */}
+        {/* Avatar Selection */}
+        <section className="space-y-2">
+          <h2 className="font-bold text-sm flex items-center gap-2" style={{ color: "hsl(260, 40%, 30%)" }}>
+            <span className="text-lg">🎭</span>
+            בחרו דמות מלווה
+          </h2>
+          <div className="flex justify-center gap-3">
+            {CHARACTER_AVATARS.map((char) => (
+              <button
+                key={char.id}
+                onClick={() => handleAvatarSelect(char.id)}
+                className={`flex flex-col items-center gap-1 transition-all ${
+                  selectedAvatar === char.id ? "scale-110" : "opacity-70 hover:opacity-100"
+                }`}
+              >
+                <div
+                  className="w-14 h-14 rounded-full overflow-hidden"
+                  style={{
+                    border: selectedAvatar === char.id
+                      ? "3px solid hsl(45, 90%, 55%)"
+                      : "2px solid rgba(255,255,255,0.5)",
+                    boxShadow: selectedAvatar === char.id
+                      ? "0 0 16px rgba(212, 175, 55, 0.5)"
+                      : "0 2px 8px rgba(0,0,0,0.1)",
+                  }}
+                >
+                  <img src={char.image} alt={char.name} className="w-full h-full object-cover" />
+                </div>
+                <span className="text-[10px] font-bold" style={{ color: "hsl(260, 40%, 30%)" }}>
+                  {char.name}
+                </span>
+              </button>
+            ))}
+          </div>
+        </section>
+
+        {/* Stats Cards */}
         <div className="grid grid-cols-2 gap-3">
           <div
             className="backdrop-blur-xl rounded-[20px] p-4 flex flex-col items-center gap-2"
@@ -179,7 +314,7 @@ const Profile = () => {
             }}
           >
             <div className="w-10 h-10 rounded-full bg-gradient-to-r from-purple-500/20 to-pink-500/20 flex items-center justify-center">
-              <span><BookOpen className="w-5 h-5 text-purple-600" /></span>
+              <BookOpen className="w-5 h-5 text-purple-600" />
             </div>
             <span className="text-3xl font-black" style={{ color: "hsl(260, 50%, 30%)" }}>{storyCount}</span>
             <span className="text-xs font-medium text-center" style={{ color: "hsl(260, 30%, 40%)" }}>סיפורים שיצרנו יחד</span>
@@ -194,7 +329,7 @@ const Profile = () => {
             }}
           >
             <div className="w-10 h-10 rounded-full bg-gradient-to-r from-amber-500/20 to-orange-500/20 flex items-center justify-center">
-              <span><Heart className="w-5 h-5 text-amber-600" /></span>
+              <Heart className="w-5 h-5 text-amber-600" />
             </div>
             <span className="text-sm font-bold text-center leading-tight line-clamp-2 min-h-[2.5rem] flex items-center" style={{ color: "hsl(260, 50%, 30%)" }}>
               {favoriteStory || "עדיין אין"}
@@ -205,13 +340,95 @@ const Profile = () => {
           </div>
         </div>
 
-        {/* Parent Notebook - Parchment Style */}
+        {/* Badge Case - My Journey */}
+        <section className="space-y-3">
+          <h2 className="font-bold text-sm flex items-center gap-2" style={{ color: "hsl(260, 40%, 30%)" }}>
+            <span className="text-lg">🏅</span>
+            המסע שלי
+          </h2>
+          <div
+            className="backdrop-blur-xl rounded-[20px] p-4"
+            style={{
+              background: "rgba(255,255,255,0.35)",
+              border: "1px solid rgba(255,255,255,0.5)",
+              boxShadow: "0 8px 32px rgba(0,0,0,0.06)",
+            }}
+          >
+            <div className="grid grid-cols-5 gap-2">
+              {badges.map((badge, i) => (
+                <div
+                  key={i}
+                  className={`flex flex-col items-center gap-1 transition-all ${
+                    badge.unlocked ? "" : "opacity-40 grayscale"
+                  }`}
+                >
+                  <div
+                    className="w-12 h-12 rounded-xl flex items-center justify-center text-2xl"
+                    style={{
+                      background: badge.unlocked
+                        ? "linear-gradient(135deg, rgba(245,158,11,0.2), rgba(236,72,153,0.15))"
+                        : "rgba(200,200,200,0.2)",
+                      border: badge.unlocked
+                        ? "1.5px solid rgba(245,158,11,0.4)"
+                        : "1.5px solid rgba(200,200,200,0.3)",
+                    }}
+                  >
+                    {badge.unlocked ? badge.emoji : <Lock className="w-4 h-4 text-gray-400" />}
+                  </div>
+                  <span className="text-[9px] font-bold text-center leading-tight" style={{ color: "hsl(260, 30%, 40%)" }}>
+                    {badge.name}
+                  </span>
+                </div>
+              ))}
+            </div>
+          </div>
+        </section>
+
+        {/* Favorites Slider */}
+        {topStories.length > 0 && (
+          <section className="space-y-3">
+            <h2 className="font-bold text-sm flex items-center gap-2" style={{ color: "hsl(260, 40%, 30%)" }}>
+              <span className="text-lg">📚</span>
+              הסיפורים האהובים
+            </h2>
+            <div className="overflow-hidden" ref={emblaRef}>
+              <div className="flex gap-3">
+                {topStories.map((story) => (
+                  <button
+                    key={story.id}
+                    onClick={() => navigate(`/story/${story.id}`)}
+                    className="flex-shrink-0 w-28 rounded-xl overflow-hidden shadow-lg transition-transform hover:scale-105"
+                    style={{
+                      border: "2px solid rgba(255,255,255,0.5)",
+                      boxShadow: "0 4px 16px rgba(0,0,0,0.1)",
+                    }}
+                  >
+                    {story.cover_url ? (
+                      <SignedImage
+                        src={story.cover_url}
+                        alt={story.topic}
+                        className="w-full h-40 object-cover"
+                      />
+                    ) : (
+                      <div className="w-full h-40 bg-gradient-to-br from-purple-300 to-pink-300 flex items-center justify-center p-2">
+                        <span className="text-xs font-bold text-white text-center">{story.topic}</span>
+                      </div>
+                    )}
+                  </button>
+                ))}
+              </div>
+            </div>
+          </section>
+        )}
+
+        {/* Parent Notebook */}
         <section className="space-y-3">
           <h2 className="font-bold text-sm flex items-center gap-2" style={{ color: "hsl(260, 40%, 30%)" }}>
             <span className="w-7 h-7 bg-amber-100/80 rounded-lg flex items-center justify-center">
               <Notebook className="w-4 h-4 text-amber-700" />
             </span>
             מחברת ההורה
+            <span className="text-sm">✏️</span>
           </h2>
 
           <div
@@ -226,7 +443,7 @@ const Profile = () => {
               value={parentNote}
               onChange={(e) => setParentNote(e.target.value)}
               placeholder="תחומי עניין, אבני דרך, פחדים — כל מה שחשוב לכלול בסיפורים הבאים..."
-              rows={5}
+              rows={6}
               className="w-full border-0 rounded-t-[20px] px-4 py-4 text-sm text-amber-950 placeholder:text-amber-700/40 resize-none focus:outline-none leading-[2]"
               style={{
                 fontFamily: "'Heebo', sans-serif",
@@ -243,11 +460,15 @@ const Profile = () => {
                 onClick={saveParentNote}
                 disabled={savingNote}
                 size="sm"
-                className="bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white font-bold rounded-xl text-xs px-4 h-8"
+                className={`font-bold rounded-xl text-xs px-4 h-8 transition-all ${
+                  noteSaved
+                    ? "bg-green-500 hover:bg-green-500 text-white"
+                    : "bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white"
+                }`}
                 style={{ boxShadow: "0 0 16px rgba(245, 158, 11, 0.4)" }}
               >
                 <Save className="w-3.5 h-3.5 ml-1" />
-                {savingNote ? "שומר..." : "שמירה"}
+                {noteSaved ? "נשמר! ✓" : savingNote ? "שומר..." : "שמירה"}
               </Button>
             </div>
           </div>
@@ -259,10 +480,15 @@ const Profile = () => {
           className="w-full py-6 bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white font-black text-lg rounded-2xl"
           style={{ boxShadow: "0 0 24px rgba(245, 158, 11, 0.35), 0 8px 20px rgba(0,0,0,0.1)" }}
         >
-          <span><Crown className="w-5 h-5 ml-2" /></span>
-          לארגז הכלים של <span dir="ltr">SolStories</span>
-          <span><Sparkles className="w-4 h-4 mr-2" /></span>
+          <Crown className="w-5 h-5 ml-2" />
+          לארגז הכלים של <span dir="ltr">SolStorie's™</span>
+          <Sparkles className="w-4 h-4 mr-2" />
         </Button>
+
+        {/* Branded Footer */}
+        <div className="pt-2">
+          <GlobalFooter />
+        </div>
       </div>
 
       <MobileNavigation />

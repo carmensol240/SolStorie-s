@@ -24,7 +24,7 @@ const PrivacyPolicy = () => {
         <article className="bg-card rounded-2xl border shadow-sm p-6 mb-6">
           <div className="space-y-6 text-right leading-relaxed">
             <p className="text-muted-foreground leading-relaxed">
-              ברוכים הבאים למדיניות הפרטיות של <span dir="ltr" className="inline-block">SolStories</span>. אנו מחויבים להגנה על פרטיות המשתמשים שלנו, ובפרט על פרטיותם של קטינים המשתמשים בשירות.
+              ברוכים הבאים למדיניות הפרטיות של <span dir="ltr" className="inline-block">SolStorie's™</span>. אנו מחויבים להגנה על פרטיות המשתמשים שלנו, ובפרט על פרטיותם של קטינים המשתמשים בשירות.
             </p>
 
             <section>
@@ -37,7 +37,7 @@ const PrivacyPolicy = () => {
             <section>
               <h2 className="text-lg font-bold text-foreground mb-2">הגנה על מידע ילדים (גילאי 0-8)</h2>
               <p className="text-muted-foreground leading-relaxed mb-3">
-                <span dir="ltr" className="inline-block">SolStories</span> מיועדת ליצירת תוכן עבור ילדים בגילאי 0-8, ולכן אנו מקפידים על הגנה מיוחדת על המידע שלהם:
+                <span dir="ltr" className="inline-block">SolStorie's™</span> מיועדת ליצירת תוכן עבור ילדים בגילאי 0-8, ולכן אנו מקפידים על הגנה מיוחדת על המידע שלהם:
               </p>
               <ul className="list-disc list-inside text-muted-foreground leading-relaxed space-y-2 mr-2">
                 <li><strong>מינימום מידע:</strong> אנו אוספים רק את שם הילד/ה, טווח הגיל ותיאור הדמות — המינימום הנדרש ליצירת סיפור מותאם.</li>
@@ -64,7 +64,7 @@ const PrivacyPolicy = () => {
             <section>
               <h2 className="text-lg font-bold text-foreground mb-2">תשלומים ופרטיות פיננסית</h2>
               <p className="text-muted-foreground leading-relaxed">
-                תשלומי כרטיס אשראי מעובדים באופן מאובטח באמצעות שירות התשלומים של PayPal. ניתן לשלם בכרטיס אשראי גם ללא חשבון PayPal. פרטי כרטיס האשראי אינם נשמרים במערכות <span dir="ltr" className="inline-block">SolStories</span> ומעובדים ישירות על ידי ספק התשלומים המאובטח.
+                תשלומי כרטיס אשראי מעובדים באופן מאובטח באמצעות שירות התשלומים של PayPal. ניתן לשלם בכרטיס אשראי גם ללא חשבון PayPal. פרטי כרטיס האשראי אינם נשמרים במערכות <span dir="ltr" className="inline-block">SolStorie's™</span> ומעובדים ישירות על ידי ספק התשלומים המאובטח.
               </p>
             </section>
 
@@ -87,6 +87,20 @@ const PrivacyPolicy = () => {
                 <li><strong>עמידה בתקנות:</strong> השירות פועל בהתאם לעקרונות COPPA (Children's Online Privacy Protection Act) ו-GDPR לעניין נתוני קטינים, כולל הזכות למחיקה, הזכות לעיון והזכות להגבלת עיבוד.</li>
                 <li><strong>אחריות המוסד או המטפל:</strong> המוסד החינוכי או איש המקצוע הטיפולי המשתמש בשירות אחראי לוודא שהשימוש עומד במדיניות הגנת הפרטיות שלו ובחוקים המקומיים.</li>
               </ul>
+            </section>
+
+            <section>
+              <h2 className="text-lg font-bold text-foreground mb-2">קניין רוחני</h2>
+              <p className="text-muted-foreground leading-relaxed">
+                כל התכנים, הדמויות (סול וחבריה), האיורים והטקסטים באפליקציה הם קניין רוחני מוגן ובלעדי של <span dir="ltr" className="inline-block">SolStorie's™</span>. אין לעשות שימוש מסחרי בנכסים ללא אישור בכתב.
+              </p>
+            </section>
+
+            <section>
+              <h2 className="text-lg font-bold text-foreground mb-2">הגבלת אחריות מקצועית</h2>
+              <p className="text-muted-foreground leading-relaxed">
+                השימוש באפליקציה הינו כלי עזר טכנולוגי בלבד ואינו מהווה תחליף לייעוץ מקצועי, חינוכי או רפואי. התוכן שנוצר באמצעות המערכת אינו מהווה המלצה טיפולית או חינוכית.
+              </p>
             </section>
           </div>
         </article>
