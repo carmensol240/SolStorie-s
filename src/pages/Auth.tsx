@@ -1050,14 +1050,14 @@ const Auth = () => {
 
       <div className="relative z-10 flex-1 flex flex-col items-center justify-center p-4 pb-20 overflow-y-auto">
         {/* Rainbow Logo */}
-        <h1 dir="ltr" className="text-3xl sm:text-4xl font-black text-center logo-3d-bubble mb-1 animate-fade-in px-4">
+        <h1 dir="ltr" className="text-3xl sm:text-4xl font-black text-center logo-3d-bubble mb-4 animate-fade-in px-4">
           <span className="bg-gradient-to-r from-purple-600 via-pink-500 to-amber-400 bg-clip-text text-transparent" style={{ filter: 'drop-shadow(0 0 12px rgba(255,255,255,0.8)) drop-shadow(0 0 24px rgba(255,255,255,0.4))' }}>SolStorie's™</span>
         </h1>
 
         {/* Container wrapper for peeking character */}
-        <div className="relative w-full max-w-md overflow-visible pt-20 sm:pt-24">
+        <div className="relative w-full max-w-md overflow-visible pt-24 sm:pt-28">
           {/* Sol peeking from behind the box */}
-          <div className="absolute -top-32 -left-10 z-[5] pointer-events-none animate-slide-peek">
+          <div className="absolute -top-28 -left-10 z-[5] pointer-events-none animate-slide-peek">
             <img src={solWaving} alt="Sol waving hello" className="w-72 h-72 sm:w-80 sm:h-80 object-contain drop-shadow-lg" />
           </div>
 
