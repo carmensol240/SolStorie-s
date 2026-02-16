@@ -720,8 +720,8 @@ const StoryViewer = () => {
         showPageActions={showPageActions}
       />
 
-      {/* Read Aloud Button - only when audioSupport is enabled in accessibility */}
-      {audioSupport && showPageActions && currentSpread && (
+      {/* Read Aloud Button - for English stories or when audioSupport is enabled in accessibility */}
+      {(audioSupport || story?.language === 'en') && showPageActions && currentSpread && (
         <div className="fixed bottom-24 left-4 z-50">
           <Button
             size="icon"
