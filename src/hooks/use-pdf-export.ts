@@ -71,35 +71,23 @@ export const usePdfExport = () => {
     }
   };
 
-  const addWatermark = (pdf: jsPDF) => {
+  const buildFooterHtml = (): string => {
+    return `
+      <div style="position:absolute;bottom:0;left:0;right:0;padding-bottom:25px;text-align:center;direction:rtl;font-family:Heebo,Assistant,sans-serif;">
+        <div>
+          <span dir="ltr" style="color:#9333ea;font-weight:bold;font-size:12px;font-family:Heebo,Assistant,sans-serif;display:inline-block;">SolStorie's™</span>
+          <span style="color:#999;font-size:12px;font-family:Heebo,Assistant,sans-serif;"> | עולמה הקסום של סול</span>
+        </div>
+        <div style="margin-top:4px;">
+          <span dir="ltr" style="color:#2563eb;font-size:10px;font-family:Heebo,Assistant,sans-serif;display:inline-block;">https://soulstory.co.il</span>
+        </div>
+      </div>`;
+  };
+
+  const addClickableLink = (pdf: jsPDF) => {
     const pageWidth = pdf.internal.pageSize.getWidth();
     const pageHeight = pdf.internal.pageSize.getHeight();
-    const centerX = pageWidth / 2;
-    const footerY = pageHeight - 20;
-
-    // "SolStorie's™" in bold purple
-    pdf.setFontSize(10);
-    pdf.setFont("Helvetica", "bold");
-    pdf.setTextColor(147, 51, 234);
-    const brandText = "SolStorie's™";
-    const suffixText = " | עולמה הקסום של סול";
-    const brandWidth = pdf.getTextWidth(brandText);
-    const suffixWidth = pdf.getTextWidth(suffixText);
-    const totalWidth = brandWidth + suffixWidth;
-    const startX = centerX + totalWidth / 2; // RTL: start from right
-
-    pdf.text(brandText, startX, footerY, { align: 'right' });
-
-    // "| עולמה הקסום של סול" in normal gray
-    pdf.setFont("Helvetica", "normal");
-    pdf.setTextColor(150, 150, 150);
-    pdf.text(suffixText, startX - brandWidth, footerY, { align: 'right' });
-
-    // Clickable link below
-    pdf.setFontSize(8);
-    pdf.setTextColor(37, 99, 235);
-    const linkUrl = 'https://soulstory.co.il';
-    pdf.textWithLink(linkUrl, centerX - pdf.getTextWidth(linkUrl) / 2, footerY + 5, { url: linkUrl });
+    pdf.link(pageWidth / 2 - 30, pageHeight - 30, 60, 10, { url: 'https://soulstory.co.il' });
   };
 
   const createPdfPage = async (
@@ -107,6 +95,12 @@ export const usePdfExport = () => {
     pdf: jsPDF,
     isFirstPage: boolean
   ) => {
+    // Inject footer into HTML so html2canvas renders Hebrew with browser fonts
+    const footerDiv = document.createElement('div');
+    footerDiv.innerHTML = buildFooterHtml();
+    content.style.position = 'relative';
+    content.appendChild(footerDiv);
+
     const canvas = await html2canvas(content, {
       scale: 2,
       useCORS: true,
@@ -118,7 +112,9 @@ export const usePdfExport = () => {
     const pageHeight = pdf.internal.pageSize.getHeight();
     if (!isFirstPage) pdf.addPage();
     pdf.addImage(imgData, 'PNG', 0, 0, pageWidth, pageHeight);
-    addWatermark(pdf);
+    addClickableLink(pdf);
+
+    content.removeChild(footerDiv);
   };
 
   const renderCoverPage = (childName: string, topic: string): HTMLDivElement => {
