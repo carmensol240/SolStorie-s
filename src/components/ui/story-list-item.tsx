@@ -22,6 +22,26 @@ import {
   DropdownMenuTrigger,
 } from './dropdown-menu';
 
+const CoverFallback = () => (
+  <div className="w-full h-full bg-gradient-to-br from-primary/20 to-accent/20 flex items-center justify-center">
+    <Book className="w-8 h-8 text-primary/40" />
+  </div>
+);
+
+const CoverImage = ({ src, alt }: { src: string; alt: string }) => {
+  const [hasError, setHasError] = useState(false);
+  if (hasError) return <CoverFallback />;
+  return (
+    <img
+      src={src}
+      alt={alt}
+      loading="lazy"
+      onError={() => setHasError(true)}
+      className="w-full h-full object-cover"
+    />
+  );
+};
+
 interface StoryListItemProps {
   id: string;
   childName: string;
@@ -79,17 +99,19 @@ const StoryListItem = ({
         )}
       >
         <div className="w-20 h-20 rounded-xl overflow-hidden flex-shrink-0 bg-gradient-to-br from-primary/10 to-accent/10 border-2 border-primary/20">
-          <SignedImage
-            src={coverUrl}
-            storyId={storyId || id}
-            alt={topic}
-            className="w-full h-full object-cover"
-            fallback={
-              <div className="w-full h-full bg-gradient-to-br from-primary/20 to-accent/20 flex items-center justify-center">
-                <Book className="w-8 h-8 text-primary/40" />
-              </div>
-            }
-          />
+          {coverUrl && coverUrl.startsWith('http') ? (
+            <CoverImage src={coverUrl} alt={topic} />
+          ) : coverUrl ? (
+            <SignedImage
+              src={coverUrl}
+              storyId={storyId || id}
+              alt={topic}
+              className="w-full h-full object-cover"
+              fallback={<CoverFallback />}
+            />
+          ) : (
+            <CoverFallback />
+          )}
         </div>
 
         <div className="flex-1 min-w-0">
