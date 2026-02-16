@@ -1,27 +1,26 @@
 
-# Fix: Edit Story and Gender Swap Not Responding in Library
+# תיקון תצוגת נגן הסיפורים במובייל
 
-## Problem
-The "Edit Story" and "Gender Swap" options in the dropdown menu don't respond when clicked. This is because they use `onClick` handlers, while Radix UI's `DropdownMenuItem` component works reliably with `onSelect` instead.
+## בעיה 1: חיצי ניווט גדולים מדי במובייל
+החיצים בצדדים (NavigationArrows.tsx) בגודל `w-10 h-10` עם גבולות עבים מסתירים את הטקסט במובייל. הפתרון: להקטין אותם במובייל ולהפוך אותם לשקופים יותר.
 
-The delete menu item already uses `onSelect` correctly -- the edit and gender swap items need the same treatment.
+## בעיה 2: סרגל סגול בהחלקה
+כשמחליקים, ה-`swipeOffset` מזיז את כל התוכן עם `translateX`, וזה חושף את מסגרת הספר הסגולה (BookFrame) שכוללת shadow עם צבע סגול ועיטורי פינות סגולים. בתמונה רואים את זה כסרגל סגול חוצה את המסך. הפתרון: להסיר את אפקט ההזזה הויזואלי (swipeOffset) לגמרי - החלקה תפעיל מעבר עמוד בלי תזוזה ויזואלית.
 
-## Changes (1 file)
+---
 
-### `src/components/ui/story-list-item.tsx`
+## פרטים טכניים
 
-Change the edit and gender swap `DropdownMenuItem` handlers from `onClick` to `onSelect`:
+### קובץ 1: `src/components/story/book-frame/NavigationArrows.tsx`
+- הקטנת גודל הכפתורים במובייל מ-`w-10 h-10` ל-`w-8 h-8`
+- הקטנת האייקונים מ-`w-6 h-6` ל-`w-4 h-4`
+- הפיכת הגבולות לדקים יותר (`border` במקום `border-2`)
+- הגדלת שקיפות הרקע (`bg-white/50` במקום `bg-white/80`)
 
-**Before:**
-```tsx
-<DropdownMenuItem onClick={() => onEdit(id)} ...>
-<DropdownMenuItem onClick={() => onGenderSwap(id)} ...>
-```
+### קובץ 2: `src/pages/StoryViewer.tsx`
+- הסרת ה-`translateX(swipeOffset)` מה-`style` של ה-container (שורות 771-774)
+- שמירת פונקציונליות ה-swipe עצמה (מעבר עמוד בהחלקה) - רק הסרת האפקט הויזואלי של ההזזה
 
-**After:**
-```tsx
-<DropdownMenuItem onSelect={() => onEdit(id)} ...>
-<DropdownMenuItem onSelect={() => onGenderSwap(id)} ...>
-```
-
-This aligns them with how Radix UI DropdownMenu is designed to work -- `onSelect` is the proper event for menu item actions, and it fires reliably after the menu closes.
+### קובץ 3: `src/hooks/use-swipe.ts`
+- הסרת ה-`swipeOffset` state וחישובו - כבר לא נדרש
+- שמירת כל הלוגיקה של זיהוי החלקה ומעבר עמודים
