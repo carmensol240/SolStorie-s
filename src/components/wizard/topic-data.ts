@@ -93,6 +93,8 @@ export const CHARACTER_SECTIONS: CharacterSection[] = [
       { id: "we-are-special", label: "כולנו מיוחדים ודומים", image: topicWeAreSpecial, ageRange: "4-8" },
       { id: "just-be-me", label: "פשוט להיות אני", image: topicJustBeMe, ageRange: "4-8" },
       { id: "helping-others", label: "הלב של סול", image: topicHelpingOthers, ageRange: "3-6" },
+      { id: "stranger-danger", label: "שומרי הסודות", image: topicStrangerDanger, ageRange: "3-8" },
+      { id: "seatbelt-safety", label: "חגורת בטיחות", image: topicSeatbeltSafety, ageRange: "3-6" },
     ],
   },
   {
@@ -103,7 +105,6 @@ export const CHARACTER_SECTIONS: CharacterSection[] = [
     categoryEmoji: "🌱",
     heroImage: castMia,
     topics: [
-      { id: "stranger-danger", label: "שומרי הסודות", image: topicStrangerDanger, ageRange: "3-8" },
       { id: "body-hero-teeth", label: "צחצוח שיניים קסום", image: topicTeethBrushing, ageRange: "3-6" },
       { id: "body-hero-bath", label: "אמבטיה של כיף", image: topicBathShower, ageRange: "3-6" },
       { id: "bathtime", label: "בועת גר", image: topicBathtime, ageRange: "3-6" },
@@ -127,9 +128,11 @@ export const CHARACTER_SECTIONS: CharacterSection[] = [
       { id: "barber-visit", label: "ביקור אצל הספר", image: topicBarberVisit, ageRange: "3-6" },
       { id: "lost-tooth", label: "שן נופלת!", image: topicLostTooth, ageRange: "4-8" },
       { id: "body-hero-nails", label: "גזירת ציפורניים", image: topicNailTrimming, ageRange: "3-6" },
-      { id: "seatbelt-safety", label: "חגורת בטיחות", image: topicSeatbeltSafety, ageRange: "3-6" },
       { id: "new-sibling", label: "אח/ות חדש/ה", image: topicNewSibling, ageRange: "3-6" },
       { id: "bedtime-story", label: "סיפור לפני השינה", image: topicBedtime, ageRange: "3-6" },
+      { id: "pocket-kiss", label: "הנשיקה בכיס של אמא", image: topicPocketKiss, ageRange: "3-6" },
+      { id: "sibling-love", label: "צוות מבצע – אהבת אחים", image: topicSiblingLove, ageRange: "3-6" },
+      { id: "my-special-family", label: "המשפחה המיוחדת שלי", image: topicMySpecialFamily, ageRange: "3-8" },
     ],
   },
   {
@@ -146,6 +149,10 @@ export const CHARACTER_SECTIONS: CharacterSection[] = [
       { id: "space", label: "סיפה בחולי", image: topicSpace, ageRange: "3-8" },
       { id: "rain-party", label: "רוקדים בגשם", image: topicRainParty, ageRange: "3-6" },
       { id: "underwater", label: "הרפתקה במעמקי הים", image: topicUnderwater, ageRange: "3-8" },
+      { id: "magical-forest", label: "מסע ביער הקסום", image: topicMagicalForest, ageRange: "3-6" },
+      { id: "space-adventure", label: "סול מכבסת את השמיים", image: topicSpaceHero, ageRange: "3-8" },
+      { id: "kingdom", label: "הממלכה הרחוקה", image: topicKingdom, ageRange: "4-8" },
+      { id: "magic-keys", label: "המפתחות הקסומים", image: topicMagicKeys, ageRange: "4-8" },
     ],
   },
   {
@@ -158,15 +165,8 @@ export const CHARACTER_SECTIONS: CharacterSection[] = [
     topics: [
       { id: "family-trip", label: "טיול משפחתי", image: topicFamilyTrip, ageRange: "3-6" },
       { id: "birthday-party", label: "מסיבת יום הולדת", image: topicBirthday, ageRange: "3-6" },
-      { id: "sibling-love", label: "צוות מבצע – אהבת אחים", image: topicSiblingLove, ageRange: "3-6" },
       { id: "grandparents-night", label: "הלילה המיוחד במלכות סבא וסבתא", image: topicGrandparentsNight, ageRange: "3-6" },
-      { id: "magical-forest", label: "מסע ביער הקסום", image: topicMagicalForest, ageRange: "3-6" },
-      { id: "space-adventure", label: "סול מכבסת את השמיים", image: topicSpaceHero, ageRange: "3-8" },
-      { id: "my-special-family", label: "המשפחה המיוחדת שלי", image: topicMySpecialFamily, ageRange: "3-8" },
-      { id: "pocket-kiss", label: "הנשיקה בכיס של אמא", image: topicPocketKiss, ageRange: "3-6" },
       { id: "flying-vacation", label: "טיסה לחופשה", image: topicFlyingVacation, ageRange: "3-8" },
-      { id: "kingdom", label: "הממלכה הרחוקה", image: topicKingdom, ageRange: "4-8" },
-      { id: "magic-keys", label: "המפתחות הקסומים", image: topicMagicKeys, ageRange: "4-8" },
     ],
   },
   {
