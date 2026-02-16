@@ -352,20 +352,13 @@ const Upgrade = () => {
                 <div className="flex items-center gap-2">
                   <Crown className="w-5 h-5 text-amber-300" />
                   <h3 className="font-black text-sm text-amber-200">{TOOLKIT_SUBSCRIPTION.label}</h3>
+                  <span className="bg-amber-500/30 text-amber-200 text-[10px] font-bold px-2 py-0.5 rounded-full">בקרוב</span>
                 </div>
                 <p className="text-xs text-white/70 leading-relaxed">
-                  {TOOLKIT_SUBSCRIPTION.description}
+                  אנחנו עובדים על העשרת האפליקציה בארגז כלים מקצועי הכולל תכנים פדגוגיים, דפי צביעה ופעילות, וטבלאות מעקב חכמות.
                 </p>
-                <div className="flex items-center justify-between">
-                  <span className="text-xl font-black text-white">₪{TOOLKIT_SUBSCRIPTION.price} <span className="text-xs font-bold text-white/60">לשנה</span></span>
-                  <Button
-                    onClick={handleToolkitPurchase}
-                    size="sm"
-                    className="bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white font-bold rounded-xl text-xs px-4"
-                  >
-                    <Crown className="w-3.5 h-3.5 ml-1" />
-                    הירשמו למנוי
-                  </Button>
+                <div className="flex items-center justify-center">
+                  <span className="text-sm font-bold text-amber-300/80">✨ יש למה לחכות!</span>
                 </div>
               </div>
             </div>
