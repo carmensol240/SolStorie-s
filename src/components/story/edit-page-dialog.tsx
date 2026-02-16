@@ -164,7 +164,7 @@ const EditPageDialog = ({
   };
 
   const getTextareaClassName = () => {
-    const classes = ['resize-none', 'min-h-[120px]'];
+    const classes = ['resize-none', 'min-h-[400px]', 'overflow-y-auto', 'text-right', 'leading-[1.6]'];
     if (isBold) classes.push('font-bold');
     if (fontSize === 'large') classes.push('text-lg');
     return classes.join(' ');
@@ -191,7 +191,7 @@ const EditPageDialog = ({
   return (
     <>
       <Dialog open={open} onOpenChange={onOpenChange}>
-        <DialogContent className="sm:max-w-lg max-h-[85vh] flex flex-col" dir="rtl">
+        <DialogContent className="sm:max-w-lg max-h-[90vh] flex flex-col" dir="rtl">
           <DialogHeader className="flex-shrink-0">
             <DialogTitle className="flex items-center justify-between">
               <span>עריכת עמוד</span>
@@ -225,7 +225,7 @@ const EditPageDialog = ({
                 value={pageText}
                 onChange={(e) => setPageText(e.target.value)}
                 placeholder="טקסט העמוד"
-                rows={4}
+                rows={10}
                 className={getTextareaClassName()}
               />
             </div>
