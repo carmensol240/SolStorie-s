@@ -1,8 +1,8 @@
-import { useRef } from "react";
+import { useRef, useState } from "react";
 import { Textarea } from "@/components/ui/textarea";
 import { StoryFormData } from "@/pages/CreateStory";
 import { cn } from "@/lib/utils";
-import { Heart, ChevronLeft, ChevronRight } from "lucide-react";
+import { Heart, ChevronLeft, ChevronRight, Sparkles } from "lucide-react";
 import { useTopicWishlist } from "@/hooks/use-topic-wishlist";
 import { CHARACTER_SECTIONS, TopicItem } from "./topic-data";
 
@@ -14,6 +14,7 @@ interface TopicStepProps {
 const TopicStep = ({ formData, updateFormData }: TopicStepProps) => {
   const { likedTopics, toggleLike } = useTopicWishlist();
   const sectionRefs = useRef<(HTMLDivElement | null)[]>([]);
+  const [activeTab, setActiveTab] = useState("all");
 
   const handleCustomChange = (value: string) => {
     updateFormData({
@@ -35,10 +36,18 @@ const TopicStep = ({ formData, updateFormData }: TopicStepProps) => {
     sectionRefs.current[index]?.scrollIntoView({ behavior: "smooth", block: "start" });
   };
 
+  const filteredSections = activeTab === "all"
+    ? CHARACTER_SECTIONS
+    : CHARACTER_SECTIONS.filter((s) => s.id === activeTab);
+
   return (
     <div className="space-y-4" dir="rtl">
-      {/* Title */}
-      <h2 className="text-lg font-bold text-foreground text-center">על מה נכתוב היום?</h2>
+      {/* Title with sparkles */}
+      <h2 className="text-lg font-bold text-foreground text-center flex items-center justify-center gap-2">
+        <span className="text-purple-500"><Sparkles className="w-5 h-5" /></span>
+        על מה נכתוב היום?
+        <span className="text-orange-400"><Sparkles className="w-5 h-5" /></span>
+      </h2>
 
       {/* Single unified text input */}
       <Textarea
@@ -55,13 +64,29 @@ const TopicStep = ({ formData, updateFormData }: TopicStepProps) => {
         או בחרו נושא
       </div>
 
-      {/* Category tabs - scroll anchors */}
+      {/* Tab filters */}
       <div className="flex gap-2 overflow-x-auto pb-1 scrollbar-none">
-        {CHARACTER_SECTIONS.map((section, i) => (
+        <button
+          onClick={() => setActiveTab("all")}
+          className={cn(
+            "px-3 py-1.5 rounded-full text-xs font-medium whitespace-nowrap border transition-all flex-shrink-0",
+            activeTab === "all"
+              ? "bg-gradient-to-r from-purple-600 via-pink-500 to-orange-400 text-white border-transparent shadow-md"
+              : "border-border bg-card text-foreground hover:border-purple-300"
+          )}
+        >
+          🌟 הכל
+        </button>
+        {CHARACTER_SECTIONS.map((section) => (
           <button
             key={section.id}
-            onClick={() => scrollToSection(i)}
-            className="px-3 py-1.5 rounded-full text-xs font-medium whitespace-nowrap border border-border bg-card text-foreground hover:border-purple-300 transition-all flex-shrink-0"
+            onClick={() => setActiveTab(section.id)}
+            className={cn(
+              "px-3 py-1.5 rounded-full text-xs font-medium whitespace-nowrap border transition-all flex-shrink-0",
+              activeTab === section.id
+                ? "bg-gradient-to-r from-purple-600 via-pink-500 to-orange-400 text-white border-transparent shadow-md"
+                : "border-border bg-card text-foreground hover:border-purple-300"
+            )}
           >
             {section.categoryEmoji} {section.categoryLabel}
           </button>
@@ -69,7 +94,7 @@ const TopicStep = ({ formData, updateFormData }: TopicStepProps) => {
       </div>
 
       {/* All character sections stacked */}
-      {CHARACTER_SECTIONS.map((section, sectionIndex) => (
+      {filteredSections.map((section, sectionIndex) => (
         <div
           key={section.id}
           ref={(el) => { sectionRefs.current[sectionIndex] = el; }}
