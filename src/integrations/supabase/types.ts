@@ -813,7 +813,19 @@ export type Database = {
           updated_at: string
         }[]
       }
-      get_public_story: { Args: { p_story_id: string }; Returns: Json }
+      get_public_story:
+        | {
+            Args: { p_story_id: string }
+            Returns: {
+              error: true
+            } & "Could not choose the best candidate function between: public.get_public_story(p_story_id => text), public.get_public_story(p_story_id => uuid). Try renaming the parameters or the function itself in the database so function overloading can be resolved"
+          }
+        | {
+            Args: { p_story_id: string }
+            Returns: {
+              error: true
+            } & "Could not choose the best candidate function between: public.get_public_story(p_story_id => text), public.get_public_story(p_story_id => uuid). Try renaming the parameters or the function itself in the database so function overloading can be resolved"
+          }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]

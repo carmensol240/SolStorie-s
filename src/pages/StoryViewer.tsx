@@ -50,6 +50,7 @@ interface StoryPage {
 
 interface Story {
   id: string;
+  slug?: string;
   child_name: string;
   child_gender?: string;
   topic: string;
@@ -359,8 +360,8 @@ const StoryViewer = () => {
     if (!story) return;
 
     try {
-      const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
-      const publicUrl = `${supabaseUrl}/functions/v1/og-story-meta?storyId=${story.id}`;
+      const slug = (story as any).slug || story.id;
+      const publicUrl = `https://soulstory.co.il/s/${slug}`;
       const title = `✨ ${story.topic} ✨`;
       const text = `📚 הסיפור של ${story.child_name} – נוצר באהבה באפליקציית SolStorie's™`;
 
@@ -371,13 +372,11 @@ const StoryViewer = () => {
         toast({ title: 'הקישור הועתק! 📋', description: 'כעת ניתן להדביק אותו בוואטסאפ או בכל מקום אחר' });
       }
     } catch (error: any) {
-      // User cancelled share dialog - not an error
       if (error?.name === 'AbortError') return;
       console.error('Error sharing story:', error);
-      // Fallback to clipboard
       try {
-        const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
-        const publicUrl = `${supabaseUrl}/functions/v1/og-story-meta?storyId=${story.id}`;
+        const slug = (story as any).slug || story.id;
+        const publicUrl = `https://soulstory.co.il/s/${slug}`;
         await navigator.clipboard.writeText(publicUrl);
         toast({ title: 'הקישור הועתק! 📋', description: 'כעת ניתן להדביק אותו בוואטסאפ' });
       } catch {

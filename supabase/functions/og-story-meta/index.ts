@@ -13,9 +13,9 @@ serve(async (req) => {
 
   try {
     const url = new URL(req.url);
-    const storyId = url.searchParams.get("storyId");
+    const storyIdParam = url.searchParams.get("storyId");
 
-    if (!storyId) {
+    if (!storyIdParam) {
       return new Response("Missing storyId", { status: 400 });
     }
 
@@ -23,22 +23,37 @@ serve(async (req) => {
     const supabaseServiceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
     const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
-    // Fetch story data
-    const { data: story, error } = await supabase
-      .from("stories")
-      .select("topic, child_name, cover_url, language")
-      .eq("id", storyId)
-      .maybeSingle();
+    // Try to find story by UUID first, then by slug
+    let story: any = null;
+    const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
-    if (error || !story) {
-      // Redirect to app anyway
+    if (uuidRegex.test(storyIdParam)) {
+      const { data } = await supabase
+        .from("stories")
+        .select("id, slug, topic, child_name, cover_url, language")
+        .eq("id", storyIdParam)
+        .maybeSingle();
+      story = data;
+    }
+
+    if (!story) {
+      const { data } = await supabase
+        .from("stories")
+        .select("id, slug, topic, child_name, cover_url, language")
+        .eq("slug", storyIdParam)
+        .maybeSingle();
+      story = data;
+    }
+
+    if (!story) {
       return Response.redirect("https://soulstory.co.il", 302);
     }
 
+    const slug = story.slug || story.id;
     const title = `✨ ${story.topic} ✨ – סיפור של ${story.child_name}`;
     const description = `סיפור קסום שנוצר במיוחד עבור ${story.child_name} באפליקציית SolStorie's™ 📚`;
     const imageUrl = story.cover_url || "https://soulstory.co.il/favicon.png";
-    const pageUrl = `https://soulstory.co.il/s/${storyId}`;
+    const pageUrl = `https://soulstory.co.il/s/${slug}`;
 
     const html = `<!DOCTYPE html>
 <html lang="he" dir="rtl">

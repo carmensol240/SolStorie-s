@@ -23,7 +23,7 @@ interface PublicStory {
 }
 
 const PublicStoryViewer = () => {
-  const { storyId } = useParams();
+  const { storySlug } = useParams();
   const navigate = useNavigate();
   const [story, setStory] = useState<PublicStory | null>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -32,12 +32,12 @@ const PublicStoryViewer = () => {
   const [signedUrls, setSignedUrls] = useState<Record<string, string>>({});
 
   useEffect(() => {
-    if (!storyId) return;
+    if (!storySlug) return;
 
     const fetchStory = async () => {
       try {
         const { data, error: rpcError } = await supabase.rpc("get_public_story", {
-          p_story_id: storyId,
+          p_story_id: storySlug,
         });
 
         if (rpcError || !data) {
@@ -59,10 +59,11 @@ const PublicStoryViewer = () => {
           .map((p) => p.illustration_url!);
 
         if (illustrationPaths.length > 0) {
+          const resolvedId = storyData.id;
           const { data: urlData } = await supabase.functions.invoke(
             "get-signed-illustration-url",
             {
-              body: { paths: illustrationPaths, storyId, publicView: true },
+              body: { paths: illustrationPaths, storyId: resolvedId, publicView: true },
             }
           );
           if (urlData?.signedUrls) {
@@ -77,7 +78,7 @@ const PublicStoryViewer = () => {
     };
 
     fetchStory();
-  }, [storyId]);
+  }, [storySlug]);
 
   const handleNext = useCallback(() => {
     if (story && currentPage < story.pages.length - 1) {
