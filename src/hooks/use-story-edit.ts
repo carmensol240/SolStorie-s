@@ -1,14 +1,13 @@
 import { useState, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useCredits } from './use-credits';
+import { useEditCredits } from './use-edit-credits';
 import { useAuth } from './use-auth';
 
 interface UseStoryEditResult {
-  /** Whether this is the first edit (free) for the story */
-  isFirstEdit: boolean;
-  /** Check if user can edit (has credits or first edit) */
+  /** Check if user can edit (has free edits or credits) */
   canEdit: () => boolean;
-  /** Perform the edit - increments edit_count and deducts credit if needed */
+  /** Perform the edit - uses free edit first, then story credit */
   performEdit: () => Promise<boolean>;
   /** Loading state */
   loading: boolean;
@@ -18,30 +17,30 @@ interface UseStoryEditResult {
   fetchEditCount: (storyId: string) => Promise<void>;
   /** Current edit count */
   editCount: number | null;
+  /** Free edits remaining from package */
+  freeEditsRemaining: number;
+  /** Total free edits from package */
+  freeEditsTotal: number;
 }
 
 export const useStoryEdit = (storyId: string): UseStoryEditResult => {
   const { user } = useAuth();
-  const { credits, hasCredits, useCredit } = useCredits();
+  const { hasCredits, useCredit } = useCredits();
+  const { freeEditsRemaining, freeEditsTotal, hasEditCredits, useEditCredit } = useEditCredits();
   const [editCount, setEditCount] = useState<number | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const isFirstEdit = editCount === 0;
-
   const fetchEditCount = useCallback(async (id: string) => {
     if (!id) return;
-    
     setLoading(true);
     setError(null);
-    
     try {
       const { data, error: fetchError } = await supabase
         .from('stories')
         .select('edit_count')
         .eq('id', id)
         .maybeSingle();
-
       if (fetchError) throw fetchError;
       setEditCount(data?.edit_count ?? 0);
     } catch (err) {
@@ -54,11 +53,9 @@ export const useStoryEdit = (storyId: string): UseStoryEditResult => {
   }, []);
 
   const canEdit = useCallback(() => {
-    // First edit is always free
-    if (editCount === 0) return true;
-    // Subsequent edits require credits
-    return hasCredits();
-  }, [editCount, hasCredits]);
+    // Can edit if has free edits from package OR has story credits
+    return hasEditCredits() || hasCredits();
+  }, [hasEditCredits, hasCredits]);
 
   const performEdit = useCallback(async (): Promise<boolean> => {
     if (!user || !storyId) {
@@ -70,10 +67,15 @@ export const useStoryEdit = (storyId: string): UseStoryEditResult => {
     setError(null);
 
     try {
-      const currentEditCount = editCount ?? 0;
-
-      // If not first edit, deduct credit first
-      if (currentEditCount > 0) {
+      // Try free edits first, then fall back to story credits
+      if (hasEditCredits()) {
+        const used = await useEditCredit();
+        if (!used) {
+          setError('שגיאה בשימוש בעריכה חינמית');
+          setLoading(false);
+          return false;
+        }
+      } else {
         const creditUsed = await useCredit();
         if (!creditUsed) {
           setError('אין מספיק קרדיטים');
@@ -83,6 +85,7 @@ export const useStoryEdit = (storyId: string): UseStoryEditResult => {
       }
 
       // Increment the edit count on the story
+      const currentEditCount = editCount ?? 0;
       const { error: updateError } = await supabase
         .from('stories')
         .update({ edit_count: currentEditCount + 1 })
@@ -99,15 +102,16 @@ export const useStoryEdit = (storyId: string): UseStoryEditResult => {
       setLoading(false);
       return false;
     }
-  }, [user, storyId, editCount, useCredit]);
+  }, [user, storyId, editCount, hasEditCredits, useEditCredit, useCredit]);
 
   return {
-    isFirstEdit,
     canEdit,
     performEdit,
     loading,
     error,
     fetchEditCount,
     editCount,
+    freeEditsRemaining,
+    freeEditsTotal,
   };
 };

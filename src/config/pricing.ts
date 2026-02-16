@@ -34,7 +34,7 @@ export const EDUCATOR_PACKAGE = {
   price: 199,
   pricePerStory: "8₪",
   label: "חבילת אנשי חינוך וטיפול",
-  freeEdits: 2,
+  freeEdits: 25,
   badge: "🏫 לאנשי חינוך וטיפול" as string | undefined,
 };
 
