@@ -361,8 +361,9 @@ const StoryViewer = () => {
         ? firstPageText.substring(0, 100).trim() + '...' 
         : firstPageText;
       
-      // Clean public URL - no token needed
-      const publicUrl = `https://soulstory.co.il/s/${story.id}`;
+      // Use OG proxy URL so WhatsApp crawler gets proper meta tags with cover image
+      const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
+      const publicUrl = `${supabaseUrl}/functions/v1/og-story-meta?storyId=${story.id}`;
       
       const footer = `\n\n📚 נוצר באהבה באפליקציית SolStorie's™`;
       

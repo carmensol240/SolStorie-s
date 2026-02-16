@@ -149,16 +149,23 @@ EXCLUDE / NEGATIVE PROMPT: No UI elements, no buttons, no audio icons, no play b
       });
     }
 
-    // Update story cover_url
+    // Build the full public URL for the cover
+    const { data: publicUrlData } = supabase.storage
+      .from("story-illustrations")
+      .getPublicUrl(filePath);
+
+    const fullCoverUrl = publicUrlData.publicUrl;
+
+    // Update story cover_url with the FULL public URL
     await supabase
       .from("stories")
-      .update({ cover_url: filePath })
+      .update({ cover_url: fullCoverUrl })
       .eq("id", storyId);
 
-    console.log(`✅ Cover generated and saved for story ${storyId}`);
+    console.log(`✅ Cover generated and saved for story ${storyId}: ${fullCoverUrl}`);
 
     return new Response(
-      JSON.stringify({ success: true, coverUrl: filePath }),
+      JSON.stringify({ success: true, coverUrl: fullCoverUrl }),
       { headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
   } catch (error) {
