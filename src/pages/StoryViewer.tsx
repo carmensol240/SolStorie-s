@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef, useCallback } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { Home, BookOpen, Sparkles, Palette, Wand2, RefreshCw, Loader2, ImageOff } from "lucide-react";
+import { Home, BookOpen, Sparkles, Palette, Wand2, RefreshCw, Loader2, ImageOff, Volume2, Square } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
@@ -25,6 +25,8 @@ import { useOfflineStorage } from "@/hooks/use-offline-storage";
 import { useSettings } from "@/hooks/use-settings";
 import { usePdfExport } from "@/hooks/use-pdf-export";
 import { useNikud } from "@/hooks/use-nikud";
+import { useTextToSpeech } from "@/hooks/use-text-to-speech";
+import { useAccessibility } from "@/hooks/use-accessibility";
 
 import { useAuth } from "@/hooks/use-auth";
 import { useIsMobile } from "@/hooks/use-mobile";
@@ -94,6 +96,8 @@ const StoryViewer = () => {
   
   const { user } = useAuth();
   const hasTrackedStart = useRef(false);
+  const { audioSupport } = useAccessibility();
+  const { startReading, stopReading, isReading, isLoading: isTtsLoading } = useTextToSpeech();
 
   // Cleanup polling on unmount
   useEffect(() => {
@@ -720,6 +724,40 @@ const StoryViewer = () => {
         isAddingNikud={isAddingNikud}
         showPageActions={showPageActions}
       />
+
+      {/* Read Aloud Button - accessibility feature */}
+      {(audioSupport || story?.language === 'en') && showPageActions && currentSpread && (
+        <div className="fixed bottom-24 left-4 z-50">
+          <Button
+            size="icon"
+            onClick={() => {
+              if (isReading) {
+                stopReading();
+              } else {
+                const allText = currentSpread.pages.map(p => p.text).join('\n');
+                startReading(allText, story?.language || 'he');
+              }
+            }}
+            disabled={isTtsLoading}
+            className={cn(
+              "h-12 w-12 rounded-full shadow-lg border-0 transition-all",
+              isReading
+                ? "bg-red-500 hover:bg-red-600 animate-pulse"
+                : "bg-green-500 hover:bg-green-600",
+              isTtsLoading && "opacity-70"
+            )}
+            aria-label={isReading ? "עצור הקראה" : "הקרא בקול"}
+          >
+            {isTtsLoading ? (
+              <Loader2 className="w-5 h-5 text-white animate-spin" />
+            ) : isReading ? (
+              <Square className="w-5 h-5 text-white" />
+            ) : (
+              <Volume2 className="w-5 h-5 text-white" />
+            )}
+          </Button>
+        </div>
+      )}
 
 
       {/* Book Container with Swipe Support */}

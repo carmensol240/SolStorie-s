@@ -142,6 +142,7 @@ const About = () => {
           <div className="bg-white/5 border border-white/10 rounded-xl p-2.5 text-center">
             <p className="text-lg font-black text-purple-200">7-8</p>
             <p className="text-xs text-white/70 leading-snug">שפה עשירה וקריינות לראשית קריאה</p>
+            <p className="text-[10px] text-amber-300/80 mt-1 leading-snug">(Coming soon - קריינות איכותית ולא רובוטית... יש למה לחכות!)</p>
           </div>
         </div>
 
