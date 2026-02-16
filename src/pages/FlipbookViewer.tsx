@@ -152,7 +152,7 @@ const FlipbookViewer = () => {
     if (!digitalBook || !story) return;
     
     // Clean public URL using story ID
-    const publicUrl = `https://soulstory.co.il/s/${story.id}`;
+    const publicUrl = `https://www.soulstory.co.il/s/${story.id}`;
     const title = `✨ ${story.topic} ✨`;
     const summary = pages[0]?.text 
       ? (pages[0].text.length > 100 ? pages[0].text.substring(0, 100).trim() + '...' : pages[0].text)
