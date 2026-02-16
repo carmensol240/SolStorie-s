@@ -37,11 +37,14 @@ const TopicStep = ({ formData, updateFormData }: TopicStepProps) => {
 
   return (
     <div className="space-y-4" dir="rtl">
-      {/* Free text input */}
+      {/* Title */}
+      <h2 className="text-lg font-bold text-foreground text-center">על מה נכתוב היום?</h2>
+
+      {/* Single unified text input */}
       <Textarea
         className="w-full min-h-[80px] text-sm resize-none"
         rows={3}
-        placeholder="הוספת פסקה אודותית נוספת..."
+        placeholder="כתבו נושא חופשי או בחרו מהרשימה למטה..."
         value={formData.customTopic}
         onChange={(e) => handleCustomChange(e.target.value)}
         dir="rtl"
