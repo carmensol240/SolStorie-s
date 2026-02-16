@@ -333,7 +333,7 @@ const StoryViewer = () => {
   };
 
   // Swipe gesture handlers for spread navigation
-  const { onTouchStart, onTouchMove, onTouchEnd, swipeOffset } = useSwipe({
+  const { onTouchStart, onTouchMove, onTouchEnd } = useSwipe({
     onSwipeLeft: () => {
       // In RTL, swipe left = next spread
       handlePageChange('next');
@@ -766,13 +766,7 @@ const StoryViewer = () => {
         onTouchMove={swipeHandlers.onTouchMove}
         onTouchEnd={swipeHandlers.onTouchEnd}
       >
-        <div 
-          className="relative w-full"
-          style={{ 
-            transform: `translateX(${swipeOffset}px)`,
-            transition: swipeOffset === 0 ? 'transform 0.3s ease-out' : 'none'
-          }}
-        >
+        <div className="relative w-full">
           {/* Navigation Arrows */}
           <NavigationArrows
             onPrev={() => handleSpreadChange('prev')}
