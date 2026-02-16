@@ -2,7 +2,7 @@ import { useRef, useState } from "react";
 import { Textarea } from "@/components/ui/textarea";
 import { StoryFormData } from "@/pages/CreateStory";
 import { cn } from "@/lib/utils";
-import { Heart, ChevronLeft, ChevronRight, Sparkles } from "lucide-react";
+import { Heart, ChevronLeft, ChevronRight, Sparkles, Info } from "lucide-react";
 import { useTopicWishlist } from "@/hooks/use-topic-wishlist";
 import { CHARACTER_SECTIONS, TopicItem } from "./topic-data";
 
@@ -165,7 +165,7 @@ const HeroCard = ({ section }: { section: (typeof CHARACTER_SECTIONS)[number] })
   </div>
 );
 
-/* ─── Topic Card ─── */
+/* ─── Topic Card (Flip) ─── */
 interface TopicCardProps {
   topic: TopicItem;
   isSelected: boolean;
@@ -180,61 +180,140 @@ const TopicCard = ({
   isLiked,
   onSelect,
   onToggleLike,
-}: TopicCardProps) => (
-  <div
-    className={cn(
-      "relative rounded-xl overflow-hidden border-2 transition-all flex-shrink-0 cursor-pointer w-[130px] aspect-[3/4]",
-      isSelected
-        ? "border-purple-500 shadow-lg scale-[1.03]"
-        : "border-transparent hover:border-purple-300"
-    )}
-    onClick={onSelect}
-  >
-    <img
-      src={topic.image}
-      alt={topic.label}
-      className="w-full h-full object-cover"
-      loading="lazy"
-    />
+}: TopicCardProps) => {
+  const [isFlipped, setIsFlipped] = useState(false);
 
-    {/* Gradient overlay */}
-    <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/10 to-transparent" />
+  const handleFlip = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    setIsFlipped((prev) => !prev);
+  };
 
-    {/* Wishlist heart */}
-    <button
-      onClick={(e) => {
-        e.stopPropagation();
-        onToggleLike();
-      }}
-      className="absolute top-1.5 right-1.5 w-7 h-7 flex items-center justify-center"
+  const handleSelectAndClose = () => {
+    onSelect();
+    setIsFlipped(false);
+  };
+
+  return (
+    <div
+      className={cn(
+        "relative flex-shrink-0 w-[130px] aspect-[3/4]",
+        "[perspective:600px]"
+      )}
     >
-      <Heart
+      <div
         className={cn(
-          "w-5 h-5 drop-shadow-md transition-colors",
-          isLiked
-            ? "fill-pink-500 text-pink-500"
-            : "fill-transparent text-white/80"
+          "relative w-full h-full transition-transform duration-500 [transform-style:preserve-3d]",
+          isFlipped && "[transform:rotateY(180deg)]"
         )}
-      />
-    </button>
+      >
+        {/* ─── Front ─── */}
+        <div
+          className={cn(
+            "absolute inset-0 rounded-xl overflow-hidden border-2 cursor-pointer [backface-visibility:hidden]",
+            isSelected
+              ? "border-purple-500 shadow-lg scale-[1.03]"
+              : "border-transparent hover:border-purple-300"
+          )}
+          onClick={onSelect}
+        >
+          <img
+            src={topic.image}
+            alt={topic.label}
+            className="w-full h-full object-cover"
+            loading="lazy"
+          />
 
-    {/* Age badge */}
-    <div className="absolute bottom-7 left-1.5 bg-black/40 text-white text-[9px] font-bold px-1.5 py-0.5 rounded-md backdrop-blur-sm">
-      {topic.ageRange}
-    </div>
+          {/* Gradient overlay */}
+          <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/10 to-transparent" />
 
-    {/* Topic name */}
-    <span className="absolute bottom-1 right-1.5 left-1.5 text-white text-[10px] font-bold leading-tight text-center drop-shadow-md line-clamp-2">
-      {topic.label}
-    </span>
+          {/* Info icon */}
+          <button
+            onClick={handleFlip}
+            className="absolute top-1.5 left-1.5 w-6 h-6 bg-black/30 backdrop-blur-sm rounded-full flex items-center justify-center border border-white/20 transition-colors hover:bg-black/50"
+            aria-label="מידע נוסף"
+          >
+            <span><Info className="w-3.5 h-3.5 text-white/90" /></span>
+          </button>
 
-    {/* Selected checkmark */}
-    {isSelected && (
-      <div className="absolute top-1.5 left-1.5 w-5 h-5 bg-gradient-to-r from-purple-600 to-pink-500 rounded-full flex items-center justify-center">
-        <span className="text-white text-xs">✓</span>
+          {/* Wishlist heart */}
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              onToggleLike();
+            }}
+            className="absolute top-1.5 right-1.5 w-7 h-7 flex items-center justify-center"
+          >
+            <Heart
+              className={cn(
+                "w-5 h-5 drop-shadow-md transition-colors",
+                isLiked
+                  ? "fill-pink-500 text-pink-500"
+                  : "fill-transparent text-white/80"
+              )}
+            />
+          </button>
+
+          {/* Age badge */}
+          <div className="absolute bottom-7 left-1.5 bg-black/40 text-white text-[9px] font-bold px-1.5 py-0.5 rounded-md backdrop-blur-sm">
+            {topic.ageRange}
+          </div>
+
+          {/* Topic name */}
+          <span className="absolute bottom-1 right-1.5 left-1.5 text-white text-[10px] font-bold leading-tight text-center drop-shadow-md line-clamp-2">
+            {topic.label}
+          </span>
+
+          {/* Selected checkmark */}
+          {isSelected && (
+            <div className="absolute top-1.5 left-1.5 w-5 h-5 bg-gradient-to-r from-purple-600 to-pink-500 rounded-full flex items-center justify-center z-10">
+              <span className="text-white text-xs">✓</span>
+            </div>
+          )}
+        </div>
+
+        {/* ─── Back ─── */}
+        <div
+          className={cn(
+            "absolute inset-0 rounded-xl overflow-hidden border-2 [backface-visibility:hidden] [transform:rotateY(180deg)]",
+            "bg-gradient-to-b from-purple-50 to-white dark:from-purple-950 dark:to-gray-900",
+            "border-purple-300 shadow-lg",
+            "flex flex-col p-3 direction-rtl"
+          )}
+          dir="rtl"
+        >
+          {/* Close / flip back */}
+          <button
+            onClick={handleFlip}
+            className="absolute top-1.5 left-1.5 w-6 h-6 bg-purple-100 dark:bg-purple-900 rounded-full flex items-center justify-center text-purple-600 dark:text-purple-300 text-xs font-bold"
+            aria-label="חזרה"
+          >
+            ✕
+          </button>
+
+          {/* Title */}
+          <h3 className="text-[11px] font-bold text-purple-700 dark:text-purple-300 mb-1.5 pr-0 pl-6 leading-tight">
+            {topic.label}
+          </h3>
+
+          {/* Description */}
+          <p className="text-[9px] leading-relaxed text-foreground/80 flex-1 overflow-y-auto">
+            {topic.description}
+          </p>
+
+          {/* Select button */}
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              handleSelectAndClose();
+            }}
+            className="mt-2 w-full py-1.5 rounded-lg bg-gradient-to-r from-purple-600 via-pink-500 to-orange-400 text-white text-[10px] font-bold shadow-md hover:shadow-lg transition-shadow"
+          >
+            בחירת נושא והמשך ✨
+          </button>
+        </div>
       </div>
-    )}
-  </div>
-);
+    </div>
+  );
+};
 
 export default TopicStep;
