@@ -498,7 +498,7 @@ const Profile = () => {
         >
           <Crown className="w-5 h-5 ml-2" />
           לארגז הכלים של <span dir="ltr">SolStorie's™</span>
-          <Sparkles className="w-4 h-4 mr-2" />
+          <span className="mr-2 text-xs bg-white/30 px-2 py-0.5 rounded-full font-bold">בקרוב</span>
         </Button>
 
         {/* Branded Footer */}
