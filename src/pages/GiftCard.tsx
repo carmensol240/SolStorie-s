@@ -105,24 +105,18 @@ const GiftCard = () => {
   const handleShareWhatsApp = () => {
     if (!generatedCode || !selectedPkg) return;
 
-    const recipient = recipientName.trim() || "חברה יקרה";
-    const sender = senderName.trim() || "מישהי שאוהבת אותך";
+    const sender = senderName.trim() || "מישהו/י שאוהב/ת אתכם";
 
-    const message = `🎁✨ מתנה מיוחדת בשבילך, ${recipient}! ✨🎁
+    const message = `מתנה קסומה מחכה לכם ב-SolStorie's! ✨
 
-${sender} רכשה עבורך ${selectedPkg.stories} סיפורים אישיים לילדים באפליקציית SolStorie's™! 📚
+${sender} שלחה לכם חבילה של ${selectedPkg.stories} סיפורים אישיים במתנה, שבהם סול (או שם הילד) הופכת לגיבורה של הרפתקאות מרגשות.
 
-🎟️ קוד המתנה שלך:
-${generatedCode}
+איך מממשים?
+1. נכנסים לכתובת: https://soulstory.co.il
+2. נרשמים בקלות (או מתחברים).
+3. מזינים את קוד הקופון האישי שלכם: ${generatedCode}
 
-📲 איך להשתמש:
-1. היכנסי לאפליקציה: https://soulstory.co.il
-2. הירשמי או התחברי
-3. לכי למסך השדרוג (💎)
-4. הזיני את קוד המתנה בשדה הקופון
-5. תיהני מ-${selectedPkg.stories} סיפורים מותאמים אישית לילדים שלך! 🌟
-
-💜 נוצר באהבה ב-SolStorie's™`;
+קריאה מהנה ומרגשת! 📖❤️`;
 
     const whatsappUrl = `https://wa.me/?text=${encodeURIComponent(message)}`;
     window.open(whatsappUrl, "_blank");
