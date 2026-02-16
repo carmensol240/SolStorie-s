@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
-import { useNavigate, useSearchParams } from "react-router-dom";
-import { X, Crown } from "lucide-react";
+import { useNavigate, useSearchParams, Link } from "react-router-dom";
+import { X, Crown, Gift } from "lucide-react";
 
 const WHITELISTED_TEST_EMAIL = "carmit1901+test@gmail.com";
 import { Button } from "@/components/ui/button";
@@ -486,6 +486,15 @@ const Upgrade = () => {
               Visa, Mastercard, American Express ועוד
             </p>
           </div>
+
+          {/* Gift Card Link */}
+          <Link
+            to="/gift"
+            className="flex items-center justify-center gap-2 bg-white/10 backdrop-blur-sm border border-pink-400/20 rounded-xl p-3 mb-4 hover:bg-white/15 transition-colors"
+          >
+            <Gift className="w-5 h-5 text-pink-300" />
+            <span className="text-sm font-bold text-white/90">🎁 רוצה לשלוח סיפורים במתנה?</span>
+          </Link>
 
           {/* Privacy */}
           <p className="text-xs text-center text-white/40 mt-2 mb-4">

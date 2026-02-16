@@ -29,6 +29,7 @@ import PublicStoryViewer from "./pages/PublicStoryViewer";
 import AccountExit from "./pages/AccountExit";
 import Settings from "./pages/Settings";
 import Upgrade from "./pages/Upgrade";
+import GiftCard from "./pages/GiftCard";
 
 import ShareAndEarn from "./pages/ShareAndEarn";
 import Contact from "./pages/Contact";
@@ -77,6 +78,7 @@ const App = () => (
             <Route path="/settings" element={<RequireTerms><Settings /></RequireTerms>} />
             <Route path="/account-exit" element={<RequireTerms><AccountExit /></RequireTerms>} />
             <Route path="/upgrade" element={<RequireTerms><Upgrade /></RequireTerms>} />
+            <Route path="/gift" element={<GiftCard />} />
             
             <Route path="/toolkit" element={<RequireTerms><Toolkit /></RequireTerms>} />
             <Route path="/admin/reviews" element={<AdminReviews />} />
