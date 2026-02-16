@@ -112,13 +112,13 @@ const StoryListItem = ({
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end" className="min-w-[180px]">
             {onEdit && (
-              <DropdownMenuItem onClick={() => onEdit(id)} className="gap-2 cursor-pointer">
+              <DropdownMenuItem onSelect={() => onEdit(id)} className="gap-2 cursor-pointer">
                 <Pencil className="w-4 h-4 text-primary" />
                 <span>עריכת סיפור</span>
               </DropdownMenuItem>
             )}
             {onGenderSwap && (
-              <DropdownMenuItem onClick={() => onGenderSwap(id)} className="gap-2 cursor-pointer">
+              <DropdownMenuItem onSelect={() => onGenderSwap(id)} className="gap-2 cursor-pointer">
                 <RefreshCw className="w-4 h-4 text-primary" />
                 <span>שינוי מגדר הגיבור/ה</span>
               </DropdownMenuItem>
