@@ -1,31 +1,44 @@
 
-# יצירת תמונת Hero חדשה למסך הפתיחה
+# Fix: Story Deletion Not Working
 
-## מה ייעשה
+## Problem
+The "Delete Story" confirmation button doesn't reliably trigger the actual deletion. The `AlertDialogAction` component from Radix UI has internal close-handling behavior that can conflict with `e.preventDefault()` in the `onClick` handler, causing the `confirmDelete` function not to execute properly in some cases.
 
-ניצור תמונת Hero חדשה ומרשימה למסך הפתיחה של האפליקציה באמצעות Edge Function ייעודית שתשתמש במודל `google/gemini-3-pro-image-preview` (האיכותי ביותר). התמונה תכלול את כל 5 הדמויות (סול, מיה, ליאו, בן, זואי) בתנוחות משעשעות וצבעוניות, עם הכותרת SolStorie's(TM) מעוצבת בחלק העליון.
+## Solution
+Replace the `AlertDialogAction` approach with a regular `Button` combined with manual dialog close handling. This avoids any conflict with Radix UI's internal event system.
 
-## הרעיון לסצנה
+## Changes (1 file)
 
-**"שער לעולם הקסום"** - חמשת החברים עומדים מול שער קסום ענק זוהר (Magical Portal/Gateway) שנפתח לעולם פנטסטי מלא צבעים. סול מובילה את החבורה עם חיוך מזמין, ליאו מחזיק עיפרון קסם זוהר, זואי עם הכדורגל בתנוחה אנרגטית, מיה מסתכלת בסקרנות, ובן הקטן מציץ מאחורי סול. רקע של שמים סגולים-ורודים עם כוכבות נוצצות ואבק קסמים.
+### `src/components/ui/story-list-item.tsx`
 
-## שלבים טכניים
+1. Replace the `AlertDialogAction` button in the delete confirmation dialog with a standard `Button` that:
+   - Calls the delete function (`onDelete`)
+   - Awaits the deletion to complete
+   - Then closes the dialog
+   
+2. Make `confirmDelete` an async function that properly awaits the parent's `onDelete` handler
 
-### 1. יצירת Edge Function חד-פעמית (`generate-hero-image`)
-- תשתמש באותו פרומפט דמויות מדויק מ-`generate-cover` (כולל כל 5 הדמויות עם תיאורים מפורטים)
-- תכלול את הכותרת "SolStorie's(TM)" כטקסט בולט בחלק העליון
-- סצנה: שער קסום זוהר עם רקע פנטסטי צבעוני
-- יחס גובה-רוחב 9:16 (מותאם למובייל)
-- התמונה תישמר ל-Storage ותהיה זמינה להורדה
+3. Update the `onDelete` prop type to return `Promise<void>` to support async deletion
 
-### 2. שמירת התמונה כ-Asset
-- לאחר יצירת התמונה, נשמור אותה כ-`src/assets/hero-solstories-welcome.png`
+The key change in the dialog footer:
+```tsx
+<AlertDialogFooter className="gap-2 sm:gap-0">
+  <AlertDialogCancel>ביטול</AlertDialogCancel>
+  <Button
+    variant="destructive"
+    onClick={async () => {
+      await onDelete(id);
+      setShowDeleteDialog(false);
+    }}
+  >
+    מחק
+  </Button>
+</AlertDialogFooter>
+```
 
-### 3. עדכון מסך הפתיחה
-- **למשתמשים מחוברים**: עדכון `Adventure.tsx` להשתמש בתמונה החדשה במקום `hero-solstories-library-new.jpeg`
-- **לאורחים**: עדכון `About.tsx` או `GuestLanding.tsx` להציג את התמונה החדשה כרקע ראשי
+This bypasses any Radix UI event handling conflicts and ensures the delete operation completes before the dialog closes.
 
-## הערות
-- נשתמש במודל `google/gemini-3-pro-image-preview` לאיכות מקסימלית
-- פרומפט הדמויות יהיה זהה לזה שמייצר את כריכות הסיפורים (כמו תמונת שומרי הדרכים) לשמירה על עקביות
-- התמונה תכלול את הכותרת SolStorie's(TM) כחלק מהאיור עצמו
+## Technical Details
+- The database already has proper CASCADE delete rules on all related tables (story_pages, digital_books, user_story_stats, analytics_events)
+- RLS policies correctly allow users to delete their own stories
+- The only issue is the UI button not reliably firing the delete call
