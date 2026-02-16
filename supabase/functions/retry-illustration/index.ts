@@ -40,7 +40,7 @@ serve(async (req) => {
       });
     }
 
-    const { storyId, pageId } = await req.json();
+    const { storyId, pageId, customPrompt } = await req.json();
     if (!storyId || !pageId) {
       return new Response(JSON.stringify({ error: "Missing storyId or pageId" }), {
         status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" },
@@ -103,7 +103,7 @@ serve(async (req) => {
     }
 
     const stylePrefix = `In the style of modern 3D Disney-Pixar animation, high resolution, magical atmosphere, magical glowing light, dreamy warm and inviting atmosphere. Characters with large expressive emotional eyes, detailed hair, soft textures. ALWAYS show characters as FULL BODY (head to toe) or at minimum from waist up — NEVER just a head or face. 9:16 portrait aspect ratio. NEGATIVE PROMPT / EXCLUDE: floating head, disembodied head, head without body, missing body, missing limbs, extra limbs, deformed, distorted, scary, horror, grotesque, mutated, disfigured, severed, decapitated, cropped head only, face only, no body, text, watermark, UI elements, buttons, audio icons.`;
-    const prompt = page.illustration_prompt || `A cheerful children's book illustration for page ${page.page_number}`;
+    const prompt = customPrompt || page.illustration_prompt || `A cheerful children's book illustration for page ${page.page_number}`;
 
     const requestBody: any = {
       model: "google/gemini-3-pro-image-preview",
