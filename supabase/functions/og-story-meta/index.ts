@@ -32,6 +32,16 @@ serve(async (req) => {
       return new Response("Missing storyId", { status: 400 });
     }
 
+    // Determine the site origin from Referer or fallback
+    const referer = req.headers.get("referer") || "";
+    let siteOrigin = "https://soulstory.co.il";
+    try {
+      if (referer) {
+        const refUrl = new URL(referer);
+        siteOrigin = refUrl.origin;
+      }
+    } catch { /* keep default */ }
+
     const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
     const supabaseServiceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
     const supabase = createClient(supabaseUrl, supabaseServiceKey);
@@ -59,15 +69,15 @@ serve(async (req) => {
     }
 
     if (!story) {
-      return Response.redirect("https://soulstory.co.il", 302);
+      return Response.redirect(siteOrigin, 302);
     }
 
     const slug = story.slug || story.id;
     const title = `✨ ${story.topic} ✨ – סיפור של ${story.child_name}`;
     const description = `סיפור קסום שנוצר במיוחד עבור ${story.child_name} באפליקציית SolStorie's™ 📚`;
-    const imageUrl = story.cover_url || "https://soulstory.co.il/favicon.png";
-    const shareUrl = `https://soulstory.co.il/s/${slug}`;
-    const viewUrl = `https://soulstory.co.il/view/${slug}`;
+    const imageUrl = story.cover_url || `${siteOrigin}/favicon.png`;
+    const shareUrl = `${siteOrigin}/s/${slug}`;
+    const viewUrl = `${siteOrigin}/view/${slug}`;
 
     const userAgent = req.headers.get("user-agent") || "";
 

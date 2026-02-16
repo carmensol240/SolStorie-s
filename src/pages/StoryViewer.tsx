@@ -362,7 +362,8 @@ const StoryViewer = () => {
 
     try {
       const slug = (story as any).slug || story.id;
-      const publicUrl = `https://soulstory.co.il/s/${slug}`;
+      const origin = window.location.origin;
+      const publicUrl = `${origin}/s/${slug}`;
       const title = `✨ ${story.topic} ✨`;
       const text = `📚 הסיפור של ${story.child_name} – נוצר באהבה באפליקציית SolStorie's™`;
 
@@ -377,8 +378,8 @@ const StoryViewer = () => {
       console.error('Error sharing story:', error);
       try {
         const slug = (story as any).slug || story.id;
-        const publicUrl = `https://soulstory.co.il/s/${slug}`;
-        await navigator.clipboard.writeText(publicUrl);
+        const fallbackUrl = `${window.location.origin}/s/${slug}`;
+        await navigator.clipboard.writeText(fallbackUrl);
         toast({ title: 'הקישור הועתק! 📋', description: 'כעת ניתן להדביק אותו בוואטסאפ' });
       } catch {
         toast({ title: 'שגיאה בשיתוף', description: 'נסו שוב מאוחר יותר', variant: 'destructive' });
