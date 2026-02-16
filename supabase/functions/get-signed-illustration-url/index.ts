@@ -113,6 +113,18 @@ serve(async (req) => {
       }
     }
 
+    // Case 4: Public story view (for /s/:storyId route sharing)
+    const { publicView } = await req.clone().json().catch(() => ({}));
+    if (!isAuthorized && storyId && publicView === true) {
+      // Verify story exists via the public RPC function
+      const { data: publicStory } = await supabaseAdmin
+        .rpc("get_public_story", { p_story_id: storyId });
+      
+      if (publicStory) {
+        isAuthorized = true;
+      }
+    }
+
     if (!isAuthorized) {
       return new Response(
         JSON.stringify({ error: "Unauthorized access to illustrations" }),

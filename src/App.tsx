@@ -25,6 +25,7 @@ import StoryViewer from "./pages/StoryViewer";
 
 import Library from "./pages/Library";
 import FlipbookViewer from "./pages/FlipbookViewer";
+import PublicStoryViewer from "./pages/PublicStoryViewer";
 import AccountExit from "./pages/AccountExit";
 import Settings from "./pages/Settings";
 import Upgrade from "./pages/Upgrade";
@@ -63,6 +64,8 @@ const App = () => (
             <Route path="/onboarding" element={<Onboarding />} />
             {/* Public flipbook viewer - accessible via share link */}
             <Route path="/flipbook" element={<FlipbookViewer />} />
+            {/* Public story viewer - accessible via share link without auth */}
+            <Route path="/s/:storyId" element={<PublicStoryViewer />} />
             {/* Protected routes - require terms acceptance */}
             <Route path="/children" element={<RequireTerms><ChildProfiles /></RequireTerms>} />
             <Route path="/create" element={<RequireTerms><CreateStory /></RequireTerms>} />
