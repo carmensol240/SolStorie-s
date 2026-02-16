@@ -1,6 +1,5 @@
 // Cast hero images
 import castSol from "@/assets/cast-sol-adventure.jpg";
-import castBen from "@/assets/cast-ben-art.jpg";
 import castMia from "@/assets/cast-mia-nature.jpg";
 import castLeo from "@/assets/cast-leo-science.jpg";
 import castZoe from "@/assets/cast-zoe-sports.jpg";
@@ -141,13 +140,12 @@ export const CHARACTER_SECTIONS: CharacterSection[] = [
     categoryEmoji: "🏰",
     heroImage: castLeo,
     topics: [
+      { id: "zoo-adventure", label: "טיול בגן החיות", image: topicZoo, ageRange: "3-6" },
+      { id: "cloud-adventure", label: "טיול בעננים", image: topicCloudAdventure, ageRange: "3-6" },
       { id: "magic-kingdom", label: "ממלכת הקסם", image: topicMagicCastle, ageRange: "3-8" },
-      { id: "magical-forest", label: "היער הקסום", image: topicMagicalForest, ageRange: "3-8" },
-      { id: "cloud-adventure", label: "הרפתקה בעננים", image: topicCloudAdventure, ageRange: "3-6" },
-      { id: "kingdom", label: "הממלכה הרחוקה", image: topicKingdom, ageRange: "4-8" },
-      { id: "magic-keys", label: "המפתחות הקסומים", image: topicMagicKeys, ageRange: "4-8" },
-      { id: "space", label: "מסע לכוכבים", image: topicSpace, ageRange: "4-8" },
-      { id: "rain-party", label: "מסיבה בגשם", image: topicRainParty, ageRange: "3-6" },
+      { id: "space", label: "סיפה בחולי", image: topicSpace, ageRange: "3-8" },
+      { id: "rain-party", label: "רוקדים בגשם", image: topicRainParty, ageRange: "3-6" },
+      { id: "underwater", label: "הרפתקה במעמקי הים", image: topicUnderwater, ageRange: "3-8" },
     ],
   },
   {
@@ -158,16 +156,17 @@ export const CHARACTER_SECTIONS: CharacterSection[] = [
     categoryEmoji: "🚀",
     heroImage: castZoe,
     topics: [
-      { id: "space-adventure", label: "הרפתקה בחלל", image: topicSpaceHero, ageRange: "4-8" },
-      { id: "zoo-adventure", label: "טיול בגן החיות", image: topicZoo, ageRange: "3-6" },
-      { id: "family-trip", label: "טיול משפחתי", image: topicFamilyTrip, ageRange: "3-8" },
-      { id: "birthday-party", label: "יום הולדת", image: topicBirthday, ageRange: "3-6" },
-      { id: "underwater", label: "הרפתקה מתחת למים", image: topicUnderwater, ageRange: "4-8" },
-      { id: "flying-vacation", label: "טיסה לחופשה", image: topicFlyingVacation, ageRange: "3-8" },
-      { id: "sibling-love", label: "אהבת אחים", image: topicSiblingLove, ageRange: "3-6" },
+      { id: "family-trip", label: "טיול משפחתי", image: topicFamilyTrip, ageRange: "3-6" },
+      { id: "birthday-party", label: "מסיבת יום הולדת", image: topicBirthday, ageRange: "3-6" },
+      { id: "sibling-love", label: "צוות מבצע – אהבת אחים", image: topicSiblingLove, ageRange: "3-6" },
+      { id: "grandparents-night", label: "הלילה המיוחד במלכות סבא וסבתא", image: topicGrandparentsNight, ageRange: "3-6" },
+      { id: "magical-forest", label: "מסע ביער הקסום", image: topicMagicalForest, ageRange: "3-6" },
+      { id: "space-adventure", label: "סול מכבסת את השמיים", image: topicSpaceHero, ageRange: "3-8" },
       { id: "my-special-family", label: "המשפחה המיוחדת שלי", image: topicMySpecialFamily, ageRange: "3-8" },
-      { id: "grandparents-night", label: "לילה אצל סבא וסבתא", image: topicGrandparentsNight, ageRange: "3-6" },
       { id: "pocket-kiss", label: "הנשיקה בכיס של אמא", image: topicPocketKiss, ageRange: "3-6" },
+      { id: "flying-vacation", label: "טיסה לחופשה", image: topicFlyingVacation, ageRange: "3-8" },
+      { id: "kingdom", label: "הממלכה הרחוקה", image: topicKingdom, ageRange: "4-8" },
+      { id: "magic-keys", label: "המפתחות הקסומים", image: topicMagicKeys, ageRange: "4-8" },
     ],
   },
   {
@@ -178,10 +177,11 @@ export const CHARACTER_SECTIONS: CharacterSection[] = [
     categoryEmoji: "🎓",
     heroImage: topicEducationalToolbox,
     topics: [
-      { id: "social-skills-edu", label: "מיומנויות חברתיות", image: topicFriendship, ageRange: "3-6" },
-      { id: "values-emotions-edu", label: "ערכים ורגשות", image: topicAngerCloud, ageRange: "3-6" },
-      { id: "holidays-seasons-edu", label: "חגים ועונות השנה", image: topicRainParty, ageRange: "3-6" },
-      { id: "life-skills-edu", label: "מיומנויות חיים", image: topicIndependence, ageRange: "3-6" },
+      { id: "social-skills-edu", label: "מיומנויות חברתיות", image: topicFriendship, ageRange: "3-8" },
+      { id: "values-emotions-edu", label: "ערכים ורגשות", image: topicAngerCloud, ageRange: "3-8" },
+      { id: "holidays-seasons-edu", label: "חגים ועונות השנה", image: topicRainParty, ageRange: "3-8" },
+      { id: "life-skills-edu", label: "מיומנויות חיים", image: topicIndependence, ageRange: "3-8" },
+      { id: "emotional-development-edu", label: "פיתוח רגשי", image: topicAngerCloud, ageRange: "3-8" },
     ],
   },
 ];
