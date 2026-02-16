@@ -74,14 +74,32 @@ export const usePdfExport = () => {
   const addWatermark = (pdf: jsPDF) => {
     const pageWidth = pdf.internal.pageSize.getWidth();
     const pageHeight = pdf.internal.pageSize.getHeight();
-    pdf.setFontSize(9);
-    pdf.setTextColor(200, 200, 200);
-    pdf.text(
-      "SolStorie's™ | כל הזכויות שמורות",
-      pageWidth / 2,
-      pageHeight - 5,
-      { align: 'center' }
-    );
+    const centerX = pageWidth / 2;
+    const footerY = pageHeight - 20;
+
+    // "SolStorie's™" in bold purple
+    pdf.setFontSize(10);
+    pdf.setFont("Helvetica", "bold");
+    pdf.setTextColor(147, 51, 234);
+    const brandText = "SolStorie's™";
+    const suffixText = " | עולמה הקסום של סול";
+    const brandWidth = pdf.getTextWidth(brandText);
+    const suffixWidth = pdf.getTextWidth(suffixText);
+    const totalWidth = brandWidth + suffixWidth;
+    const startX = centerX + totalWidth / 2; // RTL: start from right
+
+    pdf.text(brandText, startX, footerY, { align: 'right' });
+
+    // "| עולמה הקסום של סול" in normal gray
+    pdf.setFont("Helvetica", "normal");
+    pdf.setTextColor(150, 150, 150);
+    pdf.text(suffixText, startX - brandWidth, footerY, { align: 'right' });
+
+    // Clickable link below
+    pdf.setFontSize(8);
+    pdf.setTextColor(37, 99, 235);
+    const linkUrl = 'https://soulstory.co.il';
+    pdf.textWithLink(linkUrl, centerX - pdf.getTextWidth(linkUrl) / 2, footerY + 5, { url: linkUrl });
   };
 
   const createPdfPage = async (
