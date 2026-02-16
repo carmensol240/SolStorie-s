@@ -345,7 +345,7 @@ const EditPageDialog = ({
           ) : (
             <Button 
               onClick={handleSave} 
-              disabled={isLoading || !hasTextChanged || !canEdit()}
+              disabled={isLoading || !hasTextChanged}
               className="min-w-[120px] gap-2 bg-primary hover:bg-primary/90"
             >
               {isLoading ? 'שומר...' : (
