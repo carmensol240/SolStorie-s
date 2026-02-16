@@ -14,36 +14,36 @@ serve(async (req) => {
   }
 
   try {
-    // === AUTHENTICATION CHECK ===
+    // === OPTIONAL AUTHENTICATION - use for rate limiting ===
+    let rateLimitKey = "anonymous";
     const authHeader = req.headers.get("Authorization");
-    if (!authHeader?.startsWith("Bearer ")) {
-      return new Response(
-        JSON.stringify({ error: "נדרשת התחברות" }),
-        { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-      );
-    }
-
-    const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
-    const supabaseAnonKey = Deno.env.get("SUPABASE_ANON_KEY")!;
     
-    const supabase = createClient(supabaseUrl, supabaseAnonKey, {
-      global: { headers: { Authorization: authHeader } }
-    });
+    if (authHeader?.startsWith("Bearer ")) {
+      try {
+        const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
+        const supabaseAnonKey = Deno.env.get("SUPABASE_ANON_KEY")!;
+        
+        const supabase = createClient(supabaseUrl, supabaseAnonKey, {
+          global: { headers: { Authorization: authHeader } }
+        });
 
-    const { data: { user }, error: authError } = await supabase.auth.getUser();
-    if (authError || !user) {
-      return new Response(
-        JSON.stringify({ error: "טוקן לא תקין או שפג תוקפו" }),
-        { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-      );
+        const { data: { user } } = await supabase.auth.getUser();
+        if (user) {
+          rateLimitKey = user.id;
+        }
+      } catch (e) {
+        console.log("Auth check failed, falling back to IP rate limit");
+      }
     }
-    // === END AUTHENTICATION CHECK ===
+    
+    if (rateLimitKey === "anonymous") {
+      rateLimitKey = getClientIP(req) || "unknown";
+    }
 
-    // Rate limit by user ID (more reliable than IP)
-    const rateLimit = checkRateLimit(user.id, "add-nikud", RATE_LIMITS.aiFunction);
+    // Rate limit
+    const rateLimit = checkRateLimit(rateLimitKey, "add-nikud", RATE_LIMITS.aiFunction);
     if (!rateLimit.allowed) {
-      // Mask user ID in logs to protect PII
-      console.log(`Add nikud rate limit exceeded for user: ${user.id.substring(0, 8)}...`);
+      console.log(`Add nikud rate limit exceeded for: ${rateLimitKey.substring(0, 8)}...`);
       return rateLimitResponse(rateLimit, corsHeaders, "יותר מדי בקשות. נסה שוב מאוחר יותר.");
     }
 
