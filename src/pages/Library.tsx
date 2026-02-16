@@ -194,20 +194,23 @@ const Library = () => {
     });
   }, [stories, filters]);
 
+  const getPublicCoverUrl = (path: string): string => {
+    const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
+    return `${supabaseUrl}/storage/v1/object/public/story-illustrations/${path}`;
+  };
+
   const getCoverImage = (story: Story): string | null => {
     if (story.cover_url) {
-      console.log(`📖 Story ${story.id} using cover_url:`, story.cover_url);
-      return story.cover_url;
+      // Build public URL for cover stored in the public bucket
+      return getPublicCoverUrl(story.cover_url);
     }
     
     if (story.story_pages && story.story_pages.length > 0) {
       const firstPage = story.story_pages.find(p => p.page_number === 1);
       const illustrationUrl = firstPage?.illustration_url || story.story_pages[0]?.illustration_url;
-      console.log(`📖 Story ${story.id} using illustration:`, illustrationUrl);
       return illustrationUrl || null;
     }
     
-    console.log(`📖 Story ${story.id} has no cover image`);
     return null;
   };
 
