@@ -8,6 +8,7 @@ import { useToast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
 import { DrawingCanvas } from "@/components/ui/drawing-canvas";
 import { SignedImage } from "@/components/ui/signed-image";
+import { getPublicIllustrationUrl } from "@/lib/illustration-url";
 import OfflineIndicator from "@/components/ui/offline-indicator";
 import EditPageDialog from "@/components/story/edit-page-dialog";
 import DedicationDialog from "@/components/story/DedicationDialog";
@@ -34,7 +35,7 @@ import { useAuth } from "@/hooks/use-auth";
 import { useStoryEdit } from "@/hooks/use-story-edit";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { useSwipe } from "@/hooks/use-swipe";
-import { useSignedUrls } from "@/hooks/use-signed-urls";
+// useSignedUrls removed - story-illustrations bucket is public
 import { BookFrame, BookPage, BookHeader, NavigationArrows } from "@/components/story/book-frame";
 import { FileDown } from "lucide-react";
 import PdfFeaturePopup from "@/components/story/PdfFeaturePopup";
@@ -101,7 +102,7 @@ const StoryViewer = () => {
   const { settings } = useSettings();
   const { exportToPdf, isExporting } = usePdfExport();
   const { addNikud, isLoading: isAddingNikud } = useNikud();
-  const { getSignedUrl } = useSignedUrls();
+  // story-illustrations bucket is public - using direct URLs via getPublicIllustrationUrl
   
   const { user } = useAuth();
   const { fetchEditCount, editCount, freeEditsRemaining } = useStoryEdit(storyId || '');
@@ -135,19 +136,19 @@ const StoryViewer = () => {
     if (story && currentPage >= 0) {
       trackPageViewed(story.id, currentPage);
       
-      // Pre-fetch next image for smooth transitions
+      // Pre-fetch next image for smooth transitions using public URLs
       if (currentPage < story.pages.length - 1) {
         const nextPage = story.pages[currentPage + 1];
         if (nextPage?.illustration_url) {
-          const signedUrl = getSignedUrl(nextPage.illustration_url);
-          if (signedUrl) {
+          const publicUrl = getPublicIllustrationUrl(nextPage.illustration_url);
+          if (publicUrl) {
             const img = new Image();
-            img.src = signedUrl;
+            img.src = publicUrl;
           }
         }
       }
     }
-  }, [currentPage, story?.id, getSignedUrl]);
+  }, [currentPage, story?.id]);
 
   // Poll for illustration updates when status is generating_illustrations
   const pollForUpdates = useCallback(async () => {
@@ -317,11 +318,22 @@ const StoryViewer = () => {
       
       setStory(storyObj);
 
-      // Calculate initial progress
+      // Calculate initial progress and preload all illustrations
       if (pagesData && pagesData.length > 0) {
         const pagesWithIllustrations = pagesData.filter(p => p.illustration_url).length;
         const progress = Math.round((pagesWithIllustrations / pagesData.length) * 100);
         setIllustrationProgress(progress);
+
+        // Preload all illustration images in background
+        pagesData.forEach(p => {
+          if (p.illustration_url) {
+            const url = getPublicIllustrationUrl(p.illustration_url);
+            if (url) {
+              const img = new Image();
+              img.src = url;
+            }
+          }
+        });
       }
 
       // Start polling if illustrations are still generating
@@ -836,11 +848,11 @@ const StoryViewer = () => {
                   {story.pages[0]?.illustration_url ? (
                     <div className="w-full max-w-sm mx-auto">
                       <div className="rounded-2xl overflow-hidden shadow-2xl border-4 border-[#D4A574] transform hover:scale-[1.02] transition-transform duration-300">
-                        <SignedImage
-                          src={story.pages[0].illustration_url}
-                          storyId={story.id}
+                        <img
+                          src={getPublicIllustrationUrl(story.pages[0].illustration_url) || ''}
                           alt={`עטיפת הסיפור: ${story.child_name} ב${story.topic}`}
                           className="w-full aspect-[4/5] object-cover"
+                          loading="eager"
                         />
                       </div>
                     </div>
@@ -901,11 +913,11 @@ const StoryViewer = () => {
                 {story.pages[story.pages.length - 1]?.illustration_url && (
                   <div className="w-full max-w-xs mx-auto mb-6">
                     <div className="rounded-xl overflow-hidden shadow-xl border-4 border-[#D4A574]">
-                      <SignedImage
-                        src={story.pages[story.pages.length - 1].illustration_url}
-                        storyId={story.id}
+                      <img
+                        src={getPublicIllustrationUrl(story.pages[story.pages.length - 1].illustration_url) || ''}
                         alt={`סיום הסיפור של ${story.child_name}`}
                         className="w-full aspect-[3/4] object-cover"
+                        loading="eager"
                       />
                     </div>
                   </div>
@@ -974,14 +986,14 @@ const StoryViewer = () => {
                   {currentSpread.illustration ? (
                     <div className="relative w-full max-w-md mx-auto">
                       <div className="relative rounded-2xl overflow-hidden shadow-2xl border-4 border-[#E8D5C4]">
-                        <SignedImage
-                          src={currentSpread.illustration}
-                          storyId={story.id}
+                        <img
+                          src={getPublicIllustrationUrl(currentSpread.illustration) || ''}
                           alt={`איור לעמודים ${spreadStartPage}-${spreadEndPage}`}
                           className={cn(
                             "w-full object-cover",
                             isMobile ? "aspect-[16/10]" : "aspect-[4/5]"
                           )}
+                          loading="eager"
                         />
                       </div>
                     </div>
