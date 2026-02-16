@@ -53,7 +53,7 @@ const TopicStep = ({ formData, updateFormData }: TopicStepProps) => {
       <Textarea
         className="w-full min-h-[80px] text-sm resize-none"
         rows={3}
-        placeholder="כתבו נושא חופשי או בחרו מהרשימה למטה..."
+        placeholder="כתבו נושא חופשי, או בחרו מהרשימה למטה ✨&#10;אפשר גם לבחור נושא ולהוסיף עליו פרטים אישיים!"
         value={formData.customTopic}
         onChange={(e) => handleCustomChange(e.target.value)}
         dir="rtl"
