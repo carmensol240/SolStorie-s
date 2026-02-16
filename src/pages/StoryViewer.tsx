@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef, useCallback } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { Home, BookOpen, Sparkles, Palette, Wand2, RefreshCw, Loader2, ImageOff, Volume2, Square } from "lucide-react";
+import { Home, BookOpen, Sparkles, Palette, Wand2, RefreshCw, Loader2, ImageOff, Volume2, Square, X } from "lucide-react";
 import { MissingIllustrationPrompt } from "@/components/story/MissingIllustrationPrompt";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
@@ -93,6 +93,7 @@ const StoryViewer = () => {
   const [showPdfFormatDialog, setShowPdfFormatDialog] = useState(false);
   const [showGenderSwapDialog, setShowGenderSwapDialog] = useState(false);
   const [showEditConfirmDialog, setShowEditConfirmDialog] = useState(false);
+  const [isReadAloudDismissed, setIsReadAloudDismissed] = useState(false);
   
   const { trackStoryStarted, trackStoryCompleted, trackPageViewed, trackFeatureUsed } = useAnalytics();
   const { isOnline, cacheStory, getCachedStory } = useOfflineStorage();
@@ -738,9 +739,22 @@ const StoryViewer = () => {
         showPageActions={showPageActions}
       />
 
-      {/* Read Aloud Button - accessibility feature */}
-      {(audioSupport || story?.language === 'en') && showPageActions && currentSpread && (
+      {/* Read Aloud Floating Button - accessibility feature */}
+      {(audioSupport || story?.language === 'en') && showPageActions && currentSpread && !isReadAloudDismissed && (
         <div className="fixed bottom-24 left-4 z-50">
+          {/* Dismiss X button */}
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              e.preventDefault();
+              stopReading();
+              setIsReadAloudDismissed(true);
+            }}
+            className="absolute -top-1 -right-1 w-5 h-5 rounded-full bg-gray-600 text-white text-xs flex items-center justify-center hover:bg-gray-700 z-10 shadow-md"
+            aria-label="הסתר כפתור הקראה"
+          >
+            <X className="w-3 h-3" />
+          </button>
           <Button
             size="icon"
             onClick={() => {
