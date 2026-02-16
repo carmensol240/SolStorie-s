@@ -98,7 +98,7 @@ const StoryViewer = () => {
   const { getSignedUrl } = useSignedUrls();
   
   const { user } = useAuth();
-  const { isFirstEdit, fetchEditCount, editCount } = useStoryEdit(storyId || '');
+  const { fetchEditCount, editCount, freeEditsRemaining } = useStoryEdit(storyId || '');
   const hasTrackedStart = useRef(false);
   const { audioSupport } = useAccessibility();
   const { startReading, stopReading, isReading, isLoading: isTtsLoading } = useTextToSpeech();
@@ -1067,10 +1067,14 @@ const StoryViewer = () => {
           <AlertDialogHeader>
             <AlertDialogTitle>אישור עריכה</AlertDialogTitle>
             <AlertDialogDescription className="text-right leading-relaxed">
-              ה-AI שלנו לפעמים טועה, ולכן העריכה הראשונה לכל סיפור היא עלינו! 
-              {!isFirstEdit && (
+              ה-AI שלנו לפעמים טועה, ולכן אנחנו מעניקים עריכות חינם בכל חבילה!
+              {freeEditsRemaining > 0 ? (
+                <span className="block mt-2 font-medium text-green-600">
+                  נותרו לך {freeEditsRemaining} עריכות בחינם בחבילה
+                </span>
+              ) : (
                 <span className="block mt-2 font-medium text-foreground">
-                  (החל מהעריכה השנייה לאותו סיפור, השימוש יחויב בקרדיט 1)
+                  העריכות בחינם נוצלו. כל עריכה עולה 1 קרדיט
                 </span>
               )}
             </AlertDialogDescription>
@@ -1078,7 +1082,7 @@ const StoryViewer = () => {
           <AlertDialogFooter className="gap-2 sm:gap-0">
             <AlertDialogCancel>ביטול</AlertDialogCancel>
             <AlertDialogAction onClick={handleEditConfirmed}>
-              {isFirstEdit ? 'ערוך בחינם' : 'המשך לעריכה'}
+              {freeEditsRemaining > 0 ? 'ערוך בחינם' : 'המשך לעריכה'}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

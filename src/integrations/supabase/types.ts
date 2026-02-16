@@ -384,6 +384,8 @@ export type Database = {
           created_at: string
           daily_edit_credits: number | null
           display_name: string | null
+          free_edits_remaining: number | null
+          free_edits_total: number | null
           id: string
           is_subscriber: boolean
           last_edit_credits_reset: string | null
@@ -405,6 +407,8 @@ export type Database = {
           created_at?: string
           daily_edit_credits?: number | null
           display_name?: string | null
+          free_edits_remaining?: number | null
+          free_edits_total?: number | null
           id: string
           is_subscriber?: boolean
           last_edit_credits_reset?: string | null
@@ -426,6 +430,8 @@ export type Database = {
           created_at?: string
           daily_edit_credits?: number | null
           display_name?: string | null
+          free_edits_remaining?: number | null
+          free_edits_total?: number | null
           id?: string
           is_subscriber?: boolean
           last_edit_credits_reset?: string | null

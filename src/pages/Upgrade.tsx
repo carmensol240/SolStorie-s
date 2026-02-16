@@ -92,6 +92,12 @@ const Upgrade = () => {
       if (purchaseError) throw purchaseError;
       const success = await addCredits(pkg.stories);
       if (success) {
+        // Add free edits to profile
+        const { data: profileData } = await supabase.from('profiles').select('free_edits_remaining, free_edits_total').eq('id', user.id).maybeSingle();
+        await supabase.from('profiles').update({
+          free_edits_remaining: (profileData?.free_edits_remaining ?? 0) + pkg.freeEdits,
+          free_edits_total: (profileData?.free_edits_total ?? 0) + pkg.freeEdits,
+        }).eq('id', user.id);
         setPurchasedCredits(pkg.stories);
         setShowSuccess(true);
         trackEvent({ eventType: 'feature_used', metadata: { feature: 'test_purchase_completed', package: pkg.id, stories: pkg.stories } });
@@ -138,6 +144,12 @@ const Upgrade = () => {
       if (purchaseError) throw purchaseError;
       const success = await addCredits(pkg.stories);
       if (success) {
+        // Add free edits to profile
+        const { data: profileData } = await supabase.from('profiles').select('free_edits_remaining, free_edits_total').eq('id', user.id).maybeSingle();
+        await supabase.from('profiles').update({
+          free_edits_remaining: (profileData?.free_edits_remaining ?? 0) + pkg.freeEdits,
+          free_edits_total: (profileData?.free_edits_total ?? 0) + pkg.freeEdits,
+        }).eq('id', user.id);
         setPurchasedCredits(pkg.stories);
         setShowPayPal(false);
         setShowSuccess(true);
@@ -442,6 +454,12 @@ const Upgrade = () => {
                     });
                     const success = await addCredits(EDUCATOR_PACKAGE.stories);
                     if (success) {
+                      // Add free edits to profile
+                      const { data: profileData } = await supabase.from('profiles').select('free_edits_remaining, free_edits_total').eq('id', user.id).maybeSingle();
+                      await supabase.from('profiles').update({
+                        free_edits_remaining: (profileData?.free_edits_remaining ?? 0) + EDUCATOR_PACKAGE.freeEdits,
+                        free_edits_total: (profileData?.free_edits_total ?? 0) + EDUCATOR_PACKAGE.freeEdits,
+                      }).eq('id', user.id);
                       setPurchasedCredits(EDUCATOR_PACKAGE.stories);
                       setShowEducatorPayPal(false);
                       setShowSuccess(true);
