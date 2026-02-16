@@ -14,7 +14,7 @@ const MobileNavigation = () => {
   ];
 
   return (
-    <nav className="fixed bottom-0 left-0 right-0 z-[100] bg-white/70 backdrop-blur-md border-t border-purple-100/50 shadow-lg" role="navigation" aria-label="ניווט ראשי">
+    <nav className="fixed bottom-0 left-0 right-0 z-[100] bg-white/90 backdrop-blur-md border-t border-purple-100/50 shadow-lg" role="navigation" aria-label="ניווט ראשי">
       <div className="flex justify-around items-center h-14 max-w-lg mx-auto px-4 pb-safe">
         {navItems.map((item) => {
           const isActive = location.pathname === item.path;
@@ -31,7 +31,7 @@ const MobileNavigation = () => {
                 "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-purple-400 focus-visible:ring-offset-2",
                 isActive 
                   ? "bg-gradient-to-r from-purple-600 via-pink-500 to-orange-400 text-white" 
-                  : "text-purple-600 hover:text-pink-500 hover:bg-purple-50"
+                  : "text-purple-800 hover:text-pink-600 hover:bg-purple-50"
               )}
             >
               <Icon className="w-5 h-5" />
