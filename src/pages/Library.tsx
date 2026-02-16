@@ -1,6 +1,6 @@
 import { useState, useEffect, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
-import { ArrowRight, Plus, Coins, Wand2 } from "lucide-react";
+import { ArrowRight, Plus, Coins, Wand2, ImagePlus } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import MobileNavigation from "@/components/MobileNavigation";
@@ -139,6 +139,29 @@ const Library = () => {
         title: "שגיאה",
         description: "לא הצלחנו למחוק את הסיפור",
       });
+    }
+  };
+
+  const [regeneratingCoverId, setRegeneratingCoverId] = useState<string | null>(null);
+
+  const handleRegenerateCover = async (storyId: string) => {
+    if (regeneratingCoverId) return;
+    setRegeneratingCoverId(storyId);
+    try {
+      const story = stories.find(s => s.id === storyId);
+      const { data, error } = await supabase.functions.invoke('generate-cover', {
+        body: { storyId, title: story?.topic || '', topic: story?.topic || '' },
+      });
+      if (error) throw error;
+      if (data?.coverUrl) {
+        setStories(prev => prev.map(s => s.id === storyId ? { ...s, cover_url: data.coverUrl } : s));
+        toast({ title: "הכריכה נוצרה בהצלחה! 🎨" });
+      }
+    } catch (error) {
+      console.error("Regenerate cover error:", error);
+      toast({ variant: "destructive", title: "שגיאה ביצירת כריכה", description: "נסו שוב מאוחר יותר" });
+    } finally {
+      setRegeneratingCoverId(null);
     }
   };
 
@@ -296,6 +319,8 @@ const Library = () => {
                 onDelete={handleDeleteStory}
                 onEdit={handleEditStory}
                 onGenderSwap={handleGenderSwap}
+                onRegenerateCover={handleRegenerateCover}
+                isRegeneratingCover={regeneratingCoverId === story.id}
                 onClick={(id) => navigate(`/story/${id}`)}
               />
             ))}
