@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Book, Trash2, MoreVertical, RefreshCw, Pencil } from 'lucide-react';
+import { Book, Trash2, MoreVertical, RefreshCw, Pencil, ImagePlus, Loader2 } from 'lucide-react';
 import { format } from 'date-fns';
 import { he } from 'date-fns/locale';
 import { Button } from './button';
@@ -53,6 +53,8 @@ interface StoryListItemProps {
   onClick: (id: string) => void;
   onEdit?: (id: string) => void;
   onGenderSwap?: (id: string) => void;
+  onRegenerateCover?: (id: string) => void;
+  isRegeneratingCover?: boolean;
   className?: string;
   storyId?: string;
 }
@@ -68,6 +70,8 @@ const StoryListItem = ({
   onClick,
   onEdit,
   onGenderSwap,
+  onRegenerateCover,
+  isRegeneratingCover,
   className,
   storyId,
 }: StoryListItemProps) => {
@@ -143,6 +147,12 @@ const StoryListItem = ({
               <DropdownMenuItem onSelect={() => onGenderSwap(id)} className="gap-2 cursor-pointer">
                 <RefreshCw className="w-4 h-4 text-primary" />
                 <span>שינוי מגדר הגיבור/ה</span>
+              </DropdownMenuItem>
+            )}
+            {onRegenerateCover && (
+              <DropdownMenuItem onSelect={() => onRegenerateCover(id)} className="gap-2 cursor-pointer" disabled={isRegeneratingCover}>
+                {isRegeneratingCover ? <Loader2 className="w-4 h-4 text-primary animate-spin" /> : <ImagePlus className="w-4 h-4 text-primary" />}
+                <span>{isRegeneratingCover ? 'יוצר כריכה...' : 'יצירת כריכה חדשה'}</span>
               </DropdownMenuItem>
             )}
             <DropdownMenuItem
