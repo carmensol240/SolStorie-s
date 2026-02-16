@@ -539,6 +539,7 @@ export type Database = {
           max_age: number | null
           min_age: number | null
           nikud: boolean
+          slug: string | null
           story_type: string | null
           theme: string | null
           topic: string
@@ -562,6 +563,7 @@ export type Database = {
           max_age?: number | null
           min_age?: number | null
           nikud?: boolean
+          slug?: string | null
           story_type?: string | null
           theme?: string | null
           topic: string
@@ -585,6 +587,7 @@ export type Database = {
           max_age?: number | null
           min_age?: number | null
           nikud?: boolean
+          slug?: string | null
           story_type?: string | null
           theme?: string | null
           topic?: string
@@ -795,6 +798,10 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      generate_story_slug: {
+        Args: { p_child_name: string; p_topic: string }
+        Returns: string
+      }
       get_public_book: {
         Args: { p_share_token: string }
         Returns: {
