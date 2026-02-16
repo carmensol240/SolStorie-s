@@ -172,42 +172,17 @@ const Toolkit = () => {
             })}
           </div>
 
-          {/* Pricing */}
+          {/* Coming Soon Notice */}
           <div className="text-center mb-6">
             <div className="bg-white/[0.06] backdrop-blur-md border border-white/10 rounded-2xl p-5">
-              <div className="text-3xl font-black text-white mb-1">
-                ₪{TOOLKIT_SUBSCRIPTION.price}{" "}
-                <span className="text-base font-bold text-white/60">לשנה שלמה</span>
-              </div>
-              <div className="flex items-center justify-center gap-1.5 mt-2">
-                <Shield className="w-3.5 h-3.5 text-green-400/80" />
-                <p className="text-xs text-white/60">
-                  תשלום חד-פעמי — ללא מנוי מתחדש וללא הפתעות
-                </p>
-              </div>
+              <span className="inline-block bg-amber-400/20 text-amber-300 text-sm font-bold px-4 py-1.5 rounded-full border border-amber-300/30">
+                בקרוב
+              </span>
+              <p className="text-xs text-white/60 mt-3 leading-relaxed">
+                אנחנו עובדים על משהו מיוחד עבורכם — הישארו מעודכנים!
+              </p>
             </div>
           </div>
-
-          {/* PayPal Section */}
-          {showPayPal && (
-            <div className="bg-white/15 backdrop-blur-md rounded-xl border border-amber-400/30 p-4 mb-6 shadow-lg">
-              <p className="text-sm font-bold text-white text-center mb-3">
-                {TOOLKIT_SUBSCRIPTION.label} — ₪{TOOLKIT_SUBSCRIPTION.price} לשנה
-              </p>
-              <PayPalButton
-                amount={TOOLKIT_SUBSCRIPTION.price}
-                onSuccess={handlePayPalSuccess}
-                onError={handlePayPalError}
-                onCancel={() => setShowPayPal(false)}
-              />
-              <button
-                onClick={() => setShowPayPal(false)}
-                className="w-full text-center text-white/50 text-xs mt-3 hover:text-white/70 transition-colors"
-              >
-                ביטול
-              </button>
-            </div>
-          )}
         </div>
       </div>
 
@@ -216,13 +191,13 @@ const Toolkit = () => {
         <div className="fixed bottom-0 inset-x-0 z-30 p-4 bg-gradient-to-t from-[hsl(250,50%,12%)] via-[hsl(250,50%,12%)]/95 to-transparent pt-10">
           <div className="max-w-md mx-auto space-y-3">
             <Button
-              onClick={handlePurchase}
+              disabled
               size="lg"
-              className="w-full bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white font-black py-6 rounded-2xl text-base shadow-xl"
-              style={{ boxShadow: "0 0 30px rgba(245, 158, 11, 0.3)" }}
+              className="w-full bg-gradient-to-r from-amber-500/50 to-orange-500/50 text-white/70 font-black py-6 rounded-2xl text-base cursor-not-allowed"
             >
               <Crown className="w-5 h-5 ml-2" />
               אני רוצה את ארגז הכלים
+              <span className="mr-2 text-xs bg-white/20 px-2 py-0.5 rounded-full">בקרוב</span>
             </Button>
             <button
               onClick={() => navigate("/adventure")}
