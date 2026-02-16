@@ -1,10 +1,10 @@
-import { useState } from "react";
+import { useRef } from "react";
 import { Textarea } from "@/components/ui/textarea";
 import { StoryFormData } from "@/pages/CreateStory";
 import { cn } from "@/lib/utils";
 import { Heart, ChevronLeft, ChevronRight } from "lucide-react";
 import { useTopicWishlist } from "@/hooks/use-topic-wishlist";
-import { CHARACTER_SECTIONS, EDUCATOR_TOOLBOX_IMAGE, TopicItem } from "./topic-data";
+import { CHARACTER_SECTIONS, TopicItem } from "./topic-data";
 
 interface TopicStepProps {
   formData: StoryFormData;
@@ -12,12 +12,8 @@ interface TopicStepProps {
 }
 
 const TopicStep = ({ formData, updateFormData }: TopicStepProps) => {
-  const [activeSectionIndex, setActiveSectionIndex] = useState(0);
-  const [showAll, setShowAll] = useState(false);
   const { likedTopics, toggleLike } = useTopicWishlist();
-
-  const activeSection = CHARACTER_SECTIONS[activeSectionIndex];
-  const sectionTopics = activeSection.topics;
+  const sectionRefs = useRef<(HTMLDivElement | null)[]>([]);
 
   const handleCustomChange = (value: string) => {
     updateFormData({
@@ -35,26 +31,9 @@ const TopicStep = ({ formData, updateFormData }: TopicStepProps) => {
     });
   };
 
-  const goToSection = (index: number) => {
-    setActiveSectionIndex(index);
-    setShowAll(false);
+  const scrollToSection = (index: number) => {
+    sectionRefs.current[index]?.scrollIntoView({ behavior: "smooth", block: "start" });
   };
-
-  const prevSection = () => {
-    setActiveSectionIndex((i) =>
-      i === 0 ? CHARACTER_SECTIONS.length - 1 : i - 1
-    );
-    setShowAll(false);
-  };
-
-  const nextSection = () => {
-    setActiveSectionIndex((i) =>
-      i === CHARACTER_SECTIONS.length - 1 ? 0 : i + 1
-    );
-    setShowAll(false);
-  };
-
-  const isEduSection = activeSection.id === "edu";
 
   return (
     <div className="space-y-4" dir="rtl">
@@ -73,134 +52,90 @@ const TopicStep = ({ formData, updateFormData }: TopicStepProps) => {
         או בחרו נושא
       </div>
 
-      {/* Category tabs - horizontal scroll */}
+      {/* Category tabs - scroll anchors */}
       <div className="flex gap-2 overflow-x-auto pb-1 scrollbar-none">
         {CHARACTER_SECTIONS.map((section, i) => (
           <button
             key={section.id}
-            onClick={() => goToSection(i)}
-            className={cn(
-              "px-3 py-1.5 rounded-full text-xs font-medium whitespace-nowrap border transition-all flex-shrink-0",
-              activeSectionIndex === i
-                ? "bg-gradient-to-r from-purple-600 via-pink-500 to-orange-400 text-white border-transparent shadow-md"
-                : "border-border bg-card text-foreground hover:border-purple-300"
-            )}
+            onClick={() => scrollToSection(i)}
+            className="px-3 py-1.5 rounded-full text-xs font-medium whitespace-nowrap border border-border bg-card text-foreground hover:border-purple-300 transition-all flex-shrink-0"
           >
             {section.categoryEmoji} {section.categoryLabel}
           </button>
         ))}
       </div>
 
-      {/* Progress bar */}
-      <div className="h-1 bg-muted rounded-full overflow-hidden">
+      {/* All character sections stacked */}
+      {CHARACTER_SECTIONS.map((section, sectionIndex) => (
         <div
-          className="h-full bg-gradient-to-r from-purple-500 to-pink-500 rounded-full transition-all duration-300"
-          style={{
-            width: `${((activeSectionIndex + 1) / CHARACTER_SECTIONS.length) * 100}%`,
-          }}
-        />
-      </div>
-
-      {/* Hero Card */}
-      <div className="relative rounded-2xl overflow-hidden aspect-[16/10] shadow-lg">
-        <img
-          src={activeSection.heroImage}
-          alt={activeSection.character}
-          className="w-full h-full object-cover"
-        />
-        <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/10 to-transparent" />
-
-        {/* Navigation arrows */}
-        <div className="absolute bottom-3 left-3 flex gap-1.5">
-          <button
-            onClick={prevSection}
-            className="w-7 h-7 bg-white/80 rounded-full flex items-center justify-center shadow-sm hover:bg-white transition-colors"
-          >
-            <ChevronLeft className="w-4 h-4 text-foreground" />
-          </button>
-          <button
-            onClick={nextSection}
-            className="w-7 h-7 bg-white/80 rounded-full flex items-center justify-center shadow-sm hover:bg-white transition-colors"
-          >
-            <ChevronRight className="w-4 h-4 text-foreground" />
-          </button>
-        </div>
-
-        {/* View All toggle */}
-        <button
-          onClick={() => setShowAll(!showAll)}
-          className="absolute top-3 left-3 text-white text-[10px] bg-white/20 px-2.5 py-1 rounded-full backdrop-blur-sm border border-white/30 hover:bg-white/30 transition-colors"
+          key={section.id}
+          ref={(el) => { sectionRefs.current[sectionIndex] = el; }}
+          className="space-y-3"
         >
-          צפה בהכל
-        </button>
+          {/* Hero Card */}
+          <HeroCard section={section} />
 
-        {/* Category name and character info */}
-        <div className="absolute bottom-3 right-3 text-right">
-          <h2 className="text-white text-xl font-bold drop-shadow-lg">
-            {activeSection.categoryLabel}
-          </h2>
-          <p className="text-white/80 text-xs drop-shadow-md">
-            {activeSection.character} | {activeSection.characterEn}{" "}
-            {sectionTopics.length} נושאים
-          </p>
-        </div>
-      </div>
-
-      {/* Topic cards */}
-      {showAll ? (
-        <div className="grid grid-cols-3 gap-2">
-          {sectionTopics.map((topic) => (
-            <TopicCard
-              key={topic.id}
-              topic={topic}
-              isSelected={formData.topic === topic.id}
-              isLiked={likedTopics.has(topic.id)}
-              onSelect={() => handleTopicSelect(topic)}
-              onToggleLike={() => toggleLike(topic.id)}
-            />
-          ))}
-        </div>
-      ) : (
-        <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-none">
-          {sectionTopics.map((topic) => (
-            <TopicCard
-              key={topic.id}
-              topic={topic}
-              isSelected={formData.topic === topic.id}
-              isLiked={likedTopics.has(topic.id)}
-              onSelect={() => handleTopicSelect(topic)}
-              onToggleLike={() => toggleLike(topic.id)}
-              horizontal
-            />
-          ))}
-        </div>
-      )}
-
-      {/* Educator Toolbox Banner - show when not in edu section */}
-      {!isEduSection && (
-        <button
-          onClick={() =>
-            goToSection(
-              CHARACTER_SECTIONS.findIndex((s) => s.id === "edu")
-            )
-          }
-          className="relative rounded-xl overflow-hidden w-full aspect-[21/9] shadow-md"
-        >
-          <img
-            src={EDUCATOR_TOOLBOX_IMAGE}
-            alt="ארגז הכלים החינוכי"
-            className="w-full h-full object-cover"
-          />
-          <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-transparent flex items-end justify-center p-3">
-            <span className="text-white text-sm font-bold drop-shadow-md">
-              🎓 ארגז הכלים החינוכי – לאנשי חינוך וטיפול
-            </span>
+          {/* Topic cards - horizontal scroll */}
+          <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-none">
+            {section.topics.map((topic) => (
+              <TopicCard
+                key={topic.id}
+                topic={topic}
+                isSelected={formData.topic === topic.id}
+                isLiked={likedTopics.has(topic.id)}
+                onSelect={() => handleTopicSelect(topic)}
+                onToggleLike={() => toggleLike(topic.id)}
+              />
+            ))}
           </div>
-        </button>
-      )}
+
+          {/* Progress bar for horizontal scroll */}
+          <div className="h-1 bg-muted rounded-full overflow-hidden mx-4">
+            <div
+              className="h-full bg-gradient-to-r from-purple-400 to-pink-400 rounded-full"
+              style={{ width: "30%" }}
+            />
+          </div>
+        </div>
+      ))}
     </div>
   );
 };
+
+/* ─── Hero Card ─── */
+const HeroCard = ({ section }: { section: (typeof CHARACTER_SECTIONS)[number] }) => (
+  <div className="relative rounded-2xl overflow-hidden aspect-[16/10] shadow-lg">
+    <img
+      src={section.heroImage}
+      alt={section.character}
+      className="w-full h-full object-cover"
+    />
+    <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/10 to-transparent" />
+
+    {/* Navigation arrows + View All */}
+    <div className="absolute bottom-3 left-3 flex items-center gap-1.5">
+      <button className="w-7 h-7 bg-white/80 rounded-full flex items-center justify-center shadow-sm">
+        <ChevronLeft className="w-4 h-4 text-foreground" />
+      </button>
+      <button className="w-7 h-7 bg-white/80 rounded-full flex items-center justify-center shadow-sm">
+        <ChevronRight className="w-4 h-4 text-foreground" />
+      </button>
+      <span className="text-white text-[10px] bg-white/20 px-2 py-0.5 rounded-full backdrop-blur-sm border border-white/30 mr-1">
+        צפה בהכל
+      </span>
+    </div>
+
+    {/* Category name and character info */}
+    <div className="absolute bottom-3 right-3 text-right">
+      <h2 className="text-white text-xl font-bold drop-shadow-lg">
+        {section.categoryLabel}
+      </h2>
+      <p className="text-white/80 text-xs drop-shadow-md">
+        {section.character} | {section.characterEn} {section.topics.length} נושאים
+      </p>
+    </div>
+  </div>
+);
 
 /* ─── Topic Card ─── */
 interface TopicCardProps {
@@ -209,7 +144,6 @@ interface TopicCardProps {
   isLiked: boolean;
   onSelect: () => void;
   onToggleLike: () => void;
-  horizontal?: boolean;
 }
 
 const TopicCard = ({
@@ -218,12 +152,10 @@ const TopicCard = ({
   isLiked,
   onSelect,
   onToggleLike,
-  horizontal,
 }: TopicCardProps) => (
   <div
     className={cn(
-      "relative rounded-xl overflow-hidden border-2 transition-all flex-shrink-0 group cursor-pointer",
-      horizontal ? "w-[130px] aspect-[3/4]" : "aspect-[3/4]",
+      "relative rounded-xl overflow-hidden border-2 transition-all flex-shrink-0 cursor-pointer w-[130px] aspect-[3/4]",
       isSelected
         ? "border-purple-500 shadow-lg scale-[1.03]"
         : "border-transparent hover:border-purple-300"
