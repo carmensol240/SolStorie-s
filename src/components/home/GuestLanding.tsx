@@ -91,9 +91,9 @@ const GuestLanding = ({ user, isLoggedIn }: GuestLandingProps) => {
 
   return (
     <div className="flex-1 flex flex-col animate-fade-in relative">
-      {/* Full-screen hero image background - absolute within section */}
+      {/* Full-screen hero image background - hidden on mobile, visible on md+ */}
       <div 
-        className="absolute inset-0 pointer-events-none"
+        className="absolute inset-0 pointer-events-none hidden md:block"
         style={{ 
           backgroundImage: `url(${heroBackground})`,
           backgroundSize: 'cover',
@@ -102,9 +102,9 @@ const GuestLanding = ({ user, isLoggedIn }: GuestLandingProps) => {
         }}
       />
 
-      {/* Very subtle overlay - keep image visible */}
+      {/* Very subtle overlay - only on md+ where image is visible */}
       <div 
-        className="absolute inset-0 pointer-events-none"
+        className="absolute inset-0 pointer-events-none hidden md:block"
         style={{ 
           background: 'linear-gradient(180deg, rgba(255,255,255,0.1) 0%, transparent 40%, transparent 60%, rgba(255,255,255,0.15) 100%)',
         }} 
