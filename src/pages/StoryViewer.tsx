@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef, useCallback } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { Home, BookOpen, Sparkles, Palette, Wand2, RefreshCw, Loader2, ImageOff, Volume2, Square } from "lucide-react";
+import { MissingIllustrationPrompt } from "@/components/story/MissingIllustrationPrompt";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
@@ -83,6 +84,8 @@ const StoryViewer = () => {
   const pollingIntervalRef = useRef<NodeJS.Timeout | null>(null);
   const pollingStartTimeRef = useRef<number | null>(null);
   const [retryingPageId, setRetryingPageId] = useState<string | null>(null);
+  const [showPromptInput, setShowPromptInput] = useState<string | null>(null); // pageId or null
+  const [customPromptText, setCustomPromptText] = useState('');
   
   const [showDedicationDialog, setShowDedicationDialog] = useState(false);
   const [isCreatingDigitalBook, setIsCreatingDigitalBook] = useState(false);
@@ -516,19 +519,18 @@ const StoryViewer = () => {
     toast({ title: 'תודה על הדיווח! נבדוק את הנושא' });
   };
 
-  const handleRetryIllustration = async (pageId: string) => {
+  const handleRetryIllustration = async (pageId: string, customPrompt?: string) => {
     if (!storyId || retryingPageId) return;
     
     setRetryingPageId(pageId);
     try {
       const { data, error } = await supabase.functions.invoke('retry-illustration', {
-        body: { storyId, pageId },
+        body: { storyId, pageId, customPrompt: customPrompt || undefined },
       });
 
       if (error) throw error;
 
       if (data?.illustrationUrl) {
-        // Update the page in local state
         setStory(prev => {
           if (!prev) return prev;
           return {
@@ -538,6 +540,8 @@ const StoryViewer = () => {
             ),
           };
         });
+        setShowPromptInput(null);
+        setCustomPromptText('');
         toast({ title: "האיור נוצר בהצלחה! 🎨" });
       } else {
         throw new Error("No illustration returned");
@@ -809,27 +813,19 @@ const StoryViewer = () => {
                     </div>
                   ) : (
                     <div className="w-full max-w-sm mx-auto">
-                      <div className="rounded-2xl border-4 border-dashed border-[#D4A574]/50 aspect-[4/5] flex flex-col items-center justify-center bg-[#F5E6D3]/50 gap-3">
-                        <div className="text-center text-[#A08060]">
-                          <ImageOff className="w-12 h-12 mx-auto mb-2 opacity-40" />
-                          <p className="text-sm">{generationStatus === 'ready' ? 'האיור לא נוצר' : 'טוען איור...'}</p>
-                        </div>
-                        {generationStatus === 'ready' && story.pages[0]?.id && (
-                          <Button
-                            size="sm"
-                            variant="outline"
-                            onClick={() => handleRetryIllustration(story.pages[0].id)}
-                            disabled={retryingPageId === story.pages[0].id}
-                            className="border-[#D4A574] text-[#8B7355] hover:bg-[#F5E6D3]"
-                          >
-                            {retryingPageId === story.pages[0].id ? (
-                              <><Loader2 className="w-4 h-4 animate-spin ml-2" />מייצר...</>
-                            ) : (
-                              <><RefreshCw className="w-4 h-4 ml-2" />נסה לייצר איור שוב</>
-                            )}
-                          </Button>
-                        )}
-                      </div>
+                      <MissingIllustrationPrompt
+                        pageId={story.pages[0].id}
+                        isRetrying={retryingPageId === story.pages[0].id}
+                        isGenerating={generationStatus !== 'ready'}
+                        showPromptInput={showPromptInput === story.pages[0].id}
+                        customPromptText={customPromptText}
+                        onTogglePrompt={() => {
+                          setShowPromptInput(showPromptInput === story.pages[0].id ? null : story.pages[0].id);
+                          setCustomPromptText('');
+                        }}
+                        onPromptChange={setCustomPromptText}
+                        onSubmit={handleRetryIllustration}
+                      />
                     </div>
                   )}
                 </div>
@@ -958,30 +954,20 @@ const StoryViewer = () => {
                     </div>
                   ) : (
                     <div className="relative w-full max-w-md mx-auto">
-                      <div className={cn(
-                        "rounded-2xl border-4 border-dashed border-[#D4A574]/50 flex flex-col items-center justify-center bg-[#F5E6D3]/50 gap-3",
-                        isMobile ? "aspect-[16/10]" : "aspect-[4/5]"
-                      )}>
-                        <div className="text-center text-[#A08060]">
-                          <ImageOff className="w-12 h-12 mx-auto mb-2 opacity-40" />
-                          <p className="text-sm">{generationStatus === 'ready' ? 'האיור לא נוצר' : 'טוען איור...'}</p>
-                        </div>
-                        {generationStatus === 'ready' && currentSpread.illustrationPageId && (
-                          <Button
-                            size="sm"
-                            variant="outline"
-                            onClick={() => handleRetryIllustration(currentSpread.illustrationPageId!)}
-                            disabled={retryingPageId === currentSpread.illustrationPageId}
-                            className="border-[#D4A574] text-[#8B7355] hover:bg-[#F5E6D3]"
-                          >
-                            {retryingPageId === currentSpread.illustrationPageId ? (
-                              <><Loader2 className="w-4 h-4 animate-spin ml-2" />מייצר...</>
-                            ) : (
-                              <><RefreshCw className="w-4 h-4 ml-2" />נסה לייצר איור שוב</>
-                            )}
-                          </Button>
-                        )}
-                      </div>
+                      <MissingIllustrationPrompt
+                        pageId={currentSpread.illustrationPageId!}
+                        isRetrying={retryingPageId === currentSpread.illustrationPageId}
+                        isGenerating={generationStatus !== 'ready'}
+                        showPromptInput={showPromptInput === currentSpread.illustrationPageId}
+                        customPromptText={customPromptText}
+                        onTogglePrompt={() => {
+                          setShowPromptInput(showPromptInput === currentSpread.illustrationPageId ? null : currentSpread.illustrationPageId);
+                          setCustomPromptText('');
+                        }}
+                        onPromptChange={setCustomPromptText}
+                        onSubmit={handleRetryIllustration}
+                        aspectClass={isMobile ? "aspect-[16/10]" : "aspect-[4/5]"}
+                      />
                     </div>
                   )}
                 </div>
