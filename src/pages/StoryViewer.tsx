@@ -13,6 +13,7 @@ import DedicationDialog from "@/components/story/DedicationDialog";
 import { GenderSwapDialog } from "@/components/story/GenderSwapDialog";
 import {
   AlertDialog,
+  AlertDialogAction,
   AlertDialogCancel,
   AlertDialogContent,
   AlertDialogDescription,
@@ -29,6 +30,7 @@ import { useTextToSpeech } from "@/hooks/use-text-to-speech";
 import { useAccessibility } from "@/hooks/use-accessibility";
 
 import { useAuth } from "@/hooks/use-auth";
+import { useStoryEdit } from "@/hooks/use-story-edit";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { useSwipe } from "@/hooks/use-swipe";
 import { useSignedUrls } from "@/hooks/use-signed-urls";
@@ -86,6 +88,7 @@ const StoryViewer = () => {
   const [isCreatingDigitalBook, setIsCreatingDigitalBook] = useState(false);
   const [showPdfFormatDialog, setShowPdfFormatDialog] = useState(false);
   const [showGenderSwapDialog, setShowGenderSwapDialog] = useState(false);
+  const [showEditConfirmDialog, setShowEditConfirmDialog] = useState(false);
   
   const { trackStoryStarted, trackStoryCompleted, trackPageViewed, trackFeatureUsed } = useAnalytics();
   const { isOnline, cacheStory, getCachedStory } = useOfflineStorage();
@@ -95,6 +98,7 @@ const StoryViewer = () => {
   const { getSignedUrl } = useSignedUrls();
   
   const { user } = useAuth();
+  const { isFirstEdit, fetchEditCount, editCount } = useStoryEdit(storyId || '');
   const hasTrackedStart = useRef(false);
   const { audioSupport } = useAccessibility();
   const { startReading, stopReading, isReading, isLoading: isTtsLoading } = useTextToSpeech();
@@ -387,6 +391,12 @@ const StoryViewer = () => {
   };
 
   const handleEditClick = () => {
+    if (storyId) fetchEditCount(storyId);
+    setShowEditConfirmDialog(true);
+  };
+
+  const handleEditConfirmed = () => {
+    setShowEditConfirmDialog(false);
     setIsEditingPage(true);
   };
 
@@ -1051,7 +1061,29 @@ const StoryViewer = () => {
         />
       )}
 
-      {/* Dedication Dialog */}
+      {/* Edit Confirmation Dialog - shown before opening editor */}
+      <AlertDialog open={showEditConfirmDialog} onOpenChange={setShowEditConfirmDialog}>
+        <AlertDialogContent dir="rtl">
+          <AlertDialogHeader>
+            <AlertDialogTitle>אישור עריכה</AlertDialogTitle>
+            <AlertDialogDescription className="text-right leading-relaxed">
+              ה-AI שלנו לפעמים טועה, ולכן העריכה הראשונה לכל סיפור היא עלינו! 
+              {!isFirstEdit && (
+                <span className="block mt-2 font-medium text-foreground">
+                  (החל מהעריכה השנייה לאותו סיפור, השימוש יחויב בקרדיט 1)
+                </span>
+              )}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter className="gap-2 sm:gap-0">
+            <AlertDialogCancel>ביטול</AlertDialogCancel>
+            <AlertDialogAction onClick={handleEditConfirmed}>
+              {isFirstEdit ? 'ערוך בחינם' : 'המשך לעריכה'}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
       <DedicationDialog
         open={showDedicationDialog}
         onOpenChange={setShowDedicationDialog}
