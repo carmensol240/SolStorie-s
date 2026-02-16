@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { ArrowRight, Mail, Trash2, LogOut, FileText, Shield, Eye, Info, Accessibility, Type, MousePointer, Link2, MonitorOff, Wand2, Sparkles, Download, Share, Smartphone } from "lucide-react";
+import { ArrowRight, Mail, Trash2, LogOut, FileText, Shield, Eye, Info, Accessibility, Type, MousePointer, Link2, MonitorOff, Wand2, Sparkles, Download, Share, Smartphone, Volume2 } from "lucide-react";
 import { usePwaInstall } from "@/hooks/use-pwa-install";
 import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
@@ -19,7 +19,7 @@ import { AboutSolStoriesContent } from "@/components/shared/AboutSolStoriesConte
 const Settings = () => {
   const navigate = useNavigate();
   const { user, signOut } = useAuth();
-  const { visualAidMode, setVisualAidMode, fontSize, setFontSize } = useAccessibility();
+  const { visualAidMode, setVisualAidMode, audioSupport, setAudioSupport, fontSize, setFontSize } = useAccessibility();
   const { canPrompt, isInstalled, isIOS, promptInstall } = usePwaInstall();
   const [aboutOpen, setAboutOpen] = useState(false);
   const [accessibilityOpen, setAccessibilityOpen] = useState(false);
@@ -316,7 +316,23 @@ const Settings = () => {
                 </div>
               </div>
 
-              {/* Audio Support removed per brand requirements */}
+              {/* Audio Support / Read Aloud */}
+              <div className="flex items-center justify-between gap-3 p-3 rounded-xl bg-muted/50">
+                <div className="flex items-center gap-3">
+                  <div className="h-9 w-9 rounded-lg bg-green-100 dark:bg-green-900/30 flex items-center justify-center">
+                    <Volume2 className="h-5 w-5 text-green-600 dark:text-green-400" />
+                  </div>
+                  <div className="text-right">
+                    <p className="font-medium text-sm text-foreground">הקראה קולית</p>
+                    <p className="text-xs text-muted-foreground">הפעלת כפתור הקראה בסיפורים</p>
+                  </div>
+                </div>
+                <Switch
+                  checked={audioSupport}
+                  onCheckedChange={setAudioSupport}
+                  aria-label="הפעל הקראה קולית"
+                />
+              </div>
 
 
               {/* Highlight Links */}
