@@ -349,57 +349,22 @@ const StoryViewer = () => {
   const swipeHandlers = { onTouchStart, onTouchMove, onTouchEnd };
 
   const handleShare = async () => {
-    if (!story || !user) return;
+    if (!story) return;
 
     try {
-      // Find or create a public digital book for sharing
-      let shareToken: string;
+      // Build full story text with title and paragraphs
+      const title = `✨ ${story.topic} ✨`;
+      const storyText = story.pages
+        .sort((a, b) => a.page_number - b.page_number)
+        .map(p => p.text)
+        .join('\n\n');
+      
+      const footer = `\n\n📚 נוצר באהבה באפליקציית SolStorie's™\nhttps://soulstory.co.il`;
+      
+      const fullMessage = `${title}\n\n${storyText}${footer}`;
 
-      const { data: existing } = await supabase
-        .from('digital_books')
-        .select('share_token')
-        .eq('story_id', story.id)
-        .eq('user_id', user.id)
-        .maybeSingle();
-
-      if (existing) {
-        // Ensure it's public
-        await supabase
-          .from('digital_books')
-          .update({ is_public: true })
-          .eq('story_id', story.id)
-          .eq('user_id', user.id);
-        shareToken = existing.share_token;
-      } else {
-        const { data: newBook, error } = await supabase
-          .from('digital_books')
-          .insert({
-            story_id: story.id,
-            user_id: user.id,
-            is_public: true,
-          })
-          .select('share_token')
-          .single();
-
-        if (error) throw error;
-        shareToken = newBook.share_token;
-      }
-
-      const shareUrl = `${window.location.origin}/flipbook?token=${shareToken}`;
-
-      try {
-        await navigator.share({
-          title: `הסיפור של ${story.child_name}`,
-          text: "ראו את הסיפור המדהים שיצרתי!",
-          url: shareUrl,
-        });
-      } catch {
-        await navigator.clipboard.writeText(shareUrl);
-        toast({
-          title: "הקישור הועתק!",
-          description: "תוכלו לשתף אותו עם חברים",
-        });
-      }
+      const whatsappUrl = `https://wa.me/?text=${encodeURIComponent(fullMessage)}`;
+      window.open(whatsappUrl, '_blank');
     } catch (error) {
       console.error('Error sharing story:', error);
       toast({
