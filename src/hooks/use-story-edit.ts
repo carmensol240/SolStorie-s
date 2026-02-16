@@ -1,4 +1,4 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useCredits } from './use-credits';
 import { useEditCredits } from './use-edit-credits';
@@ -30,6 +30,19 @@ export const useStoryEdit = (storyId: string): UseStoryEditResult => {
   const [editCount, setEditCount] = useState<number | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [isAdmin, setIsAdmin] = useState(false);
+
+  // Check if user is admin
+  useEffect(() => {
+    if (!user) { setIsAdmin(false); return; }
+    supabase
+      .from('user_roles')
+      .select('role')
+      .eq('user_id', user.id)
+      .eq('role', 'admin')
+      .maybeSingle()
+      .then(({ data }) => setIsAdmin(!!data));
+  }, [user]);
 
   const fetchEditCount = useCallback(async (id: string) => {
     if (!id) return;
@@ -53,9 +66,11 @@ export const useStoryEdit = (storyId: string): UseStoryEditResult => {
   }, []);
 
   const canEdit = useCallback(() => {
+    // Admins can always edit
+    if (isAdmin) return true;
     // Can edit if has free edits from package OR has story credits
     return hasEditCredits() || hasCredits();
-  }, [hasEditCredits, hasCredits]);
+  }, [isAdmin, hasEditCredits, hasCredits]);
 
   const performEdit = useCallback(async (): Promise<boolean> => {
     if (!user || !storyId) {
@@ -67,20 +82,23 @@ export const useStoryEdit = (storyId: string): UseStoryEditResult => {
     setError(null);
 
     try {
-      // Try free edits first, then fall back to story credits
-      if (hasEditCredits()) {
-        const used = await useEditCredit();
-        if (!used) {
-          setError('שגיאה בשימוש בעריכה חינמית');
-          setLoading(false);
-          return false;
-        }
-      } else {
-        const creditUsed = await useCredit();
-        if (!creditUsed) {
-          setError('אין מספיק קרדיטים');
-          setLoading(false);
-          return false;
+      // Admins skip credit deduction
+      if (!isAdmin) {
+        // Try free edits first, then fall back to story credits
+        if (hasEditCredits()) {
+          const used = await useEditCredit();
+          if (!used) {
+            setError('שגיאה בשימוש בעריכה חינמית');
+            setLoading(false);
+            return false;
+          }
+        } else {
+          const creditUsed = await useCredit();
+          if (!creditUsed) {
+            setError('אין מספיק קרדיטים');
+            setLoading(false);
+            return false;
+          }
         }
       }
 
@@ -102,7 +120,7 @@ export const useStoryEdit = (storyId: string): UseStoryEditResult => {
       setLoading(false);
       return false;
     }
-  }, [user, storyId, editCount, hasEditCredits, useEditCredit, useCredit]);
+  }, [user, storyId, editCount, isAdmin, hasEditCredits, useEditCredit, useCredit]);
 
   return {
     canEdit,
