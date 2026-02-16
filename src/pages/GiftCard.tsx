@@ -306,12 +306,14 @@ ${generatedCode}
           </div>
 
           <h1 className="text-2xl font-black text-center bg-gradient-to-r from-purple-300 via-pink-300 to-orange-300 bg-clip-text text-transparent mb-1">
-            שלחי סיפורים במתנה 🎁
+            שלחו סיפורים במתנה 🎁
           </h1>
           <p className="text-white/80 text-center text-sm mb-6 leading-relaxed">
-            הפתיעי חברה, אחות או אמא עם מתנה קסומה —
+            מחפשים מתנה מקורית וערכית ליום הולדת?
             <br />
-            סיפורים אישיים לילדים שלה!
+            מעכשיו תוכלו להעניק ליקרים לכם חבילת סיפורים אישיים
+            <br />
+            שבהם הילד או הילדה הם הגיבורים האמיתיים.
           </p>
 
           {/* Package Selection */}
