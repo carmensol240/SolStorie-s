@@ -34,7 +34,7 @@ serve(async (req) => {
 
     // Determine the site origin from Referer or fallback
     const referer = req.headers.get("referer") || "";
-    let siteOrigin = "https://soulstory.co.il";
+    let siteOrigin = "https://www.soulstory.co.il";
     try {
       if (referer) {
         const refUrl = new URL(referer);
@@ -123,7 +123,7 @@ serve(async (req) => {
     });
   } catch (err) {
     console.error("og-story-meta error:", err);
-    return Response.redirect("https://soulstory.co.il", 302);
+    return Response.redirect("https://www.soulstory.co.il", 302);
   }
 });
 

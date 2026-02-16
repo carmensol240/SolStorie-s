@@ -206,7 +206,7 @@ const PublicStoryViewer = () => {
       <footer className="bg-white/80 backdrop-blur-sm border-t border-purple-100 px-4 py-3 text-center">
         <p className="text-sm text-purple-600">
           נוצר באהבה ב-
-          <a href="https://soulstory.co.il" className="font-bold text-purple-700 hover:underline mr-1">
+          <a href="https://www.soulstory.co.il" className="font-bold text-purple-700 hover:underline mr-1">
             SolStorie's™
           </a>
           📚✨
