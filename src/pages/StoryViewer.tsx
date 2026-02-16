@@ -71,6 +71,7 @@ const StoryViewer = () => {
   const { toast } = useToast();
   const isMobile = useIsMobile();
   
+  const [resolvedId, setResolvedId] = useState<string | null>(null);
   const [story, setStory] = useState<Story | null>(null);
   const [currentPage, setCurrentPage] = useState(-1);
   const [isLoading, setIsLoading] = useState(true);
@@ -150,14 +151,14 @@ const StoryViewer = () => {
 
   // Poll for illustration updates when status is generating_illustrations
   const pollForUpdates = useCallback(async () => {
-    if (!storyId) return;
+    if (!resolvedId) return;
 
     try {
       // Check story status
       const { data: storyData, error: storyError } = await supabase
         .from("stories")
         .select("generation_status")
-        .eq("id", storyId)
+        .eq("id", resolvedId)
         .maybeSingle();
 
       if (storyError || !storyData) return;
@@ -170,7 +171,7 @@ const StoryViewer = () => {
         const { data: pagesData } = await supabase
           .from("story_pages")
           .select("*")
-          .eq("story_id", storyId)
+          .eq("story_id", resolvedId)
           .order("page_number", { ascending: true });
 
         if (pagesData) {
@@ -204,7 +205,7 @@ const StoryViewer = () => {
         const { data: pagesData } = await supabase
           .from("story_pages")
           .select("*")
-          .eq("story_id", storyId)
+          .eq("story_id", resolvedId)
           .order("page_number", { ascending: true });
 
         if (pagesData) {
@@ -215,9 +216,11 @@ const StoryViewer = () => {
     } catch (error) {
       console.error("Polling error:", error);
     }
-  }, [storyId]);
+  }, [resolvedId]);
 
   // Sound effects disabled - silent reading experience
+
+  const isUUID = (str: string) => /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(str);
 
   const fetchStory = async (retryCount = 0) => {
     try {
@@ -232,20 +235,35 @@ const StoryViewer = () => {
 
       console.log(`Fetching story ${storyId}, attempt ${retryCount + 1}`);
 
-      const { data: storyData, error: storyError } = await supabase
-        .from("stories")
-        .select("*")
-        .eq("id", storyId)
-        .maybeSingle();
+      let storyData: any = null;
 
-      if (storyError) {
-        console.error("Story fetch error:", storyError);
-        throw storyError;
+      if (storyId && isUUID(storyId)) {
+        // Lookup by UUID
+        const { data, error: storyError } = await supabase
+          .from("stories")
+          .select("*")
+          .eq("id", storyId)
+          .maybeSingle();
+        if (storyError) throw storyError;
+        storyData = data;
+
+        // If found and has slug, redirect to slug URL
+        if (storyData?.slug) {
+          navigate(`/story/${storyData.slug}`, { replace: true });
+          return;
+        }
+      } else {
+        // Lookup by slug
+        const { data, error: storyError } = await supabase
+          .from("stories")
+          .select("*")
+          .eq("slug", storyId)
+          .maybeSingle();
+        if (storyError) throw storyError;
+        storyData = data;
       }
       
       if (!storyData) {
-        // Story not found - might be RLS or timing issue after creation
-        // Retry a couple of times with delay for newly created stories
         if (retryCount < 3) {
           console.log(`Story not found, retrying in 1s (attempt ${retryCount + 1}/3)...`);
           setTimeout(() => fetchStory(retryCount + 1), 1000);
@@ -266,10 +284,13 @@ const StoryViewer = () => {
       const status = (storyData as any).generation_status || 'ready';
       setGenerationStatus(status);
 
+      const resolvedStoryId = storyData.id;
+      setResolvedId(resolvedStoryId);
+
       const { data: pagesData, error: pagesError } = await supabase
         .from("story_pages")
         .select("*")
-        .eq("story_id", storyId)
+        .eq("story_id", resolvedStoryId)
         .order("page_number", { ascending: true });
 
       if (pagesError) throw pagesError;
@@ -285,6 +306,7 @@ const StoryViewer = () => {
 
       const storyObj: Story = {
         id: storyData.id,
+        slug: storyData.slug || undefined,
         child_name: storyData.child_name,
         child_gender: (storyData as any).child_gender || 'male',
         topic: storyData.topic,
@@ -309,8 +331,8 @@ const StoryViewer = () => {
         pollingIntervalRef.current = setInterval(pollForUpdates, 3000);
       }
       
-      if (storyId) {
-        cacheStory(storyId, storyObj);
+      if (resolvedStoryId) {
+        cacheStory(resolvedStoryId, storyObj);
       }
     } catch (error) {
       console.error("Error fetching story:", error);

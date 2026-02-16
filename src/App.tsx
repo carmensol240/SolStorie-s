@@ -65,15 +65,14 @@ const App = () => (
             <Route path="/onboarding" element={<Onboarding />} />
             {/* Public flipbook viewer - accessible via share link */}
             <Route path="/flipbook" element={<FlipbookViewer />} />
-            {/* Public story viewer - accessible via share links */}
-            <Route path="/story/:storySlug" element={<PublicStoryViewer />} />
+            {/* Legacy public story viewer paths */}
             <Route path="/view/:storySlug" element={<PublicStoryViewer />} />
             <Route path="/s/:storySlug" element={<PublicStoryViewer />} />
             {/* Protected routes - require terms acceptance */}
             <Route path="/children" element={<RequireTerms><ChildProfiles /></RequireTerms>} />
             <Route path="/create" element={<RequireTerms><CreateStory /></RequireTerms>} />
-            <Route path="/story/:storyId" element={<RequireTerms><StoryViewer /></RequireTerms>} />
-            
+            {/* Story viewer - handles both slug and UUID, public fallback for unauthenticated */}
+            <Route path="/story/:storyId" element={<StoryViewer />} />
             <Route path="/library" element={<Library />} />
             <Route path="/flipbook/:bookId" element={<RequireTerms><FlipbookViewer /></RequireTerms>} />
             <Route path="/profile" element={<RequireTerms><Profile /></RequireTerms>} />

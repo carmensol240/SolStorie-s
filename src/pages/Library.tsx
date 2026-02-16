@@ -24,6 +24,7 @@ interface StoryPage {
 
 interface Story {
   id: string;
+  slug: string | null;
   child_name: string;
   topic: string;
   created_at: string;
@@ -66,7 +67,7 @@ const Library = () => {
       // First fetch stories - this will return empty if user is not logged in due to RLS
       const { data: storiesData, error: storiesError } = await supabase
         .from("stories")
-        .select("id, child_name, topic, created_at, cover_url, theme, story_type, min_age, max_age, is_premium, child_gender")
+        .select("id, slug, child_name, topic, created_at, cover_url, theme, story_type, min_age, max_age, is_premium, child_gender")
         .order("created_at", { ascending: false });
 
       // Gracefully handle RLS errors for non-authenticated users
@@ -321,7 +322,11 @@ const Library = () => {
                 onGenderSwap={handleGenderSwap}
                 onRegenerateCover={handleRegenerateCover}
                 isRegeneratingCover={regeneratingCoverId === story.id}
-                onClick={(id) => navigate(`/story/${id}`)}
+                onClick={(id) => {
+                  const s = stories.find(st => st.id === id);
+                  const slug = s?.slug || id;
+                  navigate(`/story/${slug}`);
+                }}
               />
             ))}
           </div>
