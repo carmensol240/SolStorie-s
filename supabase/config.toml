@@ -53,3 +53,6 @@ verify_jwt = false
 
 [functions.generate-hero-image]
 verify_jwt = false
+
+[functions.og-story-meta]
+verify_jwt = false
