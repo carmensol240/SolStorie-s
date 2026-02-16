@@ -177,11 +177,11 @@ export const CHARACTER_SECTIONS: CharacterSection[] = [
     categoryEmoji: "🎓",
     heroImage: topicEducationalToolbox,
     topics: [
-      { id: "social-skills-edu", label: "מיומנויות חברתיות", image: topicFriendship, ageRange: "3-8" },
-      { id: "values-emotions-edu", label: "ערכים ורגשות", image: topicAngerCloud, ageRange: "3-8" },
-      { id: "holidays-seasons-edu", label: "חגים ועונות השנה", image: topicRainParty, ageRange: "3-8" },
-      { id: "life-skills-edu", label: "מיומנויות חיים", image: topicIndependence, ageRange: "3-8" },
-      { id: "emotional-development-edu", label: "פיתוח רגשי", image: topicAngerCloud, ageRange: "3-8" },
+      { id: "waiting-in-line-edu", label: "המתנה בתור", image: topicSharing, ageRange: "3-6" },
+      { id: "emotion-regulation-edu", label: "ויסות רגשות וכעס", image: topicAngerCloud, ageRange: "3-8" },
+      { id: "holidays-seasons-edu", label: "מעגל השנה - חגים ועונות", image: topicRainParty, ageRange: "3-8" },
+      { id: "play-rules-edu", label: "לשחק יחד - כללי משחק", image: topicFriendship, ageRange: "3-6" },
+      { id: "self-confidence-edu", label: "ביטחון עצמי - אני יכול/ה!", image: topicIndependence, ageRange: "3-8" },
     ],
   },
 ];
