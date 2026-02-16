@@ -390,13 +390,14 @@ const StoryViewer = () => {
     setIsEditingPage(true);
   };
 
-  const handleEditSave = async (newText: string) => {
+  const handleEditSave = async (newText: string, editedPageId?: string) => {
+    const targetId = editedPageId || page?.id;
     setStory((prev) => {
       if (!prev) return prev;
       return {
         ...prev,
         pages: prev.pages.map((p) =>
-          p.id === page?.id ? { ...p, text: newText } : p
+          p.id === targetId ? { ...p, text: newText } : p
         ),
       };
     });
@@ -1041,6 +1042,12 @@ const StoryViewer = () => {
           text={page.text}
           illustrationUrl={page.illustration_url || undefined}
           onUpdate={handleEditSave}
+          allPages={story.pages.map(p => ({
+            id: p.id,
+            page_number: p.page_number,
+            text: p.text,
+            illustration_url: p.illustration_url,
+          }))}
         />
       )}
 

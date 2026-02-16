@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
@@ -9,7 +9,7 @@ import { useToast } from '@/hooks/use-toast';
 import { useNikud } from '@/hooks/use-nikud';
 import { useStoryEdit } from '@/hooks/use-story-edit';
 import { SignedImage } from '@/components/ui/signed-image';
-import { Sparkles, Bold, Check, AlertCircle, Coins, Gift } from 'lucide-react';
+import { Sparkles, Bold, Check, AlertCircle, Coins, Gift, ChevronRight, ChevronLeft } from 'lucide-react';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -21,6 +21,13 @@ import {
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
 
+interface PageData {
+  id: string;
+  page_number: number;
+  text: string;
+  illustration_url?: string | null;
+}
+
 interface EditPageDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
@@ -30,7 +37,9 @@ interface EditPageDialogProps {
   totalPages: number;
   text: string;
   illustrationUrl?: string;
-  onUpdate: (newText: string) => void;
+  onUpdate: (newText: string, pageId?: string) => void;
+  /** All pages for navigation */
+  allPages?: PageData[];
 }
 
 const EditPageDialog = ({
@@ -43,23 +52,59 @@ const EditPageDialog = ({
   text,
   illustrationUrl,
   onUpdate,
+  allPages,
 }: EditPageDialogProps) => {
-  const [pageText, setPageText] = useState(text);
+  const [currentPageIndex, setCurrentPageIndex] = useState(0);
+  const [editedTexts, setEditedTexts] = useState<Record<string, string>>({});
   const [isLoading, setIsLoading] = useState(false);
   const [isEnhancing, setIsEnhancing] = useState(false);
   const [isBold, setIsBold] = useState(false);
   const [fontSize, setFontSize] = useState<'regular' | 'large'>('regular');
   const [showConfirmation, setShowConfirmation] = useState(false);
   const [showEditConfirmDialog, setShowEditConfirmDialog] = useState(false);
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
   const { toast } = useToast();
   const { addNikud, isLoading: isAddingNikud } = useNikud();
   const { isFirstEdit, canEdit, performEdit, fetchEditCount, editCount } = useStoryEdit(storyId);
 
-  const hasTextChanged = pageText !== text;
+  // Pages array: use allPages if provided, otherwise single page fallback
+  const pages: PageData[] = allPages && allPages.length > 0
+    ? allPages
+    : [{ id: pageId, page_number: pageNumber, text, illustration_url: illustrationUrl }];
+
+  const currentPage = pages[currentPageIndex];
+  const currentPageId = currentPage?.id || pageId;
+  const currentOriginalText = currentPage?.text || text;
+  const currentText = editedTexts[currentPageId] ?? currentOriginalText;
+  const hasTextChanged = currentText !== currentOriginalText;
+
+  // Initialize current page index based on initial pageId
+  useEffect(() => {
+    if (open && allPages) {
+      const idx = allPages.findIndex(p => p.id === pageId);
+      if (idx >= 0) setCurrentPageIndex(idx);
+    }
+  }, [open, pageId, allPages]);
+
+  // Initialize edited text for current page
+  useEffect(() => {
+    if (open && currentPageId && !(currentPageId in editedTexts)) {
+      setEditedTexts(prev => ({ ...prev, [currentPageId]: currentOriginalText }));
+    }
+  }, [open, currentPageId, currentOriginalText]);
+
+  // Auto-resize textarea
+  const autoResize = useCallback(() => {
+    const el = textareaRef.current;
+    if (el) {
+      el.style.height = 'auto';
+      el.style.height = Math.max(200, el.scrollHeight) + 'px';
+    }
+  }, []);
 
   useEffect(() => {
-    setPageText(text);
-  }, [text]);
+    autoResize();
+  }, [currentText, currentPageIndex, autoResize]);
 
   // Fetch edit count when dialog opens
   useEffect(() => {
@@ -68,10 +113,21 @@ const EditPageDialog = ({
     }
   }, [open, storyId, fetchEditCount]);
 
+  const setCurrentText = (val: string) => {
+    setEditedTexts(prev => ({ ...prev, [currentPageId]: val }));
+  };
+
+  const handleNavigate = (direction: 'prev' | 'next') => {
+    const newIndex = direction === 'prev' ? currentPageIndex - 1 : currentPageIndex + 1;
+    if (newIndex >= 0 && newIndex < pages.length) {
+      setCurrentPageIndex(newIndex);
+    }
+  };
+
   const handleAddNikud = async () => {
-    const nikudText = await addNikud(pageText);
+    const nikudText = await addNikud(currentText);
     if (nikudText) {
-      setPageText(nikudText);
+      setCurrentText(nikudText);
       toast({ title: 'הניקוד נוסף בהצלחה' });
     } else {
       toast({ title: 'שגיאה בהוספת ניקוד', variant: 'destructive' });
@@ -79,18 +135,18 @@ const EditPageDialog = ({
   };
 
   const handleEnhanceText = async () => {
-    if (!pageText.trim()) return;
+    if (!currentText.trim()) return;
     
     setIsEnhancing(true);
     try {
       const { data, error } = await supabase.functions.invoke('enhance-text', {
-        body: { text: pageText }
+        body: { text: currentText }
       });
 
       if (error) throw error;
 
       if (data?.enhancedText) {
-        setPageText(data.enhancedText);
+        setCurrentText(data.enhancedText);
         toast({ title: 'הטקסט שודרג בהצלחה! ✨' });
       } else {
         throw new Error('לא התקבל טקסט משודרג');
@@ -108,14 +164,12 @@ const EditPageDialog = ({
   };
 
   const handleSaveClick = () => {
-    // Show confirmation dialog before saving
     setShowEditConfirmDialog(true);
   };
 
   const handleConfirmSave = async () => {
     setShowEditConfirmDialog(false);
     
-    // Check if user can edit
     if (!canEdit()) {
       toast({ 
         title: 'אין מספיק קרדיטים',
@@ -127,7 +181,6 @@ const EditPageDialog = ({
 
     setIsLoading(true);
     try {
-      // First perform the edit (handles credit deduction if needed)
       const editSuccess = await performEdit();
       if (!editSuccess) {
         toast({ 
@@ -138,21 +191,19 @@ const EditPageDialog = ({
         return;
       }
 
-      // Then save the text change
       const { error } = await supabase
         .from('story_pages')
-        .update({ text: pageText })
-        .eq('id', pageId);
+        .update({ text: currentText })
+        .eq('id', currentPageId);
 
       if (error) throw error;
 
       setIsLoading(false);
       setShowConfirmation(true);
       
-      // Show confirmation briefly, then close
       setTimeout(() => {
         toast({ title: 'העמוד עודכן בהצלחה! ✅' });
-        onUpdate(pageText);
+        onUpdate(currentText, currentPageId);
         setShowConfirmation(false);
         onOpenChange(false);
       }, 1000);
@@ -164,7 +215,7 @@ const EditPageDialog = ({
   };
 
   const getTextareaClassName = () => {
-    const classes = ['resize-none', 'min-h-[400px]', 'overflow-y-auto', 'text-right', 'leading-[1.6]'];
+    const classes = ['resize-none', 'overflow-hidden', 'text-right', 'leading-[1.6]'];
     if (isBold) classes.push('font-bold');
     if (fontSize === 'large') classes.push('text-lg');
     return classes.join(' ');
@@ -188,6 +239,12 @@ const EditPageDialog = ({
     );
   };
 
+  const canGoPrev = currentPageIndex > 0;
+  const canGoNext = currentPageIndex < pages.length - 1;
+  const displayPageNumber = currentPage?.page_number ?? pageNumber;
+  const displayTotalPages = pages.length || totalPages;
+  const currentIllustration = currentPage?.illustration_url || (currentPageIndex === 0 ? illustrationUrl : undefined);
+
   return (
     <>
       <Dialog open={open} onOpenChange={onOpenChange}>
@@ -199,34 +256,60 @@ const EditPageDialog = ({
             </DialogTitle>
           </DialogHeader>
 
-          {/* Pagination Indicator */}
-          <div className="text-center text-sm text-muted-foreground py-1 border-b border-border/50 flex-shrink-0">
-            עמוד {pageNumber} מתוך {totalPages}
+          {/* Pagination with Navigation Arrows */}
+          <div className="flex items-center justify-center gap-3 py-1 border-b border-border/50 flex-shrink-0">
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={() => handleNavigate('prev')}
+              disabled={!canGoPrev}
+              className="w-8 h-8 rounded-full text-primary hover:bg-primary/10 disabled:opacity-20"
+              aria-label="עמוד קודם"
+            >
+              <ChevronRight className="w-5 h-5" />
+            </Button>
+            <span className="text-sm text-muted-foreground font-medium">
+              עמוד {displayPageNumber} מתוך {displayTotalPages}
+            </span>
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={() => handleNavigate('next')}
+              disabled={!canGoNext}
+              className="w-8 h-8 rounded-full text-primary hover:bg-primary/10 disabled:opacity-20"
+              aria-label="עמוד הבא"
+            >
+              <ChevronLeft className="w-5 h-5" />
+            </Button>
           </div>
 
           <div className="space-y-3 py-3 overflow-y-auto flex-1 min-h-0">
             {/* Image Preview */}
-            {illustrationUrl && (
+            {currentIllustration && (
               <div className="flex justify-center">
                 <SignedImage
-                  src={illustrationUrl}
+                  src={currentIllustration}
                   storyId={storyId}
-                  alt={`איור עמוד ${pageNumber}`}
+                  alt={`איור עמוד ${displayPageNumber}`}
                   className="w-24 h-16 object-cover rounded-lg border border-border shadow-sm"
                 />
               </div>
             )}
 
-            {/* Text Area */}
+            {/* Text Area - auto-grow */}
             <div className="space-y-2">
               <Label htmlFor="pageText">טקסט העמוד</Label>
               <Textarea
                 id="pageText"
-                value={pageText}
-                onChange={(e) => setPageText(e.target.value)}
+                ref={textareaRef}
+                value={currentText}
+                onChange={(e) => {
+                  setCurrentText(e.target.value);
+                  autoResize();
+                }}
                 placeholder="טקסט העמוד"
-                rows={10}
                 className={getTextareaClassName()}
+                style={{ minHeight: '200px' }}
               />
             </div>
 
@@ -261,7 +344,7 @@ const EditPageDialog = ({
                 variant="outline"
                 size="sm"
                 onClick={handleEnhanceText}
-                disabled={isEnhancing || !pageText.trim()}
+                disabled={isEnhancing || !currentText.trim()}
                 className="gap-1.5 text-sm"
               >
                 <Sparkles className="w-3.5 h-3.5" />
@@ -273,7 +356,7 @@ const EditPageDialog = ({
                 variant="outline"
                 size="sm"
                 onClick={handleAddNikud}
-                disabled={isAddingNikud || !pageText.trim()}
+                disabled={isAddingNikud || !currentText.trim()}
                 className="gap-1.5 text-sm"
               >
                 <Sparkles className="w-3.5 h-3.5" />
@@ -290,7 +373,7 @@ const EditPageDialog = ({
             </div>
           </div>
 
-          {/* Fixed Footer with Save Button - Always Visible */}
+          {/* Fixed Footer with Save Button */}
           <div className="flex-shrink-0 border-t border-border pt-3 flex gap-2 flex-row-reverse">
             {showConfirmation ? (
               <Button disabled className="min-w-[120px] bg-green-500 hover:bg-green-500">
