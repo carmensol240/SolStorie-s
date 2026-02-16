@@ -12,7 +12,8 @@ serve(async (req) => {
   }
 
   try {
-    const { paths, storyId, shareToken } = await req.json();
+    const body = await req.json();
+    const { paths, storyId, shareToken, publicView } = body;
 
     // Validate input
     if (!paths || !Array.isArray(paths) || paths.length === 0) {
@@ -114,7 +115,6 @@ serve(async (req) => {
     }
 
     // Case 4: Public story view (for /s/:storyId route sharing)
-    const { publicView } = await req.clone().json().catch(() => ({}));
     if (!isAuthorized && storyId && publicView === true) {
       // Verify story exists via the public RPC function
       const { data: publicStory } = await supabaseAdmin
