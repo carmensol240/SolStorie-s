@@ -6,6 +6,19 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
+// Common bot/crawler user agents
+const CRAWLER_PATTERNS = [
+  'whatsapp', 'facebookexternalhit', 'facebot', 'twitterbot',
+  'telegrambot', 'linkedinbot', 'slackbot', 'discordbot',
+  'googlebot', 'bingbot', 'yandexbot', 'baiduspider',
+  'pinterest', 'skypeuripreview', 'vkshare', 'embedly',
+];
+
+function isCrawler(userAgent: string): boolean {
+  const ua = userAgent.toLowerCase();
+  return CRAWLER_PATTERNS.some(pattern => ua.includes(pattern));
+}
+
 serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
@@ -53,7 +66,20 @@ serve(async (req) => {
     const title = `✨ ${story.topic} ✨ – סיפור של ${story.child_name}`;
     const description = `סיפור קסום שנוצר במיוחד עבור ${story.child_name} באפליקציית SolStorie's™ 📚`;
     const imageUrl = story.cover_url || "https://soulstory.co.il/favicon.png";
-    const pageUrl = `https://soulstory.co.il/s/${slug}`;
+    const shareUrl = `https://soulstory.co.il/s/${slug}`;
+    const viewUrl = `https://soulstory.co.il/view/${slug}`;
+
+    const userAgent = req.headers.get("user-agent") || "";
+
+    // For crawlers: return OG meta HTML (no redirect)
+    // For humans: return OG meta HTML + redirect to SPA view route
+    const redirectMeta = isCrawler(userAgent)
+      ? ""
+      : `<meta http-equiv="refresh" content="0;url=${escapeHtml(viewUrl)}" />`;
+    
+    const redirectScript = isCrawler(userAgent)
+      ? ""
+      : `<script>window.location.href = "${viewUrl}";</script>`;
 
     const html = `<!DOCTYPE html>
 <html lang="he" dir="rtl">
@@ -64,18 +90,18 @@ serve(async (req) => {
   <meta property="og:title" content="${escapeHtml(title)}" />
   <meta property="og:description" content="${escapeHtml(description)}" />
   <meta property="og:image" content="${escapeHtml(imageUrl)}" />
-  <meta property="og:url" content="${escapeHtml(pageUrl)}" />
+  <meta property="og:url" content="${escapeHtml(shareUrl)}" />
   <meta property="og:type" content="article" />
   <meta property="og:locale" content="he_IL" />
   <meta name="twitter:card" content="summary_large_image" />
   <meta name="twitter:title" content="${escapeHtml(title)}" />
   <meta name="twitter:description" content="${escapeHtml(description)}" />
   <meta name="twitter:image" content="${escapeHtml(imageUrl)}" />
-  <meta http-equiv="refresh" content="0;url=${escapeHtml(pageUrl)}" />
+  ${redirectMeta}
 </head>
 <body>
   <p>מעביר אותך לסיפור...</p>
-  <script>window.location.href = "${pageUrl}";</script>
+  ${redirectScript}
 </body>
 </html>`;
 

@@ -65,7 +65,8 @@ const App = () => (
             <Route path="/onboarding" element={<Onboarding />} />
             {/* Public flipbook viewer - accessible via share link */}
             <Route path="/flipbook" element={<FlipbookViewer />} />
-            {/* Public story viewer - accessible via share link (slug or UUID) */}
+            {/* Public story viewer - /view/:slug for SPA, /s/:slug as fallback */}
+            <Route path="/view/:storySlug" element={<PublicStoryViewer />} />
             <Route path="/s/:storySlug" element={<PublicStoryViewer />} />
             {/* Protected routes - require terms acceptance */}
             <Route path="/children" element={<RequireTerms><ChildProfiles /></RequireTerms>} />
