@@ -359,32 +359,30 @@ const StoryViewer = () => {
     if (!story) return;
 
     try {
-      // Build a clean share message with title, summary, and public URL
-      const title = `✨ ${story.topic} ✨`;
-      
-      // Create a short summary from first page text (max ~100 chars)
-      const firstPageText = story.pages?.[0]?.text || '';
-      const summary = firstPageText.length > 100 
-        ? firstPageText.substring(0, 100).trim() + '...' 
-        : firstPageText;
-      
-      // Use OG proxy URL so WhatsApp crawler gets proper meta tags with cover image
       const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
       const publicUrl = `${supabaseUrl}/functions/v1/og-story-meta?storyId=${story.id}`;
-      
-      const footer = `\n\n📚 נוצר באהבה באפליקציית SolStorie's™`;
-      
-      const fullMessage = `${title}\n\n${summary}\n\n👇 לקריאת הסיפור המלא:\n${publicUrl}${footer}`;
+      const title = `✨ ${story.topic} ✨`;
+      const text = `📚 הסיפור של ${story.child_name} – נוצר באהבה באפליקציית SolStorie's™`;
 
-      const whatsappUrl = `https://wa.me/?text=${encodeURIComponent(fullMessage)}`;
-      window.open(whatsappUrl, '_blank');
-    } catch (error) {
+      if (navigator.share) {
+        await navigator.share({ title, text, url: publicUrl });
+      } else {
+        await navigator.clipboard.writeText(`${title}\n${text}\n${publicUrl}`);
+        toast({ title: 'הקישור הועתק! 📋', description: 'כעת ניתן להדביק אותו בוואטסאפ או בכל מקום אחר' });
+      }
+    } catch (error: any) {
+      // User cancelled share dialog - not an error
+      if (error?.name === 'AbortError') return;
       console.error('Error sharing story:', error);
-      toast({
-        title: "שגיאה בשיתוף",
-        description: "נסו שוב מאוחר יותר",
-        variant: "destructive",
-      });
+      // Fallback to clipboard
+      try {
+        const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
+        const publicUrl = `${supabaseUrl}/functions/v1/og-story-meta?storyId=${story.id}`;
+        await navigator.clipboard.writeText(publicUrl);
+        toast({ title: 'הקישור הועתק! 📋', description: 'כעת ניתן להדביק אותו בוואטסאפ' });
+      } catch {
+        toast({ title: 'שגיאה בשיתוף', description: 'נסו שוב מאוחר יותר', variant: 'destructive' });
+      }
     }
   };
 
