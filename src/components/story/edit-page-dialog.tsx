@@ -170,13 +170,13 @@ const EditPageDialog = ({
 
       setIsLoading(false);
       setShowConfirmation(true);
+      onUpdate(currentText, currentPageId);
+      
+      toast({ title: 'העמוד עודכן בהצלחה! ✅' });
       
       setTimeout(() => {
-        toast({ title: 'העמוד עודכן בהצלחה! ✅' });
-        onUpdate(currentText, currentPageId);
         setShowConfirmation(false);
-        onOpenChange(false);
-      }, 1000);
+      }, 2000);
     } catch (error) {
       console.error('Error updating page:', error);
       toast({ title: 'שגיאה בעדכון העמוד', variant: 'destructive' });
