@@ -3,6 +3,13 @@ import { Textarea } from "@/components/ui/textarea";
 import { StoryFormData } from "@/pages/CreateStory";
 import { cn } from "@/lib/utils";
 
+// Cast hero images
+import castSol from "@/assets/cast-sol-adventure.jpg";
+import castBen from "@/assets/cast-ben-art.jpg";
+import castMia from "@/assets/cast-mia-nature.jpg";
+import castLeo from "@/assets/cast-leo-science.jpg";
+import castZoe from "@/assets/cast-zoe-sports.jpg";
+
 // Topic images
 import topicBedtime from "@/assets/topic-bedtime.jpg";
 import topicFriendship from "@/assets/topic-friendship.jpg";
@@ -55,6 +62,7 @@ import topicEnvironment from "@/assets/topic-environment.jpg";
 import topicMagicKeys from "@/assets/topic-magic-keys.jpg";
 import topicToothbrush from "@/assets/topic-toothbrush.jpg";
 import topicBathtime from "@/assets/topic-bathtime.jpg";
+import topicEducationalToolbox from "@/assets/topic-educational-toolbox.jpeg";
 
 interface TopicStepProps {
   formData: StoryFormData;
@@ -68,78 +76,100 @@ interface TopicItem {
   category: string;
 }
 
+interface HeroCharacter {
+  name: string;
+  nameEn: string;
+  image: string;
+  description: string;
+}
+
+const HEROES: HeroCharacter[] = [
+  { name: "סול", nameEn: "Sol", image: castSol, description: "הגיבורה שלנו – מובילה כל הרפתקה" },
+  { name: "בן", nameEn: "Ben", image: castBen, description: "החבר היצירתי – אמן וחולם" },
+  { name: "מיה", nameEn: "Mia", image: castMia, description: "חוקרת הטבע – סקרנית ואמיצה" },
+  { name: "ליאו", nameEn: "Leo", image: castLeo, description: "המדען הצעיר – ממציא ופותר" },
+  { name: "זואי", nameEn: "Zoe", image: castZoe, description: "הספורטאית – אנרגטית ונחושה" },
+];
+
 const CATEGORIES = [
-  { id: "daily", label: "🌟 התמודדויות יומיומיות" },
-  { id: "adventure", label: "🚀 הרפתקאות ודמיון" },
+  { id: "daily", label: "🌟 סול מתמודדת" },
+  { id: "adventure", label: "🚀 הרפתקאות סול" },
   { id: "emotions", label: "💛 רגשות וערכים" },
   { id: "family", label: "👨‍👩‍👧‍👦 משפחה" },
   { id: "safety", label: "🛡️ בטיחות ובריאות" },
   { id: "life", label: "🏠 מיומנויות חיים" },
+  { id: "edu", label: "🎓 ארגז כלים חינוכי" },
 ];
 
 const TOPICS: TopicItem[] = [
-  // Daily challenges
-  { id: "bedtime", label: "סיפור לפני השינה", image: topicBedtime, category: "daily" },
-  { id: "teeth-brushing", label: "צחצוח שיניים", image: topicTeethBrushing, category: "daily" },
-  { id: "toothbrush", label: "מברשת השיניים הקסומה", image: topicToothbrush, category: "daily" },
-  { id: "bath-shower", label: "אמבטיה ומקלחת", image: topicBathShower, category: "daily" },
-  { id: "bathtime", label: "זמן אמבטיה", image: topicBathtime, category: "daily" },
-  { id: "hand-washing", label: "שטיפת ידיים", image: topicHandWashing, category: "daily" },
-  { id: "potty-training", label: "גמילה מחיתולים", image: topicPottyTraining, category: "daily" },
-  { id: "pacifier", label: "גמילה ממוצץ", image: topicPacifier, category: "daily" },
-  { id: "first-day-kindergarten", label: "יום ראשון בגן", image: topicFirstDayKindergarten, category: "daily" },
-  { id: "mom-dont-go", label: "אמא אל תלכי", image: topicMomDontGo, category: "daily" },
-  { id: "fear-of-dark", label: "פחד מהחושך", image: topicFearOfDark, category: "daily" },
+  // סול מתמודדת - Daily challenges
+  { id: "bedtime-story", label: "סיפור לפני השינה – סול והפיל הקורא", image: topicBedtime, category: "daily" },
+  { id: "body-hero-teeth", label: "צחצוח שיניים קסום – סול ופיית השיניים", image: topicTeethBrushing, category: "daily" },
+  { id: "toothbrush", label: "מברשת השיניים הקסומה של סול", image: topicToothbrush, category: "daily" },
+  { id: "body-hero-bath", label: "אמבטיה של כיף – בועות וברווזון", image: topicBathShower, category: "daily" },
+  { id: "bathtime", label: "זמן אמבטיה עם סול", image: topicBathtime, category: "daily" },
+  { id: "body-hero-hands", label: "שטיפת ידיים – מנצחים את החיידקים!", image: topicHandWashing, category: "daily" },
+  { id: "potty-training", label: "גמילה מחיתולים – סול גדלה!", image: topicPottyTraining, category: "daily" },
+  { id: "pacifier-fairy", label: "פיית המוצץ – נפרדים בקסם", image: topicPacifier, category: "daily" },
+  { id: "first-day-kindergarten", label: "יום ראשון בגן – סול מתרגשת", image: topicFirstDayKindergarten, category: "daily" },
+  { id: "mom-dont-go", label: "אמא אל תלכי – הנשיקה שנשארת", image: topicMomDontGo, category: "daily" },
+  { id: "fear-of-dark", label: "סול מגלה שהחושך לא מפחיד", image: topicFearOfDark, category: "daily" },
 
-  // Adventures
-  { id: "space-hero", label: "גיבור החלל", image: topicSpaceHero, category: "adventure" },
-  { id: "space", label: "הרפתקה בחלל", image: topicSpace, category: "adventure" },
-  { id: "magic-castle", label: "הטירה הקסומה", image: topicMagicCastle, category: "adventure" },
-  { id: "magical-forest", label: "היער הקסום", image: topicMagicalForest, category: "adventure" },
-  { id: "underwater", label: "הרפתקה מתחת למים", image: topicUnderwater, category: "adventure" },
-  { id: "cloud-adventure", label: "הרפתקה בעננים", image: topicCloudAdventure, category: "adventure" },
-  { id: "kingdom", label: "הממלכה הרחוקה", image: topicKingdom, category: "adventure" },
-  { id: "superheroes", label: "גיבורי על", image: topicSuperheroes, category: "adventure" },
-  { id: "rain-party", label: "מסיבה בגשם", image: topicRainParty, category: "adventure" },
-  { id: "magic-keys", label: "המפתחות הקסומים", image: topicMagicKeys, category: "adventure" },
-  { id: "zoo", label: "טיול בגן החיות", image: topicZoo, category: "adventure" },
+  // הרפתקאות סול - Adventures
+  { id: "space-adventure", label: "הרפתקה בחלל – סול בין כוכבים", image: topicSpaceHero, category: "adventure" },
+  { id: "space", label: "מסע לכוכבים עם ליאו", image: topicSpace, category: "adventure" },
+  { id: "magic-kingdom", label: "ממלכת הקסם – סול בארמון", image: topicMagicCastle, category: "adventure" },
+  { id: "magical-forest", label: "היער הקסום של מיה", image: topicMagicalForest, category: "adventure" },
+  { id: "underwater", label: "הרפתקה מתחת למים עם זואי", image: topicUnderwater, category: "adventure" },
+  { id: "cloud-adventure", label: "הרפתקה בעננים – סול עפה!", image: topicCloudAdventure, category: "adventure" },
+  { id: "kingdom", label: "הממלכה הרחוקה של סול", image: topicKingdom, category: "adventure" },
+  { id: "superheroes", label: "גיבורי על – סול וחבריה מצילים", image: topicSuperheroes, category: "adventure" },
+  { id: "rain-party", label: "מסיבה בגשם עם בן", image: topicRainParty, category: "adventure" },
+  { id: "magic-keys", label: "המפתחות הקסומים של ליאו", image: topicMagicKeys, category: "adventure" },
+  { id: "zoo-adventure", label: "טיול בגן החיות – פוגשים חיות", image: topicZoo, category: "adventure" },
 
-  // Emotions & values
-  { id: "friendship", label: "חברות", image: topicFriendship, category: "emotions" },
-  { id: "sharing", label: "שיתוף", image: topicSharing, category: "emotions" },
-  { id: "apologize", label: "לבקש סליחה", image: topicApologize, category: "emotions" },
-  { id: "helping-others", label: "עזרה לזולת", image: topicHelpingOthers, category: "emotions" },
-  { id: "trying-again", label: "לנסות שוב", image: topicTryingAgain, category: "emotions" },
-  { id: "anger-cloud", label: "ענן הכעס", image: topicAngerCloud, category: "emotions" },
-  { id: "just-be-me", label: "פשוט להיות אני", image: topicJustBeMe, category: "emotions" },
-  { id: "we-are-special", label: "כולנו מיוחדים", image: topicWeAreSpecial, category: "emotions" },
-  { id: "independence", label: "עצמאות", image: topicIndependence, category: "emotions" },
+  // רגשות וערכים - Emotions & values
+  { id: "friendship-courage", label: "חברות ואומץ לב – סול בגן", image: topicFriendship, category: "emotions" },
+  { id: "sharing", label: "סול לומדת לשתף", image: topicSharing, category: "emotions" },
+  { id: "apologize", label: "סול לומדת לבקש סליחה", image: topicApologize, category: "emotions" },
+  { id: "helping-others", label: "סול עוזרת לחברים", image: topicHelpingOthers, category: "emotions" },
+  { id: "trying-again", label: "הקסם שבניסיון – בן לא מוותר", image: topicTryingAgain, category: "emotions" },
+  { id: "anger-cloud", label: "ענן הכעס של סול", image: topicAngerCloud, category: "emotions" },
+  { id: "just-be-me", label: "פשוט להיות אני – סול מיוחדת", image: topicJustBeMe, category: "emotions" },
+  { id: "we-are-special", label: "כולנו מיוחדים – סול וחבריה", image: topicWeAreSpecial, category: "emotions" },
+  { id: "independence", label: "סול עושה לבד!", image: topicIndependence, category: "emotions" },
 
-  // Family
-  { id: "new-sibling", label: "אח/ות חדש/ה", image: topicNewSibling, category: "family" },
-  { id: "sibling-love", label: "אהבת אחים", image: topicSiblingLove, category: "family" },
-  { id: "my-special-family", label: "המשפחה המיוחדת שלי", image: topicMySpecialFamily, category: "family" },
+  // משפחה - Family
+  { id: "new-sibling", label: "אח/ות חדש/ה – סול אחות גדולה", image: topicNewSibling, category: "family" },
+  { id: "sibling-love", label: "אהבת אחים – סול והתינוק", image: topicSiblingLove, category: "family" },
+  { id: "my-special-family", label: "המשפחה המיוחדת של סול", image: topicMySpecialFamily, category: "family" },
   { id: "grandparents-night", label: "לילה אצל סבא וסבתא", image: topicGrandparentsNight, category: "family" },
-  { id: "pocket-kiss", label: "הנשיקה בכיס", image: topicPocketKiss, category: "family" },
-  { id: "family-trip", label: "טיול משפחתי", image: topicFamilyTrip, category: "family" },
-  { id: "birthday", label: "יום הולדת", image: topicBirthday, category: "family" },
+  { id: "pocket-kiss", label: "הנשיקה בכיס של אמא", image: topicPocketKiss, category: "family" },
+  { id: "family-trip", label: "טיול משפחתי – הרפתקה בטבע", image: topicFamilyTrip, category: "family" },
+  { id: "birthday-party", label: "יום הולדת – חוגגים עם החברים", image: topicBirthday, category: "family" },
 
-  // Safety & health
-  { id: "body-safety", label: "שמירה על הגוף", image: topicBodySafety, category: "safety" },
-  { id: "road-safety", label: "בטיחות בדרכים", image: topicRoadSafety, category: "safety" },
-  { id: "seatbelt-safety", label: "חגורת בטיחות", image: topicSeatbeltSafety, category: "safety" },
-  { id: "stranger-danger", label: "זהירות מזרים", image: topicStrangerDanger, category: "safety" },
-  { id: "dentist-visit", label: "ביקור אצל רופא שיניים", image: topicDentistVisit, category: "safety" },
+  // בטיחות ובריאות - Safety & health
+  { id: "body-safety", label: "שמירה על הגוף שלי", image: topicBodySafety, category: "safety" },
+  { id: "road-safety", label: "שומרי הדרכים – סול וזואי", image: topicRoadSafety, category: "safety" },
+  { id: "seatbelt-safety", label: "חגורת בטיחות – לוחצים ונוסעים", image: topicSeatbeltSafety, category: "safety" },
+  { id: "stranger-danger", label: "זהירות מזרים – סול יודעת", image: topicStrangerDanger, category: "safety" },
+  { id: "dentist-visit", label: "ביקור אצל רופא השיניים", image: topicDentistVisit, category: "safety" },
   { id: "barber-visit", label: "ביקור אצל הספר", image: topicBarberVisit, category: "safety" },
-  { id: "lost-tooth", label: "שן נופלת", image: topicLostTooth, category: "safety" },
-  { id: "nail-trimming", label: "גזירת ציפורניים", image: topicNailTrimming, category: "safety" },
+  { id: "lost-tooth", label: "שן נופלת – פיית השיניים באה!", image: topicLostTooth, category: "safety" },
+  { id: "body-hero-nails", label: "גזירת ציפורניים – עם הפיות", image: topicNailTrimming, category: "safety" },
 
-  // Life skills
-  { id: "brave-taster", label: "טועם אמיץ", image: topicBraveTaster, category: "life" },
-  { id: "clean-room", label: "לסדר את החדר", image: topicCleanRoom, category: "life" },
-  { id: "new-house", label: "בית חדש", image: topicNewHouse, category: "life" },
-  { id: "flying-vacation", label: "טיסה לחופשה", image: topicFlyingVacation, category: "life" },
-  { id: "environment", label: "שמירה על הסביבה", image: topicEnvironment, category: "life" },
+  // מיומנויות חיים - Life skills
+  { id: "brave-taster", label: "טועם אמיץ – סול טועמת חדש", image: topicBraveTaster, category: "life" },
+  { id: "clean-room", label: "לסדר את החדר עם סול", image: topicCleanRoom, category: "life" },
+  { id: "new-house", label: "בית חדש – סול עוברת דירה", image: topicNewHouse, category: "life" },
+  { id: "flying-vacation", label: "טיסה לחופשה – סול טסה!", image: topicFlyingVacation, category: "life" },
+  { id: "environment", label: "שמירה על הסביבה עם מיה", image: topicEnvironment, category: "life" },
+
+  // ארגז כלים חינוכי - Educator toolbox
+  { id: "social-skills-edu", label: "מיומנויות חברתיות", image: topicFriendship, category: "edu" },
+  { id: "values-emotions-edu", label: "ערכים ורגשות", image: topicAngerCloud, category: "edu" },
+  { id: "holidays-seasons-edu", label: "חגים ועונות השנה", image: topicRainParty, category: "edu" },
+  { id: "life-skills-edu", label: "מיומנויות חיים", image: topicIndependence, category: "edu" },
 ];
 
 const TopicStep = ({ formData, updateFormData }: TopicStepProps) => {
@@ -181,6 +211,23 @@ const TopicStep = ({ formData, updateFormData }: TopicStepProps) => {
         dir="rtl"
       />
 
+      {/* Cast Hero Characters */}
+      <div className="space-y-2">
+        <p className="text-xs text-muted-foreground text-center font-medium">הכירו את הדמויות שילוו את הילד שלכם</p>
+        <div className="flex gap-2 overflow-x-auto pb-1 scrollbar-none justify-center">
+          {HEROES.map((hero) => (
+            <div key={hero.nameEn} className="flex flex-col items-center gap-1 flex-shrink-0">
+              <div className="w-12 h-12 rounded-full overflow-hidden border-2 border-purple-300 shadow-sm">
+                <img src={hero.image} alt={hero.name} className="w-full h-full object-cover" />
+              </div>
+              <span className="text-[9px] font-bold text-foreground leading-none">
+                {hero.name} | <span className="text-muted-foreground">{hero.nameEn}</span>
+              </span>
+            </div>
+          ))}
+        </div>
+      </div>
+
       {/* Divider */}
       <div className="flex items-center gap-3">
         <div className="flex-1 h-px bg-border" />
@@ -216,6 +263,16 @@ const TopicStep = ({ formData, updateFormData }: TopicStepProps) => {
           </button>
         ))}
       </div>
+
+      {/* Educator toolbox hero banner */}
+      {activeCategory === "edu" && (
+        <div className="relative rounded-xl overflow-hidden aspect-video">
+          <img src={topicEducationalToolbox} alt="ארגז הכלים החינוכי" className="w-full h-full object-cover" />
+          <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent flex items-end p-3">
+            <span className="text-white text-sm font-bold drop-shadow-md">🎓 ארגז הכלים החינוכי – לאנשי חינוך וטיפול</span>
+          </div>
+        </div>
+      )}
 
       {/* Topics grid */}
       <div className="grid grid-cols-3 gap-2">
