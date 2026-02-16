@@ -32,15 +32,7 @@ serve(async (req) => {
       return new Response("Missing storyId", { status: 400 });
     }
 
-    // Determine the site origin from Referer or fallback
-    const referer = req.headers.get("referer") || "";
-    let siteOrigin = "https://www.soulstory.co.il";
-    try {
-      if (referer) {
-        const refUrl = new URL(referer);
-        siteOrigin = refUrl.origin;
-      }
-    } catch { /* keep default */ }
+    const siteOrigin = "https://soulstory.co.il";
 
     const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
     const supabaseServiceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
@@ -76,8 +68,8 @@ serve(async (req) => {
     const title = `✨ ${story.topic} ✨ – סיפור של ${story.child_name}`;
     const description = `סיפור קסום שנוצר במיוחד עבור ${story.child_name} באפליקציית SolStorie's™ 📚`;
     const imageUrl = story.cover_url || `${siteOrigin}/favicon.png`;
-    const shareUrl = `${siteOrigin}/s/${slug}`;
-    const viewUrl = `${siteOrigin}/view/${slug}`;
+    const shareUrl = `${siteOrigin}/story/${slug}`;
+    const viewUrl = `${siteOrigin}/story/${slug}`;
 
     const userAgent = req.headers.get("user-agent") || "";
 
@@ -123,7 +115,7 @@ serve(async (req) => {
     });
   } catch (err) {
     console.error("og-story-meta error:", err);
-    return Response.redirect("https://www.soulstory.co.il", 302);
+    return Response.redirect("https://soulstory.co.il", 302);
   }
 });
 
