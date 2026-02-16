@@ -1,6 +1,7 @@
 import { useState, useEffect, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import { ArrowRight, Plus, Coins, Wand2, ImagePlus } from "lucide-react";
+import { getPublicIllustrationUrl } from "@/lib/illustration-url";
 
 import { Button } from "@/components/ui/button";
 import MobileNavigation from "@/components/MobileNavigation";
@@ -218,21 +219,17 @@ const Library = () => {
     });
   }, [stories, filters]);
 
-  const getPublicCoverUrl = (path: string): string => {
-    const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
-    return `${supabaseUrl}/storage/v1/object/public/story-illustrations/${path}`;
-  };
-
   const getCoverImage = (story: Story): string | null => {
+    // Priority 1: cover_url from stories table
     if (story.cover_url) {
-      // Build public URL for cover stored in the public bucket
-      return getPublicCoverUrl(story.cover_url);
+      return getPublicIllustrationUrl(story.cover_url);
     }
     
+    // Priority 2: page 1 illustration
     if (story.story_pages && story.story_pages.length > 0) {
       const firstPage = story.story_pages.find(p => p.page_number === 1);
       const illustrationUrl = firstPage?.illustration_url || story.story_pages[0]?.illustration_url;
-      return illustrationUrl || null;
+      return getPublicIllustrationUrl(illustrationUrl || null);
     }
     
     return null;
