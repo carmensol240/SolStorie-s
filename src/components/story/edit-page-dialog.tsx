@@ -64,7 +64,7 @@ const EditPageDialog = ({
   const [showEditConfirmDialog, setShowEditConfirmDialog] = useState(false);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const { toast } = useToast();
-  const { addNikud, isLoading: isAddingNikud } = useNikud();
+  const { addNikud, isLoading: isAddingNikud, error: nikudError } = useNikud();
   const { isFirstEdit, canEdit, performEdit, fetchEditCount, editCount } = useStoryEdit(storyId);
 
   // Pages array: use allPages if provided, otherwise single page fallback
@@ -125,11 +125,22 @@ const EditPageDialog = ({
   };
 
   const handleAddNikud = async () => {
-    const nikudText = await addNikud(currentText);
-    if (nikudText) {
-      setCurrentText(nikudText);
-      toast({ title: 'הניקוד נוסף בהצלחה' });
-    } else {
+    try {
+      console.log('Adding nikud, text length:', currentText?.length);
+      const nikudText = await addNikud(currentText);
+      if (nikudText) {
+        setCurrentText(nikudText);
+        toast({ title: 'הניקוד נוסף בהצלחה' });
+      } else {
+        console.error('addNikud returned null, hook error:', nikudError);
+        toast({ 
+          title: 'שגיאה בהוספת ניקוד', 
+          description: 'ודאו שאתם מחוברים ונסו שוב',
+          variant: 'destructive' 
+        });
+      }
+    } catch (err) {
+      console.error('handleAddNikud error:', err);
       toast({ title: 'שגיאה בהוספת ניקוד', variant: 'destructive' });
     }
   };
