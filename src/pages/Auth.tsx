@@ -1049,7 +1049,7 @@ const Auth = () => {
         <div className="absolute top-[10%] left-[50%] w-36 h-16 bg-white/20 rounded-full blur-2xl" />
       </div>
 
-      <div className="relative z-10 flex-1 flex flex-col items-center justify-center p-4 pb-20 overflow-y-auto">
+      <div className="relative z-10 flex-1 flex flex-col items-center justify-center p-4 pb-14 overflow-y-auto">
         {/* Rainbow Logo */}
         <h1 dir="ltr" className="text-3xl sm:text-4xl font-black text-center logo-3d-bubble mb-4 animate-fade-in px-4">
           <span className="logo-rainbow">SolStorie's™</span>
@@ -1354,26 +1354,13 @@ const Auth = () => {
         </div>
 
         {/* Device availability icons */}
-        <div className="flex flex-col items-center gap-1.5 mt-6 mb-4 animate-fade-in-delay-3">
+        <div className="flex flex-col items-center gap-1.5 mt-3 mb-1 animate-fade-in-delay-3">
           <div className="flex items-center gap-4">
-            <svg width="0" height="0" className="absolute">
-              <defs>
-                <linearGradient id="rainbow-icon-gradient" x1="0%" y1="0%" x2="100%" y2="0%">
-                  <stop offset="0%" stopColor="#ff0000" />
-                  <stop offset="16%" stopColor="#ff8c00" />
-                  <stop offset="33%" stopColor="#ffd700" />
-                  <stop offset="50%" stopColor="#00c853" />
-                  <stop offset="66%" stopColor="#2196f3" />
-                  <stop offset="83%" stopColor="#9c27b0" />
-                  <stop offset="100%" stopColor="#e91e63" />
-                </linearGradient>
-              </defs>
-            </svg>
-            <Smartphone className="w-5 h-5" style={{ stroke: 'url(#rainbow-icon-gradient)' }} />
-            <Tablet className="w-5 h-5" style={{ stroke: 'url(#rainbow-icon-gradient)' }} />
-            <Monitor className="w-5 h-5" style={{ stroke: 'url(#rainbow-icon-gradient)' }} />
+            <Smartphone className="w-5 h-5 text-white drop-shadow-md" />
+            <Tablet className="w-5 h-5 text-white drop-shadow-md" />
+            <Monitor className="w-5 h-5 text-white drop-shadow-md" />
           </div>
-          <p className="logo-rainbow text-xs font-semibold">זמינה עבורכם בכל מקום</p>
+          <p className="text-xs font-bold text-white drop-shadow-md">זמינה עבורכם בכל מקום</p>
         </div>
       </div>
       <MobileNavigation />
