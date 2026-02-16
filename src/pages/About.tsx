@@ -180,6 +180,14 @@ const About = () => {
             ⚕️ השימוש באפליקציה הוא כלי עזר טכנולוגי וחווייתי בלבד ואינו מהווה תחליף לייעוץ מקצועי, חינוכי או רפואי.
           </p>
         </div>
+
+        {/* Coming Soon - NLP Package */}
+        <div className="bg-gradient-to-br from-amber-500/15 to-orange-400/10 border border-amber-300/20 rounded-xl p-4 w-full mt-3">
+          <p className="text-sm text-white/90 font-bold mb-1.5">🧠 בקרוב: חבילת NLP למטפלים ואנשי חינוך</p>
+          <p className="text-xs text-white/70 leading-relaxed">
+            אנחנו עובדים על העשרת האפליקציה בארגז כלים מקצועי שיכלול: תכנים פדגוגיים, דפי צביעה ופעילות, וטבלאות מעקב חכמות. יש למה לחכות! ✨
+          </p>
+        </div>
       </div>
 
       {/* Global Footer */}
