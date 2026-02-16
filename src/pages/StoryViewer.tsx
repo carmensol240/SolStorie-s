@@ -352,16 +352,21 @@ const StoryViewer = () => {
     if (!story) return;
 
     try {
-      // Build full story text with title and paragraphs
+      // Build a clean share message with title, summary, and public URL
       const title = `✨ ${story.topic} ✨`;
-      const storyText = story.pages
-        .sort((a, b) => a.page_number - b.page_number)
-        .map(p => p.text)
-        .join('\n\n');
       
-      const footer = `\n\n📚 נוצר באהבה באפליקציית SolStorie's™\nhttps://soulstory.co.il`;
+      // Create a short summary from first page text (max ~100 chars)
+      const firstPageText = story.pages?.[0]?.text || '';
+      const summary = firstPageText.length > 100 
+        ? firstPageText.substring(0, 100).trim() + '...' 
+        : firstPageText;
       
-      const fullMessage = `${title}\n\n${storyText}${footer}`;
+      // Clean public URL - no token needed
+      const publicUrl = `https://soulstory.co.il/s/${story.id}`;
+      
+      const footer = `\n\n📚 נוצר באהבה באפליקציית SolStorie's™`;
+      
+      const fullMessage = `${title}\n\n${summary}\n\n👇 לקריאת הסיפור המלא:\n${publicUrl}${footer}`;
 
       const whatsappUrl = `https://wa.me/?text=${encodeURIComponent(fullMessage)}`;
       window.open(whatsappUrl, '_blank');

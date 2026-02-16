@@ -149,18 +149,25 @@ const FlipbookViewer = () => {
   };
 
   const handleShare = async () => {
-    if (!digitalBook) return;
+    if (!digitalBook || !story) return;
     
-    const shareUrl = `${window.location.origin}/flipbook?token=${digitalBook.share_token}`;
+    // Clean public URL using story ID
+    const publicUrl = `https://soulstory.co.il/s/${story.id}`;
+    const title = `✨ ${story.topic} ✨`;
+    const summary = pages[0]?.text 
+      ? (pages[0].text.length > 100 ? pages[0].text.substring(0, 100).trim() + '...' : pages[0].text)
+      : 'סיפור מקסים שנוצר במיוחד';
+    const footer = `\n\n📚 נוצר באהבה באפליקציית SolStorie's™`;
+    const fullMessage = `${title}\n\n${summary}\n\n👇 לקריאת הסיפור המלא:\n${publicUrl}${footer}`;
     
     try {
       await navigator.share({
-        title: `הספרון של ${story?.child_name}`,
-        text: "ראו את הספרון המדהים שיצרנו!",
-        url: shareUrl,
+        title: `הסיפור של ${story.child_name}`,
+        text: fullMessage,
+        url: publicUrl,
       });
     } catch {
-      await navigator.clipboard.writeText(shareUrl);
+      await navigator.clipboard.writeText(publicUrl);
       setCopied(true);
       toast({
         title: "הקישור הועתק!",
