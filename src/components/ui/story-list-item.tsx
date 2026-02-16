@@ -29,7 +29,7 @@ interface StoryListItemProps {
   coverUrl: string | null;
   createdAt: string;
   childGender?: 'male' | 'female';
-  onDelete: (id: string) => void;
+  onDelete: (id: string) => void | Promise<void>;
   onClick: (id: string) => void;
   onEdit?: (id: string) => void;
   onGenderSwap?: (id: string) => void;
@@ -147,14 +147,15 @@ const StoryListItem = ({
           </AlertDialogHeader>
           <AlertDialogFooter className="gap-2 sm:gap-0">
             <AlertDialogCancel>ביטול</AlertDialogCancel>
-            <AlertDialogAction
-              onClick={(e) => {
-                e.preventDefault();
-                confirmDelete();
+            <Button
+              variant="destructive"
+              onClick={async () => {
+                await onDelete(id);
+                setShowDeleteDialog(false);
               }}
             >
               מחק
-            </AlertDialogAction>
+            </Button>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
