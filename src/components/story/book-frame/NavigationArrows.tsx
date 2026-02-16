@@ -35,15 +35,15 @@ export const NavigationArrows: React.FC<NavigationArrowsProps> = ({
             disabled={!canGoPrev || isFlipping}
             className={cn(
               "absolute right-2 md:-right-16 lg:-right-20 top-1/2 -translate-y-1/2 z-30",
-              "w-10 h-10 md:w-14 md:h-14 rounded-full",
-              "bg-white/80 hover:bg-white text-purple-600 hover:text-purple-700",
+              "w-8 h-8 md:w-14 md:h-14 rounded-full",
+              "bg-white/50 hover:bg-white/80 text-purple-600 hover:text-purple-700",
               "backdrop-blur-md transition-all duration-300",
               "disabled:opacity-20 disabled:cursor-not-allowed",
-              "border-2 border-purple-300 shadow-lg hover:shadow-xl"
+              "border border-purple-200 shadow-md hover:shadow-lg"
             )}
             aria-label="עמוד קודם"
           >
-            <ChevronRight className="w-6 h-6 md:w-7 md:h-7" />
+            <ChevronRight className="w-4 h-4 md:w-7 md:h-7" />
           </Button>
         </TooltipTrigger>
         <TooltipContent side="right" className="font-medium">
@@ -61,15 +61,15 @@ export const NavigationArrows: React.FC<NavigationArrowsProps> = ({
             disabled={!canGoNext || isFlipping}
             className={cn(
               "absolute left-2 md:-left-16 lg:-left-20 top-1/2 -translate-y-1/2 z-30",
-              "w-10 h-10 md:w-14 md:h-14 rounded-full",
-              "bg-white/80 hover:bg-white text-purple-600 hover:text-purple-700",
+              "w-8 h-8 md:w-14 md:h-14 rounded-full",
+              "bg-white/50 hover:bg-white/80 text-purple-600 hover:text-purple-700",
               "backdrop-blur-md transition-all duration-300",
               "disabled:opacity-20 disabled:cursor-not-allowed",
-              "border-2 border-purple-300 shadow-lg hover:shadow-xl"
+              "border border-purple-200 shadow-md hover:shadow-lg"
             )}
             aria-label="עמוד הבא"
           >
-            <ChevronLeft className="w-6 h-6 md:w-7 md:h-7" />
+            <ChevronLeft className="w-4 h-4 md:w-7 md:h-7" />
           </Button>
         </TooltipTrigger>
         <TooltipContent side="left" className="font-medium">
