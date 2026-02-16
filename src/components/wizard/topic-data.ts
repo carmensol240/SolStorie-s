@@ -27,8 +27,12 @@ import topicUnderwater from "@/assets/topic-underwater.jpg";
 import topicMagicalForest from "@/assets/topic-magical-forest.jpg";
 import topicCloudAdventure from "@/assets/topic-cloud-adventure.jpg";
 import topicRainParty from "@/assets/topic-rain-party.jpg";
-import topicKingdom from "@/assets/topic-kingdom.jpg";
-import topicSpace from "@/assets/topic-space.jpg";
+// New topic images from storage
+const TOPIC_IMAGES_BASE = `${import.meta.env.VITE_SUPABASE_URL}/storage/v1/object/public/topic-images`;
+const topicBloodTest = `${TOPIC_IMAGES_BASE}/topic-blood-test.png`;
+const topicHelpingAtHome = `${TOPIC_IMAGES_BASE}/topic-helping-at-home.png`;
+const topicHomeOfLove = `${TOPIC_IMAGES_BASE}/topic-home-of-love.png`;
+const topicPlayingTogether = `${TOPIC_IMAGES_BASE}/topic-playing-together.png`;
 import topicApologize from "@/assets/topic-apologize.jpg";
 import topicHelpingOthers from "@/assets/topic-helping-others.jpg";
 import topicTryingAgain from "@/assets/topic-trying-again.jpg";
@@ -54,8 +58,6 @@ import topicNewHouse from "@/assets/topic-new-house.jpg";
 import topicFlyingVacation from "@/assets/topic-flying-vacation.jpg";
 import topicEnvironment from "@/assets/topic-environment.jpg";
 import topicMagicKeys from "@/assets/topic-magic-keys.jpg";
-import topicToothbrush from "@/assets/topic-toothbrush.jpg";
-import topicBathtime from "@/assets/topic-bathtime.jpg";
 import topicEducationalToolbox from "@/assets/topic-educational-toolbox.jpeg";
 
 export interface TopicItem {
@@ -95,6 +97,7 @@ export const CHARACTER_SECTIONS: CharacterSection[] = [
       { id: "helping-others", label: "הלב של סול", image: topicHelpingOthers, ageRange: "3-6" },
       { id: "stranger-danger", label: "שומרי הסודות", image: topicStrangerDanger, ageRange: "3-8" },
       { id: "seatbelt-safety", label: "חגורת בטיחות", image: topicSeatbeltSafety, ageRange: "3-6" },
+      { id: "blood-test", label: "סול וגיבורי הבריאות", image: topicBloodTest, ageRange: "3-6" },
     ],
   },
   {
@@ -107,8 +110,9 @@ export const CHARACTER_SECTIONS: CharacterSection[] = [
     topics: [
       { id: "body-hero-teeth", label: "צחצוח שיניים קסום", image: topicTeethBrushing, ageRange: "3-6" },
       { id: "body-hero-bath", label: "אמבטיה של כיף", image: topicBathShower, ageRange: "3-6" },
-      { id: "bathtime", label: "בועת גר", image: topicBathtime, ageRange: "3-6" },
-      { id: "toothbrush", label: "מברשת השיניים הקסומה", image: topicToothbrush, ageRange: "3-6" },
+      { id: "helping-at-home", label: "הקסם של עזרה בבית", image: topicHelpingAtHome, ageRange: "3-6" },
+      { id: "home-of-love", label: "הבית של האהבה", image: topicHomeOfLove, ageRange: "3-8" },
+      { id: "playing-together", label: "משחקים יחד בגינה", image: topicPlayingTogether, ageRange: "3-6" },
       { id: "body-hero-hands", label: "שטיפת ידיים", image: topicHandWashing, ageRange: "3-6" },
       { id: "potty-training", label: "גמילה מחיתולים", image: topicPottyTraining, ageRange: "0-3" },
       { id: "pacifier-fairy", label: "פיית המוצץ", image: topicPacifier, ageRange: "0-3" },
@@ -146,12 +150,12 @@ export const CHARACTER_SECTIONS: CharacterSection[] = [
       { id: "zoo-adventure", label: "טיול בגן החיות", image: topicZoo, ageRange: "3-6" },
       { id: "cloud-adventure", label: "טיול בעננים", image: topicCloudAdventure, ageRange: "3-6" },
       { id: "magic-kingdom", label: "ממלכת הקסם", image: topicMagicCastle, ageRange: "3-8" },
-      { id: "space", label: "סיפה בחולי", image: topicSpace, ageRange: "3-8" },
+      
       { id: "rain-party", label: "רוקדים בגשם", image: topicRainParty, ageRange: "3-6" },
       { id: "underwater", label: "הרפתקה במעמקי הים", image: topicUnderwater, ageRange: "3-8" },
       { id: "magical-forest", label: "מסע ביער הקסום", image: topicMagicalForest, ageRange: "3-6" },
       { id: "space-adventure", label: "סול מכבסת את השמיים", image: topicSpaceHero, ageRange: "3-8" },
-      { id: "kingdom", label: "הממלכה הרחוקה", image: topicKingdom, ageRange: "4-8" },
+      
       { id: "magic-keys", label: "המפתחות הקסומים", image: topicMagicKeys, ageRange: "4-8" },
     ],
   },
