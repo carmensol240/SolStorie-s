@@ -85,6 +85,7 @@ const StoryViewer = () => {
   const [showNikud, setShowNikud] = useState(true);
   const [generationStatus, setGenerationStatus] = useState<string>('ready');
   const [illustrationProgress, setIllustrationProgress] = useState(0);
+  const [userStartedReading, setUserStartedReading] = useState(false);
   const pollingIntervalRef = useRef<NodeJS.Timeout | null>(null);
   const pollingStartTimeRef = useRef<number | null>(null);
   const [retryingPageId, setRetryingPageId] = useState<string | null>(null);
@@ -642,7 +643,7 @@ const StoryViewer = () => {
   }
 
   // Show special loading state when illustrations are being generated
-  if (generationStatus === 'generating_illustrations' && story) {
+  if (generationStatus === 'generating_illustrations' && !userStartedReading && story) {
     return (
       <div className="min-h-screen bg-gradient-to-b from-[#FAF3E8] to-[#F5E6D3] flex flex-col items-center justify-center p-6" dir="rtl">
         <div className="text-center space-y-8 max-w-md mx-auto">
@@ -702,21 +703,18 @@ const StoryViewer = () => {
           <div className="flex flex-col gap-3">
             <Button
               size="lg"
-              onClick={() => setCurrentPage(-1)}
+              onClick={() => { setUserStartedReading(true); setCurrentPage(-1); }}
               className="bg-gradient-to-r from-purple-600 via-pink-500 to-orange-400 hover:from-purple-700 hover:via-pink-600 hover:to-orange-500 text-white font-bold px-8 py-6 text-lg rounded-full shadow-xl"
             >
               <BookOpen className="w-5 h-5 ml-2" />
               התחילו לקרוא עכשיו!
             </Button>
-            <p className="text-sm text-purple-500">
-              האיורים יופיעו בזמן שתקראו ✨
-            </p>
           </div>
 
           {/* Tip */}
-          <div className="bg-white/80 backdrop-blur-sm rounded-xl p-4 shadow-md border border-purple-200 max-w-xs mx-auto">
+          <div className="bg-white/80 backdrop-blur-sm rounded-xl p-4 shadow-md border border-purple-200 max-w-xs mx-auto mt-6">
             <p className="text-sm text-purple-700">
-              💡 <strong className="text-purple-800">טיפ:</strong> אפשר להתחיל לקרוא! האיורים יופיעו אוטומטית כשהם מוכנים.
+              💡 <strong className="text-purple-800">טיפ:</strong> זה זמן מעולה להתכרבל יחד. הסיפור כבר מחכה לכם בפנים! (האיורים ימשיכו להיטען אוטומטית)
             </p>
           </div>
         </div>
