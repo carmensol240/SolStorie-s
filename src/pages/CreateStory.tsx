@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { ArrowRight, ArrowLeft, Loader2, User } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
@@ -130,13 +130,13 @@ const CreateStory = () => {
     }
   };
 
-  const handleStoryGenerated = async (storyId: string) => {
+  const handleStoryGenerated = useCallback(async (storyId: string) => {
     await useCredit();
     // Mark that a story was just created so the PDF popup shows
     sessionStorage.setItem("just_created_story", "true");
     // Always navigate to story reader first - let them enjoy the story
     navigate(`/story/${storyId}`);
-  };
+  }, [useCredit, navigate]);
 
   // Step 3 - Full screen generating, no header/footer
   if (step === 3) {
