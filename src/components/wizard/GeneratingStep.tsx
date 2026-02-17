@@ -67,6 +67,8 @@ const GeneratingStep = ({ formData, onComplete }: GeneratingStepProps) => {
   const [isSentenceVisible, setIsSentenceVisible] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const hasStartedRef = useRef(false);
+  const retryCountRef = useRef(0);
+  const MAX_RETRIES = 2;
 
 
   const generateStory = useCallback(async () => {
@@ -75,9 +77,10 @@ const GeneratingStep = ({ formData, onComplete }: GeneratingStepProps) => {
         ? formData.customTopic 
         : getTopicLabel(formData.topic);
 
-      console.log("Starting story generation...", { 
+      console.log("[GeneratingStep] Starting story generation...", { 
         childName: formData.childName, 
-        topic: topicLabel 
+        topic: topicLabel,
+        attempt: retryCountRef.current + 1
       });
 
       // Create an AbortController for timeout handling
@@ -136,7 +139,7 @@ const GeneratingStep = ({ formData, onComplete }: GeneratingStepProps) => {
       }
 
       if (!data?.storyId) {
-        console.error("No storyId in response:", data);
+        console.error("[GeneratingStep] No storyId in response:", data);
         // Check if there's an error message in the response
         if (data?.error) {
           throw new Error(data.error);
@@ -144,26 +147,51 @@ const GeneratingStep = ({ formData, onComplete }: GeneratingStepProps) => {
         throw new Error("לא התקבל מזהה סיפור מהשרת");
       }
 
-      console.log("Story created successfully with ID:", data.storyId);
+      console.log("[GeneratingStep] Story created successfully with ID:", data.storyId);
       
-      // Navigate to story immediately - don't wait for illustrations
-      // The StoryViewer will show loading states for illustrations still generating
+      // Validate that story pages exist before navigating
+      const { data: pages, error: pagesError } = await supabase
+        .from("story_pages")
+        .select("id, text")
+        .eq("story_id", data.storyId)
+        .limit(1);
+      
+      if (pagesError || !pages || pages.length === 0 || !pages[0].text?.trim()) {
+        console.error("[GeneratingStep] Story created but no text pages found:", { pagesError, pages });
+        throw new Error("הסיפור נוצר אך ללא טקסט. מנסים שוב...");
+      }
+
+      console.log("[GeneratingStep] Verified story has text, navigating...");
       setProgress(100);
       setTimeout(() => onComplete(data.storyId), 800);
       
     } catch (err) {
-      console.error("Error generating story:", err);
+      console.error("[GeneratingStep] Error generating story:", err);
       
       // Extract meaningful error message
       let errorMessage = "שגיאה לא ידועה";
       if (err instanceof Error) {
         errorMessage = err.message;
-        // Clean up technical error messages
         if (errorMessage.includes("FunctionsHttpError")) {
           errorMessage = "שגיאה בשרת. נסו שוב מאוחר יותר.";
         } else if (errorMessage.includes("FunctionsRelayError")) {
           errorMessage = "בעיית תקשורת. בדקו את החיבור לאינטרנט.";
         }
+      }
+      
+      // Auto-retry up to MAX_RETRIES times
+      if (retryCountRef.current < MAX_RETRIES) {
+        retryCountRef.current += 1;
+        console.log(`[GeneratingStep] Auto-retrying (${retryCountRef.current}/${MAX_RETRIES})...`);
+        setProgress(0);
+        toast({
+          title: "מנסים שוב...",
+          description: `ניסיון ${retryCountRef.current + 1} ליצירת הסיפור`,
+        });
+        // Small delay before retry
+        await new Promise(resolve => setTimeout(resolve, 1500));
+        generateStory();
+        return;
       }
       
       setError(`אירעה שגיאה ביצירת הסיפור: ${errorMessage}`);
@@ -214,6 +242,7 @@ const GeneratingStep = ({ formData, onComplete }: GeneratingStepProps) => {
   const handleRetry = () => {
     setError(null);
     setProgress(0);
+    retryCountRef.current = 0;
     hasStartedRef.current = false;
     generateStory();
   };
