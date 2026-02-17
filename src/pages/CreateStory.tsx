@@ -64,6 +64,14 @@ const CreateStory = () => {
   const [formData, setFormData] = useState<StoryFormData>(INITIAL_DATA);
   const [isGenerating, setIsGenerating] = useState(false);
 
+  const handleStoryGenerated = useCallback(async (storyId: string) => {
+    await useCredit();
+    // Mark that a story was just created so the PDF popup shows
+    sessionStorage.setItem("just_created_story", "true");
+    // Always navigate to story reader first - let them enjoy the story
+    navigate(`/story/${storyId}`);
+  }, [useCredit, navigate]);
+
   useEffect(() => {
     // 🔧 DEV MODE: Skip all auth checks
     if (isDevModeEnabled()) {
@@ -129,14 +137,6 @@ const CreateStory = () => {
       setStep(step - 1);
     }
   };
-
-  const handleStoryGenerated = useCallback(async (storyId: string) => {
-    await useCredit();
-    // Mark that a story was just created so the PDF popup shows
-    sessionStorage.setItem("just_created_story", "true");
-    // Always navigate to story reader first - let them enjoy the story
-    navigate(`/story/${storyId}`);
-  }, [useCredit, navigate]);
 
   // Step 3 - Full screen generating, no header/footer
   if (step === 3) {
