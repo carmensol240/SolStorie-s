@@ -59,3 +59,40 @@
   right: 0;
   border-radius: 0 2px 2px 0;
 }
+
+/* ==========================================
+   Shimmer loading effect for illustrations
+   ========================================== */
+@keyframes shimmer {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+
+.shimmer-loading {
+  background: linear-gradient(90deg, #F3E8FF 25%, #FCE7F3 50%, #F3E8FF 75%);
+  background-size: 200% 100%;
+  animation: shimmer 2s infinite ease-in-out;
+}
+
+/* ==========================================
+   Dot page indicator
+   ========================================== */
+.dot-indicator {
+  display: flex;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 0.75rem 0;
+}
+
+.dot-indicator .dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 9999px;
+  background-color: #D1D5DB;
+  transition: all 0.3s ease;
+}
+
+.dot-indicator .dot.active {
+  width: 12px;
+  background-color: #A855F7;
+}
