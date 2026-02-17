@@ -179,15 +179,15 @@ const StoryListItem = ({
           </AlertDialogHeader>
           <AlertDialogFooter className="gap-2 sm:gap-0">
             <AlertDialogCancel>ביטול</AlertDialogCancel>
-            <Button
-              variant="destructive"
+            <AlertDialogAction
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
               onClick={async () => {
                 await onDelete(id);
                 setShowDeleteDialog(false);
               }}
             >
               מחק
-            </Button>
+            </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
