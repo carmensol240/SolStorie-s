@@ -1,6 +1,6 @@
 import React from "react";
 import { cn } from "@/lib/utils";
-import { BookOpen } from "lucide-react";
+import { Palette } from "lucide-react";
 import { SignedImage } from "@/components/ui/signed-image";
 
 interface BookPageProps {
@@ -50,15 +50,11 @@ export const BookPage: React.FC<BookPageProps> = ({
           </div>
         ) : (
           <div className="relative w-full max-w-md mx-auto">
-            <div className="rounded-lg border-4 border-dashed border-[#D4A574]/50 aspect-[4/5] flex items-center justify-center bg-[#F5E6D3]/50">
-              {isLoading ? (
-                <div className="animate-spin rounded-full h-12 w-12 border-4 border-primary border-t-transparent" />
-              ) : (
-                <div className="text-center text-[#A08060]">
-                  <BookOpen className="w-16 h-16 mx-auto mb-2 opacity-40" />
-                  <p className="text-sm">איור בהכנה...</p>
-                </div>
-              )}
+            <div className="rounded-lg border-4 border-[#E8D5C4] aspect-[4/5] flex items-center justify-center bg-gradient-to-br from-[#F5E6D3] to-[#EAD5BE] animate-pulse overflow-hidden">
+              <div className="text-center text-[#A08060]">
+                <Palette className="w-14 h-14 mx-auto mb-3 opacity-30" />
+                <p className="text-sm font-medium opacity-50">סול מציירת...</p>
+              </div>
             </div>
           </div>
         )}
