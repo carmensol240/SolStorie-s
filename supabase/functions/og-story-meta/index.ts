@@ -33,6 +33,7 @@ serve(async (req) => {
     }
 
     const siteOrigin = "https://soulstory.co.il";
+    const defaultOgImage = "https://qvdwmkxviaqcgmjotsxe.supabase.co/storage/v1/object/public/topic-images/cast-group-forest.png";
 
     const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
     const supabaseServiceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
@@ -65,9 +66,9 @@ serve(async (req) => {
     }
 
     const slug = story.slug || story.id;
-    const title = `הסיפור של ${story.child_name} ב-SolStorie's™`;
-    const description = `בואו לקרוא סיפור קסום ומעצים שיצרנו בעולמה הקסום של סול!`;
-    const imageUrl = story.cover_url || `${siteOrigin}/favicon.png`;
+    const title = "סיפור חדש ומעצים מבית SolStorie's™";
+    const description = "הצטרפו לסול, בן והחברים להרפתקה של צמיחה ואומץ בעולם הקסום שלנו.";
+    const imageUrl = story.cover_url || defaultOgImage;
     const shareUrl = `${siteOrigin}/story/${slug}`;
     const viewUrl = `${siteOrigin}/story/${slug}`;
 
