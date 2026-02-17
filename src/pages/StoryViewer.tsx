@@ -630,13 +630,13 @@ const StoryViewer = () => {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-gradient-to-b from-[#FAF3E8] to-[#F5E6D3] flex items-center justify-center" dir="rtl">
+      <div className="min-h-screen bg-gradient-to-b from-purple-50 via-pink-50 to-orange-50 flex items-center justify-center" dir="rtl">
         <div className="text-center space-y-4">
           <div className="relative w-20 h-20 mx-auto">
-            <div className="absolute inset-0 border-4 border-[#8B5A2B] border-t-transparent rounded-full animate-spin" />
-            <BookOpen className="absolute inset-0 m-auto w-8 h-8 text-[#8B5A2B]" />
+            <div className="absolute inset-0 border-4 border-purple-500 border-t-transparent rounded-full animate-spin" />
+            <BookOpen className="absolute inset-0 m-auto w-8 h-8 text-purple-600" />
           </div>
-          <p className="text-[#5D3A1A] font-bold text-lg">פותחים את הספר...</p>
+          <p className="text-purple-700 font-bold text-lg">פותחים את הספר...</p>
         </div>
       </div>
     );
@@ -645,16 +645,16 @@ const StoryViewer = () => {
   // Show special loading state when illustrations are being generated
   if (generationStatus === 'generating_illustrations' && !userStartedReading && story) {
     return (
-      <div className="min-h-screen bg-gradient-to-b from-[#FAF3E8] to-[#F5E6D3] flex flex-col items-center justify-center p-6" dir="rtl">
+      <div className="min-h-screen bg-gradient-to-b from-purple-50 via-pink-50 to-orange-50 flex flex-col items-center justify-center p-6" dir="rtl">
         <div className="text-center space-y-8 max-w-md mx-auto">
           {/* Animated Icon */}
           <div className="relative">
-            <div className="w-28 h-28 bg-gradient-to-br from-[#D4A574]/20 via-[#C4956A]/20 to-[#8B5A2B]/20 rounded-full flex items-center justify-center shadow-lg mx-auto">
+            <div className="w-28 h-28 bg-gradient-to-br from-purple-500/20 via-pink-500/20 to-orange-400/20 rounded-full flex items-center justify-center shadow-lg mx-auto">
               <div className="relative">
-                <Palette className="w-12 h-12 text-[#C4956A] animate-bounce" />
+                <Palette className="w-12 h-12 text-purple-500 animate-bounce" />
                 <Wand2 
-                  className="absolute -top-2 -right-4 w-8 h-8 text-[#8B5A2B] animate-wiggle"
-                  style={{ filter: 'drop-shadow(0 0 4px rgba(139, 90, 43, 0.5))' }}
+                  className="absolute -top-2 -right-4 w-8 h-8 text-purple-600 animate-wiggle"
+                  style={{ filter: 'drop-shadow(0 0 4px rgba(168, 85, 247, 0.5))' }}
                 />
               </div>
             </div>
@@ -678,23 +678,23 @@ const StoryViewer = () => {
 
           {/* Title */}
           <div className="space-y-2">
-            <h2 className="text-2xl font-bold text-[#5D3A1A]">
+            <h2 className="text-2xl font-bold bg-gradient-to-r from-purple-600 via-pink-500 to-orange-400 bg-clip-text text-transparent">
               מציירים את האיורים...
             </h2>
-            <p className="text-[#6B4423]/70">
+            <p className="text-purple-700/70">
               הסיפור של {story.child_name} כבר מוכן!
             </p>
           </div>
 
           {/* Progress Bar */}
           <div className="w-full max-w-xs mx-auto space-y-2">
-            <div className="relative h-3 w-full overflow-hidden rounded-full bg-[#E8D5C4]">
+            <div className="relative h-3 w-full overflow-hidden rounded-full bg-purple-100">
               <div 
-                className="h-full bg-gradient-to-r from-[#8B5A2B] via-[#C4956A] to-[#D4A574] transition-all duration-500"
+                className="h-full bg-gradient-to-r from-purple-600 via-pink-500 to-orange-400 transition-all duration-500"
                 style={{ width: `${illustrationProgress}%` }}
               />
             </div>
-            <p className="text-sm text-[#5D3A1A] font-medium">
+            <p className="text-sm text-purple-600 font-medium">
               {illustrationProgress}% מהאיורים מוכנים
             </p>
           </div>
@@ -704,7 +704,7 @@ const StoryViewer = () => {
             <Button
               size="lg"
               onClick={() => { setUserStartedReading(true); setCurrentPage(-1); }}
-              className="bg-gradient-to-r from-[#8B5A2B] to-[#C4956A] hover:from-[#6B4423] hover:to-[#A67B5B] text-white font-bold px-8 py-6 text-lg rounded-full shadow-xl"
+              className="bg-gradient-to-r from-purple-600 to-pink-500 hover:from-purple-700 hover:to-pink-600 text-white font-bold px-8 py-6 text-lg rounded-full shadow-xl"
             >
               <BookOpen className="w-5 h-5 ml-2" />
               התחילו לקרוא עכשיו!
@@ -712,9 +712,9 @@ const StoryViewer = () => {
           </div>
 
           {/* Tip */}
-          <div className="bg-white/80 backdrop-blur-sm rounded-xl p-4 shadow-md border border-[#D4C4B0] max-w-xs mx-auto mt-6">
-            <p className="text-sm text-[#5D3A1A]">
-              💡 <strong className="text-[#3D2914]">טיפ:</strong> זה זמן מעולה להתכרבל יחד. הסיפור כבר מחכה לכם בפנים! (האיורים ימשיכו להיטען אוטומטית)
+          <div className="bg-white/80 backdrop-blur-sm rounded-xl p-4 shadow-md border border-purple-100 max-w-xs mx-auto mt-6">
+            <p className="text-sm text-purple-700">
+              💡 <strong className="text-purple-900">טיפ:</strong> זה זמן מעולה להתכרבל יחד. הסיפור כבר מחכה לכם בפנים! (האיורים ימשיכו להיטען אוטומטית)
             </p>
           </div>
         </div>
@@ -724,10 +724,10 @@ const StoryViewer = () => {
 
   if (!story || story.pages.length === 0) {
     return (
-      <div className="min-h-screen bg-gradient-to-b from-[#FAF3E8] to-[#F5E6D3] flex items-center justify-center">
+      <div className="min-h-screen bg-gradient-to-b from-purple-50 via-pink-50 to-orange-50 flex items-center justify-center">
         <div className="text-center space-y-4">
-          <p className="text-xl font-bold text-[#5D3A1A]">הסיפור לא נמצא</p>
-          <Button onClick={() => navigate("/")} className="bg-gradient-to-r from-[#8B5A2B] to-[#C4956A] hover:from-[#6B4423] hover:to-[#A67B5B]">
+          <p className="text-xl font-bold text-purple-700">הסיפור לא נמצא</p>
+          <Button onClick={() => navigate("/")} className="bg-gradient-to-r from-purple-600 to-pink-500 hover:from-purple-700 hover:to-pink-600">
             <Home className="w-4 h-4 ml-2" />
             חזרה לדף הבית
           </Button>
@@ -788,7 +788,7 @@ const StoryViewer = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-[#FFFBF5] to-[#FAF3E8] flex flex-col" dir="rtl">
+    <div className="min-h-screen bg-gradient-to-b from-purple-50 via-pink-50 to-orange-50 flex flex-col" dir="rtl">
       <OfflineIndicator isOnline={isOnline} />
       
       {/* Header */}
@@ -916,15 +916,15 @@ const StoryViewer = () => {
                     <h1 className="text-4xl md:text-5xl lg:text-6xl font-black text-[#3D2914] leading-tight" style={{ fontFamily: "'Heebo', 'Comic Sans MS', cursive, sans-serif" }}>
                       הסיפור של
                       <br />
-                      <span className="text-5xl md:text-6xl lg:text-7xl bg-gradient-to-r from-[#8B5A2B] via-[#C4956A] to-[#D4A574] bg-clip-text text-transparent">
+                      <span className="text-5xl md:text-6xl lg:text-7xl bg-gradient-to-r from-purple-600 via-pink-500 to-orange-400 bg-clip-text text-transparent">
                         {story.child_name}
                       </span>
                     </h1>
                     
                     <div className="flex items-center justify-center gap-3">
-                      <div className="w-16 h-1 bg-gradient-to-r from-transparent to-[#D4A574] rounded-full" />
+                      <div className="w-16 h-1 bg-gradient-to-r from-transparent to-pink-400 rounded-full" />
                       <span className="text-2xl">✨</span>
-                      <div className="w-16 h-1 bg-gradient-to-l from-transparent to-[#D4A574] rounded-full" />
+                      <div className="w-16 h-1 bg-gradient-to-l from-transparent to-pink-400 rounded-full" />
                     </div>
                     
                     <p className="text-lg md:text-xl text-[#6B4423] max-w-xs mx-auto font-medium">
@@ -935,7 +935,7 @@ const StoryViewer = () => {
                   <Button 
                     size="lg"
                     onClick={() => handleSpreadChange('next')}
-                    className="mt-10 bg-gradient-to-r from-[#8B5A2B] to-[#C4956A] hover:from-[#6B4423] hover:to-[#A67B5B] text-white font-bold px-10 py-7 text-xl rounded-full shadow-xl hover:shadow-2xl transition-all transform hover:scale-105 border-2 border-white/50"
+                    className="mt-10 bg-gradient-to-r from-purple-600 to-pink-500 hover:from-purple-700 hover:to-pink-600 text-white font-bold px-10 py-7 text-xl rounded-full shadow-xl hover:shadow-2xl transition-all transform hover:scale-105 border-2 border-white/50"
                   >
                     <BookOpen className="w-6 h-6 ml-3" />
                     פתח את הספר 📖
@@ -959,13 +959,13 @@ const StoryViewer = () => {
                 )}
                 
                 <div className="space-y-4">
-                  <p className="text-3xl md:text-4xl font-bold text-[#5D3A1A]">
+                  <p className="text-3xl md:text-4xl font-bold text-purple-800">
                     ✦ סוף ✦
                   </p>
-                  <p className="text-xl text-[#6B4423]">
+                  <p className="text-xl text-purple-600">
                     תודה שקראתם!
                   </p>
-                  <p className="text-base text-[#8B5A2B]">
+                  <p className="text-base text-purple-500">
                     הסיפור של {story.child_name}
                   </p>
                 </div>
@@ -975,7 +975,7 @@ const StoryViewer = () => {
                     variant="outline"
                     size="lg"
                     onClick={() => setCurrentPage(-1)}
-                    className="border-2 border-[#8B5A2B] text-[#5D3A1A] hover:bg-[#FAF3E8] px-6 py-5 rounded-full"
+                    className="border-2 border-purple-400 text-purple-700 hover:bg-purple-50 px-6 py-5 rounded-full"
                   >
                     <span className="ml-2"><BookOpen className="w-5 h-5" /></span>
                     קרא שוב
@@ -983,7 +983,7 @@ const StoryViewer = () => {
                   <Button 
                     size="lg"
                     onClick={() => navigate('/library')}
-                    className="bg-gradient-to-r from-[#8B5A2B] to-[#C4956A] hover:from-[#6B4423] hover:to-[#A67B5B] text-white px-6 py-5 rounded-full"
+                    className="bg-gradient-to-r from-purple-600 to-pink-500 hover:from-purple-700 hover:to-pink-600 text-white px-6 py-5 rounded-full"
                   >
                     <span className="ml-2"><Home className="w-5 h-5" /></span>
                     לספרייה
@@ -992,8 +992,8 @@ const StoryViewer = () => {
 
                 {/* Feedback Box */}
                 {!endFeedbackSent ? (
-                  <div className="w-full max-w-sm bg-white rounded-xl p-5 shadow-lg border border-[#D4C4B0] space-y-3 mt-8" dir="rtl">
-                    <h3 className="text-center text-base font-bold text-[#5D3A1A]">
+                  <div className="w-full max-w-sm bg-white rounded-xl p-5 shadow-lg border border-purple-100 space-y-3 mt-8" dir="rtl">
+                    <h3 className="text-center text-base font-bold text-purple-800">
                       ✨ שתפו אותנו בקסם שלכם
                     </h3>
                     <div className="flex justify-center gap-1">
@@ -1006,7 +1006,7 @@ const StoryViewer = () => {
                           className="p-1 transition-transform hover:scale-110"
                           aria-label={`דירוג ${s} כוכבים`}
                         >
-                          <Star className={`w-8 h-8 ${s <= (endFeedbackHover || endFeedbackRating) ? 'fill-amber-400 text-amber-400' : 'text-[#D4C4B0]'} transition-colors`} />
+                          <Star className={`w-8 h-8 ${s <= (endFeedbackHover || endFeedbackRating) ? 'fill-amber-400 text-amber-400' : 'text-purple-200'} transition-colors`} />
                         </button>
                       ))}
                     </div>
@@ -1021,16 +1021,16 @@ const StoryViewer = () => {
                       onClick={handleEndFeedbackSubmit}
                       disabled={endFeedbackRating === 0 || endFeedbackSending}
                       size="sm"
-                      className="w-full gap-1.5 bg-gradient-to-r from-[#8B5A2B] to-[#C4956A] hover:from-[#6B4423] hover:to-[#A67B5B]"
+                      className="w-full gap-1.5 bg-gradient-to-r from-purple-600 to-pink-500 hover:from-purple-700 hover:to-pink-600"
                     >
                       <Send className="w-3.5 h-3.5" />
                       {endFeedbackSending ? "שולח..." : "שליחה"}
                     </Button>
                   </div>
                 ) : (
-                  <div className="w-full max-w-sm bg-gradient-to-r from-[#FAF3E8] to-[#F5E6D3] rounded-xl p-4 shadow-lg border border-[#D4C4B0] text-center mt-8" dir="rtl">
-                    <p className="text-lg font-bold text-[#5D3A1A]">תודה רבה! 💛</p>
-                    <p className="text-sm text-[#6B4423] mt-1">המשוב שלכם עוזר לנו ליצור סיפורים טובים יותר</p>
+                  <div className="w-full max-w-sm bg-gradient-to-r from-purple-50 to-pink-50 rounded-xl p-4 shadow-lg border border-purple-100 text-center mt-8" dir="rtl">
+                    <p className="text-lg font-bold text-purple-800">תודה רבה! 💛</p>
+                    <p className="text-sm text-purple-600 mt-1">המשוב שלכם עוזר לנו ליצור סיפורים טובים יותר</p>
                   </div>
                 )}
 
@@ -1038,7 +1038,7 @@ const StoryViewer = () => {
                   variant="link"
                   size="sm"
                   onClick={() => setShowGenderSwapDialog(true)}
-                  className="mt-4 text-[#8B5A2B] hover:text-[#5D3A1A] text-sm"
+                  className="mt-4 text-purple-500 hover:text-purple-700 text-sm"
                 >
                   <span className="ml-1"><RefreshCw className="w-4 h-4" /></span>
                   התבלבלתם במגדר? לחצו לתיקון מהיר
@@ -1218,7 +1218,7 @@ const StoryViewer = () => {
           <div className="flex flex-col gap-3 py-4">
             <Button 
               variant="outline" 
-              className="h-20 flex flex-col gap-1 border-2 hover:border-[#8B5A2B] hover:bg-[#8B5A2B]/5"
+              className="h-20 flex flex-col gap-1 border-2 hover:border-purple-400 hover:bg-purple-50"
               onClick={() => {
                 setShowPdfFormatDialog(false);
                 story && exportToPdf(story, 'portrait');
@@ -1231,7 +1231,7 @@ const StoryViewer = () => {
             
             <Button 
               variant="outline" 
-              className="h-20 flex flex-col gap-1 border-2 hover:border-[#8B5A2B] hover:bg-[#8B5A2B]/5"
+              className="h-20 flex flex-col gap-1 border-2 hover:border-purple-400 hover:bg-purple-50"
               onClick={() => {
                 setShowPdfFormatDialog(false);
                 story && exportToPdf(story, 'landscape-book');
