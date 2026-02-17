@@ -93,10 +93,17 @@ const TOPIC_HEBREW_MAP: Record<string, string> = {
   'toothbrush': 'מברשת שיניים',
   'magic-keys': 'מפתחות קסומים',
   'educational-toolbox': 'ארגז כלים חינוכי',
+  'holidays-seasons-edu': 'חגים ועונות',
+  'sharing-fun': 'שיתוף וכיף',
+  'we-are-superheroes': 'כולנו גיבורי על',
 };
 
 const translateTopic = (topic: string): string => {
-  return TOPIC_HEBREW_MAP[topic] || topic;
+  if (TOPIC_HEBREW_MAP[topic]) return TOPIC_HEBREW_MAP[topic];
+  // If topic contains only Hebrew characters, return as-is
+  if (/[\u0590-\u05FF]/.test(topic)) return topic;
+  // Fallback: replace hyphens with spaces
+  return topic.replace(/-/g, ' ');
 };
 
 const Library = () => {
@@ -325,8 +332,8 @@ const Library = () => {
             </div>
             {/* Right: Title */}
             <h1 className="text-xl font-black flex items-center gap-2">
-              <span className="bg-gradient-to-r from-purple-600 via-pink-500 to-orange-400 bg-clip-text text-transparent">הספרייה הקסומה שלי</span>
-              <Wand2 className="w-5 h-5 text-purple-500 animate-wiggle" />
+              <span className="bg-gradient-to-r from-[#8B5A2B] via-[#C4956A] to-[#D4A574] bg-clip-text text-transparent">הספרייה הקסומה שלי</span>
+              <Wand2 className="w-5 h-5 text-[#C4956A] animate-wiggle" />
             </h1>
           </div>
         </div>
@@ -442,7 +449,7 @@ const EmptyState = ({ onCreateClick }: { onCreateClick: () => void }) => (
         <img 
           src={libraryEmptyState} 
           alt="ילד קורא בטאבלט" 
-          className="w-48 h-48 rounded-2xl object-cover border-2 border-purple-300"
+          className="w-48 h-48 rounded-2xl object-cover border-2 border-[#D4A574]"
         />
       </div>
       {/* Reflection */}
@@ -470,7 +477,7 @@ const EmptyState = ({ onCreateClick }: { onCreateClick: () => void }) => (
     <Button
       onClick={onCreateClick}
       size="lg"
-      className="bg-gradient-to-r from-purple-600 via-pink-500 to-orange-400 hover:from-purple-700 hover:via-pink-600 hover:to-orange-500 text-white font-bold px-8 py-6 rounded-2xl shadow-lg"
+      className="bg-gradient-to-r from-[#8B5A2B] to-[#C4956A] hover:from-[#6B4423] hover:to-[#A67B5B] text-white font-bold px-8 py-6 rounded-2xl shadow-lg"
     >
       <Plus className="w-5 h-5 ml-2" />
       צרו סיפור חדש

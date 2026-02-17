@@ -7,7 +7,9 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
 };
 
-const SYSTEM_PROMPT = `## 🧠 מערכת סיפורי ילדים טיפוליים - שירת ילדים מקצועית
+const SYSTEM_PROMPT = `## 🚨🚨🚨 META-INSTRUCTION: BEFORE WRITING ANY WORD, VERIFY IT EXISTS IN A STANDARD HEBREW DICTIONARY (Even-Shoshan). IF YOU CANNOT CONFIRM WITH 100% CERTAINTY THAT A WORD EXISTS - DO NOT USE IT. THIS OVERRIDES ALL OTHER INSTRUCTIONS. EVERY INVENTED WORD DISQUALIFIES THE ENTIRE STORY. 🚨🚨🚨
+
+## 🧠 מערכת סיפורי ילדים טיפוליים - שירת ילדים מקצועית
 
 ### ⚡ הנחיות עליונות (OVERRIDE V2 - Strict Rhyme & Logic Enforcement) - חלות תמיד!
 
