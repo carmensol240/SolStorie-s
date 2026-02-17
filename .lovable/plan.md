@@ -1,76 +1,139 @@
 
-# תיקונים דחופים וסופיים בספריית הסיפורים
+
+# שדרוג מסך קריאת הסיפור - חוויית ספר ילדים קסום
 
 ## סקירה
-ארבעה תיקונים שמונעים את השקת האפליקציה: תפריט אפשרויות מוסתר, פס סגול בתצוגת סיפור, תרגום נושאים חסרים, וחיזוק נוסף נגד מילים מומצאות.
+עיצוב מחדש של מסך הקריאה (StoryViewer) כך שירגיש כמו ספר ילדים אימרסיבי: איור גדול למעלה עם מעבר רך לטקסט, ניווט בהחלקה בלבד עם אינדיקטור נקודות, אפקט שימר בזמן טעינה, וטיפוגרפיה מותאמת לילדים.
 
 ---
 
-## 1. תיקון תפריט האפשרויות (Dropdown מוסתר)
+## 1. מבנה עוטף (Immersive Layout)
 
-**הבעיה:** תפריט שלוש הנקודות ב-StoryListItem נפתח כלפי מטה ומוסתר מתחת לסרגל הניווט התחתון (MobileNavigation).
+**מצב נוכחי:** פריסת "ספר פתוח" - איור בצד ימין, טקסט בצד שמאל (דסקטופ), או איור למעלה וטקסט למטה (מובייל) עם הפרדה ברורה.
 
-**הפתרון:** הוספת `side="top"` ל-`DropdownMenuContent` כך שהתפריט ייפתח כלפי מעלה, מעל הפריט. בנוסף הוספת `className="z-[110]"` כדי שיהיה מעל סרגל הניווט (z-100).
+**שינוי:** מעבר לפריסה אנכית אחידה בכל המכשירים:
+- האיור תופס כ-60% מגובה המסך הנראה, מוצג edge-to-edge (ללא מסגרת/border)
+- מתחת לאיור, gradient fade שקוף-לקרם שיוצר מעבר רך
+- הטקסט מופיע על רקע קרם חם (`#FFFBF5`) מתחת לגרדיאנט
+- הסרת מסגרת הספר (BookFrame) והחלפתה בקונטיינר פשוט ונקי
+- כל "עמוד" (spread) מוצג כמסך מלא עם גלילה אנכית אם הטקסט ארוך
 
-**קובץ:** `src/components/ui/story-list-item.tsx` (שורה 139)
-
----
-
-## 2. הסרת הפס/רקע הסגול מתצוגת הסיפור
-
-**הבעיה:** ב-StoryViewer, הרקע הראשי של הדף עדיין מכיל גרדיאנט סגול-ורוד-כתום (`from-purple-50 via-pink-50 to-orange-50`). בנוסף, יש אלמנטים רבים עם צבעי סגול בדף - כותרות, סרגל התקדמות, כפתורים, ועוד.
-
-**הפתרון:** 
-- שינוי הרקע הראשי של StoryViewer מ-`from-purple-50 via-pink-50 to-orange-50` לגווני אדמה חמים (`from-[#FFFBF5] to-[#FAF3E8]`)
-- החלפת כל אזכורי `purple` ו-`pink` בדף (ספינר טעינה, כותרות, סרגל התקדמות, כפתורים) לגווני אדמה חמים תואמים
-- BookHeader כבר תוקן בגרסה הקודמת ולא דורש שינוי
-
-**קובץ:** `src/pages/StoryViewer.tsx`
+**קבצים:** `src/pages/StoryViewer.tsx`
 
 ---
 
-## 3. תרגום נושאים חסרים
+## 2. ניווט ללא חיצים
 
-**הבעיה:** מפת התרגום (`TOPIC_HEBREW_MAP`) כבר קיימת ב-Library.tsx, אך ייתכן שחסרים כמה ערכים. בנוסף, יש לוודא שאין באנגלית slugs שלא מכוסים.
+**מצב נוכחי:** חיצי ניווט צפים בצדדים (NavigationArrows) + swipe כבר פעיל.
 
-**הפתרון:** בדיקת בסיס הנתונים לאיתור slugs חסרים והוספתם למפה. כמו כן, שיפור הפונקציה `translateTopic` כך שתחליף גם מקפים ברווחים כ-fallback אם ה-slug לא נמצא במפה.
+**שינוי:**
+- הסרת רכיב `NavigationArrows` מתוך ה-render של StoryViewer
+- ה-swipe כבר מיושם (useSwipe hook) - יישאר כמו שהוא
+- הוספת אינדיקטור נקודות (dots) בתחתית המסך שמראה את המיקום הנוכחי
+- הנקודות יהיו עדינות (6px, אפור בהיר, הנוכחית סגולה) עם מעבר חלק
 
-**קובץ:** `src/pages/Library.tsx`
+**קבצים:** `src/pages/StoryViewer.tsx`
 
 ---
 
-## 4. חיזוק נוסף נגד מילים מומצאות
+## 3. חוויית טעינה משופרת (Shimmer)
 
-**הבעיה:** למרות שהפרומפט כבר מכיל הנחיות חזקות, עדיין מופיעות מילים מומצאות.
+**מצב נוכחי:** כשאין איור, מוצג רכיב MissingIllustrationPrompt עם אייקון פלטה.
 
-**הפתרון:** הוספת הנחיה חדשה בראש ה-system prompt (לפני כל שאר ההנחיות) כ-"meta-instruction" שמדגישה: "לפני כתיבת כל מילה, בדוק האם היא מופיעה במילון אבן-שושן. אם לא - אסור להשתמש בה." בנוסף, הרחבת רשימת הדוגמאות למילים אסורות.
+**שינוי:**
+- כשהאיור עדיין נטען (illustration_url קיים אבל התמונה לא הגיעה), הצגת shimmer effect על רקע פסטלי
+- יצירת אנימציית shimmer ב-CSS (gradient נע משמאל לימין)
+- ה-preloading כבר קיים במערכת (שורות 147-156) ויישאר כמו שהוא
+- הוספת state לזיהוי מתי תמונה סיימה להיטען (onLoad callback)
 
-**קובץ:** `supabase/functions/generate-story/index.ts`
+**קבצים:** `src/pages/StoryViewer.tsx`, `src/pages/StoryViewer.css`
+
+---
+
+## 4. טיפוגרפיה לילדים
+
+**מצב נוכחי:** שלוש רמות גודל - קטן (text-lg), בינוני (text-xl), גדול (text-2xl).
+
+**שינוי:**
+- הגדלת כל הרמות: קטן -> `text-xl md:text-2xl`, בינוני -> `text-2xl md:text-3xl`, גדול -> `text-3xl md:text-4xl`
+- ברירת מחדל תהיה הגודל הגדול (index 2 במקום 1)
+- הגדלת line-height ל-2.0 (כפול) לנוחות קריאה מרבית
+- שמירה על גופן Heebo הקיים
+
+**קבצים:** `src/pages/StoryViewer.tsx`
 
 ---
 
 ## פרטים טכניים
 
-### story-list-item.tsx - תפריט
-- שורה 139: שינוי `<DropdownMenuContent align="end" className="min-w-[180px]">` ל-`<DropdownMenuContent align="end" side="top" className="min-w-[180px] z-[110]">`
+### StoryViewer.tsx - שינויים עיקריים
 
-### StoryViewer.tsx - הסרת סגול
-- שורה 791: שינוי `bg-gradient-to-b from-purple-50 via-pink-50 to-orange-50` ל-`bg-gradient-to-b from-[#FFFBF5] to-[#FAF3E8]`
-- שורות 634-640: שינוי ספינר הטעינה מ-`border-purple-500` ל-`border-[#8B5A2B]`, ו-`text-purple-600` ל-`text-[#8B5A2B]`
-- שורות 650-720: שינוי כל ה-purple references במסך generating_illustrations לגווני אדמה
-- שורה 727-731: שינוי מסך "הסיפור לא נמצא" מסגול לגווני אדמה
-- שורות 916-920: שינוי כותרת הסיפור מגרדיאנט סגול לגווני אדמה חמים
+**FONT_SIZES (שורות 64-68):**
+```text
+קטן: 'text-xl md:text-2xl'
+בינוני: 'text-2xl md:text-3xl'  
+גדול: 'text-3xl md:text-4xl'
+```
+ברירת מחדל: `fontSizeIndex = 2` (גדול)
 
-### Library.tsx - תרגום
-- שיפור `translateTopic` כך ש-fallback יחליף מקפים ברווחים ויעשה capitalize
-- בדיקה שכל ה-slugs הקיימים מכוסים
+**הסרת NavigationArrows (שורות 867-874):**
+הסרת הרכיב `<NavigationArrows />` מה-render.
 
-### generate-story/index.ts - פרומפט
-- הוספת meta-instruction חזקה בשורה 10 (לפני כל השאר)
-- הרחבת רשימת מילים אסורות
+**הסרת BookFrame (שורה 876, 1146):**
+החלפת `<BookFrame>` בקונטיינר פשוט עם transition opacity.
+
+**שינוי ה-Spread Layout (שורות 1047-1144):**
+במקום `flex-row-reverse` (דסקטופ) או `flex-col` (מובייל), תמיד `flex-col`:
+
+```text
+- איור: w-full, min-h-[55vh], object-cover, edge-to-edge (ללא border/rounded)
+- Gradient overlay: absolute bottom של האיור, h-24, from-transparent to-[#FFFBF5]
+- טקסט: padding נדיב, רקע קרם, line-height: 2.0
+```
+
+**הוספת Dot Indicator:**
+אחרי ה-main, שורה של נקודות:
+```text
+<div className="flex justify-center gap-2 py-4">
+  {spreads.map((_, i) => (
+    <div className={cn("w-2 h-2 rounded-full transition-all",
+      i === currentPage ? "bg-purple-500 w-3" : "bg-gray-300"
+    )} />
+  ))}
+  // + נקודה ל-cover (-1) ו-end page
+</div>
+```
+
+**Shimmer Effect (כשאין איור עדיין):**
+רקע פסטלי עם אנימציית shimmer במקום MissingIllustrationPrompt (כשה-status הוא generating_illustrations). כשהסטטוס ready ואין איור - עדיין להציג את MissingIllustrationPrompt.
+
+### StoryViewer.css - הוספת shimmer
+
+```text
+@keyframes shimmer {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+.shimmer-loading {
+  background: linear-gradient(90deg, #F3E8FF 25%, #FCE7F3 50%, #F3E8FF 75%);
+  background-size: 200% 100%;
+  animation: shimmer 2s infinite ease-in-out;
+}
+```
 
 ### קבצים שישתנו
-- `src/components/ui/story-list-item.tsx`
-- `src/pages/StoryViewer.tsx`
-- `src/pages/Library.tsx`
-- `supabase/functions/generate-story/index.ts`
+- `src/pages/StoryViewer.tsx` - שינוי עיקרי: layout, ניווט, טיפוגרפיה
+- `src/pages/StoryViewer.css` - הוספת shimmer animation
+
+### קבצים שלא ישתנו
+- `src/components/story/book-frame/BookHeader.tsx` - נשאר כמו שהוא
+- `src/components/story/book-frame/NavigationArrows.tsx` - לא נמחק, רק לא בשימוש
+- `src/hooks/use-swipe.ts` - נשאר כמו שהוא
+- `src/components/story/book-frame/BookFrame.tsx` - לא נמחק, רק לא בשימוש
+- FlipbookViewer, PublicStoryViewer - לא משתנים
+
+### הערות
+- ה-Cover page ודף הסיום (End page) יעוצבו בהתאמה לשפה העיצובית החדשה (ללא מסגרת, רקע קרם)
+- כל הפונקציונליות הקיימת (edit, nikud, share, PDF, feedback, TTS) נשמרת ללא שינוי
+- ה-swipe כבר מחובר ל-handlePageChange שמנווט בין spreads
+
