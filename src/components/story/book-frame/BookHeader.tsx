@@ -61,7 +61,7 @@ export const BookHeader: React.FC<BookHeaderProps> = ({
   showPageActions = false,
 }) => {
   return (
-    <header className="sticky top-0 z-40 bg-gradient-to-r from-purple-600 via-pink-500 to-orange-400 px-3 py-2 shadow-lg">
+    <header className="sticky top-0 z-40 bg-[#FAF3E8]/95 backdrop-blur-sm border-b border-[#D4C4B0] px-3 py-2 shadow-sm">
       <div className="flex items-center justify-between max-w-6xl mx-auto">
         {/* Back Button */}
         <Tooltip>
@@ -70,7 +70,7 @@ export const BookHeader: React.FC<BookHeaderProps> = ({
               variant="ghost"
               size="sm"
               onClick={onBack}
-              className="text-[#F5E6D3] hover:bg-white/10 min-h-[44px] min-w-[44px] p-2"
+              className="text-[#5D3A1A] hover:bg-[#D4A574]/20 min-h-[44px] min-w-[44px] p-2"
               aria-label="חזרה לספרייה"
             >
               <ArrowRight className="w-5 h-5" />
@@ -89,7 +89,7 @@ export const BookHeader: React.FC<BookHeaderProps> = ({
                 variant="ghost"
                 size="sm"
                 onClick={onToggleFontSize}
-                className="text-[#F5E6D3] hover:bg-white/10 min-h-[44px] min-w-[44px] p-2"
+                className="text-[#5D3A1A] hover:bg-[#D4A574]/20 min-h-[44px] min-w-[44px] p-2"
                 aria-label={`גודל טקסט: ${fontSizeLabel}`}
               >
                 <Type className="w-5 h-5" />
@@ -106,7 +106,7 @@ export const BookHeader: React.FC<BookHeaderProps> = ({
                 size="sm"
                 onClick={onDownload}
                 disabled={isExporting}
-                className="text-[#F5E6D3] hover:bg-white/10 min-h-[44px] min-w-[44px] p-2 disabled:opacity-50"
+                className="text-[#5D3A1A] hover:bg-[#D4A574]/20 min-h-[44px] min-w-[44px] p-2 disabled:opacity-50"
                 aria-label="הורדה או הדפסה"
               >
                 <FileDown className={cn("w-5 h-5", isExporting && "animate-pulse")} />
@@ -122,7 +122,7 @@ export const BookHeader: React.FC<BookHeaderProps> = ({
                 variant="ghost"
                 size="sm"
                 onClick={onShare}
-                className="text-[#F5E6D3] hover:bg-white/10 min-h-[44px] min-w-[44px] p-2"
+                className="text-[#5D3A1A] hover:bg-[#D4A574]/20 min-h-[44px] min-w-[44px] p-2"
                 aria-label="שתף סיפור"
               >
                 <Share2 className="w-5 h-5" />
@@ -139,7 +139,7 @@ export const BookHeader: React.FC<BookHeaderProps> = ({
                   <Button
                     variant="ghost"
                     size="sm"
-                    className="text-[#F5E6D3] hover:bg-white/10 min-h-[44px] min-w-[44px] p-2"
+                    className="text-[#5D3A1A] hover:bg-[#D4A574]/20 min-h-[44px] min-w-[44px] p-2"
                     aria-label="תפריט"
                   >
                     <Menu className="w-5 h-5" />
