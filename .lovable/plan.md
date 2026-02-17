@@ -1,31 +1,51 @@
 
 
-# תיקון Footer ב-PDF - עיצוב מקצועי עם צבע וקישור
+# אופטימיזציה ויזואלית - Skeleton Loading, Auto-Refresh, ועדכון טקסטים
 
-## מה ישתנה
+## סקירה
+שלושה שינויים עיקריים: (1) שדרוג תצוגת האיורים החסרים ל-Skeleton Loading יפה, (2) וידוא ש-Auto-Refresh של איורים עובד, (3) תיקון טקסטים כפולים במסך "generating_illustrations" ב-StoryViewer.
 
-הפונקציה `addWatermark` בקובץ `src/hooks/use-pdf-export.ts` תעודכן כך:
+---
 
-1. **טקסט חדש**: מ-"SolStorie's™ | כל הזכויות שמורות" ל-"SolStorie's™ | עולמה הקסום של סול"
-2. **צבע סגול מותגי**: המילה SolStorie's™ תוצג בסגול (#9333ea) ובמודגש (bold)
-3. **קישור לאתר**: מתחת לכותרת יופיע הקישור https://soulstory.co.il בצבע כחול, לחיץ ב-PDF
-4. **יישור RTL ומרכוז**: direction: rtl עם padding-bottom: 20px למניעת חיתוך
+## שינויים מתוכננים
+
+### 1. Skeleton Loading לאיורים (BookPage.tsx)
+החלפת הריבוע הריק עם קו מקווקו (dashed border) באנימציית Skeleton מעוצבת:
+- רקע מעומעם עם אנימציית pulse/shimmer
+- אייקון מצייר מעומעם במרכז (Palette) עם טקסט "סול מציירת..."
+- שמירה על אותו aspect-ratio (4/5) ועיצוב מסגרת
+
+### 2. Auto-Refresh של איורים (StoryViewer.tsx)
+המנגנון כבר קיים (pollForUpdates עם interval של 3 שניות). צריך לוודא שה-polling מתחיל גם כשהמשתמש לוחץ "התחילו לקרוא עכשיו" ולא רק במצב generating_illustrations. כרגע כשלוחצים על הכפתור, ה-state עובר ל-ready וה-polling נעצר. נתקן כך שה-polling ימשיך ברקע גם לאחר מעבר לקריאה, עד שכל האיורים מוכנים.
+
+### 3. תיקון טקסטים במסך generating_illustrations (StoryViewer.tsx, שורות 700-724)
+- **הסרה**: השורה "האיורים יופיעו בזמן שתקראו" (שורה 711-713)
+- **עדכון תיבת הטיפ**: החלפת הטקסט הקיים בטקסט החדש: "טיפ: זה זמן מעולה להתכרבל יחד. הסיפור כבר מחכה לכם בפנים! (האיורים ימשיכו להיטען אוטומטית)"
+- שמירה על מרווח מאוורר בין הכפתור לתיבת הטיפ
+
+---
 
 ## פרטים טכניים
 
-### קובץ: `src/hooks/use-pdf-export.ts`
-שינוי הפונקציה `addWatermark` (שורות 74-85):
+### BookPage.tsx - Skeleton Loading
+החלפת הבלוק ב-else (שורות 52-63) שמציג border-dashed + BookOpen/spinner:
+- אנימציית shimmer עם gradient נע (animate-pulse של Tailwind)
+- רקע בגוון חם (#F5E6D3) עם gradient מעומעם
+- אייקון Palette במרכז עם opacity נמוך
+- טקסט "סול מציירת..." מתחת לאייקון
 
-- שימוש ב-`pdf.setFont("Helvetica", "bold")` + `pdf.setTextColor(147, 51, 234)` (סגול מותגי) לכתיבת "SolStorie's™"
-- חזרה לפונט רגיל + צבע אפור לכתיבת "| עולמה הקסום של סול"
-- הוספת שורת קישור עם `pdf.textWithLink()` בצבע כחול (#2563eb) לכתובת https://soulstory.co.il
-- מיקום ה-Footer ב-`pageHeight - 20` (במקום `pageHeight - 5`) להבטחת padding-bottom
+### StoryViewer.tsx - Polling ברקע
+- כשהמשתמש לוחץ "התחילו לקרוא", במקום לשנות את generationStatus ל-ready, פשוט לעבור למצב קריאה (setCurrentPage(-1)) בלי לעצור את ה-polling
+- ה-polling כבר מעדכן את story.pages עם איורים חדשים, כך שהם יופיעו אוטומטית
 
-### מה לא ישתנה
-- אף מסך באפליקציה (UI)
-- Slugs קיימים
-- הרשאות Admin (999)
-- 4 הנושאים החדשים
-- טיפים של הפיה
-- מבנה ה-PDF (cover, spreads, illustrations)
+### StoryViewer.tsx - טקסטים (שורות 700-724)
+- הסרת שורות 711-713 (הטקסט "האיורים יופיעו בזמן שתקראו")
+- עדכון שורות 717-721 לטקסט החדש עם margin-top מספיק
+
+### קבצים שישתנו
+- `src/components/story/book-frame/BookPage.tsx`
+- `src/pages/StoryViewer.tsx`
+
+### קבצים שלא ישתנו (נעילה)
+- Slugs, Admin (999), Footer PDF, מנגנון היפוך כרטיסיות
 
