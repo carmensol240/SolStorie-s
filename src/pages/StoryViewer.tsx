@@ -62,9 +62,9 @@ interface Story {
 }
 
 const FONT_SIZES = [
-  { label: 'קטן', size: 'text-lg md:text-xl' },
-  { label: 'בינוני', size: 'text-xl md:text-2xl' },
-  { label: 'גדול', size: 'text-2xl md:text-3xl' },
+  { label: 'קטן', size: 'text-xl md:text-2xl' },
+  { label: 'בינוני', size: 'text-2xl md:text-3xl' },
+  { label: 'גדול', size: 'text-3xl md:text-4xl' },
 ];
 
 const StoryViewer = () => {
@@ -80,7 +80,7 @@ const StoryViewer = () => {
   const [isFlipping, setIsFlipping] = useState(false);
   const [flipDirection, setFlipDirection] = useState<'next' | 'prev'>('next');
   const [isDrawingMode, setIsDrawingMode] = useState(false);
-  const [fontSizeIndex, setFontSizeIndex] = useState(1);
+  const [fontSizeIndex, setFontSizeIndex] = useState(2);
   const [isEditingPage, setIsEditingPage] = useState(false);
   const [showNikud, setShowNikud] = useState(true);
   const [generationStatus, setGenerationStatus] = useState<string>('ready');
@@ -858,41 +858,30 @@ const StoryViewer = () => {
 
       {/* Book Container with Swipe Support */}
       <main 
-        className="flex-1 flex items-center justify-center px-4 py-6 md:px-8 md:py-8 lg:px-16 touch-pan-y"
+        className="flex-1 flex flex-col touch-pan-y"
         onTouchStart={swipeHandlers.onTouchStart}
         onTouchMove={swipeHandlers.onTouchMove}
         onTouchEnd={swipeHandlers.onTouchEnd}
       >
-        <div className="relative w-full">
-          {/* Navigation Arrows */}
-          <NavigationArrows
-            onPrev={() => handleSpreadChange('prev')}
-            onNext={() => handleSpreadChange('next')}
-            canGoPrev={currentPage > -1}
-            canGoNext={currentPage < spreads.length}
-            isFlipping={isFlipping}
-          />
-          
-          <BookFrame isFlipping={isFlipping} flipDirection={flipDirection}>
+        <div className={cn(
+          "relative w-full flex-1 transition-opacity duration-300 ease-in-out",
+          isFlipping && "opacity-0"
+        )}>
             
             {isCoverPage ? (
-              /* Cover Page - RTL: Illustration on RIGHT, Title on LEFT */
-              <div className="min-h-[70vh] md:min-h-[75vh] flex flex-col md:flex-row-reverse">
-                {/* Illustration Page */}
-                <div className="flex-1 flex flex-col items-center justify-center p-6 md:p-10 border-b md:border-b-0 md:border-r-2 border-[#D4A574]/30 bg-gradient-to-br from-[#FFFBF5] to-[#F5E6D3]">
+              /* Cover Page - Immersive vertical layout */
+              <div className="min-h-[80vh] flex flex-col">
+                {/* Cover Illustration - edge to edge */}
+                <div className="relative w-full" style={{ minHeight: '55vh' }}>
                   {story.pages[0]?.illustration_url ? (
-                    <div className="w-full max-w-sm mx-auto">
-                      <div className="rounded-2xl overflow-hidden shadow-2xl border-4 border-[#D4A574] transform hover:scale-[1.02] transition-transform duration-300">
-                        <img
-                          src={getPublicIllustrationUrl(story.pages[0].illustration_url) || ''}
-                          alt={`עטיפת הסיפור: ${story.child_name} ב${story.topic}`}
-                          className="w-full aspect-[4/5] object-cover"
-                          loading="eager"
-                        />
-                      </div>
-                    </div>
+                    <img
+                      src={getPublicIllustrationUrl(story.pages[0].illustration_url) || ''}
+                      alt={`עטיפת הסיפור: ${story.child_name} ב${story.topic}`}
+                      className="w-full h-full object-cover absolute inset-0"
+                      loading="eager"
+                    />
                   ) : (
-                    <div className="w-full max-w-sm mx-auto">
+                    <div className="w-full h-full absolute inset-0 flex items-center justify-center">
                       <MissingIllustrationPrompt
                         pageId={story.pages[0].id}
                         isRetrying={retryingPageId === story.pages[0].id}
@@ -905,13 +894,16 @@ const StoryViewer = () => {
                         }}
                         onPromptChange={setCustomPromptText}
                         onSubmit={handleRetryIllustration}
+                        aspectClass="w-full h-full"
                       />
                     </div>
                   )}
+                  {/* Gradient fade to cream */}
+                  <div className="absolute bottom-0 left-0 right-0 h-24 bg-gradient-to-t from-[#FFFBF5] to-transparent pointer-events-none" />
                 </div>
                 
-                {/* Title Page */}
-                <div className="flex-1 flex flex-col items-center justify-center p-6 md:p-10 text-center bg-gradient-to-bl from-[#FFFBF5] to-[#FAF3E8]">
+                {/* Title area on cream background */}
+                <div className="flex-1 flex flex-col items-center justify-center p-6 md:p-10 text-center bg-[#FFFBF5]">
                   <div className="space-y-5">
                     <h1 className="text-4xl md:text-5xl lg:text-6xl font-black text-[#3D2914] leading-tight" style={{ fontFamily: "'Heebo', 'Comic Sans MS', cursive, sans-serif" }}>
                       הסיפור של
@@ -944,144 +936,136 @@ const StoryViewer = () => {
               </div>
             ) : isEndPage ? (
               /* End Page */
-              <div className="min-h-[70vh] md:min-h-[75vh] flex flex-col items-center justify-center p-8 text-center">
+              <div className="min-h-[80vh] flex flex-col bg-[#FFFBF5]">
                 {story.pages[story.pages.length - 1]?.illustration_url && (
-                  <div className="w-full max-w-xs mx-auto mb-6">
-                    <div className="rounded-xl overflow-hidden shadow-xl border-4 border-[#D4A574]">
-                      <img
-                        src={getPublicIllustrationUrl(story.pages[story.pages.length - 1].illustration_url) || ''}
-                        alt={`סיום הסיפור של ${story.child_name}`}
-                        className="w-full aspect-[3/4] object-cover"
-                        loading="eager"
-                      />
-                    </div>
+                  <div className="relative w-full" style={{ minHeight: '40vh' }}>
+                    <img
+                      src={getPublicIllustrationUrl(story.pages[story.pages.length - 1].illustration_url) || ''}
+                      alt={`סיום הסיפור של ${story.child_name}`}
+                      className="w-full h-full object-cover absolute inset-0"
+                      loading="eager"
+                    />
+                    <div className="absolute bottom-0 left-0 right-0 h-24 bg-gradient-to-t from-[#FFFBF5] to-transparent pointer-events-none" />
                   </div>
                 )}
                 
-                <div className="space-y-4">
-                  <p className="text-3xl md:text-4xl font-bold text-purple-800">
-                    ✦ סוף ✦
-                  </p>
-                  <p className="text-xl text-purple-600">
-                    תודה שקראתם!
-                  </p>
-                  <p className="text-base text-purple-500">
-                    הסיפור של {story.child_name}
-                  </p>
-                </div>
+                <div className="flex-1 flex flex-col items-center justify-center p-8 text-center">
+                  <div className="space-y-4">
+                    <p className="text-3xl md:text-4xl font-bold text-purple-800">
+                      ✦ סוף ✦
+                    </p>
+                    <p className="text-xl text-purple-600">
+                      תודה שקראתם!
+                    </p>
+                    <p className="text-base text-purple-500">
+                      הסיפור של {story.child_name}
+                    </p>
+                  </div>
 
-                <div className="flex flex-col sm:flex-row gap-3 mt-8">
-                  <Button 
-                    variant="outline"
-                    size="lg"
-                    onClick={() => setCurrentPage(-1)}
-                    className="border-2 border-purple-400 text-purple-700 hover:bg-purple-50 px-6 py-5 rounded-full"
-                  >
-                    <span className="ml-2"><BookOpen className="w-5 h-5" /></span>
-                    קרא שוב
-                  </Button>
-                  <Button 
-                    size="lg"
-                    onClick={() => navigate('/library')}
-                    className="bg-gradient-to-r from-purple-600 to-pink-500 hover:from-purple-700 hover:to-pink-600 text-white px-6 py-5 rounded-full"
-                  >
-                    <span className="ml-2"><Home className="w-5 h-5" /></span>
-                    לספרייה
-                  </Button>
-                </div>
-
-                {/* Feedback Box */}
-                {!endFeedbackSent ? (
-                  <div className="w-full max-w-sm bg-white rounded-xl p-5 shadow-lg border border-purple-100 space-y-3 mt-8" dir="rtl">
-                    <h3 className="text-center text-base font-bold text-purple-800">
-                      ✨ שתפו אותנו בקסם שלכם
-                    </h3>
-                    <div className="flex justify-center gap-1">
-                      {[1, 2, 3, 4, 5].map((s) => (
-                        <button
-                          key={s}
-                          onClick={() => setEndFeedbackRating(s)}
-                          onMouseEnter={() => setEndFeedbackHover(s)}
-                          onMouseLeave={() => setEndFeedbackHover(0)}
-                          className="p-1 transition-transform hover:scale-110"
-                          aria-label={`דירוג ${s} כוכבים`}
-                        >
-                          <Star className={`w-8 h-8 ${s <= (endFeedbackHover || endFeedbackRating) ? 'fill-amber-400 text-amber-400' : 'text-purple-200'} transition-colors`} />
-                        </button>
-                      ))}
-                    </div>
-                    <Textarea
-                      value={endFeedbackMessage}
-                      onChange={(e) => setEndFeedbackMessage(e.target.value)}
-                      placeholder="ספרו לנו מה אהבתם, מה הפתיע אתכם, או שתפו טיפ להורים אחרים 💬"
-                      className="text-sm min-h-[70px] resize-none"
-                      dir="rtl"
-                    />
-                    <Button
-                      onClick={handleEndFeedbackSubmit}
-                      disabled={endFeedbackRating === 0 || endFeedbackSending}
-                      size="sm"
-                      className="w-full gap-1.5 bg-gradient-to-r from-purple-600 to-pink-500 hover:from-purple-700 hover:to-pink-600"
+                  <div className="flex flex-col sm:flex-row gap-3 mt-8">
+                    <Button 
+                      variant="outline"
+                      size="lg"
+                      onClick={() => setCurrentPage(-1)}
+                      className="border-2 border-purple-400 text-purple-700 hover:bg-purple-50 px-6 py-5 rounded-full"
                     >
-                      <Send className="w-3.5 h-3.5" />
-                      {endFeedbackSending ? "שולח..." : "שליחה"}
+                      <span className="ml-2"><BookOpen className="w-5 h-5" /></span>
+                      קרא שוב
+                    </Button>
+                    <Button 
+                      size="lg"
+                      onClick={() => navigate('/library')}
+                      className="bg-gradient-to-r from-purple-600 to-pink-500 hover:from-purple-700 hover:to-pink-600 text-white px-6 py-5 rounded-full"
+                    >
+                      <span className="ml-2"><Home className="w-5 h-5" /></span>
+                      לספרייה
                     </Button>
                   </div>
-                ) : (
-                  <div className="w-full max-w-sm bg-gradient-to-r from-purple-50 to-pink-50 rounded-xl p-4 shadow-lg border border-purple-100 text-center mt-8" dir="rtl">
-                    <p className="text-lg font-bold text-purple-800">תודה רבה! 💛</p>
-                    <p className="text-sm text-purple-600 mt-1">המשוב שלכם עוזר לנו ליצור סיפורים טובים יותר</p>
-                  </div>
-                )}
 
-                <Button
-                  variant="link"
-                  size="sm"
-                  onClick={() => setShowGenderSwapDialog(true)}
-                  className="mt-4 text-purple-500 hover:text-purple-700 text-sm"
-                >
-                  <span className="ml-1"><RefreshCw className="w-4 h-4" /></span>
-                  התבלבלתם במגדר? לחצו לתיקון מהיר
-                </Button>
+                  {/* Feedback Box */}
+                  {!endFeedbackSent ? (
+                    <div className="w-full max-w-sm bg-white rounded-xl p-5 shadow-lg border border-purple-100 space-y-3 mt-8" dir="rtl">
+                      <h3 className="text-center text-base font-bold text-purple-800">
+                        ✨ שתפו אותנו בקסם שלכם
+                      </h3>
+                      <div className="flex justify-center gap-1">
+                        {[1, 2, 3, 4, 5].map((s) => (
+                          <button
+                            key={s}
+                            onClick={() => setEndFeedbackRating(s)}
+                            onMouseEnter={() => setEndFeedbackHover(s)}
+                            onMouseLeave={() => setEndFeedbackHover(0)}
+                            className="p-1 transition-transform hover:scale-110"
+                            aria-label={`דירוג ${s} כוכבים`}
+                          >
+                            <Star className={`w-8 h-8 ${s <= (endFeedbackHover || endFeedbackRating) ? 'fill-amber-400 text-amber-400' : 'text-purple-200'} transition-colors`} />
+                          </button>
+                        ))}
+                      </div>
+                      <Textarea
+                        value={endFeedbackMessage}
+                        onChange={(e) => setEndFeedbackMessage(e.target.value)}
+                        placeholder="ספרו לנו מה אהבתם, מה הפתיע אתכם, או שתפו טיפ להורים אחרים 💬"
+                        className="text-sm min-h-[70px] resize-none"
+                        dir="rtl"
+                      />
+                      <Button
+                        onClick={handleEndFeedbackSubmit}
+                        disabled={endFeedbackRating === 0 || endFeedbackSending}
+                        size="sm"
+                        className="w-full gap-1.5 bg-gradient-to-r from-purple-600 to-pink-500 hover:from-purple-700 hover:to-pink-600"
+                      >
+                        <Send className="w-3.5 h-3.5" />
+                        {endFeedbackSending ? "שולח..." : "שליחה"}
+                      </Button>
+                    </div>
+                  ) : (
+                    <div className="w-full max-w-sm bg-gradient-to-r from-purple-50 to-pink-50 rounded-xl p-4 shadow-lg border border-purple-100 text-center mt-8" dir="rtl">
+                      <p className="text-lg font-bold text-purple-800">תודה רבה! 💛</p>
+                      <p className="text-sm text-purple-600 mt-1">המשוב שלכם עוזר לנו ליצור סיפורים טובים יותר</p>
+                    </div>
+                  )}
+
+                  <Button
+                    variant="link"
+                    size="sm"
+                    onClick={() => setShowGenderSwapDialog(true)}
+                    className="mt-4 text-purple-500 hover:text-purple-700 text-sm"
+                  >
+                    <span className="ml-1"><RefreshCw className="w-4 h-4" /></span>
+                    התבלבלתם במגדר? לחצו לתיקון מהיר
+                  </Button>
+                </div>
               </div>
             ) : currentSpread ? (
-              /* SPREAD LAYOUT: One illustration + Two text blocks */
-              <div className={cn(
-                "min-h-[70vh] md:min-h-[75vh] flex",
-                isMobile ? "flex-col" : "flex-row-reverse"
-              )}>
-                {/* Illustration Side (Right in RTL desktop, Top in mobile) */}
-                <div className={cn(
-                  "flex flex-col items-center justify-center",
-                  isMobile ? "p-4" : "flex-1 p-6 md:p-8 lg:p-10",
-                  "bg-gradient-to-br from-[#FFFBF5] to-[#F5E6D3]",
-                  !isMobile && "border-l-2 border-[#D4A574]/30 relative"
-                )}>
-                  {/* Gutter shadow effect for book spine feel (desktop only) */}
-                  {!isMobile && (
-                    <div className="absolute left-0 top-0 bottom-0 w-6 bg-gradient-to-r from-black/[0.07] via-black/[0.03] to-transparent pointer-events-none z-10" />
-                  )}
-                  
+              /* SPREAD LAYOUT: Immersive vertical - illustration on top, text below */
+              <div className="min-h-[80vh] flex flex-col">
+                {/* Illustration - edge to edge, 60% of viewport */}
+                <div className="relative w-full" style={{ minHeight: '55vh' }}>
                   {currentSpread.illustration ? (
-                    <div className="relative w-full max-w-md mx-auto">
-                      <div className="relative rounded-2xl overflow-hidden shadow-2xl border-4 border-[#E8D5C4]">
-                        <img
-                          src={getPublicIllustrationUrl(currentSpread.illustration) || ''}
-                          alt={`איור לעמודים ${spreadStartPage}-${spreadEndPage}`}
-                          className={cn(
-                            "w-full object-cover",
-                            isMobile ? "aspect-[16/10]" : "aspect-[4/5]"
-                          )}
-                          loading="eager"
-                        />
+                    <>
+                      {/* Shimmer placeholder while image loads */}
+                      <div className="absolute inset-0 shimmer-loading" />
+                      <img
+                        src={getPublicIllustrationUrl(currentSpread.illustration) || ''}
+                        alt={`איור לעמודים ${spreadStartPage}-${spreadEndPage}`}
+                        className="w-full h-full object-cover absolute inset-0 z-[1]"
+                        loading="eager"
+                      />
+                    </>
+                  ) : generationStatus === 'generating_illustrations' ? (
+                    <div className="absolute inset-0 shimmer-loading flex items-center justify-center">
+                      <div className="text-center text-purple-400">
+                        <Loader2 className="w-10 h-10 mx-auto mb-2 animate-spin opacity-60" />
+                        <p className="text-sm">מצייר...</p>
                       </div>
                     </div>
                   ) : (
-                    <div className="relative w-full max-w-md mx-auto">
+                    <div className="absolute inset-0 flex items-center justify-center bg-[#F5E6D3]/50">
                       <MissingIllustrationPrompt
                         pageId={currentSpread.illustrationPageId!}
                         isRetrying={retryingPageId === currentSpread.illustrationPageId}
-                        isGenerating={generationStatus !== 'ready'}
+                        isGenerating={false}
                         showPromptInput={showPromptInput === currentSpread.illustrationPageId}
                         customPromptText={customPromptText}
                         onTogglePrompt={() => {
@@ -1090,32 +1074,24 @@ const StoryViewer = () => {
                         }}
                         onPromptChange={setCustomPromptText}
                         onSubmit={handleRetryIllustration}
-                        aspectClass={isMobile ? "aspect-[16/10]" : "aspect-[4/5]"}
+                        aspectClass="w-full h-full"
                       />
                     </div>
                   )}
+                  {/* Gradient fade to cream */}
+                  <div className="absolute bottom-0 left-0 right-0 h-24 bg-gradient-to-t from-[#FFFBF5] to-transparent pointer-events-none z-[2]" />
                 </div>
                 
-                {/* Text Side (Left in RTL desktop, Bottom in mobile) - Two text blocks stacked */}
-                <div className={cn(
-                  "flex flex-col justify-center relative",
-                  isMobile ? "p-5" : "flex-1 p-8 md:p-10 lg:p-12",
-                  "bg-gradient-to-bl from-[#FFFBF5] to-[#FAF3E8]"
-                )}>
-                  {/* Gutter shadow on right side for book spine feel (desktop only) */}
-                  {!isMobile && (
-                    <div className="absolute right-0 top-0 bottom-0 w-6 bg-gradient-to-l from-black/[0.07] via-black/[0.03] to-transparent pointer-events-none z-10" />
-                  )}
-                  
-                  <div className="flex-1 flex flex-col justify-center gap-6 md:gap-8">
+                {/* Text area on cream background */}
+                <div className="flex-1 flex flex-col justify-center px-6 py-8 md:px-12 md:py-10 bg-[#FFFBF5]">
+                  <div className="flex-1 flex flex-col justify-center gap-6 md:gap-8 max-w-2xl mx-auto w-full">
                     {currentSpread.pages.map((spreadPage, idx) => (
                       <div key={spreadPage.id} className="relative">
-                        {/* Subtle separator between the two text blocks */}
                         {idx > 0 && (
                           <div className="flex items-center justify-center mb-4 md:mb-6">
-                            <div className="w-12 h-px bg-[#D4A574]/40" />
-                            <span className="mx-3 text-[#D4A574]/60 text-xs">✦</span>
-                            <div className="w-12 h-px bg-[#D4A574]/40" />
+                            <div className="w-12 h-px bg-purple-300/40" />
+                            <span className="mx-3 text-purple-300/60 text-xs">✦</span>
+                            <div className="w-12 h-px bg-purple-300/40" />
                           </div>
                         )}
                         <p 
@@ -1123,7 +1099,7 @@ const StoryViewer = () => {
                             "text-[#3D2914] text-right font-medium transition-all whitespace-pre-line",
                             currentFontSize.size
                           )} 
-                          style={{ lineHeight: '1.8' }}
+                          style={{ lineHeight: '2.0' }}
                           dir="rtl"
                         >
                           {showNikud ? spreadPage.text : spreadPage.text.replace(/[\u0591-\u05C7]/g, '')}
@@ -1132,8 +1108,6 @@ const StoryViewer = () => {
                     ))}
                   </div>
                   
-                  {/* Read Aloud removed per brand requirements */}
-
                   {/* Page indicator */}
                   <div className="flex items-center justify-center pt-4 mt-auto">
                     <span className="text-xs text-gray-400 font-light">
@@ -1143,7 +1117,18 @@ const StoryViewer = () => {
                 </div>
               </div>
             ) : null}
-          </BookFrame>
+        </div>
+
+        {/* Dot page indicator */}
+        <div className="dot-indicator pb-2">
+          {/* Cover dot */}
+          <div className={cn("dot", currentPage === -1 && "active")} />
+          {/* Spread dots */}
+          {spreads.map((_, i) => (
+            <div key={i} className={cn("dot", currentPage === i && "active")} />
+          ))}
+          {/* End page dot */}
+          <div className={cn("dot", isEndPage && "active")} />
         </div>
       </main>
 
