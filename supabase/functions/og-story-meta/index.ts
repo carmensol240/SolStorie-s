@@ -65,28 +65,25 @@ serve(async (req) => {
     }
 
     const slug = story.slug || story.id;
-    const title = `✨ ${story.topic} ✨ – סיפור של ${story.child_name}`;
-    const description = `סיפור קסום שנוצר במיוחד עבור ${story.child_name} באפליקציית SolStorie's™ 📚`;
+    const title = `הסיפור של ${story.child_name} ב-SolStorie's™`;
+    const description = `בואו לקרוא סיפור קסום ומעצים שיצרנו בעולמה הקסום של סול!`;
     const imageUrl = story.cover_url || `${siteOrigin}/favicon.png`;
     const shareUrl = `${siteOrigin}/story/${slug}`;
     const viewUrl = `${siteOrigin}/story/${slug}`;
 
     const userAgent = req.headers.get("user-agent") || "";
+    const isBot = isCrawler(userAgent);
 
-    // For crawlers: return OG meta HTML (no redirect)
-    // For humans: return OG meta HTML + redirect to SPA view route
-    const redirectMeta = isCrawler(userAgent)
+    // No http-equiv refresh – use JS redirect only for humans
+    const redirectScript = isBot
       ? ""
-      : `<meta http-equiv="refresh" content="0;url=${escapeHtml(viewUrl)}" />`;
-    
-    const redirectScript = isCrawler(userAgent)
-      ? ""
-      : `<script>window.location.href = "${viewUrl}";</script>`;
+      : `<script>window.location.replace("${viewUrl}");</script>`;
 
     const html = `<!DOCTYPE html>
 <html lang="he" dir="rtl">
 <head>
   <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>${escapeHtml(title)}</title>
   <meta name="description" content="${escapeHtml(description)}" />
   <meta property="og:title" content="${escapeHtml(title)}" />
@@ -95,11 +92,11 @@ serve(async (req) => {
   <meta property="og:url" content="${escapeHtml(shareUrl)}" />
   <meta property="og:type" content="article" />
   <meta property="og:locale" content="he_IL" />
+  <meta property="og:site_name" content="SolStorie's™" />
   <meta name="twitter:card" content="summary_large_image" />
   <meta name="twitter:title" content="${escapeHtml(title)}" />
   <meta name="twitter:description" content="${escapeHtml(description)}" />
   <meta name="twitter:image" content="${escapeHtml(imageUrl)}" />
-  ${redirectMeta}
 </head>
 <body>
   <p>מעביר אותך לסיפור...</p>
