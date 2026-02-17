@@ -535,82 +535,78 @@ serve(async (req) => {
     const pagesToIllustrate = pages.filter(p => p.illustration_prompt);
     console.log(`${pagesToIllustrate.length} of ${pages.length} pages need illustrations (spread layout)`);
     
-    const BATCH_SIZE = 2;
     let firstIllustrationUrl: string | null = null;
 
-    for (let i = 0; i < pagesToIllustrate.length; i += BATCH_SIZE) {
-      const batch = pagesToIllustrate.slice(i, i + BATCH_SIZE);
-      console.log(`Processing batch ${Math.floor(i / BATCH_SIZE) + 1}: pages ${batch.map(p => p.page_number).join(', ')}`);
+    // Generate ALL illustrations in parallel for maximum speed
+    console.log(`Generating all ${pagesToIllustrate.length} illustrations in parallel...`);
 
-      const results = await Promise.allSettled(
-        batch.map(async (page) => {
-          console.log(`Generating illustration for page ${page.page_number}...`);
-          
-          // Auto-retry up to 3 times for each page
-          let base64Image: string | null = null;
-          const MAX_RETRIES = 3;
-          
-          for (let attempt = 1; attempt <= MAX_RETRIES; attempt++) {
-            base64Image = await generateIllustration(
-              page.illustration_prompt || `A cheerful children's book illustration for page ${page.page_number}`,
-              effectivePhoto,
-              characterProfile,
-              LOVABLE_API_KEY,
-              storyOutfit,
-              visualAnchor,
-              effectiveAdventureLogic
-            );
-            
-            if (base64Image) {
-              if (attempt > 1) console.log(`✅ Page ${page.page_number} succeeded on retry ${attempt}`);
-              break;
-            }
-            
-            console.warn(`⚠️ Page ${page.page_number} attempt ${attempt}/${MAX_RETRIES} failed, ${attempt < MAX_RETRIES ? 'retrying...' : 'giving up'}`);
-            if (attempt < MAX_RETRIES) {
-              await new Promise(r => setTimeout(r, 2000)); // Wait 2s before retry
-            }
-          }
-
-          if (!base64Image) return null;
-
-          const illustrationUrl = await uploadImageToStorage(
-            supabase,
-            base64Image,
-            storyId,
-            page.page_number
+    const results = await Promise.allSettled(
+      pagesToIllustrate.map(async (page) => {
+        console.log(`Generating illustration for page ${page.page_number}...`);
+        
+        // Auto-retry up to 3 times for each page
+        let base64Image: string | null = null;
+        const MAX_RETRIES = 3;
+        
+        for (let attempt = 1; attempt <= MAX_RETRIES; attempt++) {
+          base64Image = await generateIllustration(
+            page.illustration_prompt || `A cheerful children's book illustration for page ${page.page_number}`,
+            effectivePhoto,
+            characterProfile,
+            LOVABLE_API_KEY,
+            storyOutfit,
+            visualAnchor,
+            effectiveAdventureLogic
           );
-
-          if (illustrationUrl) {
-            const { error: updateError } = await supabase
-              .from("story_pages")
-              .update({ illustration_url: illustrationUrl })
-              .eq("id", page.id);
-
-            if (updateError) {
-              console.error(`Error updating page ${page.page_number}:`, updateError);
-            } else {
-              console.log(`Page ${page.page_number} illustration saved`);
-            }
-
-            // Cover is now handled by the dedicated generate-cover function
-            if (page.page_number === 1) {
-              firstIllustrationUrl = illustrationUrl;
-            }
+          
+          if (base64Image) {
+            if (attempt > 1) console.log(`✅ Page ${page.page_number} succeeded on retry ${attempt}`);
+            break;
           }
-          return illustrationUrl;
-        })
-      );
-
-      results.forEach((r, idx) => {
-        const pg = batch[idx];
-        if (r.status === 'fulfilled') {
-          console.log(`Page ${pg.page_number}: ${r.value ? 'success' : 'no image'}`);
-        } else {
-          console.error(`Page ${pg.page_number} failed:`, r.reason);
+          
+          console.warn(`⚠️ Page ${page.page_number} attempt ${attempt}/${MAX_RETRIES} failed, ${attempt < MAX_RETRIES ? 'retrying...' : 'giving up'}`);
+          if (attempt < MAX_RETRIES) {
+            await new Promise(r => setTimeout(r, 2000));
+          }
         }
-      });
-    }
+
+        if (!base64Image) return null;
+
+        const illustrationUrl = await uploadImageToStorage(
+          supabase,
+          base64Image,
+          storyId,
+          page.page_number
+        );
+
+        if (illustrationUrl) {
+          const { error: updateError } = await supabase
+            .from("story_pages")
+            .update({ illustration_url: illustrationUrl })
+            .eq("id", page.id);
+
+          if (updateError) {
+            console.error(`Error updating page ${page.page_number}:`, updateError);
+          } else {
+            console.log(`Page ${page.page_number} illustration saved`);
+          }
+
+          if (page.page_number === 1) {
+            firstIllustrationUrl = illustrationUrl;
+          }
+        }
+        return illustrationUrl;
+      })
+    );
+
+    results.forEach((r, idx) => {
+      const pg = pagesToIllustrate[idx];
+      if (r.status === 'fulfilled') {
+        console.log(`Page ${pg.page_number}: ${r.value ? 'success' : 'no image'}`);
+      } else {
+        console.error(`Page ${pg.page_number} failed:`, r.reason);
+      }
+    });
 
     // Update story status to ready
     const { error: statusError } = await supabase

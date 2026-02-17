@@ -16,8 +16,8 @@ interface GeneratingStepProps {
 const LOADING_MESSAGES = [
   { icon: Sparkles, text: "מכינים את הקסם...", color: "text-purple-500" },
   { icon: BookOpen, text: "כותבים את הסיפור...", color: "text-pink-500" },
-  { icon: Palette, text: "מציירים איורים באיכות גבוהה...", color: "text-orange-400" },
-  { icon: FileText, text: "עוד רגע והספר מוכן...", color: "text-purple-600" },
+  { icon: Palette, text: "סול מציירת לכם איור קסום...", color: "text-orange-400" },
+  { icon: FileText, text: "עוד רגע והספר מוכן!", color: "text-purple-600" },
 ];
 
 const EMPOWERING_SENTENCES = [
@@ -145,86 +145,11 @@ const GeneratingStep = ({ formData, onComplete }: GeneratingStepProps) => {
       }
 
       console.log("Story created successfully with ID:", data.storyId);
-
-      // Verify the story exists before redirecting
-      const { data: verifiedStory, error: verifyError } = await supabase
-        .from("stories")
-        .select("id")
-        .eq("id", data.storyId)
-        .maybeSingle();
-
-      if (verifyError) {
-        console.error("Verification error:", verifyError);
-        // Still proceed if we got a storyId - RLS might prevent reading but story exists
-      }
-
-      if (!verifiedStory) {
-        console.warn("Story not immediately readable (may be RLS), proceeding anyway");
-      }
-
-      // Don't navigate yet - wait for illustrations to finish
-      // Poll for generation_status === 'ready'
-      setProgress(60);
-      const pollStart = Date.now();
-      const POLL_TIMEOUT = 120000; // 2 minutes max wait for illustrations
       
-      const pollForReady = async () => {
-        const elapsed = Date.now() - pollStart;
-        
-        // Timeout - proceed anyway
-        if (elapsed >= POLL_TIMEOUT) {
-          console.log("⏱️ Illustration poll timeout - proceeding to story");
-          setProgress(100);
-          setTimeout(() => onComplete(data.storyId), 500);
-          return;
-        }
-
-        try {
-          const { data: statusData } = await supabase
-            .from("stories")
-            .select("generation_status")
-            .eq("id", data.storyId)
-            .maybeSingle();
-
-          const status = (statusData as any)?.generation_status || 'ready';
-          
-          if (status === 'ready') {
-            console.log("✅ Story fully ready with illustrations");
-            setProgress(100);
-            setTimeout(() => onComplete(data.storyId), 500);
-            return;
-          }
-          
-          if (status === 'failed') {
-            console.error("Story generation failed");
-            setError("אירעה שגיאה ביצירת האיורים. נסו שוב.");
-            return;
-          }
-
-          // Check illustration progress for the progress bar
-          const { data: pagesData } = await supabase
-            .from("story_pages")
-            .select("illustration_url")
-            .eq("story_id", data.storyId);
-
-          if (pagesData && pagesData.length > 0) {
-            const done = pagesData.filter(p => p.illustration_url).length;
-            const pct = 60 + Math.round((done / pagesData.length) * 35); // 60-95%
-            setProgress(pct);
-          }
-
-          // Poll again in 3 seconds
-          setTimeout(pollForReady, 3000);
-        } catch (err) {
-          console.error("Poll error:", err);
-          // On error, just proceed
-          setProgress(100);
-          setTimeout(() => onComplete(data.storyId), 500);
-        }
-      };
-
-      // Start polling after a short delay
-      setTimeout(pollForReady, 3000);
+      // Navigate to story immediately - don't wait for illustrations
+      // The StoryViewer will show loading states for illustrations still generating
+      setProgress(100);
+      setTimeout(() => onComplete(data.storyId), 800);
       
     } catch (err) {
       console.error("Error generating story:", err);
