@@ -1127,27 +1127,11 @@ ${topic.endsWith('-edu') ? `
       throw new Error("Invalid JSON response from AI");
     }
 
-    // === PASS 2: DOUBLE-PASS NIQQUD PIPELINE ===
-    // Only apply nikud for Hebrew stories
-    if (nikud && language === "he") {
-      console.log("Starting Pass 2: Hebrew Grammarian nikud pipeline...");
-      
-      // Process all pages in parallel for speed
-      const nikudPromises = storyData.pages.map(async (page: any, index: number) => {
-        console.log(`Adding nikud to page ${index + 1}...`);
-        const nikudText = await addNikudToText(page.text, LOVABLE_API_KEY);
-        return { ...page, text: nikudText };
-      });
-
-      try {
-        storyData.pages = await Promise.all(nikudPromises);
-        console.log("Pass 2 complete: nikud added to all pages successfully");
-      } catch (nikudError) {
-        console.error("Nikud pipeline error (using original text):", nikudError);
-        // Pages remain with original text if nikud fails
-      }
-    } else {
-      console.log("Nikud not requested, skipping Pass 2");
+    // === NIKUD: Deferred to background for faster response ===
+    // Nikud will be applied after story+pages are saved, in a fire-and-forget manner
+    const shouldApplyNikud = nikud && language === "he";
+    if (!shouldApplyNikud) {
+      console.log("Nikud not requested, skipping");
     }
 
     // Use existing supabase client for database operations
@@ -1202,6 +1186,37 @@ ${topic.endsWith('-edu') ? `
     if (pagesError) {
       console.error("Error creating pages:", pagesError);
       throw pagesError;
+    }
+
+    // === DEFERRED NIKUD: Apply in background after returning storyId ===
+    if (shouldApplyNikud) {
+      console.log("Deferring nikud to background processing...");
+      (async () => {
+        try {
+          const { data: savedPages } = await supabase
+            .from("story_pages")
+            .select("id, text, page_number")
+            .eq("story_id", story.id)
+            .order("page_number");
+          
+          if (savedPages) {
+            const nikudResults = await Promise.allSettled(
+              savedPages.map(async (page) => {
+                const nikudText = await addNikudToText(page.text, LOVABLE_API_KEY);
+                if (nikudText !== page.text) {
+                  await supabase
+                    .from("story_pages")
+                    .update({ text: nikudText })
+                    .eq("id", page.id);
+                }
+              })
+            );
+            console.log(`Nikud background: ${nikudResults.filter(r => r.status === 'fulfilled').length}/${nikudResults.length} pages updated`);
+          }
+        } catch (err) {
+          console.error("Background nikud error:", err);
+        }
+      })();
     }
 
     console.log("Story pages created (text only), triggering illustration generation...");
