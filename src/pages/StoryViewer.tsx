@@ -1,9 +1,10 @@
 import { useState, useEffect, useRef, useCallback } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { Home, BookOpen, Sparkles, Palette, Wand2, RefreshCw, Loader2, ImageOff, Volume2, Square, X } from "lucide-react";
+import { Home, BookOpen, Sparkles, Palette, Wand2, RefreshCw, Loader2, ImageOff, Volume2, Square, X, Star, Send } from "lucide-react";
 import { MissingIllustrationPrompt } from "@/components/story/MissingIllustrationPrompt";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
+import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
 import { DrawingCanvas } from "@/components/ui/drawing-canvas";
@@ -97,6 +98,12 @@ const StoryViewer = () => {
   const [showEditConfirmDialog, setShowEditConfirmDialog] = useState(false);
   const [isReadAloudDismissed, setIsReadAloudDismissed] = useState(false);
   
+  // End-page feedback state
+  const [endFeedbackRating, setEndFeedbackRating] = useState(0);
+  const [endFeedbackHover, setEndFeedbackHover] = useState(0);
+  const [endFeedbackMessage, setEndFeedbackMessage] = useState("");
+  const [endFeedbackSent, setEndFeedbackSent] = useState(false);
+  const [endFeedbackSending, setEndFeedbackSending] = useState(false);
   const { trackStoryStarted, trackStoryCompleted, trackPageViewed, trackFeatureUsed } = useAnalytics();
   const { isOnline, cacheStory, getCachedStory } = useOfflineStorage();
   const { settings } = useSettings();
@@ -551,6 +558,36 @@ const StoryViewer = () => {
     toast({ title: 'תודה על הדיווח! נבדוק את הנושא' });
   };
 
+  const handleEndFeedbackSubmit = async () => {
+    if (endFeedbackRating === 0) return;
+    setEndFeedbackSending(true);
+    try {
+      let displayName: string | null = null;
+      if (user?.id) {
+        const { data: profile } = await supabase
+          .from("profiles")
+          .select("display_name")
+          .eq("id", user.id)
+          .maybeSingle();
+        displayName = profile?.display_name || null;
+      }
+      await supabase.from("user_feedback").insert({
+        rating: endFeedbackRating,
+        message: endFeedbackMessage.trim() || null,
+        page_url: `story/${storyId}`,
+        user_id: user?.id || null,
+        display_name: displayName,
+        is_approved: false,
+      } as any);
+      setEndFeedbackSent(true);
+      toast({ title: 'תודה רבה! 💜' });
+    } catch (err) {
+      console.error("Feedback error:", err);
+    } finally {
+      setEndFeedbackSending(false);
+    }
+  };
+
   const handleRetryIllustration = async (pageId: string, customPrompt?: string) => {
     if (!storyId || retryingPageId) return;
     
@@ -954,6 +991,50 @@ const StoryViewer = () => {
                     לספרייה
                   </Button>
                 </div>
+
+                {/* Feedback Box */}
+                {!endFeedbackSent ? (
+                  <div className="w-full max-w-sm bg-white rounded-xl p-5 shadow-lg border border-purple-100 space-y-3 mt-8" dir="rtl">
+                    <h3 className="text-center text-base font-bold text-purple-700">
+                      ✨ שתפו אותנו בקסם שלכם
+                    </h3>
+                    <div className="flex justify-center gap-1">
+                      {[1, 2, 3, 4, 5].map((s) => (
+                        <button
+                          key={s}
+                          onClick={() => setEndFeedbackRating(s)}
+                          onMouseEnter={() => setEndFeedbackHover(s)}
+                          onMouseLeave={() => setEndFeedbackHover(0)}
+                          className="p-1 transition-transform hover:scale-110"
+                          aria-label={`דירוג ${s} כוכבים`}
+                        >
+                          <Star className={`w-8 h-8 ${s <= (endFeedbackHover || endFeedbackRating) ? 'fill-amber-400 text-amber-400' : 'text-purple-200'} transition-colors`} />
+                        </button>
+                      ))}
+                    </div>
+                    <Textarea
+                      value={endFeedbackMessage}
+                      onChange={(e) => setEndFeedbackMessage(e.target.value)}
+                      placeholder="ספרו לנו מה אהבתם, מה הפתיע אתכם, או שתפו טיפ להורים אחרים 💬"
+                      className="text-sm min-h-[70px] resize-none"
+                      dir="rtl"
+                    />
+                    <Button
+                      onClick={handleEndFeedbackSubmit}
+                      disabled={endFeedbackRating === 0 || endFeedbackSending}
+                      size="sm"
+                      className="w-full gap-1.5 bg-gradient-to-r from-purple-600 to-pink-500 hover:from-purple-700 hover:to-pink-600"
+                    >
+                      <Send className="w-3.5 h-3.5" />
+                      {endFeedbackSending ? "שולח..." : "שליחה"}
+                    </Button>
+                  </div>
+                ) : (
+                  <div className="w-full max-w-sm bg-gradient-to-r from-purple-50 to-pink-50 rounded-xl p-4 shadow-lg border border-purple-100 text-center mt-8" dir="rtl">
+                    <p className="text-lg font-bold text-purple-700">תודה רבה! 💜</p>
+                    <p className="text-sm text-purple-500 mt-1">המשוב שלכם עוזר לנו ליצור סיפורים טובים יותר</p>
+                  </div>
+                )}
 
                 <Button
                   variant="link"

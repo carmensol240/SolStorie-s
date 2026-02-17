@@ -1,10 +1,7 @@
 import { useState, useEffect, useCallback, useRef } from "react";
-import { Sparkles, BookOpen, Palette, FileText, RefreshCw, Wand2, Star, Send } from "lucide-react";
-import avatarTestimonial1 from "@/assets/avatar-testimonial-1.png";
-import avatarTestimonial2 from "@/assets/avatar-testimonial-2.png";
-import avatarTestimonial3 from "@/assets/avatar-testimonial-3.png";
+import { Sparkles, BookOpen, Palette, FileText, RefreshCw, Wand2 } from "lucide-react";
+import generatingHeroFriends from "@/assets/generating-hero-friends.jpg";
 import { Button } from "@/components/ui/button";
-import { Textarea } from "@/components/ui/textarea";
 import { StoryFormData } from "@/pages/CreateStory";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
@@ -59,30 +56,6 @@ const getTopicLabel = (topicId: string): string => {
   return topics[topicId] || topicId;
 };
 
-const PROFESSIONAL_TESTIMONIALS = [
-  {
-    name: "דנה כהן",
-    role: "מורה",
-    quote: "הסיפורים האישיים מעשירים את אוצר המילים ומפתחים את אהבת הקריאה בצורה מדהימה. ממליצה בחום.",
-    rating: 5,
-    avatar: avatarTestimonial1,
-  },
-  {
-    name: "שירה לוי",
-    role: "גננת",
-    quote: "הילדים בגן מתחברים רגשית לסיפורים כשהם הגיבורים. זה מפתח דמיון וכישורים חברתיים-רגשיים.",
-    rating: 5,
-    avatar: avatarTestimonial2,
-  },
-  {
-    name: "רונית אברהם",
-    role: "קלינאית תקשורת",
-    quote: "סיפורים מנוקדים לגילאי 7-8 תורמים לפיתוח מודעות פונולוגית ואוצר מילים. כלי מעולה להעשרה לשונית.",
-    rating: 5,
-    avatar: avatarTestimonial3,
-  },
-];
-
 const GeneratingStep = ({ formData, onComplete }: GeneratingStepProps) => {
   const { toast } = useToast();
   const navigate = useNavigate();
@@ -95,41 +68,6 @@ const GeneratingStep = ({ formData, onComplete }: GeneratingStepProps) => {
   const [error, setError] = useState<string | null>(null);
   const hasStartedRef = useRef(false);
 
-  // Feedback state
-  const [feedbackRating, setFeedbackRating] = useState(0);
-  const [feedbackHover, setFeedbackHover] = useState(0);
-  const [feedbackMessage, setFeedbackMessage] = useState("");
-  const [feedbackSent, setFeedbackSent] = useState(false);
-  const [feedbackSending, setFeedbackSending] = useState(false);
-  const handleSubmitFeedback = async () => {
-    if (feedbackRating === 0) return;
-    setFeedbackSending(true);
-    try {
-      // Fetch user display name for approved testimonials
-      let displayName: string | null = null;
-      if (user?.id) {
-        const { data: profile } = await supabase
-          .from("profiles")
-          .select("display_name")
-          .eq("id", user.id)
-          .maybeSingle();
-        displayName = profile?.display_name || null;
-      }
-      await supabase.from("user_feedback").insert({
-        rating: feedbackRating,
-        message: feedbackMessage.trim() || null,
-        page_url: "generating",
-        user_id: user?.id || null,
-        display_name: displayName,
-        is_approved: false,
-      } as any);
-      setFeedbackSent(true);
-    } catch (err) {
-      console.error("Feedback error:", err);
-    } finally {
-      setFeedbackSending(false);
-    }
-  };
 
   const generateStory = useCallback(async () => {
     try {
@@ -382,52 +320,37 @@ const GeneratingStep = ({ formData, onComplete }: GeneratingStepProps) => {
     );
   }
 
-  const currentTestimonial = PROFESSIONAL_TESTIMONIALS[sentenceIndex % PROFESSIONAL_TESTIMONIALS.length];
-
   return (
-    <div className="flex flex-col items-center justify-center min-h-[100dvh] text-center space-y-6 bg-gradient-to-b from-[#FAF3E8] to-[#F5E6D3] p-6">
+    <div className="flex flex-col items-center justify-center min-h-[100dvh] text-center space-y-5 bg-gradient-to-b from-[#FAF3E8] to-[#F5E6D3] p-6">
+      {/* Hero Image - All 5 Friends */}
+      <div className="w-full max-w-sm mx-auto rounded-2xl overflow-hidden shadow-xl border-4 border-purple-200/50">
+        <img
+          src={generatingHeroFriends}
+          alt="סול, בן, מיה, ליאו וזואי מחכים לך"
+          className="w-full aspect-[16/9] object-cover"
+        />
+      </div>
+
       {/* Animated Icon with Magic Wand */}
       <div className="relative">
-        <div className="w-28 h-28 bg-gradient-to-br from-purple-500/20 via-pink-500/20 to-orange-400/20 rounded-full flex items-center justify-center shadow-lg">
+        <div className="w-20 h-20 bg-gradient-to-br from-purple-500/20 via-pink-500/20 to-orange-400/20 rounded-full flex items-center justify-center shadow-lg">
           <div className="relative">
-            <Icon className={`w-12 h-12 ${currentMessage.color} animate-bounce`} />
-            {/* Animated Magic Wand */}
+            <Icon className={`w-9 h-9 ${currentMessage.color} animate-bounce`} />
             <Wand2 
-              className="absolute -top-2 -right-4 w-8 h-8 text-purple-600 animate-wiggle"
-              style={{
-                filter: 'drop-shadow(0 0 4px rgba(168, 85, 247, 0.5))'
-              }}
+              className="absolute -top-2 -right-3 w-6 h-6 text-purple-600 animate-wiggle"
+              style={{ filter: 'drop-shadow(0 0 4px rgba(168, 85, 247, 0.5))' }}
             />
           </div>
-        </div>
-        
-        {/* Floating sparkles */}
-        <div className="absolute inset-0">
-          {[...Array(8)].map((_, i) => (
-            <Sparkles
-              key={i}
-              className="absolute w-4 h-4 text-orange-400 animate-pulse"
-              style={{
-                top: `${10 + Math.random() * 80}%`,
-                left: `${10 + Math.random() * 80}%`,
-                animationDelay: `${i * 0.2}s`,
-                opacity: 0.7,
-              }}
-            />
-          ))}
         </div>
       </div>
 
       {/* Message with gradient text */}
-      <div className="space-y-2">
-        <h2 className="text-2xl font-bold bg-gradient-to-r from-purple-600 via-pink-500 to-orange-400 bg-clip-text text-transparent">
+      <div className="space-y-1.5">
+        <h2 className="text-xl font-bold bg-gradient-to-r from-purple-600 via-pink-500 to-orange-400 bg-clip-text text-transparent">
           {currentMessage.text}
         </h2>
-        <p className="text-purple-700/70">
+        <p className="text-purple-700/70 text-sm">
           יצירת סיפור מותאם אישית עבור {formData.childName}
-        </p>
-        <p className="text-sm text-purple-500/80 mt-1 animate-pulse">
-          ✨ עוד רגע קט והקסם מתחיל...
         </p>
       </div>
 
@@ -459,90 +382,6 @@ const GeneratingStep = ({ formData, onComplete }: GeneratingStepProps) => {
         >
           "{EMPOWERING_SENTENCES[sentenceIndex]}"
         </p>
-      </div>
-
-      {/* Quick Feedback Card - only during generation */}
-      {progress < 100 && !feedbackSent && (
-        <div className="w-full max-w-sm bg-white rounded-xl p-4 shadow-lg border border-purple-100 space-y-3" dir="rtl">
-          <h3 className="text-center text-sm font-bold text-purple-700">
-            נשמח לדירוג שלכם! ⭐
-          </h3>
-          <div className="flex justify-center gap-1">
-            {[1, 2, 3, 4, 5].map((s) => (
-              <button
-                key={s}
-                onClick={() => setFeedbackRating(s)}
-                onMouseEnter={() => setFeedbackHover(s)}
-                onMouseLeave={() => setFeedbackHover(0)}
-                className="p-1 transition-transform hover:scale-110"
-                aria-label={`דירוג ${s} כוכבים`}
-              >
-                <Star className={`w-7 h-7 ${s <= (feedbackHover || feedbackRating) ? 'fill-amber-400 text-amber-400' : 'text-purple-200'} transition-colors`} />
-              </button>
-            ))}
-          </div>
-          <Textarea
-            value={feedbackMessage}
-            onChange={(e) => setFeedbackMessage(e.target.value)}
-            placeholder="ספרו לנו במשפט קצר מה דעתכם או שתפו טיפ להורים אחרים"
-            className="text-sm min-h-[60px] resize-none"
-            dir="rtl"
-          />
-          <Button
-            onClick={handleSubmitFeedback}
-            disabled={feedbackRating === 0 || feedbackSending}
-            size="sm"
-            className="w-full gap-1.5 bg-gradient-to-r from-purple-600 to-pink-500 hover:from-purple-700 hover:to-pink-600"
-          >
-            <Send className="w-3.5 h-3.5" />
-            {feedbackSending ? "שולח..." : "שליחה"}
-          </Button>
-        </div>
-      )}
-
-      {/* Thank you message after feedback */}
-      {feedbackSent && progress < 100 && (
-        <div className="w-full max-w-sm bg-gradient-to-r from-purple-50 to-pink-50 rounded-xl p-4 shadow-lg border border-purple-100 text-center animate-fade-in" dir="rtl">
-          <p className="text-lg font-bold text-purple-700">תודה רבה! 💜</p>
-          <p className="text-sm text-purple-500 mt-1">המשוב שלכם עוזר לנו להשתפר</p>
-        </div>
-      )}
-
-      {/* Professional Testimonials Carousel */}
-      <div className="w-full max-w-sm space-y-2">
-        <h3 className="text-center text-sm font-bold text-purple-700">
-          אנשי מקצוע ממליצים ✨
-        </h3>
-        <div
-          className={`bg-white rounded-xl p-4 shadow-lg border border-purple-100 transition-opacity duration-500 ${
-            isSentenceVisible ? "opacity-100" : "opacity-0"
-          }`}
-          dir="rtl"
-        >
-          <div className="flex items-start gap-3">
-            <img
-              src={currentTestimonial.avatar}
-              alt={currentTestimonial.name}
-              className="w-10 h-10 rounded-full object-cover border-2 border-amber-200 shrink-0"
-            />
-            <div className="flex-1 space-y-1">
-              <div className="flex items-center justify-between">
-                <div>
-                  <span className="text-sm font-bold text-purple-800">{currentTestimonial.name}</span>
-                  <span className="block text-xs text-purple-500 font-medium">{currentTestimonial.role}</span>
-                </div>
-                <div className="flex gap-0.5">
-                  {[1, 2, 3, 4, 5].map((s) => (
-                    <Star key={s} className={`w-3.5 h-3.5 ${s <= currentTestimonial.rating ? 'fill-amber-400 text-amber-400' : 'text-muted-foreground/30'}`} />
-                  ))}
-                </div>
-              </div>
-              <p className="text-sm text-purple-600 leading-relaxed">
-                "{currentTestimonial.quote}"
-              </p>
-            </div>
-          </div>
-        </div>
       </div>
     </div>
   );
