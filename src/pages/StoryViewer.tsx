@@ -231,8 +231,15 @@ const StoryViewer = () => {
 
   const isUUID = (str: string) => /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(str);
 
+  const fetchStartTimeRef = useRef<number>(Date.now());
+
   const fetchStory = async (retryCount = 0) => {
     try {
+      // Track when we first started fetching
+      if (retryCount === 0) {
+        fetchStartTimeRef.current = Date.now();
+      }
+
       if (!isOnline && storyId) {
         const cached = getCachedStory(storyId);
         if (cached) {
@@ -273,13 +280,17 @@ const StoryViewer = () => {
       }
       
       if (!storyData) {
-        if (retryCount < 3) {
-          console.log(`Story not found, retrying in 1s (attempt ${retryCount + 1}/3)...`);
-          setTimeout(() => fetchStory(retryCount + 1), 1000);
-          return;
+        const elapsed = Date.now() - fetchStartTimeRef.current;
+        // Retry up to 6 times with 500ms intervals (total ~3s), then slower retries up to 10s
+        if (elapsed < 10000) {
+          const delay = retryCount < 6 ? 500 : 1500;
+          console.log(`Story not found, retrying in ${delay}ms (attempt ${retryCount + 1}, elapsed ${Math.round(elapsed/1000)}s)...`);
+          setTimeout(() => fetchStory(retryCount + 1), delay);
+          return; // Keep isLoading = true
         }
         
-        console.error("Story not found after retries:", storyId);
+        console.error("Story not found after 10s of retries:", storyId);
+        setIsLoading(false);
         toast({
           variant: "destructive",
           title: "שגיאה",
@@ -288,6 +299,9 @@ const StoryViewer = () => {
         navigate("/library");
         return;
       }
+
+      // Verify the resolved ID matches what we expect
+      console.log(`[StoryViewer] Story found - ID: ${storyData.id}, slug: ${storyData.slug}`);
 
       // Check generation status
       const status = (storyData as any).generation_status || 'ready';
@@ -311,12 +325,14 @@ const StoryViewer = () => {
 
       if (pagesError) throw pagesError;
 
-      // If no pages yet, retry (generation in progress)
+      // If no pages yet, retry with same time-based logic
       if (!pagesData || pagesData.length === 0) {
-        if (retryCount < 5) {
-          console.log(`No pages found, retrying in 2s (attempt ${retryCount + 1}/5)...`);
-          setTimeout(() => fetchStory(retryCount + 1), 2000);
-          return;
+        const elapsed = Date.now() - fetchStartTimeRef.current;
+        if (elapsed < 10000) {
+          const delay = retryCount < 6 ? 500 : 2000;
+          console.log(`No pages found, retrying in ${delay}ms (attempt ${retryCount + 1}, elapsed ${Math.round(elapsed/1000)}s)...`);
+          setTimeout(() => fetchStory(retryCount + 1), delay);
+          return; // Keep isLoading = true
         }
       }
 
@@ -361,15 +377,24 @@ const StoryViewer = () => {
       if (resolvedStoryId) {
         cacheStory(resolvedStoryId, storyObj);
       }
+
+      // Only set loading false after data is fully ready
+      setIsLoading(false);
     } catch (error) {
       console.error("Error fetching story:", error);
+      const elapsed = Date.now() - fetchStartTimeRef.current;
+      // On error, retry if under 10s
+      if (elapsed < 10000) {
+        console.log(`Fetch error, retrying in 1s (elapsed ${Math.round(elapsed/1000)}s)...`);
+        setTimeout(() => fetchStory(retryCount + 1), 1000);
+        return;
+      }
+      setIsLoading(false);
       toast({
         variant: "destructive",
         title: "שגיאה",
         description: "לא הצלחנו לטעון את הסיפור",
       });
-    } finally {
-      setIsLoading(false);
     }
   };
 
