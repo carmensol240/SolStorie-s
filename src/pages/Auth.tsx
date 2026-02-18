@@ -15,7 +15,6 @@ import { useAnalytics } from "@/hooks/use-analytics";
 import { supabase } from "@/integrations/supabase/client";
 import { z } from "zod";
 // Background is now CSS-only (adventure sky theme)
-import solWaving from "@/assets/sol-princess-waving.png";
 
 const emailSchema = z.string().email("כתובת אימייל לא תקינה");
 const passwordSchema = z.string().min(6, "הסיסמה חייבת להכיל לפחות 6 תווים");
@@ -1056,12 +1055,8 @@ const Auth = () => {
           <span className="logo-rainbow">SolStorie's™</span>
         </h1>
 
-        {/* Container wrapper for peeking character */}
-        <div className="relative w-full max-w-md overflow-visible pt-24 sm:pt-28">
-          {/* Sol peeking from behind the box */}
-          <div className="absolute -top-28 -left-10 z-[5] pointer-events-none animate-slide-peek">
-            <img src={solWaving} alt="Sol waving hello" className="w-72 h-72 sm:w-80 sm:h-80 object-contain drop-shadow-lg" />
-          </div>
+        {/* Login container */}
+        <div className="relative w-full max-w-md overflow-visible pt-4 sm:pt-6">
 
           {/* Glassmorphism Login Container */}
           <div className="relative z-10 w-full bg-white/80 backdrop-blur-xl rounded-3xl shadow-2xl shadow-black/20 p-4 md:p-5 animate-fade-in max-h-[80vh] overflow-y-auto border border-white/50">
