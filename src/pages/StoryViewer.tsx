@@ -293,6 +293,13 @@ const StoryViewer = () => {
       const status = (storyData as any).generation_status || 'ready';
       setGenerationStatus(status);
 
+      // If coming from story creation, skip the illustration loading screen
+      const justCreated = sessionStorage.getItem("just_created_story");
+      if (justCreated) {
+        sessionStorage.removeItem("just_created_story");
+        setUserStartedReading(true);
+      }
+
       const resolvedStoryId = storyData.id;
       setResolvedId(resolvedStoryId);
 

@@ -13,11 +13,17 @@ interface GeneratingStepProps {
   onComplete: (storyId: string) => void;
 }
 
-const LOADING_MESSAGES = [
-  { icon: Sparkles, text: "מכינים את הקסם...", color: "text-purple-500" },
-  { icon: BookOpen, text: "כותבים את הסיפור...", color: "text-pink-500" },
-  { icon: Palette, text: "סול מציירת לכם איור קסום...", color: "text-orange-400" },
-  { icon: FileText, text: "עוד רגע והספר מוכן!", color: "text-purple-600" },
+// Phase-aware loading messages
+const TEXT_MESSAGES = [
+  { icon: Sparkles, text: "הסיפור נכתב עבורך כעת...", color: "text-purple-500" },
+  { icon: BookOpen, text: "בונים את העלילה...", color: "text-pink-500" },
+  { icon: FileText, text: "יוצרים דפים קסומים...", color: "text-orange-400" },
+];
+
+const ILLUSTRATION_MESSAGES = [
+  { icon: Palette, text: "סול מציירת את האיורים...", color: "text-purple-500" },
+  { icon: Sparkles, text: "מוסיפים צבעים קסומים...", color: "text-pink-500" },
+  { icon: Wand2, text: "עוד רגע והספר מוכן!", color: "text-purple-600" },
 ];
 
 const EMPOWERING_SENTENCES = [
@@ -62,7 +68,6 @@ const GeneratingStep = ({ formData, onComplete }: GeneratingStepProps) => {
   const { user } = useAuth();
   const [progress, setProgress] = useState(0);
   const [messageIndex, setMessageIndex] = useState(0);
-  // Randomize initial indices so different content shows each time
   const [sentenceIndex, setSentenceIndex] = useState(() => Math.floor(Math.random() * EMPOWERING_SENTENCES.length));
   const [isSentenceVisible, setIsSentenceVisible] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -70,9 +75,89 @@ const GeneratingStep = ({ formData, onComplete }: GeneratingStepProps) => {
   const retryCountRef = useRef(0);
   const MAX_RETRIES = 2;
 
+  // New unified flow states
+  const [phase, setPhase] = useState<'text' | 'illustrations' | 'ready'>('text');
+  const [storyId, setStoryId] = useState<string | null>(null);
+  const [illustrationProgress, setIllustrationProgress] = useState(0);
+  const pollingRef = useRef<NodeJS.Timeout | null>(null);
+
+  // Cleanup polling on unmount
+  useEffect(() => {
+    return () => {
+      if (pollingRef.current) {
+        clearInterval(pollingRef.current);
+      }
+    };
+  }, []);
+
+  // Poll for illustration progress once we have a storyId
+  const pollIllustrations = useCallback(async (sid: string) => {
+    try {
+      const { data: storyData } = await supabase
+        .from("stories")
+        .select("generation_status")
+        .eq("id", sid)
+        .maybeSingle();
+
+      const status = (storyData as any)?.generation_status || 'ready';
+
+      if (status === 'ready') {
+        // All done!
+        setPhase('ready');
+        setIllustrationProgress(100);
+        setProgress(100);
+        if (pollingRef.current) {
+          clearInterval(pollingRef.current);
+          pollingRef.current = null;
+        }
+        // Navigate after a short delay
+        setTimeout(() => onComplete(sid), 1200);
+        return;
+      }
+
+      // Check page progress
+      const { data: pages } = await supabase
+        .from("story_pages")
+        .select("id, illustration_url")
+        .eq("story_id", sid);
+
+      if (pages && pages.length > 0) {
+        const done = pages.filter(p => p.illustration_url).length;
+        const pct = Math.round((done / pages.length) * 100);
+        setIllustrationProgress(pct);
+        // Map illustration progress to overall progress (50-95%)
+        setProgress(50 + Math.round(pct * 0.45));
+      }
+    } catch (err) {
+      console.error("[GeneratingStep] Poll error:", err);
+    }
+  }, [onComplete]);
+
+  // Start polling when entering illustration phase
+  useEffect(() => {
+    if (phase === 'illustrations' && storyId && !pollingRef.current) {
+      // Start polling every 3 seconds
+      pollingRef.current = setInterval(() => pollIllustrations(storyId), 3000);
+      // Also poll immediately
+      pollIllustrations(storyId);
+
+      // 60-second timeout: proceed even if illustrations aren't done
+      const timeout = setTimeout(() => {
+        if (pollingRef.current) {
+          clearInterval(pollingRef.current);
+          pollingRef.current = null;
+        }
+        console.log("[GeneratingStep] 60s timeout - proceeding to story");
+        onComplete(storyId);
+      }, 60000);
+
+      return () => clearTimeout(timeout);
+    }
+  }, [phase, storyId, pollIllustrations, onComplete]);
 
   const generateStory = useCallback(async () => {
     try {
+      setPhase('text');
       const topicLabel = formData.topic === "custom" 
         ? formData.customTopic 
         : getTopicLabel(formData.topic);
@@ -83,9 +168,8 @@ const GeneratingStep = ({ formData, onComplete }: GeneratingStepProps) => {
         attempt: retryCountRef.current + 1
       });
 
-      // Create an AbortController for timeout handling
       const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 120000); // 2 minute timeout
+      const timeoutId = setTimeout(() => controller.abort(), 120000);
 
       let data, apiError;
       
@@ -121,14 +205,12 @@ const GeneratingStep = ({ formData, onComplete }: GeneratingStepProps) => {
 
       if (apiError) {
         console.error("API error:", apiError);
-        // Check for specific error types
         if (apiError.message?.includes("401") || apiError.message?.includes("נדרשת התחברות")) {
           toast({
             variant: "destructive",
             title: "נדרשת התחברות",
             description: "אנא התחברו כדי ליצור סיפורים.",
           });
-          // Redirect to login with return path
           navigate("/auth?returnTo=/create");
           return;
         }
@@ -140,7 +222,6 @@ const GeneratingStep = ({ formData, onComplete }: GeneratingStepProps) => {
 
       if (!data?.storyId) {
         console.error("[GeneratingStep] No storyId in response:", data);
-        // Check if there's an error message in the response
         if (data?.error) {
           throw new Error(data.error);
         }
@@ -149,7 +230,7 @@ const GeneratingStep = ({ formData, onComplete }: GeneratingStepProps) => {
 
       console.log("[GeneratingStep] Story created successfully with ID:", data.storyId);
       
-      // Validate that story pages exist before navigating
+      // Validate that story pages exist
       const { data: pages, error: pagesError } = await supabase
         .from("story_pages")
         .select("id, text")
@@ -161,14 +242,14 @@ const GeneratingStep = ({ formData, onComplete }: GeneratingStepProps) => {
         throw new Error("הסיפור נוצר אך ללא טקסט. מנסים שוב...");
       }
 
-      console.log("[GeneratingStep] Verified story has text, navigating...");
-      setProgress(100);
-      setTimeout(() => onComplete(data.storyId), 800);
+      console.log("[GeneratingStep] Text verified. Entering illustration phase...");
+      setStoryId(data.storyId);
+      setPhase('illustrations');
+      setProgress(50);
       
     } catch (err) {
       console.error("[GeneratingStep] Error generating story:", err);
       
-      // Extract meaningful error message
       let errorMessage = "שגיאה לא ידועה";
       if (err instanceof Error) {
         errorMessage = err.message;
@@ -179,7 +260,6 @@ const GeneratingStep = ({ formData, onComplete }: GeneratingStepProps) => {
         }
       }
       
-      // Auto-retry up to MAX_RETRIES times
       if (retryCountRef.current < MAX_RETRIES) {
         retryCountRef.current += 1;
         console.log(`[GeneratingStep] Auto-retrying (${retryCountRef.current}/${MAX_RETRIES})...`);
@@ -188,7 +268,6 @@ const GeneratingStep = ({ formData, onComplete }: GeneratingStepProps) => {
           title: "מנסים שוב...",
           description: `ניסיון ${retryCountRef.current + 1} ליצירת הסיפור`,
         });
-        // Small delay before retry
         await new Promise(resolve => setTimeout(resolve, 1500));
         generateStory();
         return;
@@ -204,17 +283,25 @@ const GeneratingStep = ({ formData, onComplete }: GeneratingStepProps) => {
   }, [formData, onComplete, toast, navigate]);
 
   useEffect(() => {
-    // Progress animation
+    // Progress animation for text phase
     const progressInterval = setInterval(() => {
       setProgress((prev) => {
-        if (prev >= 95) return prev;
-        return prev + Math.random() * 5;
+        if (phase === 'text') {
+          // During text phase, progress up to 48%
+          if (prev >= 48) return prev;
+          return prev + Math.random() * 4;
+        }
+        // During illustration phase, progress is set by polling
+        return prev;
       });
     }, 500);
 
     // Message rotation
     const messageInterval = setInterval(() => {
-      setMessageIndex((prev) => (prev + 1) % LOADING_MESSAGES.length);
+      setMessageIndex((prev) => {
+        const messages = phase === 'illustrations' ? ILLUSTRATION_MESSAGES : TEXT_MESSAGES;
+        return (prev + 1) % messages.length;
+      });
     }, 3000);
 
     // Empowering sentence rotation with fade effect
@@ -237,17 +324,35 @@ const GeneratingStep = ({ formData, onComplete }: GeneratingStepProps) => {
       clearInterval(messageInterval);
       clearInterval(sentenceInterval);
     };
-  }, [generateStory]);
+  }, [generateStory, phase]);
 
   const handleRetry = () => {
     setError(null);
     setProgress(0);
+    setPhase('text');
+    setStoryId(null);
     retryCountRef.current = 0;
     hasStartedRef.current = false;
+    if (pollingRef.current) {
+      clearInterval(pollingRef.current);
+      pollingRef.current = null;
+    }
     generateStory();
   };
 
-  const currentMessage = LOADING_MESSAGES[messageIndex];
+  const handleStartReadingNow = () => {
+    if (!storyId) return;
+    // Stop polling and navigate immediately
+    if (pollingRef.current) {
+      clearInterval(pollingRef.current);
+      pollingRef.current = null;
+    }
+    onComplete(storyId);
+  };
+
+  const currentMessages = phase === 'illustrations' ? ILLUSTRATION_MESSAGES : TEXT_MESSAGES;
+  const safeMessageIndex = messageIndex % currentMessages.length;
+  const currentMessage = currentMessages[safeMessageIndex];
   const Icon = currentMessage.icon;
 
   if (error) {
@@ -276,7 +381,7 @@ const GeneratingStep = ({ formData, onComplete }: GeneratingStepProps) => {
 
   return (
     <div className="flex flex-col items-center justify-center min-h-[100dvh] text-center space-y-5 bg-gradient-to-b from-[#FAF3E8] to-[#F5E6D3] p-6">
-      {/* Hero Image - All 5 Friends */}
+      {/* Hero Image */}
       <div className="w-full max-w-sm mx-auto rounded-2xl overflow-hidden shadow-xl border-4 border-purple-200/50">
         <img
           src={generatingHeroFriends}
@@ -285,7 +390,7 @@ const GeneratingStep = ({ formData, onComplete }: GeneratingStepProps) => {
         />
       </div>
 
-      {/* Animated Icon with Magic Wand */}
+      {/* Animated Icon */}
       <div className="relative">
         <div className="w-20 h-20 bg-gradient-to-br from-purple-500/20 via-pink-500/20 to-orange-400/20 rounded-full flex items-center justify-center shadow-lg">
           <div className="relative">
@@ -298,17 +403,20 @@ const GeneratingStep = ({ formData, onComplete }: GeneratingStepProps) => {
         </div>
       </div>
 
-      {/* Message with gradient text */}
+      {/* Message */}
       <div className="space-y-1.5">
         <h2 className="text-xl font-bold bg-gradient-to-r from-purple-600 via-pink-500 to-orange-400 bg-clip-text text-transparent">
           {currentMessage.text}
         </h2>
         <p className="text-purple-700/70 text-sm">
-          יצירת סיפור מותאם אישית עבור {formData.childName}
+          {phase === 'illustrations' 
+            ? `האיורים של ${formData.childName} נוצרים כעת...`
+            : `יצירת סיפור מותאם אישית עבור ${formData.childName}`
+          }
         </p>
       </div>
 
-      {/* Progress Bar with gradient */}
+      {/* Progress Bar */}
       <div className="w-full max-w-xs space-y-2">
         <div className="relative h-3 w-full overflow-hidden rounded-full bg-purple-100">
           <div 
@@ -321,7 +429,19 @@ const GeneratingStep = ({ formData, onComplete }: GeneratingStepProps) => {
         </p>
       </div>
 
-      {/* Empowering NLP Sentence */}
+      {/* "Start Reading Now" button - shown once text is ready */}
+      {phase === 'illustrations' && storyId && (
+        <Button
+          onClick={handleStartReadingNow}
+          size="lg"
+          className="bg-gradient-to-r from-purple-600 to-pink-500 hover:from-purple-700 hover:to-pink-600 text-white font-bold px-8 py-5 text-lg rounded-full shadow-xl gap-2"
+        >
+          <BookOpen className="w-5 h-5" />
+          התחילו לקרוא עכשיו!
+        </Button>
+      )}
+
+      {/* Empowering Sentence */}
       <div className="w-full max-w-sm px-4 min-h-[60px] flex items-center justify-center">
         <p
           className={`text-center text-base leading-relaxed transition-opacity duration-500 ${
