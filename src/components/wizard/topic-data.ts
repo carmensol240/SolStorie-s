@@ -66,6 +66,7 @@ export interface TopicItem {
   description: string;
   image: string;
   ageRange: string;
+  keywords?: string[];
 }
 
 export interface CharacterSection {
@@ -109,12 +110,12 @@ export const CHARACTER_SECTIONS: CharacterSection[] = [
     categoryEmoji: "🌱",
     heroImage: castMia,
     topics: [
-      { id: "body-hero-teeth", label: "צחצוח שיניים קסום", description: "סיפור מהנה על צחצוח שיניים: איך הופכים את הצחצוח להרפתקה קסומה שמגינה על החיוך שלנו.", image: topicTeethBrushing, ageRange: "3-6" },
-      { id: "body-hero-bath", label: "אמבטיה של כיף", description: "סיפור על הקסם שבאמבטיה: בועות סבון, משחקי מים וגילוי שרחצה יכולה להיות חוויה מדהימה.", image: topicBathShower, ageRange: "3-6" },
+      { id: "body-hero-teeth", label: "צחצוח שיניים קסום", description: "סיפור מהנה על צחצוח שיניים: איך הופכים את הצחצוח להרפתקה קסומה שמגינה על החיוך שלנו.", image: topicTeethBrushing, ageRange: "3-6", keywords: ["שיניים", "צחצוח", "היגיינה", "פה"] },
+      { id: "body-hero-bath", label: "אמבטיה של כיף", description: "סיפור על הקסם שבאמבטיה: בועות סבון, משחקי מים וגילוי שרחצה יכולה להיות חוויה מדהימה.", image: topicBathShower, ageRange: "3-6", keywords: ["מקלחת", "רחצה", "סבון", "היגיינה", "מים", "ניקיון", "להתרחץ", "אמבט"] },
       { id: "helping-at-home", label: "הקסם של עזרה בבית", description: "סיפור על שמחת העזרה בבית: לסדר צעצועים, לעזור במטבח ולגלות כמה כיף לעשות דברים ביחד.", image: topicHelpingAtHome, ageRange: "3-6" },
       { id: "home-of-love", label: "הבית של האהבה", description: "סיפור מרגש על הקשר המיוחד בין ילד/ה להורה: בית מלא אהבה, חיבוקים וביטחון.", image: topicHomeOfLove, ageRange: "3-8" },
       { id: "playing-together", label: "משחקים יחד בגינה", description: "סיפור על משחק משותף ושיתוף פעולה: לחלוק כדור, להמציא משחקים וליהנות יחד בגינה.", image: topicPlayingTogether, ageRange: "3-6" },
-      { id: "body-hero-hands", label: "שטיפת ידיים", description: "סיפור על שטיפת ידיים נכונה: למה חשוב לשטוף ידיים ואיך הופכים את זה להרגל כיפי.", image: topicHandWashing, ageRange: "3-6" },
+      { id: "body-hero-hands", label: "שטיפת ידיים", description: "סיפור על שטיפת ידיים נכונה: למה חשוב לשטוף ידיים ואיך הופכים את זה להרגל כיפי.", image: topicHandWashing, ageRange: "3-6", keywords: ["היגיינה", "ניקיון", "חיידקים", "סבון"] },
       { id: "potty-training", label: "גמילה מחיתולים", description: "סיפור מעודד על המעבר לסיר או אסלה: כל ילד/ה עושה את זה בקצב שלו – וזה בסדר גמור!", image: topicPottyTraining, ageRange: "0-3" },
       { id: "pacifier-fairy", label: "פיית המוצץ", description: "סיפור קסום על פרידה מהמוצץ: פיית המוצץ מגיעה לאסוף אותו ומשאירה הפתעה מיוחדת.", image: topicPacifier, ageRange: "0-3" },
       { id: "first-day-kindergarten", label: "יום ראשון בגן", description: "סיפור על ההתרגשות והחשש של היום הראשון בגן: חברים חדשים, משחקים והגננת החמה.", image: topicFirstDayKindergarten, ageRange: "3-6" },

@@ -26,7 +26,8 @@ const TopicStep = ({ formData, updateFormData }: TopicStepProps) => {
       for (const topic of section.topics) {
         if (
           topic.label.toLowerCase().includes(q) ||
-          topic.description.toLowerCase().includes(q)
+          topic.description.toLowerCase().includes(q) ||
+          (topic.keywords && topic.keywords.some(k => k.toLowerCase().includes(q)))
         ) {
           results.push(topic);
         }
