@@ -392,6 +392,7 @@ const ChildInfoStep = ({ formData, updateFormData }: ChildInfoStepProps) => {
     }
   };
 
+  return (
 
     <div className="w-full space-y-2 px-1">
       {/* Title */}
