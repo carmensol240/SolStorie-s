@@ -1,26 +1,16 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { ChevronLeft, ChevronUp, BookOpen } from "lucide-react";
-import { SignedImage } from "@/components/ui/signed-image";
+import { ChevronLeft, ChevronUp } from "lucide-react";
 import type { CharacterSection } from "@/components/wizard/topic-data";
-
-interface StoryItem {
-  id: string;
-  child_name: string;
-  topic: string;
-  cover_url: string | null;
-  created_at: string;
-}
 
 interface CategorySectionProps {
   section: CharacterSection;
-  stories: StoryItem[];
   colorClass: string;
   bgClass: string;
   borderClass: string;
 }
 
-const CategorySection = ({ section, stories, colorClass, bgClass, borderClass }: CategorySectionProps) => {
+const CategorySection = ({ section, colorClass, bgClass, borderClass }: CategorySectionProps) => {
   const navigate = useNavigate();
   const [expanded, setExpanded] = useState(false);
 
@@ -88,59 +78,20 @@ const CategorySection = ({ section, stories, colorClass, bgClass, borderClass }:
         </div>
       )}
 
-      {/* Collapsed: "See All" + Stories row */}
+      {/* Collapsed: "See All" button */}
       {!expanded && (
-        <>
-          <div className="flex items-center justify-between px-1">
-            <span className={`text-sm font-bold ${colorClass}`}>
-              {section.categoryEmoji} {section.categoryLabel}
-            </span>
-            <button
-              onClick={() => setExpanded(true)}
-              className={`flex items-center gap-1 text-xs font-medium ${colorClass} hover:opacity-80 transition-opacity`}
-            >
-              הצג הכל
-              <ChevronLeft className="w-3.5 h-3.5" />
-            </button>
-          </div>
-
-          {stories.length > 0 ? (
-            <div className="flex gap-3 overflow-x-auto pb-2 -mx-1 px-1 scrollbar-hide">
-              {stories.map((story) => (
-                <button
-                  key={story.id}
-                  onClick={() => navigate(`/story/${story.id}`)}
-                  className="flex-shrink-0 w-28 group focus-ring rounded-xl"
-                  aria-label={`קרא את הסיפור של ${story.child_name}`}
-                >
-                  <div className={`w-28 h-36 rounded-xl overflow-hidden shadow-md ${borderClass} border bg-muted group-hover:scale-[1.03] transition-transform`}>
-                    <SignedImage
-                      src={story.cover_url}
-                      storyId={story.id}
-                      alt={`שער הסיפור של ${story.child_name}`}
-                      className="w-full h-full object-cover"
-                      fallback={
-                        <div className={`w-full h-full flex items-center justify-center ${bgClass}`}>
-                          <BookOpen className={`w-8 h-8 ${colorClass} opacity-40`} />
-                        </div>
-                      }
-                    />
-                  </div>
-                </button>
-              ))}
-            </div>
-          ) : (
-            <div className={`rounded-xl ${bgClass} py-6 text-center`}>
-              <p className="text-sm text-muted-foreground">עדיין אין סיפורים בקטגוריה זו</p>
-              <button
-                onClick={() => setExpanded(true)}
-                className={`mt-2 text-xs font-bold ${colorClass} hover:opacity-80`}
-              >
-                צרו את הסיפור הראשון ✨
-              </button>
-            </div>
-          )}
-        </>
+        <div className="flex items-center justify-between px-1">
+          <span className={`text-sm font-bold ${colorClass}`}>
+            {section.categoryEmoji} {section.categoryLabel}
+          </span>
+          <button
+            onClick={() => setExpanded(true)}
+            className={`flex items-center gap-1 text-xs font-medium ${colorClass} hover:opacity-80 transition-opacity`}
+          >
+            הצג הכל
+            <ChevronLeft className="w-3.5 h-3.5" />
+          </button>
+        </div>
       )}
     </section>
   );

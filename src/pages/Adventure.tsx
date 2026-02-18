@@ -8,18 +8,9 @@ import { useAuth } from "@/hooks/use-auth";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { CHARACTER_SECTIONS } from "@/components/wizard/topic-data";
-import { getStoryCategoryId } from "@/lib/story-category-mapper";
 import WelcomeGiftBanner from "@/components/home/WelcomeGiftBanner";
 import CategorySection from "@/components/home/CategorySection";
 import MobileNavigation from "@/components/MobileNavigation";
-
-interface StoryItem {
-  id: string;
-  child_name: string;
-  topic: string;
-  cover_url: string | null;
-  created_at: string;
-}
 
 const COLOR_CONFIG: Record<string, { colorClass: string; bgClass: string; borderClass: string }> = {
   heroes: { colorClass: "text-purple-600", bgClass: "bg-purple-50", borderClass: "border-purple-200" },
@@ -38,7 +29,6 @@ const Adventure = () => {
   const { toast } = useToast();
   const [displayName, setDisplayName] = useState<string | null>(null);
   const [storyCount, setStoryCount] = useState<number>(0);
-  const [storiesByCategory, setStoriesByCategory] = useState<Record<string, StoryItem[]>>({});
 
   useEffect(() => {
     window.scrollTo(0, 0);
@@ -73,32 +63,17 @@ const Adventure = () => {
     fetchProfile();
   }, [user]);
 
-  // Fetch stories and categorize them
+  // Fetch story count
   useEffect(() => {
-    const fetchStories = async () => {
+    const fetchCount = async () => {
       if (!user?.id) return;
-      const { data, error, count } = await supabase
+      const { count } = await supabase
         .from("stories")
-        .select("id, child_name, topic, cover_url, created_at", { count: "exact" })
-        .eq("user_id", user.id)
-        .order("created_at", { ascending: false });
-
-      if (error || !data) return;
+        .select("id", { count: "exact", head: true })
+        .eq("user_id", user.id);
       if (count !== null) setStoryCount(count);
-
-      // Group by category, keep only 3 most recent per category
-      const grouped: Record<string, StoryItem[]> = {};
-      data.forEach((story) => {
-        const catId = getStoryCategoryId(story.topic);
-        if (!catId) return;
-        if (!grouped[catId]) grouped[catId] = [];
-        if (grouped[catId].length < 3) {
-          grouped[catId].push(story);
-        }
-      });
-      setStoriesByCategory(grouped);
     };
-    fetchStories();
+    fetchCount();
   }, [user?.id]);
 
   const totalCredits = (credits ?? 0) + shareCoins;
@@ -156,7 +131,6 @@ const Adventure = () => {
             <CategorySection
               key={section.id}
               section={section}
-              stories={storiesByCategory[section.id] || []}
               colorClass={colors.colorClass}
               bgClass={colors.bgClass}
               borderClass={colors.borderClass}
