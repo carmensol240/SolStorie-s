@@ -7,19 +7,11 @@ import { useChildAvatar } from "@/hooks/use-child-avatar";
 import { useAuth } from "@/hooks/use-auth";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
-import { CHARACTER_SECTIONS } from "@/components/wizard/topic-data";
 import WelcomeGiftBanner from "@/components/home/WelcomeGiftBanner";
-import CategorySection from "@/components/home/CategorySection";
 import MobileNavigation from "@/components/MobileNavigation";
 import heroVideo from "@/assets/hero-solstories-animation.mp4";
 
-const COLOR_CONFIG: Record<string, { colorClass: string; bgClass: string; borderClass: string }> = {
-  heroes: { colorClass: "text-purple-600", bgClass: "bg-purple-50", borderClass: "border-purple-200" },
-  growing: { colorClass: "text-emerald-600", bgClass: "bg-emerald-50", borderClass: "border-emerald-200" },
-  imagination: { colorClass: "text-blue-600", bgClass: "bg-blue-50", borderClass: "border-blue-200" },
-  adventure: { colorClass: "text-orange-600", bgClass: "bg-orange-50", borderClass: "border-orange-200" },
-  edu: { colorClass: "text-lime-700", bgClass: "bg-lime-50", borderClass: "border-lime-200" },
-};
+
 
 const Adventure = () => {
   const navigate = useNavigate();
@@ -145,21 +137,6 @@ const Adventure = () => {
         </div>
       </div>
 
-      {/* Category sections below the video */}
-      <div className="container max-w-lg mx-auto px-4 py-6 flex flex-col gap-6 pb-20">
-        {CHARACTER_SECTIONS.map((section) => {
-          const colors = COLOR_CONFIG[section.id] || COLOR_CONFIG.heroes;
-          return (
-            <CategorySection
-              key={section.id}
-              section={section}
-              colorClass={colors.colorClass}
-              bgClass={colors.bgClass}
-              borderClass={colors.borderClass}
-            />
-          );
-        })}
-      </div>
 
       <MobileNavigation />
     </div>
