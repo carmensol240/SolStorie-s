@@ -1,5 +1,5 @@
 import { useRef, useEffect, useState } from "react";
-import { User, Camera, Sparkles, RefreshCw, Trash2, Heart, ChevronDown, ChevronUp, Check, X, Loader2, Save, Shield, Globe } from "lucide-react";
+import { User, Camera, Sparkles, RefreshCw, Trash2, Heart, ChevronDown, ChevronUp, Check, X, Loader2, Save, Shield, Globe, PlusCircle } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
@@ -353,7 +353,30 @@ const ChildInfoStep = ({ formData, updateFormData }: ChildInfoStepProps) => {
       {/* Title */}
       <div className="text-center space-y-0.5">
         <h1 className="text-lg font-black bg-gradient-to-r from-purple-600 via-pink-500 to-orange-400 bg-clip-text text-transparent">ספרו לנו על הילד/ה</h1>
-        <p className="text-xs text-muted-foreground">בחרו פרופיל קיים או צרו חדש</p>
+        <p className="text-xs text-muted-foreground flex items-center justify-center gap-1.5">
+          בחרו פרופיל קיים או צרו חדש
+          <button
+            type="button"
+            onClick={() => {
+              updateFormData({
+                childName: "",
+                childGender: "male",
+                ageRange: "2-4",
+                storyLength: "short",
+                childPhoto: null,
+                childAvatarUrl: null,
+                personalityTraits: "",
+                className: "",
+              });
+              setSelectedAgeButton("3-6");
+              setExistingAvatarForDialog(null);
+            }}
+            className="text-purple-500 hover:text-purple-700 transition-colors"
+            aria-label="צור פרופיל חדש"
+          >
+            <PlusCircle className="w-4 h-4" />
+          </button>
+        </p>
       </div>
 
       {/* Saved Children Quick Select */}
@@ -432,7 +455,7 @@ const ChildInfoStep = ({ formData, updateFormData }: ChildInfoStepProps) => {
       </div>
 
       {/* Age · Length · Language - Compact Row */}
-      <div className="grid grid-cols-3 gap-2">
+      <div className="max-w-[260px] mx-auto grid grid-cols-3 gap-1.5">
         {/* Age */}
         <div className="space-y-1">
           <Label className="text-[10px] font-medium text-center block">גיל</Label>
@@ -552,7 +575,7 @@ const ChildInfoStep = ({ formData, updateFormData }: ChildInfoStepProps) => {
             </div>
           ) : formData.childPhoto ? (
             <div className="flex flex-col items-center justify-center w-full py-4 bg-card border-2 border-purple-400 bg-purple-50 rounded-xl gap-2">
-              <div className="relative w-20 h-20 rounded-full overflow-hidden border-3 border-purple-400 shadow-md">
+              <div className="relative w-24 h-24 rounded-full overflow-hidden border-3 border-purple-400 shadow-md">
                 <img
                   src={formData.childAvatarUrl || formData.childPhoto}
                   alt="תמונת הילד"
@@ -564,43 +587,50 @@ const ChildInfoStep = ({ formData, updateFormData }: ChildInfoStepProps) => {
                   </div>
                 )}
               </div>
-              <div className="flex gap-4 mt-1">
+              <div className="flex gap-3 mt-2">
                 {!formData.childAvatarUrl && formData.childPhoto && (
-                  <button
+                  <Button
                     type="button"
+                    variant="outline"
+                    size="sm"
                     onClick={() => {
                       setPendingPhotoForAvatar(formData.childPhoto);
                       setAvatarPreviewOpen(true);
                     }}
-                    className="text-xs text-purple-600 underline font-medium"
+                    className="text-sm text-purple-600 border-purple-300 hover:bg-purple-50"
                   >
+                    <Sparkles className="w-4 h-4 ml-1" />
                     צור אווטאר
-                  </button>
+                  </Button>
                 )}
                 {formData.childAvatarUrl && (
-                  <button
+                  <Button
                     type="button"
+                    variant="outline"
+                    size="sm"
                     onClick={() => {
                       setPendingPhotoForAvatar(formData.childPhoto);
                       setAvatarPreviewOpen(true);
                     }}
-                    className="text-xs text-purple-600 flex items-center gap-1 font-medium"
+                    className="text-sm text-purple-600 border-purple-300 hover:bg-purple-50"
                   >
-                    <RefreshCw className="w-3 h-3" />
+                    <RefreshCw className="w-4 h-4 ml-1" />
                     עדכן אווטאר
-                  </button>
+                  </Button>
                 )}
-                <button
+                <Button
                   type="button"
+                  variant="outline"
+                  size="sm"
                   onClick={() => {
                     updateFormData({ childPhoto: null, childAvatarUrl: null });
                     setExistingAvatarForDialog(null);
                   }}
-                  className="text-xs text-destructive flex items-center gap-1 font-medium"
+                  className="text-sm text-destructive border-destructive/30 hover:bg-destructive/10"
                 >
-                  <Trash2 className="w-3 h-3" />
+                  <Trash2 className="w-4 h-4 ml-1" />
                   מחק
-                </button>
+                </Button>
               </div>
             </div>
           ) : (

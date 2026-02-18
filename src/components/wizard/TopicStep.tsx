@@ -73,6 +73,19 @@ const TopicStep = ({ formData, updateFormData }: TopicStepProps) => {
         <span className="text-orange-400"><Sparkles className="w-5 h-5" /></span>
       </h2>
 
+      {/* Personality traits */}
+      <div className="space-y-1">
+        <label className="text-xs font-medium text-muted-foreground">תכונות אופי (אופציונלי)</label>
+        <Textarea
+          className="w-full min-h-[50px] text-sm resize-none"
+          rows={2}
+          placeholder="למשל: ביישן, אוהב חיות, סקרנית..."
+          value={formData.personalityTraits || ""}
+          onChange={(e) => updateFormData({ personalityTraits: e.target.value })}
+          dir="rtl"
+        />
+      </div>
+
       {/* Single unified text input */}
       <Textarea
         className="w-full min-h-[80px] text-sm resize-none"
