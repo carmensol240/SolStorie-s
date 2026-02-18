@@ -34,12 +34,12 @@ interface PhotoTip {
 }
 
 const photoTips: PhotoTip[] = [
-  { text: "פורטרט עם חיוך", isGood: true },
-  { text: "מבט הצידה", isGood: false },
-  { text: "פנים מוסתרות", isGood: false },
-  { text: "תמונה בעדשה רחבה", isGood: false },
-  { text: "פנים מוסתרות בסינון", isGood: false },
-  { text: "יותר מילד אחד", isGood: false },
+  { text: "פנים מסתכלות קדימה", isGood: true },
+  { text: "דמות יחידה בתמונה", isGood: true },
+  { text: "ללא אביזרים (משקפי שמש, כובע)", isGood: true },
+  { text: "תאורה טובה וברורה", isGood: true },
+  { text: "מבט הצידה או פנים מוסתרות", isGood: false },
+  { text: "יותר מילד/ה אחד/ת בתמונה", isGood: false },
 ];
 
 // Age range buttons configuration
@@ -608,40 +608,29 @@ const ChildInfoStep = ({ formData, updateFormData }: ChildInfoStepProps) => {
           ) : (
             <label
               htmlFor="photo-upload"
-              className="flex flex-col items-center justify-center w-full h-20 bg-card border-2 border-dashed border-purple-200 rounded-xl cursor-pointer hover:border-purple-400 transition-colors"
+              className="flex flex-col items-center justify-center w-full bg-card border-2 border-dashed border-purple-200 rounded-xl cursor-pointer hover:border-purple-400 transition-colors p-3 gap-2"
             >
-              <Camera className="w-5 h-5 text-purple-400 mb-0.5" />
-              <span className="text-xs text-muted-foreground">העלו תמונה</span>
+              <div className="flex items-center gap-1.5">
+                <Camera className="w-5 h-5 text-purple-400" />
+                <span className="text-xs font-medium text-muted-foreground">העלו תמונה</span>
+              </div>
+              <div className="grid grid-cols-2 gap-x-3 gap-y-1 w-full">
+                {photoTips.map((tip, index) => (
+                  <div key={index} className="flex items-center gap-1 text-[10px]">
+                    {tip.isGood ? (
+                      <Check className="w-3 h-3 text-green-500 flex-shrink-0" />
+                    ) : (
+                      <X className="w-3 h-3 text-destructive flex-shrink-0" />
+                    )}
+                    <span className={tip.isGood ? "text-foreground" : "text-muted-foreground"}>
+                      {tip.text}
+                    </span>
+                  </div>
+                ))}
+              </div>
             </label>
           )}
         </div>
-        
-        {/* Photo tips toggle */}
-        <button
-          type="button"
-          onClick={() => setShowPhotoTips(!showPhotoTips)}
-          className="text-[10px] text-muted-foreground flex items-center gap-0.5 hover:text-purple-500 transition-colors"
-        >
-          {showPhotoTips ? <ChevronUp className="w-2.5 h-2.5" /> : <ChevronDown className="w-2.5 h-2.5" />}
-          טיפים לתמונה מושלמת
-        </button>
-        
-        {showPhotoTips && (
-          <div className="grid grid-cols-2 gap-1.5 p-2 bg-purple-50 rounded-lg">
-            {photoTips.map((tip, index) => (
-              <div key={index} className="flex items-center gap-1.5 text-[10px]">
-                {tip.isGood ? (
-                  <Check className="w-2.5 h-2.5 text-green-500" />
-                ) : (
-                  <X className="w-2.5 h-2.5 text-destructive" />
-                )}
-                <span className={tip.isGood ? "text-foreground" : "text-muted-foreground"}>
-                  {tip.text}
-                </span>
-              </div>
-            ))}
-          </div>
-        )}
       </div>
 
       {/* Personality Traits (optional) */}
