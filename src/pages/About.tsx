@@ -123,39 +123,6 @@ const About = () => {
           </div>
         </div>
 
-        {/* Age section */}
-        <p className="text-base font-bold text-white/90 leading-relaxed mb-3">
-          🎯 דיוק מושלם לכל שלב התפתחותי
-        </p>
-        <p className="text-sm text-white/70 mb-3">
-          הסיפורים מותאמים אישית לגיל ולצרכים של הילד:
-        </p>
-        <div className="grid grid-cols-3 gap-2 mb-5 w-full">
-          <div className="bg-white/5 border border-white/10 rounded-xl p-2.5 text-center">
-            <p className="text-lg font-black text-amber-200">0-2</p>
-            <p className="text-xs text-white/70 leading-snug">סיפורים קצרצרים וחווייתיים</p>
-          </div>
-          <div className="bg-white/5 border border-white/10 rounded-xl p-2.5 text-center">
-            <p className="text-lg font-black text-pink-200">3-6</p>
-            <p className="text-xs text-white/70 leading-snug">עלילות מרתקות ומרחיבות דמיון</p>
-          </div>
-          <div className="bg-white/5 border border-white/10 rounded-xl p-2.5 text-center">
-            <p className="text-lg font-black text-purple-200">7-8</p>
-            <p className="text-xs text-white/70 leading-snug">שפה עשירה וקריינות לראשית קריאה</p>
-            <p className="text-[10px] text-amber-300/80 mt-1 leading-snug">(Coming soon - קריינות איכותית ולא רובוטית... יש למה לחכות!)</p>
-          </div>
-        </div>
-
-        {/* Gift section */}
-        <div className="bg-white/5 border border-white/10 rounded-xl p-3 mb-3 w-full">
-          <p className="text-sm text-white/80 leading-relaxed">
-            🎁 <strong className="text-amber-200">להעניק קסם במתנה</strong> — ניתן לרכוש שובר GIFT מעוצב המאפשר לכל ילד להפוך לגיבור הסיפור.
-          </p>
-          <p className="text-xs text-white/60 mt-1.5">
-            הצטרפות קלה: ניתן לשלם בכרטיס אשראי (גם ללא חשבון פייפאל).
-          </p>
-        </div>
-
         {/* Safety section */}
         <div className="bg-white/5 border border-white/10 rounded-xl p-3 mb-4 w-full">
           <p className="text-sm text-white/80 leading-relaxed">
@@ -178,14 +145,6 @@ const About = () => {
         <div className="bg-white/5 border border-white/10 rounded-xl p-3 w-full">
           <p className="text-xs text-white/60 leading-relaxed">
             ⚕️ השימוש באפליקציה הוא כלי עזר טכנולוגי וחווייתי בלבד ואינו מהווה תחליף לייעוץ מקצועי, חינוכי או רפואי.
-          </p>
-        </div>
-
-        {/* Coming Soon - NLP Package */}
-        <div className="bg-gradient-to-br from-amber-500/15 to-orange-400/10 border border-amber-300/20 rounded-xl p-4 w-full mt-3">
-          <p className="text-sm text-white/90 font-bold mb-1.5">🧠 בקרוב: חבילת NLP למטפלים ואנשי חינוך</p>
-          <p className="text-xs text-white/70 leading-relaxed">
-            אנחנו עובדים על העשרת האפליקציה בארגז כלים מקצועי שיכלול: תכנים פדגוגיים, דפי צביעה ופעילות, וטבלאות מעקב חכמות. יש למה לחכות! ✨
           </p>
         </div>
       </div>
