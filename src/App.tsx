@@ -11,6 +11,7 @@ import PWAInstallPrompt from "@/components/pwa/PWAInstallPrompt";
 import About from "./pages/About";
 
 import Adventure from "./pages/Adventure";
+import CategoryView from "./pages/CategoryView";
 import Profile from "./pages/Profile";
 import Auth from "./pages/Auth";
 import VerifyEmail from "./pages/VerifyEmail";
@@ -55,6 +56,7 @@ const App = () => (
             <Route path="/" element={<About />} />
             <Route path="/welcome" element={<Navigate to="/adventure" replace />} />
             <Route path="/adventure" element={<RequireTerms><Adventure /></RequireTerms>} />
+            <Route path="/category/:categoryId" element={<RequireTerms><CategoryView /></RequireTerms>} />
             <Route path="/auth" element={<Auth />} />
             <Route path="/verify-email" element={<VerifyEmail />} />
             <Route path="/login" element={<Navigate to="/auth" replace />} />

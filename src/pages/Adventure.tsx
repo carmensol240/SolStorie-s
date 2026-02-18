@@ -7,9 +7,27 @@ import { useChildAvatar } from "@/hooks/use-child-avatar";
 import { useAuth } from "@/hooks/use-auth";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
-import heroVideo from "@/assets/hero-solstories-animation.mp4";
+import { CHARACTER_SECTIONS } from "@/components/wizard/topic-data";
+import { getStoryCategoryId } from "@/lib/story-category-mapper";
 import WelcomeGiftBanner from "@/components/home/WelcomeGiftBanner";
+import CategorySection from "@/components/home/CategorySection";
 import MobileNavigation from "@/components/MobileNavigation";
+
+interface StoryItem {
+  id: string;
+  child_name: string;
+  topic: string;
+  cover_url: string | null;
+  created_at: string;
+}
+
+const COLOR_CONFIG: Record<string, { colorClass: string; bgClass: string; borderClass: string }> = {
+  heroes: { colorClass: "text-purple-600", bgClass: "bg-purple-50", borderClass: "border-purple-200" },
+  growing: { colorClass: "text-emerald-600", bgClass: "bg-emerald-50", borderClass: "border-emerald-200" },
+  imagination: { colorClass: "text-blue-600", bgClass: "bg-blue-50", borderClass: "border-blue-200" },
+  adventure: { colorClass: "text-orange-600", bgClass: "bg-orange-50", borderClass: "border-orange-200" },
+  edu: { colorClass: "text-lime-700", bgClass: "bg-lime-50", borderClass: "border-lime-200" },
+};
 
 const Adventure = () => {
   const navigate = useNavigate();
@@ -20,13 +38,13 @@ const Adventure = () => {
   const { toast } = useToast();
   const [displayName, setDisplayName] = useState<string | null>(null);
   const [storyCount, setStoryCount] = useState<number>(0);
+  const [storiesByCategory, setStoriesByCategory] = useState<Record<string, StoryItem[]>>({});
 
-  // Always open at top of page
   useEffect(() => {
     window.scrollTo(0, 0);
   }, []);
 
-  // Show welcome toast for new users on first visit
+  // Welcome toast for new users
   useEffect(() => {
     if (!user) return;
     const welcomeKey = `welcome_shown_${user.id}`;
@@ -50,98 +68,101 @@ const Adventure = () => {
         .select("display_name")
         .eq("id", user.id)
         .maybeSingle();
-      setDisplayName(data?.display_name || user.email?.split('@')[0] || null);
+      setDisplayName(data?.display_name || user.email?.split("@")[0] || null);
     };
     fetchProfile();
   }, [user]);
 
+  // Fetch stories and categorize them
   useEffect(() => {
-    const fetchStoryCount = async () => {
+    const fetchStories = async () => {
       if (!user?.id) return;
-      const { count, error } = await supabase
+      const { data, error, count } = await supabase
         .from("stories")
-        .select("*", { count: "exact", head: true })
-        .eq("user_id", user.id);
-      if (!error && count !== null) setStoryCount(count);
+        .select("id, child_name, topic, cover_url, created_at", { count: "exact" })
+        .eq("user_id", user.id)
+        .order("created_at", { ascending: false });
+
+      if (error || !data) return;
+      if (count !== null) setStoryCount(count);
+
+      // Group by category, keep only 3 most recent per category
+      const grouped: Record<string, StoryItem[]> = {};
+      data.forEach((story) => {
+        const catId = getStoryCategoryId(story.topic);
+        if (!catId) return;
+        if (!grouped[catId]) grouped[catId] = [];
+        if (grouped[catId].length < 3) {
+          grouped[catId].push(story);
+        }
+      });
+      setStoriesByCategory(grouped);
     };
-    fetchStoryCount();
+    fetchStories();
   }, [user?.id]);
 
   const totalCredits = (credits ?? 0) + shareCoins;
 
   return (
-    <div className="h-[100dvh] relative overflow-hidden flex flex-col" dir="rtl">
-      {/* Background video - full bleed cover, auto-loop */}
-      <video
-        src={heroVideo}
-        autoPlay
-        loop
-        muted
-        playsInline
-        className="absolute inset-0 w-full h-full object-cover"
-      />
+    <div className="min-h-[100dvh] flex flex-col bg-gradient-to-b from-amber-50/50 to-background pb-20" dir="rtl">
+      {/* Header bar */}
+      <div className="sticky top-0 z-30 bg-background/80 backdrop-blur-md border-b border-border/50">
+        <div className="container max-w-lg mx-auto px-4 py-3 flex items-center justify-between">
+          {/* Greeting */}
+          <div className="flex items-center gap-2">
+            {avatarUrl && (
+              <div className="w-8 h-8 rounded-full overflow-hidden border-2 border-primary/30">
+                <img src={avatarUrl} alt="" className="w-full h-full object-cover" />
+              </div>
+            )}
+            <span className="text-sm font-bold text-foreground">
+              שלום, {displayName || user?.email?.split("@")[0] || "משתמש"} 👋
+            </span>
+          </div>
 
-      {/* Very subtle vignette - only at very bottom for CTA readability */}
-      <div
-        className="absolute inset-0 pointer-events-none"
-        style={{
-          background:
-            "linear-gradient(180deg, transparent 0%, transparent 65%, rgba(0,0,0,0.4) 85%, rgba(0,0,0,0.65) 100%)",
-        }}
-      />
-
-      {/* Credits pill - top left, small and transparent */}
-      <div className="absolute top-12 left-4 z-20">
-        <button
-          onClick={() => navigate("/upgrade")}
-          className="flex items-center gap-1.5 bg-black/25 backdrop-blur-md border border-white/20 rounded-full px-2.5 py-1 hover:bg-black/40 transition-colors"
-          aria-label="צפה בקרדיטים ושדרג"
-        >
-          <Coins className="w-3.5 h-3.5 text-amber-300" />
-          <span className="font-bold text-white/90 text-xs">{totalCredits}</span>
-        </button>
-      </div>
-
-      {/* Greeting pill - top right, small and transparent */}
-      <div className="absolute top-12 right-4 z-20">
-        <div className="flex items-center gap-2 bg-black/25 backdrop-blur-md border border-white/20 rounded-full px-3 py-1">
-          {avatarUrl && (
-            <div className="w-6 h-6 rounded-full overflow-hidden border border-white/40">
-              <img src={avatarUrl} alt="" className="w-full h-full object-cover" />
-            </div>
-          )}
-          <span
-            className="text-xs font-bold text-white/90"
-            style={{ textShadow: "0 1px 2px rgba(0,0,0,0.3)" }}
+          {/* Credits */}
+          <button
+            onClick={() => navigate("/upgrade")}
+            className="flex items-center gap-1.5 bg-amber-100 rounded-full px-3 py-1.5 hover:bg-amber-200 transition-colors"
+            aria-label="צפה בקרדיטים ושדרג"
           >
-            שלום, {displayName || user?.email?.split("@")[0] || "משתמש"} 👋
-          </span>
+            <Coins className="w-4 h-4 text-amber-600" />
+            <span className="font-bold text-amber-700 text-xs">{totalCredits}</span>
+          </button>
         </div>
       </div>
 
-      {/* Spacer - lets the image characters and title show fully */}
-      <div className="flex-1" />
+      {/* Main content */}
+      <div className="container max-w-lg mx-auto px-4 py-4 flex flex-col gap-6">
+        {/* CTA */}
+        <div className="flex flex-col items-center gap-3">
+          <WelcomeGiftBanner credits={credits} storyCount={storyCount} />
 
-      {/* Bottom CTA area - compact, centered, above nav */}
-      <div className="relative z-10 flex flex-col items-center px-5 pb-[72px]">
-        <WelcomeGiftBanner credits={credits} storyCount={storyCount} />
+          <button
+            onClick={() => navigate("/create")}
+            className="group flex items-center justify-center gap-2.5 rounded-full px-6 py-3 w-full max-w-[300px] bg-gradient-to-r from-amber-400 via-orange-400 to-pink-400 shadow-[0_0_20px_rgba(251,191,36,0.4)] hover:shadow-[0_0_30px_rgba(251,191,36,0.6)] hover:scale-[1.03] active:scale-95 transition-all duration-300 animate-[glow-pulse_2.5s_ease-in-out_infinite] border border-white/30"
+          >
+            <Wand2 className="w-5 h-5 text-white drop-shadow-md group-hover:rotate-12 transition-transform duration-300" />
+            <span className="font-black text-base text-white drop-shadow-md">
+              יוצאים להרפתקה ✨
+            </span>
+          </button>
+        </div>
 
-        <p
-          className="text-white text-sm font-bold mb-2 text-center animate-fade-in"
-          style={{ textShadow: "0 2px 6px rgba(0,0,0,0.6)" }}
-        >
-          ברוכים הבאים לעולמה הקסום של סול ✨
-        </p>
-
-        <button
-          onClick={() => navigate("/create")}
-          className="group flex items-center justify-center gap-2.5 rounded-full px-6 py-3 max-w-[260px] bg-gradient-to-r from-amber-400 via-orange-400 to-pink-400 shadow-[0_0_20px_rgba(251,191,36,0.4)] hover:shadow-[0_0_30px_rgba(251,191,36,0.6)] hover:scale-[1.03] active:scale-95 transition-all duration-300 animate-[glow-pulse_2.5s_ease-in-out_infinite] border border-white/30"
-        >
-          <Wand2 className="w-5 h-5 text-white drop-shadow-md group-hover:rotate-12 transition-transform duration-300" />
-          <span className="font-black text-base text-white drop-shadow-md">
-            יוצאים להרפתקה ✨
-          </span>
-        </button>
+        {/* Category sections */}
+        {CHARACTER_SECTIONS.map((section) => {
+          const colors = COLOR_CONFIG[section.id] || COLOR_CONFIG.heroes;
+          return (
+            <CategorySection
+              key={section.id}
+              section={section}
+              stories={storiesByCategory[section.id] || []}
+              colorClass={colors.colorClass}
+              bgClass={colors.bgClass}
+              borderClass={colors.borderClass}
+            />
+          );
+        })}
       </div>
 
       <MobileNavigation />
