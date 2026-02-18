@@ -1,0 +1,109 @@
+/**
+ * Comprehensive Hebrew translation map for all topic IDs.
+ * Built from topic-data.ts topic IDs → labels.
+ */
+const TOPIC_HEBREW_MAP: Record<string, string> = {
+  // Sol - Heroes
+  'superheroes': 'גיבורי על',
+  'body-safety': 'בטיחות הגוף',
+  'road-safety': 'בטיחות בדרכים',
+  'environment': 'שמירה על הסביבה',
+  'we-are-special': 'כולנו מיוחדים',
+  'just-be-me': 'פשוט להיות אני',
+  'helping-others': 'עזרה לאחרים',
+  'stranger-danger': 'זהירות מזרים',
+  'seatbelt-safety': 'חגורת בטיחות',
+  'blood-test': 'בדיקת דם',
+  'we-are-superheroes': 'כולנו גיבורי על',
+
+  // Mia - Growing
+  'body-hero-teeth': 'צחצוח שיניים קסום',
+  'body-hero-bath': 'אמבטיה של כיף',
+  'helping-at-home': 'עזרה בבית',
+  'home-of-love': 'הבית של האהבה',
+  'playing-together': 'משחקים יחד בגינה',
+  'body-hero-hands': 'שטיפת ידיים',
+  'potty-training': 'גמילה מחיתולים',
+  'pacifier-fairy': 'פיית המוצץ',
+  'first-day-kindergarten': 'יום ראשון בגן',
+  'mom-dont-go': 'אמא אל תלכי',
+  'fear-of-dark': 'פחד מהחושך',
+  'friendship-courage': 'חברים בגן',
+  'sharing': 'שיתוף',
+  'apologize': 'להתנצל',
+  'trying-again': 'לנסות שוב',
+  'independence': 'עצמאות',
+  'anger-cloud': 'ענן הכעס',
+  'brave-taster': 'טועם אמיץ',
+  'clean-room': 'סידור החדר',
+  'new-house': 'בית חדש',
+  'dentist-visit': 'ביקור אצל רופא השיניים',
+  'barber-visit': 'ביקור אצל הספר',
+  'lost-tooth': 'שן שנפלה',
+  'body-hero-nails': 'גזירת ציפורניים',
+  'new-sibling': 'אח/ות חדש/ה',
+  'bedtime-story': 'סיפור לפני השינה',
+  'pocket-kiss': 'נשיקה בכיס',
+  'sibling-love': 'אהבת אחים',
+  'my-special-family': 'המשפחה המיוחדת שלי',
+
+  // Leo - Imagination
+  'zoo-adventure': 'טיול בגן החיות',
+  'cloud-adventure': 'הרפתקה בעננים',
+  'magic-kingdom': 'ממלכת הקסם',
+  'rain-party': 'מסיבה בגשם',
+  'underwater': 'מתחת למים',
+  'magical-forest': 'יער קסום',
+  'space-adventure': 'הרפתקה בחלל',
+  'magic-keys': 'מפתחות קסומים',
+
+  // Zoe - Adventure
+  'family-trip': 'טיול משפחתי',
+  'birthday-party': 'מסיבת יום הולדת',
+  'grandparents-night': 'לילה אצל סבא וסבתא',
+  'flying-vacation': 'טיסה לחופשה',
+
+  // Ben - Edu
+  'waiting-in-line-edu': 'המתנה בתור',
+  'emotion-regulation-edu': 'ויסות רגשות וכעס',
+  'holidays-seasons-edu': 'מעגל השנה - חגים ועונות',
+  'play-rules-edu': 'לשחק יחד - כללי משחק',
+  'self-confidence-edu': 'ביטחון עצמי - אני יכול/ה!',
+
+  // Legacy/alternate IDs
+  'teeth-brushing': 'צחצוח שיניים',
+  'bedtime': 'שעת שינה',
+  'friendship': 'חברות',
+  'bath-shower': 'אמבטיה ומקלחת',
+  'bathtime': 'זמן אמבטיה',
+  'hand-washing': 'שטיפת ידיים',
+  'nail-trimming': 'גזיזת ציפורניים',
+  'birthday': 'יום הולדת',
+  'pacifier': 'גמילה ממוצץ',
+  'magic-castle': 'טירה קסומה',
+  'kingdom': 'ממלכה',
+  'space': 'חלל',
+  'space-hero': 'גיבור חלל',
+  'zoo': 'גן חיות',
+  'toothbrush': 'מברשת שיניים',
+  'educational-toolbox': 'ארגז כלים חינוכי',
+  'sharing-fun': 'שיתוף וכיף',
+};
+
+/**
+ * Translate a topic ID to Hebrew.
+ * For stories in English, pass language='en' to keep the original topic.
+ */
+export const translateTopic = (topic: string, language?: string): string => {
+  // For English stories, return the topic as-is (or a readable version)
+  if (language === 'en') return topic.replace(/-/g, ' ');
+  
+  // Check the map
+  if (TOPIC_HEBREW_MAP[topic]) return TOPIC_HEBREW_MAP[topic];
+  
+  // If topic already contains Hebrew characters, return as-is
+  if (/[\u0590-\u05FF]/.test(topic)) return topic;
+  
+  // Fallback: replace hyphens with spaces
+  return topic.replace(/-/g, ' ');
+};

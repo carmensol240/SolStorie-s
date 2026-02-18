@@ -39,72 +39,7 @@ interface Story {
   story_pages: StoryPage[];
 }
 
-const TOPIC_HEBREW_MAP: Record<string, string> = {
-  'blood-test': 'בדיקת דם',
-  'body-safety': 'בטיחות הגוף',
-  'clean-room': 'סידור החדר',
-  'dentist-visit': 'ביקור אצל רופא השיניים',
-  'new-sibling': 'אח או אחות חדשים',
-  'potty-training': 'גמילה מחיתולים',
-  'fear-of-dark': 'פחד מהחושך',
-  'first-day-kindergarten': 'יום ראשון בגן',
-  'teeth-brushing': 'צחצוח שיניים',
-  'bedtime': 'שעת שינה',
-  'sharing': 'שיתוף',
-  'friendship': 'חברות',
-  'independence': 'עצמאות',
-  'helping-others': 'עזרה לאחרים',
-  'trying-again': 'לנסות שוב',
-  'bath-shower': 'אמבטיה ומקלחת',
-  'bathtime': 'זמן אמבטיה',
-  'hand-washing': 'שטיפת ידיים',
-  'nail-trimming': 'גזיזת ציפורניים',
-  'barber-visit': 'ביקור אצל הספר',
-  'road-safety': 'בטיחות בדרכים',
-  'seatbelt-safety': 'חגורת בטיחות',
-  'stranger-danger': 'זהירות מזרים',
-  'environment': 'שמירה על הסביבה',
-  'birthday': 'יום הולדת',
-  'family-trip': 'טיול משפחתי',
-  'flying-vacation': 'טיסה לחופשה',
-  'new-house': 'בית חדש',
-  'grandparents-night': 'לילה אצל סבא וסבתא',
-  'lost-tooth': 'שן שנפלה',
-  'pacifier': 'גמילה ממוצץ',
-  'mom-dont-go': 'אמא אל תלכי',
-  'anger-cloud': 'ענן הכעס',
-  'apologize': 'להתנצל',
-  'brave-taster': 'טועם אמיץ',
-  'just-be-me': 'פשוט להיות אני',
-  'sibling-love': 'אהבת אחים',
-  'my-special-family': 'המשפחה המיוחדת שלי',
-  'we-are-special': 'כולנו מיוחדים',
-  'pocket-kiss': 'נשיקה בכיס',
-  'cloud-adventure': 'הרפתקה בעננים',
-  'magic-castle': 'טירה קסומה',
-  'magical-forest': 'יער קסום',
-  'kingdom': 'ממלכה',
-  'space': 'חלל',
-  'space-hero': 'גיבור חלל',
-  'underwater': 'מתחת למים',
-  'rain-party': 'מסיבה בגשם',
-  'superheroes': 'גיבורי על',
-  'zoo': 'גן חיות',
-  'toothbrush': 'מברשת שיניים',
-  'magic-keys': 'מפתחות קסומים',
-  'educational-toolbox': 'ארגז כלים חינוכי',
-  'holidays-seasons-edu': 'חגים ועונות',
-  'sharing-fun': 'שיתוף וכיף',
-  'we-are-superheroes': 'כולנו גיבורי על',
-};
-
-const translateTopic = (topic: string): string => {
-  if (TOPIC_HEBREW_MAP[topic]) return TOPIC_HEBREW_MAP[topic];
-  // If topic contains only Hebrew characters, return as-is
-  if (/[\u0590-\u05FF]/.test(topic)) return topic;
-  // Fallback: replace hyphens with spaces
-  return topic.replace(/-/g, ' ');
-};
+import { translateTopic } from '@/lib/topic-translations';
 
 const Library = () => {
   const navigate = useNavigate();
