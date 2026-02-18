@@ -76,6 +76,7 @@ const StoryListItem = ({
   storyId,
 }: StoryListItemProps) => {
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
+  const [menuOpen, setMenuOpen] = useState(false);
   const formattedDate = format(new Date(createdAt), 'd בMMMM yyyy', { locale: he });
 
   const handleClick = () => onClick(id);
@@ -124,7 +125,7 @@ const StoryListItem = ({
           <p className="text-xs text-muted-foreground/70 mt-0.5">{formattedDate}</p>
         </div>
 
-        <DropdownMenu>
+        <DropdownMenu open={menuOpen} onOpenChange={setMenuOpen}>
           <DropdownMenuTrigger asChild>
             <Button
               size="icon"
@@ -158,7 +159,8 @@ const StoryListItem = ({
             <DropdownMenuItem
               onSelect={(e) => {
                 e.preventDefault();
-                setShowDeleteDialog(true);
+                setMenuOpen(false);
+                setTimeout(() => setShowDeleteDialog(true), 100);
               }}
               className="gap-2 cursor-pointer text-destructive focus:text-destructive"
             >
