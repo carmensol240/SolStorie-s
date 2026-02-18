@@ -126,9 +126,6 @@ const CategorySection = ({ section, stories, colorClass, bgClass, borderClass }:
                       }
                     />
                   </div>
-                  <p className="mt-2 text-xs font-medium text-foreground truncate text-center">
-                    {story.child_name}
-                  </p>
                 </button>
               ))}
             </div>
