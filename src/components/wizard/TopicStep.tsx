@@ -41,6 +41,7 @@ const TopicStep = ({ formData, updateFormData }: TopicStepProps) => {
   const handleCustomChange = (value: string) => {
     updateFormData({
       customTopic: value,
+      personalityTraits: value,
       topic: value.trim() ? "custom" : "",
       adventureLogic: undefined,
     });
@@ -73,28 +74,17 @@ const TopicStep = ({ formData, updateFormData }: TopicStepProps) => {
         <span className="text-orange-400"><Sparkles className="w-5 h-5" /></span>
       </h2>
 
-      {/* Personality traits */}
-      <div className="space-y-1">
-        <label className="text-xs font-medium text-muted-foreground">תכונות אופי (אופציונלי)</label>
+      {/* Unified topic + personality input with gradient border */}
+      <div className="bg-gradient-to-r from-purple-500 via-pink-500 to-orange-400 p-[2.5px] rounded-2xl shadow-lg">
         <Textarea
-          className="w-full min-h-[50px] text-sm resize-none"
-          rows={2}
-          placeholder="למשל: ביישן, אוהב חיות, סקרנית..."
-          value={formData.personalityTraits || ""}
-          onChange={(e) => updateFormData({ personalityTraits: e.target.value })}
+          className="w-full min-h-[100px] text-base resize-none rounded-2xl border-0 bg-card focus-visible:ring-0 focus-visible:ring-offset-0"
+          rows={4}
+          placeholder="למשל: סול הביישנית אוהבת חיות ויוצאת להרפתקה בממלכת הדמיון..."
+          value={formData.customTopic}
+          onChange={(e) => handleCustomChange(e.target.value)}
           dir="rtl"
         />
       </div>
-
-      {/* Single unified text input */}
-      <Textarea
-        className="w-full min-h-[80px] text-sm resize-none"
-        rows={3}
-        placeholder="כתבו נושא חופשי, או בחרו מהרשימה למטה ✨&#10;אפשר גם לבחור נושא ולהוסיף עליו פרטים אישיים!"
-        value={formData.customTopic}
-        onChange={(e) => handleCustomChange(e.target.value)}
-        dir="rtl"
-      />
 
       {/* Divider */}
       <div className="text-center text-xs text-muted-foreground font-medium">
