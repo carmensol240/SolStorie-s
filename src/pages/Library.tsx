@@ -308,12 +308,12 @@ const Library = () => {
       
       <div className="container max-w-lg mx-auto px-3 py-3">
         {/* Header with Avatar + Credits - Natural Earth Tones */}
-        <div className="bg-gradient-to-r from-[#FAF3E8] to-[#F5E6D3] border-b-2 border-[#D4C4B0] p-4 -mx-3 -mt-3 mb-4 shadow-sm">
+        <div className="bg-gradient-to-r from-purple-50 to-pink-50 border-b-2 border-purple-200 p-4 -mx-3 -mt-3 mb-4 shadow-sm">
           <div className="flex items-center justify-between">
-            {/* Left: Avatar + Credits - ENLARGED */}
+            {/* Left: Avatar + Credits */}
             <div className="flex items-center gap-3">
               {avatarUrl && (
-                <div className="w-12 h-12 rounded-full overflow-hidden border-3 border-[#8B5A2B] shadow-lg">
+                <div className="w-12 h-12 rounded-full overflow-hidden border-3 border-purple-400 shadow-lg">
                   <img 
                     src={avatarUrl} 
                     alt="דמות הילד" 
@@ -323,17 +323,17 @@ const Library = () => {
               )}
               <button 
                 onClick={() => navigate("/upgrade")}
-                className="flex items-center gap-2 bg-[#FAF3E8] border-2 border-[#D4A574] rounded-full px-4 py-2 hover:bg-[#F5E6D3] transition-colors shadow-md"
+                className="flex items-center gap-2 bg-white/70 border-2 border-purple-300 rounded-full px-4 py-2 hover:bg-purple-50 transition-colors shadow-md"
                 aria-label="צפה בקרדיטים ושדרג"
               >
-                <Coins className="w-6 h-6 text-[#8B5A2B]" aria-hidden="true" />
-                <span className="font-bold text-[#5D3A1A] text-lg">{totalCredits}</span>
+                <Coins className="w-6 h-6 text-purple-600" aria-hidden="true" />
+                <span className="font-bold text-purple-700 text-lg">{totalCredits}</span>
               </button>
             </div>
             {/* Right: Title */}
             <h1 className="text-xl font-black flex items-center gap-2">
-              <span className="bg-gradient-to-r from-[#8B5A2B] via-[#C4956A] to-[#D4A574] bg-clip-text text-transparent">הספרייה הקסומה שלי</span>
-              <Wand2 className="w-5 h-5 text-[#C4956A] animate-wiggle" />
+              <span className="bg-gradient-to-r from-purple-600 via-pink-500 to-orange-400 bg-clip-text text-transparent">הספרייה הקסומה שלי</span>
+              <Wand2 className="w-5 h-5 text-purple-500 animate-wiggle" />
             </h1>
           </div>
         </div>
@@ -449,7 +449,7 @@ const EmptyState = ({ onCreateClick }: { onCreateClick: () => void }) => (
         <img 
           src={libraryEmptyState} 
           alt="ילד קורא בטאבלט" 
-          className="w-48 h-48 rounded-2xl object-cover border-2 border-[#D4A574]"
+          className="w-48 h-48 rounded-2xl object-cover border-2 border-purple-300"
         />
       </div>
       {/* Reflection */}
@@ -471,13 +471,13 @@ const EmptyState = ({ onCreateClick }: { onCreateClick: () => void }) => (
     </div>
     
     <div className="space-y-2 pt-4">
-      <h2 className="text-2xl font-black text-[#5D3A1A]">הספרייה שלך מחכה לסיפור הראשון!</h2>
-      <p className="text-[#6B4423]">בואו נתחיל?</p>
+      <h2 className="text-2xl font-black bg-gradient-to-r from-purple-600 via-pink-500 to-orange-400 bg-clip-text text-transparent">הספרייה שלך מחכה לסיפור הראשון!</h2>
+      <p className="text-purple-600/80">בואו נתחיל?</p>
     </div>
     <Button
       onClick={onCreateClick}
       size="lg"
-      className="bg-gradient-to-r from-[#8B5A2B] to-[#C4956A] hover:from-[#6B4423] hover:to-[#A67B5B] text-white font-bold px-8 py-6 rounded-2xl shadow-lg"
+      className="bg-gradient-to-r from-purple-600 to-pink-500 hover:from-purple-700 hover:to-pink-600 text-white font-bold px-8 py-6 rounded-2xl shadow-lg"
     >
       <Plus className="w-5 h-5 ml-2" />
       צרו סיפור חדש
