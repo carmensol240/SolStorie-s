@@ -136,7 +136,7 @@ const StoryListItem = ({
               <MoreVertical className="w-4 h-4" />
             </Button>
           </DropdownMenuTrigger>
-          <DropdownMenuContent align="end" side="top" className="min-w-[180px] z-[110]">
+          <DropdownMenuContent align="end" side="top" className="min-w-[180px] z-[110]" onClick={(e) => e.stopPropagation()}>
             {onEdit && (
               <DropdownMenuItem onSelect={() => onEdit(id)} className="gap-2 cursor-pointer">
                 <Pencil className="w-4 h-4 text-primary" />
