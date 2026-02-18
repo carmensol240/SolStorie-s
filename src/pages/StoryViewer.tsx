@@ -1089,15 +1089,6 @@ const StoryViewer = () => {
                     </div>
                   )}
 
-                  <Button
-                    variant="link"
-                    size="sm"
-                    onClick={() => setShowGenderSwapDialog(true)}
-                    className="mt-4 text-purple-500 hover:text-purple-700 text-sm"
-                  >
-                    <span className="ml-1"><RefreshCw className="w-4 h-4" /></span>
-                    התבלבלתם במגדר? לחצו לתיקון מהיר
-                  </Button>
                 </div>
               </div>
             ) : currentSpread ? (

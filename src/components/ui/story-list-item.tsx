@@ -144,18 +144,6 @@ const StoryListItem = ({
                 <span>עריכת סיפור</span>
               </DropdownMenuItem>
             )}
-            {onGenderSwap && (
-              <DropdownMenuItem onSelect={() => onGenderSwap(id)} className="gap-2 cursor-pointer">
-                <RefreshCw className="w-4 h-4 text-primary" />
-                <span>שינוי מגדר הגיבור/ה</span>
-              </DropdownMenuItem>
-            )}
-            {onRegenerateCover && (
-              <DropdownMenuItem onSelect={() => onRegenerateCover(id)} className="gap-2 cursor-pointer" disabled={isRegeneratingCover}>
-                {isRegeneratingCover ? <Loader2 className="w-4 h-4 text-primary animate-spin" /> : <ImagePlus className="w-4 h-4 text-primary" />}
-                <span>{isRegeneratingCover ? 'יוצר כריכה...' : 'יצירת כריכה חדשה'}</span>
-              </DropdownMenuItem>
-            )}
             <DropdownMenuItem
               onSelect={(e) => {
                 e.preventDefault();

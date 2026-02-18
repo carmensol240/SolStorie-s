@@ -318,9 +318,6 @@ const Library = () => {
                 childGender={story.child_gender as 'male' | 'female' | undefined}
                 onDelete={handleDeleteStory}
                 onEdit={handleEditStory}
-                onGenderSwap={handleGenderSwap}
-                onRegenerateCover={handleRegenerateCover}
-                isRegeneratingCover={regeneratingCoverId === story.id}
                 onClick={(id) => {
                   const s = stories.find(st => st.id === id);
                   const slug = s?.slug || id;
