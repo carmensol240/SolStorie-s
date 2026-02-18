@@ -42,6 +42,7 @@ import { FileDown } from "lucide-react";
 import PdfFeaturePopup from "@/components/story/PdfFeaturePopup";
 
 import "./StoryViewer.css";
+import { translateTopic } from "@/lib/topic-translations";
 
 interface StoryPage {
   id: string;
@@ -466,7 +467,7 @@ const StoryViewer = () => {
     try {
       const slug = (story as any).slug || story.id;
       const publicUrl = `https://soulstory.co.il/story/${slug}`;
-      const title = `✨ ${story.topic} ✨`;
+      const title = `✨ ${translateTopic(story.topic, story.language)} ✨`;
       const text = `📚 הסיפור של ${story.child_name} – נוצר באהבה באפליקציית SolStorie's™`;
 
       if (navigator.share) {
@@ -982,7 +983,7 @@ const StoryViewer = () => {
                     </div>
                     
                     <p className="text-lg md:text-xl text-[#6B4423] max-w-xs mx-auto font-medium">
-                      {story.topic}
+                      {translateTopic(story.topic, story.language)}
                     </p>
                   </div>
                   
