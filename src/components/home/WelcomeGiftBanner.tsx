@@ -1,6 +1,4 @@
-import { useNavigate } from "react-router-dom";
-import { Gift, Sparkles } from "lucide-react";
-import { Button } from "@/components/ui/button";
+import { Gift } from "lucide-react";
 
 interface WelcomeGiftBannerProps {
   credits: number | null;
@@ -8,7 +6,6 @@ interface WelcomeGiftBannerProps {
 }
 
 const WelcomeGiftBanner = ({ credits, storyCount }: WelcomeGiftBannerProps) => {
-  const navigate = useNavigate();
   
   // Show banner only for new users: exactly 1 credit AND 0 stories
   const showBanner = credits === 1 && storyCount === 0;
@@ -37,13 +34,6 @@ const WelcomeGiftBanner = ({ credits, storyCount }: WelcomeGiftBannerProps) => {
         </div>
       </div>
       
-      <Button
-        onClick={() => navigate("/create")}
-        className="w-full mt-3 bg-white hover:bg-white/90 text-purple-700 font-bold py-3 rounded-xl shadow-md transition-all hover:scale-[1.02]"
-      >
-        <Sparkles className="w-5 h-5 ml-2" />
-        צור סיפור חדש
-      </Button>
     </div>
   );
 };
