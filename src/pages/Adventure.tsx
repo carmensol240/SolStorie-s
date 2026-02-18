@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { Wand2, Coins } from "lucide-react";
+import { Wand2, Coins, User } from "lucide-react";
 import { useCredits } from "@/hooks/use-credits";
 import { useReferral } from "@/hooks/use-referral";
 import { useChildAvatar } from "@/hooks/use-child-avatar";
@@ -11,6 +11,7 @@ import { CHARACTER_SECTIONS } from "@/components/wizard/topic-data";
 import WelcomeGiftBanner from "@/components/home/WelcomeGiftBanner";
 import CategorySection from "@/components/home/CategorySection";
 import MobileNavigation from "@/components/MobileNavigation";
+import heroVideo from "@/assets/hero-solstories-animation.mp4";
 
 const COLOR_CONFIG: Record<string, { colorClass: string; bgClass: string; borderClass: string }> = {
   heroes: { colorClass: "text-purple-600", bgClass: "bg-purple-50", borderClass: "border-purple-200" },
@@ -79,38 +80,57 @@ const Adventure = () => {
   const totalCredits = (credits ?? 0) + shareCoins;
 
   return (
-    <div className="min-h-[100dvh] flex flex-col bg-gradient-to-b from-amber-50/50 to-background pb-20" dir="rtl">
-      {/* Header bar */}
-      <div className="sticky top-0 z-30 bg-background/80 backdrop-blur-md border-b border-border/50">
-        <div className="container max-w-lg mx-auto px-4 py-3 flex items-center justify-between">
-          {/* Greeting */}
-          <div className="flex items-center gap-2">
-            {avatarUrl && (
-              <div className="w-8 h-8 rounded-full overflow-hidden border-2 border-primary/30">
-                <img src={avatarUrl} alt="" className="w-full h-full object-cover" />
-              </div>
-            )}
-            <span className="text-sm font-bold text-foreground">
-              שלום, {displayName || user?.email?.split("@")[0] || "משתמש"} 👋
-            </span>
-          </div>
+    <div className="min-h-[100dvh] flex flex-col bg-gradient-to-b from-amber-50/50 to-background" dir="rtl">
+      {/* Hero Video Section */}
+      <div className="relative w-full h-[100dvh] flex-shrink-0 overflow-hidden">
+        {/* Video Background */}
+        <video
+          autoPlay
+          loop
+          muted
+          playsInline
+          className="absolute inset-0 w-full h-full object-cover"
+        >
+          <source src={heroVideo} type="video/mp4" />
+        </video>
 
-          {/* Credits */}
+        {/* Dark gradient overlay */}
+        <div
+          className="absolute inset-0 pointer-events-none"
+          style={{
+            background:
+              "linear-gradient(180deg, rgba(0,0,0,0.15) 0%, transparent 40%, transparent 50%, rgba(0,0,0,0.5) 100%)",
+          }}
+        />
+
+        {/* Top bar - Glassmorphism credits & profile */}
+        <div className="absolute top-0 left-0 right-0 z-10 flex items-center justify-between px-4 pt-[env(safe-area-inset-top,12px)] pb-2">
+          {/* Credits button */}
           <button
             onClick={() => navigate("/upgrade")}
-            className="flex items-center gap-1.5 bg-amber-100 rounded-full px-3 py-1.5 hover:bg-amber-200 transition-colors"
+            className="flex items-center gap-1.5 bg-white/15 backdrop-blur-xl border border-white/20 rounded-full px-3 py-1.5 hover:bg-white/25 transition-colors"
             aria-label="צפה בקרדיטים ושדרג"
           >
-            <Coins className="w-4 h-4 text-amber-600" />
-            <span className="font-bold text-amber-700 text-xs">{totalCredits}</span>
+            <Coins className="w-4 h-4 text-amber-300" />
+            <span className="font-bold text-white text-xs drop-shadow-md">{totalCredits}</span>
+          </button>
+
+          {/* Profile / Avatar */}
+          <button
+            onClick={() => navigate("/profile")}
+            className="flex items-center justify-center bg-white/15 backdrop-blur-xl border border-white/20 rounded-full w-9 h-9 hover:bg-white/25 transition-colors overflow-hidden"
+            aria-label="פרופיל"
+          >
+            {avatarUrl ? (
+              <img src={avatarUrl} alt="" className="w-full h-full object-cover" />
+            ) : (
+              <User className="w-4 h-4 text-white" />
+            )}
           </button>
         </div>
-      </div>
 
-      {/* Main content */}
-      <div className="container max-w-lg mx-auto px-4 py-4 flex flex-col gap-6">
-        {/* CTA */}
-        <div className="flex flex-col items-center gap-3">
+        {/* Bottom section - CTA & Welcome banner */}
+        <div className="absolute bottom-0 left-0 right-0 z-10 flex flex-col items-center gap-3 px-4 pb-[72px]">
           <WelcomeGiftBanner credits={credits} storyCount={storyCount} />
 
           <button
@@ -123,8 +143,10 @@ const Adventure = () => {
             </span>
           </button>
         </div>
+      </div>
 
-        {/* Category sections */}
+      {/* Category sections below the video */}
+      <div className="container max-w-lg mx-auto px-4 py-6 flex flex-col gap-6 pb-20">
         {CHARACTER_SECTIONS.map((section) => {
           const colors = COLOR_CONFIG[section.id] || COLOR_CONFIG.heroes;
           return (
