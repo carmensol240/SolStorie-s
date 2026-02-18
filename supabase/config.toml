@@ -62,3 +62,6 @@ verify_jwt = false
 
 [functions.convert-stories-tense]
 verify_jwt = false
+
+[functions.validate-child-photo]
+verify_jwt = false

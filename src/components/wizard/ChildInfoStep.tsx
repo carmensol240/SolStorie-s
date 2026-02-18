@@ -94,6 +94,13 @@ const ChildInfoStep = ({ formData, updateFormData }: ChildInfoStepProps) => {
   const [existingAvatarForDialog, setExistingAvatarForDialog] = useState<string | null>(null);
   const [userRole, setUserRole] = useState<string | null>(null);
   const [isDeletingChild, setIsDeletingChild] = useState(false);
+  const [photoValidation, setPhotoValidation] = useState<{
+    facingForward: boolean;
+    singlePerson: boolean;
+    noAccessories: boolean;
+    goodLighting: boolean;
+  } | null>(null);
+  const [isValidatingPhoto, setIsValidatingPhoto] = useState(false);
   
   // Selected age button
   const [selectedAgeButton, setSelectedAgeButton] = useState<string>(rangeToDisplayButton(formData.ageRange));
@@ -182,6 +189,22 @@ const ChildInfoStep = ({ formData, updateFormData }: ChildInfoStepProps) => {
       reader.onloadend = async () => {
         const photoBase64 = reader.result as string;
         updateFormData({ childPhoto: photoBase64 });
+        
+        // Validate photo quality with AI
+        setPhotoValidation(null);
+        setIsValidatingPhoto(true);
+        try {
+          const { data: validationData, error: validationError } = await supabase.functions.invoke('validate-child-photo', {
+            body: { childPhoto: photoBase64 }
+          });
+          if (!validationError && validationData?.validation) {
+            setPhotoValidation(validationData.validation);
+          }
+        } catch (err) {
+          console.error('Photo validation error:', err);
+        } finally {
+          setIsValidatingPhoto(false);
+        }
         
         // If we have a temp child ID or selected child, upload and trigger avatar generation
         if (formData.childName.trim()) {
@@ -649,6 +672,49 @@ const ChildInfoStep = ({ formData, updateFormData }: ChildInfoStepProps) => {
                   </div>
                 )}
               </div>
+              {/* Photo Validation Criteria */}
+              {isValidatingPhoto && (
+                <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                  <Loader2 className="w-3.5 h-3.5 animate-spin text-purple-500" />
+                  <span>בודק איכות תמונה...</span>
+                </div>
+              )}
+              {photoValidation && !isValidatingPhoto && (
+                <div className="grid grid-cols-2 gap-x-3 gap-y-1 w-full px-4">
+                  <div className="flex items-center gap-1 text-[11px]">
+                    {photoValidation.facingForward ? (
+                      <Check className="w-3.5 h-3.5 text-green-500 flex-shrink-0" />
+                    ) : (
+                      <X className="w-3.5 h-3.5 text-destructive flex-shrink-0" />
+                    )}
+                    <span className={photoValidation.facingForward ? "text-foreground" : "text-muted-foreground"}>פנים מסתכלות קדימה</span>
+                  </div>
+                  <div className="flex items-center gap-1 text-[11px]">
+                    {photoValidation.singlePerson ? (
+                      <Check className="w-3.5 h-3.5 text-green-500 flex-shrink-0" />
+                    ) : (
+                      <X className="w-3.5 h-3.5 text-destructive flex-shrink-0" />
+                    )}
+                    <span className={photoValidation.singlePerson ? "text-foreground" : "text-muted-foreground"}>דמות יחידה בתמונה</span>
+                  </div>
+                  <div className="flex items-center gap-1 text-[11px]">
+                    {photoValidation.noAccessories ? (
+                      <Check className="w-3.5 h-3.5 text-green-500 flex-shrink-0" />
+                    ) : (
+                      <X className="w-3.5 h-3.5 text-destructive flex-shrink-0" />
+                    )}
+                    <span className={photoValidation.noAccessories ? "text-foreground" : "text-muted-foreground"}>ללא אביזרים (משקפי שמש, כובע)</span>
+                  </div>
+                  <div className="flex items-center gap-1 text-[11px]">
+                    {photoValidation.goodLighting ? (
+                      <Check className="w-3.5 h-3.5 text-green-500 flex-shrink-0" />
+                    ) : (
+                      <X className="w-3.5 h-3.5 text-destructive flex-shrink-0" />
+                    )}
+                    <span className={photoValidation.goodLighting ? "text-foreground" : "text-muted-foreground"}>תאורה טובה וברורה</span>
+                  </div>
+                </div>
+              )}
               <div className="flex gap-3 mt-2">
                 {!formData.childAvatarUrl && formData.childPhoto && (
                   <Button
@@ -687,6 +753,7 @@ const ChildInfoStep = ({ formData, updateFormData }: ChildInfoStepProps) => {
                   onClick={() => {
                     updateFormData({ childPhoto: null, childAvatarUrl: null });
                     setExistingAvatarForDialog(null);
+                    setPhotoValidation(null);
                   }}
                   className="text-sm text-destructive border-destructive/30 hover:bg-destructive/10"
                 >
