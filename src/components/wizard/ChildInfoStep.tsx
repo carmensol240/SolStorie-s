@@ -431,87 +431,85 @@ const ChildInfoStep = ({ formData, updateFormData }: ChildInfoStepProps) => {
         </div>
       </div>
 
-      {/* Age Selection - 3 Distinct Buttons */}
-      <div className="space-y-1">
-        <Label className="text-xs font-medium">גיל</Label>
-        <div className="grid grid-cols-3 gap-2">
-          {AGE_BUTTONS.map((button) => (
+      {/* Age · Length · Language - Compact Row */}
+      <div className="grid grid-cols-3 gap-2">
+        {/* Age */}
+        <div className="space-y-1">
+          <Label className="text-[10px] font-medium text-center block">גיל</Label>
+          <div className="flex flex-col gap-1">
+            {AGE_BUTTONS.map((button) => (
+              <button
+                key={button.id}
+                onClick={() => handleAgeButtonSelect(button.id)}
+                className={cn(
+                  "py-1 rounded-md border transition-all text-center text-xs font-bold",
+                  selectedAgeButton === button.id
+                    ? "border-purple-500 bg-gradient-to-r from-purple-600 via-pink-500 to-orange-400 text-white"
+                    : "border-border bg-card hover:border-purple-300"
+                )}
+              >
+                {button.label}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        {/* Story Length */}
+        <div className="space-y-1">
+          <Label className="text-[10px] font-medium text-center block">אורך</Label>
+          <div className="flex flex-col gap-1">
             <button
-              key={button.id}
-              onClick={() => handleAgeButtonSelect(button.id)}
+              onClick={() => updateFormData({ storyLength: "short" })}
               className={cn(
-                "p-1.5 rounded-lg border-2 transition-all text-center",
-                selectedAgeButton === button.id
-                  ? "border-purple-500 bg-gradient-to-r from-purple-600 via-pink-500 to-orange-400 text-white font-bold"
+                "py-1 rounded-md border transition-all text-center text-xs font-bold",
+                formData.storyLength === "short"
+                  ? "border-purple-500 bg-gradient-to-r from-purple-600 via-pink-500 to-orange-400 text-white"
                   : "border-border bg-card hover:border-purple-300"
               )}
             >
-              <span className="text-sm font-bold">{button.label}</span>
+              קצר · 4-5
             </button>
-          ))}
+            <button
+              onClick={() => updateFormData({ storyLength: "long" })}
+              className={cn(
+                "py-1 rounded-md border transition-all text-center text-xs font-bold",
+                formData.storyLength === "long"
+                  ? "border-purple-500 bg-gradient-to-r from-purple-600 via-pink-500 to-orange-400 text-white"
+                  : "border-border bg-card hover:border-purple-300"
+              )}
+            >
+              ארוך · 6-8
+            </button>
+          </div>
         </div>
-      </div>
 
-      {/* Story Length Selection */}
-      <div className="space-y-1">
-        <Label className="text-xs font-medium">אורך הסיפור</Label>
-        <div className="grid grid-cols-2 gap-2">
-          <button
-            onClick={() => updateFormData({ storyLength: "short" })}
-            className={cn(
-              "p-1.5 rounded-lg border-2 transition-all text-center",
-              formData.storyLength === "short"
-                ? "border-purple-500 bg-gradient-to-r from-purple-600 via-pink-500 to-orange-400 text-white font-bold"
-                : "border-border bg-card hover:border-purple-300"
-            )}
-          >
-            <span className="text-sm font-bold">קצר · 4-5 עמ׳</span>
-          </button>
-          <button
-            onClick={() => updateFormData({ storyLength: "long" })}
-            className={cn(
-              "p-1.5 rounded-lg border-2 transition-all text-center",
-              formData.storyLength === "long"
-                ? "border-purple-500 bg-gradient-to-r from-purple-600 via-pink-500 to-orange-400 text-white font-bold"
-                : "border-border bg-card hover:border-purple-300"
-            )}
-          >
-            <span className="text-sm font-bold">ארוך · 6-8 עמ׳</span>
-          </button>
-        </div>
-      </div>
-
-      {/* Language Selection */}
-      <div className="space-y-1">
-        <Label className="text-xs font-medium flex items-center gap-1.5">
-          <Globe className="w-3.5 h-3.5 text-purple-500" />
-          שפת הסיפור
-        </Label>
-        <div className="grid grid-cols-2 gap-2">
-          <button
-            onClick={() => updateFormData({ language: "he", nikud: true })}
-            className={cn(
-              "p-1.5 rounded-lg border-2 transition-all text-center flex items-center justify-center gap-1.5",
-              formData.language === "he"
-                ? "border-purple-500 bg-gradient-to-r from-purple-600 via-pink-500 to-orange-400 text-white font-bold"
-                : "border-border bg-card hover:border-purple-300"
-            )}
-          >
-            <span className="text-base">🇮🇱</span>
-            <span className="text-sm font-bold">עברית</span>
-          </button>
-          <button
-            onClick={() => updateFormData({ language: "en", nikud: false })}
-            className={cn(
-              "p-1.5 rounded-lg border-2 transition-all text-center flex items-center justify-center gap-1.5",
-              formData.language === "en"
-                ? "border-purple-500 bg-gradient-to-r from-purple-600 via-pink-500 to-orange-400 text-white font-bold"
-                : "border-border bg-card hover:border-purple-300"
-            )}
-          >
-            <span className="text-base">🇺🇸</span>
-            <span className="text-sm font-bold">English</span>
-          </button>
+        {/* Language */}
+        <div className="space-y-1">
+          <Label className="text-[10px] font-medium text-center block">שפה</Label>
+          <div className="flex flex-col gap-1">
+            <button
+              onClick={() => updateFormData({ language: "he", nikud: true })}
+              className={cn(
+                "py-1 rounded-md border transition-all text-center text-xs font-bold flex items-center justify-center gap-1",
+                formData.language === "he"
+                  ? "border-purple-500 bg-gradient-to-r from-purple-600 via-pink-500 to-orange-400 text-white"
+                  : "border-border bg-card hover:border-purple-300"
+              )}
+            >
+              🇮🇱 עברית
+            </button>
+            <button
+              onClick={() => updateFormData({ language: "en", nikud: false })}
+              className={cn(
+                "py-1 rounded-md border transition-all text-center text-xs font-bold flex items-center justify-center gap-1",
+                formData.language === "en"
+                  ? "border-purple-500 bg-gradient-to-r from-purple-600 via-pink-500 to-orange-400 text-white"
+                  : "border-border bg-card hover:border-purple-300"
+              )}
+            >
+              🇺🇸 EN
+            </button>
+          </div>
         </div>
       </div>
 
@@ -535,7 +533,7 @@ const ChildInfoStep = ({ formData, updateFormData }: ChildInfoStepProps) => {
         </div>
       )}
 
-      {/* Photo Upload */}
+      {/* Photo Upload - Enlarged */}
       <div className="space-y-1.5">
         <Label className="text-xs font-medium">תמונה של הילד/ה (אופציונלי)</Label>
         <div className="relative">
@@ -548,25 +546,25 @@ const ChildInfoStep = ({ formData, updateFormData }: ChildInfoStepProps) => {
             id="photo-upload"
           />
           {isUploadingPhoto ? (
-            <div className="flex flex-col items-center justify-center w-full h-20 bg-card border-2 border-purple-400 bg-purple-50 rounded-xl">
-              <Loader2 className="w-5 h-5 animate-spin text-purple-500 mb-1" />
-              <span className="text-xs text-muted-foreground">מעלה תמונה...</span>
+            <div className="flex flex-col items-center justify-center w-full py-8 bg-card border-2 border-purple-400 bg-purple-50 rounded-xl">
+              <Loader2 className="w-6 h-6 animate-spin text-purple-500 mb-2" />
+              <span className="text-sm text-muted-foreground">מעלה תמונה...</span>
             </div>
           ) : formData.childPhoto ? (
-            <div className="flex flex-col items-center justify-center w-full h-20 bg-card border-2 border-purple-400 bg-purple-50 rounded-xl py-1.5">
-              <div className="relative w-12 h-12 rounded-full overflow-hidden border-2 border-purple-400">
+            <div className="flex flex-col items-center justify-center w-full py-4 bg-card border-2 border-purple-400 bg-purple-50 rounded-xl gap-2">
+              <div className="relative w-20 h-20 rounded-full overflow-hidden border-3 border-purple-400 shadow-md">
                 <img
                   src={formData.childAvatarUrl || formData.childPhoto}
                   alt="תמונת הילד"
                   className="w-full h-full object-cover"
                 />
                 {formData.childAvatarUrl && (
-                  <div className="absolute bottom-0 right-0 w-4 h-4 bg-purple-500 rounded-full flex items-center justify-center">
-                    <Sparkles className="w-2 h-2 text-white" />
+                  <div className="absolute bottom-0 right-0 w-5 h-5 bg-purple-500 rounded-full flex items-center justify-center">
+                    <Sparkles className="w-3 h-3 text-white" />
                   </div>
                 )}
               </div>
-              <div className="flex gap-3 mt-1">
+              <div className="flex gap-4 mt-1">
                 {!formData.childAvatarUrl && formData.childPhoto && (
                   <button
                     type="button"
@@ -574,7 +572,7 @@ const ChildInfoStep = ({ formData, updateFormData }: ChildInfoStepProps) => {
                       setPendingPhotoForAvatar(formData.childPhoto);
                       setAvatarPreviewOpen(true);
                     }}
-                    className="text-[10px] text-purple-600 underline"
+                    className="text-xs text-purple-600 underline font-medium"
                   >
                     צור אווטאר
                   </button>
@@ -586,9 +584,9 @@ const ChildInfoStep = ({ formData, updateFormData }: ChildInfoStepProps) => {
                       setPendingPhotoForAvatar(formData.childPhoto);
                       setAvatarPreviewOpen(true);
                     }}
-                    className="text-[10px] text-purple-600 flex items-center gap-0.5"
+                    className="text-xs text-purple-600 flex items-center gap-1 font-medium"
                   >
-                    <RefreshCw className="w-2.5 h-2.5" />
+                    <RefreshCw className="w-3 h-3" />
                     עדכן אווטאר
                   </button>
                 )}
@@ -598,9 +596,9 @@ const ChildInfoStep = ({ formData, updateFormData }: ChildInfoStepProps) => {
                     updateFormData({ childPhoto: null, childAvatarUrl: null });
                     setExistingAvatarForDialog(null);
                   }}
-                  className="text-[10px] text-destructive flex items-center gap-0.5"
+                  className="text-xs text-destructive flex items-center gap-1 font-medium"
                 >
-                  <Trash2 className="w-2.5 h-2.5" />
+                  <Trash2 className="w-3 h-3" />
                   מחק
                 </button>
               </div>
@@ -608,13 +606,13 @@ const ChildInfoStep = ({ formData, updateFormData }: ChildInfoStepProps) => {
           ) : (
             <label
               htmlFor="photo-upload"
-              className="flex flex-col items-center justify-center w-full bg-card border-2 border-dashed border-purple-200 rounded-xl cursor-pointer hover:border-purple-400 transition-colors p-3 gap-2"
+              className="flex flex-col items-center justify-center w-full bg-card border-2 border-dashed border-purple-200 rounded-xl cursor-pointer hover:border-purple-400 transition-colors p-4 gap-2.5"
             >
-              <div className="flex items-center gap-1.5">
-                <Camera className="w-5 h-5 text-purple-400" />
-                <span className="text-xs font-medium text-muted-foreground">העלו תמונה</span>
+              <div className="flex items-center gap-2">
+                <Camera className="w-6 h-6 text-purple-400" />
+                <span className="text-sm font-medium text-muted-foreground">העלו תמונה</span>
               </div>
-              <div className="grid grid-cols-2 gap-x-3 gap-y-1 w-full">
+              <div className="grid grid-cols-2 gap-x-3 gap-y-1.5 w-full">
                 {photoTips.map((tip, index) => (
                   <div key={index} className="flex items-center gap-1 text-[10px]">
                     {tip.isGood ? (
@@ -631,29 +629,6 @@ const ChildInfoStep = ({ formData, updateFormData }: ChildInfoStepProps) => {
             </label>
           )}
         </div>
-      </div>
-
-      {/* Personality Traits (optional) */}
-      <div className="space-y-1.5">
-        <button
-          type="button"
-          onClick={() => setShowPersonalityField(!showPersonalityField)}
-          className="flex items-center gap-1.5 text-xs text-muted-foreground hover:text-purple-500 transition-colors"
-        >
-          <Heart className="w-3.5 h-3.5" />
-          <span>הוסיפו תכונות אופי (אופציונלי)</span>
-          {showPersonalityField ? <ChevronUp className="w-2.5 h-2.5" /> : <ChevronDown className="w-2.5 h-2.5" />}
-        </button>
-        
-        {showPersonalityField && (
-          <Textarea
-            placeholder="למשל: אוהב/ת חיות, סקרן/ית, אוהב/ת לשחק כדורגל..."
-            value={formData.personalityTraits}
-            onChange={(e) => updateFormData({ personalityTraits: e.target.value })}
-            className="min-h-14 text-xs bg-card border-2 border-purple-200 rounded-lg resize-none focus:border-purple-400"
-            dir="rtl"
-          />
-        )}
       </div>
 
       {/* Save Button - Light purple theme matching saved profiles */}
