@@ -3,8 +3,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Input } from "@/components/ui/input";
 import { StoryFormData } from "@/pages/CreateStory";
 import { cn } from "@/lib/utils";
-import { Heart, ChevronLeft, ChevronRight, Sparkles, Info, Search, X } from "lucide-react";
-import { useTopicWishlist } from "@/hooks/use-topic-wishlist";
+import { ChevronLeft, ChevronUp, Sparkles, Search, X } from "lucide-react";
 import { CHARACTER_SECTIONS, TopicItem } from "./topic-data";
 
 interface TopicStepProps {
@@ -12,13 +11,18 @@ interface TopicStepProps {
   updateFormData: (updates: Partial<StoryFormData>) => void;
 }
 
-import { Heart as HeartIcon } from "lucide-react";
-
 const TopicStep = ({ formData, updateFormData }: TopicStepProps) => {
-  const { likedTopics, toggleLike } = useTopicWishlist();
-  const sectionRefs = useRef<(HTMLDivElement | null)[]>([]);
   const [activeTab, setActiveTab] = useState("all");
   const [searchQuery, setSearchQuery] = useState("");
+  const [expandedSections, setExpandedSections] = useState<Set<string>>(new Set());
+
+  const toggleSection = (id: string) => {
+    setExpandedSections(prev => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id); else next.add(id);
+      return next;
+    });
+  };
 
   const searchResults = useMemo(() => {
     if (!searchQuery.trim()) return null;
@@ -55,10 +59,6 @@ const TopicStep = ({ formData, updateFormData }: TopicStepProps) => {
     });
   };
 
-  const scrollToSection = (index: number) => {
-    sectionRefs.current[index]?.scrollIntoView({ behavior: "smooth", block: "start" });
-  };
-
   const filteredSections = activeTab === "all"
     ? CHARACTER_SECTIONS
     : CHARACTER_SECTIONS.filter((s) => s.id === activeTab);
@@ -67,14 +67,12 @@ const TopicStep = ({ formData, updateFormData }: TopicStepProps) => {
 
   return (
     <div className="space-y-4" dir="rtl">
-      {/* Title with sparkles */}
       <h2 className="text-lg font-bold text-foreground text-center flex items-center justify-center gap-2">
         <span className="text-purple-500"><Sparkles className="w-5 h-5" /></span>
         על מה נכתוב היום?
         <span className="text-orange-400"><Sparkles className="w-5 h-5" /></span>
       </h2>
 
-      {/* Unified topic + personality input with gradient border */}
       <div className="bg-gradient-to-r from-purple-500 via-pink-500 to-orange-400 p-[2.5px] rounded-2xl shadow-lg">
         <Textarea
           className="w-full min-h-[100px] text-base resize-none rounded-2xl border-0 bg-card focus-visible:ring-0 focus-visible:ring-offset-0"
@@ -86,12 +84,9 @@ const TopicStep = ({ formData, updateFormData }: TopicStepProps) => {
         />
       </div>
 
-      {/* Divider */}
-      <div className="text-center text-xs text-muted-foreground font-medium">
-        או בחרו נושא
-      </div>
+      <div className="text-center text-xs text-muted-foreground font-medium">או בחרו נושא</div>
 
-      {/* Search input */}
+      {/* Search */}
       <div className="relative">
         <Search className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground pointer-events-none" />
         <Input
@@ -102,34 +97,21 @@ const TopicStep = ({ formData, updateFormData }: TopicStepProps) => {
           dir="rtl"
         />
         {searchQuery && (
-          <button
-            onClick={() => setSearchQuery("")}
-            className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
-          >
+          <button onClick={() => setSearchQuery("")} className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors">
             <X className="w-4 h-4" />
           </button>
         )}
       </div>
 
-      {/* Search results */}
       {isSearching ? (
         <div className="space-y-3">
           <p className="text-xs text-muted-foreground text-center">
-            {searchResults.length > 0
-              ? `נמצאו ${searchResults.length} נושאים`
-              : "לא נמצאו נושאים מתאימים 😕"}
+            {searchResults.length > 0 ? `נמצאו ${searchResults.length} נושאים` : "לא נמצאו נושאים מתאימים 😕"}
           </p>
           {searchResults.length > 0 && (
-            <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-none flex-wrap justify-center">
+            <div className="grid grid-cols-2 gap-3">
               {searchResults.map((topic) => (
-                <TopicCard
-                  key={topic.id}
-                  topic={topic}
-                  isSelected={formData.topic === topic.id}
-                  isLiked={likedTopics.has(topic.id)}
-                  onSelect={() => handleTopicSelect(topic)}
-                  onToggleLike={() => toggleLike(topic.id)}
-                />
+                <SimpleTile key={topic.id} topic={topic} isSelected={formData.topic === topic.id} onSelect={() => handleTopicSelect(topic)} />
               ))}
             </div>
           )}
@@ -165,229 +147,95 @@ const TopicStep = ({ formData, updateFormData }: TopicStepProps) => {
             ))}
           </div>
 
-          {/* All character sections stacked */}
-          {filteredSections.map((section, sectionIndex) => (
-            <div
-              key={section.id}
-              ref={(el) => { sectionRefs.current[sectionIndex] = el; }}
-              className="space-y-3"
-            >
-              {/* Hero Card */}
-              <HeroCard section={section} />
+          {/* Category sections */}
+          {filteredSections.map((section) => {
+            const isExpanded = expandedSections.has(section.id);
+            const visibleTopics = isExpanded ? section.topics : section.topics.slice(0, 3);
 
-              {/* Topic cards - horizontal scroll */}
-              <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-none">
-                {section.topics.map((topic) => (
-                  <TopicCard
-                    key={topic.id}
-                    topic={topic}
-                    isSelected={formData.topic === topic.id}
-                    isLiked={likedTopics.has(topic.id)}
-                    onSelect={() => handleTopicSelect(topic)}
-                    onToggleLike={() => toggleLike(topic.id)}
-                  />
-                ))}
-              </div>
+            return (
+              <div key={section.id} className="space-y-3">
+                {/* Banner */}
+                <button
+                  onClick={() => toggleSection(section.id)}
+                  className="relative w-full rounded-2xl overflow-hidden border-2 border-border group"
+                >
+                  <div className="relative h-32 w-full">
+                    <img src={section.heroImage} alt={section.categoryLabel} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" />
+                    <div className="absolute inset-0" style={{ background: "linear-gradient(to left, rgba(0,0,0,0.6) 0%, rgba(0,0,0,0.2) 60%, transparent 100%)" }} />
+                    <div className="absolute inset-0 flex flex-col justify-center items-end pr-5 gap-1">
+                      <span className="text-white/80 text-xs font-medium">{section.character} | {section.characterEn} {section.categoryEmoji}</span>
+                      <h3 className="text-white text-lg font-black drop-shadow-md">{section.categoryLabel}</h3>
+                      <span className="text-white/70 text-[10px]">{section.topics.length} נושאים</span>
+                    </div>
+                  </div>
+                </button>
 
-              {/* Progress bar for horizontal scroll */}
-              <div className="h-1 bg-muted rounded-full overflow-hidden mx-4">
-                <div
-                  className="h-full bg-gradient-to-r from-purple-400 to-pink-400 rounded-full"
-                  style={{ width: "30%" }}
-                />
+                {/* Topics grid */}
+                <div className="grid grid-cols-2 gap-3">
+                  {visibleTopics.map((topic) => (
+                    <SimpleTile key={topic.id} topic={topic} isSelected={formData.topic === topic.id} onSelect={() => handleTopicSelect(topic)} />
+                  ))}
+                </div>
+
+                {/* Expand/Collapse */}
+                {!isExpanded && section.topics.length > 3 && (
+                  <div className="flex items-center justify-between px-1">
+                    <span className="text-sm font-bold text-purple-600">{section.categoryEmoji} {section.categoryLabel}</span>
+                    <button onClick={() => toggleSection(section.id)} className="flex items-center gap-1 text-xs font-medium text-purple-600 hover:opacity-80 transition-opacity">
+                      הצג הכל
+                      <ChevronLeft className="w-3.5 h-3.5" />
+                    </button>
+                  </div>
+                )}
+                {isExpanded && (
+                  <button onClick={() => toggleSection(section.id)} className="flex items-center justify-center gap-1 w-full py-2 text-xs font-bold text-purple-600 hover:opacity-80 transition-opacity">
+                    <ChevronUp className="w-4 h-4" />
+                    הצג פחות
+                  </button>
+                )}
               </div>
-            </div>
-          ))}
+            );
+          })}
         </>
       )}
     </div>
   );
 };
 
-/* ─── Hero Card ─── */
-const HeroCard = ({ section }: { section: (typeof CHARACTER_SECTIONS)[number] }) => (
-  <div className="relative rounded-2xl overflow-hidden aspect-[16/10] shadow-lg">
-    <img
-      src={section.heroImage}
-      alt={section.character}
-      className="w-full h-full object-cover"
-    />
-    <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/10 to-transparent" />
-
-    {/* Navigation arrows + View All */}
-    <div className="absolute bottom-3 left-3 flex items-center gap-1.5">
-      <button className="w-7 h-7 bg-white/80 rounded-full flex items-center justify-center shadow-sm">
-        <ChevronLeft className="w-4 h-4 text-foreground" />
-      </button>
-      <button className="w-7 h-7 bg-white/80 rounded-full flex items-center justify-center shadow-sm">
-        <ChevronRight className="w-4 h-4 text-foreground" />
-      </button>
-      <span className="text-white text-[10px] bg-white/20 px-2 py-0.5 rounded-full backdrop-blur-sm border border-white/30 mr-1">
-        צפה בהכל
-      </span>
-    </div>
-
-    {/* Category name and character info */}
-    <div className="absolute bottom-3 right-3 text-right">
-      <h2 className="text-white text-xl font-bold drop-shadow-lg">
-        {section.categoryLabel}
-      </h2>
-      <p className="text-white/80 text-xs drop-shadow-md">
-        {section.character} | {section.characterEn} {section.topics.length} נושאים
-      </p>
-    </div>
-  </div>
-);
-
-/* ─── Topic Card (Flip) ─── */
-interface TopicCardProps {
+/* ─── Simple Tile ─── */
+interface SimpleTileProps {
   topic: TopicItem;
   isSelected: boolean;
-  isLiked: boolean;
   onSelect: () => void;
-  onToggleLike: () => void;
 }
 
-const TopicCard = ({
-  topic,
-  isSelected,
-  isLiked,
-  onSelect,
-  onToggleLike,
-}: TopicCardProps) => {
-  const [isFlipped, setIsFlipped] = useState(false);
-
-  const handleFlip = (e: React.MouseEvent) => {
-    e.stopPropagation();
-    setIsFlipped((prev) => !prev);
-  };
-
-  const handleSelectAndClose = () => {
-    onSelect();
-    setIsFlipped(false);
-  };
-
-  return (
-    <div
-      className={cn(
-        "relative flex-shrink-0 w-[130px] aspect-[3/4]",
-        "[perspective:600px]"
-      )}
-    >
-      <div
-        className={cn(
-          "relative w-full h-full transition-transform duration-500 [transform-style:preserve-3d]",
-          isFlipped && "[transform:rotateY(180deg)]"
-        )}
-      >
-        {/* ─── Front ─── */}
-        <div
-          className={cn(
-            "absolute inset-0 rounded-xl overflow-hidden border-2 cursor-pointer [backface-visibility:hidden]",
-            isSelected
-              ? "border-purple-500 shadow-lg scale-[1.03]"
-              : "border-transparent hover:border-purple-300"
-          )}
-          onClick={onSelect}
-        >
-          <img
-            src={topic.image}
-            alt={topic.label}
-            className="w-full h-full object-cover"
-            loading="lazy"
-          />
-
-          {/* Gradient overlay */}
-          <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/10 to-transparent" />
-
-          {/* Info icon */}
-          <button
-            onClick={handleFlip}
-            className="absolute top-1.5 left-1.5 w-6 h-6 bg-black/30 backdrop-blur-sm rounded-full flex items-center justify-center border border-white/20 transition-colors hover:bg-black/50"
-            aria-label="מידע נוסף"
-          >
-            <span><Info className="w-3.5 h-3.5 text-white/90" /></span>
-          </button>
-
-          {/* Wishlist heart */}
-          <button
-            onClick={(e) => {
-              e.stopPropagation();
-              onToggleLike();
-            }}
-            className="absolute top-1.5 right-1.5 w-7 h-7 flex items-center justify-center"
-          >
-            <Heart
-              className={cn(
-                "w-5 h-5 drop-shadow-md transition-colors",
-                isLiked
-                  ? "fill-pink-500 text-pink-500"
-                  : "fill-transparent text-white/80"
-              )}
-            />
-          </button>
-
-          {/* Age badge */}
-          <div className="absolute bottom-7 left-1.5 bg-black/40 text-white text-[9px] font-bold px-1.5 py-0.5 rounded-md backdrop-blur-sm">
-            {topic.ageRange}
-          </div>
-
-          {/* Topic name */}
-          <span className="absolute bottom-1 right-1.5 left-1.5 text-white text-[10px] font-bold leading-tight text-center drop-shadow-md line-clamp-2">
-            {topic.label}
-          </span>
-
-          {/* Selected checkmark */}
-          {isSelected && (
-            <div className="absolute top-1.5 left-1.5 w-5 h-5 bg-gradient-to-r from-purple-600 to-pink-500 rounded-full flex items-center justify-center z-10">
-              <span className="text-white text-xs">✓</span>
-            </div>
-          )}
-        </div>
-
-        {/* ─── Back ─── */}
-        <div
-          className={cn(
-            "absolute inset-0 rounded-xl overflow-hidden border-2 [backface-visibility:hidden] [transform:rotateY(180deg)]",
-            "bg-gradient-to-b from-purple-50 to-white dark:from-purple-950 dark:to-gray-900",
-            "border-purple-300 shadow-lg",
-            "flex flex-col p-3 direction-rtl"
-          )}
-          dir="rtl"
-        >
-          {/* Close / flip back */}
-          <button
-            onClick={handleFlip}
-            className="absolute top-1.5 left-1.5 w-6 h-6 bg-purple-100 dark:bg-purple-900 rounded-full flex items-center justify-center text-purple-600 dark:text-purple-300 text-xs font-bold"
-            aria-label="חזרה"
-          >
-            ✕
-          </button>
-
-          {/* Title */}
-          <h3 className="text-[11px] font-bold text-purple-700 dark:text-purple-300 mb-1.5 pr-0 pl-6 leading-tight">
-            {topic.label}
-          </h3>
-
-          {/* Description */}
-          <p className="text-[9px] leading-relaxed text-foreground/80 flex-1 overflow-y-auto">
-            {topic.description}
-          </p>
-
-          {/* Select button */}
-          <button
-            onClick={(e) => {
-              e.stopPropagation();
-              handleSelectAndClose();
-            }}
-            className="mt-2 w-full py-1.5 rounded-lg bg-gradient-to-r from-purple-600 via-pink-500 to-orange-400 text-white text-[10px] font-bold shadow-md hover:shadow-lg transition-shadow"
-          >
-            בחירת נושא והמשך ✨
-          </button>
-        </div>
+const SimpleTile = ({ topic, isSelected, onSelect }: SimpleTileProps) => (
+  <button
+    onClick={onSelect}
+    className={cn(
+      "rounded-xl overflow-hidden shadow-sm border-2 bg-card hover:shadow-md hover:scale-[1.02] transition-all text-right",
+      isSelected ? "border-purple-500 shadow-lg scale-[1.03]" : "border-transparent"
+    )}
+  >
+    <div className="relative h-24 w-full">
+      <img src={topic.image} alt={topic.label} className="w-full h-full object-cover" loading="lazy" />
+      <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/10 to-transparent" />
+      {/* Age badge */}
+      <div className="absolute bottom-1.5 left-1.5 bg-black/40 text-white text-[9px] font-bold px-1.5 py-0.5 rounded-md backdrop-blur-sm">
+        {topic.ageRange}
       </div>
+      {/* Selected check */}
+      {isSelected && (
+        <div className="absolute top-1.5 left-1.5 w-5 h-5 bg-gradient-to-r from-purple-600 to-pink-500 rounded-full flex items-center justify-center">
+          <span className="text-white text-xs">✓</span>
+        </div>
+      )}
     </div>
-  );
-};
+    <div className="p-2.5">
+      <h3 className="text-sm font-bold text-foreground leading-tight">{topic.label}</h3>
+      <p className="text-[10px] text-muted-foreground mt-1 line-clamp-2">{topic.description}</p>
+    </div>
+  </button>
+);
 
 export default TopicStep;
