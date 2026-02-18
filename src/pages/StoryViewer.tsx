@@ -415,6 +415,21 @@ const StoryViewer = () => {
     }, 300);
   };
 
+  // Keyboard navigation for desktop
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'ArrowLeft') {
+        // RTL: left arrow = next page
+        handlePageChange('next');
+      } else if (e.key === 'ArrowRight') {
+        // RTL: right arrow = prev page
+        handlePageChange('prev');
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [isFlipping, currentPage, story]);
+
   // Swipe gesture handlers for spread navigation
   const { onTouchStart, onTouchMove, onTouchEnd } = useSwipe({
     onSwipeLeft: () => {
@@ -430,6 +445,20 @@ const StoryViewer = () => {
   
   // Create swipeHandlers object for spreading onto elements
   const swipeHandlers = { onTouchStart, onTouchMove, onTouchEnd };
+
+  // Click-based navigation for desktop (click left/right side of story area)
+  const handleAreaClick = (e: React.MouseEvent<HTMLDivElement>) => {
+    if (isFlipping || isDrawingMode) return;
+    const rect = e.currentTarget.getBoundingClientRect();
+    const clickX = e.clientX - rect.left;
+    const width = rect.width;
+    // RTL: clicking left side = next, right side = prev
+    if (clickX < width * 0.3) {
+      handlePageChange('next');
+    } else if (clickX > width * 0.7) {
+      handlePageChange('prev');
+    }
+  };
 
   const handleShare = async () => {
     if (!story) return;
@@ -890,10 +919,11 @@ const StoryViewer = () => {
 
       {/* Book Container with Swipe Support */}
       <main 
-        className="flex-1 flex flex-col touch-pan-y"
+        className="flex-1 flex flex-col touch-pan-y cursor-pointer"
         onTouchStart={swipeHandlers.onTouchStart}
         onTouchMove={swipeHandlers.onTouchMove}
         onTouchEnd={swipeHandlers.onTouchEnd}
+        onClick={!isMobile ? handleAreaClick : undefined}
       >
         <div className={cn(
           "relative w-full flex-1 transition-opacity duration-300 ease-in-out",
