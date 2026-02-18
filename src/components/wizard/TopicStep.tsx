@@ -12,6 +12,8 @@ interface TopicStepProps {
   updateFormData: (updates: Partial<StoryFormData>) => void;
 }
 
+import { Heart as HeartIcon } from "lucide-react";
+
 const TopicStep = ({ formData, updateFormData }: TopicStepProps) => {
   const { likedTopics, toggleLike } = useTopicWishlist();
   const sectionRefs = useRef<(HTMLDivElement | null)[]>([]);
