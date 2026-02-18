@@ -93,6 +93,7 @@ const ChildInfoStep = ({ formData, updateFormData }: ChildInfoStepProps) => {
   const [avatarRegenerationCount, setAvatarRegenerationCount] = useState(0);
   const [existingAvatarForDialog, setExistingAvatarForDialog] = useState<string | null>(null);
   const [userRole, setUserRole] = useState<string | null>(null);
+  const [isDeletingChild, setIsDeletingChild] = useState(false);
   
   // Selected age button
   const [selectedAgeButton, setSelectedAgeButton] = useState<string>(rangeToDisplayButton(formData.ageRange));
@@ -348,36 +349,97 @@ const ChildInfoStep = ({ formData, updateFormData }: ChildInfoStepProps) => {
     }
   };
 
-  return (
+  const handleDeleteChildProfile = async () => {
+    const currentChild = savedChildren.find(c => c.name === formData.childName);
+    if (!currentChild) {
+      toast.error("לא נבחר פרופיל למחיקה");
+      return;
+    }
+
+    setIsDeletingChild(true);
+    try {
+      if (user && !currentChild.id.startsWith('local-')) {
+        const { error } = await supabase
+          .from("children")
+          .delete()
+          .eq("id", currentChild.id);
+        if (error) throw new Error(error.message);
+      } else {
+        const localChildren = JSON.parse(localStorage.getItem('savedChildren') || '[]');
+        const filtered = localChildren.filter((c: SavedChild) => c.id !== currentChild.id);
+        localStorage.setItem('savedChildren', JSON.stringify(filtered));
+      }
+
+      setSavedChildren(prev => prev.filter(c => c.id !== currentChild.id));
+      updateFormData({
+        childName: "",
+        childGender: "male",
+        ageRange: "2-4",
+        storyLength: "short",
+        childPhoto: null,
+        childAvatarUrl: null,
+        personalityTraits: "",
+        className: "",
+      });
+      setSelectedAgeButton("3-6");
+      setExistingAvatarForDialog(null);
+      toast.success(`הפרופיל של ${currentChild.name} נמחק בהצלחה`);
+    } catch (error) {
+      console.error('Error deleting child profile:', error);
+      toast.error("שגיאה במחיקת הפרופיל");
+    } finally {
+      setIsDeletingChild(false);
+    }
+  };
+
+
     <div className="w-full space-y-2 px-1">
       {/* Title */}
       <div className="text-center space-y-1">
         <h1 className="text-lg font-black bg-gradient-to-r from-purple-600 via-pink-500 to-orange-400 bg-clip-text text-transparent">ספרו לנו על הילד/ה</h1>
         <p className="text-xs text-muted-foreground">בחרו פרופיל קיים או צרו חדש</p>
-        <Button
-          type="button"
-          variant="outline"
-          size="sm"
-          onClick={() => {
-            updateFormData({
-              childName: "",
-              childGender: "male",
-              ageRange: "2-4",
-              storyLength: "short",
-              childPhoto: null,
-              childAvatarUrl: null,
-              personalityTraits: "",
-              className: "",
-            });
-            setSelectedAgeButton("3-6");
-            setExistingAvatarForDialog(null);
-            toast.success("הטופס נוקה - הזינו פרטי ילד/ה חדש/ה");
-          }}
-          className="text-sm font-bold text-purple-600 border-purple-300 hover:bg-purple-50"
-        >
-          <PlusCircle className="w-4 h-4 ml-1" />
-          פרופיל חדש +
-        </Button>
+        <div className="flex items-center justify-center gap-2">
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            onClick={() => {
+              updateFormData({
+                childName: "",
+                childGender: "male",
+                ageRange: "2-4",
+                storyLength: "short",
+                childPhoto: null,
+                childAvatarUrl: null,
+                personalityTraits: "",
+                className: "",
+              });
+              setSelectedAgeButton("3-6");
+              setExistingAvatarForDialog(null);
+              toast.success("הטופס נוקה - הזינו פרטי ילד/ה חדש/ה");
+            }}
+            className="text-sm font-bold text-purple-600 border-purple-300 hover:bg-purple-50"
+          >
+            <PlusCircle className="w-4 h-4 ml-1" />
+            פרופיל חדש +
+          </Button>
+          {formData.childName && savedChildren.some(c => c.name === formData.childName) && (
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={handleDeleteChildProfile}
+              disabled={isDeletingChild}
+              className="text-sm text-destructive border-destructive/30 hover:bg-destructive/10"
+            >
+              {isDeletingChild ? (
+                <Loader2 className="w-4 h-4 animate-spin" />
+              ) : (
+                <Trash2 className="w-4 h-4" />
+              )}
+            </Button>
+          )}
+        </div>
       </div>
 
       {/* Saved Children Quick Select */}
