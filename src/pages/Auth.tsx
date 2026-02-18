@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import { useNavigate, Link, useSearchParams } from "react-router-dom";
-import { Mail, Lock, Loader2, Eye, EyeOff, KeyRound, FileText, Shield, CheckCircle2, Sparkles, Heart, Users, Camera, Check, ArrowRight, RefreshCw, Smartphone, Tablet, Monitor } from "lucide-react";
+import { Mail, Lock, Loader2, Eye, EyeOff, KeyRound, FileText, Shield, CheckCircle2, Sparkles, Heart, Users, Camera, Check, ArrowRight, RefreshCw, Smartphone, Tablet, Monitor, X } from "lucide-react";
 import MobileNavigation from "@/components/MobileNavigation";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -8,6 +8,7 @@ import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 
 import { useAuth } from "@/hooks/use-auth";
 import { useToast } from "@/hooks/use-toast";
@@ -48,6 +49,8 @@ const Auth = () => {
   // Signup terms consent (inline in registration form)
   const [signupTermsAccepted, setSignupTermsAccepted] = useState(false);
   const [rememberMe, setRememberMe] = useState(false);
+  const [showTermsModal, setShowTermsModal] = useState(false);
+  const [showPrivacyModal, setShowPrivacyModal] = useState(false);
   
   // User role selection
   const [userRole, setUserRole] = useState<"parent" | "educator">("parent");
@@ -1309,7 +1312,7 @@ const Auth = () => {
                   </div>
                 </div>
 
-                {/* Terms consent checkbox */}
+                {/* Terms consent checkbox - simplified */}
                 <div className="flex items-start gap-3 p-3 bg-gray-50 rounded-xl border border-gray-200">
                   <Checkbox
                     id="signup-terms"
@@ -1321,10 +1324,10 @@ const Auth = () => {
                     htmlFor="signup-terms" 
                     className="text-sm leading-relaxed cursor-pointer text-black/80"
                   >
-                    {userRole === "educator" ? "אני מחנך/ת, קראתי ומסכים/ה ל" : "אני הורה/אפוטרופוס, קראתי ומסכים/ה ל"}
-                    <Link to="/terms" className="text-purple underline mx-1">תנאי השימוש</Link>
-                    ול
-                    <Link to="/privacy" className="text-purple underline mx-1">מדיניות הפרטיות</Link>
+                    אני מאשר/ת את{' '}
+                    <button type="button" onClick={(e) => { e.preventDefault(); setShowTermsModal(true); }} className="text-purple underline font-medium">תקנון השימוש</button>
+                    {' '}ו
+                    <button type="button" onClick={(e) => { e.preventDefault(); setShowPrivacyModal(true); }} className="text-purple underline font-medium">מדיניות הפרטיות</button>
                   </Label>
                 </div>
 
@@ -1360,6 +1363,98 @@ const Auth = () => {
         </div>
       </div>
       <MobileNavigation />
+
+      {/* Terms of Service Modal */}
+      <Dialog open={showTermsModal} onOpenChange={setShowTermsModal}>
+        <DialogContent className="max-w-lg max-h-[80vh] overflow-hidden" dir="rtl">
+          <DialogHeader>
+            <DialogTitle className="text-xl font-bold flex items-center gap-2 justify-center">
+              <FileText className="w-5 h-5 text-primary" />
+              תקנון שימוש
+            </DialogTitle>
+          </DialogHeader>
+          <ScrollArea className="max-h-[60vh] pr-4">
+            <div className="space-y-4 text-right leading-relaxed text-sm">
+              <p className="text-muted-foreground">תקנון שימוש זה מהווה הסכם משפטי מחייב בין המשתמש לבין הנהלת האפליקציה.</p>
+              <section>
+                <h3 className="font-bold text-foreground mb-1">מהות השירות</h3>
+                <p className="text-muted-foreground"><span dir="ltr" className="inline-block">SolStorie's™</span> מספקת פלטפורמה ליצירת תוכן ספרותי מותאם אישית לילדים בגילאי 0-8, המיועדת להורים, אפוטרופוסים חוקיים ואנשי חינוך וטיפול.</p>
+              </section>
+              <section>
+                <h3 className="font-bold text-foreground mb-1">הגבלת אחריות מקצועית</h3>
+                <p className="text-muted-foreground">השימוש באפליקציה הינו כלי עזר טכנולוגי בלבד ואינו מהווה תחליף לייעוץ מקצועי, חינוכי או רפואי.</p>
+              </section>
+              <section>
+                <h3 className="font-bold text-foreground mb-1">אחריות המשתמש והורה</h3>
+                <p className="text-muted-foreground">השימוש באפליקציה מיועד להורים או לאפוטרופוסים חוקיים. באחריות המבוגר האחראי לבחון את התוכן שנוצר על ידי הבינה המלאכותית ולוודא את התאמתו לילד בטרם הקראתו.</p>
+              </section>
+              <section>
+                <h3 className="font-bold text-foreground mb-1">מערכת קרדיטים ורכישות</h3>
+                <p className="text-muted-foreground">השימוש בשירות מותנה ביתרת קרדיטים. ניתן לבצע רכישות באמצעות כרטיס אשראי גם ללא חשבון פייפאל. קרדיטים שנוצלו אינם ניתנים להחזר.</p>
+              </section>
+              <section>
+                <h3 className="font-bold text-foreground mb-1">קניין רוחני</h3>
+                <p className="text-muted-foreground">העיצוב, הקוד, הדמויות (סול וחבריה), האיורים והטכנולוגיה הם קניינה הבלעדי של <span dir="ltr" className="inline-block">SolStorie's™</span>. הסיפורים הנוצרים מיועדים לשימוש אישי ופרטי בלבד.</p>
+              </section>
+              <section>
+                <h3 className="font-bold text-foreground mb-1">סיום התקשרות</h3>
+                <p className="text-muted-foreground">הנהלת האפליקציה שומרת לעצמה את הזכות להפסיק שירות למשתמש שיעשה שימוש לרעה במערכת או יזין תכנים פוגעניים.</p>
+              </section>
+            </div>
+          </ScrollArea>
+        </DialogContent>
+      </Dialog>
+
+      {/* Privacy Policy Modal */}
+      <Dialog open={showPrivacyModal} onOpenChange={setShowPrivacyModal}>
+        <DialogContent className="max-w-lg max-h-[80vh] overflow-hidden" dir="rtl">
+          <DialogHeader>
+            <DialogTitle className="text-xl font-bold flex items-center gap-2 justify-center">
+              <Shield className="w-5 h-5 text-primary" />
+              מדיניות פרטיות
+            </DialogTitle>
+          </DialogHeader>
+          <ScrollArea className="max-h-[60vh] pr-4">
+            <div className="space-y-4 text-right leading-relaxed text-sm">
+              <p className="text-muted-foreground">ברוכים הבאים למדיניות הפרטיות של <span dir="ltr" className="inline-block">SolStorie's™</span>. אנו מחויבים להגנה על פרטיות המשתמשים שלנו, ובפרט על פרטיותם של קטינים.</p>
+              <section>
+                <h3 className="font-bold text-foreground mb-1">איסוף מידע ושימוש בו</h3>
+                <p className="text-muted-foreground">לצורך אספקת השירות, אנו אוספים מידע מינימלי הכולל את שם הילד/ה, העדפת קבוצת גיל ותיאורי דמויות. מידע זה משמש אך ורק את מנוע הבינה המלאכותית ליצירת סיפורים מותאמים אישית.</p>
+              </section>
+              <section>
+                <h3 className="font-bold text-foreground mb-1">הגנה על מידע ילדים (גילאי 0-8)</h3>
+                <p className="text-muted-foreground mb-2"><span dir="ltr" className="inline-block">SolStorie's™</span> מיועדת ליצירת תוכן עבור ילדים בגילאי 0-8, ולכן אנו מקפידים על הגנה מיוחדת:</p>
+                <ul className="list-disc list-inside text-muted-foreground space-y-1 mr-2">
+                  <li><strong>מינימום מידע:</strong> אנו אוספים רק את שם הילד/ה, טווח הגיל ותיאור הדמות.</li>
+                  <li><strong>ללא שיווק:</strong> מידע הילדים אינו משמש לפרסום, שיווק או יצירת פרופילים מסחריים.</li>
+                  <li><strong>ללא שיתוף:</strong> מידע הילדים אינו מועבר, נמכר או משותף עם צדדים שלישיים.</li>
+                  <li><strong>מחיקה:</strong> ניתן למחוק את כל מידע הילדים בכל עת דרך הגדרות החשבון.</li>
+                </ul>
+              </section>
+              <section>
+                <h3 className="font-bold text-foreground mb-1">אחסון ועיבוד מידע</h3>
+                <ul className="list-disc list-inside text-muted-foreground space-y-1 mr-2">
+                  <li><strong>אחסון תמונות ואיורים:</strong> האפליקציה משתמשת בשירותי אחסון ענן מאובטחים לצורך שמירה והצגה של כריכות הסיפורים והאיורים.</li>
+                  <li><strong>פרטיות ומידע רגיש:</strong> האפליקציה אינה אוספת מידע רגיש ללא צורך תפעולי מובהק.</li>
+                  <li><strong>הגבלת אחריות:</strong> האיורים נוצרים באמצעות טכנולוגיית בינה מלאכותית. האחריות על השימוש בסיפורים ובאיורים היא על ההורה/המשתמש בלבד.</li>
+                </ul>
+              </section>
+              <section>
+                <h3 className="font-bold text-foreground mb-1">אבטחת מידע</h3>
+                <p className="text-muted-foreground">אנו נוקטים באמצעי אבטחה מתקדמים להגנה על המידע השמור במערכותינו. המידע אינו מועבר, נמכר או משותף עם צדדים שלישיים.</p>
+              </section>
+              <section>
+                <h3 className="font-bold text-foreground mb-1">תשלומים ופרטיות פיננסית</h3>
+                <p className="text-muted-foreground">תשלומי כרטיס אשראי מעובדים באופן מאובטח. פרטי כרטיס האשראי אינם נשמרים במערכות <span dir="ltr" className="inline-block">SolStorie's™</span>.</p>
+              </section>
+              <section>
+                <h3 className="font-bold text-foreground mb-1">זכויות המשתמש</h3>
+                <p className="text-muted-foreground">למשתמש זכות מלאה לעיין במידע, לעדכנו או לבקש את מחיקתו לצמיתות בכל עת דרך הגדרות החשבון.</p>
+              </section>
+            </div>
+          </ScrollArea>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
