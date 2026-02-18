@@ -54,9 +54,8 @@ const CategoryView = () => {
           <ArrowRight className="w-5 h-5" />
         </button>
         <div className="absolute bottom-4 right-5">
-          <span className="text-white/80 text-sm">{section.character} {section.categoryEmoji}</span>
           <h1 className="text-white text-2xl font-black drop-shadow-lg">
-            {section.categoryLabel}
+            {section.categoryEmoji} {section.categoryLabel}
           </h1>
         </div>
       </div>
