@@ -1,8 +1,9 @@
-import { useRef, useState } from "react";
+import { useRef, useState, useMemo } from "react";
 import { Textarea } from "@/components/ui/textarea";
+import { Input } from "@/components/ui/input";
 import { StoryFormData } from "@/pages/CreateStory";
 import { cn } from "@/lib/utils";
-import { Heart, ChevronLeft, ChevronRight, Sparkles, Info } from "lucide-react";
+import { Heart, ChevronLeft, ChevronRight, Sparkles, Info, Search, X } from "lucide-react";
 import { useTopicWishlist } from "@/hooks/use-topic-wishlist";
 import { CHARACTER_SECTIONS, TopicItem } from "./topic-data";
 
@@ -15,6 +16,24 @@ const TopicStep = ({ formData, updateFormData }: TopicStepProps) => {
   const { likedTopics, toggleLike } = useTopicWishlist();
   const sectionRefs = useRef<(HTMLDivElement | null)[]>([]);
   const [activeTab, setActiveTab] = useState("all");
+  const [searchQuery, setSearchQuery] = useState("");
+
+  const searchResults = useMemo(() => {
+    if (!searchQuery.trim()) return null;
+    const q = searchQuery.trim().toLowerCase();
+    const results: TopicItem[] = [];
+    for (const section of CHARACTER_SECTIONS) {
+      for (const topic of section.topics) {
+        if (
+          topic.label.toLowerCase().includes(q) ||
+          topic.description.toLowerCase().includes(q)
+        ) {
+          results.push(topic);
+        }
+      }
+    }
+    return results;
+  }, [searchQuery]);
 
   const handleCustomChange = (value: string) => {
     updateFormData({
@@ -40,6 +59,8 @@ const TopicStep = ({ formData, updateFormData }: TopicStepProps) => {
     ? CHARACTER_SECTIONS
     : CHARACTER_SECTIONS.filter((s) => s.id === activeTab);
 
+  const isSearching = searchResults !== null;
+
   return (
     <div className="space-y-4" dir="rtl">
       {/* Title with sparkles */}
@@ -64,68 +85,115 @@ const TopicStep = ({ formData, updateFormData }: TopicStepProps) => {
         או בחרו נושא
       </div>
 
-      {/* Tab filters */}
-      <div className="flex gap-2 overflow-x-auto pb-1 scrollbar-none">
-        <button
-          onClick={() => setActiveTab("all")}
-          className={cn(
-            "px-3 py-1.5 rounded-full text-xs font-medium whitespace-nowrap border transition-all flex-shrink-0",
-            activeTab === "all"
-              ? "bg-gradient-to-r from-purple-600 via-pink-500 to-orange-400 text-white border-transparent shadow-md"
-              : "border-border bg-card text-foreground hover:border-purple-300"
-          )}
-        >
-          🌟 הכל
-        </button>
-        {CHARACTER_SECTIONS.map((section) => (
+      {/* Search input */}
+      <div className="relative">
+        <Search className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground pointer-events-none" />
+        <Input
+          className="pr-9 pl-9 text-sm"
+          placeholder="חיפוש נושא... (למשל: מקלחת, שיניים, חושך)"
+          value={searchQuery}
+          onChange={(e) => setSearchQuery(e.target.value)}
+          dir="rtl"
+        />
+        {searchQuery && (
           <button
-            key={section.id}
-            onClick={() => setActiveTab(section.id)}
-            className={cn(
-              "px-3 py-1.5 rounded-full text-xs font-medium whitespace-nowrap border transition-all flex-shrink-0",
-              activeTab === section.id
-                ? "bg-gradient-to-r from-purple-600 via-pink-500 to-orange-400 text-white border-transparent shadow-md"
-                : "border-border bg-card text-foreground hover:border-purple-300"
-            )}
+            onClick={() => setSearchQuery("")}
+            className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
           >
-            {section.categoryEmoji} {section.categoryLabel}
+            <X className="w-4 h-4" />
           </button>
-        ))}
+        )}
       </div>
 
-      {/* All character sections stacked */}
-      {filteredSections.map((section, sectionIndex) => (
-        <div
-          key={section.id}
-          ref={(el) => { sectionRefs.current[sectionIndex] = el; }}
-          className="space-y-3"
-        >
-          {/* Hero Card */}
-          <HeroCard section={section} />
-
-          {/* Topic cards - horizontal scroll */}
-          <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-none">
-            {section.topics.map((topic) => (
-              <TopicCard
-                key={topic.id}
-                topic={topic}
-                isSelected={formData.topic === topic.id}
-                isLiked={likedTopics.has(topic.id)}
-                onSelect={() => handleTopicSelect(topic)}
-                onToggleLike={() => toggleLike(topic.id)}
-              />
+      {/* Search results */}
+      {isSearching ? (
+        <div className="space-y-3">
+          <p className="text-xs text-muted-foreground text-center">
+            {searchResults.length > 0
+              ? `נמצאו ${searchResults.length} נושאים`
+              : "לא נמצאו נושאים מתאימים 😕"}
+          </p>
+          {searchResults.length > 0 && (
+            <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-none flex-wrap justify-center">
+              {searchResults.map((topic) => (
+                <TopicCard
+                  key={topic.id}
+                  topic={topic}
+                  isSelected={formData.topic === topic.id}
+                  isLiked={likedTopics.has(topic.id)}
+                  onSelect={() => handleTopicSelect(topic)}
+                  onToggleLike={() => toggleLike(topic.id)}
+                />
+              ))}
+            </div>
+          )}
+        </div>
+      ) : (
+        <>
+          {/* Tab filters */}
+          <div className="flex gap-2 overflow-x-auto pb-1 scrollbar-none">
+            <button
+              onClick={() => setActiveTab("all")}
+              className={cn(
+                "px-3 py-1.5 rounded-full text-xs font-medium whitespace-nowrap border transition-all flex-shrink-0",
+                activeTab === "all"
+                  ? "bg-gradient-to-r from-purple-600 via-pink-500 to-orange-400 text-white border-transparent shadow-md"
+                  : "border-border bg-card text-foreground hover:border-purple-300"
+              )}
+            >
+              🌟 הכל
+            </button>
+            {CHARACTER_SECTIONS.map((section) => (
+              <button
+                key={section.id}
+                onClick={() => setActiveTab(section.id)}
+                className={cn(
+                  "px-3 py-1.5 rounded-full text-xs font-medium whitespace-nowrap border transition-all flex-shrink-0",
+                  activeTab === section.id
+                    ? "bg-gradient-to-r from-purple-600 via-pink-500 to-orange-400 text-white border-transparent shadow-md"
+                    : "border-border bg-card text-foreground hover:border-purple-300"
+                )}
+              >
+                {section.categoryEmoji} {section.categoryLabel}
+              </button>
             ))}
           </div>
 
-          {/* Progress bar for horizontal scroll */}
-          <div className="h-1 bg-muted rounded-full overflow-hidden mx-4">
+          {/* All character sections stacked */}
+          {filteredSections.map((section, sectionIndex) => (
             <div
-              className="h-full bg-gradient-to-r from-purple-400 to-pink-400 rounded-full"
-              style={{ width: "30%" }}
-            />
-          </div>
-        </div>
-      ))}
+              key={section.id}
+              ref={(el) => { sectionRefs.current[sectionIndex] = el; }}
+              className="space-y-3"
+            >
+              {/* Hero Card */}
+              <HeroCard section={section} />
+
+              {/* Topic cards - horizontal scroll */}
+              <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-none">
+                {section.topics.map((topic) => (
+                  <TopicCard
+                    key={topic.id}
+                    topic={topic}
+                    isSelected={formData.topic === topic.id}
+                    isLiked={likedTopics.has(topic.id)}
+                    onSelect={() => handleTopicSelect(topic)}
+                    onToggleLike={() => toggleLike(topic.id)}
+                  />
+                ))}
+              </div>
+
+              {/* Progress bar for horizontal scroll */}
+              <div className="h-1 bg-muted rounded-full overflow-hidden mx-4">
+                <div
+                  className="h-full bg-gradient-to-r from-purple-400 to-pink-400 rounded-full"
+                  style={{ width: "30%" }}
+                />
+              </div>
+            </div>
+          ))}
+        </>
+      )}
     </div>
   );
 };
