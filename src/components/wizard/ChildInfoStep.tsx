@@ -1,5 +1,5 @@
 import { useRef, useEffect, useState } from "react";
-import { User, Camera, Sparkles, RefreshCw, Trash2, Heart, ChevronDown, ChevronUp, Check, X, Loader2, Save, Shield, Globe, PlusCircle } from "lucide-react";
+import { User, Camera, Sparkles, RefreshCw, Trash2, Heart, ChevronDown, ChevronUp, Check, X, Loader2, Save, Shield, Globe, PlusCircle, BookOpen } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
@@ -564,7 +564,7 @@ const ChildInfoStep = ({ formData, updateFormData }: ChildInfoStepProps) => {
 
         {/* Story Length */}
         <div className="space-y-1">
-          <Label className="text-[10px] font-medium text-center block">אורך</Label>
+          <Label className="text-[10px] font-medium text-center block flex items-center justify-center gap-1"><BookOpen className="w-3 h-3" />אורך</Label>
           <div className="flex flex-col gap-1">
             <button
               onClick={() => updateFormData({ storyLength: "short" })}
