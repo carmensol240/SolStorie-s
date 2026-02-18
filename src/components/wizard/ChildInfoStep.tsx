@@ -351,41 +351,38 @@ const ChildInfoStep = ({ formData, updateFormData }: ChildInfoStepProps) => {
   return (
     <div className="w-full space-y-2 px-1">
       {/* Title */}
-      <div className="text-center space-y-0.5">
+      <div className="text-center space-y-1">
         <h1 className="text-lg font-black bg-gradient-to-r from-purple-600 via-pink-500 to-orange-400 bg-clip-text text-transparent">ספרו לנו על הילד/ה</h1>
-        <p className="text-xs text-muted-foreground flex items-center justify-center gap-1.5">
-          בחרו פרופיל קיים או צרו חדש
-          <button
-            type="button"
-            onClick={() => {
-              updateFormData({
-                childName: "",
-                childGender: "male",
-                ageRange: "2-4",
-                storyLength: "short",
-                childPhoto: null,
-                childAvatarUrl: null,
-                personalityTraits: "",
-                className: "",
-              });
-              setSelectedAgeButton("3-6");
-              setExistingAvatarForDialog(null);
-            }}
-            className="text-purple-500 hover:text-purple-700 transition-colors"
-            aria-label="צור פרופיל חדש"
-          >
-            <PlusCircle className="w-4 h-4" />
-          </button>
-        </p>
+        <p className="text-xs text-muted-foreground">בחרו פרופיל קיים או צרו חדש</p>
+        <Button
+          type="button"
+          variant="outline"
+          size="sm"
+          onClick={() => {
+            updateFormData({
+              childName: "",
+              childGender: "male",
+              ageRange: "2-4",
+              storyLength: "short",
+              childPhoto: null,
+              childAvatarUrl: null,
+              personalityTraits: "",
+              className: "",
+            });
+            setSelectedAgeButton("3-6");
+            setExistingAvatarForDialog(null);
+            toast.success("הטופס נוקה - הזינו פרטי ילד/ה חדש/ה");
+          }}
+          className="text-sm font-bold text-purple-600 border-purple-300 hover:bg-purple-50"
+        >
+          <PlusCircle className="w-4 h-4 ml-1" />
+          פרופיל חדש +
+        </Button>
       </div>
 
       {/* Saved Children Quick Select */}
       {savedChildren.length > 0 && (
         <div className="space-y-1.5">
-          <Label className="text-xs font-medium flex items-center gap-1.5">
-            <User className="w-3.5 h-3.5 text-purple-500" />
-            בחרו פרופיל שמור
-          </Label>
           <div className="flex gap-1.5 flex-wrap">
             {savedChildren.map((child) => (
               <button
@@ -412,15 +409,17 @@ const ChildInfoStep = ({ formData, updateFormData }: ChildInfoStepProps) => {
         <Label htmlFor="childName" className="text-xs font-medium">
           שם הילד/ה
         </Label>
-        <Input
-          id="childName"
-          type="text"
-          placeholder="שם הילד/ה"
-          value={formData.childName}
-          onChange={(e) => updateFormData({ childName: e.target.value })}
-          className="h-9 text-sm font-medium border-purple-200 focus:border-purple-400"
-          dir="rtl"
-        />
+        <div className="max-w-xs mx-auto">
+          <Input
+            id="childName"
+            type="text"
+            placeholder="שם הילד/ה"
+            value={formData.childName}
+            onChange={(e) => updateFormData({ childName: e.target.value })}
+            className="h-9 text-sm font-medium border-purple-200 focus:border-purple-400"
+            dir="rtl"
+          />
+        </div>
       </div>
 
       {/* Gender Selection */}
@@ -455,7 +454,7 @@ const ChildInfoStep = ({ formData, updateFormData }: ChildInfoStepProps) => {
       </div>
 
       {/* Age · Length · Language - Compact Row */}
-      <div className="max-w-[260px] mx-auto grid grid-cols-3 gap-1.5">
+      <div className="grid grid-cols-3 gap-2">
         {/* Age */}
         <div className="space-y-1">
           <Label className="text-[10px] font-medium text-center block">גיל</Label>
@@ -465,7 +464,7 @@ const ChildInfoStep = ({ formData, updateFormData }: ChildInfoStepProps) => {
                 key={button.id}
                 onClick={() => handleAgeButtonSelect(button.id)}
                 className={cn(
-                  "py-1 rounded-md border transition-all text-center text-xs font-bold",
+                  "py-1.5 rounded-md border transition-all text-center text-sm font-bold",
                   selectedAgeButton === button.id
                     ? "border-purple-500 bg-gradient-to-r from-purple-600 via-pink-500 to-orange-400 text-white"
                     : "border-border bg-card hover:border-purple-300"
@@ -484,7 +483,7 @@ const ChildInfoStep = ({ formData, updateFormData }: ChildInfoStepProps) => {
             <button
               onClick={() => updateFormData({ storyLength: "short" })}
               className={cn(
-                "py-1 rounded-md border transition-all text-center text-xs font-bold",
+                "py-1.5 rounded-md border transition-all text-center text-sm font-bold",
                 formData.storyLength === "short"
                   ? "border-purple-500 bg-gradient-to-r from-purple-600 via-pink-500 to-orange-400 text-white"
                   : "border-border bg-card hover:border-purple-300"
@@ -495,7 +494,7 @@ const ChildInfoStep = ({ formData, updateFormData }: ChildInfoStepProps) => {
             <button
               onClick={() => updateFormData({ storyLength: "long" })}
               className={cn(
-                "py-1 rounded-md border transition-all text-center text-xs font-bold",
+                "py-1.5 rounded-md border transition-all text-center text-sm font-bold",
                 formData.storyLength === "long"
                   ? "border-purple-500 bg-gradient-to-r from-purple-600 via-pink-500 to-orange-400 text-white"
                   : "border-border bg-card hover:border-purple-300"
@@ -513,7 +512,7 @@ const ChildInfoStep = ({ formData, updateFormData }: ChildInfoStepProps) => {
             <button
               onClick={() => updateFormData({ language: "he", nikud: true })}
               className={cn(
-                "py-1 rounded-md border transition-all text-center text-xs font-bold flex items-center justify-center gap-1",
+                "py-1.5 rounded-md border transition-all text-center text-sm font-bold flex items-center justify-center gap-1",
                 formData.language === "he"
                   ? "border-purple-500 bg-gradient-to-r from-purple-600 via-pink-500 to-orange-400 text-white"
                   : "border-border bg-card hover:border-purple-300"
@@ -524,7 +523,7 @@ const ChildInfoStep = ({ formData, updateFormData }: ChildInfoStepProps) => {
             <button
               onClick={() => updateFormData({ language: "en", nikud: false })}
               className={cn(
-                "py-1 rounded-md border transition-all text-center text-xs font-bold flex items-center justify-center gap-1",
+                "py-1.5 rounded-md border transition-all text-center text-sm font-bold flex items-center justify-center gap-1",
                 formData.language === "en"
                   ? "border-purple-500 bg-gradient-to-r from-purple-600 via-pink-500 to-orange-400 text-white"
                   : "border-border bg-card hover:border-purple-300"
