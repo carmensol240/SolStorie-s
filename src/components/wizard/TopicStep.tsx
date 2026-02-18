@@ -150,7 +150,7 @@ const TopicStep = ({ formData, updateFormData }: TopicStepProps) => {
           {/* Category sections */}
           {filteredSections.map((section) => {
             const isExpanded = expandedSections.has(section.id);
-            const visibleTopics = isExpanded ? section.topics : section.topics.slice(0, 3);
+            const visibleTopics = isExpanded ? section.topics : section.topics.slice(0, 2);
 
             return (
               <div key={section.id} className="space-y-3">
@@ -178,7 +178,7 @@ const TopicStep = ({ formData, updateFormData }: TopicStepProps) => {
                 </div>
 
                 {/* Expand/Collapse */}
-                {!isExpanded && section.topics.length > 3 && (
+                {!isExpanded && section.topics.length > 2 && (
                   <div className="flex items-center justify-between px-1">
                     <span className="text-sm font-bold text-purple-600">{section.categoryEmoji} {section.categoryLabel}</span>
                     <button onClick={() => toggleSection(section.id)} className="flex items-center gap-1 text-xs font-medium text-purple-600 hover:opacity-80 transition-opacity">
