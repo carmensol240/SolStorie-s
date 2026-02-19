@@ -584,7 +584,7 @@ serve(async (req) => {
     }
     // === END CREDIT CHECK ===
 
-    const { childName, childGender = "male", ageRange, storyLength = "short", topic, nikud, childPhoto, childAvatarUrl, personalityTraits, adventureLogic, language = "he", className } = await req.json();
+    const { childName, childGender = "male", ageRange, storyLength = "short", topic, nikud, childPhoto, childAvatarUrl, personalityTraits, adventureLogic, language = "he", className, topicDescription } = await req.json();
 
     // === INPUT VALIDATION ===
     // Validate required fields
@@ -970,6 +970,12 @@ ${adventureLogic ? `
 ` : ''}
 
 ## דיוק לנושא ומקוריות - חובה!
+${(topicDescription && typeof topicDescription === "string" && topicDescription.trim().length > 0 && language !== "en") ? `
+## 📖 תיאור הנושא המדויק (חובה לעקוב אחריו!):
+${topicDescription.substring(0, 1000)}
+
+**הנרטיב חייב לשקף בדיוק את התיאור הזה.** אל תסטה ממנו לטובת עלילה גנרית.
+` : ""}
 - **הנושא הנבחר הוא התבנית (השלד) המחייבת לסיפור. היצמד לערכי הנושא באדיקות.**
 - **כל סצנה חייבת להיות ספציפית ועשירה סביב הערך שנשלח מבסיס הנתונים.**
 - **חשוב מאוד:** השם "${childName}" הוא השם היחיד שישמש לאורך כל הסיפור. אל תשתמש בשמות אחרים כמו "סול" או כל שם שאינו השם שהוזן. "סול" הוא שם לדוגמה בלבד ואינו רלוונטי לסיפור.

@@ -7,6 +7,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/hooks/use-auth";
+import { CHARACTER_SECTIONS } from "@/components/wizard/topic-data";
 
 interface GeneratingStepProps {
   formData: StoryFormData;
@@ -162,9 +163,15 @@ const GeneratingStep = ({ formData, onComplete }: GeneratingStepProps) => {
         ? formData.customTopic 
         : getTopicLabel(formData.topic);
 
+      // Look up the full topic description from topic-data for precise narrative anchoring
+      const allTopics = CHARACTER_SECTIONS.flatMap(s => s.topics);
+      const selectedTopic = allTopics.find(t => t.id === formData.topic);
+      const topicDescription = selectedTopic?.description ?? "";
+
       console.log("[GeneratingStep] Starting story generation...", { 
         childName: formData.childName, 
         topic: topicLabel,
+        hasTopicDescription: !!topicDescription,
         attempt: retryCountRef.current + 1
       });
 
@@ -181,6 +188,7 @@ const GeneratingStep = ({ formData, onComplete }: GeneratingStepProps) => {
             ageRange: formData.ageRange,
             storyLength: formData.storyLength,
             topic: topicLabel,
+            topicDescription,
             nikud: formData.nikud,
             language: formData.language,
             childPhoto: formData.childPhoto,

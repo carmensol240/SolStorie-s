@@ -3,7 +3,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Input } from "@/components/ui/input";
 import { StoryFormData } from "@/pages/CreateStory";
 import { cn } from "@/lib/utils";
-import { ChevronLeft, ChevronUp, Sparkles, Search, X } from "lucide-react";
+import { ChevronLeft, ChevronUp, Sparkles, Search, X, ChevronDown } from "lucide-react";
 import { CHARACTER_SECTIONS, TopicItem } from "./topic-data";
 
 interface TopicStepProps {
@@ -205,33 +205,57 @@ interface SimpleTileProps {
   onSelect: () => void;
 }
 
-const SimpleTile = ({ topic, isSelected, onSelect }: SimpleTileProps) => (
-  <button
-    onClick={onSelect}
-    className={cn(
-      "rounded-xl overflow-hidden shadow-sm border-2 bg-card hover:shadow-md hover:scale-[1.02] transition-all text-right",
-      isSelected ? "border-purple-500 shadow-lg scale-[1.03]" : "border-transparent"
-    )}
-  >
-    <div className="relative h-24 w-full">
-      <img src={topic.image} alt={topic.label} className="w-full h-full object-cover" loading="lazy" />
-      <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/10 to-transparent" />
-      {/* Age badge */}
-      <div className="absolute bottom-1.5 left-1.5 bg-black/40 text-white text-[9px] font-bold px-1.5 py-0.5 rounded-md backdrop-blur-sm">
-        {topic.ageRange}
-      </div>
-      {/* Selected check */}
-      {isSelected && (
-        <div className="absolute top-1.5 left-1.5 w-5 h-5 bg-gradient-to-r from-purple-600 to-pink-500 rounded-full flex items-center justify-center">
-          <span className="text-white text-xs">✓</span>
-        </div>
+const SimpleTile = ({ topic, isSelected, onSelect }: SimpleTileProps) => {
+  const [expanded, setExpanded] = useState(false);
+
+  return (
+    <div
+      className={cn(
+        "rounded-xl overflow-hidden shadow-sm border-2 bg-card hover:shadow-md transition-all text-right",
+        isSelected ? "border-purple-500 shadow-lg scale-[1.03]" : "border-transparent"
       )}
+    >
+      {/* Clickable image area */}
+      <button onClick={onSelect} className="w-full text-right">
+        <div className="relative h-24 w-full">
+          <img src={topic.image} alt={topic.label} className="w-full h-full object-cover" loading="lazy" />
+          <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/10 to-transparent" />
+          {/* Age badge */}
+          <div className="absolute bottom-1.5 left-1.5 bg-black/40 text-white text-[9px] font-bold px-1.5 py-0.5 rounded-md backdrop-blur-sm">
+            {topic.ageRange}
+          </div>
+          {/* Selected check */}
+          {isSelected && (
+            <div className="absolute top-1.5 left-1.5 w-5 h-5 bg-gradient-to-r from-purple-600 to-pink-500 rounded-full flex items-center justify-center">
+              <span className="text-white text-xs">✓</span>
+            </div>
+          )}
+        </div>
+        <div className="px-2.5 pt-2.5 pb-1">
+          <h3 className="text-sm font-bold text-foreground leading-tight">{topic.label}</h3>
+        </div>
+      </button>
+
+      {/* Description with expand toggle */}
+      <div className="px-2.5 pb-2">
+        <p className={cn("text-[10px] text-muted-foreground", !expanded && "line-clamp-2")}>
+          {topic.description}
+        </p>
+        {topic.description && topic.description.length > 80 && (
+          <button
+            onClick={() => setExpanded(e => !e)}
+            className="flex items-center gap-0.5 mt-0.5 text-[10px] font-semibold text-purple-500 hover:text-purple-700 transition-colors"
+          >
+            {expanded ? (
+              <><ChevronUp className="w-3 h-3" />הסתר</>
+            ) : (
+              <><ChevronDown className="w-3 h-3" />קרא עוד</>
+            )}
+          </button>
+        )}
+      </div>
     </div>
-    <div className="p-2.5">
-      <h3 className="text-sm font-bold text-foreground leading-tight">{topic.label}</h3>
-      <p className="text-[10px] text-muted-foreground mt-1 line-clamp-2">{topic.description}</p>
-    </div>
-  </button>
-);
+  );
+};
 
 export default TopicStep;
