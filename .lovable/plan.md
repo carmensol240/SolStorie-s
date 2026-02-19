@@ -1,45 +1,69 @@
 
 
-# Global Language Constraints for Story Generation
+# Simplify Navigation and Hide Premium Features
 
-## Problem
-The current system prompt in `generate-story` contains internal contradictions:
-- Line 41 says "שירי ילדים... עם חרוזים וקצב" (children's songs with rhymes and rhythm)
-- Lines 83, 110 contain rhyming examples
-- Lines 131-135 discuss "logical rhymes" as if rhymes are sometimes allowed
-- No explicit rule prohibiting output in non-Hebrew languages (Arabic, English, gibberish)
+## Overview
+Streamline the app to show only two main tabs (Home + Library) in the bottom navigation, hide the Profile/Dashboard screen from general access, and remove Coming Soon / Gift Card / NLP references from the active UI.
 
 ## Changes
 
-### File: `supabase/functions/generate-story/index.ts`
+### 1. Bottom Navigation Bar -- 2 tabs only
+**File: `src/components/MobileNavigation.tsx`**
+- Remove "פרופיל" (Profile) and "הגדרות" (Settings) from the `navItems` array
+- Keep only: Home (`/adventure`) and Library (`/library`)
+- Adjust layout spacing for 2 items (wider touch targets)
 
-1. **Add a new top-level constraint: Hebrew-only output**
-   - Add to the META-INSTRUCTION block: "OUTPUT MUST BE 100% HEBREW. Any word in Arabic, English, or any other language immediately disqualifies the story."
+### 2. Move Settings access to Adventure screen header
+**File: `src/pages/Adventure.tsx`**
+- Replace the profile avatar button (top-right) with a Settings gear icon that navigates to `/settings`
+- This ensures users can still access settings without a nav tab
 
-2. **Fix contradictions in the prompt:**
-   - Line 41: Remove "שירי ילדים... עם חרוזים וקצב" and replace with prose-focused language
-   - Lines 83-84: Replace rhyming example with a prose-based emotional mirroring example
-   - Line 110: Replace rhyming example with a prose-based sensory description example
-   - Lines 131-135: Remove the entire "logical rhymes" section (it contradicts the no-rhyming rule)
-   - Line 143: Remove "מבחן המשמעות" reference to rhyming
+### 3. Hide Profile route from general access
+**File: `src/App.tsx`**
+- Keep the `/profile` route in the code (commented or behind a flag) so it can be re-enabled for NLP/Premium users later
+- Remove the `/gift` route from active navigation (keep the GiftCard page file intact)
+- Keep `/toolkit` route (already behind Coming Soon state)
 
-3. **Strengthen the Meir Shalev style reference:**
-   - Update the role description to emphasize Meir Shalev's prose style as the primary inspiration
-   - Add: "Write in natural, flowing prose inspired by Meir Shalev -- rich, warm, literary, never rhyming"
+### 4. Clean up NLP / Coming Soon / Gift references from active UI
+**Files to update:**
+- **`src/pages/Adventure.tsx`**: Remove profile button that links to the dashboard
+- **`src/pages/Profile.tsx`**: Keep the file as-is (hidden from nav, preserved for future NLP package)
+- **`src/components/home/ShareBanner.tsx`**: No changes needed (share/referral is separate from gift cards)
+- **`src/pages/Settings.tsx`**: Remove any links to gift cards or toolkit if present in the settings menu
 
-4. **Add nikud accuracy rule:**
-   - Strengthen existing nikud section: "If nikud is used, it MUST be linguistically accurate. Incorrect nikud is worse than no nikud. When in doubt, use a simpler word whose nikud you are certain of."
+### 5. Remove profile button from Adventure header
+**File: `src/pages/Adventure.tsx`**
+- Replace the profile/avatar circle button with a settings gear icon
+- Users access settings via this gear icon instead of through bottom nav
+
+## What stays in the code (hidden, for future re-enable)
+- `Profile.tsx` page component -- full "My Journey" + "Parent Notebook" screen
+- `Toolkit.tsx` page component -- NLP toolkit
+- `GiftCard.tsx` page component
+- Routes for `/profile`, `/toolkit`, `/gift` remain in `App.tsx` but `/profile` will only be reachable via direct URL (no UI link)
 
 ## Technical Details
 
-All changes are within the `SYSTEM_PROMPT` constant in `supabase/functions/generate-story/index.ts`. No database or schema changes needed. The edge function will be redeployed after editing.
+### MobileNavigation.tsx
+```typescript
+const navItems = [
+  { path: "/adventure", icon: Home, label: "בית" },
+  { path: "/library", icon: Library, label: "ספרייה" },
+];
+```
 
-### Specific edits:
-- **Line 10**: Add Hebrew-only language constraint to META-INSTRUCTION
-- **Line 30**: Update role description to emphasize Meir Shalev prose
-- **Line 41**: Replace "שירי ילדים... חרוזים וקצב" with "סיפורי ילדים בפרוזה ספרותית"
-- **Lines 83-84**: Replace rhyming example with prose example
-- **Line 110**: Replace rhyming example with prose sensory description
-- **Lines 131-135**: Delete "חרוזים לוגיים" section entirely
-- **Line 143**: Remove rhyme reference from "מבחן המשמעות"
-- **Lines 269-272**: Strengthen nikud accuracy requirements
+### Adventure.tsx header
+Replace the profile avatar button with a settings gear:
+```tsx
+<button
+  onClick={() => navigate("/settings")}
+  className="..."
+  aria-label="הגדרות"
+>
+  <Settings className="w-4 h-4 text-white" />
+</button>
+```
+
+### App.tsx
+- Keep all routes but add a comment marking `/profile`, `/toolkit`, and `/gift` as premium/hidden routes
+- No route removal needed since we want to preserve the logic
