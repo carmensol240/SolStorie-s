@@ -163,8 +163,7 @@ const TopicStep = ({ formData, updateFormData }: TopicStepProps) => {
                     <img src={section.heroImage} alt={section.categoryLabel} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" />
                     <div className="absolute inset-0" style={{ background: "linear-gradient(to right, rgba(0,0,0,0.6) 0%, rgba(0,0,0,0.2) 60%, transparent 100%)" }} />
                     <div className="absolute inset-0 flex flex-col justify-center items-start pr-5 gap-1" dir="rtl">
-                      <h3 className="text-white text-xl font-black drop-shadow-md">{section.categoryLabel}</h3>
-                      <span className="text-white text-sm font-bold drop-shadow-md">{section.character} | {section.characterEn} {section.categoryEmoji}</span>
+                      <h3 className="text-white text-xl font-black drop-shadow-md">{section.categoryEmoji} {section.categoryLabel}</h3>
                       <span className="text-white text-xs font-bold drop-shadow-md">{section.topics.length} נושאים</span>
                     </div>
                   </div>

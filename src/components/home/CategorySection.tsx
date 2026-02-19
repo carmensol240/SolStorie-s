@@ -35,11 +35,8 @@ const CategorySection = ({ section, colorClass, bgClass, borderClass }: Category
             }}
           />
           <div className="absolute inset-0 flex flex-col justify-center items-end pr-5 gap-1">
-            <span className="text-white/80 text-xs font-medium">
-              {section.character} | {section.characterEn} {section.categoryEmoji}
-            </span>
             <h3 className="text-white text-lg font-black drop-shadow-md">
-              {section.categoryLabel}
+              {section.categoryEmoji} {section.categoryLabel}
             </h3>
             <span className="text-white/70 text-[10px]">
               {section.topics.length} נושאים
