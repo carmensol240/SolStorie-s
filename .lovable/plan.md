@@ -1,106 +1,120 @@
 
+# Major Update: Expanding Story Topics and Categories
 
-# Transform Categories to Educational Themes
+## What We're Doing
+Adding 15+ new educational story topics across all five categories, enriching the Educational Toolbox with professionally-tagged entries, and keeping the Hebrew translation map in sync so every new topic appears correctly in the library, story covers, and sharing.
 
-## Overview
-Replace character-based categories (Sol, Mia, Leo, Zoe) with educational theme categories, reorganize topics under educational goals, and strengthen the story generation engine to always produce a clear educational takeaway.
+No database migrations are needed — topics live entirely in frontend data files.
 
-## Current State
-- 5 categories tied to character names: Sol (heroes), Mia (growing), Leo (imagination), Zoe (adventure), Ben (edu toolbox)
-- Character names displayed on banners: "סול | Sol", "מיה | Mia", etc.
-- Story generation already has educational value (line 35) but it's described as "subtle"
+## Files to Edit
 
-## Proposed New Categories
+### 1. `src/components/wizard/topic-data.ts`
 
-| Old | New Hebrew Name | New ID | Focus |
-|-----|----------------|--------|-------|
-| Sol - גיבורי על | **עולם הערכים** | values | Safety, kindness, inclusion, helping others |
-| Mia - גדלים ביחד | **התמודדות ורגשות** | emotions | Emotional milestones, routines, fears, family |
-| Leo - ממלכת הדמיון | **דמיון ויצירה** | creativity | Fantasy, imagination, creative adventures |
-| Zoe - יוצאים להרפתקה | **סקרנות ומדע** | curiosity | Real-world discovery, nature, travel, experiences |
-| Ben - ארגז כלים חינוכי | (merged into above) | -- | Edu topics redistributed into the 4 main categories |
+**New topics added to "עולם הערכים" (values):**
+- `honesty` — "אמירת אמת" — Honesty and truthfulness
+- `respecting-elders` — "כבוד למבוגרים" — Respecting adults and grandparents
+- `true-friendship` — "חברות אמת" — What real friendship looks like
+- `accepting-differences` — "קבלת השונה" — Accepting differences in others
+- `helping-home` — "עזרה בבית" — Contributing to the family home
 
-## Changes
+**New topics added to "התמודדות ורגשות" (emotions):**
+- `cooperation` — "שיתוף פעולה" — Working together as a team
+- `patience` — "סבלנות" — The power of patience
+- `politeness` — "אדיבות" — Being polite and considerate
+- `self-confidence` — "ביטחון עצמי" — Building inner confidence (distinct from the edu version)
 
-### 1. Topic Data Restructure
-**File: `src/components/wizard/topic-data.ts`**
+**New topics added to "סקרנות ומדע" (curiosity):**
+- `space-journey` — "מסע בחלל" — Exploring the solar system
+- `nature-secrets` — "סודות הטבע" — Wonders of the natural world
+- `how-body-works` — "איך הגוף שלנו עובד" — Human body for kids
 
-- Rename the 4 main sections with educational theme names
-- Remove `character` and `characterEn` fields (replace with empty strings or remove from display)
-- Merge the "edu" (Ben) category topics into the relevant 4 categories:
-  - "emotion-regulation-edu" and "waiting-in-line-edu" move to **התמודדות ורגשות**
-  - "self-confidence-edu" and "play-rules-edu" move to **עולם הערכים**
-  - "holidays-seasons-edu" moves to **סקרנות ומדע**
-- Update `categoryLabel`, `categoryEmoji`, and `id` for each section
-- Remove the 5th "edu" section entirely (its topics are now distributed)
+**New topics added to "דמיון ויצירה" (creativity):**
+- `cloud-kingdom` — "ממלכת העננים" — Adventures in a cloud kingdom
+- `dragon-party` — "מסיבת הדרקונים" — A party with friendly dragons
+- `strange-inventions` — "המצאות משונות" — Wacky inventors and their creations
 
-New structure:
+**Educational Toolbox (edu) — new professionally-tagged entries:**
+- `honesty-edu` — "אמירת אמת – מיומנות חברתית" — Social story for honesty
+- `cooperation-edu` — "שיתוף פעולה בקבוצה" — Carol Gray-style cooperation social story
+- `patience-edu` — "סבלנות – להמתין בשקט" — Patience as a regulation strategy
+- `politeness-edu` — "אדיבות ודרך ארץ" — Social norms and politeness
+- `respecting-elders-edu` — "כבוד למבוגרים" — Structured social story for respecting adults
+
+All edu topic IDs end in `-edu` so the story engine correctly applies the Carol Gray methodology (≥3:1 descriptive-to-directive sentence ratio, no direct "you" address).
+
+**Images:** New topics will use the best-fit existing images from the local assets and storage bucket (no new uploads required). Mapping:
+- `honesty` → `topicApologize` (honesty/truth theme)
+- `respecting-elders` → `topicGrandparentsNight`
+- `true-friendship` → `topicFriendship`
+- `accepting-differences` → `topicWeAreSpecial`
+- `helping-home` → `topicHelpingAtHome`
+- `cooperation` → `topicPlayingTogether`
+- `patience` → `topicAngerCloud` (calm/waiting)
+- `politeness` → `topicSharing`
+- `self-confidence` → `topicIndependence`
+- `space-journey` → `topicSpaceHero`
+- `nature-secrets` → `topicEnvironment`
+- `how-body-works` → `topicBloodTest`
+- `cloud-kingdom` → `topicCloudAdventure`
+- `dragon-party` → `topicMagicCastle`
+- `strange-inventions` → `topicMagicKeys`
+
+### 2. `src/lib/topic-translations.ts`
+
+Add all new topic IDs to `TOPIC_HEBREW_MAP` so they render in Hebrew across the library, story covers, and share cards:
+
+```typescript
+// New values topics
+'honesty': 'אמירת אמת',
+'respecting-elders': 'כבוד למבוגרים',
+'true-friendship': 'חברות אמת',
+'accepting-differences': 'קבלת השונה',
+'helping-home': 'עזרה בבית',
+
+// New emotions topics
+'cooperation': 'שיתוף פעולה',
+'patience': 'סבלנות',
+'politeness': 'אדיבות',
+'self-confidence': 'ביטחון עצמי',
+
+// New curiosity topics
+'space-journey': 'מסע בחלל',
+'nature-secrets': 'סודות הטבע',
+'how-body-works': 'איך הגוף שלנו עובד',
+
+// New creativity topics
+'cloud-kingdom': 'ממלכת העננים',
+'dragon-party': 'מסיבת הדרקונים',
+'strange-inventions': 'המצאות משונות',
+
+// New edu toolbox entries
+'honesty-edu': 'אמירת אמת – מיומנות חברתית',
+'cooperation-edu': 'שיתוף פעולה בקבוצה',
+'patience-edu': 'סבלנות – להמתין בשקט',
+'politeness-edu': 'אדיבות ודרך ארץ',
+'respecting-elders-edu': 'כבוד למבוגרים',
 ```
-values: עולם הערכים (superheroes, body-safety, road-safety, environment, we-are-special, just-be-me, helping-others, stranger-danger, seatbelt-safety, blood-test, play-rules-edu, self-confidence-edu)
 
-emotions: התמודדות ורגשות (all current "growing" topics + emotion-regulation-edu, waiting-in-line-edu)
+## Topic Count After Update
 
-creativity: דמיון ויצירה (all current "imagination" topics)
+| Category | Before | After |
+|---|---|---|
+| עולם הערכים | 10 | 15 |
+| התמודדות ורגשות | 24 | 28 |
+| דמיון ויצירה | 8 | 11 |
+| סקרנות ומדע | 4 | 7 |
+| ארגז כלים חינוכי | 5 | 10 |
+| **Total** | **51** | **71** |
 
-curiosity: סקרנות ומדע (all current "adventure" topics + holidays-seasons-edu)
-```
+## Educational Consistency
 
-### 2. Remove Character Name Display
-**Files: `src/components/home/CategorySection.tsx`, `src/pages/CategoryView.tsx`, `src/components/wizard/TopicStep.tsx`**
+Every new topic description is written in rich literary Hebrew, following the Meir Shalev prose style — no forced rhymes, no invented words, no non-Hebrew vocabulary. Each description ends with an implied educational takeaway integrated naturally into the narrative premise, consistent with the existing story generation mandate.
 
-- Remove the `{section.character} | {section.characterEn}` line from all banners
-- Show only the `categoryLabel` and topic count
-- Keep the hero images (they still look good as category banners)
-
-### 3. Update CharacterSection Interface
-**File: `src/components/wizard/topic-data.ts`**
-
-- Keep `character` and `characterEn` fields in the interface for backward compatibility but set them to empty strings
-- This avoids breaking any code that references these fields
-
-### 4. Update Story Category Mapper
-**File: `src/lib/story-category-mapper.ts`**
-
-- Update to handle the new category IDs (values, emotions, creativity, curiosity)
-- Existing stories with old category IDs will still map correctly since topic IDs remain unchanged
-
-### 5. Strengthen Educational Takeaway in Story Generation
-**File: `supabase/functions/generate-story/index.ts`**
-
-- Update line 35 from "ערך חינוכי עדין" to a stronger mandate:
-  "**ערך חינוכי ברור:** כל סיפור חייב להסתיים עם מסר חינוכי ברור או מסר רגשי חיובי שהילד/ה יכול/ה לקחת איתו/ה. המסר חייב להיות משולב בעלילה באופן טבעי -- לא כ'מוסר השכל' חיצוני."
-- This ensures every story has a clear educational takeaway or positive emotional message, integrated naturally into the narrative
-
-### 6. Update Color Map
-**File: `src/pages/CategoryView.tsx`**
-
-- Update COLOR_MAP keys from old IDs (heroes, growing, imagination, adventure) to new IDs (values, emotions, creativity, curiosity)
+The five new edu toolbox entries are explicitly structured for Carol Gray social stories: they describe social situations from the inside, avoid direct "you/אתה" address, and focus on the child's inner experience and coping strategies.
 
 ## What Stays Unchanged
-- All topic IDs remain the same (no database migration needed)
-- Hero images remain the same
-- Topic images, descriptions, and age ranges stay as-is
-- Translation maps (`topic-translations.ts`) unchanged
-- Hebrew quality and Meir Shalev style constraints already enforced
-
-## Technical Details
-
-### topic-data.ts category structure (new):
-```typescript
-{ id: "values", character: "", characterEn: "", categoryLabel: "עולם הערכים", categoryEmoji: "💎", heroImage: castSol, topics: [...] }
-{ id: "emotions", character: "", characterEn: "", categoryLabel: "התמודדות ורגשות", categoryEmoji: "🌱", heroImage: castMia, topics: [...] }
-{ id: "creativity", character: "", characterEn: "", categoryLabel: "דמיון ויצירה", categoryEmoji: "🎨", heroImage: castLeo, topics: [...] }
-{ id: "curiosity", character: "", characterEn: "", categoryLabel: "סקרנות ומדע", categoryEmoji: "🔬", heroImage: castZoe, topics: [...] }
-```
-
-### Files to edit:
-1. `src/components/wizard/topic-data.ts` -- restructure categories, merge edu topics
-2. `src/components/home/CategorySection.tsx` -- remove character name display
-3. `src/pages/CategoryView.tsx` -- remove character name display, update COLOR_MAP
-4. `src/components/wizard/TopicStep.tsx` -- remove character name display
-5. `src/lib/story-category-mapper.ts` -- no changes needed (maps by topic ID, not category ID)
-6. `supabase/functions/generate-story/index.ts` -- strengthen educational takeaway rule
-
-### Edge function redeployment:
-The `generate-story` function will be redeployed after updating the educational takeaway rule.
-
+- All existing topic IDs (no broken library references)
+- Story generation edge function (already enforces educational takeaway)
+- Navigation (still 3 tabs: בית, ספרייה, הגדרות)
+- Database schema (no migration needed)
+- Hero images and UI layout
