@@ -1,9 +1,9 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { Wand2, Coins, User } from "lucide-react";
+import { Wand2, Coins, Settings } from "lucide-react";
 import { useCredits } from "@/hooks/use-credits";
 import { useReferral } from "@/hooks/use-referral";
-import { useChildAvatar } from "@/hooks/use-child-avatar";
+// import { useChildAvatar } from "@/hooks/use-child-avatar"; // Hidden for now – premium/NLP feature
 import { useAuth } from "@/hooks/use-auth";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
@@ -18,7 +18,7 @@ const Adventure = () => {
   const { user } = useAuth();
   const { credits } = useCredits();
   const { shareCoins } = useReferral();
-  const { avatarUrl } = useChildAvatar();
+  // const { avatarUrl } = useChildAvatar(); // Hidden for now – premium/NLP feature
   const { toast } = useToast();
   const [displayName, setDisplayName] = useState<string | null>(null);
   const [storyCount, setStoryCount] = useState<number>(0);
@@ -107,17 +107,13 @@ const Adventure = () => {
             <span className="font-bold text-white text-xs drop-shadow-md">{totalCredits}</span>
           </button>
 
-          {/* Profile / Avatar */}
+          {/* Settings */}
           <button
-            onClick={() => navigate("/profile")}
-            className="flex items-center justify-center bg-white/15 backdrop-blur-xl border border-white/20 rounded-full w-9 h-9 hover:bg-white/25 transition-colors overflow-hidden"
-            aria-label="פרופיל"
+            onClick={() => navigate("/settings")}
+            className="flex items-center justify-center bg-white/15 backdrop-blur-xl border border-white/20 rounded-full w-9 h-9 hover:bg-white/25 transition-colors"
+            aria-label="הגדרות"
           >
-            {avatarUrl ? (
-              <img src={avatarUrl} alt="" className="w-full h-full object-cover" />
-            ) : (
-              <User className="w-4 h-4 text-white" />
-            )}
+            <Settings className="w-4 h-4 text-white" />
           </button>
         </div>
 
