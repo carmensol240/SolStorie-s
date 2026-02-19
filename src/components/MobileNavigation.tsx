@@ -1,4 +1,4 @@
-import { Library, Home } from "lucide-react";
+import { Library, Home, Settings } from "lucide-react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { cn } from "@/lib/utils";
 
@@ -9,6 +9,7 @@ const MobileNavigation = () => {
   const navItems = [
     { path: "/adventure", icon: Home, label: "בית" },
     { path: "/library", icon: Library, label: "ספרייה" },
+    { path: "/settings", icon: Settings, label: "הגדרות" },
   ];
 
   return (

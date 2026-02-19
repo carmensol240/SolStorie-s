@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { Wand2, Coins, Settings } from "lucide-react";
+import { Wand2, Coins } from "lucide-react";
 import { useCredits } from "@/hooks/use-credits";
 import { useReferral } from "@/hooks/use-referral";
 // import { useChildAvatar } from "@/hooks/use-child-avatar"; // Hidden for now – premium/NLP feature
@@ -107,14 +107,6 @@ const Adventure = () => {
             <span className="font-bold text-white text-xs drop-shadow-md">{totalCredits}</span>
           </button>
 
-          {/* Settings */}
-          <button
-            onClick={() => navigate("/settings")}
-            className="flex items-center justify-center bg-white/15 backdrop-blur-xl border border-white/20 rounded-full w-9 h-9 hover:bg-white/25 transition-colors"
-            aria-label="הגדרות"
-          >
-            <Settings className="w-4 h-4 text-white" />
-          </button>
         </div>
 
         {/* Bottom section - CTA & Welcome banner */}
