@@ -100,8 +100,6 @@ export const CHARACTER_SECTIONS: CharacterSection[] = [
       { id: "stranger-danger", label: "שומרי הסודות", description: "סיפור חינוכי על זהירות מזרים: מתי אומרים 'לא', מתי מספרים למבוגר ואיך נשארים בטוחים.", image: topicStrangerDanger, ageRange: "3-8" },
       { id: "seatbelt-safety", label: "חגורת בטיחות", description: "סיפור על חשיבות חגירת חגורת הבטיחות ברכב: למה היא מגינה עלינו ואיך הופכים את זה להרגל.", image: topicSeatbeltSafety, ageRange: "3-6" },
       { id: "blood-test", label: "סול וגיבורי הבריאות", description: "סיפור מעודד על ביקור בבדיקת דם: סול מגלה שהיא גיבורת בריאות אמיתית ומקבלה מדבקת כוכב.", image: topicBloodTest, ageRange: "3-6" },
-      { id: "play-rules-edu", label: "לשחק יחד - כללי משחק", description: "סיפור על כללי משחק הוגנים: לחכות לתור, לא לרמות, לשמוח בהצלחה של חברים ולקבל הפסד.", image: topicFriendship, ageRange: "3-6" },
-      { id: "self-confidence-edu", label: "ביטחון עצמי - אני יכול/ה!", description: "סיפור מעצים על ביטחון עצמי: להאמין בעצמי, לנסות דברים חדשים ולדעת שאני מסוגל/ת.", image: topicIndependence, ageRange: "3-8" },
     ],
   },
   {
@@ -141,8 +139,6 @@ export const CHARACTER_SECTIONS: CharacterSection[] = [
       { id: "pocket-kiss", label: "הנשיקה בכיס של אמא", description: "סיפור מרגש על נשיקה שאמא שמה בכיס: בכל רגע של געגוע, אפשר לשלוף אותה ולהרגיש קרוב.", image: topicPocketKiss, ageRange: "3-6" },
       { id: "sibling-love", label: "צוות מבצע – אהבת אחים", description: "סיפור על הקשר בין אחים: ריבים קטנים, הרפתקאות משותפות ואהבה שלא נגמרת.", image: topicSiblingLove, ageRange: "3-6" },
       { id: "my-special-family", label: "המשפחה המיוחדת שלי", description: "סיפור על סוגי משפחות שונים: כל משפחה מיוחדת בדרכה, והדבר החשוב ביותר הוא האהבה.", image: topicMySpecialFamily, ageRange: "3-8" },
-      { id: "waiting-in-line-edu", label: "המתנה בתור", description: "סיפור חברתי על סבלנות והמתנה בתור: למה חשוב לחכות, איך עושים את זה ומה מרוויחים.", image: topicSharing, ageRange: "3-6" },
-      { id: "emotion-regulation-edu", label: "ויסות רגשות וכעס", description: "כלים מעשיים לויסות רגשי: לזהות את הרגש, לנשום ולמצוא דרך בריאה לבטא כעס ותסכול.", image: topicAngerCloud, ageRange: "3-8" },
     ],
   },
   {
@@ -175,7 +171,21 @@ export const CHARACTER_SECTIONS: CharacterSection[] = [
       { id: "birthday-party", label: "מסיבת יום הולדת", description: "מסיבת יום הולדת מושלמת: עוגה, בלונים, חברים, משחקים והפתעות מדהימות.", image: topicBirthday, ageRange: "3-6" },
       { id: "grandparents-night", label: "הלילה המיוחד במלכות סבא וסבתא", description: "לילה קסום אצל סבא וסבתא: סיפורים, ממתקים, פינוקים וזכרונות שנשארים לתמיד.", image: topicGrandparentsNight, ageRange: "3-6" },
       { id: "flying-vacation", label: "טיסה לחופשה", description: "הרפתקה ראשונה במטוס: ההתרגשות, ההמראה, מבט מהחלון ופיצוח האוזניים.", image: topicFlyingVacation, ageRange: "3-8" },
+    ],
+  },
+  {
+    id: "edu",
+    character: "",
+    characterEn: "",
+    categoryLabel: "ארגז כלים חינוכי",
+    categoryEmoji: "🎓",
+    heroImage: topicEducationalToolbox,
+    topics: [
+      { id: "waiting-in-line-edu", label: "המתנה בתור", description: "סיפור חברתי על סבלנות והמתנה בתור: למה חשוב לחכות, איך עושים את זה ומה מרוויחים.", image: topicSharing, ageRange: "3-6" },
+      { id: "emotion-regulation-edu", label: "ויסות רגשות וכעס", description: "כלים מעשיים לויסות רגשי: לזהות את הרגש, לנשום ולמצוא דרך בריאה לבטא כעס ותסכול.", image: topicAngerCloud, ageRange: "3-8" },
       { id: "holidays-seasons-edu", label: "מעגל השנה - חגים ועונות", description: "סיפורים על מעגל השנה: חגים, עונות, מסורות ומנהגים שמלווים אותנו כל השנה.", image: topicRainParty, ageRange: "3-8" },
+      { id: "play-rules-edu", label: "לשחק יחד - כללי משחק", description: "סיפור על כללי משחק הוגנים: לחכות לתור, לא לרמות, לשמוח בהצלחה של חברים ולקבל הפסד.", image: topicFriendship, ageRange: "3-6" },
+      { id: "self-confidence-edu", label: "ביטחון עצמי - אני יכול/ה!", description: "סיפור מעצים על ביטחון עצמי: להאמין בעצמי, לנסות דברים חדשים ולדעת שאני מסוגל/ת.", image: topicIndependence, ageRange: "3-8" },
     ],
   },
 ];

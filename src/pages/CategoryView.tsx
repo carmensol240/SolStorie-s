@@ -9,6 +9,7 @@ const COLOR_MAP: Record<string, { colorClass: string; bgClass: string }> = {
   emotions: { colorClass: "text-emerald-600", bgClass: "bg-emerald-50" },
   creativity: { colorClass: "text-blue-600", bgClass: "bg-blue-50" },
   curiosity: { colorClass: "text-orange-600", bgClass: "bg-orange-50" },
+  edu: { colorClass: "text-lime-700", bgClass: "bg-lime-50" },
 };
 
 const CategoryView = () => {
