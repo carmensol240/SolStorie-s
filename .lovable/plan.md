@@ -1,74 +1,70 @@
 
-# Two Targeted Improvements
+# "קרא עוד" — Full Topic Description Experience
 
-## Problem 1 — Descriptions Are Truncated in the UI
-Each topic tile clips its description at 2 lines (`line-clamp-2`). Parents and educators cannot read the full topic description before selecting a story topic.
+## Current State
+The `SimpleTile` component already has a `line-clamp-2` with a "קרא עוד" toggle, but it has two problems:
+1. The toggle only appears when `description.length > 80` — many descriptions are borderline
+2. Expanding inline in a 2-column grid card breaks the layout (cards change height unevenly)
+3. The tiny `text-[10px]` description area is very hard to read
 
-**Fix:** Add a small **"קרא עוד"** expand toggle on each tile so the full description is readable inline — no modal needed, no route change.
+## Solution: Info Button → Bottom Drawer
 
-## Problem 2 — AI Does Not Receive the Topic Description
-When a topic is selected (e.g. `"honesty"`), the `generate-story` edge function receives only the topic **ID** string. The detailed Hebrew description written in `topic-data.ts` (e.g. *"סיפור על כוחה של האמת: כשמישהו אמר דבר שלא היה נכון, הוא גילה שהלב שלו כבד מאוד – עד שהאמת יצאה החוצה ואיתה גם הקלה."*) is **never sent to the AI**. This means the AI generates a generic honesty story, not the specific narrative described.
+Each topic tile will get a small **ℹ️ info button** in the top-right corner of the image. Tapping it opens a clean bottom drawer (using the existing `vaul` Drawer component already installed) showing:
+- Topic image (full-width hero)
+- Topic label + age range badge
+- Full description in readable font size
+- A "בחרו נושא זה" (Select) button at the bottom
+- A "סגירה" (Close) button
 
-**Fix (two parts):**
+This approach keeps the grid clean and gives users a proper reading experience.
 
-### Part A — Frontend: Pass description to edge function
-In `CreateStory.tsx` → `GeneratingStep.tsx`, when a structured topic is selected, also pass `topicDescription` (the full Hebrew description from `topic-data.ts`). This requires:
-- Looking up the selected topic's `description` from `CHARACTER_SECTIONS` at generation time
-- Adding `topicDescription` to the payload sent to `generate-story`
-
-### Part B — Edge function: Inject description into prompt
-In `generate-story/index.ts`, receive `topicDescription` from the request body and inject it into the Hebrew user prompt as a **mandatory narrative anchor**:
-
-```
-## 📖 תיאור הנושא המדויק (חובה לעקוב אחריו!):
-${topicDescription}
-
-**הנרטיב חייב לשקף בדיוק את התיאור הזה.** אל תסטה ממנו לטובת עלילה גנרית.
-```
-
-This change ensures every topic produces a story that faithfully follows the specific narrative premise written by the content team.
-
----
+The inline "קרא עוד" toggle in the card body will remain as a secondary option but will be simplified (remove the 80-char threshold — always show it).
 
 ## Files to Edit
 
-### 1. `src/components/wizard/TopicStep.tsx`
-- Replace `line-clamp-2` with a stateful expand/collapse per tile
-- Add a small `"קרא עוד ▾"` / `"הסתר ▴"` toggle button
-- Keep the collapsed state as default (2 lines) so the grid layout stays compact
+### `src/components/wizard/TopicStep.tsx`
 
-### 2. `src/components/wizard/GeneratingStep.tsx` (or wherever the API call is made)
-- Look up the selected `topic` ID in `CHARACTER_SECTIONS` to find its `description`
-- Pass `topicDescription` in the request body to the edge function
+**Changes to `SimpleTile`:**
 
-### 3. `src/pages/CreateStory.tsx`
-- Pass `formData.topic` lookup result as `topicDescription` via `StoryFormData` OR pass it directly in the generation call — whichever is simpler given the existing call site
+1. Add a state `showDrawer` (boolean) per tile
+2. Add a small info button `ⓘ` overlaid on the top-right of the image (distinct from the select action)
+3. Add a `Drawer` (from `@/components/ui/drawer`) that renders the full topic info when open
+4. Lower the "קרא עוד" inline threshold from `> 80` to always showing it (all descriptions get the toggle)
+5. The "בחרו נושא זה" button inside the drawer calls `onSelect` and closes the drawer
 
-### 4. `supabase/functions/generate-story/index.ts`
-- Destructure `topicDescription` from `req.json()`
-- Add validation (optional string, max 1000 chars)
-- Inject into the Hebrew prompt with a strong mandatory instruction block just before the `## דיוק לנושא` section
-
----
-
-## What Stays Unchanged
-- Topic IDs, images, labels — no data changes
-- Story generation model, nikud pipeline, illustration system
-- Navigation, credits, auth flow
-- Educational Toolbox and Carol Gray method sections
-- English story generation path (description is Hebrew-specific)
-
----
-
-## Technical Detail: Topic lookup in GeneratingStep
-
-```typescript
-import { CHARACTER_SECTIONS } from "@/components/wizard/topic-data";
-
-// In the generation call:
-const allTopics = CHARACTER_SECTIONS.flatMap(s => s.topics);
-const selectedTopic = allTopics.find(t => t.id === formData.topic);
-const topicDescription = selectedTopic?.description ?? "";
+**New SimpleTile structure:**
+```text
+┌─────────────────────────────┐
+│  [Topic Image]              │
+│               [ⓘ button]   │  ← taps open Drawer
+│  [✓ selected]  [age badge] │
+├─────────────────────────────┤
+│  Topic Title                │
+│  Short description...       │
+│  קרא עוד ▾                 │  ← inline expand (always shown)
+└─────────────────────────────┘
 ```
 
-This is a pure in-memory lookup — no network call, no database query.
+**Drawer content:**
+```text
+┌─────────────────────────────┐
+│  [Full-width topic image]   │
+│  Topic Title      [age]     │
+│                             │
+│  Full description text in   │
+│  readable 14px font...      │
+│                             │
+│  [בחרו נושא זה  ←]         │
+│  [סגירה]                    │
+└─────────────────────────────┘
+```
+
+## Technical Notes
+
+- `vaul` Drawer is already installed (`vaul version ^0.9.9`) and the `Drawer` component is at `@/components/ui/drawer`
+- The drawer opens from the bottom, which is natural mobile UX for RTL Hebrew apps
+- Only one file needs changing — `src/components/wizard/TopicStep.tsx`
+- No backend changes, no new dependencies
+- The info button uses `Info` icon from `lucide-react` (already imported in the project)
+- `e.stopPropagation()` on the info button prevents triggering the select action simultaneously
+- The drawer's "בחרו נושא זה" button calls `onSelect()` then closes the drawer — users can select directly from the drawer view
