@@ -88,6 +88,36 @@ const TOPIC_HEBREW_MAP: Record<string, string> = {
   'toothbrush': 'מברשת שיניים',
   'educational-toolbox': 'ארגז כלים חינוכי',
   'sharing-fun': 'שיתוף וכיף',
+
+  // New values topics
+  'honesty': 'אמירת אמת',
+  'respecting-elders': 'כבוד למבוגרים',
+  'true-friendship': 'חברות אמת',
+  'accepting-differences': 'קבלת השונה',
+  'helping-home': 'עזרה בבית',
+
+  // New emotions topics
+  'cooperation': 'שיתוף פעולה',
+  'patience': 'סבלנות',
+  'politeness': 'אדיבות',
+  'self-confidence': 'ביטחון עצמי',
+
+  // New curiosity topics
+  'space-journey': 'מסע בחלל',
+  'nature-secrets': 'סודות הטבע',
+  'how-body-works': 'איך הגוף שלנו עובד',
+
+  // New creativity topics
+  'cloud-kingdom': 'ממלכת העננים',
+  'dragon-party': 'מסיבת הדרקונים',
+  'strange-inventions': 'המצאות משונות',
+
+  // New edu toolbox entries
+  'honesty-edu': 'אמירת אמת – מיומנות חברתית',
+  'cooperation-edu': 'שיתוף פעולה בקבוצה',
+  'patience-edu': 'סבלנות – להמתין בשקט',
+  'politeness-edu': 'אדיבות ודרך ארץ',
+  'respecting-elders-edu': 'כבוד למבוגרים',
 };
 
 /**
