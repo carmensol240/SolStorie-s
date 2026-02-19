@@ -1,69 +1,106 @@
 
 
-# Simplify Navigation and Hide Premium Features
+# Transform Categories to Educational Themes
 
 ## Overview
-Streamline the app to show only two main tabs (Home + Library) in the bottom navigation, hide the Profile/Dashboard screen from general access, and remove Coming Soon / Gift Card / NLP references from the active UI.
+Replace character-based categories (Sol, Mia, Leo, Zoe) with educational theme categories, reorganize topics under educational goals, and strengthen the story generation engine to always produce a clear educational takeaway.
+
+## Current State
+- 5 categories tied to character names: Sol (heroes), Mia (growing), Leo (imagination), Zoe (adventure), Ben (edu toolbox)
+- Character names displayed on banners: "סול | Sol", "מיה | Mia", etc.
+- Story generation already has educational value (line 35) but it's described as "subtle"
+
+## Proposed New Categories
+
+| Old | New Hebrew Name | New ID | Focus |
+|-----|----------------|--------|-------|
+| Sol - גיבורי על | **עולם הערכים** | values | Safety, kindness, inclusion, helping others |
+| Mia - גדלים ביחד | **התמודדות ורגשות** | emotions | Emotional milestones, routines, fears, family |
+| Leo - ממלכת הדמיון | **דמיון ויצירה** | creativity | Fantasy, imagination, creative adventures |
+| Zoe - יוצאים להרפתקה | **סקרנות ומדע** | curiosity | Real-world discovery, nature, travel, experiences |
+| Ben - ארגז כלים חינוכי | (merged into above) | -- | Edu topics redistributed into the 4 main categories |
 
 ## Changes
 
-### 1. Bottom Navigation Bar -- 2 tabs only
-**File: `src/components/MobileNavigation.tsx`**
-- Remove "פרופיל" (Profile) and "הגדרות" (Settings) from the `navItems` array
-- Keep only: Home (`/adventure`) and Library (`/library`)
-- Adjust layout spacing for 2 items (wider touch targets)
+### 1. Topic Data Restructure
+**File: `src/components/wizard/topic-data.ts`**
 
-### 2. Move Settings access to Adventure screen header
-**File: `src/pages/Adventure.tsx`**
-- Replace the profile avatar button (top-right) with a Settings gear icon that navigates to `/settings`
-- This ensures users can still access settings without a nav tab
+- Rename the 4 main sections with educational theme names
+- Remove `character` and `characterEn` fields (replace with empty strings or remove from display)
+- Merge the "edu" (Ben) category topics into the relevant 4 categories:
+  - "emotion-regulation-edu" and "waiting-in-line-edu" move to **התמודדות ורגשות**
+  - "self-confidence-edu" and "play-rules-edu" move to **עולם הערכים**
+  - "holidays-seasons-edu" moves to **סקרנות ומדע**
+- Update `categoryLabel`, `categoryEmoji`, and `id` for each section
+- Remove the 5th "edu" section entirely (its topics are now distributed)
 
-### 3. Hide Profile route from general access
-**File: `src/App.tsx`**
-- Keep the `/profile` route in the code (commented or behind a flag) so it can be re-enabled for NLP/Premium users later
-- Remove the `/gift` route from active navigation (keep the GiftCard page file intact)
-- Keep `/toolkit` route (already behind Coming Soon state)
+New structure:
+```
+values: עולם הערכים (superheroes, body-safety, road-safety, environment, we-are-special, just-be-me, helping-others, stranger-danger, seatbelt-safety, blood-test, play-rules-edu, self-confidence-edu)
 
-### 4. Clean up NLP / Coming Soon / Gift references from active UI
-**Files to update:**
-- **`src/pages/Adventure.tsx`**: Remove profile button that links to the dashboard
-- **`src/pages/Profile.tsx`**: Keep the file as-is (hidden from nav, preserved for future NLP package)
-- **`src/components/home/ShareBanner.tsx`**: No changes needed (share/referral is separate from gift cards)
-- **`src/pages/Settings.tsx`**: Remove any links to gift cards or toolkit if present in the settings menu
+emotions: התמודדות ורגשות (all current "growing" topics + emotion-regulation-edu, waiting-in-line-edu)
 
-### 5. Remove profile button from Adventure header
-**File: `src/pages/Adventure.tsx`**
-- Replace the profile/avatar circle button with a settings gear icon
-- Users access settings via this gear icon instead of through bottom nav
+creativity: דמיון ויצירה (all current "imagination" topics)
 
-## What stays in the code (hidden, for future re-enable)
-- `Profile.tsx` page component -- full "My Journey" + "Parent Notebook" screen
-- `Toolkit.tsx` page component -- NLP toolkit
-- `GiftCard.tsx` page component
-- Routes for `/profile`, `/toolkit`, `/gift` remain in `App.tsx` but `/profile` will only be reachable via direct URL (no UI link)
+curiosity: סקרנות ומדע (all current "adventure" topics + holidays-seasons-edu)
+```
+
+### 2. Remove Character Name Display
+**Files: `src/components/home/CategorySection.tsx`, `src/pages/CategoryView.tsx`, `src/components/wizard/TopicStep.tsx`**
+
+- Remove the `{section.character} | {section.characterEn}` line from all banners
+- Show only the `categoryLabel` and topic count
+- Keep the hero images (they still look good as category banners)
+
+### 3. Update CharacterSection Interface
+**File: `src/components/wizard/topic-data.ts`**
+
+- Keep `character` and `characterEn` fields in the interface for backward compatibility but set them to empty strings
+- This avoids breaking any code that references these fields
+
+### 4. Update Story Category Mapper
+**File: `src/lib/story-category-mapper.ts`**
+
+- Update to handle the new category IDs (values, emotions, creativity, curiosity)
+- Existing stories with old category IDs will still map correctly since topic IDs remain unchanged
+
+### 5. Strengthen Educational Takeaway in Story Generation
+**File: `supabase/functions/generate-story/index.ts`**
+
+- Update line 35 from "ערך חינוכי עדין" to a stronger mandate:
+  "**ערך חינוכי ברור:** כל סיפור חייב להסתיים עם מסר חינוכי ברור או מסר רגשי חיובי שהילד/ה יכול/ה לקחת איתו/ה. המסר חייב להיות משולב בעלילה באופן טבעי -- לא כ'מוסר השכל' חיצוני."
+- This ensures every story has a clear educational takeaway or positive emotional message, integrated naturally into the narrative
+
+### 6. Update Color Map
+**File: `src/pages/CategoryView.tsx`**
+
+- Update COLOR_MAP keys from old IDs (heroes, growing, imagination, adventure) to new IDs (values, emotions, creativity, curiosity)
+
+## What Stays Unchanged
+- All topic IDs remain the same (no database migration needed)
+- Hero images remain the same
+- Topic images, descriptions, and age ranges stay as-is
+- Translation maps (`topic-translations.ts`) unchanged
+- Hebrew quality and Meir Shalev style constraints already enforced
 
 ## Technical Details
 
-### MobileNavigation.tsx
+### topic-data.ts category structure (new):
 ```typescript
-const navItems = [
-  { path: "/adventure", icon: Home, label: "בית" },
-  { path: "/library", icon: Library, label: "ספרייה" },
-];
+{ id: "values", character: "", characterEn: "", categoryLabel: "עולם הערכים", categoryEmoji: "💎", heroImage: castSol, topics: [...] }
+{ id: "emotions", character: "", characterEn: "", categoryLabel: "התמודדות ורגשות", categoryEmoji: "🌱", heroImage: castMia, topics: [...] }
+{ id: "creativity", character: "", characterEn: "", categoryLabel: "דמיון ויצירה", categoryEmoji: "🎨", heroImage: castLeo, topics: [...] }
+{ id: "curiosity", character: "", characterEn: "", categoryLabel: "סקרנות ומדע", categoryEmoji: "🔬", heroImage: castZoe, topics: [...] }
 ```
 
-### Adventure.tsx header
-Replace the profile avatar button with a settings gear:
-```tsx
-<button
-  onClick={() => navigate("/settings")}
-  className="..."
-  aria-label="הגדרות"
->
-  <Settings className="w-4 h-4 text-white" />
-</button>
-```
+### Files to edit:
+1. `src/components/wizard/topic-data.ts` -- restructure categories, merge edu topics
+2. `src/components/home/CategorySection.tsx` -- remove character name display
+3. `src/pages/CategoryView.tsx` -- remove character name display, update COLOR_MAP
+4. `src/components/wizard/TopicStep.tsx` -- remove character name display
+5. `src/lib/story-category-mapper.ts` -- no changes needed (maps by topic ID, not category ID)
+6. `supabase/functions/generate-story/index.ts` -- strengthen educational takeaway rule
 
-### App.tsx
-- Keep all routes but add a comment marking `/profile`, `/toolkit`, and `/gift` as premium/hidden routes
-- No route removal needed since we want to preserve the logic
+### Edge function redeployment:
+The `generate-story` function will be redeployed after updating the educational takeaway rule.
+
