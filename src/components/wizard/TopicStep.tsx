@@ -1,10 +1,12 @@
-import { useRef, useState, useMemo } from "react";
+import { useState, useMemo } from "react";
 import { Textarea } from "@/components/ui/textarea";
 import { Input } from "@/components/ui/input";
 import { StoryFormData } from "@/pages/CreateStory";
 import { cn } from "@/lib/utils";
-import { ChevronLeft, ChevronUp, Sparkles, Search, X, ChevronDown } from "lucide-react";
+import { ChevronLeft, ChevronUp, Sparkles, Search, X, ChevronDown, Info } from "lucide-react";
 import { CHARACTER_SECTIONS, TopicItem } from "./topic-data";
+import { Drawer, DrawerContent, DrawerClose } from "@/components/ui/drawer";
+import { Button } from "@/components/ui/button";
 
 interface TopicStepProps {
   formData: StoryFormData;
@@ -206,56 +208,106 @@ interface SimpleTileProps {
 }
 
 const SimpleTile = ({ topic, isSelected, onSelect }: SimpleTileProps) => {
-  const [expanded, setExpanded] = useState(false);
+  const [showDrawer, setShowDrawer] = useState(false);
+
+  const handleSelect = () => {
+    onSelect();
+    setShowDrawer(false);
+  };
 
   return (
-    <div
-      className={cn(
-        "rounded-xl overflow-hidden shadow-sm border-2 bg-card hover:shadow-md transition-all text-right",
-        isSelected ? "border-purple-500 shadow-lg scale-[1.03]" : "border-transparent"
-      )}
-    >
-      {/* Clickable image area */}
-      <button onClick={onSelect} className="w-full text-right">
-        <div className="relative h-24 w-full">
-          <img src={topic.image} alt={topic.label} className="w-full h-full object-cover" loading="lazy" />
-          <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/10 to-transparent" />
-          {/* Age badge */}
-          <div className="absolute bottom-1.5 left-1.5 bg-black/40 text-white text-[9px] font-bold px-1.5 py-0.5 rounded-md backdrop-blur-sm">
-            {topic.ageRange}
-          </div>
-          {/* Selected check */}
-          {isSelected && (
-            <div className="absolute top-1.5 left-1.5 w-5 h-5 bg-gradient-to-r from-purple-600 to-pink-500 rounded-full flex items-center justify-center">
-              <span className="text-white text-xs">✓</span>
+    <>
+      <div
+        className={cn(
+          "rounded-xl overflow-hidden shadow-sm border-2 bg-card hover:shadow-md transition-all text-right",
+          isSelected ? "border-purple-500 shadow-lg scale-[1.03]" : "border-transparent"
+        )}
+      >
+        {/* Clickable image area */}
+        <button onClick={onSelect} className="w-full text-right relative">
+          <div className="relative h-24 w-full">
+            <img src={topic.image} alt={topic.label} className="w-full h-full object-cover" loading="lazy" />
+            <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/10 to-transparent" />
+            {/* Age badge */}
+            <div className="absolute bottom-1.5 left-1.5 bg-black/40 text-white text-[9px] font-bold px-1.5 py-0.5 rounded-md backdrop-blur-sm">
+              {topic.ageRange}
             </div>
+            {/* Selected check */}
+            {isSelected && (
+              <div className="absolute top-1.5 left-1.5 w-5 h-5 bg-gradient-to-r from-purple-600 to-pink-500 rounded-full flex items-center justify-center">
+                <span className="text-white text-xs">✓</span>
+              </div>
+            )}
+            {/* Info button */}
+            <button
+              onClick={(e) => { e.stopPropagation(); setShowDrawer(true); }}
+              className="absolute top-1.5 right-1.5 w-6 h-6 bg-black/50 backdrop-blur-sm rounded-full flex items-center justify-center text-white hover:bg-black/70 transition-colors"
+              aria-label="פרטים על הנושא"
+            >
+              <Info className="w-3.5 h-3.5" />
+            </button>
+          </div>
+          <div className="px-2.5 pt-2.5 pb-1">
+            <h3 className="text-sm font-bold text-foreground leading-tight">{topic.label}</h3>
+          </div>
+        </button>
+
+        {/* Short description */}
+        <div className="px-2.5 pb-2">
+          <p className="text-[10px] text-muted-foreground line-clamp-2">{topic.description}</p>
+          {topic.description && (
+            <button
+              onClick={() => setShowDrawer(true)}
+              className="flex items-center gap-0.5 mt-0.5 text-[10px] font-semibold text-purple-500 hover:text-purple-700 transition-colors"
+            >
+              <ChevronDown className="w-3 h-3" />
+              קרא עוד
+            </button>
           )}
         </div>
-        <div className="px-2.5 pt-2.5 pb-1">
-          <h3 className="text-sm font-bold text-foreground leading-tight">{topic.label}</h3>
-        </div>
-      </button>
-
-      {/* Description with expand toggle */}
-      <div className="px-2.5 pb-2">
-        <p className={cn("text-[10px] text-muted-foreground", !expanded && "line-clamp-2")}>
-          {topic.description}
-        </p>
-        {topic.description && topic.description.length > 80 && (
-          <button
-            onClick={() => setExpanded(e => !e)}
-            className="flex items-center gap-0.5 mt-0.5 text-[10px] font-semibold text-purple-500 hover:text-purple-700 transition-colors"
-          >
-            {expanded ? (
-              <><ChevronUp className="w-3 h-3" />הסתר</>
-            ) : (
-              <><ChevronDown className="w-3 h-3" />קרא עוד</>
-            )}
-          </button>
-        )}
       </div>
-    </div>
+
+      {/* Bottom Drawer */}
+      <Drawer open={showDrawer} onOpenChange={setShowDrawer}>
+        <DrawerContent className="max-h-[85vh]" dir="rtl">
+          <div className="overflow-y-auto">
+            {/* Hero image */}
+            <div className="relative w-full h-52 flex-shrink-0">
+              <img src={topic.image} alt={topic.label} className="w-full h-full object-cover" />
+              <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/10 to-transparent" />
+              <div className="absolute bottom-3 right-4 left-4 flex items-end justify-between">
+                <span className="bg-black/50 text-white text-xs font-bold px-2 py-1 rounded-lg backdrop-blur-sm">
+                  {topic.ageRange}
+                </span>
+                <h2 className="text-white text-xl font-black drop-shadow-md text-right">{topic.label}</h2>
+              </div>
+            </div>
+
+            {/* Content */}
+            <div className="p-5 space-y-5">
+              <p className="text-sm text-foreground leading-relaxed text-right">{topic.description}</p>
+
+              {/* Actions */}
+              <div className="flex flex-col gap-2 pt-1">
+                <Button
+                  onClick={handleSelect}
+                  className="w-full bg-gradient-to-r from-purple-600 via-pink-500 to-orange-400 text-white font-bold text-base h-12 rounded-xl border-0"
+                >
+                  {isSelected ? "✓ נושא זה נבחר" : "בחרו נושא זה ←"}
+                </Button>
+                <DrawerClose asChild>
+                  <Button variant="ghost" className="w-full text-muted-foreground">
+                    סגירה
+                  </Button>
+                </DrawerClose>
+              </div>
+            </div>
+          </div>
+        </DrawerContent>
+      </Drawer>
+    </>
   );
 };
 
 export default TopicStep;
+
