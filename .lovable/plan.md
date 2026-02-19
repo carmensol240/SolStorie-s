@@ -1,60 +1,45 @@
 
 
-# עדכון מסך "על מה נכתוב היום?" - TopicStep
+# Global Language Constraints for Story Generation
 
-## מה ישתנה
+## Problem
+The current system prompt in `generate-story` contains internal contradictions:
+- Line 41 says "שירי ילדים... עם חרוזים וקצב" (children's songs with rhymes and rhythm)
+- Lines 83, 110 contain rhyming examples
+- Lines 131-135 discuss "logical rhymes" as if rhymes are sometimes allowed
+- No explicit rule prohibiting output in non-Hebrew languages (Arabic, English, gibberish)
 
-### 1. תיבת טקסט מאוחדת (כבר קיים - ללא שינוי)
-התיבה עם הגרדיאנט והפלייסהולדר כבר במקום מהעדכון הקודם.
+## Changes
 
-### 2. הסרת אייקוני לב (Heart) ומידע (Info) מכרטיסי הנושאים
-- הסרת כפתור ה-Heart (מועדפים) מכל כרטיס נושא
-- הסרת כפתור ה-Info (i) מכל כרטיס נושא
-- הסרת כל מנגנון ה-Flip (הפיכת כרטיס) שכבר לא נדרש
+### File: `supabase/functions/generate-story/index.ts`
 
-### 3. הצגת תיאור ישירות על הכרטיס
-במקום אייקון המידע, טקסט התיאור יופיע ישירות על הכרטיס מעל שם הנושא, בגודל קטן עם line-clamp-2.
+1. **Add a new top-level constraint: Hebrew-only output**
+   - Add to the META-INSTRUCTION block: "OUTPUT MUST BE 100% HEBREW. Any word in Arabic, English, or any other language immediately disqualifies the story."
 
-### 4. החלפת תצוגת הנושאים בגלריית קטגוריות
-- ה-HeroCard הנוכחי ישתנה לבאנר לחיץ (כמו CategorySection)
-- לחיצה על הבאנר או "הצג הכל" תרחיב גריד של כל הנושאים בקטגוריה
-- כפתור "סגור" יכווץ חזרה
-- בתצוגה מכווצת: רק 3 נושאים ראשונים מוצגים בגריד
+2. **Fix contradictions in the prompt:**
+   - Line 41: Remove "שירי ילדים... עם חרוזים וקצב" and replace with prose-focused language
+   - Lines 83-84: Replace rhyming example with a prose-based emotional mirroring example
+   - Line 110: Replace rhyming example with a prose-based sensory description example
+   - Lines 131-135: Remove the entire "logical rhymes" section (it contradicts the no-rhyming rule)
+   - Line 143: Remove "מבחן המשמעות" reference to rhyming
 
-### 5. מה לא ישתנה
-- לוגיקת הגיל (0-2/3-6/7-8) - ללא שינוי
-- כפתור "קרא בקול" - נשאר מוסר
-- חיפוש נושאים - נשאר כמו שהוא
-- טאבים לסינון - נשארים
-- מסך Adventure ושאר האפליקציה - ללא שינוי
+3. **Strengthen the Meir Shalev style reference:**
+   - Update the role description to emphasize Meir Shalev's prose style as the primary inspiration
+   - Add: "Write in natural, flowing prose inspired by Meir Shalev -- rich, warm, literary, never rhyming"
 
-## פרטים טכניים
+4. **Add nikud accuracy rule:**
+   - Strengthen existing nikud section: "If nikud is used, it MUST be linguistically accurate. Incorrect nikud is worse than no nikud. When in doubt, use a simpler word whose nikud you are certain of."
 
-### קובץ: `src/components/wizard/TopicStep.tsx`
+## Technical Details
 
-**שינויים עיקריים:**
+All changes are within the `SYSTEM_PROMPT` constant in `supabase/functions/generate-story/index.ts`. No database or schema changes needed. The edge function will be redeployed after editing.
 
-1. **הסרת imports מיותרים**: `Heart`, `Info`, `useTopicWishlist`, וה-import הכפול של `Heart as HeartIcon`
-
-2. **החלפת HeroCard** (שורות 207-240) בקומפוננטת `CategoryBanner` חדשה:
-   - באנר תמונה לחיץ עם שם קטגוריה, דמות ומספר נושאים
-   - state של `expanded` (true/false)
-   - לחיצה מחליפה בין מצב מכווץ (3 נושאים) למורחב (כולם)
-
-3. **החלפת TopicCard** (שורות 242-391) בקומפוננטת `SimpleTile` פשוטה:
-   - ללא Flip, ללא Heart, ללא Info
-   - תמונה + שכבת גרדיאנט כהה
-   - טקסט תיאור (line-clamp-2) מוצג ישירות על הכרטיס
-   - שם הנושא בתחתית
-   - תג גיל
-   - סימן V כשנבחר
-   - לחיצה = בחירת הנושא
-
-4. **עדכון לולאת התצוגה** (שורות 168-200):
-   - במקום HeroCard + גלילה אופקית, הצגת CategoryBanner + גריד אנכי
-   - בתצוגה מכווצת: `slice(0, 3)` - רק 3 נושאים ראשונים
-   - בתצוגה מורחבת: כל הנושאים + כפתור "סגור"
-   - הסרת Progress bar (כבר לא רלוונטי לגריד)
-
-5. **תצוגת חיפוש** (שורות 114-136): עדכון לשימוש ב-SimpleTile במקום TopicCard (ללא props של isLiked/onToggleLike)
-
+### Specific edits:
+- **Line 10**: Add Hebrew-only language constraint to META-INSTRUCTION
+- **Line 30**: Update role description to emphasize Meir Shalev prose
+- **Line 41**: Replace "שירי ילדים... חרוזים וקצב" with "סיפורי ילדים בפרוזה ספרותית"
+- **Lines 83-84**: Replace rhyming example with prose example
+- **Line 110**: Replace rhyming example with prose sensory description
+- **Lines 131-135**: Delete "חרוזים לוגיים" section entirely
+- **Line 143**: Remove rhyme reference from "מבחן המשמעות"
+- **Lines 269-272**: Strengthen nikud accuracy requirements
