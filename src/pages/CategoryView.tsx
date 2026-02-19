@@ -5,11 +5,10 @@ import { CHARACTER_SECTIONS } from "@/components/wizard/topic-data";
 import MobileNavigation from "@/components/MobileNavigation";
 
 const COLOR_MAP: Record<string, { colorClass: string; bgClass: string }> = {
-  heroes: { colorClass: "text-purple-600", bgClass: "bg-purple-50" },
-  growing: { colorClass: "text-emerald-600", bgClass: "bg-emerald-50" },
-  imagination: { colorClass: "text-blue-600", bgClass: "bg-blue-50" },
-  adventure: { colorClass: "text-orange-600", bgClass: "bg-orange-50" },
-  edu: { colorClass: "text-lime-700", bgClass: "bg-lime-50" },
+  values: { colorClass: "text-purple-600", bgClass: "bg-purple-50" },
+  emotions: { colorClass: "text-emerald-600", bgClass: "bg-emerald-50" },
+  creativity: { colorClass: "text-blue-600", bgClass: "bg-blue-50" },
+  curiosity: { colorClass: "text-orange-600", bgClass: "bg-orange-50" },
 };
 
 const CategoryView = () => {
@@ -54,9 +53,8 @@ const CategoryView = () => {
           <ArrowRight className="w-5 h-5" />
         </button>
         <div className="absolute bottom-4 right-5">
-          <span className="text-white/80 text-sm">{section.character} | {section.characterEn} {section.categoryEmoji}</span>
           <h1 className="text-white text-2xl font-black drop-shadow-lg">
-            {section.categoryLabel}
+            {section.categoryEmoji} {section.categoryLabel}
           </h1>
           <span className="text-white/70 text-xs">{section.topics.length} נושאים</span>
         </div>
