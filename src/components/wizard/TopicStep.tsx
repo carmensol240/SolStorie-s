@@ -52,11 +52,11 @@ const TopicStep = ({ formData, updateFormData }: TopicStepProps) => {
   };
 
   const handleTopicSelect = (topic: TopicItem) => {
-    updateFormData({
-      topic: topic.id,
-      customTopic: topic.label,
-      adventureLogic: undefined,
-    });
+    if (formData.topic === topic.id) {
+      updateFormData({ topic: "", customTopic: "", adventureLogic: undefined });
+    } else {
+      updateFormData({ topic: topic.id, customTopic: topic.label, adventureLogic: undefined });
+    }
   };
 
   const filteredSections = activeTab === "all"
@@ -161,9 +161,9 @@ const TopicStep = ({ formData, updateFormData }: TopicStepProps) => {
                 >
                   <div className="relative h-32 w-full">
                     <img src={section.heroImage} alt={section.categoryLabel} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" />
-                    <div className="absolute inset-0" style={{ background: "linear-gradient(to right, rgba(0,0,0,0.6) 0%, rgba(0,0,0,0.2) 60%, transparent 100%)" }} />
-                    <div className="absolute inset-0 flex flex-col justify-center items-start pr-5 gap-1" dir="rtl">
-                      <h3 className="text-white text-xl font-black drop-shadow-md">{section.categoryEmoji} {section.categoryLabel}</h3>
+                    <div className="absolute inset-0" style={{ background: "linear-gradient(to top, rgba(0,0,0,0.7) 0%, rgba(0,0,0,0.2) 50%, transparent 100%)" }} />
+                    <div className="absolute inset-0 flex flex-col justify-end items-center pb-3 gap-0.5">
+                      <h3 className="text-white text-xl font-black drop-shadow-md text-center">{section.categoryEmoji} {section.categoryLabel}</h3>
                       <span className="text-white text-xs font-bold drop-shadow-md">{section.topics.length} נושאים</span>
                     </div>
                   </div>
