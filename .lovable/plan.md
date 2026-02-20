@@ -1,70 +1,85 @@
 
-# "קרא עוד" — Full Topic Description Experience
+# Two UI Changes to TopicStep
 
-## Current State
-The `SimpleTile` component already has a `line-clamp-2` with a "קרא עוד" toggle, but it has two problems:
-1. The toggle only appears when `description.length > 80` — many descriptions are borderline
-2. Expanding inline in a 2-column grid card breaks the layout (cards change height unevenly)
-3. The tiny `text-[10px]` description area is very hard to read
+## Change 1 — Remove the ℹ️ Icon Button from Topic Tiles
 
-## Solution: Info Button → Bottom Drawer
+**Problem:** The `Info` button (`<Info className="w-3.5 h-3.5" />`) is currently overlaid on each topic tile image (top-right corner). The user wants to remove it, keeping only the "קרא עוד" link as the way to open the description drawer.
 
-Each topic tile will get a small **ℹ️ info button** in the top-right corner of the image. Tapping it opens a clean bottom drawer (using the existing `vaul` Drawer component already installed) showing:
-- Topic image (full-width hero)
-- Topic label + age range badge
-- Full description in readable font size
-- A "בחרו נושא זה" (Select) button at the bottom
-- A "סגירה" (Close) button
+**Fix:** Delete lines 242–248 (the `<button>` with the `Info` icon inside `SimpleTile`). The `<button onClick={() => setShowDrawer(true)}` / "קרא עוד" link at the bottom of the card (lines 259–266) already opens the same drawer, so all functionality is preserved. The `Info` import can also be removed from the import line since it's no longer used.
 
-This approach keeps the grid clean and gives users a proper reading experience.
+---
 
-The inline "קרא עוד" toggle in the card body will remain as a secondary option but will be simplified (remove the 80-char threshold — always show it).
+## Change 2 — Category Banner Becomes the "Expand" Toggle (Already Working)
+
+**Current behaviour:** The category banner (`<button onClick={() => toggleSection(section.id)}>` at line 160–172) is already a clickable button that expands/collapses the topics grid. This is exactly what the user is asking for.
+
+**But there's a UX problem:** The banner currently shows only 2 topics by default and the text says "הצג הכל". The user wants to click the banner image (e.g. "גיבורי על", "ערכים", "ארגז כלים") and see ALL related topics open beneath it.
+
+**The existing toggle mechanism already does this** — clicking the banner calls `toggleSection(section.id)` which toggles the `expandedSections` Set, showing all topics. The "הצג הכל" button below is a secondary affordance.
+
+**Enhancement:** Make the banner feel more clearly clickable:
+- Add a small visual cue on the banner: a subtle "לחצו לפתיחה" / expand icon hint overlaid at the top-right of each banner when collapsed, and a "▲ סגור" when expanded.
+- When the section is already expanded, clicking the banner again collapses it (already works via toggle).
+- Remove the separate "הצג הכל (N נושאים)" text button below the grid — the banner itself is now the sole toggle.
+
+---
 
 ## Files to Edit
 
 ### `src/components/wizard/TopicStep.tsx`
 
-**Changes to `SimpleTile`:**
+**Line-level changes:**
 
-1. Add a state `showDrawer` (boolean) per tile
-2. Add a small info button `ⓘ` overlaid on the top-right of the image (distinct from the select action)
-3. Add a `Drawer` (from `@/components/ui/drawer`) that renders the full topic info when open
-4. Lower the "קרא עוד" inline threshold from `> 80` to always showing it (all descriptions get the toggle)
-5. The "בחרו נושא זה" button inside the drawer calls `onSelect` and closes the drawer
+1. **Line 6** — Remove `Info` from the import (no longer used after removing the button):
+   ```ts
+   import { ChevronLeft, ChevronUp, Sparkles, Search, X, ChevronDown } from "lucide-react";
+   ```
 
-**New SimpleTile structure:**
-```text
-┌─────────────────────────────┐
-│  [Topic Image]              │
-│               [ⓘ button]   │  ← taps open Drawer
-│  [✓ selected]  [age badge] │
-├─────────────────────────────┤
-│  Topic Title                │
-│  Short description...       │
-│  קרא עוד ▾                 │  ← inline expand (always shown)
-└─────────────────────────────┘
-```
+2. **Lines 242–248** — Delete the `Info` button inside `SimpleTile`:
+   ```tsx
+   {/* Info button — REMOVE THIS BLOCK */}
+   <button
+     onClick={(e) => { e.stopPropagation(); setShowDrawer(true); }}
+     ...
+   >
+     <Info className="w-3.5 h-3.5" />
+   </button>
+   ```
 
-**Drawer content:**
-```text
-┌─────────────────────────────┐
-│  [Full-width topic image]   │
-│  Topic Title      [age]     │
-│                             │
-│  Full description text in   │
-│  readable 14px font...      │
-│                             │
-│  [בחרו נושא זה  ←]         │
-│  [סגירה]                    │
-└─────────────────────────────┘
-```
+3. **Lines 160–172 (Banner button)** — Enhance with an expand/collapse indicator overlaid on the banner image:
+   ```tsx
+   <button onClick={() => toggleSection(section.id)} ...>
+     <div className="relative h-32 w-full">
+       <img ... />
+       <div className="absolute inset-0" style={{ gradient }} />
+       {/* Expand/collapse hint — NEW */}
+       <div className="absolute top-2 left-2 bg-black/40 backdrop-blur-sm rounded-full px-2 py-0.5 text-white text-[10px] font-bold flex items-center gap-1">
+         {isExpanded ? <ChevronUp className="w-3 h-3" /> : <ChevronDown className="w-3 h-3" />}
+         {isExpanded ? "סגור" : "פתח"}
+       </div>
+       {/* Label stays at bottom-center */}
+       <div className="absolute inset-0 flex flex-col justify-end items-center pb-3 gap-0.5">
+         <h3>...</h3>
+         <span>...</span>
+       </div>
+     </div>
+   </button>
+   ```
 
-## Technical Notes
+4. **Lines 182–187 (the "הצג הכל" button below the grid)** — Remove it entirely since the banner is now the sole toggle. Keep only the "הצג פחות" collapse button (lines 188–193) or remove both and rely purely on the banner click.
 
-- `vaul` Drawer is already installed (`vaul version ^0.9.9`) and the `Drawer` component is at `@/components/ui/drawer`
-- The drawer opens from the bottom, which is natural mobile UX for RTL Hebrew apps
-- Only one file needs changing — `src/components/wizard/TopicStep.tsx`
-- No backend changes, no new dependencies
-- The info button uses `Info` icon from `lucide-react` (already imported in the project)
-- `e.stopPropagation()` on the info button prevents triggering the select action simultaneously
-- The drawer's "בחרו נושא זה" button calls `onSelect()` then closes the drawer — users can select directly from the drawer view
+   Actually, since the banner click is the primary UX, we'll remove BOTH the "הצג הכל" and "הצג פחות" text buttons, and let the banner be the only toggle. This makes the interaction cleaner.
+
+---
+
+## Summary of What Changes
+
+| What | Before | After |
+|------|--------|-------|
+| ℹ️ icon on tiles | Present (top-right of image) | Removed |
+| "קרא עוד" link | Present | Stays |
+| Category banner | Clickable toggle (already) | Same, plus expand/collapse hint chip |
+| "הצג הכל" text button | Below grid | Removed (banner does it) |
+| "הצג פחות" text button | Below grid | Removed (banner does it) |
+
+No backend changes. No new dependencies. One file only.
