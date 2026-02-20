@@ -1,113 +1,154 @@
 
-# Character Relationship Fix: Ben Is Sol's Little Brother
+# WhatsApp Sharing & OG Metadata Fixes
 
-## What Changes
+## Current State Analysis
 
-The character description for Ben across all 4 AI generation functions must be updated to explicitly establish him as Sol's **younger brother** (אחיה הקטן), not just a friend in the cast. When both Sol and Ben appear in a story, the Hebrew prose must use sibling vocabulary (אחים, אחיה הקטן, אחותו הגדולה).
+### What is already working
+- Ben/Sol sibling relationship is correctly implemented in `generate-story/index.ts` (lines 994, 998-1000)
+- Character consistency (reference images) is implemented in all 3 image generation functions
+- The `og-story-meta` Edge Function exists and correctly serves OG tags to crawlers/bots
+- The `_redirects` file correctly routes `/story/*` through the Edge Function
 
----
+### The actual bugs
 
-## Files to Update
+**Bug 1 — WhatsApp in-app browser doesn't trigger `navigator.share`**
+`handleShare` in `StoryViewer.tsx` (line 473) calls `navigator.share()`. Inside WhatsApp's in-app browser on iOS and Android, `navigator.share` is either unavailable or limited. The fallback only copies to clipboard — it does NOT open WhatsApp. The user sees nothing when clicking Share inside a WhatsApp conversation.
 
-### 1. `supabase/functions/generate-story/index.ts` — Line ~994
+**Bug 2 — `og:title` and `og:description` are static generic strings**
+In `og-story-meta/index.ts` (lines 69-70):
+```typescript
+const title = "סיפור חדש ומעצים מבית SolStorie's™";  // generic, no child name
+const description = "הצטרפו לסול, בן והחברים...";        // generic
+```
+The WhatsApp preview should show the child's name and story topic — e.g. **"הסיפור של שירה – חברות"** — to make it personal and meaningful. Currently it just says the same generic text for every story.
 
-**Current Ben description:**
-```
-5. **בן (Ben) - הילד האמן** - תפקיד: אמנות, יצירתיות ודמיון. לובש סרבל ג'ינס מותז בצבע, שיער חום מבולגן. לעיתים קרובות מחזיק מכחול גדול. יצירתי וחולמני.
-```
+**Bug 3 — `cover_url` may be a storage path, not a full public URL**
+The `cover_url` column in `stories` may contain a relative path like `story-illustrations/abc.png` instead of a full `https://` URL. If it's a relative path, the OG image will be broken in WhatsApp.
 
-**Change to:**
+**Bug 4 — `FlipbookViewer.tsx` uses `story.id` instead of `story.slug`**
+Line 155 in `FlipbookViewer.tsx`:
+```typescript
+const publicUrl = `https://soulstory.co.il/story/${story.id}`;
 ```
-5. **בן (Ben) - אחיה הקטן של סול** - תפקיד: פעוט, אחות גדולה, משפחה. לובש חולצה ירוקה בהירה או תכולה, שיער חום כהה מתולתל מאוד ונפחי. פעוט חמוד שתמיד הולך בעקבות סול. **חשוב: כאשר בן וסול מופיעים ביחד בסיפור, יש לתאר אותם כאחים — השתמש בביטויים: "אחיה הקטן", "אחותו הגדולה", "ביניהם כימיה של אחים".**
-```
+This uses the UUID directly. The slug-based URL is preferred for cleaner sharing.
 
-Also add a sibling-narrative rule directly beneath the cast list:
-
-```
-**⚠️ כלל אחים מחייב:** כאשר בן מופיע בסיפור שבו גם סול נוכחת, **אסור** לתארם כחברים. השתמש תמיד בשפה של אחווה: "בֶּן, אָחִיהָ הַקָּטָן שֶׁל סוֹל", "סוֹל הִבִּיטָה בְּאָחִיהָ הַקָּטָן", "שְׁנֵי הָאַחִים". הם משפחה, לא חברים.
-```
-
----
-
-### 2. `supabase/functions/generate-cover/index.ts` — Lines 108, 113, 117
-
-**Line 108 — Character reference label:**
-Change:
-```
-- Image 2 (Ben): Toddler with very curly dark hair, warm tan skin — always the SMALLEST character
-```
-To:
-```
-- Image 2 (Ben): Sol's LITTLE BROTHER — toddler with very curly dark hair, warm tan skin matching Sol (they are siblings) — always the SMALLEST character
-```
-
-**Line 113 — Group description:**
-Change:
-```
-CHARACTERS (all 5 must appear together in the scene, posing as a group of friends):
-```
-To:
-```
-CHARACTERS (all 5 must appear together in the scene — Sol and Ben are SIBLINGS, the others are their friends):
-```
-
-**Line 117 — Ben individual description:**
-Change:
-```
-4. Ben - match EXACTLY from reference image 2. Very curly dark brown hair, warm tan skin like Sol (siblings). Stands center/front, NOTICEABLY SMALLER than all others. Light green or sky blue shirt.
-```
-To:
-```
-4. Ben (Sol's LITTLE BROTHER) - match EXACTLY from reference image 2. Very curly dark brown hair, warm tan skin like Sol — they are siblings and share similar features. Stands beside Sol or center/front, NOTICEABLY SMALLER than all others. Light green or sky blue shirt. Toddler-sized.
-```
+**Bug 5 — Duplicate sibling rule in `generate-story/index.ts`**
+The sibling rule at line 998 is duplicated at line 1000. Minor cleanup needed.
 
 ---
 
-### 3. `supabase/functions/generate-illustrations/index.ts` — Line 224
+## Files to Change
 
-**Current:**
+### 1. `src/pages/StoryViewer.tsx` — `handleShare` function (lines 464–491)
+
+**Current logic:**
 ```
-- Image 2 (Ben): toddler, very curly dark hair, SMALLER than Sol
+if (navigator.share) → share()
+else → copy to clipboard
 ```
 
-**Change to:**
+**New logic:**
 ```
-- Image 2 (Ben — Sol's LITTLE BROTHER): toddler, very curly dark hair, warm tan skin matching Sol (siblings). When both Ben and Sol appear together, depict them with a sibling bond — Sol looking after him, Ben looking up to her. Always SMALLER than Sol.
+if (navigator.share && !isInsideWhatsApp()) → native share sheet
+else if (isMobile) → open wa.me deep-link (opens WhatsApp directly with pre-filled message)
+else → copy to clipboard with toast
+```
+
+WhatsApp in-app browser detection:
+```typescript
+const ua = navigator.userAgent.toLowerCase();
+const isWhatsAppBrowser = ua.includes('whatsapp');
+const isMobileDevice = /android|iphone|ipad/.test(ua);
+```
+
+The WhatsApp deep-link fallback:
+```typescript
+const waText = encodeURIComponent(`${text}\n${publicUrl}`);
+window.open(`https://wa.me/?text=${waText}`, '_blank');
+```
+
+This ensures that when a user receives a story link in WhatsApp and taps "Share" inside the story viewer, it opens WhatsApp again with the story link pre-filled — compatible with all mobile in-app browsers.
+
+---
+
+### 2. `supabase/functions/og-story-meta/index.ts` — Dynamic OG metadata
+
+**Change 1 — Dynamic title using child name and topic:**
+```typescript
+// Before:
+const title = "סיפור חדש ומעצים מבית SolStorie's™";
+
+// After:
+const title = `✨ הסיפור של ${story.child_name} – ${story.topic} | SolStorie's™`;
+```
+
+**Change 2 — Dynamic description:**
+```typescript
+// Before:
+const description = "הצטרפו לסול, בן והחברים להרפתקה של צמיחה ואומץ בעולם הקסום שלנו.";
+
+// After:
+const description = `סיפור קסום שנוצר במיוחד עבור ${story.child_name}. לחצו לקריאת הסיפור המלא 📚`;
+```
+
+**Change 3 — Fix `cover_url` to always be a full public URL:**
+The `cover_url` can be a relative path (e.g. `story-illustrations/uuid/cover.png`) or a full URL. We need to normalize it:
+```typescript
+function resolveImageUrl(rawUrl: string | null, defaultUrl: string, supabaseStorageBase: string): string {
+  if (!rawUrl) return defaultUrl;
+  if (rawUrl.startsWith('http')) return rawUrl;
+  // Treat as storage path in story-illustrations bucket
+  return `${supabaseStorageBase}/storage/v1/object/public/story-illustrations/${rawUrl}`;
+}
+
+const storageBase = supabaseUrl; // e.g. https://qvdwmkxviaqcgmjotsxe.supabase.co
+const imageUrl = resolveImageUrl(story.cover_url, defaultOgImage, storageBase);
+```
+
+**Change 4 — Add `og:image:width` and `og:image:height` hints** so WhatsApp doesn't skip the image:
+```html
+<meta property="og:image:width" content="1200" />
+<meta property="og:image:height" content="630" />
+<meta property="og:image:type" content="image/jpeg" />
+```
+
+**Change 5 — Set `Cache-Control` to `no-cache` for the first load** so WhatsApp fetches fresh OG tags on every new story share instead of serving a stale cached version:
+```typescript
+"Cache-Control": "no-cache, no-store, must-revalidate"
 ```
 
 ---
 
-### 4. `supabase/functions/retry-illustration/index.ts` — Line 128
+### 3. `src/pages/FlipbookViewer.tsx` — Use `slug` for share URL (line 155)
 
-**Current:**
-```
-- Image 2 (Ben): toddler, very curly dark hair, SMALLER than Sol
-```
+The story data already contains `slug`. Add slug to the fetched fields and use it:
+```typescript
+// Before:
+const publicUrl = `https://soulstory.co.il/story/${story.id}`;
 
-**Change to:**
-```
-- Image 2 (Ben — Sol's LITTLE BROTHER): toddler, very curly dark hair, warm tan skin matching Sol (siblings). When both appear together, depict sibling bond. Always SMALLER than Sol.
+// After:
+const publicUrl = `https://soulstory.co.il/story/${story.slug || story.id}`;
 ```
 
 ---
 
-## Summary of Narrative Rules Added
+### 4. `supabase/functions/generate-story/index.ts` — Remove duplicate sibling rule (line 1000)
 
-| Location | Rule Added |
+Line 998 and line 1000 contain identical sibling rule text. Remove the duplicate at line 1000.
+
+---
+
+## Summary of Changes
+
+| File | Change |
 |---|---|
-| `generate-story` cast list | Ben explicitly labeled "Sol's little brother" with mandatory sibling language instruction |
-| `generate-story` cast rules | New "⚠️ כלל אחים מחייב" block — forces Hebrew prose to use אחיה הקטן / אחותו הגדולה when both appear |
-| `generate-cover` | Ben labeled "Sol's LITTLE BROTHER" in references and composition; group changed from "friends" to "siblings + friends" |
-| `generate-illustrations` | Ben reference updated with sibling relationship and visual bond instruction |
-| `retry-illustration` | Same as generate-illustrations |
-
----
+| `src/pages/StoryViewer.tsx` | Detect WhatsApp browser, use `wa.me` deep-link fallback for in-app browser |
+| `supabase/functions/og-story-meta/index.ts` | Dynamic title/description per story, fix cover_url normalization, add OG image dimensions, set no-cache |
+| `src/pages/FlipbookViewer.tsx` | Use `story.slug` instead of `story.id` in share URL |
+| `supabase/functions/generate-story/index.ts` | Remove duplicate sibling rule |
 
 ## What Stays the Same
-
-- All 5 character reference image URLs — unchanged
-- Sol Casual / Sol Hero selection logic — unchanged
-- All other character descriptions (Mia, Leo, Zoe) — unchanged
-- Story generation flow, credits, nikud pipeline — all unchanged
-- No database changes needed
-- All 4 functions redeployed automatically after editing
+- `_redirects` — the proxy routing is already correct
+- Character reference image injection in all 3 image generation functions — already done
+- Ben/Sol sibling language rules — already implemented, just removing the duplicate
+- All RLS policies, database schema, auth flows — unchanged
