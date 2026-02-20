@@ -1,104 +1,131 @@
 
-# Global Character Reference Update — Visual Consistency Across All Image Generation
+# PDF Export Fixes — A4 Layout, Text Wrapping, Clickable Link & Centered Footer
 
-## What This Does
+## Current Issues
 
-Injects mandatory character reference image URLs into every AI image generation call so the model receives the actual visual appearance of each character, not just text descriptions. This eliminates AI "invention" of characters that don't match the canon design.
+1. **Text Cutting** — The portrait spread puts both the illustration AND two text blocks inside a fixed-height `div` that matches the A4 page pixel-for-pixel. When a story page has long Hebrew text, the text overflows and gets clipped during `html2canvas` capture.
 
-## Three Files to Update
+2. **URL Not Clickable** — `buildFooterHtml()` renders the URL as a plain `<span>` styled blue. `addClickableLink()` adds a jsPDF invisible link overlay BUT it is hardcoded to `pageWidth/2 - 30` with a fixed 60mm width — it does not actually make the rendered text clickable in all PDF viewers.
 
-### 1. `supabase/functions/generate-cover/index.ts`
+3. **Footer Not Centered on Every Page** — The footer is `position:absolute; bottom:0` inside the page container. On the landscape layout, the footer is injected per-page correctly, but in portrait it sometimes gets buried under the inner bordered `div` which has `flex:1` and takes up all the space.
 
-**Current state:** The cover prompt uses only text descriptions of Sol, Ben, Zoe, Leo, Mia. The AI invents its own interpretation each time.
+4. **No Automatic Page Break for Long Text** — Long story text is forced into a fixed `flex:0 0 40%` height slot. No overflow or pagination logic exists.
 
-**Change:** Add the 6 reference image URLs as `image_url` content items in the message alongside the text prompt. The AI model (`gemini-3-pro-image-preview`) supports multi-image input — we can pass multiple reference images + a text instruction in a single message.
-
-**New message structure:**
-```
-messages: [{
-  role: "user",
-  content: [
-    { type: "image_url", image_url: { url: SOL_CASUAL_URL } },
-    { type: "image_url", image_url: { url: SOL_HERO_URL } },
-    { type: "image_url", image_url: { url: BEN_URL } },
-    { type: "image_url", image_url: { url: ZOE_URL } },
-    { type: "image_url", image_url: { url: LEO_URL } },
-    { type: "image_url", image_url: { url: MIA_URL } },
-    { type: "text", text: coverPrompt }
-  ]
-}]
-```
-
-The cover prompt text will also be updated to explicitly instruct the model:
-- "Use the provided reference images as mandatory visual anchors"
-- "Match facial features, hair, and skin tone EXACTLY from the references"
-- "Zero invented characters — only the 5 listed above"
+5. **Margins** — The A4 page currently has padding of 20–24px pixels on the HTML element, which does not precisely translate to 20mm PDF margins. Images and text can touch the edges.
 
 ---
 
-### 2. `supabase/functions/generate-illustrations/index.ts`
+## Solution: Rewrite `exportPortrait` with a proper per-element rendering approach
 
-**Current state:** The `generateIllustration` function sends only a text prompt (or text + child photo). There are no canonical character references injected — the "cast" characters (Sol, Ben, Zoe, Leo, Mia) are described in text only inside `illustration_prompt`.
+### Key Changes in `src/hooks/use-pdf-export.ts`
 
-**Change:** Define a `CHARACTER_REFERENCES` constant at the top of the file with all 6 URLs. When building the message for `generateIllustration`, append the character reference images before the text prompt.
+#### 1. Proper 20mm A4 Margins
+Set the container width to `(210 - 40) mm = 170mm` worth of pixels (i.e., `170 * 3.78 = 642px`) so everything inside respects the margin from the start. The PDF `addImage` call will be offset by 20mm (x=20, y=20) and sized to `170 × (297-40) = 170×257mm`.
 
-New logic:
+#### 2. Text Wrapping via jsPDF native text rendering (no html2canvas for text)
+Switch to a **hybrid approach**:
+- **Images**: still rendered via `html2canvas` → `addImage` (because Hebrew fonts render correctly in the browser)
+- **Text blocks**: rendered using `jsPDF.text()` with `jsPDF.splitTextToFitWidth()` so text never overflows — it wraps automatically and overflows to a new PDF page when needed
+
+This is the cleanest fix and avoids the fixed-height container problem entirely.
+
+#### 3. Clickable Footer Link on Every Page
+Use `pdf.textWithLink()` (jsPDF native) to render the URL as a real clickable hyperlink text — no invisible overlay needed:
 ```typescript
-const CHARACTER_REFERENCES = [
-  "https://xqoxoxxlyfimlbekfjxo.supabase.co/storage/v1/object/public/character-assets/sol%20casual.png",
-  "https://xqoxoxxlyfimlbekfjxo.supabase.co/storage/v1/object/public/character-assets/sol%20hero.png",
-  "https://xqoxoxxlyfimlbekfjxo.supabase.co/storage/v1/object/public/character-assets/ben.jpeg",
-  "https://xqoxoxxlyfimlbekfjxo.supabase.co/storage/v1/object/public/character-assets/zoe.jpeg",
-  "https://xqoxoxxlyfimlbekfjxo.supabase.co/storage/v1/object/public/character-assets/leo.jpeg",
-  "https://xqoxoxxlyfimlbekfjxo.supabase.co/storage/v1/object/public/character-assets/mia.jpeg",
-];
+pdf.setTextColor(37, 99, 235); // blue
+pdf.textWithLink('soulstory.co.il', x, y, { url: 'https://soulstory.co.il' });
 ```
 
-When `childPhoto` exists → message content = `[...characterRefs, childPhotoRef, textInstruction]`
-
-When no `childPhoto` → message content = `[...characterRefs, textInstruction]`
-
-Also add a mandatory instruction block to `enhancedPrompt`:
-```
-=== MANDATORY CHARACTER REFERENCES ===
-Reference images of each character are provided. You MUST match their appearance EXACTLY:
-- Sol (casual): first reference image — use for educational/daily-life themes
-- Sol (hero): second reference image — use ONLY for fantasy/adventure themes  
-- Ben: third reference image — toddler, smaller than Sol
-- Zoe: fourth reference image — dark skin, afro, blue headband
-- Leo: fifth reference image — round glasses, straight hair
-- Mia: sixth reference image — brown bob, green dress
-ZERO INVENTION: Do not add characters not shown in these references.
-If multiple characters appear in the story text, ALL of them must appear in the same scene.
+#### 4. Centered Footer on Every Page
+After all content is placed, a `drawFooter(pdf)` helper draws the footer at the bottom of the **current** page using jsPDF coordinates (not html2canvas), guaranteeing it is always centered and never cut off:
+```typescript
+const drawFooter = (pdf: jsPDF) => {
+  const pageWidth = pdf.internal.pageSize.getWidth();
+  const pageHeight = pdf.internal.pageSize.getHeight();
+  const y = pageHeight - 12; // 12mm from bottom
+  // SolStorie's™ | עולמה הקסום של סול
+  // soulstory.co.il (clickable)
+};
 ```
 
 ---
 
-### 3. `supabase/functions/retry-illustration/index.ts`
+## Architecture of the New `exportPortrait` Function
 
-**Current state:** This function uses a simple `stylePrefix` text with no character references at all.
+```text
+exportPortrait(story)
+  │
+  ├─ Page 1: Cover (html element → html2canvas → addImage at 20,20 sized 170×257mm)
+  │          + drawFooter()
+  │
+  ├─ For each story page:
+  │   ├─ addPage()
+  │   ├─ If illustration: load image → addImage (right half, 20mm margin)
+  │   ├─ splitTextToFitWidth(page.text, 130mm) → array of lines
+  │   ├─ For each line: pdf.text(line, x, y) — advance y
+  │   ├─ If y exceeds page bottom (297-30mm): addPage(), reset y, drawFooter() on previous page
+  │   └─ drawFooter() on current page
+  │
+  └─ save()
+```
 
-**Change:** Add the same `CHARACTER_REFERENCES` constant and inject them into the message alongside the existing prompt. Same pattern as `generate-illustrations`.
+### Image placement (portrait, with illustration):
+- Illustration: top portion, full width (170mm wide × ~120mm tall), centered
+- Text: below illustration, starting at y=155mm, wrapping within 170mm width
+
+### Image placement (portrait, no illustration):
+- Text: full page, starting at y=40mm (top margin), wrapping within 170mm width
 
 ---
 
-## Character Reference URLs (Canonical)
+## Files to Edit
 
-| Character | URL | Usage Rule |
-|---|---|---|
-| Sol (Casual) | `.../sol%20casual.png` | Default — educational/daily life stories |
-| Sol (Hero) | `.../sol%20hero.png` | Fantasy/adventure themes only |
-| Ben | `.../ben.jpeg` | Always smaller than Sol |
-| Zoe | `.../zoe.jpeg` | Dark skin, afro, blue headband |
-| Leo | `.../leo.jpeg` | Round glasses, straight hair |
-| Mia | `.../mia.jpeg` | Brown bob, emerald green |
+**Only one file:** `src/hooks/use-pdf-export.ts`
+
+### Specific changes:
+
+1. **Remove `buildFooterHtml()`** — replaced by native jsPDF footer drawing
+2. **Remove `addClickableLink()`** — replaced by `pdf.textWithLink()` inside `drawFooter()`
+3. **Remove `createPdfPage()`** — replaced by direct jsPDF calls per element
+4. **Rewrite `exportPortrait()`** — full rewrite using jsPDF native text with `splitTextToFitWidth`, 20mm margins, per-page text wrapping with automatic new-page logic
+5. **Keep `exportLandscapeBook()`** — add footer fix: replace the HTML footer injection with `drawFooter()` called after each `createPdfPage()` call
+
+### New `drawFooter()` helper:
+```typescript
+const drawFooter = (pdf: jsPDF) => {
+  const W = pdf.internal.pageSize.getWidth();
+  const H = pdf.internal.pageSize.getHeight();
+  
+  // Separator line
+  pdf.setDrawColor(212, 165, 116);
+  pdf.line(20, H - 18, W - 20, H - 18);
+  
+  // Brand name (purple, bold)
+  pdf.setFont('helvetica', 'bold');
+  pdf.setFontSize(9);
+  pdf.setTextColor(147, 51, 234);
+  pdf.text("SolStorie's™", W / 2 - 20, H - 13, { align: 'center' });
+  
+  // Hebrew tagline (gray)
+  pdf.setFont('helvetica', 'normal');
+  pdf.setTextColor(153, 153, 153);
+  pdf.text(' | עולמה הקסום של סול', W / 2 + 10, H - 13);
+  
+  // Clickable URL (blue)
+  pdf.setFontSize(8);
+  pdf.setTextColor(37, 99, 235);
+  pdf.textWithLink('soulstory.co.il', W / 2, H - 8, { 
+    url: 'https://soulstory.co.il',
+    align: 'center'
+  });
+};
+```
 
 ---
 
-## Technical Notes
-
-- The Gemini 3 Pro Image Preview model supports multi-image input in a single message — passing reference images alongside text is the correct way to enforce visual consistency
-- The reference images are from a **different** Supabase project (`xqoxoxxlyfimlbekfjxo`) — they are public URLs and will be accessible directly by the AI gateway
-- No database changes needed
-- No new secrets needed
-- All three functions will be redeployed automatically after editing
+## What Stays the Same
+- `buildSpreads()` — unchanged
+- `loadImageAsDataUrl()` — unchanged  
+- `exportLandscapeBook()` — only the footer rendering is updated (HTML footer removed, `drawFooter()` added after each `createPdfPage()` call)
+- `exportToPdf()` entry point — unchanged
+- All types/interfaces — unchanged
