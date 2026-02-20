@@ -71,36 +71,38 @@ export const usePdfExport = () => {
     }
   };
 
-  const buildFooterHtml = (): string => {
-    return `
-      <div style="position:absolute;bottom:0;left:0;right:0;padding-bottom:25px;text-align:center;direction:rtl;font-family:Heebo,Assistant,sans-serif;">
-        <div>
-          <span dir="ltr" style="color:#9333ea;font-weight:bold;font-size:12px;font-family:Heebo,Assistant,sans-serif;display:inline-block;">SolStorie's™</span>
-          <span style="color:#999;font-size:12px;font-family:Heebo,Assistant,sans-serif;"> | עולמה הקסום של סול</span>
-        </div>
-        <div style="margin-top:4px;">
-          <span dir="ltr" style="color:#2563eb;font-size:10px;font-family:Heebo,Assistant,sans-serif;display:inline-block;">https://soulstory.co.il</span>
-        </div>
-      </div>`;
+  // ─── Native jsPDF footer (no html2canvas) ───────────────────
+  const drawFooter = (pdf: jsPDF) => {
+    const W = pdf.internal.pageSize.getWidth();
+    const H = pdf.internal.pageSize.getHeight();
+
+    // Separator line
+    pdf.setDrawColor(212, 165, 116);
+    pdf.setLineWidth(0.3);
+    pdf.line(20, H - 18, W - 20, H - 18);
+
+    // Brand name (purple, bold)
+    pdf.setFont('helvetica', 'bold');
+    pdf.setFontSize(9);
+    pdf.setTextColor(147, 51, 234);
+    pdf.text("SolStorie's\u2122", W / 2, H - 13, { align: 'center' });
+
+    // Clickable URL (blue)
+    pdf.setFont('helvetica', 'normal');
+    pdf.setFontSize(8);
+    pdf.setTextColor(37, 99, 235);
+    pdf.textWithLink('soulstory.co.il', W / 2, H - 8, {
+      url: 'https://soulstory.co.il',
+      align: 'center',
+    });
   };
 
-  const addClickableLink = (pdf: jsPDF) => {
-    const pageWidth = pdf.internal.pageSize.getWidth();
-    const pageHeight = pdf.internal.pageSize.getHeight();
-    pdf.link(pageWidth / 2 - 30, pageHeight - 30, 60, 10, { url: 'https://soulstory.co.il' });
-  };
-
-  const createPdfPage = async (
+  // ─── html2canvas page capture (used for cover + landscape) ──
+  const captureHtmlToPage = async (
     content: HTMLDivElement,
     pdf: jsPDF,
     isFirstPage: boolean
   ) => {
-    // Inject footer into HTML so html2canvas renders Hebrew with browser fonts
-    const footerDiv = document.createElement('div');
-    footerDiv.innerHTML = buildFooterHtml();
-    content.style.position = 'relative';
-    content.appendChild(footerDiv);
-
     const canvas = await html2canvas(content, {
       scale: 2,
       useCORS: true,
@@ -112,9 +114,7 @@ export const usePdfExport = () => {
     const pageHeight = pdf.internal.pageSize.getHeight();
     if (!isFirstPage) pdf.addPage();
     pdf.addImage(imgData, 'PNG', 0, 0, pageWidth, pageHeight);
-    addClickableLink(pdf);
-
-    content.removeChild(footerDiv);
+    drawFooter(pdf);
   };
 
   const renderCoverPage = (childName: string, topic: string): HTMLDivElement => {
@@ -138,77 +138,99 @@ export const usePdfExport = () => {
   };
 
   // ─── Portrait ───────────────────────────────────────────────
+  // Hybrid approach: html2canvas for images, native jsPDF text for story text.
+  // This ensures Hebrew text never overflows a fixed-height container.
   const exportPortrait = async (story: Story) => {
     const illustrationUrls = story.pages
       .map(p => p.illustration_url)
       .filter((url): url is string => !!url);
     const signedUrlMap = await fetchSignedUrls(illustrationUrls, story.id);
 
+    const MARGIN = 20; // mm
     const pdf = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
-    const pageWidth = pdf.internal.pageSize.getWidth();
-    const pageHeight = pdf.internal.pageSize.getHeight();
+    const W = pdf.internal.pageSize.getWidth();   // 210mm
+    const H = pdf.internal.pageSize.getHeight();  // 297mm
+    const CONTENT_W = W - MARGIN * 2;             // 170mm
+    const FOOTER_SAFE = H - 22;                   // bottom boundary before footer
 
+    // -- Cover page (html2canvas, full bleed) --
+    const pageWidthPx = W * 3.78;
+    const pageHeightPx = H * 3.78;
     const container = document.createElement('div');
-    container.style.cssText = `position:absolute;left:-9999px;top:0;width:${pageWidth * 3.78}px;height:${pageHeight * 3.78}px;font-family:Heebo,Assistant,sans-serif;direction:rtl;`;
+    container.style.cssText = `position:absolute;left:-9999px;top:0;width:${pageWidthPx}px;height:${pageHeightPx}px;font-family:Heebo,Assistant,sans-serif;direction:rtl;`;
     document.body.appendChild(container);
 
-    // Cover
     container.innerHTML = '';
     container.appendChild(renderCoverPage(story.child_name, story.topic));
-    await createPdfPage(container as any, pdf, true);
+    await captureHtmlToPage(container as any, pdf, true);
+    document.body.removeChild(container);
 
-    // Spreads
-    const spreads = buildSpreads(story.pages);
-    const totalPages = story.pages.length;
+    // -- Story pages: one page per story page (or pair if needed) --
+    for (const page of story.pages) {
+      pdf.addPage();
 
-    for (let si = 0; si < spreads.length; si++) {
-      const spread = spreads[si];
-      const pageLabel = spread.pageNumbers.length > 1
-        ? `${spread.pageNumbers[0]}-${spread.pageNumbers[1]} / ${totalPages}`
-        : `${spread.pageNumbers[0]} / ${totalPages}`;
+      let textStartY = MARGIN + 8; // default: text near top
 
-      let illustrationHtml = '';
-      if (spread.illustration_url) {
+      // Illustration (if present) — top portion, full content width
+      if (page.illustration_url) {
         try {
-          const resolvedUrl = signedUrlMap[spread.illustration_url] || spread.illustration_url;
+          const resolvedUrl = signedUrlMap[page.illustration_url] || page.illustration_url;
           const dataUrl = await loadImageAsDataUrl(resolvedUrl);
-          illustrationHtml = `
-            <div style="flex: 0 0 50%; display:flex; justify-content:center; align-items:center; margin-bottom:8px;">
-              <img src="${dataUrl}" style="max-width:95%; max-height:100%; border-radius:16px;
-                border:3px solid #D4A574; box-shadow:0 8px 24px rgba(139,69,19,0.2); object-fit:contain;" />
-            </div>`;
-        } catch { /* skip */ }
+
+          const IMG_H = 110; // mm — illustration takes top 110mm
+          const IMG_Y = MARGIN;
+          pdf.addImage(dataUrl, 'PNG', MARGIN, IMG_Y, CONTENT_W, IMG_H, undefined, 'FAST');
+
+          // Decorative border around illustration
+          pdf.setDrawColor(212, 165, 116);
+          pdf.setLineWidth(0.5);
+          pdf.roundedRect(MARGIN, IMG_Y, CONTENT_W, IMG_H, 3, 3);
+
+          textStartY = IMG_Y + IMG_H + 6; // text starts just below illustration
+        } catch {
+          // no illustration, text from top
+        }
       }
 
-      const textBlocks = spread.texts.map((t, idx) => `
-        ${idx > 0 ? '<div style="width:60%; height:2px; background:#D4A574; margin:8px auto; border-radius:1px;"></div>' : ''}
-        <p style="color:#4A3728; font-size:26px; line-height:1.8; text-align:center; margin:0;
-          font-family:Heebo,Assistant,sans-serif; max-width:90%;">${escapeHtml(t)}</p>
-      `).join('');
+      // Page number label
+      const pageLabel = `✦ ${page.page_number} / ${story.pages.length} ✦`;
+      pdf.setFont('helvetica', 'normal');
+      pdf.setFontSize(10);
+      pdf.setTextColor(139, 69, 19);
+      pdf.text(pageLabel, W / 2, textStartY, { align: 'center' });
+      textStartY += 7;
 
-      const textFlex = spread.illustration_url ? '0 0 40%' : '1';
+      // Story text — native jsPDF with auto-wrap and page overflow
+      pdf.setFont('helvetica', 'normal');
+      pdf.setFontSize(14);
+      pdf.setTextColor(74, 55, 40);
 
-      const spreadPage = document.createElement('div');
-      spreadPage.style.cssText = `width:100%;height:100%;background:linear-gradient(to bottom,#FFF8E7 0%,#F5E6D3 100%);
-        padding:20px 24px;box-sizing:border-box;display:flex;flex-direction:column;direction:rtl;`;
-      spreadPage.innerHTML = `
-        <div style="border:3px solid #8B4513;border-radius:16px;padding:16px 20px;flex:1;display:flex;flex-direction:column;
-          background:rgba(255,248,231,0.95);box-shadow:inset 0 2px 8px rgba(139,69,19,0.1);">
-          ${illustrationHtml}
-          <div style="flex:${textFlex};display:flex;flex-direction:column;align-items:center;justify-content:center;padding:8px 16px;">
-            ${textBlocks}
-          </div>
-          <div style="flex:0 0 auto;text-align:center;color:#8B4513;font-size:16px;padding-top:8px;border-top:2px solid #D4A574;">
-            ✦ ${pageLabel} ✦
-          </div>
-        </div>`;
+      // jsPDF splitTextToSize splits by width in the current unit (mm)
+      const lines = pdf.splitTextToSize(page.text, CONTENT_W);
 
-      container.innerHTML = '';
-      container.appendChild(spreadPage);
-      await createPdfPage(container as any, pdf, false);
+      const LINE_HEIGHT = 7; // mm per line at 14pt
+
+      for (const line of lines) {
+        // Check if we need a new page (leave room for footer)
+        if (textStartY + LINE_HEIGHT > FOOTER_SAFE) {
+          drawFooter(pdf);
+          pdf.addPage();
+          textStartY = MARGIN + 8;
+        }
+        // Center the text horizontally (RTL story text looks better centered)
+        pdf.text(line, W / 2, textStartY, { align: 'center' });
+        textStartY += LINE_HEIGHT;
+      }
+
+      // Separator below text
+      const sepY = Math.min(textStartY + 3, FOOTER_SAFE - 2);
+      pdf.setDrawColor(212, 165, 116);
+      pdf.setLineWidth(0.3);
+      pdf.line(MARGIN + 20, sepY, W - MARGIN - 20, sepY);
+
+      drawFooter(pdf);
     }
 
-    document.body.removeChild(container);
     pdf.save(`סיפור-${story.child_name.replace(/\s+/g, '-')}.pdf`);
   };
 
@@ -241,7 +263,7 @@ export const usePdfExport = () => {
       </div>`;
     container.innerHTML = '';
     container.appendChild(coverPage);
-    await createPdfPage(container as any, pdf, true);
+    await captureHtmlToPage(container as any, pdf, true);
 
     // Spreads
     const spreads = buildSpreads(story.pages);
@@ -275,7 +297,6 @@ export const usePdfExport = () => {
       const spreadPage = document.createElement('div');
 
       if (hasIllustration && illustrationHtml) {
-        // Two-column layout: illustration right, text left (RTL)
         spreadPage.style.cssText = `width:100%;height:100%;display:flex;direction:rtl;
           background:linear-gradient(to right,#FFF8E7 0%,#FFF8E7 49.5%,#D4A574 49.5%,#8B4513 50%,#D4A574 50.5%,#FFF8E7 50.5%,#FFF8E7 100%);`;
         spreadPage.innerHTML = `
@@ -287,13 +308,12 @@ export const usePdfExport = () => {
             background:#FFF8E7;padding:40px;position:relative;">
             <div style="position:absolute;top:20px;right:20px;color:#D4A574;font-size:24px;">❧</div>
             ${textBlocks}
-            <div style="position:absolute;bottom:24px;left:50%;transform:translateX(-50%);color:#8B4513;font-size:18px;">
+            <div style="position:absolute;bottom:60px;left:50%;transform:translateX(-50%);color:#8B4513;font-size:18px;">
               ✦ ${pageLabel} ✦
             </div>
             <div style="position:absolute;bottom:20px;left:20px;color:#D4A574;font-size:24px;transform:rotate(180deg);">❧</div>
           </div>`;
       } else {
-        // Full-width text layout (no illustration, no placeholder)
         spreadPage.style.cssText = `width:100%;height:100%;display:flex;align-items:center;justify-content:center;
           background:linear-gradient(135deg,#FFF8E7 0%,#F5E6D3 100%);direction:rtl;`;
         spreadPage.innerHTML = `
@@ -309,7 +329,7 @@ export const usePdfExport = () => {
 
       container.innerHTML = '';
       container.appendChild(spreadPage);
-      await createPdfPage(container as any, pdf, false);
+      await captureHtmlToPage(container as any, pdf, false);
     }
 
     document.body.removeChild(container);
