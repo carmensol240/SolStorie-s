@@ -7,15 +7,25 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
 };
 
-// Canonical character reference images — injected into every cover generation call
-const CHARACTER_REFERENCES = [
-  "https://xqoxoxxlyfimlbekfjxo.supabase.co/storage/v1/object/public/character-assets/sol%20casual.png",
-  "https://xqoxoxxlyfimlbekfjxo.supabase.co/storage/v1/object/public/character-assets/sol%20hero.png",
+// Adventure/fantasy topics → Sol Hero; all others → Sol Casual
+const ADVENTURE_TOPICS = new Set([
+  "space-adventure", "magic-kingdom", "zoo-adventure", "cloud-adventure",
+  "magic-castle", "magic-keys", "magical-forest", "space-hero", "kingdom",
+  "underwater", "superheroes", "fantasy", "adventure", "dragon", "princess",
+  "pirate", "fairy", "wizard",
+]);
+const SOL_CASUAL_URL = "https://xqoxoxxlyfimlbekfjxo.supabase.co/storage/v1/object/public/character-assets/sol%20casual.png";
+const SOL_HERO_URL   = "https://xqoxoxxlyfimlbekfjxo.supabase.co/storage/v1/object/public/character-assets/sol%20hero.png";
+const CHARACTER_BASE_REFS = [
   "https://xqoxoxxlyfimlbekfjxo.supabase.co/storage/v1/object/public/character-assets/ben.jpeg",
   "https://xqoxoxxlyfimlbekfjxo.supabase.co/storage/v1/object/public/character-assets/zoe.jpeg",
   "https://xqoxoxxlyfimlbekfjxo.supabase.co/storage/v1/object/public/character-assets/leo.jpeg",
   "https://xqoxoxxlyfimlbekfjxo.supabase.co/storage/v1/object/public/character-assets/mia.jpeg",
 ];
+function getSolUrl(topic: string): { url: string; label: string } {
+  const isAdventure = ADVENTURE_TOPICS.has(topic);
+  return { url: isAdventure ? SOL_HERO_URL : SOL_CASUAL_URL, label: isAdventure ? "Sol hero" : "Sol casual" };
+}
 
 // Topic-to-Setting mapping for magical cover backgrounds
 const TOPIC_SETTINGS: Record<string, string> = {
@@ -78,28 +88,34 @@ serve(async (req) => {
     const setting = getSettingForTopic(topic || "");
     const isHebrew = language === "he" || !language;
     const fontLanguage = isHebrew ? "Hebrew" : "English";
-    // For Hebrew stories, always use the Hebrew title; never fall back to English topic ID
-    const displayTitle = isHebrew 
+    const displayTitle = isHebrew
       ? (title && !/^[a-z\-]+$/.test(title) ? title : "סיפור קסום")
       : (title || topic || "A Magical Story");
+
+    // Select correct Sol variant based on topic
+    const sol = getSolUrl(topic || "");
+    console.log(`Sol variant: ${sol.label} for topic "${topic}"`);
+
+    const solDescription = sol.label === "Sol hero"
+      ? "Sol in her adventure/fantasy outfit — match EXACTLY from the provided reference image"
+      : "Sol in her everyday casual look — warm tan skin, long dark brown hair in high ponytail with pink band, bright yellow dress — match EXACTLY from the provided reference image";
 
     const coverPrompt = `In the style of modern 3D Disney-Pixar animation, 8K resolution, soft cinematic lighting, vibrant harmonious colors. Portrait orientation (9:16 aspect ratio).
 
 === MANDATORY CHARACTER REFERENCES ===
 Reference images of EACH character are provided above. You MUST match their appearance EXACTLY — facial features, hair color, hair style, and skin tone MUST be taken DIRECTLY from the reference images. Zero invented characters.
-- Image 1 (Sol casual): Sol's default look — warm tan skin, long dark brown ponytail with pink band, yellow dress
-- Image 2 (Sol hero): Sol's fantasy/adventure look — use ONLY for fantasy/adventure themes
-- Image 3 (Ben): Toddler with very curly dark hair, warm tan skin — always the SMALLEST character
-- Image 4 (Zoe): Dark brown skin, voluminous afro with light blue headband, purple-yellow tracksuit, soccer ball
-- Image 5 (Leo): Straight black hair, round glasses, denim overalls, rainbow pencil
-- Image 6 (Mia): Smooth brown bob, small flower crown, emerald green dress
+- Image 1 (${sol.label}): ${solDescription}
+- Image 2 (Ben): Toddler with very curly dark hair, warm tan skin — always the SMALLEST character
+- Image 3 (Zoe): Dark brown skin, voluminous afro with light blue headband, purple-yellow tracksuit, soccer ball
+- Image 4 (Leo): Straight black hair, round glasses, denim overalls, rainbow pencil
+- Image 5 (Mia): Smooth brown bob, small flower crown, emerald green dress
 
 CHARACTERS (all 5 must appear together in the scene, posing as a group of friends):
-1. Sol - match EXACTLY from reference image 1 (or 2 for fantasy topics). Warm tan skin, large expressive brown eyes, long dark brown ponytail with pink hair band, bright yellow dress. Stands slightly to the side with a warm smile.
-2. Mia - match EXACTLY from reference image 6. Smooth brown bob, small flower crown, emerald green dress. Gentle curious expression.
-3. Leo - match EXACTLY from reference image 5. Straight black hair, round glasses, denim overalls over red-yellow striped shirt, rainbow pencil. Thoughtful friendly smile.
-4. Ben - match EXACTLY from reference image 3. Very curly dark brown hair, warm tan skin like Sol (siblings). Stands center/front, NOTICEABLY SMALLER than all others. Light green or sky blue shirt.
-5. Zoe - match EXACTLY from reference image 4. Dark brown skin, voluminous afro with light blue headband, purple-yellow tracksuit, soccer ball under one arm. Energetic confident pose.
+1. Sol - match EXACTLY from reference image 1. ${solDescription}. Stands slightly to the side with a warm smile.
+2. Mia - match EXACTLY from reference image 5. Smooth brown bob, small flower crown, emerald green dress. Gentle curious expression.
+3. Leo - match EXACTLY from reference image 4. Straight black hair, round glasses, denim overalls over red-yellow striped shirt, rainbow pencil. Thoughtful friendly smile.
+4. Ben - match EXACTLY from reference image 2. Very curly dark brown hair, warm tan skin like Sol (siblings). Stands center/front, NOTICEABLY SMALLER than all others. Light green or sky blue shirt.
+5. Zoe - match EXACTLY from reference image 3. Dark brown skin, voluminous afro with light blue headband, purple-yellow tracksuit, soccer ball under one arm. Energetic confident pose.
 
 HEIGHT RELATIONSHIPS: Sol, Mia, Leo, and Zoe are roughly the same height. Ben is noticeably shorter — the youngest and smallest in the group.
 
@@ -111,8 +127,8 @@ COMPOSITION: This is a BOOK COVER. The 5 characters should be arranged as a grou
 
 EXCLUDE / NEGATIVE PROMPT: No UI elements, no buttons, no audio icons, no play buttons, no watermarks, no text beyond the story title. No additional characters beyond the 5 described. No floating heads, no disembodied heads, no missing bodies, no missing limbs, no extra limbs, no deformed characters, no distorted faces, no scary imagery, no grotesque elements, no mutated features. All characters must be shown as FULL BODY from head to toe.`;
 
-    // Build multi-image content: character references first, then the text prompt
-    const characterRefContent = CHARACTER_REFERENCES.map(url => ({
+    // Build multi-image content: [Sol variant, Ben, Zoe, Leo, Mia] + text
+    const characterRefContent = [sol.url, ...CHARACTER_BASE_REFS].map(url => ({
       type: "image_url",
       image_url: { url },
     }));
@@ -177,14 +193,12 @@ EXCLUDE / NEGATIVE PROMPT: No UI elements, no buttons, no audio icons, no play b
       });
     }
 
-    // Build the full public URL for the cover
     const { data: publicUrlData } = supabase.storage
       .from("story-illustrations")
       .getPublicUrl(filePath);
 
     const fullCoverUrl = publicUrlData.publicUrl;
 
-    // Update story cover_url with the FULL public URL
     await supabase
       .from("stories")
       .update({ cover_url: fullCoverUrl })

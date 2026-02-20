@@ -7,15 +7,34 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
 };
 
-// Canonical character reference images — injected into every illustration generation call
-const CHARACTER_REFERENCES = [
-  "https://xqoxoxxlyfimlbekfjxo.supabase.co/storage/v1/object/public/character-assets/sol%20casual.png",
-  "https://xqoxoxxlyfimlbekfjxo.supabase.co/storage/v1/object/public/character-assets/sol%20hero.png",
+// Adventure/fantasy topics where Sol Hero is used instead of Sol Casual
+const ADVENTURE_TOPICS = new Set([
+  "space-adventure", "magic-kingdom", "zoo-adventure", "cloud-adventure",
+  "magic-castle", "magic-keys", "magical-forest", "space-hero", "kingdom",
+  "underwater", "superheroes", "fantasy", "adventure", "dragon", "princess",
+  "pirate", "fairy", "wizard",
+]);
+
+const SOL_CASUAL_URL = "https://xqoxoxxlyfimlbekfjxo.supabase.co/storage/v1/object/public/character-assets/sol%20casual.png";
+const SOL_HERO_URL   = "https://xqoxoxxlyfimlbekfjxo.supabase.co/storage/v1/object/public/character-assets/sol%20hero.png";
+const CHARACTER_BASE_REFS = [
   "https://xqoxoxxlyfimlbekfjxo.supabase.co/storage/v1/object/public/character-assets/ben.jpeg",
   "https://xqoxoxxlyfimlbekfjxo.supabase.co/storage/v1/object/public/character-assets/zoe.jpeg",
   "https://xqoxoxxlyfimlbekfjxo.supabase.co/storage/v1/object/public/character-assets/leo.jpeg",
   "https://xqoxoxxlyfimlbekfjxo.supabase.co/storage/v1/object/public/character-assets/mia.jpeg",
 ];
+
+function buildCharacterRefs(topic: string) {
+  const isAdventure = ADVENTURE_TOPICS.has(topic);
+  const solUrl = isAdventure ? SOL_HERO_URL : SOL_CASUAL_URL;
+  const solLabel = isAdventure ? "Sol hero" : "Sol casual";
+  console.log(`Sol variant selected: ${solLabel} for topic "${topic}"`);
+  return {
+    urls: [solUrl, ...CHARACTER_BASE_REFS],
+    solLabel,
+    isAdventure,
+  };
+}
 
 // Character Profile interface for consistency across illustrations
 interface CharacterProfile {
@@ -137,7 +156,8 @@ async function generateIllustration(
   apiKey: string,
   storyOutfit: string, // The SINGLE outfit chosen for this entire story
   visualAnchor: string, // Pre-built visual anchor text for consistency
-  adventureLogic?: { outfit: string; background: string; theme: string }
+  adventureLogic?: { outfit: string; background: string; theme: string },
+  topic?: string // Used to select Sol variant (casual vs hero)
 ): Promise<string | null> {
   try {
     const characterSeed = characterProfile 
@@ -184,6 +204,12 @@ Any deviation from this profile is a FAILURE.
 `
       : "";
     
+    // Select Sol variant before building the prompt so we can reference the correct look
+    const solVariant = getSolUrl(topic || "");
+    const solDescription = solVariant.label === "Sol hero"
+      ? "Sol in her adventure/fantasy hero outfit — match EXACTLY from the reference image"
+      : "Sol in her everyday casual look (yellow dress, ponytail with pink band) — match EXACTLY from the reference image";
+
     const stylePrefix = `In the style of modern 3D Disney-Pixar animation, high resolution, magical atmosphere, magical glowing light, dreamy warm and inviting atmosphere. Characters with large expressive emotional eyes, detailed hair, soft textures. ALWAYS show characters as FULL BODY (head to toe) or at minimum from waist up — NEVER just a head or face.`;
     
     const enhancedPrompt = `${stylePrefix}
@@ -194,12 +220,11 @@ ${characterInstruction}
 ${adventureInstruction}
 === MANDATORY CHARACTER REFERENCES ===
 Reference images of each cast character are provided above. You MUST match their appearance EXACTLY:
-- Image 1 (Sol casual): default look — use for educational/daily-life themes
-- Image 2 (Sol hero): fantasy/adventure look — use ONLY for fantasy/adventure themes
-- Image 3 (Ben): toddler, very curly dark hair, SMALLER than Sol
-- Image 4 (Zoe): dark brown skin, afro with light blue headband, purple-yellow tracksuit
-- Image 5 (Leo): round glasses, straight black hair, denim overalls
-- Image 6 (Mia): smooth brown bob, flower crown, emerald green dress
+- Image 1 (${solVariant.label}): ${solDescription}
+- Image 2 (Ben): toddler, very curly dark hair, SMALLER than Sol
+- Image 3 (Zoe): dark brown skin, afro with light blue headband, purple-yellow tracksuit
+- Image 4 (Leo): round glasses, straight black hair, denim overalls
+- Image 5 (Mia): smooth brown bob, flower crown, emerald green dress
 ZERO INVENTION: Do not add random characters not shown in these references. If multiple cast characters appear in the story text, ALL of them must appear together in the same scene.
 
 SCENE TO ILLUSTRATE: ${prompt}
@@ -220,8 +245,10 @@ STYLE REQUIREMENTS:
 
 NEGATIVE PROMPT / EXCLUDE: floating head, disembodied head, head without body, missing body, missing limbs, extra limbs, deformed, distorted, scary, horror, grotesque, mutated, disfigured, severed, decapitated, cropped head only, face only, no body, text, watermark, UI elements, buttons, audio icons.`;
 
-    // Build multi-image content: character references first, then optional child photo, then text
-    const characterRefContent = CHARACTER_REFERENCES.map(url => ({
+    // Build multi-image content: [Sol variant, Ben, Zoe, Leo, Mia] + optional child photo + text
+    // solVariant was already derived above when building the prompt
+    console.log(`Sol variant: ${solVariant.label} for topic "${topic}"`);
+    const characterRefContent = [solVariant.url, ...CHARACTER_BASE_REFS].map(url => ({
       type: "image_url",
       image_url: { url },
     }));
@@ -586,7 +613,8 @@ serve(async (req) => {
             LOVABLE_API_KEY,
             storyOutfit,
             visualAnchor,
-            effectiveAdventureLogic
+            effectiveAdventureLogic,
+            topic
           );
           
           if (base64Image) {
