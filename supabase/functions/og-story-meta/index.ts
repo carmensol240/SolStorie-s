@@ -66,9 +66,10 @@ serve(async (req) => {
     }
 
     const slug = story.slug || story.id;
-    const title = "סיפור חדש ומעצים מבית SolStorie's™";
-    const description = "הצטרפו לסול, בן והחברים להרפתקה של צמיחה ואומץ בעולם הקסום שלנו.";
-    const imageUrl = story.cover_url || defaultOgImage;
+    const title = `✨ הסיפור של ${story.child_name} – ${story.topic} | SolStorie's™`;
+    const description = `סיפור קסום שנוצר במיוחד עבור ${story.child_name}. לחצו לקריאת הסיפור המלא 📚`;
+    const rawCoverUrl = story.cover_url;
+    const imageUrl = resolveImageUrl(rawCoverUrl, defaultOgImage, supabaseUrl);
     const shareUrl = `${siteOrigin}/story/${slug}`;
     const viewUrl = `${siteOrigin}/story/${slug}`;
 
@@ -90,6 +91,9 @@ serve(async (req) => {
   <meta property="og:title" content="${escapeHtml(title)}" />
   <meta property="og:description" content="${escapeHtml(description)}" />
   <meta property="og:image" content="${escapeHtml(imageUrl)}" />
+  <meta property="og:image:width" content="1200" />
+  <meta property="og:image:height" content="630" />
+  <meta property="og:image:type" content="image/jpeg" />
   <meta property="og:url" content="${escapeHtml(shareUrl)}" />
   <meta property="og:type" content="article" />
   <meta property="og:locale" content="he_IL" />
@@ -108,7 +112,8 @@ serve(async (req) => {
     return new Response(html, {
       headers: {
         "Content-Type": "text/html; charset=utf-8",
-        "Cache-Control": "public, max-age=3600",
+        "Cache-Control": "no-cache, no-store, must-revalidate",
+        "Pragma": "no-cache",
       },
     });
   } catch (err) {
@@ -124,4 +129,11 @@ function escapeHtml(text: string): string {
     .replace(/>/g, "&gt;")
     .replace(/"/g, "&quot;")
     .replace(/'/g, "&#039;");
+}
+
+function resolveImageUrl(rawUrl: string | null, defaultUrl: string, supabaseStorageBase: string): string {
+  if (!rawUrl) return defaultUrl;
+  if (rawUrl.startsWith('http://') || rawUrl.startsWith('https://')) return rawUrl;
+  // Relative storage path → build full public URL
+  return `${supabaseStorageBase}/storage/v1/object/public/story-illustrations/${rawUrl}`;
 }

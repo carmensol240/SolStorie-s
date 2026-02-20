@@ -470,8 +470,16 @@ const StoryViewer = () => {
       const title = `✨ ${translateTopic(story.topic, story.language)} ✨`;
       const text = `📚 הסיפור של ${story.child_name} – נוצר באהבה באפליקציית SolStorie's™`;
 
-      if (navigator.share) {
+      const ua = navigator.userAgent.toLowerCase();
+      const isWhatsAppBrowser = ua.includes('whatsapp');
+      const isMobileDevice = /android|iphone|ipad/.test(ua);
+
+      if (navigator.share && !isWhatsAppBrowser) {
         await navigator.share({ title, text, url: publicUrl });
+      } else if (isMobileDevice || isWhatsAppBrowser) {
+        // Deep-link into WhatsApp with a pre-filled message (works inside in-app browser too)
+        const waText = encodeURIComponent(`${title}\n${text}\n${publicUrl}`);
+        window.open(`https://wa.me/?text=${waText}`, '_blank');
       } else {
         await navigator.clipboard.writeText(`${title}\n${text}\n${publicUrl}`);
         toast({ title: 'הקישור הועתק! 📋', description: 'כעת ניתן להדביק אותו בוואטסאפ או בכל מקום אחר' });
