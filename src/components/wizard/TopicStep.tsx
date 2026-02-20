@@ -3,7 +3,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Input } from "@/components/ui/input";
 import { StoryFormData } from "@/pages/CreateStory";
 import { cn } from "@/lib/utils";
-import { ChevronLeft, ChevronUp, Sparkles, Search, X, ChevronDown, Info } from "lucide-react";
+import { ChevronUp, Sparkles, Search, X, ChevronDown } from "lucide-react";
 import { CHARACTER_SECTIONS, TopicItem } from "./topic-data";
 import { Drawer, DrawerContent, DrawerClose } from "@/components/ui/drawer";
 import { Button } from "@/components/ui/button";
@@ -164,6 +164,11 @@ const TopicStep = ({ formData, updateFormData }: TopicStepProps) => {
                   <div className="relative h-32 w-full">
                     <img src={section.heroImage} alt={section.categoryLabel} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" />
                     <div className="absolute inset-0" style={{ background: "linear-gradient(to top, rgba(0,0,0,0.7) 0%, rgba(0,0,0,0.2) 50%, transparent 100%)" }} />
+                    {/* Expand/collapse hint */}
+                    <div className="absolute top-2 left-2 bg-black/40 backdrop-blur-sm rounded-full px-2 py-0.5 text-white text-[10px] font-bold flex items-center gap-1">
+                      {isExpanded ? <ChevronUp className="w-3 h-3" /> : <ChevronDown className="w-3 h-3" />}
+                      {isExpanded ? "סגור" : "פתח"}
+                    </div>
                     <div className="absolute inset-0 flex flex-col justify-end items-center pb-3 gap-0.5">
                       <h3 className="text-white text-xl font-black drop-shadow-md text-center">{section.categoryEmoji} {section.categoryLabel}</h3>
                       <span className="text-white text-xs font-bold drop-shadow-md">{section.topics.length} נושאים</span>
@@ -177,20 +182,6 @@ const TopicStep = ({ formData, updateFormData }: TopicStepProps) => {
                     <SimpleTile key={topic.id} topic={topic} isSelected={formData.topic === topic.id} onSelect={() => handleTopicSelect(topic)} />
                   ))}
                 </div>
-
-                {/* Expand/Collapse */}
-                {!isExpanded && section.topics.length > 2 && (
-                  <button onClick={() => toggleSection(section.id)} className="flex items-center justify-center gap-1 w-full py-2 text-xs font-medium text-purple-600 hover:opacity-80 transition-opacity">
-                    הצג הכל ({section.topics.length} נושאים)
-                    <ChevronLeft className="w-3.5 h-3.5" />
-                  </button>
-                )}
-                {isExpanded && (
-                  <button onClick={() => toggleSection(section.id)} className="flex items-center justify-center gap-1 w-full py-2 text-xs font-bold text-purple-600 hover:opacity-80 transition-opacity">
-                    <ChevronUp className="w-4 h-4" />
-                    הצג פחות
-                  </button>
-                )}
               </div>
             );
           })}
@@ -238,14 +229,6 @@ const SimpleTile = ({ topic, isSelected, onSelect }: SimpleTileProps) => {
                 <span className="text-white text-xs">✓</span>
               </div>
             )}
-            {/* Info button */}
-            <button
-              onClick={(e) => { e.stopPropagation(); setShowDrawer(true); }}
-              className="absolute top-1.5 right-1.5 w-6 h-6 bg-black/50 backdrop-blur-sm rounded-full flex items-center justify-center text-white hover:bg-black/70 transition-colors"
-              aria-label="פרטים על הנושא"
-            >
-              <Info className="w-3.5 h-3.5" />
-            </button>
           </div>
           <div className="px-2.5 pt-2.5 pb-1">
             <h3 className="text-sm font-bold text-foreground leading-tight">{topic.label}</h3>
