@@ -1,131 +1,113 @@
 
-# PDF Export Fixes — A4 Layout, Text Wrapping, Clickable Link & Centered Footer
+# Character Relationship Fix: Ben Is Sol's Little Brother
 
-## Current Issues
+## What Changes
 
-1. **Text Cutting** — The portrait spread puts both the illustration AND two text blocks inside a fixed-height `div` that matches the A4 page pixel-for-pixel. When a story page has long Hebrew text, the text overflows and gets clipped during `html2canvas` capture.
-
-2. **URL Not Clickable** — `buildFooterHtml()` renders the URL as a plain `<span>` styled blue. `addClickableLink()` adds a jsPDF invisible link overlay BUT it is hardcoded to `pageWidth/2 - 30` with a fixed 60mm width — it does not actually make the rendered text clickable in all PDF viewers.
-
-3. **Footer Not Centered on Every Page** — The footer is `position:absolute; bottom:0` inside the page container. On the landscape layout, the footer is injected per-page correctly, but in portrait it sometimes gets buried under the inner bordered `div` which has `flex:1` and takes up all the space.
-
-4. **No Automatic Page Break for Long Text** — Long story text is forced into a fixed `flex:0 0 40%` height slot. No overflow or pagination logic exists.
-
-5. **Margins** — The A4 page currently has padding of 20–24px pixels on the HTML element, which does not precisely translate to 20mm PDF margins. Images and text can touch the edges.
+The character description for Ben across all 4 AI generation functions must be updated to explicitly establish him as Sol's **younger brother** (אחיה הקטן), not just a friend in the cast. When both Sol and Ben appear in a story, the Hebrew prose must use sibling vocabulary (אחים, אחיה הקטן, אחותו הגדולה).
 
 ---
 
-## Solution: Rewrite `exportPortrait` with a proper per-element rendering approach
+## Files to Update
 
-### Key Changes in `src/hooks/use-pdf-export.ts`
+### 1. `supabase/functions/generate-story/index.ts` — Line ~994
 
-#### 1. Proper 20mm A4 Margins
-Set the container width to `(210 - 40) mm = 170mm` worth of pixels (i.e., `170 * 3.78 = 642px`) so everything inside respects the margin from the start. The PDF `addImage` call will be offset by 20mm (x=20, y=20) and sized to `170 × (297-40) = 170×257mm`.
-
-#### 2. Text Wrapping via jsPDF native text rendering (no html2canvas for text)
-Switch to a **hybrid approach**:
-- **Images**: still rendered via `html2canvas` → `addImage` (because Hebrew fonts render correctly in the browser)
-- **Text blocks**: rendered using `jsPDF.text()` with `jsPDF.splitTextToFitWidth()` so text never overflows — it wraps automatically and overflows to a new PDF page when needed
-
-This is the cleanest fix and avoids the fixed-height container problem entirely.
-
-#### 3. Clickable Footer Link on Every Page
-Use `pdf.textWithLink()` (jsPDF native) to render the URL as a real clickable hyperlink text — no invisible overlay needed:
-```typescript
-pdf.setTextColor(37, 99, 235); // blue
-pdf.textWithLink('soulstory.co.il', x, y, { url: 'https://soulstory.co.il' });
+**Current Ben description:**
+```
+5. **בן (Ben) - הילד האמן** - תפקיד: אמנות, יצירתיות ודמיון. לובש סרבל ג'ינס מותז בצבע, שיער חום מבולגן. לעיתים קרובות מחזיק מכחול גדול. יצירתי וחולמני.
 ```
 
-#### 4. Centered Footer on Every Page
-After all content is placed, a `drawFooter(pdf)` helper draws the footer at the bottom of the **current** page using jsPDF coordinates (not html2canvas), guaranteeing it is always centered and never cut off:
-```typescript
-const drawFooter = (pdf: jsPDF) => {
-  const pageWidth = pdf.internal.pageSize.getWidth();
-  const pageHeight = pdf.internal.pageSize.getHeight();
-  const y = pageHeight - 12; // 12mm from bottom
-  // SolStorie's™ | עולמה הקסום של סול
-  // soulstory.co.il (clickable)
-};
+**Change to:**
+```
+5. **בן (Ben) - אחיה הקטן של סול** - תפקיד: פעוט, אחות גדולה, משפחה. לובש חולצה ירוקה בהירה או תכולה, שיער חום כהה מתולתל מאוד ונפחי. פעוט חמוד שתמיד הולך בעקבות סול. **חשוב: כאשר בן וסול מופיעים ביחד בסיפור, יש לתאר אותם כאחים — השתמש בביטויים: "אחיה הקטן", "אחותו הגדולה", "ביניהם כימיה של אחים".**
+```
+
+Also add a sibling-narrative rule directly beneath the cast list:
+
+```
+**⚠️ כלל אחים מחייב:** כאשר בן מופיע בסיפור שבו גם סול נוכחת, **אסור** לתארם כחברים. השתמש תמיד בשפה של אחווה: "בֶּן, אָחִיהָ הַקָּטָן שֶׁל סוֹל", "סוֹל הִבִּיטָה בְּאָחִיהָ הַקָּטָן", "שְׁנֵי הָאַחִים". הם משפחה, לא חברים.
 ```
 
 ---
 
-## Architecture of the New `exportPortrait` Function
+### 2. `supabase/functions/generate-cover/index.ts` — Lines 108, 113, 117
 
-```text
-exportPortrait(story)
-  │
-  ├─ Page 1: Cover (html element → html2canvas → addImage at 20,20 sized 170×257mm)
-  │          + drawFooter()
-  │
-  ├─ For each story page:
-  │   ├─ addPage()
-  │   ├─ If illustration: load image → addImage (right half, 20mm margin)
-  │   ├─ splitTextToFitWidth(page.text, 130mm) → array of lines
-  │   ├─ For each line: pdf.text(line, x, y) — advance y
-  │   ├─ If y exceeds page bottom (297-30mm): addPage(), reset y, drawFooter() on previous page
-  │   └─ drawFooter() on current page
-  │
-  └─ save()
+**Line 108 — Character reference label:**
+Change:
+```
+- Image 2 (Ben): Toddler with very curly dark hair, warm tan skin — always the SMALLEST character
+```
+To:
+```
+- Image 2 (Ben): Sol's LITTLE BROTHER — toddler with very curly dark hair, warm tan skin matching Sol (they are siblings) — always the SMALLEST character
 ```
 
-### Image placement (portrait, with illustration):
-- Illustration: top portion, full width (170mm wide × ~120mm tall), centered
-- Text: below illustration, starting at y=155mm, wrapping within 170mm width
+**Line 113 — Group description:**
+Change:
+```
+CHARACTERS (all 5 must appear together in the scene, posing as a group of friends):
+```
+To:
+```
+CHARACTERS (all 5 must appear together in the scene — Sol and Ben are SIBLINGS, the others are their friends):
+```
 
-### Image placement (portrait, no illustration):
-- Text: full page, starting at y=40mm (top margin), wrapping within 170mm width
+**Line 117 — Ben individual description:**
+Change:
+```
+4. Ben - match EXACTLY from reference image 2. Very curly dark brown hair, warm tan skin like Sol (siblings). Stands center/front, NOTICEABLY SMALLER than all others. Light green or sky blue shirt.
+```
+To:
+```
+4. Ben (Sol's LITTLE BROTHER) - match EXACTLY from reference image 2. Very curly dark brown hair, warm tan skin like Sol — they are siblings and share similar features. Stands beside Sol or center/front, NOTICEABLY SMALLER than all others. Light green or sky blue shirt. Toddler-sized.
+```
 
 ---
 
-## Files to Edit
+### 3. `supabase/functions/generate-illustrations/index.ts` — Line 224
 
-**Only one file:** `src/hooks/use-pdf-export.ts`
-
-### Specific changes:
-
-1. **Remove `buildFooterHtml()`** — replaced by native jsPDF footer drawing
-2. **Remove `addClickableLink()`** — replaced by `pdf.textWithLink()` inside `drawFooter()`
-3. **Remove `createPdfPage()`** — replaced by direct jsPDF calls per element
-4. **Rewrite `exportPortrait()`** — full rewrite using jsPDF native text with `splitTextToFitWidth`, 20mm margins, per-page text wrapping with automatic new-page logic
-5. **Keep `exportLandscapeBook()`** — add footer fix: replace the HTML footer injection with `drawFooter()` called after each `createPdfPage()` call
-
-### New `drawFooter()` helper:
-```typescript
-const drawFooter = (pdf: jsPDF) => {
-  const W = pdf.internal.pageSize.getWidth();
-  const H = pdf.internal.pageSize.getHeight();
-  
-  // Separator line
-  pdf.setDrawColor(212, 165, 116);
-  pdf.line(20, H - 18, W - 20, H - 18);
-  
-  // Brand name (purple, bold)
-  pdf.setFont('helvetica', 'bold');
-  pdf.setFontSize(9);
-  pdf.setTextColor(147, 51, 234);
-  pdf.text("SolStorie's™", W / 2 - 20, H - 13, { align: 'center' });
-  
-  // Hebrew tagline (gray)
-  pdf.setFont('helvetica', 'normal');
-  pdf.setTextColor(153, 153, 153);
-  pdf.text(' | עולמה הקסום של סול', W / 2 + 10, H - 13);
-  
-  // Clickable URL (blue)
-  pdf.setFontSize(8);
-  pdf.setTextColor(37, 99, 235);
-  pdf.textWithLink('soulstory.co.il', W / 2, H - 8, { 
-    url: 'https://soulstory.co.il',
-    align: 'center'
-  });
-};
+**Current:**
 ```
+- Image 2 (Ben): toddler, very curly dark hair, SMALLER than Sol
+```
+
+**Change to:**
+```
+- Image 2 (Ben — Sol's LITTLE BROTHER): toddler, very curly dark hair, warm tan skin matching Sol (siblings). When both Ben and Sol appear together, depict them with a sibling bond — Sol looking after him, Ben looking up to her. Always SMALLER than Sol.
+```
+
+---
+
+### 4. `supabase/functions/retry-illustration/index.ts` — Line 128
+
+**Current:**
+```
+- Image 2 (Ben): toddler, very curly dark hair, SMALLER than Sol
+```
+
+**Change to:**
+```
+- Image 2 (Ben — Sol's LITTLE BROTHER): toddler, very curly dark hair, warm tan skin matching Sol (siblings). When both appear together, depict sibling bond. Always SMALLER than Sol.
+```
+
+---
+
+## Summary of Narrative Rules Added
+
+| Location | Rule Added |
+|---|---|
+| `generate-story` cast list | Ben explicitly labeled "Sol's little brother" with mandatory sibling language instruction |
+| `generate-story` cast rules | New "⚠️ כלל אחים מחייב" block — forces Hebrew prose to use אחיה הקטן / אחותו הגדולה when both appear |
+| `generate-cover` | Ben labeled "Sol's LITTLE BROTHER" in references and composition; group changed from "friends" to "siblings + friends" |
+| `generate-illustrations` | Ben reference updated with sibling relationship and visual bond instruction |
+| `retry-illustration` | Same as generate-illustrations |
 
 ---
 
 ## What Stays the Same
-- `buildSpreads()` — unchanged
-- `loadImageAsDataUrl()` — unchanged  
-- `exportLandscapeBook()` — only the footer rendering is updated (HTML footer removed, `drawFooter()` added after each `createPdfPage()` call)
-- `exportToPdf()` entry point — unchanged
-- All types/interfaces — unchanged
+
+- All 5 character reference image URLs — unchanged
+- Sol Casual / Sol Hero selection logic — unchanged
+- All other character descriptions (Mia, Leo, Zoe) — unchanged
+- Story generation flow, credits, nikud pipeline — all unchanged
+- No database changes needed
+- All 4 functions redeployed automatically after editing
