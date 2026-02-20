@@ -2,15 +2,25 @@ import "https://deno.land/x/xhr@0.1.0/mod.ts";
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.39.3";
 
-// Canonical character reference images — injected into every retry call
-const CHARACTER_REFERENCES = [
-  "https://xqoxoxxlyfimlbekfjxo.supabase.co/storage/v1/object/public/character-assets/sol%20casual.png",
-  "https://xqoxoxxlyfimlbekfjxo.supabase.co/storage/v1/object/public/character-assets/sol%20hero.png",
+// Adventure/fantasy topics → Sol Hero; all others → Sol Casual
+const ADVENTURE_TOPICS = new Set([
+  "space-adventure", "magic-kingdom", "zoo-adventure", "cloud-adventure",
+  "magic-castle", "magic-keys", "magical-forest", "space-hero", "kingdom",
+  "underwater", "superheroes", "fantasy", "adventure", "dragon", "princess",
+  "pirate", "fairy", "wizard",
+]);
+const SOL_CASUAL_URL = "https://xqoxoxxlyfimlbekfjxo.supabase.co/storage/v1/object/public/character-assets/sol%20casual.png";
+const SOL_HERO_URL   = "https://xqoxoxxlyfimlbekfjxo.supabase.co/storage/v1/object/public/character-assets/sol%20hero.png";
+const CHARACTER_BASE_REFS = [
   "https://xqoxoxxlyfimlbekfjxo.supabase.co/storage/v1/object/public/character-assets/ben.jpeg",
   "https://xqoxoxxlyfimlbekfjxo.supabase.co/storage/v1/object/public/character-assets/zoe.jpeg",
   "https://xqoxoxxlyfimlbekfjxo.supabase.co/storage/v1/object/public/character-assets/leo.jpeg",
   "https://xqoxoxxlyfimlbekfjxo.supabase.co/storage/v1/object/public/character-assets/mia.jpeg",
 ];
+function getSolUrl(topic: string): { url: string; label: string } {
+  const isAdventure = ADVENTURE_TOPICS.has(topic);
+  return { url: isAdventure ? SOL_HERO_URL : SOL_CASUAL_URL, label: isAdventure ? "Sol hero" : "Sol casual" };
+}
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -106,29 +116,27 @@ serve(async (req) => {
       if (signedData?.signedUrl) childPhoto = signedData.signedUrl;
     }
 
-    // Build character profile
-    let characterProfile = null;
-    if (child?.avatar_description) {
-      try { characterProfile = JSON.parse(child.avatar_description); } catch {}
-    }
+    // Select correct Sol variant based on story topic
+    const sol = getSolUrl(story.topic || "");
+    console.log(`Sol variant: ${sol.label} for topic "${story.topic}"`);
 
     const stylePrefix = `In the style of modern 3D Disney-Pixar animation, high resolution, magical atmosphere, magical glowing light, dreamy warm and inviting atmosphere. Characters with large expressive emotional eyes, detailed hair, soft textures. ALWAYS show characters as FULL BODY (head to toe) or at minimum from waist up — NEVER just a head or face. 9:16 portrait aspect ratio.
 
 === MANDATORY CHARACTER REFERENCES ===
 Reference images of each cast character are provided above. You MUST match their appearance EXACTLY:
-- Image 1 (Sol casual): default look — educational/daily-life themes
-- Image 2 (Sol hero): fantasy/adventure look — use ONLY for fantasy/adventure themes
-- Image 3 (Ben): toddler, very curly dark hair, SMALLER than Sol
-- Image 4 (Zoe): dark brown skin, afro with light blue headband, purple-yellow tracksuit
-- Image 5 (Leo): round glasses, straight black hair, denim overalls
-- Image 6 (Mia): smooth brown bob, flower crown, emerald green dress
+- Image 1 (${sol.label}): Sol's ${sol.label === "Sol hero" ? "adventure/fantasy" : "everyday casual"} look — match EXACTLY
+- Image 2 (Ben): toddler, very curly dark hair, SMALLER than Sol
+- Image 3 (Zoe): dark brown skin, afro with light blue headband, purple-yellow tracksuit
+- Image 4 (Leo): round glasses, straight black hair, denim overalls
+- Image 5 (Mia): smooth brown bob, flower crown, emerald green dress
 ZERO INVENTION: Do not add random characters not shown in these references. If multiple cast characters appear in the scene, ALL of them must appear together.
 
 NEGATIVE PROMPT / EXCLUDE: floating head, disembodied head, head without body, missing body, missing limbs, extra limbs, deformed, distorted, scary, horror, grotesque, mutated, disfigured, severed, decapitated, cropped head only, face only, no body, text, watermark, UI elements, buttons, audio icons.`;
+
     const prompt = customPrompt || page.illustration_prompt || `A cheerful children's book illustration for page ${page.page_number}`;
 
-    // Build multi-image content: character references first, then optional child photo, then text
-    const characterRefContent = CHARACTER_REFERENCES.map(url => ({
+    // Build multi-image content: [Sol variant, Ben, Zoe, Leo, Mia] + optional child photo + text
+    const characterRefContent = [sol.url, ...CHARACTER_BASE_REFS].map(url => ({
       type: "image_url",
       image_url: { url },
     }));
@@ -198,14 +206,10 @@ NEGATIVE PROMPT / EXCLUDE: floating head, disembodied head, head without body, m
       });
     }
 
-    // Update page
     await supabase
       .from("story_pages")
       .update({ illustration_url: filePath })
       .eq("id", pageId);
-
-    // Cover is now handled by the dedicated generate-cover function
-    // Retrying page 1 no longer updates cover_url
 
     console.log(`✅ Retry illustration success for page ${page.page_number}`);
 
