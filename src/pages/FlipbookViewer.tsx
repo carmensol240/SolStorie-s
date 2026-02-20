@@ -151,8 +151,8 @@ const FlipbookViewer = () => {
   const handleShare = async () => {
     if (!digitalBook || !story) return;
     
-    // Clean public URL using story ID
-    const publicUrl = `https://soulstory.co.il/story/${story.id}`;
+    // Clean public URL using slug (fallback to UUID)
+    const publicUrl = `https://soulstory.co.il/story/${(story as any).slug || story.id}`;
     const title = `✨ ${story.topic} ✨`;
     const summary = pages[0]?.text 
       ? (pages[0].text.length > 100 ? pages[0].text.substring(0, 100).trim() + '...' : pages[0].text)
