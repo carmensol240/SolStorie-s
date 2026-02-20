@@ -125,7 +125,7 @@ serve(async (req) => {
 === MANDATORY CHARACTER REFERENCES ===
 Reference images of each cast character are provided above. You MUST match their appearance EXACTLY:
 - Image 1 (${sol.label}): Sol's ${sol.label === "Sol hero" ? "adventure/fantasy" : "everyday casual"} look — match EXACTLY
-- Image 2 (Ben): toddler, very curly dark hair, SMALLER than Sol
+- Image 2 (Ben — Sol's LITTLE BROTHER): toddler, very curly dark hair, warm tan skin matching Sol (siblings). When both appear together, depict sibling bond. Always SMALLER than Sol.
 - Image 3 (Zoe): dark brown skin, afro with light blue headband, purple-yellow tracksuit
 - Image 4 (Leo): round glasses, straight black hair, denim overalls
 - Image 5 (Mia): smooth brown bob, flower crown, emerald green dress
