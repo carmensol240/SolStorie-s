@@ -7,6 +7,16 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
 };
 
+// Canonical character reference images — injected into every illustration generation call
+const CHARACTER_REFERENCES = [
+  "https://xqoxoxxlyfimlbekfjxo.supabase.co/storage/v1/object/public/character-assets/sol%20casual.png",
+  "https://xqoxoxxlyfimlbekfjxo.supabase.co/storage/v1/object/public/character-assets/sol%20hero.png",
+  "https://xqoxoxxlyfimlbekfjxo.supabase.co/storage/v1/object/public/character-assets/ben.jpeg",
+  "https://xqoxoxxlyfimlbekfjxo.supabase.co/storage/v1/object/public/character-assets/zoe.jpeg",
+  "https://xqoxoxxlyfimlbekfjxo.supabase.co/storage/v1/object/public/character-assets/leo.jpeg",
+  "https://xqoxoxxlyfimlbekfjxo.supabase.co/storage/v1/object/public/character-assets/mia.jpeg",
+];
+
 // Character Profile interface for consistency across illustrations
 interface CharacterProfile {
   gender: string;
@@ -182,6 +192,16 @@ ${visualAnchor}
 
 ${characterInstruction}
 ${adventureInstruction}
+=== MANDATORY CHARACTER REFERENCES ===
+Reference images of each cast character are provided above. You MUST match their appearance EXACTLY:
+- Image 1 (Sol casual): default look — use for educational/daily-life themes
+- Image 2 (Sol hero): fantasy/adventure look — use ONLY for fantasy/adventure themes
+- Image 3 (Ben): toddler, very curly dark hair, SMALLER than Sol
+- Image 4 (Zoe): dark brown skin, afro with light blue headband, purple-yellow tracksuit
+- Image 5 (Leo): round glasses, straight black hair, denim overalls
+- Image 6 (Mia): smooth brown bob, flower crown, emerald green dress
+ZERO INVENTION: Do not add random characters not shown in these references. If multiple cast characters appear in the story text, ALL of them must appear together in the same scene.
+
 SCENE TO ILLUSTRATE: ${prompt}
 
 STYLE REQUIREMENTS:
@@ -200,6 +220,12 @@ STYLE REQUIREMENTS:
 
 NEGATIVE PROMPT / EXCLUDE: floating head, disembodied head, head without body, missing body, missing limbs, extra limbs, deformed, distorted, scary, horror, grotesque, mutated, disfigured, severed, decapitated, cropped head only, face only, no body, text, watermark, UI elements, buttons, audio icons.`;
 
+    // Build multi-image content: character references first, then optional child photo, then text
+    const characterRefContent = CHARACTER_REFERENCES.map(url => ({
+      type: "image_url",
+      image_url: { url },
+    }));
+
     const requestBody: any = {
       model: "google/gemini-3-pro-image-preview",
       modalities: ["image", "text"],
@@ -208,10 +234,14 @@ NEGATIVE PROMPT / EXCLUDE: floating head, disembodied head, head without body, m
           role: "user",
           content: childPhoto
             ? [
-                { type: "text", text: `Based on this child's photo, create a HIGH QUALITY 3D Disney-Pixar style illustration of them in this scene: ${enhancedPrompt}. CRITICAL: Keep the character's FACE (hair color, hair style, skin tone, eye color, face shape) IDENTICAL to the reference photo. HOWEVER, IGNORE the clothing in the photo — the character MUST wear EXACTLY: ${finalOutfit}. Do NOT copy or reference the clothes from the photo. This MUST look like a premium children's book illustration.` },
-                { type: "image_url", image_url: { url: childPhoto } }
+                ...characterRefContent,
+                { type: "image_url", image_url: { url: childPhoto } },
+                { type: "text", text: `Based on the child's photo (last image before this text), create a HIGH QUALITY 3D Disney-Pixar style illustration of them in this scene: ${enhancedPrompt}. CRITICAL: Keep the character's FACE (hair color, hair style, skin tone, eye color, face shape) IDENTICAL to the reference photo. HOWEVER, IGNORE the clothing in the photo — the character MUST wear EXACTLY: ${finalOutfit}. Do NOT copy or reference the clothes from the photo. This MUST look like a premium children's book illustration.` },
               ]
-            : enhancedPrompt
+            : [
+                ...characterRefContent,
+                { type: "text", text: enhancedPrompt },
+              ]
         }
       ]
     };

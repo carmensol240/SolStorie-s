@@ -7,6 +7,16 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
 };
 
+// Canonical character reference images — injected into every cover generation call
+const CHARACTER_REFERENCES = [
+  "https://xqoxoxxlyfimlbekfjxo.supabase.co/storage/v1/object/public/character-assets/sol%20casual.png",
+  "https://xqoxoxxlyfimlbekfjxo.supabase.co/storage/v1/object/public/character-assets/sol%20hero.png",
+  "https://xqoxoxxlyfimlbekfjxo.supabase.co/storage/v1/object/public/character-assets/ben.jpeg",
+  "https://xqoxoxxlyfimlbekfjxo.supabase.co/storage/v1/object/public/character-assets/zoe.jpeg",
+  "https://xqoxoxxlyfimlbekfjxo.supabase.co/storage/v1/object/public/character-assets/leo.jpeg",
+  "https://xqoxoxxlyfimlbekfjxo.supabase.co/storage/v1/object/public/character-assets/mia.jpeg",
+];
+
 // Topic-to-Setting mapping for magical cover backgrounds
 const TOPIC_SETTINGS: Record<string, string> = {
   "space-adventure": "Cosmic space station floating among glowing stars, colorful planets, and shimmering nebulae",
@@ -75,12 +85,21 @@ serve(async (req) => {
 
     const coverPrompt = `In the style of modern 3D Disney-Pixar animation, 8K resolution, soft cinematic lighting, vibrant harmonious colors. Portrait orientation (9:16 aspect ratio).
 
+=== MANDATORY CHARACTER REFERENCES ===
+Reference images of EACH character are provided above. You MUST match their appearance EXACTLY — facial features, hair color, hair style, and skin tone MUST be taken DIRECTLY from the reference images. Zero invented characters.
+- Image 1 (Sol casual): Sol's default look — warm tan skin, long dark brown ponytail with pink band, yellow dress
+- Image 2 (Sol hero): Sol's fantasy/adventure look — use ONLY for fantasy/adventure themes
+- Image 3 (Ben): Toddler with very curly dark hair, warm tan skin — always the SMALLEST character
+- Image 4 (Zoe): Dark brown skin, voluminous afro with light blue headband, purple-yellow tracksuit, soccer ball
+- Image 5 (Leo): Straight black hair, round glasses, denim overalls, rainbow pencil
+- Image 6 (Mia): Smooth brown bob, small flower crown, emerald green dress
+
 CHARACTERS (all 5 must appear together in the scene, posing as a group of friends):
-1. Sol - a girl about 4 years old, warm tan skin, large expressive brown eyes, long wavy dark brown hair (NOT blonde) tied in a high ponytail with a bright pink hair band. Wearing a bright sunny yellow dress. She stands slightly to the side with a warm smile.
-2. Mia - a girl about 4 years old, wearing an emerald green dress, smooth brown bob cut hair, with a small flower crown on her head. She has a gentle, curious expression.
-3. Leo - a boy about 4 years old, straight black hair, round glasses, wearing denim overalls over a red-and-yellow striped shirt. He is holding a large rainbow-colored pencil. He has a thoughtful, friendly smile.
-4. Ben - a small curly-haired toddler about 3 years old, dark brown curly hair (NOT blonde), warm tan skin similar to Sol (they look like siblings). He stands in the center/front of the group, the smallest of all. Wearing a light green or sky blue shirt.
-5. Zoe - a girl about 4 years old with dark brown skin, voluminous afro hair with a light blue headband between her forehead and curls. Wearing a purple-and-yellow tracksuit. She is holding a soccer ball under one arm. She has an energetic, confident pose.
+1. Sol - match EXACTLY from reference image 1 (or 2 for fantasy topics). Warm tan skin, large expressive brown eyes, long dark brown ponytail with pink hair band, bright yellow dress. Stands slightly to the side with a warm smile.
+2. Mia - match EXACTLY from reference image 6. Smooth brown bob, small flower crown, emerald green dress. Gentle curious expression.
+3. Leo - match EXACTLY from reference image 5. Straight black hair, round glasses, denim overalls over red-yellow striped shirt, rainbow pencil. Thoughtful friendly smile.
+4. Ben - match EXACTLY from reference image 3. Very curly dark brown hair, warm tan skin like Sol (siblings). Stands center/front, NOTICEABLY SMALLER than all others. Light green or sky blue shirt.
+5. Zoe - match EXACTLY from reference image 4. Dark brown skin, voluminous afro with light blue headband, purple-yellow tracksuit, soccer ball under one arm. Energetic confident pose.
 
 HEIGHT RELATIONSHIPS: Sol, Mia, Leo, and Zoe are roughly the same height. Ben is noticeably shorter — the youngest and smallest in the group.
 
@@ -92,12 +111,21 @@ COMPOSITION: This is a BOOK COVER. The 5 characters should be arranged as a grou
 
 EXCLUDE / NEGATIVE PROMPT: No UI elements, no buttons, no audio icons, no play buttons, no watermarks, no text beyond the story title. No additional characters beyond the 5 described. No floating heads, no disembodied heads, no missing bodies, no missing limbs, no extra limbs, no deformed characters, no distorted faces, no scary imagery, no grotesque elements, no mutated features. All characters must be shown as FULL BODY from head to toe.`;
 
+    // Build multi-image content: character references first, then the text prompt
+    const characterRefContent = CHARACTER_REFERENCES.map(url => ({
+      type: "image_url",
+      image_url: { url },
+    }));
+
     const requestBody = {
       model: "google/gemini-3-pro-image-preview",
       modalities: ["image", "text"],
       messages: [{
         role: "user",
-        content: coverPrompt,
+        content: [
+          ...characterRefContent,
+          { type: "text", text: coverPrompt },
+        ],
       }],
     };
 
