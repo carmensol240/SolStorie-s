@@ -22,7 +22,7 @@ export interface StoryFormData {
   childName: string;
   childGender: "male" | "female";
   ageRange: "0-2" | "2-4" | "5-7" | "8-10";
-  storyLength: "short" | "long";
+  storyLength: "short" | "long" | "extra-long";
   childPhoto: string | null;
   childAvatarUrl: string | null;
   nikud: boolean;
