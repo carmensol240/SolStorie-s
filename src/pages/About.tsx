@@ -49,84 +49,84 @@ const About = () => {
       <div className="flex-1 flex flex-col items-center px-6 pt-8 pb-16 max-w-lg mx-auto text-center relative z-10">
         
         {/* Title */}
-        <h1 className="text-3xl sm:text-4xl font-black text-white leading-tight mb-3 drop-shadow-lg" style={{ textShadow: '0 2px 8px rgba(0,0,0,0.5)' }}>
-          ✨ ברוכים הבאים לממלכת הסיפורים של <span dir="ltr" className="inline-block bg-gradient-to-r from-purple-300 via-pink-300 to-orange-300 bg-clip-text text-transparent drop-shadow-none" style={{ textShadow: 'none', filter: 'drop-shadow(0 1px 3px rgba(168,85,247,0.4))' }}>SolStorie's™</span> ✨
+        <h1 className="text-2xl font-black text-white/95 leading-snug mb-2">
+          ✨ ברוכים הבאים לממלכת הסיפורים של <span dir="ltr" className="inline-block bg-gradient-to-r from-purple-300 via-pink-300 to-orange-300 bg-clip-text text-transparent">SolStorie's™</span> ✨
         </h1>
-        <p className="text-base font-bold text-white/80 mb-5">
+        <p className="text-lg font-black text-white/90 mb-5" style={{ textShadow: '0 1px 4px rgba(0,0,0,0.4)' }}>
           המקום שבו הילד שלכם הופך לגיבור הסיפור
         </p>
 
         {/* Personal intro */}
-        <p className="text-base font-bold text-white/90 leading-relaxed mb-1">
+        <p className="text-lg font-black text-white/95 leading-relaxed mb-1" style={{ textShadow: '0 1px 4px rgba(0,0,0,0.4)' }}>
           שלום, אני אמא של סול.
         </p>
-        <p className="text-sm text-white/75 leading-relaxed mb-5 px-1">
+        <p className="text-base font-bold text-white/85 leading-relaxed mb-5 px-1" style={{ textShadow: '0 1px 3px rgba(0,0,0,0.3)' }}>
           <span dir="ltr" className="inline-block">SolStorie's</span> נולדה מתוך רצון להעניק לבתי מרחב קסום שמעמיד את עולמה הפנימי במרכז. מה שהתחיל כפיתוח אישי שנועד להעשיר את רגעי הדמיון שלה, הפך לטכנולוגיה פורצת דרך שמעניקה לכל ילד וילדה את הכוח ליצור ולהוביל את הסיפור הייחודי שלהם.
         </p>
-        <p className="text-sm text-white/75 leading-relaxed mb-5 px-1">
+        <p className="text-base font-bold text-white/85 leading-relaxed mb-5 px-1" style={{ textShadow: '0 1px 3px rgba(0,0,0,0.3)' }}>
           הצורך שלי ליצור נבע מהרצון להנגיש לסול את העולם בדרך שהיא מבינה ואוהבת. השתמשתי בסיפורים כדי לתווך לה ברכות אתגרים יומיומיים - החל מביטחון בסיטואציות חברתיות חדשות ועד לצליחת רגעים קטנים כמו צחצוח שיניים או חפיפת שיער. דרך הסיפורים, אני הופכת כל התמודדות להרפתקה משותפת, מעודדת שפה חיובית ומעניקה לסול ולכל ילד וילדה את הכלים לבחור בטוב, להתרגש ולגדול בביטחון.
         </p>
 
         {/* Features section */}
-        <p className="text-base font-bold text-white/90 leading-relaxed mb-4">
+        <p className="text-lg font-black text-white/95 leading-relaxed mb-4" style={{ textShadow: '0 1px 4px rgba(0,0,0,0.4)' }}>
           🌟 למה <span dir="ltr" className="inline-block">SolStorie's</span> היא הרבה מעבר לאפליקציה?
         </p>
 
         <div className="space-y-4 mb-5 w-full">
           <div className="flex flex-col items-center gap-1.5">
             <span className="text-3xl">⭐</span>
-            <p className="text-sm text-white/80 leading-snug px-4">
-              <strong className="text-amber-200">הילד שלכם בלב העלילה</strong> — תמונת הילד הופכת לדמות מאוירת בסגנון קלאסי שמובילה את הסיפור לאורך כל הדרך.
+            <p className="text-base font-bold text-white/85 leading-snug px-4" style={{ textShadow: '0 1px 3px rgba(0,0,0,0.3)' }}>
+              <strong className="text-amber-200 font-black">הילד שלכם בלב העלילה</strong> — תמונת הילד הופכת לדמות מאוירת בסגנון קלאסי שמובילה את הסיפור לאורך כל הדרך.
             </p>
           </div>
 
           <div className="flex flex-col items-center gap-1.5">
             <span className="text-3xl">👫</span>
-            <p className="text-sm text-white/80 leading-snug px-4">
-              <strong className="text-pink-200">החבורה של סול</strong> — הילד שלכם מצטרף לסול, ליאו, זואי, בן ומיה – חבורה של חברים טובים שיוצאים יחד איתו למסעות ומלמדים על חברות ואומץ.
+            <p className="text-base font-bold text-white/85 leading-snug px-4" style={{ textShadow: '0 1px 3px rgba(0,0,0,0.3)' }}>
+              <strong className="text-pink-200 font-black">החבורה של סול</strong> — הילד שלכם מצטרף לסול, ליאו, זואי, בן ומיה – חבורה של חברים טובים שיוצאים יחד איתו למסעות ומלמדים על חברות ואומץ.
             </p>
           </div>
 
           <div className="flex flex-col items-center gap-1.5">
             <span className="text-3xl">💜</span>
-            <p className="text-sm text-white/80 leading-snug px-4">
-              <strong className="text-purple-200">סיפורים חברתיים מתוך הלב</strong> — הספרייה שלנו כוללת למעלה מ-50 נושאים מהיומיום שנבחרו בקפידה כדי לתווך סיטואציות רגשיות מורכבות בשילוב כלי NLP.
+            <p className="text-base font-bold text-white/85 leading-snug px-4" style={{ textShadow: '0 1px 3px rgba(0,0,0,0.3)' }}>
+              <strong className="text-purple-200 font-black">סיפורים חברתיים מתוך הלב</strong> — הספרייה שלנו כוללת למעלה מ-50 נושאים מהיומיום שנבחרו בקפידה כדי לתווך סיטואציות רגשיות מורכבות בשילוב כלי NLP.
             </p>
           </div>
 
           <div className="flex flex-col items-center gap-1.5">
             <span className="text-3xl">🧩</span>
-            <p className="text-sm text-white/80 leading-snug px-4">
-              <strong className="text-green-200">חיבור עמוק לרצף התקשורתי</strong> — האפליקציה מונגשת לבעלי מוגבלויות והתוכן מותאם במיוחד גם עבור ילדים על הרצף. הדיוק הזה מגיע מתוך הבנה עמוקה וניסיון אישי בחשיבותם המכרעת של סיפורים חברתיים ככלי לתווך את המציאות, להנגיש סיטואציות חברתיות ולייצר ביטחון עצמי.
+            <p className="text-base font-bold text-white/85 leading-snug px-4" style={{ textShadow: '0 1px 3px rgba(0,0,0,0.3)' }}>
+              <strong className="text-green-200 font-black">חיבור עמוק לרצף התקשורתי</strong> — האפליקציה מונגשת לבעלי מוגבלויות והתוכן מותאם במיוחד גם עבור ילדים על הרצף. הדיוק הזה מגיע מתוך הבנה עמוקה וניסיון אישי בחשיבותם המכרעת של סיפורים חברתיים ככלי לתווך את המציאות, להנגיש סיטואציות חברתיות ולייצר ביטחון עצמי.
             </p>
           </div>
 
           <div className="flex flex-col items-center gap-1.5">
             <span className="text-3xl">🎓</span>
-            <p className="text-sm text-white/80 leading-snug px-4">
-              <strong className="text-amber-200">ארגז כלים לאנשי חינוך</strong> — קטגוריה ייעודית הכוללת תכנים פדגוגיים מבוססי NLP לעבודה רגשית וחברתית בקבוצות ובגנים.
+            <p className="text-base font-bold text-white/85 leading-snug px-4" style={{ textShadow: '0 1px 3px rgba(0,0,0,0.3)' }}>
+              <strong className="text-amber-200 font-black">ארגז כלים לאנשי חינוך</strong> — קטגוריה ייעודית הכוללת תכנים פדגוגיים מבוססי NLP לעבודה רגשית וחברתית בקבוצות ובגנים.
             </p>
           </div>
 
           <div className="flex flex-col items-center gap-1.5">
             <span className="text-3xl">🇺🇸</span>
-            <p className="text-sm text-white/80 leading-snug px-4">
-              <strong className="text-blue-200">העולם מדבר אנגלית</strong> — גרסה אנגלית מלאה המאפשרת חשיפה לשפה ולמידה חווייתית.
+            <p className="text-base font-bold text-white/85 leading-snug px-4" style={{ textShadow: '0 1px 3px rgba(0,0,0,0.3)' }}>
+              <strong className="text-blue-200 font-black">העולם מדבר אנגלית</strong> — גרסה אנגלית מלאה המאפשרת חשיפה לשפה ולמידה חווייתית.
             </p>
           </div>
 
           <div className="flex flex-col items-center gap-1.5">
             <span className="text-3xl">📱</span>
-            <p className="text-sm text-white/80 leading-snug px-4">
-              <strong className="text-pink-200">בכל מקום ובכל זמן</strong> — הקסם מלווה אתכם בטלפון, בטאבלט ובמחשב האישי.
+            <p className="text-base font-bold text-white/85 leading-snug px-4" style={{ textShadow: '0 1px 3px rgba(0,0,0,0.3)' }}>
+              <strong className="text-pink-200 font-black">בכל מקום ובכל זמן</strong> — הקסם מלווה אתכם בטלפון, בטאבלט ובמחשב האישי.
             </p>
           </div>
         </div>
 
         {/* Safety section */}
         <div className="bg-white/5 border border-white/10 rounded-xl p-3 mb-4 w-full">
-          <p className="text-sm text-white/80 leading-relaxed">
-            🛡️ <strong className="text-green-200">מחויבות לבטיחות ואחריות</strong> — אנו שומרים על פרטיותכם לפי התקנות המחמירות ביותר. כל התכנים והדמויות הם קניין רוחני בלעדי של <span dir="ltr" className="inline-block">SolStorie's™</span>.
+          <p className="text-base font-bold text-white/85 leading-relaxed" style={{ textShadow: '0 1px 3px rgba(0,0,0,0.3)' }}>
+            🛡️ <strong className="text-green-200 font-black">מחויבות לבטיחות ואחריות</strong> — אנו שומרים על פרטיותכם לפי התקנות המחמירות ביותר. כל התכנים והדמויות הם קניין רוחני בלעדי של <span dir="ltr" className="inline-block">SolStorie's™</span>.
           </p>
         </div>
 
@@ -143,7 +143,7 @@ const About = () => {
 
         {/* Disclaimer */}
         <div className="bg-white/5 border border-white/10 rounded-xl p-3 w-full">
-          <p className="text-xs text-white/60 leading-relaxed">
+          <p className="text-sm font-bold text-white/70 leading-relaxed" style={{ textShadow: '0 1px 3px rgba(0,0,0,0.3)' }}>
             ⚕️ השימוש באפליקציה הוא כלי עזר טכנולוגי וחווייתי בלבד ואינו מהווה תחליף לייעוץ מקצועי, חינוכי או רפואי.
           </p>
         </div>
