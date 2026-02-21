@@ -119,6 +119,34 @@ const StoryViewer = () => {
   const { audioSupport } = useAccessibility();
   const { startReading, stopReading, isReading, isLoading: isTtsLoading } = useTextToSpeech();
 
+  // Lock orientation to landscape on mobile
+  useEffect(() => {
+    const lockLandscape = async () => {
+      try {
+        const orientation = screen?.orientation;
+        if (orientation && typeof orientation.lock === 'function') {
+          await orientation.lock('landscape');
+          console.log('[StoryViewer] Orientation locked to landscape');
+        }
+      } catch (e) {
+        // Orientation lock not supported or denied - that's OK
+        console.log('[StoryViewer] Orientation lock not available:', (e as Error).message);
+      }
+    };
+    lockLandscape();
+
+    return () => {
+      try {
+        const orientation = screen?.orientation;
+        if (orientation && typeof orientation.unlock === 'function') {
+          orientation.unlock();
+        }
+      } catch (e) {
+        // Ignore
+      }
+    };
+  }, []);
+
   // Cleanup polling on unmount
   useEffect(() => {
     return () => {
@@ -858,7 +886,7 @@ const StoryViewer = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-purple-50 via-pink-50 to-orange-50 flex flex-col" dir="rtl">
+    <div className="h-[100dvh] bg-gradient-to-b from-purple-50 via-pink-50 to-orange-50 flex flex-col story-viewer-landscape overflow-hidden" dir="rtl">
       <OfflineIndicator isOnline={isOnline} />
       
       {/* Header */}
@@ -935,15 +963,15 @@ const StoryViewer = () => {
         onClick={!isMobile ? handleAreaClick : undefined}
       >
         <div className={cn(
-          "relative w-full flex-1 transition-opacity duration-300 ease-in-out",
+          "relative w-full flex-1 transition-opacity duration-300 ease-in-out overflow-hidden",
           isFlipping && "opacity-0"
         )}>
             
             {isCoverPage ? (
-              /* Cover Page - Immersive vertical layout */
-              <div className="min-h-[80vh] flex flex-col">
-                {/* Cover Illustration - edge to edge */}
-                <div className="relative w-full" style={{ minHeight: '55vh' }}>
+              /* Cover Page - Horizontal open book layout */
+              <div className="open-book-spread relative">
+                {/* Left page - Illustration */}
+                <div className="open-book-page-left bg-[#FFFBF5]">
                   {story.pages[0]?.illustration_url ? (
                     <img
                       src={getPublicIllustrationUrl(story.pages[0].illustration_url) || ''}
@@ -969,28 +997,28 @@ const StoryViewer = () => {
                       />
                     </div>
                   )}
-                  {/* Gradient fade to cream */}
-                  <div className="absolute bottom-0 left-0 right-0 h-24 bg-gradient-to-t from-[#FFFBF5] to-transparent pointer-events-none" />
+                  <div className="page-curl-corner bottom-left" />
                 </div>
                 
-                {/* Title area on cream background */}
-                <div className="flex-1 flex flex-col items-center justify-center p-6 md:p-10 text-center bg-[#FFFBF5]">
-                  <div className="space-y-5">
-                    <h1 className="text-4xl md:text-5xl lg:text-6xl font-black text-[#3D2914] leading-tight" style={{ fontFamily: "'Heebo', 'Comic Sans MS', cursive, sans-serif" }}>
+                {/* Right page - Title (RTL: this is the right side) */}
+                <div className="open-book-page-right p-6 md:p-10 text-center bg-[#FFFBF5]">
+                  <div className="page-curl-corner bottom-right" />
+                  <div className="space-y-4">
+                    <h1 className="text-3xl md:text-4xl lg:text-5xl font-black text-[#3D2914] leading-tight" style={{ fontFamily: "'Heebo', 'Comic Sans MS', cursive, sans-serif" }}>
                       הסיפור של
                       <br />
-                      <span className="text-5xl md:text-6xl lg:text-7xl bg-gradient-to-r from-purple-600 via-pink-500 to-orange-400 bg-clip-text text-transparent">
+                      <span className="text-4xl md:text-5xl lg:text-6xl bg-gradient-to-r from-purple-600 via-pink-500 to-orange-400 bg-clip-text text-transparent">
                         {story.child_name}
                       </span>
                     </h1>
                     
                     <div className="flex items-center justify-center gap-3">
-                      <div className="w-16 h-1 bg-gradient-to-r from-transparent to-pink-400 rounded-full" />
-                      <span className="text-2xl">✨</span>
-                      <div className="w-16 h-1 bg-gradient-to-l from-transparent to-pink-400 rounded-full" />
+                      <div className="w-12 h-1 bg-gradient-to-r from-transparent to-pink-400 rounded-full" />
+                      <span className="text-xl">✨</span>
+                      <div className="w-12 h-1 bg-gradient-to-l from-transparent to-pink-400 rounded-full" />
                     </div>
                     
-                    <p className="text-lg md:text-xl text-[#6B4423] max-w-xs mx-auto font-medium">
+                    <p className="text-base md:text-lg text-[#6B4423] max-w-xs mx-auto font-medium">
                       {translateTopic(story.topic, story.language)}
                     </p>
                   </div>
@@ -998,112 +1026,118 @@ const StoryViewer = () => {
                   <Button 
                     size="lg"
                     onClick={() => handleSpreadChange('next')}
-                    className="mt-10 bg-gradient-to-r from-purple-600 to-pink-500 hover:from-purple-700 hover:to-pink-600 text-white font-bold px-10 py-7 text-xl rounded-full shadow-xl hover:shadow-2xl transition-all transform hover:scale-105 border-2 border-white/50"
+                    className="mt-6 bg-gradient-to-r from-purple-600 to-pink-500 hover:from-purple-700 hover:to-pink-600 text-white font-bold px-8 py-5 text-lg rounded-full shadow-xl hover:shadow-2xl transition-all transform hover:scale-105 border-2 border-white/50"
                   >
-                    <BookOpen className="w-6 h-6 ml-3" />
+                    <BookOpen className="w-5 h-5 ml-2" />
                     פתח את הספר 📖
                   </Button>
                 </div>
               </div>
             ) : isEndPage ? (
-              /* End Page */
-              <div className="min-h-[80vh] flex flex-col bg-[#FFFBF5]">
-                {story.pages[story.pages.length - 1]?.illustration_url && (
-                  <div className="relative w-full" style={{ minHeight: '40vh' }}>
+              /* End Page - Horizontal open book */
+              <div className="open-book-spread relative bg-[#FFFBF5]">
+                {/* Left page - Last illustration */}
+                <div className="open-book-page-left bg-[#FFFBF5]">
+                  {story.pages[story.pages.length - 1]?.illustration_url ? (
                     <img
                       src={getPublicIllustrationUrl(story.pages[story.pages.length - 1].illustration_url) || ''}
                       alt={`סיום הסיפור של ${story.child_name}`}
                       className="w-full h-full object-cover absolute inset-0"
                       loading="eager"
                     />
-                    <div className="absolute bottom-0 left-0 right-0 h-24 bg-gradient-to-t from-[#FFFBF5] to-transparent pointer-events-none" />
-                  </div>
-                )}
+                  ) : (
+                    <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-purple-100 to-pink-100">
+                      <Sparkles className="w-16 h-16 text-purple-300" />
+                    </div>
+                  )}
+                  <div className="page-curl-corner bottom-left" />
+                </div>
                 
-                <div className="flex-1 flex flex-col items-center justify-center p-8 text-center">
-                  <div className="space-y-4">
-                    <p className="text-3xl md:text-4xl font-bold text-purple-800">
+                {/* Right page - End content */}
+                <div className="open-book-page-right p-6 md:p-8 text-center bg-[#FFFBF5] overflow-y-auto">
+                  <div className="page-curl-corner bottom-right" />
+                  <div className="space-y-3">
+                    <p className="text-2xl md:text-3xl font-bold text-purple-800">
                       ✦ סוף ✦
                     </p>
-                    <p className="text-xl text-purple-600">
+                    <p className="text-lg text-purple-600">
                       תודה שקראתם!
                     </p>
-                    <p className="text-base text-purple-500">
+                    <p className="text-sm text-purple-500">
                       הסיפור של {story.child_name}
                     </p>
                   </div>
 
-                  <div className="flex flex-col sm:flex-row gap-3 mt-8">
+                  <div className="flex flex-row gap-2 mt-4 justify-center">
                     <Button 
                       variant="outline"
-                      size="lg"
+                      size="sm"
                       onClick={() => setCurrentPage(-1)}
-                      className="border-2 border-purple-400 text-purple-700 hover:bg-purple-50 px-6 py-5 rounded-full"
+                      className="border-2 border-purple-400 text-purple-700 hover:bg-purple-50 px-4 py-3 rounded-full text-sm"
                     >
-                      <span className="ml-2"><BookOpen className="w-5 h-5" /></span>
+                      <span className="ml-1"><BookOpen className="w-4 h-4" /></span>
                       קרא שוב
                     </Button>
                     <Button 
-                      size="lg"
+                      size="sm"
                       onClick={() => navigate('/library')}
-                      className="bg-gradient-to-r from-purple-600 to-pink-500 hover:from-purple-700 hover:to-pink-600 text-white px-6 py-5 rounded-full"
+                      className="bg-gradient-to-r from-purple-600 to-pink-500 hover:from-purple-700 hover:to-pink-600 text-white px-4 py-3 rounded-full text-sm"
                     >
-                      <span className="ml-2"><Home className="w-5 h-5" /></span>
+                      <span className="ml-1"><Home className="w-4 h-4" /></span>
                       לספרייה
                     </Button>
                   </div>
 
-                  {/* Feedback Box */}
+                  {/* Feedback Box - compact for landscape */}
                   {!endFeedbackSent ? (
-                    <div className="w-full max-w-sm bg-white rounded-xl p-5 shadow-lg border border-purple-100 space-y-3 mt-8" dir="rtl">
-                      <h3 className="text-center text-base font-bold text-purple-800">
+                    <div className="w-full max-w-xs bg-white rounded-xl p-3 shadow-lg border border-purple-100 space-y-2 mt-4 mx-auto" dir="rtl">
+                      <h3 className="text-center text-sm font-bold text-purple-800">
                         ✨ שתפו אותנו בקסם שלכם
                       </h3>
-                      <div className="flex justify-center gap-1">
+                      <div className="flex justify-center gap-0.5">
                         {[1, 2, 3, 4, 5].map((s) => (
                           <button
                             key={s}
                             onClick={() => setEndFeedbackRating(s)}
                             onMouseEnter={() => setEndFeedbackHover(s)}
                             onMouseLeave={() => setEndFeedbackHover(0)}
-                            className="p-1 transition-transform hover:scale-110"
+                            className="p-0.5 transition-transform hover:scale-110"
                             aria-label={`דירוג ${s} כוכבים`}
                           >
-                            <Star className={`w-8 h-8 ${s <= (endFeedbackHover || endFeedbackRating) ? 'fill-amber-400 text-amber-400' : 'text-purple-200'} transition-colors`} />
+                            <Star className={`w-6 h-6 ${s <= (endFeedbackHover || endFeedbackRating) ? 'fill-amber-400 text-amber-400' : 'text-purple-200'} transition-colors`} />
                           </button>
                         ))}
                       </div>
                       <Textarea
                         value={endFeedbackMessage}
                         onChange={(e) => setEndFeedbackMessage(e.target.value)}
-                        placeholder="ספרו לנו מה אהבתם, מה הפתיע אתכם, או שתפו טיפ להורים אחרים 💬"
-                        className="text-sm min-h-[70px] resize-none"
+                        placeholder="ספרו לנו מה אהבתם 💬"
+                        className="text-xs min-h-[40px] resize-none"
                         dir="rtl"
                       />
                       <Button
                         onClick={handleEndFeedbackSubmit}
                         disabled={endFeedbackRating === 0 || endFeedbackSending}
                         size="sm"
-                        className="w-full gap-1.5 bg-gradient-to-r from-purple-600 to-pink-500 hover:from-purple-700 hover:to-pink-600"
+                        className="w-full gap-1 text-xs bg-gradient-to-r from-purple-600 to-pink-500 hover:from-purple-700 hover:to-pink-600"
                       >
-                        <Send className="w-3.5 h-3.5" />
+                        <Send className="w-3 h-3" />
                         {endFeedbackSending ? "שולח..." : "שליחה"}
                       </Button>
                     </div>
                   ) : (
-                    <div className="w-full max-w-sm bg-gradient-to-r from-purple-50 to-pink-50 rounded-xl p-4 shadow-lg border border-purple-100 text-center mt-8" dir="rtl">
-                      <p className="text-lg font-bold text-purple-800">תודה רבה! 💛</p>
-                      <p className="text-sm text-purple-600 mt-1">המשוב שלכם עוזר לנו ליצור סיפורים טובים יותר</p>
+                    <div className="w-full max-w-xs bg-gradient-to-r from-purple-50 to-pink-50 rounded-xl p-3 shadow-lg border border-purple-100 text-center mt-4 mx-auto" dir="rtl">
+                      <p className="text-base font-bold text-purple-800">תודה רבה! 💛</p>
+                      <p className="text-xs text-purple-600 mt-1">המשוב שלכם עוזר לנו ליצור סיפורים טובים יותר</p>
                     </div>
                   )}
-
                 </div>
               </div>
             ) : currentSpread ? (
-              /* SPREAD LAYOUT: Immersive vertical - illustration on top, text below */
-              <div className="min-h-[80vh] flex flex-col">
-                {/* Illustration - edge to edge, 60% of viewport */}
-                <div className="relative w-full" style={{ minHeight: '55vh' }}>
+              /* SPREAD LAYOUT: Horizontal open book */
+              <div className="open-book-spread relative">
+                {/* Left page - Illustration */}
+                <div className="open-book-page-left bg-[#FFFBF5]">
                   {currentSpread.illustration ? (
                     <>
                       {/* Shimmer placeholder while image loads */}
@@ -1140,52 +1174,53 @@ const StoryViewer = () => {
                       />
                     </div>
                   )}
-                  {/* Gradient fade to cream */}
-                  <div className="absolute bottom-0 left-0 right-0 h-24 bg-gradient-to-t from-[#FFFBF5] to-transparent pointer-events-none z-[2]" />
+                  <div className="page-curl-corner bottom-left" />
                 </div>
                 
-                {/* Text area on cream background */}
-                <div className="relative flex-1 flex flex-col justify-center px-10 py-8 md:px-16 md:py-10 bg-[#FFFBF5]">
-                  {/* RTL Prev button — right side */}
+                {/* Right page - Text (RTL) */}
+                <div className="open-book-page-right relative px-8 py-6 md:px-12 md:py-8 bg-[#FFFBF5]">
+                  <div className="page-curl-corner bottom-right" />
+                  
+                  {/* RTL Prev button — right edge */}
                   <button
                     onClick={() => handleSpreadChange('prev')}
                     disabled={currentPage <= 0 || isFlipping}
                     aria-label="עמוד קודם"
                     className={cn(
                       "absolute right-1.5 top-1/2 -translate-y-1/2 z-10",
-                      "w-9 h-9 rounded-full flex items-center justify-center",
+                      "w-8 h-8 rounded-full flex items-center justify-center",
                       "bg-purple-100/80 hover:bg-purple-200 border border-purple-200",
                       "text-purple-600 transition-all duration-200",
-                      "disabled:opacity-30 disabled:cursor-not-allowed disabled:hover:bg-purple-100/80"
+                      "disabled:opacity-30 disabled:cursor-not-allowed"
                     )}
                   >
-                    <ChevronRight className="w-5 h-5" />
+                    <ChevronRight className="w-4 h-4" />
                   </button>
 
-                  {/* RTL Next button — left side */}
+                  {/* RTL Next button — left edge */}
                   <button
                     onClick={() => handleSpreadChange('next')}
                     disabled={currentPage >= spreads.length - 1 || isFlipping}
                     aria-label="עמוד הבא"
                     className={cn(
                       "absolute left-1.5 top-1/2 -translate-y-1/2 z-10",
-                      "w-9 h-9 rounded-full flex items-center justify-center",
+                      "w-8 h-8 rounded-full flex items-center justify-center",
                       "bg-purple-100/80 hover:bg-purple-200 border border-purple-200",
                       "text-purple-600 transition-all duration-200",
-                      "disabled:opacity-30 disabled:cursor-not-allowed disabled:hover:bg-purple-100/80"
+                      "disabled:opacity-30 disabled:cursor-not-allowed"
                     )}
                   >
-                    <ChevronLeft className="w-5 h-5" />
+                    <ChevronLeft className="w-4 h-4" />
                   </button>
 
-                  <div className="flex-1 flex flex-col justify-center gap-6 md:gap-8 max-w-2xl mx-auto w-full">
+                  <div className="flex-1 flex flex-col justify-center gap-4 max-w-lg mx-auto w-full overflow-y-auto">
                     {currentSpread.pages.map((spreadPage, idx) => (
                       <div key={spreadPage.id} className="relative">
                         {idx > 0 && (
-                          <div className="flex items-center justify-center mb-4 md:mb-6">
-                            <div className="w-12 h-px bg-purple-300/40" />
-                            <span className="mx-3 text-purple-300/60 text-xs">✦</span>
-                            <div className="w-12 h-px bg-purple-300/40" />
+                          <div className="flex items-center justify-center mb-3">
+                            <div className="w-10 h-px bg-purple-300/40" />
+                            <span className="mx-2 text-purple-300/60 text-xs">✦</span>
+                            <div className="w-10 h-px bg-purple-300/40" />
                           </div>
                         )}
                         <p 
@@ -1193,7 +1228,7 @@ const StoryViewer = () => {
                             "text-[#3D2914] text-right font-medium transition-all whitespace-pre-line",
                             currentFontSize.size
                           )} 
-                          style={{ lineHeight: '2.0' }}
+                          style={{ lineHeight: '1.9' }}
                           dir="rtl"
                         >
                           {showNikud ? spreadPage.text : spreadPage.text.replace(/[\u0591-\u05C7]/g, '')}
@@ -1203,7 +1238,7 @@ const StoryViewer = () => {
                   </div>
                   
                   {/* Page indicator */}
-                  <div className="flex items-center justify-center pt-4 mt-auto">
+                  <div className="flex items-center justify-center pt-2 mt-auto">
                     <span className="text-xs text-gray-400 font-light">
                       {spreadStartPage}{spreadEndPage > spreadStartPage ? `-${spreadEndPage}` : ''} / {story.pages.length}
                     </span>
