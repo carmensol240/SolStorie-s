@@ -61,7 +61,7 @@ const About = () => {
           שלום, אני אמא של סול.
         </p>
         <p className="text-base font-bold text-white/85 leading-relaxed mb-5 px-1" style={{ textShadow: '0 1px 3px rgba(0,0,0,0.3)' }}>
-          <span dir="ltr" className="inline-block">SolStorie's</span> נולדה מתוך רצון להעניק לבתי מרחב קסום שמעמיד את עולמה הפנימי במרכז. מה שהתחיל כפיתוח אישי שנועד להעשיר את רגעי הדמיון שלה, הפך לטכנולוגיה פורצת דרך שמעניקה לכל ילד וילדה את הכוח ליצור ולהוביל את הסיפור הייחודי שלהם.
+          <span dir="ltr" className="inline-block bg-gradient-to-r from-purple-300 via-pink-300 to-orange-300 bg-clip-text text-transparent">SolStorie's</span> נולדה מתוך רצון להעניק לבתי מרחב קסום שמעמיד את עולמה הפנימי במרכז. מה שהתחיל כפיתוח אישי שנועד להעשיר את רגעי הדמיון שלה, הפך לטכנולוגיה פורצת דרך שמעניקה לכל ילד וילדה את הכוח ליצור ולהוביל את הסיפור הייחודי שלהם.
         </p>
         <p className="text-base font-bold text-white/85 leading-relaxed mb-5 px-1" style={{ textShadow: '0 1px 3px rgba(0,0,0,0.3)' }}>
           הצורך שלי ליצור נבע מהרצון להנגיש לסול את העולם בדרך שהיא מבינה ואוהבת. השתמשתי בסיפורים כדי לתווך לה ברכות אתגרים יומיומיים - החל מביטחון בסיטואציות חברתיות חדשות ועד לצליחת רגעים קטנים כמו צחצוח שיניים או חפיפת שיער. דרך הסיפורים, אני הופכת כל התמודדות להרפתקה משותפת, מעודדת שפה חיובית ומעניקה לסול ולכל ילד וילדה את הכלים לבחור בטוב, להתרגש ולגדול בביטחון.
@@ -69,7 +69,7 @@ const About = () => {
 
         {/* Features section */}
         <p className="text-lg font-black text-white/95 leading-relaxed mb-4" style={{ textShadow: '0 1px 4px rgba(0,0,0,0.4)' }}>
-          🌟 למה <span dir="ltr" className="inline-block">SolStorie's</span> היא הרבה מעבר לאפליקציה?
+          🌟 למה <span dir="ltr" className="inline-block bg-gradient-to-r from-purple-300 via-pink-300 to-orange-300 bg-clip-text text-transparent">SolStorie's</span> היא הרבה מעבר לאפליקציה?
         </p>
 
         <div className="space-y-4 mb-5 w-full">
@@ -126,7 +126,7 @@ const About = () => {
         {/* Safety section */}
         <div className="bg-white/5 border border-white/10 rounded-xl p-3 mb-4 w-full">
           <p className="text-base font-bold text-white/85 leading-relaxed" style={{ textShadow: '0 1px 3px rgba(0,0,0,0.3)' }}>
-            🛡️ <strong className="text-green-200 font-black">מחויבות לבטיחות ואחריות</strong> — אנו שומרים על פרטיותכם לפי התקנות המחמירות ביותר. כל התכנים והדמויות הם קניין רוחני בלעדי של <span dir="ltr" className="inline-block">SolStorie's™</span>.
+            🛡️ <strong className="text-green-200 font-black">מחויבות לבטיחות ואחריות</strong> — אנו שומרים על פרטיותכם לפי התקנות המחמירות ביותר. כל התכנים והדמויות הם קניין רוחני בלעדי של <span dir="ltr" className="inline-block bg-gradient-to-r from-purple-300 via-pink-300 to-orange-300 bg-clip-text text-transparent">SolStorie's™</span>.
           </p>
         </div>
 
