@@ -35,7 +35,7 @@ import { useAccessibility } from "@/hooks/use-accessibility";
 import { useAuth } from "@/hooks/use-auth";
 import { useStoryEdit } from "@/hooks/use-story-edit";
 import { useIsMobile } from "@/hooks/use-mobile";
-import { useSwipe } from "@/hooks/use-swipe";
+// useSwipe removed - swipe navigation disabled per user request
 // useSignedUrls removed - story-illustrations bucket is public
 import { BookFrame, BookPage, BookHeader, NavigationArrows } from "@/components/story/book-frame";
 import { FileDown } from "lucide-react";
@@ -459,35 +459,9 @@ const StoryViewer = () => {
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [isFlipping, currentPage, story]);
 
-  // Swipe gesture handlers for spread navigation
-  const { onTouchStart, onTouchMove, onTouchEnd } = useSwipe({
-    onSwipeLeft: () => {
-      // In RTL, swipe left = next spread
-      handlePageChange('next');
-    },
-    onSwipeRight: () => {
-      // In RTL, swipe right = prev spread
-      handlePageChange('prev');
-    },
-    threshold: 50,
-  });
-  
-  // Create swipeHandlers object for spreading onto elements
-  const swipeHandlers = { onTouchStart, onTouchMove, onTouchEnd };
+  // Swipe navigation disabled - using arrow buttons only
 
-  // Click-based navigation for desktop (click left/right side of story area)
-  const handleAreaClick = (e: React.MouseEvent<HTMLDivElement>) => {
-    if (isFlipping || isDrawingMode) return;
-    const rect = e.currentTarget.getBoundingClientRect();
-    const clickX = e.clientX - rect.left;
-    const width = rect.width;
-    // RTL: clicking left side = next, right side = prev
-    if (clickX < width * 0.3) {
-      handlePageChange('next');
-    } else if (clickX > width * 0.7) {
-      handlePageChange('prev');
-    }
-  };
+  // Click-based area navigation disabled - using arrow buttons only
 
   const handleShare = async () => {
     if (!story) return;
@@ -954,13 +928,9 @@ const StoryViewer = () => {
       )}
 
 
-      {/* Book Container with Swipe Support */}
+      {/* Book Container */}
       <main 
-        className="flex-1 flex flex-col touch-pan-y cursor-pointer min-h-0"
-        onTouchStart={swipeHandlers.onTouchStart}
-        onTouchMove={swipeHandlers.onTouchMove}
-        onTouchEnd={swipeHandlers.onTouchEnd}
-        onClick={!isMobile ? handleAreaClick : undefined}
+        className="flex-1 flex flex-col min-h-0"
       >
         <div className={cn(
           "relative w-full flex-1 transition-opacity duration-300 ease-in-out overflow-hidden min-h-0",
@@ -1213,7 +1183,7 @@ const StoryViewer = () => {
                     <ChevronLeft className="w-4 h-4" />
                   </button>
 
-                  <div className="flex-1 flex flex-col justify-center gap-3 max-w-lg mx-auto w-full overflow-y-auto min-h-0">
+                  <div className="flex-1 flex flex-col justify-center gap-3 max-w-lg mx-auto w-full overflow-y-auto min-h-0 pt-2">
                     {currentSpread.pages.map((spreadPage, idx) => (
                       <div key={spreadPage.id} className="relative">
                         {idx > 0 && (
@@ -1237,11 +1207,27 @@ const StoryViewer = () => {
                     ))}
                   </div>
                   
-                  {/* Page indicator */}
-                  <div className="flex items-center justify-center pt-2 mt-auto">
+                  {/* Bottom navigation arrows + page indicator */}
+                  <div className="flex items-center justify-center gap-4 pt-2 mt-auto">
+                    <button
+                      onClick={() => handleSpreadChange('next')}
+                      disabled={currentPage >= spreads.length - 1 || isFlipping}
+                      aria-label="עמוד הבא"
+                      className="w-7 h-7 rounded-full flex items-center justify-center bg-purple-100/60 hover:bg-purple-200 text-purple-500 disabled:opacity-20 disabled:cursor-not-allowed transition-all"
+                    >
+                      <ChevronLeft className="w-4 h-4" />
+                    </button>
                     <span className="text-xs text-gray-400 font-light">
                       {spreadStartPage}{spreadEndPage > spreadStartPage ? `-${spreadEndPage}` : ''} / {story.pages.length}
                     </span>
+                    <button
+                      onClick={() => handleSpreadChange('prev')}
+                      disabled={currentPage <= 0 || isFlipping}
+                      aria-label="עמוד קודם"
+                      className="w-7 h-7 rounded-full flex items-center justify-center bg-purple-100/60 hover:bg-purple-200 text-purple-500 disabled:opacity-20 disabled:cursor-not-allowed transition-all"
+                    >
+                      <ChevronRight className="w-4 h-4" />
+                    </button>
                   </div>
                 </div>
               </div>

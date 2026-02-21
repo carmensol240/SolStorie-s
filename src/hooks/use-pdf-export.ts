@@ -97,7 +97,7 @@ export const usePdfExport = () => {
     });
   };
 
-  // ─── html2canvas page capture (used for cover + landscape) ──
+  // ─── html2canvas page capture ──
   const captureHtmlToPage = async (
     content: HTMLDivElement,
     pdf: jsPDF,
@@ -137,110 +137,75 @@ export const usePdfExport = () => {
     return coverPage;
   };
 
-  // ─── Portrait ───────────────────────────────────────────────
-  // Hybrid approach: html2canvas for images, native jsPDF text for story text.
-  // This ensures Hebrew text never overflows a fixed-height container.
+  // ─── Portrait - fully html2canvas based for Hebrew support ──
   const exportPortrait = async (story: Story) => {
     const illustrationUrls = story.pages
       .map(p => p.illustration_url)
       .filter((url): url is string => !!url);
     const signedUrlMap = await fetchSignedUrls(illustrationUrls, story.id);
 
-    const MARGIN = 20; // mm
     const pdf = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
     const W = pdf.internal.pageSize.getWidth();   // 210mm
     const H = pdf.internal.pageSize.getHeight();  // 297mm
-    const CONTENT_W = W - MARGIN * 2;             // 170mm
-    const FOOTER_SAFE = H - 28;                   // bottom boundary before footer (extra margin)
 
-    // -- Cover page (html2canvas, full bleed) --
     const pageWidthPx = W * 3.78;
     const pageHeightPx = H * 3.78;
     const container = document.createElement('div');
     container.style.cssText = `position:absolute;left:-9999px;top:0;width:${pageWidthPx}px;height:${pageHeightPx}px;font-family:Heebo,Assistant,sans-serif;direction:rtl;`;
     document.body.appendChild(container);
 
+    // -- Cover page --
     container.innerHTML = '';
     container.appendChild(renderCoverPage(story.child_name, story.topic));
-    await captureHtmlToPage(container as any, pdf, true);
-    document.body.removeChild(container);
+    await captureHtmlToPage(container, pdf, true);
 
-    // -- Story pages: one page per story page (or pair if needed) --
+    // -- Story pages: render each as HTML via html2canvas --
     for (const page of story.pages) {
-      pdf.addPage();
-
-      let textStartY = MARGIN + 8; // default: text near top
-
-      // Illustration (if present) — top portion, full content width
+      let illustrationDataUrl: string | null = null;
       if (page.illustration_url) {
         try {
           const resolvedUrl = signedUrlMap[page.illustration_url] || page.illustration_url;
-          const dataUrl = await loadImageAsDataUrl(resolvedUrl);
-
-          const IMG_H = 85; // mm — illustration takes top 85mm
-          const IMG_Y = MARGIN;
-          pdf.addImage(dataUrl, 'PNG', MARGIN, IMG_Y, CONTENT_W, IMG_H, undefined, 'FAST');
-
-          // Decorative border around illustration
-          pdf.setDrawColor(212, 165, 116);
-          pdf.setLineWidth(0.5);
-          pdf.roundedRect(MARGIN, IMG_Y, CONTENT_W, IMG_H, 3, 3);
-
-          textStartY = IMG_Y + IMG_H + 6; // text starts just below illustration
+          illustrationDataUrl = await loadImageAsDataUrl(resolvedUrl);
         } catch {
-          // no illustration, text from top
+          // skip illustration
         }
       }
 
-      // Page number label
+      const pageEl = document.createElement('div');
+      pageEl.style.cssText = `
+        width: 100%; height: 100%;
+        background: linear-gradient(135deg, #FFFBF5 0%, #FFF8E7 100%);
+        display: flex; flex-direction: column; align-items: center;
+        padding: 60px 70px 80px 70px; box-sizing: border-box; direction: rtl;
+        font-family: Heebo, Assistant, sans-serif;
+      `;
+
+      const illustrationHtml = illustrationDataUrl
+        ? `<div style="width:100%;flex-shrink:0;margin-bottom:20px;border-radius:12px;overflow:hidden;border:2px solid #D4A574;max-height:40%;">
+            <img src="${illustrationDataUrl}" style="width:100%;height:100%;object-fit:cover;display:block;" />
+          </div>`
+        : '';
+
       const pageLabel = `✦ ${page.page_number} / ${story.pages.length} ✦`;
-      pdf.setFont('helvetica', 'normal');
-      pdf.setFontSize(10);
-      pdf.setTextColor(139, 69, 19);
-      pdf.text(pageLabel, W / 2, textStartY, { align: 'center' });
-      textStartY += 7;
 
-      // Story text — native jsPDF with auto-wrap and page overflow
-      pdf.setFont('helvetica', 'normal');
-      pdf.setFontSize(12);
-      pdf.setTextColor(74, 55, 40);
+      pageEl.innerHTML = `
+        ${illustrationHtml}
+        <div style="color:#8B4513;font-size:16px;margin-bottom:16px;text-align:center;">${pageLabel}</div>
+        <div style="flex:1;display:flex;align-items:center;justify-content:center;width:100%;overflow:hidden;">
+          <p style="color:#4A3728;font-size:26px;line-height:2.2;text-align:center;margin:0;
+            font-family:Heebo,Assistant,sans-serif;max-width:95%;word-wrap:break-word;overflow-wrap:break-word;">
+            ${escapeHtml(page.text)}
+          </p>
+        </div>
+        <div style="width:60%;height:2px;background:#D4A574;border-radius:1px;margin-top:16px;"></div>
+      `;
 
-      // jsPDF splitTextToSize splits by width in the current unit (mm)
-      const lines = pdf.splitTextToSize(page.text, CONTENT_W);
-
-      const LINE_HEIGHT = 6; // mm per line at 12pt
-
-      for (const line of lines) {
-        // Check if we need a new page (leave room for footer)
-        if (textStartY + LINE_HEIGHT > FOOTER_SAFE) {
-          drawFooter(pdf);
-          pdf.addPage();
-          textStartY = MARGIN + 8;
-          // Add continuation label on overflow pages
-          pdf.setFont('helvetica', 'normal');
-          pdf.setFontSize(9);
-          pdf.setTextColor(139, 69, 19);
-          pdf.text(`✦ ${page.page_number} / ${story.pages.length} (המשך) ✦`, W / 2, textStartY, { align: 'center' });
-          textStartY += 7;
-          // Reset font for story text
-          pdf.setFont('helvetica', 'normal');
-          pdf.setFontSize(12);
-          pdf.setTextColor(74, 55, 40);
-        }
-        // Center the text horizontally (RTL story text looks better centered)
-        pdf.text(line, W / 2, textStartY, { align: 'center' });
-        textStartY += LINE_HEIGHT;
-      }
-
-      // Separator below text
-      const sepY = Math.min(textStartY + 3, FOOTER_SAFE - 2);
-      pdf.setDrawColor(212, 165, 116);
-      pdf.setLineWidth(0.3);
-      pdf.line(MARGIN + 20, sepY, W - MARGIN - 20, sepY);
-
-      drawFooter(pdf);
+      container.innerHTML = '';
+      container.appendChild(pageEl);
+      await captureHtmlToPage(container, pdf, false);
     }
 
+    document.body.removeChild(container);
     pdf.save(`סיפור-${story.child_name.replace(/\s+/g, '-')}.pdf`);
   };
 
@@ -273,7 +238,7 @@ export const usePdfExport = () => {
       </div>`;
     container.innerHTML = '';
     container.appendChild(coverPage);
-    await captureHtmlToPage(container as any, pdf, true);
+    await captureHtmlToPage(container, pdf, true);
 
     // Spreads
     const spreads = buildSpreads(story.pages);
@@ -339,7 +304,7 @@ export const usePdfExport = () => {
 
       container.innerHTML = '';
       container.appendChild(spreadPage);
-      await captureHtmlToPage(container as any, pdf, false);
+      await captureHtmlToPage(container, pdf, false);
     }
 
     document.body.removeChild(container);
