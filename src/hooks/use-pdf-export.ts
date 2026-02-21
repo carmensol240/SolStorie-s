@@ -151,7 +151,7 @@ export const usePdfExport = () => {
     const W = pdf.internal.pageSize.getWidth();   // 210mm
     const H = pdf.internal.pageSize.getHeight();  // 297mm
     const CONTENT_W = W - MARGIN * 2;             // 170mm
-    const FOOTER_SAFE = H - 22;                   // bottom boundary before footer
+    const FOOTER_SAFE = H - 28;                   // bottom boundary before footer (extra margin)
 
     // -- Cover page (html2canvas, full bleed) --
     const pageWidthPx = W * 3.78;
