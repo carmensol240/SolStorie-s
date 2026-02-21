@@ -27,23 +27,44 @@ const About = () => {
       
       {/* Floating stars / sparkles */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
-        {[...Array(20)].map((_, i) => (
+        {/* Small twinkling stars */}
+        {[...Array(45)].map((_, i) => (
           <div
-            key={i}
-            className="absolute rounded-full bg-white/60 animate-pulse"
+            key={`star-${i}`}
+            className="absolute rounded-full bg-white/70 animate-pulse"
             style={{
-              width: `${2 + Math.random() * 3}px`,
-              height: `${2 + Math.random() * 3}px`,
+              width: `${1.5 + Math.random() * 2.5}px`,
+              height: `${1.5 + Math.random() * 2.5}px`,
               top: `${Math.random() * 100}%`,
               left: `${Math.random() * 100}%`,
-              animationDelay: `${Math.random() * 4}s`,
-              animationDuration: `${2 + Math.random() * 3}s`,
+              animationDelay: `${Math.random() * 5}s`,
+              animationDuration: `${2 + Math.random() * 4}s`,
             }}
           />
         ))}
+        {/* Larger glowing stars */}
+        {[...Array(12)].map((_, i) => (
+          <div
+            key={`glow-${i}`}
+            className="absolute rounded-full animate-pulse"
+            style={{
+              width: `${4 + Math.random() * 4}px`,
+              height: `${4 + Math.random() * 4}px`,
+              top: `${Math.random() * 100}%`,
+              left: `${Math.random() * 100}%`,
+              animationDelay: `${Math.random() * 6}s`,
+              animationDuration: `${3 + Math.random() * 4}s`,
+              background: 'radial-gradient(circle, rgba(255,255,255,0.9) 0%, rgba(200,180,255,0.4) 60%, transparent 100%)',
+              boxShadow: '0 0 6px 2px rgba(200,180,255,0.5)',
+            }}
+          />
+        ))}
+        {/* Ambient glow orbs */}
         <div className="absolute top-10 left-10 w-40 h-40 rounded-full bg-purple-500/10 blur-3xl" />
-        <div className="absolute top-1/3 right-5 w-56 h-56 rounded-full bg-pink-400/8 blur-3xl" />
-        <div className="absolute bottom-32 left-1/4 w-48 h-48 rounded-full bg-amber-400/8 blur-3xl" />
+        <div className="absolute top-1/4 right-8 w-56 h-56 rounded-full bg-indigo-400/8 blur-3xl" />
+        <div className="absolute top-1/2 left-1/3 w-32 h-32 rounded-full bg-pink-400/8 blur-3xl" />
+        <div className="absolute bottom-32 left-1/4 w-48 h-48 rounded-full bg-amber-400/6 blur-3xl" />
+        <div className="absolute bottom-1/4 right-1/4 w-36 h-36 rounded-full bg-blue-400/6 blur-3xl" />
       </div>
 
       <div className="flex-1 flex flex-col items-center px-6 pt-8 pb-16 max-w-lg mx-auto text-center relative z-10">
