@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback, useRef } from "react";
 import { Sparkles, BookOpen, Palette, FileText, RefreshCw, Wand2 } from "lucide-react";
-import generatingHeroFriends from "@/assets/generating-hero-friends.jpg";
+import generatingHeroCast from "@/assets/generating-hero-cast.jpeg";
 import { Button } from "@/components/ui/button";
 import { StoryFormData } from "@/pages/CreateStory";
 import { supabase } from "@/integrations/supabase/client";
@@ -392,7 +392,7 @@ const GeneratingStep = ({ formData, onComplete }: GeneratingStepProps) => {
       {/* Hero Image */}
       <div className="w-full max-w-sm mx-auto rounded-2xl overflow-hidden shadow-xl border-4 border-purple-200/50">
         <img
-          src={generatingHeroFriends}
+          src={generatingHeroCast}
           alt="סול, בן, מיה, ליאו וזואי מחכים לך"
           className="w-full aspect-[16/9] object-cover"
         />
