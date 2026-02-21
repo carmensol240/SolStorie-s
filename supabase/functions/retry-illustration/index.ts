@@ -161,27 +161,44 @@ NEGATIVE PROMPT / EXCLUDE: floating head, disembodied head, head without body, m
 
     console.log(`Retrying illustration for story ${storyId}, page ${page.page_number}...`);
 
-    const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${LOVABLE_API_KEY}`,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(requestBody),
-    });
+    let imageUrl: string | null = null;
+    const MAX_ATTEMPTS = 2;
 
-    if (!response.ok) {
-      console.error("Image generation failed:", response.status);
-      return new Response(JSON.stringify({ error: "Image generation failed" }), {
-        status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
+    for (let attempt = 1; attempt <= MAX_ATTEMPTS; attempt++) {
+      try {
+        console.log(`Attempt ${attempt}/${MAX_ATTEMPTS}...`);
+        const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+          method: "POST",
+          signal: AbortSignal.timeout(120_000),
+          headers: {
+            Authorization: `Bearer ${LOVABLE_API_KEY}`,
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(requestBody),
+        });
+
+        if (!response.ok) {
+          console.error(`Attempt ${attempt} failed with status ${response.status}`);
+          if (attempt < MAX_ATTEMPTS) { await new Promise(r => setTimeout(r, 3000)); continue; }
+          return new Response(JSON.stringify({ error: "Image generation failed" }), {
+            status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" },
+          });
+        }
+
+        const data = await response.json();
+        imageUrl = data.choices?.[0]?.message?.images?.[0]?.image_url?.url || null;
+
+        if (imageUrl) break;
+        console.warn(`Attempt ${attempt}: no image in response`);
+        if (attempt < MAX_ATTEMPTS) { await new Promise(r => setTimeout(r, 3000)); continue; }
+      } catch (fetchErr) {
+        console.error(`Attempt ${attempt} error:`, fetchErr);
+        if (attempt < MAX_ATTEMPTS) { await new Promise(r => setTimeout(r, 3000)); continue; }
+      }
     }
 
-    const data = await response.json();
-    const imageUrl = data.choices?.[0]?.message?.images?.[0]?.image_url?.url;
-
     if (!imageUrl) {
-      return new Response(JSON.stringify({ error: "No image generated" }), {
+      return new Response(JSON.stringify({ error: "No image generated after retries" }), {
         status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }

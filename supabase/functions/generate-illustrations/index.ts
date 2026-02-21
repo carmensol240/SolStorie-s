@@ -277,6 +277,7 @@ NEGATIVE PROMPT / EXCLUDE: floating head, disembodied head, head without body, m
 
     const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
       method: "POST",
+      signal: AbortSignal.timeout(120_000),
       headers: {
         Authorization: `Bearer ${apiKey}`,
         "Content-Type": "application/json",

@@ -145,30 +145,44 @@ EXCLUDE / NEGATIVE PROMPT: No UI elements, no buttons, no audio icons, no play b
       }],
     };
 
-    const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${LOVABLE_API_KEY}`,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(requestBody),
-    });
+    let imageUrl: string | null = null;
+    const MAX_ATTEMPTS = 2;
 
-    if (!response.ok) {
-      console.error("Cover generation failed:", response.status);
-      const errText = await response.text();
-      console.error("Error body:", errText);
-      return new Response(JSON.stringify({ error: "Cover generation failed" }), {
-        status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
+    for (let attempt = 1; attempt <= MAX_ATTEMPTS; attempt++) {
+      try {
+        console.log(`Cover generation attempt ${attempt}/${MAX_ATTEMPTS}...`);
+        const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+          method: "POST",
+          signal: AbortSignal.timeout(120_000),
+          headers: {
+            Authorization: `Bearer ${LOVABLE_API_KEY}`,
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(requestBody),
+        });
+
+        if (!response.ok) {
+          console.error(`Cover attempt ${attempt} failed:`, response.status);
+          if (attempt < MAX_ATTEMPTS) { await new Promise(r => setTimeout(r, 3000)); continue; }
+          return new Response(JSON.stringify({ error: "Cover generation failed" }), {
+            status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" },
+          });
+        }
+
+        const data = await response.json();
+        imageUrl = data.choices?.[0]?.message?.images?.[0]?.image_url?.url || null;
+
+        if (imageUrl) break;
+        console.warn(`Cover attempt ${attempt}: no image in response`);
+        if (attempt < MAX_ATTEMPTS) { await new Promise(r => setTimeout(r, 3000)); continue; }
+      } catch (fetchErr) {
+        console.error(`Cover attempt ${attempt} error:`, fetchErr);
+        if (attempt < MAX_ATTEMPTS) { await new Promise(r => setTimeout(r, 3000)); continue; }
+      }
     }
 
-    const data = await response.json();
-    const imageUrl = data.choices?.[0]?.message?.images?.[0]?.image_url?.url;
-
     if (!imageUrl) {
-      console.error("No image in response");
-      return new Response(JSON.stringify({ error: "No cover image generated" }), {
+      return new Response(JSON.stringify({ error: "No cover image generated after retries" }), {
         status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
