@@ -205,8 +205,8 @@ Any deviation from this profile is a FAILURE.
       : "";
     
     // Select Sol variant before building the prompt so we can reference the correct look
-    const solVariant = getSolUrl(topic || "");
-    const solDescription = solVariant.label === "Sol hero"
+    const solVariant = buildCharacterRefs(topic || "");
+    const solDescription = solVariant.solLabel === "Sol hero"
       ? "Sol in her adventure/fantasy hero outfit — match EXACTLY from the reference image"
       : "Sol in her everyday casual look (yellow dress, ponytail with pink band) — match EXACTLY from the reference image";
 
@@ -220,7 +220,7 @@ ${characterInstruction}
 ${adventureInstruction}
 === MANDATORY CHARACTER REFERENCES ===
 Reference images of each cast character are provided above. You MUST match their appearance EXACTLY:
-- Image 1 (${solVariant.label}): ${solDescription}
+- Image 1 (${solVariant.solLabel}): ${solDescription}
 - Image 2 (Ben — Sol's LITTLE BROTHER): toddler, very curly dark hair, warm tan skin matching Sol (siblings). When both Ben and Sol appear together, depict them with a sibling bond — Sol looking after him, Ben looking up to her. Always SMALLER than Sol.
 - Image 3 (Zoe): dark brown skin, afro with light blue headband, purple-yellow tracksuit
 - Image 4 (Leo): round glasses, straight black hair, denim overalls
@@ -247,8 +247,8 @@ NEGATIVE PROMPT / EXCLUDE: floating head, disembodied head, head without body, m
 
     // Build multi-image content: [Sol variant, Ben, Zoe, Leo, Mia] + optional child photo + text
     // solVariant was already derived above when building the prompt
-    console.log(`Sol variant: ${solVariant.label} for topic "${topic}"`);
-    const characterRefContent = [solVariant.url, ...CHARACTER_BASE_REFS].map(url => ({
+    console.log(`Sol variant: ${solVariant.solLabel} for topic "${topic}"`);
+    const characterRefContent = solVariant.urls.map(url => ({
       type: "image_url",
       image_url: { url },
     }));
