@@ -1,72 +1,46 @@
 
 
-# Image Generation Hardening + Verification of Existing Fixes
+# תיקון PDF וסיפורים ארוכים יותר
 
-## Status of Requested Items
+## בעיה 1: טקסט חסר וחתוך ב-PDF
 
-| Request | Status |
-|---------|--------|
-| WhatsApp sharing (wa.me deep-link) | Already done |
-| Dynamic OG tags (child name, topic) | Already done |
-| cover_url normalization | Already done |
-| Ben/Sol sibling rule ("אחיה הקטן") | Already done |
-| Meir Shalev style, no rhymes | Already in prompt |
-| Character reference images (Sol, Ben, Zoe, Leo, Mia) | Already done |
-| **Fetch timeout on AI calls** | **Missing - will fix** |
-| **Auto-retry in retry-illustration** | **Missing - will fix** |
-| **Auto-retry in generate-cover** | **Missing - will fix** |
+הבעיה בייצוא ה-PDF היא שהאיור תופס 110 מ"מ מתוך 297 מ"מ של העמוד, וביחד עם השוליים (20 מ"מ למעלה, 28 מ"מ למטה לפוטר) נותרים רק כ-139 מ"מ לטקסט. בנוסף, כשהטקסט עולה על עמוד ועובר לעמוד חדש, אין כותרת או הקשר - הטקסט פשוט ממשיך מ-28 מ"מ מהחלק העליון, מה שיכול ליצור תחושת חיתוך.
 
-## What Will Change
+### התיקון:
+- הקטנת גובה האיור מ-110 מ"מ ל-90 מ"מ כדי לפנות יותר מקום לטקסט
+- הקטנת גודל הפונט מ-14 ל-13 והגובה בין שורות מ-7 ל-6.5 מ"מ
+- כשטקסט עובר לעמוד המשך (ללא איור), הוספת תווית "המשך עמוד X" בראש
+- הגדלת שטח בטוח תחתון כדי שהטקסט לעולם לא ייחתך ליד הפוטר
 
-### 1. `supabase/functions/generate-illustrations/index.ts` -- Add 120s fetch timeout
+## בעיה 2: סיפורים ארוכים קצרים מדי לגילאי 7-8
 
-The `generateIllustration` function calls `fetch()` without an `AbortController` timeout. If the AI gateway hangs, the edge function will time out silently with no retry.
+### התיקון:
+- הוספת אפשרות שלישית "ארוך במיוחד" (extra-long) בכפתורי בחירת אורך הסיפור
+- עדכון ה-`StoryFormData` להוסיף ערך `"extra-long"` לשדה `storyLength`
+- עדכון ה-edge function `generate-story` כך שבחירת "extra-long" תייצר 10-12 עמודים (בהתאם לגיל)
+- עדכון ממשק הכפתורים ב-`ChildInfoStep.tsx` להציג 3 אפשרויות:
+  - קצר: 4-5 עמודים
+  - ארוך: 6-8 עמודים  
+  - ארוך במיוחד: 10-12 עמודים
 
-Add a 120-second `AbortSignal.timeout()` to the fetch call (line 278):
+## פרטים טכניים
 
-```typescript
-const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
-  method: "POST",
-  signal: AbortSignal.timeout(120_000), // 2 min timeout
-  headers: { ... },
-  body: JSON.stringify(requestBody),
-});
-```
+### קבצים לעריכה:
 
-This ensures a hung request fails fast enough for the retry loop (3 attempts) to kick in.
+1. **`src/hooks/use-pdf-export.ts`** - תיקון ייצוא PDF:
+   - `IMG_H`: 110 -> 90 מ"מ
+   - `fontSize`: 14 -> 13
+   - `LINE_HEIGHT`: 7 -> 6.5
+   - הוספת תווית "המשך" כשטקסט עובר עמוד
 
-### 2. `supabase/functions/retry-illustration/index.ts` -- Add timeout + auto-retry
+2. **`src/pages/CreateStory.tsx`** - עדכון הטיפוס של `storyLength`:
+   - שינוי מ-`"short" | "long"` ל-`"short" | "long" | "extra-long"`
 
-Currently this function makes a single fetch call with no timeout or retry. Will add:
-- 120-second `AbortSignal.timeout()`
-- 2-attempt retry loop with 3-second delay between attempts
-- Proper error logging per attempt
+3. **`src/components/wizard/ChildInfoStep.tsx`** - הוספת כפתור שלישי:
+   - כפתור "ארוך במיוחד · 10-12" עם ערך `"extra-long"`
 
-### 3. `supabase/functions/generate-cover/index.ts` -- Add timeout + auto-retry
-
-Same pattern: currently no timeout, no retry. Will add:
-- 120-second `AbortSignal.timeout()`
-- 2-attempt retry loop with 3-second delay
-- Keep existing error handling for upload failures
-
-### 4. Deploy all 3 edge functions
-
-All three functions will be redeployed after changes.
-
-## Technical Details
-
-The `AbortSignal.timeout()` API is supported natively in Deno (used by edge functions). It creates a signal that automatically aborts after the specified milliseconds, causing the fetch to throw an `AbortError` which is caught by the existing try/catch blocks.
-
-The retry pattern:
-```text
-Attempt 1 --> timeout/fail --> wait 3s --> Attempt 2 --> timeout/fail --> return error
-```
-
-For generate-illustrations, the existing 3-attempt retry loop already handles this -- the timeout just ensures each attempt fails cleanly instead of hanging.
-
-## Files Unchanged
-- `src/pages/StoryViewer.tsx` -- WhatsApp sharing already fixed
-- `supabase/functions/og-story-meta/index.ts` -- Dynamic OG tags already fixed
-- `supabase/functions/generate-story/index.ts` -- Sibling rule already correct
-- All frontend components -- no changes needed
+4. **`supabase/functions/generate-story/index.ts`** - עדכון לוגיקת אורך:
+   - הוספת טיפול ב-`"extra-long"` בפונקציה `getAgeLengthInstruction`
+   - לגילאי 5-7: 12 עמודים, מינימום 700 מילים
+   - לגילאי 8-10 (מופה מ-7-8): 12 עמודים, מינימום 800 מילים
 
