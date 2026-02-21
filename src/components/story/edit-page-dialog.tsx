@@ -154,9 +154,9 @@ const EditPageDialog = ({
 
     setIsLoading(true);
     try {
-      const editSuccess = await performEdit();
-      if (!editSuccess) {
-        toast({ title: 'שגיאה בביצוע העריכה', variant: 'destructive' });
+      const editResult = await performEdit();
+      if (!editResult.success) {
+        toast({ title: editResult.errorMessage || 'שגיאה בביצוע העריכה', variant: 'destructive' });
         setIsLoading(false);
         return;
       }

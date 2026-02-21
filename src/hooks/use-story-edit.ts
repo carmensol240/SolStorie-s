@@ -8,7 +8,7 @@ interface UseStoryEditResult {
   /** Check if user can edit (has free edits or credits) */
   canEdit: () => boolean;
   /** Perform the edit - uses free edit first, then story credit */
-  performEdit: () => Promise<boolean>;
+  performEdit: () => Promise<{ success: boolean; errorMessage?: string }>;
   /** Loading state */
   loading: boolean;
   /** Error message if any */
@@ -72,10 +72,11 @@ export const useStoryEdit = (storyId: string): UseStoryEditResult => {
     return hasEditCredits() || hasCredits();
   }, [isAdmin, hasEditCredits, hasCredits]);
 
-  const performEdit = useCallback(async (): Promise<boolean> => {
+  const performEdit = useCallback(async (): Promise<{ success: boolean; errorMessage?: string }> => {
     if (!user || !storyId) {
-      setError('משתמש לא מחובר');
-      return false;
+      const msg = 'משתמש לא מחובר';
+      setError(msg);
+      return { success: false, errorMessage: msg };
     }
 
     setLoading(true);
@@ -88,17 +89,24 @@ export const useStoryEdit = (storyId: string): UseStoryEditResult => {
         if (hasEditCredits()) {
           const used = await useEditCredit();
           if (!used) {
-            setError('שגיאה בשימוש בעריכה חינמית');
+            const msg = 'שגיאה בשימוש בעריכה חינמית';
+            setError(msg);
             setLoading(false);
-            return false;
+            return { success: false, errorMessage: msg };
           }
-        } else {
+        } else if (hasCredits()) {
           const creditUsed = await useCredit();
           if (!creditUsed) {
-            setError('אין מספיק קרדיטים');
+            const msg = 'שגיאה בניכוי קרדיט';
+            setError(msg);
             setLoading(false);
-            return false;
+            return { success: false, errorMessage: msg };
           }
+        } else {
+          const msg = 'אין מספיק קרדיטים לעריכה';
+          setError(msg);
+          setLoading(false);
+          return { success: false, errorMessage: msg };
         }
       }
 
@@ -113,14 +121,15 @@ export const useStoryEdit = (storyId: string): UseStoryEditResult => {
 
       setEditCount(currentEditCount + 1);
       setLoading(false);
-      return true;
+      return { success: true };
     } catch (err) {
       console.error('Error performing edit:', err);
-      setError('שגיאה בביצוע העריכה');
+      const msg = 'שגיאה בביצוע העריכה';
+      setError(msg);
       setLoading(false);
-      return false;
+      return { success: false, errorMessage: msg };
     }
-  }, [user, storyId, editCount, isAdmin, hasEditCredits, useEditCredit, useCredit]);
+  }, [user, storyId, editCount, isAdmin, hasEditCredits, useEditCredit, hasCredits, useCredit]);
 
   return {
     canEdit,
