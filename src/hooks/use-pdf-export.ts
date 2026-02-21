@@ -177,7 +177,7 @@ export const usePdfExport = () => {
           const resolvedUrl = signedUrlMap[page.illustration_url] || page.illustration_url;
           const dataUrl = await loadImageAsDataUrl(resolvedUrl);
 
-          const IMG_H = 110; // mm — illustration takes top 110mm
+          const IMG_H = 85; // mm — illustration takes top 85mm
           const IMG_Y = MARGIN;
           pdf.addImage(dataUrl, 'PNG', MARGIN, IMG_Y, CONTENT_W, IMG_H, undefined, 'FAST');
 
@@ -202,13 +202,13 @@ export const usePdfExport = () => {
 
       // Story text — native jsPDF with auto-wrap and page overflow
       pdf.setFont('helvetica', 'normal');
-      pdf.setFontSize(14);
+      pdf.setFontSize(12);
       pdf.setTextColor(74, 55, 40);
 
       // jsPDF splitTextToSize splits by width in the current unit (mm)
       const lines = pdf.splitTextToSize(page.text, CONTENT_W);
 
-      const LINE_HEIGHT = 7; // mm per line at 14pt
+      const LINE_HEIGHT = 6; // mm per line at 12pt
 
       for (const line of lines) {
         // Check if we need a new page (leave room for footer)
@@ -216,6 +216,16 @@ export const usePdfExport = () => {
           drawFooter(pdf);
           pdf.addPage();
           textStartY = MARGIN + 8;
+          // Add continuation label on overflow pages
+          pdf.setFont('helvetica', 'normal');
+          pdf.setFontSize(9);
+          pdf.setTextColor(139, 69, 19);
+          pdf.text(`✦ ${page.page_number} / ${story.pages.length} (המשך) ✦`, W / 2, textStartY, { align: 'center' });
+          textStartY += 7;
+          // Reset font for story text
+          pdf.setFont('helvetica', 'normal');
+          pdf.setFontSize(12);
+          pdf.setTextColor(74, 55, 40);
         }
         // Center the text horizontally (RTL story text looks better centered)
         pdf.text(line, W / 2, textStartY, { align: 'center' });

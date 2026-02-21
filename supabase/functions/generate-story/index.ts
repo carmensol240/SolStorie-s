@@ -695,6 +695,7 @@ serve(async (req) => {
     // Determine story length based on age AND user preference
     const getAgeLengthInstruction = (age: string, preferredLength: string) => {
       const isLong = preferredLength === "long";
+      const isExtraLong = preferredLength === "extra-long";
       
       // Age 0-2: Short and simple stories for toddlers
       if (age === "0-2") {
@@ -718,8 +719,17 @@ serve(async (req) => {
       // Age 2-4 (around age 3-4): Medium-length imaginative stories
       else if (age === "2-4") {
         return {
-          pages: isLong ? 8 : 7,
-          instruction: isLong
+          pages: isExtraLong ? 10 : isLong ? 8 : 7,
+          instruction: isExtraLong
+            ? `- גיל 3-4: סיפור ארוך במיוחד (10 עמודים)
+- מינימום 500-600 מילים סה"כ לכל הסיפור
+- נושאים דמיוניים ומעניינים
+- משפטים קצרים וברורים (2-3 משפטים בעמוד)
+- עלילה מפותחת עם סיבה ותוצאה
+- דמויות חמודות ומצחיקות
+- אינטראקציות חברתיות מפורטות
+- אל תסיים מהר! תאר ריחות, צבעים ותחושות גופניות`
+            : isLong
             ? `- גיל 3-4: סיפור באורך בינוני-ארוך (8 עמודים)
 - מינימום 400-500 מילים סה"כ לכל הסיפור
 - נושאים דמיוניים ומעניינים
@@ -741,8 +751,18 @@ serve(async (req) => {
       // Age 5-7: Engaging stories with more depth
       else if (age === "5-7") {
         return {
-          pages: isLong ? 10 : 8,
-          instruction: isLong
+          pages: isExtraLong ? 12 : isLong ? 10 : 8,
+          instruction: isExtraLong
+            ? `- גיל 5-7: סיפור ארוך במיוחד ומרתק (12 עמודים!)
+- מינימום 700-800 מילים סה"כ לכל הסיפור
+- עלילה מפותחת ועשירה עם התחלה, אמצע וסוף דרמטיים
+- משפטים מפורטים (4-5 משפטים בעמוד)
+- דמויות עם אופי מפותח ועומק רגשי
+- מסר חינוכי או רגשי משמעותי ועמוק
+- דיאלוגים ואירועים מגוונים ומפתיעים
+- אוצר מילים עשיר אך נגיש
+- תאר ריחות, צבעים ותחושות חושיות להעמקת החוויה`
+            : isLong
             ? `- גיל 5-7: סיפור ארוך ומרתק (10 עמודים)
 - מינימום 500-600 מילים סה"כ לכל הסיפור
 - עלילה מפותחת עם התחלה, אמצע וסוף דרמטיים
@@ -765,8 +785,18 @@ serve(async (req) => {
       // Age 8-10: Complex stories for advanced readers
       else {
         return {
-          pages: isLong ? 12 : 10,
-          instruction: isLong
+          pages: isExtraLong ? 12 : isLong ? 12 : 10,
+          instruction: isExtraLong
+            ? `- גיל 8-10: סיפור ארוך במיוחד ומורכב (12 עמודים!)
+- מינימום 800-900 מילים סה"כ עם אוצר מילים עשיר ומתוחכם
+- אוצר מילים עשיר יותר (עם הסברים בסוגריים!)
+- עלילה מורכבת עם רגשות פנימיים, מתח, תפניות ומספר אירועים
+- מצבים חברתיים מורכבים ומעמיקים
+- דמויות משנה רבות ודיאלוגים עשירים ומפורטים
+- 5-6 משפטים מפורטים בעמוד
+- נושאים מעמיקים כמו חברות, אתגרים, התמודדות ולמידה
+- השתמש בתיאורים חושיים עשירים: ריחות, צבעים, מגע ותחושות גופניות`
+            : isLong
             ? `- גיל 8-10: סיפור ארוך ומורכב במיוחד (12 עמודים!)
 - מינימום 600-750 מילים סה"כ עם אוצר מילים עשיר
 - אוצר מילים עשיר יותר (עם הסברים בסוגריים!)

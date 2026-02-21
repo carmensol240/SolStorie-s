@@ -588,6 +588,17 @@ const ChildInfoStep = ({ formData, updateFormData }: ChildInfoStepProps) => {
             >
               ארוך · 6-8
             </button>
+            <button
+              onClick={() => updateFormData({ storyLength: "extra-long" })}
+              className={cn(
+                "py-1.5 rounded-md border transition-all text-center text-[11px] font-bold",
+                formData.storyLength === "extra-long"
+                  ? "border-purple-500 bg-gradient-to-r from-purple-600 via-pink-500 to-orange-400 text-white"
+                  : "border-border bg-card hover:border-purple-300"
+              )}
+            >
+              ארוך במיוחד · 10-12
+            </button>
           </div>
         </div>
 
