@@ -49,8 +49,8 @@ const About = () => {
       <div className="flex-1 flex flex-col items-center px-6 pt-8 pb-16 max-w-lg mx-auto text-center relative z-10">
         
         {/* Title */}
-        <h1 className="text-2xl font-black text-white/95 leading-snug mb-2">
-          ✨ ברוכים הבאים לממלכת הסיפורים של <span dir="ltr" className="inline-block bg-gradient-to-r from-purple-300 via-pink-300 to-orange-300 bg-clip-text text-transparent">SolStorie's™</span> ✨
+        <h1 className="text-3xl sm:text-4xl font-black text-white leading-tight mb-3 drop-shadow-lg" style={{ textShadow: '0 2px 8px rgba(0,0,0,0.5)' }}>
+          ✨ ברוכים הבאים לממלכת הסיפורים של <span dir="ltr" className="inline-block bg-gradient-to-r from-purple-300 via-pink-300 to-orange-300 bg-clip-text text-transparent drop-shadow-none" style={{ textShadow: 'none', filter: 'drop-shadow(0 1px 3px rgba(168,85,247,0.4))' }}>SolStorie's™</span> ✨
         </h1>
         <p className="text-base font-bold text-white/80 mb-5">
           המקום שבו הילד שלכם הופך לגיבור הסיפור
