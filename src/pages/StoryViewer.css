@@ -176,10 +176,12 @@
 .open-book-page-right {
   flex: 1;
   position: relative;
-  overflow: hidden;
+  overflow-y: auto;
+  overflow-x: hidden;
   display: flex;
   flex-direction: column;
   justify-content: center;
+  scroll-padding-top: 8px;
   /* Subtle inner shadow for page depth */
   box-shadow: inset 4px 0 12px rgba(0, 0, 0, 0.06);
 }
