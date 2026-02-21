@@ -1,13 +1,19 @@
 /* ==========================================
-   Gentle Page Transitions - Calm Reading Experience
+   Landscape Book Reader Layout
    ========================================== */
+
+/* Force landscape orientation hint */
+@media screen and (orientation: portrait) {
+  .story-viewer-landscape {
+    /* When in portrait on mobile, we rely on the Screen Orientation API
+       to auto-rotate. This is a fallback visual hint. */
+  }
+}
 
 /* Container - no 3D perspective needed for fade */
 .book-container {
   position: relative;
 }
-
-/* Page spine shadow effect - decorative only */
 
 /* ==========================================
    Page spine shadow effect
@@ -81,7 +87,7 @@
   display: flex;
   justify-content: center;
   gap: 0.5rem;
-  padding: 0.75rem 0;
+  padding: 0.5rem 0;
 }
 
 .dot-indicator .dot {
@@ -95,4 +101,77 @@
 .dot-indicator .dot.active {
   width: 12px;
   background-color: #A855F7;
+}
+
+/* ==========================================
+   Open Book Spread - Horizontal Layout
+   ========================================== */
+.open-book-spread {
+  display: flex;
+  flex-direction: row;
+  height: 100%;
+  min-height: calc(100dvh - 52px - 32px); /* minus header & dots */
+}
+
+/* Book spine center divider */
+.open-book-spread::after {
+  content: '';
+  position: absolute;
+  left: 50%;
+  top: 0;
+  bottom: 0;
+  width: 6px;
+  transform: translateX(-50%);
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    rgba(0, 0, 0, 0.06) 20%,
+    rgba(0, 0, 0, 0.12) 50%,
+    rgba(0, 0, 0, 0.06) 80%,
+    transparent 100%
+  );
+  z-index: 10;
+  pointer-events: none;
+}
+
+/* Left page (illustration in RTL) */
+.open-book-page-left {
+  flex: 1;
+  position: relative;
+  overflow: hidden;
+  /* Subtle inner shadow for page depth */
+  box-shadow: inset -4px 0 12px rgba(0, 0, 0, 0.06);
+}
+
+/* Right page (text in RTL) */
+.open-book-page-right {
+  flex: 1;
+  position: relative;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  /* Subtle inner shadow for page depth */
+  box-shadow: inset 4px 0 12px rgba(0, 0, 0, 0.06);
+}
+
+/* Page curl effect corners */
+.page-curl-corner {
+  position: absolute;
+  width: 20px;
+  height: 20px;
+  pointer-events: none;
+  z-index: 5;
+}
+
+.page-curl-corner.bottom-left {
+  bottom: 0;
+  left: 0;
+  background: linear-gradient(315deg, transparent 50%, rgba(0,0,0,0.04) 50%);
+}
+
+.page-curl-corner.bottom-right {
+  bottom: 0;
+  right: 0;
+  background: linear-gradient(225deg, transparent 50%, rgba(0,0,0,0.04) 50%);
 }
