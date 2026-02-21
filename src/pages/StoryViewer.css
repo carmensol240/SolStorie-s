@@ -15,6 +15,16 @@
   position: relative;
 }
 
+/* Force full height on mobile landscape */
+@media screen and (max-height: 500px) {
+  .open-book-spread {
+    min-height: auto !important;
+  }
+  .open-book-page-right {
+    padding: 0.75rem 1.5rem !important;
+  }
+}
+
 /* ==========================================
    Page spine shadow effect
    ========================================== */
@@ -110,7 +120,26 @@
   display: flex;
   flex-direction: row;
   height: 100%;
-  min-height: calc(100dvh - 52px - 32px); /* minus header & dots */
+}
+
+/* Mobile portrait: stack vertically */
+@media screen and (orientation: portrait) {
+  .open-book-spread {
+    flex-direction: column;
+  }
+  .open-book-page-left {
+    flex: none;
+    height: 45%;
+    min-height: 200px;
+  }
+  .open-book-page-right {
+    flex: 1;
+    min-height: 0;
+  }
+  /* Hide spine shadow in portrait */
+  .open-book-spread::after {
+    display: none;
+  }
 }
 
 /* Book spine center divider */

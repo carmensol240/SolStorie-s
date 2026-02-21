@@ -956,14 +956,14 @@ const StoryViewer = () => {
 
       {/* Book Container with Swipe Support */}
       <main 
-        className="flex-1 flex flex-col touch-pan-y cursor-pointer"
+        className="flex-1 flex flex-col touch-pan-y cursor-pointer min-h-0"
         onTouchStart={swipeHandlers.onTouchStart}
         onTouchMove={swipeHandlers.onTouchMove}
         onTouchEnd={swipeHandlers.onTouchEnd}
         onClick={!isMobile ? handleAreaClick : undefined}
       >
         <div className={cn(
-          "relative w-full flex-1 transition-opacity duration-300 ease-in-out overflow-hidden",
+          "relative w-full flex-1 transition-opacity duration-300 ease-in-out overflow-hidden min-h-0",
           isFlipping && "opacity-0"
         )}>
             
@@ -1001,13 +1001,13 @@ const StoryViewer = () => {
                 </div>
                 
                 {/* Right page - Title (RTL: this is the right side) */}
-                <div className="open-book-page-right p-6 md:p-10 text-center bg-[#FFFBF5]">
+                <div className="open-book-page-right p-4 md:p-8 lg:p-10 text-center bg-[#FFFBF5] overflow-y-auto">
                   <div className="page-curl-corner bottom-right" />
                   <div className="space-y-4">
-                    <h1 className="text-3xl md:text-4xl lg:text-5xl font-black text-[#3D2914] leading-tight" style={{ fontFamily: "'Heebo', 'Comic Sans MS', cursive, sans-serif" }}>
+                    <h1 className="text-2xl md:text-4xl lg:text-5xl font-black text-[#3D2914] leading-tight" style={{ fontFamily: "'Heebo', 'Comic Sans MS', cursive, sans-serif" }}>
                       הסיפור של
                       <br />
-                      <span className="text-4xl md:text-5xl lg:text-6xl bg-gradient-to-r from-purple-600 via-pink-500 to-orange-400 bg-clip-text text-transparent">
+                      <span className="text-3xl md:text-5xl lg:text-6xl bg-gradient-to-r from-purple-600 via-pink-500 to-orange-400 bg-clip-text text-transparent">
                         {story.child_name}
                       </span>
                     </h1>
@@ -1026,7 +1026,7 @@ const StoryViewer = () => {
                   <Button 
                     size="lg"
                     onClick={() => handleSpreadChange('next')}
-                    className="mt-6 bg-gradient-to-r from-purple-600 to-pink-500 hover:from-purple-700 hover:to-pink-600 text-white font-bold px-8 py-5 text-lg rounded-full shadow-xl hover:shadow-2xl transition-all transform hover:scale-105 border-2 border-white/50"
+                    className="mt-4 bg-gradient-to-r from-purple-600 to-pink-500 hover:from-purple-700 hover:to-pink-600 text-white font-bold px-6 py-4 md:px-8 md:py-5 text-base md:text-lg rounded-full shadow-xl hover:shadow-2xl transition-all transform hover:scale-105 border-2 border-white/50"
                   >
                     <BookOpen className="w-5 h-5 ml-2" />
                     פתח את הספר 📖
@@ -1178,7 +1178,7 @@ const StoryViewer = () => {
                 </div>
                 
                 {/* Right page - Text (RTL) */}
-                <div className="open-book-page-right relative px-8 py-6 md:px-12 md:py-8 bg-[#FFFBF5]">
+                <div className="open-book-page-right relative px-4 py-3 md:px-8 md:py-6 lg:px-12 lg:py-8 bg-[#FFFBF5]">
                   <div className="page-curl-corner bottom-right" />
                   
                   {/* RTL Prev button — right edge */}
@@ -1213,7 +1213,7 @@ const StoryViewer = () => {
                     <ChevronLeft className="w-4 h-4" />
                   </button>
 
-                  <div className="flex-1 flex flex-col justify-center gap-4 max-w-lg mx-auto w-full overflow-y-auto">
+                  <div className="flex-1 flex flex-col justify-center gap-3 max-w-lg mx-auto w-full overflow-y-auto min-h-0">
                     {currentSpread.pages.map((spreadPage, idx) => (
                       <div key={spreadPage.id} className="relative">
                         {idx > 0 && (
