@@ -466,7 +466,9 @@ const StoryViewer = () => {
 
     try {
       const slug = (story as any).slug || story.id;
-      const publicUrl = `https://soulstory.co.il/story/${slug}`;
+      // Use the published app URL for sharing
+      const baseUrl = window.location.origin;
+      const publicUrl = `${baseUrl}/story/${slug}`;
       const title = `✨ ${translateTopic(story.topic, story.language)} ✨`;
       const text = `📚 הסיפור של ${story.child_name} – נוצר באהבה באפליקציית SolStorie's™`;
 
@@ -477,7 +479,6 @@ const StoryViewer = () => {
       if (navigator.share && !isWhatsAppBrowser) {
         await navigator.share({ title, text, url: publicUrl });
       } else if (isMobileDevice || isWhatsAppBrowser) {
-        // Deep-link into WhatsApp with a pre-filled message (works inside in-app browser too)
         const waText = encodeURIComponent(`${title}\n${text}\n${publicUrl}`);
         window.open(`https://wa.me/?text=${waText}`, '_blank');
       } else {
@@ -489,7 +490,8 @@ const StoryViewer = () => {
       console.error('Error sharing story:', error);
       try {
         const slug = (story as any).slug || story.id;
-        const publicUrl = `https://soulstory.co.il/story/${slug}`;
+        const baseUrl = window.location.origin;
+        const publicUrl = `${baseUrl}/story/${slug}`;
         await navigator.clipboard.writeText(publicUrl);
         toast({ title: 'הקישור הועתק! 📋', description: 'כעת ניתן להדביק אותו בוואטסאפ' });
       } catch {

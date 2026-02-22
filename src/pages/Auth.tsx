@@ -1053,13 +1053,13 @@ const Auth = () => {
       </div>
 
       <div className="relative z-10 flex-1 flex flex-col items-center justify-center p-4 pb-14 overflow-y-auto">
-        {/* Rainbow Logo */}
-        <h1 dir="ltr" className="text-3xl sm:text-4xl font-black text-center logo-3d-bubble mb-4 animate-fade-in px-4">
+        {/* Rainbow Logo - above the login box */}
+        <h1 dir="ltr" className="text-3xl sm:text-4xl font-black text-center logo-3d-bubble mb-2 animate-fade-in px-4">
           <span className="logo-rainbow">SolStorie's™</span>
         </h1>
 
-        {/* Login container */}
-        <div className="relative w-full max-w-md overflow-visible pt-4 sm:pt-6">
+        {/* Login container - moved closer to logo */}
+        <div className="relative w-full max-w-md overflow-visible pt-2 sm:pt-4">
 
           {/* Glassmorphism Login Container */}
           <div className="relative z-10 w-full bg-white/80 backdrop-blur-xl rounded-3xl shadow-2xl shadow-black/20 p-4 md:p-5 animate-fade-in max-h-[80vh] overflow-y-auto border border-white/50">

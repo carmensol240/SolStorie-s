@@ -71,7 +71,7 @@ const About = () => {
         
         {/* Title */}
         <h1 className="text-2xl font-black text-white/95 leading-snug mb-2">
-          ✨ ברוכים הבאים לממלכת הסיפורים של <span dir="ltr" className="inline-block bg-gradient-to-r from-purple-300 via-pink-300 to-orange-300 bg-clip-text text-transparent">SolStorie's™</span> ✨
+          ברוכים הבאים לממלכת הסיפורים של <span dir="ltr" className="inline-block bg-gradient-to-r from-purple-300 via-pink-300 to-orange-300 bg-clip-text text-transparent">SolStorie's™</span>
         </h1>
         <p className="text-lg font-black text-white/90 mb-5" style={{ textShadow: '0 1px 4px rgba(0,0,0,0.4)' }}>
           המקום שבו הילד שלכם הופך לגיבור הסיפור
