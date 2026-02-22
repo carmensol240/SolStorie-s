@@ -29,7 +29,7 @@ import { useOfflineStorage } from "@/hooks/use-offline-storage";
 import { useSettings } from "@/hooks/use-settings";
 import { usePdfExport } from "@/hooks/use-pdf-export";
 import { useNikud } from "@/hooks/use-nikud";
-import { useTextToSpeech } from "@/hooks/use-text-to-speech";
+// useTextToSpeech removed — read-aloud now only in Accessibility Menu
 import { useAccessibility } from "@/hooks/use-accessibility";
 
 import { useAuth } from "@/hooks/use-auth";
@@ -98,7 +98,7 @@ const StoryViewer = () => {
   const [showPdfFormatDialog, setShowPdfFormatDialog] = useState(false);
   const [showGenderSwapDialog, setShowGenderSwapDialog] = useState(false);
   const [showEditConfirmDialog, setShowEditConfirmDialog] = useState(false);
-  const [isReadAloudDismissed, setIsReadAloudDismissed] = useState(false);
+  // isReadAloudDismissed removed — read-aloud only in Accessibility Menu
   const [showPortraitOverlay, setShowPortraitOverlay] = useState(false);
   
   // End-page feedback state
@@ -118,7 +118,7 @@ const StoryViewer = () => {
   const { fetchEditCount, editCount, freeEditsRemaining } = useStoryEdit(storyId || '');
   const hasTrackedStart = useRef(false);
   const { audioSupport } = useAccessibility();
-  const { startReading, stopReading, isReading, isLoading: isTtsLoading } = useTextToSpeech();
+  // useTextToSpeech removed — read-aloud only in Accessibility Menu
 
   // Lock orientation to landscape on mobile + detect portrait for overlay
   useEffect(() => {

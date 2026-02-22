@@ -125,7 +125,7 @@ TITLE TEXT: Display the text "${displayTitle}" prominently at the top or center-
 
 COMPOSITION: This is a BOOK COVER. The 5 characters should be arranged as a group in the lower two-thirds of the image, with the magical setting filling the background. The title text occupies the upper portion. Leave clean space around the title for readability.
 
-EXCLUDE / NEGATIVE PROMPT: No UI elements, no buttons, no audio icons, no play buttons, no watermarks, no text beyond the story title. No additional characters beyond the 5 described. No floating heads, no disembodied heads, no missing bodies, no missing limbs, no extra limbs, no deformed characters, no distorted faces, no scary imagery, no grotesque elements, no mutated features. All characters must be shown as FULL BODY from head to toe.`;
+EXCLUDE / NEGATIVE PROMPT: No UI elements, no buttons, no audio icons, no play buttons, no watermarks, no text beyond the story title. No additional characters beyond the 5 described. No floating heads, no disembodied heads, no missing bodies, no missing limbs, no extra limbs, no deformed characters, no distorted faces, no scary imagery, no grotesque elements, no mutated features. All characters must be shown as FULL BODY from head to toe with feet VISIBLE and GROUNDED on the surface. No cropped feet, no cut off legs, no floating characters, no half-body compositions, no missing feet, no legs cut off at frame edge. Characters must be FULLY CONTAINED within the frame with generous margin.`;
 
     // Build multi-image content: [Sol variant, Ben, Zoe, Leo, Mia] + text
     const characterRefContent = [sol.url, ...CHARACTER_BASE_REFS].map(url => ({

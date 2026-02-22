@@ -64,6 +64,12 @@ const Settings = () => {
 
   return (
     <div className="min-h-[100dvh] flex flex-col bg-gradient-to-b from-purple-50/50 to-background pb-20 overflow-y-auto" style={{ WebkitOverflowScrolling: 'touch' }}>
+      {/* Dev-mode subscription reminder */}
+      {import.meta.env.DEV && sessionStorage.getItem('devMode') === 'true' && (
+        <div className="bg-yellow-100 border-b-2 border-yellow-400 px-4 py-2 text-center text-sm font-bold text-yellow-800" dir="ltr">
+          ⚠️ DEV REMINDER: Verify subscription plan before launch!
+        </div>
+      )}
       {/* Simple header */}
       <div className="bg-gradient-to-r from-purple-100 to-pink-50 px-4 py-4 border-b border-purple-100">
         <h1 className="text-lg font-bold text-purple-800">הגדרות</h1>
@@ -175,6 +181,16 @@ const Settings = () => {
               </div>
             </div>
           </button>
+        </div>
+
+        {/* Privacy Disclosure */}
+        <div className="mt-2 px-1">
+          <div className="bg-muted/30 border border-border rounded-lg p-2.5 text-center">
+            <p className="text-xs text-muted-foreground leading-relaxed">
+              🔒 כל המידע מטופל בהתאם לתקנות פרטיות ילדים (COPPA/GDPR).{' '}
+              <button onClick={() => navigate('/privacy')} className="text-primary underline font-medium">מדיניות פרטיות</button>
+            </p>
+          </div>
         </div>
 
         {/* Danger Zone - Accessible */}
