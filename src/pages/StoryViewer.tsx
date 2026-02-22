@@ -99,6 +99,7 @@ const StoryViewer = () => {
   const [showGenderSwapDialog, setShowGenderSwapDialog] = useState(false);
   const [showEditConfirmDialog, setShowEditConfirmDialog] = useState(false);
   const [isReadAloudDismissed, setIsReadAloudDismissed] = useState(false);
+  const [showPortraitOverlay, setShowPortraitOverlay] = useState(false);
   
   // End-page feedback state
   const [endFeedbackRating, setEndFeedbackRating] = useState(0);
@@ -119,7 +120,7 @@ const StoryViewer = () => {
   const { audioSupport } = useAccessibility();
   const { startReading, stopReading, isReading, isLoading: isTtsLoading } = useTextToSpeech();
 
-  // Lock orientation to landscape on mobile
+  // Lock orientation to landscape on mobile + detect portrait for overlay
   useEffect(() => {
     const lockLandscape = async () => {
       try {
@@ -129,13 +130,22 @@ const StoryViewer = () => {
           console.log('[StoryViewer] Orientation locked to landscape');
         }
       } catch (e) {
-        // Orientation lock not supported or denied - that's OK
         console.log('[StoryViewer] Orientation lock not available:', (e as Error).message);
       }
     };
     lockLandscape();
 
+    // Use matchMedia to reliably detect portrait on mobile
+    const mql = window.matchMedia('(orientation: portrait) and (max-width: 768px)');
+    const handleOrientationChange = (e: MediaQueryListEvent | MediaQueryList) => {
+      setShowPortraitOverlay(e.matches);
+    };
+    // Set initial state
+    handleOrientationChange(mql);
+    mql.addEventListener('change', handleOrientationChange);
+
     return () => {
+      mql.removeEventListener('change', handleOrientationChange);
       try {
         const orientation = screen?.orientation;
         if (orientation && typeof orientation.unlock === 'function') {
@@ -911,14 +921,29 @@ const StoryViewer = () => {
       )}
 
 
-      {/* Portrait rotation prompt for mobile */}
-      <div className="portrait-rotate-overlay">
-        <div className="text-center text-white space-y-4">
-          <div className="text-6xl">📖</div>
-          <p className="text-xl font-bold">סובבו את המכשיר לרוחב</p>
-          <p className="text-sm opacity-80">לחוויית קריאה מיטבית כספר פתוח</p>
+      {/* Portrait rotation prompt for mobile - JS controlled */}
+      {showPortraitOverlay && (
+        <div className="portrait-rotate-overlay">
+          <button
+            onClick={() => setShowPortraitOverlay(false)}
+            className="absolute top-4 left-4 text-white/70 hover:text-white p-2"
+            aria-label="סגור"
+          >
+            <X className="w-6 h-6" />
+          </button>
+          <div className="text-center text-white space-y-4">
+            <div className="text-6xl">📖</div>
+            <p className="text-xl font-bold">סובבו את המכשיר לרוחב</p>
+            <p className="text-sm opacity-80">לחוויית קריאה מיטבית כספר פתוח</p>
+            <button
+              onClick={() => setShowPortraitOverlay(false)}
+              className="mt-4 text-sm text-white/60 underline hover:text-white/90"
+            >
+              המשך בכל זאת
+            </button>
+          </div>
         </div>
-      </div>
+      )}
 
       {/* Book Container */}
       <main 

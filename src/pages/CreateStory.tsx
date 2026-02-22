@@ -11,6 +11,7 @@ import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/hooks/use-auth";
 import { useCredits } from "@/hooks/use-credits";
 import { isDevModeEnabled } from "@/hooks/use-dev-mode";
+import { supabase } from "@/integrations/supabase/client";
 
 export interface AdventureLogic {
   outfit: string;
@@ -68,6 +69,26 @@ const CreateStory = () => {
 
   const handleStoryGenerated = useCallback(async (storyId: string) => {
     await useCredit();
+    
+    // Confirm story exists in DB before navigating (retry up to 5s)
+    let confirmed = false;
+    for (let i = 0; i < 10; i++) {
+      const { data } = await supabase
+        .from("stories")
+        .select("id")
+        .eq("id", storyId)
+        .maybeSingle();
+      if (data) {
+        confirmed = true;
+        break;
+      }
+      await new Promise(r => setTimeout(r, 500));
+    }
+    
+    if (!confirmed) {
+      console.warn("[CreateStory] Story not confirmed in DB after 5s, navigating anyway:", storyId);
+    }
+    
     // Mark that a story was just created so the PDF popup shows
     sessionStorage.setItem("just_created_story", "true");
     // Always navigate to story reader first - let them enjoy the story
