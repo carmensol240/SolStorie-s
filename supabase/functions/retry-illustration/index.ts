@@ -120,7 +120,7 @@ serve(async (req) => {
     const sol = getSolUrl(story.topic || "");
     console.log(`Sol variant: ${sol.label} for topic "${story.topic}"`);
 
-    const stylePrefix = `In the style of modern 3D Disney-Pixar animation, high resolution, magical atmosphere, magical glowing light, dreamy warm and inviting atmosphere. Characters with large expressive emotional eyes, detailed hair, soft textures. ALWAYS show characters as FULL BODY (head to toe) or at minimum from waist up — NEVER just a head or face. 9:16 portrait aspect ratio.
+    const stylePrefix = `In the style of modern 3D Disney-Pixar animation, high resolution, magical atmosphere, magical glowing light, dreamy warm and inviting atmosphere. Characters with large expressive emotional eyes, detailed hair, soft textures. ALWAYS show characters FULL BODY from head to toe with feet VISIBLE and GROUNDED on the surface (grass, floor, path). The character's full body including shoes/feet MUST be visible. Frame the character with generous margin from all edges — at least 10% padding on each side. Character must be FULLY CONTAINED within the frame, never cropped. 9:16 portrait aspect ratio.
 
 === MANDATORY CHARACTER REFERENCES ===
 Reference images of each cast character are provided above. You MUST match their appearance EXACTLY:
@@ -131,7 +131,7 @@ Reference images of each cast character are provided above. You MUST match their
 - Image 5 (Mia): smooth brown bob, flower crown, emerald green dress
 ZERO INVENTION: Do not add random characters not shown in these references. If multiple cast characters appear in the scene, ALL of them must appear together.
 
-NEGATIVE PROMPT / EXCLUDE: floating head, disembodied head, head without body, missing body, missing limbs, extra limbs, deformed, distorted, scary, horror, grotesque, mutated, disfigured, severed, decapitated, cropped head only, face only, no body, text, watermark, UI elements, buttons, audio icons.`;
+NEGATIVE PROMPT / EXCLUDE: floating head, disembodied head, head without body, missing body, missing limbs, extra limbs, deformed, distorted, scary, horror, grotesque, mutated, disfigured, severed, decapitated, cropped head only, face only, no body, cropped feet, cut off legs, floating character, character not touching ground, half-body, missing feet, legs cut off at frame edge, text, watermark, UI elements, buttons, audio icons.`;
 
     const prompt = customPrompt || page.illustration_prompt || `A cheerful children's book illustration for page ${page.page_number}`;
 

@@ -210,7 +210,7 @@ Any deviation from this profile is a FAILURE.
       ? "Sol in her adventure/fantasy hero outfit — match EXACTLY from the reference image"
       : "Sol in her everyday casual look (yellow dress, ponytail with pink band) — match EXACTLY from the reference image";
 
-    const stylePrefix = `In the style of modern 3D Disney-Pixar animation, high resolution, magical atmosphere, magical glowing light, dreamy warm and inviting atmosphere. Characters with large expressive emotional eyes, detailed hair, soft textures. ALWAYS show characters as FULL BODY (head to toe) or at minimum from waist up — NEVER just a head or face.`;
+    const stylePrefix = `In the style of modern 3D Disney-Pixar animation, high resolution, magical atmosphere, magical glowing light, dreamy warm and inviting atmosphere. Characters with large expressive emotional eyes, detailed hair, soft textures. ALWAYS show characters FULL BODY from head to toe with feet VISIBLE and GROUNDED on the surface (grass, floor, path). The character's full body including shoes/feet MUST be visible. Frame the character with generous margin from all edges — at least 10% padding on each side. Character must be FULLY CONTAINED within the frame, never cropped.`;
     
     const enhancedPrompt = `${stylePrefix}
 
@@ -240,10 +240,11 @@ STYLE REQUIREMENTS:
 - Professional children's book illustration quality
 - No text in the image
 - MAINTAIN STRICT VISUAL CHARACTER CONTINUITY: Same face shape, same features, same proportions, SAME OUTFIT across all pages
-- ALWAYS show the character as a FULL BODY or at minimum from waist up — NEVER just a head or face
+- ALWAYS show the character FULL BODY from head to toe with feet visible and grounded — NEVER just a head or face
+- Frame with generous margin — character fully contained, never cropped at edges
 - 9:16 portrait aspect ratio
 
-NEGATIVE PROMPT / EXCLUDE: floating head, disembodied head, head without body, missing body, missing limbs, extra limbs, deformed, distorted, scary, horror, grotesque, mutated, disfigured, severed, decapitated, cropped head only, face only, no body, text, watermark, UI elements, buttons, audio icons.`;
+NEGATIVE PROMPT / EXCLUDE: floating head, disembodied head, head without body, missing body, missing limbs, extra limbs, deformed, distorted, scary, horror, grotesque, mutated, disfigured, severed, decapitated, cropped head only, face only, no body, cropped feet, cut off legs, floating character, character not touching ground, half-body, missing feet, legs cut off at frame edge, text, watermark, UI elements, buttons, audio icons.`;
 
     // Build multi-image content: [Sol variant, Ben, Zoe, Leo, Mia] + optional child photo + text
     // solVariant was already derived above when building the prompt
