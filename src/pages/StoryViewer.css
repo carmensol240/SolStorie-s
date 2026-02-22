@@ -122,8 +122,26 @@
   height: 100%;
 }
 
-/* Mobile portrait: stack vertically */
-@media screen and (orientation: portrait) {
+/* Portrait rotation overlay - shown on mobile portrait */
+.portrait-rotate-overlay {
+  display: none;
+}
+
+@media screen and (orientation: portrait) and (max-width: 768px) {
+  .portrait-rotate-overlay {
+    display: flex;
+    position: fixed;
+    inset: 0;
+    z-index: 9999;
+    background: rgba(30, 10, 60, 0.95);
+    align-items: center;
+    justify-content: center;
+    backdrop-filter: blur(8px);
+  }
+}
+
+/* Mobile portrait fallback: stack vertically (for tablets/larger screens in portrait) */
+@media screen and (orientation: portrait) and (min-width: 769px) {
   .open-book-spread {
     flex-direction: column;
   }

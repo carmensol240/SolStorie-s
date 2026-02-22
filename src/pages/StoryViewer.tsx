@@ -911,9 +911,18 @@ const StoryViewer = () => {
       )}
 
 
+      {/* Portrait rotation prompt for mobile */}
+      <div className="portrait-rotate-overlay">
+        <div className="text-center text-white space-y-4">
+          <div className="text-6xl">📖</div>
+          <p className="text-xl font-bold">סובבו את המכשיר לרוחב</p>
+          <p className="text-sm opacity-80">לחוויית קריאה מיטבית כספר פתוח</p>
+        </div>
+      </div>
+
       {/* Book Container */}
       <main 
-        className="flex-1 flex flex-col min-h-0"
+        className="flex-1 flex flex-col min-h-0 px-14 md:px-16"
       >
         <div className={cn(
           "relative w-full flex-1 transition-opacity duration-300 ease-in-out overflow-hidden min-h-0",
@@ -1089,6 +1098,39 @@ const StoryViewer = () => {
             ) : page ? (
               /* SINGLE PAGE LAYOUT: Horizontal open book - 1 page per spread */
               <div className="open-book-spread relative">
+                {/* Navigation arrows OUTSIDE the book spread */}
+                {/* RTL Prev button — far right edge of screen */}
+                <button
+                  onClick={() => handlePageNav('prev')}
+                  disabled={currentPage <= 0 || isFlipping}
+                  aria-label="עמוד קודם"
+                  className={cn(
+                    "absolute -right-12 md:-right-14 top-1/2 -translate-y-1/2 z-30",
+                    "w-10 h-10 rounded-full flex items-center justify-center",
+                    "bg-white/80 hover:bg-white border border-purple-200 shadow-md",
+                    "text-purple-600 hover:text-purple-700 transition-all duration-200",
+                    "disabled:opacity-20 disabled:cursor-not-allowed"
+                  )}
+                >
+                  <ChevronRight className="w-5 h-5" />
+                </button>
+
+                {/* RTL Next button — far left edge of screen */}
+                <button
+                  onClick={() => handlePageNav('next')}
+                  disabled={currentPage >= story.pages.length - 1 || isFlipping}
+                  aria-label="עמוד הבא"
+                  className={cn(
+                    "absolute -left-12 md:-left-14 top-1/2 -translate-y-1/2 z-30",
+                    "w-10 h-10 rounded-full flex items-center justify-center",
+                    "bg-white/80 hover:bg-white border border-purple-200 shadow-md",
+                    "text-purple-600 hover:text-purple-700 transition-all duration-200",
+                    "disabled:opacity-20 disabled:cursor-not-allowed"
+                  )}
+                >
+                  <ChevronLeft className="w-5 h-5" />
+                </button>
+
                 {/* Left page - Illustration */}
                 <div className="open-book-page-left bg-[#FFFBF5]">
                   {page.illustration_url ? (
@@ -1129,44 +1171,12 @@ const StoryViewer = () => {
                   <div className="page-curl-corner bottom-left" />
                 </div>
                 
-                {/* Right page - Text (RTL) */}
-                <div className="open-book-page-right relative px-6 py-5 md:px-10 md:py-6 lg:px-12 lg:py-8 bg-[#FFFBF5]">
+                {/* Right page - Text (RTL) - NO arrows inside */}
+                <div className="open-book-page-right relative px-8 py-6 md:px-12 md:py-8 lg:px-14 lg:py-10 bg-[#FFFBF5]">
                   <div className="page-curl-corner bottom-right" />
-                  
-                  {/* RTL Prev button — right edge */}
-                  <button
-                    onClick={() => handlePageNav('prev')}
-                    disabled={currentPage <= 0 || isFlipping}
-                    aria-label="עמוד קודם"
-                    className={cn(
-                      "absolute right-1.5 top-1/2 -translate-y-1/2 z-10",
-                      "w-7 h-7 rounded-full flex items-center justify-center",
-                      "bg-purple-100/60 hover:bg-purple-200 border border-purple-200/60",
-                      "text-purple-500 opacity-50 hover:opacity-100 transition-all duration-200",
-                      "disabled:opacity-20 disabled:cursor-not-allowed"
-                    )}
-                  >
-                    <ChevronRight className="w-4 h-4" />
-                  </button>
 
-                  {/* RTL Next button — left edge */}
-                  <button
-                    onClick={() => handlePageNav('next')}
-                    disabled={currentPage >= story.pages.length - 1 || isFlipping}
-                    aria-label="עמוד הבא"
-                    className={cn(
-                      "absolute left-1.5 top-1/2 -translate-y-1/2 z-10",
-                      "w-7 h-7 rounded-full flex items-center justify-center",
-                      "bg-purple-100/60 hover:bg-purple-200 border border-purple-200/60",
-                      "text-purple-500 opacity-50 hover:opacity-100 transition-all duration-200",
-                      "disabled:opacity-20 disabled:cursor-not-allowed"
-                    )}
-                  >
-                    <ChevronLeft className="w-4 h-4" />
-                  </button>
-
-                  {/* Single page text */}
-                  <div className="flex-1 flex flex-col justify-center max-w-lg mx-auto w-full overflow-y-auto min-h-0 pt-2">
+                  {/* Text content with generous padding, no arrow overlap */}
+                  <div className="flex-1 flex flex-col justify-center max-w-lg mx-auto w-full overflow-y-auto min-h-0">
                     <p 
                       className={cn(
                         "text-[#3D2914] text-right font-medium transition-all whitespace-pre-line",
@@ -1179,27 +1189,11 @@ const StoryViewer = () => {
                     </p>
                   </div>
                   
-                  {/* Bottom navigation arrows + page indicator */}
-                  <div className="flex items-center justify-center gap-4 pt-2 mt-auto">
-                    <button
-                      onClick={() => handlePageNav('next')}
-                      disabled={currentPage >= story.pages.length - 1 || isFlipping}
-                      aria-label="עמוד הבא"
-                      className="w-7 h-7 rounded-full flex items-center justify-center bg-purple-100/60 hover:bg-purple-200 text-purple-500 disabled:opacity-20 disabled:cursor-not-allowed transition-all"
-                    >
-                      <ChevronLeft className="w-4 h-4" />
-                    </button>
+                  {/* Page indicator only - no arrows here */}
+                  <div className="flex items-center justify-center pt-2 mt-auto">
                     <span className="text-xs text-gray-400 font-light">
                       {currentPage + 1} / {story.pages.length}
                     </span>
-                    <button
-                      onClick={() => handlePageNav('prev')}
-                      disabled={currentPage <= 0 || isFlipping}
-                      aria-label="עמוד קודם"
-                      className="w-7 h-7 rounded-full flex items-center justify-center bg-purple-100/60 hover:bg-purple-200 text-purple-500 disabled:opacity-20 disabled:cursor-not-allowed transition-all"
-                    >
-                      <ChevronRight className="w-4 h-4" />
-                    </button>
                   </div>
                 </div>
               </div>
