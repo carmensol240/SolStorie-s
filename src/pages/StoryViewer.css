@@ -122,22 +122,16 @@
   height: 100%;
 }
 
-/* Portrait rotation overlay - shown on mobile portrait */
+/* Portrait rotation overlay - controlled by JS state */
 .portrait-rotate-overlay {
-  display: none;
-}
-
-@media screen and (orientation: portrait) and (max-width: 768px) {
-  .portrait-rotate-overlay {
-    display: flex;
-    position: fixed;
-    inset: 0;
-    z-index: 9999;
-    background: rgba(30, 10, 60, 0.95);
-    align-items: center;
-    justify-content: center;
-    backdrop-filter: blur(8px);
-  }
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  background: rgba(30, 10, 60, 0.95);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  backdrop-filter: blur(8px);
 }
 
 /* Mobile portrait fallback: stack vertically (for tablets/larger screens in portrait) */
