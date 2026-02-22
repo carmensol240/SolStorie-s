@@ -1130,7 +1130,7 @@ const StoryViewer = () => {
                 </div>
                 
                 {/* Right page - Text (RTL) */}
-                <div className="open-book-page-right relative px-4 py-3 md:px-8 md:py-6 lg:px-12 lg:py-8 bg-[#FFFBF5]">
+                <div className="open-book-page-right relative px-6 py-5 md:px-10 md:py-6 lg:px-12 lg:py-8 bg-[#FFFBF5]">
                   <div className="page-curl-corner bottom-right" />
                   
                   {/* RTL Prev button — right edge */}
@@ -1140,10 +1140,10 @@ const StoryViewer = () => {
                     aria-label="עמוד קודם"
                     className={cn(
                       "absolute right-1.5 top-1/2 -translate-y-1/2 z-10",
-                      "w-8 h-8 rounded-full flex items-center justify-center",
-                      "bg-purple-100/80 hover:bg-purple-200 border border-purple-200",
-                      "text-purple-600 transition-all duration-200",
-                      "disabled:opacity-30 disabled:cursor-not-allowed"
+                      "w-7 h-7 rounded-full flex items-center justify-center",
+                      "bg-purple-100/60 hover:bg-purple-200 border border-purple-200/60",
+                      "text-purple-500 opacity-50 hover:opacity-100 transition-all duration-200",
+                      "disabled:opacity-20 disabled:cursor-not-allowed"
                     )}
                   >
                     <ChevronRight className="w-4 h-4" />
@@ -1156,10 +1156,10 @@ const StoryViewer = () => {
                     aria-label="עמוד הבא"
                     className={cn(
                       "absolute left-1.5 top-1/2 -translate-y-1/2 z-10",
-                      "w-8 h-8 rounded-full flex items-center justify-center",
-                      "bg-purple-100/80 hover:bg-purple-200 border border-purple-200",
-                      "text-purple-600 transition-all duration-200",
-                      "disabled:opacity-30 disabled:cursor-not-allowed"
+                      "w-7 h-7 rounded-full flex items-center justify-center",
+                      "bg-purple-100/60 hover:bg-purple-200 border border-purple-200/60",
+                      "text-purple-500 opacity-50 hover:opacity-100 transition-all duration-200",
+                      "disabled:opacity-20 disabled:cursor-not-allowed"
                     )}
                   >
                     <ChevronLeft className="w-4 h-4" />
