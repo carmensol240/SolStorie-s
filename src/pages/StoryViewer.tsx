@@ -1147,14 +1147,14 @@ const StoryViewer = () => {
                     </div>
                   </>
                 ) : (
-                  /* Text-only page — no illustration */
-                  <div className="flex-1 flex flex-col min-h-0 bg-[#FFFBF5] rounded-xl">
-                    {/* Decorative gradient top border */}
-                    <div className="w-full h-1 shrink-0 bg-gradient-to-r from-purple-400 via-pink-400 to-orange-300 rounded-t-xl" />
+                  /* Text-only page — premium storybook feel */
+                  <div className="flex-1 flex flex-col min-h-0 rounded-xl border border-[#E8D5C4]/60 bg-[#FDFBF7] shadow-inner">
+                    {/* Decorative gradient top accent */}
+                    <div className="w-full h-0.5 shrink-0 bg-gradient-to-r from-purple-300/60 via-pink-300/60 to-orange-200/60 rounded-t-xl" />
                     
-                    {/* Text - fills full height, scrollable */}
-                    <div className="flex-1 min-h-0 overflow-y-auto px-6 py-6 md:px-10 md:py-8">
-                      <div className="max-w-lg mx-auto w-full flex flex-col items-center justify-center min-h-full">
+                    {/* Text - centered vertically & horizontally, scrollable for long content */}
+                    <div className="flex-1 min-h-0 overflow-y-auto px-8 py-8 md:px-12 md:py-10 flex flex-col">
+                      <div className="max-w-lg mx-auto w-full flex-1 flex items-center justify-center">
                         <p 
                           className={cn(
                             "text-[#3D2914] text-right font-medium transition-all whitespace-pre-line",
@@ -1167,13 +1167,17 @@ const StoryViewer = () => {
                         </p>
                       </div>
                       
-                      {/* Page indicator */}
-                      <div className="flex items-center justify-center pt-3 pb-1">
-                        <span className="text-xs text-gray-400 font-light">
+                      {/* Branding divider + page indicator */}
+                      <div className="flex flex-col items-center gap-1 pt-4 pb-1 shrink-0">
+                        <span className="text-[#D4A574]/50 text-sm select-none">✦</span>
+                        <span className="text-xs text-[#B8A08C] font-light tracking-wide">
                           {currentPage + 1} / {story.pages.length}
                         </span>
                       </div>
                     </div>
+
+                    {/* Decorative gradient bottom accent */}
+                    <div className="w-full h-0.5 shrink-0 bg-gradient-to-r from-orange-200/60 via-pink-300/60 to-purple-300/60 rounded-b-xl" />
                   </div>
                 )}
               </div>
