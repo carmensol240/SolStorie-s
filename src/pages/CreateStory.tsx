@@ -31,6 +31,7 @@ export interface StoryFormData {
   customTopic: string;
   personalityTraits: string;
   className: string;
+  fixedDetails: string;
   adventureLogic?: AdventureLogic;
 }
 
@@ -47,6 +48,7 @@ const INITIAL_DATA: StoryFormData = {
   customTopic: "",
   personalityTraits: "",
   className: "",
+  fixedDetails: "",
 };
 
 const steps = [

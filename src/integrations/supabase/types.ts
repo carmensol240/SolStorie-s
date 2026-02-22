@@ -96,6 +96,7 @@ export type Database = {
           challenges: string | null
           created_at: string
           favorite_friends: string | null
+          fixed_details: string | null
           gender: string | null
           hobbies: string | null
           id: string
@@ -111,6 +112,7 @@ export type Database = {
           challenges?: string | null
           created_at?: string
           favorite_friends?: string | null
+          fixed_details?: string | null
           gender?: string | null
           hobbies?: string | null
           id?: string
@@ -126,6 +128,7 @@ export type Database = {
           challenges?: string | null
           created_at?: string
           favorite_friends?: string | null
+          fixed_details?: string | null
           gender?: string | null
           hobbies?: string | null
           id?: string

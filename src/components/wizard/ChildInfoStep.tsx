@@ -120,7 +120,7 @@ const ChildInfoStep = ({ formData, updateFormData }: ChildInfoStepProps) => {
         // Fetch from database for authenticated users
         const { data, error } = await supabase
           .from("children")
-          .select("id, name, age, gender, photo_url, avatar_url, personality_traits")
+          .select("id, name, age, gender, photo_url, avatar_url, personality_traits, fixed_details")
           .eq("user_id", user.id);
         
         if (!error && data && data.length > 0) {
@@ -135,6 +135,7 @@ const ChildInfoStep = ({ formData, updateFormData }: ChildInfoStepProps) => {
             childPhoto: firstChild.photo_url,
             childAvatarUrl: firstChild.avatar_url,
             personalityTraits: firstChild.personality_traits || "",
+            fixedDetails: (firstChild as any).fixed_details || "",
           });
           if (firstChild.personality_traits) {
             setShowPersonalityField(true);
@@ -157,6 +158,7 @@ const ChildInfoStep = ({ formData, updateFormData }: ChildInfoStepProps) => {
             childPhoto: firstChild.photo_url,
             childAvatarUrl: firstChild.avatar_url,
             personalityTraits: firstChild.personality_traits || "",
+            fixedDetails: firstChild.fixed_details || "",
           });
           if (firstChild.personality_traits) {
             setShowPersonalityField(true);
@@ -253,6 +255,7 @@ const ChildInfoStep = ({ formData, updateFormData }: ChildInfoStepProps) => {
       childPhoto: child.photo_url,
       childAvatarUrl: child.avatar_url,
       personalityTraits: child.personality_traits || "",
+      fixedDetails: (child as any).fixed_details || "",
     });
     
     // Load avatar regeneration count
@@ -288,6 +291,7 @@ const ChildInfoStep = ({ formData, updateFormData }: ChildInfoStepProps) => {
           photo_url: formData.childPhoto,
           avatar_url: formData.childAvatarUrl,
           personality_traits: formData.personalityTraits || null,
+          fixed_details: formData.fixedDetails || null,
         };
 
         // Check if child already exists
@@ -303,6 +307,7 @@ const ChildInfoStep = ({ formData, updateFormData }: ChildInfoStepProps) => {
               photo_url: formData.childPhoto,
               avatar_url: formData.childAvatarUrl,
               personality_traits: formData.personalityTraits || null,
+              fixed_details: formData.fixedDetails || null,
             })
             .eq("id", existingChild.id);
 
@@ -403,6 +408,7 @@ const ChildInfoStep = ({ formData, updateFormData }: ChildInfoStepProps) => {
         childAvatarUrl: null,
         personalityTraits: "",
         className: "",
+        fixedDetails: "",
       });
       setSelectedAgeButton("3-6");
       setExistingAvatarForDialog(null);
@@ -437,6 +443,7 @@ const ChildInfoStep = ({ formData, updateFormData }: ChildInfoStepProps) => {
                 childAvatarUrl: null,
                 personalityTraits: "",
                 className: "",
+                fixedDetails: "",
               });
               setSelectedAgeButton("3-6");
               setExistingAvatarForDialog(null);
@@ -490,21 +497,39 @@ const ChildInfoStep = ({ formData, updateFormData }: ChildInfoStepProps) => {
         </div>
       )}
 
-      {/* Child Name */}
+      {/* Child Name + Fixed Details Row */}
       <div className="space-y-1">
-        <Label htmlFor="childName" className="text-xs font-medium">
-          שם הילד/ה
-        </Label>
-        <div className="max-w-xs mx-auto">
-          <Input
-            id="childName"
-            type="text"
-            placeholder="שם הילד/ה"
-            value={formData.childName}
-            onChange={(e) => updateFormData({ childName: e.target.value })}
-            className="h-9 text-sm font-medium border-purple-200 focus:border-purple-400"
-            dir="rtl"
-          />
+        <div className="flex flex-col sm:flex-row gap-2">
+          {/* Child Name - narrower */}
+          <div className="sm:w-1/3 space-y-1">
+            <Label htmlFor="childName" className="text-xs font-medium">
+              שם הילד/ה
+            </Label>
+            <Input
+              id="childName"
+              type="text"
+              placeholder="שם הילד/ה"
+              value={formData.childName}
+              onChange={(e) => updateFormData({ childName: e.target.value })}
+              className="h-9 text-sm font-medium border-purple-200 focus:border-purple-400"
+              dir="rtl"
+            />
+          </div>
+          
+          {/* Fixed Details - wider */}
+          <div className="sm:flex-1 space-y-1">
+            <Label htmlFor="fixedDetails" className="text-xs font-medium">
+              פרטים קבועים (אופציונלי)
+            </Label>
+            <Textarea
+              id="fixedDetails"
+              placeholder="למשל: בן 4, מבנה משפחתי, חיית מחמד..."
+              value={formData.fixedDetails || ""}
+              onChange={(e) => updateFormData({ fixedDetails: e.target.value })}
+              className="min-h-[36px] h-9 text-sm border-purple-200 focus:border-purple-400 resize-none"
+              dir="rtl"
+            />
+          </div>
         </div>
       </div>
 
