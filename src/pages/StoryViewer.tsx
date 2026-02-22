@@ -873,8 +873,8 @@ const StoryViewer = () => {
             {isCoverPage ? (
               /* Cover Page - Vertical portrait layout */
               <div className="flex flex-col h-full bg-[#FFFBF5]">
-                {/* Cover illustration - top 45% */}
-                <div className="relative shrink-0 overflow-hidden" style={{ height: '45%' }}>
+                {/* Cover illustration - top 30% (reduced for more text space) */}
+                <div className="relative shrink-0 overflow-hidden" style={{ height: '30%' }}>
                   {story.pages[0]?.illustration_url ? (
                     <img
                       src={getPublicIllustrationUrl(story.pages[0].illustration_url) || ''}
@@ -903,34 +903,41 @@ const StoryViewer = () => {
                   <div className="page-curl-corner bottom-right" />
                 </div>
                 
-                {/* Title area - bottom 55% */}
-                <div className="flex-1 paper-texture flex flex-col items-center justify-center text-center p-6 md:p-8">
-                  <div className="space-y-3">
-                    <h1 className="text-2xl md:text-4xl font-black text-[#3D2914] leading-tight" style={{ fontFamily: "'Heebo', 'Comic Sans MS', cursive, sans-serif" }}>
+                {/* Title & summary area - bottom 70% with scroll */}
+                <div className="flex-1 min-h-0 paper-texture flex flex-col items-center text-center p-4 md:p-6 overflow-y-auto">
+                  <div className="space-y-2 flex-shrink-0">
+                    <h1 className="text-xl md:text-3xl font-black text-[#3D2914] leading-tight" style={{ fontFamily: "'Heebo', 'Comic Sans MS', cursive, sans-serif" }}>
                       הסיפור של
                       <br />
-                      <span className="text-3xl md:text-5xl bg-gradient-to-r from-purple-600 via-pink-500 to-orange-400 bg-clip-text text-transparent">
+                      <span className="text-2xl md:text-4xl bg-gradient-to-r from-purple-600 via-pink-500 to-orange-400 bg-clip-text text-transparent">
                         {story.child_name}
                       </span>
                     </h1>
                     
                     <div className="flex items-center justify-center gap-3">
-                      <div className="w-12 h-1 bg-gradient-to-r from-transparent to-pink-400 rounded-full" />
-                      <span className="text-xl">✨</span>
-                      <div className="w-12 h-1 bg-gradient-to-l from-transparent to-pink-400 rounded-full" />
+                      <div className="w-10 h-0.5 bg-gradient-to-r from-transparent to-pink-400 rounded-full" />
+                      <span className="text-lg">✨</span>
+                      <div className="w-10 h-0.5 bg-gradient-to-l from-transparent to-pink-400 rounded-full" />
                     </div>
                     
-                    <p className="text-base md:text-lg text-[#6B4423] max-w-xs mx-auto font-medium">
+                    <p className="text-sm md:text-base text-[#6B4423] max-w-sm mx-auto font-medium leading-relaxed">
                       {translateTopic(story.topic, story.language)}
                     </p>
+                    
+                    {/* First page text preview */}
+                    {story.pages[0]?.text && (
+                      <p className="text-xs md:text-sm text-[#8B7355] max-w-sm mx-auto leading-relaxed mt-1" dir="rtl">
+                        {story.pages[0].text}
+                      </p>
+                    )}
                   </div>
                   
                   <Button 
                     size="lg"
                     onClick={() => handlePageNav('next')}
-                    className="mt-5 bg-gradient-to-r from-purple-600 to-pink-500 hover:from-purple-700 hover:to-pink-600 text-white font-bold px-6 py-4 text-base rounded-full shadow-xl hover:shadow-2xl transition-all transform hover:scale-105 border-2 border-white/50"
+                    className="mt-4 shrink-0 bg-gradient-to-r from-purple-600 to-pink-500 hover:from-purple-700 hover:to-pink-600 text-white font-bold px-6 py-3 text-sm md:text-base rounded-full shadow-xl hover:shadow-2xl transition-all transform hover:scale-105 border-2 border-white/50"
                   >
-                    <BookOpen className="w-5 h-5 ml-2" />
+                    <BookOpen className="w-4 h-4 ml-2" />
                     פתח את הספר 📖
                   </Button>
                 </div>
