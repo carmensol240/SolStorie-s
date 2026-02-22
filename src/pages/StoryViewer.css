@@ -181,8 +181,9 @@
   display: flex;
   flex-direction: column;
   justify-content: center;
-  scroll-padding-top: 12px;
-  padding-top: 12px;
+  scroll-padding-top: 20px;
+  padding-top: 20px;
+  padding-bottom: 20px;
   min-height: 0;
   /* Subtle inner shadow for page depth */
   box-shadow: inset 4px 0 12px rgba(0, 0, 0, 0.06);

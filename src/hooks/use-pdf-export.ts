@@ -27,28 +27,10 @@ interface Story {
   pages: StoryPage[];
 }
 
-interface Spread {
-  illustration_url: string | null;
-  texts: string[];
-  pageNumbers: number[];
-}
-
 export type PdfLayout = 'portrait' | 'landscape-book';
 
-/** Build spreads: pair pages so one illustration covers two text blocks */
-const buildSpreads = (pages: StoryPage[]): Spread[] => {
-  const spreads: Spread[] = [];
-  for (let i = 0; i < pages.length; i += 2) {
-    const first = pages[i];
-    const second = pages[i + 1];
-    spreads.push({
-      illustration_url: first.illustration_url,
-      texts: second ? [first.text, second.text] : [first.text],
-      pageNumbers: second ? [first.page_number, second.page_number] : [first.page_number],
-    });
-  }
-  return spreads;
-};
+// 20mm margin in pixels at 3.78 px/mm
+const MARGIN_PX = Math.round(20 * 3.78); // ~76px
 
 export const usePdfExport = () => {
   const [isExporting, setIsExporting] = useState(false);
@@ -76,18 +58,15 @@ export const usePdfExport = () => {
     const W = pdf.internal.pageSize.getWidth();
     const H = pdf.internal.pageSize.getHeight();
 
-    // Separator line
     pdf.setDrawColor(212, 165, 116);
     pdf.setLineWidth(0.3);
     pdf.line(20, H - 18, W - 20, H - 18);
 
-    // Brand name (purple, bold)
     pdf.setFont('helvetica', 'bold');
     pdf.setFontSize(9);
     pdf.setTextColor(147, 51, 234);
     pdf.text("SolStorie's\u2122", W / 2, H - 13, { align: 'center' });
 
-    // Clickable URL (blue)
     pdf.setFont('helvetica', 'normal');
     pdf.setFontSize(8);
     pdf.setTextColor(37, 99, 235);
@@ -123,7 +102,7 @@ export const usePdfExport = () => {
       width: 100%; height: 100%;
       background: linear-gradient(135deg, #F5E6D3 0%, #FFF8E7 100%);
       display: flex; flex-direction: column; align-items: center; justify-content: center;
-      padding: 40px; box-sizing: border-box; direction: rtl;
+      padding: ${MARGIN_PX}px; box-sizing: border-box; direction: rtl;
     `;
     coverPage.innerHTML = `
       <div style="border: 4px double #8B4513; border-radius: 16px; padding: 48px;
@@ -145,8 +124,8 @@ export const usePdfExport = () => {
     const signedUrlMap = await fetchSignedUrls(illustrationUrls, story.id);
 
     const pdf = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
-    const W = pdf.internal.pageSize.getWidth();   // 210mm
-    const H = pdf.internal.pageSize.getHeight();  // 297mm
+    const W = pdf.internal.pageSize.getWidth();
+    const H = pdf.internal.pageSize.getHeight();
 
     const pageWidthPx = W * 3.78;
     const pageHeightPx = H * 3.78;
@@ -159,16 +138,14 @@ export const usePdfExport = () => {
     container.appendChild(renderCoverPage(story.child_name, story.topic));
     await captureHtmlToPage(container, pdf, true);
 
-    // -- Story pages: render each as HTML via html2canvas --
+    // -- Story pages --
     for (const page of story.pages) {
       let illustrationDataUrl: string | null = null;
       if (page.illustration_url) {
         try {
           const resolvedUrl = signedUrlMap[page.illustration_url] || page.illustration_url;
           illustrationDataUrl = await loadImageAsDataUrl(resolvedUrl);
-        } catch {
-          // skip illustration
-        }
+        } catch { /* skip */ }
       }
 
       const pageEl = document.createElement('div');
@@ -176,7 +153,7 @@ export const usePdfExport = () => {
         width: 100%; height: 100%;
         background: linear-gradient(135deg, #FFFBF5 0%, #FFF8E7 100%);
         display: flex; flex-direction: column; align-items: center;
-        padding: 60px 70px 80px 70px; box-sizing: border-box; direction: rtl;
+        padding: ${MARGIN_PX}px ${MARGIN_PX}px ${MARGIN_PX + 20}px ${MARGIN_PX}px; box-sizing: border-box; direction: rtl;
         font-family: Heebo, Assistant, sans-serif;
       `;
 
@@ -191,7 +168,7 @@ export const usePdfExport = () => {
       pageEl.innerHTML = `
         ${illustrationHtml}
         <div style="color:#8B4513;font-size:16px;margin-bottom:16px;text-align:center;">${pageLabel}</div>
-        <div style="flex:1;display:flex;align-items:center;justify-content:center;width:100%;overflow:hidden;">
+        <div style="flex:1;display:flex;align-items:center;justify-content:center;width:100%;overflow:visible;">
           <p style="color:#4A3728;font-size:26px;line-height:2.2;text-align:center;margin:0;
             font-family:Heebo,Assistant,sans-serif;max-width:95%;word-wrap:break-word;overflow-wrap:break-word;">
             ${escapeHtml(page.text)}
@@ -209,7 +186,7 @@ export const usePdfExport = () => {
     pdf.save(`סיפור-${story.child_name.replace(/\s+/g, '-')}.pdf`);
   };
 
-  // ─── Landscape Book ─────────────────────────────────────────
+  // ─── Landscape Book - 1:1 page-to-spread ───────────────────
   const exportLandscapeBook = async (story: Story) => {
     const illustrationUrls = story.pages
       .map(p => p.illustration_url)
@@ -227,7 +204,7 @@ export const usePdfExport = () => {
     // Cover
     const coverPage = document.createElement('div');
     coverPage.style.cssText = `width:100%;height:100%;background:linear-gradient(135deg,#F5E6D3 0%,#FFF8E7 50%,#F5E6D3 100%);
-      display:flex;align-items:center;justify-content:center;direction:rtl;`;
+      display:flex;align-items:center;justify-content:center;direction:rtl;padding:${MARGIN_PX}px;box-sizing:border-box;`;
     coverPage.innerHTML = `
       <div style="border:4px double #8B4513;border-radius:20px;padding:48px 80px;
         background:rgba(255,248,231,0.95);text-align:center;box-shadow:0 12px 40px rgba(139,69,19,0.25);">
@@ -240,67 +217,41 @@ export const usePdfExport = () => {
     container.appendChild(coverPage);
     await captureHtmlToPage(container, pdf, true);
 
-    // Spreads
-    const spreads = buildSpreads(story.pages);
+    // Each story page = one spread (illustration left, text right)
     const totalPages = story.pages.length;
 
-    for (let si = 0; si < spreads.length; si++) {
-      const spread = spreads[si];
-      const pageLabel = spread.pageNumbers.length > 1
-        ? `${spread.pageNumbers[0]}-${spread.pageNumbers[1]} / ${totalPages}`
-        : `${spread.pageNumbers[0]} / ${totalPages}`;
-
-      const hasIllustration = !!spread.illustration_url;
+    for (const page of story.pages) {
+      const pageLabel = `${page.page_number} / ${totalPages}`;
       let illustrationHtml = '';
 
-      if (hasIllustration) {
+      if (page.illustration_url) {
         try {
-          const resolvedUrl = signedUrlMap[spread.illustration_url!] || spread.illustration_url!;
+          const resolvedUrl = signedUrlMap[page.illustration_url] || page.illustration_url;
           const dataUrl = await loadImageAsDataUrl(resolvedUrl);
-          illustrationHtml = `
-            <img src="${dataUrl}" style="max-width:90%;max-height:90%;border-radius:16px;
-              box-shadow:0 8px 32px rgba(139,69,19,0.25);object-fit:contain;" />`;
+          illustrationHtml = `<img src="${dataUrl}" style="max-width:90%;max-height:90%;border-radius:16px;
+            box-shadow:0 8px 32px rgba(139,69,19,0.25);object-fit:contain;" />`;
         } catch { /* skip */ }
       }
 
-      const textBlocks = spread.texts.map((t, idx) => `
-        ${idx > 0 ? '<div style="width:50%;height:2px;background:#D4A574;margin:16px auto;border-radius:1px;"></div>' : ''}
-        <p style="color:#4A3728;font-size:30px;line-height:2;text-align:center;margin:0;
-          font-family:Heebo,Assistant,sans-serif;max-width:85%;">${escapeHtml(t)}</p>
-      `).join('');
-
       const spreadPage = document.createElement('div');
+      spreadPage.style.cssText = `width:100%;height:100%;display:flex;direction:rtl;
+        background:linear-gradient(to right,#FFF8E7 0%,#FFF8E7 49.5%,#D4A574 49.5%,#8B4513 50%,#D4A574 50.5%,#FFF8E7 50.5%,#FFF8E7 100%);`;
 
-      if (hasIllustration && illustrationHtml) {
-        spreadPage.style.cssText = `width:100%;height:100%;display:flex;direction:rtl;
-          background:linear-gradient(to right,#FFF8E7 0%,#FFF8E7 49.5%,#D4A574 49.5%,#8B4513 50%,#D4A574 50.5%,#FFF8E7 50.5%,#FFF8E7 100%);`;
-        spreadPage.innerHTML = `
-          <div style="flex:1;display:flex;align-items:center;justify-content:center;
-            background:linear-gradient(135deg,#FFF8E7 0%,#F5E6D3 100%);padding:24px;">
-            ${illustrationHtml}
+      spreadPage.innerHTML = `
+        <div style="flex:1;display:flex;align-items:center;justify-content:center;
+          background:linear-gradient(135deg,#FFF8E7 0%,#F5E6D3 100%);padding:${MARGIN_PX}px;box-sizing:border-box;">
+          ${illustrationHtml || '<div style="color:#D4A574;font-size:48px;">📖</div>'}
+        </div>
+        <div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;
+          background:#FFF8E7;padding:${MARGIN_PX}px;box-sizing:border-box;position:relative;">
+          <div style="position:absolute;top:${MARGIN_PX}px;right:${MARGIN_PX}px;color:#D4A574;font-size:24px;">❧</div>
+          <p style="color:#4A3728;font-size:30px;line-height:2;text-align:center;margin:0;
+            font-family:Heebo,Assistant,sans-serif;max-width:85%;word-wrap:break-word;overflow-wrap:break-word;">${escapeHtml(page.text)}</p>
+          <div style="position:absolute;bottom:${MARGIN_PX + 20}px;left:50%;transform:translateX(-50%);color:#8B4513;font-size:18px;">
+            ✦ ${pageLabel} ✦
           </div>
-          <div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;
-            background:#FFF8E7;padding:40px;position:relative;">
-            <div style="position:absolute;top:20px;right:20px;color:#D4A574;font-size:24px;">❧</div>
-            ${textBlocks}
-            <div style="position:absolute;bottom:60px;left:50%;transform:translateX(-50%);color:#8B4513;font-size:18px;">
-              ✦ ${pageLabel} ✦
-            </div>
-            <div style="position:absolute;bottom:20px;left:20px;color:#D4A574;font-size:24px;transform:rotate(180deg);">❧</div>
-          </div>`;
-      } else {
-        spreadPage.style.cssText = `width:100%;height:100%;display:flex;align-items:center;justify-content:center;
-          background:linear-gradient(135deg,#FFF8E7 0%,#F5E6D3 100%);direction:rtl;`;
-        spreadPage.innerHTML = `
-          <div style="display:flex;flex-direction:column;align-items:center;justify-content:center;
-            padding:40px;max-width:80%;position:relative;">
-            <div style="position:absolute;top:-20px;right:0;color:#D4A574;font-size:24px;">❧</div>
-            ${textBlocks}
-            <div style="position:absolute;bottom:-30px;left:50%;transform:translateX(-50%);color:#8B4513;font-size:18px;">
-              ✦ ${pageLabel} ✦
-            </div>
-          </div>`;
-      }
+          <div style="position:absolute;bottom:${MARGIN_PX}px;left:${MARGIN_PX}px;color:#D4A574;font-size:24px;transform:rotate(180deg);">❧</div>
+        </div>`;
 
       container.innerHTML = '';
       container.appendChild(spreadPage);
