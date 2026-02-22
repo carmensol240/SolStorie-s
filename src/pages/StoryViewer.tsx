@@ -448,10 +448,8 @@ const StoryViewer = () => {
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === 'ArrowLeft') {
-        // RTL: left arrow = next page
         handlePageChange('next');
       } else if (e.key === 'ArrowRight') {
-        // RTL: right arrow = prev page
         handlePageChange('prev');
       }
     };
@@ -809,47 +807,31 @@ const StoryViewer = () => {
   }
 
   const isCoverPage = currentPage === -1;
-  const isEndPage = currentPage >= Math.ceil(story.pages.length / 2);
+  const isEndPage = currentPage >= story.pages.length;
   
-  // Build spreads: group pages into pairs, each spread has 1 illustration + 2 text blocks
-  const spreads: { illustration: string | null; illustrationPageId: string | null; pages: StoryPage[] }[] = [];
-  for (let i = 0; i < story.pages.length; i += 2) {
-    const firstPage = story.pages[i];
-    const secondPage = story.pages[i + 1] || null;
-    // The illustration comes from the first page of each pair (odd page_number)
-    const illustrationUrl = firstPage?.illustration_url || secondPage?.illustration_url || null;
-    const illustrationPageId = firstPage?.illustration_url ? firstPage.id : (secondPage?.illustration_url ? secondPage.id : firstPage?.id || null);
-    const pagesInSpread = secondPage ? [firstPage, secondPage] : [firstPage];
-    spreads.push({ illustration: illustrationUrl, illustrationPageId, pages: pagesInSpread });
-  }
-  
-  const currentSpread = (!isCoverPage && !isEndPage && currentPage >= 0) ? spreads[currentPage] : null;
-  const page = currentSpread?.pages[0] || null; // For edit/nikud actions, use first page
+  // 1:1 layout: each page displayed individually (no spreads/pairing)
+  const page = (!isCoverPage && !isEndPage && currentPage >= 0) ? story.pages[currentPage] : null;
   const currentFontSize = FONT_SIZES[fontSizeIndex];
-  const showPageActions = !isCoverPage && !isEndPage && currentSpread !== null;
-  
-  // Calculate page numbers for display
-  const spreadStartPage = currentPage >= 0 ? currentPage * 2 + 1 : 0;
-  const spreadEndPage = currentSpread ? spreadStartPage + currentSpread.pages.length - 1 : 0;
+  const showPageActions = !isCoverPage && !isEndPage && page !== null;
 
-  // Override navigation for spread-based stepping
-  const handleSpreadChange = (direction: 'next' | 'prev') => {
+  // Simple page-by-page navigation
+  const handlePageNav = (direction: 'next' | 'prev') => {
     if (isFlipping) return;
     
-    const maxSpread = spreads.length;
+    const maxPage = story.pages.length; // end page index
     
-    if (direction === 'next' && currentPage >= maxSpread) return;
+    if (direction === 'next' && currentPage >= maxPage) return;
     if (direction === 'prev' && currentPage <= -1) return;
     
     setFlipDirection(direction);
     setIsFlipping(true);
     
     setTimeout(() => {
-      if (direction === 'next' && currentPage < maxSpread) {
+      if (direction === 'next' && currentPage < maxPage) {
         const newPage = currentPage + 1;
         setCurrentPage(newPage);
         
-        if (newPage >= maxSpread) {
+        if (newPage >= maxPage) {
           trackStoryCompleted(story.id);
         }
       } else if (direction === 'prev' && currentPage > -1) {
@@ -881,7 +863,7 @@ const StoryViewer = () => {
       />
 
       {/* Read Aloud Floating Button - accessibility feature */}
-      {(audioSupport || story?.language === 'en') && showPageActions && currentSpread && !isReadAloudDismissed && (
+      {(audioSupport || story?.language === 'en') && showPageActions && page && !isReadAloudDismissed && (
         <div className="fixed bottom-24 left-4 z-50">
           {/* Dismiss X button */}
           <button
@@ -902,8 +884,7 @@ const StoryViewer = () => {
               if (isReading) {
                 stopReading();
               } else {
-                const allText = currentSpread.pages.map(p => p.text).join('\n');
-                startReading(allText, story?.language || 'he');
+                startReading(page.text, story?.language || 'he');
               }
             }}
             disabled={isTtsLoading}
@@ -995,7 +976,7 @@ const StoryViewer = () => {
                   
                   <Button 
                     size="lg"
-                    onClick={() => handleSpreadChange('next')}
+                    onClick={() => handlePageNav('next')}
                     className="mt-4 bg-gradient-to-r from-purple-600 to-pink-500 hover:from-purple-700 hover:to-pink-600 text-white font-bold px-6 py-4 md:px-8 md:py-5 text-base md:text-lg rounded-full shadow-xl hover:shadow-2xl transition-all transform hover:scale-105 border-2 border-white/50"
                   >
                     <BookOpen className="w-5 h-5 ml-2" />
@@ -1103,18 +1084,17 @@ const StoryViewer = () => {
                   )}
                 </div>
               </div>
-            ) : currentSpread ? (
-              /* SPREAD LAYOUT: Horizontal open book */
+            ) : page ? (
+              /* SINGLE PAGE LAYOUT: Horizontal open book - 1 page per spread */
               <div className="open-book-spread relative">
                 {/* Left page - Illustration */}
                 <div className="open-book-page-left bg-[#FFFBF5]">
-                  {currentSpread.illustration ? (
+                  {page.illustration_url ? (
                     <>
-                      {/* Shimmer placeholder while image loads */}
                       <div className="absolute inset-0 shimmer-loading" />
                       <img
-                        src={getPublicIllustrationUrl(currentSpread.illustration) || ''}
-                        alt={`איור לעמודים ${spreadStartPage}-${spreadEndPage}`}
+                        src={getPublicIllustrationUrl(page.illustration_url) || ''}
+                        alt={`איור עמוד ${currentPage + 1}`}
                         className="w-full h-full object-cover absolute inset-0 z-[1]"
                         loading="eager"
                       />
@@ -1129,13 +1109,13 @@ const StoryViewer = () => {
                   ) : (
                     <div className="absolute inset-0 flex items-center justify-center bg-[#F5E6D3]/50">
                       <MissingIllustrationPrompt
-                        pageId={currentSpread.illustrationPageId!}
-                        isRetrying={retryingPageId === currentSpread.illustrationPageId}
+                        pageId={page.id}
+                        isRetrying={retryingPageId === page.id}
                         isGenerating={false}
-                        showPromptInput={showPromptInput === currentSpread.illustrationPageId}
+                        showPromptInput={showPromptInput === page.id}
                         customPromptText={customPromptText}
                         onTogglePrompt={() => {
-                          setShowPromptInput(showPromptInput === currentSpread.illustrationPageId ? null : currentSpread.illustrationPageId);
+                          setShowPromptInput(showPromptInput === page.id ? null : page.id);
                           setCustomPromptText('');
                         }}
                         onPromptChange={setCustomPromptText}
@@ -1153,7 +1133,7 @@ const StoryViewer = () => {
                   
                   {/* RTL Prev button — right edge */}
                   <button
-                    onClick={() => handleSpreadChange('prev')}
+                    onClick={() => handlePageNav('prev')}
                     disabled={currentPage <= 0 || isFlipping}
                     aria-label="עמוד קודם"
                     className={cn(
@@ -1169,8 +1149,8 @@ const StoryViewer = () => {
 
                   {/* RTL Next button — left edge */}
                   <button
-                    onClick={() => handleSpreadChange('next')}
-                    disabled={currentPage >= spreads.length - 1 || isFlipping}
+                    onClick={() => handlePageNav('next')}
+                    disabled={currentPage >= story.pages.length - 1 || isFlipping}
                     aria-label="עמוד הבא"
                     className={cn(
                       "absolute left-1.5 top-1/2 -translate-y-1/2 z-10",
@@ -1183,45 +1163,35 @@ const StoryViewer = () => {
                     <ChevronLeft className="w-4 h-4" />
                   </button>
 
-                  <div className="flex-1 flex flex-col justify-center gap-3 max-w-lg mx-auto w-full overflow-y-auto min-h-0 pt-2">
-                    {currentSpread.pages.map((spreadPage, idx) => (
-                      <div key={spreadPage.id} className="relative">
-                        {idx > 0 && (
-                          <div className="flex items-center justify-center mb-3">
-                            <div className="w-10 h-px bg-purple-300/40" />
-                            <span className="mx-2 text-purple-300/60 text-xs">✦</span>
-                            <div className="w-10 h-px bg-purple-300/40" />
-                          </div>
-                        )}
-                        <p 
-                          className={cn(
-                            "text-[#3D2914] text-right font-medium transition-all whitespace-pre-line",
-                            currentFontSize.size
-                          )} 
-                          style={{ lineHeight: '1.9' }}
-                          dir="rtl"
-                        >
-                          {showNikud ? spreadPage.text : spreadPage.text.replace(/[\u0591-\u05C7]/g, '')}
-                        </p>
-                      </div>
-                    ))}
+                  {/* Single page text */}
+                  <div className="flex-1 flex flex-col justify-center max-w-lg mx-auto w-full overflow-y-auto min-h-0 pt-2">
+                    <p 
+                      className={cn(
+                        "text-[#3D2914] text-right font-medium transition-all whitespace-pre-line",
+                        currentFontSize.size
+                      )} 
+                      style={{ lineHeight: '1.9' }}
+                      dir="rtl"
+                    >
+                      {showNikud ? page.text : page.text.replace(/[\u0591-\u05C7]/g, '')}
+                    </p>
                   </div>
                   
                   {/* Bottom navigation arrows + page indicator */}
                   <div className="flex items-center justify-center gap-4 pt-2 mt-auto">
                     <button
-                      onClick={() => handleSpreadChange('next')}
-                      disabled={currentPage >= spreads.length - 1 || isFlipping}
+                      onClick={() => handlePageNav('next')}
+                      disabled={currentPage >= story.pages.length - 1 || isFlipping}
                       aria-label="עמוד הבא"
                       className="w-7 h-7 rounded-full flex items-center justify-center bg-purple-100/60 hover:bg-purple-200 text-purple-500 disabled:opacity-20 disabled:cursor-not-allowed transition-all"
                     >
                       <ChevronLeft className="w-4 h-4" />
                     </button>
                     <span className="text-xs text-gray-400 font-light">
-                      {spreadStartPage}{spreadEndPage > spreadStartPage ? `-${spreadEndPage}` : ''} / {story.pages.length}
+                      {currentPage + 1} / {story.pages.length}
                     </span>
                     <button
-                      onClick={() => handleSpreadChange('prev')}
+                      onClick={() => handlePageNav('prev')}
                       disabled={currentPage <= 0 || isFlipping}
                       aria-label="עמוד קודם"
                       className="w-7 h-7 rounded-full flex items-center justify-center bg-purple-100/60 hover:bg-purple-200 text-purple-500 disabled:opacity-20 disabled:cursor-not-allowed transition-all"
@@ -1234,16 +1204,21 @@ const StoryViewer = () => {
             ) : null}
         </div>
 
-        {/* Dot page indicator */}
+        {/* Page indicator */}
         <div className="dot-indicator pb-2">
-          {/* Cover dot */}
-          <div className={cn("dot", currentPage === -1 && "active")} />
-          {/* Spread dots */}
-          {spreads.map((_, i) => (
-            <div key={i} className={cn("dot", currentPage === i && "active")} />
-          ))}
-          {/* End page dot */}
-          <div className={cn("dot", isEndPage && "active")} />
+          {story.pages.length <= 10 ? (
+            <>
+              <div className={cn("dot", currentPage === -1 && "active")} />
+              {story.pages.map((_, i) => (
+                <div key={i} className={cn("dot", currentPage === i && "active")} />
+              ))}
+              <div className={cn("dot", isEndPage && "active")} />
+            </>
+          ) : (
+            <span className="text-xs text-gray-400">
+              {isCoverPage ? 'עטיפה' : isEndPage ? 'סוף' : `${currentPage + 1} / ${story.pages.length}`}
+            </span>
+          )}
         </div>
       </main>
 
