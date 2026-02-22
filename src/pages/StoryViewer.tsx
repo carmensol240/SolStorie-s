@@ -1110,65 +1110,72 @@ const StoryViewer = () => {
                   <ChevronLeft className="w-5 h-5" />
                 </button>
 
-                {/* Illustration - fixed top portion */}
-                <div className="w-full shrink-0 flex items-center justify-center bg-[#F5E6D3] rounded-t-xl overflow-hidden" style={{ maxHeight: '40vh' }}>
-                  {page.illustration_url ? (
-                    <img
-                      src={getPublicIllustrationUrl(page.illustration_url) || ''}
-                      alt={`איור עמוד ${currentPage + 1}`}
-                      className="w-full h-full object-contain"
-                      style={{ maxHeight: '40vh' }}
-                      loading="eager"
-                    />
-                  ) : generationStatus === 'generating_illustrations' ? (
-                    <div className="shimmer-loading w-full flex items-center justify-center" style={{ height: '30vh' }}>
-                      <div className="text-center text-purple-400">
-                        <Loader2 className="w-10 h-10 mx-auto mb-2 animate-spin opacity-60" />
-                        <p className="text-sm">מצייר...</p>
-                      </div>
-                    </div>
-                  ) : (
-                    <div className="w-full flex items-center justify-center bg-[#F5E6D3]/50" style={{ height: '30vh' }}>
-                      <MissingIllustrationPrompt
-                        pageId={page.id}
-                        isRetrying={retryingPageId === page.id}
-                        isGenerating={false}
-                        showPromptInput={showPromptInput === page.id}
-                        customPromptText={customPromptText}
-                        onTogglePrompt={() => {
-                          setShowPromptInput(showPromptInput === page.id ? null : page.id);
-                          setCustomPromptText('');
-                        }}
-                        onPromptChange={setCustomPromptText}
-                        onSubmit={handleRetryIllustration}
-                        aspectClass="w-full h-full"
+                {page.illustration_url ? (
+                  <>
+                    {/* Illustration - fixed top portion */}
+                    <div className="w-full shrink-0 flex items-center justify-center bg-[#F5E6D3] rounded-t-xl overflow-hidden" style={{ maxHeight: '40vh' }}>
+                      <img
+                        src={getPublicIllustrationUrl(page.illustration_url) || ''}
+                        alt={`איור עמוד ${currentPage + 1}`}
+                        className="w-full h-full object-contain"
+                        style={{ maxHeight: '40vh' }}
+                        loading="eager"
                       />
                     </div>
-                  )}
-                </div>
-                
-                {/* Text - fills remaining space, scrollable */}
-                <div className="flex-1 min-h-0 overflow-y-auto bg-[#FFFBF5] rounded-b-xl px-6 py-4 md:px-10 md:py-6">
-                  <div className="max-w-lg mx-auto w-full">
-                    <p 
-                      className={cn(
-                        "text-[#3D2914] text-right font-medium transition-all whitespace-pre-line",
-                        currentFontSize.size
-                      )} 
-                      style={{ lineHeight: '2.2' }}
-                      dir="rtl"
-                    >
-                      {showNikud ? page.text : page.text.replace(/[\u0591-\u05C7]/g, '')}
-                    </p>
+                    
+                    {/* Text - fills remaining space, scrollable */}
+                    <div className="flex-1 min-h-0 overflow-y-auto bg-[#FFFBF5] rounded-b-xl px-6 py-4 md:px-10 md:py-6">
+                      <div className="max-w-lg mx-auto w-full">
+                        <p 
+                          className={cn(
+                            "text-[#3D2914] text-right font-medium transition-all whitespace-pre-line",
+                            currentFontSize.size
+                          )} 
+                          style={{ lineHeight: '2.2' }}
+                          dir="rtl"
+                        >
+                          {showNikud ? page.text : page.text.replace(/[\u0591-\u05C7]/g, '')}
+                        </p>
+                      </div>
+                      
+                      {/* Page indicator */}
+                      <div className="flex items-center justify-center pt-3 pb-1">
+                        <span className="text-xs text-gray-400 font-light">
+                          {currentPage + 1} / {story.pages.length}
+                        </span>
+                      </div>
+                    </div>
+                  </>
+                ) : (
+                  /* Text-only page — no illustration */
+                  <div className="flex-1 flex flex-col min-h-0 bg-[#FFFBF5] rounded-xl">
+                    {/* Decorative gradient top border */}
+                    <div className="w-full h-1 shrink-0 bg-gradient-to-r from-purple-400 via-pink-400 to-orange-300 rounded-t-xl" />
+                    
+                    {/* Text - fills full height, scrollable */}
+                    <div className="flex-1 min-h-0 overflow-y-auto px-6 py-6 md:px-10 md:py-8">
+                      <div className="max-w-lg mx-auto w-full flex flex-col items-center justify-center min-h-full">
+                        <p 
+                          className={cn(
+                            "text-[#3D2914] text-right font-medium transition-all whitespace-pre-line",
+                            currentFontSize.size
+                          )} 
+                          style={{ lineHeight: '2.2' }}
+                          dir="rtl"
+                        >
+                          {showNikud ? page.text : page.text.replace(/[\u0591-\u05C7]/g, '')}
+                        </p>
+                      </div>
+                      
+                      {/* Page indicator */}
+                      <div className="flex items-center justify-center pt-3 pb-1">
+                        <span className="text-xs text-gray-400 font-light">
+                          {currentPage + 1} / {story.pages.length}
+                        </span>
+                      </div>
+                    </div>
                   </div>
-                  
-                  {/* Page indicator */}
-                  <div className="flex items-center justify-center pt-3 pb-1">
-                    <span className="text-xs text-gray-400 font-light">
-                      {currentPage + 1} / {story.pages.length}
-                    </span>
-                  </div>
-                </div>
+                )}
               </div>
             ) : null}
         </div>
