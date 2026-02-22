@@ -1306,7 +1306,7 @@ const Auth = () => {
                           : "border-gray-200 hover:border-gray-300"
                       }`}
                     >
-                      <span className="text-2xl">🏫</span>
+                      <span className="text-2xl">📚</span>
                       <span className="text-sm font-bold text-black">איש/ת חינוך או טיפול</span>
                     </button>
                   </div>
