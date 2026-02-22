@@ -1,79 +1,130 @@
 /* ==========================================
-   Landscape Book Reader Layout
+   Vertical Book Reader Layout
    ========================================== */
 
-/* Force landscape orientation hint */
-@media screen and (orientation: portrait) {
-  .story-viewer-landscape {
-    /* When in portrait on mobile, we rely on the Screen Orientation API
-       to auto-rotate. This is a fallback visual hint. */
-  }
-}
-
-/* Container - no 3D perspective needed for fade */
+/* Container with 3D perspective for page flip */
 .book-container {
   position: relative;
-}
-
-/* Force full height on mobile landscape */
-@media screen and (max-height: 500px) {
-  .open-book-spread {
-    min-height: auto !important;
-  }
-  .open-book-page-right {
-    padding: 0.75rem 1.5rem !important;
-  }
+  perspective: 1200px;
 }
 
 /* ==========================================
-   Page spine shadow effect
+   Page Flip Animation (CSS 3D)
    ========================================== */
-.book-spine-shadow {
+@keyframes page-flip-next {
+  0% {
+    transform: rotateY(0deg);
+    opacity: 1;
+  }
+  50% {
+    transform: rotateY(-90deg);
+    opacity: 0.6;
+  }
+  100% {
+    transform: rotateY(-180deg);
+    opacity: 0;
+  }
+}
+
+@keyframes page-flip-prev {
+  0% {
+    transform: rotateY(0deg);
+    opacity: 1;
+  }
+  50% {
+    transform: rotateY(90deg);
+    opacity: 0.6;
+  }
+  100% {
+    transform: rotateY(180deg);
+    opacity: 0;
+  }
+}
+
+@keyframes page-flip-in-next {
+  0% {
+    transform: rotateY(180deg);
+    opacity: 0;
+  }
+  50% {
+    transform: rotateY(90deg);
+    opacity: 0.6;
+  }
+  100% {
+    transform: rotateY(0deg);
+    opacity: 1;
+  }
+}
+
+@keyframes page-flip-in-prev {
+  0% {
+    transform: rotateY(-180deg);
+    opacity: 0;
+  }
+  50% {
+    transform: rotateY(-90deg);
+    opacity: 0.6;
+  }
+  100% {
+    transform: rotateY(0deg);
+    opacity: 1;
+  }
+}
+
+.page-flip-out-next {
+  animation: page-flip-next 0.5s ease-in-out forwards;
+  transform-origin: left center;
+  backface-visibility: hidden;
+}
+
+.page-flip-out-prev {
+  animation: page-flip-prev 0.5s ease-in-out forwards;
+  transform-origin: right center;
+  backface-visibility: hidden;
+}
+
+.page-flip-in-next {
+  animation: page-flip-in-next 0.5s ease-in-out forwards;
+  transform-origin: right center;
+  backface-visibility: hidden;
+}
+
+.page-flip-in-prev {
+  animation: page-flip-in-prev 0.5s ease-in-out forwards;
+  transform-origin: left center;
+  backface-visibility: hidden;
+}
+
+/* ==========================================
+   Vertical book spine edge shadow
+   ========================================== */
+.book-spine-edge {
   position: absolute;
-  left: 50%;
   top: 0;
   bottom: 0;
-  width: 40px;
-  transform: translateX(-50%);
+  width: 12px;
+  z-index: 20;
+  pointer-events: none;
+}
+
+.book-spine-edge.left {
+  left: 0;
   background: linear-gradient(
     90deg,
-    transparent 0%,
-    rgba(0, 0, 0, 0.08) 30%,
-    rgba(0, 0, 0, 0.12) 50%,
-    rgba(0, 0, 0, 0.08) 70%,
+    rgba(0, 0, 0, 0.08) 0%,
+    rgba(0, 0, 0, 0.04) 40%,
     transparent 100%
   );
-  pointer-events: none;
-  z-index: 10;
 }
 
-/* ==========================================
-   Page edge texture for depth
-   ========================================== */
-.book-page-edge {
-  position: absolute;
-  top: 0;
-  bottom: 0;
-  width: 4px;
-  background: linear-gradient(
-    180deg,
-    #e8dcc8 0%,
-    #d4c4a8 20%,
-    #c8b898 50%,
-    #d4c4a8 80%,
-    #e8dcc8 100%
-  );
-  box-shadow: inset 1px 0 2px rgba(0, 0, 0, 0.1);
-}
-
-.book-page-edge.left {
-  left: 0;
-  border-radius: 2px 0 0 2px;
-}
-
-.book-page-edge.right {
+.book-spine-edge.right {
   right: 0;
-  border-radius: 0 2px 2px 0;
+  background: linear-gradient(
+    270deg,
+    rgba(0, 0, 0, 0.08) 0%,
+    rgba(0, 0, 0, 0.04) 40%,
+    transparent 100%
+  );
 }
 
 /* ==========================================
@@ -114,15 +165,8 @@
 }
 
 /* ==========================================
-   Open Book Spread - Horizontal Layout
+   Portrait rotation overlay - controlled by JS state
    ========================================== */
-.open-book-spread {
-  display: flex;
-  flex-direction: row;
-  height: 100%;
-}
-
-/* Portrait rotation overlay - controlled by JS state */
 .portrait-rotate-overlay {
   position: fixed;
   inset: 0;
@@ -134,74 +178,9 @@
   backdrop-filter: blur(8px);
 }
 
-/* Mobile portrait fallback: stack vertically (for tablets/larger screens in portrait) */
-@media screen and (orientation: portrait) and (min-width: 769px) {
-  .open-book-spread {
-    flex-direction: column;
-  }
-  .open-book-page-left {
-    flex: none;
-    height: 45%;
-    min-height: 200px;
-  }
-  .open-book-page-right {
-    flex: 1;
-    min-height: 0;
-  }
-  /* Hide spine shadow in portrait */
-  .open-book-spread::after {
-    display: none;
-  }
-}
-
-/* Book spine center divider */
-.open-book-spread::after {
-  content: '';
-  position: absolute;
-  left: 50%;
-  top: 0;
-  bottom: 0;
-  width: 6px;
-  transform: translateX(-50%);
-  background: linear-gradient(
-    90deg,
-    transparent 0%,
-    rgba(0, 0, 0, 0.06) 20%,
-    rgba(0, 0, 0, 0.12) 50%,
-    rgba(0, 0, 0, 0.06) 80%,
-    transparent 100%
-  );
-  z-index: 10;
-  pointer-events: none;
-}
-
-/* Left page (illustration in RTL) */
-.open-book-page-left {
-  flex: 1;
-  position: relative;
-  overflow: hidden;
-  /* Subtle inner shadow for page depth */
-  box-shadow: inset -4px 0 12px rgba(0, 0, 0, 0.06);
-}
-
-/* Right page (text in RTL) */
-.open-book-page-right {
-  flex: 1;
-  position: relative;
-  overflow-y: auto;
-  overflow-x: hidden;
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  scroll-padding-top: 20px;
-  padding-top: 20px;
-  padding-bottom: 20px;
-  min-height: 0;
-  /* Subtle inner shadow for page depth */
-  box-shadow: inset 4px 0 12px rgba(0, 0, 0, 0.06);
-}
-
-/* Page curl effect corners */
+/* ==========================================
+   Page curl effect corners
+   ========================================== */
 .page-curl-corner {
   position: absolute;
   width: 20px;
@@ -220,4 +199,50 @@
   bottom: 0;
   right: 0;
   background: linear-gradient(225deg, transparent 50%, rgba(0,0,0,0.04) 50%);
+}
+
+/* ==========================================
+   Kid-friendly navigation arrows
+   ========================================== */
+.nav-arrow-btn {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 2px solid rgba(168, 85, 247, 0.3);
+  background: rgba(255, 255, 255, 0.9);
+  backdrop-filter: blur(4px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  color: #7c3aed;
+  transition: all 0.2s ease;
+  cursor: pointer;
+}
+
+.nav-arrow-btn:hover:not(:disabled) {
+  background: white;
+  border-color: rgba(168, 85, 247, 0.6);
+  box-shadow: 0 6px 20px rgba(168, 85, 247, 0.2);
+  transform: scale(1.1);
+}
+
+.nav-arrow-btn:active:not(:disabled) {
+  transform: scale(0.95);
+}
+
+.nav-arrow-btn:disabled {
+  opacity: 0.2;
+  cursor: not-allowed;
+}
+
+/* ==========================================
+   Paper texture background for text area
+   ========================================== */
+.paper-texture {
+  background-color: #FFFBF5;
+  background-image:
+    url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.03'/%3E%3C/svg%3E"),
+    linear-gradient(to bottom, #FFFBF5, #FAF3E8);
+  background-blend-mode: overlay, normal;
 }
