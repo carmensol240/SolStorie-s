@@ -1,43 +1,59 @@
 
 
-## Fix Story Page Layout for Pages Without Illustrations
+## Urgent Fix: Illustration Rendering, Read-Aloud Relocation, Privacy & Subscription
 
-### Problem
-Pages without generated illustrations show a broken image placeholder or a "generate" button, which looks unprofessional. Since images are now generated for every two pages, half the pages will have no illustration.
+### 1. Fix Illustration Prompt Logic (Full Body / No Cropping)
 
-### Solution
+**Files to update:**
+- `supabase/functions/generate-illustrations/index.ts` (main generation)
+- `supabase/functions/retry-illustration/index.ts` (retry generation)
+- `supabase/functions/generate-cover/index.ts` (cover generation)
 
-**File: `src/pages/StoryViewer.tsx` (lines 1079-1173)**
+**Changes:**
+- Add explicit "Sole of the Foot" rule and grounding instructions to the style prefix and negative prompt in all three edge functions
+- Update the `stylePrefix` in `generate-illustrations/index.ts` (line ~213) and `retry-illustration/index.ts` (line ~117) to include:
+  - "ALWAYS show characters FULL BODY from head to toe with feet VISIBLE and GROUNDED on the surface (grass, floor, path). The character's full body including shoes/feet MUST be visible."
+  - "Frame the character with generous margin from all edges -- at least 10% padding on each side. Character must be FULLY CONTAINED within the frame, never cropped."
+- Expand the NEGATIVE PROMPT to include: "cropped feet, cut off legs, floating character, character not touching ground, half-body, missing feet, legs cut off at frame edge"
+- Apply the same updates to the `retry-illustration` edge function's `stylePrefix` block
 
-Update the single page layout to conditionally render based on whether the page has an illustration:
+### 2. Remove Read-Aloud from Story Screen, Keep in Accessibility Menu
 
-1. **Pages WITH illustration** -- Keep the current vertical layout: illustration at top (max 40vh), scrollable text below.
+**File: `src/pages/StoryViewer.tsx`**
 
-2. **Pages WITHOUT illustration** -- Skip the illustration container entirely. Expand the text to fill the full page height with:
-   - A subtle paper-texture background (`bg-[#FFFBF5]`) with a decorative top border (gradient line)
-   - Full rounded corners on the text container
-   - Centered text with generous padding
-   - Same font size, line-height (2.2), and nikud support
+The read-aloud button was already removed from the main UI (line 877 shows a comment "Read Aloud button removed per user request"). However, there are still leftover imports and state:
+- Remove `isReadAloudDismissed` state (line 101)
+- Remove `useTextToSpeech` hook usage (line 121) and its import (line 32)
+- Clean up any remaining TTS-related code in StoryViewer
 
-3. **Remove** the `MissingIllustrationPrompt` and shimmer loading for regular story pages (keep it only on the cover page where it makes sense).
+The "Read Aloud" toggle already exists in the Accessibility Menu (`AccessibilityMenu.tsx`, lines 105-118) as "Audio Support" which enables/disables the read-aloud button. This will remain as-is -- it's the correct location for this feature.
 
-### Technical Details
+### 3. Privacy & COPPA/GDPR Compliance
 
-In the story page render section (~line 1079-1173), replace the current layout with a conditional:
+The app already has:
+- Privacy Policy page (`src/pages/PrivacyPolicy.tsx`) 
+- Terms of Service page (`src/pages/TermsOfService.tsx`)
+- Legal consent flow (`src/pages/LegalConsent.tsx`)
+- Privacy safeguards (generic placeholders instead of real names)
+- PII masking in edge function logs
 
-```
-if page.illustration_url exists:
-  render illustration (40vh) + text below (flex-1 scrollable)
-else:
-  render full-height text-only page with decorative border at top
-```
+**Additional hardening:**
+- Add a brief privacy disclosure note in the Settings page (`src/pages/Settings.tsx`) linking to the Privacy Policy, with text like "All data handled per child privacy regulations"
+- Verify the About page (`src/components/shared/AboutSolStoriesContent.tsx`) includes the existing professional disclaimer
 
-The text-only page will have:
-- `h-full` flex column layout
-- A thin gradient decorative line at top (purple-to-pink, matching the app theme)
-- `flex-1 min-h-0 overflow-y-auto` for the text area
-- Same `max-w-lg mx-auto`, same font styling, same page indicator
+### 4. Subscription Plan Verification Reminder
 
-Navigation arrows remain in the same position regardless of page type.
+**File: `src/pages/Settings.tsx`** (or a dev-only component)
 
-**No database or backend changes needed.**
+- Add a dev-mode-only visual banner (using existing `isDevModeEnabled()`) at the top of the Settings page reminding to verify the subscription plan before launch
+- This will only be visible when dev mode is enabled and will not appear in production for real users
+
+### Technical Summary
+
+| Task | Files Changed | Deploy Needed |
+|------|--------------|---------------|
+| Fix illustration prompts | `generate-illustrations/index.ts`, `retry-illustration/index.ts` | Yes (edge functions) |
+| Clean up TTS remnants | `StoryViewer.tsx` | No |
+| Privacy disclosure | `Settings.tsx` | No |
+| Subscription reminder | `Settings.tsx` (dev-only) | No |
+
