@@ -1,0 +1,1 @@
+ALTER TABLE public.children ADD COLUMN fixed_details text DEFAULT NULL;

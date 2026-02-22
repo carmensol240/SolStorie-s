@@ -661,13 +661,14 @@ serve(async (req) => {
     if (userId) {
       const { data: childData } = await supabase
         .from("children")
-        .select("hobbies, challenges, favorite_friends")
+        .select("hobbies, challenges, favorite_friends, fixed_details")
         .eq("user_id", userId)
         .eq("name", childName)
         .maybeSingle();
       
       if (childData) {
         const parts: string[] = [];
+        if (childData.fixed_details?.trim()) parts.push(`רקע קבוע על הילד/ה: ${childData.fixed_details.trim()}`);
         if (childData.hobbies?.trim()) parts.push(`תחביבים ואהבות: ${childData.hobbies.trim()}`);
         if (childData.challenges?.trim()) parts.push(`אתגרים נוכחיים: ${childData.challenges.trim()}`);
         if (childData.favorite_friends?.trim()) parts.push(`חברים וצעצועים אהובים: ${childData.favorite_friends.trim()}`);
