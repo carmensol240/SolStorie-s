@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef, useCallback } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { Home, BookOpen, Sparkles, Palette, Wand2, RefreshCw, Loader2, ImageOff, Volume2, Square, X, Star, Send, ChevronRight, ChevronLeft } from "lucide-react";
+import { Home, BookOpen, Sparkles, Palette, Wand2, RefreshCw, Loader2, ImageOff, X, Star, Send, ChevronRight, ChevronLeft } from "lucide-react";
 import { MissingIllustrationPrompt } from "@/components/story/MissingIllustrationPrompt";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
@@ -874,51 +874,7 @@ const StoryViewer = () => {
         showPageActions={showPageActions}
       />
 
-      {/* Read Aloud Floating Button - accessibility feature */}
-      {(audioSupport || story?.language === 'en') && showPageActions && page && !isReadAloudDismissed && (
-        <div className="fixed bottom-24 left-4 z-50">
-          {/* Dismiss X button */}
-          <button
-            onClick={(e) => {
-              e.stopPropagation();
-              e.preventDefault();
-              stopReading();
-              setIsReadAloudDismissed(true);
-            }}
-            className="absolute -top-1 -right-1 w-5 h-5 rounded-full bg-gray-600 text-white text-xs flex items-center justify-center hover:bg-gray-700 z-10 shadow-md"
-            aria-label="הסתר כפתור הקראה"
-          >
-            <X className="w-3 h-3" />
-          </button>
-          <Button
-            size="icon"
-            onClick={() => {
-              if (isReading) {
-                stopReading();
-              } else {
-                startReading(page.text, story?.language || 'he');
-              }
-            }}
-            disabled={isTtsLoading}
-            className={cn(
-              "h-12 w-12 rounded-full shadow-lg border-0 transition-all",
-              isReading
-                ? "bg-red-500 hover:bg-red-600 animate-pulse"
-                : "bg-green-500 hover:bg-green-600",
-              isTtsLoading && "opacity-70"
-            )}
-            aria-label={isReading ? "עצור הקראה" : "הקרא בקול"}
-          >
-            {isTtsLoading ? (
-              <Loader2 className="w-5 h-5 text-white animate-spin" />
-            ) : isReading ? (
-              <Square className="w-5 h-5 text-white" />
-            ) : (
-              <Volume2 className="w-5 h-5 text-white" />
-            )}
-          </Button>
-        </div>
-      )}
+      {/* Read Aloud button removed per user request */}
 
 
       {/* Portrait rotation prompt for mobile - JS controlled */}
@@ -1121,16 +1077,15 @@ const StoryViewer = () => {
                 </div>
               </div>
             ) : page ? (
-              /* SINGLE PAGE LAYOUT: Horizontal open book - 1 page per spread */
-              <div className="open-book-spread relative">
-                {/* Navigation arrows OUTSIDE the book spread */}
-                {/* RTL Prev button — far right edge of screen */}
+              /* SINGLE PAGE LAYOUT: Vertical stack - illustration top, text bottom */
+              <div className="flex flex-col h-full relative">
+                {/* Navigation arrows */}
                 <button
                   onClick={() => handlePageNav('prev')}
                   disabled={currentPage <= 0 || isFlipping}
                   aria-label="עמוד קודם"
                   className={cn(
-                    "absolute -right-12 md:-right-14 top-1/2 -translate-y-1/2 z-30",
+                    "absolute right-1 md:-right-12 top-1/2 -translate-y-1/2 z-30",
                     "w-10 h-10 rounded-full flex items-center justify-center",
                     "bg-white/80 hover:bg-white border border-purple-200 shadow-md",
                     "text-purple-600 hover:text-purple-700 transition-all duration-200",
@@ -1140,13 +1095,12 @@ const StoryViewer = () => {
                   <ChevronRight className="w-5 h-5" />
                 </button>
 
-                {/* RTL Next button — far left edge of screen */}
                 <button
                   onClick={() => handlePageNav('next')}
                   disabled={currentPage >= story.pages.length - 1 || isFlipping}
                   aria-label="עמוד הבא"
                   className={cn(
-                    "absolute -left-12 md:-left-14 top-1/2 -translate-y-1/2 z-30",
+                    "absolute left-1 md:-left-12 top-1/2 -translate-y-1/2 z-30",
                     "w-10 h-10 rounded-full flex items-center justify-center",
                     "bg-white/80 hover:bg-white border border-purple-200 shadow-md",
                     "text-purple-600 hover:text-purple-700 transition-all duration-200",
@@ -1156,27 +1110,25 @@ const StoryViewer = () => {
                   <ChevronLeft className="w-5 h-5" />
                 </button>
 
-                {/* Left page - Illustration */}
-                <div className="open-book-page-left bg-[#FFFBF5]">
+                {/* Illustration - fixed top portion */}
+                <div className="w-full shrink-0 flex items-center justify-center bg-[#F5E6D3] rounded-t-xl overflow-hidden" style={{ maxHeight: '40vh' }}>
                   {page.illustration_url ? (
-                    <>
-                      <div className="absolute inset-0 shimmer-loading" />
-                      <img
-                        src={getPublicIllustrationUrl(page.illustration_url) || ''}
-                        alt={`איור עמוד ${currentPage + 1}`}
-                        className="w-full h-full object-cover absolute inset-0 z-[1]"
-                        loading="eager"
-                      />
-                    </>
+                    <img
+                      src={getPublicIllustrationUrl(page.illustration_url) || ''}
+                      alt={`איור עמוד ${currentPage + 1}`}
+                      className="w-full h-full object-contain"
+                      style={{ maxHeight: '40vh' }}
+                      loading="eager"
+                    />
                   ) : generationStatus === 'generating_illustrations' ? (
-                    <div className="absolute inset-0 shimmer-loading flex items-center justify-center">
+                    <div className="shimmer-loading w-full flex items-center justify-center" style={{ height: '30vh' }}>
                       <div className="text-center text-purple-400">
                         <Loader2 className="w-10 h-10 mx-auto mb-2 animate-spin opacity-60" />
                         <p className="text-sm">מצייר...</p>
                       </div>
                     </div>
                   ) : (
-                    <div className="absolute inset-0 flex items-center justify-center bg-[#F5E6D3]/50">
+                    <div className="w-full flex items-center justify-center bg-[#F5E6D3]/50" style={{ height: '30vh' }}>
                       <MissingIllustrationPrompt
                         pageId={page.id}
                         isRetrying={retryingPageId === page.id}
@@ -1193,29 +1145,25 @@ const StoryViewer = () => {
                       />
                     </div>
                   )}
-                  <div className="page-curl-corner bottom-left" />
                 </div>
                 
-                {/* Right page - Text (RTL) - NO arrows inside */}
-                <div className="open-book-page-right relative px-8 py-6 md:px-12 md:py-8 lg:px-14 lg:py-10 bg-[#FFFBF5]">
-                  <div className="page-curl-corner bottom-right" />
-
-                  {/* Text content with generous padding, no arrow overlap */}
-                  <div className="flex-1 flex flex-col justify-center max-w-lg mx-auto w-full overflow-y-auto min-h-0">
+                {/* Text - fills remaining space, scrollable */}
+                <div className="flex-1 min-h-0 overflow-y-auto bg-[#FFFBF5] rounded-b-xl px-6 py-4 md:px-10 md:py-6">
+                  <div className="max-w-lg mx-auto w-full">
                     <p 
                       className={cn(
                         "text-[#3D2914] text-right font-medium transition-all whitespace-pre-line",
                         currentFontSize.size
                       )} 
-                      style={{ lineHeight: '1.9' }}
+                      style={{ lineHeight: '2.2' }}
                       dir="rtl"
                     >
                       {showNikud ? page.text : page.text.replace(/[\u0591-\u05C7]/g, '')}
                     </p>
                   </div>
                   
-                  {/* Page indicator only - no arrows here */}
-                  <div className="flex items-center justify-center pt-2 mt-auto">
+                  {/* Page indicator */}
+                  <div className="flex items-center justify-center pt-3 pb-1">
                     <span className="text-xs text-gray-400 font-light">
                       {currentPage + 1} / {story.pages.length}
                     </span>
