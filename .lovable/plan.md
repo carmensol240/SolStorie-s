@@ -1,35 +1,43 @@
 
-# עדכון מסך אודות - טיפוגרפיה, יישור ורקע כוכבים
 
-## שינויים
+## Fix Story Page Layout for Pages Without Illustrations
 
-### 1. טיפוגרפיה והיררכיה
-- **כותרות סקציה**: נשארות Bold/Black וצבעוניות (ללא שינוי)
-- **טקסט גוף (פסקאות)**: שינוי מ-`font-bold`/`font-black` ל-`font-normal` עם צבע `text-white` טהור
-- **SolStorie's**: הגרדיאנט הנוכחי (purple-300 via pink-300 to orange-300) נשמר ללא שינוי בכל מופע
+### Problem
+Pages without generated illustrations show a broken image placeholder or a "generate" button, which looks unprofessional. Since images are now generated for every two pages, half the pages will have no illustration.
 
-### 2. יישור RTL וקריאות
-- **טקסט גוף**: שינוי מ-`text-center` (שמגיע מה-container) ל-`text-right` על כל פסקת גוף
-- **אייקונים וכותרות סקציה**: נשארים ממורכזים (text-center)
-- **גובה שורה**: שינוי מ-`leading-relaxed`/`leading-snug` ל-`leading-[1.6]` בטקסט הגוף
+### Solution
 
-### 3. רקע כוכבים צהובים
-- הוספת שכבת כוכבים צהובים קטנים (~30 כוכבים) עם `opacity` נמוך (0.15-0.3) מאחורי כל התוכן
-- הכוכבים ייווצרו כ-divs עם `bg-yellow-300` ו-`opacity` נמוך, בתוך ה-container הקיים של הכוכבים (z-index נמוך מ-z-10 של התוכן)
-- לא יפריעו לקריאה כי הם מאחורי כל אלמנטי הטקסט
+**File: `src/pages/StoryViewer.tsx` (lines 1079-1173)**
 
-## פרטים טכניים
+Update the single page layout to conditionally render based on whether the page has an illustration:
 
-### קובץ: `src/pages/About.tsx`
+1. **Pages WITH illustration** -- Keep the current vertical layout: illustration at top (max 40vh), scrollable text below.
 
-**שינויי טקסט גוף** (שורות 84-89, 99-143, 149-151, 167-169):
-- החלפת `font-bold` ב-`font-normal` בכל פסקאות הגוף
-- החלפת `leading-relaxed`/`leading-snug` ב-`leading-[1.6]`
-- הוספת `text-right` לכל פסקאות הגוף (הכותרות נשארות text-center)
-- שינוי `text-white/85` ל-`text-white` בפסקאות גוף
+2. **Pages WITHOUT illustration** -- Skip the illustration container entirely. Expand the text to fill the full page height with:
+   - A subtle paper-texture background (`bg-[#FFFBF5]`) with a decorative top border (gradient line)
+   - Full rounded corners on the text container
+   - Centered text with generous padding
+   - Same font size, line-height (2.2), and nikud support
 
-**כותרות** (שורות 73, 76, 81, 92): נשארות `font-black` וצבעוניות - ללא שינוי
+3. **Remove** the `MissingIllustrationPrompt` and shimmer loading for regular story pages (keep it only on the cover page where it makes sense).
 
-**כוכבים צהובים** (אחרי שורה 61, בתוך ה-stars container):
-- הוספת לולאת `[...Array(30)]` שיוצרת כוכבים קטנים (1-3px) עם `bg-yellow-300/20` ו-`animate-pulse`
-- ממוקמים רנדומלית על כל השטח, אופסיטי נמוך כדי לא להפריע לקריאה
+### Technical Details
+
+In the story page render section (~line 1079-1173), replace the current layout with a conditional:
+
+```
+if page.illustration_url exists:
+  render illustration (40vh) + text below (flex-1 scrollable)
+else:
+  render full-height text-only page with decorative border at top
+```
+
+The text-only page will have:
+- `h-full` flex column layout
+- A thin gradient decorative line at top (purple-to-pink, matching the app theme)
+- `flex-1 min-h-0 overflow-y-auto` for the text area
+- Same `max-w-lg mx-auto`, same font styling, same page indicator
+
+Navigation arrows remain in the same position regardless of page type.
+
+**No database or backend changes needed.**
