@@ -1016,8 +1016,8 @@ const StoryViewer = () => {
               <div className="flex flex-col h-full">
                 {page.illustration_url ? (
                   <>
-                    {/* Illustration - top 40% */}
-                    <div className="relative shrink-0 overflow-hidden bg-[#F5E6D3]" style={{ height: '40%' }}>
+                    {/* Illustration - top 50%, full width, complete image */}
+                    <div className="relative shrink-0 overflow-hidden bg-[#F5E6D3] flex items-center justify-center" style={{ height: '50%' }}>
                       <img
                         src={getPublicIllustrationUrl(page.illustration_url) || ''}
                         alt={`איור עמוד ${currentPage + 1}`}
