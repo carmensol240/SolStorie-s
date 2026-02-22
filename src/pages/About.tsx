@@ -59,6 +59,22 @@ const About = () => {
             }}
           />
         ))}
+        {/* Yellow scattered stars */}
+        {[...Array(30)].map((_, i) => (
+          <div
+            key={`yellow-${i}`}
+            className="absolute rounded-full bg-yellow-300 animate-pulse"
+            style={{
+              width: `${1 + Math.random() * 2}px`,
+              height: `${1 + Math.random() * 2}px`,
+              top: `${Math.random() * 100}%`,
+              left: `${Math.random() * 100}%`,
+              opacity: 0.15 + Math.random() * 0.15,
+              animationDelay: `${Math.random() * 6}s`,
+              animationDuration: `${3 + Math.random() * 4}s`,
+            }}
+          />
+        ))}
         {/* Ambient glow orbs */}
         <div className="absolute top-10 left-10 w-40 h-40 rounded-full bg-purple-500/10 blur-3xl" />
         <div className="absolute top-1/4 right-8 w-56 h-56 rounded-full bg-indigo-400/8 blur-3xl" />
@@ -81,10 +97,10 @@ const About = () => {
         <p className="text-lg font-black text-white/95 leading-relaxed mb-1" style={{ textShadow: '0 1px 4px rgba(0,0,0,0.4)' }}>
           שלום, אני אמא של סול.
         </p>
-        <p className="text-base font-bold text-white/85 leading-relaxed mb-5 px-1" style={{ textShadow: '0 1px 3px rgba(0,0,0,0.3)' }}>
+        <p className="text-base font-normal text-white leading-[1.6] text-right mb-5 px-1" style={{ textShadow: '0 1px 3px rgba(0,0,0,0.3)' }}>
           <span dir="ltr" className="inline-block bg-gradient-to-r from-purple-300 via-pink-300 to-orange-300 bg-clip-text text-transparent">SolStorie's</span> נולדה מתוך רצון להעניק לבתי מרחב קסום שמעמיד את עולמה הפנימי במרכז. מה שהתחיל כפיתוח אישי שנועד להעשיר את רגעי הדמיון שלה, הפך לטכנולוגיה פורצת דרך שמעניקה לכל ילד וילדה את הכוח ליצור ולהוביל את הסיפור הייחודי שלהם.
         </p>
-        <p className="text-base font-bold text-white/85 leading-relaxed mb-5 px-1" style={{ textShadow: '0 1px 3px rgba(0,0,0,0.3)' }}>
+        <p className="text-base font-normal text-white leading-[1.6] text-right mb-5 px-1" style={{ textShadow: '0 1px 3px rgba(0,0,0,0.3)' }}>
           הצורך שלי ליצור נבע מהרצון להנגיש לסול את העולם בדרך שהיא מבינה ואוהבת. השתמשתי בסיפורים כדי לתווך לה ברכות אתגרים יומיומיים - החל מביטחון בסיטואציות חברתיות חדשות ועד לצליחת רגעים קטנים כמו צחצוח שיניים או חפיפת שיער. דרך הסיפורים, אני הופכת כל התמודדות להרפתקה משותפת, מעודדת שפה חיובית ומעניקה לסול ולכל ילד וילדה את הכלים לבחור בטוב, להתרגש ולגדול בביטחון.
         </p>
 
@@ -96,49 +112,49 @@ const About = () => {
         <div className="space-y-4 mb-5 w-full">
           <div className="flex flex-col items-center gap-1.5">
             <span className="text-3xl">⭐</span>
-            <p className="text-base font-bold text-white/85 leading-snug px-4" style={{ textShadow: '0 1px 3px rgba(0,0,0,0.3)' }}>
+            <p className="text-base font-normal text-white leading-[1.6] text-right px-4" style={{ textShadow: '0 1px 3px rgba(0,0,0,0.3)' }}>
               <strong className="text-amber-200 font-black">הילד שלכם בלב העלילה</strong> — תמונת הילד הופכת לדמות מאוירת בסגנון קלאסי שמובילה את הסיפור לאורך כל הדרך.
             </p>
           </div>
 
           <div className="flex flex-col items-center gap-1.5">
             <span className="text-3xl">👫</span>
-            <p className="text-base font-bold text-white/85 leading-snug px-4" style={{ textShadow: '0 1px 3px rgba(0,0,0,0.3)' }}>
+            <p className="text-base font-normal text-white leading-[1.6] text-right px-4" style={{ textShadow: '0 1px 3px rgba(0,0,0,0.3)' }}>
               <strong className="text-pink-200 font-black">החבורה של סול</strong> — הילד שלכם מצטרף לסול, ליאו, זואי, בן ומיה – חבורה של חברים טובים שיוצאים יחד איתו למסעות ומלמדים על חברות ואומץ.
             </p>
           </div>
 
           <div className="flex flex-col items-center gap-1.5">
             <span className="text-3xl">💜</span>
-            <p className="text-base font-bold text-white/85 leading-snug px-4" style={{ textShadow: '0 1px 3px rgba(0,0,0,0.3)' }}>
+            <p className="text-base font-normal text-white leading-[1.6] text-right px-4" style={{ textShadow: '0 1px 3px rgba(0,0,0,0.3)' }}>
               <strong className="text-purple-200 font-black">סיפורים חברתיים מתוך הלב</strong> — הספרייה שלנו כוללת למעלה מ-50 נושאים מהיומיום שנבחרו בקפידה כדי לתווך סיטואציות רגשיות מורכבות בשילוב כלי NLP.
             </p>
           </div>
 
           <div className="flex flex-col items-center gap-1.5">
             <span className="text-3xl">🧩</span>
-            <p className="text-base font-bold text-white/85 leading-snug px-4" style={{ textShadow: '0 1px 3px rgba(0,0,0,0.3)' }}>
+            <p className="text-base font-normal text-white leading-[1.6] text-right px-4" style={{ textShadow: '0 1px 3px rgba(0,0,0,0.3)' }}>
               <strong className="text-green-200 font-black">חיבור עמוק לרצף התקשורתי</strong> — האפליקציה מונגשת לבעלי מוגבלויות והתוכן מותאם במיוחד גם עבור ילדים על הרצף. הדיוק הזה מגיע מתוך הבנה עמוקה וניסיון אישי בחשיבותם המכרעת של סיפורים חברתיים ככלי לתווך את המציאות, להנגיש סיטואציות חברתיות ולייצר ביטחון עצמי.
             </p>
           </div>
 
           <div className="flex flex-col items-center gap-1.5">
             <span className="text-3xl">🎓</span>
-            <p className="text-base font-bold text-white/85 leading-snug px-4" style={{ textShadow: '0 1px 3px rgba(0,0,0,0.3)' }}>
+            <p className="text-base font-normal text-white leading-[1.6] text-right px-4" style={{ textShadow: '0 1px 3px rgba(0,0,0,0.3)' }}>
               <strong className="text-amber-200 font-black">ארגז כלים לאנשי חינוך</strong> — קטגוריה ייעודית הכוללת תכנים פדגוגיים מבוססי NLP לעבודה רגשית וחברתית בקבוצות ובגנים.
             </p>
           </div>
 
           <div className="flex flex-col items-center gap-1.5">
             <span className="text-3xl">🇺🇸</span>
-            <p className="text-base font-bold text-white/85 leading-snug px-4" style={{ textShadow: '0 1px 3px rgba(0,0,0,0.3)' }}>
+            <p className="text-base font-normal text-white leading-[1.6] text-right px-4" style={{ textShadow: '0 1px 3px rgba(0,0,0,0.3)' }}>
               <strong className="text-blue-200 font-black">העולם מדבר אנגלית</strong> — גרסה אנגלית מלאה המאפשרת חשיפה לשפה ולמידה חווייתית.
             </p>
           </div>
 
           <div className="flex flex-col items-center gap-1.5">
             <span className="text-3xl">📱</span>
-            <p className="text-base font-bold text-white/85 leading-snug px-4" style={{ textShadow: '0 1px 3px rgba(0,0,0,0.3)' }}>
+            <p className="text-base font-normal text-white leading-[1.6] text-right px-4" style={{ textShadow: '0 1px 3px rgba(0,0,0,0.3)' }}>
               <strong className="text-pink-200 font-black">בכל מקום ובכל זמן</strong> — הקסם מלווה אתכם בטלפון, בטאבלט ובמחשב האישי.
             </p>
           </div>
@@ -146,7 +162,7 @@ const About = () => {
 
         {/* Safety section */}
         <div className="bg-white/5 border border-white/10 rounded-xl p-3 mb-4 w-full">
-          <p className="text-base font-bold text-white/85 leading-relaxed" style={{ textShadow: '0 1px 3px rgba(0,0,0,0.3)' }}>
+          <p className="text-base font-normal text-white leading-[1.6] text-right" style={{ textShadow: '0 1px 3px rgba(0,0,0,0.3)' }}>
             🛡️ <strong className="text-green-200 font-black">מחויבות לבטיחות ואחריות</strong> — אנו שומרים על פרטיותכם לפי התקנות המחמירות ביותר. כל התכנים והדמויות הם קניין רוחני בלעדי של <span dir="ltr" className="inline-block bg-gradient-to-r from-purple-300 via-pink-300 to-orange-300 bg-clip-text text-transparent">SolStorie's™</span>.
           </p>
         </div>
@@ -164,7 +180,7 @@ const About = () => {
 
         {/* Disclaimer */}
         <div className="bg-white/5 border border-white/10 rounded-xl p-3 w-full">
-          <p className="text-sm font-bold text-white/70 leading-relaxed" style={{ textShadow: '0 1px 3px rgba(0,0,0,0.3)' }}>
+          <p className="text-sm font-normal text-white/70 leading-[1.6] text-right" style={{ textShadow: '0 1px 3px rgba(0,0,0,0.3)' }}>
             ⚕️ השימוש באפליקציה הוא כלי עזר טכנולוגי וחווייתי בלבד ואינו מהווה תחליף לייעוץ מקצועי, חינוכי או רפואי.
           </p>
         </div>
