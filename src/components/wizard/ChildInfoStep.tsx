@@ -355,7 +355,7 @@ const ChildInfoStep = ({ formData, updateFormData }: ChildInfoStepProps) => {
           personality_traits: formData.personalityTraits,
         };
         
-        const existingChildren = JSON.parse(localStorage.getItem('savedChildren') || '[]');
+        const existingChildren = JSON.parse(getUserData(user?.id, 'savedChildren') || '[]');
         const existingIndex = existingChildren.findIndex((c: SavedChild) => c.name === formData.childName);
         
         if (existingIndex >= 0) {
