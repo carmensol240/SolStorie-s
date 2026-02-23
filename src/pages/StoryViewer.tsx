@@ -268,10 +268,9 @@ const StoryViewer = () => {
         if (storyError) throw storyError;
         storyData = data;
 
-        // If found and has slug, redirect to slug URL
-        if (storyData?.slug) {
-          navigate(`/story/${storyData.slug}`, { replace: true });
-          return;
+        // If found and has slug, update URL silently without re-fetching
+        if (storyData?.slug && storyId !== storyData.slug) {
+          window.history.replaceState(null, '', `/story/${storyData.slug}`);
         }
       } else {
         // Lookup by slug
@@ -298,10 +297,9 @@ const StoryViewer = () => {
         setIsLoading(false);
         toast({
           variant: "destructive",
-          title: "שגיאה",
-          description: "הסיפור לא נמצא. ייתכן שהסיפור עדיין נוצר - נסו לרענן את הדף.",
+          title: "הסיפור לא נמצא",
+          description: "ייתכן שהסיפור עדיין נוצר. נסו לרענן את הדף.",
         });
-        navigate("/library");
         return;
       }
 
@@ -874,12 +872,12 @@ const StoryViewer = () => {
               /* Cover Page - Vertical portrait layout */
               <div className="flex flex-col h-full bg-[#FFFBF5]">
                 {/* Cover illustration - top 30% (reduced for more text space) */}
-                <div className="relative shrink-0 overflow-hidden" style={{ height: '30%' }}>
+                <div className="relative shrink-0 overflow-hidden" style={{ height: '50%' }}>
                   {story.pages[0]?.illustration_url ? (
                     <img
                       src={getPublicIllustrationUrl(story.pages[0].illustration_url) || ''}
                       alt={`עטיפת הסיפור: ${story.child_name} ב${story.topic}`}
-                      className="w-full h-full object-cover"
+                      className="w-full h-full object-contain"
                       loading="eager"
                     />
                   ) : (
@@ -946,12 +944,12 @@ const StoryViewer = () => {
               /* End Page - Vertical portrait */
               <div className="flex flex-col h-full bg-[#FFFBF5]">
                 {/* Last illustration - top */}
-                <div className="relative shrink-0 overflow-hidden" style={{ height: '40%' }}>
+                <div className="relative shrink-0 overflow-hidden" style={{ height: '50%' }}>
                   {story.pages[story.pages.length - 1]?.illustration_url ? (
                     <img
                       src={getPublicIllustrationUrl(story.pages[story.pages.length - 1].illustration_url) || ''}
                       alt={`סיום הסיפור של ${story.child_name}`}
-                      className="w-full h-full object-cover"
+                      className="w-full h-full object-contain"
                       loading="eager"
                     />
                   ) : (
