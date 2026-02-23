@@ -20,8 +20,8 @@ export const useChildAvatar = (childName?: string) => {
 
   useEffect(() => {
     const fetchAvatar = async () => {
-      // First check localStorage for saved children (works for all users)
-      const localChildren = JSON.parse(localStorage.getItem('savedChildren') || '[]');
+      // Use user-scoped localStorage (requires user ID)
+      const localChildren = JSON.parse(getUserData(user?.id, 'savedChildren') || '[]');
       
       if (childName && localChildren.length > 0) {
         const localChild = localChildren.find((c: any) => c.name === childName);
