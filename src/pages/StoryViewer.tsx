@@ -287,15 +287,15 @@ const StoryViewer = () => {
       
       if (!storyData) {
         const elapsed = Date.now() - fetchStartTimeRef.current;
-        // Retry up to 6 times with 500ms intervals (total ~3s), then slower retries up to 10s
-        if (elapsed < 10000) {
-          const delay = retryCount < 6 ? 500 : 1500;
+        // Retry for up to 20s to handle DB write delays after generation
+        if (elapsed < 20000) {
+          const delay = retryCount < 6 ? 500 : 2000;
           console.log(`Story not found, retrying in ${delay}ms (attempt ${retryCount + 1}, elapsed ${Math.round(elapsed/1000)}s)...`);
           setTimeout(() => fetchStory(retryCount + 1), delay);
-          return; // Keep isLoading = true
+          return; // Keep isLoading = true (spinner stays)
         }
         
-        console.error("Story not found after 10s of retries:", storyId);
+        console.error("Story not found after 20s of retries:", storyId);
         setIsLoading(false);
         toast({
           variant: "destructive",
