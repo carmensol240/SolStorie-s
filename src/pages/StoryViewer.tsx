@@ -442,9 +442,9 @@ const StoryViewer = () => {
 
     try {
       const slug = (story as any).slug || story.id;
-      // Use the published app URL for sharing
-      const baseUrl = window.location.origin;
-      const publicUrl = `${baseUrl}/story/${slug}`;
+      // Always use canonical domain for sharing (not preview/localhost)
+      const canonicalBase = "https://soulstory.co.il";
+      const publicUrl = `${canonicalBase}/story/${slug}`;
       const title = `✨ ${translateTopic(story.topic, story.language)} ✨`;
       const text = `📚 הסיפור של ${story.child_name} – נוצר באהבה באפליקציית SolStorie's™`;
 
