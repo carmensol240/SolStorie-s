@@ -879,13 +879,13 @@ const StoryViewer = () => {
             {isCoverPage ? (
               /* Cover Page - Vertical portrait layout */
               <div className="flex flex-col h-full bg-[#FFFBF5]">
-                {/* Cover illustration - top 30% (reduced for more text space) */}
-                <div className="relative shrink-0 overflow-hidden" style={{ height: '50%' }}>
+                {/* Cover illustration - top 50vh, full width landscape */}
+                <div className="relative w-full shrink-0 overflow-hidden" style={{ height: '50vh' }}>
                   {story.pages[0]?.illustration_url ? (
                     <img
                       src={getPublicIllustrationUrl(story.pages[0].illustration_url) || ''}
                       alt={`עטיפת הסיפור: ${story.child_name} ב${story.topic}`}
-                      className="w-full h-full object-contain"
+                      className="w-full h-full object-cover"
                       loading="eager"
                     />
                   ) : (
@@ -951,13 +951,13 @@ const StoryViewer = () => {
             ) : isEndPage ? (
               /* End Page - Vertical portrait */
               <div className="flex flex-col h-full bg-[#FFFBF5]">
-                {/* Last illustration - top */}
-                <div className="relative shrink-0 overflow-hidden" style={{ height: '50%' }}>
+                {/* Last illustration - top 50vh */}
+                <div className="relative w-full shrink-0 overflow-hidden" style={{ height: '50vh' }}>
                   {story.pages[story.pages.length - 1]?.illustration_url ? (
                     <img
                       src={getPublicIllustrationUrl(story.pages[story.pages.length - 1].illustration_url) || ''}
                       alt={`סיום הסיפור של ${story.child_name}`}
-                      className="w-full h-full object-contain"
+                      className="w-full h-full object-cover"
                       loading="eager"
                     />
                   ) : (
@@ -1022,12 +1022,12 @@ const StoryViewer = () => {
               <div className="flex flex-col h-full">
                 {page.illustration_url ? (
                   <>
-                    {/* Illustration - top 50%, full width, complete image */}
-                    <div className="relative shrink-0 overflow-hidden bg-[#F5E6D3] flex items-center justify-center" style={{ height: '50%' }}>
+                    {/* Illustration - top 50vh, full width, landscape cover */}
+                    <div className="relative w-full shrink-0 overflow-hidden bg-[#F5E6D3]" style={{ height: '50vh' }}>
                       <img
                         src={getPublicIllustrationUrl(page.illustration_url) || ''}
                         alt={`איור עמוד ${currentPage + 1}`}
-                        className="w-full h-full object-contain"
+                        className="w-full h-full object-cover"
                         loading="eager"
                       />
                     </div>
