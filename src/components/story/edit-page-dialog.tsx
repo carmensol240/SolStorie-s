@@ -54,7 +54,7 @@ const EditPageDialog = ({
   const { toast } = useToast();
   const { addNikud, isLoading: isAddingNikud, error: nikudError } = useNikud();
   const { canEdit, performEdit, fetchEditCount, editCount } = useStoryEdit(storyId);
-  const { freeEditsRemaining } = useEditCredits();
+  const { freeEditsRemaining, refetch: refetchEditCredits } = useEditCredits();
 
   const pages: PageData[] = allPages && allPages.length > 0
     ? allPages
@@ -94,8 +94,10 @@ const EditPageDialog = ({
   useEffect(() => {
     if (open && storyId) {
       fetchEditCount(storyId);
+      // Always re-validate credits from DB to prevent back-button exploit
+      refetchEditCredits();
     }
-  }, [open, storyId, fetchEditCount]);
+  }, [open, storyId, fetchEditCount, refetchEditCredits]);
 
   const setCurrentText = (val: string) => {
     setEditedTexts(prev => ({ ...prev, [currentPageId]: val }));
@@ -147,8 +149,11 @@ const EditPageDialog = ({
   };
 
   const handleSave = async () => {
+    // Re-validate credits from server before each save
+    await refetchEditCredits();
+    
     if (!canEdit()) {
-      toast({ title: 'אין מספיק קרדיטים', description: 'רכשו קרדיטים נוספים כדי להמשיך לערוך', variant: 'destructive' });
+      toast({ title: 'נגמרו הקרדיטים 😔', description: 'שדרגו את החבילה כדי להמשיך לערוך סיפורים', variant: 'destructive' });
       return;
     }
 
@@ -324,15 +329,31 @@ const EditPageDialog = ({
             style={{ minHeight: '200px' }}
           />
 
-          {/* Edit credit info */}
-          <div className="flex items-center text-xs text-muted-foreground bg-muted/50 rounded-lg px-3 py-2">
-            <span className="flex items-center gap-1">
-              <span><AlertCircle className="w-3 h-3" /></span>
-              {hasFreeEdits
-                ? `נותרו לך ${freeEditsRemaining} עריכות בחינם בחבילה`
-                : 'העריכות בחינם נוצלו. כל עריכה עולה 1 קרדיט'}
-            </span>
-          </div>
+          {/* Edit credit info / Out of credits banner */}
+          {!canEdit() ? (
+            <div className="flex flex-col items-center gap-2 bg-destructive/10 border border-destructive/30 rounded-lg px-3 py-3 text-center">
+              <span className="flex items-center gap-1.5 text-sm font-bold text-destructive">
+                <AlertCircle className="w-4 h-4" />
+                נגמרו הקרדיטים
+              </span>
+              <p className="text-xs text-muted-foreground">
+                אין לך עריכות חינם או קרדיטים זמינים. שדרגו את החבילה כדי להמשיך.
+              </p>
+              <a href="/upgrade" className="inline-flex items-center gap-1.5 text-xs font-bold text-primary hover:underline">
+                <Coins className="w-3.5 h-3.5" />
+                שדרגו עכשיו →
+              </a>
+            </div>
+          ) : (
+            <div className="flex items-center text-xs text-muted-foreground bg-muted/50 rounded-lg px-3 py-2">
+              <span className="flex items-center gap-1">
+                <span><AlertCircle className="w-3 h-3" /></span>
+                {hasFreeEdits
+                  ? `נותרו לך ${freeEditsRemaining} עריכות בחינם בחבילה`
+                  : 'העריכות בחינם נוצלו. כל עריכה עולה 1 קרדיט'}
+              </span>
+            </div>
+          )}
         </div>
 
         {/* Footer */}

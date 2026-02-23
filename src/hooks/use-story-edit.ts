@@ -26,7 +26,7 @@ interface UseStoryEditResult {
 export const useStoryEdit = (storyId: string): UseStoryEditResult => {
   const { user } = useAuth();
   const { credits, hasCredits, useCredit, loading: creditsLoading } = useCredits();
-  const { freeEditsRemaining, freeEditsTotal, hasEditCredits, useEditCredit, loading: editCreditsLoading } = useEditCredits();
+  const { freeEditsRemaining, freeEditsTotal, hasEditCredits, useEditCredit, loading: editCreditsLoading, refetch: refetchEditCredits } = useEditCredits();
   const [editCount, setEditCount] = useState<number | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -73,6 +73,9 @@ export const useStoryEdit = (storyId: string): UseStoryEditResult => {
   }, [isAdmin, hasEditCredits, hasCredits]);
 
   const performEdit = useCallback(async (): Promise<{ success: boolean; errorMessage?: string }> => {
+    // Always re-validate credits from server before performing edit
+    await refetchEditCredits();
+    
     console.log('[performEdit] Starting...', { 
       userId: user?.id, storyId, isAdmin, 
       credits, freeEditsRemaining, 
@@ -188,7 +191,7 @@ export const useStoryEdit = (storyId: string): UseStoryEditResult => {
       setLoading(false);
       return { success: false, errorMessage: msg };
     }
-  }, [user, storyId, editCount, isAdmin, hasEditCredits, useEditCredit, hasCredits, useCredit, credits, freeEditsRemaining, creditsLoading, editCreditsLoading]);
+  }, [user, storyId, editCount, isAdmin, hasEditCredits, useEditCredit, hasCredits, useCredit, credits, freeEditsRemaining, creditsLoading, editCreditsLoading, refetchEditCredits]);
 
   return {
     canEdit,

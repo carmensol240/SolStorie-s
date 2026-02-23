@@ -92,7 +92,7 @@ const ChildInfoStep = ({ formData, updateFormData }: ChildInfoStepProps) => {
   const [isSavingChild, setIsSavingChild] = useState(false);
   const [isUploadingPhoto, setIsUploadingPhoto] = useState(false);
   const [avatarRegenerationCount, setAvatarRegenerationCount] = useState(0);
-  const [existingAvatarForDialog, setExistingAvatarForDialog] = useState<string | null>(null);
+  const [existingAvatarForDialog, setExistingAvatarForDialog] = useState<string | null>(formData.childAvatarUrl || null);
   const [userRole, setUserRole] = useState<string | null>(null);
   const [isDeletingChild, setIsDeletingChild] = useState(false);
   const [photoValidation, setPhotoValidation] = useState<{
