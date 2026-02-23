@@ -116,15 +116,17 @@ const GeneratingStep = ({ formData, onComplete }: GeneratingStepProps) => {
         return;
       }
 
-      // Check page progress
+      // Check page progress — only count pages that should have illustrations (those with illustration_prompt)
       const { data: pages } = await supabase
         .from("story_pages")
-        .select("id, illustration_url")
+        .select("id, illustration_url, illustration_prompt")
         .eq("story_id", sid);
 
       if (pages && pages.length > 0) {
-        const done = pages.filter(p => p.illustration_url).length;
-        const pct = Math.round((done / pages.length) * 100);
+        const pagesExpectingIllustration = pages.filter(p => p.illustration_prompt);
+        const totalExpected = pagesExpectingIllustration.length;
+        const done = pagesExpectingIllustration.filter(p => p.illustration_url).length;
+        const pct = totalExpected > 0 ? Math.round((done / totalExpected) * 100) : 0;
         setIllustrationProgress(pct);
         // Map illustration progress to overall progress (50-95%)
         setProgress(50 + Math.round(pct * 0.45));
