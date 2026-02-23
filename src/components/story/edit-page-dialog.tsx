@@ -54,7 +54,7 @@ const EditPageDialog = ({
   const { toast } = useToast();
   const { addNikud, isLoading: isAddingNikud, error: nikudError } = useNikud();
   const { canEdit, performEdit, fetchEditCount, editCount } = useStoryEdit(storyId);
-  const { freeEditsRemaining } = useEditCredits();
+  const { freeEditsRemaining, refetch: refetchEditCredits } = useEditCredits();
 
   const pages: PageData[] = allPages && allPages.length > 0
     ? allPages
