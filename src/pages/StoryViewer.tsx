@@ -333,7 +333,7 @@ const StoryViewer = () => {
       // If no pages yet, retry with same time-based logic
       if (!pagesData || pagesData.length === 0) {
         const elapsed = Date.now() - fetchStartTimeRef.current;
-        if (elapsed < 10000) {
+        if (elapsed < 20000) {
           const delay = retryCount < 6 ? 500 : 2000;
           console.log(`No pages found, retrying in ${delay}ms (attempt ${retryCount + 1}, elapsed ${Math.round(elapsed/1000)}s)...`);
           setTimeout(() => fetchStory(retryCount + 1), delay);
