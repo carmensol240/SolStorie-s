@@ -131,7 +131,7 @@ const ChildProfiles = () => {
 
   const loadLocalChildren = (): Child[] => {
     try {
-      const localChildren = JSON.parse(localStorage.getItem('savedChildren') || '[]');
+      const localChildren = JSON.parse(getUserData(user?.id, 'savedChildren') || '[]');
       if (localChildren.length > 0) {
         // Convert localStorage format to Child format
         const converted: Child[] = localChildren.map((c: any, index: number) => ({
