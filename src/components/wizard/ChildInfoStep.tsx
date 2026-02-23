@@ -364,7 +364,7 @@ const ChildInfoStep = ({ formData, updateFormData }: ChildInfoStepProps) => {
           existingChildren.push(savedChild);
         }
         
-        localStorage.setItem('savedChildren', JSON.stringify(existingChildren));
+        setUserData(user?.id, 'savedChildren', JSON.stringify(existingChildren));
         setSavedChildren(existingChildren);
         
         toast.success("הפרטים נשמרו בהצלחה! 🎉");
