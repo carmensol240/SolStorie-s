@@ -827,20 +827,22 @@ const ChildInfoStep = ({ formData, updateFormData }: ChildInfoStepProps) => {
         </div>
       </div>
 
-      {/* Save Button - Light purple theme matching saved profiles */}
-      <Button
-        type="button"
-        onClick={handleSaveChildProfile}
-        disabled={isSavingChild || !formData.childName.trim()}
-        className="w-full h-10 bg-gradient-to-r from-purple-100 to-pink-100 hover:from-purple-200 hover:to-pink-200 text-purple-700 font-bold text-xs rounded-lg border-2 border-purple-300 shadow-sm hover:shadow-md transition-all"
-      >
-        {isSavingChild ? (
-          <Loader2 className="w-3.5 h-3.5 animate-spin ml-1.5" />
-        ) : (
-          <Save className="w-3.5 h-3.5 ml-1.5" />
-        )}
-        שמור פרטים לסיפורים הבאים
-      </Button>
+      {/* Save Button - clearly visible above the fixed Continue button */}
+      <div className="pt-2 pb-4">
+        <Button
+          type="button"
+          onClick={handleSaveChildProfile}
+          disabled={isSavingChild || !formData.childName.trim()}
+          className="w-full h-12 bg-gradient-to-r from-purple-100 to-pink-100 hover:from-purple-200 hover:to-pink-200 text-purple-700 font-bold text-sm rounded-xl border-2 border-purple-300 shadow-md hover:shadow-lg transition-all"
+        >
+          {isSavingChild ? (
+            <Loader2 className="w-4 h-4 animate-spin ml-1.5" />
+          ) : (
+            <Save className="w-4 h-4 ml-1.5" />
+          )}
+          שמור פרטים לסיפורים הבאים
+        </Button>
+      </div>
 
       {/* Privacy Note */}
       <div className="flex items-center justify-center gap-1.5 text-[10px] text-muted-foreground text-center pt-1">
