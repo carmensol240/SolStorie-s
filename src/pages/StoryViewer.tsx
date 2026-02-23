@@ -862,10 +862,10 @@ const StoryViewer = () => {
           <div className={cn(
             "relative flex-1 min-h-0 flex flex-col rounded-xl overflow-hidden",
             "shadow-[0_8px_40px_rgba(0,0,0,0.12),0_0_0_1px_rgba(168,85,247,0.15)]",
-            flipPhase === 'out' && flipDirection === 'next' && "page-flip-out-next",
-            flipPhase === 'out' && flipDirection === 'prev' && "page-flip-out-prev",
-            flipPhase === 'in' && flipDirection === 'next' && "page-flip-in-next",
-            flipPhase === 'in' && flipDirection === 'prev' && "page-flip-in-prev",
+            "transition-all duration-300 ease-in-out",
+            flipPhase === 'out' && "opacity-0 scale-[0.98]",
+            flipPhase === 'in' && "opacity-100 scale-100",
+            flipPhase === 'idle' && "opacity-100 scale-100",
           )}>
             
             {isCoverPage ? (
