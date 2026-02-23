@@ -297,10 +297,9 @@ const StoryViewer = () => {
         setIsLoading(false);
         toast({
           variant: "destructive",
-          title: "שגיאה",
-          description: "הסיפור לא נמצא. ייתכן שהסיפור עדיין נוצר - נסו לרענן את הדף.",
+          title: "הסיפור לא נמצא",
+          description: "ייתכן שהסיפור עדיין נוצר. נסו לרענן את הדף.",
         });
-        navigate("/library");
         return;
       }
 
