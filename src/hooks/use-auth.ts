@@ -90,6 +90,8 @@ export const useAuth = () => {
   const signOut = async () => {
     // Clear dev mode if active
     clearDevMode();
+    // Clear ALL user-scoped personal data from localStorage
+    clearAllUserData();
     
     const { error } = await supabase.auth.signOut();
     return { error };
