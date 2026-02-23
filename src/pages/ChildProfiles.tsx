@@ -34,6 +34,7 @@ import { useAuth } from "@/hooks/use-auth";
 import { useToast } from "@/hooks/use-toast";
 import MobileNavigation from "@/components/MobileNavigation";
 import AvatarPreviewDialog from "@/components/story/AvatarPreviewDialog";
+import { getUserData, setUserData } from "@/lib/user-storage";
 
 interface Child {
   id: string;
