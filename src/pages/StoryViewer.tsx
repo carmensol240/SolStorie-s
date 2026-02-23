@@ -747,9 +747,9 @@ const StoryViewer = () => {
             </p>
           </div>
 
-          {/* Action button - locked until 100% */}
+          {/* Action button - ready once first illustrations are loaded */}
           <div className="flex flex-col gap-3">
-            {illustrationProgress >= 100 ? (
+            {illustrationProgress >= 50 ? (
               <Button
                 size="lg"
                 onClick={() => { setUserStartedReading(true); setCurrentPage(-1); }}
@@ -760,7 +760,7 @@ const StoryViewer = () => {
               </Button>
             ) : (
               <p className="text-sm text-purple-600/70 font-medium">
-                ⏳ ממתינים לסיום כל האיורים...
+                ⏳ סול מציירת את האיורים...
               </p>
             )}
           </div>
