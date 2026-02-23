@@ -33,6 +33,10 @@ export const useAuth = () => {
       setSession(session);
       setUser(session?.user ?? null);
       setLoading(false);
+      // Migrate legacy localStorage data to user-scoped keys
+      if (session?.user?.id) {
+        migrateToUserScoped(session.user.id);
+      }
     });
 
     return () => subscription.unsubscribe();
