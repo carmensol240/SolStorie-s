@@ -311,7 +311,7 @@ const ChildProfiles = () => {
   };
 
   const handleSelectChild = (childId: string) => {
-    localStorage.setItem("selected_child_id", childId);
+    setUserData(user?.id, 'selected_child_id', childId);
     navigate("/library");
   };
 
