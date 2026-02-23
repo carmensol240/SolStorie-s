@@ -146,7 +146,7 @@ const ChildInfoStep = ({ formData, updateFormData }: ChildInfoStepProps) => {
         }
       } else {
         // Load from localStorage for guest/dev mode users
-        const localChildren = JSON.parse(localStorage.getItem('savedChildren') || '[]');
+        const localChildren = JSON.parse(getUserData(user?.id, 'savedChildren') || '[]');
         if (localChildren.length > 0) {
           setSavedChildren(localChildren);
           // Auto-load the first child
