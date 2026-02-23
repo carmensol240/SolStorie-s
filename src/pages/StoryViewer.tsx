@@ -268,10 +268,9 @@ const StoryViewer = () => {
         if (storyError) throw storyError;
         storyData = data;
 
-        // If found and has slug, redirect to slug URL
-        if (storyData?.slug) {
-          navigate(`/story/${storyData.slug}`, { replace: true });
-          return;
+        // If found and has slug, update URL silently without re-fetching
+        if (storyData?.slug && storyId !== storyData.slug) {
+          window.history.replaceState(null, '', `/story/${storyData.slug}`);
         }
       } else {
         // Lookup by slug
