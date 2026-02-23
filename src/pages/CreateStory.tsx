@@ -229,7 +229,7 @@ const CreateStory = () => {
       </header>
 
       <main className="flex-1" style={{ WebkitOverflowScrolling: 'touch' }}>
-        <div className="container max-w-lg mx-auto px-3 py-3" style={{ paddingBottom: '120px' }}>
+        <div className="container max-w-lg mx-auto px-3 py-3" style={{ paddingBottom: '180px' }}>
           {step === 1 && (
             <ChildInfoStep formData={formData} updateFormData={updateFormData} />
           )}
