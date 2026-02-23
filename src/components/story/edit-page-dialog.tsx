@@ -329,15 +329,31 @@ const EditPageDialog = ({
             style={{ minHeight: '200px' }}
           />
 
-          {/* Edit credit info */}
-          <div className="flex items-center text-xs text-muted-foreground bg-muted/50 rounded-lg px-3 py-2">
-            <span className="flex items-center gap-1">
-              <span><AlertCircle className="w-3 h-3" /></span>
-              {hasFreeEdits
-                ? `נותרו לך ${freeEditsRemaining} עריכות בחינם בחבילה`
-                : 'העריכות בחינם נוצלו. כל עריכה עולה 1 קרדיט'}
-            </span>
-          </div>
+          {/* Edit credit info / Out of credits banner */}
+          {!canEdit() ? (
+            <div className="flex flex-col items-center gap-2 bg-destructive/10 border border-destructive/30 rounded-lg px-3 py-3 text-center">
+              <span className="flex items-center gap-1.5 text-sm font-bold text-destructive">
+                <AlertCircle className="w-4 h-4" />
+                נגמרו הקרדיטים
+              </span>
+              <p className="text-xs text-muted-foreground">
+                אין לך עריכות חינם או קרדיטים זמינים. שדרגו את החבילה כדי להמשיך.
+              </p>
+              <a href="/upgrade" className="inline-flex items-center gap-1.5 text-xs font-bold text-primary hover:underline">
+                <Coins className="w-3.5 h-3.5" />
+                שדרגו עכשיו →
+              </a>
+            </div>
+          ) : (
+            <div className="flex items-center text-xs text-muted-foreground bg-muted/50 rounded-lg px-3 py-2">
+              <span className="flex items-center gap-1">
+                <span><AlertCircle className="w-3 h-3" /></span>
+                {hasFreeEdits
+                  ? `נותרו לך ${freeEditsRemaining} עריכות בחינם בחבילה`
+                  : 'העריכות בחינם נוצלו. כל עריכה עולה 1 קרדיט'}
+              </span>
+            </div>
+          )}
         </div>
 
         {/* Footer */}
