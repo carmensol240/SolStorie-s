@@ -116,15 +116,17 @@ const GeneratingStep = ({ formData, onComplete }: GeneratingStepProps) => {
         return;
       }
 
-      // Check page progress
+      // Check page progress — only count pages that should have illustrations (those with illustration_prompt)
       const { data: pages } = await supabase
         .from("story_pages")
-        .select("id, illustration_url")
+        .select("id, illustration_url, illustration_prompt")
         .eq("story_id", sid);
 
       if (pages && pages.length > 0) {
-        const done = pages.filter(p => p.illustration_url).length;
-        const pct = Math.round((done / pages.length) * 100);
+        const pagesExpectingIllustration = pages.filter(p => p.illustration_prompt);
+        const totalExpected = pagesExpectingIllustration.length;
+        const done = pagesExpectingIllustration.filter(p => p.illustration_url).length;
+        const pct = totalExpected > 0 ? Math.round((done / totalExpected) * 100) : 0;
         setIllustrationProgress(pct);
         // Map illustration progress to overall progress (50-95%)
         setProgress(50 + Math.round(pct * 0.45));
@@ -349,8 +351,9 @@ const GeneratingStep = ({ formData, onComplete }: GeneratingStepProps) => {
   };
 
   const handleStartReadingNow = () => {
-    if (!storyId) return;
-    // Stop polling and navigate immediately
+    // Disabled — user must wait for all illustrations to load
+    // This function is kept for reference but the button is hidden until ready
+    if (!storyId || phase !== 'ready') return;
     if (pollingRef.current) {
       clearInterval(pollingRef.current);
       pollingRef.current = null;
@@ -437,15 +440,15 @@ const GeneratingStep = ({ formData, onComplete }: GeneratingStepProps) => {
         </p>
       </div>
 
-      {/* "Start Reading Now" button - shown once text is ready */}
-      {phase === 'illustrations' && storyId && (
+      {/* "Open Book" button - only shown when ALL illustrations are ready */}
+      {phase === 'ready' && storyId && (
         <Button
           onClick={handleStartReadingNow}
           size="lg"
-          className="bg-gradient-to-r from-purple-600 to-pink-500 hover:from-purple-700 hover:to-pink-600 text-white font-bold px-8 py-5 text-lg rounded-full shadow-xl gap-2"
+          className="bg-gradient-to-r from-purple-600 to-pink-500 hover:from-purple-700 hover:to-pink-600 text-white font-bold px-8 py-5 text-lg rounded-full shadow-xl gap-2 animate-scale-in"
         >
           <BookOpen className="w-5 h-5" />
-          התחילו לקרוא עכשיו!
+          פתחו את הספר! 📖
         </Button>
       )}
 

@@ -1199,12 +1199,13 @@ ${topic.endsWith('-edu') ? `
 
     console.log("Story created:", story.id);
 
-    // Insert pages - ALL pages get illustration prompts so every page has an illustration
+    // Insert pages - one illustration per two pages for a cleaner look and faster loading
+    // Odd pages (1, 3, 5...) get illustration prompts; even pages are text-only
     const pagesWithoutIllustrations = storyData.pages.map((page: any) => ({
       story_id: story.id,
       page_number: page.page_number,
       text: page.text,
-      illustration_prompt: page.illustration_prompt || null,
+      illustration_prompt: (page.page_number % 2 === 1) ? page.illustration_prompt : null,
       illustration_url: null, // Will be filled by generate-illustrations
     }));
 
