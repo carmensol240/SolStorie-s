@@ -91,31 +91,12 @@ const GeneratingStep = ({ formData, onComplete }: GeneratingStepProps) => {
     };
   }, []);
 
+  // Minimum illustrations before allowing "Open Book"
+  const MIN_ILLUSTRATIONS_READY = 2;
+
   // Poll for illustration progress once we have a storyId
   const pollIllustrations = useCallback(async (sid: string) => {
     try {
-      const { data: storyData } = await supabase
-        .from("stories")
-        .select("generation_status")
-        .eq("id", sid)
-        .maybeSingle();
-
-      const status = (storyData as any)?.generation_status || 'ready';
-
-      if (status === 'ready') {
-        // All done!
-        setPhase('ready');
-        setIllustrationProgress(100);
-        setProgress(100);
-        if (pollingRef.current) {
-          clearInterval(pollingRef.current);
-          pollingRef.current = null;
-        }
-        // Navigate after a short delay
-        setTimeout(() => onComplete(sid), 1200);
-        return;
-      }
-
       // Check page progress — only count pages that should have illustrations (those with illustration_prompt)
       const { data: pages } = await supabase
         .from("story_pages")
@@ -130,11 +111,37 @@ const GeneratingStep = ({ formData, onComplete }: GeneratingStepProps) => {
         setIllustrationProgress(pct);
         // Map illustration progress to overall progress (50-95%)
         setProgress(50 + Math.round(pct * 0.45));
+
+        // LAZY LOADING: Ready to open once MIN_ILLUSTRATIONS_READY are done
+        if (done >= MIN_ILLUSTRATIONS_READY && phase !== 'ready') {
+          console.log(`[GeneratingStep] ${done}/${totalExpected} illustrations ready — opening book!`);
+          setPhase('ready');
+          setProgress(95);
+          // Auto-navigate after a short celebratory delay
+          setTimeout(() => onComplete(sid), 1200);
+          if (pollingRef.current) {
+            clearInterval(pollingRef.current);
+            pollingRef.current = null;
+          }
+          return;
+        }
+
+        // Also mark ready if ALL are done
+        if (pct === 100) {
+          setPhase('ready');
+          setProgress(100);
+          if (pollingRef.current) {
+            clearInterval(pollingRef.current);
+            pollingRef.current = null;
+          }
+          setTimeout(() => onComplete(sid), 800);
+          return;
+        }
       }
     } catch (err) {
       console.error("[GeneratingStep] Poll error:", err);
     }
-  }, [onComplete]);
+  }, [onComplete, phase]);
 
   // Start polling when entering illustration phase
   useEffect(() => {
