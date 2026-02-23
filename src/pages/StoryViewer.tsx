@@ -747,22 +747,28 @@ const StoryViewer = () => {
             </p>
           </div>
 
-          {/* Action buttons */}
+          {/* Action button - locked until 100% */}
           <div className="flex flex-col gap-3">
-            <Button
-              size="lg"
-              onClick={() => { setUserStartedReading(true); setCurrentPage(-1); }}
-              className="bg-gradient-to-r from-purple-600 to-pink-500 hover:from-purple-700 hover:to-pink-600 text-white font-bold px-8 py-6 text-lg rounded-full shadow-xl"
-            >
-              <BookOpen className="w-5 h-5 ml-2" />
-              התחילו לקרוא עכשיו!
-            </Button>
+            {illustrationProgress >= 100 ? (
+              <Button
+                size="lg"
+                onClick={() => { setUserStartedReading(true); setCurrentPage(-1); }}
+                className="bg-gradient-to-r from-purple-600 to-pink-500 hover:from-purple-700 hover:to-pink-600 text-white font-bold px-8 py-6 text-lg rounded-full shadow-xl animate-scale-in"
+              >
+                <BookOpen className="w-5 h-5 ml-2" />
+                פתחו את הספר! 📖
+              </Button>
+            ) : (
+              <p className="text-sm text-purple-600/70 font-medium">
+                ⏳ ממתינים לסיום כל האיורים...
+              </p>
+            )}
           </div>
 
           {/* Tip */}
           <div className="bg-white/80 backdrop-blur-sm rounded-xl p-4 shadow-md border border-purple-100 max-w-xs mx-auto mt-6">
             <p className="text-sm text-purple-700">
-              💡 <strong className="text-purple-900">טיפ:</strong> זה זמן מעולה להתכרבל יחד. הסיפור כבר מחכה לכם בפנים! (האיורים ימשיכו להיטען אוטומטית)
+              💡 <strong className="text-purple-900">טיפ:</strong> זה זמן מעולה להתכרבל יחד. עוד רגע הסיפור מוכן!
             </p>
           </div>
         </div>
