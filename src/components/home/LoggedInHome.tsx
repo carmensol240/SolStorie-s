@@ -24,11 +24,11 @@ const LoggedInHome = ({ user, displayName }: LoggedInHomeProps) => {
   const [userRole, setUserRole] = useState<string | null>(null);
   const [showEducatorBanner, setShowEducatorBanner] = useState(true);
 
-  // Check localStorage for dismissed state
+  // Check user-scoped localStorage for dismissed state
   useEffect(() => {
-    const dismissed = localStorage.getItem('educator_welcome_dismissed');
+    const dismissed = getUserData(user?.id, 'educator_welcome_dismissed');
     if (dismissed === 'true') setShowEducatorBanner(false);
-  }, []);
+  }, [user?.id]);
 
   // Fetch story count and user_role
   useEffect(() => {
