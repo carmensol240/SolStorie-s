@@ -944,12 +944,12 @@ const StoryViewer = () => {
               /* End Page - Vertical portrait */
               <div className="flex flex-col h-full bg-[#FFFBF5]">
                 {/* Last illustration - top */}
-                <div className="relative shrink-0 overflow-hidden" style={{ height: '40%' }}>
+                <div className="relative shrink-0 overflow-hidden" style={{ height: '50%' }}>
                   {story.pages[story.pages.length - 1]?.illustration_url ? (
                     <img
                       src={getPublicIllustrationUrl(story.pages[story.pages.length - 1].illustration_url) || ''}
                       alt={`סיום הסיפור של ${story.child_name}`}
-                      className="w-full h-full object-cover"
+                      className="w-full h-full object-contain"
                       loading="eager"
                     />
                   ) : (
