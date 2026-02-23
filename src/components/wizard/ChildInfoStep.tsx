@@ -11,6 +11,7 @@ import { useAuth } from "@/hooks/use-auth";
 import { isDevModeEnabled } from "@/hooks/use-dev-mode";
 import { toast } from "sonner";
 import AvatarPreviewDialog from "@/components/story/AvatarPreviewDialog";
+import { getUserData, setUserData } from "@/lib/user-storage";
 
 interface SavedChild {
   id: string;
