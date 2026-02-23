@@ -191,7 +191,7 @@ export const useStoryEdit = (storyId: string): UseStoryEditResult => {
       setLoading(false);
       return { success: false, errorMessage: msg };
     }
-  }, [user, storyId, editCount, isAdmin, hasEditCredits, useEditCredit, hasCredits, useCredit, credits, freeEditsRemaining, creditsLoading, editCreditsLoading]);
+  }, [user, storyId, editCount, isAdmin, hasEditCredits, useEditCredit, hasCredits, useCredit, credits, freeEditsRemaining, creditsLoading, editCreditsLoading, refetchEditCredits]);
 
   return {
     canEdit,
