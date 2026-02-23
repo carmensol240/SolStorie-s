@@ -351,8 +351,9 @@ const GeneratingStep = ({ formData, onComplete }: GeneratingStepProps) => {
   };
 
   const handleStartReadingNow = () => {
-    if (!storyId) return;
-    // Stop polling and navigate immediately
+    // Disabled — user must wait for all illustrations to load
+    // This function is kept for reference but the button is hidden until ready
+    if (!storyId || phase !== 'ready') return;
     if (pollingRef.current) {
       clearInterval(pollingRef.current);
       pollingRef.current = null;
