@@ -468,7 +468,7 @@ const StoryViewer = () => {
       try {
         const slug = (story as any).slug || story.id;
         const canonicalBase = "https://soulstory.co.il";
-        const publicUrl = `${canonicalBase}/story/${slug}`;
+        const publicUrl = `${canonicalBase}/s/${slug}`;
         await navigator.clipboard.writeText(publicUrl);
         toast({ title: 'הקישור הועתק! 📋', description: 'כעת ניתן להדביק אותו בוואטסאפ' });
       } catch {
