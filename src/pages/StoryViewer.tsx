@@ -790,7 +790,7 @@ const StoryViewer = () => {
   const currentFontSize = FONT_SIZES[fontSizeIndex];
   const showPageActions = !isCoverPage && !isEndPage && page !== null;
 
-  // Page navigation with 3D flip animation
+  // Page navigation with gentle fade transition
   const handlePageNav = (direction: 'next' | 'prev') => {
     if (isFlipping) return;
     
@@ -803,7 +803,7 @@ const StoryViewer = () => {
     setIsFlipping(true);
     setFlipPhase('out');
     
-    // After flip-out animation, change page and flip-in
+    // After fade-out, change page and fade-in
     setTimeout(() => {
       if (direction === 'next' && currentPage < maxPage) {
         const newPage = currentPage + 1;
@@ -817,12 +817,12 @@ const StoryViewer = () => {
       }
       setFlipPhase('in');
       
-      // After flip-in animation completes
+      // After fade-in animation completes
       setTimeout(() => {
         setFlipPhase('idle');
         setIsFlipping(false);
-      }, 500);
-    }, 500);
+      }, 350);
+    }, 300);
   };
 
   return (
