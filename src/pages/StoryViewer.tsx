@@ -49,6 +49,7 @@ interface StoryPage {
   page_number: number;
   text: string;
   illustration_url: string | null;
+  illustration_prompt?: string | null;
 }
 
 interface Story {
@@ -287,15 +288,15 @@ const StoryViewer = () => {
       
       if (!storyData) {
         const elapsed = Date.now() - fetchStartTimeRef.current;
-        // Retry up to 6 times with 500ms intervals (total ~3s), then slower retries up to 10s
-        if (elapsed < 10000) {
-          const delay = retryCount < 6 ? 500 : 1500;
+        // Retry for up to 20s to handle DB write delays after generation
+        if (elapsed < 20000) {
+          const delay = retryCount < 6 ? 500 : 2000;
           console.log(`Story not found, retrying in ${delay}ms (attempt ${retryCount + 1}, elapsed ${Math.round(elapsed/1000)}s)...`);
           setTimeout(() => fetchStory(retryCount + 1), delay);
-          return; // Keep isLoading = true
+          return; // Keep isLoading = true (spinner stays)
         }
         
-        console.error("Story not found after 10s of retries:", storyId);
+        console.error("Story not found after 20s of retries:", storyId);
         setIsLoading(false);
         toast({
           variant: "destructive",
@@ -333,7 +334,7 @@ const StoryViewer = () => {
       // If no pages yet, retry with same time-based logic
       if (!pagesData || pagesData.length === 0) {
         const elapsed = Date.now() - fetchStartTimeRef.current;
-        if (elapsed < 10000) {
+        if (elapsed < 20000) {
           const delay = retryCount < 6 ? 500 : 2000;
           console.log(`No pages found, retrying in ${delay}ms (attempt ${retryCount + 1}, elapsed ${Math.round(elapsed/1000)}s)...`);
           setTimeout(() => fetchStory(retryCount + 1), delay);
@@ -388,8 +389,8 @@ const StoryViewer = () => {
     } catch (error) {
       console.error("Error fetching story:", error);
       const elapsed = Date.now() - fetchStartTimeRef.current;
-      // On error, retry if under 10s
-      if (elapsed < 10000) {
+      // On error, retry if under 20s
+      if (elapsed < 20000) {
         console.log(`Fetch error, retrying in 1s (elapsed ${Math.round(elapsed/1000)}s)...`);
         setTimeout(() => fetchStory(retryCount + 1), 1000);
         return;
@@ -1033,6 +1034,31 @@ const StoryViewer = () => {
                     </div>
                     
                     {/* Text - bottom 60%, paper texture */}
+                    <div className="flex-1 min-h-0 overflow-y-auto paper-texture px-6 py-4 md:px-10 md:py-6">
+                      <div className="max-w-lg mx-auto w-full">
+                        <p className={cn(
+                          "text-[#3D2914] text-right font-medium transition-all whitespace-pre-line",
+                          currentFontSize.size
+                        )} style={{ lineHeight: '2.2' }} dir="rtl">
+                          {showNikud ? page.text : page.text.replace(/[\u0591-\u05C7]/g, '')}
+                        </p>
+                      </div>
+                      <div className="flex items-center justify-center pt-3 pb-1">
+                        <span className="text-xs text-[#B8A08C] font-light">{currentPage + 1} / {story.pages.length}</span>
+                      </div>
+                    </div>
+                  </>
+                ) : generationStatus === 'generating_illustrations' && page.illustration_prompt ? (
+                  /* Illustration is still being generated — show shimmer placeholder + text */
+                  <>
+                    <div className="relative w-full shrink-0 overflow-hidden" style={{ height: '50vh' }}>
+                      <div className="w-full h-full shimmer-loading flex items-center justify-center">
+                        <div className="text-center text-purple-400">
+                          <Palette className="w-14 h-14 mx-auto mb-2 opacity-40 animate-pulse" />
+                          <p className="text-sm font-medium opacity-60">סול מציירת...</p>
+                        </div>
+                      </div>
+                    </div>
                     <div className="flex-1 min-h-0 overflow-y-auto paper-texture px-6 py-4 md:px-10 md:py-6">
                       <div className="max-w-lg mx-auto w-full">
                         <p className={cn(
