@@ -300,7 +300,7 @@ const GeneratingStep = ({ formData, onComplete }: GeneratingStepProps) => {
   }, [formData, onComplete, toast, navigate]);
 
   useEffect(() => {
-    // Progress animation for text phase
+    // Progress animation for text phase AND illustration phase (smooth increments)
     const progressInterval = setInterval(() => {
       setProgress((prev) => {
         if (phase === 'text') {
@@ -308,7 +308,12 @@ const GeneratingStep = ({ formData, onComplete }: GeneratingStepProps) => {
           if (prev >= 48) return prev;
           return prev + Math.random() * 4;
         }
-        // During illustration phase, progress is set by polling
+        if (phase === 'illustrations') {
+          // During illustration phase, slowly creep up to prevent "stuck" feeling
+          // Real polling updates will jump ahead of this
+          if (prev >= 90) return prev;
+          return prev + Math.random() * 0.5;
+        }
         return prev;
       });
     }, 500);
