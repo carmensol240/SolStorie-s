@@ -73,6 +73,9 @@ export const useStoryEdit = (storyId: string): UseStoryEditResult => {
   }, [isAdmin, hasEditCredits, hasCredits]);
 
   const performEdit = useCallback(async (): Promise<{ success: boolean; errorMessage?: string }> => {
+    // Always re-validate credits from server before performing edit
+    await refetchEditCredits();
+    
     console.log('[performEdit] Starting...', { 
       userId: user?.id, storyId, isAdmin, 
       credits, freeEditsRemaining, 
