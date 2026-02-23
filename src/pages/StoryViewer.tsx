@@ -879,8 +879,8 @@ const StoryViewer = () => {
             {isCoverPage ? (
               /* Cover Page - Vertical portrait layout */
               <div className="flex flex-col h-full bg-[#FFFBF5]">
-                {/* Cover illustration - top 30% (reduced for more text space) */}
-                <div className="relative shrink-0 overflow-hidden" style={{ height: '50%' }}>
+                {/* Cover illustration - top 50vh, full width landscape */}
+                <div className="relative w-full shrink-0 overflow-hidden" style={{ height: '50vh' }}>
                   {story.pages[0]?.illustration_url ? (
                     <img
                       src={getPublicIllustrationUrl(story.pages[0].illustration_url) || ''}
