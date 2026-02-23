@@ -388,8 +388,8 @@ const StoryViewer = () => {
     } catch (error) {
       console.error("Error fetching story:", error);
       const elapsed = Date.now() - fetchStartTimeRef.current;
-      // On error, retry if under 10s
-      if (elapsed < 10000) {
+      // On error, retry if under 20s
+      if (elapsed < 20000) {
         console.log(`Fetch error, retrying in 1s (elapsed ${Math.round(elapsed/1000)}s)...`);
         setTimeout(() => fetchStory(retryCount + 1), 1000);
         return;
