@@ -957,7 +957,7 @@ const StoryViewer = () => {
                     <img
                       src={getPublicIllustrationUrl(story.pages[story.pages.length - 1].illustration_url) || ''}
                       alt={`סיום הסיפור של ${story.child_name}`}
-                      className="w-full h-full object-contain"
+                      className="w-full h-full object-cover"
                       loading="eager"
                     />
                   ) : (
