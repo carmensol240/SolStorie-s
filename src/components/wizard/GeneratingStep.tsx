@@ -440,15 +440,15 @@ const GeneratingStep = ({ formData, onComplete }: GeneratingStepProps) => {
         </p>
       </div>
 
-      {/* "Start Reading Now" button - shown once text is ready */}
-      {phase === 'illustrations' && storyId && (
+      {/* "Open Book" button - only shown when ALL illustrations are ready */}
+      {phase === 'ready' && storyId && (
         <Button
           onClick={handleStartReadingNow}
           size="lg"
-          className="bg-gradient-to-r from-purple-600 to-pink-500 hover:from-purple-700 hover:to-pink-600 text-white font-bold px-8 py-5 text-lg rounded-full shadow-xl gap-2"
+          className="bg-gradient-to-r from-purple-600 to-pink-500 hover:from-purple-700 hover:to-pink-600 text-white font-bold px-8 py-5 text-lg rounded-full shadow-xl gap-2 animate-scale-in"
         >
           <BookOpen className="w-5 h-5" />
-          התחילו לקרוא עכשיו!
+          פתחו את הספר! 📖
         </Button>
       )}
 
