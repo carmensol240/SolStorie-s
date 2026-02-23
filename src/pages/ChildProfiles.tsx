@@ -263,7 +263,7 @@ const ChildProfiles = () => {
         // Save to localStorage for guests/dev mode
         console.log('Saving child to localStorage (guest/dev mode)');
         
-        const localChildren = JSON.parse(localStorage.getItem('savedChildren') || '[]');
+        const localChildren = JSON.parse(getUserData(user?.id, 'savedChildren') || '[]');
         const newChild = {
           id: `local-${Date.now()}`,
           name: newChildName.trim(),
