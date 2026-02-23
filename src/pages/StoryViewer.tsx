@@ -443,9 +443,9 @@ const StoryViewer = () => {
 
     try {
       const slug = (story as any).slug || story.id;
-      // Always use canonical domain for sharing (not preview/localhost)
+      // Use /s/ path for sharing — this goes through the OG proxy for WhatsApp/social previews
       const canonicalBase = "https://soulstory.co.il";
-      const publicUrl = `${canonicalBase}/story/${slug}`;
+      const publicUrl = `${canonicalBase}/s/${slug}`;
       const title = `✨ ${translateTopic(story.topic, story.language)} ✨`;
       const text = `📚 הסיפור של ${story.child_name} – נוצר באהבה באפליקציית SolStorie's™`;
 
