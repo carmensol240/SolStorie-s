@@ -466,8 +466,8 @@ const StoryViewer = () => {
       console.error('Error sharing story:', error);
       try {
         const slug = (story as any).slug || story.id;
-        const baseUrl = window.location.origin;
-        const publicUrl = `${baseUrl}/story/${slug}`;
+        const canonicalBase = "https://soulstory.co.il";
+        const publicUrl = `${canonicalBase}/story/${slug}`;
         await navigator.clipboard.writeText(publicUrl);
         toast({ title: 'הקישור הועתק! 📋', description: 'כעת ניתן להדביק אותו בוואטסאפ' });
       } catch {
