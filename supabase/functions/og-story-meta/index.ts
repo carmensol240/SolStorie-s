@@ -70,7 +70,7 @@ serve(async (req) => {
     const description = `סיפור קסום שנוצר במיוחד עבור ${story.child_name}. לחצו לקריאת הסיפור המלא 📚`;
     const rawCoverUrl = story.cover_url;
     const imageUrl = resolveImageUrl(rawCoverUrl, defaultOgImage, supabaseUrl);
-    const shareUrl = `${siteOrigin}/story/${slug}`;
+    const shareUrl = `${siteOrigin}/s/${slug}`;
     const viewUrl = `${siteOrigin}/story/${slug}`;
 
     const userAgent = req.headers.get("user-agent") || "";
