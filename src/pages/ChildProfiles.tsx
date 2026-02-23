@@ -105,7 +105,7 @@ const ChildProfiles = () => {
           if (!error && data && data.length > 0) {
             setChildren(data);
             // Sync to localStorage for offline access
-            localStorage.setItem('savedChildren', JSON.stringify(data));
+            setUserData(user?.id, 'savedChildren', JSON.stringify(data));
           } else if (!error && data && data.length === 0) {
             // User has no children in DB, use localStorage if available
             if (localChildren.length > 0) {
