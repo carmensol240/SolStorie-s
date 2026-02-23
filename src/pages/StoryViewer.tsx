@@ -1022,12 +1022,12 @@ const StoryViewer = () => {
               <div className="flex flex-col h-full">
                 {page.illustration_url ? (
                   <>
-                    {/* Illustration - top 50%, full width, complete image */}
-                    <div className="relative shrink-0 overflow-hidden bg-[#F5E6D3] flex items-center justify-center" style={{ height: '50%' }}>
+                    {/* Illustration - top 50vh, full width, landscape cover */}
+                    <div className="relative w-full shrink-0 overflow-hidden bg-[#F5E6D3]" style={{ height: '50vh' }}>
                       <img
                         src={getPublicIllustrationUrl(page.illustration_url) || ''}
                         alt={`איור עמוד ${currentPage + 1}`}
-                        className="w-full h-full object-contain"
+                        className="w-full h-full object-cover"
                         loading="eager"
                       />
                     </div>

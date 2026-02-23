@@ -38,7 +38,7 @@ export const BookPage: React.FC<BookPageProps> = ({
         <div className="absolute top-0 left-0 w-8 h-8 bg-gradient-to-br from-black/5 to-transparent" />
         
         {illustrationUrl ? (
-          <div className="relative w-full max-w-md mx-auto">
+          <div className="relative w-full">
             <div className="relative w-full overflow-hidden shadow-xl" style={{ height: '50vh' }}>
               <SignedImage
                 src={illustrationUrl}
