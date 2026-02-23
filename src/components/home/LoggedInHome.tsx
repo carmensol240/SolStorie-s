@@ -52,7 +52,7 @@ const LoggedInHome = ({ user, displayName }: LoggedInHomeProps) => {
 
   const dismissEducatorBanner = () => {
     setShowEducatorBanner(false);
-    localStorage.setItem('educator_welcome_dismissed', 'true');
+    setUserData(user?.id, 'educator_welcome_dismissed', 'true');
   };
 
   return (
