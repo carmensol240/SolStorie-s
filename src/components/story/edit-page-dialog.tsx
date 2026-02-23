@@ -94,8 +94,10 @@ const EditPageDialog = ({
   useEffect(() => {
     if (open && storyId) {
       fetchEditCount(storyId);
+      // Always re-validate credits from DB to prevent back-button exploit
+      refetchEditCredits();
     }
-  }, [open, storyId, fetchEditCount]);
+  }, [open, storyId, fetchEditCount, refetchEditCredits]);
 
   const setCurrentText = (val: string) => {
     setEditedTexts(prev => ({ ...prev, [currentPageId]: val }));
