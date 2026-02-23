@@ -1047,6 +1047,31 @@ const StoryViewer = () => {
                       </div>
                     </div>
                   </>
+                ) : generationStatus === 'generating_illustrations' && page.illustration_prompt ? (
+                  /* Illustration is still being generated — show shimmer placeholder + text */
+                  <>
+                    <div className="relative w-full shrink-0 overflow-hidden" style={{ height: '50vh' }}>
+                      <div className="w-full h-full shimmer-loading flex items-center justify-center">
+                        <div className="text-center text-purple-400">
+                          <Palette className="w-14 h-14 mx-auto mb-2 opacity-40 animate-pulse" />
+                          <p className="text-sm font-medium opacity-60">סול מציירת...</p>
+                        </div>
+                      </div>
+                    </div>
+                    <div className="flex-1 min-h-0 overflow-y-auto paper-texture px-6 py-4 md:px-10 md:py-6">
+                      <div className="max-w-lg mx-auto w-full">
+                        <p className={cn(
+                          "text-[#3D2914] text-right font-medium transition-all whitespace-pre-line",
+                          currentFontSize.size
+                        )} style={{ lineHeight: '2.2' }} dir="rtl">
+                          {showNikud ? page.text : page.text.replace(/[\u0591-\u05C7]/g, '')}
+                        </p>
+                      </div>
+                      <div className="flex items-center justify-center pt-3 pb-1">
+                        <span className="text-xs text-[#B8A08C] font-light">{currentPage + 1} / {story.pages.length}</span>
+                      </div>
+                    </div>
+                  </>
                 ) : (
                   /* Text-only page — premium storybook feel */
                   <div className="flex-1 flex flex-col min-h-0 bg-[#FDFBF7]">
