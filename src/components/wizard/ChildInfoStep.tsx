@@ -11,6 +11,7 @@ import { useAuth } from "@/hooks/use-auth";
 import { isDevModeEnabled } from "@/hooks/use-dev-mode";
 import { toast } from "sonner";
 import AvatarPreviewDialog from "@/components/story/AvatarPreviewDialog";
+import { getUserData, setUserData } from "@/lib/user-storage";
 
 interface SavedChild {
   id: string;
@@ -145,7 +146,7 @@ const ChildInfoStep = ({ formData, updateFormData }: ChildInfoStepProps) => {
         }
       } else {
         // Load from localStorage for guest/dev mode users
-        const localChildren = JSON.parse(localStorage.getItem('savedChildren') || '[]');
+        const localChildren = JSON.parse(getUserData(user?.id, 'savedChildren') || '[]');
         if (localChildren.length > 0) {
           setSavedChildren(localChildren);
           // Auto-load the first child
@@ -242,7 +243,7 @@ const ChildInfoStep = ({ formData, updateFormData }: ChildInfoStepProps) => {
       setSavedChildren(updatedChildren);
       
       // Persist to localStorage for all users
-      localStorage.setItem('savedChildren', JSON.stringify(updatedChildren));
+      setUserData(user?.id, 'savedChildren', JSON.stringify(updatedChildren));
     }
   };
 
@@ -354,7 +355,7 @@ const ChildInfoStep = ({ formData, updateFormData }: ChildInfoStepProps) => {
           personality_traits: formData.personalityTraits,
         };
         
-        const existingChildren = JSON.parse(localStorage.getItem('savedChildren') || '[]');
+        const existingChildren = JSON.parse(getUserData(user?.id, 'savedChildren') || '[]');
         const existingIndex = existingChildren.findIndex((c: SavedChild) => c.name === formData.childName);
         
         if (existingIndex >= 0) {
@@ -363,7 +364,7 @@ const ChildInfoStep = ({ formData, updateFormData }: ChildInfoStepProps) => {
           existingChildren.push(savedChild);
         }
         
-        localStorage.setItem('savedChildren', JSON.stringify(existingChildren));
+        setUserData(user?.id, 'savedChildren', JSON.stringify(existingChildren));
         setSavedChildren(existingChildren);
         
         toast.success("הפרטים נשמרו בהצלחה! 🎉");

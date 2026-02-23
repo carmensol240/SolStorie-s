@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { User, Session } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
 import { isDevModeEnabled, MOCK_DEV_USER, MOCK_DEV_SESSION, clearDevMode } from './use-dev-mode';
+import { clearAllUserData, migrateToUserScoped } from '@/lib/user-storage';
 
 export const useAuth = () => {
   const [user, setUser] = useState<User | null>(null);
@@ -32,6 +33,10 @@ export const useAuth = () => {
       setSession(session);
       setUser(session?.user ?? null);
       setLoading(false);
+      // Migrate legacy localStorage data to user-scoped keys
+      if (session?.user?.id) {
+        migrateToUserScoped(session.user.id);
+      }
     });
 
     return () => subscription.unsubscribe();
@@ -85,6 +90,8 @@ export const useAuth = () => {
   const signOut = async () => {
     // Clear dev mode if active
     clearDevMode();
+    // Clear ALL user-scoped personal data from localStorage
+    clearAllUserData();
     
     const { error } = await supabase.auth.signOut();
     return { error };

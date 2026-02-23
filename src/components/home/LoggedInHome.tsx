@@ -8,6 +8,7 @@ import { useAuth } from "@/hooks/use-auth";
 import { supabase } from "@/integrations/supabase/client";
 import heroBackground from "@/assets/hero-children-flying-sky.jpg";
 import WelcomeGiftBanner from "./WelcomeGiftBanner";
+import { getUserData, setUserData } from "@/lib/user-storage";
 
 interface LoggedInHomeProps {
   user: any;
@@ -23,11 +24,11 @@ const LoggedInHome = ({ user, displayName }: LoggedInHomeProps) => {
   const [userRole, setUserRole] = useState<string | null>(null);
   const [showEducatorBanner, setShowEducatorBanner] = useState(true);
 
-  // Check localStorage for dismissed state
+  // Check user-scoped localStorage for dismissed state
   useEffect(() => {
-    const dismissed = localStorage.getItem('educator_welcome_dismissed');
+    const dismissed = getUserData(user?.id, 'educator_welcome_dismissed');
     if (dismissed === 'true') setShowEducatorBanner(false);
-  }, []);
+  }, [user?.id]);
 
   // Fetch story count and user_role
   useEffect(() => {
@@ -51,7 +52,7 @@ const LoggedInHome = ({ user, displayName }: LoggedInHomeProps) => {
 
   const dismissEducatorBanner = () => {
     setShowEducatorBanner(false);
-    localStorage.setItem('educator_welcome_dismissed', 'true');
+    setUserData(user?.id, 'educator_welcome_dismissed', 'true');
   };
 
   return (

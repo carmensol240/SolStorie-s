@@ -34,6 +34,7 @@ import { useAuth } from "@/hooks/use-auth";
 import { useToast } from "@/hooks/use-toast";
 import MobileNavigation from "@/components/MobileNavigation";
 import AvatarPreviewDialog from "@/components/story/AvatarPreviewDialog";
+import { getUserData, setUserData } from "@/lib/user-storage";
 
 interface Child {
   id: string;
@@ -104,7 +105,7 @@ const ChildProfiles = () => {
           if (!error && data && data.length > 0) {
             setChildren(data);
             // Sync to localStorage for offline access
-            localStorage.setItem('savedChildren', JSON.stringify(data));
+            setUserData(user?.id, 'savedChildren', JSON.stringify(data));
           } else if (!error && data && data.length === 0) {
             // User has no children in DB, use localStorage if available
             if (localChildren.length > 0) {
@@ -130,7 +131,7 @@ const ChildProfiles = () => {
 
   const loadLocalChildren = (): Child[] => {
     try {
-      const localChildren = JSON.parse(localStorage.getItem('savedChildren') || '[]');
+      const localChildren = JSON.parse(getUserData(user?.id, 'savedChildren') || '[]');
       if (localChildren.length > 0) {
         // Convert localStorage format to Child format
         const converted: Child[] = localChildren.map((c: any, index: number) => ({
@@ -162,7 +163,7 @@ const ChildProfiles = () => {
 
         if (!error && data) {
           setChildren(data);
-          localStorage.setItem('savedChildren', JSON.stringify(data));
+          setUserData(user?.id, 'savedChildren', JSON.stringify(data));
         }
       } catch (error) {
         console.error("Error fetching children:", error);
@@ -262,7 +263,7 @@ const ChildProfiles = () => {
         // Save to localStorage for guests/dev mode
         console.log('Saving child to localStorage (guest/dev mode)');
         
-        const localChildren = JSON.parse(localStorage.getItem('savedChildren') || '[]');
+        const localChildren = JSON.parse(getUserData(user?.id, 'savedChildren') || '[]');
         const newChild = {
           id: `local-${Date.now()}`,
           name: newChildName.trim(),
@@ -274,7 +275,7 @@ const ChildProfiles = () => {
         };
         
         localChildren.push(newChild);
-        localStorage.setItem('savedChildren', JSON.stringify(localChildren));
+        setUserData(user?.id, 'savedChildren', JSON.stringify(localChildren));
         
         // Add to local state
         setChildren(prev => [...prev, newChild as Child]);
@@ -310,7 +311,7 @@ const ChildProfiles = () => {
   };
 
   const handleSelectChild = (childId: string) => {
-    localStorage.setItem("selected_child_id", childId);
+    setUserData(user?.id, 'selected_child_id', childId);
     navigate("/library");
   };
 
