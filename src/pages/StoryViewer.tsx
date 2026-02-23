@@ -189,8 +189,10 @@ const StoryViewer = () => {
           .order("page_number", { ascending: true });
 
         if (pagesData) {
-          const pagesWithIllustrations = pagesData.filter(p => p.illustration_url).length;
-          const progress = Math.round((pagesWithIllustrations / pagesData.length) * 100);
+          const pagesExpecting = pagesData.filter(p => p.illustration_prompt);
+          const pagesWithIllustrations = pagesExpecting.filter(p => p.illustration_url).length;
+          const total = pagesExpecting.length || 1;
+          const progress = Math.round((pagesWithIllustrations / total) * 100);
           setIllustrationProgress(progress);
           setStory(prev => prev ? { ...prev, pages: pagesData } : null);
         }
