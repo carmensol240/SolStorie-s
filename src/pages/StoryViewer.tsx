@@ -49,6 +49,7 @@ interface StoryPage {
   page_number: number;
   text: string;
   illustration_url: string | null;
+  illustration_prompt?: string | null;
 }
 
 interface Story {
