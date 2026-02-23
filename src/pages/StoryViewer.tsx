@@ -951,8 +951,8 @@ const StoryViewer = () => {
             ) : isEndPage ? (
               /* End Page - Vertical portrait */
               <div className="flex flex-col h-full bg-[#FFFBF5]">
-                {/* Last illustration - top */}
-                <div className="relative shrink-0 overflow-hidden" style={{ height: '50%' }}>
+                {/* Last illustration - top 50vh */}
+                <div className="relative w-full shrink-0 overflow-hidden" style={{ height: '50vh' }}>
                   {story.pages[story.pages.length - 1]?.illustration_url ? (
                     <img
                       src={getPublicIllustrationUrl(story.pages[story.pages.length - 1].illustration_url) || ''}
