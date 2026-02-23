@@ -163,7 +163,7 @@ const ChildProfiles = () => {
 
         if (!error && data) {
           setChildren(data);
-          localStorage.setItem('savedChildren', JSON.stringify(data));
+          setUserData(user?.id, 'savedChildren', JSON.stringify(data));
         }
       } catch (error) {
         console.error("Error fetching children:", error);
