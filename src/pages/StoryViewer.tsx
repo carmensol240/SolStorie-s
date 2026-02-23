@@ -790,7 +790,7 @@ const StoryViewer = () => {
   const currentFontSize = FONT_SIZES[fontSizeIndex];
   const showPageActions = !isCoverPage && !isEndPage && page !== null;
 
-  // Page navigation with 3D flip animation
+  // Page navigation with gentle fade transition
   const handlePageNav = (direction: 'next' | 'prev') => {
     if (isFlipping) return;
     
@@ -803,7 +803,7 @@ const StoryViewer = () => {
     setIsFlipping(true);
     setFlipPhase('out');
     
-    // After flip-out animation, change page and flip-in
+    // After fade-out, change page and fade-in
     setTimeout(() => {
       if (direction === 'next' && currentPage < maxPage) {
         const newPage = currentPage + 1;
@@ -817,12 +817,12 @@ const StoryViewer = () => {
       }
       setFlipPhase('in');
       
-      // After flip-in animation completes
+      // After fade-in animation completes
       setTimeout(() => {
         setFlipPhase('idle');
         setIsFlipping(false);
-      }, 500);
-    }, 500);
+      }, 350);
+    }, 300);
   };
 
   return (
@@ -862,10 +862,10 @@ const StoryViewer = () => {
           <div className={cn(
             "relative flex-1 min-h-0 flex flex-col rounded-xl overflow-hidden",
             "shadow-[0_8px_40px_rgba(0,0,0,0.12),0_0_0_1px_rgba(168,85,247,0.15)]",
-            flipPhase === 'out' && flipDirection === 'next' && "page-flip-out-next",
-            flipPhase === 'out' && flipDirection === 'prev' && "page-flip-out-prev",
-            flipPhase === 'in' && flipDirection === 'next' && "page-flip-in-next",
-            flipPhase === 'in' && flipDirection === 'prev' && "page-flip-in-prev",
+            "transition-all duration-300 ease-in-out",
+            flipPhase === 'out' && "opacity-0 scale-[0.98]",
+            flipPhase === 'in' && "opacity-100 scale-100",
+            flipPhase === 'idle' && "opacity-100 scale-100",
           )}>
             
             {isCoverPage ? (
