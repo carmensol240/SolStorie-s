@@ -146,20 +146,20 @@ const GeneratingStep = ({ formData, onComplete }: GeneratingStepProps) => {
   // Start polling when entering illustration phase
   useEffect(() => {
     if (phase === 'illustrations' && storyId && !pollingRef.current) {
-      // Start polling every 3 seconds
-      pollingRef.current = setInterval(() => pollIllustrations(storyId), 3000);
+      // Poll every 2.5 seconds for faster feedback
+      pollingRef.current = setInterval(() => pollIllustrations(storyId), 2500);
       // Also poll immediately
       pollIllustrations(storyId);
 
-      // 60-second timeout: proceed even if illustrations aren't done
+      // 45-second timeout: proceed even if not enough illustrations are done
       const timeout = setTimeout(() => {
         if (pollingRef.current) {
           clearInterval(pollingRef.current);
           pollingRef.current = null;
         }
-        console.log("[GeneratingStep] 60s timeout - proceeding to story");
+        console.log("[GeneratingStep] 45s timeout - proceeding to story");
         onComplete(storyId);
-      }, 60000);
+      }, 45000);
 
       return () => clearTimeout(timeout);
     }
