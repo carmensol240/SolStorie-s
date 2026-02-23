@@ -149,8 +149,11 @@ const EditPageDialog = ({
   };
 
   const handleSave = async () => {
+    // Re-validate credits from server before each save
+    await refetchEditCredits();
+    
     if (!canEdit()) {
-      toast({ title: 'אין מספיק קרדיטים', description: 'רכשו קרדיטים נוספים כדי להמשיך לערוך', variant: 'destructive' });
+      toast({ title: 'נגמרו הקרדיטים 😔', description: 'שדרגו את החבילה כדי להמשיך לערוך סיפורים', variant: 'destructive' });
       return;
     }
 
