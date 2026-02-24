@@ -184,60 +184,83 @@ const PublicStoryViewer = () => {
             {/* Story Pages */}
             {page && (
               <div className="open-book-spread h-full">
-                <div className="open-book-page-left bg-[#F5E6D3] flex items-center justify-center">
-                  {illustrationSrc ? (
-                    <img src={illustrationSrc} alt={`איור עמוד ${page.page_number}`} className="w-full h-full object-cover" />
-                  ) : (
-                    <div className="shimmer-loading w-full h-full flex items-center justify-center">
-                      <Loader2 className="w-10 h-10 animate-spin text-purple-400 opacity-60" />
+                {illustrationSrc ? (
+                  <>
+                    <div className="open-book-page-left bg-[#F5E6D3] flex items-center justify-center">
+                      <img src={illustrationSrc} alt={`איור עמוד ${page.page_number}`} className="w-full h-full object-cover" />
+                      <div className="page-curl-corner bottom-left" />
                     </div>
-                  )}
-                  <div className="page-curl-corner bottom-left" />
-                </div>
 
-                <div className="open-book-page-right relative px-6 py-5 md:px-10 md:py-6 bg-[#FFFBF5]">
-                  <div className="page-curl-corner bottom-right" />
-
-                  {/* Prev arrow (RTL - right edge) */}
-                  <button onClick={() => handlePageNav('prev')} disabled={currentPage <= 0}
-                    className={cn("absolute right-1.5 top-1/2 -translate-y-1/2 z-10",
-                      "w-7 h-7 rounded-full flex items-center justify-center",
-                      "bg-purple-100/60 hover:bg-purple-200 border border-purple-200/60",
-                      "text-purple-500 opacity-50 hover:opacity-100 transition-all",
-                      "disabled:opacity-20 disabled:cursor-not-allowed")}>
-                    <ChevronRight className="w-4 h-4" />
-                  </button>
-
-                  {/* Next arrow (RTL - left edge) */}
-                  <button onClick={() => handlePageNav('next')} disabled={currentPage >= story.pages.length - 1}
-                    className={cn("absolute left-1.5 top-1/2 -translate-y-1/2 z-10",
-                      "w-7 h-7 rounded-full flex items-center justify-center",
-                      "bg-purple-100/60 hover:bg-purple-200 border border-purple-200/60",
-                      "text-purple-500 opacity-50 hover:opacity-100 transition-all",
-                      "disabled:opacity-20 disabled:cursor-not-allowed")}>
-                    <ChevronLeft className="w-4 h-4" />
-                  </button>
-
-                  {/* Text */}
-                  <div className="flex-1 flex flex-col justify-center max-w-lg mx-auto w-full overflow-y-auto min-h-0 pt-2">
-                    <p className="text-xl md:text-2xl text-[#3D2914] text-right font-medium whitespace-pre-line" style={{ lineHeight: '1.9' }} dir="rtl">
-                      {page.text}
-                    </p>
-                  </div>
-
-                  {/* Bottom nav */}
-                  <div className="flex items-center justify-center gap-4 pt-2 mt-auto">
-                    <button onClick={() => handlePageNav('next')} disabled={currentPage >= story.pages.length - 1}
-                      className="w-7 h-7 rounded-full flex items-center justify-center bg-purple-100/60 hover:bg-purple-200 text-purple-500 disabled:opacity-20 transition-all">
-                      <ChevronLeft className="w-4 h-4" />
-                    </button>
-                    <span className="text-xs text-gray-400 font-light">{currentPage + 1} / {story.pages.length}</span>
+                    <div className="open-book-page-right relative px-6 py-5 md:px-10 md:py-6 bg-[#FFFBF5]">
+                      <div className="page-curl-corner bottom-right" />
+                      <button onClick={() => handlePageNav('prev')} disabled={currentPage <= 0}
+                        className={cn("absolute right-1.5 top-1/2 -translate-y-1/2 z-10",
+                          "w-7 h-7 rounded-full flex items-center justify-center",
+                          "bg-purple-100/60 hover:bg-purple-200 border border-purple-200/60",
+                          "text-purple-500 opacity-50 hover:opacity-100 transition-all",
+                          "disabled:opacity-20 disabled:cursor-not-allowed")}>
+                        <ChevronRight className="w-4 h-4" />
+                      </button>
+                      <button onClick={() => handlePageNav('next')} disabled={currentPage >= story.pages.length - 1}
+                        className={cn("absolute left-1.5 top-1/2 -translate-y-1/2 z-10",
+                          "w-7 h-7 rounded-full flex items-center justify-center",
+                          "bg-purple-100/60 hover:bg-purple-200 border border-purple-200/60",
+                          "text-purple-500 opacity-50 hover:opacity-100 transition-all",
+                          "disabled:opacity-20 disabled:cursor-not-allowed")}>
+                        <ChevronLeft className="w-4 h-4" />
+                      </button>
+                      <div className="flex-1 flex flex-col justify-center max-w-lg mx-auto w-full overflow-y-auto min-h-0 pt-2">
+                        <p className="text-xl md:text-2xl text-[#3D2914] text-right font-medium whitespace-pre-line" style={{ lineHeight: '1.9' }} dir="rtl">
+                          {page.text}
+                        </p>
+                      </div>
+                      <div className="flex items-center justify-center gap-4 pt-2 mt-auto">
+                        <button onClick={() => handlePageNav('next')} disabled={currentPage >= story.pages.length - 1}
+                          className="w-7 h-7 rounded-full flex items-center justify-center bg-purple-100/60 hover:bg-purple-200 text-purple-500 disabled:opacity-20 transition-all">
+                          <ChevronLeft className="w-4 h-4" />
+                        </button>
+                        <span className="text-xs text-gray-400 font-light">{currentPage + 1} / {story.pages.length}</span>
+                        <button onClick={() => handlePageNav('prev')} disabled={currentPage <= 0}
+                          className="w-7 h-7 rounded-full flex items-center justify-center bg-purple-100/60 hover:bg-purple-200 text-purple-500 disabled:opacity-20 transition-all">
+                          <ChevronRight className="w-4 h-4" />
+                        </button>
+                      </div>
+                    </div>
+                  </>
+                ) : (
+                  /* Text-only page — full width, centered text */
+                  <div className="w-full h-full relative bg-[#FDFBF7] flex flex-col">
+                    <div className="w-full h-0.5 shrink-0 bg-gradient-to-r from-purple-300/60 via-pink-300/60 to-orange-200/60" />
                     <button onClick={() => handlePageNav('prev')} disabled={currentPage <= 0}
-                      className="w-7 h-7 rounded-full flex items-center justify-center bg-purple-100/60 hover:bg-purple-200 text-purple-500 disabled:opacity-20 transition-all">
+                      className={cn("absolute right-1.5 top-1/2 -translate-y-1/2 z-10",
+                        "w-7 h-7 rounded-full flex items-center justify-center",
+                        "bg-purple-100/60 hover:bg-purple-200 border border-purple-200/60",
+                        "text-purple-500 opacity-50 hover:opacity-100 transition-all",
+                        "disabled:opacity-20 disabled:cursor-not-allowed")}>
                       <ChevronRight className="w-4 h-4" />
                     </button>
+                    <button onClick={() => handlePageNav('next')} disabled={currentPage >= story.pages.length - 1}
+                      className={cn("absolute left-1.5 top-1/2 -translate-y-1/2 z-10",
+                        "w-7 h-7 rounded-full flex items-center justify-center",
+                        "bg-purple-100/60 hover:bg-purple-200 border border-purple-200/60",
+                        "text-purple-500 opacity-50 hover:opacity-100 transition-all",
+                        "disabled:opacity-20 disabled:cursor-not-allowed")}>
+                      <ChevronLeft className="w-4 h-4" />
+                    </button>
+                    <div className="flex-1 min-h-0 overflow-y-auto px-8 py-8 md:px-12 md:py-10 flex flex-col">
+                      <div className="max-w-lg mx-auto w-full flex-1 flex items-center justify-center">
+                        <p className="text-xl md:text-2xl text-[#3D2914] text-right font-medium whitespace-pre-line" style={{ lineHeight: '1.9' }} dir="rtl">
+                          {page.text}
+                        </p>
+                      </div>
+                      <div className="flex flex-col items-center gap-1 pt-4 pb-1 shrink-0">
+                        <span className="text-[#D4A574]/50 text-sm select-none">✦</span>
+                        <span className="text-xs text-gray-400 font-light">{currentPage + 1} / {story.pages.length}</span>
+                      </div>
+                    </div>
+                    <div className="w-full h-0.5 shrink-0 bg-gradient-to-r from-orange-200/60 via-pink-300/60 to-purple-300/60" />
                   </div>
-                </div>
+                )}
               </div>
             )}
           </div>

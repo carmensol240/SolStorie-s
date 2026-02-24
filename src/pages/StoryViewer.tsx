@@ -962,9 +962,7 @@ const StoryViewer = () => {
                       loading="eager"
                     />
                   ) : (
-                    <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-purple-100 to-pink-100">
-                      <Sparkles className="w-16 h-16 text-purple-300" />
-                    </div>
+                    <div className="w-full h-full bg-gradient-to-br from-purple-50 to-pink-50" />
                   )}
                 </div>
                 
