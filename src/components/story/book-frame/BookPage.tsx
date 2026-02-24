@@ -37,7 +37,7 @@ export const BookPage: React.FC<BookPageProps> = ({
         {/* Page fold effect */}
         <div className="absolute top-0 left-0 w-8 h-8 bg-gradient-to-br from-black/5 to-transparent" />
         
-        {illustrationUrl ? (
+        {illustrationUrl && (
           <div className="relative w-full">
             <div className="relative w-full overflow-hidden shadow-xl" style={{ height: '50vh' }}>
               <SignedImage
@@ -46,15 +46,6 @@ export const BookPage: React.FC<BookPageProps> = ({
                 alt=""
                 className="w-full h-full object-cover"
               />
-            </div>
-          </div>
-        ) : (
-          <div className="relative w-full max-w-md mx-auto">
-            <div className="rounded-lg border-4 border-[#E8D5C4] aspect-[4/5] flex items-center justify-center bg-gradient-to-br from-[#F5E6D3] to-[#EAD5BE] animate-pulse overflow-hidden">
-              <div className="text-center text-[#A08060]">
-                <Palette className="w-14 h-14 mx-auto mb-3 opacity-30" />
-                <p className="text-sm font-medium opacity-50">סול מציירת...</p>
-              </div>
             </div>
           </div>
         )}
