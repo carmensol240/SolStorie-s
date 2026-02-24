@@ -183,7 +183,8 @@ export const usePdfExport = () => {
     }
 
     document.body.removeChild(container);
-    pdf.save(`סיפור-${story.child_name.replace(/\s+/g, '-')}.pdf`);
+    const ts = Date.now();
+    pdf.save(`סיפור-${story.child_name.replace(/\s+/g, '-')}-${story.id.slice(0, 8)}-${ts}.pdf`);
   };
 
   // ─── Landscape Book - 1:1 page-to-spread ───────────────────
