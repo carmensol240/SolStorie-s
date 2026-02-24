@@ -187,11 +187,7 @@ const PublicStoryViewer = () => {
                 <div className="open-book-page-left bg-[#F5E6D3] flex items-center justify-center">
                   {illustrationSrc ? (
                     <img src={illustrationSrc} alt={`איור עמוד ${page.page_number}`} className="w-full h-full object-cover" />
-                  ) : (
-                    <div className="shimmer-loading w-full h-full flex items-center justify-center">
-                      <Loader2 className="w-10 h-10 animate-spin text-purple-400 opacity-60" />
-                    </div>
-                  )}
+                  ) : null}
                   <div className="page-curl-corner bottom-left" />
                 </div>
 

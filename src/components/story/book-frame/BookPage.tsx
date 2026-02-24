@@ -1,6 +1,6 @@
 import React from "react";
 import { cn } from "@/lib/utils";
-import { Palette } from "lucide-react";
+
 import { SignedImage } from "@/components/ui/signed-image";
 
 interface BookPageProps {
