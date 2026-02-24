@@ -300,3 +300,4 @@ export const usePdfExport = () => {
   };
 
   return { exportToPdf, generatePdfFile, isExporting };
+};
