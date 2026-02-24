@@ -112,7 +112,7 @@ const StoryViewer = () => {
   const { trackStoryStarted, trackStoryCompleted, trackPageViewed, trackFeatureUsed } = useAnalytics();
   const { isOnline, cacheStory, getCachedStory } = useOfflineStorage();
   const { settings } = useSettings();
-  const { exportToPdf, isExporting } = usePdfExport();
+  const { exportToPdf, generatePdfFile, isExporting } = usePdfExport();
   const { addNikud, isLoading: isAddingNikud } = useNikud();
   // story-illustrations bucket is public - using direct URLs via getPublicIllustrationUrl
   
