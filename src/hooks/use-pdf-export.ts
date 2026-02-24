@@ -260,7 +260,8 @@ export const usePdfExport = () => {
     }
 
     document.body.removeChild(container);
-    pdf.save(`ספר-${story.child_name.replace(/\s+/g, '-')}.pdf`);
+    const ts = Date.now();
+    pdf.save(`ספר-${story.child_name.replace(/\s+/g, '-')}-${story.id.slice(0, 8)}-${ts}.pdf`);
   };
 
   const exportToPdf = async (story: Story, layout: PdfLayout = 'portrait') => {
