@@ -1,11 +1,10 @@
 import React from "react";
 import { 
   ArrowRight, 
-  Share2, 
+  Share, 
   FileDown, 
   Menu,
   Type,
-  Book,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
