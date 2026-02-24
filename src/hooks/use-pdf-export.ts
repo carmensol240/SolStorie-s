@@ -183,8 +183,7 @@ export const usePdfExport = () => {
     }
 
     document.body.removeChild(container);
-    const ts = Date.now();
-    pdf.save(`סיפור-${story.child_name.replace(/\s+/g, '-')}-${story.id.slice(0, 8)}-${ts}.pdf`);
+    return pdf;
   };
 
   // ─── Landscape Book - 1:1 page-to-spread ───────────────────
@@ -260,8 +259,20 @@ export const usePdfExport = () => {
     }
 
     document.body.removeChild(container);
-    const ts = Date.now();
-    pdf.save(`ספר-${story.child_name.replace(/\s+/g, '-')}-${story.id.slice(0, 8)}-${ts}.pdf`);
+    return pdf;
+  };
+
+  const makePdfFileName = (story: Story, layout: PdfLayout) => {
+    const safeName = story.child_name.replace(/[^\u0590-\u05FFa-zA-Z0-9]/g, '_').replace(/_+/g, '_');
+    const prefix = layout === 'landscape-book' ? 'SoulStory_Book' : 'SoulStory';
+    return `${prefix}_${safeName}_${story.id.slice(0, 8)}.pdf`;
+  };
+
+  const buildPdf = async (story: Story, layout: PdfLayout = 'portrait') => {
+    if (layout === 'landscape-book') {
+      return await exportLandscapeBook(story);
+    }
+    return await exportPortrait(story);
   };
 
   const exportToPdf = async (story: Story, layout: PdfLayout = 'portrait') => {
@@ -270,11 +281,8 @@ export const usePdfExport = () => {
     toast({ title: 'מכין את קובץ ה-PDF...' });
 
     try {
-      if (layout === 'landscape-book') {
-        await exportLandscapeBook(story);
-      } else {
-        await exportPortrait(story);
-      }
+      const pdf = await buildPdf(story, layout);
+      pdf.save(makePdfFileName(story, layout));
       toast({ title: 'ה-PDF הורד בהצלחה!' });
     } catch (error) {
       console.error('Error exporting PDF:', error);
@@ -284,5 +292,12 @@ export const usePdfExport = () => {
     }
   };
 
-  return { exportToPdf, isExporting };
+  const generatePdfFile = async (story: Story, layout: PdfLayout = 'portrait'): Promise<File> => {
+    const pdf = await buildPdf(story, layout);
+    const blob = pdf.output('blob');
+    const fileName = makePdfFileName(story, layout);
+    return new File([blob], fileName, { type: 'application/pdf' });
+  };
+
+  return { exportToPdf, generatePdfFile, isExporting };
 };

@@ -112,7 +112,7 @@ const StoryViewer = () => {
   const { trackStoryStarted, trackStoryCompleted, trackPageViewed, trackFeatureUsed } = useAnalytics();
   const { isOnline, cacheStory, getCachedStory } = useOfflineStorage();
   const { settings } = useSettings();
-  const { exportToPdf, isExporting } = usePdfExport();
+  const { exportToPdf, generatePdfFile, isExporting } = usePdfExport();
   const { addNikud, isLoading: isAddingNikud } = useNikud();
   // story-illustrations bucket is public - using direct URLs via getPublicIllustrationUrl
   
@@ -439,41 +439,32 @@ const StoryViewer = () => {
   // Click-based area navigation disabled - using arrow buttons only
 
   const handleShare = async () => {
-    if (!story) return;
+    if (!story || isExporting) return;
 
     try {
-      const slug = (story as any).slug || story.id;
-      // Use /s/ path for sharing — this goes through the OG proxy for WhatsApp/social previews
-      const canonicalBase = "https://soulstory.co.il";
-      const publicUrl = `${canonicalBase}/s/${slug}`;
-      const title = `✨ ${translateTopic(story.topic, story.language)} ✨`;
-      const text = `📚 הסיפור של ${story.child_name} – נוצר באהבה באפליקציית SolStorie's™`;
+      toast({ title: 'מכין PDF לשיתוף...' });
+      const pdfFile = await generatePdfFile(story, 'portrait');
 
-      const ua = navigator.userAgent.toLowerCase();
-      const isWhatsAppBrowser = ua.includes('whatsapp');
-      const isMobileDevice = /android|iphone|ipad/.test(ua);
-
-      if (navigator.share && !isWhatsAppBrowser) {
-        await navigator.share({ title, text, url: publicUrl });
-      } else if (isMobileDevice || isWhatsAppBrowser) {
-        const waText = encodeURIComponent(`${title}\n${text}\n${publicUrl}`);
-        window.open(`https://wa.me/?text=${waText}`, '_blank');
+      if (navigator.share && navigator.canShare?.({ files: [pdfFile] })) {
+        await navigator.share({
+          title: `✨ הסיפור של ${story.child_name} ✨`,
+          text: `📚 הסיפור של ${story.child_name} – נוצר באהבה באפליקציית SolStorie's™`,
+          files: [pdfFile],
+        });
       } else {
-        await navigator.clipboard.writeText(`${title}\n${text}\n${publicUrl}`);
-        toast({ title: 'הקישור הועתק! 📋', description: 'כעת ניתן להדביק אותו בוואטסאפ או בכל מקום אחר' });
+        // Fallback: download the PDF directly
+        const url = URL.createObjectURL(pdfFile);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = pdfFile.name;
+        a.click();
+        URL.revokeObjectURL(url);
+        toast({ title: 'ה-PDF הורד! 📋', description: 'כעת ניתן לשתף אותו בוואטסאפ או בכל מקום אחר' });
       }
     } catch (error: any) {
       if (error?.name === 'AbortError') return;
-      console.error('Error sharing story:', error);
-      try {
-        const slug = (story as any).slug || story.id;
-        const canonicalBase = "https://soulstory.co.il";
-        const publicUrl = `${canonicalBase}/s/${slug}`;
-        await navigator.clipboard.writeText(publicUrl);
-        toast({ title: 'הקישור הועתק! 📋', description: 'כעת ניתן להדביק אותו בוואטסאפ' });
-      } catch {
-        toast({ title: 'שגיאה בשיתוף', description: 'נסו שוב מאוחר יותר', variant: 'destructive' });
-      }
+      console.error('Error sharing story PDF:', error);
+      toast({ title: 'שגיאה בשיתוף', description: 'נסו שוב מאוחר יותר', variant: 'destructive' });
     }
   };
 

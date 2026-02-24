@@ -1,11 +1,10 @@
 import React from "react";
 import { 
   ArrowRight, 
-  Share2, 
+  Share, 
   FileDown, 
   Menu,
   Type,
-  Book,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
@@ -115,7 +114,7 @@ export const BookHeader: React.FC<BookHeaderProps> = ({
             <TooltipContent side="bottom">הורד או הדפס PDF</TooltipContent>
           </Tooltip>
 
-          {/* Share */}
+          {/* Share as PDF */}
           <Tooltip>
             <TooltipTrigger asChild>
               <Button
@@ -123,12 +122,12 @@ export const BookHeader: React.FC<BookHeaderProps> = ({
                 size="sm"
                 onClick={onShare}
                 className="text-[#5D3A1A] hover:bg-[#D4A574]/20 min-h-[44px] min-w-[44px] p-2"
-                aria-label="שתף סיפור"
+                aria-label="שתף סיפור כ-PDF"
               >
-                <Share2 className="w-5 h-5" />
+                <Share className="w-5 h-5" />
               </Button>
             </TooltipTrigger>
-            <TooltipContent side="bottom">שתף סיפור</TooltipContent>
+            <TooltipContent side="bottom">שתף סיפור כ-PDF</TooltipContent>
           </Tooltip>
 
           {/* Menu */}
