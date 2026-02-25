@@ -3,6 +3,7 @@ import { jsPDF } from 'jspdf';
 import html2canvas from 'html2canvas';
 import { useToast } from '@/hooks/use-toast';
 import { useSignedUrls } from '@/hooks/use-signed-urls';
+import { translateTopic } from '@/lib/topic-translations';
 
 // Helper function to escape HTML entities and prevent XSS
 const escapeHtml = (unsafe: string): string => {
@@ -97,6 +98,7 @@ export const usePdfExport = () => {
   };
 
   const renderCoverPage = (childName: string, topic: string): HTMLDivElement => {
+    const hebrewTopic = translateTopic(topic);
     const coverPage = document.createElement('div');
     coverPage.style.cssText = `
       width: 100%; height: 100%;
@@ -110,7 +112,7 @@ export const usePdfExport = () => {
         <div style="color: #8B4513; font-size: 14px; margin-bottom: 24px;">✦ סיפור מיוחד ✦</div>
         <h1 style="color: #8B4513; font-size: 32px; font-weight: bold; margin: 0 0 16px 0; line-height: 1.4;">הסיפור של</h1>
         <h2 style="color: #9333ea; font-size: 42px; font-weight: bold; margin: 0 0 24px 0;">${escapeHtml(childName)}</h2>
-        <p style="color: #6B4423; font-size: 18px; margin: 0; line-height: 1.6;">${escapeHtml(topic)}</p>
+        <p style="color: #6B4423; font-size: 18px; margin: 0; line-height: 1.6;">${escapeHtml(hebrewTopic)}</p>
       </div>
     `;
     return coverPage;
@@ -211,7 +213,7 @@ export const usePdfExport = () => {
         <div style="color:#8B4513;font-size:16px;margin-bottom:28px;letter-spacing:4px;">✦ סיפור מיוחד ✦</div>
         <h1 style="color:#8B4513;font-size:40px;font-weight:bold;margin:0 0 16px 0;line-height:1.4;">הסיפור של</h1>
         <h2 style="color:#9333ea;font-size:56px;font-weight:bold;margin:0 0 28px 0;">${escapeHtml(story.child_name)}</h2>
-        <p style="color:#6B4423;font-size:24px;margin:0;line-height:1.6;">${escapeHtml(story.topic)}</p>
+        <p style="color:#6B4423;font-size:24px;margin:0;line-height:1.6;">${escapeHtml(translateTopic(story.topic))}</p>
       </div>`;
     container.innerHTML = '';
     container.appendChild(coverPage);
@@ -240,7 +242,16 @@ export const usePdfExport = () => {
       spreadPage.innerHTML = `
         <div style="flex:1;display:flex;align-items:center;justify-content:center;
           background:linear-gradient(135deg,#FFF8E7 0%,#F5E6D3 100%);padding:${MARGIN_PX}px;box-sizing:border-box;">
-          ${illustrationHtml || '<div style="color:#D4A574;font-size:48px;">📖</div>'}
+          ${illustrationHtml || `
+            <div style="width:100%;height:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;
+              background:linear-gradient(135deg, #FFE4E1 0%, #FFDAB9 15%, #FFFACD 30%, #E0FFE0 45%, #E0F0FF 60%, #E8D8FF 75%, #FFE4F0 90%, #FFE4E1 100%);
+              border-radius:16px;position:relative;">
+              <div style="position:absolute;bottom:24px;left:50%;transform:translateX(-50%);
+                font-size:14px;color:#8B7355;font-family:Heebo,Assistant,sans-serif;direction:ltr;">
+                SolStorie's™
+              </div>
+            </div>
+          `}
         </div>
         <div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;
           background:#FFF8E7;padding:${MARGIN_PX}px;box-sizing:border-box;position:relative;">
