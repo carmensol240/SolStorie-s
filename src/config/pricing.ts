@@ -48,7 +48,9 @@ export const TOOLKIT_SUBSCRIPTION = {
 export const CURRENCY = "ILS";
 export const CURRENCY_SYMBOL = "₪";
 
-export const PAYPAL_CLIENT_ID = "AffM7iJE3sqAisjBHuiwL0YYi_W5YT9VDKbMB-wM5XBT7HdwoNjyYtfzUWY3dcK6MVkAr3GSjoEvuVDH";
+// NOTE: Currently using SANDBOX Client ID for testing. Switch back to live before production!
+// Live Client ID: AffM7iJE3sqAisjBHuiwL0YYi_W5YT9VDKbMB-wM5XBT7HdwoNjyYtfzUWY3dcK6MVkAr3GSjoEvuVDH
+export const PAYPAL_CLIENT_ID = "Ac9EHf8z3a7W8Ewy5MGdUzc9lc7ThzaflNMNjjLXNqBmReU2FZfl98ZCyJ9f_LpSXJRUDJdHMdFelyO_";
 
 export type PricingPackage = {
   id: string;
