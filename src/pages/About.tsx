@@ -86,10 +86,10 @@ const About = () => {
       <div className="flex-1 flex flex-col items-center px-6 pt-8 pb-16 max-w-lg mx-auto text-center relative z-10">
         
         {/* Title */}
-        <h1 className="text-2xl font-black leading-snug mb-2" style={{ color: '#FFF8E7', textShadow: '0 2px 8px rgba(0,0,0,0.5), 0 0 20px rgba(255,215,150,0.15)' }}>
+        <h1 className="text-2xl font-black leading-snug mb-2 text-center" style={{ color: '#FFF8E7', textShadow: '0 2px 8px rgba(0,0,0,0.5), 0 0 20px rgba(255,215,150,0.15)' }}>
           ברוכים הבאים לממלכת הסיפורים
           <br />
-          של <span dir="ltr" className="inline-block bg-gradient-to-r from-purple-300 via-pink-300 to-orange-300 bg-clip-text text-transparent" style={{ textShadow: 'none' }}>SolStorie's™</span>
+          <span className="inline-block">של <span dir="ltr" className="inline-block bg-gradient-to-r from-purple-300 via-pink-300 to-orange-300 bg-clip-text text-transparent" style={{ textShadow: 'none' }}>SolStorie's™</span></span>
         </h1>
         <p className="text-lg font-black mb-5" style={{ color: '#FFF0D0', textShadow: '0 2px 6px rgba(0,0,0,0.5)' }}>
           המקום שבו הילד שלכם הופך לגיבור הסיפור
