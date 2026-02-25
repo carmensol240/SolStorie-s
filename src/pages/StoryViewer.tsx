@@ -1063,9 +1063,10 @@ const StoryViewer = () => {
                     </div>
                   </>
                 ) : (
-                  /* Text-only page — premium storybook feel */
-                  <div className="flex-1 flex flex-col min-h-0 bg-[#FDFBF7]">
-                    <div className="w-full h-0.5 shrink-0 bg-gradient-to-r from-purple-300/60 via-pink-300/60 to-orange-200/60" />
+                  /* Text-only page — rainbow background with SolStorie's™ branding */
+                  <div className="flex-1 flex flex-col min-h-0" style={{
+                    background: 'linear-gradient(135deg, #FFE4E1 0%, #FFDAB9 15%, #FFFACD 30%, #E0FFE0 45%, #E0F0FF 60%, #E8D8FF 75%, #FFE4F0 90%, #FFE4E1 100%)'
+                  }}>
                     <div className="flex-1 min-h-0 overflow-y-auto px-8 py-8 md:px-12 md:py-10 flex flex-col">
                       <div className="max-w-lg mx-auto w-full flex-1 flex items-center justify-center">
                         <p className={cn(
@@ -1075,12 +1076,11 @@ const StoryViewer = () => {
                           {showNikud ? page.text : page.text.replace(/[\u0591-\u05C7]/g, '')}
                         </p>
                       </div>
-                      <div className="flex flex-col items-center gap-1 pt-4 pb-1 shrink-0">
-                        <span className="text-[#D4A574]/50 text-sm select-none">✦</span>
+                      <div className="flex flex-col items-center gap-2 pt-4 pb-1 shrink-0">
                         <span className="text-xs text-[#B8A08C] font-light tracking-wide">{currentPage + 1} / {story.pages.length}</span>
+                        <span dir="ltr" className="text-xs text-[#8B7355]/60 font-medium">SolStorie's™</span>
                       </div>
                     </div>
-                    <div className="w-full h-0.5 shrink-0 bg-gradient-to-r from-orange-200/60 via-pink-300/60 to-purple-300/60" />
                   </div>
                 )}
               </div>
