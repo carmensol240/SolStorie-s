@@ -12,6 +12,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 
 import { useAuth } from "@/hooks/use-auth";
 import { useToast } from "@/hooks/use-toast";
+import solLogo from "@/assets/solstories-logo.png";
 import { useAnalytics } from "@/hooks/use-analytics";
 import { supabase } from "@/integrations/supabase/client";
 import { z } from "zod";
@@ -1053,10 +1054,10 @@ const Auth = () => {
       </div>
 
       <div className="relative z-10 flex-1 flex flex-col items-center justify-center p-4 pb-14 overflow-y-auto">
-        {/* Rainbow Logo - above the login box */}
-        <h1 dir="ltr" className="text-3xl sm:text-4xl font-black text-center logo-3d-bubble mb-2 animate-fade-in px-4">
-          <span className="logo-rainbow">SolStorie's™</span>
-        </h1>
+        {/* Logo */}
+        <div className="flex justify-center mb-2 animate-fade-in">
+          <img src={solLogo} alt="SolStorie's™" className="w-32 h-32 sm:w-36 sm:h-36 object-contain drop-shadow-lg" />
+        </div>
 
         {/* Login container - moved closer to logo */}
         <div className="relative w-full max-w-md overflow-visible pt-2 sm:pt-4">

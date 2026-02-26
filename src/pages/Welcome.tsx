@@ -2,7 +2,7 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Loader2 } from "lucide-react";
 import heroBackground from "@/assets/hero-soli-tree.png";
-import solLogo from "@/assets/sol-magic-book-cover.png";
+import solLogo from "@/assets/solstories-logo.png";
 import MobileNavigation from "@/components/MobileNavigation";
 import { useAuth } from "@/hooks/use-auth";
 import { supabase } from "@/integrations/supabase/client";
@@ -61,15 +61,12 @@ const Welcome = () => {
       />
 
       {/* Logo */}
-      <div className="relative z-10 flex flex-col items-center pt-[max(env(safe-area-inset-top,20px),36px)]">
+      <div className="relative z-10 flex justify-center pt-[max(env(safe-area-inset-top,20px),36px)]">
         <img 
           src={solLogo} 
           alt="SolStorie's™" 
-          className="w-24 h-24 sm:w-28 sm:h-28 object-contain drop-shadow-lg"
+          className="w-36 h-36 sm:w-44 sm:h-44 object-contain drop-shadow-lg"
         />
-        <h1 className="text-2xl sm:text-3xl font-black tracking-tight logo-3d-bubble" dir="ltr">
-          <span className="logo-rainbow">SolStorie's™</span>
-        </h1>
       </div>
 
       {/* Content */}
