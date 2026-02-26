@@ -59,6 +59,7 @@ interface Story {
   child_gender?: string;
   topic: string;
   language?: string;
+  age_range?: string;
   pages: StoryPage[];
   generation_status?: string;
 }
@@ -68,6 +69,18 @@ const FONT_SIZES = [
   { label: 'בינוני', size: 'text-2xl md:text-3xl' },
   { label: 'גדול', size: 'text-3xl md:text-4xl' },
 ];
+
+// Rainbow gradient used for dedication, closing, and text-only pages
+const RAINBOW_BG = 'linear-gradient(135deg, #FFE4E1 0%, #FFDAB9 15%, #FFFACD 30%, #E0FFE0 45%, #E0F0FF 60%, #E8D8FF 75%, #FFE4F0 90%, #FFE4E1 100%)';
+
+/** Get age-based default font size index (0=small, 1=medium, 2=large) */
+const getAgeFontIndex = (ageRange?: string): number => {
+  if (!ageRange) return 1;
+  const max = parseInt(ageRange.split('-').pop() || '6', 10);
+  if (max >= 7) return 2; // 7-8: large font for early readers
+  if (max >= 3) return 1; // 3-6: medium
+  return 1; // 0-2: medium (parent reads)
+};
 
 const StoryViewer = () => {
   const { storyId } = useParams();
@@ -124,6 +137,13 @@ const StoryViewer = () => {
 
   // No orientation lock needed - vertical portrait layout
 
+  // Set age-appropriate font size on story load
+  useEffect(() => {
+    if (story?.age_range) {
+      setFontSizeIndex(getAgeFontIndex(story.age_range));
+    }
+  }, [story?.age_range]);
+
   // Cleanup polling on unmount
   useEffect(() => {
     return () => {
@@ -147,12 +167,13 @@ const StoryViewer = () => {
   }, [story, trackStoryStarted]);
 
   useEffect(() => {
-    if (story && currentPage >= 0) {
+    if (story && currentPage >= 1) {
       trackPageViewed(story.id, currentPage);
       
       // Pre-fetch next image for smooth transitions using public URLs
-      if (currentPage < story.pages.length - 1) {
-        const nextPage = story.pages[currentPage + 1];
+      const nextStoryIdx = currentPage; // currentPage is 1-indexed for story pages
+      if (nextStoryIdx < story.pages.length) {
+        const nextPage = story.pages[nextStoryIdx];
         if (nextPage?.illustration_url) {
           const publicUrl = getPublicIllustrationUrl(nextPage.illustration_url);
           if (publicUrl) {
@@ -349,6 +370,7 @@ const StoryViewer = () => {
         child_gender: (storyData as any).child_gender || 'male',
         topic: storyData.topic,
         language: (storyData as any).language || 'he',
+        age_range: (storyData as any).age_range || '3-6',
         pages: pagesData || [],
         generation_status: status,
       };
@@ -782,19 +804,28 @@ const StoryViewer = () => {
     );
   }
 
+  // Virtual page indexing:
+  // -1 = cover, 0 = dedication, 1..n = story pages (story.pages[currentPage-1]), n+1 = closing rainbow, n+2 = end/feedback
+  const totalStoryPages = story.pages.length;
   const isCoverPage = currentPage === -1;
-  const isEndPage = currentPage >= story.pages.length;
+  const isDedicationPage = currentPage === 0;
+  const isClosingPage = currentPage === totalStoryPages + 1;
+  const isEndPage = currentPage >= totalStoryPages + 2;
+  const isContentPage = currentPage >= 1 && currentPage <= totalStoryPages;
   
-  // 1:1 layout: each page displayed individually (no spreads/pairing)
-  const page = (!isCoverPage && !isEndPage && currentPage >= 0) ? story.pages[currentPage] : null;
+  const page = isContentPage ? story.pages[currentPage - 1] : null;
   const currentFontSize = FONT_SIZES[fontSizeIndex];
-  const showPageActions = !isCoverPage && !isEndPage && page !== null;
+  const showPageActions = isContentPage && page !== null;
+
+  // Determine layout variant for content pages (repeating pattern of 3)
+  // 0 = text+illustration (illustration right), 1 = text-only, 2 = illustration+text (illustration left)
+  const contentPageOffset = isContentPage ? (currentPage - 1) % 3 : -1;
 
   // Page navigation with gentle fade transition
   const handlePageNav = (direction: 'next' | 'prev') => {
     if (isFlipping) return;
     
-    const maxPage = story.pages.length; // end page index
+    const maxPage = totalStoryPages + 2; // end page index
     
     if (direction === 'next' && currentPage >= maxPage) return;
     if (direction === 'prev' && currentPage <= -1) return;
@@ -901,7 +932,7 @@ const StoryViewer = () => {
                   <div className="page-curl-corner bottom-right" />
                 </div>
                 
-                {/* Title & summary area - bottom 70% with scroll */}
+                {/* Title & summary area */}
                 <div className="flex-1 min-h-0 paper-texture flex flex-col items-center text-center p-4 md:p-6 overflow-y-auto">
                   <div className="space-y-2 flex-shrink-0">
                     <h1 className="text-xl md:text-3xl font-black text-[#3D2914] leading-tight" style={{ fontFamily: "'Heebo', 'Comic Sans MS', cursive, sans-serif" }}>
@@ -921,13 +952,6 @@ const StoryViewer = () => {
                     <p className="text-sm md:text-base text-[#6B4423] max-w-sm mx-auto font-medium leading-relaxed">
                       {translateTopic(story.topic, story.language)}
                     </p>
-                    
-                    {/* First page text preview */}
-                    {story.pages[0]?.text && (
-                      <p className="text-xs md:text-sm text-[#8B7355] max-w-sm mx-auto leading-relaxed mt-1" dir="rtl">
-                        {story.pages[0].text}
-                      </p>
-                    )}
                   </div>
                   
                   <Button 
@@ -940,28 +964,56 @@ const StoryViewer = () => {
                   </Button>
                 </div>
               </div>
-            ) : isEndPage ? (
-              /* End Page - Vertical portrait */
-              <div className="flex flex-col h-full bg-[#FFFBF5]">
-                {/* Last illustration - top 50vh */}
-                <div className="relative w-full shrink-0 overflow-hidden" style={{ height: '50vh' }}>
-                  {story.pages[story.pages.length - 1]?.illustration_url ? (
-                    <img
-                      src={getPublicIllustrationUrl(story.pages[story.pages.length - 1].illustration_url) || ''}
-                      alt={`סיום הסיפור של ${story.child_name}`}
-                      className="w-full h-full object-cover"
-                      loading="eager"
-                    />
-                  ) : (
-                    <div className="w-full h-full bg-gradient-to-br from-purple-50 to-pink-50" />
-                  )}
+
+            ) : isDedicationPage ? (
+              /* Dedication Page — Rainbow background with personalized dedication */
+              <div className="relative flex-1 flex flex-col items-center justify-center text-center h-full px-8 py-12" style={{ background: RAINBOW_BG }}>
+                <div className="space-y-6 max-w-md mx-auto">
+                  <span className="text-5xl">🦄</span>
+                  <div className="space-y-3">
+                    <p className="text-lg md:text-xl text-[#6B4423] font-medium" dir="rtl">
+                      הספר מוקדש באהבה ל-
+                    </p>
+                    <p className="text-3xl md:text-4xl font-black bg-gradient-to-r from-purple-600 via-pink-500 to-orange-400 bg-clip-text text-transparent" dir="rtl">
+                      {story.child_name}
+                    </p>
+                    <div className="flex items-center justify-center gap-3 pt-2">
+                      <div className="w-8 h-0.5 bg-gradient-to-r from-transparent to-pink-400 rounded-full" />
+                      <span className="text-base">💛</span>
+                      <div className="w-8 h-0.5 bg-gradient-to-l from-transparent to-pink-400 rounded-full" />
+                    </div>
+                  </div>
                 </div>
-                
-                {/* End content - bottom */}
-                <div className="flex-1 paper-texture overflow-y-auto p-5 md:p-8 text-center flex flex-col items-center justify-start gap-3">
+                <div className="absolute bottom-6 left-0 right-0 flex flex-col items-center gap-1">
+                  <span dir="ltr" className="text-sm text-[#8B7355]/60 font-medium logo-3d-bubble">
+                    <span className="logo-rainbow">SolStorie's™</span>
+                  </span>
+                </div>
+              </div>
+
+            ) : isClosingPage ? (
+              /* Closing Rainbow Page */
+              <div className="relative flex-1 flex flex-col items-center justify-center text-center h-full px-8 py-12" style={{ background: RAINBOW_BG }}>
+                <div className="space-y-4 max-w-md mx-auto">
+                  <p className="text-3xl md:text-4xl font-bold text-[#3D2914]">✦ סוף ✦</p>
+                  <p className="text-lg text-[#6B4423] font-medium" dir="rtl">
+                    תודה שקראתם את הסיפור של {story.child_name}
+                  </p>
+                  <span className="text-4xl block">🌈</span>
+                </div>
+                <div className="absolute bottom-6 left-0 right-0 flex flex-col items-center gap-1">
+                  <span dir="ltr" className="text-sm text-[#8B7355]/60 font-medium logo-3d-bubble">
+                    <span className="logo-rainbow">SolStorie's™</span>
+                  </span>
+                </div>
+              </div>
+
+            ) : isEndPage ? (
+              /* End Page - Feedback & actions */
+              <div className="flex flex-col h-full bg-[#FFFBF5]">
+                <div className="flex-1 paper-texture overflow-y-auto p-5 md:p-8 text-center flex flex-col items-center justify-center gap-3">
                   <div className="space-y-2">
-                    <p className="text-2xl md:text-3xl font-bold text-purple-800">✦ סוף ✦</p>
-                    <p className="text-lg text-purple-600">תודה שקראתם!</p>
+                    <p className="text-2xl md:text-3xl font-bold text-purple-800">✨ נהננו? ✨</p>
                     <p className="text-sm text-purple-500">הסיפור של {story.child_name}</p>
                   </div>
 
@@ -1007,48 +1059,74 @@ const StoryViewer = () => {
                   )}
                 </div>
               </div>
+
             ) : page ? (
-              /* Story Pages - Vertical: illustration top (40%), text bottom (60%) */
-              <div className="flex flex-col h-full">
+              /* Story Content Pages - Alternating layout */
+              <div className={cn("h-full", page.illustration_url ? "flex flex-col md:flex-row" : "flex flex-col")}>
                 {page.illustration_url ? (
-                  <>
-                    {/* Illustration - top 50vh, full width, landscape cover */}
-                    <div className="relative w-full shrink-0 overflow-hidden bg-[#F5E6D3]" style={{ height: '50vh' }}>
-                      <img
-                        src={getPublicIllustrationUrl(page.illustration_url) || ''}
-                        alt={`איור עמוד ${currentPage + 1}`}
-                        className="w-full h-full object-cover"
-                        loading="eager"
-                      />
-                    </div>
-                    
-                    {/* Text - bottom 60%, paper texture */}
-                    <div className="flex-1 min-h-0 overflow-y-auto paper-texture px-6 py-4 md:px-10 md:py-6">
-                      <div className="max-w-lg mx-auto w-full">
-                        <p className={cn(
-                          "text-[#3D2914] text-right font-medium transition-all whitespace-pre-line",
-                          currentFontSize.size
-                        )} style={{ lineHeight: '2.2' }} dir="rtl">
-                          {showNikud ? page.text : page.text.replace(/[\u0591-\u05C7]/g, '')}
-                        </p>
+                  contentPageOffset === 2 ? (
+                    /* Pattern C: Illustration on left side, text on right */
+                    <>
+                      <div className="md:order-1 relative w-full md:w-1/2 shrink-0 overflow-hidden bg-[#F5E6D3]" style={{ height: isMobile ? '40vh' : 'auto' }}>
+                        <img
+                          src={getPublicIllustrationUrl(page.illustration_url) || ''}
+                          alt={`איור עמוד ${currentPage}`}
+                          className="w-full h-full object-cover"
+                          loading="eager"
+                        />
                       </div>
-                      <div className="flex items-center justify-center pt-3 pb-1">
-                        <span className="text-xs text-[#B8A08C] font-light">{currentPage + 1} / {story.pages.length}</span>
+                      <div className="md:order-2 flex-1 min-h-0 overflow-y-auto paper-texture px-6 py-4 md:px-8 md:py-6">
+                        <div className="max-w-lg mx-auto w-full">
+                          <p className={cn(
+                            "text-[#3D2914] text-right font-medium transition-all whitespace-pre-line",
+                            currentFontSize.size
+                          )} style={{ lineHeight: '2.2' }} dir="rtl">
+                            {showNikud ? page.text : page.text.replace(/[\u0591-\u05C7]/g, '')}
+                          </p>
+                        </div>
+                        <div className="flex items-center justify-center pt-3 pb-1">
+                          <span className="text-xs text-[#B8A08C] font-light">{currentPage} / {totalStoryPages}</span>
+                        </div>
                       </div>
-                    </div>
-                  </>
+                    </>
+                  ) : (
+                    /* Pattern A (default): Text on right, illustration on left */
+                    <>
+                      <div className="md:order-2 relative w-full md:w-1/2 shrink-0 overflow-hidden bg-[#F5E6D3]" style={{ height: isMobile ? '40vh' : 'auto' }}>
+                        <img
+                          src={getPublicIllustrationUrl(page.illustration_url) || ''}
+                          alt={`איור עמוד ${currentPage}`}
+                          className="w-full h-full object-cover"
+                          loading="eager"
+                        />
+                      </div>
+                      <div className="md:order-1 flex-1 min-h-0 overflow-y-auto paper-texture px-6 py-4 md:px-8 md:py-6">
+                        <div className="max-w-lg mx-auto w-full">
+                          <p className={cn(
+                            "text-[#3D2914] text-right font-medium transition-all whitespace-pre-line",
+                            currentFontSize.size
+                          )} style={{ lineHeight: '2.2' }} dir="rtl">
+                            {showNikud ? page.text : page.text.replace(/[\u0591-\u05C7]/g, '')}
+                          </p>
+                        </div>
+                        <div className="flex items-center justify-center pt-3 pb-1">
+                          <span className="text-xs text-[#B8A08C] font-light">{currentPage} / {totalStoryPages}</span>
+                        </div>
+                      </div>
+                    </>
+                  )
                 ) : generationStatus === 'generating_illustrations' && page.illustration_prompt ? (
-                  /* Illustration is still being generated — show shimmer placeholder + text */
+                  /* Illustration still generating — shimmer */
                   <>
-                    <div className="relative w-full shrink-0 overflow-hidden" style={{ height: '50vh' }}>
-                      <div className="w-full h-full shimmer-loading flex items-center justify-center">
+                    <div className="relative w-full md:w-1/2 shrink-0 overflow-hidden" style={{ height: isMobile ? '40vh' : 'auto' }}>
+                      <div className="w-full h-full shimmer-loading flex items-center justify-center min-h-[200px]">
                         <div className="text-center text-purple-400">
                           <Palette className="w-14 h-14 mx-auto mb-2 opacity-40 animate-pulse" />
                           <p className="text-sm font-medium opacity-60">סול מציירת...</p>
                         </div>
                       </div>
                     </div>
-                    <div className="flex-1 min-h-0 overflow-y-auto paper-texture px-6 py-4 md:px-10 md:py-6">
+                    <div className="flex-1 min-h-0 overflow-y-auto paper-texture px-6 py-4 md:px-8 md:py-6">
                       <div className="max-w-lg mx-auto w-full">
                         <p className={cn(
                           "text-[#3D2914] text-right font-medium transition-all whitespace-pre-line",
@@ -1058,27 +1136,27 @@ const StoryViewer = () => {
                         </p>
                       </div>
                       <div className="flex items-center justify-center pt-3 pb-1">
-                        <span className="text-xs text-[#B8A08C] font-light">{currentPage + 1} / {story.pages.length}</span>
+                        <span className="text-xs text-[#B8A08C] font-light">{currentPage} / {totalStoryPages}</span>
                       </div>
                     </div>
                   </>
                 ) : (
-                  /* Text-only page — rainbow background with SolStorie's™ branding */
-                  <div className="flex-1 flex flex-col min-h-0" style={{
-                    background: 'linear-gradient(135deg, #FFE4E1 0%, #FFDAB9 15%, #FFFACD 30%, #E0FFE0 45%, #E0F0FF 60%, #E8D8FF 75%, #FFE4F0 90%, #FFE4E1 100%)'
-                  }}>
+                  /* Text-only page — rainbow background + SolStorie's™ */
+                  <div className="flex-1 flex flex-col min-h-0 w-full" style={{ background: RAINBOW_BG }}>
                     <div className="flex-1 min-h-0 overflow-y-auto px-8 py-8 md:px-12 md:py-10 flex flex-col">
                       <div className="max-w-lg mx-auto w-full flex-1 flex items-center justify-center">
                         <p className={cn(
-                          "text-[#3D2914] text-right font-medium transition-all whitespace-pre-line",
+                          "text-[#3D2914] text-center font-medium transition-all whitespace-pre-line",
                           currentFontSize.size
                         )} style={{ lineHeight: '2.2' }} dir="rtl">
                           {showNikud ? page.text : page.text.replace(/[\u0591-\u05C7]/g, '')}
                         </p>
                       </div>
                       <div className="flex flex-col items-center gap-2 pt-4 pb-1 shrink-0">
-                        <span className="text-xs text-[#B8A08C] font-light tracking-wide">{currentPage + 1} / {story.pages.length}</span>
-                        <span dir="ltr" className="text-xs text-[#8B7355]/60 font-medium">SolStorie's™</span>
+                        <span className="text-xs text-[#B8A08C] font-light tracking-wide">{currentPage} / {totalStoryPages}</span>
+                        <span dir="ltr" className="text-sm text-[#8B7355]/60 font-medium logo-3d-bubble">
+                          <span className="logo-rainbow">SolStorie's™</span>
+                        </span>
                       </div>
                     </div>
                   </div>
@@ -1092,28 +1170,18 @@ const StoryViewer = () => {
             {/* Next (RTL: left arrow = next) */}
             <button
               onClick={() => handlePageNav('next')}
-              disabled={currentPage >= story.pages.length || isFlipping}
+              disabled={currentPage >= totalStoryPages + 2 || isFlipping}
               className="nav-arrow-btn"
               aria-label="עמוד הבא"
             >
               <ChevronLeft className="w-6 h-6" />
             </button>
             
-            {/* Page dots */}
+            {/* Page indicator */}
             <div className="dot-indicator">
-              {story.pages.length <= 10 ? (
-                <>
-                  <div className={cn("dot", currentPage === -1 && "active")} />
-                  {story.pages.map((_, i) => (
-                    <div key={i} className={cn("dot", currentPage === i && "active")} />
-                  ))}
-                  <div className={cn("dot", isEndPage && "active")} />
-                </>
-              ) : (
-                <span className="text-xs text-gray-400">
-                  {isCoverPage ? 'עטיפה' : isEndPage ? 'סוף' : `${currentPage + 1} / ${story.pages.length}`}
-                </span>
-              )}
+              <span className="text-xs text-gray-400">
+                {isCoverPage ? 'עטיפה' : isDedicationPage ? 'הקדשה' : isClosingPage ? 'סיום' : isEndPage ? 'סוף' : `${currentPage} / ${totalStoryPages}`}
+              </span>
             </div>
 
             {/* Prev (RTL: right arrow = prev) */}
