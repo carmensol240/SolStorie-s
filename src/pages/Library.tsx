@@ -2,6 +2,7 @@ import { useState, useEffect, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import { ArrowRight, Plus, Coins, Wand2, ImagePlus } from "lucide-react";
 import { getPublicIllustrationUrl } from "@/lib/illustration-url";
+import solMagicBookCover from "@/assets/sol-magic-book-cover.png";
 
 import { Button } from "@/components/ui/button";
 import MobileNavigation from "@/components/MobileNavigation";
@@ -222,19 +223,15 @@ const Library = () => {
   }, [stories, filters]);
 
   const getCoverImage = (story: Story): string | null => {
-    // Priority 1: cover_url from stories table
-    if (story.cover_url) {
-      return getPublicIllustrationUrl(story.cover_url);
-    }
-    
-    // Priority 2: page 1 illustration
+    // Priority 1: First page illustration (individual story art)
     if (story.story_pages && story.story_pages.length > 0) {
       const firstPage = story.story_pages.find(p => p.page_number === 1);
       const illustrationUrl = firstPage?.illustration_url || story.story_pages[0]?.illustration_url;
-      return getPublicIllustrationUrl(illustrationUrl || null);
+      if (illustrationUrl) return getPublicIllustrationUrl(illustrationUrl);
     }
     
-    return null;
+    // Priority 2: Static Sol with magic book fallback
+    return solMagicBookCover;
   };
 
   return (
