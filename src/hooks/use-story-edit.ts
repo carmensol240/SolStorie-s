@@ -125,16 +125,24 @@ export const useStoryEdit = (storyId: string): UseStoryEditResult => {
         console.log('[performEdit] Admin user, skipping credits');
       }
 
-      // Increment the edit count on the story
-      const currentEditCount = editCount ?? 0;
+      // Fetch fresh edit_count from DB to avoid stale state / race conditions
+      const { data: storyData, error: storyFetchError } = await supabase
+        .from('stories')
+        .select('edit_count')
+        .eq('id', storyId)
+        .maybeSingle();
+
+      if (storyFetchError) throw storyFetchError;
+
+      const freshEditCount = storyData?.edit_count ?? 0;
       const { error: updateError } = await supabase
         .from('stories')
-        .update({ edit_count: currentEditCount + 1 })
+        .update({ edit_count: freshEditCount + 1 })
         .eq('id', storyId);
 
       if (updateError) throw updateError;
 
-      setEditCount(currentEditCount + 1);
+      setEditCount(freshEditCount + 1);
       setLoading(false);
       // Refresh credit state in hooks
       refetchEditCredits();
@@ -147,7 +155,7 @@ export const useStoryEdit = (storyId: string): UseStoryEditResult => {
       setLoading(false);
       return { success: false, errorMessage: msg };
     }
-  }, [user, storyId, editCount, isAdmin, refetchEditCredits]);
+  }, [user, storyId, isAdmin, refetchEditCredits]);
 
   return {
     canEdit,

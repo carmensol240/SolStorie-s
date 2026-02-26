@@ -424,6 +424,7 @@ const StoryViewer = () => {
         return;
       }
       setIsLoading(false);
+      setGenerationStatus('ready'); // Reset to prevent stuck state
       toast({
         variant: "destructive",
         title: "שגיאה",
@@ -431,6 +432,17 @@ const StoryViewer = () => {
       });
     }
   };
+
+  // Safety: if isLoading is still true after 25s, force reset
+  useEffect(() => {
+    if (!isLoading) return;
+    const safetyTimer = setTimeout(() => {
+      console.warn('[StoryViewer] Safety timeout: forcing isLoading=false after 25s');
+      setIsLoading(false);
+      setGenerationStatus('ready');
+    }, 25000);
+    return () => clearTimeout(safetyTimer);
+  }, [isLoading]);
 
   // Page change is now handled by handleSpreadChange defined later
   // Keep this for legacy compatibility but it's no longer the primary navigation
@@ -501,8 +513,8 @@ const StoryViewer = () => {
     setIsDrawingMode(true);
   };
 
-  const handleEditClick = () => {
-    if (resolvedId) fetchEditCount(resolvedId);
+  const handleEditClick = async () => {
+    if (resolvedId) await fetchEditCount(resolvedId);
     setShowEditConfirmDialog(true);
   };
 
