@@ -236,11 +236,6 @@ const Library = () => {
           </div>
         </div>
 
-        {/* Filters */}
-        {stories.length > 0 && (
-          <StoryFilters onFilterChange={setFilters} className="mb-3" />
-        )}
-
         {/* Content */}
         {isLoading ? (
           <div className="flex flex-col gap-2">
