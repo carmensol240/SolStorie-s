@@ -2,7 +2,7 @@ import { useState } from "react";
 import { ArrowLeft, Sparkles, Star, Users, Loader2 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import heroBackground from "@/assets/hero-solstories-welcome.png";
-import solLogo from "@/assets/solstories-logo.png";
+
 import { supabase } from "@/integrations/supabase/client";
 import type { User } from "@supabase/supabase-js";
 
@@ -115,11 +115,9 @@ const GuestLanding = ({ user, isLoggedIn }: GuestLandingProps) => {
       <div className="relative z-10 flex-1 flex flex-col px-5 pb-16">
         {/* Logo - Sol Character */}
         <div className="flex flex-col items-center pt-2 px-4 mb-1">
-          <img 
-            src={solLogo} 
-            alt="SolStorie's™" 
-            className="w-32 h-32 sm:w-36 sm:h-36 object-contain drop-shadow-lg"
-          />
+          <h1 className="text-3xl sm:text-4xl font-black logo-3d-bubble">
+            <span className="logo-rainbow">SolStorie's™</span>
+          </h1>
         </div>
 
         {/* Title Section - Compact & Centered */}
