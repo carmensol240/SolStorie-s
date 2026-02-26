@@ -2,7 +2,7 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Loader2 } from "lucide-react";
 import heroBackground from "@/assets/hero-soli-tree.png";
-// Logo is text-based
+import solLogo from "@/assets/solstories-logo.png";
 import MobileNavigation from "@/components/MobileNavigation";
 import { useAuth } from "@/hooks/use-auth";
 import { supabase } from "@/integrations/supabase/client";
@@ -62,9 +62,11 @@ const Welcome = () => {
 
       {/* Logo */}
       <div className="relative z-10 flex justify-center pt-[max(env(safe-area-inset-top,20px),36px)]">
-        <h1 className="text-3xl sm:text-4xl font-black logo-3d-bubble">
-          <span className="logo-rainbow">SolStorie's™</span>
-        </h1>
+        <img 
+          src={solLogo} 
+          alt="SolStorie's™" 
+          className="w-36 h-36 sm:w-44 sm:h-44 object-contain drop-shadow-lg"
+        />
       </div>
 
       {/* Content */}
