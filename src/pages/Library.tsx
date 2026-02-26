@@ -255,16 +255,9 @@ const Library = () => {
           </div>
         ) : stories.length === 0 ? (
           <EmptyState onCreateClick={() => navigate("/create")} />
-        ) : filteredStories.length === 0 ? (
-          <div className="text-center py-8 space-y-3">
-            <p className="text-muted-foreground text-sm">אין סיפורים התואמים לסינון</p>
-            <Button variant="outline" size="sm" onClick={() => setFilters({ ageRange: null, theme: null, storyType: null })}>
-              נקה סינון
-            </Button>
-          </div>
         ) : (
           <div className="flex flex-col gap-2">
-            {filteredStories.map((story) => (
+            {stories.map((story) => (
               <StoryListItem
                 key={story.id}
                 id={story.id}
