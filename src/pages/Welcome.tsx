@@ -60,6 +60,18 @@ const Welcome = () => {
         }}
       />
 
+      {/* Logo */}
+      <div className="relative z-10 flex flex-col items-center pt-[max(env(safe-area-inset-top,20px),36px)]">
+        <img 
+          src={solLogo} 
+          alt="SolStorie's™" 
+          className="w-24 h-24 sm:w-28 sm:h-28 object-contain drop-shadow-lg"
+        />
+        <h1 className="text-2xl sm:text-3xl font-black tracking-tight logo-3d-bubble" dir="ltr">
+          <span className="logo-rainbow">SolStorie's™</span>
+        </h1>
+      </div>
+
       {/* Content */}
       <div className="relative z-10 flex-1 flex flex-col items-center justify-end px-6 pb-24">
         <button
