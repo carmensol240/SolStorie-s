@@ -278,7 +278,7 @@ const PublicStoryViewer = () => {
             </>
           ) : (
             <span className="text-xs text-gray-400">
-              {isCoverPage ? 'עטיפה' : isEndPage ? 'סוף' : `${currentPage + 1} / ${story.pages.length}`}
+              {isCoverPage ? '' : isEndPage ? 'סוף' : `${currentPage + 1} / ${story.pages.length}`}
             </span>
           )}
         </div>

@@ -132,7 +132,8 @@ const StoryViewer = () => {
   // story-illustrations bucket is public - using direct URLs via getPublicIllustrationUrl
   
   const { user } = useAuth();
-  const { fetchEditCount, editCount, freeEditsRemaining } = useStoryEdit(storyId || '');
+  const [editStoryId, setEditStoryId] = useState<string>('');
+  const { fetchEditCount, editCount, freeEditsRemaining } = useStoryEdit(editStoryId);
   const hasTrackedStart = useRef(false);
   const { audioSupport } = useAccessibility();
   // useTextToSpeech removed — read-aloud only in Accessibility Menu
@@ -346,6 +347,7 @@ const StoryViewer = () => {
 
       const resolvedStoryId = storyData.id;
       setResolvedId(resolvedStoryId);
+      setEditStoryId(resolvedStoryId);
 
       const { data: pagesData, error: pagesError } = await supabase
         .from("story_pages")
@@ -499,7 +501,7 @@ const StoryViewer = () => {
   };
 
   const handleEditClick = () => {
-    if (storyId) fetchEditCount(storyId);
+    if (resolvedId) fetchEditCount(resolvedId);
     setShowEditConfirmDialog(true);
   };
 
@@ -996,7 +998,7 @@ const StoryViewer = () => {
                 <div className="relative z-10 space-y-3 pb-8 px-6">
                   <p className="text-3xl md:text-4xl font-bold text-white drop-shadow-lg">✦ סוֹף ✦</p>
                   <p className="text-lg text-white/90 font-medium drop-shadow-md" dir="rtl">
-                    תודה שקראתם את הסיפור של {story.child_name}
+                    נִתְרָאֶה בַּסִּפּוּר הַבָּא!
                   </p>
                   <div className="pt-2">
                     <span dir="ltr" className="text-sm text-white/70 font-medium logo-3d-bubble">
@@ -1199,12 +1201,12 @@ const StoryViewer = () => {
       <DrawingCanvas isOpen={isDrawingMode} onClose={() => setIsDrawingMode(false)} />
 
       {/* Edit Page Dialog */}
-      {page && storyId && (
+      {page && resolvedId && (
         <EditPageDialog
           open={isEditingPage}
           onOpenChange={setIsEditingPage}
           pageId={page.id}
-          storyId={storyId}
+          storyId={resolvedId}
           pageNumber={page.page_number}
           totalPages={story.pages.length}
           text={page.text}
