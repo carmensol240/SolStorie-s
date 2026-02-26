@@ -335,8 +335,18 @@ const StoryViewer = () => {
       // Verify the resolved ID matches what we expect
       console.log(`[StoryViewer] Story found - ID: ${storyData.id}, slug: ${storyData.slug}`);
 
-      // Check generation status
-      const status = (storyData as any).generation_status || 'ready';
+      // Check generation status - auto-recover stale generating status (>5 min old)
+      let status = (storyData as any).generation_status || 'ready';
+      if (status === 'generating_illustrations') {
+        const createdAt = new Date((storyData as any).created_at).getTime();
+        const ageMinutes = (Date.now() - createdAt) / 60000;
+        if (ageMinutes > 5) {
+          console.log(`⏱️ Story stuck in generating_illustrations for ${Math.round(ageMinutes)}min — auto-recovering to ready`);
+          status = 'ready';
+          // Also update DB so it doesn't get stuck again
+          supabase.from("stories").update({ generation_status: 'ready' }).eq("id", storyData.id).then(() => {});
+        }
+      }
       setGenerationStatus(status);
 
       // If coming from story creation, skip the illustration loading screen
