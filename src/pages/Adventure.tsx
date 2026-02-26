@@ -103,7 +103,7 @@ const Adventure = () => {
         </div>
 
         {/* Top bar - Glassmorphism credits & profile */}
-        <div className="absolute top-0 left-0 right-0 z-10 flex items-center justify-between px-4 pt-[env(safe-area-inset-top,12px)] pb-2">
+        <div className="absolute top-0 left-0 right-0 z-10 flex items-center justify-between px-4 pt-[max(env(safe-area-inset-top,12px),24px)] pb-2">
           {/* Credits button */}
           <button
             onClick={() => navigate("/upgrade")}
