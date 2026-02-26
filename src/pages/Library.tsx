@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { ArrowRight, Plus, Coins, Wand2, ImagePlus } from "lucide-react";
 import { getPublicIllustrationUrl } from "@/lib/illustration-url";
@@ -7,7 +7,7 @@ import solMagicBookCover from "@/assets/sol-magic-book-cover.png";
 import { Button } from "@/components/ui/button";
 import MobileNavigation from "@/components/MobileNavigation";
 import StoryListItem from "@/components/ui/story-list-item";
-import StoryFilters, { FilterState } from "@/components/ui/story-filters";
+
 import OfflineIndicator from "@/components/ui/offline-indicator";
 import EditStoryDialog from "@/components/story/edit-story-dialog";
 import { GenderSwapDialog } from "@/components/story/GenderSwapDialog";
@@ -51,11 +51,6 @@ const Library = () => {
   const { avatarUrl } = useChildAvatar();
   const [stories, setStories] = useState<Story[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [filters, setFilters] = useState<FilterState>({
-    ageRange: null,
-    theme: null,
-    storyType: null,
-  });
   const [editingStory, setEditingStory] = useState<Story | null>(null);
   const [genderSwapStory, setGenderSwapStory] = useState<Story | null>(null);
   
@@ -192,35 +187,6 @@ const Library = () => {
     }
   };
 
-  const filteredStories = useMemo(() => {
-    return stories.filter((story) => {
-      // Age filter
-      if (filters.ageRange) {
-        const [minStr, maxStr] = filters.ageRange.split('-');
-        const filterMin = parseInt(minStr, 10);
-        const filterMax = parseInt(maxStr, 10);
-        const storyMin = story.min_age ?? 0;
-        const storyMax = story.max_age ?? 10;
-        
-        // Check if ranges overlap
-        if (storyMax < filterMin || storyMin > filterMax) {
-          return false;
-        }
-      }
-
-      // Theme filter
-      if (filters.theme && story.theme !== filters.theme) {
-        return false;
-      }
-
-      // Story type filter
-      if (filters.storyType && story.story_type !== filters.storyType) {
-        return false;
-      }
-
-      return true;
-    });
-  }, [stories, filters]);
 
   const getCoverImage = (story: Story): string | null => {
     // Priority 1: First page illustration (individual story art)
@@ -270,11 +236,6 @@ const Library = () => {
           </div>
         </div>
 
-        {/* Filters */}
-        {stories.length > 0 && (
-          <StoryFilters onFilterChange={setFilters} className="mb-3" />
-        )}
-
         {/* Content */}
         {isLoading ? (
           <div className="flex flex-col gap-2">
@@ -294,16 +255,9 @@ const Library = () => {
           </div>
         ) : stories.length === 0 ? (
           <EmptyState onCreateClick={() => navigate("/create")} />
-        ) : filteredStories.length === 0 ? (
-          <div className="text-center py-8 space-y-3">
-            <p className="text-muted-foreground text-sm">אין סיפורים התואמים לסינון</p>
-            <Button variant="outline" size="sm" onClick={() => setFilters({ ageRange: null, theme: null, storyType: null })}>
-              נקה סינון
-            </Button>
-          </div>
         ) : (
           <div className="flex flex-col gap-2">
-            {filteredStories.map((story) => (
+            {stories.map((story) => (
               <StoryListItem
                 key={story.id}
                 id={story.id}
