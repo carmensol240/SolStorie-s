@@ -39,12 +39,12 @@ export const BookPage: React.FC<BookPageProps> = ({
         
         {illustrationUrl && (
           <div className="relative w-full">
-            <div className="relative w-full overflow-hidden shadow-xl" style={{ height: '50vh' }}>
+            <div className="relative w-full overflow-hidden flex items-center justify-center" style={{ height: '50vh' }}>
               <SignedImage
                 src={illustrationUrl}
                 storyId={storyId}
                 alt=""
-                className="w-full h-full object-cover"
+                className="w-full h-full object-contain"
               />
             </div>
           </div>

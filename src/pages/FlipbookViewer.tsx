@@ -305,14 +305,14 @@ const FlipbookViewer = () => {
                 <div className="flex-1 flex flex-col">
                   {/* High Quality Illustration */}
                   {page.illustration_url && (
-                    <div className="relative mb-8 rounded-xl overflow-hidden shadow-lg">
-                      <div className="aspect-[4/3]">
+                    <div className="relative mb-8 rounded-xl overflow-hidden shadow-lg bg-[#F5E6D3]">
+                      <div className="aspect-[4/3] flex items-center justify-center">
                         <SignedImage
                           src={page.illustration_url}
                           storyId={story.id}
                           shareToken={shareToken || undefined}
                           alt=""
-                          className="w-full h-full object-cover"
+                          className="w-full h-full object-contain"
                         />
                       </div>
                     </div>

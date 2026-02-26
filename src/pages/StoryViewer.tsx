@@ -1067,7 +1067,7 @@ const StoryViewer = () => {
                   contentPageOffset === 2 ? (
                     /* Pattern C: Illustration on left side, text on right */
                     <>
-                      <div className="md:order-1 relative w-full md:w-1/2 shrink-0 overflow-hidden bg-[#F5E6D3]" style={{ height: isMobile ? '40vh' : 'auto' }}>
+                      <div className="md:order-1 relative w-full md:w-1/2 shrink-0 overflow-hidden bg-[#F5E6D3] flex items-center justify-center" style={{ height: isMobile ? '40vh' : 'auto' }}>
                         <img
                           src={getPublicIllustrationUrl(page.illustration_url) || ''}
                           alt={`איור עמוד ${currentPage}`}
@@ -1092,7 +1092,7 @@ const StoryViewer = () => {
                   ) : (
                     /* Pattern A (default): Text on right, illustration on left */
                     <>
-                      <div className="md:order-2 relative w-full md:w-1/2 shrink-0 overflow-hidden bg-[#F5E6D3]" style={{ height: isMobile ? '40vh' : 'auto' }}>
+                      <div className="md:order-2 relative w-full md:w-1/2 shrink-0 overflow-hidden bg-[#F5E6D3] flex items-center justify-center" style={{ height: isMobile ? '40vh' : 'auto' }}>
                         <img
                           src={getPublicIllustrationUrl(page.illustration_url) || ''}
                           alt={`איור עמוד ${currentPage}`}
