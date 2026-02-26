@@ -187,35 +187,6 @@ const Library = () => {
     }
   };
 
-  const filteredStories = useMemo(() => {
-    return stories.filter((story) => {
-      // Age filter
-      if (filters.ageRange) {
-        const [minStr, maxStr] = filters.ageRange.split('-');
-        const filterMin = parseInt(minStr, 10);
-        const filterMax = parseInt(maxStr, 10);
-        const storyMin = story.min_age ?? 0;
-        const storyMax = story.max_age ?? 10;
-        
-        // Check if ranges overlap
-        if (storyMax < filterMin || storyMin > filterMax) {
-          return false;
-        }
-      }
-
-      // Theme filter
-      if (filters.theme && story.theme !== filters.theme) {
-        return false;
-      }
-
-      // Story type filter
-      if (filters.storyType && story.story_type !== filters.storyType) {
-        return false;
-      }
-
-      return true;
-    });
-  }, [stories, filters]);
 
   const getCoverImage = (story: Story): string | null => {
     // Priority 1: First page illustration (individual story art)
