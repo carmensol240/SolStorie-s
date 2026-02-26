@@ -44,7 +44,7 @@ import PdfFeaturePopup from "@/components/story/PdfFeaturePopup";
 import "./StoryViewer.css";
 import { translateTopic } from "@/lib/topic-translations";
 import solMagicBookCover from "@/assets/sol-magic-book-cover.png";
-import solLogo from "@/assets/solstories-logo.png";
+
 import castWavingFarewell from "@/assets/cast-waving-farewell.png";
 
 interface StoryPage {
