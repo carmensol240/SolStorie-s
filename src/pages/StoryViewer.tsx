@@ -975,7 +975,7 @@ const StoryViewer = () => {
                   </div>
                 </div>
                 <div className="absolute bottom-6 left-0 right-0 flex flex-col items-center gap-1">
-                  <img src={solLogo} alt="SolStorie's™" className="w-14 h-14 object-contain opacity-60" />
+                  <span className="text-sm font-bold logo-rainbow opacity-60" dir="ltr">SolStorie's™</span>
                 </div>
               </div>
 
