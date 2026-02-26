@@ -281,10 +281,6 @@ const GeneratingStep = ({ formData, onComplete }: GeneratingStepProps) => {
         retryCountRef.current += 1;
         console.log(`[GeneratingStep] Auto-retrying (${retryCountRef.current}/${MAX_RETRIES})...`);
         setProgress(0);
-        toast({
-          title: "מנסים שוב...",
-          description: "אנחנו מנסים שוב ליצור את הסיפור הקסום שלך",
-        });
         await new Promise(resolve => setTimeout(resolve, 1500));
         generateStory();
         return;
@@ -452,17 +448,6 @@ const GeneratingStep = ({ formData, onComplete }: GeneratingStepProps) => {
         </p>
       </div>
 
-      {/* "Open Book" button - only shown when ALL illustrations are ready */}
-      {phase === 'ready' && storyId && (
-        <Button
-          onClick={handleStartReadingNow}
-          size="lg"
-          className="bg-gradient-to-r from-purple-600 to-pink-500 hover:from-purple-700 hover:to-pink-600 text-white font-bold px-8 py-5 text-lg rounded-full shadow-xl gap-2 animate-scale-in"
-        >
-          <BookOpen className="w-5 h-5" />
-          פתחו את הספר! 📖
-        </Button>
-      )}
 
       {/* Empowering Sentence */}
       <div className="w-full max-w-sm px-4 min-h-[60px] flex items-center justify-center">

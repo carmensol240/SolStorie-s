@@ -96,14 +96,14 @@ const Adventure = () => {
         />
 
         {/* SolStorie's™ Logo */}
-        <div className="absolute top-16 left-0 right-0 z-10 flex justify-center">
+        <div className="absolute top-20 left-0 right-0 z-10 flex justify-center">
           <h1 className="text-3xl sm:text-4xl font-black tracking-tight logo-3d-bubble" dir="ltr">
             <span className="logo-rainbow">SolStorie's™</span>
           </h1>
         </div>
 
         {/* Top bar - Glassmorphism credits & profile */}
-        <div className="absolute top-0 left-0 right-0 z-10 flex items-center justify-between px-4 pt-[env(safe-area-inset-top,12px)] pb-2">
+        <div className="absolute top-0 left-0 right-0 z-10 flex items-center justify-between px-4 pt-[max(env(safe-area-inset-top,12px),24px)] pb-2">
           {/* Credits button */}
           <button
             onClick={() => navigate("/upgrade")}
