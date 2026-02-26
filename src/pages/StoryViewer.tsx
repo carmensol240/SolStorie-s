@@ -998,7 +998,7 @@ const StoryViewer = () => {
                     נִתְרָאֶה בַּסִּפּוּר הַבָּא!
                   </p>
                   <div className="pt-2">
-                    <img src={solLogo} alt="SolStorie's™" className="w-14 h-14 object-contain opacity-70" />
+                    <span className="text-base font-black logo-3d-bubble"><span className="logo-rainbow">SolStorie's™</span></span>
                   </div>
                 </div>
               </div>
