@@ -97,15 +97,12 @@ const Adventure = () => {
         />
 
         {/* SolStorie's™ Logo */}
-        <div className="absolute top-20 left-0 right-0 z-10 flex flex-col items-center gap-1">
+        <div className="absolute top-20 left-0 right-0 z-10 flex justify-center">
           <img 
             src={solLogo} 
             alt="SolStorie's™" 
-            className="w-24 h-24 sm:w-28 sm:h-28 object-contain drop-shadow-lg"
+            className="w-36 h-36 sm:w-44 sm:h-44 object-contain drop-shadow-lg"
           />
-          <h1 className="text-2xl sm:text-3xl font-black tracking-tight logo-3d-bubble" dir="ltr">
-            <span className="logo-rainbow">SolStorie's™</span>
-          </h1>
         </div>
 
         {/* Top bar - Glassmorphism credits & profile */}
