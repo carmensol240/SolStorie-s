@@ -7,7 +7,7 @@ import solMagicBookCover from "@/assets/sol-magic-book-cover.png";
 import { Button } from "@/components/ui/button";
 import MobileNavigation from "@/components/MobileNavigation";
 import StoryListItem from "@/components/ui/story-list-item";
-import StoryFilters, { FilterState } from "@/components/ui/story-filters";
+
 import OfflineIndicator from "@/components/ui/offline-indicator";
 import EditStoryDialog from "@/components/story/edit-story-dialog";
 import { GenderSwapDialog } from "@/components/story/GenderSwapDialog";
