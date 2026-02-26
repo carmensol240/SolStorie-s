@@ -1071,7 +1071,7 @@ const StoryViewer = () => {
                         <img
                           src={getPublicIllustrationUrl(page.illustration_url) || ''}
                           alt={`איור עמוד ${currentPage}`}
-                          className="w-full h-full object-cover"
+                          className="w-full h-full object-contain"
                           loading="eager"
                         />
                       </div>
@@ -1096,7 +1096,7 @@ const StoryViewer = () => {
                         <img
                           src={getPublicIllustrationUrl(page.illustration_url) || ''}
                           alt={`איור עמוד ${currentPage}`}
-                          className="w-full h-full object-cover"
+                          className="w-full h-full object-contain"
                           loading="eager"
                         />
                       </div>
