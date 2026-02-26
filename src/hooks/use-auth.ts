@@ -82,6 +82,11 @@ export const useAuth = () => {
       if (signInError) {
         console.warn('Auto-login after signup failed:', signInError.message);
       }
+
+      // Send welcome email (fire-and-forget)
+      supabase.functions.invoke('send-welcome-email', {
+        body: { email, displayName: metadata?.display_name || '' },
+      }).catch((err) => console.warn('Welcome email failed:', err));
     }
     
     return { data, error };
