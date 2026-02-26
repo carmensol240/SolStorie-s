@@ -9,7 +9,7 @@ import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import WelcomeGiftBanner from "@/components/home/WelcomeGiftBanner";
 import MobileNavigation from "@/components/MobileNavigation";
-import heroVideo from "@/assets/hero-solstories-animation.mp4";
+import heroVideo from "@/assets/hero-solstories-animation-new.mp4";
 
 
 
@@ -94,6 +94,13 @@ const Adventure = () => {
               "linear-gradient(180deg, rgba(0,0,0,0.15) 0%, transparent 40%, transparent 50%, rgba(0,0,0,0.5) 100%)",
           }}
         />
+
+        {/* SolStorie's™ Logo */}
+        <div className="absolute top-16 left-0 right-0 z-10 flex justify-center">
+          <h1 className="text-3xl sm:text-4xl font-black tracking-tight logo-3d-bubble" dir="ltr">
+            <span className="logo-rainbow">SolStorie's™</span>
+          </h1>
+        </div>
 
         {/* Top bar - Glassmorphism credits & profile */}
         <div className="absolute top-0 left-0 right-0 z-10 flex items-center justify-between px-4 pt-[env(safe-area-inset-top,12px)] pb-2">
