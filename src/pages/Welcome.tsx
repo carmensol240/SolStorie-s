@@ -2,7 +2,7 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Loader2 } from "lucide-react";
 import heroBackground from "@/assets/hero-soli-tree.png";
-import solLogo from "@/assets/solstories-logo.png";
+
 import MobileNavigation from "@/components/MobileNavigation";
 import { useAuth } from "@/hooks/use-auth";
 import { supabase } from "@/integrations/supabase/client";
