@@ -87,6 +87,7 @@ const GeneratingStep = ({ formData, onComplete }: GeneratingStepProps) => {
     return () => {
       if (pollingRef.current) {
         clearInterval(pollingRef.current);
+        pollingRef.current = null;
       }
     };
   }, []);
