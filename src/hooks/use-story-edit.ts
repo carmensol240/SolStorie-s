@@ -73,16 +73,7 @@ export const useStoryEdit = (storyId: string): UseStoryEditResult => {
   }, [isAdmin, hasEditCredits, hasCredits]);
 
   const performEdit = useCallback(async (): Promise<{ success: boolean; errorMessage?: string }> => {
-    // Always re-validate credits from server before performing edit
-    await refetchEditCredits();
-    
-    console.log('[performEdit] Starting...', { 
-      userId: user?.id, storyId, isAdmin, 
-      credits, freeEditsRemaining, 
-      creditsLoading, editCreditsLoading,
-      hasCreditsResult: hasCredits(), 
-      hasEditCreditsResult: hasEditCredits() 
-    });
+    console.log('[performEdit] Starting...', { userId: user?.id, storyId, isAdmin });
 
     if (!user || !storyId) {
       const msg = 'משתמש לא מחובר';
@@ -96,72 +87,39 @@ export const useStoryEdit = (storyId: string): UseStoryEditResult => {
     try {
       // Admins skip credit deduction
       if (!isAdmin) {
-        // If credits are still loading, fetch them directly from DB
-        if (creditsLoading || editCreditsLoading) {
-          console.log('[performEdit] Credits still loading, fetching directly from DB...');
-          const { data: profileData } = await supabase
-            .from('profiles')
-            .select('story_credits, free_edits_remaining')
-            .eq('id', user.id)
-            .maybeSingle();
-          
-          const directFreeEdits = profileData?.free_edits_remaining ?? 0;
-          const directCredits = profileData?.story_credits ?? 0;
-          console.log('[performEdit] Direct DB credits:', { directFreeEdits, directCredits });
+        // Always fetch credits directly from DB to avoid stale state / race conditions
+        const { data: profileData, error: profileError } = await supabase
+          .from('profiles')
+          .select('story_credits, free_edits_remaining')
+          .eq('id', user.id)
+          .maybeSingle();
 
-          if (directFreeEdits > 0) {
-            const { error: editError } = await supabase
-              .from('profiles')
-              .update({ free_edits_remaining: directFreeEdits - 1 })
-              .eq('id', user.id);
-            if (editError) {
-              console.error('[performEdit] Free edit deduction failed:', editError);
-              throw editError;
-            }
-          } else if (directCredits > 0) {
-            const { error: creditError } = await supabase
-              .from('profiles')
-              .update({ story_credits: directCredits - 1 })
-              .eq('id', user.id);
-            if (creditError) {
-              console.error('[performEdit] Credit deduction failed:', creditError);
-              throw creditError;
-            }
-          } else {
-            const msg = 'אין מספיק קרדיטים לעריכה';
-            setError(msg);
-            setLoading(false);
-            return { success: false, errorMessage: msg };
-          }
+        if (profileError) {
+          console.error('[performEdit] Profile fetch error:', profileError);
+          throw profileError;
+        }
+
+        const directFreeEdits = profileData?.free_edits_remaining ?? 0;
+        const directCredits = profileData?.story_credits ?? 0;
+        console.log('[performEdit] DB credits:', { directFreeEdits, directCredits });
+
+        if (directFreeEdits > 0) {
+          const { error: editError } = await supabase
+            .from('profiles')
+            .update({ free_edits_remaining: directFreeEdits - 1 })
+            .eq('id', user.id);
+          if (editError) throw editError;
+        } else if (directCredits > 0) {
+          const { error: creditError } = await supabase
+            .from('profiles')
+            .update({ story_credits: directCredits - 1 })
+            .eq('id', user.id);
+          if (creditError) throw creditError;
         } else {
-          // Credits loaded, use hook functions
-          if (hasEditCredits()) {
-            console.log('[performEdit] Using free edit credit...');
-            const used = await useEditCredit();
-            if (!used) {
-              console.error('[performEdit] useEditCredit returned false');
-              const msg = 'שגיאה בשימוש בעריכה חינמית';
-              setError(msg);
-              setLoading(false);
-              return { success: false, errorMessage: msg };
-            }
-          } else if (hasCredits()) {
-            console.log('[performEdit] Using story credit...');
-            const creditUsed = await useCredit();
-            if (!creditUsed) {
-              console.error('[performEdit] useCredit returned false');
-              const msg = 'שגיאה בניכוי קרדיט';
-              setError(msg);
-              setLoading(false);
-              return { success: false, errorMessage: msg };
-            }
-          } else {
-            console.log('[performEdit] No credits available at all');
-            const msg = 'אין מספיק קרדיטים לעריכה';
-            setError(msg);
-            setLoading(false);
-            return { success: false, errorMessage: msg };
-          }
+          const msg = 'אין מספיק קרדיטים לעריכה';
+          setError(msg);
+          setLoading(false);
+          return { success: false, errorMessage: msg };
         }
       } else {
         console.log('[performEdit] Admin user, skipping credits');
@@ -169,19 +127,17 @@ export const useStoryEdit = (storyId: string): UseStoryEditResult => {
 
       // Increment the edit count on the story
       const currentEditCount = editCount ?? 0;
-      console.log('[performEdit] Updating edit count:', currentEditCount + 1);
       const { error: updateError } = await supabase
         .from('stories')
         .update({ edit_count: currentEditCount + 1 })
         .eq('id', storyId);
 
-      if (updateError) {
-        console.error('[performEdit] Story update error:', updateError);
-        throw updateError;
-      }
+      if (updateError) throw updateError;
 
       setEditCount(currentEditCount + 1);
       setLoading(false);
+      // Refresh credit state in hooks
+      refetchEditCredits();
       console.log('[performEdit] Success!');
       return { success: true };
     } catch (err) {
@@ -191,7 +147,7 @@ export const useStoryEdit = (storyId: string): UseStoryEditResult => {
       setLoading(false);
       return { success: false, errorMessage: msg };
     }
-  }, [user, storyId, editCount, isAdmin, hasEditCredits, useEditCredit, hasCredits, useCredit, credits, freeEditsRemaining, creditsLoading, editCreditsLoading, refetchEditCredits]);
+  }, [user, storyId, editCount, isAdmin, refetchEditCredits]);
 
   return {
     canEdit,
