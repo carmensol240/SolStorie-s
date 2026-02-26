@@ -1,7 +1,6 @@
 import React from "react";
 import { 
   ArrowRight, 
-  Share, 
   FileDown, 
   Menu,
   Type,
@@ -114,21 +113,6 @@ export const BookHeader: React.FC<BookHeaderProps> = ({
             <TooltipContent side="bottom">הורד או הדפס PDF</TooltipContent>
           </Tooltip>
 
-          {/* Share as PDF */}
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={onShare}
-                className="text-[#5D3A1A] hover:bg-[#D4A574]/20 min-h-[44px] min-w-[44px] p-2"
-                aria-label="שתף סיפור כ-PDF"
-              >
-                <Share className="w-5 h-5" />
-              </Button>
-            </TooltipTrigger>
-            <TooltipContent side="bottom">שתף סיפור כ-PDF</TooltipContent>
-          </Tooltip>
 
           {/* Menu */}
           <DropdownMenu>
