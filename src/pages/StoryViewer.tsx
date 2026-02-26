@@ -44,7 +44,7 @@ import PdfFeaturePopup from "@/components/story/PdfFeaturePopup";
 import "./StoryViewer.css";
 import { translateTopic } from "@/lib/topic-translations";
 import solMagicBookCover from "@/assets/sol-magic-book-cover.png";
-import solLogo from "@/assets/solstories-logo.png";
+// Logo is text-based
 import castWavingFarewell from "@/assets/cast-waving-farewell.png";
 
 interface StoryPage {
@@ -951,7 +951,7 @@ const StoryViewer = () => {
                     פִּתְחוּ אֶת הַסֵּפֶר 📖
                   </Button>
                   
-                  <img src={solLogo} alt="SolStorie's™" className="mt-3 w-16 h-16 object-contain opacity-60" />
+                  <span className="mt-3 text-sm font-bold logo-rainbow opacity-60" dir="ltr">SolStorie's™</span>
                 </div>
               </div>
 
@@ -975,7 +975,7 @@ const StoryViewer = () => {
                   </div>
                 </div>
                 <div className="absolute bottom-6 left-0 right-0 flex flex-col items-center gap-1">
-                  <img src={solLogo} alt="SolStorie's™" className="w-14 h-14 object-contain opacity-60" />
+                  <span className="text-sm font-bold logo-rainbow opacity-60" dir="ltr">SolStorie's™</span>
                 </div>
               </div>
 
@@ -998,7 +998,7 @@ const StoryViewer = () => {
                     נִתְרָאֶה בַּסִּפּוּר הַבָּא!
                   </p>
                   <div className="pt-2">
-                    <img src={solLogo} alt="SolStorie's™" className="w-14 h-14 object-contain opacity-70" />
+                    <span className="text-sm font-bold text-white/70" dir="ltr">SolStorie's™</span>
                   </div>
                 </div>
               </div>
@@ -1149,7 +1149,7 @@ const StoryViewer = () => {
                       </div>
                       <div className="flex flex-col items-center gap-2 pt-4 pb-1 shrink-0">
                         <span className="text-xs text-[#B8A08C] font-light tracking-wide">{currentPage} / {totalStoryPages}</span>
-                        <img src={solLogo} alt="SolStorie's™" className="w-12 h-12 object-contain opacity-60" />
+                        <span className="text-xs font-bold logo-rainbow opacity-60" dir="ltr">SolStorie's™</span>
                       </div>
                     </div>
                   </div>
