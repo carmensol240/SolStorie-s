@@ -26,7 +26,7 @@ const MobileNavigation = () => {
               aria-label={`מעבר ל${item.label}`}
               aria-current={isActive ? "page" : undefined}
               className={cn(
-                "flex flex-col items-center justify-center gap-0.5 px-2 py-1.5 rounded-xl transition-all duration-200 min-h-[44px] min-w-[40px]",
+                "flex flex-col items-center justify-center gap-0.5 px-3 py-2 rounded-xl transition-all duration-200 min-h-[48px] min-w-[48px]",
                 "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-purple-400 focus-visible:ring-offset-2",
                 isActive 
                   ? "bg-gradient-to-r from-purple-600 via-pink-500 to-orange-400 text-white" 

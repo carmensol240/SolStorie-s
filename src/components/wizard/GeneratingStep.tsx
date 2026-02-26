@@ -281,10 +281,6 @@ const GeneratingStep = ({ formData, onComplete }: GeneratingStepProps) => {
         retryCountRef.current += 1;
         console.log(`[GeneratingStep] Auto-retrying (${retryCountRef.current}/${MAX_RETRIES})...`);
         setProgress(0);
-        toast({
-          title: "מנסים שוב...",
-          description: "אנחנו מנסים שוב ליצור את הסיפור הקסום שלך",
-        });
         await new Promise(resolve => setTimeout(resolve, 1500));
         generateStory();
         return;
