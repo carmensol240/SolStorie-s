@@ -162,7 +162,13 @@ const GeneratingStep = ({ formData, onComplete }: GeneratingStepProps) => {
         onComplete(storyId);
       }, 45000);
 
-      return () => clearTimeout(timeout);
+      return () => {
+        clearTimeout(timeout);
+        if (pollingRef.current) {
+          clearInterval(pollingRef.current);
+          pollingRef.current = null;
+        }
+      };
     }
   }, [phase, storyId, pollIllustrations, onComplete]);
 
