@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { ArrowRight, Plus, Coins, Wand2, ImagePlus } from "lucide-react";
 import { getPublicIllustrationUrl } from "@/lib/illustration-url";
