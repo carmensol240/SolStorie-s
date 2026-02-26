@@ -2,7 +2,7 @@ import { useState } from "react";
 import { ArrowLeft, Sparkles, Star, Users, Loader2 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import heroBackground from "@/assets/hero-solstories-welcome.png";
-import solLogo from "@/assets/solstories-logo.png";
+
 import { supabase } from "@/integrations/supabase/client";
 import type { User } from "@supabase/supabase-js";
 
