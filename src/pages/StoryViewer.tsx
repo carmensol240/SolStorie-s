@@ -44,7 +44,7 @@ import PdfFeaturePopup from "@/components/story/PdfFeaturePopup";
 import "./StoryViewer.css";
 import { translateTopic } from "@/lib/topic-translations";
 import solMagicBookCover from "@/assets/sol-magic-book-cover.jpg";
-import castWavingFarewell from "@/assets/cast-waving-farewell.jpg";
+import castWavingFarewell from "@/assets/cast-waving-farewell.png";
 
 interface StoryPage {
   id: string;
@@ -997,19 +997,28 @@ const StoryViewer = () => {
               </div>
 
             ) : isClosingPage ? (
-              /* Closing Rainbow Page */
-              <div className="relative flex-1 flex flex-col items-center justify-center text-center h-full px-8 py-12" style={{ background: RAINBOW_BG }}>
-                <div className="space-y-4 max-w-md mx-auto">
-                  <p className="text-3xl md:text-4xl font-bold text-[#3D2914]">✦ סוף ✦</p>
-                  <p className="text-lg text-[#6B4423] font-medium" dir="rtl">
+              /* Closing Page - Full cast waving background */
+              <div className="relative flex-1 flex flex-col items-center justify-end text-center h-full">
+                {/* Full background image */}
+                <img
+                  src={castWavingFarewell}
+                  alt="הקאסט נפרד לשלום"
+                  className="absolute inset-0 w-full h-full object-cover"
+                />
+                {/* Dark overlay for text readability */}
+                <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/20 to-transparent" />
+                
+                {/* Content overlay */}
+                <div className="relative z-10 space-y-3 pb-8 px-6">
+                  <p className="text-3xl md:text-4xl font-bold text-white drop-shadow-lg">✦ סוֹף ✦</p>
+                  <p className="text-lg text-white/90 font-medium drop-shadow-md" dir="rtl">
                     תודה שקראתם את הסיפור של {story.child_name}
                   </p>
-                  <span className="text-4xl block">🌈</span>
-                </div>
-                <div className="absolute bottom-6 left-0 right-0 flex flex-col items-center gap-1">
-                  <span dir="ltr" className="text-sm text-[#8B7355]/60 font-medium logo-3d-bubble">
-                    <span className="logo-rainbow">SolStorie's™</span>
-                  </span>
+                  <div className="pt-2">
+                    <span dir="ltr" className="text-sm text-white/70 font-medium logo-3d-bubble">
+                      <span className="logo-rainbow">SolStorie's™</span>
+                    </span>
+                  </div>
                 </div>
               </div>
 
