@@ -148,8 +148,19 @@ const EditPageDialog = ({
     }
   };
 
+  // Collect all pages that have been modified across the session
+  const getModifiedPages = useCallback(() => {
+    return pages.filter(p => {
+      const edited = editedTexts[p.id];
+      return edited !== undefined && edited !== p.text;
+    });
+  }, [pages, editedTexts]);
+
+  const modifiedPages = getModifiedPages();
+  const hasAnyChanges = modifiedPages.length > 0;
+
   const handleSave = async () => {
-    if (!hasTextChanged) return;
+    if (!hasAnyChanges) return;
     
     if (!canEdit()) {
       toast({ title: 'נגמרו הקרדיטים 😔', description: 'שדרגו את החבילה כדי להמשיך לערוך סיפורים', variant: 'destructive' });
@@ -158,6 +169,7 @@ const EditPageDialog = ({
 
     setIsLoading(true);
     try {
+      // Consume only 1 credit for the entire batch
       const editResult = await performEdit();
       if (!editResult.success) {
         toast({ title: editResult.errorMessage || 'שגיאה בביצוע העריכה', variant: 'destructive' });
@@ -165,25 +177,29 @@ const EditPageDialog = ({
         return;
       }
 
-      const { error } = await supabase
-        .from('story_pages')
-        .update({ text: currentText })
-        .eq('id', currentPageId);
+      // Save all modified pages in one batch
+      for (const modifiedPage of modifiedPages) {
+        const newText = editedTexts[modifiedPage.id]!;
+        const { error } = await supabase
+          .from('story_pages')
+          .update({ text: newText })
+          .eq('id', modifiedPage.id);
 
-      if (error) throw error;
+        if (error) throw error;
+        onUpdate(newText, modifiedPage.id);
+      }
 
       setIsLoading(false);
       setShowConfirmation(true);
-      onUpdate(currentText, currentPageId);
       
-      toast({ title: 'העמוד עודכן בהצלחה! ✅' });
+      toast({ title: `${modifiedPages.length} עמודים עודכנו בהצלחה! ✅` });
       
       setTimeout(() => {
         setShowConfirmation(false);
       }, 2000);
     } catch (error) {
-      console.error('Error updating page:', error);
-      toast({ title: 'שגיאה בעדכון העמוד', variant: 'destructive' });
+      console.error('Error updating pages:', error);
+      toast({ title: 'שגיאה בעדכון העמודים', variant: 'destructive' });
       setIsLoading(false);
     }
   };
@@ -365,13 +381,13 @@ const EditPageDialog = ({
           ) : (
             <Button 
               onClick={handleSave} 
-              disabled={isLoading || !hasTextChanged}
+              disabled={isLoading || !hasAnyChanges}
               className="min-w-[120px] gap-2 bg-primary hover:bg-primary/90"
             >
               {isLoading ? 'שומר...' : (
                 <>
                   <Check className="w-4 h-4" />
-                  שמור שינויים
+                  {modifiedPages.length > 1 ? `שמור ${modifiedPages.length} עמודים` : 'שמור שינויים'}
                 </>
               )}
             </Button>
