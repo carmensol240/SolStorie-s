@@ -10,6 +10,7 @@ import { supabase } from "@/integrations/supabase/client";
 import WelcomeGiftBanner from "@/components/home/WelcomeGiftBanner";
 import MobileNavigation from "@/components/MobileNavigation";
 import heroVideo from "@/assets/hero-solstories-animation-new.mp4";
+import solLogo from "@/assets/sol-magic-book-cover.png";
 
 
 
@@ -96,8 +97,13 @@ const Adventure = () => {
         />
 
         {/* SolStorie's™ Logo */}
-        <div className="absolute top-20 left-0 right-0 z-10 flex justify-center">
-          <h1 className="text-3xl sm:text-4xl font-black tracking-tight logo-3d-bubble" dir="ltr">
+        <div className="absolute top-20 left-0 right-0 z-10 flex flex-col items-center gap-1">
+          <img 
+            src={solLogo} 
+            alt="SolStorie's™" 
+            className="w-24 h-24 sm:w-28 sm:h-28 object-contain drop-shadow-lg"
+          />
+          <h1 className="text-2xl sm:text-3xl font-black tracking-tight logo-3d-bubble" dir="ltr">
             <span className="logo-rainbow">SolStorie's™</span>
           </h1>
         </div>
