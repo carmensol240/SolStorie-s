@@ -155,6 +155,7 @@ const StoryViewer = () => {
 
   useEffect(() => {
     if (storyId) {
+      window.scrollTo(0, 0);
       fetchStory();
     }
   }, [storyId]);
@@ -367,7 +368,7 @@ const StoryViewer = () => {
         id: storyData.id,
         slug: storyData.slug || undefined,
         child_name: storyData.child_name,
-        child_gender: (storyData as any).child_gender || 'male',
+        child_gender: (storyData as any).child_gender || 'female',
         topic: storyData.topic,
         language: (storyData as any).language || 'he',
         age_range: (storyData as any).age_range || '3-6',
@@ -839,12 +840,14 @@ const StoryViewer = () => {
       if (direction === 'next' && currentPage < maxPage) {
         const newPage = currentPage + 1;
         setCurrentPage(newPage);
+        window.scrollTo(0, 0);
         
         if (newPage >= maxPage) {
           trackStoryCompleted(story.id);
         }
       } else if (direction === 'prev' && currentPage > -1) {
         setCurrentPage(currentPage - 1);
+        window.scrollTo(0, 0);
       }
       setFlipPhase('in');
       
@@ -1180,7 +1183,7 @@ const StoryViewer = () => {
             {/* Page indicator */}
             <div className="dot-indicator">
               <span className="text-xs text-gray-400">
-                {isCoverPage ? 'עטיפה' : isDedicationPage ? 'הקדשה' : isClosingPage ? 'סיום' : isEndPage ? 'סוף' : `${currentPage} / ${totalStoryPages}`}
+                {isCoverPage ? '' : isDedicationPage ? 'הקדשה' : isClosingPage ? 'סיום' : isEndPage ? 'סוף' : `${currentPage} / ${totalStoryPages}`}
               </span>
             </div>
 
