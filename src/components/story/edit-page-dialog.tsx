@@ -173,7 +173,6 @@ const EditPageDialog = ({
       const editResult = await performEdit();
       if (!editResult.success) {
         toast({ title: editResult.errorMessage || 'שגיאה בביצוע העריכה', variant: 'destructive' });
-        setIsLoading(false);
         return;
       }
 
@@ -189,7 +188,6 @@ const EditPageDialog = ({
         onUpdate(newText, modifiedPage.id);
       }
 
-      setIsLoading(false);
       setShowConfirmation(true);
       
       toast({ title: `${modifiedPages.length} עמודים עודכנו בהצלחה! ✅` });
@@ -200,6 +198,7 @@ const EditPageDialog = ({
     } catch (error) {
       console.error('Error updating pages:', error);
       toast({ title: 'שגיאה בעדכון העמודים', variant: 'destructive' });
+    } finally {
       setIsLoading(false);
     }
   };
