@@ -501,8 +501,8 @@ const StoryViewer = () => {
     setIsDrawingMode(true);
   };
 
-  const handleEditClick = () => {
-    if (resolvedId) fetchEditCount(resolvedId);
+  const handleEditClick = async () => {
+    if (resolvedId) await fetchEditCount(resolvedId);
     setShowEditConfirmDialog(true);
   };
 
