@@ -18,7 +18,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 import heroImage from "@/assets/cast-group-forest.png";
-import { PRICING_PACKAGES, TOOLKIT_SUBSCRIPTION, EDUCATOR_PACKAGE } from "@/config/pricing";
+import { PRICING_PACKAGES, TOOLKIT_SUBSCRIPTION, EDUCATOR_PACKAGE, EDIT_KIT_PACKAGE } from "@/config/pricing";
 
 const Upgrade = () => {
   const navigate = useNavigate();
@@ -35,6 +35,7 @@ const Upgrade = () => {
   const [showPayPal, setShowPayPal] = useState(false);
   const [userRole, setUserRole] = useState<string>("parent");
   const [showEducatorPayPal, setShowEducatorPayPal] = useState(false);
+  const [showEditKitPayPal, setShowEditKitPayPal] = useState(false);
   const [showToolkitPayPal, setShowToolkitPayPal] = useState(false);
   const [showSuccess, setShowSuccess] = useState(false);
   const [showSubscriptionSuccess, setShowSubscriptionSuccess] = useState(false);
@@ -487,6 +488,85 @@ const Upgrade = () => {
               onStoriesAdded={() => { refetchCredits(); }}
             />
           </div>
+
+          {/* Edit Kit Package */}
+          <div className="relative rounded-2xl p-[2px] mb-4 overflow-hidden"
+            style={{
+              background: 'linear-gradient(135deg, hsl(150,60%,50%), hsl(200,70%,50%), hsl(150,60%,50%))',
+              backgroundSize: '300% 300%',
+              animation: 'sparkle-border 4s ease-in-out infinite',
+            }}>
+            <div className="bg-[hsl(260,50%,13%)]/95 backdrop-blur-md rounded-[14px] p-4 space-y-3">
+              <div className="flex items-center gap-2">
+                <span className="text-xl">✏️</span>
+                <h3 className="font-black text-sm text-green-200">{EDIT_KIT_PACKAGE.label}</h3>
+              </div>
+              <p className="text-xs text-white/70 leading-relaxed">
+                {EDIT_KIT_PACKAGE.edits} עריכות לסיפורים קיימים. ערכו כמה עמודים שתרצו בכל סשן — רק עריכה אחת תנוכה!
+              </p>
+              <div className="flex items-center justify-between">
+                <div>
+                  <span className="text-xl font-black text-white">₪{EDIT_KIT_PACKAGE.price}</span>
+                  <span className="text-xs text-white/60 mr-1">({EDIT_KIT_PACKAGE.edits} עריכות)</span>
+                </div>
+                <Button
+                  onClick={() => {
+                    if (!user) { navigate("/auth"); return; }
+                    setShowEditKitPayPal(true);
+                  }}
+                  size="sm"
+                  className="bg-gradient-to-r from-green-500 to-teal-500 hover:from-green-600 hover:to-teal-600 text-white font-bold rounded-xl text-xs px-4"
+                >
+                  ✏️ רכשו חבילת עריכות
+                </Button>
+              </div>
+            </div>
+          </div>
+
+          {/* Edit Kit PayPal */}
+          {showEditKitPayPal && (
+            <div className="bg-white/15 backdrop-blur-md rounded-xl border border-green-400/30 p-4 mb-4 shadow-lg">
+              <p className="text-sm font-bold text-white text-center mb-3">
+                {EDIT_KIT_PACKAGE.label} — {EDIT_KIT_PACKAGE.edits} עריכות תמורת ₪{EDIT_KIT_PACKAGE.price}
+              </p>
+              <PayPalButton
+                amount={EDIT_KIT_PACKAGE.price}
+                onSuccess={async () => {
+                  if (!user) return;
+                  try {
+                    await supabase.from('purchases').insert({
+                      user_id: user.id,
+                      package_name: EDIT_KIT_PACKAGE.id,
+                      credits_purchased: 0,
+                      amount_ils: EDIT_KIT_PACKAGE.price,
+                      status: 'completed',
+                    });
+                    // Add edit credits to profile
+                    const { data: profileData } = await supabase.from('profiles').select('free_edits_remaining, free_edits_total').eq('id', user.id).maybeSingle();
+                    await supabase.from('profiles').update({
+                      free_edits_remaining: (profileData?.free_edits_remaining ?? 0) + EDIT_KIT_PACKAGE.edits,
+                      free_edits_total: (profileData?.free_edits_total ?? 0) + EDIT_KIT_PACKAGE.edits,
+                    }).eq('id', user.id);
+                    setShowEditKitPayPal(false);
+                    setPurchasedCredits(0);
+                    setShowSuccess(true);
+                    trackEvent({ eventType: 'feature_used', metadata: { feature: 'edit_kit_purchased', edits: EDIT_KIT_PACKAGE.edits, payment_method: 'paypal' } });
+                    toast.success(`✏️ נוספו ${EDIT_KIT_PACKAGE.edits} עריכות בהצלחה!`);
+                  } catch (error) {
+                    console.error('Edit kit purchase failed:', error);
+                    setShowEditKitPayPal(false);
+                    setShowFailed(true);
+                  }
+                }}
+                onError={() => { setShowEditKitPayPal(false); setShowFailed(true); }}
+                onCancel={() => setShowEditKitPayPal(false)}
+              />
+              <p className="text-center text-white/60 text-[11px] mt-2">💳 ניתן לשלם גם בכרטיס אשראי ללא חשבון פייפאל</p>
+              <button onClick={() => setShowEditKitPayPal(false)} className="w-full text-center text-white/50 text-xs mt-3 hover:text-white/70 transition-colors">
+                ביטול
+              </button>
+            </div>
+          )}
 
           {/* Credit Card Note — glass style */}
           <div className="bg-white/10 backdrop-blur-sm border border-white/15 rounded-xl p-3 mb-4">

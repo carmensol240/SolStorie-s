@@ -28,6 +28,14 @@ export const PRICING_PACKAGES = [
   },
 ] as const;
 
+export const EDIT_KIT_PACKAGE = {
+  id: "edit_kit",
+  edits: 5,
+  price: 9.90,
+  label: "חבילת עריכות",
+  badge: "✏️ לעריכת סיפורים" as string | undefined,
+};
+
 export const EDUCATOR_PACKAGE = {
   id: "educator",
   stories: 25,
