@@ -12,7 +12,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 
 import { useAuth } from "@/hooks/use-auth";
 import { useToast } from "@/hooks/use-toast";
-import solLogo from "@/assets/solstories-logo-full.png";
+// Logo is now text-based with rainbow gradient
 import { useAnalytics } from "@/hooks/use-analytics";
 import { supabase } from "@/integrations/supabase/client";
 import { z } from "zod";
@@ -1054,9 +1054,11 @@ const Auth = () => {
       </div>
 
       <div className="relative z-10 flex-1 flex flex-col items-center justify-center p-4 pb-14 overflow-y-auto">
-        {/* Logo */}
-        <div className="flex justify-center mb-2 animate-fade-in">
-          <img src={solLogo} alt="SolStorie's™" className="w-32 h-32 sm:w-36 sm:h-36 object-contain drop-shadow-lg" />
+        {/* SolStorie's™ Title */}
+        <div className="flex justify-center mb-2 pt-2 animate-fade-in">
+          <h1 className="text-3xl sm:text-4xl font-black logo-3d-bubble">
+            <span className="logo-rainbow">SolStorie's™</span>
+          </h1>
         </div>
 
         {/* Login container - moved closer to logo */}
