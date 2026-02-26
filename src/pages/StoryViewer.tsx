@@ -43,7 +43,7 @@ import PdfFeaturePopup from "@/components/story/PdfFeaturePopup";
 
 import "./StoryViewer.css";
 import { translateTopic } from "@/lib/topic-translations";
-import solMagicBookCover from "@/assets/sol-magic-book-cover.jpg";
+import solMagicBookCover from "@/assets/sol-magic-book-cover.png";
 import castWavingFarewell from "@/assets/cast-waving-farewell.png";
 
 interface StoryPage {
@@ -905,56 +905,36 @@ const StoryViewer = () => {
           )}>
             
             {isCoverPage ? (
-              /* Cover Page - Vertical portrait layout */
-              <div className="flex flex-col h-full bg-[#FFFBF5]">
-                {/* Cover illustration - top 50vh, full width landscape */}
-                <div className="relative w-full shrink-0 overflow-hidden" style={{ height: '50vh' }}>
-                  {story.pages[0]?.illustration_url ? (
-                    <img
-                      src={getPublicIllustrationUrl(story.pages[0].illustration_url) || ''}
-                      alt={`עטיפת הסיפור: ${story.child_name} ב${story.topic}`}
-                      className="w-full h-full object-cover"
-                      loading="eager"
-                    />
-                  ) : (
-                    <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-purple-100 to-pink-100">
-                      <MissingIllustrationPrompt
-                        pageId={story.pages[0].id}
-                        isRetrying={retryingPageId === story.pages[0].id}
-                        isGenerating={generationStatus !== 'ready'}
-                        showPromptInput={showPromptInput === story.pages[0].id}
-                        customPromptText={customPromptText}
-                        onTogglePrompt={() => {
-                          setShowPromptInput(showPromptInput === story.pages[0].id ? null : story.pages[0].id);
-                          setCustomPromptText('');
-                        }}
-                        onPromptChange={setCustomPromptText}
-                        onSubmit={handleRetryIllustration}
-                        aspectClass="w-full h-full"
-                      />
-                    </div>
-                  )}
-                  <div className="page-curl-corner bottom-right" />
-                </div>
+              /* Cover Page - Sol with magical book as full background */
+              <div className="relative flex flex-col h-full">
+                {/* Full background image */}
+                <img
+                  src={solMagicBookCover}
+                  alt="סול עם הספר הקסום"
+                  className="absolute inset-0 w-full h-full object-cover"
+                  loading="eager"
+                />
+                {/* Dark gradient overlay for text readability */}
+                <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent" />
                 
-                {/* Title & summary area */}
-                <div className="flex-1 min-h-0 paper-texture flex flex-col items-center text-center p-4 md:p-6 overflow-y-auto">
-                  <div className="space-y-2 flex-shrink-0">
-                    <h1 className="text-xl md:text-3xl font-black text-[#3D2914] leading-tight" style={{ fontFamily: "'Heebo', 'Comic Sans MS', cursive, sans-serif" }}>
-                      הסיפור של
+                {/* Content overlay at bottom */}
+                <div className="relative z-10 mt-auto flex flex-col items-center text-center px-6 pb-8 pt-4">
+                  <div className="space-y-2">
+                    <h1 className="text-xl md:text-3xl font-black text-white leading-tight drop-shadow-lg" style={{ fontFamily: "'Heebo', 'Comic Sans MS', cursive, sans-serif" }}>
+                      הַסִּפּוּר שֶׁל
                       <br />
-                      <span className="text-2xl md:text-4xl bg-gradient-to-r from-purple-600 via-pink-500 to-orange-400 bg-clip-text text-transparent">
+                      <span className="text-2xl md:text-4xl bg-gradient-to-r from-purple-300 via-pink-300 to-orange-300 bg-clip-text text-transparent drop-shadow-lg">
                         {story.child_name}
                       </span>
                     </h1>
                     
                     <div className="flex items-center justify-center gap-3">
-                      <div className="w-10 h-0.5 bg-gradient-to-r from-transparent to-pink-400 rounded-full" />
+                      <div className="w-10 h-0.5 bg-gradient-to-r from-transparent to-pink-300 rounded-full" />
                       <span className="text-lg">✨</span>
-                      <div className="w-10 h-0.5 bg-gradient-to-l from-transparent to-pink-400 rounded-full" />
+                      <div className="w-10 h-0.5 bg-gradient-to-l from-transparent to-pink-300 rounded-full" />
                     </div>
                     
-                    <p className="text-sm md:text-base text-[#6B4423] max-w-sm mx-auto font-medium leading-relaxed">
+                    <p className="text-sm md:text-base text-white/90 max-w-sm mx-auto font-medium leading-relaxed drop-shadow-md">
                       {translateTopic(story.topic, story.language)}
                     </p>
                   </div>
@@ -965,8 +945,12 @@ const StoryViewer = () => {
                     className="mt-4 shrink-0 bg-gradient-to-r from-purple-600 to-pink-500 hover:from-purple-700 hover:to-pink-600 text-white font-bold px-6 py-3 text-sm md:text-base rounded-full shadow-xl hover:shadow-2xl transition-all transform hover:scale-105 border-2 border-white/50"
                   >
                     <BookOpen className="w-4 h-4 ml-2" />
-                    פתח את הספר 📖
+                    פִּתְחוּ אֶת הַסֵּפֶר 📖
                   </Button>
+                  
+                  <span dir="ltr" className="mt-3 text-xs text-white/60 font-medium logo-3d-bubble">
+                    <span className="logo-rainbow">SolStorie's™</span>
+                  </span>
                 </div>
               </div>
 
