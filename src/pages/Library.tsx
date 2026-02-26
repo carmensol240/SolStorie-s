@@ -51,11 +51,6 @@ const Library = () => {
   const { avatarUrl } = useChildAvatar();
   const [stories, setStories] = useState<Story[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [filters, setFilters] = useState<FilterState>({
-    ageRange: null,
-    theme: null,
-    storyType: null,
-  });
   const [editingStory, setEditingStory] = useState<Story | null>(null);
   const [genderSwapStory, setGenderSwapStory] = useState<Story | null>(null);
   
