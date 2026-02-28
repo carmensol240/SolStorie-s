@@ -96,8 +96,6 @@ const StoryViewer = () => {
   const [currentPage, setCurrentPage] = useState(-1);
   const [isLoading, setIsLoading] = useState(true);
   const [isFlipping, setIsFlipping] = useState(false);
-  const [flipDirection, setFlipDirection] = useState<'next' | 'prev'>('next');
-  const [flipPhase, setFlipPhase] = useState<'idle' | 'out' | 'in'>('idle');
   const [isDrawingMode, setIsDrawingMode] = useState(false);
   const [fontSizeIndex, setFontSizeIndex] = useState(2);
   const [isEditingPage, setIsEditingPage] = useState(false);
@@ -447,9 +445,7 @@ const StoryViewer = () => {
   // Page change is now handled by handleSpreadChange defined later
   // Keep this for legacy compatibility but it's no longer the primary navigation
   const handlePageChange = (direction: 'next' | 'prev') => {
-    // This will be overridden by spread navigation in the render
     if (isFlipping) return;
-    setFlipDirection(direction);
     setIsFlipping(true);
     setTimeout(() => {
       if (direction === 'next') {
@@ -839,20 +835,17 @@ const StoryViewer = () => {
   // 0 = illustration + text, 1 = text-only
   const contentPageOffset = isContentPage ? (currentPage - 1) % 2 : -1;
 
-  // Page navigation with gentle fade transition
+  // Page navigation with simple fade transition
   const handlePageNav = (direction: 'next' | 'prev') => {
     if (isFlipping) return;
     
-    const maxPage = totalStoryPages + 2; // end page index
+    const maxPage = totalStoryPages + 2;
     
     if (direction === 'next' && currentPage >= maxPage) return;
     if (direction === 'prev' && currentPage <= -1) return;
     
-    setFlipDirection(direction);
     setIsFlipping(true);
-    setFlipPhase('out');
     
-    // After flip-out (350ms), change page and flip-in
     setTimeout(() => {
       if (direction === 'next' && currentPage < maxPage) {
         const newPage = currentPage + 1;
@@ -866,14 +859,8 @@ const StoryViewer = () => {
         setCurrentPage(currentPage - 1);
         window.scrollTo(0, 0);
       }
-      setFlipPhase('in');
-      
-      // After flip-in animation completes (350ms)
-      setTimeout(() => {
-        setFlipPhase('idle');
-        setIsFlipping(false);
-      }, 350);
-    }, 350);
+      setIsFlipping(false);
+    }, 300);
   };
 
   return (
@@ -913,11 +900,8 @@ const StoryViewer = () => {
           <div className={cn(
             "relative flex-1 min-h-0 flex flex-col rounded-xl overflow-hidden",
             "shadow-[0_8px_40px_rgba(0,0,0,0.12),0_0_0_1px_rgba(168,85,247,0.15)]",
-            "book-page-flip",
-            flipPhase === 'out' && flipDirection === 'next' && "flip-out-next",
-            flipPhase === 'out' && flipDirection === 'prev' && "flip-out-prev",
-            flipPhase === 'in' && flipDirection === 'next' && "flip-in-next",
-            flipPhase === 'in' && flipDirection === 'prev' && "flip-in-prev",
+            "transition-opacity duration-300",
+            isFlipping ? "opacity-0" : "opacity-100",
           )}>
             
             {isCoverPage ? (
@@ -970,7 +954,7 @@ const StoryViewer = () => {
 
             ) : isDedicationPage ? (
               /* Dedication Page — Rainbow background with personalized dedication */
-              <div className="relative flex-1 flex flex-col items-center justify-center text-center h-full px-8 py-12" style={{ background: RAINBOW_BG }}>
+              <div className="relative flex-1 flex flex-col items-center justify-start pt-12 text-center h-full px-8 py-12" style={{ background: RAINBOW_BG }}>
                 <div className="space-y-6 max-w-md mx-auto">
                   <span className="text-5xl">🦄</span>
                   <div className="space-y-3">
