@@ -154,6 +154,9 @@ const TopicStep = ({ formData, updateFormData }: TopicStepProps) => {
             const isExpanded = expandedSections.has(section.id);
             const visibleTopics = isExpanded ? section.topics : section.topics.slice(0, 2);
 
+            // Find featured topics to show at top
+            const featuredTopics = section.topics.filter(t => t.featured);
+
             return (
               <div key={section.id} className="space-y-3">
                 {/* Banner */}
@@ -176,9 +179,43 @@ const TopicStep = ({ formData, updateFormData }: TopicStepProps) => {
                   </div>
                 </button>
 
+                {/* Featured topics (always visible, highlighted) */}
+                {featuredTopics.length > 0 && !isExpanded && (
+                  <div className="space-y-2">
+                    {featuredTopics.map((topic) => (
+                      <button
+                        key={topic.id}
+                        onClick={() => handleTopicSelect(topic)}
+                        className={cn(
+                          "w-full rounded-xl overflow-hidden border-2 bg-gradient-to-l from-red-50 to-orange-50 dark:from-red-950/20 dark:to-orange-950/20 hover:shadow-lg transition-all text-right flex items-center gap-3",
+                          formData.topic === topic.id ? "border-red-500 shadow-lg ring-2 ring-red-300" : "border-red-200 dark:border-red-800"
+                        )}
+                      >
+                        <div className="h-20 w-24 flex-shrink-0">
+                          <img src={topic.image} alt={topic.label} className="w-full h-full object-cover rounded-r-xl" loading="lazy" />
+                        </div>
+                        <div className="flex-1 py-2 pr-1 pl-3">
+                          <div className="flex items-center gap-1.5">
+                            <span className="text-red-500 text-lg font-black">*</span>
+                            <h3 className="text-sm font-black text-foreground leading-tight">{topic.label}</h3>
+                          </div>
+                          <p className="text-[10px] text-muted-foreground mt-1 line-clamp-2">{topic.description}</p>
+                        </div>
+                        {formData.topic === topic.id && (
+                          <div className="pl-2 pr-3">
+                            <div className="w-5 h-5 bg-gradient-to-r from-red-500 to-orange-500 rounded-full flex items-center justify-center">
+                              <span className="text-white text-xs">✓</span>
+                            </div>
+                          </div>
+                        )}
+                      </button>
+                    ))}
+                  </div>
+                )}
+
                 {/* Topics grid */}
                 <div className="grid grid-cols-2 gap-3">
-                  {visibleTopics.map((topic) => (
+                  {visibleTopics.filter(t => !t.featured || isExpanded).map((topic) => (
                     <SimpleTile key={topic.id} topic={topic} isSelected={formData.topic === topic.id} onSelect={() => handleTopicSelect(topic)} />
                   ))}
                 </div>

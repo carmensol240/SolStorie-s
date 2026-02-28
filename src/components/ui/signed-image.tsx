@@ -77,15 +77,25 @@ export const SignedImage = ({
 
   return (
     <div className={cn('relative overflow-hidden', className)} role="img" aria-label={effectiveAlt}>
-      {/* Loading placeholder with animated gradient */}
+      {/* Loading placeholder with heart-shield illustration */}
       {!imageLoaded && !hasError && (
         <div className={cn('absolute inset-0 flex items-center justify-center', className)} aria-hidden="true">
-          <div className="absolute inset-0 bg-gradient-to-br from-purple-100 via-pink-50 to-orange-50 animate-pulse" />
-          <div className="relative z-10 text-center text-purple-400">
-            <svg className="w-10 h-10 mx-auto mb-1 animate-spin opacity-40" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-              <path d="M12 2v4m0 12v4m-7.07-3.93l2.83-2.83m8.49-8.49l2.83-2.83M2 12h4m12 0h4M4.93 4.93l2.83 2.83m8.49 8.49l2.83 2.83" />
+          <div className="absolute inset-0 bg-gradient-to-br from-[#FFFBF5] via-[#F5E6D3] to-[#FAF3E8]" />
+          <div className="relative z-10 text-center">
+            {/* Heart-shaped shield placeholder */}
+            <svg className="w-16 h-16 mx-auto mb-2 opacity-30" viewBox="0 0 64 64" fill="none">
+              {/* Shield shape */}
+              <path d="M32 6 L54 16 L54 32 C54 44 44 54 32 58 C20 54 10 44 10 32 L10 16 Z" fill="url(#shieldGrad)" stroke="#C4A882" strokeWidth="1.5"/>
+              {/* Heart inside shield */}
+              <path d="M32 44 C26 38 20 34 20 28 C20 24 23 22 26 22 C28.5 22 30.5 23.5 32 25.5 C33.5 23.5 35.5 22 38 22 C41 22 44 24 44 28 C44 34 38 38 32 44Z" fill="#E8B4B8" opacity="0.7"/>
+              <defs>
+                <linearGradient id="shieldGrad" x1="10" y1="6" x2="54" y2="58">
+                  <stop offset="0%" stopColor="#D4B896" stopOpacity="0.3"/>
+                  <stop offset="100%" stopColor="#C4A070" stopOpacity="0.2"/>
+                </linearGradient>
+              </defs>
             </svg>
-            <p className="text-xs">טוען...</p>
+            <p className="text-xs text-[#8B7355] font-serif opacity-50">טוען איור...</p>
           </div>
         </div>
       )}

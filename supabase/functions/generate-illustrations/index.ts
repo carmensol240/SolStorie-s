@@ -17,11 +17,13 @@ const ADVENTURE_TOPICS = new Set([
 
 const SOL_CASUAL_URL = "https://xqoxoxxlyfimlbekfjxo.supabase.co/storage/v1/object/public/character-assets/sol%20casual.png";
 const SOL_HERO_URL   = "https://xqoxoxxlyfimlbekfjxo.supabase.co/storage/v1/object/public/character-assets/sol%20hero.png";
+const MOM_CARMEN_URL = "https://xqoxoxxlyfimlbekfjxo.supabase.co/storage/v1/object/public/character-assets/mom-carmen.jpeg";
 const CHARACTER_BASE_REFS = [
   "https://xqoxoxxlyfimlbekfjxo.supabase.co/storage/v1/object/public/character-assets/ben.jpeg",
   "https://xqoxoxxlyfimlbekfjxo.supabase.co/storage/v1/object/public/character-assets/zoe.jpeg",
   "https://xqoxoxxlyfimlbekfjxo.supabase.co/storage/v1/object/public/character-assets/leo.jpeg",
   "https://xqoxoxxlyfimlbekfjxo.supabase.co/storage/v1/object/public/character-assets/mia.jpeg",
+  MOM_CARMEN_URL,
 ];
 
 function buildCharacterRefs(topic: string) {
@@ -225,6 +227,7 @@ Reference images of each cast character are provided above. You MUST match their
 - Image 3 (Zoe): dark brown skin, afro with light blue headband, purple-yellow tracksuit
 - Image 4 (Leo): round glasses, straight black hair, denim overalls
 - Image 5 (Mia): smooth brown bob, flower crown, emerald green dress
+- Image 6 (Mom Carmen — Sol & Ben's mother): warm medium olive skin, long wavy dark brown hair past shoulders, long-sleeved blue shirt, jeans. She is ALWAYS depicted with the SAME clothing and hairstyle across all illustrations. She is loving, calm, and protective.
 ZERO INVENTION: Do not add random characters not shown in these references. If multiple cast characters appear in the story text, ALL of them must appear together in the same scene.
 
 SCENE TO ILLUSTRATE: ${prompt}
@@ -411,8 +414,12 @@ const THEME_OUTFITS: Record<string, { outfit: string; background: string; theme:
     background: "scenic nature landscape",
     theme: "family adventure"
   },
+  "safe-room-sirens": {
+    outfit: "cozy pajamas or comfortable home clothes",
+    background: "a safe room (mamad) with warm blankets, pillows, family together, soft warm light",
+    theme: "calming safety and family togetherness during sirens"
+  },
 };
-
 serve(async (req) => {
   console.log("=== generate-illustrations function called ===");
   
