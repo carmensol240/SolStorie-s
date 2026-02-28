@@ -207,7 +207,7 @@ NEGATIVE: No UI elements, no buttons, no watermarks, no text beyond the story ti
             }
             if (imageUrl) break;
           }
-          console.warn(`PuLID cover attempt ${attempt}: no image`);
+          console.warn(`Instant Character cover attempt ${attempt}: no image`);
           if (attempt < MAX_ATTEMPTS) { await new Promise(r => setTimeout(r, 3000)); continue; }
         } catch (fetchErr) {
           console.error(`PuLID cover attempt ${attempt} error:`, fetchErr);
