@@ -96,8 +96,6 @@ const StoryViewer = () => {
   const [currentPage, setCurrentPage] = useState(-1);
   const [isLoading, setIsLoading] = useState(true);
   const [isFlipping, setIsFlipping] = useState(false);
-  const [flipDirection, setFlipDirection] = useState<'next' | 'prev'>('next');
-  const [flipPhase, setFlipPhase] = useState<'idle' | 'out' | 'in'>('idle');
   const [isDrawingMode, setIsDrawingMode] = useState(false);
   const [fontSizeIndex, setFontSizeIndex] = useState(2);
   const [isEditingPage, setIsEditingPage] = useState(false);
