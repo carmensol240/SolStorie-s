@@ -285,7 +285,7 @@ async function generateIllustration(
 
     const fullPrompt = `${stylePrefix}\n\n${visualAnchor}\n\n${characterInstruction}\n${adventureInstruction}\n\nSCENE: ${prompt}\n\nNEGATIVE: ${negativePrompt}`;
 
-    console.log("Generating illustration via Fal.ai Flux Schnell (no photo ref)...");
+    console.log("Generating illustration via Fal.ai Flux Schnell (no photo, text-only fallback)...");
 
     const response = await fetch("https://fal.run/fal-ai/flux/schnell", {
       method: "POST",
