@@ -414,8 +414,12 @@ const THEME_OUTFITS: Record<string, { outfit: string; background: string; theme:
     background: "scenic nature landscape",
     theme: "family adventure"
   },
+  "safe-room-sirens": {
+    outfit: "cozy pajamas or comfortable home clothes",
+    background: "a safe room (mamad) with warm blankets, pillows, family together, soft warm light",
+    theme: "calming safety and family togetherness during sirens"
+  },
 };
-
 serve(async (req) => {
   console.log("=== generate-illustrations function called ===");
   
