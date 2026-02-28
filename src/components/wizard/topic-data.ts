@@ -68,6 +68,7 @@ export interface TopicItem {
   image: string;
   ageRange: string;
   keywords?: string[];
+  featured?: boolean;
 }
 
 export interface CharacterSection {
