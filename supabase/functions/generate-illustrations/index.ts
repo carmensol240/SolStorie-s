@@ -568,7 +568,7 @@ serve(async (req) => {
         
         console.warn(`⚠️ Page ${page.page_number} attempt ${attempt}/${MAX_RETRIES} failed, ${attempt < MAX_RETRIES ? 'retrying...' : 'giving up'}`);
         if (attempt < MAX_RETRIES) {
-          await new Promise(r => setTimeout(r, 3000));
+          await new Promise(r => setTimeout(r, 1000));
         }
       }
 
