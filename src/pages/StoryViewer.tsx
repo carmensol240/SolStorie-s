@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef, useCallback } from "react";
+import { useState, useEffect, useRef, useCallback, useMemo } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { Home, BookOpen, Sparkles, Palette, Wand2, RefreshCw, Loader2, ImageOff, Star, Send, ChevronRight, ChevronLeft } from "lucide-react";
 import { MissingIllustrationPrompt } from "@/components/story/MissingIllustrationPrompt";
