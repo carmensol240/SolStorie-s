@@ -104,12 +104,20 @@ serve(async (req) => {
 
       const photoPath = child?.avatar_url || child?.photo_url;
       if (photoPath) {
-        const { data: signedData } = await supabase.storage
-          .from("child-photos")
-          .createSignedUrl(photoPath, 600);
-        if (signedData?.signedUrl) {
-          childPhotoSignedUrl = signedData.signedUrl;
-          console.log(`🖼️ Child photo found — personalizing cover`);
+        if (photoPath.startsWith("http")) {
+          childPhotoSignedUrl = photoPath;
+          console.log(`🖼️ Child photo (HTTP URL) found — personalizing cover`);
+        } else if (photoPath.startsWith("data:")) {
+          childPhotoSignedUrl = photoPath;
+          console.log(`🖼️ Child photo (data URI) found — personalizing cover`);
+        } else {
+          const { data: signedData } = await supabase.storage
+            .from("child-photos")
+            .createSignedUrl(photoPath, 600);
+          if (signedData?.signedUrl) {
+            childPhotoSignedUrl = signedData.signedUrl;
+            console.log(`🖼️ Child photo (storage path) found — personalizing cover`);
+          }
         }
       }
     }
