@@ -85,6 +85,35 @@ serve(async (req) => {
 
     console.log(`Generating cover for story ${storyId}, topic: ${topic}, title: ${title}`);
 
+    // Look up story to find child info
+    const { data: story } = await supabase
+      .from("stories")
+      .select("child_name, user_id")
+      .eq("id", storyId)
+      .maybeSingle();
+
+    // Check if child has a photo for personalized cover
+    let childPhotoSignedUrl: string | null = null;
+    if (story?.user_id && story?.child_name) {
+      const { data: child } = await supabase
+        .from("children")
+        .select("avatar_url, photo_url")
+        .eq("user_id", story.user_id)
+        .eq("name", story.child_name)
+        .maybeSingle();
+
+      const photoPath = child?.avatar_url || child?.photo_url;
+      if (photoPath) {
+        const { data: signedData } = await supabase.storage
+          .from("child-photos")
+          .createSignedUrl(photoPath, 600);
+        if (signedData?.signedUrl) {
+          childPhotoSignedUrl = signedData.signedUrl;
+          console.log(`🖼️ Child photo found — personalizing cover`);
+        }
+      }
+    }
+
     const setting = getSettingForTopic(topic || "");
     const isHebrew = language === "he" || !language;
     const fontLanguage = isHebrew ? "Hebrew" : "English";
@@ -96,6 +125,138 @@ serve(async (req) => {
     const sol = getSolUrl(topic || "");
     console.log(`Sol variant: ${sol.label} for topic "${topic}"`);
 
+    // If child photo exists, use PuLID for personalized cover
+    if (childPhotoSignedUrl) {
+      const FAL_KEY = Deno.env.get("FAL_KEY");
+      if (!FAL_KEY) {
+        return new Response(JSON.stringify({ error: "FAL_KEY not configured" }), {
+          status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+
+      const personalizedCoverPrompt = `In the style of modern 3D Disney-Pixar animation, 8K resolution, soft cinematic lighting, vibrant harmonious colors. Portrait orientation.
+
+MAIN CHARACTER: The child from the reference image is the HERO and FOCAL POINT. Their facial features, hair, and skin tone MUST match the reference photo exactly, rendered in beautiful 3D Pixar style. They stand center-front with a warm, confident smile.
+
+SECONDARY CHARACTERS (keep them smaller, flanking the main character):
+- Ben: toddler with very curly dark hair, warm tan skin, light green shirt — SMALLEST
+- Zoe: dark brown skin, voluminous afro with light blue headband, purple-yellow tracksuit
+- Leo: straight black hair, round glasses, denim overalls
+- Mia: smooth brown bob, small flower crown, emerald green dress
+
+SETTING: ${setting}
+
+TITLE TEXT: Display "${displayTitle}" prominently at the top in a large, clear, child-friendly ${fontLanguage} font. Bold, legible, naturally integrated as a children's book cover title.
+
+COMPOSITION: Book cover layout. The personalized main character is LARGEST and center. Cast flanks them. Title occupies upper portion.
+
+NEGATIVE: No UI elements, no buttons, no watermarks, no text beyond the story title. No floating heads, no missing bodies, no extra limbs, no deformed characters. All characters FULL BODY head to toe with feet VISIBLE and GROUNDED.`;
+
+      let imageUrl: string | null = null;
+      const MAX_ATTEMPTS = 2;
+
+      for (let attempt = 1; attempt <= MAX_ATTEMPTS; attempt++) {
+        try {
+          console.log(`PuLID cover attempt ${attempt}/${MAX_ATTEMPTS}...`);
+          const response = await fetch("https://fal.run/fal-ai/flux-pulid", {
+            method: "POST",
+            signal: AbortSignal.timeout(60_000),
+            headers: {
+              Authorization: `Key ${FAL_KEY}`,
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+              prompt: personalizedCoverPrompt,
+              reference_image_url: childPhotoSignedUrl,
+              image_size: "portrait_4_3",
+              num_inference_steps: 20,
+              guidance_scale: 4,
+              id_weight: 0.7,
+              num_images: 1,
+              enable_safety_checker: true,
+            }),
+          });
+
+          if (!response.ok) {
+            console.error(`PuLID cover attempt ${attempt} failed:`, response.status);
+            if (attempt < MAX_ATTEMPTS) { await new Promise(r => setTimeout(r, 3000)); continue; }
+            // Fall through to Gemini path below
+            break;
+          }
+
+          const data = await response.json();
+          const falImageUrl = data.images?.[0]?.url;
+
+          if (falImageUrl) {
+            // Download and convert
+            const imgResponse = await fetch(falImageUrl);
+            if (imgResponse.ok) {
+              const imgBuffer = new Uint8Array(await imgResponse.arrayBuffer());
+              const chunks: string[] = [];
+              for (let i = 0; i < imgBuffer.length; i += 512) {
+                const end = Math.min(i + 512, imgBuffer.length);
+                let chunk = '';
+                for (let j = i; j < end; j++) {
+                  chunk += String.fromCharCode(imgBuffer[j]);
+                }
+                chunks.push(chunk);
+              }
+              imageUrl = `data:image/png;base64,${btoa(chunks.join(''))}`;
+            }
+            if (imageUrl) break;
+          }
+          console.warn(`PuLID cover attempt ${attempt}: no image`);
+          if (attempt < MAX_ATTEMPTS) { await new Promise(r => setTimeout(r, 3000)); continue; }
+        } catch (fetchErr) {
+          console.error(`PuLID cover attempt ${attempt} error:`, fetchErr);
+          if (attempt < MAX_ATTEMPTS) { await new Promise(r => setTimeout(r, 3000)); continue; }
+        }
+      }
+
+      // If PuLID succeeded, upload and return
+      if (imageUrl) {
+        const base64Content = imageUrl.includes(",") ? imageUrl.split(",")[1] : imageUrl;
+        const binaryString = atob(base64Content);
+        const bytes = new Uint8Array(binaryString.length);
+        for (let i = 0; i < binaryString.length; i++) {
+          bytes[i] = binaryString.charCodeAt(i);
+        }
+
+        const filePath = `${storyId}/cover.png`;
+        const { error: uploadError } = await supabase.storage
+          .from("story-illustrations")
+          .upload(filePath, bytes, { contentType: "image/png", upsert: true });
+
+        if (uploadError) {
+          console.error("Cover upload error:", uploadError);
+          return new Response(JSON.stringify({ error: "Cover upload failed" }), {
+            status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" },
+          });
+        }
+
+        const { data: publicUrlData } = supabase.storage
+          .from("story-illustrations")
+          .getPublicUrl(filePath);
+
+        const fullCoverUrl = publicUrlData.publicUrl;
+
+        await supabase
+          .from("stories")
+          .update({ cover_url: fullCoverUrl })
+          .eq("id", storyId);
+
+        console.log(`✅ Personalized cover generated via PuLID for story ${storyId}`);
+
+        return new Response(
+          JSON.stringify({ success: true, coverUrl: fullCoverUrl }),
+          { headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        );
+      }
+
+      console.warn("PuLID cover failed, falling back to Gemini cover generation");
+    }
+
+    // === FALLBACK / DEFAULT: Gemini-based cover with Sol character ===
     const solDescription = sol.label === "Sol hero"
       ? "Sol in her adventure/fantasy outfit — match EXACTLY from the provided reference image"
       : "Sol in her everyday casual look — warm tan skin, long dark brown hair in high ponytail with pink band, bright yellow dress — match EXACTLY from the provided reference image";
@@ -150,7 +311,7 @@ EXCLUDE / NEGATIVE PROMPT: No UI elements, no buttons, no audio icons, no play b
 
     for (let attempt = 1; attempt <= MAX_ATTEMPTS; attempt++) {
       try {
-        console.log(`Cover generation attempt ${attempt}/${MAX_ATTEMPTS}...`);
+        console.log(`Gemini cover attempt ${attempt}/${MAX_ATTEMPTS}...`);
         const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
           method: "POST",
           signal: AbortSignal.timeout(120_000),

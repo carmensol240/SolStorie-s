@@ -649,24 +649,52 @@ serve(async (req) => {
     // Flux Schnell is fast — 1s delay between pages to avoid rate limiting
     console.log(`Generating ${pagesToIllustrate.length} illustrations sequentially via Fal.ai Flux Schnell...`);
 
+    // Resolve signed URL for child photo (needed for PuLID which requires HTTP URL)
+    let childPhotoSignedUrl: string | null = null;
+    if (effectivePhoto) {
+      // effectivePhoto might be a storage path or already a signed/public URL
+      if (effectivePhoto.startsWith("http")) {
+        childPhotoSignedUrl = effectivePhoto;
+      } else {
+        const { data: signedData } = await supabase.storage
+          .from("child-photos")
+          .createSignedUrl(effectivePhoto, 3600);
+        childPhotoSignedUrl = signedData?.signedUrl || null;
+      }
+      if (childPhotoSignedUrl) {
+        console.log(`🖼️ Child photo available — will use Flux PuLID for face-consistent illustrations`);
+      }
+    }
+
     for (const page of pagesToIllustrate) {
       console.log(`Generating illustration for page ${page.page_number}...`);
       
-      // Auto-retry up to 3 times for each page
       let base64Image: string | null = null;
       const MAX_RETRIES = 3;
       
       for (let attempt = 1; attempt <= MAX_RETRIES; attempt++) {
-        base64Image = await generateIllustration(
-          page.illustration_prompt || `A cheerful children's book illustration for page ${page.page_number}`,
-          effectivePhoto,
-          characterProfile,
-          LOVABLE_API_KEY,
-          storyOutfit,
-          visualAnchor,
-          effectiveAdventureLogic,
-          topic
-        );
+        // Branch: use PuLID when child photo exists, Schnell otherwise
+        if (childPhotoSignedUrl) {
+          base64Image = await generateIllustrationWithFace(
+            page.illustration_prompt || `A cheerful children's book illustration for page ${page.page_number}`,
+            childPhotoSignedUrl,
+            characterProfile,
+            storyOutfit,
+            visualAnchor,
+            effectiveAdventureLogic,
+          );
+        } else {
+          base64Image = await generateIllustration(
+            page.illustration_prompt || `A cheerful children's book illustration for page ${page.page_number}`,
+            effectivePhoto,
+            characterProfile,
+            LOVABLE_API_KEY,
+            storyOutfit,
+            visualAnchor,
+            effectiveAdventureLogic,
+            topic
+          );
+        }
         
         if (base64Image) {
           if (attempt > 1) console.log(`✅ Page ${page.page_number} succeeded on retry ${attempt}`);
