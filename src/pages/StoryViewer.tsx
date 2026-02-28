@@ -1065,12 +1065,24 @@ const StoryViewer = () => {
                     </div>
                   ) : currentVirtual.illustrationPrompt ? (
                     /* Illustration generating — skeleton */
-                    <div className="relative w-full h-full overflow-hidden bg-gradient-to-br from-[#FFFBF5] via-[#F5E6D3] to-[#FAF3E8] flex items-center justify-center animate-pulse">
-                      <div className="text-center space-y-3">
-                        <div className="w-16 h-16 mx-auto rounded-full bg-gradient-to-br from-purple-200 via-pink-200 to-orange-200 flex items-center justify-center animate-pulse">
-                          <span className="text-3xl">🎨</span>
+                    <div className="relative w-full h-full overflow-hidden bg-gradient-to-br from-[#FFF8F0] via-[#F5E6D3] to-[#FAF3E8] flex items-center justify-center">
+                      {/* Animated painting effect */}
+                      <div className="absolute inset-0 opacity-20">
+                        <div className="absolute top-1/4 left-1/4 w-32 h-32 rounded-full bg-purple-200 animate-pulse" style={{ animationDelay: '0s', animationDuration: '2s' }} />
+                        <div className="absolute top-1/2 right-1/4 w-24 h-24 rounded-full bg-pink-200 animate-pulse" style={{ animationDelay: '0.5s', animationDuration: '2.5s' }} />
+                        <div className="absolute bottom-1/4 left-1/3 w-28 h-28 rounded-full bg-orange-200 animate-pulse" style={{ animationDelay: '1s', animationDuration: '3s' }} />
+                      </div>
+                      <div className="relative z-10 text-center space-y-4">
+                        <div className="relative w-20 h-20 mx-auto">
+                          <div className="absolute inset-0 rounded-full bg-gradient-to-br from-purple-300 via-pink-300 to-orange-300 animate-spin" style={{ animationDuration: '3s' }} />
+                          <div className="absolute inset-1 rounded-full bg-white/90 flex items-center justify-center">
+                            <span className="text-3xl">🎨</span>
+                          </div>
                         </div>
-                        <p className="text-sm text-[#8B7355] font-medium">האיור נוצר...</p>
+                        <div className="space-y-1">
+                          <p className="text-sm font-semibold text-[#6B4423]" dir="rtl">מכינים איור קסום...</p>
+                          <p className="text-xs text-[#8B7355]/70" dir="rtl">רק עוד רגע ✨</p>
+                        </div>
                       </div>
                     </div>
                   ) : null
