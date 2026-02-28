@@ -104,16 +104,19 @@ serve(async (req) => {
       .eq("name", story.child_name)
       .maybeSingle();
 
-    if (child?.avatar_url) {
-      const { data: signedData } = await supabase.storage
-        .from("child-photos")
-        .createSignedUrl(child.avatar_url, 600);
-      if (signedData?.signedUrl) childPhoto = signedData.signedUrl;
-    } else if (child?.photo_url) {
-      const { data: signedData } = await supabase.storage
-        .from("child-photos")
-        .createSignedUrl(child.photo_url, 600);
-      if (signedData?.signedUrl) childPhoto = signedData.signedUrl;
+    const photoPath = child?.avatar_url || child?.photo_url;
+    if (photoPath) {
+      if (photoPath.startsWith("http")) {
+        childPhoto = photoPath;
+      } else if (photoPath.startsWith("data:")) {
+        childPhoto = photoPath;  // PuLID accepts base64 data URIs directly
+        console.log(`🖼️ Child photo is a data URI — passing directly to PuLID`);
+      } else {
+        const { data: signedData } = await supabase.storage
+          .from("child-photos")
+          .createSignedUrl(photoPath, 600);
+        if (signedData?.signedUrl) childPhoto = signedData.signedUrl;
+      }
     }
 
     // Select correct Sol variant based on story topic
