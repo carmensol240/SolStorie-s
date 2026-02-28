@@ -837,20 +837,17 @@ const StoryViewer = () => {
   // 0 = illustration + text, 1 = text-only
   const contentPageOffset = isContentPage ? (currentPage - 1) % 2 : -1;
 
-  // Page navigation with gentle fade transition
+  // Page navigation with simple fade transition
   const handlePageNav = (direction: 'next' | 'prev') => {
     if (isFlipping) return;
     
-    const maxPage = totalStoryPages + 2; // end page index
+    const maxPage = totalStoryPages + 2;
     
     if (direction === 'next' && currentPage >= maxPage) return;
     if (direction === 'prev' && currentPage <= -1) return;
     
-    setFlipDirection(direction);
     setIsFlipping(true);
-    setFlipPhase('out');
     
-    // After flip-out (350ms), change page and flip-in
     setTimeout(() => {
       if (direction === 'next' && currentPage < maxPage) {
         const newPage = currentPage + 1;
@@ -864,14 +861,8 @@ const StoryViewer = () => {
         setCurrentPage(currentPage - 1);
         window.scrollTo(0, 0);
       }
-      setFlipPhase('in');
-      
-      // After flip-in animation completes (350ms)
-      setTimeout(() => {
-        setFlipPhase('idle');
-        setIsFlipping(false);
-      }, 350);
-    }, 350);
+      setIsFlipping(false);
+    }, 300);
   };
 
   return (
