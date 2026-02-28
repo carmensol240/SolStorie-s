@@ -59,6 +59,7 @@ import topicFlyingVacation from "@/assets/topic-flying-vacation.jpg";
 import topicEnvironment from "@/assets/topic-environment.jpg";
 import topicMagicKeys from "@/assets/topic-magic-keys.jpg";
 import topicEducationalToolbox from "@/assets/topic-educational-toolbox.jpeg";
+import topicSafeRoom from "@/assets/topic-safe-room.jpg";
 
 export interface TopicItem {
   id: string;
