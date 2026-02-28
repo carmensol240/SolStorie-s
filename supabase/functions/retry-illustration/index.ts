@@ -132,7 +132,7 @@ serve(async (req) => {
       });
     }
 
-    const stylePrefix = `In the style of modern 3D Disney-Pixar animation, high resolution, magical atmosphere, warm glowing light. Characters with large expressive eyes, detailed hair, soft textures. ALWAYS show characters FULL BODY from head to toe with feet VISIBLE and GROUNDED. Frame with generous margin — character fully contained, never cropped.`;
+    const stylePrefix = `3D DISNEY PIXAR STYLE, cute, cinematic lighting, vibrant colors, full screen uncropped. Like Coco, Encanto, Inside Out. Characters with large expressive eyes, detailed hair, soft textures. ALWAYS show characters FULL BODY from head to toe with feet VISIBLE and GROUNDED. Frame with generous margin — character fully contained, never cropped.`;
 
     const negativePrompt = `floating head, missing body, missing limbs, extra limbs, deformed, distorted, scary, horror, mutated, cropped feet, cut off legs, floating character, half-body, missing feet, text, watermark, UI elements`;
 
@@ -141,11 +141,17 @@ serve(async (req) => {
 
     // Branch: use PuLID when child photo exists, Schnell otherwise
     if (childPhoto) {
-      console.log(`Retrying illustration via PuLID (face reference) for story ${storyId}, page ${page.page_number}...`);
+      console.log(`Retrying illustration via Instant Character (face reference) for story ${storyId}, page ${page.page_number}...`);
 
       const personalizedPrompt = `${stylePrefix}
 
-MAIN CHARACTER: Personalized character based on the reference image. Their facial features, hair, and skin tone MUST match the reference photo exactly, rendered in 3D Pixar style. They are the HERO and FOCAL POINT of the scene.
+MAIN CHARACTER: The character from the reference image is the HERO and FOCAL POINT. Their facial features, hair, and skin tone MUST match the reference photo exactly, rendered in 3D Disney Pixar style. They must be clearly recognizable as the same child from the photo.
+
+SECONDARY CHARACTERS (3D Disney Pixar style):
+- Ben: toddler boy with very curly dark hair, warm tan skin, light green shirt — SMALLEST
+- Zoe: dark-skinned girl with voluminous black curls, light blue headband, purple-yellow athletic tracksuit, athletic build
+- Leo: boy with straight black hair, round glasses, denim overalls
+- Mia: girl with smooth brown bob, small flower crown, emerald green dress
 
 SCENE: ${prompt}
 
@@ -155,8 +161,8 @@ NEGATIVE: ${negativePrompt}`;
 
       for (let attempt = 1; attempt <= MAX_ATTEMPTS; attempt++) {
         try {
-          console.log(`PuLID attempt ${attempt}/${MAX_ATTEMPTS}...`);
-          const response = await fetch("https://fal.run/fal-ai/flux-pulid", {
+          console.log(`Instant Character attempt ${attempt}/${MAX_ATTEMPTS}...`);
+          const response = await fetch("https://fal.run/fal-ai/instant-character", {
             method: "POST",
             signal: AbortSignal.timeout(60_000),
             headers: {
@@ -165,19 +171,13 @@ NEGATIVE: ${negativePrompt}`;
             },
             body: JSON.stringify({
               prompt: personalizedPrompt,
-              reference_image_url: childPhoto,
-              image_size: "portrait_4_3",
-              num_inference_steps: 20,
-              guidance_scale: 4,
-              id_weight: 0.8,
-              num_images: 1,
-              enable_safety_checker: true,
+              image_url: childPhoto,
             }),
           });
 
           if (!response.ok) {
             const errorBody = await response.text().catch(() => "no body");
-            console.error(`PuLID attempt ${attempt} failed: ${response.status} - ${errorBody}`);
+            console.error(`Instant Character attempt ${attempt} failed: ${response.status} - ${errorBody}`);
             if (attempt < MAX_ATTEMPTS) { await new Promise(r => setTimeout(r, 1000)); continue; }
             // Fall through to Schnell below
             break;
@@ -203,10 +203,10 @@ NEGATIVE: ${negativePrompt}`;
             }
             if (imageUrl) break;
           }
-          console.warn(`PuLID attempt ${attempt}: no image`);
+          console.warn(`Instant Character attempt ${attempt}: no image`);
           if (attempt < MAX_ATTEMPTS) { await new Promise(r => setTimeout(r, 1000)); continue; }
         } catch (fetchErr) {
-          console.error(`PuLID attempt ${attempt} error:`, fetchErr);
+          console.error(`Instant Character attempt ${attempt} error:`, fetchErr);
           if (attempt < MAX_ATTEMPTS) { await new Promise(r => setTimeout(r, 1000)); continue; }
         }
       }
