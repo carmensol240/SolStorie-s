@@ -148,8 +148,8 @@ A ${genderWord} aged ${profile.ageDescription} with ${profile.hairDescription}, 
 CRITICAL INSTRUCTION: Maintain strict visual character continuity across ALL generated images for this story sequence. The character must look like the SAME child in every single illustration — same face shape, same proportions, same hair, same outfit, same skin tone. Any visual deviation between pages is a FAILURE.`;
 }
 
-// Helper: generate illustration with face reference via Fal.ai Flux PuLID
-// Slower (~8-15s) but preserves facial identity from reference photo
+// Helper: generate illustration with face reference via Fal.ai Instant Character
+// Maintains character likeness from a single reference photo with high consistency
 async function generateIllustrationWithFace(
   prompt: string,
   childPhotoUrl: string,
@@ -161,27 +161,27 @@ async function generateIllustrationWithFace(
   try {
     const FAL_KEY = Deno.env.get("FAL_KEY");
     if (!FAL_KEY) {
-      console.error("FAL_KEY not configured for PuLID");
+      console.error("FAL_KEY not configured for Instant Character");
       return null;
     }
 
     const finalOutfit = storyOutfit || adventureLogic?.outfit || characterProfile?.clothingDescription || "colorful casual clothes";
 
     const castDescription = `Secondary characters (keep them smaller/background, do NOT let them overshadow the main character):
-- Ben: toddler boy with very curly dark hair, warm tan skin, light green shirt — SMALLEST character
-- Zoe: dark brown skin girl, voluminous afro with light blue headband, purple-yellow tracksuit
-- Leo: boy with straight black hair, round glasses, denim overalls
-- Mia: girl with smooth brown bob, small flower crown, emerald green dress`;
+- Ben: toddler boy with very curly dark hair, warm tan skin, light green shirt — SMALLEST character, 3D Disney Pixar style
+- Zoe: dark-skinned girl with voluminous black curls, light blue headband, purple-yellow athletic tracksuit, athletic build — 3D Disney Pixar style
+- Leo: boy with straight black hair, round glasses, denim overalls — 3D Disney Pixar style
+- Mia: girl with smooth brown bob, small flower crown, emerald green dress — 3D Disney Pixar style`;
 
     const adventureInstruction = adventureLogic
       ? `Setting: ${adventureLogic.background}. Theme: ${adventureLogic.theme}.`
       : "";
 
-    const fullPrompt = `In the style of modern 3D Disney-Pixar animation (like Coco, Encanto, Inside Out), high resolution, magical atmosphere, warm glowing light. Characters with large expressive eyes, detailed hair, soft textures. ALWAYS show characters FULL BODY from head to toe with feet VISIBLE and GROUNDED.
+    const fullPrompt = `3D DISNEY PIXAR STYLE, cute, cinematic lighting, vibrant colors, full screen uncropped. Like Coco, Encanto, Inside Out. Characters with large expressive eyes, detailed hair, soft textures. ALWAYS show characters FULL BODY from head to toe with feet VISIBLE and GROUNDED.
 
 ${visualAnchor}
 
-MAIN CHARACTER: Personalized character based on the reference image. This child is the HERO and FOCAL POINT of every scene. They wear ${finalOutfit}. Their facial features, hair, and skin tone MUST match the reference photo exactly, rendered in 3D Pixar style.
+MAIN CHARACTER: The character from the reference image is the HERO and FOCAL POINT of the scene. They wear ${finalOutfit}. Their facial features, hair, and skin tone MUST match the reference photo exactly, rendered in 3D Disney Pixar style. They must be clearly recognizable as the same child from the photo.
 
 ${castDescription}
 
@@ -193,9 +193,9 @@ CRITICAL: The main personalized character must be the LARGEST and most PROMINENT
 
 NEGATIVE: floating head, missing body, missing limbs, extra limbs, deformed, distorted, scary, horror, mutated, cropped feet, cut off legs, floating character, half-body, missing feet, text, watermark, UI elements`;
 
-    console.log("Generating illustration via Fal.ai Flux PuLID (face reference)...");
+    console.log("Generating illustration via Fal.ai Instant Character (face reference)...");
 
-    const response = await fetch("https://fal.run/fal-ai/flux-pulid", {
+    const response = await fetch("https://fal.run/fal-ai/instant-character", {
       method: "POST",
       signal: AbortSignal.timeout(60_000),
       headers: {
@@ -204,19 +204,13 @@ NEGATIVE: floating head, missing body, missing limbs, extra limbs, deformed, dis
       },
       body: JSON.stringify({
         prompt: fullPrompt,
-        reference_image_url: childPhotoUrl,
-        image_size: "portrait_4_3",
-        num_inference_steps: 20,
-        guidance_scale: 4,
-        id_weight: 0.8,
-        num_images: 1,
-        enable_safety_checker: true,
+        image_url: childPhotoUrl,
       }),
     });
 
     if (!response.ok) {
       const errorBody = await response.text().catch(() => "no body");
-      console.error(`PuLID generation failed: ${response.status} - ${errorBody}`);
+      console.error(`Instant Character generation failed: ${response.status} - ${errorBody}`);
       return null;
     }
 
@@ -224,10 +218,10 @@ NEGATIVE: floating head, missing body, missing limbs, extra limbs, deformed, dis
     const imageUrl = data.images?.[0]?.url;
 
     if (imageUrl) {
-      console.log("PuLID illustration generated successfully");
+      console.log("Instant Character illustration generated successfully");
       const imgResponse = await fetch(imageUrl);
       if (!imgResponse.ok) {
-        console.error("Failed to download PuLID image");
+        console.error("Failed to download Instant Character image");
         return null;
       }
       const imgBuffer = new Uint8Array(await imgResponse.arrayBuffer());
@@ -245,7 +239,7 @@ NEGATIVE: floating head, missing body, missing limbs, extra limbs, deformed, dis
 
     return null;
   } catch (error) {
-    console.error("Error in PuLID illustration:", error);
+    console.error("Error in Instant Character illustration:", error);
     return null;
   }
 }
