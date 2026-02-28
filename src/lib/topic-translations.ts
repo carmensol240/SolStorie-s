@@ -89,9 +89,6 @@ const TOPIC_HEBREW_MAP: Record<string, string> = {
   'educational-toolbox': 'ארגז כלים חינוכי',
   'sharing-fun': 'שיתוף וכיף',
   'safe-room-sirens': 'שהייה בממ"ד ואזעקות',
-  'home-of-love': 'הבית של האהבה',
-  'playing-together': 'משחקים יחד בגינה',
-  'helping-at-home': 'עזרה בבית',
 
   // New values topics
   'honesty': 'אמירת אמת',
