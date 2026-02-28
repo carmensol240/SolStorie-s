@@ -148,161 +148,83 @@ A ${genderWord} aged ${profile.ageDescription} with ${profile.hairDescription}, 
 CRITICAL INSTRUCTION: Maintain strict visual character continuity across ALL generated images for this story sequence. The character must look like the SAME child in every single illustration — same face shape, same proportions, same hair, same outfit, same skin tone. Any visual deviation between pages is a FAILURE.`;
 }
 
-// Helper function to generate illustration using Lovable AI with character consistency
-// IMPORTANT: This function now enforces SAME OUTFIT across all pages of a story
-// and uses a Visual Anchor for strict character continuity
+// Helper function to generate illustration using Fal.ai Flux Schnell
+// Fast (~2-4s per image) text-to-image model
 async function generateIllustration(
   prompt: string,
   childPhoto: string | null,
   characterProfile: CharacterProfile | null,
-  apiKey: string,
-  storyOutfit: string, // The SINGLE outfit chosen for this entire story
-  visualAnchor: string, // Pre-built visual anchor text for consistency
+  apiKey: string, // LOVABLE_API_KEY — used only for character profile extraction
+  storyOutfit: string,
+  visualAnchor: string,
   adventureLogic?: { outfit: string; background: string; theme: string },
-  topic?: string // Used to select Sol variant (casual vs hero)
+  topic?: string
 ): Promise<string | null> {
   try {
-    const characterSeed = characterProfile 
-      ? `CHARACTER_SEED_${characterProfile.gender}_${characterProfile.hairDescription.replace(/\s+/g, '_')}_${characterProfile.skinTone}_${characterProfile.eyeColor}`.toUpperCase()
-      : "";
-    
+    const FAL_KEY = Deno.env.get("FAL_KEY");
+    if (!FAL_KEY) {
+      console.error("FAL_KEY is not configured, cannot generate illustration");
+      return null;
+    }
+
     // Use the storyOutfit that was determined at the START of generation for ALL pages
     const finalOutfit = storyOutfit || adventureLogic?.outfit || characterProfile?.clothingDescription || "colorful casual clothes";
-    
-    const characterInstruction = characterProfile 
-      ? `
-=== 🔒 LOCKED CHARACTER PROFILE - NEVER MODIFY ACROSS ANY PAGE ===
-CHARACTER SEED: ${characterSeed}
 
-The main character is a ${characterProfile.gender === "female" ? "girl" : "boy"} aged ${characterProfile.ageDescription}.
-
-MANDATORY APPEARANCE (IDENTICAL IN EVERY SINGLE PAGE):
-- Gender: ${characterProfile.gender === "female" ? "Female girl" : "Male boy"}
-- Hair: ${characterProfile.hairDescription} (EXACT color and style - NEVER change!)
-- Skin: ${characterProfile.skinTone} skin tone (consistent across all lighting)
-- Eyes: ${characterProfile.eyeColor} eyes
-- Face: Same face shape, nose, and proportions throughout
-
-=== 🎽 LOCKED OUTFIT FOR ENTIRE STORY ===
-CLOTHING: ${finalOutfit}
-⚠️ CRITICAL: The character wears THIS EXACT OUTFIT on EVERY page of the story.
-The character does NOT change clothes during the story.
-=== END LOCKED OUTFIT ===
-
-⚠️ CRITICAL: This character MUST be visually IDENTICAL in every single illustration.
-Same child, same face, same hair, same outfit - as if photographed from different angles.
-Any deviation from this profile is a FAILURE.
-=== END LOCKED PROFILE ===
-`
+    const characterInstruction = characterProfile
+      ? `The main character is a ${characterProfile.gender === "female" ? "girl" : "boy"} aged ${characterProfile.ageDescription} with ${characterProfile.hairDescription}, ${characterProfile.skinTone} skin, and ${characterProfile.eyeColor} eyes. Wearing ${finalOutfit}. This character must look IDENTICAL in every illustration — same face, hair, outfit, proportions.`
       : "";
-    
+
     const adventureInstruction = adventureLogic
-      ? `
-=== ADVENTURE THEME REQUIREMENTS ===
-- Background/Setting: ${adventureLogic.background}
-- Theme/Mood: ${adventureLogic.theme}
-(Note: Character outfit is locked above and must not change)
-=== END ADVENTURE THEME ===
-`
+      ? `Setting: ${adventureLogic.background}. Theme: ${adventureLogic.theme}.`
       : "";
-    
-    // Select Sol variant before building the prompt so we can reference the correct look
-    const solVariant = buildCharacterRefs(topic || "");
-    const solDescription = solVariant.solLabel === "Sol hero"
-      ? "Sol in her adventure/fantasy hero outfit — match EXACTLY from the reference image"
-      : "Sol in her everyday casual look (yellow dress, ponytail with pink band) — match EXACTLY from the reference image";
 
-    const stylePrefix = `In the style of modern 3D Disney-Pixar animation, high resolution, magical atmosphere, magical glowing light, dreamy warm and inviting atmosphere. Characters with large expressive emotional eyes, detailed hair, soft textures. ALWAYS show characters FULL BODY from head to toe with feet VISIBLE and GROUNDED on the surface (grass, floor, path). The character's full body including shoes/feet MUST be visible. Frame the character with generous margin from all edges — at least 10% padding on each side. Character must be FULLY CONTAINED within the frame, never cropped.`;
-    
-    const enhancedPrompt = `${stylePrefix}
+    const stylePrefix = `In the style of modern 3D Disney-Pixar animation (like Coco, Encanto, Inside Out), high resolution, magical atmosphere, warm glowing light, dreamy and inviting. Characters with large expressive eyes, detailed hair, soft textures. ALWAYS show characters FULL BODY from head to toe with feet VISIBLE and GROUNDED on the surface. Frame with generous margin — character fully contained, never cropped.`;
 
-${visualAnchor}
+    const negativePrompt = `floating head, missing body, missing limbs, extra limbs, deformed, distorted, scary, horror, mutated, cropped feet, cut off legs, floating character, half-body, missing feet, text, watermark, UI elements`;
 
-${characterInstruction}
-${adventureInstruction}
-=== MANDATORY CHARACTER REFERENCES ===
-Reference images of each cast character are provided above. You MUST match their appearance EXACTLY:
-- Image 1 (${solVariant.solLabel}): ${solDescription}
-- Image 2 (Ben — Sol's LITTLE BROTHER): toddler, very curly dark hair, warm tan skin matching Sol (siblings). When both Ben and Sol appear together, depict them with a sibling bond — Sol looking after him, Ben looking up to her. Always SMALLER than Sol.
-- Image 3 (Zoe): dark brown skin, afro with light blue headband, purple-yellow tracksuit
-- Image 4 (Leo): round glasses, straight black hair, denim overalls
-- Image 5 (Mia): smooth brown bob, flower crown, emerald green dress
-- Image 6 (Mom Carmen — Sol & Ben's mother): warm medium olive skin, long wavy dark brown hair past shoulders, long-sleeved blue shirt, jeans. She is ALWAYS depicted with the SAME clothing and hairstyle across all illustrations. She is loving, calm, and protective.
-ZERO INVENTION: Do not add random characters not shown in these references. If multiple cast characters appear in the story text, ALL of them must appear together in the same scene.
+    const fullPrompt = `${stylePrefix}\n\n${visualAnchor}\n\n${characterInstruction}\n${adventureInstruction}\n\nSCENE: ${prompt}\n\nNEGATIVE: ${negativePrompt}`;
 
-SCENE TO ILLUSTRATE: ${prompt}
+    console.log("Generating illustration via Fal.ai Flux Schnell...");
 
-STYLE REQUIREMENTS:
-- Modern 3D Disney-Pixar animation style (like Coco, Encanto, Inside Out)
-- Magical glowing light throughout the scene
-- Dreamy, warm, and inviting atmosphere
-- Characters with large, expressive emotional eyes
-- Detailed hair with realistic textures and flow
-- Soft, smooth character textures
-- Rich, vibrant colors with warm undertones
-- Professional children's book illustration quality
-- No text in the image
-- MAINTAIN STRICT VISUAL CHARACTER CONTINUITY: Same face shape, same features, same proportions, SAME OUTFIT across all pages
-- ALWAYS show the character FULL BODY from head to toe with feet visible and grounded — NEVER just a head or face
-- Frame with generous margin — character fully contained, never cropped at edges
-- 9:16 portrait aspect ratio
-
-NEGATIVE PROMPT / EXCLUDE: floating head, disembodied head, head without body, missing body, missing limbs, extra limbs, deformed, distorted, scary, horror, grotesque, mutated, disfigured, severed, decapitated, cropped head only, face only, no body, cropped feet, cut off legs, floating character, character not touching ground, half-body, missing feet, legs cut off at frame edge, text, watermark, UI elements, buttons, audio icons.`;
-
-    // Build multi-image content: [Sol variant, Ben, Zoe, Leo, Mia] + optional child photo + text
-    // solVariant was already derived above when building the prompt
-    console.log(`Sol variant: ${solVariant.solLabel} for topic "${topic}"`);
-    const characterRefContent = solVariant.urls.map(url => ({
-      type: "image_url",
-      image_url: { url },
-    }));
-
-    const requestBody: any = {
-      model: "google/gemini-3-pro-image-preview",
-      modalities: ["image", "text"],
-      messages: [
-        {
-          role: "user",
-          content: childPhoto
-            ? [
-                ...characterRefContent,
-                { type: "image_url", image_url: { url: childPhoto } },
-                { type: "text", text: `Based on the child's photo (last image before this text), create a HIGH QUALITY 3D Disney-Pixar style illustration of them in this scene: ${enhancedPrompt}. CRITICAL: Keep the character's FACE (hair color, hair style, skin tone, eye color, face shape) IDENTICAL to the reference photo. HOWEVER, IGNORE the clothing in the photo — the character MUST wear EXACTLY: ${finalOutfit}. Do NOT copy or reference the clothes from the photo. This MUST look like a premium children's book illustration.` },
-              ]
-            : [
-                ...characterRefContent,
-                { type: "text", text: enhancedPrompt },
-              ]
-        }
-      ]
-    };
-
-    console.log("Generating illustration...");
-
-    const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+    // Use synchronous Fal.ai API for fastest response
+    const response = await fetch("https://fal.run/fal-ai/flux/schnell", {
       method: "POST",
-      signal: AbortSignal.timeout(50_000),
+      signal: AbortSignal.timeout(30_000),
       headers: {
-        Authorization: `Bearer ${apiKey}`,
+        Authorization: `Key ${FAL_KEY}`,
         "Content-Type": "application/json",
       },
-      body: JSON.stringify(requestBody),
+      body: JSON.stringify({
+        prompt: fullPrompt,
+        image_size: "portrait_4_3",
+        num_inference_steps: 4,
+        num_images: 1,
+        enable_safety_checker: true,
+      }),
     });
 
     if (!response.ok) {
       const errorBody = await response.text().catch(() => "no body");
-      console.error(`Image generation failed: ${response.status} - ${errorBody}`);
+      console.error(`Fal.ai image generation failed: ${response.status} - ${errorBody}`);
       return null;
     }
 
     const data = await response.json();
-    const imageUrl = data.choices?.[0]?.message?.images?.[0]?.image_url?.url;
-    
+    const imageUrl = data.images?.[0]?.url;
+
     if (imageUrl) {
-      console.log("Illustration generated successfully");
-      return imageUrl;
+      console.log("Illustration generated successfully via Fal.ai");
+      // Fal.ai returns a hosted URL — download and convert to base64 for storage upload
+      const imgResponse = await fetch(imageUrl);
+      if (!imgResponse.ok) {
+        console.error("Failed to download generated image from Fal.ai");
+        return null;
+      }
+      const imgBuffer = await imgResponse.arrayBuffer();
+      const base64 = btoa(String.fromCharCode(...new Uint8Array(imgBuffer)));
+      return `data:image/png;base64,${base64}`;
     }
-    
+
     return null;
   } catch (error) {
     console.error("Error generating illustration:", error);
