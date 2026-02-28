@@ -17,6 +17,7 @@ export default defineConfig(({ mode }) => ({
       registerType: "autoUpdate",
       includeAssets: ["favicon.png", "favicon.ico", "pwa-icon-192.png", "pwa-icon-512.png"],
       manifest: {
+        id: "/",
         name: "SolStorie's™ – עולמה הקסום של סול",
         short_name: "SolStorie's™",
         description: "צרו סיפורים קסומים עם הילד שלכם כגיבור הראשי",
@@ -28,6 +29,16 @@ export default defineConfig(({ mode }) => ({
         start_url: "/",
         dir: "rtl",
         lang: "he",
+        categories: ["education", "kids"],
+        prefer_related_applications: false,
+        screenshots: [
+          {
+            src: "/splash-screen.png",
+            sizes: "1200x630",
+            type: "image/png",
+            form_factor: "wide" as any
+          }
+        ],
         icons: [
           {
             src: "/pwa-icon-192.png",
