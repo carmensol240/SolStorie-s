@@ -852,7 +852,7 @@ const StoryViewer = () => {
     setIsFlipping(true);
     setFlipPhase('out');
     
-    // After fade-out, change page and fade-in
+    // After flip-out (350ms), change page and flip-in
     setTimeout(() => {
       if (direction === 'next' && currentPage < maxPage) {
         const newPage = currentPage + 1;
@@ -868,12 +868,12 @@ const StoryViewer = () => {
       }
       setFlipPhase('in');
       
-      // After fade-in animation completes
+      // After flip-in animation completes (350ms)
       setTimeout(() => {
         setFlipPhase('idle');
         setIsFlipping(false);
       }, 350);
-    }, 300);
+    }, 350);
   };
 
   return (
