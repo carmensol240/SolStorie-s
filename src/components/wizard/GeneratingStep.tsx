@@ -258,22 +258,7 @@ const GeneratingStep = ({ formData, onComplete }: GeneratingStepProps) => {
     setStoryId(null);
     retryCountRef.current = 0;
     hasStartedRef.current = false;
-    if (pollingRef.current) {
-      clearInterval(pollingRef.current);
-      pollingRef.current = null;
-    }
     generateStory();
-  };
-
-  const handleStartReadingNow = () => {
-    // Disabled — user must wait for all illustrations to load
-    // This function is kept for reference but the button is hidden until ready
-    if (!storyId || phase !== 'ready') return;
-    if (pollingRef.current) {
-      clearInterval(pollingRef.current);
-      pollingRef.current = null;
-    }
-    onComplete(storyId);
   };
 
   const currentMessages = phase === 'illustrations' ? ILLUSTRATION_MESSAGES : TEXT_MESSAGES;
