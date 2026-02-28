@@ -88,6 +88,7 @@ const TOPIC_HEBREW_MAP: Record<string, string> = {
   'toothbrush': 'מברשת שיניים',
   'educational-toolbox': 'ארגז כלים חינוכי',
   'sharing-fun': 'שיתוף וכיף',
+  'safe-room-sirens': 'שהייה בממ"ד ואזעקות',
 
   // New values topics
   'honesty': 'אמירת אמת',

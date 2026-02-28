@@ -1073,7 +1073,7 @@ const StoryViewer = () => {
                 {page.illustration_url ? (
                   /* Illustration page: illustration top, text below */
                   <>
-                    <div className="relative w-full shrink-0 overflow-hidden bg-[#F5E6D3] flex items-center justify-center" style={{ height: isMobile ? '40vh' : '50vh' }}>
+                    <div className="relative w-full shrink-0 overflow-hidden bg-[#F5E6D3] flex items-center justify-center" style={{ height: isMobile ? '45vh' : '55vh' }}>
                       <img
                         src={getPublicIllustrationUrl(page.illustration_url) || ''}
                         alt={`איור עמוד ${currentPage}`}
