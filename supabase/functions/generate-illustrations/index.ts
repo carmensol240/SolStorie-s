@@ -606,8 +606,8 @@ serve(async (req) => {
         }
       }
 
-      // Short delay between pages — Flux Schnell is fast
-      await new Promise(r => setTimeout(r, 1000));
+      // Minimal delay to avoid rate limiting
+      await new Promise(r => setTimeout(r, 200));
     }
 
     // Check if ALL illustration pages now have illustration_url before marking as ready

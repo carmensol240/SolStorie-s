@@ -176,9 +176,13 @@ serve(async (req) => {
           // Download and convert to base64 for storage upload
           const imgResponse = await fetch(falImageUrl);
           if (imgResponse.ok) {
-            const imgBuffer = await imgResponse.arrayBuffer();
-            const base64 = btoa(String.fromCharCode(...new Uint8Array(imgBuffer)));
-            imageUrl = `data:image/png;base64,${base64}`;
+            const imgBuffer = new Uint8Array(await imgResponse.arrayBuffer());
+            let binary = "";
+            const chunkSize = 8192;
+            for (let i = 0; i < imgBuffer.length; i += chunkSize) {
+              binary += String.fromCharCode(...imgBuffer.subarray(i, i + chunkSize));
+            }
+            imageUrl = `data:image/png;base64,${btoa(binary)}`;
           }
           if (imageUrl) break;
         }
