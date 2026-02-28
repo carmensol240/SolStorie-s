@@ -203,10 +203,10 @@ NEGATIVE: ${negativePrompt}`;
             }
             if (imageUrl) break;
           }
-          console.warn(`PuLID attempt ${attempt}: no image`);
+          console.warn(`Instant Character attempt ${attempt}: no image`);
           if (attempt < MAX_ATTEMPTS) { await new Promise(r => setTimeout(r, 1000)); continue; }
         } catch (fetchErr) {
-          console.error(`PuLID attempt ${attempt} error:`, fetchErr);
+          console.error(`Instant Character attempt ${attempt} error:`, fetchErr);
           if (attempt < MAX_ATTEMPTS) { await new Promise(r => setTimeout(r, 1000)); continue; }
         }
       }
