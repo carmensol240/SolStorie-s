@@ -226,10 +226,7 @@ const GeneratingStep = ({ formData, onComplete }: GeneratingStepProps) => {
 
     // Message rotation
     const messageInterval = setInterval(() => {
-      setMessageIndex((prev) => {
-        const messages = phase === 'illustrations' ? ILLUSTRATION_MESSAGES : TEXT_MESSAGES;
-        return (prev + 1) % messages.length;
-      });
+      setMessageIndex((prev) => (prev + 1) % TEXT_MESSAGES.length);
     }, 3000);
 
     // Empowering sentence rotation with fade effect
