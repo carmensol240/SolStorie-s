@@ -174,10 +174,12 @@ const GeneratingStep = ({ formData, onComplete }: GeneratingStepProps) => {
         throw new Error("הסיפור נוצר אך ללא טקסט. מנסים שוב...");
       }
 
-      console.log("[GeneratingStep] Text verified. Entering illustration phase...");
+      console.log("[GeneratingStep] Text verified. Navigating to story immediately...");
       setStoryId(data.storyId);
-      setPhase('illustrations');
-      setProgress(50);
+      setPhase('ready');
+      setProgress(95);
+      // Navigate immediately — illustrations will load progressively in StoryViewer
+      setTimeout(() => onComplete(data.storyId), 800);
       
     } catch (err) {
       console.error("[GeneratingStep] Error generating story:", err);
