@@ -1095,7 +1095,6 @@ const StoryViewer = () => {
                       </div>
                     </div>
                   </>
-                )
                 ) : generationStatus === 'generating_illustrations' && page.illustration_prompt ? (
                   /* Illustration still generating — shimmer */
                   <>
