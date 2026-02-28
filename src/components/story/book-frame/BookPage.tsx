@@ -19,6 +19,7 @@ interface BookPageProps {
 export const BookPage: React.FC<BookPageProps> = ({
   type,
   illustrationUrl,
+  illustrationPrompt,
   text,
   pageNumber,
   totalPages,
@@ -27,6 +28,7 @@ export const BookPage: React.FC<BookPageProps> = ({
   className,
   storyId,
 }) => {
+  const isGeneratingIllustration = type === 'illustration' && !illustrationUrl && !!illustrationPrompt;
   if (type === 'illustration') {
     return (
       <div className={cn(
