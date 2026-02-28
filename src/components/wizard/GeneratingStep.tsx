@@ -320,10 +320,7 @@ const GeneratingStep = ({ formData, onComplete }: GeneratingStepProps) => {
           {currentMessage.text}
         </h2>
         <p className="text-purple-700/70 text-sm">
-          {phase === 'illustrations' 
-            ? `האיורים של ${formData.childName} נוצרים כעת...`
-            : `יצירת סיפור מותאם אישית עבור ${formData.childName}`
-          }
+          {`יצירת סיפור מותאם אישית עבור ${formData.childName}`}
         </p>
       </div>
 
