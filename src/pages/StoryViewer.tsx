@@ -155,6 +155,43 @@ const StoryViewer = () => {
     };
   }, []);
 
+  // Realtime subscription for progressive illustration loading
+  useEffect(() => {
+    if (!resolvedId) return;
+
+    const channel = supabase
+      .channel(`story-pages-${resolvedId}`)
+      .on(
+        'postgres_changes',
+        {
+          event: 'UPDATE',
+          schema: 'public',
+          table: 'story_pages',
+          filter: `story_id=eq.${resolvedId}`,
+        },
+        (payload) => {
+          const updated = payload.new as any;
+          if (updated?.illustration_url) {
+            console.log(`[StoryViewer] Realtime: illustration ready for page ${updated.page_number}`);
+            setStory(prev => {
+              if (!prev) return prev;
+              return {
+                ...prev,
+                pages: prev.pages.map(p =>
+                  p.id === updated.id ? { ...p, illustration_url: updated.illustration_url } : p
+                ),
+              };
+            });
+          }
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [resolvedId]);
+
   useEffect(() => {
     if (storyId) {
       window.scrollTo(0, 0);
@@ -718,91 +755,13 @@ const StoryViewer = () => {
     );
   }
 
-  // Show special loading state when illustrations are being generated
-  if (generationStatus === 'generating_illustrations' && !userStartedReading && story) {
-    return (
-      <div className="min-h-screen bg-gradient-to-b from-purple-50 via-pink-50 to-orange-50 flex flex-col items-center justify-center p-6" dir="rtl">
-        <div className="text-center space-y-8 max-w-md mx-auto">
-          {/* Animated Icon */}
-          <div className="relative">
-            <div className="w-28 h-28 bg-gradient-to-br from-purple-500/20 via-pink-500/20 to-orange-400/20 rounded-full flex items-center justify-center shadow-lg mx-auto">
-              <div className="relative">
-                <Palette className="w-12 h-12 text-purple-500 animate-bounce" />
-                <Wand2 
-                  className="absolute -top-2 -right-4 w-8 h-8 text-purple-600 animate-wiggle"
-                  style={{ filter: 'drop-shadow(0 0 4px rgba(168, 85, 247, 0.5))' }}
-                />
-              </div>
-            </div>
-            
-            {/* Floating sparkles */}
-            <div className="absolute inset-0">
-              {[...Array(6)].map((_, i) => (
-                <Sparkles
-                  key={i}
-                  className="absolute w-4 h-4 text-orange-400 animate-pulse"
-                  style={{
-                    top: `${15 + Math.random() * 70}%`,
-                    left: `${15 + Math.random() * 70}%`,
-                    animationDelay: `${i * 0.2}s`,
-                    opacity: 0.7,
-                  }}
-                />
-              ))}
-            </div>
-          </div>
-
-          {/* Title */}
-          <div className="space-y-2">
-            <h2 className="text-2xl font-bold bg-gradient-to-r from-purple-600 via-pink-500 to-orange-400 bg-clip-text text-transparent">
-              מציירים את האיורים...
-            </h2>
-            <p className="text-purple-700/70">
-              הסיפור של {story.child_name} כבר מוכן!
-            </p>
-          </div>
-
-          {/* Progress Bar */}
-          <div className="w-full max-w-xs mx-auto space-y-2">
-            <div className="relative h-3 w-full overflow-hidden rounded-full bg-purple-100">
-              <div 
-                className="h-full bg-gradient-to-r from-purple-600 via-pink-500 to-orange-400 transition-all duration-500"
-                style={{ width: `${illustrationProgress}%` }}
-              />
-            </div>
-            <p className="text-sm text-purple-600 font-medium">
-              {illustrationProgress}% מהאיורים מוכנים
-            </p>
-          </div>
-
-          {/* Action button - ready once first illustrations are loaded */}
-          <div className="flex flex-col gap-3">
-            {illustrationProgress >= 50 ? (
-              <Button
-                size="lg"
-                onClick={() => { setUserStartedReading(true); setCurrentPage(-1); }}
-                className="bg-gradient-to-r from-purple-600 to-pink-500 hover:from-purple-700 hover:to-pink-600 text-white font-bold px-8 py-6 text-lg rounded-full shadow-xl animate-scale-in"
-              >
-                <BookOpen className="w-5 h-5 ml-2" />
-                פתחו את הספר! 📖
-              </Button>
-            ) : (
-              <p className="text-sm text-purple-600/70 font-medium">
-                ⏳ סול מציירת את האיורים...
-              </p>
-            )}
-          </div>
-
-          {/* Tip */}
-          <div className="bg-white/80 backdrop-blur-sm rounded-xl p-4 shadow-md border border-purple-100 max-w-xs mx-auto mt-6">
-            <p className="text-sm text-purple-700">
-              💡 <strong className="text-purple-900">טיפ:</strong> זה זמן מעולה להתכרבל יחד. עוד רגע הסיפור מוכן!
-            </p>
-          </div>
-        </div>
-      </div>
-    );
-  }
+  // Skip illustration loading screen — progressive loading handles this now
+  // Auto-start reading when illustrations are still generating
+  useEffect(() => {
+    if (generationStatus === 'generating_illustrations' && story && !userStartedReading) {
+      setUserStartedReading(true);
+    }
+  }, [generationStatus, story, userStartedReading]);
 
   if (!story || story.pages.length === 0) {
     return (
@@ -1080,15 +1039,15 @@ const StoryViewer = () => {
                       </div>
                     </div>
                   </>
-                ) : generationStatus === 'generating_illustrations' && page.illustration_prompt ? (
-                  /* Illustration still generating — shimmer */
+                ) : page.illustration_prompt && !page.illustration_url ? (
+                  /* Illustration generating — skeleton placeholder */
                   <>
-                    <div className="relative w-full md:w-1/2 shrink-0 overflow-hidden" style={{ height: isMobile ? '40vh' : 'auto' }}>
-                      <div className="w-full h-full shimmer-loading flex items-center justify-center min-h-[200px]">
-                        <div className="text-center text-purple-400">
-                          <Palette className="w-14 h-14 mx-auto mb-2 opacity-40 animate-pulse" />
-                          <p className="text-sm font-medium opacity-60">סול מציירת...</p>
+                    <div className="relative w-full shrink-0 overflow-hidden bg-gradient-to-br from-[#FFFBF5] via-[#F5E6D3] to-[#FAF3E8] flex items-center justify-center animate-pulse" style={{ height: isMobile ? '45vh' : '55vh' }}>
+                      <div className="text-center space-y-3">
+                        <div className="w-16 h-16 mx-auto rounded-full bg-gradient-to-br from-purple-200 via-pink-200 to-orange-200 flex items-center justify-center animate-pulse">
+                          <span className="text-3xl">🎨</span>
                         </div>
+                        <p className="text-sm text-[#8B7355] font-medium">האיור נוצר...</p>
                       </div>
                     </div>
                     <div className="flex-1 min-h-0 overflow-y-auto paper-texture px-6 py-4 md:px-8 md:py-6">

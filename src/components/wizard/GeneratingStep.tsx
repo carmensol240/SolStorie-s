@@ -76,101 +76,9 @@ const GeneratingStep = ({ formData, onComplete }: GeneratingStepProps) => {
   const retryCountRef = useRef(0);
   const MAX_RETRIES = 2;
 
-  // New unified flow states
-  const [phase, setPhase] = useState<'text' | 'illustrations' | 'ready'>('text');
+  // Simplified flow: navigate immediately after text is ready
+  const [phase, setPhase] = useState<'text' | 'ready'>('text');
   const [storyId, setStoryId] = useState<string | null>(null);
-  const [illustrationProgress, setIllustrationProgress] = useState(0);
-  const pollingRef = useRef<NodeJS.Timeout | null>(null);
-
-  // Cleanup polling on unmount
-  useEffect(() => {
-    return () => {
-      if (pollingRef.current) {
-        clearInterval(pollingRef.current);
-        pollingRef.current = null;
-      }
-    };
-  }, []);
-
-  // Minimum illustrations before allowing "Open Book"
-  const MIN_ILLUSTRATIONS_READY = 2;
-
-  // Poll for illustration progress once we have a storyId
-  const pollIllustrations = useCallback(async (sid: string) => {
-    try {
-      // Check page progress — only count pages that should have illustrations (those with illustration_prompt)
-      const { data: pages } = await supabase
-        .from("story_pages")
-        .select("id, illustration_url, illustration_prompt")
-        .eq("story_id", sid);
-
-      if (pages && pages.length > 0) {
-        const pagesExpectingIllustration = pages.filter(p => p.illustration_prompt);
-        const totalExpected = pagesExpectingIllustration.length;
-        const done = pagesExpectingIllustration.filter(p => p.illustration_url).length;
-        const pct = totalExpected > 0 ? Math.round((done / totalExpected) * 100) : 0;
-        setIllustrationProgress(pct);
-        // Map illustration progress to overall progress (50-95%)
-        setProgress(50 + Math.round(pct * 0.45));
-
-        // LAZY LOADING: Ready to open once MIN_ILLUSTRATIONS_READY are done
-        if (done >= MIN_ILLUSTRATIONS_READY && phase !== 'ready') {
-          console.log(`[GeneratingStep] ${done}/${totalExpected} illustrations ready — opening book!`);
-          setPhase('ready');
-          setProgress(95);
-          // Auto-navigate after a short celebratory delay
-          setTimeout(() => onComplete(sid), 1200);
-          if (pollingRef.current) {
-            clearInterval(pollingRef.current);
-            pollingRef.current = null;
-          }
-          return;
-        }
-
-        // Also mark ready if ALL are done
-        if (pct === 100) {
-          setPhase('ready');
-          setProgress(100);
-          if (pollingRef.current) {
-            clearInterval(pollingRef.current);
-            pollingRef.current = null;
-          }
-          setTimeout(() => onComplete(sid), 800);
-          return;
-        }
-      }
-    } catch (err) {
-      console.error("[GeneratingStep] Poll error:", err);
-    }
-  }, [onComplete, phase]);
-
-  // Start polling when entering illustration phase
-  useEffect(() => {
-    if (phase === 'illustrations' && storyId && !pollingRef.current) {
-      // Poll every 2.5 seconds for faster feedback
-      pollingRef.current = setInterval(() => pollIllustrations(storyId), 2500);
-      // Also poll immediately
-      pollIllustrations(storyId);
-
-      // 45-second timeout: proceed even if not enough illustrations are done
-      const timeout = setTimeout(() => {
-        if (pollingRef.current) {
-          clearInterval(pollingRef.current);
-          pollingRef.current = null;
-        }
-        console.log("[GeneratingStep] 45s timeout - proceeding to story");
-        onComplete(storyId);
-      }, 45000);
-
-      return () => {
-        clearTimeout(timeout);
-        if (pollingRef.current) {
-          clearInterval(pollingRef.current);
-          pollingRef.current = null;
-        }
-      };
-    }
-  }, [phase, storyId, pollIllustrations, onComplete]);
 
   const generateStory = useCallback(async () => {
     try {
@@ -266,10 +174,12 @@ const GeneratingStep = ({ formData, onComplete }: GeneratingStepProps) => {
         throw new Error("הסיפור נוצר אך ללא טקסט. מנסים שוב...");
       }
 
-      console.log("[GeneratingStep] Text verified. Entering illustration phase...");
+      console.log("[GeneratingStep] Text verified. Navigating to story immediately...");
       setStoryId(data.storyId);
-      setPhase('illustrations');
-      setProgress(50);
+      setPhase('ready');
+      setProgress(95);
+      // Navigate immediately — illustrations will load progressively in StoryViewer
+      setTimeout(() => onComplete(data.storyId), 800);
       
     } catch (err) {
       console.error("[GeneratingStep] Error generating story:", err);
@@ -303,19 +213,12 @@ const GeneratingStep = ({ formData, onComplete }: GeneratingStepProps) => {
   }, [formData, onComplete, toast, navigate]);
 
   useEffect(() => {
-    // Progress animation for text phase AND illustration phase (smooth increments)
+    // Progress animation for text phase (smooth increments)
     const progressInterval = setInterval(() => {
       setProgress((prev) => {
         if (phase === 'text') {
-          // During text phase, progress up to 48%
-          if (prev >= 48) return prev;
-          return prev + Math.random() * 4;
-        }
-        if (phase === 'illustrations') {
-          // During illustration phase, slowly creep up to prevent "stuck" feeling
-          // Real polling updates will jump ahead of this
-          if (prev >= 90) return prev;
-          return prev + Math.random() * 0.5;
+          if (prev >= 85) return prev;
+          return prev + Math.random() * 3;
         }
         return prev;
       });
@@ -323,10 +226,7 @@ const GeneratingStep = ({ formData, onComplete }: GeneratingStepProps) => {
 
     // Message rotation
     const messageInterval = setInterval(() => {
-      setMessageIndex((prev) => {
-        const messages = phase === 'illustrations' ? ILLUSTRATION_MESSAGES : TEXT_MESSAGES;
-        return (prev + 1) % messages.length;
-      });
+      setMessageIndex((prev) => (prev + 1) % TEXT_MESSAGES.length);
     }, 3000);
 
     // Empowering sentence rotation with fade effect
@@ -358,25 +258,10 @@ const GeneratingStep = ({ formData, onComplete }: GeneratingStepProps) => {
     setStoryId(null);
     retryCountRef.current = 0;
     hasStartedRef.current = false;
-    if (pollingRef.current) {
-      clearInterval(pollingRef.current);
-      pollingRef.current = null;
-    }
     generateStory();
   };
 
-  const handleStartReadingNow = () => {
-    // Disabled — user must wait for all illustrations to load
-    // This function is kept for reference but the button is hidden until ready
-    if (!storyId || phase !== 'ready') return;
-    if (pollingRef.current) {
-      clearInterval(pollingRef.current);
-      pollingRef.current = null;
-    }
-    onComplete(storyId);
-  };
-
-  const currentMessages = phase === 'illustrations' ? ILLUSTRATION_MESSAGES : TEXT_MESSAGES;
+  const currentMessages = TEXT_MESSAGES;
   const safeMessageIndex = messageIndex % currentMessages.length;
   const currentMessage = currentMessages[safeMessageIndex];
   const Icon = currentMessage.icon;
@@ -435,10 +320,7 @@ const GeneratingStep = ({ formData, onComplete }: GeneratingStepProps) => {
           {currentMessage.text}
         </h2>
         <p className="text-purple-700/70 text-sm">
-          {phase === 'illustrations' 
-            ? `האיורים של ${formData.childName} נוצרים כעת...`
-            : `יצירת סיפור מותאם אישית עבור ${formData.childName}`
-          }
+          {`יצירת סיפור מותאם אישית עבור ${formData.childName}`}
         </p>
       </div>
 
