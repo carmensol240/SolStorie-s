@@ -815,21 +815,19 @@ const StoryViewer = () => {
   }
 
   // Virtual page indexing:
-  // -1 = cover, 0 = dedication, 1..n = story pages (story.pages[currentPage-1]), n+1 = closing rainbow, n+2 = end/feedback
-  const totalStoryPages = story.pages.length;
+  // -1 = cover, 0 = dedication, 1..N = virtual pages, N+1 = closing, N+2 = end/feedback
+  const totalVirtualPages = virtualPages.length;
   const isCoverPage = currentPage === -1;
   const isDedicationPage = currentPage === 0;
-  const isClosingPage = currentPage === totalStoryPages + 1;
-  const isEndPage = currentPage >= totalStoryPages + 2;
-  const isContentPage = currentPage >= 1 && currentPage <= totalStoryPages;
-  
-  const page = isContentPage ? story.pages[currentPage - 1] : null;
-  const currentFontSize = FONT_SIZES[fontSizeIndex];
-  const showPageActions = isContentPage && page !== null;
+  const isClosingPage = currentPage === totalVirtualPages + 1;
+  const isEndPage = currentPage >= totalVirtualPages + 2;
+  const isContentPage = currentPage >= 1 && currentPage <= totalVirtualPages;
 
-  // Determine layout variant for content pages (repeating pattern of 2)
-  // 0 = illustration + text, 1 = text-only
-  const contentPageOffset = isContentPage ? (currentPage - 1) % 2 : -1;
+  const currentVirtual = isContentPage ? virtualPages[currentPage - 1] : null;
+  // For editing/nikud, get the underlying DB page
+  const page = currentVirtual ? currentVirtual.dbPage : null;
+  const currentFontSize = FONT_SIZES[fontSizeIndex];
+  const showPageActions = isContentPage && currentVirtual?.type === 'text' && page !== null;
 
   // Page navigation with simple fade transition
   const handlePageNav = (direction: 'next' | 'prev') => {
