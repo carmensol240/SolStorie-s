@@ -902,11 +902,8 @@ const StoryViewer = () => {
           <div className={cn(
             "relative flex-1 min-h-0 flex flex-col rounded-xl overflow-hidden",
             "shadow-[0_8px_40px_rgba(0,0,0,0.12),0_0_0_1px_rgba(168,85,247,0.15)]",
-            "book-page-flip",
-            flipPhase === 'out' && flipDirection === 'next' && "flip-out-next",
-            flipPhase === 'out' && flipDirection === 'prev' && "flip-out-prev",
-            flipPhase === 'in' && flipDirection === 'next' && "flip-in-next",
-            flipPhase === 'in' && flipDirection === 'prev' && "flip-in-prev",
+            "transition-opacity duration-300",
+            isFlipping ? "opacity-0" : "opacity-100",
           )}>
             
             {isCoverPage ? (
