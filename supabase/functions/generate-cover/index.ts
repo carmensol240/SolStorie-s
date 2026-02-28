@@ -104,12 +104,20 @@ serve(async (req) => {
 
       const photoPath = child?.avatar_url || child?.photo_url;
       if (photoPath) {
-        const { data: signedData } = await supabase.storage
-          .from("child-photos")
-          .createSignedUrl(photoPath, 600);
-        if (signedData?.signedUrl) {
-          childPhotoSignedUrl = signedData.signedUrl;
-          console.log(`🖼️ Child photo found — personalizing cover`);
+        if (photoPath.startsWith("http")) {
+          childPhotoSignedUrl = photoPath;
+          console.log(`🖼️ Child photo (HTTP URL) found — personalizing cover`);
+        } else if (photoPath.startsWith("data:")) {
+          childPhotoSignedUrl = photoPath;
+          console.log(`🖼️ Child photo (data URI) found — personalizing cover`);
+        } else {
+          const { data: signedData } = await supabase.storage
+            .from("child-photos")
+            .createSignedUrl(photoPath, 600);
+          if (signedData?.signedUrl) {
+            childPhotoSignedUrl = signedData.signedUrl;
+            console.log(`🖼️ Child photo (storage path) found — personalizing cover`);
+          }
         }
       }
     }
@@ -171,7 +179,7 @@ NEGATIVE: No UI elements, no buttons, no watermarks, no text beyond the story ti
               image_size: "portrait_4_3",
               num_inference_steps: 20,
               guidance_scale: 4,
-              id_weight: 0.7,
+              id_weight: 0.8,
               num_images: 1,
               enable_safety_checker: true,
             }),

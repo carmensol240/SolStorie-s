@@ -104,16 +104,19 @@ serve(async (req) => {
       .eq("name", story.child_name)
       .maybeSingle();
 
-    if (child?.avatar_url) {
-      const { data: signedData } = await supabase.storage
-        .from("child-photos")
-        .createSignedUrl(child.avatar_url, 600);
-      if (signedData?.signedUrl) childPhoto = signedData.signedUrl;
-    } else if (child?.photo_url) {
-      const { data: signedData } = await supabase.storage
-        .from("child-photos")
-        .createSignedUrl(child.photo_url, 600);
-      if (signedData?.signedUrl) childPhoto = signedData.signedUrl;
+    const photoPath = child?.avatar_url || child?.photo_url;
+    if (photoPath) {
+      if (photoPath.startsWith("http")) {
+        childPhoto = photoPath;
+      } else if (photoPath.startsWith("data:")) {
+        childPhoto = photoPath;  // PuLID accepts base64 data URIs directly
+        console.log(`🖼️ Child photo is a data URI — passing directly to PuLID`);
+      } else {
+        const { data: signedData } = await supabase.storage
+          .from("child-photos")
+          .createSignedUrl(photoPath, 600);
+        if (signedData?.signedUrl) childPhoto = signedData.signedUrl;
+      }
     }
 
     // Select correct Sol variant based on story topic
@@ -166,7 +169,7 @@ NEGATIVE: ${negativePrompt}`;
               image_size: "portrait_4_3",
               num_inference_steps: 20,
               guidance_scale: 4,
-              id_weight: 0.7,
+              id_weight: 0.8,
               num_images: 1,
               enable_safety_checker: true,
             }),
