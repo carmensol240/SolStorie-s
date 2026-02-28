@@ -135,31 +135,21 @@ NEGATIVE PROMPT / EXCLUDE: floating head, disembodied head, head without body, m
 
     const prompt = customPrompt || page.illustration_prompt || `A cheerful children's book illustration for page ${page.page_number}`;
 
-    // Build multi-image content: [Sol variant, Ben, Zoe, Leo, Mia] + optional child photo + text
-    const characterRefContent = [sol.url, ...CHARACTER_BASE_REFS].map(url => ({
-      type: "image_url",
-      image_url: { url },
-    }));
+    // Use Fal.ai Flux Schnell for fast retry
+    const FAL_KEY = Deno.env.get("FAL_KEY");
+    if (!FAL_KEY) {
+      return new Response(JSON.stringify({ error: "FAL_KEY not configured" }), {
+        status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
 
-    const requestBody: any = {
-      model: "google/gemini-3-pro-image-preview",
-      modalities: ["image", "text"],
-      messages: [{
-        role: "user",
-        content: childPhoto
-          ? [
-              ...characterRefContent,
-              { type: "image_url", image_url: { url: childPhoto } },
-              { type: "text", text: `Based on the child's photo (last image before this text), create a HIGH QUALITY 3D Disney-Pixar style illustration: ${stylePrefix} SCENE: ${prompt}` },
-            ]
-          : [
-              ...characterRefContent,
-              { type: "text", text: `${stylePrefix} SCENE: ${prompt}` },
-            ]
-      }]
-    };
+    const stylePrefix = `In the style of modern 3D Disney-Pixar animation, high resolution, magical atmosphere, warm glowing light. Characters with large expressive eyes, detailed hair, soft textures. ALWAYS show characters FULL BODY from head to toe with feet VISIBLE and GROUNDED. Frame with generous margin — character fully contained, never cropped.`;
 
-    console.log(`Retrying illustration for story ${storyId}, page ${page.page_number}...`);
+    const negativePrompt = `floating head, missing body, missing limbs, extra limbs, deformed, distorted, scary, horror, mutated, cropped feet, cut off legs, floating character, half-body, missing feet, text, watermark, UI elements`;
+
+    const fullPrompt = `${stylePrefix}\n\nSCENE: ${prompt}\n\nNEGATIVE: ${negativePrompt}`;
+
+    console.log(`Retrying illustration via Fal.ai Flux Schnell for story ${storyId}, page ${page.page_number}...`);
 
     let imageUrl: string | null = null;
     const MAX_ATTEMPTS = 2;
@@ -167,34 +157,49 @@ NEGATIVE PROMPT / EXCLUDE: floating head, disembodied head, head without body, m
     for (let attempt = 1; attempt <= MAX_ATTEMPTS; attempt++) {
       try {
         console.log(`Attempt ${attempt}/${MAX_ATTEMPTS}...`);
-        const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+        const response = await fetch("https://fal.run/fal-ai/flux/schnell", {
           method: "POST",
-          signal: AbortSignal.timeout(120_000),
+          signal: AbortSignal.timeout(30_000),
           headers: {
-            Authorization: `Bearer ${LOVABLE_API_KEY}`,
+            Authorization: `Key ${FAL_KEY}`,
             "Content-Type": "application/json",
           },
-          body: JSON.stringify(requestBody),
+          body: JSON.stringify({
+            prompt: fullPrompt,
+            image_size: "portrait_4_3",
+            num_inference_steps: 4,
+            num_images: 1,
+            enable_safety_checker: true,
+          }),
         });
 
         if (!response.ok) {
           const errorBody = await response.text().catch(() => "no body");
           console.error(`Attempt ${attempt} failed with status ${response.status} - ${errorBody}`);
-          if (attempt < MAX_ATTEMPTS) { await new Promise(r => setTimeout(r, 3000)); continue; }
+          if (attempt < MAX_ATTEMPTS) { await new Promise(r => setTimeout(r, 1000)); continue; }
           return new Response(JSON.stringify({ error: "Image generation failed" }), {
             status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" },
           });
         }
 
         const data = await response.json();
-        imageUrl = data.choices?.[0]?.message?.images?.[0]?.image_url?.url || null;
+        const falImageUrl = data.images?.[0]?.url;
 
-        if (imageUrl) break;
+        if (falImageUrl) {
+          // Download and convert to base64 for storage upload
+          const imgResponse = await fetch(falImageUrl);
+          if (imgResponse.ok) {
+            const imgBuffer = await imgResponse.arrayBuffer();
+            const base64 = btoa(String.fromCharCode(...new Uint8Array(imgBuffer)));
+            imageUrl = `data:image/png;base64,${base64}`;
+          }
+          if (imageUrl) break;
+        }
         console.warn(`Attempt ${attempt}: no image in response`);
-        if (attempt < MAX_ATTEMPTS) { await new Promise(r => setTimeout(r, 3000)); continue; }
+        if (attempt < MAX_ATTEMPTS) { await new Promise(r => setTimeout(r, 1000)); continue; }
       } catch (fetchErr) {
         console.error(`Attempt ${attempt} error:`, fetchErr);
-        if (attempt < MAX_ATTEMPTS) { await new Promise(r => setTimeout(r, 3000)); continue; }
+        if (attempt < MAX_ATTEMPTS) { await new Promise(r => setTimeout(r, 1000)); continue; }
       }
     }
 
