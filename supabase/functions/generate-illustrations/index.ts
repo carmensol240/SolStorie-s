@@ -148,13 +148,115 @@ A ${genderWord} aged ${profile.ageDescription} with ${profile.hairDescription}, 
 CRITICAL INSTRUCTION: Maintain strict visual character continuity across ALL generated images for this story sequence. The character must look like the SAME child in every single illustration — same face shape, same proportions, same hair, same outfit, same skin tone. Any visual deviation between pages is a FAILURE.`;
 }
 
+// Helper: generate illustration with face reference via Fal.ai Flux PuLID
+// Slower (~8-15s) but preserves facial identity from reference photo
+async function generateIllustrationWithFace(
+  prompt: string,
+  childPhotoUrl: string,
+  characterProfile: CharacterProfile | null,
+  storyOutfit: string,
+  visualAnchor: string,
+  adventureLogic?: { outfit: string; background: string; theme: string },
+): Promise<string | null> {
+  try {
+    const FAL_KEY = Deno.env.get("FAL_KEY");
+    if (!FAL_KEY) {
+      console.error("FAL_KEY not configured for PuLID");
+      return null;
+    }
+
+    const finalOutfit = storyOutfit || adventureLogic?.outfit || characterProfile?.clothingDescription || "colorful casual clothes";
+
+    const castDescription = `Secondary characters (keep them smaller/background, do NOT let them overshadow the main character):
+- Ben: toddler boy with very curly dark hair, warm tan skin, light green shirt — SMALLEST character
+- Zoe: dark brown skin girl, voluminous afro with light blue headband, purple-yellow tracksuit
+- Leo: boy with straight black hair, round glasses, denim overalls
+- Mia: girl with smooth brown bob, small flower crown, emerald green dress`;
+
+    const adventureInstruction = adventureLogic
+      ? `Setting: ${adventureLogic.background}. Theme: ${adventureLogic.theme}.`
+      : "";
+
+    const fullPrompt = `In the style of modern 3D Disney-Pixar animation (like Coco, Encanto, Inside Out), high resolution, magical atmosphere, warm glowing light. Characters with large expressive eyes, detailed hair, soft textures. ALWAYS show characters FULL BODY from head to toe with feet VISIBLE and GROUNDED.
+
+${visualAnchor}
+
+MAIN CHARACTER: Personalized character based on the reference image. This child is the HERO and FOCAL POINT of every scene. They wear ${finalOutfit}. Their facial features, hair, and skin tone MUST match the reference photo exactly, rendered in 3D Pixar style.
+
+${castDescription}
+
+${adventureInstruction}
+
+SCENE: ${prompt}
+
+CRITICAL: The main personalized character must be the LARGEST and most PROMINENT figure in the scene. Secondary characters must NOT overshadow them.
+
+NEGATIVE: floating head, missing body, missing limbs, extra limbs, deformed, distorted, scary, horror, mutated, cropped feet, cut off legs, floating character, half-body, missing feet, text, watermark, UI elements`;
+
+    console.log("Generating illustration via Fal.ai Flux PuLID (face reference)...");
+
+    const response = await fetch("https://fal.run/fal-ai/flux-pulid", {
+      method: "POST",
+      signal: AbortSignal.timeout(60_000),
+      headers: {
+        Authorization: `Key ${FAL_KEY}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        prompt: fullPrompt,
+        reference_image_url: childPhotoUrl,
+        image_size: "portrait_4_3",
+        num_inference_steps: 20,
+        guidance_scale: 4,
+        id_weight: 0.7,
+        num_images: 1,
+        enable_safety_checker: true,
+      }),
+    });
+
+    if (!response.ok) {
+      const errorBody = await response.text().catch(() => "no body");
+      console.error(`PuLID generation failed: ${response.status} - ${errorBody}`);
+      return null;
+    }
+
+    const data = await response.json();
+    const imageUrl = data.images?.[0]?.url;
+
+    if (imageUrl) {
+      console.log("PuLID illustration generated successfully");
+      const imgResponse = await fetch(imageUrl);
+      if (!imgResponse.ok) {
+        console.error("Failed to download PuLID image");
+        return null;
+      }
+      const imgBuffer = new Uint8Array(await imgResponse.arrayBuffer());
+      const chunks: string[] = [];
+      for (let i = 0; i < imgBuffer.length; i += 512) {
+        const end = Math.min(i + 512, imgBuffer.length);
+        let chunk = '';
+        for (let j = i; j < end; j++) {
+          chunk += String.fromCharCode(imgBuffer[j]);
+        }
+        chunks.push(chunk);
+      }
+      return `data:image/png;base64,${btoa(chunks.join(''))}`;
+    }
+
+    return null;
+  } catch (error) {
+    console.error("Error in PuLID illustration:", error);
+    return null;
+  }
+}
+
 // Helper function to generate illustration using Fal.ai Flux Schnell
-// Fast (~2-4s per image) text-to-image model
+// Fast (~2-4s per image) text-to-image model — used when NO child photo is available
 async function generateIllustration(
   prompt: string,
   childPhoto: string | null,
   characterProfile: CharacterProfile | null,
-  apiKey: string, // LOVABLE_API_KEY — used only for character profile extraction
+  apiKey: string,
   storyOutfit: string,
   visualAnchor: string,
   adventureLogic?: { outfit: string; background: string; theme: string },
@@ -167,7 +269,6 @@ async function generateIllustration(
       return null;
     }
 
-    // Use the storyOutfit that was determined at the START of generation for ALL pages
     const finalOutfit = storyOutfit || adventureLogic?.outfit || characterProfile?.clothingDescription || "colorful casual clothes";
 
     const characterInstruction = characterProfile
@@ -184,9 +285,8 @@ async function generateIllustration(
 
     const fullPrompt = `${stylePrefix}\n\n${visualAnchor}\n\n${characterInstruction}\n${adventureInstruction}\n\nSCENE: ${prompt}\n\nNEGATIVE: ${negativePrompt}`;
 
-    console.log("Generating illustration via Fal.ai Flux Schnell...");
+    console.log("Generating illustration via Fal.ai Flux Schnell (no photo ref)...");
 
-    // Use synchronous Fal.ai API for fastest response
     const response = await fetch("https://fal.run/fal-ai/flux/schnell", {
       method: "POST",
       signal: AbortSignal.timeout(30_000),
@@ -213,15 +313,13 @@ async function generateIllustration(
     const imageUrl = data.images?.[0]?.url;
 
     if (imageUrl) {
-      console.log("Illustration generated successfully via Fal.ai");
-      // Fal.ai returns a hosted URL — download and convert to base64 for storage upload
+      console.log("Illustration generated successfully via Fal.ai Schnell");
       const imgResponse = await fetch(imageUrl);
       if (!imgResponse.ok) {
         console.error("Failed to download generated image from Fal.ai");
         return null;
       }
       const imgBuffer = new Uint8Array(await imgResponse.arrayBuffer());
-      // Safe byte-by-byte base64 encoding — no spread operator to avoid stack overflow
       const chunks: string[] = [];
       for (let i = 0; i < imgBuffer.length; i += 512) {
         const end = Math.min(i + 512, imgBuffer.length);
