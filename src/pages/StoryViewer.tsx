@@ -1039,7 +1039,7 @@ const StoryViewer = () => {
                       </div>
                     </div>
                   </>
-                ) : generationStatus === 'generating_illustrations' && page.illustration_prompt ? (
+                ) : page.illustration_prompt && !page.illustration_url ? (
                   /* Illustration still generating — shimmer */
                   <>
                     <div className="relative w-full md:w-1/2 shrink-0 overflow-hidden" style={{ height: isMobile ? '40vh' : 'auto' }}>
