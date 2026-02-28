@@ -512,7 +512,7 @@ const Auth = () => {
 
   if (loading || checkingTerms) {
     return (
-      <div className="min-h-screen bg-background flex items-center justify-center">
+      <div className="min-h-screen bg-background flex items-center justify-start pt-20">
         <Loader2 className="w-8 h-8 animate-spin text-primary" />
       </div>
     );
