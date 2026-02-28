@@ -604,77 +604,73 @@ serve(async (req) => {
     
     let firstIllustrationUrl: string | null = null;
 
-    // Generate ALL illustrations in parallel for maximum speed
-    console.log(`Generating all ${pagesToIllustrate.length} illustrations in parallel...`);
+    // Generate illustrations SEQUENTIALLY to avoid rate limiting on AI Gateway
+    console.log(`Generating ${pagesToIllustrate.length} illustrations sequentially...`);
 
-    const results = await Promise.allSettled(
-      pagesToIllustrate.map(async (page) => {
-        console.log(`Generating illustration for page ${page.page_number}...`);
-        
-        // Auto-retry up to 3 times for each page
-        let base64Image: string | null = null;
-        const MAX_RETRIES = 3;
-        
-        for (let attempt = 1; attempt <= MAX_RETRIES; attempt++) {
-          base64Image = await generateIllustration(
-            page.illustration_prompt || `A cheerful children's book illustration for page ${page.page_number}`,
-            effectivePhoto,
-            characterProfile,
-            LOVABLE_API_KEY,
-            storyOutfit,
-            visualAnchor,
-            effectiveAdventureLogic,
-            topic
-          );
-          
-          if (base64Image) {
-            if (attempt > 1) console.log(`✅ Page ${page.page_number} succeeded on retry ${attempt}`);
-            break;
-          }
-          
-          console.warn(`⚠️ Page ${page.page_number} attempt ${attempt}/${MAX_RETRIES} failed, ${attempt < MAX_RETRIES ? 'retrying...' : 'giving up'}`);
-          if (attempt < MAX_RETRIES) {
-            await new Promise(r => setTimeout(r, 2000));
-          }
-        }
-
-        if (!base64Image) return null;
-
-        const illustrationUrl = await uploadImageToStorage(
-          supabase,
-          base64Image,
-          storyId,
-          page.page_number
+    for (const page of pagesToIllustrate) {
+      console.log(`Generating illustration for page ${page.page_number}...`);
+      
+      // Auto-retry up to 3 times for each page
+      let base64Image: string | null = null;
+      const MAX_RETRIES = 3;
+      
+      for (let attempt = 1; attempt <= MAX_RETRIES; attempt++) {
+        base64Image = await generateIllustration(
+          page.illustration_prompt || `A cheerful children's book illustration for page ${page.page_number}`,
+          effectivePhoto,
+          characterProfile,
+          LOVABLE_API_KEY,
+          storyOutfit,
+          visualAnchor,
+          effectiveAdventureLogic,
+          topic
         );
-
-        if (illustrationUrl) {
-          const { error: updateError } = await supabase
-            .from("story_pages")
-            .update({ illustration_url: illustrationUrl })
-            .eq("id", page.id);
-
-          if (updateError) {
-            console.error(`Error updating page ${page.page_number}:`, updateError);
-          } else {
-            console.log(`Page ${page.page_number} illustration saved`);
-          }
-
-          if (page.page_number === 1) {
-            firstIllustrationUrl = illustrationUrl;
-          }
+        
+        if (base64Image) {
+          if (attempt > 1) console.log(`✅ Page ${page.page_number} succeeded on retry ${attempt}`);
+          break;
         }
-        return illustrationUrl;
-      })
-    );
-
-    results.forEach((r, idx) => {
-      const pg = pagesToIllustrate[idx];
-      if (r.status === 'fulfilled') {
-        console.log(`Page ${pg.page_number}: ${r.value ? 'success' : 'no image'}`);
-      } else {
-        console.error(`Page ${pg.page_number} failed:`, r.reason);
+        
+        console.warn(`⚠️ Page ${page.page_number} attempt ${attempt}/${MAX_RETRIES} failed, ${attempt < MAX_RETRIES ? 'retrying...' : 'giving up'}`);
+        if (attempt < MAX_RETRIES) {
+          await new Promise(r => setTimeout(r, 3000));
+        }
       }
-    });
+
+      if (!base64Image) {
+        console.log(`Page ${page.page_number}: no image`);
+        // Wait before next page even on failure to respect rate limits
+        await new Promise(r => setTimeout(r, 3000));
+        continue;
+      }
+
+      const illustrationUrl = await uploadImageToStorage(
+        supabase,
+        base64Image,
+        storyId,
+        page.page_number
+      );
+
+      if (illustrationUrl) {
+        const { error: updateError } = await supabase
+          .from("story_pages")
+          .update({ illustration_url: illustrationUrl })
+          .eq("id", page.id);
+
+        if (updateError) {
+          console.error(`Error updating page ${page.page_number}:`, updateError);
+        } else {
+          console.log(`Page ${page.page_number} illustration saved`);
+        }
+
+        if (page.page_number === 1) {
+          firstIllustrationUrl = illustrationUrl;
+        }
+      }
+
+      // Wait 3 seconds between pages to avoid rate limiting
+      await new Promise(r => setTimeout(r, 3000));
+    }
 
     // Update story status to ready
     const { error: statusError } = await supabase
