@@ -33,14 +33,22 @@ export const BookPage: React.FC<BookPageProps> = ({
     return (
       <div className={cn(
         "relative flex-1 flex flex-col justify-center items-center p-4 md:p-6",
-        // Paper texture overlay
         "bg-gradient-to-br from-[#FFFBF5] to-[#F5E6D3]",
         className
       )}>
-        {/* Page fold effect */}
         <div className="absolute top-0 left-0 w-8 h-8 bg-gradient-to-br from-black/5 to-transparent" />
         
-        {illustrationUrl && (
+        {isGeneratingIllustration ? (
+          <div className="relative w-full overflow-hidden flex flex-col items-center justify-center" style={{ height: '50vh' }}>
+            <div className="absolute inset-0 bg-gradient-to-br from-[#FFFBF5] via-[#F5E6D3] to-[#FAF3E8] animate-pulse" />
+            <div className="relative z-10 text-center space-y-3">
+              <div className="w-16 h-16 mx-auto rounded-full bg-gradient-to-br from-purple-200 via-pink-200 to-orange-200 flex items-center justify-center animate-pulse">
+                <span className="text-3xl">🎨</span>
+              </div>
+              <p className="text-sm text-[#8B7355] font-medium" dir="rtl">האיור נוצר...</p>
+            </div>
+          </div>
+        ) : illustrationUrl ? (
           <div className="relative w-full">
             <div className="relative w-full overflow-hidden flex items-center justify-center" style={{ height: '50vh' }}>
               <SignedImage
@@ -51,9 +59,8 @@ export const BookPage: React.FC<BookPageProps> = ({
               />
             </div>
           </div>
-        )}
+        ) : null}
         
-        {/* Page number */}
         {pageNumber !== undefined && (
           <div className="absolute bottom-4 left-1/2 -translate-x-1/2">
             <span className="text-sm text-[#8B7355] font-serif italic">
