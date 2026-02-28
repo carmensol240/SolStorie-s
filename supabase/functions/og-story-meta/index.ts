@@ -33,7 +33,7 @@ serve(async (req) => {
     }
 
     const siteOrigin = "https://soulstory.co.il";
-    const defaultOgImage = "https://qvdwmkxviaqcgmjotsxe.supabase.co/storage/v1/object/public/topic-images/cast-group-forest.png";
+    const defaultOgImage = "https://qvdwmkxviaqcgmjotsxe.supabase.co/storage/v1/object/public/topic-images/sol-superhero-book-og.png";
 
     const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
     const supabaseServiceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
