@@ -255,7 +255,7 @@ NEGATIVE: No UI elements, no buttons, no watermarks, no text beyond the story ti
         );
       }
 
-      console.warn("PuLID cover failed, falling back to Gemini cover generation");
+      console.warn("Instant Character cover failed, falling back to Gemini cover generation");
     }
 
     // === FALLBACK / DEFAULT: Gemini-based cover with Sol character ===
