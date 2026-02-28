@@ -652,9 +652,12 @@ serve(async (req) => {
     // Resolve signed URL for child photo (needed for PuLID which requires HTTP URL)
     let childPhotoSignedUrl: string | null = null;
     if (effectivePhoto) {
-      // effectivePhoto might be a storage path or already a signed/public URL
+      // effectivePhoto might be a storage path, HTTP URL, or base64 data URI
       if (effectivePhoto.startsWith("http")) {
         childPhotoSignedUrl = effectivePhoto;
+      } else if (effectivePhoto.startsWith("data:")) {
+        childPhotoSignedUrl = effectivePhoto;  // PuLID accepts base64 data URIs directly
+        console.log(`🖼️ Child photo is a data URI — passing directly to PuLID`);
       } else {
         const { data: signedData } = await supabase.storage
           .from("child-photos")
