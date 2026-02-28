@@ -835,9 +835,9 @@ const StoryViewer = () => {
   const currentFontSize = FONT_SIZES[fontSizeIndex];
   const showPageActions = isContentPage && page !== null;
 
-  // Determine layout variant for content pages (repeating pattern of 3)
-  // 0 = text+illustration (illustration right), 1 = text-only, 2 = illustration+text (illustration left)
-  const contentPageOffset = isContentPage ? (currentPage - 1) % 3 : -1;
+  // Determine layout variant for content pages (repeating pattern of 2)
+  // 0 = illustration + text, 1 = text-only
+  const contentPageOffset = isContentPage ? (currentPage - 1) % 2 : -1;
 
   // Page navigation with gentle fade transition
   const handlePageNav = (direction: 'next' | 'prev') => {
