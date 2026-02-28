@@ -111,7 +111,22 @@ const PWAInstallPrompt = () => {
     );
   }
 
-  return null;
+  // Fallback: always show banner for users who haven't installed yet
+  return (
+    <div className="fixed top-0 left-0 right-0 z-[200]" dir="rtl">
+      <div className="bg-gradient-to-l from-primary to-accent text-primary-foreground px-4 py-3 flex items-center gap-3 shadow-lg">
+        <div className="w-8 h-8 bg-primary-foreground/20 rounded-lg flex items-center justify-center flex-shrink-0">
+          <Download className="w-4 h-4" />
+        </div>
+        <div className="flex-1 min-w-0">
+          <p className="font-bold text-xs leading-tight">הוסיפו קיצור דרך למסך הבית</p>
+          <p className="text-[10px] opacity-80 leading-tight mt-0.5">
+            פתחו את התפריט של הדפדפן ולחצו "הוסף למסך הבית"
+          </p>
+        </div>
+      </div>
+    </div>
+  );
 };
 
 export default PWAInstallPrompt;
