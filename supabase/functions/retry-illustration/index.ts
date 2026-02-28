@@ -109,8 +109,28 @@ serve(async (req) => {
       if (photoPath.startsWith("http")) {
         childPhoto = photoPath;
       } else if (photoPath.startsWith("data:")) {
-        childPhoto = photoPath;  // PuLID accepts base64 data URIs directly
-        console.log(`🖼️ Child photo is a data URI — passing directly to PuLID`);
+        // Upload base64 to storage for HTTP URL — Instant Character works better with URLs
+        console.log(`🖼️ Child photo is a data URI — uploading to storage for HTTP URL...`);
+        try {
+          const base64Content = photoPath.split(",")[1] || photoPath;
+          const binaryStr = atob(base64Content);
+          const bytes = new Uint8Array(binaryStr.length);
+          for (let i = 0; i < binaryStr.length; i++) bytes[i] = binaryStr.charCodeAt(i);
+          const tempPath = `temp-refs/${user.id}/${Date.now()}.png`;
+          const { error: uploadErr } = await supabase.storage
+            .from("child-photos")
+            .upload(tempPath, bytes, { contentType: "image/png", upsert: true });
+          if (!uploadErr) {
+            const { data: signedData } = await supabase.storage
+              .from("child-photos")
+              .createSignedUrl(tempPath, 600);
+            childPhoto = signedData?.signedUrl || photoPath;
+          } else {
+            childPhoto = photoPath; // fallback to data URI
+          }
+        } catch {
+          childPhoto = photoPath;
+        }
       } else {
         const { data: signedData } = await supabase.storage
           .from("child-photos")
