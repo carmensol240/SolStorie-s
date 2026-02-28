@@ -835,9 +835,9 @@ const StoryViewer = () => {
   const currentFontSize = FONT_SIZES[fontSizeIndex];
   const showPageActions = isContentPage && page !== null;
 
-  // Determine layout variant for content pages (repeating pattern of 3)
-  // 0 = text+illustration (illustration right), 1 = text-only, 2 = illustration+text (illustration left)
-  const contentPageOffset = isContentPage ? (currentPage - 1) % 3 : -1;
+  // Determine layout variant for content pages (repeating pattern of 2)
+  // 0 = illustration + text, 1 = text-only
+  const contentPageOffset = isContentPage ? (currentPage - 1) % 2 : -1;
 
   // Page navigation with gentle fade transition
   const handlePageNav = (direction: 'next' | 'prev') => {
@@ -1069,59 +1069,32 @@ const StoryViewer = () => {
 
             ) : page ? (
               /* Story Content Pages - Alternating layout */
-              <div className={cn("h-full", page.illustration_url ? "flex flex-col md:flex-row" : "flex flex-col")}>
+              <div className={cn("h-full flex flex-col")}>
                 {page.illustration_url ? (
-                  contentPageOffset === 2 ? (
-                    /* Pattern C: Illustration on left side, text on right */
-                    <>
-                      <div className="md:order-1 relative w-full md:w-1/2 shrink-0 overflow-hidden bg-[#F5E6D3] flex items-center justify-center" style={{ height: isMobile ? '40vh' : 'auto' }}>
-                        <img
-                          src={getPublicIllustrationUrl(page.illustration_url) || ''}
-                          alt={`איור עמוד ${currentPage}`}
-                          className="w-full h-full object-contain"
-                          loading="eager"
-                        />
+                  /* Illustration page: illustration top, text below */
+                  <>
+                    <div className="relative w-full shrink-0 overflow-hidden bg-[#F5E6D3] flex items-center justify-center" style={{ height: isMobile ? '40vh' : '50vh' }}>
+                      <img
+                        src={getPublicIllustrationUrl(page.illustration_url) || ''}
+                        alt={`איור עמוד ${currentPage}`}
+                        className="w-full h-full object-contain"
+                        loading="eager"
+                      />
+                    </div>
+                    <div className="flex-1 min-h-0 overflow-y-auto paper-texture px-6 py-4 md:px-8 md:py-6">
+                      <div className="max-w-lg mx-auto w-full">
+                        <p className={cn(
+                          "text-[#3D2914] text-right font-medium transition-all whitespace-pre-line",
+                          currentFontSize.size
+                        )} style={{ lineHeight: '2.2' }} dir="rtl">
+                          {showNikud ? page.text : page.text.replace(/[\u0591-\u05C7]/g, '')}
+                        </p>
                       </div>
-                      <div className="md:order-2 flex-1 min-h-0 overflow-y-auto paper-texture px-6 py-4 md:px-8 md:py-6">
-                        <div className="max-w-lg mx-auto w-full">
-                          <p className={cn(
-                            "text-[#3D2914] text-right font-medium transition-all whitespace-pre-line",
-                            currentFontSize.size
-                          )} style={{ lineHeight: '2.2' }} dir="rtl">
-                            {showNikud ? page.text : page.text.replace(/[\u0591-\u05C7]/g, '')}
-                          </p>
-                        </div>
-                        <div className="flex items-center justify-center pt-3 pb-1">
-                          <span className="text-xs text-[#B8A08C] font-light">{currentPage} / {totalStoryPages}</span>
-                        </div>
+                      <div className="flex items-center justify-center pt-3 pb-1">
+                        <span className="text-xs text-[#B8A08C] font-light">{currentPage} / {totalStoryPages}</span>
                       </div>
-                    </>
-                  ) : (
-                    /* Pattern A (default): Text on right, illustration on left */
-                    <>
-                      <div className="md:order-2 relative w-full md:w-1/2 shrink-0 overflow-hidden bg-[#F5E6D3] flex items-center justify-center" style={{ height: isMobile ? '40vh' : 'auto' }}>
-                        <img
-                          src={getPublicIllustrationUrl(page.illustration_url) || ''}
-                          alt={`איור עמוד ${currentPage}`}
-                          className="w-full h-full object-contain"
-                          loading="eager"
-                        />
-                      </div>
-                      <div className="md:order-1 flex-1 min-h-0 overflow-y-auto paper-texture px-6 py-4 md:px-8 md:py-6">
-                        <div className="max-w-lg mx-auto w-full">
-                          <p className={cn(
-                            "text-[#3D2914] text-right font-medium transition-all whitespace-pre-line",
-                            currentFontSize.size
-                          )} style={{ lineHeight: '2.2' }} dir="rtl">
-                            {showNikud ? page.text : page.text.replace(/[\u0591-\u05C7]/g, '')}
-                          </p>
-                        </div>
-                        <div className="flex items-center justify-center pt-3 pb-1">
-                          <span className="text-xs text-[#B8A08C] font-light">{currentPage} / {totalStoryPages}</span>
-                        </div>
-                      </div>
-                    </>
-                  )
+                    </div>
+                  </>
                 ) : generationStatus === 'generating_illustrations' && page.illustration_prompt ? (
                   /* Illustration still generating — shimmer */
                   <>
@@ -1151,9 +1124,9 @@ const StoryViewer = () => {
                   /* Text-only page — rainbow background + SolStorie's™ */
                   <div className="flex-1 flex flex-col min-h-0 w-full" style={{ background: RAINBOW_BG }}>
                     <div className="flex-1 min-h-0 overflow-y-auto px-8 py-8 md:px-12 md:py-10 flex flex-col">
-                      <div className="max-w-lg mx-auto w-full flex-1 flex items-center justify-center">
+                      <div className="max-w-lg mx-auto w-full">
                         <p className={cn(
-                          "text-[#3D2914] text-center font-medium transition-all whitespace-pre-line",
+                          "text-[#3D2914] text-right font-medium transition-all whitespace-pre-line",
                           currentFontSize.size
                         )} style={{ lineHeight: '2.2' }} dir="rtl">
                           {showNikud ? page.text : page.text.replace(/[\u0591-\u05C7]/g, '')}

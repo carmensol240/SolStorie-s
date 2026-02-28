@@ -1,39 +1,59 @@
 
 
-## תיקון ודיוק דפי הפתיחה והספר
+## Urgent Fix: Illustration Rendering, Read-Aloud Relocation, Privacy & Subscription
 
-### בעיות שזוהו
+### 1. Fix Illustration Prompt Logic (Full Body / No Cropping)
 
-1. **יישור טקסט** — בעמודי טקסט בלבד (text-only, rainbow background) הטקסט ממורכז אנכית (`flex items-center justify-center`) במקום להתחיל מראש העמוד.
-2. **סדר דפים** — הספר כבר נפתח בעמוד שער (`currentPage = -1`), תקין.
-3. **דף הקדשה** — כבר קיים בעמוד 0, תקין.
-4. **מבנה איורים** — כרגע יש חלוקה לפי pattern של 3 (A, text-only, C). הבקשה היא איור אחד לכל שני דפים: דף עם איור+טקסט, ואחריו דף טקסט בלבד. כלומר pattern של 2.
-5. **PWA** — כבר מוגדר, ללא שינוי.
+**Files to update:**
+- `supabase/functions/generate-illustrations/index.ts` (main generation)
+- `supabase/functions/retry-illustration/index.ts` (retry generation)
+- `supabase/functions/generate-cover/index.ts` (cover generation)
 
-### שינויים בקובץ `src/pages/StoryViewer.tsx`
+**Changes:**
+- Add explicit "Sole of the Foot" rule and grounding instructions to the style prefix and negative prompt in all three edge functions
+- Update the `stylePrefix` in `generate-illustrations/index.ts` (line ~213) and `retry-illustration/index.ts` (line ~117) to include:
+  - "ALWAYS show characters FULL BODY from head to toe with feet VISIBLE and GROUNDED on the surface (grass, floor, path). The character's full body including shoes/feet MUST be visible."
+  - "Frame the character with generous margin from all edges -- at least 10% padding on each side. Character must be FULLY CONTAINED within the frame, never cropped."
+- Expand the NEGATIVE PROMPT to include: "cropped feet, cut off legs, floating character, character not touching ground, half-body, missing feet, legs cut off at frame edge"
+- Apply the same updates to the `retry-illustration` edge function's `stylePrefix` block
 
-| שינוי | פירוט |
-|-------|-------|
-| יישור טקסט Top-aligned | בכל עמוד תוכן (עם איור ובלי), להחליף `items-center justify-center` ל-`items-start justify-start` כדי שהטקסט יתחיל מראש העמוד |
-| מבנה layout מ-3 ל-2 | שינוי `contentPageOffset` מ-`% 3` ל-`% 2`: offset 0 = דף עם איור + טקסט, offset 1 = דף טקסט בלבד |
-| הסרת Pattern C | מכיוון שעכשיו יש רק שני סוגי עמודים (עם/בלי איור), ה-Pattern C (איור בצד שמאל) מיותר |
+### 2. Remove Read-Aloud from Story Screen, Keep in Accessibility Menu
 
-### שינויים בקובץ `src/pages/PublicStoryViewer.tsx`
+**File: `src/pages/StoryViewer.tsx`**
 
-| שינוי | פירוט |
-|-------|-------|
-| יישור טקסט Top-aligned | בעמודי טקסט בלבד, להחליף `items-center justify-center` ל-`items-start` |
+The read-aloud button was already removed from the main UI (line 877 shows a comment "Read Aloud button removed per user request"). However, there are still leftover imports and state:
+- Remove `isReadAloudDismissed` state (line 101)
+- Remove `useTextToSpeech` hook usage (line 121) and its import (line 32)
+- Clean up any remaining TTS-related code in StoryViewer
 
-### שינויים בקובץ `src/components/story/book-frame/BookPage.tsx`
+The "Read Aloud" toggle already exists in the Accessibility Menu (`AccessibilityMenu.tsx`, lines 105-118) as "Audio Support" which enables/disables the read-aloud button. This will remain as-is -- it's the correct location for this feature.
 
-| שינוי | פירוט |
-|-------|-------|
-| יישור טקסט Top-aligned | בעמוד טקסט, להחליף `items-center justify-center` ל-`items-start` |
+### 3. Privacy & COPPA/GDPR Compliance
 
-### סיכום
-- 3 קבצים ישתנו
-- ללא שינוי ב-DB, PWA, או edge functions
-- הספר ימשיך להיפתח בעמוד השער עם סול כגיבורת-על
-- דף ההקדשה נשאר כפי שהוא
-- הטקסט ייצמד לראש העמוד בכל מקום
+The app already has:
+- Privacy Policy page (`src/pages/PrivacyPolicy.tsx`) 
+- Terms of Service page (`src/pages/TermsOfService.tsx`)
+- Legal consent flow (`src/pages/LegalConsent.tsx`)
+- Privacy safeguards (generic placeholders instead of real names)
+- PII masking in edge function logs
+
+**Additional hardening:**
+- Add a brief privacy disclosure note in the Settings page (`src/pages/Settings.tsx`) linking to the Privacy Policy, with text like "All data handled per child privacy regulations"
+- Verify the About page (`src/components/shared/AboutSolStoriesContent.tsx`) includes the existing professional disclaimer
+
+### 4. Subscription Plan Verification Reminder
+
+**File: `src/pages/Settings.tsx`** (or a dev-only component)
+
+- Add a dev-mode-only visual banner (using existing `isDevModeEnabled()`) at the top of the Settings page reminding to verify the subscription plan before launch
+- This will only be visible when dev mode is enabled and will not appear in production for real users
+
+### Technical Summary
+
+| Task | Files Changed | Deploy Needed |
+|------|--------------|---------------|
+| Fix illustration prompts | `generate-illustrations/index.ts`, `retry-illustration/index.ts` | Yes (edge functions) |
+| Clean up TTS remnants | `StoryViewer.tsx` | No |
+| Privacy disclosure | `Settings.tsx` | No |
+| Subscription reminder | `Settings.tsx` (dev-only) | No |
 
