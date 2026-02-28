@@ -178,7 +178,8 @@ NEGATIVE PROMPT / EXCLUDE: floating head, disembodied head, head without body, m
         });
 
         if (!response.ok) {
-          console.error(`Attempt ${attempt} failed with status ${response.status}`);
+          const errorBody = await response.text().catch(() => "no body");
+          console.error(`Attempt ${attempt} failed with status ${response.status} - ${errorBody}`);
           if (attempt < MAX_ATTEMPTS) { await new Promise(r => setTimeout(r, 3000)); continue; }
           return new Response(JSON.stringify({ error: "Image generation failed" }), {
             status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" },
