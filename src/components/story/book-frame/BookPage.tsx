@@ -6,6 +6,7 @@ import { SignedImage } from "@/components/ui/signed-image";
 interface BookPageProps {
   type: 'illustration' | 'text';
   illustrationUrl?: string | null;
+  illustrationPrompt?: string | null;
   text?: string;
   pageNumber?: number;
   totalPages?: number;
