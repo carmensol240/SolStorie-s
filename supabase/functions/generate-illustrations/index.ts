@@ -227,6 +227,7 @@ Reference images of each cast character are provided above. You MUST match their
 - Image 3 (Zoe): dark brown skin, afro with light blue headband, purple-yellow tracksuit
 - Image 4 (Leo): round glasses, straight black hair, denim overalls
 - Image 5 (Mia): smooth brown bob, flower crown, emerald green dress
+- Image 6 (Mom Carmen — Sol & Ben's mother): warm medium olive skin, long wavy dark brown hair past shoulders, long-sleeved blue shirt, jeans. She is ALWAYS depicted with the SAME clothing and hairstyle across all illustrations. She is loving, calm, and protective.
 ZERO INVENTION: Do not add random characters not shown in these references. If multiple cast characters appear in the story text, ALL of them must appear together in the same scene.
 
 SCENE TO ILLUSTRATE: ${prompt}
