@@ -43,20 +43,20 @@ const Home = () => {
           <>
             {/* Screen 1: Soli tree landing (full viewport height) */}
             <div className="min-h-[100dvh] flex flex-col">
-              <div className="container max-w-lg mx-auto px-4 py-3 flex-1 flex flex-col">
+              <div className="container max-w-lg lg:max-w-2xl xl:max-w-3xl mx-auto px-4 py-3 flex-1 flex flex-col">
                 <GuestLanding user={user} isLoggedIn={isLoggedIn} />
               </div>
             </div>
             
             {/* Screen 2: Flying kids with greeting + CTA (full viewport height) */}
             <div className="min-h-[100dvh] flex flex-col">
-              <div className="container max-w-lg mx-auto px-4 py-3 flex-1 flex flex-col">
+              <div className="container max-w-lg lg:max-w-2xl xl:max-w-3xl mx-auto px-4 py-3 flex-1 flex flex-col">
                 <LoggedInHome user={user} displayName={displayName} />
               </div>
             </div>
           </>
         ) : (
-          <div className="container max-w-lg mx-auto px-4 py-3 flex-1 flex flex-col">
+          <div className="container max-w-lg lg:max-w-2xl xl:max-w-3xl mx-auto px-4 py-3 flex-1 flex flex-col">
             <GuestLanding user={user} isLoggedIn={isLoggedIn} />
           </div>
         )}

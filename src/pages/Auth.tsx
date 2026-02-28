@@ -1044,13 +1044,15 @@ const Auth = () => {
   return (
     <div className="h-screen h-[100dvh] flex flex-col overflow-hidden relative">
       {/* Full-screen Background Image */}
-      {/* Adventure Sky Background */}
+      {/* Adventure Sky Background - covers full viewport on all screen sizes */}
       <div className="absolute inset-0 bg-adventure-sky">
         <div className="absolute inset-0 rainbow-arc" />
-        {/* Soft cloud shapes */}
-        <div className="absolute top-[15%] left-[10%] w-40 h-20 bg-white/30 rounded-full blur-2xl" />
-        <div className="absolute top-[20%] right-[15%] w-52 h-24 bg-white/25 rounded-full blur-3xl" />
-        <div className="absolute top-[10%] left-[50%] w-36 h-16 bg-white/20 rounded-full blur-2xl" />
+        {/* Soft cloud shapes - spread across full width */}
+        <div className="absolute top-[15%] left-[10%] w-40 lg:w-64 h-20 lg:h-32 bg-white/30 rounded-full blur-2xl" />
+        <div className="absolute top-[20%] right-[15%] w-52 lg:w-72 h-24 lg:h-36 bg-white/25 rounded-full blur-3xl" />
+        <div className="absolute top-[10%] left-[50%] w-36 lg:w-56 h-16 lg:h-24 bg-white/20 rounded-full blur-2xl" />
+        <div className="absolute bottom-[20%] left-[20%] w-48 h-20 bg-white/15 rounded-full blur-3xl hidden lg:block" />
+        <div className="absolute bottom-[30%] right-[25%] w-40 h-16 bg-white/20 rounded-full blur-2xl hidden lg:block" />
       </div>
 
       <div className="relative z-10 flex-1 flex flex-col items-center justify-center p-4 pb-14 overflow-y-auto">
