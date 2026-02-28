@@ -24,7 +24,7 @@ const PurchaseSuccessModal = ({
 }: PurchaseSuccessModalProps) => {
   const navigate = useNavigate();
 
-  const redirectPath = isSubscription ? "/profile" : "/library";
+  const redirectPath = isSubscription ? "/profile" : "/create";
 
   useEffect(() => {
     if (open) {
