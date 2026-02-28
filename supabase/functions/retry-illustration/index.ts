@@ -120,19 +120,6 @@ serve(async (req) => {
     const sol = getSolUrl(story.topic || "");
     console.log(`Sol variant: ${sol.label} for topic "${story.topic}"`);
 
-    const stylePrefix = `In the style of modern 3D Disney-Pixar animation, high resolution, magical atmosphere, magical glowing light, dreamy warm and inviting atmosphere. Characters with large expressive emotional eyes, detailed hair, soft textures. ALWAYS show characters FULL BODY from head to toe with feet VISIBLE and GROUNDED on the surface (grass, floor, path). The character's full body including shoes/feet MUST be visible. Frame the character with generous margin from all edges — at least 10% padding on each side. Character must be FULLY CONTAINED within the frame, never cropped. 9:16 portrait aspect ratio.
-
-=== MANDATORY CHARACTER REFERENCES ===
-Reference images of each cast character are provided above. You MUST match their appearance EXACTLY:
-- Image 1 (${sol.label}): Sol's ${sol.label === "Sol hero" ? "adventure/fantasy" : "everyday casual"} look — match EXACTLY
-- Image 2 (Ben — Sol's LITTLE BROTHER): toddler, very curly dark hair, warm tan skin matching Sol (siblings). When both appear together, depict sibling bond. Always SMALLER than Sol.
-- Image 3 (Zoe): dark brown skin, afro with light blue headband, purple-yellow tracksuit
-- Image 4 (Leo): round glasses, straight black hair, denim overalls
-- Image 5 (Mia): smooth brown bob, flower crown, emerald green dress
-ZERO INVENTION: Do not add random characters not shown in these references. If multiple cast characters appear in the scene, ALL of them must appear together.
-
-NEGATIVE PROMPT / EXCLUDE: floating head, disembodied head, head without body, missing body, missing limbs, extra limbs, deformed, distorted, scary, horror, grotesque, mutated, disfigured, severed, decapitated, cropped head only, face only, no body, cropped feet, cut off legs, floating character, character not touching ground, half-body, missing feet, legs cut off at frame edge, text, watermark, UI elements, buttons, audio icons.`;
-
     const prompt = customPrompt || page.illustration_prompt || `A cheerful children's book illustration for page ${page.page_number}`;
 
     // Use Fal.ai Flux Schnell for fast retry
@@ -189,9 +176,13 @@ NEGATIVE PROMPT / EXCLUDE: floating head, disembodied head, head without body, m
           // Download and convert to base64 for storage upload
           const imgResponse = await fetch(falImageUrl);
           if (imgResponse.ok) {
-            const imgBuffer = await imgResponse.arrayBuffer();
-            const base64 = btoa(String.fromCharCode(...new Uint8Array(imgBuffer)));
-            imageUrl = `data:image/png;base64,${base64}`;
+            const imgBuffer = new Uint8Array(await imgResponse.arrayBuffer());
+            let binary = "";
+            const chunkSize = 8192;
+            for (let i = 0; i < imgBuffer.length; i += chunkSize) {
+              binary += String.fromCharCode(...imgBuffer.subarray(i, i + chunkSize));
+            }
+            imageUrl = `data:image/png;base64,${btoa(binary)}`;
           }
           if (imageUrl) break;
         }
