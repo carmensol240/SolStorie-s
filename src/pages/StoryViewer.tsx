@@ -1069,7 +1069,7 @@ const StoryViewer = () => {
 
             ) : page ? (
               /* Story Content Pages - Alternating layout */
-              <div className={cn("h-full", page.illustration_url ? "flex flex-col md:flex-row" : "flex flex-col")}>
+              <div className={cn("h-full flex flex-col")}>
                 {page.illustration_url ? (
                   /* Illustration page: illustration top, text below */
                   <>
