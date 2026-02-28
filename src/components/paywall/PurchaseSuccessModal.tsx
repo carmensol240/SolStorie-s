@@ -98,7 +98,7 @@ const PurchaseSuccessModal = ({
           className="w-full bg-primary hover:bg-primary/90 text-primary-foreground font-bold rounded-xl"
         >
           <BookOpen className="w-5 h-5 ml-2" />
-          עברו לספרייה
+          צרו סיפור חדש
         </Button>
 
         <p className="text-xs text-muted-foreground mt-3">
