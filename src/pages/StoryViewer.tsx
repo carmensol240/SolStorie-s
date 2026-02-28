@@ -445,9 +445,7 @@ const StoryViewer = () => {
   // Page change is now handled by handleSpreadChange defined later
   // Keep this for legacy compatibility but it's no longer the primary navigation
   const handlePageChange = (direction: 'next' | 'prev') => {
-    // This will be overridden by spread navigation in the render
     if (isFlipping) return;
-    setFlipDirection(direction);
     setIsFlipping(true);
     setTimeout(() => {
       if (direction === 'next') {
