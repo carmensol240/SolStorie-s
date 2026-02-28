@@ -1112,7 +1112,7 @@ const StoryViewer = () => {
             {/* Page indicator */}
             <div className="dot-indicator">
               <span className="text-xs text-gray-400">
-                {isCoverPage ? '' : isDedicationPage ? 'הקדשה' : isClosingPage ? 'סיום' : isEndPage ? 'סוף' : `${currentPage} / ${totalStoryPages}`}
+                {isCoverPage ? '' : isDedicationPage ? 'הקדשה' : isClosingPage ? 'סיום' : isEndPage ? 'סוף' : `${currentPage} / ${totalVirtualPages}`}
               </span>
             </div>
 
