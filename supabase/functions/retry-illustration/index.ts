@@ -169,7 +169,7 @@ NEGATIVE: ${negativePrompt}`;
               image_size: "portrait_4_3",
               num_inference_steps: 20,
               guidance_scale: 4,
-              id_weight: 0.7,
+              id_weight: 0.8,
               num_images: 1,
               enable_safety_checker: true,
             }),
