@@ -748,6 +748,44 @@ const StoryViewer = () => {
     }
   }, [generationStatus, story, userStartedReading]);
 
+  // Build virtual pages: 2 text pages then 1 full-screen illustration, repeating
+  type VirtualPage =
+    | { type: 'text'; dbPage: StoryPage }
+    | { type: 'illustration'; illustrationUrl: string | null; illustrationPrompt: string | null; dbPage: StoryPage };
+
+  const virtualPages: VirtualPage[] = useMemo(() => {
+    if (!story || story.pages.length === 0) return [];
+    const result: VirtualPage[] = [];
+    const dbPages = story.pages;
+
+    for (let i = 0; i < dbPages.length; i++) {
+      // Add text entry for every DB page
+      result.push({ type: 'text', dbPage: dbPages[i] });
+
+      // After every 2nd text page (or the very last page), insert an illustration page
+      const textCount = result.filter(p => p.type === 'text').length;
+      if (textCount % 2 === 0 || i === dbPages.length - 1) {
+        // Pick the best illustration from the last batch of DB pages
+        const batchStart = i === dbPages.length - 1 && textCount % 2 !== 0 ? i : Math.max(0, i - 1);
+        let illUrl: string | null = null;
+        let illPrompt: string | null = null;
+        let illDbPage = dbPages[i];
+        for (let j = batchStart; j <= i; j++) {
+          if (dbPages[j].illustration_url || dbPages[j].illustration_prompt) {
+            illUrl = dbPages[j].illustration_url;
+            illPrompt = dbPages[j].illustration_prompt || null;
+            illDbPage = dbPages[j];
+          }
+        }
+        if (illUrl || illPrompt) {
+          result.push({ type: 'illustration', illustrationUrl: illUrl, illustrationPrompt: illPrompt, dbPage: illDbPage });
+        }
+      }
+    }
+
+    return result;
+  }, [story?.pages]);
+
   if (isLoading) {
     return (
       <div className="min-h-screen bg-gradient-to-b from-purple-50 via-pink-50 to-orange-50 flex items-center justify-center" dir="rtl">
