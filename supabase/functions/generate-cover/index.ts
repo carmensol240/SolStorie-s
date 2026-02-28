@@ -247,7 +247,7 @@ NEGATIVE: No UI elements, no buttons, no watermarks, no text beyond the story ti
           .update({ cover_url: fullCoverUrl })
           .eq("id", storyId);
 
-        console.log(`✅ Personalized cover generated via PuLID for story ${storyId}`);
+        console.log(`✅ Personalized cover generated via Instant Character for story ${storyId}`);
 
         return new Response(
           JSON.stringify({ success: true, coverUrl: fullCoverUrl }),
