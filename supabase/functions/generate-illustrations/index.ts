@@ -574,8 +574,8 @@ serve(async (req) => {
 
       if (!base64Image) {
         console.log(`Page ${page.page_number}: no image`);
-        // Wait before next page even on failure to respect rate limits
-        await new Promise(r => setTimeout(r, 3000));
+        // Wait before next page even on failure
+        await new Promise(r => setTimeout(r, 1000));
         continue;
       }
 
