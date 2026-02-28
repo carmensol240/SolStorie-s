@@ -122,7 +122,6 @@ serve(async (req) => {
 
     const prompt = customPrompt || page.illustration_prompt || `A cheerful children's book illustration for page ${page.page_number}`;
 
-    // Use Fal.ai Flux Schnell for fast retry
     const FAL_KEY = Deno.env.get("FAL_KEY");
     if (!FAL_KEY) {
       return new Response(JSON.stringify({ error: "FAL_KEY not configured" }), {
@@ -134,68 +133,141 @@ serve(async (req) => {
 
     const negativePrompt = `floating head, missing body, missing limbs, extra limbs, deformed, distorted, scary, horror, mutated, cropped feet, cut off legs, floating character, half-body, missing feet, text, watermark, UI elements`;
 
-    const fullPrompt = `${stylePrefix}\n\nSCENE: ${prompt}\n\nNEGATIVE: ${negativePrompt}`;
-
-    console.log(`Retrying illustration via Fal.ai Flux Schnell for story ${storyId}, page ${page.page_number}...`);
-
     let imageUrl: string | null = null;
     const MAX_ATTEMPTS = 2;
 
-    for (let attempt = 1; attempt <= MAX_ATTEMPTS; attempt++) {
-      try {
-        console.log(`Attempt ${attempt}/${MAX_ATTEMPTS}...`);
-        const response = await fetch("https://fal.run/fal-ai/flux/schnell", {
-          method: "POST",
-          signal: AbortSignal.timeout(30_000),
-          headers: {
-            Authorization: `Key ${FAL_KEY}`,
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            prompt: fullPrompt,
-            image_size: "portrait_4_3",
-            num_inference_steps: 4,
-            num_images: 1,
-            enable_safety_checker: true,
-          }),
-        });
+    // Branch: use PuLID when child photo exists, Schnell otherwise
+    if (childPhoto) {
+      console.log(`Retrying illustration via PuLID (face reference) for story ${storyId}, page ${page.page_number}...`);
 
-        if (!response.ok) {
-          const errorBody = await response.text().catch(() => "no body");
-          console.error(`Attempt ${attempt} failed with status ${response.status} - ${errorBody}`);
-          if (attempt < MAX_ATTEMPTS) { await new Promise(r => setTimeout(r, 1000)); continue; }
-          return new Response(JSON.stringify({ error: "Image generation failed" }), {
-            status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" },
+      const personalizedPrompt = `${stylePrefix}
+
+MAIN CHARACTER: Personalized character based on the reference image. Their facial features, hair, and skin tone MUST match the reference photo exactly, rendered in 3D Pixar style. They are the HERO and FOCAL POINT of the scene.
+
+SCENE: ${prompt}
+
+CRITICAL: The main personalized character must be the LARGEST and most PROMINENT figure in the scene.
+
+NEGATIVE: ${negativePrompt}`;
+
+      for (let attempt = 1; attempt <= MAX_ATTEMPTS; attempt++) {
+        try {
+          console.log(`PuLID attempt ${attempt}/${MAX_ATTEMPTS}...`);
+          const response = await fetch("https://fal.run/fal-ai/flux-pulid", {
+            method: "POST",
+            signal: AbortSignal.timeout(60_000),
+            headers: {
+              Authorization: `Key ${FAL_KEY}`,
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+              prompt: personalizedPrompt,
+              reference_image_url: childPhoto,
+              image_size: "portrait_4_3",
+              num_inference_steps: 20,
+              guidance_scale: 4,
+              id_weight: 0.7,
+              num_images: 1,
+              enable_safety_checker: true,
+            }),
           });
-        }
 
-        const data = await response.json();
-        const falImageUrl = data.images?.[0]?.url;
-
-        if (falImageUrl) {
-          // Download and convert to base64 for storage upload
-          const imgResponse = await fetch(falImageUrl);
-          if (imgResponse.ok) {
-            const imgBuffer = new Uint8Array(await imgResponse.arrayBuffer());
-            // Safe byte-by-byte base64 encoding — no spread operator
-            const chunks: string[] = [];
-            for (let i = 0; i < imgBuffer.length; i += 512) {
-              const end = Math.min(i + 512, imgBuffer.length);
-              let chunk = '';
-              for (let j = i; j < end; j++) {
-                chunk += String.fromCharCode(imgBuffer[j]);
-              }
-              chunks.push(chunk);
-            }
-            imageUrl = `data:image/png;base64,${btoa(chunks.join(''))}`;
+          if (!response.ok) {
+            const errorBody = await response.text().catch(() => "no body");
+            console.error(`PuLID attempt ${attempt} failed: ${response.status} - ${errorBody}`);
+            if (attempt < MAX_ATTEMPTS) { await new Promise(r => setTimeout(r, 1000)); continue; }
+            // Fall through to Schnell below
+            break;
           }
-          if (imageUrl) break;
+
+          const data = await response.json();
+          const falImageUrl = data.images?.[0]?.url;
+
+          if (falImageUrl) {
+            const imgResponse = await fetch(falImageUrl);
+            if (imgResponse.ok) {
+              const imgBuffer = new Uint8Array(await imgResponse.arrayBuffer());
+              const chunks: string[] = [];
+              for (let i = 0; i < imgBuffer.length; i += 512) {
+                const end = Math.min(i + 512, imgBuffer.length);
+                let chunk = '';
+                for (let j = i; j < end; j++) {
+                  chunk += String.fromCharCode(imgBuffer[j]);
+                }
+                chunks.push(chunk);
+              }
+              imageUrl = `data:image/png;base64,${btoa(chunks.join(''))}`;
+            }
+            if (imageUrl) break;
+          }
+          console.warn(`PuLID attempt ${attempt}: no image`);
+          if (attempt < MAX_ATTEMPTS) { await new Promise(r => setTimeout(r, 1000)); continue; }
+        } catch (fetchErr) {
+          console.error(`PuLID attempt ${attempt} error:`, fetchErr);
+          if (attempt < MAX_ATTEMPTS) { await new Promise(r => setTimeout(r, 1000)); continue; }
         }
-        console.warn(`Attempt ${attempt}: no image in response`);
-        if (attempt < MAX_ATTEMPTS) { await new Promise(r => setTimeout(r, 1000)); continue; }
-      } catch (fetchErr) {
-        console.error(`Attempt ${attempt} error:`, fetchErr);
-        if (attempt < MAX_ATTEMPTS) { await new Promise(r => setTimeout(r, 1000)); continue; }
+      }
+    }
+
+    // Fallback to Schnell if no photo or PuLID failed
+    if (!imageUrl) {
+      const fullPrompt = `${stylePrefix}\n\nSCENE: ${prompt}\n\nNEGATIVE: ${negativePrompt}`;
+      console.log(`Retrying illustration via Flux Schnell for story ${storyId}, page ${page.page_number}...`);
+
+      for (let attempt = 1; attempt <= MAX_ATTEMPTS; attempt++) {
+        try {
+          console.log(`Schnell attempt ${attempt}/${MAX_ATTEMPTS}...`);
+          const response = await fetch("https://fal.run/fal-ai/flux/schnell", {
+            method: "POST",
+            signal: AbortSignal.timeout(30_000),
+            headers: {
+              Authorization: `Key ${FAL_KEY}`,
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+              prompt: fullPrompt,
+              image_size: "portrait_4_3",
+              num_inference_steps: 4,
+              num_images: 1,
+              enable_safety_checker: true,
+            }),
+          });
+
+          if (!response.ok) {
+            const errorBody = await response.text().catch(() => "no body");
+            console.error(`Schnell attempt ${attempt} failed: ${response.status} - ${errorBody}`);
+            if (attempt < MAX_ATTEMPTS) { await new Promise(r => setTimeout(r, 1000)); continue; }
+            return new Response(JSON.stringify({ error: "Image generation failed" }), {
+              status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" },
+            });
+          }
+
+          const data = await response.json();
+          const falImageUrl = data.images?.[0]?.url;
+
+          if (falImageUrl) {
+            const imgResponse = await fetch(falImageUrl);
+            if (imgResponse.ok) {
+              const imgBuffer = new Uint8Array(await imgResponse.arrayBuffer());
+              const chunks: string[] = [];
+              for (let i = 0; i < imgBuffer.length; i += 512) {
+                const end = Math.min(i + 512, imgBuffer.length);
+                let chunk = '';
+                for (let j = i; j < end; j++) {
+                  chunk += String.fromCharCode(imgBuffer[j]);
+                }
+                chunks.push(chunk);
+              }
+              imageUrl = `data:image/png;base64,${btoa(chunks.join(''))}`;
+            }
+            if (imageUrl) break;
+          }
+          console.warn(`Schnell attempt ${attempt}: no image`);
+          if (attempt < MAX_ATTEMPTS) { await new Promise(r => setTimeout(r, 1000)); continue; }
+        } catch (fetchErr) {
+          console.error(`Schnell attempt ${attempt} error:`, fetchErr);
+          if (attempt < MAX_ATTEMPTS) { await new Promise(r => setTimeout(r, 1000)); continue; }
+        }
       }
     }
 
