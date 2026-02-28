@@ -512,7 +512,7 @@ const Auth = () => {
 
   if (loading || checkingTerms) {
     return (
-      <div className="min-h-screen bg-background flex items-center justify-center">
+      <div className="min-h-screen bg-background flex items-center justify-start pt-20">
         <Loader2 className="w-8 h-8 animate-spin text-primary" />
       </div>
     );
@@ -1053,7 +1053,7 @@ const Auth = () => {
         <div className="absolute top-[10%] left-[50%] w-36 h-16 bg-white/20 rounded-full blur-2xl" />
       </div>
 
-      <div className="relative z-10 flex-1 flex flex-col items-center justify-center p-4 pb-14 overflow-y-auto">
+      <div className="relative z-10 flex-1 flex flex-col items-center justify-start p-4 pt-8 pb-14 overflow-y-auto">
         {/* SolStorie's™ Title */}
         <div className="flex justify-center mb-2 pt-2 animate-fade-in">
           <h1 className="text-3xl sm:text-4xl font-black logo-3d-bubble">
