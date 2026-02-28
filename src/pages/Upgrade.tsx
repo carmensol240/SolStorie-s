@@ -607,6 +607,9 @@ const Upgrade = () => {
                 onError={handlePayPalError}
                 onCancel={() => setShowPayPal(false)}
               />
+              <p className="text-xs text-center text-white/60 mt-2 flex items-center justify-center gap-1.5">
+                💳 ניתן לשלם גם בכרטיס אשראי ללא חשבון פייפאל
+              </p>
               <button
                 onClick={() => setShowPayPal(false)}
                 className="w-full text-center text-white/50 text-xs mt-3 hover:text-white/70 transition-colors"
