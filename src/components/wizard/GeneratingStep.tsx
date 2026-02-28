@@ -261,7 +261,7 @@ const GeneratingStep = ({ formData, onComplete }: GeneratingStepProps) => {
     generateStory();
   };
 
-  const currentMessages = phase === 'illustrations' ? ILLUSTRATION_MESSAGES : TEXT_MESSAGES;
+  const currentMessages = TEXT_MESSAGES;
   const safeMessageIndex = messageIndex % currentMessages.length;
   const currentMessage = currentMessages[safeMessageIndex];
   const Icon = currentMessage.icon;
