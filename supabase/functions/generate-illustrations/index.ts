@@ -600,8 +600,20 @@ serve(async (req) => {
     console.log(`🔒 Visual Anchor created for character consistency`);
 
     // Only generate illustrations for pages that have an illustration_prompt (spread layout)
-    const pagesToIllustrate = pages.filter(p => p.illustration_prompt);
+    let pagesToIllustrate = pages.filter(p => p.illustration_prompt);
     console.log(`${pagesToIllustrate.length} of ${pages.length} pages need illustrations (spread layout)`);
+
+    // If singlePageNumber is specified, only generate for that one page
+    if (singlePageNumber !== undefined && singlePageNumber !== null) {
+      pagesToIllustrate = pagesToIllustrate.filter(p => p.page_number === singlePageNumber);
+      console.log(`Single-page mode: generating only page ${singlePageNumber} (${pagesToIllustrate.length} match)`);
+      if (pagesToIllustrate.length === 0) {
+        return new Response(
+          JSON.stringify({ success: true, message: `Page ${singlePageNumber} has no illustration_prompt, skipping` }),
+          { headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        );
+      }
+    }
     
     let firstIllustrationUrl: string | null = null;
 
