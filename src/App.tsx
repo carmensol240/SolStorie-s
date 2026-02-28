@@ -36,6 +36,7 @@ import ShareAndEarn from "./pages/ShareAndEarn";
 import Contact from "./pages/Contact";
 import NotFound from "./pages/NotFound";
 import RequireTerms from "./components/RequireTerms";
+import ScrollToTop from "./components/ScrollToTop";
 import Toolkit from "./pages/Toolkit";
 import AdminReviews from "./pages/AdminReviews";
 
