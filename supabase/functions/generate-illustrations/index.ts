@@ -444,7 +444,7 @@ serve(async (req) => {
     const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
     const requestBody = await req.json();
-    const { storyId, childPhoto, childAvatarUrl, childGender, ageRange, adventureLogic, userId, childName, topic } = requestBody;
+    const { storyId, childPhoto, childAvatarUrl, childGender, ageRange, adventureLogic, userId, childName, topic, singlePageNumber } = requestBody;
     
     console.log("Request body received:", { 
       storyId, 
@@ -455,7 +455,8 @@ serve(async (req) => {
       hasAdventureLogic: !!adventureLogic,
       userId: userId ? userId.substring(0, 8) + "..." : "none",
       childName,
-      topic
+      topic,
+      singlePageNumber: singlePageNumber ?? "all"
     });
 
     if (!storyId) {
