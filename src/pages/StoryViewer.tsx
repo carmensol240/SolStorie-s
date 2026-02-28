@@ -155,6 +155,43 @@ const StoryViewer = () => {
     };
   }, []);
 
+  // Realtime subscription for progressive illustration loading
+  useEffect(() => {
+    if (!resolvedId) return;
+
+    const channel = supabase
+      .channel(`story-pages-${resolvedId}`)
+      .on(
+        'postgres_changes',
+        {
+          event: 'UPDATE',
+          schema: 'public',
+          table: 'story_pages',
+          filter: `story_id=eq.${resolvedId}`,
+        },
+        (payload) => {
+          const updated = payload.new as any;
+          if (updated?.illustration_url) {
+            console.log(`[StoryViewer] Realtime: illustration ready for page ${updated.page_number}`);
+            setStory(prev => {
+              if (!prev) return prev;
+              return {
+                ...prev,
+                pages: prev.pages.map(p =>
+                  p.id === updated.id ? { ...p, illustration_url: updated.illustration_url } : p
+                ),
+              };
+            });
+          }
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [resolvedId]);
+
   useEffect(() => {
     if (storyId) {
       window.scrollTo(0, 0);
