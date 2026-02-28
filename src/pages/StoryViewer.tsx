@@ -956,7 +956,7 @@ const StoryViewer = () => {
 
             ) : isDedicationPage ? (
               /* Dedication Page — Rainbow background with personalized dedication */
-              <div className="relative flex-1 flex flex-col items-center justify-center text-center h-full px-8 py-12" style={{ background: RAINBOW_BG }}>
+              <div className="relative flex-1 flex flex-col items-center justify-start pt-12 text-center h-full px-8 py-12" style={{ background: RAINBOW_BG }}>
                 <div className="space-y-6 max-w-md mx-auto">
                   <span className="text-5xl">🦄</span>
                   <div className="space-y-3">
