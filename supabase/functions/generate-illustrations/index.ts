@@ -643,15 +643,40 @@ serve(async (req) => {
     // Flux Schnell is fast — 1s delay between pages to avoid rate limiting
     console.log(`Generating ${pagesToIllustrate.length} illustrations sequentially via Fal.ai Flux Schnell...`);
 
-    // Resolve signed URL for child photo (needed for PuLID which requires HTTP URL)
+    // Resolve HTTP URL for child photo (Instant Character requires HTTP URL, not base64)
     let childPhotoSignedUrl: string | null = null;
     if (effectivePhoto) {
-      // effectivePhoto might be a storage path, HTTP URL, or base64 data URI
       if (effectivePhoto.startsWith("http")) {
         childPhotoSignedUrl = effectivePhoto;
       } else if (effectivePhoto.startsWith("data:")) {
-        childPhotoSignedUrl = effectivePhoto;  // PuLID accepts base64 data URIs directly
-        console.log(`🖼️ Child photo is a data URI — passing directly to PuLID`);
+        // Upload base64 data URI to storage and use the public URL
+        // Instant Character works much better with HTTP URLs than raw base64
+        console.log(`🖼️ Child photo is a data URI — uploading to storage for HTTP URL...`);
+        try {
+          const base64Content = effectivePhoto.split(",")[1] || effectivePhoto;
+          const binaryString = atob(base64Content);
+          const bytes = new Uint8Array(binaryString.length);
+          for (let i = 0; i < binaryString.length; i++) {
+            bytes[i] = binaryString.charCodeAt(i);
+          }
+          const tempPath = `temp-refs/${userId || 'anon'}/${Date.now()}.png`;
+          const { error: uploadErr } = await supabase.storage
+            .from("child-photos")
+            .upload(tempPath, bytes, { contentType: "image/png", upsert: true });
+          if (!uploadErr) {
+            const { data: signedData } = await supabase.storage
+              .from("child-photos")
+              .createSignedUrl(tempPath, 3600);
+            childPhotoSignedUrl = signedData?.signedUrl || null;
+            console.log(`✅ Photo uploaded to storage, using signed URL for Instant Character`);
+          } else {
+            console.warn(`Upload failed, falling back to data URI:`, uploadErr);
+            childPhotoSignedUrl = effectivePhoto;
+          }
+        } catch (e) {
+          console.warn(`Error uploading data URI, falling back:`, e);
+          childPhotoSignedUrl = effectivePhoto;
+        }
       } else {
         const { data: signedData } = await supabase.storage
           .from("child-photos")
