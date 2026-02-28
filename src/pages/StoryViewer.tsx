@@ -833,7 +833,7 @@ const StoryViewer = () => {
   const handlePageNav = (direction: 'next' | 'prev') => {
     if (isFlipping) return;
     
-    const maxPage = totalStoryPages + 2;
+    const maxPage = totalVirtualPages + 2;
     
     if (direction === 'next' && currentPage >= maxPage) return;
     if (direction === 'prev' && currentPage <= -1) return;
