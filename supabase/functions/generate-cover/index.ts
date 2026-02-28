@@ -180,7 +180,7 @@ NEGATIVE: No UI elements, no buttons, no watermarks, no text beyond the story ti
           });
 
           if (!response.ok) {
-            console.error(`PuLID cover attempt ${attempt} failed:`, response.status);
+            console.error(`Instant Character cover attempt ${attempt} failed:`, response.status);
             if (attempt < MAX_ATTEMPTS) { await new Promise(r => setTimeout(r, 3000)); continue; }
             // Fall through to Gemini path below
             break;
