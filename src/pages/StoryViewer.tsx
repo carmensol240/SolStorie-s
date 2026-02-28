@@ -741,6 +741,13 @@ const StoryViewer = () => {
     }
   };
 
+  // Auto-start reading when illustrations are still generating (progressive loading)
+  useEffect(() => {
+    if (generationStatus === 'generating_illustrations' && story && !userStartedReading) {
+      setUserStartedReading(true);
+    }
+  }, [generationStatus, story, userStartedReading]);
+
   if (isLoading) {
     return (
       <div className="min-h-screen bg-gradient-to-b from-purple-50 via-pink-50 to-orange-50 flex items-center justify-center" dir="rtl">
@@ -754,14 +761,6 @@ const StoryViewer = () => {
       </div>
     );
   }
-
-  // Skip illustration loading screen — progressive loading handles this now
-  // Auto-start reading when illustrations are still generating
-  useEffect(() => {
-    if (generationStatus === 'generating_illustrations' && story && !userStartedReading) {
-      setUserStartedReading(true);
-    }
-  }, [generationStatus, story, userStartedReading]);
 
   if (!story || story.pages.length === 0) {
     return (
