@@ -142,13 +142,13 @@ serve(async (req) => {
         });
       }
 
-      const personalizedCoverPrompt = `In the style of modern 3D Disney-Pixar animation, 8K resolution, soft cinematic lighting, vibrant harmonious colors. Portrait orientation.
+      const personalizedCoverPrompt = `3D DISNEY PIXAR STYLE, cute, cinematic lighting, vibrant colors, full screen uncropped. Like Coco, Encanto, Inside Out. Portrait orientation.
 
-MAIN CHARACTER: The child from the reference image is the HERO and FOCAL POINT. Their facial features, hair, and skin tone MUST match the reference photo exactly, rendered in beautiful 3D Pixar style. They stand center-front with a warm, confident smile.
+MAIN CHARACTER: The child from the reference image is the HERO and FOCAL POINT. Their facial features, hair, and skin tone MUST match the reference photo exactly, rendered in beautiful 3D Disney Pixar style. They stand center-front with a warm, confident smile. They must be clearly recognizable as the same child from the photo.
 
-SECONDARY CHARACTERS (keep them smaller, flanking the main character):
+SECONDARY CHARACTERS (keep them smaller, flanking the main character, all in 3D Disney Pixar style):
 - Ben: toddler with very curly dark hair, warm tan skin, light green shirt — SMALLEST
-- Zoe: dark brown skin, voluminous afro with light blue headband, purple-yellow tracksuit
+- Zoe: dark-skinned girl with voluminous black curls, light blue headband, purple-yellow athletic tracksuit, athletic build
 - Leo: straight black hair, round glasses, denim overalls
 - Mia: smooth brown bob, small flower crown, emerald green dress
 
@@ -165,8 +165,8 @@ NEGATIVE: No UI elements, no buttons, no watermarks, no text beyond the story ti
 
       for (let attempt = 1; attempt <= MAX_ATTEMPTS; attempt++) {
         try {
-          console.log(`PuLID cover attempt ${attempt}/${MAX_ATTEMPTS}...`);
-          const response = await fetch("https://fal.run/fal-ai/flux-pulid", {
+          console.log(`Instant Character cover attempt ${attempt}/${MAX_ATTEMPTS}...`);
+          const response = await fetch("https://fal.run/fal-ai/instant-character", {
             method: "POST",
             signal: AbortSignal.timeout(60_000),
             headers: {
@@ -175,13 +175,7 @@ NEGATIVE: No UI elements, no buttons, no watermarks, no text beyond the story ti
             },
             body: JSON.stringify({
               prompt: personalizedCoverPrompt,
-              reference_image_url: childPhotoSignedUrl,
-              image_size: "portrait_4_3",
-              num_inference_steps: 20,
-              guidance_scale: 4,
-              id_weight: 0.8,
-              num_images: 1,
-              enable_safety_checker: true,
+              image_url: childPhotoSignedUrl,
             }),
           });
 
