@@ -220,9 +220,14 @@ async function generateIllustration(
         console.error("Failed to download generated image from Fal.ai");
         return null;
       }
-      const imgBuffer = await imgResponse.arrayBuffer();
-      const base64 = btoa(String.fromCharCode(...new Uint8Array(imgBuffer)));
-      return `data:image/png;base64,${base64}`;
+      const imgBuffer = new Uint8Array(await imgResponse.arrayBuffer());
+      // Chunked base64 encoding to avoid stack overflow on large images
+      let binary = "";
+      const chunkSize = 8192;
+      for (let i = 0; i < imgBuffer.length; i += chunkSize) {
+        binary += String.fromCharCode(...imgBuffer.subarray(i, i + chunkSize));
+      }
+      return `data:image/png;base64,${btoa(binary)}`;
     }
 
     return null;
