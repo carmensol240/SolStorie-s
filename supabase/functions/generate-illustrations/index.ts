@@ -221,13 +221,17 @@ async function generateIllustration(
         return null;
       }
       const imgBuffer = new Uint8Array(await imgResponse.arrayBuffer());
-      // Chunked base64 encoding to avoid stack overflow on large images
-      let binary = "";
-      const chunkSize = 8192;
-      for (let i = 0; i < imgBuffer.length; i += chunkSize) {
-        binary += String.fromCharCode(...imgBuffer.subarray(i, i + chunkSize));
+      // Safe byte-by-byte base64 encoding — no spread operator to avoid stack overflow
+      const chunks: string[] = [];
+      for (let i = 0; i < imgBuffer.length; i += 512) {
+        const end = Math.min(i + 512, imgBuffer.length);
+        let chunk = '';
+        for (let j = i; j < end; j++) {
+          chunk += String.fromCharCode(imgBuffer[j]);
+        }
+        chunks.push(chunk);
       }
-      return `data:image/png;base64,${btoa(binary)}`;
+      return `data:image/png;base64,${btoa(chunks.join(''))}`;
     }
 
     return null;
