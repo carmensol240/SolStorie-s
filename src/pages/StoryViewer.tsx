@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef, useCallback } from "react";
+import { useState, useEffect, useRef, useCallback, useMemo } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { Home, BookOpen, Sparkles, Palette, Wand2, RefreshCw, Loader2, ImageOff, Star, Send, ChevronRight, ChevronLeft } from "lucide-react";
 import { MissingIllustrationPrompt } from "@/components/story/MissingIllustrationPrompt";
@@ -748,6 +748,44 @@ const StoryViewer = () => {
     }
   }, [generationStatus, story, userStartedReading]);
 
+  // Build virtual pages: 2 text pages then 1 full-screen illustration, repeating
+  type VirtualPage =
+    | { type: 'text'; dbPage: StoryPage }
+    | { type: 'illustration'; illustrationUrl: string | null; illustrationPrompt: string | null; dbPage: StoryPage };
+
+  const virtualPages: VirtualPage[] = useMemo(() => {
+    if (!story || story.pages.length === 0) return [];
+    const result: VirtualPage[] = [];
+    const dbPages = story.pages;
+
+    for (let i = 0; i < dbPages.length; i++) {
+      // Add text entry for every DB page
+      result.push({ type: 'text', dbPage: dbPages[i] });
+
+      // After every 2nd text page (or the very last page), insert an illustration page
+      const textCount = result.filter(p => p.type === 'text').length;
+      if (textCount % 2 === 0 || i === dbPages.length - 1) {
+        // Pick the best illustration from the last batch of DB pages
+        const batchStart = i === dbPages.length - 1 && textCount % 2 !== 0 ? i : Math.max(0, i - 1);
+        let illUrl: string | null = null;
+        let illPrompt: string | null = null;
+        let illDbPage = dbPages[i];
+        for (let j = batchStart; j <= i; j++) {
+          if (dbPages[j].illustration_url || dbPages[j].illustration_prompt) {
+            illUrl = dbPages[j].illustration_url;
+            illPrompt = dbPages[j].illustration_prompt || null;
+            illDbPage = dbPages[j];
+          }
+        }
+        if (illUrl || illPrompt) {
+          result.push({ type: 'illustration', illustrationUrl: illUrl, illustrationPrompt: illPrompt, dbPage: illDbPage });
+        }
+      }
+    }
+
+    return result;
+  }, [story?.pages]);
+
   if (isLoading) {
     return (
       <div className="min-h-screen bg-gradient-to-b from-purple-50 via-pink-50 to-orange-50 flex items-center justify-center" dir="rtl">
@@ -777,27 +815,25 @@ const StoryViewer = () => {
   }
 
   // Virtual page indexing:
-  // -1 = cover, 0 = dedication, 1..n = story pages (story.pages[currentPage-1]), n+1 = closing rainbow, n+2 = end/feedback
-  const totalStoryPages = story.pages.length;
+  // -1 = cover, 0 = dedication, 1..N = virtual pages, N+1 = closing, N+2 = end/feedback
+  const totalVirtualPages = virtualPages.length;
   const isCoverPage = currentPage === -1;
   const isDedicationPage = currentPage === 0;
-  const isClosingPage = currentPage === totalStoryPages + 1;
-  const isEndPage = currentPage >= totalStoryPages + 2;
-  const isContentPage = currentPage >= 1 && currentPage <= totalStoryPages;
-  
-  const page = isContentPage ? story.pages[currentPage - 1] : null;
-  const currentFontSize = FONT_SIZES[fontSizeIndex];
-  const showPageActions = isContentPage && page !== null;
+  const isClosingPage = currentPage === totalVirtualPages + 1;
+  const isEndPage = currentPage >= totalVirtualPages + 2;
+  const isContentPage = currentPage >= 1 && currentPage <= totalVirtualPages;
 
-  // Determine layout variant for content pages (repeating pattern of 2)
-  // 0 = illustration + text, 1 = text-only
-  const contentPageOffset = isContentPage ? (currentPage - 1) % 2 : -1;
+  const currentVirtual = isContentPage ? virtualPages[currentPage - 1] : null;
+  // For editing/nikud, get the underlying DB page
+  const page = currentVirtual ? currentVirtual.dbPage : null;
+  const currentFontSize = FONT_SIZES[fontSizeIndex];
+  const showPageActions = isContentPage && currentVirtual?.type === 'text' && page !== null;
 
   // Page navigation with simple fade transition
   const handlePageNav = (direction: 'next' | 'prev') => {
     if (isFlipping) return;
     
-    const maxPage = totalStoryPages + 2;
+    const maxPage = totalVirtualPages + 2;
     
     if (direction === 'next' && currentPage >= maxPage) return;
     if (direction === 'prev' && currentPage <= -1) return;
@@ -1010,38 +1046,26 @@ const StoryViewer = () => {
                 </div>
               </div>
 
-            ) : page ? (
-              /* Story Content Pages - Alternating layout */
+            ) : currentVirtual ? (
+              /* Story Content Pages — virtual page pattern */
               <div className={cn("h-full flex flex-col")}>
-                {page.illustration_url ? (
-                  /* Illustration page: illustration top, text below */
-                  <>
-                    <div className="relative w-full shrink-0 overflow-hidden bg-[#F5E6D3] flex items-center justify-center" style={{ height: isMobile ? '45vh' : '55vh' }}>
+                {currentVirtual.type === 'illustration' ? (
+                  /* Full-screen illustration page (no text) */
+                  currentVirtual.illustrationUrl ? (
+                    <div className="relative w-full h-full overflow-hidden bg-[#F5E6D3] flex items-center justify-center">
                       <img
-                        src={getPublicIllustrationUrl(page.illustration_url) || ''}
-                        alt={`איור עמוד ${currentPage}`}
+                        src={getPublicIllustrationUrl(currentVirtual.illustrationUrl) || ''}
+                        alt={`איור`}
                         className="w-full h-full object-contain"
                         loading="eager"
                       />
-                    </div>
-                    <div className="flex-1 min-h-0 overflow-y-auto paper-texture px-6 py-4 md:px-8 md:py-6">
-                      <div className="max-w-lg mx-auto w-full">
-                        <p className={cn(
-                          "text-[#3D2914] text-right font-medium transition-all whitespace-pre-line",
-                          currentFontSize.size
-                        )} style={{ lineHeight: '2.2' }} dir="rtl">
-                          {showNikud ? page.text : page.text.replace(/[\u0591-\u05C7]/g, '')}
-                        </p>
-                      </div>
-                      <div className="flex items-center justify-center pt-3 pb-1">
-                        <span className="text-xs text-[#B8A08C] font-light">{currentPage} / {totalStoryPages}</span>
+                      <div className="absolute bottom-4 left-1/2 -translate-x-1/2">
+                        <span className="text-xs text-[#8B7355]/60 font-light bg-white/40 px-3 py-1 rounded-full backdrop-blur-sm">{currentPage} / {totalVirtualPages}</span>
                       </div>
                     </div>
-                  </>
-                ) : page.illustration_prompt && !page.illustration_url ? (
-                  /* Illustration generating — skeleton placeholder */
-                  <>
-                    <div className="relative w-full shrink-0 overflow-hidden bg-gradient-to-br from-[#FFFBF5] via-[#F5E6D3] to-[#FAF3E8] flex items-center justify-center animate-pulse" style={{ height: isMobile ? '45vh' : '55vh' }}>
+                  ) : currentVirtual.illustrationPrompt ? (
+                    /* Illustration generating — skeleton */
+                    <div className="relative w-full h-full overflow-hidden bg-gradient-to-br from-[#FFFBF5] via-[#F5E6D3] to-[#FAF3E8] flex items-center justify-center animate-pulse">
                       <div className="text-center space-y-3">
                         <div className="w-16 h-16 mx-auto rounded-full bg-gradient-to-br from-purple-200 via-pink-200 to-orange-200 flex items-center justify-center animate-pulse">
                           <span className="text-3xl">🎨</span>
@@ -1049,22 +1073,9 @@ const StoryViewer = () => {
                         <p className="text-sm text-[#8B7355] font-medium">האיור נוצר...</p>
                       </div>
                     </div>
-                    <div className="flex-1 min-h-0 overflow-y-auto paper-texture px-6 py-4 md:px-8 md:py-6">
-                      <div className="max-w-lg mx-auto w-full">
-                        <p className={cn(
-                          "text-[#3D2914] text-right font-medium transition-all whitespace-pre-line",
-                          currentFontSize.size
-                        )} style={{ lineHeight: '2.2' }} dir="rtl">
-                          {showNikud ? page.text : page.text.replace(/[\u0591-\u05C7]/g, '')}
-                        </p>
-                      </div>
-                      <div className="flex items-center justify-center pt-3 pb-1">
-                        <span className="text-xs text-[#B8A08C] font-light">{currentPage} / {totalStoryPages}</span>
-                      </div>
-                    </div>
-                  </>
+                  ) : null
                 ) : (
-                  /* Text-only page — rainbow background + SolStorie's™ */
+                  /* Text-only page — rainbow background */
                   <div className="flex-1 flex flex-col min-h-0 w-full" style={{ background: RAINBOW_BG }}>
                     <div className="flex-1 min-h-0 overflow-y-auto px-8 py-8 md:px-12 md:py-10 flex flex-col">
                       <div className="max-w-lg mx-auto w-full">
@@ -1072,11 +1083,11 @@ const StoryViewer = () => {
                           "text-[#3D2914] text-right font-medium transition-all whitespace-pre-line",
                           currentFontSize.size
                         )} style={{ lineHeight: '2.2' }} dir="rtl">
-                          {showNikud ? page.text : page.text.replace(/[\u0591-\u05C7]/g, '')}
+                          {showNikud ? currentVirtual.dbPage.text : currentVirtual.dbPage.text.replace(/[\u0591-\u05C7]/g, '')}
                         </p>
                       </div>
                       <div className="flex flex-col items-center gap-2 pt-4 pb-1 shrink-0">
-                        <span className="text-xs text-[#B8A08C] font-light tracking-wide">{currentPage} / {totalStoryPages}</span>
+                        <span className="text-xs text-[#B8A08C] font-light tracking-wide">{currentPage} / {totalVirtualPages}</span>
                         <span className="text-sm font-black logo-3d-bubble opacity-60"><span className="logo-rainbow">SolStorie's™</span></span>
                       </div>
                     </div>
@@ -1091,7 +1102,7 @@ const StoryViewer = () => {
             {/* Next (RTL: left arrow = next) */}
             <button
               onClick={() => handlePageNav('next')}
-              disabled={currentPage >= totalStoryPages + 2 || isFlipping}
+              disabled={currentPage >= totalVirtualPages + 2 || isFlipping}
               className="nav-arrow-btn"
               aria-label="עמוד הבא"
             >
@@ -1101,7 +1112,7 @@ const StoryViewer = () => {
             {/* Page indicator */}
             <div className="dot-indicator">
               <span className="text-xs text-gray-400">
-                {isCoverPage ? '' : isDedicationPage ? 'הקדשה' : isClosingPage ? 'סיום' : isEndPage ? 'סוף' : `${currentPage} / ${totalStoryPages}`}
+                {isCoverPage ? '' : isDedicationPage ? 'הקדשה' : isClosingPage ? 'סיום' : isEndPage ? 'סוף' : `${currentPage} / ${totalVirtualPages}`}
               </span>
             </div>
 
