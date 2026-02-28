@@ -59,6 +59,7 @@ import topicFlyingVacation from "@/assets/topic-flying-vacation.jpg";
 import topicEnvironment from "@/assets/topic-environment.jpg";
 import topicMagicKeys from "@/assets/topic-magic-keys.jpg";
 import topicEducationalToolbox from "@/assets/topic-educational-toolbox.jpeg";
+import topicSafeRoom from "@/assets/topic-safe-room.jpg";
 
 export interface TopicItem {
   id: string;
@@ -148,6 +149,7 @@ export const CHARACTER_SECTIONS: CharacterSection[] = [
       { id: "patience", label: "סבלנות", description: "סיפור על ההמתנה שמלמדת: דבר יפה לוקח זמן לצמוח, וכשסובלים בסבלנות, ההפתעה שמגיעה בסוף שווה כל רגע.", image: topicAngerCloud, ageRange: "3-6", keywords: ["סבלנות", "המתנה", "רגיעה", "שליטה עצמית"] },
       { id: "politeness", label: "אדיבות", description: "סיפור על כוחן של מילים נעימות: 'בבקשה', 'תודה' ו'סליחה' הן לא רק מילים – הן דלתות שנפתחות ולבבות שמתחממים.", image: topicSharing, ageRange: "3-6", keywords: ["אדיבות", "דרך ארץ", "נימוס", "תודה", "בבקשה"] },
       { id: "self-confidence", label: "ביטחון עצמי", description: "סיפור מעצים על הקול הפנימי שיודע: גם כשקשה, גם כשמסופקים – יש בפנים כוח שמחכה להתגלות.", image: topicIndependence, ageRange: "4-8", keywords: ["ביטחון עצמי", "אמונה", "עוצמה", "כוח פנימי"] },
+      { id: "safe-room-sirens", label: "שהייה בממ\"ד ואזעקות", description: "סיפור מרגיע ומחזק על הרגעים בממ\"ד: איך נשארים רגועים כשנשמעת אזעקה, מה עושים יחד כמשפחה ולמה הממ\"ד הוא המקום הכי בטוח. סיפור שעוזר לילדים להרגיש מוגנים, אהובים ובטוחים.", image: topicSafeRoom, ageRange: "0-8", keywords: ["ממד", "אזעקה", "מלחמה", "פחד", "בטחון", "מקלט", "צבע אדום", "סירנה", "מוגנות", "רגיעה"] },
     ],
   },
   {
