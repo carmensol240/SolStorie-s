@@ -1040,14 +1040,14 @@ const StoryViewer = () => {
                     </div>
                   </>
                 ) : page.illustration_prompt && !page.illustration_url ? (
-                  /* Illustration still generating — shimmer */
+                  /* Illustration generating — skeleton placeholder */
                   <>
-                    <div className="relative w-full md:w-1/2 shrink-0 overflow-hidden" style={{ height: isMobile ? '40vh' : 'auto' }}>
-                      <div className="w-full h-full shimmer-loading flex items-center justify-center min-h-[200px]">
-                        <div className="text-center text-purple-400">
-                          <Palette className="w-14 h-14 mx-auto mb-2 opacity-40 animate-pulse" />
-                          <p className="text-sm font-medium opacity-60">סול מציירת...</p>
+                    <div className="relative w-full shrink-0 overflow-hidden bg-gradient-to-br from-[#FFFBF5] via-[#F5E6D3] to-[#FAF3E8] flex items-center justify-center animate-pulse" style={{ height: isMobile ? '45vh' : '55vh' }}>
+                      <div className="text-center space-y-3">
+                        <div className="w-16 h-16 mx-auto rounded-full bg-gradient-to-br from-purple-200 via-pink-200 to-orange-200 flex items-center justify-center animate-pulse">
+                          <span className="text-3xl">🎨</span>
                         </div>
+                        <p className="text-sm text-[#8B7355] font-medium">האיור נוצר...</p>
                       </div>
                     </div>
                     <div className="flex-1 min-h-0 overflow-y-auto paper-texture px-6 py-4 md:px-8 md:py-6">
