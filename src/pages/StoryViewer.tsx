@@ -1046,38 +1046,26 @@ const StoryViewer = () => {
                 </div>
               </div>
 
-            ) : page ? (
-              /* Story Content Pages - Alternating layout */
+            ) : currentVirtual ? (
+              /* Story Content Pages — virtual page pattern */
               <div className={cn("h-full flex flex-col")}>
-                {page.illustration_url ? (
-                  /* Illustration page: illustration top, text below */
-                  <>
-                    <div className="relative w-full shrink-0 overflow-hidden bg-[#F5E6D3] flex items-center justify-center" style={{ height: isMobile ? '45vh' : '55vh' }}>
+                {currentVirtual.type === 'illustration' ? (
+                  /* Full-screen illustration page (no text) */
+                  currentVirtual.illustrationUrl ? (
+                    <div className="relative w-full h-full overflow-hidden bg-[#F5E6D3] flex items-center justify-center">
                       <img
-                        src={getPublicIllustrationUrl(page.illustration_url) || ''}
-                        alt={`איור עמוד ${currentPage}`}
+                        src={getPublicIllustrationUrl(currentVirtual.illustrationUrl) || ''}
+                        alt={`איור`}
                         className="w-full h-full object-contain"
                         loading="eager"
                       />
-                    </div>
-                    <div className="flex-1 min-h-0 overflow-y-auto paper-texture px-6 py-4 md:px-8 md:py-6">
-                      <div className="max-w-lg mx-auto w-full">
-                        <p className={cn(
-                          "text-[#3D2914] text-right font-medium transition-all whitespace-pre-line",
-                          currentFontSize.size
-                        )} style={{ lineHeight: '2.2' }} dir="rtl">
-                          {showNikud ? page.text : page.text.replace(/[\u0591-\u05C7]/g, '')}
-                        </p>
-                      </div>
-                      <div className="flex items-center justify-center pt-3 pb-1">
-                        <span className="text-xs text-[#B8A08C] font-light">{currentPage} / {totalStoryPages}</span>
+                      <div className="absolute bottom-4 left-1/2 -translate-x-1/2">
+                        <span className="text-xs text-[#8B7355]/60 font-light bg-white/40 px-3 py-1 rounded-full backdrop-blur-sm">{currentPage} / {totalVirtualPages}</span>
                       </div>
                     </div>
-                  </>
-                ) : page.illustration_prompt && !page.illustration_url ? (
-                  /* Illustration generating — skeleton placeholder */
-                  <>
-                    <div className="relative w-full shrink-0 overflow-hidden bg-gradient-to-br from-[#FFFBF5] via-[#F5E6D3] to-[#FAF3E8] flex items-center justify-center animate-pulse" style={{ height: isMobile ? '45vh' : '55vh' }}>
+                  ) : currentVirtual.illustrationPrompt ? (
+                    /* Illustration generating — skeleton */
+                    <div className="relative w-full h-full overflow-hidden bg-gradient-to-br from-[#FFFBF5] via-[#F5E6D3] to-[#FAF3E8] flex items-center justify-center animate-pulse">
                       <div className="text-center space-y-3">
                         <div className="w-16 h-16 mx-auto rounded-full bg-gradient-to-br from-purple-200 via-pink-200 to-orange-200 flex items-center justify-center animate-pulse">
                           <span className="text-3xl">🎨</span>
@@ -1085,22 +1073,9 @@ const StoryViewer = () => {
                         <p className="text-sm text-[#8B7355] font-medium">האיור נוצר...</p>
                       </div>
                     </div>
-                    <div className="flex-1 min-h-0 overflow-y-auto paper-texture px-6 py-4 md:px-8 md:py-6">
-                      <div className="max-w-lg mx-auto w-full">
-                        <p className={cn(
-                          "text-[#3D2914] text-right font-medium transition-all whitespace-pre-line",
-                          currentFontSize.size
-                        )} style={{ lineHeight: '2.2' }} dir="rtl">
-                          {showNikud ? page.text : page.text.replace(/[\u0591-\u05C7]/g, '')}
-                        </p>
-                      </div>
-                      <div className="flex items-center justify-center pt-3 pb-1">
-                        <span className="text-xs text-[#B8A08C] font-light">{currentPage} / {totalStoryPages}</span>
-                      </div>
-                    </div>
-                  </>
+                  ) : null
                 ) : (
-                  /* Text-only page — rainbow background + SolStorie's™ */
+                  /* Text-only page — rainbow background */
                   <div className="flex-1 flex flex-col min-h-0 w-full" style={{ background: RAINBOW_BG }}>
                     <div className="flex-1 min-h-0 overflow-y-auto px-8 py-8 md:px-12 md:py-10 flex flex-col">
                       <div className="max-w-lg mx-auto w-full">
@@ -1108,11 +1083,11 @@ const StoryViewer = () => {
                           "text-[#3D2914] text-right font-medium transition-all whitespace-pre-line",
                           currentFontSize.size
                         )} style={{ lineHeight: '2.2' }} dir="rtl">
-                          {showNikud ? page.text : page.text.replace(/[\u0591-\u05C7]/g, '')}
+                          {showNikud ? currentVirtual.dbPage.text : currentVirtual.dbPage.text.replace(/[\u0591-\u05C7]/g, '')}
                         </p>
                       </div>
                       <div className="flex flex-col items-center gap-2 pt-4 pb-1 shrink-0">
-                        <span className="text-xs text-[#B8A08C] font-light tracking-wide">{currentPage} / {totalStoryPages}</span>
+                        <span className="text-xs text-[#B8A08C] font-light tracking-wide">{currentPage} / {totalVirtualPages}</span>
                         <span className="text-sm font-black logo-3d-bubble opacity-60"><span className="logo-rainbow">SolStorie's™</span></span>
                       </div>
                     </div>
