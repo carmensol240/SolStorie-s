@@ -74,10 +74,10 @@ export const BookPage: React.FC<BookPageProps> = ({
       <div className="absolute top-0 right-0 w-8 h-8 bg-gradient-to-bl from-black/5 to-transparent" />
       
       {/* Main text content */}
-      <div className="flex-1 flex items-center justify-center">
+      <div className="flex-1 flex flex-col items-start justify-start">
         <p 
           className={cn(
-            "leading-loose text-[#3D2914] text-right font-medium transition-all",
+            "leading-loose text-[#3D2914] text-right font-medium transition-all w-full",
             fontSize
           )} 
           dir="rtl"

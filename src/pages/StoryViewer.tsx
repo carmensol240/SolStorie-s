@@ -1125,9 +1125,9 @@ const StoryViewer = () => {
                   /* Text-only page — rainbow background + SolStorie's™ */
                   <div className="flex-1 flex flex-col min-h-0 w-full" style={{ background: RAINBOW_BG }}>
                     <div className="flex-1 min-h-0 overflow-y-auto px-8 py-8 md:px-12 md:py-10 flex flex-col">
-                      <div className="max-w-lg mx-auto w-full flex-1 flex items-center justify-center">
+                      <div className="max-w-lg mx-auto w-full">
                         <p className={cn(
-                          "text-[#3D2914] text-center font-medium transition-all whitespace-pre-line",
+                          "text-[#3D2914] text-right font-medium transition-all whitespace-pre-line",
                           currentFontSize.size
                         )} style={{ lineHeight: '2.2' }} dir="rtl">
                           {showNikud ? page.text : page.text.replace(/[\u0591-\u05C7]/g, '')}

@@ -248,7 +248,7 @@ const PublicStoryViewer = () => {
                       <ChevronLeft className="w-4 h-4" />
                     </button>
                     <div className="flex-1 min-h-0 overflow-y-auto px-8 py-8 md:px-12 md:py-10 flex flex-col">
-                      <div className="max-w-lg mx-auto w-full flex-1 flex items-center justify-center">
+                    <div className="max-w-lg mx-auto w-full">
                         <p className="text-xl md:text-2xl text-[#3D2914] text-right font-medium whitespace-pre-line" style={{ lineHeight: '1.9' }} dir="rtl">
                           {page.text}
                         </p>
