@@ -1,59 +1,69 @@
 
 
-## Urgent Fix: Illustration Rendering, Read-Aloud Relocation, Privacy & Subscription
+## Comprehensive Fix Plan for SolStory
 
-### 1. Fix Illustration Prompt Logic (Full Body / No Cropping)
+### 1. Fix Image Generation — Stack Overflow (CRITICAL)
 
-**Files to update:**
-- `supabase/functions/generate-illustrations/index.ts` (main generation)
-- `supabase/functions/retry-illustration/index.ts` (retry generation)
-- `supabase/functions/generate-cover/index.ts` (cover generation)
+**Problem**: Edge function logs confirm `Maximum call stack size exceeded` errors are **still happening** (latest: 2026-02-28T18:39). The chunked encoding fix exists in source code but the **deployed function is stale**. Additionally, the `String.fromCharCode(...imgBuffer.subarray(i, i + chunkSize))` with 8192 elements may still exceed Deno edge-runtime's call stack limit.
 
-**Changes:**
-- Add explicit "Sole of the Foot" rule and grounding instructions to the style prefix and negative prompt in all three edge functions
-- Update the `stylePrefix` in `generate-illustrations/index.ts` (line ~213) and `retry-illustration/index.ts` (line ~117) to include:
-  - "ALWAYS show characters FULL BODY from head to toe with feet VISIBLE and GROUNDED on the surface (grass, floor, path). The character's full body including shoes/feet MUST be visible."
-  - "Frame the character with generous margin from all edges -- at least 10% padding on each side. Character must be FULLY CONTAINED within the frame, never cropped."
-- Expand the NEGATIVE PROMPT to include: "cropped feet, cut off legs, floating character, character not touching ground, half-body, missing feet, legs cut off at frame edge"
-- Apply the same updates to the `retry-illustration` edge function's `stylePrefix` block
+**Fix** (`supabase/functions/generate-illustrations/index.ts`):
+- Replace `String.fromCharCode(...imgBuffer.subarray(...))` spread with a safe per-byte loop approach using `TextDecoder` or manual byte-by-byte concatenation with smaller chunks (512 bytes)
+- Same fix in `supabase/functions/retry-illustration/index.ts`
+- **Redeploy both edge functions** to ensure the fix is live
 
-### 2. Remove Read-Aloud from Story Screen, Keep in Accessibility Menu
+```typescript
+// Replace spread-based chunking with safe approach
+const imgBuffer = new Uint8Array(await imgResponse.arrayBuffer());
+const chunks: string[] = [];
+for (let i = 0; i < imgBuffer.length; i += 512) {
+  const slice = imgBuffer.subarray(i, Math.min(i + 512, imgBuffer.length));
+  let chunk = '';
+  for (let j = 0; j < slice.length; j++) {
+    chunk += String.fromCharCode(slice[j]);
+  }
+  chunks.push(chunk);
+}
+const binary = chunks.join('');
+return `data:image/png;base64,${btoa(binary)}`;
+```
 
-**File: `src/pages/StoryViewer.tsx`**
+### 2. React Hooks Error — Already Fixed
 
-The read-aloud button was already removed from the main UI (line 877 shows a comment "Read Aloud button removed per user request"). However, there are still leftover imports and state:
-- Remove `isReadAloudDismissed` state (line 101)
-- Remove `useTextToSpeech` hook usage (line 121) and its import (line 32)
-- Clean up any remaining TTS-related code in StoryViewer
+The StoryViewer code already has all hooks (`useState`, `useEffect`, `useMemo`, `useCallback`) called at the top level before any early `return` statements (lines 88-787 are all hooks/logic; first early return is at line 789). No changes needed.
 
-The "Read Aloud" toggle already exists in the Accessibility Menu (`AccessibilityMenu.tsx`, lines 105-118) as "Audio Support" which enables/disables the read-aloud button. This will remain as-is -- it's the correct location for this feature.
+### 3. Story Layout Pattern — Already Implemented
 
-### 3. Privacy & COPPA/GDPR Compliance
+The 2-text + 1-illustration virtual pages pattern is already in place (lines 756-787). Cover, Dedication, Closing pages are preserved. Illustration pages are full-screen with `object-contain`. No changes needed.
 
-The app already has:
-- Privacy Policy page (`src/pages/PrivacyPolicy.tsx`) 
-- Terms of Service page (`src/pages/TermsOfService.tsx`)
-- Legal consent flow (`src/pages/LegalConsent.tsx`)
-- Privacy safeguards (generic placeholders instead of real names)
-- PII masking in edge function logs
+### 4. Password Reset Emails Not Arriving
 
-**Additional hardening:**
-- Add a brief privacy disclosure note in the Settings page (`src/pages/Settings.tsx`) linking to the Privacy Policy, with text like "All data handled per child privacy regulations"
-- Verify the About page (`src/components/shared/AboutSolStoriesContent.tsx`) includes the existing professional disclaimer
+**Problem**: The `send-password-reset` edge function sends via Resend from `noreply@storytime.org.il`. If this domain isn't verified in Resend, emails will fail silently.
 
-### 4. Subscription Plan Verification Reminder
+**Fix options** (need user input):
+- **Option A**: The sender domain `storytime.org.il` must be verified in Resend's dashboard. The function code itself is correct — it calls `resend.emails.send()` with proper HTML template.
+- **Option B**: Use Lovable's built-in custom auth email system instead of the manual Resend integration, which would handle email delivery automatically.
 
-**File: `src/pages/Settings.tsx`** (or a dev-only component)
+**Diagnostic step**: Check edge function logs for `send-password-reset` to see if Resend returns an error.
 
-- Add a dev-mode-only visual banner (using existing `isDevModeEnabled()`) at the top of the Settings page reminding to verify the subscription plan before launch
-- This will only be visible when dev mode is enabled and will not appear in production for real users
+### 5. RTL & Read-Aloud — Already Done
 
-### Technical Summary
+- All pages have `dir="rtl"` 
+- Read-aloud button is removed (line 881 comment confirms this)
+- No changes needed
 
-| Task | Files Changed | Deploy Needed |
-|------|--------------|---------------|
-| Fix illustration prompts | `generate-illustrations/index.ts`, `retry-illustration/index.ts` | Yes (edge functions) |
-| Clean up TTS remnants | `StoryViewer.tsx` | No |
-| Privacy disclosure | `Settings.tsx` | No |
-| Subscription reminder | `Settings.tsx` (dev-only) | No |
+---
+
+### Summary of Changes
+
+| File | Change |
+|------|--------|
+| `supabase/functions/generate-illustrations/index.ts` | Replace spread-based base64 encoding with safe byte-by-byte loop (512 chunk) |
+| `supabase/functions/retry-illustration/index.ts` | Same safe base64 encoding fix |
+| Both functions | Redeploy to ensure fix is live |
+
+### Items Needing User Input
+
+**Email deliverability**: I need to check the `send-password-reset` logs to diagnose the exact failure. Would you like me to:
+- A) Debug the current Resend setup (check logs, verify domain)
+- B) Switch to Lovable's built-in auth email system for automatic delivery
 
