@@ -539,8 +539,8 @@ serve(async (req) => {
     
     let firstIllustrationUrl: string | null = null;
 
-    // Generate illustrations SEQUENTIALLY to avoid rate limiting on AI Gateway
-    console.log(`Generating ${pagesToIllustrate.length} illustrations sequentially...`);
+    // Flux Schnell is fast — 1s delay between pages to avoid rate limiting
+    console.log(`Generating ${pagesToIllustrate.length} illustrations sequentially via Fal.ai Flux Schnell...`);
 
     for (const page of pagesToIllustrate) {
       console.log(`Generating illustration for page ${page.page_number}...`);
