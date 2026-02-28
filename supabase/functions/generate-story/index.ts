@@ -1272,37 +1272,43 @@ ${topic.endsWith('-edu') ? `
         .update({ generation_status: "failed" })
         .eq("id", story.id);
     } else {
-      console.log(`Triggering generate-illustrations for story ${story.id}...`);
-      
-      fetch(`${supabaseUrl}/functions/v1/generate-illustrations`, {
-        method: "POST",
-        headers: {
-          "Authorization": `Bearer ${serviceRoleKey}`,
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          storyId: story.id,
-          childPhoto: childPhoto,
-          childAvatarUrl: childAvatarUrl,
-          childGender: childGender,
-          ageRange: ageRange,
-          adventureLogic: adventureLogic,
-          // Pass additional info for avatar persistence
-          userId: userId,
-          childName: childName,
-          topic: topic,
-        }),
-      }).then(response => {
-        console.log(`generate-illustrations response status: ${response.status}`);
-        if (!response.ok) {
-          response.text().then(text => {
-            console.error("generate-illustrations error response:", text);
-          });
-        }
-      }).catch(err => {
-        console.error("Error triggering illustration generation:", err);
-        // Don't throw - the story text is already saved
-      });
+      // === DISTRIBUTED ILLUSTRATION GENERATION ===
+      // Fire a SEPARATE call for each page that needs an illustration.
+      // Each invocation handles one page (~80s), staying well within the Edge Function timeout (~150s).
+      const illustrationPages = pagesWithoutIllustrations.filter((p: any) => p.illustration_prompt);
+      console.log(`Triggering ${illustrationPages.length} separate generate-illustrations calls (one per page)...`);
+
+      for (const page of illustrationPages) {
+        console.log(`  → Dispatching illustration for page ${page.page_number}`);
+        fetch(`${supabaseUrl}/functions/v1/generate-illustrations`, {
+          method: "POST",
+          headers: {
+            "Authorization": `Bearer ${serviceRoleKey}`,
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            storyId: story.id,
+            childPhoto: childPhoto,
+            childAvatarUrl: childAvatarUrl,
+            childGender: childGender,
+            ageRange: ageRange,
+            adventureLogic: adventureLogic,
+            userId: userId,
+            childName: childName,
+            topic: topic,
+            singlePageNumber: page.page_number,
+          }),
+        }).then(response => {
+          console.log(`generate-illustrations (page ${page.page_number}) response: ${response.status}`);
+          if (!response.ok) {
+            response.text().then(text => {
+              console.error(`generate-illustrations page ${page.page_number} error:`, text);
+            });
+          }
+        }).catch(err => {
+          console.error(`Error triggering illustration for page ${page.page_number}:`, err);
+        });
+      }
 
       // Fire-and-forget: Trigger cover generation in parallel
       console.log(`Triggering generate-cover for story ${story.id}...`);
