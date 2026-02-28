@@ -290,7 +290,8 @@ NEGATIVE PROMPT / EXCLUDE: floating head, disembodied head, head without body, m
     });
 
     if (!response.ok) {
-      console.error("Image generation failed:", response.status);
+      const errorBody = await response.text().catch(() => "no body");
+      console.error(`Image generation failed: ${response.status} - ${errorBody}`);
       return null;
     }
 
