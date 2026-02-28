@@ -141,11 +141,11 @@ const FlipbookViewer = () => {
     setFlipDirection(direction);
     setIsFlipping(true);
 
-    // Soft fade transition (300ms)
+    // 3D flip transition (350ms)
     setTimeout(() => {
       setCurrentPage(prev => direction === 'next' ? prev + 1 : prev - 1);
       setIsFlipping(false);
-    }, 300);
+    }, 350);
   };
 
   const handleShare = async () => {
@@ -268,8 +268,9 @@ const FlipbookViewer = () => {
               "relative bg-white rounded-2xl overflow-hidden",
               "shadow-[0_25px_50px_-12px_rgba(0,0,0,0.25)]",
               "border border-purple-200",
-              "transition-opacity duration-300 ease-in-out",
-              isFlipping && "opacity-0"
+              "book-page-flip",
+              isFlipping && flipDirection === 'next' && "flip-out-next",
+              isFlipping && flipDirection === 'prev' && "flip-out-prev",
             )}
           >
             {/* Purple edge decoration */}

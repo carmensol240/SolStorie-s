@@ -852,7 +852,7 @@ const StoryViewer = () => {
     setIsFlipping(true);
     setFlipPhase('out');
     
-    // After fade-out, change page and fade-in
+    // After flip-out (350ms), change page and flip-in
     setTimeout(() => {
       if (direction === 'next' && currentPage < maxPage) {
         const newPage = currentPage + 1;
@@ -868,12 +868,12 @@ const StoryViewer = () => {
       }
       setFlipPhase('in');
       
-      // After fade-in animation completes
+      // After flip-in animation completes (350ms)
       setTimeout(() => {
         setFlipPhase('idle');
         setIsFlipping(false);
       }, 350);
-    }, 300);
+    }, 350);
   };
 
   return (
@@ -909,14 +909,15 @@ const StoryViewer = () => {
           <div className="book-spine-edge left rounded-l-xl" />
           <div className="book-spine-edge right rounded-r-xl" />
 
-          {/* Page content with flip animation */}
+          {/* Page content with 3D flip animation */}
           <div className={cn(
             "relative flex-1 min-h-0 flex flex-col rounded-xl overflow-hidden",
             "shadow-[0_8px_40px_rgba(0,0,0,0.12),0_0_0_1px_rgba(168,85,247,0.15)]",
-            "transition-all duration-300 ease-in-out",
-            flipPhase === 'out' && "opacity-0 scale-[0.98]",
-            flipPhase === 'in' && "opacity-100 scale-100",
-            flipPhase === 'idle' && "opacity-100 scale-100",
+            "book-page-flip",
+            flipPhase === 'out' && flipDirection === 'next' && "flip-out-next",
+            flipPhase === 'out' && flipDirection === 'prev' && "flip-out-prev",
+            flipPhase === 'in' && flipDirection === 'next' && "flip-in-next",
+            flipPhase === 'in' && flipDirection === 'prev' && "flip-in-prev",
           )}>
             
             {isCoverPage ? (
