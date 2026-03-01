@@ -179,7 +179,7 @@ async function generateIllustrationWithFace(
 
     const fullPrompt = `CRITICAL FACE REFERENCE: The main character's face, hair texture, skin tone, and facial features MUST be an EXACT 3D Pixar rendering of the person in the reference photo. Do NOT invent or change any facial features — derive ALL appearance strictly from the photo.
 
-3D DISNEY PIXAR STYLE, cute, cinematic lighting, vibrant colors, full screen uncropped. Like Coco, Encanto, Inside Out.
+3D DISNEY PIXAR ANIMATION STYLE. Render exactly like a frame from Coco, Encanto, or Inside Out 2. Smooth matte 3D surfaces, subsurface skin scattering, warm cinematic golden-hour lighting. Characters: large round expressive eyes with visible iris highlights, soft rosy cheeks, detailed textured hair with individual strand groups, small button nose. Environment: rich detailed backgrounds with depth-of-field bokeh, warm color palette, cozy atmospheric lighting with soft shadows. DO NOT render in 2D, flat illustration, anime, watercolor, or photorealistic style.
 
 MAIN CHARACTER: The child from the reference photo is the HERO. They wear ${finalOutfit}. They must be the LARGEST and most PROMINENT figure. ${adventureInstruction}
 
@@ -191,7 +191,7 @@ SUPPORTING CAST (smaller, background only):
 - Leo: black straight hair, round glasses, denim overalls
 - Mia: brown bob, flower crown, green dress
 
-FULL BODY head to toe, feet GROUNDED. NEGATIVE: generic face, wrong hair, floating head, missing body, extra limbs, deformed, cropped feet, text, watermark`;
+FULL BODY head to toe, feet GROUNDED on surface. Portrait 4:3 framing. NEGATIVE: generic face, wrong hair, floating head, missing body, extra limbs, deformed, cropped feet, text, watermark, 2D, flat, anime, watercolor`;
 
     console.log("Generating illustration via Fal.ai Instant Character (face reference)...");
 
