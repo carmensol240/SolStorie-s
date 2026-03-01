@@ -90,35 +90,25 @@ const TOPIC_HEBREW_MAP: Record<string, string> = {
   'sharing-fun': 'שיתוף וכיף',
   'safe-room-sirens': 'שהייה בממ"ד ואזעקות',
 
-  // New values topics
+  // Legacy IDs (removed duplicates still need translation for existing stories)
   'honesty': 'אמירת אמת',
   'respecting-elders': 'כבוד למבוגרים',
-  'true-friendship': 'חברות אמת',
-  'accepting-differences': 'קבלת השונה',
-  'helping-home': 'עזרה בבית',
-
-  // New emotions topics
   'cooperation': 'שיתוף פעולה',
   'patience': 'סבלנות',
   'politeness': 'אדיבות',
   'self-confidence': 'ביטחון עצמי',
 
-  // New curiosity topics
-  'space-journey': 'מסע בחלל',
-  'nature-secrets': 'סודות הטבע',
-  'how-body-works': 'איך הגוף שלנו עובד',
-
-  // New creativity topics
-  'cloud-kingdom': 'ממלכת העננים',
-  'dragon-party': 'מסיבת הדרקונים',
-  'strange-inventions': 'המצאות משונות',
-
-  // New edu toolbox entries
-  'honesty-edu': 'אמירת אמת – מיומנות חברתית',
-  'cooperation-edu': 'שיתוף פעולה בקבוצה',
-  'patience-edu': 'סבלנות – להמתין בשקט',
-  'politeness-edu': 'אדיבות ודרך ארץ',
-  'respecting-elders-edu': 'כבוד למבוגרים',
+  // Edu toolbox entries (refined titles)
+  'honesty-edu': 'כנות – לומר את האמת בעדינות',
+  'cooperation-edu': 'עבודת צוות – ביחד אנחנו חזקים',
+  'patience-edu': 'סבלנות – לחכות בשקט ובשלווה',
+  'politeness-edu': 'נימוס – מילים שפותחות לבבות',
+  'respecting-elders-edu': 'כבוד למבוגרים – להקשיב וללמוד',
+  'waiting-in-line-edu': 'המתנה בתור – מתי מגיע תורי?',
+  'emotion-regulation-edu': 'ויסות רגשות – לנשום ולהירגע',
+  'holidays-seasons-edu': 'מעגל השנה – חגים ועונות',
+  'play-rules-edu': 'כללי משחק – לשחק בהוגנות',
+  'self-confidence-edu': 'ביטחון עצמי – אני יכול/ה!',
 };
 
 /**
