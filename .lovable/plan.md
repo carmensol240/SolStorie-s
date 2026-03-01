@@ -1,59 +1,50 @@
 
 
-## Urgent Fix: Illustration Rendering, Read-Aloud Relocation, Privacy & Subscription
+## Plan: Cinematic 3D Pixar Style — Final Prompt Overhaul
 
-### 1. Fix Illustration Prompt Logic (Full Body / No Cropping)
+### What's Already Done (No Changes Needed)
+- PDF sharing via `navigator.share` — already implemented
+- IndexedDB for offline storage — already implemented
+- `stripBase64ForStorage` for localStorage — already implemented
 
-**Files to update:**
-- `supabase/functions/generate-illustrations/index.ts` (main generation)
-- `supabase/functions/retry-illustration/index.ts` (retry generation)
-- `supabase/functions/generate-cover/index.ts` (cover generation)
+### What Changes
 
-**Changes:**
-- Add explicit "Sole of the Foot" rule and grounding instructions to the style prefix and negative prompt in all three edge functions
-- Update the `stylePrefix` in `generate-illustrations/index.ts` (line ~213) and `retry-illustration/index.ts` (line ~117) to include:
-  - "ALWAYS show characters FULL BODY from head to toe with feet VISIBLE and GROUNDED on the surface (grass, floor, path). The character's full body including shoes/feet MUST be visible."
-  - "Frame the character with generous margin from all edges -- at least 10% padding on each side. Character must be FULLY CONTAINED within the frame, never cropped."
-- Expand the NEGATIVE PROMPT to include: "cropped feet, cut off legs, floating character, character not touching ground, half-body, missing feet, legs cut off at frame edge"
-- Apply the same updates to the `retry-illustration` edge function's `stylePrefix` block
+The current prompts produce "doll-like" flat 3D renders. The user's reference images show a much more cinematic, portrait-photography-inspired 3D style with sculpted facial detail, volumetric hair, and heavy bokeh. The fix is a prompt-only upgrade across the 3 edge functions.
 
-### 2. Remove Read-Aloud from Story Screen, Keep in Accessibility Menu
+**New unified style block** (replaces current one in all paths):
 
-**File: `src/pages/StoryViewer.tsx`**
+```
+Ultra-high fidelity 3D Disney Pixar character portrait, cinematic close-up 
+composition. Sculpted dimensional facial features with soft-focus skin texture, 
+natural subtle freckles, subsurface scattering. Large deeply expressive eyes 
+with intricate iris reflections, catchlights, and thick lashes. Deeply textured 
+voluminous hair with individual strand groups, glossy highlights, and natural 
+movement. Warm golden-hour cinematic portrait lighting with soft volumetric fog 
+and rim lighting that creates depth and dimension. Background: ALWAYS deeply 
+blurred creamy bokeh composed of indistinct warm orbs of light, soft pastel 
+colors, and blended organic shapes — shallow depth-of-field isolating the 
+character as focal point. Octane render quality, 8K masterpiece. 
+DO NOT render flat, simple, doll-like, anime, 2D, watercolor, or photorealistic.
+```
 
-The read-aloud button was already removed from the main UI (line 877 shows a comment "Read Aloud button removed per user request"). However, there are still leftover imports and state:
-- Remove `isReadAloudDismissed` state (line 101)
-- Remove `useTextToSpeech` hook usage (line 121) and its import (line 32)
-- Clean up any remaining TTS-related code in StoryViewer
+Key upgrades vs current prompt:
+- **"sculpted dimensional facial features"** + **"natural subtle freckles"** — moves away from smooth doll-like faces
+- **"intricate iris reflections, catchlights, thick lashes"** — eye detail matching reference
+- **"deeply textured voluminous hair with glossy highlights"** — hair quality matching reference
+- **"creamy bokeh composed of indistinct warm orbs of light"** — explicit bokeh description matching reference images
+- **"rim lighting"** — creates the edge glow visible in reference images
+- Added **"doll-like"** to negative prompt
 
-The "Read Aloud" toggle already exists in the Accessibility Menu (`AccessibilityMenu.tsx`, lines 105-118) as "Audio Support" which enables/disables the read-aloud button. This will remain as-is -- it's the correct location for this feature.
+### Files to Edit
+1. **`supabase/functions/generate-illustrations/index.ts`** — Update both `generateIllustrationWithFace` (line 180-194) and `generateIllustration` (line 276) style blocks
+2. **`supabase/functions/generate-cover/index.ts`** — Update personalized cover prompt (line 166-168) and standard cover prompt (line 286)
+3. **`supabase/functions/retry-illustration/index.ts`** — Update both Instant Character (line 166-168) and Schnell (line 155) style blocks
 
-### 3. Privacy & COPPA/GDPR Compliance
-
-The app already has:
-- Privacy Policy page (`src/pages/PrivacyPolicy.tsx`) 
-- Terms of Service page (`src/pages/TermsOfService.tsx`)
-- Legal consent flow (`src/pages/LegalConsent.tsx`)
-- Privacy safeguards (generic placeholders instead of real names)
-- PII masking in edge function logs
-
-**Additional hardening:**
-- Add a brief privacy disclosure note in the Settings page (`src/pages/Settings.tsx`) linking to the Privacy Policy, with text like "All data handled per child privacy regulations"
-- Verify the About page (`src/components/shared/AboutSolStoriesContent.tsx`) includes the existing professional disclaimer
-
-### 4. Subscription Plan Verification Reminder
-
-**File: `src/pages/Settings.tsx`** (or a dev-only component)
-
-- Add a dev-mode-only visual banner (using existing `isDevModeEnabled()`) at the top of the Settings page reminding to verify the subscription plan before launch
-- This will only be visible when dev mode is enabled and will not appear in production for real users
-
-### Technical Summary
-
-| Task | Files Changed | Deploy Needed |
-|------|--------------|---------------|
-| Fix illustration prompts | `generate-illustrations/index.ts`, `retry-illustration/index.ts` | Yes (edge functions) |
-| Clean up TTS remnants | `StoryViewer.tsx` | No |
-| Privacy disclosure | `Settings.tsx` | No |
-| Subscription reminder | `Settings.tsx` (dev-only) | No |
+### Cast Descriptions (tightened for this style)
+```
+- Ben: toddler boy, voluminous curly dark hair, warm tan skin, green shirt, large brown eyes — 3D Pixar portrait quality
+- Zoe: dark-skinned athletic girl, thick voluminous black curls, blue headband, purple-yellow tracksuit — 3D Pixar portrait quality  
+- Leo: boy with straight black hair, round glasses, denim overalls — 3D Pixar portrait quality
+- Mia: girl with smooth brown bob, small flower crown, green dress — 3D Pixar portrait quality
+```
 
