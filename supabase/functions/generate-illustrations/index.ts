@@ -177,21 +177,21 @@ async function generateIllustrationWithFace(
       ? `Setting: ${adventureLogic.background}. Theme: ${adventureLogic.theme}.`
       : "";
 
-    const fullPrompt = `3D DISNEY PIXAR STYLE, cute, cinematic lighting, vibrant colors, full screen uncropped. Like Coco, Encanto, Inside Out. Characters with large expressive eyes, detailed hair, soft textures. ALWAYS show characters FULL BODY from head to toe with feet VISIBLE and GROUNDED.
+    const fullPrompt = `CRITICAL FACE REFERENCE: The main character's face, hair texture, skin tone, and facial features MUST be an EXACT 3D Pixar rendering of the person in the reference photo. Do NOT invent or change any facial features — derive ALL appearance strictly from the photo.
 
-${visualAnchor}
+3D DISNEY PIXAR STYLE, cute, cinematic lighting, vibrant colors, full screen uncropped. Like Coco, Encanto, Inside Out.
 
-MAIN CHARACTER: The character from the reference image is the HERO and FOCAL POINT of the scene. They wear ${finalOutfit}. Their facial features, hair, and skin tone MUST match the reference photo exactly, rendered in 3D Disney Pixar style. They must be clearly recognizable as the same child from the photo.
-
-${castDescription}
-
-${adventureInstruction}
+MAIN CHARACTER: The child from the reference photo is the HERO. They wear ${finalOutfit}. They must be the LARGEST and most PROMINENT figure. ${adventureInstruction}
 
 SCENE: ${prompt}
 
-CRITICAL: The main personalized character must be the LARGEST and most PROMINENT figure in the scene. Secondary characters must NOT overshadow them.
+SUPPORTING CAST (smaller, background only):
+- Ben: curly dark hair toddler, tan skin, green shirt
+- Zoe: dark-skinned girl, black afro curls, blue headband, purple-yellow tracksuit
+- Leo: black straight hair, round glasses, denim overalls
+- Mia: brown bob, flower crown, green dress
 
-NEGATIVE: floating head, missing body, missing limbs, extra limbs, deformed, distorted, scary, horror, mutated, cropped feet, cut off legs, floating character, half-body, missing feet, text, watermark, UI elements`;
+FULL BODY head to toe, feet GROUNDED. NEGATIVE: generic face, wrong hair, floating head, missing body, extra limbs, deformed, cropped feet, text, watermark`;
 
     console.log("Generating illustration via Fal.ai Instant Character (face reference)...");
 

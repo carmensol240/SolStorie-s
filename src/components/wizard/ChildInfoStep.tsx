@@ -12,6 +12,7 @@ import { isDevModeEnabled } from "@/hooks/use-dev-mode";
 import { toast } from "sonner";
 import AvatarPreviewDialog from "@/components/story/AvatarPreviewDialog";
 import { getUserData, setUserData } from "@/lib/user-storage";
+import { stripBase64ForStorage } from "@/lib/strip-base64";
 
 interface SavedChild {
   id: string;
@@ -243,7 +244,7 @@ const ChildInfoStep = ({ formData, updateFormData }: ChildInfoStepProps) => {
       setSavedChildren(updatedChildren);
       
       // Persist to localStorage for all users
-      setUserData(user?.id, 'savedChildren', JSON.stringify(updatedChildren));
+      setUserData(user?.id, 'savedChildren', JSON.stringify(stripBase64ForStorage(updatedChildren)));
     }
   };
 
@@ -364,7 +365,7 @@ const ChildInfoStep = ({ formData, updateFormData }: ChildInfoStepProps) => {
           existingChildren.push(savedChild);
         }
         
-        setUserData(user?.id, 'savedChildren', JSON.stringify(existingChildren));
+        setUserData(user?.id, 'savedChildren', JSON.stringify(stripBase64ForStorage(existingChildren)));
         setSavedChildren(existingChildren);
         
         toast.success("הפרטים נשמרו בהצלחה! 🎉");

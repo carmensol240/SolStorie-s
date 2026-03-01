@@ -35,6 +35,7 @@ import { useToast } from "@/hooks/use-toast";
 import MobileNavigation from "@/components/MobileNavigation";
 import AvatarPreviewDialog from "@/components/story/AvatarPreviewDialog";
 import { getUserData, setUserData } from "@/lib/user-storage";
+import { stripBase64ForStorage } from "@/lib/strip-base64";
 
 interface Child {
   id: string;
@@ -105,7 +106,7 @@ const ChildProfiles = () => {
           if (!error && data && data.length > 0) {
             setChildren(data);
             // Sync to localStorage for offline access
-            setUserData(user?.id, 'savedChildren', JSON.stringify(data));
+            setUserData(user?.id, 'savedChildren', JSON.stringify(stripBase64ForStorage(data)));
           } else if (!error && data && data.length === 0) {
             // User has no children in DB, use localStorage if available
             if (localChildren.length > 0) {
@@ -163,7 +164,7 @@ const ChildProfiles = () => {
 
         if (!error && data) {
           setChildren(data);
-          setUserData(user?.id, 'savedChildren', JSON.stringify(data));
+          setUserData(user?.id, 'savedChildren', JSON.stringify(stripBase64ForStorage(data)));
         }
       } catch (error) {
         console.error("Error fetching children:", error);
@@ -275,7 +276,7 @@ const ChildProfiles = () => {
         };
         
         localChildren.push(newChild);
-        setUserData(user?.id, 'savedChildren', JSON.stringify(localChildren));
+        setUserData(user?.id, 'savedChildren', JSON.stringify(stripBase64ForStorage(localChildren)));
         
         // Add to local state
         setChildren(prev => [...prev, newChild as Child]);
