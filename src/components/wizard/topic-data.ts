@@ -203,6 +203,7 @@ export const CHARACTER_SECTIONS: CharacterSection[] = [
       { id: "patience-edu", label: "⏳ סבלנות – לחכות בשקט ובשלווה", description: "מדריך חברתי מובנה (Carol Gray): יש רגעים שצריך לחכות – לתורנו, לתשובה, לסיום. נשימה עמוקה עוזרת לגוף ולמחשבות להירגע.", image: topicAngerCloud, ageRange: "3-8", keywords: ["סבלנות", "ויסות", "המתנה", "carol gray"] },
       { id: "politeness-edu", label: "🎩 נימוס – מילים שפותחות לבבות", description: "מדריך חברתי מובנה (Carol Gray): מילים כמו 'תודה' ו'בבקשה' הן לא רק כללים – הן הדרך שבה מראים לאחרים שרואים אותם ומכבדים אותם.", image: topicSharing, ageRange: "3-8", keywords: ["אדיבות", "נימוס", "דרך ארץ", "carol gray"] },
       { id: "respecting-elders-edu", label: "👴 כבוד למבוגרים – להקשיב וללמוד", description: "מדריך חברתי מובנה (Carol Gray): להקשיב כשמדברים אליך, לחכות לתורך ולהגיד תודה – אלה דרכים שמראות כבוד ועושות טוב לכולם.", image: topicGrandparentsNight, ageRange: "3-8", keywords: ["כבוד", "מבוגרים", "דרך ארץ", "carol gray"] },
+      { id: "eating-with-cutlery-edu", label: "🍴 לאכול עם סכו״ם – הכלים המבריקים שלי", description: "מדריך חברתי מובנה (Carol Gray): כשאני אוכל/ת עם כף ומזלג, הידיים שלי נשארות נקיות והאוכל מגיע בדיוק לפה. זה מרגיש גדול ומיוחד!", image: topicBraveTaster, ageRange: "2-6", keywords: ["אכילה", "סכום", "כלי אוכל", "עצמאות", "carol gray"] },
     ],
   },
 ];
