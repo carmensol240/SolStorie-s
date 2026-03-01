@@ -592,7 +592,7 @@ serve(async (req) => {
     }
     // === END CREDIT CHECK ===
 
-    const { childName, childGender = "male", ageRange, storyLength = "short", topic, nikud, childPhoto, childAvatarUrl, personalityTraits, adventureLogic, language = "he", className, topicDescription } = await req.json();
+    const { childName, childGender = "male", ageRange, storyLength = "short", topic, nikud, childPhoto, childAvatarUrl, personalityTraits, adventureLogic, language = "he", className, topicDescription, childId } = await req.json();
 
     // === INPUT VALIDATION ===
     // Validate required fields
@@ -957,7 +957,7 @@ ${adventureLogic ? `
 - גיל: ${ageRange}
 ${childPersonalization}
 ${contentFraming}
-
+${sequelInstruction}
 **נושא הסיפור:** ${topic}
 ${hasCustomDescription ? `**תיאור חופשי:** ${personalityTraits}` : ""}
 ${className ? `\n## 🏫 שם הכיתה/הגן: ${className}\nשלב את שם הכיתה/הגן בסיפור בצורה טבעית, לדוגמה: "יַלְדֵי ${className} הִתְרַגְּשׁוּ מְאוֹד..." או "בַּכִּיתָּה ${className} קָרָה הַרְפַּתְקָה מְיֻחֶדֶת...". הזכר את שם הכיתה/הגן לפחות פעמיים בסיפור.\n` : ""}
@@ -1172,6 +1172,25 @@ ${topic.endsWith('-edu') ? `
       console.log("Nikud not requested, skipping");
     }
 
+    // === SEQUEL LOGIC: Check for previous stories on the same topic by same child ===
+    let sequelInstruction = "";
+    if (userId && childName && topic) {
+      const hebrewTopicForSequel = getHebrewTopic(topic);
+      const { data: previousStories, error: sequelError } = await supabase
+        .from("stories")
+        .select("id")
+        .eq("user_id", userId)
+        .eq("child_name", childName)
+        .eq("topic", hebrewTopicForSequel)
+        .order("created_at", { ascending: true });
+      
+      if (!sequelError && previousStories && previousStories.length > 0) {
+        const partNumber = previousStories.length + 1;
+        sequelInstruction = `\n## 🔄 המשך הרפתקה (חלק ${partNumber})\nזהו סיפור המשך! הילד/ה כבר חווה/חוותה ${previousStories.length} הרפתקאות קודמות על "${hebrewTopicForSequel}".\nצור המשך חדש ומרתק באותו עולם, עם אתגר חדש ותפנית מפתיעה.\nאל תחזור על העלילה הקודמת - המשך את המסע קדימה!\nהזכר בעדינות שזו לא הפעם הראשונה: לדוגמה "וּכְמוֹ בְּכָל הַרְפַּתְקָה, ${childName} כְּבָר יוֹדֵעַ/יוֹדַעַת שֶׁהַדֶּרֶךְ תָּמִיד מַפְתִּיעָה..."\n`;
+        console.log(`Sequel detected! This is Part ${partNumber} for child "${childName}" on topic "${hebrewTopicForSequel}"`);
+      }
+    }
+
     // Use existing supabase client for database operations
 
     // Create the story first - include user_id for gallery privacy
@@ -1192,6 +1211,11 @@ ${topic.endsWith('-edu') ? `
     // Only add user_id if we have one (for gallery privacy)
     if (userId) {
       storyInsertData.user_id = userId;
+    }
+    
+    // Save child_id if provided
+    if (childId) {
+      storyInsertData.child_id = childId;
     }
     
     const { data: story, error: storyError } = await supabase

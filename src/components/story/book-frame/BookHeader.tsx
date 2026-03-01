@@ -4,6 +4,7 @@ import {
   FileDown, 
   Menu,
   Type,
+  Sparkles,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
@@ -18,6 +19,11 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
 import { cn } from "@/lib/utils";
 
 interface BookHeaderProps {
@@ -113,6 +119,34 @@ export const BookHeader: React.FC<BookHeaderProps> = ({
             <TooltipContent side="bottom">הורד או הדפס PDF</TooltipContent>
           </Tooltip>
 
+          {/* What Happens Next? */}
+          <Popover>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <PopoverTrigger asChild>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="text-[#5D3A1A] hover:bg-[#D4A574]/20 min-h-[44px] min-w-[44px] p-2"
+                    aria-label="מה קורה בהמשך?"
+                  >
+                    <Sparkles className="w-5 h-5" />
+                  </Button>
+                </PopoverTrigger>
+              </TooltipTrigger>
+              <TooltipContent side="bottom">מה קורה בהמשך?</TooltipContent>
+            </Tooltip>
+            <PopoverContent align="start" className="w-72 text-right" dir="rtl">
+              <div className="space-y-2">
+                <p className="font-bold text-sm text-[#5D3A1A]">
+                  📖 אהבתם? בבחירה הבאה באותו נושא, מחכה לכם המשך להרפתקה!
+                </p>
+                <p className="text-xs text-muted-foreground leading-relaxed">
+                  ב-SolStories, הקסם לא נגמר. המערכת שלנו זוכרת את המסע שלכם, ובפעם הבאה שתבחרו באותו נושא, הגיבור שלכם ימשיך להרפתקה חדשה באותו עולם!
+                </p>
+              </div>
+            </PopoverContent>
+          </Popover>
 
           {/* Menu */}
           <DropdownMenu>

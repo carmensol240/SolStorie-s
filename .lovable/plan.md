@@ -1,55 +1,59 @@
 
 
-## Plan: Sequel Logic, "What Happens Next?" Button, and Style Confirmation
+## Urgent Fix: Illustration Rendering, Read-Aloud Relocation, Privacy & Subscription
 
-### Already Implemented (No Changes Needed)
-- **Visual Style**: The cinematic 3D Pixar prompt (`STYLE_BLOCK`) was already updated in the last 3 iterations across all edge functions
-- **IndexedDB**: Already implemented in `use-offline-storage.ts`
-- **PDF Sharing via navigator.share**: Already implemented
-- **Cast descriptions**: Already defined (Ben, Zoe, Leo, Mia) in the edge functions
-- **Age-based story lengths**: Already enforced in `generate-story`
+### 1. Fix Illustration Prompt Logic (Full Body / No Cropping)
 
-### Changes Required
+**Files to update:**
+- `supabase/functions/generate-illustrations/index.ts` (main generation)
+- `supabase/functions/retry-illustration/index.ts` (retry generation)
+- `supabase/functions/generate-cover/index.ts` (cover generation)
 
-#### 1. Sequel Logic in `generate-story` Edge Function
-The function currently doesn't pass `child_id` or check for previous stories on the same topic. We need to:
+**Changes:**
+- Add explicit "Sole of the Foot" rule and grounding instructions to the style prefix and negative prompt in all three edge functions
+- Update the `stylePrefix` in `generate-illustrations/index.ts` (line ~213) and `retry-illustration/index.ts` (line ~117) to include:
+  - "ALWAYS show characters FULL BODY from head to toe with feet VISIBLE and GROUNDED on the surface (grass, floor, path). The character's full body including shoes/feet MUST be visible."
+  - "Frame the character with generous margin from all edges -- at least 10% padding on each side. Character must be FULLY CONTAINED within the frame, never cropped."
+- Expand the NEGATIVE PROMPT to include: "cropped feet, cut off legs, floating character, character not touching ground, half-body, missing feet, legs cut off at frame edge"
+- Apply the same updates to the `retry-illustration` edge function's `stylePrefix` block
 
-- **Client (`GeneratingStep.tsx`)**: Pass the selected `childId` (from `formData`) to the edge function
-- **Edge function (`generate-story/index.ts`)**: 
-  - Accept `childId` from the request body
-  - Query `stories` table for previous stories with same `user_id` + `child_name` + `topic` (Hebrew)
-  - If found, count them and inject a sequel instruction into the prompt: "This is Part N of an ongoing adventure. The child has already experienced [previous topic]. Continue the story in the same world with a NEW adventure."
-  - Save `child_id` in the story insert if provided
+### 2. Remove Read-Aloud from Story Screen, Keep in Accessibility Menu
 
-#### 2. "What Happens Next?" Button in `BookHeader.tsx`
-- Add a `Sparkles` icon button next to the PDF download button
-- On click/hover, show a `Popover` with the warm Hebrew explanation text
-- Label: `📖 אהבתם? בבחירה הבאה באותו נושא, מחכה לכם המשך להרפתקה!`
-- Popover content: The warm explanation about sequel continuity
+**File: `src/pages/StoryViewer.tsx`**
 
-#### 3. Files to Edit
+The read-aloud button was already removed from the main UI (line 877 shows a comment "Read Aloud button removed per user request"). However, there are still leftover imports and state:
+- Remove `isReadAloudDismissed` state (line 101)
+- Remove `useTextToSpeech` hook usage (line 121) and its import (line 32)
+- Clean up any remaining TTS-related code in StoryViewer
 
-| File | Change |
-|------|--------|
-| `src/components/wizard/GeneratingStep.tsx` | Pass `childId` to edge function |
-| `supabase/functions/generate-story/index.ts` | Accept `childId`, query previous stories, inject sequel prompt, save `child_id` |
-| `src/components/story/book-frame/BookHeader.tsx` | Add "What Happens Next?" popover button |
+The "Read Aloud" toggle already exists in the Accessibility Menu (`AccessibilityMenu.tsx`, lines 105-118) as "Audio Support" which enables/disables the read-aloud button. This will remain as-is -- it's the correct location for this feature.
 
-### Technical Details
+### 3. Privacy & COPPA/GDPR Compliance
 
-**Sequel query** (in edge function):
-```sql
-SELECT id, topic FROM stories 
-WHERE user_id = :userId AND child_name = :childName AND topic = :hebrewTopic
-ORDER BY created_at ASC
-```
-If count > 0, inject into `userPrompt`:
-```
-## 🔄 המשך הרפתקה (חלק ${count + 1})
-זהו סיפור המשך! הילד/ה כבר חווה/חוותה הרפתקה קודמת על "${topic}".
-צור המשך חדש ומרתק באותו עולם, עם אתגר חדש ותפנית מפתיעה.
-אל תחזור על העלילה הקודמת - המשך את המסע קדימה!
-```
+The app already has:
+- Privacy Policy page (`src/pages/PrivacyPolicy.tsx`) 
+- Terms of Service page (`src/pages/TermsOfService.tsx`)
+- Legal consent flow (`src/pages/LegalConsent.tsx`)
+- Privacy safeguards (generic placeholders instead of real names)
+- PII masking in edge function logs
 
-**"What Happens Next?" button**: Small popover using existing Radix Popover component, placed between the PDF download button and the menu button.
+**Additional hardening:**
+- Add a brief privacy disclosure note in the Settings page (`src/pages/Settings.tsx`) linking to the Privacy Policy, with text like "All data handled per child privacy regulations"
+- Verify the About page (`src/components/shared/AboutSolStoriesContent.tsx`) includes the existing professional disclaimer
+
+### 4. Subscription Plan Verification Reminder
+
+**File: `src/pages/Settings.tsx`** (or a dev-only component)
+
+- Add a dev-mode-only visual banner (using existing `isDevModeEnabled()`) at the top of the Settings page reminding to verify the subscription plan before launch
+- This will only be visible when dev mode is enabled and will not appear in production for real users
+
+### Technical Summary
+
+| Task | Files Changed | Deploy Needed |
+|------|--------------|---------------|
+| Fix illustration prompts | `generate-illustrations/index.ts`, `retry-illustration/index.ts` | Yes (edge functions) |
+| Clean up TTS remnants | `StoryViewer.tsx` | No |
+| Privacy disclosure | `Settings.tsx` | No |
+| Subscription reminder | `Settings.tsx` (dev-only) | No |
 
