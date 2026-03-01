@@ -179,19 +179,19 @@ async function generateIllustrationWithFace(
 
     const fullPrompt = `CRITICAL FACE REFERENCE: The main character's face, hair texture, skin tone, and facial features MUST be an EXACT 3D Pixar rendering of the person in the reference photo. Do NOT invent or change any facial features — derive ALL appearance strictly from the photo.
 
-Ultra-high fidelity 3D Disney Pixar animation style, cinematic soft lighting, volumetric fog, Octane render quality. Render exactly like a frame from Coco, Encanto, or Inside Out 2. Smooth matte 3D surfaces, subsurface skin scattering, warm golden-hour cinematic lighting. Characters: intricate detailed hair with individual strand groups, large round expressive eyes with visible iris highlights, soft rosy cheeks, small button nose. Environment: shallow depth-of-field with strong background bokeh blur to make character pop, vibrant saturated colors, cozy atmospheric lighting with soft volumetric shadows. Masterpiece quality, 8K. DO NOT render in 2D, flat illustration, anime, watercolor, or photorealistic style.
+Ultra-high fidelity 3D Disney Pixar character portrait, cinematic close-up composition. Sculpted dimensional facial features with soft-focus skin texture, natural subtle freckles, subsurface scattering. Large deeply expressive eyes with intricate iris reflections, catchlights, and thick lashes. Deeply textured voluminous hair with individual strand groups, glossy highlights, and natural movement. Warm golden-hour cinematic portrait lighting with soft volumetric fog and rim lighting that creates depth and dimension. Background: ALWAYS deeply blurred creamy bokeh composed of indistinct warm orbs of light, soft pastel colors, and blended organic shapes — shallow depth-of-field isolating the character as focal point. Octane render quality, 8K masterpiece. DO NOT render flat, simple, doll-like, anime, 2D, watercolor, or photorealistic.
 
 MAIN CHARACTER: The child from the reference photo is the HERO. They wear ${finalOutfit}. They must be the LARGEST and most PROMINENT figure. ${adventureInstruction}
 
 SCENE: ${prompt}
 
 SUPPORTING CAST (smaller, background only):
-- Ben: curly dark hair toddler, tan skin, green shirt
-- Zoe: dark-skinned girl, black afro curls, blue headband, purple-yellow tracksuit
-- Leo: black straight hair, round glasses, denim overalls
-- Mia: brown bob, flower crown, green dress
+- Ben: toddler boy, voluminous curly dark hair, warm tan skin, green shirt, large brown eyes — 3D Pixar portrait quality
+- Zoe: dark-skinned athletic girl, thick voluminous black curls, blue headband, purple-yellow tracksuit — 3D Pixar portrait quality
+- Leo: boy with straight black hair, round glasses, denim overalls — 3D Pixar portrait quality
+- Mia: girl with smooth brown bob, small flower crown, green dress — 3D Pixar portrait quality
 
-FULL BODY head to toe, feet GROUNDED on surface. Portrait 4:3 framing. NEGATIVE: generic face, wrong hair, floating head, missing body, extra limbs, deformed, cropped feet, text, watermark, 2D, flat, anime, watercolor`;
+FULL BODY head to toe, feet GROUNDED on surface. Portrait 4:3 framing. NEGATIVE: generic face, wrong hair, floating head, missing body, extra limbs, deformed, cropped feet, text, watermark, 2D, flat, doll-like, simple, anime, watercolor`;
 
     console.log("Generating illustration via Fal.ai Instant Character (face reference)...");
 
@@ -273,9 +273,9 @@ async function generateIllustration(
       ? `Setting: ${adventureLogic.background}. Theme: ${adventureLogic.theme}.`
       : "";
 
-    const stylePrefix = `Ultra-high fidelity 3D Disney Pixar animation style, cinematic soft lighting, volumetric fog, Octane render quality. Render exactly like a frame from Coco, Encanto, or Inside Out 2. Smooth matte 3D surfaces, subsurface skin scattering, warm golden-hour cinematic lighting. Characters: intricate detailed hair with individual strand groups, large round expressive eyes with visible iris highlights, soft rosy cheeks, small button nose. Environment: shallow depth-of-field with strong background bokeh blur to make character pop, vibrant saturated colors, cozy atmospheric lighting with soft volumetric shadows. Masterpiece quality, 8K. ALWAYS show characters FULL BODY from head to toe with feet VISIBLE and GROUNDED. DO NOT render in 2D, flat illustration, anime, watercolor, or photorealistic style.`;
+    const stylePrefix = `Ultra-high fidelity 3D Disney Pixar character portrait, cinematic close-up composition. Sculpted dimensional facial features with soft-focus skin texture, natural subtle freckles, subsurface scattering. Large deeply expressive eyes with intricate iris reflections, catchlights, and thick lashes. Deeply textured voluminous hair with individual strand groups, glossy highlights, and natural movement. Warm golden-hour cinematic portrait lighting with soft volumetric fog and rim lighting that creates depth and dimension. Background: ALWAYS deeply blurred creamy bokeh composed of indistinct warm orbs of light, soft pastel colors, and blended organic shapes — shallow depth-of-field isolating the character as focal point. Octane render quality, 8K masterpiece. ALWAYS show characters FULL BODY from head to toe with feet VISIBLE and GROUNDED. DO NOT render flat, simple, doll-like, anime, 2D, watercolor, or photorealistic.`;
 
-    const negativePrompt = `2D, flat, anime, watercolor, photorealistic, floating head, missing body, missing limbs, extra limbs, deformed, distorted, scary, horror, mutated, cropped feet, cut off legs, floating character, half-body, missing feet, text, watermark, UI elements`;
+    const negativePrompt = `2D, flat, doll-like, simple, anime, watercolor, photorealistic, floating head, missing body, missing limbs, extra limbs, deformed, distorted, scary, horror, mutated, cropped feet, cut off legs, floating character, half-body, missing feet, text, watermark, UI elements`;
 
     const fullPrompt = `${stylePrefix}\n\n${visualAnchor}\n\n${characterInstruction}\n${adventureInstruction}\n\nSCENE: ${prompt}\n\nNEGATIVE: ${negativePrompt}`;
 
