@@ -1,67 +1,59 @@
 
 
-## Plan: Switch generate-story to OPENAI_API_KEY + Enhanced Logging
+## Urgent Fix: Illustration Rendering, Read-Aloud Relocation, Privacy & Subscription
 
-### Overview
-Replace `LOVABLE_API_KEY` with `OPENAI_API_KEY` for the main story generation call, switch the endpoint from the Lovable AI Gateway to the OpenAI API directly, and add detailed `console.log` statements for debugging.
+### 1. Fix Illustration Prompt Logic (Full Body / No Cropping)
 
-### Changes in `supabase/functions/generate-story/index.ts`
+**Files to update:**
+- `supabase/functions/generate-illustrations/index.ts` (main generation)
+- `supabase/functions/retry-illustration/index.ts` (retry generation)
+- `supabase/functions/generate-cover/index.ts` (cover generation)
 
-#### 1. API Key — lines ~693-700
-Replace `LOVABLE_API_KEY` retrieval with `OPENAI_API_KEY`:
-```typescript
-const OPENAI_API_KEY = Deno.env.get("OPENAI_API_KEY");
-if (!OPENAI_API_KEY) {
-  console.error("[generate-story] OPENAI_API_KEY is NOT configured in secrets!");
-  throw new Error("API key not configured");
-}
-console.log("[generate-story] OPENAI_API_KEY loaded successfully");
-```
+**Changes:**
+- Add explicit "Sole of the Foot" rule and grounding instructions to the style prefix and negative prompt in all three edge functions
+- Update the `stylePrefix` in `generate-illustrations/index.ts` (line ~213) and `retry-illustration/index.ts` (line ~117) to include:
+  - "ALWAYS show characters FULL BODY from head to toe with feet VISIBLE and GROUNDED on the surface (grass, floor, path). The character's full body including shoes/feet MUST be visible."
+  - "Frame the character with generous margin from all edges -- at least 10% padding on each side. Character must be FULLY CONTAINED within the frame, never cropped."
+- Expand the NEGATIVE PROMPT to include: "cropped feet, cut off legs, floating character, character not touching ground, half-body, missing feet, legs cut off at frame edge"
+- Apply the same updates to the `retry-illustration` edge function's `stylePrefix` block
 
-#### 2. Main AI call — line ~1092
-Switch endpoint from `ai.gateway.lovable.dev` to `api.openai.com` and use the OpenAI key:
-```typescript
-const response = await fetch("https://api.openai.com/v1/chat/completions", {
-  method: "POST",
-  headers: {
-    Authorization: `Bearer ${OPENAI_API_KEY}`,
-    "Content-Type": "application/json",
-  },
-  body: JSON.stringify({
-    model: "gpt-4o",
-    messages: [...],
-    response_format: { type: "json_object" },
-  }),
-});
-```
+### 2. Remove Read-Aloud from Story Screen, Keep in Accessibility Menu
 
-#### 3. Enhanced logging throughout
-Add detailed logs at key checkpoints:
-- Request body parsing (child name, topic, age range)
-- Auth verification result
-- API key availability
-- Full error response text on AI call failure
-- Story parsing success/failure with page count
-- DB insert results
+**File: `src/pages/StoryViewer.tsx`**
 
-#### 4. Background calls (summary + nikud) — lines ~1270, 1305
-These still use `LOVABLE_API_KEY` for cheaper/faster tasks (summary via gemini-flash-lite, nikud). Keep these on the Lovable gateway since they work fine, but rename the variable to clarify:
-```typescript
-const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
-// Used only for background summary + nikud (cheap tasks)
-```
+The read-aloud button was already removed from the main UI (line 877 shows a comment "Read Aloud button removed per user request"). However, there are still leftover imports and state:
+- Remove `isReadAloudDismissed` state (line 101)
+- Remove `useTextToSpeech` hook usage (line 121) and its import (line 32)
+- Clean up any remaining TTS-related code in StoryViewer
 
-#### 5. CORS — already correct
-The existing `corsHeaders` at line 5-8 already includes all required headers. No changes needed.
+The "Read Aloud" toggle already exists in the Accessibility Menu (`AccessibilityMenu.tsx`, lines 105-118) as "Audio Support" which enables/disables the read-aloud button. This will remain as-is -- it's the correct location for this feature.
 
-### Model Choice
-Switching from `google/gemini-2.5-pro` (via Lovable gateway) to `gpt-4o` (via OpenAI directly). This uses the `OPENAI_API_KEY` secret that's already configured.
+### 3. Privacy & COPPA/GDPR Compliance
 
-### Files to Edit
+The app already has:
+- Privacy Policy page (`src/pages/PrivacyPolicy.tsx`) 
+- Terms of Service page (`src/pages/TermsOfService.tsx`)
+- Legal consent flow (`src/pages/LegalConsent.tsx`)
+- Privacy safeguards (generic placeholders instead of real names)
+- PII masking in edge function logs
 
-| File | Change |
-|------|--------|
-| `supabase/functions/generate-story/index.ts` | Switch main AI call to OpenAI API with OPENAI_API_KEY; add detailed console.log; keep LOVABLE_API_KEY for background tasks |
+**Additional hardening:**
+- Add a brief privacy disclosure note in the Settings page (`src/pages/Settings.tsx`) linking to the Privacy Policy, with text like "All data handled per child privacy regulations"
+- Verify the About page (`src/components/shared/AboutSolStoriesContent.tsx`) includes the existing professional disclaimer
 
-Edge function deployment required after change.
+### 4. Subscription Plan Verification Reminder
+
+**File: `src/pages/Settings.tsx`** (or a dev-only component)
+
+- Add a dev-mode-only visual banner (using existing `isDevModeEnabled()`) at the top of the Settings page reminding to verify the subscription plan before launch
+- This will only be visible when dev mode is enabled and will not appear in production for real users
+
+### Technical Summary
+
+| Task | Files Changed | Deploy Needed |
+|------|--------------|---------------|
+| Fix illustration prompts | `generate-illustrations/index.ts`, `retry-illustration/index.ts` | Yes (edge functions) |
+| Clean up TTS remnants | `StoryViewer.tsx` | No |
+| Privacy disclosure | `Settings.tsx` | No |
+| Subscription reminder | `Settings.tsx` (dev-only) | No |
 
