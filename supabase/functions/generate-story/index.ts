@@ -690,19 +690,13 @@ serve(async (req) => {
     // Use avatar URL if available (for character consistency), otherwise use original photo
     const effectivePhoto = childAvatarUrl || childPhoto;
 
-    // OPENAI_API_KEY for main story generation (OpenAI direct)
-    const OPENAI_API_KEY = Deno.env.get("OPENAI_API_KEY");
-    if (!OPENAI_API_KEY) {
-      console.error("[generate-story] ❌ OPENAI_API_KEY is NOT configured in secrets!");
-      throw new Error("API key not configured");
-    }
-    console.log("[generate-story] ✅ OPENAI_API_KEY loaded successfully");
-
-    // LOVABLE_API_KEY for background tasks (summary, nikud) - cheaper/faster
+    // LOVABLE_API_KEY for all AI calls (story generation + background tasks)
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
     if (!LOVABLE_API_KEY) {
-      console.warn("[generate-story] ⚠️ LOVABLE_API_KEY not configured - background tasks will be skipped");
+      console.error("[generate-story] ❌ LOVABLE_API_KEY is NOT configured!");
+      throw new Error("API key not configured");
     }
+    console.log("[generate-story] ✅ LOVABLE_API_KEY loaded successfully");
 
     // Gender text variables moved into language-specific prompt building below
     
