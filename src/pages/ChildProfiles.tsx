@@ -276,7 +276,7 @@ const ChildProfiles = () => {
         };
         
         localChildren.push(newChild);
-        setUserData(user?.id, 'savedChildren', JSON.stringify(localChildren));
+        setUserData(user?.id, 'savedChildren', JSON.stringify(stripBase64ForStorage(localChildren)));
         
         // Add to local state
         setChildren(prev => [...prev, newChild as Child]);
