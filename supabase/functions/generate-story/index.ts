@@ -592,7 +592,7 @@ serve(async (req) => {
     }
     // === END CREDIT CHECK ===
 
-    const { childName, childGender = "male", ageRange, storyLength = "short", topic, nikud, childPhoto, childAvatarUrl, personalityTraits, adventureLogic, language = "he", className, topicDescription } = await req.json();
+    const { childName, childGender = "male", ageRange, storyLength = "short", topic, nikud, childPhoto, childAvatarUrl, personalityTraits, adventureLogic, language = "he", className, topicDescription, childId } = await req.json();
 
     // === INPUT VALIDATION ===
     // Validate required fields

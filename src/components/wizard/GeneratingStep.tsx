@@ -120,6 +120,7 @@ const GeneratingStep = ({ formData, onComplete }: GeneratingStepProps) => {
             personalityTraits: formData.personalityTraits,
             adventureLogic: formData.adventureLogic,
             className: formData.className || undefined,
+            childId: (formData as any).childId || undefined,
           },
         });
         
