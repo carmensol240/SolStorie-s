@@ -1119,15 +1119,15 @@ ${topic.endsWith('-edu') ? `
 - כלל ניקוד: אם לא בטוח ב-100% בניקוד - השתמש במילה שאתה בטוח בניקוד שלה.`;
     }
 
-    console.log("[generate-story] 📡 Calling OpenAI API (gpt-4o) for story generation...");
-    const response = await fetch("https://api.openai.com/v1/chat/completions", {
+    console.log("[generate-story] 📡 Calling Lovable AI Gateway (gemini-2.5-pro) for story generation...");
+    const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
       method: "POST",
       headers: {
-        Authorization: `Bearer ${OPENAI_API_KEY}`,
+        Authorization: `Bearer ${LOVABLE_API_KEY}`,
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        model: "gpt-4o",
+        model: "google/gemini-2.5-pro",
         messages: [
           { role: "system", content: systemPrompt },
           { role: "user", content: userPrompt },
@@ -1138,7 +1138,7 @@ ${topic.endsWith('-edu') ? `
 
     if (!response.ok) {
       const errorText = await response.text();
-      console.error(`[generate-story] ❌ OpenAI API error: status=${response.status}, body=${errorText}`);
+      console.error(`[generate-story] ❌ AI Gateway error: status=${response.status}, body=${errorText}`);
       if (response.status === 429) {
         return new Response(
           JSON.stringify({ error: "הגעתם למגבלת הבקשות. נסו שוב בעוד מספר דקות." }),
@@ -1154,7 +1154,7 @@ ${topic.endsWith('-edu') ? `
       throw new Error("שגיאה ביצירת הסיפור. נסו שוב מאוחר יותר.");
     }
 
-    console.log("[generate-story] ✅ OpenAI API response received, parsing...");
+    console.log("[generate-story] ✅ AI Gateway response received, parsing...");
     const aiData = await response.json();
     const content = aiData.choices?.[0]?.message?.content;
     console.log(`[generate-story] 📊 Usage: prompt_tokens=${aiData.usage?.prompt_tokens}, completion_tokens=${aiData.usage?.completion_tokens}`);
