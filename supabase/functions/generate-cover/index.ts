@@ -283,7 +283,7 @@ FULL BODY head to toe, feet GROUNDED. NEGATIVE: generic face, wrong hair, floati
       ? "Sol in her adventure/fantasy outfit — match EXACTLY from the provided reference image"
       : "Sol in her everyday casual look — warm tan skin, long dark brown hair in high ponytail with pink band, bright yellow dress — match EXACTLY from the provided reference image";
 
-    const coverPrompt = `In the style of modern 3D Disney-Pixar animation, 8K resolution, soft cinematic lighting, vibrant harmonious colors. Portrait orientation (9:16 aspect ratio).
+    const coverPrompt = `3D DISNEY PIXAR ANIMATION STYLE. Render exactly like a frame from Coco, Encanto, or Inside Out 2. Smooth matte 3D surfaces, subsurface skin scattering, warm cinematic golden-hour lighting. Characters: large round expressive eyes with visible iris highlights, soft rosy cheeks, detailed textured hair with individual strand groups, small button nose. 8K resolution. Portrait orientation (9:16 aspect ratio). DO NOT render in 2D, flat illustration, anime, watercolor, or photorealistic style.
 
 === MANDATORY CHARACTER REFERENCES ===
 Reference images of EACH character are provided above. You MUST match their appearance EXACTLY — facial features, hair color, hair style, and skin tone MUST be taken DIRECTLY from the reference images. Zero invented characters.

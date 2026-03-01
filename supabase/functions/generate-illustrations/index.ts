@@ -273,9 +273,9 @@ async function generateIllustration(
       ? `Setting: ${adventureLogic.background}. Theme: ${adventureLogic.theme}.`
       : "";
 
-    const stylePrefix = `In the style of modern 3D Disney-Pixar animation (like Coco, Encanto, Inside Out), high resolution, magical atmosphere, warm glowing light, dreamy and inviting. Characters with large expressive eyes, detailed hair, soft textures. ALWAYS show characters FULL BODY from head to toe with feet VISIBLE and GROUNDED on the surface. Frame with generous margin — character fully contained, never cropped.`;
+    const stylePrefix = `3D DISNEY PIXAR ANIMATION STYLE. Render exactly like a frame from Coco, Encanto, or Inside Out 2. Smooth matte 3D surfaces, subsurface skin scattering, warm cinematic golden-hour lighting. Characters: large round expressive eyes with visible iris highlights, soft rosy cheeks, detailed textured hair with individual strand groups, small button nose. Environment: rich detailed backgrounds with depth-of-field bokeh, warm color palette, cozy atmospheric lighting with soft shadows. ALWAYS show characters FULL BODY from head to toe with feet VISIBLE and GROUNDED. DO NOT render in 2D, flat illustration, anime, watercolor, or photorealistic style.`;
 
-    const negativePrompt = `floating head, missing body, missing limbs, extra limbs, deformed, distorted, scary, horror, mutated, cropped feet, cut off legs, floating character, half-body, missing feet, text, watermark, UI elements`;
+    const negativePrompt = `2D, flat, anime, watercolor, photorealistic, floating head, missing body, missing limbs, extra limbs, deformed, distorted, scary, horror, mutated, cropped feet, cut off legs, floating character, half-body, missing feet, text, watermark, UI elements`;
 
     const fullPrompt = `${stylePrefix}\n\n${visualAnchor}\n\n${characterInstruction}\n${adventureInstruction}\n\nSCENE: ${prompt}\n\nNEGATIVE: ${negativePrompt}`;
 
