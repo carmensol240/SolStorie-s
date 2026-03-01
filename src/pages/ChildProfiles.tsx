@@ -164,7 +164,7 @@ const ChildProfiles = () => {
 
         if (!error && data) {
           setChildren(data);
-          setUserData(user?.id, 'savedChildren', JSON.stringify(data));
+          setUserData(user?.id, 'savedChildren', JSON.stringify(stripBase64ForStorage(data)));
         }
       } catch (error) {
         console.error("Error fetching children:", error);
