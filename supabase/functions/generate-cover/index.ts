@@ -165,7 +165,7 @@ serve(async (req) => {
 
       const personalizedCoverPrompt = `CRITICAL FACE REFERENCE: The main character's face, hair texture, skin tone, and facial features MUST be an EXACT 3D Pixar rendering of the child in the reference photo. Do NOT invent or change any facial features.
 
-3D DISNEY PIXAR STYLE, cinematic lighting, vibrant colors, portrait orientation. Like Coco, Encanto, Inside Out.
+3D DISNEY PIXAR ANIMATION STYLE. Render exactly like a frame from Coco, Encanto, or Inside Out 2. Smooth matte 3D surfaces, subsurface skin scattering, warm cinematic golden-hour lighting. Characters: large round expressive eyes with visible iris highlights, soft rosy cheeks, detailed textured hair with individual strand groups, small button nose. Environment: rich detailed backgrounds with depth-of-field bokeh, warm color palette, cozy atmospheric lighting with soft shadows. Portrait orientation. DO NOT render in 2D, flat illustration, anime, watercolor, or photorealistic style.
 
 MAIN CHARACTER: The child from the reference photo — center-front, warm confident smile, LARGEST figure.
 
@@ -178,7 +178,7 @@ SUPPORTING CAST (smaller, flanking, background):
 SETTING: ${setting}
 TITLE: "${displayTitle}" at top in ${fontLanguage} font, bold, child-friendly.
 
-FULL BODY head to toe, feet GROUNDED. NEGATIVE: generic face, wrong hair, floating head, missing body, extra limbs, deformed, text beyond title, watermark`;
+FULL BODY head to toe, feet GROUNDED. NEGATIVE: generic face, wrong hair, floating head, missing body, extra limbs, deformed, text beyond title, watermark, 2D, flat, anime, watercolor`;
 
       let imageUrl: string | null = null;
       const MAX_ATTEMPTS = 2;
@@ -283,7 +283,7 @@ FULL BODY head to toe, feet GROUNDED. NEGATIVE: generic face, wrong hair, floati
       ? "Sol in her adventure/fantasy outfit — match EXACTLY from the provided reference image"
       : "Sol in her everyday casual look — warm tan skin, long dark brown hair in high ponytail with pink band, bright yellow dress — match EXACTLY from the provided reference image";
 
-    const coverPrompt = `In the style of modern 3D Disney-Pixar animation, 8K resolution, soft cinematic lighting, vibrant harmonious colors. Portrait orientation (9:16 aspect ratio).
+    const coverPrompt = `3D DISNEY PIXAR ANIMATION STYLE. Render exactly like a frame from Coco, Encanto, or Inside Out 2. Smooth matte 3D surfaces, subsurface skin scattering, warm cinematic golden-hour lighting. Characters: large round expressive eyes with visible iris highlights, soft rosy cheeks, detailed textured hair with individual strand groups, small button nose. 8K resolution. Portrait orientation (9:16 aspect ratio). DO NOT render in 2D, flat illustration, anime, watercolor, or photorealistic style.
 
 === MANDATORY CHARACTER REFERENCES ===
 Reference images of EACH character are provided above. You MUST match their appearance EXACTLY — facial features, hair color, hair style, and skin tone MUST be taken DIRECTLY from the reference images. Zero invented characters.

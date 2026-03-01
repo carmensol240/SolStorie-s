@@ -1,43 +1,59 @@
 
 
-## Plan: Enforce Strict 3D Disney Pixar Style Across All Image Generation
+## Urgent Fix: Illustration Rendering, Read-Aloud Relocation, Privacy & Subscription
 
-### Problem
-The current `fal-ai/instant-character` and `fal-ai/flux/schnell` prompts produce inconsistent styles that don't match the desired 3D Disney Pixar look shown in the reference images (warm golden lighting, smooth 3D rendering, large expressive eyes, detailed textures like Coco/Encanto/Inside Out).
+### 1. Fix Illustration Prompt Logic (Full Body / No Cropping)
 
-### What Changes
+**Files to update:**
+- `supabase/functions/generate-illustrations/index.ts` (main generation)
+- `supabase/functions/retry-illustration/index.ts` (retry generation)
+- `supabase/functions/generate-cover/index.ts` (cover generation)
 
-A single **STYLE_PROMPT** constant will be defined in each of the 3 edge functions, used in every prompt path (Instant Character with photo, Schnell without photo, cover generation). This ensures the same visual DNA regardless of model or scenario.
+**Changes:**
+- Add explicit "Sole of the Foot" rule and grounding instructions to the style prefix and negative prompt in all three edge functions
+- Update the `stylePrefix` in `generate-illustrations/index.ts` (line ~213) and `retry-illustration/index.ts` (line ~117) to include:
+  - "ALWAYS show characters FULL BODY from head to toe with feet VISIBLE and GROUNDED on the surface (grass, floor, path). The character's full body including shoes/feet MUST be visible."
+  - "Frame the character with generous margin from all edges -- at least 10% padding on each side. Character must be FULLY CONTAINED within the frame, never cropped."
+- Expand the NEGATIVE PROMPT to include: "cropped feet, cut off legs, floating character, character not touching ground, half-body, missing feet, legs cut off at frame edge"
+- Apply the same updates to the `retry-illustration` edge function's `stylePrefix` block
 
-**New unified style block:**
-```
-3D DISNEY PIXAR ANIMATION STYLE. Render exactly like a frame from Coco, Encanto, or Inside Out 2. 
-Smooth matte 3D surfaces, subsurface skin scattering, warm cinematic golden-hour lighting.
-Characters: large round expressive eyes with visible iris highlights, soft rosy cheeks, 
-detailed textured hair with individual strand groups, small button nose.
-Environment: rich detailed backgrounds with depth-of-field bokeh, warm color palette, 
-cozy atmospheric lighting with soft shadows.
-Full body from head to toe, feet visible and grounded. Portrait 4:3 framing.
-DO NOT render in 2D, flat illustration, anime, watercolor, or photorealistic style.
-```
+### 2. Remove Read-Aloud from Story Screen, Keep in Accessibility Menu
 
-### Files to Edit
+**File: `src/pages/StoryViewer.tsx`**
 
-1. **`supabase/functions/generate-illustrations/index.ts`**
-   - Update `generateIllustrationWithFace()` prompt (line ~180) — replace the style section
-   - Update `generateIllustration()` prompt (line ~276) — replace `stylePrefix`
-   - Both paths get the same style constant
+The read-aloud button was already removed from the main UI (line 877 shows a comment "Read Aloud button removed per user request"). However, there are still leftover imports and state:
+- Remove `isReadAloudDismissed` state (line 101)
+- Remove `useTextToSpeech` hook usage (line 121) and its import (line 32)
+- Clean up any remaining TTS-related code in StoryViewer
 
-2. **`supabase/functions/generate-cover/index.ts`**
-   - Update personalized cover prompt (line ~166) — same style block
-   - Update Gemini fallback cover prompt if it exists
+The "Read Aloud" toggle already exists in the Accessibility Menu (`AccessibilityMenu.tsx`, lines 105-118) as "Audio Support" which enables/disables the read-aloud button. This will remain as-is -- it's the correct location for this feature.
 
-3. **`supabase/functions/retry-illustration/index.ts`**
-   - Update both Instant Character and Schnell prompt paths with the same style constant
+### 3. Privacy & COPPA/GDPR Compliance
 
-### No Structural Changes
-- Same models (`instant-character` + `schnell` fallback)
-- Same photo resolution logic (base64 → upload → signed URL)
-- Same cast descriptions
-- Only the style/quality instructions in prompts change
+The app already has:
+- Privacy Policy page (`src/pages/PrivacyPolicy.tsx`) 
+- Terms of Service page (`src/pages/TermsOfService.tsx`)
+- Legal consent flow (`src/pages/LegalConsent.tsx`)
+- Privacy safeguards (generic placeholders instead of real names)
+- PII masking in edge function logs
+
+**Additional hardening:**
+- Add a brief privacy disclosure note in the Settings page (`src/pages/Settings.tsx`) linking to the Privacy Policy, with text like "All data handled per child privacy regulations"
+- Verify the About page (`src/components/shared/AboutSolStoriesContent.tsx`) includes the existing professional disclaimer
+
+### 4. Subscription Plan Verification Reminder
+
+**File: `src/pages/Settings.tsx`** (or a dev-only component)
+
+- Add a dev-mode-only visual banner (using existing `isDevModeEnabled()`) at the top of the Settings page reminding to verify the subscription plan before launch
+- This will only be visible when dev mode is enabled and will not appear in production for real users
+
+### Technical Summary
+
+| Task | Files Changed | Deploy Needed |
+|------|--------------|---------------|
+| Fix illustration prompts | `generate-illustrations/index.ts`, `retry-illustration/index.ts` | Yes (edge functions) |
+| Clean up TTS remnants | `StoryViewer.tsx` | No |
+| Privacy disclosure | `Settings.tsx` | No |
+| Subscription reminder | `Settings.tsx` (dev-only) | No |
 
