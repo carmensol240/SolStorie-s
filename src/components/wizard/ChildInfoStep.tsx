@@ -12,6 +12,7 @@ import { isDevModeEnabled } from "@/hooks/use-dev-mode";
 import { toast } from "sonner";
 import AvatarPreviewDialog from "@/components/story/AvatarPreviewDialog";
 import { getUserData, setUserData } from "@/lib/user-storage";
+import { stripBase64ForStorage } from "@/lib/strip-base64";
 
 interface SavedChild {
   id: string;
