@@ -244,7 +244,7 @@ const ChildInfoStep = ({ formData, updateFormData }: ChildInfoStepProps) => {
       setSavedChildren(updatedChildren);
       
       // Persist to localStorage for all users
-      setUserData(user?.id, 'savedChildren', JSON.stringify(updatedChildren));
+      setUserData(user?.id, 'savedChildren', JSON.stringify(stripBase64ForStorage(updatedChildren)));
     }
   };
 
