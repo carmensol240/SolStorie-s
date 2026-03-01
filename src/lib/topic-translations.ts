@@ -85,6 +85,21 @@ const TOPIC_HEBREW_MAP: Record<string, string> = {
   'sharing-fun': 'שיתוף וכיף',
   'safe-room-sirens': 'שהייה בממ"ד ואזעקות',
 
+  // Values topics (still active)
+  'true-friendship': 'חברות אמת',
+  'accepting-differences': 'קבלת השונה',
+  'helping-home': 'עזרה בבית',
+
+  // Curiosity topics
+  'space-journey': 'מסע בחלל',
+  'nature-secrets': 'סודות הטבע',
+  'how-body-works': 'איך הגוף שלנו עובד',
+
+  // Creativity topics
+  'cloud-kingdom': 'ממלכת העננים',
+  'dragon-party': 'מסיבת הדרקונים',
+  'strange-inventions': 'המצאות משונות',
+
   // Legacy IDs (removed duplicates still need translation for existing stories)
   'honesty': 'אמירת אמת',
   'respecting-elders': 'כבוד למבוגרים',
