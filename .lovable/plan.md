@@ -1,59 +1,89 @@
 
 
-## Urgent Fix: Illustration Rendering, Read-Aloud Relocation, Privacy & Subscription
+## Plan: SolStories Master Update — Summary-Based Sequels + New Topic
 
-### 1. Fix Illustration Prompt Logic (Full Body / No Cropping)
+### Already Implemented (No Changes Needed)
+- **Visual Style**: Cinematic 3D Pixar STYLE_BLOCK already applied across all 3 edge functions
+- **IndexedDB**: Already implemented in `use-offline-storage.ts`
+- **PDF Sharing via navigator.share**: Already implemented
+- **"What Happens Next?" button**: Already in `BookHeader.tsx` with Sparkles icon and Popover
+- **Sequel logic (basic)**: Already queries previous stories by `child_name` + `topic` and injects Part N instruction
+- **Cast & Age settings**: Already defined in edge functions
+- **child_id isolation**: Already passed from `GeneratingStep.tsx` and saved in `stories` table
 
-**Files to update:**
-- `supabase/functions/generate-illustrations/index.ts` (main generation)
-- `supabase/functions/retry-illustration/index.ts` (retry generation)
-- `supabase/functions/generate-cover/index.ts` (cover generation)
+### What Changes
 
-**Changes:**
-- Add explicit "Sole of the Foot" rule and grounding instructions to the style prefix and negative prompt in all three edge functions
-- Update the `stylePrefix` in `generate-illustrations/index.ts` (line ~213) and `retry-illustration/index.ts` (line ~117) to include:
-  - "ALWAYS show characters FULL BODY from head to toe with feet VISIBLE and GROUNDED on the surface (grass, floor, path). The character's full body including shoes/feet MUST be visible."
-  - "Frame the character with generous margin from all edges -- at least 10% padding on each side. Character must be FULLY CONTAINED within the frame, never cropped."
-- Expand the NEGATIVE PROMPT to include: "cropped feet, cut off legs, floating character, character not touching ground, half-body, missing feet, legs cut off at frame edge"
-- Apply the same updates to the `retry-illustration` edge function's `stylePrefix` block
+#### 1. Add `summary` column to `stories` table
+The current sequel logic only counts previous stories — it doesn't know what happened in them. Adding a `summary` column allows the AI to reference previous plot points when generating sequels.
 
-### 2. Remove Read-Aloud from Story Screen, Keep in Accessibility Menu
+**Database migration:**
+```sql
+ALTER TABLE public.stories ADD COLUMN IF NOT EXISTS summary text;
+```
 
-**File: `src/pages/StoryViewer.tsx`**
+#### 2. Auto-generate and save summary after story creation
+After the AI generates story text, add a short follow-up call to generate a 1-sentence Hebrew summary of the plot, then save it to the new `summary` column.
 
-The read-aloud button was already removed from the main UI (line 877 shows a comment "Read Aloud button removed per user request"). However, there are still leftover imports and state:
-- Remove `isReadAloudDismissed` state (line 101)
-- Remove `useTextToSpeech` hook usage (line 121) and its import (line 32)
-- Clean up any remaining TTS-related code in StoryViewer
+**In `generate-story/index.ts`** (after story pages are inserted, ~line 1252):
+- Call the AI with the full story text asking for a single-sentence Hebrew summary
+- Update the story row with the summary in a background task (fire-and-forget, like nikud)
 
-The "Read Aloud" toggle already exists in the Accessibility Menu (`AccessibilityMenu.tsx`, lines 105-118) as "Audio Support" which enables/disables the read-aloud button. This will remain as-is -- it's the correct location for this feature.
+#### 3. Enhance sequel logic to use previous summaries
+**In `generate-story/index.ts`** (~line 1175-1192):
+- Change the query from `select("id")` to `select("id, summary")` 
+- Include previous story summaries in the sequel instruction so the AI knows what happened before
 
-### 3. Privacy & COPPA/GDPR Compliance
+#### 4. Use `child_id` instead of `child_name` for sequel matching
+Currently matches on `child_name` which could collide across children with the same name. Switch to `child_id` when available for proper multi-child isolation.
 
-The app already has:
-- Privacy Policy page (`src/pages/PrivacyPolicy.tsx`) 
-- Terms of Service page (`src/pages/TermsOfService.tsx`)
-- Legal consent flow (`src/pages/LegalConsent.tsx`)
-- Privacy safeguards (generic placeholders instead of real names)
-- PII masking in edge function logs
+#### 5. Add new topic: "לאכול עם סכו״ם" (Eating with Cutlery)
+**In `topic-data.ts`** — add to the Educational Toolbox category:
+```
+{ id: "eating-with-cutlery-edu", label: "🍴 לאכול עם סכו״ם – הכלים המבריקים שלי", description: "מדריך חברתי מובנה (Carol Gray): ..." }
+```
 
-**Additional hardening:**
-- Add a brief privacy disclosure note in the Settings page (`src/pages/Settings.tsx`) linking to the Privacy Policy, with text like "All data handled per child privacy regulations"
-- Verify the About page (`src/components/shared/AboutSolStoriesContent.tsx`) includes the existing professional disclaimer
+**In `topic-translations.ts`** and **`generate-story/index.ts` TOPIC_HEBREW_MAP** — add the Hebrew mapping.
 
-### 4. Subscription Plan Verification Reminder
+### Files to Edit
 
-**File: `src/pages/Settings.tsx`** (or a dev-only component)
+| File | Change |
+|------|--------|
+| `supabase/functions/generate-story/index.ts` | Add summary generation (background), enhance sequel query to include summaries, use `child_id` for matching |
+| `src/components/wizard/topic-data.ts` | Add "eating-with-cutlery-edu" topic |
+| `src/lib/topic-translations.ts` | Add translation mapping |
+| Database migration | Add `summary` column to `stories` table |
 
-- Add a dev-mode-only visual banner (using existing `isDevModeEnabled()`) at the top of the Settings page reminding to verify the subscription plan before launch
-- This will only be visible when dev mode is enabled and will not appear in production for real users
+### Technical Details
 
-### Technical Summary
+**Summary generation** (background, after page insert):
+```typescript
+// Fire-and-forget summary generation
+(async () => {
+  const fullText = storyData.pages.map(p => p.text).join("\n");
+  const summaryResponse = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+    method: "POST",
+    headers: { Authorization: `Bearer ${LOVABLE_API_KEY}`, "Content-Type": "application/json" },
+    body: JSON.stringify({
+      model: "google/gemini-2.5-flash-lite",
+      messages: [{ role: "user", content: `סכם את הסיפור הבא במשפט אחד בעברית:\n${fullText}` }],
+    }),
+  });
+  const summary = (await summaryResponse.json()).choices?.[0]?.message?.content;
+  if (summary) {
+    await supabase.from("stories").update({ summary }).eq("id", story.id);
+  }
+})();
+```
 
-| Task | Files Changed | Deploy Needed |
-|------|--------------|---------------|
-| Fix illustration prompts | `generate-illustrations/index.ts`, `retry-illustration/index.ts` | Yes (edge functions) |
-| Clean up TTS remnants | `StoryViewer.tsx` | No |
-| Privacy disclosure | `Settings.tsx` | No |
-| Subscription reminder | `Settings.tsx` (dev-only) | No |
+**Enhanced sequel instruction** with summaries:
+```typescript
+const previousSummaries = previousStories
+  .filter(s => s.summary)
+  .map((s, i) => `חלק ${i + 1}: ${s.summary}`)
+  .join("\n");
+
+sequelInstruction = `## 🔄 המשך הרפתקה (חלק ${partNumber})
+${previousSummaries ? `סיכום ההרפתקאות הקודמות:\n${previousSummaries}\n` : ""}
+צור המשך חדש ומרתק באותו עולם...`;
+```
 
