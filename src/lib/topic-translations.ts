@@ -120,6 +120,7 @@ const TOPIC_HEBREW_MAP: Record<string, string> = {
   'play-rules-edu': 'כללי משחק – לשחק בהוגנות',
   'self-confidence-edu': 'ביטחון עצמי – אני יכול/ה!',
   'eating-with-cutlery-edu': 'לאכול עם סכו״ם – הכלים המבריקים שלי',
+  'rainbow-power-edu': 'כוח הקשת – פירות וירקות קסומים',
 };
 
 /**
