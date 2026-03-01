@@ -1174,20 +1174,33 @@ ${topic.endsWith('-edu') ? `
 
     // === SEQUEL LOGIC: Check for previous stories on the same topic by same child ===
     let sequelInstruction = "";
-    if (userId && childName && topic) {
+    if (userId && topic) {
       const hebrewTopicForSequel = getHebrewTopic(topic);
-      const { data: previousStories, error: sequelError } = await supabase
+      // Prefer child_id for multi-child isolation; fall back to child_name
+      let sequelQuery = supabase
         .from("stories")
-        .select("id")
+        .select("id, summary")
         .eq("user_id", userId)
-        .eq("child_name", childName)
         .eq("topic", hebrewTopicForSequel)
         .order("created_at", { ascending: true });
+
+      if (childId) {
+        sequelQuery = sequelQuery.eq("child_id", childId);
+      } else if (childName) {
+        sequelQuery = sequelQuery.eq("child_name", childName);
+      }
+
+      const { data: previousStories, error: sequelError } = await sequelQuery;
       
       if (!sequelError && previousStories && previousStories.length > 0) {
         const partNumber = previousStories.length + 1;
-        sequelInstruction = `\n## 🔄 המשך הרפתקה (חלק ${partNumber})\nזהו סיפור המשך! הילד/ה כבר חווה/חוותה ${previousStories.length} הרפתקאות קודמות על "${hebrewTopicForSequel}".\nצור המשך חדש ומרתק באותו עולם, עם אתגר חדש ותפנית מפתיעה.\nאל תחזור על העלילה הקודמת - המשך את המסע קדימה!\nהזכר בעדינות שזו לא הפעם הראשונה: לדוגמה "וּכְמוֹ בְּכָל הַרְפַּתְקָה, ${childName} כְּבָר יוֹדֵעַ/יוֹדַעַת שֶׁהַדֶּרֶךְ תָּמִיד מַפְתִּיעָה..."\n`;
-        console.log(`Sequel detected! This is Part ${partNumber} for child "${childName}" on topic "${hebrewTopicForSequel}"`);
+        const previousSummaries = previousStories
+          .filter((s: any) => s.summary)
+          .map((s: any, i: number) => `חלק ${i + 1}: ${s.summary}`)
+          .join("\n");
+
+        sequelInstruction = `\n## 🔄 המשך הרפתקה (חלק ${partNumber})\nזהו סיפור המשך! הילד/ה כבר חווה/חוותה ${previousStories.length} הרפתקאות קודמות על "${hebrewTopicForSequel}".\n${previousSummaries ? `\nסיכום ההרפתקאות הקודמות:\n${previousSummaries}\n` : ""}\nצור המשך חדש ומרתק באותו עולם, עם אתגר חדש ותפנית מפתיעה.\nאל תחזור על העלילה הקודמת - המשך את המסע קדימה!\nהזכר בעדינות שזו לא הפעם הראשונה: לדוגמה "וּכְמוֹ בְּכָל הַרְפַּתְקָה, ${childName} כְּבָר יוֹדֵעַ/יוֹדַעַת שֶׁהַדֶּרֶךְ תָּמִיד מַפְתִּיעָה..."\n`;
+        console.log(`Sequel detected! This is Part ${partNumber} for child "${childId || childName}" on topic "${hebrewTopicForSequel}" with ${previousSummaries ? "summaries" : "no summaries"}`);
       }
     }
 
