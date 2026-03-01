@@ -152,9 +152,9 @@ serve(async (req) => {
       });
     }
 
-    const stylePrefix = `3D DISNEY PIXAR STYLE, cute, cinematic lighting, vibrant colors, full screen uncropped. Like Coco, Encanto, Inside Out. Characters with large expressive eyes, detailed hair, soft textures. ALWAYS show characters FULL BODY from head to toe with feet VISIBLE and GROUNDED. Frame with generous margin — character fully contained, never cropped.`;
+    const stylePrefix = `3D DISNEY PIXAR ANIMATION STYLE. Render exactly like a frame from Coco, Encanto, or Inside Out 2. Smooth matte 3D surfaces, subsurface skin scattering, warm cinematic golden-hour lighting. Characters: large round expressive eyes with visible iris highlights, soft rosy cheeks, detailed textured hair with individual strand groups, small button nose. Environment: rich detailed backgrounds with depth-of-field bokeh, warm color palette, cozy atmospheric lighting with soft shadows. ALWAYS show characters FULL BODY from head to toe with feet VISIBLE and GROUNDED. DO NOT render in 2D, flat illustration, anime, watercolor, or photorealistic style.`;
 
-    const negativePrompt = `floating head, missing body, missing limbs, extra limbs, deformed, distorted, scary, horror, mutated, cropped feet, cut off legs, floating character, half-body, missing feet, text, watermark, UI elements`;
+    const negativePrompt = `2D, flat, anime, watercolor, photorealistic, floating head, missing body, missing limbs, extra limbs, deformed, distorted, scary, horror, mutated, cropped feet, cut off legs, floating character, half-body, missing feet, text, watermark, UI elements`;
 
     let imageUrl: string | null = null;
     const MAX_ATTEMPTS = 2;
