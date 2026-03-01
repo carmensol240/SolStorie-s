@@ -45,13 +45,15 @@ serve(async (req) => {
     const langCode = language === 'en' ? 'en-US' : 'he-IL';
     const rate = language === 'en' ? '0.85' : '0.9';
 
-    // Build SSML with appropriate voice
+    // Build SSML with child voice profile — sweet, soft, cheerful 4-6 year old girl
     const ssml = `<?xml version="1.0" encoding="UTF-8"?>
-<speak version="1.0" xmlns="http://www.w3.org/2001/10/synthesis" xml:lang="${langCode}">
+<speak version="1.0" xmlns="http://www.w3.org/2001/10/synthesis" xmlns:mstts="https://www.w3.org/2001/mstts" xml:lang="${langCode}">
   <voice name="${voiceName}">
-    <prosody rate="${rate}">
-      ${escapedText}
-    </prosody>
+    <mstts:express-as style="cheerful">
+      <prosody rate="${rate}" pitch="+15%">
+        ${escapedText}
+      </prosody>
+    </mstts:express-as>
   </voice>
 </speak>`;
 
