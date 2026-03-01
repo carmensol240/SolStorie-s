@@ -957,7 +957,7 @@ ${adventureLogic ? `
 - גיל: ${ageRange}
 ${childPersonalization}
 ${contentFraming}
-
+${sequelInstruction}
 **נושא הסיפור:** ${topic}
 ${hasCustomDescription ? `**תיאור חופשי:** ${personalityTraits}` : ""}
 ${className ? `\n## 🏫 שם הכיתה/הגן: ${className}\nשלב את שם הכיתה/הגן בסיפור בצורה טבעית, לדוגמה: "יַלְדֵי ${className} הִתְרַגְּשׁוּ מְאוֹד..." או "בַּכִּיתָּה ${className} קָרָה הַרְפַּתְקָה מְיֻחֶדֶת...". הזכר את שם הכיתה/הגן לפחות פעמיים בסיפור.\n` : ""}
