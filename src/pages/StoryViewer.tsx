@@ -1043,6 +1043,9 @@ const StoryViewer = () => {
                       <p className="text-xs text-purple-600 mt-1">המשוב שלכם עוזר לנו ליצור סיפורים טובים יותר</p>
                     </div>
                   )}
+                  <div className="pt-2">
+                    <span className="text-xl font-black logo-3d-bubble mt-3"><span className="logo-rainbow">SolStorie's™</span></span>
+                  </div>
                 </div>
               </div>
 
