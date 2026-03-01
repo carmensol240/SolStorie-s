@@ -544,6 +544,7 @@ export type Database = {
           nikud: boolean
           slug: string | null
           story_type: string | null
+          summary: string | null
           theme: string | null
           topic: string
           user_id: string | null
@@ -568,6 +569,7 @@ export type Database = {
           nikud?: boolean
           slug?: string | null
           story_type?: string | null
+          summary?: string | null
           theme?: string | null
           topic: string
           user_id?: string | null
@@ -592,6 +594,7 @@ export type Database = {
           nikud?: boolean
           slug?: string | null
           story_type?: string | null
+          summary?: string | null
           theme?: string | null
           topic?: string
           user_id?: string | null
