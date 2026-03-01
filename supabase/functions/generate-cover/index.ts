@@ -163,23 +163,22 @@ serve(async (req) => {
         });
       }
 
-      const personalizedCoverPrompt = `3D DISNEY PIXAR STYLE, cute, cinematic lighting, vibrant colors, full screen uncropped. Like Coco, Encanto, Inside Out. Portrait orientation.
+      const personalizedCoverPrompt = `CRITICAL FACE REFERENCE: The main character's face, hair texture, skin tone, and facial features MUST be an EXACT 3D Pixar rendering of the child in the reference photo. Do NOT invent or change any facial features.
 
-MAIN CHARACTER: The child from the reference image is the HERO and FOCAL POINT. Their facial features, hair, and skin tone MUST match the reference photo exactly, rendered in beautiful 3D Disney Pixar style. They stand center-front with a warm, confident smile. They must be clearly recognizable as the same child from the photo.
+3D DISNEY PIXAR STYLE, cinematic lighting, vibrant colors, portrait orientation. Like Coco, Encanto, Inside Out.
 
-SECONDARY CHARACTERS (keep them smaller, flanking the main character, all in 3D Disney Pixar style):
-- Ben: toddler with very curly dark hair, warm tan skin, light green shirt — SMALLEST
-- Zoe: dark-skinned girl with voluminous black curls, light blue headband, purple-yellow athletic tracksuit, athletic build
-- Leo: straight black hair, round glasses, denim overalls
-- Mia: smooth brown bob, small flower crown, emerald green dress
+MAIN CHARACTER: The child from the reference photo — center-front, warm confident smile, LARGEST figure.
+
+SUPPORTING CAST (smaller, flanking, background):
+- Ben: curly dark hair toddler, tan skin, green shirt
+- Zoe: dark-skinned girl, black afro curls, blue headband, purple-yellow tracksuit
+- Leo: black straight hair, round glasses, denim overalls
+- Mia: brown bob, flower crown, green dress
 
 SETTING: ${setting}
+TITLE: "${displayTitle}" at top in ${fontLanguage} font, bold, child-friendly.
 
-TITLE TEXT: Display "${displayTitle}" prominently at the top in a large, clear, child-friendly ${fontLanguage} font. Bold, legible, naturally integrated as a children's book cover title.
-
-COMPOSITION: Book cover layout. The personalized main character is LARGEST and center. Cast flanks them. Title occupies upper portion.
-
-NEGATIVE: No UI elements, no buttons, no watermarks, no text beyond the story title. No floating heads, no missing bodies, no extra limbs, no deformed characters. All characters FULL BODY head to toe with feet VISIBLE and GROUNDED.`;
+FULL BODY head to toe, feet GROUNDED. NEGATIVE: generic face, wrong hair, floating head, missing body, extra limbs, deformed, text beyond title, watermark`;
 
       let imageUrl: string | null = null;
       const MAX_ATTEMPTS = 2;

@@ -163,21 +163,21 @@ serve(async (req) => {
     if (childPhoto) {
       console.log(`Retrying illustration via Instant Character (face reference) for story ${storyId}, page ${page.page_number}...`);
 
-      const personalizedPrompt = `${stylePrefix}
+      const personalizedPrompt = `CRITICAL FACE REFERENCE: The main character's face, hair texture, skin tone, and facial features MUST be an EXACT 3D Pixar rendering of the child in the reference photo. Do NOT invent or change any facial features.
 
-MAIN CHARACTER: The character from the reference image is the HERO and FOCAL POINT. Their facial features, hair, and skin tone MUST match the reference photo exactly, rendered in 3D Disney Pixar style. They must be clearly recognizable as the same child from the photo.
+3D DISNEY PIXAR STYLE, cute, cinematic lighting, vibrant colors, full screen uncropped. Like Coco, Encanto, Inside Out.
 
-SECONDARY CHARACTERS (3D Disney Pixar style):
-- Ben: toddler boy with very curly dark hair, warm tan skin, light green shirt — SMALLEST
-- Zoe: dark-skinned girl with voluminous black curls, light blue headband, purple-yellow athletic tracksuit, athletic build
-- Leo: boy with straight black hair, round glasses, denim overalls
-- Mia: girl with smooth brown bob, small flower crown, emerald green dress
+MAIN CHARACTER: The child from the reference photo — HERO and FOCAL POINT, LARGEST figure.
 
 SCENE: ${prompt}
 
-CRITICAL: The main personalized character must be the LARGEST and most PROMINENT figure in the scene.
+SUPPORTING CAST (smaller, background only):
+- Ben: curly dark hair toddler, tan skin, green shirt
+- Zoe: dark-skinned girl, black afro curls, blue headband, purple-yellow tracksuit
+- Leo: black straight hair, round glasses, denim overalls
+- Mia: brown bob, flower crown, green dress
 
-NEGATIVE: ${negativePrompt}`;
+FULL BODY head to toe, feet GROUNDED. NEGATIVE: ${negativePrompt}`;
 
       for (let attempt = 1; attempt <= MAX_ATTEMPTS; attempt++) {
         try {

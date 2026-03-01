@@ -408,8 +408,30 @@ export const usePdfExport = () => {
 
     try {
       const pdf = await buildPdf(story, layout);
-      pdf.save(makePdfFileName(story, layout));
-      toast({ title: 'ה-PDF הורד בהצלחה!' });
+      const fileName = makePdfFileName(story, layout);
+      const blob = pdf.output('blob');
+      const pdfFile = new File([blob], fileName, { type: 'application/pdf' });
+
+      // Use native share sheet on mobile if available
+      if (navigator.canShare && navigator.canShare({ files: [pdfFile] })) {
+        try {
+          await navigator.share({
+            files: [pdfFile],
+            title: `הסיפור של ${story.child_name}`,
+          });
+          toast({ title: 'ה-PDF שותף בהצלחה!' });
+        } catch (shareErr: any) {
+          // User cancelled share — fall back to download
+          if (shareErr?.name !== 'AbortError') {
+            pdf.save(fileName);
+            toast({ title: 'ה-PDF הורד בהצלחה!' });
+          }
+        }
+      } else {
+        // Desktop fallback — direct download
+        pdf.save(fileName);
+        toast({ title: 'ה-PDF הורד בהצלחה!' });
+      }
     } catch (error) {
       console.error('Error exporting PDF:', error);
       toast({ title: 'שגיאה ביצירת ה-PDF', variant: 'destructive' });
