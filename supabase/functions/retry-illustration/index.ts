@@ -165,7 +165,7 @@ serve(async (req) => {
 
       const personalizedPrompt = `CRITICAL FACE REFERENCE: The main character's face, hair texture, skin tone, and facial features MUST be an EXACT 3D Pixar rendering of the child in the reference photo. Do NOT invent or change any facial features.
 
-3D DISNEY PIXAR ANIMATION STYLE. Render exactly like a frame from Coco, Encanto, or Inside Out 2. Smooth matte 3D surfaces, subsurface skin scattering, warm cinematic golden-hour lighting. Characters: large round expressive eyes with visible iris highlights, soft rosy cheeks, detailed textured hair with individual strand groups, small button nose. Environment: rich detailed backgrounds with depth-of-field bokeh, warm color palette, cozy atmospheric lighting with soft shadows. DO NOT render in 2D, flat illustration, anime, watercolor, or photorealistic style.
+Ultra-high fidelity 3D Disney Pixar animation style, cinematic soft lighting, volumetric fog, Octane render quality. Render exactly like a frame from Coco, Encanto, or Inside Out 2. Smooth matte 3D surfaces, subsurface skin scattering, warm golden-hour cinematic lighting. Characters: intricate detailed hair with individual strand groups, large round expressive eyes with visible iris highlights, soft rosy cheeks, small button nose. Environment: shallow depth-of-field with strong background bokeh blur to make character pop, vibrant saturated colors, cozy atmospheric lighting with soft volumetric shadows. Masterpiece quality, 8K. DO NOT render in 2D, flat illustration, anime, watercolor, or photorealistic style.
 
 MAIN CHARACTER: The child from the reference photo — HERO and FOCAL POINT, LARGEST figure.
 
