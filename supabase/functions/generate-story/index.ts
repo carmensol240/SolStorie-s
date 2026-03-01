@@ -1263,6 +1263,31 @@ ${topic.endsWith('-edu') ? `
       throw pagesError;
     }
 
+    // === DEFERRED SUMMARY: Generate 1-sentence summary for sequel continuity ===
+    (async () => {
+      try {
+        const fullText = storyData.pages.map((p: any) => p.text).join("\n");
+        const summaryResponse = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+          method: "POST",
+          headers: { Authorization: `Bearer ${LOVABLE_API_KEY}`, "Content-Type": "application/json" },
+          body: JSON.stringify({
+            model: "google/gemini-2.5-flash-lite",
+            messages: [{ role: "user", content: `סכם את הסיפור הבא במשפט אחד קצר בעברית (עד 30 מילים). תן רק את המשפט, ללא הקדמה:\n${fullText}` }],
+          }),
+        });
+        if (summaryResponse.ok) {
+          const summaryData = await summaryResponse.json();
+          const summary = summaryData.choices?.[0]?.message?.content?.trim();
+          if (summary) {
+            await supabase.from("stories").update({ summary }).eq("id", story.id);
+            console.log(`Summary saved for story ${story.id}: ${summary.substring(0, 60)}...`);
+          }
+        }
+      } catch (err) {
+        console.error("Background summary generation error:", err);
+      }
+    })();
+
     // === DEFERRED NIKUD: Apply in background after returning storyId ===
     if (shouldApplyNikud) {
       console.log("Deferring nikud to background processing...");

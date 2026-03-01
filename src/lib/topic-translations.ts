@@ -119,6 +119,7 @@ const TOPIC_HEBREW_MAP: Record<string, string> = {
   'holidays-seasons-edu': 'מעגל השנה – חגים ועונות',
   'play-rules-edu': 'כללי משחק – לשחק בהוגנות',
   'self-confidence-edu': 'ביטחון עצמי – אני יכול/ה!',
+  'eating-with-cutlery-edu': 'לאכול עם סכו״ם – הכלים המבריקים שלי',
 };
 
 /**
