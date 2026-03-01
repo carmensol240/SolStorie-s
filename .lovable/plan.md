@@ -1,59 +1,44 @@
 
 
-## Urgent Fix: Illustration Rendering, Read-Aloud Relocation, Privacy & Subscription
+## Plan: Add 'Rainbow Power' (Fruits & Vegetables) Educational Topic
 
-### 1. Fix Illustration Prompt Logic (Full Body / No Cropping)
+### What Changes
 
-**Files to update:**
-- `supabase/functions/generate-illustrations/index.ts` (main generation)
-- `supabase/functions/retry-illustration/index.ts` (retry generation)
-- `supabase/functions/generate-cover/index.ts` (cover generation)
+#### 1. New topic in `topic-data.ts`
+Add `rainbow-power-edu` to the Educational Toolbox (`edu`) category:
 
-**Changes:**
-- Add explicit "Sole of the Foot" rule and grounding instructions to the style prefix and negative prompt in all three edge functions
-- Update the `stylePrefix` in `generate-illustrations/index.ts` (line ~213) and `retry-illustration/index.ts` (line ~117) to include:
-  - "ALWAYS show characters FULL BODY from head to toe with feet VISIBLE and GROUNDED on the surface (grass, floor, path). The character's full body including shoes/feet MUST be visible."
-  - "Frame the character with generous margin from all edges -- at least 10% padding on each side. Character must be FULLY CONTAINED within the frame, never cropped."
-- Expand the NEGATIVE PROMPT to include: "cropped feet, cut off legs, floating character, character not touching ground, half-body, missing feet, legs cut off at frame edge"
-- Apply the same updates to the `retry-illustration` edge function's `stylePrefix` block
+```typescript
+{ 
+  id: "rainbow-power-edu", 
+  label: "🌈 כוח הקשת – פירות וירקות קסומים", 
+  description: "מדריך חברתי מובנה (Carol Gray): כל פרי וירק הוא כוח-על מיוחד! הצבעים של הקשת מחכים בצלחת – אדום נותן אנרגיה, כתום מחזק את העיניים וירוק בונה שרירים חזקים.",
+  image: topicBraveTaster, // Reuse brave-taster image (closest match)
+  ageRange: "0-8",
+  keywords: ["פירות", "ירקות", "אכילה בריאה", "צבעים", "תזונה", "כוח על", "carol gray"]
+}
+```
 
-### 2. Remove Read-Aloud from Story Screen, Keep in Accessibility Menu
+#### 2. Translation in `topic-translations.ts`
+Add mapping:
+```typescript
+'rainbow-power-edu': 'כוח הקשת – פירות וירקות קסומים',
+```
 
-**File: `src/pages/StoryViewer.tsx`**
+#### 3. Sequel logic — already working
+The existing sequel system (child_id + topic matching + summary injection) will automatically handle this. When Sol picks "Rainbow Power" again, the generate-story function will find the previous story's summary (e.g., "Sol discovered the red strawberry's energy power") and inject it as context for Part 2, ensuring the next chapter introduces a different "Power Fruit."
 
-The read-aloud button was already removed from the main UI (line 877 shows a comment "Read Aloud button removed per user request"). However, there are still leftover imports and state:
-- Remove `isReadAloudDismissed` state (line 101)
-- Remove `useTextToSpeech` hook usage (line 121) and its import (line 32)
-- Clean up any remaining TTS-related code in StoryViewer
+#### 4. Age adaptation — already handled
+The `generate-story` edge function already adapts content based on `ageRange`:
+- **0-2**: Short, sensory (colors, names)
+- **3-6**: Cast adventures, "superpowers" framing
+- **7-8**: Complex body science, nutritional info
 
-The "Read Aloud" toggle already exists in the Accessibility Menu (`AccessibilityMenu.tsx`, lines 105-118) as "Audio Support" which enables/disables the read-aloud button. This will remain as-is -- it's the correct location for this feature.
+No edge function changes needed — the topic description and NLP framing in the topic itself guide the AI appropriately.
 
-### 3. Privacy & COPPA/GDPR Compliance
+### Files to Edit
 
-The app already has:
-- Privacy Policy page (`src/pages/PrivacyPolicy.tsx`) 
-- Terms of Service page (`src/pages/TermsOfService.tsx`)
-- Legal consent flow (`src/pages/LegalConsent.tsx`)
-- Privacy safeguards (generic placeholders instead of real names)
-- PII masking in edge function logs
-
-**Additional hardening:**
-- Add a brief privacy disclosure note in the Settings page (`src/pages/Settings.tsx`) linking to the Privacy Policy, with text like "All data handled per child privacy regulations"
-- Verify the About page (`src/components/shared/AboutSolStoriesContent.tsx`) includes the existing professional disclaimer
-
-### 4. Subscription Plan Verification Reminder
-
-**File: `src/pages/Settings.tsx`** (or a dev-only component)
-
-- Add a dev-mode-only visual banner (using existing `isDevModeEnabled()`) at the top of the Settings page reminding to verify the subscription plan before launch
-- This will only be visible when dev mode is enabled and will not appear in production for real users
-
-### Technical Summary
-
-| Task | Files Changed | Deploy Needed |
-|------|--------------|---------------|
-| Fix illustration prompts | `generate-illustrations/index.ts`, `retry-illustration/index.ts` | Yes (edge functions) |
-| Clean up TTS remnants | `StoryViewer.tsx` | No |
-| Privacy disclosure | `Settings.tsx` | No |
-| Subscription reminder | `Settings.tsx` (dev-only) | No |
+| File | Change |
+|------|--------|
+| `src/components/wizard/topic-data.ts` | Add `rainbow-power-edu` topic to edu section |
+| `src/lib/topic-translations.ts` | Add Hebrew translation mapping |
 
