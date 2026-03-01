@@ -63,12 +63,7 @@ const TOPIC_HEBREW_MAP: Record<string, string> = {
   'grandparents-night': 'לילה אצל סבא וסבתא',
   'flying-vacation': 'טיסה לחופשה',
 
-  // Ben - Edu
-  'waiting-in-line-edu': 'המתנה בתור',
-  'emotion-regulation-edu': 'ויסות רגשות וכעס',
-  'holidays-seasons-edu': 'מעגל השנה - חגים ועונות',
-  'play-rules-edu': 'לשחק יחד - כללי משחק',
-  'self-confidence-edu': 'ביטחון עצמי - אני יכול/ה!',
+  // Ben - Edu (legacy entries kept for backward compat, refined versions below)
 
   // Legacy/alternate IDs
   'teeth-brushing': 'צחצוח שיניים',
