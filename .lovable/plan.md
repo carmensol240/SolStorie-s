@@ -1,45 +1,59 @@
 
 
-## Plan: Generate Sol's Cutlery Topic Thumbnail
+## Urgent Fix: Illustration Rendering, Read-Aloud Relocation, Privacy & Subscription
 
-### Overview
-Add "eating-with-cutlery" to the `generate-topic-images` edge function with a detailed Sol-specific Pixar prompt, then invoke it to generate the image and upload it to the `topic-images` storage bucket. Finally, update `topic-data.ts` to use the new storage URL instead of the placeholder `topicBraveTaster`.
+### 1. Fix Illustration Prompt Logic (Full Body / No Cropping)
 
-### Changes
+**Files to update:**
+- `supabase/functions/generate-illustrations/index.ts` (main generation)
+- `supabase/functions/retry-illustration/index.ts` (retry generation)
+- `supabase/functions/generate-cover/index.ts` (cover generation)
 
-#### 1. `supabase/functions/generate-topic-images/index.ts`
-Add a new entry to `TOPIC_PROMPTS`:
-```typescript
-"eating-with-cutlery": {
-  filename: "topic-eating-with-cutlery.png",
-  prompt: `High-end cinematic 3D Disney Pixar portrait, 1:1 square aspect ratio.
-A 4-year-old girl named Sol with tanned olive skin, dark wavy shoulder-length hair with natural volume, soft freckles across her nose and cheeks, big warm expressive brown eyes with detailed eyelashes and light reflections.
-She sits at a small colorful table, proudly and correctly holding a small shiny fork in one hand and a small spoon in the other over a stylized plate of colorful mini pasta pieces. She looks directly at the camera with a confident, proud, happy expression showing her new skill.
-Soft warm cinematic golden-hour lighting illuminating her face with gentle rim light. Extremely shallow depth of field with deeply blurred creamy bokeh background of warm indistinct golden lights and blended soft green tones. Intricate detail in hair texture, eyelashes, and eye reflections. Octane render quality, volumetric fog.
-Full upper body from waist up, character centered. Ultra high resolution.
-Negative prompt: ${NEGATIVE}, eating with hands, messy eating, dirty hands, floating food`
-}
-```
+**Changes:**
+- Add explicit "Sole of the Foot" rule and grounding instructions to the style prefix and negative prompt in all three edge functions
+- Update the `stylePrefix` in `generate-illustrations/index.ts` (line ~213) and `retry-illustration/index.ts` (line ~117) to include:
+  - "ALWAYS show characters FULL BODY from head to toe with feet VISIBLE and GROUNDED on the surface (grass, floor, path). The character's full body including shoes/feet MUST be visible."
+  - "Frame the character with generous margin from all edges -- at least 10% padding on each side. Character must be FULLY CONTAINED within the frame, never cropped."
+- Expand the NEGATIVE PROMPT to include: "cropped feet, cut off legs, floating character, character not touching ground, half-body, missing feet, legs cut off at frame edge"
+- Apply the same updates to the `retry-illustration` edge function's `stylePrefix` block
 
-#### 2. `src/components/wizard/topic-data.ts`
-Update the `eating-with-cutlery-edu` topic's `image` from `topicBraveTaster` to the public storage URL:
-```typescript
-image: "https://qvdwmkxviaqcgmjotsxe.supabase.co/storage/v1/object/public/topic-images/topic-eating-with-cutlery.png"
-```
+### 2. Remove Read-Aloud from Story Screen, Keep in Accessibility Menu
 
-Do the same for `rainbow-power-edu` which also uses `topicBraveTaster` — but only if the user wants (not part of this request).
+**File: `src/pages/StoryViewer.tsx`**
 
-#### 3. Deploy & invoke
-- Deploy the updated `generate-topic-images` edge function
-- Call it with `topicIds: ["eating-with-cutlery"]` to generate and upload the image
-- The image will be publicly accessible at the storage URL immediately
+The read-aloud button was already removed from the main UI (line 877 shows a comment "Read Aloud button removed per user request"). However, there are still leftover imports and state:
+- Remove `isReadAloudDismissed` state (line 101)
+- Remove `useTextToSpeech` hook usage (line 121) and its import (line 32)
+- Clean up any remaining TTS-related code in StoryViewer
 
-### Files to Edit
+The "Read Aloud" toggle already exists in the Accessibility Menu (`AccessibilityMenu.tsx`, lines 105-118) as "Audio Support" which enables/disables the read-aloud button. This will remain as-is -- it's the correct location for this feature.
 
-| File | Change |
-|------|--------|
-| `supabase/functions/generate-topic-images/index.ts` | Add "eating-with-cutlery" prompt entry |
-| `src/components/wizard/topic-data.ts` | Point `eating-with-cutlery-edu` image to storage URL |
+### 3. Privacy & COPPA/GDPR Compliance
 
-Edge function deployment + invocation required.
+The app already has:
+- Privacy Policy page (`src/pages/PrivacyPolicy.tsx`) 
+- Terms of Service page (`src/pages/TermsOfService.tsx`)
+- Legal consent flow (`src/pages/LegalConsent.tsx`)
+- Privacy safeguards (generic placeholders instead of real names)
+- PII masking in edge function logs
+
+**Additional hardening:**
+- Add a brief privacy disclosure note in the Settings page (`src/pages/Settings.tsx`) linking to the Privacy Policy, with text like "All data handled per child privacy regulations"
+- Verify the About page (`src/components/shared/AboutSolStoriesContent.tsx`) includes the existing professional disclaimer
+
+### 4. Subscription Plan Verification Reminder
+
+**File: `src/pages/Settings.tsx`** (or a dev-only component)
+
+- Add a dev-mode-only visual banner (using existing `isDevModeEnabled()`) at the top of the Settings page reminding to verify the subscription plan before launch
+- This will only be visible when dev mode is enabled and will not appear in production for real users
+
+### Technical Summary
+
+| Task | Files Changed | Deploy Needed |
+|------|--------------|---------------|
+| Fix illustration prompts | `generate-illustrations/index.ts`, `retry-illustration/index.ts` | Yes (edge functions) |
+| Clean up TTS remnants | `StoryViewer.tsx` | No |
+| Privacy disclosure | `Settings.tsx` | No |
+| Subscription reminder | `Settings.tsx` (dev-only) | No |
 
