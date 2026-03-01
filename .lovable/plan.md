@@ -1,59 +1,43 @@
 
 
-## Urgent Fix: Illustration Rendering, Read-Aloud Relocation, Privacy & Subscription
+## Plan: Upgrade Image Quality — Ultra-High Fidelity 3D Pixar Prompts
 
-### 1. Fix Illustration Prompt Logic (Full Body / No Cropping)
+### Current State
+- PDF sharing via `navigator.share` — **already implemented** ✅
+- IndexedDB for offline storage — **already implemented** ✅  
+- `stripBase64ForStorage` preventing localStorage quota errors — **already implemented** ✅
+- Style prompt exists but lacks rendering keywords (Octane, volumetric fog, bokeh, etc.)
 
-**Files to update:**
-- `supabase/functions/generate-illustrations/index.ts` (main generation)
-- `supabase/functions/retry-illustration/index.ts` (retry generation)
-- `supabase/functions/generate-cover/index.ts` (cover generation)
+### What Changes
 
-**Changes:**
-- Add explicit "Sole of the Foot" rule and grounding instructions to the style prefix and negative prompt in all three edge functions
-- Update the `stylePrefix` in `generate-illustrations/index.ts` (line ~213) and `retry-illustration/index.ts` (line ~117) to include:
-  - "ALWAYS show characters FULL BODY from head to toe with feet VISIBLE and GROUNDED on the surface (grass, floor, path). The character's full body including shoes/feet MUST be visible."
-  - "Frame the character with generous margin from all edges -- at least 10% padding on each side. Character must be FULLY CONTAINED within the frame, never cropped."
-- Expand the NEGATIVE PROMPT to include: "cropped feet, cut off legs, floating character, character not touching ground, half-body, missing feet, legs cut off at frame edge"
-- Apply the same updates to the `retry-illustration` edge function's `stylePrefix` block
+**Single change: Upgrade the style block in all 3 edge functions** to include ultra-high fidelity rendering keywords and explicit bokeh/depth-of-field instructions.
 
-### 2. Remove Read-Aloud from Story Screen, Keep in Accessibility Menu
+**New unified style block:**
+```
+Ultra-high fidelity 3D Disney Pixar animation style, cinematic soft lighting, 
+volumetric fog, Octane render quality. Render exactly like a frame from Coco, 
+Encanto, or Inside Out 2. Smooth matte 3D surfaces, subsurface skin scattering, 
+warm golden-hour cinematic lighting. Characters: intricate detailed hair with 
+individual strand groups, large round expressive eyes with visible iris highlights, 
+soft rosy cheeks, small button nose. Environment: shallow depth-of-field with 
+strong background bokeh blur to make character pop, vibrant saturated colors, 
+cozy atmospheric lighting with soft volumetric shadows. Masterpiece quality, 8K.
+FULL BODY head to toe, feet GROUNDED. 
+DO NOT render in 2D, flat, anime, watercolor, or photorealistic style.
+```
 
-**File: `src/pages/StoryViewer.tsx`**
+Key additions vs current prompts:
+- `Octane render quality` — triggers higher-fidelity 3D rendering
+- `volumetric fog` — adds atmospheric depth
+- `intricate hair detail` — replaces generic "textured hair"
+- `shallow depth-of-field with strong background bokeh blur` — makes character pop
+- `vibrant saturated colors, masterpiece quality, 8K` — quality boosters
 
-The read-aloud button was already removed from the main UI (line 877 shows a comment "Read Aloud button removed per user request"). However, there are still leftover imports and state:
-- Remove `isReadAloudDismissed` state (line 101)
-- Remove `useTextToSpeech` hook usage (line 121) and its import (line 32)
-- Clean up any remaining TTS-related code in StoryViewer
+### Files to Edit
+1. `supabase/functions/generate-illustrations/index.ts` — lines 180-194 (instant-character prompt) and line 276 (schnell stylePrefix)
+2. `supabase/functions/generate-cover/index.ts` — lines 166-168 (personalized cover) and line 286 (Gemini cover)  
+3. `supabase/functions/retry-illustration/index.ts` — lines 155 and 166-168 (both paths)
 
-The "Read Aloud" toggle already exists in the Accessibility Menu (`AccessibilityMenu.tsx`, lines 105-118) as "Audio Support" which enables/disables the read-aloud button. This will remain as-is -- it's the correct location for this feature.
-
-### 3. Privacy & COPPA/GDPR Compliance
-
-The app already has:
-- Privacy Policy page (`src/pages/PrivacyPolicy.tsx`) 
-- Terms of Service page (`src/pages/TermsOfService.tsx`)
-- Legal consent flow (`src/pages/LegalConsent.tsx`)
-- Privacy safeguards (generic placeholders instead of real names)
-- PII masking in edge function logs
-
-**Additional hardening:**
-- Add a brief privacy disclosure note in the Settings page (`src/pages/Settings.tsx`) linking to the Privacy Policy, with text like "All data handled per child privacy regulations"
-- Verify the About page (`src/components/shared/AboutSolStoriesContent.tsx`) includes the existing professional disclaimer
-
-### 4. Subscription Plan Verification Reminder
-
-**File: `src/pages/Settings.tsx`** (or a dev-only component)
-
-- Add a dev-mode-only visual banner (using existing `isDevModeEnabled()`) at the top of the Settings page reminding to verify the subscription plan before launch
-- This will only be visible when dev mode is enabled and will not appear in production for real users
-
-### Technical Summary
-
-| Task | Files Changed | Deploy Needed |
-|------|--------------|---------------|
-| Fix illustration prompts | `generate-illustrations/index.ts`, `retry-illustration/index.ts` | Yes (edge functions) |
-| Clean up TTS remnants | `StoryViewer.tsx` | No |
-| Privacy disclosure | `Settings.tsx` | No |
-| Subscription reminder | `Settings.tsx` (dev-only) | No |
+### No Other Changes Needed
+PDF sharing and storage quota fixes are already live and working.
 
