@@ -5,7 +5,7 @@ interface AccessibilityProviderProps {
   children: ReactNode;
 }
 
-const AccessibilityProvider = ({ children }: AccessibilityProviderProps) => {
+const AccessibilityProvider = forwardRef<HTMLDivElement, AccessibilityProviderProps>(({ children }, _ref) => {
   const accessibilityState = useAccessibilityState();
 
   // Restore persisted accessibility classes on mount
