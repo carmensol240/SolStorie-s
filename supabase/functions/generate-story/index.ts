@@ -1342,9 +1342,13 @@ ${topic.endsWith('-edu') ? `
       const illustrationPages = pagesWithoutIllustrations.filter((p: any) => p.illustration_prompt);
       console.log(`Triggering ${illustrationPages.length} separate generate-illustrations calls (one per page)...`);
 
+      // Collect all fetch promises — we MUST await them before returning
+      // so the Deno runtime doesn't kill them when the response is sent.
+      const fetchPromises: Promise<void>[] = [];
+
       for (const page of illustrationPages) {
         console.log(`  → Dispatching illustration for page ${page.page_number}`);
-        fetch(`${supabaseUrl}/functions/v1/generate-illustrations`, {
+        const p = fetch(`${supabaseUrl}/functions/v1/generate-illustrations`, {
           method: "POST",
           headers: {
             "Authorization": `Bearer ${serviceRoleKey}`,
@@ -1372,11 +1376,12 @@ ${topic.endsWith('-edu') ? `
         }).catch(err => {
           console.error(`Error triggering illustration for page ${page.page_number}:`, err);
         });
+        fetchPromises.push(p);
       }
 
-      // Fire-and-forget: Trigger cover generation in parallel
+      // Cover generation
       console.log(`Triggering generate-cover for story ${story.id}...`);
-      fetch(`${supabaseUrl}/functions/v1/generate-cover`, {
+      const coverPromise = fetch(`${supabaseUrl}/functions/v1/generate-cover`, {
         method: "POST",
         headers: {
           "Authorization": `Bearer ${serviceRoleKey}`,
@@ -1398,6 +1403,12 @@ ${topic.endsWith('-edu') ? `
       }).catch(err => {
         console.error("Error triggering cover generation:", err);
       });
+      fetchPromises.push(coverPromise);
+
+      // Wait for ALL fetch calls to be dispatched (not for completion — each
+      // function runs independently, but the HTTP request must leave this runtime)
+      await Promise.allSettled(fetchPromises);
+      console.log(`All ${fetchPromises.length} generation requests dispatched successfully`);
     }
 
     console.log("Illustration + cover generation triggered, returning storyId immediately");

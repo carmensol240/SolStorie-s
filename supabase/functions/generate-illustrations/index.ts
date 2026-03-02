@@ -692,7 +692,7 @@ serve(async (req) => {
       console.log(`Generating illustration for page ${page.page_number}...`);
       
       let base64Image: string | null = null;
-      const MAX_RETRIES = 3;
+      const MAX_RETRIES = 2;
       
       for (let attempt = 1; attempt <= MAX_RETRIES; attempt++) {
         // Branch: use PuLID when child photo exists, Schnell otherwise
