@@ -36,7 +36,7 @@ const Onboarding = () => {
           .eq("id", user.id)
           .maybeSingle();
         if (data?.terms_accepted_at) {
-          navigate("/adventure");
+          navigate("/adventure", { replace: true });
           return;
         }
       } catch (error) {
@@ -60,14 +60,33 @@ const Onboarding = () => {
     if (!user || !hasAgreed) return;
     setIsSubmitting(true);
     try {
-      const { error } = await supabase
+      const now = new Date().toISOString();
+      
+      // Try update first, use .select() to verify it actually matched a row
+      const { data: updated, error: updateError } = await supabase
         .from("profiles")
         .update({
-          terms_accepted_at: new Date().toISOString(),
+          terms_accepted_at: now,
           terms_version: TERMS_VERSION,
         })
-        .eq("id", user.id);
-      if (error) throw error;
+        .eq("id", user.id)
+        .select("terms_accepted_at");
+
+      if (updateError) throw updateError;
+
+      // If update matched zero rows, the profile doesn't exist yet — upsert as fallback
+      if (!updated || updated.length === 0) {
+        console.warn("Profile update matched 0 rows, falling back to upsert");
+        const { error: upsertError } = await supabase
+          .from("profiles")
+          .upsert({
+            id: user.id,
+            terms_accepted_at: now,
+            terms_version: TERMS_VERSION,
+          }, { onConflict: "id" });
+        if (upsertError) throw upsertError;
+      }
+
       toast({
         title: "ברוכים הבאים ל-SolStorie's™! 🎉",
         description: "מחכה לך סיפור ראשון במתנה מאיתנו כדי להתחיל בקסם ✨",

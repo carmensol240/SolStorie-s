@@ -54,7 +54,7 @@ const RequireTerms = ({ children }: RequireTermsProps) => {
 
         if (!data?.terms_accepted_at) {
           const returnTo = encodeURIComponent(window.location.pathname + window.location.search);
-          navigate(`/onboarding?returnTo=${returnTo}`);
+          navigate(`/onboarding?returnTo=${returnTo}`, { replace: true });
           return;
         }
 
