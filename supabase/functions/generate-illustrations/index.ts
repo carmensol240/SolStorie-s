@@ -179,19 +179,13 @@ async function generateIllustrationWithFace(
 
     const fullPrompt = `CRITICAL FACE REFERENCE: The main character's face, hair texture, skin tone, and facial features MUST be an EXACT 3D Pixar rendering of the person in the reference photo. Do NOT invent or change any facial features — derive ALL appearance strictly from the photo.
 
-3D Disney Pixar cartoon animation style. Vibrant saturated colors, big round expressive eyes with sparkling highlights, smooth stylized skin, cheerful warm lighting. Characters have exaggerated cute proportions with large heads and expressive faces. Colorful detailed backgrounds with magical fantasy elements (glowing mushrooms, fireflies, sparkles, enchanted forests). Clean sharp rendering, rich textures, playful and whimsical atmosphere. ALWAYS show characters FULL BODY from head to toe with feet VISIBLE and GROUNDED on the surface. Frame the character with generous margin from all edges. DO NOT render flat, photorealistic, dark, muted, cinematic bokeh, or hyper-realistic styles.
+3D Disney Pixar cartoon animation style, inspired by 'Coco' and 'Encanto'. Characters must look like adorable cartoon dolls — NOT realistic humans. Big round expressive cartoon eyes with sparkling highlights, soft rounded cute faces, smooth stylized skin with NO pores or texture. Exaggerated cute proportions with large heads, small noses, and expressive faces. Vibrant rich saturated colors, warm magical golden lighting. Colorful detailed backgrounds with magical fantasy elements (glowing mushrooms, fireflies, sparkles, enchanted forests). Clean sharp 3D rendering, rich textures, playful and whimsical atmosphere. ALWAYS show characters FULL BODY from head to toe with feet VISIBLE and GROUNDED on the surface. Frame the character with generous margin from all edges. DO NOT render flat, photorealistic, semi-realistic, dark, muted, cinematic bokeh, or hyper-realistic styles. Characters must NEVER look like real humans or photographs — always stylized 3D cartoon dolls.
 
 MAIN CHARACTER: The child from the reference photo is the HERO. They wear ${finalOutfit}. They must be the LARGEST and most PROMINENT figure. ${adventureInstruction}
 
-SCENE: ${prompt}
-
-SUPPORTING CAST (smaller, background only):
-- Ben: toddler boy, voluminous curly dark hair, warm tan skin, green shirt, large brown eyes — 3D Pixar cartoon style
-- Zoe: dark-skinned athletic girl, thick voluminous black curls, blue headband, purple-yellow tracksuit — 3D Pixar cartoon style
-- Leo: boy with straight black hair, round glasses, denim overalls — 3D Pixar cartoon style
-- Mia: girl with smooth brown bob, small flower crown, green dress — 3D Pixar cartoon style
-
-FULL BODY head to toe, feet GROUNDED on surface. Portrait 4:3 framing. NEGATIVE: generic face, wrong hair, floating head, missing body, extra limbs, deformed, cropped feet, text, watermark, photorealistic, dark, muted colors, cinematic bokeh, hyper-realistic, shallow depth of field`;
+CRITICAL CHARACTER CONSISTENCY: The main character must look IDENTICAL in every illustration — same face shape, same hair color and style, same clothing colors, same skin tone, same eye color. Any visual deviation between pages is a FAILURE.
+...
+FULL BODY head to toe, feet GROUNDED on surface. Portrait 4:3 framing. NEGATIVE: realistic, semi-realistic, real human, photograph, generic face, wrong hair, floating head, missing body, extra limbs, deformed, cropped feet, text, watermark, photorealistic, dark, muted colors, cinematic bokeh, hyper-realistic, shallow depth of field`;
 
     console.log("Generating illustration via Fal.ai Instant Character (face reference)...");
 
@@ -273,9 +267,9 @@ async function generateIllustration(
       ? `Setting: ${adventureLogic.background}. Theme: ${adventureLogic.theme}.`
       : "";
 
-    const stylePrefix = `3D Disney Pixar cartoon animation style. Vibrant saturated colors, big round expressive eyes with sparkling highlights, smooth stylized skin, cheerful warm lighting. Characters have exaggerated cute proportions with large heads and expressive faces. Colorful detailed backgrounds with magical fantasy elements (glowing mushrooms, fireflies, sparkles, enchanted forests). Clean sharp rendering, rich textures, playful and whimsical atmosphere. ALWAYS show characters FULL BODY from head to toe with feet VISIBLE and GROUNDED on the surface. Frame the character with generous margin from all edges. DO NOT render flat, photorealistic, dark, muted, cinematic bokeh, or hyper-realistic styles.`;
+    const stylePrefix = `3D Disney Pixar cartoon animation style, inspired by 'Coco' and 'Encanto'. Characters must look like adorable cartoon dolls — NOT realistic humans. Big round expressive cartoon eyes with sparkling highlights, soft rounded cute faces, smooth stylized skin with NO pores or texture. Exaggerated cute proportions with large heads, small noses, and expressive faces. Vibrant rich saturated colors, warm magical golden lighting. Colorful detailed backgrounds with magical fantasy elements (glowing mushrooms, fireflies, sparkles, enchanted forests). Clean sharp 3D rendering, rich textures, playful and whimsical atmosphere. ALWAYS show characters FULL BODY from head to toe with feet VISIBLE and GROUNDED on the surface. Frame the character with generous margin from all edges. DO NOT render flat, photorealistic, semi-realistic, dark, muted, cinematic bokeh, or hyper-realistic styles. Characters must NEVER look like real humans or photographs — always stylized 3D cartoon dolls.`;
 
-    const negativePrompt = `photorealistic, dark, muted colors, cinematic bokeh, hyper-realistic, shallow depth of field, floating head, missing body, missing limbs, extra limbs, deformed, distorted, scary, horror, mutated, cropped feet, cut off legs, floating character, half-body, missing feet, text, watermark, UI elements`;
+    const negativePrompt = `realistic, semi-realistic, real human, photograph, photorealistic, dark, muted colors, cinematic bokeh, hyper-realistic, shallow depth of field, floating head, missing body, missing limbs, extra limbs, deformed, distorted, scary, horror, mutated, cropped feet, cut off legs, floating character, half-body, missing feet, text, watermark, UI elements`;
 
     const fullPrompt = `${stylePrefix}\n\n${visualAnchor}\n\n${characterInstruction}\n${adventureInstruction}\n\nSCENE: ${prompt}\n\nNEGATIVE: ${negativePrompt}`;
 
