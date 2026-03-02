@@ -27,7 +27,7 @@ serve(async (req) => {
 
     console.log("🎨 Generating hero image for app welcome screen...");
 
-    const heroPrompt = `In the style of modern 3D Disney-Pixar animation, 8K resolution, ultra high quality, soft cinematic lighting, vibrant harmonious colors. Portrait orientation (9:16 aspect ratio).
+    const heroPrompt = `3D Disney Pixar cartoon animation style, inspired by 'Coco' and 'Encanto'. Characters must look like adorable cartoon dolls — NOT realistic humans. Big round expressive cartoon eyes with sparkling highlights, soft rounded cute faces, smooth stylized skin with NO pores or texture. Exaggerated cute proportions with large heads, small noses, and expressive faces. Vibrant rich saturated colors, warm magical golden lighting. Clean sharp 3D rendering, rich textures, playful and whimsical atmosphere. DO NOT render flat, photorealistic, semi-realistic, dark, muted, cinematic bokeh, or hyper-realistic styles. Characters must NEVER look like real humans or photographs — always stylized 3D cartoon dolls. Portrait orientation (9:16 aspect ratio).
 
 SCENE: "Gateway to the Magical World" — A magnificent, enormous glowing magical portal/gateway made of golden swirling light and sparkling fairy dust stands in the center. The portal opens to reveal a fantastical world full of vivid colors — floating islands, rainbow waterfalls, giant colorful flowers, and shimmering butterflies. The sky behind is a breathtaking gradient of purple, pink, and deep blue with twinkling stars and magical sparkles.
 
