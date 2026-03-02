@@ -1,4 +1,4 @@
-import { ReactNode, useEffect } from "react";
+import { ReactNode, useEffect, forwardRef } from "react";
 import { AccessibilityContext, useAccessibilityState } from "@/hooks/use-accessibility";
 
 interface AccessibilityProviderProps {
