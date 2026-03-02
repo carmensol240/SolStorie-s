@@ -20,7 +20,7 @@ interface AppliedCoupon {
 
 const CouponInput = ({ onDiscountApplied, onStoriesAdded }: CouponInputProps) => {
   const { user } = useAuth();
-  const { refetchCredits } = useCredits();
+  const { refetch: refetchCredits } = useCredits();
   const [code, setCode] = useState("");
   const [isValidating, setIsValidating] = useState(false);
   const [appliedCoupon, setAppliedCoupon] = useState<AppliedCoupon | null>(null);
