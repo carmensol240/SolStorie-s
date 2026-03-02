@@ -26,6 +26,8 @@ const AccessibilityProvider = forwardRef<HTMLDivElement, AccessibilityProviderPr
       {children}
     </AccessibilityContext.Provider>
   );
-};
+});
+
+AccessibilityProvider.displayName = "AccessibilityProvider";
 
 export default AccessibilityProvider;

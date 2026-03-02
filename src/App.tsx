@@ -100,6 +100,6 @@ function App() { return (
       </AccessibilityProvider>
     </QueryClientProvider>
   </ErrorBoundary>
-);
+); }
 
 export default App;
