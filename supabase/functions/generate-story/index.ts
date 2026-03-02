@@ -1342,13 +1342,9 @@ ${topic.endsWith('-edu') ? `
       const illustrationPages = pagesWithoutIllustrations.filter((p: any) => p.illustration_prompt);
       console.log(`Triggering ${illustrationPages.length} separate generate-illustrations calls (one per page)...`);
 
-      // Collect all fetch promises — we MUST await them before returning
-      // or the Deno runtime will terminate and the requests will never be sent.
-      const fetchPromises: Promise<void>[] = [];
-
       for (const page of illustrationPages) {
         console.log(`  → Dispatching illustration for page ${page.page_number}`);
-        const p = fetch(`${supabaseUrl}/functions/v1/generate-illustrations`, {
+        fetch(`${supabaseUrl}/functions/v1/generate-illustrations`, {
           method: "POST",
           headers: {
             "Authorization": `Bearer ${serviceRoleKey}`,
@@ -1376,12 +1372,11 @@ ${topic.endsWith('-edu') ? `
         }).catch(err => {
           console.error(`Error triggering illustration for page ${page.page_number}:`, err);
         });
-        fetchPromises.push(p);
       }
 
-      // Trigger cover generation in parallel
+      // Fire-and-forget: Trigger cover generation in parallel
       console.log(`Triggering generate-cover for story ${story.id}...`);
-      const coverPromise = fetch(`${supabaseUrl}/functions/v1/generate-cover`, {
+      fetch(`${supabaseUrl}/functions/v1/generate-cover`, {
         method: "POST",
         headers: {
           "Authorization": `Bearer ${serviceRoleKey}`,
@@ -1403,12 +1398,9 @@ ${topic.endsWith('-edu') ? `
       }).catch(err => {
         console.error("Error triggering cover generation:", err);
       });
-      fetchPromises.push(coverPromise);
-
-      // Wait for all requests to be dispatched (not for completion — each runs on its own runtime)
-      await Promise.allSettled(fetchPromises);
-      console.log(`All ${fetchPromises.length} illustration/cover requests dispatched successfully`);
     }
+
+    console.log("Illustration + cover generation triggered, returning storyId immediately");
 
     return new Response(
       JSON.stringify({ 
