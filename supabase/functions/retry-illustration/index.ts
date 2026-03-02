@@ -165,17 +165,17 @@ serve(async (req) => {
 
       const personalizedPrompt = `CRITICAL FACE REFERENCE: The main character's face, hair texture, skin tone, and facial features MUST be an EXACT 3D Pixar rendering of the child in the reference photo. Do NOT invent or change any facial features.
 
-Ultra-high fidelity 3D Disney Pixar character portrait, cinematic close-up composition. Sculpted dimensional facial features with soft-focus skin texture, natural subtle freckles, subsurface scattering. Large deeply expressive eyes with intricate iris reflections, catchlights, and thick lashes. Deeply textured voluminous hair with individual strand groups, glossy highlights, and natural movement. Warm golden-hour cinematic portrait lighting with soft volumetric fog and rim lighting that creates depth and dimension. Background: ALWAYS deeply blurred creamy bokeh composed of indistinct warm orbs of light, soft pastel colors, and blended organic shapes — shallow depth-of-field isolating the character as focal point. Octane render quality, 8K masterpiece. DO NOT render flat, simple, doll-like, anime, 2D, watercolor, or photorealistic.
+3D Disney Pixar cartoon animation style. Vibrant saturated colors, big round expressive eyes with sparkling highlights, smooth stylized skin, cheerful warm lighting. Characters have exaggerated cute proportions with large heads and expressive faces. Colorful detailed backgrounds with magical fantasy elements (glowing mushrooms, fireflies, sparkles, enchanted forests). Clean sharp rendering, rich textures, playful and whimsical atmosphere. DO NOT render flat, photorealistic, dark, muted, cinematic bokeh, or hyper-realistic styles.
 
 MAIN CHARACTER: The child from the reference photo — HERO and FOCAL POINT, LARGEST figure.
 
 SCENE: ${prompt}
 
 SUPPORTING CAST (smaller, background only):
-- Ben: toddler boy, voluminous curly dark hair, warm tan skin, green shirt, large brown eyes — 3D Pixar portrait quality
-- Zoe: dark-skinned athletic girl, thick voluminous black curls, blue headband, purple-yellow tracksuit — 3D Pixar portrait quality
-- Leo: boy with straight black hair, round glasses, denim overalls — 3D Pixar portrait quality
-- Mia: girl with smooth brown bob, small flower crown, green dress — 3D Pixar portrait quality
+- Ben: toddler boy, voluminous curly dark hair, warm tan skin, green shirt, large brown eyes — 3D Pixar cartoon style
+- Zoe: dark-skinned athletic girl, thick voluminous black curls, blue headband, purple-yellow tracksuit — 3D Pixar cartoon style
+- Leo: boy with straight black hair, round glasses, denim overalls — 3D Pixar cartoon style
+- Mia: girl with smooth brown bob, small flower crown, green dress — 3D Pixar cartoon style
 
 FULL BODY head to toe, feet GROUNDED on surface. Portrait 4:3 framing. NEGATIVE: ${negativePrompt}`;
 
