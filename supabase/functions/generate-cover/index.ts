@@ -165,20 +165,9 @@ serve(async (req) => {
 
       const personalizedCoverPrompt = `CRITICAL FACE REFERENCE: The main character's face, hair texture, skin tone, and facial features MUST be an EXACT 3D Pixar rendering of the child in the reference photo. Do NOT invent or change any facial features.
 
-3D Disney Pixar cartoon animation style. Vibrant saturated colors, big round expressive eyes with sparkling highlights, smooth stylized skin, cheerful warm lighting. Characters have exaggerated cute proportions with large heads and expressive faces. Colorful detailed backgrounds with magical fantasy elements (glowing mushrooms, fireflies, sparkles, enchanted forests). Clean sharp rendering, rich textures, playful and whimsical atmosphere. Portrait orientation. DO NOT render flat, photorealistic, dark, muted, cinematic bokeh, or hyper-realistic styles.
-
-MAIN CHARACTER: The child from the reference photo — center-front, warm confident smile, LARGEST figure.
-
-SUPPORTING CAST (smaller, flanking, background):
-- Ben: toddler boy, voluminous curly dark hair, warm tan skin, green shirt, large brown eyes — 3D Pixar cartoon style
-- Zoe: dark-skinned athletic girl, thick voluminous black curls, blue headband, purple-yellow tracksuit — 3D Pixar cartoon style
-- Leo: boy with straight black hair, round glasses, denim overalls — 3D Pixar cartoon style
-- Mia: girl with smooth brown bob, small flower crown, green dress — 3D Pixar cartoon style
-
-SETTING: ${setting}
-TITLE: "${displayTitle}" at top in ${fontLanguage} font, bold, child-friendly.
-
-FULL BODY head to toe, feet GROUNDED. NEGATIVE: generic face, wrong hair, floating head, missing body, extra limbs, deformed, text beyond title, watermark, photorealistic, dark, muted colors, cinematic bokeh, hyper-realistic, shallow depth of field`;
+3D Disney Pixar cartoon animation style, inspired by 'Coco' and 'Encanto'. Characters must look like adorable cartoon dolls — NOT realistic humans. Big round expressive cartoon eyes with sparkling highlights, soft rounded cute faces, smooth stylized skin with NO pores or texture. Exaggerated cute proportions with large heads, small noses, and expressive faces. Vibrant rich saturated colors, warm magical golden lighting. Colorful detailed backgrounds with magical fantasy elements (glowing mushrooms, fireflies, sparkles, enchanted forests). Clean sharp 3D rendering, rich textures, playful and whimsical atmosphere. Portrait orientation. DO NOT render flat, photorealistic, semi-realistic, dark, muted, cinematic bokeh, or hyper-realistic styles. Characters must NEVER look like real humans or photographs — always stylized 3D cartoon dolls.
+...
+FULL BODY head to toe, feet GROUNDED. NEGATIVE: realistic, semi-realistic, real human, photograph, generic face, wrong hair, floating head, missing body, extra limbs, deformed, text beyond title, watermark, photorealistic, dark, muted colors, cinematic bokeh, hyper-realistic, shallow depth of field`;
 
       let imageUrl: string | null = null;
       const MAX_ATTEMPTS = 2;
