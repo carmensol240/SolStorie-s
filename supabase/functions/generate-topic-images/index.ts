@@ -7,7 +7,7 @@ const corsHeaders = {
     "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
 };
 
-const NEGATIVE = "floating head, disembodied head, missing limbs, extra limbs, deformed, distorted, scary, horror, grotesque, mutated, disfigured, extra fingers, bad anatomy, ugly, blurry, watermark, text, signature";
+const NEGATIVE = "realistic, semi-realistic, real human, photograph, photorealistic, floating head, disembodied head, missing limbs, extra limbs, deformed, distorted, scary, horror, grotesque, mutated, disfigured, extra fingers, bad anatomy, ugly, blurry, watermark, text, signature, cinematic bokeh, dark, muted colors, hyper-realistic";
 
 const TOPIC_PROMPTS: Record<string, { filename: string; prompt: string }> = {
   "blood-test": {
