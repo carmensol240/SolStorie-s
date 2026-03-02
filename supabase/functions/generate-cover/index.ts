@@ -270,7 +270,7 @@ FULL BODY head to toe, feet GROUNDED. NEGATIVE: realistic, semi-realistic, real 
     // === FALLBACK / DEFAULT: Gemini-based cover with Sol character ===
     const solDescription = sol.label === "Sol hero"
       ? "Sol in her adventure/fantasy outfit — match EXACTLY from the provided reference image"
-      : "Sol in her everyday casual look — warm tan skin, long dark brown hair in high ponytail with pink band, bright yellow dress — match EXACTLY from the provided reference image";
+      : "Sol in her superhero costume — warm tan skin, long dark brown hair in a high bun with pink band, red cape, light blue shirt with a golden star emblem, purple pants, white sneakers — match EXACTLY from the provided reference image";
 
     const coverPrompt = `3D Disney Pixar cartoon animation style, inspired by 'Coco' and 'Encanto'. Characters must look like adorable cartoon dolls — NOT realistic humans. Big round expressive cartoon eyes with sparkling highlights, soft rounded cute faces, smooth stylized skin with NO pores or texture. Exaggerated cute proportions with large heads, small noses, and expressive faces. Vibrant rich saturated colors, warm magical golden lighting. Colorful detailed backgrounds with magical fantasy elements (glowing mushrooms, fireflies, sparkles, enchanted forests). Clean sharp 3D rendering, rich textures, playful and whimsical atmosphere. Portrait orientation (9:16 aspect ratio). DO NOT render flat, photorealistic, semi-realistic, dark, muted, cinematic bokeh, or hyper-realistic styles. Characters must NEVER look like real humans or photographs — always stylized 3D cartoon dolls.
 
@@ -283,7 +283,7 @@ Reference images of EACH character are provided above. You MUST match their appe
 - Image 5 (Mia): Smooth brown bob, small flower crown, emerald green dress
 
 CHARACTERS (all 5 must appear together in the scene — Sol and Ben are SIBLINGS, the others are their friends):
-1. Sol - match EXACTLY from reference image 1. ${solDescription}. Stands slightly to the side with a warm smile.
+1. Sol - match EXACTLY from reference image 1. ${solDescription}. Stands slightly to the side with a warm confident smile.
 2. Mia - match EXACTLY from reference image 5. Smooth brown bob, small flower crown, emerald green dress. Gentle curious expression.
 3. Leo - match EXACTLY from reference image 4. Straight black hair, round glasses, denim overalls over red-yellow striped shirt, rainbow pencil. Thoughtful friendly smile.
 4. Ben (Sol's LITTLE BROTHER) - match EXACTLY from reference image 2. Very curly dark brown hair, warm tan skin like Sol — they are siblings and share similar features. Stands beside Sol or center/front, NOTICEABLY SMALLER than all others. Light green or sky blue shirt. Toddler-sized.
