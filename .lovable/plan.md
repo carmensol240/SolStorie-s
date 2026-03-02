@@ -1,39 +1,26 @@
 
 
-## Findings: Gift Card Purchase Flow Has a Critical RLS Bug
+## Bug Analysis
 
-### What Works
-- Gift page UI renders correctly on mobile
-- Package selection (5/10/15 stories) works
-- Unauthenticated users are correctly redirected to login with `returnTo=/gift`
-- WhatsApp share message format matches the spec
-- Copy code button and success screen layout look good
+The onboarding loop is caused by a combination of issues in the navigation flow between `RequireTerms` and `Onboarding`:
 
-### Critical Bug Found: Coupon Creation Fails for Regular Users
+1. **Silent update failure**: In `Onboarding.handleContinue`, the Supabase `.update().eq()` call returns success (`error: null`) even when **zero rows are matched** (e.g., due to a race condition where the profile hasn't been created yet). The code doesn't verify the update actually persisted.
 
-The `coupons` table has an INSERT RLS policy that **only allows admins** to insert rows. When a regular user completes a PayPal payment and the code tries to create a coupon (`supabase.from("coupons").insert(...)`), it will **fail** because the user isn't an admin.
+2. **No `replace: true` on redirects**: Both `RequireTerms` (redirecting to `/onboarding`) and `Onboarding`'s guard effect (redirecting to `/adventure`) use `navigate()` without `{ replace: true }`, causing history stack pollution and making the loop worse.
 
-**Impact**: The user pays via PayPal but never receives a coupon code. The payment is captured but the gift is broken.
+3. **Loop mechanics**: `handleContinue` thinks it succeeded → navigates to `/adventure` → `RequireTerms` queries DB → `terms_accepted_at` is still null → redirects back to `/onboarding` → Onboarding guard checks terms → still null → shows the form again.
 
-**Same issue in CouponInput.tsx**: After redeeming a coupon, the code tries to UPDATE `coupons` to increment `current_uses` — this also fails for non-admin users.
+## Fix
 
-### Fix Plan
+### 1. `src/pages/Onboarding.tsx` — Verify update actually persisted
 
-1. **Add RLS policy for authenticated users to INSERT coupons** — restricted to `coupon_type = 'extra_stories'` and `max_uses = 1` (gift cards only)
-2. **Add RLS policy for authenticated users to UPDATE `current_uses`** on coupons — so coupon redemption can increment the counter
-3. Alternatively (more secure): **Move coupon creation to an Edge Function** that uses the service role key, so the client never directly inserts into `coupons`. This prevents users from creating arbitrary coupons.
+In `handleContinue`, after the update call, re-query the profile to confirm `terms_accepted_at` was saved. If not, use `upsert` as a fallback. Also add `{ replace: true }` to the guard navigation.
 
-**Recommended approach**: Edge Function (option 3) is safer since allowing client-side coupon INSERT opens potential abuse vectors. The Edge Function would:
-- Accept the package details and verify the purchase
-- Create the coupon server-side with `SUPABASE_SERVICE_ROLE_KEY`
-- Return the generated code to the client
+### 2. `src/components/RequireTerms.tsx` — Use `replace: true`
 
-### Secondary Issue: forwardRef Warning Still Present
-The `App` component forwardRef fix from the previous message isn't fully working — the warning still appears in console. This is cosmetic but should be addressed.
+Change the `navigate` call to onboarding to use `{ replace: true }` so the history stack doesn't accumulate redirect entries.
 
-### Implementation Steps
-1. Create a new Edge Function `create-gift-coupon` that handles coupon creation securely
-2. Update `GiftCard.tsx` to call the Edge Function instead of direct `supabase.from("coupons").insert()`
-3. Update `CouponInput.tsx` to use an Edge Function for coupon redemption (increment `current_uses`) instead of direct client-side UPDATE
-4. Fix the remaining forwardRef warning in `App.tsx`
+### 3. Both files — Add select return on update
+
+Use `.update(...).eq(...).select()` to get the updated row back, confirming the write succeeded. If the returned array is empty, fall back to an upsert to handle the edge case where the profile row doesn't exist yet.
 
