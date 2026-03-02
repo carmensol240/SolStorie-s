@@ -102,22 +102,26 @@ serve(async (req) => {
             content: [
               {
                 type: "text",
-                text: `Transform this child's photo into a 3D Pixar/Disney animation style portrait.
-                
+                text: `Transform this child's photo into a 3D Disney Pixar cartoon animation style portrait, inspired by 'Coco' and 'Encanto'.
+
+The character must look like an adorable cartoon doll — NOT a realistic human.
+
 CRITICAL REQUIREMENTS:
-- Keep the EXACT same facial features, hair color, hair style, and skin tone
+- Keep the EXACT same facial features, hair color, hair style, and skin tone from the photo
 - Maintain the same clothing colors and style
-- Make it look like a character from a Pixar movie (like "Coco", "Inside Out", or "Luca")
-- Use soft, warm lighting
+- Big round expressive cartoon eyes with sparkling highlights
+- Soft rounded cute face, smooth stylized skin with NO pores or texture
+- Exaggerated cute proportions with large head and expressive face
+- Warm magical golden lighting
 - Friendly, happy expression
 - 3D rounded shapes with smooth surfaces
 - Simple, clean background (soft gradient or solid pastel color)
 - Portrait style, showing head and upper body (shoulders and chest visible — NOT just a floating head)
-- High quality, professional animation look
+- Clean sharp 3D rendering, rich textures
 
-NEGATIVE PROMPT / EXCLUDE: floating head, disembodied head, head without body, missing body, missing limbs, extra limbs, deformed, distorted, scary, grotesque, mutated, disfigured, cropped head only.
+NEGATIVE PROMPT / EXCLUDE: realistic, semi-realistic, real human, photograph, photorealistic, floating head, disembodied head, head without body, missing body, missing limbs, extra limbs, deformed, distorted, scary, grotesque, mutated, disfigured, cropped head only, cinematic bokeh, dark, muted colors.
 
-The result should be immediately recognizable as the same child, just in beautiful 3D animation style.`
+The result must look like a cartoon doll version of the child — immediately recognizable as the same child, but NEVER looking like a real human. Always stylized 3D cartoon doll style.`
               },
               {
                 type: "image_url",

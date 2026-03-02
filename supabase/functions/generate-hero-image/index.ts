@@ -46,7 +46,7 @@ COMPOSITION: This is an APP WELCOME SCREEN / HERO IMAGE. The magical portal fill
 
 ATMOSPHERE: Magical golden light emanating from the portal bathes the characters in warm glow. Fairy dust particles float everywhere. The colors are rich and saturated — purples, golds, pinks, greens. Everything sparkles and glows.
 
-EXCLUDE / NEGATIVE PROMPT: No UI elements, no buttons, no audio icons, no play buttons, no watermarks, no text beyond "SolStorie's™". No additional characters beyond the 5 described. No floating heads, no disembodied heads, no missing bodies, no missing limbs, no extra limbs, no deformed characters, no distorted faces, no scary imagery, no grotesque elements, no mutated features. All characters must be shown as FULL BODY from head to toe.`;
+EXCLUDE / NEGATIVE PROMPT: No realistic, no semi-realistic, no real humans, no photographs. No UI elements, no buttons, no audio icons, no play buttons, no watermarks, no text beyond "SolStorie's™". No additional characters beyond the 5 described. No floating heads, no disembodied heads, no missing bodies, no missing limbs, no extra limbs, no deformed characters, no distorted faces, no scary imagery, no grotesque elements, no mutated features. All characters must be shown as FULL BODY from head to toe. Characters must look like cartoon dolls, NEVER like real humans.`;
 
     const requestBody = {
       model: "google/gemini-3-pro-image-preview",
