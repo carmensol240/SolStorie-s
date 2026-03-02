@@ -7,28 +7,23 @@ import { useAuth } from "@/hooks/use-auth";
 import { useCredits } from "@/hooks/use-credits";
 import { toast } from "sonner";
 
-interface CouponData {
-  id: string;
-  code: string;
-  coupon_type: 'discount' | 'extra_stories';
-  discount_percent: number | null;
-  free_stories: number | null;
-  max_uses: number | null;
-  current_uses: number;
-  expires_at: string | null;
-}
-
 interface CouponInputProps {
   onDiscountApplied?: (discountPercent: number) => void;
   onStoriesAdded?: (stories: number) => void;
 }
 
+interface AppliedCoupon {
+  code: string;
+  coupon_type: string;
+  value: number;
+}
+
 const CouponInput = ({ onDiscountApplied, onStoriesAdded }: CouponInputProps) => {
   const { user } = useAuth();
-  const { addCredits } = useCredits();
+  const { refetchCredits } = useCredits();
   const [code, setCode] = useState("");
   const [isValidating, setIsValidating] = useState(false);
-  const [appliedCoupon, setAppliedCoupon] = useState<CouponData | null>(null);
+  const [appliedCoupon, setAppliedCoupon] = useState<AppliedCoupon | null>(null);
   const [error, setError] = useState<string | null>(null);
 
   const validateCoupon = async () => {
@@ -42,93 +37,38 @@ const CouponInput = ({ onDiscountApplied, onStoriesAdded }: CouponInputProps) =>
     setError(null);
 
     try {
-      // Fetch coupon
-      const { data: coupon, error: couponError } = await supabase
-        .from('coupons')
-        .select('*')
-        .eq('code', code.toUpperCase().trim())
-        .eq('is_active', true)
-        .single();
+      const { data, error: fnError } = await supabase.functions.invoke("redeem-coupon", {
+        body: { code: code.trim() },
+      });
 
-      if (couponError || !coupon) {
-        setError("קוד קופון לא תקף");
+      if (fnError) {
+        setError("שגיאה באימות הקופון");
         setIsValidating(false);
         return;
       }
 
-      // Check expiry
-      if (coupon.expires_at && new Date(coupon.expires_at) < new Date()) {
-        setError("הקופון פג תוקף");
+      if (!data?.success) {
+        setError(data?.error || "קוד קופון לא תקף");
         setIsValidating(false);
         return;
       }
 
-      // Check max uses
-      if (coupon.max_uses !== null && coupon.current_uses >= coupon.max_uses) {
-        setError("הקופון מוצה");
-        setIsValidating(false);
-        return;
+      if (data.coupon_type === "extra_stories") {
+        toast.success(`🎉 קיבלת ${data.value} סיפורים חינם!`);
+        onStoriesAdded?.(data.value);
+        refetchCredits?.();
+      } else if (data.coupon_type === "discount") {
+        toast.success(`🎉 הנחה של ${data.value}% הוחלה!`);
+        onDiscountApplied?.(data.value);
       }
 
-      // Check if user already redeemed this coupon
-      const { data: existingRedemption } = await supabase
-        .from('coupon_redemptions')
-        .select('id')
-        .eq('coupon_id', coupon.id)
-        .eq('user_id', user.id)
-        .single();
-
-      if (existingRedemption) {
-        setError("כבר השתמשת בקופון זה");
-        setIsValidating(false);
-        return;
-      }
-
-      // Handle different coupon types
-      if (coupon.coupon_type === 'extra_stories' && coupon.free_stories) {
-        // Add stories directly
-        const success = await addCredits(coupon.free_stories);
-        
-        if (success) {
-          // Record redemption
-          await supabase.from('coupon_redemptions').insert({
-            coupon_id: coupon.id,
-            user_id: user.id
-          });
-
-          // Increment usage count
-          await supabase
-            .from('coupons')
-            .update({ current_uses: coupon.current_uses + 1 })
-            .eq('id', coupon.id);
-
-          toast.success(`🎉 קיבלת ${coupon.free_stories} סיפורים חינם!`);
-          onStoriesAdded?.(coupon.free_stories);
-          setAppliedCoupon(coupon as CouponData);
-        } else {
-          setError("שגיאה בהוספת הקרדיטים");
-        }
-      } else if (coupon.coupon_type === 'discount' && coupon.discount_percent) {
-        // Apply discount
-        setAppliedCoupon(coupon as CouponData);
-        onDiscountApplied?.(coupon.discount_percent);
-        toast.success(`🎉 הנחה של ${coupon.discount_percent}% הוחלה!`);
-
-        // Record redemption for discount coupons too
-        await supabase.from('coupon_redemptions').insert({
-          coupon_id: coupon.id,
-          user_id: user.id
-        });
-
-        // Increment usage count
-        await supabase
-          .from('coupons')
-          .update({ current_uses: coupon.current_uses + 1 })
-          .eq('id', coupon.id);
-      }
-
+      setAppliedCoupon({
+        code: data.code,
+        coupon_type: data.coupon_type,
+        value: data.value,
+      });
     } catch (err) {
-      console.error('Error validating coupon:', err);
+      console.error("Error validating coupon:", err);
       setError("שגיאה באימות הקופון");
     } finally {
       setIsValidating(false);
@@ -149,10 +89,9 @@ const CouponInput = ({ onDiscountApplied, onStoriesAdded }: CouponInputProps) =>
           <Check className="w-5 h-5 text-green-600" />
           <div>
             <p className="text-sm font-bold text-green-800">
-              {appliedCoupon.coupon_type === 'discount' 
-                ? `הנחה ${appliedCoupon.discount_percent}% הוחלה!`
-                : `${appliedCoupon.free_stories} סיפורים נוספו!`
-              }
+              {appliedCoupon.coupon_type === "discount"
+                ? `הנחה ${appliedCoupon.value}% הוחלה!`
+                : `${appliedCoupon.value} סיפורים נוספו!`}
             </p>
             <p className="text-xs text-green-600">קוד: {appliedCoupon.code}</p>
           </div>

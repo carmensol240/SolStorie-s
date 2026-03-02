@@ -55,30 +55,19 @@ const GiftCard = () => {
     if (!user || !selectedPkg) return;
 
     try {
-      const code = generateCouponCode();
-
-      // Create coupon in database
-      const { error: couponError } = await supabase.from("coupons").insert({
-        code,
-        coupon_type: "extra_stories",
-        free_stories: selectedPkg.stories,
-        max_uses: 1,
-        current_uses: 0,
-        is_active: true,
+      const { data, error } = await supabase.functions.invoke("create-gift-coupon", {
+        body: {
+          stories: selectedPkg.stories,
+          price: selectedPkg.price,
+          packageId: selectedPkg.id,
+        },
       });
 
-      if (couponError) throw couponError;
+      if (error || !data?.code) {
+        throw new Error(data?.error || "Failed to create gift coupon");
+      }
 
-      // Record purchase
-      await supabase.from("purchases").insert({
-        user_id: user.id,
-        package_name: `gift_${selectedPkg.id}`,
-        credits_purchased: selectedPkg.stories,
-        amount_ils: selectedPkg.price,
-        status: "completed",
-      });
-
-      setGeneratedCode(code);
+      setGeneratedCode(data.code);
       setPurchaseComplete(true);
       setShowPayPal(false);
 
