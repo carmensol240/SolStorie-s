@@ -92,11 +92,16 @@ const handler = async (req: Request): Promise<Response> => {
       );
     }
 
-    const resetLink = data?.properties?.action_link;
+    // Instead of using action_link (which goes through /verify and gets consumed by email scanners),
+    // extract the hashed_token and build a direct app URL that verifies client-side
+    const hashedToken = data?.properties?.hashed_token;
 
-    if (!resetLink) {
-      throw new Error("Failed to generate reset link");
+    if (!hashedToken) {
+      throw new Error("Failed to generate reset token");
     }
+
+    // Build URL that goes directly to the app — no Supabase /verify endpoint
+    const resetLink = `${redirectUrl}?token_hash=${encodeURIComponent(hashedToken)}&type=recovery`;
 
     console.log(`Sending password reset email to: ${maskEmail(email)}`);
 
