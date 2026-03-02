@@ -1,19 +1,21 @@
 import { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { ArrowRight, Lock, Loader2, Eye, EyeOff, KeyRound, CheckCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useAuth } from "@/hooks/use-auth";
 import { useToast } from "@/hooks/use-toast";
+import { supabase } from "@/integrations/supabase/client";
 import { z } from "zod";
 
 const passwordSchema = z.string().min(6, "הסיסמה חייבת להכיל לפחות 6 תווים");
 
 const ResetPassword = () => {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const { toast } = useToast();
-  const { updatePassword, session, loading } = useAuth();
+  const { updatePassword } = useAuth();
   
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
@@ -21,18 +23,41 @@ const ResetPassword = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
+  const [isVerifying, setIsVerifying] = useState(true);
+  const [isVerified, setIsVerified] = useState(false);
 
-  // Redirect if no session (user didn't come from email link)
+  // Verify the token from the URL on mount
   useEffect(() => {
-    if (!loading && !session) {
+    const tokenHash = searchParams.get("token_hash");
+    const type = searchParams.get("type");
+
+    if (!tokenHash || type !== "recovery") {
       toast({
         title: "שגיאה",
         description: "קישור לא תקין. נסו לבקש קישור חדש לאיפוס סיסמה.",
         variant: "destructive",
       });
-      navigate("/auth");
+      navigate("/auth", { replace: true });
+      return;
     }
-  }, [session, loading, navigate, toast]);
+
+    // Verify OTP client-side — this creates a session without email scanners consuming the token
+    supabase.auth.verifyOtp({ token_hash: tokenHash, type: "recovery" })
+      .then(({ error }) => {
+        if (error) {
+          console.error("OTP verification failed:", error.message);
+          toast({
+            title: "שגיאה",
+            description: "הקישור פג תוקף או כבר נוצל. נסו לבקש קישור חדש.",
+            variant: "destructive",
+          });
+          navigate("/auth", { replace: true });
+        } else {
+          setIsVerified(true);
+        }
+      })
+      .finally(() => setIsVerifying(false));
+  }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -78,12 +103,16 @@ const ResetPassword = () => {
     setIsSubmitting(false);
   };
 
-  if (loading) {
+  if (isVerifying) {
     return (
       <div className="h-screen h-[100dvh] bg-background flex items-center justify-center overflow-hidden">
         <Loader2 className="w-8 h-8 animate-spin text-primary" />
       </div>
     );
+  }
+
+  if (!isVerified) {
+    return null;
   }
 
   if (isSuccess) {
