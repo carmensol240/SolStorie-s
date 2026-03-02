@@ -1,11 +1,11 @@
-import { ReactNode, useEffect } from "react";
+import { ReactNode, useEffect, forwardRef } from "react";
 import { AccessibilityContext, useAccessibilityState } from "@/hooks/use-accessibility";
 
 interface AccessibilityProviderProps {
   children: ReactNode;
 }
 
-const AccessibilityProvider = ({ children }: AccessibilityProviderProps) => {
+const AccessibilityProvider = forwardRef<HTMLDivElement, AccessibilityProviderProps>(({ children }, _ref) => {
   const accessibilityState = useAccessibilityState();
 
   // Restore persisted accessibility classes on mount
@@ -26,6 +26,8 @@ const AccessibilityProvider = ({ children }: AccessibilityProviderProps) => {
       {children}
     </AccessibilityContext.Provider>
   );
-};
+});
+
+AccessibilityProvider.displayName = "AccessibilityProvider";
 
 export default AccessibilityProvider;

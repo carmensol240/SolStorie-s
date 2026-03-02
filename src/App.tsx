@@ -42,7 +42,7 @@ import AdminReviews from "./pages/AdminReviews";
 
 const queryClient = new QueryClient();
 
-const App = () => (
+function App() { return (
   <ErrorBoundary>
     <QueryClientProvider client={queryClient}>
       <AccessibilityProvider>
@@ -100,6 +100,6 @@ const App = () => (
       </AccessibilityProvider>
     </QueryClientProvider>
   </ErrorBoundary>
-);
+); }
 
 export default App;
