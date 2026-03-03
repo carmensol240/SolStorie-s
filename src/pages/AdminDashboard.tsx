@@ -83,15 +83,21 @@ const AdminDashboard = () => {
     checkAdmin();
   }, [user, navigate, authReady]);
 
+  // IDs of admin/test accounts to exclude from stats
+  const EXCLUDED_IDS = [
+    "c9dcaa57-43de-471e-8b09-a195074d1855", // carmit1901
+    "49cd7676-ab96-496b-9287-61a9d67d3e68", // carmit1901+test
+  ];
+
   useEffect(() => {
     if (!isAdmin) return;
 
     const fetchData = async () => {
       setLoading(true);
       const [profilesRes, purchasesRes, storiesRes] = await Promise.all([
-        supabase.from("profiles").select("id, display_name, created_at, story_credits, is_subscriber, user_role").order("created_at", { ascending: false }).limit(200),
-        supabase.from("purchases").select("*").eq("status", "completed").order("created_at", { ascending: false }).limit(200),
-        supabase.from("stories").select("id, child_name, topic, created_at, user_id").order("created_at", { ascending: false }).limit(200),
+        supabase.from("profiles").select("id, display_name, created_at, story_credits, is_subscriber, user_role").not("id", "in", `(${EXCLUDED_IDS.join(",")})`).order("created_at", { ascending: false }).limit(200),
+        supabase.from("purchases").select("*").eq("status", "completed").not("user_id", "in", `(${EXCLUDED_IDS.join(",")})`).order("created_at", { ascending: false }).limit(200),
+        supabase.from("stories").select("id, child_name, topic, created_at, user_id").not("user_id", "in", `(${EXCLUDED_IDS.join(",")})`).order("created_at", { ascending: false }).limit(200),
       ]);
 
       if (profilesRes.data) setProfiles(profilesRes.data);
