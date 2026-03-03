@@ -188,10 +188,10 @@ const GeneratingStep = ({ formData, onComplete }: GeneratingStepProps) => {
       let errorMessage = "שגיאה לא ידועה";
       if (err instanceof Error) {
         errorMessage = err.message;
-        if (errorMessage.includes("FunctionsHttpError")) {
+        if (errorMessage.includes("Failed to send a request to the Edge Function") || errorMessage.includes("FunctionsRelayError") || errorMessage.includes("FunctionsFetchError")) {
+          errorMessage = "בעיית תקשורת. בדקו את החיבור לאינטרנט ונסו שוב.";
+        } else if (errorMessage.includes("FunctionsHttpError")) {
           errorMessage = "שגיאה בשרת. נסו שוב מאוחר יותר.";
-        } else if (errorMessage.includes("FunctionsRelayError")) {
-          errorMessage = "בעיית תקשורת. בדקו את החיבור לאינטרנט.";
         }
       }
       
