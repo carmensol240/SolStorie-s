@@ -39,6 +39,7 @@ import RequireTerms from "./components/RequireTerms";
 import ScrollToTop from "./components/ScrollToTop";
 import Toolkit from "./pages/Toolkit";
 import AdminReviews from "./pages/AdminReviews";
+import AdminDashboard from "./pages/AdminDashboard";
 
 const queryClient = new QueryClient();
 
