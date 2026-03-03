@@ -1,26 +1,48 @@
 
 
-## Bug Analysis
+## תוכנית: מיני-משחק פאזל בזמן יצירת איורים
 
-The onboarding loop is caused by a combination of issues in the navigation flow between `RequireTerms` and `Onboarding`:
+### מצב נוכחי
+`GeneratingStep` מייצר את טקסט הסיפור (~25 שניות) ומנווט מיד ל-`StoryViewer`. האיורים נטענים פרוגרסיבית ב-StoryViewer דרך Realtime. המשתמש רואה placeholders עד שהאיורים מוכנים.
 
-1. **Silent update failure**: In `Onboarding.handleContinue`, the Supabase `.update().eq()` call returns success (`error: null`) even when **zero rows are matched** (e.g., due to a race condition where the profile hasn't been created yet). The code doesn't verify the update actually persisted.
+### שינוי מוצע
+במקום לנווט מיד אחרי שהטקסט מוכן, `GeneratingStep` יעבור ל**פאזת פאזל** — המשתמש ישחק עד שהאיורים יהיו מוכנים (או timeout של 90 שניות).
 
-2. **No `replace: true` on redirects**: Both `RequireTerms` (redirecting to `/onboarding`) and `Onboarding`'s guard effect (redirecting to `/adventure`) use `navigate()` without `{ replace: true }`, causing history stack pollution and making the loop worse.
+### קבצים חדשים
 
-3. **Loop mechanics**: `handleContinue` thinks it succeeded → navigates to `/adventure` → `RequireTerms` queries DB → `terms_accepted_at` is still null → redirects back to `/onboarding` → Onboarding guard checks terms → still null → shows the form again.
+**1. `src/components/wizard/PuzzleGame.tsx`** — רכיב הפאזל המרכזי:
+- מקבל `ageRange`, `storyId`, `childPhoto`, `onStoryReady`
+- בוחר תמונה רנדומלית מסט קבוע (דמויות הקאסט: `cast-sol-adventure.jpg`, `cast-ben-art.jpg`, `cast-mia-nature.jpg`, `cast-leo-science.jpg`, `cast-zoe-sports.jpg`, ותמונות נוף)
+- חותך את התמונה ל-grid באמצעות CSS `background-position` (Canvas לא נדרש)
+- מספר חלקים לפי גיל:
+  - `0-2` / `2-4` → 4 חלקים (2×2)
+  - `5-7` → 9 חלקים (3×3)
+  - `8-10` → 16 חלקים (4×4)
+- Drag & Drop באמצעות touch events (מותאם מובייל, ללא ספרייה חיצונית)
+- כשהפאזל מושלם → אנימציית כוכבים וברכה
+- כפתור "ערבבו מחדש" לשחק שוב
 
-## Fix
+**2. `src/components/wizard/PuzzleCompleteCelebration.tsx`** — אנימציית סיום פאזל עם כוכבים ואמוג'ים
 
-### 1. `src/pages/Onboarding.tsx` — Verify update actually persisted
+### קבצים שישתנו
 
-In `handleContinue`, after the update call, re-query the profile to confirm `terms_accepted_at` was saved. If not, use `upsert` as a fallback. Also add `{ replace: true }` to the guard navigation.
+**3. `src/components/wizard/GeneratingStep.tsx`:**
+- הוספת phase חדש: `'text' | 'puzzle' | 'ready'`
+- אחרי שהטקסט מוכן (`storyId` קיים), מעבר ל-`phase: 'puzzle'`
+- בפאזת puzzle: הצגת `PuzzleGame` עם הודעה "הסיפור מוכן! האיורים בדרך... בינתיים בואו נשחק 🧩"
+- Realtime subscription על `story_pages` לבדוק מתי כל האיורים מוכנים
+- כשהאיורים מוכנים → הצגת popup "הסיפור שלך מוכן! 🎉" עם כפתור שמפעיל `onComplete(storyId)`
+- Timeout של 90 שניות — אם האיורים לא מוכנים, מציג את כפתור "פתחו את הסיפור" בכל מקרה
 
-### 2. `src/components/RequireTerms.tsx` — Use `replace: true`
+### לוגיקת Drag & Drop (מובייל-ראשון)
+- חלקי הפאזל מוצגים בשורה מעורבבת מתחת ללוח ריק
+- המשתמש גורר חלק (touch) ומשחרר על התא הנכון
+- התאמה נבדקת לפי אינדקס מקורי
+- חלק שהונח נכון ננעל במקומו עם אנימציית scale
 
-Change the `navigate` call to onboarding to use `{ replace: true }` so the history stack doesn't accumulate redirect entries.
-
-### 3. Both files — Add select return on update
-
-Use `.update(...).eq(...).select()` to get the updated row back, confirming the write succeeded. If the returned array is empty, fall back to an upsert to handle the edge case where the profile row doesn't exist yet.
+### פרטים טכניים
+- אין ספריות חדשות — touch events ו-CSS grid בלבד
+- התמונה נטענת ונחתכת ויזואלית עם `background-image` + `background-position` + `background-size`
+- ה-Realtime subscription משתמש באותו pattern שכבר קיים ב-StoryViewer
+- לא משתנה שום דבר ב-StoryViewer עצמו
 
