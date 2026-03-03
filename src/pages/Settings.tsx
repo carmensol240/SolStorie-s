@@ -33,7 +33,17 @@ const Settings = () => {
 
   useEffect(() => {
     window.scrollTo(0, 0);
-  }, []);
+    // Check admin role
+    if (user) {
+      supabase
+        .from("user_roles")
+        .select("role")
+        .eq("user_id", user.id)
+        .eq("role", "admin")
+        .maybeSingle()
+        .then(({ data }) => setIsAdmin(!!data));
+    }
+  }, [user]);
 
 
 
