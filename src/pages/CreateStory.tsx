@@ -171,7 +171,7 @@ const CreateStory = () => {
     return (
       <GeneratingStep
         formData={formData}
-        onComplete={handleStoryGenerated}
+        onComplete={stableOnComplete}
       />
     );
   }
