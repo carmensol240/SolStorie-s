@@ -58,7 +58,7 @@ const Onboarding = () => {
   };
 
   const handleContinue = async () => {
-    if (!user || !hasAgreed) return;
+    if (!user || !hasAgreedTerms || !hasAgreedPrivacy) return;
     setIsSubmitting(true);
     try {
       const now = new Date().toISOString();
