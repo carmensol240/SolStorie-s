@@ -18,6 +18,7 @@ import { useOfflineStorage } from "@/hooks/use-offline-storage";
 import { useCredits } from "@/hooks/use-credits";
 import { useReferral } from "@/hooks/use-referral";
 import { useChildAvatar } from "@/hooks/use-child-avatar";
+import { useAuth } from "@/hooks/use-auth";
 
 interface StoryPage {
   illustration_url: string | null;
