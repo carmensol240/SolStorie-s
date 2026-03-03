@@ -25,6 +25,7 @@ const Settings = () => {
   const [aboutOpen, setAboutOpen] = useState(false);
   const [accessibilityOpen, setAccessibilityOpen] = useState(false);
   const [installHelpOpen, setInstallHelpOpen] = useState(false);
+  const [isAdmin, setIsAdmin] = useState(false);
   const isAndroid = /android/i.test(navigator.userAgent);
   const [highlightLinks, setHighlightLinks] = useState(() => document.documentElement.classList.contains('highlight-links'));
   const [reducedMotion, setReducedMotion] = useState(() => document.documentElement.classList.contains('reduced-motion'));
