@@ -256,13 +256,13 @@ const Onboarding = () => {
         {/* Continue Button */}
         <Button
           onClick={handleContinue}
-          disabled={!hasAgreed || isSubmitting}
+          disabled={!hasAgreedTerms || !hasAgreedPrivacy || isSubmitting}
           className={`w-full max-w-xs mx-auto h-14 rounded-full text-lg font-black shadow-xl transition-all ${
-            hasAgreed 
+            hasAgreedTerms && hasAgreedPrivacy
               ? "bg-gradient-to-r from-purple-500 via-pink-500 to-orange-500 hover:from-purple-400 hover:via-pink-400 hover:to-orange-400 text-white" 
               : "bg-white/10 text-white/30 cursor-not-allowed"
           }`}
-          style={hasAgreed ? {
+          style={hasAgreedTerms && hasAgreedPrivacy ? {
             boxShadow: '0 0 40px rgba(168, 85, 247, 0.4), 0 0 80px rgba(236, 72, 153, 0.2)'
           } : undefined}
         >
