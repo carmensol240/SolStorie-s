@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { ArrowRight, Plus, Coins, Wand2, ImagePlus } from "lucide-react";
+import { ArrowRight, Plus, Coins, Wand2 } from "lucide-react";
 import { getPublicIllustrationUrl } from "@/lib/illustration-url";
 import solMagicBookCover from "@/assets/sol-magic-book-cover.png";
 
@@ -208,6 +208,9 @@ const Library = () => {
         {/* Header with Avatar + Credits - Natural Earth Tones */}
         <div className="bg-gradient-to-r from-purple-50 to-pink-50 border-b-2 border-purple-200 p-4 -mx-3 -mt-3 mb-4 shadow-sm">
           <div className="flex items-center justify-between">
+            <Button variant="outline" size="icon" onClick={() => navigate("/")} className="hidden md:flex" aria-label="חזרה לדף הבית">
+              <ArrowRight className="h-5 w-5" />
+            </Button>
             {/* Left: Avatar + Credits */}
             <div className="flex items-center gap-3">
               {avatarUrl && (

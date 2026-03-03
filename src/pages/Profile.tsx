@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
-import { BookOpen, Heart, Save, Notebook, Crown, Sparkles, Lock } from "lucide-react";
+import { BookOpen, Heart, Save, Notebook, Crown, Sparkles, Lock, ArrowRight } from "lucide-react";
 import { useAuth } from "@/hooks/use-auth";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
@@ -232,6 +232,10 @@ const Profile = () => {
       </div>
 
       <div className="w-full max-w-[550px] lg:max-w-[450px] mx-auto px-4 py-6 space-y-6">
+        {/* Back button - desktop only */}
+        <Button variant="outline" size="icon" onClick={() => navigate("/")} className="hidden md:flex" aria-label="חזרה לדף הבית">
+          <ArrowRight className="h-5 w-5" />
+        </Button>
         {/* Avatar + Title */}
         <div className="flex flex-col items-center gap-3 pt-4">
           <div
