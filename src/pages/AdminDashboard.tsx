@@ -122,11 +122,11 @@ const AdminDashboard = () => {
   return (
     <div className="min-h-screen bg-background p-4 md:p-8" dir="rtl">
       <div className="max-w-7xl mx-auto space-y-6">
-        <div className="flex items-center justify-between">
-          <h1 className="text-2xl font-bold">לוח בקרה למנהל</h1>
-          <Button variant="ghost" size="sm" onClick={() => window.history.length > 1 ? navigate(-1) : navigate("/settings")}>
-            <ArrowRight className="ml-1 h-4 w-4" /> חזרה
+        <div className="flex items-center gap-3">
+          <Button variant="outline" size="icon" onClick={() => window.history.length > 1 ? navigate(-1) : navigate("/settings")}>
+            <ArrowRight className="h-5 w-5" />
           </Button>
+          <h1 className="text-2xl font-bold">לוח בקרה למנהל</h1>
         </div>
 
         {/* Stats Cards */}
