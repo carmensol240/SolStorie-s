@@ -299,6 +299,7 @@ async function generateIllustration(
     if (!response.ok) {
       const errorBody = await response.text().catch(() => "no body");
       console.error(`Fal.ai image generation failed: ${response.status} - ${errorBody}`);
+      await logError("illustration_fal_error", `Flux Schnell failed: ${response.status}`, { status: response.status, body: errorBody.substring(0, 500) });
       return null;
     }
 
