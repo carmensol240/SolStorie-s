@@ -16,7 +16,8 @@ const Onboarding = () => {
   const { user, loading } = useAuth();
   const { toast } = useToast();
   
-  const [hasAgreed, setHasAgreed] = useState(false);
+  const [hasAgreedTerms, setHasAgreedTerms] = useState(false);
+  const [hasAgreedPrivacy, setHasAgreedPrivacy] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [checkingTerms, setCheckingTerms] = useState(true);
 
@@ -57,7 +58,7 @@ const Onboarding = () => {
   };
 
   const handleContinue = async () => {
-    if (!user || !hasAgreed) return;
+    if (!user || !hasAgreedTerms || !hasAgreedPrivacy) return;
     setIsSubmitting(true);
     try {
       const now = new Date().toISOString();
@@ -210,19 +211,34 @@ const Onboarding = () => {
         <div className="flex items-start gap-3 bg-white/[0.08] backdrop-blur-md rounded-xl p-4 border border-white/10 w-full mb-3">
           <Checkbox
             id="terms-agreement"
-            checked={hasAgreed}
-            onCheckedChange={(checked) => setHasAgreed(checked === true)}
+            checked={hasAgreedTerms}
+            onCheckedChange={(checked) => setHasAgreedTerms(checked === true)}
             className="h-5 w-5 mt-0.5 border-purple-300 data-[state=checked]:bg-purple-500 data-[state=checked]:border-purple-500"
           />
           <Label 
             htmlFor="terms-agreement" 
             className="text-sm leading-relaxed cursor-pointer text-white/80"
           >
-            אני מסכים/ה ל
+            קראתי ואני מסכים/ה ל
             <Link to="/terms" className="text-purple-300 hover:underline font-medium mx-1">
               תנאי השימוש
             </Link>
-            ול
+          </Label>
+        </div>
+
+        {/* Privacy Checkbox */}
+        <div className="flex items-start gap-3 bg-white/[0.08] backdrop-blur-md rounded-xl p-4 border border-white/10 w-full mb-3">
+          <Checkbox
+            id="privacy-agreement"
+            checked={hasAgreedPrivacy}
+            onCheckedChange={(checked) => setHasAgreedPrivacy(checked === true)}
+            className="h-5 w-5 mt-0.5 border-purple-300 data-[state=checked]:bg-purple-500 data-[state=checked]:border-purple-500"
+          />
+          <Label 
+            htmlFor="privacy-agreement" 
+            className="text-sm leading-relaxed cursor-pointer text-white/80"
+          >
+            קראתי ואני מסכים/ה ל
             <Link to="/privacy" className="text-purple-300 hover:underline font-medium mx-1">
               מדיניות הפרטיות
             </Link>
@@ -240,13 +256,13 @@ const Onboarding = () => {
         {/* Continue Button */}
         <Button
           onClick={handleContinue}
-          disabled={!hasAgreed || isSubmitting}
+          disabled={!hasAgreedTerms || !hasAgreedPrivacy || isSubmitting}
           className={`w-full max-w-xs mx-auto h-14 rounded-full text-lg font-black shadow-xl transition-all ${
-            hasAgreed 
+            hasAgreedTerms && hasAgreedPrivacy
               ? "bg-gradient-to-r from-purple-500 via-pink-500 to-orange-500 hover:from-purple-400 hover:via-pink-400 hover:to-orange-400 text-white" 
               : "bg-white/10 text-white/30 cursor-not-allowed"
           }`}
-          style={hasAgreed ? {
+          style={hasAgreedTerms && hasAgreedPrivacy ? {
             boxShadow: '0 0 40px rgba(168, 85, 247, 0.4), 0 0 80px rgba(236, 72, 153, 0.2)'
           } : undefined}
         >
