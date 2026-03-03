@@ -184,7 +184,7 @@ FULL BODY head to toe, feet GROUNDED on surface. Portrait 4:3 framing. NEGATIVE:
           console.log(`Instant Character attempt ${attempt}/${MAX_ATTEMPTS}...`);
           const response = await fetch("https://fal.run/fal-ai/instant-character", {
             method: "POST",
-            signal: AbortSignal.timeout(60_000),
+            signal: AbortSignal.timeout(120_000),
             headers: {
               Authorization: `Key ${FAL_KEY}`,
               "Content-Type": "application/json",
