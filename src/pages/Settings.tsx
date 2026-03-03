@@ -205,6 +205,23 @@ const Settings = () => {
           </div>
         </div>
 
+        {/* Admin Dashboard Link - visible only to admins */}
+        {isAdmin && (
+          <button
+            onClick={() => navigate("/admin/dashboard")}
+            className="w-full flex items-center justify-between bg-gradient-to-r from-amber-50 to-yellow-50 dark:from-amber-950/20 dark:to-yellow-950/20 backdrop-blur-md rounded-lg px-3 py-2.5 border border-amber-300 dark:border-amber-700 hover:from-amber-100 hover:to-yellow-100 transition-all text-right shadow-sm mt-2"
+            aria-label="לוח בקרה למנהל"
+          >
+            <ArrowRight className="w-3.5 h-3.5 text-amber-500" aria-hidden="true" />
+            <div className="flex items-center gap-2">
+              <span className="font-bold text-sm text-amber-800 dark:text-amber-200">לוח בקרה למנהל</span>
+              <div className="w-7 h-7 bg-amber-400/20 rounded-lg flex items-center justify-center flex-shrink-0">
+                <LayoutDashboard className="w-3.5 h-3.5 text-amber-600" aria-hidden="true" />
+              </div>
+            </div>
+          </button>
+        )}
+
         {/* Danger Zone - Accessible */}
         <div className="space-y-1.5 mt-3 pt-2 border-t border-purple-200/50">
           <Button
