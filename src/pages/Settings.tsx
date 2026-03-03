@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { ArrowRight, Mail, Trash2, LogOut, FileText, Shield, Eye, Info, Accessibility, Type, MousePointer, Link2, MonitorOff, Wand2, Sparkles, Download, Share, Smartphone, Volume2 } from "lucide-react";
+import { ArrowRight, Mail, Trash2, LogOut, FileText, Shield, Eye, Info, Accessibility, Type, MousePointer, Link2, MonitorOff, Wand2, Sparkles, Download, Share, Smartphone, Volume2, LayoutDashboard } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
 import { usePwaInstall } from "@/hooks/use-pwa-install";
 import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
@@ -24,6 +25,7 @@ const Settings = () => {
   const [aboutOpen, setAboutOpen] = useState(false);
   const [accessibilityOpen, setAccessibilityOpen] = useState(false);
   const [installHelpOpen, setInstallHelpOpen] = useState(false);
+  const [isAdmin, setIsAdmin] = useState(false);
   const isAndroid = /android/i.test(navigator.userAgent);
   const [highlightLinks, setHighlightLinks] = useState(() => document.documentElement.classList.contains('highlight-links'));
   const [reducedMotion, setReducedMotion] = useState(() => document.documentElement.classList.contains('reduced-motion'));
@@ -31,7 +33,17 @@ const Settings = () => {
 
   useEffect(() => {
     window.scrollTo(0, 0);
-  }, []);
+    // Check admin role
+    if (user) {
+      supabase
+        .from("user_roles")
+        .select("role")
+        .eq("user_id", user.id)
+        .eq("role", "admin")
+        .maybeSingle()
+        .then(({ data }) => setIsAdmin(!!data));
+    }
+  }, [user]);
 
 
 
@@ -192,6 +204,23 @@ const Settings = () => {
             </p>
           </div>
         </div>
+
+        {/* Admin Dashboard Link - visible only to admins */}
+        {isAdmin && (
+          <button
+            onClick={() => navigate("/admin/dashboard")}
+            className="w-full flex items-center justify-between bg-gradient-to-r from-amber-50 to-yellow-50 dark:from-amber-950/20 dark:to-yellow-950/20 backdrop-blur-md rounded-lg px-3 py-2.5 border border-amber-300 dark:border-amber-700 hover:from-amber-100 hover:to-yellow-100 transition-all text-right shadow-sm mt-2"
+            aria-label="לוח בקרה למנהל"
+          >
+            <ArrowRight className="w-3.5 h-3.5 text-amber-500" aria-hidden="true" />
+            <div className="flex items-center gap-2">
+              <span className="font-bold text-sm text-amber-800 dark:text-amber-200">לוח בקרה למנהל</span>
+              <div className="w-7 h-7 bg-amber-400/20 rounded-lg flex items-center justify-center flex-shrink-0">
+                <LayoutDashboard className="w-3.5 h-3.5 text-amber-600" aria-hidden="true" />
+              </div>
+            </div>
+          </button>
+        )}
 
         {/* Danger Zone - Accessible */}
         <div className="space-y-1.5 mt-3 pt-2 border-t border-purple-200/50">
