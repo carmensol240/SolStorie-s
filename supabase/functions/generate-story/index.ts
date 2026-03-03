@@ -1197,6 +1197,7 @@ ${topic.endsWith('-edu') ? `
     } catch (e) {
       console.error("Failed to parse AI response:", content);
       console.error("Parse error:", e);
+      await logError("story_parse_error", `Invalid JSON response from AI`, { parseError: String(e), contentPreview: content?.substring(0, 300), topic, childName }, userId);
       throw new Error("Invalid JSON response from AI");
     }
 
