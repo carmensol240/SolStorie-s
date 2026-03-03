@@ -1140,6 +1140,7 @@ ${topic.endsWith('-edu') ? `
     if (!response.ok) {
       const errorText = await response.text();
       console.error(`[generate-story] ❌ AI Gateway error: status=${response.status}, body=${errorText}`);
+      await logError("story_generation_error", `AI Gateway error: ${response.status}`, { status: response.status, body: errorText.substring(0, 500), topic, childName }, userId);
       if (response.status === 429) {
         return new Response(
           JSON.stringify({ error: "הגעתם למגבלת הבקשות. נסו שוב בעוד מספר דקות." }),
