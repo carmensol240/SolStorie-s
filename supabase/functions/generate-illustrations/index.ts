@@ -803,6 +803,7 @@ serve(async (req) => {
 
   } catch (error) {
     console.error("Error in generate-illustrations:", error);
+    await logError("illustration_general_error", `generate-illustrations crash: ${error?.message || error}`, {});
     
     // Try to update story status to failed
     try {

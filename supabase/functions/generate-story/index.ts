@@ -1439,6 +1439,7 @@ ${topic.endsWith('-edu') ? `
 
   } catch (error) {
     console.error("Error in generate-story:", error);
+    await logError("story_general_error", `generate-story crash: ${error?.message || error}`, {});
     // Return generic error message to client, keep details in server logs
     const userMessage = error instanceof Error && error.message.startsWith("שגיאה") 
       ? error.message 
