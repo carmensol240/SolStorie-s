@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { ArrowRight, Plus, Coins, Wand2, ImagePlus } from "lucide-react";
+import { ArrowRight, Plus, Coins, Wand2 } from "lucide-react";
 import { getPublicIllustrationUrl } from "@/lib/illustration-url";
 import solMagicBookCover from "@/assets/sol-magic-book-cover.png";
 

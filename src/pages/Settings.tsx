@@ -83,7 +83,10 @@ const Settings = () => {
         </div>
       )}
       {/* Simple header */}
-      <div className="bg-gradient-to-r from-purple-100 to-pink-50 px-4 py-4 border-b border-purple-100">
+      <div className="bg-gradient-to-r from-purple-100 to-pink-50 px-4 py-4 border-b border-purple-100 flex items-center gap-3">
+        <Button variant="outline" size="icon" onClick={() => navigate("/")} className="hidden md:flex" aria-label="חזרה לדף הבית">
+          <ArrowRight className="h-5 w-5" />
+        </Button>
         <h1 className="text-lg font-bold text-purple-800">הגדרות</h1>
       </div>
 
