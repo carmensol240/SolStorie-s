@@ -83,6 +83,20 @@ const GeneratingStep = ({ formData, onComplete }: GeneratingStepProps) => {
   const generateStory = useCallback(async () => {
     try {
       setPhase('text');
+
+      // === Connectivity pre-check ===
+      if (!navigator.onLine) {
+        setError("אין חיבור לאינטרנט. בדקו את החיבור ונסו שוב.");
+        return;
+      }
+      const conn = (navigator as any).connection;
+      if (conn?.effectiveType === '2g' || conn?.effectiveType === 'slow-2g') {
+        toast({
+          title: "חיבור חלש",
+          description: "נראה שהחיבור לאינטרנט חלש. ייתכן שהיצירה תיקח יותר זמן.",
+        });
+      }
+
       const topicLabel = formData.topic === "custom" 
         ? formData.customTopic 
         : getTopicLabel(formData.topic);
@@ -197,9 +211,10 @@ const GeneratingStep = ({ formData, onComplete }: GeneratingStepProps) => {
       
       if (retryCountRef.current < MAX_RETRIES) {
         retryCountRef.current += 1;
-        console.log(`[GeneratingStep] Auto-retrying (${retryCountRef.current}/${MAX_RETRIES})...`);
+        const delay = Math.min(1000 * Math.pow(2, retryCountRef.current + 1), 10000); // 4s, 8s
+        console.log(`[GeneratingStep] Auto-retrying (${retryCountRef.current}/${MAX_RETRIES}) after ${delay}ms...`);
         setProgress(0);
-        await new Promise(resolve => setTimeout(resolve, 1500));
+        await new Promise(resolve => setTimeout(resolve, delay));
         generateStory();
         return;
       }
