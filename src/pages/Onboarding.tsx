@@ -16,7 +16,8 @@ const Onboarding = () => {
   const { user, loading } = useAuth();
   const { toast } = useToast();
   
-  const [hasAgreed, setHasAgreed] = useState(false);
+  const [hasAgreedTerms, setHasAgreedTerms] = useState(false);
+  const [hasAgreedPrivacy, setHasAgreedPrivacy] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [checkingTerms, setCheckingTerms] = useState(true);
 
