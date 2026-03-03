@@ -1,26 +1,27 @@
 
 
-## Bug Analysis
+## תוכנית: תיקון באגים בפאזל ובזמן הצגת הפופאפ
 
-The onboarding loop is caused by a combination of issues in the navigation flow between `RequireTerms` and `Onboarding`:
+### בעיה 1א — גרירה בדסקטופ לא עובדת טוב
+**שורש הבעיה:** `handleMouseDown` לוכד את `board` בזמן הלחיצה ומשתמש בו ב-`handleMouseUp`. אם כבר הונחו חלקים מאז, ה-state ישן ולא תקף — חלקים "נעלמים" או לא נכנסים למקום.
 
-1. **Silent update failure**: In `Onboarding.handleContinue`, the Supabase `.update().eq()` call returns success (`error: null`) even when **zero rows are matched** (e.g., due to a race condition where the profile hasn't been created yet). The code doesn't verify the update actually persisted.
+**תיקון ב-`PuzzleGame.tsx`:**
+- הוספת `boardRef` (useRef) שמסונכרן עם `board` בכל עדכון
+- בפונקציות `handleMouseUp` ו-`handleTouchEnd`: שימוש ב-`boardRef.current` במקום ב-`board` הלכוד מה-closure
+- שימוש ב-functional updates (`setBoard(prev => ...)`) בכל מקום במקום ערך ישיר
 
-2. **No `replace: true` on redirects**: Both `RequireTerms` (redirecting to `/onboarding`) and `Onboarding`'s guard effect (redirecting to `/adventure`) use `navigate()` without `{ replace: true }`, causing history stack pollution and making the loop worse.
+### בעיה 1ב — הודעת "כל הכבוד" לא מופיעה
+**שורש הבעיה:** אותה בעיית closure — כשהחלק האחרון מונח, ה-`setBoard` משתמש בערך ישן, כך שה-board לא באמת מושלם. גם ה-`useEffect` לבדיקת השלמה לא רואה את המצב האמיתי.
 
-3. **Loop mechanics**: `handleContinue` thinks it succeeded → navigates to `/adventure` → `RequireTerms` queries DB → `terms_accepted_at` is still null → redirects back to `/onboarding` → Onboarding guard checks terms → still null → shows the form again.
+**תיקון:** בנוסף לתיקון ה-ref, הוספת בדיקת completion ישירות בתוך ה-`setBoard` callback (שם ה-`prev` מעודכן) — אם הלוח המעודכן שלם, קריאה ל-`setCompleted(true)`.
 
-## Fix
+### בעיה 2 — פופאפ "הסיפור מוכן" קופץ לפני שהאיורים מוכנים
+**תיקון ב-`GeneratingStep.tsx`:**
+- הסרת ה-timeout של 90 שניות (שורות 250-253) שמציג את הפופאפ ללא קשר למצב האיורים
+- הפופאפ יוצג **רק** כש-`illustrationsReady === true` (כל ה-`illustration_url` מלאים)
+- הוספת timeout ארוך יותר (180 שניות) כגיבוי קיצוני בלבד, עם הודעה שונה
 
-### 1. `src/pages/Onboarding.tsx` — Verify update actually persisted
-
-In `handleContinue`, after the update call, re-query the profile to confirm `terms_accepted_at` was saved. If not, use `upsert` as a fallback. Also add `{ replace: true }` to the guard navigation.
-
-### 2. `src/components/RequireTerms.tsx` — Use `replace: true`
-
-Change the `navigate` call to onboarding to use `{ replace: true }` so the history stack doesn't accumulate redirect entries.
-
-### 3. Both files — Add select return on update
-
-Use `.update(...).eq(...).select()` to get the updated row back, confirming the write succeeded. If the returned array is empty, fall back to an upsert to handle the edge case where the profile row doesn't exist yet.
+### קבצים שישתנו
+1. `src/components/wizard/PuzzleGame.tsx` — תיקון drag בדסקטופ + בדיקת השלמה
+2. `src/components/wizard/GeneratingStep.tsx` — הסרת timeout של 90 שניות, פופאפ רק כשהאיורים מוכנים
 
