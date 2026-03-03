@@ -1,26 +1,29 @@
 
 
-## Bug Analysis
+## אבחון: בעיית RLS בטבלת stories
 
-The onboarding loop is caused by a combination of issues in the navigation flow between `RequireTerms` and `Onboarding`:
+### הבעיה
+כל מדיניות ה-SELECT בטבלת `stories` מוגדרות כ-**RESTRICTIVE** (לא permissive). בפוסטגרס:
+- מדיניות **PERMISSIVE** — מספיק שאחת תעבור (OR)
+- מדיניות **RESTRICTIVE** — כולן חייבות לעבור (AND)
+- **אם אין מדיניות permissive כלל**, הגישה נחסמת לחלוטין כברירת מחדל
 
-1. **Silent update failure**: In `Onboarding.handleContinue`, the Supabase `.update().eq()` call returns success (`error: null`) even when **zero rows are matched** (e.g., due to a race condition where the profile hasn't been created yet). The code doesn't verify the update actually persisted.
+המצב הנוכחי: שלוש מדיניויות SELECT, כולן restrictive:
+1. `Deny anonymous access` — `USING (false)` ← חוסמת את כולם
+2. `Users can view their own stories` — `USING (auth.uid() = user_id)`
+3. `Admins can view all stories` — `USING (has_role(...))`
 
-2. **No `replace: true` on redirects**: Both `RequireTerms` (redirecting to `/onboarding`) and `Onboarding`'s guard effect (redirecting to `/adventure`) use `navigate()` without `{ replace: true }`, causing history stack pollution and making the loop worse.
+כיוון שכולן restrictive ו-AND ביניהן, מדיניות #1 (`false`) חוסמת את כולם — כולל בעלי הסיפורים. ייתכן שזה גורם לבאגים או שהאפליקציה עוקפת את ה-RLS בצורה לא מכוונת.
 
-3. **Loop mechanics**: `handleContinue` thinks it succeeded → navigates to `/adventure` → `RequireTerms` queries DB → `terms_accepted_at` is still null → redirects back to `/onboarding` → Onboarding guard checks terms → still null → shows the form again.
+### התיקון
+נבצע migration שמסיר את שלוש מדיניויות ה-SELECT הקיימות ויוצר אותן מחדש נכון:
 
-## Fix
+1. **`Users can view their own stories`** — **PERMISSIVE** — `USING (auth.uid() = user_id)`
+2. **`Admins can view all stories`** — **PERMISSIVE** — `USING (has_role(auth.uid(), 'admin'))`
+3. **`Deny anonymous access`** — **RESTRICTIVE** — `USING (auth.role() = 'authenticated')`
 
-### 1. `src/pages/Onboarding.tsx` — Verify update actually persisted
+כך: מדיניויות permissive (#1 ו-#2) מאפשרות גישה למשתמש שרואה את שלו **או** אדמין. מדיניות restrictive (#3) מוודאת שמשתמש אנונימי לא עובר בשום מקרה.
 
-In `handleContinue`, after the update call, re-query the profile to confirm `terms_accepted_at` was saved. If not, use `upsert` as a fallback. Also add `{ replace: true }` to the guard navigation.
-
-### 2. `src/components/RequireTerms.tsx` — Use `replace: true`
-
-Change the `navigate` call to onboarding to use `{ replace: true }` so the history stack doesn't accumulate redirect entries.
-
-### 3. Both files — Add select return on update
-
-Use `.update(...).eq(...).select()` to get the updated row back, confirming the write succeeded. If the returned array is empty, fall back to an upsert to handle the edge case where the profile row doesn't exist yet.
+### קובץ אחד
+- **Migration SQL** — `DROP POLICY` × 3, `CREATE POLICY` × 3 על `public.stories`
 
