@@ -90,7 +90,7 @@ const AdminDashboard = () => {
       setLoading(true);
       const [profilesRes, purchasesRes, storiesRes] = await Promise.all([
         supabase.from("profiles").select("id, display_name, created_at, story_credits, is_subscriber, user_role").order("created_at", { ascending: false }).limit(200),
-        supabase.from("purchases").select("*").order("created_at", { ascending: false }).limit(200),
+        supabase.from("purchases").select("*").eq("status", "completed").order("created_at", { ascending: false }).limit(200),
         supabase.from("stories").select("id, child_name, topic, created_at, user_id").order("created_at", { ascending: false }).limit(200),
       ]);
 
