@@ -1,26 +1,25 @@
 
 
-## Bug Analysis
+## תוכנית: פיצול הספרייה לשני טאבים
 
-The onboarding loop is caused by a combination of issues in the navigation flow between `RequireTerms` and `Onboarding`:
+### מצב נוכחי
+הספרייה (`Library.tsx`) מציגה רק סיפורים מטבלת `stories` (סיפורים שהמשתמש יצר). קיימת גם טבלת `premium_stories` עם סיפורים מוכנים מראש ("סיפורי סול"), אך היא לא מוצגת בספרייה כרגע.
 
-1. **Silent update failure**: In `Onboarding.handleContinue`, the Supabase `.update().eq()` call returns success (`error: null`) even when **zero rows are matched** (e.g., due to a race condition where the profile hasn't been created yet). The code doesn't verify the update actually persisted.
+### שינויים
 
-2. **No `replace: true` on redirects**: Both `RequireTerms` (redirecting to `/onboarding`) and `Onboarding`'s guard effect (redirecting to `/adventure`) use `navigate()` without `{ replace: true }`, causing history stack pollution and making the loop worse.
+**קובץ: `src/pages/Library.tsx`**
 
-3. **Loop mechanics**: `handleContinue` thinks it succeeded → navigates to `/adventure` → `RequireTerms` queries DB → `terms_accepted_at` is still null → redirects back to `/onboarding` → Onboarding guard checks terms → still null → shows the form again.
+1. הוספת `Tabs`, `TabsList`, `TabsTrigger`, `TabsContent` מ-`@/components/ui/tabs`
+2. הוספת state ו-fetch עבור `premiumStories` מטבלת `premium_stories` (שדות: `id`, `title`, `description`, `cover_url`, `theme`, `min_age`, `max_age`, `display_order`) — מסוננים לפי `is_active = true`, ממוינים לפי `display_order`
+3. עטיפת אזור התוכן הקיים (רשימת הסיפורים + empty state) בתוך שני טאבים:
+   - **טאב "הסיפורים שלי"** (`value="my"`) — התוכן הקיים כמו שהוא
+   - **טאב "סיפורי סול"** (`value="sol"`) — רשימת סיפורי פרימיום עם כריכה, כותרת ותיאור. לחיצה תנווט ל-`/story/premium/${id}` (או תציג את הסיפור בדרך אחרת)
+4. עיצוב הטאבים בסגנון עגול/צבעוני שמתאים לעיצוב הקיים של הספרייה
 
-## Fix
+### הערה על ניווט לסיפורי סול
+כרגע אין route לצפייה בסיפור פרימיום. בשלב זה הטאב יציג את רשימת סיפורי סול כקריאה בלבד (כריכה + כותרת + תיאור). אם צריך גם צפייה מלאה בסיפור פרימיום, זה יהיה שלב נפרד.
 
-### 1. `src/pages/Onboarding.tsx` — Verify update actually persisted
-
-In `handleContinue`, after the update call, re-query the profile to confirm `terms_accepted_at` was saved. If not, use `upsert` as a fallback. Also add `{ replace: true }` to the guard navigation.
-
-### 2. `src/components/RequireTerms.tsx` — Use `replace: true`
-
-Change the `navigate` call to onboarding to use `{ replace: true }` so the history stack doesn't accumulate redirect entries.
-
-### 3. Both files — Add select return on update
-
-Use `.update(...).eq(...).select()` to get the updated row back, confirming the write succeeded. If the returned array is empty, fall back to an upsert to handle the edge case where the profile row doesn't exist yet.
+### פרטים טכניים
+- טבלת `premium_stories` כבר מאפשרת SELECT לכל סיפור אקטיבי (`is_active = true`) — אין צורך בשינוי RLS
+- טבלת `premium_story_pages` דורשת subscriber — כרגע רק מציגים את הרשימה, לא את תוכן הדפים
 
