@@ -18,6 +18,7 @@ import { useOfflineStorage } from "@/hooks/use-offline-storage";
 import { useCredits } from "@/hooks/use-credits";
 import { useReferral } from "@/hooks/use-referral";
 import { useChildAvatar } from "@/hooks/use-child-avatar";
+import { useAuth } from "@/hooks/use-auth";
 
 interface StoryPage {
   illustration_url: string | null;
@@ -59,6 +60,7 @@ const Library = () => {
   const { isOnline } = useOfflineStorage();
   const { credits } = useCredits();
   const { shareCoins } = useReferral();
+  const { user } = useAuth();
   const { avatarUrl } = useChildAvatar();
   const [stories, setStories] = useState<Story[]>([]);
   const [premiumStories, setPremiumStories] = useState<PremiumStory[]>([]);
@@ -98,10 +100,16 @@ const Library = () => {
 
   // Library is accessible to all users - shows empty state for unauthenticated users
   const fetchStories = async () => {
+    if (!user) {
+      setStories([]);
+      setIsLoading(false);
+      return;
+    }
     try {
       const { data: storiesData, error: storiesError } = await supabase
         .from("stories")
         .select("id, slug, child_name, topic, created_at, cover_url, theme, story_type, min_age, max_age, is_premium, child_gender")
+        .eq("user_id", user.id)
         .order("created_at", { ascending: false });
 
       if (storiesError) {
