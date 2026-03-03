@@ -35,33 +35,39 @@ const PuzzleGame = ({ ageRange }: PuzzleGameProps) => {
   const totalPieces = gridSize * gridSize;
   const imageSrc = useMemo(() => PUZZLE_IMAGES[Math.floor(Math.random() * PUZZLE_IMAGES.length)], []);
 
-  // pieces[i] = which original piece index is at position i. null = empty slot on board
   const [board, setBoard] = useState<(number | null)[]>(() => Array(totalPieces).fill(null));
   const [tray, setTray] = useState<number[]>(() => shuffle(Array.from({ length: totalPieces }, (_, i) => i)));
   const [completed, setCompleted] = useState(false);
   const [dragPiece, setDragPiece] = useState<number | null>(null);
   const [dragSource, setDragSource] = useState<"tray" | "board" | null>(null);
   const [dragSourceIndex, setDragSourceIndex] = useState<number | null>(null);
+  const [selectedTrayPiece, setSelectedTrayPiece] = useState<number | null>(null);
 
   const boardRef = useRef<HTMLDivElement>(null);
+  const boardStateRef = useRef(board);
+  const trayStateRef = useRef(tray);
   const dragGhostRef = useRef<HTMLDivElement | null>(null);
 
-  const pieceSize = 100 / gridSize;
+  // Keep refs in sync
+  useEffect(() => { boardStateRef.current = board; }, [board]);
+  useEffect(() => { trayStateRef.current = tray; }, [tray]);
 
-  // Check completion
-  useEffect(() => {
-    if (board.every((val, idx) => val === idx)) {
+  const pieceSize = 100 / gridSize;
+  const pieceSizeRem = gridSize === 2 ? 5.5 : gridSize === 3 ? 4 : 3.2;
+
+  const checkCompletion = useCallback((newBoard: (number | null)[]) => {
+    if (newBoard.every((val, idx) => val === idx)) {
       setCompleted(true);
     }
-  }, [board]);
+  }, []);
 
   const handleReset = useCallback(() => {
     setBoard(Array(totalPieces).fill(null));
     setTray(shuffle(Array.from({ length: totalPieces }, (_, i) => i)));
     setCompleted(false);
+    setSelectedTrayPiece(null);
   }, [totalPieces]);
 
-  // Get background style for a piece
   const getPieceStyle = (pieceIndex: number, sizeRem: number) => {
     const col = pieceIndex % gridSize;
     const row = Math.floor(pieceIndex / gridSize);
@@ -74,10 +80,7 @@ const PuzzleGame = ({ ageRange }: PuzzleGameProps) => {
     };
   };
 
-  // Calculate piece size in rem based on grid
-  const pieceSizeRem = gridSize === 2 ? 5.5 : gridSize === 3 ? 4 : 3.2;
-
-  // --- Touch / Pointer drag ---
+  // --- Ghost element for drag feedback ---
   const createGhost = (pieceIndex: number, x: number, y: number) => {
     const ghost = document.createElement("div");
     const style = getPieceStyle(pieceIndex, pieceSizeRem);
@@ -124,16 +127,60 @@ const PuzzleGame = ({ ageRange }: PuzzleGameProps) => {
     return row * gridSize + col;
   };
 
-  // Touch handlers for tray pieces
+  // --- Unified drop logic (uses refs for fresh state) ---
+  const handleDrop = useCallback((pieceIndex: number, source: "tray" | "board", sourceIndex: number | null, x: number, y: number) => {
+    removeGhost();
+    const slot = getBoardSlotAtPoint(x, y);
+    const currentBoard = boardStateRef.current;
+
+    if (slot !== null && currentBoard[slot] === null) {
+      // Place piece on empty slot
+      setBoard(prev => {
+        const next = [...prev];
+        if (source === "board" && sourceIndex !== null) {
+          next[sourceIndex] = null;
+        }
+        next[slot] = pieceIndex;
+        checkCompletion(next);
+        return next;
+      });
+      if (source === "tray") {
+        setTray(prev => prev.filter(p => p !== pieceIndex));
+      }
+    } else if (slot !== null && currentBoard[slot] !== null && source === "board" && sourceIndex !== null) {
+      // Swap two board pieces
+      setBoard(prev => {
+        const next = [...prev];
+        next[sourceIndex] = prev[slot];
+        next[slot] = pieceIndex;
+        checkCompletion(next);
+        return next;
+      });
+    } else if (slot === null && source === "board" && sourceIndex !== null) {
+      // Return piece to tray
+      setBoard(prev => {
+        const next = [...prev];
+        next[sourceIndex] = null;
+        return next;
+      });
+      setTray(prev => [...prev, pieceIndex]);
+    }
+
+    setDragPiece(null);
+    setDragSource(null);
+    setDragSourceIndex(null);
+  }, [checkCompletion, gridSize]);
+
+  // --- Touch handlers ---
   const handleTrayTouchStart = (pieceIndex: number, e: React.TouchEvent) => {
     e.preventDefault();
     const touch = e.touches[0];
     setDragPiece(pieceIndex);
     setDragSource("tray");
+    setDragSourceIndex(null);
     createGhost(pieceIndex, touch.clientX, touch.clientY);
   };
 
-  // Touch handlers for board pieces (to allow repositioning)
   const handleBoardTouchStart = (slotIndex: number, pieceIndex: number, e: React.TouchEvent) => {
     e.preventDefault();
     const touch = e.touches[0];
@@ -143,57 +190,25 @@ const PuzzleGame = ({ ageRange }: PuzzleGameProps) => {
     createGhost(pieceIndex, touch.clientX, touch.clientY);
   };
 
+  // Touch move/end via refs to avoid stale closures
+  const dragPieceRef = useRef(dragPiece);
+  const dragSourceRef = useRef(dragSource);
+  const dragSourceIndexRef = useRef(dragSourceIndex);
+  useEffect(() => { dragPieceRef.current = dragPiece; }, [dragPiece]);
+  useEffect(() => { dragSourceRef.current = dragSource; }, [dragSource]);
+  useEffect(() => { dragSourceIndexRef.current = dragSourceIndex; }, [dragSourceIndex]);
+
   useEffect(() => {
     const handleTouchMove = (e: TouchEvent) => {
-      if (dragPiece === null) return;
+      if (dragPieceRef.current === null) return;
       e.preventDefault();
       moveGhost(e.touches[0].clientX, e.touches[0].clientY);
     };
 
     const handleTouchEnd = (e: TouchEvent) => {
-      if (dragPiece === null) return;
+      if (dragPieceRef.current === null) return;
       const touch = e.changedTouches[0];
-      const slot = getBoardSlotAtPoint(touch.clientX, touch.clientY);
-      removeGhost();
-
-      if (slot !== null && board[slot] === null) {
-        // Place piece on board
-        setBoard(prev => {
-          const next = [...prev];
-          next[slot] = dragPiece;
-          return next;
-        });
-        if (dragSource === "tray") {
-          setTray(prev => prev.filter(p => p !== dragPiece));
-        } else if (dragSource === "board" && dragSourceIndex !== null) {
-          setBoard(prev => {
-            const next = [...prev];
-            next[dragSourceIndex!] = null;
-            next[slot] = dragPiece;
-            return next;
-          });
-        }
-      } else if (slot !== null && board[slot] !== null && dragSource === "board" && dragSourceIndex !== null) {
-        // Swap two board pieces
-        setBoard(prev => {
-          const next = [...prev];
-          next[dragSourceIndex!] = prev[slot];
-          next[slot] = dragPiece;
-          return next;
-        });
-      } else if (slot === null && dragSource === "board" && dragSourceIndex !== null) {
-        // Return to tray
-        setBoard(prev => {
-          const next = [...prev];
-          next[dragSourceIndex!] = null;
-          return next;
-        });
-        setTray(prev => [...prev, dragPiece]);
-      }
-
-      setDragPiece(null);
-      setDragSource(null);
-      setDragSourceIndex(null);
+      handleDrop(dragPieceRef.current, dragSourceRef.current!, dragSourceIndexRef.current, touch.clientX, touch.clientY);
     };
 
     document.addEventListener("touchmove", handleTouchMove, { passive: false });
@@ -202,9 +217,9 @@ const PuzzleGame = ({ ageRange }: PuzzleGameProps) => {
       document.removeEventListener("touchmove", handleTouchMove);
       document.removeEventListener("touchend", handleTouchEnd);
     };
-  }, [dragPiece, dragSource, dragSourceIndex, board, gridSize]);
+  }, [handleDrop]);
 
-  // --- Mouse drag (for desktop) ---
+  // --- Mouse drag ---
   const handleMouseDown = (pieceIndex: number, source: "tray" | "board", sourceIndex: number | null, e: React.MouseEvent) => {
     e.preventDefault();
     setDragPiece(pieceIndex);
@@ -214,44 +229,7 @@ const PuzzleGame = ({ ageRange }: PuzzleGameProps) => {
 
     const handleMouseMove = (ev: MouseEvent) => moveGhost(ev.clientX, ev.clientY);
     const handleMouseUp = (ev: MouseEvent) => {
-      const slot = getBoardSlotAtPoint(ev.clientX, ev.clientY);
-      removeGhost();
-
-      if (slot !== null && board[slot] === null) {
-        setBoard(prev => {
-          const next = [...prev];
-          next[slot] = pieceIndex;
-          return next;
-        });
-        if (source === "tray") {
-          setTray(prev => prev.filter(p => p !== pieceIndex));
-        } else if (source === "board" && sourceIndex !== null) {
-          setBoard(prev => {
-            const next = [...prev];
-            next[sourceIndex] = null;
-            next[slot] = pieceIndex;
-            return next;
-          });
-        }
-      } else if (slot !== null && board[slot] !== null && source === "board" && sourceIndex !== null) {
-        setBoard(prev => {
-          const next = [...prev];
-          next[sourceIndex] = prev[slot];
-          next[slot] = pieceIndex;
-          return next;
-        });
-      } else if (slot === null && source === "board" && sourceIndex !== null) {
-        setBoard(prev => {
-          const next = [...prev];
-          next[sourceIndex] = null;
-          return next;
-        });
-        setTray(prev => [...prev, pieceIndex]);
-      }
-
-      setDragPiece(null);
-      setDragSource(null);
-      setDragSourceIndex(null);
+      handleDrop(pieceIndex, source, sourceIndex, ev.clientX, ev.clientY);
       document.removeEventListener("mousemove", handleMouseMove);
       document.removeEventListener("mouseup", handleMouseUp);
     };
@@ -260,14 +238,13 @@ const PuzzleGame = ({ ageRange }: PuzzleGameProps) => {
     document.addEventListener("mouseup", handleMouseUp);
   };
 
-  // --- Click-to-place (simple mode for young kids) ---
-  const [selectedTrayPiece, setSelectedTrayPiece] = useState<number | null>(null);
-
+  // --- Click-to-place ---
   const handleSlotClick = (slotIndex: number) => {
     if (board[slotIndex] !== null || selectedTrayPiece === null) return;
     setBoard(prev => {
       const next = [...prev];
       next[slotIndex] = selectedTrayPiece;
+      checkCompletion(next);
       return next;
     });
     setTray(prev => prev.filter(p => p !== selectedTrayPiece));
