@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { ArrowRight, ArrowLeft, Loader2, User } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
@@ -68,33 +68,37 @@ const CreateStory = () => {
   const [isGenerating, setIsGenerating] = useState(false);
 
   const handleStoryGenerated = useCallback(async (storyId: string) => {
-    await useCredit();
+    // Best-effort credit deduction — never block navigation
+    try { await useCredit(); } catch (e) { console.warn("[CreateStory] Credit deduction failed:", e); }
     
-    // Confirm story exists and get slug for clean navigation (retry up to 5s)
-    let slug: string | null = null;
-    for (let i = 0; i < 10; i++) {
-      const { data } = await supabase
-        .from("stories")
-        .select("id, slug")
-        .eq("id", storyId)
-        .maybeSingle();
-      if (data) {
-        slug = data.slug || storyId;
-        break;
+    // Try to get slug for clean URL, fallback to UUID
+    let slug = storyId;
+    try {
+      for (let i = 0; i < 10; i++) {
+        const { data } = await supabase
+          .from("stories")
+          .select("id, slug")
+          .eq("id", storyId)
+          .maybeSingle();
+        if (data) {
+          slug = data.slug || storyId;
+          break;
+        }
+        await new Promise(r => setTimeout(r, 500));
       }
-      await new Promise(r => setTimeout(r, 500));
-    }
-    
-    if (!slug) {
-      console.warn("[CreateStory] Story not confirmed in DB after 5s, navigating with UUID:", storyId);
-      slug = storyId;
+    } catch (e) {
+      console.warn("[CreateStory] Slug lookup failed, using UUID:", e);
     }
     
     // Mark that a story was just created so the PDF popup shows
     sessionStorage.setItem("just_created_story", "true");
-    // Navigate using slug for clean URLs
+    // Navigate using slug for clean URLs — guaranteed to run
     navigate(`/story/${slug}`);
   }, [useCredit, navigate]);
+
+  const handleStoryGeneratedRef = useRef(handleStoryGenerated);
+  useEffect(() => { handleStoryGeneratedRef.current = handleStoryGenerated; }, [handleStoryGenerated]);
+  const stableOnComplete = useCallback((id: string) => handleStoryGeneratedRef.current(id), []);
 
   useEffect(() => {
     // 🔧 DEV MODE: Skip all auth checks
@@ -167,7 +171,7 @@ const CreateStory = () => {
     return (
       <GeneratingStep
         formData={formData}
-        onComplete={handleStoryGenerated}
+        onComplete={stableOnComplete}
       />
     );
   }

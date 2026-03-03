@@ -1,58 +1,26 @@
 
 
-## Analysis: Story Generation Completes but Navigation Fails
+## Bug Analysis
 
-### Problem
-The generating screen reaches ~86% (just past the 85% cap in text phase), meaning the story was generated successfully. The `onComplete` callback fires, but instead of navigating to the story viewer, the user is returned to the home screen. The story does exist in the library.
+The onboarding loop is caused by a combination of issues in the navigation flow between `RequireTerms` and `Onboarding`:
 
-### Root Cause
-In `CreateStory.tsx`, the `handleStoryGenerated` callback has **no try/catch wrapper**. If `useCredit()` or the slug lookup query throws an unexpected error, the `navigate()` call is never reached. The unhandled promise rejection silently fails, and the user sees the app fall back to the home screen (possibly via React re-render or ErrorBoundary).
+1. **Silent update failure**: In `Onboarding.handleContinue`, the Supabase `.update().eq()` call returns success (`error: null`) even when **zero rows are matched** (e.g., due to a race condition where the profile hasn't been created yet). The code doesn't verify the update actually persisted.
 
-Additionally, `handleStoryGenerated` depends on `useCredit` which depends on `credits` state — creating a stale closure risk when the callback is captured inside GeneratingStep's `setTimeout`.
+2. **No `replace: true` on redirects**: Both `RequireTerms` (redirecting to `/onboarding`) and `Onboarding`'s guard effect (redirecting to `/adventure`) use `navigate()` without `{ replace: true }`, causing history stack pollution and making the loop worse.
 
-### Plan
+3. **Loop mechanics**: `handleContinue` thinks it succeeded → navigates to `/adventure` → `RequireTerms` queries DB → `terms_accepted_at` is still null → redirects back to `/onboarding` → Onboarding guard checks terms → still null → shows the form again.
 
-**1. Wrap `handleStoryGenerated` in try/catch with guaranteed navigation**
+## Fix
 
-In `src/pages/CreateStory.tsx`, modify `handleStoryGenerated` so that:
-- The entire body is wrapped in try/catch
-- `useCredit()` failure does NOT block navigation
-- If slug lookup fails, navigate with the raw storyId as fallback
-- On any error, still navigate to `/story/${storyId}` as a safety net
+### 1. `src/pages/Onboarding.tsx` — Verify update actually persisted
 
-```typescript
-const handleStoryGenerated = useCallback(async (storyId: string) => {
-    // Best-effort credit deduction — never block navigation
-    try { await useCredit(); } catch (e) { console.warn("Credit deduction failed:", e); }
-    
-    // Try to get slug for clean URL, fallback to UUID
-    let slug = storyId;
-    try {
-      for (let i = 0; i < 10; i++) {
-        const { data } = await supabase.from("stories").select("id, slug").eq("id", storyId).maybeSingle();
-        if (data) { slug = data.slug || storyId; break; }
-        await new Promise(r => setTimeout(r, 500));
-      }
-    } catch (e) { console.warn("Slug lookup failed:", e); }
-    
-    sessionStorage.setItem("just_created_story", "true");
-    navigate(`/story/${slug}`);
-}, [useCredit, navigate]);
-```
+In `handleContinue`, after the update call, re-query the profile to confirm `terms_accepted_at` was saved. If not, use `upsert` as a fallback. Also add `{ replace: true }` to the guard navigation.
 
-**2. Add `useRef` to stabilize the callback for GeneratingStep**
+### 2. `src/components/RequireTerms.tsx` — Use `replace: true`
 
-Use a ref to hold the latest `handleStoryGenerated` so the setTimeout in GeneratingStep always calls the current version, avoiding stale closure issues:
+Change the `navigate` call to onboarding to use `{ replace: true }` so the history stack doesn't accumulate redirect entries.
 
-```typescript
-const handleStoryGeneratedRef = useRef(handleStoryGenerated);
-useEffect(() => { handleStoryGeneratedRef.current = handleStoryGenerated; }, [handleStoryGenerated]);
+### 3. Both files — Add select return on update
 
-const stableOnComplete = useCallback((id: string) => handleStoryGeneratedRef.current(id), []);
-```
-
-Then pass `stableOnComplete` instead of `handleStoryGenerated` to GeneratingStep.
-
-### Summary
-Two changes in `CreateStory.tsx`: (a) error-proof the callback so navigation always happens, (b) stabilize the callback reference to prevent stale closures.
+Use `.update(...).eq(...).select()` to get the updated row back, confirming the write succeeded. If the returned array is empty, fall back to an upsert to handle the edge case where the profile row doesn't exist yet.
 
