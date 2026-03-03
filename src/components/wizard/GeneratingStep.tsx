@@ -8,6 +8,7 @@ import { useToast } from "@/hooks/use-toast";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/hooks/use-auth";
 import { CHARACTER_SECTIONS } from "@/components/wizard/topic-data";
+import PuzzleGame from "./PuzzleGame";
 
 interface GeneratingStepProps {
   formData: StoryFormData;
@@ -19,12 +20,6 @@ const TEXT_MESSAGES = [
   { icon: Sparkles, text: "הסיפור נכתב עבורך כעת...", color: "text-purple-500" },
   { icon: BookOpen, text: "בונים את העלילה...", color: "text-pink-500" },
   { icon: FileText, text: "יוצרים דפים קסומים...", color: "text-orange-400" },
-];
-
-const ILLUSTRATION_MESSAGES = [
-  { icon: Palette, text: "סול מציירת את האיורים...", color: "text-purple-500" },
-  { icon: Sparkles, text: "מוסיפים צבעים קסומים...", color: "text-pink-500" },
-  { icon: Wand2, text: "עוד רגע והספר מוכן!", color: "text-purple-600" },
 ];
 
 const EMPOWERING_SENTENCES = [
@@ -76,15 +71,16 @@ const GeneratingStep = ({ formData, onComplete }: GeneratingStepProps) => {
   const retryCountRef = useRef(0);
   const MAX_RETRIES = 2;
 
-  // Simplified flow: navigate immediately after text is ready
-  const [phase, setPhase] = useState<'text' | 'ready'>('text');
+  const [phase, setPhase] = useState<'text' | 'puzzle' | 'ready'>('text');
   const [storyId, setStoryId] = useState<string | null>(null);
+  const [illustrationsReady, setIllustrationsReady] = useState(false);
+  const [showReadyPopup, setShowReadyPopup] = useState(false);
+  const puzzleTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   const generateStory = useCallback(async () => {
     try {
       setPhase('text');
 
-      // === Connectivity pre-check ===
       if (!navigator.onLine) {
         setError("אין חיבור לאינטרנט. בדקו את החיבור ונסו שוב.");
         return;
@@ -101,7 +97,6 @@ const GeneratingStep = ({ formData, onComplete }: GeneratingStepProps) => {
         ? formData.customTopic 
         : getTopicLabel(formData.topic);
 
-      // Look up the full topic description from topic-data for precise narrative anchoring
       const allTopics = CHARACTER_SECTIONS.flatMap(s => s.topics);
       const selectedTopic = allTopics.find(t => t.id === formData.topic);
       const topicDescription = selectedTopic?.description ?? "";
@@ -153,11 +148,7 @@ const GeneratingStep = ({ formData, onComplete }: GeneratingStepProps) => {
       if (apiError) {
         console.error("API error:", apiError);
         if (apiError.message?.includes("401") || apiError.message?.includes("נדרשת התחברות")) {
-          toast({
-            variant: "destructive",
-            title: "נדרשת התחברות",
-            description: "אנא התחברו כדי ליצור סיפורים.",
-          });
+          toast({ variant: "destructive", title: "נדרשת התחברות", description: "אנא התחברו כדי ליצור סיפורים." });
           navigate("/auth?returnTo=/create");
           return;
         }
@@ -169,15 +160,12 @@ const GeneratingStep = ({ formData, onComplete }: GeneratingStepProps) => {
 
       if (!data?.storyId) {
         console.error("[GeneratingStep] No storyId in response:", data);
-        if (data?.error) {
-          throw new Error(data.error);
-        }
+        if (data?.error) throw new Error(data.error);
         throw new Error("לא התקבל מזהה סיפור מהשרת");
       }
 
       console.log("[GeneratingStep] Story created successfully with ID:", data.storyId);
       
-      // Validate that story pages exist
       const { data: pages, error: pagesError } = await supabase
         .from("story_pages")
         .select("id, text")
@@ -189,12 +177,10 @@ const GeneratingStep = ({ formData, onComplete }: GeneratingStepProps) => {
         throw new Error("הסיפור נוצר אך ללא טקסט. מנסים שוב...");
       }
 
-      console.log("[GeneratingStep] Text verified. Navigating to story immediately...");
+      console.log("[GeneratingStep] Text verified. Moving to puzzle phase...");
       setStoryId(data.storyId);
-      setPhase('ready');
-      setProgress(95);
-      // Navigate immediately — illustrations will load progressively in StoryViewer
-      setTimeout(() => onComplete(data.storyId), 800);
+      setPhase('puzzle');
+      setProgress(50);
       
     } catch (err) {
       console.error("[GeneratingStep] Error generating story:", err);
@@ -211,7 +197,7 @@ const GeneratingStep = ({ formData, onComplete }: GeneratingStepProps) => {
       
       if (retryCountRef.current < MAX_RETRIES) {
         retryCountRef.current += 1;
-        const delay = Math.min(1000 * Math.pow(2, retryCountRef.current + 1), 10000); // 4s, 8s
+        const delay = Math.min(1000 * Math.pow(2, retryCountRef.current + 1), 10000);
         console.log(`[GeneratingStep] Auto-retrying (${retryCountRef.current}/${MAX_RETRIES}) after ${delay}ms...`);
         setProgress(0);
         await new Promise(resolve => setTimeout(resolve, delay));
@@ -220,16 +206,60 @@ const GeneratingStep = ({ formData, onComplete }: GeneratingStepProps) => {
       }
       
       setError(`אירעה שגיאה ביצירת הסיפור: ${errorMessage}`);
-      toast({
-        variant: "destructive",
-        title: "שגיאה",
-        description: "לא הצלחנו ליצור את הסיפור. אנא נסו שוב.",
-      });
+      toast({ variant: "destructive", title: "שגיאה", description: "לא הצלחנו ליצור את הסיפור. אנא נסו שוב." });
     }
   }, [formData, onComplete, toast, navigate]);
 
+  // Realtime subscription: watch for illustrations completing
   useEffect(() => {
-    // Progress animation for text phase (smooth increments)
+    if (phase !== 'puzzle' || !storyId) return;
+
+    // Check immediately if illustrations are already done
+    const checkIllustrations = async () => {
+      const { data: pages } = await supabase
+        .from("story_pages")
+        .select("id, illustration_url")
+        .eq("story_id", storyId);
+      
+      if (pages && pages.length > 0 && pages.every(p => p.illustration_url)) {
+        console.log("[GeneratingStep] All illustrations ready!");
+        setIllustrationsReady(true);
+        setShowReadyPopup(true);
+      }
+    };
+    checkIllustrations();
+
+    // Subscribe to changes
+    const channel = supabase
+      .channel(`puzzle-illustrations-${storyId}`)
+      .on(
+        'postgres_changes',
+        {
+          event: 'UPDATE',
+          schema: 'public',
+          table: 'story_pages',
+          filter: `story_id=eq.${storyId}`,
+        },
+        async () => {
+          await checkIllustrations();
+        }
+      )
+      .subscribe();
+
+    // 90-second timeout — show button regardless
+    puzzleTimeoutRef.current = setTimeout(() => {
+      console.log("[GeneratingStep] Puzzle timeout — allowing navigation");
+      setShowReadyPopup(true);
+    }, 90000);
+
+    return () => {
+      supabase.removeChannel(channel);
+      if (puzzleTimeoutRef.current) clearTimeout(puzzleTimeoutRef.current);
+    };
+  }, [phase, storyId]);
+
+  // Text phase timers
+  useEffect(() => {
     const progressInterval = setInterval(() => {
       setProgress((prev) => {
         if (phase === 'text') {
@@ -240,12 +270,10 @@ const GeneratingStep = ({ formData, onComplete }: GeneratingStepProps) => {
       });
     }, 500);
 
-    // Message rotation
     const messageInterval = setInterval(() => {
       setMessageIndex((prev) => (prev + 1) % TEXT_MESSAGES.length);
     }, 3000);
 
-    // Empowering sentence rotation with fade effect
     const sentenceInterval = setInterval(() => {
       setIsSentenceVisible(false);
       setTimeout(() => {
@@ -254,7 +282,6 @@ const GeneratingStep = ({ formData, onComplete }: GeneratingStepProps) => {
       }, 500);
     }, 4500);
 
-    // Keepalive ping — detect connectivity loss early
     const keepaliveInterval = setInterval(async () => {
       if (phase !== 'text') return;
       try {
@@ -265,12 +292,11 @@ const GeneratingStep = ({ formData, onComplete }: GeneratingStepProps) => {
         });
         if (!resp.ok) throw new Error("ping failed");
       } catch {
-        console.warn("[GeneratingStep] Keepalive ping failed — connection may be unstable");
+        console.warn("[GeneratingStep] Keepalive ping failed");
         toast({ title: "נראה שהחיבור לא יציב", description: "ממשיכים לנסות..." });
       }
     }, 15000);
 
-    // Generate story only once
     if (!hasStartedRef.current) {
       hasStartedRef.current = true;
       generateStory();
@@ -289,16 +315,18 @@ const GeneratingStep = ({ formData, onComplete }: GeneratingStepProps) => {
     setProgress(0);
     setPhase('text');
     setStoryId(null);
+    setIllustrationsReady(false);
+    setShowReadyPopup(false);
     retryCountRef.current = 0;
     hasStartedRef.current = false;
     generateStory();
   };
 
-  const currentMessages = TEXT_MESSAGES;
-  const safeMessageIndex = messageIndex % currentMessages.length;
-  const currentMessage = currentMessages[safeMessageIndex];
-  const Icon = currentMessage.icon;
+  const handleOpenStory = () => {
+    if (storyId) onComplete(storyId);
+  };
 
+  // --- ERROR STATE ---
   if (error) {
     return (
       <div className="flex flex-col items-center justify-center min-h-screen min-h-[100dvh] text-center space-y-6 px-4 bg-gradient-to-b from-[#FAF3E8] to-[#F5E6D3]">
@@ -307,21 +335,60 @@ const GeneratingStep = ({ formData, onComplete }: GeneratingStepProps) => {
         </div>
         <div className="space-y-2">
           <h2 className="text-xl font-bold">{error}</h2>
-          <p className="text-muted-foreground text-sm">
-            לפעמים זה קורה. בואו ננסה שוב!
-          </p>
+          <p className="text-muted-foreground text-sm">לפעמים זה קורה. בואו ננסה שוב!</p>
         </div>
-        <Button
-          onClick={handleRetry}
-          size="lg"
-          className="gap-2"
-        >
+        <Button onClick={handleRetry} size="lg" className="gap-2">
           <RefreshCw className="w-5 h-5" />
           נסו שוב
         </Button>
       </div>
     );
   }
+
+  // --- PUZZLE PHASE ---
+  if (phase === 'puzzle') {
+    return (
+      <div className="flex flex-col items-center justify-center min-h-[100dvh] text-center space-y-4 bg-gradient-to-b from-[#FAF3E8] to-[#F5E6D3] p-4 relative">
+        <div className="space-y-1">
+          <h2 className="text-xl font-bold bg-gradient-to-r from-purple-600 via-pink-500 to-orange-400 bg-clip-text text-transparent">
+            הסיפור מוכן! האיורים בדרך... 🎨
+          </h2>
+          <p className="text-purple-700/70 text-sm">בינתיים בואו נשחק 🧩</p>
+        </div>
+
+        <PuzzleGame ageRange={formData.ageRange} />
+
+        {/* Ready popup */}
+        {showReadyPopup && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 animate-in fade-in duration-300">
+            <div className="bg-white rounded-2xl p-6 shadow-2xl flex flex-col items-center gap-4 max-w-xs mx-4 animate-in zoom-in-95 duration-300">
+              <span className="text-5xl">🎉</span>
+              <h3 className="text-xl font-bold text-purple-700">
+                {illustrationsReady ? "הסיפור שלך מוכן!" : "הסיפור מחכה לך!"}
+              </h3>
+              <p className="text-sm text-purple-600/70">
+                {illustrationsReady 
+                  ? "כל האיורים מוכנים. בואו נקרא!" 
+                  : "חלק מהאיורים עדיין בדרך, אבל אפשר כבר לקרוא!"}
+              </p>
+              <Button 
+                onClick={handleOpenStory} 
+                size="lg" 
+                className="gap-2 bg-gradient-to-r from-purple-600 to-pink-500 hover:from-purple-700 hover:to-pink-600 text-white w-full"
+              >
+                <BookOpen className="w-5 h-5" />
+                פתחו את הסיפור 📖
+              </Button>
+            </div>
+          </div>
+        )}
+      </div>
+    );
+  }
+
+  // --- TEXT GENERATION PHASE ---
+  const currentMessage = TEXT_MESSAGES[messageIndex % TEXT_MESSAGES.length];
+  const Icon = currentMessage.icon;
 
   return (
     <div className="flex flex-col items-center justify-center min-h-[100dvh] text-center space-y-5 bg-gradient-to-b from-[#FAF3E8] to-[#F5E6D3] p-6">
@@ -369,7 +436,6 @@ const GeneratingStep = ({ formData, onComplete }: GeneratingStepProps) => {
           {Math.round(progress)}%
         </p>
       </div>
-
 
       {/* Empowering Sentence */}
       <div className="w-full max-w-sm px-4 min-h-[60px] flex items-center justify-center">
