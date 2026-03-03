@@ -246,11 +246,13 @@ const GeneratingStep = ({ formData, onComplete }: GeneratingStepProps) => {
       )
       .subscribe();
 
-    // 90-second timeout — show button regardless
+    // 180-second safety timeout — only as last resort
     puzzleTimeoutRef.current = setTimeout(() => {
-      console.log("[GeneratingStep] Puzzle timeout — allowing navigation");
-      setShowReadyPopup(true);
-    }, 90000);
+      console.log("[GeneratingStep] Safety timeout (180s) — allowing navigation");
+      if (!illustrationsReady) {
+        setShowReadyPopup(true);
+      }
+    }, 180000);
 
     return () => {
       supabase.removeChannel(channel);
