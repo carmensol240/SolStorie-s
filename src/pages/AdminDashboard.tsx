@@ -45,8 +45,21 @@ const AdminDashboard = () => {
   const [purchases, setPurchases] = useState<PurchaseRow[]>([]);
   const [stories, setStories] = useState<StoryRow[]>([]);
   const [loading, setLoading] = useState(true);
+  const [authReady, setAuthReady] = useState(false);
+
+  // Wait for auth to be ready before checking
+  useEffect(() => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+      setAuthReady(true);
+    });
+    // Also check immediately
+    supabase.auth.getSession().then(() => setAuthReady(true));
+    return () => subscription.unsubscribe();
+  }, []);
 
   useEffect(() => {
+    if (!authReady) return;
+    
     if (!user) {
       navigate("/auth");
       return;
@@ -68,7 +81,7 @@ const AdminDashboard = () => {
     };
 
     checkAdmin();
-  }, [user, navigate]);
+  }, [user, navigate, authReady]);
 
   useEffect(() => {
     if (!isAdmin) return;
