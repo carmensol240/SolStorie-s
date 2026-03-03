@@ -124,8 +124,8 @@ const AdminDashboard = () => {
       <div className="max-w-7xl mx-auto space-y-6">
         <div className="flex items-center justify-between">
           <h1 className="text-2xl font-bold">לוח בקרה למנהל</h1>
-          <Button variant="ghost" size="sm" onClick={() => navigate("/adventure")}>
-            חזרה <ArrowRight className="mr-1 h-4 w-4" />
+          <Button variant="ghost" size="sm" onClick={() => window.history.length > 1 ? navigate(-1) : navigate("/settings")}>
+            <ArrowRight className="ml-1 h-4 w-4" /> חזרה
           </Button>
         </div>
 
