@@ -39,6 +39,7 @@ import RequireTerms from "./components/RequireTerms";
 import ScrollToTop from "./components/ScrollToTop";
 import Toolkit from "./pages/Toolkit";
 import AdminReviews from "./pages/AdminReviews";
+import AdminDashboard from "./pages/AdminDashboard";
 
 const queryClient = new QueryClient();
 
@@ -89,6 +90,7 @@ function App() { return (
             <Route path="/gift" element={<GiftCard />} />
             
             <Route path="/toolkit" element={<RequireTerms><Toolkit /></RequireTerms>} />
+            <Route path="/admin/dashboard" element={<AdminDashboard />} />
             <Route path="/admin/reviews" element={<AdminReviews />} />
             <Route path="/share" element={<RequireTerms><ShareAndEarn /></RequireTerms>} />
             <Route path="/contact" element={<Contact />} />
