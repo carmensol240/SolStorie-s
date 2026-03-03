@@ -1265,8 +1265,8 @@ ${topic.endsWith('-edu') ? `
       throw pagesError;
     }
 
-    // === DEFERRED SUMMARY: Generate 1-sentence summary for sequel continuity ===
-    (async () => {
+    // === DEFERRED SUMMARY: runs in parallel with illustrations ===
+    const summaryPromise = (async () => {
       try {
         const fullText = storyData.pages.map((p: any) => p.text).join("\n");
         const summaryResponse = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
@@ -1290,10 +1290,11 @@ ${topic.endsWith('-edu') ? `
       }
     })();
 
-    // === DEFERRED NIKUD: Apply in background after returning storyId ===
+    // === DEFERRED NIKUD: runs in parallel with illustrations ===
+    let nikudPromise: Promise<void> = Promise.resolve();
     if (shouldApplyNikud) {
-      console.log("Deferring nikud to background processing...");
-      (async () => {
+      console.log("Deferring nikud to parallel processing...");
+      nikudPromise = (async () => {
         try {
           const { data: savedPages } = await supabase
             .from("story_pages")
@@ -1313,7 +1314,7 @@ ${topic.endsWith('-edu') ? `
                 }
               })
             );
-            console.log(`Nikud background: ${nikudResults.filter(r => r.status === 'fulfilled').length}/${nikudResults.length} pages updated`);
+            console.log(`Nikud: ${nikudResults.filter(r => r.status === 'fulfilled').length}/${nikudResults.length} pages updated`);
           }
         } catch (err) {
           console.error("Background nikud error:", err);
@@ -1345,6 +1346,10 @@ ${topic.endsWith('-edu') ? `
       // Collect all fetch promises — we MUST await them before returning
       // so the Deno runtime doesn't kill them when the response is sent.
       const fetchPromises: Promise<void>[] = [];
+
+      // Include nikud and summary in the same batch so runtime waits for them
+      fetchPromises.push(summaryPromise as Promise<void>);
+      fetchPromises.push(nikudPromise);
 
       for (const page of illustrationPages) {
         console.log(`  → Dispatching illustration for page ${page.page_number}`);
@@ -1405,10 +1410,16 @@ ${topic.endsWith('-edu') ? `
       });
       fetchPromises.push(coverPromise);
 
-      // Wait for ALL fetch calls to be dispatched (not for completion — each
-      // function runs independently, but the HTTP request must leave this runtime)
-      await Promise.allSettled(fetchPromises);
-      console.log(`All ${fetchPromises.length} generation requests dispatched successfully`);
+      // Wait for dispatch with a 15-second timeout to avoid Edge Function timeout
+      // if external services (Fal.ai) are slow to accept connections
+      await Promise.race([
+        Promise.allSettled(fetchPromises),
+        new Promise<void>(resolve => setTimeout(() => {
+          console.warn("Dispatch timeout reached (15s) — proceeding with response");
+          resolve();
+        }, 15000)),
+      ]);
+      console.log(`All ${fetchPromises.length} generation requests dispatched`);
     }
 
     console.log("Illustration + cover generation triggered, returning storyId immediately");
