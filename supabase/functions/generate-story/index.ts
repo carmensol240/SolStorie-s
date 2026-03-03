@@ -1265,8 +1265,8 @@ ${topic.endsWith('-edu') ? `
       throw pagesError;
     }
 
-    // === DEFERRED SUMMARY: Generate 1-sentence summary for sequel continuity ===
-    (async () => {
+    // === DEFERRED SUMMARY: runs in parallel with illustrations ===
+    const summaryPromise = (async () => {
       try {
         const fullText = storyData.pages.map((p: any) => p.text).join("\n");
         const summaryResponse = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
@@ -1290,10 +1290,11 @@ ${topic.endsWith('-edu') ? `
       }
     })();
 
-    // === DEFERRED NIKUD: Apply in background after returning storyId ===
+    // === DEFERRED NIKUD: runs in parallel with illustrations ===
+    let nikudPromise: Promise<void> = Promise.resolve();
     if (shouldApplyNikud) {
-      console.log("Deferring nikud to background processing...");
-      (async () => {
+      console.log("Deferring nikud to parallel processing...");
+      nikudPromise = (async () => {
         try {
           const { data: savedPages } = await supabase
             .from("story_pages")
@@ -1313,7 +1314,7 @@ ${topic.endsWith('-edu') ? `
                 }
               })
             );
-            console.log(`Nikud background: ${nikudResults.filter(r => r.status === 'fulfilled').length}/${nikudResults.length} pages updated`);
+            console.log(`Nikud: ${nikudResults.filter(r => r.status === 'fulfilled').length}/${nikudResults.length} pages updated`);
           }
         } catch (err) {
           console.error("Background nikud error:", err);

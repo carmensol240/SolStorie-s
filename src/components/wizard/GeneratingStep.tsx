@@ -254,6 +254,22 @@ const GeneratingStep = ({ formData, onComplete }: GeneratingStepProps) => {
       }, 500);
     }, 4500);
 
+    // Keepalive ping — detect connectivity loss early
+    const keepaliveInterval = setInterval(async () => {
+      if (phase !== 'text') return;
+      try {
+        const resp = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/rest/v1/`, {
+          method: "HEAD",
+          headers: { apikey: import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY },
+          signal: AbortSignal.timeout(5000),
+        });
+        if (!resp.ok) throw new Error("ping failed");
+      } catch {
+        console.warn("[GeneratingStep] Keepalive ping failed — connection may be unstable");
+        toast({ title: "נראה שהחיבור לא יציב", description: "ממשיכים לנסות..." });
+      }
+    }, 15000);
+
     // Generate story only once
     if (!hasStartedRef.current) {
       hasStartedRef.current = true;
@@ -264,8 +280,9 @@ const GeneratingStep = ({ formData, onComplete }: GeneratingStepProps) => {
       clearInterval(progressInterval);
       clearInterval(messageInterval);
       clearInterval(sentenceInterval);
+      clearInterval(keepaliveInterval);
     };
-  }, [generateStory, phase]);
+  }, [generateStory, phase, toast]);
 
   const handleRetry = () => {
     setError(null);
