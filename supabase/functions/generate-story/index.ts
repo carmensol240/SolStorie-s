@@ -1347,6 +1347,10 @@ ${topic.endsWith('-edu') ? `
       // so the Deno runtime doesn't kill them when the response is sent.
       const fetchPromises: Promise<void>[] = [];
 
+      // Include nikud and summary in the same batch so runtime waits for them
+      fetchPromises.push(summaryPromise as Promise<void>);
+      fetchPromises.push(nikudPromise);
+
       for (const page of illustrationPages) {
         console.log(`  → Dispatching illustration for page ${page.page_number}`);
         const p = fetch(`${supabaseUrl}/functions/v1/generate-illustrations`, {
@@ -1406,10 +1410,16 @@ ${topic.endsWith('-edu') ? `
       });
       fetchPromises.push(coverPromise);
 
-      // Wait for ALL fetch calls to be dispatched (not for completion — each
-      // function runs independently, but the HTTP request must leave this runtime)
-      await Promise.allSettled(fetchPromises);
-      console.log(`All ${fetchPromises.length} generation requests dispatched successfully`);
+      // Wait for dispatch with a 15-second timeout to avoid Edge Function timeout
+      // if external services (Fal.ai) are slow to accept connections
+      await Promise.race([
+        Promise.allSettled(fetchPromises),
+        new Promise<void>(resolve => setTimeout(() => {
+          console.warn("Dispatch timeout reached (15s) — proceeding with response");
+          resolve();
+        }, 15000)),
+      ]);
+      console.log(`All ${fetchPromises.length} generation requests dispatched`);
     }
 
     console.log("Illustration + cover generation triggered, returning storyId immediately");
