@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { ArrowRight, Mail, Trash2, LogOut, FileText, Shield, Eye, Info, Accessibility, Type, MousePointer, Link2, MonitorOff, Wand2, Sparkles, Download, Share, Smartphone, Volume2 } from "lucide-react";
+import { ArrowRight, Mail, Trash2, LogOut, FileText, Shield, Eye, Info, Accessibility, Type, MousePointer, Link2, MonitorOff, Wand2, Sparkles, Download, Share, Smartphone, Volume2, LayoutDashboard } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
 import { usePwaInstall } from "@/hooks/use-pwa-install";
 import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
