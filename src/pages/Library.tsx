@@ -60,6 +60,7 @@ const Library = () => {
   const { isOnline } = useOfflineStorage();
   const { credits } = useCredits();
   const { shareCoins } = useReferral();
+  const { user } = useAuth();
   const { avatarUrl } = useChildAvatar();
   const [stories, setStories] = useState<Story[]>([]);
   const [premiumStories, setPremiumStories] = useState<PremiumStory[]>([]);
