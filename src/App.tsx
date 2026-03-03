@@ -90,6 +90,7 @@ function App() { return (
             <Route path="/gift" element={<GiftCard />} />
             
             <Route path="/toolkit" element={<RequireTerms><Toolkit /></RequireTerms>} />
+            <Route path="/admin/dashboard" element={<AdminDashboard />} />
             <Route path="/admin/reviews" element={<AdminReviews />} />
             <Route path="/share" element={<RequireTerms><ShareAndEarn /></RequireTerms>} />
             <Route path="/contact" element={<Contact />} />
