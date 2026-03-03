@@ -328,7 +328,10 @@ async function generateIllustration(
 
     return null;
   } catch (error) {
+    const isTimeout = error instanceof DOMException && error.name === "TimeoutError";
+    const errorType = isTimeout ? "illustration_timeout" : "illustration_fal_error";
     console.error("Error generating illustration:", error);
+    await logError(errorType, `Flux Schnell: ${error?.message || error}`, { model: "fal-ai/flux/schnell" });
     return null;
   }
 }
