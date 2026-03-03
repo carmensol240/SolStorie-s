@@ -211,19 +211,34 @@ const Onboarding = () => {
         <div className="flex items-start gap-3 bg-white/[0.08] backdrop-blur-md rounded-xl p-4 border border-white/10 w-full mb-3">
           <Checkbox
             id="terms-agreement"
-            checked={hasAgreed}
-            onCheckedChange={(checked) => setHasAgreed(checked === true)}
+            checked={hasAgreedTerms}
+            onCheckedChange={(checked) => setHasAgreedTerms(checked === true)}
             className="h-5 w-5 mt-0.5 border-purple-300 data-[state=checked]:bg-purple-500 data-[state=checked]:border-purple-500"
           />
           <Label 
             htmlFor="terms-agreement" 
             className="text-sm leading-relaxed cursor-pointer text-white/80"
           >
-            אני מסכים/ה ל
+            קראתי ואני מסכים/ה ל
             <Link to="/terms" className="text-purple-300 hover:underline font-medium mx-1">
               תנאי השימוש
             </Link>
-            ול
+          </Label>
+        </div>
+
+        {/* Privacy Checkbox */}
+        <div className="flex items-start gap-3 bg-white/[0.08] backdrop-blur-md rounded-xl p-4 border border-white/10 w-full mb-3">
+          <Checkbox
+            id="privacy-agreement"
+            checked={hasAgreedPrivacy}
+            onCheckedChange={(checked) => setHasAgreedPrivacy(checked === true)}
+            className="h-5 w-5 mt-0.5 border-purple-300 data-[state=checked]:bg-purple-500 data-[state=checked]:border-purple-500"
+          />
+          <Label 
+            htmlFor="privacy-agreement" 
+            className="text-sm leading-relaxed cursor-pointer text-white/80"
+          >
+            קראתי ואני מסכים/ה ל
             <Link to="/privacy" className="text-purple-300 hover:underline font-medium mx-1">
               מדיניות הפרטיות
             </Link>
