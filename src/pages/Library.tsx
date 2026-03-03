@@ -100,10 +100,16 @@ const Library = () => {
 
   // Library is accessible to all users - shows empty state for unauthenticated users
   const fetchStories = async () => {
+    if (!user) {
+      setStories([]);
+      setIsLoading(false);
+      return;
+    }
     try {
       const { data: storiesData, error: storiesError } = await supabase
         .from("stories")
         .select("id, slug, child_name, topic, created_at, cover_url, theme, story_type, min_age, max_age, is_premium, child_gender")
+        .eq("user_id", user.id)
         .order("created_at", { ascending: false });
 
       if (storiesError) {
