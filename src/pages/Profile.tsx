@@ -232,6 +232,10 @@ const Profile = () => {
       </div>
 
       <div className="w-full max-w-[550px] lg:max-w-[450px] mx-auto px-4 py-6 space-y-6">
+        {/* Back button - desktop only */}
+        <Button variant="outline" size="icon" onClick={() => navigate("/")} className="hidden md:flex" aria-label="חזרה לדף הבית">
+          <ArrowRight className="h-5 w-5" />
+        </Button>
         {/* Avatar + Title */}
         <div className="flex flex-col items-center gap-3 pt-4">
           <div
