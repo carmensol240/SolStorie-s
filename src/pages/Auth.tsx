@@ -383,14 +383,6 @@ const Auth = () => {
       // Signup successful - save terms acceptance immediately
       if (data?.user?.id) {
         await processReferral(data.user.id);
-        // Save terms acceptance so user skips onboarding
-        await supabase
-          .from("profiles")
-          .update({
-            terms_accepted_at: new Date().toISOString(),
-            terms_version: TERMS_VERSION,
-          })
-          .eq("id", data.user.id);
       }
       if (userRole === "educator") {
         toast({
