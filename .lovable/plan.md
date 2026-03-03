@@ -1,54 +1,26 @@
 
 
-## תוכנית: Error Monitoring בלוח הבקרה
+## Bug Analysis
 
-### 1. יצירת טבלת `error_logs` במסד הנתונים
-אין טבלה קיימת. ניצור טבלה חדשה:
+The onboarding loop is caused by a combination of issues in the navigation flow between `RequireTerms` and `Onboarding`:
 
-```sql
-CREATE TABLE public.error_logs (
-  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
-  user_id uuid,
-  error_type text NOT NULL,
-  error_message text NOT NULL,
-  metadata jsonb DEFAULT '{}',
-  created_at timestamptz DEFAULT now()
-);
+1. **Silent update failure**: In `Onboarding.handleContinue`, the Supabase `.update().eq()` call returns success (`error: null`) even when **zero rows are matched** (e.g., due to a race condition where the profile hasn't been created yet). The code doesn't verify the update actually persisted.
 
-ALTER TABLE public.error_logs ENABLE ROW LEVEL SECURITY;
+2. **No `replace: true` on redirects**: Both `RequireTerms` (redirecting to `/onboarding`) and `Onboarding`'s guard effect (redirecting to `/adventure`) use `navigate()` without `{ replace: true }`, causing history stack pollution and making the loop worse.
 
--- Only admins can read
-CREATE POLICY "Admins can view error logs"
-  ON public.error_logs FOR SELECT TO authenticated
-  USING (public.has_role(auth.uid(), 'admin'));
+3. **Loop mechanics**: `handleContinue` thinks it succeeded → navigates to `/adventure` → `RequireTerms` queries DB → `terms_accepted_at` is still null → redirects back to `/onboarding` → Onboarding guard checks terms → still null → shows the form again.
 
--- Only service_role can insert (from Edge Functions)
-CREATE POLICY "Service role can insert error logs"
-  ON public.error_logs FOR INSERT
-  WITH CHECK (current_setting('role') = 'service_role');
-```
+## Fix
 
-### 2. רישום שגיאות מה-Edge Functions
-נוסיף פונקציית עזר `logError` ב-`generate-illustrations/index.ts` וב-`generate-story/index.ts` שכותבת ל-`error_logs` בנקודות הכשל הקריטיות:
-- Timeout בקריאה ל-Fal.ai
-- כשל ביצירת איור (response not ok)
-- כשל בפענוח תגובת AI
-- כשל ביצירת סיפור (insert error)
-- שגיאות 429 (rate limit)
+### 1. `src/pages/Onboarding.tsx` — Verify update actually persisted
 
-הפונקציה תשתמש ב-`supabaseAdmin` (service_role) שכבר קיים בשתי הפונקציות.
+In `handleContinue`, after the update call, re-query the profile to confirm `terms_accepted_at` was saved. If not, use `upsert` as a fallback. Also add `{ replace: true }` to the guard navigation.
 
-### 3. טאב חדש בלוח הבקרה
-נוסיף ל-`AdminDashboard.tsx`:
-- State חדש `errorLogs` + fetch מהטבלה
-- TabsTrigger רביעי: "שגיאות ומעקב"
-- TabsContent עם טבלה: סוג שגיאה, הודעה, תאריך, metadata
-- סינון לפי `error_type` (Select) ולפי טווח תאריכים (7/30/all days)
-- כרטיס סטטיסטיקה חדש עם מספר השגיאות ב-24 שעות אחרונות
+### 2. `src/components/RequireTerms.tsx` — Use `replace: true`
 
-### קבצים שישתנו
-1. **Migration** — יצירת טבלת `error_logs` + RLS
-2. `supabase/functions/generate-illustrations/index.ts` — הוספת `logError` בנקודות כשל
-3. `supabase/functions/generate-story/index.ts` — הוספת `logError` בנקודות כשל
-4. `src/pages/AdminDashboard.tsx` — טאב שגיאות + פילטרים + כרטיס סטטיסטיקה
+Change the `navigate` call to onboarding to use `{ replace: true }` so the history stack doesn't accumulate redirect entries.
+
+### 3. Both files — Add select return on update
+
+Use `.update(...).eq(...).select()` to get the updated row back, confirming the write succeeded. If the returned array is empty, fall back to an upsert to handle the edge case where the profile row doesn't exist yet.
 

@@ -1,6 +1,7 @@
 import "https://deno.land/x/xhr@0.1.0/mod.ts";
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.39.3";
+import { logError } from "../_shared/log-error.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -1139,6 +1140,7 @@ ${topic.endsWith('-edu') ? `
     if (!response.ok) {
       const errorText = await response.text();
       console.error(`[generate-story] ❌ AI Gateway error: status=${response.status}, body=${errorText}`);
+      await logError("story_generation_error", `AI Gateway error: ${response.status}`, { status: response.status, body: errorText.substring(0, 500), topic, childName }, userId);
       if (response.status === 429) {
         return new Response(
           JSON.stringify({ error: "הגעתם למגבלת הבקשות. נסו שוב בעוד מספר דקות." }),
@@ -1195,6 +1197,7 @@ ${topic.endsWith('-edu') ? `
     } catch (e) {
       console.error("Failed to parse AI response:", content);
       console.error("Parse error:", e);
+      await logError("story_parse_error", `Invalid JSON response from AI`, { parseError: String(e), contentPreview: content?.substring(0, 300), topic, childName }, userId);
       throw new Error("Invalid JSON response from AI");
     }
 
@@ -1241,6 +1244,7 @@ ${topic.endsWith('-edu') ? `
 
     if (storyError) {
       console.error("Error creating story:", storyError);
+      await logError("story_insert_error", `Story insert failed: ${storyError.message}`, { code: storyError.code, topic, childName }, userId);
       throw storyError;
     }
 
@@ -1435,6 +1439,7 @@ ${topic.endsWith('-edu') ? `
 
   } catch (error) {
     console.error("Error in generate-story:", error);
+    await logError("story_general_error", `generate-story crash: ${error?.message || error}`, {});
     // Return generic error message to client, keep details in server logs
     const userMessage = error instanceof Error && error.message.startsWith("שגיאה") 
       ? error.message 

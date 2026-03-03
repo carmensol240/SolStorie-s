@@ -6,8 +6,9 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
-import { Users, ShoppingCart, BookOpen, TrendingUp, ArrowRight } from "lucide-react";
+import { Users, ShoppingCart, BookOpen, TrendingUp, ArrowRight, AlertTriangle } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { format } from "date-fns";
 
 interface ProfileRow {
@@ -37,6 +38,15 @@ interface StoryRow {
   user_id: string | null;
 }
 
+interface ErrorLogRow {
+  id: string;
+  user_id: string | null;
+  error_type: string;
+  error_message: string;
+  metadata: Record<string, unknown> | null;
+  created_at: string;
+}
+
 const AdminDashboard = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
@@ -44,15 +54,17 @@ const AdminDashboard = () => {
   const [profiles, setProfiles] = useState<ProfileRow[]>([]);
   const [purchases, setPurchases] = useState<PurchaseRow[]>([]);
   const [stories, setStories] = useState<StoryRow[]>([]);
+  const [errorLogs, setErrorLogs] = useState<ErrorLogRow[]>([]);
   const [loading, setLoading] = useState(true);
   const [authReady, setAuthReady] = useState(false);
+  const [errorTypeFilter, setErrorTypeFilter] = useState<string>("all");
+  const [errorDaysFilter, setErrorDaysFilter] = useState<string>("7");
 
   // Wait for auth to be ready before checking
   useEffect(() => {
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
       setAuthReady(true);
     });
-    // Also check immediately
     supabase.auth.getSession().then(() => setAuthReady(true));
     return () => subscription.unsubscribe();
   }, []);
@@ -83,10 +95,9 @@ const AdminDashboard = () => {
     checkAdmin();
   }, [user, navigate, authReady]);
 
-  // IDs of admin/test accounts to exclude from stats
   const EXCLUDED_IDS = [
-    "c9dcaa57-43de-471e-8b09-a195074d1855", // carmit1901
-    "49cd7676-ab96-496b-9287-61a9d67d3e68", // carmit1901+test
+    "c9dcaa57-43de-471e-8b09-a195074d1855",
+    "49cd7676-ab96-496b-9287-61a9d67d3e68",
   ];
 
   useEffect(() => {
@@ -109,6 +120,34 @@ const AdminDashboard = () => {
     fetchData();
   }, [isAdmin]);
 
+  // Fetch error logs separately with filters
+  useEffect(() => {
+    if (!isAdmin) return;
+
+    const fetchErrors = async () => {
+      let query = supabase
+        .from("error_logs")
+        .select("*")
+        .order("created_at", { ascending: false })
+        .limit(200);
+
+      if (errorTypeFilter !== "all") {
+        query = query.eq("error_type", errorTypeFilter);
+      }
+
+      if (errorDaysFilter !== "all") {
+        const daysAgo = new Date();
+        daysAgo.setDate(daysAgo.getDate() - parseInt(errorDaysFilter));
+        query = query.gte("created_at", daysAgo.toISOString());
+      }
+
+      const { data } = await query;
+      if (data) setErrorLogs(data as ErrorLogRow[]);
+    };
+
+    fetchErrors();
+  }, [isAdmin, errorTypeFilter, errorDaysFilter]);
+
   if (isAdmin === null) {
     return <div className="flex items-center justify-center min-h-screen">טוען...</div>;
   }
@@ -117,7 +156,24 @@ const AdminDashboard = () => {
     .filter(p => p.status === "completed")
     .reduce((sum, p) => sum + Number(p.amount_ils), 0);
 
+  const errors24h = errorLogs.filter(e => {
+    const d = new Date(e.created_at);
+    return d > new Date(Date.now() - 24 * 60 * 60 * 1000);
+  }).length;
+
   const formatDate = (d: string | null) => d ? format(new Date(d), "dd/MM/yyyy HH:mm") : "—";
+
+  const errorTypes = [...new Set(errorLogs.map(e => e.error_type))];
+
+  const errorTypeLabels: Record<string, string> = {
+    illustration_timeout: "Timeout איורים",
+    illustration_fal_error: "כשל Fal.ai",
+    illustration_general_error: "שגיאת איורים כללית",
+    story_generation_error: "כשל יצירת סיפור",
+    story_parse_error: "שגיאת פענוח AI",
+    story_insert_error: "שגיאת שמירת סיפור",
+    story_general_error: "שגיאה כללית בסיפור",
+  };
 
   return (
     <div className="min-h-screen bg-background p-4 md:p-8" dir="rtl">
@@ -130,7 +186,7 @@ const AdminDashboard = () => {
         </div>
 
         {/* Stats Cards */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+        <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
           <Card>
             <CardHeader className="flex flex-row items-center justify-between pb-2">
               <CardTitle className="text-sm font-medium">משתמשים</CardTitle>
@@ -167,14 +223,27 @@ const AdminDashboard = () => {
               <div className="text-2xl font-bold">₪{totalRevenue.toLocaleString()}</div>
             </CardContent>
           </Card>
+          <Card className={errors24h > 0 ? "border-destructive" : ""}>
+            <CardHeader className="flex flex-row items-center justify-between pb-2">
+              <CardTitle className="text-sm font-medium">שגיאות 24ש</CardTitle>
+              <AlertTriangle className={`h-4 w-4 ${errors24h > 0 ? "text-destructive" : "text-muted-foreground"}`} />
+            </CardHeader>
+            <CardContent>
+              <div className={`text-2xl font-bold ${errors24h > 0 ? "text-destructive" : ""}`}>{errors24h}</div>
+            </CardContent>
+          </Card>
         </div>
 
         {/* Tabs */}
         <Tabs defaultValue="users" className="w-full">
-          <TabsList className="grid w-full grid-cols-3">
+          <TabsList className="grid w-full grid-cols-4">
             <TabsTrigger value="users">משתמשים</TabsTrigger>
             <TabsTrigger value="purchases">רכישות</TabsTrigger>
             <TabsTrigger value="stories">סיפורים</TabsTrigger>
+            <TabsTrigger value="errors" className="flex items-center gap-1">
+              שגיאות
+              {errors24h > 0 && <Badge variant="destructive" className="text-xs px-1.5 py-0">{errors24h}</Badge>}
+            </TabsTrigger>
           </TabsList>
 
           <TabsContent value="users">
@@ -267,6 +336,79 @@ const AdminDashboard = () => {
                         <TableRow key={s.id}>
                           <TableCell>{s.topic}</TableCell>
                           <TableCell className="text-xs">{formatDate(s.created_at)}</TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </div>
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          <TabsContent value="errors">
+            <Card>
+              <CardContent className="p-4 space-y-4">
+                {/* Filters */}
+                <div className="flex flex-wrap gap-3">
+                  <Select value={errorTypeFilter} onValueChange={setErrorTypeFilter}>
+                    <SelectTrigger className="w-[200px]">
+                      <SelectValue placeholder="סוג שגיאה" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">כל הסוגים</SelectItem>
+                      <SelectItem value="illustration_timeout">Timeout איורים</SelectItem>
+                      <SelectItem value="illustration_fal_error">כשל Fal.ai</SelectItem>
+                      <SelectItem value="illustration_general_error">שגיאת איורים כללית</SelectItem>
+                      <SelectItem value="story_generation_error">כשל יצירת סיפור</SelectItem>
+                      <SelectItem value="story_parse_error">שגיאת פענוח AI</SelectItem>
+                      <SelectItem value="story_insert_error">שגיאת שמירת סיפור</SelectItem>
+                      <SelectItem value="story_general_error">שגיאה כללית</SelectItem>
+                    </SelectContent>
+                  </Select>
+                  <Select value={errorDaysFilter} onValueChange={setErrorDaysFilter}>
+                    <SelectTrigger className="w-[150px]">
+                      <SelectValue placeholder="תקופה" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="1">24 שעות</SelectItem>
+                      <SelectItem value="7">7 ימים</SelectItem>
+                      <SelectItem value="30">30 יום</SelectItem>
+                      <SelectItem value="all">הכל</SelectItem>
+                    </SelectContent>
+                  </Select>
+                  <div className="text-sm text-muted-foreground self-center">
+                    {errorLogs.length} שגיאות
+                  </div>
+                </div>
+
+                {/* Error table */}
+                <div className="overflow-x-auto">
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead className="text-right">סוג</TableHead>
+                        <TableHead className="text-right">הודעה</TableHead>
+                        <TableHead className="text-right">תאריך</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {errorLogs.length === 0 ? (
+                        <TableRow>
+                          <TableCell colSpan={3} className="text-center text-muted-foreground py-8">
+                            🎉 אין שגיאות בתקופה הנבחרת
+                          </TableCell>
+                        </TableRow>
+                      ) : errorLogs.map((e) => (
+                        <TableRow key={e.id}>
+                          <TableCell>
+                            <Badge variant="outline" className="text-xs whitespace-nowrap">
+                              {errorTypeLabels[e.error_type] || e.error_type}
+                            </Badge>
+                          </TableCell>
+                          <TableCell className="text-xs max-w-[400px] truncate" title={e.error_message}>
+                            {e.error_message}
+                          </TableCell>
+                          <TableCell className="text-xs whitespace-nowrap">{formatDate(e.created_at)}</TableCell>
                         </TableRow>
                       ))}
                     </TableBody>

@@ -1,6 +1,7 @@
 import "https://deno.land/x/xhr@0.1.0/mod.ts";
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.39.3";
+import { logError } from "../_shared/log-error.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -205,6 +206,7 @@ FULL BODY head to toe, feet GROUNDED on surface. Portrait 4:3 framing. NEGATIVE:
     if (!response.ok) {
       const errorBody = await response.text().catch(() => "no body");
       console.error(`Instant Character generation failed: ${response.status} - ${errorBody}`);
+      await logError("illustration_fal_error", `Instant Character failed: ${response.status}`, { status: response.status, body: errorBody.substring(0, 500) });
       return null;
     }
 
@@ -233,7 +235,10 @@ FULL BODY head to toe, feet GROUNDED on surface. Portrait 4:3 framing. NEGATIVE:
 
     return null;
   } catch (error) {
+    const isTimeout = error instanceof DOMException && error.name === "TimeoutError";
+    const errorType = isTimeout ? "illustration_timeout" : "illustration_fal_error";
     console.error("Error in Instant Character illustration:", error);
+    await logError(errorType, `Instant Character: ${error?.message || error}`, { model: "fal-ai/instant-character" });
     return null;
   }
 }
@@ -294,6 +299,7 @@ async function generateIllustration(
     if (!response.ok) {
       const errorBody = await response.text().catch(() => "no body");
       console.error(`Fal.ai image generation failed: ${response.status} - ${errorBody}`);
+      await logError("illustration_fal_error", `Flux Schnell failed: ${response.status}`, { status: response.status, body: errorBody.substring(0, 500) });
       return null;
     }
 
@@ -322,7 +328,10 @@ async function generateIllustration(
 
     return null;
   } catch (error) {
+    const isTimeout = error instanceof DOMException && error.name === "TimeoutError";
+    const errorType = isTimeout ? "illustration_timeout" : "illustration_fal_error";
     console.error("Error generating illustration:", error);
+    await logError(errorType, `Flux Schnell: ${error?.message || error}`, { model: "fal-ai/flux/schnell" });
     return null;
   }
 }
@@ -794,6 +803,7 @@ serve(async (req) => {
 
   } catch (error) {
     console.error("Error in generate-illustrations:", error);
+    await logError("illustration_general_error", `generate-illustrations crash: ${error?.message || error}`, {});
     
     // Try to update story status to failed
     try {
