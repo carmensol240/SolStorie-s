@@ -1244,6 +1244,7 @@ ${topic.endsWith('-edu') ? `
 
     if (storyError) {
       console.error("Error creating story:", storyError);
+      await logError("story_insert_error", `Story insert failed: ${storyError.message}`, { code: storyError.code, topic, childName }, userId);
       throw storyError;
     }
 
