@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef, useCallback, useMemo } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { Home, BookOpen, Sparkles, Palette, Wand2, RefreshCw, Loader2, ImageOff, Star, Send, ChevronRight, ChevronLeft } from "lucide-react";
+import { Home, BookOpen, Sparkles, Palette, Wand2, RefreshCw, Loader2, ImageOff, Star, Send, ChevronRight, ChevronLeft, ArrowRight } from "lucide-react";
 import { MissingIllustrationPrompt } from "@/components/story/MissingIllustrationPrompt";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
@@ -990,6 +990,16 @@ const StoryViewer = () => {
                   </p>
                   <div className="pt-2">
                     <span className="text-base font-black logo-3d-bubble"><span className="logo-rainbow">SolStorie's™</span></span>
+                  </div>
+                  {/* Desktop back button */}
+                  <div className="hidden md:flex justify-center pt-4">
+                    <Button
+                      onClick={() => navigate('/library')}
+                      className="bg-white/90 hover:bg-white text-purple-700 font-bold px-6 py-3 rounded-full shadow-lg text-base gap-2"
+                    >
+                      <ArrowRight className="w-5 h-5" />
+                      חזרה לספרייה
+                    </Button>
                   </div>
                 </div>
               </div>
