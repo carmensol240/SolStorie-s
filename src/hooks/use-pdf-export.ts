@@ -235,10 +235,12 @@ export const usePdfExport = () => {
     pageEl.innerHTML = `
       ${bgHtml}
       <div style="position:absolute;bottom:0;left:0;right:0;height:45%;
-        background:linear-gradient(to top, rgba(0,0,0,0.75) 0%, rgba(0,0,0,0.4) 60%, transparent 100%);"></div>
+        background:linear-gradient(to top, rgba(0,0,0,0.8) 0%, rgba(0,0,0,0.5) 60%, transparent 100%);"></div>
       <div style="position:absolute;bottom:0;left:0;right:0;z-index:1;padding:24px 32px 36px 32px;text-align:center;">
-        <p style="color:white;font-size:24px;line-height:2;font-weight:500;margin:0;
-          text-shadow:0 2px 4px rgba(0,0,0,0.5);word-wrap:break-word;overflow-wrap:break-word;white-space:pre-line;">
+        <p style="color:white;font-size:24px;line-height:2;font-weight:600;margin:0;
+          text-shadow:0 1px 3px rgba(0,0,0,0.8), 0 4px 12px rgba(0,0,0,0.6), 0 0 20px rgba(0,0,0,0.4);
+          background:rgba(0,0,0,0.35);padding:12px 16px;border-radius:12px;backdrop-filter:blur(4px);
+          word-wrap:break-word;overflow-wrap:break-word;white-space:pre-line;">
           ${escapeHtml(text)}
         </p>
         <div style="margin-top:12px;">
