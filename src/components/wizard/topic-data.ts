@@ -61,6 +61,11 @@ import topicMagicKeys from "@/assets/topic-magic-keys.jpg";
 import topicEducationalToolbox from "@/assets/topic-educational-toolbox.jpeg";
 import topicSafeRoom from "@/assets/topic-safe-room.png";
 import topicFindAFriend from "@/assets/topic-find-a-friend.jpg";
+import topicScreenTime from "@/assets/topic-screen-time.jpg";
+import topicDivorce from "@/assets/topic-divorce.jpg";
+import topicSickGrandparent from "@/assets/topic-sick-grandparent.jpg";
+import topicMakingMistakes from "@/assets/topic-making-mistakes.jpg";
+import topicCryingIsOk from "@/assets/topic-crying-is-ok.jpg";
 
 export interface TopicItem {
   id: string;
