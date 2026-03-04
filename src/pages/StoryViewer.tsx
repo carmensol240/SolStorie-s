@@ -1183,8 +1183,8 @@ const StoryViewer = () => {
                       </p>
                     </div>
 
-                    {/* Bottom illustration (40%) */}
-                    <div className="flex-[4] min-h-0 overflow-hidden flex items-center justify-center p-2">
+                    {/* Bottom illustration (~44%) */}
+                    <div className="flex-[6] min-h-0 overflow-hidden flex items-center justify-center p-2">
                       {currentVirtual.dbPage.illustration_url_2 ? (
                         <img
                           src={getPublicIllustrationUrl(currentVirtual.dbPage.illustration_url_2) || ''}
