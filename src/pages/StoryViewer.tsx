@@ -933,24 +933,17 @@ const StoryViewer = () => {
           )}>
             
             {isCoverPage ? (
-              /* Cover Page — merged with dedication: first illustration as bg + child avatar */
+              /* Cover Page — superhero background + child avatar */
               (() => {
-                const firstIllustration = virtualPages[0]?.illustrationUrl
-                  ? getPublicIllustrationUrl(virtualPages[0].illustrationUrl)
-                  : null;
                 return (
                   <div className="relative flex flex-col h-full">
-                    {/* Full background — first page illustration */}
-                    {firstIllustration ? (
-                      <img
-                        src={firstIllustration}
-                        alt="כריכת הסיפור"
-                        className="absolute inset-0 w-full h-full object-cover"
-                        loading="eager"
-                      />
-                    ) : (
-                      <div className="absolute inset-0 bg-gradient-to-br from-purple-200 via-pink-100 to-orange-100" />
-                    )}
+                    {/* Full background — magical superhero scene */}
+                    <img
+                      src={castWavingFarewell}
+                      alt="כריכת הסיפור"
+                      className="absolute inset-0 w-full h-full object-cover"
+                      loading="eager"
+                    />
                     {/* Dark gradient overlay */}
                     <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/30 to-black/10" />
 

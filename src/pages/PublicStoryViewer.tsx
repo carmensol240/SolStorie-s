@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
 import { cn } from "@/lib/utils";
 import { getPublicIllustrationUrl } from "@/lib/illustration-url";
+import castWavingFarewell from "@/assets/cast-waving-farewell.png";
 import "./StoryViewer.css";
 
 interface PublicPage {
@@ -146,7 +147,6 @@ const PublicStoryViewer = () => {
   const isEndPage = currentPage >= virtualPages.length;
   const currentVirtual = (!isCoverPage && !isEndPage && currentPage >= 0) ? virtualPages[currentPage] : null;
   const illustrationSrc = currentVirtual?.illustrationUrl ? getPublicIllustrationUrl(currentVirtual.illustrationUrl) : null;
-  const coverIllustration = story.pages[0]?.illustration_url ? getPublicIllustrationUrl(story.pages[0].illustration_url) : null;
   const displayText = currentVirtual?.combinedText || currentVirtual?.dbPage.text || '';
 
   return (
@@ -166,11 +166,7 @@ const PublicStoryViewer = () => {
             {/* Cover Page */}
             {isCoverPage && (
               <div className="h-full w-full relative">
-                {coverIllustration ? (
-                  <img src={coverIllustration} alt="כריכה" className="absolute inset-0 w-full h-full object-cover" />
-                ) : (
-                  <div className="absolute inset-0 bg-gradient-to-br from-purple-200 via-pink-100 to-orange-100" />
-                )}
+                <img src={castWavingFarewell} alt="כריכה" className="absolute inset-0 w-full h-full object-cover" />
                 <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/30 to-black/10" />
 
                 {/* Content — avatar + dedication + button */}
