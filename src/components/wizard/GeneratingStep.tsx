@@ -203,9 +203,9 @@ const GeneratingStep = ({ formData, onComplete }: GeneratingStepProps) => {
         throw new Error("הסיפור נוצר אך ללא טקסט. מנסים שוב...");
       }
 
-      console.log("[GeneratingStep] Text verified. Moving to puzzle phase...");
+      console.log("[GeneratingStep] Text verified. Moving to illustrations phase...");
       setStoryId(data.storyId);
-      setPhase('puzzle');
+      setPhase('illustrations');
       setProgress(50);
       
     } catch (err) {
