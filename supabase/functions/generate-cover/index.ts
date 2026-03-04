@@ -191,7 +191,7 @@ FULL BODY head to toe, feet GROUNDED. NEGATIVE: realistic, semi-realistic, real 
           });
 
           if (!response.ok) {
-            console.error(`Instant Character cover attempt ${attempt} failed:`, response.status);
+            console.error(`Flux Kontext cover attempt ${attempt} failed:`, response.status);
             if (attempt < MAX_ATTEMPTS) { await new Promise(r => setTimeout(r, 3000)); continue; }
             // Fall through to Gemini path below
             break;
