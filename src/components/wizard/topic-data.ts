@@ -146,7 +146,7 @@ export const CHARACTER_SECTIONS: CharacterSection[] = [
       { id: "first-day-kindergarten", label: "יום ראשון בגן", description: "סיפור על ההתרגשות והחשש של היום הראשון בגן: חברים חדשים, משחקים והגננת החמה.", image: topicFirstDayKindergarten, ageRange: "3-6" },
       { id: "mom-dont-go", label: "אמא אל תלכי", description: "סיפור על חרדת נטישה: איך מתמודדים עם הרגע שאמא הולכת ומגלים שהיא תמיד חוזרת.", image: topicMomDontGo, ageRange: "3-6" },
       { id: "fear-of-dark", label: "סול מגלה שהחושך לא מפחיד", description: "סיפור על התגברות על פחד מהחושך: לגלות שהחושך מלא כוכבים, ירח וחלומות יפים.", image: topicFearOfDark, ageRange: "3-6" },
-      { id: "friendship-courage", label: "חברים בגן", description: "סיפור על חברות אמיתית: איך מתחילים לדבר עם ילד חדש, מה עושים כשיש ריב ואיך מתפייסים.", image: topicFriendship, ageRange: "3-6" },
+      { id: "friendship-courage", label: "חברים בגן", description: "סיפור על חברות אמיתית: איך מתחילים לדבר עם ילד חדש, מה עושים כשיש ריב ואיך מתפייסים.", image: topicFriendshipCourage, ageRange: "3-6" },
       { id: "sharing", label: "כמה כיף לחלוק", description: "סיפור על שיתוף ונדיבות: לחלוק צעצועים, ממתקים ורגעים – ולגלות שלתת זה לקבל.", image: topicSharing, ageRange: "3-6" },
       { id: "apologize", label: "ללמוד לבקש סליחה", description: "סיפור על אחריות ופיוס: מה קורה כשטועים, למה חשוב להתנצל ואיך מרגישים אחרי.", image: topicApologize, ageRange: "3-6" },
       { id: "trying-again", label: "הקסם שבניסיון", description: "סיפור על התמדה: גם כשלא מצליחים בפעם הראשונה, הקסם האמיתי הוא לנסות שוב ושוב.", image: topicTryingAgain, ageRange: "3-6" },
