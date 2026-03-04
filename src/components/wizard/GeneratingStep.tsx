@@ -352,6 +352,8 @@ const GeneratingStep = ({ formData, onComplete }: GeneratingStepProps) => {
       clearInterval(messageInterval);
       clearInterval(sentenceInterval);
       clearInterval(keepaliveInterval);
+      clearInterval(castInterval);
+      clearInterval(tipInterval);
     };
   }, [generateStory, phase, toast]);
 
