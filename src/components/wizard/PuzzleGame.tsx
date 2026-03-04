@@ -55,6 +55,8 @@ const PuzzleGame = ({ ageRange }: PuzzleGameProps) => {
   const pieceSize = 100 / gridSize;
   const pieceSizeRem = gridSize === 2 ? 5.5 : gridSize === 3 ? 4 : 3.2;
 
+  const allPiecesPlaced = board.every((val) => val !== null);
+
   const checkCompletion = useCallback((newBoard: (number | null)[]) => {
     if (newBoard.every((val, idx) => val === idx)) {
       setCompleted(true);
