@@ -66,6 +66,20 @@ import topicDivorce from "@/assets/topic-divorce.jpg";
 import topicSickGrandparent from "@/assets/topic-sick-grandparent.jpg";
 import topicMakingMistakes from "@/assets/topic-making-mistakes.jpg";
 import topicCryingIsOk from "@/assets/topic-crying-is-ok.jpg";
+import topicCloudKingdom from "@/assets/topic-cloud-kingdom.jpg";
+import topicDragonParty from "@/assets/topic-dragon-party.jpg";
+import topicStrangeInventions from "@/assets/topic-strange-inventions.jpg";
+import topicSpaceJourney from "@/assets/topic-space-journey.jpg";
+import topicFriendshipCourage from "@/assets/topic-friendship-courage.jpg";
+import topicAcceptingDifferences from "@/assets/topic-accepting-differences.jpg";
+import topicHowBodyWorks from "@/assets/topic-how-body-works.jpg";
+import topicWaitingInLine from "@/assets/topic-waiting-in-line.jpg";
+import topicPoliteness from "@/assets/topic-politeness.jpg";
+import topicEmotionRegulation from "@/assets/topic-emotion-regulation.jpg";
+import topicPatience from "@/assets/topic-patience.jpg";
+import topicPlayRules from "@/assets/topic-play-rules.jpg";
+import topicSelfConfidence from "@/assets/topic-self-confidence.jpg";
+import topicNatureSecrets from "@/assets/topic-nature-secrets.jpg";
 
 export interface TopicItem {
   id: string;
@@ -109,7 +123,7 @@ export const CHARACTER_SECTIONS: CharacterSection[] = [
       { id: "seatbelt-safety", label: "חגורת בטיחות", description: "סיפור על חשיבות חגירת חגורת הבטיחות ברכב: למה היא מגינה עלינו ואיך הופכים את זה להרגל.", image: topicSeatbeltSafety, ageRange: "3-6" },
       { id: "blood-test", label: "סול וגיבורי הבריאות", description: "סיפור מעודד על ביקור בבדיקת דם: סול מגלה שהיא גיבורת בריאות אמיתית ומקבלה מדבקת כוכב.", image: topicBloodTest, ageRange: "3-6" },
       { id: "true-friendship", label: "חברות אמת", description: "סיפור על חברות אמיתית: לא רק שמחים ביחד ביום שמש, אלא גם עומדים לצד החבר/ה כשהיום קשה וה-שמיים אפורים.", image: topicFriendship, ageRange: "4-8", keywords: ["חברות", "חבר אמת", "נאמנות", "תמיכה"] },
-      { id: "accepting-differences", label: "קבלת השונה", description: "סיפור על פגישה עם מישהו שנראה שונה לגמרי – ועל הגילוי הגדול שמתחת לשטח, לבבות כל-כך דומים.", image: topicWeAreSpecial, ageRange: "4-8", keywords: ["שונות", "קבלה", "הכלה", "אחרות"] },
+      { id: "accepting-differences", label: "קבלת השונה", description: "סיפור על פגישה עם מישהו שנראה שונה לגמרי – ועל הגילוי הגדול שמתחת לשטח, לבבות כל-כך דומים.", image: topicAcceptingDifferences, ageRange: "4-8", keywords: ["שונות", "קבלה", "הכלה", "אחרות"] },
       { id: "helping-home", label: "עזרה בבית", description: "סיפור על הגאווה שבשותפות: כשכולם עוזרים – לסדר, לבשל, לנקות – הבית הופך לפרויקט משפחתי שכולם חלק ממנו.", image: topicHelpingAtHome, ageRange: "3-6", keywords: ["עזרה", "בית", "שיתוף", "משפחה", "אחריות"] },
     ],
   },
@@ -132,7 +146,7 @@ export const CHARACTER_SECTIONS: CharacterSection[] = [
       { id: "first-day-kindergarten", label: "יום ראשון בגן", description: "סיפור על ההתרגשות והחשש של היום הראשון בגן: חברים חדשים, משחקים והגננת החמה.", image: topicFirstDayKindergarten, ageRange: "3-6" },
       { id: "mom-dont-go", label: "אמא אל תלכי", description: "סיפור על חרדת נטישה: איך מתמודדים עם הרגע שאמא הולכת ומגלים שהיא תמיד חוזרת.", image: topicMomDontGo, ageRange: "3-6" },
       { id: "fear-of-dark", label: "סול מגלה שהחושך לא מפחיד", description: "סיפור על התגברות על פחד מהחושך: לגלות שהחושך מלא כוכבים, ירח וחלומות יפים.", image: topicFearOfDark, ageRange: "3-6" },
-      { id: "friendship-courage", label: "חברים בגן", description: "סיפור על חברות אמיתית: איך מתחילים לדבר עם ילד חדש, מה עושים כשיש ריב ואיך מתפייסים.", image: topicFriendship, ageRange: "3-6" },
+      { id: "friendship-courage", label: "חברים בגן", description: "סיפור על חברות אמיתית: איך מתחילים לדבר עם ילד חדש, מה עושים כשיש ריב ואיך מתפייסים.", image: topicFriendshipCourage, ageRange: "3-6" },
       { id: "sharing", label: "כמה כיף לחלוק", description: "סיפור על שיתוף ונדיבות: לחלוק צעצועים, ממתקים ורגעים – ולגלות שלתת זה לקבל.", image: topicSharing, ageRange: "3-6" },
       { id: "apologize", label: "ללמוד לבקש סליחה", description: "סיפור על אחריות ופיוס: מה קורה כשטועים, למה חשוב להתנצל ואיך מרגישים אחרי.", image: topicApologize, ageRange: "3-6" },
       { id: "trying-again", label: "הקסם שבניסיון", description: "סיפור על התמדה: גם כשלא מצליחים בפעם הראשונה, הקסם האמיתי הוא לנסות שוב ושוב.", image: topicTryingAgain, ageRange: "3-6" },
@@ -175,9 +189,9 @@ export const CHARACTER_SECTIONS: CharacterSection[] = [
       { id: "magical-forest", label: "מסע ביער הקסום", description: "הרפתקה ביער קסום ומלא חיים: עצים מדברים, פרפרים זוהרים ושבילים מסתוריים.", image: topicMagicalForest, ageRange: "3-6" },
       { id: "space-adventure", label: "סול מכבסת את השמיים", description: "הרפתקה בין כוכבים: טיסה לחלל, מפגש עם כוכבי לכת ונחיתה על הירח.", image: topicSpaceHero, ageRange: "3-8" },
       { id: "magic-keys", label: "המפתחות הקסומים", description: "חיפוש אחר מפתחות קסומים שפותחים דלתות לעולמות מדהימים ומסתוריים.", image: topicMagicKeys, ageRange: "4-8" },
-      { id: "cloud-kingdom", label: "ממלכת העננים", description: "הרפתקה מעל הכל: מסע אל ממלכה שבנויה לגמרי מעננים, שם חיים יצורים עשויי אוויר וקלים כנוצה.", image: topicCloudAdventure, ageRange: "3-6", keywords: ["עננים", "ממלכה", "קסם", "שמיים"] },
-      { id: "dragon-party", label: "מסיבת הדרקונים", description: "הזמנה בלתי-צפויה למסיבה של דרקונים ידידותיים: ריקודים, אש בצבעי קשת ושיר שמח שמדהים את כל היער.", image: topicMagicCastle, ageRange: "3-8", keywords: ["דרקון", "מסיבה", "קסם", "ידידות"] },
-      { id: "strange-inventions", label: "המצאות משונות", description: "ילד/ה עם דמיון פורה מחליט/ה להמציא את הדבר הכי מוזר שנראה אי-פעם – ומגלה שהמצאות הגדולות ביותר מתחילות בחיוך.", image: topicMagicKeys, ageRange: "4-8", keywords: ["המצאות", "יצירתיות", "מדע", "פיתוח"] },
+      { id: "cloud-kingdom", label: "ממלכת העננים", description: "הרפתקה מעל הכל: מסע אל ממלכה שבנויה לגמרי מעננים, שם חיים יצורים עשויי אוויר וקלים כנוצה.", image: topicCloudKingdom, ageRange: "3-6", keywords: ["עננים", "ממלכה", "קסם", "שמיים"] },
+      { id: "dragon-party", label: "מסיבת הדרקונים", description: "הזמנה בלתי-צפויה למסיבה של דרקונים ידידותיים: ריקודים, אש בצבעי קשת ושיר שמח שמדהים את כל היער.", image: topicDragonParty, ageRange: "3-8", keywords: ["דרקון", "מסיבה", "קסם", "ידידות"] },
+      { id: "strange-inventions", label: "המצאות משונות", description: "ילד/ה עם דמיון פורה מחליט/ה להמציא את הדבר הכי מוזר שנראה אי-פעם – ומגלה שהמצאות הגדולות ביותר מתחילות בחיוך.", image: topicStrangeInventions, ageRange: "4-8", keywords: ["המצאות", "יצירתיות", "מדע", "פיתוח"] },
     ],
   },
   {
@@ -192,9 +206,9 @@ export const CHARACTER_SECTIONS: CharacterSection[] = [
       { id: "birthday-party", label: "מסיבת יום הולדת", description: "מסיבת יום הולדת מושלמת: עוגה, בלונים, חברים, משחקים והפתעות מדהימות.", image: topicBirthday, ageRange: "3-6" },
       { id: "grandparents-night", label: "הלילה המיוחד במלכות סבא וסבתא", description: "לילה קסום אצל סבא וסבתא: סיפורים, ממתקים, פינוקים וזכרונות שנשארים לתמיד.", image: topicGrandparentsNight, ageRange: "3-6" },
       { id: "flying-vacation", label: "טיסה לחופשה", description: "הרפתקה ראשונה במטוס: ההתרגשות, ההמראה, מבט מהחלון ופיצוח האוזניים.", image: topicFlyingVacation, ageRange: "3-8" },
-      { id: "space-journey", label: "מסע בחלל", description: "הרפתקה בין כוכבי הלכת: לגלות שבכל כוכב יש סוד משלו, שהיקום גדול אין-סוף וכדור הארץ שלנו הוא הפלא הכי גדול.", image: topicSpaceHero, ageRange: "4-8", keywords: ["חלל", "כוכבים", "כוכבי לכת", "מדע", "אסטרונאוט"] },
-      { id: "nature-secrets", label: "סודות הטבע", description: "טיול בין העצים, האבנים והיצורים הקטנים: הטבע מלא סודות שמחכים לילד/ה סקרן/ית שיפקח/תפקח עיניים וישמע/תשמע.", image: topicEnvironment, ageRange: "3-8", keywords: ["טבע", "עצים", "חרקים", "גילוי", "מדע"] },
-      { id: "how-body-works", label: "איך הגוף שלנו עובד", description: "מסע פנימה: לגלות שהגוף הוא מכונה מדהימה שעובדת בשבילנו כל הזמן – הלב מציב, הריאות נושמות והמוח חולם.", image: topicBloodTest, ageRange: "4-8", keywords: ["גוף", "בריאות", "מדע", "לב", "מוח"] },
+      { id: "space-journey", label: "מסע בחלל", description: "הרפתקה בין כוכבי הלכת: לגלות שבכל כוכב יש סוד משלו, שהיקום גדול אין-סוף וכדור הארץ שלנו הוא הפלא הכי גדול.", image: topicSpaceJourney, ageRange: "4-8", keywords: ["חלל", "כוכבים", "כוכבי לכת", "מדע", "אסטרונאוט"] },
+      { id: "nature-secrets", label: "סודות הטבע", description: "טיול בין העצים, האבנים והיצורים הקטנים: הטבע מלא סודות שמחכים לילד/ה סקרן/ית שיפקח/תפקח עיניים וישמע/תשמע.", image: topicNatureSecrets, ageRange: "3-8", keywords: ["טבע", "עצים", "חרקים", "גילוי", "מדע"] },
+      { id: "how-body-works", label: "איך הגוף שלנו עובד", description: "מסע פנימה: לגלות שהגוף הוא מכונה מדהימה שעובדת בשבילנו כל הזמן – הלב מציב, הריאות נושמות והמוח חולם.", image: topicHowBodyWorks, ageRange: "4-8", keywords: ["גוף", "בריאות", "מדע", "לב", "מוח"] },
     ],
   },
   {
@@ -205,15 +219,15 @@ export const CHARACTER_SECTIONS: CharacterSection[] = [
     categoryEmoji: "🎓",
     heroImage: topicEducationalToolbox,
     topics: [
-      { id: "waiting-in-line-edu", label: "⏰ המתנה בתור – מתי מגיע תורי?", description: "סיפור העצמה חברתי: למה חשוב לחכות, איך עושים את זה ומה מרוויחים כשממתינים בסבלנות.", image: topicSharing, ageRange: "3-6" },
-      { id: "emotion-regulation-edu", label: "🌊 ויסות רגשות – לנשום ולהירגע", description: "סיפור העצמה חברתי: כלים מעשיים לזהות את הרגש, לנשום ולמצוא דרך בריאה לבטא כעס ותסכול.", image: topicAngerCloud, ageRange: "3-8" },
+      { id: "waiting-in-line-edu", label: "⏰ המתנה בתור – מתי מגיע תורי?", description: "סיפור העצמה חברתי: למה חשוב לחכות, איך עושים את זה ומה מרוויחים כשממתינים בסבלנות.", image: topicWaitingInLine, ageRange: "3-6" },
+      { id: "emotion-regulation-edu", label: "🌊 ויסות רגשות – לנשום ולהירגע", description: "סיפור העצמה חברתי: כלים מעשיים לזהות את הרגש, לנשום ולמצוא דרך בריאה לבטא כעס ותסכול.", image: topicEmotionRegulation, ageRange: "3-8" },
       { id: "holidays-seasons-edu", label: "🗓️ מעגל השנה – חגים ועונות", description: "סיפור העצמה חברתי: סיפורים על מעגל השנה, חגים, עונות, מסורות ומנהגים שמלווים אותנו.", image: topicRainParty, ageRange: "3-8" },
-      { id: "play-rules-edu", label: "🎲 כללי משחק – לשחק בהוגנות", description: "סיפור העצמה חברתי: לחכות לתור, לא לרמות, לשמוח בהצלחה של חברים ולקבל הפסד בכבוד.", image: topicFriendship, ageRange: "3-6" },
-      { id: "self-confidence-edu", label: "💪 ביטחון עצמי – אני יכול/ה!", description: "סיפור העצמה חברתי: להאמין בעצמי, לנסות דברים חדשים ולדעת שאני מסוגל/ת.", image: topicIndependence, ageRange: "3-8" },
+      { id: "play-rules-edu", label: "🎲 כללי משחק – לשחק בהוגנות", description: "סיפור העצמה חברתי: לחכות לתור, לא לרמות, לשמוח בהצלחה של חברים ולקבל הפסד בכבוד.", image: topicPlayRules, ageRange: "3-6" },
+      { id: "self-confidence-edu", label: "💪 ביטחון עצמי – אני יכול/ה!", description: "סיפור העצמה חברתי: להאמין בעצמי, לנסות דברים חדשים ולדעת שאני מסוגל/ת.", image: topicSelfConfidence, ageRange: "3-8" },
       { id: "honesty-edu", label: "🪄 כנות – לומר את האמת בעדינות", description: "סיפור העצמה חברתי: ילדים רבים מרגישים שקשה לומר את האמת. כשהאמת נאמרת בעדינות, היחסים נשארים חזקים והלב קל.", image: topicApologize, ageRange: "3-8", keywords: ["אמת", "כנות", "מיומנות חברתית"] },
       { id: "cooperation-edu", label: "🤝 עבודת צוות – ביחד אנחנו חזקים", description: "סיפור העצמה חברתי: בכיתה או בגן, כשכל אחד תורם את חלקו, המשימה הגדולה הופכת לאפשרית ולמשמחת.", image: topicPlayingTogether, ageRange: "3-8", keywords: ["שיתוף פעולה", "קבוצה", "צוות"] },
-      { id: "patience-edu", label: "⏳ סבלנות – לחכות בשקט ובשלווה", description: "סיפור העצמה חברתי: יש רגעים שצריך לחכות – לתורנו, לתשובה, לסיום. נשימה עמוקה עוזרת לגוף ולמחשבות להירגע.", image: topicAngerCloud, ageRange: "3-8", keywords: ["סבלנות", "ויסות", "המתנה"] },
-      { id: "politeness-edu", label: "🎩 נימוס – מילים שפותחות לבבות", description: "סיפור העצמה חברתי: מילים כמו 'תודה' ו'בבקשה' הן לא רק כללים – הן הדרך שבה מראים לאחרים שרואים אותם ומכבדים אותם.", image: topicSharing, ageRange: "3-8", keywords: ["אדיבות", "נימוס", "דרך ארץ"] },
+      { id: "patience-edu", label: "⏳ סבלנות – לחכות בשקט ובשלווה", description: "סיפור העצמה חברתי: יש רגעים שצריך לחכות – לתורנו, לתשובה, לסיום. נשימה עמוקה עוזרת לגוף ולמחשבות להירגע.", image: topicPatience, ageRange: "3-8", keywords: ["סבלנות", "ויסות", "המתנה"] },
+      { id: "politeness-edu", label: "🎩 נימוס – מילים שפותחות לבבות", description: "סיפור העצמה חברתי: מילים כמו 'תודה' ו'בבקשה' הן לא רק כללים – הן הדרך שבה מראים לאחרים שרואים אותם ומכבדים אותם.", image: topicPoliteness, ageRange: "3-8", keywords: ["אדיבות", "נימוס", "דרך ארץ"] },
       { id: "respecting-elders-edu", label: "👴 כבוד למבוגרים – להקשיב וללמוד", description: "סיפור העצמה חברתי: להקשיב כשמדברים אליך, לחכות לתורך ולהגיד תודה – אלה דרכים שמראות כבוד ועושות טוב לכולם.", image: topicGrandparentsNight, ageRange: "3-8", keywords: ["כבוד", "מבוגרים", "דרך ארץ"] },
       { id: "eating-with-cutlery-edu", label: "🍴 לאכול עם סכו״ם – הכלים המבריקים שלי", description: "סיפור העצמה חברתי: כשאני אוכל/ת עם כף ומזלג, הידיים שלי נשארות נקיות והאוכל מגיע בדיוק לפה. זה מרגיש גדול ומיוחד!", image: "https://qvdwmkxviaqcgmjotsxe.supabase.co/storage/v1/object/public/topic-images/topic-eating-with-cutlery.png", ageRange: "2-6", keywords: ["אכילה", "סכום", "כלי אוכל", "עצמאות"] },
       { id: "rainbow-power-edu", label: "🌈 כוח הקשת – פירות וירקות קסומים", description: "סיפור העצמה חברתי: כל פרי וירק הוא כוח-על מיוחד! הצבעים של הקשת מחכים בצלחת – אדום נותן אנרגיה, כתום מחזק את העיניים וירוק בונה שרירים חזקים.", image: topicBraveTaster, ageRange: "0-8", keywords: ["פירות", "ירקות", "אכילה בריאה", "צבעים", "תזונה", "כוח על"] },

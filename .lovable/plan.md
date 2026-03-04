@@ -1,42 +1,26 @@
 
 
-## תוכנית: תיקון תמונות כפולות והחלפת תמונות שלא תואמות לסגנון
+## Bug Analysis
 
-### בעיה 1: תמונות כפולות בנושאים שונים
-ניתוח של `topic-data.ts` מגלה את הכפילויות הבאות:
+The onboarding loop is caused by a combination of issues in the navigation flow between `RequireTerms` and `Onboarding`:
 
-| תמונה | נושא 1 | נושא 2 (+ 3) |
-|--------|---------|---------------|
-| `topicCloudAdventure` | cloud-adventure | cloud-kingdom |
-| `topicMagicCastle` | magic-kingdom | dragon-party |
-| `topicMagicKeys` | magic-keys | strange-inventions |
-| `topicSpaceHero` | space-adventure | space-journey |
-| `topicFriendship` | true-friendship | friendship-courage, play-rules-edu |
-| `topicWeAreSpecial` | we-are-special | accepting-differences |
-| `topicBloodTest` | blood-test | how-body-works |
-| `topicSharing` | sharing | waiting-in-line-edu, politeness-edu |
-| `topicAngerCloud` | anger-cloud | emotion-regulation-edu, patience-edu |
-| `topicIndependence` | independence | self-confidence-edu |
-| `topicEnvironment` | environment | nature-secrets |
+1. **Silent update failure**: In `Onboarding.handleContinue`, the Supabase `.update().eq()` call returns success (`error: null`) even when **zero rows are matched** (e.g., due to a race condition where the profile hasn't been created yet). The code doesn't verify the update actually persisted.
 
-### בעיה 2: 6 תמונות חדשות לא תואמות סגנון
-התמונות שנוצרו עבור: `find-a-friend`, `screen-time`, `divorce`, `sick-grandparent`, `making-mistakes`, `crying-is-ok` — נוצרו ב-flux.schnell ולא תואמות לסגנון 3D Pixar של סול והקאסט.
+2. **No `replace: true` on redirects**: Both `RequireTerms` (redirecting to `/onboarding`) and `Onboarding`'s guard effect (redirecting to `/adventure`) use `navigate()` without `{ replace: true }`, causing history stack pollution and making the loop worse.
 
-### פתרון
-**שלב 1:** ייצור תמונות חדשות ב-Gemini image generation (google/gemini-3-pro-image-preview) בסגנון 3D Pixar עם דמויות סול, בן והחברים — עבור:
-- 6 הנושאים החדשים (find-a-friend, screen-time, divorce, sick-grandparent, making-mistakes, crying-is-ok)
-- 11 נושאים כפולים שצריכים תמונה ייחודית (cloud-kingdom, dragon-party, strange-inventions, space-journey, accepting-differences, how-body-works, waiting-in-line-edu, politeness-edu, self-confidence-edu, nature-secrets, play-rules-edu — ועוד friendship-courage, emotion-regulation-edu, patience-edu)
+3. **Loop mechanics**: `handleContinue` thinks it succeeded → navigates to `/adventure` → `RequireTerms` queries DB → `terms_accepted_at` is still null → redirects back to `/onboarding` → Onboarding guard checks terms → still null → shows the form again.
 
-סה"כ כ-17 תמונות חדשות.
+## Fix
 
-**שלב 2:** עדכון `topic-data.ts` — החלפת ה-import/reference של כל נושא שקיבל תמונה חדשה.
+### 1. `src/pages/Onboarding.tsx` — Verify update actually persisted
 
-### הערה טכנית
-- הייצור ייעשה באמצעות Edge Function `generate-topic-images` או ישירות דרך AI gateway
-- כל תמונה תיווצר בפרומפט מותאם לנושא הספציפי עם תיאור סול/בן/חברים בסגנון Pixar 3D כפי שמוגדר בזהות המותג
-- התמונות יישמרו ב-`src/assets/` או ב-storage bucket `topic-images`
+In `handleContinue`, after the update call, re-query the profile to confirm `terms_accepted_at` was saved. If not, use `upsert` as a fallback. Also add `{ replace: true }` to the guard navigation.
 
-### מה לא משתנה
-- אין שינויי DB, RLS או Edge Functions
-- הנושאים עצמם (טקסטים, keywords, ageRange) נשארים כמו שהם
+### 2. `src/components/RequireTerms.tsx` — Use `replace: true`
+
+Change the `navigate` call to onboarding to use `{ replace: true }` so the history stack doesn't accumulate redirect entries.
+
+### 3. Both files — Add select return on update
+
+Use `.update(...).eq(...).select()` to get the updated row back, confirming the write succeeded. If the returned array is empty, fall back to an upsert to handle the edge case where the profile row doesn't exist yet.
 
