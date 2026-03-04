@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useMemo } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { BookOpen, Loader2, ChevronLeft, ChevronRight, Home } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -22,6 +22,12 @@ interface PublicStory {
   cover_url: string | null;
   child_gender: string | null;
   pages: PublicPage[];
+}
+
+interface VirtualPage {
+  dbPage: PublicPage;
+  combinedText?: string;
+  illustrationUrl: string | null;
 }
 
 const PublicStoryViewer = () => {
@@ -67,11 +73,37 @@ const PublicStoryViewer = () => {
     fetchStory();
   }, [storySlug]);
 
+  // Build virtual pages — merge every 2 for toddlers (0-2)
+  const virtualPages = useMemo<VirtualPage[]>(() => {
+    if (!story) return [];
+    const pages = story.pages;
+    const isToddler = story.age_range === '0-2';
+
+    if (isToddler) {
+      const result: VirtualPage[] = [];
+      for (let i = 0; i < pages.length; i += 2) {
+        const p1 = pages[i];
+        const p2 = pages[i + 1];
+        result.push({
+          dbPage: p1,
+          combinedText: p2 ? `${p1.text}\n${p2.text}` : p1.text,
+          illustrationUrl: p1.illustration_url,
+        });
+      }
+      return result;
+    }
+
+    return pages.map(p => ({
+      dbPage: p,
+      illustrationUrl: p.illustration_url,
+    }));
+  }, [story]);
+
   const handlePageNav = useCallback((dir: 'next' | 'prev') => {
     if (!story) return;
-    const maxPage = story.pages.length; // end page
+    const maxPage = virtualPages.length; // end page
     setCurrentPage(p => dir === 'next' ? Math.min(p + 1, maxPage) : Math.max(p - 1, -1));
-  }, [story]);
+  }, [story, virtualPages.length]);
 
   // Keyboard nav
   useEffect(() => {
@@ -111,10 +143,11 @@ const PublicStoryViewer = () => {
   }
 
   const isCoverPage = currentPage === -1;
-  const isEndPage = currentPage >= story.pages.length;
-  const page = (!isCoverPage && !isEndPage && currentPage >= 0) ? story.pages[currentPage] : null;
-  const illustrationSrc = page?.illustration_url ? getPublicIllustrationUrl(page.illustration_url) : null;
+  const isEndPage = currentPage >= virtualPages.length;
+  const currentVirtual = (!isCoverPage && !isEndPage && currentPage >= 0) ? virtualPages[currentPage] : null;
+  const illustrationSrc = currentVirtual?.illustrationUrl ? getPublicIllustrationUrl(currentVirtual.illustrationUrl) : null;
   const coverIllustration = story.pages[0]?.illustration_url ? getPublicIllustrationUrl(story.pages[0].illustration_url) : null;
+  const displayText = currentVirtual?.combinedText || currentVirtual?.dbPage.text || '';
 
   return (
     <div className="min-h-screen bg-[#F5E6D3] flex flex-col story-viewer-landscape" dir="rtl">
@@ -128,139 +161,93 @@ const PublicStoryViewer = () => {
       {/* Book area */}
       <main className="flex-1 flex flex-col items-center justify-center p-2 md:p-4 min-h-0">
         <div className="book-container w-full max-w-4xl" style={{ height: 'calc(100vh - 100px)' }}>
-          <div className="relative w-full h-full rounded-xl overflow-hidden shadow-2xl border-2 border-[#D4A574]"
-            style={{ background: 'linear-gradient(135deg, #FFFBF5 0%, #FFF8E7 50%, #FFFBF5 100%)' }}>
+          <div className="relative w-full h-full rounded-xl overflow-hidden shadow-2xl border-2 border-[#D4A574]">
 
             {/* Cover Page */}
             {isCoverPage && (
-              <div className="open-book-spread h-full">
-                <div className="open-book-page-left bg-[#F5E6D3] flex items-center justify-center">
-                  {coverIllustration ? (
-                    <img src={coverIllustration} alt="כריכה" className="w-full h-full object-cover" />
-                  ) : (
+              <div className="h-full w-full relative">
+                {coverIllustration ? (
+                  <img src={coverIllustration} alt="כריכה" className="absolute inset-0 w-full h-full object-cover" />
+                ) : (
+                  <div className="absolute inset-0 bg-gradient-to-br from-purple-100 via-pink-50 to-orange-50 flex items-center justify-center">
                     <BookOpen className="w-20 h-20 text-purple-300" />
-                  )}
-                </div>
-                <div className="open-book-page-right relative bg-[#FFFBF5] px-6 py-5 md:px-10 md:py-6">
-                  <div className="flex-1 flex flex-col items-center justify-center text-center gap-4">
-                    <p className="text-sm text-[#8B4513]">✦ סיפור מיוחד ✦</p>
-                    <h2 className="text-2xl md:text-4xl font-bold text-[#8B4513]">הסיפור של</h2>
-                    <h3 className="text-3xl md:text-5xl font-bold text-purple-600">{story.child_name}</h3>
-                    <p className="text-lg text-[#6B4423]">{story.topic}</p>
                   </div>
-                  <button onClick={() => handlePageNav('next')} aria-label="התחל לקרוא"
-                    className="absolute left-1.5 top-1/2 -translate-y-1/2 z-10 w-7 h-7 rounded-full flex items-center justify-center bg-purple-100/60 hover:bg-purple-200 text-purple-500 opacity-50 hover:opacity-100 transition-all">
-                    <ChevronLeft className="w-4 h-4" />
-                  </button>
-                  <div className="page-curl-corner bottom-right" />
+                )}
+                <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent" />
+                <div className="absolute bottom-0 left-0 right-0 z-10 flex flex-col items-center text-center p-6 md:p-10">
+                  <p className="text-sm text-white/80 drop-shadow-md">✦ סיפור מיוחד ✦</p>
+                  <h2 className="text-2xl md:text-4xl font-bold text-white drop-shadow-lg mt-2">הסיפור של</h2>
+                  <h3 className="text-3xl md:text-5xl font-bold text-purple-200 drop-shadow-lg mt-1">{story.child_name}</h3>
+                  <p className="text-lg text-white/90 drop-shadow-md mt-2">{story.topic}</p>
                 </div>
+                <button onClick={() => handlePageNav('next')} aria-label="התחל לקרוא"
+                  className="absolute left-3 top-1/2 -translate-y-1/2 z-20 w-8 h-8 rounded-full flex items-center justify-center bg-white/20 hover:bg-white/40 text-white transition-all">
+                  <ChevronLeft className="w-5 h-5" />
+                </button>
               </div>
             )}
 
             {/* End Page */}
             {isEndPage && (
-              <div className="open-book-spread h-full">
-                <div className="open-book-page-left bg-[#F5E6D3] flex items-center justify-center">
-                  <BookOpen className="w-20 h-20 text-purple-300" />
+              <div className="h-full w-full relative bg-gradient-to-br from-purple-100 via-pink-50 to-orange-50 flex flex-col items-center justify-center">
+                <div className="text-center space-y-4 p-6">
+                  <p className="text-4xl">📚✨</p>
+                  <h2 className="text-2xl font-bold text-[#8B4513]">תודה שקראתם!</h2>
+                  <p className="text-[#6B4423]">נוצר באהבה ב-SolStorie's™</p>
+                  <Button onClick={() => navigate("/")} variant="outline" className="border-purple-300 text-purple-700 hover:bg-purple-50 mt-4">
+                    <Home className="w-4 h-4 ml-2" />
+                    צרו סיפור משלכם
+                  </Button>
                 </div>
-                <div className="open-book-page-right relative bg-[#FFFBF5] px-6 py-5">
-                  <div className="flex-1 flex flex-col items-center justify-center text-center gap-4">
-                    <p className="text-4xl">📚✨</p>
-                    <h2 className="text-2xl font-bold text-[#8B4513]">תודה שקראתם!</h2>
-                    <p className="text-[#6B4423]">נוצר באהבה ב-SolStorie's™</p>
-                    <Button onClick={() => navigate("/")} variant="outline" className="border-purple-300 text-purple-700 hover:bg-purple-50 mt-4">
-                      <Home className="w-4 h-4 ml-2" />
-                      צרו סיפור משלכם
-                    </Button>
-                  </div>
-                  <button onClick={() => handlePageNav('prev')} aria-label="עמוד קודם"
-                    className="absolute right-1.5 top-1/2 -translate-y-1/2 z-10 w-7 h-7 rounded-full flex items-center justify-center bg-purple-100/60 hover:bg-purple-200 text-purple-500 opacity-50 hover:opacity-100 transition-all">
-                    <ChevronRight className="w-4 h-4" />
-                  </button>
-                </div>
+                <button onClick={() => handlePageNav('prev')} aria-label="עמוד קודם"
+                  className="absolute right-3 top-1/2 -translate-y-1/2 z-20 w-8 h-8 rounded-full flex items-center justify-center bg-purple-100/60 hover:bg-purple-200 text-purple-500 transition-all">
+                  <ChevronRight className="w-5 h-5" />
+                </button>
               </div>
             )}
 
-            {/* Story Pages */}
-            {page && (
-              <div className="open-book-spread h-full">
+            {/* Story Pages — Fullscreen illustration + overlay */}
+            {currentVirtual && (
+              <div className="h-full w-full relative">
+                {/* Fullscreen illustration */}
                 {illustrationSrc ? (
-                  <>
-                    <div className="open-book-page-left bg-[#F5E6D3] flex items-center justify-center">
-                      <img src={illustrationSrc} alt={`איור עמוד ${page.page_number}`} className="w-full h-full object-cover" />
-                      <div className="page-curl-corner bottom-left" />
-                    </div>
-
-                    <div className="open-book-page-right relative px-6 py-5 md:px-10 md:py-6 bg-[#FFFBF5]">
-                      <div className="page-curl-corner bottom-right" />
-                      <button onClick={() => handlePageNav('prev')} disabled={currentPage <= 0}
-                        className={cn("absolute right-1.5 top-1/2 -translate-y-1/2 z-10",
-                          "w-7 h-7 rounded-full flex items-center justify-center",
-                          "bg-purple-100/60 hover:bg-purple-200 border border-purple-200/60",
-                          "text-purple-500 opacity-50 hover:opacity-100 transition-all",
-                          "disabled:opacity-20 disabled:cursor-not-allowed")}>
-                        <ChevronRight className="w-4 h-4" />
-                      </button>
-                      <button onClick={() => handlePageNav('next')} disabled={currentPage >= story.pages.length - 1}
-                        className={cn("absolute left-1.5 top-1/2 -translate-y-1/2 z-10",
-                          "w-7 h-7 rounded-full flex items-center justify-center",
-                          "bg-purple-100/60 hover:bg-purple-200 border border-purple-200/60",
-                          "text-purple-500 opacity-50 hover:opacity-100 transition-all",
-                          "disabled:opacity-20 disabled:cursor-not-allowed")}>
-                        <ChevronLeft className="w-4 h-4" />
-                      </button>
-                      <div className="flex-1 flex flex-col justify-center max-w-lg mx-auto w-full overflow-y-auto min-h-0 pt-2">
-                        <p className="text-xl md:text-2xl text-[#3D2914] text-right font-medium whitespace-pre-line" style={{ lineHeight: '1.9' }} dir="rtl">
-                          {page.text}
-                        </p>
-                      </div>
-                      <div className="flex items-center justify-center gap-4 pt-2 mt-auto">
-                        <button onClick={() => handlePageNav('next')} disabled={currentPage >= story.pages.length - 1}
-                          className="w-7 h-7 rounded-full flex items-center justify-center bg-purple-100/60 hover:bg-purple-200 text-purple-500 disabled:opacity-20 transition-all">
-                          <ChevronLeft className="w-4 h-4" />
-                        </button>
-                        <span className="text-xs text-gray-400 font-light">{currentPage + 1} / {story.pages.length}</span>
-                        <button onClick={() => handlePageNav('prev')} disabled={currentPage <= 0}
-                          className="w-7 h-7 rounded-full flex items-center justify-center bg-purple-100/60 hover:bg-purple-200 text-purple-500 disabled:opacity-20 transition-all">
-                          <ChevronRight className="w-4 h-4" />
-                        </button>
-                      </div>
-                    </div>
-                  </>
+                  <img src={illustrationSrc} alt={`איור עמוד ${currentVirtual.dbPage.page_number}`}
+                    className="absolute inset-0 w-full h-full object-cover" />
                 ) : (
-                  /* Text-only page — full width, centered text */
-                  <div className="w-full h-full relative bg-[#FDFBF7] flex flex-col">
-                    <div className="w-full h-0.5 shrink-0 bg-gradient-to-r from-purple-300/60 via-pink-300/60 to-orange-200/60" />
-                    <button onClick={() => handlePageNav('prev')} disabled={currentPage <= 0}
-                      className={cn("absolute right-1.5 top-1/2 -translate-y-1/2 z-10",
-                        "w-7 h-7 rounded-full flex items-center justify-center",
-                        "bg-purple-100/60 hover:bg-purple-200 border border-purple-200/60",
-                        "text-purple-500 opacity-50 hover:opacity-100 transition-all",
-                        "disabled:opacity-20 disabled:cursor-not-allowed")}>
-                      <ChevronRight className="w-4 h-4" />
-                    </button>
-                    <button onClick={() => handlePageNav('next')} disabled={currentPage >= story.pages.length - 1}
-                      className={cn("absolute left-1.5 top-1/2 -translate-y-1/2 z-10",
-                        "w-7 h-7 rounded-full flex items-center justify-center",
-                        "bg-purple-100/60 hover:bg-purple-200 border border-purple-200/60",
-                        "text-purple-500 opacity-50 hover:opacity-100 transition-all",
-                        "disabled:opacity-20 disabled:cursor-not-allowed")}>
-                      <ChevronLeft className="w-4 h-4" />
-                    </button>
-                    <div className="flex-1 min-h-0 overflow-y-auto px-8 py-8 md:px-12 md:py-10 flex flex-col">
-                    <div className="max-w-lg mx-auto w-full">
-                        <p className="text-xl md:text-2xl text-[#3D2914] text-right font-medium whitespace-pre-line" style={{ lineHeight: '1.9' }} dir="rtl">
-                          {page.text}
-                        </p>
-                      </div>
-                      <div className="flex flex-col items-center gap-1 pt-4 pb-1 shrink-0">
-                        <span className="text-[#D4A574]/50 text-sm select-none">✦</span>
-                        <span className="text-xs text-gray-400 font-light">{currentPage + 1} / {story.pages.length}</span>
-                      </div>
-                    </div>
-                    <div className="w-full h-0.5 shrink-0 bg-gradient-to-r from-orange-200/60 via-pink-300/60 to-purple-300/60" />
+                  <div className="absolute inset-0 bg-gradient-to-br from-purple-100 via-pink-50 to-orange-50 flex items-center justify-center">
+                    <span className="text-6xl opacity-30">✨</span>
                   </div>
                 )}
+
+                {/* Dark gradient overlay at bottom */}
+                <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/75 via-black/40 to-transparent"
+                  style={{ minHeight: '35%' }}>
+                  <div className="absolute bottom-0 left-0 right-0 p-5 md:p-8">
+                    <p className="text-lg md:text-2xl text-white font-medium whitespace-pre-line text-center leading-relaxed"
+                      style={{ textShadow: '0 2px 4px rgba(0,0,0,0.5)', lineHeight: '1.9' }} dir="rtl">
+                      {displayText}
+                    </p>
+                    <div className="flex items-center justify-center mt-3">
+                      <span className="text-xs text-white/50">{currentPage + 1} / {virtualPages.length}</span>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Navigation arrows */}
+                <button onClick={() => handlePageNav('prev')} disabled={currentPage <= 0}
+                  className={cn("absolute right-2 top-1/2 -translate-y-1/2 z-20",
+                    "w-8 h-8 rounded-full flex items-center justify-center",
+                    "bg-white/20 hover:bg-white/40 text-white transition-all",
+                    "disabled:opacity-20 disabled:cursor-not-allowed")}>
+                  <ChevronRight className="w-5 h-5" />
+                </button>
+                <button onClick={() => handlePageNav('next')} disabled={currentPage >= virtualPages.length - 1}
+                  className={cn("absolute left-2 top-1/2 -translate-y-1/2 z-20",
+                    "w-8 h-8 rounded-full flex items-center justify-center",
+                    "bg-white/20 hover:bg-white/40 text-white transition-all",
+                    "disabled:opacity-20 disabled:cursor-not-allowed")}>
+                  <ChevronLeft className="w-5 h-5" />
+                </button>
               </div>
             )}
           </div>
@@ -268,17 +255,17 @@ const PublicStoryViewer = () => {
 
         {/* Page indicator */}
         <div className="dot-indicator pb-2">
-          {story.pages.length <= 10 ? (
+          {virtualPages.length <= 10 ? (
             <>
               <div className={cn("dot", currentPage === -1 && "active")} />
-              {story.pages.map((_, i) => (
+              {virtualPages.map((_, i) => (
                 <div key={i} className={cn("dot", currentPage === i && "active")} />
               ))}
               <div className={cn("dot", isEndPage && "active")} />
             </>
           ) : (
             <span className="text-xs text-gray-400">
-              {isCoverPage ? '' : isEndPage ? 'סוף' : `${currentPage + 1} / ${story.pages.length}`}
+              {isCoverPage ? '' : isEndPage ? 'סוף' : `${currentPage + 1} / ${virtualPages.length}`}
             </span>
           )}
         </div>
