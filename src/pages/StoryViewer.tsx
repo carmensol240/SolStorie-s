@@ -850,15 +850,14 @@ const StoryViewer = () => {
   }
 
   // Virtual page indexing:
-  // -1 = cover, 0 = dedication, 1..N = virtual pages, N+1 = closing, N+2 = end/feedback
+  // -1 = cover (merged with dedication), 0..N-1 = virtual pages, N = closing, N+1 = end/feedback
   const totalVirtualPages = virtualPages.length;
   const isCoverPage = currentPage === -1;
-  const isDedicationPage = currentPage === 0;
-  const isClosingPage = currentPage === totalVirtualPages + 1;
-  const isEndPage = currentPage >= totalVirtualPages + 2;
-  const isContentPage = currentPage >= 1 && currentPage <= totalVirtualPages;
+  const isClosingPage = currentPage === totalVirtualPages;
+  const isEndPage = currentPage >= totalVirtualPages + 1;
+  const isContentPage = currentPage >= 0 && currentPage < totalVirtualPages;
 
-  const currentVirtual = isContentPage ? virtualPages[currentPage - 1] : null;
+  const currentVirtual = isContentPage ? virtualPages[currentPage] : null;
   // For editing/nikud, get the underlying DB page
   const page = currentVirtual ? currentVirtual.dbPage : null;
   const currentFontSize = FONT_SIZES[fontSizeIndex];
