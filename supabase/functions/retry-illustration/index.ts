@@ -145,85 +145,63 @@ serve(async (req) => {
 
     const prompt = customPrompt || page.illustration_prompt || `A cheerful children's book illustration for page ${page.page_number}`;
 
-    const FAL_KEY = Deno.env.get("FAL_KEY");
-    if (!FAL_KEY) {
-      return new Response(JSON.stringify({ error: "FAL_KEY not configured" }), {
-        status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
-    }
-
-    const stylePrefix = `3D Disney Pixar cartoon animation style, inspired by 'Coco' and 'Encanto'. Characters must look like adorable cartoon dolls — NOT realistic humans. Big round expressive cartoon eyes with sparkling highlights, soft rounded cute faces, smooth stylized skin with NO pores or texture. Exaggerated cute proportions with large heads, small noses, and expressive faces. Vibrant rich saturated colors, warm magical golden lighting. Colorful detailed backgrounds with magical fantasy elements (glowing mushrooms, fireflies, sparkles, enchanted forests). Clean sharp 3D rendering, rich textures, playful and whimsical atmosphere. ALWAYS show characters FULL BODY from head to toe with feet VISIBLE and GROUNDED on the surface. Frame the character with generous margin from all edges. DO NOT render flat, photorealistic, semi-realistic, dark, muted, cinematic bokeh, or hyper-realistic styles. Characters must NEVER look like real humans or photographs — always stylized 3D cartoon dolls.`;
-
-    const negativePrompt = `realistic, semi-realistic, real human, photograph, photorealistic, dark, muted colors, cinematic bokeh, hyper-realistic, shallow depth of field, floating head, missing body, missing limbs, extra limbs, deformed, distorted, scary, horror, mutated, cropped feet, cut off legs, floating character, half-body, missing feet, text, watermark, UI elements`;
-
     let imageUrl: string | null = null;
     const MAX_ATTEMPTS = 2;
 
-    // Branch: use PuLID when child photo exists, Schnell otherwise
+    // Branch: use Gemini Image Generation when child photo exists, Schnell otherwise
     if (childPhoto) {
-      console.log(`Retrying illustration via Flux Kontext (face reference) for story ${storyId}, page ${page.page_number}...`);
+      console.log(`Retrying illustration via Gemini Image Generation (face reference) for story ${storyId}, page ${page.page_number}...`);
 
-      const personalizedPrompt = `FACE REFERENCE: Render the main character's face as an EXACT 3D Pixar version of the child in the reference photo. Keep all facial features, hair, and skin tone.
+      const personalizedPrompt = `FACE REFERENCE: The main character's face MUST be an EXACT 3D Pixar rendering of the child in the reference photo. Keep all facial features, hair color, hair texture, and skin tone identical.
 
-STYLE: Pixar 3D CGI, big expressive eyes, soft rounded features, vibrant saturated colors, warm lighting, fantasy children's book. NOT realistic. Full body, feet grounded.
+STYLE: Pixar 3D CGI animation style, big expressive cartoon eyes with sparkling highlights, soft rounded cute features, oversized head with small body, vibrant saturated colors, cinematic warm lighting with glowing accents, fantasy children's book, high quality render, Disney-Pixar aesthetic. NOT realistic. Full body from head to toe, feet VISIBLE and GROUNDED on the surface.
 
-SCENE (THIS IS THE MOST IMPORTANT PART — illustrate THIS specific scene): ${prompt}
+SCENE (THIS IS THE MOST IMPORTANT PART — illustrate THIS specific scene in detail): ${prompt}
 
-NEGATIVE: realistic, photograph, dark, muted, bokeh, hyper-realistic, floating head, missing body, extra limbs, cropped feet, text, watermark`;
+NEGATIVE: realistic, photograph, semi-realistic, dark, muted, bokeh, hyper-realistic, floating head, missing body, extra limbs, cropped feet, text, watermark`;
 
       for (let attempt = 1; attempt <= MAX_ATTEMPTS; attempt++) {
         try {
-          console.log(`Flux Kontext attempt ${attempt}/${MAX_ATTEMPTS}...`);
-          const response = await fetch("https://fal.run/fal-ai/flux-kontext/dev", {
+          console.log(`Gemini Image Generation attempt ${attempt}/${MAX_ATTEMPTS}...`);
+          const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
             method: "POST",
-            signal: AbortSignal.timeout(30_000),
+            signal: AbortSignal.timeout(120_000),
             headers: {
-              Authorization: `Key ${FAL_KEY}`,
+              Authorization: `Bearer ${LOVABLE_API_KEY}`,
               "Content-Type": "application/json",
             },
             body: JSON.stringify({
-              prompt: personalizedPrompt,
-              image_url: childPhoto,
-              output_format: "png",
-              num_images: 1,
-              seed: Math.floor(Math.random() * 2147483647),
-              guidance_scale: 4.5,
+              model: "google/gemini-3-pro-image-preview",
+              modalities: ["image", "text"],
+              messages: [{
+                role: "user",
+                content: [
+                  { type: "image_url", image_url: { url: childPhoto } },
+                  { type: "text", text: personalizedPrompt },
+                ],
+              }],
             }),
           });
 
           if (!response.ok) {
             const errorBody = await response.text().catch(() => "no body");
-            console.error(`Flux Kontext attempt ${attempt} failed: ${response.status} - ${errorBody}`);
-            if (attempt < MAX_ATTEMPTS) { await new Promise(r => setTimeout(r, 1000)); continue; }
-            // Fall through to Schnell below
+            console.error(`Gemini attempt ${attempt} failed: ${response.status} - ${errorBody}`);
+            if (attempt < MAX_ATTEMPTS) { await new Promise(r => setTimeout(r, 3000)); continue; }
             break;
           }
 
           const data = await response.json();
-          const falImageUrl = data.images?.[0]?.url;
+          imageUrl = data.choices?.[0]?.message?.images?.[0]?.image_url?.url || null;
 
-          if (falImageUrl) {
-            const imgResponse = await fetch(falImageUrl);
-            if (imgResponse.ok) {
-              const imgBuffer = new Uint8Array(await imgResponse.arrayBuffer());
-              const chunks: string[] = [];
-              for (let i = 0; i < imgBuffer.length; i += 512) {
-                const end = Math.min(i + 512, imgBuffer.length);
-                let chunk = '';
-                for (let j = i; j < end; j++) {
-                  chunk += String.fromCharCode(imgBuffer[j]);
-                }
-                chunks.push(chunk);
-              }
-              imageUrl = `data:image/png;base64,${btoa(chunks.join(''))}`;
-            }
-            if (imageUrl) break;
+          if (imageUrl) {
+            console.log(`Gemini illustration generated successfully on attempt ${attempt}`);
+            break;
           }
-          console.warn(`Flux Kontext attempt ${attempt}: no image`);
-          if (attempt < MAX_ATTEMPTS) { await new Promise(r => setTimeout(r, 1000)); continue; }
+          console.warn(`Gemini attempt ${attempt}: no image in response`);
+          if (attempt < MAX_ATTEMPTS) { await new Promise(r => setTimeout(r, 3000)); continue; }
         } catch (fetchErr) {
-          console.error(`Flux Kontext attempt ${attempt} error:`, fetchErr);
-          if (attempt < MAX_ATTEMPTS) { await new Promise(r => setTimeout(r, 1000)); continue; }
+          console.error(`Gemini attempt ${attempt} error:`, fetchErr);
+          if (attempt < MAX_ATTEMPTS) { await new Promise(r => setTimeout(r, 3000)); continue; }
         }
       }
     }
