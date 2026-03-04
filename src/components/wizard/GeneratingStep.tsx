@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback, useRef } from "react";
+import { useState, useEffect, useCallback, useRef, useMemo } from "react";
 import { Sparkles, BookOpen, Palette, FileText, RefreshCw, Wand2 } from "lucide-react";
 import generatingHeroCast from "@/assets/generating-hero-cast.jpeg";
 import castSolAdventure from "@/assets/cast-sol-adventure.jpg";
