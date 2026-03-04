@@ -32,7 +32,7 @@ interface PuzzleGameProps {
   isStoryReady?: boolean;
 }
 
-const PuzzleGame = ({ ageRange }: PuzzleGameProps) => {
+const PuzzleGame = ({ ageRange, onReadStory, isStoryReady }: PuzzleGameProps) => {
   const gridSize = getGridSize(ageRange);
   const totalPieces = gridSize * gridSize;
   const imageSrc = useMemo(() => PUZZLE_IMAGES[Math.floor(Math.random() * PUZZLE_IMAGES.length)], []);
