@@ -60,6 +60,7 @@ import topicEnvironment from "@/assets/topic-environment.jpg";
 import topicMagicKeys from "@/assets/topic-magic-keys.jpg";
 import topicEducationalToolbox from "@/assets/topic-educational-toolbox.jpeg";
 import topicSafeRoom from "@/assets/topic-safe-room.png";
+import topicFindAFriend from "@/assets/topic-find-a-friend.jpg";
 
 export interface TopicItem {
   id: string;
