@@ -121,7 +121,8 @@ const StoryViewer = () => {
   
   const [resolvedId, setResolvedId] = useState<string | null>(null);
   const [story, setStory] = useState<Story | null>(null);
-  
+  const { avatarUrl: childAvatarUrl } = useChildAvatar(story?.child_name);
+
   const [currentPage, setCurrentPage] = useState(-1);
   const [isLoading, setIsLoading] = useState(true);
   const [isFlipping, setIsFlipping] = useState(false);
