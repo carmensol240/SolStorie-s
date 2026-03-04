@@ -227,14 +227,10 @@ const Library = () => {
   );
 
   const LoadingSkeleton = () => (
-    <div className="flex flex-col gap-2">
+    <div className="grid grid-cols-2 gap-3">
       {[1, 2, 3, 4].map((i) => (
-        <div key={i} className="flex items-center gap-2.5 p-2.5 rounded-xl bg-muted animate-pulse" aria-hidden="true">
-          <div className="w-14 h-14 rounded-lg bg-muted-foreground/20 flex-shrink-0" />
-          <div className="flex-1 space-y-1.5">
-            <div className="h-3.5 w-3/4 bg-muted-foreground/20 rounded" />
-            <div className="h-3 w-1/2 bg-muted-foreground/20 rounded" />
-          </div>
+        <div key={i} className="aspect-[3/4] rounded-r-xl rounded-l-sm bg-muted animate-pulse" aria-hidden="true">
+          <div className="absolute left-0 top-0 w-[6px] h-full bg-muted-foreground/10" />
         </div>
       ))}
     </div>
