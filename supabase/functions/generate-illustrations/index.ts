@@ -149,8 +149,8 @@ A ${genderWord} aged ${profile.ageDescription} with ${profile.hairDescription}, 
 CRITICAL INSTRUCTION: Maintain strict visual character continuity across ALL generated images for this story sequence. The character must look like the SAME child in every single illustration — same face shape, same proportions, same hair, same outfit, same skin tone. Any visual deviation between pages is a FAILURE.`;
 }
 
-// Helper: generate illustration with face reference via Fal.ai Flux Kontext
-// Maintains character likeness from a single reference photo with high consistency
+// Helper: generate illustration with face reference via Gemini Image Generation
+// Uses google/gemini-3-pro-image-preview for text-to-image with face reference
 async function generateIllustrationWithFace(
   prompt: string,
   childPhotoUrl: string,
@@ -160,89 +160,70 @@ async function generateIllustrationWithFace(
   adventureLogic?: { outfit: string; background: string; theme: string },
 ): Promise<string | null> {
   try {
-    const FAL_KEY = Deno.env.get("FAL_KEY");
-    if (!FAL_KEY) {
-      console.error("FAL_KEY not configured for Flux Kontext");
+    const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
+    if (!LOVABLE_API_KEY) {
+      console.error("LOVABLE_API_KEY not configured for Gemini Image Generation");
       return null;
     }
-
-    const finalOutfit = storyOutfit || adventureLogic?.outfit || characterProfile?.clothingDescription || "colorful casual clothes";
-
-    const castDescription = `Secondary characters (keep them smaller/background, do NOT let them overshadow the main character):
-- Ben: toddler boy with very curly dark hair, warm tan skin, light green shirt — SMALLEST character, 3D Disney Pixar style
-- Zoe: dark-skinned girl with voluminous black curls, light blue headband, purple-yellow athletic tracksuit, athletic build — 3D Disney Pixar style
-- Leo: boy with straight black hair, round glasses, denim overalls — 3D Disney Pixar style
-- Mia: girl with smooth brown bob, small flower crown, emerald green dress — 3D Disney Pixar style`;
 
     const adventureInstruction = adventureLogic
       ? `Setting: ${adventureLogic.background}. Theme: ${adventureLogic.theme}.`
       : "";
 
-    const fullPrompt = `FACE REFERENCE: Render the main character's face as an EXACT 3D Pixar version of the reference photo. Keep all facial features, hair, and skin tone.
+    const illustrationPrompt = `FACE REFERENCE: The main character's face MUST be an EXACT 3D Pixar rendering of the child in the reference photo. Keep all facial features, hair color, hair texture, and skin tone identical.
 
-STYLE: Pixar 3D CGI, big expressive eyes, soft rounded features, vibrant saturated colors, warm lighting, fantasy children's book. NOT realistic. Full body, feet grounded.
+STYLE: Pixar 3D CGI animation style, big expressive cartoon eyes with sparkling highlights, soft rounded cute features, oversized head with small body, vibrant saturated colors, cinematic warm lighting with glowing accents, fantasy children's book, high quality render, Disney-Pixar aesthetic. NOT realistic. Full body from head to toe, feet VISIBLE and GROUNDED on the surface.
 
-MAIN CHARACTER wears ${finalOutfit}, is the LARGEST figure. ${adventureInstruction}
+${adventureInstruction}
 
-SCENE (THIS IS THE MOST IMPORTANT PART — illustrate THIS specific scene): ${prompt}
+SCENE (THIS IS THE MOST IMPORTANT PART — illustrate THIS specific scene in detail): ${prompt}
 
-NEGATIVE: realistic, photograph, dark, muted, bokeh, hyper-realistic, floating head, missing body, extra limbs, cropped feet, text, watermark`;
+NEGATIVE: realistic, photograph, semi-realistic, dark, muted, bokeh, hyper-realistic, floating head, missing body, extra limbs, cropped feet, text, watermark, UI elements`;
 
-    console.log("Generating illustration via Fal.ai Flux Kontext (face reference)...");
+    console.log("Generating illustration via Gemini Image Generation (face reference)...");
 
-    const response = await fetch("https://fal.run/fal-ai/flux-kontext/dev", {
+    const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
       method: "POST",
-      signal: AbortSignal.timeout(30_000),
+      signal: AbortSignal.timeout(120_000),
       headers: {
-        Authorization: `Key ${FAL_KEY}`,
+        Authorization: `Bearer ${LOVABLE_API_KEY}`,
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        prompt: fullPrompt,
-        image_url: childPhotoUrl,
-        output_format: "png",
-        num_images: 1,
-        seed: Math.floor(Math.random() * 2147483647),
-        guidance_scale: 4.5,
+        model: "google/gemini-3-pro-image-preview",
+        modalities: ["image", "text"],
+        messages: [{
+          role: "user",
+          content: [
+            { type: "image_url", image_url: { url: childPhotoUrl } },
+            { type: "text", text: illustrationPrompt },
+          ],
+        }],
       }),
     });
 
     if (!response.ok) {
       const errorBody = await response.text().catch(() => "no body");
-      console.error(`Flux Kontext generation failed: ${response.status} - ${errorBody}`);
-      await logError("illustration_fal_error", `Flux Kontext failed: ${response.status}`, { status: response.status, body: errorBody.substring(0, 500) });
+      console.error(`Gemini Image Generation failed: ${response.status} - ${errorBody}`);
+      await logError("illustration_gemini_error", `Gemini Image Gen failed: ${response.status}`, { status: response.status, body: errorBody.substring(0, 500) });
       return null;
     }
 
     const data = await response.json();
-    const imageUrl = data.images?.[0]?.url;
+    const imageUrl = data.choices?.[0]?.message?.images?.[0]?.image_url?.url;
 
     if (imageUrl) {
-      console.log("Flux Kontext illustration generated successfully");
-      const imgResponse = await fetch(imageUrl);
-      if (!imgResponse.ok) {
-        console.error("Failed to download Flux Kontext image");
-        return null;
-      }
-      const imgBuffer = new Uint8Array(await imgResponse.arrayBuffer());
-      const chunks: string[] = [];
-      for (let i = 0; i < imgBuffer.length; i += 512) {
-        const end = Math.min(i + 512, imgBuffer.length);
-        let chunk = '';
-        for (let j = i; j < end; j++) {
-          chunk += String.fromCharCode(imgBuffer[j]);
-        }
-        chunks.push(chunk);
-      }
-      return `data:image/png;base64,${btoa(chunks.join(''))}`;
+      console.log("Gemini illustration generated successfully");
+      return imageUrl; // Already a data:image/png;base64,... URL
     }
 
+    console.warn("Gemini Image Generation: no image in response");
     return null;
   } catch (error) {
     const isTimeout = error instanceof DOMException && error.name === "TimeoutError";
-    const errorType = isTimeout ? "illustration_timeout" : "illustration_fal_error";
-    console.error("Error in Flux Kontext illustration:", error);
-    await logError(errorType, `Flux Kontext: ${error?.message || error}`, { model: "fal-ai/flux-kontext/dev" });
+    const errorType = isTimeout ? "illustration_timeout" : "illustration_gemini_error";
+    console.error("Error in Gemini Image Generation:", error);
+    await logError(errorType, `Gemini Image Gen: ${error?.message || error}`, { model: "google/gemini-3-pro-image-preview" });
     return null;
   }
 }
