@@ -162,7 +162,7 @@ async function generateIllustrationWithFace(
   try {
     const FAL_KEY = Deno.env.get("FAL_KEY");
     if (!FAL_KEY) {
-      console.error("FAL_KEY not configured for Instant Character");
+      console.error("FAL_KEY not configured for Flux Kontext");
       return null;
     }
 
