@@ -1,26 +1,57 @@
 
 
-## Bug Analysis
+## שני איורים בכל עמוד לגיל 0-2
 
-The onboarding loop is caused by a combination of issues in the navigation flow between `RequireTerms` and `Onboarding`:
+### הבעיה
+בסיפורי גיל 0-2 הטקסט קצר מאוד (1-2 משפטים) ולכן דפי הטקסט נראים ריקים וחסרי עניין.
 
-1. **Silent update failure**: In `Onboarding.handleContinue`, the Supabase `.update().eq()` call returns success (`error: null`) even when **zero rows are matched** (e.g., due to a race condition where the profile hasn't been created yet). The code doesn't verify the update actually persisted.
+### פתרון — שלושה שכבות שינוי
 
-2. **No `replace: true` on redirects**: Both `RequireTerms` (redirecting to `/onboarding`) and `Onboarding`'s guard effect (redirecting to `/adventure`) use `navigate()` without `{ replace: true }`, causing history stack pollution and making the loop worse.
+#### 1. מסד נתונים — עמודות חדשות ב-`story_pages`
+הוספת שתי עמודות:
+- `illustration_prompt_2` (text, nullable) — פרומפט לאיור שני
+- `illustration_url_2` (text, nullable) — URL לאיור שני
 
-3. **Loop mechanics**: `handleContinue` thinks it succeeded → navigates to `/adventure` → `RequireTerms` queries DB → `terms_accepted_at` is still null → redirects back to `/onboarding` → Onboarding guard checks terms → still null → shows the form again.
+#### 2. Backend — יצירת שני איורים לכל עמוד (גיל 0-2 בלבד)
 
-## Fix
+**`supabase/functions/generate-story/index.ts`:**
+- לגיל 0-2 בלבד: כל עמוד מקבל `illustration_prompt` (לא רק עמודים אי-זוגיים)
+- הוספת הנחיה ל-AI לייצר שני פרומפטים לכל עמוד: `illustration_prompt` (סצנה ראשית) ו-`illustration_prompt_2` (אותה סצנה מזווית אחרת / רגע עוקב)
+- שמירת שני הפרומפטים ב-DB
 
-### 1. `src/pages/Onboarding.tsx` — Verify update actually persisted
+**`supabase/functions/generate-illustrations/index.ts`:**
+- בדיקה אם לעמוד יש `illustration_prompt_2`
+- אם כן — ייצור איור נוסף ושמירתו ב-`illustration_url_2`
 
-In `handleContinue`, after the update call, re-query the profile to confirm `terms_accepted_at` was saved. If not, use `upsert` as a fallback. Also add `{ replace: true }` to the guard navigation.
+#### 3. Frontend — פריסה חדשה לגיל 0-2
 
-### 2. `src/components/RequireTerms.tsx` — Use `replace: true`
+**`src/pages/StoryViewer.tsx`:**
+- שינוי לוגיקת `virtualPages` לגיל 0-2: במקום הדפוס הנוכחי (2 טקסטים → 1 איור), כל עמוד DB הופך לעמוד וירטואלי אחד מסוג `combined`
+- סוג וירטואלי חדש `combined` שמכיל: איור עליון + טקסט באמצע + איור תחתון
+- הפריסה: תמונה (40% גובה) → טקסט קצר (20%) → תמונה (40%)
+- אם האיור השני עדיין בטעינה — מוצג skeleton/placeholder
 
-Change the `navigate` call to onboarding to use `{ replace: true }` so the history stack doesn't accumulate redirect entries.
+### זרימת נתונים
 
-### 3. Both files — Add select return on update
+```text
+generate-story (0-2)
+  → כל עמוד: illustration_prompt + illustration_prompt_2
+  → שמירה ב-DB
+  → שליחת 2 קריאות generate-illustrations לכל עמוד
 
-Use `.update(...).eq(...).select()` to get the updated row back, confirming the write succeeded. If the returned array is empty, fall back to an upsert to handle the edge case where the profile row doesn't exist yet.
+generate-illustrations
+  → מייצר illustration_url
+  → אם יש prompt_2 → מייצר illustration_url_2
+
+StoryViewer (0-2)
+  → virtualPages: כל DB page → combined page
+  → פריסה: [איור1] [טקסט] [איור2]
+```
+
+### קבצים שישתנו
+1. **מיגרציה** — הוספת `illustration_prompt_2` ו-`illustration_url_2` ל-`story_pages`
+2. **`supabase/functions/generate-story/index.ts`** — לוגיקת פרומפטים כפולים לגיל 0-2
+3. **`supabase/functions/generate-illustrations/index.ts`** — ייצור איור שני
+4. **`src/pages/StoryViewer.tsx`** — סוג virtual page חדש ופריסה combined
+5. **`src/integrations/supabase/types.ts`** — יתעדכן אוטומטית אחרי המיגרציה
 
