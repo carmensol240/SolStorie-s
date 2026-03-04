@@ -68,11 +68,51 @@ const AdminDashboard = () => {
   const [errorLogs, setErrorLogs] = useState<ErrorLogRow[]>([]);
   const [loading, setLoading] = useState(true);
   const [authReady, setAuthReady] = useState(false);
+  const { toast } = useToast();
   const [errorTypeFilter, setErrorTypeFilter] = useState<string>("all");
   const [errorDaysFilter, setErrorDaysFilter] = useState<string>("7");
 
-  // Wait for auth to be ready before checking
-  useEffect(() => {
+  // "Mark as reviewed" — store cutoff timestamps per tab in localStorage
+  const REVIEWED_KEY = "admin_reviewed_";
+  const [reviewedCutoffs, setReviewedCutoffs] = useState<Record<string, string>>(() => {
+    const saved: Record<string, string> = {};
+    ["users", "purchases", "stories", "errors"].forEach(tab => {
+      const val = localStorage.getItem(REVIEWED_KEY + tab);
+      if (val) saved[tab] = val;
+    });
+    return saved;
+  });
+  const [showReviewed, setShowReviewed] = useState<Record<string, boolean>>({ users: false, purchases: false, stories: false, errors: false });
+  const [confirmClearTab, setConfirmClearTab] = useState<string | null>(null);
+
+  const markAsReviewed = useCallback((tab: string) => {
+    const now = new Date().toISOString();
+    localStorage.setItem(REVIEWED_KEY + tab, now);
+    setReviewedCutoffs(prev => ({ ...prev, [tab]: now }));
+    toast({ title: "סומן כנצפה ✓", description: "פריטים ישנים יוסתרו. ניתן להציגם בלחיצה על 'הצג נצפים'" });
+    setConfirmClearTab(null);
+  }, [toast]);
+
+  const clearReviewed = useCallback((tab: string) => {
+    localStorage.removeItem(REVIEWED_KEY + tab);
+    setReviewedCutoffs(prev => {
+      const next = { ...prev };
+      delete next[tab];
+      return next;
+    });
+  }, []);
+
+  const filterByReviewed = <T extends { created_at: string | null }>(items: T[], tab: string): T[] => {
+    const cutoff = reviewedCutoffs[tab];
+    if (!cutoff || showReviewed[tab]) return items;
+    return items.filter(item => item.created_at && new Date(item.created_at) > new Date(cutoff));
+  };
+
+  const getNewCount = <T extends { created_at: string | null }>(items: T[], tab: string): number => {
+    const cutoff = reviewedCutoffs[tab];
+    if (!cutoff) return 0;
+    return items.filter(item => item.created_at && new Date(item.created_at) > new Date(cutoff)).length;
+  };
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
       setAuthReady(true);
     });
