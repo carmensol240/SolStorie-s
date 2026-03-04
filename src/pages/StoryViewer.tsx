@@ -950,17 +950,6 @@ const StoryViewer = () => {
 
                     {/* Content overlay — centered */}
                     <div className="relative z-10 flex-1 flex flex-col items-center justify-center text-center px-6">
-                      {/* Child avatar — large and prominent */}
-                      {childAvatarUrl && (
-                        <div className="relative mb-4">
-                          <div className="w-36 h-36 rounded-full overflow-hidden border-4 border-white/90 shadow-2xl" style={{
-                            boxShadow: '0 0 30px rgba(255,255,255,0.4), 0 0 60px rgba(168,85,247,0.3), 0 0 90px rgba(236,72,153,0.15)',
-                          }}>
-                            <img src={childAvatarUrl} alt={story.child_name} className="w-full h-full object-cover" />
-                          </div>
-                          <div className="absolute -bottom-1 -right-1 text-2xl drop-shadow-lg">⭐</div>
-                        </div>
-                      )}
 
                       {/* Dedication text */}
                       <p className="text-base md:text-lg text-white/90 font-medium drop-shadow-md" dir="rtl">
