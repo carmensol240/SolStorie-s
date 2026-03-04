@@ -225,7 +225,7 @@ FULL BODY head to toe, feet GROUNDED on surface. Portrait 4:3 framing. NEGATIVE:
             }
             if (imageUrl) break;
           }
-          console.warn(`Instant Character attempt ${attempt}: no image`);
+          console.warn(`Flux Kontext attempt ${attempt}: no image`);
           if (attempt < MAX_ATTEMPTS) { await new Promise(r => setTimeout(r, 1000)); continue; }
         } catch (fetchErr) {
           console.error(`Instant Character attempt ${attempt} error:`, fetchErr);
