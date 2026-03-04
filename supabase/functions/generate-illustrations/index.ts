@@ -207,8 +207,8 @@ FULL BODY head to toe, feet GROUNDED on surface. Portrait 4:3 framing. NEGATIVE:
 
     if (!response.ok) {
       const errorBody = await response.text().catch(() => "no body");
-      console.error(`Instant Character generation failed: ${response.status} - ${errorBody}`);
-      await logError("illustration_fal_error", `Instant Character failed: ${response.status}`, { status: response.status, body: errorBody.substring(0, 500) });
+      console.error(`Flux Kontext generation failed: ${response.status} - ${errorBody}`);
+      await logError("illustration_fal_error", `Flux Kontext failed: ${response.status}`, { status: response.status, body: errorBody.substring(0, 500) });
       return null;
     }
 
