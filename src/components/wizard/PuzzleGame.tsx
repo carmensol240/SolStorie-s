@@ -28,6 +28,8 @@ function shuffle<T>(arr: T[]): T[] {
 
 interface PuzzleGameProps {
   ageRange: string;
+  onReadStory?: () => void;
+  isStoryReady?: boolean;
 }
 
 const PuzzleGame = ({ ageRange }: PuzzleGameProps) => {
