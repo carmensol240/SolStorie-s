@@ -238,7 +238,7 @@ const GeneratingStep = ({ formData, onComplete }: GeneratingStepProps) => {
 
   // Realtime subscription: watch for illustrations completing
   useEffect(() => {
-    if (phase !== 'puzzle' || !storyId) return;
+    if (phase !== 'illustrations' || !storyId) return;
 
     // Check immediately if illustrations are already done
     const checkIllustrations = async () => {
