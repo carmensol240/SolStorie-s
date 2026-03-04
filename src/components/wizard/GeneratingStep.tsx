@@ -1,6 +1,11 @@
 import { useState, useEffect, useCallback, useRef } from "react";
 import { Sparkles, BookOpen, Palette, FileText, RefreshCw, Wand2 } from "lucide-react";
 import generatingHeroCast from "@/assets/generating-hero-cast.jpeg";
+import castSolAdventure from "@/assets/cast-sol-adventure.jpg";
+import castBenArt from "@/assets/cast-ben-art.jpg";
+import castMiaNature from "@/assets/cast-mia-nature.jpg";
+import castLeoScience from "@/assets/cast-leo-science.jpg";
+import castZoeSports from "@/assets/cast-zoe-sports.jpg";
 import { Button } from "@/components/ui/button";
 import { StoryFormData } from "@/pages/CreateStory";
 import { supabase } from "@/integrations/supabase/client";
@@ -8,7 +13,6 @@ import { useToast } from "@/hooks/use-toast";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/hooks/use-auth";
 import { CHARACTER_SECTIONS } from "@/components/wizard/topic-data";
-import PuzzleGame from "./PuzzleGame";
 
 interface GeneratingStepProps {
   formData: StoryFormData;
