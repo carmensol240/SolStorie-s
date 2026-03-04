@@ -73,6 +73,9 @@ const Library = () => {
 
   useEffect(() => {
     fetchStories();
+  }, [user]);
+
+  useEffect(() => {
     fetchPremiumStories();
   }, []);
 
