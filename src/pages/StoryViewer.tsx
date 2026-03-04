@@ -67,6 +67,7 @@ interface Story {
   topic: string;
   language?: string;
   age_range?: string;
+  cover_url?: string;
   pages: StoryPage[];
   generation_status?: string;
 }
