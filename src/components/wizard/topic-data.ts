@@ -206,9 +206,9 @@ export const CHARACTER_SECTIONS: CharacterSection[] = [
       { id: "birthday-party", label: "מסיבת יום הולדת", description: "מסיבת יום הולדת מושלמת: עוגה, בלונים, חברים, משחקים והפתעות מדהימות.", image: topicBirthday, ageRange: "3-6" },
       { id: "grandparents-night", label: "הלילה המיוחד במלכות סבא וסבתא", description: "לילה קסום אצל סבא וסבתא: סיפורים, ממתקים, פינוקים וזכרונות שנשארים לתמיד.", image: topicGrandparentsNight, ageRange: "3-6" },
       { id: "flying-vacation", label: "טיסה לחופשה", description: "הרפתקה ראשונה במטוס: ההתרגשות, ההמראה, מבט מהחלון ופיצוח האוזניים.", image: topicFlyingVacation, ageRange: "3-8" },
-      { id: "space-journey", label: "מסע בחלל", description: "הרפתקה בין כוכבי הלכת: לגלות שבכל כוכב יש סוד משלו, שהיקום גדול אין-סוף וכדור הארץ שלנו הוא הפלא הכי גדול.", image: topicSpaceHero, ageRange: "4-8", keywords: ["חלל", "כוכבים", "כוכבי לכת", "מדע", "אסטרונאוט"] },
-      { id: "nature-secrets", label: "סודות הטבע", description: "טיול בין העצים, האבנים והיצורים הקטנים: הטבע מלא סודות שמחכים לילד/ה סקרן/ית שיפקח/תפקח עיניים וישמע/תשמע.", image: topicEnvironment, ageRange: "3-8", keywords: ["טבע", "עצים", "חרקים", "גילוי", "מדע"] },
-      { id: "how-body-works", label: "איך הגוף שלנו עובד", description: "מסע פנימה: לגלות שהגוף הוא מכונה מדהימה שעובדת בשבילנו כל הזמן – הלב מציב, הריאות נושמות והמוח חולם.", image: topicBloodTest, ageRange: "4-8", keywords: ["גוף", "בריאות", "מדע", "לב", "מוח"] },
+      { id: "space-journey", label: "מסע בחלל", description: "הרפתקה בין כוכבי הלכת: לגלות שבכל כוכב יש סוד משלו, שהיקום גדול אין-סוף וכדור הארץ שלנו הוא הפלא הכי גדול.", image: topicSpaceJourney, ageRange: "4-8", keywords: ["חלל", "כוכבים", "כוכבי לכת", "מדע", "אסטרונאוט"] },
+      { id: "nature-secrets", label: "סודות הטבע", description: "טיול בין העצים, האבנים והיצורים הקטנים: הטבע מלא סודות שמחכים לילד/ה סקרן/ית שיפקח/תפקח עיניים וישמע/תשמע.", image: topicNatureSecrets, ageRange: "3-8", keywords: ["טבע", "עצים", "חרקים", "גילוי", "מדע"] },
+      { id: "how-body-works", label: "איך הגוף שלנו עובד", description: "מסע פנימה: לגלות שהגוף הוא מכונה מדהימה שעובדת בשבילנו כל הזמן – הלב מציב, הריאות נושמות והמוח חולם.", image: topicHowBodyWorks, ageRange: "4-8", keywords: ["גוף", "בריאות", "מדע", "לב", "מוח"] },
     ],
   },
   {
