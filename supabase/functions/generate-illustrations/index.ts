@@ -219,7 +219,7 @@ FULL BODY head to toe, feet GROUNDED on surface. Portrait 4:3 framing. NEGATIVE:
       console.log("Flux Kontext illustration generated successfully");
       const imgResponse = await fetch(imageUrl);
       if (!imgResponse.ok) {
-        console.error("Failed to download Instant Character image");
+        console.error("Failed to download Flux Kontext image");
         return null;
       }
       const imgBuffer = new Uint8Array(await imgResponse.arrayBuffer());
