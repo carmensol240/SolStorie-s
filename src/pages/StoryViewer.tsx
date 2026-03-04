@@ -1165,7 +1165,12 @@ const StoryViewer = () => {
                             <p className="text-xs text-[#8B7355]" dir="rtl">מכינים איור...</p>
                           </div>
                         </div>
-                      ) : null}
+                      ) : (
+                        <div className="w-full h-full rounded-lg flex items-center justify-center"
+                          style={{ background: getTopicTheme(story?.topic || '').bg, opacity: 0.7 }}>
+                          <span className="text-5xl">{getTopicTheme(story?.topic || '').emoji}</span>
+                        </div>
+                      )}
                     </div>
 
                     {/* Short text (20%) */}
