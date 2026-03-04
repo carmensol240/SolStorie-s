@@ -419,7 +419,7 @@ const GeneratingStep = ({ formData, onComplete }: GeneratingStepProps) => {
 
   // --- ILLUSTRATIONS LOADING PHASE ---
   if (phase === 'illustrations') {
-    const currentChar = CAST_CHARACTERS[castIndex % CAST_CHARACTERS.length];
+    const currentChar = allCharacters[castIndex % allCharacters.length];
     const currentTip = PARENTING_TIPS[tipIndex % PARENTING_TIPS.length];
 
     return (
