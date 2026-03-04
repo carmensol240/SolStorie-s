@@ -1,6 +1,6 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
-import { ArrowRight, Plus, Coins, Wand2, BookOpen, Sparkles } from "lucide-react";
+import { ArrowRight, Plus, Coins, Wand2, BookOpen } from "lucide-react";
 import { getPublicIllustrationUrl } from "@/lib/illustration-url";
 import solMagicBookCover from "@/assets/sol-magic-book-cover.png";
 
@@ -19,6 +19,8 @@ import { useCredits } from "@/hooks/use-credits";
 import { useReferral } from "@/hooks/use-referral";
 import { useChildAvatar } from "@/hooks/use-child-avatar";
 import { useAuth } from "@/hooks/use-auth";
+import { translateTopic } from '@/lib/topic-translations';
+import libraryEmptyState from "@/assets/library-empty-state.png";
 
 interface StoryPage {
   illustration_url: string | null;
@@ -38,21 +40,14 @@ interface Story {
   max_age: number | null;
   is_premium: boolean | null;
   child_gender: string | null;
+  child_id: string | null;
   story_pages: StoryPage[];
 }
 
-interface PremiumStory {
+interface ChildRecord {
   id: string;
-  title: string;
-  description: string | null;
-  cover_url: string | null;
-  theme: string | null;
-  min_age: number | null;
-  max_age: number | null;
-  display_order: number | null;
+  name: string;
 }
-
-import { translateTopic } from '@/lib/topic-translations';
 
 const Library = () => {
   const navigate = useNavigate();
@@ -63,127 +58,106 @@ const Library = () => {
   const { user } = useAuth();
   const { avatarUrl } = useChildAvatar();
   const [stories, setStories] = useState<Story[]>([]);
-  const [premiumStories, setPremiumStories] = useState<PremiumStory[]>([]);
+  const [children, setChildren] = useState<ChildRecord[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [isPremiumLoading, setIsPremiumLoading] = useState(true);
   const [editingStory, setEditingStory] = useState<Story | null>(null);
   const [genderSwapStory, setGenderSwapStory] = useState<Story | null>(null);
-  
+  const [regeneratingCoverId, setRegeneratingCoverId] = useState<string | null>(null);
+
   const totalCredits = (credits ?? 0) + shareCoins;
 
   useEffect(() => {
     fetchStories();
+    fetchChildren();
   }, [user]);
 
-  useEffect(() => {
-    fetchPremiumStories();
-  }, []);
-
-  const fetchPremiumStories = async () => {
+  const fetchChildren = async () => {
+    if (!user) { setChildren([]); return; }
     try {
-      const { data, error } = await supabase
-        .from("premium_stories")
-        .select("id, title, description, cover_url, theme, min_age, max_age, display_order")
-        .eq("is_active", true)
-        .order("display_order", { ascending: true });
-
-      if (error) {
-        console.log('📚 Premium stories fetch info:', error.message);
-        setPremiumStories([]);
-        return;
-      }
-      setPremiumStories(data || []);
-    } catch (error) {
-      console.error("Error fetching premium stories:", error);
-      setPremiumStories([]);
-    } finally {
-      setIsPremiumLoading(false);
-    }
+      const { data } = await supabase
+        .from("children")
+        .select("id, name")
+        .eq("user_id", user.id)
+        .order("created_at", { ascending: true });
+      setChildren(data || []);
+    } catch { setChildren([]); }
   };
 
-  // Library is accessible to all users - shows empty state for unauthenticated users
   const fetchStories = async () => {
-    if (!user) {
-      setStories([]);
-      setIsLoading(false);
-      return;
-    }
+    if (!user) { setStories([]); setIsLoading(false); return; }
     try {
       const { data: storiesData, error: storiesError } = await supabase
         .from("stories")
-        .select("id, slug, child_name, topic, created_at, cover_url, theme, story_type, min_age, max_age, is_premium, child_gender")
+        .select("id, slug, child_name, topic, created_at, cover_url, theme, story_type, min_age, max_age, is_premium, child_gender, child_id")
         .eq("user_id", user.id)
         .order("created_at", { ascending: false });
 
-      if (storiesError) {
-        console.log('📚 Stories fetch info:', storiesError.message);
-        setStories([]);
-        setIsLoading(false);
-        return;
-      }
-
-      if (!storiesData || storiesData.length === 0) {
+      if (storiesError || !storiesData || storiesData.length === 0) {
         setStories([]);
         setIsLoading(false);
         return;
       }
 
       const storyIds = storiesData.map(s => s.id);
-      const { data: pagesData, error: pagesError } = await supabase
+      const { data: pagesData } = await supabase
         .from("story_pages")
         .select("story_id, illustration_url, page_number")
         .in("story_id", storyIds)
         .eq("page_number", 1);
 
-      if (pagesError) {
-        console.error("Error fetching story pages:", pagesError);
-      }
-
       const coverMap = new Map<string, string | null>();
       pagesData?.forEach(page => {
-        if (page.illustration_url) {
-          coverMap.set(page.story_id, page.illustration_url);
-        }
+        if (page.illustration_url) coverMap.set(page.story_id, page.illustration_url);
       });
 
-      const storiesWithCovers: Story[] = storiesData.map(story => ({
+      setStories(storiesData.map(story => ({
         ...story,
-        story_pages: coverMap.has(story.id) 
+        story_pages: coverMap.has(story.id)
           ? [{ illustration_url: coverMap.get(story.id) || null, page_number: 1 }]
           : []
-      }));
-
-      setStories(storiesWithCovers);
-    } catch (error) {
-      console.error("Error fetching stories:", error);
+      })));
+    } catch {
       setStories([]);
     } finally {
       setIsLoading(false);
     }
   };
 
+  // Compute unique child names from stories for tab generation
+  const childTabs = useMemo(() => {
+    if (children.length < 2) return null;
+
+    const childNameSet = new Set(children.map(c => c.name));
+    // Find stories that don't match any registered child
+    const unmatchedStories = stories.filter(s =>
+      !s.child_id && !childNameSet.has(s.child_name)
+    );
+
+    const tabs = children.map(child => ({
+      key: child.id,
+      label: child.name,
+      stories: stories.filter(s =>
+        s.child_id === child.id || (!s.child_id && s.child_name === child.name)
+      ),
+    }));
+
+    if (unmatchedStories.length > 0) {
+      tabs.push({ key: "__other", label: "אחר", stories: unmatchedStories });
+    }
+
+    return tabs;
+  }, [children, stories]);
+
   const handleDeleteStory = async (storyId: string) => {
     try {
-      const { error } = await supabase
-        .from("stories")
-        .delete()
-        .eq("id", storyId);
-
+      const { error } = await supabase.from("stories").delete().eq("id", storyId);
       if (error) throw error;
-
       setStories((prev) => prev.filter((s) => s.id !== storyId));
       toast({ title: "הסיפור נמחק בהצלחה" });
-    } catch (error) {
-      console.error("Error deleting story:", error);
-      toast({
-        variant: "destructive",
-        title: "שגיאה",
-        description: "לא הצלחנו למחוק את הסיפור",
-      });
+    } catch {
+      toast({ variant: "destructive", title: "שגיאה", description: "לא הצלחנו למחוק את הסיפור" });
     }
   };
-
-  const [regeneratingCoverId, setRegeneratingCoverId] = useState<string | null>(null);
 
   const handleRegenerateCover = async (storyId: string) => {
     if (regeneratingCoverId) return;
@@ -198,8 +172,7 @@ const Library = () => {
         setStories(prev => prev.map(s => s.id === storyId ? { ...s, cover_url: data.coverUrl } : s));
         toast({ title: "הכריכה נוצרה בהצלחה! 🎨" });
       }
-    } catch (error) {
-      console.error("Regenerate cover error:", error);
+    } catch {
       toast({ variant: "destructive", title: "שגיאה ביצירת כריכה", description: "נסו שוב מאוחר יותר" });
     } finally {
       setRegeneratingCoverId(null);
@@ -208,24 +181,17 @@ const Library = () => {
 
   const handleGenderSwap = (storyId: string) => {
     const story = stories.find((s) => s.id === storyId);
-    if (story) {
-      setGenderSwapStory(story);
-    }
+    if (story) setGenderSwapStory(story);
   };
 
   const handleGenderSwapSuccess = () => {
     fetchStories();
-    toast({
-      title: "✨ הסיפור עודכן!",
-      description: "המגדר הוחלף בהצלחה בכל הטקסט",
-    });
+    toast({ title: "✨ הסיפור עודכן!", description: "המגדר הוחלף בהצלחה בכל הטקסט" });
   };
 
   const handleEditStory = (storyId: string) => {
     const story = stories.find((s) => s.id === storyId);
-    if (story) {
-      setEditingStory(story);
-    }
+    if (story) setEditingStory(story);
   };
 
   const getCoverImage = (story: Story): string | null => {
@@ -237,14 +203,35 @@ const Library = () => {
     return solMagicBookCover;
   };
 
+  const navigateToStory = (id: string) => {
+    const s = stories.find(st => st.id === id);
+    navigate(`/story/${s?.slug || id}`);
+  };
+
+  const renderStoryList = (storyList: Story[]) => (
+    <div className="flex flex-col gap-2">
+      {storyList.map((story) => (
+        <StoryListItem
+          key={story.id}
+          id={story.id}
+          storyId={story.id}
+          childName={story.child_name}
+          topic={translateTopic(story.topic)}
+          coverUrl={getCoverImage(story)}
+          createdAt={story.created_at}
+          childGender={story.child_gender as 'male' | 'female' | undefined}
+          onDelete={handleDeleteStory}
+          onEdit={handleEditStory}
+          onClick={navigateToStory}
+        />
+      ))}
+    </div>
+  );
+
   const LoadingSkeleton = () => (
     <div className="flex flex-col gap-2">
       {[1, 2, 3, 4].map((i) => (
-        <div 
-          key={i} 
-          className="flex items-center gap-2.5 p-2.5 rounded-xl bg-muted animate-pulse"
-          aria-hidden="true"
-        >
+        <div key={i} className="flex items-center gap-2.5 p-2.5 rounded-xl bg-muted animate-pulse" aria-hidden="true">
           <div className="w-14 h-14 rounded-lg bg-muted-foreground/20 flex-shrink-0" />
           <div className="flex-1 space-y-1.5">
             <div className="h-3.5 w-3/4 bg-muted-foreground/20 rounded" />
@@ -258,9 +245,9 @@ const Library = () => {
   return (
     <div className="h-screen h-[100dvh] bg-background pb-20 overflow-y-auto overscroll-contain">
       <OfflineIndicator isOnline={isOnline} />
-      
+
       <div className="container max-w-lg mx-auto px-3 py-3">
-        {/* Header with Avatar + Credits */}
+        {/* Header */}
         <div className="bg-gradient-to-r from-purple-50 to-pink-50 border-b-2 border-purple-200 p-4 -mx-3 -mt-3 mb-4 shadow-sm">
           <div className="flex items-center justify-between">
             <Button variant="outline" size="icon" onClick={() => navigate("/")} className="hidden md:flex" aria-label="חזרה לדף הבית">
@@ -269,14 +256,10 @@ const Library = () => {
             <div className="flex items-center gap-3">
               {avatarUrl && (
                 <div className="w-12 h-12 rounded-full overflow-hidden border-3 border-purple-400 shadow-lg">
-                  <img 
-                    src={avatarUrl} 
-                    alt="דמות הילד" 
-                    className="w-full h-full object-cover"
-                  />
+                  <img src={avatarUrl} alt="דמות הילד" className="w-full h-full object-cover" />
                 </div>
               )}
-              <button 
+              <button
                 onClick={() => navigate("/upgrade")}
                 className="flex items-center gap-2 bg-white/70 border-2 border-purple-300 rounded-full px-4 py-2 hover:bg-purple-50 transition-colors shadow-md"
                 aria-label="צפה בקרדיטים ושדרג"
@@ -292,98 +275,53 @@ const Library = () => {
           </div>
         </div>
 
-        {/* Tabs */}
-        <Tabs defaultValue="my" dir="rtl" className="w-full">
-          <TabsList className="w-full h-12 bg-purple-100/60 rounded-xl p-1 mb-4">
-            <TabsTrigger 
-              value="my" 
-              className="flex-1 rounded-lg text-sm font-bold gap-1.5 data-[state=active]:bg-white data-[state=active]:text-purple-700 data-[state=active]:shadow-md text-purple-500"
-            >
-              <BookOpen className="w-4 h-4" />
-              הסיפורים שלי
-            </TabsTrigger>
-            <TabsTrigger 
-              value="sol" 
-              className="flex-1 rounded-lg text-sm font-bold gap-1.5 data-[state=active]:bg-white data-[state=active]:text-pink-600 data-[state=active]:shadow-md text-pink-400"
-            >
-              <Sparkles className="w-4 h-4" />
-              סיפורי סול
-            </TabsTrigger>
-          </TabsList>
+        {/* Stories content */}
+        {isLoading ? (
+          <LoadingSkeleton />
+        ) : stories.length === 0 ? (
+          <EmptyState onCreateClick={() => navigate("/create")} />
+        ) : childTabs ? (
+          /* Multiple children: show tabs */
+          <Tabs defaultValue="__all" dir="rtl" className="w-full">
+            <TabsList className="w-full h-auto flex-wrap bg-purple-100/60 rounded-xl p-1 mb-4 gap-1">
+              <TabsTrigger
+                value="__all"
+                className="rounded-lg text-sm font-bold gap-1.5 data-[state=active]:bg-white data-[state=active]:text-purple-700 data-[state=active]:shadow-md text-purple-500 px-3 py-1.5"
+              >
+                <BookOpen className="w-4 h-4" />
+                הכל
+              </TabsTrigger>
+              {childTabs.map(tab => (
+                <TabsTrigger
+                  key={tab.key}
+                  value={tab.key}
+                  className="rounded-lg text-sm font-bold data-[state=active]:bg-white data-[state=active]:text-purple-700 data-[state=active]:shadow-md text-purple-500 px-3 py-1.5"
+                >
+                  {tab.label}
+                </TabsTrigger>
+              ))}
+            </TabsList>
 
-          {/* My Stories Tab */}
-          <TabsContent value="my">
-            {isLoading ? (
-              <LoadingSkeleton />
-            ) : stories.length === 0 ? (
-              <EmptyState onCreateClick={() => navigate("/create")} />
-            ) : (
-              <div className="flex flex-col gap-2">
-                {stories.map((story) => (
-                  <StoryListItem
-                    key={story.id}
-                    id={story.id}
-                    storyId={story.id}
-                    childName={story.child_name}
-                    topic={translateTopic(story.topic)}
-                    coverUrl={getCoverImage(story)}
-                    createdAt={story.created_at}
-                    childGender={story.child_gender as 'male' | 'female' | undefined}
-                    onDelete={handleDeleteStory}
-                    onEdit={handleEditStory}
-                    onClick={(id) => {
-                      const s = stories.find(st => st.id === id);
-                      const slug = s?.slug || id;
-                      navigate(`/story/${slug}`);
-                    }}
-                  />
-                ))}
-              </div>
-            )}
-          </TabsContent>
-
-          {/* Sol Stories Tab */}
-          <TabsContent value="sol">
-            {isPremiumLoading ? (
-              <LoadingSkeleton />
-            ) : premiumStories.length === 0 ? (
-              <div className="text-center py-10 space-y-3">
-                <Sparkles className="w-12 h-12 text-pink-300 mx-auto" />
-                <p className="text-muted-foreground font-medium">סיפורי סול יגיעו בקרוב! ✨</p>
-              </div>
-            ) : (
-              <div className="flex flex-col gap-2">
-                {premiumStories.map((ps) => (
-                  <div
-                    key={ps.id}
-                    className="flex items-center gap-3 p-3 bg-card rounded-xl border border-border/50 cursor-pointer hover:shadow-md hover:border-pink-200 transition-all duration-200 active:scale-[0.99]"
-                    onClick={() => navigate(`/story/premium/${ps.id}`)}
-                    role="article"
-                    tabIndex={0}
-                    onKeyDown={(e) => e.key === 'Enter' && navigate(`/story/premium/${ps.id}`)}
-                    aria-label={ps.title}
-                  >
-                    <div className="w-20 h-20 rounded-xl overflow-hidden flex-shrink-0 bg-gradient-to-br from-pink-100 to-purple-100 border-2 border-pink-200">
-                      {ps.cover_url ? (
-                        <img src={ps.cover_url} alt={ps.title} className="w-full h-full object-cover" />
-                      ) : (
-                        <div className="w-full h-full flex items-center justify-center">
-                          <Sparkles className="w-8 h-8 text-pink-300" />
-                        </div>
-                      )}
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <h3 className="font-bold text-foreground truncate">{ps.title}</h3>
-                      {ps.description && (
-                        <p className="text-sm text-muted-foreground line-clamp-2">{ps.description}</p>
-                      )}
-                    </div>
+            <TabsContent value="__all">
+              {renderStoryList(stories)}
+            </TabsContent>
+            {childTabs.map(tab => (
+              <TabsContent key={tab.key} value={tab.key}>
+                {tab.stories.length === 0 ? (
+                  <div className="text-center py-10">
+                    <p className="text-muted-foreground font-medium">אין עדיין סיפורים עבור {tab.label}</p>
+                    <Button onClick={() => navigate("/create")} variant="outline" className="mt-3">
+                      <Plus className="w-4 h-4 ml-1" /> צרו סיפור חדש
+                    </Button>
                   </div>
-                ))}
-              </div>
-            )}
-          </TabsContent>
-        </Tabs>
+                ) : renderStoryList(tab.stories)}
+              </TabsContent>
+            ))}
+          </Tabs>
+        ) : (
+          /* Single child or no children: flat list */
+          renderStoryList(stories)
+        )}
 
         {/* Create Button */}
         {stories.length > 0 && (
@@ -428,19 +366,13 @@ const Library = () => {
   );
 };
 
-import libraryEmptyState from "@/assets/library-empty-state.png";
-
 const EmptyState = ({ onCreateClick }: { onCreateClick: () => void }) => (
   <div className="text-center py-6 space-y-5">
     <div className="relative mx-auto w-48 h-48">
       <div className="relative">
-        <img 
-          src={libraryEmptyState} 
-          alt="ילד קורא בטאבלט" 
-          className="w-48 h-48 rounded-2xl object-cover border-2 border-purple-300"
-        />
+        <img src={libraryEmptyState} alt="ילד קורא בטאבלט" className="w-48 h-48 rounded-2xl object-cover border-2 border-purple-300" />
       </div>
-      <div 
+      <div
         className="absolute top-full left-0 right-0 h-16 overflow-hidden opacity-30 pointer-events-none"
         style={{
           transform: 'scaleY(-1)',
@@ -448,15 +380,9 @@ const EmptyState = ({ onCreateClick }: { onCreateClick: () => void }) => (
           WebkitMaskImage: 'linear-gradient(to top, transparent 0%, black 100%)',
         }}
       >
-        <img 
-          src={libraryEmptyState} 
-          alt="" 
-          className="w-48 h-48 rounded-2xl object-cover mx-auto"
-          aria-hidden="true"
-        />
+        <img src={libraryEmptyState} alt="" className="w-48 h-48 rounded-2xl object-cover mx-auto" aria-hidden="true" />
       </div>
     </div>
-    
     <div className="space-y-2 pt-4">
       <h2 className="text-2xl font-black bg-gradient-to-r from-purple-600 via-pink-500 to-orange-400 bg-clip-text text-transparent">הספרייה שלך מחכה לסיפור הראשון!</h2>
       <p className="text-purple-600/80">בואו נתחיל?</p>
