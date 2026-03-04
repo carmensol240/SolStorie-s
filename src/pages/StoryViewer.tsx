@@ -1156,7 +1156,7 @@ const StoryViewer = () => {
             {/* Next (RTL: left arrow = next) */}
             <button
               onClick={() => handlePageNav('next')}
-              disabled={currentPage >= totalVirtualPages + 2 || isFlipping}
+              disabled={currentPage >= totalVirtualPages + 1 || isFlipping}
               className="nav-arrow-btn"
               aria-label="עמוד הבא"
             >
