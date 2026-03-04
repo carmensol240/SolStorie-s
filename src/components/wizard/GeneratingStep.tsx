@@ -409,7 +409,7 @@ const GeneratingStep = ({ formData, onComplete }: GeneratingStepProps) => {
     return (
       <div className="flex flex-col items-center justify-center min-h-[100dvh] text-center space-y-5 bg-gradient-to-b from-[#FAF3E8] to-[#F5E6D3] p-6">
         {/* Character carousel */}
-        <div className="relative w-40 h-40 mx-auto">
+        <div className="relative w-60 h-60 mx-auto">
           <div 
             key={castIndex}
             className="absolute inset-0 rounded-full overflow-hidden border-4 border-purple-200/60 shadow-xl animate-scale-in"
