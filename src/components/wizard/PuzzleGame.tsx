@@ -1,5 +1,5 @@
 import { useState, useCallback, useRef, useEffect, useMemo } from "react";
-import { Shuffle } from "lucide-react";
+import { Shuffle, BookOpen } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import PuzzleCompleteCelebration from "./PuzzleCompleteCelebration";
 
@@ -28,9 +28,11 @@ function shuffle<T>(arr: T[]): T[] {
 
 interface PuzzleGameProps {
   ageRange: string;
+  onReadStory?: () => void;
+  isStoryReady?: boolean;
 }
 
-const PuzzleGame = ({ ageRange }: PuzzleGameProps) => {
+const PuzzleGame = ({ ageRange, onReadStory, isStoryReady }: PuzzleGameProps) => {
   const gridSize = getGridSize(ageRange);
   const totalPieces = gridSize * gridSize;
   const imageSrc = useMemo(() => PUZZLE_IMAGES[Math.floor(Math.random() * PUZZLE_IMAGES.length)], []);
@@ -263,6 +265,16 @@ const PuzzleGame = ({ ageRange }: PuzzleGameProps) => {
         >
           <img src={imageSrc} alt="פאזל מושלם" className="w-full h-full object-cover" />
         </div>
+        {onReadStory && isStoryReady && (
+          <Button 
+            onClick={onReadStory} 
+            size="lg" 
+            className="gap-2 bg-gradient-to-r from-purple-600 to-pink-500 hover:from-purple-700 hover:to-pink-600 text-white text-lg px-8 py-3 rounded-xl shadow-lg mt-2"
+          >
+            <BookOpen className="w-5 h-5" />
+            קראו את הסיפור 📖
+          </Button>
+        )}
         <Button onClick={handleReset} variant="outline" className="gap-2 mt-2">
           <Shuffle className="w-4 h-4" />
           שחקו שוב 🧩

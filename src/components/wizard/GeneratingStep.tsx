@@ -358,7 +358,7 @@ const GeneratingStep = ({ formData, onComplete }: GeneratingStepProps) => {
           <p className="text-purple-700/70 text-sm">בינתיים בואו נשחק 🧩</p>
         </div>
 
-        <PuzzleGame ageRange={formData.ageRange} />
+        <PuzzleGame ageRange={formData.ageRange} onReadStory={handleOpenStory} isStoryReady={showReadyPopup} />
 
         {/* Ready popup */}
         {showReadyPopup && (
