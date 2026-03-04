@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback, useRef } from "react";
+import { useState, useEffect, useCallback, useRef, useMemo } from "react";
 import { Sparkles, BookOpen, Palette, FileText, RefreshCw, Wand2 } from "lucide-react";
 import generatingHeroCast from "@/assets/generating-hero-cast.jpeg";
 import castSolAdventure from "@/assets/cast-sol-adventure.jpg";
@@ -102,6 +102,22 @@ const GeneratingStep = ({ formData, onComplete }: GeneratingStepProps) => {
   const [castIndex, setCastIndex] = useState(0);
   const [tipIndex, setTipIndex] = useState(0);
   const [isTipVisible, setIsTipVisible] = useState(true);
+
+  // Build dynamic cast list including the child as a superhero
+  const allCharacters = useMemo(() => {
+    const base = [...CAST_CHARACTERS];
+    if (formData.childAvatarUrl) {
+      const childHero = {
+        name: formData.childName || "הגיבור שלנו",
+        image: formData.childAvatarUrl,
+        emoji: "🦸",
+        verb: formData.childGender === "female" ? "מכינה" : "מכין",
+      };
+      // Insert child at position 1 so they appear early
+      base.splice(1, 0, childHero);
+    }
+    return base;
+  }, [formData.childAvatarUrl, formData.childName, formData.childGender]);
 
   const generateStory = useCallback(async () => {
     try {
@@ -403,7 +419,7 @@ const GeneratingStep = ({ formData, onComplete }: GeneratingStepProps) => {
 
   // --- ILLUSTRATIONS LOADING PHASE ---
   if (phase === 'illustrations') {
-    const currentChar = CAST_CHARACTERS[castIndex % CAST_CHARACTERS.length];
+    const currentChar = allCharacters[castIndex % allCharacters.length];
     const currentTip = PARENTING_TIPS[tipIndex % PARENTING_TIPS.length];
 
     return (
