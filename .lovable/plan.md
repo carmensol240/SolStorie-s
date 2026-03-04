@@ -1,26 +1,25 @@
 
 
-## Bug Analysis
+## תיקון הבהוב מסך ריק בספרייה
 
-The onboarding loop is caused by a combination of issues in the navigation flow between `RequireTerms` and `Onboarding`:
+### הבעיה
+כשנכנסים לספרייה (למשל מכפתור "חזרה לספרייה" בסוף סיפור), ה-`user` מתחיל כ-`null`. זה גורם ל-`fetchStories` לסיים מיד עם `stories=[]` ו-`isLoading=false`, מה שמציג את ה-**EmptyState** (התמונה של בן וסול). רגע אחרי, ה-`user` מתעדכן, ה-fetch רץ שוב עם הסיפורים האמיתיים, ומופיעה הספרייה הרגילה.
 
-1. **Silent update failure**: In `Onboarding.handleContinue`, the Supabase `.update().eq()` call returns success (`error: null`) even when **zero rows are matched** (e.g., due to a race condition where the profile hasn't been created yet). The code doesn't verify the update actually persisted.
+### הפתרון
+בקובץ `src/pages/Library.tsx`:
 
-2. **No `replace: true` on redirects**: Both `RequireTerms` (redirecting to `/onboarding`) and `Onboarding`'s guard effect (redirecting to `/adventure`) use `navigate()` without `{ replace: true }`, causing history stack pollution and making the loop worse.
+1. **לא להציג תוכן עד שה-user נטען** — כל עוד `user` הוא `undefined`/`null` ו-auth עדיין בטעינה, להציג את ה-`LoadingSkeleton` במקום ה-EmptyState
+2. שינוי התנאי בשורה 275: במקום `stories.length === 0` ישר להציג EmptyState, לבדוק גם ש-`user` כבר נטען (לא `undefined`) ושה-loading סיים
 
-3. **Loop mechanics**: `handleContinue` thinks it succeeded → navigates to `/adventure` → `RequireTerms` queries DB → `terms_accepted_at` is still null → redirects back to `/onboarding` → Onboarding guard checks terms → still null → shows the form again.
+שינוי קטן — שורה אחת בלוגיקת התנאי:
+```tsx
+{isLoading || !user ? (
+  <LoadingSkeleton />
+) : stories.length === 0 ? (
+  <EmptyState ... />
+) : ...}
+```
 
-## Fix
-
-### 1. `src/pages/Onboarding.tsx` — Verify update actually persisted
-
-In `handleContinue`, after the update call, re-query the profile to confirm `terms_accepted_at` was saved. If not, use `upsert` as a fallback. Also add `{ replace: true }` to the guard navigation.
-
-### 2. `src/components/RequireTerms.tsx` — Use `replace: true`
-
-Change the `navigate` call to onboarding to use `{ replace: true }` so the history stack doesn't accumulate redirect entries.
-
-### 3. Both files — Add select return on update
-
-Use `.update(...).eq(...).select()` to get the updated row back, confirming the write succeeded. If the returned array is empty, fall back to an upsert to handle the edge case where the profile row doesn't exist yet.
+### קובץ אחד
+`src/pages/Library.tsx`
 
