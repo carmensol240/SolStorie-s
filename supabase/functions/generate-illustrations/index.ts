@@ -836,14 +836,37 @@ serve(async (req) => {
     for (const page of pagesToIllustrate) {
       console.log(`Generating illustration for page ${page.page_number}...`);
       
+      // === AI SCENE ANALYSIS — build a unique, rich prompt per page ===
+      const basePrompt = page.illustration_prompt || `A cheerful children's book illustration for page ${page.page_number}`;
+      let illustrationPrompt = basePrompt;
+
+      const scene = await analyzePageScene(
+        page.text || basePrompt,
+        page.page_number,
+        pagesToIllustrate.length,
+        topic || "",
+        LOVABLE_API_KEY
+      );
+
+      if (scene) {
+        // Build character description from profile
+        const charDesc = characterProfile
+          ? `A ${characterProfile.gender === "female" ? "girl" : "boy"} aged ${characterProfile.ageDescription} with ${characterProfile.hairDescription}, ${characterProfile.skinTone} skin, ${characterProfile.eyeColor} eyes, wearing ${storyOutfit}`
+          : `A child wearing ${storyOutfit}`;
+        illustrationPrompt = buildScenePrompt(scene, charDesc, basePrompt);
+        console.log(`📝 Page ${page.page_number} enriched prompt (${illustrationPrompt.length} chars)`);
+      } else {
+        console.log(`⚠️ Page ${page.page_number} using original prompt (scene analysis failed)`);
+      }
+
       let base64Image: string | null = null;
       const MAX_RETRIES = 2;
       
       for (let attempt = 1; attempt <= MAX_RETRIES; attempt++) {
-        // Branch: use PuLID when child photo exists, Schnell otherwise
+        // Branch: use Flux Kontext when child photo exists, Schnell otherwise
         if (childPhotoSignedUrl) {
           base64Image = await generateIllustrationWithFace(
-            page.illustration_prompt || `A cheerful children's book illustration for page ${page.page_number}`,
+            illustrationPrompt,
             childPhotoSignedUrl,
             characterProfile,
             storyOutfit,
@@ -852,7 +875,7 @@ serve(async (req) => {
           );
         } else {
           base64Image = await generateIllustration(
-            page.illustration_prompt || `A cheerful children's book illustration for page ${page.page_number}`,
+            illustrationPrompt,
             effectivePhoto,
             characterProfile,
             LOVABLE_API_KEY,
