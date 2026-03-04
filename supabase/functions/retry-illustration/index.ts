@@ -104,7 +104,7 @@ serve(async (req) => {
       .eq("name", story.child_name)
       .maybeSingle();
 
-    const photoPath = child?.avatar_url || child?.photo_url;
+    const photoPath = child?.photo_url || child?.avatar_url;
     if (photoPath) {
       if (photoPath.startsWith("http")) {
         childPhoto = photoPath;
