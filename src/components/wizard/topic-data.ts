@@ -60,6 +60,7 @@ import topicEnvironment from "@/assets/topic-environment.jpg";
 import topicMagicKeys from "@/assets/topic-magic-keys.jpg";
 import topicEducationalToolbox from "@/assets/topic-educational-toolbox.jpeg";
 import topicSafeRoom from "@/assets/topic-safe-room.png";
+import topicFindAFriend from "@/assets/topic-find-a-friend.jpg";
 
 export interface TopicItem {
   id: string;
@@ -144,6 +145,7 @@ export const CHARACTER_SECTIONS: CharacterSection[] = [
       { id: "pocket-kiss", label: "הנשיקה בכיס של אמא", description: "סיפור מרגש על נשיקה שאמא שמה בכיס: בכל רגע של געגוע, אפשר לשלוף אותה ולהרגיש קרוב.", image: topicPocketKiss, ageRange: "3-6" },
       { id: "sibling-love", label: "צוות מבצע – אהבת אחים", description: "סיפור על הקשר בין אחים: ריבים קטנים, הרפתקאות משותפות ואהבה שלא נגמרת.", image: topicSiblingLove, ageRange: "3-6" },
       { id: "my-special-family", label: "המשפחה המיוחדת שלי", description: "סיפור על סוגי משפחות שונים: כל משפחה מיוחדת בדרכה, והדבר החשוב ביותר הוא האהבה.", image: topicMySpecialFamily, ageRange: "3-8" },
+      { id: "find-a-friend", label: "הלב שלי רוצה חבר 💛", description: "סיפור עדין ומעצים על ילד שמרגיש שהחברים לא כוללים אותו במשחק. הוא לומד להביע את רגשותיו, מוצא אומץ לפנות לילד אחר שגם הוא לבד, ויחד הם מגלים שחברות אמיתית מתחילה בחיוך קטן. הסיפור מותאם לגיל הרך, עוסק בחרמות בעדינות ובאופן חיובי — ללא אשמה, עם תקווה ופתרון שמח. המסר: כולם ראויים לחברות, ותמיד אפשר להתחיל מחדש.", image: topicFindAFriend, ageRange: "3-6", keywords: ["חברות", "בדידות", "חרמות", "רגשות", "אומץ", "חבר"] },
       { id: "safe-room-sirens", label: "* שהייה בממ\"ד ואזעקות", description: "סיפור מרגיע ומחזק על הרגעים בממ\"ד: איך נשארים רגועים כשנשמעת אזעקה, מה עושים יחד כמשפחה ולמה הממ\"ד הוא המקום הכי בטוח. סיפור שעוזר לילדים להרגיש מוגנים, אהובים ובטוחים.", image: topicSafeRoom, ageRange: "0-8", keywords: ["ממד", "אזעקה", "מלחמה", "פחד", "בטחון", "מקלט", "צבע אדום", "סירנה", "מוגנות", "רגיעה"], featured: true },
     ],
   },
