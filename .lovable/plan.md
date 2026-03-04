@@ -1,26 +1,38 @@
 
 
-## Bug Analysis
+## תוכנית: החלפת fal-ai/instant-character ב-fal-ai/flux-kontext/dev
 
-The onboarding loop is caused by a combination of issues in the navigation flow between `RequireTerms` and `Onboarding`:
+### מה ישתנה
 
-1. **Silent update failure**: In `Onboarding.handleContinue`, the Supabase `.update().eq()` call returns success (`error: null`) even when **zero rows are matched** (e.g., due to a race condition where the profile hasn't been created yet). The code doesn't verify the update actually persisted.
+כל הקריאות למודל `fal-ai/instant-character` יוחלפו ב-`fal-ai/flux-kontext/dev` — מודל מהיר יותר עם אותו ממשק API (prompt + image_url → images[0].url). ה-timeout יקוצר משמעותית כי המודל מהיר יותר.
 
-2. **No `replace: true` on redirects**: Both `RequireTerms` (redirecting to `/onboarding`) and `Onboarding`'s guard effect (redirecting to `/adventure`) use `navigate()` without `{ replace: true }`, causing history stack pollution and making the loop worse.
+### קבצים שישתנו (3 Edge Functions)
 
-3. **Loop mechanics**: `handleContinue` thinks it succeeded → navigates to `/adventure` → `RequireTerms` queries DB → `terms_accepted_at` is still null → redirects back to `/onboarding` → Onboarding guard checks terms → still null → shows the form again.
+#### 1. `supabase/functions/generate-illustrations/index.ts`
+- שינוי URL מ-`fal.run/fal-ai/instant-character` ל-`fal.run/fal-ai/flux-kontext/dev`
+- הקטנת timeout מ-120s ל-30s (המודל מהיר הרבה יותר)
+- הוספת פרמטרים: `output_format: "png"`, `resolution_mode: "4:3"`
+- עדכון הודעות לוג ו-error messages מ-"Instant Character" ל-"Flux Kontext"
 
-## Fix
+#### 2. `supabase/functions/retry-illustration/index.ts`
+- אותם שינויים: URL, timeout (120s→30s), פרמטרים, לוגים
 
-### 1. `src/pages/Onboarding.tsx` — Verify update actually persisted
+#### 3. `supabase/functions/generate-cover/index.ts`
+- אותם שינויים: URL, timeout (60s→30s), פרמטרים, לוגים
 
-In `handleContinue`, after the update call, re-query the profile to confirm `terms_accepted_at` was saved. If not, use `upsert` as a fallback. Also add `{ replace: true }` to the guard navigation.
+### שינויי API
 
-### 2. `src/components/RequireTerms.tsx` — Use `replace: true`
+instant-character קיבל:
+```json
+{ "prompt": "...", "image_url": "..." }
+```
 
-Change the `navigate` call to onboarding to use `{ replace: true }` so the history stack doesn't accumulate redirect entries.
+flux-kontext/dev מקבל אותו מבנה + פרמטרים אופציונליים:
+```json
+{ "prompt": "...", "image_url": "...", "output_format": "png", "resolution_mode": "4:3", "num_images": 1 }
+```
 
-### 3. Both files — Add select return on update
+התגובה זהה: `data.images[0].url` — אין צורך בשינוי בקוד העיבוד.
 
-Use `.update(...).eq(...).select()` to get the updated row back, confirming the write succeeded. If the returned array is empty, fall back to an upsert to handle the edge case where the profile row doesn't exist yet.
+### ללא שינויי DB או קוד צד-לקוח
 
