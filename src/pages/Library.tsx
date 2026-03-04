@@ -209,17 +209,15 @@ const Library = () => {
   };
 
   const renderStoryList = (storyList: Story[]) => (
-    <div className="flex flex-col gap-2">
+    <div className="grid grid-cols-2 gap-3">
       {storyList.map((story) => (
-        <StoryListItem
+        <StoryBookCard
           key={story.id}
           id={story.id}
           storyId={story.id}
           childName={story.child_name}
           topic={translateTopic(story.topic)}
           coverUrl={getCoverImage(story)}
-          createdAt={story.created_at}
-          childGender={story.child_gender as 'male' | 'female' | undefined}
           onDelete={handleDeleteStory}
           onEdit={handleEditStory}
           onClick={navigateToStory}
