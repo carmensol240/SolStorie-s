@@ -330,6 +330,12 @@ const PuzzleGame = ({ ageRange }: PuzzleGameProps) => {
         </div>
       )}
 
+      {allPiecesPlaced && !completed && (
+        <Button onClick={() => setCompleted(true)} className="gap-2 bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white text-lg px-8 py-3 rounded-xl shadow-lg animate-pulse">
+          🎉 סיימתי!
+        </Button>
+      )}
+
       <Button onClick={handleReset} variant="ghost" size="sm" className="gap-1 text-purple-600">
         <Shuffle className="w-3 h-3" />
         ערבבו מחדש
