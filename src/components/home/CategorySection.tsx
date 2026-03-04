@@ -22,23 +22,18 @@ const CategorySection = ({ section, colorClass, bgClass, borderClass }: Category
         className={`relative w-full rounded-2xl overflow-hidden ${borderClass} border-2 group`}
         aria-label={section.categoryLabel}
       >
-        <div className="relative h-44 w-full bg-gradient-to-l from-muted/30 to-muted/10">
+        <div className="relative h-44 w-full overflow-hidden">
           <img
             src={section.heroImage}
             alt={section.categoryLabel}
-            className="w-full h-full object-contain object-right group-hover:scale-105 transition-transform duration-300"
+            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
           />
-          <div
-            className="absolute inset-0"
-            style={{
-              background: "linear-gradient(to left, rgba(0,0,0,0.6) 0%, rgba(0,0,0,0.2) 60%, transparent 100%)",
-            }}
-          />
-          <div className="absolute inset-0 flex flex-col justify-center items-end pr-5 gap-1">
-            <h3 className="text-white text-lg font-black drop-shadow-md">
+          <div className="absolute inset-0" style={{ background: "linear-gradient(to top, rgba(0,0,0,0.7) 0%, rgba(0,0,0,0.2) 50%, transparent 100%)" }} />
+          <div className="absolute inset-0 flex flex-col justify-end items-center pb-3 gap-0.5">
+            <h3 className="text-white text-xl font-black drop-shadow-md text-center">
               {section.categoryEmoji} {section.categoryLabel}
             </h3>
-            <span className="text-white/70 text-[10px]">
+            <span className="text-white text-xs font-bold drop-shadow-md">
               {section.topics.length} נושאים
             </span>
           </div>

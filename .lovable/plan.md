@@ -1,21 +1,26 @@
 
 
-## תיקון באנר קטגוריה — תמונה מכסה את כל השטח
+## Bug Analysis
 
-### הבעיה
-התמונה משתמשת ב-`object-contain` מה שגורם לה להיות קטנה עם רקע אפור סביבה. הכיתוב מיושר לצד במקום למרכז מעל התמונה.
+The onboarding loop is caused by a combination of issues in the navigation flow between `RequireTerms` and `Onboarding`:
 
-### שינויים
+1. **Silent update failure**: In `Onboarding.handleContinue`, the Supabase `.update().eq()` call returns success (`error: null`) even when **zero rows are matched** (e.g., due to a race condition where the profile hasn't been created yet). The code doesn't verify the update actually persisted.
 
-**1. `src/components/home/CategorySection.tsx`** (שורות 25-44):
-- שינוי `object-contain object-right` → `object-cover` כדי שהתמונה תכסה את כל הבאנר
-- הסרת `bg-gradient-to-l from-muted/30 to-muted/10` (לא צריך רקע אפור כי התמונה מכסה הכל)
-- שינוי מיקום הכיתוב למרכז-תחתון מעל התמונה (במקום ימין-מרכז)
+2. **No `replace: true` on redirects**: Both `RequireTerms` (redirecting to `/onboarding`) and `Onboarding`'s guard effect (redirecting to `/adventure`) use `navigate()` without `{ replace: true }`, causing history stack pollution and making the loop worse.
 
-**2. `src/components/wizard/TopicStep.tsx`** (שורה 167-168):
-- אותו שינוי: `object-contain object-right` → `object-cover`
-- הסרת רקע אפור
+3. **Loop mechanics**: `handleContinue` thinks it succeeded → navigates to `/adventure` → `RequireTerms` queries DB → `terms_accepted_at` is still null → redirects back to `/onboarding` → Onboarding guard checks terms → still null → shows the form again.
 
-### התוצאה
-התמונה תמלא את כל הבאנר, הכיתוב יופיע במרכז מעל גרדיאנט כהה, בלי רווחים אפורים.
+## Fix
+
+### 1. `src/pages/Onboarding.tsx` — Verify update actually persisted
+
+In `handleContinue`, after the update call, re-query the profile to confirm `terms_accepted_at` was saved. If not, use `upsert` as a fallback. Also add `{ replace: true }` to the guard navigation.
+
+### 2. `src/components/RequireTerms.tsx` — Use `replace: true`
+
+Change the `navigate` call to onboarding to use `{ replace: true }` so the history stack doesn't accumulate redirect entries.
+
+### 3. Both files — Add select return on update
+
+Use `.update(...).eq(...).select()` to get the updated row back, confirming the write succeeded. If the returned array is empty, fall back to an upsert to handle the edge case where the profile row doesn't exist yet.
 
