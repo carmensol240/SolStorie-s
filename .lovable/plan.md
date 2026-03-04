@@ -1,26 +1,25 @@
 
 
-## Bug Analysis
+## תוכנית: תיקון יחס גודל תמונות הנושא
 
-The onboarding loop is caused by a combination of issues in the navigation flow between `RequireTerms` and `Onboarding`:
+### הבעיה
+תמונות הנושא נחתכות (`object-cover`) במקום להיכנס שלמות למסגרת. הבעיה קיימת ב-3 מקומות:
 
-1. **Silent update failure**: In `Onboarding.handleContinue`, the Supabase `.update().eq()` call returns success (`error: null`) even when **zero rows are matched** (e.g., due to a race condition where the profile hasn't been created yet). The code doesn't verify the update actually persisted.
+### שינויים
 
-2. **No `replace: true` on redirects**: Both `RequireTerms` (redirecting to `/onboarding`) and `Onboarding`'s guard effect (redirecting to `/adventure`) use `navigate()` without `{ replace: true }`, causing history stack pollution and making the loop worse.
+**1. `src/components/wizard/TopicStep.tsx`** — SimpleTile (שורה 256-257):
+- שינוי מ-`h-24` ל-`aspect-square` כדי לשמור על יחס 1:1
+- שינוי מ-`object-cover` ל-`object-contain` + רקע `bg-muted/20`
 
-3. **Loop mechanics**: `handleContinue` thinks it succeeded → navigates to `/adventure` → `RequireTerms` queries DB → `terms_accepted_at` is still null → redirects back to `/onboarding` → Onboarding guard checks terms → still null → shows the form again.
+**2. `src/components/wizard/TopicStep.tsx`** — Featured topics (שורה ~200):
+- שינוי `object-cover` ל-`object-contain` בתמונת ה-featured
 
-## Fix
+**3. `src/pages/CategoryView.tsx`** (שורה 73-78):
+- שינוי מ-`h-24` ל-`aspect-square`
+- שינוי מ-`object-cover` ל-`object-contain` + רקע
 
-### 1. `src/pages/Onboarding.tsx` — Verify update actually persisted
+**4. `src/components/home/CategorySection.tsx`** — כבר מתוקן עם `object-contain`, רק לוודא עקביות
 
-In `handleContinue`, after the update call, re-query the profile to confirm `terms_accepted_at` was saved. If not, use `upsert` as a fallback. Also add `{ replace: true }` to the guard navigation.
-
-### 2. `src/components/RequireTerms.tsx` — Use `replace: true`
-
-Change the `navigate` call to onboarding to use `{ replace: true }` so the history stack doesn't accumulate redirect entries.
-
-### 3. Both files — Add select return on update
-
-Use `.update(...).eq(...).select()` to get the updated row back, confirming the write succeeded. If the returned array is empty, fall back to an upsert to handle the edge case where the profile row doesn't exist yet.
+### התוצאה
+כל תמונות הנושא יוצגו שלמות בתוך מסגרת ריבועית עם רקע רך, ללא חיתוך של דמויות.
 
