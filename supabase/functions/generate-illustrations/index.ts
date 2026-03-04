@@ -483,7 +483,10 @@ function buildScenePrompt(
   characterDesc: string,
   originalPrompt: string
 ): string {
-  return `${characterDesc}, ${scene.character_action}, ${scene.scene_action}, in ${scene.environment}, ${scene.camera_angle}, ${scene.lighting}, ${scene.mood} mood, Pixar 3D CGI animation style, big expressive eyes, soft rounded features, oversized head with small body, vibrant saturated colors, cinematic warm lighting with glowing accents, fantasy children's book background, high quality render, Disney-Pixar aesthetic, full body head to toe with feet grounded on surface`;
+  // Use the original illustration_prompt as the primary scene description (it's already tailored to the page text)
+  // Then enrich with scene analysis details for camera, lighting, and mood variety
+  const sceneBase = originalPrompt || `${scene.character_action}, ${scene.scene_action}`;
+  return `${characterDesc}. SCENE: ${sceneBase}. ACTION: ${scene.character_action}. ENVIRONMENT: ${scene.environment}. CAMERA: ${scene.camera_angle}. LIGHTING: ${scene.lighting}. MOOD: ${scene.mood}. Pixar 3D CGI style, vibrant colors, fantasy children's book, full body head to toe with feet grounded on surface`;
 }
 
 // Helper function to upload base64 image to Supabase Storage
