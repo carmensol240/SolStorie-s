@@ -783,53 +783,21 @@ const StoryViewer = () => {
     }
   }, [generationStatus, story, userStartedReading]);
 
-  // Build virtual pages: 2 text pages then 1 full-screen illustration, repeating
-  type VirtualPage =
-    | { type: 'text'; dbPage: StoryPage }
-    | { type: 'illustration'; illustrationUrl: string | null; illustrationPrompt: string | null; dbPage: StoryPage };
-
-  const isToddlerStory = story?.age_range === '0-2';
+  // Build virtual pages: 1:1 mapping — each DB page = one combined page (illustration + text)
+  type VirtualPage = {
+    dbPage: StoryPage;
+    illustrationUrl: string | null;
+    illustrationPrompt: string | null;
+  };
 
   const virtualPages: VirtualPage[] = useMemo(() => {
     if (!story || story.pages.length === 0) return [];
-    const result: VirtualPage[] = [];
-    const dbPages = story.pages;
-
-    if (isToddlerStory) {
-      // Age 0-2: each DB page gets a text page + illustration page (illustration fills 65%+ of screen)
-      for (const page of dbPages) {
-        result.push({ type: 'text', dbPage: page });
-        if (page.illustration_url || page.illustration_prompt) {
-          result.push({ type: 'illustration', illustrationUrl: page.illustration_url, illustrationPrompt: page.illustration_prompt || null, dbPage: page });
-        }
-      }
-    } else {
-      // Standard layout: 2 text pages then 1 illustration
-      for (let i = 0; i < dbPages.length; i++) {
-        result.push({ type: 'text', dbPage: dbPages[i] });
-
-        const textCount = result.filter(p => p.type === 'text').length;
-        if (textCount % 2 === 0 || i === dbPages.length - 1) {
-          const batchStart = i === dbPages.length - 1 && textCount % 2 !== 0 ? i : Math.max(0, i - 1);
-          let illUrl: string | null = null;
-          let illPrompt: string | null = null;
-          let illDbPage = dbPages[i];
-          for (let j = batchStart; j <= i; j++) {
-            if (dbPages[j].illustration_url || dbPages[j].illustration_prompt) {
-              illUrl = dbPages[j].illustration_url;
-              illPrompt = dbPages[j].illustration_prompt || null;
-              illDbPage = dbPages[j];
-            }
-          }
-          if (illUrl || illPrompt) {
-            result.push({ type: 'illustration', illustrationUrl: illUrl, illustrationPrompt: illPrompt, dbPage: illDbPage });
-          }
-        }
-      }
-    }
-
-    return result;
-  }, [story?.pages, isToddlerStory]);
+    return story.pages.map(page => ({
+      dbPage: page,
+      illustrationUrl: page.illustration_url,
+      illustrationPrompt: page.illustration_prompt || null,
+    }));
+  }, [story?.pages]);
 
   if (isLoading) {
     return (
@@ -872,7 +840,7 @@ const StoryViewer = () => {
   // For editing/nikud, get the underlying DB page
   const page = currentVirtual ? currentVirtual.dbPage : null;
   const currentFontSize = FONT_SIZES[fontSizeIndex];
-  const showPageActions = isContentPage && currentVirtual?.type === 'text' && page !== null;
+  const showPageActions = isContentPage && page !== null;
 
   // Page navigation with simple fade transition
   const handlePageNav = (direction: 'next' | 'prev') => {
@@ -1146,26 +1114,20 @@ const StoryViewer = () => {
               </div>
 
             ) : currentVirtual ? (
-              /* Story Content Pages — virtual page pattern */
-              <div className={cn("h-full flex flex-col")}>
-                {currentVirtual.type === 'illustration' ? (
-                  /* Full-screen illustration page (no text) */
-                  currentVirtual.illustrationUrl ? (
-                    <div className="relative w-full h-full overflow-hidden bg-[#F5E6D3] flex items-center justify-center">
-                      <img
-                        src={getPublicIllustrationUrl(currentVirtual.illustrationUrl) || ''}
-                        alt={`איור`}
-                        className="w-full h-full object-contain"
-                        loading="eager"
-                      />
-                      <div className="absolute bottom-4 left-1/2 -translate-x-1/2">
-                        <span className="text-xs text-[#8B7355]/60 font-light bg-white/40 px-3 py-1 rounded-full backdrop-blur-sm">{currentPage} / {totalVirtualPages}</span>
-                      </div>
-                    </div>
+              /* Story Content Pages — combined illustration + text */
+              <div className="h-full flex flex-col">
+                {/* Illustration area — 60%+ of page, full width, no margins */}
+                <div className="flex-[6] w-full relative min-h-0 overflow-hidden bg-[#F5E6D3]">
+                  {currentVirtual.illustrationUrl ? (
+                    <img
+                      src={getPublicIllustrationUrl(currentVirtual.illustrationUrl) || ''}
+                      alt="איור"
+                      className="w-full h-full object-cover"
+                      loading="eager"
+                    />
                   ) : currentVirtual.illustrationPrompt ? (
                     /* Illustration generating — skeleton */
-                    <div className="relative w-full h-full overflow-hidden bg-gradient-to-br from-[#FFF8F0] via-[#F5E6D3] to-[#FAF3E8] flex items-center justify-center">
-                      {/* Animated painting effect */}
+                    <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-[#FFF8F0] via-[#F5E6D3] to-[#FAF3E8]">
                       <div className="absolute inset-0 opacity-20">
                         <div className="absolute top-1/4 left-1/4 w-32 h-32 rounded-full bg-purple-200 animate-pulse" style={{ animationDelay: '0s', animationDuration: '2s' }} />
                         <div className="absolute top-1/2 right-1/4 w-24 h-24 rounded-full bg-pink-200 animate-pulse" style={{ animationDelay: '0.5s', animationDuration: '2.5s' }} />
@@ -1184,26 +1146,34 @@ const StoryViewer = () => {
                         </div>
                       </div>
                     </div>
-                  ) : null
-                ) : (
-                  /* Text-only page — rainbow background */
-                  <div className="flex-1 flex flex-col min-h-0 w-full" style={{ background: RAINBOW_BG }}>
-                    <div className="flex-1 min-h-0 overflow-y-auto px-8 py-8 md:px-12 md:py-10 flex flex-col">
-                      <div className="max-w-lg mx-auto w-full">
-                        <p className={cn(
-                          "text-[#3D2914] text-right font-medium transition-all whitespace-pre-line",
-                          currentFontSize.size
-                        )} style={{ lineHeight: '2.2' }} dir="rtl">
-                          {showNikud ? currentVirtual.dbPage.text : currentVirtual.dbPage.text.replace(/[\u0591-\u05C7]/g, '')}
-                        </p>
-                      </div>
-                      <div className="flex flex-col items-center gap-2 pt-4 pb-1 shrink-0">
-                        <span className="text-xs text-[#B8A08C] font-light tracking-wide">{currentPage} / {totalVirtualPages}</span>
-                        <span className="text-sm font-black logo-3d-bubble opacity-60"><span className="logo-rainbow">SolStorie's™</span></span>
-                      </div>
-                    </div>
+                  ) : (
+                    /* No illustration at all — decorative placeholder */
+                    (() => {
+                      const theme = getTopicTheme(story.topic);
+                      return (
+                        <div className="w-full h-full flex items-center justify-center" style={{ background: theme.bg }}>
+                          <span className="text-7xl opacity-40">{theme.emoji}</span>
+                        </div>
+                      );
+                    })()
+                  )}
+                </div>
+
+                {/* Text area — below illustration */}
+                <div className="flex-[4] min-h-0 overflow-y-auto px-6 py-4 md:px-10 md:py-6" style={{ background: RAINBOW_BG }}>
+                  <div className="max-w-lg mx-auto w-full">
+                    <p className={cn(
+                      "text-[#3D2914] text-right font-medium transition-all whitespace-pre-line",
+                      currentFontSize.size
+                    )} style={{ lineHeight: '2.2' }} dir="rtl">
+                      {showNikud ? currentVirtual.dbPage.text : currentVirtual.dbPage.text.replace(/[\u0591-\u05C7]/g, '')}
+                    </p>
                   </div>
-                )}
+                  <div className="flex flex-col items-center gap-1 pt-3 pb-1 shrink-0">
+                    <span className="text-xs text-[#B8A08C] font-light tracking-wide">{currentPage} / {totalVirtualPages}</span>
+                    <span className="text-sm font-black logo-3d-bubble opacity-60"><span className="logo-rainbow">SolStorie's™</span></span>
+                  </div>
+                </div>
               </div>
             ) : null}
           </div>
