@@ -43,7 +43,7 @@ const CategorySection = ({ section, colorClass, bgClass, borderClass }: Category
       {/* Expanded topics grid */}
       {expanded && (
         <div className="space-y-3">
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-2 gap-2">
             {section.topics.map((topic) => (
               <button
                 key={topic.id}
