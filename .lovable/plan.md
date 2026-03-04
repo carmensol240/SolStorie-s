@@ -1,26 +1,47 @@
 
 
-## Bug Analysis
+## שינוי פריסה: איור ברוחב מלא + טקסט מתחת בכל דף
 
-The onboarding loop is caused by a combination of issues in the navigation flow between `RequireTerms` and `Onboarding`:
+### מצב נוכחי
+הסיפור מחולק ל-virtual pages: דפי טקסט נפרדים ודפי איור נפרדים. בתצוגה סטנדרטית — 2 דפי טקסט ואז דף איור. בגיל 0-2 — דף טקסט ואז דף איור.
 
-1. **Silent update failure**: In `Onboarding.handleContinue`, the Supabase `.update().eq()` call returns success (`error: null`) even when **zero rows are matched** (e.g., due to a race condition where the profile hasn't been created yet). The code doesn't verify the update actually persisted.
+### שינוי מבוקש
+כל דף יהיה **משולב**: איור גדול (60%+ מגובה הדף, רוחב מלא ללא שוליים) + טקסט מתחתיו. אין יותר דפים נפרדים.
 
-2. **No `replace: true` on redirects**: Both `RequireTerms` (redirecting to `/onboarding`) and `Onboarding`'s guard effect (redirecting to `/adventure`) use `navigate()` without `{ replace: true }`, causing history stack pollution and making the loop worse.
+### שינויים — `src/pages/StoryViewer.tsx`
 
-3. **Loop mechanics**: `handleContinue` thinks it succeeded → navigates to `/adventure` → `RequireTerms` queries DB → `terms_accepted_at` is still null → redirects back to `/onboarding` → Onboarding guard checks terms → still null → shows the form again.
+#### 1. שינוי מבנה VirtualPage
+סוג אחד בלבד — כל virtual page כולל גם טקסט וגם איור:
+```
+type VirtualPage = { 
+  dbPage: StoryPage; 
+  illustrationUrl: string | null; 
+  illustrationPrompt: string | null; 
+}
+```
 
-## Fix
+#### 2. שינוי לוגיקת בניית virtualPages
+כל DB page הופך ל-virtual page אחד (1:1). אין יותר חלוקה ל-text/illustration:
+```typescript
+for (const page of dbPages) {
+  result.push({
+    dbPage: page,
+    illustrationUrl: page.illustration_url,
+    illustrationPrompt: page.illustration_prompt || null,
+  });
+}
+```
 
-### 1. `src/pages/Onboarding.tsx` — Verify update actually persisted
+#### 3. שינוי ה-JSX של דפי התוכן (שורות ~1148-1207)
+פריסה חדשה לכל דף:
+- **איור** — `flex-[6]`, `w-full`, `object-cover` (ללא padding/margin) — ממלא 60%+ מהדף ברוחב מלא
+- **טקסט** — `flex-[4]`, רקע חם, עם גלילה אם צריך
+- אם אין illustration_url אבל יש prompt — skeleton
+- אם אין גם prompt — placeholder דקורטיבי (רקע צבעוני + אמוג'י)
 
-In `handleContinue`, after the update call, re-query the profile to confirm `terms_accepted_at` was saved. If not, use `upsert` as a fallback. Also add `{ replace: true }` to the guard navigation.
+#### 4. עדכון totalVirtualPages
+כמות ה-virtual pages תהיה בדיוק כמספר דפי ה-DB (במקום מספר משתנה).
 
-### 2. `src/components/RequireTerms.tsx` — Use `replace: true`
-
-Change the `navigate` call to onboarding to use `{ replace: true }` so the history stack doesn't accumulate redirect entries.
-
-### 3. Both files — Add select return on update
-
-Use `.update(...).eq(...).select()` to get the updated row back, confirming the write succeeded. If the returned array is empty, fall back to an upsert to handle the edge case where the profile row doesn't exist yet.
+### קובץ אחד
+`src/pages/StoryViewer.tsx`
 
