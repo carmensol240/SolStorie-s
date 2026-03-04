@@ -786,8 +786,7 @@ const StoryViewer = () => {
   // Build virtual pages: 2 text pages then 1 full-screen illustration, repeating
   type VirtualPage =
     | { type: 'text'; dbPage: StoryPage }
-    | { type: 'illustration'; illustrationUrl: string | null; illustrationPrompt: string | null; dbPage: StoryPage }
-    | { type: 'combined'; dbPage: StoryPage }; // age 0-2: illustration1 + text + illustration2
+    | { type: 'illustration'; illustrationUrl: string | null; illustrationPrompt: string | null; dbPage: StoryPage };
 
   const isToddlerStory = story?.age_range === '0-2';
 
@@ -797,9 +796,12 @@ const StoryViewer = () => {
     const dbPages = story.pages;
 
     if (isToddlerStory) {
-      // Age 0-2: each DB page becomes a single "combined" virtual page
+      // Age 0-2: each DB page gets a text page + illustration page (illustration fills 65%+ of screen)
       for (const page of dbPages) {
-        result.push({ type: 'combined', dbPage: page });
+        result.push({ type: 'text', dbPage: page });
+        if (page.illustration_url || page.illustration_prompt) {
+          result.push({ type: 'illustration', illustrationUrl: page.illustration_url, illustrationPrompt: page.illustration_prompt || null, dbPage: page });
+        }
       }
     } else {
       // Standard layout: 2 text pages then 1 illustration
@@ -1146,73 +1148,7 @@ const StoryViewer = () => {
             ) : currentVirtual ? (
               /* Story Content Pages — virtual page pattern */
               <div className={cn("h-full flex flex-col")}>
-                {currentVirtual.type === 'combined' ? (
-                  /* Combined page for age 0-2: illustration1 + short text + illustration2 */
-                  <div className="flex-1 flex flex-col min-h-0 w-full bg-gradient-to-br from-[#FFFBF5] to-[#F5E6D3]">
-                    {/* Top illustration (~44%) */}
-                    <div className="flex-[6] min-h-0 overflow-hidden flex items-center justify-center p-2">
-                      {currentVirtual.dbPage.illustration_url ? (
-                        <img
-                          src={getPublicIllustrationUrl(currentVirtual.dbPage.illustration_url) || ''}
-                          alt="איור"
-                          className="w-full h-full object-contain rounded-lg"
-                          loading="eager"
-                        />
-                      ) : currentVirtual.dbPage.illustration_prompt ? (
-                        <div className="w-full h-full flex items-center justify-center">
-                          <div className="text-center space-y-2">
-                            <span className="text-3xl animate-pulse">🎨</span>
-                            <p className="text-xs text-[#8B7355]" dir="rtl">מכינים איור...</p>
-                          </div>
-                        </div>
-                      ) : (
-                        <div className="w-full h-full rounded-lg flex items-center justify-center"
-                          style={{ background: getTopicTheme(story?.topic || '').bg, opacity: 0.7 }}>
-                          <span className="text-5xl">{getTopicTheme(story?.topic || '').emoji}</span>
-                        </div>
-                      )}
-                    </div>
-
-                    {/* Short text (~11%) */}
-                    <div className="flex-[1.5] min-h-0 flex items-center justify-center px-6 py-2">
-                      <p className={cn(
-                        "text-[#3D2914] text-center font-bold transition-all whitespace-pre-line",
-                        "text-2xl md:text-3xl"
-                      )} style={{ lineHeight: '2.2' }} dir="rtl">
-                        {showNikud ? currentVirtual.dbPage.text : currentVirtual.dbPage.text.replace(/[\u0591-\u05C7]/g, '')}
-                      </p>
-                    </div>
-
-                    {/* Bottom illustration (~44%) */}
-                    <div className="flex-[6] min-h-0 overflow-hidden flex items-center justify-center p-2">
-                      {currentVirtual.dbPage.illustration_url_2 ? (
-                        <img
-                          src={getPublicIllustrationUrl(currentVirtual.dbPage.illustration_url_2) || ''}
-                          alt="איור"
-                          className="w-full h-full object-contain rounded-lg"
-                          loading="eager"
-                        />
-                      ) : currentVirtual.dbPage.illustration_prompt_2 ? (
-                        <div className="w-full h-full flex items-center justify-center">
-                          <div className="text-center space-y-2">
-                            <span className="text-3xl animate-pulse">🎨</span>
-                            <p className="text-xs text-[#8B7355]" dir="rtl">מכינים איור...</p>
-                          </div>
-                        </div>
-                      ) : (
-                        <div className="w-full h-full rounded-lg flex items-center justify-center"
-                          style={{ background: getTopicTheme(story?.topic || '').bg, opacity: 0.7 }}>
-                          <span className="text-5xl">{getTopicTheme(story?.topic || '').emoji}</span>
-                        </div>
-                      )}
-                    </div>
-
-                    {/* Page number */}
-                    <div className="flex flex-col items-center gap-1 py-1 shrink-0">
-                      <span className="text-xs text-[#B8A08C] font-light">{currentPage} / {totalVirtualPages}</span>
-                    </div>
-                  </div>
-                ) : currentVirtual.type === 'illustration' ? (
+                {currentVirtual.type === 'illustration' ? (
                   /* Full-screen illustration page (no text) */
                   currentVirtual.illustrationUrl ? (
                     <div className="relative w-full h-full overflow-hidden bg-[#F5E6D3] flex items-center justify-center">
