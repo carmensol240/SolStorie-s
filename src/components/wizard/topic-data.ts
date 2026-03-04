@@ -66,6 +66,20 @@ import topicDivorce from "@/assets/topic-divorce.jpg";
 import topicSickGrandparent from "@/assets/topic-sick-grandparent.jpg";
 import topicMakingMistakes from "@/assets/topic-making-mistakes.jpg";
 import topicCryingIsOk from "@/assets/topic-crying-is-ok.jpg";
+import topicCloudKingdom from "@/assets/topic-cloud-kingdom.jpg";
+import topicDragonParty from "@/assets/topic-dragon-party.jpg";
+import topicStrangeInventions from "@/assets/topic-strange-inventions.jpg";
+import topicSpaceJourney from "@/assets/topic-space-journey.jpg";
+import topicFriendshipCourage from "@/assets/topic-friendship-courage.jpg";
+import topicAcceptingDifferences from "@/assets/topic-accepting-differences.jpg";
+import topicHowBodyWorks from "@/assets/topic-how-body-works.jpg";
+import topicWaitingInLine from "@/assets/topic-waiting-in-line.jpg";
+import topicPoliteness from "@/assets/topic-politeness.jpg";
+import topicEmotionRegulation from "@/assets/topic-emotion-regulation.jpg";
+import topicPatience from "@/assets/topic-patience.jpg";
+import topicPlayRules from "@/assets/topic-play-rules.jpg";
+import topicSelfConfidence from "@/assets/topic-self-confidence.jpg";
+import topicNatureSecrets from "@/assets/topic-nature-secrets.jpg";
 
 export interface TopicItem {
   id: string;
