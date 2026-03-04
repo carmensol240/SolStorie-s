@@ -840,7 +840,7 @@ const StoryViewer = () => {
   // For editing/nikud, get the underlying DB page
   const page = currentVirtual ? currentVirtual.dbPage : null;
   const currentFontSize = FONT_SIZES[fontSizeIndex];
-  const showPageActions = isContentPage && currentVirtual?.type === 'text' && page !== null;
+  const showPageActions = isContentPage && page !== null;
 
   // Page navigation with simple fade transition
   const handlePageNav = (direction: 'next' | 'prev') => {
