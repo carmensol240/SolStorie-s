@@ -1166,7 +1166,63 @@ const StoryViewer = () => {
             ) : currentVirtual ? (
               /* Story Content Pages — virtual page pattern */
               <div className={cn("h-full flex flex-col")}>
-                {currentVirtual.type === 'illustration' ? (
+                {currentVirtual.type === 'combined' ? (
+                  /* Combined page for age 0-2: illustration1 + short text + illustration2 */
+                  <div className="flex-1 flex flex-col min-h-0 w-full bg-gradient-to-br from-[#FFFBF5] to-[#F5E6D3]">
+                    {/* Top illustration (40%) */}
+                    <div className="flex-[4] min-h-0 overflow-hidden flex items-center justify-center p-2">
+                      {currentVirtual.dbPage.illustration_url ? (
+                        <img
+                          src={getPublicIllustrationUrl(currentVirtual.dbPage.illustration_url) || ''}
+                          alt="איור"
+                          className="w-full h-full object-contain rounded-lg"
+                          loading="eager"
+                        />
+                      ) : currentVirtual.dbPage.illustration_prompt ? (
+                        <div className="w-full h-full flex items-center justify-center">
+                          <div className="text-center space-y-2">
+                            <span className="text-3xl animate-pulse">🎨</span>
+                            <p className="text-xs text-[#8B7355]" dir="rtl">מכינים איור...</p>
+                          </div>
+                        </div>
+                      ) : null}
+                    </div>
+
+                    {/* Short text (20%) */}
+                    <div className="flex-[2] min-h-0 flex items-center justify-center px-6 py-2">
+                      <p className={cn(
+                        "text-[#3D2914] text-center font-bold transition-all whitespace-pre-line",
+                        "text-2xl md:text-3xl"
+                      )} style={{ lineHeight: '2.2' }} dir="rtl">
+                        {showNikud ? currentVirtual.dbPage.text : currentVirtual.dbPage.text.replace(/[\u0591-\u05C7]/g, '')}
+                      </p>
+                    </div>
+
+                    {/* Bottom illustration (40%) */}
+                    <div className="flex-[4] min-h-0 overflow-hidden flex items-center justify-center p-2">
+                      {currentVirtual.dbPage.illustration_url_2 ? (
+                        <img
+                          src={getPublicIllustrationUrl(currentVirtual.dbPage.illustration_url_2) || ''}
+                          alt="איור"
+                          className="w-full h-full object-contain rounded-lg"
+                          loading="eager"
+                        />
+                      ) : currentVirtual.dbPage.illustration_prompt_2 ? (
+                        <div className="w-full h-full flex items-center justify-center">
+                          <div className="text-center space-y-2">
+                            <span className="text-3xl animate-pulse">🎨</span>
+                            <p className="text-xs text-[#8B7355]" dir="rtl">מכינים איור...</p>
+                          </div>
+                        </div>
+                      ) : null}
+                    </div>
+
+                    {/* Page number */}
+                    <div className="flex flex-col items-center gap-1 py-1 shrink-0">
+                      <span className="text-xs text-[#B8A08C] font-light">{currentPage} / {totalVirtualPages}</span>
+                    </div>
+                  </div>
+                ) : currentVirtual.type === 'illustration' ? (
                   /* Full-screen illustration page (no text) */
                   currentVirtual.illustrationUrl ? (
                     <div className="relative w-full h-full overflow-hidden bg-[#F5E6D3] flex items-center justify-center">
