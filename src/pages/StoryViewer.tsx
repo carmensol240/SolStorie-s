@@ -1019,7 +1019,7 @@ const StoryViewer = () => {
                         <div className="w-44 h-44 rounded-full overflow-hidden border-[6px] border-white/90 shadow-2xl" style={{
                           boxShadow: '0 0 40px rgba(255,255,255,0.5), 0 0 80px rgba(168,85,247,0.35), 0 0 120px rgba(236,72,153,0.2)',
                         }}>
-                          <img src={childAvatarUrl} alt={story.child_name} className="w-full h-full object-cover" />
+                          <img src={childAvatarUrl || ''} alt={story.child_name} className="w-full h-full object-cover" />
                         </div>
                         <div className="absolute -bottom-2 -right-2 text-3xl drop-shadow-lg">⭐</div>
                       </div>
