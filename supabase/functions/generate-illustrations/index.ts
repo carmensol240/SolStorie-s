@@ -149,7 +149,7 @@ A ${genderWord} aged ${profile.ageDescription} with ${profile.hairDescription}, 
 CRITICAL INSTRUCTION: Maintain strict visual character continuity across ALL generated images for this story sequence. The character must look like the SAME child in every single illustration — same face shape, same proportions, same hair, same outfit, same skin tone. Any visual deviation between pages is a FAILURE.`;
 }
 
-// Helper: generate illustration with face reference via Fal.ai Instant Character
+// Helper: generate illustration with face reference via Fal.ai Flux Kontext
 // Maintains character likeness from a single reference photo with high consistency
 async function generateIllustrationWithFace(
   prompt: string,
@@ -162,7 +162,7 @@ async function generateIllustrationWithFace(
   try {
     const FAL_KEY = Deno.env.get("FAL_KEY");
     if (!FAL_KEY) {
-      console.error("FAL_KEY not configured for Instant Character");
+      console.error("FAL_KEY not configured for Flux Kontext");
       return null;
     }
 
@@ -188,11 +188,11 @@ CRITICAL CHARACTER CONSISTENCY: The main character must look IDENTICAL in every 
 ...
 FULL BODY head to toe, feet GROUNDED on surface. Portrait 4:3 framing. NEGATIVE: realistic, semi-realistic, real human, photograph, generic face, wrong hair, floating head, missing body, extra limbs, deformed, cropped feet, text, watermark, photorealistic, dark, muted colors, cinematic bokeh, hyper-realistic, shallow depth of field`;
 
-    console.log("Generating illustration via Fal.ai Instant Character (face reference)...");
+    console.log("Generating illustration via Fal.ai Flux Kontext (face reference)...");
 
-    const response = await fetch("https://fal.run/fal-ai/instant-character", {
+    const response = await fetch("https://fal.run/fal-ai/flux-kontext/dev", {
       method: "POST",
-      signal: AbortSignal.timeout(120_000),
+      signal: AbortSignal.timeout(30_000),
       headers: {
         Authorization: `Key ${FAL_KEY}`,
         "Content-Type": "application/json",
@@ -200,13 +200,15 @@ FULL BODY head to toe, feet GROUNDED on surface. Portrait 4:3 framing. NEGATIVE:
       body: JSON.stringify({
         prompt: fullPrompt,
         image_url: childPhotoUrl,
+        output_format: "png",
+        num_images: 1,
       }),
     });
 
     if (!response.ok) {
       const errorBody = await response.text().catch(() => "no body");
-      console.error(`Instant Character generation failed: ${response.status} - ${errorBody}`);
-      await logError("illustration_fal_error", `Instant Character failed: ${response.status}`, { status: response.status, body: errorBody.substring(0, 500) });
+      console.error(`Flux Kontext generation failed: ${response.status} - ${errorBody}`);
+      await logError("illustration_fal_error", `Flux Kontext failed: ${response.status}`, { status: response.status, body: errorBody.substring(0, 500) });
       return null;
     }
 
@@ -214,10 +216,10 @@ FULL BODY head to toe, feet GROUNDED on surface. Portrait 4:3 framing. NEGATIVE:
     const imageUrl = data.images?.[0]?.url;
 
     if (imageUrl) {
-      console.log("Instant Character illustration generated successfully");
+      console.log("Flux Kontext illustration generated successfully");
       const imgResponse = await fetch(imageUrl);
       if (!imgResponse.ok) {
-        console.error("Failed to download Instant Character image");
+        console.error("Failed to download Flux Kontext image");
         return null;
       }
       const imgBuffer = new Uint8Array(await imgResponse.arrayBuffer());
@@ -237,8 +239,8 @@ FULL BODY head to toe, feet GROUNDED on surface. Portrait 4:3 framing. NEGATIVE:
   } catch (error) {
     const isTimeout = error instanceof DOMException && error.name === "TimeoutError";
     const errorType = isTimeout ? "illustration_timeout" : "illustration_fal_error";
-    console.error("Error in Instant Character illustration:", error);
-    await logError(errorType, `Instant Character: ${error?.message || error}`, { model: "fal-ai/instant-character" });
+    console.error("Error in Flux Kontext illustration:", error);
+    await logError(errorType, `Flux Kontext: ${error?.message || error}`, { model: "fal-ai/flux-kontext/dev" });
     return null;
   }
 }

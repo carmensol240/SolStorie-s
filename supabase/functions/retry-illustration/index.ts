@@ -161,7 +161,7 @@ serve(async (req) => {
 
     // Branch: use PuLID when child photo exists, Schnell otherwise
     if (childPhoto) {
-      console.log(`Retrying illustration via Instant Character (face reference) for story ${storyId}, page ${page.page_number}...`);
+      console.log(`Retrying illustration via Flux Kontext (face reference) for story ${storyId}, page ${page.page_number}...`);
 
       const personalizedPrompt = `CRITICAL FACE REFERENCE: The main character's face, hair texture, skin tone, and facial features MUST be an EXACT 3D Pixar rendering of the child in the reference photo. Do NOT invent or change any facial features.
 
@@ -181,10 +181,10 @@ FULL BODY head to toe, feet GROUNDED on surface. Portrait 4:3 framing. NEGATIVE:
 
       for (let attempt = 1; attempt <= MAX_ATTEMPTS; attempt++) {
         try {
-          console.log(`Instant Character attempt ${attempt}/${MAX_ATTEMPTS}...`);
-          const response = await fetch("https://fal.run/fal-ai/instant-character", {
+          console.log(`Flux Kontext attempt ${attempt}/${MAX_ATTEMPTS}...`);
+          const response = await fetch("https://fal.run/fal-ai/flux-kontext/dev", {
             method: "POST",
-            signal: AbortSignal.timeout(120_000),
+            signal: AbortSignal.timeout(30_000),
             headers: {
               Authorization: `Key ${FAL_KEY}`,
               "Content-Type": "application/json",
@@ -192,12 +192,14 @@ FULL BODY head to toe, feet GROUNDED on surface. Portrait 4:3 framing. NEGATIVE:
             body: JSON.stringify({
               prompt: personalizedPrompt,
               image_url: childPhoto,
+              output_format: "png",
+              num_images: 1,
             }),
           });
 
           if (!response.ok) {
             const errorBody = await response.text().catch(() => "no body");
-            console.error(`Instant Character attempt ${attempt} failed: ${response.status} - ${errorBody}`);
+            console.error(`Flux Kontext attempt ${attempt} failed: ${response.status} - ${errorBody}`);
             if (attempt < MAX_ATTEMPTS) { await new Promise(r => setTimeout(r, 1000)); continue; }
             // Fall through to Schnell below
             break;
@@ -223,10 +225,10 @@ FULL BODY head to toe, feet GROUNDED on surface. Portrait 4:3 framing. NEGATIVE:
             }
             if (imageUrl) break;
           }
-          console.warn(`Instant Character attempt ${attempt}: no image`);
+          console.warn(`Flux Kontext attempt ${attempt}: no image`);
           if (attempt < MAX_ATTEMPTS) { await new Promise(r => setTimeout(r, 1000)); continue; }
         } catch (fetchErr) {
-          console.error(`Instant Character attempt ${attempt} error:`, fetchErr);
+          console.error(`Flux Kontext attempt ${attempt} error:`, fetchErr);
           if (attempt < MAX_ATTEMPTS) { await new Promise(r => setTimeout(r, 1000)); continue; }
         }
       }

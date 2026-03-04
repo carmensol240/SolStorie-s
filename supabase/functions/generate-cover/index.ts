@@ -174,10 +174,10 @@ FULL BODY head to toe, feet GROUNDED. NEGATIVE: realistic, semi-realistic, real 
 
       for (let attempt = 1; attempt <= MAX_ATTEMPTS; attempt++) {
         try {
-          console.log(`Instant Character cover attempt ${attempt}/${MAX_ATTEMPTS}...`);
-          const response = await fetch("https://fal.run/fal-ai/instant-character", {
+          console.log(`Flux Kontext cover attempt ${attempt}/${MAX_ATTEMPTS}...`);
+          const response = await fetch("https://fal.run/fal-ai/flux-kontext/dev", {
             method: "POST",
-            signal: AbortSignal.timeout(60_000),
+            signal: AbortSignal.timeout(30_000),
             headers: {
               Authorization: `Key ${FAL_KEY}`,
               "Content-Type": "application/json",
@@ -185,11 +185,13 @@ FULL BODY head to toe, feet GROUNDED. NEGATIVE: realistic, semi-realistic, real 
             body: JSON.stringify({
               prompt: personalizedCoverPrompt,
               image_url: childPhotoSignedUrl,
+              output_format: "png",
+              num_images: 1,
             }),
           });
 
           if (!response.ok) {
-            console.error(`Instant Character cover attempt ${attempt} failed:`, response.status);
+            console.error(`Flux Kontext cover attempt ${attempt} failed:`, response.status);
             if (attempt < MAX_ATTEMPTS) { await new Promise(r => setTimeout(r, 3000)); continue; }
             // Fall through to Gemini path below
             break;
@@ -216,10 +218,10 @@ FULL BODY head to toe, feet GROUNDED. NEGATIVE: realistic, semi-realistic, real 
             }
             if (imageUrl) break;
           }
-          console.warn(`Instant Character cover attempt ${attempt}: no image`);
+          console.warn(`Flux Kontext cover attempt ${attempt}: no image`);
           if (attempt < MAX_ATTEMPTS) { await new Promise(r => setTimeout(r, 3000)); continue; }
         } catch (fetchErr) {
-          console.error(`Instant Character cover attempt ${attempt} error:`, fetchErr);
+          console.error(`Flux Kontext cover attempt ${attempt} error:`, fetchErr);
           if (attempt < MAX_ATTEMPTS) { await new Promise(r => setTimeout(r, 3000)); continue; }
         }
       }
@@ -256,7 +258,7 @@ FULL BODY head to toe, feet GROUNDED. NEGATIVE: realistic, semi-realistic, real 
           .update({ cover_url: fullCoverUrl })
           .eq("id", storyId);
 
-        console.log(`✅ Personalized cover generated via Instant Character for story ${storyId}`);
+        console.log(`✅ Personalized cover generated via Flux Kontext for story ${storyId}`);
 
         return new Response(
           JSON.stringify({ success: true, coverUrl: fullCoverUrl }),
@@ -264,7 +266,7 @@ FULL BODY head to toe, feet GROUNDED. NEGATIVE: realistic, semi-realistic, real 
         );
       }
 
-      console.warn("Instant Character cover failed, falling back to Gemini cover generation");
+      console.warn("Flux Kontext cover failed, falling back to Gemini cover generation");
     }
 
     // === FALLBACK / DEFAULT: Gemini-based cover with Sol character ===
