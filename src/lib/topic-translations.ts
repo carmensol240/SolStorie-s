@@ -46,6 +46,7 @@ const TOPIC_HEBREW_MAP: Record<string, string> = {
   'pocket-kiss': 'נשיקה בכיס',
   'sibling-love': 'אהבת אחים',
   'my-special-family': 'המשפחה המיוחדת שלי',
+  'find-a-friend': 'הלב שלי רוצה חבר',
 
   // Leo - Imagination
   'zoo-adventure': 'טיול בגן החיות',
