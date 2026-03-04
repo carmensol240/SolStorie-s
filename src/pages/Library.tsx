@@ -7,7 +7,7 @@ import solMagicBookCover from "@/assets/sol-magic-book-cover.png";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import MobileNavigation from "@/components/MobileNavigation";
-import StoryListItem from "@/components/ui/story-list-item";
+import StoryBookCard from "@/components/ui/story-book-card";
 
 import OfflineIndicator from "@/components/ui/offline-indicator";
 import EditStoryDialog from "@/components/story/edit-story-dialog";
