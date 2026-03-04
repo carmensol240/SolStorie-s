@@ -1,26 +1,24 @@
 
 
-## Bug Analysis
+## הגדלת איורים ל-60% מהדף + חובת איור בכל דף לגיל 0-2
 
-The onboarding loop is caused by a combination of issues in the navigation flow between `RequireTerms` and `Onboarding`:
+### שינויים
 
-1. **Silent update failure**: In `Onboarding.handleContinue`, the Supabase `.update().eq()` call returns success (`error: null`) even when **zero rows are matched** (e.g., due to a race condition where the profile hasn't been created yet). The code doesn't verify the update actually persisted.
+#### 1. פריסה משולבת (combined) לגיל 0-2 — `src/pages/StoryViewer.tsx`
+- שינוי יחסי הגובה מ-`flex-[4]/flex-[2]/flex-[4]` (40%/20%/40%) ל-`flex-[6]/flex-[2]/flex-[6]` כדי שכל איור יתפוס ~43% וביחד שני האיורים ימלאו ~86% מהדף
+- אלטרנטיבית: `flex-[5]/flex-[1.5]/flex-[5]` — האיורים גדולים יותר, הטקסט מצומצם (מתאים כי הטקסט קצר מאוד)
 
-2. **No `replace: true` on redirects**: Both `RequireTerms` (redirecting to `/onboarding`) and `Onboarding`'s guard effect (redirecting to `/adventure`) use `navigate()` without `{ replace: true }`, causing history stack pollution and making the loop worse.
+#### 2. דפי איור סטנדרטיים (לכל הגילאים) — `src/pages/StoryViewer.tsx`  
+דפי האיור כבר full-screen (100%), אין צורך בשינוי שם. אבל אם הכוונה שגם בדפי **טקסט** תהיה תמונה — זה שינוי משמעותי יותר בארכיטקטורה שדורש החלטה.
 
-3. **Loop mechanics**: `handleContinue` thinks it succeeded → navigates to `/adventure` → `RequireTerms` queries DB → `terms_accepted_at` is still null → redirects back to `/onboarding` → Onboarding guard checks terms → still null → shows the form again.
+#### 3. הבטחת איור בכל דף לגיל 0-2 — `supabase/functions/generate-story/index.ts`
+הקוד כבר מוודא שכל עמוד מקבל `illustration_prompt` ו-`illustration_prompt_2` לגיל 0-2. אוסיף הגנה נוספת:
+- ב-virtual page logic: אם דף 0-2 חסר illustration_url, עדיין להציג אותו כ-combined עם placeholder/skeleton ולא להשמיט אותו
 
-## Fix
+#### 4. Fallback לאיור חסר — `src/pages/StoryViewer.tsx`
+- כשאין `illustration_url` אבל יש prompt — מוצג skeleton (כבר מיושם)
+- כשאין גם prompt — להציג placeholder דקורטיבי (רקע צבעוני עם אמוג'י) במקום שטח ריק
 
-### 1. `src/pages/Onboarding.tsx` — Verify update actually persisted
-
-In `handleContinue`, after the update call, re-query the profile to confirm `terms_accepted_at` was saved. If not, use `upsert` as a fallback. Also add `{ replace: true }` to the guard navigation.
-
-### 2. `src/components/RequireTerms.tsx` — Use `replace: true`
-
-Change the `navigate` call to onboarding to use `{ replace: true }` so the history stack doesn't accumulate redirect entries.
-
-### 3. Both files — Add select return on update
-
-Use `.update(...).eq(...).select()` to get the updated row back, confirming the write succeeded. If the returned array is empty, fall back to an upsert to handle the edge case where the profile row doesn't exist yet.
+### קבצים
+- `src/pages/StoryViewer.tsx` — שינוי יחסי flex בפריסת combined + fallback
 
