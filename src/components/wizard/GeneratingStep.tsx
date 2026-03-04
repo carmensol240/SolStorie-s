@@ -94,11 +94,14 @@ const GeneratingStep = ({ formData, onComplete }: GeneratingStepProps) => {
   const retryCountRef = useRef(0);
   const MAX_RETRIES = 2;
 
-  const [phase, setPhase] = useState<'text' | 'puzzle' | 'ready'>('text');
+  const [phase, setPhase] = useState<'text' | 'illustrations' | 'ready'>('text');
   const [storyId, setStoryId] = useState<string | null>(null);
   const [illustrationsReady, setIllustrationsReady] = useState(false);
   const [showReadyPopup, setShowReadyPopup] = useState(false);
   const puzzleTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const [castIndex, setCastIndex] = useState(0);
+  const [tipIndex, setTipIndex] = useState(0);
+  const [isTipVisible, setIsTipVisible] = useState(true);
 
   const generateStory = useCallback(async () => {
     try {
