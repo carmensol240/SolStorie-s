@@ -48,7 +48,7 @@ const TOPIC_PROMPTS: Record<string, { filename: string; prompt: string }> = {
   },
   "divorce": {
     filename: "topic-divorce.png",
-    prompt: `${STYLE_SUFFIX}. ${SOL_DESC} She is standing between two cozy colorful houses, holding a small red heart in both hands close to her chest, smiling gently. Each house has a warm glowing window. Above her head, a rainbow connects the two houses. The scene is warm and hopeful, not sad. Magical golden sparkles around. Full body shot, character centered.`,
+    prompt: `${STYLE_SUFFIX}. FULL BODY HEAD TO TOE portrait of ${SOL_DESC} She is standing between two cozy colorful houses, holding a small red heart in both hands close to her chest, smiling gently. Each house has a warm glowing window. Above her head, a rainbow connects the two houses. The scene is warm and hopeful, not sad. Magical golden sparkles around. IMPORTANT: Show the ENTIRE character from head to feet, feet visible and grounded on the surface. Frame with generous margins from all edges — do NOT crop any body parts.`,
   },
   "sick-grandparent": {
     filename: "topic-sick-grandparent.png",
