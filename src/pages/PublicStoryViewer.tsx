@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
 import { cn } from "@/lib/utils";
 import { getPublicIllustrationUrl } from "@/lib/illustration-url";
+import castWavingFarewell from "@/assets/cast-waving-farewell.png";
 import "./StoryViewer.css";
 
 interface PublicPage {
