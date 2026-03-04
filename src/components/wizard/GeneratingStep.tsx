@@ -103,6 +103,22 @@ const GeneratingStep = ({ formData, onComplete }: GeneratingStepProps) => {
   const [tipIndex, setTipIndex] = useState(0);
   const [isTipVisible, setIsTipVisible] = useState(true);
 
+  // Build dynamic cast list including the child as a superhero
+  const allCharacters = useMemo(() => {
+    const base = [...CAST_CHARACTERS];
+    if (formData.childAvatarUrl) {
+      const childHero = {
+        name: formData.childName || "הגיבור שלנו",
+        image: formData.childAvatarUrl,
+        emoji: "🦸",
+        verb: formData.childGender === "female" ? "מכינה" : "מכין",
+      };
+      // Insert child at position 1 so they appear early
+      base.splice(1, 0, childHero);
+    }
+    return base;
+  }, [formData.childAvatarUrl, formData.childName, formData.childGender]);
+
   const generateStory = useCallback(async () => {
     try {
       setPhase('text');
