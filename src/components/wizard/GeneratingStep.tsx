@@ -373,41 +373,84 @@ const GeneratingStep = ({ formData, onComplete }: GeneratingStepProps) => {
     );
   }
 
-  // --- PUZZLE PHASE ---
-  if (phase === 'puzzle') {
+  // --- ILLUSTRATIONS LOADING PHASE ---
+  if (phase === 'illustrations') {
+    const currentChar = CAST_CHARACTERS[castIndex % CAST_CHARACTERS.length];
+    const currentTip = PARENTING_TIPS[tipIndex % PARENTING_TIPS.length];
+
     return (
-      <div className="flex flex-col items-center justify-center min-h-[100dvh] text-center space-y-4 bg-gradient-to-b from-[#FAF3E8] to-[#F5E6D3] p-4 relative">
-        <div className="space-y-1">
-          <h2 className="text-xl font-bold bg-gradient-to-r from-purple-600 via-pink-500 to-orange-400 bg-clip-text text-transparent">
-            הסיפור מוכן! האיורים בדרך... 🎨
-          </h2>
-          <p className="text-purple-700/70 text-sm">בינתיים בואו נשחק 🧩</p>
+      <div className="flex flex-col items-center justify-center min-h-[100dvh] text-center space-y-5 bg-gradient-to-b from-[#FAF3E8] to-[#F5E6D3] p-6">
+        {/* Character carousel */}
+        <div className="relative w-40 h-40 mx-auto">
+          <div 
+            key={castIndex}
+            className="absolute inset-0 rounded-full overflow-hidden border-4 border-purple-200/60 shadow-xl animate-scale-in"
+          >
+            <img
+              src={currentChar.image}
+              alt={currentChar.name}
+              className="w-full h-full object-cover"
+            />
+          </div>
+          <span className="absolute -bottom-1 -right-1 text-3xl animate-bounce">
+            {currentChar.emoji}
+          </span>
         </div>
 
-        <PuzzleGame ageRange={formData.ageRange} onReadStory={handleOpenStory} isStoryReady={showReadyPopup} />
+        <p className="text-sm font-medium text-purple-600/80">
+          {currentChar.name} מכינ/ה את האיורים... 🎨
+        </p>
 
-        {/* Ready popup */}
+        {/* Progress bar */}
+        <div className="w-full max-w-xs space-y-2">
+          <div className="relative h-3 w-full overflow-hidden rounded-full bg-purple-100">
+            <div 
+              className="h-full bg-gradient-to-r from-purple-600 via-pink-500 to-orange-400 transition-all duration-500"
+              style={{ width: `${progress}%` }}
+            />
+          </div>
+          <p className="text-sm text-purple-600 font-medium">{Math.round(progress)}%</p>
+        </div>
+
+        {/* Parenting tip */}
+        <div className="w-full max-w-sm bg-white/70 backdrop-blur-sm rounded-2xl p-4 shadow-md border border-purple-100/50 min-h-[90px] flex items-center justify-center">
+          <p
+            className={`text-center text-sm leading-relaxed transition-opacity duration-500 ${
+              isTipVisible ? "opacity-100" : "opacity-0"
+            }`}
+            style={{ color: "#5B3E96", fontFamily: "'Varela Round', 'Heebo', sans-serif" }}
+          >
+            <span className="text-lg ml-1">{currentTip.icon}</span> {currentTip.tip}
+          </p>
+        </div>
+
+        {/* Empowering sentence */}
+        <div className="w-full max-w-sm px-4 min-h-[50px] flex items-center justify-center">
+          <p
+            className={`text-center text-xs leading-relaxed transition-opacity duration-500 ${
+              isSentenceVisible ? "opacity-100" : "opacity-0"
+            }`}
+            style={{
+              fontFamily: "'Varela Round', 'Heebo', sans-serif",
+              color: "#8B6BB5",
+              fontWeight: 500,
+            }}
+          >
+            "{EMPOWERING_SENTENCES[sentenceIndex]}"
+          </p>
+        </div>
+
+        {/* Read story button — appears when ready */}
         {showReadyPopup && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 animate-in fade-in duration-300">
-            <div className="bg-white rounded-2xl p-6 shadow-2xl flex flex-col items-center gap-4 max-w-xs mx-4 animate-in zoom-in-95 duration-300">
-              <span className="text-5xl">🎉</span>
-              <h3 className="text-xl font-bold text-purple-700">
-                {illustrationsReady ? "הסיפור שלך מוכן!" : "הסיפור מחכה לך!"}
-              </h3>
-              <p className="text-sm text-purple-600/70">
-                {illustrationsReady 
-                  ? "כל האיורים מוכנים. בואו נקרא!" 
-                  : "חלק מהאיורים עדיין בדרך, אבל אפשר כבר לקרוא!"}
-              </p>
-              <Button 
-                onClick={handleOpenStory} 
-                size="lg" 
-                className="gap-2 bg-gradient-to-r from-purple-600 to-pink-500 hover:from-purple-700 hover:to-pink-600 text-white w-full"
-              >
-                <BookOpen className="w-5 h-5" />
-                פתחו את הסיפור 📖
-              </Button>
-            </div>
+          <div className="animate-scale-in">
+            <Button 
+              onClick={handleOpenStory} 
+              size="lg" 
+              className="gap-2 bg-gradient-to-r from-purple-600 to-pink-500 hover:from-purple-700 hover:to-pink-600 text-white shadow-lg text-lg px-8 py-6"
+            >
+              <BookOpen className="w-6 h-6" />
+              קראו את הסיפור 📖
+            </Button>
           </div>
         )}
       </div>
