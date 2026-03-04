@@ -44,6 +44,7 @@ import PdfFeaturePopup from "@/components/story/PdfFeaturePopup";
 import "./StoryViewer.css";
 import { translateTopic } from "@/lib/topic-translations";
 import solMagicBookCover from "@/assets/sol-magic-book-cover.png";
+import { useChildAvatar } from "@/hooks/use-child-avatar";
 
 import castWavingFarewell from "@/assets/cast-waving-farewell.png";
 
