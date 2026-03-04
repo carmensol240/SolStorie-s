@@ -266,7 +266,7 @@ FULL BODY head to toe, feet GROUNDED. NEGATIVE: realistic, semi-realistic, real 
         );
       }
 
-      console.warn("Instant Character cover failed, falling back to Gemini cover generation");
+      console.warn("Flux Kontext cover failed, falling back to Gemini cover generation");
     }
 
     // === FALLBACK / DEFAULT: Gemini-based cover with Sol character ===

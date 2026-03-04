@@ -239,8 +239,8 @@ FULL BODY head to toe, feet GROUNDED on surface. Portrait 4:3 framing. NEGATIVE:
   } catch (error) {
     const isTimeout = error instanceof DOMException && error.name === "TimeoutError";
     const errorType = isTimeout ? "illustration_timeout" : "illustration_fal_error";
-    console.error("Error in Instant Character illustration:", error);
-    await logError(errorType, `Instant Character: ${error?.message || error}`, { model: "fal-ai/instant-character" });
+    console.error("Error in Flux Kontext illustration:", error);
+    await logError(errorType, `Flux Kontext: ${error?.message || error}`, { model: "fal-ai/flux-kontext/dev" });
     return null;
   }
 }
