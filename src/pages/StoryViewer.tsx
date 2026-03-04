@@ -76,6 +76,31 @@ const FONT_SIZES = [
 // Rainbow gradient used for dedication, closing, and text-only pages
 const RAINBOW_BG = 'linear-gradient(135deg, #FFE4E1 0%, #FFDAB9 15%, #FFFACD 30%, #E0FFE0 45%, #E0F0FF 60%, #E8D8FF 75%, #FFE4F0 90%, #FFE4E1 100%)';
 
+/** Map topic keywords to emoji + gradient background */
+const getTopicTheme = (topic: string): { emoji: string; bg: string } => {
+  const t = topic.toLowerCase();
+  if (t.includes('שינה') || t.includes('לילה') || t.includes('bedtime')) return { emoji: '🌙', bg: 'linear-gradient(135deg, #1a1a4e 0%, #2d1b69 40%, #4a2080 100%)' };
+  if (t.includes('חלל') || t.includes('כוכב') || t.includes('space')) return { emoji: '🚀', bg: 'linear-gradient(135deg, #0c1445 0%, #1b2a6b 50%, #2a1a5e 100%)' };
+  if (t.includes('חבר') || t.includes('friend')) return { emoji: '🤝', bg: 'linear-gradient(135deg, #FF9A8B 0%, #FF6B8A 50%, #FF8E53 100%)' };
+  if (t.includes('גן חיות') || t.includes('zoo') || t.includes('חיות')) return { emoji: '🦁', bg: 'linear-gradient(135deg, #56ab2f 0%, #a8e063 50%, #56ab2f 100%)' };
+  if (t.includes('ים') || t.includes('מתחת למים') || t.includes('underwater')) return { emoji: '🐠', bg: 'linear-gradient(135deg, #006994 0%, #00b4d8 50%, #48cae4 100%)' };
+  if (t.includes('קסם') || t.includes('magic') || t.includes('חד-קרן') || t.includes('פיות')) return { emoji: '🦄', bg: 'linear-gradient(135deg, #a855f7 0%, #ec4899 50%, #f97316 100%)' };
+  if (t.includes('גיבור') || t.includes('super') || t.includes('hero')) return { emoji: '🦸', bg: 'linear-gradient(135deg, #DC2626 0%, #2563EB 50%, #DC2626 100%)' };
+  if (t.includes('יום הולדת') || t.includes('birthday')) return { emoji: '🎂', bg: 'linear-gradient(135deg, #FF6B6B 0%, #FFE66D 30%, #88D8B0 60%, #6BC5F8 100%)' };
+  if (t.includes('משפח') || t.includes('family')) return { emoji: '🏠', bg: 'linear-gradient(135deg, #F6D365 0%, #FDA085 50%, #F6D365 100%)' };
+  if (t.includes('שיני') || t.includes('שן') || t.includes('teeth') || t.includes('tooth')) return { emoji: '🦷', bg: 'linear-gradient(135deg, #89CFF0 0%, #B6E3FF 50%, #89CFF0 100%)' };
+  if (t.includes('פחד') || t.includes('חושך') || t.includes('fear') || t.includes('dark')) return { emoji: '💪', bg: 'linear-gradient(135deg, #4158D0 0%, #C850C0 50%, #FFCC70 100%)' };
+  if (t.includes('טבע') || t.includes('יער') || t.includes('nature') || t.includes('forest')) return { emoji: '🌳', bg: 'linear-gradient(135deg, #134E5E 0%, #71B280 50%, #134E5E 100%)' };
+  if (t.includes('רחצה') || t.includes('אמבט') || t.includes('bath')) return { emoji: '🛁', bg: 'linear-gradient(135deg, #89CFF0 0%, #B6E3FF 50%, #E0F7FF 100%)' };
+  if (t.includes('שיתוף') || t.includes('shar')) return { emoji: '💝', bg: 'linear-gradient(135deg, #F093FB 0%, #F5576C 50%, #F093FB 100%)' };
+  if (t.includes('אח') || t.includes('אחות') || t.includes('sibling')) return { emoji: '👶', bg: 'linear-gradient(135deg, #FFECD2 0%, #FCB69F 50%, #FFECD2 100%)' };
+  if (t.includes('גן ילדים') || t.includes('kindergarten') || t.includes('בית ספר')) return { emoji: '🎒', bg: 'linear-gradient(135deg, #667eea 0%, #764ba2 50%, #667eea 100%)' };
+  if (t.includes('נוח') || t.includes('מוצץ') || t.includes('pacifier')) return { emoji: '🧸', bg: 'linear-gradient(135deg, #FFDEE9 0%, #B5FFFC 50%, #FFDEE9 100%)' };
+  if (t.includes('טיול') || t.includes('trip') || t.includes('חופש')) return { emoji: '✈️', bg: 'linear-gradient(135deg, #43e97b 0%, #38f9d7 50%, #43e97b 100%)' };
+  if (t.includes('סבא') || t.includes('סבת') || t.includes('grandp')) return { emoji: '👴', bg: 'linear-gradient(135deg, #F6D365 0%, #FDA085 100%)' };
+  return { emoji: '✨', bg: RAINBOW_BG };
+};
+
 /** Get age-based default font size index (0=small, 1=medium, 2=large) */
 const getAgeFontIndex = (ageRange?: string): number => {
   if (!ageRange) return 1;
@@ -93,6 +118,7 @@ const StoryViewer = () => {
   
   const [resolvedId, setResolvedId] = useState<string | null>(null);
   const [story, setStory] = useState<Story | null>(null);
+  const [childAvatarUrl, setChildAvatarUrl] = useState<string | null>(null);
   const [currentPage, setCurrentPage] = useState(-1);
   const [isLoading, setIsLoading] = useState(true);
   const [isFlipping, setIsFlipping] = useState(false);
@@ -443,6 +469,23 @@ const StoryViewer = () => {
         pollingIntervalRef.current = setInterval(pollForUpdates, 3000);
       }
       
+      // Fetch child avatar if child_id exists
+      const childId = (storyData as any).child_id;
+      if (childId) {
+        try {
+          const { data: childData } = await supabase
+            .from('children')
+            .select('avatar_url')
+            .eq('id', childId)
+            .maybeSingle();
+          if (childData?.avatar_url) {
+            setChildAvatarUrl(getPublicIllustrationUrl(childData.avatar_url));
+          }
+        } catch (e) {
+          console.log('Could not fetch child avatar:', e);
+        }
+      }
+
       if (resolvedStoryId) {
         cacheStory(resolvedStoryId, storyObj);
       }
@@ -947,28 +990,75 @@ const StoryViewer = () => {
               </div>
 
             ) : isDedicationPage ? (
-              /* Dedication Page — Rainbow background with personalized dedication */
-              <div className="relative flex-1 flex flex-col items-center justify-start pt-12 text-center h-full px-8 py-12" style={{ background: RAINBOW_BG }}>
-                <div className="space-y-6 max-w-md mx-auto">
-                  <span className="text-5xl">🦄</span>
-                  <div className="space-y-3">
-                    <p className="text-lg md:text-xl text-[#6B4423] font-medium" dir="rtl">
-                      הספר מוקדש באהבה ל-
-                    </p>
-                    <p className="text-3xl md:text-4xl font-black bg-gradient-to-r from-purple-600 via-pink-500 to-orange-400 bg-clip-text text-transparent" dir="rtl">
-                      {story.child_name}
-                    </p>
-                    <div className="flex items-center justify-center gap-3 pt-2">
-                      <div className="w-8 h-0.5 bg-gradient-to-r from-transparent to-pink-400 rounded-full" />
-                      <span className="text-base">💛</span>
-                      <div className="w-8 h-0.5 bg-gradient-to-l from-transparent to-pink-400 rounded-full" />
+              /* Dedication Page — Dynamic themed background with child avatar */
+              (() => {
+                const theme = getTopicTheme(story.topic);
+                const isDarkBg = theme.bg.includes('#1a1a4e') || theme.bg.includes('#0c1445') || theme.bg.includes('#134E5E');
+                return (
+                  <div className="relative flex-1 flex flex-col items-center justify-center text-center h-full px-8 py-8 overflow-hidden" style={{ background: theme.bg }}>
+                    {/* Sparkle overlay */}
+                    <div className="absolute inset-0 overflow-hidden pointer-events-none">
+                      {[...Array(12)].map((_, i) => (
+                        <div key={i} className="absolute rounded-full animate-pulse" style={{
+                          width: `${4 + Math.random() * 6}px`,
+                          height: `${4 + Math.random() * 6}px`,
+                          top: `${Math.random() * 100}%`,
+                          left: `${Math.random() * 100}%`,
+                          background: isDarkBg ? 'rgba(255,255,255,0.5)' : 'rgba(255,255,255,0.7)',
+                          animationDelay: `${Math.random() * 3}s`,
+                          animationDuration: `${2 + Math.random() * 2}s`,
+                        }} />
+                      ))}
+                    </div>
+
+                    <div className="relative z-10 space-y-5 max-w-md mx-auto flex flex-col items-center">
+                      {/* Topic emoji */}
+                      <span className="text-7xl animate-bounce" style={{ animationDuration: '2s' }}>{theme.emoji}</span>
+
+                      {/* Child avatar */}
+                      {childAvatarUrl ? (
+                        <div className="relative">
+                          <div className="w-32 h-32 rounded-full overflow-hidden border-4 border-white/80 shadow-2xl" style={{
+                            boxShadow: '0 0 30px rgba(255,255,255,0.4), 0 0 60px rgba(168,85,247,0.3)',
+                          }}>
+                            <img src={childAvatarUrl} alt={story.child_name} className="w-full h-full object-cover" />
+                          </div>
+                          <div className="absolute -bottom-1 -right-1 text-2xl">⭐</div>
+                        </div>
+                      ) : (
+                        <div className="w-24 h-24 rounded-full bg-white/20 backdrop-blur-sm flex items-center justify-center border-2 border-white/40 shadow-xl">
+                          <span className="text-5xl">⭐</span>
+                        </div>
+                      )}
+
+                      {/* Dedication text */}
+                      <div className="space-y-2">
+                        <p className={cn("text-lg md:text-xl font-medium", isDarkBg ? "text-white/90" : "text-[#6B4423]")} dir="rtl">
+                          הספר הזה נוצר במיוחד עבורך,
+                        </p>
+                        <p className="text-3xl md:text-5xl font-black bg-gradient-to-r from-purple-400 via-pink-400 to-orange-300 bg-clip-text text-transparent drop-shadow-lg" dir="rtl">
+                          {story.child_name} ❤️
+                        </p>
+                      </div>
+
+                      {/* Decorative divider */}
+                      <div className="flex items-center justify-center gap-3 pt-1">
+                        <div className={cn("w-10 h-0.5 rounded-full", isDarkBg ? "bg-white/30" : "bg-pink-300/60")} />
+                        <span className="text-base">💕</span>
+                        <div className={cn("w-10 h-0.5 rounded-full", isDarkBg ? "bg-white/30" : "bg-pink-300/60")} />
+                      </div>
+
+                      <p className={cn("text-sm", isDarkBg ? "text-white/60" : "text-[#8B6914]/60")} dir="rtl">
+                        {translateTopic(story.topic, story.language)}
+                      </p>
+                    </div>
+
+                    <div className="absolute bottom-6 left-0 right-0 flex flex-col items-center gap-1">
+                      <span className="text-base font-black logo-3d-bubble"><span className="logo-rainbow">SolStorie's™</span></span>
                     </div>
                   </div>
-                </div>
-                <div className="absolute bottom-6 left-0 right-0 flex flex-col items-center gap-1">
-                  <span className="text-base font-black logo-3d-bubble"><span className="logo-rainbow">SolStorie's™</span></span>
-                </div>
-              </div>
+                );
+              })()
 
             ) : isClosingPage ? (
               /* Closing Page - Full cast waving background */
