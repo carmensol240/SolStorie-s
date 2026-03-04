@@ -1115,22 +1115,37 @@ const StoryViewer = () => {
                 )}
 
                 {/* Text overlay at bottom */}
-                <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/30 via-black/15 to-transparent px-6 py-5 md:px-10 md:py-7">
-                  <div className="max-w-lg mx-auto w-full">
-                    <p className={cn(
-                      "text-white text-right font-semibold transition-all whitespace-pre-line",
-                      currentFontSize.size
-                    )} style={{ lineHeight: '2', textShadow: '0 1px 3px rgba(0,0,0,0.9), 0 3px 8px rgba(0,0,0,0.7), 0 0 16px rgba(0,0,0,0.5)', backgroundColor: 'rgba(0,0,0,0.15)', padding: '12px 16px', borderRadius: '12px' }} dir="rtl">
-                      {(() => {
-                        const rawText = currentVirtual.combinedText || currentVirtual.dbPage.text;
-                        return showNikud ? rawText : rawText.replace(/[\u0591-\u05C7]/g, '');
-                      })()}
-                    </p>
-                  </div>
-                  <div className="flex flex-col items-center gap-1 pt-2 shrink-0">
-                    <span className="text-xs text-white/60 font-light tracking-wide">{currentPage + 1} / {totalVirtualPages}</span>
-                  </div>
-                </div>
+                {(() => {
+                  const hasIllustration = !!currentVirtual.illustrationUrl;
+                  return (
+                    <div className={cn(
+                      "absolute bottom-0 left-0 right-0 px-6 py-5 md:px-10 md:py-7",
+                      hasIllustration ? "bg-gradient-to-t from-black/30 via-black/15 to-transparent" : ""
+                    )}>
+                      <div className="max-w-lg mx-auto w-full">
+                        <p className={cn(
+                          "text-right font-semibold transition-all whitespace-pre-line",
+                          currentFontSize.size,
+                          hasIllustration ? "text-white" : "text-[#3D2B5A]"
+                        )} style={{
+                          lineHeight: '2',
+                          ...(hasIllustration
+                            ? { textShadow: '0 1px 3px rgba(0,0,0,0.9), 0 3px 8px rgba(0,0,0,0.7), 0 0 16px rgba(0,0,0,0.5)', backgroundColor: 'rgba(0,0,0,0.15)', padding: '12px 16px', borderRadius: '12px' }
+                            : { backgroundColor: 'rgba(255,255,255,0.5)', padding: '12px 16px', borderRadius: '12px', backdropFilter: 'blur(4px)' }
+                          ),
+                        }} dir="rtl">
+                          {(() => {
+                            const rawText = currentVirtual.combinedText || currentVirtual.dbPage.text;
+                            return showNikud ? rawText : rawText.replace(/[\u0591-\u05C7]/g, '');
+                          })()}
+                        </p>
+                      </div>
+                      <div className="flex flex-col items-center gap-1 pt-2 shrink-0">
+                        <span className={cn("text-xs font-light tracking-wide", hasIllustration ? "text-white/60" : "text-[#5B3E96]/60")}>{currentPage + 1} / {totalVirtualPages}</span>
+                      </div>
+                    </div>
+                  );
+                })()}
               </div>
             ) : null}
           </div>
