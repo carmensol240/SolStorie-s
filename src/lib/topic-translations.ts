@@ -47,6 +47,11 @@ const TOPIC_HEBREW_MAP: Record<string, string> = {
   'sibling-love': 'אהבת אחים',
   'my-special-family': 'המשפחה המיוחדת שלי',
   'find-a-friend': 'הלב שלי רוצה חבר',
+  'screen-time': 'המסך מחכה',
+  'divorce': 'שני בתים, אהבה אחת',
+  'sick-grandparent': 'סבא/סבתא חולה — ואני כאן',
+  'making-mistakes': 'טעיתי — ומה עכשיו?',
+  'crying-is-ok': 'מותר לבכות',
 
   // Leo - Imagination
   'zoo-adventure': 'טיול בגן החיות',
