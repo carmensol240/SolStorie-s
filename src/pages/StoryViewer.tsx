@@ -990,28 +990,75 @@ const StoryViewer = () => {
               </div>
 
             ) : isDedicationPage ? (
-              /* Dedication Page — Rainbow background with personalized dedication */
-              <div className="relative flex-1 flex flex-col items-center justify-start pt-12 text-center h-full px-8 py-12" style={{ background: RAINBOW_BG }}>
-                <div className="space-y-6 max-w-md mx-auto">
-                  <span className="text-5xl">🦄</span>
-                  <div className="space-y-3">
-                    <p className="text-lg md:text-xl text-[#6B4423] font-medium" dir="rtl">
-                      הספר מוקדש באהבה ל-
-                    </p>
-                    <p className="text-3xl md:text-4xl font-black bg-gradient-to-r from-purple-600 via-pink-500 to-orange-400 bg-clip-text text-transparent" dir="rtl">
-                      {story.child_name}
-                    </p>
-                    <div className="flex items-center justify-center gap-3 pt-2">
-                      <div className="w-8 h-0.5 bg-gradient-to-r from-transparent to-pink-400 rounded-full" />
-                      <span className="text-base">💛</span>
-                      <div className="w-8 h-0.5 bg-gradient-to-l from-transparent to-pink-400 rounded-full" />
+              /* Dedication Page — Dynamic themed background with child avatar */
+              (() => {
+                const theme = getTopicTheme(story.topic);
+                const isDarkBg = theme.bg.includes('#1a1a4e') || theme.bg.includes('#0c1445') || theme.bg.includes('#134E5E');
+                return (
+                  <div className="relative flex-1 flex flex-col items-center justify-center text-center h-full px-8 py-8 overflow-hidden" style={{ background: theme.bg }}>
+                    {/* Sparkle overlay */}
+                    <div className="absolute inset-0 overflow-hidden pointer-events-none">
+                      {[...Array(12)].map((_, i) => (
+                        <div key={i} className="absolute rounded-full animate-pulse" style={{
+                          width: `${4 + Math.random() * 6}px`,
+                          height: `${4 + Math.random() * 6}px`,
+                          top: `${Math.random() * 100}%`,
+                          left: `${Math.random() * 100}%`,
+                          background: isDarkBg ? 'rgba(255,255,255,0.5)' : 'rgba(255,255,255,0.7)',
+                          animationDelay: `${Math.random() * 3}s`,
+                          animationDuration: `${2 + Math.random() * 2}s`,
+                        }} />
+                      ))}
+                    </div>
+
+                    <div className="relative z-10 space-y-5 max-w-md mx-auto flex flex-col items-center">
+                      {/* Topic emoji */}
+                      <span className="text-7xl animate-bounce" style={{ animationDuration: '2s' }}>{theme.emoji}</span>
+
+                      {/* Child avatar */}
+                      {childAvatarUrl ? (
+                        <div className="relative">
+                          <div className="w-32 h-32 rounded-full overflow-hidden border-4 border-white/80 shadow-2xl" style={{
+                            boxShadow: '0 0 30px rgba(255,255,255,0.4), 0 0 60px rgba(168,85,247,0.3)',
+                          }}>
+                            <img src={childAvatarUrl} alt={story.child_name} className="w-full h-full object-cover" />
+                          </div>
+                          <div className="absolute -bottom-1 -right-1 text-2xl">⭐</div>
+                        </div>
+                      ) : (
+                        <div className="w-24 h-24 rounded-full bg-white/20 backdrop-blur-sm flex items-center justify-center border-2 border-white/40 shadow-xl">
+                          <span className="text-5xl">⭐</span>
+                        </div>
+                      )}
+
+                      {/* Dedication text */}
+                      <div className="space-y-2">
+                        <p className={cn("text-lg md:text-xl font-medium", isDarkBg ? "text-white/90" : "text-[#6B4423]")} dir="rtl">
+                          הספר הזה נוצר במיוחד עבורך,
+                        </p>
+                        <p className="text-3xl md:text-5xl font-black bg-gradient-to-r from-purple-400 via-pink-400 to-orange-300 bg-clip-text text-transparent drop-shadow-lg" dir="rtl">
+                          {story.child_name} ❤️
+                        </p>
+                      </div>
+
+                      {/* Decorative divider */}
+                      <div className="flex items-center justify-center gap-3 pt-1">
+                        <div className={cn("w-10 h-0.5 rounded-full", isDarkBg ? "bg-white/30" : "bg-pink-300/60")} />
+                        <span className="text-base">💕</span>
+                        <div className={cn("w-10 h-0.5 rounded-full", isDarkBg ? "bg-white/30" : "bg-pink-300/60")} />
+                      </div>
+
+                      <p className={cn("text-sm", isDarkBg ? "text-white/60" : "text-[#8B6914]/60")} dir="rtl">
+                        {translateTopic(story.topic, story.language)}
+                      </p>
+                    </div>
+
+                    <div className="absolute bottom-6 left-0 right-0 flex flex-col items-center gap-1">
+                      <span className="text-base font-black logo-3d-bubble"><span className="logo-rainbow">SolStorie's™</span></span>
                     </div>
                   </div>
-                </div>
-                <div className="absolute bottom-6 left-0 right-0 flex flex-col items-center gap-1">
-                  <span className="text-base font-black logo-3d-bubble"><span className="logo-rainbow">SolStorie's™</span></span>
-                </div>
-              </div>
+                );
+              })()
 
             ) : isClosingPage ? (
               /* Closing Page - Full cast waving background */
