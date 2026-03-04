@@ -191,8 +191,8 @@ const TopicStep = ({ formData, updateFormData }: TopicStepProps) => {
                           formData.topic === topic.id ? "border-red-500 shadow-lg ring-2 ring-red-300" : "border-red-200 dark:border-red-800"
                         )}
                       >
-                        <div className="h-20 w-24 flex-shrink-0">
-                          <img src={topic.image} alt={topic.label} className="w-full h-full object-cover rounded-r-xl" loading="lazy" />
+                         <div className="h-20 w-24 flex-shrink-0 bg-muted/20">
+                           <img src={topic.image} alt={topic.label} className="w-full h-full object-contain rounded-r-xl" loading="lazy" />
                         </div>
                         <div className="flex-1 py-2 pr-1 pl-3">
                           <div className="flex items-center gap-1.5">

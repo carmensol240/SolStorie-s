@@ -70,11 +70,11 @@ const CategoryView = () => {
               onClick={() => navigate("/create", { state: { preselectedTopic: topic.id } })}
               className="rounded-xl overflow-hidden shadow-sm border border-border bg-card hover:shadow-md hover:scale-[1.02] transition-all text-right"
             >
-              <div className="h-24 w-full">
+              <div className="aspect-square w-full bg-muted/20 flex items-center justify-center overflow-hidden">
                 <img
                   src={topic.image}
                   alt={topic.label}
-                  className="w-full h-full object-cover"
+                  className="w-full h-full object-contain"
                 />
               </div>
               <div className="p-2.5">
