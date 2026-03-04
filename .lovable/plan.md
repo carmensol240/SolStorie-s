@@ -1,26 +1,61 @@
 
 
-## Bug Analysis
+## תיקון שתי בעיות קריטיות באיורים + טקסט קצר
 
-The onboarding loop is caused by a combination of issues in the navigation flow between `RequireTerms` and `Onboarding`:
+### אבחון
 
-1. **Silent update failure**: In `Onboarding.handleContinue`, the Supabase `.update().eq()` call returns success (`error: null`) even when **zero rows are matched** (e.g., due to a race condition where the profile hasn't been created yet). The code doesn't verify the update actually persisted.
+ניתחתי את הקוד לעומק וזיהיתי את שורשי הבעיות:
 
-2. **No `replace: true` on redirects**: Both `RequireTerms` (redirecting to `/onboarding`) and `Onboarding`'s guard effect (redirecting to `/adventure`) use `navigate()` without `{ replace: true }`, causing history stack pollution and making the loop worse.
+**בעיה 1 — אין קשר בין טקסט לאיורים:**
 
-3. **Loop mechanics**: `handleContinue` thinks it succeeded → navigates to `/adventure` → `RequireTerms` queries DB → `terms_accepted_at` is still null → redirects back to `/onboarding` → Onboarding guard checks terms → still null → shows the form again.
+הפונקציה `buildScenePrompt` (שורה 481-487) מקבלת את ה-`originalPrompt` (שהוא ה-`illustration_prompt` המפורט שיוצר ה-AI בזמן כתיבת הסיפור) אבל **מתעלמת ממנו לחלוטין** ומשתמשת רק בניתוח הסצנה של Gemini Flash Lite — מודל חלש שמפספס פרטים. כלומר הפרומפט המקורי המותאם לטקסט נזרק לפח.
 
-## Fix
+בנוסף, הפרומפט של Flux Kontext (שורות 181-195) מוצף בהנחיות סגנון ודמות (כ-80% מהטקסט), מה שגורם לתיאור הסצנה להידחק ולהיבלע.
 
-### 1. `src/pages/Onboarding.tsx` — Verify update actually persisted
+**בעיה 2 — איכות ירודה (Kontext vs Schnell):**
 
-In `handleContinue`, after the update call, re-query the profile to confirm `terms_accepted_at` was saved. If not, use `upsert` as a fallback. Also add `{ replace: true }` to the guard navigation.
+Flux Kontext הוא מודל **עריכת תמונה**, לא text-to-image. הוא מעולה לשמירת דמיון פנים אבל חלש ביצירת סצנות מורכבות מטקסט ארוך. הפרומפט הנוכחי שולח לו ~1500 תווים, בזמן שהוא עובד הכי טוב עם הנחיות קצרות וממוקדות.
 
-### 2. `src/components/RequireTerms.tsx` — Use `replace: true`
+**טקסט קצר:**
 
-Change the `navigate` call to onboarding to use `{ replace: true }` so the history stack doesn't accumulate redirect entries.
+לא שינוי בקוד — ייתכן שזה תלוי בגיל הילד שנבחר. אוסיף הנחיה מפורשת למינימום מילים.
 
-### 3. Both files — Add select return on update
+### שינויים מתוכננים
 
-Use `.update(...).eq(...).select()` to get the updated row back, confirming the write succeeded. If the returned array is empty, fall back to an upsert to handle the edge case where the profile row doesn't exist yet.
+**`supabase/functions/generate-illustrations/index.ts`:**
+
+1. **`buildScenePrompt` — שילוב ה-`originalPrompt`**: במקום להתעלם מהפרומפט המקורי, הפונקציה תשלב את ה-`illustration_prompt` מייצור הסיפור כבסיס, ותעשיר אותו עם פרטי הסצנה מהניתוח:
+```
+Before: "${charDesc}, ${scene.character_action}, ${scene.scene_action}..."
+After:  "${charDesc}, ${originalPrompt}. ACTION: ${scene.character_action}, ENVIRONMENT: ${scene.environment}..."
+```
+
+2. **שדרוג מודל ניתוח סצנה**: החלפת `gemini-2.5-flash-lite` ב-`gemini-2.5-flash` ב-`analyzePageScene` — מודל חזק יותר שמבין עברית טוב יותר ומחלץ פרטים מדויקים יותר.
+
+3. **פרומפט Kontext ממוקד יותר**: קיצור הפרומפט שנשלח ל-Flux Kontext — הסרת טקסט כפול (cast description, visual anchor) והעברת הדגש לתיאור הסצנה. מבנה חדש:
+```
+FACE REFERENCE: [קצר]
+STYLE: Pixar 3D CGI [קצר]
+SCENE: ${illustrationPrompt}  ← הדגש המרכזי
+NEGATIVE: [קצר]
+```
+
+4. **Fallback חכם**: אם ניתוח הסצנה נכשל, שימוש ב-`illustration_prompt` המקורי במקום prompt גנרי.
+
+**`supabase/functions/retry-illustration/index.ts`:**
+
+אותם שינויים — פרומפט Kontext ממוקד יותר עם דגש על הסצנה.
+
+**`supabase/functions/generate-story/index.ts`:**
+
+5. **חיזוק הנחיית אורך טקסט**: הוספת הנחיה מפורשת ב-system prompt שכל עמוד חייב להכיל מינימום 3-4 משפטים (גיל 3-6) ושהסיפור לא יהיה קצר מ-300 מילים.
+
+6. **שיפור הנחיית `illustration_prompt`**: הוספת הנחיה ב-system prompt שה-`illustration_prompt` חייב לתאר את הסצנה הספציפית — מה הדמות עושה, מה הרקע, מה הפעולה — ולא תיאור גנרי.
+
+### תוצאה צפויה
+
+- כל איור ישקף את מה שקורה בטקסט של אותו עמוד
+- הפרומפט המקורי מייצור הסיפור (שכבר מותאם לטקסט) ישמש כבסיס
+- Kontext יקבל הנחיה קצרה וממוקדת שתאפשר לו לייצר סצנות שונות
+- הטקסט יהיה ארוך ועשיר יותר
 
