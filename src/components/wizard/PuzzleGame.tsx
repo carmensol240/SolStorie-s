@@ -55,6 +55,8 @@ const PuzzleGame = ({ ageRange }: PuzzleGameProps) => {
   const pieceSize = 100 / gridSize;
   const pieceSizeRem = gridSize === 2 ? 5.5 : gridSize === 3 ? 4 : 3.2;
 
+  const allPiecesPlaced = board.every((val) => val !== null);
+
   const checkCompletion = useCallback((newBoard: (number | null)[]) => {
     if (newBoard.every((val, idx) => val === idx)) {
       setCompleted(true);
@@ -326,6 +328,12 @@ const PuzzleGame = ({ ageRange }: PuzzleGameProps) => {
             />
           ))}
         </div>
+      )}
+
+      {allPiecesPlaced && !completed && (
+        <Button onClick={() => setCompleted(true)} className="gap-2 bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white text-lg px-8 py-3 rounded-xl shadow-lg animate-pulse">
+          🎉 סיימתי!
+        </Button>
       )}
 
       <Button onClick={handleReset} variant="ghost" size="sm" className="gap-1 text-purple-600">
