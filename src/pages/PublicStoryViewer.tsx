@@ -6,6 +6,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { cn } from "@/lib/utils";
 import { getPublicIllustrationUrl } from "@/lib/illustration-url";
 import castWavingFarewell from "@/assets/cast-waving-farewell.png";
+import solSuperheroWelcome from "@/assets/sol-superhero-welcome.jpg";
 import "./StoryViewer.css";
 
 interface PublicPage {
