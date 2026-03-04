@@ -452,21 +452,6 @@ const GeneratingStep = ({ formData, onComplete }: GeneratingStepProps) => {
           </p>
         </div>
 
-        {/* Empowering sentence */}
-        <div className="w-full max-w-sm px-4 min-h-[50px] flex items-center justify-center">
-          <p
-            className={`text-center text-xs leading-relaxed transition-opacity duration-500 ${
-              isSentenceVisible ? "opacity-100" : "opacity-0"
-            }`}
-            style={{
-              fontFamily: "'Varela Round', 'Heebo', sans-serif",
-              color: "#8B6BB5",
-              fontWeight: 500,
-            }}
-          >
-            "{EMPOWERING_SENTENCES[sentenceIndex]}"
-          </p>
-        </div>
 
         {/* Read story button — appears when ready */}
         {showReadyPopup && (
