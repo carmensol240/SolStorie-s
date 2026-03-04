@@ -149,7 +149,7 @@ A ${genderWord} aged ${profile.ageDescription} with ${profile.hairDescription}, 
 CRITICAL INSTRUCTION: Maintain strict visual character continuity across ALL generated images for this story sequence. The character must look like the SAME child in every single illustration — same face shape, same proportions, same hair, same outfit, same skin tone. Any visual deviation between pages is a FAILURE.`;
 }
 
-// Helper: generate illustration with face reference via Fal.ai Instant Character
+// Helper: generate illustration with face reference via Fal.ai Flux Kontext
 // Maintains character likeness from a single reference photo with high consistency
 async function generateIllustrationWithFace(
   prompt: string,
