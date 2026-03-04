@@ -76,30 +76,25 @@ const PublicStoryViewer = () => {
     fetchStory();
   }, [storySlug]);
 
-  // Build virtual pages — merge every 2 for toddlers (0-2)
+  // Build virtual pages — split each DB page into illustration + text
   const virtualPages = useMemo<VirtualPage[]>(() => {
     if (!story) return [];
-    const pages = story.pages;
-    const isToddler = story.age_range === '0-2';
-
-    if (isToddler) {
-      const result: VirtualPage[] = [];
-      for (let i = 0; i < pages.length; i += 2) {
-        const p1 = pages[i];
-        const p2 = pages[i + 1];
-        result.push({
-          dbPage: p1,
-          combinedText: p2 ? `${p1.text}\n${p2.text}` : p1.text,
-          illustrationUrl: p1.illustration_url,
-        });
-      }
-      return result;
+    const result: VirtualPage[] = [];
+    for (const page of story.pages) {
+      result.push({
+        type: 'illustration',
+        dbPage: page,
+        text: page.text,
+        illustrationUrl: page.illustration_url,
+      });
+      result.push({
+        type: 'text',
+        dbPage: page,
+        text: page.text,
+        illustrationUrl: null,
+      });
     }
-
-    return pages.map(p => ({
-      dbPage: p,
-      illustrationUrl: p.illustration_url,
-    }));
+    return result;
   }, [story]);
 
   const handlePageNav = useCallback((dir: 'next' | 'prev') => {
