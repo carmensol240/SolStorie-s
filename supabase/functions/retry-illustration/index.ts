@@ -208,6 +208,12 @@ NEGATIVE: realistic, photograph, semi-realistic, dark, muted, bokeh, hyper-reali
 
     // Fallback to Schnell if no photo or PuLID failed
     if (!imageUrl) {
+      const FAL_KEY = Deno.env.get("FAL_KEY");
+      if (!FAL_KEY) {
+        return new Response(JSON.stringify({ error: "FAL_KEY not configured" }), {
+          status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
       const fullPrompt = `${stylePrefix}\n\nSCENE: ${prompt}\n\nNEGATIVE: ${negativePrompt}`;
       console.log(`Retrying illustration via Flux Schnell for story ${storyId}, page ${page.page_number}...`);
 
