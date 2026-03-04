@@ -265,6 +265,16 @@ const PuzzleGame = ({ ageRange, onReadStory, isStoryReady }: PuzzleGameProps) =>
         >
           <img src={imageSrc} alt="פאזל מושלם" className="w-full h-full object-cover" />
         </div>
+        {onReadStory && isStoryReady && (
+          <Button 
+            onClick={onReadStory} 
+            size="lg" 
+            className="gap-2 bg-gradient-to-r from-purple-600 to-pink-500 hover:from-purple-700 hover:to-pink-600 text-white text-lg px-8 py-3 rounded-xl shadow-lg mt-2"
+          >
+            <BookOpen className="w-5 h-5" />
+            קראו את הסיפור 📖
+          </Button>
+        )}
         <Button onClick={handleReset} variant="outline" className="gap-2 mt-2">
           <Shuffle className="w-4 h-4" />
           שחקו שוב 🧩
