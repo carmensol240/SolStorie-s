@@ -170,14 +170,8 @@ const PublicStoryViewer = () => {
                 <img src={solSuperheroWelcome} alt="כריכה" className="absolute inset-0 w-full h-full object-cover" />
                 <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/30 to-black/10" />
 
-                {/* Content — avatar + dedication + button */}
+                {/* Content — dedication + button */}
                 <div className="relative z-10 h-full flex flex-col items-center justify-center text-center px-6">
-                  {/* Avatar fallback — first letter of child name */}
-                  <div className="w-28 h-28 rounded-full overflow-hidden border-4 border-white/90 shadow-2xl mb-3 flex items-center justify-center bg-gradient-to-br from-purple-400 to-pink-400" style={{
-                    boxShadow: '0 0 30px rgba(255,255,255,0.4), 0 0 60px rgba(168,85,247,0.3)',
-                  }}>
-                    <span className="text-5xl font-black text-white drop-shadow-lg">{story.child_name?.[0]}</span>
-                  </div>
 
                   <p className="text-base text-white/90 font-medium drop-shadow-md" dir="rtl">
                     הספר הזה נוצר במיוחד עבורך,
