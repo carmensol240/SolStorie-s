@@ -47,6 +47,7 @@ import { translateTopic } from "@/lib/topic-translations";
 import { useChildAvatar } from "@/hooks/use-child-avatar";
 
 import castWavingFarewell from "@/assets/cast-waving-farewell.png";
+import solSuperheroWelcome from "@/assets/sol-superhero-welcome.jpg";
 
 interface StoryPage {
   id: string;
@@ -939,7 +940,7 @@ const StoryViewer = () => {
                   <div className="relative flex flex-col h-full">
                     {/* Full background — magical superhero scene */}
                     <img
-                      src={castWavingFarewell}
+                      src={solSuperheroWelcome}
                       alt="כריכת הסיפור"
                       className="absolute inset-0 w-full h-full object-cover"
                       loading="eager"
