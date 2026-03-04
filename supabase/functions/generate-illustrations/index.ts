@@ -184,8 +184,14 @@ Pixar 3D CGI animation style, big expressive eyes, soft rounded features, oversi
 
 MAIN CHARACTER: The child from the reference photo is the HERO. They wear ${finalOutfit}. They must be the LARGEST and most PROMINENT figure. ${adventureInstruction}
 
+SCENE: ${prompt}
+
 CRITICAL CHARACTER CONSISTENCY: The main character must look IDENTICAL in every illustration — same face shape, same hair color and style, same clothing colors, same skin tone, same eye color. Any visual deviation between pages is a FAILURE.
-...
+
+${castDescription}
+
+${visualAnchor ? `VISUAL ANCHOR: ${visualAnchor}` : ""}
+
 FULL BODY head to toe, feet GROUNDED on surface. Portrait 4:3 framing. NEGATIVE: realistic, semi-realistic, real human, photograph, generic face, wrong hair, floating head, missing body, extra limbs, deformed, cropped feet, text, watermark, photorealistic, dark, muted colors, cinematic bokeh, hyper-realistic, shallow depth of field`;
 
     console.log("Generating illustration via Fal.ai Flux Kontext (face reference)...");
