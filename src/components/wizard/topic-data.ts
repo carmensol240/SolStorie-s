@@ -123,7 +123,7 @@ export const CHARACTER_SECTIONS: CharacterSection[] = [
       { id: "seatbelt-safety", label: "חגורת בטיחות", description: "סיפור על חשיבות חגירת חגורת הבטיחות ברכב: למה היא מגינה עלינו ואיך הופכים את זה להרגל.", image: topicSeatbeltSafety, ageRange: "3-6" },
       { id: "blood-test", label: "סול וגיבורי הבריאות", description: "סיפור מעודד על ביקור בבדיקת דם: סול מגלה שהיא גיבורת בריאות אמיתית ומקבלה מדבקת כוכב.", image: topicBloodTest, ageRange: "3-6" },
       { id: "true-friendship", label: "חברות אמת", description: "סיפור על חברות אמיתית: לא רק שמחים ביחד ביום שמש, אלא גם עומדים לצד החבר/ה כשהיום קשה וה-שמיים אפורים.", image: topicFriendship, ageRange: "4-8", keywords: ["חברות", "חבר אמת", "נאמנות", "תמיכה"] },
-      { id: "accepting-differences", label: "קבלת השונה", description: "סיפור על פגישה עם מישהו שנראה שונה לגמרי – ועל הגילוי הגדול שמתחת לשטח, לבבות כל-כך דומים.", image: topicWeAreSpecial, ageRange: "4-8", keywords: ["שונות", "קבלה", "הכלה", "אחרות"] },
+      { id: "accepting-differences", label: "קבלת השונה", description: "סיפור על פגישה עם מישהו שנראה שונה לגמרי – ועל הגילוי הגדול שמתחת לשטח, לבבות כל-כך דומים.", image: topicAcceptingDifferences, ageRange: "4-8", keywords: ["שונות", "קבלה", "הכלה", "אחרות"] },
       { id: "helping-home", label: "עזרה בבית", description: "סיפור על הגאווה שבשותפות: כשכולם עוזרים – לסדר, לבשל, לנקות – הבית הופך לפרויקט משפחתי שכולם חלק ממנו.", image: topicHelpingAtHome, ageRange: "3-6", keywords: ["עזרה", "בית", "שיתוף", "משפחה", "אחריות"] },
     ],
   },
