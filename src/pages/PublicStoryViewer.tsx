@@ -167,11 +167,7 @@ const PublicStoryViewer = () => {
             {/* Cover Page */}
             {isCoverPage && (
               <div className="h-full w-full relative">
-                {coverIllustration ? (
-                  <img src={coverIllustration} alt="כריכה" className="absolute inset-0 w-full h-full object-cover" />
-                ) : (
-                  <div className="absolute inset-0 bg-gradient-to-br from-purple-200 via-pink-100 to-orange-100" />
-                )}
+                <img src={castWavingFarewell} alt="כריכה" className="absolute inset-0 w-full h-full object-cover" />
                 <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/30 to-black/10" />
 
                 {/* Content — avatar + dedication + button */}
