@@ -641,7 +641,9 @@ export type Database = {
           created_at: string
           id: string
           illustration_prompt: string | null
+          illustration_prompt_2: string | null
           illustration_url: string | null
+          illustration_url_2: string | null
           page_number: number
           story_id: string
           text: string
@@ -650,7 +652,9 @@ export type Database = {
           created_at?: string
           id?: string
           illustration_prompt?: string | null
+          illustration_prompt_2?: string | null
           illustration_url?: string | null
+          illustration_url_2?: string | null
           page_number: number
           story_id: string
           text: string
@@ -659,7 +663,9 @@ export type Database = {
           created_at?: string
           id?: string
           illustration_prompt?: string | null
+          illustration_prompt_2?: string | null
           illustration_url?: string | null
+          illustration_url_2?: string | null
           page_number?: number
           story_id?: string
           text?: string

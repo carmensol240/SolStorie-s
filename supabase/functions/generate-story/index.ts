@@ -1260,15 +1260,24 @@ ${topic.endsWith('-edu') ? `
 
     console.log("Story created:", story.id);
 
-    // Insert pages - one illustration per two pages for a cleaner look and faster loading
-    // Odd pages (1, 3, 5...) get illustration prompts; even pages are text-only
-    const pagesWithoutIllustrations = storyData.pages.map((page: any) => ({
-      story_id: story.id,
-      page_number: page.page_number,
-      text: page.text,
-      illustration_prompt: (page.page_number % 2 === 1) ? page.illustration_prompt : null,
-      illustration_url: null, // Will be filled by generate-illustrations
-    }));
+    // Insert pages - illustration assignment strategy depends on age
+    // Age 0-2: EVERY page gets an illustration_prompt (+ illustration_prompt_2 for dual layout)
+    // Other ages: Odd pages (1, 3, 5...) get illustration prompts; even pages are text-only
+    const isToddlerAge = ageRange === "0-2";
+    const pagesWithoutIllustrations = storyData.pages.map((page: any) => {
+      const shouldHaveIllustration = isToddlerAge || (page.page_number % 2 === 1);
+      return {
+        story_id: story.id,
+        page_number: page.page_number,
+        text: page.text,
+        illustration_prompt: shouldHaveIllustration ? page.illustration_prompt : null,
+        illustration_prompt_2: isToddlerAge && page.illustration_prompt
+          ? `Same scene as the main illustration but from a DIFFERENT camera angle or showing the NEXT moment in the action. Original scene: ${page.illustration_prompt}`
+          : null,
+        illustration_url: null,
+        illustration_url_2: null,
+      };
+    });
 
     const { error: pagesError } = await supabase
       .from("story_pages")

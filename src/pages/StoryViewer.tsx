@@ -53,6 +53,8 @@ interface StoryPage {
   text: string;
   illustration_url: string | null;
   illustration_prompt?: string | null;
+  illustration_url_2?: string | null;
+  illustration_prompt_2?: string | null;
 }
 
 interface Story {
@@ -197,14 +199,18 @@ const StoryViewer = () => {
         },
         (payload) => {
           const updated = payload.new as any;
-          if (updated?.illustration_url) {
+          if (updated?.illustration_url || updated?.illustration_url_2) {
             console.log(`[StoryViewer] Realtime: illustration ready for page ${updated.page_number}`);
             setStory(prev => {
               if (!prev) return prev;
               return {
                 ...prev,
                 pages: prev.pages.map(p =>
-                  p.id === updated.id ? { ...p, illustration_url: updated.illustration_url } : p
+                  p.id === updated.id ? { 
+                    ...p, 
+                    illustration_url: updated.illustration_url || p.illustration_url,
+                    illustration_url_2: updated.illustration_url_2 || p.illustration_url_2,
+                  } : p
                 ),
               };
             });
@@ -794,40 +800,48 @@ const StoryViewer = () => {
   // Build virtual pages: 2 text pages then 1 full-screen illustration, repeating
   type VirtualPage =
     | { type: 'text'; dbPage: StoryPage }
-    | { type: 'illustration'; illustrationUrl: string | null; illustrationPrompt: string | null; dbPage: StoryPage };
+    | { type: 'illustration'; illustrationUrl: string | null; illustrationPrompt: string | null; dbPage: StoryPage }
+    | { type: 'combined'; dbPage: StoryPage }; // age 0-2: illustration1 + text + illustration2
+
+  const isToddlerStory = story?.age_range === '0-2';
 
   const virtualPages: VirtualPage[] = useMemo(() => {
     if (!story || story.pages.length === 0) return [];
     const result: VirtualPage[] = [];
     const dbPages = story.pages;
 
-    for (let i = 0; i < dbPages.length; i++) {
-      // Add text entry for every DB page
-      result.push({ type: 'text', dbPage: dbPages[i] });
+    if (isToddlerStory) {
+      // Age 0-2: each DB page becomes a single "combined" virtual page
+      for (const page of dbPages) {
+        result.push({ type: 'combined', dbPage: page });
+      }
+    } else {
+      // Standard layout: 2 text pages then 1 illustration
+      for (let i = 0; i < dbPages.length; i++) {
+        result.push({ type: 'text', dbPage: dbPages[i] });
 
-      // After every 2nd text page (or the very last page), insert an illustration page
-      const textCount = result.filter(p => p.type === 'text').length;
-      if (textCount % 2 === 0 || i === dbPages.length - 1) {
-        // Pick the best illustration from the last batch of DB pages
-        const batchStart = i === dbPages.length - 1 && textCount % 2 !== 0 ? i : Math.max(0, i - 1);
-        let illUrl: string | null = null;
-        let illPrompt: string | null = null;
-        let illDbPage = dbPages[i];
-        for (let j = batchStart; j <= i; j++) {
-          if (dbPages[j].illustration_url || dbPages[j].illustration_prompt) {
-            illUrl = dbPages[j].illustration_url;
-            illPrompt = dbPages[j].illustration_prompt || null;
-            illDbPage = dbPages[j];
+        const textCount = result.filter(p => p.type === 'text').length;
+        if (textCount % 2 === 0 || i === dbPages.length - 1) {
+          const batchStart = i === dbPages.length - 1 && textCount % 2 !== 0 ? i : Math.max(0, i - 1);
+          let illUrl: string | null = null;
+          let illPrompt: string | null = null;
+          let illDbPage = dbPages[i];
+          for (let j = batchStart; j <= i; j++) {
+            if (dbPages[j].illustration_url || dbPages[j].illustration_prompt) {
+              illUrl = dbPages[j].illustration_url;
+              illPrompt = dbPages[j].illustration_prompt || null;
+              illDbPage = dbPages[j];
+            }
           }
-        }
-        if (illUrl || illPrompt) {
-          result.push({ type: 'illustration', illustrationUrl: illUrl, illustrationPrompt: illPrompt, dbPage: illDbPage });
+          if (illUrl || illPrompt) {
+            result.push({ type: 'illustration', illustrationUrl: illUrl, illustrationPrompt: illPrompt, dbPage: illDbPage });
+          }
         }
       }
     }
 
     return result;
-  }, [story?.pages]);
+  }, [story?.pages, isToddlerStory]);
 
   if (isLoading) {
     return (
@@ -1152,7 +1166,63 @@ const StoryViewer = () => {
             ) : currentVirtual ? (
               /* Story Content Pages — virtual page pattern */
               <div className={cn("h-full flex flex-col")}>
-                {currentVirtual.type === 'illustration' ? (
+                {currentVirtual.type === 'combined' ? (
+                  /* Combined page for age 0-2: illustration1 + short text + illustration2 */
+                  <div className="flex-1 flex flex-col min-h-0 w-full bg-gradient-to-br from-[#FFFBF5] to-[#F5E6D3]">
+                    {/* Top illustration (40%) */}
+                    <div className="flex-[4] min-h-0 overflow-hidden flex items-center justify-center p-2">
+                      {currentVirtual.dbPage.illustration_url ? (
+                        <img
+                          src={getPublicIllustrationUrl(currentVirtual.dbPage.illustration_url) || ''}
+                          alt="איור"
+                          className="w-full h-full object-contain rounded-lg"
+                          loading="eager"
+                        />
+                      ) : currentVirtual.dbPage.illustration_prompt ? (
+                        <div className="w-full h-full flex items-center justify-center">
+                          <div className="text-center space-y-2">
+                            <span className="text-3xl animate-pulse">🎨</span>
+                            <p className="text-xs text-[#8B7355]" dir="rtl">מכינים איור...</p>
+                          </div>
+                        </div>
+                      ) : null}
+                    </div>
+
+                    {/* Short text (20%) */}
+                    <div className="flex-[2] min-h-0 flex items-center justify-center px-6 py-2">
+                      <p className={cn(
+                        "text-[#3D2914] text-center font-bold transition-all whitespace-pre-line",
+                        "text-2xl md:text-3xl"
+                      )} style={{ lineHeight: '2.2' }} dir="rtl">
+                        {showNikud ? currentVirtual.dbPage.text : currentVirtual.dbPage.text.replace(/[\u0591-\u05C7]/g, '')}
+                      </p>
+                    </div>
+
+                    {/* Bottom illustration (40%) */}
+                    <div className="flex-[4] min-h-0 overflow-hidden flex items-center justify-center p-2">
+                      {currentVirtual.dbPage.illustration_url_2 ? (
+                        <img
+                          src={getPublicIllustrationUrl(currentVirtual.dbPage.illustration_url_2) || ''}
+                          alt="איור"
+                          className="w-full h-full object-contain rounded-lg"
+                          loading="eager"
+                        />
+                      ) : currentVirtual.dbPage.illustration_prompt_2 ? (
+                        <div className="w-full h-full flex items-center justify-center">
+                          <div className="text-center space-y-2">
+                            <span className="text-3xl animate-pulse">🎨</span>
+                            <p className="text-xs text-[#8B7355]" dir="rtl">מכינים איור...</p>
+                          </div>
+                        </div>
+                      ) : null}
+                    </div>
+
+                    {/* Page number */}
+                    <div className="flex flex-col items-center gap-1 py-1 shrink-0">
+                      <span className="text-xs text-[#B8A08C] font-light">{currentPage} / {totalVirtualPages}</span>
+                    </div>
+                  </div>
+                ) : currentVirtual.type === 'illustration' ? (
                   /* Full-screen illustration page (no text) */
                   currentVirtual.illustrationUrl ? (
                     <div className="relative w-full h-full overflow-hidden bg-[#F5E6D3] flex items-center justify-center">

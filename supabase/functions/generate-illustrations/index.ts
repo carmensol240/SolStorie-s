@@ -912,6 +912,56 @@ serve(async (req) => {
         }
       }
 
+      // === SECOND ILLUSTRATION (age 0-2 dual layout) ===
+      if (page.illustration_prompt_2) {
+        console.log(`Generating SECOND illustration for page ${page.page_number} (toddler dual layout)...`);
+        const secondPrompt = page.illustration_prompt_2;
+        let secondImage: string | null = null;
+
+        // Use scene analysis for the second prompt too
+        const scene2 = await analyzePageScene(
+          secondPrompt,
+          page.page_number + 100, // offset to get different camera angle
+          pagesToIllustrate.length,
+          topic || "",
+          LOVABLE_API_KEY
+        );
+
+        let secondIllustrationPrompt = secondPrompt;
+        if (scene2) {
+          const charDesc2 = characterProfile
+            ? `A ${characterProfile.gender === "female" ? "girl" : "boy"} aged ${characterProfile.ageDescription} with ${characterProfile.hairDescription}, ${characterProfile.skinTone} skin, ${characterProfile.eyeColor} eyes, wearing ${storyOutfit}`
+            : `A child wearing ${storyOutfit}`;
+          secondIllustrationPrompt = buildScenePrompt(scene2, charDesc2, secondPrompt);
+        }
+
+        for (let attempt = 1; attempt <= MAX_RETRIES; attempt++) {
+          if (childPhotoSignedUrl) {
+            secondImage = await generateIllustrationWithFace(
+              secondIllustrationPrompt, childPhotoSignedUrl, characterProfile,
+              storyOutfit, visualAnchor, effectiveAdventureLogic,
+            );
+          } else {
+            secondImage = await generateIllustration(
+              secondIllustrationPrompt, effectivePhoto, characterProfile,
+              LOVABLE_API_KEY, storyOutfit, visualAnchor, effectiveAdventureLogic, topic
+            );
+          }
+          if (secondImage) break;
+          if (attempt < MAX_RETRIES) await new Promise(r => setTimeout(r, 1000));
+        }
+
+        if (secondImage) {
+          const secondUrl = await uploadImageToStorage(supabase, secondImage, storyId, page.page_number * 10 + 2);
+          if (secondUrl) {
+            await supabase.from("story_pages").update({ illustration_url_2: secondUrl }).eq("id", page.id);
+            console.log(`Page ${page.page_number} SECOND illustration saved`);
+          }
+        } else {
+          console.warn(`Page ${page.page_number}: second illustration failed`);
+        }
+      }
+
       // Minimal delay to avoid rate limiting
       await new Promise(r => setTimeout(r, 200));
     }
