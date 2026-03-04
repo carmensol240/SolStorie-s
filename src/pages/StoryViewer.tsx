@@ -940,7 +940,7 @@ const StoryViewer = () => {
                   <div className="relative flex flex-col h-full">
                     {/* Full background — magical superhero scene */}
                     <img
-                      src={castWavingFarewell}
+                      src={solSuperheroWelcome}
                       alt="כריכת הסיפור"
                       className="absolute inset-0 w-full h-full object-cover"
                       loading="eager"
