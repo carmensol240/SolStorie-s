@@ -798,22 +798,28 @@ const StoryViewer = () => {
     if (!story || story.pages.length === 0) return [];
     const result: VirtualPage[] = [];
     for (const page of story.pages) {
-      // First: illustration page (fullscreen image, no text)
-      result.push({
-        type: 'illustration',
-        dbPage: page,
-        illustrationUrl: page.illustration_url,
-        illustrationPrompt: page.illustration_prompt || null,
-        text: page.text,
-      });
-      // Second: text page (pastel background, no image)
-      result.push({
-        type: 'text',
-        dbPage: page,
-        illustrationUrl: null,
-        illustrationPrompt: null,
-        text: page.text,
-      });
+      const hasText = page.text && page.text.trim().length > 0;
+      const hasIllustration = !!page.illustration_url;
+      // First: text page (pastel background, no image)
+      if (hasText) {
+        result.push({
+          type: 'text',
+          dbPage: page,
+          illustrationUrl: null,
+          illustrationPrompt: null,
+          text: page.text,
+        });
+      }
+      // Second: illustration page (fullscreen image, no text)
+      if (hasIllustration) {
+        result.push({
+          type: 'illustration',
+          dbPage: page,
+          illustrationUrl: page.illustration_url,
+          illustrationPrompt: page.illustration_prompt || null,
+          text: page.text,
+        });
+      }
     }
     return result;
   }, [story?.pages]);
