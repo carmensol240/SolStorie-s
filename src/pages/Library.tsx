@@ -84,7 +84,7 @@ const Library = () => {
   };
 
   const fetchStories = async () => {
-    if (!user) { setStories([]); setIsLoading(false); return; }
+    if (!user) { setStories([]); return; }
     try {
       const { data: storiesData, error: storiesError } = await supabase
         .from("stories")
