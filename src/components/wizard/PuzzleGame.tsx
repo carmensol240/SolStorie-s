@@ -1,5 +1,5 @@
 import { useState, useCallback, useRef, useEffect, useMemo } from "react";
-import { Shuffle } from "lucide-react";
+import { Shuffle, BookOpen } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import PuzzleCompleteCelebration from "./PuzzleCompleteCelebration";
 
