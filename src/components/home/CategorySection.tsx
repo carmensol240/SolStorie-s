@@ -22,11 +22,11 @@ const CategorySection = ({ section, colorClass, bgClass, borderClass }: Category
         className={`relative w-full rounded-2xl overflow-hidden ${borderClass} border-2 group`}
         aria-label={section.categoryLabel}
       >
-        <div className="relative h-36 w-full">
+        <div className="relative h-44 w-full bg-gradient-to-l from-muted/30 to-muted/10">
           <img
             src={section.heroImage}
             alt={section.categoryLabel}
-            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+            className="w-full h-full object-contain object-right group-hover:scale-105 transition-transform duration-300"
           />
           <div
             className="absolute inset-0"
