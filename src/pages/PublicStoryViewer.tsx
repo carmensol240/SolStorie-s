@@ -27,8 +27,9 @@ interface PublicStory {
 }
 
 interface VirtualPage {
+  type: 'illustration' | 'text';
   dbPage: PublicPage;
-  combinedText?: string;
+  text: string;
   illustrationUrl: string | null;
 }
 
