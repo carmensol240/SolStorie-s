@@ -1029,21 +1029,15 @@ const StoryViewer = () => {
                       {/* Topic emoji */}
                       <span className="text-7xl animate-bounce" style={{ animationDuration: '2s' }}>{theme.emoji}</span>
 
-                      {/* Child avatar */}
-                      {childAvatarUrl ? (
-                        <div className="relative">
-                          <div className="w-32 h-32 rounded-full overflow-hidden border-4 border-white/80 shadow-2xl" style={{
-                            boxShadow: '0 0 30px rgba(255,255,255,0.4), 0 0 60px rgba(168,85,247,0.3)',
-                          }}>
-                            <img src={childAvatarUrl} alt={story.child_name} className="w-full h-full object-cover" />
-                          </div>
-                          <div className="absolute -bottom-1 -right-1 text-2xl">⭐</div>
+                      {/* Child avatar — always present, large and prominent */}
+                      <div className="relative">
+                        <div className="w-44 h-44 rounded-full overflow-hidden border-[6px] border-white/90 shadow-2xl" style={{
+                          boxShadow: '0 0 40px rgba(255,255,255,0.5), 0 0 80px rgba(168,85,247,0.35), 0 0 120px rgba(236,72,153,0.2)',
+                        }}>
+                          <img src={childAvatarUrl} alt={story.child_name} className="w-full h-full object-cover" />
                         </div>
-                      ) : (
-                        <div className="w-24 h-24 rounded-full bg-white/20 backdrop-blur-sm flex items-center justify-center border-2 border-white/40 shadow-xl">
-                          <span className="text-5xl">⭐</span>
-                        </div>
-                      )}
+                        <div className="absolute -bottom-2 -right-2 text-3xl drop-shadow-lg">⭐</div>
+                      </div>
 
                       {/* Dedication text */}
                       <div className="space-y-2">
