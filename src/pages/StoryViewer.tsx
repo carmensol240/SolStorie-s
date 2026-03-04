@@ -1149,8 +1149,8 @@ const StoryViewer = () => {
                 {currentVirtual.type === 'combined' ? (
                   /* Combined page for age 0-2: illustration1 + short text + illustration2 */
                   <div className="flex-1 flex flex-col min-h-0 w-full bg-gradient-to-br from-[#FFFBF5] to-[#F5E6D3]">
-                    {/* Top illustration (40%) */}
-                    <div className="flex-[4] min-h-0 overflow-hidden flex items-center justify-center p-2">
+                    {/* Top illustration (~44%) */}
+                    <div className="flex-[6] min-h-0 overflow-hidden flex items-center justify-center p-2">
                       {currentVirtual.dbPage.illustration_url ? (
                         <img
                           src={getPublicIllustrationUrl(currentVirtual.dbPage.illustration_url) || ''}
