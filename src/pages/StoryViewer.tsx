@@ -785,43 +785,38 @@ const StoryViewer = () => {
     }
   }, [generationStatus, story, userStartedReading]);
 
-  // Build virtual pages — fullscreen illustration + text overlay
-  // For age 0-2: merge every 2 DB pages into one virtual page
+  // Build virtual pages — split each DB page into illustration + text
   type VirtualPage = {
+    type: 'illustration' | 'text';
     dbPage: StoryPage;
     illustrationUrl: string | null;
     illustrationPrompt: string | null;
-    combinedText?: string;
+    text: string;
   };
-
-  const isToddler = story?.age_range === '0-2';
 
   const virtualPages: VirtualPage[] = useMemo(() => {
     if (!story || story.pages.length === 0) return [];
-    const pages = story.pages;
-
-    if (isToddler) {
-      const result: VirtualPage[] = [];
-      for (let i = 0; i < pages.length; i += 2) {
-        const p1 = pages[i];
-        const p2 = pages[i + 1];
-        const combinedText = p2 ? `${p1.text}\n${p2.text}` : p1.text;
-        result.push({
-          dbPage: p1,
-          combinedText,
-          illustrationUrl: p1.illustration_url,
-          illustrationPrompt: p1.illustration_prompt || null,
-        });
-      }
-      return result;
+    const result: VirtualPage[] = [];
+    for (const page of story.pages) {
+      // First: illustration page (fullscreen image, no text)
+      result.push({
+        type: 'illustration',
+        dbPage: page,
+        illustrationUrl: page.illustration_url,
+        illustrationPrompt: page.illustration_prompt || null,
+        text: page.text,
+      });
+      // Second: text page (pastel background, no image)
+      result.push({
+        type: 'text',
+        dbPage: page,
+        illustrationUrl: null,
+        illustrationPrompt: null,
+        text: page.text,
+      });
     }
-
-    return pages.map(page => ({
-      dbPage: page,
-      illustrationUrl: page.illustration_url,
-      illustrationPrompt: page.illustration_prompt || null,
-    }));
-  }, [story?.pages, isToddler]);
+    return result;
+  }, [story?.pages]);
 
   if (isLoading) {
     return (
