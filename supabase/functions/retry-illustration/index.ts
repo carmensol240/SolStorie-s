@@ -161,7 +161,7 @@ serve(async (req) => {
 
     // Branch: use PuLID when child photo exists, Schnell otherwise
     if (childPhoto) {
-      console.log(`Retrying illustration via Instant Character (face reference) for story ${storyId}, page ${page.page_number}...`);
+      console.log(`Retrying illustration via Flux Kontext (face reference) for story ${storyId}, page ${page.page_number}...`);
 
       const personalizedPrompt = `CRITICAL FACE REFERENCE: The main character's face, hair texture, skin tone, and facial features MUST be an EXACT 3D Pixar rendering of the child in the reference photo. Do NOT invent or change any facial features.
 
