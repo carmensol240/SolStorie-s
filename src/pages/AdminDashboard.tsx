@@ -303,6 +303,7 @@ const AdminDashboard = () => {
           <TabsContent value="users">
             <Card>
               <CardContent className="p-0">
+                <ReviewedBar tab="users" total={profiles.length} filtered={filterByReviewed(profiles, "users").length} cutoff={reviewedCutoffs["users"]} showReviewed={showReviewed["users"]} onToggleShow={() => setShowReviewed(p => ({ ...p, users: !p.users }))} onMark={() => setConfirmClearTab("users")} onClear={() => clearReviewed("users")} />
                 <div className="overflow-x-auto">
                   <Table>
                     <TableHeader>
@@ -317,7 +318,7 @@ const AdminDashboard = () => {
                     <TableBody>
                       {loading ? (
                         <TableRow><TableCell colSpan={5} className="text-center">טוען...</TableCell></TableRow>
-                      ) : profiles.map((p) => (
+                      ) : filterByReviewed(profiles, "users").map((p) => (
                         <TableRow key={p.id}>
                           <TableCell>{p.display_name || "—"}</TableCell>
                           <TableCell>
@@ -338,6 +339,7 @@ const AdminDashboard = () => {
           <TabsContent value="purchases">
             <Card>
               <CardContent className="p-0">
+                <ReviewedBar tab="purchases" total={purchases.length} filtered={filterByReviewed(purchases, "purchases").length} cutoff={reviewedCutoffs["purchases"]} showReviewed={showReviewed["purchases"]} onToggleShow={() => setShowReviewed(p => ({ ...p, purchases: !p.purchases }))} onMark={() => setConfirmClearTab("purchases")} onClear={() => clearReviewed("purchases")} />
                 <div className="overflow-x-auto">
                   <Table>
                     <TableHeader>
@@ -352,7 +354,7 @@ const AdminDashboard = () => {
                     <TableBody>
                       {loading ? (
                         <TableRow><TableCell colSpan={5} className="text-center">טוען...</TableCell></TableRow>
-                      ) : purchases.map((p) => (
+                      ) : filterByReviewed(purchases, "purchases").map((p) => (
                         <TableRow key={p.id}>
                           <TableCell>{p.package_name}</TableCell>
                           <TableCell>{p.credits_purchased}</TableCell>
@@ -375,6 +377,7 @@ const AdminDashboard = () => {
           <TabsContent value="stories">
             <Card>
               <CardContent className="p-0">
+                <ReviewedBar tab="stories" total={stories.length} filtered={filterByReviewed(stories, "stories").length} cutoff={reviewedCutoffs["stories"]} showReviewed={showReviewed["stories"]} onToggleShow={() => setShowReviewed(p => ({ ...p, stories: !p.stories }))} onMark={() => setConfirmClearTab("stories")} onClear={() => clearReviewed("stories")} />
                 <div className="overflow-x-auto">
                   <Table>
                     <TableHeader>
@@ -386,7 +389,7 @@ const AdminDashboard = () => {
                     <TableBody>
                       {loading ? (
                         <TableRow><TableCell colSpan={2} className="text-center">טוען...</TableCell></TableRow>
-                      ) : stories.map((s) => (
+                      ) : filterByReviewed(stories, "stories").map((s) => (
                         <TableRow key={s.id}>
                           <TableCell>{s.topic}</TableCell>
                           <TableCell className="text-xs">{formatDate(s.created_at)}</TableCell>
@@ -431,9 +434,11 @@ const AdminDashboard = () => {
                     </SelectContent>
                   </Select>
                   <div className="text-sm text-muted-foreground self-center">
-                    {errorLogs.length} שגיאות
+                    {filterByReviewed(errorLogs, "errors").length} שגיאות
                   </div>
                 </div>
+
+                <ReviewedBar tab="errors" total={errorLogs.length} filtered={filterByReviewed(errorLogs, "errors").length} cutoff={reviewedCutoffs["errors"]} showReviewed={showReviewed["errors"]} onToggleShow={() => setShowReviewed(p => ({ ...p, errors: !p.errors }))} onMark={() => setConfirmClearTab("errors")} onClear={() => clearReviewed("errors")} />
 
                 {/* Error table */}
                 <div className="overflow-x-auto">
@@ -446,13 +451,13 @@ const AdminDashboard = () => {
                       </TableRow>
                     </TableHeader>
                     <TableBody>
-                      {errorLogs.length === 0 ? (
+                      {filterByReviewed(errorLogs, "errors").length === 0 ? (
                         <TableRow>
                           <TableCell colSpan={3} className="text-center text-muted-foreground py-8">
-                            🎉 אין שגיאות בתקופה הנבחרת
+                            🎉 אין שגיאות חדשות
                           </TableCell>
                         </TableRow>
-                      ) : errorLogs.map((e) => (
+                      ) : filterByReviewed(errorLogs, "errors").map((e) => (
                         <TableRow key={e.id}>
                           <TableCell>
                             <Badge variant="outline" className="text-xs whitespace-nowrap">
@@ -472,7 +477,54 @@ const AdminDashboard = () => {
             </Card>
           </TabsContent>
         </Tabs>
+
+        {/* Confirm mark-as-reviewed dialog */}
+        <AlertDialog open={!!confirmClearTab} onOpenChange={(open) => !open && setConfirmClearTab(null)}>
+          <AlertDialogContent dir="rtl">
+            <AlertDialogHeader>
+              <AlertDialogTitle>סמן הכל כנצפה?</AlertDialogTitle>
+              <AlertDialogDescription>
+                כל הפריטים הנוכחיים יוסתרו. תוכלי להציג אותם שוב בלחיצה על "הצג נצפים".
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter className="flex-row-reverse gap-2">
+              <AlertDialogAction onClick={() => confirmClearTab && markAsReviewed(confirmClearTab)}>
+                סמן כנצפה
+              </AlertDialogAction>
+              <AlertDialogCancel>ביטול</AlertDialogCancel>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
       </div>
+    </div>
+  );
+};
+
+/** Toolbar for reviewed/unreviewed filtering per tab */
+const ReviewedBar = ({ tab, total, filtered, cutoff, showReviewed, onToggleShow, onMark, onClear }: {
+  tab: string; total: number; filtered: number; cutoff?: string; showReviewed: boolean;
+  onToggleShow: () => void; onMark: () => void; onClear: () => void;
+}) => {
+  const hidden = total - filtered;
+  return (
+    <div className="flex items-center gap-2 flex-wrap px-4 py-2 bg-muted/30 border-b border-border/50">
+      <Button variant="outline" size="sm" onClick={onMark} className="gap-1.5 text-xs">
+        <EyeOff className="w-3.5 h-3.5" />
+        סמן הכל כנצפה
+      </Button>
+      {cutoff && hidden > 0 && (
+        <Button variant="ghost" size="sm" onClick={onToggleShow} className="gap-1.5 text-xs">
+          {showReviewed ? <EyeOff className="w-3.5 h-3.5" /> : <Eye className="w-3.5 h-3.5" />}
+          {showReviewed ? "הסתר נצפים" : `הצג נצפים (${hidden})`}
+        </Button>
+      )}
+      {cutoff && (
+        <Button variant="ghost" size="sm" onClick={onClear} className="gap-1.5 text-xs text-muted-foreground">
+          <Trash2 className="w-3.5 h-3.5" />
+          אפס סינון
+        </Button>
+      )}
+      <span className="text-xs text-muted-foreground mr-auto">{filtered} מוצגים מתוך {total}</span>
     </div>
   );
 };
