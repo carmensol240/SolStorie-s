@@ -113,6 +113,9 @@ const AdminDashboard = () => {
     if (!cutoff) return 0;
     return items.filter(item => item.created_at && new Date(item.created_at) > new Date(cutoff)).length;
   };
+
+  // Wait for auth to be ready before checking
+  useEffect(() => {
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
       setAuthReady(true);
     });
