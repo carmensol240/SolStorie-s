@@ -148,7 +148,6 @@ const PublicStoryViewer = () => {
   const currentVirtual = (!isCoverPage && !isEndPage && currentPage >= 0) ? virtualPages[currentPage] : null;
   const illustrationSrc = currentVirtual?.illustrationUrl ? getPublicIllustrationUrl(currentVirtual.illustrationUrl) : null;
   const displayText = currentVirtual?.combinedText || currentVirtual?.dbPage.text || '';
-  const displayText = currentVirtual?.combinedText || currentVirtual?.dbPage.text || '';
 
   return (
     <div className="min-h-screen bg-[#F5E6D3] flex flex-col story-viewer-landscape" dir="rtl">
