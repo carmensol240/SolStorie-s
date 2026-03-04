@@ -286,13 +286,17 @@ const GeneratingStep = ({ formData, onComplete }: GeneratingStepProps) => {
     };
   }, [phase, storyId]);
 
-  // Text phase timers
+  // Phase timers (text + illustrations)
   useEffect(() => {
     const progressInterval = setInterval(() => {
       setProgress((prev) => {
         if (phase === 'text') {
           if (prev >= 85) return prev;
           return prev + Math.random() * 3;
+        }
+        if (phase === 'illustrations') {
+          if (prev >= 95) return prev;
+          return prev + Math.random() * 0.5;
         }
         return prev;
       });
@@ -309,6 +313,19 @@ const GeneratingStep = ({ formData, onComplete }: GeneratingStepProps) => {
         setIsSentenceVisible(true);
       }, 500);
     }, 4500);
+
+    // Character & tip rotation for illustrations phase
+    const castInterval = setInterval(() => {
+      setCastIndex((prev) => (prev + 1) % CAST_CHARACTERS.length);
+    }, 3500);
+
+    const tipInterval = setInterval(() => {
+      setIsTipVisible(false);
+      setTimeout(() => {
+        setTipIndex((prev) => (prev + 1) % PARENTING_TIPS.length);
+        setIsTipVisible(true);
+      }, 400);
+    }, 5000);
 
     const keepaliveInterval = setInterval(async () => {
       if (phase !== 'text') return;
