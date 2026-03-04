@@ -1,26 +1,27 @@
 
 
-## Bug Analysis
+## שני שינויים
 
-The onboarding loop is caused by a combination of issues in the navigation flow between `RequireTerms` and `Onboarding`:
+### 1. ביטול פריסת שני איורים לגיל 0-2 — `src/pages/StoryViewer.tsx`
 
-1. **Silent update failure**: In `Onboarding.handleContinue`, the Supabase `.update().eq()` call returns success (`error: null`) even when **zero rows are matched** (e.g., due to a race condition where the profile hasn't been created yet). The code doesn't verify the update actually persisted.
+**מה:** חזרה לפריסה של איור אחד גדול + טקסט, כמו הגילאים הגדולים, אבל עם איור שממלא ~65% מהדובה.
 
-2. **No `replace: true` on redirects**: Both `RequireTerms` (redirecting to `/onboarding`) and `Onboarding`'s guard effect (redirecting to `/adventure`) use `navigate()` without `{ replace: true }`, causing history stack pollution and making the loop worse.
+**שינויים:**
+- **שורות 799-803** — הסרת הלוגיקה של `combined`. גיל 0-2 ישתמש באותה לוגיקה כמו שאר הגילאים (text page + illustration page)
+- **שורות 786-790** — הסרת הטיפוס `combined` מ-`VirtualPage`
+- **שורות 1149-1214** — הסרת כל בלוק ה-`combined` מה-JSX
+- **שורות 1215-1251** — עדכון דף האיור כך שהתמונה תתפוס לפחות 60% מהגובה (שינוי מ-`h-full` ל-`min-h-[65dvh]` או `flex` מתאים)
 
-3. **Loop mechanics**: `handleContinue` thinks it succeeded → navigates to `/adventure` → `RequireTerms` queries DB → `terms_accepted_at` is still null → redirects back to `/onboarding` → Onboarding guard checks terms → still null → shows the form again.
+### 2. שגיאה חמודה ומעודדת — `src/components/wizard/GeneratingStep.tsx`
 
-## Fix
+**מה:** החלפת מסך השגיאה הטכני (שורות ~243-258) בפופאפ חמוד עם הטקסט שהמשתמש ביקש.
 
-### 1. `src/pages/Onboarding.tsx` — Verify update actually persisted
+**שינויים בבלוק ה-error (שורות ~243-258):**
+- כותרת: "🎨 הקסם שלנו בעבודה!"
+- טקסט: "אנחנו משדרגים את החוויה עבורכם ברגע זה. נסו שוב בעוד כמה דקות — מבטיחים שיהיה שווה! ✨"
+- כפתור: "אסתדר, אחזור בקרוב 😊" — שמנווט חזרה לדף הבית במקום retry
 
-In `handleContinue`, after the update call, re-query the profile to confirm `terms_accepted_at` was saved. If not, use `upsert` as a fallback. Also add `{ replace: true }` to the guard navigation.
-
-### 2. `src/components/RequireTerms.tsx` — Use `replace: true`
-
-Change the `navigate` call to onboarding to use `{ replace: true }` so the history stack doesn't accumulate redirect entries.
-
-### 3. Both files — Add select return on update
-
-Use `.update(...).eq(...).select()` to get the updated row back, confirming the write succeeded. If the returned array is empty, fall back to an upsert to handle the edge case where the profile row doesn't exist yet.
+### קבצים
+- `src/pages/StoryViewer.tsx` — ביטול combined, הגדלת איורים ל-60%+
+- `src/components/wizard/GeneratingStep.tsx` — מסך שגיאה חמוד
 
