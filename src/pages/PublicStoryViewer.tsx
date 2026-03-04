@@ -144,7 +144,8 @@ const PublicStoryViewer = () => {
   const isEndPage = currentPage >= virtualPages.length;
   const currentVirtual = (!isCoverPage && !isEndPage && currentPage >= 0) ? virtualPages[currentPage] : null;
   const illustrationSrc = currentVirtual?.illustrationUrl ? getPublicIllustrationUrl(currentVirtual.illustrationUrl) : null;
-  const displayText = currentVirtual?.combinedText || currentVirtual?.dbPage.text || '';
+  const displayText = currentVirtual?.text || '';
+  const dbPageCount = story?.pages?.length || 0;
 
   return (
     <div className="min-h-screen bg-[#F5E6D3] flex flex-col story-viewer-landscape" dir="rtl">
