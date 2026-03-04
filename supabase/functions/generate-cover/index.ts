@@ -258,7 +258,7 @@ FULL BODY head to toe, feet GROUNDED. NEGATIVE: realistic, semi-realistic, real 
           .update({ cover_url: fullCoverUrl })
           .eq("id", storyId);
 
-        console.log(`✅ Personalized cover generated via Instant Character for story ${storyId}`);
+        console.log(`✅ Personalized cover generated via Flux Kontext for story ${storyId}`);
 
         return new Response(
           JSON.stringify({ success: true, coverUrl: fullCoverUrl }),
