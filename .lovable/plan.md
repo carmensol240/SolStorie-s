@@ -1,25 +1,20 @@
 
 
-## דילוג על עמוד הסגירה (cast waving)
+## יצירת איור חדש לבן במסך הטעינה
 
 ### הבעיה
-אחרי סיום הסיפור יש שני עמודים נוספים:
-1. **Closing Page** (`isClosingPage`, `totalVirtualPages + 1`) — תמונת הקאסט בגלימות גיבורי על עם "סוף"
-2. **End Page** (`isEndPage`, `totalVirtualPages + 2`) — כפתורי "לספרייה" / "קרא שוב" + משוב
-
-המשתמש רואה את עמוד הסגירה מהבהב לרגע ואז קופץ לעמוד הסוף — הוא מיותר.
+התמונה הנוכחית `cast-ben-art.jpg` לא תואמת את דמות בן (האח הקטן עם שיער שחור מתולתל, עור שחום, הדמות הקטנה ביותר בקאסט).
 
 ### פתרון
 
-**`src/pages/StoryViewer.tsx`:**
+1. **יצירת Edge Function חד-פעמית** `generate-cast-image` שתשתמש ב-Gemini Image Generation (`google/gemini-3-pro-image-preview`) עם תמונת הייחוס שהועלתה כדי ליצור איור Pixar 3D של בן מצייר/יוצר אמנות (תואם לאמוג'י 🎨 ולנושא שלו).
 
-1. **מיזוג עמוד הסגירה לתוך עמוד הסוף**: הסרת עמוד ה-closing כשלב נפרד. עמוד הסוף (End Page) יכלול את הטקסט "סוף" ואת כפתורי הניווט + משוב — הכל בעמוד אחד.
+2. **פרומפט**: "Generate a Pixar 3D CGI illustration of this young boy character painting on a canvas with a big smile. He is the smallest character, with very curly dark hair, brown skin, wearing a green shirt. Background: colorful art studio with paint splashes. Warm cinematic lighting, Disney-Pixar aesthetic."
 
-2. **שינוי הלוגיקה**:
-   - `isClosingPage` יבוטל
-   - `isEndPage` ישתנה ל-`currentPage >= totalVirtualPages + 1` (במקום `+2`)
-   - הבלוק של closing page ב-JSX יוסר
-   - ניווט max limit ירד ב-1
+3. **שמירת התמונה** ב-Storage ועדכון הנתיב ב-`GeneratingStep.tsx` — או לחלופין, המרה ישירה ל-asset סטטי חדש `cast-ben-art-new.jpg`.
 
-3. **עיצוב עמוד הסוף המאוחד**: שילוב הטקסט "✦ סוף ✦" ו"נתראה בסיפור הבא" מעל כפתורי הפעולה הקיימים בעמוד הסוף.
+4. **עדכון הייבוא** ב-`GeneratingStep.tsx` לתמונה החדשה.
+
+### חלופה פשוטה יותר
+שימוש ישיר בתמונה שהועלתה (`ben.jpeg`) כ-asset סטטי חדש `cast-ben-art.jpg` — מכיוון שהיא כבר בסגנון Pixar 3D ומציגה את בן בצורה נכונה.
 
