@@ -208,7 +208,7 @@ const PublicStoryViewer = () => {
 
             {/* Story Pages — Fullscreen illustration + overlay */}
             {currentVirtual && (
-              <div className="h-full w-full relative">
+              <div key={currentPage} className="h-full w-full relative animate-fade-in">
                 {/* Fullscreen illustration */}
                 {illustrationSrc ? (
                   <img src={illustrationSrc} alt={`איור עמוד ${currentVirtual.dbPage.page_number}`}
