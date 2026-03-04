@@ -174,10 +174,10 @@ FULL BODY head to toe, feet GROUNDED. NEGATIVE: realistic, semi-realistic, real 
 
       for (let attempt = 1; attempt <= MAX_ATTEMPTS; attempt++) {
         try {
-          console.log(`Instant Character cover attempt ${attempt}/${MAX_ATTEMPTS}...`);
-          const response = await fetch("https://fal.run/fal-ai/instant-character", {
+          console.log(`Flux Kontext cover attempt ${attempt}/${MAX_ATTEMPTS}...`);
+          const response = await fetch("https://fal.run/fal-ai/flux-kontext/dev", {
             method: "POST",
-            signal: AbortSignal.timeout(60_000),
+            signal: AbortSignal.timeout(30_000),
             headers: {
               Authorization: `Key ${FAL_KEY}`,
               "Content-Type": "application/json",
@@ -185,6 +185,8 @@ FULL BODY head to toe, feet GROUNDED. NEGATIVE: realistic, semi-realistic, real 
             body: JSON.stringify({
               prompt: personalizedCoverPrompt,
               image_url: childPhotoSignedUrl,
+              output_format: "png",
+              num_images: 1,
             }),
           });
 
