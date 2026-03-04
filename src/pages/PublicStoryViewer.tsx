@@ -147,7 +147,7 @@ const PublicStoryViewer = () => {
   const isEndPage = currentPage >= virtualPages.length;
   const currentVirtual = (!isCoverPage && !isEndPage && currentPage >= 0) ? virtualPages[currentPage] : null;
   const illustrationSrc = currentVirtual?.illustrationUrl ? getPublicIllustrationUrl(currentVirtual.illustrationUrl) : null;
-  const coverIllustration = story.pages[0]?.illustration_url ? getPublicIllustrationUrl(story.pages[0].illustration_url) : null;
+  const displayText = currentVirtual?.combinedText || currentVirtual?.dbPage.text || '';
   const displayText = currentVirtual?.combinedText || currentVirtual?.dbPage.text || '';
 
   return (
