@@ -273,8 +273,8 @@ const PublicStoryViewer = () => {
               <div className={cn("dot", isEndPage && "active")} />
             </>
           ) : (
-            <span className="text-xs text-gray-400">
-              {isCoverPage ? '' : isEndPage ? 'סוף' : `${currentPage + 1} / ${virtualPages.length}`}
+             <span className="text-xs text-gray-400">
+              {isCoverPage ? '' : isEndPage ? 'סוף' : `${Math.ceil((currentPage + 1) / 2)} / ${dbPageCount}`}
             </span>
           )}
         </div>

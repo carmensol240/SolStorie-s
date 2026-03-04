@@ -1161,7 +1161,7 @@ const StoryViewer = () => {
             {/* Page indicator */}
             <div className="dot-indicator">
               <span className="text-xs text-gray-400">
-                {isCoverPage ? '' : isClosingPage ? 'סיום' : isEndPage ? 'סוף' : `${currentPage + 1} / ${totalVirtualPages}`}
+                {isCoverPage ? '' : isClosingPage ? 'סיום' : isEndPage ? 'סוף' : `${Math.ceil((currentPage + 1) / 2)} / ${story.pages.length}`}
               </span>
             </div>
 
