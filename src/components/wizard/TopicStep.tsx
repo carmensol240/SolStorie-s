@@ -111,7 +111,7 @@ const TopicStep = ({ formData, updateFormData }: TopicStepProps) => {
             {searchResults.length > 0 ? `נמצאו ${searchResults.length} נושאים` : "לא נמצאו נושאים מתאימים 😕"}
           </p>
           {searchResults.length > 0 && (
-            <div className="grid grid-cols-2 gap-3">
+            <div className="grid grid-cols-2 gap-2">
               {searchResults.map((topic) => (
                 <SimpleTile key={topic.id} topic={topic} isSelected={formData.topic === topic.id} onSelect={() => handleTopicSelect(topic)} />
               ))}
