@@ -297,7 +297,7 @@ const SYSTEM_PROMPT = `## 🚨🚨🚨 META-INSTRUCTION: BEFORE WRITING ANY WORD
     {
       "page_number": 1,
       "text": "פְּסָקָה בְּפְרוֹזָה סִפְרוּתִית בְּעִבְרִית עִם נִקּוּד מָלֵא (3-4 מִשְׁפָּטִים מַקְסִימוּם)",
-      "illustration_prompt": "English description including EXACT character appearance: gender, hair color/style, skin tone, clothing. Character must look IDENTICAL in every page."
+      "illustration_prompt": "CRITICAL: Describe the SPECIFIC scene on this page in English. Include: (1) What the main character is DOING (e.g., 'petting a giraffe', 'running through rain', 'hiding under a blanket'), (2) The EXACT environment/background (e.g., 'zoo with elephants and trees', 'rainy street with puddles'), (3) Character's EXACT appearance: gender, hair color/style, skin tone, clothing. The prompt must match the page text precisely — NOT a generic description. Each page MUST have a DIFFERENT scene."
     }
   ]
 }`;
