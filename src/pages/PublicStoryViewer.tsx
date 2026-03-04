@@ -220,11 +220,11 @@ const PublicStoryViewer = () => {
                 )}
 
                 {/* Dark gradient overlay at bottom */}
-                <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 via-black/50 to-transparent"
+                <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/30 via-black/15 to-transparent"
                   style={{ minHeight: '35%' }}>
                   <div className="absolute bottom-0 left-0 right-0 p-5 md:p-8">
                     <p className="text-lg md:text-2xl text-white font-semibold whitespace-pre-line text-center leading-relaxed"
-                      style={{ textShadow: '0 1px 3px rgba(0,0,0,0.8), 0 4px 12px rgba(0,0,0,0.6), 0 0 20px rgba(0,0,0,0.4)', backgroundColor: 'rgba(0,0,0,0.35)', padding: '12px 16px', borderRadius: '12px', backdropFilter: 'blur(4px)', lineHeight: '1.9' }} dir="rtl">
+                      style={{ textShadow: '0 1px 3px rgba(0,0,0,0.9), 0 3px 8px rgba(0,0,0,0.7), 0 0 16px rgba(0,0,0,0.5)', backgroundColor: 'rgba(0,0,0,0.15)', padding: '12px 16px', borderRadius: '12px', lineHeight: '1.9' }} dir="rtl">
                       {displayText}
                     </p>
                     <div className="flex items-center justify-center mt-3">
