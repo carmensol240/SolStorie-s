@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { Download, Share, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 interface BeforeInstallPromptEvent extends Event {
   prompt: () => Promise<void>;
@@ -8,6 +9,7 @@ interface BeforeInstallPromptEvent extends Event {
 }
 
 const PWAInstallPrompt = () => {
+  const isMobile = useIsMobile();
   const [deferredPrompt, setDeferredPrompt] = useState<BeforeInstallPromptEvent | null>(null);
   const [isStandalone, setIsStandalone] = useState(false);
   const [isIOS, setIsIOS] = useState(false);
@@ -111,7 +113,9 @@ const PWAInstallPrompt = () => {
     );
   }
 
-  // Fallback: always show banner for users who haven't installed yet
+  // Fallback: show manual instructions only on mobile
+  if (!isMobile) return null;
+  
   return (
     <div className="fixed top-0 left-0 right-0 z-[200]" dir="rtl">
       <div className="bg-gradient-to-l from-primary to-accent text-primary-foreground px-4 py-3 flex items-center gap-3 shadow-lg">
