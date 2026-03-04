@@ -786,8 +786,7 @@ const StoryViewer = () => {
   // Build virtual pages: 2 text pages then 1 full-screen illustration, repeating
   type VirtualPage =
     | { type: 'text'; dbPage: StoryPage }
-    | { type: 'illustration'; illustrationUrl: string | null; illustrationPrompt: string | null; dbPage: StoryPage }
-    | { type: 'combined'; dbPage: StoryPage }; // age 0-2: illustration1 + text + illustration2
+    | { type: 'illustration'; illustrationUrl: string | null; illustrationPrompt: string | null; dbPage: StoryPage };
 
   const isToddlerStory = story?.age_range === '0-2';
 
@@ -797,9 +796,12 @@ const StoryViewer = () => {
     const dbPages = story.pages;
 
     if (isToddlerStory) {
-      // Age 0-2: each DB page becomes a single "combined" virtual page
+      // Age 0-2: each DB page gets a text page + illustration page (illustration fills 65%+ of screen)
       for (const page of dbPages) {
-        result.push({ type: 'combined', dbPage: page });
+        result.push({ type: 'text', dbPage: page });
+        if (page.illustration_url || page.illustration_prompt) {
+          result.push({ type: 'illustration', illustrationUrl: page.illustration_url, illustrationPrompt: page.illustration_prompt || null, dbPage: page });
+        }
       }
     } else {
       // Standard layout: 2 text pages then 1 illustration
