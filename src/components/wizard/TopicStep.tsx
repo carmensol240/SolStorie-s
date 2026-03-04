@@ -164,8 +164,8 @@ const TopicStep = ({ formData, updateFormData }: TopicStepProps) => {
                   onClick={() => toggleSection(section.id)}
                   className="relative w-full rounded-2xl overflow-hidden border-2 border-border group"
                 >
-                  <div className="relative h-32 w-full">
-                    <img src={section.heroImage} alt={section.categoryLabel} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" />
+                  <div className="relative h-44 w-full bg-gradient-to-l from-muted/30 to-muted/10">
+                    <img src={section.heroImage} alt={section.categoryLabel} className="w-full h-full object-contain object-right group-hover:scale-105 transition-transform duration-300" />
                     <div className="absolute inset-0" style={{ background: "linear-gradient(to top, rgba(0,0,0,0.7) 0%, rgba(0,0,0,0.2) 50%, transparent 100%)" }} />
                     {/* Expand/collapse hint */}
                     <div className="absolute top-2 left-2 bg-black/40 backdrop-blur-sm rounded-full px-2 py-0.5 text-white text-[10px] font-bold flex items-center gap-1">
