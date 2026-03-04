@@ -199,7 +199,7 @@ FULL BODY head to toe, feet GROUNDED on surface. Portrait 4:3 framing. NEGATIVE:
 
           if (!response.ok) {
             const errorBody = await response.text().catch(() => "no body");
-            console.error(`Instant Character attempt ${attempt} failed: ${response.status} - ${errorBody}`);
+            console.error(`Flux Kontext attempt ${attempt} failed: ${response.status} - ${errorBody}`);
             if (attempt < MAX_ATTEMPTS) { await new Promise(r => setTimeout(r, 1000)); continue; }
             // Fall through to Schnell below
             break;
