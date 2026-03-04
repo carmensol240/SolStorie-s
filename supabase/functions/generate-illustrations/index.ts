@@ -178,21 +178,15 @@ async function generateIllustrationWithFace(
       ? `Setting: ${adventureLogic.background}. Theme: ${adventureLogic.theme}.`
       : "";
 
-    const fullPrompt = `CRITICAL FACE REFERENCE: The main character's face, hair texture, skin tone, and facial features MUST be an EXACT 3D Pixar rendering of the person in the reference photo. Do NOT invent or change any facial features — derive ALL appearance strictly from the photo.
+    const fullPrompt = `FACE REFERENCE: Render the main character's face as an EXACT 3D Pixar version of the reference photo. Keep all facial features, hair, and skin tone.
 
-Pixar 3D CGI animation style, big expressive eyes, soft rounded features, oversized head with small body, vibrant saturated colors, cinematic warm lighting with glowing accents, fantasy children's book background, high quality render, Disney-Pixar aesthetic. Characters must look like adorable cartoon dolls — NOT realistic humans. ALWAYS show characters FULL BODY from head to toe with feet VISIBLE and GROUNDED on the surface. Frame the character with generous margin from all edges.
+STYLE: Pixar 3D CGI, big expressive eyes, soft rounded features, vibrant saturated colors, warm lighting, fantasy children's book. NOT realistic. Full body, feet grounded.
 
-MAIN CHARACTER: The child from the reference photo is the HERO. They wear ${finalOutfit}. They must be the LARGEST and most PROMINENT figure. ${adventureInstruction}
+MAIN CHARACTER wears ${finalOutfit}, is the LARGEST figure. ${adventureInstruction}
 
-SCENE: ${prompt}
+SCENE (THIS IS THE MOST IMPORTANT PART — illustrate THIS specific scene): ${prompt}
 
-CRITICAL CHARACTER CONSISTENCY: The main character must look IDENTICAL in every illustration — same face shape, same hair color and style, same clothing colors, same skin tone, same eye color. Any visual deviation between pages is a FAILURE.
-
-${castDescription}
-
-${visualAnchor ? `VISUAL ANCHOR: ${visualAnchor}` : ""}
-
-FULL BODY head to toe, feet GROUNDED on surface. Portrait 4:3 framing. NEGATIVE: realistic, semi-realistic, real human, photograph, generic face, wrong hair, floating head, missing body, extra limbs, deformed, cropped feet, text, watermark, photorealistic, dark, muted colors, cinematic bokeh, hyper-realistic, shallow depth of field`;
+NEGATIVE: realistic, photograph, dark, muted, bokeh, hyper-realistic, floating head, missing body, extra limbs, cropped feet, text, watermark`;
 
     console.log("Generating illustration via Fal.ai Flux Kontext (face reference)...");
 
@@ -395,7 +389,7 @@ async function analyzePageScene(
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        model: "google/gemini-2.5-flash-lite",
+        model: "google/gemini-2.5-flash",
         messages: [
           {
             role: "system",
@@ -483,7 +477,10 @@ function buildScenePrompt(
   characterDesc: string,
   originalPrompt: string
 ): string {
-  return `${characterDesc}, ${scene.character_action}, ${scene.scene_action}, in ${scene.environment}, ${scene.camera_angle}, ${scene.lighting}, ${scene.mood} mood, Pixar 3D CGI animation style, big expressive eyes, soft rounded features, oversized head with small body, vibrant saturated colors, cinematic warm lighting with glowing accents, fantasy children's book background, high quality render, Disney-Pixar aesthetic, full body head to toe with feet grounded on surface`;
+  // Use the original illustration_prompt as the primary scene description (it's already tailored to the page text)
+  // Then enrich with scene analysis details for camera, lighting, and mood variety
+  const sceneBase = originalPrompt || `${scene.character_action}, ${scene.scene_action}`;
+  return `${characterDesc}. SCENE: ${sceneBase}. ACTION: ${scene.character_action}. ENVIRONMENT: ${scene.environment}. CAMERA: ${scene.camera_angle}. LIGHTING: ${scene.lighting}. MOOD: ${scene.mood}. Pixar 3D CGI style, vibrant colors, fantasy children's book, full body head to toe with feet grounded on surface`;
 }
 
 // Helper function to upload base64 image to Supabase Storage

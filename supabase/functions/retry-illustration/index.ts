@@ -163,23 +163,13 @@ serve(async (req) => {
     if (childPhoto) {
       console.log(`Retrying illustration via Flux Kontext (face reference) for story ${storyId}, page ${page.page_number}...`);
 
-      const personalizedPrompt = `CRITICAL FACE REFERENCE: The main character's face, hair texture, skin tone, and facial features MUST be an EXACT 3D Pixar rendering of the child in the reference photo. Do NOT invent or change any facial features.
+      const personalizedPrompt = `FACE REFERENCE: Render the main character's face as an EXACT 3D Pixar version of the child in the reference photo. Keep all facial features, hair, and skin tone.
 
-3D Disney Pixar cartoon animation style, inspired by 'Coco' and 'Encanto'. Characters must look like adorable cartoon dolls — NOT realistic humans. Big round expressive cartoon eyes with sparkling highlights, soft rounded cute faces, smooth stylized skin with NO pores or texture. Exaggerated cute proportions with large heads, small noses, and expressive faces. Vibrant rich saturated colors, warm magical golden lighting. Colorful detailed backgrounds with magical fantasy elements (glowing mushrooms, fireflies, sparkles, enchanted forests). Clean sharp 3D rendering, rich textures, playful and whimsical atmosphere. DO NOT render flat, photorealistic, semi-realistic, dark, muted, cinematic bokeh, or hyper-realistic styles. Characters must NEVER look like real humans or photographs — always stylized 3D cartoon dolls.
+STYLE: Pixar 3D CGI, big expressive eyes, soft rounded features, vibrant saturated colors, warm lighting, fantasy children's book. NOT realistic. Full body, feet grounded.
 
-MAIN CHARACTER: The child from the reference photo — HERO and FOCAL POINT, LARGEST figure.
+SCENE (THIS IS THE MOST IMPORTANT PART — illustrate THIS specific scene): ${prompt}
 
-SCENE: ${prompt}
-
-SUPPORTING CAST (smaller, background only):
-- Ben: toddler boy, voluminous curly dark hair, warm tan skin, green shirt, large brown eyes — 3D Pixar cartoon style
-- Zoe: dark-skinned athletic girl, thick voluminous black curls, blue headband, purple-yellow tracksuit — 3D Pixar cartoon style
-- Leo: boy with straight black hair, round glasses, denim overalls — 3D Pixar cartoon style
-- Mia: girl with smooth brown bob, small flower crown, green dress — 3D Pixar cartoon style
-
-SCENE: ${prompt}
-
-FULL BODY head to toe, feet GROUNDED on surface. Portrait 4:3 framing. NEGATIVE: ${negativePrompt}`;
+NEGATIVE: realistic, photograph, dark, muted, bokeh, hyper-realistic, floating head, missing body, extra limbs, cropped feet, text, watermark`;
 
       for (let attempt = 1; attempt <= MAX_ATTEMPTS; attempt++) {
         try {
