@@ -1180,12 +1180,12 @@ const StoryViewer = () => {
                 )}
 
                 {/* Text overlay at bottom */}
-                <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/75 via-black/40 to-transparent px-6 py-5 md:px-10 md:py-7">
+                <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 via-black/50 to-transparent px-6 py-5 md:px-10 md:py-7">
                   <div className="max-w-lg mx-auto w-full">
                     <p className={cn(
-                      "text-white text-right font-medium transition-all whitespace-pre-line drop-shadow-[0_2px_4px_rgba(0,0,0,0.5)]",
+                      "text-white text-right font-semibold transition-all whitespace-pre-line",
                       currentFontSize.size
-                    )} style={{ lineHeight: '2' }} dir="rtl">
+                    )} style={{ lineHeight: '2', textShadow: '0 1px 3px rgba(0,0,0,0.8), 0 4px 12px rgba(0,0,0,0.6), 0 0 20px rgba(0,0,0,0.4)', backgroundColor: 'rgba(0,0,0,0.35)', padding: '12px 16px', borderRadius: '12px', backdropFilter: 'blur(4px)' }} dir="rtl">
                       {(() => {
                         const rawText = currentVirtual.combinedText || currentVirtual.dbPage.text;
                         return showNikud ? rawText : rawText.replace(/[\u0591-\u05C7]/g, '');
