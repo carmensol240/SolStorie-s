@@ -55,7 +55,7 @@ const Library = () => {
   const { isOnline } = useOfflineStorage();
   const { credits } = useCredits();
   const { shareCoins } = useReferral();
-  const { user } = useAuth();
+  const { user, loading: authLoading } = useAuth();
   const { avatarUrl } = useChildAvatar();
   const [stories, setStories] = useState<Story[]>([]);
   const [children, setChildren] = useState<ChildRecord[]>([]);
@@ -270,7 +270,7 @@ const Library = () => {
         </div>
 
         {/* Stories content */}
-        {isLoading ? (
+        {isLoading || authLoading ? (
           <LoadingSkeleton />
         ) : stories.length === 0 ? (
           <EmptyState onCreateClick={() => navigate("/create")} />
