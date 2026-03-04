@@ -1,26 +1,26 @@
 
 
-## הסרת שוליים וריפוד מתמונות הנושא
+## Bug Analysis
 
-הבעיה: תמונות הנושא (topic images) מוקפות ברווחים — הרקע `bg-muted/20` נראה כאפור, יש padding בין התמונה למסגרת הכרטיס, ויש gap בגריד שמרחיק אותן מקצוות המסך.
+The onboarding loop is caused by a combination of issues in the navigation flow between `RequireTerms` and `Onboarding`:
 
-### שינויים
+1. **Silent update failure**: In `Onboarding.handleContinue`, the Supabase `.update().eq()` call returns success (`error: null`) even when **zero rows are matched** (e.g., due to a race condition where the profile hasn't been created yet). The code doesn't verify the update actually persisted.
 
-**`src/components/wizard/TopicStep.tsx` (SimpleTile)**:
-- שורה 256: הסרת `bg-muted/20` מהמכולה — התמונה תמלא את כל השטח ללא רקע אפור
-- שינוי `object-contain` ל-`object-cover` כדי שהתמונה תמלא את כל הריבוע ללא רווחים
+2. **No `replace: true` on redirects**: Both `RequireTerms` (redirecting to `/onboarding`) and `Onboarding`'s guard effect (redirecting to `/adventure`) use `navigate()` without `{ replace: true }`, causing history stack pollution and making the loop worse.
 
-**`src/components/wizard/TopicStep.tsx` (grid)**:
-- שורה 217: צמצום `gap-3` ל-`gap-2` בגריד הנושאים
-- שורה 114 (חיפוש): אותו שינוי
+3. **Loop mechanics**: `handleContinue` thinks it succeeded → navigates to `/adventure` → `RequireTerms` queries DB → `terms_accepted_at` is still null → redirects back to `/onboarding` → Onboarding guard checks terms → still null → shows the form again.
 
-**`src/components/home/CategorySection.tsx`**:
-- שורה 53: הסרת `bg-muted/20` ושינוי `object-contain` ל-`object-cover`
-- שורה 46: צמצום `gap-3` ל-`gap-2`
+## Fix
 
-**`src/pages/CreateStory.tsx`**:
-- שורה 236: צמצום `px-3` ל-`px-2` בקונטיינר הראשי של שלב 2 כדי שהכרטיסים יהיו קרובים יותר לקצוות
+### 1. `src/pages/Onboarding.tsx` — Verify update actually persisted
 
-### תוצאה
-התמונות ימלאו את כל שטח הכרטיס מקצה לקצה, ללא רקע אפור מסביב וללא רווחים מיותרים.
+In `handleContinue`, after the update call, re-query the profile to confirm `terms_accepted_at` was saved. If not, use `upsert` as a fallback. Also add `{ replace: true }` to the guard navigation.
+
+### 2. `src/components/RequireTerms.tsx` — Use `replace: true`
+
+Change the `navigate` call to onboarding to use `{ replace: true }` so the history stack doesn't accumulate redirect entries.
+
+### 3. Both files — Add select return on update
+
+Use `.update(...).eq(...).select()` to get the updated row back, confirming the write succeeded. If the returned array is empty, fall back to an upsert to handle the edge case where the profile row doesn't exist yet.
 

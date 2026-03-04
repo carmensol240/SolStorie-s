@@ -111,7 +111,7 @@ const TopicStep = ({ formData, updateFormData }: TopicStepProps) => {
             {searchResults.length > 0 ? `נמצאו ${searchResults.length} נושאים` : "לא נמצאו נושאים מתאימים 😕"}
           </p>
           {searchResults.length > 0 && (
-            <div className="grid grid-cols-2 gap-3">
+            <div className="grid grid-cols-2 gap-2">
               {searchResults.map((topic) => (
                 <SimpleTile key={topic.id} topic={topic} isSelected={formData.topic === topic.id} onSelect={() => handleTopicSelect(topic)} />
               ))}
@@ -214,7 +214,7 @@ const TopicStep = ({ formData, updateFormData }: TopicStepProps) => {
                 )}
 
                 {/* Topics grid */}
-                <div className="grid grid-cols-2 gap-3">
+                <div className="grid grid-cols-2 gap-2">
                   {visibleTopics.filter(t => !t.featured || isExpanded).map((topic) => (
                     <SimpleTile key={topic.id} topic={topic} isSelected={formData.topic === topic.id} onSelect={() => handleTopicSelect(topic)} />
                   ))}
@@ -253,8 +253,8 @@ const SimpleTile = ({ topic, isSelected, onSelect }: SimpleTileProps) => {
       >
         {/* Clickable image area */}
         <button onClick={onSelect} className="w-full text-right relative">
-          <div className="relative aspect-square w-full bg-muted/20 flex items-center justify-center overflow-hidden">
-            <img src={topic.image} alt={topic.label} className="w-full h-full object-contain" loading="lazy" />
+          <div className="relative aspect-square w-full flex items-center justify-center overflow-hidden">
+            <img src={topic.image} alt={topic.label} className="w-full h-full object-cover" loading="lazy" />
             <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/10 to-transparent" />
             {/* Age badge */}
             <div className="absolute bottom-1.5 left-1.5 bg-black/40 text-white text-[9px] font-bold px-1.5 py-0.5 rounded-md backdrop-blur-sm">
