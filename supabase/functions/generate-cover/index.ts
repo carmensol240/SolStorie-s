@@ -221,7 +221,7 @@ FULL BODY head to toe, feet GROUNDED. NEGATIVE: realistic, semi-realistic, real 
           console.warn(`Flux Kontext cover attempt ${attempt}: no image`);
           if (attempt < MAX_ATTEMPTS) { await new Promise(r => setTimeout(r, 3000)); continue; }
         } catch (fetchErr) {
-          console.error(`Instant Character cover attempt ${attempt} error:`, fetchErr);
+          console.error(`Flux Kontext cover attempt ${attempt} error:`, fetchErr);
           if (attempt < MAX_ATTEMPTS) { await new Promise(r => setTimeout(r, 3000)); continue; }
         }
       }
