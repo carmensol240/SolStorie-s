@@ -1,6 +1,11 @@
 import { useState, useEffect, useCallback, useRef } from "react";
 import { Sparkles, BookOpen, Palette, FileText, RefreshCw, Wand2 } from "lucide-react";
 import generatingHeroCast from "@/assets/generating-hero-cast.jpeg";
+import castSolAdventure from "@/assets/cast-sol-adventure.jpg";
+import castBenArt from "@/assets/cast-ben-art.jpg";
+import castMiaNature from "@/assets/cast-mia-nature.jpg";
+import castLeoScience from "@/assets/cast-leo-science.jpg";
+import castZoeSports from "@/assets/cast-zoe-sports.jpg";
 import { Button } from "@/components/ui/button";
 import { StoryFormData } from "@/pages/CreateStory";
 import { supabase } from "@/integrations/supabase/client";
@@ -8,7 +13,6 @@ import { useToast } from "@/hooks/use-toast";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/hooks/use-auth";
 import { CHARACTER_SECTIONS } from "@/components/wizard/topic-data";
-import PuzzleGame from "./PuzzleGame";
 
 interface GeneratingStepProps {
   formData: StoryFormData;
@@ -20,6 +24,25 @@ const TEXT_MESSAGES = [
   { icon: Sparkles, text: "הסיפור נכתב עבורך כעת...", color: "text-purple-500" },
   { icon: BookOpen, text: "בונים את העלילה...", color: "text-pink-500" },
   { icon: FileText, text: "יוצרים דפים קסומים...", color: "text-orange-400" },
+];
+
+const CAST_CHARACTERS = [
+  { name: "סול", image: castSolAdventure, emoji: "🦸‍♀️" },
+  { name: "בן", image: castBenArt, emoji: "🎨" },
+  { name: "מיה", image: castMiaNature, emoji: "🌿" },
+  { name: "ליאו", image: castLeoScience, emoji: "🔬" },
+  { name: "זואי", image: castZoeSports, emoji: "⚽" },
+];
+
+const PARENTING_TIPS = [
+  { tip: "קריאה משותפת מחזקת את הקשר הרגשי בין הורה לילד ובונה ביטחון", icon: "💡" },
+  { tip: "שאלו את ילדכם 'מה היית עושה?' — זה מפתח חשיבה ביקורתית ואמפתיה", icon: "🧠" },
+  { tip: "ילדים שקוראים 20 דקות ביום נחשפים ל-1.8 מיליון מילים בשנה", icon: "📚" },
+  { tip: "תנו לילד לבחור את הסיפור — זה מעצים תחושת שליטה וביטחון עצמי", icon: "⭐" },
+  { tip: "הקריאה לפני השינה מורידה רמות סטרס ומכינה את המוח למנוחה", icon: "🌙" },
+  { tip: "כשילדים רואים את עצמם בסיפור, הם לומדים לפתור בעיות דרך דמיון", icon: "✨" },
+  { tip: "שיחה על רגשות הדמויות מפתחת אינטליגנציה רגשית אצל ילדים", icon: "❤️" },
+  { tip: "חזרה על אותו סיפור אהוב בונה ביטחון ומחזקת את הזיכרון", icon: "🔄" },
 ];
 
 const EMPOWERING_SENTENCES = [
@@ -71,11 +94,14 @@ const GeneratingStep = ({ formData, onComplete }: GeneratingStepProps) => {
   const retryCountRef = useRef(0);
   const MAX_RETRIES = 2;
 
-  const [phase, setPhase] = useState<'text' | 'puzzle' | 'ready'>('text');
+  const [phase, setPhase] = useState<'text' | 'illustrations' | 'ready'>('text');
   const [storyId, setStoryId] = useState<string | null>(null);
   const [illustrationsReady, setIllustrationsReady] = useState(false);
   const [showReadyPopup, setShowReadyPopup] = useState(false);
   const puzzleTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const [castIndex, setCastIndex] = useState(0);
+  const [tipIndex, setTipIndex] = useState(0);
+  const [isTipVisible, setIsTipVisible] = useState(true);
 
   const generateStory = useCallback(async () => {
     try {
@@ -177,9 +203,9 @@ const GeneratingStep = ({ formData, onComplete }: GeneratingStepProps) => {
         throw new Error("הסיפור נוצר אך ללא טקסט. מנסים שוב...");
       }
 
-      console.log("[GeneratingStep] Text verified. Moving to puzzle phase...");
+      console.log("[GeneratingStep] Text verified. Moving to illustrations phase...");
       setStoryId(data.storyId);
-      setPhase('puzzle');
+      setPhase('illustrations');
       setProgress(50);
       
     } catch (err) {
@@ -212,7 +238,7 @@ const GeneratingStep = ({ formData, onComplete }: GeneratingStepProps) => {
 
   // Realtime subscription: watch for illustrations completing
   useEffect(() => {
-    if (phase !== 'puzzle' || !storyId) return;
+    if (phase !== 'illustrations' || !storyId) return;
 
     // Check immediately if illustrations are already done
     const checkIllustrations = async () => {
@@ -260,13 +286,17 @@ const GeneratingStep = ({ formData, onComplete }: GeneratingStepProps) => {
     };
   }, [phase, storyId]);
 
-  // Text phase timers
+  // Phase timers (text + illustrations)
   useEffect(() => {
     const progressInterval = setInterval(() => {
       setProgress((prev) => {
         if (phase === 'text') {
           if (prev >= 85) return prev;
           return prev + Math.random() * 3;
+        }
+        if (phase === 'illustrations') {
+          if (prev >= 95) return prev;
+          return prev + Math.random() * 0.5;
         }
         return prev;
       });
@@ -283,6 +313,19 @@ const GeneratingStep = ({ formData, onComplete }: GeneratingStepProps) => {
         setIsSentenceVisible(true);
       }, 500);
     }, 4500);
+
+    // Character & tip rotation for illustrations phase
+    const castInterval = setInterval(() => {
+      setCastIndex((prev) => (prev + 1) % CAST_CHARACTERS.length);
+    }, 3500);
+
+    const tipInterval = setInterval(() => {
+      setIsTipVisible(false);
+      setTimeout(() => {
+        setTipIndex((prev) => (prev + 1) % PARENTING_TIPS.length);
+        setIsTipVisible(true);
+      }, 400);
+    }, 5000);
 
     const keepaliveInterval = setInterval(async () => {
       if (phase !== 'text') return;
@@ -309,6 +352,8 @@ const GeneratingStep = ({ formData, onComplete }: GeneratingStepProps) => {
       clearInterval(messageInterval);
       clearInterval(sentenceInterval);
       clearInterval(keepaliveInterval);
+      clearInterval(castInterval);
+      clearInterval(tipInterval);
     };
   }, [generateStory, phase, toast]);
 
@@ -347,41 +392,84 @@ const GeneratingStep = ({ formData, onComplete }: GeneratingStepProps) => {
     );
   }
 
-  // --- PUZZLE PHASE ---
-  if (phase === 'puzzle') {
+  // --- ILLUSTRATIONS LOADING PHASE ---
+  if (phase === 'illustrations') {
+    const currentChar = CAST_CHARACTERS[castIndex % CAST_CHARACTERS.length];
+    const currentTip = PARENTING_TIPS[tipIndex % PARENTING_TIPS.length];
+
     return (
-      <div className="flex flex-col items-center justify-center min-h-[100dvh] text-center space-y-4 bg-gradient-to-b from-[#FAF3E8] to-[#F5E6D3] p-4 relative">
-        <div className="space-y-1">
-          <h2 className="text-xl font-bold bg-gradient-to-r from-purple-600 via-pink-500 to-orange-400 bg-clip-text text-transparent">
-            הסיפור מוכן! האיורים בדרך... 🎨
-          </h2>
-          <p className="text-purple-700/70 text-sm">בינתיים בואו נשחק 🧩</p>
+      <div className="flex flex-col items-center justify-center min-h-[100dvh] text-center space-y-5 bg-gradient-to-b from-[#FAF3E8] to-[#F5E6D3] p-6">
+        {/* Character carousel */}
+        <div className="relative w-40 h-40 mx-auto">
+          <div 
+            key={castIndex}
+            className="absolute inset-0 rounded-full overflow-hidden border-4 border-purple-200/60 shadow-xl animate-scale-in"
+          >
+            <img
+              src={currentChar.image}
+              alt={currentChar.name}
+              className="w-full h-full object-cover"
+            />
+          </div>
+          <span className="absolute -bottom-1 -right-1 text-3xl animate-bounce">
+            {currentChar.emoji}
+          </span>
         </div>
 
-        <PuzzleGame ageRange={formData.ageRange} onReadStory={handleOpenStory} isStoryReady={showReadyPopup} />
+        <p className="text-sm font-medium text-purple-600/80">
+          {currentChar.name} מכינ/ה את האיורים... 🎨
+        </p>
 
-        {/* Ready popup */}
+        {/* Progress bar */}
+        <div className="w-full max-w-xs space-y-2">
+          <div className="relative h-3 w-full overflow-hidden rounded-full bg-purple-100">
+            <div 
+              className="h-full bg-gradient-to-r from-purple-600 via-pink-500 to-orange-400 transition-all duration-500"
+              style={{ width: `${progress}%` }}
+            />
+          </div>
+          <p className="text-sm text-purple-600 font-medium">{Math.round(progress)}%</p>
+        </div>
+
+        {/* Parenting tip */}
+        <div className="w-full max-w-sm bg-white/70 backdrop-blur-sm rounded-2xl p-4 shadow-md border border-purple-100/50 min-h-[90px] flex items-center justify-center">
+          <p
+            className={`text-center text-sm leading-relaxed transition-opacity duration-500 ${
+              isTipVisible ? "opacity-100" : "opacity-0"
+            }`}
+            style={{ color: "#5B3E96", fontFamily: "'Varela Round', 'Heebo', sans-serif" }}
+          >
+            <span className="text-lg ml-1">{currentTip.icon}</span> {currentTip.tip}
+          </p>
+        </div>
+
+        {/* Empowering sentence */}
+        <div className="w-full max-w-sm px-4 min-h-[50px] flex items-center justify-center">
+          <p
+            className={`text-center text-xs leading-relaxed transition-opacity duration-500 ${
+              isSentenceVisible ? "opacity-100" : "opacity-0"
+            }`}
+            style={{
+              fontFamily: "'Varela Round', 'Heebo', sans-serif",
+              color: "#8B6BB5",
+              fontWeight: 500,
+            }}
+          >
+            "{EMPOWERING_SENTENCES[sentenceIndex]}"
+          </p>
+        </div>
+
+        {/* Read story button — appears when ready */}
         {showReadyPopup && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 animate-in fade-in duration-300">
-            <div className="bg-white rounded-2xl p-6 shadow-2xl flex flex-col items-center gap-4 max-w-xs mx-4 animate-in zoom-in-95 duration-300">
-              <span className="text-5xl">🎉</span>
-              <h3 className="text-xl font-bold text-purple-700">
-                {illustrationsReady ? "הסיפור שלך מוכן!" : "הסיפור מחכה לך!"}
-              </h3>
-              <p className="text-sm text-purple-600/70">
-                {illustrationsReady 
-                  ? "כל האיורים מוכנים. בואו נקרא!" 
-                  : "חלק מהאיורים עדיין בדרך, אבל אפשר כבר לקרוא!"}
-              </p>
-              <Button 
-                onClick={handleOpenStory} 
-                size="lg" 
-                className="gap-2 bg-gradient-to-r from-purple-600 to-pink-500 hover:from-purple-700 hover:to-pink-600 text-white w-full"
-              >
-                <BookOpen className="w-5 h-5" />
-                פתחו את הסיפור 📖
-              </Button>
-            </div>
+          <div className="animate-scale-in">
+            <Button 
+              onClick={handleOpenStory} 
+              size="lg" 
+              className="gap-2 bg-gradient-to-r from-purple-600 to-pink-500 hover:from-purple-700 hover:to-pink-600 text-white shadow-lg text-lg px-8 py-6"
+            >
+              <BookOpen className="w-6 h-6" />
+              קראו את הסיפור 📖
+            </Button>
           </div>
         )}
       </div>

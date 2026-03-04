@@ -1,31 +1,26 @@
 
 
-## החלפת מסך הפאזל במסך טעינה אנימטיבי עם טיפים להורים
+## Bug Analysis
 
-### מה משתנה
+The onboarding loop is caused by a combination of issues in the navigation flow between `RequireTerms` and `Onboarding`:
 
-מסך ה-puzzle phase (שורות 350-388 ב-GeneratingStep.tsx) יוחלף במסך טעינה חמוד שמציג:
-1. אנימציית דמויות הקאסט (סול, בן, מיה, ליאו, זואי) — תמונות מתחלפות עם אנימציות כניסה/יציאה
-2. טיפים חינוכיים להורים שמתחלפים כל כמה שניות
-3. פס התקדמות שממשיך מ-50% עד 100%
-4. כפתור "קראו את הסיפור 📖" שמופיע ברגע שהסיפור מוכן (illustrationsReady או safety timeout)
+1. **Silent update failure**: In `Onboarding.handleContinue`, the Supabase `.update().eq()` call returns success (`error: null`) even when **zero rows are matched** (e.g., due to a race condition where the profile hasn't been created yet). The code doesn't verify the update actually persisted.
 
-### שינויים טכניים
+2. **No `replace: true` on redirects**: Both `RequireTerms` (redirecting to `/onboarding`) and `Onboarding`'s guard effect (redirecting to `/adventure`) use `navigate()` without `{ replace: true }`, causing history stack pollution and making the loop worse.
 
-**`src/components/wizard/GeneratingStep.tsx`**:
-- הסרת ה-import של `PuzzleGame`
-- הוספת מערך טיפים חינוכיים להורים (6-8 טיפים על קריאה משותפת, חיבור רגשי, דמיון וכו')
-- החלפת בלוק ה-puzzle phase (שורות 350-388) במסך טעינה חדש:
-  - קרוסלת תמונות דמויות עם אנימציית fade/scale
-  - טיפ חינוכי מתחלף עם אייקון 💡
-  - פס התקדמות (ממשיך לעלות מ-50% ל-95%)
-  - משפט העצמה מתחלף (כמו בשלב הטקסט)
-  - כפתור "קראו את הסיפור 📖" כשהסיפור מוכן — מחליף את הפופ-אפ הקיים
+3. **Loop mechanics**: `handleContinue` thinks it succeeded → navigates to `/adventure` → `RequireTerms` queries DB → `terms_accepted_at` is still null → redirects back to `/onboarding` → Onboarding guard checks terms → still null → shows the form again.
 
-**קבצים שנמחקים / מפסיקים להיות בשימוש**:
-- `PuzzleGame.tsx` — לא נמחק אך ה-import מוסר
-- `PuzzleCompleteCelebration.tsx` — לא נמחק אך לא בשימוש
+## Fix
 
-### תיקון באג כפתור "קרא סיפור"
-הכפתור יופיע ישירות במסך הטעינה (לא בתוך פופ-אפ שדורש השלמת פאזל), מה שפותר את הבאג של כפתור חסר.
+### 1. `src/pages/Onboarding.tsx` — Verify update actually persisted
+
+In `handleContinue`, after the update call, re-query the profile to confirm `terms_accepted_at` was saved. If not, use `upsert` as a fallback. Also add `{ replace: true }` to the guard navigation.
+
+### 2. `src/components/RequireTerms.tsx` — Use `replace: true`
+
+Change the `navigate` call to onboarding to use `{ replace: true }` so the history stack doesn't accumulate redirect entries.
+
+### 3. Both files — Add select return on update
+
+Use `.update(...).eq(...).select()` to get the updated row back, confirming the write succeeded. If the returned array is empty, fall back to an upsert to handle the edge case where the profile row doesn't exist yet.
 
