@@ -1144,7 +1144,7 @@ const StoryViewer = () => {
                     </p>
                   </div>
                   <div className="flex flex-col items-center gap-1 pt-2 shrink-0">
-                    <span className="text-xs text-white/60 font-light tracking-wide">{currentPage} / {totalVirtualPages}</span>
+                    <span className="text-xs text-white/60 font-light tracking-wide">{currentPage + 1} / {totalVirtualPages}</span>
                   </div>
                 </div>
               </div>
