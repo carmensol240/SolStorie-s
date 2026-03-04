@@ -191,8 +191,8 @@ const TopicStep = ({ formData, updateFormData }: TopicStepProps) => {
                           formData.topic === topic.id ? "border-red-500 shadow-lg ring-2 ring-red-300" : "border-red-200 dark:border-red-800"
                         )}
                       >
-                        <div className="h-20 w-24 flex-shrink-0">
-                          <img src={topic.image} alt={topic.label} className="w-full h-full object-cover rounded-r-xl" loading="lazy" />
+                         <div className="h-20 w-24 flex-shrink-0 bg-muted/20">
+                           <img src={topic.image} alt={topic.label} className="w-full h-full object-contain rounded-r-xl" loading="lazy" />
                         </div>
                         <div className="flex-1 py-2 pr-1 pl-3">
                           <div className="flex items-center gap-1.5">
@@ -253,8 +253,8 @@ const SimpleTile = ({ topic, isSelected, onSelect }: SimpleTileProps) => {
       >
         {/* Clickable image area */}
         <button onClick={onSelect} className="w-full text-right relative">
-          <div className="relative h-24 w-full">
-            <img src={topic.image} alt={topic.label} className="w-full h-full object-cover" loading="lazy" />
+          <div className="relative aspect-square w-full bg-muted/20 flex items-center justify-center overflow-hidden">
+            <img src={topic.image} alt={topic.label} className="w-full h-full object-contain" loading="lazy" />
             <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/10 to-transparent" />
             {/* Age badge */}
             <div className="absolute bottom-1.5 left-1.5 bg-black/40 text-white text-[9px] font-bold px-1.5 py-0.5 rounded-md backdrop-blur-sm">
