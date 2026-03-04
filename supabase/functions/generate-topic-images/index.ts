@@ -15,7 +15,7 @@ const MIA_DESC = "a girl named Mia with a smooth brown bob haircut, a small flow
 const LEO_DESC = "a boy named Leo with straight black hair, round glasses, wearing denim overalls over a red-yellow striped shirt, big round expressive cartoon eyes. Soft rounded cute face, smooth stylized skin.";
 const ZOE_DESC = "a girl named Zoe with voluminous black curls, a light blue headband, wearing a purple-yellow sporty tracksuit, big round expressive cartoon eyes. Soft rounded cute face, smooth stylized skin.";
 
-const STYLE_SUFFIX = `3D Disney Pixar cartoon animation style, inspired by 'Coco' and 'Encanto'. Characters must look like adorable cartoon dolls — NOT realistic humans. Vibrant rich saturated colors, warm magical golden lighting. Clean sharp 3D rendering. 9:16 portrait aspect ratio. Characters must NEVER look like real humans — always stylized 3D cartoon dolls. Negative prompt: ${NEGATIVE}`;
+const STYLE_SUFFIX = `Pixar 3D CGI animation style, big expressive eyes, soft rounded features, oversized head with small body, vibrant saturated colors, cinematic warm lighting with glowing accents, fantasy children's book background, high quality render, Disney-Pixar aesthetic. Characters must look like adorable cartoon dolls — NOT realistic humans. 9:16 portrait aspect ratio. Negative prompt: ${NEGATIVE}`;
 
 const TOPIC_PROMPTS: Record<string, { filename: string; prompt: string }> = {
   "blood-test": {
