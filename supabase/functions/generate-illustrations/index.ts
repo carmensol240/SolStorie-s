@@ -188,11 +188,11 @@ CRITICAL CHARACTER CONSISTENCY: The main character must look IDENTICAL in every 
 ...
 FULL BODY head to toe, feet GROUNDED on surface. Portrait 4:3 framing. NEGATIVE: realistic, semi-realistic, real human, photograph, generic face, wrong hair, floating head, missing body, extra limbs, deformed, cropped feet, text, watermark, photorealistic, dark, muted colors, cinematic bokeh, hyper-realistic, shallow depth of field`;
 
-    console.log("Generating illustration via Fal.ai Instant Character (face reference)...");
+    console.log("Generating illustration via Fal.ai Flux Kontext (face reference)...");
 
-    const response = await fetch("https://fal.run/fal-ai/instant-character", {
+    const response = await fetch("https://fal.run/fal-ai/flux-kontext/dev", {
       method: "POST",
-      signal: AbortSignal.timeout(120_000),
+      signal: AbortSignal.timeout(30_000),
       headers: {
         Authorization: `Key ${FAL_KEY}`,
         "Content-Type": "application/json",
@@ -200,6 +200,8 @@ FULL BODY head to toe, feet GROUNDED on surface. Portrait 4:3 framing. NEGATIVE:
       body: JSON.stringify({
         prompt: fullPrompt,
         image_url: childPhotoUrl,
+        output_format: "png",
+        num_images: 1,
       }),
     });
 
