@@ -251,7 +251,7 @@ FULL BODY head to toe, feet GROUNDED for ALL characters. NEGATIVE: realistic, se
           .from("story-illustrations")
           .getPublicUrl(filePath);
 
-        const fullCoverUrl = publicUrlData.publicUrl;
+        const fullCoverUrl = `${publicUrlData.publicUrl}?v=${Date.now()}`;
 
         await supabase
           .from("stories")
