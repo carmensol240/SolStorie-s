@@ -1,20 +1,26 @@
 
 
-## יצירת איור חדש לבן במסך הטעינה
+## Bug Analysis
 
-### הבעיה
-התמונה הנוכחית `cast-ben-art.jpg` לא תואמת את דמות בן (האח הקטן עם שיער שחור מתולתל, עור שחום, הדמות הקטנה ביותר בקאסט).
+The onboarding loop is caused by a combination of issues in the navigation flow between `RequireTerms` and `Onboarding`:
 
-### פתרון
+1. **Silent update failure**: In `Onboarding.handleContinue`, the Supabase `.update().eq()` call returns success (`error: null`) even when **zero rows are matched** (e.g., due to a race condition where the profile hasn't been created yet). The code doesn't verify the update actually persisted.
 
-1. **יצירת Edge Function חד-פעמית** `generate-cast-image` שתשתמש ב-Gemini Image Generation (`google/gemini-3-pro-image-preview`) עם תמונת הייחוס שהועלתה כדי ליצור איור Pixar 3D של בן מצייר/יוצר אמנות (תואם לאמוג'י 🎨 ולנושא שלו).
+2. **No `replace: true` on redirects**: Both `RequireTerms` (redirecting to `/onboarding`) and `Onboarding`'s guard effect (redirecting to `/adventure`) use `navigate()` without `{ replace: true }`, causing history stack pollution and making the loop worse.
 
-2. **פרומפט**: "Generate a Pixar 3D CGI illustration of this young boy character painting on a canvas with a big smile. He is the smallest character, with very curly dark hair, brown skin, wearing a green shirt. Background: colorful art studio with paint splashes. Warm cinematic lighting, Disney-Pixar aesthetic."
+3. **Loop mechanics**: `handleContinue` thinks it succeeded → navigates to `/adventure` → `RequireTerms` queries DB → `terms_accepted_at` is still null → redirects back to `/onboarding` → Onboarding guard checks terms → still null → shows the form again.
 
-3. **שמירת התמונה** ב-Storage ועדכון הנתיב ב-`GeneratingStep.tsx` — או לחלופין, המרה ישירה ל-asset סטטי חדש `cast-ben-art-new.jpg`.
+## Fix
 
-4. **עדכון הייבוא** ב-`GeneratingStep.tsx` לתמונה החדשה.
+### 1. `src/pages/Onboarding.tsx` — Verify update actually persisted
 
-### חלופה פשוטה יותר
-שימוש ישיר בתמונה שהועלתה (`ben.jpeg`) כ-asset סטטי חדש `cast-ben-art.jpg` — מכיוון שהיא כבר בסגנון Pixar 3D ומציגה את בן בצורה נכונה.
+In `handleContinue`, after the update call, re-query the profile to confirm `terms_accepted_at` was saved. If not, use `upsert` as a fallback. Also add `{ replace: true }` to the guard navigation.
+
+### 2. `src/components/RequireTerms.tsx` — Use `replace: true`
+
+Change the `navigate` call to onboarding to use `{ replace: true }` so the history stack doesn't accumulate redirect entries.
+
+### 3. Both files — Add select return on update
+
+Use `.update(...).eq(...).select()` to get the updated row back, confirming the write succeeded. If the returned array is empty, fall back to an upsert to handle the edge case where the profile row doesn't exist yet.
 

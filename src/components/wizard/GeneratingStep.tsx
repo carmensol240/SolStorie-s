@@ -2,7 +2,7 @@ import { useState, useEffect, useCallback, useRef } from "react";
 import { Sparkles, BookOpen, Palette, FileText, RefreshCw, Wand2 } from "lucide-react";
 import generatingHeroCast from "@/assets/generating-hero-cast.jpeg";
 import castSolAdventure from "@/assets/cast-sol-adventure.jpg";
-import castBenArt from "@/assets/cast-ben-art.jpg";
+import castBenArt from "@/assets/cast-ben-art-new.jpg";
 import castMiaNature from "@/assets/cast-mia-nature.jpg";
 import castLeoScience from "@/assets/cast-leo-science.jpg";
 import castZoeSports from "@/assets/cast-zoe-sports.jpg";
