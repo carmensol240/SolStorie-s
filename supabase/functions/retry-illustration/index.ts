@@ -177,6 +177,8 @@ SUPPORTING CAST (smaller, background only):
 - Leo: boy with straight black hair, round glasses, denim overalls — 3D Pixar cartoon style
 - Mia: girl with smooth brown bob, small flower crown, green dress — 3D Pixar cartoon style
 
+SCENE: ${prompt}
+
 FULL BODY head to toe, feet GROUNDED on surface. Portrait 4:3 framing. NEGATIVE: ${negativePrompt}`;
 
       for (let attempt = 1; attempt <= MAX_ATTEMPTS; attempt++) {
