@@ -196,6 +196,8 @@ FULL BODY head to toe, feet GROUNDED on surface. Portrait 4:3 framing. NEGATIVE:
               image_url: childPhoto,
               output_format: "png",
               num_images: 1,
+              seed: Math.floor(Math.random() * 2147483647),
+              guidance_scale: 4.5,
             }),
           });
 
