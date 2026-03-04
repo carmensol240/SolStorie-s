@@ -60,26 +60,28 @@ import topicEnvironment from "@/assets/topic-environment.jpg";
 import topicMagicKeys from "@/assets/topic-magic-keys.jpg";
 import topicEducationalToolbox from "@/assets/topic-educational-toolbox.jpeg";
 import topicSafeRoom from "@/assets/topic-safe-room.png";
-import topicFindAFriend from "@/assets/topic-find-a-friend.jpg";
-import topicScreenTime from "@/assets/topic-screen-time.jpg";
-import topicDivorce from "@/assets/topic-divorce.jpg";
-import topicSickGrandparent from "@/assets/topic-sick-grandparent.jpg";
-import topicMakingMistakes from "@/assets/topic-making-mistakes.jpg";
-import topicCryingIsOk from "@/assets/topic-crying-is-ok.jpg";
-import topicCloudKingdom from "@/assets/topic-cloud-kingdom.jpg";
-import topicDragonParty from "@/assets/topic-dragon-party.jpg";
-import topicStrangeInventions from "@/assets/topic-strange-inventions.jpg";
-import topicSpaceJourney from "@/assets/topic-space-journey.jpg";
-import topicFriendshipCourage from "@/assets/topic-friendship-courage.jpg";
-import topicAcceptingDifferences from "@/assets/topic-accepting-differences.jpg";
-import topicHowBodyWorks from "@/assets/topic-how-body-works.jpg";
-import topicWaitingInLine from "@/assets/topic-waiting-in-line.jpg";
-import topicPoliteness from "@/assets/topic-politeness.jpg";
-import topicEmotionRegulation from "@/assets/topic-emotion-regulation.jpg";
-import topicPatience from "@/assets/topic-patience.jpg";
-import topicPlayRules from "@/assets/topic-play-rules.jpg";
-import topicSelfConfidence from "@/assets/topic-self-confidence.jpg";
-import topicNatureSecrets from "@/assets/topic-nature-secrets.jpg";
+// Topics using storage bucket images (Pixar 3D style generated via Gemini)
+const topicFindAFriend = `${TOPIC_IMAGES_BASE}/topic-find-a-friend.png`;
+const topicScreenTime = `${TOPIC_IMAGES_BASE}/topic-screen-time.png`;
+const topicDivorce = `${TOPIC_IMAGES_BASE}/topic-divorce.png`;
+const topicSickGrandparent = `${TOPIC_IMAGES_BASE}/topic-sick-grandparent.png`;
+const topicMakingMistakes = `${TOPIC_IMAGES_BASE}/topic-making-mistakes.png`;
+const topicCryingIsOk = `${TOPIC_IMAGES_BASE}/topic-crying-is-ok.png`;
+const topicCloudKingdom = `${TOPIC_IMAGES_BASE}/topic-cloud-kingdom.png`;
+const topicDragonParty = `${TOPIC_IMAGES_BASE}/topic-dragon-party.png`;
+const topicStrangeInventions = `${TOPIC_IMAGES_BASE}/topic-strange-inventions.png`;
+const topicSpaceJourney = `${TOPIC_IMAGES_BASE}/topic-space-journey.png`;
+const topicFriendshipCourage = `${TOPIC_IMAGES_BASE}/topic-friendship-courage.png`;
+const topicAcceptingDifferences = `${TOPIC_IMAGES_BASE}/topic-accepting-differences.png`;
+const topicHowBodyWorks = `${TOPIC_IMAGES_BASE}/topic-how-body-works.png`;
+const topicWaitingInLine = `${TOPIC_IMAGES_BASE}/topic-waiting-in-line.png`;
+const topicPoliteness = `${TOPIC_IMAGES_BASE}/topic-politeness.png`;
+const topicEmotionRegulation = `${TOPIC_IMAGES_BASE}/topic-emotion-regulation.png`;
+const topicPatience = `${TOPIC_IMAGES_BASE}/topic-patience.png`;
+const topicPlayRules = `${TOPIC_IMAGES_BASE}/topic-play-rules.png`;
+const topicSelfConfidence = `${TOPIC_IMAGES_BASE}/topic-self-confidence.png`;
+const topicNatureSecrets = `${TOPIC_IMAGES_BASE}/topic-nature-secrets.png`;
+const topicHolidaysSeasons = `${TOPIC_IMAGES_BASE}/topic-holidays-seasons.png`;
 
 export interface TopicItem {
   id: string;
@@ -221,7 +223,7 @@ export const CHARACTER_SECTIONS: CharacterSection[] = [
     topics: [
       { id: "waiting-in-line-edu", label: "⏰ המתנה בתור – מתי מגיע תורי?", description: "סיפור העצמה חברתי: למה חשוב לחכות, איך עושים את זה ומה מרוויחים כשממתינים בסבלנות.", image: topicWaitingInLine, ageRange: "3-6" },
       { id: "emotion-regulation-edu", label: "🌊 ויסות רגשות – לנשום ולהירגע", description: "סיפור העצמה חברתי: כלים מעשיים לזהות את הרגש, לנשום ולמצוא דרך בריאה לבטא כעס ותסכול.", image: topicEmotionRegulation, ageRange: "3-8" },
-      { id: "holidays-seasons-edu", label: "🗓️ מעגל השנה – חגים ועונות", description: "סיפור העצמה חברתי: סיפורים על מעגל השנה, חגים, עונות, מסורות ומנהגים שמלווים אותנו.", image: topicRainParty, ageRange: "3-8" },
+      { id: "holidays-seasons-edu", label: "🗓️ מעגל השנה – חגים ועונות", description: "סיפור העצמה חברתי: סיפורים על מעגל השנה, חגים, עונות, מסורות ומנהגים שמלווים אותנו.", image: topicHolidaysSeasons, ageRange: "3-8" },
       { id: "play-rules-edu", label: "🎲 כללי משחק – לשחק בהוגנות", description: "סיפור העצמה חברתי: לחכות לתור, לא לרמות, לשמוח בהצלחה של חברים ולקבל הפסד בכבוד.", image: topicPlayRules, ageRange: "3-6" },
       { id: "self-confidence-edu", label: "💪 ביטחון עצמי – אני יכול/ה!", description: "סיפור העצמה חברתי: להאמין בעצמי, לנסות דברים חדשים ולדעת שאני מסוגל/ת.", image: topicSelfConfidence, ageRange: "3-8" },
       { id: "honesty-edu", label: "🪄 כנות – לומר את האמת בעדינות", description: "סיפור העצמה חברתי: ילדים רבים מרגישים שקשה לומר את האמת. כשהאמת נאמרת בעדינות, היחסים נשארים חזקים והלב קל.", image: topicApologize, ageRange: "3-8", keywords: ["אמת", "כנות", "מיומנות חברתית"] },
