@@ -1136,64 +1136,64 @@ const StoryViewer = () => {
               </div>
 
             ) : currentVirtual ? (
-              /* Story Content Pages — combined illustration + text */
-              <div className="h-full flex flex-col">
-                {/* Illustration area — 60%+ of page, full width, no margins */}
-                <div className="flex-[6] w-full relative min-h-0 overflow-hidden bg-[#F5E6D3]">
-                  {currentVirtual.illustrationUrl ? (
-                    <img
-                      src={getPublicIllustrationUrl(currentVirtual.illustrationUrl) || ''}
-                      alt="איור"
-                      className="w-full h-full object-cover"
-                      loading="eager"
-                    />
-                  ) : currentVirtual.illustrationPrompt ? (
-                    /* Illustration generating — skeleton */
-                    <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-[#FFF8F0] via-[#F5E6D3] to-[#FAF3E8]">
-                      <div className="absolute inset-0 opacity-20">
-                        <div className="absolute top-1/4 left-1/4 w-32 h-32 rounded-full bg-purple-200 animate-pulse" style={{ animationDelay: '0s', animationDuration: '2s' }} />
-                        <div className="absolute top-1/2 right-1/4 w-24 h-24 rounded-full bg-pink-200 animate-pulse" style={{ animationDelay: '0.5s', animationDuration: '2.5s' }} />
-                        <div className="absolute bottom-1/4 left-1/3 w-28 h-28 rounded-full bg-orange-200 animate-pulse" style={{ animationDelay: '1s', animationDuration: '3s' }} />
+              /* Story Content Pages — fullscreen illustration + text overlay */
+              <div className="h-full w-full relative">
+                {/* Fullscreen illustration */}
+                {currentVirtual.illustrationUrl ? (
+                  <img
+                    src={getPublicIllustrationUrl(currentVirtual.illustrationUrl) || ''}
+                    alt="איור"
+                    className="absolute inset-0 w-full h-full object-cover"
+                    loading="eager"
+                  />
+                ) : currentVirtual.illustrationPrompt ? (
+                  /* Illustration generating — skeleton */
+                  <div className="absolute inset-0 w-full h-full flex items-center justify-center bg-gradient-to-br from-[#FFF8F0] via-[#F5E6D3] to-[#FAF3E8]">
+                    <div className="absolute inset-0 opacity-20">
+                      <div className="absolute top-1/4 left-1/4 w-32 h-32 rounded-full bg-purple-200 animate-pulse" style={{ animationDelay: '0s', animationDuration: '2s' }} />
+                      <div className="absolute top-1/2 right-1/4 w-24 h-24 rounded-full bg-pink-200 animate-pulse" style={{ animationDelay: '0.5s', animationDuration: '2.5s' }} />
+                      <div className="absolute bottom-1/4 left-1/3 w-28 h-28 rounded-full bg-orange-200 animate-pulse" style={{ animationDelay: '1s', animationDuration: '3s' }} />
+                    </div>
+                    <div className="relative z-10 text-center space-y-4">
+                      <div className="relative w-20 h-20 mx-auto">
+                        <div className="absolute inset-0 rounded-full bg-gradient-to-br from-purple-300 via-pink-300 to-orange-300 animate-spin" style={{ animationDuration: '3s' }} />
+                        <div className="absolute inset-1 rounded-full bg-white/90 flex items-center justify-center">
+                          <span className="text-3xl">🎨</span>
+                        </div>
                       </div>
-                      <div className="relative z-10 text-center space-y-4">
-                        <div className="relative w-20 h-20 mx-auto">
-                          <div className="absolute inset-0 rounded-full bg-gradient-to-br from-purple-300 via-pink-300 to-orange-300 animate-spin" style={{ animationDuration: '3s' }} />
-                          <div className="absolute inset-1 rounded-full bg-white/90 flex items-center justify-center">
-                            <span className="text-3xl">🎨</span>
-                          </div>
-                        </div>
-                        <div className="space-y-1">
-                          <p className="text-sm font-semibold text-[#6B4423]" dir="rtl">מכינים איור קסום...</p>
-                          <p className="text-xs text-[#8B7355]/70" dir="rtl">רק עוד רגע ✨</p>
-                        </div>
+                      <div className="space-y-1">
+                        <p className="text-sm font-semibold text-[#6B4423]" dir="rtl">מכינים איור קסום...</p>
+                        <p className="text-xs text-[#8B7355]/70" dir="rtl">רק עוד רגע ✨</p>
                       </div>
                     </div>
-                  ) : (
-                    /* No illustration at all — decorative placeholder */
-                    (() => {
-                      const theme = getTopicTheme(story.topic);
-                      return (
-                        <div className="w-full h-full flex items-center justify-center" style={{ background: theme.bg }}>
-                          <span className="text-7xl opacity-40">{theme.emoji}</span>
-                        </div>
-                      );
-                    })()
-                  )}
-                </div>
+                  </div>
+                ) : (
+                  /* No illustration — decorative placeholder */
+                  (() => {
+                    const theme = getTopicTheme(story.topic);
+                    return (
+                      <div className="absolute inset-0 w-full h-full flex items-center justify-center" style={{ background: theme.bg }}>
+                        <span className="text-7xl opacity-40">{theme.emoji}</span>
+                      </div>
+                    );
+                  })()
+                )}
 
-                {/* Text area — below illustration */}
-                <div className="flex-[4] min-h-0 overflow-y-auto px-6 py-4 md:px-10 md:py-6" style={{ background: RAINBOW_BG }}>
+                {/* Text overlay at bottom */}
+                <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/75 via-black/40 to-transparent px-6 py-5 md:px-10 md:py-7">
                   <div className="max-w-lg mx-auto w-full">
                     <p className={cn(
-                      "text-[#3D2914] text-right font-medium transition-all whitespace-pre-line",
+                      "text-white text-right font-medium transition-all whitespace-pre-line drop-shadow-[0_2px_4px_rgba(0,0,0,0.5)]",
                       currentFontSize.size
-                    )} style={{ lineHeight: '2.2' }} dir="rtl">
-                      {showNikud ? currentVirtual.dbPage.text : currentVirtual.dbPage.text.replace(/[\u0591-\u05C7]/g, '')}
+                    )} style={{ lineHeight: '2' }} dir="rtl">
+                      {(() => {
+                        const rawText = currentVirtual.combinedText || currentVirtual.dbPage.text;
+                        return showNikud ? rawText : rawText.replace(/[\u0591-\u05C7]/g, '');
+                      })()}
                     </p>
                   </div>
-                  <div className="flex flex-col items-center gap-1 pt-3 pb-1 shrink-0">
-                    <span className="text-xs text-[#B8A08C] font-light tracking-wide">{currentPage} / {totalVirtualPages}</span>
-                    <span className="text-sm font-black logo-3d-bubble opacity-60"><span className="logo-rainbow">SolStorie's™</span></span>
+                  <div className="flex flex-col items-center gap-1 pt-2 shrink-0">
+                    <span className="text-xs text-white/60 font-light tracking-wide">{currentPage} / {totalVirtualPages}</span>
                   </div>
                 </div>
               </div>
