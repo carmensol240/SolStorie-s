@@ -53,6 +53,8 @@ interface StoryPage {
   text: string;
   illustration_url: string | null;
   illustration_prompt?: string | null;
+  illustration_url_2?: string | null;
+  illustration_prompt_2?: string | null;
 }
 
 interface Story {
