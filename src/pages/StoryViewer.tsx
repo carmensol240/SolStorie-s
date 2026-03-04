@@ -47,6 +47,7 @@ import { translateTopic } from "@/lib/topic-translations";
 import { useChildAvatar } from "@/hooks/use-child-avatar";
 
 import castWavingFarewell from "@/assets/cast-waving-farewell.png";
+import solSuperheroWelcome from "@/assets/sol-superhero-welcome.jpg";
 
 interface StoryPage {
   id: string;
