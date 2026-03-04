@@ -181,10 +181,10 @@ FULL BODY head to toe, feet GROUNDED on surface. Portrait 4:3 framing. NEGATIVE:
 
       for (let attempt = 1; attempt <= MAX_ATTEMPTS; attempt++) {
         try {
-          console.log(`Instant Character attempt ${attempt}/${MAX_ATTEMPTS}...`);
-          const response = await fetch("https://fal.run/fal-ai/instant-character", {
+          console.log(`Flux Kontext attempt ${attempt}/${MAX_ATTEMPTS}...`);
+          const response = await fetch("https://fal.run/fal-ai/flux-kontext/dev", {
             method: "POST",
-            signal: AbortSignal.timeout(120_000),
+            signal: AbortSignal.timeout(30_000),
             headers: {
               Authorization: `Key ${FAL_KEY}`,
               "Content-Type": "application/json",
@@ -192,6 +192,8 @@ FULL BODY head to toe, feet GROUNDED on surface. Portrait 4:3 framing. NEGATIVE:
             body: JSON.stringify({
               prompt: personalizedPrompt,
               image_url: childPhoto,
+              output_format: "png",
+              num_images: 1,
             }),
           });
 
