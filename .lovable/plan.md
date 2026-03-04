@@ -1,41 +1,26 @@
 
 
-## תוכנית: פיצול הספרייה לטאבים לפי ילד
+## Bug Analysis
 
-### מה ישתנה
+The onboarding loop is caused by a combination of issues in the navigation flow between `RequireTerms` and `Onboarding`:
 
-מסך הספרייה (`/library`) יציג טאב נפרד לכל ילד שיש לו סיפורים, במקום שני הטאבים הנוכחיים ("הסיפורים שלי" / "סיפורי סול").
+1. **Silent update failure**: In `Onboarding.handleContinue`, the Supabase `.update().eq()` call returns success (`error: null`) even when **zero rows are matched** (e.g., due to a race condition where the profile hasn't been created yet). The code doesn't verify the update actually persisted.
 
-### איך זה יעבוד
+2. **No `replace: true` on redirects**: Both `RequireTerms` (redirecting to `/onboarding`) and `Onboarding`'s guard effect (redirecting to `/adventure`) use `navigate()` without `{ replace: true }`, causing history stack pollution and making the loop worse.
 
-1. **משתמש עם ילד אחד (או ללא ילדים)** -- הספרייה תיראה כמו היום, רשימה שטוחה ללא טאבים מיותרים. טאב "סיפורי סול" יוסר.
+3. **Loop mechanics**: `handleContinue` thinks it succeeded → navigates to `/adventure` → `RequireTerms` queries DB → `terms_accepted_at` is still null → redirects back to `/onboarding` → Onboarding guard checks terms → still null → shows the form again.
 
-2. **משתמש עם 2+ ילדים** -- יופיעו טאבים בראש הספרייה, טאב לכל ילד עם שמו. סיפורים שאין להם `child_id` ישויכו לפי `child_name` (best-effort matching).
+## Fix
 
-### שינויים טכניים
+### 1. `src/pages/Onboarding.tsx` — Verify update actually persisted
 
-#### קובץ `src/pages/Library.tsx`
-- **הסרת טאב "סיפורי סול"** -- כולל כל הקוד הקשור ל-`premiumStories`, `fetchPremiumStories`, `isPremiumLoading`.
-- **שליפת רשימת ילדים** -- שאילתת `children` table לפי `user_id` כדי לקבל את שמות הילדים.
-- **חישוב טאבים דינמי** -- אם יש יותר מילד אחד, יוצגו טאבים. כל טאב מסנן את `stories` לפי `child_name` (או `child_id` אם קיים).
-- **טאב ברירת מחדל** -- הטאב הראשון (לפי סדר אלפביתי או סדר יצירה).
-- **סיפורים ללא שיוך** -- אם יש סיפורים עם `child_name` שלא תואם לאף ילד רשום, יוצג טאב נוסף "אחר" או שיוצגו בכל הטאבים.
+In `handleContinue`, after the update call, re-query the profile to confirm `terms_accepted_at` was saved. If not, use `upsert` as a fallback. Also add `{ replace: true }` to the guard navigation.
 
-#### ללא שינויי מסד נתונים
-הנתונים כבר קיימים -- `stories.child_name` ו-`stories.child_id` מאפשרים סינון. טבלת `children` כבר קיימת עם RLS מתאים.
+### 2. `src/components/RequireTerms.tsx` — Use `replace: true`
 
-### תצוגה
+Change the `navigate` call to onboarding to use `{ replace: true }` so the history stack doesn't accumulate redirect entries.
 
-```text
-┌─────────────────────────────┐
-│  [נועה]  [עידו]  [הכל]     │  ← טאבים (רק אם 2+ ילדים)
-├─────────────────────────────┤
-│  📖 סיפור 1 של נועה         │
-│  📖 סיפור 2 של נועה         │
-│  📖 סיפור 3 של נועה         │
-└─────────────────────────────┘
-```
+### 3. Both files — Add select return on update
 
-- כשיש ילד אחד בלבד: אין טאבים, רק רשימת סיפורים רגילה.
-- טאב "הכל" יציג את כל הסיפורים ביחד (אופציונלי).
+Use `.update(...).eq(...).select()` to get the updated row back, confirming the write succeeded. If the returned array is empty, fall back to an upsert to handle the edge case where the profile row doesn't exist yet.
 
