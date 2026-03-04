@@ -189,9 +189,9 @@ export const CHARACTER_SECTIONS: CharacterSection[] = [
       { id: "magical-forest", label: "מסע ביער הקסום", description: "הרפתקה ביער קסום ומלא חיים: עצים מדברים, פרפרים זוהרים ושבילים מסתוריים.", image: topicMagicalForest, ageRange: "3-6" },
       { id: "space-adventure", label: "סול מכבסת את השמיים", description: "הרפתקה בין כוכבים: טיסה לחלל, מפגש עם כוכבי לכת ונחיתה על הירח.", image: topicSpaceHero, ageRange: "3-8" },
       { id: "magic-keys", label: "המפתחות הקסומים", description: "חיפוש אחר מפתחות קסומים שפותחים דלתות לעולמות מדהימים ומסתוריים.", image: topicMagicKeys, ageRange: "4-8" },
-      { id: "cloud-kingdom", label: "ממלכת העננים", description: "הרפתקה מעל הכל: מסע אל ממלכה שבנויה לגמרי מעננים, שם חיים יצורים עשויי אוויר וקלים כנוצה.", image: topicCloudAdventure, ageRange: "3-6", keywords: ["עננים", "ממלכה", "קסם", "שמיים"] },
-      { id: "dragon-party", label: "מסיבת הדרקונים", description: "הזמנה בלתי-צפויה למסיבה של דרקונים ידידותיים: ריקודים, אש בצבעי קשת ושיר שמח שמדהים את כל היער.", image: topicMagicCastle, ageRange: "3-8", keywords: ["דרקון", "מסיבה", "קסם", "ידידות"] },
-      { id: "strange-inventions", label: "המצאות משונות", description: "ילד/ה עם דמיון פורה מחליט/ה להמציא את הדבר הכי מוזר שנראה אי-פעם – ומגלה שהמצאות הגדולות ביותר מתחילות בחיוך.", image: topicMagicKeys, ageRange: "4-8", keywords: ["המצאות", "יצירתיות", "מדע", "פיתוח"] },
+      { id: "cloud-kingdom", label: "ממלכת העננים", description: "הרפתקה מעל הכל: מסע אל ממלכה שבנויה לגמרי מעננים, שם חיים יצורים עשויי אוויר וקלים כנוצה.", image: topicCloudKingdom, ageRange: "3-6", keywords: ["עננים", "ממלכה", "קסם", "שמיים"] },
+      { id: "dragon-party", label: "מסיבת הדרקונים", description: "הזמנה בלתי-צפויה למסיבה של דרקונים ידידותיים: ריקודים, אש בצבעי קשת ושיר שמח שמדהים את כל היער.", image: topicDragonParty, ageRange: "3-8", keywords: ["דרקון", "מסיבה", "קסם", "ידידות"] },
+      { id: "strange-inventions", label: "המצאות משונות", description: "ילד/ה עם דמיון פורה מחליט/ה להמציא את הדבר הכי מוזר שנראה אי-פעם – ומגלה שהמצאות הגדולות ביותר מתחילות בחיוך.", image: topicStrangeInventions, ageRange: "4-8", keywords: ["המצאות", "יצירתיות", "מדע", "פיתוח"] },
     ],
   },
   {
