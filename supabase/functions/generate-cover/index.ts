@@ -154,79 +154,79 @@ serve(async (req) => {
     const sol = getSolUrl(topic || "");
     console.log(`Sol variant: ${sol.label} for topic "${topic}"`);
 
-    // If child photo exists, use PuLID for personalized cover
+    // If child photo exists, use Gemini with face reference for personalized cover
     if (childPhotoSignedUrl) {
-      const FAL_KEY = Deno.env.get("FAL_KEY");
-      if (!FAL_KEY) {
-        return new Response(JSON.stringify({ error: "FAL_KEY not configured" }), {
-          status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" },
-        });
-      }
+      const personalizedCoverPrompt = `CRITICAL FACE REFERENCE: The main character's face, hair color, hair texture, skin tone, eye color, and ALL facial features MUST be an EXACT 3D Pixar rendering of the child shown in the FIRST reference image (Image 1). This child IS the hero of the story. Do NOT invent or change ANY facial features — copy them precisely from the photo and render in Pixar 3D CGI style.
 
-      const personalizedCoverPrompt = `CRITICAL FACE REFERENCE: The main character's face, hair texture, skin tone, and facial features MUST be an EXACT 3D Pixar rendering of the child in the reference photo. Do NOT invent or change any facial features.
+Pixar 3D CGI animation style, big expressive eyes, soft rounded features, oversized head with small body, vibrant saturated colors, cinematic warm lighting with glowing accents, fantasy children's book background, high quality render, Disney-Pixar aesthetic. Characters must look like adorable cartoon dolls — NOT realistic humans. Portrait orientation (9:16 aspect ratio).
 
-Pixar 3D CGI animation style, big expressive eyes, soft rounded features, oversized head with small body, vibrant saturated colors, cinematic warm lighting with glowing accents, fantasy children's book background, high quality render, Disney-Pixar aesthetic. Characters must look like adorable cartoon dolls — NOT realistic humans. Portrait orientation.
-...
-FULL BODY head to toe, feet GROUNDED. NEGATIVE: realistic, semi-realistic, real human, photograph, generic face, wrong hair, floating head, missing body, extra limbs, deformed, text beyond title, watermark, photorealistic, dark, muted colors, cinematic bokeh, hyper-realistic, shallow depth of field`;
+=== CHARACTER (MAIN HERO — from reference photo) ===
+The MAIN CHARACTER is the child from Image 1 (the reference photo). Their face, hair, skin tone, and features must EXACTLY match the photo, rendered in Pixar 3D cartoon style. They should be shown as a confident, happy hero standing in the center of the scene.
+
+=== SUPPORTING CHARACTERS (from reference images 2-6) ===
+- Image 2 (${sol.label}): ${sol.label === "Sol hero" ? "Sol in her adventure/fantasy outfit" : "Sol in her superhero costume — warm tan skin, long dark brown hair in a high bun with pink band, red cape, light blue shirt with a golden star emblem, purple pants, white sneakers"}
+- Image 3 (Ben): Sol's LITTLE BROTHER — toddler with very curly dark hair, warm tan skin — always the SMALLEST character
+- Image 4 (Zoe): Dark brown skin, voluminous afro with light blue headband, purple-yellow tracksuit, soccer ball
+- Image 5 (Leo): Straight black hair, round glasses, denim overalls, rainbow pencil
+- Image 6 (Mia): Smooth brown bob, small flower crown, emerald green dress
+
+SETTING: ${setting}
+
+TITLE TEXT: Display the text "${displayTitle}" prominently at the top or center-top of the image in a large, clear, child-friendly ${fontLanguage} font. The text should be bold, legible, and naturally integrated into the composition — as if it's the title of a children's book cover. Use a warm color that contrasts well with the background.
+
+COMPOSITION: This is a BOOK COVER. The main hero child (from the photo) should be CENTER and LARGEST. The 5 supporting characters (Sol, Ben, Zoe, Leo, Mia) are arranged around or behind the hero. The magical setting fills the background. The title text occupies the upper portion.
+
+FULL BODY head to toe, feet GROUNDED for ALL characters. NEGATIVE: realistic, semi-realistic, real human, photograph, generic face, wrong hair, floating head, missing body, extra limbs, deformed, text beyond title, watermark, photorealistic, dark, muted colors, cinematic bokeh, hyper-realistic, shallow depth of field, cropped feet, cut off legs.`;
+
+      // Build content: [child photo, Sol variant, Ben, Zoe, Leo, Mia] + text
+      const personalizedContent = [
+        { type: "image_url", image_url: { url: childPhotoSignedUrl } },
+        { type: "image_url", image_url: { url: sol.url } },
+        ...CHARACTER_BASE_REFS.map(url => ({ type: "image_url", image_url: { url } })),
+        { type: "text", text: personalizedCoverPrompt },
+      ];
+
+      const personalizedRequestBody = {
+        model: "google/gemini-3-pro-image-preview",
+        modalities: ["image", "text"],
+        messages: [{ role: "user", content: personalizedContent }],
+      };
 
       let imageUrl: string | null = null;
       const MAX_ATTEMPTS = 2;
 
       for (let attempt = 1; attempt <= MAX_ATTEMPTS; attempt++) {
         try {
-          console.log(`Flux Kontext cover attempt ${attempt}/${MAX_ATTEMPTS}...`);
-          const response = await fetch("https://fal.run/fal-ai/flux-kontext/dev", {
+          console.log(`Gemini personalized cover attempt ${attempt}/${MAX_ATTEMPTS}...`);
+          const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
             method: "POST",
-            signal: AbortSignal.timeout(30_000),
+            signal: AbortSignal.timeout(120_000),
             headers: {
-              Authorization: `Key ${FAL_KEY}`,
+              Authorization: `Bearer ${LOVABLE_API_KEY}`,
               "Content-Type": "application/json",
             },
-            body: JSON.stringify({
-              prompt: personalizedCoverPrompt,
-              image_url: childPhotoSignedUrl,
-              output_format: "png",
-              num_images: 1,
-            }),
+            body: JSON.stringify(personalizedRequestBody),
           });
 
           if (!response.ok) {
-            console.error(`Flux Kontext cover attempt ${attempt} failed:`, response.status);
+            console.error(`Personalized cover attempt ${attempt} failed:`, response.status);
             if (attempt < MAX_ATTEMPTS) { await new Promise(r => setTimeout(r, 3000)); continue; }
-            // Fall through to Gemini path below
             break;
           }
 
           const data = await response.json();
-          const falImageUrl = data.images?.[0]?.url;
+          imageUrl = data.choices?.[0]?.message?.images?.[0]?.image_url?.url || null;
 
-          if (falImageUrl) {
-            // Download and convert
-            const imgResponse = await fetch(falImageUrl);
-            if (imgResponse.ok) {
-              const imgBuffer = new Uint8Array(await imgResponse.arrayBuffer());
-              const chunks: string[] = [];
-              for (let i = 0; i < imgBuffer.length; i += 512) {
-                const end = Math.min(i + 512, imgBuffer.length);
-                let chunk = '';
-                for (let j = i; j < end; j++) {
-                  chunk += String.fromCharCode(imgBuffer[j]);
-                }
-                chunks.push(chunk);
-              }
-              imageUrl = `data:image/png;base64,${btoa(chunks.join(''))}`;
-            }
-            if (imageUrl) break;
-          }
-          console.warn(`Flux Kontext cover attempt ${attempt}: no image`);
+          if (imageUrl) break;
+          console.warn(`Personalized cover attempt ${attempt}: no image`);
           if (attempt < MAX_ATTEMPTS) { await new Promise(r => setTimeout(r, 3000)); continue; }
         } catch (fetchErr) {
-          console.error(`Flux Kontext cover attempt ${attempt} error:`, fetchErr);
+          console.error(`Personalized cover attempt ${attempt} error:`, fetchErr);
           if (attempt < MAX_ATTEMPTS) { await new Promise(r => setTimeout(r, 3000)); continue; }
         }
       }
 
-      // If PuLID succeeded, upload and return
+      // If Gemini personalized cover succeeded, upload and return
       if (imageUrl) {
         const base64Content = imageUrl.includes(",") ? imageUrl.split(",")[1] : imageUrl;
         const binaryString = atob(base64Content);
@@ -258,7 +258,7 @@ FULL BODY head to toe, feet GROUNDED. NEGATIVE: realistic, semi-realistic, real 
           .update({ cover_url: fullCoverUrl })
           .eq("id", storyId);
 
-        console.log(`✅ Personalized cover generated via Flux Kontext for story ${storyId}`);
+        console.log(`✅ Personalized cover generated via Gemini for story ${storyId}`);
 
         return new Response(
           JSON.stringify({ success: true, coverUrl: fullCoverUrl }),
@@ -266,7 +266,7 @@ FULL BODY head to toe, feet GROUNDED. NEGATIVE: realistic, semi-realistic, real 
         );
       }
 
-      console.warn("Flux Kontext cover failed, falling back to Gemini cover generation");
+      console.warn("Gemini personalized cover failed, falling back to generic Gemini cover");
     }
 
     // === FALLBACK / DEFAULT: Gemini-based cover with Sol character ===
