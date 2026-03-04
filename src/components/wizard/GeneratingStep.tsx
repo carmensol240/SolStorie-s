@@ -417,7 +417,7 @@ const GeneratingStep = ({ formData, onComplete }: GeneratingStepProps) => {
         </div>
 
         <p className="text-sm font-medium text-purple-600/80">
-          {currentChar.name} מכינ/ה את האיורים... 🎨
+          {currentChar.name} {currentChar.verb} את האיורים... 🎨
         </p>
 
         {/* Progress bar */}
