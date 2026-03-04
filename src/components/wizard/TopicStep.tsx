@@ -214,7 +214,7 @@ const TopicStep = ({ formData, updateFormData }: TopicStepProps) => {
                 )}
 
                 {/* Topics grid */}
-                <div className="grid grid-cols-2 gap-3">
+                <div className="grid grid-cols-2 gap-2">
                   {visibleTopics.filter(t => !t.featured || isExpanded).map((topic) => (
                     <SimpleTile key={topic.id} topic={topic} isSelected={formData.topic === topic.id} onSelect={() => handleTopicSelect(topic)} />
                   ))}

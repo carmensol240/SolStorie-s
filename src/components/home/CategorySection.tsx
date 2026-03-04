@@ -50,8 +50,8 @@ const CategorySection = ({ section, colorClass, bgClass, borderClass }: Category
                 onClick={() => navigate("/create", { state: { preselectedTopic: topic.id } })}
                 className="rounded-xl overflow-hidden shadow-sm border border-border bg-card hover:shadow-md hover:scale-[1.02] transition-all text-right"
               >
-                <div className="aspect-square w-full bg-muted/20 flex items-center justify-center overflow-hidden">
-                  <img src={topic.image} alt={topic.label} className="w-full h-full object-contain" loading="lazy" />
+                <div className="aspect-square w-full flex items-center justify-center overflow-hidden">
+                  <img src={topic.image} alt={topic.label} className="w-full h-full object-cover" loading="lazy" />
                 </div>
                 <div className="p-2.5">
                   <h3 className="text-sm font-bold text-foreground leading-tight">{topic.label}</h3>
