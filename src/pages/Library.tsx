@@ -270,7 +270,7 @@ const Library = () => {
         </div>
 
         {/* Stories content */}
-        {isLoading ? (
+        {isLoading || authLoading ? (
           <LoadingSkeleton />
         ) : stories.length === 0 ? (
           <EmptyState onCreateClick={() => navigate("/create")} />
