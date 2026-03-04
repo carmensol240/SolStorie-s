@@ -338,6 +338,146 @@ async function generateIllustration(
   }
 }
 
+// Camera angles rotated per page to ensure visual variety
+const CAMERA_ANGLES = [
+  "close-up portrait shot focusing on the character's face and upper body",
+  "wide establishing shot showing the full scene and environment",
+  "medium shot from waist up with environment visible behind",
+  "bird's eye view looking down at the scene from above",
+  "low angle shot looking up at the character heroically",
+  "over-the-shoulder shot from behind the character looking at the scene ahead",
+];
+
+const LIGHTING_OPTIONS = [
+  "warm golden sunlight with soft shadows",
+  "soft diffused daylight with pastel tones",
+  "dramatic side lighting with rich contrast",
+  "magical glowing light from enchanted objects",
+  "cozy warm indoor lamplight",
+  "bright cheerful midday sun with vivid colors",
+];
+
+interface SceneAnalysis {
+  scene_action: string;
+  environment: string;
+  camera_angle: string;
+  lighting: string;
+  mood: string;
+  character_action: string;
+}
+
+// Analyze page text with Gemini Flash to extract rich scene details
+async function analyzePageScene(
+  pageText: string,
+  pageNumber: number,
+  totalPages: number,
+  topic: string,
+  apiKey: string
+): Promise<SceneAnalysis | null> {
+  try {
+    // Enforce camera angle rotation so consecutive pages never share the same angle
+    const forcedAngle = CAMERA_ANGLES[pageNumber % CAMERA_ANGLES.length];
+    const forcedLighting = LIGHTING_OPTIONS[(pageNumber + 2) % LIGHTING_OPTIONS.length];
+
+    const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+      method: "POST",
+      signal: AbortSignal.timeout(10_000),
+      headers: {
+        Authorization: `Bearer ${apiKey}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        model: "google/gemini-2.5-flash-lite",
+        messages: [
+          {
+            role: "system",
+            content: `You are a children's book illustrator director. Given a page of Hebrew children's story text, extract a vivid visual scene description for an illustration. Be specific and concrete — avoid generic descriptions. Each page must look completely different.`
+          },
+          {
+            role: "user",
+            content: `Story topic: "${topic}"
+Page ${pageNumber} of ${totalPages}.
+Text: "${pageText}"
+
+Analyze this page and extract the visual scene. The camera angle MUST be: "${forcedAngle}". The lighting MUST be: "${forcedLighting}".`
+          }
+        ],
+        tools: [
+          {
+            type: "function",
+            function: {
+              name: "describe_scene",
+              description: "Extract a detailed visual scene description from children's story page text",
+              parameters: {
+                type: "object",
+                properties: {
+                  scene_action: {
+                    type: "string",
+                    description: "What is happening in this specific scene — describe the main event/action vividly in English (e.g., 'discovering a hidden cave behind a waterfall with glowing crystals inside')"
+                  },
+                  environment: {
+                    type: "string",
+                    description: "Detailed environment/background description in English (e.g., 'a lush enchanted forest clearing with giant mushrooms, fireflies, and a sparkling stream')"
+                  },
+                  camera_angle: {
+                    type: "string",
+                    description: "The exact camera angle provided — use it as-is"
+                  },
+                  lighting: {
+                    type: "string",
+                    description: "The exact lighting description provided — use it as-is"
+                  },
+                  mood: {
+                    type: "string",
+                    description: "The emotional mood of the scene in English (e.g., 'wonderous and magical', 'tense but hopeful', 'joyful and celebratory')"
+                  },
+                  character_action: {
+                    type: "string",
+                    description: "Exactly what the main character is physically doing in English (e.g., 'kneeling down and reaching into a glowing pool of water', 'running with arms spread wide like airplane wings')"
+                  }
+                },
+                required: ["scene_action", "environment", "camera_angle", "lighting", "mood", "character_action"],
+                additionalProperties: false
+              }
+            }
+          }
+        ],
+        tool_choice: { type: "function", function: { name: "describe_scene" } },
+      }),
+    });
+
+    if (!response.ok) {
+      console.warn(`Scene analysis failed (${response.status}), using fallback`);
+      return null;
+    }
+
+    const data = await response.json();
+    const toolCall = data.choices?.[0]?.message?.tool_calls?.[0];
+    if (toolCall?.function?.arguments) {
+      const scene = JSON.parse(toolCall.function.arguments) as SceneAnalysis;
+      // Enforce the rotated angle/lighting even if AI ignored it
+      scene.camera_angle = forcedAngle;
+      scene.lighting = forcedLighting;
+      console.log(`🎬 Page ${pageNumber} scene: ${scene.character_action} in ${scene.environment.substring(0, 60)}...`);
+      return scene;
+    }
+
+    return null;
+  } catch (error) {
+    console.warn(`Scene analysis error for page ${pageNumber}:`, error);
+    return null;
+  }
+}
+
+// Build a rich, unique prompt from AI scene analysis
+function buildScenePrompt(
+  scene: SceneAnalysis,
+  characterDesc: string,
+  originalPrompt: string
+): string {
+  return `${characterDesc}, ${scene.character_action}, ${scene.scene_action}, in ${scene.environment}, ${scene.camera_angle}, ${scene.lighting}, ${scene.mood} mood, 3D Disney Pixar cartoon animation style, vibrant rich saturated colors, adorable cartoon doll characters with big expressive eyes, full body head to toe with feet grounded on surface, clean sharp rendering`;
+}
+
 // Helper function to upload base64 image to Supabase Storage
 // Returns the storage PATH (not URL) for private bucket access via signed URLs
 async function uploadImageToStorage(
