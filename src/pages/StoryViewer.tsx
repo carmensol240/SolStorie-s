@@ -476,22 +476,6 @@ const StoryViewer = () => {
         pollingIntervalRef.current = setInterval(pollForUpdates, 3000);
       }
       
-      // Fetch child avatar if child_id exists
-      const childId = (storyData as any).child_id;
-      if (childId) {
-        try {
-          const { data: childData } = await supabase
-            .from('children')
-            .select('avatar_url')
-            .eq('id', childId)
-            .maybeSingle();
-          if (childData?.avatar_url) {
-            setChildAvatarUrl(getPublicIllustrationUrl(childData.avatar_url));
-          }
-        } catch (e) {
-          console.log('Could not fetch child avatar:', e);
-        }
-      }
 
       if (resolvedStoryId) {
         cacheStory(resolvedStoryId, storyObj);
