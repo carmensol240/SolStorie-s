@@ -235,7 +235,7 @@ FULL BODY head to toe, feet GROUNDED for ALL characters. NEGATIVE: realistic, se
           bytes[i] = binaryString.charCodeAt(i);
         }
 
-        const filePath = `${storyId}/cover.png`;
+        const filePath = `${storyId}/cover-${Date.now()}.png`;
         const { error: uploadError } = await supabase.storage
           .from("story-illustrations")
           .upload(filePath, bytes, { contentType: "image/png", upsert: true });
