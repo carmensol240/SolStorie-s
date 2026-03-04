@@ -223,7 +223,7 @@ export const CHARACTER_SECTIONS: CharacterSection[] = [
     topics: [
       { id: "waiting-in-line-edu", label: "⏰ המתנה בתור – מתי מגיע תורי?", description: "סיפור העצמה חברתי: למה חשוב לחכות, איך עושים את זה ומה מרוויחים כשממתינים בסבלנות.", image: topicWaitingInLine, ageRange: "3-6" },
       { id: "emotion-regulation-edu", label: "🌊 ויסות רגשות – לנשום ולהירגע", description: "סיפור העצמה חברתי: כלים מעשיים לזהות את הרגש, לנשום ולמצוא דרך בריאה לבטא כעס ותסכול.", image: topicEmotionRegulation, ageRange: "3-8" },
-      { id: "holidays-seasons-edu", label: "🗓️ מעגל השנה – חגים ועונות", description: "סיפור העצמה חברתי: סיפורים על מעגל השנה, חגים, עונות, מסורות ומנהגים שמלווים אותנו.", image: topicRainParty, ageRange: "3-8" },
+      { id: "holidays-seasons-edu", label: "🗓️ מעגל השנה – חגים ועונות", description: "סיפור העצמה חברתי: סיפורים על מעגל השנה, חגים, עונות, מסורות ומנהגים שמלווים אותנו.", image: topicHolidaysSeasons, ageRange: "3-8" },
       { id: "play-rules-edu", label: "🎲 כללי משחק – לשחק בהוגנות", description: "סיפור העצמה חברתי: לחכות לתור, לא לרמות, לשמוח בהצלחה של חברים ולקבל הפסד בכבוד.", image: topicPlayRules, ageRange: "3-6" },
       { id: "self-confidence-edu", label: "💪 ביטחון עצמי – אני יכול/ה!", description: "סיפור העצמה חברתי: להאמין בעצמי, לנסות דברים חדשים ולדעת שאני מסוגל/ת.", image: topicSelfConfidence, ageRange: "3-8" },
       { id: "honesty-edu", label: "🪄 כנות – לומר את האמת בעדינות", description: "סיפור העצמה חברתי: ילדים רבים מרגישים שקשה לומר את האמת. כשהאמת נאמרת בעדינות, היחסים נשארים חזקים והלב קל.", image: topicApologize, ageRange: "3-8", keywords: ["אמת", "כנות", "מיומנות חברתית"] },
