@@ -1173,8 +1173,8 @@ const StoryViewer = () => {
                       )}
                     </div>
 
-                    {/* Short text (20%) */}
-                    <div className="flex-[2] min-h-0 flex items-center justify-center px-6 py-2">
+                    {/* Short text (~11%) */}
+                    <div className="flex-[1.5] min-h-0 flex items-center justify-center px-6 py-2">
                       <p className={cn(
                         "text-[#3D2914] text-center font-bold transition-all whitespace-pre-line",
                         "text-2xl md:text-3xl"
