@@ -43,7 +43,7 @@ import PdfFeaturePopup from "@/components/story/PdfFeaturePopup";
 
 import "./StoryViewer.css";
 import { translateTopic } from "@/lib/topic-translations";
-import solMagicBookCover from "@/assets/sol-magic-book-cover.png";
+// solMagicBookCover removed — cover now uses first page illustration
 import { useChildAvatar } from "@/hooks/use-child-avatar";
 
 import castWavingFarewell from "@/assets/cast-waving-farewell.png";
@@ -850,15 +850,14 @@ const StoryViewer = () => {
   }
 
   // Virtual page indexing:
-  // -1 = cover, 0 = dedication, 1..N = virtual pages, N+1 = closing, N+2 = end/feedback
+  // -1 = cover (merged with dedication), 0..N-1 = virtual pages, N = closing, N+1 = end/feedback
   const totalVirtualPages = virtualPages.length;
   const isCoverPage = currentPage === -1;
-  const isDedicationPage = currentPage === 0;
-  const isClosingPage = currentPage === totalVirtualPages + 1;
-  const isEndPage = currentPage >= totalVirtualPages + 2;
-  const isContentPage = currentPage >= 1 && currentPage <= totalVirtualPages;
+  const isClosingPage = currentPage === totalVirtualPages;
+  const isEndPage = currentPage >= totalVirtualPages + 1;
+  const isContentPage = currentPage >= 0 && currentPage < totalVirtualPages;
 
-  const currentVirtual = isContentPage ? virtualPages[currentPage - 1] : null;
+  const currentVirtual = isContentPage ? virtualPages[currentPage] : null;
   // For editing/nikud, get the underlying DB page
   const page = currentVirtual ? currentVirtual.dbPage : null;
   const currentFontSize = FONT_SIZES[fontSizeIndex];
@@ -868,7 +867,7 @@ const StoryViewer = () => {
   const handlePageNav = (direction: 'next' | 'prev') => {
     if (isFlipping) return;
     
-    const maxPage = totalVirtualPages + 2;
+    const maxPage = totalVirtualPages + 1;
     
     if (direction === 'next' && currentPage >= maxPage) return;
     if (direction === 'prev' && currentPage <= -1) return;
@@ -934,113 +933,65 @@ const StoryViewer = () => {
           )}>
             
             {isCoverPage ? (
-              /* Cover Page - Sol with magical book as full background */
-              <div className="relative flex flex-col h-full">
-                {/* Full background image */}
-                <img
-                  src={solMagicBookCover}
-                  alt="סול עם הספר הקסום"
-                  className="absolute inset-0 w-full h-full object-cover"
-                  loading="eager"
-                />
-                {/* Dark gradient overlay for text readability */}
-                <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent" />
-                
-                {/* Content overlay at bottom */}
-                <div className="relative z-10 mt-auto flex flex-col items-center text-center px-6 pb-8 pt-4">
-                  <div className="space-y-2">
-                    <h1 className="text-xl md:text-3xl font-black text-white leading-tight drop-shadow-lg" style={{ fontFamily: "'Heebo', 'Comic Sans MS', cursive, sans-serif" }}>
-                      הַסִּפּוּר שֶׁל
-                      <br />
-                      <span className="text-2xl md:text-4xl bg-gradient-to-r from-purple-300 via-pink-300 to-orange-300 bg-clip-text text-transparent drop-shadow-lg">
-                        {story.child_name}
-                      </span>
-                    </h1>
-                    
-                    <div className="flex items-center justify-center gap-3">
-                      <div className="w-10 h-0.5 bg-gradient-to-r from-transparent to-pink-300 rounded-full" />
-                      <span className="text-lg">✨</span>
-                      <div className="w-10 h-0.5 bg-gradient-to-l from-transparent to-pink-300 rounded-full" />
-                    </div>
-                    
-                    <p className="text-sm md:text-base text-white/90 max-w-sm mx-auto font-medium leading-relaxed drop-shadow-md">
-                      {translateTopic(story.topic, story.language)}
-                    </p>
-                  </div>
-                  
-                  <Button 
-                    size="lg"
-                    onClick={() => handlePageNav('next')}
-                    className="mt-4 shrink-0 bg-gradient-to-r from-purple-600 to-pink-500 hover:from-purple-700 hover:to-pink-600 text-white font-bold px-6 py-3 text-sm md:text-base rounded-full shadow-xl hover:shadow-2xl transition-all transform hover:scale-105 border-2 border-white/50"
-                  >
-                    <BookOpen className="w-4 h-4 ml-2" />
-                    פִּתְחוּ אֶת הַסֵּפֶר 📖
-                  </Button>
-                  
-                  <span className="mt-3 text-lg font-black logo-3d-bubble"><span className="logo-rainbow">SolStorie's™</span></span>
-                </div>
-              </div>
-
-            ) : isDedicationPage ? (
-              /* Dedication Page — Dynamic themed background with child avatar */
+              /* Cover Page — merged with dedication: first illustration as bg + child avatar */
               (() => {
-                const theme = getTopicTheme(story.topic);
-                const isDarkBg = theme.bg.includes('#1a1a4e') || theme.bg.includes('#0c1445') || theme.bg.includes('#134E5E');
+                const firstIllustration = virtualPages[0]?.illustrationUrl
+                  ? getPublicIllustrationUrl(virtualPages[0].illustrationUrl)
+                  : null;
                 return (
-                  <div className="relative flex-1 flex flex-col items-center justify-center text-center h-full px-8 py-8 overflow-hidden" style={{ background: theme.bg }}>
-                    {/* Sparkle overlay */}
-                    <div className="absolute inset-0 overflow-hidden pointer-events-none">
-                      {[...Array(12)].map((_, i) => (
-                        <div key={i} className="absolute rounded-full animate-pulse" style={{
-                          width: `${4 + Math.random() * 6}px`,
-                          height: `${4 + Math.random() * 6}px`,
-                          top: `${Math.random() * 100}%`,
-                          left: `${Math.random() * 100}%`,
-                          background: isDarkBg ? 'rgba(255,255,255,0.5)' : 'rgba(255,255,255,0.7)',
-                          animationDelay: `${Math.random() * 3}s`,
-                          animationDuration: `${2 + Math.random() * 2}s`,
-                        }} />
-                      ))}
-                    </div>
+                  <div className="relative flex flex-col h-full">
+                    {/* Full background — first page illustration */}
+                    {firstIllustration ? (
+                      <img
+                        src={firstIllustration}
+                        alt="כריכת הסיפור"
+                        className="absolute inset-0 w-full h-full object-cover"
+                        loading="eager"
+                      />
+                    ) : (
+                      <div className="absolute inset-0 bg-gradient-to-br from-purple-200 via-pink-100 to-orange-100" />
+                    )}
+                    {/* Dark gradient overlay */}
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/30 to-black/10" />
 
-                    <div className="relative z-10 space-y-5 max-w-md mx-auto flex flex-col items-center">
-                      {/* Topic emoji */}
-                      <span className="text-7xl animate-bounce" style={{ animationDuration: '2s' }}>{theme.emoji}</span>
-
-                      {/* Child avatar — always present, large and prominent */}
-                      <div className="relative">
-                        <div className="w-44 h-44 rounded-full overflow-hidden border-[6px] border-white/90 shadow-2xl" style={{
-                          boxShadow: '0 0 40px rgba(255,255,255,0.5), 0 0 80px rgba(168,85,247,0.35), 0 0 120px rgba(236,72,153,0.2)',
-                        }}>
-                          <img src={childAvatarUrl || ''} alt={story.child_name} className="w-full h-full object-cover" />
+                    {/* Content overlay — centered */}
+                    <div className="relative z-10 flex-1 flex flex-col items-center justify-center text-center px-6">
+                      {/* Child avatar — large and prominent */}
+                      {childAvatarUrl && (
+                        <div className="relative mb-4">
+                          <div className="w-36 h-36 rounded-full overflow-hidden border-4 border-white/90 shadow-2xl" style={{
+                            boxShadow: '0 0 30px rgba(255,255,255,0.4), 0 0 60px rgba(168,85,247,0.3), 0 0 90px rgba(236,72,153,0.15)',
+                          }}>
+                            <img src={childAvatarUrl} alt={story.child_name} className="w-full h-full object-cover" />
+                          </div>
+                          <div className="absolute -bottom-1 -right-1 text-2xl drop-shadow-lg">⭐</div>
                         </div>
-                        <div className="absolute -bottom-2 -right-2 text-3xl drop-shadow-lg">⭐</div>
-                      </div>
+                      )}
 
                       {/* Dedication text */}
-                      <div className="space-y-2">
-                        <p className={cn("text-lg md:text-xl font-medium", isDarkBg ? "text-white/90" : "text-[#6B4423]")} dir="rtl">
-                          הספר הזה נוצר במיוחד עבורך,
-                        </p>
-                        <p className="text-3xl md:text-5xl font-black bg-gradient-to-r from-purple-400 via-pink-400 to-orange-300 bg-clip-text text-transparent drop-shadow-lg" dir="rtl">
-                          {story.child_name} ❤️
-                        </p>
-                      </div>
+                      <p className="text-base md:text-lg text-white/90 font-medium drop-shadow-md" dir="rtl">
+                        הספר הזה נוצר במיוחד עבורך,
+                      </p>
+                      <p className="text-2xl md:text-4xl font-black bg-gradient-to-r from-purple-300 via-pink-300 to-orange-300 bg-clip-text text-transparent drop-shadow-lg mt-1" dir="rtl">
+                        {story.child_name} ❤️
+                      </p>
 
-                      {/* Decorative divider */}
-                      <div className="flex items-center justify-center gap-3 pt-1">
-                        <div className={cn("w-10 h-0.5 rounded-full", isDarkBg ? "bg-white/30" : "bg-pink-300/60")} />
-                        <span className="text-base">💕</span>
-                        <div className={cn("w-10 h-0.5 rounded-full", isDarkBg ? "bg-white/30" : "bg-pink-300/60")} />
-                      </div>
-
-                      <p className={cn("text-sm", isDarkBg ? "text-white/60" : "text-[#8B6914]/60")} dir="rtl">
+                      <p className="text-sm text-white/70 mt-2 drop-shadow-md">
                         {translateTopic(story.topic, story.language)}
                       </p>
                     </div>
 
-                    <div className="absolute bottom-6 left-0 right-0 flex flex-col items-center gap-1">
-                      <span className="text-base font-black logo-3d-bubble"><span className="logo-rainbow">SolStorie's™</span></span>
+                    {/* Bottom section — button + logo */}
+                    <div className="relative z-10 flex flex-col items-center pb-6 px-6">
+                      <Button
+                        size="lg"
+                        onClick={() => handlePageNav('next')}
+                        className="bg-gradient-to-r from-purple-600 to-pink-500 hover:from-purple-700 hover:to-pink-600 text-white font-bold px-6 py-3 text-sm md:text-base rounded-full shadow-xl hover:shadow-2xl transition-all transform hover:scale-105 border-2 border-white/50"
+                      >
+                        <BookOpen className="w-4 h-4 ml-2" />
+                        פִּתְחוּ אֶת הַסֵּפֶר 📖
+                      </Button>
+                      <span className="mt-3 text-lg font-black logo-3d-bubble"><span className="logo-rainbow">SolStorie's™</span></span>
                     </div>
                   </div>
                 );
@@ -1193,7 +1144,7 @@ const StoryViewer = () => {
                     </p>
                   </div>
                   <div className="flex flex-col items-center gap-1 pt-2 shrink-0">
-                    <span className="text-xs text-white/60 font-light tracking-wide">{currentPage} / {totalVirtualPages}</span>
+                    <span className="text-xs text-white/60 font-light tracking-wide">{currentPage + 1} / {totalVirtualPages}</span>
                   </div>
                 </div>
               </div>
@@ -1205,7 +1156,7 @@ const StoryViewer = () => {
             {/* Next (RTL: left arrow = next) */}
             <button
               onClick={() => handlePageNav('next')}
-              disabled={currentPage >= totalVirtualPages + 2 || isFlipping}
+              disabled={currentPage >= totalVirtualPages + 1 || isFlipping}
               className="nav-arrow-btn"
               aria-label="עמוד הבא"
             >
@@ -1215,7 +1166,7 @@ const StoryViewer = () => {
             {/* Page indicator */}
             <div className="dot-indicator">
               <span className="text-xs text-gray-400">
-                {isCoverPage ? '' : isDedicationPage ? 'הקדשה' : isClosingPage ? 'סיום' : isEndPage ? 'סוף' : `${currentPage} / ${totalVirtualPages}`}
+                {isCoverPage ? '' : isClosingPage ? 'סיום' : isEndPage ? 'סוף' : `${currentPage + 1} / ${totalVirtualPages}`}
               </span>
             </div>
 

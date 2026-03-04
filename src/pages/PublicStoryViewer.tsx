@@ -169,21 +169,36 @@ const PublicStoryViewer = () => {
                 {coverIllustration ? (
                   <img src={coverIllustration} alt="כריכה" className="absolute inset-0 w-full h-full object-cover" />
                 ) : (
-                  <div className="absolute inset-0 bg-gradient-to-br from-purple-100 via-pink-50 to-orange-50 flex items-center justify-center">
-                    <BookOpen className="w-20 h-20 text-purple-300" />
-                  </div>
+                  <div className="absolute inset-0 bg-gradient-to-br from-purple-200 via-pink-100 to-orange-100" />
                 )}
-                <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent" />
-                <div className="absolute bottom-0 left-0 right-0 z-10 flex flex-col items-center text-center p-6 md:p-10">
-                  <p className="text-sm text-white/80 drop-shadow-md">✦ סיפור מיוחד ✦</p>
-                  <h2 className="text-2xl md:text-4xl font-bold text-white drop-shadow-lg mt-2">הסיפור של</h2>
-                  <h3 className="text-3xl md:text-5xl font-bold text-purple-200 drop-shadow-lg mt-1">{story.child_name}</h3>
-                  <p className="text-lg text-white/90 drop-shadow-md mt-2">{story.topic}</p>
+                <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/30 to-black/10" />
+
+                {/* Content — avatar + dedication + button */}
+                <div className="relative z-10 h-full flex flex-col items-center justify-center text-center px-6">
+                  {/* Avatar fallback — first letter of child name */}
+                  <div className="w-28 h-28 rounded-full overflow-hidden border-4 border-white/90 shadow-2xl mb-3 flex items-center justify-center bg-gradient-to-br from-purple-400 to-pink-400" style={{
+                    boxShadow: '0 0 30px rgba(255,255,255,0.4), 0 0 60px rgba(168,85,247,0.3)',
+                  }}>
+                    <span className="text-5xl font-black text-white drop-shadow-lg">{story.child_name?.[0]}</span>
+                  </div>
+
+                  <p className="text-base text-white/90 font-medium drop-shadow-md" dir="rtl">
+                    הספר הזה נוצר במיוחד עבורך,
+                  </p>
+                  <p className="text-2xl md:text-4xl font-black bg-gradient-to-r from-purple-300 via-pink-300 to-orange-300 bg-clip-text text-transparent drop-shadow-lg mt-1">
+                    {story.child_name} ❤️
+                  </p>
+                  <p className="text-sm text-white/70 mt-2 drop-shadow-md">{story.topic}</p>
                 </div>
-                <button onClick={() => handlePageNav('next')} aria-label="התחל לקרוא"
-                  className="absolute left-3 top-1/2 -translate-y-1/2 z-20 w-8 h-8 rounded-full flex items-center justify-center bg-white/20 hover:bg-white/40 text-white transition-all">
-                  <ChevronLeft className="w-5 h-5" />
-                </button>
+
+                {/* Bottom — open button */}
+                <div className="absolute bottom-6 left-0 right-0 z-10 flex flex-col items-center">
+                  <button onClick={() => handlePageNav('next')} aria-label="התחל לקרוא"
+                    className="bg-gradient-to-r from-purple-600 to-pink-500 text-white font-bold px-6 py-3 rounded-full shadow-xl hover:shadow-2xl transition-all border-2 border-white/50 text-sm">
+                    📖 פִּתְחוּ אֶת הַסֵּפֶר
+                  </button>
+                  <span className="mt-2 text-xs text-white/60 font-bold">SolStorie's™</span>
+                </div>
               </div>
             )}
 

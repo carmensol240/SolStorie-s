@@ -1,28 +1,26 @@
 
 
-## איחוד כריכה + הקדשה למסך אחד
+## Bug Analysis
 
-### מה ישתנה
+The onboarding loop is caused by a combination of issues in the navigation flow between `RequireTerms` and `Onboarding`:
 
-**קובץ: `src/pages/StoryViewer.tsx`**
+1. **Silent update failure**: In `Onboarding.handleContinue`, the Supabase `.update().eq()` call returns success (`error: null`) even when **zero rows are matched** (e.g., due to a race condition where the profile hasn't been created yet). The code doesn't verify the update actually persisted.
 
-1. **מסך כריכה חדש (שורות 936-982)** — במקום תמונת Sol הקבועה:
-   - **רקע:** איור עמוד 1 של הסיפור (`virtualPages[0]?.illustrationUrl`) ממלא את כל הדף
-   - **אוואטר הילד:** גדול במרכז (w-36 h-36) עם מסגרת לבנה וזוהר, בדיוק כמו בעמוד ההקדשה הנוכחי
-   - **טקסט הקדשה:** מתחת לאוואטר — "הספר הזה נוצר במיוחד עבורך, [שם] ❤️" בפונט קטן
-   - **כפתור "פתחו את הספר"** בתחתית
-   - **SolStorie's™** לוגו
+2. **No `replace: true` on redirects**: Both `RequireTerms` (redirecting to `/onboarding`) and `Onboarding`'s guard effect (redirecting to `/adventure`) use `navigate()` without `{ replace: true }`, causing history stack pollution and making the loop worse.
 
-2. **מחיקת מסך ההקדשה (שורות 984-1047)** — הסרת הבלוק `isDedicationPage` לחלוטין
+3. **Loop mechanics**: `handleContinue` thinks it succeeded → navigates to `/adventure` → `RequireTerms` queries DB → `terms_accepted_at` is still null → redirects back to `/onboarding` → Onboarding guard checks terms → still null → shows the form again.
 
-3. **עדכון לוגיקת הדפים (שורה 856):**
-   - הסרת `isDedicationPage` — עמוד 0 הופך לעמוד תוכן רגיל
-   - `isClosingPage` ו-`isEndPage` יזוזו מינוס 1 (כי אין יותר עמוד הקדשה)
-   - עדכון ה-dot indicator בהתאם
+## Fix
 
-4. **עדכון PublicStoryViewer** — אותו שינוי לכריכה (איור רקע + שם הילד בעיגול צבעוני כ-fallback)
+### 1. `src/pages/Onboarding.tsx` — Verify update actually persisted
 
-### קבצים
-- `src/pages/StoryViewer.tsx`
-- `src/pages/PublicStoryViewer.tsx`
+In `handleContinue`, after the update call, re-query the profile to confirm `terms_accepted_at` was saved. If not, use `upsert` as a fallback. Also add `{ replace: true }` to the guard navigation.
+
+### 2. `src/components/RequireTerms.tsx` — Use `replace: true`
+
+Change the `navigate` call to onboarding to use `{ replace: true }` so the history stack doesn't accumulate redirect entries.
+
+### 3. Both files — Add select return on update
+
+Use `.update(...).eq(...).select()` to get the updated row back, confirming the write succeeded. If the returned array is empty, fall back to an upsert to handle the edge case where the profile row doesn't exist yet.
 
