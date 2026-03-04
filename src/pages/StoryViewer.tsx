@@ -1149,8 +1149,8 @@ const StoryViewer = () => {
                 {currentVirtual.type === 'combined' ? (
                   /* Combined page for age 0-2: illustration1 + short text + illustration2 */
                   <div className="flex-1 flex flex-col min-h-0 w-full bg-gradient-to-br from-[#FFFBF5] to-[#F5E6D3]">
-                    {/* Top illustration (40%) */}
-                    <div className="flex-[4] min-h-0 overflow-hidden flex items-center justify-center p-2">
+                    {/* Top illustration (~44%) */}
+                    <div className="flex-[6] min-h-0 overflow-hidden flex items-center justify-center p-2">
                       {currentVirtual.dbPage.illustration_url ? (
                         <img
                           src={getPublicIllustrationUrl(currentVirtual.dbPage.illustration_url) || ''}
@@ -1165,11 +1165,16 @@ const StoryViewer = () => {
                             <p className="text-xs text-[#8B7355]" dir="rtl">מכינים איור...</p>
                           </div>
                         </div>
-                      ) : null}
+                      ) : (
+                        <div className="w-full h-full rounded-lg flex items-center justify-center"
+                          style={{ background: getTopicTheme(story?.topic || '').bg, opacity: 0.7 }}>
+                          <span className="text-5xl">{getTopicTheme(story?.topic || '').emoji}</span>
+                        </div>
+                      )}
                     </div>
 
-                    {/* Short text (20%) */}
-                    <div className="flex-[2] min-h-0 flex items-center justify-center px-6 py-2">
+                    {/* Short text (~11%) */}
+                    <div className="flex-[1.5] min-h-0 flex items-center justify-center px-6 py-2">
                       <p className={cn(
                         "text-[#3D2914] text-center font-bold transition-all whitespace-pre-line",
                         "text-2xl md:text-3xl"
@@ -1178,8 +1183,8 @@ const StoryViewer = () => {
                       </p>
                     </div>
 
-                    {/* Bottom illustration (40%) */}
-                    <div className="flex-[4] min-h-0 overflow-hidden flex items-center justify-center p-2">
+                    {/* Bottom illustration (~44%) */}
+                    <div className="flex-[6] min-h-0 overflow-hidden flex items-center justify-center p-2">
                       {currentVirtual.dbPage.illustration_url_2 ? (
                         <img
                           src={getPublicIllustrationUrl(currentVirtual.dbPage.illustration_url_2) || ''}
@@ -1194,7 +1199,12 @@ const StoryViewer = () => {
                             <p className="text-xs text-[#8B7355]" dir="rtl">מכינים איור...</p>
                           </div>
                         </div>
-                      ) : null}
+                      ) : (
+                        <div className="w-full h-full rounded-lg flex items-center justify-center"
+                          style={{ background: getTopicTheme(story?.topic || '').bg, opacity: 0.7 }}>
+                          <span className="text-5xl">{getTopicTheme(story?.topic || '').emoji}</span>
+                        </div>
+                      )}
                     </div>
 
                     {/* Page number */}
