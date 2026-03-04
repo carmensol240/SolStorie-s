@@ -1,35 +1,26 @@
 
 
-## Bug: איורים חוזרים על עצמם — שורש הבעיה ותיקון
+## Bug Analysis
 
-### שורש הבעיה
+The onboarding loop is caused by a combination of issues in the navigation flow between `RequireTerms` and `Onboarding`:
 
-ב-`generateIllustrationWithFace` (שורות 154-246), הפרומפט שנשלח ל-Flux Kontext **לא כולל את תיאור הסצנה הייחודי לכל עמוד**. הפרמטר `prompt` (שמכיל את תוצאת ניתוח הסצנה מ-`analyzePageScene`) מתקבל כארגומנט ראשון של הפונקציה אבל **לא מוזרק לתוך `fullPrompt`** שנשלח ל-FAL.
+1. **Silent update failure**: In `Onboarding.handleContinue`, the Supabase `.update().eq()` call returns success (`error: null`) even when **zero rows are matched** (e.g., due to a race condition where the profile hasn't been created yet). The code doesn't verify the update actually persisted.
 
-כלומר — כל עמוד מקבל בדיוק אותו פרומפט סטטי (תיאור דמות + סגנון + negative), בלי שום מידע על מה שקורה בסצנה. זו הסיבה שכל האיורים נראים כמעט זהים.
+2. **No `replace: true` on redirects**: Both `RequireTerms` (redirecting to `/onboarding`) and `Onboarding`'s guard effect (redirecting to `/adventure`) use `navigate()` without `{ replace: true }`, causing history stack pollution and making the loop worse.
 
-### שינויים
+3. **Loop mechanics**: `handleContinue` thinks it succeeded → navigates to `/adventure` → `RequireTerms` queries DB → `terms_accepted_at` is still null → redirects back to `/onboarding` → Onboarding guard checks terms → still null → shows the form again.
 
-**`supabase/functions/generate-illustrations/index.ts`**:
+## Fix
 
-1. **הזרקת הסצנה לפרומפט Kontext** (שורות 181-189): הוספת `SCENE: ${prompt}` לתוך `fullPrompt` בפונקציית `generateIllustrationWithFace`, בדיוק כמו שקיים ב-`generateIllustration` (שורה 281).
+### 1. `src/pages/Onboarding.tsx` — Verify update actually persisted
 
-2. **הוספת seed אקראי** (שורות 200-205): הוספת `seed: Math.floor(Math.random() * 2147483647)` לגוף הבקשה ל-Kontext כדי למנוע caching וחזרתיות.
+In `handleContinue`, after the update call, re-query the profile to confirm `terms_accepted_at` was saved. If not, use `upsert` as a fallback. Also add `{ replace: true }` to the guard navigation.
 
-3. **הוספת `guidance_scale`** לבקשת Kontext כדי לתת לפרומפט הטקסטואלי יותר השפעה על התוצאה.
+### 2. `src/components/RequireTerms.tsx` — Use `replace: true`
 
-4. **אותו תיקון ב-`retry-illustration/index.ts`**: הזרקת `SCENE:` גם שם + seed אקראי.
+Change the `navigate` call to onboarding to use `{ replace: true }` so the history stack doesn't accumulate redirect entries.
 
-### לפני (הבעיה)
-```text
-fullPrompt = "FACE REFERENCE... style... MAIN CHARACTER... outfit..."
-// ← אין SCENE, אין prompt — אותו טקסט לכל עמוד!
-```
+### 3. Both files — Add select return on update
 
-### אחרי (התיקון)
-```text
-fullPrompt = "FACE REFERENCE... style... MAIN CHARACTER... outfit...
-SCENE: ${prompt}   ← תיאור הסצנה הייחודי לכל עמוד
-seed: random       ← מונע caching"
-```
+Use `.update(...).eq(...).select()` to get the updated row back, confirming the write succeeded. If the returned array is empty, fall back to an upsert to handle the edge case where the profile row doesn't exist yet.
 
