@@ -199,14 +199,18 @@ const StoryViewer = () => {
         },
         (payload) => {
           const updated = payload.new as any;
-          if (updated?.illustration_url) {
+          if (updated?.illustration_url || updated?.illustration_url_2) {
             console.log(`[StoryViewer] Realtime: illustration ready for page ${updated.page_number}`);
             setStory(prev => {
               if (!prev) return prev;
               return {
                 ...prev,
                 pages: prev.pages.map(p =>
-                  p.id === updated.id ? { ...p, illustration_url: updated.illustration_url } : p
+                  p.id === updated.id ? { 
+                    ...p, 
+                    illustration_url: updated.illustration_url || p.illustration_url,
+                    illustration_url_2: updated.illustration_url_2 || p.illustration_url_2,
+                  } : p
                 ),
               };
             });
