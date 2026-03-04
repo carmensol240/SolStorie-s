@@ -1,48 +1,26 @@
 
 
-## תוכנית: שדרוג עיצוב הספרייה לתצוגת ספרים
+## Bug Analysis
 
-### מה ישתנה
+The onboarding loop is caused by a combination of issues in the navigation flow between `RequireTerms` and `Onboarding`:
 
-הספרייה תעבור מתצוגת רשימה (list items) לגריד של 2 עמודות, כאשר כל סיפור מעוצב כספר פיזי קטן עם אפקטים ויזואליים של עומק.
+1. **Silent update failure**: In `Onboarding.handleContinue`, the Supabase `.update().eq()` call returns success (`error: null`) even when **zero rows are matched** (e.g., due to a race condition where the profile hasn't been created yet). The code doesn't verify the update actually persisted.
 
-### שינויים
+2. **No `replace: true` on redirects**: Both `RequireTerms` (redirecting to `/onboarding`) and `Onboarding`'s guard effect (redirecting to `/adventure`) use `navigate()` without `{ replace: true }`, causing history stack pollution and making the loop worse.
 
-#### 1. קומפוננטת `StoryBookCard` חדשה (`src/components/ui/story-book-card.tsx`)
-כרטיס ספר חדש שמחליף את `StoryListItem` בספרייה:
-- כריכה גדולה שתופסת את רוב הכרטיס (~75% גובה)
-- אפקט spine בצד שמאל (פס צר עם גרדיאנט כהה שנותן תחושת שדרה)
-- פינות מעוגלות בצד ימין (`rounded-r-xl`), פחות מעוגלות בצד שמאל (`rounded-l-sm`)
-- צל עמוק מתחת לכרטיס (`shadow-xl`) + צל נוסף בצד שמאל לעומק
-- שם הסיפור בתחתית על רקע גרדיאנט שקוף (שחור→שקוף מלמטה)
-- אנימציית hover: `scale(1.03)` + צל מוגבר (אפקט "הרמת ספר")
-- תפריט 3 נקודות (MoreVertical) לעריכה/מחיקה כמו היום
-- בגוונים סגול-ורוד-כתום של האפליקציה
+3. **Loop mechanics**: `handleContinue` thinks it succeeded → navigates to `/adventure` → `RequireTerms` queries DB → `terms_accepted_at` is still null → redirects back to `/onboarding` → Onboarding guard checks terms → still null → shows the form again.
 
-#### 2. עדכון `renderStoryList` ב-`Library.tsx`
-- שינוי מ-`flex flex-col gap-2` לגריד: `grid grid-cols-2 gap-3`
-- שימוש ב-`StoryBookCard` במקום `StoryListItem`
-- עדכון ה-`LoadingSkeleton` בהתאם לגריד 2 עמודות עם צורת ספר
+## Fix
 
-#### 3. סגנונות CSS
-- אנימציית hover מותאמת אישית ב-Tailwind (`transition-transform duration-200`)
-- אפקט spine באמצעות pseudo-element או div נוסף בצד שמאל
+### 1. `src/pages/Onboarding.tsx` — Verify update actually persisted
 
-### מבנה כרטיס הספר
+In `handleContinue`, after the update call, re-query the profile to confirm `terms_accepted_at` was saved. If not, use `upsert` as a fallback. Also add `{ replace: true }` to the guard navigation.
 
-```text
-┌──────────────────┐
-│                  │▌  ← spine (פס כהה צר)
-│   [כריכה/איור]   │▌
-│                  │▌
-│                  │▌
-├──────────────────┤▌
-│ ░░ שם הסיפור ░░ │▌  ← גרדיאנט שקוף
-└──────────────────┘
-     ████████         ← צל עמוק
-```
+### 2. `src/components/RequireTerms.tsx` — Use `replace: true`
 
-### קבצים שישתנו
-- **חדש**: `src/components/ui/story-book-card.tsx`
-- **עדכון**: `src/pages/Library.tsx` (renderStoryList + LoadingSkeleton)
+Change the `navigate` call to onboarding to use `{ replace: true }` so the history stack doesn't accumulate redirect entries.
+
+### 3. Both files — Add select return on update
+
+Use `.update(...).eq(...).select()` to get the updated row back, confirming the write succeeded. If the returned array is empty, fall back to an upsert to handle the edge case where the profile row doesn't exist yet.
 
