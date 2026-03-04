@@ -81,18 +81,25 @@ const PublicStoryViewer = () => {
     if (!story) return [];
     const result: VirtualPage[] = [];
     for (const page of story.pages) {
-      result.push({
-        type: 'illustration',
-        dbPage: page,
-        text: page.text,
-        illustrationUrl: page.illustration_url,
-      });
-      result.push({
-        type: 'text',
-        dbPage: page,
-        text: page.text,
-        illustrationUrl: null,
-      });
+      const hasText = page.text && page.text.trim().length > 0;
+      const hasIllustration = !!page.illustration_url;
+      // First: text page, then illustration
+      if (hasText) {
+        result.push({
+          type: 'text',
+          dbPage: page,
+          text: page.text,
+          illustrationUrl: null,
+        });
+      }
+      if (hasIllustration) {
+        result.push({
+          type: 'illustration',
+          dbPage: page,
+          text: page.text,
+          illustrationUrl: page.illustration_url,
+        });
+      }
     }
     return result;
   }, [story]);
