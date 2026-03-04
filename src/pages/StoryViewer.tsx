@@ -783,53 +783,21 @@ const StoryViewer = () => {
     }
   }, [generationStatus, story, userStartedReading]);
 
-  // Build virtual pages: 2 text pages then 1 full-screen illustration, repeating
-  type VirtualPage =
-    | { type: 'text'; dbPage: StoryPage }
-    | { type: 'illustration'; illustrationUrl: string | null; illustrationPrompt: string | null; dbPage: StoryPage };
-
-  const isToddlerStory = story?.age_range === '0-2';
+  // Build virtual pages: 1:1 mapping — each DB page = one combined page (illustration + text)
+  type VirtualPage = {
+    dbPage: StoryPage;
+    illustrationUrl: string | null;
+    illustrationPrompt: string | null;
+  };
 
   const virtualPages: VirtualPage[] = useMemo(() => {
     if (!story || story.pages.length === 0) return [];
-    const result: VirtualPage[] = [];
-    const dbPages = story.pages;
-
-    if (isToddlerStory) {
-      // Age 0-2: each DB page gets a text page + illustration page (illustration fills 65%+ of screen)
-      for (const page of dbPages) {
-        result.push({ type: 'text', dbPage: page });
-        if (page.illustration_url || page.illustration_prompt) {
-          result.push({ type: 'illustration', illustrationUrl: page.illustration_url, illustrationPrompt: page.illustration_prompt || null, dbPage: page });
-        }
-      }
-    } else {
-      // Standard layout: 2 text pages then 1 illustration
-      for (let i = 0; i < dbPages.length; i++) {
-        result.push({ type: 'text', dbPage: dbPages[i] });
-
-        const textCount = result.filter(p => p.type === 'text').length;
-        if (textCount % 2 === 0 || i === dbPages.length - 1) {
-          const batchStart = i === dbPages.length - 1 && textCount % 2 !== 0 ? i : Math.max(0, i - 1);
-          let illUrl: string | null = null;
-          let illPrompt: string | null = null;
-          let illDbPage = dbPages[i];
-          for (let j = batchStart; j <= i; j++) {
-            if (dbPages[j].illustration_url || dbPages[j].illustration_prompt) {
-              illUrl = dbPages[j].illustration_url;
-              illPrompt = dbPages[j].illustration_prompt || null;
-              illDbPage = dbPages[j];
-            }
-          }
-          if (illUrl || illPrompt) {
-            result.push({ type: 'illustration', illustrationUrl: illUrl, illustrationPrompt: illPrompt, dbPage: illDbPage });
-          }
-        }
-      }
-    }
-
-    return result;
-  }, [story?.pages, isToddlerStory]);
+    return story.pages.map(page => ({
+      dbPage: page,
+      illustrationUrl: page.illustration_url,
+      illustrationPrompt: page.illustration_prompt || null,
+    }));
+  }, [story?.pages]);
 
   if (isLoading) {
     return (
