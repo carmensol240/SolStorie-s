@@ -785,43 +785,38 @@ const StoryViewer = () => {
     }
   }, [generationStatus, story, userStartedReading]);
 
-  // Build virtual pages — fullscreen illustration + text overlay
-  // For age 0-2: merge every 2 DB pages into one virtual page
+  // Build virtual pages — split each DB page into illustration + text
   type VirtualPage = {
+    type: 'illustration' | 'text';
     dbPage: StoryPage;
     illustrationUrl: string | null;
     illustrationPrompt: string | null;
-    combinedText?: string;
+    text: string;
   };
-
-  const isToddler = story?.age_range === '0-2';
 
   const virtualPages: VirtualPage[] = useMemo(() => {
     if (!story || story.pages.length === 0) return [];
-    const pages = story.pages;
-
-    if (isToddler) {
-      const result: VirtualPage[] = [];
-      for (let i = 0; i < pages.length; i += 2) {
-        const p1 = pages[i];
-        const p2 = pages[i + 1];
-        const combinedText = p2 ? `${p1.text}\n${p2.text}` : p1.text;
-        result.push({
-          dbPage: p1,
-          combinedText,
-          illustrationUrl: p1.illustration_url,
-          illustrationPrompt: p1.illustration_prompt || null,
-        });
-      }
-      return result;
+    const result: VirtualPage[] = [];
+    for (const page of story.pages) {
+      // First: illustration page (fullscreen image, no text)
+      result.push({
+        type: 'illustration',
+        dbPage: page,
+        illustrationUrl: page.illustration_url,
+        illustrationPrompt: page.illustration_prompt || null,
+        text: page.text,
+      });
+      // Second: text page (pastel background, no image)
+      result.push({
+        type: 'text',
+        dbPage: page,
+        illustrationUrl: null,
+        illustrationPrompt: null,
+        text: page.text,
+      });
     }
-
-    return pages.map(page => ({
-      dbPage: page,
-      illustrationUrl: page.illustration_url,
-      illustrationPrompt: page.illustration_prompt || null,
-    }));
-  }, [story?.pages, isToddler]);
+    return result;
+  }, [story?.pages]);
 
   if (isLoading) {
     return (
@@ -1071,81 +1066,82 @@ const StoryViewer = () => {
               </div>
 
             ) : currentVirtual ? (
-              /* Story Content Pages — fullscreen illustration + text overlay */
-              <div className="h-full w-full relative">
-                {/* Fullscreen illustration */}
-                {currentVirtual.illustrationUrl ? (
-                  <img
-                    src={getPublicIllustrationUrl(currentVirtual.illustrationUrl) || ''}
-                    alt="איור"
-                    className="absolute inset-0 w-full h-full object-cover"
-                    loading="eager"
-                  />
-                ) : currentVirtual.illustrationPrompt ? (
-                  /* Illustration generating — skeleton */
-                  <div className="absolute inset-0 w-full h-full flex items-center justify-center bg-gradient-to-br from-[#FFF8F0] via-[#F5E6D3] to-[#FAF3E8]">
-                    <div className="absolute inset-0 opacity-20">
-                      <div className="absolute top-1/4 left-1/4 w-32 h-32 rounded-full bg-purple-200 animate-pulse" style={{ animationDelay: '0s', animationDuration: '2s' }} />
-                      <div className="absolute top-1/2 right-1/4 w-24 h-24 rounded-full bg-pink-200 animate-pulse" style={{ animationDelay: '0.5s', animationDuration: '2.5s' }} />
-                      <div className="absolute bottom-1/4 left-1/3 w-28 h-28 rounded-full bg-orange-200 animate-pulse" style={{ animationDelay: '1s', animationDuration: '3s' }} />
-                    </div>
-                    <div className="relative z-10 text-center space-y-4">
-                      <div className="relative w-20 h-20 mx-auto">
-                        <div className="absolute inset-0 rounded-full bg-gradient-to-br from-purple-300 via-pink-300 to-orange-300 animate-spin" style={{ animationDuration: '3s' }} />
-                        <div className="absolute inset-1 rounded-full bg-white/90 flex items-center justify-center">
-                          <span className="text-3xl">🎨</span>
+              /* Story Content Pages */
+              <div className="h-full w-full relative animate-fade-in">
+                {currentVirtual.type === 'illustration' ? (
+                  /* Illustration page — fullscreen image, no text */
+                  <>
+                    {currentVirtual.illustrationUrl ? (
+                      <img
+                        src={getPublicIllustrationUrl(currentVirtual.illustrationUrl) || ''}
+                        alt="איור"
+                        className="absolute inset-0 w-full h-full object-cover"
+                        loading="eager"
+                      />
+                    ) : currentVirtual.dbPage.illustration_prompt ? (
+                      <div className="absolute inset-0 w-full h-full flex items-center justify-center bg-gradient-to-br from-[#FFF8F0] via-[#F5E6D3] to-[#FAF3E8]">
+                        <div className="absolute inset-0 opacity-20">
+                          <div className="absolute top-1/4 left-1/4 w-32 h-32 rounded-full bg-purple-200 animate-pulse" style={{ animationDelay: '0s', animationDuration: '2s' }} />
+                          <div className="absolute top-1/2 right-1/4 w-24 h-24 rounded-full bg-pink-200 animate-pulse" style={{ animationDelay: '0.5s', animationDuration: '2.5s' }} />
+                          <div className="absolute bottom-1/4 left-1/3 w-28 h-28 rounded-full bg-orange-200 animate-pulse" style={{ animationDelay: '1s', animationDuration: '3s' }} />
+                        </div>
+                        <div className="relative z-10 text-center space-y-4">
+                          <div className="relative w-20 h-20 mx-auto">
+                            <div className="absolute inset-0 rounded-full bg-gradient-to-br from-purple-300 via-pink-300 to-orange-300 animate-spin" style={{ animationDuration: '3s' }} />
+                            <div className="absolute inset-1 rounded-full bg-white/90 flex items-center justify-center">
+                              <span className="text-3xl">🎨</span>
+                            </div>
+                          </div>
+                          <div className="space-y-1">
+                            <p className="text-sm font-semibold text-[#6B4423]" dir="rtl">מכינים איור קסום...</p>
+                            <p className="text-xs text-[#8B7355]/70" dir="rtl">רק עוד רגע ✨</p>
+                          </div>
                         </div>
                       </div>
-                      <div className="space-y-1">
-                        <p className="text-sm font-semibold text-[#6B4423]" dir="rtl">מכינים איור קסום...</p>
-                        <p className="text-xs text-[#8B7355]/70" dir="rtl">רק עוד רגע ✨</p>
-                      </div>
+                    ) : (
+                      (() => {
+                        const theme = getTopicTheme(story.topic);
+                        return (
+                          <div className="absolute inset-0 w-full h-full flex items-center justify-center" style={{ background: theme.bg }}>
+                            <span className="text-7xl opacity-40">{theme.emoji}</span>
+                          </div>
+                        );
+                      })()
+                    )}
+                    {/* Page number on illustration page */}
+                    <div className="absolute bottom-3 left-0 right-0 flex justify-center">
+                      <span className="text-xs text-white/50 font-light">{Math.ceil((currentPage + 1) / 2)} / {story.pages.length}</span>
                     </div>
-                  </div>
+                  </>
                 ) : (
-                  /* No illustration — decorative placeholder */
+                  /* Text page — pastel gradient background, centered text */
                   (() => {
                     const theme = getTopicTheme(story.topic);
+                    const rawText = currentVirtual.text;
+                    const displayText = showNikud ? rawText : rawText.replace(/[\u0591-\u05C7]/g, '');
                     return (
-                      <div className="absolute inset-0 w-full h-full flex items-center justify-center" style={{ background: theme.bg }}>
-                        <span className="text-7xl opacity-40">{theme.emoji}</span>
+                      <div className="absolute inset-0 w-full h-full flex flex-col items-center justify-center" style={{ background: theme.bg }}>
+                        <div className="max-w-lg mx-auto w-full px-6 md:px-10">
+                          <p className={cn(
+                            "text-right font-semibold whitespace-pre-line text-[#3D2B5A]",
+                            currentFontSize.size,
+                          )} style={{
+                            lineHeight: '2',
+                            backgroundColor: 'rgba(255,255,255,0.5)',
+                            padding: '16px 20px',
+                            borderRadius: '16px',
+                            backdropFilter: 'blur(4px)',
+                          }} dir="rtl">
+                            {displayText}
+                          </p>
+                        </div>
+                        <div className="mt-4">
+                          <span className="text-xs text-[#5B3E96]/60 font-light">{Math.ceil((currentPage + 1) / 2)} / {story.pages.length}</span>
+                        </div>
                       </div>
                     );
                   })()
                 )}
-
-                {/* Text overlay at bottom */}
-                {(() => {
-                  const hasIllustration = !!currentVirtual.illustrationUrl;
-                  return (
-                    <div className={cn(
-                      "absolute bottom-0 left-0 right-0 px-6 py-5 md:px-10 md:py-7",
-                      hasIllustration ? "bg-gradient-to-t from-black/30 via-black/15 to-transparent" : ""
-                    )}>
-                      <div className="max-w-lg mx-auto w-full">
-                        <p className={cn(
-                          "text-right font-semibold transition-all whitespace-pre-line",
-                          currentFontSize.size,
-                          hasIllustration ? "text-white" : "text-[#3D2B5A]"
-                        )} style={{
-                          lineHeight: '2',
-                          ...(hasIllustration
-                            ? { textShadow: '0 1px 3px rgba(0,0,0,0.9), 0 3px 8px rgba(0,0,0,0.7), 0 0 16px rgba(0,0,0,0.5)', backgroundColor: 'rgba(0,0,0,0.15)', padding: '12px 16px', borderRadius: '12px' }
-                            : { backgroundColor: 'rgba(255,255,255,0.5)', padding: '12px 16px', borderRadius: '12px', backdropFilter: 'blur(4px)' }
-                          ),
-                        }} dir="rtl">
-                          {(() => {
-                            const rawText = currentVirtual.combinedText || currentVirtual.dbPage.text;
-                            return showNikud ? rawText : rawText.replace(/[\u0591-\u05C7]/g, '');
-                          })()}
-                        </p>
-                      </div>
-                      <div className="flex flex-col items-center gap-1 pt-2 shrink-0">
-                        <span className={cn("text-xs font-light tracking-wide", hasIllustration ? "text-white/60" : "text-[#5B3E96]/60")}>{currentPage + 1} / {totalVirtualPages}</span>
-                      </div>
-                    </div>
-                  );
-                })()}
               </div>
             ) : null}
           </div>
@@ -1165,7 +1161,7 @@ const StoryViewer = () => {
             {/* Page indicator */}
             <div className="dot-indicator">
               <span className="text-xs text-gray-400">
-                {isCoverPage ? '' : isClosingPage ? 'סיום' : isEndPage ? 'סוף' : `${currentPage + 1} / ${totalVirtualPages}`}
+                {isCoverPage ? '' : isClosingPage ? 'סיום' : isEndPage ? 'סוף' : `${Math.ceil((currentPage + 1) / 2)} / ${story.pages.length}`}
               </span>
             </div>
 

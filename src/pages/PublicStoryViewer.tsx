@@ -27,8 +27,9 @@ interface PublicStory {
 }
 
 interface VirtualPage {
+  type: 'illustration' | 'text';
   dbPage: PublicPage;
-  combinedText?: string;
+  text: string;
   illustrationUrl: string | null;
 }
 
@@ -75,30 +76,25 @@ const PublicStoryViewer = () => {
     fetchStory();
   }, [storySlug]);
 
-  // Build virtual pages — merge every 2 for toddlers (0-2)
+  // Build virtual pages — split each DB page into illustration + text
   const virtualPages = useMemo<VirtualPage[]>(() => {
     if (!story) return [];
-    const pages = story.pages;
-    const isToddler = story.age_range === '0-2';
-
-    if (isToddler) {
-      const result: VirtualPage[] = [];
-      for (let i = 0; i < pages.length; i += 2) {
-        const p1 = pages[i];
-        const p2 = pages[i + 1];
-        result.push({
-          dbPage: p1,
-          combinedText: p2 ? `${p1.text}\n${p2.text}` : p1.text,
-          illustrationUrl: p1.illustration_url,
-        });
-      }
-      return result;
+    const result: VirtualPage[] = [];
+    for (const page of story.pages) {
+      result.push({
+        type: 'illustration',
+        dbPage: page,
+        text: page.text,
+        illustrationUrl: page.illustration_url,
+      });
+      result.push({
+        type: 'text',
+        dbPage: page,
+        text: page.text,
+        illustrationUrl: null,
+      });
     }
-
-    return pages.map(p => ({
-      dbPage: p,
-      illustrationUrl: p.illustration_url,
-    }));
+    return result;
   }, [story]);
 
   const handlePageNav = useCallback((dir: 'next' | 'prev') => {
@@ -148,7 +144,8 @@ const PublicStoryViewer = () => {
   const isEndPage = currentPage >= virtualPages.length;
   const currentVirtual = (!isCoverPage && !isEndPage && currentPage >= 0) ? virtualPages[currentPage] : null;
   const illustrationSrc = currentVirtual?.illustrationUrl ? getPublicIllustrationUrl(currentVirtual.illustrationUrl) : null;
-  const displayText = currentVirtual?.combinedText || currentVirtual?.dbPage.text || '';
+  const displayText = currentVirtual?.text || '';
+  const dbPageCount = story?.pages?.length || 0;
 
   return (
     <div className="min-h-screen bg-[#F5E6D3] flex flex-col story-viewer-landscape" dir="rtl">
@@ -212,46 +209,52 @@ const PublicStoryViewer = () => {
               </div>
             )}
 
-            {/* Story Pages — Fullscreen illustration + overlay */}
+            {/* Story Pages */}
             {currentVirtual && (
               <div key={currentPage} className="h-full w-full relative animate-fade-in">
-                {/* Fullscreen illustration */}
-                {illustrationSrc ? (
-                  <img src={illustrationSrc} alt={`איור עמוד ${currentVirtual.dbPage.page_number}`}
-                    className="absolute inset-0 w-full h-full object-cover" />
+                {currentVirtual.type === 'illustration' ? (
+                  /* Illustration page — fullscreen image, no text */
+                  <>
+                    {illustrationSrc ? (
+                      <img src={illustrationSrc} alt={`איור עמוד ${currentVirtual.dbPage.page_number}`}
+                        className="absolute inset-0 w-full h-full object-cover" />
+                    ) : (
+                      <div className="absolute inset-0 bg-gradient-to-br from-purple-100 via-pink-50 to-orange-50 flex items-center justify-center">
+                        <span className="text-6xl opacity-30">✨</span>
+                      </div>
+                    )}
+                    <div className="absolute bottom-3 left-0 right-0 flex justify-center">
+                      <span className="text-xs text-white/50">{Math.ceil((currentPage + 1) / 2)} / {dbPageCount}</span>
+                    </div>
+                  </>
                 ) : (
-                  <div className="absolute inset-0 bg-gradient-to-br from-purple-100 via-pink-50 to-orange-50 flex items-center justify-center">
-                    <span className="text-6xl opacity-30">✨</span>
-                  </div>
-                )}
-
-                {/* Dark gradient overlay at bottom */}
-                <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/30 via-black/15 to-transparent"
-                  style={{ minHeight: '35%' }}>
-                  <div className="absolute bottom-0 left-0 right-0 p-5 md:p-8">
-                    <p className="text-lg md:text-2xl text-white font-semibold whitespace-pre-line text-center leading-relaxed"
-                      style={{ textShadow: '0 1px 3px rgba(0,0,0,0.9), 0 3px 8px rgba(0,0,0,0.7), 0 0 16px rgba(0,0,0,0.5)', backgroundColor: 'rgba(0,0,0,0.15)', padding: '12px 16px', borderRadius: '12px', lineHeight: '1.9' }} dir="rtl">
-                      {displayText}
-                    </p>
-                    <div className="flex items-center justify-center mt-3">
-                      <span className="text-xs text-white/50">{currentPage + 1} / {virtualPages.length}</span>
+                  /* Text page — pastel gradient, no image */
+                  <div className="absolute inset-0 bg-gradient-to-br from-purple-50 via-pink-50 to-orange-50 flex flex-col items-center justify-center">
+                    <div className="max-w-lg mx-auto w-full px-6 md:px-10">
+                      <p className="text-lg md:text-2xl text-[#3D2B5A] font-semibold whitespace-pre-line text-right"
+                        style={{ lineHeight: '2', backgroundColor: 'rgba(255,255,255,0.5)', padding: '16px 20px', borderRadius: '16px', backdropFilter: 'blur(4px)' }} dir="rtl">
+                        {displayText}
+                      </p>
+                    </div>
+                    <div className="mt-4">
+                      <span className="text-xs text-[#5B3E96]/60">{Math.ceil((currentPage + 1) / 2)} / {dbPageCount}</span>
                     </div>
                   </div>
-                </div>
+                )}
 
                 {/* Navigation arrows */}
                 <button onClick={() => handlePageNav('prev')} disabled={currentPage <= 0}
                   className={cn("absolute right-2 top-1/2 -translate-y-1/2 z-20",
                     "w-8 h-8 rounded-full flex items-center justify-center",
-                    "bg-white/20 hover:bg-white/40 text-white transition-all",
-                    "disabled:opacity-20 disabled:cursor-not-allowed")}>
+                    currentVirtual.type === 'illustration' ? "bg-white/20 hover:bg-white/40 text-white" : "bg-purple-100/60 hover:bg-purple-200 text-purple-500",
+                    "transition-all disabled:opacity-20 disabled:cursor-not-allowed")}>
                   <ChevronRight className="w-5 h-5" />
                 </button>
                 <button onClick={() => handlePageNav('next')} disabled={currentPage >= virtualPages.length - 1}
                   className={cn("absolute left-2 top-1/2 -translate-y-1/2 z-20",
                     "w-8 h-8 rounded-full flex items-center justify-center",
-                    "bg-white/20 hover:bg-white/40 text-white transition-all",
-                    "disabled:opacity-20 disabled:cursor-not-allowed")}>
+                    currentVirtual.type === 'illustration' ? "bg-white/20 hover:bg-white/40 text-white" : "bg-purple-100/60 hover:bg-purple-200 text-purple-500",
+                    "transition-all disabled:opacity-20 disabled:cursor-not-allowed")}>
                   <ChevronLeft className="w-5 h-5" />
                 </button>
               </div>
@@ -270,8 +273,8 @@ const PublicStoryViewer = () => {
               <div className={cn("dot", isEndPage && "active")} />
             </>
           ) : (
-            <span className="text-xs text-gray-400">
-              {isCoverPage ? '' : isEndPage ? 'סוף' : `${currentPage + 1} / ${virtualPages.length}`}
+             <span className="text-xs text-gray-400">
+              {isCoverPage ? '' : isEndPage ? 'סוף' : `${Math.ceil((currentPage + 1) / 2)} / ${dbPageCount}`}
             </span>
           )}
         </div>
