@@ -61,6 +61,11 @@ import topicMagicKeys from "@/assets/topic-magic-keys.jpg";
 import topicEducationalToolbox from "@/assets/topic-educational-toolbox.jpeg";
 import topicSafeRoom from "@/assets/topic-safe-room.png";
 import topicFindAFriend from "@/assets/topic-find-a-friend.jpg";
+import topicScreenTime from "@/assets/topic-screen-time.jpg";
+import topicDivorce from "@/assets/topic-divorce.jpg";
+import topicSickGrandparent from "@/assets/topic-sick-grandparent.jpg";
+import topicMakingMistakes from "@/assets/topic-making-mistakes.jpg";
+import topicCryingIsOk from "@/assets/topic-crying-is-ok.jpg";
 
 export interface TopicItem {
   id: string;
@@ -146,6 +151,11 @@ export const CHARACTER_SECTIONS: CharacterSection[] = [
       { id: "sibling-love", label: "צוות מבצע – אהבת אחים", description: "סיפור על הקשר בין אחים: ריבים קטנים, הרפתקאות משותפות ואהבה שלא נגמרת.", image: topicSiblingLove, ageRange: "3-6" },
       { id: "my-special-family", label: "המשפחה המיוחדת שלי", description: "סיפור על סוגי משפחות שונים: כל משפחה מיוחדת בדרכה, והדבר החשוב ביותר הוא האהבה.", image: topicMySpecialFamily, ageRange: "3-8" },
       { id: "find-a-friend", label: "הלב שלי רוצה חבר 💛", description: "סיפור עדין ומעצים על ילד שמרגיש שהחברים לא כוללים אותו במשחק. הוא לומד להביע את רגשותיו, מוצא אומץ לפנות לילד אחר שגם הוא לבד, ויחד הם מגלים שחברות אמיתית מתחילה בחיוך קטן. הסיפור מותאם לגיל הרך, עוסק בחרמות בעדינות ובאופן חיובי — ללא אשמה, עם תקווה ופתרון שמח. המסר: כולם ראויים לחברות, ותמיד אפשר להתחיל מחדש.", image: topicFindAFriend, ageRange: "3-6", keywords: ["חברות", "בדידות", "חרמות", "רגשות", "אומץ", "חבר"] },
+      { id: "screen-time", label: "המסך מחכה 📱", description: "סיפור קליל ומשעשע על ילד שמאוד אוהב את המסך שלו, ומגלה שכשהוא מניח אותו בצד — מחכות לו הרפתקאות, חברים ורגעים שאף מסך לא יכול לתת. המסר: המסך לא הולך לשום מקום, אבל הרגעים האמיתיים — כן.", image: topicScreenTime, ageRange: "3-6", keywords: ["מסכים", "טלוויזיה", "טאבלט", "משחק בחוץ", "זמן מסך"] },
+      { id: "divorce", label: "שני בתים, אהבה אחת 🏠🏠", description: "סיפור רגיש ומחבק על ילד שיש לו שני בתים. הוא מרגיש לפעמים עצוב ומבולבל, אבל לומד שאהבת ההורים לא השתנתה ולא תשתנה לעולם. המסר: זה לא בגללך, ואתה אהוב בשני הבתים.", image: topicDivorce, ageRange: "3-8", keywords: ["גירושין", "פרידה", "שני בתים", "הורים", "אהבה"] },
+      { id: "sick-grandparent", label: "סבא/סבתא חולה — ואני כאן 💛", description: "סיפור עדין ומלא אהבה על ילד שסבא או סבתא שלו חלה. הוא מרגיש פחד ועצב אבל לומד שנוכחות, חיבוק וציור קטן יכולים לתת כוח עצום. המסר: אהבה היא התרופה הכי חזקה.", image: topicSickGrandparent, ageRange: "3-8", keywords: ["סבא", "סבתא", "מחלה", "אהבה", "נוכחות", "עצב"] },
+      { id: "making-mistakes", label: "טעיתי — ומה עכשיו? 🌱", description: "סיפור מעצים על ילד שעשה טעות (שבר משהו, פגע בחבר, שיקר קצת) ומרגיש בושה וצער. הוא לומד לקחת אחריות, להתנצל ולהמשיך קדימה. המסר: כולם טועים — הגיבורים הם אלה שקמים.", image: topicMakingMistakes, ageRange: "3-6", keywords: ["טעויות", "אחריות", "התנצלות", "צמיחה", "בושה"] },
+      { id: "crying-is-ok", label: "מותר לבכות 🌧️🌈", description: "סיפור חם ומחבק על ילד שמחזיק את הרגשות בפנים כי חושב שבכי זה לחלשים. הוא מגלה שגם גיבורים בוכים, וששחרור הרגשות עושה אותו חזק יותר. המסר: הלב שלך חכם — תקשיב לו.", image: topicCryingIsOk, ageRange: "3-6", keywords: ["בכי", "רגשות", "אומץ", "שחרור", "חוזק"] },
       { id: "safe-room-sirens", label: "* שהייה בממ\"ד ואזעקות", description: "סיפור מרגיע ומחזק על הרגעים בממ\"ד: איך נשארים רגועים כשנשמעת אזעקה, מה עושים יחד כמשפחה ולמה הממ\"ד הוא המקום הכי בטוח. סיפור שעוזר לילדים להרגיש מוגנים, אהובים ובטוחים.", image: topicSafeRoom, ageRange: "0-8", keywords: ["ממד", "אזעקה", "מלחמה", "פחד", "בטחון", "מקלט", "צבע אדום", "סירנה", "מוגנות", "רגיעה"], featured: true },
     ],
   },
