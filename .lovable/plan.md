@@ -1,34 +1,26 @@
 
 
-## עדכון PublicStoryViewer + PDF לפריסת fullscreen + overlay
+## Bug Analysis
 
-StoryViewer.tsx כבר מיושם נכון (איור fullscreen + טקסט overlay + איחוד לגיל 0-2). צריך ליישר את שני הקבצים הנוספים.
+The onboarding loop is caused by a combination of issues in the navigation flow between `RequireTerms` and `Onboarding`:
 
-### 1. PublicStoryViewer.tsx — פריסת fullscreen + overlay
+1. **Silent update failure**: In `Onboarding.handleContinue`, the Supabase `.update().eq()` call returns success (`error: null`) even when **zero rows are matched** (e.g., due to a race condition where the profile hasn't been created yet). The code doesn't verify the update actually persisted.
 
-**מצב נוכחי:** פריסת open-book-spread עם איור בצד שמאל וטקסט בצד ימין (שורות 184-264).
+2. **No `replace: true` on redirects**: Both `RequireTerms` (redirecting to `/onboarding`) and `Onboarding`'s guard effect (redirecting to `/adventure`) use `navigate()` without `{ replace: true }`, causing history stack pollution and making the loop worse.
 
-**שינויים:**
-- הסרת כל פריסת ה-`open-book-spread` מדפי התוכן
-- כל דף תוכן: איור fullscreen (`absolute inset-0 w-full h-full object-cover`) + gradient overlay בתחתית + טקסט לבן עם drop-shadow
-- הוספת לוגיקת איחוד דפים לגיל 0-2 (כמו ב-StoryViewer) — `age_range` כבר זמין ב-PublicStory type
-- כפתורי ניווט prev/next מעל ה-overlay
-- דפי כריכה וסוף נשארים בסגנון דומה אבל גם עם איור fullscreen
+3. **Loop mechanics**: `handleContinue` thinks it succeeded → navigates to `/adventure` → `RequireTerms` queries DB → `terms_accepted_at` is still null → redirects back to `/onboarding` → Onboarding guard checks terms → still null → shows the form again.
 
-### 2. use-pdf-export.ts — פריסת fullscreen + overlay
+## Fix
 
-**מצב נוכחי:** 
-- Portrait: איור קטן (~40% גובה) עם טקסט מתחת (שורות 240-286)
-- Landscape: spread עם איור בצד אחד וטקסט בצד שני (שורות 326-378)
+### 1. `src/pages/Onboarding.tsx` — Verify update actually persisted
 
-**שינויים בשני המצבים:**
-- כל דף תוכן: איור fullscreen כרקע (`position:absolute; inset:0; object-cover`) 
-- gradient overlay כהה בתחתית (`linear-gradient to top from rgba(0,0,0,0.75)`)
-- טקסט לבן מעל ה-gradient עם text-shadow
-- הסרת `renderTextOnlyPage` — כל דף עם placeholder דקורטיבי אם אין איור
-- מספר עמוד בתחתית בלבן שקוף
+In `handleContinue`, after the update call, re-query the profile to confirm `terms_accepted_at` was saved. If not, use `upsert` as a fallback. Also add `{ replace: true }` to the guard navigation.
 
-### קבצים
-- `src/pages/PublicStoryViewer.tsx`
-- `src/hooks/use-pdf-export.ts`
+### 2. `src/components/RequireTerms.tsx` — Use `replace: true`
+
+Change the `navigate` call to onboarding to use `{ replace: true }` so the history stack doesn't accumulate redirect entries.
+
+### 3. Both files — Add select return on update
+
+Use `.update(...).eq(...).select()` to get the updated row back, confirming the write succeeded. If the returned array is empty, fall back to an upsert to handle the edge case where the profile row doesn't exist yet.
 

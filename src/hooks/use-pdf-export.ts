@@ -28,16 +28,20 @@ interface Story {
   child_name: string;
   topic: string;
   language?: string;
+  age_range?: string;
   pages: StoryPage[];
+}
+
+interface VirtualPdfPage {
+  text: string;
+  illustration_url: string | null;
+  page_number: number;
 }
 
 export type PdfLayout = 'portrait' | 'landscape-book';
 
-// Rainbow gradient matching the web viewer
+// Rainbow gradient for decorative fallback
 const RAINBOW_CSS = 'linear-gradient(135deg, #FFE4E1 0%, #FFDAB9 15%, #FFFACD 30%, #E0FFE0 45%, #E0F0FF 60%, #E8D8FF 75%, #FFE4F0 90%, #FFE4E1 100%)';
-
-// 20mm margin in pixels at 3.78 px/mm
-const MARGIN_PX = Math.round(20 * 3.78); // ~76px
 
 export const usePdfExport = () => {
   const [isExporting, setIsExporting] = useState(false);
@@ -101,6 +105,32 @@ export const usePdfExport = () => {
     if (!isFirstPage) pdf.addPage();
     pdf.addImage(imgData, 'PNG', 0, 0, pageWidth, pageHeight);
     drawFooter(pdf);
+  };
+
+  // ─── Build virtual pages (merge for toddlers 0-2) ──
+  const buildVirtualPages = (story: Story): VirtualPdfPage[] => {
+    const pages = story.pages;
+    const isToddler = story.age_range === '0-2';
+
+    if (isToddler) {
+      const result: VirtualPdfPage[] = [];
+      for (let i = 0; i < pages.length; i += 2) {
+        const p1 = pages[i];
+        const p2 = pages[i + 1];
+        result.push({
+          text: p2 ? `${p1.text}\n${p2.text}` : p1.text,
+          illustration_url: p1.illustration_url,
+          page_number: result.length + 1,
+        });
+      }
+      return result;
+    }
+
+    return pages.map((p, i) => ({
+      text: p.text,
+      illustration_url: p.illustration_url,
+      page_number: i + 1,
+    }));
   };
 
   // ─── Cover Page: Sol with magic book as full-bleed background ──
@@ -183,26 +213,37 @@ export const usePdfExport = () => {
     return page;
   };
 
-  // ─── Text-only story page with rainbow background ──
-  const renderTextOnlyPage = (text: string, pageNumber: number, totalPages: number): HTMLDivElement => {
+  // ─── Fullscreen story page: illustration background + gradient overlay + white text ──
+  const renderFullscreenStoryPage = (
+    text: string,
+    illustrationDataUrl: string | null,
+    pageNumber: number,
+    totalPages: number
+  ): HTMLDivElement => {
     const pageEl = document.createElement('div');
     pageEl.style.cssText = `
-      width: 100%; height: 100%; display: flex; flex-direction: column;
-      align-items: center; justify-content: center;
-      background: ${RAINBOW_CSS}; direction: rtl;
-      font-family: Heebo, Assistant, sans-serif; padding: ${MARGIN_PX}px;
-      box-sizing: border-box;
+      width: 100%; height: 100%; position: relative; overflow: hidden;
+      font-family: Heebo, Assistant, sans-serif; direction: rtl;
     `;
+
+    const bgHtml = illustrationDataUrl
+      ? `<img src="${illustrationDataUrl}" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;" />`
+      : `<div style="position:absolute;inset:0;background:${RAINBOW_CSS};display:flex;align-items:center;justify-content:center;">
+           <span style="font-size:80px;opacity:0.2;">✨</span>
+         </div>`;
+
     pageEl.innerHTML = `
-      <div style="flex:1;display:flex;align-items:center;justify-content:center;width:100%;">
-        <p style="color:#3D2914;font-size:26px;line-height:2.2;text-align:center;margin:0;
-          font-family:Heebo,Assistant,sans-serif;max-width:90%;word-wrap:break-word;overflow-wrap:break-word;font-weight:500;">
+      ${bgHtml}
+      <div style="position:absolute;bottom:0;left:0;right:0;height:45%;
+        background:linear-gradient(to top, rgba(0,0,0,0.75) 0%, rgba(0,0,0,0.4) 60%, transparent 100%);"></div>
+      <div style="position:absolute;bottom:0;left:0;right:0;z-index:1;padding:24px 32px 36px 32px;text-align:center;">
+        <p style="color:white;font-size:24px;line-height:2;font-weight:500;margin:0;
+          text-shadow:0 2px 4px rgba(0,0,0,0.5);word-wrap:break-word;overflow-wrap:break-word;white-space:pre-line;">
           ${escapeHtml(text)}
         </p>
-      </div>
-      <div style="display:flex;flex-direction:column;align-items:center;gap:8px;margin-top:16px;">
-        <span style="font-size:12px;color:#B8A08C;">${pageNumber} / ${totalPages}</span>
-        <span style="font-size:14px;color:rgba(139,115,85,0.5);font-weight:500;">SolStorie's™</span>
+        <div style="margin-top:12px;">
+          <span style="font-size:12px;color:rgba(255,255,255,0.4);">${pageNumber} / ${totalPages}</span>
+        </div>
       </div>
     `;
     return pageEl;
@@ -225,68 +266,34 @@ export const usePdfExport = () => {
     container.style.cssText = `position:absolute;left:-9999px;top:0;width:${pageWidthPx}px;height:${pageHeightPx}px;font-family:Heebo,Assistant,sans-serif;direction:rtl;`;
     document.body.appendChild(container);
 
-    // -- Cover page (Sol with magic book) --
+    // -- Cover page --
     container.innerHTML = '';
     const coverEl = await renderCoverPage(story.child_name, story.topic, story.language);
     container.appendChild(coverEl);
     await captureHtmlToPage(container, pdf, true);
 
-    // -- Dedication page (rainbow/unicorn) --
+    // -- Dedication page --
     container.innerHTML = '';
     container.appendChild(renderDedicationPage(story.child_name));
     await captureHtmlToPage(container, pdf, false);
 
-    // -- Story pages --
-    for (const page of story.pages) {
-      if (page.illustration_url) {
-        // Page with illustration
-        let illustrationDataUrl: string | null = null;
+    // -- Story pages (fullscreen) --
+    const vPages = buildVirtualPages(story);
+    for (const vPage of vPages) {
+      let illustrationDataUrl: string | null = null;
+      if (vPage.illustration_url) {
         try {
-          const resolvedUrl = signedUrlMap[page.illustration_url] || page.illustration_url;
+          const resolvedUrl = signedUrlMap[vPage.illustration_url] || vPage.illustration_url;
           illustrationDataUrl = await loadImageAsDataUrl(resolvedUrl);
         } catch { /* skip */ }
-
-        const pageEl = document.createElement('div');
-        pageEl.style.cssText = `
-          width: 100%; height: 100%;
-          background: linear-gradient(135deg, #FFFBF5 0%, #FFF8E7 100%);
-          display: flex; flex-direction: column; align-items: center;
-          padding: ${MARGIN_PX}px ${MARGIN_PX}px ${MARGIN_PX + 20}px ${MARGIN_PX}px; box-sizing: border-box; direction: rtl;
-          font-family: Heebo, Assistant, sans-serif;
-        `;
-
-        const illustrationHtml = illustrationDataUrl
-          ? `<div style="width:100%;flex-shrink:0;margin-bottom:20px;border-radius:12px;overflow:hidden;border:2px solid #D4A574;max-height:40%;background:#F5E6D3;display:flex;align-items:center;justify-content:center;">
-              <img src="${illustrationDataUrl}" style="width:100%;height:100%;object-fit:contain;display:block;" />
-            </div>`
-          : '';
-
-        const pageLabel = `✦ ${page.page_number} / ${story.pages.length} ✦`;
-
-        pageEl.innerHTML = `
-          ${illustrationHtml}
-          <div style="color:#8B4513;font-size:16px;margin-bottom:16px;text-align:center;">${pageLabel}</div>
-          <div style="flex:1;display:flex;align-items:center;justify-content:center;width:100%;overflow:visible;">
-            <p style="color:#3D2914;font-size:26px;line-height:2.2;text-align:center;margin:0;
-              font-family:Heebo,Assistant,sans-serif;max-width:95%;word-wrap:break-word;overflow-wrap:break-word;font-weight:500;">
-              ${escapeHtml(page.text)}
-            </p>
-          </div>
-          <div style="width:60%;height:2px;background:#D4A574;border-radius:1px;margin-top:16px;"></div>
-        `;
-
-        container.innerHTML = '';
-        container.appendChild(pageEl);
-        await captureHtmlToPage(container, pdf, false);
-      } else {
-        // Text-only page — rainbow background
-        container.innerHTML = '';
-        container.appendChild(renderTextOnlyPage(page.text, page.page_number, story.pages.length));
-        await captureHtmlToPage(container, pdf, false);
       }
+
+      container.innerHTML = '';
+      container.appendChild(renderFullscreenStoryPage(vPage.text, illustrationDataUrl, vPage.page_number, vPages.length));
+      await captureHtmlToPage(container, pdf, false);
     }
 
-    // -- Closing page (cast waving farewell) --
+    // -- Closing page --
     container.innerHTML = '';
     const closingEl = await renderClosingPage();
     container.appendChild(closingEl);
@@ -296,7 +303,7 @@ export const usePdfExport = () => {
     return pdf;
   };
 
-  // ─── Landscape Book - 1:1 page-to-spread ───────────────────
+  // ─── Landscape Book - fullscreen illustration per page ───────────────────
   const exportLandscapeBook = async (story: Story) => {
     const illustrationUrls = story.pages
       .map(p => p.illustration_url)
@@ -311,7 +318,7 @@ export const usePdfExport = () => {
     container.style.cssText = `position:absolute;left:-9999px;top:0;width:${pageWidth * 3.78}px;height:${pageHeight * 3.78}px;font-family:Heebo,Assistant,sans-serif;direction:rtl;`;
     document.body.appendChild(container);
 
-    // Cover - Sol with magic book
+    // Cover
     container.innerHTML = '';
     const coverEl = await renderCoverPage(story.child_name, story.topic, story.language);
     container.appendChild(coverEl);
@@ -322,59 +329,19 @@ export const usePdfExport = () => {
     container.appendChild(renderDedicationPage(story.child_name));
     await captureHtmlToPage(container, pdf, false);
 
-    // Each story page = one spread (illustration left, text right)
-    const totalPages = story.pages.length;
-
-    for (const page of story.pages) {
-      const pageLabel = `${page.page_number} / ${totalPages}`;
-
-      if (!page.illustration_url) {
-        // Text-only page — rainbow background spread
-        container.innerHTML = '';
-        container.appendChild(renderTextOnlyPage(page.text, page.page_number, totalPages));
-        await captureHtmlToPage(container, pdf, false);
-        continue;
+    // Story pages (fullscreen)
+    const vPages = buildVirtualPages(story);
+    for (const vPage of vPages) {
+      let illustrationDataUrl: string | null = null;
+      if (vPage.illustration_url) {
+        try {
+          const resolvedUrl = signedUrlMap[vPage.illustration_url] || vPage.illustration_url;
+          illustrationDataUrl = await loadImageAsDataUrl(resolvedUrl);
+        } catch { /* skip */ }
       }
 
-      let illustrationHtml = '';
-      try {
-        const resolvedUrl = signedUrlMap[page.illustration_url] || page.illustration_url;
-        const dataUrl = await loadImageAsDataUrl(resolvedUrl);
-        illustrationHtml = `<img src="${dataUrl}" style="max-width:90%;max-height:90%;border-radius:16px;
-          box-shadow:0 8px 32px rgba(139,69,19,0.25);object-fit:contain;" />`;
-      } catch { /* skip */ }
-
-      const spreadPage = document.createElement('div');
-      spreadPage.style.cssText = `width:100%;height:100%;display:flex;direction:rtl;
-        background:linear-gradient(to right,#FFF8E7 0%,#FFF8E7 49.5%,#D4A574 49.5%,#8B4513 50%,#D4A574 50.5%,#FFF8E7 50.5%,#FFF8E7 100%);`;
-
-      spreadPage.innerHTML = `
-        <div style="flex:1;display:flex;align-items:center;justify-content:center;
-          background:linear-gradient(135deg,#FFF8E7 0%,#F5E6D3 100%);padding:${MARGIN_PX}px;box-sizing:border-box;">
-          ${illustrationHtml || `
-            <div style="width:100%;height:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;
-              background:${RAINBOW_CSS};
-              border-radius:16px;position:relative;">
-              <div style="position:absolute;bottom:24px;left:50%;transform:translateX(-50%);
-                font-size:14px;color:#8B7355;font-family:Heebo,Assistant,sans-serif;direction:ltr;">
-                SolStorie's™
-              </div>
-            </div>
-          `}
-        </div>
-        <div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;
-          background:#FFF8E7;padding:${MARGIN_PX}px;box-sizing:border-box;position:relative;">
-          <div style="position:absolute;top:${MARGIN_PX}px;right:${MARGIN_PX}px;color:#D4A574;font-size:24px;">❧</div>
-          <p style="color:#3D2914;font-size:30px;line-height:2;text-align:center;margin:0;
-            font-family:Heebo,Assistant,sans-serif;max-width:85%;word-wrap:break-word;overflow-wrap:break-word;font-weight:500;">${escapeHtml(page.text)}</p>
-          <div style="position:absolute;bottom:${MARGIN_PX + 20}px;left:50%;transform:translateX(-50%);color:#8B4513;font-size:18px;">
-            ✦ ${pageLabel} ✦
-          </div>
-          <div style="position:absolute;bottom:${MARGIN_PX}px;left:${MARGIN_PX}px;color:#D4A574;font-size:24px;transform:rotate(180deg);">❧</div>
-        </div>`;
-
       container.innerHTML = '';
-      container.appendChild(spreadPage);
+      container.appendChild(renderFullscreenStoryPage(vPage.text, illustrationDataUrl, vPage.page_number, vPages.length));
       await captureHtmlToPage(container, pdf, false);
     }
 
@@ -421,14 +388,12 @@ export const usePdfExport = () => {
           });
           toast({ title: 'ה-PDF שותף בהצלחה!' });
         } catch (shareErr: any) {
-          // User cancelled share — fall back to download
           if (shareErr?.name !== 'AbortError') {
             pdf.save(fileName);
             toast({ title: 'ה-PDF הורד בהצלחה!' });
           }
         }
       } else {
-        // Desktop fallback — direct download
         pdf.save(fileName);
         toast({ title: 'ה-PDF הורד בהצלחה!' });
       }
