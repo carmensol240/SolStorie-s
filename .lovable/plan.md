@@ -1,24 +1,26 @@
 
 
-## תיקון: שימוש ב-useChildAvatar בעמוד ההקדשה
+## Bug Analysis
 
-### הבעיה
-בעמוד ההקדשה, האוואטר נשלף לפי `child_id` מהסיפור — אבל `child_id` הוא nullable ולרוב לא מאוכלס. לכן `childAvatarUrl` תמיד null.
+The onboarding loop is caused by a combination of issues in the navigation flow between `RequireTerms` and `Onboarding`:
 
-בשאר האפליקציה (ספרייה, פרופילים) נעשה שימוש ב-hook `useChildAvatar` שמחפש את האוואטר לפי שם הילד ו-user_id — וזה עובד.
+1. **Silent update failure**: In `Onboarding.handleContinue`, the Supabase `.update().eq()` call returns success (`error: null`) even when **zero rows are matched** (e.g., due to a race condition where the profile hasn't been created yet). The code doesn't verify the update actually persisted.
 
-### פתרון — `src/pages/StoryViewer.tsx`
+2. **No `replace: true` on redirects**: Both `RequireTerms` (redirecting to `/onboarding`) and `Onboarding`'s guard effect (redirecting to `/adventure`) use `navigate()` without `{ replace: true }`, causing history stack pollution and making the loop worse.
 
-1. **ייבוא `useChildAvatar`** מ-`@/hooks/use-child-avatar`
-2. **הפעלת ה-hook** עם `story?.child_name` — ייתן את ה-`avatarUrl` בדיוק כמו בשאר האפליקציה
-3. **הסרת ה-state `childAvatarUrl`** וכל הלוגיקה של שליפת avatar לפי `child_id` בתוך `fetchStory`
-4. **החלפת `childAvatarUrl`** ב-`avatarUrl` (מה-hook) בכל מקום ב-JSX
+3. **Loop mechanics**: `handleContinue` thinks it succeeded → navigates to `/adventure` → `RequireTerms` queries DB → `terms_accepted_at` is still null → redirects back to `/onboarding` → Onboarding guard checks terms → still null → shows the form again.
 
-### שינוי יחיד
-קובץ: `src/pages/StoryViewer.tsx`
-- הוספת import ל-`useChildAvatar`
-- הוספת `const { avatarUrl } = useChildAvatar(story?.child_name);`
-- הסרת `const [childAvatarUrl, setChildAvatarUrl] = useState<string | null>(null);`
-- הסרת בלוק ה-fetch של child avatar (שורות ~478-493)
-- החלפת `childAvatarUrl` ב-`avatarUrl` ב-JSX של עמוד ההקדשה
+## Fix
+
+### 1. `src/pages/Onboarding.tsx` — Verify update actually persisted
+
+In `handleContinue`, after the update call, re-query the profile to confirm `terms_accepted_at` was saved. If not, use `upsert` as a fallback. Also add `{ replace: true }` to the guard navigation.
+
+### 2. `src/components/RequireTerms.tsx` — Use `replace: true`
+
+Change the `navigate` call to onboarding to use `{ replace: true }` so the history stack doesn't accumulate redirect entries.
+
+### 3. Both files — Add select return on update
+
+Use `.update(...).eq(...).select()` to get the updated row back, confirming the write succeeded. If the returned array is empty, fall back to an upsert to handle the edge case where the profile row doesn't exist yet.
 

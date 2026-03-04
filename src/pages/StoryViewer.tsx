@@ -44,6 +44,7 @@ import PdfFeaturePopup from "@/components/story/PdfFeaturePopup";
 import "./StoryViewer.css";
 import { translateTopic } from "@/lib/topic-translations";
 import solMagicBookCover from "@/assets/sol-magic-book-cover.png";
+import { useChildAvatar } from "@/hooks/use-child-avatar";
 
 import castWavingFarewell from "@/assets/cast-waving-farewell.png";
 
@@ -120,7 +121,8 @@ const StoryViewer = () => {
   
   const [resolvedId, setResolvedId] = useState<string | null>(null);
   const [story, setStory] = useState<Story | null>(null);
-  const [childAvatarUrl, setChildAvatarUrl] = useState<string | null>(null);
+  const { avatarUrl: childAvatarUrl } = useChildAvatar(story?.child_name);
+
   const [currentPage, setCurrentPage] = useState(-1);
   const [isLoading, setIsLoading] = useState(true);
   const [isFlipping, setIsFlipping] = useState(false);
@@ -475,22 +477,6 @@ const StoryViewer = () => {
         pollingIntervalRef.current = setInterval(pollForUpdates, 3000);
       }
       
-      // Fetch child avatar if child_id exists
-      const childId = (storyData as any).child_id;
-      if (childId) {
-        try {
-          const { data: childData } = await supabase
-            .from('children')
-            .select('avatar_url')
-            .eq('id', childId)
-            .maybeSingle();
-          if (childData?.avatar_url) {
-            setChildAvatarUrl(getPublicIllustrationUrl(childData.avatar_url));
-          }
-        } catch (e) {
-          console.log('Could not fetch child avatar:', e);
-        }
-      }
 
       if (resolvedStoryId) {
         cacheStory(resolvedStoryId, storyObj);
@@ -1034,7 +1020,7 @@ const StoryViewer = () => {
                         <div className="w-44 h-44 rounded-full overflow-hidden border-[6px] border-white/90 shadow-2xl" style={{
                           boxShadow: '0 0 40px rgba(255,255,255,0.5), 0 0 80px rgba(168,85,247,0.35), 0 0 120px rgba(236,72,153,0.2)',
                         }}>
-                          <img src={childAvatarUrl} alt={story.child_name} className="w-full h-full object-cover" />
+                          <img src={childAvatarUrl || ''} alt={story.child_name} className="w-full h-full object-cover" />
                         </div>
                         <div className="absolute -bottom-2 -right-2 text-3xl drop-shadow-lg">⭐</div>
                       </div>
