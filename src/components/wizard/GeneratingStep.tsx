@@ -27,11 +27,11 @@ const TEXT_MESSAGES = [
 ];
 
 const CAST_CHARACTERS = [
-  { name: "סול", image: castSolAdventure, emoji: "🦸‍♀️" },
-  { name: "בן", image: castBenArt, emoji: "🎨" },
-  { name: "מיה", image: castMiaNature, emoji: "🌿" },
-  { name: "ליאו", image: castLeoScience, emoji: "🔬" },
-  { name: "זואי", image: castZoeSports, emoji: "⚽" },
+  { name: "סול", image: castSolAdventure, emoji: "🦸‍♀️", verb: "מכינה" },
+  { name: "בן", image: castBenArt, emoji: "🎨", verb: "מכין" },
+  { name: "מיה", image: castMiaNature, emoji: "🌿", verb: "מכינה" },
+  { name: "ליאו", image: castLeoScience, emoji: "🔬", verb: "מכין" },
+  { name: "זואי", image: castZoeSports, emoji: "⚽", verb: "מכינה" },
 ];
 
 const PARENTING_TIPS = [
