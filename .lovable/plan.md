@@ -1,44 +1,26 @@
 
 
-## Plan: Age-Based Page Layout — Overlay for 0-2, Separate Pages for Older
+## Bug Analysis
 
-### Problem
-Currently all ages use the same split layout (text page → illustration page). For ages 0-2, text is very short (1-2 sentences), so a dedicated text page feels empty. An overlay on the illustration would be better.
+The onboarding loop is caused by a combination of issues in the navigation flow between `RequireTerms` and `Onboarding`:
 
-### Changes
+1. **Silent update failure**: In `Onboarding.handleContinue`, the Supabase `.update().eq()` call returns success (`error: null`) even when **zero rows are matched** (e.g., due to a race condition where the profile hasn't been created yet). The code doesn't verify the update actually persisted.
 
-#### 1. `src/pages/StoryViewer.tsx` — virtualPages logic (lines ~797-825)
+2. **No `replace: true` on redirects**: Both `RequireTerms` (redirecting to `/onboarding`) and `Onboarding`'s guard effect (redirecting to `/adventure`) use `navigate()` without `{ replace: true }`, causing history stack pollution and making the loop worse.
 
-Change the `useMemo` to check `story.age_range`. If age is `0-2`:
-- Emit a **single** virtual page of type `'combined'` per DB page (illustration fullscreen + short text overlay)
-- Skip creating separate text/illustration pages
+3. **Loop mechanics**: `handleContinue` thinks it succeeded → navigates to `/adventure` → `RequireTerms` queries DB → `terms_accepted_at` is still null → redirects back to `/onboarding` → Onboarding guard checks terms → still null → shows the form again.
 
-For all other ages, keep current behavior (separate text → illustration).
+## Fix
 
-Also update the rendering block (~lines 1074-1151) to handle the new `'combined'` type: fullscreen illustration with a semi-transparent text overlay at the bottom (similar to what's done in PDF export).
+### 1. `src/pages/Onboarding.tsx` — Verify update actually persisted
 
-#### 2. `src/pages/StoryViewer.tsx` — VirtualPage type
+In `handleContinue`, after the update call, re-query the profile to confirm `terms_accepted_at` was saved. If not, use `upsert` as a fallback. Also add `{ replace: true }` to the guard navigation.
 
-Add `'combined'` to the `type` union in the `VirtualPage` interface.
+### 2. `src/components/RequireTerms.tsx` — Use `replace: true`
 
-#### 3. `src/pages/StoryViewer.tsx` — rendering (~line 1074)
+Change the `navigate` call to onboarding to use `{ replace: true }` so the history stack doesn't accumulate redirect entries.
 
-Add a case for `currentVirtual.type === 'combined'`:
-- Fullscreen illustration as background (`object-cover`)
-- Text overlay at bottom: semi-transparent white/pastel bar with the short text, using the existing font size settings
-- Page number indicator
+### 3. Both files — Add select return on update
 
-#### 4. `src/pages/PublicStoryViewer.tsx` — same changes
-
-Mirror the age-based logic and combined rendering in the public viewer. The `PublicStory` interface already has `age_range`.
-
-### Helper: Age detection
-
-```typescript
-const isToddler = story.age_range === '0-2';
-```
-
-### No other files need changes
-
-The `BookPage` component is not used by either viewer (they render inline), so no changes needed there.
+Use `.update(...).eq(...).select()` to get the updated row back, confirming the write succeeded. If the returned array is empty, fall back to an upsert to handle the edge case where the profile row doesn't exist yet.
 
