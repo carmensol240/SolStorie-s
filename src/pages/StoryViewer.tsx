@@ -1205,6 +1205,7 @@ const StoryViewer = () => {
                             {displayText}
                           </p>
                         </div>
+                        <div className="flex-1" />
                         <div className="pb-4 shrink-0">
                           <span className="text-xs text-[#5B3E96]/60 font-light">{Math.ceil((currentPage + 1) / 2)} / {story.pages.length}</span>
                         </div>

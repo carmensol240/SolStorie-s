@@ -274,6 +274,7 @@ const PublicStoryViewer = () => {
                         {displayText}
                       </p>
                     </div>
+                    <div className="flex-1" />
                     <div className="pb-4 shrink-0">
                       <span className="text-xs text-[#5B3E96]/60">{Math.ceil((currentPage + 1) / 2)} / {dbPageCount}</span>
                     </div>
