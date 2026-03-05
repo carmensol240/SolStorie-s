@@ -1,26 +1,26 @@
 
 
-## Problem Analysis
+## Bug Analysis
 
-The cover generation sends **6 reference images** (child photo + Sol + Ben + Zoe + Leo + Mia) to Gemini, which dilutes the face reference. The illustration generation sends only **1 reference image** (child photo) with a focused face-matching prompt — that's why illustrations look accurate but the cover doesn't.
+The onboarding loop is caused by a combination of issues in the navigation flow between `RequireTerms` and `Onboarding`:
 
-Additionally, the cover prompt asks for all 5 supporting characters in one complex composition, which further confuses the model about whose face to prioritize.
+1. **Silent update failure**: In `Onboarding.handleContinue`, the Supabase `.update().eq()` call returns success (`error: null`) even when **zero rows are matched** (e.g., due to a race condition where the profile hasn't been created yet). The code doesn't verify the update actually persisted.
 
-## Plan: Align Cover Generation with Illustration Approach
+2. **No `replace: true` on redirects**: Both `RequireTerms` (redirecting to `/onboarding`) and `Onboarding`'s guard effect (redirecting to `/adventure`) use `navigate()` without `{ replace: true }`, causing history stack pollution and making the loop worse.
 
-### Changes to `supabase/functions/generate-cover/index.ts`
+3. **Loop mechanics**: `handleContinue` thinks it succeeded → navigates to `/adventure` → `RequireTerms` queries DB → `terms_accepted_at` is still null → redirects back to `/onboarding` → Onboarding guard checks terms → still null → shows the form again.
 
-1. **Simplify the personalized cover to use the same approach as illustrations**: Send only the child's photo as the single reference image (like `generateIllustrationWithFace` does). Remove the 5 supporting character reference images from the personalized cover request.
+## Fix
 
-2. **Use the saved `avatar_description` profile**: Query the child's `avatar_description` from the `children` table (same as illustrations do). Use it to build a precise character description (hair, skin, eyes, outfit) in the text prompt, so the model knows exactly what to render without needing multiple reference images.
+### 1. `src/pages/Onboarding.tsx` — Verify update actually persisted
 
-3. **Simplify the cover composition**: Instead of asking for 6 characters, the personalized cover should feature **only the child as the hero** in the topic-appropriate setting, with the title text. The supporting cast (Sol, Ben, etc.) can be described in text but not sent as reference images — this prevents face confusion.
+In `handleContinue`, after the update call, re-query the profile to confirm `terms_accepted_at` was saved. If not, use `upsert` as a fallback. Also add `{ replace: true }` to the guard navigation.
 
-4. **Reuse the illustration prompt pattern**: Use the same `FACE REFERENCE` prompt structure from `generateIllustrationWithFace` (lines 173-181 of generate-illustrations) which has proven to produce accurate likenesses.
+### 2. `src/components/RequireTerms.tsx` — Use `replace: true`
 
-### Summary of the fix
-- **Before**: 6 images sent → model confused about which face to match
-- **After**: 1 image (child photo only) → model focuses on the child's face, same as internal illustrations
+Change the `navigate` call to onboarding to use `{ replace: true }` so the history stack doesn't accumulate redirect entries.
 
-No other files need changes.
+### 3. Both files — Add select return on update
+
+Use `.update(...).eq(...).select()` to get the updated row back, confirming the write succeeded. If the returned array is empty, fall back to an upsert to handle the edge case where the profile row doesn't exist yet.
 

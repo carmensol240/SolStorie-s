@@ -94,14 +94,16 @@ serve(async (req) => {
 
     // Check if child has a photo for personalized cover
     let childPhotoSignedUrl: string | null = null;
+    let avatarDescription: string | null = null;
     if (story?.user_id && story?.child_name) {
       const { data: child } = await supabase
         .from("children")
-        .select("avatar_url, photo_url")
+        .select("avatar_url, photo_url, avatar_description")
         .eq("user_id", story.user_id)
         .eq("name", story.child_name)
         .maybeSingle();
 
+      avatarDescription = child?.avatar_description || null;
       const photoPath = child?.photo_url || child?.avatar_url;
       if (photoPath) {
         if (photoPath.startsWith("http")) {
@@ -156,33 +158,29 @@ serve(async (req) => {
 
     // If child photo exists, use Gemini with face reference for personalized cover
     if (childPhotoSignedUrl) {
-      const personalizedCoverPrompt = `CRITICAL FACE REFERENCE: The main character's face, hair color, hair texture, skin tone, eye color, and ALL facial features MUST be an EXACT 3D Pixar rendering of the child shown in the FIRST reference image (Image 1). This child IS the hero of the story. Do NOT invent or change ANY facial features — copy them precisely from the photo and render in Pixar 3D CGI style.
+      const characterDesc = avatarDescription
+        ? `The child's appearance: ${avatarDescription}. Render these features EXACTLY in Pixar 3D CGI style.`
+        : "Render the child's face, hair, skin tone, and all features EXACTLY as shown in the reference photo, in Pixar 3D CGI style.";
+
+      const personalizedCoverPrompt = `CRITICAL FACE REFERENCE: The child in the provided reference image IS the hero of this story. Their face, hair color, hair texture, skin tone, eye color, and ALL facial features MUST be copied EXACTLY from the photo and rendered as a 3D Pixar character. Do NOT invent or change ANY facial features.
+
+${characterDesc}
 
 Pixar 3D CGI animation style, big expressive eyes, soft rounded features, oversized head with small body, vibrant saturated colors, cinematic warm lighting with glowing accents, fantasy children's book background, high quality render, Disney-Pixar aesthetic. Characters must look like adorable cartoon dolls — NOT realistic humans. Portrait orientation (9:16 aspect ratio).
 
-=== CHARACTER (MAIN HERO — from reference photo) ===
-The MAIN CHARACTER is the child from Image 1 (the reference photo). Their face, hair, skin tone, and features must EXACTLY match the photo, rendered in Pixar 3D cartoon style. They should be shown as a confident, happy hero standing in the center of the scene.
-
-=== SUPPORTING CHARACTERS (from reference images 2-6) ===
-- Image 2 (${sol.label}): ${sol.label === "Sol hero" ? "Sol in her adventure/fantasy outfit" : "Sol in her superhero costume — warm tan skin, long dark brown hair in a high bun with pink band, red cape, light blue shirt with a golden star emblem, purple pants, white sneakers"}
-- Image 3 (Ben): Sol's LITTLE BROTHER — toddler with very curly dark hair, warm tan skin — always the SMALLEST character
-- Image 4 (Zoe): Dark brown skin, voluminous afro with light blue headband, purple-yellow tracksuit, soccer ball
-- Image 5 (Leo): Straight black hair, round glasses, denim overalls, rainbow pencil
-- Image 6 (Mia): Smooth brown bob, small flower crown, emerald green dress
+=== HERO CHARACTER (from the reference photo) ===
+The ONLY character in this cover is the child from the reference photo. They should be shown as a confident, happy hero standing in the CENTER of the scene. FULL BODY from head to toe, feet GROUNDED on the surface.
 
 SETTING: ${setting}
 
 TITLE TEXT: Display the text "${displayTitle}" prominently at the top or center-top of the image in a large, clear, child-friendly ${fontLanguage} font. The text should be bold, legible, and naturally integrated into the composition — as if it's the title of a children's book cover. Use a warm color that contrasts well with the background.
 
-COMPOSITION: This is a BOOK COVER. The main hero child (from the photo) should be CENTER and LARGEST. The 5 supporting characters (Sol, Ben, Zoe, Leo, Mia) are arranged around or behind the hero. The magical setting fills the background. The title text occupies the upper portion.
+COMPOSITION: This is a BOOK COVER. The child hero should be the central and largest figure in the lower two-thirds. The magical setting fills the background. The title text occupies the upper portion. Clean, simple, impactful.
 
-FULL BODY head to toe, feet GROUNDED for ALL characters. NEGATIVE: realistic, semi-realistic, real human, photograph, generic face, wrong hair, floating head, missing body, extra limbs, deformed, text beyond title, watermark, photorealistic, dark, muted colors, cinematic bokeh, hyper-realistic, shallow depth of field, cropped feet, cut off legs.`;
+NEGATIVE: realistic, semi-realistic, real human, photograph, generic face, wrong hair, floating head, missing body, extra limbs, deformed, text beyond title, watermark, photorealistic, dark, muted colors, cinematic bokeh, hyper-realistic, shallow depth of field, cropped feet, cut off legs, multiple characters, group shot.`;
 
-      // Build content: [child photo, Sol variant, Ben, Zoe, Leo, Mia] + text
       const personalizedContent = [
         { type: "image_url", image_url: { url: childPhotoSignedUrl } },
-        { type: "image_url", image_url: { url: sol.url } },
-        ...CHARACTER_BASE_REFS.map(url => ({ type: "image_url", image_url: { url } })),
         { type: "text", text: personalizedCoverPrompt },
       ];
 
