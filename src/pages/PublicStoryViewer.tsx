@@ -224,7 +224,32 @@ const PublicStoryViewer = () => {
             {/* Story Pages */}
             {currentVirtual && (
               <div key={currentPage} className="h-full w-full relative animate-fade-in">
-                {currentVirtual.type === 'illustration' ? (
+                {currentVirtual.type === 'combined' ? (
+                  /* Combined page (ages 0-2) — fullscreen illustration + text overlay */
+                  <>
+                    {illustrationSrc ? (
+                      <img src={illustrationSrc} alt={`איור עמוד ${currentVirtual.dbPage.page_number}`}
+                        className="absolute inset-0 w-full h-full object-cover" />
+                    ) : (
+                      <div className="absolute inset-0 bg-gradient-to-br from-purple-100 via-pink-50 to-orange-50 flex items-center justify-center">
+                        <span className="text-6xl opacity-30">✨</span>
+                      </div>
+                    )}
+                    {displayText && displayText.trim() && (
+                      <div className="absolute bottom-0 left-0 right-0 z-10 p-4 md:p-6" dir="rtl">
+                        <div className="max-w-lg mx-auto">
+                          <p className="text-lg md:text-2xl text-[#3D2B5A] font-semibold whitespace-pre-line text-right"
+                            style={{ lineHeight: '1.8', backgroundColor: 'rgba(255,255,255,0.85)', padding: '12px 16px', borderRadius: '16px', backdropFilter: 'blur(8px)' }}>
+                            {displayText}
+                          </p>
+                        </div>
+                      </div>
+                    )}
+                    <div className="absolute bottom-1 left-0 right-0 flex justify-center z-0">
+                      <span className="text-xs text-white/50">{currentVirtual.dbPage.page_number} / {dbPageCount}</span>
+                    </div>
+                  </>
+                ) : currentVirtual.type === 'illustration' ? (
                   /* Illustration page — fullscreen image, no text */
                   <>
                     {illustrationSrc ? (
@@ -258,14 +283,14 @@ const PublicStoryViewer = () => {
                 <button onClick={() => handlePageNav('prev')} disabled={currentPage <= 0}
                   className={cn("absolute right-2 top-1/2 -translate-y-1/2 z-20",
                     "w-8 h-8 rounded-full flex items-center justify-center",
-                    currentVirtual.type === 'illustration' ? "bg-white/20 hover:bg-white/40 text-white" : "bg-purple-100/60 hover:bg-purple-200 text-purple-500",
+                    currentVirtual.type !== 'text' ? "bg-white/20 hover:bg-white/40 text-white" : "bg-purple-100/60 hover:bg-purple-200 text-purple-500",
                     "transition-all disabled:opacity-20 disabled:cursor-not-allowed")}>
                   <ChevronRight className="w-5 h-5" />
                 </button>
                 <button onClick={() => handlePageNav('next')} disabled={currentPage >= virtualPages.length - 1}
                   className={cn("absolute left-2 top-1/2 -translate-y-1/2 z-20",
                     "w-8 h-8 rounded-full flex items-center justify-center",
-                    currentVirtual.type === 'illustration' ? "bg-white/20 hover:bg-white/40 text-white" : "bg-purple-100/60 hover:bg-purple-200 text-purple-500",
+                    currentVirtual.type !== 'text' ? "bg-white/20 hover:bg-white/40 text-white" : "bg-purple-100/60 hover:bg-purple-200 text-purple-500",
                     "transition-all disabled:opacity-20 disabled:cursor-not-allowed")}>
                   <ChevronLeft className="w-5 h-5" />
                 </button>
