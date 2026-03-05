@@ -267,7 +267,8 @@ const PublicStoryViewer = () => {
                 ) : (
                   /* Text page — pastel gradient, no image */
                   <div className="absolute inset-0 bg-gradient-to-br from-purple-50 via-pink-50 to-orange-50 overflow-y-auto flex flex-col items-center">
-                    <div className="max-w-lg mx-auto w-full px-6 md:px-10 my-auto py-6">
+                    <div className="flex-1" />
+                    <div className="max-w-lg mx-auto w-full px-6 md:px-10 py-6 shrink-0">
                       <p className="text-lg md:text-2xl text-[#3D2B5A] font-semibold whitespace-pre-line text-right"
                         style={{ lineHeight: '2', backgroundColor: 'rgba(255,255,255,0.5)', padding: '16px 20px', borderRadius: '16px', backdropFilter: 'blur(4px)' }} dir="rtl">
                         {displayText}
