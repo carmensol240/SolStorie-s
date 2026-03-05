@@ -76,33 +76,38 @@ const PublicStoryViewer = () => {
     fetchStory();
   }, [storySlug]);
 
-  // Build virtual pages — split each DB page into illustration + text
+  const isToddler = story?.age_range === '0-2';
+
+  // Build virtual pages — age-based layout
   const virtualPages = useMemo<VirtualPage[]>(() => {
     if (!story) return [];
     const result: VirtualPage[] = [];
     for (const page of story.pages) {
       const hasText = page.text && page.text.trim().length > 0;
       const hasIllustration = !!page.illustration_url;
-      // First: text page, then illustration
-      if (hasText) {
-        result.push({
-          type: 'text',
-          dbPage: page,
-          text: page.text,
-          illustrationUrl: null,
-        });
-      }
-      if (hasIllustration) {
-        result.push({
-          type: 'illustration',
-          dbPage: page,
-          text: page.text,
-          illustrationUrl: page.illustration_url,
-        });
+
+      if (isToddler) {
+        // Ages 0-2: single combined page
+        if (hasIllustration || hasText) {
+          result.push({
+            type: 'combined',
+            dbPage: page,
+            text: page.text,
+            illustrationUrl: page.illustration_url,
+          });
+        }
+      } else {
+        // Ages 3+: separate pages
+        if (hasText) {
+          result.push({ type: 'text', dbPage: page, text: page.text, illustrationUrl: null });
+        }
+        if (hasIllustration) {
+          result.push({ type: 'illustration', dbPage: page, text: page.text, illustrationUrl: page.illustration_url });
+        }
       }
     }
     return result;
-  }, [story]);
+  }, [story, isToddler]);
 
   const handlePageNav = useCallback((dir: 'next' | 'prev') => {
     if (!story) return;
