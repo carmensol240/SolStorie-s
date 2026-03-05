@@ -57,6 +57,105 @@ function getSettingForTopic(topic: string): string {
   return TOPIC_SETTINGS[topic] || "Enchanted forest clearing with magical glowing light, sparkling fireflies, and a majestic ancient tree";
 }
 
+// ── Shared helper: upload base64 image to storage and update story ──
+async function uploadCoverAndSave(
+  supabase: ReturnType<typeof createClient>,
+  storyId: string,
+  base64Image: string,
+): Promise<Response> {
+  const base64Content = base64Image.includes(",") ? base64Image.split(",")[1] : base64Image;
+  const binaryString = atob(base64Content);
+  const bytes = new Uint8Array(binaryString.length);
+  for (let i = 0; i < binaryString.length; i++) bytes[i] = binaryString.charCodeAt(i);
+
+  const filePath = `${storyId}/cover-${Date.now()}.png`;
+  const { error: uploadError } = await supabase.storage
+    .from("story-illustrations")
+    .upload(filePath, bytes, { contentType: "image/png", upsert: true });
+
+  if (uploadError) {
+    console.error("Cover upload error:", uploadError);
+    return new Response(JSON.stringify({ error: "Cover upload failed" }), {
+      status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" },
+    });
+  }
+
+  const { data: publicUrlData } = supabase.storage.from("story-illustrations").getPublicUrl(filePath);
+  const fullCoverUrl = `${publicUrlData.publicUrl}?v=${Date.now()}`;
+
+  await supabase.from("stories").update({ cover_url: fullCoverUrl }).eq("id", storyId);
+  console.log(`✅ Cover saved for story ${storyId}: ${fullCoverUrl}`);
+
+  return new Response(JSON.stringify({ success: true, coverUrl: fullCoverUrl }), {
+    headers: { ...corsHeaders, "Content-Type": "application/json" },
+  });
+}
+
+// ── Shared helper: call Gemini image generation with retries ──
+async function callGeminiImage(
+  apiKey: string,
+  requestBody: Record<string, unknown>,
+  maxAttempts = 2,
+  label = "cover",
+): Promise<string | null> {
+  for (let attempt = 1; attempt <= maxAttempts; attempt++) {
+    try {
+      console.log(`Gemini ${label} attempt ${attempt}/${maxAttempts}...`);
+      const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+        method: "POST",
+        signal: AbortSignal.timeout(120_000),
+        headers: { Authorization: `Bearer ${apiKey}`, "Content-Type": "application/json" },
+        body: JSON.stringify(requestBody),
+      });
+
+      if (!response.ok) {
+        console.error(`${label} attempt ${attempt} failed: ${response.status}`);
+        if (attempt < maxAttempts) { await new Promise(r => setTimeout(r, 3000)); continue; }
+        return null;
+      }
+
+      const data = await response.json();
+      const imageUrl = data.choices?.[0]?.message?.images?.[0]?.image_url?.url || null;
+      if (imageUrl) return imageUrl;
+
+      console.warn(`${label} attempt ${attempt}: no image in response`);
+      if (attempt < maxAttempts) await new Promise(r => setTimeout(r, 3000));
+    } catch (err) {
+      console.error(`${label} attempt ${attempt} error:`, err);
+      if (attempt < maxAttempts) await new Promise(r => setTimeout(r, 3000));
+    }
+  }
+  return null;
+}
+
+// ── Build the personalized cover prompt (single child reference) ──
+function buildPersonalizedPrompt(
+  avatarDescription: string | null,
+  setting: string,
+  displayTitle: string,
+  fontLanguage: string,
+): string {
+  const traitBlock = avatarDescription
+    ? `Character traits from profile: ${avatarDescription}. Render these features EXACTLY in Pixar 3D CGI style.`
+    : "Render the child's face, hair color, hair texture, skin tone, eye color, and ALL facial features EXACTLY as shown in the reference photo, in Pixar 3D CGI style.";
+
+  return `FACE REFERENCE: The main character's face MUST be an EXACT 3D Pixar rendering of the child in the reference photo. Copy every facial detail — eyes, nose, mouth shape, skin tone, hair color, hair style — directly from the photo. Do NOT invent or change ANY facial features.
+
+${traitBlock}
+
+Pixar 3D CGI animation style, big expressive eyes, soft rounded features, oversized head with small body, vibrant saturated colors, cinematic warm lighting with glowing accents, fantasy children's book background, high quality render, Disney-Pixar aesthetic. Characters must look like adorable cartoon dolls — NOT realistic humans. Portrait orientation (9:16 aspect ratio).
+
+The ONLY character in this cover is the child from the reference photo. They should be shown as a confident, happy hero standing in the CENTER of the scene. FULL BODY from head to toe, feet GROUNDED on the surface.
+
+SETTING: ${setting}
+
+TITLE TEXT: Display the text "${displayTitle}" prominently at the top or center-top of the image in a large, clear, child-friendly ${fontLanguage} font. The text should be bold, legible, and naturally integrated into the composition — as if it's the title of a children's book cover. Use a warm color that contrasts well with the background.
+
+COMPOSITION: This is a BOOK COVER. The child hero should be the central and largest figure in the lower two-thirds. The magical setting fills the background. The title text occupies the upper portion. Clean, simple, impactful.
+
+NEGATIVE: realistic, semi-realistic, real human, photograph, generic face, wrong hair, floating head, missing body, extra limbs, deformed, text beyond title, watermark, photorealistic, dark, muted colors, cinematic bokeh, hyper-realistic, shallow depth of field, cropped feet, cut off legs, multiple characters, group shot.`;
+}
+
 serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
@@ -74,7 +173,6 @@ serve(async (req) => {
     }
 
     const supabase = createClient(supabaseUrl, supabaseServiceKey);
-
     const { storyId, title, topic, language } = await req.json();
 
     if (!storyId) {
@@ -110,7 +208,6 @@ serve(async (req) => {
           childPhotoSignedUrl = photoPath;
           console.log(`🖼️ Child photo (HTTP URL) found — personalizing cover`);
         } else if (photoPath.startsWith("data:")) {
-          // Upload base64 to storage for HTTP URL — Instant Character works better with URLs
           console.log(`🖼️ Child photo is a data URI — uploading to storage for HTTP URL...`);
           try {
             const base64Content = photoPath.split(",")[1] || photoPath;
@@ -125,13 +222,11 @@ serve(async (req) => {
               const { data: signedData } = await supabase.storage
                 .from("child-photos")
                 .createSignedUrl(tempPath, 600);
-              childPhotoSignedUrl = signedData?.signedUrl || photoPath;
+              childPhotoSignedUrl = signedData?.signedUrl || null;
               console.log(`✅ Photo uploaded, using signed URL for cover`);
-            } else {
-              childPhotoSignedUrl = photoPath;
             }
           } catch {
-            childPhotoSignedUrl = photoPath;
+            // Could not convert data URI
           }
         } else {
           const { data: signedData } = await supabase.storage
@@ -152,127 +247,50 @@ serve(async (req) => {
       ? (title && !/^[a-z\-]+$/.test(title) ? title : "סיפור קסום")
       : (title || topic || "A Magical Story");
 
-    // Select correct Sol variant based on topic
-    const sol = getSolUrl(topic || "");
-    console.log(`Sol variant: ${sol.label} for topic "${topic}"`);
-
-    // If child photo exists, use Gemini with face reference for personalized cover
+    // ═══════════════════════════════════════════════════════════
+    // PATH A: Child photo exists → single-reference personalized cover
+    // ═══════════════════════════════════════════════════════════
     if (childPhotoSignedUrl) {
-      const characterDesc = avatarDescription
-        ? `The child's appearance: ${avatarDescription}. Render these features EXACTLY in Pixar 3D CGI style.`
-        : "Render the child's face, hair, skin tone, and all features EXACTLY as shown in the reference photo, in Pixar 3D CGI style.";
+      const coverPrompt = buildPersonalizedPrompt(avatarDescription, setting, displayTitle, fontLanguage);
 
-      const personalizedCoverPrompt = `CRITICAL FACE REFERENCE: The child in the provided reference image IS the hero of this story. Their face, hair color, hair texture, skin tone, eye color, and ALL facial features MUST be copied EXACTLY from the photo and rendered as a 3D Pixar character. Do NOT invent or change ANY facial features.
-
-${characterDesc}
-
-Pixar 3D CGI animation style, big expressive eyes, soft rounded features, oversized head with small body, vibrant saturated colors, cinematic warm lighting with glowing accents, fantasy children's book background, high quality render, Disney-Pixar aesthetic. Characters must look like adorable cartoon dolls — NOT realistic humans. Portrait orientation (9:16 aspect ratio).
-
-=== HERO CHARACTER (from the reference photo) ===
-The ONLY character in this cover is the child from the reference photo. They should be shown as a confident, happy hero standing in the CENTER of the scene. FULL BODY from head to toe, feet GROUNDED on the surface.
-
-SETTING: ${setting}
-
-TITLE TEXT: Display the text "${displayTitle}" prominently at the top or center-top of the image in a large, clear, child-friendly ${fontLanguage} font. The text should be bold, legible, and naturally integrated into the composition — as if it's the title of a children's book cover. Use a warm color that contrasts well with the background.
-
-COMPOSITION: This is a BOOK COVER. The child hero should be the central and largest figure in the lower two-thirds. The magical setting fills the background. The title text occupies the upper portion. Clean, simple, impactful.
-
-NEGATIVE: realistic, semi-realistic, real human, photograph, generic face, wrong hair, floating head, missing body, extra limbs, deformed, text beyond title, watermark, photorealistic, dark, muted colors, cinematic bokeh, hyper-realistic, shallow depth of field, cropped feet, cut off legs, multiple characters, group shot.`;
-
-      const personalizedContent = [
-        { type: "image_url", image_url: { url: childPhotoSignedUrl } },
-        { type: "text", text: personalizedCoverPrompt },
-      ];
-
-      const personalizedRequestBody = {
+      const requestBody = {
         model: "google/gemini-3-pro-image-preview",
         modalities: ["image", "text"],
-        messages: [{ role: "user", content: personalizedContent }],
+        messages: [{
+          role: "user",
+          content: [
+            { type: "image_url", image_url: { url: childPhotoSignedUrl } },
+            { type: "text", text: coverPrompt },
+          ],
+        }],
       };
 
-      let imageUrl: string | null = null;
-      const MAX_ATTEMPTS = 2;
+      // Try up to 3 times with the SAME single-reference approach (no cast fallback)
+      const imageUrl = await callGeminiImage(LOVABLE_API_KEY, requestBody, 3, "personalized cover");
 
-      for (let attempt = 1; attempt <= MAX_ATTEMPTS; attempt++) {
-        try {
-          console.log(`Gemini personalized cover attempt ${attempt}/${MAX_ATTEMPTS}...`);
-          const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
-            method: "POST",
-            signal: AbortSignal.timeout(120_000),
-            headers: {
-              Authorization: `Bearer ${LOVABLE_API_KEY}`,
-              "Content-Type": "application/json",
-            },
-            body: JSON.stringify(personalizedRequestBody),
-          });
-
-          if (!response.ok) {
-            console.error(`Personalized cover attempt ${attempt} failed:`, response.status);
-            if (attempt < MAX_ATTEMPTS) { await new Promise(r => setTimeout(r, 3000)); continue; }
-            break;
-          }
-
-          const data = await response.json();
-          imageUrl = data.choices?.[0]?.message?.images?.[0]?.image_url?.url || null;
-
-          if (imageUrl) break;
-          console.warn(`Personalized cover attempt ${attempt}: no image`);
-          if (attempt < MAX_ATTEMPTS) { await new Promise(r => setTimeout(r, 3000)); continue; }
-        } catch (fetchErr) {
-          console.error(`Personalized cover attempt ${attempt} error:`, fetchErr);
-          if (attempt < MAX_ATTEMPTS) { await new Promise(r => setTimeout(r, 3000)); continue; }
-        }
-      }
-
-      // If Gemini personalized cover succeeded, upload and return
       if (imageUrl) {
-        const base64Content = imageUrl.includes(",") ? imageUrl.split(",")[1] : imageUrl;
-        const binaryString = atob(base64Content);
-        const bytes = new Uint8Array(binaryString.length);
-        for (let i = 0; i < binaryString.length; i++) {
-          bytes[i] = binaryString.charCodeAt(i);
-        }
-
-        const filePath = `${storyId}/cover-${Date.now()}.png`;
-        const { error: uploadError } = await supabase.storage
-          .from("story-illustrations")
-          .upload(filePath, bytes, { contentType: "image/png", upsert: true });
-
-        if (uploadError) {
-          console.error("Cover upload error:", uploadError);
-          return new Response(JSON.stringify({ error: "Cover upload failed" }), {
-            status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" },
-          });
-        }
-
-        const { data: publicUrlData } = supabase.storage
-          .from("story-illustrations")
-          .getPublicUrl(filePath);
-
-        const fullCoverUrl = `${publicUrlData.publicUrl}?v=${Date.now()}`;
-
-        await supabase
-          .from("stories")
-          .update({ cover_url: fullCoverUrl })
-          .eq("id", storyId);
-
-        console.log(`✅ Personalized cover generated via Gemini for story ${storyId}`);
-
-        return new Response(
-          JSON.stringify({ success: true, coverUrl: fullCoverUrl }),
-          { headers: { ...corsHeaders, "Content-Type": "application/json" } }
-        );
+        console.log(`✅ Personalized cover generated for story ${storyId}`);
+        return uploadCoverAndSave(supabase, storyId, imageUrl);
       }
 
-      console.warn("Gemini personalized cover failed, falling back to generic Gemini cover");
+      // All personalized attempts failed — return error, do NOT fall back to cast
+      console.error(`❌ All personalized cover attempts failed for story ${storyId}`);
+      return new Response(JSON.stringify({ error: "Personalized cover generation failed after retries" }), {
+        status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
     }
 
-    // === FALLBACK / DEFAULT: Gemini-based cover with Sol character ===
+    // ═══════════════════════════════════════════════════════════
+    // PATH B: No child photo → cast-based cover (Sol + friends)
+    // ═══════════════════════════════════════════════════════════
+    const sol = getSolUrl(topic || "");
+    console.log(`No child photo — using cast cover. Sol variant: ${sol.label}`);
+
     const solDescription = sol.label === "Sol hero"
       ? "Sol in her adventure/fantasy outfit — match EXACTLY from the provided reference image"
       : "Sol in her superhero costume — warm tan skin, long dark brown hair in a high bun with pink band, red cape, light blue shirt with a golden star emblem, purple pants, white sneakers — match EXACTLY from the provided reference image";
 
-    const coverPrompt = `Pixar 3D CGI animation style, big expressive eyes, soft rounded features, oversized head with small body, vibrant saturated colors, cinematic warm lighting with glowing accents, fantasy children's book background, high quality render, Disney-Pixar aesthetic. Characters must look like adorable cartoon dolls — NOT realistic humans. Portrait orientation (9:16 aspect ratio).
+    const castCoverPrompt = `Pixar 3D CGI animation style, big expressive eyes, soft rounded features, oversized head with small body, vibrant saturated colors, cinematic warm lighting with glowing accents, fantasy children's book background, high quality render, Disney-Pixar aesthetic. Characters must look like adorable cartoon dolls — NOT realistic humans. Portrait orientation (9:16 aspect ratio).
 
 === MANDATORY CHARACTER REFERENCES ===
 Reference images of EACH character are provided above. You MUST match their appearance EXACTLY — facial features, hair color, hair style, and skin tone MUST be taken DIRECTLY from the reference images. Zero invented characters.
@@ -299,7 +317,6 @@ COMPOSITION: This is a BOOK COVER. The 5 characters should be arranged as a grou
 
 EXCLUDE / NEGATIVE PROMPT: No realistic, no semi-realistic, no real humans, no photographs. No UI elements, no buttons, no audio icons, no play buttons, no watermarks, no text beyond the story title. No additional characters beyond the 5 described. No floating heads, no disembodied heads, no missing bodies, no missing limbs, no extra limbs, no deformed characters, no distorted faces, no scary imagery, no grotesque elements, no mutated features. All characters must be shown as FULL BODY from head to toe with feet VISIBLE and GROUNDED on the surface. No cropped feet, no cut off legs, no floating characters, no half-body compositions, no missing feet, no legs cut off at frame edge. Characters must be FULLY CONTAINED within the frame with generous margin. Characters must look like cartoon dolls, NEVER like real humans.`;
 
-    // Build multi-image content: [Sol variant, Ben, Zoe, Leo, Mia] + text
     const characterRefContent = [sol.url, ...CHARACTER_BASE_REFS].map(url => ({
       type: "image_url",
       image_url: { url },
@@ -312,46 +329,12 @@ EXCLUDE / NEGATIVE PROMPT: No realistic, no semi-realistic, no real humans, no p
         role: "user",
         content: [
           ...characterRefContent,
-          { type: "text", text: coverPrompt },
+          { type: "text", text: castCoverPrompt },
         ],
       }],
     };
 
-    let imageUrl: string | null = null;
-    const MAX_ATTEMPTS = 2;
-
-    for (let attempt = 1; attempt <= MAX_ATTEMPTS; attempt++) {
-      try {
-        console.log(`Gemini cover attempt ${attempt}/${MAX_ATTEMPTS}...`);
-        const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
-          method: "POST",
-          signal: AbortSignal.timeout(120_000),
-          headers: {
-            Authorization: `Bearer ${LOVABLE_API_KEY}`,
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify(requestBody),
-        });
-
-        if (!response.ok) {
-          console.error(`Cover attempt ${attempt} failed:`, response.status);
-          if (attempt < MAX_ATTEMPTS) { await new Promise(r => setTimeout(r, 3000)); continue; }
-          return new Response(JSON.stringify({ error: "Cover generation failed" }), {
-            status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" },
-          });
-        }
-
-        const data = await response.json();
-        imageUrl = data.choices?.[0]?.message?.images?.[0]?.image_url?.url || null;
-
-        if (imageUrl) break;
-        console.warn(`Cover attempt ${attempt}: no image in response`);
-        if (attempt < MAX_ATTEMPTS) { await new Promise(r => setTimeout(r, 3000)); continue; }
-      } catch (fetchErr) {
-        console.error(`Cover attempt ${attempt} error:`, fetchErr);
-        if (attempt < MAX_ATTEMPTS) { await new Promise(r => setTimeout(r, 3000)); continue; }
-      }
-    }
+    const imageUrl = await callGeminiImage(LOVABLE_API_KEY, requestBody, 2, "cast cover");
 
     if (!imageUrl) {
       return new Response(JSON.stringify({ error: "No cover image generated after retries" }), {
@@ -359,43 +342,7 @@ EXCLUDE / NEGATIVE PROMPT: No realistic, no semi-realistic, no real humans, no p
       });
     }
 
-    // Upload to storage
-    const base64Content = imageUrl.includes(",") ? imageUrl.split(",")[1] : imageUrl;
-    const binaryString = atob(base64Content);
-    const bytes = new Uint8Array(binaryString.length);
-    for (let i = 0; i < binaryString.length; i++) {
-      bytes[i] = binaryString.charCodeAt(i);
-    }
-
-    const filePath = `${storyId}/cover-${Date.now()}.png`;
-    const { error: uploadError } = await supabase.storage
-      .from("story-illustrations")
-      .upload(filePath, bytes, { contentType: "image/png", upsert: true });
-
-    if (uploadError) {
-      console.error("Cover upload error:", uploadError);
-      return new Response(JSON.stringify({ error: "Cover upload failed" }), {
-        status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
-    }
-
-    const { data: publicUrlData } = supabase.storage
-      .from("story-illustrations")
-      .getPublicUrl(filePath);
-
-    const fullCoverUrl = `${publicUrlData.publicUrl}?v=${Date.now()}`;
-
-    await supabase
-      .from("stories")
-      .update({ cover_url: fullCoverUrl })
-      .eq("id", storyId);
-
-    console.log(`✅ Cover generated and saved for story ${storyId}: ${fullCoverUrl}`);
-
-    return new Response(
-      JSON.stringify({ success: true, coverUrl: fullCoverUrl }),
-      { headers: { ...corsHeaders, "Content-Type": "application/json" } }
-    );
+    return uploadCoverAndSave(supabase, storyId, imageUrl);
   } catch (error) {
     console.error("generate-cover error:", error);
     return new Response(
