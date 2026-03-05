@@ -1089,7 +1089,55 @@ const StoryViewer = () => {
             ) : currentVirtual ? (
               /* Story Content Pages */
               <div className="h-full w-full relative animate-fade-in">
-                {currentVirtual.type === 'illustration' ? (
+                {currentVirtual.type === 'combined' ? (
+                  /* Combined page (ages 0-2) — fullscreen illustration + text overlay */
+                  <>
+                    {currentVirtual.illustrationUrl ? (
+                      <img
+                        src={getPublicIllustrationUrl(currentVirtual.illustrationUrl) || ''}
+                        alt="איור"
+                        className="absolute inset-0 w-full h-full object-cover"
+                        loading="eager"
+                      />
+                    ) : currentVirtual.dbPage.illustration_prompt ? (
+                      <div className="absolute inset-0 w-full h-full flex items-center justify-center bg-gradient-to-br from-[#FFF8F0] via-[#F5E6D3] to-[#FAF3E8]">
+                        <div className="relative z-10 text-center space-y-4">
+                          <div className="relative w-20 h-20 mx-auto">
+                            <div className="absolute inset-0 rounded-full bg-gradient-to-br from-purple-300 via-pink-300 to-orange-300 animate-spin" style={{ animationDuration: '3s' }} />
+                            <div className="absolute inset-1 rounded-full bg-white/90 flex items-center justify-center">
+                              <span className="text-3xl">🎨</span>
+                            </div>
+                          </div>
+                          <p className="text-sm font-semibold text-[#6B4423]" dir="rtl">מכינים איור קסום...</p>
+                        </div>
+                      </div>
+                    ) : (
+                      <div className="absolute inset-0 w-full h-full" style={{ background: getTopicTheme(story.topic).bg }} />
+                    )}
+                    {/* Text overlay at the bottom */}
+                    {currentVirtual.text && currentVirtual.text.trim() && (
+                      <div className="absolute bottom-0 left-0 right-0 z-10 p-4 md:p-6" dir="rtl">
+                        <div className="max-w-lg mx-auto">
+                          <p className={cn(
+                            "text-right font-semibold whitespace-pre-line text-[#3D2B5A]",
+                            currentFontSize.size,
+                          )} style={{
+                            lineHeight: '1.8',
+                            backgroundColor: 'rgba(255,255,255,0.85)',
+                            padding: '12px 16px',
+                            borderRadius: '16px',
+                            backdropFilter: 'blur(8px)',
+                          }}>
+                            {showNikud ? currentVirtual.text : currentVirtual.text.replace(/[\u0591-\u05C7]/g, '')}
+                          </p>
+                        </div>
+                      </div>
+                    )}
+                    <div className="absolute bottom-1 left-0 right-0 flex justify-center z-0">
+                      <span className="text-xs text-white/50 font-light">{currentVirtual.dbPage.page_number} / {story.pages.length}</span>
+                    </div>
+                  </>
+                ) : currentVirtual.type === 'illustration' ? (
                   /* Illustration page — fullscreen image, no text */
                   <>
                     {currentVirtual.illustrationUrl ? (
