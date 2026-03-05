@@ -1,26 +1,28 @@
 
 
-## Bug Analysis
+## Analysis
 
-The onboarding loop is caused by a combination of issues in the navigation flow between `RequireTerms` and `Onboarding`:
+The current `generate-cover/index.ts` has two paths:
 
-1. **Silent update failure**: In `Onboarding.handleContinue`, the Supabase `.update().eq()` call returns success (`error: null`) even when **zero rows are matched** (e.g., due to a race condition where the profile hasn't been created yet). The code doesn't verify the update actually persisted.
+1. **Personalized path (lines 160-265)**: Sends only the child's photo — correct approach, matches `generate-illustrations`
+2. **Fallback path (lines 270-406)**: When the personalized path fails (Gemini returns no image), it falls back to sending **6 cast character reference images** (Sol, Ben, Zoe, Leo, Mia) — this produces a generic character cover
 
-2. **No `replace: true` on redirects**: Both `RequireTerms` (redirecting to `/onboarding`) and `Onboarding`'s guard effect (redirecting to `/adventure`) use `navigate()` without `{ replace: true }`, causing history stack pollution and making the loop worse.
+The bug: Gemini's personalized cover generation sometimes fails (no image returned), and the fallback creates a generic cover with 6 unrelated character references instead of retrying with the child's photo.
 
-3. **Loop mechanics**: `handleContinue` thinks it succeeded → navigates to `/adventure` → `RequireTerms` queries DB → `terms_accepted_at` is still null → redirects back to `/onboarding` → Onboarding guard checks terms → still null → shows the form again.
+## Plan — 3 changes in `supabase/functions/generate-cover/index.ts`
 
-## Fix
+### 1. Remove the 6-image fallback entirely
+When a child photo exists but the personalized attempt fails, **retry with the same single-reference approach** using a simplified prompt (no title text, just the child as hero in the setting). Do NOT fall back to cast characters.
 
-### 1. `src/pages/Onboarding.tsx` — Verify update actually persisted
+### 2. Use the `generate-illustrations` FACE REFERENCE prompt pattern
+Replace the personalized cover prompt with the proven structure from `generateIllustrationWithFace` (line 173 of generate-illustrations): `"FACE REFERENCE: The main character's face MUST be an EXACT 3D Pixar rendering of the child in the reference photo..."` — this is the exact wording that produces accurate likenesses.
 
-In `handleContinue`, after the update call, re-query the profile to confirm `terms_accepted_at` was saved. If not, use `upsert` as a fallback. Also add `{ replace: true }` to the guard navigation.
+### 3. Inject `avatar_description` into the prompt
+Already fetched at line 106, but strengthen its usage: when available, inject it as explicit character traits (hair, skin, eyes) directly into the FACE REFERENCE block, same pattern as illustrations.
 
-### 2. `src/components/RequireTerms.tsx` — Use `replace: true`
+### Fallback for no-photo cases
+The cast-based cover (6 images) remains **only** for children without a photo — this is the only scenario where it makes sense.
 
-Change the `navigate` call to onboarding to use `{ replace: true }` so the history stack doesn't accumulate redirect entries.
-
-### 3. Both files — Add select return on update
-
-Use `.update(...).eq(...).select()` to get the updated row back, confirming the write succeeded. If the returned array is empty, fall back to an upsert to handle the edge case where the profile row doesn't exist yet.
+### Files changed
+- `supabase/functions/generate-cover/index.ts` only
 
