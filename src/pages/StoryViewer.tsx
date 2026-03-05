@@ -1189,8 +1189,8 @@ const StoryViewer = () => {
                     const rawText = currentVirtual.text;
                     const displayText = showNikud ? rawText : rawText.replace(/[\u0591-\u05C7]/g, '');
                     return (
-                      <div className="absolute inset-0 w-full h-full flex flex-col items-center justify-center" style={{ background: theme.bg }}>
-                        <div className="max-w-lg mx-auto w-full px-6 md:px-10">
+                      <div className="absolute inset-0 w-full h-full overflow-y-auto flex flex-col items-center" style={{ background: theme.bg }}>
+                        <div className="max-w-lg mx-auto w-full px-6 md:px-10 my-auto py-6">
                           <p className={cn(
                             "text-right font-semibold whitespace-pre-line text-[#3D2B5A]",
                             currentFontSize.size,
@@ -1204,7 +1204,7 @@ const StoryViewer = () => {
                             {displayText}
                           </p>
                         </div>
-                        <div className="mt-4">
+                        <div className="pb-4 shrink-0">
                           <span className="text-xs text-[#5B3E96]/60 font-light">{Math.ceil((currentPage + 1) / 2)} / {story.pages.length}</span>
                         </div>
                       </div>
