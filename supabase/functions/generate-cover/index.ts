@@ -94,14 +94,16 @@ serve(async (req) => {
 
     // Check if child has a photo for personalized cover
     let childPhotoSignedUrl: string | null = null;
+    let avatarDescription: string | null = null;
     if (story?.user_id && story?.child_name) {
       const { data: child } = await supabase
         .from("children")
-        .select("avatar_url, photo_url")
+        .select("avatar_url, photo_url, avatar_description")
         .eq("user_id", story.user_id)
         .eq("name", story.child_name)
         .maybeSingle();
 
+      avatarDescription = child?.avatar_description || null;
       const photoPath = child?.photo_url || child?.avatar_url;
       if (photoPath) {
         if (photoPath.startsWith("http")) {
