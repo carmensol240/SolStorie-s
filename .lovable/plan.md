@@ -1,26 +1,45 @@
 
 
-## Bug Analysis
+## Plan: Rainbow Gradient Splash Screen
 
-The onboarding loop is caused by a combination of issues in the navigation flow between `RequireTerms` and `Onboarding`:
+### Context
+The splash screen (`public/splash-screen.png`) is a **static PNG image** referenced by `index.html` as `apple-touch-startup-image` and in the PWA manifest as a screenshot. It cannot be dynamically styled with CSS — it must be replaced as an image file.
 
-1. **Silent update failure**: In `Onboarding.handleContinue`, the Supabase `.update().eq()` call returns success (`error: null`) even when **zero rows are matched** (e.g., due to a race condition where the profile hasn't been created yet). The code doesn't verify the update actually persisted.
+### Problem
+Lovable cannot generate or edit raster image files (PNG/JPG). The splash screen is a pre-made static asset.
 
-2. **No `replace: true` on redirects**: Both `RequireTerms` (redirecting to `/onboarding`) and `Onboarding`'s guard effect (redirecting to `/adventure`) use `navigate()` without `{ replace: true }`, causing history stack pollution and making the loop worse.
+### What I Can Do
+Create an **HTML-based splash/loading screen** that displays while the app initializes, using CSS to render the rainbow gradient background, centered character image, and logo text. This replaces the static PNG experience with a live-rendered splash.
 
-3. **Loop mechanics**: `handleContinue` thinks it succeeded → navigates to `/adventure` → `RequireTerms` queries DB → `terms_accepted_at` is still null → redirects back to `/onboarding` → Onboarding guard checks terms → still null → shows the form again.
+### Changes
 
-## Fix
+#### 1. `index.html` — Add inline splash screen
+Add a `<div id="splash">` inside `<body>` before `<div id="root">` with:
+- **Background**: soft diagonal gradient (top-left → bottom-right) using pastel versions of the logo colors: `linear-gradient(135deg, #ffcccc, #ffe0b2, #fff9c4, #c8e6c9, #bbdefb, #e1bee7)`
+- **Center**: the character image (`sol-superhero-book.png` or `splash-screen.png`)
+- **Top**: "SolStorie's™" text with the rainbow gradient style (matching `.logo-rainbow`)
+- All styled inline so it renders immediately before CSS/JS loads
 
-### 1. `src/pages/Onboarding.tsx` — Verify update actually persisted
+#### 2. `src/main.tsx` — Remove splash after React mounts
+Add a small snippet after `createRoot().render()` to fade out and remove the `#splash` div once the app is ready.
 
-In `handleContinue`, after the update call, re-query the profile to confirm `terms_accepted_at` was saved. If not, use `upsert` as a fallback. Also add `{ replace: true }` to the guard navigation.
+#### 3. `index.html` — Keep the static PNG reference
+The `apple-touch-startup-image` link stays for iOS PWA compatibility, but the visual experience will come from the HTML splash.
 
-### 2. `src/components/RequireTerms.tsx` — Use `replace: true`
+### Visual Result
+```
+┌─────────────────────────┐
+│  ╲  pastel rainbow bg  ╱│
+│    SolStorie's™ (rainbow)│
+│                          │
+│      [Sol character]     │
+│       (centered)         │
+│                          │
+│  gradient: soft diagonal │
+└─────────────────────────┘
+```
 
-Change the `navigate` call to onboarding to use `{ replace: true }` so the history stack doesn't accumulate redirect entries.
-
-### 3. Both files — Add select return on update
-
-Use `.update(...).eq(...).select()` to get the updated row back, confirming the write succeeded. If the returned array is empty, fall back to an upsert to handle the edge case where the profile row doesn't exist yet.
+### Files changed
+- `index.html` — add splash div with inline styles
+- `src/main.tsx` — remove splash on mount
 
