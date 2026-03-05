@@ -787,7 +787,7 @@ const StoryViewer = () => {
 
   // Build virtual pages — split each DB page into illustration + text
   type VirtualPage = {
-    type: 'illustration' | 'text';
+    type: 'illustration' | 'text' | 'combined';
     dbPage: StoryPage;
     illustrationUrl: string | null;
     illustrationPrompt: string | null;
