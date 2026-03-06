@@ -564,9 +564,14 @@ const StoryViewer = () => {
     }, 300);
   };
 
-  // Scroll to top on every page change
-  useEffect(() => {
+  // Scroll to top on every page change — useLayoutEffect ensures it fires before paint
+  useLayoutEffect(() => {
     window.scrollTo(0, 0);
+    document.documentElement.scrollTop = 0;
+    document.body.scrollTop = 0;
+    document.querySelectorAll('[data-story-scroll]').forEach(el => {
+      el.scrollTop = 0;
+    });
   }, [currentPage]);
 
   // Keyboard navigation for desktop
