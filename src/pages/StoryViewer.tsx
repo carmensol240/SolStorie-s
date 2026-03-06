@@ -1067,6 +1067,8 @@ const StoryViewer = () => {
         onSaveOffline={handleSaveOffline}
         isSavedOffline={resolvedId ? fullOffline.savedStoryIds.has(resolvedId) : false}
         isDownloadingOffline={fullOffline.downloadingId === resolvedId}
+        onRegenerateCover={handleRegenerateCover}
+        isRegeneratingCover={isRegeneratingCover}
       />
 
       {/* Read Aloud button removed per user request */}
