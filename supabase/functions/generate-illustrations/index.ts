@@ -935,16 +935,27 @@ serve(async (req) => {
             effectiveAdventureLogic,
           );
         } else {
-          base64Image = await generateIllustration(
+          // No photo: try Gemini first (same Pixar 3D CGI style), then Flux Schnell as fallback
+          base64Image = await generateIllustrationGeminiNoFace(
             illustrationPrompt,
-            effectivePhoto,
             characterProfile,
-            LOVABLE_API_KEY,
             storyOutfit,
             visualAnchor,
             effectiveAdventureLogic,
-            topic
           );
+          if (!base64Image) {
+            console.log(`Gemini no-face failed for page ${page.page_number}, trying Flux Schnell fallback...`);
+            base64Image = await generateIllustration(
+              illustrationPrompt,
+              effectivePhoto,
+              characterProfile,
+              LOVABLE_API_KEY,
+              storyOutfit,
+              visualAnchor,
+              effectiveAdventureLogic,
+              topic
+            );
+          }
         }
         
         if (base64Image) {
