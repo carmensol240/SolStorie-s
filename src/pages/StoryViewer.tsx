@@ -162,6 +162,7 @@ const StoryViewer = () => {
   const [endFeedbackSending, setEndFeedbackSending] = useState(false);
   const { trackStoryStarted, trackStoryCompleted, trackPageViewed, trackFeatureUsed } = useAnalytics();
   const { isOnline, cacheStory, getCachedStory } = useOfflineStorage();
+  const fullOffline = useFullOfflineStorage();
   const { settings } = useSettings();
   const { exportToPdf, generatePdfFile, isExporting } = usePdfExport();
   const { addNikud, isLoading: isAddingNikud } = useNikud();
