@@ -151,7 +151,13 @@ const TOPIC_SETTINGS: Record<string, string> = {
 };
 
 function getSettingForTopic(topic: string): string {
-  return TOPIC_SETTINGS[topic] || "Enchanted forest clearing with magical glowing light, sparkling fireflies, and a majestic ancient tree";
+  const setting = TOPIC_SETTINGS[topic];
+  if (setting) {
+    console.log(`✅ TOPIC_SETTINGS match found: topic="${topic}" → setting="${setting.substring(0, 80)}..."`);
+  } else {
+    console.warn(`⚠️ TOPIC_SETTINGS: NO match for topic="${topic}" — falling back to default enchanted forest. Available keys: ${Object.keys(TOPIC_SETTINGS).filter(k => k.includes(topic.split('-')[0])).join(', ') || 'none similar'}`);
+  }
+  return setting || "Enchanted forest clearing with magical glowing light, sparkling fireflies, and a majestic ancient tree";
 }
 
 // ── Shared helper: upload base64 image to storage and update story ──
