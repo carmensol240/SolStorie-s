@@ -55,6 +55,9 @@ interface BookHeaderProps {
   onSaveOffline?: () => void;
   isSavedOffline?: boolean;
   isDownloadingOffline?: boolean;
+  // Regenerate cover
+  onRegenerateCover?: () => void;
+  isRegeneratingCover?: boolean;
 }
 
 export const BookHeader: React.FC<BookHeaderProps> = ({
@@ -76,6 +79,8 @@ export const BookHeader: React.FC<BookHeaderProps> = ({
   onSaveOffline,
   isSavedOffline = false,
   isDownloadingOffline = false,
+  onRegenerateCover,
+  isRegeneratingCover = false,
 }) => {
   return (
     <header className="sticky top-0 z-40 bg-[#FAF3E8]/95 backdrop-blur-sm border-b border-[#D4C4B0] px-3 py-2 shadow-sm">
@@ -252,6 +257,16 @@ export const BookHeader: React.FC<BookHeaderProps> = ({
                   )}
                   <DropdownMenuSeparator />
                 </>
+              )}
+              {onRegenerateCover && (
+                <DropdownMenuItem 
+                  onClick={onRegenerateCover} 
+                  disabled={isRegeneratingCover}
+                  className="gap-2 cursor-pointer"
+                >
+                  <span>🎨</span>
+                  <span>{isRegeneratingCover ? 'מייצר כריכה...' : 'ייצר כריכה מחדש'}</span>
+                </DropdownMenuItem>
               )}
               {onReport && (
                 <DropdownMenuItem onClick={onReport} className="gap-2 cursor-pointer text-destructive">
