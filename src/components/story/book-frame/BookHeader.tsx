@@ -55,6 +55,9 @@ interface BookHeaderProps {
   onSaveOffline?: () => void;
   isSavedOffline?: boolean;
   isDownloadingOffline?: boolean;
+  // Regenerate cover
+  onRegenerateCover?: () => void;
+  isRegeneratingCover?: boolean;
 }
 
 export const BookHeader: React.FC<BookHeaderProps> = ({

@@ -1090,7 +1090,7 @@ const StoryViewer = () => {
           )}>
             
             {isCoverPage ? (
-              /* Cover Page — superhero background + child avatar */
+              /* Cover Page — illustration is the hero, minimal overlay */
               (() => {
                 return (
                   <div className="relative flex flex-col h-full">
@@ -1101,44 +1101,27 @@ const StoryViewer = () => {
                       className="absolute inset-0 w-full h-full object-cover"
                       loading="eager"
                     />
-                    {/* Dark gradient overlay */}
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/30 to-black/10" />
+                    {/* Subtle bottom gradient only — let the illustration breathe */}
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
 
-                    {/* Content overlay — centered */}
-                    <div className="relative z-10 flex-1 flex flex-col items-center justify-center text-center px-6">
+                    {/* Spacer to push content to bottom */}
+                    <div className="flex-1" />
 
-                      {/* Dedication text */}
-                      <p className="text-base md:text-lg text-white/90 font-medium drop-shadow-md" dir="rtl">
-                        הספר הזה נוצר במיוחד עבורך,
-                      </p>
-                      <p className="text-2xl md:text-4xl font-black bg-gradient-to-r from-purple-300 via-pink-300 to-orange-300 bg-clip-text text-transparent drop-shadow-lg mt-1" dir="rtl">
-                        {story.child_name} ❤️
+                    {/* Bottom section — dedication + CTA + logo */}
+                    <div className="relative z-10 flex flex-col items-center pb-6 px-6 gap-2 text-center">
+                      <p className="text-sm md:text-base text-white/90 font-medium drop-shadow-md" dir="rtl">
+                        הספר הזה נוצר במיוחד עבורך, {story.child_name} 💜
                       </p>
 
-                      <p className="text-sm text-white/70 mt-2 drop-shadow-md">
-                        {translateTopic(story.topic, story.language)}
-                      </p>
-                    </div>
-
-                    {/* Bottom section — button + logo + regenerate */}
-                    <div className="relative z-10 flex flex-col items-center pb-6 px-6 gap-2">
                       <Button
                         size="lg"
                         onClick={() => handlePageNav('next')}
-                        className="bg-gradient-to-r from-purple-600 to-pink-500 hover:from-purple-700 hover:to-pink-600 text-white font-bold px-6 py-3 text-sm md:text-base rounded-full shadow-xl hover:shadow-2xl transition-all transform hover:scale-105 border-2 border-white/50"
+                        className="bg-gradient-to-r from-purple-600 to-pink-500 hover:from-purple-700 hover:to-pink-600 text-white font-bold px-6 py-3 text-sm md:text-base rounded-full shadow-xl hover:shadow-2xl transition-all transform hover:scale-105 border-2 border-white/50 mt-1"
                       >
                         <BookOpen className="w-4 h-4 ml-2" />
                         פִּתְחוּ אֶת הַסֵּפֶר 📖
                       </Button>
-                      <button
-                        onClick={handleRegenerateCover}
-                        disabled={isRegeneratingCover}
-                        className="text-xs text-white/60 hover:text-white/90 transition-colors flex items-center gap-1 disabled:opacity-50"
-                      >
-                        <RefreshCw className={cn("w-3 h-3", isRegeneratingCover && "animate-spin")} />
-                        {isRegeneratingCover ? 'מייצר כריכה חדשה...' : 'ייצר כריכה מחדש'}
-                      </button>
-                      <span className="text-lg font-black logo-3d-bubble"><span className="logo-rainbow">SolStorie's™</span></span>
+                      <span className="text-base font-black logo-3d-bubble mt-1"><span className="logo-rainbow">SolStorie's™</span></span>
                     </div>
                   </div>
                 );
