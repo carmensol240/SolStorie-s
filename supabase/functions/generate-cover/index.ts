@@ -143,22 +143,98 @@ async function callGeminiImage(
   return null;
 }
 
-// ── Build the personalized cover prompt (single child reference) ──
+// ── Extract character profile from photo (same as generate-illustrations) ──
+async function extractCharacterProfile(
+  childPhoto: string,
+  childGender: string,
+  ageRange: string,
+  apiKey: string,
+): Promise<{ hairDescription: string; clothingDescription: string; skinTone: string; eyeColor: string }> {
+  try {
+    const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+      method: "POST",
+      headers: { Authorization: `Bearer ${apiKey}`, "Content-Type": "application/json" },
+      body: JSON.stringify({
+        model: "google/gemini-2.5-flash",
+        messages: [{
+          role: "user",
+          content: [
+            {
+              type: "text",
+              text: `CRITICAL: Analyze this child's photo and extract detailed visual features for character consistency across a storybook.
+Return ONLY a JSON object with these exact fields:
+{
+  "hair_color": "specific color (e.g., dark brown, light blonde, black, auburn)",
+  "hair_style": "specific style (e.g., short curly, long straight with bangs, pigtails, buzz cut)",
+  "clothing_color": "primary clothing color",
+  "clothing_type": "type of clothing (e.g., red t-shirt, blue dress, green sweater)",
+  "skin_tone": "skin tone description (e.g., fair, medium, olive, dark)",
+  "eye_color": "eye color if visible (e.g., brown, blue, green)"
+}
+Be very specific and detailed. This profile will be used to ensure the character looks IDENTICAL in every illustration.
+Return only the JSON, no other text.`,
+            },
+            { type: "image_url", image_url: { url: childPhoto } },
+          ],
+        }],
+      }),
+    });
+
+    if (!response.ok) {
+      console.error("Profile extraction failed for cover, using defaults");
+      return getDefaultCoverProfile(childGender);
+    }
+
+    const data = await response.json();
+    const content = data.choices?.[0]?.message?.content || "";
+    const cleanedContent = content.replace(/```json\n?/g, "").replace(/```\n?/g, "").trim();
+    const profile = JSON.parse(cleanedContent);
+
+    return {
+      hairDescription: `${profile.hair_color || "brown"} ${profile.hair_style || "hair"}`,
+      clothingDescription: `${profile.clothing_color || "colorful"} ${profile.clothing_type || "clothes"}`,
+      skinTone: profile.skin_tone || "medium",
+      eyeColor: profile.eye_color || "brown",
+    };
+  } catch {
+    console.log("Could not parse cover profile, using defaults");
+    return getDefaultCoverProfile(childGender);
+  }
+}
+
+function getDefaultCoverProfile(childGender: string) {
+  const isFemale = childGender === "female";
+  return {
+    hairDescription: isFemale ? "long dark brown hair styled in a high bun with a pink hair band" : "short tousled dark brown hair",
+    clothingDescription: isFemale
+      ? "a superhero costume — red cape, light blue shirt with a golden star emblem on the chest, purple pants, and white sneakers"
+      : "colorful casual clothes",
+    skinTone: "warm medium olive",
+    eyeColor: isFemale ? "large warm brown" : "large dark brown",
+  };
+}
+
+// ── Build the personalized cover prompt (matches illustration style exactly) ──
 function buildPersonalizedPrompt(
   avatarDescription: string | null,
   setting: string,
   displayTitle: string,
   fontLanguage: string,
+  characterProfile: { hairDescription: string; clothingDescription: string; skinTone: string; eyeColor: string } | null,
 ): string {
-  const traitBlock = avatarDescription
-    ? `Character traits from profile: ${avatarDescription}. Render these features EXACTLY in Pixar 3D CGI style.`
-    : "Render the child's face, hair color, hair texture, skin tone, eye color, and ALL facial features EXACTLY as shown in the reference photo, in Pixar 3D CGI style.";
+  const profileBlock = characterProfile
+    ? `Character has ${characterProfile.hairDescription}, ${characterProfile.skinTone} skin, and ${characterProfile.eyeColor} eyes.`
+    : "";
 
-  return `FACE REFERENCE: The main character's face MUST be an EXACT 3D Pixar rendering of the child in the reference photo. Copy every facial detail — eyes, nose, mouth shape, skin tone, hair color, hair style — directly from the photo. Do NOT invent or change ANY facial features.
+  const traitBlock = avatarDescription
+    ? `Character traits from profile: ${avatarDescription}. ${profileBlock} Render these features EXACTLY in Pixar 3D CGI style.`
+    : `${profileBlock} Render the child's face, hair color, hair texture, skin tone, eye color, and ALL facial features EXACTLY as shown in the reference photo, in Pixar 3D CGI style.`;
+
+  return `FACE REFERENCE: The main character's face MUST be an EXACT 3D Pixar rendering of the child in the reference photo. Keep all facial features, hair color, hair texture, and skin tone identical.
 
 ${traitBlock}
 
-Pixar 3D CGI animation style, big expressive eyes, soft rounded features, oversized head with small body, vibrant saturated colors, cinematic warm lighting with glowing accents, fantasy children's book background, high quality render, Disney-Pixar aesthetic. Characters must look like adorable cartoon dolls — NOT realistic humans. Portrait orientation (9:16 aspect ratio).
+STYLE: Pixar 3D CGI animation style, big expressive cartoon eyes with sparkling highlights, soft rounded cute features, oversized head with small body, vibrant saturated colors, cinematic warm lighting with glowing accents, fantasy children's book, high quality render, Disney-Pixar aesthetic. NOT realistic. Full body from head to toe, feet VISIBLE and GROUNDED on the surface.
 
 The ONLY character in this cover is the child from the reference photo. They should be shown as a confident, happy hero standing in the CENTER of the scene. FULL BODY from head to toe, feet GROUNDED on the surface.
 
@@ -168,7 +244,7 @@ TITLE TEXT: Display the text "${displayTitle}" prominently at the top or center-
 
 COMPOSITION: This is a BOOK COVER. The child hero should be the central and largest figure in the lower two-thirds. The magical setting fills the background. The title text occupies the upper portion. Clean, simple, impactful.
 
-NEGATIVE: realistic, semi-realistic, real human, photograph, generic face, wrong hair, floating head, missing body, extra limbs, deformed, text beyond title, watermark, photorealistic, dark, muted colors, cinematic bokeh, hyper-realistic, shallow depth of field, cropped feet, cut off legs, multiple characters, group shot.`;
+NEGATIVE: realistic, photograph, semi-realistic, dark, muted, bokeh, hyper-realistic, floating head, missing body, extra limbs, cropped feet, text, watermark, UI elements, multiple characters, group shot`;
 }
 
 serve(async (req) => {
