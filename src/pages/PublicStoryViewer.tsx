@@ -239,7 +239,7 @@ const PublicStoryViewer = () => {
                       <div className="absolute bottom-0 left-0 right-0 z-10 p-4 md:p-6" dir="rtl">
                         <div className="max-w-lg mx-auto">
                           <p className="text-lg md:text-2xl text-[#3D2B5A] font-semibold whitespace-pre-line text-right"
-                            style={{ lineHeight: '1.8', backgroundColor: 'rgba(255,255,255,0.85)', padding: '12px 16px', borderRadius: '16px', backdropFilter: 'blur(8px)' }}>
+                            style={{ lineHeight: '1.8', backgroundColor: 'rgba(255,255,255,0.7)', padding: '12px 16px', borderRadius: '16px', backdropFilter: 'blur(8px)' }}>
                             {displayText}
                           </p>
                         </div>
