@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef, useCallback, useMemo } from "react";
+import { useState, useEffect, useLayoutEffect, useRef, useCallback, useMemo } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { Home, BookOpen, Sparkles, Palette, Wand2, RefreshCw, Loader2, ImageOff, Star, Send, ChevronRight, ChevronLeft, ArrowRight } from "lucide-react";
 import { MissingIllustrationPrompt } from "@/components/story/MissingIllustrationPrompt";
@@ -564,9 +564,14 @@ const StoryViewer = () => {
     }, 300);
   };
 
-  // Scroll to top on every page change
-  useEffect(() => {
+  // Scroll to top on every page change — useLayoutEffect ensures it fires before paint
+  useLayoutEffect(() => {
     window.scrollTo(0, 0);
+    document.documentElement.scrollTop = 0;
+    document.body.scrollTop = 0;
+    document.querySelectorAll('[data-story-scroll]').forEach(el => {
+      el.scrollTop = 0;
+    });
   }, [currentPage]);
 
   // Keyboard navigation for desktop
@@ -967,6 +972,17 @@ const StoryViewer = () => {
   const currentFontSize = FONT_SIZES[fontSizeIndex];
   const showPageActions = isContentPage && page !== null;
 
+  // Reset all scroll positions (window + inner scrollable containers)
+  const resetScroll = () => {
+    window.scrollTo(0, 0);
+    document.documentElement.scrollTop = 0;
+    document.body.scrollTop = 0;
+    // Reset any inner overflow-y-auto containers within the viewer
+    document.querySelectorAll('[data-story-scroll]').forEach(el => {
+      el.scrollTop = 0;
+    });
+  };
+
   // Page navigation with simple fade transition
   const handlePageNav = (direction: 'next' | 'prev') => {
     if (isFlipping) return;
@@ -978,18 +994,19 @@ const StoryViewer = () => {
     
     setIsFlipping(true);
     
+    // Reset scroll IMMEDIATELY before the page change
+    resetScroll();
+    
     setTimeout(() => {
       if (direction === 'next' && currentPage < maxPage) {
         const newPage = currentPage + 1;
         setCurrentPage(newPage);
-        window.scrollTo(0, 0);
         
         if (newPage >= maxPage) {
           trackStoryCompleted(story.id);
         }
       } else if (direction === 'prev' && currentPage > -1) {
         setCurrentPage(currentPage - 1);
-        window.scrollTo(0, 0);
       }
       setIsFlipping(false);
     }, 300);
@@ -1130,7 +1147,7 @@ const StoryViewer = () => {
             ) : isEndPage ? (
               /* End Page - Feedback & actions */
               <div className="flex flex-col h-full bg-[#FFFBF5]">
-                <div className="flex-1 paper-texture overflow-y-auto p-5 md:p-8 text-center flex flex-col items-center justify-center gap-3">
+                <div data-story-scroll className="flex-1 paper-texture overflow-y-auto p-5 md:p-8 text-center flex flex-col items-center justify-center gap-3">
                   <div className="space-y-2">
                     <p className="text-2xl md:text-3xl font-bold text-purple-800">✨ נהננו? ✨</p>
                     <p className="text-sm text-purple-500">הסיפור של {story.child_name}</p>
@@ -1316,7 +1333,7 @@ const StoryViewer = () => {
                     const rawText = currentVirtual.text;
                     const displayText = showNikud ? rawText : rawText.replace(/[\u0591-\u05C7]/g, '');
                       return (
-                      <div className="absolute inset-0 w-full h-full overflow-y-auto flex flex-col items-center" style={{ background: theme.bg }}>
+                      <div data-story-scroll className="absolute inset-0 w-full h-full overflow-y-auto flex flex-col items-center" style={{ background: theme.bg }}>
                         {/* Recording controls — text page */}
                         <div className="absolute top-3 left-3 z-20">
                           <PageRecordingControls
