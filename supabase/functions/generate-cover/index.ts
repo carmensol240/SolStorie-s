@@ -372,20 +372,29 @@ serve(async (req) => {
       .eq("id", storyId)
       .maybeSingle();
 
-    // Fetch first page text + illustration_prompt for scene context
-    const { data: firstPage } = await supabase
+    // Fetch ALL page illustration_prompts for richer scene context
+    const { data: allPages } = await supabase
       .from("story_pages")
-      .select("text, illustration_prompt")
+      .select("illustration_prompt, text, page_number")
       .eq("story_id", storyId)
-      .order("page_number", { ascending: true })
-      .limit(1)
-      .maybeSingle();
+      .order("page_number", { ascending: true });
 
+    // Pick the most descriptive illustration prompt (longest one tends to be richest)
+    const bestIllustrationPrompt = allPages
+      ?.filter(p => p.illustration_prompt)
+      ?.sort((a, b) => (b.illustration_prompt?.length || 0) - (a.illustration_prompt?.length || 0))
+      ?.[0]?.illustration_prompt || "";
+
+    const topicLabel = (topic || "").replace(/-/g, " ");
     const storyContext = story?.summary
-      || firstPage?.illustration_prompt
-      || firstPage?.text
-      || title
-      || "";
+      ? `A "${topicLabel}" themed story: ${story.summary}`
+      : bestIllustrationPrompt
+        ? `A "${topicLabel}" themed story. Scene inspiration: ${bestIllustrationPrompt}`
+        : allPages?.[0]?.text
+          ? `A "${topicLabel}" themed story. Opening: ${allPages[0].text}`
+          : title
+            ? `A "${topicLabel}" themed story: ${title}`
+            : `A "${topicLabel}" themed children's story`;
 
     // Check if child has a photo for personalized cover
     let childPhotoSignedUrl: string | null = null;
