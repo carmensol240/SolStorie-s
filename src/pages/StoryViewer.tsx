@@ -997,7 +997,7 @@ const StoryViewer = () => {
 
           {/* Page content with 3D flip animation */}
           <div className={cn(
-            "relative flex-1 min-h-0 flex flex-col rounded-xl overflow-hidden",
+            "relative flex-1 min-h-0 flex flex-col rounded-xl overflow-hidden bg-[#F5E6D3]",
             "shadow-[0_8px_40px_rgba(0,0,0,0.12),0_0_0_1px_rgba(168,85,247,0.15)]",
             "transition-opacity duration-300",
             isFlipping ? "opacity-0" : "opacity-100",
