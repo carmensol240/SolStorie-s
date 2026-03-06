@@ -151,7 +151,13 @@ const TOPIC_SETTINGS: Record<string, string> = {
 };
 
 function getSettingForTopic(topic: string): string {
-  return TOPIC_SETTINGS[topic] || "Enchanted forest clearing with magical glowing light, sparkling fireflies, and a majestic ancient tree";
+  const setting = TOPIC_SETTINGS[topic];
+  if (setting) {
+    console.log(`✅ TOPIC_SETTINGS match found: topic="${topic}" → setting="${setting.substring(0, 80)}..."`);
+  } else {
+    console.warn(`⚠️ TOPIC_SETTINGS: NO match for topic="${topic}" — falling back to default enchanted forest. Available keys: ${Object.keys(TOPIC_SETTINGS).filter(k => k.includes(topic.split('-')[0])).join(', ') || 'none similar'}`);
+  }
+  return setting || "Enchanted forest clearing with magical glowing light, sparkling fireflies, and a majestic ancient tree";
 }
 
 // ── Shared helper: upload base64 image to storage and update story ──
@@ -365,6 +371,7 @@ serve(async (req) => {
       });
     }
 
+    console.log(`📋 COVER DEBUG: storyId=${storyId}, topic="${topic}" (type: ${typeof topic}), title="${title}", language="${language}"`);
     console.log(`Generating cover for story ${storyId}, topic: ${topic}, title: ${title}`);
 
     // Look up story to find child info
@@ -397,6 +404,9 @@ serve(async (req) => {
           : title
             ? `A "${topicLabel}" themed story: ${title}`
             : `A "${topicLabel}" themed children's story`;
+    
+    console.log(`📋 COVER storyContext: ${storyContext.substring(0, 200)}...`);
+    console.log(`📋 COVER bestIllustrationPrompt found: ${bestIllustrationPrompt ? 'yes' : 'no'}, allPages count: ${allPages?.length || 0}`);
 
     // Check if child has a photo for personalized cover
     let childPhotoSignedUrl: string | null = null;
@@ -461,6 +471,8 @@ serve(async (req) => {
       console.log(`Character profile extracted: hair=${characterProfile.hairDescription}, skin=${characterProfile.skinTone}`);
 
       const coverPrompt = buildPersonalizedPrompt(avatarDescription, setting, characterProfile, storyContext);
+      console.log(`📋 COVER PROMPT (personalized, first 500 chars): ${coverPrompt.substring(0, 500)}...`);
+      console.log(`📋 SETTING used: "${setting}"`);
 
       const requestBody = {
         model: "google/gemini-3-pro-image-preview",
