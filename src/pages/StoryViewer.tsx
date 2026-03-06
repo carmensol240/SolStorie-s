@@ -130,6 +130,7 @@ const StoryViewer = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [isFlipping, setIsFlipping] = useState(false);
   const [isDrawingMode, setIsDrawingMode] = useState(false);
+  const [isRegeneratingCover, setIsRegeneratingCover] = useState(false);
   const [fontSizeIndex, setFontSizeIndex] = useState(2);
   const [isEditingPage, setIsEditingPage] = useState(false);
   const [showNikud, setShowNikud] = useState(true);
