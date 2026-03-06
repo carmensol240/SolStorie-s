@@ -228,7 +228,82 @@ NEGATIVE: realistic, photograph, semi-realistic, dark, muted, bokeh, hyper-reali
   }
 }
 
-// Helper function to generate illustration using Fal.ai Flux Schnell
+// Helper: generate illustration WITHOUT face reference via Gemini Image Generation
+// Same Pixar 3D CGI style as face-reference version for visual consistency
+async function generateIllustrationGeminiNoFace(
+  prompt: string,
+  characterProfile: CharacterProfile | null,
+  storyOutfit: string,
+  visualAnchor: string,
+  adventureLogic?: { outfit: string; background: string; theme: string },
+): Promise<string | null> {
+  try {
+    const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
+    if (!LOVABLE_API_KEY) {
+      console.error("LOVABLE_API_KEY not configured for Gemini Image Generation");
+      return null;
+    }
+
+    const adventureInstruction = adventureLogic
+      ? `Setting: ${adventureLogic.background}. Theme: ${adventureLogic.theme}.`
+      : "";
+
+    const illustrationPrompt = `${visualAnchor}
+
+STYLE: Pixar 3D CGI animation style, big expressive cartoon eyes with sparkling highlights, soft rounded cute features, oversized head with small body, vibrant saturated colors, cinematic warm lighting with glowing accents, fantasy children's book, high quality render, Disney-Pixar aesthetic. NOT realistic. Full body from head to toe, feet VISIBLE and GROUNDED on the surface.
+
+${adventureInstruction}
+
+SCENE (THIS IS THE MOST IMPORTANT PART — illustrate THIS specific scene in detail): ${prompt}
+
+NEGATIVE: realistic, photograph, semi-realistic, dark, muted, bokeh, hyper-realistic, floating head, missing body, extra limbs, cropped feet, text, watermark, UI elements`;
+
+    console.log("Generating illustration via Gemini Image Generation (no face reference)...");
+
+    const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+      method: "POST",
+      signal: AbortSignal.timeout(120_000),
+      headers: {
+        Authorization: `Bearer ${LOVABLE_API_KEY}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        model: "google/gemini-3-pro-image-preview",
+        modalities: ["image", "text"],
+        messages: [{
+          role: "user",
+          content: illustrationPrompt,
+        }],
+      }),
+    });
+
+    if (!response.ok) {
+      const errorBody = await response.text().catch(() => "no body");
+      console.error(`Gemini Image Generation (no face) failed: ${response.status} - ${errorBody}`);
+      await logError("illustration_gemini_noface_error", `Gemini no-face failed: ${response.status}`, { status: response.status, body: errorBody.substring(0, 500) });
+      return null;
+    }
+
+    const data = await response.json();
+    const imageUrl = data.choices?.[0]?.message?.images?.[0]?.image_url?.url;
+
+    if (imageUrl) {
+      console.log("Gemini illustration (no face) generated successfully");
+      return imageUrl;
+    }
+
+    console.warn("Gemini Image Generation (no face): no image in response");
+    return null;
+  } catch (error) {
+    const isTimeout = error instanceof DOMException && error.name === "TimeoutError";
+    const errorType = isTimeout ? "illustration_timeout" : "illustration_gemini_noface_error";
+    console.error("Error in Gemini Image Generation (no face):", error);
+    await logError(errorType, `Gemini no-face: ${error?.message || error}`, { model: "google/gemini-3-pro-image-preview" });
+    return null;
+  }
+}
+
+// Helper function to generate illustration using Fal.ai Flux Schnell (FALLBACK ONLY)
 // Fast (~2-4s per image) text-to-image model — used when NO child photo is available
 async function generateIllustration(
   prompt: string,
