@@ -158,7 +158,7 @@ STYLE: Pixar 3D CGI animation style, big expressive cartoon eyes with sparkling 
 
 SCENE (THIS IS THE MOST IMPORTANT PART — illustrate THIS specific scene in detail): ${prompt}
 
-NEGATIVE: realistic, photograph, semi-realistic, dark, muted, bokeh, hyper-realistic, floating head, missing body, extra limbs, cropped feet, text, watermark`;
+NEGATIVE: realistic, photograph, semi-realistic, dark, muted, bokeh, hyper-realistic, floating head, missing body, extra limbs, cropped feet, text, watermark, UI elements, no black bars, no black borders, no taskbar, no status bar, no phone frame, no app interface, no screenshot artifacts, no interface elements, full bleed illustration only`;
 
       for (let attempt = 1; attempt <= MAX_ATTEMPTS; attempt++) {
         try {
