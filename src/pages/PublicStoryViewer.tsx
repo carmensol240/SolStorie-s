@@ -115,6 +115,11 @@ const PublicStoryViewer = () => {
     setCurrentPage(p => dir === 'next' ? Math.min(p + 1, maxPage) : Math.max(p - 1, -1));
   }, [story, virtualPages.length]);
 
+  // Scroll to top on every page change
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, [currentPage]);
+
   // Keyboard nav
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
