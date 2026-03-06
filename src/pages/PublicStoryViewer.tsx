@@ -254,7 +254,7 @@ const PublicStoryViewer = () => {
                   <>
                     {illustrationSrc ? (
                       <img src={illustrationSrc} alt={`איור עמוד ${currentVirtual.dbPage.page_number}`}
-                        className="absolute inset-0 w-full h-full object-cover" />
+                        className="absolute inset-0 w-full h-full object-contain bg-gradient-to-br from-purple-50 via-pink-50 to-orange-50" />
                     ) : (
                       <div className="absolute inset-0 bg-gradient-to-br from-purple-100 via-pink-50 to-orange-50 flex items-center justify-center">
                         <span className="text-6xl opacity-30">✨</span>
