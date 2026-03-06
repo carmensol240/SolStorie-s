@@ -46,6 +46,8 @@ import "./StoryViewer.css";
 import { translateTopic } from "@/lib/topic-translations";
 // solMagicBookCover removed — cover now uses first page illustration
 import { useChildAvatar } from "@/hooks/use-child-avatar";
+import { usePageRecording } from "@/hooks/use-page-recording";
+import PageRecordingControls from "@/components/story/PageRecordingControls";
 
 import castWavingFarewell from "@/assets/cast-waving-farewell.png";
 import solSuperheroWelcome from "@/assets/sol-superhero-welcome.jpg";
