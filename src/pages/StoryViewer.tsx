@@ -1132,7 +1132,7 @@ const StoryViewer = () => {
                       <img
                         src={getPublicIllustrationUrl(currentVirtual.illustrationUrl) || ''}
                         alt="איור"
-                        className="absolute inset-0 w-full h-full object-cover"
+                        className="absolute inset-0 w-full h-full object-contain bg-gradient-to-br from-[#FFF8F0] via-[#F5E6D3] to-[#FAF3E8]"
                         loading="eager"
                       />
                     ) : currentVirtual.dbPage.illustration_prompt ? (
@@ -1155,14 +1155,11 @@ const StoryViewer = () => {
                       <div className="absolute bottom-0 left-0 right-0 z-10 p-4 md:p-6" dir="rtl">
                         <div className="max-w-lg mx-auto">
                           <p className={cn(
-                            "text-right font-semibold whitespace-pre-line text-[#3D2B5A]",
+                            "text-right font-semibold whitespace-pre-line text-white drop-shadow-[0_1px_3px_rgba(0,0,0,0.5)]",
                             currentFontSize.size,
                           )} style={{
                             lineHeight: '1.8',
-                            backgroundColor: 'rgba(255,255,255,0.7)',
                             padding: '12px 16px',
-                            borderRadius: '16px',
-                            backdropFilter: 'blur(8px)',
                           }}>
                             {showNikud ? currentVirtual.text : currentVirtual.text.replace(/[\u0591-\u05C7]/g, '')}
                           </p>
@@ -1180,7 +1177,7 @@ const StoryViewer = () => {
                       <img
                         src={getPublicIllustrationUrl(currentVirtual.illustrationUrl) || ''}
                         alt="איור"
-                        className="absolute inset-0 w-full h-full object-cover"
+                        className="absolute inset-0 w-full h-full object-contain bg-gradient-to-br from-[#FFF8F0] via-[#F5E6D3] to-[#FAF3E8]"
                         loading="eager"
                       />
                     ) : currentVirtual.dbPage.illustration_prompt ? (
