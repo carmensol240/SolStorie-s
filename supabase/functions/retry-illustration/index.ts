@@ -158,7 +158,7 @@ STYLE: Pixar 3D CGI animation style, big expressive cartoon eyes with sparkling 
 
 SCENE (THIS IS THE MOST IMPORTANT PART — illustrate THIS specific scene in detail): ${prompt}
 
-NEGATIVE: realistic, photograph, semi-realistic, dark, muted, bokeh, hyper-realistic, floating head, missing body, extra limbs, cropped feet, text, watermark`;
+NEGATIVE: realistic, photograph, semi-realistic, dark, muted, bokeh, hyper-realistic, floating head, missing body, extra limbs, cropped feet, text, watermark, UI elements, no black bars, no black borders, no taskbar, no status bar, no phone frame, no app interface, no screenshot artifacts, no interface elements, full bleed illustration only`;
 
       for (let attempt = 1; attempt <= MAX_ATTEMPTS; attempt++) {
         try {
@@ -214,6 +214,8 @@ NEGATIVE: realistic, photograph, semi-realistic, dark, muted, bokeh, hyper-reali
           status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" },
         });
       }
+      const stylePrefix = `Pixar 3D CGI animation style, big expressive cartoon eyes with sparkling highlights, soft rounded cute features, oversized head with small body, vibrant saturated colors, cinematic warm lighting with glowing accents, fantasy children's book, high quality render, Disney-Pixar aesthetic. NOT realistic. Full body from head to toe, feet VISIBLE and GROUNDED on the surface.`;
+      const negativePrompt = `realistic, semi-realistic, real human, photograph, photorealistic, dark, muted colors, cinematic bokeh, hyper-realistic, floating head, missing body, missing limbs, extra limbs, deformed, distorted, text, watermark, UI elements, no black bars, no black borders, no taskbar, no status bar, no phone frame, no app interface, no screenshot artifacts, no interface elements, full bleed illustration only`;
       const fullPrompt = `${stylePrefix}\n\nSCENE: ${prompt}\n\nNEGATIVE: ${negativePrompt}`;
       console.log(`Retrying illustration via Flux Schnell for story ${storyId}, page ${page.page_number}...`);
 

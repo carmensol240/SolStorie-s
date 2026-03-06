@@ -7,7 +7,7 @@ const corsHeaders = {
     "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
 };
 
-const NEGATIVE = "realistic, semi-realistic, real human, photograph, photorealistic, floating head, disembodied head, missing limbs, extra limbs, deformed, distorted, scary, horror, grotesque, mutated, disfigured, extra fingers, bad anatomy, ugly, blurry, watermark, text, signature, cinematic bokeh, dark, muted colors, hyper-realistic";
+const NEGATIVE = "realistic, semi-realistic, real human, photograph, photorealistic, floating head, disembodied head, missing limbs, extra limbs, deformed, distorted, scary, horror, grotesque, mutated, disfigured, extra fingers, bad anatomy, ugly, blurry, watermark, text, signature, cinematic bokeh, dark, muted colors, hyper-realistic, no black bars, no black borders, no taskbar, no status bar, no phone frame, no app interface, no screenshot artifacts, no interface elements, no UI elements, full bleed illustration only";
 
 const SOL_DESC = "a 4-year-old girl named Sol with tanned olive skin, freckles, big round expressive cartoon eyes with sparkling highlights, long brown wavy hair tied in a high bun with a pink scrunchie, wearing a superhero outfit: a red cape, a light blue t-shirt with a golden star emblem on the chest, purple pants and white sneakers. Soft rounded cute face, smooth stylized skin.";
 const BEN_DESC = "a toddler boy named Ben with very dark brown extremely curly voluminous hair, big round expressive cartoon eyes, tanned skin, wearing a green t-shirt. He is the smallest character. Soft rounded cute face, smooth stylized skin.";

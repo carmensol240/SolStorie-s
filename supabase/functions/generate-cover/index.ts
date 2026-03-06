@@ -10,9 +10,9 @@ const corsHeaders = {
 // ── Identical style block used in generate-illustrations ──
 const PIXAR_STYLE = `Pixar 3D CGI animation style, big expressive cartoon eyes with sparkling highlights, soft rounded cute features, oversized head with small body, vibrant saturated colors, cinematic warm lighting with glowing accents, fantasy children's book, high quality render, Disney-Pixar aesthetic. NOT realistic. Full body from head to toe, feet VISIBLE and GROUNDED on the surface.`;
 
-const NEGATIVE_PROMPT = `realistic, photograph, semi-realistic, dark, muted, bokeh, hyper-realistic, floating head, missing body, extra limbs, cropped feet, text, watermark, UI elements, multiple characters, group shot`;
+const NEGATIVE_PROMPT = `realistic, photograph, semi-realistic, dark, muted, bokeh, hyper-realistic, floating head, missing body, extra limbs, cropped feet, text, watermark, UI elements, multiple characters, group shot, no black bars, no black borders, no taskbar, no status bar, no phone frame, no app interface, no screenshot artifacts, no interface elements, full bleed illustration only`;
 
-const CAST_NEGATIVE_PROMPT = `realistic, semi-realistic, real human, photograph, photorealistic, dark, muted colors, cinematic bokeh, hyper-realistic, shallow depth of field, floating head, missing body, missing limbs, extra limbs, deformed, distorted, scary, horror, mutated, cropped feet, cut off legs, floating character, half-body, missing feet, text, watermark, UI elements`;
+const CAST_NEGATIVE_PROMPT = `realistic, semi-realistic, real human, photograph, photorealistic, dark, muted colors, cinematic bokeh, hyper-realistic, shallow depth of field, floating head, missing body, missing limbs, extra limbs, deformed, distorted, scary, horror, mutated, cropped feet, cut off legs, floating character, half-body, missing feet, text, watermark, UI elements, no black bars, no black borders, no taskbar, no status bar, no phone frame, no app interface, no screenshot artifacts, no interface elements, full bleed illustration only`;
 
 // Adventure/fantasy topics → Sol Hero; all others → Sol Casual
 const ADVENTURE_TOPICS = new Set([
