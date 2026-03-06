@@ -371,6 +371,7 @@ serve(async (req) => {
       });
     }
 
+    console.log(`📋 COVER DEBUG: storyId=${storyId}, topic="${topic}" (type: ${typeof topic}), title="${title}", language="${language}"`);
     console.log(`Generating cover for story ${storyId}, topic: ${topic}, title: ${title}`);
 
     // Look up story to find child info
