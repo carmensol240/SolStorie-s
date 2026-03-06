@@ -44,7 +44,7 @@ import { FileDown } from "lucide-react";
 import PdfFeaturePopup from "@/components/story/PdfFeaturePopup";
 
 import "./StoryViewer.css";
-import { translateTopic } from "@/lib/topic-translations";
+// translateTopic removed from cover — topic shown only in library
 // solMagicBookCover removed — cover now uses first page illustration
 import { useChildAvatar } from "@/hooks/use-child-avatar";
 import { usePageRecording } from "@/hooks/use-page-recording";
