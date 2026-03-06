@@ -155,6 +155,24 @@ export const BookHeader: React.FC<BookHeaderProps> = ({
             </PopoverContent>
           </Popover>
 
+          {/* Background Music Toggle */}
+          {onToggleMusic && (
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={onToggleMusic}
+                  className="text-[#5D3A1A] hover:bg-[#D4A574]/20 min-h-[44px] min-w-[44px] p-2"
+                  aria-label={isMusicPlaying ? "כבה מוזיקת רקע" : "הפעל מוזיקת רקע"}
+                >
+                  {isMusicPlaying ? <Volume2 className="w-5 h-5" /> : <VolumeX className="w-5 h-5" />}
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent side="bottom">{isMusicPlaying ? "כבה מוזיקת רקע" : "הפעל מוזיקת רקע"}</TooltipContent>
+            </Tooltip>
+          )}
+
           {/* Menu */}
           <DropdownMenu>
             <Tooltip>

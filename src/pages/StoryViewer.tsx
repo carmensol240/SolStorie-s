@@ -929,6 +929,8 @@ const StoryViewer = () => {
         isExporting={isExporting}
         isAddingNikud={isAddingNikud}
         showPageActions={showPageActions}
+        isMusicPlaying={bgMusic.isPlaying}
+        onToggleMusic={bgMusic.toggle}
       />
 
       {/* Read Aloud button removed per user request */}
