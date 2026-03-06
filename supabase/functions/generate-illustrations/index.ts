@@ -1028,10 +1028,16 @@ serve(async (req) => {
               storyOutfit, visualAnchor, effectiveAdventureLogic,
             );
           } else {
-            secondImage = await generateIllustration(
-              secondIllustrationPrompt, effectivePhoto, characterProfile,
-              LOVABLE_API_KEY, storyOutfit, visualAnchor, effectiveAdventureLogic, topic
+            secondImage = await generateIllustrationGeminiNoFace(
+              secondIllustrationPrompt, characterProfile,
+              storyOutfit, visualAnchor, effectiveAdventureLogic,
             );
+            if (!secondImage) {
+              secondImage = await generateIllustration(
+                secondIllustrationPrompt, effectivePhoto, characterProfile,
+                LOVABLE_API_KEY, storyOutfit, visualAnchor, effectiveAdventureLogic, topic
+              );
+            }
           }
           if (secondImage) break;
           if (attempt < MAX_RETRIES) await new Promise(r => setTimeout(r, 1000));
