@@ -798,23 +798,21 @@ const StoryViewer = () => {
         body: { storyId: resolvedId, title: story.topic, topic: story.topic, language: story.language || 'he' },
       });
       if (error) throw error;
-      if (data?.coverUrl) {
-        setStory(prev => prev ? { ...prev, cover_url: data.coverUrl } : prev);
-        toast({ title: 'הכריכה חודשה בהצלחה! 🎨' });
+
+      // Always verify from DB to ensure persistence
+      const { data: storyData } = await supabase
+        .from('stories')
+        .select('cover_url')
+        .eq('id', resolvedId)
+        .maybeSingle();
+
+      const newCoverUrl = storyData?.cover_url || data?.coverUrl;
+      if (newCoverUrl) {
+        const freshUrl = `${newCoverUrl.split('?')[0]}?v=${Date.now()}`;
+        setStory(prev => prev ? { ...prev, cover_url: freshUrl } : prev);
+        toast({ title: 'הכריכה חודשה ונשמרה בהצלחה! 🎨✅' });
       } else {
-        // Function saved to DB but client didn't get URL — refetch from DB
-        const { data: storyData } = await supabase
-          .from('stories')
-          .select('cover_url')
-          .eq('id', resolvedId)
-          .maybeSingle();
-        if (storyData?.cover_url) {
-          const freshUrl = `${storyData.cover_url.split('?')[0]}?v=${Date.now()}`;
-          setStory(prev => prev ? { ...prev, cover_url: freshUrl } : prev);
-          toast({ title: 'הכריכה חודשה בהצלחה! 🎨' });
-        } else {
-          throw new Error('No cover returned');
-        }
+        throw new Error('No cover returned');
       }
     } catch (err) {
       console.error('Cover regeneration error:', err);
@@ -828,7 +826,7 @@ const StoryViewer = () => {
         if (storyData?.cover_url && storyData.cover_url !== story.cover_url) {
           const freshUrl = `${storyData.cover_url.split('?')[0]}?v=${Date.now()}`;
           setStory(prev => prev ? { ...prev, cover_url: freshUrl } : prev);
-          toast({ title: 'הכריכה חודשה בהצלחה! 🎨' });
+          toast({ title: 'הכריכה חודשה ונשמרה בהצלחה! 🎨✅' });
           return;
         }
       } catch { /* ignore */ }

@@ -83,8 +83,23 @@ async function uploadCoverAndSave(
   const { data: publicUrlData } = supabase.storage.from("story-illustrations").getPublicUrl(filePath);
   const fullCoverUrl = `${publicUrlData.publicUrl}?v=${Date.now()}`;
 
-  await supabase.from("stories").update({ cover_url: fullCoverUrl }).eq("id", storyId);
-  console.log(`✅ Cover saved for story ${storyId}: ${fullCoverUrl}`);
+  // Save cover URL to database — verify it actually persisted
+  const { error: updateError } = await supabase.from("stories").update({ cover_url: fullCoverUrl }).eq("id", storyId);
+  if (updateError) {
+    console.error("❌ Cover DB update failed:", updateError);
+    // Retry once
+    const { error: retryError } = await supabase.from("stories").update({ cover_url: fullCoverUrl }).eq("id", storyId);
+    if (retryError) {
+      console.error("❌ Cover DB update retry failed:", retryError);
+      return new Response(JSON.stringify({ error: "Cover saved to storage but DB update failed", coverUrl: fullCoverUrl }), {
+        status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+  }
+
+  // Verify the save by reading back
+  const { data: verify } = await supabase.from("stories").select("cover_url").eq("id", storyId).maybeSingle();
+  console.log(`✅ Cover saved for story ${storyId}: ${fullCoverUrl} (verified: ${verify?.cover_url ? 'yes' : 'NO'})`);
 
   return new Response(JSON.stringify({ success: true, coverUrl: fullCoverUrl }), {
     headers: { ...corsHeaders, "Content-Type": "application/json" },
