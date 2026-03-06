@@ -161,6 +161,7 @@ const StoryViewer = () => {
   const { settings } = useSettings();
   const { exportToPdf, generatePdfFile, isExporting } = usePdfExport();
   const { addNikud, isLoading: isAddingNikud } = useNikud();
+  const bgMusic = useBgMusic();
   // story-illustrations bucket is public - using direct URLs via getPublicIllustrationUrl
   
   const { user } = useAuth();
