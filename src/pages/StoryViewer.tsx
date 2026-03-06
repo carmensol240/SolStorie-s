@@ -788,6 +788,29 @@ const StoryViewer = () => {
     }
   }, [generationStatus, story, userStartedReading]);
 
+  // Regenerate cover
+  const handleRegenerateCover = async () => {
+    if (!story || !resolvedId || isRegeneratingCover) return;
+    setIsRegeneratingCover(true);
+    try {
+      const { data, error } = await supabase.functions.invoke('generate-cover', {
+        body: { storyId: resolvedId, title: story.topic, topic: story.topic, language: story.language || 'he' },
+      });
+      if (error) throw error;
+      if (data?.coverUrl) {
+        setStory(prev => prev ? { ...prev, cover_url: data.coverUrl } : prev);
+        toast({ title: 'הכריכה חודשה בהצלחה! 🎨' });
+      } else {
+        throw new Error('No cover returned');
+      }
+    } catch (err) {
+      console.error('Cover regeneration error:', err);
+      toast({ title: 'שגיאה בייצור הכריכה', description: 'נסו שוב מאוחר יותר', variant: 'destructive' });
+    } finally {
+      setIsRegeneratingCover(false);
+    }
+  };
+
   // Build virtual pages — split each DB page into illustration + text
   type VirtualPage = {
     type: 'illustration' | 'text' | 'combined';
