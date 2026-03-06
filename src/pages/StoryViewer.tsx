@@ -793,6 +793,7 @@ const StoryViewer = () => {
     if (!story || !resolvedId || isRegeneratingCover) return;
     setIsRegeneratingCover(true);
     try {
+      toast({ title: 'מייצר כריכה חדשה... 🎨', description: 'זה עשוי לקחת עד דקה' });
       const { data, error } = await supabase.functions.invoke('generate-cover', {
         body: { storyId: resolvedId, title: story.topic, topic: story.topic, language: story.language || 'he' },
       });
@@ -801,10 +802,36 @@ const StoryViewer = () => {
         setStory(prev => prev ? { ...prev, cover_url: data.coverUrl } : prev);
         toast({ title: 'הכריכה חודשה בהצלחה! 🎨' });
       } else {
-        throw new Error('No cover returned');
+        // Function saved to DB but client didn't get URL — refetch from DB
+        const { data: storyData } = await supabase
+          .from('stories')
+          .select('cover_url')
+          .eq('id', resolvedId)
+          .maybeSingle();
+        if (storyData?.cover_url) {
+          const freshUrl = `${storyData.cover_url.split('?')[0]}?v=${Date.now()}`;
+          setStory(prev => prev ? { ...prev, cover_url: freshUrl } : prev);
+          toast({ title: 'הכריכה חודשה בהצלחה! 🎨' });
+        } else {
+          throw new Error('No cover returned');
+        }
       }
     } catch (err) {
       console.error('Cover regeneration error:', err);
+      // Even on error, check if DB was updated (function may have saved but timed out)
+      try {
+        const { data: storyData } = await supabase
+          .from('stories')
+          .select('cover_url')
+          .eq('id', resolvedId)
+          .maybeSingle();
+        if (storyData?.cover_url && storyData.cover_url !== story.cover_url) {
+          const freshUrl = `${storyData.cover_url.split('?')[0]}?v=${Date.now()}`;
+          setStory(prev => prev ? { ...prev, cover_url: freshUrl } : prev);
+          toast({ title: 'הכריכה חודשה בהצלחה! 🎨' });
+          return;
+        }
+      } catch { /* ignore */ }
       toast({ title: 'שגיאה בייצור הכריכה', description: 'נסו שוב מאוחר יותר', variant: 'destructive' });
     } finally {
       setIsRegeneratingCover(false);
@@ -1132,7 +1159,7 @@ const StoryViewer = () => {
                       <img
                         src={getPublicIllustrationUrl(currentVirtual.illustrationUrl) || ''}
                         alt="איור"
-                        className="absolute inset-0 w-full h-full object-contain bg-gradient-to-br from-[#FFF8F0] via-[#F5E6D3] to-[#FAF3E8]"
+                        className="absolute inset-0 w-full h-full object-cover"
                         loading="eager"
                       />
                     ) : currentVirtual.dbPage.illustration_prompt ? (
@@ -1177,7 +1204,7 @@ const StoryViewer = () => {
                       <img
                         src={getPublicIllustrationUrl(currentVirtual.illustrationUrl) || ''}
                         alt="איור"
-                        className="absolute inset-0 w-full h-full object-contain bg-gradient-to-br from-[#FFF8F0] via-[#F5E6D3] to-[#FAF3E8]"
+                        className="absolute inset-0 w-full h-full object-cover"
                         loading="eager"
                       />
                     ) : currentVirtual.dbPage.illustration_prompt ? (
