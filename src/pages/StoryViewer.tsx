@@ -564,6 +564,11 @@ const StoryViewer = () => {
     }, 300);
   };
 
+  // Scroll to top on every page change
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, [currentPage]);
+
   // Keyboard navigation for desktop
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
