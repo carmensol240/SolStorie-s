@@ -28,6 +28,7 @@ import { useAnalytics } from "@/hooks/use-analytics";
 import { useOfflineStorage } from "@/hooks/use-offline-storage";
 import { useSettings } from "@/hooks/use-settings";
 import { usePdfExport } from "@/hooks/use-pdf-export";
+import { useBgMusic } from "@/hooks/use-bg-music";
 import { useNikud } from "@/hooks/use-nikud";
 // useTextToSpeech removed — read-aloud now only in Accessibility Menu
 import { useAccessibility } from "@/hooks/use-accessibility";
