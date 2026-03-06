@@ -449,7 +449,7 @@ async function analyzePageScene(
         messages: [
           {
             role: "system",
-            content: `You are a children's book illustrator director. Given a page of Hebrew children's story text, extract a vivid visual scene description for an illustration. Be specific and concrete — avoid generic descriptions. Each page must look completely different.`
+            content: `You are a children's book illustrator director. Given a page of Hebrew children's story text, extract a vivid visual scene description for an illustration. CRITICAL: The illustration MUST depict EXACTLY what the text describes — do NOT change the action, objects, or characters. If the text says "hugging a teddy bear", the scene_action and character_action MUST show hugging a teddy bear, NOT something else. Be specific and concrete — avoid generic descriptions. Each page must look completely different.`
           },
           {
             role: "user",
@@ -457,7 +457,8 @@ async function analyzePageScene(
 Page ${pageNumber} of ${totalPages}.
 Text: "${pageText}"
 
-Analyze this page and extract the visual scene. The camera angle MUST be: "${forcedAngle}". The lighting MUST be: "${forcedLighting}".`
+IMPORTANT: Extract the scene EXACTLY as described in the text. Do NOT invent new actions or objects that aren't in the text. The illustration must match the text precisely.
+The camera angle MUST be: "${forcedAngle}". The lighting MUST be: "${forcedLighting}".`
           }
         ],
         tools: [
@@ -533,10 +534,12 @@ function buildScenePrompt(
   characterDesc: string,
   originalPrompt: string
 ): string {
-  // Use the original illustration_prompt as the primary scene description (it's already tailored to the page text)
-  // Then enrich with scene analysis details for camera, lighting, and mood variety
+  // The original illustration_prompt is THE PRIMARY source of truth — it was written to match the page text exactly.
+  // Scene analysis only adds camera/lighting/mood variety but MUST NOT override the core action or objects.
   const sceneBase = originalPrompt || `${scene.character_action}, ${scene.scene_action}`;
-  return `${characterDesc}. SCENE: ${sceneBase}. ACTION: ${scene.character_action}. ENVIRONMENT: ${scene.environment}. CAMERA: ${scene.camera_angle}. LIGHTING: ${scene.lighting}. MOOD: ${scene.mood}. Pixar 3D CGI style, vibrant colors, fantasy children's book, full body head to toe with feet grounded on surface`;
+  // Only use scene.character_action if it doesn't contradict the original prompt
+  const actionNote = originalPrompt ? `(follow the scene description above precisely)` : `ACTION: ${scene.character_action}`;
+  return `${characterDesc}. SCENE (MUST MATCH TEXT EXACTLY): ${sceneBase}. ${actionNote}. ENVIRONMENT: ${scene.environment}. CAMERA: ${scene.camera_angle}. LIGHTING: ${scene.lighting}. MOOD: ${scene.mood}. Pixar 3D CGI style, vibrant colors, fantasy children's book, full body head to toe with feet grounded on surface`;
 }
 
 // Helper function to upload base64 image to Supabase Storage
