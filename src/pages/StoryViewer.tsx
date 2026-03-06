@@ -1147,7 +1147,7 @@ const StoryViewer = () => {
             ) : isEndPage ? (
               /* End Page - Feedback & actions */
               <div className="flex flex-col h-full bg-[#FFFBF5]">
-                <div className="flex-1 paper-texture overflow-y-auto p-5 md:p-8 text-center flex flex-col items-center justify-center gap-3">
+                <div data-story-scroll className="flex-1 paper-texture overflow-y-auto p-5 md:p-8 text-center flex flex-col items-center justify-center gap-3">
                   <div className="space-y-2">
                     <p className="text-2xl md:text-3xl font-bold text-purple-800">✨ נהננו? ✨</p>
                     <p className="text-sm text-purple-500">הסיפור של {story.child_name}</p>
