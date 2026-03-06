@@ -323,7 +323,7 @@ function buildPersonalizedPrompt(
     ? `Character traits from profile: ${avatarDescription}. ${profileBlock} Render these features EXACTLY in Pixar 3D CGI style.`
     : `${profileBlock} Render the child's face, hair color, hair texture, skin tone, eye color, and ALL facial features EXACTLY as shown in the reference photo, in Pixar 3D CGI style.`;
 
-  return `FACE REFERENCE: The main character's face MUST be an EXACT 3D Pixar rendering of the child in the reference photo. Keep all facial features, hair color, hair texture, and skin tone identical.
+  return `FACE REFERENCE: The main character's face MUST be an EXACT 3D Pixar rendering of the child in the reference photo. Keep all facial features, hair color, hair texture, and skin tone identical. The character must look IDENTICAL to the story illustrations — same child, same face, same outfit style.
 
 ${traitBlock}
 
@@ -331,7 +331,9 @@ STYLE: ${PIXAR_STYLE}
 
 The ONLY character in this cover is the child from the reference photo. They should be shown as a confident, happy hero standing in the CENTER of the scene. FULL BODY from head to toe, feet GROUNDED on the surface.
 
-SCENE: ${storyContext} Setting: ${setting}. The child is the central hero of this magical scene, looking confident and adventurous.
+SCENE: ${storyContext}
+
+SETTING: ${setting}. The background MUST clearly reflect the story's theme. The child is the central hero of this magical scene, looking confident and adventurous.
 
 COMPOSITION: This is a children's book cover illustration. The child hero should be the central and largest figure. The magical setting fills the background. Clean, simple, impactful. Do NOT render any text or title on the image.
 
