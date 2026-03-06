@@ -7,6 +7,13 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
 };
 
+// ── Identical style block used in generate-illustrations ──
+const PIXAR_STYLE = `Pixar 3D CGI animation style, big expressive cartoon eyes with sparkling highlights, soft rounded cute features, oversized head with small body, vibrant saturated colors, cinematic warm lighting with glowing accents, fantasy children's book, high quality render, Disney-Pixar aesthetic. NOT realistic. Full body from head to toe, feet VISIBLE and GROUNDED on the surface.`;
+
+const NEGATIVE_PROMPT = `realistic, photograph, semi-realistic, dark, muted, bokeh, hyper-realistic, floating head, missing body, extra limbs, cropped feet, text, watermark, UI elements, multiple characters, group shot`;
+
+const CAST_NEGATIVE_PROMPT = `realistic, semi-realistic, real human, photograph, photorealistic, dark, muted colors, cinematic bokeh, hyper-realistic, shallow depth of field, floating head, missing body, missing limbs, extra limbs, deformed, distorted, scary, horror, mutated, cropped feet, cut off legs, floating character, half-body, missing feet, text, watermark, UI elements`;
+
 // Adventure/fantasy topics → Sol Hero; all others → Sol Casual
 const ADVENTURE_TOPICS = new Set([
   "space-adventure", "magic-kingdom", "zoo-adventure", "cloud-adventure",
@@ -83,11 +90,9 @@ async function uploadCoverAndSave(
   const { data: publicUrlData } = supabase.storage.from("story-illustrations").getPublicUrl(filePath);
   const fullCoverUrl = `${publicUrlData.publicUrl}?v=${Date.now()}`;
 
-  // Save cover URL to database — verify it actually persisted
   const { error: updateError } = await supabase.from("stories").update({ cover_url: fullCoverUrl }).eq("id", storyId);
   if (updateError) {
     console.error("❌ Cover DB update failed:", updateError);
-    // Retry once
     const { error: retryError } = await supabase.from("stories").update({ cover_url: fullCoverUrl }).eq("id", storyId);
     if (retryError) {
       console.error("❌ Cover DB update retry failed:", retryError);
@@ -97,7 +102,6 @@ async function uploadCoverAndSave(
     }
   }
 
-  // Verify the save by reading back
   const { data: verify } = await supabase.from("stories").select("cover_url").eq("id", storyId).maybeSingle();
   console.log(`✅ Cover saved for story ${storyId}: ${fullCoverUrl} (verified: ${verify?.cover_url ? 'yes' : 'NO'})`);
 
@@ -143,7 +147,7 @@ async function callGeminiImage(
   return null;
 }
 
-// ── Extract character profile from photo (same as generate-illustrations) ──
+// ── Extract character profile from photo (identical to generate-illustrations) ──
 async function extractCharacterProfile(
   childPhoto: string,
   childGender: string,
@@ -214,13 +218,12 @@ function getDefaultCoverProfile(childGender: string) {
   };
 }
 
-// ── Build the personalized cover prompt (matches illustration style exactly) ──
+// ── Build the personalized cover prompt — uses IDENTICAL style as illustrations ──
 function buildPersonalizedPrompt(
   avatarDescription: string | null,
   setting: string,
-  displayTitle: string,
-  fontLanguage: string,
   characterProfile: { hairDescription: string; clothingDescription: string; skinTone: string; eyeColor: string } | null,
+  storyContext: string,
 ): string {
   const profileBlock = characterProfile
     ? `Character has ${characterProfile.hairDescription}, ${characterProfile.skinTone} skin, and ${characterProfile.eyeColor} eyes.`
@@ -234,17 +237,15 @@ function buildPersonalizedPrompt(
 
 ${traitBlock}
 
-STYLE: Pixar 3D CGI animation style, big expressive cartoon eyes with sparkling highlights, soft rounded cute features, oversized head with small body, vibrant saturated colors, cinematic warm lighting with glowing accents, fantasy children's book, high quality render, Disney-Pixar aesthetic. NOT realistic. Full body from head to toe, feet VISIBLE and GROUNDED on the surface.
+STYLE: ${PIXAR_STYLE}
 
 The ONLY character in this cover is the child from the reference photo. They should be shown as a confident, happy hero standing in the CENTER of the scene. FULL BODY from head to toe, feet GROUNDED on the surface.
 
-SETTING: ${setting}
+SCENE: ${storyContext} Setting: ${setting}. The child is the central hero of this magical scene, looking confident and adventurous.
 
-TITLE TEXT: Display the text "${displayTitle}" prominently at the top or center-top of the image in a large, clear, child-friendly ${fontLanguage} font. The text should be bold, legible, and naturally integrated into the composition — as if it's the title of a children's book cover. Use a warm color that contrasts well with the background.
+COMPOSITION: This is a children's book cover illustration. The child hero should be the central and largest figure. The magical setting fills the background. Clean, simple, impactful. Do NOT render any text or title on the image.
 
-COMPOSITION: This is a BOOK COVER. The child hero should be the central and largest figure in the lower two-thirds. The magical setting fills the background. The title text occupies the upper portion. Clean, simple, impactful.
-
-NEGATIVE: realistic, photograph, semi-realistic, dark, muted, bokeh, hyper-realistic, floating head, missing body, extra limbs, cropped feet, text, watermark, UI elements, multiple characters, group shot`;
+NEGATIVE: ${NEGATIVE_PROMPT}`;
 }
 
 serve(async (req) => {
@@ -277,9 +278,24 @@ serve(async (req) => {
     // Look up story to find child info
     const { data: story } = await supabase
       .from("stories")
-      .select("child_name, user_id, child_gender, age_range")
+      .select("child_name, user_id, child_gender, age_range, summary")
       .eq("id", storyId)
       .maybeSingle();
+
+    // Fetch first page text + illustration_prompt for scene context
+    const { data: firstPage } = await supabase
+      .from("story_pages")
+      .select("text, illustration_prompt")
+      .eq("story_id", storyId)
+      .order("page_number", { ascending: true })
+      .limit(1)
+      .maybeSingle();
+
+    const storyContext = story?.summary
+      || firstPage?.illustration_prompt
+      || firstPage?.text
+      || title
+      || "";
 
     // Check if child has a photo for personalized cover
     let childPhotoSignedUrl: string | null = null;
@@ -332,24 +348,18 @@ serve(async (req) => {
     }
 
     const setting = getSettingForTopic(topic || "");
-    const isHebrew = language === "he" || !language;
-    const fontLanguage = isHebrew ? "Hebrew" : "English";
-    const displayTitle = isHebrew
-      ? (title && !/^[a-z\-]+$/.test(title) ? title : "סיפור קסום")
-      : (title || topic || "A Magical Story");
 
     // ═══════════════════════════════════════════════════════════
     // PATH A: Child photo exists → single-reference personalized cover
     // ═══════════════════════════════════════════════════════════
     if (childPhotoSignedUrl) {
-      // Extract character profile from photo (same as generate-illustrations)
       const childGender = story?.child_gender || "female";
       const ageRange = story?.age_range || "3-6";
       console.log(`Extracting character profile for cover (gender: ${childGender}, age: ${ageRange})`);
       const characterProfile = await extractCharacterProfile(childPhotoSignedUrl, childGender, ageRange, LOVABLE_API_KEY);
       console.log(`Character profile extracted: hair=${characterProfile.hairDescription}, skin=${characterProfile.skinTone}`);
 
-      const coverPrompt = buildPersonalizedPrompt(avatarDescription, setting, displayTitle, fontLanguage, characterProfile);
+      const coverPrompt = buildPersonalizedPrompt(avatarDescription, setting, characterProfile, storyContext);
 
       const requestBody = {
         model: "google/gemini-3-pro-image-preview",
@@ -363,7 +373,6 @@ serve(async (req) => {
         }],
       };
 
-      // Try up to 3 times with the SAME single-reference approach (no cast fallback)
       const imageUrl = await callGeminiImage(LOVABLE_API_KEY, requestBody, 3, "personalized cover");
 
       if (imageUrl) {
@@ -371,7 +380,6 @@ serve(async (req) => {
         return uploadCoverAndSave(supabase, storyId, imageUrl);
       }
 
-      // All personalized attempts failed — return error, do NOT fall back to cast
       console.error(`❌ All personalized cover attempts failed for story ${storyId}`);
       return new Response(JSON.stringify({ error: "Personalized cover generation failed after retries" }), {
         status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" },
@@ -380,6 +388,7 @@ serve(async (req) => {
 
     // ═══════════════════════════════════════════════════════════
     // PATH B: No child photo → cast-based cover (Sol + friends)
+    // Uses the same Pixar 3D CGI style directive
     // ═══════════════════════════════════════════════════════════
     const sol = getSolUrl(topic || "");
     console.log(`No child photo — using cast cover. Sol variant: ${sol.label}`);
@@ -388,7 +397,9 @@ serve(async (req) => {
       ? "Sol in her adventure/fantasy outfit — match EXACTLY from the provided reference image"
       : "Sol in her superhero costume — warm tan skin, long dark brown hair in a high bun with pink band, red cape, light blue shirt with a golden star emblem, purple pants, white sneakers — match EXACTLY from the provided reference image";
 
-    const castCoverPrompt = `Pixar 3D CGI animation style, big expressive eyes, soft rounded features, oversized head with small body, vibrant saturated colors, cinematic warm lighting with glowing accents, fantasy children's book background, high quality render, Disney-Pixar aesthetic. Characters must look like adorable cartoon dolls — NOT realistic humans. Portrait orientation (9:16 aspect ratio).
+    const castCoverPrompt = `STYLE: ${PIXAR_STYLE}
+
+Characters must look like adorable cartoon dolls — NOT realistic humans. Portrait orientation (9:16 aspect ratio).
 
 === MANDATORY CHARACTER REFERENCES ===
 Reference images of EACH character are provided above. You MUST match their appearance EXACTLY — facial features, hair color, hair style, and skin tone MUST be taken DIRECTLY from the reference images. Zero invented characters.
@@ -407,13 +418,11 @@ CHARACTERS (all 5 must appear together in the scene — Sol and Ben are SIBLINGS
 
 HEIGHT RELATIONSHIPS: Sol, Mia, Leo, and Zoe are roughly the same height. Ben is noticeably shorter — the youngest and smallest in the group.
 
-SETTING: ${setting}
+SCENE: ${storyContext} Setting: ${setting}
 
-TITLE TEXT: Display the text "${displayTitle}" prominently at the top or center-top of the image in a large, clear, child-friendly ${fontLanguage} font. The text should be bold, legible, and naturally integrated into the composition — as if it's the title of a children's book cover. Use a warm color that contrasts well with the background.
+COMPOSITION: This is a children's book cover illustration. The 5 characters should be arranged as a group in the lower two-thirds of the image, with the magical setting filling the background. Leave clean space at the top. Do NOT render any text or title on the image.
 
-COMPOSITION: This is a BOOK COVER. The 5 characters should be arranged as a group in the lower two-thirds of the image, with the magical setting filling the background. The title text occupies the upper portion. Leave clean space around the title for readability.
-
-EXCLUDE / NEGATIVE PROMPT: No realistic, no semi-realistic, no real humans, no photographs. No UI elements, no buttons, no audio icons, no play buttons, no watermarks, no text beyond the story title. No additional characters beyond the 5 described. No floating heads, no disembodied heads, no missing bodies, no missing limbs, no extra limbs, no deformed characters, no distorted faces, no scary imagery, no grotesque elements, no mutated features. All characters must be shown as FULL BODY from head to toe with feet VISIBLE and GROUNDED on the surface. No cropped feet, no cut off legs, no floating characters, no half-body compositions, no missing feet, no legs cut off at frame edge. Characters must be FULLY CONTAINED within the frame with generous margin. Characters must look like cartoon dolls, NEVER like real humans.`;
+NEGATIVE: ${CAST_NEGATIVE_PROMPT}`;
 
     const characterRefContent = [sol.url, ...CHARACTER_BASE_REFS].map(url => ({
       type: "image_url",
