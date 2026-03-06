@@ -46,6 +46,8 @@ import "./StoryViewer.css";
 import { translateTopic } from "@/lib/topic-translations";
 // solMagicBookCover removed — cover now uses first page illustration
 import { useChildAvatar } from "@/hooks/use-child-avatar";
+import { usePageRecording } from "@/hooks/use-page-recording";
+import PageRecordingControls from "@/components/story/PageRecordingControls";
 
 import castWavingFarewell from "@/assets/cast-waving-farewell.png";
 import solSuperheroWelcome from "@/assets/sol-superhero-welcome.jpg";
@@ -171,6 +173,7 @@ const StoryViewer = () => {
   const hasTrackedStart = useRef(false);
   const { audioSupport } = useAccessibility();
   // useTextToSpeech removed — read-aloud only in Accessibility Menu
+  const pageRecording = usePageRecording(resolvedId ?? undefined);
 
   // No orientation lock needed - vertical portrait layout
 
@@ -1194,6 +1197,23 @@ const StoryViewer = () => {
                     <div className="absolute bottom-1 left-0 right-0 flex justify-center z-0">
                       <span className="text-xs text-white/50 font-light">{currentVirtual.dbPage.page_number} / {story.pages.length}</span>
                     </div>
+                    {/* Recording controls — combined page */}
+                    <div className="absolute top-3 left-3 z-20">
+                      <PageRecordingControls
+                        pageNumber={currentVirtual.dbPage.page_number}
+                        isRecording={pageRecording.recordingPage === currentVirtual.dbPage.page_number}
+                        hasPendingBlob={pageRecording.pendingBlob?.page === currentVirtual.dbPage.page_number}
+                        hasSaved={pageRecording.hasSavedRecording(currentVirtual.dbPage.page_number)}
+                        isPlaying={pageRecording.playingPage === currentVirtual.dbPage.page_number}
+                        onStartRecording={() => pageRecording.startRecording(currentVirtual.dbPage.page_number)}
+                        onStopRecording={pageRecording.stopRecording}
+                        onSave={pageRecording.saveRecording}
+                        onDiscard={pageRecording.discardPending}
+                        onPlay={() => pageRecording.playRecording(currentVirtual.dbPage.page_number)}
+                        onStopPlaying={pageRecording.stopPlaying}
+                        light
+                      />
+                    </div>
                   </>
                 ) : currentVirtual.type === 'illustration' ? (
                   /* Illustration page — fullscreen image, no text */
@@ -1239,6 +1259,23 @@ const StoryViewer = () => {
                     <div className="absolute bottom-3 left-0 right-0 flex justify-center">
                       <span className="text-xs text-white/50 font-light">{Math.ceil((currentPage + 1) / 2)} / {story.pages.length}</span>
                     </div>
+                    {/* Recording controls — illustration page */}
+                    <div className="absolute top-3 left-3 z-20">
+                      <PageRecordingControls
+                        pageNumber={currentVirtual.dbPage.page_number}
+                        isRecording={pageRecording.recordingPage === currentVirtual.dbPage.page_number}
+                        hasPendingBlob={pageRecording.pendingBlob?.page === currentVirtual.dbPage.page_number}
+                        hasSaved={pageRecording.hasSavedRecording(currentVirtual.dbPage.page_number)}
+                        isPlaying={pageRecording.playingPage === currentVirtual.dbPage.page_number}
+                        onStartRecording={() => pageRecording.startRecording(currentVirtual.dbPage.page_number)}
+                        onStopRecording={pageRecording.stopRecording}
+                        onSave={pageRecording.saveRecording}
+                        onDiscard={pageRecording.discardPending}
+                        onPlay={() => pageRecording.playRecording(currentVirtual.dbPage.page_number)}
+                        onStopPlaying={pageRecording.stopPlaying}
+                        light
+                      />
+                    </div>
                   </>
                 ) : (
                   /* Text page — pastel gradient background, centered text */
@@ -1246,8 +1283,24 @@ const StoryViewer = () => {
                     const theme = getTopicTheme(story.topic);
                     const rawText = currentVirtual.text;
                     const displayText = showNikud ? rawText : rawText.replace(/[\u0591-\u05C7]/g, '');
-                    return (
+                      return (
                       <div className="absolute inset-0 w-full h-full overflow-y-auto flex flex-col items-center" style={{ background: theme.bg }}>
+                        {/* Recording controls — text page */}
+                        <div className="absolute top-3 left-3 z-20">
+                          <PageRecordingControls
+                            pageNumber={currentVirtual.dbPage.page_number}
+                            isRecording={pageRecording.recordingPage === currentVirtual.dbPage.page_number}
+                            hasPendingBlob={pageRecording.pendingBlob?.page === currentVirtual.dbPage.page_number}
+                            hasSaved={pageRecording.hasSavedRecording(currentVirtual.dbPage.page_number)}
+                            isPlaying={pageRecording.playingPage === currentVirtual.dbPage.page_number}
+                            onStartRecording={() => pageRecording.startRecording(currentVirtual.dbPage.page_number)}
+                            onStopRecording={pageRecording.stopRecording}
+                            onSave={pageRecording.saveRecording}
+                            onDiscard={pageRecording.discardPending}
+                            onPlay={() => pageRecording.playRecording(currentVirtual.dbPage.page_number)}
+                            onStopPlaying={pageRecording.stopPlaying}
+                          />
+                        </div>
                         <div className="flex-1" />
                         <div className="max-w-lg mx-auto w-full px-6 md:px-10 py-6 shrink-0">
                           <p className={cn(
