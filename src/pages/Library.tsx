@@ -1,6 +1,6 @@
 import { useState, useEffect, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
-import { ArrowRight, Plus, Coins, Wand2, BookOpen } from "lucide-react";
+import { ArrowRight, Plus, Coins, Wand2, BookOpen, WifiOff, Plane } from "lucide-react";
 import { getPublicIllustrationUrl } from "@/lib/illustration-url";
 import solMagicBookCover from "@/assets/sol-magic-book-cover.png";
 
@@ -15,6 +15,7 @@ import { GenderSwapDialog } from "@/components/story/GenderSwapDialog";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { useOfflineStorage } from "@/hooks/use-offline-storage";
+import { useFullOfflineStorage, OfflineStory } from "@/hooks/use-full-offline-storage";
 import { useCredits } from "@/hooks/use-credits";
 import { useReferral } from "@/hooks/use-referral";
 import { useChildAvatar } from "@/hooks/use-child-avatar";
@@ -63,13 +64,28 @@ const Library = () => {
   const [editingStory, setEditingStory] = useState<Story | null>(null);
   const [genderSwapStory, setGenderSwapStory] = useState<Story | null>(null);
   const [regeneratingCoverId, setRegeneratingCoverId] = useState<string | null>(null);
+  const [showOfflineFilter, setShowOfflineFilter] = useState(false);
+  const [offlineStories, setOfflineStories] = useState<OfflineStory[]>([]);
+
+  const fullOffline = useFullOfflineStorage();
 
   const totalCredits = (credits ?? 0) + shareCoins;
 
+  // Load offline stories when offline
   useEffect(() => {
-    fetchStories();
-    fetchChildren();
-  }, [user]);
+    if (!isOnline) {
+      fullOffline.getAllOfflineStories().then(setOfflineStories);
+    }
+  }, [isOnline]);
+
+  useEffect(() => {
+    if (isOnline) {
+      fetchStories();
+      fetchChildren();
+    } else {
+      setIsLoading(false);
+    }
+  }, [user, isOnline]);
 
   const fetchChildren = async () => {
     if (!user) { setChildren([]); return; }
@@ -123,28 +139,18 @@ const Library = () => {
     }
   };
 
-  // Compute unique child names from stories for tab generation
   const childTabs = useMemo(() => {
     if (children.length < 2) return null;
-
     const childNameSet = new Set(children.map(c => c.name));
-    // Find stories that don't match any registered child
-    const unmatchedStories = stories.filter(s =>
-      !s.child_id && !childNameSet.has(s.child_name)
-    );
-
+    const unmatchedStories = stories.filter(s => !s.child_id && !childNameSet.has(s.child_name));
     const tabs = children.map(child => ({
       key: child.id,
       label: child.name,
-      stories: stories.filter(s =>
-        s.child_id === child.id || (!s.child_id && s.child_name === child.name)
-      ),
+      stories: stories.filter(s => s.child_id === child.id || (!s.child_id && s.child_name === child.name)),
     }));
-
     if (unmatchedStories.length > 0) {
       tabs.push({ key: "__other", label: "אחר", stories: unmatchedStories });
     }
-
     return tabs;
   }, [children, stories]);
 
@@ -153,6 +159,10 @@ const Library = () => {
       const { error } = await supabase.from("stories").delete().eq("id", storyId);
       if (error) throw error;
       setStories((prev) => prev.filter((s) => s.id !== storyId));
+      // Also delete offline version if exists
+      if (fullOffline.isSaved(storyId)) {
+        await fullOffline.deleteOfflineStory(storyId);
+      }
       toast({ title: "הסיפור נמחק בהצלחה" });
     } catch {
       toast({ variant: "destructive", title: "שגיאה", description: "לא הצלחנו למחוק את הסיפור" });
@@ -177,6 +187,48 @@ const Library = () => {
     } finally {
       setRegeneratingCoverId(null);
     }
+  };
+
+  const handleDownloadOffline = async (storyId: string) => {
+    try {
+      const story = stories.find(s => s.id === storyId);
+      if (!story) return;
+
+      // Fetch all pages for this story
+      const { data: pagesData } = await supabase
+        .from("story_pages")
+        .select("id, page_number, text, illustration_url, illustration_prompt")
+        .eq("story_id", storyId)
+        .order("page_number");
+
+      if (!pagesData) throw new Error("No pages found");
+
+      const coverImage = getCoverImage(story);
+
+      await fullOffline.downloadStory(
+        storyId,
+        {
+          id: story.id,
+          slug: story.slug,
+          child_name: story.child_name,
+          topic: story.topic,
+          cover_url: story.cover_url,
+          created_at: story.created_at,
+          child_gender: story.child_gender,
+          age_range: story.min_age != null && story.max_age != null ? `${story.min_age}-${story.max_age}` : null,
+        },
+        pagesData,
+        coverImage,
+      );
+      toast({ title: "📥 הסיפור נשמר לקריאה אופליין!" });
+    } catch {
+      toast({ variant: "destructive", title: "שגיאה", description: "לא הצלחנו להוריד את הסיפור" });
+    }
+  };
+
+  const handleDeleteOffline = async (storyId: string) => {
+    await fullOffline.deleteOfflineStory(storyId);
+    toast({ title: "הגרסה האופליין נמחקה" });
   };
 
   const handleGenderSwap = (storyId: string) => {
@@ -208,6 +260,11 @@ const Library = () => {
     navigate(`/story/${s?.slug || id}`);
   };
 
+  // Filtered stories for offline filter
+  const displayStories = showOfflineFilter
+    ? stories.filter(s => fullOffline.isSaved(s.id))
+    : stories;
+
   const renderStoryList = (storyList: Story[]) => (
     <div className="grid grid-cols-2 gap-3">
       {storyList.map((story) => (
@@ -221,6 +278,11 @@ const Library = () => {
           onDelete={handleDeleteStory}
           onEdit={handleEditStory}
           onClick={navigateToStory}
+          isOfflineSaved={fullOffline.isSaved(story.id)}
+          isDownloading={fullOffline.downloadingId === story.id}
+          offlineSize={fullOffline.getSize(story.id)}
+          onDownloadOffline={handleDownloadOffline}
+          onDeleteOffline={handleDeleteOffline}
         />
       ))}
     </div>
@@ -236,6 +298,54 @@ const Library = () => {
     </div>
   );
 
+  // ---- OFFLINE MODE ----
+  if (!isOnline) {
+    return (
+      <div className="h-screen h-[100dvh] bg-background pb-20 overflow-y-auto overscroll-contain" dir="rtl">
+        <div className="container max-w-lg mx-auto px-3 py-3">
+          {/* Offline header */}
+          <div className="bg-gradient-to-r from-sky-100 to-blue-100 border-b-2 border-sky-300 p-5 -mx-3 -mt-3 mb-4 shadow-sm text-center space-y-2">
+            <div className="flex items-center justify-center gap-2 text-sky-700">
+              <Plane className="w-6 h-6" />
+              <h1 className="text-xl font-black">אתם אופליין ✈️</h1>
+            </div>
+            <p className="text-sm text-sky-600">הנה הסיפורים השמורים שלכם — תהנו!</p>
+          </div>
+
+          {offlineStories.length === 0 ? (
+            <div className="text-center py-16 space-y-4">
+              <WifiOff className="w-16 h-16 mx-auto text-muted-foreground/40" />
+              <h2 className="text-lg font-bold text-muted-foreground">אין סיפורים שמורים</h2>
+              <p className="text-sm text-muted-foreground/70">כשתהיו מחוברים לאינטרנט, הורידו סיפורים מהספרייה לקריאה אופליין 📥</p>
+            </div>
+          ) : (
+            <div className="grid grid-cols-2 gap-3">
+              {offlineStories.map((os) => {
+                const coverUrl = os.coverBlob ? URL.createObjectURL(os.coverBlob) : solMagicBookCover;
+                return (
+                  <StoryBookCard
+                    key={os.id}
+                    id={os.id}
+                    storyId={os.id}
+                    childName={os.meta.child_name}
+                    topic={translateTopic(os.meta.topic)}
+                    coverUrl={coverUrl}
+                    onDelete={async () => {}} // Can't delete from server while offline
+                    onClick={() => navigate(`/story/${os.meta.slug || os.id}`)}
+                    isOfflineSaved
+                    offlineSize={os.sizeBytes}
+                  />
+                );
+              })}
+            </div>
+          )}
+        </div>
+        <MobileNavigation />
+      </div>
+    );
+  }
+
+  // ---- ONLINE MODE ----
   return (
     <div className="h-screen h-[100dvh] bg-background pb-20 overflow-y-auto overscroll-contain">
       <OfflineIndicator isOnline={isOnline} />
@@ -269,13 +379,35 @@ const Library = () => {
           </div>
         </div>
 
+        {/* Offline filter toggle */}
+        {stories.length > 0 && fullOffline.savedStoryIds.size > 0 && (
+          <div className="flex justify-end mb-3">
+            <button
+              onClick={() => setShowOfflineFilter(!showOfflineFilter)}
+              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold transition-all ${
+                showOfflineFilter
+                  ? 'bg-green-100 text-green-700 border-2 border-green-300'
+                  : 'bg-muted text-muted-foreground border-2 border-transparent hover:bg-muted/80'
+              }`}
+            >
+              <WifiOff className="w-3.5 h-3.5" />
+              סיפורים אופליין ({fullOffline.savedStoryIds.size})
+            </button>
+          </div>
+        )}
+
         {/* Stories content */}
         {isLoading || authLoading ? (
           <LoadingSkeleton />
+        ) : displayStories.length === 0 && showOfflineFilter ? (
+          <div className="text-center py-10">
+            <WifiOff className="w-12 h-12 mx-auto text-muted-foreground/30 mb-3" />
+            <p className="text-muted-foreground font-medium">אין סיפורים שמורים אופליין</p>
+            <Button onClick={() => setShowOfflineFilter(false)} variant="outline" className="mt-3">הצג את כל הסיפורים</Button>
+          </div>
         ) : stories.length === 0 ? (
           <EmptyState onCreateClick={() => navigate("/create")} />
-        ) : childTabs ? (
-          /* Multiple children: show tabs */
+        ) : childTabs && !showOfflineFilter ? (
           <Tabs defaultValue="__all" dir="rtl" className="w-full">
             <TabsList className="w-full h-auto flex-wrap bg-purple-100/60 rounded-xl p-1 mb-4 gap-1">
               <TabsTrigger
@@ -313,8 +445,7 @@ const Library = () => {
             ))}
           </Tabs>
         ) : (
-          /* Single child or no children: flat list */
-          renderStoryList(stories)
+          renderStoryList(displayStories)
         )}
 
         {/* Create Button */}
