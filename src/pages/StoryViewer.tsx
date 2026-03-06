@@ -967,6 +967,17 @@ const StoryViewer = () => {
   const currentFontSize = FONT_SIZES[fontSizeIndex];
   const showPageActions = isContentPage && page !== null;
 
+  // Reset all scroll positions (window + inner scrollable containers)
+  const resetScroll = () => {
+    window.scrollTo(0, 0);
+    document.documentElement.scrollTop = 0;
+    document.body.scrollTop = 0;
+    // Reset any inner overflow-y-auto containers within the viewer
+    document.querySelectorAll('[data-story-scroll]').forEach(el => {
+      el.scrollTop = 0;
+    });
+  };
+
   // Page navigation with simple fade transition
   const handlePageNav = (direction: 'next' | 'prev') => {
     if (isFlipping) return;
@@ -978,18 +989,19 @@ const StoryViewer = () => {
     
     setIsFlipping(true);
     
+    // Reset scroll IMMEDIATELY before the page change
+    resetScroll();
+    
     setTimeout(() => {
       if (direction === 'next' && currentPage < maxPage) {
         const newPage = currentPage + 1;
         setCurrentPage(newPage);
-        window.scrollTo(0, 0);
         
         if (newPage >= maxPage) {
           trackStoryCompleted(story.id);
         }
       } else if (direction === 'prev' && currentPage > -1) {
         setCurrentPage(currentPage - 1);
-        window.scrollTo(0, 0);
       }
       setIsFlipping(false);
     }, 300);
