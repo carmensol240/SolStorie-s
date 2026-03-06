@@ -67,6 +67,8 @@ export const BookHeader: React.FC<BookHeaderProps> = ({
   isExporting = false,
   isAddingNikud = false,
   showPageActions = false,
+  isMusicPlaying = false,
+  onToggleMusic,
 }) => {
   return (
     <header className="sticky top-0 z-40 bg-[#FAF3E8]/95 backdrop-blur-sm border-b border-[#D4C4B0] px-3 py-2 shadow-sm">
