@@ -449,7 +449,7 @@ async function analyzePageScene(
         messages: [
           {
             role: "system",
-            content: `You are a children's book illustrator director. Given a page of Hebrew children's story text, extract a vivid visual scene description for an illustration. Be specific and concrete — avoid generic descriptions. Each page must look completely different.`
+            content: `You are a children's book illustrator director. Given a page of Hebrew children's story text, extract a vivid visual scene description for an illustration. CRITICAL: The illustration MUST depict EXACTLY what the text describes — do NOT change the action, objects, or characters. If the text says "hugging a teddy bear", the scene_action and character_action MUST show hugging a teddy bear, NOT something else. Be specific and concrete — avoid generic descriptions. Each page must look completely different.`
           },
           {
             role: "user",
@@ -457,7 +457,8 @@ async function analyzePageScene(
 Page ${pageNumber} of ${totalPages}.
 Text: "${pageText}"
 
-Analyze this page and extract the visual scene. The camera angle MUST be: "${forcedAngle}". The lighting MUST be: "${forcedLighting}".`
+IMPORTANT: Extract the scene EXACTLY as described in the text. Do NOT invent new actions or objects that aren't in the text. The illustration must match the text precisely.
+The camera angle MUST be: "${forcedAngle}". The lighting MUST be: "${forcedLighting}".`
           }
         ],
         tools: [
