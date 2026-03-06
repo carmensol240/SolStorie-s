@@ -1159,7 +1159,7 @@ const StoryViewer = () => {
                       <img
                         src={getPublicIllustrationUrl(currentVirtual.illustrationUrl) || ''}
                         alt="איור"
-                        className="absolute inset-0 w-full h-full object-contain bg-gradient-to-br from-[#FFF8F0] via-[#F5E6D3] to-[#FAF3E8]"
+                        className="absolute inset-0 w-full h-full object-cover"
                         loading="eager"
                       />
                     ) : currentVirtual.dbPage.illustration_prompt ? (
