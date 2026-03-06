@@ -1,7 +1,8 @@
 import { useState } from 'react';
-import { Book, Trash2, MoreVertical, Pencil } from 'lucide-react';
+import { Book, Trash2, MoreVertical, Pencil, Download, Check, Loader2, HardDriveDownload, Trash } from 'lucide-react';
 import { Button } from './button';
 import { SignedImage } from './signed-image';
+import { formatBytes } from '@/hooks/use-full-offline-storage';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -16,6 +17,7 @@ import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
+  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from './dropdown-menu';
 
@@ -48,6 +50,12 @@ interface StoryBookCardProps {
   onClick: (id: string) => void;
   onEdit?: (id: string) => void;
   storyId?: string;
+  // Offline props
+  isOfflineSaved?: boolean;
+  isDownloading?: boolean;
+  offlineSize?: number;
+  onDownloadOffline?: (id: string) => void;
+  onDeleteOffline?: (id: string) => void;
 }
 
 const StoryBookCard = ({
@@ -59,6 +67,11 @@ const StoryBookCard = ({
   onClick,
   onEdit,
   storyId,
+  isOfflineSaved = false,
+  isDownloading = false,
+  offlineSize = 0,
+  onDownloadOffline,
+  onDeleteOffline,
 }: StoryBookCardProps) => {
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
@@ -100,12 +113,42 @@ const StoryBookCard = ({
           )}
         </div>
 
+        {/* Offline saved badge */}
+        {isOfflineSaved && (
+          <div className="absolute top-1.5 right-1.5 z-20 w-6 h-6 rounded-full bg-green-500 flex items-center justify-center shadow-md" title="שמור אופליין">
+            <Check className="w-3.5 h-3.5 text-white" strokeWidth={3} />
+          </div>
+        )}
+
+        {/* Download button */}
+        {onDownloadOffline && !isOfflineSaved && (
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              onDownloadOffline(id);
+            }}
+            disabled={isDownloading}
+            className="absolute top-1.5 right-1.5 z-20 w-8 h-8 min-h-[36px] min-w-[36px] rounded-full bg-black/40 backdrop-blur-sm text-white flex items-center justify-center
+              hover:bg-black/60 transition-colors opacity-0 group-hover:opacity-100"
+            aria-label="הורד לקריאה אופליין"
+          >
+            {isDownloading ? (
+              <Loader2 className="w-4 h-4 animate-spin" />
+            ) : (
+              <Download className="w-4 h-4" />
+            )}
+          </button>
+        )}
+
         {/* Bottom gradient overlay with title */}
         <div className="absolute bottom-0 left-0 right-0 p-2.5 pt-10 bg-gradient-to-t from-black/80 via-black/40 to-transparent z-10">
           <h3 className="text-white text-sm font-bold leading-tight line-clamp-2 drop-shadow-md">
             הסיפור של {childName}
           </h3>
           <p className="text-white/75 text-xs mt-0.5 line-clamp-1 drop-shadow-sm">{topic}</p>
+          {isOfflineSaved && offlineSize > 0 && (
+            <p className="text-white/50 text-[10px] mt-0.5">{formatBytes(offlineSize)}</p>
+          )}
         </div>
 
         {/* Menu button */}
@@ -129,6 +172,19 @@ const StoryBookCard = ({
                   <span>עריכת סיפור</span>
                 </DropdownMenuItem>
               )}
+              {onDownloadOffline && !isOfflineSaved && (
+                <DropdownMenuItem onSelect={() => onDownloadOffline(id)} className="gap-2 cursor-pointer">
+                  <HardDriveDownload className="w-4 h-4 text-green-600" />
+                  <span>הורד לאופליין</span>
+                </DropdownMenuItem>
+              )}
+              {isOfflineSaved && onDeleteOffline && (
+                <DropdownMenuItem onSelect={() => onDeleteOffline(id)} className="gap-2 cursor-pointer">
+                  <Trash className="w-4 h-4 text-orange-500" />
+                  <span>מחק גרסה אופליין {offlineSize > 0 ? `(${formatBytes(offlineSize)})` : ''}</span>
+                </DropdownMenuItem>
+              )}
+              <DropdownMenuSeparator />
               <DropdownMenuItem
                 onSelect={(e) => {
                   e.preventDefault();
