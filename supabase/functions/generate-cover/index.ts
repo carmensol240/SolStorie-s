@@ -342,7 +342,14 @@ serve(async (req) => {
     // PATH A: Child photo exists → single-reference personalized cover
     // ═══════════════════════════════════════════════════════════
     if (childPhotoSignedUrl) {
-      const coverPrompt = buildPersonalizedPrompt(avatarDescription, setting, displayTitle, fontLanguage);
+      // Extract character profile from photo (same as generate-illustrations)
+      const childGender = story?.child_gender || "female";
+      const ageRange = story?.age_range || "3-6";
+      console.log(`Extracting character profile for cover (gender: ${childGender}, age: ${ageRange})`);
+      const characterProfile = await extractCharacterProfile(childPhotoSignedUrl, childGender, ageRange, LOVABLE_API_KEY);
+      console.log(`Character profile extracted: hair=${characterProfile.hairDescription}, skin=${characterProfile.skinTone}`);
+
+      const coverPrompt = buildPersonalizedPrompt(avatarDescription, setting, displayTitle, fontLanguage, characterProfile);
 
       const requestBody = {
         model: "google/gemini-3-pro-image-preview",
