@@ -591,6 +591,37 @@ const StoryViewer = () => {
 
   // Click-based area navigation disabled - using arrow buttons only
 
+  const handleSaveOffline = async () => {
+    if (!story || !resolvedId) return;
+    try {
+      await fullOffline.downloadStory(
+        resolvedId,
+        {
+          id: resolvedId,
+          slug: story.slug || null,
+          child_name: story.child_name,
+          topic: story.topic,
+          cover_url: story.cover_url || null,
+          created_at: new Date().toISOString(),
+          child_gender: story.child_gender || null,
+          age_range: story.age_range || null,
+        },
+        story.pages.map(p => ({
+          id: p.id,
+          page_number: p.page_number,
+          text: p.text,
+          illustration_url: p.illustration_url,
+          illustration_prompt: p.illustration_prompt || null,
+        })),
+        story.cover_url || null,
+      );
+      toast({ title: '✅ הסיפור נשמר לקריאה אופליין!' });
+    } catch (e) {
+      console.error('Offline save failed:', e);
+      toast({ title: 'שגיאה בשמירה', description: 'נסו שוב מאוחר יותר', variant: 'destructive' });
+    }
+  };
+
   const handleShare = async () => {
     if (!story || isExporting) return;
 
