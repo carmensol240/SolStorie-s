@@ -258,6 +258,16 @@ export const BookHeader: React.FC<BookHeaderProps> = ({
                   <DropdownMenuSeparator />
                 </>
               )}
+              {onRegenerateCover && (
+                <DropdownMenuItem 
+                  onClick={onRegenerateCover} 
+                  disabled={isRegeneratingCover}
+                  className="gap-2 cursor-pointer"
+                >
+                  <span>🎨</span>
+                  <span>{isRegeneratingCover ? 'מייצר כריכה...' : 'ייצר כריכה מחדש'}</span>
+                </DropdownMenuItem>
+              )}
               {onReport && (
                 <DropdownMenuItem onClick={onReport} className="gap-2 cursor-pointer text-destructive">
                   <span>🚨</span>
