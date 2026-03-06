@@ -1,26 +1,56 @@
 
 
-## Bug Analysis
+## Analysis
 
-The onboarding loop is caused by a combination of issues in the navigation flow between `RequireTerms` and `Onboarding`:
+The cover generation code (`generate-cover/index.ts`) already has good foundations — it fetches the child's photo, extracts a character profile, uses avatar_description, and applies the same Pixar 3D CGI style. However, there are gaps causing inconsistencies:
 
-1. **Silent update failure**: In `Onboarding.handleContinue`, the Supabase `.update().eq()` call returns success (`error: null`) even when **zero rows are matched** (e.g., due to a race condition where the profile hasn't been created yet). The code doesn't verify the update actually persisted.
+### Issues Found
 
-2. **No `replace: true` on redirects**: Both `RequireTerms` (redirecting to `/onboarding`) and `Onboarding`'s guard effect (redirecting to `/adventure`) use `navigate()` without `{ replace: true }`, causing history stack pollution and making the loop worse.
+1. **Incomplete topic-to-setting mapping**: `TOPIC_SETTINGS` only covers ~20 topics out of 60+. Unmapped topics fall back to a generic "enchanted forest" — so a zoo story or space story may get wrong backgrounds.
 
-3. **Loop mechanics**: `handleContinue` thinks it succeeded → navigates to `/adventure` → `RequireTerms` queries DB → `terms_accepted_at` is still null → redirects back to `/onboarding` → Onboarding guard checks terms → still null → shows the form again.
+2. **Weak `storyContext`**: The scene context is built from `summary → illustration_prompt → first page text → title`. The summary is often null, and the first page text may not represent the overall story theme well.
 
-## Fix
+3. **No topic description injection**: The `topic-data.ts` file has Hebrew descriptions for each topic that describe the story concept. These aren't used in cover generation.
 
-### 1. `src/pages/Onboarding.tsx` — Verify update actually persisted
+4. **Character profile extraction sometimes fails silently**: Falls back to hardcoded defaults that may not match the child at all.
 
-In `handleContinue`, after the update call, re-query the profile to confirm `terms_accepted_at` was saved. If not, use `upsert` as a fallback. Also add `{ replace: true }` to the guard navigation.
+---
 
-### 2. `src/components/RequireTerms.tsx` — Use `replace: true`
+## Plan
 
-Change the `navigate` call to onboarding to use `{ replace: true }` so the history stack doesn't accumulate redirect entries.
+### 1. Expand TOPIC_SETTINGS to cover all topics
+Add mapping entries for every topic defined in `topic-data.ts` (~60+ topics). This ensures the background always matches the theme.
 
-### 3. Both files — Add select return on update
+### 2. Improve storyContext with richer scene data
+- Fetch **all page illustration_prompts** (not just first page) and pick the most visually rich one
+- Include the topic name itself in the prompt so Gemini understands the story theme
+- Add a `topicDescription` field derived from the topic slug (e.g., "space-adventure" → "A space adventure story")
 
-Use `.update(...).eq(...).select()` to get the updated row back, confirming the write succeeded. If the returned array is empty, fall back to an upsert to handle the edge case where the profile row doesn't exist yet.
+### 3. Strengthen the cover prompt
+Update `buildPersonalizedPrompt` to explicitly state:
+- The story topic/theme
+- "The character must look IDENTICAL to the story illustrations"
+- Use the avatar_description more prominently
+
+### 4. Files to modify
+- `supabase/functions/generate-cover/index.ts` — expand TOPIC_SETTINGS, improve storyContext fetching, strengthen prompt
+
+### Technical Details
+
+**Enhanced storyContext building:**
+```typescript
+// Fetch all illustration prompts for richer context
+const { data: allPages } = await supabase
+  .from("story_pages")
+  .select("illustration_prompt")
+  .eq("story_id", storyId)
+  .order("page_number", { ascending: true });
+
+// Use topic + summary + best illustration prompt
+const topicLabel = (topic || "").replace(/-/g, " ");
+const bestPrompt = allPages?.find(p => p.illustration_prompt)?.illustration_prompt || "";
+const storyContext = `A "${topicLabel}" themed story. ${story?.summary || bestPrompt || title || ""}`;
+```
+
+**Expanded TOPIC_SETTINGS** — add entries for all missing topics (anger, apologize, barber-visit, bath-shower, body-safety, brave-taster, clean-room, crying-is-ok, divorce, emotion-regulation, environment, fear-of-dark, find-a-friend, first-day-kindergarten, flying-vacation, grandparents-night, hand-washing, helping-others, how-body-works, independence, just-be-me, lost-tooth, making-mistakes, mom-dont-go, my-special-family, nail-trimming, nature-secrets, new-house, patience, play-rules, pocket-kiss, politeness, road-safety, screen-time, seatbelt-safety, self-confidence, sharing, sibling-love, sick-grandparent, stranger-danger, teeth-brushing, trying-again, waiting-in-line, we-are-special, etc.)
 
