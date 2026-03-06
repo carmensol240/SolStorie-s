@@ -46,6 +46,8 @@ interface BookHeaderProps {
   isAddingNikud?: boolean;
   showPageActions?: boolean;
   hasAudioError?: boolean;
+  isMusicPlaying?: boolean;
+  onToggleMusic?: () => void;
 }
 
 export const BookHeader: React.FC<BookHeaderProps> = ({
