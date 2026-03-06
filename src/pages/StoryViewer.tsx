@@ -1259,6 +1259,23 @@ const StoryViewer = () => {
                     <div className="absolute bottom-3 left-0 right-0 flex justify-center">
                       <span className="text-xs text-white/50 font-light">{Math.ceil((currentPage + 1) / 2)} / {story.pages.length}</span>
                     </div>
+                    {/* Recording controls — illustration page */}
+                    <div className="absolute top-3 left-3 z-20">
+                      <PageRecordingControls
+                        pageNumber={currentVirtual.dbPage.page_number}
+                        isRecording={pageRecording.recordingPage === currentVirtual.dbPage.page_number}
+                        hasPendingBlob={pageRecording.pendingBlob?.page === currentVirtual.dbPage.page_number}
+                        hasSaved={pageRecording.hasSavedRecording(currentVirtual.dbPage.page_number)}
+                        isPlaying={pageRecording.playingPage === currentVirtual.dbPage.page_number}
+                        onStartRecording={() => pageRecording.startRecording(currentVirtual.dbPage.page_number)}
+                        onStopRecording={pageRecording.stopRecording}
+                        onSave={pageRecording.saveRecording}
+                        onDiscard={pageRecording.discardPending}
+                        onPlay={() => pageRecording.playRecording(currentVirtual.dbPage.page_number)}
+                        onStopPlaying={pageRecording.stopPlaying}
+                        light
+                      />
+                    </div>
                   </>
                 ) : (
                   /* Text page — pastel gradient background, centered text */
