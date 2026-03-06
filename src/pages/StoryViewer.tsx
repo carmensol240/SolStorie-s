@@ -1283,8 +1283,24 @@ const StoryViewer = () => {
                     const theme = getTopicTheme(story.topic);
                     const rawText = currentVirtual.text;
                     const displayText = showNikud ? rawText : rawText.replace(/[\u0591-\u05C7]/g, '');
-                    return (
+                      return (
                       <div className="absolute inset-0 w-full h-full overflow-y-auto flex flex-col items-center" style={{ background: theme.bg }}>
+                        {/* Recording controls — text page */}
+                        <div className="absolute top-3 left-3 z-20">
+                          <PageRecordingControls
+                            pageNumber={currentVirtual.dbPage.page_number}
+                            isRecording={pageRecording.recordingPage === currentVirtual.dbPage.page_number}
+                            hasPendingBlob={pageRecording.pendingBlob?.page === currentVirtual.dbPage.page_number}
+                            hasSaved={pageRecording.hasSavedRecording(currentVirtual.dbPage.page_number)}
+                            isPlaying={pageRecording.playingPage === currentVirtual.dbPage.page_number}
+                            onStartRecording={() => pageRecording.startRecording(currentVirtual.dbPage.page_number)}
+                            onStopRecording={pageRecording.stopRecording}
+                            onSave={pageRecording.saveRecording}
+                            onDiscard={pageRecording.discardPending}
+                            onPlay={() => pageRecording.playRecording(currentVirtual.dbPage.page_number)}
+                            onStopPlaying={pageRecording.stopPlaying}
+                          />
+                        </div>
                         <div className="flex-1" />
                         <div className="max-w-lg mx-auto w-full px-6 md:px-10 py-6 shrink-0">
                           <p className={cn(
