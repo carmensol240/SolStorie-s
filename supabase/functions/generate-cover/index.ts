@@ -468,6 +468,8 @@ serve(async (req) => {
       console.log(`Character profile extracted: hair=${characterProfile.hairDescription}, skin=${characterProfile.skinTone}`);
 
       const coverPrompt = buildPersonalizedPrompt(avatarDescription, setting, characterProfile, storyContext);
+      console.log(`📋 COVER PROMPT (personalized, first 500 chars): ${coverPrompt.substring(0, 500)}...`);
+      console.log(`📋 SETTING used: "${setting}"`);
 
       const requestBody = {
         model: "google/gemini-3-pro-image-preview",
