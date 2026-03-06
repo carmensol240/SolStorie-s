@@ -28,6 +28,7 @@ import { useAnalytics } from "@/hooks/use-analytics";
 import { useOfflineStorage } from "@/hooks/use-offline-storage";
 import { useSettings } from "@/hooks/use-settings";
 import { usePdfExport } from "@/hooks/use-pdf-export";
+import { useBgMusic } from "@/hooks/use-bg-music";
 import { useNikud } from "@/hooks/use-nikud";
 // useTextToSpeech removed — read-aloud now only in Accessibility Menu
 import { useAccessibility } from "@/hooks/use-accessibility";
@@ -160,6 +161,7 @@ const StoryViewer = () => {
   const { settings } = useSettings();
   const { exportToPdf, generatePdfFile, isExporting } = usePdfExport();
   const { addNikud, isLoading: isAddingNikud } = useNikud();
+  const bgMusic = useBgMusic();
   // story-illustrations bucket is public - using direct URLs via getPublicIllustrationUrl
   
   const { user } = useAuth();
@@ -928,6 +930,8 @@ const StoryViewer = () => {
         isExporting={isExporting}
         isAddingNikud={isAddingNikud}
         showPageActions={showPageActions}
+        isMusicPlaying={bgMusic.isPlaying}
+        onToggleMusic={bgMusic.toggle}
       />
 
       {/* Read Aloud button removed per user request */}
