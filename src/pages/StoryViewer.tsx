@@ -130,6 +130,7 @@ const StoryViewer = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [isFlipping, setIsFlipping] = useState(false);
   const [isDrawingMode, setIsDrawingMode] = useState(false);
+  const [isRegeneratingCover, setIsRegeneratingCover] = useState(false);
   const [fontSizeIndex, setFontSizeIndex] = useState(2);
   const [isEditingPage, setIsEditingPage] = useState(false);
   const [showNikud, setShowNikud] = useState(true);
@@ -787,6 +788,29 @@ const StoryViewer = () => {
     }
   }, [generationStatus, story, userStartedReading]);
 
+  // Regenerate cover
+  const handleRegenerateCover = async () => {
+    if (!story || !resolvedId || isRegeneratingCover) return;
+    setIsRegeneratingCover(true);
+    try {
+      const { data, error } = await supabase.functions.invoke('generate-cover', {
+        body: { storyId: resolvedId, title: story.topic, topic: story.topic, language: story.language || 'he' },
+      });
+      if (error) throw error;
+      if (data?.coverUrl) {
+        setStory(prev => prev ? { ...prev, cover_url: data.coverUrl } : prev);
+        toast({ title: 'הכריכה חודשה בהצלחה! 🎨' });
+      } else {
+        throw new Error('No cover returned');
+      }
+    } catch (err) {
+      console.error('Cover regeneration error:', err);
+      toast({ title: 'שגיאה בייצור הכריכה', description: 'נסו שוב מאוחר יותר', variant: 'destructive' });
+    } finally {
+      setIsRegeneratingCover(false);
+    }
+  };
+
   // Build virtual pages — split each DB page into illustration + text
   type VirtualPage = {
     type: 'illustration' | 'text' | 'combined';
@@ -985,8 +1009,8 @@ const StoryViewer = () => {
                       </p>
                     </div>
 
-                    {/* Bottom section — button + logo */}
-                    <div className="relative z-10 flex flex-col items-center pb-6 px-6">
+                    {/* Bottom section — button + logo + regenerate */}
+                    <div className="relative z-10 flex flex-col items-center pb-6 px-6 gap-2">
                       <Button
                         size="lg"
                         onClick={() => handlePageNav('next')}
@@ -995,7 +1019,15 @@ const StoryViewer = () => {
                         <BookOpen className="w-4 h-4 ml-2" />
                         פִּתְחוּ אֶת הַסֵּפֶר 📖
                       </Button>
-                      <span className="mt-3 text-lg font-black logo-3d-bubble"><span className="logo-rainbow">SolStorie's™</span></span>
+                      <button
+                        onClick={handleRegenerateCover}
+                        disabled={isRegeneratingCover}
+                        className="text-xs text-white/60 hover:text-white/90 transition-colors flex items-center gap-1 disabled:opacity-50"
+                      >
+                        <RefreshCw className={cn("w-3 h-3", isRegeneratingCover && "animate-spin")} />
+                        {isRegeneratingCover ? 'מייצר כריכה חדשה...' : 'ייצר כריכה מחדש'}
+                      </button>
+                      <span className="text-lg font-black logo-3d-bubble"><span className="logo-rainbow">SolStorie's™</span></span>
                     </div>
                   </div>
                 );
