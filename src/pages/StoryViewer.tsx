@@ -1064,6 +1064,9 @@ const StoryViewer = () => {
         showPageActions={showPageActions}
         isMusicPlaying={bgMusic.isPlaying}
         onToggleMusic={bgMusic.toggle}
+        onSaveOffline={handleSaveOffline}
+        isSavedOffline={resolvedId ? fullOffline.savedStoryIds.has(resolvedId) : false}
+        isDownloadingOffline={fullOffline.downloadingId === resolvedId}
       />
 
       {/* Read Aloud button removed per user request */}
