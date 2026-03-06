@@ -1333,7 +1333,7 @@ const StoryViewer = () => {
                     const rawText = currentVirtual.text;
                     const displayText = showNikud ? rawText : rawText.replace(/[\u0591-\u05C7]/g, '');
                       return (
-                      <div className="absolute inset-0 w-full h-full overflow-y-auto flex flex-col items-center" style={{ background: theme.bg }}>
+                      <div data-story-scroll className="absolute inset-0 w-full h-full overflow-y-auto flex flex-col items-center" style={{ background: theme.bg }}>
                         {/* Recording controls — text page */}
                         <div className="absolute top-3 left-3 z-20">
                           <PageRecordingControls
