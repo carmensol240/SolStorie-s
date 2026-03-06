@@ -354,6 +354,31 @@ const StoryViewer = () => {
       }
 
       if (!isOnline && storyId) {
+        // Try full offline storage first (has illustration blobs)
+        const offlineStory = await fullOffline.getOfflineStory(storyId);
+        if (offlineStory) {
+          const storyObj: Story = {
+            id: offlineStory.id,
+            slug: offlineStory.meta.slug || undefined,
+            child_name: offlineStory.meta.child_name,
+            child_gender: offlineStory.meta.child_gender || 'female',
+            topic: offlineStory.meta.topic,
+            language: 'he',
+            age_range: offlineStory.meta.age_range || '3-6',
+            pages: offlineStory.pages.map(p => ({
+              id: p.id,
+              page_number: p.page_number,
+              text: p.text,
+              illustration_url: p.illustration_blob ? URL.createObjectURL(p.illustration_blob) : null,
+              illustration_prompt: p.illustration_prompt,
+            })),
+          };
+          setStory(storyObj);
+          setResolvedId(offlineStory.id);
+          setIsLoading(false);
+          return;
+        }
+        // Fallback to lightweight cache
         const cached = getCachedStory(storyId);
         if (cached) {
           setStory(cached);
