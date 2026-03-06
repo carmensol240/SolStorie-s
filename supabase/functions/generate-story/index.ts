@@ -998,6 +998,40 @@ Return ONLY valid JSON:
       const genderWordEn = childGender === "female" ? "girl" : "boy";
       const pronounEn = childGender === "female" ? "she/her" : "he/him";
       
+      // Build English sequel instruction from the Hebrew sequel data
+      let sequelInstructionEn = "";
+      if (sequelInstruction) {
+        // We have sequel data — build English version
+        const partMatch = sequelInstruction.match(/חלק (\d+)/);
+        const partNumber = partMatch ? partMatch[1] : "2";
+        const prevCount = parseInt(partNumber) - 1;
+
+        // Extract the previous full text if it was included
+        const fullTextMatch = sequelInstruction.match(/📖 הטקסט המלא של הסיפור הקודם.*?\n\n([\s\S]*?)\n\n## 📌/);
+        const previousFullText = fullTextMatch ? fullTextMatch[1] : "";
+
+        sequelInstructionEn = `
+## 🔄 Story Sequel (Part ${partNumber})
+This is a sequel! The child has already experienced ${prevCount} previous adventure(s) on this topic.
+${previousFullText ? `
+## 📖 Full text of the previous story (Part ${prevCount}) — you MUST read and continue from it!
+Continue the plot naturally from where the previous story ended. The first sentence of the new story must connect directly to the last scene, emotion, or event from the previous story.
+
+${previousFullText}
+
+## 📌 Critical continuity rules:
+1. **The first sentence** must directly reference the ending of the previous story — the scene, emotion, or last event.
+2. **Preserve all character names, relationships, and personality traits exactly as they appeared in the previous story.** Do not invent new characters that contradict the previous story.
+3. **Do not invent new places or settings that contradict the world built in the previous story.** You may expand the world, but not contradict it.
+4. **Reference events from the previous story** as the character's "memories". For example: "${childName} remembers that moment when..." or "After discovering the..."
+5. Create a new challenge and a surprising twist — do not repeat the same plot!
+` : `
+Create an exciting new sequel in the same world, with a new challenge and a surprising twist.
+Do not repeat the previous plot — move the journey forward!
+Gently hint that this isn't the first time: for example "${childName} already knows that the path always holds surprises..."
+`}`;
+      }
+
       userPrompt = `## Story Creation Instructions
 
 **Child details:**
@@ -1006,6 +1040,7 @@ Return ONLY valid JSON:
 - Age: ${ageRange}
 ${childPersonalization}
 ${contentFraming}
+${sequelInstructionEn}
 
 **Story topic:** ${topic}
 ${hasCustomDescription ? `**Custom description:** ${personalityTraits}` : ""}
