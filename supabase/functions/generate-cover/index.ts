@@ -277,7 +277,7 @@ serve(async (req) => {
     // Look up story to find child info
     const { data: story } = await supabase
       .from("stories")
-      .select("child_name, user_id")
+      .select("child_name, user_id, child_gender, age_range")
       .eq("id", storyId)
       .maybeSingle();
 
