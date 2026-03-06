@@ -150,14 +150,105 @@ const TOPIC_SETTINGS: Record<string, string> = {
   "respecting-elders": "Warm grandparents' garden with a storytelling bench, tea set, and blooming roses",
 };
 
+// Reverse map: Hebrew topic name → English slug
+// The DB stores topics in Hebrew, but TOPIC_SETTINGS uses English keys
+const HEBREW_TO_ENGLISH_TOPIC: Record<string, string> = {
+  "טיסה בחלל": "space-adventure",
+  "ממלכת הקסם": "magic-kingdom",
+  "טיול בעננים": "cloud-adventure",
+  "טיול בגן החיות": "zoo-adventure",
+  "הרפתקה במצולות הים": "underwater",
+  "רוקדים בגשם": "rain-party",
+  "אנחנו גיבורי על": "we-are-superheroes",
+  "שומרי הדרכים": "road-safety",
+  "שומרי כדור הארץ": "environment",
+  "הלב שלי": "helping-others",
+  "הגוף שלי הוא רק שלי": "body-safety",
+  "פשוט להיות אני": "just-be-me",
+  "כולנו מיוחדים ודומים": "we-are-special",
+  "הקסם שבניסיון": "trying-again",
+  "הלילה המיוחד בממלכת סבא וסבתא": "grandparents-night",
+  "צוות מנצח - אהבת אחים": "sibling-love",
+  "מפתחות הקסם": "magic-keys",
+  "שומר הסודות": "stranger-danger",
+  "צחצוח שיניים קסום": "body-hero-teeth",
+  "אמבטיה של כיף": "body-hero-bath",
+  "שטיפת ידיים": "body-hero-hands",
+  "גזירת ציפורניים": "body-hero-nails",
+  "ביקור אצל הספר": "barber-visit",
+  "ביקור אצל רופא/ת השיניים": "dentist-visit",
+  "פיית המוצץ": "pacifier-fairy",
+  "גמילה מחיתולים": "potty-training",
+  "הטועם האמיץ": "brave-taster",
+  "אני יכול/ה לבד!": "independence",
+  "נולד לי אח/ות": "new-sibling",
+  "פחד מהחושך": "fear-of-dark",
+  "נפלה לי שן": "lost-tooth",
+  "נשיקה בכיס": "pocket-kiss",
+  "ענן הכעס שלי": "anger-cloud",
+  "אמא אל תלכי": "mom-dont-go",
+  "חברים בגן": "friendship-courage",
+  "כמה כיף לחלוק": "sharing",
+  "ללמוד לבקש סליחה": "apologize",
+  "עוברים לבית חדש": "new-house",
+  "היום הראשון בגן": "first-day-kindergarten",
+  "המשפחה המיוחדת שלי": "my-special-family",
+  "כובש/ת את השמיים": "flying-vacation",
+  "מסע ביער הקסום": "magical-forest",
+  "החגורה היא חברה": "seatbelt-safety",
+  "טיול משפחתי": "family-trip",
+  "מסיבת יום הולדת": "birthday-party",
+  "סיפור לפני השינה": "bedtime-story",
+  "לסדר את החדר": "clean-room",
+  "התמודדות עם פחדים": "fears",
+  "חברויות חדשות": "find-a-friend",
+  "יום ראשון בגן": "first-day-kindergarten",
+  "אח או אחות חדשה": "new-sibling",
+  "ביטחון עצמי": "self-confidence",
+  "הרפתקה בטבע": "nature-secrets",
+  "מסע בחלל": "space-journey",
+  "ממלכת העננים": "cloud-kingdom",
+  "מסיבת הדרקונים": "dragon-party",
+  "המצאות משונות": "strange-inventions",
+  "כולנו שונים וזה בסדר": "accepting-differences",
+  "חברות אמיתית": "true-friendship",
+  "לעזור בבית": "helping-home",
+  "החדר הבטוח": "safe-room-sirens",
+  "סבלנות": "patience",
+  "נימוסים": "politeness",
+  "כללי משחק": "play-rules",
+  "ויסות רגשות": "emotion-regulation",
+  "לחכות בתור": "waiting-in-line",
+  "איך הגוף עובד": "how-body-works",
+  "סודות הטבע": "nature-secrets",
+  "בדיקת דם": "blood-test",
+  "זמן מסך": "screen-time",
+  "גירושין": "divorce",
+  "סבא/סבתא חולה": "sick-grandparent",
+  "ללמוד מטעויות": "making-mistakes",
+  "בסדר לבכות": "crying-is-ok",
+};
+
 function getSettingForTopic(topic: string): string {
-  const setting = TOPIC_SETTINGS[topic];
+  // Try direct English slug match first
+  let setting = TOPIC_SETTINGS[topic];
   if (setting) {
-    console.log(`✅ TOPIC_SETTINGS match found: topic="${topic}" → setting="${setting.substring(0, 80)}..."`);
-  } else {
-    console.warn(`⚠️ TOPIC_SETTINGS: NO match for topic="${topic}" — falling back to default enchanted forest. Available keys: ${Object.keys(TOPIC_SETTINGS).filter(k => k.includes(topic.split('-')[0])).join(', ') || 'none similar'}`);
+    console.log(`✅ TOPIC_SETTINGS match (English): topic="${topic}" → setting="${setting.substring(0, 80)}..."`);
+    return setting;
   }
-  return setting || "Enchanted forest clearing with magical glowing light, sparkling fireflies, and a majestic ancient tree";
+
+  // Try Hebrew → English reverse lookup
+  const englishSlug = HEBREW_TO_ENGLISH_TOPIC[topic];
+  if (englishSlug) {
+    setting = TOPIC_SETTINGS[englishSlug];
+    if (setting) {
+      console.log(`✅ TOPIC_SETTINGS match (Hebrew→English): topic="${topic}" → slug="${englishSlug}" → setting="${setting.substring(0, 80)}..."`);
+      return setting;
+    }
+  }
+
+  console.warn(`⚠️ TOPIC_SETTINGS: NO match for topic="${topic}" (tried English + Hebrew reverse). Falling back to default.`);
+  return "Enchanted forest clearing with magical glowing light, sparkling fireflies, and a majestic ancient tree";
 }
 
 // ── Shared helper: upload base64 image to storage and update story ──
