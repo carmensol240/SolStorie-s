@@ -875,8 +875,43 @@ serve(async (req) => {
           .map((s: any, i: number) => `חלק ${i + 1}: ${s.summary}`)
           .join("\n");
 
-        sequelInstruction = `\n## 🔄 המשך הרפתקה (חלק ${partNumber})\nזהו סיפור המשך! הילד/ה כבר חווה/חוותה ${previousStories.length} הרפתקאות קודמות על "${hebrewTopicForSequel}".\n${previousSummaries ? `\nסיכום ההרפתקאות הקודמות:\n${previousSummaries}\n` : ""}\nצור המשך חדש ומרתק באותו עולם, עם אתגר חדש ותפנית מפתיעה.\nאל תחזור על העלילה הקודמת - המשך את המסע קדימה!\nהזכר בעדינות שזו לא הפעם הראשונה: לדוגמה "וּכְמוֹ בְּכָל הַרְפַּתְקָה, ${childName} כְּבָר יוֹדֵעַ/יוֹדַעַת שֶׁהַדֶּרֶךְ תָּמִיד מַפְתִּיעָה..."\n`;
-        console.log(`Sequel detected! This is Part ${partNumber} for child "${childId || childName}" on topic "${hebrewTopicForSequel}" with ${previousSummaries ? "summaries" : "no summaries"}`);
+        // Fetch the FULL TEXT of the most recent previous story for deep continuity
+        const lastStoryId = previousStories[previousStories.length - 1].id;
+        let previousFullText = "";
+        try {
+          const { data: lastStoryPages, error: pagesError } = await supabase
+            .from("story_pages")
+            .select("page_number, text")
+            .eq("story_id", lastStoryId)
+            .order("page_number", { ascending: true });
+          
+          if (!pagesError && lastStoryPages && lastStoryPages.length > 0) {
+            previousFullText = lastStoryPages.map((p: any) => p.text).join("\n\n");
+            console.log(`Fetched full text of last story (${lastStoryPages.length} pages, ${previousFullText.length} chars)`);
+          }
+        } catch (e) {
+          console.warn("Failed to fetch previous story full text:", e);
+        }
+
+        sequelInstruction = `\n## 🔄 המשך הרפתקה (חלק ${partNumber})
+זהו סיפור המשך! הילד/ה כבר חווה/חוותה ${previousStories.length} הרפתקאות קודמות על "${hebrewTopicForSequel}".
+${previousSummaries ? `\nסיכום ההרפתקאות הקודמות:\n${previousSummaries}\n` : ""}
+${previousFullText ? `\n## 📖 הטקסט המלא של הסיפור הקודם (חלק ${partNumber - 1}) — חובה לקרוא ולהמשיך ממנו!
+זהו סיפור ההמשך לסיפור הבא. המשך את העלילה בצורה טבעית מהנקודה שבה הסיפור הקודם הסתיים. המשפט הראשון של הסיפור החדש חייב להתחבר ישירות לסצנה האחרונה, לרגש או לאירוע שבסוף הסיפור הקודם.
+
+${previousFullText}
+
+## 📌 כללי המשכיות קריטיים:
+1. **המשפט הראשון** של הסיפור החדש חייב להתייחס ישירות לסיום הסיפור הקודם — לסצנה, לרגש או לאירוע האחרון.
+2. **שמור על כל שמות הדמויות, היחסים ותכונות האופי בדיוק כפי שהופיעו בסיפור הקודם.** אל תמציא דמויות חדשות שסותרות את הסיפור הקודם.
+3. **אל תמציא מקומות או סביבות חדשות שסותרים את העולם שנבנה בסיפור הקודם.** ניתן להרחיב את העולם, אך לא לסתור אותו.
+4. **התייחס לאירועים שקרו בסיפור הקודם** כאילו הם "זיכרונות" של הדמות. לדוגמה: "${childName} נזכר/נזכרת באותו רגע כש..." או "אחרי שגילה/גילתה את..."
+5. צור אתגר חדש ותפנית מפתיעה — אל תחזור על אותה עלילה!
+` : `\nצור המשך חדש ומרתק באותו עולם, עם אתגר חדש ותפנית מפתיעה.
+אל תחזור על העלילה הקודמת - המשך את המסע קדימה!
+הזכר בעדינות שזו לא הפעם הראשונה: לדוגמה "וּכְמוֹ בְּכָל הַרְפַּתְקָה, ${childName} כְּבָר יוֹדֵעַ/יוֹדַעַת שֶׁהַדֶּרֶךְ תָּמִיד מַפְתִּיעָה..."
+`}`;
+        console.log(`Sequel detected! This is Part ${partNumber} for child "${childId || childName}" on topic "${hebrewTopicForSequel}" with full text: ${!!previousFullText}`);
       }
     }
     
