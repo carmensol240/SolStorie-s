@@ -1009,8 +1009,8 @@ const StoryViewer = () => {
                       </p>
                     </div>
 
-                    {/* Bottom section — button + logo */}
-                    <div className="relative z-10 flex flex-col items-center pb-6 px-6">
+                    {/* Bottom section — button + logo + regenerate */}
+                    <div className="relative z-10 flex flex-col items-center pb-6 px-6 gap-2">
                       <Button
                         size="lg"
                         onClick={() => handlePageNav('next')}
@@ -1019,7 +1019,15 @@ const StoryViewer = () => {
                         <BookOpen className="w-4 h-4 ml-2" />
                         פִּתְחוּ אֶת הַסֵּפֶר 📖
                       </Button>
-                      <span className="mt-3 text-lg font-black logo-3d-bubble"><span className="logo-rainbow">SolStorie's™</span></span>
+                      <button
+                        onClick={handleRegenerateCover}
+                        disabled={isRegeneratingCover}
+                        className="text-xs text-white/60 hover:text-white/90 transition-colors flex items-center gap-1 disabled:opacity-50"
+                      >
+                        <RefreshCw className={cn("w-3 h-3", isRegeneratingCover && "animate-spin")} />
+                        {isRegeneratingCover ? 'מייצר כריכה חדשה...' : 'ייצר כריכה מחדש'}
+                      </button>
+                      <span className="text-lg font-black logo-3d-bubble"><span className="logo-rainbow">SolStorie's™</span></span>
                     </div>
                   </div>
                 );
