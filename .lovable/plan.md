@@ -1,26 +1,28 @@
 
 
-## Bug Analysis
+## Analysis
 
-The onboarding loop is caused by a combination of issues in the navigation flow between `RequireTerms` and `Onboarding`:
+From the screenshots, the zoo story illustrations show **black bars at the top and bottom** of the image frame, making them look like embedded screenshots rather than full-bleed illustrations. The user wants images to fill the entire frame with no black bars or margins.
 
-1. **Silent update failure**: In `Onboarding.handleContinue`, the Supabase `.update().eq()` call returns success (`error: null`) even when **zero rows are matched** (e.g., due to a race condition where the profile hasn't been created yet). The code doesn't verify the update actually persisted.
+**Root Cause**: The page container `<div className="relative flex-1 min-h-0 flex flex-col rounded-xl overflow-hidden">` has no explicit background color set. When the image's aspect ratio doesn't perfectly match the container, the default transparent/black background shows through as letterbox bars. Despite using `object-cover`, the flex layout may cause the inner `<div className="h-full w-full relative">` not to stretch fully.
 
-2. **No `replace: true` on redirects**: Both `RequireTerms` (redirecting to `/onboarding`) and `Onboarding`'s guard effect (redirecting to `/adventure`) use `navigate()` without `{ replace: true }`, causing history stack pollution and making the loop worse.
+## Plan
 
-3. **Loop mechanics**: `handleContinue` thinks it succeeded → navigates to `/adventure` → `RequireTerms` queries DB → `terms_accepted_at` is still null → redirects back to `/onboarding` → Onboarding guard checks terms → still null → shows the form again.
+### 1. Fix container background in StoryViewer.tsx
+- Add a warm background color to the main page frame container (matching the story theme) so any gap between the image and container edge shows a warm color instead of black.
+- Add `bg-[#F5E6D3]` (or similar warm tone) to the outer rounded container div.
 
-## Fix
+### 2. Ensure illustration wrapper fills the container
+- Change the story page wrapper from `h-full w-full` to use `flex-1` within the flex-col container, ensuring it stretches to fill all available space.
+- Add a matching background to the illustration wrapper div as well.
 
-### 1. `src/pages/Onboarding.tsx` — Verify update actually persisted
+### 3. Apply same fixes to PublicStoryViewer.tsx
+- Mirror the background and layout fixes for consistency.
 
-In `handleContinue`, after the update call, re-query the profile to confirm `terms_accepted_at` was saved. If not, use `upsert` as a fallback. Also add `{ replace: true }` to the guard navigation.
+### 4. Cover persistence fix verification
+- Review the `handleRegenerateCover` function to ensure the DB update is awaited and verified before showing success.
 
-### 2. `src/components/RequireTerms.tsx` — Use `replace: true`
-
-Change the `navigate` call to onboarding to use `{ replace: true }` so the history stack doesn't accumulate redirect entries.
-
-### 3. Both files — Add select return on update
-
-Use `.update(...).eq(...).select()` to get the updated row back, confirming the write succeeded. If the returned array is empty, fall back to an upsert to handle the edge case where the profile row doesn't exist yet.
+### Files to edit:
+- `src/pages/StoryViewer.tsx` — add background to container, fix illustration wrapper sizing
+- `src/pages/PublicStoryViewer.tsx` — same fixes
 
