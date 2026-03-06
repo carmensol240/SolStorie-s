@@ -404,6 +404,9 @@ serve(async (req) => {
           : title
             ? `A "${topicLabel}" themed story: ${title}`
             : `A "${topicLabel}" themed children's story`;
+    
+    console.log(`📋 COVER storyContext: ${storyContext.substring(0, 200)}...`);
+    console.log(`📋 COVER bestIllustrationPrompt found: ${bestIllustrationPrompt ? 'yes' : 'no'}, allPages count: ${allPages?.length || 0}`);
 
     // Check if child has a photo for personalized cover
     let childPhotoSignedUrl: string | null = null;
