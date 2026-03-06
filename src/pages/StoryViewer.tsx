@@ -1127,7 +1127,7 @@ const StoryViewer = () => {
                             currentFontSize.size,
                           )} style={{
                             lineHeight: '1.8',
-                            backgroundColor: 'rgba(255,255,255,0.85)',
+                            backgroundColor: 'rgba(255,255,255,0.7)',
                             padding: '12px 16px',
                             borderRadius: '16px',
                             backdropFilter: 'blur(8px)',
