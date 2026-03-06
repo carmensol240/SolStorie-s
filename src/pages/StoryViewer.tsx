@@ -26,6 +26,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import { useAnalytics } from "@/hooks/use-analytics";
 import { useOfflineStorage } from "@/hooks/use-offline-storage";
+import { useFullOfflineStorage } from "@/hooks/use-full-offline-storage";
 import { useSettings } from "@/hooks/use-settings";
 import { usePdfExport } from "@/hooks/use-pdf-export";
 import { useBgMusic } from "@/hooks/use-bg-music";
