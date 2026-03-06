@@ -7,6 +7,9 @@ import {
   Sparkles,
   Volume2,
   VolumeX,
+  Download,
+  Check,
+  Loader2,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
@@ -48,19 +51,20 @@ interface BookHeaderProps {
   hasAudioError?: boolean;
   isMusicPlaying?: boolean;
   onToggleMusic?: () => void;
+  // Offline download
+  onSaveOffline?: () => void;
+  isSavedOffline?: boolean;
+  isDownloadingOffline?: boolean;
 }
 
 export const BookHeader: React.FC<BookHeaderProps> = ({
   onBack,
   onShare,
   onDownload,
-  // onDigitalBook removed - feature disabled
   onToggleFontSize,
   onEdit,
-  // onRate removed - feature disabled
   onReport,
   onAddNikud,
-  // onDraw removed - not in essential list
   onToggleNikud,
   showNikud = true,
   fontSizeLabel,
@@ -69,6 +73,9 @@ export const BookHeader: React.FC<BookHeaderProps> = ({
   showPageActions = false,
   isMusicPlaying = false,
   onToggleMusic,
+  onSaveOffline,
+  isSavedOffline = false,
+  isDownloadingOffline = false,
 }) => {
   return (
     <header className="sticky top-0 z-40 bg-[#FAF3E8]/95 backdrop-blur-sm border-b border-[#D4C4B0] px-3 py-2 shadow-sm">
@@ -125,6 +132,39 @@ export const BookHeader: React.FC<BookHeaderProps> = ({
             </TooltipTrigger>
             <TooltipContent side="bottom">הורד או הדפס PDF</TooltipContent>
           </Tooltip>
+
+          {/* Save for Offline Reading */}
+          {onSaveOffline && (
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={onSaveOffline}
+                  disabled={isDownloadingOffline || isSavedOffline}
+                  className={cn(
+                    "min-h-[44px] min-w-[44px] p-2",
+                    isSavedOffline 
+                      ? "text-green-600 hover:bg-green-50" 
+                      : "text-[#5D3A1A] hover:bg-[#D4A574]/20",
+                    isDownloadingOffline && "animate-pulse"
+                  )}
+                  aria-label={isSavedOffline ? "הסיפור שמור לקריאה אופליין" : "שמור לקריאה ללא אינטרנט"}
+                >
+                  {isDownloadingOffline ? (
+                    <Loader2 className="w-5 h-5 animate-spin" />
+                  ) : isSavedOffline ? (
+                    <Check className="w-5 h-5" />
+                  ) : (
+                    <Download className="w-5 h-5" />
+                  )}
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent side="bottom">
+                {isSavedOffline ? "✅ שמור לקריאה אופליין" : "שמור לקריאה ללא אינטרנט"}
+              </TooltipContent>
+            </Tooltip>
+          )}
 
           {/* What Happens Next? */}
           <Popover>
