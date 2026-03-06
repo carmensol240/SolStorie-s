@@ -238,8 +238,8 @@ const PublicStoryViewer = () => {
                     {displayText && displayText.trim() && (
                       <div className="absolute bottom-0 left-0 right-0 z-10 p-4 md:p-6" dir="rtl">
                         <div className="max-w-lg mx-auto">
-                          <p className="text-lg md:text-2xl text-[#3D2B5A] font-semibold whitespace-pre-line text-right"
-                            style={{ lineHeight: '1.8', backgroundColor: 'rgba(255,255,255,0.7)', padding: '12px 16px', borderRadius: '16px', backdropFilter: 'blur(8px)' }}>
+                          <p className="text-lg md:text-2xl text-white font-semibold whitespace-pre-line text-right drop-shadow-[0_1px_3px_rgba(0,0,0,0.5)]"
+                            style={{ lineHeight: '1.8', padding: '12px 16px' }}>
                             {displayText}
                           </p>
                         </div>
