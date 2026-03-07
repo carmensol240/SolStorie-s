@@ -191,12 +191,23 @@ export function useFullOfflineStorage() {
   const getOfflineStory = useCallback(async (storyId: string): Promise<OfflineStory | null> => {
     try {
       const db = await openOfflineDB();
-      return new Promise((resolve) => {
+      // First try direct lookup by UUID (keyPath)
+      const directResult = await new Promise<OfflineStory | null>((resolve) => {
         const tx = db.transaction(STORE_NAME, 'readonly');
         const req = tx.objectStore(STORE_NAME).get(storyId);
         req.onsuccess = () => resolve(req.result ?? null);
         req.onerror = () => resolve(null);
       });
+      if (directResult) return directResult;
+
+      // Fallback: search by slug (storyId might be a slug, not UUID)
+      const allStories = await new Promise<OfflineStory[]>((resolve) => {
+        const tx = db.transaction(STORE_NAME, 'readonly');
+        const req = tx.objectStore(STORE_NAME).getAll();
+        req.onsuccess = () => resolve(req.result ?? []);
+        req.onerror = () => resolve([]);
+      });
+      return allStories.find(s => s.meta.slug === storyId) ?? null;
     } catch {
       return null;
     }

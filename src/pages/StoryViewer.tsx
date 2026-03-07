@@ -355,8 +355,10 @@ const StoryViewer = () => {
 
       if (!isOnline && storyId) {
         // Try full offline storage first (has illustration blobs)
+        // getOfflineStory now searches by both UUID and slug
         const offlineStory = await fullOffline.getOfflineStory(storyId);
         if (offlineStory) {
+          console.log('[StoryViewer] Loading story from offline storage:', offlineStory.id);
           const storyObj: Story = {
             id: offlineStory.id,
             slug: offlineStory.meta.slug || undefined,
@@ -365,6 +367,7 @@ const StoryViewer = () => {
             topic: offlineStory.meta.topic,
             language: 'he',
             age_range: offlineStory.meta.age_range || '3-6',
+            cover_url: offlineStory.coverBlob ? URL.createObjectURL(offlineStory.coverBlob) : undefined,
             pages: offlineStory.pages.map(p => ({
               id: p.id,
               page_number: p.page_number,
@@ -378,13 +381,23 @@ const StoryViewer = () => {
           setIsLoading(false);
           return;
         }
-        // Fallback to lightweight cache
+        // Fallback to lightweight cache (text only, no images)
         const cached = getCachedStory(storyId);
         if (cached) {
+          console.log('[StoryViewer] Loading story from lightweight cache (no images)');
           setStory(cached);
           setIsLoading(false);
           return;
         }
+        // Nothing found offline
+        console.error('[StoryViewer] Offline: no saved story found for', storyId);
+        setIsLoading(false);
+        toast({
+          variant: "destructive",
+          title: "הסיפור לא זמין אופליין",
+          description: "הסיפור לא נשמר לקריאה אופליין. התחברו לאינטרנט או שמרו את הסיפור מראש בספרייה.",
+        });
+        return;
       }
 
       console.log(`Fetching story ${storyId}, attempt ${retryCount + 1}`);
