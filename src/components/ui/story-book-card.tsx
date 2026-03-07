@@ -64,6 +64,7 @@ const StoryBookCard = ({
   childName,
   topic,
   coverUrl,
+  language,
   onDelete,
   onClick,
   onEdit,
