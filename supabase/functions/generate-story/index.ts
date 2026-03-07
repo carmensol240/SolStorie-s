@@ -1274,6 +1274,21 @@ ${topic.endsWith('-edu') ? `
       
       cleanedContent = cleanedContent.trim();
       
+      // Sanitize control characters that break JSON parsing (tabs, newlines inside strings, etc.)
+      // Replace actual control chars (except structural \n between fields) with spaces
+      cleanedContent = cleanedContent.replace(/[\x00-\x08\x0B\x0C\x0E-\x1F\x7F]/g, ' ');
+      
+      // Fix unescaped newlines/tabs inside JSON string values
+      // Match content between quotes and escape any raw newlines/tabs within
+      cleanedContent = cleanedContent.replace(/"([^"]*?)"/gs, (_match, inner) => {
+        const escaped = inner
+          .replace(/\\/g, '\\\\')
+          .replace(/\n/g, '\\n')
+          .replace(/\r/g, '\\r')
+          .replace(/\t/g, '\\t');
+        return `"${escaped}"`;
+      });
+      
       storyData = JSON.parse(cleanedContent);
       
       // Validate story structure
