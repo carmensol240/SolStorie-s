@@ -43,6 +43,7 @@ interface Story {
   is_premium: boolean | null;
   child_gender: string | null;
   child_id: string | null;
+  language?: string;
   story_pages: StoryPage[];
 }
 
