@@ -1,38 +1,26 @@
 
 
-## Story Series Grouping in Library
+## Bug Analysis
 
-### Current State
-- There is **no `parent_story_id` column** in the database. Sequels are detected at generation time by querying stories with the same `topic` + `child_name`/`child_id`, ordered by `created_at`.
-- The library displays a flat grid of story cards.
+The onboarding loop is caused by a combination of issues in the navigation flow between `RequireTerms` and `Onboarding`:
 
-### Approach
-Rather than adding a `parent_story_id` column (which would require backfilling and changing the generation logic), we group stories client-side using the existing sequel detection logic: **same topic + same child = same series**.
+1. **Silent update failure**: In `Onboarding.handleContinue`, the Supabase `.update().eq()` call returns success (`error: null`) even when **zero rows are matched** (e.g., due to a race condition where the profile hasn't been created yet). The code doesn't verify the update actually persisted.
 
-### Plan
+2. **No `replace: true` on redirects**: Both `RequireTerms` (redirecting to `/onboarding`) and `Onboarding`'s guard effect (redirecting to `/adventure`) use `navigate()` without `{ replace: true }`, causing history stack pollution and making the loop worse.
 
-**1. Add grouping logic in `Library.tsx`**
-- After fetching stories, group them by `(child_id || child_name) + topic` key.
-- Groups with 2+ stories become "series collections"; single stories remain as-is.
-- Sort each group by `created_at` ascending (Part 1 first).
+3. **Loop mechanics**: `handleContinue` thinks it succeeded → navigates to `/adventure` → `RequireTerms` queries DB → `terms_accepted_at` is still null → redirects back to `/onboarding` → Onboarding guard checks terms → still null → shows the form again.
 
-**2. Create `StorySeriesCard` component**
-- Displays the first story's cover as the main thumbnail.
-- Shows a `📚 סדרה (3 חלקים)` badge overlay.
-- On tap, expands/collapses to reveal all parts below in a vertical list.
-- Each part shows `חלק 1`, `חלק 2`, etc. as a small badge.
-- Uses Collapsible from Radix for the expand/collapse behavior.
+## Fix
 
-**3. Update `renderStoryList` in `Library.tsx`**
-- Iterate over grouped items instead of flat stories.
-- Render `StorySeriesCard` for multi-story groups, regular `StoryBookCard` for singles.
-- Pass all existing handlers (delete, edit, offline download) through to child cards.
+### 1. `src/pages/Onboarding.tsx` — Verify update actually persisted
 
-**4. Visual design**
-- Series card occupies full width of the 2-column grid (col-span-2) when expanded, single column when collapsed.
-- Collapsed: looks like a normal book card but with the series badge.
-- Expanded: shows a vertical list of smaller story cards below, each with part number badge.
+In `handleContinue`, after the update call, re-query the profile to confirm `terms_accepted_at` was saved. If not, use `upsert` as a fallback. Also add `{ replace: true }` to the guard navigation.
 
-### No database changes needed
-The grouping key is `topic + child` which already exists in the stories table.
+### 2. `src/components/RequireTerms.tsx` — Use `replace: true`
+
+Change the `navigate` call to onboarding to use `{ replace: true }` so the history stack doesn't accumulate redirect entries.
+
+### 3. Both files — Add select return on update
+
+Use `.update(...).eq(...).select()` to get the updated row back, confirming the write succeeded. If the returned array is empty, fall back to an upsert to handle the edge case where the profile row doesn't exist yet.
 
