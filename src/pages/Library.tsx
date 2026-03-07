@@ -299,6 +299,7 @@ const Library = () => {
                 childName={story.child_name}
                 topic={translateTopic(story.topic)}
                 coverUrl={getCoverImage(story)}
+                language={story.language}
                 onDelete={handleDeleteStory}
                 onEdit={handleEditStory}
                 onClick={navigateToStory}
