@@ -46,6 +46,7 @@ interface StoryBookCardProps {
   childName: string;
   topic: string;
   coverUrl: string | null;
+  language?: string;
   onDelete: (id: string) => void | Promise<void>;
   onClick: (id: string) => void;
   onEdit?: (id: string) => void;
@@ -63,6 +64,7 @@ const StoryBookCard = ({
   childName,
   topic,
   coverUrl,
+  language,
   onDelete,
   onClick,
   onEdit,
@@ -113,9 +115,17 @@ const StoryBookCard = ({
           )}
         </div>
 
+        {/* English language badge */}
+        {language === 'en' && (
+          <div className="absolute top-1.5 right-1.5 z-20 flex items-center gap-0.5 bg-black/50 backdrop-blur-sm rounded-full px-1.5 py-0.5 shadow-md" title="English story">
+            <span className="text-sm leading-none">🇺🇸</span>
+            <span className="text-[10px] text-white font-bold">EN</span>
+          </div>
+        )}
+
         {/* Offline saved badge */}
         {isOfflineSaved && (
-          <div className="absolute top-1.5 right-1.5 z-20 w-6 h-6 rounded-full bg-green-500 flex items-center justify-center shadow-md" title="שמור אופליין">
+          <div className={`absolute ${language === 'en' ? 'top-8' : 'top-1.5'} right-1.5 z-20 w-6 h-6 rounded-full bg-green-500 flex items-center justify-center shadow-md`} title="שמור אופליין">
             <Check className="w-3.5 h-3.5 text-white" strokeWidth={3} />
           </div>
         )}
