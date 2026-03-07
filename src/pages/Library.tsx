@@ -106,7 +106,7 @@ const Library = () => {
     try {
       const { data: storiesData, error: storiesError } = await supabase
         .from("stories")
-        .select("id, slug, child_name, topic, created_at, cover_url, theme, story_type, min_age, max_age, is_premium, child_gender, child_id")
+        .select("id, slug, child_name, topic, created_at, cover_url, theme, story_type, min_age, max_age, is_premium, child_gender, child_id, language")
         .eq("user_id", user.id)
         .order("created_at", { ascending: false });
 
