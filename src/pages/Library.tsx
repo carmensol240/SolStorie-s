@@ -266,28 +266,68 @@ const Library = () => {
     ? stories.filter(s => fullOffline.isSaved(s.id))
     : stories;
 
-  const renderStoryList = (storyList: Story[]) => (
-    <div className="grid grid-cols-2 gap-3">
-      {storyList.map((story) => (
-        <StoryBookCard
-          key={story.id}
-          id={story.id}
-          storyId={story.id}
-          childName={story.child_name}
-          topic={translateTopic(story.topic)}
-          coverUrl={getCoverImage(story)}
-          onDelete={handleDeleteStory}
-          onEdit={handleEditStory}
-          onClick={navigateToStory}
-          isOfflineSaved={fullOffline.isSaved(story.id)}
-          isDownloading={fullOffline.downloadingId === story.id}
-          offlineSize={fullOffline.getSize(story.id)}
-          onDownloadOffline={handleDownloadOffline}
-          onDeleteOffline={handleDeleteOffline}
-        />
-      ))}
-    </div>
-  );
+  // Group stories into series by topic + child
+  const groupStories = (storyList: Story[]) => {
+    const groups = new Map<string, Story[]>();
+    const order: string[] = [];
+    storyList.forEach(story => {
+      const key = `${story.child_id || story.child_name}::${story.topic}`;
+      if (!groups.has(key)) {
+        groups.set(key, []);
+        order.push(key);
+      }
+      groups.get(key)!.push(story);
+    });
+    // Sort each group internally by created_at ascending
+    groups.forEach(group => group.sort((a, b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime()));
+    return order.map(key => groups.get(key)!);
+  };
+
+  const renderStoryList = (storyList: Story[]) => {
+    const grouped = groupStories(storyList);
+    return (
+      <div className="grid grid-cols-2 gap-3">
+        {grouped.map((group) => {
+          if (group.length === 1) {
+            const story = group[0];
+            return (
+              <StoryBookCard
+                key={story.id}
+                id={story.id}
+                storyId={story.id}
+                childName={story.child_name}
+                topic={translateTopic(story.topic)}
+                coverUrl={getCoverImage(story)}
+                onDelete={handleDeleteStory}
+                onEdit={handleEditStory}
+                onClick={navigateToStory}
+                isOfflineSaved={fullOffline.isSaved(story.id)}
+                isDownloading={fullOffline.downloadingId === story.id}
+                offlineSize={fullOffline.getSize(story.id)}
+                onDownloadOffline={handleDownloadOffline}
+                onDeleteOffline={handleDeleteOffline}
+              />
+            );
+          }
+          return (
+            <StorySeriesCard
+              key={group[0].id}
+              stories={group.map(s => ({ ...s, topic: translateTopic(s.topic) }))}
+              getCoverImage={getCoverImage}
+              onDelete={handleDeleteStory}
+              onEdit={handleEditStory}
+              onClick={navigateToStory}
+              isOfflineSaved={(id) => fullOffline.isSaved(id)}
+              downloadingId={fullOffline.downloadingId}
+              getOfflineSize={(id) => fullOffline.getSize(id)}
+              onDownloadOffline={handleDownloadOffline}
+              onDeleteOffline={handleDeleteOffline}
+            />
+          );
+        })}
+      </div>
+    );
+  };
 
   const LoadingSkeleton = () => (
     <div className="grid grid-cols-2 gap-3">
