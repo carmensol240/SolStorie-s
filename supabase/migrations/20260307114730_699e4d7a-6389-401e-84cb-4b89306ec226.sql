@@ -1,0 +1,2 @@
+ALTER TABLE public.coupons DROP CONSTRAINT coupons_discount_percent_check;
+ALTER TABLE public.coupons ADD CONSTRAINT coupons_discount_percent_check CHECK (discount_percent IS NULL OR (discount_percent > 0 AND discount_percent <= 100));
