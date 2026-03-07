@@ -698,18 +698,44 @@ const ChildInfoStep = ({ formData, updateFormData }: ChildInfoStepProps) => {
             </div>
           ) : formData.childPhoto ? (
             <div className="flex flex-col items-center justify-center w-full py-4 bg-card border-2 border-purple-400 bg-purple-50 rounded-xl gap-2">
-              <div className="relative w-24 h-24 rounded-full overflow-hidden border-3 border-purple-400 shadow-md">
-                <img
-                  src={formData.childAvatarUrl || formData.childPhoto}
-                  alt="תמונת הילד"
-                  className="w-full h-full object-cover"
-                />
-                {formData.childAvatarUrl && (
-                  <div className="absolute bottom-0 right-0 w-5 h-5 bg-purple-500 rounded-full flex items-center justify-center">
-                    <Sparkles className="w-3 h-3 text-white" />
+              {formData.childAvatarUrl && formData.childPhoto ? (
+                /* Side-by-side: original photo + avatar */
+                <div className="flex items-center gap-4">
+                  <div className="flex flex-col items-center gap-1">
+                    <div className="w-20 h-20 rounded-full overflow-hidden border-2 border-muted shadow-sm">
+                      <img
+                        src={formData.childPhoto}
+                        alt="תמונה מקורית"
+                        className="w-full h-full object-cover"
+                      />
+                    </div>
+                    <span className="text-[10px] text-muted-foreground">מקורית</span>
                   </div>
-                )}
-              </div>
+                  <Sparkles className="w-4 h-4 text-purple-400 flex-shrink-0" />
+                  <div className="flex flex-col items-center gap-1">
+                    <div className="relative w-20 h-20 rounded-full overflow-hidden border-2 border-purple-400 shadow-md">
+                      <img
+                        src={formData.childAvatarUrl}
+                        alt="דמות בסיפור"
+                        className="w-full h-full object-cover"
+                      />
+                      <div className="absolute bottom-0 right-0 w-5 h-5 bg-purple-500 rounded-full flex items-center justify-center">
+                        <Sparkles className="w-3 h-3 text-white" />
+                      </div>
+                    </div>
+                    <span className="text-[10px] text-purple-600 font-medium">דמות בסיפור</span>
+                  </div>
+                </div>
+              ) : (
+                /* Single image: original photo only */
+                <div className="relative w-24 h-24 rounded-full overflow-hidden border-3 border-purple-400 shadow-md">
+                  <img
+                    src={formData.childPhoto!}
+                    alt="תמונת הילד"
+                    className="w-full h-full object-cover"
+                  />
+                </div>
+              )}
               {/* Photo Validation Criteria */}
               {isValidatingPhoto && (
                 <div className="flex items-center gap-2 text-xs text-muted-foreground">
