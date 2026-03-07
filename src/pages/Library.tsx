@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import MobileNavigation from "@/components/MobileNavigation";
 import StoryBookCard from "@/components/ui/story-book-card";
+import StorySeriesCard from "@/components/ui/story-series-card";
 
 import OfflineIndicator from "@/components/ui/offline-indicator";
 import EditStoryDialog from "@/components/story/edit-story-dialog";
