@@ -1274,7 +1274,41 @@ ${topic.endsWith('-edu') ? `
       
       cleanedContent = cleanedContent.trim();
       
-      storyData = JSON.parse(cleanedContent);
+      // Sanitize control characters that break JSON parsing
+      // Remove non-printable control chars (keep \n, \r, \t for structure)
+      cleanedContent = cleanedContent.replace(/[\x00-\x08\x0B\x0C\x0E-\x1F\x7F]/g, '');
+      
+      // Fix unescaped newlines/tabs inside JSON string values by processing char-by-char
+      // This handles the "Bad control character in string literal" error from AI responses
+      let inString = false;
+      let escaped = false;
+      let result = '';
+      for (let i = 0; i < cleanedContent.length; i++) {
+        const ch = cleanedContent[i];
+        if (escaped) {
+          result += ch;
+          escaped = false;
+          continue;
+        }
+        if (ch === '\\' && inString) {
+          result += ch;
+          escaped = true;
+          continue;
+        }
+        if (ch === '"') {
+          inString = !inString;
+          result += ch;
+          continue;
+        }
+        if (inString) {
+          if (ch === '\n') { result += '\\n'; continue; }
+          if (ch === '\r') { result += '\\r'; continue; }
+          if (ch === '\t') { result += '\\t'; continue; }
+        }
+        result += ch;
+      }
+      
+      storyData = JSON.parse(result);
       
       // Validate story structure
       if (!storyData.pages || !Array.isArray(storyData.pages) || storyData.pages.length === 0) {
