@@ -46,6 +46,7 @@ interface StoryBookCardProps {
   childName: string;
   topic: string;
   coverUrl: string | null;
+  language?: string;
   onDelete: (id: string) => void | Promise<void>;
   onClick: (id: string) => void;
   onEdit?: (id: string) => void;
