@@ -296,6 +296,7 @@ const GeneratingStep = ({ formData, onComplete }: GeneratingStepProps) => {
     puzzleTimeoutRef.current = setTimeout(() => {
       console.log("[GeneratingStep] Safety timeout (180s) — allowing navigation");
       if (!illustrationsReady) {
+        setProgress(100);
         setShowReadyPopup(true);
       }
     }, 180000);
