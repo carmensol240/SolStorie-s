@@ -96,12 +96,21 @@ const About = () => {
         </p>
 
         {/* Personal intro */}
-        <p className="text-base font-normal text-white leading-[1.6] text-right mb-5 px-1" style={{ textShadow: '0 1px 3px rgba(0,0,0,0.3)' }}>
-          <strong className="text-lg font-black text-white/95" style={{ textShadow: '0 1px 4px rgba(0,0,0,0.4)' }}>שלום, אני אמא של סול והלב הפועם מאחורי</strong> <span dir="ltr" className="inline-block bg-gradient-to-r from-purple-300 via-pink-300 to-orange-300 bg-clip-text text-transparent font-black">SolStorie's</span>
-          {" "}הנולדה מתוך רצון להעניק לבתי מרחב קסום, שמעמיד את עולמה הפנימי במרכז. מה שהתחיל כפרויקט אישי קטן, הפך לאפליקציה שמעניקה לכל ילד את היכולת להיות הגיבור של הסיפור שלו.
+        <p className="text-lg font-black text-white/95 leading-relaxed mb-2" style={{ textShadow: '0 1px 4px rgba(0,0,0,0.4)' }}>
+          שלום, אני אמא של סול והלב הפועם מאחורי <span dir="ltr" className="inline-block bg-gradient-to-r from-purple-300 via-pink-300 to-orange-300 bg-clip-text text-transparent" style={{ textShadow: 'none' }}>SolStorie's</span>
+        </p>
+        <p className="text-base font-normal text-white leading-[1.6] text-right mb-4 px-1" style={{ textShadow: '0 1px 3px rgba(0,0,0,0.3)' }}>
+          הנולדה מתוך רצון להעניק לבתי מרחב קסום, שמעמיד את עולמה הפנימי במרכז.
+          <br />
+          מה שהתחיל כפרויקט אישי קטן, הפך לאפליקציה שמעניקה לכל ילד את היכולת להיות הגיבור של הסיפור שלו.
+        </p>
+        <p className="text-base font-normal text-white leading-[1.6] text-right mb-4 px-1" style={{ textShadow: '0 1px 3px rgba(0,0,0,0.3)' }}>
+          הצורך שלי ליצור נבע מהרצון להנגיש לסול את העולם בדרך שהיא מבינה ואוהבת.
+          <br />
+          השתמשתי בסיפורים כדי לתווך לה ברכות אתגרים יומיומיים — החל מביטחון בסיטואציות חברתיות חדשות ועד לצליחת רגעים קטנים כמו צחצוח שיניים או חפיפת שיער.
         </p>
         <p className="text-base font-normal text-white leading-[1.6] text-right mb-5 px-1" style={{ textShadow: '0 1px 3px rgba(0,0,0,0.3)' }}>
-          הצורך שלי ליצור נבע מהרצון להנגיש לסול את העולם בדרך שהיא מבינה ואוהבת. השתמשתי בסיפורים כדי לתווך לה ברכות אתגרים יומיומיים - החל מביטחון בסיטואציות חברתיות חדשות ועד לצליחת רגעים קטנים כמו צחצוח שיניים או חפיפת שיער. דרך הסיפורים, אני הופכת כל התמודדות להרפתקה משותפת, מעודדת שפה חיובית ומעניקה לסול ולכל ילד וילדה את הכלים לבחור בטוב, להתרגש ולגדול בביטחון.
+          דרך הסיפורים, אני הופכת כל התמודדות להרפתקה משותפת, מעודדת שפה חיובית ומעניקה לסול ולכל ילד וילדה את הכלים לבחור בטוב, להתרגש ולגדול בביטחון.
         </p>
 
         {/* Features section */}
