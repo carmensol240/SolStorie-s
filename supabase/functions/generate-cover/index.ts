@@ -587,7 +587,7 @@ serve(async (req) => {
       const characterProfile = await extractCharacterProfile(childPhotoSignedUrl, childGender, ageRange, LOVABLE_API_KEY);
       console.log(`Character profile extracted: hair=${characterProfile.hairDescription}, skin=${characterProfile.skinTone}`);
 
-      const coverPrompt = buildPersonalizedPrompt(avatarDescription, setting, characterProfile, storyContext);
+      const coverPrompt = buildPersonalizedPrompt(avatarDescription, setting, characterProfile, storyContext, bestIllustrationPrompt);
       console.log(`📋 COVER PROMPT (personalized, first 500 chars): ${coverPrompt.substring(0, 500)}...`);
       console.log(`📋 SETTING used: "${setting}"`);
 
