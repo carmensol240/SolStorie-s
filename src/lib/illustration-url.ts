@@ -2,7 +2,7 @@
  * Converts an illustration path (relative or full URL) to a public URL.
  * The story-illustrations bucket is PUBLIC, so no signed URLs are needed.
  */
-const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL;
+const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL || 'https://qvdwmkxviaqcgmjotsxe.supabase.co';
 const PUBLIC_BUCKET_BASE = `${SUPABASE_URL}/storage/v1/object/public/story-illustrations`;
 
 export function getPublicIllustrationUrl(path: string | null): string | null {
