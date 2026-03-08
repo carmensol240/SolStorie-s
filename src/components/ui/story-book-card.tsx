@@ -214,6 +214,21 @@ const StoryBookCard = ({
               </DropdownMenu>
             </div>
           </div>
+
+          {/* Book pages (left side) */}
+          <div
+            className="w-[30px] flex-shrink-0 rounded-l-sm"
+            style={{
+              background: `repeating-linear-gradient(
+                to right,
+                #f5ead8 0px, #f5ead8 4px,
+                #d4b896 4px, #d4b896 4.5px,
+                #efe0c0 4.5px, #efe0c0 9px,
+                #c8a878 9px, #c8a878 9.5px
+              )`,
+              boxShadow: 'inset -4px 0 8px rgba(0,0,0,0.3)',
+            }}
+          />
         </div>
       </div>
 
