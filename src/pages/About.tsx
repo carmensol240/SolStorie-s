@@ -87,7 +87,7 @@ const About = () => {
         
         {/* Title */}
         <div className="mb-8 text-center">
-          <p className="text-sm font-bold tracking-widest uppercase mb-3 text-purple-300/80">
+          <p className="text-sm font-bold tracking-widest uppercase mb-3 text-purple-300/80 text-center w-full">
             ✨ ברוכים הבאים ✨
           </p>
           <h1 className="text-3xl font-black leading-tight mb-3" style={{ color: '#FFF8E7', textShadow: '0 2px 12px rgba(0,0,0,0.5)' }}>
