@@ -60,6 +60,8 @@ import topicEnvironment from "@/assets/topic-environment.jpg";
 import topicMagicKeys from "@/assets/topic-magic-keys.jpg";
 import topicEducationalToolbox from "@/assets/topic-educational-toolbox.jpeg";
 import topicSafeRoom from "@/assets/topic-safe-room.png";
+import topicDadInReserves from "@/assets/topic-dad-in-reserves.jpg";
+import topicShabbat from "@/assets/topic-shabbat.jpg";
 // Topics using storage bucket images (Pixar 3D style generated via Gemini)
 const topicFindAFriend = `${TOPIC_IMAGES_BASE}/topic-find-a-friend.png`;
 const topicScreenTime = `${TOPIC_IMAGES_BASE}/topic-screen-time.png`;
@@ -173,6 +175,7 @@ export const CHARACTER_SECTIONS: CharacterSection[] = [
       { id: "making-mistakes", label: "טעיתי — ומה עכשיו? 🌱", description: "סיפור מעצים על ילד שעשה טעות (שבר משהו, פגע בחבר, שיקר קצת) ומרגיש בושה וצער. הוא לומד לקחת אחריות, להתנצל ולהמשיך קדימה. המסר: כולם טועים — הגיבורים הם אלה שקמים.", image: topicMakingMistakes, ageRange: "3-6", keywords: ["טעויות", "אחריות", "התנצלות", "צמיחה", "בושה"] },
       { id: "crying-is-ok", label: "מותר לבכות 🌧️🌈", description: "סיפור חם ומחבק על ילד שמחזיק את הרגשות בפנים כי חושב שבכי זה לחלשים. הוא מגלה שגם גיבורים בוכים, וששחרור הרגשות עושה אותו חזק יותר. המסר: הלב שלך חכם — תקשיב לו.", image: topicCryingIsOk, ageRange: "3-6", keywords: ["בכי", "רגשות", "אומץ", "שחרור", "חוזק"] },
       { id: "safe-room-sirens", label: "* שהייה בממ\"ד ואזעקות", description: "סיפור מרגיע ומחזק על הרגעים בממ\"ד: איך נשארים רגועים כשנשמעת אזעקה, מה עושים יחד כמשפחה ולמה הממ\"ד הוא המקום הכי בטוח. סיפור שעוזר לילדים להרגיש מוגנים, אהובים ובטוחים.", image: topicSafeRoom, ageRange: "0-8", keywords: ["ממד", "אזעקה", "מלחמה", "פחד", "בטחון", "מקלט", "צבע אדום", "סירנה", "מוגנות", "רגיעה"], featured: true },
+      { id: "dad-in-reserves", label: "* אבא במילואים", description: "סיפור מחזק ומחבק על ילד/ה שאבא שלו/ה יוצא למילואים. הסיפור עוזר לעבד את הגעגוע, ומזכיר שאבא תמיד חוזר הביתה — ושהאהבה לא נעלמת גם כשהוא רחוק.", image: topicDadInReserves, ageRange: "0-8", keywords: ["מילואים", "אבא", "צבא", "געגוע", "גבורה", "חוסן", "פרידה", "משפחה"], featured: true },
     ],
   },
   {
@@ -211,6 +214,7 @@ export const CHARACTER_SECTIONS: CharacterSection[] = [
       { id: "space-journey", label: "מסע בחלל", description: "הרפתקה בין כוכבי הלכת: לגלות שבכל כוכב יש סוד משלו, שהיקום גדול אין-סוף וכדור הארץ שלנו הוא הפלא הכי גדול.", image: topicSpaceJourney, ageRange: "4-8", keywords: ["חלל", "כוכבים", "כוכבי לכת", "מדע", "אסטרונאוט"] },
       { id: "nature-secrets", label: "סודות הטבע", description: "טיול בין העצים, האבנים והיצורים הקטנים: הטבע מלא סודות שמחכים לילד/ה סקרן/ית שיפקח/תפקח עיניים וישמע/תשמע.", image: topicNatureSecrets, ageRange: "3-8", keywords: ["טבע", "עצים", "חרקים", "גילוי", "מדע"] },
       { id: "how-body-works", label: "איך הגוף שלנו עובד", description: "מסע פנימה: לגלות שהגוף הוא מכונה מדהימה שעובדת בשבילנו כל הזמן – הלב מציב, הריאות נושמות והמוח חולם.", image: topicHowBodyWorks, ageRange: "4-8", keywords: ["גוף", "בריאות", "מדע", "לב", "מוח"] },
+      { id: "shabbat", label: "שבת שלום!", description: "סיפור חם ומשפחתי על ערב שבת: הדלקת נרות, חלה טרייה, קידוש ושירים — הרגעים הכי יפים של השבוע כשכל המשפחה יחד.", image: topicShabbat, ageRange: "3-8", keywords: ["שבת", "נרות", "חלה", "משפחה", "קידוש", "מסורת"] },
     ],
   },
   {

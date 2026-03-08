@@ -52,6 +52,7 @@ const TOPIC_HEBREW_MAP: Record<string, string> = {
   'sick-grandparent': 'סבא/סבתא חולה — ואני כאן',
   'making-mistakes': 'טעיתי — ומה עכשיו?',
   'crying-is-ok': 'מותר לבכות',
+  'dad-in-reserves': 'אבא במילואים',
 
   // Leo - Imagination
   'zoo-adventure': 'טיול בגן החיות',
@@ -68,6 +69,7 @@ const TOPIC_HEBREW_MAP: Record<string, string> = {
   'birthday-party': 'מסיבת יום הולדת',
   'grandparents-night': 'לילה אצל סבא וסבתא',
   'flying-vacation': 'טיסה לחופשה',
+  'shabbat': 'שבת שלום',
 
   // Ben - Edu (legacy entries kept for backward compat, refined versions below)
 
