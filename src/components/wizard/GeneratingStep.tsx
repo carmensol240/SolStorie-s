@@ -332,7 +332,7 @@ const GeneratingStep = ({ formData, onComplete }: GeneratingStepProps) => {
 
     // Character & tip rotation for illustrations phase
     const castInterval = setInterval(() => {
-      setCastIndex((prev) => (prev + 1) % CAST_CHARACTERS.length);
+      setCastIndex((prev) => (prev + 1) % allCharacters.length);
     }, 3500);
 
     const tipInterval = setInterval(() => {
