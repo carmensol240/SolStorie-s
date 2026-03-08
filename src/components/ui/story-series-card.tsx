@@ -109,8 +109,14 @@ const StorySeriesCard = ({
                 className={cn(
                   'flex items-center gap-3 w-full px-3 py-2.5 text-right',
                   'hover:bg-accent/50 transition-colors',
-                  idx < stories.length - 1 && 'border-b border-border'
+                  idx < stories.length - 1 && 'border-b border-border',
+                  expanded
+                    ? 'opacity-100 translate-y-0'
+                    : 'opacity-0 translate-y-2'
                 )}
+                style={{
+                  transition: `opacity 0.25s ease-out ${idx * 80}ms, transform 0.25s ease-out ${idx * 80}ms, background-color 0.15s`,
+                }}
               >
                 {/* Thumbnail */}
                 <div className="w-12 h-14 rounded-md overflow-hidden flex-shrink-0 border border-foreground/10">
