@@ -267,10 +267,11 @@ const GeneratingStep = ({ formData, onComplete }: GeneratingStepProps) => {
         console.log("[GeneratingStep] All illustrations ready!");
         setIllustrationsReady(true);
         setProgress(100);
-        // Auto-navigate after a brief moment to show 100%
+        setShowReadyPopup(true);
+        // Auto-navigate after confetti celebration
         setTimeout(() => {
           if (storyId) onComplete(storyId);
-        }, 800);
+        }, 2500);
       }
     };
     checkIllustrations();
