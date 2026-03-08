@@ -70,6 +70,9 @@ const TOPIC_HEBREW_MAP: Record<string, string> = {
   'grandparents-night': 'לילה אצל סבא וסבתא',
   'flying-vacation': 'טיסה לחופשה',
   'shabbat': 'שבת שלום',
+  'pets': 'החיה שלי ואני',
+  'cooking': 'שף קטן במטבח',
+  'joy': 'כמה כיף לשמוח',
 
   // Ben - Edu (legacy entries kept for backward compat, refined versions below)
 
