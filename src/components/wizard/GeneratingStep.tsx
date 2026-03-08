@@ -266,7 +266,11 @@ const GeneratingStep = ({ formData, onComplete }: GeneratingStepProps) => {
       if (pages && pages.length > 0 && pages.every(p => p.illustration_url)) {
         console.log("[GeneratingStep] All illustrations ready!");
         setIllustrationsReady(true);
-        setShowReadyPopup(true);
+        setProgress(100);
+        // Auto-navigate after a brief moment to show 100%
+        setTimeout(() => {
+          if (storyId) onComplete(storyId);
+        }, 800);
       }
     };
     checkIllustrations();
@@ -292,6 +296,7 @@ const GeneratingStep = ({ formData, onComplete }: GeneratingStepProps) => {
     puzzleTimeoutRef.current = setTimeout(() => {
       console.log("[GeneratingStep] Safety timeout (180s) — allowing navigation");
       if (!illustrationsReady) {
+        setProgress(100);
         setShowReadyPopup(true);
       }
     }, 180000);
@@ -300,7 +305,7 @@ const GeneratingStep = ({ formData, onComplete }: GeneratingStepProps) => {
       supabase.removeChannel(channel);
       if (puzzleTimeoutRef.current) clearTimeout(puzzleTimeoutRef.current);
     };
-  }, [phase, storyId]);
+  }, [phase, storyId, onComplete]);
 
   // Phase timers (text + illustrations)
   useEffect(() => {
