@@ -131,7 +131,14 @@ const StoryBookCard = ({
           />
 
           {/* Cover (right side / main area) */}
-          <div className="relative flex-1 overflow-hidden rounded-r-xl bg-muted">
+          <div 
+            className="relative overflow-hidden bg-muted"
+            style={{
+              width: '155px',
+              height: '230px',
+              borderRadius: '2px 6px 6px 2px'
+            }}
+          >
             {/* Cover image */}
             <div className="absolute inset-0">
               {coverUrl && coverUrl.startsWith('http') ? (
