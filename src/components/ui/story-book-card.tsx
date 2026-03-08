@@ -88,7 +88,7 @@ const StoryBookCard = ({
         tabIndex={0}
         role="article"
         aria-label={`סיפור של ${childName}: ${topic}`}
-        className="relative group cursor-pointer rounded-r-xl rounded-l-sm overflow-hidden aspect-[3/4]
+        className="relative group cursor-pointer rounded-r-xl rounded-l-sm overflow-hidden aspect-[2/3]
           shadow-[4px_6px_16px_-2px_hsl(var(--primary)/0.25),_-2px_0_8px_-2px_hsl(var(--primary)/0.15)]
           hover:shadow-[6px_10px_24px_-2px_hsl(var(--primary)/0.35),_-3px_0_12px_-2px_hsl(var(--primary)/0.2)]
           hover:scale-[1.03] transition-all duration-200 ease-out
