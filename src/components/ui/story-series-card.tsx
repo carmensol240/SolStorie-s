@@ -1,8 +1,8 @@
 import { useState } from 'react';
-import { ChevronDown, Library } from 'lucide-react';
-import { Collapsible, CollapsibleContent, CollapsibleTrigger } from './collapsible';
+import { ChevronDown, BookOpen, Book } from 'lucide-react';
 import { Badge } from './badge';
-import StoryBookCard from './story-book-card';
+import { SignedImage } from './signed-image';
+import { cn } from '@/lib/utils';
 
 export interface SeriesStory {
   id: string;
@@ -32,85 +32,110 @@ interface StorySeriesCardProps {
 const StorySeriesCard = ({
   stories,
   getCoverImage,
-  onDelete,
   onClick,
-  onEdit,
-  isOfflineSaved,
-  downloadingId,
-  getOfflineSize,
-  onDownloadOffline,
-  onDeleteOffline,
 }: StorySeriesCardProps) => {
-  const [open, setOpen] = useState(false);
-  const mainStory = stories[0];
+  const [expanded, setExpanded] = useState(false);
+  const mainStory = stories[0]; // oldest
   const count = stories.length;
+  const coverUrl = getCoverImage(mainStory);
 
   return (
-    <Collapsible open={open} onOpenChange={setOpen} className={open ? 'col-span-2' : ''}>
-      <div className="relative">
-        {/* Main card — first story in the series */}
-        <StoryBookCard
-          id={mainStory.id}
-          storyId={mainStory.id}
-          childName={mainStory.child_name}
-          topic={mainStory.topic}
-          coverUrl={getCoverImage(mainStory)}
-          onDelete={onDelete}
-          onEdit={onEdit}
-          onClick={onClick}
-          isOfflineSaved={isOfflineSaved(mainStory.id)}
-          isDownloading={downloadingId === mainStory.id}
-          offlineSize={getOfflineSize(mainStory.id)}
-          onDownloadOffline={onDownloadOffline}
-          onDeleteOffline={onDeleteOffline}
-        />
-
-        {/* Series badge overlay */}
-        <CollapsibleTrigger asChild>
-          <button
-            onClick={(e) => e.stopPropagation()}
-            className="absolute bottom-12 right-1.5 z-20 flex items-center gap-1 px-2 py-1 rounded-full
-              bg-primary/90 backdrop-blur-sm text-primary-foreground text-[11px] font-bold
-              shadow-lg hover:bg-primary transition-colors"
-            aria-label={`סדרה עם ${count} חלקים`}
-          >
-            <Library className="w-3 h-3" />
-            <span>📚 סדרה ({count})</span>
-            <ChevronDown className={`w-3 h-3 transition-transform duration-200 ${open ? 'rotate-180' : ''}`} />
-          </button>
-        </CollapsibleTrigger>
-      </div>
-
-      <CollapsibleContent className={open ? 'col-span-2 mt-2' : ''}>
-        <div className="grid grid-cols-3 gap-2 p-2 rounded-xl bg-muted/50 border border-border">
-          {stories.map((story, idx) => (
-            <div key={story.id} className="relative">
-              <StoryBookCard
-                id={story.id}
-                storyId={story.id}
-                childName={story.child_name}
-                topic={story.topic}
-                coverUrl={getCoverImage(story)}
-                onDelete={onDelete}
-                onEdit={onEdit}
-                onClick={onClick}
-                isOfflineSaved={isOfflineSaved(story.id)}
-                isDownloading={downloadingId === story.id}
-                offlineSize={getOfflineSize(story.id)}
-                onDownloadOffline={onDownloadOffline}
-                onDeleteOffline={onDeleteOffline}
-              />
-              {/* Part number badge */}
-              <Badge
-                className="absolute top-1 left-1 z-20 bg-accent text-accent-foreground text-[10px] px-1.5 py-0.5 shadow-md pointer-events-none"
-              >
-                חלק {idx + 1}
-              </Badge>
+    <div className={cn('flex flex-col', expanded && 'col-span-2')}>
+      {/* Main series card */}
+      <button
+        onClick={() => setExpanded(!expanded)}
+        className={cn(
+          'relative rounded-r-xl rounded-l-sm overflow-hidden bg-card border-2 border-foreground/10',
+          'comic-shadow hover:shadow-lg transition-all duration-200',
+          'hover:scale-[1.02] active:scale-[0.98]',
+          'text-right w-full',
+          !expanded && 'aspect-[3/4]'
+        )}
+      >
+        {/* Cover image */}
+        <div className={cn('w-full overflow-hidden', expanded ? 'h-40' : 'h-full')}>
+          {coverUrl ? (
+            <img
+              src={coverUrl}
+              alt={mainStory.topic}
+              className="w-full h-full object-cover"
+              loading="lazy"
+            />
+          ) : (
+            <div className="w-full h-full bg-gradient-to-br from-primary/30 via-accent/20 to-secondary/30 flex items-center justify-center">
+              <Book className="w-10 h-10 text-primary/40" />
             </div>
+          )}
+        </div>
+
+        {/* Gradient overlay */}
+        <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent pointer-events-none" />
+
+        {/* Bottom info */}
+        <div className="absolute bottom-0 inset-x-0 p-2.5 flex flex-col items-start gap-1">
+          <h3 className="text-white text-sm font-bold leading-tight drop-shadow-md line-clamp-2">
+            {mainStory.topic}
+          </h3>
+          <div className="flex items-center gap-1.5">
+            <Badge className="bg-primary/90 text-primary-foreground text-[10px] px-1.5 py-0.5 gap-1 shadow-md">
+              📖 {count} חלקים
+            </Badge>
+            <ChevronDown
+              className={cn(
+                'w-4 h-4 text-white drop-shadow transition-transform duration-200',
+                expanded && 'rotate-180'
+              )}
+            />
+          </div>
+        </div>
+
+        {/* Spine effect */}
+        <div className="absolute left-0 top-0 w-[6px] h-full bg-gradient-to-r from-foreground/15 to-transparent pointer-events-none" />
+      </button>
+
+      {/* Expanded parts list */}
+      {expanded && (
+        <div className="mt-2 rounded-xl bg-muted/50 border border-border overflow-hidden" dir="rtl">
+          {stories.map((story, idx) => (
+            <button
+              key={story.id}
+              onClick={() => onClick(story.id)}
+              className={cn(
+                'flex items-center gap-3 w-full px-3 py-2.5 text-right',
+                'hover:bg-accent/50 transition-colors',
+                idx < stories.length - 1 && 'border-b border-border'
+              )}
+            >
+              {/* Thumbnail */}
+              <div className="w-12 h-14 rounded-md overflow-hidden flex-shrink-0 border border-foreground/10">
+                {getCoverImage(story) ? (
+                  <img
+                    src={getCoverImage(story)!}
+                    alt={`חלק ${idx + 1}`}
+                    className="w-full h-full object-cover"
+                  />
+                ) : (
+                  <div className="w-full h-full bg-muted flex items-center justify-center">
+                    <BookOpen className="w-4 h-4 text-muted-foreground" />
+                  </div>
+                )}
+              </div>
+
+              {/* Info */}
+              <div className="flex-1 min-w-0">
+                <p className="text-sm font-bold text-foreground">חלק {idx + 1}</p>
+                <p className="text-xs text-muted-foreground truncate">{story.child_name}</p>
+              </div>
+
+              {/* Read button */}
+              <span className="text-xs font-bold text-primary flex-shrink-0">
+                קראו &larr;
+              </span>
+            </button>
           ))}
         </div>
-      </CollapsibleContent>
-    </Collapsible>
+      )}
+    </div>
   );
 };
 

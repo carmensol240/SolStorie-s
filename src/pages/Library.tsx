@@ -267,19 +267,19 @@ const Library = () => {
     ? stories.filter(s => fullOffline.isSaved(s.id))
     : stories;
 
-  // Group stories into series by topic + child
+  // Group stories into series by topic only
   const groupStories = (storyList: Story[]) => {
     const groups = new Map<string, Story[]>();
     const order: string[] = [];
     storyList.forEach(story => {
-      const key = `${story.child_id || story.child_name}::${story.topic}`;
+      const key = story.topic;
       if (!groups.has(key)) {
         groups.set(key, []);
         order.push(key);
       }
       groups.get(key)!.push(story);
     });
-    // Sort each group internally by created_at ascending
+    // Sort each group internally by created_at ascending (oldest first)
     groups.forEach(group => group.sort((a, b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime()));
     return order.map(key => groups.get(key)!);
   };
