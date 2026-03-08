@@ -68,6 +68,7 @@ const TOPIC_HEBREW_MAP: Record<string, string> = {
   'birthday-party': 'מסיבת יום הולדת',
   'grandparents-night': 'לילה אצל סבא וסבתא',
   'flying-vacation': 'טיסה לחופשה',
+  'shabbat': 'שבת שלום',
 
   // Ben - Edu (legacy entries kept for backward compat, refined versions below)
 
