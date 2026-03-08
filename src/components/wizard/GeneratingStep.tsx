@@ -7,6 +7,7 @@ import castMiaNature from "@/assets/cast-mia-nature.jpg";
 import castLeoScience from "@/assets/cast-leo-science.jpg";
 import castZoeSports from "@/assets/cast-zoe-sports.jpg";
 import { Button } from "@/components/ui/button";
+import ConfettiCelebration from "@/components/wizard/ConfettiCelebration";
 import { StoryFormData } from "@/pages/CreateStory";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
@@ -267,10 +268,11 @@ const GeneratingStep = ({ formData, onComplete }: GeneratingStepProps) => {
         console.log("[GeneratingStep] All illustrations ready!");
         setIllustrationsReady(true);
         setProgress(100);
-        // Auto-navigate after a brief moment to show 100%
+        setShowReadyPopup(true);
+        // Auto-navigate after confetti celebration
         setTimeout(() => {
           if (storyId) onComplete(storyId);
-        }, 800);
+        }, 2500);
       }
     };
     checkIllustrations();
@@ -429,6 +431,8 @@ const GeneratingStep = ({ formData, onComplete }: GeneratingStepProps) => {
 
     return (
       <div className="flex flex-col items-center justify-center min-h-[100dvh] text-center space-y-5 bg-gradient-to-b from-[#FAF3E8] to-[#F5E6D3] p-6">
+        {/* Confetti when ready */}
+        {illustrationsReady && <ConfettiCelebration />}
         {/* Character carousel */}
         <div className="relative w-60 h-60 mx-auto">
           <div 
