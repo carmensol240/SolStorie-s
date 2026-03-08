@@ -431,6 +431,8 @@ const GeneratingStep = ({ formData, onComplete }: GeneratingStepProps) => {
 
     return (
       <div className="flex flex-col items-center justify-center min-h-[100dvh] text-center space-y-5 bg-gradient-to-b from-[#FAF3E8] to-[#F5E6D3] p-6">
+        {/* Confetti when ready */}
+        {illustrationsReady && <ConfettiCelebration />}
         {/* Character carousel */}
         <div className="relative w-60 h-60 mx-auto">
           <div 
