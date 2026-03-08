@@ -214,6 +214,7 @@ export const CHARACTER_SECTIONS: CharacterSection[] = [
       { id: "space-journey", label: "מסע בחלל", description: "הרפתקה בין כוכבי הלכת: לגלות שבכל כוכב יש סוד משלו, שהיקום גדול אין-סוף וכדור הארץ שלנו הוא הפלא הכי גדול.", image: topicSpaceJourney, ageRange: "4-8", keywords: ["חלל", "כוכבים", "כוכבי לכת", "מדע", "אסטרונאוט"] },
       { id: "nature-secrets", label: "סודות הטבע", description: "טיול בין העצים, האבנים והיצורים הקטנים: הטבע מלא סודות שמחכים לילד/ה סקרן/ית שיפקח/תפקח עיניים וישמע/תשמע.", image: topicNatureSecrets, ageRange: "3-8", keywords: ["טבע", "עצים", "חרקים", "גילוי", "מדע"] },
       { id: "how-body-works", label: "איך הגוף שלנו עובד", description: "מסע פנימה: לגלות שהגוף הוא מכונה מדהימה שעובדת בשבילנו כל הזמן – הלב מציב, הריאות נושמות והמוח חולם.", image: topicHowBodyWorks, ageRange: "4-8", keywords: ["גוף", "בריאות", "מדע", "לב", "מוח"] },
+      { id: "shabbat", label: "שבת שלום!", description: "סיפור חם ומשפחתי על ערב שבת: הדלקת נרות, חלה טרייה, קידוש ושירים — הרגעים הכי יפים של השבוע כשכל המשפחה יחד.", image: topicShabbat, ageRange: "3-8", keywords: ["שבת", "נרות", "חלה", "משפחה", "קידוש", "מסורת"] },
     ],
   },
   {
