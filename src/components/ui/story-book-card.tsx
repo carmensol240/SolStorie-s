@@ -89,13 +89,17 @@ const StoryBookCard = ({
         tabIndex={0}
         role="article"
         aria-label={`סיפור של ${childName}: ${topic}`}
-        className="group cursor-pointer transition-transform duration-300 ease-out hover:-translate-y-1.5 active:translate-y-0
-          focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+        className="group cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+        style={{ perspective: '800px' }}
       >
         <div className="relative flex flex-row-reverse aspect-[2/3]
           shadow-[4px_6px_16px_-2px_rgba(0,0,0,0.25),_-2px_0_8px_-2px_rgba(0,0,0,0.15)]
           group-hover:shadow-[6px_12px_28px_-2px_rgba(0,0,0,0.35),_-3px_0_14px_-2px_rgba(0,0,0,0.2)]
-          transition-shadow duration-300 ease-out"
+          transition-all duration-500 ease-out
+          group-hover:-translate-y-1.5 active:translate-y-0"
+          style={{ transformOrigin: 'left center', transition: 'transform 0.5s ease-out, box-shadow 0.3s ease-out' }}
+          onMouseEnter={(e) => { e.currentTarget.style.transform = 'rotateY(-8deg) translateY(-6px)'; }}
+          onMouseLeave={(e) => { e.currentTarget.style.transform = 'rotateY(0deg) translateY(0px)'; }}
         >
           {/* Cover (right side / main area) */}
           <div className="relative flex-1 overflow-hidden rounded-r-xl bg-muted">
