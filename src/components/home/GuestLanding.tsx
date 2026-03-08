@@ -43,8 +43,8 @@ const GuestLanding = ({ user, isLoggedIn }: GuestLandingProps) => {
   const features = [
     {
       icon: <Sparkles className="w-5 h-5 text-white" aria-hidden="true" />,
-      title: "34 נושאים מובנים",
-      subtitle: "סיפורים שנבנים עבור ילדכם בשילוב כלים מעולם ה-NLP, עם 34 נושאים מובנים לפתרון סיטואציות מחיי היום-יום.",
+      title: "+80 נושאים לבחירה",
+      subtitle: "סיפורים שנבנים עבור ילדכם בשילוב כלים מעולם ה-NLP, עם למעלה מ-80 נושאים מובנים לפתרון סיטואציות מחיי היום-יום.",
     },
     {
       icon: <Star className="w-5 h-5 text-white" aria-hidden="true" />,
