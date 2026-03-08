@@ -86,14 +86,21 @@ const About = () => {
       <div className="flex-1 flex flex-col items-center px-6 pt-8 pb-16 max-w-lg mx-auto text-center relative z-10">
         
         {/* Title */}
-        <h1 className="text-2xl font-black leading-snug mb-2 text-center" style={{ color: '#FFF8E7', textShadow: '0 2px 8px rgba(0,0,0,0.5), 0 0 20px rgba(255,215,150,0.15)' }}>
-          ברוכים הבאים לממלכת הסיפורים
-          <br />
-          <span className="inline-block">של <span dir="ltr" className="inline-block bg-gradient-to-r from-purple-300 via-pink-300 to-orange-300 bg-clip-text text-transparent" style={{ textShadow: 'none' }}>SolStorie's™</span></span>
-        </h1>
-        <p className="text-lg font-black mb-5" style={{ color: '#FFF0D0', textShadow: '0 2px 6px rgba(0,0,0,0.5)' }}>
-          המקום שבו הילד שלכם הופך לגיבור הסיפור
-        </p>
+        <div className="mb-8 text-center">
+          <p className="text-sm font-bold tracking-widest uppercase mb-3 text-purple-300/80">
+            ✨ ברוכים הבאים ✨
+          </p>
+          <h1 className="text-3xl font-black leading-tight mb-3" style={{ color: '#FFF8E7', textShadow: '0 2px 12px rgba(0,0,0,0.5)' }}>
+            ממלכת הסיפורים של
+          </h1>
+          <p dir="ltr" className="text-4xl font-black bg-gradient-to-r from-purple-300 via-pink-300 to-orange-300 bg-clip-text text-transparent mb-4">
+            SolStorie's™
+          </p>
+          <div className="w-16 h-0.5 mx-auto bg-gradient-to-r from-transparent via-amber-300/60 to-transparent mb-4" />
+          <p className="text-base font-bold text-amber-200/90" style={{ textShadow: '0 2px 6px rgba(0,0,0,0.5)' }}>
+            המקום שבו הילד שלכם הופך לגיבור הסיפור
+          </p>
+        </div>
 
         {/* Personal intro */}
         <p className="text-lg font-black text-white/95 leading-relaxed mb-4" style={{ textShadow: '0 1px 4px rgba(0,0,0,0.4)' }}>
