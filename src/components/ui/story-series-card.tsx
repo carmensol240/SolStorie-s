@@ -94,47 +94,54 @@ const StorySeriesCard = ({
       </button>
 
       {/* Expanded parts list */}
-      {expanded && (
-        <div className="mt-2 rounded-xl bg-muted/50 border border-border overflow-hidden" dir="rtl">
-          {stories.map((story, idx) => (
-            <button
-              key={story.id}
-              onClick={() => onClick(story.id)}
-              className={cn(
-                'flex items-center gap-3 w-full px-3 py-2.5 text-right',
-                'hover:bg-accent/50 transition-colors',
-                idx < stories.length - 1 && 'border-b border-border'
-              )}
-            >
-              {/* Thumbnail */}
-              <div className="w-12 h-14 rounded-md overflow-hidden flex-shrink-0 border border-foreground/10">
-                {getCoverImage(story) ? (
-                  <img
-                    src={getCoverImage(story)!}
-                    alt={`חלק ${idx + 1}`}
-                    className="w-full h-full object-cover"
-                  />
-                ) : (
-                  <div className="w-full h-full bg-muted flex items-center justify-center">
-                    <BookOpen className="w-4 h-4 text-muted-foreground" />
-                  </div>
+      <div
+        className={cn(
+          'grid transition-all duration-300 ease-out',
+          expanded ? 'grid-rows-[1fr] opacity-100 mt-2' : 'grid-rows-[0fr] opacity-0 mt-0'
+        )}
+      >
+        <div className="overflow-hidden">
+          <div className="rounded-xl bg-muted/50 border border-border overflow-hidden" dir="rtl">
+            {stories.map((story, idx) => (
+              <button
+                key={story.id}
+                onClick={() => onClick(story.id)}
+                className={cn(
+                  'flex items-center gap-3 w-full px-3 py-2.5 text-right',
+                  'hover:bg-accent/50 transition-colors',
+                  idx < stories.length - 1 && 'border-b border-border'
                 )}
-              </div>
+              >
+                {/* Thumbnail */}
+                <div className="w-12 h-14 rounded-md overflow-hidden flex-shrink-0 border border-foreground/10">
+                  {getCoverImage(story) ? (
+                    <img
+                      src={getCoverImage(story)!}
+                      alt={`חלק ${idx + 1}`}
+                      className="w-full h-full object-cover"
+                    />
+                  ) : (
+                    <div className="w-full h-full bg-muted flex items-center justify-center">
+                      <BookOpen className="w-4 h-4 text-muted-foreground" />
+                    </div>
+                  )}
+                </div>
 
-              {/* Info */}
-              <div className="flex-1 min-w-0">
-                <p className="text-sm font-bold text-foreground">חלק {idx + 1}</p>
-                <p className="text-xs text-muted-foreground truncate">{story.child_name}</p>
-              </div>
+                {/* Info */}
+                <div className="flex-1 min-w-0">
+                  <p className="text-sm font-bold text-foreground">חלק {idx + 1}</p>
+                  <p className="text-xs text-muted-foreground truncate">{story.child_name}</p>
+                </div>
 
-              {/* Read button */}
-              <span className="text-xs font-bold text-primary flex-shrink-0">
-                קראו &larr;
-              </span>
-            </button>
-          ))}
+                {/* Read button */}
+                <span className="text-xs font-bold text-primary flex-shrink-0">
+                  קראו &larr;
+                </span>
+              </button>
+            ))}
+          </div>
         </div>
-      )}
+      </div>
     </div>
   );
 };
