@@ -62,6 +62,9 @@ import topicEducationalToolbox from "@/assets/topic-educational-toolbox.jpeg";
 import topicSafeRoom from "@/assets/topic-safe-room.png";
 import topicDadInReserves from "@/assets/topic-dad-in-reserves.jpg";
 import topicShabbat from "@/assets/topic-shabbat.jpg";
+import topicPets from "@/assets/topic-pets.jpg";
+import topicCooking from "@/assets/topic-cooking.jpg";
+import topicJoy from "@/assets/topic-joy.jpg";
 // Topics using storage bucket images (Pixar 3D style generated via Gemini)
 const topicFindAFriend = `${TOPIC_IMAGES_BASE}/topic-find-a-friend.png`;
 const topicScreenTime = `${TOPIC_IMAGES_BASE}/topic-screen-time.png`;
