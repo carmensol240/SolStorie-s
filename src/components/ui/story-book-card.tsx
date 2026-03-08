@@ -82,132 +82,155 @@ const StoryBookCard = ({
 
   return (
     <>
+      {/* Outer wrapper for hover lift */}
       <div
         onClick={handleClick}
         onKeyDown={(e) => e.key === 'Enter' && handleClick()}
         tabIndex={0}
         role="article"
         aria-label={`סיפור של ${childName}: ${topic}`}
-        className="relative group cursor-pointer rounded-r-xl rounded-l-sm overflow-hidden aspect-[2/3]
-          shadow-[4px_6px_16px_-2px_hsl(var(--primary)/0.25),_-2px_0_8px_-2px_hsl(var(--primary)/0.15)]
-          hover:shadow-[6px_10px_24px_-2px_hsl(var(--primary)/0.35),_-3px_0_12px_-2px_hsl(var(--primary)/0.2)]
-          hover:scale-[1.03] transition-all duration-200 ease-out
-          focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2
-          active:scale-[0.98]"
+        className="group cursor-pointer transition-transform duration-300 ease-out hover:-translate-y-1.5 active:translate-y-0
+          focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
       >
-        {/* Spine effect */}
-        <div className="absolute left-0 top-0 w-[6px] h-full bg-gradient-to-r from-black/35 via-black/15 to-transparent z-10 pointer-events-none" />
-
-        {/* Cover image */}
-        <div className="absolute inset-0 bg-muted">
-          {coverUrl && coverUrl.startsWith('http') ? (
-            <CoverImage src={coverUrl} alt={topic} />
-          ) : coverUrl ? (
-            <SignedImage
-              src={coverUrl}
-              storyId={storyId || id}
-              alt={topic}
-              className="w-full h-full object-cover"
-              fallback={<CoverFallback />}
-            />
-          ) : (
-            <CoverFallback />
-          )}
-        </div>
-
-        {/* English language badge */}
-        {language === 'en' && (
-          <div className="absolute top-1.5 right-1.5 z-20 flex items-center gap-0.5 bg-black/50 backdrop-blur-sm rounded-full px-1.5 py-0.5 shadow-md" title="English story">
-            <span className="text-sm leading-none">🇺🇸</span>
-            <span className="text-[10px] text-white font-bold">EN</span>
-          </div>
-        )}
-
-        {/* Offline saved badge */}
-        {isOfflineSaved && (
-          <div className={`absolute ${language === 'en' ? 'top-8' : 'top-1.5'} right-1.5 z-20 w-6 h-6 rounded-full bg-green-500 flex items-center justify-center shadow-md`} title="שמור אופליין">
-            <Check className="w-3.5 h-3.5 text-white" strokeWidth={3} />
-          </div>
-        )}
-
-        {/* Download button */}
-        {onDownloadOffline && !isOfflineSaved && (
-          <button
-            onClick={(e) => {
-              e.stopPropagation();
-              onDownloadOffline(id);
+        <div className="relative flex aspect-[2/3]
+          shadow-[4px_6px_16px_-2px_rgba(0,0,0,0.25),_-2px_0_8px_-2px_rgba(0,0,0,0.15)]
+          group-hover:shadow-[6px_12px_28px_-2px_rgba(0,0,0,0.35),_-3px_0_14px_-2px_rgba(0,0,0,0.2)]
+          transition-shadow duration-300 ease-out"
+        >
+          {/* Book pages (left side) */}
+          <div
+            className="w-[44px] flex-shrink-0 rounded-l-sm"
+            style={{
+              background: `repeating-linear-gradient(
+                to right,
+                #fdf6e8 0px, #fdf6e8 2.5px,
+                #c8a060 2.5px, #c8a060 3.5px,
+                #f5ead8 3.5px, #f5ead8 6px,
+                #9a6a30 6px, #9a6a30 7px,
+                #efe0c0 7px, #efe0c0 9.5px,
+                #b08040 9.5px, #b08040 10.5px
+              )`,
+              boxShadow: 'inset -5px 0 10px rgba(0,0,0,0.4)',
             }}
-            disabled={isDownloading}
-            className="absolute top-1.5 right-1.5 z-20 w-8 h-8 min-h-[36px] min-w-[36px] rounded-full bg-black/40 backdrop-blur-sm text-white flex items-center justify-center
-              hover:bg-black/60 transition-colors opacity-0 group-hover:opacity-100"
-            aria-label="הורד לקריאה אופליין"
-          >
-            {isDownloading ? (
-              <Loader2 className="w-4 h-4 animate-spin" />
-            ) : (
-              <Download className="w-4 h-4" />
+          />
+
+          {/* Cover (right side) */}
+          <div className="relative flex-1 overflow-hidden rounded-r-xl bg-muted">
+            {/* Cover image */}
+            <div className="absolute inset-0">
+              {coverUrl && coverUrl.startsWith('http') ? (
+                <CoverImage src={coverUrl} alt={topic} />
+              ) : coverUrl ? (
+                <SignedImage
+                  src={coverUrl}
+                  storyId={storyId || id}
+                  alt={topic}
+                  className="w-full h-full object-cover"
+                  fallback={<CoverFallback />}
+                />
+              ) : (
+                <CoverFallback />
+              )}
+            </div>
+
+            {/* Shadow between pages and cover */}
+            <div className="absolute left-0 top-0 w-[8px] h-full bg-gradient-to-r from-black/40 via-black/15 to-transparent z-10 pointer-events-none" />
+
+            {/* English language badge */}
+            {language === 'en' && (
+              <div className="absolute top-1.5 right-1.5 z-20 flex items-center gap-0.5 bg-black/50 backdrop-blur-sm rounded-full px-1.5 py-0.5 shadow-md" title="English story">
+                <span className="text-sm leading-none">🇺🇸</span>
+                <span className="text-[10px] text-white font-bold">EN</span>
+              </div>
             )}
-          </button>
-        )}
 
-        {/* Bottom gradient overlay with title */}
-        <div className="absolute bottom-0 left-0 right-0 p-2.5 pt-10 bg-gradient-to-t from-black/80 via-black/40 to-transparent z-10">
-          <h3 className="text-white text-sm font-bold leading-tight line-clamp-2 drop-shadow-md">
-            הסיפור של {childName}
-          </h3>
-          <p className="text-white/75 text-xs mt-0.5 line-clamp-1 drop-shadow-sm">{topic}</p>
-          {isOfflineSaved && offlineSize > 0 && (
-            <p className="text-white/50 text-[10px] mt-0.5">{formatBytes(offlineSize)}</p>
-          )}
-        </div>
+            {/* Offline saved badge */}
+            {isOfflineSaved && (
+              <div className={`absolute ${language === 'en' ? 'top-8' : 'top-1.5'} right-1.5 z-20 w-6 h-6 rounded-full bg-green-500 flex items-center justify-center shadow-md`} title="שמור אופליין">
+                <Check className="w-3.5 h-3.5 text-white" strokeWidth={3} />
+              </div>
+            )}
 
-        {/* Menu button */}
-        <div className="absolute top-1.5 left-1.5 z-20 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
-          <DropdownMenu open={menuOpen} onOpenChange={setMenuOpen}>
-            <DropdownMenuTrigger asChild>
-              <Button
-                size="icon"
-                variant="ghost"
-                className="h-8 w-8 min-h-[36px] min-w-[36px] bg-black/40 backdrop-blur-sm text-white hover:bg-black/60 hover:text-white rounded-full"
-                onClick={(e) => e.stopPropagation()}
-                aria-label="אפשרויות נוספות"
-              >
-                <MoreVertical className="w-3.5 h-3.5" />
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" side="bottom" className="min-w-[160px] z-[110]" onClick={(e) => e.stopPropagation()}>
-              {onEdit && (
-                <DropdownMenuItem onSelect={() => onEdit(id)} className="gap-2 cursor-pointer">
-                  <Pencil className="w-4 h-4 text-primary" />
-                  <span>עריכת סיפור</span>
-                </DropdownMenuItem>
-              )}
-              {onDownloadOffline && !isOfflineSaved && (
-                <DropdownMenuItem onSelect={() => onDownloadOffline(id)} className="gap-2 cursor-pointer">
-                  <HardDriveDownload className="w-4 h-4 text-green-600" />
-                  <span>הורד לאופליין</span>
-                </DropdownMenuItem>
-              )}
-              {isOfflineSaved && onDeleteOffline && (
-                <DropdownMenuItem onSelect={() => onDeleteOffline(id)} className="gap-2 cursor-pointer">
-                  <Trash className="w-4 h-4 text-orange-500" />
-                  <span>מחק גרסה אופליין {offlineSize > 0 ? `(${formatBytes(offlineSize)})` : ''}</span>
-                </DropdownMenuItem>
-              )}
-              <DropdownMenuSeparator />
-              <DropdownMenuItem
-                onSelect={(e) => {
-                  e.preventDefault();
-                  setMenuOpen(false);
-                  setTimeout(() => setShowDeleteDialog(true), 100);
+            {/* Download button */}
+            {onDownloadOffline && !isOfflineSaved && (
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onDownloadOffline(id);
                 }}
-                className="gap-2 cursor-pointer text-destructive focus:text-destructive"
+                disabled={isDownloading}
+                className="absolute top-1.5 right-1.5 z-20 w-8 h-8 min-h-[36px] min-w-[36px] rounded-full bg-black/40 backdrop-blur-sm text-white flex items-center justify-center
+                  hover:bg-black/60 transition-colors opacity-0 group-hover:opacity-100"
+                aria-label="הורד לקריאה אופליין"
               >
-                <Trash2 className="w-4 h-4" />
-                <span>מחיקת סיפור</span>
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
+                {isDownloading ? (
+                  <Loader2 className="w-4 h-4 animate-spin" />
+                ) : (
+                  <Download className="w-4 h-4" />
+                )}
+              </button>
+            )}
+
+            {/* Bottom gradient overlay with title */}
+            <div className="absolute bottom-0 left-0 right-0 p-2.5 pt-10 bg-gradient-to-t from-black/80 via-black/40 to-transparent z-10">
+              <h3 className="text-white text-sm font-bold leading-tight line-clamp-2 drop-shadow-md">
+                הסיפור של {childName}
+              </h3>
+              <p className="text-white/75 text-xs mt-0.5 line-clamp-1 drop-shadow-sm">{topic}</p>
+              {isOfflineSaved && offlineSize > 0 && (
+                <p className="text-white/50 text-[10px] mt-0.5">{formatBytes(offlineSize)}</p>
+              )}
+            </div>
+
+            {/* Menu button */}
+            <div className="absolute top-1.5 left-1.5 z-20 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+              <DropdownMenu open={menuOpen} onOpenChange={setMenuOpen}>
+                <DropdownMenuTrigger asChild>
+                  <Button
+                    size="icon"
+                    variant="ghost"
+                    className="h-8 w-8 min-h-[36px] min-w-[36px] bg-black/40 backdrop-blur-sm text-white hover:bg-black/60 hover:text-white rounded-full"
+                    onClick={(e) => e.stopPropagation()}
+                    aria-label="אפשרויות נוספות"
+                  >
+                    <MoreVertical className="w-3.5 h-3.5" />
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end" side="bottom" className="min-w-[160px] z-[110]" onClick={(e) => e.stopPropagation()}>
+                  {onEdit && (
+                    <DropdownMenuItem onSelect={() => onEdit(id)} className="gap-2 cursor-pointer">
+                      <Pencil className="w-4 h-4 text-primary" />
+                      <span>עריכת סיפור</span>
+                    </DropdownMenuItem>
+                  )}
+                  {onDownloadOffline && !isOfflineSaved && (
+                    <DropdownMenuItem onSelect={() => onDownloadOffline(id)} className="gap-2 cursor-pointer">
+                      <HardDriveDownload className="w-4 h-4 text-green-600" />
+                      <span>הורד לאופליין</span>
+                    </DropdownMenuItem>
+                  )}
+                  {isOfflineSaved && onDeleteOffline && (
+                    <DropdownMenuItem onSelect={() => onDeleteOffline(id)} className="gap-2 cursor-pointer">
+                      <Trash className="w-4 h-4 text-orange-500" />
+                      <span>מחק גרסה אופליין {offlineSize > 0 ? `(${formatBytes(offlineSize)})` : ''}</span>
+                    </DropdownMenuItem>
+                  )}
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem
+                    onSelect={(e) => {
+                      e.preventDefault();
+                      setMenuOpen(false);
+                      setTimeout(() => setShowDeleteDialog(true), 100);
+                    }}
+                    className="gap-2 cursor-pointer text-destructive focus:text-destructive"
+                  >
+                    <Trash2 className="w-4 h-4" />
+                    <span>מחיקת סיפור</span>
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            </div>
+          </div>
         </div>
       </div>
 
