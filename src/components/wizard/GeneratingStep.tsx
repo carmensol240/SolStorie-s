@@ -305,7 +305,7 @@ const GeneratingStep = ({ formData, onComplete }: GeneratingStepProps) => {
       supabase.removeChannel(channel);
       if (puzzleTimeoutRef.current) clearTimeout(puzzleTimeoutRef.current);
     };
-  }, [phase, storyId]);
+  }, [phase, storyId, onComplete]);
 
   // Phase timers (text + illustrations)
   useEffect(() => {
