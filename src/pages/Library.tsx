@@ -249,11 +249,17 @@ const Library = () => {
   };
 
   const getCoverImage = (story: Story): string | null => {
+    // 1. Use dedicated cover_url if available
+    if (story.cover_url) {
+      return story.cover_url.startsWith('http') ? story.cover_url : getPublicIllustrationUrl(story.cover_url);
+    }
+    // 2. Fall back to first page illustration
     if (story.story_pages && story.story_pages.length > 0) {
       const firstPage = story.story_pages.find(p => p.page_number === 1);
       const illustrationUrl = firstPage?.illustration_url || story.story_pages[0]?.illustration_url;
       if (illustrationUrl) return getPublicIllustrationUrl(illustrationUrl);
     }
+    // 3. Generic fallback
     return solMagicBookCover;
   };
 
