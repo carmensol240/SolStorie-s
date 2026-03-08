@@ -92,29 +92,12 @@ const StoryBookCard = ({
         className="group cursor-pointer transition-transform duration-300 ease-out hover:-translate-y-1.5 active:translate-y-0
           focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
       >
-        <div className="relative flex aspect-[2/3]
+        <div className="relative flex flex-row-reverse aspect-[2/3]
           shadow-[4px_6px_16px_-2px_rgba(0,0,0,0.25),_-2px_0_8px_-2px_rgba(0,0,0,0.15)]
           group-hover:shadow-[6px_12px_28px_-2px_rgba(0,0,0,0.35),_-3px_0_14px_-2px_rgba(0,0,0,0.2)]
           transition-shadow duration-300 ease-out"
         >
-          {/* Book pages (left side) */}
-          <div
-            className="w-[44px] flex-shrink-0 rounded-l-sm"
-            style={{
-              background: `repeating-linear-gradient(
-                to right,
-                #fdf6e8 0px, #fdf6e8 2.5px,
-                #c8a060 2.5px, #c8a060 3.5px,
-                #f5ead8 3.5px, #f5ead8 6px,
-                #9a6a30 6px, #9a6a30 7px,
-                #efe0c0 7px, #efe0c0 9.5px,
-                #b08040 9.5px, #b08040 10.5px
-              )`,
-              boxShadow: 'inset -5px 0 10px rgba(0,0,0,0.4)',
-            }}
-          />
-
-          {/* Cover (right side) */}
+          {/* Cover (right side / main area) */}
           <div className="relative flex-1 overflow-hidden rounded-r-xl bg-muted">
             {/* Cover image */}
             <div className="absolute inset-0">
@@ -231,6 +214,21 @@ const StoryBookCard = ({
               </DropdownMenu>
             </div>
           </div>
+
+          {/* Book pages (left side) */}
+          <div
+            className="w-[30px] flex-shrink-0 rounded-l-sm"
+            style={{
+              background: `repeating-linear-gradient(
+                to right,
+                #f5ead8 0px, #f5ead8 4px,
+                #d4b896 4px, #d4b896 4.5px,
+                #efe0c0 4.5px, #efe0c0 9px,
+                #c8a878 9px, #c8a878 9.5px
+              )`,
+              boxShadow: 'inset -4px 0 8px rgba(0,0,0,0.3)',
+            }}
+          />
         </div>
       </div>
 
