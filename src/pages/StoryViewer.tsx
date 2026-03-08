@@ -140,6 +140,7 @@ const StoryViewer = () => {
   const [generationStatus, setGenerationStatus] = useState<string>('ready');
   const [illustrationProgress, setIllustrationProgress] = useState(0);
   const [userStartedReading, setUserStartedReading] = useState(false);
+  const [failedImages, setFailedImages] = useState<Record<string, number>>({});
   const pollingIntervalRef = useRef<NodeJS.Timeout | null>(null);
   const pollingStartTimeRef = useRef<number | null>(null);
   const [retryingPageId, setRetryingPageId] = useState<string | null>(null);
@@ -1239,10 +1240,20 @@ const StoryViewer = () => {
                   <>
                     {currentVirtual.illustrationUrl ? (
                       <img
-                        src={getPublicIllustrationUrl(currentVirtual.illustrationUrl) || ''}
+                        key={`${currentVirtual.illustrationUrl}-${failedImages[currentVirtual.illustrationUrl] || 0}`}
+                        src={`${getPublicIllustrationUrl(currentVirtual.illustrationUrl) || ''}${failedImages[currentVirtual.illustrationUrl] ? `?retry=${failedImages[currentVirtual.illustrationUrl]}` : ''}`}
                         alt="איור"
                         className="absolute inset-0 w-full h-full object-cover"
                         loading="eager"
+                        onError={() => {
+                          const key = currentVirtual.illustrationUrl!;
+                          const attempts = failedImages[key] || 0;
+                          if (attempts < 3) {
+                            setTimeout(() => setFailedImages(prev => ({ ...prev, [key]: attempts + 1 })), 2000);
+                          } else {
+                            console.error('Illustration failed to load after 3 retries:', key);
+                          }
+                        }}
                       />
                     ) : currentVirtual.dbPage.illustration_prompt ? (
                       <div className="absolute inset-0 w-full h-full flex items-center justify-center bg-gradient-to-br from-[#FFF8F0] via-[#F5E6D3] to-[#FAF3E8]">
@@ -1301,10 +1312,20 @@ const StoryViewer = () => {
                   <>
                     {currentVirtual.illustrationUrl ? (
                       <img
-                        src={getPublicIllustrationUrl(currentVirtual.illustrationUrl) || ''}
+                        key={`${currentVirtual.illustrationUrl}-${failedImages[currentVirtual.illustrationUrl] || 0}`}
+                        src={`${getPublicIllustrationUrl(currentVirtual.illustrationUrl) || ''}${failedImages[currentVirtual.illustrationUrl] ? `?retry=${failedImages[currentVirtual.illustrationUrl]}` : ''}`}
                         alt="איור"
                         className="absolute inset-0 w-full h-full object-cover"
                         loading="eager"
+                        onError={() => {
+                          const key = currentVirtual.illustrationUrl!;
+                          const attempts = failedImages[key] || 0;
+                          if (attempts < 3) {
+                            setTimeout(() => setFailedImages(prev => ({ ...prev, [key]: attempts + 1 })), 2000);
+                          } else {
+                            console.error('Illustration failed to load after 3 retries:', key);
+                          }
+                        }}
                       />
                     ) : currentVirtual.dbPage.illustration_prompt ? (
                       <div className="absolute inset-0 w-full h-full flex items-center justify-center bg-gradient-to-br from-[#FFF8F0] via-[#F5E6D3] to-[#FAF3E8]">
