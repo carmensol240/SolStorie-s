@@ -405,12 +405,13 @@ function getDefaultCoverProfile(childGender: string) {
   };
 }
 
-// ── Build the personalized cover prompt — uses IDENTICAL style as illustrations ──
+// ── Build the personalized cover prompt — scene-driven like illustrations ──
 function buildPersonalizedPrompt(
   avatarDescription: string | null,
   setting: string,
   characterProfile: { hairDescription: string; clothingDescription: string; skinTone: string; eyeColor: string } | null,
   storyContext: string,
+  bestIllustrationPrompt: string,
 ): string {
   const profileBlock = characterProfile
     ? `Character has ${characterProfile.hairDescription}, ${characterProfile.skinTone} skin, and ${characterProfile.eyeColor} eyes.`
@@ -420,19 +421,44 @@ function buildPersonalizedPrompt(
     ? `Character traits from profile: ${avatarDescription}. ${profileBlock} Render these features EXACTLY in Pixar 3D CGI style.`
     : `${profileBlock} Render the child's face, hair color, hair texture, skin tone, eye color, and ALL facial features EXACTLY as shown in the reference photo, in Pixar 3D CGI style.`;
 
-  return `FACE REFERENCE: The main character's face MUST be an EXACT 3D Pixar rendering of the child in the reference photo. Keep all facial features, hair color, hair texture, and skin tone identical. The character must look IDENTICAL to the story illustrations — same child, same face, same outfit style.
+  // Use the best illustration prompt to drive the cover scene — keeps it story-specific
+  const sceneAction = bestIllustrationPrompt
+    ? `Inspired by this story moment: ${bestIllustrationPrompt.substring(0, 300)}`
+    : `Setting: ${setting}`;
+
+  // Vary the pose/composition based on randomness to avoid repetition
+  const poses = [
+    "The child is in the middle of an exciting action — running, jumping, reaching, or exploring",
+    "The child is interacting with a key element from the story — touching, holding, or looking at something magical",
+    "The child is shown mid-adventure — walking along a path, climbing, or discovering something wonderful",
+    "The child is expressing wonder and curiosity — looking up at something magical above them",
+  ];
+  const pose = poses[Math.floor(Math.random() * poses.length)];
+
+  const cameras = [
+    "Dynamic low angle looking up at the child (hero shot)",
+    "Eye-level medium shot showing the child and their surroundings",
+    "Slight bird's-eye angle showing the child in the magical landscape",
+    "Three-quarter view with depth, showing the child slightly off-center",
+  ];
+  const camera = cameras[Math.floor(Math.random() * cameras.length)];
+
+  return `FACE REFERENCE: The main character's face MUST be an EXACT 3D Pixar rendering of the child in the reference photo. Keep all facial features, hair color, hair texture, and skin tone identical.
 
 ${traitBlock}
 
-STYLE: ${PIXAR_STYLE}
+STYLE: Pixar 3D CGI style, vibrant saturated colors, cinematic warm lighting with glowing accents, fantasy children's book, high quality render, Disney-Pixar aesthetic. NOT realistic. Full body from head to toe, feet VISIBLE and GROUNDED on the surface.
 
-The ONLY character in this cover is the child from the reference photo. They should be shown as a confident, happy hero standing in the CENTER of the scene. FULL BODY from head to toe, feet GROUNDED on the surface.
+SCENE (MUST match the story's actual content): ${storyContext}
+${sceneAction}
 
-SCENE: ${storyContext}
+POSE: ${pose}. Show FULL BODY from head to toe, feet GROUNDED on the surface. The child should feel like they BELONG in this scene, not just standing stiffly.
 
-SETTING: ${setting}. The background MUST clearly reflect the story's theme. The child is the central hero of this magical scene, looking confident and adventurous.
+CAMERA: ${camera}
 
-COMPOSITION: This is a children's book cover illustration. The child hero should be the central and largest figure. The magical setting fills the background. Clean, simple, impactful. Do NOT render any text or title on the image.
+ENVIRONMENT: ${setting}. The background is rich and detailed — lush, magical, full of story-specific elements. Warm cinematic lighting with glowing highlights and soft depth of field.
+
+COMPOSITION: Children's book cover illustration. The child is the main figure but the scene tells a story. Do NOT render any text or title on the image. Leave some clean space at the top.
 
 NEGATIVE: ${NEGATIVE_PROMPT}`;
 }
@@ -561,7 +587,7 @@ serve(async (req) => {
       const characterProfile = await extractCharacterProfile(childPhotoSignedUrl, childGender, ageRange, LOVABLE_API_KEY);
       console.log(`Character profile extracted: hair=${characterProfile.hairDescription}, skin=${characterProfile.skinTone}`);
 
-      const coverPrompt = buildPersonalizedPrompt(avatarDescription, setting, characterProfile, storyContext);
+      const coverPrompt = buildPersonalizedPrompt(avatarDescription, setting, characterProfile, storyContext, bestIllustrationPrompt);
       console.log(`📋 COVER PROMPT (personalized, first 500 chars): ${coverPrompt.substring(0, 500)}...`);
       console.log(`📋 SETTING used: "${setting}"`);
 
