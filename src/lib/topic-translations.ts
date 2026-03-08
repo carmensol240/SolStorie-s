@@ -52,6 +52,8 @@ const TOPIC_HEBREW_MAP: Record<string, string> = {
   'sick-grandparent': 'סבא/סבתא חולה — ואני כאן',
   'making-mistakes': 'טעיתי — ומה עכשיו?',
   'crying-is-ok': 'מותר לבכות',
+  'safe-room-sirens': 'שהייה בממ"ד ואזעקות',
+  'dad-in-reserves': 'אבא במילואים',
 
   // Leo - Imagination
   'zoo-adventure': 'טיול בגן החיות',
