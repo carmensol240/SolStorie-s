@@ -96,21 +96,21 @@ const About = () => {
         </p>
 
         {/* Personal intro */}
-        <p className="text-lg font-black text-white/95 leading-relaxed mb-2" style={{ textShadow: '0 1px 4px rgba(0,0,0,0.4)' }}>
+        <p className="text-lg font-black text-white/95 leading-relaxed mb-4" style={{ textShadow: '0 1px 4px rgba(0,0,0,0.4)' }}>
           שלום, אני אמא של סול והלב הפועם מאחורי <span dir="ltr" className="inline-block bg-gradient-to-r from-purple-300 via-pink-300 to-orange-300 bg-clip-text text-transparent" style={{ textShadow: 'none' }}>SolStorie's</span>
         </p>
-        <p className="text-base font-normal text-white leading-[1.6] text-right mb-4 px-1" style={{ textShadow: '0 1px 3px rgba(0,0,0,0.3)' }}>
-          הנולדה מתוך רצון להעניק לבתי מרחב קסום, שמעמיד את עולמה הפנימי במרכז.
+        <p className="text-base font-normal text-white/90 leading-[1.8] text-right mb-6 px-1" style={{ textShadow: '0 1px 3px rgba(0,0,0,0.3)' }}>
+          הנולדה מתוך רצון להעניק לבתי <strong className="text-amber-200 font-bold">מרחב קסום</strong>, שמעמיד את עולמה הפנימי במרכז.
           <br />
-          מה שהתחיל כפרויקט אישי קטן, הפך לאפליקציה שמעניקה לכל ילד את היכולת להיות הגיבור של הסיפור שלו.
+          מה שהתחיל כפרויקט אישי קטן, הפך לאפליקציה שמעניקה לכל ילד את היכולת <strong className="text-amber-200 font-bold">להיות הגיבור של הסיפור שלו</strong>.
         </p>
-        <p className="text-base font-normal text-white leading-[1.6] text-right mb-4 px-1" style={{ textShadow: '0 1px 3px rgba(0,0,0,0.3)' }}>
-          הצורך שלי ליצור נבע מהרצון להנגיש לסול את העולם בדרך שהיא מבינה ואוהבת.
+        <p className="text-base font-normal text-white/90 leading-[1.8] text-right mb-6 px-1" style={{ textShadow: '0 1px 3px rgba(0,0,0,0.3)' }}>
+          הצורך שלי ליצור נבע מהרצון <strong className="text-pink-200 font-bold">להנגיש לסול את העולם</strong> בדרך שהיא מבינה ואוהבת.
           <br />
           השתמשתי בסיפורים כדי לתווך לה ברכות אתגרים יומיומיים — החל מביטחון בסיטואציות חברתיות חדשות ועד לצליחת רגעים קטנים כמו צחצוח שיניים או חפיפת שיער.
         </p>
-        <p className="text-base font-normal text-white leading-[1.6] text-right mb-5 px-1" style={{ textShadow: '0 1px 3px rgba(0,0,0,0.3)' }}>
-          דרך הסיפורים, אני הופכת כל התמודדות להרפתקה משותפת, מעודדת שפה חיובית ומעניקה לסול ולכל ילד וילדה את הכלים לבחור בטוב, להתרגש ולגדול בביטחון.
+        <p className="text-base font-normal text-white/90 leading-[1.8] text-right mb-7 px-1" style={{ textShadow: '0 1px 3px rgba(0,0,0,0.3)' }}>
+          דרך הסיפורים, אני הופכת כל התמודדות <strong className="text-purple-200 font-bold">להרפתקה משותפת</strong>, מעודדת שפה חיובית ומעניקה לסול ולכל ילד וילדה את הכלים <strong className="text-green-200 font-bold">לבחור בטוב, להתרגש ולגדול בביטחון</strong>.
         </p>
 
         {/* Features section */}
