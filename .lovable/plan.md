@@ -1,24 +1,26 @@
 
 
-## Style the Original Photo Preview with Cartoon-Blending Frame
+## Bug Analysis
 
-### Problem
-The original photo in the side-by-side preview looks out of place next to the Pixar-style avatar — it's a raw photo with a plain border.
+The onboarding loop is caused by a combination of issues in the navigation flow between `RequireTerms` and `Onboarding`:
 
-### Approach
-Add a decorative cartoon-style frame around the original photo that visually blends it with the Pixar aesthetic. No AI conversion needed — a CSS-only solution with gradient borders, soft glow, and a subtle vignette overlay.
+1. **Silent update failure**: In `Onboarding.handleContinue`, the Supabase `.update().eq()` call returns success (`error: null`) even when **zero rows are matched** (e.g., due to a race condition where the profile hasn't been created yet). The code doesn't verify the update actually persisted.
 
-### Changes — `src/components/wizard/ChildInfoStep.tsx`
+2. **No `replace: true` on redirects**: Both `RequireTerms` (redirecting to `/onboarding`) and `Onboarding`'s guard effect (redirecting to `/adventure`) use `navigate()` without `{ replace: true }`, causing history stack pollution and making the loop worse.
 
-**Original photo circle (lines 704-713):**
-- Replace the plain `border-2 border-muted` with a thick gradient border (purple-to-pink, matching the app's brand).
-- Add a soft purple outer glow (`shadow-[0_0_12px_rgba(168,85,247,0.4)]`).
-- Add a CSS `after` pseudo-element (via a div overlay) with a subtle radial vignette gradient that softens the photo edges, giving it an illustrated/painted feel.
-- Slightly reduce opacity (`opacity-90`) to soften the photorealistic look.
+3. **Loop mechanics**: `handleContinue` thinks it succeeded → navigates to `/adventure` → `RequireTerms` queries DB → `terms_accepted_at` is still null → redirects back to `/onboarding` → Onboarding guard checks terms → still null → shows the form again.
 
-**Arrow indicator between photos:**
-- Replace the `Sparkles` separator with a right-to-left arrow (`→`) or keep Sparkles but add an animated pulse to draw attention to the transformation.
+## Fix
 
-### Visual Result
-The original photo will have a glowing gradient border and soft-edge vignette, making it feel like a "before" frame that naturally transitions to the avatar "after" — both fitting within the Pixar aesthetic.
+### 1. `src/pages/Onboarding.tsx` — Verify update actually persisted
+
+In `handleContinue`, after the update call, re-query the profile to confirm `terms_accepted_at` was saved. If not, use `upsert` as a fallback. Also add `{ replace: true }` to the guard navigation.
+
+### 2. `src/components/RequireTerms.tsx` — Use `replace: true`
+
+Change the `navigate` call to onboarding to use `{ replace: true }` so the history stack doesn't accumulate redirect entries.
+
+### 3. Both files — Add select return on update
+
+Use `.update(...).eq(...).select()` to get the updated row back, confirming the write succeeded. If the returned array is empty, fall back to an upsert to handle the edge case where the profile row doesn't exist yet.
 
