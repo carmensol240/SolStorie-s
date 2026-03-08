@@ -420,6 +420,10 @@ const Library = () => {
                 <Coins className="w-6 h-6 text-purple-600" aria-hidden="true" />
                 <span className="font-bold text-purple-700 text-lg">{totalCredits}</span>
               </button>
+              <div className="flex items-center gap-1.5 bg-white/70 border-2 border-purple-300 rounded-full px-3 py-2 shadow-md">
+                <BookOpen className="w-5 h-5 text-purple-600" aria-hidden="true" />
+                <span className="font-bold text-purple-700 text-lg">{stories.length}</span>
+              </div>
             </div>
             <h1 className="text-xl font-black flex items-center gap-2">
               <span className="bg-gradient-to-r from-purple-600 via-pink-500 to-orange-400 bg-clip-text text-transparent">הספרייה הקסומה שלי</span>
