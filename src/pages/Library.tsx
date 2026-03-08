@@ -272,7 +272,7 @@ const Library = () => {
     const groups = new Map<string, Story[]>();
     const order: string[] = [];
     storyList.forEach(story => {
-      const key = story.topic;
+      const key = `${story.child_name}::${story.topic}`;
       if (!groups.has(key)) {
         groups.set(key, []);
         order.push(key);
