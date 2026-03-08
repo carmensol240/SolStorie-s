@@ -90,34 +90,55 @@ const StoryBookCard = ({
         role="article"
         aria-label={`סיפור של ${childName}: ${topic}`}
         className="group cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
-        style={{ perspective: '800px' }}
       >
-        <div dir="ltr" className="relative flex aspect-[2/3]
-          shadow-[4px_6px_16px_-2px_rgba(0,0,0,0.25),_-2px_0_8px_-2px_rgba(0,0,0,0.15)]
-          group-hover:shadow-[6px_12px_28px_-2px_rgba(0,0,0,0.35),_-3px_0_14px_-2px_rgba(0,0,0,0.2)]
-          transition-all duration-500 ease-out
-          rounded-xl overflow-hidden"
-          style={{ transformOrigin: 'left center', transition: 'transform 0.5s ease-out, box-shadow 0.3s ease-out' }}
-          onMouseEnter={(e) => { e.currentTarget.style.transform = 'rotateY(-8deg) translateY(-6px)'; }}
-          onMouseLeave={(e) => { e.currentTarget.style.transform = 'rotateY(0deg) translateY(0px)'; }}
+        <div 
+          dir="ltr" 
+          className="relative flex transition-all duration-500 ease-out"
+          style={{ 
+            width: '191px',
+            height: '230px',
+            filter: 'drop-shadow(4px 6px 16px rgba(0,0,0,0.25))',
+            transition: 'transform 0.5s ease-out, filter 0.3s ease-out'
+          }}
+          onMouseEnter={(e) => { 
+            e.currentTarget.style.transform = 'translateY(-10px) rotate(1deg)'; 
+            e.currentTarget.style.filter = 'drop-shadow(6px 18px 24px rgba(0,0,0,0.35))';
+          }}
+          onMouseLeave={(e) => { 
+            e.currentTarget.style.transform = 'translateY(0) rotate(0deg)'; 
+            e.currentTarget.style.filter = 'drop-shadow(4px 6px 16px rgba(0,0,0,0.25))';
+          }}
         >
           {/* Book pages (left side) */}
           <div
-            className="w-[30px] flex-shrink-0 rounded-l-xl"
+            className="flex-shrink-0"
             style={{
+              width: '36px',
+              height: '224px',
+              marginTop: '3px',
+              borderRadius: '4px 0 0 4px',
               background: `repeating-linear-gradient(
-                to right,
-                #f5ead8 0px, #f5ead8 4px,
-                #d4b896 4px, #d4b896 4.5px,
-                #efe0c0 4.5px, #efe0c0 9px,
-                #c8a878 9px, #c8a878 9.5px
+                to left,
+                #faf3e0 0px, #faf3e0 3px,
+                #d4a056 3px, #d4a056 4.5px,
+                #f5e8c8 4.5px, #f5e8c8 7.5px,
+                #b07830 7.5px, #b07830 9px,
+                #f0deb0 9px, #f0deb0 12px,
+                #c88c40 12px, #c88c40 13.5px
               )`,
-              boxShadow: 'inset -4px 0 8px rgba(0,0,0,0.3)',
+              boxShadow: 'inset 4px 0 8px rgba(255,255,255,0.4), inset -2px 0 6px rgba(0,0,0,0.25)',
             }}
           />
 
           {/* Cover (right side / main area) */}
-          <div className="relative flex-1 overflow-hidden rounded-r-xl bg-muted">
+          <div 
+            className="relative overflow-hidden bg-muted"
+            style={{
+              width: '155px',
+              height: '230px',
+              borderRadius: '2px 6px 6px 2px'
+            }}
+          >
             {/* Cover image */}
             <div className="absolute inset-0">
               {coverUrl && coverUrl.startsWith('http') ? (
