@@ -122,6 +122,8 @@ const TOPIC_SETTINGS: Record<string, string> = {
   "true-friendship": "Enchanted treehouse with a friendship bracelet workshop, fairy lights, and warm glow",
   "helping-home": "Cozy magical kitchen with floating dishes, sparkling sponges, and a happy apron",
   "safe-room-sirens": "Cozy safe room with soft cushions, glowing stars on the ceiling, and a calm nightlight",
+  "dad-in-reserves": "Warm doorstep of a cozy home at golden sunset, flowers in the garden, a military backpack on the ground, love and courage in the air",
+  "shabbat": "Warm cozy dining room with Shabbat candles glowing, challah bread on a white tablecloth, grape juice, and golden candlelight atmosphere",
 
   // Legacy/alternate IDs
   "teeth-brushing": "Sparkling crystal cave with toothbrush-shaped crystals and rainbow waterfalls",
