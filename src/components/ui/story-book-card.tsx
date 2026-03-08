@@ -99,7 +99,7 @@ const StoryBookCard = ({
         <div className="absolute left-0 top-0 w-[6px] h-full bg-gradient-to-r from-black/35 via-black/15 to-transparent z-10 pointer-events-none" />
 
         {/* Cover image */}
-        <div className="absolute inset-0">
+        <div className="absolute inset-0 bg-muted">
           {coverUrl && coverUrl.startsWith('http') ? (
             <CoverImage src={coverUrl} alt={topic} />
           ) : coverUrl ? (
