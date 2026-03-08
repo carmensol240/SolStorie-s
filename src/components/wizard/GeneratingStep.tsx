@@ -7,6 +7,7 @@ import castMiaNature from "@/assets/cast-mia-nature.jpg";
 import castLeoScience from "@/assets/cast-leo-science.jpg";
 import castZoeSports from "@/assets/cast-zoe-sports.jpg";
 import { Button } from "@/components/ui/button";
+import ConfettiCelebration from "@/components/wizard/ConfettiCelebration";
 import { StoryFormData } from "@/pages/CreateStory";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
