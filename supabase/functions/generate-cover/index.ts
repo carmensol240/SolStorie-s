@@ -124,6 +124,9 @@ const TOPIC_SETTINGS: Record<string, string> = {
   "safe-room-sirens": "Cozy safe room with soft cushions, glowing stars on the ceiling, and a calm nightlight",
   "dad-in-reserves": "Warm doorstep of a cozy home at golden sunset, flowers in the garden, a military backpack on the ground, love and courage in the air",
   "shabbat": "Warm cozy dining room with Shabbat candles glowing, challah bread on a white tablecloth, grape juice, and golden candlelight atmosphere",
+  "pets": "Cozy sunny living room with a fluffy puppy, a playful kitten, pet toys scattered around, warm golden light streaming through windows",
+  "cooking": "Bright colorful kitchen with mixing bowls, wooden spoons, flour dust in the air, colorful fruits and vegetables, warm oven glow",
+  "joy": "Magical sunny garden bursting with color, confetti and butterflies in the air, rainbow overhead, blooming flowers everywhere",
 
   // Legacy/alternate IDs
   "teeth-brushing": "Sparkling crystal cave with toothbrush-shaped crystals and rainbow waterfalls",
