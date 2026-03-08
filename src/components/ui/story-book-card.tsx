@@ -111,16 +111,22 @@ const StoryBookCard = ({
         >
           {/* Book pages (left side) */}
           <div
-            className="w-[30px] flex-shrink-0 rounded-l-xl"
+            className="flex-shrink-0"
             style={{
+              width: '36px',
+              height: '224px',
+              marginTop: '3px',
+              borderRadius: '4px 0 0 4px',
               background: `repeating-linear-gradient(
-                to right,
-                #f5ead8 0px, #f5ead8 4px,
-                #d4b896 4px, #d4b896 4.5px,
-                #efe0c0 4.5px, #efe0c0 9px,
-                #c8a878 9px, #c8a878 9.5px
+                to left,
+                #faf3e0 0px, #faf3e0 3px,
+                #d4a056 3px, #d4a056 4.5px,
+                #f5e8c8 4.5px, #f5e8c8 7.5px,
+                #b07830 7.5px, #b07830 9px,
+                #f0deb0 9px, #f0deb0 12px,
+                #c88c40 12px, #c88c40 13.5px
               )`,
-              boxShadow: 'inset -4px 0 8px rgba(0,0,0,0.3)',
+              boxShadow: 'inset 4px 0 8px rgba(255,255,255,0.4), inset -2px 0 6px rgba(0,0,0,0.25)',
             }}
           />
 
