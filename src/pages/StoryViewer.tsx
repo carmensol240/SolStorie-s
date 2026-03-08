@@ -140,6 +140,7 @@ const StoryViewer = () => {
   const [generationStatus, setGenerationStatus] = useState<string>('ready');
   const [illustrationProgress, setIllustrationProgress] = useState(0);
   const [userStartedReading, setUserStartedReading] = useState(false);
+  const [failedImages, setFailedImages] = useState<Record<string, number>>({});
   const pollingIntervalRef = useRef<NodeJS.Timeout | null>(null);
   const pollingStartTimeRef = useRef<number | null>(null);
   const [retryingPageId, setRetryingPageId] = useState<string | null>(null);
