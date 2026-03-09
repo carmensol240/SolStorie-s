@@ -306,7 +306,7 @@ const PublicStoryViewer = () => {
                 </button>
               </div>
             )}
-          </div>
+          </TheaterFrame>
         </div>
 
         {/* Page indicator */}
