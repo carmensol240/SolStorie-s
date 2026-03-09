@@ -247,12 +247,12 @@ const PolaroidCard = ({
           <div dir="rtl" className="mt-1 px-0.5 text-center" style={{ height: '24px' }}>
             <p
               className="text-xs font-bold leading-tight line-clamp-1"
-              style={{ fontFamily: "'Caveat', cursive", fontSize: '14px', color: '#2a1a5a' }}
+              style={{ fontFamily: "'Caveat', cursive", fontSize: '14px', color: '#e8d5ff' }}
             >
               {topic}
             </p>
             {isOfflineSaved && offlineSize > 0 && (
-              <p className="text-[9px] text-gray-400 mt-0.5">{formatBytes(offlineSize)}</p>
+              <p className="text-[9px] text-purple-300/60 mt-0.5">{formatBytes(offlineSize)}</p>
             )}
           </div>
         </div>
