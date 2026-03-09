@@ -92,7 +92,7 @@ export const BookHeader: React.FC<BookHeaderProps> = ({
               variant="ghost"
               size="sm"
               onClick={onBack}
-              className="text-purple-300 hover:bg-purple-500/20 min-h-[44px] p-2 gap-1"
+              className="text-slate-600 hover:bg-sky-100/60 min-h-[44px] p-2 gap-1"
               aria-label="חזרה לספרייה"
             >
               <ArrowRight className="w-5 h-5" />
