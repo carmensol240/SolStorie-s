@@ -1,4 +1,7 @@
-import { ReactNode } from 'react';
+import { ReactNode, Children, useState, useMemo } from 'react';
+import { ChevronRight, ChevronLeft } from 'lucide-react';
+
+const ITEMS_PER_PAGE = 10;
 
 interface CorkBoardProps {
   title?: string;
@@ -6,13 +9,22 @@ interface CorkBoardProps {
 }
 
 const CorkBoard = ({ title, children }: CorkBoardProps) => {
-  // Generate fixed star positions
-  const stars = Array.from({ length: 30 }).map((_, i) => ({
-    left: `${(i * 37 + 13) % 100}%`,
-    top: `${(i * 53 + 7) % 100}%`,
-    size: i % 3 === 0 ? 2 : 1,
-    delay: `${(i * 0.4) % 3}s`,
-  }));
+  const childArray = Children.toArray(children);
+  const totalPages = Math.max(1, Math.ceil(childArray.length / ITEMS_PER_PAGE));
+  const [currentPage, setCurrentPage] = useState(0);
+
+  const stars = useMemo(() =>
+    Array.from({ length: 30 }).map((_, i) => ({
+      left: `${(i * 37 + 13) % 100}%`,
+      top: `${(i * 53 + 7) % 100}%`,
+      size: i % 3 === 0 ? 2 : 1,
+      delay: `${(i * 0.4) % 3}s`,
+    })), []);
+
+  const pageItems = childArray.slice(
+    currentPage * ITEMS_PER_PAGE,
+    (currentPage + 1) * ITEMS_PER_PAGE
+  );
 
   return (
     <div
@@ -44,16 +56,33 @@ const CorkBoard = ({ title, children }: CorkBoardProps) => {
         />
       ))}
 
-      {/* Decorative dots along top edge */}
-      <div className="absolute top-2 left-0 right-0 flex justify-center gap-3 opacity-40 pointer-events-none">
-        {Array.from({ length: 12 }).map((_, i) => (
-          <div key={i} className="w-1 h-1 rounded-full bg-purple-300" />
-        ))}
-      </div>
+      {/* Page indicator dots (top) */}
+      {totalPages > 1 && (
+        <div className="absolute top-2.5 left-0 right-0 flex justify-center gap-2 z-10">
+          {Array.from({ length: totalPages }).map((_, i) => (
+            <button
+              key={i}
+              onClick={() => setCurrentPage(i)}
+              aria-label={`דף ${i + 1}`}
+              className="transition-all duration-300"
+              style={{
+                width: i === currentPage ? '16px' : '6px',
+                height: '6px',
+                borderRadius: '3px',
+                background: i === currentPage
+                  ? 'linear-gradient(90deg, #f0c040, #e8d5ff)'
+                  : 'rgba(200,180,255,0.3)',
+                border: 'none',
+                cursor: 'pointer',
+              }}
+            />
+          ))}
+        </div>
+      )}
 
       {title && (
         <h2
-          className="text-center font-bold text-sm mb-5 flex items-center justify-center gap-1.5"
+          className="text-center font-bold text-sm mb-5 mt-2 flex items-center justify-center gap-1.5"
           style={{ color: '#e8d5ff' }}
         >
           <span className="text-yellow-400">★</span>
@@ -62,14 +91,36 @@ const CorkBoard = ({ title, children }: CorkBoardProps) => {
         </h2>
       )}
 
-      <div className="grid grid-cols-2" style={{ gap: '28px' }}>
-        {children}
+      <div className="grid grid-cols-2" style={{ gap: '28px', minHeight: '200px' }}>
+        {pageItems}
       </div>
 
-      {/* Bottom hint */}
-      <p className="text-center text-[10px] mt-5 opacity-40" style={{ color: '#c8b4ff' }}>
-        ✨ עברו עם העכבר על תמונה ✨
-      </p>
+      {/* Navigation arrows + page number */}
+      {totalPages > 1 && (
+        <div className="flex items-center justify-center gap-4 mt-5">
+          <button
+            onClick={() => setCurrentPage(p => Math.min(totalPages - 1, p + 1))}
+            disabled={currentPage >= totalPages - 1}
+            className="w-8 h-8 rounded-full flex items-center justify-center transition-all disabled:opacity-20"
+            style={{ background: 'rgba(200,180,255,0.15)', color: '#e8d5ff' }}
+            aria-label="דף הבא"
+          >
+            <ChevronLeft className="w-4 h-4" />
+          </button>
+          <span className="text-[11px] font-bold" style={{ color: '#c8b4ff' }}>
+            {currentPage + 1} / {totalPages}
+          </span>
+          <button
+            onClick={() => setCurrentPage(p => Math.max(0, p - 1))}
+            disabled={currentPage <= 0}
+            className="w-8 h-8 rounded-full flex items-center justify-center transition-all disabled:opacity-20"
+            style={{ background: 'rgba(200,180,255,0.15)', color: '#e8d5ff' }}
+            aria-label="דף קודם"
+          >
+            <ChevronRight className="w-4 h-4" />
+          </button>
+        </div>
+      )}
     </div>
   );
 };
