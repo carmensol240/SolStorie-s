@@ -1,4 +1,4 @@
-import { ReactNode, Children, useState, useMemo } from 'react';
+import { ReactNode, Children, useState, useMemo, useEffect } from 'react';
 import { ChevronRight, ChevronLeft } from 'lucide-react';
 
 const ITEMS_PER_PAGE = 10;
@@ -12,6 +12,7 @@ const CorkBoard = ({ title, children }: CorkBoardProps) => {
   const childArray = Children.toArray(children);
   const totalPages = Math.max(1, Math.ceil(childArray.length / ITEMS_PER_PAGE));
   const [currentPage, setCurrentPage] = useState(0);
+  const [shootingStars, setShootingStars] = useState<Array<{ id: number; left: string; top: string; duration: string }>>([]);
 
   const stars = useMemo(() =>
     Array.from({ length: 30 }).map((_, i) => ({
@@ -20,6 +21,23 @@ const CorkBoard = ({ title, children }: CorkBoardProps) => {
       size: i % 3 === 0 ? 2 : 1,
       delay: `${(i * 0.4) % 3}s`,
     })), []);
+
+  // Spawn shooting stars periodically
+  useEffect(() => {
+    let idCounter = 0;
+    const spawn = () => {
+      const star = {
+        id: idCounter++,
+        left: `${Math.random() * 70 + 10}%`,
+        top: `${Math.random() * 40}%`,
+        duration: `${0.6 + Math.random() * 0.6}s`,
+      };
+      setShootingStars(prev => [...prev.slice(-4), star]);
+    };
+    const interval = setInterval(spawn, 3000 + Math.random() * 2000);
+    spawn();
+    return () => clearInterval(interval);
+  }, []);
 
   const pageItems = childArray.slice(
     currentPage * ITEMS_PER_PAGE,
@@ -40,6 +58,14 @@ const CorkBoard = ({ title, children }: CorkBoardProps) => {
         padding: '28px 16px 32px',
       }}
     >
+      {/* Shooting star keyframes */}
+      <style>{`
+        @keyframes shooting-star {
+          0% { opacity: 1; transform: rotate(-35deg) translateX(0); }
+          100% { opacity: 0; transform: rotate(-35deg) translateX(-120px); }
+        }
+      `}</style>
+
       {/* Twinkling stars */}
       {stars.map((star, i) => (
         <div
@@ -52,6 +78,25 @@ const CorkBoard = ({ title, children }: CorkBoardProps) => {
             height: `${star.size}px`,
             background: 'white',
             animationDelay: star.delay,
+          }}
+        />
+      ))}
+
+      {/* Shooting stars */}
+      {shootingStars.map((s) => (
+        <div
+          key={s.id}
+          className="absolute pointer-events-none"
+          style={{
+            left: s.left,
+            top: s.top,
+            width: '40px',
+            height: '2px',
+            background: 'linear-gradient(90deg, rgba(255,255,255,0.9), rgba(255,220,130,0.6), transparent)',
+            borderRadius: '2px',
+            transform: 'rotate(-35deg)',
+            animation: `shooting-star ${s.duration} ease-out forwards`,
+            boxShadow: '0 0 6px 1px rgba(255,220,130,0.5)',
           }}
         />
       ))}
