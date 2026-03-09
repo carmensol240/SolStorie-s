@@ -9,7 +9,7 @@ import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import MobileNavigation from "@/components/MobileNavigation";
 import PolaroidCard from "@/components/ui/polaroid-card";
 import CorkBoard from "@/components/ui/cork-board";
-import '@fontsource/caveat';
+import '@fontsource/caveat/index.css';
 
 import OfflineIndicator from "@/components/ui/offline-indicator";
 import EditStoryDialog from "@/components/story/edit-story-dialog";
