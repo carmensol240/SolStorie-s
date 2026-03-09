@@ -532,10 +532,10 @@ const Library = () => {
             <Button
               onClick={() => navigate("/create")}
               size="lg"
-              className="w-12 h-12 rounded-full bg-primary hover:bg-primary/90 comic-shadow min-h-[48px] min-w-[48px]"
+              className="w-10 h-10 rounded-full bg-gradient-to-br from-purple-500 via-pink-500 to-orange-400 hover:from-purple-600 hover:via-pink-600 hover:to-orange-500 text-white comic-shadow min-h-[40px] min-w-[40px]"
               aria-label="צור סיפור חדש"
             >
-              <Plus className="w-5 h-5" aria-hidden="true" />
+              <Plus className="w-4 h-4" aria-hidden="true" />
             </Button>
           </div>
         )}
