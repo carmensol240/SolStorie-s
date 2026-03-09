@@ -62,7 +62,7 @@ export const BookPage: React.FC<BookPageProps> = ({
         
         {pageNumber !== undefined && (
           <div className="absolute bottom-4 left-1/2 -translate-x-1/2">
-            <span className="text-sm text-[#8B7355] font-serif italic">
+            <span className="text-sm text-purple-300/70 font-serif italic">
               {pageNumber}
             </span>
           </div>
