@@ -129,7 +129,7 @@ export const BookHeader: React.FC<BookHeaderProps> = ({
                 size="sm"
                 onClick={onDownload}
                 disabled={isExporting}
-                className="text-purple-200 hover:bg-purple-500/20 min-h-[44px] min-w-[44px] p-2 disabled:opacity-50"
+                className="text-amber-800 hover:bg-amber-100/60 min-h-[44px] min-w-[44px] p-2 disabled:opacity-50"
                 aria-label="הורדה או הדפסה"
               >
                 <FileDown className={cn("w-5 h-5", isExporting && "animate-pulse")} />
