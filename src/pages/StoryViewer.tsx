@@ -83,7 +83,7 @@ const FONT_SIZES = [
 ];
 
 // Rainbow gradient used for dedication, closing, and text-only pages
-const RAINBOW_BG = 'linear-gradient(135deg, #FFE4E1 0%, #FFDAB9 15%, #FFFACD 30%, #E0FFE0 45%, #E0F0FF 60%, #E8D8FF 75%, #FFE4F0 90%, #FFE4E1 100%)';
+const RAINBOW_BG = 'linear-gradient(135deg, #1a0f3a 0%, #2d1a6e 25%, #4a2d8e 50%, #2d1a6e 75%, #1a0f3a 100%)';
 
 /** Map topic keywords to emoji + soft pastel gradient background for text-only pages */
 const getTopicTheme = (topic: string): { emoji: string; bg: string } => {
