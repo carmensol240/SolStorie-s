@@ -226,7 +226,7 @@ export const BookHeader: React.FC<BookHeaderProps> = ({
                   <Button
                     variant="ghost"
                     size="sm"
-                    className="text-amber-800 hover:bg-amber-100/60 min-h-[44px] min-w-[44px] p-2"
+                    className="text-purple-300 hover:bg-purple-500/20 min-h-[44px] min-w-[44px] p-2"
                     aria-label="תפריט"
                   >
                     <Menu className="w-5 h-5" />
