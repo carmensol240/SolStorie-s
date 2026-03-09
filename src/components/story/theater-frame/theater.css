@@ -59,15 +59,31 @@
 .theater-curtain {
   position: relative;
   z-index: 10;
-  width: 28px;
+  width: 50%;
   flex-shrink: 0;
   pointer-events: none;
+  transition: width 1.2s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.theater-curtain--open {
+  width: 28px;
 }
 
 @media (min-width: 768px) {
-  .theater-curtain {
+  .theater-curtain--open {
     width: 40px;
   }
+}
+
+/* Stage content visibility during curtain animation */
+.theater-content--hidden {
+  opacity: 0;
+  transition: opacity 0.5s ease-out;
+}
+
+.theater-content--visible {
+  opacity: 1;
+  transition: opacity 0.6s ease-out 0.8s;
 }
 
 .theater-curtain-right {
