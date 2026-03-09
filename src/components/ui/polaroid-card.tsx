@@ -129,11 +129,13 @@ const PolaroidCard = ({
 
         {/* Polaroid frame */}
         <div
-          className="relative bg-white"
+          className="relative"
           style={{
             width: '148px',
             padding: '7px 7px 38px 7px',
-            boxShadow: '0 4px 16px rgba(0,0,0,0.35), 0 1px 4px rgba(0,0,0,0.2)',
+            background: 'linear-gradient(145deg, #2d1a6e, #1a0f3a)',
+            boxShadow: '0 4px 16px rgba(0,0,0,0.45), 0 1px 4px rgba(0,0,0,0.3), inset 0 1px 0 rgba(200,180,255,0.15)',
+            borderRadius: '4px',
           }}
         >
           {/* Series badge */}
