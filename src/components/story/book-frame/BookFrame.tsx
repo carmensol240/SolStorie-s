@@ -28,17 +28,17 @@ export const BookFrame: React.FC<BookFrameProps> = ({
         "transition-opacity duration-300 ease-in-out",
         isFlipping && "opacity-0"
       )}>
-        {/* Decorative Frame Border - Purple-pink gradient effect */}
+        {/* Decorative Frame Border - Night purple gradient */}
         <div className="absolute inset-0 pointer-events-none z-20">
           {/* Top ornament */}
-          <div className="absolute top-0 left-1/2 -translate-x-1/2 w-32 h-6 bg-gradient-to-b from-purple-400 to-pink-400" 
+          <div className="absolute top-0 left-1/2 -translate-x-1/2 w-32 h-6 bg-gradient-to-b from-purple-500 to-purple-700 opacity-60" 
                style={{ clipPath: 'polygon(10% 0, 90% 0, 100% 100%, 0 100%)' }} />
           
-          {/* Corner ornaments */}
-          <div className="absolute top-2 right-2 w-12 h-12 border-t-3 border-r-3 border-purple-400 rounded-tr-2xl opacity-80" />
-          <div className="absolute top-2 left-2 w-12 h-12 border-t-3 border-l-3 border-purple-400 rounded-tl-2xl opacity-80" />
-          <div className="absolute bottom-2 right-2 w-12 h-12 border-b-3 border-r-3 border-pink-400 rounded-br-2xl opacity-80" />
-          <div className="absolute bottom-2 left-2 w-12 h-12 border-b-3 border-l-3 border-pink-400 rounded-bl-2xl opacity-80" />
+          {/* Corner ornaments - glowing purple */}
+          <div className="absolute top-2 right-2 w-12 h-12 border-t-3 border-r-3 border-purple-400/70 rounded-tr-2xl" />
+          <div className="absolute top-2 left-2 w-12 h-12 border-t-3 border-l-3 border-purple-400/70 rounded-tl-2xl" />
+          <div className="absolute bottom-2 right-2 w-12 h-12 border-b-3 border-r-3 border-purple-500/70 rounded-br-2xl" />
+          <div className="absolute bottom-2 left-2 w-12 h-12 border-b-3 border-l-3 border-purple-500/70 rounded-bl-2xl" />
         </div>
 
         {/* Paper Texture Background */}
