@@ -125,7 +125,7 @@
 }
 
 .nav-arrow-btn:hover:not(:disabled) {
-  box-shadow: 0 6px 24px rgba(147, 51, 234, 0.4);
+  box-shadow: 0 6px 24px rgba(201, 168, 76, 0.45);
   transform: scale(1.1);
 }
 
