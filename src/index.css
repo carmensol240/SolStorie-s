@@ -578,6 +578,15 @@
   50% { opacity: 0.9; }
 }
 
+@keyframes polaroid-glow-pulse {
+  0%, 100% {
+    filter: drop-shadow(0 0 14px rgba(168,130,255,0.5)) drop-shadow(0 0 30px rgba(108,92,231,0.2));
+  }
+  50% {
+    filter: drop-shadow(0 0 24px rgba(168,130,255,0.8)) drop-shadow(0 0 50px rgba(108,92,231,0.45));
+  }
+}
+
 .animate-twinkle {
   animation: twinkle 2.5s ease-in-out infinite;
 }
