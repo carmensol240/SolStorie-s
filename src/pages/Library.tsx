@@ -381,25 +381,26 @@ const Library = () => {
               <p className="text-sm text-muted-foreground/70">כשתהיו מחוברים לאינטרנט, הורידו סיפורים מהספרייה לקריאה אופליין 📥</p>
             </div>
           ) : (
-            <div className="grid grid-cols-2 gap-3">
-              {offlineStories.map((os) => {
+            <CorkBoard title="סיפורים שמורים">
+              {offlineStories.map((os, idx) => {
                 const coverUrl = os.coverBlob ? URL.createObjectURL(os.coverBlob) : solMagicBookCover;
                 return (
-                  <StoryBookCard
+                  <PolaroidCard
                     key={os.id}
                     id={os.id}
                     storyId={os.id}
                     childName={os.meta.child_name}
                     topic={translateTopic(os.meta.topic)}
                     coverUrl={coverUrl}
-                    onDelete={async () => {}} // Can't delete from server while offline
+                    onDelete={async () => {}}
                     onClick={() => navigate(`/story/${os.meta.slug || os.id}`)}
+                    index={idx}
                     isOfflineSaved
                     offlineSize={os.sizeBytes}
                   />
                 );
               })}
-            </div>
+            </CorkBoard>
           )}
         </div>
         <MobileNavigation />
