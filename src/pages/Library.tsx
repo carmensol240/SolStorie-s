@@ -291,15 +291,17 @@ const Library = () => {
     return order.map(key => groups.get(key)!);
   };
 
-  const renderStoryList = (storyList: Story[]) => {
+  const renderStoryList = (storyList: Story[], tabTitle?: string) => {
     const grouped = groupStories(storyList);
+    let cardIndex = 0;
     return (
-      <div className="grid grid-cols-2 gap-3">
+      <CorkBoard title={tabTitle || 'הסיפורים שלי'}>
         {grouped.map((group) => {
           if (group.length === 1) {
             const story = group[0];
+            const idx = cardIndex++;
             return (
-              <StoryBookCard
+              <PolaroidCard
                 key={story.id}
                 id={story.id}
                 storyId={story.id}
@@ -310,6 +312,7 @@ const Library = () => {
                 onDelete={handleDeleteStory}
                 onEdit={handleEditStory}
                 onClick={navigateToStory}
+                index={idx}
                 isOfflineSaved={fullOffline.isSaved(story.id)}
                 isDownloading={fullOffline.downloadingId === story.id}
                 offlineSize={fullOffline.getSize(story.id)}
@@ -318,23 +321,32 @@ const Library = () => {
               />
             );
           }
+          // Series: show first story as polaroid with series count badge
+          const mainStory = group[0];
+          const idx = cardIndex++;
           return (
-            <StorySeriesCard
-              key={group[0].id}
-              stories={group.map(s => ({ ...s, topic: translateTopic(s.topic) }))}
-              getCoverImage={getCoverImage}
+            <PolaroidCard
+              key={mainStory.id}
+              id={mainStory.id}
+              storyId={mainStory.id}
+              childName={mainStory.child_name}
+              topic={translateTopic(mainStory.topic)}
+              coverUrl={getCoverImage(mainStory)}
+              language={mainStory.language}
               onDelete={handleDeleteStory}
               onEdit={handleEditStory}
               onClick={navigateToStory}
-              isOfflineSaved={(id) => fullOffline.isSaved(id)}
-              downloadingId={fullOffline.downloadingId}
-              getOfflineSize={(id) => fullOffline.getSize(id)}
+              index={idx}
+              seriesCount={group.length}
+              isOfflineSaved={fullOffline.isSaved(mainStory.id)}
+              isDownloading={fullOffline.downloadingId === mainStory.id}
+              offlineSize={fullOffline.getSize(mainStory.id)}
               onDownloadOffline={handleDownloadOffline}
               onDeleteOffline={handleDeleteOffline}
             />
           );
         })}
-      </div>
+      </CorkBoard>
     );
   };
 
