@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef, useCallback } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { cn } from "@/lib/utils";
 import "./magical-book.css";
 
@@ -9,112 +9,50 @@ interface MagicalBookFrameProps {
   skipAnimation?: boolean;
 }
 
-/** Floating sparkle particles around the book */
-const SparkleParticles: React.FC = () => {
-  const canvasRef = useRef<HTMLCanvasElement>(null);
-  const animRef = useRef<number>(0);
-
-  useEffect(() => {
-    const canvas = canvasRef.current;
-    if (!canvas) return;
-    const ctx = canvas.getContext("2d");
-    if (!ctx) return;
-
-    const resize = () => {
-      canvas.width = canvas.offsetWidth * window.devicePixelRatio;
-      canvas.height = canvas.offsetHeight * window.devicePixelRatio;
-      ctx.scale(window.devicePixelRatio, window.devicePixelRatio);
-    };
-    resize();
-    window.addEventListener("resize", resize);
-
-    interface Particle {
-      x: number; y: number; size: number; speed: number;
-      angle: number; opacity: number; hue: number; phase: number;
-    }
-
-    const particles: Particle[] = Array.from({ length: 18 }, () => ({
-      x: Math.random() * canvas.offsetWidth,
-      y: Math.random() * canvas.offsetHeight,
-      size: Math.random() * 3 + 1.5,
-      speed: Math.random() * 0.3 + 0.1,
-      angle: Math.random() * Math.PI * 2,
-      opacity: Math.random() * 0.6 + 0.2,
-      hue: Math.random() * 60 + 30, // gold range
-      phase: Math.random() * Math.PI * 2,
-    }));
-
-    const draw = (t: number) => {
-      const w = canvas.offsetWidth;
-      const h = canvas.offsetHeight;
-      ctx.clearRect(0, 0, w, h);
-
-      for (const p of particles) {
-        p.x += Math.cos(p.angle) * p.speed;
-        p.y += Math.sin(p.angle) * p.speed - 0.15; // float upward
-        p.opacity = 0.3 + 0.4 * Math.sin(t * 0.002 + p.phase);
-
-        // wrap around
-        if (p.y < -10) p.y = h + 10;
-        if (p.x < -10) p.x = w + 10;
-        if (p.x > w + 10) p.x = -10;
-
-        // Draw star-shaped sparkle
-        ctx.save();
-        ctx.globalAlpha = p.opacity;
-        ctx.fillStyle = `hsl(${p.hue}, 80%, 70%)`;
-        ctx.shadowColor = `hsl(${p.hue}, 90%, 80%)`;
-        ctx.shadowBlur = 8;
-        ctx.translate(p.x, p.y);
-        ctx.rotate(t * 0.001 + p.phase);
-        
-        // 4-point star
-        const s = p.size;
-        ctx.beginPath();
-        for (let i = 0; i < 4; i++) {
-          const a = (i * Math.PI) / 2;
-          ctx.lineTo(Math.cos(a) * s * 2, Math.sin(a) * s * 2);
-          ctx.lineTo(Math.cos(a + Math.PI / 4) * s * 0.6, Math.sin(a + Math.PI / 4) * s * 0.6);
-        }
-        ctx.closePath();
-        ctx.fill();
-        ctx.restore();
-      }
-
-      animRef.current = requestAnimationFrame(draw);
-    };
-
-    animRef.current = requestAnimationFrame(draw);
-    return () => {
-      cancelAnimationFrame(animRef.current);
-      window.removeEventListener("resize", resize);
-    };
-  }, []);
-
-  return <canvas ref={canvasRef} className="magical-book-sparkles" />;
-};
-
-/** Synthesize a magical chime sound */
-function playOpenSound() {
+/** Synthesize a pop-up book unfolding sound */
+function playPopUpSound() {
   try {
     const ctx = new (window.AudioContext || (window as any).webkitAudioContext)();
-    const notes = [523.25, 659.25, 783.99]; // C5, E5, G5 chord
+    
+    // Paper unfolding whoosh
+    const bufferSize = ctx.sampleRate * 0.6;
+    const noiseBuffer = ctx.createBuffer(1, bufferSize, ctx.sampleRate);
+    const data = noiseBuffer.getChannelData(0);
+    for (let i = 0; i < bufferSize; i++) {
+      data[i] = (Math.random() * 2 - 1) * 0.3;
+    }
+    const noise = ctx.createBufferSource();
+    noise.buffer = noiseBuffer;
+    const filter = ctx.createBiquadFilter();
+    filter.type = "highpass";
+    filter.frequency.setValueAtTime(2000, ctx.currentTime);
+    filter.frequency.exponentialRampToValueAtTime(400, ctx.currentTime + 0.5);
+    const gain = ctx.createGain();
+    gain.gain.setValueAtTime(0, ctx.currentTime);
+    gain.gain.linearRampToValueAtTime(0.1, ctx.currentTime + 0.05);
+    gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.5);
+    noise.connect(filter);
+    filter.connect(gain);
+    gain.connect(ctx.destination);
+    noise.start();
+    noise.stop(ctx.currentTime + 0.6);
 
-    notes.forEach((freq, i) => {
+    // Magical chime accent
+    [659.25, 880].forEach((freq, i) => {
       const osc = ctx.createOscillator();
-      const gain = ctx.createGain();
+      const g = ctx.createGain();
       osc.type = "sine";
       osc.frequency.value = freq;
-      gain.gain.setValueAtTime(0, ctx.currentTime + i * 0.1);
-      gain.gain.linearRampToValueAtTime(0.08, ctx.currentTime + i * 0.1 + 0.05);
-      gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + i * 0.1 + 1.2);
-      osc.connect(gain);
-      gain.connect(ctx.destination);
-      osc.start(ctx.currentTime + i * 0.1);
-      osc.stop(ctx.currentTime + i * 0.1 + 1.2);
+      g.gain.setValueAtTime(0, ctx.currentTime + 0.15 + i * 0.08);
+      g.gain.linearRampToValueAtTime(0.06, ctx.currentTime + 0.2 + i * 0.08);
+      g.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.8 + i * 0.08);
+      osc.connect(g);
+      g.connect(ctx.destination);
+      osc.start(ctx.currentTime + 0.15 + i * 0.08);
+      osc.stop(ctx.currentTime + 0.9 + i * 0.08);
     });
 
-    setTimeout(() => ctx.close(), 2000);
+    setTimeout(() => ctx.close(), 1500);
   } catch {
     // Audio not supported
   }
@@ -134,48 +72,37 @@ export const MagicalBookFrame: React.FC<MagicalBookFrameProps> = ({
       setIsOpen(true);
       if (!soundPlayed.current) {
         soundPlayed.current = true;
-        playOpenSound();
+        playPopUpSound();
       }
-    }, 300);
+    }, 200);
     return () => clearTimeout(timer);
   }, [skipAnimation]);
 
   return (
-    <div className={cn("magical-book-wrapper", className)}>
-      {/* Sparkle particles */}
-      <SparkleParticles />
+    <div className={cn("popup-book-wrapper", className)}>
+      {/* Background page layers for depth */}
+      <div className="popup-book-layer popup-book-layer--back" />
+      <div className="popup-book-layer popup-book-layer--mid" />
 
-      {/* Soft ambient glow behind book */}
-      <div className="magical-book-glow" />
+      {/* Main book page */}
+      <div className={cn("popup-book-page", isOpen && "popup-book-page--open")}>
+        {/* Page fold crease (center spine) */}
+        <div className="popup-book-crease" />
 
-      {/* Book body */}
-      <div className={cn("magical-book-body", isOpen && "magical-book-body--open")}>
-        {/* Book spine */}
-        <div className="magical-book-spine" />
-
-        {/* Top ornament */}
-        <div className="magical-book-ornament magical-book-ornament--top">
-          <span className="magical-book-ornament-icon">✦</span>
-        </div>
-
-        {/* Bottom ornament */}
-        <div className="magical-book-ornament magical-book-ornament--bottom">
-          <span className="magical-book-ornament-icon">✦</span>
-        </div>
-
-        {/* Page content */}
+        {/* Pop-up content area */}
         <div className={cn(
-          "magical-book-content",
-          isOpen ? "magical-book-content--visible" : "magical-book-content--hidden"
+          "popup-book-content",
+          isOpen ? "popup-book-content--visible" : "popup-book-content--hidden"
         )}>
           {children}
         </div>
 
-        {/* Corner decorations */}
-        <div className="magical-book-corner magical-book-corner--tl" />
-        <div className="magical-book-corner magical-book-corner--tr" />
-        <div className="magical-book-corner magical-book-corner--bl" />
-        <div className="magical-book-corner magical-book-corner--br" />
+        {/* Paper edge shadow at bottom */}
+        <div className="popup-book-edge" />
+
+        {/* Page curl corners */}
+        <div className="popup-book-curl popup-book-curl--bl" />
+        <div className="popup-book-curl popup-book-curl--br" />
       </div>
     </div>
   );
