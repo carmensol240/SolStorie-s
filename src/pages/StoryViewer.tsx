@@ -1093,18 +1093,14 @@ const StoryViewer = () => {
 
       {/* Book Container - Vertical Single Page */}
       <main className="flex-1 flex flex-col min-h-0 px-4 md:px-12 lg:px-20 py-2">
-        <div className="book-container relative w-full max-w-2xl mx-auto flex-1 min-h-0 flex flex-col">
-          {/* Spine edge shadows */}
-          <div className="book-spine-edge left rounded-l-xl" />
-          <div className="book-spine-edge right rounded-r-xl" />
-
-          {/* Page content with 3D flip animation */}
-          <div className={cn(
-            "relative flex-1 min-h-0 flex flex-col rounded-xl overflow-hidden bg-[#F5E6D3]",
-            "shadow-[0_8px_40px_rgba(0,0,0,0.12),0_0_0_1px_rgba(168,85,247,0.15)]",
-            "transition-opacity duration-300",
-            isFlipping ? "opacity-0" : "opacity-100",
-          )}>
+        <div className="relative w-full max-w-2xl mx-auto flex-1 min-h-0 flex flex-col">
+          <TheaterFrame className="flex-1 min-h-0">
+            {/* Page content with fade transition */}
+            <div className={cn(
+              "relative w-full h-full overflow-hidden",
+              "transition-opacity duration-300",
+              isFlipping ? "opacity-0" : "opacity-100",
+            )}>
             
             {isCoverPage ? (
               /* Cover Page — illustration is the hero, minimal overlay */
