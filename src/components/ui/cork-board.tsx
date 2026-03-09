@@ -6,9 +6,17 @@ interface CorkBoardProps {
 }
 
 const CorkBoard = ({ title, children }: CorkBoardProps) => {
+  // Generate fixed star positions
+  const stars = Array.from({ length: 30 }).map((_, i) => ({
+    left: `${(i * 37 + 13) % 100}%`,
+    top: `${(i * 53 + 7) % 100}%`,
+    size: i % 3 === 0 ? 2 : 1,
+    delay: `${(i * 0.4) % 3}s`,
+  }));
+
   return (
     <div
-      className="relative"
+      className="relative overflow-hidden"
       style={{
         background: `
           radial-gradient(ellipse at 15% 20%, rgba(120,80,200,0.35) 0%, transparent 45%),
@@ -20,6 +28,22 @@ const CorkBoard = ({ title, children }: CorkBoardProps) => {
         padding: '28px 16px 32px',
       }}
     >
+      {/* Twinkling stars */}
+      {stars.map((star, i) => (
+        <div
+          key={i}
+          className="absolute rounded-full pointer-events-none animate-twinkle"
+          style={{
+            left: star.left,
+            top: star.top,
+            width: `${star.size}px`,
+            height: `${star.size}px`,
+            background: 'white',
+            animationDelay: star.delay,
+          }}
+        />
+      ))}
+
       {/* Decorative dots along top edge */}
       <div className="absolute top-2 left-0 right-0 flex justify-center gap-3 opacity-40 pointer-events-none">
         {Array.from({ length: 12 }).map((_, i) => (
