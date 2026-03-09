@@ -168,7 +168,7 @@ const PublicStoryViewer = () => {
   const dbPageCount = story?.pages?.length || 0;
 
   return (
-    <div className="min-h-screen bg-[#F5E6D3] flex flex-col story-viewer-landscape" dir="rtl">
+    <div className="min-h-screen bg-gradient-to-b from-[#1a0a1a] via-[#2a1030] to-[#1a0a1a] flex flex-col story-viewer-landscape" dir="rtl">
       {/* Compact header */}
       <header className="bg-white/80 backdrop-blur-sm border-b border-purple-100 px-4 py-2 flex items-center justify-between shrink-0">
         <h1 className="text-sm font-bold text-purple-800 truncate flex-1 text-center">

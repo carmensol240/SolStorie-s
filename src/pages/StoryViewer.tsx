@@ -1059,7 +1059,7 @@ const StoryViewer = () => {
   };
 
   return (
-    <div className="h-[100dvh] bg-gradient-to-b from-purple-50 via-pink-50 to-orange-50 flex flex-col overflow-hidden" dir="rtl">
+    <div className="h-[100dvh] bg-gradient-to-b from-[#1a0a1a] via-[#2a1030] to-[#1a0a1a] flex flex-col overflow-hidden" dir="rtl">
       <OfflineIndicator isOnline={isOnline} />
       
       {/* Header */}
