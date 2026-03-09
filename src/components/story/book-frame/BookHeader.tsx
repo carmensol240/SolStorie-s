@@ -208,7 +208,7 @@ export const BookHeader: React.FC<BookHeaderProps> = ({
                   variant="ghost"
                   size="sm"
                   onClick={onToggleMusic}
-                   className="text-amber-800 hover:bg-amber-100/60 min-h-[44px] min-w-[44px] p-2"
+                   className="text-purple-300 hover:bg-purple-500/20 min-h-[44px] min-w-[44px] p-2"
                   aria-label={isMusicPlaying ? "כבה מוזיקת רקע" : "הפעל מוזיקת רקע"}
                 >
                   {isMusicPlaying ? <Volume2 className="w-5 h-5" /> : <VolumeX className="w-5 h-5" />}
