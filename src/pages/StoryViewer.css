@@ -117,8 +117,8 @@
   align-items: center;
   justify-content: center;
   border: none;
-  background: linear-gradient(135deg, #9333ea, #ec4899, #f97316);
-  box-shadow: 0 4px 16px rgba(147, 51, 234, 0.3);
+  background: linear-gradient(135deg, #C9A84C, #DAA520, #E8B84B);
+  box-shadow: 0 4px 16px rgba(201, 168, 76, 0.35);
   color: white;
   transition: all 0.2s ease;
   cursor: pointer;
