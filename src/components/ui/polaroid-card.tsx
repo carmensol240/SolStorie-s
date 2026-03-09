@@ -117,13 +117,13 @@ const PolaroidCard = ({
       >
         {/* Pin */}
         <div
-          className="relative z-10 -mb-3"
+          className="relative z-10 -mb-2"
           style={{
-            width: '18px',
-            height: '18px',
+            width: '10px',
+            height: '10px',
             borderRadius: '50%',
             background: `radial-gradient(circle at 35% 35%, ${pinColor}dd, ${pinColor})`,
-            boxShadow: `0 2px 6px rgba(0,0,0,0.4), inset 0 1px 2px rgba(255,255,255,0.4)`,
+            boxShadow: `0 1px 4px rgba(0,0,0,0.4), inset 0 1px 1px rgba(255,255,255,0.4)`,
           }}
         />
 

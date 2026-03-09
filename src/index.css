@@ -573,6 +573,15 @@
   );
 }
 
+@keyframes twinkle {
+  0%, 100% { opacity: 0.15; }
+  50% { opacity: 0.9; }
+}
+
+.animate-twinkle {
+  animation: twinkle 2.5s ease-in-out infinite;
+}
+
 @keyframes slide-peek {
   0% {
     opacity: 0;
