@@ -83,7 +83,7 @@ export const BookHeader: React.FC<BookHeaderProps> = ({
   isRegeneratingCover = false,
 }) => {
   return (
-    <header className="sticky top-0 z-40 backdrop-blur-sm border-b border-purple-500/20 px-3 py-2 shadow-sm" style={{ background: 'rgba(13, 8, 32, 0.95)' }}>
+    <header className="sticky top-0 z-40 backdrop-blur-md border-b border-white/30 px-3 py-2 shadow-sm" style={{ background: 'rgba(255, 255, 255, 0.75)' }}>
       <div className="flex items-center justify-between max-w-6xl mx-auto">
         {/* Back Button */}
         <Tooltip>
