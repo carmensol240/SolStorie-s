@@ -415,34 +415,45 @@ const Library = () => {
 
       <div className="container max-w-lg mx-auto px-3 py-3">
         {/* Header */}
-        <div className="bg-gradient-to-r from-purple-50 to-pink-50 border-b-2 border-purple-200 p-4 -mx-3 -mt-3 mb-4 shadow-sm">
+        <div
+          className="p-4 -mx-3 -mt-3 mb-4"
+          style={{
+            background: 'linear-gradient(135deg, #1a0f3a 0%, #2d1a6e 50%, #1a0f3a 100%)',
+            borderBottom: '3px solid #6c5ce7',
+            boxShadow: '0 4px 20px rgba(80,40,160,0.3)',
+          }}
+        >
+          {/* Title - centered */}
+          <h1 className="text-xl font-black text-center mb-3 flex items-center justify-center gap-2">
+            <Wand2 className="w-5 h-5 text-yellow-400" />
+            <span className="text-transparent bg-clip-text" style={{ backgroundImage: 'linear-gradient(90deg, #e8d5ff, #f0c040, #e8d5ff)' }}>הספרייה הקסומה שלי</span>
+            <span className="text-yellow-400">✨</span>
+          </h1>
+
+          {/* Toolbar row */}
           <div className="flex items-center justify-between">
-            <Button variant="outline" size="icon" onClick={() => navigate("/")} className="hidden md:flex" aria-label="חזרה לדף הבית">
+            <Button variant="ghost" size="icon" onClick={() => navigate("/")} className="hidden md:flex text-white/70 hover:text-white hover:bg-white/10" aria-label="חזרה לדף הבית">
               <ArrowRight className="h-5 w-5" />
             </Button>
-            <div className="flex items-center gap-3">
+            <div className="flex items-center gap-2 mx-auto">
               {avatarUrl && (
-                <div className="w-12 h-12 rounded-full overflow-hidden border-3 border-purple-400 shadow-lg">
+                <div className="w-10 h-10 rounded-full overflow-hidden border-2 border-purple-400/60 shadow-lg">
                   <img src={avatarUrl} alt="דמות הילד" className="w-full h-full object-cover" />
                 </div>
               )}
               <button
                 onClick={() => navigate("/upgrade")}
-                className="flex items-center gap-2 bg-white/70 border-2 border-purple-300 rounded-full px-4 py-2 hover:bg-purple-50 transition-colors shadow-md"
+                className="flex items-center gap-1.5 bg-white/10 border border-purple-400/40 rounded-full px-3 py-1.5 hover:bg-white/20 transition-colors shadow-md"
                 aria-label="צפה בקרדיטים ושדרג"
               >
-                <Coins className="w-6 h-6 text-purple-600" aria-hidden="true" />
-                <span className="font-bold text-purple-700 text-lg">{totalCredits}</span>
+                <Coins className="w-4 h-4 text-yellow-400" aria-hidden="true" />
+                <span className="font-bold text-yellow-300 text-sm">{totalCredits}</span>
               </button>
-              <div className="flex items-center gap-1.5 bg-white/70 border-2 border-purple-300 rounded-full px-3 py-2 shadow-md">
-                <BookOpen className="w-5 h-5 text-purple-600" aria-hidden="true" />
-                <span className="font-bold text-purple-700 text-lg">{stories.length}</span>
+              <div className="flex items-center gap-1 bg-white/10 border border-purple-400/40 rounded-full px-3 py-1.5 shadow-md">
+                <BookOpen className="w-4 h-4 text-purple-300" aria-hidden="true" />
+                <span className="font-bold text-purple-200 text-sm">{stories.length}</span>
               </div>
             </div>
-            <h1 className="text-xl font-black flex items-center gap-2">
-              <span className="bg-gradient-to-r from-purple-600 via-pink-500 to-orange-400 bg-clip-text text-transparent">הספרייה הקסומה שלי</span>
-              <Wand2 className="w-5 h-5 text-purple-500 animate-wiggle" />
-            </h1>
           </div>
         </div>
 
