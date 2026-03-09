@@ -41,19 +41,20 @@ export const BookFrame: React.FC<BookFrameProps> = ({
           <div className="absolute bottom-2 left-2 w-12 h-12 border-b-3 border-l-3 border-purple-500/70 rounded-bl-2xl" />
         </div>
 
-        {/* Paper Texture Background */}
+        {/* Night Sky Background */}
         <div 
-          className="relative bg-[#FEF9F0]"
+          className="relative"
           style={{
-            backgroundImage: `
-              url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E"),
-              linear-gradient(to bottom, rgba(254,249,240,0.95), rgba(245,230,211,0.95))
+            background: `
+              radial-gradient(ellipse at 20% 30%, rgba(108,92,231,0.25) 0%, transparent 50%),
+              radial-gradient(ellipse at 80% 70%, rgba(147,51,234,0.2) 0%, transparent 50%),
+              linear-gradient(to bottom, #1a0f3a, #2d1a6e)
             `,
-            backgroundBlendMode: 'soft-light, normal',
+            backgroundBlendMode: 'soft-light, soft-light, normal',
           }}
         >
-          {/* Book Spine Shadow (center) */}
-          <div className="absolute left-1/2 -translate-x-1/2 top-0 bottom-0 w-8 md:w-12 bg-gradient-to-r from-transparent via-purple-900/10 to-transparent z-10 pointer-events-none hidden md:block" />
+          {/* Book Spine Shadow (center) - lighter for night theme */}
+          <div className="absolute left-1/2 -translate-x-1/2 top-0 bottom-0 w-8 md:w-12 bg-gradient-to-r from-transparent via-black/15 to-transparent z-10 pointer-events-none hidden md:block" />
           
           {/* Inner content */}
           <div className="relative z-0">
