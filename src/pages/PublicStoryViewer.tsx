@@ -178,8 +178,8 @@ const PublicStoryViewer = () => {
 
       {/* Book area */}
       <main className="flex-1 flex flex-col items-center justify-center p-2 md:p-4 min-h-0">
-        <div className="book-container w-full max-w-4xl" style={{ height: 'calc(100vh - 100px)' }}>
-          <div className="relative w-full h-full rounded-xl overflow-hidden shadow-2xl border-2 border-[#D4A574] bg-[#F5E6D3]">
+        <div className="w-full max-w-4xl" style={{ height: 'calc(100vh - 100px)' }}>
+          <TheaterFrame>
 
             {/* Cover Page */}
             {isCoverPage && (
