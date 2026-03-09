@@ -108,10 +108,11 @@ const PolaroidCard = ({
         }}
         onMouseEnter={(e) => {
           e.currentTarget.style.transform = 'rotate(0deg) translateY(-8px) scale(1.05)';
-          e.currentTarget.style.filter = 'drop-shadow(0 0 18px rgba(168,130,255,0.6)) drop-shadow(0 0 40px rgba(108,92,231,0.3))';
+          e.currentTarget.style.animation = 'polaroid-glow-pulse 2s ease-in-out infinite';
         }}
         onMouseLeave={(e) => {
           e.currentTarget.style.transform = `rotate(${rotation}deg)`;
+          e.currentTarget.style.animation = 'none';
           e.currentTarget.style.filter = 'none';
         }}
       >
