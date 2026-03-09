@@ -1,0 +1,234 @@
+/* ==========================================
+   Magical Floating Book — CSS
+   ========================================== */
+
+.magical-book-wrapper {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  border-radius: 20px;
+  /* Floating animation */
+  animation: magical-float 4s ease-in-out infinite;
+}
+
+@keyframes magical-float {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-4px); }
+}
+
+/* Sparkle canvas */
+.magical-book-sparkles {
+  position: absolute;
+  inset: -20px;
+  width: calc(100% + 40px);
+  height: calc(100% + 40px);
+  pointer-events: none;
+  z-index: 30;
+}
+
+/* Ambient glow */
+.magical-book-glow {
+  position: absolute;
+  inset: -12px;
+  border-radius: 28px;
+  background: radial-gradient(ellipse at 50% 40%,
+    hsla(42, 90%, 65%, 0.25) 0%,
+    hsla(42, 80%, 50%, 0.08) 50%,
+    transparent 80%
+  );
+  z-index: 0;
+  pointer-events: none;
+  animation: glow-pulse 3s ease-in-out infinite alternate;
+}
+
+@keyframes glow-pulse {
+  0% { opacity: 0.6; filter: blur(12px); }
+  100% { opacity: 1; filter: blur(16px); }
+}
+
+/* ---- Book body ---- */
+.magical-book-body {
+  position: relative;
+  z-index: 10;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  border-radius: 16px;
+  overflow: hidden;
+  /* Parchment/warm cream background */
+  background: linear-gradient(145deg, #FFF9EE 0%, #FDF2E0 30%, #F8E8CE 100%);
+  /* Golden border with depth */
+  border: 3px solid hsl(42, 60%, 55%);
+  box-shadow:
+    0 0 0 1px hsl(42, 50%, 45%),
+    0 8px 32px rgba(139, 105, 20, 0.2),
+    0 2px 8px rgba(0, 0, 0, 0.1),
+    inset 0 1px 0 rgba(255, 255, 255, 0.6),
+    inset 0 -1px 0 rgba(139, 105, 20, 0.1);
+  /* Open animation */
+  transform: scale(0.95);
+  opacity: 0.8;
+  transition: transform 0.8s cubic-bezier(0.22, 1, 0.36, 1),
+              opacity 0.6s ease-out,
+              box-shadow 0.8s ease-out;
+}
+
+.magical-book-body--open {
+  transform: scale(1);
+  opacity: 1;
+  box-shadow:
+    0 0 0 1px hsl(42, 50%, 45%),
+    0 12px 48px rgba(139, 105, 20, 0.25),
+    0 4px 16px rgba(0, 0, 0, 0.12),
+    0 0 40px rgba(218, 165, 32, 0.12),
+    inset 0 1px 0 rgba(255, 255, 255, 0.6),
+    inset 0 -1px 0 rgba(139, 105, 20, 0.1);
+}
+
+/* ---- Book spine (left edge for RTL) ---- */
+.magical-book-spine {
+  position: absolute;
+  right: 0;
+  top: 0;
+  bottom: 0;
+  width: 10px;
+  background: linear-gradient(90deg,
+    transparent 0%,
+    rgba(139, 105, 20, 0.08) 40%,
+    rgba(139, 105, 20, 0.15) 100%
+  );
+  z-index: 15;
+  pointer-events: none;
+}
+
+/* ---- Ornaments (top & bottom center) ---- */
+.magical-book-ornament {
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 20;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  pointer-events: none;
+}
+
+.magical-book-ornament--top {
+  top: -1px;
+  width: 48px;
+  height: 20px;
+  background: linear-gradient(180deg, hsl(42, 60%, 55%) 0%, hsl(42, 50%, 48%) 100%);
+  border-radius: 0 0 12px 12px;
+  border: 1px solid hsl(42, 50%, 45%);
+  border-top: none;
+}
+
+.magical-book-ornament--bottom {
+  bottom: -1px;
+  width: 48px;
+  height: 20px;
+  background: linear-gradient(0deg, hsl(42, 60%, 55%) 0%, hsl(42, 50%, 48%) 100%);
+  border-radius: 12px 12px 0 0;
+  border: 1px solid hsl(42, 50%, 45%);
+  border-bottom: none;
+}
+
+.magical-book-ornament-icon {
+  font-size: 10px;
+  color: hsl(42, 80%, 85%);
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+}
+
+/* ---- Corner decorations ---- */
+.magical-book-corner {
+  position: absolute;
+  width: 24px;
+  height: 24px;
+  z-index: 20;
+  pointer-events: none;
+}
+
+.magical-book-corner--tl {
+  top: 4px; left: 4px;
+  border-top: 2px solid hsl(42, 60%, 65%);
+  border-left: 2px solid hsl(42, 60%, 65%);
+  border-radius: 8px 0 0 0;
+}
+.magical-book-corner--tr {
+  top: 4px; right: 4px;
+  border-top: 2px solid hsl(42, 60%, 65%);
+  border-right: 2px solid hsl(42, 60%, 65%);
+  border-radius: 0 8px 0 0;
+}
+.magical-book-corner--bl {
+  bottom: 4px; left: 4px;
+  border-bottom: 2px solid hsl(42, 60%, 65%);
+  border-left: 2px solid hsl(42, 60%, 65%);
+  border-radius: 0 0 0 8px;
+}
+.magical-book-corner--br {
+  bottom: 4px; right: 4px;
+  border-bottom: 2px solid hsl(42, 60%, 65%);
+  border-right: 2px solid hsl(42, 60%, 65%);
+  border-radius: 0 0 8px 0;
+}
+
+/* ---- Content area ---- */
+.magical-book-content {
+  flex: 1;
+  position: relative;
+  min-height: 0;
+  overflow: hidden;
+}
+
+.magical-book-content--hidden {
+  opacity: 0;
+  transform: scale(0.98);
+  transition: opacity 0.4s ease-out, transform 0.4s ease-out;
+}
+
+.magical-book-content--visible {
+  opacity: 1;
+  transform: scale(1);
+  transition: opacity 0.6s ease-out 0.5s, transform 0.6s ease-out 0.5s;
+}
+
+/* ---- Spotlight / stage lighting on content ---- */
+.magical-book-content::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 5;
+  background:
+    radial-gradient(ellipse 100% 60% at 50% 0%, rgba(255, 220, 100, 0.04) 0%, transparent 60%),
+    radial-gradient(ellipse 80% 30% at 50% 100%, rgba(139, 105, 20, 0.04) 0%, transparent 60%);
+}
+
+/* ---- Responsive adjustments ---- */
+@media (max-width: 640px) {
+  .magical-book-wrapper {
+    border-radius: 14px;
+  }
+  .magical-book-body {
+    border-radius: 12px;
+    border-width: 2px;
+  }
+  .magical-book-corner {
+    width: 16px;
+    height: 16px;
+  }
+  .magical-book-ornament--top,
+  .magical-book-ornament--bottom {
+    width: 36px;
+    height: 16px;
+  }
+  @keyframes magical-float {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-2px); }
+  }
+}
