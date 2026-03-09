@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
 import { cn } from "@/lib/utils";
 import { getPublicIllustrationUrl } from "@/lib/illustration-url";
+import { TheaterFrame } from "@/components/story/theater-frame";
 import castWavingFarewell from "@/assets/cast-waving-farewell.png";
 import solSuperheroWelcome from "@/assets/sol-superhero-welcome.jpg";
 import "./StoryViewer.css";
@@ -167,7 +168,7 @@ const PublicStoryViewer = () => {
   const dbPageCount = story?.pages?.length || 0;
 
   return (
-    <div className="min-h-screen bg-[#F5E6D3] flex flex-col story-viewer-landscape" dir="rtl">
+    <div className="min-h-screen bg-gradient-to-b from-[#1a0a1a] via-[#2a1030] to-[#1a0a1a] flex flex-col story-viewer-landscape" dir="rtl">
       {/* Compact header */}
       <header className="bg-white/80 backdrop-blur-sm border-b border-purple-100 px-4 py-2 flex items-center justify-between shrink-0">
         <h1 className="text-sm font-bold text-purple-800 truncate flex-1 text-center">
@@ -177,12 +178,12 @@ const PublicStoryViewer = () => {
 
       {/* Book area */}
       <main className="flex-1 flex flex-col items-center justify-center p-2 md:p-4 min-h-0">
-        <div className="book-container w-full max-w-4xl" style={{ height: 'calc(100vh - 100px)' }}>
-          <div className="relative w-full h-full rounded-xl overflow-hidden shadow-2xl border-2 border-[#D4A574] bg-[#F5E6D3]">
+        <div className="w-full max-w-4xl" style={{ height: 'calc(100vh - 100px)' }}>
+          <TheaterFrame>
 
             {/* Cover Page */}
             {isCoverPage && (
-              <div className="h-full w-full relative">
+              <div className="h-full w-full relative overflow-hidden">
                 <img src={story.cover_url || solSuperheroWelcome} alt="כריכה" className="absolute inset-0 w-full h-full object-cover" />
                 <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/30 to-black/10" />
 
@@ -230,7 +231,7 @@ const PublicStoryViewer = () => {
 
             {/* Story Pages */}
             {currentVirtual && (
-              <div key={currentPage} className="h-full w-full relative animate-fade-in">
+              <div key={currentPage} className="h-full w-full relative animate-fade-in overflow-hidden">
                 {currentVirtual.type === 'combined' ? (
                   /* Combined page (ages 0-2) — fullscreen illustration + text overlay */
                   <>
@@ -305,7 +306,7 @@ const PublicStoryViewer = () => {
                 </button>
               </div>
             )}
-          </div>
+          </TheaterFrame>
         </div>
 
         {/* Page indicator */}

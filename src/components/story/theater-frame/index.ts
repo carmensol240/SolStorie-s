@@ -1,0 +1,1 @@
+export { TheaterFrame } from './TheaterFrame';
