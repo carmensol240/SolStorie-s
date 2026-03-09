@@ -75,18 +75,16 @@ export const BookPage: React.FC<BookPageProps> = ({
   return (
     <div className={cn(
       "relative flex-1 flex flex-col justify-center p-6 md:p-8 lg:p-10",
-      // Paper texture
-      "bg-gradient-to-bl from-[#FFFBF5] to-[#FAF3E8]",
       className
-    )}>
+    )} style={{ background: 'linear-gradient(135deg, #2d1a6e, #1a0f3a)' }}>
       {/* Page fold effect */}
-      <div className="absolute top-0 right-0 w-8 h-8 bg-gradient-to-bl from-black/5 to-transparent" />
+      <div className="absolute top-0 right-0 w-8 h-8 bg-gradient-to-bl from-white/5 to-transparent" />
       
       {/* Main text content */}
       <div className="flex-1 flex flex-col items-start justify-start">
         <p 
           className={cn(
-            "leading-loose text-[#3D2914] text-right font-medium transition-all w-full",
+            "leading-loose text-purple-100 text-right font-medium transition-all w-full",
             fontSize
           )} 
           dir="rtl"
@@ -98,7 +96,7 @@ export const BookPage: React.FC<BookPageProps> = ({
       {/* Page number */}
       {pageNumber !== undefined && totalPages && (
         <div className="absolute bottom-4 left-1/2 -translate-x-1/2">
-          <span className="text-sm text-[#8B7355] font-serif italic">
+          <span className="text-sm text-purple-300/70 font-serif italic">
             {pageNumber} / {totalPages}
           </span>
         </div>
