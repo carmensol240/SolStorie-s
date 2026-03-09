@@ -150,8 +150,8 @@ export const BookHeader: React.FC<BookHeaderProps> = ({
                   className={cn(
                     "min-h-[44px] min-w-[44px] p-2",
                     isSavedOffline 
-                      ? "text-green-400 hover:bg-green-500/20" 
-                      : "text-purple-200 hover:bg-purple-500/20",
+                      ? "text-green-600 hover:bg-green-100/40" 
+                      : "text-amber-800 hover:bg-amber-100/60",
                     isDownloadingOffline && "animate-pulse"
                   )}
                   aria-label={isSavedOffline ? "הסיפור שמור לקריאה אופליין" : "שמור לקריאה ללא אינטרנט"}
