@@ -190,7 +190,7 @@ export const BookHeader: React.FC<BookHeaderProps> = ({
             </Tooltip>
             <PopoverContent align="start" className="w-72 text-right" dir="rtl">
               <div className="space-y-2">
-                <p className="font-bold text-sm text-amber-900">
+                <p className="font-bold text-sm text-purple-200">
                   📖 אהבתם? בבחירה הבאה באותו נושא, מחכה לכם המשך להרפתקה!
                 </p>
                 <p className="text-xs text-muted-foreground leading-relaxed">
