@@ -7,8 +7,9 @@ import solMagicBookCover from "@/assets/sol-magic-book-cover.png";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import MobileNavigation from "@/components/MobileNavigation";
-import StoryBookCard from "@/components/ui/story-book-card";
-import StorySeriesCard from "@/components/ui/story-series-card";
+import PolaroidCard from "@/components/ui/polaroid-card";
+import CorkBoard from "@/components/ui/cork-board";
+import '@fontsource/caveat';
 
 import OfflineIndicator from "@/components/ui/offline-indicator";
 import EditStoryDialog from "@/components/story/edit-story-dialog";
