@@ -33,19 +33,18 @@ export const BookPage: React.FC<BookPageProps> = ({
     return (
       <div className={cn(
         "relative flex-1 flex flex-col justify-center items-center p-4 md:p-6",
-        "bg-gradient-to-br from-[#FFFBF5] to-[#F5E6D3]",
         className
-      )}>
-        <div className="absolute top-0 left-0 w-8 h-8 bg-gradient-to-br from-black/5 to-transparent" />
+      )} style={{ background: 'linear-gradient(135deg, #1a0f3a, #2d1a6e)' }}>
+        <div className="absolute top-0 left-0 w-8 h-8 bg-gradient-to-br from-white/5 to-transparent" />
         
         {isGeneratingIllustration ? (
           <div className="relative w-full overflow-hidden flex flex-col items-center justify-center" style={{ height: '50vh' }}>
-            <div className="absolute inset-0 bg-gradient-to-br from-[#FFFBF5] via-[#F5E6D3] to-[#FAF3E8] animate-pulse" />
+            <div className="absolute inset-0 bg-gradient-to-br from-[#1a0f3a] via-[#2d1a6e] to-[#1a0f3a] animate-pulse" />
             <div className="relative z-10 text-center space-y-3">
-              <div className="w-16 h-16 mx-auto rounded-full bg-gradient-to-br from-purple-200 via-pink-200 to-orange-200 flex items-center justify-center animate-pulse">
+              <div className="w-16 h-16 mx-auto rounded-full bg-gradient-to-br from-purple-400/30 via-purple-500/30 to-purple-600/30 flex items-center justify-center animate-pulse">
                 <span className="text-3xl">🎨</span>
               </div>
-              <p className="text-sm text-[#8B7355] font-medium" dir="rtl">האיור נוצר...</p>
+              <p className="text-sm text-purple-200 font-medium" dir="rtl">האיור נוצר...</p>
             </div>
           </div>
         ) : illustrationUrl ? (
@@ -63,7 +62,7 @@ export const BookPage: React.FC<BookPageProps> = ({
         
         {pageNumber !== undefined && (
           <div className="absolute bottom-4 left-1/2 -translate-x-1/2">
-            <span className="text-sm text-[#8B7355] font-serif italic">
+            <span className="text-sm text-purple-300/70 font-serif italic">
               {pageNumber}
             </span>
           </div>
@@ -76,18 +75,16 @@ export const BookPage: React.FC<BookPageProps> = ({
   return (
     <div className={cn(
       "relative flex-1 flex flex-col justify-center p-6 md:p-8 lg:p-10",
-      // Paper texture
-      "bg-gradient-to-bl from-[#FFFBF5] to-[#FAF3E8]",
       className
-    )}>
+    )} style={{ background: 'linear-gradient(135deg, #2d1a6e, #1a0f3a)' }}>
       {/* Page fold effect */}
-      <div className="absolute top-0 right-0 w-8 h-8 bg-gradient-to-bl from-black/5 to-transparent" />
+      <div className="absolute top-0 right-0 w-8 h-8 bg-gradient-to-bl from-white/5 to-transparent" />
       
       {/* Main text content */}
       <div className="flex-1 flex flex-col items-start justify-start">
         <p 
           className={cn(
-            "leading-loose text-[#3D2914] text-right font-medium transition-all w-full",
+            "leading-loose text-purple-100 text-right font-medium transition-all w-full",
             fontSize
           )} 
           dir="rtl"
@@ -99,7 +96,7 @@ export const BookPage: React.FC<BookPageProps> = ({
       {/* Page number */}
       {pageNumber !== undefined && totalPages && (
         <div className="absolute bottom-4 left-1/2 -translate-x-1/2">
-          <span className="text-sm text-[#8B7355] font-serif italic">
+          <span className="text-sm text-purple-300/70 font-serif italic">
             {pageNumber} / {totalPages}
           </span>
         </div>

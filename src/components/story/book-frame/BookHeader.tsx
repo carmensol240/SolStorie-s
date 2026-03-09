@@ -83,7 +83,7 @@ export const BookHeader: React.FC<BookHeaderProps> = ({
   isRegeneratingCover = false,
 }) => {
   return (
-    <header className="sticky top-0 z-40 bg-[#FAF3E8]/95 backdrop-blur-sm border-b border-[#D4C4B0] px-3 py-2 shadow-sm">
+    <header className="sticky top-0 z-40 backdrop-blur-sm border-b border-purple-500/30 px-3 py-2 shadow-sm" style={{ background: 'rgba(26,15,58,0.95)' }}>
       <div className="flex items-center justify-between max-w-6xl mx-auto">
         {/* Back Button */}
         <Tooltip>
@@ -92,7 +92,7 @@ export const BookHeader: React.FC<BookHeaderProps> = ({
               variant="ghost"
               size="sm"
               onClick={onBack}
-              className="text-[#5D3A1A] hover:bg-[#D4A574]/20 min-h-[44px] p-2 gap-1"
+              className="text-purple-200 hover:bg-purple-500/20 min-h-[44px] p-2 gap-1"
               aria-label="חזרה לספרייה"
             >
               <ArrowRight className="w-5 h-5" />
@@ -112,7 +112,7 @@ export const BookHeader: React.FC<BookHeaderProps> = ({
                 variant="ghost"
                 size="sm"
                 onClick={onToggleFontSize}
-                className="text-[#5D3A1A] hover:bg-[#D4A574]/20 min-h-[44px] min-w-[44px] p-2"
+                className="text-purple-200 hover:bg-purple-500/20 min-h-[44px] min-w-[44px] p-2"
                 aria-label={`גודל טקסט: ${fontSizeLabel}`}
               >
                 <Type className="w-5 h-5" />
@@ -129,7 +129,7 @@ export const BookHeader: React.FC<BookHeaderProps> = ({
                 size="sm"
                 onClick={onDownload}
                 disabled={isExporting}
-                className="text-[#5D3A1A] hover:bg-[#D4A574]/20 min-h-[44px] min-w-[44px] p-2 disabled:opacity-50"
+                className="text-purple-200 hover:bg-purple-500/20 min-h-[44px] min-w-[44px] p-2 disabled:opacity-50"
                 aria-label="הורדה או הדפסה"
               >
                 <FileDown className={cn("w-5 h-5", isExporting && "animate-pulse")} />
@@ -150,8 +150,8 @@ export const BookHeader: React.FC<BookHeaderProps> = ({
                   className={cn(
                     "min-h-[44px] min-w-[44px] p-2",
                     isSavedOffline 
-                      ? "text-green-600 hover:bg-green-50" 
-                      : "text-[#5D3A1A] hover:bg-[#D4A574]/20",
+                      ? "text-green-400 hover:bg-green-500/20" 
+                      : "text-purple-200 hover:bg-purple-500/20",
                     isDownloadingOffline && "animate-pulse"
                   )}
                   aria-label={isSavedOffline ? "הסיפור שמור לקריאה אופליין" : "שמור לקריאה ללא אינטרנט"}
@@ -179,7 +179,7 @@ export const BookHeader: React.FC<BookHeaderProps> = ({
                   <Button
                     variant="ghost"
                     size="sm"
-                    className="text-[#5D3A1A] hover:bg-[#D4A574]/20 min-h-[44px] min-w-[44px] p-2"
+                    className="text-purple-200 hover:bg-purple-500/20 min-h-[44px] min-w-[44px] p-2"
                     aria-label="מה קורה בהמשך?"
                   >
                     <Sparkles className="w-5 h-5" />
@@ -190,7 +190,7 @@ export const BookHeader: React.FC<BookHeaderProps> = ({
             </Tooltip>
             <PopoverContent align="start" className="w-72 text-right" dir="rtl">
               <div className="space-y-2">
-                <p className="font-bold text-sm text-[#5D3A1A]">
+                <p className="font-bold text-sm text-purple-200">
                   📖 אהבתם? בבחירה הבאה באותו נושא, מחכה לכם המשך להרפתקה!
                 </p>
                 <p className="text-xs text-muted-foreground leading-relaxed">
@@ -208,7 +208,7 @@ export const BookHeader: React.FC<BookHeaderProps> = ({
                   variant="ghost"
                   size="sm"
                   onClick={onToggleMusic}
-                  className="text-[#5D3A1A] hover:bg-[#D4A574]/20 min-h-[44px] min-w-[44px] p-2"
+                   className="text-purple-200 hover:bg-purple-500/20 min-h-[44px] min-w-[44px] p-2"
                   aria-label={isMusicPlaying ? "כבה מוזיקת רקע" : "הפעל מוזיקת רקע"}
                 >
                   {isMusicPlaying ? <Volume2 className="w-5 h-5" /> : <VolumeX className="w-5 h-5" />}
@@ -226,7 +226,7 @@ export const BookHeader: React.FC<BookHeaderProps> = ({
                   <Button
                     variant="ghost"
                     size="sm"
-                    className="text-[#5D3A1A] hover:bg-[#D4A574]/20 min-h-[44px] min-w-[44px] p-2"
+                    className="text-purple-200 hover:bg-purple-500/20 min-h-[44px] min-w-[44px] p-2"
                     aria-label="תפריט"
                   >
                     <Menu className="w-5 h-5" />

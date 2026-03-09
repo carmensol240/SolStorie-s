@@ -19,41 +19,42 @@ export const BookFrame: React.FC<BookFrameProps> = ({
       "relative w-full max-w-6xl mx-auto book-container",
       className
     )}>
-      {/* Outer Book Frame - Elegant with fade transitions */}
+      {/* Outer Book Frame - Night purple theme */}
       <div className={cn(
         "relative rounded-xl overflow-hidden",
-        // Elegant shadow with purple theme
-        "shadow-[0_20px_60px_rgba(0,0,0,0.15),0_0_0_4px_theme(colors.purple.300),0_0_0_8px_theme(colors.purple.500),inset_0_0_60px_rgba(147,51,234,0.05)]",
-        // Gentle fade transition instead of flip
+        // Deep purple shadow with magical glow
+        "shadow-[0_20px_60px_rgba(45,26,110,0.4),0_0_0_4px_hsl(var(--purple)),0_0_0_8px_rgba(108,92,231,0.6),inset_0_0_60px_rgba(108,92,231,0.15)]",
+        // Gentle fade transition
         "transition-opacity duration-300 ease-in-out",
         isFlipping && "opacity-0"
       )}>
-        {/* Decorative Frame Border - Purple-pink gradient effect */}
+        {/* Decorative Frame Border - Night purple gradient */}
         <div className="absolute inset-0 pointer-events-none z-20">
           {/* Top ornament */}
-          <div className="absolute top-0 left-1/2 -translate-x-1/2 w-32 h-6 bg-gradient-to-b from-purple-400 to-pink-400" 
+          <div className="absolute top-0 left-1/2 -translate-x-1/2 w-32 h-6 bg-gradient-to-b from-purple-500 to-purple-700 opacity-60" 
                style={{ clipPath: 'polygon(10% 0, 90% 0, 100% 100%, 0 100%)' }} />
           
-          {/* Corner ornaments */}
-          <div className="absolute top-2 right-2 w-12 h-12 border-t-3 border-r-3 border-purple-400 rounded-tr-2xl opacity-80" />
-          <div className="absolute top-2 left-2 w-12 h-12 border-t-3 border-l-3 border-purple-400 rounded-tl-2xl opacity-80" />
-          <div className="absolute bottom-2 right-2 w-12 h-12 border-b-3 border-r-3 border-pink-400 rounded-br-2xl opacity-80" />
-          <div className="absolute bottom-2 left-2 w-12 h-12 border-b-3 border-l-3 border-pink-400 rounded-bl-2xl opacity-80" />
+          {/* Corner ornaments - glowing purple */}
+          <div className="absolute top-2 right-2 w-12 h-12 border-t-3 border-r-3 border-purple-400/70 rounded-tr-2xl" />
+          <div className="absolute top-2 left-2 w-12 h-12 border-t-3 border-l-3 border-purple-400/70 rounded-tl-2xl" />
+          <div className="absolute bottom-2 right-2 w-12 h-12 border-b-3 border-r-3 border-purple-500/70 rounded-br-2xl" />
+          <div className="absolute bottom-2 left-2 w-12 h-12 border-b-3 border-l-3 border-purple-500/70 rounded-bl-2xl" />
         </div>
 
-        {/* Paper Texture Background */}
+        {/* Night Sky Background */}
         <div 
-          className="relative bg-[#FEF9F0]"
+          className="relative"
           style={{
-            backgroundImage: `
-              url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E"),
-              linear-gradient(to bottom, rgba(254,249,240,0.95), rgba(245,230,211,0.95))
+            background: `
+              radial-gradient(ellipse at 20% 30%, rgba(108,92,231,0.25) 0%, transparent 50%),
+              radial-gradient(ellipse at 80% 70%, rgba(147,51,234,0.2) 0%, transparent 50%),
+              linear-gradient(to bottom, #1a0f3a, #2d1a6e)
             `,
-            backgroundBlendMode: 'soft-light, normal',
+            backgroundBlendMode: 'soft-light, soft-light, normal',
           }}
         >
-          {/* Book Spine Shadow (center) */}
-          <div className="absolute left-1/2 -translate-x-1/2 top-0 bottom-0 w-8 md:w-12 bg-gradient-to-r from-transparent via-purple-900/10 to-transparent z-10 pointer-events-none hidden md:block" />
+          {/* Book Spine Shadow (center) - lighter for night theme */}
+          <div className="absolute left-1/2 -translate-x-1/2 top-0 bottom-0 w-8 md:w-12 bg-gradient-to-r from-transparent via-black/15 to-transparent z-10 pointer-events-none hidden md:block" />
           
           {/* Inner content */}
           <div className="relative z-0">
