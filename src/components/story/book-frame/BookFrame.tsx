@@ -19,12 +19,12 @@ export const BookFrame: React.FC<BookFrameProps> = ({
       "relative w-full max-w-6xl mx-auto book-container",
       className
     )}>
-      {/* Outer Book Frame - Elegant with fade transitions */}
+      {/* Outer Book Frame - Night purple theme */}
       <div className={cn(
         "relative rounded-xl overflow-hidden",
-        // Elegant shadow with purple theme
-        "shadow-[0_20px_60px_rgba(0,0,0,0.15),0_0_0_4px_theme(colors.purple.300),0_0_0_8px_theme(colors.purple.500),inset_0_0_60px_rgba(147,51,234,0.05)]",
-        // Gentle fade transition instead of flip
+        // Deep purple shadow with magical glow
+        "shadow-[0_20px_60px_rgba(45,26,110,0.4),0_0_0_4px_hsl(var(--purple)),0_0_0_8px_rgba(108,92,231,0.6),inset_0_0_60px_rgba(108,92,231,0.15)]",
+        // Gentle fade transition
         "transition-opacity duration-300 ease-in-out",
         isFlipping && "opacity-0"
       )}>
