@@ -129,11 +129,13 @@ const PolaroidCard = ({
 
         {/* Polaroid frame */}
         <div
-          className="relative bg-white"
+          className="relative"
           style={{
             width: '148px',
             padding: '7px 7px 38px 7px',
-            boxShadow: '0 4px 16px rgba(0,0,0,0.35), 0 1px 4px rgba(0,0,0,0.2)',
+            background: 'linear-gradient(145deg, #2d1a6e, #1a0f3a)',
+            boxShadow: '0 4px 16px rgba(0,0,0,0.45), 0 1px 4px rgba(0,0,0,0.3), inset 0 1px 0 rgba(200,180,255,0.15)',
+            borderRadius: '4px',
           }}
         >
           {/* Series badge */}
@@ -245,12 +247,12 @@ const PolaroidCard = ({
           <div dir="rtl" className="mt-1 px-0.5 text-center" style={{ height: '24px' }}>
             <p
               className="text-xs font-bold leading-tight line-clamp-1"
-              style={{ fontFamily: "'Caveat', cursive", fontSize: '14px', color: '#2a1a5a' }}
+              style={{ fontFamily: "'Caveat', cursive", fontSize: '14px', color: '#e8d5ff' }}
             >
               {topic}
             </p>
             {isOfflineSaved && offlineSize > 0 && (
-              <p className="text-[9px] text-gray-400 mt-0.5">{formatBytes(offlineSize)}</p>
+              <p className="text-[9px] text-purple-300/60 mt-0.5">{formatBytes(offlineSize)}</p>
             )}
           </div>
         </div>
