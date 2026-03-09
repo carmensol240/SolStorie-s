@@ -5,57 +5,45 @@ import "./magical-book.css";
 interface MagicalBookFrameProps {
   children: React.ReactNode;
   className?: string;
-  /** Skip the opening animation */
   skipAnimation?: boolean;
 }
 
-/** Synthesize a pop-up book unfolding sound */
-function playPopUpSound() {
+/** Synthesize a magical whoosh + chime */
+function playPortalSound() {
   try {
     const ctx = new (window.AudioContext || (window as any).webkitAudioContext)();
-    
-    // Paper unfolding whoosh
-    const bufferSize = ctx.sampleRate * 0.6;
-    const noiseBuffer = ctx.createBuffer(1, bufferSize, ctx.sampleRate);
-    const data = noiseBuffer.getChannelData(0);
-    for (let i = 0; i < bufferSize; i++) {
-      data[i] = (Math.random() * 2 - 1) * 0.3;
-    }
-    const noise = ctx.createBufferSource();
-    noise.buffer = noiseBuffer;
-    const filter = ctx.createBiquadFilter();
-    filter.type = "highpass";
-    filter.frequency.setValueAtTime(2000, ctx.currentTime);
-    filter.frequency.exponentialRampToValueAtTime(400, ctx.currentTime + 0.5);
-    const gain = ctx.createGain();
-    gain.gain.setValueAtTime(0, ctx.currentTime);
-    gain.gain.linearRampToValueAtTime(0.1, ctx.currentTime + 0.05);
-    gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.5);
-    noise.connect(filter);
-    filter.connect(gain);
-    gain.connect(ctx.destination);
-    noise.start();
-    noise.stop(ctx.currentTime + 0.6);
 
-    // Magical chime accent
-    [659.25, 880].forEach((freq, i) => {
-      const osc = ctx.createOscillator();
-      const g = ctx.createGain();
-      osc.type = "sine";
-      osc.frequency.value = freq;
-      g.gain.setValueAtTime(0, ctx.currentTime + 0.15 + i * 0.08);
-      g.gain.linearRampToValueAtTime(0.06, ctx.currentTime + 0.2 + i * 0.08);
-      g.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.8 + i * 0.08);
-      osc.connect(g);
-      g.connect(ctx.destination);
-      osc.start(ctx.currentTime + 0.15 + i * 0.08);
-      osc.stop(ctx.currentTime + 0.9 + i * 0.08);
+    // Whoosh
+    const len = ctx.sampleRate * 0.8;
+    const buf = ctx.createBuffer(1, len, ctx.sampleRate);
+    const d = buf.getChannelData(0);
+    for (let i = 0; i < len; i++) d[i] = (Math.random() * 2 - 1) * 0.25;
+    const src = ctx.createBufferSource();
+    src.buffer = buf;
+    const bp = ctx.createBiquadFilter();
+    bp.type = "bandpass"; bp.frequency.value = 600; bp.Q.value = 1.2;
+    const g = ctx.createGain();
+    g.gain.setValueAtTime(0, ctx.currentTime);
+    g.gain.linearRampToValueAtTime(0.12, ctx.currentTime + 0.1);
+    g.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.7);
+    src.connect(bp); bp.connect(g); g.connect(ctx.destination);
+    src.start(); src.stop(ctx.currentTime + 0.8);
+
+    // Chime arpeggio
+    [784, 988, 1175].forEach((f, i) => {
+      const o = ctx.createOscillator();
+      const og = ctx.createGain();
+      o.type = "sine"; o.frequency.value = f;
+      const t = ctx.currentTime + 0.2 + i * 0.1;
+      og.gain.setValueAtTime(0, t);
+      og.gain.linearRampToValueAtTime(0.05, t + 0.04);
+      og.gain.exponentialRampToValueAtTime(0.001, t + 0.8);
+      o.connect(og); og.connect(ctx.destination);
+      o.start(t); o.stop(t + 0.9);
     });
 
     setTimeout(() => ctx.close(), 1500);
-  } catch {
-    // Audio not supported
-  }
+  } catch {}
 }
 
 export const MagicalBookFrame: React.FC<MagicalBookFrameProps> = ({
@@ -72,37 +60,50 @@ export const MagicalBookFrame: React.FC<MagicalBookFrameProps> = ({
       setIsOpen(true);
       if (!soundPlayed.current) {
         soundPlayed.current = true;
-        playPopUpSound();
+        playPortalSound();
       }
     }, 200);
     return () => clearTimeout(timer);
   }, [skipAnimation]);
 
   return (
-    <div className={cn("popup-book-wrapper", className)}>
-      {/* Background page layers for depth */}
-      <div className="popup-book-layer popup-book-layer--back" />
-      <div className="popup-book-layer popup-book-layer--mid" />
+    <div className={cn("portal-wrapper", className)}>
+      {/* Animated glow ring behind the portal */}
+      <div className="portal-glow-ring" />
 
-      {/* Main book page */}
-      <div className={cn("popup-book-page", isOpen && "popup-book-page--open")}>
-        {/* Page fold crease (center spine) */}
-        <div className="popup-book-crease" />
+      {/* Floating particles */}
+      <div className="portal-particles">
+        {Array.from({ length: 12 }).map((_, i) => (
+          <span key={i} className="portal-particle" style={{
+            '--i': i,
+            '--delay': `${i * 0.3}s`,
+            '--size': `${3 + Math.random() * 4}px`,
+            '--x': `${10 + Math.random() * 80}%`,
+          } as React.CSSProperties} />
+        ))}
+      </div>
 
-        {/* Pop-up content area */}
+      {/* Portal arch frame */}
+      <div className={cn("portal-arch", isOpen && "portal-arch--open")}>
+        {/* Top arch ornament */}
+        <div className="portal-arch-top">
+          <span className="portal-arch-gem">✦</span>
+        </div>
+
+        {/* Side pillars */}
+        <div className="portal-pillar portal-pillar--right" />
+        <div className="portal-pillar portal-pillar--left" />
+
+        {/* Inner portal content */}
         <div className={cn(
-          "popup-book-content",
-          isOpen ? "popup-book-content--visible" : "popup-book-content--hidden"
+          "portal-content",
+          isOpen ? "portal-content--visible" : "portal-content--hidden"
         )}>
           {children}
         </div>
 
-        {/* Paper edge shadow at bottom */}
-        <div className="popup-book-edge" />
-
-        {/* Page curl corners */}
-        <div className="popup-book-curl popup-book-curl--bl" />
-        <div className="popup-book-curl popup-book-curl--br" />
+        {/* Bottom step */}
+        <div className="portal-step" />
       </div>
     </div>
   );
