@@ -7,8 +7,9 @@ import solMagicBookCover from "@/assets/sol-magic-book-cover.png";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import MobileNavigation from "@/components/MobileNavigation";
-import StoryBookCard from "@/components/ui/story-book-card";
-import StorySeriesCard from "@/components/ui/story-series-card";
+import PolaroidCard from "@/components/ui/polaroid-card";
+import CorkBoard from "@/components/ui/cork-board";
+import '@fontsource/caveat/index.css';
 
 import OfflineIndicator from "@/components/ui/offline-indicator";
 import EditStoryDialog from "@/components/story/edit-story-dialog";
@@ -290,15 +291,17 @@ const Library = () => {
     return order.map(key => groups.get(key)!);
   };
 
-  const renderStoryList = (storyList: Story[]) => {
+  const renderStoryList = (storyList: Story[], tabTitle?: string) => {
     const grouped = groupStories(storyList);
+    let cardIndex = 0;
     return (
-      <div className="grid grid-cols-2 gap-3">
+      <CorkBoard title={tabTitle || 'הסיפורים שלי'}>
         {grouped.map((group) => {
           if (group.length === 1) {
             const story = group[0];
+            const idx = cardIndex++;
             return (
-              <StoryBookCard
+              <PolaroidCard
                 key={story.id}
                 id={story.id}
                 storyId={story.id}
@@ -309,6 +312,7 @@ const Library = () => {
                 onDelete={handleDeleteStory}
                 onEdit={handleEditStory}
                 onClick={navigateToStory}
+                index={idx}
                 isOfflineSaved={fullOffline.isSaved(story.id)}
                 isDownloading={fullOffline.downloadingId === story.id}
                 offlineSize={fullOffline.getSize(story.id)}
@@ -317,23 +321,32 @@ const Library = () => {
               />
             );
           }
+          // Series: show first story as polaroid with series count badge
+          const mainStory = group[0];
+          const idx = cardIndex++;
           return (
-            <StorySeriesCard
-              key={group[0].id}
-              stories={group.map(s => ({ ...s, topic: translateTopic(s.topic) }))}
-              getCoverImage={getCoverImage}
+            <PolaroidCard
+              key={mainStory.id}
+              id={mainStory.id}
+              storyId={mainStory.id}
+              childName={mainStory.child_name}
+              topic={translateTopic(mainStory.topic)}
+              coverUrl={getCoverImage(mainStory)}
+              language={mainStory.language}
               onDelete={handleDeleteStory}
               onEdit={handleEditStory}
               onClick={navigateToStory}
-              isOfflineSaved={(id) => fullOffline.isSaved(id)}
-              downloadingId={fullOffline.downloadingId}
-              getOfflineSize={(id) => fullOffline.getSize(id)}
+              index={idx}
+              seriesCount={group.length}
+              isOfflineSaved={fullOffline.isSaved(mainStory.id)}
+              isDownloading={fullOffline.downloadingId === mainStory.id}
+              offlineSize={fullOffline.getSize(mainStory.id)}
               onDownloadOffline={handleDownloadOffline}
               onDeleteOffline={handleDeleteOffline}
             />
           );
         })}
-      </div>
+      </CorkBoard>
     );
   };
 
@@ -368,25 +381,26 @@ const Library = () => {
               <p className="text-sm text-muted-foreground/70">כשתהיו מחוברים לאינטרנט, הורידו סיפורים מהספרייה לקריאה אופליין 📥</p>
             </div>
           ) : (
-            <div className="grid grid-cols-2 gap-3">
-              {offlineStories.map((os) => {
+            <CorkBoard title="סיפורים שמורים">
+              {offlineStories.map((os, idx) => {
                 const coverUrl = os.coverBlob ? URL.createObjectURL(os.coverBlob) : solMagicBookCover;
                 return (
-                  <StoryBookCard
+                  <PolaroidCard
                     key={os.id}
                     id={os.id}
                     storyId={os.id}
                     childName={os.meta.child_name}
                     topic={translateTopic(os.meta.topic)}
                     coverUrl={coverUrl}
-                    onDelete={async () => {}} // Can't delete from server while offline
+                    onDelete={async () => {}}
                     onClick={() => navigate(`/story/${os.meta.slug || os.id}`)}
+                    index={idx}
                     isOfflineSaved
                     offlineSize={os.sizeBytes}
                   />
                 );
               })}
-            </div>
+            </CorkBoard>
           )}
         </div>
         <MobileNavigation />
