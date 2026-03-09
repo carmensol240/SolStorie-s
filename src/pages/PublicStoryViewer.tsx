@@ -231,7 +231,7 @@ const PublicStoryViewer = () => {
 
             {/* Story Pages */}
             {currentVirtual && (
-              <div key={currentPage} className="h-full w-full relative animate-fade-in">
+              <div key={currentPage} className="h-full w-full relative animate-fade-in overflow-hidden">
                 {currentVirtual.type === 'combined' ? (
                   /* Combined page (ages 0-2) — fullscreen illustration + text overlay */
                   <>
