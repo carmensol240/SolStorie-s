@@ -40,6 +40,7 @@ import { useIsMobile } from "@/hooks/use-mobile";
 // useSwipe removed - swipe navigation disabled per user request
 // useSignedUrls removed - story-illustrations bucket is public
 import { BookFrame, BookPage, BookHeader, NavigationArrows } from "@/components/story/book-frame";
+import { TheaterFrame } from "@/components/story/theater-frame";
 import { FileDown } from "lucide-react";
 import PdfFeaturePopup from "@/components/story/PdfFeaturePopup";
 
