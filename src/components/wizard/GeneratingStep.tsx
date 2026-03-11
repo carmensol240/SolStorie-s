@@ -191,12 +191,12 @@ const GeneratingStep = ({ formData, onComplete }: GeneratingStepProps) => {
       if (apiError) {
         console.error("API error:", apiError);
         if (apiError.message?.includes("401") || apiError.message?.includes("נדרשת התחברות")) {
-          toast({ variant: "destructive", title: "נדרשת התחברות", description: "אנא התחברו כדי ליצור סיפורים." });
+          toast({ title: "נדרשת התחברות", description: "אנא התחברו כדי ליצור סיפורים." });
           navigate("/auth?returnTo=/create");
           return;
         }
         if (apiError.message?.includes("429")) {
-          throw new Error("יותר מדי בקשות. נסו שוב בעוד מספר דקות.");
+          throw new Error("יותר מדי בקשות, ננסה שוב בעוד רגע...");
         }
         throw apiError;
       }

@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { ImageOff, Loader2, Sparkles, Send } from "lucide-react";
+import { Loader2, Sparkles, Send } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { cn } from "@/lib/utils";
