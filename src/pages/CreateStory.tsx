@@ -62,7 +62,7 @@ const steps = [
 const CreateStory = () => {
   const navigate = useNavigate();
   const { user, loading } = useAuth();
-  const { credits, loading: creditsLoading, hasCredits, useCredit } = useCredits();
+  const { credits, loading: creditsLoading, hasCredits, refetch: refetchCredits } = useCredits();
   const [step, setStep] = useState(1); // Start directly at child info step
   const [formData, setFormData] = useState<StoryFormData>(INITIAL_DATA);
   const [isGenerating, setIsGenerating] = useState(false);
