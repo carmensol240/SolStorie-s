@@ -1119,21 +1119,6 @@ serve(async (req) => {
     console.error("Error in generate-illustrations:", error);
     await logError("illustration_general_error", `generate-illustrations crash: ${error?.message || error}`, {});
     
-    // Try to update story status to failed
-    try {
-      const { storyId } = await req.json();
-      if (storyId) {
-        const supabase = createClient(
-          Deno.env.get("SUPABASE_URL")!,
-          Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!
-        );
-        await supabase
-          .from("stories")
-          .update({ generation_status: "failed" })
-          .eq("id", storyId);
-      }
-    } catch {}
-    
     return new Response(
       JSON.stringify({ error: "Error generating illustrations" }),
       { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
