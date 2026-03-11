@@ -62,14 +62,14 @@ const steps = [
 const CreateStory = () => {
   const navigate = useNavigate();
   const { user, loading } = useAuth();
-  const { credits, loading: creditsLoading, hasCredits, useCredit } = useCredits();
+  const { credits, loading: creditsLoading, hasCredits, refetch: refetchCredits } = useCredits();
   const [step, setStep] = useState(1); // Start directly at child info step
   const [formData, setFormData] = useState<StoryFormData>(INITIAL_DATA);
   const [isGenerating, setIsGenerating] = useState(false);
 
   const handleStoryGenerated = useCallback(async (storyId: string) => {
-    // Best-effort credit deduction — never block navigation
-    try { await useCredit(); } catch (e) { console.warn("[CreateStory] Credit deduction failed:", e); }
+    // Credits are now deducted server-side in generate-story — just refetch local state
+    try { await refetchCredits(); } catch (e) { console.warn("[CreateStory] Credit refetch failed:", e); }
     
     // Try to get slug for clean URL, fallback to UUID
     let slug = storyId;
@@ -94,7 +94,7 @@ const CreateStory = () => {
     sessionStorage.setItem("just_created_story", "true");
     // Navigate using slug for clean URLs — guaranteed to run
     navigate(`/story/${slug}`);
-  }, [useCredit, navigate]);
+  }, [refetchCredits, navigate]);
 
   const handleStoryGeneratedRef = useRef(handleStoryGenerated);
   useEffect(() => { handleStoryGeneratedRef.current = handleStoryGenerated; }, [handleStoryGenerated]);

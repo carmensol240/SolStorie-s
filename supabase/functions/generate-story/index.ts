@@ -610,6 +610,38 @@ serve(async (req) => {
         );
       }
     }
+    
+    // === ATOMIC CREDIT DEDUCTION (server-side) ===
+    // Deduct 1 credit atomically using the current DB value to avoid race conditions
+    // with coupon redemptions or concurrent requests
+    {
+      const { data: freshProfile } = await supabase
+        .from("profiles")
+        .select("story_credits")
+        .eq("id", userId)
+        .single();
+      
+      const freshCredits = freshProfile?.story_credits ?? 0;
+      if (freshCredits <= 0) {
+        console.log("Race condition: credits depleted between check and deduction");
+        return new Response(
+          JSON.stringify({ error: "נגמרו הקרדיטים", code: "NO_CREDITS" }),
+          { status: 402, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        );
+      }
+      
+      const { error: deductError } = await supabase
+        .from("profiles")
+        .update({ story_credits: freshCredits - 1 })
+        .eq("id", userId);
+      
+      if (deductError) {
+        console.error("Error deducting credit:", deductError);
+        // Non-blocking: continue with story generation even if deduction fails
+      } else {
+        console.log(`Credit deducted server-side: ${freshCredits} → ${freshCredits - 1}`);
+      }
+    }
     // === END CREDIT CHECK ===
 
     const { childName, childGender = "male", ageRange, storyLength = "short", topic, nikud, childPhoto, childAvatarUrl, personalityTraits, adventureLogic, language = "he", className, topicDescription, childId } = await req.json();
