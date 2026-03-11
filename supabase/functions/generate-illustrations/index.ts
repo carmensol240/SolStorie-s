@@ -209,15 +209,24 @@ NEGATIVE: realistic, photograph, semi-realistic, dark, muted, bokeh, hyper-reali
       return null;
     }
 
-    const data = await response.json();
+    let data: any;
+    try {
+      const rawText = await response.text();
+      data = JSON.parse(rawText);
+    } catch (parseErr) {
+      console.error("Gemini Image Gen: Failed to parse response JSON:", parseErr);
+      await logError("illustration_gemini_error", `Gemini Image Gen: JSON parse failed - ${parseErr?.message || parseErr}`, { model: "google/gemini-3-pro-image-preview" });
+      return null;
+    }
+
     const imageUrl = data.choices?.[0]?.message?.images?.[0]?.image_url?.url;
 
     if (imageUrl) {
       console.log("Gemini illustration generated successfully");
-      return imageUrl; // Already a data:image/png;base64,... URL
+      return imageUrl;
     }
 
-    console.warn("Gemini Image Generation: no image in response");
+    console.warn("Gemini Image Generation: no image in response", JSON.stringify(data).substring(0, 200));
     return null;
   } catch (error) {
     const isTimeout = error instanceof DOMException && error.name === "TimeoutError";
