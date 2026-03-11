@@ -68,8 +68,8 @@ const CreateStory = () => {
   const [isGenerating, setIsGenerating] = useState(false);
 
   const handleStoryGenerated = useCallback(async (storyId: string) => {
-    // Best-effort credit deduction — never block navigation
-    try { await useCredit(); } catch (e) { console.warn("[CreateStory] Credit deduction failed:", e); }
+    // Credits are now deducted server-side in generate-story — just refetch local state
+    try { await refetchCredits(); } catch (e) { console.warn("[CreateStory] Credit refetch failed:", e); }
     
     // Try to get slug for clean URL, fallback to UUID
     let slug = storyId;
