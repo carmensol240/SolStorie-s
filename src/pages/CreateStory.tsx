@@ -94,7 +94,7 @@ const CreateStory = () => {
     sessionStorage.setItem("just_created_story", "true");
     // Navigate using slug for clean URLs — guaranteed to run
     navigate(`/story/${slug}`);
-  }, [useCredit, navigate]);
+  }, [refetchCredits, navigate]);
 
   const handleStoryGeneratedRef = useRef(handleStoryGenerated);
   useEffect(() => { handleStoryGeneratedRef.current = handleStoryGenerated; }, [handleStoryGenerated]);
