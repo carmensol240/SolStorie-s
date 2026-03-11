@@ -242,14 +242,14 @@ const GeneratingStep = ({ formData, onComplete }: GeneratingStepProps) => {
         retryCountRef.current += 1;
         const delay = Math.min(1000 * Math.pow(2, retryCountRef.current + 1), 10000);
         console.log(`[GeneratingStep] Auto-retrying (${retryCountRef.current}/${MAX_RETRIES}) after ${delay}ms...`);
-        setProgress(0);
+        setProgress(5);
+        toast({ title: "יצירת הסיפור לקחה קצת יותר זמן ⏳", description: "מנסים שוב..." });
         await new Promise(resolve => setTimeout(resolve, delay));
         generateStory();
         return;
       }
       
-      setError(`אירעה שגיאה ביצירת הסיפור: ${errorMessage}`);
-      toast({ variant: "destructive", title: "שגיאה", description: "לא הצלחנו ליצור את הסיפור. אנא נסו שוב." });
+      setError("not_created");
     }
   }, [formData, onComplete, toast, navigate]);
 
