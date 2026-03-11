@@ -88,17 +88,25 @@ export const MissingIllustrationPrompt = ({
       ) : (
         <>
           <div className="text-center text-[#A08060]">
-            <ImageOff className="w-10 h-10 mx-auto mb-1 opacity-40" />
-            <p className="text-sm font-medium">ה-AI זקוק לעזרה 🎨</p>
-            <p className="text-xs opacity-70 mt-0.5">תארו לו מה לצייר</p>
+            <Sparkles className="w-10 h-10 mx-auto mb-1 opacity-50 text-purple-400" />
+            <p className="text-sm font-medium">האיור עדיין בדרך 🎨</p>
+            <p className="text-xs opacity-70 mt-0.5">אבל אפשר כבר לקרוא את הסיפור ולהקליט בקולכם!</p>
           </div>
           <Button
             size="sm"
-            onClick={onTogglePrompt}
+            onClick={() => onSubmit(pageId)}
             className="bg-gradient-to-r from-purple-600 via-pink-500 to-orange-400 hover:from-purple-700 hover:via-pink-600 hover:to-orange-500 text-white text-xs gap-1.5"
           >
             <Sparkles className="w-3.5 h-3.5" />
-            ייצרו תמונה עבורי
+            נסו ליצור איור שוב 🎨
+          </Button>
+          <Button
+            size="sm"
+            variant="ghost"
+            onClick={onTogglePrompt}
+            className="text-xs text-[#8B7355]"
+          >
+            תארו מה לצייר ✏️
           </Button>
         </>
       )}

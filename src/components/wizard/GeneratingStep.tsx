@@ -401,25 +401,34 @@ const GeneratingStep = ({ formData, onComplete }: GeneratingStepProps) => {
     return (
       <div className="flex flex-col items-center justify-center min-h-screen min-h-[100dvh] text-center space-y-6 px-6 bg-gradient-to-b from-[#FAF3E8] to-[#F5E6D3]" dir="rtl">
         <div className="w-28 h-28 bg-gradient-to-br from-purple-100 via-pink-100 to-orange-100 rounded-full flex items-center justify-center shadow-lg">
-          <span className="text-5xl">🎨</span>
+          <span className="text-5xl">😔</span>
         </div>
         <div className="space-y-3 max-w-sm">
           <h2 className="text-2xl font-bold bg-gradient-to-r from-purple-600 via-pink-500 to-orange-400 bg-clip-text text-transparent">
-            הקסם שלנו בעבודה!
+            לא הצלחנו ליצור את הסיפור הפעם
           </h2>
           <p className="text-[#5B3E96] text-base leading-relaxed">
-            אנחנו משדרגים את החוויה עבורכם ברגע זה.
-            <br />
-            נסו שוב בעוד כמה דקות — מבטיחים שיהיה שווה! ✨
+            קורה לפעמים 🤗 רוצים לנסות שוב?
           </p>
         </div>
-        <Button 
-          onClick={() => navigate("/")} 
-          size="lg" 
-          className="gap-2 bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white shadow-lg text-base px-8 py-6 rounded-2xl"
-        >
-          אסתדר, אחזור בקרוב 😊
-        </Button>
+        <div className="flex flex-col gap-3 w-full max-w-xs">
+          <Button 
+            onClick={handleRetry} 
+            size="lg" 
+            className="gap-2 bg-gradient-to-r from-purple-600 via-pink-500 to-orange-400 hover:from-purple-700 hover:via-pink-600 hover:to-orange-500 text-white shadow-lg text-base px-8 py-6 rounded-2xl w-full"
+          >
+            <RefreshCw className="w-5 h-5" />
+            נסו שוב ✨
+          </Button>
+          <Button 
+            onClick={() => navigate("/")} 
+            variant="ghost"
+            size="lg" 
+            className="gap-2 text-purple-600 hover:text-purple-700 hover:bg-purple-50 text-base rounded-2xl w-full"
+          >
+            חזרה לדף הבית
+          </Button>
+        </div>
       </div>
     );
   }
