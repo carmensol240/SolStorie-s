@@ -209,15 +209,24 @@ NEGATIVE: realistic, photograph, semi-realistic, dark, muted, bokeh, hyper-reali
       return null;
     }
 
-    const data = await response.json();
+    let data: any;
+    try {
+      const rawText = await response.text();
+      data = JSON.parse(rawText);
+    } catch (parseErr) {
+      console.error("Gemini Image Gen: Failed to parse response JSON:", parseErr);
+      await logError("illustration_gemini_error", `Gemini Image Gen: JSON parse failed - ${parseErr?.message || parseErr}`, { model: "google/gemini-3-pro-image-preview" });
+      return null;
+    }
+
     const imageUrl = data.choices?.[0]?.message?.images?.[0]?.image_url?.url;
 
     if (imageUrl) {
       console.log("Gemini illustration generated successfully");
-      return imageUrl; // Already a data:image/png;base64,... URL
+      return imageUrl;
     }
 
-    console.warn("Gemini Image Generation: no image in response");
+    console.warn("Gemini Image Generation: no image in response", JSON.stringify(data).substring(0, 200));
     return null;
   } catch (error) {
     const isTimeout = error instanceof DOMException && error.name === "TimeoutError";
@@ -284,7 +293,16 @@ NEGATIVE: realistic, photograph, semi-realistic, dark, muted, bokeh, hyper-reali
       return null;
     }
 
-    const data = await response.json();
+    let data: any;
+    try {
+      const rawText = await response.text();
+      data = JSON.parse(rawText);
+    } catch (parseErr) {
+      console.error("Gemini Image Gen (no face): Failed to parse response JSON:", parseErr);
+      await logError("illustration_gemini_noface_error", `Gemini no-face: JSON parse failed - ${parseErr?.message || parseErr}`, { model: "google/gemini-3-pro-image-preview" });
+      return null;
+    }
+
     const imageUrl = data.choices?.[0]?.message?.images?.[0]?.image_url?.url;
 
     if (imageUrl) {
@@ -292,7 +310,7 @@ NEGATIVE: realistic, photograph, semi-realistic, dark, muted, bokeh, hyper-reali
       return imageUrl;
     }
 
-    console.warn("Gemini Image Generation (no face): no image in response");
+    console.warn("Gemini Image Generation (no face): no image in response", JSON.stringify(data).substring(0, 200));
     return null;
   } catch (error) {
     const isTimeout = error instanceof DOMException && error.name === "TimeoutError";
@@ -1100,21 +1118,6 @@ serve(async (req) => {
   } catch (error) {
     console.error("Error in generate-illustrations:", error);
     await logError("illustration_general_error", `generate-illustrations crash: ${error?.message || error}`, {});
-    
-    // Try to update story status to failed
-    try {
-      const { storyId } = await req.json();
-      if (storyId) {
-        const supabase = createClient(
-          Deno.env.get("SUPABASE_URL")!,
-          Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!
-        );
-        await supabase
-          .from("stories")
-          .update({ generation_status: "failed" })
-          .eq("id", storyId);
-      }
-    } catch {}
     
     return new Response(
       JSON.stringify({ error: "Error generating illustrations" }),
