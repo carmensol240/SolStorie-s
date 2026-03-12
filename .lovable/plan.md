@@ -1,15 +1,26 @@
 
 
-## Plan: Hide PWA Install Section When Running as Installed App
+## Bug Analysis
 
-### Current Behavior
-The Settings screen (lines 183–215) always shows the PWA install section. It already uses `isInstalled` from `usePwaInstall()` to show "✅ האפליקציה כבר מותקנת" — but the entire section remains visible.
+The onboarding loop is caused by a combination of issues in the navigation flow between `RequireTerms` and `Onboarding`:
 
-### Change
-Wrap the entire PWA install `<div>` (lines 183–215) in a conditional: `{!isInstalled && ( ... )}`. The `isInstalled` flag from `usePwaInstall()` already checks `window.matchMedia('(display-mode: standalone)')`, so no new detection logic is needed.
+1. **Silent update failure**: In `Onboarding.handleContinue`, the Supabase `.update().eq()` call returns success (`error: null`) even when **zero rows are matched** (e.g., due to a race condition where the profile hasn't been created yet). The code doesn't verify the update actually persisted.
 
-**Single edit in `src/pages/Settings.tsx`:**
-- Line 183: Add `{!isInstalled && (`
-- Line 215: Close with `)}`
-- Remove the inner `isInstalled` green checkmark branch (lines 194–197) since it will never render
+2. **No `replace: true` on redirects**: Both `RequireTerms` (redirecting to `/onboarding`) and `Onboarding`'s guard effect (redirecting to `/adventure`) use `navigate()` without `{ replace: true }`, causing history stack pollution and making the loop worse.
+
+3. **Loop mechanics**: `handleContinue` thinks it succeeded → navigates to `/adventure` → `RequireTerms` queries DB → `terms_accepted_at` is still null → redirects back to `/onboarding` → Onboarding guard checks terms → still null → shows the form again.
+
+## Fix
+
+### 1. `src/pages/Onboarding.tsx` — Verify update actually persisted
+
+In `handleContinue`, after the update call, re-query the profile to confirm `terms_accepted_at` was saved. If not, use `upsert` as a fallback. Also add `{ replace: true }` to the guard navigation.
+
+### 2. `src/components/RequireTerms.tsx` — Use `replace: true`
+
+Change the `navigate` call to onboarding to use `{ replace: true }` so the history stack doesn't accumulate redirect entries.
+
+### 3. Both files — Add select return on update
+
+Use `.update(...).eq(...).select()` to get the updated row back, confirming the write succeeded. If the returned array is empty, fall back to an upsert to handle the edge case where the profile row doesn't exist yet.
 

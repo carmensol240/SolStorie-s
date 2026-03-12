@@ -180,39 +180,37 @@ const Settings = () => {
             </div>
           )}
 
-          {/* PWA Install - SolStorie's App */}
-          <div className="bg-gradient-to-r from-amber-50 to-orange-50 dark:from-amber-950/20 dark:to-orange-950/20 rounded-lg px-3 py-3 border border-amber-200 dark:border-amber-800 space-y-2">
-            <div className="flex items-center gap-2 justify-end">
-              <div className="text-right">
-                <span className="font-bold text-sm text-foreground block">התקנת <span dir="ltr" className="inline-block">SolStorie's™</span></span>
-                <span className="text-[11px] text-muted-foreground block">גישה מהירה לכל הסיפורים שלכם ישירות ממסך הבית.</span>
+          {/* PWA Install - SolStorie's App - hidden when running as installed PWA */}
+          {!isInstalled && (
+            <div className="bg-gradient-to-r from-amber-50 to-orange-50 dark:from-amber-950/20 dark:to-orange-950/20 rounded-lg px-3 py-3 border border-amber-200 dark:border-amber-800 space-y-2">
+              <div className="flex items-center gap-2 justify-end">
+                <div className="text-right">
+                  <span className="font-bold text-sm text-foreground block">התקנת <span dir="ltr" className="inline-block">SolStorie's™</span></span>
+                  <span className="text-[11px] text-muted-foreground block">גישה מהירה לכל הסיפורים שלכם ישירות ממסך הבית.</span>
+                </div>
+                <div className="w-8 h-8 bg-gradient-to-r from-amber-400/20 to-orange-400/20 rounded-lg flex items-center justify-center flex-shrink-0">
+                  <Smartphone className="w-4 h-4 text-amber-600 dark:text-amber-400" />
+                </div>
               </div>
-              <div className="w-8 h-8 bg-gradient-to-r from-amber-400/20 to-orange-400/20 rounded-lg flex items-center justify-center flex-shrink-0">
-                <Smartphone className="w-4 h-4 text-amber-600 dark:text-amber-400" />
-              </div>
+              {canPrompt ? (
+                <button
+                  onClick={promptInstall}
+                  className="w-full py-2 bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white font-bold text-sm rounded-xl transition-all flex items-center justify-center gap-1.5"
+                >
+                  <Download className="w-3.5 h-3.5" />
+                  התקנת אפליקציה על מסך הבית
+                </button>
+              ) : (
+                <button
+                  onClick={() => setInstallHelpOpen(true)}
+                  className="w-full py-2 bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white font-bold text-sm rounded-xl transition-all flex items-center justify-center gap-1.5"
+                >
+                  <Download className="w-3.5 h-3.5" />
+                  איך מתקינים את <span dir="ltr" className="inline-block">SolStorie's™</span>?
+                </button>
+              )}
             </div>
-            {isInstalled ? (
-              <p className="text-sm text-green-600 dark:text-green-400 text-center font-medium flex items-center justify-center gap-1.5">
-                ✅ האפליקציה כבר מותקנת
-              </p>
-            ) : canPrompt ? (
-              <button
-                onClick={promptInstall}
-                className="w-full py-2 bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white font-bold text-sm rounded-xl transition-all flex items-center justify-center gap-1.5"
-              >
-                <Download className="w-3.5 h-3.5" />
-                התקנת אפליקציה על מסך הבית
-              </button>
-            ) : (
-              <button
-                onClick={() => setInstallHelpOpen(true)}
-                className="w-full py-2 bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white font-bold text-sm rounded-xl transition-all flex items-center justify-center gap-1.5"
-              >
-                <Download className="w-3.5 h-3.5" />
-                איך מתקינים את <span dir="ltr" className="inline-block">SolStorie's™</span>?
-              </button>
-            )}
-          </div>
+          )}
 
           <button
             onClick={() => setAccessibilityOpen(true)}
