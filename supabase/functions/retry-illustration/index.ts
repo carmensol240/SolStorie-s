@@ -142,11 +142,11 @@ serve(async (req) => {
 
       const personalizedPrompt = `FACE REFERENCE: The main character's face MUST be an EXACT 3D Pixar rendering of the child in the reference photo. Keep all facial features, hair color, hair texture, and skin tone identical.
 
-STYLE: Pixar 3D CGI animation style, big expressive cartoon eyes with sparkling highlights, soft rounded cute features, oversized head with small body, vibrant saturated colors, cinematic warm lighting with glowing accents, fantasy children's book, high quality render, Disney-Pixar aesthetic. NOT realistic. Full body from head to toe, feet VISIBLE and GROUNDED on the surface.
+STYLE: ${PIXAR_STYLE}
 
 SCENE (THIS IS THE MOST IMPORTANT PART — illustrate THIS specific scene in detail): ${prompt}
 
-NEGATIVE: realistic, photograph, semi-realistic, dark, muted, bokeh, hyper-realistic, floating head, missing body, extra limbs, cropped feet, text, watermark, UI elements, no black bars, no black borders, no taskbar, no status bar, no phone frame, no app interface, no screenshot artifacts, no interface elements, full bleed illustration only`;
+NEGATIVE: ${NEGATIVE_PROMPT}`;
 
       for (let attempt = 1; attempt <= MAX_ATTEMPTS; attempt++) {
         try {
