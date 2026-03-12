@@ -245,7 +245,7 @@ const Auth = () => {
         eventType: 'referral_signup_completed', 
         metadata: { referrer_id: referrer.id } 
       });
-      trackEvent({ eventType: 'coin_awarded' });
+      trackEvent({ eventType: 'referral_credit_awarded' });
 
       localStorage.removeItem('referral_code');
     } catch (error) {
