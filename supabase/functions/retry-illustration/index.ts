@@ -202,9 +202,7 @@ NEGATIVE: ${NEGATIVE_PROMPT}`;
           status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" },
         });
       }
-      const stylePrefix = `Pixar 3D CGI animation style, big expressive cartoon eyes with sparkling highlights, soft rounded cute features, oversized head with small body, vibrant saturated colors, cinematic warm lighting with glowing accents, fantasy children's book, high quality render, Disney-Pixar aesthetic. NOT realistic. Full body from head to toe, feet VISIBLE and GROUNDED on the surface.`;
-      const negativePrompt = `realistic, semi-realistic, real human, photograph, photorealistic, dark, muted colors, cinematic bokeh, hyper-realistic, floating head, missing body, missing limbs, extra limbs, deformed, distorted, text, watermark, UI elements, no black bars, no black borders, no taskbar, no status bar, no phone frame, no app interface, no screenshot artifacts, no interface elements, full bleed illustration only`;
-      const fullPrompt = `${stylePrefix}\n\nSCENE: ${prompt}\n\nNEGATIVE: ${negativePrompt}`;
+      const fullPrompt = `${PIXAR_STYLE}\n\nSCENE: ${prompt}\n\nNEGATIVE: ${NEGATIVE_PROMPT_FULL}`;
       console.log(`Retrying illustration via Flux Schnell for story ${storyId}, page ${page.page_number}...`);
 
       for (let attempt = 1; attempt <= MAX_ATTEMPTS; attempt++) {
