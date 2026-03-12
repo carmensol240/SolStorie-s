@@ -55,6 +55,7 @@ const Auth = () => {
   
   // User role selection
   const [userRole, setUserRole] = useState<"parent" | "educator">("parent");
+  const [referralCodeInput, setReferralCodeInput] = useState("");
   
   // Profile data for trial offer
   const [displayName, setDisplayName] = useState<string>("");
