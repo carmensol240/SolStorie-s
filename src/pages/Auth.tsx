@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import { useNavigate, Link, useSearchParams } from "react-router-dom";
-import { Mail, Lock, Loader2, Eye, EyeOff, KeyRound, FileText, Shield, CheckCircle2, Sparkles, Heart, Users, Camera, Check, ArrowRight, RefreshCw, Smartphone, Tablet, Monitor, X } from "lucide-react";
+import { Mail, Lock, Loader2, Eye, EyeOff, KeyRound, FileText, Shield, CheckCircle2, Sparkles, Heart, Users, Camera, Check, ArrowRight, RefreshCw, Smartphone, Tablet, Monitor, X, Gift } from "lucide-react";
 import MobileNavigation from "@/components/MobileNavigation";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
