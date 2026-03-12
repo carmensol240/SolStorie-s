@@ -232,6 +232,12 @@ const HEBREW_TO_ENGLISH_TOPIC: Record<string, string> = {
   "סבא/סבתא חולה": "sick-grandparent",
   "ללמוד מטעויות": "making-mistakes",
   "בסדר לבכות": "crying-is-ok",
+  "דינוזאורים": "dinosaurs",
+  "בית מקרטון": "cardboard-house",
+  "ממתקים שקמו לחיים": "candy-alive",
+  "צעצועים שמדברים": "talking-toys",
+  "חיות משק": "farm-animals",
+  "חד קרן": "unicorn",
 };
 
 function getSettingForTopic(topic: string): string {
