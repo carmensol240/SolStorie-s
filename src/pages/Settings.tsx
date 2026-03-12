@@ -27,6 +27,7 @@ const Settings = () => {
   const { referralCode, loading: referralLoading } = useReferral();
   const { toast } = useToast();
   const [aboutOpen, setAboutOpen] = useState(false);
+  const [referralCopied, setReferralCopied] = useState(false);
   const [accessibilityOpen, setAccessibilityOpen] = useState(false);
   const [installHelpOpen, setInstallHelpOpen] = useState(false);
   const [isAdmin, setIsAdmin] = useState(false);
