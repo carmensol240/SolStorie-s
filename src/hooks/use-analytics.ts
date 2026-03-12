@@ -20,6 +20,7 @@ type EventType =
   | 'share_clicked'
   | 'referral_signup_completed'
   | 'coin_awarded'
+  | 'referral_credit_awarded'
   | 'coin_redeemed';
 
 interface TrackEventParams {
