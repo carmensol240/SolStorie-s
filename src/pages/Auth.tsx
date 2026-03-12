@@ -368,6 +368,12 @@ const Auth = () => {
     }
 
     setIsSubmitting(true);
+    
+    // Save referral code input to localStorage so processReferral picks it up
+    if (referralCodeInput.trim()) {
+      localStorage.setItem('referral_code', referralCodeInput.trim().toUpperCase());
+    }
+    
     const { error, data } = await signUpWithEmail(email, password, { user_role: userRole });
     
     if (error) {
