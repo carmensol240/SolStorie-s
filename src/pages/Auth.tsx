@@ -1316,6 +1316,24 @@ const Auth = () => {
                   </div>
                 </div>
 
+                {/* Referral Code Input */}
+                <div className="space-y-1.5">
+                  <Label htmlFor="referral-code" className="text-black/70 font-medium text-sm">יש לך קוד הפניה? הזן כאן (אופציונלי)</Label>
+                  <div className="relative">
+                    <Gift className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                    <Input
+                      id="referral-code"
+                      type="text"
+                      placeholder="לדוגמה: SOL-X7K2"
+                      value={referralCodeInput}
+                      onChange={(e) => setReferralCodeInput(e.target.value)}
+                      className="pr-10 text-left h-10 rounded-xl border-gray-200 text-sm"
+                      dir="ltr"
+                      maxLength={10}
+                    />
+                  </div>
+                </div>
+
                 {/* Terms consent checkbox - simplified */}
                 <div className="flex items-start gap-3 p-3 bg-gray-50 rounded-xl border border-gray-200">
                   <Checkbox
