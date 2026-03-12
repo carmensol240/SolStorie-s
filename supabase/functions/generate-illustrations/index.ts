@@ -2,42 +2,25 @@ import "https://deno.land/x/xhr@0.1.0/mod.ts";
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.39.3";
 import { logError } from "../_shared/log-error.ts";
+import {
+  PIXAR_STYLE,
+  PIXAR_STYLE_COMPACT,
+  NEGATIVE_PROMPT,
+  NEGATIVE_PROMPT_FULL,
+  CAST_NEGATIVE_PROMPT,
+  ADVENTURE_TOPICS,
+  SOL_CASUAL_URL,
+  SOL_HERO_URL,
+  MOM_CARMEN_URL,
+  CHARACTER_BASE_REFS,
+  CHARACTER_BASE_REFS_WITH_MOM,
+  buildCharacterRefs,
+} from "../_shared/style-config.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
 };
-
-// Adventure/fantasy topics where Sol Hero is used instead of Sol Casual
-const ADVENTURE_TOPICS = new Set([
-  "space-adventure", "magic-kingdom", "zoo-adventure", "cloud-adventure",
-  "magic-castle", "magic-keys", "magical-forest", "space-hero", "kingdom",
-  "underwater", "superheroes", "fantasy", "adventure", "dragon", "princess",
-  "pirate", "fairy", "wizard",
-]);
-
-const SOL_CASUAL_URL = "https://xqoxoxxlyfimlbekfjxo.supabase.co/storage/v1/object/public/character-assets/sol%20casual.png";
-const SOL_HERO_URL   = "https://xqoxoxxlyfimlbekfjxo.supabase.co/storage/v1/object/public/character-assets/sol%20hero.png";
-const MOM_CARMEN_URL = "https://xqoxoxxlyfimlbekfjxo.supabase.co/storage/v1/object/public/character-assets/mom-carmen.jpeg";
-const CHARACTER_BASE_REFS = [
-  "https://xqoxoxxlyfimlbekfjxo.supabase.co/storage/v1/object/public/character-assets/ben.jpeg",
-  "https://xqoxoxxlyfimlbekfjxo.supabase.co/storage/v1/object/public/character-assets/zoe.jpeg",
-  "https://xqoxoxxlyfimlbekfjxo.supabase.co/storage/v1/object/public/character-assets/leo.jpeg",
-  "https://xqoxoxxlyfimlbekfjxo.supabase.co/storage/v1/object/public/character-assets/mia.jpeg",
-  MOM_CARMEN_URL,
-];
-
-function buildCharacterRefs(topic: string) {
-  const isAdventure = ADVENTURE_TOPICS.has(topic);
-  const solUrl = isAdventure ? SOL_HERO_URL : SOL_CASUAL_URL;
-  const solLabel = isAdventure ? "Sol hero" : "Sol casual";
-  console.log(`Sol variant selected: ${solLabel} for topic "${topic}"`);
-  return {
-    urls: [solUrl, ...CHARACTER_BASE_REFS],
-    solLabel,
-    isAdventure,
-  };
-}
 
 // Character Profile interface for consistency across illustrations
 interface CharacterProfile {

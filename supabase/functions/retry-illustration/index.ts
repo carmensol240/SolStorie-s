@@ -1,26 +1,14 @@
 import "https://deno.land/x/xhr@0.1.0/mod.ts";
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.39.3";
-
-// Adventure/fantasy topics → Sol Hero; all others → Sol Casual
-const ADVENTURE_TOPICS = new Set([
-  "space-adventure", "magic-kingdom", "zoo-adventure", "cloud-adventure",
-  "magic-castle", "magic-keys", "magical-forest", "space-hero", "kingdom",
-  "underwater", "superheroes", "fantasy", "adventure", "dragon", "princess",
-  "pirate", "fairy", "wizard",
-]);
-const SOL_CASUAL_URL = "https://xqoxoxxlyfimlbekfjxo.supabase.co/storage/v1/object/public/character-assets/sol%20casual.png";
-const SOL_HERO_URL   = "https://xqoxoxxlyfimlbekfjxo.supabase.co/storage/v1/object/public/character-assets/sol%20hero.png";
-const CHARACTER_BASE_REFS = [
-  "https://xqoxoxxlyfimlbekfjxo.supabase.co/storage/v1/object/public/character-assets/ben.jpeg",
-  "https://xqoxoxxlyfimlbekfjxo.supabase.co/storage/v1/object/public/character-assets/zoe.jpeg",
-  "https://xqoxoxxlyfimlbekfjxo.supabase.co/storage/v1/object/public/character-assets/leo.jpeg",
-  "https://xqoxoxxlyfimlbekfjxo.supabase.co/storage/v1/object/public/character-assets/mia.jpeg",
-];
-function getSolUrl(topic: string): { url: string; label: string } {
-  const isAdventure = ADVENTURE_TOPICS.has(topic);
-  return { url: isAdventure ? SOL_HERO_URL : SOL_CASUAL_URL, label: isAdventure ? "Sol hero" : "Sol casual" };
-}
+import {
+  PIXAR_STYLE,
+  NEGATIVE_PROMPT,
+  NEGATIVE_PROMPT_FULL,
+  CAST_NEGATIVE_PROMPT,
+  CHARACTER_BASE_REFS,
+  getSolUrl,
+} from "../_shared/style-config.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
