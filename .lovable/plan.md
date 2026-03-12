@@ -1,26 +1,35 @@
 
 
-## Bug Analysis
+## Plan: Complete the Referral System
 
-The onboarding loop is caused by a combination of issues in the navigation flow between `RequireTerms` and `Onboarding`:
+### What Already Exists
+- `profiles.referral_code` and `profiles.share_coins` columns
+- `referrals` table for tracking
+- `use-referral.ts` hook with code generation, sharing, coin redemption
+- `ShareAndEarn.tsx` page with full sharing UI
+- `processReferral()` in Auth.tsx that handles URL-based referrals (`?ref=CODE`)
+- Referral code stored in localStorage from URL params
 
-1. **Silent update failure**: In `Onboarding.handleContinue`, the Supabase `.update().eq()` call returns success (`error: null`) even when **zero rows are matched** (e.g., due to a race condition where the profile hasn't been created yet). The code doesn't verify the update actually persisted.
+### What's Missing (3 changes)
 
-2. **No `replace: true` on redirects**: Both `RequireTerms` (redirecting to `/onboarding`) and `Onboarding`'s guard effect (redirecting to `/adventure`) use `navigate()` without `{ replace: true }`, causing history stack pollution and making the loop worse.
+**1. Add referral code input field to signup form (`src/pages/Auth.tsx`)**
+- Add a `referralCodeInput` state variable
+- Add an optional text field after the role selection: "יש לך קוד הפניה? הזן כאן"
+- When user submits signup, if `referralCodeInput` is filled, save it to localStorage as `referral_code` (same key `processReferral` already reads from)
+- This way the existing `processReferral` function handles everything automatically
 
-3. **Loop mechanics**: `handleContinue` thinks it succeeded → navigates to `/adventure` → `RequireTerms` queries DB → `terms_accepted_at` is still null → redirects back to `/onboarding` → Onboarding guard checks terms → still null → shows the form again.
+**2. Update `processReferral` to award `story_credits` instead of `share_coins` (`src/pages/Auth.tsx`)**
+- Currently awards `share_coins` which must be manually redeemed
+- The user wants the referrer to receive 1 free story credit directly
+- Change the update to increment `story_credits` instead of `share_coins`
 
-## Fix
+**3. Add referral section to Settings screen (`src/pages/Settings.tsx`)**
+- Add a section titled "הזמינו חבר/ה וקבלו סיפור במתנה! 🎉"
+- Show the user's referral code with a copy button
+- Show a pre-written share message: "הצטרפו ל-SolStorie's וקבלו סיפור ראשון חינם! השתמשו בקוד שלי: [CODE] בהרשמה 🎉"
+- Import and use `useReferral` hook
+- Place it between the credits button and the PWA install section
 
-### 1. `src/pages/Onboarding.tsx` — Verify update actually persisted
-
-In `handleContinue`, after the update call, re-query the profile to confirm `terms_accepted_at` was saved. If not, use `upsert` as a fallback. Also add `{ replace: true }` to the guard navigation.
-
-### 2. `src/components/RequireTerms.tsx` — Use `replace: true`
-
-Change the `navigate` call to onboarding to use `{ replace: true }` so the history stack doesn't accumulate redirect entries.
-
-### 3. Both files — Add select return on update
-
-Use `.update(...).eq(...).select()` to get the updated row back, confirming the write succeeded. If the returned array is empty, fall back to an upsert to handle the edge case where the profile row doesn't exist yet.
+### No Database Changes Required
+All needed columns and tables already exist.
 
