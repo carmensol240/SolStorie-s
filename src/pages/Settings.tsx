@@ -16,6 +16,8 @@ import {
 } from "@/components/ui/dialog";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { AboutSolStoriesContent } from "@/components/shared/AboutSolStoriesContent";
+import { useReferral } from "@/hooks/use-referral";
+import { useToast } from "@/hooks/use-toast";
 
 const Settings = () => {
   const navigate = useNavigate();
