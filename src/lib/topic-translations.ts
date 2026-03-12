@@ -110,6 +110,12 @@ const TOPIC_HEBREW_MAP: Record<string, string> = {
   'cloud-kingdom': 'ממלכת העננים',
   'dragon-party': 'מסיבת הדרקונים',
   'strange-inventions': 'המצאות משונות',
+  'dinosaurs': 'דינוזאורים',
+  'cardboard-house': 'בית מקרטון',
+  'candy-alive': 'ממתקים שקמו לחיים',
+  'talking-toys': 'צעצועים שמדברים',
+  'farm-animals': 'חיות משק',
+  'unicorn': 'חד קרן',
 
   // Legacy IDs (removed duplicates still need translation for existing stories)
   'honesty': 'אמירת אמת',

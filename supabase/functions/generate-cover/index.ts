@@ -118,6 +118,12 @@ const TOPIC_SETTINGS: Record<string, string> = {
   "cloud-kingdom": "Majestic cloud palace with cotton-candy towers, rainbow bridges, and golden sunbeams",
   "dragon-party": "Festive dragon cave with friendly colorful dragons, party hats, and a treasure-pile cake",
   "strange-inventions": "Wacky inventor's lab with bubbling potions, spinning gears, and crazy flying machines",
+  "dinosaurs": "Magical prehistoric jungle with friendly baby dinosaurs, giant ferns, erupting volcano in the distance, and warm golden sunlight",
+  "cardboard-house": "Giant magical cardboard box house with painted windows, a colorful door, and an imaginative world inside with stars and galaxies",
+  "candy-alive": "Magical candy land with walking lollipops, dancing gummy bears, a chocolate river, and colorful candy trees",
+  "talking-toys": "Cozy magical bedroom at night with toys coming alive — a teddy bear, a robot, and a doll talking together, fairy lights glowing",
+  "farm-animals": "Sunny farm with a red barn, green rolling hills, cute cartoon cow, chicken, pig, and sheep with big expressive eyes",
+  "unicorn": "Enchanted meadow with a sparkling white unicorn with rainbow mane, golden horn, flowers everywhere, rainbow in the sky",
   "accepting-differences": "Rainbow garden where every flower is unique, colorful butterflies, inclusive playground",
   "true-friendship": "Enchanted treehouse with a friendship bracelet workshop, fairy lights, and warm glow",
   "helping-home": "Cozy magical kitchen with floating dishes, sparkling sponges, and a happy apron",
@@ -232,6 +238,12 @@ const HEBREW_TO_ENGLISH_TOPIC: Record<string, string> = {
   "סבא/סבתא חולה": "sick-grandparent",
   "ללמוד מטעויות": "making-mistakes",
   "בסדר לבכות": "crying-is-ok",
+  "דינוזאורים": "dinosaurs",
+  "בית מקרטון": "cardboard-house",
+  "ממתקים שקמו לחיים": "candy-alive",
+  "צעצועים שמדברים": "talking-toys",
+  "חיות משק": "farm-animals",
+  "חד קרן": "unicorn",
 };
 
 function getSettingForTopic(topic: string): string {
