@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { ArrowRight, Mail, Trash2, LogOut, FileText, Shield, Eye, Info, Accessibility, Type, MousePointer, Link2, MonitorOff, Wand2, Sparkles, Download, Share, Smartphone, Volume2, LayoutDashboard } from "lucide-react";
+import { ArrowRight, Mail, Trash2, LogOut, FileText, Shield, Eye, Info, Accessibility, Type, MousePointer, Link2, MonitorOff, Wand2, Sparkles, Download, Share, Smartphone, Volume2, LayoutDashboard, Gift, Copy, Check } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { usePwaInstall } from "@/hooks/use-pwa-install";
 import { Button } from "@/components/ui/button";
@@ -16,13 +16,18 @@ import {
 } from "@/components/ui/dialog";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { AboutSolStoriesContent } from "@/components/shared/AboutSolStoriesContent";
+import { useReferral } from "@/hooks/use-referral";
+import { useToast } from "@/hooks/use-toast";
 
 const Settings = () => {
   const navigate = useNavigate();
   const { user, signOut } = useAuth();
   const { visualAidMode, setVisualAidMode, audioSupport, setAudioSupport, fontSize, setFontSize } = useAccessibility();
   const { canPrompt, isInstalled, isIOS, promptInstall } = usePwaInstall();
+  const { referralCode, loading: referralLoading } = useReferral();
+  const { toast } = useToast();
   const [aboutOpen, setAboutOpen] = useState(false);
+  const [referralCopied, setReferralCopied] = useState(false);
   const [accessibilityOpen, setAccessibilityOpen] = useState(false);
   const [installHelpOpen, setInstallHelpOpen] = useState(false);
   const [isAdmin, setIsAdmin] = useState(false);
@@ -133,6 +138,47 @@ const Settings = () => {
               </div>
             </div>
           </button>
+
+          {/* Referral Section */}
+          {user && referralCode && (
+            <div className="bg-gradient-to-r from-green-50 to-emerald-50 dark:from-green-950/20 dark:to-emerald-950/20 rounded-lg px-3 py-3 border border-green-200 dark:border-green-800 space-y-2.5">
+              <div className="flex items-center gap-2 justify-end">
+                <div className="text-right">
+                  <span className="font-bold text-sm text-foreground block">הזמינו חבר/ה וקבלו סיפור במתנה! 🎉</span>
+                  <span className="text-[11px] text-muted-foreground block">שתפו את הקוד שלכם וקבלו קרדיט סיפור חינם</span>
+                </div>
+                <div className="w-8 h-8 bg-gradient-to-r from-green-400/20 to-emerald-400/20 rounded-lg flex items-center justify-center flex-shrink-0">
+                  <Gift className="w-4 h-4 text-green-600 dark:text-green-400" />
+                </div>
+              </div>
+              
+              {/* Referral Code Display */}
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={async () => {
+                    const shareMsg = `הצטרפו ל-SolStorie's וקבלו סיפור ראשון חינם! השתמשו בקוד שלי: ${referralCode} בהרשמה 🎉`;
+                    try {
+                      await navigator.clipboard.writeText(shareMsg);
+                      setReferralCopied(true);
+                      toast({ title: "הועתק! 📋", description: "הודעת השיתוף הועתקה בהצלחה" });
+                      setTimeout(() => setReferralCopied(false), 2000);
+                    } catch { /* fallback */ }
+                  }}
+                  className="flex-shrink-0 p-2 rounded-lg bg-green-100 dark:bg-green-900/30 hover:bg-green-200 dark:hover:bg-green-800/40 transition-colors"
+                  aria-label="העתק הודעת שיתוף"
+                >
+                  {referralCopied ? <Check className="w-4 h-4 text-green-600" /> : <Copy className="w-4 h-4 text-green-600" />}
+                </button>
+                <div className="flex-1 bg-white dark:bg-black/20 rounded-lg px-3 py-2 border border-green-200 dark:border-green-700 text-center">
+                  <span className="font-mono font-bold text-lg tracking-wider text-green-700 dark:text-green-300" dir="ltr">{referralCode}</span>
+                </div>
+              </div>
+              
+              <p className="text-[11px] text-muted-foreground text-center leading-relaxed">
+                שתפו את ההודעה עם חברים – כשהם נרשמים עם הקוד שלכם, אתם מקבלים סיפור חינם!
+              </p>
+            </div>
+          )}
 
           {/* PWA Install - SolStorie's App */}
           <div className="bg-gradient-to-r from-amber-50 to-orange-50 dark:from-amber-950/20 dark:to-orange-950/20 rounded-lg px-3 py-3 border border-amber-200 dark:border-amber-800 space-y-2">
