@@ -24,6 +24,8 @@ const Settings = () => {
   const { user, signOut } = useAuth();
   const { visualAidMode, setVisualAidMode, audioSupport, setAudioSupport, fontSize, setFontSize } = useAccessibility();
   const { canPrompt, isInstalled, isIOS, promptInstall } = usePwaInstall();
+  const { referralCode, loading: referralLoading } = useReferral();
+  const { toast } = useToast();
   const [aboutOpen, setAboutOpen] = useState(false);
   const [accessibilityOpen, setAccessibilityOpen] = useState(false);
   const [installHelpOpen, setInstallHelpOpen] = useState(false);
