@@ -1,6 +1,11 @@
 import "https://deno.land/x/xhr@0.1.0/mod.ts";
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.39.3";
+import {
+  PIXAR_STYLE_COMPACT,
+  NEGATIVE_PROMPT_FULL,
+  CHARACTER_CARDS,
+} from "../_shared/style-config.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -27,16 +32,16 @@ serve(async (req) => {
 
     console.log("🎨 Generating hero image for app welcome screen...");
 
-    const heroPrompt = `3D Disney Pixar cartoon animation style, inspired by 'Coco' and 'Encanto'. Characters must look like adorable cartoon dolls — NOT realistic humans. Big round expressive cartoon eyes with sparkling highlights, soft rounded cute faces, smooth stylized skin with NO pores or texture. Exaggerated cute proportions with large heads, small noses, and expressive faces. Vibrant rich saturated colors, warm magical golden lighting. Clean sharp 3D rendering, rich textures, playful and whimsical atmosphere. DO NOT render flat, photorealistic, semi-realistic, dark, muted, cinematic bokeh, or hyper-realistic styles. Characters must NEVER look like real humans or photographs — always stylized 3D cartoon dolls. Portrait orientation (9:16 aspect ratio).
+    const heroPrompt = `${PIXAR_STYLE_COMPACT}
 
 SCENE: "Gateway to the Magical World" — A magnificent, enormous glowing magical portal/gateway made of golden swirling light and sparkling fairy dust stands in the center. The portal opens to reveal a fantastical world full of vivid colors — floating islands, rainbow waterfalls, giant colorful flowers, and shimmering butterflies. The sky behind is a breathtaking gradient of purple, pink, and deep blue with twinkling stars and magical sparkles.
 
 CHARACTERS (all 5 must appear together, standing in front of the magical portal, excited and ready for adventure):
-1. Sol - a girl about 4 years old, warm tan skin, large expressive brown eyes, long wavy dark brown hair (NOT blonde) tied in a high ponytail with a bright pink hair band. Wearing a bright sunny yellow dress. She stands at the front-center, leading the group with one arm raised invitingly toward the portal, big warm smile, as if saying "come with us!"
-2. Mia - a girl about 4 years old, wearing an emerald green dress, smooth brown bob cut hair, with a small flower crown on her head. She stands to Sol's left, leaning forward with wide curious eyes, hands clasped together in excitement.
-3. Leo - a boy about 4 years old, straight black hair, round glasses, wearing denim overalls over a red-and-yellow striped shirt. He stands to Sol's right, holding up a large glowing rainbow-colored magic pencil that emits sparkles. He has a thoughtful, friendly smile.
-4. Ben - a small curly-haired toddler about 3 years old, dark brown curly hair (NOT blonde), warm tan skin similar to Sol (they look like siblings). He is the smallest, peeking out from behind Sol with wide amazed eyes and a shy sweet smile. Wearing a light green shirt.
-5. Zoe - a girl about 4 years old with dark brown skin, voluminous afro hair with a light blue headband between her forehead and curls. Wearing a purple-and-yellow tracksuit. She stands on the far side in a dynamic, energetic pose — one fist pumping the air, soccer ball tucked under her other arm. Big confident grin.
+1. ${CHARACTER_CARDS.sol_hero}. She stands at the front-center, leading the group with one arm raised invitingly toward the portal, big warm smile, as if saying "come with us!"
+2. ${CHARACTER_CARDS.mia}. She stands to Sol's left, leaning forward with wide curious eyes, hands clasped together in excitement.
+3. ${CHARACTER_CARDS.leo}. He stands to Sol's right, holding up a large glowing rainbow-colored magic pencil that emits sparkles. He has a thoughtful, friendly smile.
+4. ${CHARACTER_CARDS.ben}. He is the smallest, peeking out from behind Sol with wide amazed eyes and a shy sweet smile.
+5. ${CHARACTER_CARDS.zoe}. She stands on the far side in a dynamic, energetic pose — one fist pumping the air, soccer ball tucked under her other arm. Big confident grin.
 
 HEIGHT RELATIONSHIPS: Sol, Mia, Leo, and Zoe are roughly the same height. Ben is noticeably shorter — the youngest and smallest in the group.
 
@@ -44,9 +49,9 @@ TITLE TEXT: Display the text "SolStorie's™" prominently at the TOP of the imag
 
 COMPOSITION: This is an APP WELCOME SCREEN / HERO IMAGE. The magical portal fills the background. The 5 characters are arranged as an inviting group in the lower two-thirds, facing the viewer. The "SolStorie's™" title is at the top with clean space around it. The overall mood is magical, inviting, warm, exciting — making children want to enter this world.
 
-ATMOSPHERE: Magical golden light emanating from the portal bathes the characters in warm glow. Fairy dust particles float everywhere. The colors are rich and saturated — purples, golds, pinks, greens. Everything sparkles and glows.
+ATMOSPHERE: Magical golden light emanating from the portal bathes the characters in warm glow. Fairy dust particles float everywhere. The colors are rich and saturated — purples, golds, pinks, greens. Everything sparkles and glows. Portrait orientation (9:16 aspect ratio).
 
-EXCLUDE / NEGATIVE PROMPT: No realistic, no semi-realistic, no real humans, no photographs. No UI elements, no buttons, no audio icons, no play buttons, no watermarks, no text beyond "SolStorie's™". No additional characters beyond the 5 described. No floating heads, no disembodied heads, no missing bodies, no missing limbs, no extra limbs, no deformed characters, no distorted faces, no scary imagery, no grotesque elements, no mutated features. All characters must be shown as FULL BODY from head to toe. Characters must look like cartoon dolls, NEVER like real humans.`;
+NEGATIVE: ${NEGATIVE_PROMPT_FULL}. No additional characters beyond the 5 described. No UI elements, no buttons, no audio icons, no play buttons, no text beyond "SolStorie's™".`;
 
     const requestBody = {
       model: "google/gemini-3-pro-image-preview",
@@ -105,7 +110,6 @@ EXCLUDE / NEGATIVE PROMPT: No realistic, no semi-realistic, no real humans, no p
       });
     }
 
-    // Get public URL
     const { data: publicUrlData } = supabase.storage
       .from("topic-images")
       .getPublicUrl(filePath);
