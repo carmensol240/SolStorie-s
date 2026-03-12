@@ -1,5 +1,10 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import {
+  NEGATIVE_PROMPT_FULL,
+  TOPIC_IMAGE_STYLE_SUFFIX,
+  CAST_DESCRIPTIONS,
+} from "../_shared/style-config.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -7,15 +12,14 @@ const corsHeaders = {
     "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
 };
 
-const NEGATIVE = "realistic, semi-realistic, real human, photograph, photorealistic, floating head, disembodied head, missing limbs, extra limbs, deformed, distorted, scary, horror, grotesque, mutated, disfigured, extra fingers, bad anatomy, ugly, blurry, watermark, text, signature, cinematic bokeh, dark, muted colors, hyper-realistic, no black bars, no black borders, no taskbar, no status bar, no phone frame, no app interface, no screenshot artifacts, no interface elements, no UI elements, full bleed illustration only";
+const SOL_DESC = CAST_DESCRIPTIONS.sol;
+const BEN_DESC = CAST_DESCRIPTIONS.ben;
+const MIA_DESC = CAST_DESCRIPTIONS.mia;
+const LEO_DESC = CAST_DESCRIPTIONS.leo;
+const ZOE_DESC = CAST_DESCRIPTIONS.zoe;
 
-const SOL_DESC = "a 4-year-old girl named Sol with tanned olive skin, freckles, big round expressive cartoon eyes with sparkling highlights, long brown wavy hair tied in a high bun with a pink scrunchie, wearing a superhero outfit: a red cape, a light blue t-shirt with a golden star emblem on the chest, purple pants and white sneakers. Soft rounded cute face, smooth stylized skin.";
-const BEN_DESC = "a toddler boy named Ben with very dark brown extremely curly voluminous hair, big round expressive cartoon eyes, tanned skin, wearing a green t-shirt. He is the smallest character. Soft rounded cute face, smooth stylized skin.";
-const MIA_DESC = "a girl named Mia with a smooth brown bob haircut, a small flower crown, wearing a green dress, big round expressive cartoon eyes. Soft rounded cute face, smooth stylized skin.";
-const LEO_DESC = "a boy named Leo with straight black hair, round glasses, wearing denim overalls over a red-yellow striped shirt, big round expressive cartoon eyes. Soft rounded cute face, smooth stylized skin.";
-const ZOE_DESC = "a girl named Zoe with voluminous black curls, a light blue headband, wearing a purple-yellow sporty tracksuit, big round expressive cartoon eyes. Soft rounded cute face, smooth stylized skin.";
-
-const STYLE_SUFFIX = `Pixar 3D CGI animation style, big expressive eyes, soft rounded features, oversized head with small body, vibrant saturated colors, cinematic warm lighting with glowing accents, fantasy children's book background, high quality render, Disney-Pixar aesthetic. Characters must look like adorable cartoon dolls — NOT realistic humans. 9:16 portrait aspect ratio. Negative prompt: ${NEGATIVE}`;
+const NEGATIVE = NEGATIVE_PROMPT_FULL;
+const STYLE_SUFFIX = TOPIC_IMAGE_STYLE_SUFFIX;
 
 const TOPIC_PROMPTS: Record<string, { filename: string; prompt: string }> = {
   "blood-test": {

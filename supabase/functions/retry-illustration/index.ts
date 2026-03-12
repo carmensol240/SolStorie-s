@@ -1,26 +1,14 @@
 import "https://deno.land/x/xhr@0.1.0/mod.ts";
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.39.3";
-
-// Adventure/fantasy topics → Sol Hero; all others → Sol Casual
-const ADVENTURE_TOPICS = new Set([
-  "space-adventure", "magic-kingdom", "zoo-adventure", "cloud-adventure",
-  "magic-castle", "magic-keys", "magical-forest", "space-hero", "kingdom",
-  "underwater", "superheroes", "fantasy", "adventure", "dragon", "princess",
-  "pirate", "fairy", "wizard",
-]);
-const SOL_CASUAL_URL = "https://xqoxoxxlyfimlbekfjxo.supabase.co/storage/v1/object/public/character-assets/sol%20casual.png";
-const SOL_HERO_URL   = "https://xqoxoxxlyfimlbekfjxo.supabase.co/storage/v1/object/public/character-assets/sol%20hero.png";
-const CHARACTER_BASE_REFS = [
-  "https://xqoxoxxlyfimlbekfjxo.supabase.co/storage/v1/object/public/character-assets/ben.jpeg",
-  "https://xqoxoxxlyfimlbekfjxo.supabase.co/storage/v1/object/public/character-assets/zoe.jpeg",
-  "https://xqoxoxxlyfimlbekfjxo.supabase.co/storage/v1/object/public/character-assets/leo.jpeg",
-  "https://xqoxoxxlyfimlbekfjxo.supabase.co/storage/v1/object/public/character-assets/mia.jpeg",
-];
-function getSolUrl(topic: string): { url: string; label: string } {
-  const isAdventure = ADVENTURE_TOPICS.has(topic);
-  return { url: isAdventure ? SOL_HERO_URL : SOL_CASUAL_URL, label: isAdventure ? "Sol hero" : "Sol casual" };
-}
+import {
+  PIXAR_STYLE,
+  NEGATIVE_PROMPT,
+  NEGATIVE_PROMPT_FULL,
+  CAST_NEGATIVE_PROMPT,
+  CHARACTER_BASE_REFS,
+  getSolUrl,
+} from "../_shared/style-config.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -154,11 +142,11 @@ serve(async (req) => {
 
       const personalizedPrompt = `FACE REFERENCE: The main character's face MUST be an EXACT 3D Pixar rendering of the child in the reference photo. Keep all facial features, hair color, hair texture, and skin tone identical.
 
-STYLE: Pixar 3D CGI animation style, big expressive cartoon eyes with sparkling highlights, soft rounded cute features, oversized head with small body, vibrant saturated colors, cinematic warm lighting with glowing accents, fantasy children's book, high quality render, Disney-Pixar aesthetic. NOT realistic. Full body from head to toe, feet VISIBLE and GROUNDED on the surface.
+STYLE: ${PIXAR_STYLE}
 
 SCENE (THIS IS THE MOST IMPORTANT PART — illustrate THIS specific scene in detail): ${prompt}
 
-NEGATIVE: realistic, photograph, semi-realistic, dark, muted, bokeh, hyper-realistic, floating head, missing body, extra limbs, cropped feet, text, watermark, UI elements, no black bars, no black borders, no taskbar, no status bar, no phone frame, no app interface, no screenshot artifacts, no interface elements, full bleed illustration only`;
+NEGATIVE: ${NEGATIVE_PROMPT}`;
 
       for (let attempt = 1; attempt <= MAX_ATTEMPTS; attempt++) {
         try {
@@ -214,9 +202,7 @@ NEGATIVE: realistic, photograph, semi-realistic, dark, muted, bokeh, hyper-reali
           status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" },
         });
       }
-      const stylePrefix = `Pixar 3D CGI animation style, big expressive cartoon eyes with sparkling highlights, soft rounded cute features, oversized head with small body, vibrant saturated colors, cinematic warm lighting with glowing accents, fantasy children's book, high quality render, Disney-Pixar aesthetic. NOT realistic. Full body from head to toe, feet VISIBLE and GROUNDED on the surface.`;
-      const negativePrompt = `realistic, semi-realistic, real human, photograph, photorealistic, dark, muted colors, cinematic bokeh, hyper-realistic, floating head, missing body, missing limbs, extra limbs, deformed, distorted, text, watermark, UI elements, no black bars, no black borders, no taskbar, no status bar, no phone frame, no app interface, no screenshot artifacts, no interface elements, full bleed illustration only`;
-      const fullPrompt = `${stylePrefix}\n\nSCENE: ${prompt}\n\nNEGATIVE: ${negativePrompt}`;
+      const fullPrompt = `${PIXAR_STYLE}\n\nSCENE: ${prompt}\n\nNEGATIVE: ${NEGATIVE_PROMPT_FULL}`;
       console.log(`Retrying illustration via Flux Schnell for story ${storyId}, page ${page.page_number}...`);
 
       for (let attempt = 1; attempt <= MAX_ATTEMPTS; attempt++) {

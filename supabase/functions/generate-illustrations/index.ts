@@ -2,42 +2,25 @@ import "https://deno.land/x/xhr@0.1.0/mod.ts";
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.39.3";
 import { logError } from "../_shared/log-error.ts";
+import {
+  PIXAR_STYLE,
+  PIXAR_STYLE_COMPACT,
+  NEGATIVE_PROMPT,
+  NEGATIVE_PROMPT_FULL,
+  CAST_NEGATIVE_PROMPT,
+  ADVENTURE_TOPICS,
+  SOL_CASUAL_URL,
+  SOL_HERO_URL,
+  MOM_CARMEN_URL,
+  CHARACTER_BASE_REFS,
+  CHARACTER_BASE_REFS_WITH_MOM,
+  buildCharacterRefs,
+} from "../_shared/style-config.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
 };
-
-// Adventure/fantasy topics where Sol Hero is used instead of Sol Casual
-const ADVENTURE_TOPICS = new Set([
-  "space-adventure", "magic-kingdom", "zoo-adventure", "cloud-adventure",
-  "magic-castle", "magic-keys", "magical-forest", "space-hero", "kingdom",
-  "underwater", "superheroes", "fantasy", "adventure", "dragon", "princess",
-  "pirate", "fairy", "wizard",
-]);
-
-const SOL_CASUAL_URL = "https://xqoxoxxlyfimlbekfjxo.supabase.co/storage/v1/object/public/character-assets/sol%20casual.png";
-const SOL_HERO_URL   = "https://xqoxoxxlyfimlbekfjxo.supabase.co/storage/v1/object/public/character-assets/sol%20hero.png";
-const MOM_CARMEN_URL = "https://xqoxoxxlyfimlbekfjxo.supabase.co/storage/v1/object/public/character-assets/mom-carmen.jpeg";
-const CHARACTER_BASE_REFS = [
-  "https://xqoxoxxlyfimlbekfjxo.supabase.co/storage/v1/object/public/character-assets/ben.jpeg",
-  "https://xqoxoxxlyfimlbekfjxo.supabase.co/storage/v1/object/public/character-assets/zoe.jpeg",
-  "https://xqoxoxxlyfimlbekfjxo.supabase.co/storage/v1/object/public/character-assets/leo.jpeg",
-  "https://xqoxoxxlyfimlbekfjxo.supabase.co/storage/v1/object/public/character-assets/mia.jpeg",
-  MOM_CARMEN_URL,
-];
-
-function buildCharacterRefs(topic: string) {
-  const isAdventure = ADVENTURE_TOPICS.has(topic);
-  const solUrl = isAdventure ? SOL_HERO_URL : SOL_CASUAL_URL;
-  const solLabel = isAdventure ? "Sol hero" : "Sol casual";
-  console.log(`Sol variant selected: ${solLabel} for topic "${topic}"`);
-  return {
-    urls: [solUrl, ...CHARACTER_BASE_REFS],
-    solLabel,
-    isAdventure,
-  };
-}
 
 // Character Profile interface for consistency across illustrations
 interface CharacterProfile {
@@ -172,13 +155,13 @@ async function generateIllustrationWithFace(
 
     const illustrationPrompt = `FACE REFERENCE: The main character's face MUST be an EXACT 3D Pixar rendering of the child in the reference photo. Keep all facial features, hair color, hair texture, and skin tone identical.
 
-STYLE: Pixar 3D CGI animation style, big expressive cartoon eyes with sparkling highlights, soft rounded cute features, oversized head with small body, vibrant saturated colors, cinematic warm lighting with glowing accents, fantasy children's book, high quality render, Disney-Pixar aesthetic. NOT realistic. Full body from head to toe, feet VISIBLE and GROUNDED on the surface.
+STYLE: ${PIXAR_STYLE}
 
 ${adventureInstruction}
 
 SCENE (THIS IS THE MOST IMPORTANT PART — illustrate THIS specific scene in detail): ${prompt}
 
-NEGATIVE: realistic, photograph, semi-realistic, dark, muted, bokeh, hyper-realistic, floating head, missing body, extra limbs, cropped feet, text, watermark, UI elements, no black bars, no black borders, no taskbar, no status bar, no phone frame, no app interface, no screenshot artifacts, no interface elements, full bleed illustration only`;
+NEGATIVE: ${CAST_NEGATIVE_PROMPT}`;
 
     console.log("Generating illustration via Gemini Image Generation (face reference)...");
 
@@ -259,13 +242,13 @@ async function generateIllustrationGeminiNoFace(
 
     const illustrationPrompt = `${visualAnchor}
 
-STYLE: Pixar 3D CGI animation style, big expressive cartoon eyes with sparkling highlights, soft rounded cute features, oversized head with small body, vibrant saturated colors, cinematic warm lighting with glowing accents, fantasy children's book, high quality render, Disney-Pixar aesthetic. NOT realistic. Full body from head to toe, feet VISIBLE and GROUNDED on the surface.
+STYLE: ${PIXAR_STYLE}
 
 ${adventureInstruction}
 
 SCENE (THIS IS THE MOST IMPORTANT PART — illustrate THIS specific scene in detail): ${prompt}
 
-NEGATIVE: realistic, photograph, semi-realistic, dark, muted, bokeh, hyper-realistic, floating head, missing body, extra limbs, cropped feet, text, watermark, UI elements, no black bars, no black borders, no taskbar, no status bar, no phone frame, no app interface, no screenshot artifacts, no interface elements, full bleed illustration only`;
+NEGATIVE: ${NEGATIVE_PROMPT}`;
 
     console.log("Generating illustration via Gemini Image Generation (no face reference)...");
 
@@ -350,9 +333,9 @@ async function generateIllustration(
       ? `Setting: ${adventureLogic.background}. Theme: ${adventureLogic.theme}.`
       : "";
 
-    const stylePrefix = `Pixar 3D CGI animation style, big expressive eyes, soft rounded features, oversized head with small body, vibrant saturated colors, cinematic warm lighting with glowing accents, fantasy children's book background, high quality render, Disney-Pixar aesthetic. Characters must look like adorable cartoon dolls — NOT realistic humans. ALWAYS show characters FULL BODY from head to toe with feet VISIBLE and GROUNDED on the surface. Frame the character with generous margin from all edges.`;
+    const stylePrefix = PIXAR_STYLE_COMPACT;
 
-    const negativePrompt = `realistic, semi-realistic, real human, photograph, photorealistic, dark, muted colors, cinematic bokeh, hyper-realistic, shallow depth of field, floating head, missing body, missing limbs, extra limbs, deformed, distorted, scary, horror, mutated, cropped feet, cut off legs, floating character, half-body, missing feet, text, watermark, UI elements, no black bars, no black borders, no taskbar, no status bar, no phone frame, no app interface, no screenshot artifacts, no interface elements, full bleed illustration only`;
+    const negativePrompt = NEGATIVE_PROMPT_FULL;
 
     const fullPrompt = `${stylePrefix}\n\n${visualAnchor}\n\n${characterInstruction}\n${adventureInstruction}\n\nSCENE: ${prompt}\n\nNEGATIVE: ${negativePrompt}`;
 

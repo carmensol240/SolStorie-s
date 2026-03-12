@@ -1,38 +1,21 @@
 import "https://deno.land/x/xhr@0.1.0/mod.ts";
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.39.3";
+import {
+  PIXAR_STYLE,
+  NEGATIVE_PROMPT,
+  CAST_NEGATIVE_PROMPT,
+  ADVENTURE_TOPICS,
+  SOL_CASUAL_URL,
+  SOL_HERO_URL,
+  CHARACTER_BASE_REFS,
+  getSolUrl,
+} from "../_shared/style-config.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
 };
-
-// ── Identical style block used in generate-illustrations ──
-const PIXAR_STYLE = `Pixar 3D CGI animation style, big expressive cartoon eyes with sparkling highlights, soft rounded cute features, oversized head with small body, vibrant saturated colors, cinematic warm lighting with glowing accents, fantasy children's book, high quality render, Disney-Pixar aesthetic. NOT realistic. Full body from head to toe, feet VISIBLE and GROUNDED on the surface.`;
-
-const NEGATIVE_PROMPT = `realistic, photograph, semi-realistic, dark, muted, bokeh, hyper-realistic, floating head, missing body, extra limbs, cropped feet, text, watermark, UI elements, multiple characters, group shot, no black bars, no black borders, no taskbar, no status bar, no phone frame, no app interface, no screenshot artifacts, no interface elements, full bleed illustration only`;
-
-const CAST_NEGATIVE_PROMPT = `realistic, semi-realistic, real human, photograph, photorealistic, dark, muted colors, cinematic bokeh, hyper-realistic, shallow depth of field, floating head, missing body, missing limbs, extra limbs, deformed, distorted, scary, horror, mutated, cropped feet, cut off legs, floating character, half-body, missing feet, text, watermark, UI elements, no black bars, no black borders, no taskbar, no status bar, no phone frame, no app interface, no screenshot artifacts, no interface elements, full bleed illustration only`;
-
-// Adventure/fantasy topics → Sol Hero; all others → Sol Casual
-const ADVENTURE_TOPICS = new Set([
-  "space-adventure", "magic-kingdom", "zoo-adventure", "cloud-adventure",
-  "magic-castle", "magic-keys", "magical-forest", "space-hero", "kingdom",
-  "underwater", "superheroes", "fantasy", "adventure", "dragon", "princess",
-  "pirate", "fairy", "wizard",
-]);
-const SOL_CASUAL_URL = "https://xqoxoxxlyfimlbekfjxo.supabase.co/storage/v1/object/public/character-assets/sol%20casual.png";
-const SOL_HERO_URL   = "https://xqoxoxxlyfimlbekfjxo.supabase.co/storage/v1/object/public/character-assets/sol%20hero.png";
-const CHARACTER_BASE_REFS = [
-  "https://xqoxoxxlyfimlbekfjxo.supabase.co/storage/v1/object/public/character-assets/ben.jpeg",
-  "https://xqoxoxxlyfimlbekfjxo.supabase.co/storage/v1/object/public/character-assets/zoe.jpeg",
-  "https://xqoxoxxlyfimlbekfjxo.supabase.co/storage/v1/object/public/character-assets/leo.jpeg",
-  "https://xqoxoxxlyfimlbekfjxo.supabase.co/storage/v1/object/public/character-assets/mia.jpeg",
-];
-function getSolUrl(topic: string): { url: string; label: string } {
-  const isAdventure = ADVENTURE_TOPICS.has(topic);
-  return { url: isAdventure ? SOL_HERO_URL : SOL_CASUAL_URL, label: isAdventure ? "Sol hero" : "Sol casual" };
-}
 
 // Topic-to-Setting mapping for magical cover backgrounds
 const TOPIC_SETTINGS: Record<string, string> = {
