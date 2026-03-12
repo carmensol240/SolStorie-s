@@ -59,12 +59,12 @@ import topicFlyingVacation from "@/assets/topic-flying-vacation.jpg";
 import topicEnvironment from "@/assets/topic-environment.jpg";
 import topicMagicKeys from "@/assets/topic-magic-keys.jpg";
 import topicEducationalToolbox from "@/assets/topic-educational-toolbox.jpeg";
-import topicDinosaurs from "@/assets/topic-dinosaurs.jpg";
-import topicCardboardHouse from "@/assets/topic-cardboard-house.jpg";
-import topicCandyAlive from "@/assets/topic-candy-alive.jpg";
-import topicTalkingToys from "@/assets/topic-talking-toys.jpg";
-import topicFarmAnimals from "@/assets/topic-farm-animals.jpg";
-import topicUnicorn from "@/assets/topic-unicorn.jpg";
+const topicDinosaurs = `${TOPIC_IMAGES_BASE}/topic-dinosaurs.png`;
+const topicCardboardHouse = `${TOPIC_IMAGES_BASE}/topic-cardboard-house.png`;
+const topicCandyAlive = `${TOPIC_IMAGES_BASE}/topic-candy-alive.png`;
+const topicTalkingToys = `${TOPIC_IMAGES_BASE}/topic-talking-toys.png`;
+const topicFarmAnimals = `${TOPIC_IMAGES_BASE}/topic-farm-animals.png`;
+const topicUnicorn = `${TOPIC_IMAGES_BASE}/topic-unicorn.png`;
 import topicSafeRoom from "@/assets/topic-safe-room.png";
 import topicDadInReserves from "@/assets/topic-dad-in-reserves.jpg";
 import topicShabbat from "@/assets/topic-shabbat.jpg";
@@ -207,7 +207,7 @@ export const CHARACTER_SECTIONS: CharacterSection[] = [
       { id: "dragon-party", label: "מסיבת הדרקונים", description: "הזמנה בלתי-צפויה למסיבה של דרקונים ידידותיים: ריקודים, אש בצבעי קשת ושיר שמח שמדהים את כל היער.", image: topicDragonParty, ageRange: "3-8", keywords: ["דרקון", "מסיבה", "קסם", "ידידות"] },
       { id: "strange-inventions", label: "המצאות משונות", description: "ילד/ה עם דמיון פורה מחליט/ה להמציא את הדבר הכי מוזר שנראה אי-פעם – ומגלה שהמצאות הגדולות ביותר מתחילות בחיוך.", image: topicStrangeInventions, ageRange: "4-8", keywords: ["המצאות", "יצירתיות", "מדע", "פיתוח"] },
       { id: "dinosaurs", label: "🦕 דינוזאורים", description: "הרפתקה בעולם הדינוזאורים: לפגוש דינוזאורים ענקיים וידידותיים, לטוס עם טרודקטיל ולגלות סודות מהעבר הרחוק.", image: topicDinosaurs, ageRange: "3-8", keywords: ["דינוזאורים", "פרהיסטורי", "הרפתקה", "חיות"] },
-      { id: "cardboard-house", label: "📦 בית מקרטון", description: "סיפור על הקסם שבדמיון: קופסת קרטון רגילה הופכת לטירה, לספינה או לרקטה – הכל תלוי בכוח הדמיון!", image: topicCardboardHouse, ageRange: "3-6", keywords: ["קרטון", "דמיון", "יצירתיות", "משחק", "בית"] },
+      { id: "cardboard-house", label: "📦 בית מקרטון", description: "קופסת קרטון פשוטה שהופכת לטירה, ספינה או רקטה – הכל תלוי בדמיון!", image: topicCardboardHouse, ageRange: "3-6", keywords: ["קרטון", "דמיון", "יצירתיות", "משחק", "בית"] },
       { id: "candy-alive", label: "🍭 ממתקים שקמו לחיים", description: "מה קורה כשממתקים מתעוררים לחיים? סוכריות רוקדות, שוקולד שר ודובוני גומי יוצאים להרפתקה מתוקה ומפתיעה.", image: topicCandyAlive, ageRange: "3-6", keywords: ["ממתקים", "סוכריות", "דמיון", "קסם", "מתוק"] },
       { id: "talking-toys", label: "🧸 צעצועים שמדברים", description: "מה קורה בחדר כשכולם ישנים? הצעצועים מתעוררים! דובי, רובוט ובובה יוצאים יחד להרפתקה לילית מלאת הפתעות.", image: topicTalkingToys, ageRange: "3-6", keywords: ["צעצועים", "דובי", "דמיון", "לילה", "הרפתקה"] },
       { id: "farm-animals", label: "🐄 חיות משק", description: "הרפתקה בחווה: לפגוש פרות, תרנגולות, כבשים וחזירונים חמודים ולגלות מאיפה מגיעים חלב, ביצים וצמר.", image: topicFarmAnimals, ageRange: "3-6", keywords: ["חווה", "פרה", "תרנגולת", "חיות", "משק", "כבשה"] },

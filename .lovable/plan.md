@@ -1,37 +1,26 @@
 
 
-## Plan: Generate Pixar-Style Thumbnails for 6 New Topics
+## Bug Analysis
 
-### Problem
-The 6 new topic images (`src/assets/topic-dinosaurs.jpg`, etc.) were created as placeholder files and don't display correctly. They need proper Pixar-style thumbnails matching the existing topics.
+The onboarding loop is caused by a combination of issues in the navigation flow between `RequireTerms` and `Onboarding`:
 
-### Approach
-Generate thumbnails via an edge function using the Lovable AI Gateway (Gemini image model), upload to the `topic-images` storage bucket, then update `topic-data.ts` to reference the bucket URLs instead of local imports.
+1. **Silent update failure**: In `Onboarding.handleContinue`, the Supabase `.update().eq()` call returns success (`error: null`) even when **zero rows are matched** (e.g., due to a race condition where the profile hasn't been created yet). The code doesn't verify the update actually persisted.
 
-### Changes
+2. **No `replace: true` on redirects**: Both `RequireTerms` (redirecting to `/onboarding`) and `Onboarding`'s guard effect (redirecting to `/adventure`) use `navigate()` without `{ replace: true }`, causing history stack pollution and making the loop worse.
 
-**1. Create edge function `supabase/functions/generate-topic-images-batch/index.ts`**
-- Generates 6 images using `google/gemini-3-pro-image-preview` with Pixar-style prompts from `style-config.ts`
-- Uploads each to the `topic-images` bucket as `topic-{id}.png`
-- Prompts per topic:
-  - **dinosaurs**: Sol playing with friendly colorful dinosaurs in a prehistoric jungle
-  - **cardboard-house**: Sol inside a giant cardboard box transformed into a magical castle
-  - **candy-alive**: Sol surrounded by dancing candy, lollipops and gummy bears coming alive
-  - **talking-toys**: Sol with animated toys (teddy bear, robot, doll) in a moonlit bedroom
-  - **farm-animals**: Sol in a sunny farm petting cows, chickens and sheep
-  - **unicorn**: Sol riding a sparkling unicorn over a rainbow
+3. **Loop mechanics**: `handleContinue` thinks it succeeded → navigates to `/adventure` → `RequireTerms` queries DB → `terms_accepted_at` is still null → redirects back to `/onboarding` → Onboarding guard checks terms → still null → shows the form again.
 
-**2. Update `src/components/wizard/topic-data.ts`**
-- Remove the 6 local image imports (`topicDinosaurs`, `topicCardboardHouse`, etc.)
-- Replace with bucket URLs: `${TOPIC_IMAGES_BASE}/topic-{id}.png`
-- Update cardboard-house description to: `"קופסת קרטון פשוטה שהופכת לטירה, ספינה או רקטה – הכל תלוי בדמיון!"`
+## Fix
 
-**3. Delete unused local assets**
-- Remove `src/assets/topic-dinosaurs.jpg`, `topic-cardboard-house.jpg`, `topic-candy-alive.jpg`, `topic-talking-toys.jpg`, `topic-farm-animals.jpg`, `topic-unicorn.jpg`
+### 1. `src/pages/Onboarding.tsx` — Verify update actually persisted
 
-### Execution Order
-1. Create and deploy the batch generation edge function
-2. Invoke it to generate and upload the 6 images
-3. Update `topic-data.ts` to use bucket URLs + new description
-4. Clean up unused local files
+In `handleContinue`, after the update call, re-query the profile to confirm `terms_accepted_at` was saved. If not, use `upsert` as a fallback. Also add `{ replace: true }` to the guard navigation.
+
+### 2. `src/components/RequireTerms.tsx` — Use `replace: true`
+
+Change the `navigate` call to onboarding to use `{ replace: true }` so the history stack doesn't accumulate redirect entries.
+
+### 3. Both files — Add select return on update
+
+Use `.update(...).eq(...).select()` to get the updated row back, confirming the write succeeded. If the returned array is empty, fall back to an upsert to handle the edge case where the profile row doesn't exist yet.
 
