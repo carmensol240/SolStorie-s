@@ -230,14 +230,14 @@ const Auth = () => {
 
       const { data: referrerProfile } = await supabase
         .from('profiles')
-        .select('share_coins')
+        .select('story_credits')
         .eq('id', referrer.id)
         .single();
 
       if (referrerProfile) {
         await supabase
           .from('profiles')
-          .update({ share_coins: (referrerProfile.share_coins ?? 0) + 1 })
+          .update({ story_credits: (referrerProfile.story_credits ?? 0) + 1 })
           .eq('id', referrer.id);
       }
 
