@@ -360,6 +360,90 @@ const Library = () => {
     </div>
   );
 
+  // ---- GUEST MODE (not logged in) ----
+  if (!user && !authLoading) {
+    return (
+      <div className="min-h-screen flex flex-col" style={{ background: 'linear-gradient(135deg, #1a0f3a 0%, #2d1a6e 50%, #1a0f3a 100%)' }} dir="rtl">
+        {/* Floating stars */}
+        <div className="absolute inset-0 overflow-hidden pointer-events-none">
+          {[...Array(20)].map((_, i) => (
+            <div
+              key={i}
+              className="absolute rounded-full bg-white/60 animate-pulse"
+              style={{
+                width: `${Math.random() * 3 + 1}px`,
+                height: `${Math.random() * 3 + 1}px`,
+                top: `${Math.random() * 60}%`,
+                left: `${Math.random() * 100}%`,
+                animationDelay: `${Math.random() * 3}s`,
+                animationDuration: `${Math.random() * 2 + 2}s`,
+              }}
+            />
+          ))}
+        </div>
+
+        <div className="relative z-10 flex-1 flex flex-col items-center px-5 pt-6 pb-24">
+          {/* Hero image */}
+          <div className="w-48 h-48 rounded-full overflow-hidden border-4 border-yellow-400/50 shadow-2xl mb-5" style={{ boxShadow: '0 0 40px rgba(108,92,231,0.5)' }}>
+            <img
+              src={libraryChildReading}
+              alt="ילדה קוראת סיפור על טאבלט"
+              className="w-full h-full object-cover"
+            />
+          </div>
+
+          {/* Headline */}
+          <h1 className="text-2xl font-black text-center mb-2">
+            <span className="text-transparent bg-clip-text" style={{ backgroundImage: 'linear-gradient(90deg, #e8d5ff, #f0c040, #e8d5ff)' }}>
+              ✨ הספרייה הקסומה מחכה לכם!
+            </span>
+          </h1>
+
+          {/* Subtitle */}
+          <p className="text-sm text-purple-200 text-center font-medium leading-relaxed mb-6 max-w-xs">
+            צרו סיפורים מותאמים אישית עם הילד שלכם כגיבור — ושמרו אותם בספרייה האישית שלכם לתמיד
+          </p>
+
+          {/* Feature pills */}
+          <div className="flex flex-col gap-3 w-full max-w-xs mb-8">
+            {[
+              { emoji: "📚", text: "ספרייה אישית לכל המשפחה" },
+              { emoji: "🎨", text: "סיפורים בסגנון Pixar עם תמונת הילד" },
+              { emoji: "📥", text: "הורדה לקריאה אופליין בכל זמן" },
+            ].map((feature, i) => (
+              <div key={i} className="flex items-center gap-3 rounded-2xl px-4 py-3" style={{ background: 'rgba(255,255,255,0.08)', backdropFilter: 'blur(8px)' }}>
+                <span className="text-2xl flex-shrink-0">{feature.emoji}</span>
+                <span className="text-sm font-bold text-white/90">{feature.text}</span>
+              </div>
+            ))}
+          </div>
+
+          {/* CTA */}
+          <button
+            onClick={() => navigate("/auth")}
+            className="w-full max-w-xs py-3.5 rounded-full font-black text-base text-white shadow-xl transition-all hover:scale-[1.02] active:scale-95"
+            style={{
+              background: 'linear-gradient(135deg, #ec4899, #a855f7, #6366f1)',
+              boxShadow: '0 8px 30px -8px rgba(168,85,247,0.5)',
+            }}
+          >
+            הירשמו חינם והתחילו! 🚀
+          </button>
+
+          {/* Secondary link */}
+          <button
+            onClick={() => navigate("/auth")}
+            className="mt-3 text-sm text-purple-300 hover:text-white transition-colors font-medium"
+          >
+            יש לכם חשבון? <span className="underline">התחברו</span>
+          </button>
+        </div>
+
+        <MobileNavigation />
+      </div>
+    );
+  }
+
   // ---- OFFLINE MODE ----
   if (!isOnline) {
     return (
