@@ -422,7 +422,7 @@ const Library = () => {
           {/* CTA */}
           <button
             onClick={() => navigate("/auth")}
-            className="w-full max-w-xs py-3.5 rounded-full font-black text-base text-white shadow-xl transition-all hover:scale-[1.02] active:scale-95"
+            className="w-full max-w-xs py-3.5 rounded-full font-black text-base text-white shadow-xl transition-all hover:scale-[1.02] active:scale-95 text-center flex items-center justify-center"
             style={{
               background: 'linear-gradient(135deg, #ec4899, #a855f7, #6366f1)',
               boxShadow: '0 8px 30px -8px rgba(168,85,247,0.5)',
