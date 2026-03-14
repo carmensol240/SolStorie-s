@@ -88,7 +88,7 @@ const GiftCard = () => {
 
     const sender = senderName.trim() || "מישהו/י שאוהב/ת אתכם";
 
-    const message = `מתנה קסומה מחכה לכם! ${sender} שלחה לכם חבילה של ${selectedPkg.stories} סיפורים אישיים במתנה, שבהם סול (או שם הילד) הופכת לגיבורה של הרפתקאות מרגשות. איך מממשים? נכנסים ונרשמים בקלות בכתובת https://soulstory.co.il (או מתחברים), ומזינים את קוד הקופון האישי שלכם: ${generatedCode}! קריאה מהנה ומרגשת! ❤️`;
+    const message = `מתנה קסומה מחכה לכם! ${sender} שלח/ה לכם חבילה של ${selectedPkg.stories} סיפורים אישיים במתנה, שבהם סול (או שם הילד) הופך/ת לגיבור/ה של הרפתקאות מרגשות. איך מממשים? נכנסים ונרשמים בקלות בכתובת https://soulstory.co.il (או מתחברים), ומזינים את קוד הקופון האישי שלכם: ${generatedCode}! קריאה מהנה ומרגשת! ❤️`;
 
     const whatsappUrl = `https://wa.me/?text=${encodeURIComponent(message)}`;
     window.open(whatsappUrl, "_blank");
