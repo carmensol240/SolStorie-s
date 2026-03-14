@@ -322,10 +322,10 @@ const GiftCard = () => {
             <h3 className="text-sm font-black text-white mb-3">איך זה עובד? ✨</h3>
             <div className="space-y-2.5">
               {[
-                "בחרי חבילת סיפורים ושלמי בצורה מאובטחת",
-                "תקבלי קוד מתנה ייחודי מיד לאחר התשלום",
-                "שלחי את הקוד בוואטסאפ עם הודעה מעוצבת",
-                "המקבלת מזינה את הקוד ומקבלת את הסיפורים!",
+                "בחרו חבילת סיפורים ושלמו בצורה מאובטחת",
+                "תקבלו קוד מתנה ייחודי מיד לאחר התשלום",
+                "שלחו את הקוד בוואטסאפ עם הודעה מעוצבת",
+                "מזינים את הקוד ומקבלים את הסיפורים!",
               ].map((step, i) => (
                 <div key={i} className="flex items-start gap-2">
                   <div className="w-5 h-5 rounded-full bg-gradient-to-r from-pink-500 to-purple-500 flex items-center justify-center flex-shrink-0 mt-0.5">
