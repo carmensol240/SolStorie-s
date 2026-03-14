@@ -68,6 +68,20 @@ const TermsOfService = () => {
                 הנהלת האפליקציה שומרת לעצמה את הזכות להפסיק שירות למשתמש שיעשה שימוש לרעה במערכת או יזין תכנים פוגעניים.
               </p>
             </section>
+
+            <section>
+              <h2 className="text-lg font-bold text-foreground mb-2">מחויבות לבטיחות ואחריות</h2>
+              <p className="text-muted-foreground leading-relaxed">
+                אנו שומרים על פרטיותכם לפי התקנות המחמירות ביותר. כל התכנים והדמויות הם קניין רוחני בלעדי של <span dir="ltr" className="inline-block">SolStorie's™</span>.
+              </p>
+            </section>
+
+            <section>
+              <h2 className="text-lg font-bold text-foreground mb-2">הצהרת אי-אחריות</h2>
+              <p className="text-muted-foreground leading-relaxed">
+                השימוש באפליקציה הוא כלי עזר טכנולוגי וחווייתי בלבד ואינו מהווה תחליף לייעוץ מקצועי, חינוכי או רפואי.
+              </p>
+            </section>
           </div>
         </article>
 
