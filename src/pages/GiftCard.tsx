@@ -380,7 +380,7 @@ const GiftCard = () => {
               }}
             >
               <Gift className="w-5 h-5 ml-2" />
-              רכשי {selectedPkg?.stories} סיפורים במתנה — {CURRENCY_SYMBOL}{selectedPkg?.price} ✨
+              רכשו {selectedPkg?.stories} סיפורים במתנה — {CURRENCY_SYMBOL}{selectedPkg?.price} ✨
             </Button>
           </div>
         </div>
