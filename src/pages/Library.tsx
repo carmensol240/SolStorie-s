@@ -385,11 +385,11 @@ const Library = () => {
 
         <div className="relative z-10 flex-1 flex flex-col items-center px-5 pt-6 pb-24">
           {/* Hero image */}
-          <div className="w-48 h-48 rounded-full overflow-hidden border-4 border-yellow-400/50 shadow-2xl mb-5" style={{ boxShadow: '0 0 40px rgba(108,92,231,0.5)' }}>
+          <div className="w-64 h-64 rounded-2xl overflow-hidden border-4 border-purple-400/40 shadow-2xl mb-5" style={{ boxShadow: '0 0 50px rgba(108,92,231,0.5), 0 0 100px rgba(168,85,247,0.2)' }}>
             <img
-              src={libraryChildReading}
-              alt="ילדה קוראת סיפור על טאבלט"
-              className="w-full h-full object-cover"
+              src={libraryGirlReading}
+              alt="ילדה קוראת סיפור"
+              className="w-full h-full object-cover object-top"
             />
           </div>
 
