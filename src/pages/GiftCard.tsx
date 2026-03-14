@@ -205,7 +205,7 @@ const GiftCard = () => {
                 ) : (
                   <>
                     <Copy className="w-4 h-4 ml-2" />
-                    העתיקי את הקוד
+                    העתיקו את הקוד
                   </>
                 )}
               </Button>
