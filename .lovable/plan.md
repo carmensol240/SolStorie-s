@@ -1,26 +1,21 @@
 
 
-## Bug Analysis
+## Plan: Move CTA Button Right After Title in GuestLanding
 
-The onboarding loop is caused by a combination of issues in the navigation flow between `RequireTerms` and `Onboarding`:
+### Change: `src/components/home/GuestLanding.tsx`
 
-1. **Silent update failure**: In `Onboarding.handleContinue`, the Supabase `.update().eq()` call returns success (`error: null`) even when **zero rows are matched** (e.g., due to a race condition where the profile hasn't been created yet). The code doesn't verify the update actually persisted.
+Restructure the layout so the content appears in this order above the fold (no scroll needed):
 
-2. **No `replace: true` on redirects**: Both `RequireTerms` (redirecting to `/onboarding`) and `Onboarding`'s guard effect (redirecting to `/adventure`) use `navigate()` without `{ replace: true }`, causing history stack pollution and making the loop worse.
+1. **Keep**: Logo "SolStorie's™"
+2. **Keep**: "✨ סיפורים קסומים" + "הילד שלכם כגיבור הסיפור!"
+3. **Add immediately after title**: The CTA button — large, prominent, with text "בואו נתחיל! סיפור ראשון חינם ✨" (for guests) / existing text for logged-in users
+4. **Below the fold** (after scroll): Feature cards, device availability text, privacy link
 
-3. **Loop mechanics**: `handleContinue` thinks it succeeded → navigates to `/adventure` → `RequireTerms` queries DB → `terms_accepted_at` is still null → redirects back to `/onboarding` → Onboarding guard checks terms → still null → shows the form again.
+Implementation:
+- Remove the `flex-1 min-h-8` spacer that currently pushes features + button to the bottom
+- Move the CTA button (`handleStart`) right after the title section (line 131)
+- Keep feature cards and other content below, separated by spacing so they appear on scroll
+- Update guest button text to "בואו נתחיל! סיפור ראשון חינם ✨"
 
-## Fix
-
-### 1. `src/pages/Onboarding.tsx` — Verify update actually persisted
-
-In `handleContinue`, after the update call, re-query the profile to confirm `terms_accepted_at` was saved. If not, use `upsert` as a fallback. Also add `{ replace: true }` to the guard navigation.
-
-### 2. `src/components/RequireTerms.tsx` — Use `replace: true`
-
-Change the `navigate` call to onboarding to use `{ replace: true }` so the history stack doesn't accumulate redirect entries.
-
-### 3. Both files — Add select return on update
-
-Use `.update(...).eq(...).select()` to get the updated row back, confirming the write succeeded. If the returned array is empty, fall back to an upsert to handle the edge case where the profile row doesn't exist yet.
+Single file change, no database or structural changes.
 
