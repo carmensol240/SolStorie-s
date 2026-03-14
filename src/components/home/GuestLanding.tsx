@@ -88,7 +88,7 @@ const GuestLanding = ({ user, isLoggedIn }: GuestLandingProps) => {
   };
 
   // Determine button text based on login state
-  const buttonText = isLoggedIn ? "להתחלה לחצו כאן" : "להתחברות והרשמה לחצו כאן";
+  const buttonText = isLoggedIn ? "להתחלה לחצו כאן" : "בואו נתחיל! סיפור ראשון חינם ✨";
 
   return (
     <div className="flex-1 flex flex-col animate-fade-in relative">
@@ -111,7 +111,7 @@ const GuestLanding = ({ user, isLoggedIn }: GuestLandingProps) => {
         }} 
       />
 
-      {/* Content Container - with minimal bottom padding */}
+      {/* Content Container */}
       <div className="relative z-10 flex-1 flex flex-col px-5 pb-16">
         {/* Logo - Sol Character */}
         <div className="flex flex-col items-center pt-2 px-4 mb-1">
@@ -121,7 +121,7 @@ const GuestLanding = ({ user, isLoggedIn }: GuestLandingProps) => {
         </div>
 
         {/* Title Section - Compact & Centered */}
-        <div className="text-center mb-2 px-2">
+        <div className="text-center mb-4 px-2">
           <h2 className="text-2xl sm:text-3xl font-black text-purple-700 flex items-center justify-center gap-2 mb-1" style={{ textShadow: '1px 1px 3px rgba(255,255,255,0.9)' }}>
             <Sparkles className="w-6 h-6 text-purple-600" aria-hidden="true" />
             סיפורים קסומים
@@ -130,21 +130,11 @@ const GuestLanding = ({ user, isLoggedIn }: GuestLandingProps) => {
           <p className="text-lg text-pink-600 font-black text-center" style={{ textShadow: '1px 1px 3px rgba(255,255,255,0.8)' }}>הילד שלכם כגיבור הסיפור!</p>
         </div>
 
-        {/* Spacer to push content to bottom */}
-        <div className="flex-1 min-h-8" />
-
-        {/* Feature Cards - compact spacing */}
-        <div className="flex flex-col gap-2 mb-3 px-1">
-          {features.map((feature, index) => (
-            <FeatureCard key={index} {...feature} />
-          ))}
-        </div>
-
-        {/* Login/Register CTA */}
+        {/* CTA Button - immediately after title, above the fold */}
         <button
           onClick={handleStart}
           disabled={isNavigating}
-          className="w-full bg-gradient-to-r from-pink-500 via-pink-600 to-purple-600 hover:from-pink-600 hover:via-pink-700 hover:to-purple-700 text-white font-black text-base py-3.5 rounded-full shadow-xl transition-all flex items-center justify-center gap-2 disabled:opacity-70 disabled:cursor-not-allowed mx-auto mb-2"
+          className="w-full bg-gradient-to-r from-pink-500 via-pink-600 to-purple-600 hover:from-pink-600 hover:via-pink-700 hover:to-purple-700 text-white font-black text-lg py-4 rounded-full shadow-xl transition-all flex items-center justify-center gap-2 disabled:opacity-70 disabled:cursor-not-allowed mx-auto mb-6"
           style={{
             boxShadow: '0 8px 30px -8px rgba(236, 72, 153, 0.5), 0 4px 15px -4px rgba(147, 51, 234, 0.3)'
           }}
@@ -158,6 +148,13 @@ const GuestLanding = ({ user, isLoggedIn }: GuestLandingProps) => {
             </>
           )}
         </button>
+
+        {/* Feature Cards - below the fold */}
+        <div className="flex flex-col gap-2 mb-3 px-1 mt-4">
+          {features.map((feature, index) => (
+            <FeatureCard key={index} {...feature} />
+          ))}
+        </div>
 
         {/* Device availability */}
         <p className="text-center text-xs text-gray-800 font-bold mb-1" style={{ textShadow: '1px 1px 2px rgba(255,255,255,0.7)' }}>
