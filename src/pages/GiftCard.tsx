@@ -88,7 +88,7 @@ const GiftCard = () => {
 
     const sender = senderName.trim() || "מישהו/י שאוהב/ת אתכם";
 
-    const message = `מתנה קסומה מחכה לכם! ${sender} שלחה לכם חבילה של ${selectedPkg.stories} סיפורים אישיים במתנה, שבהם סול (או שם הילד) הופכת לגיבורה של הרפתקאות מרגשות. איך מממשים? נכנסים ונרשמים בקלות בכתובת https://soulstory.co.il (או מתחברים), ומזינים את קוד הקופון האישי שלכם: ${generatedCode}! קריאה מהנה ומרגשת! ❤️`;
+    const message = `מתנה קסומה מחכה לכם! ${sender} שלח/ה לכם חבילה של ${selectedPkg.stories} סיפורים אישיים במתנה, שבהם סול (או שם הילד) הופך/ת לגיבור/ה של הרפתקאות מרגשות. איך מממשים? נכנסים ונרשמים בקלות בכתובת https://soulstory.co.il (או מתחברים), ומזינים את קוד הקופון האישי שלכם: ${generatedCode}! קריאה מהנה ומרגשת! ❤️`;
 
     const whatsappUrl = `https://wa.me/?text=${encodeURIComponent(message)}`;
     window.open(whatsappUrl, "_blank");
@@ -189,7 +189,7 @@ const GiftCard = () => {
                 style={{ backgroundColor: "#25D366" }}
               >
                 <Share2 className="w-5 h-5 ml-2" />
-                שלחי את המתנה בוואטסאפ
+                שלחו את המתנה בוואטסאפ
               </Button>
 
               <Button
@@ -205,7 +205,7 @@ const GiftCard = () => {
                 ) : (
                   <>
                     <Copy className="w-4 h-4 ml-2" />
-                    העתיקי את הקוד
+                    העתיקו את הקוד
                   </>
                 )}
               </Button>
@@ -322,10 +322,10 @@ const GiftCard = () => {
             <h3 className="text-sm font-black text-white mb-3">איך זה עובד? ✨</h3>
             <div className="space-y-2.5">
               {[
-                "בחרי חבילת סיפורים ושלמי בצורה מאובטחת",
-                "תקבלי קוד מתנה ייחודי מיד לאחר התשלום",
-                "שלחי את הקוד בוואטסאפ עם הודעה מעוצבת",
-                "המקבלת מזינה את הקוד ומקבלת את הסיפורים!",
+                "בחרו חבילת סיפורים ושלמו בצורה מאובטחת",
+                "תקבלו קוד מתנה ייחודי מיד לאחר התשלום",
+                "שלחו את הקוד בוואטסאפ עם הודעה מעוצבת",
+                "מזינים את הקוד ומקבלים את הסיפורים!",
               ].map((step, i) => (
                 <div key={i} className="flex items-start gap-2">
                   <div className="w-5 h-5 rounded-full bg-gradient-to-r from-pink-500 to-purple-500 flex items-center justify-center flex-shrink-0 mt-0.5">
@@ -380,7 +380,7 @@ const GiftCard = () => {
               }}
             >
               <Gift className="w-5 h-5 ml-2" />
-              רכשי {selectedPkg?.stories} סיפורים במתנה — {CURRENCY_SYMBOL}{selectedPkg?.price} ✨
+              רכשו {selectedPkg?.stories} סיפורים במתנה — {CURRENCY_SYMBOL}{selectedPkg?.price} ✨
             </Button>
           </div>
         </div>
