@@ -189,7 +189,7 @@ const GiftCard = () => {
                 style={{ backgroundColor: "#25D366" }}
               >
                 <Share2 className="w-5 h-5 ml-2" />
-                שלחי את המתנה בוואטסאפ
+                שלחו את המתנה בוואטסאפ
               </Button>
 
               <Button
