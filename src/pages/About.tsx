@@ -187,13 +187,6 @@ const About = () => {
           </div>
         </div>
 
-        {/* Safety section */}
-        <div className="bg-white/5 border border-white/10 rounded-xl p-3 mb-4 w-full">
-          <p className="text-base font-normal text-white leading-[1.6] text-right" style={{ textShadow: '0 1px 3px rgba(0,0,0,0.3)' }}>
-            🛡️ <strong className="text-green-200 font-black">מחויבות לבטיחות ואחריות</strong> — אנו שומרים על פרטיותכם לפי התקנות המחמירות ביותר. כל התכנים והדמויות הם קניין רוחני בלעדי של <span dir="ltr" className="inline-block bg-gradient-to-r from-purple-300 via-pink-300 to-orange-300 bg-clip-text text-transparent">SolStorie's™</span>.
-          </p>
-        </div>
-
         {/* CTA Button */}
         <button
           onClick={() => navigate("/auth")}
@@ -202,15 +195,8 @@ const About = () => {
             boxShadow: '0 0 40px rgba(168, 85, 247, 0.4), 0 0 80px rgba(236, 72, 153, 0.2)'
           }}
         >
-          בואו נתחיל! (סיפור ראשון חינם) ✨
+          בואו נתחיל! סיפור ראשון חינם ✨
         </button>
-
-        {/* Disclaimer */}
-        <div className="bg-white/5 border border-white/10 rounded-xl p-3 w-full">
-          <p className="text-sm font-normal text-white/70 leading-[1.6] text-right" style={{ textShadow: '0 1px 3px rgba(0,0,0,0.3)' }}>
-            ⚕️ השימוש באפליקציה הוא כלי עזר טכנולוגי וחווייתי בלבד ואינו מהווה תחליף לייעוץ מקצועי, חינוכי או רפואי.
-          </p>
-        </div>
       </div>
 
       {/* Global Footer */}
