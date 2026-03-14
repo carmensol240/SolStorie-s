@@ -102,6 +102,17 @@ const About = () => {
           </p>
         </div>
 
+        {/* CTA Button - above the fold */}
+        <button
+          onClick={() => navigate("/auth")}
+          className="w-full max-w-xs mx-auto flex items-center justify-center bg-gradient-to-r from-purple-500 via-pink-500 to-orange-500 hover:from-purple-400 hover:via-pink-400 hover:to-orange-400 text-white font-black text-lg py-4 rounded-full shadow-xl transition-all hover:scale-[1.02] mb-8"
+          style={{
+            boxShadow: '0 0 40px rgba(168, 85, 247, 0.4), 0 0 80px rgba(236, 72, 153, 0.2)'
+          }}
+        >
+          בואו נתחיל! סיפור ראשון חינם ✨
+        </button>
+
         {/* Personal intro */}
         <p className="text-lg font-black text-white/95 leading-relaxed mb-4" style={{ textShadow: '0 1px 4px rgba(0,0,0,0.4)' }}>
           שלום, אני אמא של סול והלב הפועם מאחורי <span dir="ltr" className="inline-block bg-gradient-to-r from-purple-300 via-pink-300 to-orange-300 bg-clip-text text-transparent" style={{ textShadow: 'none' }}>SolStorie's</span>
