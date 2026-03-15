@@ -1288,50 +1288,24 @@ ${topic.endsWith('-edu') ? `
 
     console.log("AI response received, parsing...");
 
-    let storyData;
-    try {
-      // Clean the response - remove markdown code blocks if present
-      let cleanedContent = content.trim();
-      
-      // Remove markdown json code blocks
-      if (cleanedContent.startsWith("```json")) {
-        cleanedContent = cleanedContent.slice(7);
-      } else if (cleanedContent.startsWith("```")) {
-        cleanedContent = cleanedContent.slice(3);
-      }
-      
-      if (cleanedContent.endsWith("```")) {
-        cleanedContent = cleanedContent.slice(0, -3);
-      }
-      
-      cleanedContent = cleanedContent.trim();
-      
-      // Sanitize control characters that break JSON parsing
-      // Remove non-printable control chars (keep \n, \r, \t for structure)
-      cleanedContent = cleanedContent.replace(/[\x00-\x08\x0B\x0C\x0E-\x1F\x7F]/g, '');
-      
-      // Fix unescaped newlines/tabs inside JSON string values by processing char-by-char
-      // This handles the "Bad control character in string literal" error from AI responses
+    // === Helper: clean raw AI content into parseable JSON string ===
+    function cleanAiContent(raw: string): string {
+      let c = raw.trim();
+      if (c.startsWith("```json")) c = c.slice(7);
+      else if (c.startsWith("```")) c = c.slice(3);
+      if (c.endsWith("```")) c = c.slice(0, -3);
+      c = c.trim();
+      // Remove non-printable control chars
+      c = c.replace(/[\x00-\x08\x0B\x0C\x0E-\x1F\x7F]/g, '');
+      // Escape raw newlines/tabs inside JSON string values
       let inString = false;
       let escaped = false;
       let result = '';
-      for (let i = 0; i < cleanedContent.length; i++) {
-        const ch = cleanedContent[i];
-        if (escaped) {
-          result += ch;
-          escaped = false;
-          continue;
-        }
-        if (ch === '\\' && inString) {
-          result += ch;
-          escaped = true;
-          continue;
-        }
-        if (ch === '"') {
-          inString = !inString;
-          result += ch;
-          continue;
-        }
+      for (let i = 0; i < c.length; i++) {
+        const ch = c[i];
+        if (escaped) { result += ch; escaped = false; continue; }
+        if (ch === '\\' && inString) { result += ch; escaped = true; continue; }
+        if (ch === '"') { inString = !inString; result += ch; continue; }
         if (inString) {
           if (ch === '\n') { result += '\\n'; continue; }
           if (ch === '\r') { result += '\\r'; continue; }
@@ -1339,22 +1313,111 @@ ${topic.endsWith('-edu') ? `
         }
         result += ch;
       }
-      
-      storyData = JSON.parse(result);
-      
-      // Validate story structure
-      if (!storyData.pages || !Array.isArray(storyData.pages) || storyData.pages.length === 0) {
-        console.error("Invalid story structure:", storyData);
-        throw new Error("Invalid story structure from AI");
-      }
-      
-      console.log(`Story parsed successfully with ${storyData.pages.length} pages`);
-    } catch (e) {
-      console.error("Failed to parse AI response:", content);
-      console.error("Parse error:", e);
-      await logError("story_parse_error", `Invalid JSON response from AI`, { parseError: String(e), contentPreview: content?.substring(0, 300), topic, childName }, userId);
-      throw new Error("Invalid JSON response from AI");
+      return result;
     }
+
+    // === Helper: attempt to repair truncated JSON ===
+    function repairTruncatedJson(raw: string): string {
+      let s = raw;
+      // If we're inside an unclosed string, close it
+      let inStr = false;
+      let esc = false;
+      for (let i = 0; i < s.length; i++) {
+        const ch = s[i];
+        if (esc) { esc = false; continue; }
+        if (ch === '\\' && inStr) { esc = true; continue; }
+        if (ch === '"') inStr = !inStr;
+      }
+      if (inStr) s += '"';
+      // Close any unclosed brackets/braces
+      const stack: string[] = [];
+      inStr = false; esc = false;
+      for (let i = 0; i < s.length; i++) {
+        const ch = s[i];
+        if (esc) { esc = false; continue; }
+        if (ch === '\\' && inStr) { esc = true; continue; }
+        if (ch === '"') { inStr = !inStr; continue; }
+        if (inStr) continue;
+        if (ch === '{' || ch === '[') stack.push(ch);
+        if (ch === '}' && stack.length && stack[stack.length - 1] === '{') stack.pop();
+        if (ch === ']' && stack.length && stack[stack.length - 1] === '[') stack.pop();
+      }
+      // Remove trailing comma before closing
+      s = s.replace(/,\s*$/, '');
+      // Close unclosed structures
+      while (stack.length) {
+        const open = stack.pop();
+        s += open === '{' ? '}' : ']';
+      }
+      return s;
+    }
+
+    let storyData;
+    const cleanedResult = cleanAiContent(content);
+    
+    // Attempt 1: parse directly
+    try {
+      storyData = JSON.parse(cleanedResult);
+    } catch (_e1) {
+      console.warn("[generate-story] Direct JSON parse failed, attempting repair...");
+      // Attempt 2: repair truncated JSON
+      try {
+        const repaired = repairTruncatedJson(cleanedResult);
+        storyData = JSON.parse(repaired);
+        console.log("[generate-story] Truncated JSON repaired successfully");
+      } catch (_e2) {
+        console.warn("[generate-story] Repair failed, retrying AI call...");
+        // Attempt 3: retry the AI call once
+        try {
+          const retryResponse = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+            method: "POST",
+            signal: AbortSignal.timeout(120_000),
+            headers: {
+              Authorization: `Bearer ${LOVABLE_API_KEY}`,
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+              model: "google/gemini-2.5-flash",
+              messages: [
+                { role: "system", content: systemPrompt },
+                { role: "user", content: userPrompt },
+              ],
+              response_format: { type: "json_object" },
+            }),
+          });
+          if (!retryResponse.ok) {
+            const errBody = await retryResponse.text();
+            console.error(`[generate-story] Retry AI call failed: ${retryResponse.status} - ${errBody}`);
+            throw new Error("Retry failed");
+          }
+          const retryData = await retryResponse.json();
+          const retryContent = retryData.choices?.[0]?.message?.content;
+          if (!retryContent) throw new Error("Empty retry response");
+          const cleanedRetry = cleanAiContent(retryContent);
+          storyData = JSON.parse(cleanedRetry);
+          console.log("[generate-story] ✅ Retry succeeded");
+        } catch (retryErr) {
+          console.error("[generate-story] All parse attempts failed:", retryErr);
+          await logError("story_parse_error", `All JSON parse attempts failed`, { 
+            parseError: String(_e1), 
+            repairError: String(_e2),
+            retryError: String(retryErr),
+            contentPreview: content?.substring(0, 500), 
+            topic, childName 
+          }, userId);
+          throw new Error("שגיאה ביצירת הסיפור. נסו שוב.");
+        }
+      }
+    }
+    
+    // Validate story structure
+    if (!storyData.pages || !Array.isArray(storyData.pages) || storyData.pages.length === 0) {
+      console.error("Invalid story structure:", JSON.stringify(storyData).substring(0, 300));
+      await logError("story_parse_error", `Invalid story structure from AI`, { keys: Object.keys(storyData), topic, childName }, userId);
+      throw new Error("שגיאה ביצירת הסיפור. נסו שוב.");
+    }
+    
+    console.log(`Story parsed successfully with ${storyData.pages.length} pages`);
 
     // === NIKUD: Deferred to background for faster response ===
     // Nikud will be applied after story+pages are saved, in a fire-and-forget manner
