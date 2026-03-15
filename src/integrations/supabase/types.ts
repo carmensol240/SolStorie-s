@@ -841,6 +841,13 @@ export type Database = {
         Args: { p_child_name: string; p_topic: string }
         Returns: string
       }
+      get_admin_user_emails: {
+        Args: never
+        Returns: {
+          email: string
+          user_id: string
+        }[]
+      }
       get_public_book: {
         Args: { p_share_token: string }
         Returns: {
