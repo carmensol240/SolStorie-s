@@ -317,6 +317,7 @@ const AdminDashboard = () => {
                     <TableHeader>
                       <TableRow>
                         <TableHead className="text-right">שם</TableHead>
+                        <TableHead className="text-right">אימייל</TableHead>
                         <TableHead className="text-right">תפקיד</TableHead>
                         <TableHead className="text-right">קרדיטים</TableHead>
                         <TableHead className="text-right">מנוי</TableHead>
@@ -325,10 +326,11 @@ const AdminDashboard = () => {
                     </TableHeader>
                     <TableBody>
                       {loading ? (
-                        <TableRow><TableCell colSpan={5} className="text-center">טוען...</TableCell></TableRow>
+                        <TableRow><TableCell colSpan={6} className="text-center">טוען...</TableCell></TableRow>
                       ) : filterByReviewed(profiles, "users").map((p) => (
                         <TableRow key={p.id}>
                           <TableCell>{p.display_name || "—"}</TableCell>
+                          <TableCell className="text-xs text-muted-foreground">{p.email || "—"}</TableCell>
                           <TableCell>
                             <Badge variant="outline">{p.user_role}</Badge>
                           </TableCell>
