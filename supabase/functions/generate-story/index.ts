@@ -1241,7 +1241,7 @@ ${topic.endsWith('-edu') ? `
 - כלל ניקוד: אם לא בטוח ב-100% בניקוד - השתמש במילה שאתה בטוח בניקוד שלה.`;
     }
 
-    console.log("[generate-story] 📡 Calling Lovable AI Gateway (gemini-2.5-pro) for story generation...");
+    console.log("[generate-story] 📡 Calling Lovable AI Gateway (gemini-2.5-flash) for story generation...");
     const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
       method: "POST",
       headers: {
@@ -1249,7 +1249,7 @@ ${topic.endsWith('-edu') ? `
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        model: "google/gemini-2.5-pro",
+        model: "google/gemini-2.5-flash",
         messages: [
           { role: "system", content: systemPrompt },
           { role: "user", content: userPrompt },
