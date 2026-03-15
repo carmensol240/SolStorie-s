@@ -29,6 +29,7 @@ interface ProfileRow {
   story_credits: number | null;
   is_subscriber: boolean;
   user_role: string;
+  email?: string;
 }
 
 interface PurchaseRow {
