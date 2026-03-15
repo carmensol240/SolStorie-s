@@ -1,18 +1,26 @@
 
 
-## Summary
+## Bug Analysis
 
-The user requested **two changes** to `generate-story/index.ts` but only described the first one. Here's what I can do:
+The onboarding loop is caused by a combination of issues in the navigation flow between `RequireTerms` and `Onboarding`:
 
-### Change 1: Switch the primary AI model (line 1252)
+1. **Silent update failure**: In `Onboarding.handleContinue`, the Supabase `.update().eq()` call returns success (`error: null`) even when **zero rows are matched** (e.g., due to a race condition where the profile hasn't been created yet). The code doesn't verify the update actually persisted.
 
-Change the main story generation call from `google/gemini-2.5-pro` to `google/gemini-2.5-flash`.
+2. **No `replace: true` on redirects**: Both `RequireTerms` (redirecting to `/onboarding`) and `Onboarding`'s guard effect (redirecting to `/adventure`) use `navigate()` without `{ replace: true }`, causing history stack pollution and making the loop worse.
 
-**File:** `supabase/functions/generate-story/index.ts`
-- **Line 1244:** Update log message from `gemini-2.5-pro` to `gemini-2.5-flash`
-- **Line 1252:** Change `model: "google/gemini-2.5-pro"` → `model: "google/gemini-2.5-flash"`
+3. **Loop mechanics**: `handleContinue` thinks it succeeded → navigates to `/adventure` → `RequireTerms` queries DB → `terms_accepted_at` is still null → redirects back to `/onboarding` → Onboarding guard checks terms → still null → shows the form again.
 
-### Change 2: Missing
+## Fix
 
-The message mentions "שני שינויים" (two changes) but only describes the first one. Please share the second change so I can include it in the implementation.
+### 1. `src/pages/Onboarding.tsx` — Verify update actually persisted
+
+In `handleContinue`, after the update call, re-query the profile to confirm `terms_accepted_at` was saved. If not, use `upsert` as a fallback. Also add `{ replace: true }` to the guard navigation.
+
+### 2. `src/components/RequireTerms.tsx` — Use `replace: true`
+
+Change the `navigate` call to onboarding to use `{ replace: true }` so the history stack doesn't accumulate redirect entries.
+
+### 3. Both files — Add select return on update
+
+Use `.update(...).eq(...).select()` to get the updated row back, confirming the write succeeded. If the returned array is empty, fall back to an upsert to handle the edge case where the profile row doesn't exist yet.
 
