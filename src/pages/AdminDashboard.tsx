@@ -160,13 +160,20 @@ const AdminDashboard = () => {
 
     const fetchData = async () => {
       setLoading(true);
-      const [profilesRes, purchasesRes, storiesRes] = await Promise.all([
+      const [profilesRes, purchasesRes, storiesRes, emailsRes] = await Promise.all([
         supabase.from("profiles").select("id, display_name, created_at, story_credits, is_subscriber, user_role").not("id", "in", `(${EXCLUDED_IDS.join(",")})`).order("created_at", { ascending: false }).limit(200),
         supabase.from("purchases").select("*").eq("status", "completed").not("user_id", "in", `(${EXCLUDED_IDS.join(",")})`).order("created_at", { ascending: false }).limit(200),
         supabase.from("stories").select("id, child_name, topic, created_at, user_id").not("user_id", "in", `(${EXCLUDED_IDS.join(",")})`).order("created_at", { ascending: false }).limit(200),
+        supabase.rpc("get_admin_user_emails"),
       ]);
 
-      if (profilesRes.data) setProfiles(profilesRes.data);
+      if (profilesRes.data) {
+        const emailMap = new Map<string, string>();
+        if (emailsRes.data) {
+          (emailsRes.data as { user_id: string; email: string }[]).forEach(e => emailMap.set(e.user_id, e.email));
+        }
+        setProfiles(profilesRes.data.map(p => ({ ...p, email: emailMap.get(p.id) || undefined })));
+      }
       if (purchasesRes.data) setPurchases(purchasesRes.data);
       if (storiesRes.data) setStories(storiesRes.data);
       setLoading(false);
