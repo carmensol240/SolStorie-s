@@ -29,6 +29,7 @@ interface ProfileRow {
   story_credits: number | null;
   is_subscriber: boolean;
   user_role: string;
+  email?: string;
 }
 
 interface PurchaseRow {
@@ -159,13 +160,20 @@ const AdminDashboard = () => {
 
     const fetchData = async () => {
       setLoading(true);
-      const [profilesRes, purchasesRes, storiesRes] = await Promise.all([
+      const [profilesRes, purchasesRes, storiesRes, emailsRes] = await Promise.all([
         supabase.from("profiles").select("id, display_name, created_at, story_credits, is_subscriber, user_role").not("id", "in", `(${EXCLUDED_IDS.join(",")})`).order("created_at", { ascending: false }).limit(200),
         supabase.from("purchases").select("*").eq("status", "completed").not("user_id", "in", `(${EXCLUDED_IDS.join(",")})`).order("created_at", { ascending: false }).limit(200),
         supabase.from("stories").select("id, child_name, topic, created_at, user_id").not("user_id", "in", `(${EXCLUDED_IDS.join(",")})`).order("created_at", { ascending: false }).limit(200),
+        supabase.rpc("get_admin_user_emails"),
       ]);
 
-      if (profilesRes.data) setProfiles(profilesRes.data);
+      if (profilesRes.data) {
+        const emailMap = new Map<string, string>();
+        if (emailsRes.data) {
+          (emailsRes.data as { user_id: string; email: string }[]).forEach(e => emailMap.set(e.user_id, e.email));
+        }
+        setProfiles(profilesRes.data.map(p => ({ ...p, email: emailMap.get(p.id) || undefined })));
+      }
       if (purchasesRes.data) setPurchases(purchasesRes.data);
       if (storiesRes.data) setStories(storiesRes.data);
       setLoading(false);
@@ -309,6 +317,7 @@ const AdminDashboard = () => {
                     <TableHeader>
                       <TableRow>
                         <TableHead className="text-right">שם</TableHead>
+                        <TableHead className="text-right">אימייל</TableHead>
                         <TableHead className="text-right">תפקיד</TableHead>
                         <TableHead className="text-right">קרדיטים</TableHead>
                         <TableHead className="text-right">מנוי</TableHead>
@@ -317,10 +326,11 @@ const AdminDashboard = () => {
                     </TableHeader>
                     <TableBody>
                       {loading ? (
-                        <TableRow><TableCell colSpan={5} className="text-center">טוען...</TableCell></TableRow>
+                        <TableRow><TableCell colSpan={6} className="text-center">טוען...</TableCell></TableRow>
                       ) : filterByReviewed(profiles, "users").map((p) => (
                         <TableRow key={p.id}>
                           <TableCell>{p.display_name || "—"}</TableCell>
+                          <TableCell className="text-xs text-muted-foreground">{p.email || "—"}</TableCell>
                           <TableCell>
                             <Badge variant="outline">{p.user_role}</Badge>
                           </TableCell>
