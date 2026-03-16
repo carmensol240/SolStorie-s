@@ -132,6 +132,13 @@ A ${genderWord} aged ${profile.ageDescription} with ${profile.hairDescription}, 
 CRITICAL INSTRUCTION: Maintain strict visual character continuity across ALL generated images for this story sequence. The character must look like the SAME child in every single illustration — same face shape, same proportions, same hair, same outfit, same skin tone. Any visual deviation between pages is a FAILURE.`;
 }
 
+interface IllustrationResult {
+  imageData: string | null;
+  modelUsed: string;
+  fallbackReason?: string;
+  durationMs?: number;
+}
+
 // Helper: generate illustration with face reference via Gemini Image Generation
 // Uses google/gemini-3-pro-image-preview for text-to-image with face reference
 async function generateIllustrationWithFace(
@@ -925,10 +932,13 @@ serve(async (req) => {
       }
 
       let base64Image: string | null = null;
+      let modelUsed = "unknown";
+      let fallbackReason: string | undefined;
       const MAX_RETRIES = 2;
+      const genStart = Date.now();
       
       for (let attempt = 1; attempt <= MAX_RETRIES; attempt++) {
-        // Branch: use Flux Kontext when child photo exists, Schnell otherwise
+        // Branch: use Gemini with face when child photo exists
         if (childPhotoSignedUrl) {
           base64Image = await generateIllustrationWithFace(
             illustrationPrompt,
@@ -938,6 +948,10 @@ serve(async (req) => {
             visualAnchor,
             effectiveAdventureLogic,
           );
+          if (base64Image) {
+            modelUsed = "gemini_with_face";
+            break;
+          }
         } else {
           // No photo: try Gemini first (same Pixar 3D CGI style), then Flux Schnell as fallback
           base64Image = await generateIllustrationGeminiNoFace(
@@ -947,19 +961,28 @@ serve(async (req) => {
             visualAnchor,
             effectiveAdventureLogic,
           );
-          if (!base64Image) {
-            console.log(`Gemini no-face failed for page ${page.page_number}, trying Flux Schnell fallback...`);
-            base64Image = await generateIllustration(
-              illustrationPrompt,
-              effectivePhoto,
-              characterProfile,
-              LOVABLE_API_KEY,
-              storyOutfit,
-              visualAnchor,
-              effectiveAdventureLogic,
-              topic
-            );
+          if (base64Image) {
+            modelUsed = "gemini_no_face";
+            break;
           }
+          
+          fallbackReason = "Gemini no-face failed";
+          console.log(`Gemini no-face failed for page ${page.page_number}, trying Flux Schnell fallback...`);
+          base64Image = await generateIllustration(
+            illustrationPrompt,
+            effectivePhoto,
+            characterProfile,
+            LOVABLE_API_KEY,
+            storyOutfit,
+            visualAnchor,
+            effectiveAdventureLogic,
+            topic
+          );
+          if (base64Image) {
+            modelUsed = "fal_schnell_fallback";
+            break;
+          }
+          fallbackReason = "Both Gemini no-face and Fal Schnell failed";
         }
         
         if (base64Image) {
@@ -972,9 +995,19 @@ serve(async (req) => {
           await new Promise(r => setTimeout(r, 1000));
         }
       }
+      const durationMs = Date.now() - genStart;
 
       if (!base64Image) {
         console.log(`Page ${page.page_number}: no image`);
+        // Log failed attempt
+        await supabase.from("illustration_logs").insert({
+          story_id: storyId,
+          page_number: page.page_number,
+          model_used: modelUsed === "unknown" ? "none_failed" : modelUsed,
+          fallback_reason: fallbackReason || "All attempts failed",
+          had_face_reference: !!childPhotoSignedUrl,
+          duration_ms: durationMs,
+        });
         continue;
       }
 
@@ -996,6 +1029,16 @@ serve(async (req) => {
         } else {
           console.log(`Page ${page.page_number} illustration saved`);
         }
+
+        // Log successful illustration generation
+        await supabase.from("illustration_logs").insert({
+          story_id: storyId,
+          page_number: page.page_number,
+          model_used: modelUsed,
+          fallback_reason: fallbackReason || null,
+          had_face_reference: !!childPhotoSignedUrl,
+          duration_ms: durationMs,
+        });
 
         if (page.page_number === 1) {
           firstIllustrationUrl = illustrationUrl;

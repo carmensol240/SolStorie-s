@@ -134,7 +134,10 @@ serve(async (req) => {
     const prompt = customPrompt || page.illustration_prompt || `A cheerful children's book illustration for page ${page.page_number}`;
 
     let imageUrl: string | null = null;
+    let modelUsed = "unknown";
+    let fallbackReason: string | undefined;
     const MAX_ATTEMPTS = 2;
+    const genStart = Date.now();
 
     // Branch: use Gemini Image Generation when child photo exists, Schnell otherwise
     if (childPhoto) {
@@ -174,6 +177,7 @@ NEGATIVE: ${NEGATIVE_PROMPT}`;
           if (!response.ok) {
             const errorBody = await response.text().catch(() => "no body");
             console.error(`Gemini attempt ${attempt} failed: ${response.status} - ${errorBody}`);
+            fallbackReason = `Gemini with face failed: HTTP ${response.status}`;
             if (attempt < MAX_ATTEMPTS) { await new Promise(r => setTimeout(r, 3000)); continue; }
             break;
           }
@@ -182,6 +186,7 @@ NEGATIVE: ${NEGATIVE_PROMPT}`;
           imageUrl = data.choices?.[0]?.message?.images?.[0]?.image_url?.url || null;
 
           if (imageUrl) {
+            modelUsed = "gemini_with_face";
             console.log(`Gemini illustration generated successfully on attempt ${attempt}`);
             break;
           }
@@ -194,8 +199,11 @@ NEGATIVE: ${NEGATIVE_PROMPT}`;
       }
     }
 
-    // Fallback to Schnell if no photo or PuLID failed
+    // Fallback to Schnell if no photo or Gemini failed
     if (!imageUrl) {
+      if (!fallbackReason && !childPhoto) {
+        fallbackReason = "No child photo available";
+      }
       const FAL_KEY = Deno.env.get("FAL_KEY");
       if (!FAL_KEY) {
         return new Response(JSON.stringify({ error: "FAL_KEY not configured" }), {
@@ -251,7 +259,10 @@ NEGATIVE: ${NEGATIVE_PROMPT}`;
               }
               imageUrl = `data:image/png;base64,${btoa(chunks.join(''))}`;
             }
-            if (imageUrl) break;
+            if (imageUrl) {
+              modelUsed = "fal_schnell_fallback";
+              break;
+            }
           }
           console.warn(`Schnell attempt ${attempt}: no image`);
           if (attempt < MAX_ATTEMPTS) { await new Promise(r => setTimeout(r, 1000)); continue; }
@@ -261,6 +272,7 @@ NEGATIVE: ${NEGATIVE_PROMPT}`;
         }
       }
     }
+    const durationMs = Date.now() - genStart;
 
     if (!imageUrl) {
       return new Response(JSON.stringify({ error: "No image generated after retries" }), {
@@ -293,7 +305,17 @@ NEGATIVE: ${NEGATIVE_PROMPT}`;
       .update({ illustration_url: filePath })
       .eq("id", pageId);
 
-    console.log(`✅ Retry illustration success for page ${page.page_number}`);
+    // Log the illustration generation
+    await supabase.from("illustration_logs").insert({
+      story_id: storyId,
+      page_number: page.page_number,
+      model_used: modelUsed,
+      fallback_reason: fallbackReason || null,
+      had_face_reference: !!childPhoto,
+      duration_ms: durationMs,
+    });
+
+    console.log(`✅ Retry illustration success for page ${page.page_number} (model: ${modelUsed})`);
 
     return new Response(
       JSON.stringify({ success: true, illustrationUrl: filePath }),
