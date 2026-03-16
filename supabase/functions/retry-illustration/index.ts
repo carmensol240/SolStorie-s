@@ -199,8 +199,11 @@ NEGATIVE: ${NEGATIVE_PROMPT}`;
       }
     }
 
-    // Fallback to Schnell if no photo or PuLID failed
+    // Fallback to Schnell if no photo or Gemini failed
     if (!imageUrl) {
+      if (!fallbackReason && !childPhoto) {
+        fallbackReason = "No child photo available";
+      }
       const FAL_KEY = Deno.env.get("FAL_KEY");
       if (!FAL_KEY) {
         return new Response(JSON.stringify({ error: "FAL_KEY not configured" }), {
