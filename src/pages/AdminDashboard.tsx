@@ -95,7 +95,7 @@ const AdminDashboard = () => {
     });
     return saved;
   });
-  const [showReviewed, setShowReviewed] = useState<Record<string, boolean>>({ users: false, purchases: false, stories: false, errors: false });
+  const [showReviewed, setShowReviewed] = useState<Record<string, boolean>>({ users: false, purchases: false, stories: false, errors: false, illustrations: false });
   const [confirmClearTab, setConfirmClearTab] = useState<string | null>(null);
 
   const markAsReviewed = useCallback((tab: string) => {
