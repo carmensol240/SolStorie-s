@@ -518,6 +518,90 @@ const AdminDashboard = () => {
               </CardContent>
             </Card>
           </TabsContent>
+
+          <TabsContent value="illustrations">
+            <Card>
+              <CardContent className="p-4 space-y-4">
+                <div className="flex flex-wrap gap-3 items-center">
+                  <div className="text-sm text-muted-foreground">
+                    {illustrationLogs.length} רשומות איורים
+                  </div>
+                  <div className="flex gap-2 mr-auto">
+                    {(() => {
+                      const geminiWithFace = illustrationLogs.filter(l => l.model_used === "gemini_with_face").length;
+                      const geminiNoFace = illustrationLogs.filter(l => l.model_used === "gemini_no_face").length;
+                      const falFallback = illustrationLogs.filter(l => l.model_used === "fal_schnell_fallback").length;
+                      const failed = illustrationLogs.filter(l => l.model_used === "none_failed").length;
+                      return (
+                        <>
+                          {geminiWithFace > 0 && <Badge className="bg-green-100 text-green-800 text-xs">Gemini+Face: {geminiWithFace}</Badge>}
+                          {geminiNoFace > 0 && <Badge className="bg-blue-100 text-blue-800 text-xs">Gemini: {geminiNoFace}</Badge>}
+                          {falFallback > 0 && <Badge className="bg-amber-100 text-amber-800 text-xs">Fal Fallback: {falFallback}</Badge>}
+                          {failed > 0 && <Badge variant="destructive" className="text-xs">Failed: {failed}</Badge>}
+                        </>
+                      );
+                    })()}
+                  </div>
+                </div>
+
+                <ReviewedBar tab="illustrations" total={illustrationLogs.length} filtered={filterByReviewed(illustrationLogs, "illustrations").length} cutoff={reviewedCutoffs["illustrations"]} showReviewed={showReviewed["illustrations"]} onToggleShow={() => setShowReviewed(p => ({ ...p, illustrations: !p.illustrations }))} onMark={() => setConfirmClearTab("illustrations")} onClear={() => clearReviewed("illustrations")} />
+
+                <div className="overflow-x-auto">
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead className="text-right">סיפור</TableHead>
+                        <TableHead className="text-right">עמוד</TableHead>
+                        <TableHead className="text-right">מודל</TableHead>
+                        <TableHead className="text-right">Face Ref</TableHead>
+                        <TableHead className="text-right">סיבת Fallback</TableHead>
+                        <TableHead className="text-right">זמן (שנ׳)</TableHead>
+                        <TableHead className="text-right">תאריך</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {filterByReviewed(illustrationLogs, "illustrations").length === 0 ? (
+                        <TableRow>
+                          <TableCell colSpan={7} className="text-center text-muted-foreground py-8">
+                            אין נתוני איורים עדיין — יופיעו מהסיפור הבא שייווצר
+                          </TableCell>
+                        </TableRow>
+                      ) : filterByReviewed(illustrationLogs, "illustrations").map((log) => {
+                        const modelLabels: Record<string, { label: string; color: string }> = {
+                          gemini_with_face: { label: "Gemini + Face", color: "bg-green-100 text-green-800" },
+                          gemini_no_face: { label: "Gemini (no face)", color: "bg-blue-100 text-blue-800" },
+                          fal_schnell_fallback: { label: "Fal Schnell", color: "bg-amber-100 text-amber-800" },
+                          none_failed: { label: "נכשל", color: "bg-red-100 text-red-800" },
+                        };
+                        const modelInfo = modelLabels[log.model_used] || { label: log.model_used, color: "bg-gray-100 text-gray-800" };
+                        return (
+                          <TableRow key={log.id}>
+                            <TableCell className="text-xs font-mono max-w-[120px] truncate" title={log.story_id}>
+                              {log.story_id.substring(0, 8)}…
+                            </TableCell>
+                            <TableCell className="text-center">{log.page_number}</TableCell>
+                            <TableCell>
+                              <Badge className={`text-xs whitespace-nowrap ${modelInfo.color}`}>
+                                {modelInfo.label}
+                              </Badge>
+                            </TableCell>
+                            <TableCell className="text-center">{log.had_face_reference ? "✅" : "—"}</TableCell>
+                            <TableCell className="text-xs max-w-[200px] truncate" title={log.fallback_reason || ""}>
+                              {log.fallback_reason || "—"}
+                            </TableCell>
+                            <TableCell className="text-xs">
+                              {log.duration_ms ? (log.duration_ms / 1000).toFixed(1) : "—"}
+                            </TableCell>
+                            <TableCell className="text-xs whitespace-nowrap">{formatDate(log.created_at)}</TableCell>
+                          </TableRow>
+                        );
+                      })}
+                    </TableBody>
+                  </Table>
+                </div>
+              </CardContent>
+            </Card>
+          </TabsContent>
         </Tabs>
 
         {/* Confirm mark-as-reviewed dialog */}
