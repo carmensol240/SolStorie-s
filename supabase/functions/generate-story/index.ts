@@ -329,7 +329,7 @@ const SYSTEM_PROMPT = `## 🚨🚨🚨 META-INSTRUCTION: BEFORE WRITING ANY WORD
   "pages": [
     {
       "page_number": 1,
-      "text": "פְּסָקָה בְּפְרוֹזָה סִפְרוּתִית בְּעִבְרִית עִם נִקּוּד מָלֵא (3-4 מִשְׁפָּטִים מַקְסִימוּם)",
+      "text": "כל משפט בשורה נפרדת.\nשפה חושית וציורית.\nללא ניקוד.\n\nפסקה חדשה אחרי שורה ריקה.\nתיאורים של ריחות, צלילים ומגע.",
       "illustration_prompt": "CRITICAL: Describe the SPECIFIC scene on this page in English. The illustration MUST match the page text EXACTLY — if the text says the child hugs a teddy bear, the illustration must show a teddy bear hug, NOT two characters hugging. Include: (1) What the main character is DOING — use the EXACT action from the text (e.g., 'petting a giraffe', 'hugging a teddy bear', 'hiding under a blanket'), (2) The EXACT environment/background from the text (e.g., 'zoo with elephants and trees', 'bedroom with stars on the ceiling'), (3) Character's EXACT appearance: gender, hair color/style, skin tone, clothing, (4) Any specific objects, animals, or secondary characters mentioned in the text. Do NOT add elements that are not in the text. Do NOT change the action described in the text. Each page MUST have a DIFFERENT scene that precisely reflects its text."
     }
   ]
