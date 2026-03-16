@@ -428,39 +428,47 @@ function buildPersonalizedPrompt(
 
   // Vary the pose/composition based on randomness to avoid repetition
   const poses = [
-    "The child is in the middle of an exciting action — running, jumping, reaching, or exploring",
-    "The child is interacting with a key element from the story — touching, holding, or looking at something magical",
-    "The child is shown mid-adventure — walking along a path, climbing, or discovering something wonderful",
-    "The child is expressing wonder and curiosity — looking up at something magical above them",
+    "The child is in the middle of an exciting action — running, jumping, reaching, or exploring with dynamic motion blur on extremities",
+    "The child is interacting with a key element from the story — touching, holding, or looking at something magical with genuine wonder on their face",
+    "The child is shown mid-adventure — walking along a path, climbing, or discovering something wonderful with their body leaning forward eagerly",
+    "The child is expressing pure wonder and curiosity — looking up at something magical above them, mouth slightly open in awe, eyes sparkling with reflected light",
+    "The child is celebrating a triumph — arms raised, huge smile, confetti or sparkles around them, victorious energy",
   ];
   const pose = poses[Math.floor(Math.random() * poses.length)];
 
   const cameras = [
-    "Dynamic low angle looking up at the child (hero shot)",
-    "Eye-level medium shot showing the child and their surroundings",
-    "Slight bird's-eye angle showing the child in the magical landscape",
-    "Three-quarter view with depth, showing the child slightly off-center",
+    "Dynamic low angle looking up at the child (hero shot) — ground visible at the bottom, sky expansive above, making the child look heroic and larger-than-life",
+    "Eye-level medium shot with shallow depth of field — child sharp and crisp, background beautifully blurred with bokeh light circles",
+    "Slight bird's-eye angle showing the child in the magical landscape — reveals the scope of the environment around them",
+    "Three-quarter view with dramatic depth — child slightly off-center using rule of thirds, leading lines in the environment drawing the eye to them",
+    "Close medium shot from slightly below — capturing the child's expression with the magical world stretching out behind them",
   ];
   const camera = cameras[Math.floor(Math.random() * cameras.length)];
 
-  return `FACE REFERENCE: The main character's face MUST be an EXACT 3D Pixar rendering of the child in the reference photo. Keep all facial features, hair color, hair texture, and skin tone identical.
+  return `FACE REFERENCE: The main character's face MUST be an EXACT 3D Pixar rendering of the child in the reference photo. Keep all facial features, hair color, hair texture, and skin tone identical. The face should have subsurface scattering on the skin for a soft, lifelike glow.
 
 ${traitBlock}
 
-STYLE: Pixar 3D CGI style, vibrant saturated colors, cinematic warm lighting with glowing accents, fantasy children's book, high quality render, Disney-Pixar aesthetic. NOT realistic. Full body from head to toe, feet VISIBLE and GROUNDED on the surface.
+STYLE: High-end Pixar 3D CGI animation quality — the level of a theatrical movie poster. Vibrant saturated colors with a cohesive color palette that matches the story's mood. Cinematic warm lighting with volumetric god rays, rim lighting on the character, and glowing atmospheric accents. Fantasy children's book aesthetic. NOT photorealistic — stylized 3D with slightly exaggerated proportions. Full body from head to toe, feet VISIBLE and GROUNDED on the surface with a subtle contact shadow.
+
+RENDERING QUALITY: 4K render quality. Subsurface scattering on skin. Specular highlights on eyes to make them sparkle. Hair rendered with individual strand detail and soft light passing through edges. Fabric textures visible on clothing with subtle wrinkles and folds. Atmospheric haze in the background for depth.
 
 SCENE (MUST match the story's actual content): ${storyContext}
 ${sceneAction}
 
-POSE: ${pose}. Show FULL BODY from head to toe, feet GROUNDED on the surface. The child should feel like they BELONG in this scene, not just standing stiffly.
+POSE: ${pose}. Show FULL BODY from head to toe, feet GROUNDED on the surface with realistic weight distribution. The child should feel like they BELONG in this scene — natural, dynamic, alive. Hair and clothing should respond to the scene (wind, movement, gravity).
 
 CAMERA: ${camera}
 
-ENVIRONMENT: ${setting}. The background is rich and detailed — lush, magical, full of story-specific elements. Warm cinematic lighting with glowing highlights and soft depth of field.
+ENVIRONMENT: ${setting}. The background is rich, layered, and painterly — foreground elements slightly blurred for depth, midground with the character, background with atmospheric perspective fading into soft colors. Warm cinematic lighting with golden-hour quality. Particle effects where appropriate (fireflies, sparkles, dust motes in light beams, floating petals).
 
-COMPOSITION: Children's book cover illustration. The child is the main figure but the scene tells a story. Do NOT render any text or title on the image. Leave some clean space at the top.
+LIGHTING: Three-point cinematic lighting — warm key light from above-left creating soft shadows, cool fill light from the right for dimension, strong rim/back light creating a glowing halo effect around the character's hair and silhouette. Volumetric light rays where possible.
 
-NEGATIVE: ${NEGATIVE_PROMPT}`;
+COMPOSITION: Premium children's book cover illustration. The child is the hero — positioned using the golden ratio. The scene tells a story and invites the viewer into the world. Do NOT render any text, title, or UI elements on the image. Leave approximately 20% clean space at the top for title overlay. The overall image should feel like a frame from a Pixar/Disney animated film — warm, inviting, magical, and emotionally resonant.
+
+COLOR PALETTE: Rich and harmonious. Use complementary or analogous color schemes. The character should pop against the background through contrast (warm character against cool background, or vice versa). Ensure the overall palette feels warm and inviting.
+
+NEGATIVE: ${NEGATIVE_PROMPT}. No flat lighting. No stiff poses. No generic backgrounds. No plastic-looking skin. No dead eyes. No floating characters. No text or watermarks.`;
 }
 
 serve(async (req) => {
@@ -644,9 +652,9 @@ serve(async (req) => {
       ? "Sol in her adventure/fantasy outfit — match EXACTLY from the provided reference image"
       : "Sol in her superhero costume — warm tan skin, long dark brown hair in a high bun with pink band, red cape, light blue shirt with a golden star emblem, purple pants, white sneakers — match EXACTLY from the provided reference image";
 
-    const castCoverPrompt = `STYLE: ${PIXAR_STYLE}
+    const castCoverPrompt = `STYLE: ${PIXAR_STYLE}. Theatrical movie poster quality — the level of a Pixar/Disney film promotional image. Rich volumetric lighting, subsurface scattering on skin, individual hair strand rendering, fabric texture detail.
 
-Characters must look like adorable cartoon dolls — NOT realistic humans. Portrait orientation (9:16 aspect ratio).
+Characters must look like adorable cartoon dolls — NOT realistic humans. Portrait orientation (9:16 aspect ratio). Every character should have sparkling eyes with specular highlights and warm, expressive faces.
 
 === MANDATORY CHARACTER REFERENCES ===
 Reference images of EACH character are provided above. You MUST match their appearance EXACTLY — facial features, hair color, hair style, and skin tone MUST be taken DIRECTLY from the reference images. Zero invented characters.
@@ -657,19 +665,25 @@ Reference images of EACH character are provided above. You MUST match their appe
 - Image 5 (Mia): Smooth brown bob, small flower crown, emerald green dress
 
 CHARACTERS (all 5 must appear together in the scene — Sol and Ben are SIBLINGS, the others are their friends):
-1. Sol - match EXACTLY from reference image 1. ${solDescription}. Stands slightly to the side with a warm confident smile.
-2. Mia - match EXACTLY from reference image 5. Smooth brown bob, small flower crown, emerald green dress. Gentle curious expression.
-3. Leo - match EXACTLY from reference image 4. Straight black hair, round glasses, denim overalls over red-yellow striped shirt, rainbow pencil. Thoughtful friendly smile.
-4. Ben (Sol's LITTLE BROTHER) - match EXACTLY from reference image 2. Very curly dark brown hair, warm tan skin like Sol — they are siblings and share similar features. Stands beside Sol or center/front, NOTICEABLY SMALLER than all others. Light green or sky blue shirt. Toddler-sized.
-5. Zoe - match EXACTLY from reference image 3. Dark brown skin, voluminous afro with light blue headband, purple-yellow tracksuit, soccer ball under one arm. Energetic confident pose.
+1. Sol - match EXACTLY from reference image 1. ${solDescription}. Stands slightly to the side with a warm confident smile. Rim lighting around her hair creating a heroic glow.
+2. Mia - match EXACTLY from reference image 5. Smooth brown bob, small flower crown, emerald green dress. Gentle curious expression with soft light on her face.
+3. Leo - match EXACTLY from reference image 4. Straight black hair, round glasses with light reflections, denim overalls over red-yellow striped shirt, rainbow pencil. Thoughtful friendly smile.
+4. Ben (Sol's LITTLE BROTHER) - match EXACTLY from reference image 2. Very curly dark brown hair with golden highlights from the lighting, warm tan skin like Sol — they are siblings. Stands beside Sol or center/front, NOTICEABLY SMALLER than all others. Light green or sky blue shirt. Toddler-sized. Big joyful expression.
+5. Zoe - match EXACTLY from reference image 3. Dark brown skin with beautiful subsurface scattering, voluminous afro with light blue headband, purple-yellow tracksuit, soccer ball under one arm. Energetic confident pose.
 
 HEIGHT RELATIONSHIPS: Sol, Mia, Leo, and Zoe are roughly the same height. Ben is noticeably shorter — the youngest and smallest in the group.
 
 SCENE: ${storyContext} Setting: ${setting}
 
-COMPOSITION: This is a children's book cover illustration. The 5 characters should be arranged as a group in the lower two-thirds of the image, with the magical setting filling the background. Leave clean space at the top. Do NOT render any text or title on the image.
+LIGHTING: Cinematic three-point lighting — warm golden key light from above creating soft shadows, cool blue fill light for dimension, strong rim/back light creating a glowing halo effect around each character's silhouette and hair. Volumetric god rays streaming through the scene. Atmospheric particles (fireflies, sparkles, or floating elements matching the theme).
 
-NEGATIVE: ${CAST_NEGATIVE_PROMPT}`;
+COMPOSITION: Premium children's book cover illustration — movie poster quality. The 5 characters should be arranged as a dynamic group in the lower two-thirds using the golden ratio. Each character should have a distinct pose showing personality. The magical setting fills the background with atmospheric perspective (foreground elements, detailed midground, soft dreamy background). Leave approximately 20% clean space at the top for title overlay. Do NOT render any text or title on the image.
+
+COLOR PALETTE: Rich, harmonious, and warm. Characters should pop against the background through complementary color contrast. The overall palette should feel inviting and magical — like stepping into a storybook world.
+
+RENDERING QUALITY: 4K quality. Subsurface scattering on all skin. Specular highlights in every eye. Hair with translucent edges catching light. Fabric textures with visible weave and gentle wrinkles. Contact shadows grounding each character. Atmospheric haze in background layers.
+
+NEGATIVE: ${CAST_NEGATIVE_PROMPT}. No flat lighting. No stiff poses. No generic backgrounds. No plastic skin. No dead eyes. No floating characters. No text or watermarks.`;
 
     const characterRefContent = [sol.url, ...CHARACTER_BASE_REFS].map(url => ({
       type: "image_url",
