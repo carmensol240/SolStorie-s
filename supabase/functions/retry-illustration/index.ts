@@ -259,7 +259,10 @@ NEGATIVE: ${NEGATIVE_PROMPT}`;
               }
               imageUrl = `data:image/png;base64,${btoa(chunks.join(''))}`;
             }
-            if (imageUrl) break;
+            if (imageUrl) {
+              modelUsed = "fal_schnell_fallback";
+              break;
+            }
           }
           console.warn(`Schnell attempt ${attempt}: no image`);
           if (attempt < MAX_ATTEMPTS) { await new Promise(r => setTimeout(r, 1000)); continue; }
@@ -269,6 +272,7 @@ NEGATIVE: ${NEGATIVE_PROMPT}`;
         }
       }
     }
+    const durationMs = Date.now() - genStart;
 
     if (!imageUrl) {
       return new Response(JSON.stringify({ error: "No image generated after retries" }), {
