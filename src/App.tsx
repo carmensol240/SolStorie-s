@@ -7,6 +7,7 @@ import ErrorBoundary from "@/components/ErrorBoundary";
 
 import AccessibilityProvider from "@/components/AccessibilityProvider";
 import PWAInstallPrompt from "@/components/pwa/PWAInstallPrompt";
+import AccessibilityMenu from "@/components/AccessibilityMenu";
 
 import About from "./pages/About";
 
@@ -55,6 +56,7 @@ function App() { return (
         <BrowserRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
           <ScrollToTop />
           <PWAInstallPrompt />
+          <AccessibilityMenu />
           <Routes>
             <Route path="/" element={<About />} />
             <Route path="/about" element={<About />} />
