@@ -576,6 +576,7 @@ serve(async (req) => {
     }
 
     const setting = getSettingForTopic(topic || "");
+    const coverStartTime = Date.now();
 
     // ═══════════════════════════════════════════════════════════
     // PATH A: Child photo exists → single-reference personalized cover
@@ -604,6 +605,22 @@ serve(async (req) => {
       };
 
       const imageUrl = await callGeminiImage(LOVABLE_API_KEY, requestBody, 3, "personalized cover");
+
+      // Log cover generation details
+      try {
+        await supabase.from("cover_logs").insert({
+          story_id: storyId,
+          selected_illustration_prompt: bestIllustrationPrompt ? bestIllustrationPrompt.substring(0, 1000) : null,
+          had_face_reference: true,
+          cast_character: null,
+          topic_setting: setting.substring(0, 500),
+          story_context: storyContext.substring(0, 500),
+          cover_path: "personalized",
+          duration_ms: Date.now() - coverStartTime,
+        });
+      } catch (logErr) {
+        console.warn("Cover log insert failed:", logErr);
+      }
 
       if (imageUrl) {
         console.log(`✅ Personalized cover generated for story ${storyId}`);
