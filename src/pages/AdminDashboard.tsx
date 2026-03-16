@@ -70,6 +70,19 @@ interface IllustrationLogRow {
   created_at: string;
 }
 
+interface CoverLogRow {
+  id: string;
+  story_id: string;
+  selected_illustration_prompt: string | null;
+  had_face_reference: boolean;
+  cast_character: string | null;
+  topic_setting: string | null;
+  story_context: string | null;
+  cover_path: string;
+  duration_ms: number | null;
+  created_at: string;
+}
+
 const AdminDashboard = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
