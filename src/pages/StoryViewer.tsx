@@ -1048,6 +1048,7 @@ const StoryViewer = () => {
   };
 
   // Page navigation with simple fade transition
+  // Page 0 (first virtual page) is skipped — cover merges with it
   const handlePageNav = (direction: 'next' | 'prev') => {
     if (isFlipping) return;
     
@@ -1063,14 +1064,17 @@ const StoryViewer = () => {
     
     setTimeout(() => {
       if (direction === 'next' && currentPage < maxPage) {
-        const newPage = currentPage + 1;
+        // Skip page 0 — jump from cover (-1) directly to page 1
+        const newPage = currentPage === -1 ? 1 : currentPage + 1;
         setCurrentPage(newPage);
         
         if (newPage >= maxPage) {
           trackStoryCompleted(story.id);
         }
       } else if (direction === 'prev' && currentPage > -1) {
-        setCurrentPage(currentPage - 1);
+        // Skip page 0 — jump from page 1 directly back to cover (-1)
+        const newPage = currentPage === 1 ? -1 : currentPage - 1;
+        setCurrentPage(newPage);
       }
       setIsFlipping(false);
     }, 300);
