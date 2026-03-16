@@ -293,7 +293,17 @@ NEGATIVE: ${NEGATIVE_PROMPT}`;
       .update({ illustration_url: filePath })
       .eq("id", pageId);
 
-    console.log(`✅ Retry illustration success for page ${page.page_number}`);
+    // Log the illustration generation
+    await supabase.from("illustration_logs").insert({
+      story_id: storyId,
+      page_number: page.page_number,
+      model_used: modelUsed,
+      fallback_reason: fallbackReason || null,
+      had_face_reference: !!childPhoto,
+      duration_ms: durationMs,
+    });
+
+    console.log(`✅ Retry illustration success for page ${page.page_number} (model: ${modelUsed})`);
 
     return new Response(
       JSON.stringify({ success: true, illustrationUrl: filePath }),
