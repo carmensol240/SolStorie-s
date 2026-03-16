@@ -186,6 +186,7 @@ NEGATIVE: ${NEGATIVE_PROMPT}`;
           imageUrl = data.choices?.[0]?.message?.images?.[0]?.image_url?.url || null;
 
           if (imageUrl) {
+            modelUsed = "gemini_with_face";
             console.log(`Gemini illustration generated successfully on attempt ${attempt}`);
             break;
           }
