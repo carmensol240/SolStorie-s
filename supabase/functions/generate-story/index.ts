@@ -1420,6 +1420,90 @@ ${topic.endsWith('-edu') ? `
     
     console.log(`Story parsed successfully with ${storyData.pages.length} pages`);
 
+    // === TEXT QUALITY REWRITE: Age-appropriate language polish ===
+    try {
+      const ageLabel = ageRange === "0-2" ? "2" : ageRange === "2-4" ? "3" : ageRange === "5-7" ? "6" : "8";
+      const fullStoryText = storyData.pages.map((p: any) => `[עמוד ${p.page_number}]\n${p.text}`).join("\n\n");
+      
+      const rewritePrompt = `You are an expert in Hebrew children's literature and NLP-based text analysis.
+
+You will receive a Hebrew children's story and the child's age.
+Your job is to rewrite it with these rules:
+
+STYLE:
+- Poetic, warm, musical Hebrew - like Datia Ben Dor
+- NO archaic words (לפנים, נקיפת הימים, מסברת, מבעקים, קמעה, נוגה, חרישית, etc.)
+- Living, beautiful, modern Hebrew
+
+NLP RULES BY AGE:
+- Age 2-3: Max 4 words per sentence, very simple vocabulary
+- Age 4-5: Max 7 words per sentence, concrete concepts only
+- Age 6-8: Up to 10 words, can include some abstract concepts
+
+CRITICAL RULES:
+- Keep the EXACT same number of pages/sections as the input
+- Keep [עמוד X] markers exactly as they are
+- Preserve illustration_prompt content if present - only rewrite the Hebrew story text
+- Keep nikud (vowel marks) if present in the original
+- Do NOT add any explanation, just return the rewritten text
+
+CHECKLIST before returning:
+✓ Every sentence fits the age level
+✓ No archaic vocabulary
+✓ Has rhythm and musicality
+✓ Emotional theme is clear
+✓ Nikud is correct
+
+Return ONLY the corrected story text with the same [עמוד X] structure, nothing else.
+
+Child age: ${ageLabel}
+Story:
+${fullStoryText}`;
+
+      console.log(`[generate-story] Starting text quality rewrite for age ${ageLabel}...`);
+      
+      const rewriteResponse = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+        method: "POST",
+        headers: { Authorization: `Bearer ${LOVABLE_API_KEY}`, "Content-Type": "application/json" },
+        body: JSON.stringify({
+          model: "google/gemini-2.5-flash",
+          messages: [{ role: "user", content: rewritePrompt }],
+        }),
+      });
+
+      if (rewriteResponse.ok) {
+        const rewriteData = await rewriteResponse.json();
+        const rewrittenText = rewriteData.choices?.[0]?.message?.content?.trim();
+        
+        if (rewrittenText) {
+          // Parse rewritten text back into pages by [עמוד X] markers
+          const pageBlocks = rewrittenText.split(/\[עמוד\s+(\d+)\]/).filter((s: string) => s.trim());
+          let updatedCount = 0;
+          
+          for (let i = 0; i < pageBlocks.length - 1; i += 2) {
+            const pageNum = parseInt(pageBlocks[i]);
+            const pageText = pageBlocks[i + 1]?.trim();
+            if (!isNaN(pageNum) && pageText) {
+              const targetPage = storyData.pages.find((p: any) => p.page_number === pageNum);
+              if (targetPage) {
+                targetPage.text = pageText;
+                updatedCount++;
+              }
+            }
+          }
+          
+          console.log(`[generate-story] ✅ Text rewrite complete: ${updatedCount}/${storyData.pages.length} pages updated`);
+        } else {
+          console.warn("[generate-story] Text rewrite returned empty, using original text");
+        }
+      } else {
+        const errStatus = rewriteResponse.status;
+        console.warn(`[generate-story] Text rewrite failed (${errStatus}), using original text`);
+      }
+    } catch (rewriteErr) {
+      console.warn("[generate-story] Text rewrite error, using original text:", rewriteErr);
+    }
+
     // === NIKUD: Deferred to background for faster response ===
     // Nikud will be applied after story+pages are saved, in a fire-and-forget manner
     const shouldApplyNikud = nikud && language === "he";
