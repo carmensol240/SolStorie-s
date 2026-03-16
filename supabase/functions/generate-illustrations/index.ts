@@ -999,6 +999,15 @@ serve(async (req) => {
 
       if (!base64Image) {
         console.log(`Page ${page.page_number}: no image`);
+        // Log failed attempt
+        await supabase.from("illustration_logs").insert({
+          story_id: storyId,
+          page_number: page.page_number,
+          model_used: modelUsed === "unknown" ? "none_failed" : modelUsed,
+          fallback_reason: fallbackReason || "All attempts failed",
+          had_face_reference: !!childPhotoSignedUrl,
+          duration_ms: durationMs,
+        });
         continue;
       }
 
