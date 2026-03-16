@@ -504,6 +504,22 @@ const StoryViewer = () => {
       
       setStory(storyObj);
 
+      // Fetch series siblings (same child_name + topic, same user)
+      if (storyData.user_id) {
+        const { data: siblings } = await supabase
+          .from("stories")
+          .select("id, slug, topic, created_at")
+          .eq("user_id", storyData.user_id)
+          .eq("child_name", storyData.child_name)
+          .eq("topic", storyData.topic)
+          .order("created_at", { ascending: true });
+        if (siblings && siblings.length > 1) {
+          setSeriesParts(siblings);
+        } else {
+          setSeriesParts([]);
+        }
+      }
+
       // Calculate initial progress and preload all illustrations
       if (pagesData && pagesData.length > 0) {
         const pagesWithIllustrations = pagesData.filter(p => p.illustration_url).length;
