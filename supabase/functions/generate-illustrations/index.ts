@@ -857,17 +857,14 @@ serve(async (req) => {
     
     let firstIllustrationUrl: string | null = null;
 
-    // Flux Schnell is fast — 1s delay between pages to avoid rate limiting
-    console.log(`Generating ${pagesToIllustrate.length} illustrations sequentially via Fal.ai Flux Schnell...`);
+    console.log(`Generating ${pagesToIllustrate.length} illustrations in PARALLEL via Promise.all...`);
 
-    // Resolve HTTP URL for child photo (Instant Character requires HTTP URL, not base64)
+    // Resolve HTTP URL for child photo (Gemini requires HTTP URL, not base64)
     let childPhotoSignedUrl: string | null = null;
     if (effectivePhoto) {
       if (effectivePhoto.startsWith("http")) {
         childPhotoSignedUrl = effectivePhoto;
       } else if (effectivePhoto.startsWith("data:")) {
-        // Upload base64 data URI to storage and use the public URL
-        // Instant Character works much better with HTTP URLs than raw base64
         console.log(`🖼️ Child photo is a data URI — uploading to storage for HTTP URL...`);
         try {
           const base64Content = effectivePhoto.split(",")[1] || effectivePhoto;
@@ -885,7 +882,7 @@ serve(async (req) => {
               .from("child-photos")
               .createSignedUrl(tempPath, 3600);
             childPhotoSignedUrl = signedData?.signedUrl || null;
-            console.log(`✅ Photo uploaded to storage, using signed URL for Instant Character`);
+            console.log(`✅ Photo uploaded to storage, using signed URL`);
           } else {
             console.warn(`Upload failed, falling back to data URI:`, uploadErr);
             childPhotoSignedUrl = effectivePhoto;
@@ -901,14 +898,16 @@ serve(async (req) => {
         childPhotoSignedUrl = signedData?.signedUrl || null;
       }
       if (childPhotoSignedUrl) {
-        console.log(`🖼️ Child photo available — will use Flux PuLID for face-consistent illustrations`);
+        console.log(`🖼️ Child photo available for face-consistent illustrations`);
       }
     }
 
-    for (const page of pagesToIllustrate) {
-      console.log(`Generating illustration for page ${page.page_number}...`);
-      
-      // === AI SCENE ANALYSIS — build a unique, rich prompt per page ===
+    // === PARALLEL ILLUSTRATION GENERATION ===
+    // Each page is processed independently and concurrently
+    async function generatePageIllustration(page: typeof pagesToIllustrate[0]) {
+      console.log(`[Page ${page.page_number}] Starting illustration generation...`);
+
+      // AI Scene Analysis
       const basePrompt = page.illustration_prompt || `A cheerful children's book illustration for page ${page.page_number}`;
       let illustrationPrompt = basePrompt;
 
@@ -921,14 +920,13 @@ serve(async (req) => {
       );
 
       if (scene) {
-        // Build character description from profile
         const charDesc = characterProfile
           ? `A ${characterProfile.gender === "female" ? "girl" : "boy"} aged ${characterProfile.ageDescription} with ${characterProfile.hairDescription}, ${characterProfile.skinTone} skin, ${characterProfile.eyeColor} eyes, wearing ${storyOutfit}`
           : `A child wearing ${storyOutfit}`;
         illustrationPrompt = buildScenePrompt(scene, charDesc, basePrompt);
-        console.log(`📝 Page ${page.page_number} enriched prompt (${illustrationPrompt.length} chars)`);
+        console.log(`[Page ${page.page_number}] 📝 Enriched prompt (${illustrationPrompt.length} chars)`);
       } else {
-        console.log(`⚠️ Page ${page.page_number} using original prompt (scene analysis failed)`);
+        console.log(`[Page ${page.page_number}] ⚠️ Using original prompt (scene analysis failed)`);
       }
 
       let base64Image: string | null = null;
@@ -936,61 +934,37 @@ serve(async (req) => {
       let fallbackReason: string | undefined;
       const MAX_RETRIES = 2;
       const genStart = Date.now();
-      
+
       for (let attempt = 1; attempt <= MAX_RETRIES; attempt++) {
-        // Branch: use Gemini with face when child photo exists
         if (childPhotoSignedUrl) {
           base64Image = await generateIllustrationWithFace(
-            illustrationPrompt,
-            childPhotoSignedUrl,
-            characterProfile,
-            storyOutfit,
-            visualAnchor,
-            effectiveAdventureLogic,
+            illustrationPrompt, childPhotoSignedUrl, characterProfile,
+            storyOutfit, visualAnchor, effectiveAdventureLogic,
           );
-          if (base64Image) {
-            modelUsed = "gemini_with_face";
-            break;
-          }
+          if (base64Image) { modelUsed = "gemini_with_face"; break; }
         } else {
-          // No photo: try Gemini first (same Pixar 3D CGI style), then Flux Schnell as fallback
           base64Image = await generateIllustrationGeminiNoFace(
-            illustrationPrompt,
-            characterProfile,
-            storyOutfit,
-            visualAnchor,
-            effectiveAdventureLogic,
+            illustrationPrompt, characterProfile,
+            storyOutfit, visualAnchor, effectiveAdventureLogic,
           );
-          if (base64Image) {
-            modelUsed = "gemini_no_face";
-            break;
-          }
-          
+          if (base64Image) { modelUsed = "gemini_no_face"; break; }
+
           fallbackReason = "Gemini no-face failed";
-          console.log(`Gemini no-face failed for page ${page.page_number}, trying Flux Schnell fallback...`);
+          console.log(`[Page ${page.page_number}] Gemini failed, trying Flux Schnell fallback...`);
           base64Image = await generateIllustration(
-            illustrationPrompt,
-            effectivePhoto,
-            characterProfile,
-            LOVABLE_API_KEY,
-            storyOutfit,
-            visualAnchor,
-            effectiveAdventureLogic,
-            topic
+            illustrationPrompt, effectivePhoto, characterProfile,
+            LOVABLE_API_KEY, storyOutfit, visualAnchor, effectiveAdventureLogic, topic
           );
-          if (base64Image) {
-            modelUsed = "fal_schnell_fallback";
-            break;
-          }
+          if (base64Image) { modelUsed = "fal_schnell_fallback"; break; }
           fallbackReason = "Both Gemini no-face and Fal Schnell failed";
         }
-        
+
         if (base64Image) {
-          if (attempt > 1) console.log(`✅ Page ${page.page_number} succeeded on retry ${attempt}`);
+          if (attempt > 1) console.log(`[Page ${page.page_number}] ✅ Succeeded on retry ${attempt}`);
           break;
         }
-        
-        console.warn(`⚠️ Page ${page.page_number} attempt ${attempt}/${MAX_RETRIES} failed, ${attempt < MAX_RETRIES ? 'retrying...' : 'giving up'}`);
+
+        console.warn(`[Page ${page.page_number}] ⚠️ Attempt ${attempt}/${MAX_RETRIES} failed, ${attempt < MAX_RETRIES ? 'retrying...' : 'giving up'}`);
         if (attempt < MAX_RETRIES) {
           await new Promise(r => setTimeout(r, 1000));
         }
@@ -998,25 +972,17 @@ serve(async (req) => {
       const durationMs = Date.now() - genStart;
 
       if (!base64Image) {
-        console.log(`Page ${page.page_number}: no image`);
-        // Log failed attempt
+        console.log(`[Page ${page.page_number}] No image generated`);
         await supabase.from("illustration_logs").insert({
-          story_id: storyId,
-          page_number: page.page_number,
+          story_id: storyId, page_number: page.page_number,
           model_used: modelUsed === "unknown" ? "none_failed" : modelUsed,
           fallback_reason: fallbackReason || "All attempts failed",
-          had_face_reference: !!childPhotoSignedUrl,
-          duration_ms: durationMs,
+          had_face_reference: !!childPhotoSignedUrl, duration_ms: durationMs,
         });
-        continue;
+        return null;
       }
 
-      const illustrationUrl = await uploadImageToStorage(
-        supabase,
-        base64Image,
-        storyId,
-        page.page_number
-      );
+      const illustrationUrl = await uploadImageToStorage(supabase, base64Image, storyId, page.page_number);
 
       if (illustrationUrl) {
         const { error: updateError } = await supabase
@@ -1025,19 +991,15 @@ serve(async (req) => {
           .eq("id", page.id);
 
         if (updateError) {
-          console.error(`Error updating page ${page.page_number}:`, updateError);
+          console.error(`[Page ${page.page_number}] Error updating:`, updateError);
         } else {
-          console.log(`Page ${page.page_number} illustration saved`);
+          console.log(`[Page ${page.page_number}] ✅ Illustration saved`);
         }
 
-        // Log successful illustration generation
         await supabase.from("illustration_logs").insert({
-          story_id: storyId,
-          page_number: page.page_number,
-          model_used: modelUsed,
-          fallback_reason: fallbackReason || null,
-          had_face_reference: !!childPhotoSignedUrl,
-          duration_ms: durationMs,
+          story_id: storyId, page_number: page.page_number,
+          model_used: modelUsed, fallback_reason: fallbackReason || null,
+          had_face_reference: !!childPhotoSignedUrl, duration_ms: durationMs,
         });
 
         if (page.page_number === 1) {
@@ -1047,17 +1009,13 @@ serve(async (req) => {
 
       // === SECOND ILLUSTRATION (age 0-2 dual layout) ===
       if (page.illustration_prompt_2) {
-        console.log(`Generating SECOND illustration for page ${page.page_number} (toddler dual layout)...`);
+        console.log(`[Page ${page.page_number}] Generating SECOND illustration (toddler dual layout)...`);
         const secondPrompt = page.illustration_prompt_2;
         let secondImage: string | null = null;
 
-        // Use scene analysis for the second prompt too
         const scene2 = await analyzePageScene(
-          secondPrompt,
-          page.page_number + 100, // offset to get different camera angle
-          pagesToIllustrate.length,
-          topic || "",
-          LOVABLE_API_KEY
+          secondPrompt, page.page_number + 100,
+          pagesToIllustrate.length, topic || "", LOVABLE_API_KEY
         );
 
         let secondIllustrationPrompt = secondPrompt;
@@ -1094,16 +1052,19 @@ serve(async (req) => {
           const secondUrl = await uploadImageToStorage(supabase, secondImage, storyId, page.page_number * 10 + 2);
           if (secondUrl) {
             await supabase.from("story_pages").update({ illustration_url_2: secondUrl }).eq("id", page.id);
-            console.log(`Page ${page.page_number} SECOND illustration saved`);
+            console.log(`[Page ${page.page_number}] ✅ SECOND illustration saved`);
           }
         } else {
-          console.warn(`Page ${page.page_number}: second illustration failed`);
+          console.warn(`[Page ${page.page_number}] Second illustration failed`);
         }
       }
 
-      // Minimal delay to avoid rate limiting
-      await new Promise(r => setTimeout(r, 200));
+      return illustrationUrl;
     }
+
+    // Run ALL page illustrations in parallel
+    const results = await Promise.all(pagesToIllustrate.map(page => generatePageIllustration(page)));
+    console.log(`All ${pagesToIllustrate.length} illustration tasks completed. Success: ${results.filter(Boolean).length}/${pagesToIllustrate.length}`);
 
     // Check if ALL illustration pages now have illustration_url before marking as ready
     // This handles distributed mode where each page is generated by a separate invocation
