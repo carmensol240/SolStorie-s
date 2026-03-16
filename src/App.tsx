@@ -56,6 +56,7 @@ function App() { return (
         <BrowserRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
           <ScrollToTop />
           <PWAInstallPrompt />
+          <AccessibilityMenu />
           <Routes>
             <Route path="/" element={<About />} />
             <Route path="/about" element={<About />} />
