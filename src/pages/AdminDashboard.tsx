@@ -326,10 +326,14 @@ const AdminDashboard = () => {
 
         {/* Tabs */}
         <Tabs defaultValue="users" className="w-full">
-          <TabsList className="grid w-full grid-cols-4">
+          <TabsList className="grid w-full grid-cols-5">
             <TabsTrigger value="users">משתמשים</TabsTrigger>
             <TabsTrigger value="purchases">רכישות</TabsTrigger>
             <TabsTrigger value="stories">סיפורים</TabsTrigger>
+            <TabsTrigger value="illustrations" className="flex items-center gap-1">
+              <Palette className="h-3.5 w-3.5" />
+              איורים
+            </TabsTrigger>
             <TabsTrigger value="errors" className="flex items-center gap-1">
               שגיאות
               {errors24h > 0 && <Badge variant="destructive" className="text-xs px-1.5 py-0">{errors24h}</Badge>}
