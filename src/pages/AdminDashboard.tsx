@@ -103,7 +103,7 @@ const AdminDashboard = () => {
   const REVIEWED_KEY = "admin_reviewed_";
   const [reviewedCutoffs, setReviewedCutoffs] = useState<Record<string, string>>(() => {
     const saved: Record<string, string> = {};
-    ["users", "purchases", "stories", "errors", "illustrations"].forEach(tab => {
+    ["users", "purchases", "stories", "errors", "illustrations", "covers"].forEach(tab => {
       const val = localStorage.getItem(REVIEWED_KEY + tab);
       if (val) saved[tab] = val;
     });
