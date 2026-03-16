@@ -78,6 +78,7 @@ const AdminDashboard = () => {
   const [purchases, setPurchases] = useState<PurchaseRow[]>([]);
   const [stories, setStories] = useState<StoryRow[]>([]);
   const [errorLogs, setErrorLogs] = useState<ErrorLogRow[]>([]);
+  const [illustrationLogs, setIllustrationLogs] = useState<IllustrationLogRow[]>([]);
   const [loading, setLoading] = useState(true);
   const [authReady, setAuthReady] = useState(false);
   const { toast } = useToast();
