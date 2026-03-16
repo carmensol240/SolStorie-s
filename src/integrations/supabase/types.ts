@@ -275,6 +275,39 @@ export type Database = {
         }
         Relationships: []
       }
+      illustration_logs: {
+        Row: {
+          created_at: string
+          duration_ms: number | null
+          fallback_reason: string | null
+          had_face_reference: boolean | null
+          id: string
+          model_used: string
+          page_number: number
+          story_id: string
+        }
+        Insert: {
+          created_at?: string
+          duration_ms?: number | null
+          fallback_reason?: string | null
+          had_face_reference?: boolean | null
+          id?: string
+          model_used: string
+          page_number: number
+          story_id: string
+        }
+        Update: {
+          created_at?: string
+          duration_ms?: number | null
+          fallback_reason?: string | null
+          had_face_reference?: boolean | null
+          id?: string
+          model_used?: string
+          page_number?: number
+          story_id?: string
+        }
+        Relationships: []
+      }
       parent_notes: {
         Row: {
           created_at: string
