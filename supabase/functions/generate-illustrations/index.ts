@@ -1030,6 +1030,16 @@ serve(async (req) => {
           console.log(`Page ${page.page_number} illustration saved`);
         }
 
+        // Log successful illustration generation
+        await supabase.from("illustration_logs").insert({
+          story_id: storyId,
+          page_number: page.page_number,
+          model_used: modelUsed,
+          fallback_reason: fallbackReason || null,
+          had_face_reference: !!childPhotoSignedUrl,
+          duration_ms: durationMs,
+        });
+
         if (page.page_number === 1) {
           firstIllustrationUrl = illustrationUrl;
         }
