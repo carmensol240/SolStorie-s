@@ -1104,8 +1104,14 @@ const StoryViewer = () => {
         isRegeneratingCover={isRegeneratingCover}
       />
 
-      {/* Read Aloud button removed per user request */}
-
+      {/* Series navigation bar */}
+      {seriesParts.length > 1 && resolvedId && (
+        <SeriesNavBar
+          parts={seriesParts}
+          currentStoryId={resolvedId}
+          onNavigate={(id) => navigate(`/story/${id}`)}
+        />
+      )}
 
       {/* Portrait overlay removed - vertical layout */}
 
