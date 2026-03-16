@@ -690,6 +690,22 @@ NEGATIVE: ${CAST_NEGATIVE_PROMPT}`;
 
     const imageUrl = await callGeminiImage(LOVABLE_API_KEY, requestBody, 2, "cast cover");
 
+    // Log cover generation details for cast path
+    try {
+      await supabase.from("cover_logs").insert({
+        story_id: storyId,
+        selected_illustration_prompt: bestIllustrationPrompt ? bestIllustrationPrompt.substring(0, 1000) : null,
+        had_face_reference: false,
+        cast_character: sol.label,
+        topic_setting: setting.substring(0, 500),
+        story_context: storyContext.substring(0, 500),
+        cover_path: "cast",
+        duration_ms: Date.now() - coverStartTime,
+      });
+    } catch (logErr) {
+      console.warn("Cover log insert failed:", logErr);
+    }
+
     if (!imageUrl) {
       return new Response(JSON.stringify({ error: "No cover image generated after retries" }), {
         status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" },
