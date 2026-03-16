@@ -59,6 +59,17 @@ interface ErrorLogRow {
   created_at: string;
 }
 
+interface IllustrationLogRow {
+  id: string;
+  story_id: string;
+  page_number: number;
+  model_used: string;
+  fallback_reason: string | null;
+  had_face_reference: boolean;
+  duration_ms: number | null;
+  created_at: string;
+}
+
 const AdminDashboard = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
