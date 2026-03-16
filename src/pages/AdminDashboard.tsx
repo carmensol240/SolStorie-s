@@ -356,10 +356,14 @@ const AdminDashboard = () => {
 
         {/* Tabs */}
         <Tabs defaultValue="users" className="w-full">
-          <TabsList className="grid w-full grid-cols-5">
+          <TabsList className="grid w-full grid-cols-6">
             <TabsTrigger value="users">משתמשים</TabsTrigger>
             <TabsTrigger value="purchases">רכישות</TabsTrigger>
             <TabsTrigger value="stories">סיפורים</TabsTrigger>
+            <TabsTrigger value="covers" className="flex items-center gap-1">
+              <Image className="h-3.5 w-3.5" />
+              כריכות
+            </TabsTrigger>
             <TabsTrigger value="illustrations" className="flex items-center gap-1">
               <Palette className="h-3.5 w-3.5" />
               איורים
