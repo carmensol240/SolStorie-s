@@ -207,6 +207,45 @@ export type Database = {
         }
         Relationships: []
       }
+      cover_logs: {
+        Row: {
+          cast_character: string | null
+          cover_path: string | null
+          created_at: string
+          duration_ms: number | null
+          had_face_reference: boolean | null
+          id: string
+          selected_illustration_prompt: string | null
+          story_context: string | null
+          story_id: string
+          topic_setting: string | null
+        }
+        Insert: {
+          cast_character?: string | null
+          cover_path?: string | null
+          created_at?: string
+          duration_ms?: number | null
+          had_face_reference?: boolean | null
+          id?: string
+          selected_illustration_prompt?: string | null
+          story_context?: string | null
+          story_id: string
+          topic_setting?: string | null
+        }
+        Update: {
+          cast_character?: string | null
+          cover_path?: string | null
+          created_at?: string
+          duration_ms?: number | null
+          had_face_reference?: boolean | null
+          id?: string
+          selected_illustration_prompt?: string | null
+          story_context?: string | null
+          story_id?: string
+          topic_setting?: string | null
+        }
+        Relationships: []
+      }
       digital_books: {
         Row: {
           created_at: string

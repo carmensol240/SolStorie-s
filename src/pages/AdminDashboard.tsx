@@ -6,7 +6,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
-import { Users, ShoppingCart, BookOpen, TrendingUp, ArrowRight, AlertTriangle, EyeOff, Eye, Trash2, Palette } from "lucide-react";
+import { Users, ShoppingCart, BookOpen, TrendingUp, ArrowRight, AlertTriangle, EyeOff, Eye, Trash2, Palette, Image } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { format } from "date-fns";
@@ -70,6 +70,19 @@ interface IllustrationLogRow {
   created_at: string;
 }
 
+interface CoverLogRow {
+  id: string;
+  story_id: string;
+  selected_illustration_prompt: string | null;
+  had_face_reference: boolean;
+  cast_character: string | null;
+  topic_setting: string | null;
+  story_context: string | null;
+  cover_path: string;
+  duration_ms: number | null;
+  created_at: string;
+}
+
 const AdminDashboard = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
@@ -79,6 +92,7 @@ const AdminDashboard = () => {
   const [stories, setStories] = useState<StoryRow[]>([]);
   const [errorLogs, setErrorLogs] = useState<ErrorLogRow[]>([]);
   const [illustrationLogs, setIllustrationLogs] = useState<IllustrationLogRow[]>([]);
+  const [coverLogs, setCoverLogs] = useState<CoverLogRow[]>([]);
   const [loading, setLoading] = useState(true);
   const [authReady, setAuthReady] = useState(false);
   const { toast } = useToast();
@@ -89,13 +103,13 @@ const AdminDashboard = () => {
   const REVIEWED_KEY = "admin_reviewed_";
   const [reviewedCutoffs, setReviewedCutoffs] = useState<Record<string, string>>(() => {
     const saved: Record<string, string> = {};
-    ["users", "purchases", "stories", "errors", "illustrations"].forEach(tab => {
+    ["users", "purchases", "stories", "errors", "illustrations", "covers"].forEach(tab => {
       const val = localStorage.getItem(REVIEWED_KEY + tab);
       if (val) saved[tab] = val;
     });
     return saved;
   });
-  const [showReviewed, setShowReviewed] = useState<Record<string, boolean>>({ users: false, purchases: false, stories: false, errors: false, illustrations: false });
+  const [showReviewed, setShowReviewed] = useState<Record<string, boolean>>({ users: false, purchases: false, stories: false, errors: false, illustrations: false, covers: false });
   const [confirmClearTab, setConfirmClearTab] = useState<string | null>(null);
 
   const markAsReviewed = useCallback((tab: string) => {
@@ -238,6 +252,22 @@ const AdminDashboard = () => {
     fetchIllustrationLogs();
   }, [isAdmin]);
 
+  // Fetch cover logs
+  useEffect(() => {
+    if (!isAdmin) return;
+
+    const fetchCoverLogs = async () => {
+      const { data } = await supabase
+        .from("cover_logs")
+        .select("*")
+        .order("created_at", { ascending: false })
+        .limit(200);
+      if (data) setCoverLogs(data as CoverLogRow[]);
+    };
+
+    fetchCoverLogs();
+  }, [isAdmin]);
+
   if (isAdmin === null) {
     return <div className="flex items-center justify-center min-h-screen">טוען...</div>;
   }
@@ -326,10 +356,14 @@ const AdminDashboard = () => {
 
         {/* Tabs */}
         <Tabs defaultValue="users" className="w-full">
-          <TabsList className="grid w-full grid-cols-5">
+          <TabsList className="grid w-full grid-cols-6">
             <TabsTrigger value="users">משתמשים</TabsTrigger>
             <TabsTrigger value="purchases">רכישות</TabsTrigger>
             <TabsTrigger value="stories">סיפורים</TabsTrigger>
+            <TabsTrigger value="covers" className="flex items-center gap-1">
+              <Image className="h-3.5 w-3.5" />
+              כריכות
+            </TabsTrigger>
             <TabsTrigger value="illustrations" className="flex items-center gap-1">
               <Palette className="h-3.5 w-3.5" />
               איורים
@@ -444,7 +478,82 @@ const AdminDashboard = () => {
             </Card>
           </TabsContent>
 
-          <TabsContent value="errors">
+          <TabsContent value="covers">
+            <Card>
+              <CardContent className="p-4 space-y-4">
+                <div className="flex flex-wrap gap-3 items-center">
+                  <div className="text-sm text-muted-foreground">
+                    {coverLogs.length} רשומות כריכות
+                  </div>
+                  <div className="flex gap-2 mr-auto">
+                    {(() => {
+                      const personalized = coverLogs.filter(l => l.cover_path === "personalized").length;
+                      const cast = coverLogs.filter(l => l.cover_path === "cast").length;
+                      return (
+                        <>
+                          {personalized > 0 && <Badge className="bg-green-100 text-green-800 text-xs">פרסונלי: {personalized}</Badge>}
+                          {cast > 0 && <Badge className="bg-blue-100 text-blue-800 text-xs">קאסט: {cast}</Badge>}
+                        </>
+                      );
+                    })()}
+                  </div>
+                </div>
+
+                <ReviewedBar tab="covers" total={coverLogs.length} filtered={filterByReviewed(coverLogs, "covers").length} cutoff={reviewedCutoffs["covers"]} showReviewed={showReviewed["covers"]} onToggleShow={() => setShowReviewed(p => ({ ...p, covers: !p.covers }))} onMark={() => setConfirmClearTab("covers")} onClear={() => clearReviewed("covers")} />
+
+                <div className="overflow-x-auto">
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead className="text-right">סיפור</TableHead>
+                        <TableHead className="text-right">נתיב</TableHead>
+                        <TableHead className="text-right">Face Ref</TableHead>
+                        <TableHead className="text-right">דמות קאסט</TableHead>
+                        <TableHead className="text-right">Illustration Prompt</TableHead>
+                        <TableHead className="text-right">Setting</TableHead>
+                        <TableHead className="text-right">זמן (שנ׳)</TableHead>
+                        <TableHead className="text-right">תאריך</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {filterByReviewed(coverLogs, "covers").length === 0 ? (
+                        <TableRow>
+                          <TableCell colSpan={8} className="text-center text-muted-foreground py-8">
+                            אין נתוני כריכות עדיין — יופיעו מהסיפור הבא שייווצר
+                          </TableCell>
+                        </TableRow>
+                      ) : filterByReviewed(coverLogs, "covers").map((log) => (
+                        <TableRow key={log.id}>
+                          <TableCell className="text-xs font-mono max-w-[120px] truncate" title={log.story_id}>
+                            {log.story_id.substring(0, 8)}…
+                          </TableCell>
+                          <TableCell>
+                            <Badge className={`text-xs whitespace-nowrap ${log.cover_path === "personalized" ? "bg-green-100 text-green-800" : "bg-blue-100 text-blue-800"}`}>
+                              {log.cover_path === "personalized" ? "פרסונלי" : "קאסט"}
+                            </Badge>
+                          </TableCell>
+                          <TableCell className="text-center">{log.had_face_reference ? "✅" : "—"}</TableCell>
+                          <TableCell className="text-xs">{log.cast_character || "—"}</TableCell>
+                          <TableCell className="text-xs max-w-[200px] truncate" title={log.selected_illustration_prompt || ""}>
+                            {log.selected_illustration_prompt ? log.selected_illustration_prompt.substring(0, 80) + "…" : "—"}
+                          </TableCell>
+                          <TableCell className="text-xs max-w-[150px] truncate" title={log.topic_setting || ""}>
+                            {log.topic_setting ? log.topic_setting.substring(0, 60) + "…" : "—"}
+                          </TableCell>
+                          <TableCell className="text-xs">
+                            {log.duration_ms ? (log.duration_ms / 1000).toFixed(1) : "—"}
+                          </TableCell>
+                          <TableCell className="text-xs whitespace-nowrap">{formatDate(log.created_at)}</TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </div>
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+
             <Card>
               <CardContent className="p-4 space-y-4">
                 {/* Filters */}
