@@ -553,7 +553,7 @@ const AdminDashboard = () => {
             </Card>
           </TabsContent>
 
-
+          <TabsContent value="errors">
             <Card>
               <CardContent className="p-4 space-y-4">
                 {/* Filters */}
