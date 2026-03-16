@@ -478,7 +478,82 @@ const AdminDashboard = () => {
             </Card>
           </TabsContent>
 
-          <TabsContent value="errors">
+          <TabsContent value="covers">
+            <Card>
+              <CardContent className="p-4 space-y-4">
+                <div className="flex flex-wrap gap-3 items-center">
+                  <div className="text-sm text-muted-foreground">
+                    {coverLogs.length} רשומות כריכות
+                  </div>
+                  <div className="flex gap-2 mr-auto">
+                    {(() => {
+                      const personalized = coverLogs.filter(l => l.cover_path === "personalized").length;
+                      const cast = coverLogs.filter(l => l.cover_path === "cast").length;
+                      return (
+                        <>
+                          {personalized > 0 && <Badge className="bg-green-100 text-green-800 text-xs">פרסונלי: {personalized}</Badge>}
+                          {cast > 0 && <Badge className="bg-blue-100 text-blue-800 text-xs">קאסט: {cast}</Badge>}
+                        </>
+                      );
+                    })()}
+                  </div>
+                </div>
+
+                <ReviewedBar tab="covers" total={coverLogs.length} filtered={filterByReviewed(coverLogs, "covers").length} cutoff={reviewedCutoffs["covers"]} showReviewed={showReviewed["covers"]} onToggleShow={() => setShowReviewed(p => ({ ...p, covers: !p.covers }))} onMark={() => setConfirmClearTab("covers")} onClear={() => clearReviewed("covers")} />
+
+                <div className="overflow-x-auto">
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead className="text-right">סיפור</TableHead>
+                        <TableHead className="text-right">נתיב</TableHead>
+                        <TableHead className="text-right">Face Ref</TableHead>
+                        <TableHead className="text-right">דמות קאסט</TableHead>
+                        <TableHead className="text-right">Illustration Prompt</TableHead>
+                        <TableHead className="text-right">Setting</TableHead>
+                        <TableHead className="text-right">זמן (שנ׳)</TableHead>
+                        <TableHead className="text-right">תאריך</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {filterByReviewed(coverLogs, "covers").length === 0 ? (
+                        <TableRow>
+                          <TableCell colSpan={8} className="text-center text-muted-foreground py-8">
+                            אין נתוני כריכות עדיין — יופיעו מהסיפור הבא שייווצר
+                          </TableCell>
+                        </TableRow>
+                      ) : filterByReviewed(coverLogs, "covers").map((log) => (
+                        <TableRow key={log.id}>
+                          <TableCell className="text-xs font-mono max-w-[120px] truncate" title={log.story_id}>
+                            {log.story_id.substring(0, 8)}…
+                          </TableCell>
+                          <TableCell>
+                            <Badge className={`text-xs whitespace-nowrap ${log.cover_path === "personalized" ? "bg-green-100 text-green-800" : "bg-blue-100 text-blue-800"}`}>
+                              {log.cover_path === "personalized" ? "פרסונלי" : "קאסט"}
+                            </Badge>
+                          </TableCell>
+                          <TableCell className="text-center">{log.had_face_reference ? "✅" : "—"}</TableCell>
+                          <TableCell className="text-xs">{log.cast_character || "—"}</TableCell>
+                          <TableCell className="text-xs max-w-[200px] truncate" title={log.selected_illustration_prompt || ""}>
+                            {log.selected_illustration_prompt ? log.selected_illustration_prompt.substring(0, 80) + "…" : "—"}
+                          </TableCell>
+                          <TableCell className="text-xs max-w-[150px] truncate" title={log.topic_setting || ""}>
+                            {log.topic_setting ? log.topic_setting.substring(0, 60) + "…" : "—"}
+                          </TableCell>
+                          <TableCell className="text-xs">
+                            {log.duration_ms ? (log.duration_ms / 1000).toFixed(1) : "—"}
+                          </TableCell>
+                          <TableCell className="text-xs whitespace-nowrap">{formatDate(log.created_at)}</TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </div>
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+
             <Card>
               <CardContent className="p-4 space-y-4">
                 {/* Filters */}
