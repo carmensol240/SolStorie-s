@@ -1,5 +1,4 @@
-import { useState } from "react";
-import { Accessibility, Eye, X, Volume2, Type } from "lucide-react";
+import { Accessibility, Eye, Volume2, Type } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   Popover,
