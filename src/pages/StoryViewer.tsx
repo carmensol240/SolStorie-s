@@ -1,6 +1,7 @@
 import { useState, useEffect, useLayoutEffect, useRef, useCallback, useMemo } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { Home, BookOpen, Sparkles, Palette, Wand2, Loader2, ImageOff, Star, Send, ChevronRight, ChevronLeft, ArrowRight } from "lucide-react";
+import SeriesNavBar, { SeriesPart } from "@/components/story/SeriesNavBar";
 import { MissingIllustrationPrompt } from "@/components/story/MissingIllustrationPrompt";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
@@ -128,6 +129,7 @@ const StoryViewer = () => {
   
   const [resolvedId, setResolvedId] = useState<string | null>(null);
   const [story, setStory] = useState<Story | null>(null);
+  const [seriesParts, setSeriesParts] = useState<SeriesPart[]>([]);
   const { avatarUrl: childAvatarUrl } = useChildAvatar(story?.child_name);
 
   const [currentPage, setCurrentPage] = useState(-1);
@@ -501,6 +503,22 @@ const StoryViewer = () => {
       };
       
       setStory(storyObj);
+
+      // Fetch series siblings (same child_name + topic, same user)
+      if (storyData.user_id) {
+        const { data: siblings } = await supabase
+          .from("stories")
+          .select("id, slug, topic, created_at")
+          .eq("user_id", storyData.user_id)
+          .eq("child_name", storyData.child_name)
+          .eq("topic", storyData.topic)
+          .order("created_at", { ascending: true });
+        if (siblings && siblings.length > 1) {
+          setSeriesParts(siblings);
+        } else {
+          setSeriesParts([]);
+        }
+      }
 
       // Calculate initial progress and preload all illustrations
       if (pagesData && pagesData.length > 0) {
@@ -1086,8 +1104,14 @@ const StoryViewer = () => {
         isRegeneratingCover={isRegeneratingCover}
       />
 
-      {/* Read Aloud button removed per user request */}
-
+      {/* Series navigation bar */}
+      {seriesParts.length > 1 && resolvedId && (
+        <SeriesNavBar
+          parts={seriesParts}
+          currentStoryId={resolvedId}
+          onNavigate={(id) => navigate(`/story/${id}`)}
+        />
+      )}
 
       {/* Portrait overlay removed - vertical layout */}
 
@@ -1161,13 +1185,30 @@ const StoryViewer = () => {
                   <div className="pt-2">
                     <span className="text-base font-black logo-3d-bubble"><span className="logo-rainbow">SolStorie's™</span></span>
                   </div>
-                  {/* Desktop back button */}
-                  <div className="hidden md:flex justify-center pt-4">
+                  {/* Next part in series or back to library */}
+                  <div className="flex flex-col items-center gap-2 pt-4">
+                    {(() => {
+                      const idx = seriesParts.findIndex(p => p.id === resolvedId);
+                      if (idx >= 0 && idx < seriesParts.length - 1) {
+                        const next = seriesParts[idx + 1];
+                        return (
+                          <Button
+                            onClick={() => navigate(`/story/${next.slug || next.id}`)}
+                            className="bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white font-bold px-6 py-3 rounded-full shadow-xl text-base gap-2 animate-pulse"
+                          >
+                            <BookOpen className="w-5 h-5" />
+                            המשיכו לחלק {idx + 2} →
+                          </Button>
+                        );
+                      }
+                      return null;
+                    })()}
                     <Button
                       onClick={() => navigate('/library')}
-                      className="bg-white/90 hover:bg-white text-purple-700 font-bold px-6 py-3 rounded-full shadow-lg text-base gap-2"
+                      variant="ghost"
+                      className="text-white/80 hover:text-white hover:bg-white/10 font-medium px-6 py-3 rounded-full text-sm gap-2"
                     >
-                      <ArrowRight className="w-5 h-5" />
+                      <ArrowRight className="w-4 h-4" />
                       חזרה לספרייה
                     </Button>
                   </div>
