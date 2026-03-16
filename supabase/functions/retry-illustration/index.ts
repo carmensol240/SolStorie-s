@@ -177,6 +177,7 @@ NEGATIVE: ${NEGATIVE_PROMPT}`;
           if (!response.ok) {
             const errorBody = await response.text().catch(() => "no body");
             console.error(`Gemini attempt ${attempt} failed: ${response.status} - ${errorBody}`);
+            fallbackReason = `Gemini with face failed: HTTP ${response.status}`;
             if (attempt < MAX_ATTEMPTS) { await new Promise(r => setTimeout(r, 3000)); continue; }
             break;
           }
