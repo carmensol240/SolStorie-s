@@ -132,6 +132,13 @@ A ${genderWord} aged ${profile.ageDescription} with ${profile.hairDescription}, 
 CRITICAL INSTRUCTION: Maintain strict visual character continuity across ALL generated images for this story sequence. The character must look like the SAME child in every single illustration — same face shape, same proportions, same hair, same outfit, same skin tone. Any visual deviation between pages is a FAILURE.`;
 }
 
+interface IllustrationResult {
+  imageData: string | null;
+  modelUsed: string;
+  fallbackReason?: string;
+  durationMs?: number;
+}
+
 // Helper: generate illustration with face reference via Gemini Image Generation
 // Uses google/gemini-3-pro-image-preview for text-to-image with face reference
 async function generateIllustrationWithFace(
