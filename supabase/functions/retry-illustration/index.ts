@@ -134,7 +134,10 @@ serve(async (req) => {
     const prompt = customPrompt || page.illustration_prompt || `A cheerful children's book illustration for page ${page.page_number}`;
 
     let imageUrl: string | null = null;
+    let modelUsed = "unknown";
+    let fallbackReason: string | undefined;
     const MAX_ATTEMPTS = 2;
+    const genStart = Date.now();
 
     // Branch: use Gemini Image Generation when child photo exists, Schnell otherwise
     if (childPhoto) {
