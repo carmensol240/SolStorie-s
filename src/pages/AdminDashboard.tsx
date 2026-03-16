@@ -252,6 +252,22 @@ const AdminDashboard = () => {
     fetchIllustrationLogs();
   }, [isAdmin]);
 
+  // Fetch cover logs
+  useEffect(() => {
+    if (!isAdmin) return;
+
+    const fetchCoverLogs = async () => {
+      const { data } = await supabase
+        .from("cover_logs")
+        .select("*")
+        .order("created_at", { ascending: false })
+        .limit(200);
+      if (data) setCoverLogs(data as CoverLogRow[]);
+    };
+
+    fetchCoverLogs();
+  }, [isAdmin]);
+
   if (isAdmin === null) {
     return <div className="flex items-center justify-center min-h-screen">טוען...</div>;
   }
