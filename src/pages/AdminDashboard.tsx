@@ -222,6 +222,22 @@ const AdminDashboard = () => {
     fetchErrors();
   }, [isAdmin, errorTypeFilter, errorDaysFilter]);
 
+  // Fetch illustration logs
+  useEffect(() => {
+    if (!isAdmin) return;
+
+    const fetchIllustrationLogs = async () => {
+      const { data } = await supabase
+        .from("illustration_logs")
+        .select("*")
+        .order("created_at", { ascending: false })
+        .limit(300);
+      if (data) setIllustrationLogs(data as IllustrationLogRow[]);
+    };
+
+    fetchIllustrationLogs();
+  }, [isAdmin]);
+
   if (isAdmin === null) {
     return <div className="flex items-center justify-center min-h-screen">טוען...</div>;
   }
