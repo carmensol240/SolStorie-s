@@ -1185,13 +1185,30 @@ const StoryViewer = () => {
                   <div className="pt-2">
                     <span className="text-base font-black logo-3d-bubble"><span className="logo-rainbow">SolStorie's™</span></span>
                   </div>
-                  {/* Desktop back button */}
-                  <div className="hidden md:flex justify-center pt-4">
+                  {/* Next part in series or back to library */}
+                  <div className="flex flex-col items-center gap-2 pt-4">
+                    {(() => {
+                      const idx = seriesParts.findIndex(p => p.id === resolvedId);
+                      if (idx >= 0 && idx < seriesParts.length - 1) {
+                        const next = seriesParts[idx + 1];
+                        return (
+                          <Button
+                            onClick={() => navigate(`/story/${next.slug || next.id}`)}
+                            className="bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white font-bold px-6 py-3 rounded-full shadow-xl text-base gap-2 animate-pulse"
+                          >
+                            <BookOpen className="w-5 h-5" />
+                            המשיכו לחלק {idx + 2} →
+                          </Button>
+                        );
+                      }
+                      return null;
+                    })()}
                     <Button
                       onClick={() => navigate('/library')}
-                      className="bg-white/90 hover:bg-white text-purple-700 font-bold px-6 py-3 rounded-full shadow-lg text-base gap-2"
+                      variant="ghost"
+                      className="text-white/80 hover:text-white hover:bg-white/10 font-medium px-6 py-3 rounded-full text-sm gap-2"
                     >
-                      <ArrowRight className="w-5 h-5" />
+                      <ArrowRight className="w-4 h-4" />
                       חזרה לספרייה
                     </Button>
                   </div>
