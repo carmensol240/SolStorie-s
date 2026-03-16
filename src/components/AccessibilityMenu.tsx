@@ -16,34 +16,12 @@ const fontSizeOptions: { value: FontSize; label: string }[] = [
 ];
 
 const AccessibilityMenu = () => {
-  const [isDismissed, setIsDismissed] = useState(() => {
-    return localStorage.getItem('accessibility_dismissed') === 'true';
-  });
-  
   const { visualAidMode, setVisualAidMode, audioSupport, setAudioSupport, fontSize, setFontSize } = useAccessibility();
-
-  const handleDismiss = (e: React.MouseEvent) => {
-    e.stopPropagation();
-    e.preventDefault();
-    setIsDismissed(true);
-    localStorage.setItem('accessibility_dismissed', 'true');
-  };
-
-  if (isDismissed) return null;
 
   return (
     <Popover>
       <PopoverTrigger asChild>
         <div className="fixed bottom-20 left-4 z-50">
-          {/* Dismiss button */}
-          <button
-            onClick={handleDismiss}
-            className="absolute -top-1 -right-1 w-5 h-5 rounded-full bg-gray-600 text-white text-xs flex items-center justify-center hover:bg-gray-700 z-10 shadow-md"
-            aria-label="הסתר כפתור נגישות"
-          >
-            <X className="w-3 h-3" />
-          </button>
-          {/* Main button */}
           <Button
             variant="default"
             size="icon"
