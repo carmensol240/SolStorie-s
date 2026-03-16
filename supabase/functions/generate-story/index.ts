@@ -1452,12 +1452,25 @@ ${topic.endsWith('-edu') ? `
       const rewritePrompt = `You are an expert in Hebrew children's literature and NLP-based text analysis.
 
 You will receive a Hebrew children's story and the child's age.
-Your job is to rewrite it with these rules:
+Your job is to rewrite it while preserving and enhancing the literary style.
 
-STYLE:
-- Poetic, warm, musical Hebrew - like Datia Ben Dor
+STYLE — PRESERVE AND ENHANCE:
+- Rich, poetic, sensory Hebrew — describe smells, sounds, touch, light, colors
+- Warmth and intimacy between characters — loving touch, eye contact, closeness
+- Painterly, precise descriptions — every sentence should paint a picture
 - NO archaic words (לפנים, נקיפת הימים, מסברת, מבעקים, קמעה, נוגה, חרישית, etc.)
 - Living, beautiful, modern Hebrew
+
+FORMATTING — CRITICAL:
+- **Each sentence must be on its own line** (newline after every period/sentence end)
+- Empty line between paragraphs
+- Short, rhythmic sentences — not dense blocks of text
+- Example format:
+  "אמא שלה מסתכלת עליה באהבה.
+  השמש החמימה נכנסת דרך החלון ומלטפת את הבית באור זהב.
+
+  פתאום, מבחוץ, נשמע צליל מיוחד.
+  זהו צליל ארוך, שעולה ויורד, כמו שיר שהרוח שרה מרחוק."
 
 NLP RULES BY AGE:
 - Age 2-3: Max 4 words per sentence, very simple vocabulary
@@ -1468,15 +1481,20 @@ CRITICAL RULES:
 - Keep the EXACT same number of pages/sections as the input
 - Keep [עמוד X] markers exactly as they are
 - Preserve illustration_prompt content if present - only rewrite the Hebrew story text
-- Keep nikud (vowel marks) if present in the original
+- Do NOT add nikud (vowel marks) — write clean text without nikud
+- Do NOT flatten sentence-per-line formatting into paragraphs
+- Do NOT remove sensory descriptions (smells, sounds, touch) — enhance them!
 - Do NOT add any explanation, just return the rewritten text
 
 CHECKLIST before returning:
 ✓ Every sentence fits the age level
 ✓ No archaic vocabulary
 ✓ Has rhythm and musicality
-✓ Emotional theme is clear
-✓ Nikud is correct
+✓ Each sentence on its own line
+✓ Sensory language preserved (smells, sounds, touch, light)
+✓ Warmth and intimacy between characters preserved
+✓ No nikud in text
+✓ No spelling errors
 
 Return ONLY the corrected story text with the same [עמוד X] structure, nothing else.
 
