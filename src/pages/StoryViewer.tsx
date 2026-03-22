@@ -951,48 +951,114 @@ const StoryViewer = () => {
 
   const isToddler = story?.age_range === '0-2';
 
+  // Find the best illustration to use as cover: match illustration_prompt keywords to story.topic
+  const coverIllustration = useMemo(() => {
+    if (!story || story.pages.length === 0) return null;
+
+    const pagesWithIllustrations = story.pages.filter(p => p.illustration_url);
+    if (pagesWithIllustrations.length === 0) return null;
+
+    const topicWords = story.topic.toLowerCase().split(/\s+/).filter(w => w.length > 2);
+    if (topicWords.length === 0) {
+      return pagesWithIllustrations[0];
+    }
+
+    let bestPage = pagesWithIllustrations[0];
+    let bestScore = 0;
+
+    for (const page of pagesWithIllustrations) {
+      const prompt = (page.illustration_prompt || '').toLowerCase();
+      let score = 0;
+      for (const word of topicWords) {
+        if (prompt.includes(word)) score++;
+      }
+      if (score > bestScore) {
+        bestScore = score;
+        bestPage = page;
+      }
+    }
+
+    return bestPage;
+  }, [story?.pages, story?.topic]);
+
   const virtualPages: VirtualPage[] = useMemo(() => {
     if (!story || story.pages.length === 0) return [];
     const result: VirtualPage[] = [];
-    for (const page of story.pages) {
-      const hasText = page.text && page.text.trim().length > 0;
-      const hasIllustration = !!page.illustration_url;
 
-      if (isToddler) {
-        // Ages 0-2: single combined page — illustration fullscreen + text overlay
+    if (isToddler) {
+      for (const page of story.pages) {
+        const hasText = page.text && page.text.trim().length > 0;
+        const hasIllustration = !!page.illustration_url;
+        const isCoverIllust = coverIllustration && page.id === coverIllustration.id;
+
         if (hasIllustration || hasText) {
           result.push({
             type: 'combined',
             dbPage: page,
-            illustrationUrl: page.illustration_url,
-            illustrationPrompt: page.illustration_prompt || null,
-            text: page.text,
-          });
-        }
-      } else {
-        // Ages 3+: separate text and illustration pages
-        if (hasText) {
-          result.push({
-            type: 'text',
-            dbPage: page,
-            illustrationUrl: null,
-            illustrationPrompt: null,
-            text: page.text,
-          });
-        }
-        if (hasIllustration) {
-          result.push({
-            type: 'illustration',
-            dbPage: page,
-            illustrationUrl: page.illustration_url,
+            illustrationUrl: isCoverIllust ? null : page.illustration_url,
             illustrationPrompt: page.illustration_prompt || null,
             text: page.text,
           });
         }
       }
+    } else {
+      // Ages 3+: text → text → illustration pattern
+      const allTexts: StoryPage[] = [];
+      const availableIllustrations: { url: string; prompt: string | null; dbPage: StoryPage }[] = [];
+
+      for (const page of story.pages) {
+        if (page.text && page.text.trim().length > 0) {
+          allTexts.push(page);
+        }
+        if (page.illustration_url && (!coverIllustration || page.id !== coverIllustration.id)) {
+          availableIllustrations.push({
+            url: page.illustration_url,
+            prompt: page.illustration_prompt || null,
+            dbPage: page,
+          });
+        }
+      }
+
+      let illustIndex = 0;
+      for (let i = 0; i < allTexts.length; i++) {
+        result.push({
+          type: 'text',
+          dbPage: allTexts[i],
+          illustrationUrl: null,
+          illustrationPrompt: null,
+          text: allTexts[i].text,
+        });
+
+        // After every 2nd text page, insert next available illustration
+        if ((i + 1) % 2 === 0 && illustIndex < availableIllustrations.length) {
+          const illust = availableIllustrations[illustIndex];
+          result.push({
+            type: 'illustration',
+            dbPage: illust.dbPage,
+            illustrationUrl: illust.url,
+            illustrationPrompt: illust.prompt,
+            text: illust.dbPage.text,
+          });
+          illustIndex++;
+        }
+      }
+
+      // Remaining illustrations
+      while (illustIndex < availableIllustrations.length) {
+        const illust = availableIllustrations[illustIndex];
+        result.push({
+          type: 'illustration',
+          dbPage: illust.dbPage,
+          illustrationUrl: illust.url,
+          illustrationPrompt: illust.prompt,
+          text: illust.dbPage.text,
+        });
+        illustIndex++;
+      }
     }
+
     return result;
-  }, [story?.pages, isToddler]);
+  }, [story?.pages, isToddler, coverIllustration]);
 
   if (isLoading) {
     return (
