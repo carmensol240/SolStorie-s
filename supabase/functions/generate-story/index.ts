@@ -1320,6 +1320,8 @@ ${topic.endsWith('-edu') ? `
       else if (c.startsWith("```")) c = c.slice(3);
       if (c.endsWith("```")) c = c.slice(0, -3);
       c = c.trim();
+      // Strip Hebrew nikud (vowel marks) — they break JSON parsing and will be added later
+      c = c.replace(/[\u0591-\u05C7]/g, '');
       // Remove non-printable control chars
       c = c.replace(/[\x00-\x08\x0B\x0C\x0E-\x1F\x7F]/g, '');
       // Escape raw newlines/tabs inside JSON string values
