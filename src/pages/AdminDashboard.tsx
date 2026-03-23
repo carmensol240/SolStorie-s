@@ -425,7 +425,7 @@ const AdminDashboard = () => {
                         <TableRow><TableCell colSpan={6} className="text-center">טוען...</TableCell></TableRow>
                       ) : filterByReviewed(profiles, "users").map((p) => (
                         <TableRow key={p.id}>
-                          <TableCell>{p.display_name || "—"}</TableCell>
+                          <TableCell>{p.display_name || p.email || "—"}</TableCell>
                           <TableCell className="text-xs text-muted-foreground">{p.email || "—"}</TableCell>
                           <TableCell>
                             <Badge variant="outline">{p.user_role}</Badge>
