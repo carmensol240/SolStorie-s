@@ -115,6 +115,7 @@ export interface TopicItem {
   ageRange: string;
   keywords?: string[];
   featured?: boolean;
+  subCategory?: string;
 }
 
 export interface CharacterSection {
