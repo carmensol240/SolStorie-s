@@ -43,23 +43,55 @@ const CategorySection = ({ section, colorClass, bgClass, borderClass }: Category
       {/* Expanded topics grid */}
       {expanded && (
         <div className="space-y-3">
-          <div className="grid grid-cols-2 gap-2">
-            {section.topics.map((topic) => (
-              <button
-                key={topic.id}
-                onClick={() => navigate("/create", { state: { preselectedTopic: topic.id } })}
-                className="rounded-xl overflow-hidden shadow-sm border border-border bg-card hover:shadow-md hover:scale-[1.02] transition-all text-right"
-              >
-                <div className="aspect-square w-full flex items-center justify-center overflow-hidden">
-                  <img src={topic.image} alt={topic.label} className="w-full h-full object-cover" loading="lazy" />
-                </div>
-                <div className="p-2.5">
-                  <h3 className="text-sm font-bold text-foreground leading-tight">{topic.label}</h3>
-                  <p className="text-[10px] text-muted-foreground mt-1 line-clamp-2">{topic.description}</p>
-                </div>
-              </button>
-            ))}
-          </div>
+          {(() => {
+            const ungrouped = section.topics.filter(t => !t.subCategory);
+            const subCategories = [...new Set(section.topics.filter(t => t.subCategory).map(t => t.subCategory!))];
+            return (
+              <>
+                {ungrouped.length > 0 && (
+                  <div className="grid grid-cols-2 gap-2">
+                    {ungrouped.map((topic) => (
+                      <button
+                        key={topic.id}
+                        onClick={() => navigate("/create", { state: { preselectedTopic: topic.id } })}
+                        className="rounded-xl overflow-hidden shadow-sm border border-border bg-card hover:shadow-md hover:scale-[1.02] transition-all text-right"
+                      >
+                        <div className="aspect-square w-full flex items-center justify-center overflow-hidden">
+                          <img src={topic.image} alt={topic.label} className="w-full h-full object-cover" loading="lazy" />
+                        </div>
+                        <div className="p-2.5">
+                          <h3 className="text-sm font-bold text-foreground leading-tight">{topic.label}</h3>
+                          <p className="text-[10px] text-muted-foreground mt-1 line-clamp-2">{topic.description}</p>
+                        </div>
+                      </button>
+                    ))}
+                  </div>
+                )}
+                {subCategories.map((subCat) => (
+                  <div key={subCat} className="space-y-2 mt-3">
+                    <h4 className="text-sm font-bold text-amber-700 dark:text-amber-400 border-b border-amber-200 dark:border-amber-800 pb-1">{subCat}</h4>
+                    <div className="grid grid-cols-2 gap-2">
+                      {section.topics.filter(t => t.subCategory === subCat).map((topic) => (
+                        <button
+                          key={topic.id}
+                          onClick={() => navigate("/create", { state: { preselectedTopic: topic.id } })}
+                          className="rounded-xl overflow-hidden shadow-sm border border-border bg-card hover:shadow-md hover:scale-[1.02] transition-all text-right"
+                        >
+                          <div className="aspect-square w-full flex items-center justify-center overflow-hidden">
+                            <img src={topic.image} alt={topic.label} className="w-full h-full object-cover" loading="lazy" />
+                          </div>
+                          <div className="p-2.5">
+                            <h3 className="text-sm font-bold text-foreground leading-tight">{topic.label}</h3>
+                            <p className="text-[10px] text-muted-foreground mt-1 line-clamp-2">{topic.description}</p>
+                          </div>
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                ))}
+              </>
+            );
+          })()}
           <button
             onClick={() => setExpanded(false)}
             className={`flex items-center justify-center gap-1 w-full py-2 text-xs font-bold ${colorClass} hover:opacity-80 transition-opacity`}
