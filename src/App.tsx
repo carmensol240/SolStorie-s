@@ -45,7 +45,7 @@ import AdminDashboard from "./pages/AdminDashboard";
 
 const queryClient = new QueryClient();
 
-function App() { return (
+function App() { useTimeTheme(); return (
   <ErrorBoundary>
     <QueryClientProvider client={queryClient}>
       <AccessibilityProvider>
