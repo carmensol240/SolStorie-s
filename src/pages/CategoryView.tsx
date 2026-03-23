@@ -64,32 +64,47 @@ const CategoryView = () => {
 
       {/* Topics grid */}
       <div className="container max-w-lg mx-auto px-4 py-6">
-        <div className="grid grid-cols-2 gap-3">
-          {section.topics.map((topic) => (
+        {(() => {
+          const ungrouped = section.topics.filter(t => !t.subCategory);
+          const subCategories = [...new Set(section.topics.filter(t => t.subCategory).map(t => t.subCategory!))];
+
+          const renderTopicCard = (topic: typeof section.topics[0]) => (
             <button
               key={topic.id}
               onClick={() => navigate("/create", { state: { preselectedTopic: topic.id } })}
               className="rounded-xl overflow-hidden shadow-sm border border-border bg-card hover:shadow-md hover:scale-[1.02] transition-all text-right"
             >
               <div className="aspect-square w-full bg-muted/20 flex items-center justify-center overflow-hidden">
-                <img
-                  src={topic.image}
-                  alt={topic.label}
-                  className="w-full h-full object-contain"
-                />
+                <img src={topic.image} alt={topic.label} className="w-full h-full object-contain" />
               </div>
               <div className="p-2.5">
                 <h3 className="text-sm font-bold text-foreground leading-tight">{topic.label}</h3>
-                <p className="text-[10px] text-muted-foreground mt-1 line-clamp-2">
-                  {topic.description}
-                </p>
+                <p className="text-[10px] text-muted-foreground mt-1 line-clamp-2">{topic.description}</p>
                 <span className={`text-[10px] font-medium ${colors.colorClass} mt-1 inline-block`}>
                   גילאי {topic.ageRange}
                 </span>
               </div>
             </button>
-          ))}
-        </div>
+          );
+
+          return (
+            <div className="space-y-5">
+              {ungrouped.length > 0 && (
+                <div className="grid grid-cols-2 gap-3">
+                  {ungrouped.map(renderTopicCard)}
+                </div>
+              )}
+              {subCategories.map((subCat) => (
+                <div key={subCat} className="space-y-2">
+                  <h4 className="text-sm font-bold text-amber-700 dark:text-amber-400 border-b border-amber-200 dark:border-amber-800 pb-1">{subCat}</h4>
+                  <div className="grid grid-cols-2 gap-3">
+                    {section.topics.filter(t => t.subCategory === subCat).map(renderTopicCard)}
+                  </div>
+                </div>
+              ))}
+            </div>
+          );
+        })()}
       </div>
 
       <MobileNavigation />

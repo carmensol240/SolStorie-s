@@ -213,12 +213,34 @@ const TopicStep = ({ formData, updateFormData }: TopicStepProps) => {
                   </div>
                 )}
 
-                {/* Topics grid */}
-                <div className="grid grid-cols-2 gap-2">
-                  {visibleTopics.filter(t => !t.featured || isExpanded).map((topic) => (
-                    <SimpleTile key={topic.id} topic={topic} isSelected={formData.topic === topic.id} onSelect={() => handleTopicSelect(topic)} />
-                  ))}
-                </div>
+                {/* Topics grid — grouped by subCategory */}
+                {(() => {
+                  const topicsToShow = visibleTopics.filter(t => !t.featured || isExpanded);
+                  const ungrouped = topicsToShow.filter(t => !t.subCategory);
+                  const subCategories = [...new Set(topicsToShow.filter(t => t.subCategory).map(t => t.subCategory!))];
+
+                  return (
+                    <>
+                      {ungrouped.length > 0 && (
+                        <div className="grid grid-cols-2 gap-2">
+                          {ungrouped.map((topic) => (
+                            <SimpleTile key={topic.id} topic={topic} isSelected={formData.topic === topic.id} onSelect={() => handleTopicSelect(topic)} />
+                          ))}
+                        </div>
+                      )}
+                      {subCategories.map((subCat) => (
+                        <div key={subCat} className="space-y-2 mt-3">
+                          <h4 className="text-sm font-bold text-amber-700 dark:text-amber-400 border-b border-amber-200 dark:border-amber-800 pb-1">{subCat}</h4>
+                          <div className="grid grid-cols-2 gap-2">
+                            {topicsToShow.filter(t => t.subCategory === subCat).map((topic) => (
+                              <SimpleTile key={topic.id} topic={topic} isSelected={formData.topic === topic.id} onSelect={() => handleTopicSelect(topic)} />
+                            ))}
+                          </div>
+                        </div>
+                      ))}
+                    </>
+                  );
+                })()}
               </div>
             );
           })}
