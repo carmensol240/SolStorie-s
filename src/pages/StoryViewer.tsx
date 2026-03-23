@@ -87,29 +87,58 @@ const FONT_SIZES = [
 // Rainbow gradient used for dedication, closing, and text-only pages
 const RAINBOW_BG = 'linear-gradient(135deg, #1a0f3a 0%, #2d1a6e 25%, #4a2d8e 50%, #2d1a6e 75%, #1a0f3a 100%)';
 
-/** Map topic keywords to emoji + soft pastel gradient background for text-only pages */
-const getTopicTheme = (topic: string): { emoji: string; bg: string } => {
+/** Map topic keywords to emoji + themed gradient background for text-only pages */
+const getTopicTheme = (topic: string): { emoji: string; bg: string; textColor: string; pageNumColor: string } => {
   const t = topic.toLowerCase();
-  if (t.includes('שינה') || t.includes('לילה') || t.includes('bedtime')) return { emoji: '🌙', bg: 'linear-gradient(135deg, #1a0f3a 0%, #2d1a6e 50%, #3d2080 100%)' };
-  if (t.includes('חלל') || t.includes('כוכב') || t.includes('space')) return { emoji: '🚀', bg: 'linear-gradient(135deg, #0f0a2e 0%, #1a1560 50%, #2d1a6e 100%)' };
-  if (t.includes('חבר') || t.includes('friend')) return { emoji: '🤝', bg: 'linear-gradient(135deg, #2d1a6e 0%, #4a2070 50%, #2d1a6e 100%)' };
-  if (t.includes('גן חיות') || t.includes('zoo') || t.includes('חיות')) return { emoji: '🦁', bg: 'linear-gradient(135deg, #1a2040 0%, #2d1a6e 50%, #1a3050 100%)' };
-  if (t.includes('ים') || t.includes('מתחת למים') || t.includes('underwater')) return { emoji: '🐠', bg: 'linear-gradient(135deg, #0f1a3e 0%, #1a2560 50%, #2d1a6e 100%)' };
-  if (t.includes('קסם') || t.includes('magic') || t.includes('חד-קרן') || t.includes('פיות')) return { emoji: '🦄', bg: 'linear-gradient(135deg, #2d1a6e 0%, #4a2080 50%, #3d1a60 100%)' };
-  if (t.includes('גיבור') || t.includes('super') || t.includes('hero')) return { emoji: '🦸', bg: 'linear-gradient(135deg, #1a1040 0%, #2d1a6e 50%, #3a1050 100%)' };
-  if (t.includes('יום הולדת') || t.includes('birthday')) return { emoji: '🎂', bg: 'linear-gradient(135deg, #2d1a6e 0%, #3d2080 30%, #4a2d8e 60%, #2d1a6e 100%)' };
-  if (t.includes('משפח') || t.includes('family')) return { emoji: '🏠', bg: 'linear-gradient(135deg, #2d1a6e 0%, #3a2070 50%, #2d1a6e 100%)' };
-  if (t.includes('שיני') || t.includes('שן') || t.includes('teeth') || t.includes('tooth')) return { emoji: '🦷', bg: 'linear-gradient(135deg, #1a1560 0%, #2d1a6e 50%, #1a2060 100%)' };
-  if (t.includes('פחד') || t.includes('חושך') || t.includes('fear') || t.includes('dark')) return { emoji: '💪', bg: 'linear-gradient(135deg, #0f0a2e 0%, #1a0f3a 50%, #2d1a6e 100%)' };
-  if (t.includes('טבע') || t.includes('יער') || t.includes('nature') || t.includes('forest')) return { emoji: '🌳', bg: 'linear-gradient(135deg, #1a2040 0%, #1a3050 50%, #2d1a6e 100%)' };
-  if (t.includes('רחצה') || t.includes('אמבט') || t.includes('bath')) return { emoji: '🛁', bg: 'linear-gradient(135deg, #1a1a60 0%, #2d1a6e 50%, #1a2560 100%)' };
-  if (t.includes('שיתוף') || t.includes('shar')) return { emoji: '💝', bg: 'linear-gradient(135deg, #3a1060 0%, #2d1a6e 50%, #4a2070 100%)' };
-  if (t.includes('אח') || t.includes('אחות') || t.includes('sibling')) return { emoji: '👶', bg: 'linear-gradient(135deg, #2d1a6e 0%, #3a2070 50%, #2d1a6e 100%)' };
-  if (t.includes('גן ילדים') || t.includes('kindergarten') || t.includes('בית ספר')) return { emoji: '🎒', bg: 'linear-gradient(135deg, #1a1560 0%, #2d1a6e 50%, #1a1560 100%)' };
-  if (t.includes('נוח') || t.includes('מוצץ') || t.includes('pacifier')) return { emoji: '🧸', bg: 'linear-gradient(135deg, #2d1a6e 0%, #3d2080 50%, #2d1a6e 100%)' };
-  if (t.includes('טיול') || t.includes('trip') || t.includes('חופש')) return { emoji: '✈️', bg: 'linear-gradient(135deg, #1a2050 0%, #2d1a6e 50%, #1a2050 100%)' };
-  if (t.includes('סבא') || t.includes('סבת') || t.includes('grandp')) return { emoji: '👴', bg: 'linear-gradient(135deg, #2d1a6e 0%, #3a2070 100%)' };
-  return { emoji: '✨', bg: RAINBOW_BG };
+
+  // Torah / biblical / history → warm golden/brown
+  const torahKeys = ['תנ"ך', 'תורה', 'משה', 'נח', 'אברהם', 'דוד', 'אסתר', 'יונה', 'שמשון', 'יוסף', 'חנוכה', 'יציאת מצרים', 'פסח', 'שבת', 'היסטוריה', 'bible', 'torah'];
+  if (torahKeys.some(k => t.includes(k))) return { emoji: '📜', bg: 'linear-gradient(135deg, #8B6914 0%, #D4A843 50%, #A67C2E 100%)', textColor: '#3E2C0A', pageNumColor: 'rgba(62,44,10,0.5)' };
+
+  // Magic / fantasy → purple
+  if (t.includes('קסם') || t.includes('magic') || t.includes('חד-קרן') || t.includes('פיות') || t.includes('פנטזיה') || t.includes('fantasy') || t.includes('דרקון'))
+    return { emoji: '🦄', bg: 'linear-gradient(135deg, #4a2080 0%, #2d1a6e 50%, #6B3FA0 100%)', textColor: '#F3E8FF', pageNumColor: 'rgba(200,170,255,0.5)' };
+
+  // Nature / animals / forest → green
+  if (t.includes('טבע') || t.includes('יער') || t.includes('nature') || t.includes('forest') || t.includes('גן חיות') || t.includes('zoo') || t.includes('חיות') || t.includes('פרחים'))
+    return { emoji: '🌳', bg: 'linear-gradient(135deg, #1a4a2d 0%, #2d6e3a 50%, #1a5a30 100%)', textColor: '#E8F5E9', pageNumColor: 'rgba(200,230,200,0.5)' };
+
+  // Sea / adventure / underwater → blue
+  if (t.includes('ים') || t.includes('מתחת למים') || t.includes('underwater') || t.includes('הרפתקא') || t.includes('adventure') || t.includes('אוקיינוס') || t.includes('ocean') || t.includes('ספינה'))
+    return { emoji: '🐠', bg: 'linear-gradient(135deg, #1a2d6e 0%, #2d4a8e 50%, #1a3570 100%)', textColor: '#E3F2FD', pageNumColor: 'rgba(180,210,255,0.5)' };
+
+  // Space
+  if (t.includes('חלל') || t.includes('כוכב') || t.includes('space')) return { emoji: '🚀', bg: 'linear-gradient(135deg, #0f0a2e 0%, #1a1560 50%, #2d1a6e 100%)', textColor: '#E8E0FF', pageNumColor: 'rgba(200,180,255,0.5)' };
+  // Sleep / night
+  if (t.includes('שינה') || t.includes('לילה') || t.includes('bedtime')) return { emoji: '🌙', bg: 'linear-gradient(135deg, #1a0f3a 0%, #2d1a6e 50%, #3d2080 100%)', textColor: '#E8E0FF', pageNumColor: 'rgba(200,180,255,0.5)' };
+  // Friends
+  if (t.includes('חבר') || t.includes('friend')) return { emoji: '🤝', bg: 'linear-gradient(135deg, #2d1a6e 0%, #4a2070 50%, #2d1a6e 100%)', textColor: '#F3E8FF', pageNumColor: 'rgba(200,170,255,0.5)' };
+  // Superhero
+  if (t.includes('גיבור') || t.includes('super') || t.includes('hero')) return { emoji: '🦸', bg: 'linear-gradient(135deg, #1a1040 0%, #2d1a6e 50%, #3a1050 100%)', textColor: '#F3E8FF', pageNumColor: 'rgba(200,170,255,0.5)' };
+  // Birthday
+  if (t.includes('יום הולדת') || t.includes('birthday')) return { emoji: '🎂', bg: 'linear-gradient(135deg, #6B3FA0 0%, #8B5CF6 50%, #A855F7 100%)', textColor: '#FFF', pageNumColor: 'rgba(255,255,255,0.5)' };
+  // Family
+  if (t.includes('משפח') || t.includes('family')) return { emoji: '🏠', bg: 'linear-gradient(135deg, #2d1a6e 0%, #3a2070 50%, #2d1a6e 100%)', textColor: '#F3E8FF', pageNumColor: 'rgba(200,170,255,0.5)' };
+  // Teeth
+  if (t.includes('שיני') || t.includes('שן') || t.includes('teeth') || t.includes('tooth')) return { emoji: '🦷', bg: 'linear-gradient(135deg, #1a1560 0%, #2d1a6e 50%, #1a2060 100%)', textColor: '#E8E0FF', pageNumColor: 'rgba(200,180,255,0.5)' };
+  // Fear / dark
+  if (t.includes('פחד') || t.includes('חושך') || t.includes('fear') || t.includes('dark')) return { emoji: '💪', bg: 'linear-gradient(135deg, #0f0a2e 0%, #1a0f3a 50%, #2d1a6e 100%)', textColor: '#E8E0FF', pageNumColor: 'rgba(200,180,255,0.5)' };
+  // Bath
+  if (t.includes('רחצה') || t.includes('אמבט') || t.includes('bath')) return { emoji: '🛁', bg: 'linear-gradient(135deg, #1a2d6e 0%, #2d4a8e 50%, #1a3570 100%)', textColor: '#E3F2FD', pageNumColor: 'rgba(180,210,255,0.5)' };
+  // Sharing
+  if (t.includes('שיתוף') || t.includes('shar')) return { emoji: '💝', bg: 'linear-gradient(135deg, #3a1060 0%, #2d1a6e 50%, #4a2070 100%)', textColor: '#F3E8FF', pageNumColor: 'rgba(200,170,255,0.5)' };
+  // Siblings
+  if (t.includes('אח') || t.includes('אחות') || t.includes('sibling')) return { emoji: '👶', bg: 'linear-gradient(135deg, #2d1a6e 0%, #3a2070 50%, #2d1a6e 100%)', textColor: '#F3E8FF', pageNumColor: 'rgba(200,170,255,0.5)' };
+  // School
+  if (t.includes('גן ילדים') || t.includes('kindergarten') || t.includes('בית ספר')) return { emoji: '🎒', bg: 'linear-gradient(135deg, #1a1560 0%, #2d1a6e 50%, #1a1560 100%)', textColor: '#E8E0FF', pageNumColor: 'rgba(200,180,255,0.5)' };
+  // Comfort
+  if (t.includes('נוח') || t.includes('מוצץ') || t.includes('pacifier')) return { emoji: '🧸', bg: 'linear-gradient(135deg, #2d1a6e 0%, #3d2080 50%, #2d1a6e 100%)', textColor: '#F3E8FF', pageNumColor: 'rgba(200,170,255,0.5)' };
+  // Trip
+  if (t.includes('טיול') || t.includes('trip') || t.includes('חופש')) return { emoji: '✈️', bg: 'linear-gradient(135deg, #1a2d6e 0%, #2d4a8e 50%, #1a3570 100%)', textColor: '#E3F2FD', pageNumColor: 'rgba(180,210,255,0.5)' };
+  // Grandparents
+  if (t.includes('סבא') || t.includes('סבת') || t.includes('grandp')) return { emoji: '👴', bg: 'linear-gradient(135deg, #8B6914 0%, #D4A843 100%)', textColor: '#3E2C0A', pageNumColor: 'rgba(62,44,10,0.5)' };
+  // Default → soft purple
+  return { emoji: '✨', bg: RAINBOW_BG, textColor: '#F3E8FF', pageNumColor: 'rgba(200,170,255,0.5)' };
 };
 
 /** Get age-based default font size index (0=small, 1=medium, 2=large) */
