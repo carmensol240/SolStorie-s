@@ -1,35 +1,46 @@
 
 
-## Plan: Natural Age Integration in Story Prompt
+## Plan: Add "Coupons & Partners" Section to Admin Dashboard
 
 ### What changes
 
-Update the story generation prompt in `supabase/functions/generate-story/index.ts` to instruct Gemini to weave the child's age naturally into the narrative instead of stating it as a dry fact.
+Add a new tab "קופונים ושותפים" to the admin dashboard that shows coupon usage analytics: summary cards at top, and an expandable table per coupon code showing registered users, their activity status, and story counts.
 
-### Changes (single file: `supabase/functions/generate-story/index.ts`)
+### Data strategy
 
-**1. Hebrew prompt (line ~1133)** — Replace `- גיל: ${ageRange}` with `- גיל: ${ageRange}` but add a new instruction block right after the child details section:
+All data is fetched client-side using existing tables accessible to admins:
+- `coupons` — all coupon codes
+- `coupon_redemptions` — who redeemed which coupon, with `redeemed_at`
+- `profiles` — user display names, `created_at`
+- `stories` — count per user
+- `get_admin_user_emails` RPC — emails (already fetched)
 
-```
-### 🎂 שילוב גיל באופן טבעי — כלל חובה!
-שלב את גיל הילד באופן טבעי ועדין בתוך הסיפור — לא כמשפט תיאורי ישיר אלא דרך התנהגות או יכולות המתאימות לגיל.
-- ❌ אסור: "היא בת ארבע" / "הוא בן שש" כמשפט עובדתי יבש
-- ✅ נכון: "היא עדיין קטנה, אבל ליבה גדול" / "כמו כל ילדה בגילה, היא אוהבת לחקור"
-- אם חייבים לציין גיל — לשלב אותו בצורה חמה ומשפטית, לדוגמה: "${childName} ${childGender === 'female' ? 'בת' : 'בן'} ה${ageWord} ${childGender === 'female' ? 'המתוקה' : 'המתוק'}"
-```
+No new tables or migrations needed. The "active in last 30 days" check will use `profiles.updated_at` (which is updated via trigger on any profile change) as an approximation, or we can check if the user has stories created in the last 30 days.
 
-Where `ageWord` is derived from `ageRange` (e.g., "2-4" → "ארבע", "5-7" → "שש", etc.).
+### Changes (single file: `src/pages/AdminDashboard.tsx`)
 
-**2. English prompt (line ~1096)** — Keep `- Age: ${ageRange}` for context, and add a similar instruction:
+**1. New state variables**
+- `couponRedemptions` — fetched from `coupon_redemptions` joined with coupon code
+- `coupons` — fetched from `coupons` table
 
-```
-### Age Integration Rule
-Weave the child's age naturally into the story through behavior or abilities — never as a dry factual statement like "She is four years old." Instead use warm phrasing like "still little, but with a big heart" or "${childName}, the sweet four-year-old."
-```
+**2. New fetch in the `isAdmin` data loading effect**
+- Fetch all coupons: `supabase.from("coupons").select("*")`
+- Fetch all redemptions: `supabase.from("coupon_redemptions").select("*")`
+- Cross-reference with already-fetched `profiles` (with emails) and `stories` for per-user story counts
 
-**3. Add age word helper** — A small mapping from `ageRange` to a Hebrew word for the natural phrasing example in the prompt (e.g., `"0-2"` → `"שנתיים"`, `"2-4"` → `"ארבע"`, `"5-7"` → `"שש"`, `"8-10"` → `"שמונה"`).
+**3. New tab in TabsList** — grid changes from `grid-cols-6` to `grid-cols-7`, add "קופונים ושותפים" trigger
+
+**4. Summary cards at top of tab content**
+- Total users via coupons (unique user_ids in redemptions)
+- Most popular code (highest redemption count)
+- Activity rate (% of coupon users with stories in last 30 days)
+
+**5. Expandable table per coupon code**
+- Each row: coupon code, redemption count, expandable detail
+- Detail rows: user name, email, registration date, active badge (stories in last 30 days), story count
+- Use a `useState` to track which coupon row is expanded
 
 ### What stays the same
-- All other prompt logic, structure, page counts, and generation flow unchanged
-- The `ageRange` value is still passed to the prompt for structural decisions (page count, vocabulary level)
+- All existing tabs, data fetching, and UI unchanged
+- No database changes needed
 
