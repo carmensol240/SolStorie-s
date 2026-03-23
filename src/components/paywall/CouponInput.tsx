@@ -79,7 +79,7 @@ const CouponInput = ({ onDiscountApplied, onStoriesAdded }: CouponInputProps) =>
     setAppliedCoupon(null);
     setCode("");
     setError(null);
-    onDiscountApplied?.(0);
+    onDiscountApplied?.(0, undefined);
   };
 
   if (appliedCoupon) {
