@@ -1,6 +1,6 @@
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { FileText, ArrowRight } from "lucide-react";
+import { FileText, ArrowRight, Mail } from "lucide-react";
 import GlobalFooter from "@/components/shared/GlobalFooter";
 
 const TermsOfService = () => {
@@ -14,74 +14,61 @@ const TermsOfService = () => {
           <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-primary/10 mb-4">
             <FileText className="w-8 h-8 text-primary" />
           </div>
-          <h1 className="text-3xl font-bold text-foreground mb-2">תנאי שימוש</h1>
-          <p className="text-muted-foreground">
-            אנא קראו בעיון את תנאי השימוש לפני השימוש באפליקציה
-          </p>
+          <h1 className="text-3xl font-bold text-foreground mb-2">
+            תנאי שימוש ומדיניות פרטיות — <span dir="ltr" className="inline-block">SolStorie's™</span>
+          </h1>
         </div>
 
-        {/* Terms Content */}
+        {/* Content */}
         <article className="bg-card rounded-2xl border shadow-sm p-6 mb-6">
           <div className="space-y-6 text-right leading-relaxed">
-            <p className="text-muted-foreground leading-relaxed">
-              תקנון שימוש זה מהווה הסכם משפטי מחייב בין המשתמש לבין הנהלת האפליקציה.
-            </p>
 
             <section>
-              <h2 className="text-lg font-bold text-foreground mb-2">מהות השירות</h2>
+              <h2 className="text-lg font-bold text-foreground mb-2">1. כללי</h2>
               <p className="text-muted-foreground leading-relaxed">
-                <span dir="ltr" className="inline-block">SolStorie's™</span> מספקת פלטפורמה ליצירת תוכן ספרותי מותאם אישית לילדים בגילאי 0-8, המיועדת להורים, אפוטרופוסים חוקיים ואנשי חינוך וטיפול (מחנכים, גננות, מטפלים, קלינאים ואנשי מקצוע טיפוליים).
+                <span dir="ltr" className="inline-block">SolStorie's™</span> היא אפליקציית סיפורים אישית לילדים. השימוש באפליקציה מהווה הסכמה לתנאים המפורטים להלן.
               </p>
             </section>
 
             <section>
-              <h2 className="text-lg font-bold text-foreground mb-2">הגבלת אחריות מקצועית</h2>
+              <h2 className="text-lg font-bold text-foreground mb-2">2. פרטיות והגנת מידע</h2>
               <p className="text-muted-foreground leading-relaxed">
-                השימוש באפליקציה הינו כלי עזר טכנולוגי בלבד ואינו מהווה תחליף לייעוץ מקצועי, חינוכי או רפואי. התוכן שנוצר באמצעות המערכת אינו מהווה המלצה טיפולית או חינוכית ואין להסתמך עליו ככזה.
+                המידע האישי שלך נשמר בהצפנה ואינו משותף עם צדדים שלישיים. ניתן למחוק את כל הנתונים בכל עת על ידי פנייה אלינו. השירות פועל בהתאם לעקרונות COPPA ו-GDPR כולל הזכות למחיקה, לעיון ולהגבלת עיבוד. המוסד החינוכי או איש המקצוע הטיפולי המשתמש בשירות אחראי לוודא שהשימוש עומד במדיניות הגנת הפרטיות שלו ובחוקים המקומיים.
               </p>
             </section>
 
             <section>
-              <h2 className="text-lg font-bold text-foreground mb-2">אחריות המשתמש והורה</h2>
+              <h2 className="text-lg font-bold text-foreground mb-2">3. קניין רוחני</h2>
               <p className="text-muted-foreground leading-relaxed">
-                השימוש באפליקציה מיועד להורים או לאפוטרופוסים חוקיים. באחריות המבוגר האחראי לבחון את התוכן שנוצר על ידי הבינה המלאכותית ולוודא את התאמתו לילד בטרם הקראתו. הנהלת האפליקציה אינה נושאת באחריות לתוכן אוטונומי שנוצר על ידי המערכת.
+                כל התכנים, הדמויות (סול וחבריה), האיורים והטקסטים באפליקציה הם קניין רוחני מוגן ובלעדי של <span dir="ltr" className="inline-block">SolStorie's™</span>. אין לעשות שימוש מסחרי בנכסים אלו ללא אישור בכתב מראש.
               </p>
             </section>
 
             <section>
-              <h2 className="text-lg font-bold text-foreground mb-2">מערכת קרדיטים ורכישות</h2>
+              <h2 className="text-lg font-bold text-foreground mb-2">4. הגבלת אחריות מקצועית</h2>
               <p className="text-muted-foreground leading-relaxed">
-                השימוש בשירות מותנה ביתרת קרדיטים. ניתן לבצע רכישות באמצעות כרטיס אשראי גם ללא חשבון פייפאל. תשלומי כרטיס אשראי מעובדים באופן מאובטח באמצעות ספק תשלומים חיצוני. קרדיטים שנוצלו אינם ניתנים להחזר.
+                השימוש באפליקציה הינו כלי עזר טכנולוגי בלבד ואינו מהווה תחליף לייעוץ מקצועי, חינוכי או רפואי. התוכן שנוצר אינו מהווה המלצה טיפולית או חינוכית.
               </p>
             </section>
 
             <section>
-              <h2 className="text-lg font-bold text-foreground mb-2">קניין רוחני</h2>
+              <h2 className="text-lg font-bold text-foreground mb-2">5. מדיניות ביטולים והחזרים</h2>
               <p className="text-muted-foreground leading-relaxed">
-                העיצוב, הקוד, הדמויות (סול וחבריה), האיורים והטכנולוגיה הם קניינה הבלעדי של <span dir="ltr" className="inline-block">SolStorie's™</span>. כל הסיפורים, עיצובי הדמויות והנכסים הויזואליים מוגנים בזכויות יוצרים ואין לעשות בהם שימוש מסחרי ללא אישור בכתב. הסיפורים הנוצרים מיועדים לשימוש אישי ופרטי בלבד.
+                רכישת חבילת סיפורים היא עסקה סופית. בהתאם לחוק הגנת הצרכן הישראלי, ניתן לבטל עסקה תוך 14 יום ממועד הרכישה בתנאי שלא נוצר סיפור כלשהו מהחבילה. לאחר יצירת סיפור אחד או יותר לא ניתן לבטל את העסקה או לקבל החזר כספי מאחר והתוכן הדיגיטלי כבר נוצל. החזר כספי יינתן אך ורק במקרה של תקלה טכנית מוכחת שמנעה שימוש בשירות לחלוטין, לאחר בדיקה מצדנו.
               </p>
             </section>
 
             <section>
-              <h2 className="text-lg font-bold text-foreground mb-2">סיום התקשרות</h2>
-              <p className="text-muted-foreground leading-relaxed">
-                הנהלת האפליקציה שומרת לעצמה את הזכות להפסיק שירות למשתמש שיעשה שימוש לרעה במערכת או יזין תכנים פוגעניים.
+              <h2 className="text-lg font-bold text-foreground mb-2">6. יצירת קשר</h2>
+              <p className="text-muted-foreground leading-relaxed flex items-center gap-2">
+                <Mail className="w-4 h-4 shrink-0" aria-hidden="true" />
+                לכל שאלה, פנייה או בקשת החזר:{" "}
+                <a href="mailto:souldesign06@gmail.com" className="text-primary underline" dir="ltr">
+                  souldesign06@gmail.com
+                </a>
               </p>
             </section>
 
-            <section>
-              <h2 className="text-lg font-bold text-foreground mb-2">מחויבות לבטיחות ואחריות</h2>
-              <p className="text-muted-foreground leading-relaxed">
-                אנו שומרים על פרטיותכם לפי התקנות המחמירות ביותר. כל התכנים והדמויות הם קניין רוחני בלעדי של <span dir="ltr" className="inline-block">SolStorie's™</span>.
-              </p>
-            </section>
-
-            <section>
-              <h2 className="text-lg font-bold text-foreground mb-2">הצהרת אי-אחריות</h2>
-              <p className="text-muted-foreground leading-relaxed">
-                השימוש באפליקציה הוא כלי עזר טכנולוגי וחווייתי בלבד ואינו מהווה תחליף לייעוץ מקצועי, חינוכי או רפואי.
-              </p>
-            </section>
           </div>
         </article>
 
