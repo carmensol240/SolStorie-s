@@ -486,7 +486,7 @@ const Upgrade = () => {
           {/* Coupon */}
           <div className="mb-4">
             <CouponInput 
-              onDiscountApplied={(percent) => setDiscountPercent(percent)}
+              onDiscountApplied={(percent, code) => { setDiscountPercent(percent); setAppliedCouponCode(code || null); }}
               onStoriesAdded={() => { refetchCredits(); }}
             />
           </div>
