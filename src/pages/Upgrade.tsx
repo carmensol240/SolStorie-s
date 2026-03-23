@@ -235,7 +235,6 @@ const Upgrade = () => {
 
   const selectedPkg = PRICING_PACKAGES.find(p => p.id === selectedPackage);
   const discountedPrice = selectedPkg ? Math.round(selectedPkg.price * (1 - discountPercent / 100)) : 0;
-  const [appliedCouponCode, setAppliedCouponCode] = useState<string | null>(null);
 
   return (
     <div className="min-h-[100dvh] flex flex-col relative overflow-hidden" dir="rtl">
