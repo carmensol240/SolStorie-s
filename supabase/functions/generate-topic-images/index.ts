@@ -126,6 +126,46 @@ const TOPIC_PROMPTS: Record<string, { filename: string; prompt: string }> = {
     filename: "topic-holidays-seasons.png",
     prompt: `${STYLE_SUFFIX}. ${SOL_DESC} and ${BEN_DESC} They stand in a magical circle where four seasons meet: one quarter has autumn leaves falling (orange and red), one has snow and a snowman, one has spring flowers blooming, and one has bright summer sunshine with a beach ball. Sol holds a colorful calendar. Both characters look amazed. Holiday decorations (candles, stars, flowers) float around them. Full body shot, both characters centered.`,
   },
+  "moses-basket": {
+    filename: "topic-moses-basket.png",
+    prompt: `${STYLE_SUFFIX}. A beautiful baby with big brown eyes lying in a woven reed basket floating gently on the calm waters of the Nile river. Lotus flowers and papyrus reeds surround the basket. Warm golden sunlight filters through, creating magical sparkles on the water. Ancient Egyptian scenery in the background with pyramids silhouetted against a sunset sky. No other characters. Close-up on the basket, centered composition.`,
+  },
+  "exodus": {
+    filename: "topic-exodus.png",
+    prompt: `${STYLE_SUFFIX}. A dramatic scene of the Red Sea splitting into two massive walls of water, with a dry sandy path between them. The waves are enormous and translucent blue-green with white foam. Dramatic golden and orange light breaks through dark clouds above. Fish and sea creatures visible inside the water walls. Magical sparkles and divine light rays illuminate the path. No characters. Wide cinematic shot.`,
+  },
+  "noah-ark": {
+    filename: "topic-noah-ark.png",
+    prompt: `${STYLE_SUFFIX}. ${SOL_DESC} and ${BEN_DESC} They stand happily next to a massive beautiful wooden ark on a green hilltop. Pairs of cute cartoon animals surround them — two giraffes, two elephants, two lions, two rabbits, two birds flying above. A magnificent vibrant rainbow arches across the blue sky after the rain. Warm golden sunlight. Green grass and flowers. Full body shot, all characters and animals visible.`,
+  },
+  "joseph-brothers": {
+    filename: "topic-joseph-brothers.png",
+    prompt: `${STYLE_SUFFIX}. A magnificent colorful striped coat (coat of many colors) displayed prominently on a wooden stand in a golden desert setting. The coat has vibrant stripes of red, blue, yellow, green, purple, and orange. A beautiful sunset paints the sky in warm colors behind sand dunes. Magical golden sparkles surround the coat. No characters. Centered composition focusing on the coat.`,
+  },
+  "david-goliath": {
+    filename: "topic-david-goliath.png",
+    prompt: `${STYLE_SUFFIX}. ${SOL_DESC} and ${LEO_DESC} They stand bravely in a green field, Sol holding a small slingshot confidently with a determined smile. Behind them, a massive dramatic shadow of a giant warrior falls across the field. The sky is dramatic with golden light breaking through clouds. Magical sparkles surround the slingshot. Rolling green hills in the background. Full body shot, both characters centered, giant shadow visible.`,
+  },
+  "abraham-sarah": {
+    filename: "topic-abraham-sarah.png",
+    prompt: `${STYLE_SUFFIX}. A cozy desert tent made of warm brown fabric, open at the front revealing cushions and warm light inside. The night sky above is spectacular — filled with thousands of bright twinkling stars, a crescent moon, and the Milky Way visible. The desert landscape is peaceful with sand dunes. Warm campfire light glows near the tent. Magical golden sparkles among the stars. No characters. Wide cinematic shot.`,
+  },
+  "jonah-fish": {
+    filename: "topic-jonah-fish.png",
+    prompt: `${STYLE_SUFFIX}. ${SOL_DESC} and ${MIA_DESC} They stand on the wooden deck of a small boat on a stormy sea, looking with wide amazed eyes at an enormous friendly whale emerging from the waves beside them. The whale has big kind cartoon eyes. Dramatic stormy sky with lightning and rain, but magical golden light surrounds the girls. Waves splash dramatically. Full body shot, both characters and whale visible.`,
+  },
+  "samson-hero": {
+    filename: "topic-samson.png",
+    prompt: `${STYLE_SUFFIX}. Two massive ancient stone pillars in a grand ancient temple hall, with dramatic golden light streaming between them. The pillars have intricate carvings and are enormous in scale. Dramatic shadows and light rays create a powerful atmosphere. Stone floor with ancient patterns. Magical golden sparkles and dust particles float in the light beams. No characters. Wide cinematic dramatic shot.`,
+  },
+  "esther-queen": {
+    filename: "topic-esther.png",
+    prompt: `${STYLE_SUFFIX}. A magnificent Persian palace throne room with ornate golden decorations, tall marble columns, and rich purple velvet curtains. A beautiful golden crown sits on a velvet cushion on the throne, sparkling with jewels. Warm golden light fills the room through arched windows. Magical sparkles surround the crown. Rose petals scattered on the marble floor. No characters. Centered composition on the throne and crown.`,
+  },
+  "hanukkah-miracle": {
+    filename: "topic-hanukkah-miracle.png",
+    prompt: `${STYLE_SUFFIX}. ${SOL_DESC} and ${ZOE_DESC} They stand together happily, lighting a beautiful golden nine-branched menorah (Hanukkah menorah). The candles glow with warm magical golden-orange flames. The background is a deep blue night sky visible through an arched window. Warm golden light fills the room from the menorah. Magical golden sparkles and light particles float around. Both girls smile with wonder. Shot from waist up, characters centered.`,
+  },
 };
 
 serve(async (req) => {
