@@ -226,8 +226,10 @@ const AdminDashboard = () => {
       }
       if (purchasesRes.data) setPurchases(purchasesRes.data);
       if (storiesRes.data) setStories(storiesRes.data);
-      if (couponsRes.data) setCoupons(couponsRes.data as CouponRow[]);
-      if (redemptionsRes.data) setCouponRedemptions(redemptionsRes.data as CouponRedemptionRow[]);
+      if (couponsRes.error) console.error("Coupons fetch error:", couponsRes.error);
+      if (redemptionsRes.error) console.error("Redemptions fetch error:", redemptionsRes.error);
+      setCoupons((couponsRes.data as CouponRow[]) || []);
+      setCouponRedemptions((redemptionsRes.data as CouponRedemptionRow[]) || []);
       setLoading(false);
     };
 
@@ -382,9 +384,8 @@ const AdminDashboard = () => {
 
         {/* Tabs */}
         <Tabs defaultValue="users" className="w-full">
-          <TabsList className="grid w-full grid-cols-7">
+          <TabsList className="grid w-full grid-cols-6">
             <TabsTrigger value="users">משתמשים</TabsTrigger>
-            <TabsTrigger value="purchases">רכישות</TabsTrigger>
             <TabsTrigger value="stories">סיפורים</TabsTrigger>
             <TabsTrigger value="covers" className="flex items-center gap-1">
               <Image className="h-3.5 w-3.5" />
@@ -425,51 +426,13 @@ const AdminDashboard = () => {
                         <TableRow><TableCell colSpan={6} className="text-center">טוען...</TableCell></TableRow>
                       ) : filterByReviewed(profiles, "users").map((p) => (
                         <TableRow key={p.id}>
-                          <TableCell>{p.display_name || "—"}</TableCell>
+                          <TableCell>{p.display_name || p.email || "—"}</TableCell>
                           <TableCell className="text-xs text-muted-foreground">{p.email || "—"}</TableCell>
                           <TableCell>
                             <Badge variant="outline">{p.user_role}</Badge>
                           </TableCell>
                           <TableCell>{p.story_credits ?? 0}</TableCell>
                           <TableCell>{p.is_subscriber ? "✅" : "—"}</TableCell>
-                          <TableCell className="text-xs">{formatDate(p.created_at)}</TableCell>
-                        </TableRow>
-                      ))}
-                    </TableBody>
-                  </Table>
-                </div>
-              </CardContent>
-            </Card>
-          </TabsContent>
-
-          <TabsContent value="purchases">
-            <Card>
-              <CardContent className="p-0">
-                <ReviewedBar tab="purchases" total={purchases.length} filtered={filterByReviewed(purchases, "purchases").length} cutoff={reviewedCutoffs["purchases"]} showReviewed={showReviewed["purchases"]} onToggleShow={() => setShowReviewed(p => ({ ...p, purchases: !p.purchases }))} onMark={() => setConfirmClearTab("purchases")} onClear={() => clearReviewed("purchases")} />
-                <div className="overflow-x-auto">
-                  <Table>
-                    <TableHeader>
-                      <TableRow>
-                        <TableHead className="text-right">חבילה</TableHead>
-                        <TableHead className="text-right">קרדיטים</TableHead>
-                        <TableHead className="text-right">סכום</TableHead>
-                        <TableHead className="text-right">סטטוס</TableHead>
-                        <TableHead className="text-right">תאריך</TableHead>
-                      </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                      {loading ? (
-                        <TableRow><TableCell colSpan={5} className="text-center">טוען...</TableCell></TableRow>
-                      ) : filterByReviewed(purchases, "purchases").map((p) => (
-                        <TableRow key={p.id}>
-                          <TableCell>{p.package_name}</TableCell>
-                          <TableCell>{p.credits_purchased}</TableCell>
-                          <TableCell>₪{p.amount_ils}</TableCell>
-                          <TableCell>
-                            <Badge variant={p.status === "completed" ? "default" : "secondary"}>
-                              {p.status === "completed" ? "הושלם" : p.status || "ממתין"}
-                            </Badge>
-                          </TableCell>
                           <TableCell className="text-xs">{formatDate(p.created_at)}</TableCell>
                         </TableRow>
                       ))}
@@ -874,7 +837,7 @@ const AdminDashboard = () => {
                                           );
                                           return (
                                             <TableRow key={redemption.id}>
-                                              <TableCell>{profile?.display_name || "—"}</TableCell>
+                                              <TableCell>{profile?.display_name || profile?.email || "—"}</TableCell>
                                               <TableCell className="text-xs text-muted-foreground">{profile?.email || "—"}</TableCell>
                                               <TableCell className="text-xs">{formatDate(redemption.redeemed_at)}</TableCell>
                                               <TableCell>
