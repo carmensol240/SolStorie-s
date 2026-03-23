@@ -600,11 +600,20 @@ const Upgrade = () => {
           {/* PayPal */}
           {showPayPal && (
             <div className="bg-white/15 backdrop-blur-md rounded-xl border border-white/20 p-4 mb-4 shadow-lg">
-              <p className="text-sm font-bold text-white text-center mb-3">
-                {selectedPkg?.stories} סיפורים תמורת ₪{selectedPkg?.price}
+              <p className="text-sm font-bold text-white text-center mb-1">
+                {selectedPkg?.stories} סיפורים
               </p>
+              {discountPercent > 0 ? (
+                <div className="text-center mb-3">
+                  <span className="text-white/50 line-through text-sm">₪{selectedPkg?.price}</span>
+                  <span className="text-green-300 font-black text-lg mr-2">₪{discountedPrice}</span>
+                  <span className="text-green-300 text-xs font-bold">({discountPercent}% הנחה)</span>
+                </div>
+              ) : (
+                <p className="text-sm font-bold text-white text-center mb-3">₪{selectedPkg?.price}</p>
+              )}
               <PayPalButton
-                amount={selectedPkg?.price || 0}
+                amount={discountPercent > 0 ? discountedPrice : (selectedPkg?.price || 0)}
                 onSuccess={handlePayPalSuccess}
                 onError={handlePayPalError}
                 onCancel={() => setShowPayPal(false)}
