@@ -1,28 +1,35 @@
 
 
-## Plan: Fix Duplicate Text Bug in Story Viewer
+## Plan: Natural Age Integration in Story Prompt
 
-### Root Cause
+### What changes
 
-In `src/pages/StoryViewer.tsx` lines 1042-1096, the ages 3+ virtual page builder:
-1. Creates a text-only page for **every** DB page that has text
-2. Then creates illustration pages that **also display the same text** as an overlay
+Update the story generation prompt in `supabase/functions/generate-story/index.ts` to instruct Gemini to weave the child's age naturally into the narrative instead of stating it as a dry fact.
 
-This means text from pages with illustrations appears twice.
+### Changes (single file: `supabase/functions/generate-story/index.ts`)
 
-### Fix (single file: `src/pages/StoryViewer.tsx`)
+**1. Hebrew prompt (line ~1133)** — Replace `- גיל: ${ageRange}` with `- גיל: ${ageRange}` but add a new instruction block right after the child details section:
 
-**Replace the ages 3+ virtual page logic (lines 1042-1096)** with simple per-page logic:
+```
+### 🎂 שילוב גיל באופן טבעי — כלל חובה!
+שלב את גיל הילד באופן טבעי ועדין בתוך הסיפור — לא כמשפט תיאורי ישיר אלא דרך התנהגות או יכולות המתאימות לגיל.
+- ❌ אסור: "היא בת ארבע" / "הוא בן שש" כמשפט עובדתי יבש
+- ✅ נכון: "היא עדיין קטנה, אבל ליבה גדול" / "כמו כל ילדה בגילה, היא אוהבת לחקור"
+- אם חייבים לציין גיל — לשלב אותו בצורה חמה ומשפטית, לדוגמה: "${childName} ${childGender === 'female' ? 'בת' : 'בן'} ה${ageWord} ${childGender === 'female' ? 'המתוקה' : 'המתוק'}"
+```
 
-For each DB page (skipping the cover illustration page):
-- If it has an illustration → create an `'illustration'` virtual page (text will be shown as overlay on the image, as it already does)
-- If it has no illustration but has text → create a `'text'` virtual page (dark starry background)
+Where `ageWord` is derived from `ageRange` (e.g., "2-4" → "ארבע", "5-7" → "שש", etc.).
 
-This ensures each sentence appears exactly once. No text/illustration splitting, no interleaving pattern.
+**2. English prompt (line ~1096)** — Keep `- Age: ${ageRange}` for context, and add a similar instruction:
+
+```
+### Age Integration Rule
+Weave the child's age naturally into the story through behavior or abilities — never as a dry factual statement like "She is four years old." Instead use warm phrasing like "still little, but with a big heart" or "${childName}, the sweet four-year-old."
+```
+
+**3. Add age word helper** — A small mapping from `ageRange` to a Hebrew word for the natural phrasing example in the prompt (e.g., `"0-2"` → `"שנתיים"`, `"2-4"` → `"ארבע"`, `"5-7"` → `"שש"`, `"8-10"` → `"שמונה"`).
 
 ### What stays the same
-- Toddler (0-2) combined page logic — unchanged
-- Cover illustration selection — unchanged
-- All rendering code for illustration pages, text pages, combined pages — unchanged
-- Star dots, dedication, closing page — unchanged
+- All other prompt logic, structure, page counts, and generation flow unchanged
+- The `ageRange` value is still passed to the prompt for structural decisions (page count, vocabulary level)
 
