@@ -1098,6 +1098,12 @@ ${childPersonalization}
 ${contentFraming}
 ${sequelInstructionEn}
 
+### Age Integration Rule (MANDATORY)
+Weave the child's age naturally into the story through behavior or abilities — never as a dry factual statement like "She is four years old" or "He is six."
+- ❌ FORBIDDEN: "She is four years old" / "He was six" as a factual sentence
+- ✅ CORRECT: "still little, but with a big heart" / "like every child her age, she loved to explore"
+- If you must mention age — use warm phrasing, e.g.: "${childName}, the sweet ${ageRange.split('-').pop()}-year-old"
+
 **Story topic:** ${topic}
 ${hasCustomDescription ? `**Custom description:** ${personalityTraits}` : ""}
 
@@ -1134,6 +1140,13 @@ ${adventureLogic ? `
 ${childPersonalization}
 ${contentFraming}
 ${sequelInstruction}
+
+### 🎂 שילוב גיל באופן טבעי — כלל חובה!
+שלב את גיל הילד/ה באופן טבעי ועדין בתוך הסיפור — לא כמשפט תיאורי ישיר אלא דרך התנהגות או יכולות המתאימות לגיל.
+- ❌ אסור: "${childGender === "female" ? "היא בת ארבע" : "הוא בן ארבע"}" כמשפט עובדתי יבש
+- ✅ נכון: "${childGender === "female" ? "היא עדיין קטנה, אבל ליבה גדול" : "הוא עדיין קטן, אבל ליבו גדול"}" / "כמו כל ${childGender === "female" ? "ילדה" : "ילד"} ${childGender === "female" ? "בגילה" : "בגילו"}, ${childGender === "female" ? "היא אוהבת" : "הוא אוהב"} לחקור"
+- אם חייבים לציין גיל — לשלב בצורה חמה, לדוגמה: "${childName} ${childGender === "female" ? "בת" : "בן"} ה${{"0-2":"שנתיים","2-4":"ארבע","3-6":"חמש","5-7":"שש","8-10":"שמונה","6-9":"שבע"}[ageRange] || ageRange} ${childGender === "female" ? "המתוקה" : "המתוק"}"
+
 **נושא הסיפור:** ${topic}
 ${hasCustomDescription ? `**תיאור חופשי:** ${personalityTraits}` : ""}
 ${className ? `\n## 🏫 שם הכיתה/הגן: ${className}\nשלב את שם הכיתה/הגן בסיפור בצורה טבעית, לדוגמה: "יַלְדֵי ${className} הִתְרַגְּשׁוּ מְאוֹד..." או "בַּכִּיתָּה ${className} קָרָה הַרְפַּתְקָה מְיֻחֶדֶת...". הזכר את שם הכיתה/הגן לפחות פעמיים בסיפור.\n` : ""}
