@@ -46,6 +46,8 @@ export const ADVENTURE_TOPICS = new Set([
   "magic-castle", "magic-keys", "magical-forest", "space-hero", "kingdom",
   "underwater", "superheroes", "fantasy", "adventure", "dragon", "princess",
   "pirate", "fairy", "wizard",
+  "moses-basket", "exodus", "noah-ark", "joseph-brothers", "david-goliath",
+  "abraham-sarah", "jonah-fish", "samson-hero", "esther-queen", "hanukkah-miracle",
 ]);
 
 export function getSolUrl(topic: string): { url: string; label: string } {
