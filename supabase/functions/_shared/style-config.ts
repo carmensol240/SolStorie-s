@@ -13,9 +13,15 @@ export const PIXAR_STYLE_COMPACT = `Pixar 3D CGI animation style, big expressive
 
 // ─── Negative Prompts ───
 
-export const NEGATIVE_PROMPT = `realistic, photograph, semi-realistic, dark, muted, bokeh, hyper-realistic, floating head, missing body, extra limbs, cropped feet, text, watermark, UI elements, multiple characters, group shot, black bars, black borders, taskbar, status bar, phone frame, app interface, screenshot artifacts, interface elements, icons, text overlays, buttons, menus, device mockup. Clean illustration only, full bleed image, no borders of any kind`;
+/**
+ * ⚠️  DO NOT REMOVE OR MODIFY — Core negative prompt for all fal.ai illustration calls.
+ * This ensures generated images are clean, full-bleed illustrations without UI artifacts.
+ */
+export const ILLUSTRATION_NEGATIVE_PROMPT = `no UI elements, no borders, no phone frame, no icons, no text overlays, no screenshot artifacts, no black bars, no device frame, full bleed image, clean illustration only`;
 
-export const NEGATIVE_PROMPT_FULL = `realistic, semi-realistic, real human, photograph, photorealistic, dark, muted colors, cinematic bokeh, hyper-realistic, shallow depth of field, floating head, missing body, missing limbs, extra limbs, deformed, distorted, scary, horror, mutated, cropped feet, cut off legs, floating character, half-body, missing feet, text, watermark, UI elements, black bars, black borders, taskbar, status bar, phone frame, app interface, screenshot artifacts, interface elements, icons, text overlays, buttons, menus, navigation bars, device mockup. Clean illustration only, full bleed image, no borders of any kind`;
+export const NEGATIVE_PROMPT = `realistic, photograph, semi-realistic, dark, muted, bokeh, hyper-realistic, floating head, missing body, extra limbs, cropped feet, text, watermark, UI elements, multiple characters, group shot, black bars, black borders, taskbar, status bar, phone frame, app interface, screenshot artifacts, interface elements, icons, text overlays, buttons, menus, device mockup. Clean illustration only, full bleed image, no borders of any kind. ${ILLUSTRATION_NEGATIVE_PROMPT}`;
+
+export const NEGATIVE_PROMPT_FULL = `realistic, semi-realistic, real human, photograph, photorealistic, dark, muted colors, cinematic bokeh, hyper-realistic, shallow depth of field, floating head, missing body, missing limbs, extra limbs, deformed, distorted, scary, horror, mutated, cropped feet, cut off legs, floating character, half-body, missing feet, text, watermark, UI elements, black bars, black borders, taskbar, status bar, phone frame, app interface, screenshot artifacts, interface elements, icons, text overlays, buttons, menus, navigation bars, device mockup. Clean illustration only, full bleed image, no borders of any kind. ${ILLUSTRATION_NEGATIVE_PROMPT}`;
 
 export const CAST_NEGATIVE_PROMPT = NEGATIVE_PROMPT_FULL;
 
