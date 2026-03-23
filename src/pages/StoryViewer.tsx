@@ -1542,13 +1542,16 @@ const StoryViewer = () => {
                     </div>
                   </>
                 ) : (
-                  /* Text page — themed gradient background, centered text */
+                  /* Text page — dark starry night background, centered white text */
                   (() => {
-                    const theme = getTopicTheme(story.topic);
                     const rawText = currentVirtual.text;
                     const displayText = showNikud ? rawText : rawText.replace(/[\u0591-\u05C7]/g, '');
                       return (
-                      <div data-story-scroll className="absolute inset-0 w-full h-full overflow-y-auto flex flex-col items-center" style={{ background: theme.bg }}>
+                      <div data-story-scroll className="absolute inset-0 w-full h-full overflow-y-auto flex flex-col items-center" style={{ background: '#0d0a1f' }}>
+                        {/* Starry dots */}
+                        {starDots.map((s, i) => (
+                          <span key={i} className="absolute rounded-full" style={{ top: s.top, left: s.left, width: `${s.size}px`, height: `${s.size}px`, backgroundColor: '#fff', opacity: s.opacity, pointerEvents: 'none' }} />
+                        ))}
                         {/* Recording controls — text page */}
                         <div className="absolute top-3 left-3 z-20">
                           <PageRecordingControls
@@ -1566,28 +1569,20 @@ const StoryViewer = () => {
                           />
                         </div>
                         <div className="flex-1" />
-                        {/* Themed emoji icon */}
-                        <div className="mb-4 shrink-0">
-                          <span className="text-5xl opacity-60">{theme.emoji}</span>
-                        </div>
                         <div className="max-w-lg mx-auto w-full px-6 md:px-10 py-6 shrink-0">
                           <p className={cn(
                             "text-center font-semibold whitespace-pre-line",
                             currentFontSize.size,
                           )} style={{
                             lineHeight: '2',
-                            color: theme.textColor,
-                            backgroundColor: 'rgba(255,255,255,0.12)',
-                            padding: '16px 20px',
-                            borderRadius: '16px',
-                            backdropFilter: 'blur(4px)',
+                            color: '#FFFFFF',
                           }} dir="rtl">
                             {displayText}
                           </p>
                         </div>
                         <div className="flex-1" />
                         <div className="pb-4 shrink-0">
-                          <span className="text-xs font-light" style={{ color: theme.pageNumColor }}>{Math.ceil((currentPage + 1) / 2)} / {story.pages.length}</span>
+                          <span className="text-xs font-light" style={{ color: 'rgba(255,255,255,0.25)' }}>{Math.ceil((currentPage + 1) / 2)} / {story.pages.length}</span>
                         </div>
                       </div>
                     );
