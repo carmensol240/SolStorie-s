@@ -8,6 +8,7 @@ import ErrorBoundary from "@/components/ErrorBoundary";
 import AccessibilityProvider from "@/components/AccessibilityProvider";
 import PWAInstallPrompt from "@/components/pwa/PWAInstallPrompt";
 import AccessibilityMenu from "@/components/AccessibilityMenu";
+import { useTimeTheme } from "@/hooks/use-time-theme";
 
 import About from "./pages/About";
 
