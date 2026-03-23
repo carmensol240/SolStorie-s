@@ -134,13 +134,14 @@ const Upgrade = () => {
     const pkg = PRICING_PACKAGES.find(p => p.id === selectedPackage);
     if (!pkg || !user) return;
     try {
+      const finalPrice = discountPercent > 0 ? Math.round(pkg.price * (1 - discountPercent / 100)) : pkg.price;
       const { error: purchaseError } = await supabase
         .from('purchases')
         .insert({
           user_id: user.id,
-          package_name: pkg.id,
+          package_name: appliedCouponCode ? `${pkg.id}_coupon_${appliedCouponCode}` : pkg.id,
           credits_purchased: pkg.stories,
-          amount_ils: pkg.price,
+          amount_ils: finalPrice,
           status: 'completed',
         });
       if (purchaseError) throw purchaseError;
