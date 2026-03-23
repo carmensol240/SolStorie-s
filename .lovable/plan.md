@@ -1,26 +1,37 @@
 
 
-## Bug Analysis
+## Plan: Redesign Story Page Layout
 
-The onboarding loop is caused by a combination of issues in the navigation flow between `RequireTerms` and `Onboarding`:
+### What changes
 
-1. **Silent update failure**: In `Onboarding.handleContinue`, the Supabase `.update().eq()` call returns success (`error: null`) even when **zero rows are matched** (e.g., due to a race condition where the profile hasn't been created yet). The code doesn't verify the update actually persisted.
+**1. Pages with illustration (types: `illustration` and `combined`)**
+- Image fills the entire page (`object-cover`, absolute inset-0)
+- Dark gradient overlay from bottom (`from-black/70 via-black/30 to-transparent`)
+- White text centered at bottom over the gradient
+- Page number in subtle white at very bottom center
 
-2. **No `replace: true` on redirects**: Both `RequireTerms` (redirecting to `/onboarding`) and `Onboarding`'s guard effect (redirecting to `/adventure`) use `navigate()` without `{ replace: true }`, causing history stack pollution and making the loop worse.
+**2. Pages without illustration (type: `text`)**
+- Themed background gradient based on story topic category:
+  - Torah/biblical topics → warm golden/brown (`#8B6914`, `#D4A843`)
+  - Magic/fantasy → purple (`#4a2080`, `#2d1a6e`)
+  - Nature/animals → green (`#1a4a2d`, `#2d6e3a`)
+  - Sea/adventure → blue (`#1a2d6e`, `#2d4a8e`)
+  - Default → soft purple
+- Small themed emoji icon centered above the text
+- Dark readable text (matching theme) on semi-transparent card
+- Page number at bottom center in muted tone
 
-3. **Loop mechanics**: `handleContinue` thinks it succeeded → navigates to `/adventure` → `RequireTerms` queries DB → `terms_accepted_at` is still null → redirects back to `/onboarding` → Onboarding guard checks terms → still null → shows the form again.
+### Files to edit
 
-## Fix
+**`src/pages/StoryViewer.tsx`** (single file, ~3 areas):
 
-### 1. `src/pages/Onboarding.tsx` — Verify update actually persisted
+1. **Update `getTopicTheme` function** (lines 91-113): Change background colors to match the new warm/green/blue/purple scheme instead of all-dark-purple variants. Add Torah-specific detection (`תנ"ך`, `משה`, `נח`, `אברהם`, `דוד`, `אסתר`, `יונה`, `שמשון`, `יוסף`, `חנוכה`, `יציאת מצרים`).
 
-In `handleContinue`, after the update call, re-query the profile to confirm `terms_accepted_at` was saved. If not, use `upsert` as a fallback. Also add `{ replace: true }` to the guard navigation.
+2. **Update illustration page rendering** (lines 1426-1497): For `type === 'illustration'`, add the story text as a white overlay at the bottom with a dark gradient, matching the combined page pattern. Currently illustration pages show only the image with no text.
 
-### 2. `src/components/RequireTerms.tsx` — Use `replace: true`
+3. **Update text page rendering** (lines 1498-1543): Replace the dark purple background with the themed gradient. Show the topic emoji icon centered above the text. Change text color from dark purple to a theme-appropriate dark color. Keep the glassmorphism card style but adjust colors.
 
-Change the `navigate` call to onboarding to use `{ replace: true }` so the history stack doesn't accumulate redirect entries.
+4. **Update combined page rendering** (lines 1354-1425): Already mostly correct (fullscreen image + text overlay). Minor adjustments to ensure gradient consistency.
 
-### 3. Both files — Add select return on update
-
-Use `.update(...).eq(...).select()` to get the updated row back, confirming the write succeeded. If the returned array is empty, fall back to an upsert to handle the edge case where the profile row doesn't exist yet.
+No logic changes — only visual/styling modifications.
 
