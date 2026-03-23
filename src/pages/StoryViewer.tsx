@@ -1130,16 +1130,14 @@ const StoryViewer = () => {
     
     setTimeout(() => {
       if (direction === 'next' && currentPage < maxPage) {
-        // Skip page 0 — jump from cover (-1) directly to page 1
-        const newPage = currentPage === -1 ? 1 : currentPage + 1;
+        const newPage = currentPage + 1;
         setCurrentPage(newPage);
         
         if (newPage >= maxPage) {
           trackStoryCompleted(story.id);
         }
       } else if (direction === 'prev' && currentPage > -1) {
-        // Skip page 0 — jump from page 1 directly back to cover (-1)
-        const newPage = currentPage === 1 ? -1 : currentPage - 1;
+        const newPage = currentPage - 1;
         setCurrentPage(newPage);
       }
       setIsFlipping(false);
