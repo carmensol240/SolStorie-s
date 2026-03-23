@@ -13,9 +13,9 @@ export const PIXAR_STYLE_COMPACT = `Pixar 3D CGI animation style, big expressive
 
 // ─── Negative Prompts ───
 
-export const NEGATIVE_PROMPT = `realistic, photograph, semi-realistic, dark, muted, bokeh, hyper-realistic, floating head, missing body, extra limbs, cropped feet, text, watermark, UI elements, multiple characters, group shot, no black bars, no black borders, no taskbar, no status bar, no phone frame, no app interface, no screenshot artifacts, no interface elements, full bleed illustration only`;
+export const NEGATIVE_PROMPT = `realistic, photograph, semi-realistic, dark, muted, bokeh, hyper-realistic, floating head, missing body, extra limbs, cropped feet, text, watermark, UI elements, multiple characters, group shot, black bars, black borders, taskbar, status bar, phone frame, app interface, screenshot artifacts, interface elements, icons, text overlays, buttons, menus, device mockup. Clean illustration only, full bleed image, no borders of any kind`;
 
-export const NEGATIVE_PROMPT_FULL = `realistic, semi-realistic, real human, photograph, photorealistic, dark, muted colors, cinematic bokeh, hyper-realistic, shallow depth of field, floating head, missing body, missing limbs, extra limbs, deformed, distorted, scary, horror, mutated, cropped feet, cut off legs, floating character, half-body, missing feet, text, watermark, UI elements, no black bars, no black borders, no taskbar, no status bar, no phone frame, no app interface, no screenshot artifacts, no interface elements, full bleed illustration only`;
+export const NEGATIVE_PROMPT_FULL = `realistic, semi-realistic, real human, photograph, photorealistic, dark, muted colors, cinematic bokeh, hyper-realistic, shallow depth of field, floating head, missing body, missing limbs, extra limbs, deformed, distorted, scary, horror, mutated, cropped feet, cut off legs, floating character, half-body, missing feet, text, watermark, UI elements, black bars, black borders, taskbar, status bar, phone frame, app interface, screenshot artifacts, interface elements, icons, text overlays, buttons, menus, navigation bars, device mockup. Clean illustration only, full bleed image, no borders of any kind`;
 
 export const CAST_NEGATIVE_PROMPT = NEGATIVE_PROMPT_FULL;
 
