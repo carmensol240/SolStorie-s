@@ -1098,6 +1098,12 @@ ${childPersonalization}
 ${contentFraming}
 ${sequelInstructionEn}
 
+### Age Integration Rule (MANDATORY)
+Weave the child's age naturally into the story through behavior or abilities — never as a dry factual statement like "She is four years old" or "He is six."
+- ❌ FORBIDDEN: "She is four years old" / "He was six" as a factual sentence
+- ✅ CORRECT: "still little, but with a big heart" / "like every child her age, she loved to explore"
+- If you must mention age — use warm phrasing, e.g.: "${childName}, the sweet ${ageRange.split('-').pop()}-year-old"
+
 **Story topic:** ${topic}
 ${hasCustomDescription ? `**Custom description:** ${personalityTraits}` : ""}
 
