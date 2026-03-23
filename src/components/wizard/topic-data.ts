@@ -71,6 +71,17 @@ import topicShabbat from "@/assets/topic-shabbat.jpg";
 import topicPets from "@/assets/topic-pets.jpg";
 import topicCooking from "@/assets/topic-cooking.jpg";
 import topicJoy from "@/assets/topic-joy.jpg";
+import topicTorahHero from "@/assets/topic-torah-hero.png";
+import topicMosesBasket from "@/assets/topic-moses-basket.png";
+import topicExodus from "@/assets/topic-exodus.png";
+import topicNoahArk from "@/assets/topic-noah-ark.png";
+import topicJosephBrothers from "@/assets/topic-joseph-brothers.png";
+import topicDavidGoliath from "@/assets/topic-david-goliath.png";
+import topicAbrahamSarah from "@/assets/topic-abraham-sarah.png";
+import topicJonahFish from "@/assets/topic-jonah-fish.png";
+import topicSamson from "@/assets/topic-samson.png";
+import topicEsther from "@/assets/topic-esther.png";
+import topicHanukkah from "@/assets/topic-hanukkah-miracle.png";
 // Topics using storage bucket images (Pixar 3D style generated via Gemini)
 const topicFindAFriend = `${TOPIC_IMAGES_BASE}/topic-find-a-friend.png`;
 const topicScreenTime = `${TOPIC_IMAGES_BASE}/topic-screen-time.png`;
