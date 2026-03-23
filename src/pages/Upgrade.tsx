@@ -42,6 +42,7 @@ const Upgrade = () => {
   const [showFailed, setShowFailed] = useState(false);
   const [purchasedCredits, setPurchasedCredits] = useState(0);
   const [discountPercent, setDiscountPercent] = useState(0);
+  const [appliedCouponCode, setAppliedCouponCode] = useState<string | null>(null);
 
   const title = "נהניתם מהסיפור?";
   const subtitle = "המשיכו את הקסם עם חבילת קרדיטים חדשה";
