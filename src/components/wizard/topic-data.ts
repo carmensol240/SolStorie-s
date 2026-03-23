@@ -71,6 +71,17 @@ import topicShabbat from "@/assets/topic-shabbat.jpg";
 import topicPets from "@/assets/topic-pets.jpg";
 import topicCooking from "@/assets/topic-cooking.jpg";
 import topicJoy from "@/assets/topic-joy.jpg";
+import topicTorahHero from "@/assets/topic-torah-hero.png";
+import topicMosesBasket from "@/assets/topic-moses-basket.png";
+import topicExodus from "@/assets/topic-exodus.png";
+import topicNoahArk from "@/assets/topic-noah-ark.png";
+import topicJosephBrothers from "@/assets/topic-joseph-brothers.png";
+import topicDavidGoliath from "@/assets/topic-david-goliath.png";
+import topicAbrahamSarah from "@/assets/topic-abraham-sarah.png";
+import topicJonahFish from "@/assets/topic-jonah-fish.png";
+import topicSamson from "@/assets/topic-samson.png";
+import topicEsther from "@/assets/topic-esther.png";
+import topicHanukkah from "@/assets/topic-hanukkah-miracle.png";
 // Topics using storage bucket images (Pixar 3D style generated via Gemini)
 const topicFindAFriend = `${TOPIC_IMAGES_BASE}/topic-find-a-friend.png`;
 const topicScreenTime = `${TOPIC_IMAGES_BASE}/topic-screen-time.png`;
@@ -93,6 +104,8 @@ const topicPlayRules = `${TOPIC_IMAGES_BASE}/topic-play-rules.png`;
 const topicSelfConfidence = `${TOPIC_IMAGES_BASE}/topic-self-confidence.png`;
 const topicNatureSecrets = `${TOPIC_IMAGES_BASE}/topic-nature-secrets.png`;
 const topicHolidaysSeasons = `${TOPIC_IMAGES_BASE}/topic-holidays-seasons.png`;
+
+
 
 export interface TopicItem {
   id: string;
@@ -255,6 +268,26 @@ export const CHARACTER_SECTIONS: CharacterSection[] = [
       { id: "respecting-elders-edu", label: "👴 כבוד למבוגרים – להקשיב וללמוד", description: "סיפור העצמה חברתי: להקשיב כשמדברים אליך, לחכות לתורך ולהגיד תודה – אלה דרכים שמראות כבוד ועושות טוב לכולם.", image: topicGrandparentsNight, ageRange: "3-8", keywords: ["כבוד", "מבוגרים", "דרך ארץ"] },
       { id: "eating-with-cutlery-edu", label: "🍴 לאכול עם סכו״ם – הכלים המבריקים שלי", description: "סיפור העצמה חברתי: כשאני אוכל/ת עם כף ומזלג, הידיים שלי נשארות נקיות והאוכל מגיע בדיוק לפה. זה מרגיש גדול ומיוחד!", image: "https://qvdwmkxviaqcgmjotsxe.supabase.co/storage/v1/object/public/topic-images/topic-eating-with-cutlery.png", ageRange: "2-6", keywords: ["אכילה", "סכום", "כלי אוכל", "עצמאות"] },
       { id: "rainbow-power-edu", label: "🌈 כוח הקשת – פירות וירקות קסומים", description: "סיפור העצמה חברתי: כל פרי וירק הוא כוח-על מיוחד! הצבעים של הקשת מחכים בצלחת – אדום נותן אנרגיה, כתום מחזק את העיניים וירוק בונה שרירים חזקים.", image: topicBraveTaster, ageRange: "0-8", keywords: ["פירות", "ירקות", "אכילה בריאה", "צבעים", "תזונה", "כוח על"] },
+    ],
+  },
+  {
+    id: "torah",
+    character: "",
+    characterEn: "",
+    categoryLabel: "סיפורי התורה",
+    categoryEmoji: "✡️",
+    heroImage: topicTorahHero,
+    topics: [
+      { id: "moses-basket", label: "משה בתיבה", description: "סיפור חם ומרגש על תינוק קטן שנשמר באהבה בתיבה על הנהר — ועל הנס הגדול שחיכה לו.", image: topicMosesBasket, ageRange: "2-8", keywords: ["משה", "תיבה", "נהר", "נס", "תורה"] },
+      { id: "exodus", label: "יציאת מצרים", description: "סיפור מרגש על חירות ואומץ: יחד עם משה, הילד/ה חווה את הנס הגדול של יציאת מצרים ומעבר הים.", image: topicExodus, ageRange: "3-8", keywords: ["יציאת מצרים", "פסח", "חירות", "ים סוף", "תורה"] },
+      { id: "noah-ark", label: "נח ותיבת נח", description: "סיפור על נח שבנה תיבה גדולה והציל את כל החיות — ועל הקשת בענן שהבטיחה שהכל יהיה בסדר.", image: topicNoahArk, ageRange: "2-8", keywords: ["נח", "תיבה", "חיות", "קשת", "מבול", "תורה"] },
+      { id: "joseph-brothers", label: "יוסף ואחיו", description: "סיפור על ילד עם כתונת צבעונית שחלם חלומות גדולים — ועל סליחה, אהבה ומשפחה שמתאחדת.", image: topicJosephBrothers, ageRange: "3-8", keywords: ["יוסף", "כתונת פסים", "חלומות", "אחים", "סליחה", "תורה"] },
+      { id: "david-goliath", label: "דוד וגוליית", description: "סיפור על ילד רועה אמיץ שהוכיח שגם הקטן ביותר יכול לעשות דברים גדולים — בעזרת אמונה ואומץ.", image: topicDavidGoliath, ageRange: "3-8", keywords: ["דוד", "גוליית", "אומץ", "אמונה", "תורה"] },
+      { id: "abraham-sarah", label: "אברהם ושרה", description: "סיפור על זוג אוהב שיצא למסע גדול, פתח את האוהל לכל עובר ושב, ולמד שהכנסת אורחים היא הדבר הכי יפה.", image: topicAbrahamSarah, ageRange: "3-8", keywords: ["אברהם", "שרה", "הכנסת אורחים", "חסד", "תורה"] },
+      { id: "jonah-fish", label: "יונה והדג הגדול", description: "סיפור מופלא על יונה שנבלע בבטן דג ענק — ושם גילה שתמיד אפשר לחזור, להתחיל מחדש ולעשות את הדבר הנכון.", image: topicJonahFish, ageRange: "3-8", keywords: ["יונה", "דג", "ים", "תשובה", "תורה"] },
+      { id: "samson-hero", label: "שמשון הגיבור", description: "סיפור על גיבור חזק במיוחד שקיבל כוח מיוחד — ושלמד שכוח אמיתי הוא להגן על אחרים באהבה.", image: topicSamson, ageRange: "4-8", keywords: ["שמשון", "כוח", "גיבור", "תורה"] },
+      { id: "esther-queen", label: "אסתר המלכה", description: "סיפור על מלכה אמיצה שהצילה את עמה — ושהוכיחה שגם בת קטנה יכולה לשנות את העולם.", image: topicEsther, ageRange: "3-8", keywords: ["אסתר", "פורים", "אומץ", "מלכה", "תורה"] },
+      { id: "hanukkah-miracle", label: "חנוכה — נס פך השמן", description: "סיפור קסום על פך שמן קטן שהספיק לשמונה ימים — ועל האור שמנצח את החושך.", image: topicHanukkah, ageRange: "2-8", keywords: ["חנוכה", "נרות", "שמן", "נס", "מנורה", "תורה"] },
     ],
   },
 ];

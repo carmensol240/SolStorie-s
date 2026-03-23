@@ -138,6 +138,18 @@ const TOPIC_HEBREW_MAP: Record<string, string> = {
   'self-confidence-edu': 'ביטחון עצמי – אני יכול/ה!',
   'eating-with-cutlery-edu': 'לאכול עם סכו״ם – הכלים המבריקים שלי',
   'rainbow-power-edu': 'כוח הקשת – פירות וירקות קסומים',
+
+  // Torah stories
+  'moses-basket': 'משה בתיבה',
+  'exodus': 'יציאת מצרים',
+  'noah-ark': 'נח ותיבת נח',
+  'joseph-brothers': 'יוסף ואחיו',
+  'david-goliath': 'דוד וגוליית',
+  'abraham-sarah': 'אברהם ושרה',
+  'jonah-fish': 'יונה והדג הגדול',
+  'samson-hero': 'שמשון הגיבור',
+  'esther-queen': 'אסתר המלכה',
+  'hanukkah-miracle': 'חנוכה — נס פך השמן',
 };
 
 /**
