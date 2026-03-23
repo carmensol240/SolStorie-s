@@ -104,7 +104,7 @@ const topicPlayRules = `${TOPIC_IMAGES_BASE}/topic-play-rules.png`;
 const topicSelfConfidence = `${TOPIC_IMAGES_BASE}/topic-self-confidence.png`;
 const topicNatureSecrets = `${TOPIC_IMAGES_BASE}/topic-nature-secrets.png`;
 const topicHolidaysSeasons = `${TOPIC_IMAGES_BASE}/topic-holidays-seasons.png`;
-// Torah category images (imported locally)
+
 
 
 export interface TopicItem {
