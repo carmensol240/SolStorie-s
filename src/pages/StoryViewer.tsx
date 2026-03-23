@@ -1040,58 +1040,31 @@ const StoryViewer = () => {
         }
       }
     } else {
-      // Ages 3+: text → text → illustration pattern
-      const allTexts: StoryPage[] = [];
-      const availableIllustrations: { url: string; prompt: string | null; dbPage: StoryPage }[] = [];
-
+      // Ages 3+: one virtual page per DB page — no duplication
       for (const page of story.pages) {
-        if (page.text && page.text.trim().length > 0) {
-          allTexts.push(page);
-        }
-        if (page.illustration_url && (!coverIllustration || page.id !== coverIllustration.id)) {
-          availableIllustrations.push({
-            url: page.illustration_url,
-            prompt: page.illustration_prompt || null,
-            dbPage: page,
-          });
-        }
-      }
+        const hasText = page.text && page.text.trim().length > 0;
+        const hasIllustration = !!page.illustration_url;
+        const isCoverIllust = coverIllustration && page.id === coverIllustration.id;
 
-      let illustIndex = 0;
-      for (let i = 0; i < allTexts.length; i++) {
-        result.push({
-          type: 'text',
-          dbPage: allTexts[i],
-          illustrationUrl: null,
-          illustrationPrompt: null,
-          text: allTexts[i].text,
-        });
-
-        // After every 2nd text page, insert next available illustration
-        if ((i + 1) % 2 === 0 && illustIndex < availableIllustrations.length) {
-          const illust = availableIllustrations[illustIndex];
+        if (hasIllustration && !isCoverIllust) {
+          // Page with illustration → show text as overlay on the image
           result.push({
             type: 'illustration',
-            dbPage: illust.dbPage,
-            illustrationUrl: illust.url,
-            illustrationPrompt: illust.prompt,
-            text: illust.dbPage.text,
+            dbPage: page,
+            illustrationUrl: page.illustration_url,
+            illustrationPrompt: page.illustration_prompt || null,
+            text: page.text,
           });
-          illustIndex++;
+        } else if (hasText) {
+          // Text-only page (or cover illustration page — show text without the image)
+          result.push({
+            type: 'text',
+            dbPage: page,
+            illustrationUrl: null,
+            illustrationPrompt: null,
+            text: page.text,
+          });
         }
-      }
-
-      // Remaining illustrations
-      while (illustIndex < availableIllustrations.length) {
-        const illust = availableIllustrations[illustIndex];
-        result.push({
-          type: 'illustration',
-          dbPage: illust.dbPage,
-          illustrationUrl: illust.url,
-          illustrationPrompt: illust.prompt,
-          text: illust.dbPage.text,
-        });
-        illustIndex++;
       }
     }
 
