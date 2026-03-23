@@ -1455,7 +1455,7 @@ const StoryViewer = () => {
                     </div>
                   </>
                 ) : currentVirtual.type === 'illustration' ? (
-                  /* Illustration page — fullscreen image, no text */
+                  /* Illustration page — fullscreen image with gradient + text */
                   <>
                     {currentVirtual.illustrationUrl ? (
                       <img
@@ -1504,9 +1504,24 @@ const StoryViewer = () => {
                         );
                       })()
                     )}
+                    {/* Dark gradient overlay for text readability */}
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-transparent z-[1]" />
+                    {/* Text overlay at bottom */}
+                    {currentVirtual.text && currentVirtual.text.trim() && (
+                      <div className="absolute bottom-0 left-0 right-0 z-10 p-4 md:p-6" dir="rtl">
+                        <div className="max-w-lg mx-auto text-center">
+                          <p className={cn(
+                            "font-semibold whitespace-pre-line text-white drop-shadow-[0_2px_4px_rgba(0,0,0,0.7)]",
+                            currentFontSize.size,
+                          )} style={{ lineHeight: '1.8', padding: '12px 16px' }}>
+                            {showNikud ? currentVirtual.text : currentVirtual.text.replace(/[\u0591-\u05C7]/g, '')}
+                          </p>
+                        </div>
+                      </div>
+                    )}
                     {/* Page number on illustration page */}
-                    <div className="absolute bottom-3 left-0 right-0 flex justify-center">
-                      <span className="text-xs text-white/50 font-light">{Math.ceil((currentPage + 1) / 2)} / {story.pages.length}</span>
+                    <div className="absolute bottom-1 left-0 right-0 flex justify-center z-10">
+                      <span className="text-xs text-white/40 font-light">{Math.ceil((currentPage + 1) / 2)} / {story.pages.length}</span>
                     </div>
                     {/* Recording controls — illustration page */}
                     <div className="absolute top-3 left-3 z-20">
