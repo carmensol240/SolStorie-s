@@ -163,7 +163,7 @@ const Upgrade = () => {
               email: user.email,
               packageName: pkg.label,
               credits: pkg.stories,
-              amount: pkg.price,
+              amount: finalPrice,
               transactionDate: new Date().toLocaleDateString('he-IL'),
             }
           }).then(({ error }) => {
