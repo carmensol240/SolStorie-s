@@ -42,6 +42,7 @@ const Upgrade = () => {
   const [showFailed, setShowFailed] = useState(false);
   const [purchasedCredits, setPurchasedCredits] = useState(0);
   const [discountPercent, setDiscountPercent] = useState(0);
+  const [appliedCouponCode, setAppliedCouponCode] = useState<string | null>(null);
 
   const title = "נהניתם מהסיפור?";
   const subtitle = "המשיכו את הקסם עם חבילת קרדיטים חדשה";
@@ -133,13 +134,14 @@ const Upgrade = () => {
     const pkg = PRICING_PACKAGES.find(p => p.id === selectedPackage);
     if (!pkg || !user) return;
     try {
+      const finalPrice = discountPercent > 0 ? Math.round(pkg.price * (1 - discountPercent / 100)) : pkg.price;
       const { error: purchaseError } = await supabase
         .from('purchases')
         .insert({
           user_id: user.id,
-          package_name: pkg.id,
+          package_name: appliedCouponCode ? `${pkg.id}_coupon_${appliedCouponCode}` : pkg.id,
           credits_purchased: pkg.stories,
-          amount_ils: pkg.price,
+          amount_ils: finalPrice,
           status: 'completed',
         });
       if (purchaseError) throw purchaseError;
@@ -161,7 +163,7 @@ const Upgrade = () => {
               email: user.email,
               packageName: pkg.label,
               credits: pkg.stories,
-              amount: pkg.price,
+              amount: finalPrice,
               transactionDate: new Date().toLocaleDateString('he-IL'),
             }
           }).then(({ error }) => {
@@ -233,6 +235,7 @@ const Upgrade = () => {
   };
 
   const selectedPkg = PRICING_PACKAGES.find(p => p.id === selectedPackage);
+  const discountedPrice = selectedPkg ? Math.round(selectedPkg.price * (1 - discountPercent / 100)) : 0;
 
   return (
     <div className="min-h-[100dvh] flex flex-col relative overflow-hidden" dir="rtl">
@@ -484,7 +487,7 @@ const Upgrade = () => {
           {/* Coupon */}
           <div className="mb-4">
             <CouponInput 
-              onDiscountApplied={(percent) => setDiscountPercent(percent)}
+              onDiscountApplied={(percent, code) => { setDiscountPercent(percent); setAppliedCouponCode(code || null); }}
               onStoriesAdded={() => { refetchCredits(); }}
             />
           </div>
@@ -598,11 +601,20 @@ const Upgrade = () => {
           {/* PayPal */}
           {showPayPal && (
             <div className="bg-white/15 backdrop-blur-md rounded-xl border border-white/20 p-4 mb-4 shadow-lg">
-              <p className="text-sm font-bold text-white text-center mb-3">
-                {selectedPkg?.stories} סיפורים תמורת ₪{selectedPkg?.price}
+              <p className="text-sm font-bold text-white text-center mb-1">
+                {selectedPkg?.stories} סיפורים
               </p>
+              {discountPercent > 0 ? (
+                <div className="text-center mb-3">
+                  <span className="text-white/50 line-through text-sm">₪{selectedPkg?.price}</span>
+                  <span className="text-green-300 font-black text-lg mr-2">₪{discountedPrice}</span>
+                  <span className="text-green-300 text-xs font-bold">({discountPercent}% הנחה)</span>
+                </div>
+              ) : (
+                <p className="text-sm font-bold text-white text-center mb-3">₪{selectedPkg?.price}</p>
+              )}
               <PayPalButton
-                amount={selectedPkg?.price || 0}
+                amount={discountPercent > 0 ? discountedPrice : (selectedPkg?.price || 0)}
                 onSuccess={handlePayPalSuccess}
                 onError={handlePayPalError}
                 onCancel={() => setShowPayPal(false)}
@@ -630,7 +642,11 @@ const Upgrade = () => {
               className="w-full bg-gradient-to-r from-purple-500 via-pink-500 to-orange-500 hover:from-purple-400 hover:via-pink-400 hover:to-orange-400 text-white font-black text-sm py-3 rounded-xl shadow-xl"
               style={{ boxShadow: '0 0 30px rgba(168, 85, 247, 0.4), 0 0 60px rgba(236, 72, 153, 0.2)' }}
             >
-              רכשו {selectedPkg?.stories} סיפורים ב-₪{selectedPkg?.price} ✨
+              {discountPercent > 0 ? (
+                <>רכשו {selectedPkg?.stories} סיפורים ב-<span className="line-through opacity-60 mx-1">₪{selectedPkg?.price}</span> ₪{discountedPrice} ✨</>
+              ) : (
+                <>רכשו {selectedPkg?.stories} סיפורים ב-₪{selectedPkg?.price} ✨</>
+              )}
             </Button>
             <button
               onClick={() => navigate('/adventure')}

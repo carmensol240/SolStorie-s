@@ -8,7 +8,7 @@ import { useCredits } from "@/hooks/use-credits";
 import { toast } from "sonner";
 
 interface CouponInputProps {
-  onDiscountApplied?: (discountPercent: number) => void;
+  onDiscountApplied?: (discountPercent: number, couponCode?: string) => void;
   onStoriesAdded?: (stories: number) => void;
 }
 
@@ -59,7 +59,7 @@ const CouponInput = ({ onDiscountApplied, onStoriesAdded }: CouponInputProps) =>
         refetchCredits?.();
       } else if (data.coupon_type === "discount") {
         toast.success(`🎉 הנחה של ${data.value}% הוחלה!`);
-        onDiscountApplied?.(data.value);
+        onDiscountApplied?.(data.value, data.code);
       }
 
       setAppliedCoupon({
@@ -79,7 +79,7 @@ const CouponInput = ({ onDiscountApplied, onStoriesAdded }: CouponInputProps) =>
     setAppliedCoupon(null);
     setCode("");
     setError(null);
-    onDiscountApplied?.(0);
+    onDiscountApplied?.(0, undefined);
   };
 
   if (appliedCoupon) {
