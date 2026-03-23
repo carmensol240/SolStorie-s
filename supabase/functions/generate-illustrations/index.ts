@@ -593,7 +593,80 @@ async function uploadImageToStorage(
   }
 }
 
-// Theme-based outfit mapping for dynamic character clothing
+// === AI-BASED DYNAMIC OUTFIT GENERATION ===
+async function generateOutfitForTopic(topic: string, apiKey: string): Promise<string | null> {
+  try {
+    console.log(`🎽 Generating AI outfit for topic: "${topic}"...`);
+    const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+      method: "POST",
+      signal: AbortSignal.timeout(8000),
+      headers: {
+        Authorization: `Bearer ${apiKey}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        model: "google/gemini-2.5-flash-lite",
+        messages: [
+          {
+            role: "system",
+            content: `You are a children's book costume designer. Given a story topic in Hebrew, return ONLY a single short English sentence (max 15 words) describing what a child character should wear in that story.
+
+Rules:
+- The outfit must be age-appropriate for a 3-8 year old child
+- Be specific about colors, materials, and style
+- For biblical/historical topics: describe period-accurate but child-friendly clothing
+- For fantasy/magic topics: describe magical/whimsical clothing
+- For nature/animal topics: describe outdoor/explorer clothing
+- For space topics: describe astronaut or sci-fi clothing
+- For holiday/celebration topics: describe festive clothing matching the holiday
+- For everyday/neutral topics (emotions, friendship, family, fears, siblings, kindness, sharing, manners): respond with exactly "KEEP_ORIGINAL"
+- For hygiene topics (bath, teeth, hands, potty): respond with exactly "KEEP_ORIGINAL"
+
+Examples:
+"חנוכה" → "traditional Jewish festive blue and white tunic with a small kippah"
+"יציאת מצרים" → "ancient Egyptian-style linen tunic with leather sandals and a woven belt"
+"נח ותיבת נח" → "simple rustic brown robe with a rope belt and wooden sandals"
+"יוסף ואחיו" → "colorful striped coat of many colors over a simple tunic"
+"דוד וגוליית" → "light shepherd clothing with a leather sling and small pouch"
+"אסתר המלכה" → "royal Persian gown with a golden crown and jeweled necklace"
+"חלל" → "white astronaut space suit with a transparent helmet and mission patches"
+"ג'ונגל" → "khaki safari outfit with a wide-brimmed explorer hat and binoculars"
+"ים וחוף" → "colorful swimsuit with a straw hat and sunglasses"
+"יום הולדת" → "festive colorful party outfit with a birthday crown"
+"פחד מהחושך" → "KEEP_ORIGINAL"
+"חברות" → "KEEP_ORIGINAL"
+"רגשות" → "KEEP_ORIGINAL"`
+          },
+          {
+            role: "user",
+            content: topic
+          }
+        ],
+      }),
+    });
+
+    if (!response.ok) {
+      console.warn(`AI outfit generation failed: HTTP ${response.status}`);
+      return null;
+    }
+
+    const data = await response.json();
+    const result = data.choices?.[0]?.message?.content?.trim();
+
+    if (!result || result === "KEEP_ORIGINAL") {
+      console.log(`🎽 Topic "${topic}" is neutral — keeping original clothing`);
+      return null;
+    }
+
+    console.log(`🎽 AI outfit for "${topic}": "${result}"`);
+    return result;
+  } catch (err) {
+    console.warn(`AI outfit generation error (timeout or network):`, err);
+    return null;
+  }
+}
+
+// Fast-path cache for common topics (avoids AI call)
 const THEME_OUTFITS: Record<string, { outfit: string; background: string; theme: string }> = {
   "space-adventure": {
     outfit: "silver space suit with transparent helmet",
@@ -821,15 +894,27 @@ serve(async (req) => {
     // Get theme-appropriate outfit while keeping physical features locked
     let effectiveAdventureLogic = adventureLogic;
     if (!effectiveAdventureLogic && topic) {
+      // Fast-path: check hardcoded cache first
       effectiveAdventureLogic = THEME_OUTFITS[topic] || null;
       if (effectiveAdventureLogic) {
-        console.log(`Using theme outfit for "${topic}":`, effectiveAdventureLogic);
+        console.log(`Using cached theme outfit for "${topic}":`, effectiveAdventureLogic);
       }
     }
 
     // === DETERMINE SINGLE OUTFIT FOR ENTIRE STORY ===
     // This outfit will be used for ALL pages to ensure consistency
-    const storyOutfit = effectiveAdventureLogic?.outfit || characterProfile?.clothingDescription || "colorful casual clothes";
+    let storyOutfit = effectiveAdventureLogic?.outfit || null;
+    
+    // If no cached outfit, use AI to generate one based on topic
+    if (!storyOutfit && topic && LOVABLE_API_KEY) {
+      const aiOutfit = await generateOutfitForTopic(topic, LOVABLE_API_KEY);
+      if (aiOutfit) {
+        storyOutfit = aiOutfit;
+      }
+    }
+    
+    // Final fallback
+    storyOutfit = storyOutfit || characterProfile?.clothingDescription || "colorful casual clothes";
     console.log(`🎽 Story outfit locked for all pages: "${storyOutfit}"`);
 
     // === BUILD VISUAL ANCHOR ===
