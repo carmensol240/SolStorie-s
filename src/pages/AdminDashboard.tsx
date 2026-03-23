@@ -835,7 +835,7 @@ const AdminDashboard = () => {
                                           );
                                           return (
                                             <TableRow key={redemption.id}>
-                                              <TableCell>{profile?.display_name || "—"}</TableCell>
+                                              <TableCell>{profile?.display_name || profile?.email || "—"}</TableCell>
                                               <TableCell className="text-xs text-muted-foreground">{profile?.email || "—"}</TableCell>
                                               <TableCell className="text-xs">{formatDate(redemption.redeemed_at)}</TableCell>
                                               <TableCell>
