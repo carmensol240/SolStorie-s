@@ -93,6 +93,19 @@ const topicPlayRules = `${TOPIC_IMAGES_BASE}/topic-play-rules.png`;
 const topicSelfConfidence = `${TOPIC_IMAGES_BASE}/topic-self-confidence.png`;
 const topicNatureSecrets = `${TOPIC_IMAGES_BASE}/topic-nature-secrets.png`;
 const topicHolidaysSeasons = `${TOPIC_IMAGES_BASE}/topic-holidays-seasons.png`;
+// Torah category images
+const topicTorahHero = `${TOPIC_IMAGES_BASE}/topic-torah-hero.png`;
+const topicMosesBasket = `${TOPIC_IMAGES_BASE}/topic-moses-basket.png`;
+const topicExodus = `${TOPIC_IMAGES_BASE}/topic-exodus.png`;
+const topicNoahArk = `${TOPIC_IMAGES_BASE}/topic-noah-ark.png`;
+const topicJosephBrothers = `${TOPIC_IMAGES_BASE}/topic-joseph-brothers.png`;
+const topicDavidGoliath = `${TOPIC_IMAGES_BASE}/topic-david-goliath.png`;
+const topicAbrahamSarah = `${TOPIC_IMAGES_BASE}/topic-abraham-sarah.png`;
+const topicJonahFish = `${TOPIC_IMAGES_BASE}/topic-jonah-fish.png`;
+const topicSamson = `${TOPIC_IMAGES_BASE}/topic-samson.png`;
+const topicEsther = `${TOPIC_IMAGES_BASE}/topic-esther.png`;
+const topicHanukkah = `${TOPIC_IMAGES_BASE}/topic-hanukkah-miracle.png`;
+
 
 export interface TopicItem {
   id: string;
