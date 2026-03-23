@@ -112,6 +112,9 @@ const AdminDashboard = () => {
   const [errorLogs, setErrorLogs] = useState<ErrorLogRow[]>([]);
   const [illustrationLogs, setIllustrationLogs] = useState<IllustrationLogRow[]>([]);
   const [coverLogs, setCoverLogs] = useState<CoverLogRow[]>([]);
+  const [coupons, setCoupons] = useState<CouponRow[]>([]);
+  const [couponRedemptions, setCouponRedemptions] = useState<CouponRedemptionRow[]>([]);
+  const [expandedCoupon, setExpandedCoupon] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [authReady, setAuthReady] = useState(false);
   const { toast } = useToast();
