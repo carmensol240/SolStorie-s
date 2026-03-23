@@ -6,7 +6,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
-import { Users, ShoppingCart, BookOpen, TrendingUp, ArrowRight, AlertTriangle, EyeOff, Eye, Trash2, Palette, Image } from "lucide-react";
+import { Users, ShoppingCart, BookOpen, TrendingUp, ArrowRight, AlertTriangle, EyeOff, Eye, Trash2, Palette, Image, Ticket, ChevronDown, ChevronUp, Activity } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { format } from "date-fns";
@@ -70,6 +70,25 @@ interface IllustrationLogRow {
   created_at: string;
 }
 
+interface CouponRow {
+  id: string;
+  code: string;
+  coupon_type: string;
+  free_stories: number | null;
+  discount_percent: number | null;
+  current_uses: number | null;
+  max_uses: number | null;
+  is_active: boolean | null;
+  created_at: string | null;
+}
+
+interface CouponRedemptionRow {
+  id: string;
+  coupon_id: string;
+  user_id: string;
+  redeemed_at: string | null;
+}
+
 interface CoverLogRow {
   id: string;
   story_id: string;
@@ -93,6 +112,9 @@ const AdminDashboard = () => {
   const [errorLogs, setErrorLogs] = useState<ErrorLogRow[]>([]);
   const [illustrationLogs, setIllustrationLogs] = useState<IllustrationLogRow[]>([]);
   const [coverLogs, setCoverLogs] = useState<CoverLogRow[]>([]);
+  const [coupons, setCoupons] = useState<CouponRow[]>([]);
+  const [couponRedemptions, setCouponRedemptions] = useState<CouponRedemptionRow[]>([]);
+  const [expandedCoupon, setExpandedCoupon] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [authReady, setAuthReady] = useState(false);
   const { toast } = useToast();
@@ -186,11 +208,13 @@ const AdminDashboard = () => {
 
     const fetchData = async () => {
       setLoading(true);
-      const [profilesRes, purchasesRes, storiesRes, emailsRes] = await Promise.all([
+      const [profilesRes, purchasesRes, storiesRes, emailsRes, couponsRes, redemptionsRes] = await Promise.all([
         supabase.from("profiles").select("id, display_name, created_at, story_credits, is_subscriber, user_role").not("id", "in", `(${EXCLUDED_IDS.join(",")})`).order("created_at", { ascending: false }).limit(200),
         supabase.from("purchases").select("*").eq("status", "completed").not("user_id", "in", `(${EXCLUDED_IDS.join(",")})`).order("created_at", { ascending: false }).limit(200),
         supabase.from("stories").select("id, child_name, topic, created_at, user_id").not("user_id", "in", `(${EXCLUDED_IDS.join(",")})`).order("created_at", { ascending: false }).limit(200),
         supabase.rpc("get_admin_user_emails"),
+        supabase.from("coupons").select("*").order("created_at", { ascending: false }),
+        supabase.from("coupon_redemptions").select("*"),
       ]);
 
       if (profilesRes.data) {
@@ -202,6 +226,8 @@ const AdminDashboard = () => {
       }
       if (purchasesRes.data) setPurchases(purchasesRes.data);
       if (storiesRes.data) setStories(storiesRes.data);
+      if (couponsRes.data) setCoupons(couponsRes.data as CouponRow[]);
+      if (redemptionsRes.data) setCouponRedemptions(redemptionsRes.data as CouponRedemptionRow[]);
       setLoading(false);
     };
 
@@ -356,7 +382,7 @@ const AdminDashboard = () => {
 
         {/* Tabs */}
         <Tabs defaultValue="users" className="w-full">
-          <TabsList className="grid w-full grid-cols-6">
+          <TabsList className="grid w-full grid-cols-7">
             <TabsTrigger value="users">משתמשים</TabsTrigger>
             <TabsTrigger value="purchases">רכישות</TabsTrigger>
             <TabsTrigger value="stories">סיפורים</TabsTrigger>
@@ -367,6 +393,10 @@ const AdminDashboard = () => {
             <TabsTrigger value="illustrations" className="flex items-center gap-1">
               <Palette className="h-3.5 w-3.5" />
               איורים
+            </TabsTrigger>
+            <TabsTrigger value="coupons" className="flex items-center gap-1">
+              <Ticket className="h-3.5 w-3.5" />
+              קופונים
             </TabsTrigger>
             <TabsTrigger value="errors" className="flex items-center gap-1">
               שגיאות
@@ -711,6 +741,174 @@ const AdminDashboard = () => {
               </CardContent>
             </Card>
           </TabsContent>
+
+          <TabsContent value="coupons">
+            <Card>
+              <CardContent className="p-4 space-y-6">
+                {/* Summary Cards */}
+                {(() => {
+                  const uniqueCouponUsers = new Set(couponRedemptions.map(r => r.user_id));
+                  const totalCouponUsers = uniqueCouponUsers.size;
+
+                  // Most popular code
+                  const redemptionsByCouponId = new Map<string, number>();
+                  couponRedemptions.forEach(r => {
+                    redemptionsByCouponId.set(r.coupon_id, (redemptionsByCouponId.get(r.coupon_id) || 0) + 1);
+                  });
+                  let mostPopularCode = "—";
+                  let maxRedemptions = 0;
+                  redemptionsByCouponId.forEach((count, couponId) => {
+                    if (count > maxRedemptions) {
+                      maxRedemptions = count;
+                      const coupon = coupons.find(c => c.id === couponId);
+                      mostPopularCode = coupon?.code || "—";
+                    }
+                  });
+
+                  // Activity rate: coupon users who created stories in last 30 days
+                  const thirtyDaysAgo = new Date();
+                  thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+                  const recentStoryUsers = new Set(
+                    stories.filter(s => s.user_id && new Date(s.created_at) > thirtyDaysAgo).map(s => s.user_id!)
+                  );
+                  const activeCouponUsers = [...uniqueCouponUsers].filter(uid => recentStoryUsers.has(uid)).length;
+                  const activityRate = totalCouponUsers > 0 ? Math.round((activeCouponUsers / totalCouponUsers) * 100) : 0;
+
+                  return (
+                    <div className="grid grid-cols-3 gap-4">
+                      <Card>
+                        <CardHeader className="flex flex-row items-center justify-between pb-2">
+                          <CardTitle className="text-sm font-medium">משתמשי קופון</CardTitle>
+                          <Users className="h-4 w-4 text-muted-foreground" />
+                        </CardHeader>
+                        <CardContent><div className="text-2xl font-bold">{totalCouponUsers}</div></CardContent>
+                      </Card>
+                      <Card>
+                        <CardHeader className="flex flex-row items-center justify-between pb-2">
+                          <CardTitle className="text-sm font-medium">קוד פופולרי</CardTitle>
+                          <Ticket className="h-4 w-4 text-muted-foreground" />
+                        </CardHeader>
+                        <CardContent><div className="text-2xl font-bold">{mostPopularCode}</div></CardContent>
+                      </Card>
+                      <Card>
+                        <CardHeader className="flex flex-row items-center justify-between pb-2">
+                          <CardTitle className="text-sm font-medium">אחוז פעילות</CardTitle>
+                          <Activity className="h-4 w-4 text-muted-foreground" />
+                        </CardHeader>
+                        <CardContent><div className="text-2xl font-bold">{activityRate}%</div></CardContent>
+                      </Card>
+                    </div>
+                  );
+                })()}
+
+                {/* Coupon Table */}
+                <div className="overflow-x-auto">
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead className="text-right w-8"></TableHead>
+                        <TableHead className="text-right">קוד קופון</TableHead>
+                        <TableHead className="text-right">סוג</TableHead>
+                        <TableHead className="text-right">מימושים</TableHead>
+                        <TableHead className="text-right">סטטוס</TableHead>
+                        <TableHead className="text-right">תאריך יצירה</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {coupons.length === 0 ? (
+                        <TableRow>
+                          <TableCell colSpan={6} className="text-center text-muted-foreground py-8">
+                            אין קופונים עדיין
+                          </TableCell>
+                        </TableRow>
+                      ) : coupons.map((coupon) => {
+                        const redemptionsForCoupon = couponRedemptions.filter(r => r.coupon_id === coupon.id);
+                        const isExpanded = expandedCoupon === coupon.id;
+                        const thirtyDaysAgo = new Date();
+                        thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+
+                        return (
+                          <> 
+                            <TableRow
+                              key={coupon.id}
+                              className="cursor-pointer"
+                              onClick={() => setExpandedCoupon(isExpanded ? null : coupon.id)}
+                            >
+                              <TableCell className="text-center">
+                                {isExpanded ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
+                              </TableCell>
+                              <TableCell className="font-mono font-bold">{coupon.code}</TableCell>
+                              <TableCell>
+                                <Badge variant="outline" className="text-xs">
+                                  {coupon.coupon_type === "free_stories" ? `${coupon.free_stories} סיפורים` : `${coupon.discount_percent}% הנחה`}
+                                </Badge>
+                              </TableCell>
+                              <TableCell>{redemptionsForCoupon.length}{coupon.max_uses ? ` / ${coupon.max_uses}` : ""}</TableCell>
+                              <TableCell>
+                                <Badge variant={coupon.is_active ? "default" : "secondary"} className="text-xs">
+                                  {coupon.is_active ? "פעיל" : "לא פעיל"}
+                                </Badge>
+                              </TableCell>
+                              <TableCell className="text-xs">{formatDate(coupon.created_at)}</TableCell>
+                            </TableRow>
+                            {isExpanded && redemptionsForCoupon.length > 0 && (
+                              <TableRow key={`${coupon.id}-detail`}>
+                                <TableCell colSpan={6} className="p-0">
+                                  <div className="bg-muted/30 p-4">
+                                    <Table>
+                                      <TableHeader>
+                                        <TableRow>
+                                          <TableHead className="text-right">שם</TableHead>
+                                          <TableHead className="text-right">אימייל</TableHead>
+                                          <TableHead className="text-right">תאריך הרשמה</TableHead>
+                                          <TableHead className="text-right">סטטוס</TableHead>
+                                          <TableHead className="text-right">סיפורים</TableHead>
+                                        </TableRow>
+                                      </TableHeader>
+                                      <TableBody>
+                                        {redemptionsForCoupon.map((redemption) => {
+                                          const profile = profiles.find(p => p.id === redemption.user_id);
+                                          const userStoryCount = stories.filter(s => s.user_id === redemption.user_id).length;
+                                          const hasRecentStory = stories.some(
+                                            s => s.user_id === redemption.user_id && new Date(s.created_at) > thirtyDaysAgo
+                                          );
+                                          return (
+                                            <TableRow key={redemption.id}>
+                                              <TableCell>{profile?.display_name || "—"}</TableCell>
+                                              <TableCell className="text-xs text-muted-foreground">{profile?.email || "—"}</TableCell>
+                                              <TableCell className="text-xs">{formatDate(redemption.redeemed_at)}</TableCell>
+                                              <TableCell>
+                                                <Badge variant={hasRecentStory ? "default" : "secondary"} className="text-xs">
+                                                  {hasRecentStory ? "פעיל" : "לא פעיל"}
+                                                </Badge>
+                                              </TableCell>
+                                              <TableCell>{userStoryCount}</TableCell>
+                                            </TableRow>
+                                          );
+                                        })}
+                                      </TableBody>
+                                    </Table>
+                                  </div>
+                                </TableCell>
+                              </TableRow>
+                            )}
+                            {isExpanded && redemptionsForCoupon.length === 0 && (
+                              <TableRow key={`${coupon.id}-empty`}>
+                                <TableCell colSpan={6} className="text-center text-muted-foreground py-4 bg-muted/30">
+                                  אין מימושים לקוד זה
+                                </TableCell>
+                              </TableRow>
+                            )}
+                          </>
+                        );
+                      })}
+                    </TableBody>
+                  </Table>
+                </div>
+              </CardContent>
+            </Card>
+          </TabsContent>
+
         </Tabs>
 
         {/* Confirm mark-as-reviewed dialog */}
