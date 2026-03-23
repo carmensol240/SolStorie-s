@@ -8,7 +8,7 @@ import { useCredits } from "@/hooks/use-credits";
 import { toast } from "sonner";
 
 interface CouponInputProps {
-  onDiscountApplied?: (discountPercent: number) => void;
+  onDiscountApplied?: (discountPercent: number, couponCode?: string) => void;
   onStoriesAdded?: (stories: number) => void;
 }
 
