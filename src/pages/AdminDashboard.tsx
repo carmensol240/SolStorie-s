@@ -70,6 +70,25 @@ interface IllustrationLogRow {
   created_at: string;
 }
 
+interface CouponRow {
+  id: string;
+  code: string;
+  coupon_type: string;
+  free_stories: number | null;
+  discount_percent: number | null;
+  current_uses: number | null;
+  max_uses: number | null;
+  is_active: boolean | null;
+  created_at: string | null;
+}
+
+interface CouponRedemptionRow {
+  id: string;
+  coupon_id: string;
+  user_id: string;
+  redeemed_at: string | null;
+}
+
 interface CoverLogRow {
   id: string;
   story_id: string;
