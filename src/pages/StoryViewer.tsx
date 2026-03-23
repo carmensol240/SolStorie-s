@@ -1527,7 +1527,7 @@ const StoryViewer = () => {
                     </div>
                   </>
                 ) : (
-                  /* Text page — pastel gradient background, centered text */
+                  /* Text page — themed gradient background, centered text */
                   (() => {
                     const theme = getTopicTheme(story.topic);
                     const rawText = currentVirtual.text;
@@ -1551,13 +1551,18 @@ const StoryViewer = () => {
                           />
                         </div>
                         <div className="flex-1" />
+                        {/* Themed emoji icon */}
+                        <div className="mb-4 shrink-0">
+                          <span className="text-5xl opacity-60">{theme.emoji}</span>
+                        </div>
                         <div className="max-w-lg mx-auto w-full px-6 md:px-10 py-6 shrink-0">
                           <p className={cn(
-                            "text-right font-semibold whitespace-pre-line text-[#3D2B5A]",
+                            "text-center font-semibold whitespace-pre-line",
                             currentFontSize.size,
                           )} style={{
                             lineHeight: '2',
-                            backgroundColor: 'rgba(255,255,255,0.5)',
+                            color: theme.textColor,
+                            backgroundColor: 'rgba(255,255,255,0.12)',
                             padding: '16px 20px',
                             borderRadius: '16px',
                             backdropFilter: 'blur(4px)',
@@ -1567,7 +1572,7 @@ const StoryViewer = () => {
                         </div>
                         <div className="flex-1" />
                         <div className="pb-4 shrink-0">
-                          <span className="text-xs text-[#5B3E96]/60 font-light">{Math.ceil((currentPage + 1) / 2)} / {story.pages.length}</span>
+                          <span className="text-xs font-light" style={{ color: theme.pageNumColor }}>{Math.ceil((currentPage + 1) / 2)} / {story.pages.length}</span>
                         </div>
                       </div>
                     );
