@@ -441,44 +441,6 @@ const AdminDashboard = () => {
             </Card>
           </TabsContent>
 
-          <TabsContent value="purchases">
-            <Card>
-              <CardContent className="p-0">
-                <ReviewedBar tab="purchases" total={purchases.length} filtered={filterByReviewed(purchases, "purchases").length} cutoff={reviewedCutoffs["purchases"]} showReviewed={showReviewed["purchases"]} onToggleShow={() => setShowReviewed(p => ({ ...p, purchases: !p.purchases }))} onMark={() => setConfirmClearTab("purchases")} onClear={() => clearReviewed("purchases")} />
-                <div className="overflow-x-auto">
-                  <Table>
-                    <TableHeader>
-                      <TableRow>
-                        <TableHead className="text-right">חבילה</TableHead>
-                        <TableHead className="text-right">קרדיטים</TableHead>
-                        <TableHead className="text-right">סכום</TableHead>
-                        <TableHead className="text-right">סטטוס</TableHead>
-                        <TableHead className="text-right">תאריך</TableHead>
-                      </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                      {loading ? (
-                        <TableRow><TableCell colSpan={5} className="text-center">טוען...</TableCell></TableRow>
-                      ) : filterByReviewed(purchases, "purchases").map((p) => (
-                        <TableRow key={p.id}>
-                          <TableCell>{p.package_name}</TableCell>
-                          <TableCell>{p.credits_purchased}</TableCell>
-                          <TableCell>₪{p.amount_ils}</TableCell>
-                          <TableCell>
-                            <Badge variant={p.status === "completed" ? "default" : "secondary"}>
-                              {p.status === "completed" ? "הושלם" : p.status || "ממתין"}
-                            </Badge>
-                          </TableCell>
-                          <TableCell className="text-xs">{formatDate(p.created_at)}</TableCell>
-                        </TableRow>
-                      ))}
-                    </TableBody>
-                  </Table>
-                </div>
-              </CardContent>
-            </Card>
-          </TabsContent>
-
           <TabsContent value="stories">
             <Card>
               <CardContent className="p-0">
