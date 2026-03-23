@@ -148,3 +148,64 @@
     linear-gradient(to bottom, #FFFBF5, #FAF3E8);
   background-blend-mode: overlay, normal;
 }
+
+/* ==========================================
+   Print styles — clean, readable output
+   ========================================== */
+@media print {
+  /* Hide all UI chrome */
+  header,
+  footer,
+  nav,
+  button,
+  .nav-arrow-btn,
+  .dot-indicator,
+  .book-spine-edge,
+  [role="navigation"],
+  [data-sonner-toaster],
+  .mobile-navigation {
+    display: none !important;
+  }
+
+  /* White backgrounds everywhere */
+  body,
+  html,
+  #root,
+  main,
+  div {
+    background: #ffffff !important;
+    background-image: none !important;
+  }
+
+  /* Dark readable text */
+  p, h1, h2, h3, h4, h5, h6, span, a, li {
+    color: #1a1a1a !important;
+    -webkit-text-fill-color: #1a1a1a !important;
+  }
+
+  /* Starry / dark background pages → white with subtle border */
+  [style*="linear-gradient(135deg, #1a0f3a"],
+  [style*="linear-gradient(135deg, #2d1a6e"] {
+    background: #ffffff !important;
+    border: 1px solid #e0e0e0 !important;
+    border-radius: 8px !important;
+  }
+
+  /* Text overlaid on illustrations → dark & readable */
+  .bg-gradient-to-t {
+    background: rgba(255, 255, 255, 0.85) !important;
+  }
+
+  /* Each story page on its own printed page */
+  .book-container > *,
+  .book-page-flip {
+    page-break-after: always;
+    break-after: page;
+  }
+
+  /* Remove shadows and decorative effects */
+  * {
+    box-shadow: none !important;
+    text-shadow: none !important;
+  }
+}
