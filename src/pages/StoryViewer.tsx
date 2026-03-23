@@ -1011,6 +1011,14 @@ const StoryViewer = () => {
     return bestPage;
   }, [story?.pages, story?.topic]);
 
+  // Generate random star dots for text-only pages (stable across renders)
+  const starDots = useMemo(() => Array.from({ length: 25 }, () => ({
+    top: `${Math.random() * 100}%`,
+    left: `${Math.random() * 100}%`,
+    size: Math.random() * 1.5 + 1.5,
+    opacity: Math.random() * 0.4 + 0.2,
+  })), []);
+
   const virtualPages: VirtualPage[] = useMemo(() => {
     if (!story || story.pages.length === 0) return [];
     const result: VirtualPage[] = [];
