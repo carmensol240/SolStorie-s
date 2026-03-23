@@ -1,26 +1,28 @@
 
 
-## Plan: Dynamic Time-Based Theme
+## Plan: Fix Duplicate Text Bug in Story Viewer
 
-### What changes
+### Root Cause
 
-Add automatic dark/light mode switching based on the user's local time. 18:00–06:00 = dark mode, 06:00–18:00 = light mode.
+In `src/pages/StoryViewer.tsx` lines 1042-1096, the ages 3+ virtual page builder:
+1. Creates a text-only page for **every** DB page that has text
+2. Then creates illustration pages that **also display the same text** as an overlay
 
-### Changes
+This means text from pages with illustrations appears twice.
 
-**1. New hook: `src/hooks/use-time-theme.ts`**
-- Reads `new Date().getHours()` on mount
-- If hour >= 18 or hour < 6 → add `dark` class to `document.documentElement`
-- Otherwise → remove `dark` class
-- Sets up a `setInterval` (every 60s) to re-check in case the app stays open across the transition time
-- Cleanup interval on unmount
+### Fix (single file: `src/pages/StoryViewer.tsx`)
 
-**2. `src/App.tsx`** — Call `useTimeTheme()` at the top of the `App` component (one line addition)
+**Replace the ages 3+ virtual page logic (lines 1042-1096)** with simple per-page logic:
 
-**3. `src/index.css`** — Update the `.dark` block's `--background` to use `#0d0a1f` (HSL `240 47% 8%`) instead of the current `25 15% 10%`, matching the requested dark color
+For each DB page (skipping the cover illustration page):
+- If it has an illustration → create an `'illustration'` virtual page (text will be shown as overlay on the image, as it already does)
+- If it has no illustration but has text → create a `'text'` virtual page (dark starry background)
+
+This ensures each sentence appears exactly once. No text/illustration splitting, no interleaving pattern.
 
 ### What stays the same
-- No manual toggle button
-- All existing component styling using `dark:` Tailwind variants will work automatically
-- Story viewer, navigation, cards — all inherit from CSS variables
+- Toddler (0-2) combined page logic — unchanged
+- Cover illustration selection — unchanged
+- All rendering code for illustration pages, text pages, combined pages — unchanged
+- Star dots, dedication, closing page — unchanged
 
