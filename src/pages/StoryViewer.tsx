@@ -1415,12 +1415,14 @@ const StoryViewer = () => {
                     ) : (
                       <div className="absolute inset-0 w-full h-full" style={{ background: getTopicTheme(story.topic).bg }} />
                     )}
+                    {/* Dark gradient overlay for text readability */}
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-transparent z-[1]" />
                     {/* Text overlay at the bottom */}
                     {currentVirtual.text && currentVirtual.text.trim() && (
                       <div className="absolute bottom-0 left-0 right-0 z-10 p-4 md:p-6" dir="rtl">
-                        <div className="max-w-lg mx-auto">
+                        <div className="max-w-lg mx-auto text-center">
                           <p className={cn(
-                            "text-right font-semibold whitespace-pre-line text-white drop-shadow-[0_1px_3px_rgba(0,0,0,0.5)]",
+                            "font-semibold whitespace-pre-line text-white drop-shadow-[0_2px_4px_rgba(0,0,0,0.7)]",
                             currentFontSize.size,
                           )} style={{
                             lineHeight: '1.8',
@@ -1431,8 +1433,8 @@ const StoryViewer = () => {
                         </div>
                       </div>
                     )}
-                    <div className="absolute bottom-1 left-0 right-0 flex justify-center z-0">
-                      <span className="text-xs text-white/50 font-light">{currentVirtual.dbPage.page_number} / {story.pages.length}</span>
+                    <div className="absolute bottom-1 left-0 right-0 flex justify-center z-10">
+                      <span className="text-xs text-white/40 font-light">{currentVirtual.dbPage.page_number} / {story.pages.length}</span>
                     </div>
                     {/* Recording controls — combined page */}
                     <div className="absolute top-3 left-3 z-20">
