@@ -137,6 +137,7 @@ const StoryViewer = () => {
   const [isFlipping, setIsFlipping] = useState(false);
   const [isDrawingMode, setIsDrawingMode] = useState(false);
   const [isRegeneratingCover, setIsRegeneratingCover] = useState(false);
+  const [coverIsLandscape, setCoverIsLandscape] = useState(false);
   const [fontSizeIndex, setFontSizeIndex] = useState(2);
   const [isEditingPage, setIsEditingPage] = useState(false);
   const [showNikud, setShowNikud] = useState(true);
@@ -1205,8 +1206,15 @@ const StoryViewer = () => {
                         ? (getPublicIllustrationUrl(coverIllustration.illustration_url) || story.cover_url || solSuperheroWelcome)
                         : (story.cover_url || solSuperheroWelcome)}
                       alt="כריכת הסיפור"
-                      className="absolute inset-0 w-full h-full object-cover"
+                      className={cn(
+                        "absolute inset-0 w-full h-full",
+                        coverIsLandscape ? "object-contain bg-black/40" : "object-cover"
+                      )}
                       loading="eager"
+                      onLoad={(e) => {
+                        const img = e.currentTarget;
+                        setCoverIsLandscape(img.naturalWidth > img.naturalHeight);
+                      }}
                     />
                     {/* Subtle bottom gradient only — let the illustration breathe */}
                     <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
