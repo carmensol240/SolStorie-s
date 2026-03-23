@@ -894,15 +894,27 @@ serve(async (req) => {
     // Get theme-appropriate outfit while keeping physical features locked
     let effectiveAdventureLogic = adventureLogic;
     if (!effectiveAdventureLogic && topic) {
+      // Fast-path: check hardcoded cache first
       effectiveAdventureLogic = THEME_OUTFITS[topic] || null;
       if (effectiveAdventureLogic) {
-        console.log(`Using theme outfit for "${topic}":`, effectiveAdventureLogic);
+        console.log(`Using cached theme outfit for "${topic}":`, effectiveAdventureLogic);
       }
     }
 
     // === DETERMINE SINGLE OUTFIT FOR ENTIRE STORY ===
     // This outfit will be used for ALL pages to ensure consistency
-    const storyOutfit = effectiveAdventureLogic?.outfit || characterProfile?.clothingDescription || "colorful casual clothes";
+    let storyOutfit = effectiveAdventureLogic?.outfit || null;
+    
+    // If no cached outfit, use AI to generate one based on topic
+    if (!storyOutfit && topic && LOVABLE_API_KEY) {
+      const aiOutfit = await generateOutfitForTopic(topic, LOVABLE_API_KEY);
+      if (aiOutfit) {
+        storyOutfit = aiOutfit;
+      }
+    }
+    
+    // Final fallback
+    storyOutfit = storyOutfit || characterProfile?.clothingDescription || "colorful casual clothes";
     console.log(`🎽 Story outfit locked for all pages: "${storyOutfit}"`);
 
     // === BUILD VISUAL ANCHOR ===
