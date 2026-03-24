@@ -57,7 +57,7 @@ export const CURRENCY = "ILS";
 export const CURRENCY_SYMBOL = "₪";
 
 // ⚠️ SET TO false BEFORE DEPLOYING TO PRODUCTION
-export const PAYPAL_SANDBOX = true;
+export const PAYPAL_SANDBOX = false;
 
 export const PAYPAL_SANDBOX_CLIENT_ID = "Ac9EHf8z3a7W8Ewy5MGdUzc9lc7ThzaflNMNjjLXNqBmReU2FZfl98ZCyJ9f_LpSXJRUDJdHMdFelyO_";
 export const PAYPAL_LIVE_CLIENT_ID = "AffM7iJE3sqAisjBHuiwL0YYi_W5YT9VDKbMB-wM5XBT7HdwoNjyYtfzUWY3dcK6MVkAr3GSjoEvuVDH";
