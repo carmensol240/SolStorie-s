@@ -328,6 +328,31 @@ const GiftCard = () => {
             </div>
           </div>
 
+          {/* Name Fields */}
+          <div className="space-y-3 mb-6">
+            <div>
+              <Label className="text-white/80 text-sm">שם הילד/ה מקבל/ת המתנה *</Label>
+              <Input
+                value={childName}
+                onChange={(e) => setChildName(e.target.value)}
+                placeholder="למשל: נועה, יואב"
+                className="bg-white/10 border-white/20 text-white placeholder:text-white/40 mt-1"
+                maxLength={50}
+                required
+              />
+            </div>
+            <div>
+              <Label className="text-white/80 text-sm">השם שלך (אופציונלי)</Label>
+              <Input
+                value={senderName}
+                onChange={(e) => setSenderName(e.target.value)}
+                placeholder="למשל: שירה"
+                className="bg-white/10 border-white/20 text-white placeholder:text-white/40 mt-1"
+                maxLength={50}
+              />
+            </div>
+          </div>
+
           {/* PayPal Section */}
           {showPayPal && selectedPkg && (
             <div className="bg-white/15 backdrop-blur-md rounded-xl border border-pink-400/30 p-4 mb-4 shadow-lg">
