@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState, useCallback } from 'react';
 import { Loader2, CreditCard, AlertCircle, TestTube } from 'lucide-react';
-import { PAYPAL_CLIENT_ID } from '@/config/pricing';
+import { PAYPAL_CLIENT_ID, PAYPAL_SANDBOX } from '@/config/pricing';
 import { Button } from '@/components/ui/button';
 
 interface PayPalButtonProps {
@@ -206,6 +206,11 @@ const PayPalButton = ({ amount, onSuccess, onError, onCancel }: PayPalButtonProp
 
   return (
     <div className="w-full space-y-4">
+      {PAYPAL_SANDBOX && (
+        <div className="bg-amber-500/20 border border-amber-500/50 rounded-lg p-2 text-center text-sm text-amber-300 font-bold">
+          🧪 מצב בדיקות (Sandbox) — לא יבוצע חיוב אמיתי
+        </div>
+      )}
       {isLoading && (
         <div className="flex items-center justify-center py-6">
           <Loader2 className="w-6 h-6 animate-spin text-muted-foreground" />
