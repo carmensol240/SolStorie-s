@@ -1045,23 +1045,26 @@ const StoryViewer = () => {
         }
       }
     } else {
-      // Ages 3+: one virtual page per DB page — no duplication
+      // Ages 3+: separate illustration and text into distinct pages
+      // Pattern: illustration-only page → text-only page(s) → illustration-only → ...
       for (const page of story.pages) {
         const hasText = page.text && page.text.trim().length > 0;
         const hasIllustration = !!page.illustration_url;
         const isCoverIllust = coverIllustration && page.id === coverIllustration.id;
 
+        // Illustration page — full screen, NO text
         if (hasIllustration && !isCoverIllust) {
-          // Page with illustration → show text as overlay on the image
           result.push({
             type: 'illustration',
             dbPage: page,
             illustrationUrl: page.illustration_url,
             illustrationPrompt: page.illustration_prompt || null,
-            text: page.text,
+            text: '', // empty — no text on illustration pages
           });
-        } else if (hasText) {
-          // Text-only page (or cover illustration page — show text without the image)
+        }
+
+        // Text page — always separate
+        if (hasText) {
           result.push({
             type: 'text',
             dbPage: page,
