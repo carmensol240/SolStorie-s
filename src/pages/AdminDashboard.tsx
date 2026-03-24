@@ -418,24 +418,76 @@ const AdminDashboard = () => {
                         <TableHead className="text-right">תפקיד</TableHead>
                         <TableHead className="text-right">קרדיטים</TableHead>
                         <TableHead className="text-right">מנוי</TableHead>
+                        <TableHead className="text-right">שגיאות</TableHead>
                         <TableHead className="text-right">הצטרפות</TableHead>
+                        <TableHead className="text-right">פעולות</TableHead>
                       </TableRow>
                     </TableHeader>
                     <TableBody>
                       {loading ? (
-                        <TableRow><TableCell colSpan={6} className="text-center">טוען...</TableCell></TableRow>
-                      ) : filterByReviewed(profiles, "users").map((p) => (
-                        <TableRow key={p.id}>
-                          <TableCell>{p.display_name || p.email || "—"}</TableCell>
-                          <TableCell className="text-xs text-muted-foreground">{p.email || "—"}</TableCell>
-                          <TableCell>
-                            <Badge variant="outline">{p.user_role}</Badge>
-                          </TableCell>
-                          <TableCell>{p.story_credits ?? 0}</TableCell>
-                          <TableCell>{p.is_subscriber ? "✅" : "—"}</TableCell>
-                          <TableCell className="text-xs">{formatDate(p.created_at)}</TableCell>
-                        </TableRow>
-                      ))}
+                        <TableRow><TableCell colSpan={8} className="text-center">טוען...</TableCell></TableRow>
+                      ) : filterByReviewed(profiles, "users").map((p) => {
+                        const userErrors = errorLogs.filter(e => e.user_id === p.id);
+                        const storyErrors = userErrors.filter(e => e.error_type?.includes("story"));
+                        const hasErrors = storyErrors.length > 0;
+                        const userStories = stories.filter(s => s.user_id === p.id);
+                        const displayName = p.display_name || p.email?.split("@")[0] || "משתמש";
+                        const compensationMsg = `שלום ${displayName},\nאנחנו מ-SolStorie's™ ושמנו לב שנתקלת בתקלה טכנית בעת יצירת סיפור 😔\nאנחנו מצטערים על אי הנוחות! כפיצוי, הוספנו לך קרדיט סיפור נוסף בחשבון 🎁\nתודה על הסבלנות ❤️\nצוות SolStorie's™`;
+
+                        return (
+                          <TableRow key={p.id} className={hasErrors ? "bg-destructive/5" : ""}>
+                            <TableCell>{p.display_name || p.email || "—"}</TableCell>
+                            <TableCell className="text-xs text-muted-foreground">{p.email || "—"}</TableCell>
+                            <TableCell>
+                              <Badge variant="outline">{p.user_role}</Badge>
+                            </TableCell>
+                            <TableCell>{p.story_credits ?? 0}</TableCell>
+                            <TableCell>{p.is_subscriber ? "✅" : "—"}</TableCell>
+                            <TableCell>
+                              {hasErrors ? (
+                                <Badge variant="destructive" className="text-xs">
+                                  <AlertTriangle className="h-3 w-3 ml-1" />
+                                  {storyErrors.length} שגיאות
+                                </Badge>
+                              ) : (
+                                <span className="text-xs text-muted-foreground">✓ תקין</span>
+                              )}
+                            </TableCell>
+                            <TableCell className="text-xs">{formatDate(p.created_at)}</TableCell>
+                            <TableCell>
+                              <div className="flex gap-1">
+                                {p.email && (
+                                  <Button
+                                    variant="ghost"
+                                    size="icon"
+                                    className="h-7 w-7"
+                                    title="שלח מייל"
+                                    onClick={() => {
+                                      const subject = encodeURIComponent("פיצוי מ-SolStorie's™");
+                                      const body = encodeURIComponent(compensationMsg);
+                                      window.open(`mailto:${p.email}?subject=${subject}&body=${body}`, "_blank");
+                                    }}
+                                  >
+                                    <Mail className="h-3.5 w-3.5" />
+                                  </Button>
+                                )}
+                                <Button
+                                  variant="ghost"
+                                  size="icon"
+                                  className="h-7 w-7"
+                                  title="העתק הודעת פיצוי"
+                                  onClick={() => {
+                                    navigator.clipboard.writeText(compensationMsg);
+                                    toast({ title: "הועתק! ✓", description: "הודעת הפיצוי הועתקה ללוח" });
+                                  }}
+                                >
+                                  <Copy className="h-3.5 w-3.5" />
+                                </Button>
+                              </div>
+                            </TableCell>
+                          </TableRow>
+                        );
+                      })}
                     </TableBody>
                   </Table>
                 </div>
