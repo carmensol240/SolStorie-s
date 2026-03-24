@@ -1,32 +1,35 @@
 
 
-## Plan: Fix RequireTerms fallback when terms not accepted
+## Plan: Enable PayPal Sandbox Mode for Gift Card Testing
 
-### Problem
-Lines 84-86 return `null` when `termsChecked` is false after checking completes. The `useEffect` should have navigated to `/onboarding` (line 57), but if the navigation didn't fire (e.g., race condition, error swallowed), the user sees a blank screen.
+### Current State
+- The project has a **Live PayPal Client ID** in `src/config/pricing.ts` (line 47)
+- The **Sandbox Client ID** is already saved as a comment on line 46: `Ac9EHf8z3a7W8Ewy5MGdUzc9lc7ThzaflNMNjjLXNqBmReU2FZfl98ZCyJ9f_LpSXJRUDJdHMdFelyO_`
+- PayPal SDK is loaded in `PayPalButton.tsx` with the live client ID
 
-### Fix
-Replace the `return null` fallback (lines 84-86) with an explicit navigation side-effect: when `checking` is done, user exists, but `termsChecked` is false — trigger `navigate('/onboarding')` as a safety net. Keep returning the loading spinner in this state instead of null, so the user never sees a blank screen.
+### Changes
 
-**File: `src/components/RequireTerms.tsx`**, lines 84-86:
-
+**File 1: `src/config/pricing.ts`**
+- Add a `PAYPAL_SANDBOX` boolean flag (set to `true` for testing, `false` for production)
+- Add `PAYPAL_SANDBOX_CLIENT_ID` constant from the existing comment
+- Update `PAYPAL_CLIENT_ID` export to dynamically select based on the flag:
 ```typescript
-if (!termsChecked) {
-  // Safety net: if we finished checking but terms aren't accepted,
-  // redirect to onboarding (the useEffect should have done this already)
-  const returnTo = encodeURIComponent(window.location.pathname + window.location.search);
-  navigate(`/onboarding?returnTo=${returnTo}`, { replace: true });
-  return (
-    <div className="min-h-screen bg-background flex items-center justify-center">
-      <div className="flex flex-col items-center gap-4">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary" />
-        <p className="text-muted-foreground">מעביר לאישור תנאים...</p>
-      </div>
-    </div>
-  );
-}
+export const PAYPAL_SANDBOX = true; // ← SET TO false BEFORE DEPLOYING TO PRODUCTION
+export const PAYPAL_SANDBOX_CLIENT_ID = "Ac9EHf8z3a7W8Ewy5MGdUzc9lc7ThzaflNMNjjLXNqBmReU2FZfl98ZCyJ9f_LpSXJRUDJdHMdFelyO_";
+export const PAYPAL_LIVE_CLIENT_ID = "AffM7iJE3sqAisjBHuiwL0YYi_W5YT9VDKbMB-wM5XBT7HdwoNjyYtfzUWY3dcK6MVkAr3GSjoEvuVDH";
+export const PAYPAL_CLIENT_ID = PAYPAL_SANDBOX ? PAYPAL_SANDBOX_CLIENT_ID : PAYPAL_LIVE_CLIENT_ID;
 ```
 
+**File 2: `src/components/paywall/PayPalButton.tsx`**
+- Import `PAYPAL_SANDBOX` from pricing config
+- Show a visible "🧪 מצב בדיקות" banner when sandbox is active, so you never accidentally ship sandbox mode
+- No other logic changes needed — the SDK URL already uses `PAYPAL_CLIENT_ID`
+
+### Important Notes
+- **Sandbox credentials**: You'll need to use a PayPal Sandbox buyer account (from developer.paypal.com → Sandbox → Accounts) to complete test purchases. The sandbox seller account is already tied to the Sandbox Client ID.
+- **⚠️ Before going live**: Set `PAYPAL_SANDBOX = false` in `pricing.ts`.
+
 ### What stays the same
-Everything else — auth check, dev mode bypass, loading state, children rendering.
+- Gift Card page UI, coupon creation, WhatsApp sharing — all unchanged
+- Upgrade page PayPal flow — uses same `PAYPAL_CLIENT_ID`, so it will also be in sandbox mode while the flag is on
 
