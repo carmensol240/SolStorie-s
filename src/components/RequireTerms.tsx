@@ -82,7 +82,18 @@ const RequireTerms = ({ children }: RequireTermsProps) => {
   }
 
   if (!termsChecked) {
-    return null;
+    // Safety net: if we finished checking but terms aren't accepted,
+    // redirect to onboarding (the useEffect should have done this already)
+    const returnTo = encodeURIComponent(window.location.pathname + window.location.search);
+    navigate(`/onboarding?returnTo=${returnTo}`, { replace: true });
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <div className="flex flex-col items-center gap-4">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary" />
+          <p className="text-muted-foreground">מעביר לאישור תנאים...</p>
+        </div>
+      </div>
+    );
   }
 
   return <>{children}</>;
