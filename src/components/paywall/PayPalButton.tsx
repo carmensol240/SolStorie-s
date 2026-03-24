@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState, useCallback } from 'react';
 import { Loader2, CreditCard, AlertCircle, TestTube } from 'lucide-react';
-import { PAYPAL_CLIENT_ID } from '@/config/pricing';
+import { PAYPAL_CLIENT_ID, PAYPAL_SANDBOX } from '@/config/pricing';
 import { Button } from '@/components/ui/button';
 
 interface PayPalButtonProps {
