@@ -40,6 +40,10 @@ const GiftCard = () => {
       navigate("/auth");
       return;
     }
+    if (!childName.trim()) {
+      toast.error("יש להזין את שם הילד/ה מקבל/ת המתנה");
+      return;
+    }
     setShowPayPal(true);
   };
 
