@@ -206,7 +206,11 @@ const PayPalButton = ({ amount, onSuccess, onError, onCancel }: PayPalButtonProp
 
   return (
     <div className="w-full space-y-4">
-      {isLoading && (
+      {PAYPAL_SANDBOX && (
+        <div className="bg-amber-500/20 border border-amber-500/50 rounded-lg p-2 text-center text-sm text-amber-300 font-bold">
+          🧪 מצב בדיקות (Sandbox) — לא יבוצע חיוב אמיתי
+        </div>
+      )}
         <div className="flex items-center justify-center py-6">
           <Loader2 className="w-6 h-6 animate-spin text-muted-foreground" />
           <span className="mr-2 text-muted-foreground">טוען תשלום...</span>
