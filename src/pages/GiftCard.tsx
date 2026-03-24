@@ -25,8 +25,8 @@ const GiftCard = () => {
   const { trackEvent } = useAnalytics();
 
   const [selectedPackage, setSelectedPackage] = useState("popular");
-  const [recipientName, setRecipientName] = useState("");
-  const [senderName, setSenderName] = useState("");
+  const [childName, setChildName] = useState("");
+  const [senderName, setSenderName] = useState(user?.user_metadata?.display_name || "");
   const [showPayPal, setShowPayPal] = useState(false);
   const [generatedCode, setGeneratedCode] = useState<string | null>(null);
   const [purchaseComplete, setPurchaseComplete] = useState(false);
@@ -38,6 +38,10 @@ const GiftCard = () => {
     if (!user) {
       localStorage.setItem("returnTo", "/gift");
       navigate("/auth");
+      return;
+    }
+    if (!childName.trim()) {
+      toast.error("יש להזין את שם הילד/ה מקבל/ת המתנה");
       return;
     }
     setShowPayPal(true);
@@ -87,8 +91,9 @@ const GiftCard = () => {
     if (!generatedCode || !selectedPkg) return;
 
     const sender = senderName.trim() || "מישהו/י שאוהב/ת אתכם";
+    const child = childName.trim();
 
-    const message = `מתנה קסומה מחכה לכם! ${sender} שלח/ה לכם חבילה של ${selectedPkg.stories} סיפורים אישיים במתנה, שבהם סול (או שם הילד) הופך/ת לגיבור/ה של הרפתקאות מרגשות. איך מממשים? נכנסים ונרשמים בקלות בכתובת https://soulstory.co.il (או מתחברים), ומזינים את קוד הקופון האישי שלכם: ${generatedCode}! קריאה מהנה ומרגשת! ❤️`;
+    const message = `${sender} שלח/ה לך מתנה קסומה! חבילת ${selectedPkg.stories} סיפורים אישיים שבהם ${child} הופך/ת לגיבור/ה של הרפתקאות מרגשות. איך מממשים? נכנסים ונרשמים בקלות בכתובת https://soulstory.co.il (או מתחברים), ומזינים את קוד הקופון האישי שלכם: ${generatedCode}! קריאה מהנה ומרגשת! ❤️`;
 
     const whatsappUrl = `https://wa.me/?text=${encodeURIComponent(message)}`;
     window.open(whatsappUrl, "_blank");
@@ -159,26 +164,12 @@ const GiftCard = () => {
               </p>
             </div>
 
-            {/* Recipient Name */}
-            <div className="space-y-4 mb-6">
-              <div>
-                <Label className="text-white/80 text-sm">שם המקבלת (אופציונלי)</Label>
-                <Input
-                  value={recipientName}
-                  onChange={(e) => setRecipientName(e.target.value)}
-                  placeholder="למשל: מיכל"
-                  className="bg-white/10 border-white/20 text-white placeholder:text-white/40 mt-1"
-                />
-              </div>
-              <div>
-                <Label className="text-white/80 text-sm">השם שלך (אופציונלי)</Label>
-                <Input
-                  value={senderName}
-                  onChange={(e) => setSenderName(e.target.value)}
-                  placeholder="למשל: שירה"
-                  className="bg-white/10 border-white/20 text-white placeholder:text-white/40 mt-1"
-                />
-              </div>
+            {/* Gift details */}
+            <div className="bg-white/10 backdrop-blur-sm border border-white/15 rounded-xl p-4 mb-6 text-center">
+              <p className="text-white/70 text-sm">
+                🎁 מתנה ל<span className="text-white font-bold">{childName}</span>
+                {senderName.trim() ? <> מאת <span className="text-white font-bold">{senderName}</span></> : null}
+              </p>
             </div>
 
             {/* Action Buttons */}
@@ -337,6 +328,31 @@ const GiftCard = () => {
             </div>
           </div>
 
+          {/* Name Fields */}
+          <div className="space-y-3 mb-6">
+            <div>
+              <Label className="text-white/80 text-sm">שם הילד/ה מקבל/ת המתנה *</Label>
+              <Input
+                value={childName}
+                onChange={(e) => setChildName(e.target.value)}
+                placeholder="למשל: נועה, יואב"
+                className="bg-white/10 border-white/20 text-white placeholder:text-white/40 mt-1"
+                maxLength={50}
+                required
+              />
+            </div>
+            <div>
+              <Label className="text-white/80 text-sm">השם שלך (אופציונלי)</Label>
+              <Input
+                value={senderName}
+                onChange={(e) => setSenderName(e.target.value)}
+                placeholder="למשל: שירה"
+                className="bg-white/10 border-white/20 text-white placeholder:text-white/40 mt-1"
+                maxLength={50}
+              />
+            </div>
+          </div>
+
           {/* PayPal Section */}
           {showPayPal && selectedPkg && (
             <div className="bg-white/15 backdrop-blur-md rounded-xl border border-pink-400/30 p-4 mb-4 shadow-lg">
@@ -373,7 +389,8 @@ const GiftCard = () => {
           <div className="container max-w-md mx-auto">
             <Button
               onClick={handlePurchase}
-              className="w-full bg-gradient-to-r from-pink-500 via-purple-500 to-orange-500 hover:from-pink-400 hover:via-purple-400 hover:to-orange-400 text-white font-black text-sm py-3 rounded-xl shadow-xl"
+              disabled={!childName.trim()}
+              className="w-full bg-gradient-to-r from-pink-500 via-purple-500 to-orange-500 hover:from-pink-400 hover:via-purple-400 hover:to-orange-400 text-white font-black text-sm py-3 rounded-xl shadow-xl disabled:opacity-50 disabled:cursor-not-allowed"
               style={{
                 boxShadow:
                   "0 0 30px rgba(236, 72, 153, 0.4), 0 0 60px rgba(168, 85, 247, 0.2)",
