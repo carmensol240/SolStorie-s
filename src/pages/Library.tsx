@@ -275,12 +275,14 @@ const Library = () => {
     ? stories.filter(s => fullOffline.isSaved(s.id))
     : stories;
 
-  // Group stories into series by topic only
+  // Group stories into series by topic only (exclude custom/free-text stories from grouping)
   const groupStories = (storyList: Story[]) => {
     const groups = new Map<string, Story[]>();
     const order: string[] = [];
     storyList.forEach(story => {
-      const key = `${story.child_name}::${story.topic}`;
+      // Custom/free-text stories are never grouped into series
+      const isCustom = story.story_type === 'custom';
+      const key = isCustom ? `__custom__${story.id}` : `${story.child_name}::${story.topic}`;
       if (!groups.has(key)) {
         groups.set(key, []);
         order.push(key);
