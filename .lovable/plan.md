@@ -1,31 +1,19 @@
 
 
-## Plan: Add "Child Name" Required Field to Gift Card Purchase
+## Plan: Delete Test Gift Card Records
 
-### Current State
-- The gift card page has `recipientName` and `senderName` fields, but they appear **after** purchase on the success screen and are optional
-- The WhatsApp message uses a generic "סול (או שם הילד)" placeholder
-- The sender name defaults to "מישהו/י שאוהב/ת אתכם" if empty
+### Records to Delete
+1. **Coupon** `GIFT-JYNUW8EG` (id: `69296782-cf50-40f0-bccb-53db3d0040f6`) — no redemptions exist, so no redemption records to clean up
+2. **Purchase** record (id: `806b9a68-2229-4772-a557-03d976ee7cfe`, package: `gift_basic`, 5 credits, linked to this test)
 
-### Changes
+### Method
+A single database migration with two DELETE statements:
 
-**File: `src/pages/GiftCard.tsx`**
-
-1. **Add `childName` state** (new required field) and pre-populate `senderName` from `user?.user_metadata?.display_name`
-
-2. **Add required "שם הילד מקבל המתנה" input field** in the purchase flow (before the PayPal section, around line 338), with validation — disable the purchase button if `childName` is empty
-
-3. **Move `senderName` input to purchase screen too** (pre-filled from profile), so both names are collected before payment
-
-4. **Update `handlePurchase`** to validate `childName` is not empty before proceeding
-
-5. **Update `handleShareWhatsApp` message** (line 91) to use the new personalized format:
-   ```
-   "[senderName] שלח/ה לך מתנה קסומה! חבילת סיפורים אישיים שבהם [childName] הופך/ת לגיבור/ה של הרפתקאות מרגשות..."
-   ```
-
-6. **Remove the old recipient/sender name inputs from the success screen** (lines 162-182) since they're now collected pre-purchase
+```sql
+DELETE FROM coupons WHERE id = '69296782-cf50-40f0-bccb-53db3d0040f6';
+DELETE FROM purchases WHERE id = '806b9a68-2229-4772-a557-03d976ee7cfe';
+```
 
 ### What stays the same
-- Package selection, PayPal flow, coupon creation, code display, copy functionality — all unchanged
+Everything — no code changes, no schema changes. Only two data rows are removed.
 
