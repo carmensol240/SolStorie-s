@@ -535,19 +535,24 @@ const StoryViewer = () => {
       setStory(storyObj);
 
       // Fetch series siblings (same child_name + topic, same user)
-      if (storyData.user_id) {
+      // Skip series grouping for custom/free-text stories
+      const storyType = (storyData as any).story_type || 'text';
+      if (storyData.user_id && storyType !== 'custom') {
         const { data: siblings } = await supabase
           .from("stories")
-          .select("id, slug, topic, created_at")
+          .select("id, slug, topic, created_at, story_type")
           .eq("user_id", storyData.user_id)
           .eq("child_name", storyData.child_name)
           .eq("topic", storyData.topic)
+          .neq("story_type", "custom")
           .order("created_at", { ascending: true });
         if (siblings && siblings.length > 1) {
           setSeriesParts(siblings);
         } else {
           setSeriesParts([]);
         }
+      } else {
+        setSeriesParts([]);
       }
 
       // Calculate initial progress and preload all illustrations

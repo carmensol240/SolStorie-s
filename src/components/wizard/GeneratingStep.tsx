@@ -164,6 +164,7 @@ const GeneratingStep = ({ formData, onComplete }: GeneratingStepProps) => {
             ageRange: formData.ageRange,
             storyLength: formData.storyLength,
             topic: topicLabel,
+            isCustomTopic: formData.topic === "custom",
             topicDescription,
             nikud: formData.nikud,
             language: formData.language,
