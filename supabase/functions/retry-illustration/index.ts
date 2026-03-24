@@ -8,6 +8,7 @@ import {
   CAST_NEGATIVE_PROMPT,
   CHARACTER_BASE_REFS,
   getSolUrl,
+  CHARACTER_CONSISTENCY_PROMPT,
 } from "../_shared/style-config.ts";
 
 const corsHeaders = {
@@ -149,6 +150,8 @@ STYLE: ${PIXAR_STYLE}
 
 SCENE (THIS IS THE MOST IMPORTANT PART — illustrate THIS specific scene in detail): ${prompt}
 
+${CHARACTER_CONSISTENCY_PROMPT}
+
 NEGATIVE: ${NEGATIVE_PROMPT}`;
 
       for (let attempt = 1; attempt <= MAX_ATTEMPTS; attempt++) {
@@ -210,7 +213,7 @@ NEGATIVE: ${NEGATIVE_PROMPT}`;
           status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" },
         });
       }
-      const fullPrompt = `${PIXAR_STYLE}\n\nSCENE: ${prompt}\n\nNEGATIVE: ${NEGATIVE_PROMPT_FULL}`;
+      const fullPrompt = `${PIXAR_STYLE}\n\nSCENE: ${prompt}\n\n${CHARACTER_CONSISTENCY_PROMPT}\n\nNEGATIVE: ${NEGATIVE_PROMPT_FULL}`;
       console.log(`Retrying illustration via Flux Schnell for story ${storyId}, page ${page.page_number}...`);
 
       for (let attempt = 1; attempt <= MAX_ATTEMPTS; attempt++) {

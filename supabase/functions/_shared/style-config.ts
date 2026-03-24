@@ -101,6 +101,10 @@ export const CHARACTER_CARDS = {
 
 export const TOPIC_IMAGE_STYLE_SUFFIX = `Pixar 3D CGI animation style, big expressive eyes, soft rounded features, oversized head with small body, vibrant saturated colors, cinematic warm lighting with glowing accents, fantasy children's book background, high quality render, Disney-Pixar aesthetic. Characters must look like adorable cartoon dolls — NOT realistic humans. 9:16 portrait aspect ratio. Negative prompt: ${NEGATIVE_PROMPT_FULL}`;
 
+// ─── Character Consistency ───
+
+export const CHARACTER_CONSISTENCY_PROMPT = `CRITICAL — CHARACTER CONSISTENCY: The main character must look IDENTICAL in every illustration throughout the story. Same hair color, same hair style, same eye color, same face shape, same skin tone, same outfit in every scene. Any visual deviation between pages is a failure.`;
+
 // ─── Helpers ───
 
 /** Build an inline Pixar face-reference prompt block */

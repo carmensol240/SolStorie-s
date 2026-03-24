@@ -15,6 +15,7 @@ import {
   CHARACTER_BASE_REFS,
   CHARACTER_BASE_REFS_WITH_MOM,
   buildCharacterRefs,
+  CHARACTER_CONSISTENCY_PROMPT,
 } from "../_shared/style-config.ts";
 
 const corsHeaders = {
@@ -129,7 +130,7 @@ function buildVisualAnchor(profile: CharacterProfile, storyOutfit: string): stri
   const genderWord = profile.gender === "female" ? "girl" : "boy";
   return `VISUAL ANCHOR (use this EXACT description for the main character in EVERY illustration):
 A ${genderWord} aged ${profile.ageDescription} with ${profile.hairDescription}, ${profile.skinTone} skin, and ${profile.eyeColor} eyes. Wearing ${storyOutfit}. 
-CRITICAL INSTRUCTION: Maintain strict visual character continuity across ALL generated images for this story sequence. The character must look like the SAME child in every single illustration — same face shape, same proportions, same hair, same outfit, same skin tone. Any visual deviation between pages is a FAILURE.`;
+${CHARACTER_CONSISTENCY_PROMPT}`;
 }
 
 interface IllustrationResult {
@@ -167,6 +168,8 @@ STYLE: ${PIXAR_STYLE}
 ${adventureInstruction}
 
 SCENE (THIS IS THE MOST IMPORTANT PART — illustrate THIS specific scene in detail): ${prompt}
+
+${CHARACTER_CONSISTENCY_PROMPT}
 
 NEGATIVE: ${CAST_NEGATIVE_PROMPT}`;
 
@@ -254,6 +257,8 @@ STYLE: ${PIXAR_STYLE}
 ${adventureInstruction}
 
 SCENE (THIS IS THE MOST IMPORTANT PART — illustrate THIS specific scene in detail): ${prompt}
+
+${CHARACTER_CONSISTENCY_PROMPT}
 
 NEGATIVE: ${NEGATIVE_PROMPT}`;
 
@@ -344,7 +349,7 @@ async function generateIllustration(
 
     const negativePrompt = NEGATIVE_PROMPT_FULL;
 
-    const fullPrompt = `${stylePrefix}\n\n${visualAnchor}\n\n${characterInstruction}\n${adventureInstruction}\n\nSCENE: ${prompt}\n\nNEGATIVE: ${negativePrompt}`;
+    const fullPrompt = `${stylePrefix}\n\n${visualAnchor}\n\n${characterInstruction}\n${adventureInstruction}\n\nSCENE: ${prompt}\n\n${CHARACTER_CONSISTENCY_PROMPT}\n\nNEGATIVE: ${negativePrompt}`;
 
     console.log("Generating illustration via Fal.ai Flux Schnell (no photo, text-only fallback)...");
 
