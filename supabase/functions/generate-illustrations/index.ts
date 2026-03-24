@@ -258,6 +258,8 @@ ${adventureInstruction}
 
 SCENE (THIS IS THE MOST IMPORTANT PART — illustrate THIS specific scene in detail): ${prompt}
 
+${CHARACTER_CONSISTENCY_PROMPT}
+
 NEGATIVE: ${NEGATIVE_PROMPT}`;
 
     console.log("Generating illustration via Gemini Image Generation (no face reference)...");
