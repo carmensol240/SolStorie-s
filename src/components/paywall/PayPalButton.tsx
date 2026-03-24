@@ -211,6 +211,7 @@ const PayPalButton = ({ amount, onSuccess, onError, onCancel }: PayPalButtonProp
           🧪 מצב בדיקות (Sandbox) — לא יבוצע חיוב אמיתי
         </div>
       )}
+      {isLoading && (
         <div className="flex items-center justify-center py-6">
           <Loader2 className="w-6 h-6 animate-spin text-muted-foreground" />
           <span className="mr-2 text-muted-foreground">טוען תשלום...</span>
