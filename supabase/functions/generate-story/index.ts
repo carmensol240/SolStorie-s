@@ -906,14 +906,16 @@ serve(async (req) => {
     const ageLengthConfig = getAgeLengthInstruction(ageRange, storyLength);
 
     // === SEQUEL LOGIC: Check for previous stories on the same topic by same child ===
+    // Skip sequel logic for custom/free-text stories
     let sequelInstruction = "";
-    if (userId && topic) {
+    if (userId && topic && !isCustomTopic) {
       const hebrewTopicForSequel = getHebrewTopic(topic);
       let sequelQuery = supabase
         .from("stories")
         .select("id, summary")
         .eq("user_id", userId)
         .eq("topic", hebrewTopicForSequel)
+        .neq("story_type", "custom")
         .order("created_at", { ascending: true });
 
       if (childId) {
