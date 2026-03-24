@@ -15,6 +15,7 @@ import {
   CHARACTER_BASE_REFS,
   CHARACTER_BASE_REFS_WITH_MOM,
   buildCharacterRefs,
+  CHARACTER_CONSISTENCY_PROMPT,
 } from "../_shared/style-config.ts";
 
 const corsHeaders = {

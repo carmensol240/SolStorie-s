@@ -8,6 +8,7 @@ import {
   CAST_NEGATIVE_PROMPT,
   CHARACTER_BASE_REFS,
   getSolUrl,
+  CHARACTER_CONSISTENCY_PROMPT,
 } from "../_shared/style-config.ts";
 
 const corsHeaders = {
