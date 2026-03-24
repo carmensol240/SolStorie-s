@@ -1591,6 +1591,7 @@ ${fullStoryText}`;
       nikud: nikud,
       language: language,
       generation_status: "generating_illustrations",
+      story_type: isCustomTopic ? "custom" : "text",
     };
     
     // Only add user_id if we have one (for gallery privacy)
