@@ -25,8 +25,8 @@ const GiftCard = () => {
   const { trackEvent } = useAnalytics();
 
   const [selectedPackage, setSelectedPackage] = useState("popular");
-  const [recipientName, setRecipientName] = useState("");
-  const [senderName, setSenderName] = useState("");
+  const [childName, setChildName] = useState("");
+  const [senderName, setSenderName] = useState(user?.user_metadata?.display_name || "");
   const [showPayPal, setShowPayPal] = useState(false);
   const [generatedCode, setGeneratedCode] = useState<string | null>(null);
   const [purchaseComplete, setPurchaseComplete] = useState(false);
