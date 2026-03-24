@@ -150,6 +150,8 @@ STYLE: ${PIXAR_STYLE}
 
 SCENE (THIS IS THE MOST IMPORTANT PART — illustrate THIS specific scene in detail): ${prompt}
 
+${CHARACTER_CONSISTENCY_PROMPT}
+
 NEGATIVE: ${NEGATIVE_PROMPT}`;
 
       for (let attempt = 1; attempt <= MAX_ATTEMPTS; attempt++) {
