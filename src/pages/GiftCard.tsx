@@ -164,26 +164,12 @@ const GiftCard = () => {
               </p>
             </div>
 
-            {/* Recipient Name */}
-            <div className="space-y-4 mb-6">
-              <div>
-                <Label className="text-white/80 text-sm">שם המקבלת (אופציונלי)</Label>
-                <Input
-                  value={recipientName}
-                  onChange={(e) => setRecipientName(e.target.value)}
-                  placeholder="למשל: מיכל"
-                  className="bg-white/10 border-white/20 text-white placeholder:text-white/40 mt-1"
-                />
-              </div>
-              <div>
-                <Label className="text-white/80 text-sm">השם שלך (אופציונלי)</Label>
-                <Input
-                  value={senderName}
-                  onChange={(e) => setSenderName(e.target.value)}
-                  placeholder="למשל: שירה"
-                  className="bg-white/10 border-white/20 text-white placeholder:text-white/40 mt-1"
-                />
-              </div>
+            {/* Gift details */}
+            <div className="bg-white/10 backdrop-blur-sm border border-white/15 rounded-xl p-4 mb-6 text-center">
+              <p className="text-white/70 text-sm">
+                🎁 מתנה ל<span className="text-white font-bold">{childName}</span>
+                {senderName.trim() ? <> מאת <span className="text-white font-bold">{senderName}</span></> : null}
+              </p>
             </div>
 
             {/* Action Buttons */}
