@@ -347,7 +347,7 @@ async function generateIllustration(
 
     const negativePrompt = NEGATIVE_PROMPT_FULL;
 
-    const fullPrompt = `${stylePrefix}\n\n${visualAnchor}\n\n${characterInstruction}\n${adventureInstruction}\n\nSCENE: ${prompt}\n\nNEGATIVE: ${negativePrompt}`;
+    const fullPrompt = `${stylePrefix}\n\n${visualAnchor}\n\n${characterInstruction}\n${adventureInstruction}\n\nSCENE: ${prompt}\n\n${CHARACTER_CONSISTENCY_PROMPT}\n\nNEGATIVE: ${negativePrompt}`;
 
     console.log("Generating illustration via Fal.ai Flux Schnell (no photo, text-only fallback)...");
 

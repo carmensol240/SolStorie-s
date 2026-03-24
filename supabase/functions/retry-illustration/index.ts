@@ -213,7 +213,7 @@ NEGATIVE: ${NEGATIVE_PROMPT}`;
           status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" },
         });
       }
-      const fullPrompt = `${PIXAR_STYLE}\n\nSCENE: ${prompt}\n\nNEGATIVE: ${NEGATIVE_PROMPT_FULL}`;
+      const fullPrompt = `${PIXAR_STYLE}\n\nSCENE: ${prompt}\n\n${CHARACTER_CONSISTENCY_PROMPT}\n\nNEGATIVE: ${NEGATIVE_PROMPT_FULL}`;
       console.log(`Retrying illustration via Flux Schnell for story ${storyId}, page ${page.page_number}...`);
 
       for (let attempt = 1; attempt <= MAX_ATTEMPTS; attempt++) {
