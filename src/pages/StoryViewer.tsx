@@ -1444,20 +1444,14 @@ const StoryViewer = () => {
                     </div>
                   </>
                 ) : currentVirtual.type === 'illustration' ? (
-                  /* Illustration page — layout adapts based on text length */
-                  (() => {
-                    const rawDisplayText = showNikud ? currentVirtual.text : currentVirtual.text?.replace(/[\u0591-\u05C7]/g, '') || '';
-                    const lineCount = rawDisplayText.trim().split('\n').reduce((count, line) => {
-                      return count + Math.max(1, Math.ceil(line.length / 35));
-                    }, 0);
-                    const isLongText = lineCount >= 4;
-
-                    const illustrationElement = currentVirtual.illustrationUrl ? (
+                  /* Illustration-only page — fullscreen image, no text */
+                  <>
+                    {currentVirtual.illustrationUrl ? (
                       <img
                         key={`${currentVirtual.illustrationUrl}-${failedImages[currentVirtual.illustrationUrl] || 0}`}
                         src={`${getPublicIllustrationUrl(currentVirtual.illustrationUrl) || ''}${failedImages[currentVirtual.illustrationUrl] ? `?retry=${failedImages[currentVirtual.illustrationUrl]}` : ''}`}
                         alt="איור"
-                        className={isLongText ? "w-full h-full object-cover" : "absolute inset-0 w-full h-full object-cover"}
+                        className="absolute inset-0 w-full h-full object-cover"
                         loading="eager"
                         onError={() => {
                           const key = currentVirtual.illustrationUrl!;
@@ -1470,7 +1464,7 @@ const StoryViewer = () => {
                         }}
                       />
                     ) : currentVirtual.dbPage.illustration_prompt ? (
-                      <div className={cn("flex items-center justify-center bg-gradient-to-br from-[#FFF8F0] via-[#F5E6D3] to-[#FAF3E8]", isLongText ? "w-full h-full" : "absolute inset-0 w-full h-full")}>
+                      <div className="absolute inset-0 w-full h-full flex items-center justify-center bg-gradient-to-br from-[#FFF8F0] via-[#F5E6D3] to-[#FAF3E8]">
                         <div className="absolute inset-0 opacity-20">
                           <div className="absolute top-1/4 left-1/4 w-32 h-32 rounded-full bg-purple-200 animate-pulse" style={{ animationDelay: '0s', animationDuration: '2s' }} />
                           <div className="absolute top-1/2 right-1/4 w-24 h-24 rounded-full bg-pink-200 animate-pulse" style={{ animationDelay: '0.5s', animationDuration: '2.5s' }} />
@@ -1493,88 +1487,32 @@ const StoryViewer = () => {
                       (() => {
                         const theme = getTopicTheme(story.topic);
                         return (
-                          <div className={cn("flex items-center justify-center", isLongText ? "w-full h-full" : "absolute inset-0 w-full h-full")} style={{ background: theme.bg }}>
+                          <div className="absolute inset-0 w-full h-full flex items-center justify-center" style={{ background: theme.bg }}>
                             <span className="text-7xl opacity-40">{theme.emoji}</span>
                           </div>
                         );
                       })()
-                    );
-
-                    return isLongText ? (
-                      /* Split layout: illustration top ~55%, text bottom ~45% */
-                      <>
-                        <div className="h-[55%] w-full relative overflow-hidden">
-                          {illustrationElement}
-                        </div>
-                        <div data-story-scroll className="h-[45%] w-full overflow-y-auto flex flex-col items-center justify-center px-5 py-4" style={{ background: '#0d0a1f' }}>
-                          <div className="max-w-lg mx-auto text-center">
-                            <p className={cn(
-                              "font-semibold whitespace-pre-line text-white",
-                              currentFontSize.size,
-                            )} style={{ lineHeight: '1.9' }} dir="rtl">
-                              {rawDisplayText}
-                            </p>
-                          </div>
-                          <div className="pt-2 shrink-0">
-                            <span className="text-xs text-white/25 font-light">{Math.ceil((currentPage + 1) / 2)} / {story.pages.length}</span>
-                          </div>
-                        </div>
-                        <div className="absolute top-3 left-3 z-20">
-                          <PageRecordingControls
-                            pageNumber={currentVirtual.dbPage.page_number}
-                            isRecording={pageRecording.recordingPage === currentVirtual.dbPage.page_number}
-                            hasPendingBlob={pageRecording.pendingBlob?.page === currentVirtual.dbPage.page_number}
-                            hasSaved={pageRecording.hasSavedRecording(currentVirtual.dbPage.page_number)}
-                            isPlaying={pageRecording.playingPage === currentVirtual.dbPage.page_number}
-                            onStartRecording={() => pageRecording.startRecording(currentVirtual.dbPage.page_number)}
-                            onStopRecording={pageRecording.stopRecording}
-                            onSave={pageRecording.saveRecording}
-                            onDiscard={pageRecording.discardPending}
-                            onPlay={() => pageRecording.playRecording(currentVirtual.dbPage.page_number)}
-                            onStopPlaying={pageRecording.stopPlaying}
-                            light
-                          />
-                        </div>
-                      </>
-                    ) : (
-                      /* Short text: fullscreen illustration + text overlay */
-                      <>
-                        {illustrationElement}
-                        <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-transparent z-[1]" />
-                        {currentVirtual.text && currentVirtual.text.trim() && (
-                          <div className="absolute bottom-0 left-0 right-0 z-10 p-4 md:p-6" dir="rtl">
-                            <div className="max-w-lg mx-auto text-center">
-                              <p className={cn(
-                                "font-semibold whitespace-pre-line text-white drop-shadow-[0_2px_4px_rgba(0,0,0,0.7)]",
-                                currentFontSize.size,
-                              )} style={{ lineHeight: '1.8', padding: '12px 16px' }}>
-                                {rawDisplayText}
-                              </p>
-                            </div>
-                          </div>
-                        )}
-                        <div className="absolute bottom-1 left-0 right-0 flex justify-center z-10">
-                          <span className="text-xs text-white/40 font-light">{Math.ceil((currentPage + 1) / 2)} / {story.pages.length}</span>
-                        </div>
-                        <div className="absolute top-3 left-3 z-20">
-                          <PageRecordingControls
-                            pageNumber={currentVirtual.dbPage.page_number}
-                            isRecording={pageRecording.recordingPage === currentVirtual.dbPage.page_number}
-                            hasPendingBlob={pageRecording.pendingBlob?.page === currentVirtual.dbPage.page_number}
-                            hasSaved={pageRecording.hasSavedRecording(currentVirtual.dbPage.page_number)}
-                            isPlaying={pageRecording.playingPage === currentVirtual.dbPage.page_number}
-                            onStartRecording={() => pageRecording.startRecording(currentVirtual.dbPage.page_number)}
-                            onStopRecording={pageRecording.stopRecording}
-                            onSave={pageRecording.saveRecording}
-                            onDiscard={pageRecording.discardPending}
-                            onPlay={() => pageRecording.playRecording(currentVirtual.dbPage.page_number)}
-                            onStopPlaying={pageRecording.stopPlaying}
-                            light
-                          />
-                        </div>
-                      </>
-                    );
-                  })()
+                    )}
+                    <div className="absolute bottom-1 left-0 right-0 flex justify-center z-10">
+                      <span className="text-xs text-white/40 font-light">{currentPage + 1} / {virtualPages.length}</span>
+                    </div>
+                    <div className="absolute top-3 left-3 z-20">
+                      <PageRecordingControls
+                        pageNumber={currentVirtual.dbPage.page_number}
+                        isRecording={pageRecording.recordingPage === currentVirtual.dbPage.page_number}
+                        hasPendingBlob={pageRecording.pendingBlob?.page === currentVirtual.dbPage.page_number}
+                        hasSaved={pageRecording.hasSavedRecording(currentVirtual.dbPage.page_number)}
+                        isPlaying={pageRecording.playingPage === currentVirtual.dbPage.page_number}
+                        onStartRecording={() => pageRecording.startRecording(currentVirtual.dbPage.page_number)}
+                        onStopRecording={pageRecording.stopRecording}
+                        onSave={pageRecording.saveRecording}
+                        onDiscard={pageRecording.discardPending}
+                        onPlay={() => pageRecording.playRecording(currentVirtual.dbPage.page_number)}
+                        onStopPlaying={pageRecording.stopPlaying}
+                        light
+                      />
+                    </div>
+                  </>
                 ) : (
                   /* Text page — dark starry night background, centered white text */
                   (() => {
