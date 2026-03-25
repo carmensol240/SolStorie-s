@@ -1,37 +1,29 @@
 
 
-## Plan: Fix Original Photo Not Persisting After Avatar Update
+## Plan: Fix AvatarPreviewDialog Mobile Layout
 
-### Root Cause Analysis
+### Changes (single file: `src/components/story/AvatarPreviewDialog.tsx`)
 
-Two issues found:
+1. **Line 261** — Add `overflow-hidden` to `DialogContent`:
+   ```
+   <DialogContent className="sm:max-w-md overflow-hidden" dir="rtl">
+   ```
 
-1. **`AvatarPreviewDialog.handleConfirm`** (lines 147-165) updates ONLY `children.avatar_url` in the DB — it does NOT update `children.photo_url`. When a new photo is uploaded and avatar generated, the original photo path should also be saved to the `children` table.
+2. **Line 275** — Add `w-full` to the grid container:
+   ```
+   <div className="grid grid-cols-2 gap-4 w-full">
+   ```
 
-2. **`onConfirm` callback in ChildProfiles** (lines 918-942) saves `pendingAvatarChild.photoUrl` to `child_photos` history, but this value is captured from `child.photo_url` at the moment the avatar dialog opens — which could be stale if the photo was just uploaded. Also, it does NOT call `update` on the `children` table for `photo_url`.
+3. **Line 279** — Add `w-full` to original photo container (already has `overflow-hidden`):
+   ```
+   <div className="aspect-square w-full rounded-xl overflow-hidden border-2 border-muted">
+   ```
 
-3. **Private bucket display issue**: `child-photos` bucket is private, but file paths are used directly as `<img src>` in multiple places (lines 544, 555, 747) without signed URLs. This causes images to not display, which may look like "reverting."
-
-### Changes
-
-**File: `src/pages/ChildProfiles.tsx`**
-
-1. **In `handleSaveEdit` (line ~420-429)**: Add a `console.log` before the update call to log all fields being sent, confirming `photo_url` is included.
-
-2. **In `handleSaveEdit` after photo upload (line ~396-418)**: After uploading the new photo successfully, if the edit dialog also needs to trigger avatar regeneration, update `pendingAvatarChild` state with the NEW `photoUrl` (not the old one from `editingChild`).
-
-3. **In edit dialog open handler (line ~340-346)**: When setting `editPhotoPreview`, if `child.photo_url` is a Storage path (not base64/URL), fetch a signed URL for display.
-
-4. **In `onConfirm` callback (line ~918-942)**: After saving to `child_photos` history, also ensure `children.photo_url` is up to date by NOT overwriting it — verify the `AvatarPreviewDialog.handleConfirm` doesn't reset it.
-
-**File: `src/components/story/AvatarPreviewDialog.tsx`**
-
-5. **In `handleConfirm` (around line 160)**: The `update` call currently sets only `{ avatar_url: fileName }`. This is correct — it should NOT touch `photo_url`. But add a `console.log` to confirm what's being sent.
-
-**File: `src/pages/ChildProfiles.tsx` (display)**
-
-6. **For private bucket images** (lines 541-557): Add signed URL fetching for `child.photo_url` and `child.avatar_url` when they are Storage paths (not base64/http URLs). Use `supabase.storage.from('child-photos').createSignedUrl()`.
+4. **Line 291** — Add `w-full` to avatar container (already has `overflow-hidden`):
+   ```
+   <div className="aspect-square w-full rounded-xl overflow-hidden border-2 border-primary bg-muted flex items-center justify-center">
+   ```
 
 ### What stays the same
-- Photo upload logic, avatar generation, Storage structure, history tracking, all other components.
+Everything else — logic, buttons, footer, state management.
 
