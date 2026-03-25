@@ -567,7 +567,7 @@ const ChildProfiles = () => {
               {child.avatar_url ? (
                 <div className="relative">
                   <img 
-                    src={child.avatar_url} 
+                    src={isStoragePath(child.avatar_url) ? (signedUrls[child.avatar_url!] || '') : child.avatar_url!} 
                     alt={child.name}
                     className="w-14 h-14 rounded-full object-cover border-2 border-primary"
                   />
@@ -578,7 +578,7 @@ const ChildProfiles = () => {
               ) : child.photo_url ? (
                 <div className="relative">
                   <img 
-                    src={child.photo_url} 
+                    src={isStoragePath(child.photo_url) ? (signedUrls[child.photo_url!] || '') : child.photo_url!} 
                     alt={child.name}
                     className="w-14 h-14 rounded-full object-cover border-2 border-primary/20"
                   />
