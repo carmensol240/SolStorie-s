@@ -297,7 +297,8 @@ const ChildProfiles = () => {
             setPendingAvatarChild({
               id: insertedChild.id,
               name: newChildName.trim(),
-              photoUrl: photoUrl,
+              photoUrl: photoUrl.startsWith('data:') ? photoUrl : (await getSignedUrl(photoUrl)),
+              storagePath: photoUrl,
             });
             setAvatarPreviewOpen(true);
           }
