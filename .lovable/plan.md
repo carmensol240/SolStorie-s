@@ -1,29 +1,47 @@
 
 
-## Plan: Fix AvatarPreviewDialog Mobile Layout
+## Plan: Navigate to StoryViewer as Soon as Story is Complete
 
-### Changes (single file: `src/components/story/AvatarPreviewDialog.tsx`)
+### Problem
+Currently `checkIllustrations` waits for ALL illustration URLs to be populated before navigating. This delays the user unnecessarily — the StoryViewer can display pages as illustrations arrive.
 
-1. **Line 261** — Add `overflow-hidden` to `DialogContent`:
-   ```
-   <DialogContent className="sm:max-w-md overflow-hidden" dir="rtl">
-   ```
+### Change
 
-2. **Line 275** — Add `w-full` to the grid container:
-   ```
-   <div className="grid grid-cols-2 gap-4 w-full">
-   ```
+**File: `src/components/wizard/GeneratingStep.tsx`** — modify `checkIllustrations` function (lines 262-278)
 
-3. **Line 279** — Add `w-full` to original photo container (already has `overflow-hidden`):
-   ```
-   <div className="aspect-square w-full rounded-xl overflow-hidden border-2 border-muted">
-   ```
+Add a check at the top of `checkIllustrations` that queries the story's `generation_status` field. If it equals `'ready'` (the value used in this project, not `'completed'`), immediately navigate — skip waiting for illustrations.
 
-4. **Line 291** — Add `w-full` to avatar container (already has `overflow-hidden`):
-   ```
-   <div className="aspect-square w-full rounded-xl overflow-hidden border-2 border-primary bg-muted flex items-center justify-center">
-   ```
+```typescript
+const checkIllustrations = async () => {
+  // Navigate immediately if story generation is complete
+  const { data: storyData } = await supabase
+    .from("stories")
+    .select("generation_status")
+    .eq("id", storyId)
+    .single();
+
+  if (storyData?.generation_status === 'ready') {
+    console.log("[GeneratingStep] Story ready — navigating without waiting for illustrations");
+    setProgress(100);
+    setShowReadyPopup(true);
+    setTimeout(() => { if (storyId) onComplete(storyId); }, 1500);
+    return;
+  }
+
+  // Existing illustration check as fallback
+  const { data: pages } = await supabase
+    .from("story_pages")
+    .select("id, illustration_url")
+    .eq("story_id", storyId);
+  
+  if (pages && pages.length > 0 && pages.every(p => p.illustration_url)) {
+    // ... existing logic unchanged
+  }
+};
+```
+
+Note: The stories table uses `generation_status` (not `status`), with default value `'ready'`. This is the correct column to check.
 
 ### What stays the same
-Everything else — logic, buttons, footer, state management.
+Everything else — puzzle game, realtime subscription, safety timeout, confetti celebration, all other components.
 
