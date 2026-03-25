@@ -193,6 +193,17 @@ const ChildProfiles = () => {
         if (!error && data) {
           setChildren(data);
           setUserData(user?.id, 'savedChildren', JSON.stringify(stripBase64ForStorage(data)));
+          // Refresh signed URLs
+          const urls: Record<string, string> = {};
+          for (const child of data) {
+            if (child.photo_url && isStoragePath(child.photo_url)) {
+              urls[child.photo_url] = await getSignedUrl(child.photo_url);
+            }
+            if (child.avatar_url && isStoragePath(child.avatar_url)) {
+              urls[child.avatar_url] = await getSignedUrl(child.avatar_url);
+            }
+          }
+          setSignedUrls(prev => ({ ...prev, ...urls }));
         }
       } catch (error) {
         console.error("Error fetching children:", error);
