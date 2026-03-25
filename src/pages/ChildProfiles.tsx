@@ -123,8 +123,18 @@ const ChildProfiles = () => {
 
           if (!error && data && data.length > 0) {
             setChildren(data);
-            // Sync to localStorage for offline access
             setUserData(user?.id, 'savedChildren', JSON.stringify(stripBase64ForStorage(data)));
+            // Pre-fetch signed URLs for private storage paths
+            const urls: Record<string, string> = {};
+            for (const child of data) {
+              if (child.photo_url && isStoragePath(child.photo_url)) {
+                urls[child.photo_url] = await getSignedUrl(child.photo_url);
+              }
+              if (child.avatar_url && isStoragePath(child.avatar_url)) {
+                urls[child.avatar_url] = await getSignedUrl(child.avatar_url);
+              }
+            }
+            setSignedUrls(prev => ({ ...prev, ...urls }));
           } else if (!error && data && data.length === 0) {
             // User has no children in DB, use localStorage if available
             if (localChildren.length > 0) {
