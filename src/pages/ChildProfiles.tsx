@@ -194,17 +194,31 @@ const ChildProfiles = () => {
     if (!newChildPhoto || !user) return null;
     
     const fileExt = newChildPhoto.name.split('.').pop();
-    // Use user folder structure for RLS compliance
-    const fileName = `${user.id}/${childId}.${fileExt}`;
+    const timestamp = Date.now();
+    // Use unique timestamp to preserve history in storage
+    const fileName = `${user.id}/${childId}-${timestamp}.${fileExt}`;
     
     const { error } = await supabase.storage
       .from('child-photos')
-      .upload(fileName, newChildPhoto, { upsert: true });
+      .upload(fileName, newChildPhoto, { upsert: false });
       
     if (error) throw error;
     
-    // Return file path only (not public URL) for private bucket security
-    // Signed URLs will be fetched when displaying photos
+    // Save initial photo record to history
+    try {
+      await supabase
+        .from('child_photos')
+        .insert({
+          child_id: childId,
+          user_id: user.id,
+          original_image_url: fileName,
+          avatar_url: null,
+          is_active: true,
+        } as any);
+    } catch (historyErr) {
+      console.error('Error saving initial photo history:', historyErr);
+    }
+    
     return fileName;
   };
 
