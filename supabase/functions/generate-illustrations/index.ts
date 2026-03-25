@@ -744,6 +744,67 @@ const THEME_OUTFITS: Record<string, { outfit: string; background: string; theme:
     theme: "emotional family story about father going to military reserves"
   },
 };
+// ── Generate cover image for specific topics (runs in parallel with illustrations) ──
+async function generateCoverImage(
+  supabase: ReturnType<typeof createClient>,
+  storyId: string,
+  apiKey: string,
+): Promise<string | null> {
+  try {
+    console.log(`🎨 Generating dad-in-reserves cover for story ${storyId}...`);
+    const coverPrompt = `A heartwarming children's book cover illustration in Pixar 3D CGI style, Israeli soldier father in olive green IDF military uniform (yarok tzava fatigues) hugging his young child warmly, emotional reunion, soft warm cinematic lighting, vibrant saturated colors, Disney-Pixar aesthetic, NOT US military, NOT American military. No text. Leave 20% space at top for title. NEGATIVE: ${NEGATIVE_PROMPT}`;
+
+    const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+      method: "POST",
+      signal: AbortSignal.timeout(120_000),
+      headers: { Authorization: `Bearer ${apiKey}`, "Content-Type": "application/json" },
+      body: JSON.stringify({
+        model: "google/gemini-3-pro-image-preview",
+        modalities: ["image", "text"],
+        messages: [{ role: "user", content: coverPrompt }],
+      }),
+    });
+
+    if (!response.ok) {
+      console.error(`Cover generation failed: ${response.status}`);
+      return null;
+    }
+
+    const data = await response.json();
+    const imageUrl = data.choices?.[0]?.message?.images?.[0]?.image_url?.url;
+    if (!imageUrl) {
+      console.warn("Cover generation returned no image");
+      return null;
+    }
+
+    // Upload to storage
+    const base64Content = imageUrl.includes(",") ? imageUrl.split(",")[1] : imageUrl;
+    const binaryString = atob(base64Content);
+    const bytes = new Uint8Array(binaryString.length);
+    for (let i = 0; i < binaryString.length; i++) bytes[i] = binaryString.charCodeAt(i);
+
+    const filePath = `${storyId}/cover-${Date.now()}.png`;
+    const { error: uploadError } = await supabase.storage
+      .from("story-illustrations")
+      .upload(filePath, bytes, { contentType: "image/png", upsert: true });
+
+    if (uploadError) {
+      console.error("Cover upload error:", uploadError);
+      return null;
+    }
+
+    const { data: publicUrlData } = supabase.storage.from("story-illustrations").getPublicUrl(filePath);
+    const fullCoverUrl = `${publicUrlData.publicUrl}?v=${Date.now()}`;
+
+    await supabase.from("stories").update({ cover_url: fullCoverUrl }).eq("id", storyId);
+    console.log(`✅ Cover saved for dad-in-reserves story ${storyId}: ${fullCoverUrl}`);
+    return fullCoverUrl;
+  } catch (err) {
+    console.error("Cover generation error:", err);
+    return null;
+  }
+}
+
 serve(async (req) => {
   console.log("=== generate-illustrations function called ===");
   
