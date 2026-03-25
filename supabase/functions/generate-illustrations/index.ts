@@ -1025,7 +1025,7 @@ serve(async (req) => {
       }
 
       // Inject IDF military uniform for father in "dad-in-reserves" topic
-      const FATHER_MILITARY_CLOTHING = "olive green IDF military uniform (madim), army boots, military beret or cap";
+      const FATHER_MILITARY_CLOTHING = "Israeli IDF military uniform, olive green (yarok tzava) fatigues, green combat boots, Israeli army green beret - NOT US army, NOT American military";
       if (topic === "dad-in-reserves") {
         const fatherKeywords = /father|dad|אב|אבא|daddy|papa/i;
         if (fatherKeywords.test(illustrationPrompt) || fatherKeywords.test(page.text || "")) {
