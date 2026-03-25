@@ -98,7 +98,7 @@ const ChildProfiles = () => {
   
   // Avatar preview states
   const [avatarPreviewOpen, setAvatarPreviewOpen] = useState(false);
-  const [pendingAvatarChild, setPendingAvatarChild] = useState<{id: string, name: string, photoUrl: string} | null>(null);
+  const [pendingAvatarChild, setPendingAvatarChild] = useState<{id: string, name: string, photoUrl: string, storagePath: string} | null>(null);
   // Cache signed URLs for display
   const [signedUrls, setSignedUrls] = useState<Record<string, string>>({});
 
@@ -447,6 +447,7 @@ const ChildProfiles = () => {
         }
       }
 
+      console.log('handleSaveEdit updating children table:', { childId: editingChild.id, photoUrl, editName: editName.trim() });
       const { error } = await supabase
         .from("children")
         .update({
@@ -597,6 +598,7 @@ const ChildProfiles = () => {
                         id: child.id,
                         name: child.name,
                         photoUrl: displayUrl,
+                        storagePath: child.photo_url!,
                       });
                       setAvatarPreviewOpen(true);
                     }}
@@ -964,7 +966,7 @@ const ChildProfiles = () => {
                       .insert({
                         child_id: pendingAvatarChild.id,
                         user_id: user.id,
-                        original_image_url: pendingAvatarChild.photoUrl,
+                        original_image_url: pendingAvatarChild.storagePath,
                         avatar_url: avatarUrl,
                         is_active: true,
                       } as any);
