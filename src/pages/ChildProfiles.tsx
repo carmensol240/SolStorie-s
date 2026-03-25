@@ -586,10 +586,13 @@ const ChildProfiles = () => {
                   <button
                     onClick={(e) => {
                       e.stopPropagation();
+                      const displayUrl = isStoragePath(child.photo_url) 
+                        ? (signedUrls[child.photo_url!] || child.photo_url!) 
+                        : child.photo_url!;
                       setPendingAvatarChild({
                         id: child.id,
                         name: child.name,
-                        photoUrl: child.photo_url!,
+                        photoUrl: displayUrl,
                       });
                       setAvatarPreviewOpen(true);
                     }}
