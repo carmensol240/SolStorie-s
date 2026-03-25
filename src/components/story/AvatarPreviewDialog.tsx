@@ -211,6 +211,7 @@ const AvatarPreviewDialog = ({
       
       // Store only the file path (not public URL) for private bucket
       // Update child record with file path - signed URLs will be fetched when displaying
+      console.log('Updating child avatar_url:', { childId, fileName });
       const { error: updateError } = await supabase
         .from('children')
         .update({ avatar_url: fileName })

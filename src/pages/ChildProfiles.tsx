@@ -366,7 +366,11 @@ const ChildProfiles = () => {
     setEditGender(child.gender as "male" | "female");
     setEditTraits(child.personality_traits || "");
     setEditPhoto(null);
-    setEditPhotoPreview(child.photo_url);
+    setEditPhotoPreview(
+      child.photo_url && isStoragePath(child.photo_url) 
+        ? (signedUrls[child.photo_url] || child.photo_url) 
+        : child.photo_url
+    );
     setEditPhotoRemoved(false);
     setEditDialogOpen(true);
   };
