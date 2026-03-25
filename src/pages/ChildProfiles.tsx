@@ -362,29 +362,45 @@ const ChildProfiles = () => {
     try {
       let photoUrl = editingChild.photo_url;
 
-      // Handle photo changes
+      // Handle photo removal (don't delete from storage - keep history)
       if (editPhotoRemoved && editingChild.photo_url) {
-        await deletePhotoFromStorage(editingChild.photo_url);
         photoUrl = null;
       }
 
       if (editPhoto && user) {
-        // Delete old photo if exists
-        if (editingChild.photo_url) {
-          await deletePhotoFromStorage(editingChild.photo_url);
-        }
-        // Upload new photo with user folder structure for RLS
+        // Upload new photo with unique timestamp to avoid overwriting
         const fileExt = editPhoto.name.split('.').pop();
-        const fileName = `${user.id}/${editingChild.id}.${fileExt}`;
+        const timestamp = Date.now();
+        const fileName = `${user.id}/${editingChild.id}-${timestamp}.${fileExt}`;
         
         const { error: uploadError } = await supabase.storage
           .from('child-photos')
-          .upload(fileName, editPhoto, { upsert: true });
+          .upload(fileName, editPhoto, { upsert: false });
           
         if (uploadError) throw uploadError;
         
-        // Store file path only (not public URL) for private bucket security
         photoUrl = fileName;
+
+        // Save to photo history (photo without avatar yet)
+        try {
+          await supabase
+            .from('child_photos')
+            .update({ is_active: false } as any)
+            .eq('child_id', editingChild.id)
+            .eq('user_id', user.id);
+
+          await supabase
+            .from('child_photos')
+            .insert({
+              child_id: editingChild.id,
+              user_id: user.id,
+              original_image_url: fileName,
+              avatar_url: null,
+              is_active: true,
+            } as any);
+        } catch (historyErr) {
+          console.error('Error saving photo history:', historyErr);
+        }
       }
 
       const { error } = await supabase
