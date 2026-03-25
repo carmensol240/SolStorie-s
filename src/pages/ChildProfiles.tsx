@@ -873,7 +873,30 @@ const ChildProfiles = () => {
               originalPhoto={pendingAvatarChild.photoUrl}
               childId={pendingAvatarChild.id}
               childName={pendingAvatarChild.name}
-              onConfirm={(avatarUrl) => {
+              onConfirm={async (avatarUrl) => {
+                // Save to photo history
+                if (user) {
+                  try {
+                    // Deactivate previous records
+                    await supabase
+                      .from('child_photos')
+                      .update({ is_active: false } as any)
+                      .eq('child_id', pendingAvatarChild.id)
+                      .eq('user_id', user.id);
+                    // Insert new active record
+                    await supabase
+                      .from('child_photos')
+                      .insert({
+                        child_id: pendingAvatarChild.id,
+                        user_id: user.id,
+                        original_image_url: pendingAvatarChild.photoUrl,
+                        avatar_url: avatarUrl,
+                        is_active: true,
+                      } as any);
+                  } catch (err) {
+                    console.error('Error saving photo history:', err);
+                  }
+                }
                 refetchChildren();
               }}
             />
