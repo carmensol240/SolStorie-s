@@ -738,6 +738,11 @@ const THEME_OUTFITS: Record<string, { outfit: string; background: string; theme:
     background: "a safe room (mamad) with warm blankets, pillows, family together, soft warm light",
     theme: "calming safety and family togetherness during sirens"
   },
+  "dad-in-reserves": {
+    outfit: "comfortable home clothes",
+    background: "warm home environment with family photos and a military bag by the door",
+    theme: "emotional family story about father going to military reserves"
+  },
 };
 serve(async (req) => {
   console.log("=== generate-illustrations function called ===");
@@ -1017,6 +1022,16 @@ serve(async (req) => {
         console.log(`[Page ${page.page_number}] 📝 Enriched prompt (${illustrationPrompt.length} chars)`);
       } else {
         console.log(`[Page ${page.page_number}] ⚠️ Using original prompt (scene analysis failed)`);
+      }
+
+      // Inject IDF military uniform for father in "dad-in-reserves" topic
+      const FATHER_MILITARY_CLOTHING = "olive green IDF military uniform (madim), army boots, military beret or cap";
+      if (topic === "dad-in-reserves") {
+        const fatherKeywords = /father|dad|אב|אבא|daddy|papa/i;
+        if (fatherKeywords.test(illustrationPrompt) || fatherKeywords.test(page.text || "")) {
+          illustrationPrompt += ` IMPORTANT: The father character MUST be wearing: ${FATHER_MILITARY_CLOTHING}. This is consistent across ALL illustrations showing the father.`;
+          console.log(`[Page ${page.page_number}] 🪖 Injected IDF military uniform for father`);
+        }
       }
 
       let base64Image: string | null = null;
