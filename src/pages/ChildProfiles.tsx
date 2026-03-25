@@ -39,6 +39,20 @@ import PhotoHistoryGallery from "@/components/child/PhotoHistoryGallery";
 import { getUserData, setUserData } from "@/lib/user-storage";
 import { stripBase64ForStorage } from "@/lib/strip-base64";
 
+/** Check if a string is a Supabase Storage path (not a URL or base64) */
+const isStoragePath = (url: string | null): boolean => {
+  if (!url) return false;
+  return !url.startsWith('data:') && !url.startsWith('http') && !url.startsWith('blob:');
+};
+
+/** Fetch a signed URL for a private storage path */
+const getSignedUrl = async (path: string): Promise<string> => {
+  const { data } = await supabase.storage
+    .from('child-photos')
+    .createSignedUrl(path, 3600);
+  return data?.signedUrl || path;
+};
+
 interface Child {
   id: string;
   name: string;
@@ -84,7 +98,9 @@ const ChildProfiles = () => {
   
   // Avatar preview states
   const [avatarPreviewOpen, setAvatarPreviewOpen] = useState(false);
-  const [pendingAvatarChild, setPendingAvatarChild] = useState<{id: string, name: string, photoUrl: string} | null>(null);
+  const [pendingAvatarChild, setPendingAvatarChild] = useState<{id: string, name: string, photoUrl: string, storagePath: string} | null>(null);
+  // Cache signed URLs for display
+  const [signedUrls, setSignedUrls] = useState<Record<string, string>>({});
 
   useEffect(() => {
     const loadData = async () => {
@@ -107,8 +123,18 @@ const ChildProfiles = () => {
 
           if (!error && data && data.length > 0) {
             setChildren(data);
-            // Sync to localStorage for offline access
             setUserData(user?.id, 'savedChildren', JSON.stringify(stripBase64ForStorage(data)));
+            // Pre-fetch signed URLs for private storage paths
+            const urls: Record<string, string> = {};
+            for (const child of data) {
+              if (child.photo_url && isStoragePath(child.photo_url)) {
+                urls[child.photo_url] = await getSignedUrl(child.photo_url);
+              }
+              if (child.avatar_url && isStoragePath(child.avatar_url)) {
+                urls[child.avatar_url] = await getSignedUrl(child.avatar_url);
+              }
+            }
+            setSignedUrls(prev => ({ ...prev, ...urls }));
           } else if (!error && data && data.length === 0) {
             // User has no children in DB, use localStorage if available
             if (localChildren.length > 0) {
@@ -167,6 +193,17 @@ const ChildProfiles = () => {
         if (!error && data) {
           setChildren(data);
           setUserData(user?.id, 'savedChildren', JSON.stringify(stripBase64ForStorage(data)));
+          // Refresh signed URLs
+          const urls: Record<string, string> = {};
+          for (const child of data) {
+            if (child.photo_url && isStoragePath(child.photo_url)) {
+              urls[child.photo_url] = await getSignedUrl(child.photo_url);
+            }
+            if (child.avatar_url && isStoragePath(child.avatar_url)) {
+              urls[child.avatar_url] = await getSignedUrl(child.avatar_url);
+            }
+          }
+          setSignedUrls(prev => ({ ...prev, ...urls }));
         }
       } catch (error) {
         console.error("Error fetching children:", error);
@@ -271,7 +308,8 @@ const ChildProfiles = () => {
             setPendingAvatarChild({
               id: insertedChild.id,
               name: newChildName.trim(),
-              photoUrl: photoUrl,
+              photoUrl: photoUrl.startsWith('data:') ? photoUrl : (await getSignedUrl(photoUrl)),
+              storagePath: photoUrl,
             });
             setAvatarPreviewOpen(true);
           }
@@ -340,7 +378,11 @@ const ChildProfiles = () => {
     setEditGender(child.gender as "male" | "female");
     setEditTraits(child.personality_traits || "");
     setEditPhoto(null);
-    setEditPhotoPreview(child.photo_url);
+    setEditPhotoPreview(
+      child.photo_url && isStoragePath(child.photo_url) 
+        ? (signedUrls[child.photo_url] || child.photo_url) 
+        : child.photo_url
+    );
     setEditPhotoRemoved(false);
     setEditDialogOpen(true);
   };
@@ -417,6 +459,7 @@ const ChildProfiles = () => {
         }
       }
 
+      console.log('handleSaveEdit updating children table:', { childId: editingChild.id, photoUrl, editName: editName.trim() });
       const { error } = await supabase
         .from("children")
         .update({
@@ -541,7 +584,7 @@ const ChildProfiles = () => {
               {child.avatar_url ? (
                 <div className="relative">
                   <img 
-                    src={child.avatar_url} 
+                    src={isStoragePath(child.avatar_url) ? (signedUrls[child.avatar_url!] || '') : child.avatar_url!} 
                     alt={child.name}
                     className="w-14 h-14 rounded-full object-cover border-2 border-primary"
                   />
@@ -552,7 +595,7 @@ const ChildProfiles = () => {
               ) : child.photo_url ? (
                 <div className="relative">
                   <img 
-                    src={child.photo_url} 
+                    src={isStoragePath(child.photo_url) ? (signedUrls[child.photo_url!] || '') : child.photo_url!} 
                     alt={child.name}
                     className="w-14 h-14 rounded-full object-cover border-2 border-primary/20"
                   />
@@ -560,10 +603,14 @@ const ChildProfiles = () => {
                   <button
                     onClick={(e) => {
                       e.stopPropagation();
+                      const displayUrl = isStoragePath(child.photo_url) 
+                        ? (signedUrls[child.photo_url!] || child.photo_url!) 
+                        : child.photo_url!;
                       setPendingAvatarChild({
                         id: child.id,
                         name: child.name,
-                        photoUrl: child.photo_url!,
+                        photoUrl: displayUrl,
+                        storagePath: child.photo_url!,
                       });
                       setAvatarPreviewOpen(true);
                     }}
@@ -931,7 +978,7 @@ const ChildProfiles = () => {
                       .insert({
                         child_id: pendingAvatarChild.id,
                         user_id: user.id,
-                        original_image_url: pendingAvatarChild.photoUrl,
+                        original_image_url: pendingAvatarChild.storagePath,
                         avatar_url: avatarUrl,
                         is_active: true,
                       } as any);
