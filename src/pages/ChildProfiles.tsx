@@ -838,6 +838,18 @@ const ChildProfiles = () => {
                     dir="rtl"
                   />
                 </div>
+
+                {/* Photo History Gallery */}
+                {editingChild && (
+                  <PhotoHistoryGallery
+                    childId={editingChild.id}
+                    childName={editingChild.name}
+                    onRestore={() => {
+                      setEditDialogOpen(false);
+                      refetchChildren();
+                    }}
+                  />
+                )}
                 
                 <Button
                   onClick={handleSaveEdit}
