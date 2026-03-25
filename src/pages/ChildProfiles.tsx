@@ -32,8 +32,10 @@ import {
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/use-auth";
 import { useToast } from "@/hooks/use-toast";
+import { useChildPhotoHistory } from "@/hooks/use-child-photo-history";
 import MobileNavigation from "@/components/MobileNavigation";
 import AvatarPreviewDialog from "@/components/story/AvatarPreviewDialog";
+import PhotoHistoryGallery from "@/components/child/PhotoHistoryGallery";
 import { getUserData, setUserData } from "@/lib/user-storage";
 import { stripBase64ForStorage } from "@/lib/strip-base64";
 
@@ -192,17 +194,31 @@ const ChildProfiles = () => {
     if (!newChildPhoto || !user) return null;
     
     const fileExt = newChildPhoto.name.split('.').pop();
-    // Use user folder structure for RLS compliance
-    const fileName = `${user.id}/${childId}.${fileExt}`;
+    const timestamp = Date.now();
+    // Use unique timestamp to preserve history in storage
+    const fileName = `${user.id}/${childId}-${timestamp}.${fileExt}`;
     
     const { error } = await supabase.storage
       .from('child-photos')
-      .upload(fileName, newChildPhoto, { upsert: true });
+      .upload(fileName, newChildPhoto, { upsert: false });
       
     if (error) throw error;
     
-    // Return file path only (not public URL) for private bucket security
-    // Signed URLs will be fetched when displaying photos
+    // Save initial photo record to history
+    try {
+      await supabase
+        .from('child_photos')
+        .insert({
+          child_id: childId,
+          user_id: user.id,
+          original_image_url: fileName,
+          avatar_url: null,
+          is_active: true,
+        } as any);
+    } catch (historyErr) {
+      console.error('Error saving initial photo history:', historyErr);
+    }
+    
     return fileName;
   };
 
@@ -360,29 +376,45 @@ const ChildProfiles = () => {
     try {
       let photoUrl = editingChild.photo_url;
 
-      // Handle photo changes
+      // Handle photo removal (don't delete from storage - keep history)
       if (editPhotoRemoved && editingChild.photo_url) {
-        await deletePhotoFromStorage(editingChild.photo_url);
         photoUrl = null;
       }
 
       if (editPhoto && user) {
-        // Delete old photo if exists
-        if (editingChild.photo_url) {
-          await deletePhotoFromStorage(editingChild.photo_url);
-        }
-        // Upload new photo with user folder structure for RLS
+        // Upload new photo with unique timestamp to avoid overwriting
         const fileExt = editPhoto.name.split('.').pop();
-        const fileName = `${user.id}/${editingChild.id}.${fileExt}`;
+        const timestamp = Date.now();
+        const fileName = `${user.id}/${editingChild.id}-${timestamp}.${fileExt}`;
         
         const { error: uploadError } = await supabase.storage
           .from('child-photos')
-          .upload(fileName, editPhoto, { upsert: true });
+          .upload(fileName, editPhoto, { upsert: false });
           
         if (uploadError) throw uploadError;
         
-        // Store file path only (not public URL) for private bucket security
         photoUrl = fileName;
+
+        // Save to photo history (photo without avatar yet)
+        try {
+          await supabase
+            .from('child_photos')
+            .update({ is_active: false } as any)
+            .eq('child_id', editingChild.id)
+            .eq('user_id', user.id);
+
+          await supabase
+            .from('child_photos')
+            .insert({
+              child_id: editingChild.id,
+              user_id: user.id,
+              original_image_url: fileName,
+              avatar_url: null,
+              is_active: true,
+            } as any);
+        } catch (historyErr) {
+          console.error('Error saving photo history:', historyErr);
+        }
       }
 
       const { error } = await supabase
@@ -820,6 +852,18 @@ const ChildProfiles = () => {
                     dir="rtl"
                   />
                 </div>
+
+                {/* Photo History Gallery */}
+                {editingChild && (
+                  <PhotoHistoryGallery
+                    childId={editingChild.id}
+                    childName={editingChild.name}
+                    onRestore={() => {
+                      setEditDialogOpen(false);
+                      refetchChildren();
+                    }}
+                  />
+                )}
                 
                 <Button
                   onClick={handleSaveEdit}
@@ -871,7 +915,30 @@ const ChildProfiles = () => {
               originalPhoto={pendingAvatarChild.photoUrl}
               childId={pendingAvatarChild.id}
               childName={pendingAvatarChild.name}
-              onConfirm={(avatarUrl) => {
+              onConfirm={async (avatarUrl) => {
+                // Save to photo history
+                if (user) {
+                  try {
+                    // Deactivate previous records
+                    await supabase
+                      .from('child_photos')
+                      .update({ is_active: false } as any)
+                      .eq('child_id', pendingAvatarChild.id)
+                      .eq('user_id', user.id);
+                    // Insert new active record
+                    await supabase
+                      .from('child_photos')
+                      .insert({
+                        child_id: pendingAvatarChild.id,
+                        user_id: user.id,
+                        original_image_url: pendingAvatarChild.photoUrl,
+                        avatar_url: avatarUrl,
+                        is_active: true,
+                      } as any);
+                  } catch (err) {
+                    console.error('Error saving photo history:', err);
+                  }
+                }
                 refetchChildren();
               }}
             />
