@@ -260,6 +260,25 @@ const GeneratingStep = ({ formData, onComplete }: GeneratingStepProps) => {
 
     // Check immediately if illustrations are already done
     const checkIllustrations = async () => {
+      // Navigate immediately if story generation is complete
+      const { data: storyData } = await supabase
+        .from("stories")
+        .select("generation_status")
+        .eq("id", storyId)
+        .single();
+
+      if (storyData?.generation_status === 'ready') {
+        console.log("[GeneratingStep] Story ready — navigating without waiting for illustrations");
+        setIllustrationsReady(true);
+        setProgress(100);
+        setShowReadyPopup(true);
+        setTimeout(() => {
+          if (storyId) onComplete(storyId);
+        }, 1500);
+        return;
+      }
+
+      // Fallback: check if all illustrations are done
       const { data: pages } = await supabase
         .from("story_pages")
         .select("id, illustration_url")
@@ -270,7 +289,6 @@ const GeneratingStep = ({ formData, onComplete }: GeneratingStepProps) => {
         setIllustrationsReady(true);
         setProgress(100);
         setShowReadyPopup(true);
-        // Auto-navigate after confetti celebration
         setTimeout(() => {
           if (storyId) onComplete(storyId);
         }, 2500);
