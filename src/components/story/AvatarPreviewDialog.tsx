@@ -258,7 +258,7 @@ const AvatarPreviewDialog = ({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-md" dir="rtl">
+      <DialogContent className="sm:max-w-md overflow-hidden" dir="rtl">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <Sparkles className="w-5 h-5 text-primary" />
@@ -272,11 +272,11 @@ const AvatarPreviewDialog = ({
           </p>
 
           {/* Image comparison */}
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-2 gap-4 w-full">
             {/* Original Photo */}
             <div className="space-y-2">
               <p className="text-xs text-muted-foreground text-center">תמונה מקורית</p>
-              <div className="aspect-square rounded-xl overflow-hidden border-2 border-muted">
+              <div className="aspect-square w-full rounded-xl overflow-hidden border-2 border-muted">
                 <img 
                   src={originalPhoto} 
                   alt="תמונה מקורית" 
@@ -288,7 +288,7 @@ const AvatarPreviewDialog = ({
             {/* Generated Avatar */}
             <div className="space-y-2">
               <p className="text-xs text-muted-foreground text-center">דמות בסיפור</p>
-              <div className="aspect-square rounded-xl overflow-hidden border-2 border-primary bg-muted flex items-center justify-center">
+              <div className="aspect-square w-full rounded-xl overflow-hidden border-2 border-primary bg-muted flex items-center justify-center">
                 {isGenerating ? (
                   <div className="flex flex-col items-center gap-2 p-2">
                     <Loader2 className="w-8 h-8 animate-spin text-primary" />
