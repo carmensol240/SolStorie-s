@@ -39,6 +39,20 @@ import PhotoHistoryGallery from "@/components/child/PhotoHistoryGallery";
 import { getUserData, setUserData } from "@/lib/user-storage";
 import { stripBase64ForStorage } from "@/lib/strip-base64";
 
+/** Check if a string is a Supabase Storage path (not a URL or base64) */
+const isStoragePath = (url: string | null): boolean => {
+  if (!url) return false;
+  return !url.startsWith('data:') && !url.startsWith('http') && !url.startsWith('blob:');
+};
+
+/** Fetch a signed URL for a private storage path */
+const getSignedUrl = async (path: string): Promise<string> => {
+  const { data } = await supabase.storage
+    .from('child-photos')
+    .createSignedUrl(path, 3600);
+  return data?.signedUrl || path;
+};
+
 interface Child {
   id: string;
   name: string;
@@ -85,6 +99,8 @@ const ChildProfiles = () => {
   // Avatar preview states
   const [avatarPreviewOpen, setAvatarPreviewOpen] = useState(false);
   const [pendingAvatarChild, setPendingAvatarChild] = useState<{id: string, name: string, photoUrl: string} | null>(null);
+  // Cache signed URLs for display
+  const [signedUrls, setSignedUrls] = useState<Record<string, string>>({});
 
   useEffect(() => {
     const loadData = async () => {
