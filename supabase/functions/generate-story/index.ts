@@ -1518,17 +1518,38 @@ ${topic.endsWith('-edu') ? `
       const ageLabel = ageRange === "0-2" ? "2" : ageRange === "2-4" ? "3" : ageRange === "5-7" ? "6" : "8";
       const fullStoryText = storyData.pages.map((p: any) => `[עמוד ${p.page_number}]\n${p.text}`).join("\n\n");
       
-      const rewritePrompt = `You are an expert in Hebrew children's literature and NLP-based text analysis.
+      const rewritePrompt = `You are an expert in Hebrew children's literature, NLP-based text analysis, and autism-friendly writing.
 
 You will receive a Hebrew children's story and the child's age.
-Your job is to rewrite it while preserving and enhancing the literary style.
+Your job is to rewrite it in warm, everyday Hebrew — like a parent telling a bedtime story.
 
-STYLE — PRESERVE AND ENHANCE:
-- Rich, poetic, sensory Hebrew — describe smells, sounds, touch, light, colors
+STYLE — EVERYDAY HEBREW (עברית יומיומית):
+- Warm, natural, simple Hebrew — like an Israeli parent talking to their child before bed
+- NOT literary, NOT poetic, NOT heavy — simple and flowing
+- Sensory descriptions are good (smells, sounds, touch) but in everyday language
 - Warmth and intimacy between characters — loving touch, eye contact, closeness
-- Painterly, precise descriptions — every sentence should paint a picture
 - NO archaic words (לפנים, נקיפת הימים, מסברת, מבעקים, קמעה, נוגה, חרישית, etc.)
-- Living, beautiful, modern Hebrew
+- NO literary/formal expressions — replace them with everyday equivalents:
+  ❌ "מלך על סוס" → ✅ "רכב על סוס"
+  ❌ "צעד בגאון" → ✅ "הלך בשמחה"
+  ❌ "חש בנפשו" → ✅ "הרגיש בלב"
+  ❌ "נשא עיניו" → ✅ "הסתכל למעלה"
+  ❌ "פסע לאיטו" → ✅ "הלך לאט"
+- Golden rule: if a 5-year-old wouldn't use this word in regular conversation — don't use it.
+
+NLP & EMOTIONAL GUIDELINES:
+- Positive reinforcement and growth mindset language
+- Anchor positive feelings in the body: 'הלב מתחמם', 'הבטן נרגעת'
+- Normalize difficult emotions: 'זה בסדר להרגיש ככה, כולם מרגישים ככה לפעמים'
+- Use only concrete, simple metaphors: 'הכעס כמו בלון שמתנפח' ✅, 'הנשמה עפה' ❌
+- The child should feel seen, understood, and capable
+
+AUTISM-FRIENDLY RULES:
+- Short, clear sentences — no ambiguity, no double meanings
+- Always explain WHY a character feels something: 'הוא הרגיש עצוב כי החבר לא שיחק איתו' ✅
+- Calming repetition of reassuring phrases: 'והכל בסדר', 'הוא יודע שהוא יכול'
+- No sudden plot surprises or scary elements
+- Clear logical sequence — each page follows logically from the previous one
 
 FORMATTING — CRITICAL:
 - **Each sentence must be on its own line** (newline after every period/sentence end)
@@ -1544,7 +1565,7 @@ FORMATTING — CRITICAL:
 NLP RULES BY AGE:
 - Age 2-3: Max 4 words per sentence, very simple vocabulary
 - Age 4-5: Max 7 words per sentence, concrete concepts only
-- Age 6-8: Up to 10 words, can include some abstract concepts
+- Age 6-8: Up to 10 words, can include some abstract concepts but still everyday language
 
 CRITICAL RULES:
 - Keep the EXACT same number of pages/sections as the input
@@ -1552,16 +1573,17 @@ CRITICAL RULES:
 - Preserve illustration_prompt content if present - only rewrite the Hebrew story text
 - Do NOT add nikud (vowel marks) — write clean text without nikud
 - Do NOT flatten sentence-per-line formatting into paragraphs
-- Do NOT remove sensory descriptions (smells, sounds, touch) — enhance them!
+- Do NOT remove sensory descriptions (smells, sounds, touch) — enhance them in simple language!
 - Do NOT add any explanation, just return the rewritten text
 
 CHECKLIST before returning:
 ✓ Every sentence fits the age level
-✓ No archaic vocabulary
-✓ Has rhythm and musicality
+✓ No archaic or literary vocabulary — everyday Hebrew only
+✓ Each sentence sounds like something an Israeli parent would actually say
 ✓ Each sentence on its own line
-✓ Sensory language preserved (smells, sounds, touch, light)
+✓ Sensory language preserved in simple words
 ✓ Warmth and intimacy between characters preserved
+✓ Emotions are explained (why the character feels that way)
 ✓ No nikud in text
 ✓ No spelling errors
 
