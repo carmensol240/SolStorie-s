@@ -6,10 +6,12 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
-import { Users, ShoppingCart, BookOpen, TrendingUp, ArrowRight, AlertTriangle, EyeOff, Eye, Trash2, Palette, Image, Ticket, ChevronDown, ChevronUp, Activity, Copy, Mail } from "lucide-react";
+import { Users, ShoppingCart, BookOpen, TrendingUp, ArrowRight, AlertTriangle, EyeOff, Eye, Trash2, Palette, Image, Ticket, ChevronDown, ChevronUp, Activity, Copy, Mail, CalendarPlus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { format } from "date-fns";
+import { format, subDays, startOfDay } from "date-fns";
+import { ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart";
+import { LineChart, Line, XAxis, YAxis, CartesianGrid, ResponsiveContainer } from "recharts";
 import { useToast } from "@/hooks/use-toast";
 import {
   AlertDialog,
@@ -230,7 +232,22 @@ const AdminDashboard = () => {
         if (emailsRes.data) {
           (emailsRes.data as { user_id: string; email: string }[]).forEach(e => emailMap.set(e.user_id, e.email));
         }
-        setProfiles(profilesRes.data.map(p => ({ ...p, email: emailMap.get(p.id) || undefined })));
+        // Filter out the admin user from display
+        const adminUserId = [...emailMap.entries()].find(([, email]) => email === ADMIN_EMAIL)?.[0];
+        setProfiles(profilesRes.data
+          .filter(p => emailMap.get(p.id) !== ADMIN_EMAIL)
+          .map(p => ({ ...p, email: emailMap.get(p.id) || undefined })));
+        // Also filter stories/purchases by admin user id
+        if (adminUserId) {
+          if (purchasesRes.data) setPurchases(purchasesRes.data.filter(p => p.user_id !== adminUserId));
+          if (storiesRes.data) setStories(storiesRes.data.filter(s => s.user_id !== adminUserId));
+        } else {
+          if (purchasesRes.data) setPurchases(purchasesRes.data);
+          if (storiesRes.data) setStories(storiesRes.data);
+        }
+      } else {
+        if (purchasesRes.data) setPurchases(purchasesRes.data);
+        if (storiesRes.data) setStories(storiesRes.data);
       }
       if (purchasesRes.data) setPurchases(purchasesRes.data);
       if (storiesRes.data) setStories(storiesRes.data);
