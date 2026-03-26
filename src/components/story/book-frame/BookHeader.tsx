@@ -258,6 +258,12 @@ export const BookHeader: React.FC<BookHeaderProps> = ({
                   <DropdownMenuSeparator />
                 </>
               )}
+              {onToggleNikud && (
+                <DropdownMenuItem onClick={onToggleNikud} className="gap-2 cursor-pointer">
+                  <span>{showNikud ? 'א' : 'אָ'}</span>
+                  <span>{showNikud ? 'הסר ניקוד' : 'הוסף ניקוד'}</span>
+                </DropdownMenuItem>
+              )}
               {onReport && (
                 <DropdownMenuItem onClick={onReport} className="gap-2 cursor-pointer text-destructive">
                   <span>🚨</span>
