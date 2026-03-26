@@ -103,6 +103,7 @@ export const SignedImage = ({
         src={signedUrl || src}
         alt={effectiveAlt}
         loading="lazy"
+        style={{ imageOrientation: 'from-image' }}
         onLoad={() => {
           setImageLoaded(true);
           setHasError(false);
