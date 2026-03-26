@@ -249,8 +249,6 @@ const AdminDashboard = () => {
         if (purchasesRes.data) setPurchases(purchasesRes.data);
         if (storiesRes.data) setStories(storiesRes.data);
       }
-      if (purchasesRes.data) setPurchases(purchasesRes.data);
-      if (storiesRes.data) setStories(storiesRes.data);
       if (couponsRes.error) console.error("Coupons fetch error:", couponsRes.error);
       if (redemptionsRes.error) console.error("Redemptions fetch error:", redemptionsRes.error);
       setCoupons((couponsRes.data as CouponRow[]) || []);
