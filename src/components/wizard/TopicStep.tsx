@@ -83,7 +83,7 @@ const TopicStep = ({ formData, updateFormData }: TopicStepProps) => {
         <Textarea
           className="w-full min-h-[100px] text-base resize-none rounded-2xl border-0 bg-card focus-visible:ring-0 focus-visible:ring-offset-0"
           rows={4}
-          placeholder="למשל: סול הביישנית אוהבת חיות ויוצאת להרפתקה בממלכת הדמיון..."
+          placeholder={customPlaceholder}
           value={formData.customTopic}
           onChange={(e) => handleCustomChange(e.target.value)}
           dir="rtl"
