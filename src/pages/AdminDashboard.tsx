@@ -6,10 +6,12 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
-import { Users, ShoppingCart, BookOpen, TrendingUp, ArrowRight, AlertTriangle, EyeOff, Eye, Trash2, Palette, Image, Ticket, ChevronDown, ChevronUp, Activity, Copy, Mail } from "lucide-react";
+import { Users, ShoppingCart, BookOpen, TrendingUp, ArrowRight, AlertTriangle, EyeOff, Eye, Trash2, Palette, Image, Ticket, ChevronDown, ChevronUp, Activity, Copy, Mail, CalendarPlus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { format } from "date-fns";
+import { format, subDays, startOfDay } from "date-fns";
+import { ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart";
+import { LineChart, Line, XAxis, YAxis, CartesianGrid, ResponsiveContainer } from "recharts";
 import { useToast } from "@/hooks/use-toast";
 import {
   AlertDialog,
@@ -102,6 +104,8 @@ interface CoverLogRow {
   created_at: string;
 }
 
+const ADMIN_EMAIL = "carmit1901@gmail.com";
+
 const AdminDashboard = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
@@ -181,6 +185,12 @@ const AdminDashboard = () => {
     }
 
     const checkAdmin = async () => {
+      // Restrict to specific admin email
+      if (user.email !== ADMIN_EMAIL) {
+        navigate("/");
+        return;
+      }
+
       const { data } = await supabase
         .from("user_roles")
         .select("role")
@@ -222,10 +232,23 @@ const AdminDashboard = () => {
         if (emailsRes.data) {
           (emailsRes.data as { user_id: string; email: string }[]).forEach(e => emailMap.set(e.user_id, e.email));
         }
-        setProfiles(profilesRes.data.map(p => ({ ...p, email: emailMap.get(p.id) || undefined })));
+        // Filter out the admin user from display
+        const adminUserId = [...emailMap.entries()].find(([, email]) => email === ADMIN_EMAIL)?.[0];
+        setProfiles(profilesRes.data
+          .filter(p => emailMap.get(p.id) !== ADMIN_EMAIL)
+          .map(p => ({ ...p, email: emailMap.get(p.id) || undefined })));
+        // Also filter stories/purchases by admin user id
+        if (adminUserId) {
+          if (purchasesRes.data) setPurchases(purchasesRes.data.filter(p => p.user_id !== adminUserId));
+          if (storiesRes.data) setStories(storiesRes.data.filter(s => s.user_id !== adminUserId));
+        } else {
+          if (purchasesRes.data) setPurchases(purchasesRes.data);
+          if (storiesRes.data) setStories(storiesRes.data);
+        }
+      } else {
+        if (purchasesRes.data) setPurchases(purchasesRes.data);
+        if (storiesRes.data) setStories(storiesRes.data);
       }
-      if (purchasesRes.data) setPurchases(purchasesRes.data);
-      if (storiesRes.data) setStories(storiesRes.data);
       if (couponsRes.error) console.error("Coupons fetch error:", couponsRes.error);
       if (redemptionsRes.error) console.error("Redemptions fetch error:", redemptionsRes.error);
       setCoupons((couponsRes.data as CouponRow[]) || []);
@@ -309,6 +332,29 @@ const AdminDashboard = () => {
     return d > new Date(Date.now() - 24 * 60 * 60 * 1000);
   }).length;
 
+  const weekAgo = subDays(new Date(), 7);
+  const registeredThisWeek = profiles.filter(p => new Date(p.created_at) >= weekAgo).length;
+
+  // 30-day registration chart data
+  const chartData = (() => {
+    const days: { date: string; count: number }[] = [];
+    for (let i = 29; i >= 0; i--) {
+      const day = startOfDay(subDays(new Date(), i));
+      const nextDay = new Date(day);
+      nextDay.setDate(nextDay.getDate() + 1);
+      const count = profiles.filter(p => {
+        const d = new Date(p.created_at);
+        return d >= day && d < nextDay;
+      }).length;
+      days.push({ date: format(day, "dd/MM"), count });
+    }
+    return days;
+  })();
+
+  const chartConfig = {
+    count: { label: "נרשמו", color: "hsl(var(--primary))" },
+  };
+
   const formatDate = (d: string | null) => d ? format(new Date(d), "dd/MM/yyyy HH:mm") : "—";
 
   const errorTypes = [...new Set(errorLogs.map(e => e.error_type))];
@@ -334,7 +380,7 @@ const AdminDashboard = () => {
         </div>
 
         {/* Stats Cards */}
-        <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
+        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
           <Card>
             <CardHeader className="flex flex-row items-center justify-between pb-2">
               <CardTitle className="text-sm font-medium">משתמשים</CardTitle>
@@ -342,6 +388,15 @@ const AdminDashboard = () => {
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold">{profiles.length}</div>
+            </CardContent>
+          </Card>
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between pb-2">
+              <CardTitle className="text-sm font-medium">נרשמו השבוע</CardTitle>
+              <CalendarPlus className="h-4 w-4 text-muted-foreground" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">{registeredThisWeek}</div>
             </CardContent>
           </Card>
           <Card>
@@ -381,6 +436,24 @@ const AdminDashboard = () => {
             </CardContent>
           </Card>
         </div>
+
+        {/* 30-day registration chart */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-base">הרשמות חדשות – 30 ימים אחרונים</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <ChartContainer config={chartConfig} className="h-[200px] w-full">
+              <LineChart data={chartData} margin={{ top: 5, right: 10, left: 10, bottom: 0 }}>
+                <CartesianGrid strokeDasharray="3 3" className="stroke-border/50" />
+                <XAxis dataKey="date" tick={{ fontSize: 11 }} interval={4} />
+                <YAxis allowDecimals={false} tick={{ fontSize: 11 }} />
+                <ChartTooltip content={<ChartTooltipContent />} />
+                <Line type="monotone" dataKey="count" stroke="hsl(var(--primary))" strokeWidth={2} dot={{ r: 3 }} activeDot={{ r: 5 }} />
+              </LineChart>
+            </ChartContainer>
+          </CardContent>
+        </Card>
 
         {/* Tabs */}
         <Tabs defaultValue="users" className="w-full">

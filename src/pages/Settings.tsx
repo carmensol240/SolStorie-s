@@ -46,7 +46,7 @@ const Settings = () => {
         .eq("user_id", user.id)
         .eq("role", "admin")
         .maybeSingle()
-        .then(({ data }) => setIsAdmin(!!data));
+        .then(({ data }) => setIsAdmin(!!data && user.email === "carmit1901@gmail.com"));
     }
   }, [user]);
 
