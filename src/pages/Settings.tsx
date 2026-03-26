@@ -69,13 +69,8 @@ const Settings = () => {
     },
     {
       icon: FileText,
-      label: "תנאי שימוש",
+      label: "תנאי שימוש ומדיניות פרטיות",
       onClick: () => navigate("/terms"),
-    },
-    {
-      icon: Shield,
-      label: "מדיניות פרטיות",
-      onClick: () => navigate("/privacy"),
     },
   ];
 
@@ -247,7 +242,7 @@ const Settings = () => {
           <div className="bg-muted/30 border border-border rounded-lg p-2.5 text-center">
             <p className="text-xs text-muted-foreground leading-relaxed">
               🔒 כל המידע מטופל בהתאם לתקנות פרטיות ילדים (COPPA/GDPR).{' '}
-              <button onClick={() => navigate('/privacy')} className="text-primary underline font-medium">מדיניות פרטיות</button>
+              <button onClick={() => navigate('/terms')} className="text-primary underline font-medium">מדיניות פרטיות</button>
             </p>
           </div>
         </div>
