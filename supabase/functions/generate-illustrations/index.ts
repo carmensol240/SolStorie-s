@@ -744,15 +744,33 @@ const THEME_OUTFITS: Record<string, { outfit: string; background: string; theme:
     theme: "emotional family story about father going to military reserves"
   },
 };
+// ── Topic-specific cover prompts ──
+const TOPIC_COVER_PROMPTS: Record<string, string> = {
+  "dad-in-reserves": "A heartwarming children's book cover illustration in Pixar 3D CGI style, Israeli soldier father in olive green IDF military uniform (yarok tzava fatigues) hugging his young child warmly, emotional reunion, soft warm cinematic lighting, vibrant saturated colors, Disney-Pixar aesthetic, NOT US military, NOT American military. No text. Leave 20% space at top for title.",
+  "moses-basket": "Children's book cover, Pixar 3D CGI style, baby Moses in a wicker basket floating on the Nile river, water lilies, soft warm light, magical. No text. Leave 20% space at top for title.",
+  "exodus": "Children's book cover, Pixar 3D CGI style, Moses leading Israelites through the parted Red Sea, dramatic golden light, epic biblical scene. No text. Leave 20% space at top for title.",
+  "noah-ark": "Children's book cover, Pixar 3D CGI style, Noah's ark with pairs of animals boarding, rainbow in the sky, warm magical light. No text. Leave 20% space at top for title.",
+  "joseph-brothers": "Children's book cover, Pixar 3D CGI style, young Joseph wearing a magnificent colorful striped coat, desert sunset, ancient Canaan. No text. Leave 20% space at top for title.",
+  "david-goliath": "Children's book cover, Pixar 3D CGI style, young David with a sling facing giant Goliath, dramatic light, ancient Israel. No text. Leave 20% space at top for title.",
+  "abraham-sarah": "Children's book cover, Pixar 3D CGI style, Abraham and Sarah under a starry sky in the desert, warm campfire light, ancient times. No text. Leave 20% space at top for title.",
+  "jonah-fish": "Children's book cover, Pixar 3D CGI style, Jonah inside a giant whale underwater, magical blue light, dramatic scene. No text. Leave 20% space at top for title.",
+  "samson-hero": "Children's book cover, Pixar 3D CGI style, strong Samson with long hair, ancient Philistine setting, dramatic light. No text. Leave 20% space at top for title.",
+  "esther-queen": "Children's book cover, Pixar 3D CGI style, Queen Esther in royal Persian palace wearing crown and purple dress, golden light. No text. Leave 20% space at top for title.",
+  "hanukkah-miracle": "Children's book cover, Pixar 3D CGI style, golden menorah glowing with magical light in ancient Temple, warm golden atmosphere. No text. Leave 20% space at top for title.",
+};
+
 // ── Generate cover image for specific topics (runs in parallel with illustrations) ──
 async function generateCoverImage(
   supabase: ReturnType<typeof createClient>,
   storyId: string,
   apiKey: string,
+  topic: string,
 ): Promise<string | null> {
   try {
-    console.log(`🎨 Generating dad-in-reserves cover for story ${storyId}...`);
-    const coverPrompt = `A heartwarming children's book cover illustration in Pixar 3D CGI style, Israeli soldier father in olive green IDF military uniform (yarok tzava fatigues) hugging his young child warmly, emotional reunion, soft warm cinematic lighting, vibrant saturated colors, Disney-Pixar aesthetic, NOT US military, NOT American military. No text. Leave 20% space at top for title. NEGATIVE: ${NEGATIVE_PROMPT}`;
+    const topicPrompt = TOPIC_COVER_PROMPTS[topic];
+    if (!topicPrompt) return null;
+    console.log(`🎨 Generating cover for topic "${topic}", story ${storyId}...`);
+    const coverPrompt = `${topicPrompt} NEGATIVE: ${NEGATIVE_PROMPT}`;
 
     const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
       method: "POST",
@@ -797,7 +815,7 @@ async function generateCoverImage(
     const fullCoverUrl = `${publicUrlData.publicUrl}?v=${Date.now()}`;
 
     await supabase.from("stories").update({ cover_url: fullCoverUrl }).eq("id", storyId);
-    console.log(`✅ Cover saved for dad-in-reserves story ${storyId}: ${fullCoverUrl}`);
+    console.log(`✅ Cover saved for topic "${topic}" story ${storyId}: ${fullCoverUrl}`);
     return fullCoverUrl;
   } catch (err) {
     console.error("Cover generation error:", err);
@@ -1228,16 +1246,16 @@ serve(async (req) => {
       return illustrationUrl;
     }
 
-    // Run ALL page illustrations in parallel (+ cover for dad-in-reserves)
-    const coverPromise = topic === "dad-in-reserves"
-      ? generateCoverImage(supabase, storyId, LOVABLE_API_KEY)
+    // Run ALL page illustrations in parallel (+ cover for topics with dedicated prompts)
+    const coverPromise = TOPIC_COVER_PROMPTS[topic]
+      ? generateCoverImage(supabase, storyId, LOVABLE_API_KEY, topic)
       : Promise.resolve(null);
 
     const [coverResult, ...illustrationResults] = await Promise.all([
       coverPromise,
       ...pagesToIllustrate.map(page => generatePageIllustration(page)),
     ]);
-    if (coverResult) console.log(`✅ Cover generated for dad-in-reserves: ${coverResult}`);
+    if (coverResult) console.log(`✅ Cover generated for topic "${topic}": ${coverResult}`);
     console.log(`All ${pagesToIllustrate.length} illustration tasks completed. Success: ${illustrationResults.filter(Boolean).length}/${pagesToIllustrate.length}`);
 
     // Check if ALL illustration pages now have illustration_url before marking as ready
