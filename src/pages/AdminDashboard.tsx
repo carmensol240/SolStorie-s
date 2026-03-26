@@ -104,7 +104,7 @@ interface CoverLogRow {
   created_at: string;
 }
 
-const ADMIN_EMAIL = "carmit1901@gmail.com";
+const ADMIN_EMAILS = ["carmit1901@gmail.com", "carmit1901+test@gmail.com"];
 
 const AdminDashboard = () => {
   const { user } = useAuth();
@@ -186,7 +186,7 @@ const AdminDashboard = () => {
 
     const checkAdmin = async () => {
       // Restrict to specific admin email
-      if (user.email !== ADMIN_EMAIL) {
+      if (!user.email || !ADMIN_EMAILS.includes(user.email)) {
         navigate("/");
         return;
       }
@@ -233,14 +233,14 @@ const AdminDashboard = () => {
           (emailsRes.data as { user_id: string; email: string }[]).forEach(e => emailMap.set(e.user_id, e.email));
         }
         // Filter out the admin user from display
-        const adminUserId = [...emailMap.entries()].find(([, email]) => email === ADMIN_EMAIL)?.[0];
+        const adminUserIds = [...emailMap.entries()].filter(([, email]) => ADMIN_EMAILS.includes(email)).map(([id]) => id);
         setProfiles(profilesRes.data
-          .filter(p => emailMap.get(p.id) !== ADMIN_EMAIL)
+          .filter(p => !ADMIN_EMAILS.includes(emailMap.get(p.id) || ""))
           .map(p => ({ ...p, email: emailMap.get(p.id) || undefined })));
-        // Also filter stories/purchases by admin user id
-        if (adminUserId) {
-          if (purchasesRes.data) setPurchases(purchasesRes.data.filter(p => p.user_id !== adminUserId));
-          if (storiesRes.data) setStories(storiesRes.data.filter(s => s.user_id !== adminUserId));
+        // Also filter stories/purchases by admin user ids
+        if (adminUserIds.length > 0) {
+          if (purchasesRes.data) setPurchases(purchasesRes.data.filter(p => !adminUserIds.includes(p.user_id)));
+          if (storiesRes.data) setStories(storiesRes.data.filter(s => !s.user_id || !adminUserIds.includes(s.user_id)));
         } else {
           if (purchasesRes.data) setPurchases(purchasesRes.data);
           if (storiesRes.data) setStories(storiesRes.data);
