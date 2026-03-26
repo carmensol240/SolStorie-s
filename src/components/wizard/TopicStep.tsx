@@ -18,6 +18,10 @@ const TopicStep = ({ formData, updateFormData }: TopicStepProps) => {
   const [searchQuery, setSearchQuery] = useState("");
   const [expandedSections, setExpandedSections] = useState<Set<string>>(new Set());
 
+  const genderSuffix = formData.childGender === "female" ? "ת" : "";
+  const childNameForPlaceholder = formData.childName?.trim() || "הילד/ה שלך";
+  const customPlaceholder = `למשל: ${childNameForPlaceholder} אוהב${genderSuffix} חיות ויוצא${genderSuffix} להרפתקה בממלכת הדמיון...`;
+
   const toggleSection = (id: string) => {
     setExpandedSections(prev => {
       const next = new Set(prev);
