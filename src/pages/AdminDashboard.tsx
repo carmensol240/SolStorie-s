@@ -102,6 +102,8 @@ interface CoverLogRow {
   created_at: string;
 }
 
+const ADMIN_EMAIL = "carmit1901@gmail.com";
+
 const AdminDashboard = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
@@ -181,6 +183,12 @@ const AdminDashboard = () => {
     }
 
     const checkAdmin = async () => {
+      // Restrict to specific admin email
+      if (user.email !== ADMIN_EMAIL) {
+        navigate("/");
+        return;
+      }
+
       const { data } = await supabase
         .from("user_roles")
         .select("role")
