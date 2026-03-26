@@ -237,10 +237,10 @@ const AdminDashboard = () => {
         setProfiles(profilesRes.data
           .filter(p => !ADMIN_EMAILS.includes(emailMap.get(p.id) || ""))
           .map(p => ({ ...p, email: emailMap.get(p.id) || undefined })));
-        // Also filter stories/purchases by admin user id
-        if (adminUserId) {
-          if (purchasesRes.data) setPurchases(purchasesRes.data.filter(p => p.user_id !== adminUserId));
-          if (storiesRes.data) setStories(storiesRes.data.filter(s => s.user_id !== adminUserId));
+        // Also filter stories/purchases by admin user ids
+        if (adminUserIds.length > 0) {
+          if (purchasesRes.data) setPurchases(purchasesRes.data.filter(p => !adminUserIds.includes(p.user_id)));
+          if (storiesRes.data) setStories(storiesRes.data.filter(s => !s.user_id || !adminUserIds.includes(s.user_id)));
         } else {
           if (purchasesRes.data) setPurchases(purchasesRes.data);
           if (storiesRes.data) setStories(storiesRes.data);
