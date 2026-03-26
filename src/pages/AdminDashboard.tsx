@@ -104,7 +104,7 @@ interface CoverLogRow {
   created_at: string;
 }
 
-const ADMIN_EMAIL = "carmit1901@gmail.com";
+const ADMIN_EMAILS = ["carmit1901@gmail.com", "carmit1901+test@gmail.com"];
 
 const AdminDashboard = () => {
   const { user } = useAuth();
