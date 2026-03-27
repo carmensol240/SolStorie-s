@@ -50,36 +50,48 @@ serve(async (req) => {
 
     console.log("Sending to Gemini for coloring page conversion...");
 
-    // Call Lovable AI Gateway with image editing
-    const aiResponse = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${LOVABLE_API_KEY}`,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        model: "google/gemini-3.1-flash-image-preview",
-        messages: [
-          {
-            role: "user",
-            content: [
-              {
-                type: "text",
-                text: "Convert this illustration to a children's coloring book page. Black outlines only on white background. Keep lines thick, bold and friendly for a 4-year-old to color. Simplify details. Remove all colors and fills. Output only the coloring page image.",
-              },
-              {
-                type: "image_url",
-                image_url: { url: imageDataUrl },
-              },
-            ],
-          },
-        ],
-        modalities: ["image", "text"],
-      }),
+    // Call Lovable AI Gateway with image editing (with retry on 429)
+    const aiBody = JSON.stringify({
+      model: "google/gemini-3.1-flash-image-preview",
+      messages: [
+        {
+          role: "user",
+          content: [
+            {
+              type: "text",
+              text: "Convert this illustration to a children's coloring book page. Black outlines only on white background. Keep lines thick, bold and friendly for a 4-year-old to color. Simplify details. Remove all colors and fills. Output only the coloring page image.",
+            },
+            {
+              type: "image_url",
+              image_url: { url: imageDataUrl },
+            },
+          ],
+        },
+      ],
+      modalities: ["image", "text"],
     });
 
-    if (!aiResponse.ok) {
-      const status = aiResponse.status;
+    const aiHeaders = {
+      Authorization: `Bearer ${LOVABLE_API_KEY}`,
+      "Content-Type": "application/json",
+    };
+
+    let aiResponse: Response | null = null;
+    const maxRetries = 2;
+    for (let attempt = 0; attempt <= maxRetries; attempt++) {
+      aiResponse = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+        method: "POST",
+        headers: aiHeaders,
+        body: aiBody,
+      });
+
+      if (aiResponse.status !== 429 || attempt === maxRetries) break;
+      console.log(`Rate limited (attempt ${attempt + 1}), waiting ${(attempt + 1) * 5}s...`);
+      await new Promise((r) => setTimeout(r, (attempt + 1) * 5000));
+    }
+
+    if (!aiResponse!.ok) {
+      const status = aiResponse!.status;
       if (status === 429) {
         return new Response(JSON.stringify({ error: "יותר מדי בקשות, נסו שוב בעוד דקה" }), {
           status: 429,
@@ -92,7 +104,7 @@ serve(async (req) => {
           headers: { ...corsHeaders, "Content-Type": "application/json" },
         });
       }
-      const errText = await aiResponse.text();
+      const errText = await aiResponse!.text();
       console.error("AI gateway error:", status, errText);
       return new Response(JSON.stringify({ error: "שגיאה ביצירת דף הצביעה" }), {
         status: 500,
