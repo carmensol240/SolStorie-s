@@ -1,24 +1,46 @@
 
 
-## Plan: Fix Coloring Page — Download PNG + Loading Message
+## Plan: Eliminate Black Borders/Icons from Illustrations
+
+### Root Cause
+
+The Gemini image generation model (`google/gemini-3-pro-image-preview`) occasionally returns images with thin black borders containing small UI-like icons — despite the existing negative prompt. The negative prompt already mentions these artifacts, but the model sometimes ignores negative instructions. Two fixes are needed: stronger positive prompts + CSS safety net.
 
 ### Changes
 
-**File: `src/pages/StoryViewer.tsx`**
+**1. File: `supabase/functions/_shared/style-config.ts`**
 
-1. **Replace `window.open` print flow with direct PNG download** (lines 1450-1480):
-   - Convert the base64 image data to a Blob
-   - Create an `<a>` element with `download` attribute and trigger `.click()` — this bypasses popup blockers entirely
-   - Filename: `דף-צביעה-${story.topic}.png`
+Add a new constant `FULL_BLEED_INSTRUCTION` and prepend it to `PIXAR_STYLE` and `PIXAR_STYLE_COMPACT`:
 
-2. **Add a visible loading toast** after `setColoringLoading(true)` (line 1436):
-   - Show a toast: `"מכין את דף הצביעה שלך... זה לוקח כ-30 שניות 🎨"`
-   - Use the existing `toast()` with a descriptive message
+```
+CRITICAL IMAGE REQUIREMENT: The illustration MUST be a clean, full-bleed image that fills the entire canvas edge-to-edge. No borders, no margins, no frames, no UI elements, no icons, no toolbars, no black bars around the edges. The artwork must extend to all four edges of the image with no padding or decorative frame.
+```
 
-3. **Update button text** while loading (line 1492) — already says "יוצר דף צביעה...", keep as-is.
+This will be added as a prefix to the style strings so every illustration call inherits it.
+
+Also strengthen `ILLUSTRATION_NEGATIVE_PROMPT` by adding: `no toolbar, no navigation bar, no crop marks, no frame border, no margin, no padding around image`.
+
+**2. File: `src/pages/StoryViewer.tsx`** — CSS safety net
+
+On all `<img>` tags for illustrations (lines ~1541-1543, ~1615-1617, and combined page), add a slight `scale(1.02)` transform to crop any residual thin borders:
+
+```css
+style={{ transform: 'scale(1.02)' }}
+```
+
+The parent already has `overflow-hidden` via the page container, so any 1-2% edge content will be clipped. This ensures even if the AI adds a thin border, users never see it.
+
+**3. File: `src/pages/StoryViewer.tsx`** — Cover image (line ~1236)
+
+Apply the same `scale(1.02)` safety to the cover image rendering.
+
+### Technical details
+
+- The `scale(1.02)` approach is a common technique for hiding edge artifacts — it crops ~1% from each edge, invisible to the user but removes thin borders
+- The positive prompt reinforcement works better than negative prompts with Gemini models
+- All existing illustration generation paths (with-face, no-face, cover, retry) will inherit the updated style strings automatically
 
 ### What stays the same
-- Edge function — unchanged
-- Illustration picker dialog — unchanged
-- All other end-page content — unchanged
+- Image generation models and API calls — unchanged
+- Page layout, navigation, all other components — unchanged
 
