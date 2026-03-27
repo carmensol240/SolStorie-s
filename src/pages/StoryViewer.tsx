@@ -1434,6 +1434,7 @@ const StoryViewer = () => {
                           if (!story || !selectedColoringUrl) return;
                           setColoringPickerOpen(false);
                           setColoringLoading(true);
+                          toast({ title: "מכין את דף הצביעה שלך... זה לוקח כ-30 שניות 🎨" });
                           try {
                             const illustrationFullUrl = getPublicIllustrationUrl(selectedColoringUrl);
                             const { data, error: fnError } = await supabase.functions.invoke('generate-coloring-page', {
@@ -1447,37 +1448,24 @@ const StoryViewer = () => {
                               toast({ title: data?.error || "שגיאה ביצירת דף הצביעה", variant: "destructive" });
                               return;
                             }
-                            const printWindow = window.open('', '_blank');
-                            if (printWindow) {
-                              printWindow.document.write(`<!DOCTYPE html>
-<html dir="rtl">
-<head>
-<meta charset="utf-8">
-<title>דף צביעה - ${story.topic}</title>
-<style>
-  @import url('https://fonts.googleapis.com/css2?family=Caveat:wght@700&display=swap');
-  * { margin: 0; padding: 0; box-sizing: border-box; }
-  body { font-family: 'Caveat', cursive; display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 100vh; padding: 20px; }
-  h1 { font-size: 28px; color: #6B3FA0; margin-bottom: 12px; }
-  img { max-width: 90%; max-height: 65vh; object-fit: contain; border: 2px solid #e0e0e0; border-radius: 12px; }
-  .child-name { font-size: 24px; color: #8B5CF6; margin-top: 12px; }
-  .logo { font-size: 14px; color: #aaa; margin-top: 16px; }
-  @media print {
-    body { padding: 10mm; }
-    img { max-height: 70vh; border: 1px solid #ccc; }
-  }
-</style>
-</head>
-<body>
-  <h1>🎨 ${story.topic} – דף צביעה</h1>
-  <img src="${data.image}" alt="דף צביעה" />
-  <p class="child-name">של ${story.child_name}</p>
-  <p class="logo">SolStorie's™ 📚✨</p>
-  <script>window.onload = function() { setTimeout(function() { window.print(); }, 500); }</script>
-</body>
-</html>`);
-                              printWindow.document.close();
+                            // Convert base64 to blob and download as PNG
+                            const base64Data = data.image.replace(/^data:image\/\w+;base64,/, '');
+                            const byteCharacters = atob(base64Data);
+                            const byteNumbers = new Array(byteCharacters.length);
+                            for (let i = 0; i < byteCharacters.length; i++) {
+                              byteNumbers[i] = byteCharacters.charCodeAt(i);
                             }
+                            const byteArray = new Uint8Array(byteNumbers);
+                            const blob = new Blob([byteArray], { type: 'image/png' });
+                            const url = URL.createObjectURL(blob);
+                            const a = document.createElement('a');
+                            a.href = url;
+                            a.download = `דף-צביעה-${story.topic}.png`;
+                            document.body.appendChild(a);
+                            a.click();
+                            document.body.removeChild(a);
+                            URL.revokeObjectURL(url);
+                            toast({ title: "דף הצביעה הורד בהצלחה! 🎨" });
                           } catch (err) {
                             console.error("Coloring page error:", err);
                             toast({ title: "שגיאה ביצירת דף הצביעה", variant: "destructive" });
