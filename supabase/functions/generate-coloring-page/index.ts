@@ -59,7 +59,18 @@ serve(async (req) => {
           content: [
             {
               type: "text",
-              text: "Convert this illustration to a children's coloring book page. Black outlines only on white background. Keep lines thick, bold and friendly for a 4-year-old to color. Simplify details. Remove all colors and fills. Output only the coloring page image.",
+              text: `Convert this illustration into a perfect children's coloring book page for printing. Follow these rules strictly:
+
+1. OUTLINES: Use very thick, bold, solid black outlines (minimum 3-4px weight). Every shape must have a clearly defined closed boundary.
+2. SIMPLICITY: Create large, simple areas for coloring. Merge small details into bigger shapes. A 3-year-old should be able to color inside the lines.
+3. STYLE: Disney/Pixar cartoon style with rounded, friendly shapes. Keep the character recognizable but simplified.
+4. NO SHADING: Absolutely no shadows, gradients, cross-hatching, stippling, or any form of shading. Pure black outlines on pure white background only.
+5. NO 3D DEPTH: Flatten all 3D elements into simple 2D cartoon outlines.
+6. MINIMAL DETAILS: Remove textures, patterns, small decorative elements. Keep only the essential shapes of the character and main objects.
+7. RESOLUTION: Output a high-resolution image (at least 2400x3200 pixels) suitable for 300 DPI A4 printing.
+8. BACKGROUND: Pure white (#FFFFFF) background with no marks or artifacts.
+
+Output ONLY the coloring page image, nothing else.`,
             },
             {
               type: "image_url",
