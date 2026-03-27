@@ -1448,15 +1448,52 @@ const StoryViewer = () => {
                               toast({ title: data?.error || "שגיאה ביצירת דף הצביעה", variant: "destructive" });
                               return;
                             }
-                            // Convert base64 to blob and download as PNG
-                            const base64Data = data.image.replace(/^data:image\/\w+;base64,/, '');
-                            const byteCharacters = atob(base64Data);
-                            const byteNumbers = new Array(byteCharacters.length);
-                            for (let i = 0; i < byteCharacters.length; i++) {
-                              byteNumbers[i] = byteCharacters.charCodeAt(i);
-                            }
-                            const byteArray = new Uint8Array(byteNumbers);
-                            const blob = new Blob([byteArray], { type: 'image/png' });
+                            // Load coloring image and add branded footer with canvas
+                            const coloringImg = new Image();
+                            coloringImg.crossOrigin = 'anonymous';
+                            const imgSrc = data.image.startsWith('data:') ? data.image : `data:image/png;base64,${data.image}`;
+                            coloringImg.src = imgSrc;
+                            await new Promise<void>((resolve, reject) => {
+                              coloringImg.onload = () => resolve();
+                              coloringImg.onerror = () => reject(new Error('Failed to load coloring image'));
+                            });
+
+                            const footerHeight = 80;
+                            const canvas = document.createElement('canvas');
+                            canvas.width = coloringImg.naturalWidth;
+                            canvas.height = coloringImg.naturalHeight + footerHeight;
+                            const ctx = canvas.getContext('2d')!;
+                            
+                            // White background
+                            ctx.fillStyle = '#FFFFFF';
+                            ctx.fillRect(0, 0, canvas.width, canvas.height);
+                            
+                            // Draw coloring image
+                            ctx.drawImage(coloringImg, 0, 0);
+                            
+                            // Footer area
+                            const footerY = coloringImg.naturalHeight + footerHeight / 2;
+                            const footerText = `SolStorie's™ | דף צביעה של ${story.child_name}`;
+                            const fontSize = Math.max(20, Math.round(canvas.width / 40));
+                            ctx.font = `bold ${fontSize}px "Caveat", "Arial", sans-serif`;
+                            ctx.textAlign = 'center';
+                            
+                            // Rainbow gradient for the text
+                            const gradient = ctx.createLinearGradient(
+                              canvas.width / 2 - ctx.measureText(footerText).width / 2, 0,
+                              canvas.width / 2 + ctx.measureText(footerText).width / 2, 0
+                            );
+                            gradient.addColorStop(0, '#FF6B6B');
+                            gradient.addColorStop(0.2, '#FFA500');
+                            gradient.addColorStop(0.4, '#FFD700');
+                            gradient.addColorStop(0.6, '#4CAF50');
+                            gradient.addColorStop(0.8, '#42A5F5');
+                            gradient.addColorStop(1, '#AB47BC');
+                            ctx.fillStyle = gradient;
+                            ctx.fillText(footerText, canvas.width / 2, footerY);
+                            
+                            // Convert canvas to blob and download
+                            const blob = await new Promise<Blob>((resolve) => canvas.toBlob((b) => resolve(b!), 'image/png'));
                             const url = URL.createObjectURL(blob);
                             const a = document.createElement('a');
                             a.href = url;
