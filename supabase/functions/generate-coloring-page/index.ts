@@ -112,8 +112,7 @@ serve(async (req) => {
       });
     }
 
-    const aiData = await aiResponse.json();
-    console.log("AI response keys:", JSON.stringify(Object.keys(aiData)));
+    const aiData = await aiResponse!.json();
 
     // Try multiple extraction paths for image data
     let generatedImage = aiData.choices?.[0]?.message?.images?.[0]?.image_url?.url;
