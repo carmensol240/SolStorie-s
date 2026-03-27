@@ -5,11 +5,15 @@
  * Every edge function that generates images MUST import from here.
  */
 
+// ─── Full Bleed Instruction ───
+
+export const FULL_BLEED_INSTRUCTION = `CRITICAL IMAGE REQUIREMENT: The illustration MUST be a clean, full-bleed image that fills the entire canvas edge-to-edge. No borders, no margins, no frames, no UI elements, no icons, no toolbars, no black bars around the edges. The artwork must extend to all four edges of the image with no padding or decorative frame.`;
+
 // ─── Pixar Style Prompts ───
 
-export const PIXAR_STYLE = `Pixar 3D CGI animation style, big expressive cartoon eyes with sparkling highlights, soft rounded cute features, oversized head with small body, vibrant saturated colors, cinematic warm lighting with glowing accents, fantasy children's book, high quality render, Disney-Pixar aesthetic. NOT realistic. Full body from head to toe, feet VISIBLE and GROUNDED on the surface.`;
+export const PIXAR_STYLE = `${FULL_BLEED_INSTRUCTION} Pixar 3D CGI animation style, big expressive cartoon eyes with sparkling highlights, soft rounded cute features, oversized head with small body, vibrant saturated colors, cinematic warm lighting with glowing accents, fantasy children's book, high quality render, Disney-Pixar aesthetic. NOT realistic. Full body from head to toe, feet VISIBLE and GROUNDED on the surface.`;
 
-export const PIXAR_STYLE_COMPACT = `Pixar 3D CGI animation style, big expressive eyes, soft rounded features, oversized head with small body, vibrant saturated colors, cinematic warm lighting with glowing accents, fantasy children's book background, high quality render, Disney-Pixar aesthetic. Characters must look like adorable cartoon dolls — NOT realistic humans. ALWAYS show characters FULL BODY from head to toe with feet VISIBLE and GROUNDED on the surface. Frame the character with generous margin from all edges.`;
+export const PIXAR_STYLE_COMPACT = `${FULL_BLEED_INSTRUCTION} Pixar 3D CGI animation style, big expressive eyes, soft rounded features, oversized head with small body, vibrant saturated colors, cinematic warm lighting with glowing accents, fantasy children's book background, high quality render, Disney-Pixar aesthetic. Characters must look like adorable cartoon dolls — NOT realistic humans. ALWAYS show characters FULL BODY from head to toe with feet VISIBLE and GROUNDED on the surface. Frame the character with generous margin from all edges.`;
 
 // ─── Negative Prompts ───
 
@@ -17,7 +21,7 @@ export const PIXAR_STYLE_COMPACT = `Pixar 3D CGI animation style, big expressive
  * ⚠️  DO NOT REMOVE OR MODIFY — Core negative prompt for all fal.ai illustration calls.
  * This ensures generated images are clean, full-bleed illustrations without UI artifacts.
  */
-export const ILLUSTRATION_NEGATIVE_PROMPT = `no UI elements, no borders, no phone frame, no icons, no text overlays, no screenshot artifacts, no black bars, no device frame, full bleed image, clean illustration only`;
+export const ILLUSTRATION_NEGATIVE_PROMPT = `no UI elements, no borders, no phone frame, no icons, no text overlays, no screenshot artifacts, no black bars, no device frame, no toolbar, no navigation bar, no crop marks, no frame border, no margin, no padding around image, full bleed image, clean illustration only`;
 
 export const NEGATIVE_PROMPT = `realistic, photograph, semi-realistic, dark, muted, bokeh, hyper-realistic, floating head, missing body, extra limbs, cropped feet, text, watermark, UI elements, multiple characters, group shot, black bars, black borders, taskbar, status bar, phone frame, app interface, screenshot artifacts, interface elements, icons, text overlays, buttons, menus, device mockup. Clean illustration only, full bleed image, no borders of any kind. ${ILLUSTRATION_NEGATIVE_PROMPT}`;
 

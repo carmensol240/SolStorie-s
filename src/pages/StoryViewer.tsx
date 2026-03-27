@@ -1237,6 +1237,7 @@ const StoryViewer = () => {
                         "absolute inset-0 w-full h-full",
                         coverIsLandscape ? "object-contain bg-black/40" : "object-cover"
                       )}
+                      style={{ transform: 'scale(1.02)' }}
                       loading="eager"
                       onLoad={(e) => {
                         const img = e.currentTarget;
@@ -1541,6 +1542,7 @@ const StoryViewer = () => {
                         src={`${getPublicIllustrationUrl(currentVirtual.illustrationUrl) || ''}${failedImages[currentVirtual.illustrationUrl] ? `?retry=${failedImages[currentVirtual.illustrationUrl]}` : ''}`}
                         alt="איור"
                         className="absolute inset-0 w-full h-full object-cover"
+                        style={{ transform: 'scale(1.02)' }}
                         loading="eager"
                         onError={() => {
                           const key = currentVirtual.illustrationUrl!;
@@ -1615,6 +1617,7 @@ const StoryViewer = () => {
                         src={`${getPublicIllustrationUrl(currentVirtual.illustrationUrl) || ''}${failedImages[currentVirtual.illustrationUrl] ? `?retry=${failedImages[currentVirtual.illustrationUrl]}` : ''}`}
                         alt="איור"
                         className="absolute inset-0 w-full h-full object-cover"
+                        style={{ transform: 'scale(1.02)' }}
                         loading="eager"
                         onError={() => {
                           const key = currentVirtual.illustrationUrl!;
