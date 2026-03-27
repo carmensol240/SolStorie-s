@@ -50,9 +50,9 @@ serve(async (req) => {
 
     console.log("Sending to Gemini for coloring page conversion...");
 
-    // Call Lovable AI Gateway with image editing (with retry on 429)
-    const aiBody = JSON.stringify({
-      model: "google/gemini-3.1-flash-image-preview",
+    // Call Lovable AI Gateway with adaptive retries + model fallback to reduce 429 failures
+    const buildAiBody = (model: string) => JSON.stringify({
+      model,
       messages: [
         {
           role: "user",
@@ -76,31 +76,65 @@ serve(async (req) => {
       "Content-Type": "application/json",
     };
 
-    let aiResponse: Response | null = null;
-    const maxRetries = 2;
-    for (let attempt = 0; attempt <= maxRetries; attempt++) {
-      aiResponse = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
-        method: "POST",
-        headers: aiHeaders,
-        body: aiBody,
-      });
+    const modelFallbacks = [
+      "google/gemini-3.1-flash-image-preview",
+      "google/gemini-3-pro-image-preview",
+    ];
 
-      if (aiResponse.status !== 429 || attempt === maxRetries) break;
-      console.log(`Rate limited (attempt ${attempt + 1}), waiting ${(attempt + 1) * 5}s...`);
-      await new Promise((r) => setTimeout(r, (attempt + 1) * 5000));
+    let aiResponse: Response | null = null;
+    for (const model of modelFallbacks) {
+      const aiBody = buildAiBody(model);
+      const maxRetries = 4;
+
+      for (let attempt = 0; attempt <= maxRetries; attempt++) {
+        aiResponse = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+          method: "POST",
+          headers: aiHeaders,
+          body: aiBody,
+        });
+
+        if (aiResponse.ok) break;
+
+        if (aiResponse.status !== 429 || attempt === maxRetries) break;
+
+        const retryAfterHeader = aiResponse.headers.get("retry-after");
+        const retryAfterSeconds = retryAfterHeader ? Number.parseInt(retryAfterHeader, 10) : NaN;
+        const backoffSeconds = Number.isFinite(retryAfterSeconds) && retryAfterSeconds > 0
+          ? retryAfterSeconds
+          : Math.min(30, 5 * (2 ** attempt));
+        const jitterMs = Math.floor(Math.random() * 1000);
+
+        console.log(`Rate limited on ${model} (attempt ${attempt + 1}/${maxRetries + 1}), waiting ${backoffSeconds}s...`);
+        await new Promise((r) => setTimeout(r, backoffSeconds * 1000 + jitterMs));
+      }
+
+      if (aiResponse?.ok) break;
+      if (aiResponse?.status === 402) break;
+      if (aiResponse?.status === 429) {
+        console.log(`Model ${model} still rate limited, trying next model...`);
+        continue;
+      }
+      break;
     }
 
     if (!aiResponse!.ok) {
       const status = aiResponse!.status;
       if (status === 429) {
-        return new Response(JSON.stringify({ error: "יותר מדי בקשות, נסו שוב בעוד דקה" }), {
-          status: 429,
+        return new Response(JSON.stringify({
+          error: "השרת עמוס כרגע. נסו שוב בעוד כדקה",
+          code: "RATE_LIMITED",
+          retryable: true,
+        }), {
+          status: 200,
           headers: { ...corsHeaders, "Content-Type": "application/json" },
         });
       }
       if (status === 402) {
-        return new Response(JSON.stringify({ error: "נגמרו הקרדיטים, נסו שוב מאוחר יותר" }), {
-          status: 402,
+        return new Response(JSON.stringify({
+          error: "נגמרו הקרדיטים, נסו שוב מאוחר יותר",
+          code: "CREDITS_EXHAUSTED",
+        }), {
+          status: 200,
           headers: { ...corsHeaders, "Content-Type": "application/json" },
         });
       }
