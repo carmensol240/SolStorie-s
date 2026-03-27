@@ -136,7 +136,7 @@ const About = () => {
           🌟 למה <span dir="ltr" className="inline-block bg-gradient-to-r from-purple-300 via-pink-300 to-orange-300 bg-clip-text text-transparent">SolStorie's</span> היא הרבה מעבר לאפליקציה?
         </p>
 
-        <div className="space-y-4 mb-5 w-full">
+        <div className="space-y-2.5 mb-5 w-full">
           <div className="flex flex-col items-center gap-1.5">
             <span className="text-3xl">⭐</span>
             <p className="text-base font-normal text-white leading-[1.6] text-right px-4" style={{ textShadow: '0 1px 3px rgba(0,0,0,0.3)' }}>
