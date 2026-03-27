@@ -25,6 +25,12 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { useAnalytics } from "@/hooks/use-analytics";
 import { useOfflineStorage } from "@/hooks/use-offline-storage";
 import { useFullOfflineStorage } from "@/hooks/use-full-offline-storage";
@@ -195,6 +201,8 @@ const StoryViewer = () => {
   const [endFeedbackSent, setEndFeedbackSent] = useState(false);
   const [endFeedbackSending, setEndFeedbackSending] = useState(false);
   const [coloringLoading, setColoringLoading] = useState(false);
+  const [coloringPickerOpen, setColoringPickerOpen] = useState(false);
+  const [selectedColoringUrl, setSelectedColoringUrl] = useState<string | null>(null);
   const { trackStoryStarted, trackStoryCompleted, trackPageViewed, trackFeatureUsed } = useAnalytics();
   const { isOnline, cacheStory, getCachedStory } = useOfflineStorage();
   const fullOffline = useFullOfflineStorage();
@@ -1364,32 +1372,84 @@ const StoryViewer = () => {
                   {/* Coloring Page Button */}
                   <div className="pt-2">
                     <Button
-                      onClick={async () => {
+                      onClick={() => {
                         if (!story || coloringLoading) return;
-                        const firstIllustration = story.pages?.find(p => p.illustration_url)?.illustration_url;
-                        if (!firstIllustration) {
-                          toast({ title: "אין איור זמין ליצירת דף צביעה", variant: "destructive" });
+                        const illustrations = story.pages?.filter(p => p.illustration_url).map(p => p.illustration_url!) || [];
+                        if (illustrations.length === 0) {
+                          toast({ title: "אין איורים זמינים ליצירת דף צביעה", variant: "destructive" });
                           return;
                         }
-                        setColoringLoading(true);
-                        try {
-                          const illustrationFullUrl = getPublicIllustrationUrl(firstIllustration);
-                          const { data, error: fnError } = await supabase.functions.invoke('generate-coloring-page', {
-                            body: {
-                              illustration_url: illustrationFullUrl,
-                              story_title: story.topic,
-                              child_name: story.child_name,
-                            },
-                          });
-                          if (fnError || !data?.image) {
-                            const errMsg = data?.error || "שגיאה ביצירת דף הצביעה";
-                            toast({ title: errMsg, variant: "destructive" });
-                            return;
-                          }
-                          // Open print window
-                          const printWindow = window.open('', '_blank');
-                          if (printWindow) {
-                            printWindow.document.write(`<!DOCTYPE html>
+                        setSelectedColoringUrl(null);
+                        setColoringPickerOpen(true);
+                      }}
+                      disabled={coloringLoading}
+                      size="sm"
+                      className="bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white px-4 py-3 rounded-full text-sm gap-1"
+                    >
+                      {coloringLoading ? (
+                        <>
+                          <Loader2 className="w-4 h-4 animate-spin" />
+                          יוצר דף צביעה...
+                        </>
+                      ) : (
+                        <>
+                          <Palette className="w-4 h-4" />
+                          🎨 הדפס דף צביעה
+                        </>
+                      )}
+                    </Button>
+                  </div>
+
+                  {/* Coloring Page Illustration Picker Dialog */}
+                  <Dialog open={coloringPickerOpen} onOpenChange={setColoringPickerOpen}>
+                    <DialogContent className="max-w-md" dir="rtl">
+                      <DialogHeader>
+                        <DialogTitle className="text-center text-lg">🎨 בחרו איור לדף צביעה</DialogTitle>
+                      </DialogHeader>
+                      <div className="grid grid-cols-3 gap-3 max-h-[50vh] overflow-y-auto p-1">
+                        {story?.pages?.filter(p => p.illustration_url).map((page, idx) => {
+                          const url = getPublicIllustrationUrl(page.illustration_url!);
+                          const isSelected = selectedColoringUrl === page.illustration_url;
+                          return (
+                            <button
+                              key={page.id || idx}
+                              onClick={() => setSelectedColoringUrl(page.illustration_url!)}
+                              className={cn(
+                                "relative rounded-lg overflow-hidden border-2 transition-all aspect-square",
+                                isSelected ? "border-purple-500 ring-2 ring-purple-300 scale-105" : "border-transparent hover:border-purple-200"
+                              )}
+                            >
+                              <img src={url!} alt={`עמוד ${page.page_number}`} className="w-full h-full object-cover" />
+                              <span className="absolute bottom-0 left-0 right-0 bg-black/50 text-white text-xs text-center py-0.5">
+                                עמוד {page.page_number}
+                              </span>
+                            </button>
+                          );
+                        })}
+                      </div>
+                      <Button
+                        disabled={!selectedColoringUrl || coloringLoading}
+                        className="w-full bg-gradient-to-r from-purple-600 to-pink-500 hover:from-purple-700 hover:to-pink-600 text-white"
+                        onClick={async () => {
+                          if (!story || !selectedColoringUrl) return;
+                          setColoringPickerOpen(false);
+                          setColoringLoading(true);
+                          try {
+                            const illustrationFullUrl = getPublicIllustrationUrl(selectedColoringUrl);
+                            const { data, error: fnError } = await supabase.functions.invoke('generate-coloring-page', {
+                              body: {
+                                illustration_url: illustrationFullUrl,
+                                story_title: story.topic,
+                                child_name: story.child_name,
+                              },
+                            });
+                            if (fnError || !data?.image) {
+                              toast({ title: data?.error || "שגיאה ביצירת דף הצביעה", variant: "destructive" });
+                              return;
+                            }
+                            const printWindow = window.open('', '_blank');
+                            if (printWindow) {
+                              printWindow.document.write(`<!DOCTYPE html>
 <html dir="rtl">
 <head>
 <meta charset="utf-8">
@@ -1416,32 +1476,27 @@ const StoryViewer = () => {
   <script>window.onload = function() { setTimeout(function() { window.print(); }, 500); }</script>
 </body>
 </html>`);
-                            printWindow.document.close();
+                              printWindow.document.close();
+                            }
+                          } catch (err) {
+                            console.error("Coloring page error:", err);
+                            toast({ title: "שגיאה ביצירת דף הצביעה", variant: "destructive" });
+                          } finally {
+                            setColoringLoading(false);
                           }
-                        } catch (err) {
-                          console.error("Coloring page error:", err);
-                          toast({ title: "שגיאה ביצירת דף הצביעה", variant: "destructive" });
-                        } finally {
-                          setColoringLoading(false);
-                        }
-                      }}
-                      disabled={coloringLoading}
-                      size="sm"
-                      className="bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white px-4 py-3 rounded-full text-sm gap-1"
-                    >
-                      {coloringLoading ? (
-                        <>
-                          <Loader2 className="w-4 h-4 animate-spin" />
-                          יוצר דף צביעה...
-                        </>
-                      ) : (
-                        <>
-                          <Palette className="w-4 h-4" />
-                          🎨 הדפס דף צביעה
-                        </>
-                      )}
-                    </Button>
-                  </div>
+                        }}
+                      >
+                        {coloringLoading ? (
+                          <>
+                            <Loader2 className="w-4 h-4 animate-spin ml-2" />
+                            יוצר דף צביעה...
+                          </>
+                        ) : (
+                          "✨ יצירת דף צביעה"
+                        )}
+                      </Button>
+                    </DialogContent>
+                  </Dialog>
 
                   <div className="pt-2">
                     <span className="text-xl font-black logo-3d-bubble mt-3"><span className="logo-rainbow">SolStorie's™</span></span>
