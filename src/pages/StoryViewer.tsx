@@ -1434,6 +1434,7 @@ const StoryViewer = () => {
                           if (!story || !selectedColoringUrl) return;
                           setColoringPickerOpen(false);
                           setColoringLoading(true);
+                          toast({ title: "מכין את דף הצביעה שלך... זה לוקח כ-30 שניות 🎨" });
                           try {
                             const illustrationFullUrl = getPublicIllustrationUrl(selectedColoringUrl);
                             const { data, error: fnError } = await supabase.functions.invoke('generate-coloring-page', {
