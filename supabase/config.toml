@@ -71,3 +71,6 @@ verify_jwt = false
 
 [functions.redeem-coupon]
 verify_jwt = false
+
+[functions.generate-coloring-page]
+verify_jwt = false

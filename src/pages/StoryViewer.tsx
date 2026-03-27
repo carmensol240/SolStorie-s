@@ -194,6 +194,7 @@ const StoryViewer = () => {
   const [endFeedbackMessage, setEndFeedbackMessage] = useState("");
   const [endFeedbackSent, setEndFeedbackSent] = useState(false);
   const [endFeedbackSending, setEndFeedbackSending] = useState(false);
+  const [coloringLoading, setColoringLoading] = useState(false);
   const { trackStoryStarted, trackStoryCompleted, trackPageViewed, trackFeatureUsed } = useAnalytics();
   const { isOnline, cacheStory, getCachedStory } = useOfflineStorage();
   const fullOffline = useFullOfflineStorage();
@@ -1360,6 +1361,88 @@ const StoryViewer = () => {
                       <p className="text-xs text-purple-600 mt-1">המשוב שלכם עוזר לנו ליצור סיפורים טובים יותר</p>
                     </div>
                   )}
+                  {/* Coloring Page Button */}
+                  <div className="pt-2">
+                    <Button
+                      onClick={async () => {
+                        if (!story || coloringLoading) return;
+                        const firstIllustration = story.pages?.find(p => p.illustration_url)?.illustration_url;
+                        if (!firstIllustration) {
+                          toast({ title: "אין איור זמין ליצירת דף צביעה", variant: "destructive" });
+                          return;
+                        }
+                        setColoringLoading(true);
+                        try {
+                          const illustrationFullUrl = getPublicIllustrationUrl(firstIllustration);
+                          const { data, error: fnError } = await supabase.functions.invoke('generate-coloring-page', {
+                            body: {
+                              illustration_url: illustrationFullUrl,
+                              story_title: story.topic,
+                              child_name: story.child_name,
+                            },
+                          });
+                          if (fnError || !data?.image) {
+                            const errMsg = data?.error || "שגיאה ביצירת דף הצביעה";
+                            toast({ title: errMsg, variant: "destructive" });
+                            return;
+                          }
+                          // Open print window
+                          const printWindow = window.open('', '_blank');
+                          if (printWindow) {
+                            printWindow.document.write(`<!DOCTYPE html>
+<html dir="rtl">
+<head>
+<meta charset="utf-8">
+<title>דף צביעה - ${story.topic}</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Caveat:wght@700&display=swap');
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: 'Caveat', cursive; display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 100vh; padding: 20px; }
+  h1 { font-size: 28px; color: #6B3FA0; margin-bottom: 12px; }
+  img { max-width: 90%; max-height: 65vh; object-fit: contain; border: 2px solid #e0e0e0; border-radius: 12px; }
+  .child-name { font-size: 24px; color: #8B5CF6; margin-top: 12px; }
+  .logo { font-size: 14px; color: #aaa; margin-top: 16px; }
+  @media print {
+    body { padding: 10mm; }
+    img { max-height: 70vh; border: 1px solid #ccc; }
+  }
+</style>
+</head>
+<body>
+  <h1>🎨 ${story.topic} – דף צביעה</h1>
+  <img src="${data.image}" alt="דף צביעה" />
+  <p class="child-name">של ${story.child_name}</p>
+  <p class="logo">SolStorie's™ 📚✨</p>
+  <script>window.onload = function() { setTimeout(function() { window.print(); }, 500); }</script>
+</body>
+</html>`);
+                            printWindow.document.close();
+                          }
+                        } catch (err) {
+                          console.error("Coloring page error:", err);
+                          toast({ title: "שגיאה ביצירת דף הצביעה", variant: "destructive" });
+                        } finally {
+                          setColoringLoading(false);
+                        }
+                      }}
+                      disabled={coloringLoading}
+                      size="sm"
+                      className="bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white px-4 py-3 rounded-full text-sm gap-1"
+                    >
+                      {coloringLoading ? (
+                        <>
+                          <Loader2 className="w-4 h-4 animate-spin" />
+                          יוצר דף צביעה...
+                        </>
+                      ) : (
+                        <>
+                          <Palette className="w-4 h-4" />
+                          🎨 הדפס דף צביעה
+                        </>
+                      )}
+                    </Button>
+                  </div>
+
                   <div className="pt-2">
                     <span className="text-xl font-black logo-3d-bubble mt-3"><span className="logo-rainbow">SolStorie's™</span></span>
                   </div>
