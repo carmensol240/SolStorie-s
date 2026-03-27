@@ -411,7 +411,7 @@ const Library = () => {
           <div className="flex flex-col gap-3 w-full max-w-xs mb-8">
             {[
               { emoji: "📚", text: "ספרייה אישית לכל המשפחה" },
-              { emoji: "🎨", text: "סיפורים בסגנון Pixar עם תמונת הילד" },
+              { emoji: "🎨", text: "איורים תלת-ממדיים קסומים בדמות הילד" },
               { emoji: "📥", text: "הורדה לקריאה אופליין בכל זמן" },
             ].map((feature, i) => (
               <div key={i} className="flex items-center gap-3 rounded-2xl px-4 py-3" style={{ background: 'rgba(255,255,255,0.08)', backdropFilter: 'blur(8px)' }}>
