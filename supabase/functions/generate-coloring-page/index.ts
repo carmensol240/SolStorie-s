@@ -58,7 +58,7 @@ serve(async (req) => {
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        model: "google/gemini-2.5-flash-image",
+        model: "google/gemini-3.1-flash-image-preview",
         messages: [
           {
             role: "user",
@@ -101,10 +101,24 @@ serve(async (req) => {
     }
 
     const aiData = await aiResponse.json();
-    const generatedImage = aiData.choices?.[0]?.message?.images?.[0]?.image_url?.url;
+    console.log("AI response keys:", JSON.stringify(Object.keys(aiData)));
+
+    // Try multiple extraction paths for image data
+    let generatedImage = aiData.choices?.[0]?.message?.images?.[0]?.image_url?.url;
 
     if (!generatedImage) {
-      console.error("No image returned from AI:", JSON.stringify(aiData).slice(0, 500));
+      const content = aiData.choices?.[0]?.message?.content;
+      if (Array.isArray(content)) {
+        const imgPart = content.find((p: any) => p.type === "image_url" || p.type === "image");
+        generatedImage = imgPart?.image_url?.url || imgPart?.url;
+      }
+      if (!generatedImage && typeof content === "string" && content.startsWith("data:image")) {
+        generatedImage = content;
+      }
+    }
+
+    if (!generatedImage) {
+      console.error("No image returned from AI. Response structure:", JSON.stringify(aiData).slice(0, 1000));
       return new Response(JSON.stringify({ error: "לא התקבלה תמונה מהמערכת" }), {
         status: 500,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
