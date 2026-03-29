@@ -359,7 +359,7 @@ const Upgrade = () => {
             <div className="bg-[hsl(260,50%,13%)]/95 backdrop-blur-md rounded-[14px] p-4 space-y-3">
               <div className="flex items-center gap-2">
                 <span className="text-xl">🎓</span>
-                <h3 className="font-black text-sm text-yellow-200">חבילת סיפורי לימוד</h3>
+                <h3 className="font-black text-sm text-yellow-200">חבילת למידה</h3>
                 <span className="bg-yellow-500/30 text-yellow-200 text-[10px] font-bold px-2 py-0.5 rounded-full">חדש!</span>
               </div>
               <p className="text-xs text-white/70 leading-relaxed">
