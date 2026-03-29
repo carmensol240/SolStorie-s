@@ -203,12 +203,13 @@ const StoryViewer = () => {
   const [coloringLoading, setColoringLoading] = useState(false);
   const [coloringPickerOpen, setColoringPickerOpen] = useState(false);
   const [selectedColoringUrl, setSelectedColoringUrl] = useState<string | null>(null);
-  const [portraitImages, setPortraitImages] = useState<Record<string, boolean>>({});
 
   const handleImageLoad = useCallback((e: React.SyntheticEvent<HTMLImageElement>) => {
     const img = e.currentTarget;
     if (img.naturalHeight > img.naturalWidth) {
-      setPortraitImages(prev => ({ ...prev, [img.src]: true }));
+      img.classList.remove('object-cover');
+      img.classList.add('object-contain');
+      img.style.background = 'rgba(0,0,0,0.9)';
     }
   }, []);
   const { trackStoryStarted, trackStoryCompleted, trackPageViewed, trackFeatureUsed } = useAnalytics();
