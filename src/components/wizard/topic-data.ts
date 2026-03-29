@@ -320,7 +320,7 @@ export const CHARACTER_SECTIONS: CharacterSection[] = [
       { id: "number-6", label: "מספר 6 – שישה חברים בגן", description: "6 ילדים משחקים בגן — 6 כובעים, 6 דליים בארגז החול, ו-6 חיוכים גדולים.", image: topicFriendship, ageRange: "3-6", keywords: ["מספר 6", "ספירה", "למידה"], subCategory: "🔢 מספרים" },
       { id: "number-7", label: "מספר 7 – שבעת צבעי הקשת", description: "הרפתקה בעקבות קשת בענן — 7 צבעים מובילים ל-7 עולמות קסומים.", image: topicCloudAdventure, ageRange: "3-6", keywords: ["מספר 7", "ספירה", "למידה"], subCategory: "🔢 מספרים" },
       { id: "number-8", label: "מספר 8 – שמונה רגליים של תמנון", description: "תמנון חמוד עם 8 רגליים — כל רגל עושה משהו אחר: אחת מציירת, אחת מנגנת, אחת מחבקת!", image: topicUnderwater, ageRange: "3-6", keywords: ["מספר 8", "ספירה", "למידה"], subCategory: "🔢 מספרים" },
-      { id: "number-9", label: "מספר 9 – תשע כוכבים בשמיים", description: "9 כוכבים זוהרים בלילה — כל כוכב מספר סוד קטן. מי ימצא את הכוכב התשיעי?", image: topicSpaceAdventure, ageRange: "3-6", keywords: ["מספר 9", "ספירה", "למידה"], subCategory: "🔢 מספרים" },
+      { id: "number-9", label: "מספר 9 – תשע כוכבים בשמיים", description: "9 כוכבים זוהרים בלילה — כל כוכב מספר סוד קטן. מי ימצא את הכוכב התשיעי?", image: topicSpaceHero, ageRange: "3-6", keywords: ["מספר 9", "ספירה", "למידה"], subCategory: "🔢 מספרים" },
       { id: "number-10", label: "מספר 10 – עשר בלונים צבעוניים", description: "10 בלונים עפים לשמיים — נספור אותם ביחד! סיפור שמחה על המספר העגול הראשון.", image: topicBirthday, ageRange: "3-6", keywords: ["מספר 10", "ספירה", "למידה"], subCategory: "🔢 מספרים" },
     ],
   },
