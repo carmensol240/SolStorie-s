@@ -315,6 +315,13 @@ export const CHARACTER_SECTIONS: CharacterSection[] = [
       { id: "number-1", label: "מספר 1 – גיבור יחיד ומיוחד", description: "סיפור על הילד/ה שפוגש/ת את מספר 1 — כוכב אחד, כלב אחד, חיוך אחד גדול. כי אחד יכול לשנות הכל.", image: topicSpaceHero, ageRange: "3-6", keywords: ["מספר 1", "ספירה", "למידה"], subCategory: "🔢 מספרים" },
       { id: "number-2", label: "מספר 2 – שני חברים", description: "סיפור חם על שני חברים שעושים כל דבר יחד — 2 נעליים, 2 ידיים, 2 לבבות.", image: topicFriendship, ageRange: "3-6", keywords: ["מספר 2", "ספירה", "למידה"], subCategory: "🔢 מספרים" },
       { id: "number-3", label: "מספר 3 – שלושת הדובים", description: "הרפתקה עם שלושה דובים חמודים: 3 קערות, 3 כסאות, 3 מיטות — ומספר 3 שמלווה את כל הדרך.", image: topicMagicalForest, ageRange: "3-6", keywords: ["מספר 3", "ספירה", "למידה"], subCategory: "🔢 מספרים" },
+      { id: "number-4", label: "מספר 4 – ארבע עונות השנה", description: "סיפור צבעוני על 4 עונות — חורף, אביב, קיץ וסתיו. בכל עונה 4 הפתעות מחכות!", image: topicNatureSecrets, ageRange: "3-6", keywords: ["מספר 4", "ספירה", "למידה"], subCategory: "🔢 מספרים" },
+      { id: "number-5", label: "מספר 5 – חמש אצבעות קסומות", description: "5 אצבעות ביד אחת — כל אצבע יוצאת להרפתקה משלה. ביחד הן יכולות הכל!", image: topicSuperheroes, ageRange: "3-6", keywords: ["מספר 5", "ספירה", "למידה"], subCategory: "🔢 מספרים" },
+      { id: "number-6", label: "מספר 6 – שישה חברים בגן", description: "6 ילדים משחקים בגן — 6 כובעים, 6 דליים בארגז החול, ו-6 חיוכים גדולים.", image: topicFriendship, ageRange: "3-6", keywords: ["מספר 6", "ספירה", "למידה"], subCategory: "🔢 מספרים" },
+      { id: "number-7", label: "מספר 7 – שבעת צבעי הקשת", description: "הרפתקה בעקבות קשת בענן — 7 צבעים מובילים ל-7 עולמות קסומים.", image: topicCloudAdventure, ageRange: "3-6", keywords: ["מספר 7", "ספירה", "למידה"], subCategory: "🔢 מספרים" },
+      { id: "number-8", label: "מספר 8 – שמונה רגליים של תמנון", description: "תמנון חמוד עם 8 רגליים — כל רגל עושה משהו אחר: אחת מציירת, אחת מנגנת, אחת מחבקת!", image: topicUnderwater, ageRange: "3-6", keywords: ["מספר 8", "ספירה", "למידה"], subCategory: "🔢 מספרים" },
+      { id: "number-9", label: "מספר 9 – תשע כוכבים בשמיים", description: "9 כוכבים זוהרים בלילה — כל כוכב מספר סוד קטן. מי ימצא את הכוכב התשיעי?", image: topicSpaceHero, ageRange: "3-6", keywords: ["מספר 9", "ספירה", "למידה"], subCategory: "🔢 מספרים" },
+      { id: "number-10", label: "מספר 10 – עשר בלונים צבעוניים", description: "10 בלונים עפים לשמיים — נספור אותם ביחד! סיפור שמחה על המספר העגול הראשון.", image: topicBirthday, ageRange: "3-6", keywords: ["מספר 10", "ספירה", "למידה"], subCategory: "🔢 מספרים" },
     ],
   },
 ];
