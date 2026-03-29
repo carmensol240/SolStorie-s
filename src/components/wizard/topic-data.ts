@@ -282,4 +282,20 @@ export const CHARACTER_SECTIONS: CharacterSection[] = [
       { id: "hanukkah-miracle", label: "✡️ חנוכה — נס פך השמן", description: "סיפור קסום על פך שמן קטן שהספיק לשמונה ימים — ועל האור שמנצח את החושך.", image: topicHanukkah, ageRange: "2-8", keywords: ["חנוכה", "נרות", "שמן", "נס", "מנורה", "תורה"], subCategory: "✡️ סיפורים תנ\"כיים" },
     ],
   },
+  {
+    id: "learning",
+    character: "",
+    characterEn: "",
+    categoryLabel: "חבילת למידה",
+    categoryEmoji: "🎓",
+    heroImage: topicEducationalToolbox,
+    topics: [
+      { id: "letter-alef", label: "אות א׳ – אריה האמיץ", description: "סיפור על הילד/ה שפוגש/ת את אות א׳ בדמות אריה אמיץ — המילים 'אריה', 'אמא' ו'אוכל' מלוות את כל ההרפתקה.", image: topicSuperheroes, ageRange: "3-6", keywords: ["אות א", "אלף בית", "למידה"], subCategory: "🔤 אותיות" },
+      { id: "letter-bet", label: "אות ב׳ – הבית הקסום", description: "סיפור על הילד/ה שמגלה בית קסום עם בלונים, בובות ובעלי חיים — והאות ב׳ מופיעה בכל פינה.", image: topicMagicCastle, ageRange: "3-6", keywords: ["אות ב", "אלף בית", "למידה"], subCategory: "🔤 אותיות" },
+      { id: "letter-gimel", label: "אות ג׳ – גינת הפלאות", description: "הרפתקה בגינה קסומה עם גמד, גזר וגשם של כוכבים — כשהאות ג׳ נפגשת עם הילד/ה בכל שלב.", image: topicMagicalForest, ageRange: "3-6", keywords: ["אות ג", "אלף בית", "למידה"], subCategory: "🔤 אותיות" },
+      { id: "number-1", label: "מספר 1 – גיבור יחיד ומיוחד", description: "סיפור על הילד/ה שפוגש/ת את מספר 1 — כוכב אחד, כלב אחד, חיוך אחד גדול. כי אחד יכול לשנות הכל.", image: topicSpaceHero, ageRange: "3-6", keywords: ["מספר 1", "ספירה", "למידה"], subCategory: "🔢 מספרים" },
+      { id: "number-2", label: "מספר 2 – שני חברים", description: "סיפור חם על שני חברים שעושים כל דבר יחד — 2 נעליים, 2 ידיים, 2 לבבות.", image: topicFriendship, ageRange: "3-6", keywords: ["מספר 2", "ספירה", "למידה"], subCategory: "🔢 מספרים" },
+      { id: "number-3", label: "מספר 3 – שלושת הדובים", description: "הרפתקה עם שלושה דובים חמודים: 3 קערות, 3 כסאות, 3 מיטות — ומספר 3 שמלווה את כל הדרך.", image: topicMagicalForest, ageRange: "3-6", keywords: ["מספר 3", "ספירה", "למידה"], subCategory: "🔢 מספרים" },
+    ],
+  },
 ];
