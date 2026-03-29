@@ -1,44 +1,39 @@
 
 
-## Plan: Replace Letter Topic Images with SVG Placeholders
+## Plan: Use `object-contain` for Portrait Illustrations
 
-### Summary
-Add a `letterImage` helper function and replace the `image` field on all 22 letter topics (א–ת) with colored SVG data URIs. Number topics and all other sections remain untouched.
+### Problem
+Story illustrations always use `object-cover`, which crops portrait (taller-than-wide) images on mobile. The full image should be visible.
 
-### Technical Details
+### Approach
+Add an `onLoad` handler to each illustration `<img>` that checks `naturalWidth` vs `naturalHeight`. If portrait, switch to `object-contain` with a dark background. Track portrait status in a state map keyed by URL.
 
-**1. Add helper function** (after imports, before `CHARACTER_SECTIONS`):
+### Changes — `src/pages/StoryViewer.tsx` only
+
+**1. Add state** near other useState declarations:
 ```typescript
-const letterImage = (letter: string, color: string) =>
-  `data:image/svg+xml,${encodeURIComponent(`<svg xmlns="http://www.w3.org/2000/svg" width="400" height="400" style="background:${color}"><text x="50%" y="55%" font-size="200" font-family="Arial" font-weight="bold" fill="white" text-anchor="middle" dominant-baseline="middle">${letter}</text></svg>`)}`;
+const [portraitImages, setPortraitImages] = useState<Record<string, boolean>>({});
 ```
 
-**2. Replace `image` on each letter topic** — cycling through 8 colors:
+**2. Add helper function:**
+```typescript
+const handleImageLoad = (e: React.SyntheticEvent<HTMLImageElement>) => {
+  const img = e.currentTarget;
+  if (img.naturalHeight > img.naturalWidth) {
+    setPortraitImages(prev => ({ ...prev, [img.src]: true }));
+  }
+};
+```
 
-| Letter | Color | Hex |
-|--------|-------|-----|
-| א | purple | #8B5CF6 |
-| ב | pink | #EC4899 |
-| ג | amber | #F59E0B |
-| ד | teal | #14B8A6 |
-| ה | orange | #F97316 |
-| ו | blue | #3B82F6 |
-| ז | green | #22C55E |
-| ח | red | #EF4444 |
-| ט | purple | #8B5CF6 |
-| י | pink | #EC4899 |
-| כ | amber | #F59E0B |
-| ל | teal | #14B8A6 |
-| מ | orange | #F97316 |
-| נ | blue | #3B82F6 |
-| ס | green | #22C55E |
-| ע | red | #EF4444 |
-| פ | purple | #8B5CF6 |
-| צ | pink | #EC4899 |
-| ק | amber | #F59E0B |
-| ר | teal | #14B8A6 |
-| ש | orange | #F97316 |
-| ת | blue | #3B82F6 |
+**3. Update 3 illustration `<img>` tags** (lines ~1544, ~1619, and cover ~1238):
 
-**3. File changed:** `src/components/wizard/topic-data.ts` only. No other files touched.
+- **Combined page (line 1544)** and **Illustration-only page (line 1619)**: Change className from hardcoded `object-cover` to dynamic:
+  ```
+  className={`absolute inset-0 w-full h-full ${portraitImages[src] ? 'object-contain bg-black/90' : 'object-cover'}`}
+  ```
+  Add `onLoad={handleImageLoad}` to each.
+
+- **Cover image (line 1238)**: Already has landscape detection logic — leave as-is (it handles this case).
+
+No other files or logic touched.
 
