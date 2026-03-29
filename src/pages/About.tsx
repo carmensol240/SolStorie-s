@@ -165,6 +165,14 @@ const About = () => {
             </p>
           </div>
 
+          <div className="flex flex-col items-center gap-1.5 relative rounded-xl p-3" style={{ background: 'linear-gradient(135deg, rgba(255,215,0,0.15), rgba(255,165,0,0.10))', border: '1px solid rgba(255,215,0,0.3)' }}>
+            <span className="absolute -top-2 -right-2 bg-amber-400 text-black text-[10px] font-black px-2 py-0.5 rounded-full shadow">חדש ✨</span>
+            <span className="text-3xl">🎓</span>
+            <p className="text-base font-normal text-white leading-[1.6] text-right px-4" style={{ textShadow: '0 1px 3px rgba(0,0,0,0.3)' }}>
+              <strong className="text-amber-300 font-black">חבילת למידה — סיפורי א׳ב׳ ו-1-2-3</strong> — סיפורים מותאמים ללמידת אותיות ומספרים — הילד פוגש כל אות ומספר בתוך הרפתקה אישית מרגשת. מושלם לגיל 3-6.
+            </p>
+          </div>
+
           <div className="flex flex-col items-center gap-1.5">
             <span className="text-3xl">🎓</span>
             <p className="text-base font-normal text-white leading-[1.6] text-right px-4" style={{ textShadow: '0 1px 3px rgba(0,0,0,0.3)' }}>
