@@ -1212,6 +1212,16 @@ serve(async (req) => {
         }
       }
 
+      // Inject learning topic instruction for letter/number stories
+      const isLearningTopic = topic?.startsWith('letter-') || topic?.startsWith('number-');
+      if (isLearningTopic) {
+        const learningLetter = topic?.startsWith('letter-') ? topic.replace('letter-', '').toUpperCase() : null;
+        const learningNumber = topic?.startsWith('number-') ? topic.replace('number-', '') : null;
+        const learningTarget = learningLetter ? `Hebrew letter ${learningLetter}` : `number ${learningNumber}`;
+        illustrationPrompt += ` CRITICAL LEARNING ELEMENT: This is an educational story. The ${learningTarget} MUST appear prominently in this illustration — it fills half the image and is fully visible, not cropped. The letter/number is large, clear, bold, 3D golden style, complete and uncut. Wide shot showing both the child and the full ${learningTarget}. The ${learningTarget} can appear on a wall, tree, sign, cloud, or magical floating object in the scene.`;
+        console.log(`[Page ${page.page_number}] 🎓 Injected learning element: ${learningTarget}`);
+      }
+
       let base64Image: string | null = null;
       let modelUsed = "unknown";
       let fallbackReason: string | undefined;
