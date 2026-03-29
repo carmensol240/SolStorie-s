@@ -92,6 +92,7 @@ const GeneratingStep = ({ formData, onComplete }: GeneratingStepProps) => {
   const [isSentenceVisible, setIsSentenceVisible] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const hasStartedRef = useRef(false);
+  const hasNavigatedRef = useRef(false);
   const retryCountRef = useRef(0);
   const MAX_RETRIES = 2;
 
@@ -252,7 +253,7 @@ const GeneratingStep = ({ formData, onComplete }: GeneratingStepProps) => {
       
       setError("not_created");
     }
-  }, [formData, onComplete, toast, navigate]);
+  }, [formData, toast, navigate]);
 
   // Realtime subscription: watch for illustrations completing
   useEffect(() => {
@@ -273,7 +274,10 @@ const GeneratingStep = ({ formData, onComplete }: GeneratingStepProps) => {
         setProgress(100);
         setShowReadyPopup(true);
         setTimeout(() => {
-          if (storyId) onComplete(storyId);
+          if (storyId && !hasNavigatedRef.current) {
+            hasNavigatedRef.current = true;
+            onComplete(storyId);
+          }
         }, 1500);
         return;
       }
@@ -290,7 +294,10 @@ const GeneratingStep = ({ formData, onComplete }: GeneratingStepProps) => {
         setProgress(100);
         setShowReadyPopup(true);
         setTimeout(() => {
-          if (storyId) onComplete(storyId);
+          if (storyId && !hasNavigatedRef.current) {
+            hasNavigatedRef.current = true;
+            onComplete(storyId);
+          }
         }, 2500);
       }
     };
@@ -408,11 +415,15 @@ const GeneratingStep = ({ formData, onComplete }: GeneratingStepProps) => {
     setShowReadyPopup(false);
     retryCountRef.current = 0;
     hasStartedRef.current = false;
+    hasNavigatedRef.current = false;
     generateStory();
   };
 
   const handleOpenStory = () => {
-    if (storyId) onComplete(storyId);
+    if (storyId && !hasNavigatedRef.current) {
+      hasNavigatedRef.current = true;
+      onComplete(storyId);
+    }
   };
 
   // --- ERROR STATE ---
