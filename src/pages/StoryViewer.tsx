@@ -205,12 +205,12 @@ const StoryViewer = () => {
   const [selectedColoringUrl, setSelectedColoringUrl] = useState<string | null>(null);
   const [portraitImages, setPortraitImages] = useState<Record<string, boolean>>({});
 
-  const handleImageLoad = (e: React.SyntheticEvent<HTMLImageElement>) => {
+  const handleImageLoad = useCallback((e: React.SyntheticEvent<HTMLImageElement>) => {
     const img = e.currentTarget;
     if (img.naturalHeight > img.naturalWidth) {
       setPortraitImages(prev => ({ ...prev, [img.src]: true }));
     }
-  };
+  }, []);
   const { trackStoryStarted, trackStoryCompleted, trackPageViewed, trackFeatureUsed } = useAnalytics();
   const { isOnline, cacheStory, getCachedStory } = useOfflineStorage();
   const fullOffline = useFullOfflineStorage();
@@ -1549,10 +1549,18 @@ const StoryViewer = () => {
                         key={`${currentVirtual.illustrationUrl}-${failedImages[currentVirtual.illustrationUrl] || 0}`}
                         src={`${getPublicIllustrationUrl(currentVirtual.illustrationUrl) || ''}${failedImages[currentVirtual.illustrationUrl] ? `?retry=${failedImages[currentVirtual.illustrationUrl]}` : ''}`}
                         alt="איור"
-                        className={`absolute inset-0 w-full h-full ${portraitImages[`${getPublicIllustrationUrl(currentVirtual.illustrationUrl) || ''}${failedImages[currentVirtual.illustrationUrl] ? `?retry=${failedImages[currentVirtual.illustrationUrl]}` : ''}`] ? 'object-contain bg-black/90' : 'object-cover'}`}
+                        className="absolute inset-0 w-full h-full object-cover"
                         style={{ transform: 'scale(1.02)' }}
                         loading="eager"
-                        onLoad={handleImageLoad}
+                        onLoad={(e) => {
+                          handleImageLoad(e);
+                          const img = e.currentTarget;
+                          if (img.naturalHeight > img.naturalWidth) {
+                            img.classList.remove('object-cover');
+                            img.classList.add('object-contain');
+                            img.parentElement?.classList.add('bg-black/90');
+                          }
+                        }}
                         onError={() => {
                           const key = currentVirtual.illustrationUrl!;
                           const attempts = failedImages[key] || 0;
