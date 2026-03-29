@@ -1553,15 +1553,7 @@ const StoryViewer = () => {
                         className="absolute inset-0 w-full h-full object-cover"
                         style={{ transform: 'scale(1.02)' }}
                         loading="eager"
-                        onLoad={(e) => {
-                          handleImageLoad(e);
-                          const img = e.currentTarget;
-                          if (img.naturalHeight > img.naturalWidth) {
-                            img.classList.remove('object-cover');
-                            img.classList.add('object-contain');
-                            img.parentElement?.classList.add('bg-black/90');
-                          }
-                        }}
+                        onLoad={handleImageLoad}
                         onError={() => {
                           const key = currentVirtual.illustrationUrl!;
                           const attempts = failedImages[key] || 0;
@@ -1637,15 +1629,7 @@ const StoryViewer = () => {
                         className="absolute inset-0 w-full h-full object-cover"
                         style={{ transform: 'scale(1.02)' }}
                         loading="eager"
-                        onLoad={(e) => {
-                          handleImageLoad(e);
-                          const img = e.currentTarget;
-                          if (img.naturalHeight > img.naturalWidth) {
-                            img.classList.remove('object-cover');
-                            img.classList.add('object-contain');
-                            img.parentElement?.classList.add('bg-black/90');
-                          }
-                        }}
+                        onLoad={handleImageLoad}
                         onError={() => {
                           const key = currentVirtual.illustrationUrl!;
                           const attempts = failedImages[key] || 0;
