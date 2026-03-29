@@ -150,6 +150,35 @@ const TOPIC_HEBREW_MAP: Record<string, string> = {
   'samson-hero': 'שמשון הגיבור',
   'esther-queen': 'אסתר המלכה',
   'hanukkah-miracle': 'חנוכה — נס פך השמן',
+
+  // Learning package — letters
+  'letter-alef': 'אות א׳ – אריה האמיץ',
+  'letter-bet': 'אות ב׳ – הבית הקסום',
+  'letter-gimel': 'אות ג׳ – גינת הפלאות',
+  'letter-dalet': 'אות ד׳ – הדלת הסודית',
+  'letter-he': 'אות ה׳ – ההרפתקה בהר',
+  'letter-vav': 'אות ו׳ – הוורד הוורוד',
+  'letter-zayin': 'אות ז׳ – הזיקית הזריזה',
+  'letter-chet': 'אות ח׳ – החתול החמוד',
+  'letter-tet': 'אות ט׳ – הטיול הטעים',
+  'letter-yod': 'אות י׳ – הילד/ה היצירתי/ת',
+  'letter-kaf': 'אות כ׳ – הכוכב הכחול',
+  'letter-lamed': 'אות ל׳ – הלב הלוהט',
+  'letter-mem': 'אות מ׳ – המלך המצחיק',
+  'letter-nun': 'אות נ׳ – הנסיכה הנועזת',
+  'letter-samekh': 'אות ס׳ – הסוס הסוער',
+  'letter-ayin': 'אות ע׳ – העץ הענק',
+  'letter-pe': 'אות פ׳ – הפרפר הפלאי',
+  'letter-tsadi': 'אות צ׳ – הצב הצבעוני',
+  'letter-qof': 'אות ק׳ – הקוף הקטן',
+  'letter-resh': 'אות ר׳ – הרכבת הרועשת',
+  'letter-shin': 'אות ש׳ – השמש השמחה',
+  'letter-tav': 'אות ת׳ – התרנגול התקתק',
+
+  // Learning package — numbers
+  'number-1': 'מספר 1 – גיבור יחיד ומיוחד',
+  'number-2': 'מספר 2 – שני חברים',
+  'number-3': 'מספר 3 – שלושת הדובים',
 };
 
 /**
