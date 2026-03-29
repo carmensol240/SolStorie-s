@@ -1003,6 +1003,7 @@ const StoryViewer = () => {
   };
 
   const isToddler = story?.age_range === '0-2';
+  const isLearningTopic = story?.topic?.startsWith('letter-') || story?.topic?.startsWith('number-');
 
   // Find the best illustration to use as cover: match illustration_prompt keywords to story.topic
   const coverIllustration = useMemo(() => {
@@ -1244,7 +1245,7 @@ const StoryViewer = () => {
                       alt="כריכת הסיפור"
                       className={cn(
                         "absolute inset-0 w-full h-full",
-                        coverIsLandscape ? "object-contain bg-black/40" : "object-cover"
+                        (coverIsLandscape || isLearningTopic) ? "object-contain bg-black/90" : "object-cover"
                       )}
                       style={{ transform: 'scale(1.02)' }}
                       loading="eager"
@@ -1550,8 +1551,8 @@ const StoryViewer = () => {
                         key={`${currentVirtual.illustrationUrl}-${failedImages[currentVirtual.illustrationUrl] || 0}`}
                         src={`${getPublicIllustrationUrl(currentVirtual.illustrationUrl) || ''}${failedImages[currentVirtual.illustrationUrl] ? `?retry=${failedImages[currentVirtual.illustrationUrl]}` : ''}`}
                         alt="איור"
-                        className="absolute inset-0 w-full h-full object-cover"
-                        style={{ transform: 'scale(1.02)' }}
+                        className={`absolute inset-0 w-full h-full ${isLearningTopic ? 'object-contain' : 'object-cover'}`}
+                        style={{ transform: 'scale(1.02)', background: isLearningTopic ? 'rgba(15,25,15,0.95)' : undefined }}
                         loading="eager"
                         onLoad={handleImageLoad}
                         onError={() => {
@@ -1626,8 +1627,8 @@ const StoryViewer = () => {
                         key={`${currentVirtual.illustrationUrl}-${failedImages[currentVirtual.illustrationUrl] || 0}`}
                         src={`${getPublicIllustrationUrl(currentVirtual.illustrationUrl) || ''}${failedImages[currentVirtual.illustrationUrl] ? `?retry=${failedImages[currentVirtual.illustrationUrl]}` : ''}`}
                         alt="איור"
-                        className="absolute inset-0 w-full h-full object-cover"
-                        style={{ transform: 'scale(1.02)' }}
+                        className={`absolute inset-0 w-full h-full ${isLearningTopic ? 'object-contain' : 'object-cover'}`}
+                        style={{ transform: 'scale(1.02)', background: isLearningTopic ? 'rgba(15,25,15,0.95)' : undefined }}
                         loading="eager"
                         onLoad={handleImageLoad}
                         onError={() => {
