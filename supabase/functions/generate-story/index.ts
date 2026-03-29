@@ -438,6 +438,14 @@ const TOPIC_HEBREW_MAP: Record<string, string> = {
   "siblings": "אח או אחות חדשה",
   "confidence": "ביטחון עצמי",
   "nature": "הרפתקה בטבע",
+  // חבילת למידה — אותיות
+  "letter-alef": "אות א׳ – אריה האמיץ",
+  "letter-bet": "אות ב׳ – הבית הקסום",
+  "letter-gimel": "אות ג׳ – גינת הפלאות",
+  // חבילת למידה — מספרים
+  "number-1": "מספר 1 – גיבור יחיד ומיוחד",
+  "number-2": "מספר 2 – שני חברים",
+  "number-3": "מספר 3 – שלושת הדובים",
 };
 
 // Helper function to translate topic ID to Hebrew
