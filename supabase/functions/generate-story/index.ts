@@ -1755,6 +1755,15 @@ ${fullStoryText}`;
       };
     });
 
+    // For learning topics, override the LAST page's illustration prompt
+    if (isLearningTopic && pagesWithoutIllustrations.length > 0) {
+      const lastPage = pagesWithoutIllustrations[pagesWithoutIllustrations.length - 1];
+      const targetDesc = learningLetter 
+        ? `Hebrew letter ${hebrewLearningTarget}` 
+        : `number ${hebrewLearningTarget}`;
+      lastPage.illustration_prompt = `The child ${childName} stands next to the giant glowing ${targetDesc}, which fills half the image and is fully visible, not cropped. The letter is large, clear, bold, 3D golden style, complete and uncut. Wide shot showing both the child and the full ${learningLetter ? 'letter' : 'number'}.`;
+    }
+
     const { error: pagesError } = await supabase
       .from("story_pages")
       .insert(pagesWithoutIllustrations);
