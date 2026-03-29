@@ -203,6 +203,15 @@ const StoryViewer = () => {
   const [coloringLoading, setColoringLoading] = useState(false);
   const [coloringPickerOpen, setColoringPickerOpen] = useState(false);
   const [selectedColoringUrl, setSelectedColoringUrl] = useState<string | null>(null);
+
+  const handleImageLoad = useCallback((e: React.SyntheticEvent<HTMLImageElement>) => {
+    const img = e.currentTarget;
+    if (img.naturalHeight > img.naturalWidth) {
+      img.classList.remove('object-cover');
+      img.classList.add('object-contain');
+      img.style.background = 'rgba(0,0,0,0.9)';
+    }
+  }, []);
   const { trackStoryStarted, trackStoryCompleted, trackPageViewed, trackFeatureUsed } = useAnalytics();
   const { isOnline, cacheStory, getCachedStory } = useOfflineStorage();
   const fullOffline = useFullOfflineStorage();
@@ -1544,6 +1553,7 @@ const StoryViewer = () => {
                         className="absolute inset-0 w-full h-full object-cover"
                         style={{ transform: 'scale(1.02)' }}
                         loading="eager"
+                        onLoad={handleImageLoad}
                         onError={() => {
                           const key = currentVirtual.illustrationUrl!;
                           const attempts = failedImages[key] || 0;
@@ -1619,6 +1629,7 @@ const StoryViewer = () => {
                         className="absolute inset-0 w-full h-full object-cover"
                         style={{ transform: 'scale(1.02)' }}
                         loading="eager"
+                        onLoad={handleImageLoad}
                         onError={() => {
                           const key = currentVirtual.illustrationUrl!;
                           const attempts = failedImages[key] || 0;
