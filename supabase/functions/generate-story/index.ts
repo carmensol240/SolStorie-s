@@ -438,6 +438,14 @@ const TOPIC_HEBREW_MAP: Record<string, string> = {
   "siblings": "אח או אחות חדשה",
   "confidence": "ביטחון עצמי",
   "nature": "הרפתקה בטבע",
+  // חבילת למידה — אותיות
+  "letter-alef": "אות א׳ – אריה האמיץ",
+  "letter-bet": "אות ב׳ – הבית הקסום",
+  "letter-gimel": "אות ג׳ – גינת הפלאות",
+  // חבילת למידה — מספרים
+  "number-1": "מספר 1 – גיבור יחיד ומיוחד",
+  "number-2": "מספר 2 – שני חברים",
+  "number-3": "מספר 3 – שלושת הדובים",
 };
 
 // Helper function to translate topic ID to Hebrew
@@ -707,6 +715,30 @@ serve(async (req) => {
     // === END CREDIT CHECK ===
 
     const { childName, childGender = "male", ageRange, storyLength = "short", topic, nikud, childPhoto, childAvatarUrl, personalityTraits, adventureLogic, language = "he", className, topicDescription, childId, isCustomTopic = false } = await req.json();
+
+    // === LEARNING TOPIC DETECTION ===
+    const isLearningTopic = topic?.startsWith('letter-') || topic?.startsWith('number-');
+    const learningLetter = isLearningTopic && topic?.startsWith('letter-') 
+      ? topic.replace('letter-', '').toUpperCase() 
+      : null;
+    const learningNumber = isLearningTopic && topic?.startsWith('number-')
+      ? topic.replace('number-', '')
+      : null;
+    const learningTarget = learningLetter || learningNumber;
+
+    // Hebrew mapping for learning targets
+    const HEBREW_LETTER_MAP: Record<string, string> = {
+      'ALEF': 'א', 'BET': 'ב', 'GIMEL': 'ג', 'DALET': 'ד', 'HE': 'ה',
+      'VAV': 'ו', 'ZAYIN': 'ז', 'CHET': 'ח', 'TET': 'ט', 'YOD': 'י',
+      'KAF': 'כ', 'LAMED': 'ל', 'MEM': 'מ', 'NUN': 'נ', 'SAMEKH': 'ס',
+      'AYIN': 'ע', 'PE': 'פ', 'TSADI': 'צ', 'QOF': 'ק', 'RESH': 'ר',
+      'SHIN': 'ש', 'TAV': 'ת'
+    };
+    const hebrewLearningTarget = learningLetter 
+      ? (HEBREW_LETTER_MAP[learningLetter] || learningLetter)
+      : learningNumber 
+        ? `מספר ${learningNumber}` 
+        : null;
 
     // === INPUT VALIDATION ===
     // Validate required fields
@@ -1189,6 +1221,17 @@ ${sequelInstruction}
 
 **נושא הסיפור:** ${topic}
 ${hasCustomDescription ? `**תיאור חופשי:** ${personalityTraits}` : ""}
+${isLearningTopic ? `
+**🎓 סיפור לימודי — חובה מוחלטת:**
+${learningLetter ? `- הסיפור עוסק באות ${hebrewLearningTarget}
+- לפחות 8 מילים בסיפור מתחילות באות ${hebrewLearningTarget}
+- האות ${hebrewLearningTarget} מופיעה בולטת בטקסט כך: **${hebrewLearningTarget}**
+- בתחילת הסיפור: "האות של היום היא ${hebrewLearningTarget}!"` : ''}
+${learningNumber ? `- הסיפור עוסק ב${hebrewLearningTarget}
+- המספר ${learningNumber} מופיע כספרה לפחות 5 פעמים בטקסט: **${learningNumber}**
+- תאר בדיוק ${learningNumber} עצמים בכל פרק
+- בתחילת הסיפור: "המספר של היום הוא ${learningNumber}!"` : ''}
+` : ''}
 ${className ? `\n## 🏫 שם הכיתה/הגן: ${className}\nשלב את שם הכיתה/הגן בסיפור בצורה טבעית, לדוגמה: "יַלְדֵי ${className} הִתְרַגְּשׁוּ מְאוֹד..." או "בַּכִּיתָּה ${className} קָרָה הַרְפַּתְקָה מְיֻחֶדֶת...". הזכר את שם הכיתה/הגן לפחות פעמיים בסיפור.\n` : ""}
 
 **ניקוד:** כן - כתוב עם ניקוד מלא ומדויק לכל מילה!
@@ -1235,6 +1278,12 @@ ${adventureLogic ? `
 - הדמות חייבת ללבוש: ${adventureLogic.outfit}
 - הרקע חייב להיות: ${adventureLogic.background}
 - הנושא הכללי: ${adventureLogic.theme}
+` : ''}
+${isLearningTopic ? `
+- באיור הראשון: ${hebrewLearningTarget} מופיעה גדולה ובולטת במרכז האיור בצבע זוהר
+- בכל איור: ${hebrewLearningTarget} מופיע איפשהו בסצנה — על קיר, על עץ, על חולצה
+- האות/מספר בפונט עגול וצבעוני לילדים
+- כל טקסט באיור חייב להיות בעברית בלבד — ${hebrewLearningTarget}
 ` : ''}
 
 ## דיוק לנושא ומקוריות - חובה!
