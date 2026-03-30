@@ -229,7 +229,8 @@ const TopicStep = ({ formData, updateFormData }: TopicStepProps) => {
                 )}
 
                 {/* Topics grid — learning uses two-step selection */}
-                {section.id === "learning" && isExpanded ? (
+                {section.id === "learning" ? (
+                  isExpanded ? (
                   learningSubTab === null ? (
                     <div className="grid grid-cols-2 gap-3">
                       {[
@@ -272,6 +273,7 @@ const TopicStep = ({ formData, updateFormData }: TopicStepProps) => {
                       </div>
                     </div>
                   )
+                ) : null
                 ) : (
                   (() => {
                     const topicsToShow = visibleTopics.filter(t => !t.featured || isExpanded);
@@ -301,7 +303,6 @@ const TopicStep = ({ formData, updateFormData }: TopicStepProps) => {
                     );
                   })()
                 )}
-              </div>
             );
           })}
         </>
