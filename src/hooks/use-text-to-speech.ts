@@ -74,7 +74,7 @@ export const useTextToSpeech = (): UseTextToSpeechReturn => {
       if (arrayBuffer.byteLength === 0) {
         throw new Error('Empty audio response');
       }
-      if (arrayBuffer.byteLength < 1024) {
+      if (arrayBuffer.byteLength < 100) {
         const errorText = new TextDecoder().decode(arrayBuffer);
         console.error('TTS response too small, likely error:', errorText);
         throw new Error('תגובת השמע קטנה מדי - ייתכן שהשירות לא זמין');
@@ -95,6 +95,8 @@ export const useTextToSpeech = (): UseTextToSpeechReturn => {
       audio.preload = 'auto';
       audioRef.current = audio;
 
+      let playbackStarted = false;
+
       audio.onended = () => {
         console.log('Audio playback finished');
         setIsReading(false);
@@ -102,6 +104,8 @@ export const useTextToSpeech = (): UseTextToSpeechReturn => {
       };
 
       audio.onerror = () => {
+        // Ignore errors after successful playback start
+        if (playbackStarted) return;
         const code = audio.error?.code;
         const msg = audio.error?.message;
         console.error('Audio playback error:', { code, msg });
@@ -126,6 +130,7 @@ export const useTextToSpeech = (): UseTextToSpeechReturn => {
           setIsLoading(false);
           setIsReading(true);
           await audio.play();
+          playbackStarted = true;
           console.log('Audio playback started');
         } catch (playError) {
           console.error('Play() failed:', playError);
