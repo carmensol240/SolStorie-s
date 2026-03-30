@@ -298,7 +298,7 @@ const TopicStep = ({ formData, updateFormData }: TopicStepProps) => {
                                     e.stopPropagation();
                                     startReading(LEARNING_PRONUNCIATION[topic.id], 'he');
                                   }}
-                                  className="absolute top-2 right-2 z-10 w-8 h-8 rounded-full bg-white/80 backdrop-blur-sm shadow-md flex items-center justify-center hover:bg-white hover:scale-110 transition-all"
+                                  className="absolute top-2 right-2 z-20 w-8 h-8 rounded-full bg-white/90 backdrop-blur-sm shadow-lg flex items-center justify-center hover:bg-white hover:scale-110 transition-all border border-purple-200"
                                   aria-label="השמע"
                                 >
                                   <Volume2 className="w-4 h-4 text-purple-600" />
