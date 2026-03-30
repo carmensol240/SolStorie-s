@@ -721,14 +721,16 @@ serve(async (req) => {
     const { childName, childGender = "male", ageRange, storyLength = "short", topic, nikud, childPhoto, childAvatarUrl, personalityTraits, adventureLogic, language = "he", className, topicDescription, childId, isCustomTopic = false } = await req.json();
 
     // === LEARNING TOPIC DETECTION ===
-    const isLearningTopic = topic?.startsWith('letter-') || topic?.startsWith('number-');
+    const isLearningTopic = topic?.startsWith('letter-') || topic?.startsWith('number-') || topic?.startsWith('color-') || topic?.startsWith('shape-');
     const learningLetter = isLearningTopic && topic?.startsWith('letter-') 
       ? topic.replace('letter-', '').toUpperCase() 
       : null;
     const learningNumber = isLearningTopic && topic?.startsWith('number-')
       ? topic.replace('number-', '')
       : null;
-    const learningTarget = learningLetter || learningNumber;
+    const learningColor = isLearningTopic && topic?.startsWith('color-') ? topic.replace('color-', '') : null;
+    const learningShape = isLearningTopic && topic?.startsWith('shape-') ? topic.replace('shape-', '') : null;
+    const learningTarget = learningLetter || learningNumber || learningColor || learningShape;
 
     // Hebrew mapping for learning targets
     const HEBREW_LETTER_MAP: Record<string, string> = {
@@ -738,11 +740,23 @@ serve(async (req) => {
       'AYIN': 'ע', 'PE': 'פ', 'TSADI': 'צ', 'QOF': 'ק', 'RESH': 'ר',
       'SHIN': 'ש', 'TAV': 'ת'
     };
+    const COLOR_HEBREW_MAP: Record<string, string> = {
+      'red': 'אדום', 'blue': 'כחול', 'yellow': 'צהוב', 'green': 'ירוק',
+      'orange': 'כתום', 'purple': 'סגול', 'pink': 'ורוד', 'white': 'לבן', 'black': 'שחור',
+    };
+    const SHAPE_HEBREW_MAP: Record<string, string> = {
+      'circle': 'עיגול', 'square': 'ריבוע', 'triangle': 'משולש',
+      'rectangle': 'מלבן', 'heart': 'לב', 'star': 'כוכב',
+    };
     const hebrewLearningTarget = learningLetter 
       ? (HEBREW_LETTER_MAP[learningLetter] || learningLetter)
       : learningNumber 
         ? `מספר ${learningNumber}` 
-        : null;
+        : learningColor
+          ? (COLOR_HEBREW_MAP[learningColor] || learningColor)
+          : learningShape
+            ? (SHAPE_HEBREW_MAP[learningShape] || learningShape)
+            : null;
 
     // === INPUT VALIDATION ===
     // Validate required fields
@@ -1235,6 +1249,14 @@ ${learningNumber ? `- הסיפור עוסק ב${hebrewLearningTarget}
 - המספר ${learningNumber} מופיע כספרה לפחות 5 פעמים בטקסט: **${learningNumber}**
 - תאר בדיוק ${learningNumber} עצמים בכל פרק
 - בתחילת הסיפור: "המספר של היום הוא ${learningNumber}!"` : ''}
+${learningColor ? `- הסיפור עוסק בצבע ${hebrewLearningTarget}
+- הצבע ${hebrewLearningTarget} מופיע לפחות 8 פעמים בטקסט מודגש: **${hebrewLearningTarget}**
+- תאר חפצים, חיות, פרחים ודברים שהם בצבע ${hebrewLearningTarget}
+- בתחילת הסיפור: "הצבע של היום הוא ${hebrewLearningTarget}!"` : ''}
+${learningShape ? `- הסיפור עוסק בצורת ${hebrewLearningTarget}
+- הצורה ${hebrewLearningTarget} מופיעה לפחות 6 פעמים בטקסט מודגש: **${hebrewLearningTarget}**
+- תאר חפצים ודברים שיש להם צורת ${hebrewLearningTarget}
+- בתחילת הסיפור: "הצורה של היום היא ${hebrewLearningTarget}!"` : ''}
 ` : ''}
 ${className ? `\n## 🏫 שם הכיתה/הגן: ${className}\nשלב את שם הכיתה/הגן בסיפור בצורה טבעית, לדוגמה: "יַלְדֵי ${className} הִתְרַגְּשׁוּ מְאוֹד..." או "בַּכִּיתָּה ${className} קָרָה הַרְפַּתְקָה מְיֻחֶדֶת...". הזכר את שם הכיתה/הגן לפחות פעמיים בסיפור.\n` : ""}
 
@@ -1284,11 +1306,16 @@ ${adventureLogic ? `
 - הנושא הכללי: ${adventureLogic.theme}
 ` : ''}
 ${isLearningTopic ? `
-- באיור הראשון: ${hebrewLearningTarget} מופיעה גדולה ובולטת במרכז האיור בצבע זוהר
+${learningLetter || learningNumber ? `- באיור הראשון: ${hebrewLearningTarget} מופיעה גדולה ובולטת במרכז האיור בצבע זוהר
 - בכל איור: ${hebrewLearningTarget} מופיע איפשהו בסצנה — על קיר, על עץ, על חולצה
 - האות/מספר בפונט עגול וצבעוני לילדים
-- כל טקסט באיור חייב להיות בעברית בלבד — ${hebrewLearningTarget}
+- כל טקסט באיור חייב להיות בעברית בלבד — ${hebrewLearningTarget}` : ''}
+${learningColor ? `- כל האיורים מוצפים בצבע ${hebrewLearningTarget} — הרקע, החפצים, הבגדים, הפרחים והשמיים כולם בגוני ${hebrewLearningTarget}
+- הילד/ה לובש/ת בגדים בצבע ${hebrewLearningTarget}` : ''}
+${learningShape ? `- בכל איור מופיעות צורות ${hebrewLearningTarget} גדולות וקטנות מרחפות סביב הדמות
+- צורת ${hebrewLearningTarget} ענקית וזוהרת במרכז הסצנה` : ''}
 - Full body shot of the child, showing complete figure from head to toe. Do NOT cut off any body parts.
+- Full bleed illustration, no white margins, no borders, fills entire frame edge to edge.
 ` : ''}
 
 ## דיוק לנושא ומקוריות - חובה!
@@ -1763,10 +1790,15 @@ ${fullStoryText}`;
     // For learning topics, override the LAST page's illustration prompt
     if (isLearningTopic && pagesWithoutIllustrations.length > 0) {
       const lastPage = pagesWithoutIllustrations[pagesWithoutIllustrations.length - 1];
-      const targetDesc = learningLetter 
-        ? `Hebrew letter ${hebrewLearningTarget}` 
-        : `number ${hebrewLearningTarget}`;
-      lastPage.illustration_prompt = `The child ${childName} stands next to the giant glowing ${targetDesc}, which fills half the image and is fully visible, not cropped. The letter is large, clear, bold, 3D golden style, complete and uncut. Wide shot showing both the child and the full ${learningLetter ? 'letter' : 'number'}. Full body shot of the child, showing complete figure from head to toe. Do NOT cut off any body parts.`;
+      const fullBleed = "Full bleed illustration, no white margins or borders. Disney/Pixar style, warm and magical.";
+      if (learningLetter || learningNumber) {
+        const targetDesc = learningLetter ? `Hebrew letter ${hebrewLearningTarget}` : `number ${hebrewLearningTarget}`;
+        lastPage.illustration_prompt = `The child ${childName} stands next to the giant glowing ${targetDesc}, which fills half the image and is fully visible, not cropped. The letter is large, clear, bold, 3D golden style, complete and uncut. Wide shot showing both the child and the full ${learningLetter ? 'letter' : 'number'}. Full body shot of the child, showing complete figure from head to toe. Do NOT cut off any body parts. ${fullBleed}`;
+      } else if (learningColor) {
+        lastPage.illustration_prompt = `The child ${childName} stands in a scene completely flooded with ${hebrewLearningTarget} — the background, objects, clothing, flowers, and sky are all in shades of ${hebrewLearningTarget}. Full body shot of the child, showing complete figure from head to toe. Do NOT cut off any body parts. ${fullBleed}`;
+      } else if (learningShape) {
+        lastPage.illustration_prompt = `The child ${childName} stands surrounded by giant and small ${hebrewLearningTarget} shapes floating around them in a magical colorful scene. One huge glowing ${hebrewLearningTarget} dominates the center. Full body shot of the child, showing complete figure from head to toe. Do NOT cut off any body parts. ${fullBleed}`;
+      }
     }
 
     const { error: pagesError } = await supabase
