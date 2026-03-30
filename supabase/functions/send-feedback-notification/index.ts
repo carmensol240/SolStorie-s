@@ -65,6 +65,10 @@ const handler = async (req: Request): Promise<Response> => {
                   <td style="padding:8px 0;color:#78350f;font-weight:bold;">דירוג:</td>
                   <td style="padding:8px 0;color:#92400e;text-align:left;">${stars} (${rating}/5)</td>
                 </tr>
+                <tr>
+                  <td style="padding:8px 0;color:#78350f;font-weight:bold;">מייל לתשובה:</td>
+                  <td style="padding:8px 0;color:#92400e;text-align:left;">${safeUserEmail}</td>
+                </tr>
               </table>
             </div>
             ${safeMessage ? `
