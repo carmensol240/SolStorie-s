@@ -71,7 +71,7 @@ const TopicStep = ({ formData, updateFormData }: TopicStepProps) => {
       return CHARACTER_SECTIONS
         .map(s => ({
           ...s,
-          topics: s.topics.filter(t => t.subCategory?.includes("תנ״כיים")),
+          topics: s.topics.filter(t => t.subCategory?.includes('תנ"כיים')),
         }))
         .filter(s => s.topics.length > 0);
     }
