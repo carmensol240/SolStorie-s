@@ -59,6 +59,7 @@ import topicFlyingVacation from "@/assets/topic-flying-vacation.jpg";
 import topicEnvironment from "@/assets/topic-environment.jpg";
 import topicMagicKeys from "@/assets/topic-magic-keys.jpg";
 import topicEducationalToolbox from "@/assets/topic-educational-toolbox.jpeg";
+import topicLearningPackage from "@/assets/topic-learning-package.jpeg";
 const topicDinosaurs = `${TOPIC_IMAGES_BASE}/topic-dinosaurs.png`;
 const topicCardboardHouse = `${TOPIC_IMAGES_BASE}/topic-cardboard-house.png`;
 const topicCandyAlive = `${TOPIC_IMAGES_BASE}/topic-candy-alive.png`;
@@ -299,7 +300,7 @@ export const CHARACTER_SECTIONS: CharacterSection[] = [
     characterEn: "",
     categoryLabel: "חבילת למידה",
     categoryEmoji: "🎓",
-    heroImage: topicEducationalToolbox,
+    heroImage: topicLearningPackage,
     topics: [
       { id: "letter-alef", label: "אות א׳ – אריה האמיץ", description: "סיפור על הילד/ה שפוגש/ת את אות א׳ בדמות אריה אמיץ — המילים 'אריה', 'אמא' ו'אוכל' מלוות את כל ההרפתקה.", image: letterImage("א", "#8B5CF6"), ageRange: "3-6", keywords: ["אות א", "אלף בית", "למידה"], subCategory: "🔤 אותיות" },
       { id: "letter-bet", label: "אות ב׳ – הבית הקסום", description: "סיפור על הילד/ה שמגלה בית קסום עם בלונים, בובות ובעלי חיים — והאות ב׳ מופיעה בכל פינה.", image: letterImage("ב", "#EC4899"), ageRange: "3-6", keywords: ["אות ב", "אלף בית", "למידה"], subCategory: "🔤 אותיות" },
