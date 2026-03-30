@@ -65,9 +65,18 @@ const TopicStep = ({ formData, updateFormData }: TopicStepProps) => {
     }
   };
 
-  const filteredSections = activeTab === "all"
-    ? CHARACTER_SECTIONS
-    : CHARACTER_SECTIONS.filter((s) => s.id === activeTab);
+  const filteredSections = useMemo(() => {
+    if (activeTab === "all") return CHARACTER_SECTIONS;
+    if (activeTab === "biblical") {
+      return CHARACTER_SECTIONS
+        .map(s => ({
+          ...s,
+          topics: s.topics.filter(t => t.subCategory?.includes("תנ״כיים")),
+        }))
+        .filter(s => s.topics.length > 0);
+    }
+    return CHARACTER_SECTIONS.filter((s) => s.id === activeTab);
+  }, [activeTab]);
 
   const isSearching = searchResults !== null;
 
@@ -136,6 +145,17 @@ const TopicStep = ({ formData, updateFormData }: TopicStepProps) => {
               )}
             >
               🌟 הכל
+            </button>
+            <button
+              onClick={() => setActiveTab("biblical")}
+              className={cn(
+                "px-3 py-1.5 rounded-full text-xs font-medium whitespace-nowrap border transition-all flex-shrink-0",
+                activeTab === "biblical"
+                  ? "bg-gradient-to-r from-purple-600 via-pink-500 to-orange-400 text-white border-transparent shadow-md"
+                  : "border-border bg-card text-foreground hover:border-purple-300"
+              )}
+            >
+              ✡️ תנ״כי
             </button>
             {CHARACTER_SECTIONS.map((section) => (
               <button
