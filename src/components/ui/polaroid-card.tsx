@@ -259,22 +259,31 @@ const PolaroidCard = ({
                   </DropdownMenuItem>
                 </DropdownMenuContent>
               </DropdownMenu>
-            </div>
-          </div>
-
-          {/* Title area */}
-          <div dir="rtl" className="mt-1 px-0.5 text-center" style={{ height: '24px' }}>
-            <p
-              className="text-xs font-bold leading-tight line-clamp-1"
-              style={{ fontFamily: "'Caveat', cursive", fontSize: '14px', color: '#e8d5ff' }}
+          {/* Series parts dropdown */}
+          {isSeries && showSeriesDropdown && (
+            <div
+              className="absolute left-0 right-0 top-full mt-1 z-30 rounded-lg overflow-hidden shadow-xl"
+              style={{ background: 'linear-gradient(145deg, #2d1a6e, #1a0f3a)', border: '1px solid rgba(200,180,255,0.2)' }}
+              onClick={(e) => e.stopPropagation()}
             >
-              {topic}
-            </p>
-            {isOfflineSaved && offlineSize > 0 && (
-              <p className="text-[9px] text-purple-300/60 mt-0.5">{formatBytes(offlineSize)}</p>
-            )}
-          </div>
+              {seriesParts!.map((part, idx) => (
+                <button
+                  key={part.id}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setShowSeriesDropdown(false);
+                    onClick(part.id);
+                  }}
+                  className="w-full text-right px-3 py-2 text-xs font-bold transition-colors hover:bg-white/10"
+                  style={{ color: '#e8d5ff', borderBottom: idx < seriesParts!.length - 1 ? '1px solid rgba(200,180,255,0.1)' : 'none' }}
+                >
+                  חלק {idx + 1}
+                </button>
+              ))}
+            </div>
+          )}
         </div>
+      </div>
       </div>
 
       <AlertDialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
