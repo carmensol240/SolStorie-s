@@ -727,11 +727,11 @@ serve(async (req) => {
     const learningLetter = isLearningTopic && learningKey?.startsWith('letter-') 
       ? learningKey.replace('letter-', '').toUpperCase() 
       : null;
-    const learningNumber = isLearningTopic && topic?.startsWith('number-')
-      ? topic.replace('number-', '')
+    const learningNumber = isLearningTopic && learningKey?.startsWith('number-')
+      ? learningKey.replace('number-', '')
       : null;
-    const learningColor = isLearningTopic && topic?.startsWith('color-') ? topic.replace('color-', '') : null;
-    const learningShape = isLearningTopic && topic?.startsWith('shape-') ? topic.replace('shape-', '') : null;
+    const learningColor = isLearningTopic && learningKey?.startsWith('color-') ? learningKey.replace('color-', '') : null;
+    const learningShape = isLearningTopic && learningKey?.startsWith('shape-') ? learningKey.replace('shape-', '') : null;
     const learningTarget = learningLetter || learningNumber || learningColor || learningShape;
 
     // Hebrew mapping for learning targets
