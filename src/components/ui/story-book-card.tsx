@@ -200,7 +200,7 @@ const StoryBookCard = ({
               <h3 className="text-white text-sm font-bold leading-tight line-clamp-2 drop-shadow-md">
                 הסיפור של {childName}
               </h3>
-              <p className="text-white/75 text-xs mt-0.5 line-clamp-1 drop-shadow-sm">{topic}</p>
+              <p className="text-white/75 text-xs mt-0.5 drop-shadow-sm">{topic}</p>
               {isOfflineSaved && offlineSize > 0 && (
                 <p className="text-white/50 text-[10px] mt-0.5">{formatBytes(offlineSize)}</p>
               )}
