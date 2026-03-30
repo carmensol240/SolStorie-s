@@ -207,9 +207,17 @@ const StoryViewer = () => {
   const handleImageLoad = useCallback((e: React.SyntheticEvent<HTMLImageElement>) => {
     const img = e.currentTarget;
     if (img.naturalHeight > img.naturalWidth) {
-      img.classList.remove('object-cover');
+      img.classList.remove('object-cover', 'absolute', 'inset-0');
       img.classList.add('object-contain');
-      
+      img.style.aspectRatio = `${img.naturalWidth} / ${img.naturalHeight}`;
+      img.style.maxHeight = '100%';
+      img.style.maxWidth = '100%';
+      img.style.margin = 'auto';
+
+      const container = img.closest('.animate-fade-in');
+      if (container instanceof HTMLElement) {
+        container.classList.add('flex', 'items-center', 'justify-center');
+      }
     }
   }, []);
   const { trackStoryStarted, trackStoryCompleted, trackPageViewed, trackFeatureUsed } = useAnalytics();
