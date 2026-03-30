@@ -275,8 +275,9 @@ const TopicStep = ({ formData, updateFormData }: TopicStepProps) => {
                   )
                 ) : null
                 ) : (
+                  isExpanded ? (
                   (() => {
-                    const topicsToShow = visibleTopics.filter(t => !t.featured || isExpanded);
+                    const topicsToShow = visibleTopics.filter(t => !t.featured);
                     const ungrouped = topicsToShow.filter(t => !t.subCategory);
                     const subCategories = [...new Set(topicsToShow.filter(t => t.subCategory).map(t => t.subCategory!))];
 
@@ -302,6 +303,7 @@ const TopicStep = ({ formData, updateFormData }: TopicStepProps) => {
                       </>
                     );
                   })()
+                ) : null
                 )}
               </div>
             );
