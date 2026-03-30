@@ -59,6 +59,7 @@ import topicFlyingVacation from "@/assets/topic-flying-vacation.jpg";
 import topicEnvironment from "@/assets/topic-environment.jpg";
 import topicMagicKeys from "@/assets/topic-magic-keys.jpg";
 import topicEducationalToolbox from "@/assets/topic-educational-toolbox.jpeg";
+import topicLearningPackage from "@/assets/topic-learning-package.jpeg";
 const topicDinosaurs = `${TOPIC_IMAGES_BASE}/topic-dinosaurs.png`;
 const topicCardboardHouse = `${TOPIC_IMAGES_BASE}/topic-cardboard-house.png`;
 const topicCandyAlive = `${TOPIC_IMAGES_BASE}/topic-candy-alive.png`;
