@@ -259,6 +259,22 @@ const PolaroidCard = ({
                   </DropdownMenuItem>
                 </DropdownMenuContent>
               </DropdownMenu>
+            </div>
+          </div>
+
+          {/* Title area */}
+          <div dir="rtl" className="mt-1 px-0.5 text-center" style={{ height: '24px' }}>
+            <p
+              className="text-xs font-bold leading-tight line-clamp-1"
+              style={{ fontFamily: "'Caveat', cursive", fontSize: '14px', color: '#e8d5ff' }}
+            >
+              {topic}
+            </p>
+            {isOfflineSaved && offlineSize > 0 && (
+              <p className="text-[9px] text-purple-300/60 mt-0.5">{formatBytes(offlineSize)}</p>
+            )}
+          </div>
+
           {/* Series parts dropdown */}
           {isSeries && showSeriesDropdown && (
             <div
@@ -283,7 +299,6 @@ const PolaroidCard = ({
             </div>
           )}
         </div>
-      </div>
       </div>
 
       <AlertDialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
