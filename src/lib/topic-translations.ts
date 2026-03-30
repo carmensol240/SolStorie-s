@@ -186,6 +186,25 @@ const TOPIC_HEBREW_MAP: Record<string, string> = {
   'number-8': 'מספר 8 – שמונה רגליים של תמנון',
   'number-9': 'מספר 9 – תשע כוכבים בשמיים',
   'number-10': 'מספר 10 – עשר בלונים צבעוניים',
+
+  // Learning package — colors
+  'color-red': 'צבע אדום',
+  'color-blue': 'צבע כחול',
+  'color-yellow': 'צבע צהוב',
+  'color-green': 'צבע ירוק',
+  'color-orange': 'צבע כתום',
+  'color-purple': 'צבע סגול',
+  'color-pink': 'צבע ורוד',
+  'color-white': 'צבע לבן',
+  'color-black': 'צבע שחור',
+
+  // Learning package — shapes
+  'shape-circle': 'צורת עיגול',
+  'shape-square': 'צורת ריבוע',
+  'shape-triangle': 'צורת משולש',
+  'shape-rectangle': 'צורת מלבן',
+  'shape-heart': 'צורת לב',
+  'shape-star': 'צורת כוכב',
 };
 
 /**
