@@ -1,27 +1,49 @@
 
 
-## Plan: Fix send-feedback-notification Edge Function
+## Plan: Add "משובים" (Feedback) Tab to Admin Dashboard
 
-### Analysis
+### Summary
+Add a new tab to the admin dashboard showing all user feedback from `user_feedback` table, with story details resolved from the `page_url` field (which contains `story/{storyId}`).
 
-The function code is syntactically correct and the edge function logs confirm it IS deployed and running — it booted, processed a request, and logged "Feedback notification sent, id: unknown". The "id: unknown" indicates the Resend API returned a response without an `id`, which typically means the email wasn't actually sent (domain/auth issue on Resend's side), but the Edge Function itself is functional.
+### Technical Details — `src/pages/AdminDashboard.tsx` only
 
-However, if the deploy is genuinely failing, the most likely cause is the `esm.sh` import of Resend. The fix is to switch to `npm:` specifier (more stable in Deno) and match the pattern used by `send-contact-form` which uses `fetch` directly instead of the Resend SDK.
+**1. Add interface:**
+```typescript
+interface FeedbackRow {
+  id: string;
+  user_id: string | null;
+  rating: number | null;
+  message: string | null;
+  display_name: string | null;
+  page_url: string | null;
+  created_at: string;
+  is_approved: boolean | null;
+}
+```
 
-### Changes — `supabase/functions/send-feedback-notification/index.ts`
+**2. Add state:**
+```typescript
+const [feedbacks, setFeedbacks] = useState<FeedbackRow[]>([]);
+const [feedbackStories, setFeedbackStories] = useState<Record<string, { child_name: string; topic: string }>>({});
+const [feedbackEmails, setFeedbackEmails] = useState<Record<string, string>>({});
+```
 
-Replace the Resend SDK import with direct `fetch` calls to the Resend API (matching the `send-contact-form` pattern):
+**3. Fetch feedback in the existing `fetchData` function:**
+- Query `user_feedback` ordered by `created_at desc`, limit 200
+- Extract story IDs from `page_url` (format: `story/{uuid}`)
+- Batch-fetch those stories for `child_name` and `topic`
+- Use `get_admin_user_emails()` to resolve user emails by `user_id`
 
-1. Remove `import { Resend }` and `const resend = new Resend(...)` 
-2. Use `const RESEND_API_KEY = Deno.env.get("RESEND_API_KEY")` 
-3. Replace `resend.emails.send({...})` with a direct `fetch("https://api.resend.com/emails", {...})` call
-4. Add HTML escaping for user input (XSS prevention, matching `send-contact-form`)
+**4. Add tab trigger (expand grid from 6 to 7 columns):**
+```tsx
+<TabsTrigger value="feedback">משובים</TabsTrigger>
+```
 
-This eliminates the `esm.sh` dependency entirely, which is the most common cause of Edge Function deploy failures.
+**5. Add TabsContent with table:**
+Columns: תאריך | שם הילד | נושא | דירוג (star icons) | הודעה | מייל | שם משתמש
+
+Display stars as ⭐ repeated `rating` times. Show "—" for missing data. Most recent first (already sorted by query).
 
 ### What stays the same
-- Email content, recipients, subject line
-- CORS headers and error handling
-- Config in `supabase/config.toml`
-- The invoke call in `StoryViewer.tsx`
+All other tabs, logic, data fetching, and components remain untouched.
 
