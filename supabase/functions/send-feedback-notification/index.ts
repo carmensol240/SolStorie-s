@@ -32,12 +32,13 @@ const handler = async (req: Request): Promise<Response> => {
   }
 
   try {
-    const { storyName, childName, rating, message }: FeedbackNotificationRequest = await req.json();
+    const { storyName, childName, rating, message, userEmail }: FeedbackNotificationRequest = await req.json();
 
     const stars = "⭐".repeat(rating || 0);
     const safeStoryName = escapeHtml(storyName || "לא צוין");
     const safeChildName = escapeHtml(childName || "לא צוין");
     const safeMessage = message ? escapeHtml(message) : "";
+    const safeUserEmail = escapeHtml(userEmail || "לא צוין");
 
     const emailHtml = `
       <!DOCTYPE html>
