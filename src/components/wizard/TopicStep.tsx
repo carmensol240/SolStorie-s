@@ -194,8 +194,8 @@ const TopicStep = ({ formData, updateFormData }: TopicStepProps) => {
                   </div>
                 </button>
 
-                {/* Featured topics (always visible, highlighted) */}
-                {featuredTopics.length > 0 && !isExpanded && (
+                {/* Featured topics (always visible, highlighted) — hidden for learning */}
+                {featuredTopics.length > 0 && !isExpanded && section.id !== "learning" && (
                   <div className="space-y-2">
                     {featuredTopics.map((topic) => (
                       <button
