@@ -228,34 +228,79 @@ const TopicStep = ({ formData, updateFormData }: TopicStepProps) => {
                   </div>
                 )}
 
-                {/* Topics grid — grouped by subCategory */}
-                {(() => {
-                  const topicsToShow = visibleTopics.filter(t => !t.featured || isExpanded);
-                  const ungrouped = topicsToShow.filter(t => !t.subCategory);
-                  const subCategories = [...new Set(topicsToShow.filter(t => t.subCategory).map(t => t.subCategory!))];
-
-                  return (
-                    <>
-                      {ungrouped.length > 0 && (
-                        <div className="grid grid-cols-2 gap-2">
-                          {ungrouped.map((topic) => (
+                {/* Topics grid — learning uses two-step selection */}
+                {section.id === "learning" && isExpanded ? (
+                  learningSubTab === null ? (
+                    <div className="grid grid-cols-2 gap-3">
+                      {[
+                        { prefix: "letter-", emoji: "🔤", label: "אותיות", from: "from-blue-500", to: "to-cyan-400" },
+                        { prefix: "number-", emoji: "🔢", label: "מספרים", from: "from-green-500", to: "to-emerald-400" },
+                        { prefix: "color-", emoji: "🎨", label: "צבעים", from: "from-pink-500", to: "to-rose-400" },
+                        { prefix: "shape-", emoji: "⭐", label: "צורות", from: "from-amber-500", to: "to-yellow-400" },
+                      ].map((cat) => (
+                        <button
+                          key={cat.prefix}
+                          onClick={() => setLearningSubTab(cat.prefix)}
+                          className={cn(
+                            "rounded-2xl aspect-[4/3] flex flex-col items-center justify-center gap-2 text-white font-black text-lg shadow-lg border-2 border-white/20 hover:scale-105 transition-transform",
+                            `bg-gradient-to-br ${cat.from} ${cat.to}`
+                          )}
+                        >
+                          <span className="text-4xl">{cat.emoji}</span>
+                          <span>{cat.label}</span>
+                          <span className="text-xs font-medium opacity-80">
+                            {section.topics.filter(t => t.id.startsWith(cat.prefix)).length} נושאים
+                          </span>
+                        </button>
+                      ))}
+                    </div>
+                  ) : (
+                    <div className="space-y-3">
+                      <button
+                        onClick={() => setLearningSubTab(null)}
+                        className="flex items-center gap-1 text-sm font-bold text-purple-600 dark:text-purple-400 hover:underline"
+                      >
+                        <ChevronDown className="w-4 h-4 rotate-90" />
+                        חזרה לקטגוריות
+                      </button>
+                      <div className="grid grid-cols-2 gap-2">
+                        {section.topics
+                          .filter(t => t.id.startsWith(learningSubTab))
+                          .map((topic) => (
                             <SimpleTile key={topic.id} topic={topic} isSelected={formData.topic === topic.id} onSelect={() => handleTopicSelect(topic)} />
                           ))}
-                        </div>
-                      )}
-                      {subCategories.map((subCat) => (
-                        <div key={subCat} className="space-y-2 mt-3">
-                          <h4 className="text-sm font-bold text-amber-700 dark:text-amber-400 border-b border-amber-200 dark:border-amber-800 pb-1">{subCat}</h4>
+                      </div>
+                    </div>
+                  )
+                ) : (
+                  (() => {
+                    const topicsToShow = visibleTopics.filter(t => !t.featured || isExpanded);
+                    const ungrouped = topicsToShow.filter(t => !t.subCategory);
+                    const subCategories = [...new Set(topicsToShow.filter(t => t.subCategory).map(t => t.subCategory!))];
+
+                    return (
+                      <>
+                        {ungrouped.length > 0 && (
                           <div className="grid grid-cols-2 gap-2">
-                            {topicsToShow.filter(t => t.subCategory === subCat).map((topic) => (
+                            {ungrouped.map((topic) => (
                               <SimpleTile key={topic.id} topic={topic} isSelected={formData.topic === topic.id} onSelect={() => handleTopicSelect(topic)} />
                             ))}
                           </div>
-                        </div>
-                      ))}
-                    </>
-                  );
-                })()}
+                        )}
+                        {subCategories.map((subCat) => (
+                          <div key={subCat} className="space-y-2 mt-3">
+                            <h4 className="text-sm font-bold text-amber-700 dark:text-amber-400 border-b border-amber-200 dark:border-amber-800 pb-1">{subCat}</h4>
+                            <div className="grid grid-cols-2 gap-2">
+                              {topicsToShow.filter(t => t.subCategory === subCat).map((topic) => (
+                                <SimpleTile key={topic.id} topic={topic} isSelected={formData.topic === topic.id} onSelect={() => handleTopicSelect(topic)} />
+                              ))}
+                            </div>
+                          </div>
+                        ))}
+                      </>
+                    );
+                  })()
+                )}
               </div>
             );
           })}
