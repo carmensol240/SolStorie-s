@@ -91,6 +91,17 @@ interface CouponRedemptionRow {
   redeemed_at: string | null;
 }
 
+interface FeedbackRow {
+  id: string;
+  user_id: string | null;
+  rating: number | null;
+  message: string | null;
+  display_name: string | null;
+  page_url: string | null;
+  created_at: string;
+  is_approved: boolean | null;
+}
+
 interface CoverLogRow {
   id: string;
   story_id: string;
