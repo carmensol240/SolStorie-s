@@ -1335,14 +1335,14 @@ const StoryViewer = () => {
                       <ArrowRight className="w-4 h-4" />
                       חזרה לספרייה
                     </Button>
+                    <Button
+                      onClick={() => handlePageNav('next')}
+                      className="bg-gradient-to-r from-amber-400 to-yellow-500 hover:from-amber-500 hover:to-yellow-600 text-amber-950 font-bold px-8 py-3 rounded-full shadow-xl text-base gap-2 animate-bounce-gentle mt-2"
+                    >
+                      לדף הסיום ✨
+                    </Button>
                   </div>
                 </div>
-
-                {/* Left arrow to advance to feedback page */}
-                <button onClick={() => handlePageNav('next')} aria-label="עמוד הבא"
-                  className="absolute left-2 top-1/2 -translate-y-1/2 z-20 w-8 h-8 rounded-full flex items-center justify-center bg-white/20 hover:bg-white/40 text-white transition-all">
-                  <ChevronLeft className="w-5 h-5" />
-                </button>
               </div>
 
             ) : isEndPage ? (
