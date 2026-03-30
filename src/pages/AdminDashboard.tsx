@@ -130,6 +130,9 @@ const AdminDashboard = () => {
   const [coupons, setCoupons] = useState<CouponRow[]>([]);
   const [couponRedemptions, setCouponRedemptions] = useState<CouponRedemptionRow[]>([]);
   const [expandedCoupon, setExpandedCoupon] = useState<string | null>(null);
+  const [feedbacks, setFeedbacks] = useState<FeedbackRow[]>([]);
+  const [feedbackStories, setFeedbackStories] = useState<Record<string, { child_name: string; topic: string }>>({});
+  const [feedbackEmails, setFeedbackEmails] = useState<Record<string, string>>({});
   const [loading, setLoading] = useState(true);
   const [authReady, setAuthReady] = useState(false);
   const { toast } = useToast();
