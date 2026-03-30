@@ -1776,6 +1776,15 @@ const StoryViewer = () => {
                             {displayText}
                           </p>
                         </div>
+                        {isLearningTopic && learningPronunciation && (
+                          <button
+                            onClick={() => startReading(learningPronunciation, 'he')}
+                            className="absolute bottom-12 right-3 z-20 w-10 h-10 rounded-full bg-white/90 shadow-lg flex items-center justify-center hover:scale-110 transition-transform border border-purple-200"
+                            aria-label="השמע"
+                          >
+                            <Volume2 className="w-5 h-5 text-purple-600" />
+                          </button>
+                        )}
                         <div className="flex-1" />
                         <div className="pb-4 shrink-0">
                           <span className="text-xs font-light" style={{ color: 'rgba(255,255,255,0.25)' }}>{Math.ceil((currentPage + 1) / 2)} / {story.pages.length}</span>
