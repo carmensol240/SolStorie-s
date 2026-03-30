@@ -1317,10 +1317,10 @@ ${adventureLogic ? `
 - הנושא הכללי: ${adventureLogic.theme}
 ` : ''}
 ${isLearningTopic ? `
-${learningLetter || learningNumber ? `- באיור הראשון: ${hebrewLearningTarget} מופיעה גדולה ובולטת במרכז האיור בצבע זוהר
-- בכל איור: ${hebrewLearningTarget} מופיע איפשהו בסצנה — על קיר, על עץ, על חולצה
+${learningLetter || learningNumber ? `- באיור הראשון: ${illustrationLearningTarget} מופיעה גדולה ובולטת במרכז האיור בצבע זוהר
+- בכל איור: ${illustrationLearningTarget} מופיע איפשהו בסצנה — על קיר, על עץ, על חולצה
 - האות/מספר בפונט עגול וצבעוני לילדים
-- כל טקסט באיור חייב להיות בעברית בלבד — ${hebrewLearningTarget}` : ''}
+${learningNumber ? `- Show the Arabic numeral digit ${learningNumber}, NOT a Hebrew letter.` : `- כל טקסט באיור חייב להיות בעברית בלבד — ${illustrationLearningTarget}`}` : ''}
 ${learningColor ? `- כל האיורים מוצפים בצבע ${hebrewLearningTarget} — הרקע, החפצים, הבגדים, הפרחים והשמיים כולם בגוני ${hebrewLearningTarget}
 - הילד/ה לובש/ת בגדים בצבע ${hebrewLearningTarget}` : ''}
 ${learningShape ? `- בכל איור מופיעות צורות ${hebrewLearningTarget} גדולות וקטנות מרחפות סביב הדמות
