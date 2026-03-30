@@ -181,9 +181,9 @@ const About = () => {
           </div>
 
           <div className="flex flex-col items-center gap-1.5">
-            <span className="text-3xl">🎨</span>
+            <span className="text-3xl">🎨📚</span>
             <p className="text-base font-normal text-white leading-[1.6] text-right px-4" style={{ textShadow: '0 1px 3px rgba(0,0,0,0.3)' }}>
-              <strong className="text-orange-200 font-black">דפי צביעה מותאמים אישית</strong> — כל איור מהסיפור ניתן להורדה כדף צביעה לילדכם — להדפסה בבית עם קווים עבים וברורים לצביעה נוחה.
+              <strong className="text-orange-200 font-black">למידה, יצירה וצביעה</strong> — כל סיפור מגיע עם דף צביעה מותאם אישית להדפסה בבית — ובחבילת הלמידה, הילד פוגש אותיות ומספרים בתוך הרפתקה קסומה משלו.
             </p>
           </div>
 
