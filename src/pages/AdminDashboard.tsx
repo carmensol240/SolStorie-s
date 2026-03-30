@@ -1057,6 +1057,51 @@ const AdminDashboard = () => {
             </Card>
           </TabsContent>
 
+
+          <TabsContent value="feedback">
+            <Card>
+              <CardContent className="p-0">
+                <div className="overflow-x-auto">
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead className="text-right">תאריך</TableHead>
+                        <TableHead className="text-right">שם הילד</TableHead>
+                        <TableHead className="text-right">נושא</TableHead>
+                        <TableHead className="text-right">דירוג</TableHead>
+                        <TableHead className="text-right">הודעה</TableHead>
+                        <TableHead className="text-right">מייל</TableHead>
+                        <TableHead className="text-right">שם משתמש</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {loading ? (
+                        <TableRow><TableCell colSpan={7} className="text-center">טוען...</TableCell></TableRow>
+                      ) : feedbacks.length === 0 ? (
+                        <TableRow><TableCell colSpan={7} className="text-center text-muted-foreground">אין משובים</TableCell></TableRow>
+                      ) : feedbacks.map((fb) => {
+                        const storyId = fb.page_url?.match(/story\/([a-f0-9-]{36})/)?.[1];
+                        const storyInfo = storyId ? feedbackStories[storyId] : null;
+                        const email = fb.user_id ? feedbackEmails[fb.user_id] : null;
+                        return (
+                          <TableRow key={fb.id}>
+                            <TableCell className="text-xs">{formatDate(fb.created_at)}</TableCell>
+                            <TableCell>{storyInfo?.child_name || "—"}</TableCell>
+                            <TableCell>{storyInfo?.topic || "—"}</TableCell>
+                            <TableCell>{fb.rating ? "⭐".repeat(fb.rating) : "—"}</TableCell>
+                            <TableCell className="max-w-[200px] truncate">{fb.message || "—"}</TableCell>
+                            <TableCell className="text-xs text-muted-foreground">{email || "—"}</TableCell>
+                            <TableCell>{fb.display_name || "—"}</TableCell>
+                          </TableRow>
+                        );
+                      })}
+                    </TableBody>
+                  </Table>
+                </div>
+              </CardContent>
+            </Card>
+          </TabsContent>
+
         </Tabs>
 
         {/* Confirm mark-as-reviewed dialog */}
