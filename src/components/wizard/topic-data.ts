@@ -109,6 +109,12 @@ const topicHolidaysSeasons = `${TOPIC_IMAGES_BASE}/topic-holidays-seasons.png`;
 const letterImage = (letter: string, color: string) =>
   `data:image/svg+xml,${encodeURIComponent(`<svg xmlns="http://www.w3.org/2000/svg" width="400" height="400" style="background:${color}"><text x="50%" y="55%" font-size="200" font-family="Arial" font-weight="bold" fill="white" text-anchor="middle" dominant-baseline="middle">${letter}</text></svg>`)}`;
 
+const colorImage = (name: string, baseColor: string, lightColor: string) =>
+  `data:image/svg+xml,${encodeURIComponent(`<svg xmlns="http://www.w3.org/2000/svg" width="400" height="400"><defs><linearGradient id="bg" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="${baseColor}"/><stop offset="100%" stop-color="${lightColor}"/></linearGradient><filter id="glow"><feGaussianBlur stdDeviation="12" result="blur"/><feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge></filter></defs><rect width="400" height="400" fill="url(#bg)"/><ellipse cx="200" cy="175" rx="110" ry="95" fill="${lightColor}" opacity="0.45" filter="url(#glow)"/><text x="50%" y="82%" font-size="48" font-family="Arial" font-weight="bold" fill="white" text-anchor="middle" dominant-baseline="middle">${name}</text></svg>`)}`;
+
+const shapeImage = (name: string, gradFrom: string, gradTo: string, shapeSvg: string) =>
+  `data:image/svg+xml,${encodeURIComponent(`<svg xmlns="http://www.w3.org/2000/svg" width="400" height="400"><defs><linearGradient id="bg" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="${gradFrom}"/><stop offset="100%" stop-color="${gradTo}"/></linearGradient><filter id="glow"><feGaussianBlur stdDeviation="10" result="blur"/><feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge></filter></defs><rect width="400" height="400" fill="url(#bg)"/>${shapeSvg}<text x="50%" y="82%" font-size="48" font-family="Arial" font-weight="bold" fill="white" text-anchor="middle" dominant-baseline="middle">${name}</text></svg>`)}`;
+
 
 export interface TopicItem {
   id: string;
