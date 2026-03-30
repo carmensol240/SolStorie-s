@@ -70,7 +70,7 @@ serve(async (req) => {
 7. RESOLUTION: Output a high-resolution image (at least 2400x3200 pixels) suitable for 300 DPI A4 printing.
 8. BACKGROUND: Pure white (#FFFFFF) background with no marks or artifacts.
 
-Output ONLY the coloring page image, nothing else.`,
+Output ONLY the coloring page image, nothing else. Do not include any text, labels, letter names, or written words anywhere in the image.`,
             },
             {
               type: "image_url",
