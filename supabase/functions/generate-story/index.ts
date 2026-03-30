@@ -1306,11 +1306,16 @@ ${adventureLogic ? `
 - הנושא הכללי: ${adventureLogic.theme}
 ` : ''}
 ${isLearningTopic ? `
-- באיור הראשון: ${hebrewLearningTarget} מופיעה גדולה ובולטת במרכז האיור בצבע זוהר
+${learningLetter || learningNumber ? `- באיור הראשון: ${hebrewLearningTarget} מופיעה גדולה ובולטת במרכז האיור בצבע זוהר
 - בכל איור: ${hebrewLearningTarget} מופיע איפשהו בסצנה — על קיר, על עץ, על חולצה
 - האות/מספר בפונט עגול וצבעוני לילדים
-- כל טקסט באיור חייב להיות בעברית בלבד — ${hebrewLearningTarget}
+- כל טקסט באיור חייב להיות בעברית בלבד — ${hebrewLearningTarget}` : ''}
+${learningColor ? `- כל האיורים מוצפים בצבע ${hebrewLearningTarget} — הרקע, החפצים, הבגדים, הפרחים והשמיים כולם בגוני ${hebrewLearningTarget}
+- הילד/ה לובש/ת בגדים בצבע ${hebrewLearningTarget}` : ''}
+${learningShape ? `- בכל איור מופיעות צורות ${hebrewLearningTarget} גדולות וקטנות מרחפות סביב הדמות
+- צורת ${hebrewLearningTarget} ענקית וזוהרת במרכז הסצנה` : ''}
 - Full body shot of the child, showing complete figure from head to toe. Do NOT cut off any body parts.
+- Full bleed illustration, no white margins, no borders, fills entire frame edge to edge.
 ` : ''}
 
 ## דיוק לנושא ומקוריות - חובה!
