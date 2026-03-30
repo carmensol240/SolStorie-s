@@ -1216,14 +1216,7 @@ const StoryViewer = () => {
         isRegeneratingCover={isRegeneratingCover}
       />
 
-      {/* Series navigation bar */}
-      {seriesParts.length > 1 && resolvedId && (
-        <SeriesNavBar
-          parts={seriesParts}
-          currentStoryId={resolvedId}
-          onNavigate={(id) => navigate(`/story/${id}`)}
-        />
-      )}
+      {/* Series navigation bar removed */}
 
       {/* Portrait overlay removed - vertical layout */}
 
