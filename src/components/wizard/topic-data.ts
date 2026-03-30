@@ -298,7 +298,7 @@ export const CHARACTER_SECTIONS: CharacterSection[] = [
     id: "learning",
     character: "",
     characterEn: "",
-    categoryLabel: "חבילת למידה",
+    categoryLabel: "ספריית הלימוד",
     categoryEmoji: "🎓",
     heroImage: topicLearningPackage,
     topics: [
