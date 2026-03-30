@@ -908,6 +908,7 @@ const StoryViewer = () => {
           childName: story?.child_name || '',
           rating: endFeedbackRating,
           message: endFeedbackMessage.trim() || '',
+          userEmail: user?.email || '',
         },
       }).catch(err => console.error('Feedback email error:', err));
     } catch (err) {

@@ -12,6 +12,7 @@ interface FeedbackNotificationRequest {
   childName: string;
   rating: number;
   message: string;
+  userEmail: string;
 }
 
 function escapeHtml(text: string): string {
@@ -31,12 +32,13 @@ const handler = async (req: Request): Promise<Response> => {
   }
 
   try {
-    const { storyName, childName, rating, message }: FeedbackNotificationRequest = await req.json();
+    const { storyName, childName, rating, message, userEmail }: FeedbackNotificationRequest = await req.json();
 
     const stars = "⭐".repeat(rating || 0);
     const safeStoryName = escapeHtml(storyName || "לא צוין");
     const safeChildName = escapeHtml(childName || "לא צוין");
     const safeMessage = message ? escapeHtml(message) : "";
+    const safeUserEmail = escapeHtml(userEmail || "לא צוין");
 
     const emailHtml = `
       <!DOCTYPE html>
@@ -62,6 +64,10 @@ const handler = async (req: Request): Promise<Response> => {
                 <tr>
                   <td style="padding:8px 0;color:#78350f;font-weight:bold;">דירוג:</td>
                   <td style="padding:8px 0;color:#92400e;text-align:left;">${stars} (${rating}/5)</td>
+                </tr>
+                <tr>
+                  <td style="padding:8px 0;color:#78350f;font-weight:bold;">מייל לתשובה:</td>
+                  <td style="padding:8px 0;color:#92400e;text-align:left;">${safeUserEmail}</td>
                 </tr>
               </table>
             </div>
