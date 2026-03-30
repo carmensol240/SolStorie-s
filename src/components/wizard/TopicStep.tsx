@@ -303,6 +303,7 @@ const TopicStep = ({ formData, updateFormData }: TopicStepProps) => {
                       </>
                     );
                   })()
+                ) : null
                 )}
               </div>
             );
