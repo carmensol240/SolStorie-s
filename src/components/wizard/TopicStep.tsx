@@ -40,7 +40,7 @@ const TopicStep = ({ formData, updateFormData }: TopicStepProps) => {
   const [searchQuery, setSearchQuery] = useState("");
   const [expandedSections, setExpandedSections] = useState<Set<string>>(new Set());
   const [learningSubTab, setLearningSubTab] = useState<string | null>(null);
-  const { startReading } = useTextToSpeech();
+  
 
   const genderSuffix = formData.childGender === "female" ? "ת" : "";
   const childNameForPlaceholder = formData.childName?.trim() || "הילד/ה שלך";
