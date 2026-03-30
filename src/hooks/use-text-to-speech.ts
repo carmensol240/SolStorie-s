@@ -45,7 +45,7 @@ export const useTextToSpeech = (): UseTextToSpeechReturn => {
       const supabaseKey = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY;
 
       const response = await fetch(
-        `${supabaseUrl}/functions/v1/azure-speech-tts`,
+        `${supabaseUrl}/functions/v1/elevenlabs-tts`,
         {
           method: 'POST',
           headers: {
