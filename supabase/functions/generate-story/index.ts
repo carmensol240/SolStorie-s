@@ -721,14 +721,16 @@ serve(async (req) => {
     const { childName, childGender = "male", ageRange, storyLength = "short", topic, nikud, childPhoto, childAvatarUrl, personalityTraits, adventureLogic, language = "he", className, topicDescription, childId, isCustomTopic = false } = await req.json();
 
     // === LEARNING TOPIC DETECTION ===
-    const isLearningTopic = topic?.startsWith('letter-') || topic?.startsWith('number-');
+    const isLearningTopic = topic?.startsWith('letter-') || topic?.startsWith('number-') || topic?.startsWith('color-') || topic?.startsWith('shape-');
     const learningLetter = isLearningTopic && topic?.startsWith('letter-') 
       ? topic.replace('letter-', '').toUpperCase() 
       : null;
     const learningNumber = isLearningTopic && topic?.startsWith('number-')
       ? topic.replace('number-', '')
       : null;
-    const learningTarget = learningLetter || learningNumber;
+    const learningColor = isLearningTopic && topic?.startsWith('color-') ? topic.replace('color-', '') : null;
+    const learningShape = isLearningTopic && topic?.startsWith('shape-') ? topic.replace('shape-', '') : null;
+    const learningTarget = learningLetter || learningNumber || learningColor || learningShape;
 
     // Hebrew mapping for learning targets
     const HEBREW_LETTER_MAP: Record<string, string> = {
@@ -738,11 +740,23 @@ serve(async (req) => {
       'AYIN': 'ע', 'PE': 'פ', 'TSADI': 'צ', 'QOF': 'ק', 'RESH': 'ר',
       'SHIN': 'ש', 'TAV': 'ת'
     };
+    const COLOR_HEBREW_MAP: Record<string, string> = {
+      'red': 'אדום', 'blue': 'כחול', 'yellow': 'צהוב', 'green': 'ירוק',
+      'orange': 'כתום', 'purple': 'סגול', 'pink': 'ורוד', 'white': 'לבן', 'black': 'שחור',
+    };
+    const SHAPE_HEBREW_MAP: Record<string, string> = {
+      'circle': 'עיגול', 'square': 'ריבוע', 'triangle': 'משולש',
+      'rectangle': 'מלבן', 'heart': 'לב', 'star': 'כוכב',
+    };
     const hebrewLearningTarget = learningLetter 
       ? (HEBREW_LETTER_MAP[learningLetter] || learningLetter)
       : learningNumber 
         ? `מספר ${learningNumber}` 
-        : null;
+        : learningColor
+          ? (COLOR_HEBREW_MAP[learningColor] || learningColor)
+          : learningShape
+            ? (SHAPE_HEBREW_MAP[learningShape] || learningShape)
+            : null;
 
     // === INPUT VALIDATION ===
     // Validate required fields
