@@ -1,18 +1,20 @@
 
 
-## Plan: Add No-Text Rule to Coloring Page Prompt
+## Plan: Add Color and Shape Topics to Learning Category
 
-### Change — `supabase/functions/generate-coloring-page/index.ts` line 73
+### Change — `src/components/wizard/topic-data.ts` line 336
 
-Replace:
-```
-Output ONLY the coloring page image, nothing else.`,
-```
+After the `number-10` topic entry (line 336), insert 16 new topic entries before the closing `],` on line 337.
 
-With:
-```
-Output ONLY the coloring page image, nothing else. Do not include any text, labels, letter names, or written words anywhere in the image.`,
-```
+The new topics will use existing imported images as placeholders (matching thematically where possible) and will be grouped under two new subCategories:
+- `"🎨 צבעים"` — 9 color topics
+- `"🔷 צורות"` — 6 shape topics
 
-Single line edit. No other files or logic touched.
+Each topic will have `ageRange: "3-6"` and appropriate keywords, consistent with the existing number topics format.
+
+### Image assignments (using existing imports)
+Colors: `topicRainParty`, `topicUnderwater`, `topicBirthday`, `topicNatureSecrets`, `topicFamilyTrip`, `topicMagicCastle`, `topicMagicalForest`, `topicCloudAdventure`, `topicFearOfDark`
+Shapes: `topicSuperheroes`, `topicZoo`, `topicSpaceHero`, `topicFriendship`, `topicBirthday`, `topicSpaceHero`
+
+### No other files or logic touched.
 
