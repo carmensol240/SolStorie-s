@@ -1030,7 +1030,8 @@ const StoryViewer = () => {
   };
 
   const isToddler = story?.age_range === '0-2';
-  const isLearningTopic = story?.topic?.startsWith('letter-') || story?.topic?.startsWith('number-');
+  const isLearningTopic = story?.topic?.startsWith('letter-') || story?.topic?.startsWith('number-') || story?.topic?.startsWith('color-') || story?.topic?.startsWith('shape-');
+  const learningPronunciation = story?.topic ? LEARNING_PRONUNCIATION[story.topic] : null;
 
   // Find the best illustration to use as cover: match illustration_prompt keywords to story.topic
   const coverIllustration = useMemo(() => {
