@@ -175,7 +175,8 @@ const TopicStep = ({ formData, updateFormData }: TopicStepProps) => {
 
           {/* Category sections */}
           {filteredSections.map((section) => {
-            const isExpanded = expandedSections.has(section.id);
+            const isBiblicalTab = activeTab === "biblical";
+            const isExpanded = isBiblicalTab || expandedSections.has(section.id);
             const visibleTopics = isExpanded ? section.topics : section.topics.slice(0, 2);
 
             // Find featured topics to show at top
