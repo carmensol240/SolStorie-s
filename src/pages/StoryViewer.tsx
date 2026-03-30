@@ -1342,8 +1342,7 @@ const StoryViewer = () => {
                       לדף הסיום ✨
                     </Button>
                   </div>
-
-                {/* --- REMOVED small arrow, replaced by CTA below --- */}
+                </div>
               </div>
 
             ) : isEndPage ? (
