@@ -758,6 +758,17 @@ serve(async (req) => {
             ? (SHAPE_HEBREW_MAP[learningShape] || learningShape)
             : null;
 
+    // For illustration prompts: use just the digit for numbers (not Hebrew phrase)
+    const illustrationLearningTarget = learningLetter 
+      ? (HEBREW_LETTER_MAP[learningLetter] || learningLetter)
+      : learningNumber 
+        ? learningNumber  // Just the digit: "2", not "מספר 2"
+        : learningColor
+          ? (COLOR_HEBREW_MAP[learningColor] || learningColor)
+          : learningShape
+            ? (SHAPE_HEBREW_MAP[learningShape] || learningShape)
+            : null;
+
     // === INPUT VALIDATION ===
     // Validate required fields
     if (!childName || typeof childName !== "string") {
@@ -1306,10 +1317,10 @@ ${adventureLogic ? `
 - הנושא הכללי: ${adventureLogic.theme}
 ` : ''}
 ${isLearningTopic ? `
-${learningLetter || learningNumber ? `- באיור הראשון: ${hebrewLearningTarget} מופיעה גדולה ובולטת במרכז האיור בצבע זוהר
-- בכל איור: ${hebrewLearningTarget} מופיע איפשהו בסצנה — על קיר, על עץ, על חולצה
+${learningLetter || learningNumber ? `- באיור הראשון: ${illustrationLearningTarget} מופיעה גדולה ובולטת במרכז האיור בצבע זוהר
+- בכל איור: ${illustrationLearningTarget} מופיע איפשהו בסצנה — על קיר, על עץ, על חולצה
 - האות/מספר בפונט עגול וצבעוני לילדים
-- כל טקסט באיור חייב להיות בעברית בלבד — ${hebrewLearningTarget}` : ''}
+${learningNumber ? `- Show the Arabic numeral digit ${learningNumber}, NOT a Hebrew letter.` : `- כל טקסט באיור חייב להיות בעברית בלבד — ${illustrationLearningTarget}`}` : ''}
 ${learningColor ? `- כל האיורים מוצפים בצבע ${hebrewLearningTarget} — הרקע, החפצים, הבגדים, הפרחים והשמיים כולם בגוני ${hebrewLearningTarget}
 - הילד/ה לובש/ת בגדים בצבע ${hebrewLearningTarget}` : ''}
 ${learningShape ? `- בכל איור מופיעות צורות ${hebrewLearningTarget} גדולות וקטנות מרחפות סביב הדמות
@@ -1792,7 +1803,7 @@ ${fullStoryText}`;
       const lastPage = pagesWithoutIllustrations[pagesWithoutIllustrations.length - 1];
       const fullBleed = "Full bleed illustration, no white margins or borders. Disney/Pixar style, warm and magical.";
       if (learningLetter || learningNumber) {
-        const targetDesc = learningLetter ? `Hebrew letter ${hebrewLearningTarget}` : `number ${hebrewLearningTarget}`;
+        const targetDesc = learningLetter ? `Hebrew letter ${hebrewLearningTarget}` : `the Arabic numeral digit ${learningNumber} (NOT a Hebrew letter)`;
         lastPage.illustration_prompt = `The child ${childName} stands next to the giant glowing ${targetDesc}, which fills half the image and is fully visible, not cropped. The letter is large, clear, bold, 3D golden style, complete and uncut. Wide shot showing both the child and the full ${learningLetter ? 'letter' : 'number'}. Full body shot of the child, showing complete figure from head to toe. Do NOT cut off any body parts. ${fullBleed}`;
       } else if (learningColor) {
         lastPage.illustration_prompt = `The child ${childName} stands in a scene completely flooded with ${hebrewLearningTarget} — the background, objects, clothing, flowers, and sky are all in shades of ${hebrewLearningTarget}. Full body shot of the child, showing complete figure from head to toe. Do NOT cut off any body parts. ${fullBleed}`;
