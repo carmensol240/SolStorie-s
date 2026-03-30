@@ -1,21 +1,16 @@
 
 
-## Plan: Remove Topic Text Truncation on Story Book Cards
+## Plan: Add Grammar Agreement Rule to SYSTEM_PROMPT
 
-### Analysis
-The story book cards in the library (`src/components/ui/story-book-card.tsx`) show the topic with `line-clamp-1` on line 203, which truncates long topic text to a single line.
+### Change — `supabase/functions/generate-story/index.ts` line 54
 
-### Change — `src/components/ui/story-book-card.tsx` line 203
+After the existing line 54 (`4. **ללא ניקוד:**...`), insert a new numbered rule:
 
-Replace `line-clamp-1` with no clamp, allowing the text to wrap:
-
-```tsx
-// Before
-<p className="text-white/75 text-xs mt-0.5 line-clamp-1 drop-shadow-sm">{topic}</p>
-
-// After
-<p className="text-white/75 text-xs mt-0.5 drop-shadow-sm">{topic}</p>
+```
+5. **דקדוק מוחלט:** כל פועל חייב להתאים במין ובמספר לנושא המשפט. לדוגמה: 'היא מחפשת' ולא 'היא מחפשה'. בדוק כל פועל לפני הכתיבה.
 ```
 
-Single line change. No other files or logic touched.
+The subsequent numbered items (currently 5, 6, 7) will be renumbered to 6, 7, 8.
+
+No other lines or files touched.
 
