@@ -1,29 +1,28 @@
 
 
-## Plan: Two-Step Category Selection for Learning Section
+## Plan: Hide Learning Topics Until Category Is Selected
 
-### What changes
-In `src/components/wizard/TopicStep.tsx`, when rendering the `learning` section's expanded topics grid, replace the flat list with a two-step UI:
+### Problem
+When the learning section is collapsed, the `else` branch (line 275) still renders the first 2 topics as `SimpleTile` cards. These should be hidden — learning topics should only appear after expanding the section AND selecting a sub-category.
 
-**Step 1**: Show 4 large category buttons:
-- 🔤 אותיות (topics with `id` starting with `letter-`)
-- 🔢 מספרים (topics with `id` starting with `number-`)
-- 🎨 צבעים (topics with `id` starting with `color-`)
-- ⭐ צורות (topics with `id` starting with `shape-`)
+### Change — `src/components/wizard/TopicStep.tsx` line 232
 
-**Step 2**: When a category is clicked, show only topics matching that prefix as cards (using existing `SimpleTile`). Add a back button (arrow + text) to return to the 4 categories.
+Replace:
+```typescript
+{section.id === "learning" && isExpanded ? (
+```
 
-### Technical details
+With:
+```typescript
+{section.id === "learning" ? (
+  isExpanded ? (
+```
 
-**File**: `src/components/wizard/TopicStep.tsx` only
+And adjust the closing to add an extra `)` and render nothing when learning is collapsed — wrapping the existing learning block so the `else` (flat topic list) is never reached for the learning section.
 
-1. Add a `learningSubTab` state: `useState<string | null>(null)` — `null` = show 4 buttons, `"letter-"` / `"number-"` / `"color-"` / `"shape-"` = show filtered topics.
+Specifically, replace lines 232–300 structure so that:
+- `section.id === "learning"` → if expanded, show the two-step UI (existing code); if not expanded, render nothing (no topics shown)
+- `section.id !== "learning"` → existing flat list behavior unchanged
 
-2. In the topics grid rendering block (lines 226-252), add a special case when `section.id === "learning"`:
-   - If `learningSubTab` is null: render 4 large buttons (rounded-2xl, aspect-square-ish, with emoji + label, gradient backgrounds)
-   - If `learningSubTab` is set: render a back button + grid of `SimpleTile` for topics whose `id` starts with `learningSubTab`
-
-3. Reset `learningSubTab` to null when the learning section is collapsed.
-
-### No other files touched.
+### Single condition change. No other files touched.
 
