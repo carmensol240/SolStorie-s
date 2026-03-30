@@ -91,6 +91,17 @@ interface CouponRedemptionRow {
   redeemed_at: string | null;
 }
 
+interface FeedbackRow {
+  id: string;
+  user_id: string | null;
+  rating: number | null;
+  message: string | null;
+  display_name: string | null;
+  page_url: string | null;
+  created_at: string;
+  is_approved: boolean | null;
+}
+
 interface CoverLogRow {
   id: string;
   story_id: string;
@@ -119,6 +130,9 @@ const AdminDashboard = () => {
   const [coupons, setCoupons] = useState<CouponRow[]>([]);
   const [couponRedemptions, setCouponRedemptions] = useState<CouponRedemptionRow[]>([]);
   const [expandedCoupon, setExpandedCoupon] = useState<string | null>(null);
+  const [feedbacks, setFeedbacks] = useState<FeedbackRow[]>([]);
+  const [feedbackStories, setFeedbackStories] = useState<Record<string, { child_name: string; topic: string }>>({});
+  const [feedbackEmails, setFeedbackEmails] = useState<Record<string, string>>({});
   const [loading, setLoading] = useState(true);
   const [authReady, setAuthReady] = useState(false);
   const { toast } = useToast();
@@ -319,6 +333,51 @@ const AdminDashboard = () => {
     fetchCoverLogs();
   }, [isAdmin]);
 
+  // Fetch feedbacks
+  useEffect(() => {
+    if (!isAdmin) return;
+
+    const fetchFeedbacks = async () => {
+      const { data: fbData } = await supabase
+        .from("user_feedback")
+        .select("id, user_id, rating, message, display_name, page_url, created_at, is_approved")
+        .order("created_at", { ascending: false })
+        .limit(200);
+
+      if (fbData) {
+        setFeedbacks(fbData as FeedbackRow[]);
+
+        // Extract story IDs from page_url (format: "story/{uuid}")
+        const storyIds = fbData
+          .map(f => f.page_url?.match(/story\/([a-f0-9-]{36})/)?.[1])
+          .filter((id): id is string => !!id);
+        const uniqueStoryIds = [...new Set(storyIds)];
+
+        if (uniqueStoryIds.length > 0) {
+          const { data: storiesData } = await supabase
+            .from("stories")
+            .select("id, child_name, topic")
+            .in("id", uniqueStoryIds);
+          if (storiesData) {
+            const map: Record<string, { child_name: string; topic: string }> = {};
+            storiesData.forEach(s => { map[s.id] = { child_name: s.child_name, topic: s.topic }; });
+            setFeedbackStories(map);
+          }
+        }
+
+        // Resolve emails
+        const { data: emailsData } = await supabase.rpc("get_admin_user_emails");
+        if (emailsData) {
+          const emailMap: Record<string, string> = {};
+          (emailsData as { user_id: string; email: string }[]).forEach(e => { emailMap[e.user_id] = e.email; });
+          setFeedbackEmails(emailMap);
+        }
+      }
+    };
+
+    fetchFeedbacks();
+  }, [isAdmin]);
+
   if (isAdmin === null) {
     return <div className="flex items-center justify-center min-h-screen">טוען...</div>;
   }
@@ -457,7 +516,7 @@ const AdminDashboard = () => {
 
         {/* Tabs */}
         <Tabs defaultValue="users" className="w-full">
-          <TabsList className="grid w-full grid-cols-6">
+          <TabsList className="grid w-full grid-cols-7">
             <TabsTrigger value="users">משתמשים</TabsTrigger>
             <TabsTrigger value="stories">סיפורים</TabsTrigger>
             <TabsTrigger value="covers" className="flex items-center gap-1">
@@ -472,6 +531,7 @@ const AdminDashboard = () => {
               <Ticket className="h-3.5 w-3.5" />
               קופונים
             </TabsTrigger>
+            <TabsTrigger value="feedback">משובים</TabsTrigger>
             <TabsTrigger value="errors" className="flex items-center gap-1">
               שגיאות
               {errors24h > 0 && <Badge variant="destructive" className="text-xs px-1.5 py-0">{errors24h}</Badge>}
@@ -988,6 +1048,51 @@ const AdminDashboard = () => {
                               </TableRow>
                             )}
                           </>
+                        );
+                      })}
+                    </TableBody>
+                  </Table>
+                </div>
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+
+          <TabsContent value="feedback">
+            <Card>
+              <CardContent className="p-0">
+                <div className="overflow-x-auto">
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead className="text-right">תאריך</TableHead>
+                        <TableHead className="text-right">שם הילד</TableHead>
+                        <TableHead className="text-right">נושא</TableHead>
+                        <TableHead className="text-right">דירוג</TableHead>
+                        <TableHead className="text-right">הודעה</TableHead>
+                        <TableHead className="text-right">מייל</TableHead>
+                        <TableHead className="text-right">שם משתמש</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {loading ? (
+                        <TableRow><TableCell colSpan={7} className="text-center">טוען...</TableCell></TableRow>
+                      ) : feedbacks.length === 0 ? (
+                        <TableRow><TableCell colSpan={7} className="text-center text-muted-foreground">אין משובים</TableCell></TableRow>
+                      ) : feedbacks.map((fb) => {
+                        const storyId = fb.page_url?.match(/story\/([a-f0-9-]{36})/)?.[1];
+                        const storyInfo = storyId ? feedbackStories[storyId] : null;
+                        const email = fb.user_id ? feedbackEmails[fb.user_id] : null;
+                        return (
+                          <TableRow key={fb.id}>
+                            <TableCell className="text-xs">{formatDate(fb.created_at)}</TableCell>
+                            <TableCell>{storyInfo?.child_name || "—"}</TableCell>
+                            <TableCell>{storyInfo?.topic || "—"}</TableCell>
+                            <TableCell>{fb.rating ? "⭐".repeat(fb.rating) : "—"}</TableCell>
+                            <TableCell className="max-w-[200px] truncate">{fb.message || "—"}</TableCell>
+                            <TableCell className="text-xs text-muted-foreground">{email || "—"}</TableCell>
+                            <TableCell>{fb.display_name || "—"}</TableCell>
+                          </TableRow>
                         );
                       })}
                     </TableBody>
