@@ -1,68 +1,69 @@
 
 
-## Plan: TTS Button Changes — Learning Library → Decorative, Story Viewer → Clickable
+## Plan: Fix Learning Topic Detection in StoryViewer + TTS Button Only on Last Page
 
-### Summary
-1. Make the 🔊 button on learning topic cards decorative (non-clickable, smaller)
-2. Add a clickable 🔊 TTS button on each story page for learning topics only
-3. Change ElevenLabs voice ID to Matilda (child-friendly)
+### Problem 1: `isLearningTopic` is always false in StoryViewer
+The DB stores topics as Hebrew labels (e.g., `"אות י׳ – אריה האמיץ"`, `"מספר 2 – שני חברים"`, `"צבע אדום"`, `"צורת עיגול"`), but the code checks for English prefixes like `startsWith('letter-')`. This means the TTS button never appears.
 
-### Changes
+### Problem 2: `learningPronunciation` lookup fails
+`LEARNING_PRONUNCIATION` is keyed by topic IDs (`'letter-yod'`), but `story.topic` contains Hebrew labels. The lookup always returns `null`.
 
-#### 1. `src/components/wizard/TopicStep.tsx` — Lines 293-306
+### Problem 3: TTS button appears on all pages instead of last only
+Currently the button is rendered on every combined, illustration, and text page. It should only show on the final virtual page.
 
-Replace the clickable `<button>` with a small decorative `<div>`. Remove the `onClick` handler and `useTextToSpeech` import (if no longer used elsewhere — check first; the `startReading` is only used here, so the import + hook call can be removed too).
+### Solution — `src/pages/StoryViewer.tsx` only
 
-Replace the button block with:
+#### A. Fix `isLearningTopic` detection (line 1033)
+Replace the English prefix checks with Hebrew prefix checks matching what's stored in the DB:
 ```tsx
-{LEARNING_PRONUNCIATION[topic.id] && (
-  <div className="absolute top-1.5 right-1.5 z-20 w-5 h-5 rounded-full bg-white/60 flex items-center justify-center" aria-hidden="true">
-    <Volume2 className="w-3 h-3 text-purple-400" />
-  </div>
-)}
+const isLearningTopic = story?.topic?.startsWith('אות ') || story?.topic?.startsWith('מספר ') || story?.topic?.startsWith('צבע ') || story?.topic?.startsWith('צורת ');
 ```
 
-Also remove the `useTextToSpeech` import (line 10) and the `startReading` destructure from the hook call.
-
-#### 2. `src/pages/StoryViewer.tsx` — Add TTS button for learning topics
-
-**Line 1012**: Expand `isLearningTopic` to include colors and shapes:
+#### B. Fix `learningPronunciation` lookup (line 1034)
+Create a reverse map from Hebrew DB topics to topic IDs, then look up pronunciation:
 ```tsx
-const isLearningTopic = story?.topic?.startsWith('letter-') || story?.topic?.startsWith('number-') || story?.topic?.startsWith('color-') || story?.topic?.startsWith('shape-');
+const HEBREW_TO_TOPIC_ID: Record<string, string> = Object.fromEntries(
+  Object.entries({
+    'אות א׳': 'letter-alef', 'אות ב׳': 'letter-bet', 'אות ג׳': 'letter-gimel',
+    'אות ד׳': 'letter-dalet', 'אות ה׳': 'letter-he', 'אות ו׳': 'letter-vav',
+    'אות ז׳': 'letter-zayin', 'אות ח׳': 'letter-chet', 'אות ט׳': 'letter-tet',
+    'אות י׳': 'letter-yod', 'אות כ׳': 'letter-kaf', 'אות ל׳': 'letter-lamed',
+    'אות מ׳': 'letter-mem', 'אות נ׳': 'letter-nun', 'אות ס׳': 'letter-samekh',
+    'אות ע׳': 'letter-ayin', 'אות פ׳': 'letter-pe', 'אות צ׳': 'letter-tsadi',
+    'אות ק׳': 'letter-qof', 'אות ר׳': 'letter-resh', 'אות ש׳': 'letter-shin',
+    'אות ת׳': 'letter-tav',
+    'מספר 1': 'number-1', 'מספר 2': 'number-2', 'מספר 3': 'number-3',
+    'מספר 4': 'number-4', 'מספר 5': 'number-5', 'מספר 6': 'number-6',
+    'מספר 7': 'number-7', 'מספר 8': 'number-8', 'מספר 9': 'number-9',
+    'מספר 10': 'number-10',
+    'צבע אדום': 'color-red', 'צבע כחול': 'color-blue', 'צבע צהוב': 'color-yellow',
+    'צבע ירוק': 'color-green', 'צבע כתום': 'color-orange', 'צבע סגול': 'color-purple',
+    'צבע ורוד': 'color-pink', 'צבע לבן': 'color-white', 'צבע שחור': 'color-black',
+    'צורת עיגול': 'shape-circle', 'צורת ריבוע': 'shape-square',
+    'צורת משולש': 'shape-triangle', 'צורת מלבן': 'shape-rectangle',
+    'צורת לב': 'shape-heart', 'צורת כוכב': 'shape-star',
+  })
+);
 ```
 
-**Imports (line 1-3 area)**: Add `Volume2` to lucide imports and import `useTextToSpeech`:
+The lookup extracts the Hebrew prefix (e.g., `"אות י׳"` from `"אות י׳ – הילד/ה היצירתי/ת"`) by splitting on ` – `, then maps to the topic ID for pronunciation:
 ```tsx
-import { useTextToSpeech } from "@/hooks/use-text-to-speech";
+const topicPrefix = story?.topic?.split(' – ')[0] || story?.topic || '';
+const resolvedTopicId = HEBREW_TO_TOPIC_ID[topicPrefix];
+const learningPronunciation = resolvedTopicId ? LEARNING_PRONUNCIATION[resolvedTopicId] : null;
 ```
 
-**After line ~41 area**: Add the `LEARNING_PRONUNCIATION` map (same data as in TopicStep) or extract to a shared module. Since instructions say "do not modify any other code or files", duplicate the map inside StoryViewer.
-
-**Inside the component**: Call `const { startReading } = useTextToSpeech();` and derive `learningPronunciation` from `story?.topic`.
-
-**Story page rendering** — Add a floating 🔊 button on each page type (combined ~line 1610, illustration ~line 1680, text ~line 1726) when `isLearningTopic` is true. Position it bottom-right or top-right with z-20. Example:
-
+#### C. TTS button only on last page (lines 1649, 1730, 1779)
+Add a condition to only show on the last virtual page:
 ```tsx
-{isLearningTopic && learningPronunciation && (
-  <button
-    onClick={() => startReading(learningPronunciation, 'he')}
-    className="absolute bottom-12 right-3 z-20 w-10 h-10 rounded-full bg-white/90 shadow-lg flex items-center justify-center hover:scale-110 transition-transform border border-purple-200"
-    aria-label="השמע"
-  >
-    <Volume2 className="w-5 h-5 text-purple-600" />
-  </button>
-)}
+{isLearningTopic && learningPronunciation && currentPage === virtualPages.length - 1 && (
 ```
 
-#### 3. `supabase/functions/elevenlabs-tts/index.ts` — Line ~41
+All three instances of the TTS button (combined, illustration, text page types) get this same condition.
 
-Replace voice ID:
-```typescript
-const voiceId = 'jsCqWAovK2LkecY7zXl4'; // Matilda — child-friendly
-```
+### Backend: No changes needed
+The `generate-story` function already correctly uses `topicId` for learning detection and the `hebrewLearningTarget` is derived from the topic ID. The wrong-letter issue is likely an AI model inconsistency, not a code bug — the prompts correctly specify the target letter.
 
 ### Files modified
-- `src/components/wizard/TopicStep.tsx` — decorative icon, remove TTS hook
-- `src/pages/StoryViewer.tsx` — add TTS button for learning topics, expand `isLearningTopic`
-- `supabase/functions/elevenlabs-tts/index.ts` — voice ID change
+- `src/pages/StoryViewer.tsx` — fix detection + last-page-only TTS
 
