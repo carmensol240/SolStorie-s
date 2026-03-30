@@ -1,80 +1,68 @@
 
 
-## Plan: Add TTS Speaker Button to Learning Topic Cards
+## Plan: TTS Button Changes — Learning Library → Decorative, Story Viewer → Clickable
 
-### What changes
-In `src/components/wizard/TopicStep.tsx`, add a 🔊 button to each learning topic card (rendered via `SimpleTile` in the learning sub-tab grid at line 270). When clicked, it calls the existing `useTextToSpeech` hook to speak the topic's Hebrew label.
+### Summary
+1. Make the 🔊 button on learning topic cards decorative (non-clickable, smaller)
+2. Add a clickable 🔊 TTS button on each story page for learning topics only
+3. Change ElevenLabs voice ID to Matilda (child-friendly)
 
-### Changes — `src/components/wizard/TopicStep.tsx` only
+### Changes
 
-#### 1. Import `useTextToSpeech` and `Volume2` icon (line 1-9)
+#### 1. `src/components/wizard/TopicStep.tsx` — Lines 293-306
 
-Add:
-```typescript
-import { useTextToSpeech } from '@/hooks/use-text-to-speech';
-import { Volume2 } from 'lucide-react';
+Replace the clickable `<button>` with a small decorative `<div>`. Remove the `onClick` handler and `useTextToSpeech` import (if no longer used elsewhere — check first; the `startReading` is only used here, so the import + hook call can be removed too).
+
+Replace the button block with:
+```tsx
+{LEARNING_PRONUNCIATION[topic.id] && (
+  <div className="absolute top-1.5 right-1.5 z-20 w-5 h-5 rounded-full bg-white/60 flex items-center justify-center" aria-hidden="true">
+    <Volume2 className="w-3 h-3 text-purple-400" />
+  </div>
+)}
 ```
 
-#### 2. Create a pronunciation map for learning topics
+Also remove the `useTextToSpeech` import (line 10) and the `startReading` destructure from the hook call.
 
-Add a constant mapping topic IDs to their spoken Hebrew pronunciation (the pedagogical name, not the card label):
+#### 2. `src/pages/StoryViewer.tsx` — Add TTS button for learning topics
 
-```typescript
-const LEARNING_PRONUNCIATION: Record<string, string> = {
-  'letter-alef': 'אָלֶף', 'letter-bet': 'בֵּית', 'letter-gimel': 'גִּימֶל',
-  'letter-dalet': 'דָּלֶת', 'letter-he': 'הֵא', 'letter-vav': 'וָו',
-  'letter-zayin': 'זַיִן', 'letter-chet': 'חֵית', 'letter-tet': 'טֵית',
-  'letter-yod': 'יוֹד', 'letter-kaf': 'כָּף', 'letter-lamed': 'לָמֶד',
-  'letter-mem': 'מֵם', 'letter-nun': 'נוּן', 'letter-samekh': 'סָמֶך',
-  'letter-ayin': 'עַיִן', 'letter-pe': 'פֵּא', 'letter-tsadi': 'צָדִי',
-  'letter-qof': 'קוֹף', 'letter-resh': 'רֵישׁ', 'letter-shin': 'שִׁין',
-  'letter-tav': 'תָּו',
-  'number-1': 'אֶחָד', 'number-2': 'שְׁנַיִם', 'number-3': 'שָׁלוֹשׁ',
-  'number-4': 'אַרְבַּע', 'number-5': 'חָמֵשׁ', 'number-6': 'שֵׁשׁ',
-  'number-7': 'שֶׁבַע', 'number-8': 'שְׁמוֹנֶה', 'number-9': 'תֵּשַׁע',
-  'number-10': 'עֶשֶׂר',
-  'color-red': 'אָדֹם', 'color-blue': 'כָּחֹל', 'color-yellow': 'צָהֹב',
-  'color-green': 'יָרֹק', 'color-orange': 'כָּתֹם', 'color-purple': 'סָגֹל',
-  'color-pink': 'וָרֹד', 'color-white': 'לָבָן', 'color-black': 'שָׁחֹר',
-  'shape-circle': 'עִיגּוּל', 'shape-square': 'רִיבּוּעַ',
-  'shape-triangle': 'מְשֻׁלָּשׁ', 'shape-rectangle': 'מַלְבֵּן',
-  'shape-heart': 'לֵב', 'shape-star': 'כּוֹכָב',
-};
+**Line 1012**: Expand `isLearningTopic` to include colors and shapes:
+```tsx
+const isLearningTopic = story?.topic?.startsWith('letter-') || story?.topic?.startsWith('number-') || story?.topic?.startsWith('color-') || story?.topic?.startsWith('shape-');
 ```
 
-#### 3. Initialize TTS hook in `TopicStep` component (inside the function, around line 20)
-
-```typescript
-const { startReading, isLoading: ttsLoading } = useTextToSpeech();
+**Imports (line 1-3 area)**: Add `Volume2` to lucide imports and import `useTextToSpeech`:
+```tsx
+import { useTextToSpeech } from "@/hooks/use-text-to-speech";
 ```
 
-#### 4. Add speaker button to learning topic cards (line 270)
+**After line ~41 area**: Add the `LEARNING_PRONUNCIATION` map (same data as in TopicStep) or extract to a shared module. Since instructions say "do not modify any other code or files", duplicate the map inside StoryViewer.
 
-Replace the `SimpleTile` rendering inside the learning sub-tab grid with a wrapper that adds the speaker button. Instead of rendering just `<SimpleTile>`, wrap it in a `<div className="relative">` and overlay a small speaker button:
+**Inside the component**: Call `const { startReading } = useTextToSpeech();` and derive `learningPronunciation` from `story?.topic`.
+
+**Story page rendering** — Add a floating 🔊 button on each page type (combined ~line 1610, illustration ~line 1680, text ~line 1726) when `isLearningTopic` is true. Position it bottom-right or top-right with z-20. Example:
 
 ```tsx
-{section.topics
-  .filter(t => t.id.startsWith(learningSubTab))
-  .map((topic) => (
-    <div key={topic.id} className="relative">
-      <SimpleTile topic={topic} isSelected={formData.topic === topic.id} onSelect={() => handleTopicSelect(topic)} />
-      {LEARNING_PRONUNCIATION[topic.id] && (
-        <button
-          onClick={(e) => {
-            e.stopPropagation();
-            startReading(LEARNING_PRONUNCIATION[topic.id], 'he');
-          }}
-          className="absolute top-2 right-2 z-10 w-8 h-8 rounded-full bg-white/80 backdrop-blur-sm shadow-md flex items-center justify-center hover:bg-white hover:scale-110 transition-all"
-          aria-label="השמע"
-        >
-          <Volume2 className="w-4 h-4 text-purple-600" />
-        </button>
-      )}
-    </div>
-  ))}
+{isLearningTopic && learningPronunciation && (
+  <button
+    onClick={() => startReading(learningPronunciation, 'he')}
+    className="absolute bottom-12 right-3 z-20 w-10 h-10 rounded-full bg-white/90 shadow-lg flex items-center justify-center hover:scale-110 transition-transform border border-purple-200"
+    aria-label="השמע"
+  >
+    <Volume2 className="w-5 h-5 text-purple-600" />
+  </button>
+)}
 ```
 
-The button is positioned top-right of the card, uses `e.stopPropagation()` to prevent triggering topic selection, and calls `startReading` with the Hebrew pronunciation.
+#### 3. `supabase/functions/elevenlabs-tts/index.ts` — Line ~41
 
-### No other files touched.
+Replace voice ID:
+```typescript
+const voiceId = 'jsCqWAovK2LkecY7zXl4'; // Matilda — child-friendly
+```
+
+### Files modified
+- `src/components/wizard/TopicStep.tsx` — decorative icon, remove TTS hook
+- `src/pages/StoryViewer.tsx` — add TTS button for learning topics, expand `isLearningTopic`
+- `supabase/functions/elevenlabs-tts/index.ts` — voice ID change
 
