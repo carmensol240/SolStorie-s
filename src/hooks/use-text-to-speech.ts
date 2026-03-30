@@ -95,6 +95,8 @@ export const useTextToSpeech = (): UseTextToSpeechReturn => {
       audio.preload = 'auto';
       audioRef.current = audio;
 
+      let playbackStarted = false;
+
       audio.onended = () => {
         console.log('Audio playback finished');
         setIsReading(false);
@@ -102,6 +104,8 @@ export const useTextToSpeech = (): UseTextToSpeechReturn => {
       };
 
       audio.onerror = () => {
+        // Ignore errors after successful playback start
+        if (playbackStarted) return;
         const code = audio.error?.code;
         const msg = audio.error?.message;
         console.error('Audio playback error:', { code, msg });
