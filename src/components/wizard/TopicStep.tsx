@@ -3,10 +3,32 @@ import { Textarea } from "@/components/ui/textarea";
 import { Input } from "@/components/ui/input";
 import { StoryFormData } from "@/pages/CreateStory";
 import { cn } from "@/lib/utils";
-import { ChevronUp, Sparkles, Search, X, ChevronDown } from "lucide-react";
+import { ChevronUp, Sparkles, Search, X, ChevronDown, Volume2 } from "lucide-react";
 import { CHARACTER_SECTIONS, TopicItem } from "./topic-data";
 import { Drawer, DrawerContent, DrawerClose } from "@/components/ui/drawer";
 import { Button } from "@/components/ui/button";
+import { useTextToSpeech } from '@/hooks/use-text-to-speech';
+
+const LEARNING_PRONUNCIATION: Record<string, string> = {
+  'letter-alef': 'אָלֶף', 'letter-bet': 'בֵּית', 'letter-gimel': 'גִּימֶל',
+  'letter-dalet': 'דָּלֶת', 'letter-he': 'הֵא', 'letter-vav': 'וָו',
+  'letter-zayin': 'זַיִן', 'letter-chet': 'חֵית', 'letter-tet': 'טֵית',
+  'letter-yod': 'יוֹד', 'letter-kaf': 'כָּף', 'letter-lamed': 'לָמֶד',
+  'letter-mem': 'מֵם', 'letter-nun': 'נוּן', 'letter-samekh': 'סָמֶך',
+  'letter-ayin': 'עַיִן', 'letter-pe': 'פֵּא', 'letter-tsadi': 'צָדִי',
+  'letter-qof': 'קוֹף', 'letter-resh': 'רֵישׁ', 'letter-shin': 'שִׁין',
+  'letter-tav': 'תָּו',
+  'number-1': 'אֶחָד', 'number-2': 'שְׁנַיִם', 'number-3': 'שָׁלוֹשׁ',
+  'number-4': 'אַרְבַּע', 'number-5': 'חָמֵשׁ', 'number-6': 'שֵׁשׁ',
+  'number-7': 'שֶׁבַע', 'number-8': 'שְׁמוֹנֶה', 'number-9': 'תֵּשַׁע',
+  'number-10': 'עֶשֶׂר',
+  'color-red': 'אָדֹם', 'color-blue': 'כָּחֹל', 'color-yellow': 'צָהֹב',
+  'color-green': 'יָרֹק', 'color-orange': 'כָּתֹם', 'color-purple': 'סָגֹל',
+  'color-pink': 'וָרֹד', 'color-white': 'לָבָן', 'color-black': 'שָׁחֹר',
+  'shape-circle': 'עִיגּוּל', 'shape-square': 'רִיבּוּעַ',
+  'shape-triangle': 'מְשֻׁלָּשׁ', 'shape-rectangle': 'מַלְבֵּן',
+  'shape-heart': 'לֵב', 'shape-star': 'כּוֹכָב',
+};
 
 interface TopicStepProps {
   formData: StoryFormData;
@@ -18,6 +40,7 @@ const TopicStep = ({ formData, updateFormData }: TopicStepProps) => {
   const [searchQuery, setSearchQuery] = useState("");
   const [expandedSections, setExpandedSections] = useState<Set<string>>(new Set());
   const [learningSubTab, setLearningSubTab] = useState<string | null>(null);
+  const { startReading } = useTextToSpeech();
 
   const genderSuffix = formData.childGender === "female" ? "ת" : "";
   const childNameForPlaceholder = formData.childName?.trim() || "הילד/ה שלך";
@@ -267,7 +290,21 @@ const TopicStep = ({ formData, updateFormData }: TopicStepProps) => {
                         {section.topics
                           .filter(t => t.id.startsWith(learningSubTab))
                           .map((topic) => (
-                            <SimpleTile key={topic.id} topic={topic} isSelected={formData.topic === topic.id} onSelect={() => handleTopicSelect(topic)} />
+                            <div key={topic.id} className="relative">
+                              <SimpleTile topic={topic} isSelected={formData.topic === topic.id} onSelect={() => handleTopicSelect(topic)} />
+                              {LEARNING_PRONUNCIATION[topic.id] && (
+                                <button
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    startReading(LEARNING_PRONUNCIATION[topic.id], 'he');
+                                  }}
+                                  className="absolute top-2 right-2 z-10 w-8 h-8 rounded-full bg-white/80 backdrop-blur-sm shadow-md flex items-center justify-center hover:bg-white hover:scale-110 transition-all"
+                                  aria-label="השמע"
+                                >
+                                  <Volume2 className="w-4 h-4 text-purple-600" />
+                                </button>
+                              )}
+                            </div>
                           ))}
                       </div>
                     </div>
