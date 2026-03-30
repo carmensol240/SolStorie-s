@@ -1,14 +1,12 @@
 
 
-## Plan: Strengthen FULL_BLEED_INSTRUCTION
+## Plan: Email Feedback to Admin After Submission
 
-### Change — `supabase/functions/_shared/style-config.ts` line 10 only
+### Summary
+After saving story feedback to the database, send an email notification to `souldesign06@gmail.com` with story details and the feedback content. Uses a new lightweight Edge Function following the existing `send-purchase-confirmation` Resend pattern.
 
-Replace the current `FULL_BLEED_INSTRUCTION` value with the new text:
+### Technical Details
 
-```typescript
-export const FULL_BLEED_INSTRUCTION = `CRITICAL: This must be a PURE ILLUSTRATION with zero UI elements. Shoot as if a professional photographer took this scene in real life - no phone screens, no app interfaces, no screenshots, no device frames anywhere in the image. The image must look like a scene from a Pixar movie, not a screenshot of an app.`;
-```
+**1. Create `supabase/functions/send-feedback-notification/index.ts`**
 
-This propagates automatically to `PIXAR_STYLE`, `PIXAR_STYLE_COMPACT`, and all downstream prompts that reference them. No other lines or files touched.
-
+A simple Edge Function using Resend (same pattern as `send-purchase-confirmation`):
