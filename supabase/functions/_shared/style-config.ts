@@ -7,7 +7,7 @@
 
 // ─── Full Bleed Instruction ───
 
-export const FULL_BLEED_INSTRUCTION = `CRITICAL IMAGE REQUIREMENT: The illustration MUST be a clean, full-bleed image that fills the entire canvas edge-to-edge. No borders, no margins, no frames, no UI elements, no icons, no toolbars, no black bars around the edges. The artwork must extend to all four edges of the image with no padding or decorative frame.`;
+export const FULL_BLEED_INSTRUCTION = `CRITICAL: This must be a PURE ILLUSTRATION with zero UI elements. Shoot as if a professional photographer took this scene in real life - no phone screens, no app interfaces, no screenshots, no device frames anywhere in the image. The image must look like a scene from a Pixar movie, not a screenshot of an app.`;
 
 // ─── Pixar Style Prompts ───
 
