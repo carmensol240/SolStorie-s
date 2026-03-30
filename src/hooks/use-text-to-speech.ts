@@ -130,6 +130,7 @@ export const useTextToSpeech = (): UseTextToSpeechReturn => {
           setIsLoading(false);
           setIsReading(true);
           await audio.play();
+          playbackStarted = true;
           console.log('Audio playback started');
         } catch (playError) {
           console.error('Play() failed:', playError);
