@@ -38,7 +38,7 @@ import { useSettings } from "@/hooks/use-settings";
 import { usePdfExport } from "@/hooks/use-pdf-export";
 import { useBgMusic } from "@/hooks/use-bg-music";
 import { useNikud } from "@/hooks/use-nikud";
-// useTextToSpeech removed — read-aloud now only in Accessibility Menu
+import { useTextToSpeech } from "@/hooks/use-text-to-speech";
 import { useAccessibility } from "@/hooks/use-accessibility";
 
 import { useAuth } from "@/hooks/use-auth";
