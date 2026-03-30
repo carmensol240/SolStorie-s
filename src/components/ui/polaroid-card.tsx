@@ -44,6 +44,12 @@ const CoverImage = ({ src, alt }: { src: string; alt: string }) => {
   );
 };
 
+export interface SeriesPart {
+  id: string;
+  slug: string | null;
+  created_at: string;
+}
+
 interface PolaroidCardProps {
   id: string;
   childName: string;
@@ -56,6 +62,7 @@ interface PolaroidCardProps {
   storyId?: string;
   index?: number;
   seriesCount?: number;
+  seriesParts?: SeriesPart[];
   isOfflineSaved?: boolean;
   isDownloading?: boolean;
   offlineSize?: number;
