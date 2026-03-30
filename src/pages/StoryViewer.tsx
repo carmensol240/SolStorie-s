@@ -1,6 +1,6 @@
 import { useState, useEffect, useLayoutEffect, useRef, useCallback, useMemo } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { Home, BookOpen, Sparkles, Palette, Wand2, Loader2, ImageOff, Star, Send, ChevronRight, ChevronLeft, ArrowRight } from "lucide-react";
+import { Home, BookOpen, Sparkles, Palette, Wand2, Loader2, ImageOff, Star, Send, ChevronRight, ChevronLeft, ArrowRight, Volume2 } from "lucide-react";
 import SeriesNavBar, { SeriesPart } from "@/components/story/SeriesNavBar";
 import { MissingIllustrationPrompt } from "@/components/story/MissingIllustrationPrompt";
 import { Button } from "@/components/ui/button";
@@ -38,7 +38,7 @@ import { useSettings } from "@/hooks/use-settings";
 import { usePdfExport } from "@/hooks/use-pdf-export";
 import { useBgMusic } from "@/hooks/use-bg-music";
 import { useNikud } from "@/hooks/use-nikud";
-// useTextToSpeech removed — read-aloud now only in Accessibility Menu
+import { useTextToSpeech } from "@/hooks/use-text-to-speech";
 import { useAccessibility } from "@/hooks/use-accessibility";
 
 import { useAuth } from "@/hooks/use-auth";
@@ -92,6 +92,27 @@ const FONT_SIZES = [
 
 // Rainbow gradient used for dedication, closing, and text-only pages
 const RAINBOW_BG = 'linear-gradient(135deg, #1a0f3a 0%, #2d1a6e 25%, #4a2d8e 50%, #2d1a6e 75%, #1a0f3a 100%)';
+
+const LEARNING_PRONUNCIATION: Record<string, string> = {
+  'letter-alef': 'אָלֶף', 'letter-bet': 'בֵּית', 'letter-gimel': 'גִּימֶל',
+  'letter-dalet': 'דָּלֶת', 'letter-he': 'הֵא', 'letter-vav': 'וָו',
+  'letter-zayin': 'זַיִן', 'letter-chet': 'חֵית', 'letter-tet': 'טֵית',
+  'letter-yod': 'יוֹד', 'letter-kaf': 'כָּף', 'letter-lamed': 'לָמֶד',
+  'letter-mem': 'מֵם', 'letter-nun': 'נוּן', 'letter-samekh': 'סָמֶך',
+  'letter-ayin': 'עַיִן', 'letter-pe': 'פֵּא', 'letter-tsadi': 'צָדִי',
+  'letter-qof': 'קוֹף', 'letter-resh': 'רֵישׁ', 'letter-shin': 'שִׁין',
+  'letter-tav': 'תָּו',
+  'number-1': 'אֶחָד', 'number-2': 'שְׁנַיִם', 'number-3': 'שָׁלוֹשׁ',
+  'number-4': 'אַרְבַּע', 'number-5': 'חָמֵשׁ', 'number-6': 'שֵׁשׁ',
+  'number-7': 'שֶׁבַע', 'number-8': 'שְׁמוֹנֶה', 'number-9': 'תֵּשַׁע',
+  'number-10': 'עֶשֶׂר',
+  'color-red': 'אָדֹם', 'color-blue': 'כָּחֹל', 'color-yellow': 'צָהֹב',
+  'color-green': 'יָרֹק', 'color-orange': 'כָּתֹם', 'color-purple': 'סָגֹל',
+  'color-pink': 'וָרֹד', 'color-white': 'לָבָן', 'color-black': 'שָׁחֹר',
+  'shape-circle': 'עִיגּוּל', 'shape-square': 'רִיבּוּעַ',
+  'shape-triangle': 'מְשֻׁלָּשׁ', 'shape-rectangle': 'מַלְבֵּן',
+  'shape-heart': 'לֵב', 'shape-star': 'כּוֹכָב',
+};
 
 /** Map topic keywords to emoji + themed gradient background for text-only pages */
 const getTopicTheme = (topic: string): { emoji: string; bg: string; textColor: string; pageNumColor: string } => {
@@ -221,7 +242,7 @@ const StoryViewer = () => {
   const { fetchEditCount, editCount, freeEditsRemaining } = useStoryEdit(editStoryId);
   const hasTrackedStart = useRef(false);
   const { audioSupport } = useAccessibility();
-  // useTextToSpeech removed — read-aloud only in Accessibility Menu
+  const { startReading } = useTextToSpeech();
   const pageRecording = usePageRecording(resolvedId ?? undefined);
 
   // No orientation lock needed - vertical portrait layout
@@ -1009,7 +1030,8 @@ const StoryViewer = () => {
   };
 
   const isToddler = story?.age_range === '0-2';
-  const isLearningTopic = story?.topic?.startsWith('letter-') || story?.topic?.startsWith('number-');
+  const isLearningTopic = story?.topic?.startsWith('letter-') || story?.topic?.startsWith('number-') || story?.topic?.startsWith('color-') || story?.topic?.startsWith('shape-');
+  const learningPronunciation = story?.topic ? LEARNING_PRONUNCIATION[story.topic] : null;
 
   // Find the best illustration to use as cover: match illustration_prompt keywords to story.topic
   const coverIllustration = useMemo(() => {
@@ -1624,6 +1646,15 @@ const StoryViewer = () => {
                         light
                       />
                     </div>
+                    {isLearningTopic && learningPronunciation && (
+                      <button
+                        onClick={() => startReading(learningPronunciation, 'he')}
+                        className="absolute bottom-12 right-3 z-20 w-10 h-10 rounded-full bg-white/90 shadow-lg flex items-center justify-center hover:scale-110 transition-transform border border-purple-200"
+                        aria-label="השמע"
+                      >
+                        <Volume2 className="w-5 h-5 text-purple-600" />
+                      </button>
+                    )}
                   </>
                 ) : currentVirtual.type === 'illustration' ? (
                   /* Illustration-only page — fullscreen image, no text */
@@ -1696,6 +1727,15 @@ const StoryViewer = () => {
                         light
                       />
                     </div>
+                    {isLearningTopic && learningPronunciation && (
+                      <button
+                        onClick={() => startReading(learningPronunciation, 'he')}
+                        className="absolute bottom-12 right-3 z-20 w-10 h-10 rounded-full bg-white/90 shadow-lg flex items-center justify-center hover:scale-110 transition-transform border border-purple-200"
+                        aria-label="השמע"
+                      >
+                        <Volume2 className="w-5 h-5 text-purple-600" />
+                      </button>
+                    )}
                   </>
                 ) : (
                   /* Text page — dark starry night background, centered white text */
@@ -1736,6 +1776,15 @@ const StoryViewer = () => {
                             {displayText}
                           </p>
                         </div>
+                        {isLearningTopic && learningPronunciation && (
+                          <button
+                            onClick={() => startReading(learningPronunciation, 'he')}
+                            className="absolute bottom-12 right-3 z-20 w-10 h-10 rounded-full bg-white/90 shadow-lg flex items-center justify-center hover:scale-110 transition-transform border border-purple-200"
+                            aria-label="השמע"
+                          >
+                            <Volume2 className="w-5 h-5 text-purple-600" />
+                          </button>
+                        )}
                         <div className="flex-1" />
                         <div className="pb-4 shrink-0">
                           <span className="text-xs font-light" style={{ color: 'rgba(255,255,255,0.25)' }}>{Math.ceil((currentPage + 1) / 2)} / {story.pages.length}</span>

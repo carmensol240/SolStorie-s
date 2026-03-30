@@ -31,7 +31,7 @@ serve(async (req) => {
 
     // Use a Hebrew-friendly voice for Hebrew, English voice for English
     // Sarah (EXAVITQu4vr4xnSDxMaL) works well for both
-    const voiceId = 'EXAVITQu4vr4xnSDxMaL';
+    const voiceId = 'jsCqWAovK2LkecY7zXl4'; // Matilda — child-friendly
 
     console.log(`Generating ElevenLabs TTS for text: ${text.substring(0, 50)}...`);
 

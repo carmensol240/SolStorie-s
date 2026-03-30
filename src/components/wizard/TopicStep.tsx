@@ -7,7 +7,7 @@ import { ChevronUp, Sparkles, Search, X, ChevronDown, Volume2 } from "lucide-rea
 import { CHARACTER_SECTIONS, TopicItem } from "./topic-data";
 import { Drawer, DrawerContent, DrawerClose } from "@/components/ui/drawer";
 import { Button } from "@/components/ui/button";
-import { useTextToSpeech } from '@/hooks/use-text-to-speech';
+
 
 const LEARNING_PRONUNCIATION: Record<string, string> = {
   'letter-alef': 'אָלֶף', 'letter-bet': 'בֵּית', 'letter-gimel': 'גִּימֶל',
@@ -40,7 +40,7 @@ const TopicStep = ({ formData, updateFormData }: TopicStepProps) => {
   const [searchQuery, setSearchQuery] = useState("");
   const [expandedSections, setExpandedSections] = useState<Set<string>>(new Set());
   const [learningSubTab, setLearningSubTab] = useState<string | null>(null);
-  const { startReading } = useTextToSpeech();
+  
 
   const genderSuffix = formData.childGender === "female" ? "ת" : "";
   const childNameForPlaceholder = formData.childName?.trim() || "הילד/ה שלך";
@@ -293,16 +293,9 @@ const TopicStep = ({ formData, updateFormData }: TopicStepProps) => {
                             <div key={topic.id} className="relative">
                               <SimpleTile topic={topic} isSelected={formData.topic === topic.id} onSelect={() => handleTopicSelect(topic)} />
                               {LEARNING_PRONUNCIATION[topic.id] && (
-                                <button
-                                  onClick={(e) => {
-                                    e.stopPropagation();
-                                    startReading(LEARNING_PRONUNCIATION[topic.id], 'he');
-                                  }}
-                                  className="absolute top-2 right-2 z-20 w-8 h-8 rounded-full bg-white/90 backdrop-blur-sm shadow-lg flex items-center justify-center hover:bg-white hover:scale-110 transition-all border border-purple-200"
-                                  aria-label="השמע"
-                                >
-                                  <Volume2 className="w-4 h-4 text-purple-600" />
-                                </button>
+                                <div className="absolute top-1.5 right-1.5 z-20 w-5 h-5 rounded-full bg-white/60 flex items-center justify-center" aria-hidden="true">
+                                  <Volume2 className="w-3 h-3 text-purple-400" />
+                                </div>
                               )}
                             </div>
                           ))}
