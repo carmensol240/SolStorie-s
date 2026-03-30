@@ -1251,7 +1251,7 @@ const StoryViewer = () => {
                       alt="כריכת הסיפור"
                       className={cn(
                         "absolute inset-0 w-full h-full",
-                        (coverIsLandscape || isLearningTopic) ? "object-contain" : "object-cover"
+                        "object-cover"
                       )}
                       style={{ transform: 'scale(1.02)' }}
                       loading="eager"
