@@ -205,20 +205,7 @@ const StoryViewer = () => {
   const [selectedColoringUrl, setSelectedColoringUrl] = useState<string | null>(null);
 
   const handleImageLoad = useCallback((e: React.SyntheticEvent<HTMLImageElement>) => {
-    const img = e.currentTarget;
-    if (img.naturalHeight > img.naturalWidth) {
-      img.classList.remove('object-cover', 'absolute', 'inset-0');
-      img.classList.add('object-contain');
-      img.style.aspectRatio = `${img.naturalWidth} / ${img.naturalHeight}`;
-      img.style.maxHeight = '100%';
-      img.style.maxWidth = '100%';
-      img.style.margin = 'auto';
-
-      const container = img.closest('.animate-fade-in');
-      if (container instanceof HTMLElement) {
-        container.classList.add('flex', 'items-center', 'justify-center');
-      }
-    }
+    // Keep object-cover for all images — no white margins
   }, []);
   const { trackStoryStarted, trackStoryCompleted, trackPageViewed, trackFeatureUsed } = useAnalytics();
   const { isOnline, cacheStory, getCachedStory } = useOfflineStorage();
@@ -1264,7 +1251,7 @@ const StoryViewer = () => {
                       alt="כריכת הסיפור"
                       className={cn(
                         "absolute inset-0 w-full h-full",
-                        (coverIsLandscape || isLearningTopic) ? "object-contain" : "object-cover"
+                        "object-cover"
                       )}
                       style={{ transform: 'scale(1.02)' }}
                       loading="eager"
