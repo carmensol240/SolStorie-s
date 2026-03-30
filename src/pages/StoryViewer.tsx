@@ -242,7 +242,7 @@ const StoryViewer = () => {
   const { fetchEditCount, editCount, freeEditsRemaining } = useStoryEdit(editStoryId);
   const hasTrackedStart = useRef(false);
   const { audioSupport } = useAccessibility();
-  // useTextToSpeech removed — read-aloud only in Accessibility Menu
+  const { startReading } = useTextToSpeech();
   const pageRecording = usePageRecording(resolvedId ?? undefined);
 
   // No orientation lock needed - vertical portrait layout
