@@ -1,16 +1,46 @@
 
 
-## Plan: Add Grammar Agreement Rule to SYSTEM_PROMPT
+## Plan: Add "✡️ תנ״כי" Filter Tab to TopicStep
 
-### Change — `supabase/functions/generate-story/index.ts` line 54
+### Change — `src/components/wizard/TopicStep.tsx`
 
-After the existing line 54 (`4. **ללא ניקוד:**...`), insert a new numbered rule:
+**Between the "🌟 הכל" tab and the `CHARACTER_SECTIONS.map(...)` tabs (lines 139-153), insert a new tab button:**
 
+```tsx
+<button
+  onClick={() => setActiveTab("biblical")}
+  className={cn(
+    "px-3 py-1.5 rounded-full text-xs font-medium whitespace-nowrap border transition-all flex-shrink-0",
+    activeTab === "biblical"
+      ? "bg-gradient-to-r from-purple-600 via-pink-500 to-orange-400 text-white border-transparent shadow-md"
+      : "border-border bg-card text-foreground hover:border-purple-300"
+  )}
+>
+  ✡️ תנ״כי
+</button>
 ```
-5. **דקדוק מוחלט:** כל פועל חייב להתאים במין ובמספר לנושא המשפט. לדוגמה: 'היא מחפשת' ולא 'היא מחפשה'. בדוק כל פועל לפני הכתיבה.
+
+**Update `filteredSections` logic (lines 68-70) to handle the new "biblical" tab:**
+
+```typescript
+const filteredSections = useMemo(() => {
+  if (activeTab === "all") return CHARACTER_SECTIONS;
+  if (activeTab === "biblical") {
+    // Return only sections that have biblical topics, with topics filtered
+    return CHARACTER_SECTIONS
+      .map(s => ({
+        ...s,
+        topics: s.topics.filter(t => t.subCategory?.includes("תנ״כיים")),
+      }))
+      .filter(s => s.topics.length > 0);
+  }
+  return CHARACTER_SECTIONS.filter((s) => s.id === activeTab);
+}, [activeTab]);
 ```
 
-The subsequent numbered items (currently 5, 6, 7) will be renumbered to 6, 7, 8.
+This filters across all sections to find topics with `subCategory` containing "תנ״כיים", showing only the matching topics grouped under their parent section.
 
-No other lines or files touched.
+### What stays the same
+- All other tabs, sections, search, topic selection logic untouched
+- `topic-data.ts` untouched
 
