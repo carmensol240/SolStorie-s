@@ -758,6 +758,17 @@ serve(async (req) => {
             ? (SHAPE_HEBREW_MAP[learningShape] || learningShape)
             : null;
 
+    // For illustration prompts: use just the digit for numbers (not Hebrew phrase)
+    const illustrationLearningTarget = learningLetter 
+      ? (HEBREW_LETTER_MAP[learningLetter] || learningLetter)
+      : learningNumber 
+        ? learningNumber  // Just the digit: "2", not "מספר 2"
+        : learningColor
+          ? (COLOR_HEBREW_MAP[learningColor] || learningColor)
+          : learningShape
+            ? (SHAPE_HEBREW_MAP[learningShape] || learningShape)
+            : null;
+
     // === INPUT VALIDATION ===
     // Validate required fields
     if (!childName || typeof childName !== "string") {
