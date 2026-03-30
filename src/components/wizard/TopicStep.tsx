@@ -17,6 +17,7 @@ const TopicStep = ({ formData, updateFormData }: TopicStepProps) => {
   const [activeTab, setActiveTab] = useState("all");
   const [searchQuery, setSearchQuery] = useState("");
   const [expandedSections, setExpandedSections] = useState<Set<string>>(new Set());
+  const [learningSubTab, setLearningSubTab] = useState<string | null>(null);
 
   const genderSuffix = formData.childGender === "female" ? "ת" : "";
   const childNameForPlaceholder = formData.childName?.trim() || "הילד/ה שלך";
