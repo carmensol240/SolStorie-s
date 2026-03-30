@@ -1337,6 +1337,12 @@ const StoryViewer = () => {
                     </Button>
                   </div>
                 </div>
+
+                {/* Left arrow to advance to feedback page */}
+                <button onClick={() => handlePageNav('next')} aria-label="עמוד הבא"
+                  className="absolute left-2 top-1/2 -translate-y-1/2 z-20 w-8 h-8 rounded-full flex items-center justify-center bg-white/20 hover:bg-white/40 text-white transition-all">
+                  <ChevronLeft className="w-5 h-5" />
+                </button>
               </div>
 
             ) : isEndPage ? (
@@ -1361,33 +1367,6 @@ const StoryViewer = () => {
                     </Button>
                   </div>
 
-                  {/* Feedback Box */}
-                  {!endFeedbackSent ? (
-                    <div className="w-full max-w-xs bg-white rounded-xl p-3 shadow-lg border border-purple-100 space-y-2 mt-2 mx-auto" dir="rtl">
-                      <h3 className="text-center text-sm font-bold text-purple-800">✨ שתפו אותנו בקסם שלכם</h3>
-                      <div className="flex justify-center gap-0.5">
-                        {[1, 2, 3, 4, 5].map((s) => (
-                          <button key={s} onClick={() => setEndFeedbackRating(s)}
-                            onMouseEnter={() => setEndFeedbackHover(s)} onMouseLeave={() => setEndFeedbackHover(0)}
-                            className="p-0.5 transition-transform hover:scale-110" aria-label={`דירוג ${s} כוכבים`}>
-                            <Star className={`w-6 h-6 ${s <= (endFeedbackHover || endFeedbackRating) ? 'fill-amber-400 text-amber-400' : 'text-purple-200'} transition-colors`} />
-                          </button>
-                        ))}
-                      </div>
-                      <Textarea value={endFeedbackMessage} onChange={(e) => setEndFeedbackMessage(e.target.value)}
-                        placeholder="ספרו לנו מה אהבתם 💬" className="text-xs min-h-[40px] resize-none" dir="rtl" />
-                      <Button onClick={handleEndFeedbackSubmit} disabled={endFeedbackRating === 0 || endFeedbackSending}
-                        size="sm" className="w-full gap-1 text-xs bg-gradient-to-r from-purple-600 to-pink-500 hover:from-purple-700 hover:to-pink-600">
-                        <Send className="w-3 h-3" />
-                        {endFeedbackSending ? "שולח..." : "שליחה"}
-                      </Button>
-                    </div>
-                  ) : (
-                    <div className="w-full max-w-xs bg-gradient-to-r from-purple-50 to-pink-50 rounded-xl p-3 shadow-lg border border-purple-100 text-center mt-2 mx-auto" dir="rtl">
-                      <p className="text-base font-bold text-purple-800">תודה רבה! 💛</p>
-                      <p className="text-xs text-purple-600 mt-1">המשוב שלכם עוזר לנו ליצור סיפורים טובים יותר</p>
-                    </div>
-                  )}
                   {/* Coloring Page Button */}
                   <div className="pt-2">
                     <Button
@@ -1418,6 +1397,34 @@ const StoryViewer = () => {
                       )}
                     </Button>
                   </div>
+
+                  {/* Feedback Box */}
+                  {!endFeedbackSent ? (
+                    <div className="w-full max-w-xs bg-white rounded-xl p-3 shadow-lg border border-purple-100 space-y-2 mt-2 mx-auto" dir="rtl">
+                      <h3 className="text-center text-sm font-bold text-purple-800">✨ שתפו אותנו בקסם שלכם</h3>
+                      <div className="flex justify-center gap-0.5">
+                        {[1, 2, 3, 4, 5].map((s) => (
+                          <button key={s} onClick={() => setEndFeedbackRating(s)}
+                            onMouseEnter={() => setEndFeedbackHover(s)} onMouseLeave={() => setEndFeedbackHover(0)}
+                            className="p-0.5 transition-transform hover:scale-110" aria-label={`דירוג ${s} כוכבים`}>
+                            <Star className={`w-6 h-6 ${s <= (endFeedbackHover || endFeedbackRating) ? 'fill-amber-400 text-amber-400' : 'text-purple-200'} transition-colors`} />
+                          </button>
+                        ))}
+                      </div>
+                      <Textarea value={endFeedbackMessage} onChange={(e) => setEndFeedbackMessage(e.target.value)}
+                        placeholder="ספרו לנו מה אהבתם 💬" className="text-xs min-h-[40px] resize-none" dir="rtl" />
+                      <Button onClick={handleEndFeedbackSubmit} disabled={endFeedbackRating === 0 || endFeedbackSending}
+                        size="sm" className="w-full gap-1 text-xs bg-gradient-to-r from-purple-600 to-pink-500 hover:from-purple-700 hover:to-pink-600">
+                        <Send className="w-3 h-3" />
+                        {endFeedbackSending ? "שולח..." : "שליחה"}
+                      </Button>
+                    </div>
+                  ) : (
+                    <div className="w-full max-w-xs bg-gradient-to-r from-purple-50 to-pink-50 rounded-xl p-3 shadow-lg border border-purple-100 text-center mt-2 mx-auto" dir="rtl">
+                      <p className="text-base font-bold text-purple-800">תודה רבה! 💛</p>
+                      <p className="text-xs text-purple-600 mt-1">המשוב שלכם עוזר לנו ליצור סיפורים טובים יותר</p>
+                    </div>
+                  )}
 
                   {/* Coloring Page Illustration Picker Dialog */}
                   <Dialog open={coloringPickerOpen} onOpenChange={setColoringPickerOpen}>
