@@ -141,17 +141,6 @@ const TopicStep = ({ formData, updateFormData }: TopicStepProps) => {
             >
               🌟 הכל
             </button>
-            <button
-              onClick={() => setActiveTab("biblical")}
-              className={cn(
-                "px-3 py-1.5 rounded-full text-xs font-medium whitespace-nowrap border transition-all flex-shrink-0",
-                activeTab === "biblical"
-                  ? "bg-gradient-to-r from-purple-600 via-pink-500 to-orange-400 text-white border-transparent shadow-md"
-                  : "border-border bg-card text-foreground hover:border-purple-300"
-              )}
-            >
-              ✡️ תנ״כי
-            </button>
             {CHARACTER_SECTIONS.map((section) => (
               <button
                 key={section.id}
