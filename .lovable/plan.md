@@ -1,35 +1,27 @@
 
 
-## Plan: Fix Learning Topic Bugs + Add Full Body Instruction
+## Plan: Fix send-feedback-notification Edge Function
 
 ### Analysis
 
-After inspecting the code, here's what I found:
+The function code is syntactically correct and the edge function logs confirm it IS deployed and running — it booted, processed a request, and logged "Feedback notification sent, id: unknown". The "id: unknown" indicates the Resend API returned a response without an `id`, which typically means the email wasn't actually sent (domain/auth issue on Resend's side), but the Edge Function itself is functional.
 
-**Bug 1 — HEBREW_LETTER_MAP:** The current map (lines 730-736) is **already correct** — it matches exactly what the user provided. No change needed.
+However, if the deploy is genuinely failing, the most likely cause is the `esm.sh` import of Resend. The fix is to switch to `npm:` specifier (more stable in Deno) and match the pattern used by `send-contact-form` which uses `fetch` directly instead of the Resend SDK.
 
-**Bug 2 — Topic ID to letter mapping:** The extraction logic on line 722 (`topic.replace('letter-', '').toUpperCase()`) correctly maps `letter-yod` → `YOD`, `letter-alef` → `ALEF`, etc. **Already correct.**
+### Changes — `supabase/functions/send-feedback-notification/index.ts`
 
-**Addition — Full body shot instruction:** This needs to be added to the learning topic illustration prompts.
+Replace the Resend SDK import with direct `fetch` calls to the Resend API (matching the `send-contact-form` pattern):
 
-### Changes — `supabase/functions/generate-story/index.ts` only
+1. Remove `import { Resend }` and `const resend = new Resend(...)` 
+2. Use `const RESEND_API_KEY = Deno.env.get("RESEND_API_KEY")` 
+3. Replace `resend.emails.send({...})` with a direct `fetch("https://api.resend.com/emails", {...})` call
+4. Add HTML escaping for user input (XSS prevention, matching `send-contact-form`)
 
-**1. Add full body instruction to learning topic illustration guidelines (lines 1282-1287):**
-
-Append to the existing learning topic illustration block:
-```
-- Full body shot of the child, showing complete figure from head to toe. Do NOT cut off any body parts.
-```
-
-**2. Add full body instruction to last page override (line 1764):**
-
-Append to the last page illustration prompt:
-```
-Full body shot of the child, showing complete figure from head to toe. Do NOT cut off any body parts.
-```
+This eliminates the `esm.sh` dependency entirely, which is the most common cause of Edge Function deploy failures.
 
 ### What stays the same
-- HEBREW_LETTER_MAP (already correct)
-- Topic-to-letter extraction logic (already correct)
-- All other logic untouched
+- Email content, recipients, subject line
+- CORS headers and error handling
+- Config in `supabase/config.toml`
+- The invoke call in `StoryViewer.tsx`
 
