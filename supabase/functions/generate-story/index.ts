@@ -1801,15 +1801,11 @@ ${fullStoryText}`;
     // For learning topics, override the LAST page's illustration prompt
     if (isLearningTopic && pagesWithoutIllustrations.length > 0) {
       const lastPage = pagesWithoutIllustrations[pagesWithoutIllustrations.length - 1];
-      const fullBleed = "Full bleed illustration, no white margins or borders. Disney/Pixar style, warm and magical.";
-      if (learningLetter || learningNumber) {
-        const targetDesc = learningLetter ? `Hebrew letter ${hebrewLearningTarget}` : `the Arabic numeral digit ${learningNumber} (NOT a Hebrew letter)`;
-        lastPage.illustration_prompt = `The child ${childName} stands next to the giant glowing ${targetDesc}, which fills half the image and is fully visible, not cropped. The letter is large, clear, bold, 3D golden style, complete and uncut. Wide shot showing both the child and the full ${learningLetter ? 'letter' : 'number'}. Full body shot of the child, showing complete figure from head to toe. Do NOT cut off any body parts. ${fullBleed}`;
-      } else if (learningColor) {
-        lastPage.illustration_prompt = `The child ${childName} stands in a scene completely flooded with ${hebrewLearningTarget} — the background, objects, clothing, flowers, and sky are all in shades of ${hebrewLearningTarget}. Full body shot of the child, showing complete figure from head to toe. Do NOT cut off any body parts. ${fullBleed}`;
-      } else if (learningShape) {
-        lastPage.illustration_prompt = `The child ${childName} stands surrounded by giant and small ${hebrewLearningTarget} shapes floating around them in a magical colorful scene. One huge glowing ${hebrewLearningTarget} dominates the center. Full body shot of the child, showing complete figure from head to toe. Do NOT cut off any body parts. ${fullBleed}`;
-      }
+      lastPage.illustration_prompt = topic.startsWith('color-')
+        ? `The child ${childName} stands in a magical scene completely flooded with ${hebrewLearningTarget} color. The background, sky, flowers, objects and clothing are all in shades of ${hebrewLearningTarget}. Disney/Pixar 3D style. Full bleed, no white margins, no borders, image fills entire frame edge to edge.`
+        : topic.startsWith('shape-')
+        ? `The child ${childName} stands surrounded by giant and small ${hebrewLearningTarget} shapes floating around them in a magical colorful scene. One huge glowing ${hebrewLearningTarget} shape dominates the center. Disney/Pixar 3D style. Full bleed, no white margins, no borders, image fills entire frame edge to edge.`
+        : `The child ${childName} stands next to the giant glowing ${learningLetter ? `Hebrew letter ${hebrewLearningTarget}` : `the Arabic numeral digit ${learningNumber} (NOT a Hebrew letter)`}, which fills half the image and is fully visible, not cropped. The letter is large, clear, bold, 3D golden style, complete and uncut. Wide shot showing both the child and the full ${learningLetter ? 'letter' : 'number'}. Full body shot of the child, showing complete figure from head to toe. Do NOT cut off any body parts. Full bleed, no white margins, no borders, image fills entire frame edge to edge.`;
     }
 
     const { error: pagesError } = await supabase
