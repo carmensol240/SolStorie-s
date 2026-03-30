@@ -74,7 +74,7 @@ export const useTextToSpeech = (): UseTextToSpeechReturn => {
       if (arrayBuffer.byteLength === 0) {
         throw new Error('Empty audio response');
       }
-      if (arrayBuffer.byteLength < 1024) {
+      if (arrayBuffer.byteLength < 100) {
         const errorText = new TextDecoder().decode(arrayBuffer);
         console.error('TTS response too small, likely error:', errorText);
         throw new Error('תגובת השמע קטנה מדי - ייתכן שהשירות לא זמין');
