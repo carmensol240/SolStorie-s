@@ -7,7 +7,7 @@ import { ChevronUp, Sparkles, Search, X, ChevronDown, Volume2 } from "lucide-rea
 import { CHARACTER_SECTIONS, TopicItem } from "./topic-data";
 import { Drawer, DrawerContent, DrawerClose } from "@/components/ui/drawer";
 import { Button } from "@/components/ui/button";
-import { useTextToSpeech } from '@/hooks/use-text-to-speech';
+
 
 const LEARNING_PRONUNCIATION: Record<string, string> = {
   'letter-alef': 'אָלֶף', 'letter-bet': 'בֵּית', 'letter-gimel': 'גִּימֶל',
