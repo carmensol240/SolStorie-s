@@ -12,6 +12,7 @@ interface FeedbackNotificationRequest {
   childName: string;
   rating: number;
   message: string;
+  userEmail: string;
 }
 
 function escapeHtml(text: string): string {
