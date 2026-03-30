@@ -209,7 +209,7 @@ const StoryViewer = () => {
     if (img.naturalHeight > img.naturalWidth) {
       img.classList.remove('object-cover');
       img.classList.add('object-contain');
-      img.style.background = 'hsl(260,50%,12%)';
+      
     }
   }, []);
   const { trackStoryStarted, trackStoryCompleted, trackPageViewed, trackFeatureUsed } = useAnalytics();
@@ -1247,7 +1247,7 @@ const StoryViewer = () => {
                         "absolute inset-0 w-full h-full",
                         (coverIsLandscape || isLearningTopic) ? "object-contain" : "object-cover"
                       )}
-                      style={{ transform: 'scale(1.02)', background: (coverIsLandscape || isLearningTopic) ? 'hsl(260,50%,12%)' : undefined }}
+                      style={{ transform: 'scale(1.02)' }}
                       loading="eager"
                       onLoad={(e) => {
                         const img = e.currentTarget;
@@ -1551,8 +1551,8 @@ const StoryViewer = () => {
                         key={`${currentVirtual.illustrationUrl}-${failedImages[currentVirtual.illustrationUrl] || 0}`}
                         src={`${getPublicIllustrationUrl(currentVirtual.illustrationUrl) || ''}${failedImages[currentVirtual.illustrationUrl] ? `?retry=${failedImages[currentVirtual.illustrationUrl]}` : ''}`}
                         alt="איור"
-                        className={`absolute inset-0 w-full h-full ${isLearningTopic ? 'object-contain' : 'object-cover'}`}
-                        style={{ transform: 'scale(1.02)', background: isLearningTopic ? 'hsl(260,50%,12%)' : undefined }}
+                        className="absolute inset-0 w-full h-full object-cover"
+                        style={{ transform: 'scale(1.02)' }}
                         loading="eager"
                         onLoad={handleImageLoad}
                         onError={() => {
@@ -1627,8 +1627,8 @@ const StoryViewer = () => {
                         key={`${currentVirtual.illustrationUrl}-${failedImages[currentVirtual.illustrationUrl] || 0}`}
                         src={`${getPublicIllustrationUrl(currentVirtual.illustrationUrl) || ''}${failedImages[currentVirtual.illustrationUrl] ? `?retry=${failedImages[currentVirtual.illustrationUrl]}` : ''}`}
                         alt="איור"
-                        className={`absolute inset-0 w-full h-full ${isLearningTopic ? 'object-contain' : 'object-cover'}`}
-                        style={{ transform: 'scale(1.02)', background: isLearningTopic ? 'hsl(260,50%,12%)' : undefined }}
+                        className="absolute inset-0 w-full h-full object-cover"
+                        style={{ transform: 'scale(1.02)' }}
                         loading="eager"
                         onLoad={handleImageLoad}
                         onError={() => {
