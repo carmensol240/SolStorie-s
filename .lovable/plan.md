@@ -1,19 +1,21 @@
 
 
-## Plan: Merge Coloring + Learning Section in About Page
+## Plan: Remove Topic Text Truncation on Story Book Cards
 
-### Change — `src/pages/About.tsx` lines 183-188
+### Analysis
+The story book cards in the library (`src/components/ui/story-book-card.tsx`) show the topic with `line-clamp-1` on line 203, which truncates long topic text to a single line.
 
-Replace the coloring section with the combined content:
+### Change — `src/components/ui/story-book-card.tsx` line 203
+
+Replace `line-clamp-1` with no clamp, allowing the text to wrap:
 
 ```tsx
-<div className="flex flex-col items-center gap-1.5">
-  <span className="text-3xl">🎨📚</span>
-  <p className="text-base font-normal text-white leading-[1.6] text-right px-4" style={{ textShadow: '0 1px 3px rgba(0,0,0,0.3)' }}>
-    <strong className="text-orange-200 font-black">למידה, יצירה וצביעה</strong> — כל סיפור מגיע עם דף צביעה מותאם אישית להדפסה בבית — ובחבילת הלמידה, הילד פוגש אותיות ומספרים בתוך הרפתקה קסומה משלו.
-  </p>
-</div>
+// Before
+<p className="text-white/75 text-xs mt-0.5 line-clamp-1 drop-shadow-sm">{topic}</p>
+
+// After
+<p className="text-white/75 text-xs mt-0.5 drop-shadow-sm">{topic}</p>
 ```
 
-No other sections or files touched.
+Single line change. No other files or logic touched.
 
