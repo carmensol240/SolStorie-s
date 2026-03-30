@@ -82,6 +82,7 @@ const PolaroidCard = ({
   storyId,
   index = 0,
   seriesCount,
+  seriesParts,
   isOfflineSaved = false,
   isDownloading = false,
   offlineSize = 0,
@@ -90,6 +91,7 @@ const PolaroidCard = ({
 }: PolaroidCardProps) => {
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
+  const [showSeriesDropdown, setShowSeriesDropdown] = useState(false);
 
   const pinColor = PIN_COLORS[index % PIN_COLORS.length];
 
@@ -99,7 +101,15 @@ const PolaroidCard = ({
     return deg;
   }, [id]);
 
-  const handleClick = () => onClick(id);
+  const isSeries = seriesParts && seriesParts.length > 1;
+
+  const handleClick = () => {
+    if (isSeries) {
+      setShowSeriesDropdown(prev => !prev);
+    } else {
+      onClick(id);
+    }
+  };
 
   return (
     <>
