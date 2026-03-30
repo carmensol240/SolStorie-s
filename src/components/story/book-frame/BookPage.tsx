@@ -54,7 +54,7 @@ export const BookPage: React.FC<BookPageProps> = ({
                 src={illustrationUrl}
                 storyId={storyId}
                 alt=""
-                className="w-full h-full object-contain"
+                className="w-full h-full object-cover"
               />
             </div>
           </div>
