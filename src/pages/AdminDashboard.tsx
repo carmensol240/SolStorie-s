@@ -333,6 +333,51 @@ const AdminDashboard = () => {
     fetchCoverLogs();
   }, [isAdmin]);
 
+  // Fetch feedbacks
+  useEffect(() => {
+    if (!isAdmin) return;
+
+    const fetchFeedbacks = async () => {
+      const { data: fbData } = await supabase
+        .from("user_feedback")
+        .select("id, user_id, rating, message, display_name, page_url, created_at, is_approved")
+        .order("created_at", { ascending: false })
+        .limit(200);
+
+      if (fbData) {
+        setFeedbacks(fbData as FeedbackRow[]);
+
+        // Extract story IDs from page_url (format: "story/{uuid}")
+        const storyIds = fbData
+          .map(f => f.page_url?.match(/story\/([a-f0-9-]{36})/)?.[1])
+          .filter((id): id is string => !!id);
+        const uniqueStoryIds = [...new Set(storyIds)];
+
+        if (uniqueStoryIds.length > 0) {
+          const { data: storiesData } = await supabase
+            .from("stories")
+            .select("id, child_name, topic")
+            .in("id", uniqueStoryIds);
+          if (storiesData) {
+            const map: Record<string, { child_name: string; topic: string }> = {};
+            storiesData.forEach(s => { map[s.id] = { child_name: s.child_name, topic: s.topic }; });
+            setFeedbackStories(map);
+          }
+        }
+
+        // Resolve emails
+        const { data: emailsData } = await supabase.rpc("get_admin_user_emails");
+        if (emailsData) {
+          const emailMap: Record<string, string> = {};
+          (emailsData as { user_id: string; email: string }[]).forEach(e => { emailMap[e.user_id] = e.email; });
+          setFeedbackEmails(emailMap);
+        }
+      }
+    };
+
+    fetchFeedbacks();
+  }, [isAdmin]);
+
   if (isAdmin === null) {
     return <div className="flex items-center justify-center min-h-screen">טוען...</div>;
   }
@@ -471,7 +516,7 @@ const AdminDashboard = () => {
 
         {/* Tabs */}
         <Tabs defaultValue="users" className="w-full">
-          <TabsList className="grid w-full grid-cols-6">
+          <TabsList className="grid w-full grid-cols-7">
             <TabsTrigger value="users">משתמשים</TabsTrigger>
             <TabsTrigger value="stories">סיפורים</TabsTrigger>
             <TabsTrigger value="covers" className="flex items-center gap-1">
@@ -486,6 +531,7 @@ const AdminDashboard = () => {
               <Ticket className="h-3.5 w-3.5" />
               קופונים
             </TabsTrigger>
+            <TabsTrigger value="feedback">משובים</TabsTrigger>
             <TabsTrigger value="errors" className="flex items-center gap-1">
               שגיאות
               {errors24h > 0 && <Badge variant="destructive" className="text-xs px-1.5 py-0">{errors24h}</Badge>}
