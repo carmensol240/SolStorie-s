@@ -26,7 +26,12 @@ const TopicStep = ({ formData, updateFormData }: TopicStepProps) => {
   const toggleSection = (id: string) => {
     setExpandedSections(prev => {
       const next = new Set(prev);
-      if (next.has(id)) next.delete(id); else next.add(id);
+      if (next.has(id)) {
+        next.delete(id);
+        if (id === "learning") setLearningSubTab(null);
+      } else {
+        next.add(id);
+      }
       return next;
     });
   };
