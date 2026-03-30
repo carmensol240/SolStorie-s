@@ -718,12 +718,14 @@ serve(async (req) => {
     }
     // === END CREDIT CHECK ===
 
-    const { childName, childGender = "male", ageRange, storyLength = "short", topic, nikud, childPhoto, childAvatarUrl, personalityTraits, adventureLogic, language = "he", className, topicDescription, childId, isCustomTopic = false } = await req.json();
+    const { childName, childGender = "male", ageRange, storyLength = "short", topic, topicId, nikud, childPhoto, childAvatarUrl, personalityTraits, adventureLogic, language = "he", className, topicDescription, childId, isCustomTopic = false } = await req.json();
 
     // === LEARNING TOPIC DETECTION ===
-    const isLearningTopic = topic?.startsWith('letter-') || topic?.startsWith('number-') || topic?.startsWith('color-') || topic?.startsWith('shape-');
-    const learningLetter = isLearningTopic && topic?.startsWith('letter-') 
-      ? topic.replace('letter-', '').toUpperCase() 
+    // Use topicId (e.g. "letter-yod") for detection — topic contains the Hebrew label
+    const learningKey = topicId || topic;
+    const isLearningTopic = learningKey?.startsWith('letter-') || learningKey?.startsWith('number-') || learningKey?.startsWith('color-') || learningKey?.startsWith('shape-');
+    const learningLetter = isLearningTopic && learningKey?.startsWith('letter-') 
+      ? learningKey.replace('letter-', '').toUpperCase() 
       : null;
     const learningNumber = isLearningTopic && topic?.startsWith('number-')
       ? topic.replace('number-', '')
