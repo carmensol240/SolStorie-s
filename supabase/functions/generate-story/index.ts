@@ -1284,6 +1284,7 @@ ${isLearningTopic ? `
 - בכל איור: ${hebrewLearningTarget} מופיע איפשהו בסצנה — על קיר, על עץ, על חולצה
 - האות/מספר בפונט עגול וצבעוני לילדים
 - כל טקסט באיור חייב להיות בעברית בלבד — ${hebrewLearningTarget}
+- Full body shot of the child, showing complete figure from head to toe. Do NOT cut off any body parts.
 ` : ''}
 
 ## דיוק לנושא ומקוריות - חובה!
@@ -1761,7 +1762,7 @@ ${fullStoryText}`;
       const targetDesc = learningLetter 
         ? `Hebrew letter ${hebrewLearningTarget}` 
         : `number ${hebrewLearningTarget}`;
-      lastPage.illustration_prompt = `The child ${childName} stands next to the giant glowing ${targetDesc}, which fills half the image and is fully visible, not cropped. The letter is large, clear, bold, 3D golden style, complete and uncut. Wide shot showing both the child and the full ${learningLetter ? 'letter' : 'number'}.`;
+      lastPage.illustration_prompt = `The child ${childName} stands next to the giant glowing ${targetDesc}, which fills half the image and is fully visible, not cropped. The letter is large, clear, bold, 3D golden style, complete and uncut. Wide shot showing both the child and the full ${learningLetter ? 'letter' : 'number'}. Full body shot of the child, showing complete figure from head to toe. Do NOT cut off any body parts.`;
     }
 
     const { error: pagesError } = await supabase
