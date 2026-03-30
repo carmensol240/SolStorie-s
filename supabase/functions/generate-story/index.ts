@@ -718,18 +718,20 @@ serve(async (req) => {
     }
     // === END CREDIT CHECK ===
 
-    const { childName, childGender = "male", ageRange, storyLength = "short", topic, nikud, childPhoto, childAvatarUrl, personalityTraits, adventureLogic, language = "he", className, topicDescription, childId, isCustomTopic = false } = await req.json();
+    const { childName, childGender = "male", ageRange, storyLength = "short", topic, topicId, nikud, childPhoto, childAvatarUrl, personalityTraits, adventureLogic, language = "he", className, topicDescription, childId, isCustomTopic = false } = await req.json();
 
     // === LEARNING TOPIC DETECTION ===
-    const isLearningTopic = topic?.startsWith('letter-') || topic?.startsWith('number-') || topic?.startsWith('color-') || topic?.startsWith('shape-');
-    const learningLetter = isLearningTopic && topic?.startsWith('letter-') 
-      ? topic.replace('letter-', '').toUpperCase() 
+    // Use topicId (e.g. "letter-yod") for detection — topic contains the Hebrew label
+    const learningKey = topicId || topic;
+    const isLearningTopic = learningKey?.startsWith('letter-') || learningKey?.startsWith('number-') || learningKey?.startsWith('color-') || learningKey?.startsWith('shape-');
+    const learningLetter = isLearningTopic && learningKey?.startsWith('letter-') 
+      ? learningKey.replace('letter-', '').toUpperCase() 
       : null;
-    const learningNumber = isLearningTopic && topic?.startsWith('number-')
-      ? topic.replace('number-', '')
+    const learningNumber = isLearningTopic && learningKey?.startsWith('number-')
+      ? learningKey.replace('number-', '')
       : null;
-    const learningColor = isLearningTopic && topic?.startsWith('color-') ? topic.replace('color-', '') : null;
-    const learningShape = isLearningTopic && topic?.startsWith('shape-') ? topic.replace('shape-', '') : null;
+    const learningColor = isLearningTopic && learningKey?.startsWith('color-') ? learningKey.replace('color-', '') : null;
+    const learningShape = isLearningTopic && learningKey?.startsWith('shape-') ? learningKey.replace('shape-', '') : null;
     const learningTarget = learningLetter || learningNumber || learningColor || learningShape;
 
     // Hebrew mapping for learning targets
@@ -1801,9 +1803,9 @@ ${fullStoryText}`;
     // For learning topics, override the LAST page's illustration prompt
     if (isLearningTopic && pagesWithoutIllustrations.length > 0) {
       const lastPage = pagesWithoutIllustrations[pagesWithoutIllustrations.length - 1];
-      lastPage.illustration_prompt = topic.startsWith('color-')
+      lastPage.illustration_prompt = learningColor
         ? `The child ${childName} stands in a magical scene completely flooded with ${hebrewLearningTarget} color. The background, sky, flowers, objects and clothing are all in shades of ${hebrewLearningTarget}. Disney/Pixar 3D style. Full bleed, no white margins, no borders, image fills entire frame edge to edge.`
-        : topic.startsWith('shape-')
+        : learningShape
         ? `The child ${childName} stands surrounded by giant and small ${hebrewLearningTarget} shapes floating around them in a magical colorful scene. One huge glowing ${hebrewLearningTarget} shape dominates the center. Disney/Pixar 3D style. Full bleed, no white margins, no borders, image fills entire frame edge to edge.`
         : `The child ${childName} stands next to the giant glowing ${learningLetter ? `Hebrew letter ${hebrewLearningTarget}` : `the Arabic numeral digit ${learningNumber} (NOT a Hebrew letter)`}, which fills half the image and is fully visible, not cropped. The letter is large, clear, bold, 3D golden style, complete and uncut. Wide shot showing both the child and the full ${learningLetter ? 'letter' : 'number'}. Full body shot of the child, showing complete figure from head to toe. Do NOT cut off any body parts. Full bleed, no white margins, no borders, image fills entire frame edge to edge.`;
     }
