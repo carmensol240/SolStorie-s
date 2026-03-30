@@ -1,34 +1,46 @@
 
 
-## Plan: Remove Illustration Backgrounds, Use Pure object-cover/object-contain
+## Plan: Dynamic Aspect Ratio for Portrait Illustrations
+
+### Problem
+Portrait illustrations show white/empty sidebars because the container is fixed fullscreen and `object-contain` leaves gaps.
+
+### Approach
+In `handleImageLoad`, when a portrait image is detected, find the parent container and adjust its styling so it matches the image's natural aspect ratio — eliminating side bars entirely.
 
 ### Changes — `src/pages/StoryViewer.tsx` only
 
-**1. `handleImageLoad` callback (lines 207-214):**
-Remove `img.style.background = 'hsl(260,50%,12%)'` — portrait images get `object-contain` with no background.
+**1. Update `handleImageLoad` (lines 207-214):**
 
-**2. Cover image (lines 1246-1250):**
-Remove the `background` from inline style. Keep the contain/cover logic for portrait detection.
+When portrait detected:
+- Remove `absolute inset-0` from the image (so it's not pinned to container edges)
+- Add `object-contain w-full h-full` to the image
+- Find the parent container (`img.parentElement`) and:
+  - Remove `h-full` class
+  - Add `flex items-center justify-center` for centering
+  - Set `img.style.aspectRatio` to `${img.naturalWidth}/${img.naturalHeight}` so the image sizes itself naturally
+  - Set `img.style.maxHeight = '100%'` and `img.style.maxWidth = '100%'` to keep it bounded
 
-**3. Combined page illustration (line 1554-1555):**
-- className: always `object-cover`, portrait handled by `handleImageLoad` switching to `object-contain`
-- Remove `background` from inline style entirely (both learning and non-learning)
+```typescript
+const handleImageLoad = useCallback((e: React.SyntheticEvent<HTMLImageElement>) => {
+  const img = e.currentTarget;
+  if (img.naturalHeight > img.naturalWidth) {
+    img.classList.remove('object-cover', 'absolute', 'inset-0');
+    img.classList.add('object-contain');
+    img.style.aspectRatio = `${img.naturalWidth} / ${img.naturalHeight}`;
+    img.style.maxHeight = '100%';
+    img.style.maxWidth = '100%';
+    img.style.margin = 'auto';
+    
+    const container = img.closest('.animate-fade-in');
+    if (container instanceof HTMLElement) {
+      container.classList.add('flex', 'items-center', 'justify-center');
+    }
+  }
+}, []);
+```
 
-**4. Illustration-only page (line 1630-1631):**
-Same changes as combined page.
+**2. No changes to the `<img>` tags themselves** — they keep `absolute inset-0 w-full h-full object-cover` as defaults; `handleImageLoad` overrides dynamically for portrait images.
 
-**5. Parent containers** of these images already have `overflow-hidden` via the outer layout — no changes needed there.
-
-### Summary of what changes per location
-
-| Location | Before | After |
-|---|---|---|
-| `handleImageLoad` | Adds `object-contain` + purple bg | Adds `object-contain` only, no bg |
-| Cover img style | `background: hsl(...)` | No background |
-| Combined img class | Learning → `object-contain` | Always `object-cover` (portrait handled dynamically) |
-| Combined img style | Learning → purple bg | No background |
-| Illustration img class | Same as combined | Same fix |
-| Illustration img style | Same as combined | Same fix |
-
-No other logic touched.
+**3. No other files or logic touched.**
 
