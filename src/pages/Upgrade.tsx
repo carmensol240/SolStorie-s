@@ -43,7 +43,7 @@ const Upgrade = () => {
   const [purchasedCredits, setPurchasedCredits] = useState(0);
   const [discountPercent, setDiscountPercent] = useState(0);
   const [appliedCouponCode, setAppliedCouponCode] = useState<string | null>(null);
-  const [learningMode, setLearningMode] = useState<'letters' | 'numbers'>('letters');
+  
 
   const title = "נהניתם מהסיפור?";
   const subtitle = "המשיכו את הקסם עם חבילת קרדיטים חדשה";
