@@ -1335,7 +1335,12 @@ const StoryViewer = () => {
                       <ArrowRight className="w-4 h-4" />
                       חזרה לספרייה
                     </Button>
-                  </div>
+                    <Button
+                      onClick={() => handlePageNav('next')}
+                      className="bg-gradient-to-r from-amber-400 to-yellow-500 hover:from-amber-500 hover:to-yellow-600 text-amber-950 font-bold px-8 py-3 rounded-full shadow-xl text-base gap-2 animate-bounce-gentle mt-2"
+                    >
+                      לדף הסיום ✨
+                    </Button>
                 </div>
 
                 {/* --- REMOVED small arrow, replaced by CTA below --- */}
