@@ -43,7 +43,7 @@ const Upgrade = () => {
   const [purchasedCredits, setPurchasedCredits] = useState(0);
   const [discountPercent, setDiscountPercent] = useState(0);
   const [appliedCouponCode, setAppliedCouponCode] = useState<string | null>(null);
-  const [learningMode, setLearningMode] = useState<'letters' | 'numbers'>('letters');
+  
 
   const title = "נהניתם מהסיפור?";
   const subtitle = "המשיכו את הקסם עם חבילת קרדיטים חדשה";
@@ -349,39 +349,6 @@ const Upgrade = () => {
             ))}
           </div>
 
-          {/* Learning Package */}
-          <div className="relative rounded-2xl p-[2px] mb-4 overflow-hidden"
-            style={{
-              background: 'linear-gradient(135deg, hsl(45,90%,60%), hsl(200,80%,50%), hsl(45,90%,60%))',
-              backgroundSize: '300% 300%',
-              animation: 'sparkle-border 4s ease-in-out infinite',
-            }}>
-            <div className="bg-[hsl(260,50%,13%)]/95 backdrop-blur-md rounded-[14px] p-4 space-y-3">
-              <div className="flex items-center gap-2">
-                <span className="text-xl">🎓</span>
-                <h3 className="font-black text-sm text-yellow-200">חבילת למידה</h3>
-                <span className="bg-yellow-500/30 text-yellow-200 text-[10px] font-bold px-2 py-0.5 rounded-full">חדש!</span>
-              </div>
-              <p className="text-xs text-white/70 leading-relaxed">
-                סיפורים מותאמים ללמידת אותיות ומספרים — הילד פוגש כל אות ומספר בתוך הסיפור!
-              </p>
-              <div className="flex gap-2">
-                <button
-                  onClick={() => setLearningMode('letters')}
-                  className={`flex-1 py-2 rounded-xl text-xs font-black border transition-all ${learningMode === 'letters' ? 'bg-yellow-400/30 border-yellow-400/60 text-yellow-200' : 'bg-white/10 border-white/20 text-white/70'}`}
-                >
-                  🔤 אותיות
-                </button>
-                <button
-                  onClick={() => setLearningMode('numbers')}
-                  className={`flex-1 py-2 rounded-xl text-xs font-black border transition-all ${learningMode === 'numbers' ? 'bg-blue-400/30 border-blue-400/60 text-blue-200' : 'bg-white/10 border-white/20 text-white/70'}`}
-                >
-                  🔢 מספרים
-                </button>
-              </div>
-              <p className="text-center text-xs text-white/50">בחירת אות/מספר ספציפי — בקרוב ✨</p>
-            </div>
-          </div>
 
           {/* Toolkit PayPal */}
           {showToolkitPayPal && (
