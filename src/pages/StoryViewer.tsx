@@ -900,6 +900,16 @@ const StoryViewer = () => {
       } as any);
       setEndFeedbackSent(true);
       toast({ title: 'תודה רבה! 💛' });
+
+      // Fire-and-forget email notification to admin
+      supabase.functions.invoke('send-feedback-notification', {
+        body: {
+          storyName: story?.topic || '',
+          childName: story?.child_name || '',
+          rating: endFeedbackRating,
+          message: endFeedbackMessage.trim() || '',
+        },
+      }).catch(err => console.error('Feedback email error:', err));
     } catch (err) {
       console.error("Feedback error:", err);
     } finally {

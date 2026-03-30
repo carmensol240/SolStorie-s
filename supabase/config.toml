@@ -74,3 +74,6 @@ verify_jwt = false
 
 [functions.generate-coloring-page]
 verify_jwt = false
+
+[functions.send-feedback-notification]
+verify_jwt = false
