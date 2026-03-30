@@ -174,7 +174,7 @@ const TopicStep = ({ formData, updateFormData }: TopicStepProps) => {
                   className="relative w-full rounded-2xl overflow-hidden border-2 border-border group"
                 >
                   <div className="relative h-44 w-full overflow-hidden bg-gradient-to-br from-green-100 to-amber-50">
-                    <img src={section.heroImage} alt={section.categoryLabel} className={cn("w-full h-full group-hover:scale-105 transition-transform duration-300", section.id === "learning" ? "object-contain" : "object-cover")} />
+                    <img src={section.heroImage} alt={section.categoryLabel} <img src={section.heroImage} alt={section.categoryLabel} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" /> />
                     <div className="absolute inset-0" style={{ background: "linear-gradient(to top, rgba(0,0,0,0.7) 0%, rgba(0,0,0,0.2) 50%, transparent 100%)" }} />
                     {/* Expand/collapse hint */}
                     <div className="absolute top-2 left-2 bg-black/40 backdrop-blur-sm rounded-full px-2 py-0.5 text-white text-[10px] font-bold flex items-center gap-1">
