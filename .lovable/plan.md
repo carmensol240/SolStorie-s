@@ -1,21 +1,18 @@
 
 
-## Plan: Fix Biblical Tab Filter — Character Mismatch
+## Plan: Add No-Text Rule to Coloring Page Prompt
 
-### Problem
-The filter on line 74 uses `"תנ״כיים"` (with Unicode gershayim `״` U+05F4), but the actual `subCategory` values in `topic-data.ts` use `"תנ\"כיים"` (with a regular double-quote `"` escaped as `\"`). These are different characters, so `.includes()` never matches.
-
-### Fix — `src/components/wizard/TopicStep.tsx` line 74
+### Change — `supabase/functions/generate-coloring-page/index.ts` line 73
 
 Replace:
-```typescript
-topics: s.topics.filter(t => t.subCategory?.includes("תנ״כיים")),
+```
+Output ONLY the coloring page image, nothing else.`,
 ```
 
 With:
-```typescript
-topics: s.topics.filter(t => t.subCategory?.includes('תנ"כיים')),
+```
+Output ONLY the coloring page image, nothing else. Do not include any text, labels, letter names, or written words anywhere in the image.`,
 ```
 
-Single character fix. No other changes.
+Single line edit. No other files or logic touched.
 
