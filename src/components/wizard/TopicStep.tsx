@@ -68,12 +68,7 @@ const TopicStep = ({ formData, updateFormData }: TopicStepProps) => {
   const filteredSections = useMemo(() => {
     if (activeTab === "all") return CHARACTER_SECTIONS;
     if (activeTab === "biblical") {
-      return CHARACTER_SECTIONS
-        .map(s => ({
-          ...s,
-          topics: s.topics.filter(t => t.subCategory?.includes('תנ"כיים')),
-        }))
-        .filter(s => s.topics.length > 0);
+      return CHARACTER_SECTIONS.filter((s) => s.id === "biblical");
     }
     return CHARACTER_SECTIONS.filter((s) => s.id === activeTab);
   }, [activeTab]);
