@@ -290,7 +290,21 @@ const TopicStep = ({ formData, updateFormData }: TopicStepProps) => {
                         {section.topics
                           .filter(t => t.id.startsWith(learningSubTab))
                           .map((topic) => (
-                            <SimpleTile key={topic.id} topic={topic} isSelected={formData.topic === topic.id} onSelect={() => handleTopicSelect(topic)} />
+                            <div key={topic.id} className="relative">
+                              <SimpleTile topic={topic} isSelected={formData.topic === topic.id} onSelect={() => handleTopicSelect(topic)} />
+                              {LEARNING_PRONUNCIATION[topic.id] && (
+                                <button
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    startReading(LEARNING_PRONUNCIATION[topic.id], 'he');
+                                  }}
+                                  className="absolute top-2 right-2 z-10 w-8 h-8 rounded-full bg-white/80 backdrop-blur-sm shadow-md flex items-center justify-center hover:bg-white hover:scale-110 transition-all"
+                                  aria-label="השמע"
+                                >
+                                  <Volume2 className="w-4 h-4 text-purple-600" />
+                                </button>
+                              )}
+                            </div>
                           ))}
                       </div>
                     </div>
