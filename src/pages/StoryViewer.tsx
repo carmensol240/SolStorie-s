@@ -1338,11 +1338,7 @@ const StoryViewer = () => {
                   </div>
                 </div>
 
-                {/* Left arrow to advance to feedback page */}
-                <button onClick={() => handlePageNav('next')} aria-label="עמוד הבא"
-                  className="absolute left-2 top-1/2 -translate-y-1/2 z-20 w-8 h-8 rounded-full flex items-center justify-center bg-white/20 hover:bg-white/40 text-white transition-all">
-                  <ChevronLeft className="w-5 h-5" />
-                </button>
+                {/* --- REMOVED small arrow, replaced by CTA below --- */}
               </div>
 
             ) : isEndPage ? (
