@@ -174,7 +174,7 @@ const About = () => {
           </div>
 
           <div className="flex flex-col items-center gap-1.5">
-            <span className="text-3xl">🎓</span>
+            <span className="text-3xl">🏫</span>
             <p className="text-base font-normal text-white leading-[1.6] text-right px-4" style={{ textShadow: '0 1px 3px rgba(0,0,0,0.3)' }}>
               <strong className="text-amber-200 font-black">ארגז כלים לאנשי חינוך</strong> — קטגוריה ייעודית הכוללת תכנים פדגוגיים מבוססי NLP לעבודה רגשית וחברתית בקבוצות ובגנים.
             </p>
