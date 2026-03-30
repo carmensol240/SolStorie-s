@@ -1249,6 +1249,14 @@ ${learningNumber ? `- הסיפור עוסק ב${hebrewLearningTarget}
 - המספר ${learningNumber} מופיע כספרה לפחות 5 פעמים בטקסט: **${learningNumber}**
 - תאר בדיוק ${learningNumber} עצמים בכל פרק
 - בתחילת הסיפור: "המספר של היום הוא ${learningNumber}!"` : ''}
+${learningColor ? `- הסיפור עוסק בצבע ${hebrewLearningTarget}
+- הצבע ${hebrewLearningTarget} מופיע לפחות 8 פעמים בטקסט מודגש: **${hebrewLearningTarget}**
+- תאר חפצים, חיות, פרחים ודברים שהם בצבע ${hebrewLearningTarget}
+- בתחילת הסיפור: "הצבע של היום הוא ${hebrewLearningTarget}!"` : ''}
+${learningShape ? `- הסיפור עוסק בצורת ${hebrewLearningTarget}
+- הצורה ${hebrewLearningTarget} מופיעה לפחות 6 פעמים בטקסט מודגש: **${hebrewLearningTarget}**
+- תאר חפצים ודברים שיש להם צורת ${hebrewLearningTarget}
+- בתחילת הסיפור: "הצורה של היום היא ${hebrewLearningTarget}!"` : ''}
 ` : ''}
 ${className ? `\n## 🏫 שם הכיתה/הגן: ${className}\nשלב את שם הכיתה/הגן בסיפור בצורה טבעית, לדוגמה: "יַלְדֵי ${className} הִתְרַגְּשׁוּ מְאוֹד..." או "בַּכִּיתָּה ${className} קָרָה הַרְפַּתְקָה מְיֻחֶדֶת...". הזכר את שם הכיתה/הגן לפחות פעמיים בסיפור.\n` : ""}
 
