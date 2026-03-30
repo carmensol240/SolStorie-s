@@ -1,28 +1,34 @@
 
 
-## Plan: Harden Negative Prompts + Fix Illustration Backgrounds
+## Plan: Remove Illustration Backgrounds, Use Pure object-cover/object-contain
 
-### Changes
+### Changes — `src/pages/StoryViewer.tsx` only
 
-**1. `supabase/functions/_shared/style-config.ts` — Extend `ILLUSTRATION_NEGATIVE_PROMPT` (line 24)**
+**1. `handleImageLoad` callback (lines 207-214):**
+Remove `img.style.background = 'hsl(260,50%,12%)'` — portrait images get `object-contain` with no background.
 
-Append to the existing string:
-```
-, no screenshot, no phone screen, no device frame, no status bar, no notification bar, no mobile UI, no browser chrome, no app interface visible, no black bars, no black side margins, no letterbox, no pillarbox
-```
+**2. Cover image (lines 1246-1250):**
+Remove the `background` from inline style. Keep the contain/cover logic for portrait detection.
 
-**2. `src/pages/StoryViewer.tsx` — 4 locations**
+**3. Combined page illustration (line 1554-1555):**
+- className: always `object-cover`, portrait handled by `handleImageLoad` switching to `object-contain`
+- Remove `background` from inline style entirely (both learning and non-learning)
 
-Replace all black/dark backgrounds with `hsl(260,50%,12%)` and ensure portrait images always get `object-contain`:
+**4. Illustration-only page (line 1630-1631):**
+Same changes as combined page.
 
-| Location | Current | New |
+**5. Parent containers** of these images already have `overflow-hidden` via the outer layout — no changes needed there.
+
+### Summary of what changes per location
+
+| Location | Before | After |
 |---|---|---|
-| `handleImageLoad` callback (~line 212) | `rgba(0,0,0,0.9)` | `hsl(260,50%,12%)` |
-| Cover image (~line 1248) | `bg-black/90` | inline style `hsl(260,50%,12%)` |
-| Combined page img (~line 1554-1555) | `rgba(15,25,15,0.95)` for learning only | `hsl(260,50%,12%)` for learning; `handleImageLoad` handles portrait for others |
-| Illustration-only img (~line 1630-1631) | same as above | same fix |
+| `handleImageLoad` | Adds `object-contain` + purple bg | Adds `object-contain` only, no bg |
+| Cover img style | `background: hsl(...)` | No background |
+| Combined img class | Learning → `object-contain` | Always `object-cover` (portrait handled dynamically) |
+| Combined img style | Learning → purple bg | No background |
+| Illustration img class | Same as combined | Same fix |
+| Illustration img style | Same as combined | Same fix |
 
-The `handleImageLoad` callback already switches portrait images to `object-contain` dynamically — just updating its background color is sufficient for non-learning topics. For learning topics, the hardcoded `object-contain` stays.
-
-No other files or logic touched.
+No other logic touched.
 
