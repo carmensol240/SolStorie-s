@@ -1,21 +1,26 @@
 
 
-## Plan: Always Show Featured Topics Regardless of Category State
+## Plan: Hide Preview Cards Below Collapsed Category Banners
 
 ### Problem
-Featured topics ("שהייה בממ״ד ואזעקות" and "אבא במילואים") are hidden when their category is expanded because line 198 includes `!isExpanded`.
+Line 279 renders `visibleTopics` (first 2 topics) even when a category is collapsed. These preview cards should be hidden — only the banner and featured topics should show when collapsed.
 
-### Change — `src/components/wizard/TopicStep.tsx` line 198
+### Change — `src/components/wizard/TopicStep.tsx` line 278
 
-Replace:
+Replace the non-learning branch to only render topics when expanded:
+
 ```tsx
-{featuredTopics.length > 0 && !isExpanded && section.id !== "learning" && (
+) : (
+  isExpanded ? (
+    (() => {
+      const topicsToShow = visibleTopics.filter(t => !t.featured);
+      // ... rest of existing rendering logic unchanged
+    })()
+  ) : null
+)}
 ```
 
-With:
-```tsx
-{featuredTopics.length > 0 && section.id !== "learning" && (
-```
+Specifically, wrap lines 278-302 so the topic grid only renders when `isExpanded` is true. When collapsed, render nothing (featured topics are already handled separately above in lines 197-229).
 
-Single condition removal. No other files touched.
+### No other files touched.
 
