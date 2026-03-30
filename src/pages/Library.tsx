@@ -324,9 +324,10 @@ const Library = () => {
               />
             );
           }
-          // Series: show first story as polaroid with series count badge
+          // Series: show first story as polaroid with series count badge + parts dropdown
           const mainStory = group[0];
           const idx = cardIndex++;
+          const seriesParts = group.map(s => ({ id: s.id, slug: s.slug, created_at: s.created_at }));
           return (
             <PolaroidCard
               key={mainStory.id}
@@ -341,6 +342,7 @@ const Library = () => {
               onClick={navigateToStory}
               index={idx}
               seriesCount={group.length}
+              seriesParts={seriesParts}
               isOfflineSaved={fullOffline.isSaved(mainStory.id)}
               isDownloading={fullOffline.downloadingId === mainStory.id}
               offlineSize={fullOffline.getSize(mainStory.id)}

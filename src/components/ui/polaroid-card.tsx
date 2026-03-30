@@ -44,6 +44,12 @@ const CoverImage = ({ src, alt }: { src: string; alt: string }) => {
   );
 };
 
+export interface SeriesPart {
+  id: string;
+  slug: string | null;
+  created_at: string;
+}
+
 interface PolaroidCardProps {
   id: string;
   childName: string;
@@ -56,6 +62,7 @@ interface PolaroidCardProps {
   storyId?: string;
   index?: number;
   seriesCount?: number;
+  seriesParts?: SeriesPart[];
   isOfflineSaved?: boolean;
   isDownloading?: boolean;
   offlineSize?: number;
@@ -75,6 +82,7 @@ const PolaroidCard = ({
   storyId,
   index = 0,
   seriesCount,
+  seriesParts,
   isOfflineSaved = false,
   isDownloading = false,
   offlineSize = 0,
@@ -83,6 +91,7 @@ const PolaroidCard = ({
 }: PolaroidCardProps) => {
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
+  const [showSeriesDropdown, setShowSeriesDropdown] = useState(false);
 
   const pinColor = PIN_COLORS[index % PIN_COLORS.length];
 
@@ -92,7 +101,15 @@ const PolaroidCard = ({
     return deg;
   }, [id]);
 
-  const handleClick = () => onClick(id);
+  const isSeries = seriesParts && seriesParts.length > 1;
+
+  const handleClick = () => {
+    if (isSeries) {
+      setShowSeriesDropdown(prev => !prev);
+    } else {
+      onClick(id);
+    }
+  };
 
   return (
     <>
@@ -257,6 +274,30 @@ const PolaroidCard = ({
               <p className="text-[9px] text-purple-300/60 mt-0.5">{formatBytes(offlineSize)}</p>
             )}
           </div>
+
+          {/* Series parts dropdown */}
+          {isSeries && showSeriesDropdown && (
+            <div
+              className="absolute left-0 right-0 top-full mt-1 z-30 rounded-lg overflow-hidden shadow-xl"
+              style={{ background: 'linear-gradient(145deg, #2d1a6e, #1a0f3a)', border: '1px solid rgba(200,180,255,0.2)' }}
+              onClick={(e) => e.stopPropagation()}
+            >
+              {seriesParts!.map((part, idx) => (
+                <button
+                  key={part.id}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setShowSeriesDropdown(false);
+                    onClick(part.id);
+                  }}
+                  className="w-full text-right px-3 py-2 text-xs font-bold transition-colors hover:bg-white/10"
+                  style={{ color: '#e8d5ff', borderBottom: idx < seriesParts!.length - 1 ? '1px solid rgba(200,180,255,0.1)' : 'none' }}
+                >
+                  חלק {idx + 1}
+                </button>
+              ))}
+            </div>
+          )}
         </div>
       </div>
 
