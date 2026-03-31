@@ -48,6 +48,7 @@ const CoverImage = ({ src, alt }: { src: string; alt: string }) => {
 export interface SeriesPart {
   id: string;
   slug: string | null;
+  topic: string;
   created_at: string;
 }
 
@@ -311,14 +312,14 @@ const PolaroidCard = ({
         >
           <div
             dir="rtl"
-            className="rounded-2xl p-4 w-64 shadow-2xl"
+            className="rounded-2xl p-5 w-72 max-h-[70vh] shadow-2xl flex flex-col"
             style={{ background: 'linear-gradient(145deg, #2d1a6e, #1a0f3a)', border: '1px solid rgba(200,180,255,0.2)' }}
             onClick={(e) => e.stopPropagation()}
           >
             <h3 className="text-sm font-bold text-center mb-3" style={{ color: '#e8d5ff' }}>
-              📖 בחרו חלק ({seriesParts!.length} חלקים)
+              📖 בחרו סיפור ({seriesParts!.length})
             </h3>
-            <div className="flex flex-col gap-1.5">
+            <div className="flex flex-col gap-1.5 overflow-y-auto">
               {seriesParts!.map((part, idx) => (
                 <button
                   key={part.id}
@@ -326,10 +327,11 @@ const PolaroidCard = ({
                     setShowSeriesDropdown(false);
                     onClick(part.id);
                   }}
-                  className="w-full text-right px-4 py-2.5 rounded-lg text-sm font-bold transition-all hover:bg-white/15 hover:scale-[1.02] active:scale-95"
+                  className="w-full text-right px-4 py-3 rounded-lg text-sm transition-all hover:bg-white/15 hover:scale-[1.01] active:scale-95"
                   style={{ color: '#e8d5ff', background: 'rgba(255,255,255,0.05)' }}
                 >
-                  חלק {idx + 1}
+                  <span className="font-bold">חלק {idx + 1}</span>
+                  <span className="block text-xs mt-0.5 opacity-70">{part.topic}</span>
                 </button>
               ))}
             </div>
