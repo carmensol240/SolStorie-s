@@ -1,4 +1,5 @@
 import { useState, useMemo } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Book, Trash2, MoreVertical, Pencil, Download, Check, Loader2, HardDriveDownload, Trash } from 'lucide-react';
 import { Button } from './button';
 import { SignedImage } from './signed-image';
@@ -275,29 +276,7 @@ const PolaroidCard = ({
             )}
           </div>
 
-          {/* Series parts dropdown */}
-          {isSeries && showSeriesDropdown && (
-            <div
-              className="absolute left-0 right-0 top-full mt-1 z-30 rounded-lg overflow-hidden shadow-xl"
-              style={{ background: 'linear-gradient(145deg, #2d1a6e, #1a0f3a)', border: '1px solid rgba(200,180,255,0.2)' }}
-              onClick={(e) => e.stopPropagation()}
-            >
-              {seriesParts!.map((part, idx) => (
-                <button
-                  key={part.id}
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    setShowSeriesDropdown(false);
-                    onClick(part.id);
-                  }}
-                  className="w-full text-right px-3 py-2 text-xs font-bold transition-colors hover:bg-white/10"
-                  style={{ color: '#e8d5ff', borderBottom: idx < seriesParts!.length - 1 ? '1px solid rgba(200,180,255,0.1)' : 'none' }}
-                >
-                  חלק {idx + 1}
-                </button>
-              ))}
-            </div>
-          )}
+          {/* Series parts dropdown removed — using dialog instead */}
         </div>
       </div>
 
@@ -323,6 +302,40 @@ const PolaroidCard = ({
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      {/* Series parts selection dialog */}
+      {isSeries && showSeriesDropdown && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm"
+          onClick={() => setShowSeriesDropdown(false)}
+        >
+          <div
+            dir="rtl"
+            className="rounded-2xl p-4 w-64 shadow-2xl"
+            style={{ background: 'linear-gradient(145deg, #2d1a6e, #1a0f3a)', border: '1px solid rgba(200,180,255,0.2)' }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <h3 className="text-sm font-bold text-center mb-3" style={{ color: '#e8d5ff' }}>
+              📖 בחרו חלק ({seriesParts!.length} חלקים)
+            </h3>
+            <div className="flex flex-col gap-1.5">
+              {seriesParts!.map((part, idx) => (
+                <button
+                  key={part.id}
+                  onClick={() => {
+                    setShowSeriesDropdown(false);
+                    onClick(part.id);
+                  }}
+                  className="w-full text-right px-4 py-2.5 rounded-lg text-sm font-bold transition-all hover:bg-white/15 hover:scale-[1.02] active:scale-95"
+                  style={{ color: '#e8d5ff', background: 'rgba(255,255,255,0.05)' }}
+                >
+                  חלק {idx + 1}
+                </button>
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
     </>
   );
 };
