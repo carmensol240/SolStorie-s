@@ -1319,10 +1319,15 @@ ${adventureLogic ? `
 - הנושא הכללי: ${adventureLogic.theme}
 ` : ''}
 ${isLearningTopic ? `
-${learningLetter || learningNumber ? `- באיור הראשון: ${illustrationLearningTarget} מופיעה גדולה ובולטת במרכז האיור בצבע זוהר
+${learningLetter ? `- באיור הראשון: האות ${illustrationLearningTarget} מופיעה גדולה, שלמה ומלאה במרכז האיור בצבע זוהר — האות חייבת להיות FULLY VISIBLE, COMPLETE, NOT CROPPED in any direction, positioned in the CENTER of the image with clear empty space around it on ALL sides
+- בכל איור: האות ${illustrationLearningTarget} מופיעה שלמה ומלאה איפשהו בסצנה — על קיר, על עץ, על חולצה. The letter must be entirely within the frame, never touching or near any edge.
+- האות בפונט עגול וצבעוני לילדים
+- כל טקסט באיור חייב להיות בעברית בלבד — ${illustrationLearningTarget}
+- The child character must be positioned to the SIDE or BELOW the letter, never in front of it or obscuring it.` : ''}
+${learningNumber ? `- באיור הראשון: ${illustrationLearningTarget} מופיעה גדולה ובולטת במרכז האיור בצבע זוהר
 - בכל איור: ${illustrationLearningTarget} מופיע איפשהו בסצנה — על קיר, על עץ, על חולצה
 - האות/מספר בפונט עגול וצבעוני לילדים
-${learningNumber ? `- Show the Arabic numeral digit ${learningNumber}, NOT a Hebrew letter.` : `- כל טקסט באיור חייב להיות בעברית בלבד — ${illustrationLearningTarget}`}` : ''}
+- Show the Arabic numeral digit ${learningNumber}, NOT a Hebrew letter.` : ''}
 ${learningColor ? `- כל האיורים מוצפים בצבע ${hebrewLearningTarget} — הרקע, החפצים, הבגדים, הפרחים והשמיים כולם בגוני ${hebrewLearningTarget}
 - הילד/ה לובש/ת בגדים בצבע ${hebrewLearningTarget}` : ''}
 ${learningShape ? `- בכל איור מופיעות צורות ${hebrewLearningTarget} גדולות וקטנות מרחפות סביב הדמות
@@ -1807,7 +1812,9 @@ ${fullStoryText}`;
         ? `The child ${childName} stands in a magical scene completely flooded with ${hebrewLearningTarget} color. The background, sky, flowers, objects and clothing are all in shades of ${hebrewLearningTarget}. Disney/Pixar 3D style. Full bleed, no white margins, no borders, image fills entire frame edge to edge.`
         : learningShape
         ? `The child ${childName} stands surrounded by giant and small ${hebrewLearningTarget} shapes floating around them in a magical colorful scene. One huge glowing ${hebrewLearningTarget} shape dominates the center. Disney/Pixar 3D style. Full bleed, no white margins, no borders, image fills entire frame edge to edge.`
-        : `The child ${childName} stands next to the giant glowing ${learningLetter ? `Hebrew letter ${hebrewLearningTarget}` : `the Arabic numeral digit ${learningNumber} (NOT a Hebrew letter)`}, which fills half the image and is fully visible, not cropped. The letter is large, clear, bold, 3D golden style, complete and uncut. Wide shot showing both the child and the full ${learningLetter ? 'letter' : 'number'}. Full body shot of the child, showing complete figure from head to toe. Do NOT cut off any body parts. Full bleed, no white margins, no borders, image fills entire frame edge to edge.`;
+        : learningLetter
+        ? `The child ${childName} is positioned to the SIDE, looking up at a giant glowing Hebrew letter ${hebrewLearningTarget} which is placed in the exact CENTER of the image. The letter ${hebrewLearningTarget} must be FULLY VISIBLE, COMPLETE, and NOT CROPPED in any direction — with generous clear space around it on ALL sides, never touching any edge of the frame. The letter is large, bold, 3D golden glowing style, perfectly centered. The child must NOT obscure or overlap the letter. Wide shot showing both the child to the side and the complete letter in the center. Full body shot of the child, showing complete figure from head to toe. Do NOT cut off any body parts. Full bleed, no white margins, no borders, image fills entire frame edge to edge.`
+        : `The child ${childName} stands next to the giant glowing Arabic numeral digit ${learningNumber} (NOT a Hebrew letter), which fills half the image and is fully visible, not cropped. The number is large, clear, bold, 3D golden style, complete and uncut. Wide shot showing both the child and the full number. Full body shot of the child, showing complete figure from head to toe. Do NOT cut off any body parts. Full bleed, no white margins, no borders, image fills entire frame edge to edge.`;
     }
 
     const { error: pagesError } = await supabase
