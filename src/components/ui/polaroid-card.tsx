@@ -276,29 +276,7 @@ const PolaroidCard = ({
             )}
           </div>
 
-          {/* Series parts dropdown */}
-          {isSeries && showSeriesDropdown && (
-            <div
-              className="absolute left-0 right-0 top-full mt-1 z-30 rounded-lg overflow-hidden shadow-xl"
-              style={{ background: 'linear-gradient(145deg, #2d1a6e, #1a0f3a)', border: '1px solid rgba(200,180,255,0.2)' }}
-              onClick={(e) => e.stopPropagation()}
-            >
-              {seriesParts!.map((part, idx) => (
-                <button
-                  key={part.id}
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    setShowSeriesDropdown(false);
-                    onClick(part.id);
-                  }}
-                  className="w-full text-right px-3 py-2 text-xs font-bold transition-colors hover:bg-white/10"
-                  style={{ color: '#e8d5ff', borderBottom: idx < seriesParts!.length - 1 ? '1px solid rgba(200,180,255,0.1)' : 'none' }}
-                >
-                  חלק {idx + 1}
-                </button>
-              ))}
-            </div>
-          )}
+          {/* Series parts dropdown removed — using dialog instead */}
         </div>
       </div>
 
