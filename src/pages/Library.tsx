@@ -322,11 +322,15 @@ const Library = () => {
   };
 
   const renderStoryList = (storyList: Story[], tabTitle?: string) => {
-    const grouped = groupStories(storyList);
+    const { groups, order } = groupStories(storyList);
     let cardIndex = 0;
     return (
       <CorkBoard title={tabTitle || 'הסיפורים שלי'}>
-        {grouped.map((group) => {
+        {order.map((key) => {
+          const group = groups.get(key)!;
+          const isLearningFolder = key.includes('__learning_');
+          const learningCatKey = isLearningFolder ? key.split('::')[1] : null;
+
           if (group.length === 1) {
             const story = group[0];
             const idx = cardIndex++;
@@ -351,17 +355,26 @@ const Library = () => {
               />
             );
           }
-          // Series: show first story as polaroid with series count badge + parts dropdown
+
+          // Series or learning folder
           const mainStory = group[0];
           const idx = cardIndex++;
-          const seriesParts = group.map(s => ({ id: s.id, slug: s.slug, created_at: s.created_at }));
+          const folderLabel = isLearningFolder && learningCatKey
+            ? LEARNING_CATEGORY_LABELS[learningCatKey] || translateTopic(mainStory.topic)
+            : translateTopic(mainStory.topic);
+          const seriesParts = group.map(s => ({
+            id: s.id,
+            slug: s.slug,
+            topic: translateTopic(s.topic),
+            created_at: s.created_at,
+          }));
           return (
             <PolaroidCard
               key={mainStory.id}
               id={mainStory.id}
               storyId={mainStory.id}
               childName={mainStory.child_name}
-              topic={translateTopic(mainStory.topic)}
+              topic={folderLabel}
               coverUrl={getCoverImage(mainStory)}
               language={mainStory.language}
               onDelete={handleDeleteStory}
