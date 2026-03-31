@@ -1319,10 +1319,15 @@ ${adventureLogic ? `
 - הנושא הכללי: ${adventureLogic.theme}
 ` : ''}
 ${isLearningTopic ? `
-${learningLetter || learningNumber ? `- באיור הראשון: ${illustrationLearningTarget} מופיעה גדולה ובולטת במרכז האיור בצבע זוהר
+${learningLetter ? `- באיור הראשון: האות ${illustrationLearningTarget} מופיעה גדולה, שלמה ומלאה במרכז האיור בצבע זוהר — האות חייבת להיות FULLY VISIBLE, COMPLETE, NOT CROPPED in any direction, positioned in the CENTER of the image with clear empty space around it on ALL sides
+- בכל איור: האות ${illustrationLearningTarget} מופיעה שלמה ומלאה איפשהו בסצנה — על קיר, על עץ, על חולצה. The letter must be entirely within the frame, never touching or near any edge.
+- האות בפונט עגול וצבעוני לילדים
+- כל טקסט באיור חייב להיות בעברית בלבד — ${illustrationLearningTarget}
+- The child character must be positioned to the SIDE or BELOW the letter, never in front of it or obscuring it.` : ''}
+${learningNumber ? `- באיור הראשון: ${illustrationLearningTarget} מופיעה גדולה ובולטת במרכז האיור בצבע זוהר
 - בכל איור: ${illustrationLearningTarget} מופיע איפשהו בסצנה — על קיר, על עץ, על חולצה
 - האות/מספר בפונט עגול וצבעוני לילדים
-${learningNumber ? `- Show the Arabic numeral digit ${learningNumber}, NOT a Hebrew letter.` : `- כל טקסט באיור חייב להיות בעברית בלבד — ${illustrationLearningTarget}`}` : ''}
+- Show the Arabic numeral digit ${learningNumber}, NOT a Hebrew letter.` : ''}
 ${learningColor ? `- כל האיורים מוצפים בצבע ${hebrewLearningTarget} — הרקע, החפצים, הבגדים, הפרחים והשמיים כולם בגוני ${hebrewLearningTarget}
 - הילד/ה לובש/ת בגדים בצבע ${hebrewLearningTarget}` : ''}
 ${learningShape ? `- בכל איור מופיעות צורות ${hebrewLearningTarget} גדולות וקטנות מרחפות סביב הדמות
