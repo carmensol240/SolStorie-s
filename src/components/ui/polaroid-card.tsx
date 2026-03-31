@@ -319,7 +319,7 @@ const PolaroidCard = ({
             <h3 className="text-sm font-bold text-center mb-3" style={{ color: '#e8d5ff' }}>
               📖 בחרו סיפור ({seriesParts!.length})
             </h3>
-            <div className="flex flex-col gap-1.5 overflow-y-auto">
+            <div className="flex flex-col gap-1.5 overflow-y-auto" style={{ scrollbarWidth: 'none' }}>
               {seriesParts!.map((part, idx) => (
                 <button
                   key={part.id}
