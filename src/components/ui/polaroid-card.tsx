@@ -48,6 +48,7 @@ const CoverImage = ({ src, alt }: { src: string; alt: string }) => {
 export interface SeriesPart {
   id: string;
   slug: string | null;
+  topic: string;
   created_at: string;
 }
 
