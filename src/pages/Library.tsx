@@ -277,10 +277,10 @@ const Library = () => {
 
   // Detect learning category from topic
   const getLearningCategory = (topic: string): string | null => {
-    if (topic.startsWith('אות ')) return '__learning_letters__';
-    if (topic.startsWith('מספר ')) return '__learning_numbers__';
-    if (topic.startsWith('צבע ')) return '__learning_colors__';
-    if (topic.startsWith('צורת ')) return '__learning_shapes__';
+    if (topic.startsWith('אות ') || topic.startsWith('letter-')) return '__learning_letters__';
+    if (topic.startsWith('מספר ') || topic.startsWith('number-')) return '__learning_numbers__';
+    if (topic.startsWith('צבע ') || topic.startsWith('color-')) return '__learning_colors__';
+    if (topic.startsWith('צורת ') || topic.startsWith('shape-')) return '__learning_shapes__';
     return null;
   };
 
