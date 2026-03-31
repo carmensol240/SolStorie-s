@@ -275,14 +275,41 @@ const Library = () => {
     ? stories.filter(s => fullOffline.isSaved(s.id))
     : stories;
 
-  // Group stories into series by topic only (exclude custom/free-text stories from grouping)
+  // Detect learning category from topic
+  const getLearningCategory = (topic: string): string | null => {
+    if (topic.startsWith('אות ')) return '__learning_letters__';
+    if (topic.startsWith('מספר ')) return '__learning_numbers__';
+    if (topic.startsWith('צבע ')) return '__learning_colors__';
+    if (topic.startsWith('צורת ')) return '__learning_shapes__';
+    return null;
+  };
+
+  const LEARNING_CATEGORY_LABELS: Record<string, string> = {
+    '__learning_letters__': '📚 אותיות',
+    '__learning_numbers__': '🔢 מספרים',
+    '__learning_colors__': '🎨 צבעים',
+    '__learning_shapes__': '📐 צורות',
+  };
+
+  // Group stories into series by topic + group learning stories by category
   const groupStories = (storyList: Story[]) => {
     const groups = new Map<string, Story[]>();
     const order: string[] = [];
     storyList.forEach(story => {
       // Custom/free-text stories are never grouped into series
       const isCustom = story.story_type === 'custom';
-      const key = isCustom ? `__custom__${story.id}` : `${story.child_name}::${story.topic}`;
+      const learningCat = getLearningCategory(story.topic);
+
+      let key: string;
+      if (isCustom) {
+        key = `__custom__${story.id}`;
+      } else if (learningCat) {
+        // Group all learning stories of the same category together
+        key = `${story.child_name}::${learningCat}`;
+      } else {
+        key = `${story.child_name}::${story.topic}`;
+      }
+
       if (!groups.has(key)) {
         groups.set(key, []);
         order.push(key);
@@ -291,7 +318,7 @@ const Library = () => {
     });
     // Sort each group internally by created_at ascending (oldest first)
     groups.forEach(group => group.sort((a, b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime()));
-    return order.map(key => groups.get(key)!);
+    return { groups, order };
   };
 
   const renderStoryList = (storyList: Story[], tabTitle?: string) => {
