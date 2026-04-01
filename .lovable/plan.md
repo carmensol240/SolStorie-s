@@ -1,56 +1,26 @@
 
 
-## Plan: Overlay Navigation Arrows on Story Image
+## Plan: Add Negative Prompt Keywords to Fal.ai Calls
 
 ### Summary
-Move the navigation arrows from a separate bottom bar into the book frame, overlaying the story image. Reduce button size to 40px, make them semi-transparent, and let the book frame expand to fill the freed space.
+Append missing negative prompt keywords to `NEGATIVE_PROMPT_FULL` in the shared style config. Since both fal.ai call sites already reference this constant, updating it once covers all calls.
 
-### Changes — `src/pages/StoryViewer.tsx` only
+### Changes — `supabase/functions/_shared/style-config.ts` only
 
-#### 1. Move arrows inside the book frame (lines ~1821-1852)
+#### Update `NEGATIVE_PROMPT_FULL` (line 28)
 
-Remove the bottom `<div>` containing the nav arrows and page indicator (lines 1824-1852). Instead, place the arrow buttons **inside** the `MagicalBookFrame` container (after line 1821, inside the relative `div` at line 1270), positioned absolutely on left/right sides of the image.
+Append to the end of the existing string (before the `${ILLUSTRATION_NEGATIVE_PROMPT}` interpolation):
 
-**Before** (lines 1824-1852):
-```tsx
-{/* Navigation Arrows - bottom corners */}
-<div className="flex items-center justify-between px-4 py-2 shrink-0">
-  <button ... className="nav-arrow-btn"> ... </button>
-  <div className="dot-indicator"> ... </div>
-  <button ... className="nav-arrow-btn"> ... </button>
-</div>
+```
+no screens, no devices, no phones, no tablets, no frames
 ```
 
-**After** — arrows placed inside the `relative` container at line 1270, overlaying the book:
-```tsx
-{/* Overlay nav arrows */}
-<button
-  onClick={() => handlePageNav('next')}
-  disabled={currentPage >= totalVirtualPages + 1 || isFlipping}
-  className="absolute left-2 top-1/2 -translate-y-1/2 z-40 w-10 h-10 rounded-full bg-black/40 hover:bg-black/50 text-white/80 hover:text-white backdrop-blur-sm transition-all disabled:opacity-20 disabled:cursor-not-allowed flex items-center justify-center"
-  aria-label="עמוד הבא"
->
-  <ChevronLeft className="w-5 h-5" />
-</button>
+These keywords are not yet present. Terms like "text", "UI elements", "screenshot artifacts" are already covered, but the explicit "no X" phrasing reinforces them for Flux Schnell which responds well to direct negation.
 
-<button
-  onClick={() => handlePageNav('prev')}
-  disabled={currentPage <= -1 || isFlipping}
-  className="absolute right-2 top-1/2 -translate-y-1/2 z-40 w-10 h-10 rounded-full bg-black/40 hover:bg-black/50 text-white/80 hover:text-white backdrop-blur-sm transition-all disabled:opacity-20 disabled:cursor-not-allowed flex items-center justify-center"
-  aria-label="עמוד קודם"
->
-  <ChevronRight className="w-5 h-5" />
-</button>
-```
+#### Also update `NEGATIVE_PROMPT` (line 26)
 
-The page indicator text will be removed (or optionally kept as a tiny overlay at the bottom center of the frame).
+Add the same keywords for consistency, since this is used in some prompt paths too.
 
-#### 2. Book frame expands to fill freed space
-
-By removing the bottom nav bar `div` (which had `py-2 shrink-0`), the `flex-1 min-h-0` book frame will naturally expand to fill the available vertical space.
-
-### Technical details
-- Buttons: 40px (`w-10 h-10`), `bg-black/40` for semi-transparency, `backdrop-blur-sm`
-- Position: `absolute left-2 / right-2 top-1/2 -translate-y-1/2 z-40`
-- No other files modified
+### No other files modified
+Both `generate-illustrations/index.ts` and `retry-illustration/index.ts` already use `NEGATIVE_PROMPT_FULL` in their prompt strings — no changes needed there.
 
