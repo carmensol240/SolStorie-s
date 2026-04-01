@@ -1225,6 +1225,7 @@ const StoryViewer = () => {
     if (direction === 'next' && currentPage >= maxPage) return;
     if (direction === 'prev' && currentPage <= -1) return;
     
+    setSlideDirection(direction);
     setIsFlipping(true);
     
     // Reset scroll IMMEDIATELY before the page change
