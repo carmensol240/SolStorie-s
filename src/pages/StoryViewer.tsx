@@ -1286,8 +1286,10 @@ const StoryViewer = () => {
             {/* Page content with fade transition */}
             <div className={cn(
               "relative w-full h-full overflow-hidden",
-              "transition-opacity duration-300",
-              isFlipping ? "opacity-0" : "opacity-100",
+              "transition-all duration-300 ease-in-out",
+              isFlipping
+                ? cn("opacity-0", slideDirection === 'next' ? "-translate-x-8" : "translate-x-8")
+                : "opacity-100 translate-x-0",
             )}>
             
             {isCoverPage ? (
