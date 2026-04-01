@@ -191,6 +191,7 @@ const StoryViewer = () => {
   const [currentPage, setCurrentPage] = useState(-1);
   const [isLoading, setIsLoading] = useState(true);
   const [isFlipping, setIsFlipping] = useState(false);
+  const [slideDirection, setSlideDirection] = useState<'next' | 'prev' | null>(null);
   const [isDrawingMode, setIsDrawingMode] = useState(false);
   const [isRegeneratingCover, setIsRegeneratingCover] = useState(false);
   const [coverIsLandscape, setCoverIsLandscape] = useState(false);
@@ -1224,6 +1225,7 @@ const StoryViewer = () => {
     if (direction === 'next' && currentPage >= maxPage) return;
     if (direction === 'prev' && currentPage <= -1) return;
     
+    setSlideDirection(direction);
     setIsFlipping(true);
     
     // Reset scroll IMMEDIATELY before the page change
@@ -1284,8 +1286,10 @@ const StoryViewer = () => {
             {/* Page content with fade transition */}
             <div className={cn(
               "relative w-full h-full overflow-hidden",
-              "transition-opacity duration-300",
-              isFlipping ? "opacity-0" : "opacity-100",
+              "transition-all duration-300 ease-in-out",
+              isFlipping
+                ? cn("opacity-0", slideDirection === 'next' ? "-translate-x-8" : "translate-x-8")
+                : "opacity-100 translate-x-0",
             )}>
             
             {isCoverPage ? (
