@@ -201,6 +201,7 @@ const StoryViewer = () => {
   const [illustrationProgress, setIllustrationProgress] = useState(0);
   const [userStartedReading, setUserStartedReading] = useState(false);
   const [failedImages, setFailedImages] = useState<Record<string, number>>({});
+  const [imageLoadedMap, setImageLoadedMap] = useState<Record<string, boolean>>({});
   const pollingIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const pollingStartTimeRef = useRef<number | null>(null);
   const [retryingPageId, setRetryingPageId] = useState<string | null>(null);
@@ -1598,24 +1599,42 @@ const StoryViewer = () => {
                   /* Combined page (ages 0-2) — fullscreen illustration + text overlay */
                   <>
                     {currentVirtual.illustrationUrl ? (
-                      <img
-                        key={`${currentVirtual.illustrationUrl}-${failedImages[currentVirtual.illustrationUrl] || 0}`}
-                        src={`${getPublicIllustrationUrl(currentVirtual.illustrationUrl) || ''}${failedImages[currentVirtual.illustrationUrl] ? `?retry=${failedImages[currentVirtual.illustrationUrl]}` : ''}`}
-                        alt="איור"
-                        className="absolute inset-0 w-full h-full object-cover"
-                        style={{ transform: 'scale(1.02)' }}
-                        loading="eager"
-                        onLoad={handleImageLoad}
-                        onError={() => {
-                          const key = currentVirtual.illustrationUrl!;
-                          const attempts = failedImages[key] || 0;
-                          if (attempts < 3) {
-                            setTimeout(() => setFailedImages(prev => ({ ...prev, [key]: attempts + 1 })), 2000);
-                          } else {
-                            console.error('Illustration failed to load after 3 retries:', key);
-                          }
-                        }}
-                      />
+                      <>
+                        {!imageLoadedMap[currentVirtual.illustrationUrl] && (
+                          <div className="absolute inset-0 w-full h-full flex items-center justify-center bg-gradient-to-br from-[#FFF8F0] via-[#F5E6D3] to-[#FAF3E8] z-[1]">
+                            <div className="relative z-10 text-center space-y-3">
+                              <div className="relative w-16 h-16 mx-auto">
+                                <div className="absolute inset-0 rounded-full bg-gradient-to-br from-purple-300 via-pink-300 to-orange-300 animate-spin" style={{ animationDuration: '3s' }} />
+                                <div className="absolute inset-1 rounded-full bg-white/90 flex items-center justify-center">
+                                  <span className="text-2xl">✨</span>
+                                </div>
+                              </div>
+                              <p className="text-xs text-[#8B7355] font-serif">טוען איור...</p>
+                            </div>
+                          </div>
+                        )}
+                        <img
+                          key={`${currentVirtual.illustrationUrl}-${failedImages[currentVirtual.illustrationUrl] || 0}`}
+                          src={`${getPublicIllustrationUrl(currentVirtual.illustrationUrl) || ''}${failedImages[currentVirtual.illustrationUrl] ? `?retry=${failedImages[currentVirtual.illustrationUrl]}` : ''}`}
+                          alt="איור"
+                          className={cn("absolute inset-0 w-full h-full object-cover transition-opacity duration-500", imageLoadedMap[currentVirtual.illustrationUrl] ? "opacity-100" : "opacity-0")}
+                          style={{ transform: 'scale(1.02)' }}
+                          loading="eager"
+                          onLoad={(e) => {
+                            handleImageLoad(e);
+                            setImageLoadedMap(prev => ({ ...prev, [currentVirtual.illustrationUrl!]: true }));
+                          }}
+                          onError={() => {
+                            const key = currentVirtual.illustrationUrl!;
+                            const attempts = failedImages[key] || 0;
+                            if (attempts < 3) {
+                              setTimeout(() => setFailedImages(prev => ({ ...prev, [key]: attempts + 1 })), 2000);
+                            } else {
+                              console.error('Illustration failed to load after 3 retries:', key);
+                            }
+                          }}
+                        />
+                      </>
                     ) : currentVirtual.dbPage.illustration_prompt ? (
                       <div className="absolute inset-0 w-full h-full flex items-center justify-center bg-gradient-to-br from-[#FFF8F0] via-[#F5E6D3] to-[#FAF3E8]">
                         <div className="relative z-10 text-center space-y-4">
@@ -1683,24 +1702,42 @@ const StoryViewer = () => {
                   /* Illustration-only page — fullscreen image, no text */
                   <>
                     {currentVirtual.illustrationUrl ? (
-                      <img
-                        key={`${currentVirtual.illustrationUrl}-${failedImages[currentVirtual.illustrationUrl] || 0}`}
-                        src={`${getPublicIllustrationUrl(currentVirtual.illustrationUrl) || ''}${failedImages[currentVirtual.illustrationUrl] ? `?retry=${failedImages[currentVirtual.illustrationUrl]}` : ''}`}
-                        alt="איור"
-                        className="absolute inset-0 w-full h-full object-cover"
-                        style={{ transform: 'scale(1.02)' }}
-                        loading="eager"
-                        onLoad={handleImageLoad}
-                        onError={() => {
-                          const key = currentVirtual.illustrationUrl!;
-                          const attempts = failedImages[key] || 0;
-                          if (attempts < 3) {
-                            setTimeout(() => setFailedImages(prev => ({ ...prev, [key]: attempts + 1 })), 2000);
-                          } else {
-                            console.error('Illustration failed to load after 3 retries:', key);
-                          }
-                        }}
-                      />
+                      <>
+                        {!imageLoadedMap[currentVirtual.illustrationUrl] && (
+                          <div className="absolute inset-0 w-full h-full flex items-center justify-center bg-gradient-to-br from-[#FFF8F0] via-[#F5E6D3] to-[#FAF3E8] z-[1]">
+                            <div className="relative z-10 text-center space-y-3">
+                              <div className="relative w-16 h-16 mx-auto">
+                                <div className="absolute inset-0 rounded-full bg-gradient-to-br from-purple-300 via-pink-300 to-orange-300 animate-spin" style={{ animationDuration: '3s' }} />
+                                <div className="absolute inset-1 rounded-full bg-white/90 flex items-center justify-center">
+                                  <span className="text-2xl">✨</span>
+                                </div>
+                              </div>
+                              <p className="text-xs text-[#8B7355] font-serif">טוען איור...</p>
+                            </div>
+                          </div>
+                        )}
+                        <img
+                          key={`${currentVirtual.illustrationUrl}-${failedImages[currentVirtual.illustrationUrl] || 0}`}
+                          src={`${getPublicIllustrationUrl(currentVirtual.illustrationUrl) || ''}${failedImages[currentVirtual.illustrationUrl] ? `?retry=${failedImages[currentVirtual.illustrationUrl]}` : ''}`}
+                          alt="איור"
+                          className={cn("absolute inset-0 w-full h-full object-cover transition-opacity duration-500", imageLoadedMap[currentVirtual.illustrationUrl] ? "opacity-100" : "opacity-0")}
+                          style={{ transform: 'scale(1.02)' }}
+                          loading="eager"
+                          onLoad={(e) => {
+                            handleImageLoad(e);
+                            setImageLoadedMap(prev => ({ ...prev, [currentVirtual.illustrationUrl!]: true }));
+                          }}
+                          onError={() => {
+                            const key = currentVirtual.illustrationUrl!;
+                            const attempts = failedImages[key] || 0;
+                            if (attempts < 3) {
+                              setTimeout(() => setFailedImages(prev => ({ ...prev, [key]: attempts + 1 })), 2000);
+                            } else {
+                              console.error('Illustration failed to load after 3 retries:', key);
+                            }
+                          }}
+                        />
+                      </>
                     ) : currentVirtual.dbPage.illustration_prompt ? (
                       <div className="absolute inset-0 w-full h-full flex items-center justify-center bg-gradient-to-br from-[#FFF8F0] via-[#F5E6D3] to-[#FAF3E8]">
                         <div className="absolute inset-0 opacity-20">
