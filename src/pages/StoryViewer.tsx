@@ -1821,35 +1821,24 @@ const StoryViewer = () => {
           </div>
           </MagicalBookFrame>
 
-          {/* Navigation Arrows - bottom corners, kid-friendly */}
-          <div className="flex items-center justify-between px-4 py-2 shrink-0">
-            {/* Next (RTL: left arrow = next) */}
-            <button
-              onClick={() => handlePageNav('next')}
-              disabled={currentPage >= totalVirtualPages + 1 || isFlipping}
-              className="nav-arrow-btn"
-              aria-label="עמוד הבא"
-            >
-              <ChevronLeft className="w-6 h-6" />
-            </button>
-            
-            {/* Page indicator */}
-            <div className="dot-indicator">
-              <span className="text-xs text-gray-400">
-                {isCoverPage ? '' : isClosingPage ? 'סיום' : isEndPage ? 'סוף' : `${Math.ceil((currentPage + 1) / 2)} / ${story.pages.length}`}
-              </span>
-            </div>
+          {/* Overlay nav arrows */}
+          <button
+            onClick={() => handlePageNav('next')}
+            disabled={currentPage >= totalVirtualPages + 1 || isFlipping}
+            className="absolute left-2 top-1/2 -translate-y-1/2 z-40 w-10 h-10 rounded-full bg-black/40 hover:bg-black/50 text-white/80 hover:text-white backdrop-blur-sm transition-all disabled:opacity-20 disabled:cursor-not-allowed flex items-center justify-center"
+            aria-label="עמוד הבא"
+          >
+            <ChevronLeft className="w-5 h-5" />
+          </button>
 
-            {/* Prev (RTL: right arrow = prev) */}
-            <button
-              onClick={() => handlePageNav('prev')}
-              disabled={currentPage <= -1 || isFlipping}
-              className="nav-arrow-btn"
-              aria-label="עמוד קודם"
-            >
-              <ChevronRight className="w-6 h-6" />
-            </button>
-          </div>
+          <button
+            onClick={() => handlePageNav('prev')}
+            disabled={currentPage <= -1 || isFlipping}
+            className="absolute right-2 top-1/2 -translate-y-1/2 z-40 w-10 h-10 rounded-full bg-black/40 hover:bg-black/50 text-white/80 hover:text-white backdrop-blur-sm transition-all disabled:opacity-20 disabled:cursor-not-allowed flex items-center justify-center"
+            aria-label="עמוד קודם"
+          >
+            <ChevronRight className="w-5 h-5" />
+          </button>
         </div>
       </main>
 
