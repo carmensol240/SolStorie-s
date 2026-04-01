@@ -191,6 +191,7 @@ const StoryViewer = () => {
   const [currentPage, setCurrentPage] = useState(-1);
   const [isLoading, setIsLoading] = useState(true);
   const [isFlipping, setIsFlipping] = useState(false);
+  const [slideDirection, setSlideDirection] = useState<'next' | 'prev' | null>(null);
   const [isDrawingMode, setIsDrawingMode] = useState(false);
   const [isRegeneratingCover, setIsRegeneratingCover] = useState(false);
   const [coverIsLandscape, setCoverIsLandscape] = useState(false);
