@@ -323,12 +323,23 @@ const StoryViewer = () => {
     if (story && currentPage >= 1) {
       trackPageViewed(story.id, currentPage);
       
-      // Pre-fetch next image for smooth transitions using public URLs
+      // Pre-fetch next virtual page illustration for smooth transitions
       const nextStoryIdx = currentPage; // currentPage is 1-indexed for story pages
       if (nextStoryIdx < story.pages.length) {
         const nextPage = story.pages[nextStoryIdx];
         if (nextPage?.illustration_url) {
           const publicUrl = getPublicIllustrationUrl(nextPage.illustration_url);
+          if (publicUrl) {
+            const img = new Image();
+            img.src = publicUrl;
+          }
+        }
+      }
+      // Also preload next+1 page for even smoother experience
+      if (nextStoryIdx + 1 < story.pages.length) {
+        const nextNext = story.pages[nextStoryIdx + 1];
+        if (nextNext?.illustration_url) {
+          const publicUrl = getPublicIllustrationUrl(nextNext.illustration_url);
           if (publicUrl) {
             const img = new Image();
             img.src = publicUrl;
