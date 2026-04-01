@@ -1,26 +1,60 @@
 
 
-## Plan: Add Negative Prompt Keywords to Fal.ai Calls
+## Plan: Fix Page 1 Illustration Loading — Soft Placeholder
 
-### Summary
-Append missing negative prompt keywords to `NEGATIVE_PROMPT_FULL` in the shared style config. Since both fal.ai call sites already reference this constant, updating it once covers all calls.
+### Problem
+Story page illustrations use raw `<img>` tags with no loading state. While the image loads, the dark parent background (`#0d0a1f` or dark purple) shows through, appearing as a black screen with no feedback. This is most noticeable on page 1 since it's the first image the user sees after the cover.
 
-### Changes — `supabase/functions/_shared/style-config.ts` only
+### Solution
+Add a per-page image loading state that shows a warm, soft placeholder (matching the existing "generating illustration" style) until the image's `onLoad` fires. Then fade in the image.
 
-#### Update `NEGATIVE_PROMPT_FULL` (line 28)
+### Changes — `src/pages/StoryViewer.tsx` only
 
-Append to the end of the existing string (before the `${ILLUSTRATION_NEGATIVE_PROMPT}` interpolation):
-
+#### 1. Add image loading state (near line 203)
+```tsx
+const [imageLoadedMap, setImageLoadedMap] = useState<Record<string, boolean>>({});
 ```
-no screens, no devices, no phones, no tablets, no frames
+
+#### 2. Create a shared warm placeholder component (inline JSX)
+For both `combined` and `illustration` page types, wrap the `<img>` with a loading placeholder that shows while the image hasn't loaded yet:
+
+```tsx
+{/* Warm loading placeholder — shown until image loads */}
+{!imageLoadedMap[currentVirtual.illustrationUrl!] && (
+  <div className="absolute inset-0 w-full h-full flex items-center justify-center bg-gradient-to-br from-[#FFF8F0] via-[#F5E6D3] to-[#FAF3E8] z-[1]">
+    <div className="relative z-10 text-center space-y-3">
+      <div className="relative w-16 h-16 mx-auto">
+        <div className="absolute inset-0 rounded-full bg-gradient-to-br from-purple-300 via-pink-300 to-orange-300 animate-spin" style={{ animationDuration: '3s' }} />
+        <div className="absolute inset-1 rounded-full bg-white/90 flex items-center justify-center">
+          <span className="text-2xl">✨</span>
+        </div>
+      </div>
+      <p className="text-xs text-[#8B7355] font-serif">טוען איור...</p>
+    </div>
+  </div>
+)}
 ```
 
-These keywords are not yet present. Terms like "text", "UI elements", "screenshot artifacts" are already covered, but the explicit "no X" phrasing reinforces them for Flux Schnell which responds well to direct negation.
+#### 3. Update `onLoad` on both `<img>` tags (lines ~1608 and ~1693)
+Add image-loaded tracking:
+```tsx
+onLoad={(e) => {
+  handleImageLoad(e);
+  setImageLoadedMap(prev => ({ ...prev, [currentVirtual.illustrationUrl!]: true }));
+}}
+```
 
-#### Also update `NEGATIVE_PROMPT` (line 26)
+#### 4. Add fade-in class to images
+Add conditional opacity class so images fade in once loaded:
+```tsx
+className={cn(
+  "absolute inset-0 w-full h-full object-cover transition-opacity duration-500",
+  imageLoadedMap[currentVirtual.illustrationUrl!] ? "opacity-100" : "opacity-0"
+)}
+```
 
-Add the same keywords for consistency, since this is used in some prompt paths too.
+This applies to all three places where illustration `<img>` tags appear: combined pages (line ~1601), illustration-only pages (line ~1686). The cover page already has its own fallback via `solSuperheroWelcome`.
 
-### No other files modified
-Both `generate-illustrations/index.ts` and `retry-illustration/index.ts` already use `NEGATIVE_PROMPT_FULL` in their prompt strings — no changes needed there.
+### Files modified
+- `src/pages/StoryViewer.tsx` — add image loading state + warm placeholder + fade-in
 
