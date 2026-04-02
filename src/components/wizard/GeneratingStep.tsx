@@ -280,7 +280,7 @@ const GeneratingStep = ({ formData, onComplete }: GeneratingStepProps) => {
       
       setError("not_created");
     }
-  }, [formData, toast, navigate]);
+  }, [formData, toast, navigate, signupDismissed]);
 
   // Realtime subscription: watch for illustrations completing
   useEffect(() => {
