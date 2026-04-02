@@ -657,15 +657,3 @@
     transparent 68%
   );
 }
-  background: radial-gradient(
-    ellipse 120% 60% at 50% 80%,
-    transparent 55%,
-    hsla(0, 80%, 70%, 0.15) 56%,
-    hsla(30, 80%, 70%, 0.15) 58%,
-    hsla(60, 80%, 70%, 0.15) 60%,
-    hsla(120, 60%, 60%, 0.12) 62%,
-    hsla(200, 70%, 65%, 0.12) 64%,
-    hsla(270, 60%, 65%, 0.12) 66%,
-    transparent 68%
-  );
-}
