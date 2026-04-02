@@ -1086,7 +1086,6 @@ const StoryViewer = () => {
       for (const page of story.pages) {
         const hasText = page.text && page.text.trim().length > 0;
         const hasIllustration = !!page.illustration_url;
-        const isCoverIllust = coverIllustration && page.id === coverIllustration.id;
 
         // Illustration page — full screen, NO text
         if (hasIllustration) {
