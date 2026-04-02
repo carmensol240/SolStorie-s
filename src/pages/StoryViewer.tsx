@@ -1136,7 +1136,7 @@ const StoryViewer = () => {
         const isCoverIllust = coverIllustration && page.id === coverIllustration.id;
 
         // Illustration page — full screen, NO text
-        if (hasIllustration && !isCoverIllust) {
+        if (hasIllustration) {
           result.push({
             type: 'illustration',
             dbPage: page,
