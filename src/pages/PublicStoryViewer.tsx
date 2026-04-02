@@ -1,6 +1,6 @@
 import { useState, useEffect, useLayoutEffect, useCallback, useMemo } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { BookOpen, Loader2, ChevronLeft, ChevronRight, Home } from "lucide-react";
+import { BookOpen, Loader2, ChevronLeft, ChevronRight, Home, Save } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
 import { cn } from "@/lib/utils";
@@ -8,6 +8,7 @@ import { getPublicIllustrationUrl } from "@/lib/illustration-url";
 import { TheaterFrame } from "@/components/story/theater-frame";
 import castWavingFarewell from "@/assets/cast-waving-farewell.png";
 import solSuperheroWelcome from "@/assets/sol-superhero-welcome.jpg";
+import { useAuth } from "@/hooks/use-auth";
 import "./StoryViewer.css";
 
 interface PublicPage {
