@@ -559,7 +559,7 @@ const AdminDashboard = () => {
                     </TableHeader>
                     <TableBody>
                       {loading ? (
-                        <TableRow><TableCell colSpan={8} className="text-center">טוען...</TableCell></TableRow>
+                        <TableRow><TableCell colSpan={10} className="text-center">טוען...</TableCell></TableRow>
                       ) : filterByReviewed(profiles, "users").map((p) => {
                         const userErrors = errorLogs.filter(e => e.user_id === p.id);
                         const storyErrors = userErrors.filter(e => e.error_type?.includes("story"));
