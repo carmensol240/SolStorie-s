@@ -1121,7 +1121,7 @@ const StoryViewer = () => {
           result.push({
             type: 'combined',
             dbPage: page,
-            illustrationUrl: isCoverIllust ? null : page.illustration_url,
+            illustrationUrl: page.illustration_url,
             illustrationPrompt: page.illustration_prompt || null,
             text: page.text,
           });
@@ -1136,7 +1136,7 @@ const StoryViewer = () => {
         const isCoverIllust = coverIllustration && page.id === coverIllustration.id;
 
         // Illustration page — full screen, NO text
-        if (hasIllustration && !isCoverIllust) {
+        if (hasIllustration) {
           result.push({
             type: 'illustration',
             dbPage: page,
