@@ -408,7 +408,8 @@ const GeneratingStep = ({ formData, onComplete }: GeneratingStepProps) => {
       }
     }, 15000);
 
-    if (!hasStartedRef.current) {
+    // Only start generation if user is authenticated
+    if (!hasStartedRef.current && user) {
       hasStartedRef.current = true;
       generateStory();
     }
