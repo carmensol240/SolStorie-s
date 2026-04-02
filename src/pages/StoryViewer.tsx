@@ -50,6 +50,7 @@ import { BookFrame, BookPage, BookHeader, NavigationArrows, MagicalBookFrame } f
 import { TheaterFrame } from "@/components/story/theater-frame";
 import { FileDown } from "lucide-react";
 import PdfFeaturePopup from "@/components/story/PdfFeaturePopup";
+import InstallAppPrompt from "@/components/story/InstallAppPrompt";
 
 import "./StoryViewer.css";
 // translateTopic removed from cover — topic shown only in library
@@ -201,6 +202,7 @@ const StoryViewer = () => {
   const [generationStatus, setGenerationStatus] = useState<string>('ready');
   const [illustrationProgress, setIllustrationProgress] = useState(0);
   const [userStartedReading, setUserStartedReading] = useState(false);
+  const [justCreatedStory, setJustCreatedStory] = useState(false);
   const [failedImages, setFailedImages] = useState<Record<string, number>>({});
   const [imageLoadedMap, setImageLoadedMap] = useState<Record<string, boolean>>({});
   const pollingIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
@@ -529,6 +531,7 @@ const StoryViewer = () => {
       if (justCreated) {
         sessionStorage.removeItem("just_created_story");
         setUserStartedReading(true);
+        setJustCreatedStory(true);
       }
 
       const resolvedStoryId = storyData.id;
@@ -1970,6 +1973,9 @@ const StoryViewer = () => {
 
       {/* PDF Feature Popup - one-time per user */}
       <PdfFeaturePopup userId={user?.id} />
+
+      {/* Install App Prompt - one-time after first story */}
+      <InstallAppPrompt justCreatedFirstStory={justCreatedStory} />
     </div>
   );
 };
