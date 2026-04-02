@@ -59,7 +59,14 @@ const TermsOfService = () => {
             </section>
 
             <section>
-              <h2 className="text-lg font-bold text-foreground mb-2">6. יצירת קשר</h2>
+              <h2 className="text-lg font-bold text-foreground mb-2">6. עדכונים ושינויי עיצוב</h2>
+              <p className="text-muted-foreground leading-relaxed">
+                האפליקציה מתעדכנת באופן שוטף ומוסיפה תכנים ופיצ'רים חדשים. כתוצאה מכך, ייתכן שסגנון העיצוב, הממשק והתצוגה ישתנו מעת לעת ולא יהיו זהים למה שהוצג בפרסומים, צילומי מסך או חומרי שיווק. שינויים אלו נועדו לשפר את חוויית המשתמש ואינם מהווים עילה לתלונה או דרישה כלשהי.
+              </p>
+            </section>
+
+            <section>
+              <h2 className="text-lg font-bold text-foreground mb-2">7. יצירת קשר</h2>
               <p className="text-muted-foreground leading-relaxed flex items-center gap-2">
                 <Mail className="w-4 h-4 shrink-0" aria-hidden="true" />
                 לכל שאלה, פנייה או בקשת החזר:{" "}
