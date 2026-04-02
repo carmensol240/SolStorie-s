@@ -571,12 +571,14 @@ const AdminDashboard = () => {
                         return (
                           <TableRow key={p.id} className={hasErrors ? "bg-destructive/5" : ""}>
                             <TableCell>{p.display_name || p.email || "—"}</TableCell>
-                            <TableCell className="text-xs text-muted-foreground">{p.email || "—"}</TableCell>
-                            <TableCell>
-                              <Badge variant="outline">{p.user_role}</Badge>
-                            </TableCell>
-                            <TableCell>{p.story_credits ?? 0}</TableCell>
-                            <TableCell>{p.is_subscriber ? "✅" : "—"}</TableCell>
+                             <TableCell className="text-xs text-muted-foreground">{p.email || "—"}</TableCell>
+                             <TableCell>
+                               <Badge variant="outline">{p.user_role}</Badge>
+                             </TableCell>
+                             <TableCell>{userStories.length}</TableCell>
+                             <TableCell>{purchases.some(pu => pu.user_id === p.id) ? "✅" : "—"}</TableCell>
+                             <TableCell>{p.story_credits ?? 0}</TableCell>
+                             <TableCell>{p.is_subscriber ? "✅" : "—"}</TableCell>
                             <TableCell>
                               {hasErrors ? (
                                 <Badge variant="destructive" className="text-xs">
