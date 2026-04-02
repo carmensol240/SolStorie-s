@@ -6,8 +6,7 @@ import MobileNavigation from "@/components/MobileNavigation";
 import ChildInfoStep from "@/components/wizard/ChildInfoStep";
 import TopicStep from "@/components/wizard/TopicStep";
 import GeneratingStep from "@/components/wizard/GeneratingStep";
-// SignupBeforeGenerateModal moved into GeneratingStep
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { useAuth } from "@/hooks/use-auth";
 import { useCredits } from "@/hooks/use-credits";
 import { isDevModeEnabled } from "@/hooks/use-dev-mode";
@@ -61,12 +60,32 @@ const steps = [
 
 const CreateStory = () => {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const { user, loading } = useAuth();
   const { credits, loading: creditsLoading, hasCredits, refetch: refetchCredits } = useCredits();
   const [step, setStep] = useState(1);
   const [formData, setFormData] = useState<StoryFormData>(INITIAL_DATA);
   const [isGenerating, setIsGenerating] = useState(false);
-  
+
+  // Resume after Google OAuth redirect
+  useEffect(() => {
+    if (searchParams.get('resume') === 'true') {
+      const saved = localStorage.getItem('pending_story_formData');
+      if (saved) {
+        try {
+          const restored = JSON.parse(saved) as StoryFormData;
+          setFormData(restored);
+          setStep(3);
+          setIsGenerating(true);
+        } catch (e) {
+          console.warn('[CreateStory] Failed to restore formData:', e);
+        }
+        localStorage.removeItem('pending_story_formData');
+      }
+      // Clean up URL
+      navigate('/create', { replace: true });
+    }
+  }, [searchParams, navigate]);
 
   const handleStoryGenerated = useCallback(async (storyId: string) => {
     // Credits are now deducted server-side in generate-story — just refetch local state
