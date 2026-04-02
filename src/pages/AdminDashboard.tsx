@@ -236,7 +236,7 @@ const AdminDashboard = () => {
       const [profilesRes, purchasesRes, storiesRes, emailsRes, couponsRes, redemptionsRes] = await Promise.all([
         supabase.from("profiles").select("id, display_name, created_at, story_credits, is_subscriber, user_role").not("id", "in", `(${EXCLUDED_IDS.join(",")})`).order("created_at", { ascending: false }).limit(200),
         supabase.from("purchases").select("*").eq("status", "completed").not("user_id", "in", `(${EXCLUDED_IDS.join(",")})`).order("created_at", { ascending: false }).limit(200),
-        supabase.from("stories").select("id, child_name, topic, created_at, user_id").not("user_id", "in", `(${EXCLUDED_IDS.join(",")})`).order("created_at", { ascending: false }).limit(200),
+        supabase.from("stories").select("id, child_name, topic, created_at, user_id, generation_status").not("user_id", "in", `(${EXCLUDED_IDS.join(",")})`).order("created_at", { ascending: false }).limit(200),
         supabase.rpc("get_admin_user_emails"),
         supabase.from("coupons").select("*").order("created_at", { ascending: false }),
         supabase.from("coupon_redemptions").select("*"),
