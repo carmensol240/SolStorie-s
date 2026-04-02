@@ -529,6 +529,7 @@ const StoryViewer = () => {
       if (justCreated) {
         sessionStorage.removeItem("just_created_story");
         setUserStartedReading(true);
+        setJustCreatedStory(true);
       }
 
       const resolvedStoryId = storyData.id;
