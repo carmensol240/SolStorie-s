@@ -101,42 +101,7 @@ const CreateStory = () => {
   useEffect(() => { handleStoryGeneratedRef.current = handleStoryGenerated; }, [handleStoryGenerated]);
   const stableOnComplete = useCallback((id: string) => handleStoryGeneratedRef.current(id), []);
 
-  useEffect(() => {
-    // 🔧 DEV MODE: Skip all auth checks
-    if (isDevModeEnabled()) {
-      console.log('🔧 Dev mode: bypassing auth checks in CreateStory');
-      return;
-    }
-
-    if (!loading && !user) {
-      localStorage.setItem('returnTo', '/create');
-      navigate("/auth");
-      return;
-    }
-    
-    // Strictly redirect unverified users to verification page
-    if (!loading && user) {
-      // Check email_confirmed_at - if null/undefined, redirect to verify
-      const isVerified = user.email_confirmed_at !== null && user.email_confirmed_at !== undefined;
-      if (!isVerified) {
-        console.log('User email not verified, redirecting to /verify-email');
-        navigate("/verify-email", { replace: true });
-        return;
-      }
-    }
-  }, [user, loading, navigate]);
-
-  if (loading || creditsLoading) {
-    return (
-      <div className="min-h-screen bg-gradient-to-b from-amber-50 to-orange-50 flex items-center justify-center">
-        <Loader2 className="w-8 h-8 animate-spin text-purple-500" />
-      </div>
-    );
-  }
-
-  if (!isDevModeEnabled() && (!user || !user.email_confirmed_at)) {
-    return null;
-  }
+  // No auth redirect — unauthenticated users can browse freely
 
   const updateFormData = (updates: Partial<StoryFormData>) => {
     setFormData((prev) => ({ ...prev, ...updates }));
