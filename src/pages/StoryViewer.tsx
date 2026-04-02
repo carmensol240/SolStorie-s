@@ -1121,7 +1121,7 @@ const StoryViewer = () => {
           result.push({
             type: 'combined',
             dbPage: page,
-            illustrationUrl: isCoverIllust ? null : page.illustration_url,
+            illustrationUrl: page.illustration_url,
             illustrationPrompt: page.illustration_prompt || null,
             text: page.text,
           });
