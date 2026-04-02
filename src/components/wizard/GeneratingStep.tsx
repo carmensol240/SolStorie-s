@@ -409,8 +409,8 @@ const GeneratingStep = ({ formData, onComplete }: GeneratingStepProps) => {
       }
     }, 15000);
 
-    // Only start generation if user is authenticated
-    if (!hasStartedRef.current && user) {
+    // Start generation if user is authenticated OR signup was dismissed (guest mode)
+    if (!hasStartedRef.current && (user || signupDismissed)) {
       hasStartedRef.current = true;
       generateStory();
     }
