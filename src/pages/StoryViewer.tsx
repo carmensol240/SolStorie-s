@@ -1145,6 +1145,18 @@ const StoryViewer = () => {
     return result;
   }, [story?.pages, isToddler, coverIllustration]);
 
+  useEffect(() => {
+    const nextPageIndex = Math.max(currentPage + 1, 0);
+
+    for (let i = nextPageIndex; i < virtualPages.length; i += 1) {
+      const nextIllustrationUrl = virtualPages[i]?.illustrationUrl ?? null;
+      if (nextIllustrationUrl) {
+        preloadIllustration(nextIllustrationUrl);
+        break;
+      }
+    }
+  }, [currentPage, virtualPages, preloadIllustration]);
+
   if (isLoading) {
     return (
       <div className="min-h-screen bg-gradient-to-b from-purple-50 via-pink-50 to-orange-50 flex items-center justify-center" dir="rtl">
@@ -1186,18 +1198,6 @@ const StoryViewer = () => {
   const page = currentVirtual ? currentVirtual.dbPage : null;
   const currentFontSize = FONT_SIZES[fontSizeIndex];
   const showPageActions = isContentPage && page !== null;
-
-  useEffect(() => {
-    const nextPageIndex = Math.max(currentPage + 1, 0);
-
-    for (let i = nextPageIndex; i < virtualPages.length; i += 1) {
-      const nextIllustrationUrl = virtualPages[i]?.illustrationUrl ?? null;
-      if (nextIllustrationUrl) {
-        preloadIllustration(nextIllustrationUrl);
-        break;
-      }
-    }
-  }, [currentPage, virtualPages, preloadIllustration]);
 
   // Reset all scroll positions (window + inner scrollable containers)
   const resetScroll = () => {
