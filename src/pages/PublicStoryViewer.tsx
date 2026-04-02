@@ -1,6 +1,6 @@
 import { useState, useEffect, useLayoutEffect, useCallback, useMemo } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { BookOpen, Loader2, ChevronLeft, ChevronRight, Home } from "lucide-react";
+import { BookOpen, Loader2, ChevronLeft, ChevronRight, Home, Save } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
 import { cn } from "@/lib/utils";
@@ -8,6 +8,7 @@ import { getPublicIllustrationUrl } from "@/lib/illustration-url";
 import { TheaterFrame } from "@/components/story/theater-frame";
 import castWavingFarewell from "@/assets/cast-waving-farewell.png";
 import solSuperheroWelcome from "@/assets/sol-superhero-welcome.jpg";
+import { useAuth } from "@/hooks/use-auth";
 import "./StoryViewer.css";
 
 interface PublicPage {
@@ -37,10 +38,39 @@ interface VirtualPage {
 const PublicStoryViewer = () => {
   const { storySlug } = useParams();
   const navigate = useNavigate();
+  const { user } = useAuth();
   const [story, setStory] = useState<PublicStory | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(false);
   const [currentPage, setCurrentPage] = useState(-1); // -1 = cover
+  const [showGuestBanner, setShowGuestBanner] = useState(false);
+  const guestStoryId = sessionStorage.getItem("guest_story_id");
+
+  // Show guest banner if this is a guest-generated story
+  useEffect(() => {
+    if (guestStoryId && !user) {
+      setShowGuestBanner(true);
+    }
+    // If user just signed up, claim the story
+    if (guestStoryId && user) {
+      const claimStory = async () => {
+        try {
+          const { error } = await supabase.functions.invoke("claim-guest-story", {
+            body: { storyId: guestStoryId },
+          });
+          if (!error) {
+            sessionStorage.removeItem("guest_story_id");
+            setShowGuestBanner(false);
+            // Redirect to proper story viewer
+            navigate(`/story/${storySlug}`, { replace: true });
+          }
+        } catch (e) {
+          console.warn("Failed to claim guest story:", e);
+        }
+      };
+      claimStory();
+    }
+  }, [guestStoryId, user, storySlug, navigate]);
 
   // Landscape lock on mobile
   useEffect(() => {
@@ -326,6 +356,25 @@ const PublicStoryViewer = () => {
           )}
         </div>
       </main>
+
+      {/* Guest signup banner */}
+      {showGuestBanner && (
+        <div className="fixed bottom-0 left-0 right-0 z-50 bg-gradient-to-r from-purple-600 via-pink-500 to-orange-400 text-white px-4 py-3 shadow-2xl" dir="rtl">
+          <div className="max-w-lg mx-auto flex items-center justify-between gap-3">
+            <div className="flex items-center gap-2 flex-1 min-w-0">
+              <Save className="w-5 h-5 shrink-0" />
+              <p className="text-sm font-bold truncate">💾 הסיפור לא נשמר — הירשמו כדי לשמור אותו!</p>
+            </div>
+            <Button
+              onClick={() => navigate(`/auth?returnTo=/public-story/${storySlug}`)}
+              size="sm"
+              className="bg-white text-purple-700 hover:bg-purple-50 font-black text-xs shrink-0 rounded-full px-4"
+            >
+              הירשמו עכשיו ✨
+            </Button>
+          </div>
+        </div>
+      )}
 
       {/* Footer */}
       <footer className="bg-white/80 backdrop-blur-sm border-t border-purple-100 px-4 py-2 text-center shrink-0">

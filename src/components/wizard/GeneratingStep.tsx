@@ -174,9 +174,11 @@ const GeneratingStep = ({ formData, onComplete }: GeneratingStepProps) => {
 
       let data, apiError;
       
+      // Determine if this is a guest request
+      const isGuest = !user && signupDismissed;
+      
       try {
-        const result = await supabase.functions.invoke("generate-story", {
-          body: {
+        const bodyPayload: any = {
             childName: formData.childName,
             childGender: formData.childGender,
             ageRange: formData.ageRange,
@@ -193,7 +195,14 @@ const GeneratingStep = ({ formData, onComplete }: GeneratingStepProps) => {
             adventureLogic: formData.adventureLogic,
             className: formData.className || undefined,
             childId: (formData as any).childId || undefined,
-          },
+        };
+        
+        if (isGuest) {
+          bodyPayload.guestMode = true;
+        }
+
+        const result = await supabase.functions.invoke("generate-story", {
+          body: bodyPayload,
         });
         
         data = result.data;
@@ -271,7 +280,7 @@ const GeneratingStep = ({ formData, onComplete }: GeneratingStepProps) => {
       
       setError("not_created");
     }
-  }, [formData, toast, navigate]);
+  }, [formData, toast, navigate, signupDismissed]);
 
   // Realtime subscription: watch for illustrations completing
   useEffect(() => {
@@ -409,8 +418,8 @@ const GeneratingStep = ({ formData, onComplete }: GeneratingStepProps) => {
       }
     }, 15000);
 
-    // Only start generation if user is authenticated
-    if (!hasStartedRef.current && user) {
+    // Start generation if user is authenticated OR signup was dismissed (guest mode)
+    if (!hasStartedRef.current && (user || signupDismissed)) {
       hasStartedRef.current = true;
       generateStory();
     }
@@ -435,6 +444,14 @@ const GeneratingStep = ({ formData, onComplete }: GeneratingStepProps) => {
       generateStory();
     }
   }, [user, signupCompleted, generateStory]);
+
+  // When signup is dismissed (guest mode), start generation
+  useEffect(() => {
+    if (signupDismissed && !user && !hasStartedRef.current) {
+      hasStartedRef.current = true;
+      generateStory();
+    }
+  }, [signupDismissed, user, generateStory]);
 
   const saveChildToSupabase = async (userId: string) => {
     try {
@@ -842,7 +859,9 @@ const GeneratingStep = ({ formData, onComplete }: GeneratingStepProps) => {
 
               <button
                 type="button"
-                onClick={() => navigate("/")}
+                onClick={() => {
+                  setSignupDismissed(true);
+                }}
                 className="w-full text-center text-xs text-muted-foreground hover:text-foreground transition-colors"
               >
                 אולי אחר כך
