@@ -851,7 +851,9 @@ const GeneratingStep = ({ formData, onComplete }: GeneratingStepProps) => {
 
               <button
                 type="button"
-                onClick={() => navigate("/")}
+                onClick={() => {
+                  setSignupDismissed(true);
+                }}
                 className="w-full text-center text-xs text-muted-foreground hover:text-foreground transition-colors"
               >
                 אולי אחר כך
