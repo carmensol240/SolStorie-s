@@ -1,39 +1,37 @@
 
 
-## Plan: Fix Page 1 Illustration Not Loading
+## Plan: Separate Cover from Page 1 Illustration
 
-### Root Cause
-In `virtualPages` construction, when a DB page's illustration is chosen as the cover illustration (`isCoverIllust === true`):
+### Problem
+The `coverIllustration` logic in StoryViewer picks the "best matching" page illustration (usually page 1) and displays it as the cover. After the recent fix that stopped skipping page 1's illustration in the story flow, the same image now appears on both the cover and page 1.
 
-- **Toddler (0-2) combined pages** (line 1124): `illustrationUrl` is set to `null`, causing the page to show the "generating" palette emoji placeholder forever.
-- **Ages 3+ separate pages** (line 1139): the illustration page is entirely skipped, so that illustration never appears in the story flow.
-
-This means the first page's illustration (which is usually selected as the cover) never renders in the story content.
+Stories already have a dedicated `cover_url` field (generated separately by `generate-cover` function), so the cover page should use that instead of borrowing a page illustration.
 
 ### Fix — `src/pages/StoryViewer.tsx` only
 
-#### 1. Toddler combined pages (line 1124)
-Stop nulling the illustration URL for cover pages. Change:
+#### 1. Remove the `coverIllustration` useMemo entirely (lines ~1055-1083)
+This logic selected a page illustration to use as cover — it's no longer needed since `story.cover_url` exists.
+
+#### 2. Update cover page rendering (lines ~1296-1299)
+Change from:
 ```tsx
-illustrationUrl: isCoverIllust ? null : page.illustration_url,
+src={coverIllustration?.illustration_url 
+  ? (getPublicIllustrationUrl(coverIllustration.illustration_url) || story.cover_url || solSuperheroWelcome)
+  : (story.cover_url || solSuperheroWelcome)}
 ```
 to:
 ```tsx
-illustrationUrl: page.illustration_url,
+src={story.cover_url || solSuperheroWelcome}
 ```
 
-#### 2. Ages 3+ illustration pages (line 1139)
-Remove the `!isCoverIllust` guard so the illustration page is always included. Change:
-```tsx
-if (hasIllustration && !isCoverIllust) {
-```
-to:
-```tsx
-if (hasIllustration) {
-```
+#### 3. Remove `isCoverIllust` variable from virtualPages construction (lines ~1101, ~1119)
+Since `coverIllustration` no longer exists, remove the `isCoverIllust` variable. The pages already include all illustrations after the previous fix, so no other logic changes are needed.
 
-### Why this is safe
-The cover page (index -1) renders independently using `coverIllustration` data. Showing the same illustration again as part of the story flow is expected behavior — the cover is a preview, and the illustration belongs in its natural story position.
+#### 4. Clean up any remaining references to `coverIllustration`
+Remove it from `useMemo` dependencies and any other references.
 
-### No other files modified.
+### Result
+- Cover page shows the dedicated cover image (`cover_url`)
+- Page 1 shows its own illustration
+- No duplicate images
 
