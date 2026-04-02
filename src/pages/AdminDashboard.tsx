@@ -637,21 +637,36 @@ const AdminDashboard = () => {
                 <ReviewedBar tab="stories" total={stories.length} filtered={filterByReviewed(stories, "stories").length} cutoff={reviewedCutoffs["stories"]} showReviewed={showReviewed["stories"]} onToggleShow={() => setShowReviewed(p => ({ ...p, stories: !p.stories }))} onMark={() => setConfirmClearTab("stories")} onClear={() => clearReviewed("stories")} />
                 <div className="overflow-x-auto">
                   <Table>
-                    <TableHeader>
-                      <TableRow>
-                        <TableHead className="text-right">נושא</TableHead>
-                        <TableHead className="text-right">תאריך</TableHead>
-                      </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                      {loading ? (
-                        <TableRow><TableCell colSpan={2} className="text-center">טוען...</TableCell></TableRow>
-                      ) : filterByReviewed(stories, "stories").map((s) => (
-                        <TableRow key={s.id}>
-                          <TableCell>{s.topic}</TableCell>
-                          <TableCell className="text-xs">{formatDate(s.created_at)}</TableCell>
-                        </TableRow>
-                      ))}
+                     <TableHeader>
+                       <TableRow>
+                         <TableHead className="text-right">משתמש</TableHead>
+                         <TableHead className="text-right">נושא</TableHead>
+                         <TableHead className="text-right">תאריך</TableHead>
+                         <TableHead className="text-right">סטטוס</TableHead>
+                       </TableRow>
+                     </TableHeader>
+                     <TableBody>
+                       {loading ? (
+                         <TableRow><TableCell colSpan={4} className="text-center">טוען...</TableCell></TableRow>
+                       ) : filterByReviewed(stories, "stories").map((s) => {
+                         const profile = profiles.find(p => p.id === s.user_id);
+                         const isReady = s.generation_status === "ready";
+                         return (
+                           <TableRow key={s.id}>
+                             <TableCell className="text-xs">
+                               <div>{profile?.display_name || "—"}</div>
+                               <div className="text-muted-foreground">{profile?.email || "—"}</div>
+                             </TableCell>
+                             <TableCell>{s.topic}</TableCell>
+                             <TableCell className="text-xs">{formatDate(s.created_at)}</TableCell>
+                             <TableCell>
+                               <Badge variant={isReady ? "outline" : "destructive"} className="text-xs">
+                                 {isReady ? "הושלם" : "נכשל"}
+                               </Badge>
+                             </TableCell>
+                           </TableRow>
+                         );
+                       })}
                     </TableBody>
                   </Table>
                 </div>
