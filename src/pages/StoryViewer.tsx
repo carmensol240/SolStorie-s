@@ -1052,35 +1052,6 @@ const StoryViewer = () => {
   const resolvedTopicId = HEBREW_TO_TOPIC_ID[topicPrefix];
   const learningPronunciation = resolvedTopicId ? LEARNING_PRONUNCIATION[resolvedTopicId] : null;
 
-  // Find the best illustration to use as cover: match illustration_prompt keywords to story.topic
-  const coverIllustration = useMemo(() => {
-    if (!story || story.pages.length === 0) return null;
-
-    const pagesWithIllustrations = story.pages.filter(p => p.illustration_url);
-    if (pagesWithIllustrations.length === 0) return null;
-
-    const topicWords = story.topic.toLowerCase().split(/\s+/).filter(w => w.length > 2);
-    if (topicWords.length === 0) {
-      return pagesWithIllustrations[0];
-    }
-
-    let bestPage = pagesWithIllustrations[0];
-    let bestScore = 0;
-
-    for (const page of pagesWithIllustrations) {
-      const prompt = (page.illustration_prompt || '').toLowerCase();
-      let score = 0;
-      for (const word of topicWords) {
-        if (prompt.includes(word)) score++;
-      }
-      if (score > bestScore) {
-        bestScore = score;
-        bestPage = page;
-      }
-    }
-
-    return bestPage;
-  }, [story?.pages, story?.topic, preloadIllustration]);
 
   // Generate random star dots for text-only pages (stable across renders)
   const starDots = useMemo(() => Array.from({ length: 25 }, () => ({
