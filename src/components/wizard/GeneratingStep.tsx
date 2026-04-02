@@ -91,7 +91,7 @@ const getTopicLabel = (topicId: string): string => {
 const GeneratingStep = ({ formData, onComplete }: GeneratingStepProps) => {
   const { toast } = useToast();
   const navigate = useNavigate();
-  const { user } = useAuth();
+  const { user, signInWithEmail, signUpWithEmail } = useAuth();
   const [progress, setProgress] = useState(0);
   const [messageIndex, setMessageIndex] = useState(0);
   const [sentenceIndex, setSentenceIndex] = useState(() => Math.floor(Math.random() * EMPOWERING_SENTENCES.length));
@@ -101,6 +101,16 @@ const GeneratingStep = ({ formData, onComplete }: GeneratingStepProps) => {
   const hasNavigatedRef = useRef(false);
   const retryCountRef = useRef(0);
   const MAX_RETRIES = 2;
+
+  // Inline signup form state
+  const [signupEmail, setSignupEmail] = useState("");
+  const [signupPassword, setSignupPassword] = useState("");
+  const [signupShowPassword, setSignupShowPassword] = useState(false);
+  const [signupTermsAccepted, setSignupTermsAccepted] = useState(false);
+  const [signupMode, setSignupMode] = useState<"signup" | "login">("signup");
+  const [signupSubmitting, setSignupSubmitting] = useState(false);
+  const [signupDismissed, setSignupDismissed] = useState(false);
+  const [signupCompleted, setSignupCompleted] = useState(false);
 
   const [phase, setPhase] = useState<'text' | 'illustrations' | 'ready'>('text');
   const [storyId, setStoryId] = useState<string | null>(null);
