@@ -234,7 +234,7 @@ const About = () => {
 
         {/* CTA Button */}
         <button
-          onClick={() => navigate("/auth")}
+          onClick={() => navigate("/adventure")}
           disabled={!termsAccepted}
           className="w-full max-w-xs mx-auto flex items-center justify-center bg-gradient-to-r from-purple-500 via-pink-500 to-orange-500 hover:from-purple-400 hover:via-pink-400 hover:to-orange-400 text-white font-black text-lg py-4 rounded-full shadow-xl transition-all hover:scale-[1.02] mb-8 disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:scale-100"
           style={{

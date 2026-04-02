@@ -79,7 +79,7 @@ function App() { useTimeTheme(); return (
             <Route path="/s/:storySlug" element={<PublicStoryViewer />} />
             {/* Protected routes - require terms acceptance */}
             <Route path="/children" element={<RequireTerms><ChildProfiles /></RequireTerms>} />
-            <Route path="/create" element={<RequireTerms><CreateStory /></RequireTerms>} />
+            <Route path="/create" element={<CreateStory />} />
             {/* Story viewer - handles both slug and UUID, public fallback for unauthenticated */}
             <Route path="/story/:storyId" element={<StoryViewer />} />
             <Route path="/library" element={<Library />} />
