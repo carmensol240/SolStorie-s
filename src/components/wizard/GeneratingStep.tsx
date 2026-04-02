@@ -424,6 +424,88 @@ const GeneratingStep = ({ formData, onComplete }: GeneratingStepProps) => {
     };
   }, [generateStory, phase, toast]);
 
+  // When user authenticates (after signup during loading), start generation
+  useEffect(() => {
+    if (user && !hasStartedRef.current && !signupCompleted) {
+      // User was already logged in when component mounted — handled above
+    }
+    if (user && signupCompleted && !hasStartedRef.current) {
+      hasStartedRef.current = true;
+      generateStory();
+    }
+  }, [user, signupCompleted, generateStory]);
+
+  const saveChildToSupabase = async (userId: string) => {
+    try {
+      const ageMap: Record<string, number> = { "0-2": 1, "2-4": 3, "5-7": 6, "8-10": 9 };
+      await supabase.from("children").insert({
+        user_id: userId,
+        name: formData.childName,
+        age: ageMap[formData.ageRange] || 5,
+        gender: formData.childGender === "female" ? "girl" : "boy",
+        personality_traits: formData.personalityTraits || null,
+        fixed_details: formData.fixedDetails || null,
+        photo_url: formData.childPhoto || null,
+        avatar_url: formData.childAvatarUrl || null,
+      });
+    } catch (e) {
+      console.warn("Failed to save child profile:", e);
+    }
+  };
+
+  const handleSignupSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    const emailResult = emailSchema.safeParse(signupEmail);
+    if (!emailResult.success) {
+      toast({ title: "שגיאה", description: emailResult.error.errors[0].message, variant: "destructive" });
+      return;
+    }
+    const passwordResult = passwordSchema.safeParse(signupPassword);
+    if (!passwordResult.success) {
+      toast({ title: "שגיאה", description: passwordResult.error.errors[0].message, variant: "destructive" });
+      return;
+    }
+    if (signupMode === "signup" && !signupTermsAccepted) {
+      toast({ title: "שגיאה", description: "יש לאשר את תנאי השימוש", variant: "destructive" });
+      return;
+    }
+
+    setSignupSubmitting(true);
+    try {
+      if (signupMode === "login") {
+        const { error } = await signInWithEmail(signupEmail, signupPassword);
+        if (error) {
+          toast({ title: "שגיאה בהתחברות", description: error.message, variant: "destructive" });
+          return;
+        }
+      } else {
+        const { error } = await signUpWithEmail(signupEmail, signupPassword, {
+          display_name: signupEmail.split("@")[0],
+        });
+        if (error) {
+          toast({ title: "שגיאה בהרשמה", description: error.message, variant: "destructive" });
+          return;
+        }
+      }
+      // Save child + accept terms
+      const { data: { user: newUser } } = await supabase.auth.getUser();
+      if (newUser) {
+        await saveChildToSupabase(newUser.id);
+        await supabase.from("profiles").update({
+          terms_accepted_at: new Date().toISOString(),
+          terms_version: "1.0",
+        }).eq("id", newUser.id);
+      }
+      setSignupCompleted(true);
+      toast({ title: "נרשמתם בהצלחה! 🎉", description: "הסיפור נוצר עכשיו..." });
+    } catch (err) {
+      console.error("Signup error:", err);
+      toast({ title: "שגיאה", description: "אירעה שגיאה, נסו שוב", variant: "destructive" });
+    } finally {
+      setSignupSubmitting(false);
+    }
+  };
+
   const handleRetry = () => {
     setError(null);
     setProgress(0);
@@ -443,6 +525,8 @@ const GeneratingStep = ({ formData, onComplete }: GeneratingStepProps) => {
       onComplete(storyId);
     }
   };
+
+  const needsSignup = !user && !signupCompleted;
 
   // --- ERROR STATE ---
   if (error) {
