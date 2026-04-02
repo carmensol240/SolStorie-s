@@ -174,9 +174,11 @@ const GeneratingStep = ({ formData, onComplete }: GeneratingStepProps) => {
 
       let data, apiError;
       
+      // Determine if this is a guest request
+      const isGuest = !user && signupDismissed;
+      
       try {
-        const result = await supabase.functions.invoke("generate-story", {
-          body: {
+        const bodyPayload: any = {
             childName: formData.childName,
             childGender: formData.childGender,
             ageRange: formData.ageRange,
@@ -193,7 +195,14 @@ const GeneratingStep = ({ formData, onComplete }: GeneratingStepProps) => {
             adventureLogic: formData.adventureLogic,
             className: formData.className || undefined,
             childId: (formData as any).childId || undefined,
-          },
+        };
+        
+        if (isGuest) {
+          bodyPayload.guestMode = true;
+        }
+
+        const result = await supabase.functions.invoke("generate-story", {
+          body: bodyPayload,
         });
         
         data = result.data;
