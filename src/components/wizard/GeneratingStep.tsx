@@ -445,6 +445,14 @@ const GeneratingStep = ({ formData, onComplete }: GeneratingStepProps) => {
     }
   }, [user, signupCompleted, generateStory]);
 
+  // When signup is dismissed (guest mode), start generation
+  useEffect(() => {
+    if (signupDismissed && !user && !hasStartedRef.current) {
+      hasStartedRef.current = true;
+      generateStory();
+    }
+  }, [signupDismissed, user, generateStory]);
+
   const saveChildToSupabase = async (userId: string) => {
     try {
       const ageMap: Record<string, number> = { "0-2": 1, "2-4": 3, "5-7": 6, "8-10": 9 };
