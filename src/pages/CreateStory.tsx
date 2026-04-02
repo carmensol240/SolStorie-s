@@ -66,7 +66,7 @@ const CreateStory = () => {
   const [step, setStep] = useState(1);
   const [formData, setFormData] = useState<StoryFormData>(INITIAL_DATA);
   const [isGenerating, setIsGenerating] = useState(false);
-  const [showSignupModal, setShowSignupModal] = useState(false);
+  
 
   const handleStoryGenerated = useCallback(async (storyId: string) => {
     // Credits are now deducted server-side in generate-story — just refetch local state
