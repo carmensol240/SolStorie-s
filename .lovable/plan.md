@@ -1,23 +1,26 @@
 
 
-## Plan: Add "סגור ↑" Collapse Button to About Page
+## Plan: Improve About Page — Show More Content in Hero + Floating Close Button
 
-### Change — `src/pages/About.tsx` only
+### Changes — `src/pages/About.tsx` only
 
-Insert a "סגור ↑" button at the bottom of the expanded content block, just before the closing `</div>` on line 205. On click, it sets `showMore` to `false` and scrolls to the top of the page via `window.scrollTo({ top: 0, behavior: 'smooth' })`.
+#### 1. Move the personal intro paragraphs ABOVE the fold (outside `showMore`)
+Move the 3 personal intro paragraphs (lines 118-133) out of the `showMore` block and place them right after the title section (after line 102), so the hero section shows more meaningful text without needing to expand.
 
-**Insert after line 204 (after the last feature card's closing `</div>`):**
-```tsx
-<button
-  onClick={() => {
-    setShowMore(false);
-    window.scrollTo({ top: 0, behavior: 'smooth' });
-  }}
-  className="text-sm text-purple-300/80 hover:text-purple-200 underline underline-offset-4 mt-6 transition-colors"
->
-  סגור ↑
-</button>
-```
+The "קרא עוד ↓" toggle and its expandable block will now only wrap the **features list** (lines 135-204), not the personal intro.
 
-Same styling as the existing "קרא עוד ↓" link. No other files modified.
+#### 2. Replace bottom "סגור ↑" with a sticky floating close button
+Remove the current bottom-anchored close button (lines 206-214). Instead, add a **sticky floating close button** inside the expandable content block:
+- Position: `sticky bottom-4` centered
+- Style: semi-transparent dark background (`bg-black/40 backdrop-blur-sm`), small rounded pill shape, subtle text
+- Text: "סגור ↑"
+- Same onClick logic: `setShowMore(false)` + scroll to top
+- Visible but not obtrusive — floats over content as user scrolls
+
+#### Result
+- Hero section shows logo + tagline + personal story — more substance before scrolling
+- "קרא עוד" expands only the feature cards
+- Close button is always reachable while scrolling through features, not buried at the bottom
+
+### No other files modified.
 
