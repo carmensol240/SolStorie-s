@@ -545,14 +545,16 @@ const AdminDashboard = () => {
                   <Table>
                     <TableHeader>
                       <TableRow>
-                        <TableHead className="text-right">שם</TableHead>
-                        <TableHead className="text-right">אימייל</TableHead>
-                        <TableHead className="text-right">תפקיד</TableHead>
-                        <TableHead className="text-right">קרדיטים</TableHead>
-                        <TableHead className="text-right">מנוי</TableHead>
-                        <TableHead className="text-right">שגיאות</TableHead>
-                        <TableHead className="text-right">הצטרפות</TableHead>
-                        <TableHead className="text-right">פעולות</TableHead>
+                         <TableHead className="text-right">שם</TableHead>
+                         <TableHead className="text-right">אימייל</TableHead>
+                         <TableHead className="text-right">תפקיד</TableHead>
+                         <TableHead className="text-right">סיפורים</TableHead>
+                         <TableHead className="text-right">רכש</TableHead>
+                         <TableHead className="text-right">קרדיטים</TableHead>
+                         <TableHead className="text-right">מנוי</TableHead>
+                         <TableHead className="text-right">שגיאות</TableHead>
+                         <TableHead className="text-right">הצטרפות</TableHead>
+                         <TableHead className="text-right">פעולות</TableHead>
                       </TableRow>
                     </TableHeader>
                     <TableBody>
