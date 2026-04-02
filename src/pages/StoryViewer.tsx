@@ -50,6 +50,7 @@ import { BookFrame, BookPage, BookHeader, NavigationArrows, MagicalBookFrame } f
 import { TheaterFrame } from "@/components/story/theater-frame";
 import { FileDown } from "lucide-react";
 import PdfFeaturePopup from "@/components/story/PdfFeaturePopup";
+import InstallAppPrompt from "@/components/story/InstallAppPrompt";
 
 import "./StoryViewer.css";
 // translateTopic removed from cover — topic shown only in library
