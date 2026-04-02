@@ -235,6 +235,13 @@ const CreateStory = () => {
       </div>
       
       <MobileNavigation />
+
+      <SignupBeforeGenerateModal
+        open={showSignupModal}
+        onOpenChange={setShowSignupModal}
+        formData={formData}
+        onSignupComplete={handleSignupComplete}
+      />
     </div>
   );
 };
