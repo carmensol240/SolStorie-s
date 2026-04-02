@@ -583,14 +583,9 @@ serve(async (req) => {
   }
 
   try {
-    // === AUTHENTICATION CHECK ===
-    const authHeader = req.headers.get("Authorization") || req.headers.get("authorization");
-    if (!authHeader?.startsWith("Bearer ")) {
-      return new Response(
-        JSON.stringify({ error: "נדרשת התחברות" }),
-        { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-      );
-    }
+    // Parse request body once
+    const reqBody = await req.json();
+    const guestMode = reqBody.guestMode === true;
 
     const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
     const supabaseServiceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
@@ -598,127 +593,138 @@ serve(async (req) => {
     // Create client with SERVICE_ROLE_KEY for server-side operations
     const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
-    // Extract token and validate directly with getUser(token)
-    const token = authHeader.replace("Bearer ", "");
-    console.log("Validating token...");
-    const { data: { user }, error: authError } = await supabase.auth.getUser(token);
-    console.log("getUser result - user exists:", !!user, "error:", authError?.message);
-    
-    if (authError || !user) {
-      return new Response(
-        JSON.stringify({ error: "טוקן לא תקין או שפג תוקפו" }),
-        { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-      );
-    }
-    
-    const userId = user.id;
-    // Mask user ID in logs to protect PII
-    console.log("Authenticated user:", userId.substring(0, 8) + "...");
-    // === END AUTHENTICATION CHECK ===
+    let userId: string | null = null;
 
-    // === CREDIT CHECK WITH WELCOME CREDIT SAFETY NET ===
-    console.log("Checking story credits for user...");
-    
-    // Get current credits
-    const { data: profile, error: profileError } = await supabase
-      .from("profiles")
-      .select("story_credits")
-      .eq("id", userId)
-      .maybeSingle();
-    
-    if (profileError) {
-      console.error("Error fetching profile:", profileError);
-      return new Response(
-        JSON.stringify({ error: "שגיאה בטעינת פרטי המשתמש" }),
-        { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-      );
-    }
-    
-    const currentCredits = profile?.story_credits ?? 0;
-    console.log("Current credits:", currentCredits);
-    
-    // If user has 0 credits, check if they're a brand new user who missed their welcome credit
-    if (currentCredits <= 0) {
-      // Count their existing stories
-      const { count: storyCount, error: countError } = await supabase
-        .from("stories")
-        .select("*", { count: "exact", head: true })
-        .eq("user_id", userId);
+    if (guestMode) {
+      // === GUEST MODE: Rate limit by IP, no auth required ===
+      const forwardedFor = req.headers.get("x-forwarded-for");
+      const clientIP = forwardedFor ? forwardedFor.split(",")[0].trim() : (req.headers.get("x-real-ip") || "unknown");
       
-      if (countError) {
-        console.error("Error counting stories:", countError);
+      const { checkRateLimit, rateLimitResponse } = await import("../_shared/rate-limiter.ts");
+      const rl = checkRateLimit(clientIP, "guest-story", { maxRequests: 2, windowMs: 60 * 60 * 1000 });
+      if (!rl.allowed) {
+        return rateLimitResponse(rl, corsHeaders, "ניתן ליצור עד 2 סיפורים לאורח בשעה. הירשמו כדי ליצור עוד!");
       }
-      
-      console.log("Story count for user:", storyCount);
-      
-      // New user with 0 stories = should have gotten welcome credit but didn't
-      if (storyCount === 0 || storyCount === null) {
-        console.log("New user without welcome credit detected - auto-fixing...");
-        
-        // Auto-fix: Grant the welcome credit
-        const { error: updateError } = await supabase
-          .from("profiles")
-          .update({ story_credits: 1 })
-          .eq("id", userId);
-        
-        if (updateError) {
-          console.error("Error granting welcome credit:", updateError);
-          return new Response(
-            JSON.stringify({ error: "שגיאה בהענקת קרדיט פתיחה" }),
-            { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-          );
-        }
-        
-        console.log("Welcome credit granted successfully!");
-        // Continue with story generation - they now have 1 credit
-      } else {
-        // User has stories but no credits = genuinely out of credits
-        console.log("User has used all credits");
+      console.log("[generate-story] Guest mode — IP:", clientIP.substring(0, 8) + "...");
+    } else {
+      // === AUTHENTICATED MODE ===
+      const authHeader = req.headers.get("Authorization") || req.headers.get("authorization");
+      if (!authHeader?.startsWith("Bearer ")) {
         return new Response(
-          JSON.stringify({ 
-            error: "נגמרו הקרדיטים",
-            code: "NO_CREDITS",
-            message: "אין לך קרדיטים נותרים. רכוש קרדיטים חדשים כדי ליצור סיפורים."
-          }),
-          { status: 402, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+          JSON.stringify({ error: "נדרשת התחברות" }),
+          { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } }
         );
       }
-    }
-    
-    // === ATOMIC CREDIT DEDUCTION (server-side) ===
-    // Deduct 1 credit atomically using the current DB value to avoid race conditions
-    // with coupon redemptions or concurrent requests
-    {
-      const { data: freshProfile } = await supabase
+
+      const token = authHeader.replace("Bearer ", "");
+      console.log("Validating token...");
+      const { data: { user }, error: authError } = await supabase.auth.getUser(token);
+      console.log("getUser result - user exists:", !!user, "error:", authError?.message);
+      
+      if (authError || !user) {
+        return new Response(
+          JSON.stringify({ error: "טוקן לא תקין או שפג תוקפו" }),
+          { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        );
+      }
+      
+      userId = user.id;
+      console.log("Authenticated user:", userId.substring(0, 8) + "...");
+
+      // === CREDIT CHECK WITH WELCOME CREDIT SAFETY NET ===
+      console.log("Checking story credits for user...");
+      
+      const { data: profile, error: profileError } = await supabase
         .from("profiles")
         .select("story_credits")
         .eq("id", userId)
-        .single();
+        .maybeSingle();
       
-      const freshCredits = freshProfile?.story_credits ?? 0;
-      if (freshCredits <= 0) {
-        console.log("Race condition: credits depleted between check and deduction");
+      if (profileError) {
+        console.error("Error fetching profile:", profileError);
         return new Response(
-          JSON.stringify({ error: "נגמרו הקרדיטים", code: "NO_CREDITS" }),
-          { status: 402, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+          JSON.stringify({ error: "שגיאה בטעינת פרטי המשתמש" }),
+          { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
         );
       }
       
-      const { error: deductError } = await supabase
-        .from("profiles")
-        .update({ story_credits: freshCredits - 1 })
-        .eq("id", userId);
+      const currentCredits = profile?.story_credits ?? 0;
+      console.log("Current credits:", currentCredits);
       
-      if (deductError) {
-        console.error("Error deducting credit:", deductError);
-        // Non-blocking: continue with story generation even if deduction fails
-      } else {
-        console.log(`Credit deducted server-side: ${freshCredits} → ${freshCredits - 1}`);
+      if (currentCredits <= 0) {
+        const { count: storyCount, error: countError } = await supabase
+          .from("stories")
+          .select("*", { count: "exact", head: true })
+          .eq("user_id", userId);
+        
+        if (countError) {
+          console.error("Error counting stories:", countError);
+        }
+        
+        console.log("Story count for user:", storyCount);
+        
+        if (storyCount === 0 || storyCount === null) {
+          console.log("New user without welcome credit detected - auto-fixing...");
+          
+          const { error: updateError } = await supabase
+            .from("profiles")
+            .update({ story_credits: 1 })
+            .eq("id", userId);
+          
+          if (updateError) {
+            console.error("Error granting welcome credit:", updateError);
+            return new Response(
+              JSON.stringify({ error: "שגיאה בהענקת קרדיט פתיחה" }),
+              { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+            );
+          }
+          
+          console.log("Welcome credit granted successfully!");
+        } else {
+          console.log("User has used all credits");
+          return new Response(
+            JSON.stringify({ 
+              error: "נגמרו הקרדיטים",
+              code: "NO_CREDITS",
+              message: "אין לך קרדיטים נותרים. רכוש קרדיטים חדשים כדי ליצור סיפורים."
+            }),
+            { status: 402, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+          );
+        }
       }
+      
+      // === ATOMIC CREDIT DEDUCTION ===
+      {
+        const { data: freshProfile } = await supabase
+          .from("profiles")
+          .select("story_credits")
+          .eq("id", userId)
+          .single();
+        
+        const freshCredits = freshProfile?.story_credits ?? 0;
+        if (freshCredits <= 0) {
+          console.log("Race condition: credits depleted between check and deduction");
+          return new Response(
+            JSON.stringify({ error: "נגמרו הקרדיטים", code: "NO_CREDITS" }),
+            { status: 402, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+          );
+        }
+        
+        const { error: deductError } = await supabase
+          .from("profiles")
+          .update({ story_credits: freshCredits - 1 })
+          .eq("id", userId);
+        
+        if (deductError) {
+          console.error("Error deducting credit:", deductError);
+        } else {
+          console.log(`Credit deducted server-side: ${freshCredits} → ${freshCredits - 1}`);
+        }
+      }
+      // === END CREDIT CHECK ===
     }
-    // === END CREDIT CHECK ===
 
-    const { childName, childGender = "male", ageRange, storyLength = "short", topic, topicId, nikud, childPhoto, childAvatarUrl, personalityTraits, adventureLogic, language = "he", className, topicDescription, childId, isCustomTopic = false } = await req.json();
+    const { childName, childGender = "male", ageRange, storyLength = "short", topic, topicId, nikud, childPhoto, childAvatarUrl, personalityTraits, adventureLogic, language = "he", className, topicDescription, childId, isCustomTopic = false } = reqBody;
 
     // === LEARNING TOPIC DETECTION ===
     // Use topicId (e.g. "letter-yod") for detection — topic contains the Hebrew label
