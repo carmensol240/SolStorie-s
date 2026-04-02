@@ -205,6 +205,7 @@ const StoryViewer = () => {
   const [imageLoadedMap, setImageLoadedMap] = useState<Record<string, boolean>>({});
   const pollingIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const pollingStartTimeRef = useRef<number | null>(null);
+  const preloadedIllustrationsRef = useRef<Set<string>>(new Set());
   const [retryingPageId, setRetryingPageId] = useState<string | null>(null);
   const [showPromptInput, setShowPromptInput] = useState<string | null>(null); // pageId or null
   const [customPromptText, setCustomPromptText] = useState('');
@@ -230,6 +231,16 @@ const StoryViewer = () => {
   const handleImageLoad = useCallback((e: React.SyntheticEvent<HTMLImageElement>) => {
     // Keep object-cover for all images — no white margins
   }, []);
+
+  const preloadIllustration = useCallback((illustrationUrl: string | null) => {
+    const publicUrl = getPublicIllustrationUrl(illustrationUrl);
+    if (!publicUrl || preloadedIllustrationsRef.current.has(publicUrl)) return;
+
+    preloadedIllustrationsRef.current.add(publicUrl);
+    const img = new Image();
+    img.src = publicUrl;
+  }, []);
+
   const { trackStoryStarted, trackStoryCompleted, trackPageViewed, trackFeatureUsed } = useAnalytics();
   const { isOnline, cacheStory, getCachedStory } = useOfflineStorage();
   const fullOffline = useFullOfflineStorage();
@@ -323,30 +334,6 @@ const StoryViewer = () => {
   useEffect(() => {
     if (story && currentPage >= 1) {
       trackPageViewed(story.id, currentPage);
-      
-      // Pre-fetch next virtual page illustration for smooth transitions
-      const nextStoryIdx = currentPage; // currentPage is 1-indexed for story pages
-      if (nextStoryIdx < story.pages.length) {
-        const nextPage = story.pages[nextStoryIdx];
-        if (nextPage?.illustration_url) {
-          const publicUrl = getPublicIllustrationUrl(nextPage.illustration_url);
-          if (publicUrl) {
-            const img = new Image();
-            img.src = publicUrl;
-          }
-        }
-      }
-      // Also preload next+1 page for even smoother experience
-      if (nextStoryIdx + 1 < story.pages.length) {
-        const nextNext = story.pages[nextStoryIdx + 1];
-        if (nextNext?.illustration_url) {
-          const publicUrl = getPublicIllustrationUrl(nextNext.illustration_url);
-          if (publicUrl) {
-            const img = new Image();
-            img.src = publicUrl;
-          }
-        }
-      }
     }
   }, [currentPage, story?.id]);
 
@@ -611,11 +598,7 @@ const StoryViewer = () => {
         // Preload all illustration images in background
         pagesData.forEach(p => {
           if (p.illustration_url) {
-            const url = getPublicIllustrationUrl(p.illustration_url);
-            if (url) {
-              const img = new Image();
-              img.src = url;
-            }
+              preloadIllustration(p.illustration_url);
           }
         });
       }
@@ -1097,7 +1080,7 @@ const StoryViewer = () => {
     }
 
     return bestPage;
-  }, [story?.pages, story?.topic]);
+  }, [story?.pages, story?.topic, preloadIllustration]);
 
   // Generate random star dots for text-only pages (stable across renders)
   const starDots = useMemo(() => Array.from({ length: 25 }, () => ({
@@ -1161,6 +1144,18 @@ const StoryViewer = () => {
 
     return result;
   }, [story?.pages, isToddler, coverIllustration]);
+
+  useEffect(() => {
+    const nextPageIndex = Math.max(currentPage + 1, 0);
+
+    for (let i = nextPageIndex; i < virtualPages.length; i += 1) {
+      const nextIllustrationUrl = virtualPages[i]?.illustrationUrl ?? null;
+      if (nextIllustrationUrl) {
+        preloadIllustration(nextIllustrationUrl);
+        break;
+      }
+    }
+  }, [currentPage, virtualPages, preloadIllustration]);
 
   if (isLoading) {
     return (
