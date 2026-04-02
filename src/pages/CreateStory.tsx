@@ -114,6 +114,11 @@ const CreateStory = () => {
     if (step === 1 && canProceedStep1) {
       setStep(2);
     } else if (step === 2 && canProceedStep2) {
+      // If not logged in, show signup modal instead of generating
+      if (!user) {
+        setShowSignupModal(true);
+        return;
+      }
       // Check if user has credits before starting generation
       if (!hasCredits()) {
         navigate('/upgrade?noCredits=true');
@@ -122,6 +127,12 @@ const CreateStory = () => {
       setStep(3);
       setIsGenerating(true);
     }
+  };
+
+  const handleSignupComplete = () => {
+    // After signup, proceed to generation
+    setStep(3);
+    setIsGenerating(true);
   };
 
   const handleBack = () => {
