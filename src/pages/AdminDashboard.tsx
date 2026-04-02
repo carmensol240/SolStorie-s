@@ -484,13 +484,13 @@ const AdminDashboard = () => {
               <div className="text-2xl font-bold">₪{totalRevenue.toLocaleString()}</div>
             </CardContent>
           </Card>
-          <Card className={errors24h > 0 ? "border-destructive" : ""}>
+          <Card className={errorsToday > 0 ? "border-destructive" : ""}>
             <CardHeader className="flex flex-row items-center justify-between pb-2">
-              <CardTitle className="text-sm font-medium">שגיאות 24ש</CardTitle>
-              <AlertTriangle className={`h-4 w-4 ${errors24h > 0 ? "text-destructive" : "text-muted-foreground"}`} />
+              <CardTitle className="text-sm font-medium">שגיאות היום</CardTitle>
+              <AlertTriangle className={`h-4 w-4 ${errorsToday > 0 ? "text-destructive" : "text-muted-foreground"}`} />
             </CardHeader>
             <CardContent>
-              <div className={`text-2xl font-bold ${errors24h > 0 ? "text-destructive" : ""}`}>{errors24h}</div>
+              <div className={`text-2xl font-bold ${errorsToday > 0 ? "text-destructive" : ""}`}>{errorsToday}</div>
             </CardContent>
           </Card>
         </div>
