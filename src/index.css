@@ -606,7 +606,57 @@
   animation: slide-peek 1.8s ease-out forwards;
 }
 
+/* Floating sparkle particles */
+@keyframes float-up {
+  0% {
+    transform: translateY(0) scale(1);
+    opacity: 0;
+  }
+  10% {
+    opacity: 1;
+  }
+  90% {
+    opacity: 0.6;
+  }
+  100% {
+    transform: translateY(-100vh) scale(0.5);
+    opacity: 0;
+  }
+}
+
+.float-up-particle {
+  animation: float-up 8s ease-in infinite;
+}
+
+/* Adventure CTA pulse */
+@keyframes adventure-pulse {
+  0%, 100% {
+    box-shadow: 0 0 20px rgba(251,191,36,0.4);
+    transform: scale(1);
+  }
+  50% {
+    box-shadow: 0 0 35px rgba(251,191,36,0.6);
+    transform: scale(1.02);
+  }
+}
+
+.adventure-cta-pulse {
+  animation: adventure-pulse 2.5s ease-in-out infinite;
+}
+
 .rainbow-arc {
+  background: radial-gradient(
+    ellipse 120% 60% at 50% 80%,
+    transparent 55%,
+    hsla(0, 80%, 70%, 0.15) 56%,
+    hsla(30, 80%, 70%, 0.15) 58%,
+    hsla(60, 80%, 70%, 0.15) 60%,
+    hsla(120, 60%, 60%, 0.12) 62%,
+    hsla(200, 70%, 65%, 0.12) 64%,
+    hsla(270, 60%, 65%, 0.12) 66%,
+    transparent 68%
+  );
+}
   background: radial-gradient(
     ellipse 120% 60% at 50% 80%,
     transparent 55%,

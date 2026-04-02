@@ -1,9 +1,8 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import { Wand2, Coins } from "lucide-react";
 import { useCredits } from "@/hooks/use-credits";
 import { useReferral } from "@/hooks/use-referral";
-// import { useChildAvatar } from "@/hooks/use-child-avatar"; // Hidden for now – premium/NLP feature
 import { useAuth } from "@/hooks/use-auth";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
@@ -11,15 +10,11 @@ import WelcomeGiftBanner from "@/components/home/WelcomeGiftBanner";
 import MobileNavigation from "@/components/MobileNavigation";
 import heroVideo from "@/assets/hero-solstories-animation-new.mp4";
 
-
-
-
 const Adventure = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
   const { credits } = useCredits();
   const { shareCoins } = useReferral();
-  // const { avatarUrl } = useChildAvatar(); // Hidden for now – premium/NLP feature
   const { toast } = useToast();
   const [displayName, setDisplayName] = useState<string | null>(null);
   const [storyCount, setStoryCount] = useState<number>(0);
@@ -28,7 +23,6 @@ const Adventure = () => {
     window.scrollTo(0, 0);
   }, []);
 
-  // Welcome toast for new users
   useEffect(() => {
     if (!user) return;
     const welcomeKey = `welcome_shown_${user.id}`;
@@ -57,7 +51,6 @@ const Adventure = () => {
     fetchProfile();
   }, [user]);
 
-  // Fetch story count
   useEffect(() => {
     const fetchCount = async () => {
       if (!user?.id) return;
@@ -70,10 +63,22 @@ const Adventure = () => {
     fetchCount();
   }, [user?.id]);
 
+  const handleAdventureCTA = useCallback(async () => {
+    if (!user?.id) {
+      navigate("/create");
+      return;
+    }
+    const { count } = await supabase
+      .from("children")
+      .select("id", { count: "exact", head: true })
+      .eq("user_id", user.id);
+    navigate(count && count > 0 ? "/create" : "/children");
+  }, [user?.id, navigate]);
+
   const totalCredits = (credits ?? 0) + shareCoins;
 
   return (
-    <div className="min-h-[100dvh] flex flex-col bg-gradient-to-b from-amber-50/50 to-background" dir="rtl">
+    <div className="min-h-[100dvh] flex flex-col bg-gradient-to-b from-amber-50/50 to-background animate-fade-in" dir="rtl">
       {/* Hero Video Section */}
       <div className="relative w-full h-[100dvh] flex-shrink-0 overflow-hidden">
         {/* Video Background */}
@@ -96,6 +101,39 @@ const Adventure = () => {
           }}
         />
 
+        {/* Glow shimmer overlay */}
+        <div
+          className="absolute inset-0 pointer-events-none animate-pulse"
+          style={{
+            background: "radial-gradient(ellipse at 50% 60%, rgba(255,200,100,0.08) 0%, transparent 60%)",
+            animationDuration: "4s",
+          }}
+        />
+
+        {/* Floating sparkle particles */}
+        <div className="absolute inset-0 overflow-hidden pointer-events-none">
+          {[...Array(15)].map((_, i) => (
+            <div
+              key={`sparkle-${i}`}
+              className="absolute rounded-full float-up-particle"
+              style={{
+                width: `${2 + Math.random() * 3}px`,
+                height: `${2 + Math.random() * 3}px`,
+                left: `${5 + Math.random() * 90}%`,
+                bottom: `${-5 + Math.random() * 10}%`,
+                background: i % 3 === 0
+                  ? "rgba(255,215,0,0.8)"
+                  : i % 3 === 1
+                  ? "rgba(255,255,255,0.7)"
+                  : "rgba(255,180,220,0.7)",
+                boxShadow: `0 0 ${4 + Math.random() * 4}px rgba(255,215,0,0.5)`,
+                animationDelay: `${Math.random() * 8}s`,
+                animationDuration: `${6 + Math.random() * 6}s`,
+              }}
+            />
+          ))}
+        </div>
+
         {/* SolStorie's™ Title */}
         <div className="absolute top-20 left-0 right-0 z-10 flex justify-center">
           <h1 className="text-3xl sm:text-4xl font-black logo-3d-bubble">
@@ -105,7 +143,6 @@ const Adventure = () => {
 
         {/* Top bar - Glassmorphism credits & profile */}
         <div className="absolute top-0 left-0 right-0 z-10 flex items-center justify-between px-4 pt-[max(env(safe-area-inset-top,12px),24px)] pb-2">
-          {/* Credits button */}
           <button
             onClick={() => navigate("/upgrade")}
             className="flex items-center gap-1.5 bg-white/15 backdrop-blur-xl border border-white/20 rounded-full px-3 py-1.5 hover:bg-white/25 transition-colors"
@@ -114,7 +151,6 @@ const Adventure = () => {
             <Coins className="w-4 h-4 text-amber-300" />
             <span className="font-bold text-white text-xs drop-shadow-md">{totalCredits}</span>
           </button>
-
         </div>
 
         {/* Bottom section - CTA & Welcome banner */}
@@ -122,8 +158,8 @@ const Adventure = () => {
           <WelcomeGiftBanner credits={credits} storyCount={storyCount} />
 
           <button
-            onClick={() => navigate("/create")}
-            className="group flex items-center justify-center gap-2.5 rounded-full px-6 py-3 w-full max-w-[300px] bg-gradient-to-r from-amber-400 via-orange-400 to-pink-400 shadow-[0_0_20px_rgba(251,191,36,0.4)] hover:shadow-[0_0_30px_rgba(251,191,36,0.6)] hover:scale-[1.03] active:scale-95 transition-all duration-300 animate-[glow-pulse_2.5s_ease-in-out_infinite] border border-white/30"
+            onClick={handleAdventureCTA}
+            className="group flex items-center justify-center gap-2.5 rounded-full px-6 py-3 w-full max-w-[300px] bg-gradient-to-r from-amber-400 via-orange-400 to-pink-400 shadow-[0_0_20px_rgba(251,191,36,0.4)] hover:shadow-[0_0_30px_rgba(251,191,36,0.6)] hover:scale-[1.03] active:scale-95 transition-all duration-300 adventure-cta-pulse border border-white/30"
           >
             <Wand2 className="w-5 h-5 text-white drop-shadow-md group-hover:rotate-12 transition-transform duration-300" />
             <span className="font-black text-base text-white drop-shadow-md">
@@ -132,7 +168,6 @@ const Adventure = () => {
           </button>
         </div>
       </div>
-
 
       <MobileNavigation />
     </div>
