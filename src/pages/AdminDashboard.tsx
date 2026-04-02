@@ -790,33 +790,38 @@ const AdminDashboard = () => {
                 {/* Error table */}
                 <div className="overflow-x-auto">
                   <Table>
-                    <TableHeader>
-                      <TableRow>
-                        <TableHead className="text-right">סוג</TableHead>
-                        <TableHead className="text-right">הודעה</TableHead>
-                        <TableHead className="text-right">תאריך</TableHead>
-                      </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                      {filterByReviewed(errorLogs, "errors").length === 0 ? (
-                        <TableRow>
-                          <TableCell colSpan={3} className="text-center text-muted-foreground py-8">
-                            🎉 אין שגיאות חדשות
-                          </TableCell>
-                        </TableRow>
-                      ) : filterByReviewed(errorLogs, "errors").map((e) => (
-                        <TableRow key={e.id}>
-                          <TableCell>
-                            <Badge variant="outline" className="text-xs whitespace-nowrap">
-                              {errorTypeLabels[e.error_type] || e.error_type}
-                            </Badge>
-                          </TableCell>
-                          <TableCell className="text-xs max-w-[400px] truncate" title={e.error_message}>
-                            {e.error_message}
-                          </TableCell>
-                          <TableCell className="text-xs whitespace-nowrap">{formatDate(e.created_at)}</TableCell>
-                        </TableRow>
-                      ))}
+                     <TableHeader>
+                       <TableRow>
+                         <TableHead className="text-right">מייל</TableHead>
+                         <TableHead className="text-right">סוג</TableHead>
+                         <TableHead className="text-right">הודעה</TableHead>
+                         <TableHead className="text-right">תאריך</TableHead>
+                       </TableRow>
+                     </TableHeader>
+                     <TableBody>
+                       {filterByReviewed(errorLogs, "errors").length === 0 ? (
+                         <TableRow>
+                           <TableCell colSpan={4} className="text-center text-muted-foreground py-8">
+                             🎉 אין שגיאות חדשות
+                           </TableCell>
+                         </TableRow>
+                       ) : filterByReviewed(errorLogs, "errors").map((e) => {
+                         const errProfile = profiles.find(p => p.id === e.user_id);
+                         return (
+                           <TableRow key={e.id}>
+                             <TableCell className="text-xs text-muted-foreground">{errProfile?.email || "—"}</TableCell>
+                             <TableCell>
+                               <Badge variant="outline" className="text-xs whitespace-nowrap">
+                                 {errorTypeLabels[e.error_type] || e.error_type}
+                               </Badge>
+                             </TableCell>
+                             <TableCell className="text-xs max-w-[400px] truncate" title={e.error_message}>
+                               {e.error_message}
+                             </TableCell>
+                             <TableCell className="text-xs whitespace-nowrap">{formatDate(e.created_at)}</TableCell>
+                           </TableRow>
+                         );
+                       })}
                     </TableBody>
                   </Table>
                 </div>
