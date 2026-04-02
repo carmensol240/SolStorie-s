@@ -50,6 +50,7 @@ interface StoryRow {
   topic: string;
   created_at: string;
   user_id: string | null;
+  generation_status: string | null;
 }
 
 interface ErrorLogRow {
@@ -235,7 +236,7 @@ const AdminDashboard = () => {
       const [profilesRes, purchasesRes, storiesRes, emailsRes, couponsRes, redemptionsRes] = await Promise.all([
         supabase.from("profiles").select("id, display_name, created_at, story_credits, is_subscriber, user_role").not("id", "in", `(${EXCLUDED_IDS.join(",")})`).order("created_at", { ascending: false }).limit(200),
         supabase.from("purchases").select("*").eq("status", "completed").not("user_id", "in", `(${EXCLUDED_IDS.join(",")})`).order("created_at", { ascending: false }).limit(200),
-        supabase.from("stories").select("id, child_name, topic, created_at, user_id").not("user_id", "in", `(${EXCLUDED_IDS.join(",")})`).order("created_at", { ascending: false }).limit(200),
+        supabase.from("stories").select("id, child_name, topic, created_at, user_id, generation_status").not("user_id", "in", `(${EXCLUDED_IDS.join(",")})`).order("created_at", { ascending: false }).limit(200),
         supabase.rpc("get_admin_user_emails"),
         supabase.from("coupons").select("*").order("created_at", { ascending: false }),
         supabase.from("coupon_redemptions").select("*"),
@@ -386,10 +387,8 @@ const AdminDashboard = () => {
     .filter(p => p.status === "completed")
     .reduce((sum, p) => sum + Number(p.amount_ils), 0);
 
-  const errors24h = errorLogs.filter(e => {
-    const d = new Date(e.created_at);
-    return d > new Date(Date.now() - 24 * 60 * 60 * 1000);
-  }).length;
+  const todayStart = startOfDay(new Date());
+  const errorsToday = errorLogs.filter(e => new Date(e.created_at) >= todayStart).length;
 
   const weekAgo = subDays(new Date(), 7);
   const registeredThisWeek = profiles.filter(p => new Date(p.created_at) >= weekAgo).length;
@@ -485,13 +484,13 @@ const AdminDashboard = () => {
               <div className="text-2xl font-bold">₪{totalRevenue.toLocaleString()}</div>
             </CardContent>
           </Card>
-          <Card className={errors24h > 0 ? "border-destructive" : ""}>
+          <Card className={errorsToday > 0 ? "border-destructive" : ""}>
             <CardHeader className="flex flex-row items-center justify-between pb-2">
-              <CardTitle className="text-sm font-medium">שגיאות 24ש</CardTitle>
-              <AlertTriangle className={`h-4 w-4 ${errors24h > 0 ? "text-destructive" : "text-muted-foreground"}`} />
+              <CardTitle className="text-sm font-medium">שגיאות היום</CardTitle>
+              <AlertTriangle className={`h-4 w-4 ${errorsToday > 0 ? "text-destructive" : "text-muted-foreground"}`} />
             </CardHeader>
             <CardContent>
-              <div className={`text-2xl font-bold ${errors24h > 0 ? "text-destructive" : ""}`}>{errors24h}</div>
+              <div className={`text-2xl font-bold ${errorsToday > 0 ? "text-destructive" : ""}`}>{errorsToday}</div>
             </CardContent>
           </Card>
         </div>
@@ -534,7 +533,7 @@ const AdminDashboard = () => {
             <TabsTrigger value="feedback">משובים</TabsTrigger>
             <TabsTrigger value="errors" className="flex items-center gap-1">
               שגיאות
-              {errors24h > 0 && <Badge variant="destructive" className="text-xs px-1.5 py-0">{errors24h}</Badge>}
+              {errorsToday > 0 && <Badge variant="destructive" className="text-xs px-1.5 py-0">{errorsToday}</Badge>}
             </TabsTrigger>
           </TabsList>
 
@@ -546,19 +545,21 @@ const AdminDashboard = () => {
                   <Table>
                     <TableHeader>
                       <TableRow>
-                        <TableHead className="text-right">שם</TableHead>
-                        <TableHead className="text-right">אימייל</TableHead>
-                        <TableHead className="text-right">תפקיד</TableHead>
-                        <TableHead className="text-right">קרדיטים</TableHead>
-                        <TableHead className="text-right">מנוי</TableHead>
-                        <TableHead className="text-right">שגיאות</TableHead>
-                        <TableHead className="text-right">הצטרפות</TableHead>
-                        <TableHead className="text-right">פעולות</TableHead>
+                         <TableHead className="text-right">שם</TableHead>
+                         <TableHead className="text-right">אימייל</TableHead>
+                         <TableHead className="text-right">תפקיד</TableHead>
+                         <TableHead className="text-right">סיפורים</TableHead>
+                         <TableHead className="text-right">רכש</TableHead>
+                         <TableHead className="text-right">קרדיטים</TableHead>
+                         <TableHead className="text-right">מנוי</TableHead>
+                         <TableHead className="text-right">שגיאות</TableHead>
+                         <TableHead className="text-right">הצטרפות</TableHead>
+                         <TableHead className="text-right">פעולות</TableHead>
                       </TableRow>
                     </TableHeader>
                     <TableBody>
                       {loading ? (
-                        <TableRow><TableCell colSpan={8} className="text-center">טוען...</TableCell></TableRow>
+                        <TableRow><TableCell colSpan={10} className="text-center">טוען...</TableCell></TableRow>
                       ) : filterByReviewed(profiles, "users").map((p) => {
                         const userErrors = errorLogs.filter(e => e.user_id === p.id);
                         const storyErrors = userErrors.filter(e => e.error_type?.includes("story"));
@@ -570,12 +571,14 @@ const AdminDashboard = () => {
                         return (
                           <TableRow key={p.id} className={hasErrors ? "bg-destructive/5" : ""}>
                             <TableCell>{p.display_name || p.email || "—"}</TableCell>
-                            <TableCell className="text-xs text-muted-foreground">{p.email || "—"}</TableCell>
-                            <TableCell>
-                              <Badge variant="outline">{p.user_role}</Badge>
-                            </TableCell>
-                            <TableCell>{p.story_credits ?? 0}</TableCell>
-                            <TableCell>{p.is_subscriber ? "✅" : "—"}</TableCell>
+                             <TableCell className="text-xs text-muted-foreground">{p.email || "—"}</TableCell>
+                             <TableCell>
+                               <Badge variant="outline">{p.user_role}</Badge>
+                             </TableCell>
+                             <TableCell>{userStories.length}</TableCell>
+                             <TableCell>{purchases.some(pu => pu.user_id === p.id) ? "✅" : "—"}</TableCell>
+                             <TableCell>{p.story_credits ?? 0}</TableCell>
+                             <TableCell>{p.is_subscriber ? "✅" : "—"}</TableCell>
                             <TableCell>
                               {hasErrors ? (
                                 <Badge variant="destructive" className="text-xs">
@@ -634,21 +637,36 @@ const AdminDashboard = () => {
                 <ReviewedBar tab="stories" total={stories.length} filtered={filterByReviewed(stories, "stories").length} cutoff={reviewedCutoffs["stories"]} showReviewed={showReviewed["stories"]} onToggleShow={() => setShowReviewed(p => ({ ...p, stories: !p.stories }))} onMark={() => setConfirmClearTab("stories")} onClear={() => clearReviewed("stories")} />
                 <div className="overflow-x-auto">
                   <Table>
-                    <TableHeader>
-                      <TableRow>
-                        <TableHead className="text-right">נושא</TableHead>
-                        <TableHead className="text-right">תאריך</TableHead>
-                      </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                      {loading ? (
-                        <TableRow><TableCell colSpan={2} className="text-center">טוען...</TableCell></TableRow>
-                      ) : filterByReviewed(stories, "stories").map((s) => (
-                        <TableRow key={s.id}>
-                          <TableCell>{s.topic}</TableCell>
-                          <TableCell className="text-xs">{formatDate(s.created_at)}</TableCell>
-                        </TableRow>
-                      ))}
+                     <TableHeader>
+                       <TableRow>
+                         <TableHead className="text-right">משתמש</TableHead>
+                         <TableHead className="text-right">נושא</TableHead>
+                         <TableHead className="text-right">תאריך</TableHead>
+                         <TableHead className="text-right">סטטוס</TableHead>
+                       </TableRow>
+                     </TableHeader>
+                     <TableBody>
+                       {loading ? (
+                         <TableRow><TableCell colSpan={4} className="text-center">טוען...</TableCell></TableRow>
+                       ) : filterByReviewed(stories, "stories").map((s) => {
+                         const profile = profiles.find(p => p.id === s.user_id);
+                         const isReady = s.generation_status === "ready";
+                         return (
+                           <TableRow key={s.id}>
+                             <TableCell className="text-xs">
+                               <div>{profile?.display_name || "—"}</div>
+                               <div className="text-muted-foreground">{profile?.email || "—"}</div>
+                             </TableCell>
+                             <TableCell>{s.topic}</TableCell>
+                             <TableCell className="text-xs">{formatDate(s.created_at)}</TableCell>
+                             <TableCell>
+                               <Badge variant={isReady ? "outline" : "destructive"} className="text-xs">
+                                 {isReady ? "הושלם" : "נכשל"}
+                               </Badge>
+                             </TableCell>
+                           </TableRow>
+                         );
+                       })}
                     </TableBody>
                   </Table>
                 </div>
@@ -772,33 +790,38 @@ const AdminDashboard = () => {
                 {/* Error table */}
                 <div className="overflow-x-auto">
                   <Table>
-                    <TableHeader>
-                      <TableRow>
-                        <TableHead className="text-right">סוג</TableHead>
-                        <TableHead className="text-right">הודעה</TableHead>
-                        <TableHead className="text-right">תאריך</TableHead>
-                      </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                      {filterByReviewed(errorLogs, "errors").length === 0 ? (
-                        <TableRow>
-                          <TableCell colSpan={3} className="text-center text-muted-foreground py-8">
-                            🎉 אין שגיאות חדשות
-                          </TableCell>
-                        </TableRow>
-                      ) : filterByReviewed(errorLogs, "errors").map((e) => (
-                        <TableRow key={e.id}>
-                          <TableCell>
-                            <Badge variant="outline" className="text-xs whitespace-nowrap">
-                              {errorTypeLabels[e.error_type] || e.error_type}
-                            </Badge>
-                          </TableCell>
-                          <TableCell className="text-xs max-w-[400px] truncate" title={e.error_message}>
-                            {e.error_message}
-                          </TableCell>
-                          <TableCell className="text-xs whitespace-nowrap">{formatDate(e.created_at)}</TableCell>
-                        </TableRow>
-                      ))}
+                     <TableHeader>
+                       <TableRow>
+                         <TableHead className="text-right">מייל</TableHead>
+                         <TableHead className="text-right">סוג</TableHead>
+                         <TableHead className="text-right">הודעה</TableHead>
+                         <TableHead className="text-right">תאריך</TableHead>
+                       </TableRow>
+                     </TableHeader>
+                     <TableBody>
+                       {filterByReviewed(errorLogs, "errors").length === 0 ? (
+                         <TableRow>
+                           <TableCell colSpan={4} className="text-center text-muted-foreground py-8">
+                             🎉 אין שגיאות חדשות
+                           </TableCell>
+                         </TableRow>
+                       ) : filterByReviewed(errorLogs, "errors").map((e) => {
+                         const errProfile = profiles.find(p => p.id === e.user_id);
+                         return (
+                           <TableRow key={e.id}>
+                             <TableCell className="text-xs text-muted-foreground">{errProfile?.email || "—"}</TableCell>
+                             <TableCell>
+                               <Badge variant="outline" className="text-xs whitespace-nowrap">
+                                 {errorTypeLabels[e.error_type] || e.error_type}
+                               </Badge>
+                             </TableCell>
+                             <TableCell className="text-xs max-w-[400px] truncate" title={e.error_message}>
+                               {e.error_message}
+                             </TableCell>
+                             <TableCell className="text-xs whitespace-nowrap">{formatDate(e.created_at)}</TableCell>
+                           </TableRow>
+                         );
+                       })}
                     </TableBody>
                   </Table>
                 </div>
