@@ -850,7 +850,6 @@ const GeneratingStep = ({ formData, onComplete }: GeneratingStepProps) => {
             </form>
           </div>
         </div>
-        </div>
       )}
 
       {/* When authenticated or dismissed — show the standard animated content */}
