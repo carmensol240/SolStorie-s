@@ -1112,7 +1112,7 @@ const StoryViewer = () => {
     }
 
     return result;
-  }, [story?.pages, isToddler, coverIllustration]);
+  }, [story?.pages, isToddler]);
 
   useEffect(() => {
     const nextPageIndex = Math.max(currentPage + 1, 0);
