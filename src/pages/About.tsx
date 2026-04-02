@@ -110,15 +110,6 @@ const About = () => {
           <br />
           מה שהתחיל כפרויקט אישי קטן, הפך לאפליקציה שמעניקה לכל ילד את היכולת <strong className="text-amber-200 font-bold">להיות הגיבור של הסיפור שלו</strong>.
         </p>
-        <p className="text-base font-normal text-white/90 leading-[1.8] text-right mb-6 px-1" style={{ textShadow: '0 1px 3px rgba(0,0,0,0.3)' }}>
-          הצורך שלי ליצור נבע מהרצון <strong className="text-pink-200 font-bold">להנגיש לסול את העולם</strong> בדרך שהיא מבינה ואוהבת.
-          <br />
-          השתמשתי בסיפורים כדי לתווך לה ברכות אתגרים יומיומיים — החל מביטחון בסיטואציות חברתיות חדשות ועד לצליחת רגעים קטנים כמו צחצוח שיניים או חפיפת שיער.
-        </p>
-        <p className="text-base font-normal text-white/90 leading-[1.8] text-right mb-7 px-1" style={{ textShadow: '0 1px 3px rgba(0,0,0,0.3)' }}>
-          דרך הסיפורים, אני הופכת כל התמודדות <strong className="text-purple-200 font-bold">להרפתקה משותפת</strong>, מעודדת שפה חיובית ומעניקה לסול ולכל ילד וילדה את הכלים <strong className="text-green-200 font-bold">לבחור בטוב, להתרגש ולגדול בביטחון</strong>.
-        </p>
-
         {/* Read more toggle */}
         {!showMore && (
           <button
@@ -132,6 +123,14 @@ const About = () => {
         {/* Expandable features content */}
         {showMore && (
           <div className="animate-fade-in">
+            <p className="text-base font-normal text-white/90 leading-[1.8] text-right mb-6 px-1" style={{ textShadow: '0 1px 3px rgba(0,0,0,0.3)' }}>
+              הצורך שלי ליצור נבע מהרצון <strong className="text-pink-200 font-bold">להנגיש לסול את העולם</strong> בדרך שהיא מבינה ואוהבת.
+              <br />
+              השתמשתי בסיפורים כדי לתווך לה ברכות אתגרים יומיומיים — החל מביטחון בסיטואציות חברתיות חדשות ועד לצליחת רגעים קטנים כמו צחצוח שיניים או חפיפת שיער.
+            </p>
+            <p className="text-base font-normal text-white/90 leading-[1.8] text-right mb-7 px-1" style={{ textShadow: '0 1px 3px rgba(0,0,0,0.3)' }}>
+              דרך הסיפורים, אני הופכת כל התמודדות <strong className="text-purple-200 font-bold">להרפתקה משותפת</strong>, מעודדת שפה חיובית ומעניקה לסול ולכל ילד וילדה את הכלים <strong className="text-green-200 font-bold">לבחור בטוב, להתרגש ולגדול בביטחון</strong>.
+            </p>
             <p className="text-lg font-black text-white/95 leading-relaxed mb-4" style={{ textShadow: '0 1px 4px rgba(0,0,0,0.4)' }}>
               🌟 למה <span dir="ltr" className="inline-block bg-gradient-to-r from-purple-300 via-pink-300 to-orange-300 bg-clip-text text-transparent">SolStorie's</span> היא הרבה מעבר לאפליקציה?
             </p>
