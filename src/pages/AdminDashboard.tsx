@@ -387,10 +387,8 @@ const AdminDashboard = () => {
     .filter(p => p.status === "completed")
     .reduce((sum, p) => sum + Number(p.amount_ils), 0);
 
-  const errors24h = errorLogs.filter(e => {
-    const d = new Date(e.created_at);
-    return d > new Date(Date.now() - 24 * 60 * 60 * 1000);
-  }).length;
+  const todayStart = startOfDay(new Date());
+  const errorsToday = errorLogs.filter(e => new Date(e.created_at) >= todayStart).length;
 
   const weekAgo = subDays(new Date(), 7);
   const registeredThisWeek = profiles.filter(p => new Date(p.created_at) >= weekAgo).length;
