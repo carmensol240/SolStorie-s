@@ -202,6 +202,16 @@ const About = () => {
                 </p>
               </div>
             </div>
+
+            <button
+              onClick={() => {
+                setShowMore(false);
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+              }}
+              className="text-sm text-purple-300/80 hover:text-purple-200 underline underline-offset-4 mt-6 transition-colors"
+            >
+              סגור ↑
+            </button>
           </div>
         )}
 
