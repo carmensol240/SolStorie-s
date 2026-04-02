@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback, useRef, useMemo } from "react";
-import { Sparkles, BookOpen, Palette, FileText, RefreshCw, Wand2 } from "lucide-react";
+import { Sparkles, BookOpen, Palette, FileText, RefreshCw, Wand2, Mail, Lock, Eye, EyeOff, Loader2 } from "lucide-react";
 import generatingHeroCast from "@/assets/generating-hero-cast.jpeg";
 import castSolAdventure from "@/assets/cast-sol-adventure.jpg";
 import castBenArt from "@/assets/cast-ben-art-new.jpg";
@@ -7,6 +7,8 @@ import castMiaNature from "@/assets/cast-mia-nature.jpg";
 import castLeoScience from "@/assets/cast-leo-science.jpg";
 import castZoeSports from "@/assets/cast-zoe-sports.jpg";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Checkbox } from "@/components/ui/checkbox";
 import ConfettiCelebration from "@/components/wizard/ConfettiCelebration";
 import { StoryFormData } from "@/pages/CreateStory";
 import { supabase } from "@/integrations/supabase/client";
@@ -14,6 +16,10 @@ import { useToast } from "@/hooks/use-toast";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/hooks/use-auth";
 import { CHARACTER_SECTIONS } from "@/components/wizard/topic-data";
+import { z } from "zod";
+
+const emailSchema = z.string().email("כתובת אימייל לא תקינה");
+const passwordSchema = z.string().min(6, "הסיסמה חייבת להכיל לפחות 6 תווים");
 
 interface GeneratingStepProps {
   formData: StoryFormData;
@@ -85,7 +91,7 @@ const getTopicLabel = (topicId: string): string => {
 const GeneratingStep = ({ formData, onComplete }: GeneratingStepProps) => {
   const { toast } = useToast();
   const navigate = useNavigate();
-  const { user } = useAuth();
+  const { user, signInWithEmail, signUpWithEmail } = useAuth();
   const [progress, setProgress] = useState(0);
   const [messageIndex, setMessageIndex] = useState(0);
   const [sentenceIndex, setSentenceIndex] = useState(() => Math.floor(Math.random() * EMPOWERING_SENTENCES.length));
@@ -95,6 +101,16 @@ const GeneratingStep = ({ formData, onComplete }: GeneratingStepProps) => {
   const hasNavigatedRef = useRef(false);
   const retryCountRef = useRef(0);
   const MAX_RETRIES = 2;
+
+  // Inline signup form state
+  const [signupEmail, setSignupEmail] = useState("");
+  const [signupPassword, setSignupPassword] = useState("");
+  const [signupShowPassword, setSignupShowPassword] = useState(false);
+  const [signupTermsAccepted, setSignupTermsAccepted] = useState(false);
+  const [signupMode, setSignupMode] = useState<"signup" | "login">("signup");
+  const [signupSubmitting, setSignupSubmitting] = useState(false);
+  const [signupDismissed, setSignupDismissed] = useState(false);
+  const [signupCompleted, setSignupCompleted] = useState(false);
 
   const [phase, setPhase] = useState<'text' | 'illustrations' | 'ready'>('text');
   const [storyId, setStoryId] = useState<string | null>(null);
@@ -392,7 +408,8 @@ const GeneratingStep = ({ formData, onComplete }: GeneratingStepProps) => {
       }
     }, 15000);
 
-    if (!hasStartedRef.current) {
+    // Only start generation if user is authenticated
+    if (!hasStartedRef.current && user) {
       hasStartedRef.current = true;
       generateStory();
     }
@@ -406,6 +423,88 @@ const GeneratingStep = ({ formData, onComplete }: GeneratingStepProps) => {
       clearInterval(tipInterval);
     };
   }, [generateStory, phase, toast]);
+
+  // When user authenticates (after signup during loading), start generation
+  useEffect(() => {
+    if (user && !hasStartedRef.current && !signupCompleted) {
+      // User was already logged in when component mounted — handled above
+    }
+    if (user && signupCompleted && !hasStartedRef.current) {
+      hasStartedRef.current = true;
+      generateStory();
+    }
+  }, [user, signupCompleted, generateStory]);
+
+  const saveChildToSupabase = async (userId: string) => {
+    try {
+      const ageMap: Record<string, number> = { "0-2": 1, "2-4": 3, "5-7": 6, "8-10": 9 };
+      await supabase.from("children").insert({
+        user_id: userId,
+        name: formData.childName,
+        age: ageMap[formData.ageRange] || 5,
+        gender: formData.childGender === "female" ? "girl" : "boy",
+        personality_traits: formData.personalityTraits || null,
+        fixed_details: formData.fixedDetails || null,
+        photo_url: formData.childPhoto || null,
+        avatar_url: formData.childAvatarUrl || null,
+      });
+    } catch (e) {
+      console.warn("Failed to save child profile:", e);
+    }
+  };
+
+  const handleSignupSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    const emailResult = emailSchema.safeParse(signupEmail);
+    if (!emailResult.success) {
+      toast({ title: "שגיאה", description: emailResult.error.errors[0].message, variant: "destructive" });
+      return;
+    }
+    const passwordResult = passwordSchema.safeParse(signupPassword);
+    if (!passwordResult.success) {
+      toast({ title: "שגיאה", description: passwordResult.error.errors[0].message, variant: "destructive" });
+      return;
+    }
+    if (signupMode === "signup" && !signupTermsAccepted) {
+      toast({ title: "שגיאה", description: "יש לאשר את תנאי השימוש", variant: "destructive" });
+      return;
+    }
+
+    setSignupSubmitting(true);
+    try {
+      if (signupMode === "login") {
+        const { error } = await signInWithEmail(signupEmail, signupPassword);
+        if (error) {
+          toast({ title: "שגיאה בהתחברות", description: error.message, variant: "destructive" });
+          return;
+        }
+      } else {
+        const { error } = await signUpWithEmail(signupEmail, signupPassword, {
+          display_name: signupEmail.split("@")[0],
+        });
+        if (error) {
+          toast({ title: "שגיאה בהרשמה", description: error.message, variant: "destructive" });
+          return;
+        }
+      }
+      // Save child + accept terms
+      const { data: { user: newUser } } = await supabase.auth.getUser();
+      if (newUser) {
+        await saveChildToSupabase(newUser.id);
+        await supabase.from("profiles").update({
+          terms_accepted_at: new Date().toISOString(),
+          terms_version: "1.0",
+        }).eq("id", newUser.id);
+      }
+      setSignupCompleted(true);
+      toast({ title: "נרשמתם בהצלחה! 🎉", description: "הסיפור נוצר עכשיו..." });
+    } catch (err) {
+      console.error("Signup error:", err);
+      toast({ title: "שגיאה", description: "אירעה שגיאה, נסו שוב", variant: "destructive" });
+    } finally {
+      setSignupSubmitting(false);
+    }
+  };
 
   const handleRetry = () => {
     setError(null);
@@ -426,6 +525,8 @@ const GeneratingStep = ({ formData, onComplete }: GeneratingStepProps) => {
       onComplete(storyId);
     }
   };
+
+  const needsSignup = !user && !signupCompleted;
 
   // --- ERROR STATE ---
   if (error) {
@@ -540,52 +641,191 @@ const GeneratingStep = ({ formData, onComplete }: GeneratingStepProps) => {
   const Icon = currentMessage.icon;
 
   return (
-    <div className="flex flex-col items-center justify-center min-h-[100dvh] text-center space-y-5 bg-gradient-to-b from-[#FAF3E8] to-[#F5E6D3] p-6">
-      {/* Hero Image */}
-      <div className="w-full max-w-sm mx-auto rounded-2xl overflow-hidden shadow-xl border-4 border-purple-200/50">
-        <img
-          src={generatingHeroCast}
-          alt="סול, בן, מיה, ליאו וזואי מחכים לך"
-          className="w-full aspect-[16/9] object-cover"
-        />
-      </div>
-
-      {/* Animated Icon */}
-      <div className="relative">
-        <div className="w-20 h-20 bg-gradient-to-br from-purple-500/20 via-pink-500/20 to-orange-400/20 rounded-full flex items-center justify-center shadow-lg">
-          <div className="relative">
-            <Icon className={`w-9 h-9 ${currentMessage.color} animate-bounce`} />
-            <Wand2 
-              className="absolute -top-2 -right-3 w-6 h-6 text-purple-600 animate-wiggle"
-              style={{ filter: 'drop-shadow(0 0 4px rgba(168, 85, 247, 0.5))' }}
-            />
-          </div>
-        </div>
-      </div>
-
-      {/* Message */}
-      <div className="space-y-1.5">
-        <h2 className="text-xl font-bold bg-gradient-to-r from-purple-600 via-pink-500 to-orange-400 bg-clip-text text-transparent">
-          {currentMessage.text}
-        </h2>
-        <p className="text-purple-700/70 text-sm">
-          {`יצירת סיפור מותאם אישית עבור ${formData.childName}`}
-        </p>
-      </div>
-
-      {/* Progress Bar */}
-      <div className="w-full max-w-xs space-y-2">
-        <div className="relative h-3 w-full overflow-hidden rounded-full bg-purple-100">
-          <div 
-            className="h-full bg-gradient-to-r from-purple-600 via-pink-500 to-orange-400 transition-all duration-300"
-            style={{ width: `${progress}%` }}
+    <div className="flex flex-col min-h-[100dvh] bg-gradient-to-b from-[#FAF3E8] to-[#F5E6D3] overflow-y-auto" dir="rtl">
+      {/* Top: Loading animation */}
+      <div className="flex flex-col items-center text-center space-y-3 pt-6 px-4">
+        {/* Compact hero + loading indicator */}
+        <div className={`w-full max-w-sm mx-auto rounded-2xl overflow-hidden shadow-xl border-4 border-purple-200/50 ${needsSignup ? 'max-h-32' : ''}`}>
+          <img
+            src={generatingHeroCast}
+            alt="סול, בן, מיה, ליאו וזואי מחכים לך"
+            className="w-full aspect-[16/9] object-cover"
           />
         </div>
-        <p className="text-sm text-purple-600 font-medium">
-          {Math.round(progress)}%
-        </p>
+
+        {/* Status text */}
+        <div className="space-y-1">
+          <h2 className="text-lg font-bold bg-gradient-to-r from-purple-600 via-pink-500 to-orange-400 bg-clip-text text-transparent">
+            {needsSignup 
+              ? `✨ הסיפור של ${formData.childName} נוצר עכשיו...`
+              : currentMessage.text
+            }
+          </h2>
+          {needsSignup ? (
+            <p className="text-purple-700/70 text-xs">
+              זה לוקח כ-30 שניות, בזמן הזה...
+            </p>
+          ) : (
+            <p className="text-purple-700/70 text-xs">
+              {`יצירת סיפור מותאם אישית עבור ${formData.childName}`}
+            </p>
+          )}
+        </div>
+
+        {/* Progress Bar */}
+        <div className="w-full max-w-xs space-y-1">
+          <div className="relative h-2.5 w-full overflow-hidden rounded-full bg-purple-100">
+            <div 
+              className="h-full bg-gradient-to-r from-purple-600 via-pink-500 to-orange-400 transition-all duration-300"
+              style={{ width: `${needsSignup ? Math.min(progress, 15) : progress}%` }}
+            />
+          </div>
+          {!needsSignup && (
+            <p className="text-xs text-purple-600 font-medium">
+              {Math.round(progress)}%
+            </p>
+          )}
+        </div>
       </div>
 
+      {/* Bottom: Signup form for unauthenticated users */}
+      {needsSignup && !signupDismissed && (
+        <div className="flex-1 flex flex-col items-center justify-center px-4 pb-6 mt-4">
+          <div className="w-full max-w-sm bg-white/80 backdrop-blur-md rounded-2xl p-5 shadow-lg border border-purple-100/50 space-y-3">
+            <div className="text-center space-y-1">
+              <p className="text-base font-black text-purple-700">
+                🌟 הירשמו לשמור את הסיפור!
+              </p>
+            </div>
+
+            <form onSubmit={handleSignupSubmit} className="space-y-2.5">
+              {/* Mode toggle */}
+              <div className="flex gap-2">
+                <button
+                  type="button"
+                  onClick={() => setSignupMode("signup")}
+                  className={`flex-1 py-1.5 rounded-full text-xs font-bold transition-all ${
+                    signupMode === "signup"
+                      ? "bg-gradient-to-r from-purple-500 to-pink-500 text-white shadow"
+                      : "bg-purple-50 text-purple-400"
+                  }`}
+                >
+                  הרשמה
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setSignupMode("login")}
+                  className={`flex-1 py-1.5 rounded-full text-xs font-bold transition-all ${
+                    signupMode === "login"
+                      ? "bg-gradient-to-r from-purple-500 to-pink-500 text-white shadow"
+                      : "bg-purple-50 text-purple-400"
+                  }`}
+                >
+                  כבר יש לי חשבון
+                </button>
+              </div>
+
+              <div className="relative">
+                <Mail className="absolute right-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-muted-foreground" />
+                <Input
+                  type="email"
+                  placeholder="אימייל"
+                  value={signupEmail}
+                  onChange={(e) => setSignupEmail(e.target.value)}
+                  className="text-right pr-9 text-sm h-9 rounded-xl"
+                  required
+                />
+              </div>
+
+              <div className="relative">
+                <Lock className="absolute right-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-muted-foreground" />
+                <Input
+                  type={signupShowPassword ? "text" : "password"}
+                  placeholder="סיסמה (6+ תווים)"
+                  value={signupPassword}
+                  onChange={(e) => setSignupPassword(e.target.value)}
+                  className="text-right pr-9 pl-9 text-sm h-9 rounded-xl"
+                  required
+                />
+                <button
+                  type="button"
+                  onClick={() => setSignupShowPassword(!signupShowPassword)}
+                  className="absolute left-3 top-1/2 -translate-y-1/2"
+                >
+                  {signupShowPassword ? (
+                    <EyeOff className="w-3.5 h-3.5 text-muted-foreground" />
+                  ) : (
+                    <Eye className="w-3.5 h-3.5 text-muted-foreground" />
+                  )}
+                </button>
+              </div>
+
+              {signupMode === "signup" && (
+                <div className="flex items-center gap-2">
+                  <Checkbox
+                    id="gen-terms"
+                    checked={signupTermsAccepted}
+                    onCheckedChange={(c) => setSignupTermsAccepted(c === true)}
+                    className="border-purple-300 data-[state=checked]:bg-purple-500 data-[state=checked]:border-purple-500 h-4 w-4"
+                  />
+                  <label htmlFor="gen-terms" className="text-[11px] text-muted-foreground cursor-pointer leading-tight">
+                    קראתי ואני מסכימ/ה ל
+                    <a href="/terms" target="_blank" className="text-purple-500 underline underline-offset-2 mx-0.5">
+                      תנאי השימוש
+                    </a>
+                  </label>
+                </div>
+              )}
+
+              <Button
+                type="submit"
+                disabled={signupSubmitting || (signupMode === "signup" && !signupTermsAccepted)}
+                className="w-full bg-gradient-to-r from-purple-600 via-pink-500 to-orange-400 hover:from-purple-700 hover:via-pink-600 hover:to-orange-500 text-white font-black text-sm rounded-full py-2.5 h-auto disabled:opacity-40"
+              >
+                {signupSubmitting ? (
+                  <Loader2 className="w-4 h-4 animate-spin" />
+                ) : signupMode === "signup" ? (
+                  "הירשמו בחינם ✨"
+                ) : (
+                  "התחברו ✨"
+                )}
+              </Button>
+
+              <button
+                type="button"
+                onClick={() => navigate("/")}
+                className="w-full text-center text-xs text-muted-foreground hover:text-foreground transition-colors"
+              >
+                אולי אחר כך
+              </button>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* When authenticated or dismissed — show the standard animated content */}
+      {(!needsSignup || signupDismissed) && (
+        <div className="flex-1 flex flex-col items-center justify-center text-center space-y-4 px-4 pb-6">
+          {/* Animated Icon */}
+          <div className="relative">
+            <div className="w-16 h-16 bg-gradient-to-br from-purple-500/20 via-pink-500/20 to-orange-400/20 rounded-full flex items-center justify-center shadow-lg">
+              <div className="relative">
+                <Icon className={`w-8 h-8 ${currentMessage.color} animate-bounce`} />
+                <Wand2 
+                  className="absolute -top-2 -right-3 w-5 h-5 text-purple-600 animate-wiggle"
+                  style={{ filter: 'drop-shadow(0 0 4px rgba(168, 85, 247, 0.5))' }}
+                />
+              </div>
+            </div>
+          </div>
+
+          {signupDismissed && !user && (
+            <p className="text-sm text-orange-600 font-medium bg-orange-50 rounded-xl px-4 py-2">
+              ⚠️ הסיפור לא יישמר ללא הרשמה
+            </p>
+          )}
+        </div>
+      )}
     </div>
   );
 };

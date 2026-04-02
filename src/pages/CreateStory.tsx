@@ -6,7 +6,7 @@ import MobileNavigation from "@/components/MobileNavigation";
 import ChildInfoStep from "@/components/wizard/ChildInfoStep";
 import TopicStep from "@/components/wizard/TopicStep";
 import GeneratingStep from "@/components/wizard/GeneratingStep";
-import SignupBeforeGenerateModal from "@/components/story/SignupBeforeGenerateModal";
+// SignupBeforeGenerateModal moved into GeneratingStep
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/hooks/use-auth";
 import { useCredits } from "@/hooks/use-credits";
@@ -66,7 +66,7 @@ const CreateStory = () => {
   const [step, setStep] = useState(1);
   const [formData, setFormData] = useState<StoryFormData>(INITIAL_DATA);
   const [isGenerating, setIsGenerating] = useState(false);
-  const [showSignupModal, setShowSignupModal] = useState(false);
+  
 
   const handleStoryGenerated = useCallback(async (storyId: string) => {
     // Credits are now deducted server-side in generate-story — just refetch local state
@@ -114,25 +114,15 @@ const CreateStory = () => {
     if (step === 1 && canProceedStep1) {
       setStep(2);
     } else if (step === 2 && canProceedStep2) {
-      // If not logged in, show signup modal instead of generating
-      if (!user) {
-        setShowSignupModal(true);
-        return;
-      }
-      // Check if user has credits before starting generation
-      if (!hasCredits()) {
+      // If logged in, check credits first
+      if (user && !hasCredits()) {
         navigate('/upgrade?noCredits=true');
         return;
       }
+      // Proceed to GeneratingStep — it handles signup for unauthenticated users
       setStep(3);
       setIsGenerating(true);
     }
-  };
-
-  const handleSignupComplete = () => {
-    // After signup, proceed to generation
-    setStep(3);
-    setIsGenerating(true);
   };
 
   const handleBack = () => {
@@ -235,13 +225,6 @@ const CreateStory = () => {
       </div>
       
       <MobileNavigation />
-
-      <SignupBeforeGenerateModal
-        open={showSignupModal}
-        onOpenChange={setShowSignupModal}
-        formData={formData}
-        onSignupComplete={handleSignupComplete}
-      />
     </div>
   );
 };
