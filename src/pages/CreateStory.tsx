@@ -6,7 +6,7 @@ import MobileNavigation from "@/components/MobileNavigation";
 import ChildInfoStep from "@/components/wizard/ChildInfoStep";
 import TopicStep from "@/components/wizard/TopicStep";
 import GeneratingStep from "@/components/wizard/GeneratingStep";
-import SignupBeforeGenerateModal from "@/components/story/SignupBeforeGenerateModal";
+// SignupBeforeGenerateModal moved into GeneratingStep
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/hooks/use-auth";
 import { useCredits } from "@/hooks/use-credits";
