@@ -1971,6 +1971,9 @@ const StoryViewer = () => {
 
       {/* PDF Feature Popup - one-time per user */}
       <PdfFeaturePopup userId={user?.id} />
+
+      {/* Install App Prompt - one-time after first story */}
+      <InstallAppPrompt justCreatedFirstStory={justCreatedStory} />
     </div>
   );
 };
