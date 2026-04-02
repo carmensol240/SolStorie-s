@@ -50,6 +50,7 @@ interface StoryRow {
   topic: string;
   created_at: string;
   user_id: string | null;
+  generation_status: string | null;
 }
 
 interface ErrorLogRow {
