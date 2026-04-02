@@ -533,7 +533,7 @@ const AdminDashboard = () => {
             <TabsTrigger value="feedback">משובים</TabsTrigger>
             <TabsTrigger value="errors" className="flex items-center gap-1">
               שגיאות
-              {errors24h > 0 && <Badge variant="destructive" className="text-xs px-1.5 py-0">{errors24h}</Badge>}
+              {errorsToday > 0 && <Badge variant="destructive" className="text-xs px-1.5 py-0">{errorsToday}</Badge>}
             </TabsTrigger>
           </TabsList>
 
