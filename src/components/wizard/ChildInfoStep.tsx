@@ -183,7 +183,7 @@ const ChildInfoStep = ({ formData, updateFormData }: ChildInfoStepProps) => {
 
   const handlePhotoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
-    if (!file || !user) return;
+    if (!file) return;
     
     setIsUploadingPhoto(true);
     
