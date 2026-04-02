@@ -357,6 +357,25 @@ const PublicStoryViewer = () => {
         </div>
       </main>
 
+      {/* Guest signup banner */}
+      {showGuestBanner && (
+        <div className="fixed bottom-0 left-0 right-0 z-50 bg-gradient-to-r from-purple-600 via-pink-500 to-orange-400 text-white px-4 py-3 shadow-2xl" dir="rtl">
+          <div className="max-w-lg mx-auto flex items-center justify-between gap-3">
+            <div className="flex items-center gap-2 flex-1 min-w-0">
+              <Save className="w-5 h-5 shrink-0" />
+              <p className="text-sm font-bold truncate">💾 הסיפור לא נשמר — הירשמו כדי לשמור אותו!</p>
+            </div>
+            <Button
+              onClick={() => navigate(`/auth?returnTo=/public-story/${storySlug}`)}
+              size="sm"
+              className="bg-white text-purple-700 hover:bg-purple-50 font-black text-xs shrink-0 rounded-full px-4"
+            >
+              הירשמו עכשיו ✨
+            </Button>
+          </div>
+        </div>
+      )}
+
       {/* Footer */}
       <footer className="bg-white/80 backdrop-blur-sm border-t border-purple-100 px-4 py-2 text-center shrink-0">
         <p className="text-sm text-purple-600">
