@@ -62,7 +62,7 @@ function App() { useTimeTheme(); return (
             <Route path="/" element={<About />} />
             <Route path="/about" element={<About />} />
             <Route path="/welcome" element={<Navigate to="/adventure" replace />} />
-            <Route path="/adventure" element={<RequireTerms><Adventure /></RequireTerms>} />
+            <Route path="/adventure" element={<Adventure />} />
             <Route path="/category/:categoryId" element={<RequireTerms><CategoryView /></RequireTerms>} />
             <Route path="/auth" element={<Auth />} />
             <Route path="/verify-email" element={<VerifyEmail />} />
@@ -79,7 +79,7 @@ function App() { useTimeTheme(); return (
             <Route path="/s/:storySlug" element={<PublicStoryViewer />} />
             {/* Protected routes - require terms acceptance */}
             <Route path="/children" element={<RequireTerms><ChildProfiles /></RequireTerms>} />
-            <Route path="/create" element={<RequireTerms><CreateStory /></RequireTerms>} />
+            <Route path="/create" element={<CreateStory />} />
             {/* Story viewer - handles both slug and UUID, public fallback for unauthenticated */}
             <Route path="/story/:storyId" element={<StoryViewer />} />
             <Route path="/library" element={<Library />} />

@@ -63,17 +63,9 @@ const Adventure = () => {
     fetchCount();
   }, [user?.id]);
 
-  const handleAdventureCTA = useCallback(async () => {
-    if (!user?.id) {
-      navigate("/create");
-      return;
-    }
-    const { count } = await supabase
-      .from("children")
-      .select("id", { count: "exact", head: true })
-      .eq("user_id", user.id);
-    navigate(count && count > 0 ? "/create" : "/children");
-  }, [user?.id, navigate]);
+  const handleAdventureCTA = useCallback(() => {
+    navigate("/create");
+  }, [navigate]);
 
   const totalCredits = (credits ?? 0) + shareCoins;
 
