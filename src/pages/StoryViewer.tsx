@@ -1261,11 +1261,9 @@ const StoryViewer = () => {
               (() => {
                 return (
                   <div className="relative flex flex-col h-full">
-                    {/* Full background — best matching illustration as cover, fallback to cover_url or default */}
+                    {/* Full background — dedicated cover image */}
                     <img
-                      src={coverIllustration?.illustration_url 
-                        ? (getPublicIllustrationUrl(coverIllustration.illustration_url) || story.cover_url || solSuperheroWelcome)
-                        : (story.cover_url || solSuperheroWelcome)}
+                      src={story.cover_url || solSuperheroWelcome}
                       alt="כריכת הסיפור"
                       className={cn(
                         "absolute inset-0 w-full h-full",
