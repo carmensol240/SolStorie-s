@@ -38,10 +38,39 @@ interface VirtualPage {
 const PublicStoryViewer = () => {
   const { storySlug } = useParams();
   const navigate = useNavigate();
+  const { user } = useAuth();
   const [story, setStory] = useState<PublicStory | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(false);
   const [currentPage, setCurrentPage] = useState(-1); // -1 = cover
+  const [showGuestBanner, setShowGuestBanner] = useState(false);
+  const guestStoryId = sessionStorage.getItem("guest_story_id");
+
+  // Show guest banner if this is a guest-generated story
+  useEffect(() => {
+    if (guestStoryId && !user) {
+      setShowGuestBanner(true);
+    }
+    // If user just signed up, claim the story
+    if (guestStoryId && user) {
+      const claimStory = async () => {
+        try {
+          const { error } = await supabase.functions.invoke("claim-guest-story", {
+            body: { storyId: guestStoryId },
+          });
+          if (!error) {
+            sessionStorage.removeItem("guest_story_id");
+            setShowGuestBanner(false);
+            // Redirect to proper story viewer
+            navigate(`/story/${storySlug}`, { replace: true });
+          }
+        } catch (e) {
+          console.warn("Failed to claim guest story:", e);
+        }
+      };
+      claimStory();
+    }
+  }, [guestStoryId, user, storySlug, navigate]);
 
   // Landscape lock on mobile
   useEffect(() => {

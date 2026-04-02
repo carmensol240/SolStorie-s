@@ -110,11 +110,18 @@ const CreateStory = () => {
       console.warn("[CreateStory] Slug lookup failed, using UUID:", e);
     }
     
+    // If user is not authenticated, route to public viewer with guest banner
+    if (!user) {
+      sessionStorage.setItem("guest_story_id", storyId);
+      navigate(`/public-story/${slug}`);
+      return;
+    }
+    
     // Mark that a story was just created so the PDF popup shows
     sessionStorage.setItem("just_created_story", "true");
     // Navigate using slug for clean URLs — guaranteed to run
     navigate(`/story/${slug}`);
-  }, [refetchCredits, navigate]);
+  }, [refetchCredits, navigate, user]);
 
   const handleStoryGeneratedRef = useRef(handleStoryGenerated);
   useEffect(() => { handleStoryGeneratedRef.current = handleStoryGenerated; }, [handleStoryGenerated]);
