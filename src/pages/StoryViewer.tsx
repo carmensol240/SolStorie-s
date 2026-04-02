@@ -202,6 +202,7 @@ const StoryViewer = () => {
   const [generationStatus, setGenerationStatus] = useState<string>('ready');
   const [illustrationProgress, setIllustrationProgress] = useState(0);
   const [userStartedReading, setUserStartedReading] = useState(false);
+  const [justCreatedStory, setJustCreatedStory] = useState(false);
   const [failedImages, setFailedImages] = useState<Record<string, number>>({});
   const [imageLoadedMap, setImageLoadedMap] = useState<Record<string, boolean>>({});
   const pollingIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
