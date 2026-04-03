@@ -1709,6 +1709,14 @@ const [currentPage, setCurrentPage] = useState(0);
                         );
                       })()
                     )}
+                    {/* Dedication overlay on first illustration page */}
+                    {currentPage === 0 && story && (
+                      <div className="absolute top-0 left-0 right-0 z-20 p-4 pt-6 bg-gradient-to-b from-black/60 via-black/30 to-transparent">
+                        <p className="text-center text-white text-base md:text-lg font-bold drop-shadow-lg" dir="rtl">
+                          הספר הזה נוצר במיוחד עבורך, {story.child_name} 💙
+                        </p>
+                      </div>
+                    )}
                     <div className="absolute bottom-1 left-0 right-0 flex justify-center z-10">
                       <span className="text-xs text-white/40 font-light">{currentPage + 1} / {virtualPages.length}</span>
                     </div>
