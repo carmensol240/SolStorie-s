@@ -1294,18 +1294,12 @@ serve(async (req) => {
         const secondPrompt = page.illustration_prompt_2;
         let secondImage: string | null = null;
 
-        const scene2 = await analyzePageScene(
-          secondPrompt, page.page_number + 100,
-          pagesToIllustrate.length, topic || "", LOVABLE_API_KEY
-        );
-
-        let secondIllustrationPrompt = secondPrompt;
-        if (scene2) {
-          const charDesc2 = characterProfile
-            ? `A ${characterProfile.gender === "female" ? "girl" : "boy"} aged ${characterProfile.ageDescription} with ${characterProfile.hairDescription}, ${characterProfile.skinTone} skin, ${characterProfile.eyeColor} eyes, wearing ${storyOutfit}`
-            : `A child wearing ${storyOutfit}`;
-          secondIllustrationPrompt = buildScenePrompt(scene2, charDesc2, secondPrompt);
-        }
+        const cameraAngle2 = CAMERA_ANGLES[(page.page_number + 3) % CAMERA_ANGLES.length];
+        const lighting2 = LIGHTING_OPTIONS[(page.page_number + 5) % LIGHTING_OPTIONS.length];
+        const charDesc2 = characterProfile
+          ? `A ${characterProfile.gender === "female" ? "girl" : "boy"} aged ${characterProfile.ageDescription} with ${characterProfile.hairDescription}, ${characterProfile.skinTone} skin, ${characterProfile.eyeColor} eyes, wearing ${storyOutfit}`
+          : `A child wearing ${storyOutfit}`;
+        const secondIllustrationPrompt = `${charDesc2}. SCENE: ${secondPrompt}. CAMERA: ${cameraAngle2}. LIGHTING: ${lighting2}. Pixar 3D CGI style, vibrant colors, fantasy children's book, full body head to toe`;
 
         for (let attempt = 1; attempt <= MAX_RETRIES; attempt++) {
           if (childPhotoSignedUrl) {
