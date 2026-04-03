@@ -1,40 +1,30 @@
 
 
-## Plan: Fix Google Button Text Color & Inline Avatar Generation
+## Plan: Fix Photo Box — Side-by-Side Layout in One Unified Box
 
-### Issue 1: Google button text invisible
-The Google sign-in button in `GeneratingStep.tsx` (line 760) uses `text-foreground`. While this should be dark, the user reports it appears white. Fix by using an explicit dark color.
+### Problem
+The current layout shows circular avatars that are too small (w-20 h-20). The side-by-side view only appears when an avatar exists or is generating — otherwise it shows a single small circle. The user wants a unified rectangular box with two equal-sized images side by side, matching the original design.
 
-### Issue 2: Avatar generation in separate dialog
-Currently clicking "צור אווטאר" opens `AvatarPreviewDialog` as a modal. The user wants avatar generation to happen inline within the photo box — showing the generating state and result side-by-side with the original photo, without opening a separate dialog.
+### Changes — `src/components/wizard/ChildInfoStep.tsx`
 
-### Changes
+**Replace the entire photo display section (lines 741-884)** with a unified box layout:
 
-#### 1. `src/components/wizard/GeneratingStep.tsx` — Fix Google button text color
-- Line 760: Change `text-foreground` to `text-gray-800` for explicit dark text that won't be affected by theme
+1. **When photo exists AND (avatar exists OR generating)** — show ONE box with two images side by side:
+   - Right side: original photo as a square/rectangle (not circle), label "תמונה מקורית" underneath
+   - Left side: avatar image (or spinner if generating), label "דמות בסיפור" underneath
+   - Both images same size (~32x32 or flex-1), inside one bordered container
+   - Sparkles icon between them
 
-#### 2. `src/components/wizard/ChildInfoStep.tsx` — Inline avatar generation
+2. **When photo exists but no avatar** — show the original photo (larger, not tiny circle) with "צור אווטאר" button
 
-**Remove dialog usage:**
-- Remove the `AvatarPreviewDialog` component rendering (lines 916-928)
-- Remove `avatarPreviewOpen` and `pendingPhotoForAvatar` states
-- Remove `AvatarPreviewDialog` import
+3. **Buttons** (צור אווטאר / עדכן אווטאר / מחק) stay below the images inside the same box
 
-**Add inline avatar generation:**
-- Add `isGeneratingAvatar` state to track generation in progress
-- When "צור אווטאר" button is clicked (line 809-817), instead of opening dialog, call the `preview-child-avatar` edge function directly inline
-- During generation, show a loading spinner in the avatar slot (right side of the side-by-side view)
-- On success, set `formData.childAvatarUrl` with the result — the existing side-by-side layout (lines 714-744) already handles display
-- Keep the "עדכן אווטאר" button (lines 819-832) working the same way but inline
-- Keep the regeneration count logic (from existing `avatarRegenerationCount` state)
-- Keep the "מחק" button as-is
-
-**Inline flow in the photo box:**
-- Photo uploaded, no avatar → show single photo + "צור אווטאר" button
-- Generating avatar → show original photo on left + spinner on right (side-by-side)
-- Avatar ready → show original photo + avatar side-by-side + "עדכן אווטאר" and "מחק" buttons
+**Key styling changes:**
+- Images: `w-28 h-28 rounded-xl` (square with rounded corners, not circles)
+- Container: single `border-2 border-purple-400 rounded-xl` box wrapping both
+- Labels: `text-[11px]` centered below each image
+- Use `flex items-start justify-center gap-4` for side-by-side layout
 
 ### Files modified
-1. `src/components/wizard/GeneratingStep.tsx` — fix button text color
-2. `src/components/wizard/ChildInfoStep.tsx` — inline avatar generation, remove dialog
+1. `src/components/wizard/ChildInfoStep.tsx` — restructure photo display area (lines 741-884)
 
