@@ -443,7 +443,7 @@ const ChildInfoStep = ({ formData, updateFormData }: ChildInfoStepProps) => {
         fixedDetails: "",
       });
       setSelectedAgeButton("3-6");
-      setExistingAvatarForDialog(null);
+      
       toast.success(`הפרופיל של ${currentChild.name} נמחק בהצלחה`);
     } catch (error) {
       console.error('Error deleting child profile:', error);
