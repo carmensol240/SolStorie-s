@@ -292,7 +292,7 @@ const ChildInfoStep = ({ formData, updateFormData }: ChildInfoStepProps) => {
     
     // Load avatar regeneration count
     setAvatarRegenerationCount(child.avatar_regeneration_count || 0);
-    setExistingAvatarForDialog(child.avatar_url);
+    // Avatar regeneration count loaded above
     
     if (child.personality_traits) {
       setShowPersonalityField(true);
