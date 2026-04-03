@@ -56,7 +56,7 @@ const Upgrade = () => {
   const countdownSec = countdown % 60;
   
 
-  const title = "נהניתם מהסיפור?";
+  const title = "אהבתם? 💛";
   const subtitle = "המשיכו את הקסם עם חבילת קרדיטים חדשה";
 
   useEffect(() => {
