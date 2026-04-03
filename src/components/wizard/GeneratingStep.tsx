@@ -799,6 +799,9 @@ const GeneratingStep = ({ formData, onComplete }: GeneratingStepProps) => {
               <p className="text-base font-black text-purple-700">
                 🌟 הירשמו לשמור את הסיפור!
               </p>
+              <p className="text-sm text-amber-700 font-bold animate-pulse mt-1" dir="rtl">
+                💡 הירשמו עכשיו לזירוז היצירה
+              </p>
             </div>
 
 
