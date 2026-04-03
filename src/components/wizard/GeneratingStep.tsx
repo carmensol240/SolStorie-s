@@ -356,17 +356,24 @@ const GeneratingStep = ({ formData, onComplete }: GeneratingStepProps) => {
         .select("id, illustration_url")
         .eq("story_id", storyId);
       
-      if (pages && pages.length > 0 && pages.every(p => p.illustration_url)) {
-        console.log("[GeneratingStep] All illustrations ready!");
-        setIllustrationsReady(true);
-        setProgress(100);
-        setShowReadyPopup(true);
-        setTimeout(() => {
-          if (storyId && !hasNavigatedRef.current) {
-            hasNavigatedRef.current = true;
-            onComplete(storyId);
-          }
-        }, 2500);
+      if (pages && pages.length > 0) {
+        const done = pages.filter(p => p.illustration_url).length;
+        const total = pages.length;
+        const illustrationProgress = 50 + (done / total) * 45;
+        setProgress(prev => Math.max(prev, illustrationProgress));
+
+        if (pages.every(p => p.illustration_url)) {
+          console.log("[GeneratingStep] All illustrations ready!");
+          setIllustrationsReady(true);
+          setProgress(100);
+          setShowReadyPopup(true);
+          setTimeout(() => {
+            if (storyId && !hasNavigatedRef.current) {
+              hasNavigatedRef.current = true;
+              onComplete(storyId);
+            }
+          }, 2500);
+        }
       }
     };
     checkIllustrations();
@@ -388,17 +395,30 @@ const GeneratingStep = ({ formData, onComplete }: GeneratingStepProps) => {
       )
       .subscribe();
 
+    // Poll every 3 seconds as fallback for realtime
+    const pollInterval = setInterval(() => {
+      checkIllustrations();
+    }, 3000);
+
     // 180-second safety timeout — only as last resort
     puzzleTimeoutRef.current = setTimeout(() => {
       console.log("[GeneratingStep] Safety timeout (180s) — allowing navigation");
       if (!illustrationsReady) {
         setProgress(100);
         setShowReadyPopup(true);
+        // Auto-navigate after timeout
+        setTimeout(() => {
+          if (storyId && !hasNavigatedRef.current) {
+            hasNavigatedRef.current = true;
+            onComplete(storyId);
+          }
+        }, 1500);
       }
     }, 180000);
 
     return () => {
       supabase.removeChannel(channel);
+      clearInterval(pollInterval);
       if (puzzleTimeoutRef.current) clearTimeout(puzzleTimeoutRef.current);
     };
   }, [phase, storyId, onComplete]);
