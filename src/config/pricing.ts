@@ -3,7 +3,7 @@ export const PRICING_PACKAGES = [
     id: "basic",
     stories: 5,
     price: 35,
-    originalPrice: 49,
+    originalPrice: 59,
     pricePerStory: "7₪",
     label: "בסיסי",
     freeEdits: 5,
