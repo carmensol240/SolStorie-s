@@ -56,7 +56,7 @@ const AvatarPreviewDialog = ({
     setLocalRegenerationCount(regenerationCount);
   }, [regenerationCount]);
 
-  const generatePreview = useCallback(async (isRetry = false) => {
+  const generatePreview = useCallback(async () => {
     if (!originalPhoto || isGenerating) return;
     
     // Check regeneration limit
@@ -69,25 +69,12 @@ const AvatarPreviewDialog = ({
       return;
     }
     
-    // Verify session before calling the function
-    const { data: { session } } = await supabase.auth.getSession();
-    if (!session) {
-      console.error('No active session found');
-      setErrorMessage("יש להתחבר מחדש כדי ליצור דמות");
-      toast({
-        title: 'נדרשת התחברות',
-        description: 'אנא התחברו מחדש וננסה שוב',
-        variant: 'destructive',
-      });
-      return;
-    }
-    
     setIsGenerating(true);
     setErrorMessage(null);
     setPreviewUrl(null);
     
     try {
-      console.log('Starting avatar generation, session valid:', !!session.access_token);
+      console.log('Starting avatar generation (auth optional)');
       
       const { data, error } = await supabase.functions.invoke('preview-child-avatar', {
         body: { childPhoto: originalPhoto }
@@ -97,49 +84,18 @@ const AvatarPreviewDialog = ({
 
       if (error) {
         console.error('Supabase function error:', error);
-        
-        // Handle 401 with retry after session refresh
-        const is401 = error.message?.includes('401') || error.message?.includes('נדרשת התחברות');
-        if (is401 && !isRetry && authRetryCount < MAX_AUTH_RETRIES) {
-          console.log('Got 401, attempting session refresh and retry...');
-          setAuthRetryCount(prev => prev + 1);
-          setIsGenerating(false);
-          
-          // Refresh session and retry
-          const { error: refreshError } = await supabase.auth.refreshSession();
-          if (!refreshError) {
-            setTimeout(() => generatePreview(true), 500);
-            return;
-          }
-        }
-        
         throw new Error(error.message || 'שגיאה בשרת');
       }
 
       if (data?.error) {
-        // Handle 401 error from response body
-        const is401 = data.error.includes('נדרשת התחברות');
-        if (is401 && !isRetry && authRetryCount < MAX_AUTH_RETRIES) {
-          console.log('Got 401 in response, attempting session refresh and retry...');
-          setAuthRetryCount(prev => prev + 1);
-          setIsGenerating(false);
-          
-          const { error: refreshError } = await supabase.auth.refreshSession();
-          if (!refreshError) {
-            setTimeout(() => generatePreview(true), 500);
-            return;
-          }
-        }
         throw new Error(data.error);
       }
 
       if (data?.previewUrl) {
         setPreviewUrl(data.previewUrl);
-        // Increment regeneration count
         const newCount = localRegenerationCount + 1;
         setLocalRegenerationCount(newCount);
         onRegenerationCountChange?.(newCount);
-        setAuthRetryCount(0); // Reset retry count on success
         console.log('Avatar generated successfully, count:', newCount);
       } else {
         throw new Error('לא התקבלה תמונה מהשרת');
@@ -156,7 +112,7 @@ const AvatarPreviewDialog = ({
     } finally {
       setIsGenerating(false);
     }
-  }, [originalPhoto, isGenerating, toast, localRegenerationCount, onRegenerationCountChange, authRetryCount]);
+  }, [originalPhoto, isGenerating, toast, localRegenerationCount, onRegenerationCountChange]);
 
   const handleConfirm = async () => {
     if (!previewUrl) return;
