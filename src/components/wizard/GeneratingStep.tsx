@@ -220,14 +220,30 @@ const GeneratingStep = ({ formData, onComplete }: GeneratingStepProps) => {
         
         if (isGuest) {
           bodyPayload.guestMode = true;
+          // Use raw fetch for guest requests to avoid sending auth headers
+          const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
+          const resp = await fetch(`${supabaseUrl}/functions/v1/generate-story`, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'apikey': import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
+            },
+            body: JSON.stringify(bodyPayload),
+            signal: controller.signal,
+          });
+          if (!resp.ok) {
+            const errBody = await resp.json().catch(() => ({}));
+            throw new Error(errBody.error || `שגיאה ${resp.status}`);
+          }
+          data = await resp.json();
+          apiError = null;
+        } else {
+          const result = await supabase.functions.invoke("generate-story", {
+            body: bodyPayload,
+          });
+          data = result.data;
+          apiError = result.error;
         }
-
-        const result = await supabase.functions.invoke("generate-story", {
-          body: bodyPayload,
-        });
-        
-        data = result.data;
-        apiError = result.error;
       } catch (fetchError) {
         clearTimeout(timeoutId);
         if (fetchError instanceof Error && fetchError.name === 'AbortError') {
