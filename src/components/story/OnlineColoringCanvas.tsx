@@ -378,8 +378,10 @@ export const OnlineColoringCanvas: React.FC<OnlineColoringCanvasProps> = ({
   }, [getMergedCanvas]);
 
   const cursorStyle = useMemo(() => {
-    return isEraser ? ERASER_CURSOR : FILL_CURSOR;
-  }, [isEraser]);
+    if (tool === 'eraser') return ERASER_CURSOR;
+    if (tool === 'brush') return `url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' width='${brushSize + 4}' height='${brushSize + 4}'><circle cx='${(brushSize + 4) / 2}' cy='${(brushSize + 4) / 2}' r='${brushSize / 2}' fill='${encodeURIComponent(color)}' stroke='%23333' stroke-width='1'/></svg>") ${(brushSize + 4) / 2} ${(brushSize + 4) / 2}, crosshair`;
+    return FILL_CURSOR;
+  }, [tool, color, brushSize]);
 
   if (!isOpen) return null;
 
