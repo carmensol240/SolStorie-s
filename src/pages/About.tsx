@@ -211,18 +211,6 @@ const About = () => {
               </div>
             </div>
 
-            {/* Sticky floating close button */}
-            <div className="sticky bottom-4 flex justify-center mt-8 pb-4">
-              <button
-                onClick={() => {
-                  setShowMore(false);
-                  window.scrollTo({ top: 0, behavior: 'smooth' });
-                }}
-                className="px-4 py-2 rounded-full bg-black/40 backdrop-blur-sm border border-purple-500/30 text-sm text-purple-200 hover:bg-black/60 transition-all"
-              >
-                סגור ↑
-              </button>
-            </div>
           </div>
         )}
 
