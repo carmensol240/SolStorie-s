@@ -233,6 +233,9 @@ const [currentPage, setCurrentPage] = useState(0);
   const [coloringAction, setColoringAction] = useState<'pick' | 'choose-action'>('pick');
   const [onlineColoringOpen, setOnlineColoringOpen] = useState(false);
   const [onlineColoringImageUrl, setOnlineColoringImageUrl] = useState<string | null>(null);
+  const [cachedColoringUrl, setCachedColoringUrl] = useState<string | null>(null);
+  const [cachedIllustrationUrl, setCachedIllustrationUrl] = useState<string | null>(null);
+  const [showColoringUpsell, setShowColoringUpsell] = useState(false);
 
   const handleImageLoad = useCallback((e: React.SyntheticEvent<HTMLImageElement>) => {
     // Keep object-cover for all images — no white margins
@@ -1341,14 +1344,34 @@ const [currentPage, setCurrentPage] = useState(0);
                   {/* Unified Coloring Button */}
                   <div className="pt-2">
                     <Button
-                      onClick={() => {
+                    onClick={async () => {
                         if (!story || coloringLoading) return;
                         const illustrations = story.pages?.filter(p => p.illustration_url).map(p => p.illustration_url!) || [];
                         if (illustrations.length === 0) {
                           toast({ title: "אין איורים זמינים ליצירת דף צביעה", variant: "destructive" });
                           return;
                         }
+                        // Check for cached coloring page
+                        if (user && story.id) {
+                          const { data: cached } = await supabase
+                            .from("story_coloring_pages" as any)
+                            .select("*")
+                            .eq("story_id", story.id)
+                            .eq("user_id", user.id)
+                            .maybeSingle();
+                          if (cached) {
+                            const publicUrl = `${import.meta.env.VITE_SUPABASE_URL || 'https://qvdwmkxviaqcgmjotsxe.supabase.co'}/storage/v1/object/public/story-illustrations/${(cached as any).coloring_image_path}`;
+                            setCachedColoringUrl(publicUrl);
+                            setCachedIllustrationUrl((cached as any).illustration_url);
+                            setSelectedColoringUrl((cached as any).illustration_url);
+                            setColoringAction('choose-action');
+                            setColoringPickerOpen(true);
+                            return;
+                          }
+                        }
                         setSelectedColoringUrl(null);
+                        setCachedColoringUrl(null);
+                        setCachedIllustrationUrl(null);
                         setColoringAction('pick');
                         setColoringPickerOpen(true);
                       }}
@@ -1459,6 +1482,61 @@ const [currentPage, setCurrentPage] = useState(0);
                               if (!story || !selectedColoringUrl) return;
                               setColoringPickerOpen(false);
                               setColoringLoading(true);
+
+                              // Use cached URL if available (same illustration)
+                              if (cachedColoringUrl && cachedIllustrationUrl === selectedColoringUrl) {
+                                try {
+                                  const coloringImg = new Image();
+                                  coloringImg.crossOrigin = 'anonymous';
+                                  coloringImg.src = cachedColoringUrl;
+                                  await new Promise<void>((resolve, reject) => {
+                                    coloringImg.onload = () => resolve();
+                                    coloringImg.onerror = () => reject(new Error('Failed to load cached image'));
+                                  });
+                                  const footerHeight = 80;
+                                  const canvas = document.createElement('canvas');
+                                  canvas.width = coloringImg.naturalWidth;
+                                  canvas.height = coloringImg.naturalHeight + footerHeight;
+                                  const ctx = canvas.getContext('2d')!;
+                                  ctx.fillStyle = '#FFFFFF';
+                                  ctx.fillRect(0, 0, canvas.width, canvas.height);
+                                  ctx.drawImage(coloringImg, 0, 0);
+                                  const footerY = coloringImg.naturalHeight + footerHeight / 2;
+                                  const footerText = `SolStorie's™ | דף צביעה של ${story.child_name}`;
+                                  const fontSize = Math.max(20, Math.round(canvas.width / 40));
+                                  ctx.font = `bold ${fontSize}px "Caveat", "Arial", sans-serif`;
+                                  ctx.textAlign = 'center';
+                                  const gradient = ctx.createLinearGradient(
+                                    canvas.width / 2 - ctx.measureText(footerText).width / 2, 0,
+                                    canvas.width / 2 + ctx.measureText(footerText).width / 2, 0
+                                  );
+                                  gradient.addColorStop(0, '#FF6B6B');
+                                  gradient.addColorStop(0.2, '#FFA500');
+                                  gradient.addColorStop(0.4, '#FFD700');
+                                  gradient.addColorStop(0.6, '#4CAF50');
+                                  gradient.addColorStop(0.8, '#42A5F5');
+                                  gradient.addColorStop(1, '#AB47BC');
+                                  ctx.fillStyle = gradient;
+                                  ctx.fillText(footerText, canvas.width / 2, footerY);
+                                  const blob = await new Promise<Blob>((resolve) => canvas.toBlob((b) => resolve(b!), 'image/png'));
+                                  const url = URL.createObjectURL(blob);
+                                  const a = document.createElement('a');
+                                  a.href = url;
+                                  a.download = `דף-צביעה-${story.topic}.png`;
+                                  document.body.appendChild(a);
+                                  a.click();
+                                  document.body.removeChild(a);
+                                  URL.revokeObjectURL(url);
+                                  toast({ title: "דף הצביעה הורד בהצלחה! 🎨" });
+                                } catch (err) {
+                                  console.error("Cached coloring print error:", err);
+                                  toast({ title: "שגיאה בהורדת דף הצביעה", variant: "destructive" });
+                                } finally {
+                                  setColoringLoading(false);
+                                }
+                                return;
+                              }
+
                               toast({ title: "מכין את דף הצביעה שלך... זה לוקח כ-30 שניות 🎨" });
                               try {
                                 const illustrationFullUrl = getPublicIllustrationUrl(selectedColoringUrl);
@@ -1470,13 +1548,22 @@ const [currentPage, setCurrentPage] = useState(0);
                                   await new Promise(r => setTimeout(r, 5000));
                                   ({ data, error: fnError } = await invokeColoring());
                                 }
+                                if (data?.upsell) {
+                                  setShowColoringUpsell(true);
+                                  return;
+                                }
                                 if (fnError || !data?.image) {
                                   toast({ title: data?.error || "שגיאה ביצירת דף הצביעה", variant: "destructive" });
                                   return;
                                 }
+                                // Update cache state
+                                if (data.cached) {
+                                  setCachedColoringUrl(data.image);
+                                  setCachedIllustrationUrl(selectedColoringUrl);
+                                }
                                 const coloringImg = new Image();
                                 coloringImg.crossOrigin = 'anonymous';
-                                const imgSrc = data.image.startsWith('data:') ? data.image : `data:image/png;base64,${data.image}`;
+                                const imgSrc = data.image.startsWith('data:') ? data.image : (data.image.startsWith('http') ? data.image : `data:image/png;base64,${data.image}`);
                                 coloringImg.src = imgSrc;
                                 await new Promise<void>((resolve, reject) => {
                                   coloringImg.onload = () => resolve();
@@ -1534,6 +1621,15 @@ const [currentPage, setCurrentPage] = useState(0);
                               if (!story || !selectedColoringUrl) return;
                               setColoringPickerOpen(false);
                               setColoringLoading(true);
+
+                              // Use cached URL if available (same illustration)
+                              if (cachedColoringUrl && cachedIllustrationUrl === selectedColoringUrl) {
+                                setOnlineColoringImageUrl(cachedColoringUrl);
+                                setOnlineColoringOpen(true);
+                                setColoringLoading(false);
+                                return;
+                              }
+
                               toast({ title: "מכין את דף הצביעה שלך... זה לוקח כ-30 שניות 🎨" });
                               try {
                                 const illustrationFullUrl = getPublicIllustrationUrl(selectedColoringUrl);
@@ -1545,11 +1641,19 @@ const [currentPage, setCurrentPage] = useState(0);
                                   await new Promise(r => setTimeout(r, 5000));
                                   ({ data, error: fnError } = await invokeColoring());
                                 }
+                                if (data?.upsell) {
+                                  setShowColoringUpsell(true);
+                                  return;
+                                }
                                 if (fnError || !data?.image) {
                                   toast({ title: data?.error || "שגיאה ביצירת דף הצביעה", variant: "destructive" });
                                   return;
                                 }
-                                const imgSrc = data.image.startsWith('data:') ? data.image : `data:image/png;base64,${data.image}`;
+                                if (data.cached) {
+                                  setCachedColoringUrl(data.image);
+                                  setCachedIllustrationUrl(selectedColoringUrl);
+                                }
+                                const imgSrc = data.image.startsWith('data:') ? data.image : (data.image.startsWith('http') ? data.image : `data:image/png;base64,${data.image}`);
                                 setOnlineColoringImageUrl(imgSrc);
                                 setOnlineColoringOpen(true);
                               } catch (err) {
@@ -1563,7 +1667,11 @@ const [currentPage, setCurrentPage] = useState(0);
                             🎨 צבע אונליין
                           </Button>
                           <button
-                            onClick={() => setColoringAction('pick')}
+                            onClick={() => {
+                              setCachedColoringUrl(null);
+                              setCachedIllustrationUrl(null);
+                              setColoringAction('pick');
+                            }}
                             className="w-full text-xs text-purple-400 hover:text-purple-600 transition-colors"
                           >
                             ← בחרו איור אחר
@@ -1581,6 +1689,29 @@ const [currentPage, setCurrentPage] = useState(0);
                     childName={story?.child_name}
                     storyTitle={story?.topic}
                   />
+
+                  {/* Coloring Upsell Dialog */}
+                  <AlertDialog open={showColoringUpsell} onOpenChange={setShowColoringUpsell}>
+                    <AlertDialogContent dir="rtl">
+                      <AlertDialogHeader>
+                        <AlertDialogTitle className="text-center text-lg">
+                          רוצים לצבוע איור נוסף? 🎨
+                        </AlertDialogTitle>
+                        <AlertDialogDescription className="text-center text-sm">
+                          כבר יצרתם דף צביעה לסיפור הזה. כדי לצבוע איור אחר, רכשו חבילת צביעה!
+                        </AlertDialogDescription>
+                      </AlertDialogHeader>
+                      <AlertDialogFooter className="flex-col gap-2 sm:flex-col">
+                        <AlertDialogAction
+                          onClick={() => navigate('/upgrade')}
+                          className="bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600"
+                        >
+                          🎨 לחבילת הצביעה
+                        </AlertDialogAction>
+                        <AlertDialogCancel>ביטול</AlertDialogCancel>
+                      </AlertDialogFooter>
+                    </AlertDialogContent>
+                  </AlertDialog>
 
                   <div className="pt-2">
                     <span className="text-xl font-black logo-3d-bubble mt-3"><span className="logo-rainbow">SolStorie's™</span></span>

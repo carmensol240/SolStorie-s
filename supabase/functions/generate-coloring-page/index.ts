@@ -7,6 +7,13 @@ const corsHeaders = {
     "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
 };
 
+function jsonResponse(body: Record<string, unknown>, status = 200) {
+  return new Response(JSON.stringify(body), {
+    status,
+    headers: { ...corsHeaders, "Content-Type": "application/json" },
+  });
+}
+
 serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
@@ -17,19 +24,70 @@ serve(async (req) => {
     const { illustration_url, story_title, child_name, story_id, device_id } = await req.json();
 
     if (!illustration_url) {
-      return new Response(JSON.stringify({ error: "illustration_url is required" }), {
-        status: 400,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
+      return jsonResponse({ error: "illustration_url is required" }, 400);
     }
 
+    const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
+    const supabaseKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
+    const supabase = createClient(supabaseUrl, supabaseKey);
+
+    // Extract user ID from JWT if available
+    let userId: string | null = null;
+    if (authHeader.startsWith("Bearer ")) {
+      const { data: { user } } = await supabase.auth.getUser(authHeader.replace("Bearer ", ""));
+      userId = user?.id ?? null;
+    }
+
+    // ── Cache check ──
+    if (story_id && userId) {
+      const { data: cached } = await supabase
+        .from("story_coloring_pages")
+        .select("*")
+        .eq("story_id", story_id)
+        .eq("user_id", userId)
+        .maybeSingle();
+
+      if (cached) {
+        // Same illustration → return cached
+        if (cached.illustration_url === illustration_url) {
+          console.log("Returning cached coloring page for story:", story_id);
+          const publicUrl = `${supabaseUrl}/storage/v1/object/public/story-illustrations/${cached.coloring_image_path}`;
+          return jsonResponse({ image: publicUrl, cached: true, story_title, child_name });
+        }
+
+        // Different illustration → check coloring credits
+        const { data: profile } = await supabase
+          .from("profiles")
+          .select("coloring_credits")
+          .eq("id", userId)
+          .maybeSingle();
+
+        const credits = profile?.coloring_credits ?? 0;
+        if (credits <= 0) {
+          console.log("User wants different illustration but has no coloring credits");
+          return jsonResponse({ upsell: true, error: "רוצים לצבוע איור נוסף? 🎨" });
+        }
+
+        // Deduct 1 credit
+        await supabase
+          .from("profiles")
+          .update({ coloring_credits: credits - 1 })
+          .eq("id", userId);
+        console.log("Deducted 1 coloring credit, remaining:", credits - 1);
+
+        // Delete old cache record so we can insert the new one
+        await supabase
+          .from("story_coloring_pages")
+          .delete()
+          .eq("id", cached.id);
+      }
+    }
+
+    // ── AI generation ──
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
     if (!LOVABLE_API_KEY) {
       console.error("LOVABLE_API_KEY not configured");
-      return new Response(JSON.stringify({ error: "Server configuration error" }), {
-        status: 500,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
+      return jsonResponse({ error: "Server configuration error" }, 500);
     }
 
     // Download the illustration image
@@ -37,10 +95,7 @@ serve(async (req) => {
     const imgResponse = await fetch(illustration_url);
     if (!imgResponse.ok) {
       console.error("Failed to download illustration:", imgResponse.status);
-      return new Response(JSON.stringify({ error: "Failed to download illustration" }), {
-        status: 400,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
+      return jsonResponse({ error: "Failed to download illustration" }, 400);
     }
 
     const imgBuffer = await imgResponse.arrayBuffer();
@@ -52,7 +107,6 @@ serve(async (req) => {
 
     console.log("Sending to Gemini for coloring page conversion...");
 
-    // Call Lovable AI Gateway with adaptive retries + model fallback to reduce 429 failures
     const buildAiBody = (model: string) => JSON.stringify({
       model,
       messages: [
@@ -95,6 +149,7 @@ Output ONLY the coloring page image, nothing else. Do not include any text, labe
     ];
 
     let aiResponse: Response | null = null;
+    let modelUsed = "";
     for (const model of modelFallbacks) {
       const aiBody = buildAiBody(model);
       const maxRetries = 4;
@@ -106,7 +161,7 @@ Output ONLY the coloring page image, nothing else. Do not include any text, labe
           body: aiBody,
         });
 
-        if (aiResponse.ok) break;
+        if (aiResponse.ok) { modelUsed = model; break; }
 
         const retryableStatus = aiResponse.status === 429 || aiResponse.status === 502 || aiResponse.status === 503;
         if (!retryableStatus || attempt === maxRetries) break;
@@ -123,11 +178,7 @@ Output ONLY the coloring page image, nothing else. Do not include any text, labe
       }
 
       if (aiResponse?.ok) break;
-      if (aiResponse?.status === 402) {
-        console.log(`Model ${model} failed with 402, trying next model...`);
-        continue;
-      }
-      if (aiResponse?.status === 429 || aiResponse?.status === 502 || aiResponse?.status === 503) {
+      if (aiResponse?.status === 402 || aiResponse?.status === 429 || aiResponse?.status === 502 || aiResponse?.status === 503) {
         console.log(`Model ${model} failed with ${aiResponse?.status}, trying next model...`);
         continue;
       }
@@ -137,27 +188,17 @@ Output ONLY the coloring page image, nothing else. Do not include any text, labe
     if (!aiResponse!.ok) {
       const status = aiResponse!.status;
       if (status === 429 || status === 402) {
-        return new Response(JSON.stringify({
-          error: "השירות עמוס כרגע, נסו שוב בעוד כמה דקות 🎨",
-          retryable: true,
-        }), {
-          status: 200,
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
-        });
+        return jsonResponse({ error: "השירות עמוס כרגע, נסו שוב בעוד כמה דקות 🎨", retryable: true });
       }
       const errText = await aiResponse!.text();
       console.error("AI gateway error:", status, errText);
-      return new Response(JSON.stringify({ error: "שגיאה ביצירת דף הצביעה" }), {
-        status: 500,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
+      return jsonResponse({ error: "שגיאה ביצירת דף הצביעה" }, 500);
     }
 
     const aiData = await aiResponse!.json();
 
-    // Try multiple extraction paths for image data
+    // Extract image from response
     let generatedImage = aiData.choices?.[0]?.message?.images?.[0]?.image_url?.url;
-
     if (!generatedImage) {
       const content = aiData.choices?.[0]?.message?.content;
       if (Array.isArray(content)) {
@@ -171,27 +212,45 @@ Output ONLY the coloring page image, nothing else. Do not include any text, labe
 
     if (!generatedImage) {
       console.error("No image returned from AI. Response structure:", JSON.stringify(aiData).slice(0, 1000));
-      return new Response(JSON.stringify({ error: "לא התקבלה תמונה מהמערכת" }), {
-        status: 500,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
+      return jsonResponse({ error: "לא התקבלה תמונה מהמערכת" }, 500);
     }
 
     console.log("Coloring page generated successfully");
 
-    // Track successful generation in analytics
-    try {
-      const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
-      const supabaseKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
-      const supabase = createClient(supabaseUrl, supabaseKey);
+    // ── Upload to storage & cache ──
+    if (story_id && userId) {
+      try {
+        // Extract base64 data
+        const base64Match = generatedImage.match(/^data:image\/\w+;base64,(.+)$/);
+        if (base64Match) {
+          const raw = base64Match[1];
+          const bytes = Uint8Array.from(atob(raw), (c) => c.charCodeAt(0));
+          const storagePath = `coloring/${story_id}.png`;
 
-      // Extract user ID from JWT if available
-      let userId: string | null = null;
-      if (authHeader.startsWith("Bearer ")) {
-        const { data: { user } } = await supabase.auth.getUser(authHeader.replace("Bearer ", ""));
-        userId = user?.id ?? null;
+          const { error: uploadErr } = await supabase.storage
+            .from("story-illustrations")
+            .upload(storagePath, bytes, { contentType: "image/png", upsert: true });
+
+          if (uploadErr) {
+            console.error("Failed to upload coloring page to storage:", uploadErr);
+          } else {
+            // Insert cache record
+            await supabase.from("story_coloring_pages").insert({
+              story_id,
+              user_id: userId,
+              illustration_url,
+              coloring_image_path: storagePath,
+            });
+            console.log("Coloring page cached at:", storagePath);
+          }
+        }
+      } catch (cacheErr) {
+        console.error("Failed to cache coloring page:", cacheErr);
       }
+    }
 
+    // ── Track analytics ──
+    try {
       await supabase.from("analytics_events").insert({
         device_id: device_id || "unknown",
         event_type: "coloring_page_generated",
@@ -200,24 +259,16 @@ Output ONLY the coloring page image, nothing else. Do not include any text, labe
           story_title: story_title || null,
           child_name: child_name || null,
           user_id: userId,
-          model_used: aiResponse!.url || "gemini-image",
+          model_used: modelUsed || "gemini-image",
         },
       });
-      console.log("Coloring page generation tracked successfully");
     } catch (trackErr) {
       console.error("Failed to track coloring generation:", trackErr);
-      // Don't fail the request if tracking fails
     }
 
-    return new Response(
-      JSON.stringify({ image: generatedImage, story_title, child_name }),
-      { headers: { ...corsHeaders, "Content-Type": "application/json" } }
-    );
+    return jsonResponse({ image: generatedImage, story_title, child_name });
   } catch (err) {
     console.error("generate-coloring-page error:", err);
-    return new Response(JSON.stringify({ error: "שגיאה פנימית" }), {
-      status: 500,
-      headers: { ...corsHeaders, "Content-Type": "application/json" },
-    });
+    return jsonResponse({ error: "שגיאה פנימית" }, 500);
   }
 });
