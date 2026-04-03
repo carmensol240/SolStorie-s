@@ -1,43 +1,33 @@
 
 
-## Plan: Add Polling Fallback for Story Ready Detection
+## Plan: Fix Story Viewer First Page for All Ages
 
-### Problem
-The current implementation relies on Supabase realtime subscription to detect when illustrations are done. If realtime doesn't fire (connection issues, RLS filtering), the loading screen stays stuck until the 180s safety timeout. There's also no polling during the `illustrations` phase.
+### Current Behavior
+- Page `-1` (cover) shows a full-bleed cover image (`story.cover_url` or `solSuperheroWelcome` doll character) with a dedication overlay and "פתחו את הספר" button.
+- This is the same for all age ranges.
 
-### Fix — `src/components/wizard/GeneratingStep.tsx`
+### Changes — `src/pages/StoryViewer.tsx`
 
-**Add a 3-second polling interval** inside the existing `illustrations` phase useEffect (lines 326-404). This supplements the realtime subscription as a reliable fallback.
+**Ages 0-2 (toddlers):**
+- Skip the cover page entirely. Set `currentPage` initial value to `0` when `isToddler` is true.
+- Block backward navigation past page 0 for toddlers.
+- No dedication page, no doll character — story starts immediately with combined illustration+text pages.
 
-After `checkIllustrations()` is called initially (line 372) and the realtime channel is set up (line 389), add:
+**Ages 3+ (non-toddlers):**
+- Replace the cover page content (lines 1260-1304): Remove the full-bleed `solSuperheroWelcome`/cover image background entirely.
+- Instead, show a styled dedication-only page with dark gradient background, centered text: "הספר הזה נוצר במיוחד עבורך, [childName] 💙", and the "פתחו את הספר" CTA button.
+- No doll character image, no cover_url image on this page.
 
-```typescript
-// Poll every 3 seconds as fallback for realtime
-const pollInterval = setInterval(() => {
-  checkIllustrations();
-}, 3000);
-```
+**Specific code changes:**
 
-Clean it up in the return function alongside the channel cleanup.
+1. **Initial page state** (line 192): Change from always `-1` to conditionally `0` for toddlers. Since `story` isn't loaded yet at init, handle this in the story fetch callback or a useEffect that sets `currentPage` to `0` when `isToddler` is detected.
 
-**Update progress based on illustration count**: Inside `checkIllustrations`, when pages are fetched but not all have illustrations yet, calculate partial progress:
+2. **Cover page rendering** (lines 1260-1304): Replace the cover image block with a styled gradient page showing only the personalized message and CTA button. Remove references to `solSuperheroWelcome` and `story.cover_url` from the cover page.
 
-```typescript
-if (pages && pages.length > 0) {
-  const done = pages.filter(p => p.illustration_url).length;
-  const total = pages.length;
-  const illustrationProgress = 50 + (done / total) * 45; // 50-95 range
-  setProgress(Math.max(progress, illustrationProgress));
-}
-```
+3. **Navigation guard** (line 1193): For toddlers, prevent navigating to page `-1` (no cover page exists).
 
-**Also auto-navigate on `showReadyPopup`**: The safety timeout sets `showReadyPopup` but doesn't trigger navigation. Add a small effect or inline the navigation call so that when `showReadyPopup` becomes true, it auto-navigates after 1.5s (same as the ready flow).
-
-### Summary of changes
-1. Add `setInterval` polling every 3s alongside the existing realtime channel
-2. Update progress bar based on illustration completion count
-3. Ensure safety timeout also triggers auto-navigation
+4. **Remove `solSuperheroWelcome` import** (line 63) if no longer used anywhere.
 
 ### Files modified
-1. `src/components/wizard/GeneratingStep.tsx` — add polling interval, progress updates, auto-navigate on timeout
+1. `src/pages/StoryViewer.tsx` — replace cover page, skip cover for toddlers
 
