@@ -50,6 +50,7 @@ const AGE_BUTTONS = [
   { id: "0-2", label: "0-2", range: "0-2" as const },
   { id: "3-6", label: "3-6", range: "2-4" as const }, // Maps to internal 2-4 range
   { id: "7-8", label: "7-8", range: "5-7" as const }, // Maps to internal 5-7 range
+  { id: "9-12", label: "9-12", range: "8-10" as const }, // Maps to internal 8-10 range
 ];
 
 // Helper to convert age number to age range
@@ -65,8 +66,8 @@ const rangeToDisplayButton = (range: string): string => {
   switch (range) {
     case "0-2": return "0-2";
     case "2-4": return "3-6";
-    case "5-7": 
-    case "8-10": return "7-8";
+    case "5-7": return "7-8";
+    case "8-10": return "9-12";
     default: return "3-6";
   }
 };
@@ -573,7 +574,7 @@ const ChildInfoStep = ({ formData, updateFormData }: ChildInfoStepProps) => {
         <div className="space-y-1">
           <Label className="text-[10px] font-medium text-center block">גיל</Label>
           <div className="flex flex-col gap-1">
-            {AGE_BUTTONS.map((button) => (
+            {AGE_BUTTONS.filter(b => b.id !== "9-12").map((button) => (
               <button
                 key={button.id}
                 onClick={() => handleAgeButtonSelect(button.id)}
@@ -655,6 +656,17 @@ const ChildInfoStep = ({ formData, updateFormData }: ChildInfoStepProps) => {
               )}
             >
               🇺🇸 EN
+            </button>
+            <button
+              onClick={() => handleAgeButtonSelect("9-12")}
+              className={cn(
+                "py-1.5 rounded-md border transition-all text-center text-[11px] font-bold",
+                selectedAgeButton === "9-12"
+                  ? "border-purple-500 bg-gradient-to-r from-purple-600 via-pink-500 to-orange-400 text-white"
+                  : "border-border bg-card hover:border-purple-300"
+              )}
+            >
+              ✨ גיל 9-12
             </button>
           </div>
         </div>
