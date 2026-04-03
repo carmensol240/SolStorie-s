@@ -843,6 +843,20 @@ const GeneratingStep = ({ formData, onComplete }: GeneratingStepProps) => {
                 </div>
               )}
 
+              {signupMode === "signup" && (
+                <div className="flex items-center gap-2">
+                  <Checkbox
+                    id="gen-marketing"
+                    checked={marketingConsent}
+                    onCheckedChange={(c) => setMarketingConsent(c === true)}
+                    className="border-purple-300 data-[state=checked]:bg-purple-500 data-[state=checked]:border-purple-500 h-4 w-4"
+                  />
+                  <label htmlFor="gen-marketing" className="text-[11px] text-muted-foreground cursor-pointer leading-tight">
+                    אני רוצה לקבל קופונים ומבצעים במייל (אופציונלי)
+                  </label>
+                </div>
+              )}
+
               <Button
                 type="submit"
                 disabled={signupSubmitting || (signupMode === "signup" && !signupTermsAccepted)}
