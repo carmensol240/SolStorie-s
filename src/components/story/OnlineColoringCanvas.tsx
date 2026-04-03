@@ -132,8 +132,11 @@ export const OnlineColoringCanvas: React.FC<OnlineColoringCanvasProps> = ({
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const bgCanvasRef = useRef<HTMLCanvasElement>(null);
   const [isDrawing, setIsDrawing] = useState(false);
+  const [color, setColor] = useState(COLORS[0]);
   const [tool, setTool] = useState<Tool>('fill');
   const [brushSize, setBrushSize] = useState(8);
+  const [bgLoaded, setBgLoaded] = useState(false);
+  const lastPos = useRef<{ x: number; y: number } | null>(null);
   const bgImageRef = useRef<HTMLImageElement | null>(null);
 
   const [history, setHistory] = useState<ImageData[]>([]);
