@@ -1,39 +1,45 @@
 
 
-## Plan: Revert to Login-Required Flow
+## Plan: Fix Google OAuth 404 Error
 
-### What changed
-Currently, `GeneratingStep` starts generation immediately for all users (line 467-471), using raw `fetch()` in guest mode for unauthenticated users. This is broken.
+### Root Cause
+The `signInWithGoogle` function in `use-auth.ts` (line 49) uses `supabase.auth.signInWithOAuth()` directly instead of the Lovable Cloud managed `lovable.auth.signInWithOAuth()`. This causes a 404 because the Supabase direct OAuth flow isn't configured for this Cloud project.
+
+Additionally, `GeneratingStep.tsx` (line 791) uses `redirect_uri: window.location.origin` which works in preview but not on the published domain.
+
+### Fix — `src/hooks/use-auth.ts`
+
+Replace the `signInWithGoogle` function to use `lovable.auth.signInWithOAuth("google")` with `redirect_uri` pointing to `https://soulstory.co.il`:
+
+```typescript
+const signInWithGoogle = async () => {
+  try {
+    const { lovable } = await import("@/integrations/lovable/index");
+    const returnTo = localStorage.getItem('returnTo') || '/library';
+    const result = await lovable.auth.signInWithOAuth("google", {
+      redirect_uri: `https://soulstory.co.il/consent?returnTo=${encodeURIComponent(returnTo)}`,
+    });
+    if (result.error) {
+      return { error: result.error };
+    }
+    return { error: null };
+  } catch (e) {
+    return { error: e instanceof Error ? e : new Error(String(e)) };
+  }
+};
+```
 
 ### Fix — `src/components/wizard/GeneratingStep.tsx`
 
-**Change 1** (line 467-471): Only start generation if user is authenticated. Show signup form for unauthenticated users and wait for them to log in.
+Update `redirect_uri` on line 791 from `window.location.origin` to `https://soulstory.co.il`:
 
 ```typescript
-// Only start generation for authenticated users
-if (!hasStartedRef.current && user) {
-  hasStartedRef.current = true;
-  generateStory();
-}
+const result = await lovable.auth.signInWithOAuth("google", {
+  redirect_uri: "https://soulstory.co.il",
+});
 ```
-
-**Change 2** (line 199): Revert `isGuest` to always be `false` since we now require login. Remove the raw `fetch()` guest branch (lines 221-242) — all requests go through `supabase.functions.invoke`.
-
-```typescript
-const isGuest = false; // Guest generation disabled temporarily
-```
-
-**Change 3** (line 484-491): Re-enable the signup completion trigger — when user signs up during loading, start generation:
-
-```typescript
-if (user && !hasStartedRef.current) {
-  hasStartedRef.current = true;
-  generateStory();
-}
-```
-
-This means unauthenticated users see the signup form, sign up, then generation starts as an authenticated user — no guest mode issues.
 
 ### Files modified
-1. `src/components/wizard/GeneratingStep.tsx` — require auth before generation, disable guest mode branch
+1. `src/hooks/use-auth.ts` — switch to `lovable.auth.signInWithOAuth`, set redirect to published domain
+2. `src/components/wizard/GeneratingStep.tsx` — update `redirect_uri` to published domain
 
