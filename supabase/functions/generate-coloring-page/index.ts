@@ -106,7 +106,8 @@ Output ONLY the coloring page image, nothing else. Do not include any text, labe
 
         if (aiResponse.ok) break;
 
-        if (aiResponse.status !== 429 || attempt === maxRetries) break;
+        const retryableStatus = aiResponse.status === 429 || aiResponse.status === 502 || aiResponse.status === 503;
+        if (!retryableStatus || attempt === maxRetries) break;
 
         const retryAfterHeader = aiResponse.headers.get("retry-after");
         const retryAfterSeconds = retryAfterHeader ? Number.parseInt(retryAfterHeader, 10) : NaN;
@@ -115,14 +116,14 @@ Output ONLY the coloring page image, nothing else. Do not include any text, labe
           : Math.min(30, 5 * (2 ** attempt));
         const jitterMs = Math.floor(Math.random() * 1000);
 
-        console.log(`Rate limited on ${model} (attempt ${attempt + 1}/${maxRetries + 1}), waiting ${backoffSeconds}s...`);
+        console.log(`Retryable error ${aiResponse.status} on ${model} (attempt ${attempt + 1}/${maxRetries + 1}), waiting ${backoffSeconds}s...`);
         await new Promise((r) => setTimeout(r, backoffSeconds * 1000 + jitterMs));
       }
 
       if (aiResponse?.ok) break;
       if (aiResponse?.status === 402) break;
-      if (aiResponse?.status === 429) {
-        console.log(`Model ${model} still rate limited, trying next model...`);
+      if (aiResponse?.status === 429 || aiResponse?.status === 502 || aiResponse?.status === 503) {
+        console.log(`Model ${model} failed with ${aiResponse?.status}, trying next model...`);
         continue;
       }
       break;
