@@ -22,9 +22,9 @@ export const PRICING_PACKAGES = [
   {
     id: "premium",
     stories: 15,
-    price: 95,
+    price: 99,
     originalPrice: 139,
-    pricePerStory: "6.3₪",
+    pricePerStory: "6.6₪",
     label: "משתלם",
     freeEdits: 15,
     badge: "הכי משתלם 💰" as string | undefined,
