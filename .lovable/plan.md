@@ -26,4 +26,15 @@ Each card: icon, title, short description, price, and a small CTA button. Same g
 - Add a `COLORING_KIT_PACKAGE` constant (id, pages count, price, label, badge)
 
 **`src/pages/Upgrade.tsx`**
-1. Replace the existing standalone Edit Kit card (lines
+1. Replace the existing standalone Edit Kit card (lines 504-536) with a 2-column grid containing both upsell cards
+2. Add state `showColoringKitPayPal` and its PayPal flow (similar to the existing edit kit flow)
+3. Each card: compact design with emoji icon, title, one-line description, price, and small button
+4. On purchase success for coloring kit: record purchase in `purchases` table (needs a coloring credits field or similar tracking)
+
+### Open Question
+The coloring feature is currently free. What does "חבילת צביעה" actually provide — 5 AI-generated coloring pages? Or something else? This affects what we track on purchase. We may need a `coloring_credits` column on profiles, or simply track it as a purchase record.
+
+### Files modified
+1. `src/config/pricing.ts` — add `COLORING_KIT_PACKAGE`
+2. `src/pages/Upgrade.tsx` — replace edit kit section with 2-column upsell grid
+
