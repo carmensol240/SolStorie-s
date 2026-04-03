@@ -88,8 +88,8 @@ Output ONLY the coloring page image, nothing else. Do not include any text, labe
     };
 
     const modelFallbacks = [
-      "google/gemini-3.1-flash-image-preview",
       "google/gemini-3-pro-image-preview",
+      "google/gemini-3.1-flash-image-preview",
     ];
 
     let aiResponse: Response | null = null;
