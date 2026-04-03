@@ -118,9 +118,8 @@ export const OnlineColoringCanvas: React.FC<OnlineColoringCanvasProps> = ({
     const drawCanvas = canvasRef.current;
     if (!container || !bgCanvas || !drawCanvas) return;
     const rect = container.getBoundingClientRect();
-    const scale = Math.min(rect.width / img.naturalWidth, rect.height / img.naturalHeight);
-    const w = Math.floor(img.naturalWidth * scale);
-    const h = Math.floor(img.naturalHeight * scale);
+    const w = Math.floor(rect.width);
+    const h = Math.floor(rect.height);
     bgCanvas.width = w; bgCanvas.height = h;
     drawCanvas.width = w; drawCanvas.height = h;
     const ctx = bgCanvas.getContext('2d');
