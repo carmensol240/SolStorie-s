@@ -1,20 +1,23 @@
 
 
-## Plan: Fix React forwardRef Warnings
+## Plan: Make Child's Name More Prominent on Story Cover
 
 ### Overview
-Wrap `MobileNavigation`, `LoadingSkeleton` (inside Library.tsx), and the `Library` page component with `React.forwardRef` to eliminate the console warnings about function components receiving refs.
+Split the dedication text on the first page into two lines — the message on one line and the child's name large and bold on a separate line — in both the regular StoryViewer and the combined layout variant.
 
-### Changes
+### Changes — `src/pages/StoryViewer.tsx`
 
-#### 1. `src/components/MobileNavigation.tsx`
-- Wrap the component with `React.forwardRef<HTMLElement>`, forwarding the ref to the outer `<nav>` element.
+**Two locations** (lines ~1647-1649 and ~1771-1773) currently show:
+```
+הספר הזה נוצר במיוחד עבורך, {story.child_name} 💙
+```
 
-#### 2. `src/pages/Library.tsx`
-- The `LoadingSkeleton` is defined inline inside the Library component. Wrap it with `React.forwardRef<HTMLDivElement>` forwarding to its outer `<div>`.
-- Also wrap the `Library` page export with `React.forwardRef<HTMLDivElement>` if it's receiving a ref from React Router.
+Replace each with two separate elements:
+1. Line 1: `הספר הזה נוצר במיוחד עבורך` — keep current size (`text-base md:text-lg`)
+2. Line 2: `{story.child_name} 💙` — larger and bolder (`text-2xl md:text-3xl font-black`), on its own line
+
+The gradient overlay container and position remain unchanged.
 
 ### Files modified
-1. `src/components/MobileNavigation.tsx`
-2. `src/pages/Library.tsx`
+1. `src/pages/StoryViewer.tsx` — two locations updated
 
