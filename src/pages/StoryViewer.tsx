@@ -1397,7 +1397,7 @@ const [currentPage, setCurrentPage] = useState(0);
                           מכין דף צביעה...
                         </>
                       ) : (
-                        "🎨 צבעי אונליין"
+                        "🎨 צבעו אונליין"
                       )}
                     </Button>
                   </div>
