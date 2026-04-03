@@ -43,6 +43,7 @@ const INITIAL_DATA: StoryFormData = {
   storyLength: "short",
   childPhoto: null,
   childAvatarUrl: null,
+  photoConsent: false,
   nikud: true,
   language: "he",
   topic: "",
