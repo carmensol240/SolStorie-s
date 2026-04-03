@@ -174,6 +174,8 @@ serve(async (req) => {
     // ── Build the cover prompt ──
     const coverPrompt = `Create a children's book COVER illustration in the EXACT SAME art style as the reference image — same color palette, same lighting, same Pixar 3D CGI quality. This is a DIFFERENT scene from the same story: use a different pose, different camera angle, and different composition than the reference. Leave 20% space at the top for the title. No text. Same character, same environment theme, but a fresh new moment.
 
+${GENDER_SYMBOL_RESTRICTION}
+
 NEGATIVE: ${NEGATIVE_PROMPT}`;
 
     console.log(`📋 Cover prompt: ${coverPrompt.substring(0, 300)}...`);

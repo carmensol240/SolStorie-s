@@ -4,6 +4,7 @@ import {
   NEGATIVE_PROMPT_FULL,
   TOPIC_IMAGE_STYLE_SUFFIX,
   CAST_DESCRIPTIONS,
+  GENDER_SYMBOL_RESTRICTION,
 } from "../_shared/style-config.ts";
 
 const corsHeaders = {
