@@ -1,37 +1,26 @@
 
 
-## Plan: Add Brush/Pencil Tool Alongside Flood Fill
+## Plan: Add Gender-Appropriate Religious Symbols Restriction
 
 ### Overview
-Add a freehand brush/pencil drawing tool as a third tool option alongside the existing flood fill and eraser. Users can switch between fill, brush, and eraser modes via the bottom toolbar.
+Add a restriction to the negative prompts in `style-config.ts` to prevent AI models from placing kippahs or male religious items on female characters.
 
-### Changes — `src/components/story/OnlineColoringCanvas.tsx`
+### Changes — `supabase/functions/_shared/style-config.ts`
 
-1. **New state**: Add `tool` state with values `'fill' | 'brush' | 'eraser'` replacing the boolean `isEraser`. Add `brushSize` state (default 6).
+Append the following to `NEGATIVE_PROMPT_FULL` (which feeds into `CAST_NEGATIVE_PROMPT`, `TOPIC_IMAGE_STYLE_SUFFIX`, and `buildIllustrationPrompt`):
 
-2. **New import**: Add `Pencil` from `lucide-react`.
+```
+no kippah on girls, no yarmulke on female characters, no male religious clothing on female characters, no gender-inappropriate religious symbols
+```
 
-3. **New cursor**: Add a `BRUSH_CURSOR` — a small circle SVG cursor colored with the current color.
+Also add a new exported constant `GENDER_SYMBOL_RESTRICTION` with a positive instruction to include in illustration prompts:
 
-4. **Update `handlePointerDown`**:
-   - If `tool === 'fill'`: run `floodFill` + `saveSnapshot` (existing behavior)
-   - If `tool === 'brush'`: begin drawing — set `isDrawing`, record `lastPos`, draw initial dot with `source-over` composite op using current color and `brushSize`
-   - If `tool === 'eraser'`: existing eraser behavior
+```
+CRITICAL — GENDER-APPROPRIATE SYMBOLS: Never place a kippah (yarmulke) on a girl character. Never add male religious symbols or clothing on female characters. Use gender-appropriate religious symbols only, or avoid religious symbols altogether unless specifically requested in the story.
+```
 
-5. **Update `handlePointerMove`**:
-   - If `tool === 'brush'` and `isDrawing`: draw line from `lastPos` to current position using `source-over`, current color, round lineCap, `brushSize` width
-   - If `tool === 'eraser'` and `isDrawing`: existing eraser drag behavior
-
-6. **Update `cursorStyle`**: Return appropriate cursor based on `tool` value.
-
-7. **Update toolbar UI**: Show three tool buttons in a row:
-   - `PaintBucket` icon for fill mode
-   - `Pencil` icon for brush mode (colored with current color)
-   - `Eraser` icon for eraser mode
-   - Add a small brush size selector (3 preset sizes: S/M/L) shown only when brush tool is active
-
-8. **Color selection**: Clicking a color auto-switches to fill mode (existing behavior stays).
+Inject this constant into `buildIllustrationPrompt()` alongside the existing `CHARACTER_CONSISTENCY_PROMPT`.
 
 ### Files modified
-1. `src/components/story/OnlineColoringCanvas.tsx`
+1. `supabase/functions/_shared/style-config.ts`
 
