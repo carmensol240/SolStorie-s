@@ -37,6 +37,7 @@ const Upgrade = () => {
   const [userRole, setUserRole] = useState<string>("parent");
   const [showEducatorPayPal, setShowEducatorPayPal] = useState(false);
   const [showEditKitPayPal, setShowEditKitPayPal] = useState(false);
+  const [showColoringKitPayPal, setShowColoringKitPayPal] = useState(false);
   const [showToolkitPayPal, setShowToolkitPayPal] = useState(false);
   const [showSuccess, setShowSuccess] = useState(false);
   const [showSubscriptionSuccess, setShowSubscriptionSuccess] = useState(false);
