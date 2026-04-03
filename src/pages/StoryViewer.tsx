@@ -1537,9 +1537,14 @@ const [currentPage, setCurrentPage] = useState(0);
                               toast({ title: "מכין את דף הצביעה שלך... זה לוקח כ-30 שניות 🎨" });
                               try {
                                 const illustrationFullUrl = getPublicIllustrationUrl(selectedColoringUrl);
-                                const { data, error: fnError } = await supabase.functions.invoke('generate-coloring-page', {
+                                const invokeColoring = () => supabase.functions.invoke('generate-coloring-page', {
                                   body: { illustration_url: illustrationFullUrl, story_title: story.topic, child_name: story.child_name },
                                 });
+                                let { data, error: fnError } = await invokeColoring();
+                                if (!fnError && !data?.image && data?.retryable) {
+                                  await new Promise(r => setTimeout(r, 5000));
+                                  ({ data, error: fnError } = await invokeColoring());
+                                }
                                 if (fnError || !data?.image) {
                                   toast({ title: data?.error || "שגיאה ביצירת דף הצביעה", variant: "destructive" });
                                   return;
