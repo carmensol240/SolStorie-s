@@ -13,7 +13,7 @@ export const PRICING_PACKAGES = [
     id: "popular",
     stories: 10,
     price: 65,
-    originalPrice: 89,
+    originalPrice: 99,
     pricePerStory: "6.5₪",
     label: "פופולרי",
     freeEdits: 10,
