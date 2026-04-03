@@ -1,7 +1,7 @@
 import "https://deno.land/x/xhr@0.1.0/mod.ts";
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.39.3";
-import { NEGATIVE_PROMPT } from "../_shared/style-config.ts";
+import { NEGATIVE_PROMPT, GENDER_SYMBOL_RESTRICTION } from "../_shared/style-config.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
