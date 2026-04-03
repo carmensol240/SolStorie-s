@@ -1713,6 +1713,7 @@ const [currentPage, setCurrentPage] = useState(0);
                     </AlertDialogContent>
                   </AlertDialog>
 
+                  <div className="pt-2">
                     <span className="text-xl font-black logo-3d-bubble mt-3"><span className="logo-rainbow">SolStorie's™</span></span>
                   </div>
                 </div>
