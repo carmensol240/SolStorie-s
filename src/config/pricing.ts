@@ -39,6 +39,14 @@ export const EDIT_KIT_PACKAGE = {
   badge: "✏️ לעריכת סיפורים" as string | undefined,
 };
 
+export const COLORING_KIT_PACKAGE = {
+  id: "coloring_kit",
+  pages: 5,
+  price: 19.90,
+  label: "חבילת צביעה",
+  badge: "🎨 לדפי צביעה" as string | undefined,
+};
+
 export const EDUCATOR_PACKAGE = {
   id: "educator",
   stories: 25,
