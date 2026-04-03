@@ -219,7 +219,10 @@ const AvatarPreviewDialog = ({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-md overflow-hidden" dir="rtl">
+      <DialogContent
+        className="fixed left-1/2 top-1/2 z-50 w-[90vw] max-w-[400px] -translate-x-1/2 -translate-y-1/2 max-h-[90vh] overflow-y-auto p-4 sm:p-6"
+        dir="rtl"
+      >
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <Sparkles className="w-5 h-5 text-primary" />
@@ -233,14 +236,14 @@ const AvatarPreviewDialog = ({
           </p>
 
           {/* Image comparison */}
-          <div className="grid grid-cols-2 gap-4 w-full">
+          <div className="grid grid-cols-2 gap-3 sm:gap-4 w-full">
             {/* Original Photo */}
             <div className="space-y-2">
               <p className="text-xs text-muted-foreground text-center">תמונה מקורית</p>
               <div className="aspect-square w-full rounded-xl overflow-hidden border-2 border-muted">
-                <img 
-                  src={originalPhoto} 
-                  alt="תמונה מקורית" 
+                <img
+                  src={originalPhoto}
+                  alt="תמונה מקורית"
                   className="w-full h-full object-cover"
                 />
               </div>
@@ -261,9 +264,9 @@ const AvatarPreviewDialog = ({
                     <span className="text-xs text-destructive text-center">{errorMessage}</span>
                   </div>
                 ) : previewUrl ? (
-                  <img 
-                    src={previewUrl} 
-                    alt="דמות בסיפור" 
+                  <img
+                    src={previewUrl}
+                    alt="דמות בסיפור"
                     className="w-full h-full object-cover"
                   />
                 ) : (
@@ -297,7 +300,6 @@ const AvatarPreviewDialog = ({
               <p className="text-xs text-muted-foreground">
                 💡 הדמות הזו תופיע בכל הסיפורים של {childName} כדי לשמור על עקביות
               </p>
-              {/* Show remaining regenerations */}
               <p className="text-xs text-muted-foreground mt-1">
                 {canRegenerate ? (
                   <>נותרו לך <strong>{MAX_AVATAR_REGENERATIONS - localRegenerationCount}</strong> יצירות מחדש</>
@@ -312,11 +314,11 @@ const AvatarPreviewDialog = ({
           )}
         </div>
 
-        <DialogFooter className="gap-2 sm:gap-0 flex-row-reverse sm:flex-row-reverse">
+        <DialogFooter className="gap-2 sm:gap-0 sm:flex-row-reverse">
           <Button
             onClick={handleConfirm}
             disabled={!previewUrl || isGenerating || isSaving}
-            className="gap-2"
+            className="w-full sm:w-auto gap-2"
           >
             {isSaving ? (
               <>
@@ -330,22 +332,23 @@ const AvatarPreviewDialog = ({
               </>
             )}
           </Button>
-          
+
           {previewUrl && !isGenerating && canRegenerate && (
             <Button
               variant="outline"
               onClick={() => generatePreview()}
               disabled={isGenerating || !canRegenerate}
-              className="gap-2"
+              className="w-full sm:w-auto gap-2"
             >
               <RefreshCw className="w-4 h-4" />
               יצירה מחדש ({MAX_AVATAR_REGENERATIONS - localRegenerationCount})
             </Button>
           )}
-          
+
           <Button
             variant="ghost"
             onClick={() => onOpenChange(false)}
+            className="w-full sm:w-auto"
           >
             ביטול
           </Button>
