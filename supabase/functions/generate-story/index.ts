@@ -1919,9 +1919,11 @@ ${fullStoryText}`;
       // so the Deno runtime doesn't kill them when the response is sent.
       const fetchPromises: Promise<void>[] = [];
 
-      // Include nikud and summary in the same batch so runtime waits for them
-      fetchPromises.push(summaryPromise as Promise<void>);
-      fetchPromises.push(nikudPromise);
+      // Nikud and summary run as true background tasks — don't block response
+      // Reference them so Deno doesn't GC before completion
+      Promise.allSettled([summaryPromise, nikudPromise]).then(() => {
+        console.log("Background nikud + summary completed");
+      });
 
       for (const page of illustrationPages) {
         console.log(`  → Dispatching illustration for page ${page.page_number}`);
@@ -1982,14 +1984,13 @@ ${fullStoryText}`;
       });
       fetchPromises.push(coverPromise);
 
-      // Wait for dispatch with a 15-second timeout to avoid Edge Function timeout
-      // if external services (Fal.ai) are slow to accept connections
+      // Wait for dispatch with a 3-second timeout — only need HTTP acceptance
       await Promise.race([
         Promise.allSettled(fetchPromises),
         new Promise<void>(resolve => setTimeout(() => {
-          console.warn("Dispatch timeout reached (15s) — proceeding with response");
+          console.warn("Dispatch timeout reached (3s) — proceeding with response");
           resolve();
-        }, 15000)),
+        }, 3000)),
       ]);
       console.log(`All ${fetchPromises.length} generation requests dispatched`);
     }
