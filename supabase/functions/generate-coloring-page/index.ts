@@ -106,7 +106,8 @@ Output ONLY the coloring page image, nothing else. Do not include any text, labe
 
         if (aiResponse.ok) break;
 
-        if (aiResponse.status !== 429 || attempt === maxRetries) break;
+        const retryableStatus = aiResponse.status === 429 || aiResponse.status === 502 || aiResponse.status === 503;
+        if (!retryableStatus || attempt === maxRetries) break;
 
         const retryAfterHeader = aiResponse.headers.get("retry-after");
         const retryAfterSeconds = retryAfterHeader ? Number.parseInt(retryAfterHeader, 10) : NaN;
