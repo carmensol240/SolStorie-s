@@ -1431,53 +1431,42 @@ ${topic.endsWith('-edu') ? `
 - כלל ניקוד: אם לא בטוח ב-100% בניקוד - השתמש במילה שאתה בטוח בניקוד שלה.`;
     }
 
-    console.log("[generate-story] 📡 Calling Lovable AI Gateway (gemini-2.5-flash) for story generation...");
-    const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+    console.log("[generate-story] 📡 Calling Google Gemini API (gemini-2.0-flash) for story generation...");
+    const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${GEMINI_API_KEY}`, {
       method: "POST",
-      headers: {
-        Authorization: `Bearer ${LOVABLE_API_KEY}`,
-        "Content-Type": "application/json",
-      },
+      headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
-        model: "google/gemini-2.5-flash",
-        messages: [
-          { role: "system", content: systemPrompt },
-          { role: "user", content: userPrompt },
-        ],
-        response_format: { type: "json_object" },
-        max_tokens: 8192,
+        systemInstruction: { parts: [{ text: systemPrompt }] },
+        contents: [{ role: "user", parts: [{ text: userPrompt }] }],
+        generationConfig: {
+          responseMimeType: "application/json",
+          maxOutputTokens: 8192,
+        },
       }),
     });
 
     if (!response.ok) {
       const errorText = await response.text();
-      console.error(`[generate-story] ❌ AI Gateway error: status=${response.status}, body=${errorText}`);
-      await logError("story_generation_error", `AI Gateway error: ${response.status}`, { status: response.status, body: errorText.substring(0, 500), topic, childName }, userId);
+      console.error(`[generate-story] ❌ Gemini API error: status=${response.status}, body=${errorText}`);
+      await logError("story_generation_error", `Gemini API error: ${response.status}`, { status: response.status, body: errorText.substring(0, 500), topic, childName }, userId);
       if (response.status === 429) {
         return new Response(
           JSON.stringify({ error: "הגעתם למגבלת הבקשות. נסו שוב בעוד מספר דקות." }),
           { status: 429, headers: { ...corsHeaders, "Content-Type": "application/json" } }
         );
       }
-      if (response.status === 401) {
+      if (response.status === 401 || response.status === 403) {
         return new Response(
           JSON.stringify({ error: "שגיאת הרשאה. אנא צרו קשר עם התמיכה." }),
           { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } }
         );
       }
-      if (response.status === 402) {
-        return new Response(
-          JSON.stringify({ error: "שגיאת מערכת זמנית. נסו שוב בעוד מספר דקות." }),
-          { status: 402, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-        );
-      }
       throw new Error("שגיאה ביצירת הסיפור. נסו שוב מאוחר יותר.");
     }
 
-    console.log("[generate-story] ✅ AI Gateway response received, parsing...");
+    console.log("[generate-story] ✅ Gemini API response received, parsing...");
     const aiData = await response.json();
-    const content = aiData.choices?.[0]?.message?.content;
-    console.log(`[generate-story] 📊 Usage: prompt_tokens=${aiData.usage?.prompt_tokens}, completion_tokens=${aiData.usage?.completion_tokens}`);
+    const content = aiData.candidates?.[0]?.content?.parts?.[0]?.text;
     
     if (!content) {
       throw new Error("שגיאה ביצירת הסיפור. נסו שוב.");
