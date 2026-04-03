@@ -140,6 +140,8 @@ const GeneratingStep = ({ formData, onComplete }: GeneratingStepProps) => {
   const [castIndex, setCastIndex] = useState(0);
   const [tipIndex, setTipIndex] = useState(0);
   const [isTipVisible, setIsTipVisible] = useState(true);
+  const shuffledIndicesRef = useRef<number[]>(shuffleArray(Array.from({ length: EMPOWERING_SENTENCES.length }, (_, i) => i)));
+  const shufflePosRef = useRef(0);
 
   // Build dynamic cast list including the child as a superhero
   const allCharacters = useMemo(() => {
