@@ -13,7 +13,8 @@ serve(async (req) => {
   }
 
   try {
-    const { illustration_url, story_title, child_name } = await req.json();
+    const authHeader = req.headers.get("authorization") || "";
+    const { illustration_url, story_title, child_name, story_id, device_id } = await req.json();
 
     if (!illustration_url) {
       return new Response(JSON.stringify({ error: "illustration_url is required" }), {
