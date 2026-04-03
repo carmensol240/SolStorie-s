@@ -356,17 +356,24 @@ const GeneratingStep = ({ formData, onComplete }: GeneratingStepProps) => {
         .select("id, illustration_url")
         .eq("story_id", storyId);
       
-      if (pages && pages.length > 0 && pages.every(p => p.illustration_url)) {
-        console.log("[GeneratingStep] All illustrations ready!");
-        setIllustrationsReady(true);
-        setProgress(100);
-        setShowReadyPopup(true);
-        setTimeout(() => {
-          if (storyId && !hasNavigatedRef.current) {
-            hasNavigatedRef.current = true;
-            onComplete(storyId);
-          }
-        }, 2500);
+      if (pages && pages.length > 0) {
+        const done = pages.filter(p => p.illustration_url).length;
+        const total = pages.length;
+        const illustrationProgress = 50 + (done / total) * 45;
+        setProgress(prev => Math.max(prev, illustrationProgress));
+
+        if (pages.every(p => p.illustration_url)) {
+          console.log("[GeneratingStep] All illustrations ready!");
+          setIllustrationsReady(true);
+          setProgress(100);
+          setShowReadyPopup(true);
+          setTimeout(() => {
+            if (storyId && !hasNavigatedRef.current) {
+              hasNavigatedRef.current = true;
+              onComplete(storyId);
+            }
+          }, 2500);
+        }
       }
     };
     checkIllustrations();
