@@ -403,7 +403,8 @@ const Library = () => {
         </div>
       ))}
     </div>
-  );
+  ));
+  LoadingSkeleton.displayName = "LoadingSkeleton";
 
   // ---- GUEST MODE (not logged in) ----
   if (!user && !authLoading) {
