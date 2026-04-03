@@ -108,6 +108,7 @@ const GeneratingStep = ({ formData, onComplete }: GeneratingStepProps) => {
   const [signupPassword, setSignupPassword] = useState("");
   const [signupShowPassword, setSignupShowPassword] = useState(false);
   const [signupTermsAccepted, setSignupTermsAccepted] = useState(false);
+  const [marketingConsent, setMarketingConsent] = useState(false);
   const [signupMode, setSignupMode] = useState<"signup" | "login">("signup");
   const [signupSubmitting, setSignupSubmitting] = useState(false);
   const [signupDismissed, setSignupDismissed] = useState(false);
