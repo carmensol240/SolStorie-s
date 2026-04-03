@@ -510,28 +510,22 @@ const NIKUD_GRAMMARIAN_PROMPT = `אתה מומחה ניקוד עברי (נקדן
 // Function to add nikud to a single page text using the Grammarian agent
 async function addNikudToText(text: string, apiKey: string): Promise<string> {
   try {
-    const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+    const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`, {
       method: "POST",
-      headers: {
-        Authorization: `Bearer ${apiKey}`,
-        "Content-Type": "application/json",
-      },
+      headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
-        model: "google/gemini-2.5-flash",
-        messages: [
-          { role: "system", content: NIKUD_GRAMMARIAN_PROMPT },
-          { role: "user", content: `הוסף ניקוד מלא ומדויק לטקסט הבא:\n\n${text}` },
-        ],
+        systemInstruction: { parts: [{ text: NIKUD_GRAMMARIAN_PROMPT }] },
+        contents: [{ role: "user", parts: [{ text: `הוסף ניקוד מלא ומדויק לטקסט הבא:\n\n${text}` }] }],
       }),
     });
 
     if (!response.ok) {
       console.error("Nikud grammarian failed:", response.status);
-      return text; // Fallback to original text without nikud
+      return text;
     }
 
     const data = await response.json();
-    const nikudText = data.choices?.[0]?.message?.content?.trim();
+    const nikudText = data.candidates?.[0]?.content?.parts?.[0]?.text?.trim();
 
     if (!nikudText) {
       console.error("No nikud text returned from grammarian");
@@ -873,13 +867,13 @@ serve(async (req) => {
     // Use avatar URL if available (for character consistency), otherwise use original photo
     const effectivePhoto = childAvatarUrl || childPhoto;
 
-    // LOVABLE_API_KEY for all AI calls (story generation + background tasks)
-    const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
-    if (!LOVABLE_API_KEY) {
-      console.error("[generate-story] ❌ LOVABLE_API_KEY is NOT configured!");
+    // GEMINI_API_KEY for all AI calls (story generation + background tasks)
+    const GEMINI_API_KEY = Deno.env.get("GEMINI_API_KEY");
+    if (!GEMINI_API_KEY) {
+      console.error("[generate-story] ❌ GEMINI_API_KEY is NOT configured!");
       throw new Error("API key not configured");
     }
-    console.log("[generate-story] ✅ LOVABLE_API_KEY loaded successfully");
+    console.log("[generate-story] ✅ GEMINI_API_KEY loaded successfully");
 
     // Gender text variables moved into language-specific prompt building below
     
@@ -1437,53 +1431,42 @@ ${topic.endsWith('-edu') ? `
 - כלל ניקוד: אם לא בטוח ב-100% בניקוד - השתמש במילה שאתה בטוח בניקוד שלה.`;
     }
 
-    console.log("[generate-story] 📡 Calling Lovable AI Gateway (gemini-2.5-flash) for story generation...");
-    const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+    console.log("[generate-story] 📡 Calling Google Gemini API (gemini-2.0-flash) for story generation...");
+    const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${GEMINI_API_KEY}`, {
       method: "POST",
-      headers: {
-        Authorization: `Bearer ${LOVABLE_API_KEY}`,
-        "Content-Type": "application/json",
-      },
+      headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
-        model: "google/gemini-2.5-flash",
-        messages: [
-          { role: "system", content: systemPrompt },
-          { role: "user", content: userPrompt },
-        ],
-        response_format: { type: "json_object" },
-        max_tokens: 8192,
+        systemInstruction: { parts: [{ text: systemPrompt }] },
+        contents: [{ role: "user", parts: [{ text: userPrompt }] }],
+        generationConfig: {
+          responseMimeType: "application/json",
+          maxOutputTokens: 8192,
+        },
       }),
     });
 
     if (!response.ok) {
       const errorText = await response.text();
-      console.error(`[generate-story] ❌ AI Gateway error: status=${response.status}, body=${errorText}`);
-      await logError("story_generation_error", `AI Gateway error: ${response.status}`, { status: response.status, body: errorText.substring(0, 500), topic, childName }, userId);
+      console.error(`[generate-story] ❌ Gemini API error: status=${response.status}, body=${errorText}`);
+      await logError("story_generation_error", `Gemini API error: ${response.status}`, { status: response.status, body: errorText.substring(0, 500), topic, childName }, userId);
       if (response.status === 429) {
         return new Response(
           JSON.stringify({ error: "הגעתם למגבלת הבקשות. נסו שוב בעוד מספר דקות." }),
           { status: 429, headers: { ...corsHeaders, "Content-Type": "application/json" } }
         );
       }
-      if (response.status === 401) {
+      if (response.status === 401 || response.status === 403) {
         return new Response(
           JSON.stringify({ error: "שגיאת הרשאה. אנא צרו קשר עם התמיכה." }),
           { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } }
         );
       }
-      if (response.status === 402) {
-        return new Response(
-          JSON.stringify({ error: "שגיאת מערכת זמנית. נסו שוב בעוד מספר דקות." }),
-          { status: 402, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-        );
-      }
       throw new Error("שגיאה ביצירת הסיפור. נסו שוב מאוחר יותר.");
     }
 
-    console.log("[generate-story] ✅ AI Gateway response received, parsing...");
+    console.log("[generate-story] ✅ Gemini API response received, parsing...");
     const aiData = await response.json();
-    const content = aiData.choices?.[0]?.message?.content;
-    console.log(`[generate-story] 📊 Usage: prompt_tokens=${aiData.usage?.prompt_tokens}, completion_tokens=${aiData.usage?.completion_tokens}`);
+    const content = aiData.candidates?.[0]?.content?.parts?.[0]?.text;
     
     if (!content) {
       throw new Error("שגיאה ביצירת הסיפור. נסו שוב.");
@@ -1574,20 +1557,14 @@ ${topic.endsWith('-edu') ? `
         console.warn("[generate-story] Repair failed, retrying AI call...");
         // Attempt 3: retry the AI call once
         try {
-          const retryResponse = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+          const retryResponse = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${GEMINI_API_KEY}`, {
             method: "POST",
             signal: AbortSignal.timeout(120_000),
-            headers: {
-              Authorization: `Bearer ${LOVABLE_API_KEY}`,
-              "Content-Type": "application/json",
-            },
+            headers: { "Content-Type": "application/json" },
             body: JSON.stringify({
-              model: "google/gemini-2.5-flash",
-              messages: [
-                { role: "system", content: systemPrompt },
-                { role: "user", content: userPrompt },
-              ],
-              response_format: { type: "json_object" },
+              systemInstruction: { parts: [{ text: systemPrompt }] },
+              contents: [{ role: "user", parts: [{ text: userPrompt }] }],
+              generationConfig: { responseMimeType: "application/json" },
             }),
           });
           if (!retryResponse.ok) {
@@ -1596,7 +1573,7 @@ ${topic.endsWith('-edu') ? `
             throw new Error("Retry failed");
           }
           const retryData = await retryResponse.json();
-          const retryContent = retryData.choices?.[0]?.message?.content;
+          const retryContent = retryData.candidates?.[0]?.content?.parts?.[0]?.text;
           if (!retryContent) throw new Error("Empty retry response");
           const cleanedRetry = cleanAiContent(retryContent);
           storyData = JSON.parse(cleanedRetry);
@@ -1709,12 +1686,11 @@ ${fullStoryText}`;
       const rewriteController = new AbortController();
       const rewriteTimeout = setTimeout(() => rewriteController.abort(), 12000);
       
-      const rewriteResponse = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+      const rewriteResponse = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${GEMINI_API_KEY}`, {
         method: "POST",
-        headers: { Authorization: `Bearer ${LOVABLE_API_KEY}`, "Content-Type": "application/json" },
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          model: "google/gemini-2.5-flash-lite",
-          messages: [{ role: "user", content: rewritePrompt }],
+          contents: [{ role: "user", parts: [{ text: rewritePrompt }] }],
         }),
         signal: rewriteController.signal,
       });
@@ -1722,7 +1698,7 @@ ${fullStoryText}`;
 
       if (rewriteResponse.ok) {
         const rewriteData = await rewriteResponse.json();
-        const rewrittenText = rewriteData.choices?.[0]?.message?.content?.trim();
+        const rewrittenText = rewriteData.candidates?.[0]?.content?.parts?.[0]?.text?.trim();
         
         if (rewrittenText) {
           // Parse rewritten text back into pages by [עמוד X] markers
@@ -1847,17 +1823,16 @@ ${fullStoryText}`;
     const summaryPromise = (async () => {
       try {
         const fullText = storyData.pages.map((p: any) => p.text).join("\n");
-        const summaryResponse = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+        const summaryResponse = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${GEMINI_API_KEY}`, {
           method: "POST",
-          headers: { Authorization: `Bearer ${LOVABLE_API_KEY}`, "Content-Type": "application/json" },
+          headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
-            model: "google/gemini-2.5-flash-lite",
-            messages: [{ role: "user", content: `סכם את הסיפור הבא במשפט אחד קצר בעברית (עד 30 מילים). תן רק את המשפט, ללא הקדמה:\n${fullText}` }],
+            contents: [{ role: "user", parts: [{ text: `סכם את הסיפור הבא במשפט אחד קצר בעברית (עד 30 מילים). תן רק את המשפט, ללא הקדמה:\n${fullText}` }] }],
           }),
         });
         if (summaryResponse.ok) {
           const summaryData = await summaryResponse.json();
-          const summary = summaryData.choices?.[0]?.message?.content?.trim();
+          const summary = summaryData.candidates?.[0]?.content?.parts?.[0]?.text?.trim();
           if (summary) {
             await supabase.from("stories").update({ summary }).eq("id", story.id);
             console.log(`Summary saved for story ${story.id}: ${summary.substring(0, 60)}...`);
@@ -1883,7 +1858,7 @@ ${fullStoryText}`;
           if (savedPages) {
             const nikudResults = await Promise.allSettled(
               savedPages.map(async (page) => {
-                const nikudText = await addNikudToText(page.text, LOVABLE_API_KEY);
+                const nikudText = await addNikudToText(page.text, GEMINI_API_KEY);
                 if (nikudText !== page.text) {
                   await supabase
                     .from("story_pages")

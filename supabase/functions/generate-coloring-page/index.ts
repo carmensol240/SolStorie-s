@@ -84,9 +84,9 @@ serve(async (req) => {
     }
 
     // ── AI generation ──
-    const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
-    if (!LOVABLE_API_KEY) {
-      console.error("LOVABLE_API_KEY not configured");
+    const GEMINI_API_KEY = Deno.env.get("GEMINI_API_KEY");
+    if (!GEMINI_API_KEY) {
+      console.error("GEMINI_API_KEY not configured");
       return jsonResponse({ error: "Server configuration error" }, 500);
     }
 
@@ -103,19 +103,10 @@ serve(async (req) => {
       new Uint8Array(imgBuffer).reduce((data, byte) => data + String.fromCharCode(byte), "")
     );
     const mimeType = imgResponse.headers.get("content-type") || "image/png";
-    const imageDataUrl = `data:${mimeType};base64,${imgBase64}`;
 
     console.log("Sending to Gemini for coloring page conversion...");
 
-    const buildAiBody = (model: string) => JSON.stringify({
-      model,
-      messages: [
-        {
-          role: "user",
-          content: [
-            {
-              type: "text",
-              text: `Convert this illustration into a perfect children's coloring book page for printing. Follow these rules strictly:
+    const coloringPrompt = `Convert this illustration into a perfect children's coloring book page for printing. Follow these rules strictly:
 
 1. OUTLINES: Use very thick, bold, solid black outlines (minimum 3-4px weight). Every shape must have a clearly defined closed boundary.
 2. SIMPLICITY: Create large, simple areas for coloring. Merge small details into bigger shapes. A 3-year-old should be able to color inside the lines.
@@ -126,92 +117,70 @@ serve(async (req) => {
 7. RESOLUTION: Output a high-resolution image (at least 2400x3200 pixels) suitable for 300 DPI A4 printing.
 8. BACKGROUND: Pure white (#FFFFFF) background with no marks or artifacts.
 
-Output ONLY the coloring page image, nothing else. Do not include any text, labels, letter names, or written words anywhere in the image.`,
-            },
-            {
-              type: "image_url",
-              image_url: { url: imageDataUrl },
-            },
-          ],
-        },
-      ],
-      modalities: ["image", "text"],
+Output ONLY the coloring page image, nothing else. Do not include any text, labels, letter names, or written words anywhere in the image.`;
+
+    const geminiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-exp:generateContent?key=${GEMINI_API_KEY}`;
+    const geminiBody = JSON.stringify({
+      contents: [{
+        role: "user",
+        parts: [
+          { text: coloringPrompt },
+          { inlineData: { mimeType, data: imgBase64 } },
+        ],
+      }],
+      generationConfig: {
+        responseModalities: ["TEXT", "IMAGE"],
+      },
     });
 
-    const aiHeaders = {
-      Authorization: `Bearer ${LOVABLE_API_KEY}`,
-      "Content-Type": "application/json",
-    };
-
-    const modelFallbacks = [
-      "google/gemini-3-pro-image-preview",
-      "google/gemini-3.1-flash-image-preview",
-    ];
-
+    const maxRetries = 4;
     let aiResponse: Response | null = null;
-    let modelUsed = "";
-    for (const model of modelFallbacks) {
-      const aiBody = buildAiBody(model);
-      const maxRetries = 4;
 
-      for (let attempt = 0; attempt <= maxRetries; attempt++) {
-        aiResponse = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
-          method: "POST",
-          headers: aiHeaders,
-          body: aiBody,
-        });
+    for (let attempt = 0; attempt <= maxRetries; attempt++) {
+      aiResponse = await fetch(geminiUrl, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: geminiBody,
+      });
 
-        if (aiResponse.ok) { modelUsed = model; break; }
+      if (aiResponse.ok) break;
 
-        const retryableStatus = aiResponse.status === 429 || aiResponse.status === 502 || aiResponse.status === 503;
-        if (!retryableStatus || attempt === maxRetries) break;
+      const retryableStatus = aiResponse.status === 429 || aiResponse.status === 502 || aiResponse.status === 503;
+      if (!retryableStatus || attempt === maxRetries) break;
 
-        const retryAfterHeader = aiResponse.headers.get("retry-after");
-        const retryAfterSeconds = retryAfterHeader ? Number.parseInt(retryAfterHeader, 10) : NaN;
-        const backoffSeconds = Number.isFinite(retryAfterSeconds) && retryAfterSeconds > 0
-          ? retryAfterSeconds
-          : Math.min(30, 5 * (2 ** attempt));
-        const jitterMs = Math.floor(Math.random() * 1000);
-
-        console.log(`Retryable error ${aiResponse.status} on ${model} (attempt ${attempt + 1}/${maxRetries + 1}), waiting ${backoffSeconds}s...`);
-        await new Promise((r) => setTimeout(r, backoffSeconds * 1000 + jitterMs));
-      }
-
-      if (aiResponse?.ok) break;
-      if (aiResponse?.status === 402 || aiResponse?.status === 429 || aiResponse?.status === 502 || aiResponse?.status === 503) {
-        console.log(`Model ${model} failed with ${aiResponse?.status}, trying next model...`);
-        continue;
-      }
-      break;
+      const backoffSeconds = Math.min(30, 5 * (2 ** attempt));
+      const jitterMs = Math.floor(Math.random() * 1000);
+      console.log(`Retryable error ${aiResponse.status} (attempt ${attempt + 1}/${maxRetries + 1}), waiting ${backoffSeconds}s...`);
+      await new Promise((r) => setTimeout(r, backoffSeconds * 1000 + jitterMs));
     }
 
     if (!aiResponse!.ok) {
       const status = aiResponse!.status;
-      if (status === 429 || status === 402) {
+      if (status === 429) {
         return jsonResponse({ error: "השירות עמוס כרגע, נסו שוב בעוד כמה דקות 🎨", retryable: true });
       }
       const errText = await aiResponse!.text();
-      console.error("AI gateway error:", status, errText);
+      console.error("Gemini API error:", status, errText);
       return jsonResponse({ error: "שגיאה ביצירת דף הצביעה" }, 500);
     }
 
     const aiData = await aiResponse!.json();
 
-    // Extract image from response
-    let generatedImage = aiData.choices?.[0]?.message?.images?.[0]?.image_url?.url;
-    if (!generatedImage) {
-      const content = aiData.choices?.[0]?.message?.content;
-      if (Array.isArray(content)) {
-        const imgPart = content.find((p: any) => p.type === "image_url" || p.type === "image");
-        generatedImage = imgPart?.image_url?.url || imgPart?.url;
-      }
-      if (!generatedImage && typeof content === "string" && content.startsWith("data:image")) {
-        generatedImage = content;
+    // Extract image from Gemini response — look for inlineData in parts
+    let generatedImage: string | undefined;
+    const parts = aiData.candidates?.[0]?.content?.parts;
+    if (Array.isArray(parts)) {
+      for (const part of parts) {
+        if (part.inlineData?.data) {
+          const partMime = part.inlineData.mimeType || "image/png";
+          generatedImage = `data:${partMime};base64,${part.inlineData.data}`;
+          break;
+        }
       }
     }
 
     if (!generatedImage) {
-      console.error("No image returned from AI. Response structure:", JSON.stringify(aiData).slice(0, 1000));
+      console.error("No image returned from Gemini. Response structure:", JSON.stringify(aiData).slice(0, 1000));
       return jsonResponse({ error: "לא התקבלה תמונה מהמערכת" }, 500);
     }
 
@@ -259,7 +228,7 @@ Output ONLY the coloring page image, nothing else. Do not include any text, labe
           story_title: story_title || null,
           child_name: child_name || null,
           user_id: userId,
-          model_used: modelUsed || "gemini-image",
+          model_used: "gemini-2.0-flash-exp",
         },
       });
     } catch (trackErr) {
