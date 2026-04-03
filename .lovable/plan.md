@@ -1,40 +1,30 @@
 
 
-## Plan: Expand and Shuffle Motivational Sentences in GeneratingStep
+## Plan: Fix Story Generation Slowdown — Reduce Dispatch Wait
 
-### Analysis
-1. **Signup form** — Already fully present and working (lines 732-909): Google button, "או" divider, email/password, terms, "הירשמו בחינם ✨", and "אולי אחר כך". No changes needed.
-2. **Sentences** — Only 8 sentences, cycling sequentially with modulo. Need 15+ and a shuffle-without-repeat algorithm.
-3. **Icons** — Already have emojis. Will ensure all new sentences also have emojis.
+### Root Cause
 
-### Changes — `src/components/wizard/GeneratingStep.tsx`
+The `generate-story` function waits up to **15 seconds** for background tasks (nikud, summary, illustrations, cover) before returning the response. From the logs:
 
-**Expand EMPOWERING_SENTENCES** (lines 55-64) to 16 sentences, all with emoji prefixes:
-```
-"✨ במילים שאתם בוחרים היום, אתם מעצבים את עולמו הפנימי של ילדכם מחר",
-"💛 הזמן שאתם משקיעים עכשיו בסיפור משותף, בונה את הביטחון של הילד שלכם מחר",
-"🎁 כל סיפור שאתם יוצרים הוא מתנה של דמיון ומרחב בטוח עבור ילדכם",
-"🌱 כל מילה שאתה מקריא היא זרע של סקרנות וצמיחה",
-"📖 בזמן שהסיפור נכתב, אתה כותב ביטחון ודמיון בלב של הילד שלך",
-"🌟 יש לך את הכוח להפוך כל רגע פשוט להרפתקה שתלווה אותו לכל החיים",
-"🌈 הקריאה המשותפת היא המקום שבו הילד שלך לומד לחלום בלי גבולות",
-"🧭 אתה המדריך הכי טוב של הילד שלך בעולמות הדמיון",
-"🦋 כל סיפור פותח דלת לעולם חדש של אפשרויות",
-"🏰 הדמיון של ילדכם הוא הטירה הכי חזקה שיש",
-"🎭 דרך הסיפורים ילדים לומדים להכיר רגשות ולהבין אחרים",
-"🔮 הקסם האמיתי הוא הרגע שבו ילד אומר — ׳עוד פעם!׳",
-"💫 סיפור אישי מלמד ילד שהוא חשוב, ייחודי ואהוב",
-"🎨 כל עמוד הוא בד ציור חדש לדמיון של ילדכם",
-"🌻 ילדים שגדלים עם סיפורים גדלים עם ביטחון ואמפתיה",
-"🫂 הסיפור שאתם יוצרים עכשיו יהפוך לזיכרון יקר לשניכם"
-```
+- Story AI generation: **9s**
+- Text rewrite: **2s**
+- Dispatch wait: **15s** (hit the full timeout)
 
-**Shuffle-without-repeat rotation** (line 389): Replace the sequential `(prev + 1) % length` with a Fisher-Yates shuffle approach using a ref:
-- Add a `shuffledSentences` ref that holds a shuffled copy of indices
-- Add a `shufflePosition` ref tracking current position
-- When position reaches end, reshuffle
-- `setSentenceIndex` picks from shuffled order
+**Total: ~29s** — the 15s dispatch timeout accounts for half.
+
+The problem: nikud (7 parallel AI calls) and summary (1 AI call) promises are bundled into the same `fetchPromises` array as illustration dispatches. The function waits for ALL of them. The nikud and summary are full AI calls that take 10-15s, which always hits the 15s timeout.
+
+### Fix — `supabase/functions/generate-story/index.ts`
+
+1. **Remove nikud and summary promises from the dispatch wait** (lines 1923-1924): Don't push `summaryPromise` and `nikudPromise` into `fetchPromises`. These should run truly in the background.
+
+2. **Reduce dispatch timeout from 15s to 3s** (line 1992): The illustration and cover dispatches only need the HTTP connection to be accepted (~1-2s). Reduce to 3s.
+
+3. **Keep nikud/summary running** by referencing them after the response dispatch so Deno doesn't garbage-collect them — add a separate `Promise.allSettled([nikudPromise, summaryPromise])` with no await (fire-and-forget).
+
+### Expected Result
+Response time drops from ~29s to ~14s (9s generation + 2s rewrite + 3s dispatch).
 
 ### Files modified
-1. `src/components/wizard/GeneratingStep.tsx` — expand sentences array to 16, implement shuffle-without-repeat rotation
+1. `supabase/functions/generate-story/index.ts` — unbundle nikud/summary from dispatch wait, reduce timeout
 
