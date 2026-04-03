@@ -1207,7 +1207,7 @@ const [currentPage, setCurrentPage] = useState(0);
         if (newPage >= maxPage) {
           trackStoryCompleted(story.id);
         }
-      } else if (direction === 'prev' && currentPage > minPage) {
+      } else if (direction === 'prev' && currentPage > 0) {
         const newPage = currentPage - 1;
         setCurrentPage(newPage);
       }
