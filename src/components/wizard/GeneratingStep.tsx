@@ -406,7 +406,12 @@ const GeneratingStep = ({ formData, onComplete }: GeneratingStepProps) => {
     const sentenceInterval = setInterval(() => {
       setIsSentenceVisible(false);
       setTimeout(() => {
-        setSentenceIndex((prev) => (prev + 1) % EMPOWERING_SENTENCES.length);
+        shufflePosRef.current += 1;
+        if (shufflePosRef.current >= shuffledIndicesRef.current.length) {
+          shuffledIndicesRef.current = shuffleArray(Array.from({ length: EMPOWERING_SENTENCES.length }, (_, i) => i));
+          shufflePosRef.current = 0;
+        }
+        setSentenceIndex(shuffledIndicesRef.current[shufflePosRef.current]);
         setIsSentenceVisible(true);
       }, 500);
     }, 4500);
