@@ -118,7 +118,10 @@ export const OnlineColoringCanvas: React.FC<OnlineColoringCanvasProps> = ({
     const drawCanvas = canvasRef.current;
     if (!container || !bgCanvas || !drawCanvas) return;
     const rect = container.getBoundingClientRect();
-    const scale = Math.min(rect.width / img.naturalWidth, rect.height / img.naturalHeight);
+    const scaleW = rect.width / img.naturalWidth;
+    const scaleH = rect.height / img.naturalHeight;
+    // Prefer filling width; only fall back to height if image would overflow vertically
+    const scale = (img.naturalHeight * scaleW <= rect.height) ? scaleW : scaleH;
     const w = Math.floor(img.naturalWidth * scale);
     const h = Math.floor(img.naturalHeight * scale);
     bgCanvas.width = w; bgCanvas.height = h;
