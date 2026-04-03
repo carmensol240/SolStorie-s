@@ -196,7 +196,7 @@ const GeneratingStep = ({ formData, onComplete }: GeneratingStepProps) => {
       let data, apiError;
       
       // Determine if this is a guest request
-      const isGuest = !user && signupDismissed;
+      const isGuest = !user;
       
       try {
         const bodyPayload: any = {
