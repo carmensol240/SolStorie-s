@@ -1,45 +1,27 @@
 
 
-## Plan: Fix Google OAuth 404 Error
+## Plan: Fix 3 Illustration Issues in Story Viewer
 
-### Root Cause
-The `signInWithGoogle` function in `use-auth.ts` (line 49) uses `supabase.auth.signInWithOAuth()` directly instead of the Lovable Cloud managed `lovable.auth.signInWithOAuth()`. This causes a 404 because the Supabase direct OAuth flow isn't configured for this Cloud project.
+### Issue 1: Double/Split Image — `SignedImage` CSS Bug
 
-Additionally, `GeneratingStep.tsx` (line 791) uses `redirect_uri: window.location.origin` which works in preview but not on the published domain.
+**Root cause**: In `src/components/ui/signed-image.tsx`, the `className` prop (e.g. `w-full h-full object-cover`) is applied to **three elements**: the wrapper div (line 79), the placeholder div (line 82), and the `<img>` tag (line 121). The `<img>` is in normal document flow (not absolutely positioned), so it adds its own height to the wrapper — while the placeholder is absolute. This creates a layout where the image content pushes the wrapper taller than expected, and the placeholder (also with the full className) can create a doubled visual.
 
-### Fix — `src/hooks/use-auth.ts`
+**Fix**: Make the `<img>` absolutely positioned (`absolute inset-0`) so it fills the wrapper without contributing to flow height. Remove the duplicated `className` from the placeholder div (it only needs `absolute inset-0`). The wrapper div keeps the className for sizing.
 
-Replace the `signInWithGoogle` function to use `lovable.auth.signInWithOAuth("google")` with `redirect_uri` pointing to `https://soulstory.co.il`:
+### Issue 2: Black Borders — `BookPage.tsx` Dark Background
 
-```typescript
-const signInWithGoogle = async () => {
-  try {
-    const { lovable } = await import("@/integrations/lovable/index");
-    const returnTo = localStorage.getItem('returnTo') || '/library';
-    const result = await lovable.auth.signInWithOAuth("google", {
-      redirect_uri: `https://soulstory.co.il/consent?returnTo=${encodeURIComponent(returnTo)}`,
-    });
-    if (result.error) {
-      return { error: result.error };
-    }
-    return { error: null };
-  } catch (e) {
-    return { error: e instanceof Error ? e : new Error(String(e)) };
-  }
-};
-```
+**Root cause**: `BookPage.tsx` wraps illustration images in a dark purple gradient background (`linear-gradient(135deg, #1a0f3a, #2d1a6e)`) with padding (`p-4 md:p-6`), and the image container is capped at `height: 50vh`. This creates visible dark borders around the illustration instead of a full-bleed fill.
 
-### Fix — `src/components/wizard/GeneratingStep.tsx`
+**Fix**: Remove the dark background, remove padding, and make the image container fill the full page (`h-full` instead of `50vh`). Use `absolute inset-0` positioning for the image to fill edge-to-edge.
 
-Update `redirect_uri` on line 791 from `window.location.origin` to `https://soulstory.co.il`:
+### Issue 3: Cartoon Doll Style — Prompt Configuration
 
-```typescript
-const result = await lovable.auth.signInWithOAuth("google", {
-  redirect_uri: "https://soulstory.co.il",
-});
-```
+**Root cause**: `PIXAR_STYLE_COMPACT` in `style-config.ts` (line 16) explicitly says "Characters must look like adorable cartoon dolls — NOT realistic humans" and `TOPIC_IMAGE_STYLE_SUFFIX` (line 106) says the same. This forces a "doll" aesthetic instead of the desired Pixar/Disney 3D CGI style.
+
+**Fix**: Remove the "adorable cartoon dolls" phrasing from both `PIXAR_STYLE_COMPACT` and `TOPIC_IMAGE_STYLE_SUFFIX`. Replace with language that reinforces the consistent Pixar 3D CGI animated movie look without the doll aesthetic.
 
 ### Files modified
-1. `src/hooks/use-auth.ts` — switch to `lovable.auth.signInWithOAuth`, set redirect to published domain
-2. `src/components/wizard/GeneratingStep.tsx` — update `redirect_uri` to published domain
+1. `src/components/ui/signed-image.tsx` — fix double-image layout bug (absolute positioning for img)
+2. `src/components/story/book-frame/BookPage.tsx` — remove dark background and padding, full-bleed image
+3. `supabase/functions/_shared/style-config.ts` — remove "cartoon dolls" from PIXAR_STYLE_COMPACT and TOPIC_IMAGE_STYLE_SUFFIX
 
