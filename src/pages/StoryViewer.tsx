@@ -1585,6 +1585,14 @@ const [currentPage, setCurrentPage] = useState(0);
                     )}
                     {/* Dark gradient overlay for text readability */}
                     <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-transparent z-[1]" />
+                    {/* Dedication overlay on first page */}
+                    {currentPage === 0 && story && (
+                      <div className="absolute top-0 left-0 right-0 z-20 p-4 pt-6 bg-gradient-to-b from-black/60 via-black/30 to-transparent">
+                        <p className="text-center text-white text-base md:text-lg font-bold drop-shadow-lg" dir="rtl">
+                          הספר הזה נוצר במיוחד עבורך, {story.child_name} 💙
+                        </p>
+                      </div>
+                    )}
                     {/* Text overlay at the bottom */}
                     {currentVirtual.text && currentVirtual.text.trim() && (
                       <div className="absolute bottom-0 left-0 right-0 z-10 p-4 md:p-6" dir="rtl">
