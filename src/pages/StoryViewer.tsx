@@ -1644,9 +1644,10 @@ const [currentPage, setCurrentPage] = useState(0);
                     {/* Dedication overlay on first page */}
                     {currentPage === 0 && story && (
                       <div className="absolute top-0 left-0 right-0 z-20 p-4 pt-6 bg-gradient-to-b from-black/60 via-black/30 to-transparent">
-                        <p className="text-center text-white text-base md:text-lg font-bold drop-shadow-lg" dir="rtl">
-                          הספר הזה נוצר במיוחד עבורך, {story.child_name} 💙
-                        </p>
+                        <div className="text-center text-white drop-shadow-lg flex flex-col items-center gap-1" dir="rtl">
+                          <span className="text-base md:text-lg font-bold">הספר הזה נוצר במיוחד עבורך</span>
+                          <span className="text-2xl md:text-3xl font-black">{story.child_name} 💙</span>
+                        </div>
                       </div>
                     )}
                     {/* Text overlay at the bottom */}
