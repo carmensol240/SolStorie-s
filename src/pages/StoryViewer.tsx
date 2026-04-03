@@ -1032,6 +1032,14 @@ const StoryViewer = () => {
   const isToddler = story?.age_range === '0-2';
   const isLearningTopic = story?.topic?.startsWith('אות ') || story?.topic?.startsWith('מספר ') || story?.topic?.startsWith('צבע ') || story?.topic?.startsWith('צורת ');
 
+  // Skip cover page for toddlers — go straight to first story page
+  useEffect(() => {
+    if (isToddler && !toddlerPageFixed && currentPage === -1) {
+      setCurrentPage(0);
+      setToddlerPageFixed(true);
+    }
+  }, [isToddler, toddlerPageFixed, currentPage]);
+
   const HEBREW_TO_TOPIC_ID: Record<string, string> = {
     'אות א׳': 'letter-alef', 'אות ב׳': 'letter-bet', 'אות ג׳': 'letter-gimel',
     'אות ד׳': 'letter-dalet', 'אות ה׳': 'letter-he', 'אות ו׳': 'letter-vav',
