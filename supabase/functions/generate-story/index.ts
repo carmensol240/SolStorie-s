@@ -1557,20 +1557,14 @@ ${topic.endsWith('-edu') ? `
         console.warn("[generate-story] Repair failed, retrying AI call...");
         // Attempt 3: retry the AI call once
         try {
-          const retryResponse = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+          const retryResponse = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${GEMINI_API_KEY}`, {
             method: "POST",
             signal: AbortSignal.timeout(120_000),
-            headers: {
-              Authorization: `Bearer ${LOVABLE_API_KEY}`,
-              "Content-Type": "application/json",
-            },
+            headers: { "Content-Type": "application/json" },
             body: JSON.stringify({
-              model: "google/gemini-2.5-flash",
-              messages: [
-                { role: "system", content: systemPrompt },
-                { role: "user", content: userPrompt },
-              ],
-              response_format: { type: "json_object" },
+              systemInstruction: { parts: [{ text: systemPrompt }] },
+              contents: [{ role: "user", parts: [{ text: userPrompt }] }],
+              generationConfig: { responseMimeType: "application/json" },
             }),
           });
           if (!retryResponse.ok) {
@@ -1579,7 +1573,7 @@ ${topic.endsWith('-edu') ? `
             throw new Error("Retry failed");
           }
           const retryData = await retryResponse.json();
-          const retryContent = retryData.choices?.[0]?.message?.content;
+          const retryContent = retryData.candidates?.[0]?.content?.parts?.[0]?.text;
           if (!retryContent) throw new Error("Empty retry response");
           const cleanedRetry = cleanAiContent(retryContent);
           storyData = JSON.parse(cleanedRetry);
