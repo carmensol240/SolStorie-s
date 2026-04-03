@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import { ArrowRight, Plus, Coins, Wand2, BookOpen, WifiOff, Plane } from "lucide-react";
 import { getPublicIllustrationUrl } from "@/lib/illustration-url";
@@ -395,15 +395,16 @@ const Library = () => {
     );
   };
 
-  const LoadingSkeleton = () => (
-    <div className="grid grid-cols-2 gap-3">
+  const LoadingSkeleton = React.forwardRef<HTMLDivElement>((_, ref) => (
+    <div ref={ref} className="grid grid-cols-2 gap-3">
       {[1, 2, 3, 4].map((i) => (
         <div key={i} className="aspect-[2/3] rounded-r-xl rounded-l-sm bg-muted animate-pulse" aria-hidden="true">
           <div className="absolute left-0 top-0 w-[6px] h-full bg-muted-foreground/10" />
         </div>
       ))}
     </div>
-  );
+  ));
+  LoadingSkeleton.displayName = "LoadingSkeleton";
 
   // ---- GUEST MODE (not logged in) ----
   if (!user && !authLoading) {

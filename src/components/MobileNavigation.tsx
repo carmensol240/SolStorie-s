@@ -1,8 +1,9 @@
+import React from "react";
 import { Library, Home, Settings } from "lucide-react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { cn } from "@/lib/utils";
 
-const MobileNavigation = () => {
+const MobileNavigation = React.forwardRef<HTMLElement>((_, ref) => {
   const location = useLocation();
   const navigate = useNavigate();
 
@@ -13,7 +14,7 @@ const MobileNavigation = () => {
   ];
 
   return (
-    <nav className="fixed bottom-0 left-0 right-0 z-[100] bg-white/90 backdrop-blur-md border-t border-purple-100/50 shadow-lg" role="navigation" aria-label="ניווט ראשי">
+    <nav ref={ref} className="fixed bottom-0 left-0 right-0 z-[100] bg-white/90 backdrop-blur-md border-t border-purple-100/50 shadow-lg" role="navigation" aria-label="ניווט ראשי">
       <div className="flex justify-around items-center h-14 max-w-lg mx-auto px-4 pb-safe">
         {navItems.map((item) => {
           const isActive = location.pathname === item.path;
@@ -41,6 +42,8 @@ const MobileNavigation = () => {
       </div>
     </nav>
   );
-};
+});
+
+MobileNavigation.displayName = "MobileNavigation";
 
 export default MobileNavigation;
