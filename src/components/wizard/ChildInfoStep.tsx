@@ -829,34 +829,35 @@ const ChildInfoStep = ({ formData, updateFormData }: ChildInfoStepProps) => {
                 </div>
               )}
               <div className="flex gap-3 mt-2">
-                {!formData.childAvatarUrl && formData.childPhoto && (
+                {!formData.childAvatarUrl && formData.childPhoto && !isGeneratingAvatar && (
                   <Button
                     type="button"
                     variant="outline"
                     size="sm"
-                    onClick={() => {
-                      setPendingPhotoForAvatar(formData.childPhoto);
-                      setAvatarPreviewOpen(true);
-                    }}
+                    onClick={() => generateAvatarInline()}
                     className="text-sm text-purple-600 border-purple-300 hover:bg-purple-50"
                   >
                     <Sparkles className="w-4 h-4 ml-1" />
                     צור אווטאר
                   </Button>
                 )}
-                {formData.childAvatarUrl && (
+                {isGeneratingAvatar && (
+                  <div className="flex items-center gap-2 text-xs text-purple-600">
+                    <Loader2 className="w-4 h-4 animate-spin" />
+                    <span>יוצר דמות...</span>
+                  </div>
+                )}
+                {formData.childAvatarUrl && !isGeneratingAvatar && (
                   <Button
                     type="button"
                     variant="outline"
                     size="sm"
-                    onClick={() => {
-                      setPendingPhotoForAvatar(formData.childPhoto);
-                      setAvatarPreviewOpen(true);
-                    }}
+                    onClick={() => generateAvatarInline()}
+                    disabled={avatarRegenerationCount >= 2}
                     className="text-sm text-purple-600 border-purple-300 hover:bg-purple-50"
                   >
                     <RefreshCw className="w-4 h-4 ml-1" />
-                    עדכן אווטאר
+                    עדכן אווטאר ({2 - avatarRegenerationCount})
                   </Button>
                 )}
                 <Button
