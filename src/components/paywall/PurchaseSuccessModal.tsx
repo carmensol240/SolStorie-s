@@ -199,7 +199,6 @@ const PurchaseSuccessModal = ({
             <div className="space-y-3">
               <PayPalButton
                 amount={EDIT_KIT_PACKAGE.price}
-                currency={CURRENCY}
                 onSuccess={handleEditPurchaseSuccess}
                 onError={() => {
                   toast.error("שגיאה בתשלום, נסי שוב");
