@@ -38,7 +38,6 @@ const AvatarPreviewDialog = ({
   const [isSaving, setIsSaving] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [localRegenerationCount, setLocalRegenerationCount] = useState(regenerationCount);
-  const [authRetryCount, setAuthRetryCount] = useState(0);
   const { toast } = useToast();
   
   const canRegenerate = localRegenerationCount < MAX_AVATAR_REGENERATIONS;
