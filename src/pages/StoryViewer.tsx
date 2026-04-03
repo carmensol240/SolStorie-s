@@ -1208,7 +1208,7 @@ const StoryViewer = () => {
         if (newPage >= maxPage) {
           trackStoryCompleted(story.id);
         }
-      } else if (direction === 'prev' && currentPage > -1) {
+      } else if (direction === 'prev' && currentPage > minPage) {
         const newPage = currentPage - 1;
         setCurrentPage(newPage);
       }
