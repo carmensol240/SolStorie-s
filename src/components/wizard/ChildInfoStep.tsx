@@ -90,8 +90,9 @@ const ChildInfoStep = ({ formData, updateFormData }: ChildInfoStepProps) => {
   const [showPersonalityField, setShowPersonalityField] = useState(false);
   const [showPhotoTips, setShowPhotoTips] = useState(false);
   const [isGeneratingAvatar, setIsGeneratingAvatar] = useState(false);
+  const [isSavingChild, setIsSavingChild] = useState(false);
+  const [isUploadingPhoto, setIsUploadingPhoto] = useState(false);
   const [avatarRegenerationCount, setAvatarRegenerationCount] = useState(0);
-  const [userRole, setUserRole] = useState<string | null>(null);
   const [userRole, setUserRole] = useState<string | null>(null);
   const [isDeletingChild, setIsDeletingChild] = useState(false);
   const [photoValidation, setPhotoValidation] = useState<{
