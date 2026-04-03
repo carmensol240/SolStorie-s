@@ -1,28 +1,40 @@
 
 
-## Plan: Fix PWA Install Prompt on Story Completion
+## Plan: Replace Brush with Flood Fill Tool
 
-### Problem
-Two issues prevent the install prompt from showing:
-1. The browser's `beforeinstallprompt` event fires early on page load, but the component only listens for it once `justCreatedFirstStory` becomes true (at the end of the story). By then the event was already fired and missed.
-2. A 30-second delay timer starts only when the user reaches the last page — unnecessary friction on the completion screen.
+### Overview
+Replace the brush/painting tool with a flood-fill (paint bucket) tool as the default coloring mode. Users tap an area and the entire enclosed region fills with the selected color. Keep the eraser and color palette unchanged. Remove brush sizes (no longer needed).
 
-### Solution
+### How Flood Fill Works
+A standard queue-based flood fill algorithm on the drawing canvas:
+1. Get the pixel color at the tap point
+2. BFS/queue outward, replacing matching pixels with the selected color
+3. Use a tolerance (~30) to handle anti-aliased edges from the background outlines
+4. The fill operates on the drawing layer only, but reads from a **merged** view (bg + drawing) to detect boundaries from the background outlines
 
-#### 1. `src/components/story/InstallAppPrompt.tsx`
-- **Always** listen for `beforeinstallprompt` on mount (separate `useEffect`), storing the deferred prompt regardless of story state.
-- Remove the 30-second timer — show the dialog immediately when `justCreatedFirstStory` becomes true.
-- Keep existing checks: skip if already seen (`localStorage`), skip if already installed (standalone mode).
-- Keep iOS detection and instructions unchanged.
+### Changes — `src/components/story/OnlineColoringCanvas.tsx`
 
-#### 2. No changes needed to `src/pages/StoryViewer.tsx`
-The prop logic `justCreatedStory && (isClosingPage || isEndPage)` is correct — it gates display to the completion screen only.
+1. **Remove**: `BRUSH_SIZES` constant, `brushSize` state, brush size buttons from toolbar, `buildBrushCursor` function, `ERASER_CURSOR`, brush drawing logic (`draw`, `startDrawing` with line strokes)
 
-### Technical details
-- Split into two `useEffect` hooks: one for capturing `beforeinstallprompt` (runs once on mount), one for showing the dialog when `justCreatedFirstStory` flips to `true`.
-- iOS path remains unchanged (shows manual instructions).
-- Android/desktop path uses the captured deferred prompt for native install.
+2. **Add**: `floodFill(ctx, bgCtx, x, y, fillColor, tolerance)` function that:
+   - Reads pixel data from a merged snapshot (background + drawing layer) to detect outline boundaries
+   - Writes fill pixels to the drawing canvas only
+   - Uses a queue-based BFS with a color tolerance of ~30 for anti-aliased edges
+   - Scales coordinates from CSS to canvas pixel space
+
+3. **Update interaction handlers**:
+   - `onMouseDown` / `onTouchStart`: If not eraser mode, call `floodFill` at tap position, then `saveSnapshot`
+   - Remove `onMouseMove` / `onTouchMove` handlers for fill mode (no dragging needed)
+   - Keep eraser mode with existing drag-to-erase behavior (simplified to a large round eraser)
+
+4. **Update toolbar UI**:
+   - Replace Pencil icon with a `PaintBucket` icon (from lucide-react) for the fill tool
+   - Remove brush size selector buttons entirely
+   - Keep eraser toggle and color palette unchanged
+   - Cursor: use a paint bucket cursor SVG for fill mode
+
+5. **Keep unchanged**: Undo/redo, save/download, print, color palette, eraser tool, canvas layering (bg + draw), `boldenOutlines`, aspect ratio logic
 
 ### Files modified
-1. `src/components/story/InstallAppPrompt.tsx`
+1. `src/components/story/OnlineColoringCanvas.tsx`
 
