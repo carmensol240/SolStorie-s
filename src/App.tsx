@@ -58,6 +58,7 @@ function App() { useTimeTheme(); return (
           <ScrollToTop />
           
           <AccessibilityMenu />
+          <PWAInstallBanner />
           <Routes>
             <Route path="/" element={<Adventure />} />
             <Route path="/about" element={<About />} />
