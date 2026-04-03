@@ -5,6 +5,7 @@ import {
   PIXAR_STYLE_COMPACT,
   NEGATIVE_PROMPT_FULL,
   CHARACTER_CARDS,
+  GENDER_SYMBOL_RESTRICTION,
 } from "../_shared/style-config.ts";
 
 const corsHeaders = {
