@@ -66,8 +66,8 @@ const rangeToDisplayButton = (range: string): string => {
   switch (range) {
     case "0-2": return "0-2";
     case "2-4": return "3-6";
-    case "5-7": 
-    case "8-10": return "7-8";
+    case "5-7": return "7-8";
+    case "8-10": return "9-12";
     default: return "3-6";
   }
 };
