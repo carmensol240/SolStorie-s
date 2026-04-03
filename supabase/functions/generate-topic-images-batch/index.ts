@@ -72,7 +72,7 @@ serve(async (req) => {
           body: JSON.stringify({
             model: "google/gemini-3-pro-image-preview",
             modalities: ["image", "text"],
-            messages: [{ role: "user", content: topic.prompt }],
+            messages: [{ role: "user", content: `${topic.prompt}\n\n${GENDER_SYMBOL_RESTRICTION}` }],
           }),
         });
 
