@@ -727,7 +727,7 @@ const ChildInfoStep = ({ formData, updateFormData }: ChildInfoStepProps) => {
                         <Sparkles className="w-3 h-3 text-white" />
                       </div>
                     </div>
-                    <span className="text-[10px] text-purple-600 font-medium">אווטאר</span>
+                    <span className="text-[10px] text-purple-600 font-medium">דמות בסיפור</span>
                   </div>
                 </div>
               ) : (
