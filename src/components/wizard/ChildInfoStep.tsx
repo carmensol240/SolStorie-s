@@ -209,11 +209,9 @@ const ChildInfoStep = ({ formData, updateFormData }: ChildInfoStepProps) => {
           setIsValidatingPhoto(false);
         }
         
-        // If we have a temp child ID or selected child, upload and trigger avatar generation
+        // Auto-generate avatar inline if child name exists
         if (formData.childName.trim()) {
-          // Store photo and open avatar preview dialog
-          setPendingPhotoForAvatar(photoBase64);
-          setAvatarPreviewOpen(true);
+          generateAvatarInline(photoBase64);
         }
         
         setIsUploadingPhoto(false);
