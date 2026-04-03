@@ -230,11 +230,9 @@ const [currentPage, setCurrentPage] = useState(0);
   const [coloringLoading, setColoringLoading] = useState(false);
   const [coloringPickerOpen, setColoringPickerOpen] = useState(false);
   const [selectedColoringUrl, setSelectedColoringUrl] = useState<string | null>(null);
+  const [coloringAction, setColoringAction] = useState<'pick' | 'choose-action'>('pick');
   const [onlineColoringOpen, setOnlineColoringOpen] = useState(false);
   const [onlineColoringImageUrl, setOnlineColoringImageUrl] = useState<string | null>(null);
-  const [onlineColoringPickerOpen, setOnlineColoringPickerOpen] = useState(false);
-  const [selectedOnlineColoringUrl, setSelectedOnlineColoringUrl] = useState<string | null>(null);
-  const [onlineColoringLoading, setOnlineColoringLoading] = useState(false);
 
   const handleImageLoad = useCallback((e: React.SyntheticEvent<HTMLImageElement>) => {
     // Keep object-cover for all images — no white margins
@@ -1343,7 +1341,7 @@ const [currentPage, setCurrentPage] = useState(0);
                     </Button>
                   </div>
 
-                  {/* Coloring Page Button */}
+                  {/* Unified Coloring Button */}
                   <div className="pt-2">
                     <Button
                       onClick={() => {
@@ -1354,6 +1352,7 @@ const [currentPage, setCurrentPage] = useState(0);
                           return;
                         }
                         setSelectedColoringUrl(null);
+                        setColoringAction('pick');
                         setColoringPickerOpen(true);
                       }}
                       disabled={coloringLoading}
@@ -1368,36 +1367,8 @@ const [currentPage, setCurrentPage] = useState(0);
                       ) : (
                         <>
                           <Palette className="w-4 h-4" />
-                          🎨 הדפס דף צביעה
+                          🎨 דף צביעה — הדפס או צבע אונליין
                         </>
-                      )}
-                    </Button>
-                  </div>
-
-                  {/* Online Coloring Button */}
-                  <div className="pt-1">
-                    <Button
-                      onClick={() => {
-                        if (!story || onlineColoringLoading) return;
-                        const illustrations = story.pages?.filter(p => p.illustration_url).map(p => p.illustration_url!) || [];
-                        if (illustrations.length === 0) {
-                          toast({ title: "אין איורים זמינים לצביעה", variant: "destructive" });
-                          return;
-                        }
-                        setSelectedOnlineColoringUrl(null);
-                        setOnlineColoringPickerOpen(true);
-                      }}
-                      disabled={onlineColoringLoading}
-                      size="sm"
-                      className="bg-gradient-to-r from-purple-500 to-indigo-500 hover:from-purple-600 hover:to-indigo-600 text-white px-4 py-3 rounded-full text-sm gap-1"
-                    >
-                      {onlineColoringLoading ? (
-                        <>
-                          <Loader2 className="w-4 h-4 animate-spin" />
-                          מכין דף צביעה...
-                        </>
-                      ) : (
-                        "🎨 צבעו אונליין"
                       )}
                     </Button>
                   </div>
@@ -1430,197 +1401,168 @@ const [currentPage, setCurrentPage] = useState(0);
                     </div>
                   )}
 
-                  {/* Coloring Page Illustration Picker Dialog */}
-                  <Dialog open={coloringPickerOpen} onOpenChange={setColoringPickerOpen}>
+                  {/* Unified Coloring Picker Dialog */}
+                  <Dialog open={coloringPickerOpen} onOpenChange={(open) => {
+                    setColoringPickerOpen(open);
+                    if (!open) setColoringAction('pick');
+                  }}>
                     <DialogContent className="max-w-md" dir="rtl">
                       <DialogHeader>
-                        <DialogTitle className="text-center text-lg">🎨 בחרו איור לדף צביעה</DialogTitle>
+                        <DialogTitle className="text-center text-lg">
+                          {coloringAction === 'pick' ? '🎨 בחרו איור לדף צביעה' : '🎨 מה תרצו לעשות?'}
+                        </DialogTitle>
                       </DialogHeader>
-                      <div className="grid grid-cols-3 gap-3 max-h-[50vh] overflow-y-auto p-1">
-                        {story?.pages?.filter(p => p.illustration_url).map((page, idx) => {
-                          const url = getPublicIllustrationUrl(page.illustration_url!);
-                          const isSelected = selectedColoringUrl === page.illustration_url;
-                          return (
-                            <button
-                              key={page.id || idx}
-                              onClick={() => setSelectedColoringUrl(page.illustration_url!)}
-                              className={cn(
-                                "relative rounded-lg overflow-hidden border-2 transition-all aspect-square",
-                                isSelected ? "border-purple-500 ring-2 ring-purple-300 scale-105" : "border-transparent hover:border-purple-200"
-                              )}
-                            >
-                              <img src={url!} alt={`עמוד ${page.page_number}`} className="w-full h-full object-cover" />
-                              <span className="absolute bottom-0 left-0 right-0 bg-black/50 text-white text-xs text-center py-0.5">
-                                עמוד {page.page_number}
-                              </span>
-                            </button>
-                          );
-                        })}
-                      </div>
-                      <Button
-                        disabled={!selectedColoringUrl || coloringLoading}
-                        className="w-full bg-gradient-to-r from-purple-600 to-pink-500 hover:from-purple-700 hover:to-pink-600 text-white"
-                        onClick={async () => {
-                          if (!story || !selectedColoringUrl) return;
-                          setColoringPickerOpen(false);
-                          setColoringLoading(true);
-                          toast({ title: "מכין את דף הצביעה שלך... זה לוקח כ-30 שניות 🎨" });
-                          try {
-                            const illustrationFullUrl = getPublicIllustrationUrl(selectedColoringUrl);
-                            const { data, error: fnError } = await supabase.functions.invoke('generate-coloring-page', {
-                              body: {
-                                illustration_url: illustrationFullUrl,
-                                story_title: story.topic,
-                                child_name: story.child_name,
-                              },
-                            });
-                            if (fnError || !data?.image) {
-                              toast({ title: data?.error || "שגיאה ביצירת דף הצביעה", variant: "destructive" });
-                              return;
-                            }
-                            // Load coloring image and add branded footer with canvas
-                            const coloringImg = new Image();
-                            coloringImg.crossOrigin = 'anonymous';
-                            const imgSrc = data.image.startsWith('data:') ? data.image : `data:image/png;base64,${data.image}`;
-                            coloringImg.src = imgSrc;
-                            await new Promise<void>((resolve, reject) => {
-                              coloringImg.onload = () => resolve();
-                              coloringImg.onerror = () => reject(new Error('Failed to load coloring image'));
-                            });
 
-                            const footerHeight = 80;
-                            const canvas = document.createElement('canvas');
-                            canvas.width = coloringImg.naturalWidth;
-                            canvas.height = coloringImg.naturalHeight + footerHeight;
-                            const ctx = canvas.getContext('2d')!;
-                            
-                            // White background
-                            ctx.fillStyle = '#FFFFFF';
-                            ctx.fillRect(0, 0, canvas.width, canvas.height);
-                            
-                            // Draw coloring image
-                            ctx.drawImage(coloringImg, 0, 0);
-                            
-                            // Footer area
-                            const footerY = coloringImg.naturalHeight + footerHeight / 2;
-                            const footerText = `SolStorie's™ | דף צביעה של ${story.child_name}`;
-                            const fontSize = Math.max(20, Math.round(canvas.width / 40));
-                            ctx.font = `bold ${fontSize}px "Caveat", "Arial", sans-serif`;
-                            ctx.textAlign = 'center';
-                            
-                            // Rainbow gradient for the text
-                            const gradient = ctx.createLinearGradient(
-                              canvas.width / 2 - ctx.measureText(footerText).width / 2, 0,
-                              canvas.width / 2 + ctx.measureText(footerText).width / 2, 0
-                            );
-                            gradient.addColorStop(0, '#FF6B6B');
-                            gradient.addColorStop(0.2, '#FFA500');
-                            gradient.addColorStop(0.4, '#FFD700');
-                            gradient.addColorStop(0.6, '#4CAF50');
-                            gradient.addColorStop(0.8, '#42A5F5');
-                            gradient.addColorStop(1, '#AB47BC');
-                            ctx.fillStyle = gradient;
-                            ctx.fillText(footerText, canvas.width / 2, footerY);
-                            
-                            // Convert canvas to blob and download
-                            const blob = await new Promise<Blob>((resolve) => canvas.toBlob((b) => resolve(b!), 'image/png'));
-                            const url = URL.createObjectURL(blob);
-                            const a = document.createElement('a');
-                            a.href = url;
-                            a.download = `דף-צביעה-${story.topic}.png`;
-                            document.body.appendChild(a);
-                            a.click();
-                            document.body.removeChild(a);
-                            URL.revokeObjectURL(url);
-                            toast({ title: "דף הצביעה הורד בהצלחה! 🎨" });
-                          } catch (err) {
-                            console.error("Coloring page error:", err);
-                            toast({ title: "שגיאה ביצירת דף הצביעה", variant: "destructive" });
-                          } finally {
-                            setColoringLoading(false);
-                          }
-                        }}
-                      >
-                        {coloringLoading ? (
-                          <>
-                            <Loader2 className="w-4 h-4 animate-spin ml-2" />
-                            יוצר דף צביעה...
-                          </>
-                        ) : (
-                          "✨ יצירת דף צביעה"
-                        )}
-                      </Button>
-                    </DialogContent>
-                  </Dialog>
-
-                  {/* Online Coloring Picker Dialog */}
-                  <Dialog open={onlineColoringPickerOpen} onOpenChange={setOnlineColoringPickerOpen}>
-                    <DialogContent className="max-w-md" dir="rtl">
-                      <DialogHeader>
-                        <DialogTitle className="text-center text-lg">🎨 בחרו איור לצביעה אונליין</DialogTitle>
-                      </DialogHeader>
-                      <div className="grid grid-cols-3 gap-3 max-h-[50vh] overflow-y-auto p-1">
-                        {story?.pages?.filter(p => p.illustration_url).map((page, idx) => {
-                          const url = getPublicIllustrationUrl(page.illustration_url!);
-                          const isSelected = selectedOnlineColoringUrl === page.illustration_url;
-                          return (
-                            <button
-                              key={page.id || idx}
-                              onClick={() => setSelectedOnlineColoringUrl(page.illustration_url!)}
-                              className={cn(
-                                "relative rounded-lg overflow-hidden border-2 transition-all aspect-square",
-                                isSelected ? "border-purple-500 ring-2 ring-purple-300 scale-105" : "border-transparent hover:border-purple-200"
-                              )}
-                            >
-                              <img src={url!} alt={`עמוד ${page.page_number}`} className="w-full h-full object-cover" />
-                              <span className="absolute bottom-0 left-0 right-0 bg-black/50 text-white text-xs text-center py-0.5">
-                                עמוד {page.page_number}
-                              </span>
-                            </button>
-                          );
-                        })}
-                      </div>
-                      <Button
-                        disabled={!selectedOnlineColoringUrl || onlineColoringLoading}
-                        className="w-full bg-gradient-to-r from-purple-600 to-pink-500 hover:from-purple-700 hover:to-pink-600 text-white"
-                        onClick={async () => {
-                          if (!story || !selectedOnlineColoringUrl) return;
-                          setOnlineColoringPickerOpen(false);
-                          setOnlineColoringLoading(true);
-                          toast({ title: "מכין את דף הצביעה שלך... זה לוקח כ-30 שניות 🎨" });
-                          try {
-                            const illustrationFullUrl = getPublicIllustrationUrl(selectedOnlineColoringUrl);
-                            const { data, error: fnError } = await supabase.functions.invoke('generate-coloring-page', {
-                              body: {
-                                illustration_url: illustrationFullUrl,
-                                story_title: story.topic,
-                                child_name: story.child_name,
-                              },
-                            });
-                            if (fnError || !data?.image) {
-                              toast({ title: data?.error || "שגיאה ביצירת דף הצביעה", variant: "destructive" });
-                              return;
-                            }
-                            const imgSrc = data.image.startsWith('data:') ? data.image : `data:image/png;base64,${data.image}`;
-                            setOnlineColoringImageUrl(imgSrc);
-                            setOnlineColoringOpen(true);
-                          } catch (err) {
-                            console.error("Online coloring page error:", err);
-                            toast({ title: "שגיאה ביצירת דף הצביעה", variant: "destructive" });
-                          } finally {
-                            setOnlineColoringLoading(false);
-                          }
-                        }}
-                      >
-                        {onlineColoringLoading ? (
-                          <>
-                            <Loader2 className="w-4 h-4 animate-spin ml-2" />
-                            יוצר דף צביעה...
-                          </>
-                        ) : (
-                          "🎨 התחילו לצבוע!"
-                        )}
-                      </Button>
+                      {coloringAction === 'pick' ? (
+                        <>
+                          <div className="grid grid-cols-3 gap-3 max-h-[50vh] overflow-y-auto p-1">
+                            {story?.pages?.filter(p => p.illustration_url).map((page, idx) => {
+                              const url = getPublicIllustrationUrl(page.illustration_url!);
+                              const isSelected = selectedColoringUrl === page.illustration_url;
+                              return (
+                                <button
+                                  key={page.id || idx}
+                                  onClick={() => setSelectedColoringUrl(page.illustration_url!)}
+                                  className={cn(
+                                    "relative rounded-lg overflow-hidden border-2 transition-all aspect-square",
+                                    isSelected ? "border-purple-500 ring-2 ring-purple-300 scale-105" : "border-transparent hover:border-purple-200"
+                                  )}
+                                >
+                                  <img src={url!} alt={`עמוד ${page.page_number}`} className="w-full h-full object-cover" />
+                                  <span className="absolute bottom-0 left-0 right-0 bg-black/50 text-white text-xs text-center py-0.5">
+                                    עמוד {page.page_number}
+                                  </span>
+                                </button>
+                              );
+                            })}
+                          </div>
+                          <Button
+                            disabled={!selectedColoringUrl}
+                            className="w-full bg-gradient-to-r from-purple-600 to-pink-500 hover:from-purple-700 hover:to-pink-600 text-white"
+                            onClick={() => setColoringAction('choose-action')}
+                          >
+                            המשך ➜
+                          </Button>
+                        </>
+                      ) : (
+                        <div className="space-y-3 py-2">
+                          {selectedColoringUrl && (
+                            <div className="flex justify-center">
+                              <img
+                                src={getPublicIllustrationUrl(selectedColoringUrl)!}
+                                alt="איור נבחר"
+                                className="w-24 h-24 object-cover rounded-lg border-2 border-purple-300"
+                              />
+                            </div>
+                          )}
+                          <Button
+                            disabled={coloringLoading}
+                            className="w-full bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white py-3 text-sm gap-2"
+                            onClick={async () => {
+                              if (!story || !selectedColoringUrl) return;
+                              setColoringPickerOpen(false);
+                              setColoringLoading(true);
+                              toast({ title: "מכין את דף הצביעה שלך... זה לוקח כ-30 שניות 🎨" });
+                              try {
+                                const illustrationFullUrl = getPublicIllustrationUrl(selectedColoringUrl);
+                                const { data, error: fnError } = await supabase.functions.invoke('generate-coloring-page', {
+                                  body: { illustration_url: illustrationFullUrl, story_title: story.topic, child_name: story.child_name },
+                                });
+                                if (fnError || !data?.image) {
+                                  toast({ title: data?.error || "שגיאה ביצירת דף הצביעה", variant: "destructive" });
+                                  return;
+                                }
+                                const coloringImg = new Image();
+                                coloringImg.crossOrigin = 'anonymous';
+                                const imgSrc = data.image.startsWith('data:') ? data.image : `data:image/png;base64,${data.image}`;
+                                coloringImg.src = imgSrc;
+                                await new Promise<void>((resolve, reject) => {
+                                  coloringImg.onload = () => resolve();
+                                  coloringImg.onerror = () => reject(new Error('Failed to load coloring image'));
+                                });
+                                const footerHeight = 80;
+                                const canvas = document.createElement('canvas');
+                                canvas.width = coloringImg.naturalWidth;
+                                canvas.height = coloringImg.naturalHeight + footerHeight;
+                                const ctx = canvas.getContext('2d')!;
+                                ctx.fillStyle = '#FFFFFF';
+                                ctx.fillRect(0, 0, canvas.width, canvas.height);
+                                ctx.drawImage(coloringImg, 0, 0);
+                                const footerY = coloringImg.naturalHeight + footerHeight / 2;
+                                const footerText = `SolStorie's™ | דף צביעה של ${story.child_name}`;
+                                const fontSize = Math.max(20, Math.round(canvas.width / 40));
+                                ctx.font = `bold ${fontSize}px "Caveat", "Arial", sans-serif`;
+                                ctx.textAlign = 'center';
+                                const gradient = ctx.createLinearGradient(
+                                  canvas.width / 2 - ctx.measureText(footerText).width / 2, 0,
+                                  canvas.width / 2 + ctx.measureText(footerText).width / 2, 0
+                                );
+                                gradient.addColorStop(0, '#FF6B6B');
+                                gradient.addColorStop(0.2, '#FFA500');
+                                gradient.addColorStop(0.4, '#FFD700');
+                                gradient.addColorStop(0.6, '#4CAF50');
+                                gradient.addColorStop(0.8, '#42A5F5');
+                                gradient.addColorStop(1, '#AB47BC');
+                                ctx.fillStyle = gradient;
+                                ctx.fillText(footerText, canvas.width / 2, footerY);
+                                const blob = await new Promise<Blob>((resolve) => canvas.toBlob((b) => resolve(b!), 'image/png'));
+                                const url = URL.createObjectURL(blob);
+                                const a = document.createElement('a');
+                                a.href = url;
+                                a.download = `דף-צביעה-${story.topic}.png`;
+                                document.body.appendChild(a);
+                                a.click();
+                                document.body.removeChild(a);
+                                URL.revokeObjectURL(url);
+                                toast({ title: "דף הצביעה הורד בהצלחה! 🎨" });
+                              } catch (err) {
+                                console.error("Coloring page error:", err);
+                                toast({ title: "שגיאה ביצירת דף הצביעה", variant: "destructive" });
+                              } finally {
+                                setColoringLoading(false);
+                              }
+                            }}
+                          >
+                            🖨️ הדפס דף צביעה
+                          </Button>
+                          <Button
+                            disabled={coloringLoading}
+                            className="w-full bg-gradient-to-r from-purple-500 to-indigo-500 hover:from-purple-600 hover:to-indigo-600 text-white py-3 text-sm gap-2"
+                            onClick={async () => {
+                              if (!story || !selectedColoringUrl) return;
+                              setColoringPickerOpen(false);
+                              setColoringLoading(true);
+                              toast({ title: "מכין את דף הצביעה שלך... זה לוקח כ-30 שניות 🎨" });
+                              try {
+                                const illustrationFullUrl = getPublicIllustrationUrl(selectedColoringUrl);
+                                const { data, error: fnError } = await supabase.functions.invoke('generate-coloring-page', {
+                                  body: { illustration_url: illustrationFullUrl, story_title: story.topic, child_name: story.child_name },
+                                });
+                                if (fnError || !data?.image) {
+                                  toast({ title: data?.error || "שגיאה ביצירת דף הצביעה", variant: "destructive" });
+                                  return;
+                                }
+                                const imgSrc = data.image.startsWith('data:') ? data.image : `data:image/png;base64,${data.image}`;
+                                setOnlineColoringImageUrl(imgSrc);
+                                setOnlineColoringOpen(true);
+                              } catch (err) {
+                                console.error("Online coloring page error:", err);
+                                toast({ title: "שגיאה ביצירת דף הצביעה", variant: "destructive" });
+                              } finally {
+                                setColoringLoading(false);
+                              }
+                            }}
+                          >
+                            🎨 צבע אונליין
+                          </Button>
+                          <button
+                            onClick={() => setColoringAction('pick')}
+                            className="w-full text-xs text-purple-400 hover:text-purple-600 transition-colors"
+                          >
+                            ← בחרו איור אחר
+                          </button>
+                        </div>
+                      )}
                     </DialogContent>
                   </Dialog>
 
