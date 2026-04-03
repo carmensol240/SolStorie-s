@@ -1258,39 +1258,7 @@ const [currentPage, setCurrentPage] = useState(0);
               isFlipping ? "opacity-0" : "opacity-100",
             )}>
             
-            {isCoverPage ? (
-              /* Cover Page — styled dedication page, no doll character */
-              <div className="relative flex flex-col h-full" style={{ background: RAINBOW_BG }}>
-                {/* Spacer to center content */}
-                <div className="flex-1" />
-
-                {/* Centered dedication content */}
-                <div className="relative z-10 flex flex-col items-center px-8 gap-6 text-center">
-                  <Sparkles className="w-10 h-10 text-yellow-300 animate-pulse" />
-                  <p className="text-2xl md:text-3xl text-white font-bold drop-shadow-lg" dir="rtl" style={{ lineHeight: '1.8' }}>
-                    הספר הזה נוצר במיוחד עבורך,
-                    <br />
-                    <span className="text-3xl md:text-4xl bg-gradient-to-r from-yellow-200 via-pink-200 to-purple-200 bg-clip-text text-transparent">
-                      {story.child_name} 💙
-                    </span>
-                  </p>
-
-                  <Button
-                    size="lg"
-                    onClick={() => handlePageNav('next')}
-                    className="bg-gradient-to-r from-purple-600 to-pink-500 hover:from-purple-700 hover:to-pink-600 text-white font-bold px-6 py-3 text-sm md:text-base rounded-full shadow-xl hover:shadow-2xl transition-all transform hover:scale-105 border-2 border-white/50 mt-2"
-                  >
-                    <BookOpen className="w-4 h-4 ml-2" />
-                    פִּתְחוּ אֶת הַסֵּפֶר 📖
-                  </Button>
-                  <span className="text-base font-black logo-3d-bubble mt-1"><span className="logo-rainbow">SolStorie's™</span></span>
-                </div>
-
-                {/* Spacer */}
-                <div className="flex-1" />
-              </div>
-
-            ) : isClosingPage ? (
+            {isClosingPage ? (
               /* Closing Page - Full cast waving background */
               <div className="relative flex-1 flex flex-col items-center justify-end text-center h-full">
                 {/* Full background image */}
