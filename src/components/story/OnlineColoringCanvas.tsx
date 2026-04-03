@@ -132,7 +132,13 @@ export const OnlineColoringCanvas: React.FC<OnlineColoringCanvasProps> = ({
     if (ctx) {
       ctx.fillStyle = '#FFFFFF';
       ctx.fillRect(0, 0, w, h);
-      ctx.drawImage(img, 0, 0, w, h);
+      // Cover: scale image to fill entire canvas, cropping overflow
+      const coverScale = Math.max(w / img.naturalWidth, h / img.naturalHeight);
+      const drawW = img.naturalWidth * coverScale;
+      const drawH = img.naturalHeight * coverScale;
+      const offsetX = (w - drawW) / 2;
+      const offsetY = (h - drawH) / 2;
+      ctx.drawImage(img, offsetX, offsetY, drawW, drawH);
       boldenOutlines(ctx, w, h);
     }
     // Initial empty snapshot
