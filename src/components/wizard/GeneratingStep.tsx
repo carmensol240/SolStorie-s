@@ -238,6 +238,11 @@ const GeneratingStep = ({ formData, onComplete }: GeneratingStepProps) => {
           data = await resp.json();
           apiError = null;
         } else {
+          // Refresh session token before calling to avoid 401
+          const { data: { session: currentSession } } = await supabase.auth.getSession();
+          if (currentSession) {
+            await supabase.auth.refreshSession();
+          }
           const result = await supabase.functions.invoke("generate-story", {
             body: bodyPayload,
           });
