@@ -361,7 +361,7 @@ const Upgrade = () => {
                 <div className="text-sm text-white/40 line-through">
                   ₪{pkg.originalPrice}
                 </div>
-                <div className="text-xl font-black text-white">
+                <div className="text-xl font-black text-white animate-[subtle-price-pulse_3s_ease-in-out_infinite]">
                   ₪{pkg.price}
                 </div>
                 <div className="text-xs text-purple-300 font-bold">
