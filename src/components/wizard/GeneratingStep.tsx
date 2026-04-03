@@ -110,7 +110,7 @@ const GeneratingStep = ({ formData, onComplete }: GeneratingStepProps) => {
   const { toast } = useToast();
   const navigate = useNavigate();
   const { user, signInWithEmail, signUpWithEmail } = useAuth();
-  const [googleLoading, setGoogleLoading] = useState(false);
+  
   const [progress, setProgress] = useState(0);
   const [messageIndex, setMessageIndex] = useState(0);
   const [sentenceIndex, setSentenceIndex] = useState(() => Math.floor(Math.random() * EMPOWERING_SENTENCES.length));
