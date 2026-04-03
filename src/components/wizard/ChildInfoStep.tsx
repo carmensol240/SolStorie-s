@@ -574,7 +574,7 @@ const ChildInfoStep = ({ formData, updateFormData }: ChildInfoStepProps) => {
         <div className="space-y-1">
           <Label className="text-[10px] font-medium text-center block">גיל</Label>
           <div className="flex flex-col gap-1">
-            {AGE_BUTTONS.map((button) => (
+            {AGE_BUTTONS.filter(b => b.id !== "9-12").map((button) => (
               <button
                 key={button.id}
                 onClick={() => handleAgeButtonSelect(button.id)}
