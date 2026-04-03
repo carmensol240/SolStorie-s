@@ -145,12 +145,32 @@ The result must look like a cartoon doll version of the child — immediately re
     }
 
     const data = await response.json();
-    console.log("AI response received");
+    console.log("AI response received, keys:", JSON.stringify(Object.keys(data)));
 
-    const previewUrl = data.choices?.[0]?.message?.images?.[0]?.image_url?.url;
+    // Try multiple response formats
+    let previewUrl = data.choices?.[0]?.message?.images?.[0]?.image_url?.url;
+    
+    // Fallback: check for inline_data in content parts
+    if (!previewUrl) {
+      const content = data.choices?.[0]?.message?.content;
+      if (Array.isArray(content)) {
+        const imagePart = content.find((p: any) => p.type === 'image_url' || p.inline_data || p.image_url);
+        if (imagePart?.image_url?.url) {
+          previewUrl = imagePart.image_url.url;
+        } else if (imagePart?.inline_data?.data) {
+          previewUrl = `data:${imagePart.inline_data.mime_type || 'image/png'};base64,${imagePart.inline_data.data}`;
+        }
+      }
+    }
+
+    // Fallback: check for image in top-level of message
+    if (!previewUrl) {
+      const msg = data.choices?.[0]?.message;
+      if (msg?.image?.url) previewUrl = msg.image.url;
+    }
     
     if (!previewUrl) {
-      console.error("No image in response:", JSON.stringify(data));
+      console.error("No image in response. Full structure:", JSON.stringify(data).substring(0, 2000));
       throw new Error("שגיאה ביצירת התצוגה המקדימה");
     }
 
