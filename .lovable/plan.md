@@ -1,40 +1,61 @@
+## Plan: One Free Coloring Page Per Story with Caching
 
+### Overview
+Each story gets ONE free AI-generated coloring page. The result is cached in Supabase Storage so subsequent uses (print/online) never call the AI again. If user wants a different illustration colored, show an upsell prompt.
 
-## Plan: Add Two Upsell Packages Below Pricing Cards
+### Database Changes
 
-### Layout Assessment
-The upgrade page scrolls vertically — there is plenty of room. Two compact upsell cards placed side-by-side in a 2-column grid will fit well even on the 320px viewport. They replace the existing standalone edit kit card with a cleaner paired layout.
-
-### Design
-Two small glassmorphism cards in a `grid grid-cols-2 gap-3` row, placed after the "תשלום חד פעמי" line and before the coupon input:
-
-```text
-┌─────────────────┐ ┌─────────────────┐
-│   🎨            │ │   ✏️            │
-│ חבילת צביעה     │ │ חבילת עריכות    │
-│ 5 דפי צביעה    │ │ 5 עריכות       │
-│   ₪XX          │ │   ₪9.9         │
-│  [ רכשו ]      │ │  [ רכשו ]      │
-└─────────────────┘ └─────────────────┘
+**New table: `story_coloring_pages`**
+```sql
+CREATE TABLE public.story_coloring_pages (
+  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  story_id uuid NOT NULL,
+  user_id uuid NOT NULL,
+  illustration_url text NOT NULL,
+  coloring_image_path text NOT NULL,
+  created_at timestamptz DEFAULT now()
+);
+ALTER TABLE public.story_coloring_pages ENABLE ROW LEVEL SECURITY;
+-- RLS: users see/insert their own, admins see all
 ```
 
-Each card: icon, title, short description, price, and a small CTA button. Same glass style as existing cards (`bg-white/10 backdrop-blur-md border border-white/15`).
+**Add `coloring_credits` column to `profiles`**
+```sql
+ALTER TABLE public.profiles ADD COLUMN coloring_credits integer DEFAULT 0;
+```
+This tracks purchased coloring credits. The first coloring per story is free (no credit needed).
 
-### Changes
+### Edge Function Changes — `generate-coloring-page/index.ts`
 
-**`src/config/pricing.ts`**
-- Add a `COLORING_KIT_PACKAGE` constant (id, pages count, price, label, badge)
+1. Accept new param `check_cache: boolean` (optional)
+2. Before generating, check `story_coloring_pages` for existing entry for this `story_id + user_id`
+3. If cached entry exists:
+   - If same illustration_url → return cached image from storage (no AI call)
+   - If different illustration_url → check `coloring_credits > 0`. If yes, deduct 1 credit and proceed. If no, return `{ upsell: true }` error
+4. If no cached entry → generate (free first use), then:
+   - Upload result to `story-illustrations` bucket under `coloring/{story_id}.png`
+   - Insert record into `story_coloring_pages`
+5. Return the image (base64 or public URL)
 
-**`src/pages/Upgrade.tsx`**
-1. Replace the existing standalone Edit Kit card (lines 504-536) with a 2-column grid containing both upsell cards
-2. Add state `showColoringKitPayPal` and its PayPal flow (similar to the existing edit kit flow)
-3. Each card: compact design with emoji icon, title, one-line description, price, and small button
-4. On purchase success for coloring kit: record purchase in `purchases` table (needs a coloring credits field or similar tracking)
+### Client Changes — `src/pages/StoryViewer.tsx`
 
-### Open Question
-The coloring feature is currently free. What does "חבילת צביעה" actually provide — 5 AI-generated coloring pages? Or something else? This affects what we track on purchase. We may need a `coloring_credits` column on profiles, or simply track it as a purchase record.
+1. On story load, fetch existing `story_coloring_pages` record for this story
+2. If cached coloring exists:
+   - Skip illustration picker → go straight to choose-action (print/online)
+   - Load cached image from storage URL instead of calling edge function
+   - Show small "בחרו איור אחר" link that triggers upsell check
+3. If no cached coloring exists:
+   - Show illustration picker as before (pick ONE)
+   - After AI generates, save to cache
+4. Handle `upsell: true` response:
+   - Show dialog: "רוצים לצבוע איור נוסף? 🎨" with link to upgrade page
 
-### Files modified
-1. `src/config/pricing.ts` — add `COLORING_KIT_PACKAGE`
-2. `src/pages/Upgrade.tsx` — replace edit kit section with 2-column upsell grid
+### Upgrade Page — `src/pages/Upgrade.tsx`
 
+Update the coloring kit purchase handler to increment `coloring_credits` on the profile (not just record in `purchases`).
+
+### Files Modified
+1. Database migration — new `story_coloring_pages` table + `coloring_credits` column
+2. `supabase/functions/generate-coloring-page/index.ts` — cache check, storage upload, credit logic
+3. `src/pages/StoryViewer.tsx` — cache-aware flow, upsell dialog
+4. `src/pages/Upgrade.tsx` — update purchase to increment `coloring_credits`
