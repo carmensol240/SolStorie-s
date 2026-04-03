@@ -1,4 +1,5 @@
 import { useRef, useEffect, useState } from "react";
+import { Checkbox } from "@/components/ui/checkbox";
 import { User, Camera, Sparkles, RefreshCw, Trash2, Heart, ChevronDown, ChevronUp, Check, X, Loader2, Save, Shield, Globe, PlusCircle, BookOpen } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -818,7 +819,7 @@ const ChildInfoStep = ({ formData, updateFormData }: ChildInfoStepProps) => {
                   variant="outline"
                   size="sm"
                   onClick={() => {
-                    updateFormData({ childPhoto: null, childAvatarUrl: null });
+                    updateFormData({ childPhoto: null, childAvatarUrl: null, photoConsent: false });
                     setExistingAvatarForDialog(null);
                     setPhotoValidation(null);
                   }}
@@ -855,6 +856,21 @@ const ChildInfoStep = ({ formData, updateFormData }: ChildInfoStepProps) => {
             </label>
           )}
         </div>
+
+        {/* Photo consent checkbox - only when photo is uploaded */}
+        {formData.childPhoto && (
+          <div className="flex items-start gap-2 mt-2">
+            <Checkbox
+              id="photo-consent"
+              checked={formData.photoConsent || false}
+              onCheckedChange={(c) => updateFormData({ photoConsent: c === true })}
+              className="border-purple-300 data-[state=checked]:bg-purple-500 data-[state=checked]:border-purple-500 h-4 w-4 mt-0.5"
+            />
+            <label htmlFor="photo-consent" className="text-[11px] text-muted-foreground cursor-pointer leading-tight">
+              אני מסכים/ה לשימוש בתמונה לצורך יצירת איורי הסיפור בלבד
+            </label>
+          </div>
+        )}
       </div>
 
       {/* Save Button - clearly visible above the fixed Continue button */}

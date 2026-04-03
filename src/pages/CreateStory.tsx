@@ -25,6 +25,7 @@ export interface StoryFormData {
   storyLength: "short" | "long" | "extra-long";
   childPhoto: string | null;
   childAvatarUrl: string | null;
+  photoConsent: boolean;
   nikud: boolean;
   language: "he" | "en";
   topic: string;
@@ -42,6 +43,7 @@ const INITIAL_DATA: StoryFormData = {
   storyLength: "short",
   childPhoto: null,
   childAvatarUrl: null,
+  photoConsent: false,
   nikud: true,
   language: "he",
   topic: "",
@@ -133,7 +135,7 @@ const CreateStory = () => {
     setFormData((prev) => ({ ...prev, ...updates }));
   };
 
-  const canProceedStep1 = formData.childName.trim().length > 0;
+  const canProceedStep1 = formData.childName.trim().length > 0 && (!formData.childPhoto || formData.photoConsent);
   const canProceedStep2 = formData.topic.length > 0 || formData.customTopic.trim().length > 0;
 
   const handleNext = () => {

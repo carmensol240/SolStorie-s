@@ -108,6 +108,7 @@ const GeneratingStep = ({ formData, onComplete }: GeneratingStepProps) => {
   const [signupPassword, setSignupPassword] = useState("");
   const [signupShowPassword, setSignupShowPassword] = useState(false);
   const [signupTermsAccepted, setSignupTermsAccepted] = useState(false);
+  const [marketingConsent, setMarketingConsent] = useState(false);
   const [signupMode, setSignupMode] = useState<"signup" | "login">("signup");
   const [signupSubmitting, setSignupSubmitting] = useState(false);
   const [signupDismissed, setSignupDismissed] = useState(false);
@@ -465,6 +466,7 @@ const GeneratingStep = ({ formData, onComplete }: GeneratingStepProps) => {
         fixed_details: formData.fixedDetails || null,
         photo_url: formData.childPhoto || null,
         avatar_url: formData.childAvatarUrl || null,
+        photo_consent: formData.photoConsent || false,
       });
     } catch (e) {
       console.warn("Failed to save child profile:", e);
@@ -512,6 +514,7 @@ const GeneratingStep = ({ formData, onComplete }: GeneratingStepProps) => {
         await supabase.from("profiles").update({
           terms_accepted_at: new Date().toISOString(),
           terms_version: "1.0",
+          marketing_consent: marketingConsent,
         }).eq("id", newUser.id);
       }
       setSignupCompleted(true);
@@ -839,6 +842,20 @@ const GeneratingStep = ({ formData, onComplete }: GeneratingStepProps) => {
                     <a href="/terms" target="_blank" className="text-purple-500 underline underline-offset-2 mx-0.5">
                       תנאי השימוש
                     </a>
+                  </label>
+                </div>
+              )}
+
+              {signupMode === "signup" && (
+                <div className="flex items-center gap-2">
+                  <Checkbox
+                    id="gen-marketing"
+                    checked={marketingConsent}
+                    onCheckedChange={(c) => setMarketingConsent(c === true)}
+                    className="border-purple-300 data-[state=checked]:bg-purple-500 data-[state=checked]:border-purple-500 h-4 w-4"
+                  />
+                  <label htmlFor="gen-marketing" className="text-[11px] text-muted-foreground cursor-pointer leading-tight">
+                    אני רוצה לקבל קופונים ומבצעים במייל (אופציונלי)
                   </label>
                 </div>
               )}

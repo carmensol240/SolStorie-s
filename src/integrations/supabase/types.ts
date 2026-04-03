@@ -132,6 +132,7 @@ export type Database = {
           id: string
           name: string
           personality_traits: string | null
+          photo_consent: boolean | null
           photo_url: string | null
           user_id: string
         }
@@ -148,6 +149,7 @@ export type Database = {
           id?: string
           name: string
           personality_traits?: string | null
+          photo_consent?: boolean | null
           photo_url?: string | null
           user_id: string
         }
@@ -164,6 +166,7 @@ export type Database = {
           id?: string
           name?: string
           personality_traits?: string | null
+          photo_consent?: boolean | null
           photo_url?: string | null
           user_id?: string
         }
@@ -521,6 +524,7 @@ export type Database = {
           id: string
           is_subscriber: boolean
           last_edit_credits_reset: string | null
+          marketing_consent: boolean | null
           referral_code: string | null
           share_coins: number | null
           story_credits: number | null
@@ -544,6 +548,7 @@ export type Database = {
           id: string
           is_subscriber?: boolean
           last_edit_credits_reset?: string | null
+          marketing_consent?: boolean | null
           referral_code?: string | null
           share_coins?: number | null
           story_credits?: number | null
@@ -567,6 +572,7 @@ export type Database = {
           id?: string
           is_subscriber?: boolean
           last_edit_credits_reset?: string | null
+          marketing_consent?: boolean | null
           referral_code?: string | null
           share_coins?: number | null
           story_credits?: number | null
