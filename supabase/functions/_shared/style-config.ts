@@ -25,7 +25,7 @@ export const ILLUSTRATION_NEGATIVE_PROMPT = `no UI elements, no borders, no phon
 
 export const NEGATIVE_PROMPT = `realistic, photograph, semi-realistic, dark, muted, bokeh, hyper-realistic, floating head, missing body, extra limbs, cropped feet, text, watermark, UI elements, multiple characters, group shot, black bars, black borders, taskbar, status bar, phone frame, app interface, screenshot artifacts, interface elements, icons, text overlays, buttons, menus, device mockup, no screens, no devices, no phones, no tablets, no frames. Clean illustration only, full bleed image, no borders of any kind. ${ILLUSTRATION_NEGATIVE_PROMPT}`;
 
-export const NEGATIVE_PROMPT_FULL = `realistic, semi-realistic, real human, photograph, photorealistic, dark, muted colors, cinematic bokeh, hyper-realistic, shallow depth of field, floating head, missing body, missing limbs, extra limbs, deformed, distorted, scary, horror, mutated, cropped feet, cut off legs, floating character, half-body, missing feet, text, watermark, UI elements, black bars, black borders, taskbar, status bar, phone frame, app interface, screenshot artifacts, interface elements, icons, text overlays, buttons, menus, navigation bars, device mockup, no screens, no devices, no phones, no tablets, no frames. Clean illustration only, full bleed image, no borders of any kind. ${ILLUSTRATION_NEGATIVE_PROMPT}`;
+export const NEGATIVE_PROMPT_FULL = `realistic, semi-realistic, real human, photograph, photorealistic, dark, muted colors, cinematic bokeh, hyper-realistic, shallow depth of field, floating head, missing body, missing limbs, extra limbs, deformed, distorted, scary, horror, mutated, cropped feet, cut off legs, floating character, half-body, missing feet, text, watermark, UI elements, black bars, black borders, taskbar, status bar, phone frame, app interface, screenshot artifacts, interface elements, icons, text overlays, buttons, menus, navigation bars, device mockup, no screens, no devices, no phones, no tablets, no frames. Clean illustration only, full bleed image, no borders of any kind. no kippah on girls, no yarmulke on female characters, no male religious clothing on female characters, no gender-inappropriate religious symbols. ${ILLUSTRATION_NEGATIVE_PROMPT}`;
 
 export const CAST_NEGATIVE_PROMPT = NEGATIVE_PROMPT_FULL;
 
@@ -109,6 +109,8 @@ export const TOPIC_IMAGE_STYLE_SUFFIX = `Pixar 3D CGI animation style, big expre
 
 export const CHARACTER_CONSISTENCY_PROMPT = `CRITICAL — CHARACTER CONSISTENCY: The main character must look IDENTICAL in every illustration throughout the story. Same hair color, same hair style, same eye color, same face shape, same skin tone, same outfit in every scene. Any visual deviation between pages is a failure.`;
 
+export const GENDER_SYMBOL_RESTRICTION = `CRITICAL — GENDER-APPROPRIATE SYMBOLS: Never place a kippah (yarmulke) on a girl character. Never add male religious symbols or clothing on female characters. Use gender-appropriate religious symbols only, or avoid religious symbols altogether unless specifically requested in the story.`;
+
 // ─── Helpers ───
 
 /** Build an inline Pixar face-reference prompt block */
@@ -145,6 +147,8 @@ export function buildIllustrationPrompt(
   }
 
   parts.push(`SCENE (THIS IS THE MOST IMPORTANT PART — illustrate THIS specific scene in detail): ${scene}`);
+  parts.push("");
+  parts.push(GENDER_SYMBOL_RESTRICTION);
   parts.push("");
   parts.push(`NEGATIVE: ${CAST_NEGATIVE_PROMPT}`);
 
