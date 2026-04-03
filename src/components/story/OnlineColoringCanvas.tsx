@@ -435,25 +435,41 @@ export const OnlineColoringCanvas: React.FC<OnlineColoringCanvasProps> = ({
       <div className="absolute bottom-0 left-0 right-0 z-20 bg-white/90 backdrop-blur-sm border-t border-purple-200 px-2 py-1.5 space-y-1.5">
         {/* Tools */}
         <div className="flex items-center justify-center gap-2">
-          <button onClick={() => setIsEraser(false)}
+          <button onClick={() => setTool('fill')}
             className={`w-9 h-9 rounded-full flex items-center justify-center transition-all ${
-              !isEraser ? 'ring-2 ring-purple-500 ring-offset-1 bg-purple-50 shadow-md' : 'bg-gray-100 hover:bg-gray-200'
+              tool === 'fill' ? 'ring-2 ring-purple-500 ring-offset-1 bg-purple-50 shadow-md' : 'bg-gray-100 hover:bg-gray-200'
             }`}>
             <PaintBucket className="w-4 h-4" style={{ color }} />
           </button>
-          <button onClick={() => setIsEraser(true)}
+          <button onClick={() => setTool('brush')}
             className={`w-9 h-9 rounded-full flex items-center justify-center transition-all ${
-              isEraser ? 'ring-2 ring-purple-500 ring-offset-1 bg-purple-50 shadow-md' : 'bg-gray-100 hover:bg-gray-200'
+              tool === 'brush' ? 'ring-2 ring-purple-500 ring-offset-1 bg-purple-50 shadow-md' : 'bg-gray-100 hover:bg-gray-200'
+            }`}>
+            <Pencil className="w-4 h-4" style={{ color: tool === 'brush' ? color : undefined }} />
+          </button>
+          <button onClick={() => setTool('eraser')}
+            className={`w-9 h-9 rounded-full flex items-center justify-center transition-all ${
+              tool === 'eraser' ? 'ring-2 ring-purple-500 ring-offset-1 bg-purple-50 shadow-md' : 'bg-gray-100 hover:bg-gray-200'
             }`}>
             <Eraser className="w-4 h-4 text-gray-500" />
           </button>
+          {tool === 'brush' && (
+            <div className="flex items-center gap-1 mr-2">
+              {BRUSH_SIZES.map((s) => (
+                <button key={s} onClick={() => setBrushSize(s)}
+                  className={`rounded-full bg-gray-700 transition-all ${brushSize === s ? 'ring-2 ring-purple-500 ring-offset-1' : ''}`}
+                  style={{ width: s + 8, height: s + 8 }}
+                />
+              ))}
+            </div>
+          )}
         </div>
         {/* Colors */}
         <div className="flex items-center justify-center gap-1.5 flex-wrap">
           {COLORS.map((c) => (
-            <button key={c} onClick={() => { setColor(c); setIsEraser(false); }}
+            <button key={c} onClick={() => { setColor(c); if (tool === 'eraser') setTool('fill'); }}
               className={`w-9 h-9 rounded-full border-2 transition-all active:scale-95 ${
-                color === c && !isEraser
+                color === c && tool !== 'eraser'
                   ? 'scale-110 shadow-lg border-gray-700'
                   : 'border-white shadow-md hover:scale-105'
               }`}
