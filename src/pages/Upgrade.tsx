@@ -302,7 +302,7 @@ const Upgrade = () => {
           </div>
 
           {/* Header */}
-          <div className="text-center mb-4">
+          <div className="text-center mb-4 flex flex-col items-center">
             <h1 className="text-2xl font-black bg-gradient-to-r from-purple-300 via-pink-300 to-orange-300 bg-clip-text text-transparent mb-1">
               {title}
             </h1>
