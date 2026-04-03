@@ -11,7 +11,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/use-auth";
 import { isDevModeEnabled } from "@/hooks/use-dev-mode";
 import { toast } from "sonner";
-import AvatarPreviewDialog from "@/components/story/AvatarPreviewDialog";
+
 import { getUserData, setUserData } from "@/lib/user-storage";
 import { stripBase64ForStorage } from "@/lib/strip-base64";
 
@@ -89,13 +89,10 @@ const ChildInfoStep = ({ formData, updateFormData }: ChildInfoStepProps) => {
   const [savedChildren, setSavedChildren] = useState<SavedChild[]>([]);
   const [showPersonalityField, setShowPersonalityField] = useState(false);
   const [showPhotoTips, setShowPhotoTips] = useState(false);
-  const [avatarPreviewOpen, setAvatarPreviewOpen] = useState(false);
-  const [pendingPhotoForAvatar, setPendingPhotoForAvatar] = useState<string | null>(null);
-  const [tempChildId, setTempChildId] = useState<string | null>(null);
+  const [isGeneratingAvatar, setIsGeneratingAvatar] = useState(false);
   const [isSavingChild, setIsSavingChild] = useState(false);
   const [isUploadingPhoto, setIsUploadingPhoto] = useState(false);
   const [avatarRegenerationCount, setAvatarRegenerationCount] = useState(0);
-  const [existingAvatarForDialog, setExistingAvatarForDialog] = useState<string | null>(formData.childAvatarUrl || null);
   const [userRole, setUserRole] = useState<string | null>(null);
   const [isDeletingChild, setIsDeletingChild] = useState(false);
   const [photoValidation, setPhotoValidation] = useState<{
@@ -212,11 +209,9 @@ const ChildInfoStep = ({ formData, updateFormData }: ChildInfoStepProps) => {
           setIsValidatingPhoto(false);
         }
         
-        // If we have a temp child ID or selected child, upload and trigger avatar generation
+        // Auto-generate avatar inline if child name exists
         if (formData.childName.trim()) {
-          // Store photo and open avatar preview dialog
-          setPendingPhotoForAvatar(photoBase64);
-          setAvatarPreviewOpen(true);
+          generateAvatarInline(photoBase64);
         }
         
         setIsUploadingPhoto(false);
@@ -228,11 +223,44 @@ const ChildInfoStep = ({ formData, updateFormData }: ChildInfoStepProps) => {
     }
   };
 
-  const handleAvatarConfirm = (avatarUrl: string) => {
-    updateFormData({ childAvatarUrl: avatarUrl });
-    setExistingAvatarForDialog(avatarUrl);
-    setAvatarPreviewOpen(false);
-    setPendingPhotoForAvatar(null);
+  const generateAvatarInline = async (photo?: string) => {
+    const photoToUse = photo || formData.childPhoto;
+    if (!photoToUse || isGeneratingAvatar) return;
+    
+    if (avatarRegenerationCount >= 2) {
+      toast.error('הגעת למגבלת היצירות (2 פעמים)');
+      return;
+    }
+    
+    setIsGeneratingAvatar(true);
+    try {
+      const { data, error } = await supabase.functions.invoke('preview-child-avatar', {
+        body: { childPhoto: photoToUse }
+      });
+      if (error) throw new Error(error.message || 'שגיאה בשרת');
+      if (data?.error) throw new Error(data.error);
+      if (data?.previewUrl) {
+        updateFormData({ childAvatarUrl: data.previewUrl });
+        const newCount = avatarRegenerationCount + 1;
+        setAvatarRegenerationCount(newCount);
+        // Persist count
+        const currentChild = savedChildren.find(c => c.name === formData.childName);
+        if (currentChild) {
+          const updatedChildren = savedChildren.map(c =>
+            c.name === formData.childName ? { ...c, avatar_regeneration_count: newCount } : c
+          );
+          setSavedChildren(updatedChildren);
+          setUserData(user?.id, 'savedChildren', JSON.stringify(stripBase64ForStorage(updatedChildren)));
+        }
+      } else {
+        throw new Error('לא התקבלה תמונה מהשרת');
+      }
+    } catch (err) {
+      console.error('Avatar generation error:', err);
+      toast.error(err instanceof Error ? err.message : 'שגיאה ביצירת הדמות');
+    } finally {
+      setIsGeneratingAvatar(false);
+    }
   };
 
   const handleRegenerationCountChange = (count: number) => {
@@ -264,7 +292,7 @@ const ChildInfoStep = ({ formData, updateFormData }: ChildInfoStepProps) => {
     
     // Load avatar regeneration count
     setAvatarRegenerationCount(child.avatar_regeneration_count || 0);
-    setExistingAvatarForDialog(child.avatar_url);
+    // Avatar regeneration count loaded above
     
     if (child.personality_traits) {
       setShowPersonalityField(true);
@@ -415,7 +443,7 @@ const ChildInfoStep = ({ formData, updateFormData }: ChildInfoStepProps) => {
         fixedDetails: "",
       });
       setSelectedAgeButton("3-6");
-      setExistingAvatarForDialog(null);
+      
       toast.success(`הפרופיל של ${currentChild.name} נמחק בהצלחה`);
     } catch (error) {
       console.error('Error deleting child profile:', error);
@@ -450,7 +478,7 @@ const ChildInfoStep = ({ formData, updateFormData }: ChildInfoStepProps) => {
                 fixedDetails: "",
               });
               setSelectedAgeButton("3-6");
-              setExistingAvatarForDialog(null);
+              
               toast.success("הטופס נוקה - הזינו פרטי ילד/ה חדש/ה");
             }}
             className="text-sm font-bold text-purple-600 border-purple-300 hover:bg-purple-50"
@@ -711,8 +739,8 @@ const ChildInfoStep = ({ formData, updateFormData }: ChildInfoStepProps) => {
             </div>
           ) : formData.childPhoto ? (
             <div className="flex flex-col items-center justify-center w-full py-4 bg-card border-2 border-purple-400 bg-purple-50 rounded-xl gap-2">
-              {formData.childAvatarUrl && formData.childPhoto ? (
-                /* Side-by-side: original photo + avatar */
+              {(formData.childAvatarUrl || isGeneratingAvatar) && formData.childPhoto ? (
+                /* Side-by-side: original photo + avatar (or generating spinner) */
                 <div className="flex items-center gap-4">
                   <div className="flex flex-col items-center gap-1">
                     <div className="relative w-20 h-20 rounded-full overflow-hidden border-4 border-purple-400 shadow-[0_0_12px_rgba(168,85,247,0.4)]" style={{ background: 'linear-gradient(135deg, hsl(var(--primary)), hsl(270,70%,60%))' }}>
@@ -721,25 +749,32 @@ const ChildInfoStep = ({ formData, updateFormData }: ChildInfoStepProps) => {
                         alt="תמונה מקורית"
                         className="w-full h-full object-cover opacity-90"
                       />
-                      {/* Vignette overlay to soften edges */}
                       <div className="absolute inset-0 rounded-full pointer-events-none" style={{ boxShadow: 'inset 0 0 12px 4px rgba(168,85,247,0.25)' }} />
                       <div className="absolute inset-0 bg-gradient-to-b from-black/5 via-transparent to-black/15 rounded-full pointer-events-none" />
                     </div>
-                    <span className="text-[10px] text-muted-foreground">מקורית</span>
+                    <span className="text-[10px] text-muted-foreground">תמונה מקורית</span>
                   </div>
                   <Sparkles className="w-4 h-4 text-purple-400 flex-shrink-0 animate-pulse" />
                   <div className="flex flex-col items-center gap-1">
-                    <div className="relative w-20 h-20 rounded-full overflow-hidden border-4 border-purple-400 shadow-[0_0_12px_rgba(168,85,247,0.4)]">
-                      <img
-                        src={formData.childAvatarUrl}
-                        alt="דמות בסיפור"
-                        className="w-full h-full object-cover"
-                      />
-                      <div className="absolute bottom-0 right-0 w-5 h-5 bg-purple-500 rounded-full flex items-center justify-center">
-                        <Sparkles className="w-3 h-3 text-white" />
-                      </div>
+                    <div className="relative w-20 h-20 rounded-full overflow-hidden border-4 border-purple-400 shadow-[0_0_12px_rgba(168,85,247,0.4)] bg-purple-100 flex items-center justify-center">
+                      {isGeneratingAvatar ? (
+                        <Loader2 className="w-8 h-8 animate-spin text-purple-500" />
+                      ) : formData.childAvatarUrl ? (
+                        <>
+                          <img
+                            src={formData.childAvatarUrl}
+                            alt="אווטאר"
+                            className="w-full h-full object-cover"
+                          />
+                          <div className="absolute bottom-0 right-0 w-5 h-5 bg-purple-500 rounded-full flex items-center justify-center">
+                            <Sparkles className="w-3 h-3 text-white" />
+                          </div>
+                        </>
+                      ) : null}
                     </div>
-                    <span className="text-[10px] text-purple-600 font-medium">דמות בסיפור</span>
+                    <span className="text-[10px] text-purple-600 font-medium">
+                      {isGeneratingAvatar ? 'יוצר דמות...' : 'אווטאר'}
+                    </span>
                   </div>
                 </div>
               ) : (
@@ -801,34 +836,35 @@ const ChildInfoStep = ({ formData, updateFormData }: ChildInfoStepProps) => {
                 </div>
               )}
               <div className="flex gap-3 mt-2">
-                {!formData.childAvatarUrl && formData.childPhoto && (
+                {!formData.childAvatarUrl && formData.childPhoto && !isGeneratingAvatar && (
                   <Button
                     type="button"
                     variant="outline"
                     size="sm"
-                    onClick={() => {
-                      setPendingPhotoForAvatar(formData.childPhoto);
-                      setAvatarPreviewOpen(true);
-                    }}
+                    onClick={() => generateAvatarInline()}
                     className="text-sm text-purple-600 border-purple-300 hover:bg-purple-50"
                   >
                     <Sparkles className="w-4 h-4 ml-1" />
                     צור אווטאר
                   </Button>
                 )}
-                {formData.childAvatarUrl && (
+                {isGeneratingAvatar && (
+                  <div className="flex items-center gap-2 text-xs text-purple-600">
+                    <Loader2 className="w-4 h-4 animate-spin" />
+                    <span>יוצר דמות...</span>
+                  </div>
+                )}
+                {formData.childAvatarUrl && !isGeneratingAvatar && (
                   <Button
                     type="button"
                     variant="outline"
                     size="sm"
-                    onClick={() => {
-                      setPendingPhotoForAvatar(formData.childPhoto);
-                      setAvatarPreviewOpen(true);
-                    }}
+                    onClick={() => generateAvatarInline()}
+                    disabled={avatarRegenerationCount >= 2}
                     className="text-sm text-purple-600 border-purple-300 hover:bg-purple-50"
                   >
                     <RefreshCw className="w-4 h-4 ml-1" />
-                    עדכן אווטאר
+                    עדכן אווטאר ({2 - avatarRegenerationCount})
                   </Button>
                 )}
                 <Button
@@ -837,7 +873,7 @@ const ChildInfoStep = ({ formData, updateFormData }: ChildInfoStepProps) => {
                   size="sm"
                   onClick={() => {
                     updateFormData({ childPhoto: null, childAvatarUrl: null, photoConsent: false });
-                    setExistingAvatarForDialog(null);
+                    setPhotoValidation(null);
                     setPhotoValidation(null);
                   }}
                   className="text-sm text-destructive border-destructive/30 hover:bg-destructive/10"
@@ -913,19 +949,7 @@ const ChildInfoStep = ({ formData, updateFormData }: ChildInfoStepProps) => {
         <span>פרטי הילד/ה נשמרים בצורה מאובטחת ופרטית בהתאם לתקנות הפרטיות.</span>
       </div>
 
-      {/* Avatar Preview Dialog */}
-      <AvatarPreviewDialog
-        open={avatarPreviewOpen}
-        onOpenChange={setAvatarPreviewOpen}
-        originalPhoto={pendingPhotoForAvatar || ""}
-        childId="temp-child"
-        childName={formData.childName}
-        existingAvatarUrl={existingAvatarForDialog}
-        onConfirm={handleAvatarConfirm}
-        skipStorage={true}
-        regenerationCount={avatarRegenerationCount}
-        onRegenerationCountChange={handleRegenerationCountChange}
-      />
+      
     </div>
   );
 };

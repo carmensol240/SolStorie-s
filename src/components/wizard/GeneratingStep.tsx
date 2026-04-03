@@ -757,7 +757,7 @@ const GeneratingStep = ({ formData, onComplete }: GeneratingStepProps) => {
                   setGoogleLoading(false);
                 }
               }}
-              className="w-full flex items-center justify-center gap-2 bg-white border-2 border-purple-100 hover:border-purple-200 hover:bg-purple-50/50 rounded-full py-2.5 px-4 text-sm font-bold text-foreground transition-all shadow-sm"
+              className="w-full flex items-center justify-center gap-2 bg-white border-2 border-purple-100 hover:border-purple-200 hover:bg-purple-50/50 rounded-full py-2.5 px-4 text-sm font-bold text-gray-800 transition-all shadow-sm"
             >
               {googleLoading ? (
                 <Loader2 className="w-4 h-4 animate-spin" />
