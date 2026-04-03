@@ -128,7 +128,7 @@ const handler = async (req: Request): Promise<Response> => {
       },
       body: JSON.stringify({
         from: "SolStorie's™ <noreply@storytime.org.il>",
-        to: ["souldesign06@gmail.com"],
+        to: ["solstories.nlp@gmail.com"],
         reply_to: email,
         subject: `פנייה חדשה - ${subjectLabel}`,
         html: emailHtml,

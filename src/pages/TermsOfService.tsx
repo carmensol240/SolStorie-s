@@ -70,8 +70,8 @@ const TermsOfService = () => {
               <p className="text-muted-foreground leading-relaxed flex items-center gap-2">
                 <Mail className="w-4 h-4 shrink-0" aria-hidden="true" />
                 לכל שאלה, פנייה או בקשת החזר:{" "}
-                <a href="mailto:souldesign06@gmail.com" className="text-primary underline" dir="ltr">
-                  souldesign06@gmail.com
+                <a href="mailto:solstories.nlp@gmail.com" className="text-primary underline" dir="ltr">
+                  solstories.nlp@gmail.com
                 </a>
               </p>
             </section>
