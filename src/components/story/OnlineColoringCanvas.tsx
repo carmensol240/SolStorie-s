@@ -118,12 +118,14 @@ export const OnlineColoringCanvas: React.FC<OnlineColoringCanvasProps> = ({
     const drawCanvas = canvasRef.current;
     if (!container || !bgCanvas || !drawCanvas) return;
     const rect = container.getBoundingClientRect();
-    const scaleW = rect.width / img.naturalWidth;
-    const scaleH = rect.height / img.naturalHeight;
-    // Prefer filling width; only fall back to height if image would overflow vertically
-    const scale = (img.naturalHeight * scaleW <= rect.height) ? scaleW : scaleH;
-    const w = Math.floor(img.naturalWidth * scale);
-    const h = Math.floor(img.naturalHeight * scale);
+    // Force 9:16 portrait ratio, fitting inside the container
+    const targetRatio = 9 / 16;
+    let h = Math.floor(rect.height);
+    let w = Math.floor(h * targetRatio);
+    if (w > rect.width) {
+      w = Math.floor(rect.width);
+      h = Math.floor(w / targetRatio);
+    }
     bgCanvas.width = w; bgCanvas.height = h;
     drawCanvas.width = w; drawCanvas.height = h;
     const ctx = bgCanvas.getContext('2d');
