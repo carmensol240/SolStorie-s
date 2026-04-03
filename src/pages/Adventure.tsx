@@ -147,6 +147,23 @@ const Adventure = () => {
 
         {/* Bottom section - CTA & Welcome banner */}
         <div className="absolute bottom-0 left-0 right-0 z-10 flex flex-col items-center gap-3 px-4 pb-[72px]">
+          {/* Spinning Gold Coin */}
+          <div className="flex flex-col items-center gap-1">
+            <div style={{ perspective: "800px" }}>
+              <div
+                className="gold-coin relative w-20 h-20 rounded-full flex items-center justify-center border-2 border-yellow-300/60"
+                style={{
+                  background: "radial-gradient(circle at 35% 35%, #ffe066, #f5a623 40%, #c87f0a 80%, #a56200)",
+                }}
+              >
+                <span className="font-black text-[11px] text-white drop-shadow-[0_1px_2px_rgba(0,0,0,0.5)] leading-tight text-center pointer-events-none" style={{ textShadow: "0 0 6px rgba(255,215,0,0.6)" }}>
+                  סיפור<br/>חינם! ✨
+                </span>
+              </div>
+            </div>
+            <p className="text-white/90 text-xs font-bold drop-shadow-md">הסיפור הראשון שלכם במתנה 🎁</p>
+          </div>
+
           <WelcomeGiftBanner credits={credits} storyCount={storyCount} />
 
           <button
