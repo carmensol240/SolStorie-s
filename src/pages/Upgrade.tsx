@@ -43,6 +43,16 @@ const Upgrade = () => {
   const [purchasedCredits, setPurchasedCredits] = useState(0);
   const [discountPercent, setDiscountPercent] = useState(0);
   const [appliedCouponCode, setAppliedCouponCode] = useState<string | null>(null);
+
+  // Countdown timer — 15 minutes from page load
+  const [countdown, setCountdown] = useState(15 * 60);
+  useEffect(() => {
+    if (countdown <= 0) return;
+    const timer = setInterval(() => setCountdown(prev => Math.max(0, prev - 1)), 1000);
+    return () => clearInterval(timer);
+  }, [countdown]);
+  const countdownMin = Math.floor(countdown / 60);
+  const countdownSec = countdown % 60;
   
 
   const title = "נהניתם מהסיפור?";
@@ -307,6 +317,18 @@ const Upgrade = () => {
               ✨ 1 קרדיט = 1 סיפור מלא + איורים
             </Badge>
           </div>
+
+          {/* Limited-time offer badge */}
+          {countdown > 0 && (
+            <div className="flex justify-center mb-3">
+              <div className="inline-flex items-center gap-2 bg-gradient-to-r from-orange-500/90 to-pink-500/90 backdrop-blur-sm text-white text-sm font-bold px-4 py-2 rounded-full shadow-lg animate-pulse">
+                <span>🔥 מבצע מיוחד</span>
+                <span className="bg-white/20 rounded-md px-2 py-0.5 font-mono text-xs tracking-wider">
+                  {String(countdownMin).padStart(2, '0')}:{String(countdownSec).padStart(2, '0')}
+                </span>
+              </div>
+            </div>
+          )}
 
           {/* Package Cards — Glassmorphism */}
           <div className="grid grid-cols-3 gap-3 mb-4">
