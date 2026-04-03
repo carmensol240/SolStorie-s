@@ -59,7 +59,7 @@ function App() { useTimeTheme(); return (
           <PWAInstallPrompt />
           <AccessibilityMenu />
           <Routes>
-            <Route path="/" element={<About />} />
+            <Route path="/" element={<Adventure />} />
             <Route path="/about" element={<About />} />
             <Route path="/welcome" element={<Navigate to="/adventure" replace />} />
             <Route path="/adventure" element={<Adventure />} />

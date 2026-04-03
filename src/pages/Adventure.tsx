@@ -1,27 +1,43 @@
 import { useState, useEffect, useCallback } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 import { Wand2, Coins } from "lucide-react";
 import { useCredits } from "@/hooks/use-credits";
 import { useReferral } from "@/hooks/use-referral";
 import { useAuth } from "@/hooks/use-auth";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
+import { Checkbox } from "@/components/ui/checkbox";
 import WelcomeGiftBanner from "@/components/home/WelcomeGiftBanner";
 import MobileNavigation from "@/components/MobileNavigation";
 import heroVideo from "@/assets/hero-solstories-animation-new.mp4";
 
+const ADMIN_EMAILS = ['carmit1901@gmail.com', 'carmit1901+test@gmail.com'];
+
 const Adventure = () => {
   const navigate = useNavigate();
-  const { user } = useAuth();
+  const { user, loading } = useAuth();
   const { credits } = useCredits();
   const { shareCoins } = useReferral();
   const { toast } = useToast();
   const [displayName, setDisplayName] = useState<string | null>(null);
   const [storyCount, setStoryCount] = useState<number>(0);
+  const [termsAccepted, setTermsAccepted] = useState(
+    () => localStorage.getItem('terms_accepted') === 'true'
+  );
 
   useEffect(() => {
     window.scrollTo(0, 0);
   }, []);
+
+  // Admin / logged-in user redirect
+  useEffect(() => {
+    if (loading || !user) return;
+    if (ADMIN_EMAILS.includes(user.email || '')) {
+      navigate("/settings", { replace: true });
+    } else {
+      navigate("/create", { replace: true });
+    }
+  }, [user, loading, navigate]);
 
   useEffect(() => {
     if (!user) return;
