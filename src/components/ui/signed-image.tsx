@@ -79,7 +79,7 @@ export const SignedImage = ({
     <div className={cn('relative overflow-hidden', className)} role="img" aria-label={effectiveAlt}>
       {/* Loading placeholder with heart-shield illustration */}
       {!imageLoaded && !hasError && (
-        <div className={cn('absolute inset-0 flex items-center justify-center', className)} aria-hidden="true">
+        <div className="absolute inset-0 flex items-center justify-center" aria-hidden="true">
           <div className="absolute inset-0 bg-gradient-to-br from-[#FFFBF5] via-[#F5E6D3] to-[#FAF3E8]" />
           <div className="relative z-10 text-center">
             {/* Heart-shaped shield placeholder */}
@@ -115,10 +115,9 @@ export const SignedImage = ({
           onError?.();
         }}
         className={cn(
-          'transition-opacity duration-500',
+          'absolute inset-0 w-full h-full object-cover transition-opacity duration-500',
           imageLoaded ? 'opacity-100' : 'opacity-0',
           hasError && fallback ? 'hidden' : '',
-          className
         )}
       />
     </div>
