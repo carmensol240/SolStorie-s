@@ -732,12 +732,17 @@ const ChildInfoStep = ({ formData, updateFormData }: ChildInfoStepProps) => {
                 </div>
               ) : (
                 /* Single image: original photo only */
-                <div className="relative w-24 h-24 rounded-full overflow-hidden border-3 border-purple-400 shadow-md">
-                  <img
-                    src={formData.childPhoto!}
-                    alt="תמונת הילד"
-                    className="w-full h-full object-cover"
-                  />
+                <div className="flex flex-col items-center gap-1">
+                  <div className="relative w-20 h-20 rounded-full overflow-hidden border-4 border-purple-400 shadow-[0_0_12px_rgba(168,85,247,0.4)]" style={{ background: 'linear-gradient(135deg, hsl(var(--primary)), hsl(270,70%,60%))' }}>
+                    <img
+                      src={formData.childPhoto!}
+                      alt="תמונת הילד"
+                      className="w-full h-full object-cover opacity-90"
+                    />
+                    <div className="absolute inset-0 rounded-full pointer-events-none" style={{ boxShadow: 'inset 0 0 12px 4px rgba(168,85,247,0.25)' }} />
+                    <div className="absolute inset-0 bg-gradient-to-b from-black/5 via-transparent to-black/15 rounded-full pointer-events-none" />
+                  </div>
+                  <span className="text-[10px] text-muted-foreground">מקורית</span>
                 </div>
               )}
               {/* Photo Validation Criteria */}
