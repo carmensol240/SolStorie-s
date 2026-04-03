@@ -478,7 +478,7 @@ const ChildInfoStep = ({ formData, updateFormData }: ChildInfoStepProps) => {
                 fixedDetails: "",
               });
               setSelectedAgeButton("3-6");
-              setExistingAvatarForDialog(null);
+              
               toast.success("הטופס נוקה - הזינו פרטי ילד/ה חדש/ה");
             }}
             className="text-sm font-bold text-purple-600 border-purple-300 hover:bg-purple-50"
