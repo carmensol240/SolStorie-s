@@ -110,13 +110,23 @@ const About = () => {
           <br />
           מה שהתחיל כפרויקט אישי קטן, הפך לאפליקציה שמעניקה לכל ילד את היכולת <strong className="text-amber-200 font-bold">להיות הגיבור של הסיפור שלו</strong>.
         </p>
-        {/* Read more toggle */}
-        {!showMore && (
+        {/* Read more / Close toggle */}
+        {!showMore ? (
           <button
             onClick={() => setShowMore(true)}
             className="text-sm text-purple-300/80 hover:text-purple-200 underline underline-offset-4 mb-6 transition-colors"
           >
             קרא עוד ↓
+          </button>
+        ) : (
+          <button
+            onClick={() => {
+              setShowMore(false);
+              window.scrollTo({ top: 0, behavior: 'smooth' });
+            }}
+            className="px-4 py-2 rounded-full bg-amber-400/20 backdrop-blur-sm border border-amber-400/40 text-sm text-amber-300 hover:bg-amber-400/30 transition-all mb-4"
+          >
+            סגור ↑
           </button>
         )}
 
@@ -201,18 +211,6 @@ const About = () => {
               </div>
             </div>
 
-            {/* Sticky floating close button */}
-            <div className="sticky bottom-4 flex justify-center mt-8 pb-4">
-              <button
-                onClick={() => {
-                  setShowMore(false);
-                  window.scrollTo({ top: 0, behavior: 'smooth' });
-                }}
-                className="px-4 py-2 rounded-full bg-black/40 backdrop-blur-sm border border-purple-500/30 text-sm text-purple-200 hover:bg-black/60 transition-all"
-              >
-                סגור ↑
-              </button>
-            </div>
           </div>
         )}
 
