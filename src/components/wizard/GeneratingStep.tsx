@@ -61,7 +61,25 @@ const EMPOWERING_SENTENCES = [
   "🌟 יש לך את הכוח להפוך כל רגע פשוט להרפתקה שתלווה אותו לכל החיים",
   "🌈 הקריאה המשותפת היא המקום שבו הילד שלך לומד לחלום בלי גבולות",
   "🧭 אתה המדריך הכי טוב של הילד שלך בעולמות הדמיון",
+  "🦋 כל סיפור פותח דלת לעולם חדש של אפשרויות",
+  "🏰 הדמיון של ילדכם הוא הטירה הכי חזקה שיש",
+  "🎭 דרך הסיפורים ילדים לומדים להכיר רגשות ולהבין אחרים",
+  "🔮 הקסם האמיתי הוא הרגע שבו ילד אומר — ׳עוד פעם!׳",
+  "💫 סיפור אישי מלמד ילד שהוא חשוב, ייחודי ואהוב",
+  "🎨 כל עמוד הוא בד ציור חדש לדמיון של ילדכם",
+  "🌻 ילדים שגדלים עם סיפורים גדלים עם ביטחון ואמפתיה",
+  "🫂 הסיפור שאתם יוצרים עכשיו יהפוך לזיכרון יקר לשניכם",
 ];
+
+// Fisher-Yates shuffle helper
+const shuffleArray = (arr: number[]): number[] => {
+  const shuffled = [...arr];
+  for (let i = shuffled.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+  }
+  return shuffled;
+};
 
 const getTopicLabel = (topicId: string): string => {
   const topics: Record<string, string> = {
