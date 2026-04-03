@@ -713,7 +713,7 @@ const ChildInfoStep = ({ formData, updateFormData }: ChildInfoStepProps) => {
                       <div className="absolute inset-0 rounded-full pointer-events-none" style={{ boxShadow: 'inset 0 0 12px 4px rgba(168,85,247,0.25)' }} />
                       <div className="absolute inset-0 bg-gradient-to-b from-black/5 via-transparent to-black/15 rounded-full pointer-events-none" />
                     </div>
-                    <span className="text-[10px] text-muted-foreground">תמונה מקורית</span>
+                    <span className="text-[10px] text-muted-foreground">מקורית</span>
                   </div>
                   <Sparkles className="w-4 h-4 text-purple-400 flex-shrink-0 animate-pulse" />
                   <div className="flex flex-col items-center gap-1">
