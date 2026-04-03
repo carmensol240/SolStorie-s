@@ -32,11 +32,11 @@ const InstallAppPrompt = ({ justCreatedFirstStory }: InstallAppPromptProps) => {
     const ios = /iPad|iPhone|iPod/.test(navigator.userAgent) && !(window as any).MSStream;
     setIsIOS(ios);
 
-    // Small delay so it doesn't compete with initial render
+    // Show only after user has been reading for at least 30 seconds
     const timer = setTimeout(() => {
       setOpen(true);
       localStorage.setItem(STORAGE_KEY, "true");
-    }, 2000);
+    }, 30000);
 
     const handler = (e: Event) => {
       e.preventDefault();
