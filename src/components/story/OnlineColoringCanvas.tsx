@@ -1,5 +1,5 @@
 import React, { useRef, useState, useEffect, useCallback, useMemo } from 'react';
-import { Undo2, Redo2, Download, Printer, ArrowRight, Pencil, Eraser } from 'lucide-react';
+import { Undo2, Redo2, Download, Printer, ArrowRight, PaintBucket, Eraser } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 
 interface OnlineColoringCanvasProps {
@@ -17,21 +17,11 @@ const COLORS = [
   '#FFFFFF', '#000000',
 ];
 
-const BRUSH_SIZES = [
-  { label: 'S', size: 6 },
-  { label: 'M', size: 14 },
-  { label: 'L', size: 24 },
-];
-
-function buildBrushCursor(color: string): string {
-  const svg = `<svg xmlns='http://www.w3.org/2000/svg' width='32' height='32' viewBox='0 0 32 32'>
-    <path d='M8 28 L12 14 L18 8 L24 4 L28 4 L28 8 L24 14 L18 18 L14 12 Z' fill='${color}' stroke='%23333' stroke-width='1'/>
-    <circle cx='10' cy='26' r='3' fill='${color}' stroke='%23333' stroke-width='1'/>
-  </svg>`;
-  return `url("data:image/svg+xml,${svg.replace(/#/g, '%23').replace(/\n/g, '')}") 4 28, crosshair`;
-}
+const FILL_CURSOR = `url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='none' stroke='%23333' stroke-width='2'><path d='M2 22l1-1h3l9-9'/><path d='M3 21v-3l9-9'/><path d='M14.5 5.5l4-4 4 4-4 4z'/><path d='M12 8l4-4'/><path d='M19 15v6a1 1 0 01-1 1h-1a1 1 0 01-1-1v-3.28a1 1 0 01.684-.948L19 15z' fill='%234488ff'/></svg>") 2 22, crosshair`;
 
 const ERASER_CURSOR = `url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' width='24' height='24'><circle cx='12' cy='12' r='10' fill='white' stroke='%23999' stroke-width='2'/></svg>") 12 12, crosshair`;
+
+const ERASER_SIZE = 30;
 
 function boldenOutlines(ctx: CanvasRenderingContext2D, w: number, h: number) {
   const imageData = ctx.getImageData(0, 0, w, h);
@@ -46,6 +36,97 @@ function boldenOutlines(ctx: CanvasRenderingContext2D, w: number, h: number) {
   ctx.putImageData(imageData, 0, 0);
 }
 
+function hexToRgba(hex: string): [number, number, number, number] {
+  const r = parseInt(hex.slice(1, 3), 16);
+  const g = parseInt(hex.slice(3, 5), 16);
+  const b = parseInt(hex.slice(5, 7), 16);
+  return [r, g, b, 255];
+}
+
+function colorsMatch(a: Uint8ClampedArray, idx: number, target: [number, number, number, number], tolerance: number): boolean {
+  return (
+    Math.abs(a[idx] - target[0]) <= tolerance &&
+    Math.abs(a[idx + 1] - target[1]) <= tolerance &&
+    Math.abs(a[idx + 2] - target[2]) <= tolerance &&
+    Math.abs(a[idx + 3] - target[3]) <= tolerance
+  );
+}
+
+function floodFill(
+  drawCtx: CanvasRenderingContext2D,
+  bgCtx: CanvasRenderingContext2D,
+  startX: number,
+  startY: number,
+  fillColorHex: string,
+  w: number,
+  h: number,
+  tolerance = 32
+) {
+  // Merge bg + draw to detect boundaries
+  const mergedCanvas = document.createElement('canvas');
+  mergedCanvas.width = w;
+  mergedCanvas.height = h;
+  const mergedCtx = mergedCanvas.getContext('2d')!;
+  mergedCtx.drawImage(bgCtx.canvas, 0, 0);
+  mergedCtx.drawImage(drawCtx.canvas, 0, 0);
+
+  const mergedData = mergedCtx.getImageData(0, 0, w, h);
+  const md = mergedData.data;
+
+  const drawData = drawCtx.getImageData(0, 0, w, h);
+  const dd = drawData.data;
+
+  const sx = Math.floor(startX);
+  const sy = Math.floor(startY);
+  if (sx < 0 || sx >= w || sy < 0 || sy >= h) return;
+
+  const startIdx = (sy * w + sx) * 4;
+  const targetColor: [number, number, number, number] = [md[startIdx], md[startIdx + 1], md[startIdx + 2], md[startIdx + 3]];
+  const fillColor = hexToRgba(fillColorHex);
+
+  // Don't fill if target is already the fill color (on merged view)
+  if (
+    Math.abs(targetColor[0] - fillColor[0]) <= 2 &&
+    Math.abs(targetColor[1] - fillColor[1]) <= 2 &&
+    Math.abs(targetColor[2] - fillColor[2]) <= 2
+  ) return;
+
+  // Don't fill dark outline pixels
+  const avgTarget = (targetColor[0] + targetColor[1] + targetColor[2]) / 3;
+  if (avgTarget < 80) return;
+
+  const visited = new Uint8Array(w * h);
+  const queue: number[] = [sx, sy];
+  visited[sy * w + sx] = 1;
+
+  while (queue.length > 0) {
+    const cy = queue.pop()!;
+    const cx = queue.pop()!;
+    const idx = (cy * w + cx) * 4;
+
+    // Write to draw layer
+    dd[idx] = fillColor[0];
+    dd[idx + 1] = fillColor[1];
+    dd[idx + 2] = fillColor[2];
+    dd[idx + 3] = fillColor[3];
+
+    // Check 4 neighbors
+    const neighbors = [[cx - 1, cy], [cx + 1, cy], [cx, cy - 1], [cx, cy + 1]];
+    for (const [nx, ny] of neighbors) {
+      if (nx < 0 || nx >= w || ny < 0 || ny >= h) continue;
+      const nPos = ny * w + nx;
+      if (visited[nPos]) continue;
+      visited[nPos] = 1;
+      const nIdx = nPos * 4;
+      if (colorsMatch(md, nIdx, targetColor, tolerance)) {
+        queue.push(nx, ny);
+      }
+    }
+  }
+
+  drawCtx.putImageData(drawData, 0, 0);
+}
+
 export const OnlineColoringCanvas: React.FC<OnlineColoringCanvasProps> = ({
   isOpen, onClose, backgroundImage, childName, storyTitle,
 }) => {
@@ -54,13 +135,11 @@ export const OnlineColoringCanvas: React.FC<OnlineColoringCanvasProps> = ({
   const containerRef = useRef<HTMLDivElement>(null);
   const [isDrawing, setIsDrawing] = useState(false);
   const [color, setColor] = useState(COLORS[0]);
-  const [brushSize, setBrushSize] = useState(BRUSH_SIZES[1].size);
   const [isEraser, setIsEraser] = useState(false);
   const [bgLoaded, setBgLoaded] = useState(false);
   const lastPos = useRef<{ x: number; y: number } | null>(null);
   const bgImageRef = useRef<HTMLImageElement | null>(null);
 
-  // Undo/Redo
   const [history, setHistory] = useState<ImageData[]>([]);
   const [historyIndex, setHistoryIndex] = useState(-1);
 
@@ -118,15 +197,12 @@ export const OnlineColoringCanvas: React.FC<OnlineColoringCanvasProps> = ({
     const drawCanvas = canvasRef.current;
     if (!container || !bgCanvas || !drawCanvas) return;
     const rect = container.getBoundingClientRect();
-    // Match the original image aspect ratio automatically
     const imgRatio = img.naturalWidth / img.naturalHeight;
     let w: number, h: number;
     if (rect.width / rect.height > imgRatio) {
-      // Container is wider than image — fit by height
       h = Math.floor(rect.height);
       w = Math.floor(h * imgRatio);
     } else {
-      // Container is taller than image — fit by width
       w = Math.floor(rect.width);
       h = Math.floor(w / imgRatio);
     }
@@ -136,7 +212,6 @@ export const OnlineColoringCanvas: React.FC<OnlineColoringCanvasProps> = ({
     if (ctx) {
       ctx.fillStyle = '#FFFFFF';
       ctx.fillRect(0, 0, w, h);
-      // Cover: scale image to fill entire canvas, cropping overflow
       const coverScale = Math.max(w / img.naturalWidth, h / img.naturalHeight);
       const drawW = img.naturalWidth * coverScale;
       const drawH = img.naturalHeight * coverScale;
@@ -145,7 +220,6 @@ export const OnlineColoringCanvas: React.FC<OnlineColoringCanvasProps> = ({
       ctx.drawImage(img, offsetX, offsetY, drawW, drawH);
       boldenOutlines(ctx, w, h);
     }
-    // Initial empty snapshot
     const dCtx = drawCanvas.getContext('2d');
     if (dCtx) {
       const snap = dCtx.getImageData(0, 0, w, h);
@@ -161,42 +235,59 @@ export const OnlineColoringCanvas: React.FC<OnlineColoringCanvasProps> = ({
     return () => window.removeEventListener('resize', handler);
   }, [isOpen, resizeCanvases]);
 
-  const getPos = useCallback((e: React.MouseEvent | React.TouchEvent) => {
+  const getCanvasPos = useCallback((e: React.MouseEvent | React.TouchEvent) => {
     const canvas = canvasRef.current;
     if (!canvas) return { x: 0, y: 0 };
     const rect = canvas.getBoundingClientRect();
+    const scaleX = canvas.width / rect.width;
+    const scaleY = canvas.height / rect.height;
     if ('touches' in e) {
       const touch = e.touches[0] || e.changedTouches[0];
-      return { x: touch.clientX - rect.left, y: touch.clientY - rect.top };
+      return { x: (touch.clientX - rect.left) * scaleX, y: (touch.clientY - rect.top) * scaleY };
     }
-    return { x: e.clientX - rect.left, y: e.clientY - rect.top };
+    return { x: (e.clientX - rect.left) * scaleX, y: (e.clientY - rect.top) * scaleY };
   }, []);
 
-  const startDrawing = useCallback((e: React.MouseEvent | React.TouchEvent) => {
+  const handlePointerDown = useCallback((e: React.MouseEvent | React.TouchEvent) => {
     e.preventDefault();
-    setIsDrawing(true);
-    lastPos.current = getPos(e);
-  }, [getPos]);
+    const pos = getCanvasPos(e);
 
-  const draw = useCallback((e: React.MouseEvent | React.TouchEvent) => {
+    if (isEraser) {
+      setIsDrawing(true);
+      lastPos.current = pos;
+      const ctx = canvasRef.current?.getContext('2d');
+      if (ctx) {
+        ctx.globalCompositeOperation = 'destination-out';
+        ctx.beginPath();
+        ctx.arc(pos.x, pos.y, ERASER_SIZE, 0, Math.PI * 2);
+        ctx.fill();
+      }
+      return;
+    }
+
+    // Flood fill
+    const drawCtx = canvasRef.current?.getContext('2d');
+    const bgCtx = bgCanvasRef.current?.getContext('2d');
+    if (!drawCtx || !bgCtx || !canvasRef.current) return;
+    floodFill(drawCtx, bgCtx, pos.x, pos.y, color, canvasRef.current.width, canvasRef.current.height);
+    saveSnapshot();
+  }, [getCanvasPos, isEraser, color, saveSnapshot]);
+
+  const handlePointerMove = useCallback((e: React.MouseEvent | React.TouchEvent) => {
     e.preventDefault();
-    if (!isDrawing || !canvasRef.current || !lastPos.current) return;
+    if (!isDrawing || !isEraser || !canvasRef.current || !lastPos.current) return;
     const ctx = canvasRef.current.getContext('2d');
     if (!ctx) return;
-    const currentPos = getPos(e);
-    ctx.globalCompositeOperation = isEraser ? 'destination-out' : 'source-over';
+    const currentPos = getCanvasPos(e);
+    ctx.globalCompositeOperation = 'destination-out';
     ctx.beginPath();
     ctx.moveTo(lastPos.current.x, lastPos.current.y);
     ctx.lineTo(currentPos.x, currentPos.y);
-    ctx.strokeStyle = color;
-    ctx.lineWidth = isEraser ? brushSize * 3 : brushSize;
+    ctx.lineWidth = ERASER_SIZE * 2;
     ctx.lineCap = 'round';
-    ctx.lineJoin = 'round';
-    ctx.globalAlpha = isEraser ? 1 : 0.7;
     ctx.stroke();
-    ctx.globalAlpha = 1;
     lastPos.current = currentPos;
-  }, [isDrawing, color, brushSize, isEraser, getPos]);
+  }, [isDrawing, isEraser, getCanvasPos]);
 
   const stopDrawing = useCallback(() => {
     if (isDrawing) {
@@ -249,9 +340,8 @@ export const OnlineColoringCanvas: React.FC<OnlineColoringCanvasProps> = ({
   }, [getMergedCanvas]);
 
   const cursorStyle = useMemo(() => {
-    if (isEraser) return ERASER_CURSOR;
-    return buildBrushCursor(color);
-  }, [isEraser, color]);
+    return isEraser ? ERASER_CURSOR : FILL_CURSOR;
+  }, [isEraser]);
 
   if (!isOpen) return null;
 
@@ -294,22 +384,22 @@ export const OnlineColoringCanvas: React.FC<OnlineColoringCanvasProps> = ({
             ref={canvasRef}
             className="absolute top-0 left-0 touch-none rounded-lg"
             style={{ cursor: cursorStyle }}
-            onMouseDown={startDrawing} onMouseMove={draw}
+            onMouseDown={handlePointerDown} onMouseMove={handlePointerMove}
             onMouseUp={stopDrawing} onMouseLeave={stopDrawing}
-            onTouchStart={startDrawing} onTouchMove={draw} onTouchEnd={stopDrawing}
+            onTouchStart={handlePointerDown} onTouchMove={handlePointerMove} onTouchEnd={stopDrawing}
           />
         </div>
       </div>
 
       {/* Bottom toolbar */}
       <div className="bg-white border-t-2 border-purple-200 px-3 py-2 space-y-2">
-        {/* Tools + Sizes */}
+        {/* Tools */}
         <div className="flex items-center justify-center gap-2">
           <button onClick={() => setIsEraser(false)}
             className={`w-11 h-11 rounded-full flex items-center justify-center transition-all ${
               !isEraser ? 'ring-2 ring-purple-500 ring-offset-2 bg-purple-50 shadow-md' : 'bg-gray-100 hover:bg-gray-200'
             }`}>
-            <Pencil className="w-5 h-5" style={{ color }} />
+            <PaintBucket className="w-5 h-5" style={{ color }} />
           </button>
           <button onClick={() => setIsEraser(true)}
             className={`w-11 h-11 rounded-full flex items-center justify-center transition-all ${
@@ -317,16 +407,6 @@ export const OnlineColoringCanvas: React.FC<OnlineColoringCanvasProps> = ({
             }`}>
             <Eraser className="w-5 h-5 text-gray-500" />
           </button>
-          <div className="w-px h-8 bg-gray-200 mx-1" />
-          {BRUSH_SIZES.map((bs) => (
-            <button key={bs.size} onClick={() => { setBrushSize(bs.size); setIsEraser(false); }}
-              className={`w-10 h-10 rounded-full flex items-center justify-center transition-all ${
-                brushSize === bs.size && !isEraser
-                  ? 'ring-2 ring-purple-500 ring-offset-1 bg-purple-50' : 'bg-gray-100 hover:bg-gray-200'
-              }`}>
-              <div className="rounded-full bg-gray-700" style={{ width: bs.size + 2, height: bs.size + 2 }} />
-            </button>
-          ))}
         </div>
         {/* Colors */}
         <div className="flex items-center justify-center gap-2 flex-wrap">
