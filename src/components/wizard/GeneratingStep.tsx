@@ -800,7 +800,7 @@ const GeneratingStep = ({ formData, onComplete }: GeneratingStepProps) => {
                 🌟 הירשמו לשמור את הסיפור!
               </p>
               <p className="text-sm text-amber-700 font-bold animate-pulse mt-1" dir="rtl">
-                💡 הירשמו עכשיו לזירוז היצירה
+                💡 ההרשמה מאיצה את יצירת הסיפור
               </p>
             </div>
 
