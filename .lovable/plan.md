@@ -1,17 +1,12 @@
+
 ## Plan: Add Subtle Price Animation to Sale Prices
 
 ### Change — `src/pages/Upgrade.tsx`
 
-Add a gentle pulse/glow animation to the sale price (`₪{pkg.price}`) on lines 364-366. The animation will be a soft, slow scale pulse (1.0 → 1.05 → 1.0) with a subtle glow effect, repeating every 3 seconds. 
+Add a gentle breathing animation to the sale price element (line 364). The price will softly pulse with a faint purple glow every 3 seconds — elegant and professional.
 
-Update line 364-366 from:
 ```tsx
-<div className="text-xl font-black text-white">
-  ₪{pkg.price}
-</div>
-```
-to:
-```tsx
+// Line 364-366: add animation class
 <div className="text-xl font-black text-white animate-[subtle-price-pulse_3s_ease-in-out_infinite]">
   ₪{pkg.price}
 </div>
@@ -19,7 +14,8 @@ to:
 
 ### Change — `tailwind.config.ts`
 
-Add the `subtle-price-pulse` keyframe:
+Add the `subtle-price-pulse` keyframe in the `keyframes` section:
+
 ```ts
 "subtle-price-pulse": {
   "0%, 100%": { transform: "scale(1)", textShadow: "0 0 0px transparent" },
@@ -27,8 +23,8 @@ Add the `subtle-price-pulse` keyframe:
 },
 ```
 
-This creates a barely-noticeable breathing effect with a faint purple glow — professional, not flashy.
+Scale goes from 1.0 to 1.05 — barely noticeable breathing. The purple glow (rgba matching `#c084fc`) fades in and out softly. Professional, not distracting.
 
 ### Files modified
-1. `src/pages/Upgrade.tsx` — add animation class to sale price
-2. `tailwind.config.ts` — add subtle-price-pulse keyframe
+1. `tailwind.config.ts` — add keyframe
+2. `src/pages/Upgrade.tsx` — apply animation class to sale price
