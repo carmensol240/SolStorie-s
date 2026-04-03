@@ -19,7 +19,7 @@ import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 import heroImage from "@/assets/cast-group-forest.png";
 import { PRICING_PACKAGES, TOOLKIT_SUBSCRIPTION, EDUCATOR_PACKAGE, EDIT_KIT_PACKAGE } from "@/config/pricing";
-import StoryPreviewCarousel from "@/components/paywall/StoryPreviewCarousel";
+
 
 const Upgrade = () => {
   const navigate = useNavigate();
