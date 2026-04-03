@@ -121,7 +121,10 @@ Output ONLY the coloring page image, nothing else. Do not include any text, labe
       }
 
       if (aiResponse?.ok) break;
-      if (aiResponse?.status === 402) break;
+      if (aiResponse?.status === 402) {
+        console.log(`Model ${model} failed with 402, trying next model...`);
+        continue;
+      }
       if (aiResponse?.status === 429 || aiResponse?.status === 502 || aiResponse?.status === 503) {
         console.log(`Model ${model} failed with ${aiResponse?.status}, trying next model...`);
         continue;
@@ -131,20 +134,10 @@ Output ONLY the coloring page image, nothing else. Do not include any text, labe
 
     if (!aiResponse!.ok) {
       const status = aiResponse!.status;
-      if (status === 429) {
+      if (status === 429 || status === 402) {
         return new Response(JSON.stringify({
-          error: "השרת עמוס כרגע. נסו שוב בעוד כדקה",
-          code: "RATE_LIMITED",
+          error: "השירות עמוס כרגע, נסו שוב בעוד כמה דקות 🎨",
           retryable: true,
-        }), {
-          status: 200,
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
-        });
-      }
-      if (status === 402) {
-        return new Response(JSON.stringify({
-          error: "נגמרו הקרדיטים, נסו שוב מאוחר יותר",
-          code: "CREDITS_EXHAUSTED",
         }), {
           status: 200,
           headers: { ...corsHeaders, "Content-Type": "application/json" },
