@@ -1180,27 +1180,15 @@ serve(async (req) => {
     async function generatePageIllustration(page: typeof pagesToIllustrate[0]) {
       console.log(`[Page ${page.page_number}] Starting illustration generation...`);
 
-      // AI Scene Analysis
+      // Build prompt directly from illustration_prompt — skip AI scene analysis for speed
       const basePrompt = page.illustration_prompt || `A cheerful children's book illustration for page ${page.page_number}`;
-      let illustrationPrompt = basePrompt;
-
-      const scene = await analyzePageScene(
-        page.text || basePrompt,
-        page.page_number,
-        pagesToIllustrate.length,
-        topic || "",
-        LOVABLE_API_KEY
-      );
-
-      if (scene) {
-        const charDesc = characterProfile
-          ? `A ${characterProfile.gender === "female" ? "girl" : "boy"} aged ${characterProfile.ageDescription} with ${characterProfile.hairDescription}, ${characterProfile.skinTone} skin, ${characterProfile.eyeColor} eyes, wearing ${storyOutfit}`
-          : `A child wearing ${storyOutfit}`;
-        illustrationPrompt = buildScenePrompt(scene, charDesc, basePrompt);
-        console.log(`[Page ${page.page_number}] 📝 Enriched prompt (${illustrationPrompt.length} chars)`);
-      } else {
-        console.log(`[Page ${page.page_number}] ⚠️ Using original prompt (scene analysis failed)`);
-      }
+      const cameraAngle = CAMERA_ANGLES[page.page_number % CAMERA_ANGLES.length];
+      const lighting = LIGHTING_OPTIONS[(page.page_number + 2) % LIGHTING_OPTIONS.length];
+      const charDesc = characterProfile
+        ? `A ${characterProfile.gender === "female" ? "girl" : "boy"} aged ${characterProfile.ageDescription} with ${characterProfile.hairDescription}, ${characterProfile.skinTone} skin, ${characterProfile.eyeColor} eyes, wearing ${storyOutfit}`
+        : `A child wearing ${storyOutfit}`;
+      const illustrationPrompt = `${charDesc}. SCENE: ${basePrompt}. CAMERA: ${cameraAngle}. LIGHTING: ${lighting}. Pixar 3D CGI style, vibrant colors, fantasy children's book, full body head to toe with feet grounded on surface`;
+      console.log(`[Page ${page.page_number}] 📝 Direct prompt (${illustrationPrompt.length} chars)`);
 
       // Inject IDF military uniform for father in "dad-in-reserves" topic
       const FATHER_MILITARY_CLOTHING = "Israeli IDF military uniform, olive green (yarok tzava) fatigues, green combat boots, Israeli army green beret - NOT US army, NOT American military";
