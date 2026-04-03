@@ -281,10 +281,10 @@ const Contact = () => {
           <p className="text-sm text-muted-foreground">
             ניתן גם לפנות אלינו ישירות במייל:{" "}
             <a
-              href="mailto:souldesign06@gmail.com"
+              href="mailto:solstories.nlp@gmail.com"
               className="text-primary hover:underline"
             >
-              souldesign06@gmail.com
+              solstories.nlp@gmail.com
             </a>
           </p>
           <p className="text-xs text-muted-foreground mt-2">
