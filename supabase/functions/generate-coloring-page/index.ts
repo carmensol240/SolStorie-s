@@ -142,6 +142,7 @@ Output ONLY the coloring page image, nothing else. Do not include any text, labe
           status: 200,
           headers: { ...corsHeaders, "Content-Type": "application/json" },
         });
+      }
       const errText = await aiResponse!.text();
       console.error("AI gateway error:", status, errText);
       return new Response(JSON.stringify({ error: "שגיאה ביצירת דף הצביעה" }), {
