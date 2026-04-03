@@ -25,6 +25,7 @@ export interface StoryFormData {
   storyLength: "short" | "long" | "extra-long";
   childPhoto: string | null;
   childAvatarUrl: string | null;
+  photoConsent: boolean;
   nikud: boolean;
   language: "he" | "en";
   topic: string;
