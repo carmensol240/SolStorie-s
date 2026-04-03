@@ -1463,7 +1463,7 @@ const [currentPage, setCurrentPage] = useState(0);
                               try {
                                 const illustrationFullUrl = getPublicIllustrationUrl(selectedColoringUrl);
                                 const invokeColoring = () => supabase.functions.invoke('generate-coloring-page', {
-                                  body: { illustration_url: illustrationFullUrl, story_title: story.topic, child_name: story.child_name },
+                                  body: { illustration_url: illustrationFullUrl, story_title: story.topic, child_name: story.child_name, story_id: story.id, device_id: localStorage.getItem('device_id') || 'unknown' },
                                 });
                                 let { data, error: fnError } = await invokeColoring();
                                 if (!fnError && !data?.image && data?.retryable) {
@@ -1538,7 +1538,7 @@ const [currentPage, setCurrentPage] = useState(0);
                               try {
                                 const illustrationFullUrl = getPublicIllustrationUrl(selectedColoringUrl);
                                 const invokeColoring = () => supabase.functions.invoke('generate-coloring-page', {
-                                  body: { illustration_url: illustrationFullUrl, story_title: story.topic, child_name: story.child_name },
+                                  body: { illustration_url: illustrationFullUrl, story_title: story.topic, child_name: story.child_name, story_id: story.id, device_id: localStorage.getItem('device_id') || 'unknown' },
                                 });
                                 let { data, error: fnError } = await invokeColoring();
                                 if (!fnError && !data?.image && data?.retryable) {
