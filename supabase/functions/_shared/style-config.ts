@@ -109,6 +109,8 @@ export const TOPIC_IMAGE_STYLE_SUFFIX = `Pixar 3D CGI animation style, big expre
 
 export const CHARACTER_CONSISTENCY_PROMPT = `CRITICAL — CHARACTER CONSISTENCY: The main character must look IDENTICAL in every illustration throughout the story. Same hair color, same hair style, same eye color, same face shape, same skin tone, same outfit in every scene. Any visual deviation between pages is a failure.`;
 
+export const GENDER_SYMBOL_RESTRICTION = `CRITICAL — GENDER-APPROPRIATE SYMBOLS: Never place a kippah (yarmulke) on a girl character. Never add male religious symbols or clothing on female characters. Use gender-appropriate religious symbols only, or avoid religious symbols altogether unless specifically requested in the story.`;
+
 // ─── Helpers ───
 
 /** Build an inline Pixar face-reference prompt block */
