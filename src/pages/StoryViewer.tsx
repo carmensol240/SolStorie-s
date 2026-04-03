@@ -230,11 +230,9 @@ const [currentPage, setCurrentPage] = useState(0);
   const [coloringLoading, setColoringLoading] = useState(false);
   const [coloringPickerOpen, setColoringPickerOpen] = useState(false);
   const [selectedColoringUrl, setSelectedColoringUrl] = useState<string | null>(null);
+  const [coloringAction, setColoringAction] = useState<'pick' | 'choose-action'>('pick');
   const [onlineColoringOpen, setOnlineColoringOpen] = useState(false);
   const [onlineColoringImageUrl, setOnlineColoringImageUrl] = useState<string | null>(null);
-  const [onlineColoringPickerOpen, setOnlineColoringPickerOpen] = useState(false);
-  const [selectedOnlineColoringUrl, setSelectedOnlineColoringUrl] = useState<string | null>(null);
-  const [onlineColoringLoading, setOnlineColoringLoading] = useState(false);
 
   const handleImageLoad = useCallback((e: React.SyntheticEvent<HTMLImageElement>) => {
     // Keep object-cover for all images — no white margins
