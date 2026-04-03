@@ -318,6 +318,18 @@ const Upgrade = () => {
             </Badge>
           </div>
 
+          {/* Limited-time offer badge */}
+          {countdown > 0 && (
+            <div className="flex justify-center mb-3">
+              <div className="inline-flex items-center gap-2 bg-gradient-to-r from-orange-500/90 to-pink-500/90 backdrop-blur-sm text-white text-sm font-bold px-4 py-2 rounded-full shadow-lg animate-pulse">
+                <span>🔥 מבצע מיוחד</span>
+                <span className="bg-white/20 rounded-md px-2 py-0.5 font-mono text-xs tracking-wider">
+                  {String(countdownMin).padStart(2, '0')}:{String(countdownSec).padStart(2, '0')}
+                </span>
+              </div>
+            </div>
+          )}
+
           {/* Package Cards — Glassmorphism */}
           <div className="grid grid-cols-3 gap-3 mb-4">
             {PRICING_PACKAGES.map((pkg) => (
