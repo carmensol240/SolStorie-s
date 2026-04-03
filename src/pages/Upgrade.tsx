@@ -353,6 +353,11 @@ const Upgrade = () => {
                   </div>
                 )}
 
+                {/* Discount badge */}
+                <div className="absolute -top-2.5 right-2 bg-gradient-to-r from-green-500 to-emerald-400 text-white text-[10px] font-black px-2 py-0.5 rounded-full whitespace-nowrap shadow-lg">
+                  חסכו ₪{pkg.originalPrice - pkg.price}! 🔥
+                </div>
+
                 <div className="text-3xl font-black bg-gradient-to-r from-purple-300 via-pink-300 to-orange-300 bg-clip-text text-transparent">
                   {pkg.stories}
                 </div>
