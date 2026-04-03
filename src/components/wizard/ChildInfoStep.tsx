@@ -942,19 +942,7 @@ const ChildInfoStep = ({ formData, updateFormData }: ChildInfoStepProps) => {
         <span>פרטי הילד/ה נשמרים בצורה מאובטחת ופרטית בהתאם לתקנות הפרטיות.</span>
       </div>
 
-      {/* Avatar Preview Dialog */}
-      <AvatarPreviewDialog
-        open={avatarPreviewOpen}
-        onOpenChange={setAvatarPreviewOpen}
-        originalPhoto={pendingPhotoForAvatar || ""}
-        childId="temp-child"
-        childName={formData.childName}
-        existingAvatarUrl={existingAvatarForDialog}
-        onConfirm={handleAvatarConfirm}
-        skipStorage={true}
-        regenerationCount={avatarRegenerationCount}
-        onRegenerationCountChange={handleRegenerationCountChange}
-      />
+      
     </div>
   );
 };
