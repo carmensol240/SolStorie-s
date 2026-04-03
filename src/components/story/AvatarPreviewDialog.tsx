@@ -7,7 +7,6 @@ import { useToast } from '@/hooks/use-toast';
 import { isDevModeEnabled } from '@/hooks/use-dev-mode';
 
 const MAX_AVATAR_REGENERATIONS = 2;
-const MAX_AUTH_RETRIES = 1;
 
 interface AvatarPreviewDialogProps {
   open: boolean;
