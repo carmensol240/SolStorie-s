@@ -61,7 +61,25 @@ const EMPOWERING_SENTENCES = [
   "🌟 יש לך את הכוח להפוך כל רגע פשוט להרפתקה שתלווה אותו לכל החיים",
   "🌈 הקריאה המשותפת היא המקום שבו הילד שלך לומד לחלום בלי גבולות",
   "🧭 אתה המדריך הכי טוב של הילד שלך בעולמות הדמיון",
+  "🦋 כל סיפור פותח דלת לעולם חדש של אפשרויות",
+  "🏰 הדמיון של ילדכם הוא הטירה הכי חזקה שיש",
+  "🎭 דרך הסיפורים ילדים לומדים להכיר רגשות ולהבין אחרים",
+  "🔮 הקסם האמיתי הוא הרגע שבו ילד אומר — ׳עוד פעם!׳",
+  "💫 סיפור אישי מלמד ילד שהוא חשוב, ייחודי ואהוב",
+  "🎨 כל עמוד הוא בד ציור חדש לדמיון של ילדכם",
+  "🌻 ילדים שגדלים עם סיפורים גדלים עם ביטחון ואמפתיה",
+  "🫂 הסיפור שאתם יוצרים עכשיו יהפוך לזיכרון יקר לשניכם",
 ];
+
+// Fisher-Yates shuffle helper
+const shuffleArray = (arr: number[]): number[] => {
+  const shuffled = [...arr];
+  for (let i = shuffled.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+  }
+  return shuffled;
+};
 
 const getTopicLabel = (topicId: string): string => {
   const topics: Record<string, string> = {
@@ -122,6 +140,8 @@ const GeneratingStep = ({ formData, onComplete }: GeneratingStepProps) => {
   const [castIndex, setCastIndex] = useState(0);
   const [tipIndex, setTipIndex] = useState(0);
   const [isTipVisible, setIsTipVisible] = useState(true);
+  const shuffledIndicesRef = useRef<number[]>(shuffleArray(Array.from({ length: EMPOWERING_SENTENCES.length }, (_, i) => i)));
+  const shufflePosRef = useRef(0);
 
   // Build dynamic cast list including the child as a superhero
   const allCharacters = useMemo(() => {
@@ -386,7 +406,12 @@ const GeneratingStep = ({ formData, onComplete }: GeneratingStepProps) => {
     const sentenceInterval = setInterval(() => {
       setIsSentenceVisible(false);
       setTimeout(() => {
-        setSentenceIndex((prev) => (prev + 1) % EMPOWERING_SENTENCES.length);
+        shufflePosRef.current += 1;
+        if (shufflePosRef.current >= shuffledIndicesRef.current.length) {
+          shuffledIndicesRef.current = shuffleArray(Array.from({ length: EMPOWERING_SENTENCES.length }, (_, i) => i));
+          shufflePosRef.current = 0;
+        }
+        setSentenceIndex(shuffledIndicesRef.current[shufflePosRef.current]);
         setIsSentenceVisible(true);
       }, 500);
     }, 4500);
