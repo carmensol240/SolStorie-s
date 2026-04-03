@@ -1,23 +1,36 @@
 
 
-## Plan: Fullscreen Coloring Canvas
+## Plan: Add Brush/Pencil Tool Alongside Flood Fill
 
 ### Overview
-Make the coloring canvas use 100% of screen space. The toolbar overlays on top of the canvas instead of taking vertical space from it. This maximizes the drawing area on all devices.
+Add a freehand brush/pencil drawing tool as a third tool option alongside the existing flood fill and eraser. Users can switch between fill, brush, and eraser modes via the bottom toolbar.
 
 ### Changes — `src/components/story/OnlineColoringCanvas.tsx`
 
-1. **Canvas container**: Change from `flex-1` (shares space with top bar and bottom toolbar) to `absolute inset-0` filling the entire screen. The canvas `resizeCanvases` will use `window.innerWidth` / `window.innerHeight` directly instead of the container's reduced bounding rect.
+1. **New state**: Add `tool` state with values `'fill' | 'brush' | 'eraser'` replacing the boolean `isEraser`. Add `brushSize` state (default 6).
 
-2. **Top bar**: Make it `absolute top-0` with a semi-transparent background, overlaying the canvas. Reduce padding for mobile.
+2. **New import**: Add `Pencil` from `lucide-react`.
 
-3. **Bottom toolbar**: Make it `absolute bottom-0` with a semi-transparent/translucent background (`bg-white/90 backdrop-blur-sm`), overlaying the canvas. Reduce vertical padding and make color buttons smaller on mobile (`w-9 h-9` instead of `w-11 h-11`).
+3. **New cursor**: Add a `BRUSH_CURSOR` — a small circle SVG cursor colored with the current color.
 
-4. **Remove `bg-black/50`** backdrop from the outer container since we want full white canvas behind.
+4. **Update `handlePointerDown`**:
+   - If `tool === 'fill'`: run `floodFill` + `saveSnapshot` (existing behavior)
+   - If `tool === 'brush'`: begin drawing — set `isDrawing`, record `lastPos`, draw initial dot with `source-over` composite op using current color and `brushSize`
+   - If `tool === 'eraser'`: existing eraser behavior
 
-5. **Remove `rounded-lg shadow-lg`** from canvases — no need for rounded corners in fullscreen.
+5. **Update `handlePointerMove`**:
+   - If `tool === 'brush'` and `isDrawing`: draw line from `lastPos` to current position using `source-over`, current color, round lineCap, `brushSize` width
+   - If `tool === 'eraser'` and `isDrawing`: existing eraser drag behavior
 
-6. **Hide browser chrome**: Add a `useEffect` that requests fullscreen API on open (if available) and exits on close, for maximum screen real estate on mobile.
+6. **Update `cursorStyle`**: Return appropriate cursor based on `tool` value.
+
+7. **Update toolbar UI**: Show three tool buttons in a row:
+   - `PaintBucket` icon for fill mode
+   - `Pencil` icon for brush mode (colored with current color)
+   - `Eraser` icon for eraser mode
+   - Add a small brush size selector (3 preset sizes: S/M/L) shown only when brush tool is active
+
+8. **Color selection**: Clicking a color auto-switches to fill mode (existing behavior stays).
 
 ### Files modified
 1. `src/components/story/OnlineColoringCanvas.tsx`
