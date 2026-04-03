@@ -374,11 +374,13 @@ const Upgrade = () => {
                   {pkg.pricePerStory} לסיפור
                 </div>
                 
+                {pkg.freeEdits > 0 && (
                 <div className="bg-white/10 backdrop-blur-sm border border-white/15 rounded-lg px-2 py-1 mt-2">
                   <span className="text-[10px] text-green-300 font-bold">
                     {pkg.freeEdits} עריכות 🎁
                   </span>
                 </div>
+                )}
               </button>
             ))}
           </div>
