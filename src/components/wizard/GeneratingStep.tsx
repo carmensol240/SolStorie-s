@@ -196,7 +196,7 @@ const GeneratingStep = ({ formData, onComplete }: GeneratingStepProps) => {
       let data, apiError;
       
       // Determine if this is a guest request
-      const isGuest = !user;
+      const isGuest = false; // Guest generation disabled temporarily — require login
       
       try {
         const bodyPayload: any = {
@@ -464,8 +464,8 @@ const GeneratingStep = ({ formData, onComplete }: GeneratingStepProps) => {
       }
     }, 15000);
 
-    // Start generation immediately for all users (guest mode for unauthenticated)
-    if (!hasStartedRef.current) {
+    // Only start generation for authenticated users
+    if (!hasStartedRef.current && user) {
       hasStartedRef.current = true;
       generateStory();
     }
@@ -481,15 +481,13 @@ const GeneratingStep = ({ formData, onComplete }: GeneratingStepProps) => {
   }, [generateStory, phase, toast]);
 
   // When user authenticates (after signup during loading), start generation
+  // When user signs up during loading, start generation
   useEffect(() => {
-    if (user && !hasStartedRef.current && !signupCompleted) {
-      // User was already logged in when component mounted — handled above
-    }
-    if (user && signupCompleted && !hasStartedRef.current) {
+    if (user && !hasStartedRef.current) {
       hasStartedRef.current = true;
       generateStory();
     }
-  }, [user, signupCompleted, generateStory]);
+  }, [user, generateStory]);
 
   // signupDismissed useEffect removed — generation starts immediately
 
