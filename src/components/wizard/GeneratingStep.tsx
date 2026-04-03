@@ -471,13 +471,7 @@ const GeneratingStep = ({ formData, onComplete }: GeneratingStepProps) => {
     }
   }, [user, signupCompleted, generateStory]);
 
-  // When signup is dismissed (guest mode), start generation
-  useEffect(() => {
-    if (signupDismissed && !user && !hasStartedRef.current) {
-      hasStartedRef.current = true;
-      generateStory();
-    }
-  }, [signupDismissed, user, generateStory]);
+  // signupDismissed useEffect removed — generation starts immediately
 
   const saveChildToSupabase = async (userId: string) => {
     try {
