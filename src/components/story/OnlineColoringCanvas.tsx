@@ -118,8 +118,9 @@ export const OnlineColoringCanvas: React.FC<OnlineColoringCanvasProps> = ({
     const drawCanvas = canvasRef.current;
     if (!container || !bgCanvas || !drawCanvas) return;
     const rect = container.getBoundingClientRect();
-    const w = Math.floor(rect.width);
-    const h = Math.floor(rect.height);
+    const scale = Math.min(rect.width / img.naturalWidth, rect.height / img.naturalHeight);
+    const w = Math.floor(img.naturalWidth * scale);
+    const h = Math.floor(img.naturalHeight * scale);
     bgCanvas.width = w; bgCanvas.height = h;
     drawCanvas.width = w; drawCanvas.height = h;
     const ctx = bgCanvas.getContext('2d');
@@ -266,8 +267,7 @@ export const OnlineColoringCanvas: React.FC<OnlineColoringCanvasProps> = ({
       </div>
 
       {/* Canvas */}
-      <div ref={containerRef} className="flex-1 relative flex items-center justify-center overflow-hidden"
-        style={{ background: 'repeating-conic-gradient(#f3f0ff 0% 25%, #ede9fe 0% 50%) 0 0 / 20px 20px' }}>
+      <div ref={containerRef} className="flex-1 relative flex items-center justify-center overflow-hidden bg-white">
         {!bgLoaded && (
           <div className="absolute inset-0 flex items-center justify-center">
             <div className="animate-spin w-10 h-10 border-4 border-purple-400 border-t-transparent rounded-full" />
