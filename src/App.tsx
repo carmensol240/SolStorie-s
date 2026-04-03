@@ -56,7 +56,7 @@ function App() { useTimeTheme(); return (
         <Sonner />
         <BrowserRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
           <ScrollToTop />
-          <PWAInstallPrompt />
+          
           <AccessibilityMenu />
           <Routes>
             <Route path="/" element={<Adventure />} />
