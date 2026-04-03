@@ -70,6 +70,7 @@ export type PricingPackage = {
   id: string;
   stories: number;
   price: number;
+  originalPrice: number;
   pricePerStory: string;
   label: string;
   freeEdits: number;

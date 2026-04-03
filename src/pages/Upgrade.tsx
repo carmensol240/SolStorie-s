@@ -358,6 +358,9 @@ const Upgrade = () => {
                 </div>
                 <div className="text-sm text-white/80 font-bold mb-1">סיפורים</div>
 
+                <div className="text-sm text-white/40 line-through">
+                  ₪{pkg.originalPrice}
+                </div>
                 <div className="text-xl font-black text-white">
                   ₪{pkg.price}
                 </div>
