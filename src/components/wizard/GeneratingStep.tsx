@@ -594,10 +594,10 @@ const GeneratingStep = ({ formData, onComplete }: GeneratingStepProps) => {
         </div>
         <div className="space-y-3 max-w-sm">
           <h2 className="text-2xl font-bold bg-gradient-to-r from-purple-600 via-pink-500 to-orange-400 bg-clip-text text-transparent">
-            לא הצלחנו ליצור את הסיפור הפעם
+            {error.includes("שגיאת מערכת") ? "עומס זמני במערכת" : "לא הצלחנו ליצור את הסיפור הפעם"}
           </h2>
           <p className="text-[#5B3E96] text-base leading-relaxed">
-            קורה לפעמים 🤗 רוצים לנסות שוב?
+            {error.includes("שגיאת מערכת") ? "המערכת עמוסה כרגע, נסו שוב בעוד דקה 🙏" : "קורה לפעמים 🤗 רוצים לנסות שוב?"}
           </p>
         </div>
         <div className="flex flex-col gap-3 w-full max-w-xs">
