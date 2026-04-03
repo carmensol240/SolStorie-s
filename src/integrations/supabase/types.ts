@@ -514,6 +514,7 @@ export type Database = {
           avatar_emoji: string | null
           child_avatar_url: string | null
           child_photo_url: string | null
+          coloring_credits: number | null
           commercial_abuse_flagged: boolean | null
           commercial_abuse_flagged_at: string | null
           created_at: string
@@ -538,6 +539,7 @@ export type Database = {
           avatar_emoji?: string | null
           child_avatar_url?: string | null
           child_photo_url?: string | null
+          coloring_credits?: number | null
           commercial_abuse_flagged?: boolean | null
           commercial_abuse_flagged_at?: string | null
           created_at?: string
@@ -562,6 +564,7 @@ export type Database = {
           avatar_emoji?: string | null
           child_avatar_url?: string | null
           child_photo_url?: string | null
+          coloring_credits?: number | null
           commercial_abuse_flagged?: boolean | null
           commercial_abuse_flagged_at?: string | null
           created_at?: string
@@ -743,6 +746,33 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      story_coloring_pages: {
+        Row: {
+          coloring_image_path: string
+          created_at: string | null
+          id: string
+          illustration_url: string
+          story_id: string
+          user_id: string
+        }
+        Insert: {
+          coloring_image_path: string
+          created_at?: string | null
+          id?: string
+          illustration_url: string
+          story_id: string
+          user_id: string
+        }
+        Update: {
+          coloring_image_path?: string
+          created_at?: string | null
+          id?: string
+          illustration_url?: string
+          story_id?: string
+          user_id?: string
+        }
+        Relationships: []
       }
       story_pages: {
         Row: {
