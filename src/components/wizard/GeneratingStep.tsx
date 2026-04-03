@@ -464,8 +464,8 @@ const GeneratingStep = ({ formData, onComplete }: GeneratingStepProps) => {
       }
     }, 15000);
 
-    // Start generation immediately for all users (guest mode for unauthenticated)
-    if (!hasStartedRef.current) {
+    // Only start generation for authenticated users
+    if (!hasStartedRef.current && user) {
       hasStartedRef.current = true;
       generateStory();
     }
