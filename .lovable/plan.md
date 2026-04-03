@@ -1,30 +1,24 @@
 
 
-## Plan: Fix Photo Box — Side-by-Side Layout in One Unified Box
+## Analysis: Story Generation Pipeline Performance
 
-### Problem
-The current layout shows circular avatars that are too small (w-20 h-20). The side-by-side view only appears when an avatar exists or is generating — otherwise it shows a single small circle. The user wants a unified rectangular box with two equal-sized images side by side, matching the original design.
+### Current Pipeline (Sequential)
+The `generate-story` edge function makes **3 sequential AI calls** before returning:
 
-### Changes — `src/components/wizard/ChildInfoStep.tsx`
+1. **Story generation** — `gemini-2.5-flash` with JSON output (~10-20s)
+2. **Text quality rewrite** — `gemini-2.5-flash` processes the full story text again (~10-20s)
+3. **Dispatch phase** — fires off nikud, summary, illustrations, cover in parallel, then waits up to 15s for dispatch confirmation
 
-**Replace the entire photo display section (lines 741-884)** with a unified box layout:
+Total: ~30-50s before the user gets a response.
 
-1. **When photo exists AND (avatar exists OR generating)** — show ONE box with two images side by side:
-   - Right side: original photo as a square/rectangle (not circle), label "תמונה מקורית" underneath
-   - Left side: avatar image (or spinner if generating), label "דמות בסיפור" underneath
-   - Both images same size (~32x32 or flex-1), inside one bordered container
-   - Sparkles icon between them
+### Root Cause
+The **text quality rewrite step** (lines 1621-1750) is a full second AI call using `gemini-2.5-flash` that rewrites the entire story. This doubles the text generation time. The same model (`gemini-2.5-flash`) is used for both the initial generation and the rewrite — the rewrite could use the lighter, faster `gemini-2.5-flash-lite` model since it's just polishing language, not generating new content.
 
-2. **When photo exists but no avatar** — show the original photo (larger, not tiny circle) with "צור אווטאר" button
+### Proposed Fix — `supabase/functions/generate-story/index.ts`
 
-3. **Buttons** (צור אווטאר / עדכן אווטאר / מחק) stay below the images inside the same box
-
-**Key styling changes:**
-- Images: `w-28 h-28 rounded-xl` (square with rounded corners, not circles)
-- Container: single `border-2 border-purple-400 rounded-xl` box wrapping both
-- Labels: `text-[11px]` centered below each image
-- Use `flex items-start justify-center gap-4` for side-by-side layout
+1. **Switch rewrite model to `gemini-2.5-flash-lite`** (line 1707): This model is 2-3x faster for simple text polishing tasks, cutting the rewrite from ~15s to ~5s
+2. **Add a timeout to the rewrite call**: If the rewrite takes too long (>12s), skip it and use the original text — the initial generation prompt already has extensive quality instructions
 
 ### Files modified
-1. `src/components/wizard/ChildInfoStep.tsx` — restructure photo display area (lines 741-884)
+1. `supabase/functions/generate-story/index.ts` — faster model for rewrite step + timeout guard
 
