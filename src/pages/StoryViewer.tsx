@@ -1341,7 +1341,7 @@ const [currentPage, setCurrentPage] = useState(0);
                     </Button>
                   </div>
 
-                  {/* Coloring Page Button */}
+                  {/* Unified Coloring Button */}
                   <div className="pt-2">
                     <Button
                       onClick={() => {
@@ -1352,6 +1352,7 @@ const [currentPage, setCurrentPage] = useState(0);
                           return;
                         }
                         setSelectedColoringUrl(null);
+                        setColoringAction('pick');
                         setColoringPickerOpen(true);
                       }}
                       disabled={coloringLoading}
@@ -1366,36 +1367,8 @@ const [currentPage, setCurrentPage] = useState(0);
                       ) : (
                         <>
                           <Palette className="w-4 h-4" />
-                          🎨 הדפס דף צביעה
+                          🎨 דף צביעה — הדפס או צבע אונליין
                         </>
-                      )}
-                    </Button>
-                  </div>
-
-                  {/* Online Coloring Button */}
-                  <div className="pt-1">
-                    <Button
-                      onClick={() => {
-                        if (!story || onlineColoringLoading) return;
-                        const illustrations = story.pages?.filter(p => p.illustration_url).map(p => p.illustration_url!) || [];
-                        if (illustrations.length === 0) {
-                          toast({ title: "אין איורים זמינים לצביעה", variant: "destructive" });
-                          return;
-                        }
-                        setSelectedOnlineColoringUrl(null);
-                        setOnlineColoringPickerOpen(true);
-                      }}
-                      disabled={onlineColoringLoading}
-                      size="sm"
-                      className="bg-gradient-to-r from-purple-500 to-indigo-500 hover:from-purple-600 hover:to-indigo-600 text-white px-4 py-3 rounded-full text-sm gap-1"
-                    >
-                      {onlineColoringLoading ? (
-                        <>
-                          <Loader2 className="w-4 h-4 animate-spin" />
-                          מכין דף צביעה...
-                        </>
-                      ) : (
-                        "🎨 צבעו אונליין"
                       )}
                     </Button>
                   </div>
