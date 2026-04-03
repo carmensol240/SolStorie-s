@@ -514,6 +514,7 @@ const GeneratingStep = ({ formData, onComplete }: GeneratingStepProps) => {
         await supabase.from("profiles").update({
           terms_accepted_at: new Date().toISOString(),
           terms_version: "1.0",
+          marketing_consent: marketingConsent,
         }).eq("id", newUser.id);
       }
       setSignupCompleted(true);
