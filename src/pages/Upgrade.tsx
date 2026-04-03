@@ -585,6 +585,17 @@ const Upgrade = () => {
                       amount_ils: COLORING_KIT_PACKAGE.price,
                       status: 'completed',
                     });
+                    // Increment coloring_credits on profile
+                    const { data: profile } = await supabase
+                      .from('profiles')
+                      .select('coloring_credits')
+                      .eq('id', user.id)
+                      .maybeSingle();
+                    const currentCredits = (profile as any)?.coloring_credits ?? 0;
+                    await supabase
+                      .from('profiles')
+                      .update({ coloring_credits: currentCredits + COLORING_KIT_PACKAGE.pages } as any)
+                      .eq('id', user.id);
                     setShowColoringKitPayPal(false);
                     setPurchasedCredits(0);
                     setShowSuccess(true);
