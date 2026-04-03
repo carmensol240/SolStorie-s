@@ -1328,18 +1328,15 @@ const [currentPage, setCurrentPage] = useState(0);
                     <p className="text-sm text-purple-500">הסיפור של {story.child_name}</p>
                   </div>
 
-                  <div className="flex flex-row gap-2 justify-center">
-                    <Button variant="outline" size="sm" onClick={() => setCurrentPage(-1)}
-                      className="border-2 border-purple-400 text-purple-700 hover:bg-purple-50 px-4 py-3 rounded-full text-sm">
-                      <span className="ml-1"><BookOpen className="w-4 h-4" /></span>
-                      קרא שוב
-                    </Button>
-                    <Button size="sm" onClick={() => navigate('/library')}
-                      className="bg-gradient-to-r from-purple-600 to-pink-500 hover:from-purple-700 hover:to-pink-600 text-white px-4 py-3 rounded-full text-sm">
-                      <span className="ml-1"><Home className="w-4 h-4" /></span>
-                      לספרייה
-                    </Button>
-                  </div>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => navigate('/library')}
+                    className="text-purple-600 hover:text-purple-800 hover:bg-purple-50 px-4 py-2 rounded-full text-sm gap-1"
+                  >
+                    <ArrowRight className="w-4 h-4" />
+                    → חזרה
+                  </Button>
 
                   {/* Unified Coloring Button */}
                   <div className="pt-2">
