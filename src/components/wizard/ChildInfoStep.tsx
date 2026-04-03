@@ -818,7 +818,7 @@ const ChildInfoStep = ({ formData, updateFormData }: ChildInfoStepProps) => {
                   variant="outline"
                   size="sm"
                   onClick={() => {
-                    updateFormData({ childPhoto: null, childAvatarUrl: null });
+                    updateFormData({ childPhoto: null, childAvatarUrl: null, photoConsent: false });
                     setExistingAvatarForDialog(null);
                     setPhotoValidation(null);
                   }}
