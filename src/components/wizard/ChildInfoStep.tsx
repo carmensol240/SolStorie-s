@@ -908,7 +908,7 @@ const ChildInfoStep = ({ formData, updateFormData }: ChildInfoStepProps) => {
               id="photo-consent"
               checked={formData.photoConsent || false}
               onCheckedChange={(c) => updateFormData({ photoConsent: c === true })}
-              className="border-purple-300 data-[state=checked]:bg-purple-500 data-[state=checked]:border-purple-500 h-4 w-4 mt-0.5"
+              className={`border-purple-300 data-[state=checked]:bg-purple-500 data-[state=checked]:border-purple-500 h-4 w-4 mt-0.5 ${!formData.photoConsent ? 'animate-[checkbox-pulse-glow_1.5s_infinite]' : ''}`}
             />
             <label htmlFor="photo-consent" className="text-[11px] text-muted-foreground cursor-pointer leading-tight">
               אני מסכים/ה לשימוש בתמונה לצורך יצירת איורי הסיפור בלבד
