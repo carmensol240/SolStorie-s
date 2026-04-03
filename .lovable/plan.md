@@ -1,3 +1,4 @@
+
 ## Plan: One Free Coloring Page Per Story with Caching
 
 ### Overview
@@ -27,35 +28,33 @@ This tracks purchased coloring credits. The first coloring per story is free (no
 
 ### Edge Function Changes — `generate-coloring-page/index.ts`
 
-1. Accept new param `check_cache: boolean` (optional)
-2. Before generating, check `story_coloring_pages` for existing entry for this `story_id + user_id`
-3. If cached entry exists:
-   - If same illustration_url → return cached image from storage (no AI call)
-   - If different illustration_url → check `coloring_credits > 0`. If yes, deduct 1 credit and proceed. If no, return `{ upsell: true }` error
-4. If no cached entry → generate (free first use), then:
+1. Before generating, check `story_coloring_pages` for existing entry for this `story_id + user_id`
+2. If cached entry exists:
+   - If same illustration_url: return cached image from storage (no AI call)
+   - If different illustration_url: check `coloring_credits > 0`. If yes, deduct 1 credit and proceed. If no, return `{ upsell: true }`
+3. If no cached entry: generate (free first use), then:
    - Upload result to `story-illustrations` bucket under `coloring/{story_id}.png`
    - Insert record into `story_coloring_pages`
-5. Return the image (base64 or public URL)
+   - Return the image
+4. On subsequent calls with same illustration: serve from storage cache
 
 ### Client Changes — `src/pages/StoryViewer.tsx`
 
-1. On story load, fetch existing `story_coloring_pages` record for this story
+1. On coloring button click, fetch existing `story_coloring_pages` record for this story
 2. If cached coloring exists:
-   - Skip illustration picker → go straight to choose-action (print/online)
-   - Load cached image from storage URL instead of calling edge function
-   - Show small "בחרו איור אחר" link that triggers upsell check
-3. If no cached coloring exists:
-   - Show illustration picker as before (pick ONE)
-   - After AI generates, save to cache
+   - Skip AI call, load cached image from public storage URL
+   - Go straight to choose-action (print/online)
+   - Show "בחרו איור אחר" that triggers upsell check
+3. If no cached coloring: show illustration picker, generate, save to cache
 4. Handle `upsell: true` response:
    - Show dialog: "רוצים לצבוע איור נוסף? 🎨" with link to upgrade page
 
 ### Upgrade Page — `src/pages/Upgrade.tsx`
 
-Update the coloring kit purchase handler to increment `coloring_credits` on the profile (not just record in `purchases`).
+Update the coloring kit purchase handler to also increment `coloring_credits` on the profile.
 
 ### Files Modified
-1. Database migration — new `story_coloring_pages` table + `coloring_credits` column
-2. `supabase/functions/generate-coloring-page/index.ts` — cache check, storage upload, credit logic
-3. `src/pages/StoryViewer.tsx` — cache-aware flow, upsell dialog
-4. `src/pages/Upgrade.tsx` — update purchase to increment `coloring_credits`
+1. Database migration — new `story_coloring_pages` table + `coloring_credits` column on profiles
+2. `supabase/functions/generate-coloring-page/index.ts` — cache check, storage upload, credit deduction
+3. `src/pages/StoryViewer.tsx` — cache-aware coloring flow, upsell dialog
+4. `src/pages/Upgrade.tsx` — increment `coloring_credits` on purchase
