@@ -331,7 +331,7 @@ const Upgrade = () => {
               </div>
             </div>
           )}
-          <p className="text-center text-white/70 text-xs mb-3">המבצע בתוקף עד 10.4.26 בלבד</p>
+          <p className="text-center text-white/70 text-xs mb-3">לזמן מוגבל בלבד ⏰</p>
 
           {/* Package Cards — Glassmorphism */}
           <div className="grid grid-cols-3 gap-3 mb-4">
