@@ -43,16 +43,19 @@ export const useAuth = () => {
   }, []);
 
   const signInWithGoogle = async () => {
-    // Preserve returnTo through OAuth flow
-    const returnTo = localStorage.getItem('returnTo') || '/library';
-    const redirectUrl = `${window.location.origin}/consent?returnTo=${encodeURIComponent(returnTo)}`;
-    const { error } = await supabase.auth.signInWithOAuth({
-      provider: 'google',
-      options: {
-        redirectTo: redirectUrl,
-      },
-    });
-    return { error };
+    try {
+      const { lovable } = await import("@/integrations/lovable/index");
+      const returnTo = localStorage.getItem('returnTo') || '/library';
+      const result = await lovable.auth.signInWithOAuth("google", {
+        redirect_uri: `https://soulstory.co.il/consent?returnTo=${encodeURIComponent(returnTo)}`,
+      });
+      if (result.error) {
+        return { error: result.error };
+      }
+      return { error: null };
+    } catch (e) {
+      return { error: e instanceof Error ? e : new Error(String(e)) };
+    }
   };
 
   const signInWithEmail = async (email: string, password: string) => {

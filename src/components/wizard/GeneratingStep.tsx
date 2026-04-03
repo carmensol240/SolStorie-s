@@ -788,7 +788,7 @@ const GeneratingStep = ({ formData, onComplete }: GeneratingStepProps) => {
                   localStorage.setItem('returnTo', '/create?resume=true');
                   const { lovable } = await import("@/integrations/lovable/index");
                   const result = await lovable.auth.signInWithOAuth("google", {
-                    redirect_uri: window.location.origin,
+                    redirect_uri: "https://soulstory.co.il",
                   });
                   if (result.error) {
                     toast({ title: "שגיאה", description: "ההתחברות עם Google נכשלה", variant: "destructive" });
