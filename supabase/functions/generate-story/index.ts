@@ -1686,12 +1686,11 @@ ${fullStoryText}`;
       const rewriteController = new AbortController();
       const rewriteTimeout = setTimeout(() => rewriteController.abort(), 12000);
       
-      const rewriteResponse = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+      const rewriteResponse = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${GEMINI_API_KEY}`, {
         method: "POST",
-        headers: { Authorization: `Bearer ${LOVABLE_API_KEY}`, "Content-Type": "application/json" },
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          model: "google/gemini-2.5-flash-lite",
-          messages: [{ role: "user", content: rewritePrompt }],
+          contents: [{ role: "user", parts: [{ text: rewritePrompt }] }],
         }),
         signal: rewriteController.signal,
       });
@@ -1699,7 +1698,7 @@ ${fullStoryText}`;
 
       if (rewriteResponse.ok) {
         const rewriteData = await rewriteResponse.json();
-        const rewrittenText = rewriteData.choices?.[0]?.message?.content?.trim();
+        const rewrittenText = rewriteData.candidates?.[0]?.content?.parts?.[0]?.text?.trim();
         
         if (rewrittenText) {
           // Parse rewritten text back into pages by [עמוד X] markers
