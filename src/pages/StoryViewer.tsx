@@ -1260,50 +1260,36 @@ const StoryViewer = () => {
             )}>
             
             {isCoverPage ? (
-              /* Cover Page — illustration is the hero, minimal overlay */
-              (() => {
-                return (
-                  <div className="relative flex flex-col h-full">
-                    {/* Full background — dedicated cover image */}
-                    <img
-                      src={story.cover_url || solSuperheroWelcome}
-                      alt="כריכת הסיפור"
-                      className={cn(
-                        "absolute inset-0 w-full h-full",
-                        "object-cover"
-                      )}
-                      style={{ transform: 'scale(1.02)' }}
-                      loading="eager"
-                      onLoad={(e) => {
-                        const img = e.currentTarget;
-                        setCoverIsLandscape(img.naturalWidth > img.naturalHeight);
-                      }}
-                    />
-                    {/* Subtle bottom gradient only — let the illustration breathe */}
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
+              /* Cover Page — styled dedication page, no doll character */
+              <div className="relative flex flex-col h-full" style={{ background: RAINBOW_BG }}>
+                {/* Spacer to center content */}
+                <div className="flex-1" />
 
-                    {/* Spacer to push content to bottom */}
-                    <div className="flex-1" />
+                {/* Centered dedication content */}
+                <div className="relative z-10 flex flex-col items-center px-8 gap-6 text-center">
+                  <Sparkles className="w-10 h-10 text-yellow-300 animate-pulse" />
+                  <p className="text-2xl md:text-3xl text-white font-bold drop-shadow-lg" dir="rtl" style={{ lineHeight: '1.8' }}>
+                    הספר הזה נוצר במיוחד עבורך,
+                    <br />
+                    <span className="text-3xl md:text-4xl bg-gradient-to-r from-yellow-200 via-pink-200 to-purple-200 bg-clip-text text-transparent">
+                      {story.child_name} 💙
+                    </span>
+                  </p>
 
-                    {/* Bottom section — dedication + CTA + logo */}
-                    <div className="relative z-10 flex flex-col items-center pb-6 px-6 gap-2 text-center">
-                      <p className="text-sm md:text-base text-white/90 font-medium drop-shadow-md" dir="rtl">
-                        הספר הזה נוצר במיוחד עבורך, {story.child_name} 💜
-                      </p>
+                  <Button
+                    size="lg"
+                    onClick={() => handlePageNav('next')}
+                    className="bg-gradient-to-r from-purple-600 to-pink-500 hover:from-purple-700 hover:to-pink-600 text-white font-bold px-6 py-3 text-sm md:text-base rounded-full shadow-xl hover:shadow-2xl transition-all transform hover:scale-105 border-2 border-white/50 mt-2"
+                  >
+                    <BookOpen className="w-4 h-4 ml-2" />
+                    פִּתְחוּ אֶת הַסֵּפֶר 📖
+                  </Button>
+                  <span className="text-base font-black logo-3d-bubble mt-1"><span className="logo-rainbow">SolStorie's™</span></span>
+                </div>
 
-                      <Button
-                        size="lg"
-                        onClick={() => handlePageNav('next')}
-                        className="bg-gradient-to-r from-purple-600 to-pink-500 hover:from-purple-700 hover:to-pink-600 text-white font-bold px-6 py-3 text-sm md:text-base rounded-full shadow-xl hover:shadow-2xl transition-all transform hover:scale-105 border-2 border-white/50 mt-1"
-                      >
-                        <BookOpen className="w-4 h-4 ml-2" />
-                        פִּתְחוּ אֶת הַסֵּפֶר 📖
-                      </Button>
-                      <span className="text-base font-black logo-3d-bubble mt-1"><span className="logo-rainbow">SolStorie's™</span></span>
-                    </div>
-                  </div>
-                );
-              })()
+                {/* Spacer */}
+                <div className="flex-1" />
+              </div>
 
             ) : isClosingPage ? (
               /* Closing Page - Full cast waving background */
