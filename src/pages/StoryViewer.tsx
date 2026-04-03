@@ -1344,14 +1344,34 @@ const [currentPage, setCurrentPage] = useState(0);
                   {/* Unified Coloring Button */}
                   <div className="pt-2">
                     <Button
-                      onClick={() => {
+                    onClick={async () => {
                         if (!story || coloringLoading) return;
                         const illustrations = story.pages?.filter(p => p.illustration_url).map(p => p.illustration_url!) || [];
                         if (illustrations.length === 0) {
                           toast({ title: "אין איורים זמינים ליצירת דף צביעה", variant: "destructive" });
                           return;
                         }
+                        // Check for cached coloring page
+                        if (user && story.id) {
+                          const { data: cached } = await supabase
+                            .from("story_coloring_pages" as any)
+                            .select("*")
+                            .eq("story_id", story.id)
+                            .eq("user_id", user.id)
+                            .maybeSingle();
+                          if (cached) {
+                            const publicUrl = `${import.meta.env.VITE_SUPABASE_URL || 'https://qvdwmkxviaqcgmjotsxe.supabase.co'}/storage/v1/object/public/story-illustrations/${(cached as any).coloring_image_path}`;
+                            setCachedColoringUrl(publicUrl);
+                            setCachedIllustrationUrl((cached as any).illustration_url);
+                            setSelectedColoringUrl((cached as any).illustration_url);
+                            setColoringAction('choose-action');
+                            setColoringPickerOpen(true);
+                            return;
+                          }
+                        }
                         setSelectedColoringUrl(null);
+                        setCachedColoringUrl(null);
+                        setCachedIllustrationUrl(null);
                         setColoringAction('pick');
                         setColoringPickerOpen(true);
                       }}
