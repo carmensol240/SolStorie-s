@@ -2,8 +2,9 @@ export const PRICING_PACKAGES = [
   {
     id: "basic",
     stories: 5,
-    price: 49,
-    pricePerStory: "9.8₪",
+    price: 35,
+    originalPrice: 49,
+    pricePerStory: "7₪",
     label: "בסיסי",
     freeEdits: 5,
     badge: undefined as string | undefined,
@@ -11,8 +12,9 @@ export const PRICING_PACKAGES = [
   {
     id: "popular",
     stories: 10,
-    price: 89,
-    pricePerStory: "8.9₪",
+    price: 65,
+    originalPrice: 89,
+    pricePerStory: "6.5₪",
     label: "פופולרי",
     freeEdits: 10,
     badge: "⭐ מומלץ" as string | undefined,
@@ -20,8 +22,9 @@ export const PRICING_PACKAGES = [
   {
     id: "premium",
     stories: 15,
-    price: 129,
-    pricePerStory: "8.6₪",
+    price: 95,
+    originalPrice: 129,
+    pricePerStory: "6.3₪",
     label: "משתלם",
     freeEdits: 15,
     badge: undefined as string | undefined,
@@ -67,6 +70,7 @@ export type PricingPackage = {
   id: string;
   stories: number;
   price: number;
+  originalPrice: number;
   pricePerStory: string;
   label: string;
   freeEdits: number;

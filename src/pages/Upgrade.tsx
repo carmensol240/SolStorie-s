@@ -19,7 +19,7 @@ import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 import heroImage from "@/assets/cast-group-forest.png";
 import { PRICING_PACKAGES, TOOLKIT_SUBSCRIPTION, EDUCATOR_PACKAGE, EDIT_KIT_PACKAGE } from "@/config/pricing";
-import StoryPreviewCarousel from "@/components/paywall/StoryPreviewCarousel";
+
 
 const Upgrade = () => {
   const navigate = useNavigate();
@@ -319,20 +319,19 @@ const Upgrade = () => {
             </Badge>
           </div>
 
-          {/* Story preview carousel */}
-          <StoryPreviewCarousel />
 
           {/* Limited-time offer badge */}
           {countdown > 0 && (
             <div className="flex justify-center mb-3">
               <div className="inline-flex items-center gap-2 bg-gradient-to-r from-orange-500/90 to-pink-500/90 backdrop-blur-sm text-white text-sm font-bold px-4 py-2 rounded-full shadow-lg animate-pulse">
-                <span>🔥 מבצע מיוחד</span>
+                <span>מחיר השקה מיוחד 🔥</span>
                 <span className="bg-white/20 rounded-md px-2 py-0.5 font-mono text-xs tracking-wider">
                   {String(countdownMin).padStart(2, '0')}:{String(countdownSec).padStart(2, '0')}
                 </span>
               </div>
             </div>
           )}
+          <p className="text-center text-white/70 text-xs mb-3">המבצע בתוקף עד 10.4.26 בלבד</p>
 
           {/* Package Cards — Glassmorphism */}
           <div className="grid grid-cols-3 gap-3 mb-4">
@@ -359,6 +358,9 @@ const Upgrade = () => {
                 </div>
                 <div className="text-sm text-white/80 font-bold mb-1">סיפורים</div>
 
+                <div className="text-sm text-white/40 line-through">
+                  ₪{pkg.originalPrice}
+                </div>
                 <div className="text-xl font-black text-white">
                   ₪{pkg.price}
                 </div>
