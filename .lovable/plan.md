@@ -1,33 +1,43 @@
 
 
-## Plan: Fix Story Viewer First Page for All Ages
+## Plan: Remove Dedicated Cover Page, Show Message on First Illustration
 
-### Current Behavior
-- Page `-1` (cover) shows a full-bleed cover image (`story.cover_url` or `solSuperheroWelcome` doll character) with a dedication overlay and "פתחו את הספר" button.
-- This is the same for all age ranges.
+### What changes
+
+Remove the cover page (index `-1`) entirely for all ages. Start all stories at `currentPage = 0`. Overlay the personalized dedication message on top of the first illustration page.
 
 ### Changes — `src/pages/StoryViewer.tsx`
 
-**Ages 0-2 (toddlers):**
-- Skip the cover page entirely. Set `currentPage` initial value to `0` when `isToddler` is true.
-- Block backward navigation past page 0 for toddlers.
-- No dedication page, no doll character — story starts immediately with combined illustration+text pages.
+**1. Start at page 0 for all ages** (line 192):
+```typescript
+const [currentPage, setCurrentPage] = useState(0);
+```
 
-**Ages 3+ (non-toddlers):**
-- Replace the cover page content (lines 1260-1304): Remove the full-bleed `solSuperheroWelcome`/cover image background entirely.
-- Instead, show a styled dedication-only page with dark gradient background, centered text: "הספר הזה נוצר במיוחד עבורך, [childName] 💙", and the "פתחו את הספר" CTA button.
-- No doll character image, no cover_url image on this page.
+**2. Remove toddler cover-skip useEffect** (lines 1035-1041): Delete the `toddlerPageFixed` logic — no longer needed since all ages start at 0. Also remove the `toddlerPageFixed` state (line 193).
 
-**Specific code changes:**
+**3. Update navigation guard** (line 1202): Change `minPage` to always be `0`:
+```typescript
+if (direction === 'prev' && currentPage <= 0) return;
+```
 
-1. **Initial page state** (line 192): Change from always `-1` to conditionally `0` for toddlers. Since `story` isn't loaded yet at init, handle this in the story fetch callback or a useEffect that sets `currentPage` to `0` when `isToddler` is detected.
+**4. Remove `isCoverPage` logic** (lines 1172, 1270-1301): Delete the `isCoverPage` variable and the entire cover page rendering block (the purple gradient dedication page with "פתחו את הספר" button).
 
-2. **Cover page rendering** (lines 1260-1304): Replace the cover image block with a styled gradient page showing only the personalized message and CTA button. Remove references to `solSuperheroWelcome` and `story.cover_url` from the cover page.
+**5. Add dedication overlay on first content page** (inside the content page rendering, around line 1620+): When `currentPage === 0`, overlay the personalized message at the bottom of the illustration:
 
-3. **Navigation guard** (line 1193): For toddlers, prevent navigating to page `-1` (no cover page exists).
+```tsx
+{currentPage === 0 && story && (
+  <div className="absolute bottom-0 left-0 right-0 z-20 p-4 bg-gradient-to-t from-black/70 via-black/40 to-transparent">
+    <p className="text-center text-white text-lg md:text-xl font-bold drop-shadow-lg" dir="rtl">
+      הספר הזה נוצר במיוחד עבורך, {story.child_name} 💙
+    </p>
+  </div>
+)}
+```
 
-4. **Remove `solSuperheroWelcome` import** (line 63) if no longer used anywhere.
+This overlay appears on illustration pages (ages 3+) and combined pages (toddlers) alike — both have an illustration as their first virtual page.
+
+**6. Clean up unused imports**: Remove `RAINBOW_BG` if only used by the cover page. Remove `Sparkles` import if no longer referenced.
 
 ### Files modified
-1. `src/pages/StoryViewer.tsx` — replace cover page, skip cover for toddlers
+1. `src/pages/StoryViewer.tsx` — remove cover page, add dedication overlay on first illustration
 
