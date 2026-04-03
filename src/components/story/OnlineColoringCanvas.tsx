@@ -1,5 +1,5 @@
 import React, { useRef, useState, useEffect, useCallback, useMemo } from 'react';
-import { Undo2, Redo2, Download, Printer, ArrowRight, PaintBucket, Eraser } from 'lucide-react';
+import { Undo2, Redo2, Download, Printer, ArrowRight, PaintBucket, Eraser, Pencil } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 
 interface OnlineColoringCanvasProps {
@@ -16,6 +16,10 @@ const COLORS = [
   '#A3CB38', '#1DD1A1', '#C4A35A', '#2C3E50',
   '#FFFFFF', '#000000',
 ];
+
+type Tool = 'fill' | 'brush' | 'eraser';
+
+const BRUSH_SIZES = [4, 8, 16];
 
 const FILL_CURSOR = `url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='none' stroke='%23333' stroke-width='2'><path d='M2 22l1-1h3l9-9'/><path d='M3 21v-3l9-9'/><path d='M14.5 5.5l4-4 4 4-4 4z'/><path d='M12 8l4-4'/><path d='M19 15v6a1 1 0 01-1 1h-1a1 1 0 01-1-1v-3.28a1 1 0 01.684-.948L19 15z' fill='%234488ff'/></svg>") 2 22, crosshair`;
 
@@ -129,7 +133,8 @@ export const OnlineColoringCanvas: React.FC<OnlineColoringCanvasProps> = ({
   const bgCanvasRef = useRef<HTMLCanvasElement>(null);
   const [isDrawing, setIsDrawing] = useState(false);
   const [color, setColor] = useState(COLORS[0]);
-  const [isEraser, setIsEraser] = useState(false);
+  const [tool, setTool] = useState<Tool>('fill');
+  const [brushSize, setBrushSize] = useState(8);
   const [bgLoaded, setBgLoaded] = useState(false);
   const lastPos = useRef<{ x: number; y: number } | null>(null);
   const bgImageRef = useRef<HTMLImageElement | null>(null);
@@ -263,7 +268,7 @@ export const OnlineColoringCanvas: React.FC<OnlineColoringCanvasProps> = ({
     e.preventDefault();
     const pos = getCanvasPos(e);
 
-    if (isEraser) {
+    if (tool === 'eraser') {
       setIsDrawing(true);
       lastPos.current = pos;
       const ctx = canvasRef.current?.getContext('2d');
@@ -276,28 +281,51 @@ export const OnlineColoringCanvas: React.FC<OnlineColoringCanvasProps> = ({
       return;
     }
 
+    if (tool === 'brush') {
+      setIsDrawing(true);
+      lastPos.current = pos;
+      const ctx = canvasRef.current?.getContext('2d');
+      if (ctx) {
+        ctx.globalCompositeOperation = 'source-over';
+        ctx.fillStyle = color;
+        ctx.beginPath();
+        ctx.arc(pos.x, pos.y, brushSize / 2, 0, Math.PI * 2);
+        ctx.fill();
+      }
+      return;
+    }
+
+    // fill tool
     const drawCtx = canvasRef.current?.getContext('2d');
     const bgCtx = bgCanvasRef.current?.getContext('2d');
     if (!drawCtx || !bgCtx || !canvasRef.current) return;
     floodFill(drawCtx, bgCtx, pos.x, pos.y, color, canvasRef.current.width, canvasRef.current.height);
     saveSnapshot();
-  }, [getCanvasPos, isEraser, color, saveSnapshot]);
+  }, [getCanvasPos, tool, color, brushSize, saveSnapshot]);
 
   const handlePointerMove = useCallback((e: React.MouseEvent | React.TouchEvent) => {
     e.preventDefault();
-    if (!isDrawing || !isEraser || !canvasRef.current || !lastPos.current) return;
+    if (!isDrawing || !canvasRef.current || !lastPos.current) return;
+    if (tool !== 'brush' && tool !== 'eraser') return;
     const ctx = canvasRef.current.getContext('2d');
     if (!ctx) return;
     const currentPos = getCanvasPos(e);
-    ctx.globalCompositeOperation = 'destination-out';
+
+    if (tool === 'eraser') {
+      ctx.globalCompositeOperation = 'destination-out';
+      ctx.lineWidth = ERASER_SIZE * 2;
+    } else {
+      ctx.globalCompositeOperation = 'source-over';
+      ctx.strokeStyle = color;
+      ctx.lineWidth = brushSize;
+    }
+    ctx.lineCap = 'round';
     ctx.beginPath();
     ctx.moveTo(lastPos.current.x, lastPos.current.y);
     ctx.lineTo(currentPos.x, currentPos.y);
-    ctx.lineWidth = ERASER_SIZE * 2;
-    ctx.lineCap = 'round';
     ctx.stroke();
     lastPos.current = currentPos;
-  }, [isDrawing, isEraser, getCanvasPos]);
+  }, [isDrawing, tool, color, brushSize, getCanvasPos]);
 
   const stopDrawing = useCallback(() => {
     if (isDrawing) {
@@ -350,8 +378,10 @@ export const OnlineColoringCanvas: React.FC<OnlineColoringCanvasProps> = ({
   }, [getMergedCanvas]);
 
   const cursorStyle = useMemo(() => {
-    return isEraser ? ERASER_CURSOR : FILL_CURSOR;
-  }, [isEraser]);
+    if (tool === 'eraser') return ERASER_CURSOR;
+    if (tool === 'brush') return `url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' width='${brushSize + 4}' height='${brushSize + 4}'><circle cx='${(brushSize + 4) / 2}' cy='${(brushSize + 4) / 2}' r='${brushSize / 2}' fill='${encodeURIComponent(color)}' stroke='%23333' stroke-width='1'/></svg>") ${(brushSize + 4) / 2} ${(brushSize + 4) / 2}, crosshair`;
+    return FILL_CURSOR;
+  }, [tool, color, brushSize]);
 
   if (!isOpen) return null;
 
@@ -405,25 +435,41 @@ export const OnlineColoringCanvas: React.FC<OnlineColoringCanvasProps> = ({
       <div className="absolute bottom-0 left-0 right-0 z-20 bg-white/90 backdrop-blur-sm border-t border-purple-200 px-2 py-1.5 space-y-1.5">
         {/* Tools */}
         <div className="flex items-center justify-center gap-2">
-          <button onClick={() => setIsEraser(false)}
+          <button onClick={() => setTool('fill')}
             className={`w-9 h-9 rounded-full flex items-center justify-center transition-all ${
-              !isEraser ? 'ring-2 ring-purple-500 ring-offset-1 bg-purple-50 shadow-md' : 'bg-gray-100 hover:bg-gray-200'
+              tool === 'fill' ? 'ring-2 ring-purple-500 ring-offset-1 bg-purple-50 shadow-md' : 'bg-gray-100 hover:bg-gray-200'
             }`}>
             <PaintBucket className="w-4 h-4" style={{ color }} />
           </button>
-          <button onClick={() => setIsEraser(true)}
+          <button onClick={() => setTool('brush')}
             className={`w-9 h-9 rounded-full flex items-center justify-center transition-all ${
-              isEraser ? 'ring-2 ring-purple-500 ring-offset-1 bg-purple-50 shadow-md' : 'bg-gray-100 hover:bg-gray-200'
+              tool === 'brush' ? 'ring-2 ring-purple-500 ring-offset-1 bg-purple-50 shadow-md' : 'bg-gray-100 hover:bg-gray-200'
+            }`}>
+            <Pencil className="w-4 h-4" style={{ color: tool === 'brush' ? color : undefined }} />
+          </button>
+          <button onClick={() => setTool('eraser')}
+            className={`w-9 h-9 rounded-full flex items-center justify-center transition-all ${
+              tool === 'eraser' ? 'ring-2 ring-purple-500 ring-offset-1 bg-purple-50 shadow-md' : 'bg-gray-100 hover:bg-gray-200'
             }`}>
             <Eraser className="w-4 h-4 text-gray-500" />
           </button>
+          {tool === 'brush' && (
+            <div className="flex items-center gap-1 mr-2">
+              {BRUSH_SIZES.map((s) => (
+                <button key={s} onClick={() => setBrushSize(s)}
+                  className={`rounded-full bg-gray-700 transition-all ${brushSize === s ? 'ring-2 ring-purple-500 ring-offset-1' : ''}`}
+                  style={{ width: s + 8, height: s + 8 }}
+                />
+              ))}
+            </div>
+          )}
         </div>
         {/* Colors */}
         <div className="flex items-center justify-center gap-1.5 flex-wrap">
           {COLORS.map((c) => (
-            <button key={c} onClick={() => { setColor(c); setIsEraser(false); }}
+            <button key={c} onClick={() => { setColor(c); if (tool === 'eraser') setTool('fill'); }}
               className={`w-9 h-9 rounded-full border-2 transition-all active:scale-95 ${
-                color === c && !isEraser
+                color === c && tool !== 'eraser'
                   ? 'scale-110 shadow-lg border-gray-700'
                   : 'border-white shadow-md hover:scale-105'
               }`}
