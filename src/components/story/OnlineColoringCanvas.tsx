@@ -268,7 +268,7 @@ export const OnlineColoringCanvas: React.FC<OnlineColoringCanvasProps> = ({
     e.preventDefault();
     const pos = getCanvasPos(e);
 
-    if (isEraser) {
+    if (tool === 'eraser') {
       setIsDrawing(true);
       lastPos.current = pos;
       const ctx = canvasRef.current?.getContext('2d');
@@ -281,28 +281,51 @@ export const OnlineColoringCanvas: React.FC<OnlineColoringCanvasProps> = ({
       return;
     }
 
+    if (tool === 'brush') {
+      setIsDrawing(true);
+      lastPos.current = pos;
+      const ctx = canvasRef.current?.getContext('2d');
+      if (ctx) {
+        ctx.globalCompositeOperation = 'source-over';
+        ctx.fillStyle = color;
+        ctx.beginPath();
+        ctx.arc(pos.x, pos.y, brushSize / 2, 0, Math.PI * 2);
+        ctx.fill();
+      }
+      return;
+    }
+
+    // fill tool
     const drawCtx = canvasRef.current?.getContext('2d');
     const bgCtx = bgCanvasRef.current?.getContext('2d');
     if (!drawCtx || !bgCtx || !canvasRef.current) return;
     floodFill(drawCtx, bgCtx, pos.x, pos.y, color, canvasRef.current.width, canvasRef.current.height);
     saveSnapshot();
-  }, [getCanvasPos, isEraser, color, saveSnapshot]);
+  }, [getCanvasPos, tool, color, brushSize, saveSnapshot]);
 
   const handlePointerMove = useCallback((e: React.MouseEvent | React.TouchEvent) => {
     e.preventDefault();
-    if (!isDrawing || !isEraser || !canvasRef.current || !lastPos.current) return;
+    if (!isDrawing || !canvasRef.current || !lastPos.current) return;
+    if (tool !== 'brush' && tool !== 'eraser') return;
     const ctx = canvasRef.current.getContext('2d');
     if (!ctx) return;
     const currentPos = getCanvasPos(e);
-    ctx.globalCompositeOperation = 'destination-out';
+
+    if (tool === 'eraser') {
+      ctx.globalCompositeOperation = 'destination-out';
+      ctx.lineWidth = ERASER_SIZE * 2;
+    } else {
+      ctx.globalCompositeOperation = 'source-over';
+      ctx.strokeStyle = color;
+      ctx.lineWidth = brushSize;
+    }
+    ctx.lineCap = 'round';
     ctx.beginPath();
     ctx.moveTo(lastPos.current.x, lastPos.current.y);
     ctx.lineTo(currentPos.x, currentPos.y);
-    ctx.lineWidth = ERASER_SIZE * 2;
-    ctx.lineCap = 'round';
     ctx.stroke();
     lastPos.current = currentPos;
-  }, [isDrawing, isEraser, getCanvasPos]);
+  }, [isDrawing, tool, color, brushSize, getCanvasPos]);
 
   const stopDrawing = useCallback(() => {
     if (isDrawing) {
