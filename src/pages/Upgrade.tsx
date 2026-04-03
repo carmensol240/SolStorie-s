@@ -567,6 +567,45 @@ const Upgrade = () => {
             </div>
           </div>
 
+          {/* Coloring Kit PayPal */}
+          {showColoringKitPayPal && (
+            <div className="bg-white/15 backdrop-blur-md rounded-xl border border-orange-400/30 p-4 mb-4 shadow-lg">
+              <p className="text-sm font-bold text-white text-center mb-3">
+                {COLORING_KIT_PACKAGE.label} — {COLORING_KIT_PACKAGE.pages} דפי צביעה תמורת ₪{COLORING_KIT_PACKAGE.price}
+              </p>
+              <PayPalButton
+                amount={COLORING_KIT_PACKAGE.price}
+                onSuccess={async () => {
+                  if (!user) return;
+                  try {
+                    await supabase.from('purchases').insert({
+                      user_id: user.id,
+                      package_name: COLORING_KIT_PACKAGE.id,
+                      credits_purchased: COLORING_KIT_PACKAGE.pages,
+                      amount_ils: COLORING_KIT_PACKAGE.price,
+                      status: 'completed',
+                    });
+                    setShowColoringKitPayPal(false);
+                    setPurchasedCredits(0);
+                    setShowSuccess(true);
+                    trackEvent({ eventType: 'feature_used', metadata: { feature: 'coloring_kit_purchased', pages: COLORING_KIT_PACKAGE.pages, payment_method: 'paypal' } });
+                    toast.success(`🎨 נוספו ${COLORING_KIT_PACKAGE.pages} דפי צביעה בהצלחה!`);
+                  } catch (error) {
+                    console.error('Coloring kit purchase failed:', error);
+                    setShowColoringKitPayPal(false);
+                    setShowFailed(true);
+                  }
+                }}
+                onError={() => { setShowColoringKitPayPal(false); setShowFailed(true); }}
+                onCancel={() => setShowColoringKitPayPal(false)}
+              />
+              <p className="text-center text-white/60 text-[11px] mt-2">💳 ניתן לשלם גם בכרטיס אשראי ללא חשבון פייפאל</p>
+              <button onClick={() => setShowColoringKitPayPal(false)} className="w-full text-center text-white/50 text-xs mt-3 hover:text-white/70 transition-colors">
+                ביטול
+              </button>
+            </div>
+          )}
+
           {/* Edit Kit PayPal */}
           {showEditKitPayPal && (
             <div className="bg-white/15 backdrop-blur-md rounded-xl border border-green-400/30 p-4 mb-4 shadow-lg">
