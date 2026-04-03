@@ -89,13 +89,9 @@ const ChildInfoStep = ({ formData, updateFormData }: ChildInfoStepProps) => {
   const [savedChildren, setSavedChildren] = useState<SavedChild[]>([]);
   const [showPersonalityField, setShowPersonalityField] = useState(false);
   const [showPhotoTips, setShowPhotoTips] = useState(false);
-  const [avatarPreviewOpen, setAvatarPreviewOpen] = useState(false);
-  const [pendingPhotoForAvatar, setPendingPhotoForAvatar] = useState<string | null>(null);
-  const [tempChildId, setTempChildId] = useState<string | null>(null);
-  const [isSavingChild, setIsSavingChild] = useState(false);
-  const [isUploadingPhoto, setIsUploadingPhoto] = useState(false);
+  const [isGeneratingAvatar, setIsGeneratingAvatar] = useState(false);
   const [avatarRegenerationCount, setAvatarRegenerationCount] = useState(0);
-  const [existingAvatarForDialog, setExistingAvatarForDialog] = useState<string | null>(formData.childAvatarUrl || null);
+  const [userRole, setUserRole] = useState<string | null>(null);
   const [userRole, setUserRole] = useState<string | null>(null);
   const [isDeletingChild, setIsDeletingChild] = useState(false);
   const [photoValidation, setPhotoValidation] = useState<{
