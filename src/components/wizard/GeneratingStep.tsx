@@ -275,15 +275,19 @@ const GeneratingStep = ({ formData, onComplete }: GeneratingStepProps) => {
 
       console.log("[GeneratingStep] Story created successfully with ID:", data.storyId);
       
-      const { data: pages, error: pagesError } = await supabase
-        .from("story_pages")
-        .select("id, text")
-        .eq("story_id", data.storyId)
-        .limit(1);
-      
-      if (pagesError || !pages || pages.length === 0 || !pages[0].text?.trim()) {
-        console.error("[GeneratingStep] Story created but no text pages found:", { pagesError, pages });
-        throw new Error("הסיפור נוצר אך ללא טקסט. מנסים שוב...");
+      // For guest users, RLS blocks reading pages (user_id is null),
+      // so skip client-side verification — trust the edge function response
+      if (!isGuest) {
+        const { data: pages, error: pagesError } = await supabase
+          .from("story_pages")
+          .select("id, text")
+          .eq("story_id", data.storyId)
+          .limit(1);
+        
+        if (pagesError || !pages || pages.length === 0 || !pages[0].text?.trim()) {
+          console.error("[GeneratingStep] Story created but no text pages found:", { pagesError, pages });
+          throw new Error("הסיפור נוצר אך ללא טקסט. מנסים שוב...");
+        }
       }
 
       console.log("[GeneratingStep] Text verified. Moving to illustrations phase...");
