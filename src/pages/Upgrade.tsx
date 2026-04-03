@@ -319,8 +319,6 @@ const Upgrade = () => {
             </Badge>
           </div>
 
-          {/* Story preview carousel */}
-          <StoryPreviewCarousel />
 
           {/* Limited-time offer badge */}
           {countdown > 0 && (
