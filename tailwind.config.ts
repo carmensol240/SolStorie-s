@@ -98,6 +98,10 @@ export default {
           "0%, 100%": { transform: "scale(1)", textShadow: "0 0 0px transparent" },
           "50%": { transform: "scale(1.05)", textShadow: "0 0 8px rgba(192,132,252,0.4)" },
         },
+        "cta-shimmer": {
+          "0%": { backgroundPosition: "200% 0" },
+          "100%": { backgroundPosition: "-200% 0" },
+        },
       },
       animation: {
         "accordion-down": "accordion-down 0.2s ease-out",
