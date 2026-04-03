@@ -13,7 +13,7 @@ export const FULL_BLEED_INSTRUCTION = `CRITICAL: This must be a PURE ILLUSTRATIO
 
 export const PIXAR_STYLE = `${FULL_BLEED_INSTRUCTION} Pixar 3D CGI animation style, big expressive cartoon eyes with sparkling highlights, soft rounded cute features, oversized head with small body, vibrant saturated colors, cinematic warm lighting with glowing accents, fantasy children's book, high quality render, Disney-Pixar aesthetic. NOT realistic. Full body from head to toe, feet VISIBLE and GROUNDED on the surface.`;
 
-export const PIXAR_STYLE_COMPACT = `${FULL_BLEED_INSTRUCTION} Pixar 3D CGI animation style, big expressive eyes, soft rounded features, oversized head with small body, vibrant saturated colors, cinematic warm lighting with glowing accents, fantasy children's book background, high quality render, Disney-Pixar aesthetic. Characters must look like adorable cartoon dolls — NOT realistic humans. ALWAYS show characters FULL BODY from head to toe with feet VISIBLE and GROUNDED on the surface. Frame the character with generous margin from all edges.`;
+export const PIXAR_STYLE_COMPACT = `${FULL_BLEED_INSTRUCTION} Pixar 3D CGI animation style, big expressive eyes, soft rounded features, oversized head with small body, vibrant saturated colors, cinematic warm lighting with glowing accents, fantasy children's book background, high quality render, Disney-Pixar animated movie aesthetic. Characters must look like 3D animated movie characters with consistent proportions and features. ALWAYS show characters FULL BODY from head to toe with feet VISIBLE and GROUNDED on the surface. Frame the character with generous margin from all edges.`;
 
 // ─── Negative Prompts ───
 
@@ -103,7 +103,7 @@ export const CHARACTER_CARDS = {
 
 // ─── Style Suffix (for topic image generation) ───
 
-export const TOPIC_IMAGE_STYLE_SUFFIX = `Pixar 3D CGI animation style, big expressive eyes, soft rounded features, oversized head with small body, vibrant saturated colors, cinematic warm lighting with glowing accents, fantasy children's book background, high quality render, Disney-Pixar aesthetic. Characters must look like adorable cartoon dolls — NOT realistic humans. 9:16 portrait aspect ratio. Negative prompt: ${NEGATIVE_PROMPT_FULL}`;
+export const TOPIC_IMAGE_STYLE_SUFFIX = `Pixar 3D CGI animation style, big expressive eyes, soft rounded features, oversized head with small body, vibrant saturated colors, cinematic warm lighting with glowing accents, fantasy children's book background, high quality render, Disney-Pixar animated movie aesthetic. Characters must look like 3D animated movie characters with consistent proportions and features. 9:16 portrait aspect ratio. Negative prompt: ${NEGATIVE_PROMPT_FULL}`;
 
 // ─── Character Consistency ───
 

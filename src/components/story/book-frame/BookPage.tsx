@@ -32,37 +32,30 @@ export const BookPage: React.FC<BookPageProps> = ({
   if (type === 'illustration') {
     return (
       <div className={cn(
-        "relative flex-1 flex flex-col justify-center items-center p-4 md:p-6",
+        "relative flex-1 flex flex-col",
         className
-      )} style={{ background: 'linear-gradient(135deg, #1a0f3a, #2d1a6e)' }}>
-        <div className="absolute top-0 left-0 w-8 h-8 bg-gradient-to-br from-white/5 to-transparent" />
-        
+      )}>
         {isGeneratingIllustration ? (
-          <div className="relative w-full overflow-hidden flex flex-col items-center justify-center" style={{ height: '50vh' }}>
-            <div className="absolute inset-0 bg-gradient-to-br from-[#1a0f3a] via-[#2d1a6e] to-[#1a0f3a] animate-pulse" />
+          <div className="absolute inset-0 flex flex-col items-center justify-center bg-gradient-to-br from-[#FFFBF5] via-[#F5E6D3] to-[#FAF3E8]">
             <div className="relative z-10 text-center space-y-3">
               <div className="w-16 h-16 mx-auto rounded-full bg-gradient-to-br from-purple-400/30 via-purple-500/30 to-purple-600/30 flex items-center justify-center animate-pulse">
                 <span className="text-3xl">🎨</span>
               </div>
-              <p className="text-sm text-purple-200 font-medium" dir="rtl">האיור נוצר...</p>
+              <p className="text-sm text-[#8B7355] font-medium" dir="rtl">האיור נוצר...</p>
             </div>
           </div>
         ) : illustrationUrl ? (
-          <div className="relative w-full">
-            <div className="relative w-full overflow-hidden flex items-center justify-center" style={{ height: '50vh' }}>
-              <SignedImage
-                src={illustrationUrl}
-                storyId={storyId}
-                alt=""
-                className="w-full h-full object-cover"
-              />
-            </div>
-          </div>
+          <SignedImage
+            src={illustrationUrl}
+            storyId={storyId}
+            alt=""
+            className="absolute inset-0 w-full h-full object-cover"
+          />
         ) : null}
         
         {pageNumber !== undefined && (
-          <div className="absolute bottom-4 left-1/2 -translate-x-1/2">
-            <span className="text-sm text-purple-300/70 font-serif italic">
+          <div className="absolute bottom-4 left-1/2 -translate-x-1/2 z-10">
+            <span className="text-sm text-white/70 font-serif italic drop-shadow">
               {pageNumber}
             </span>
           </div>
