@@ -1,30 +1,34 @@
 
 
-## Plan: Fix Story Generation Slowdown — Reduce Dispatch Wait
+## Analysis: Story Generation Failure for Unauthenticated Users
 
 ### Root Cause
+The edge function logs show **402 — "Not enough credits"** from the Lovable AI Gateway. This is a platform-level credit issue that affects ALL users (not just unauthenticated ones). The guest mode flow is correctly implemented:
 
-The `generate-story` function waits up to **15 seconds** for background tasks (nikud, summary, illustrations, cover) before returning the response. From the logs:
+- Edge function already supports `guestMode: true` (line 588-608)
+- JWT verification is disabled in config.toml
+- The signup form renders correctly for unauthenticated users
+- The "אולי אחר כך" dismiss flow triggers generation with `guestMode: true`
 
-- Story AI generation: **9s**
-- Text rewrite: **2s**
-- Dispatch wait: **15s** (hit the full timeout)
+The error message "לא הצלחנו ליצור את הסיפור הפעם" appears because the 402 from the AI gateway returns "שגיאת הרשאה" which gets caught by the generic error handler.
 
-**Total: ~29s** — the 15s dispatch timeout accounts for half.
+### The Fix — Two Issues
 
-The problem: nikud (7 parallel AI calls) and summary (1 AI call) promises are bundled into the same `fetchPromises` array as illustration dispatches. The function waits for ALL of them. The nikud and summary are full AI calls that take 10-15s, which always hits the 15s timeout.
+**1. Better error message for 402 (AI credits)**: The edge function currently lumps 401 and 402 together as "שגיאת הרשאה" (line 1468). This is misleading — a 402 means the platform ran out of AI credits, not a user auth issue. Separate these cases.
 
-### Fix — `supabase/functions/generate-story/index.ts`
+**2. Prevent stale auth token from failing guest requests**: When `supabase.functions.invoke()` is called by an unauthenticated user, the Supabase client may still send a stale/expired JWT from a previous session. The edge function sees no `guestMode` flag issue, but the stale token could cause the auth check to fail before reaching guest mode logic. Add defensive handling: if `guestMode: true`, skip auth validation entirely regardless of any Authorization header present.
 
-1. **Remove nikud and summary promises from the dispatch wait** (lines 1923-1924): Don't push `summaryPromise` and `nikudPromise` into `fetchPromises`. These should run truly in the background.
+### Changes — `supabase/functions/generate-story/index.ts`
 
-2. **Reduce dispatch timeout from 15s to 3s** (line 1992): The illustration and cover dispatches only need the HTTP connection to be accepted (~1-2s). Reduce to 3s.
+1. **Move guestMode check first** (lines 598-631): Check `guestMode` before checking auth header. Currently the order is correct, but ensure `guestMode` takes priority even if an Authorization header is present (stale token scenario).
 
-3. **Keep nikud/summary running** by referencing them after the response dispatch so Deno doesn't garbage-collect them — add a separate `Promise.allSettled([nikudPromise, summaryPromise])` with no await (fire-and-forget).
+2. **Separate 401 from 402 error messages** (line 1468): Return "שגיאת מערכת זמנית. נסו שוב מאוחר יותר." for 402, and keep "שגיאת הרשאה" only for 401.
 
-### Expected Result
-Response time drops from ~29s to ~14s (9s generation + 2s rewrite + 3s dispatch).
+### Changes — `src/components/wizard/GeneratingStep.tsx`
+
+3. **Improve error handling** for the 402 case: Instead of showing "לא הצלחנו ליצור את הסיפור הפעם" for all errors, detect the "שגיאת מערכת" message and show a more helpful retry message.
 
 ### Files modified
-1. `supabase/functions/generate-story/index.ts` — unbundle nikud/summary from dispatch wait, reduce timeout
+1. `supabase/functions/generate-story/index.ts` — separate 401/402 handling, ensure guestMode bypasses stale tokens
+2. `src/components/wizard/GeneratingStep.tsx` — better error display for system errors
 
