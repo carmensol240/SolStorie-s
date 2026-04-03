@@ -1191,8 +1191,7 @@ const [currentPage, setCurrentPage] = useState(0);
     const maxPage = totalVirtualPages + 1;
     
     if (direction === 'next' && currentPage >= maxPage) return;
-    const minPage = isToddler ? 0 : -1;
-    if (direction === 'prev' && currentPage <= minPage) return;
+    if (direction === 'prev' && currentPage <= 0) return;
     
     setSlideDirection(direction);
     setIsFlipping(true);
