@@ -1,7 +1,7 @@
 import "https://deno.land/x/xhr@0.1.0/mod.ts";
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.39.3";
-import { NEGATIVE_PROMPT } from "../_shared/style-config.ts";
+import { NEGATIVE_PROMPT, GENDER_SYMBOL_RESTRICTION } from "../_shared/style-config.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -173,6 +173,8 @@ serve(async (req) => {
 
     // ── Build the cover prompt ──
     const coverPrompt = `Create a children's book COVER illustration in the EXACT SAME art style as the reference image — same color palette, same lighting, same Pixar 3D CGI quality. This is a DIFFERENT scene from the same story: use a different pose, different camera angle, and different composition than the reference. Leave 20% space at the top for the title. No text. Same character, same environment theme, but a fresh new moment.
+
+${GENDER_SYMBOL_RESTRICTION}
 
 NEGATIVE: ${NEGATIVE_PROMPT}`;
 

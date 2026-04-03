@@ -5,6 +5,7 @@ import {
   PIXAR_STYLE_COMPACT,
   NEGATIVE_PROMPT_FULL,
   CHARACTER_CARDS,
+  GENDER_SYMBOL_RESTRICTION,
 } from "../_shared/style-config.ts";
 
 const corsHeaders = {
@@ -71,7 +72,7 @@ serve(async (req) => {
           body: JSON.stringify({
             model: "google/gemini-3-pro-image-preview",
             modalities: ["image", "text"],
-            messages: [{ role: "user", content: topic.prompt }],
+            messages: [{ role: "user", content: `${topic.prompt}\n\n${GENDER_SYMBOL_RESTRICTION}` }],
           }),
         });
 

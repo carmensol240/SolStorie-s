@@ -4,6 +4,7 @@ import {
   NEGATIVE_PROMPT_FULL,
   TOPIC_IMAGE_STYLE_SUFFIX,
   CAST_DESCRIPTIONS,
+  GENDER_SYMBOL_RESTRICTION,
 } from "../_shared/style-config.ts";
 
 const corsHeaders = {
@@ -19,7 +20,7 @@ const LEO_DESC = CAST_DESCRIPTIONS.leo;
 const ZOE_DESC = CAST_DESCRIPTIONS.zoe;
 
 const NEGATIVE = NEGATIVE_PROMPT_FULL;
-const STYLE_SUFFIX = TOPIC_IMAGE_STYLE_SUFFIX;
+const STYLE_SUFFIX = `${TOPIC_IMAGE_STYLE_SUFFIX} ${GENDER_SYMBOL_RESTRICTION}`;
 
 const TOPIC_PROMPTS: Record<string, { filename: string; prompt: string }> = {
   "blood-test": {
