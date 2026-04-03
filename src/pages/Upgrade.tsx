@@ -355,7 +355,7 @@ const Upgrade = () => {
                 )}
 
                 {/* Discount pill */}
-                <div className="bg-gradient-to-r from-green-500 to-emerald-400 text-white text-[9px] font-black px-2 py-0.5 rounded-full mb-1.5 shadow-sm">
+                <div className="bg-gradient-to-r from-green-500 to-emerald-400 text-white text-[9px] font-black px-2 py-0.5 rounded-full mb-1.5 shadow-sm border border-black/70">
                   חסכו ₪{pkg.originalPrice - pkg.price}
                 </div>
 
