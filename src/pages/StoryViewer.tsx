@@ -2003,8 +2003,8 @@ const [currentPage, setCurrentPage] = useState(0);
       {/* PDF Feature Popup - one-time per user */}
       <PdfFeaturePopup userId={user?.id} />
 
-      {/* Install App Prompt - one-time after first story */}
-      <InstallAppPrompt justCreatedFirstStory={justCreatedStory} />
+      {/* Install App Prompt - shown only after reaching last page */}
+      <InstallAppPrompt justCreatedFirstStory={justCreatedStory && (isClosingPage || isEndPage)} />
     </div>
   );
 };
