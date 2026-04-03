@@ -739,8 +739,8 @@ const ChildInfoStep = ({ formData, updateFormData }: ChildInfoStepProps) => {
             </div>
           ) : formData.childPhoto ? (
             <div className="flex flex-col items-center justify-center w-full py-4 bg-card border-2 border-purple-400 bg-purple-50 rounded-xl gap-2">
-              {formData.childAvatarUrl && formData.childPhoto ? (
-                /* Side-by-side: original photo + avatar */
+              {(formData.childAvatarUrl || isGeneratingAvatar) && formData.childPhoto ? (
+                /* Side-by-side: original photo + avatar (or generating spinner) */
                 <div className="flex items-center gap-4">
                   <div className="flex flex-col items-center gap-1">
                     <div className="relative w-20 h-20 rounded-full overflow-hidden border-4 border-purple-400 shadow-[0_0_12px_rgba(168,85,247,0.4)]" style={{ background: 'linear-gradient(135deg, hsl(var(--primary)), hsl(270,70%,60%))' }}>
@@ -749,25 +749,32 @@ const ChildInfoStep = ({ formData, updateFormData }: ChildInfoStepProps) => {
                         alt="תמונה מקורית"
                         className="w-full h-full object-cover opacity-90"
                       />
-                      {/* Vignette overlay to soften edges */}
                       <div className="absolute inset-0 rounded-full pointer-events-none" style={{ boxShadow: 'inset 0 0 12px 4px rgba(168,85,247,0.25)' }} />
                       <div className="absolute inset-0 bg-gradient-to-b from-black/5 via-transparent to-black/15 rounded-full pointer-events-none" />
                     </div>
-                    <span className="text-[10px] text-muted-foreground">מקורית</span>
+                    <span className="text-[10px] text-muted-foreground">תמונה מקורית</span>
                   </div>
                   <Sparkles className="w-4 h-4 text-purple-400 flex-shrink-0 animate-pulse" />
                   <div className="flex flex-col items-center gap-1">
-                    <div className="relative w-20 h-20 rounded-full overflow-hidden border-4 border-purple-400 shadow-[0_0_12px_rgba(168,85,247,0.4)]">
-                      <img
-                        src={formData.childAvatarUrl}
-                        alt="דמות בסיפור"
-                        className="w-full h-full object-cover"
-                      />
-                      <div className="absolute bottom-0 right-0 w-5 h-5 bg-purple-500 rounded-full flex items-center justify-center">
-                        <Sparkles className="w-3 h-3 text-white" />
-                      </div>
+                    <div className="relative w-20 h-20 rounded-full overflow-hidden border-4 border-purple-400 shadow-[0_0_12px_rgba(168,85,247,0.4)] bg-purple-100 flex items-center justify-center">
+                      {isGeneratingAvatar ? (
+                        <Loader2 className="w-8 h-8 animate-spin text-purple-500" />
+                      ) : formData.childAvatarUrl ? (
+                        <>
+                          <img
+                            src={formData.childAvatarUrl}
+                            alt="אווטאר"
+                            className="w-full h-full object-cover"
+                          />
+                          <div className="absolute bottom-0 right-0 w-5 h-5 bg-purple-500 rounded-full flex items-center justify-center">
+                            <Sparkles className="w-3 h-3 text-white" />
+                          </div>
+                        </>
+                      ) : null}
                     </div>
-                    <span className="text-[10px] text-purple-600 font-medium">דמות בסיפור</span>
+                    <span className="text-[10px] text-purple-600 font-medium">
+                      {isGeneratingAvatar ? 'יוצר דמות...' : 'אווטאר'}
+                    </span>
                   </div>
                 </div>
               ) : (
