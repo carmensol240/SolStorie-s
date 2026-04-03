@@ -757,7 +757,7 @@ const GeneratingStep = ({ formData, onComplete }: GeneratingStepProps) => {
           </h2>
           {needsSignup ? (
             <p className="text-purple-700/70 text-xs">
-              זה לוקח כ-30 שניות, בזמן הזה...
+              זה לוקח כמה דקות, בזמן הזה...
             </p>
           ) : (
             <p className="text-purple-700/70 text-xs">
