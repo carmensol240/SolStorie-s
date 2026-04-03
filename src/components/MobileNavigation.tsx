@@ -1,8 +1,9 @@
+import React from "react";
 import { Library, Home, Settings } from "lucide-react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { cn } from "@/lib/utils";
 
-const MobileNavigation = () => {
+const MobileNavigation = React.forwardRef<HTMLElement>((_, ref) => {
   const location = useLocation();
   const navigate = useNavigate();
 
