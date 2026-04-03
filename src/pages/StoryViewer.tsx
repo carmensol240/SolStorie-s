@@ -1374,6 +1374,34 @@ const [currentPage, setCurrentPage] = useState(0);
                     </Button>
                   </div>
 
+                  {/* Online Coloring Button */}
+                  <div className="pt-1">
+                    <Button
+                      onClick={() => {
+                        if (!story || onlineColoringLoading) return;
+                        const illustrations = story.pages?.filter(p => p.illustration_url).map(p => p.illustration_url!) || [];
+                        if (illustrations.length === 0) {
+                          toast({ title: "אין איורים זמינים לצביעה", variant: "destructive" });
+                          return;
+                        }
+                        setSelectedOnlineColoringUrl(null);
+                        setOnlineColoringPickerOpen(true);
+                      }}
+                      disabled={onlineColoringLoading}
+                      size="sm"
+                      className="bg-gradient-to-r from-purple-500 to-indigo-500 hover:from-purple-600 hover:to-indigo-600 text-white px-4 py-3 rounded-full text-sm gap-1"
+                    >
+                      {onlineColoringLoading ? (
+                        <>
+                          <Loader2 className="w-4 h-4 animate-spin" />
+                          מכין דף צביעה...
+                        </>
+                      ) : (
+                        "🎨 צבעי אונליין"
+                      )}
+                    </Button>
+                  </div>
+
                   {/* Feedback Box */}
                   {!endFeedbackSent ? (
                     <div className="w-full max-w-xs bg-white rounded-xl p-3 shadow-lg border border-purple-100 space-y-2 mt-2 mx-auto" dir="rtl">
