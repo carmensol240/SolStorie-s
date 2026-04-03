@@ -924,6 +924,13 @@ const GeneratingStep = ({ formData, onComplete }: GeneratingStepProps) => {
             </div>
           </div>
 
+          {/* Rotating motivational sentence */}
+          <div className="w-full max-w-sm bg-white/70 backdrop-blur-sm rounded-2xl p-4 text-center min-h-[4rem] flex items-center justify-center">
+            <p className={`text-sm font-medium text-purple-700 transition-opacity duration-500 ${isSentenceVisible ? 'opacity-100' : 'opacity-0'}`}>
+              {EMPOWERING_SENTENCES[sentenceIndex]}
+            </p>
+          </div>
+
           {signupDismissed && !user && (
             <p className="text-sm text-orange-600 font-medium bg-orange-50 rounded-xl px-4 py-2">
               ⚠️ הסיפור לא יישמר ללא הרשמה
