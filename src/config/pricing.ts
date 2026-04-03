@@ -23,7 +23,7 @@ export const PRICING_PACKAGES = [
     id: "premium",
     stories: 15,
     price: 95,
-    originalPrice: 129,
+    originalPrice: 139,
     pricePerStory: "6.3₪",
     label: "משתלם",
     freeEdits: 15,
