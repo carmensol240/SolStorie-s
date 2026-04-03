@@ -2,9 +2,9 @@ export const PRICING_PACKAGES = [
   {
     id: "basic",
     stories: 5,
-    price: 35,
+    price: 39,
     originalPrice: 59,
-    pricePerStory: "7₪",
+    pricePerStory: "7.8₪",
     label: "בסיסי",
     freeEdits: 5,
     badge: "מושלם להתחלה ✨" as string | undefined,
@@ -12,9 +12,9 @@ export const PRICING_PACKAGES = [
   {
     id: "popular",
     stories: 10,
-    price: 65,
+    price: 69,
     originalPrice: 99,
-    pricePerStory: "6.5₪",
+    pricePerStory: "6.9₪",
     label: "פופולרי",
     freeEdits: 10,
     badge: "מומלץ ⭐" as string | undefined,
