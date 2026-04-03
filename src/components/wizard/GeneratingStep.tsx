@@ -196,7 +196,7 @@ const GeneratingStep = ({ formData, onComplete }: GeneratingStepProps) => {
       let data, apiError;
       
       // Determine if this is a guest request
-      const isGuest = !user && signupDismissed;
+      const isGuest = !user;
       
       try {
         const bodyPayload: any = {
@@ -444,8 +444,8 @@ const GeneratingStep = ({ formData, onComplete }: GeneratingStepProps) => {
       }
     }, 15000);
 
-    // Start generation if user is authenticated OR signup was dismissed (guest mode)
-    if (!hasStartedRef.current && (user || signupDismissed)) {
+    // Start generation immediately for all users (guest mode for unauthenticated)
+    if (!hasStartedRef.current) {
       hasStartedRef.current = true;
       generateStory();
     }
@@ -471,13 +471,7 @@ const GeneratingStep = ({ formData, onComplete }: GeneratingStepProps) => {
     }
   }, [user, signupCompleted, generateStory]);
 
-  // When signup is dismissed (guest mode), start generation
-  useEffect(() => {
-    if (signupDismissed && !user && !hasStartedRef.current) {
-      hasStartedRef.current = true;
-      generateStory();
-    }
-  }, [signupDismissed, user, generateStory]);
+  // signupDismissed useEffect removed — generation starts immediately
 
   const saveChildToSupabase = async (userId: string) => {
     try {
