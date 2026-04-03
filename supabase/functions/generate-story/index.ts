@@ -510,28 +510,22 @@ const NIKUD_GRAMMARIAN_PROMPT = `אתה מומחה ניקוד עברי (נקדן
 // Function to add nikud to a single page text using the Grammarian agent
 async function addNikudToText(text: string, apiKey: string): Promise<string> {
   try {
-    const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+    const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`, {
       method: "POST",
-      headers: {
-        Authorization: `Bearer ${apiKey}`,
-        "Content-Type": "application/json",
-      },
+      headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
-        model: "google/gemini-2.5-flash",
-        messages: [
-          { role: "system", content: NIKUD_GRAMMARIAN_PROMPT },
-          { role: "user", content: `הוסף ניקוד מלא ומדויק לטקסט הבא:\n\n${text}` },
-        ],
+        systemInstruction: { parts: [{ text: NIKUD_GRAMMARIAN_PROMPT }] },
+        contents: [{ role: "user", parts: [{ text: `הוסף ניקוד מלא ומדויק לטקסט הבא:\n\n${text}` }] }],
       }),
     });
 
     if (!response.ok) {
       console.error("Nikud grammarian failed:", response.status);
-      return text; // Fallback to original text without nikud
+      return text;
     }
 
     const data = await response.json();
-    const nikudText = data.choices?.[0]?.message?.content?.trim();
+    const nikudText = data.candidates?.[0]?.content?.parts?.[0]?.text?.trim();
 
     if (!nikudText) {
       console.error("No nikud text returned from grammarian");
