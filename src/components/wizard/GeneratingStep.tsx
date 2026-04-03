@@ -466,6 +466,7 @@ const GeneratingStep = ({ formData, onComplete }: GeneratingStepProps) => {
         fixed_details: formData.fixedDetails || null,
         photo_url: formData.childPhoto || null,
         avatar_url: formData.childAvatarUrl || null,
+        photo_consent: formData.photoConsent || false,
       });
     } catch (e) {
       console.warn("Failed to save child profile:", e);
