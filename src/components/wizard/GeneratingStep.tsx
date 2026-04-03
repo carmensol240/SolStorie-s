@@ -196,7 +196,7 @@ const GeneratingStep = ({ formData, onComplete }: GeneratingStepProps) => {
       let data, apiError;
       
       // Determine if this is a guest request
-      const isGuest = !user;
+      const isGuest = false; // Guest generation disabled temporarily — require login
       
       try {
         const bodyPayload: any = {
