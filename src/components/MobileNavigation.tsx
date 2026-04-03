@@ -42,6 +42,8 @@ const MobileNavigation = React.forwardRef<HTMLElement>((_, ref) => {
       </div>
     </nav>
   );
-};
+});
+
+MobileNavigation.displayName = "MobileNavigation";
 
 export default MobileNavigation;
