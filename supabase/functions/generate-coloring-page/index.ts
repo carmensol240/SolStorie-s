@@ -179,6 +179,36 @@ Output ONLY the coloring page image, nothing else. Do not include any text, labe
 
     console.log("Coloring page generated successfully");
 
+    // Track successful generation in analytics
+    try {
+      const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
+      const supabaseKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
+      const supabase = createClient(supabaseUrl, supabaseKey);
+
+      // Extract user ID from JWT if available
+      let userId: string | null = null;
+      if (authHeader.startsWith("Bearer ")) {
+        const { data: { user } } = await supabase.auth.getUser(authHeader.replace("Bearer ", ""));
+        userId = user?.id ?? null;
+      }
+
+      await supabase.from("analytics_events").insert({
+        device_id: device_id || "unknown",
+        event_type: "coloring_page_generated",
+        story_id: story_id || null,
+        metadata: {
+          story_title: story_title || null,
+          child_name: child_name || null,
+          user_id: userId,
+          model_used: aiResponse!.url || "gemini-image",
+        },
+      });
+      console.log("Coloring page generation tracked successfully");
+    } catch (trackErr) {
+      console.error("Failed to track coloring generation:", trackErr);
+      // Don't fail the request if tracking fails
+    }
+
     return new Response(
       JSON.stringify({ image: generatedImage, story_title, child_name }),
       { headers: { ...corsHeaders, "Content-Type": "application/json" } }
