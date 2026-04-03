@@ -198,7 +198,7 @@ const PurchaseSuccessModal = ({
           ) : (
             <div className="space-y-3">
               <PayPalButton
-                amount={EDIT_KIT_PACKAGE.price.toString()}
+                amount={EDIT_KIT_PACKAGE.price}
                 currency={CURRENCY}
                 onSuccess={handleEditPurchaseSuccess}
                 onError={() => {
