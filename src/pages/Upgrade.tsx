@@ -43,6 +43,16 @@ const Upgrade = () => {
   const [purchasedCredits, setPurchasedCredits] = useState(0);
   const [discountPercent, setDiscountPercent] = useState(0);
   const [appliedCouponCode, setAppliedCouponCode] = useState<string | null>(null);
+
+  // Countdown timer — 15 minutes from page load
+  const [countdown, setCountdown] = useState(15 * 60);
+  useEffect(() => {
+    if (countdown <= 0) return;
+    const timer = setInterval(() => setCountdown(prev => Math.max(0, prev - 1)), 1000);
+    return () => clearInterval(timer);
+  }, [countdown]);
+  const countdownMin = Math.floor(countdown / 60);
+  const countdownSec = countdown % 60;
   
 
   const title = "נהניתם מהסיפור?";
