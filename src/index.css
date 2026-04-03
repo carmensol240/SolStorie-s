@@ -688,3 +688,8 @@
     transparent 68%
   );
 }
+
+@keyframes checkbox-pulse-glow {
+  0%, 100% { box-shadow: 0 0 4px rgba(168, 85, 247, 0.4); }
+  50% { box-shadow: 0 0 12px rgba(236, 72, 153, 0.7), 0 0 20px rgba(168, 85, 247, 0.4); }
+}
