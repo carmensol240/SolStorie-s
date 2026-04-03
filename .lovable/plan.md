@@ -1,39 +1,23 @@
 
 
-## Plan: Replace Brush with Flood Fill Tool
+## Plan: Fullscreen Coloring Canvas
 
 ### Overview
-Replace the brush/painting tool with a flood-fill (paint bucket) tool as the default coloring mode. Users tap an area and the entire enclosed region fills with the selected color. Keep the eraser and color palette unchanged. Remove brush sizes (no longer needed).
-
-### How Flood Fill Works
-A standard queue-based flood fill algorithm on the drawing canvas:
-1. Get the pixel color at the tap point
-2. BFS/queue outward, replacing matching pixels with the selected color
-3. Use a tolerance (~30) to handle anti-aliased edges from the background outlines
-4. The fill operates on the drawing layer only, but reads from a **merged** view (bg + drawing) to detect boundaries from the background outlines
+Make the coloring canvas use 100% of screen space. The toolbar overlays on top of the canvas instead of taking vertical space from it. This maximizes the drawing area on all devices.
 
 ### Changes — `src/components/story/OnlineColoringCanvas.tsx`
 
-1. **Remove**: `BRUSH_SIZES` constant, `brushSize` state, brush size buttons from toolbar, `buildBrushCursor` function, `ERASER_CURSOR`, brush drawing logic (`draw`, `startDrawing` with line strokes)
+1. **Canvas container**: Change from `flex-1` (shares space with top bar and bottom toolbar) to `absolute inset-0` filling the entire screen. The canvas `resizeCanvases` will use `window.innerWidth` / `window.innerHeight` directly instead of the container's reduced bounding rect.
 
-2. **Add**: `floodFill(ctx, bgCtx, x, y, fillColor, tolerance)` function that:
-   - Reads pixel data from a merged snapshot (background + drawing layer) to detect outline boundaries
-   - Writes fill pixels to the drawing canvas only
-   - Uses a queue-based BFS with a color tolerance of ~30 for anti-aliased edges
-   - Scales coordinates from CSS to canvas pixel space
+2. **Top bar**: Make it `absolute top-0` with a semi-transparent background, overlaying the canvas. Reduce padding for mobile.
 
-3. **Update interaction handlers**:
-   - `onMouseDown` / `onTouchStart`: If not eraser mode, call `floodFill` at tap position, then `saveSnapshot`
-   - Remove `onMouseMove` / `onTouchMove` handlers for fill mode (no dragging needed)
-   - Keep eraser mode with existing drag-to-erase behavior (simplified to a large round eraser)
+3. **Bottom toolbar**: Make it `absolute bottom-0` with a semi-transparent/translucent background (`bg-white/90 backdrop-blur-sm`), overlaying the canvas. Reduce vertical padding and make color buttons smaller on mobile (`w-9 h-9` instead of `w-11 h-11`).
 
-4. **Update toolbar UI**:
-   - Replace Pencil icon with a `PaintBucket` icon (from lucide-react) for the fill tool
-   - Remove brush size selector buttons entirely
-   - Keep eraser toggle and color palette unchanged
-   - Cursor: use a paint bucket cursor SVG for fill mode
+4. **Remove `bg-black/50`** backdrop from the outer container since we want full white canvas behind.
 
-5. **Keep unchanged**: Undo/redo, save/download, print, color palette, eraser tool, canvas layering (bg + draw), `boldenOutlines`, aspect ratio logic
+5. **Remove `rounded-lg shadow-lg`** from canvases — no need for rounded corners in fullscreen.
+
+6. **Hide browser chrome**: Add a `useEffect` that requests fullscreen API on open (if available) and exits on close, for maximum screen real estate on mobile.
 
 ### Files modified
 1. `src/components/story/OnlineColoringCanvas.tsx`
