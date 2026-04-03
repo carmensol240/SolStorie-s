@@ -223,11 +223,44 @@ const ChildInfoStep = ({ formData, updateFormData }: ChildInfoStepProps) => {
     }
   };
 
-  const handleAvatarConfirm = (avatarUrl: string) => {
-    updateFormData({ childAvatarUrl: avatarUrl });
-    setExistingAvatarForDialog(avatarUrl);
-    setAvatarPreviewOpen(false);
-    setPendingPhotoForAvatar(null);
+  const generateAvatarInline = async (photo?: string) => {
+    const photoToUse = photo || formData.childPhoto;
+    if (!photoToUse || isGeneratingAvatar) return;
+    
+    if (avatarRegenerationCount >= 2) {
+      toast.error('הגעת למגבלת היצירות (2 פעמים)');
+      return;
+    }
+    
+    setIsGeneratingAvatar(true);
+    try {
+      const { data, error } = await supabase.functions.invoke('preview-child-avatar', {
+        body: { childPhoto: photoToUse }
+      });
+      if (error) throw new Error(error.message || 'שגיאה בשרת');
+      if (data?.error) throw new Error(data.error);
+      if (data?.previewUrl) {
+        updateFormData({ childAvatarUrl: data.previewUrl });
+        const newCount = avatarRegenerationCount + 1;
+        setAvatarRegenerationCount(newCount);
+        // Persist count
+        const currentChild = savedChildren.find(c => c.name === formData.childName);
+        if (currentChild) {
+          const updatedChildren = savedChildren.map(c =>
+            c.name === formData.childName ? { ...c, avatar_regeneration_count: newCount } : c
+          );
+          setSavedChildren(updatedChildren);
+          setUserData(user?.id, 'savedChildren', JSON.stringify(stripBase64ForStorage(updatedChildren)));
+        }
+      } else {
+        throw new Error('לא התקבלה תמונה מהשרת');
+      }
+    } catch (err) {
+      console.error('Avatar generation error:', err);
+      toast.error(err instanceof Error ? err.message : 'שגיאה ביצירת הדמות');
+    } finally {
+      setIsGeneratingAvatar(false);
+    }
   };
 
   const handleRegenerationCountChange = (count: number) => {
