@@ -228,7 +228,7 @@ Output ONLY the coloring page image, nothing else. Do not include any text, labe
           story_title: story_title || null,
           child_name: child_name || null,
           user_id: userId,
-          model_used: modelUsed || "gemini-image",
+          model_used: "gemini-2.0-flash-exp",
         },
       });
     } catch (trackErr) {
