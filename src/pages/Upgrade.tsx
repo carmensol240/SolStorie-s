@@ -319,6 +319,9 @@ const Upgrade = () => {
             </Badge>
           </div>
 
+          {/* Story preview carousel */}
+          <StoryPreviewCarousel />
+
           {/* Limited-time offer badge */}
           {countdown > 0 && (
             <div className="flex justify-center mb-3">
