@@ -79,6 +79,15 @@ const Adventure = () => {
     fetchCount();
   }, [user?.id]);
 
+  const handleTermsChange = useCallback((checked: boolean) => {
+    setTermsAccepted(checked);
+    if (checked) {
+      localStorage.setItem('terms_accepted', 'true');
+    } else {
+      localStorage.removeItem('terms_accepted');
+    }
+  }, []);
+
   const handleAdventureCTA = useCallback(() => {
     navigate("/create");
   }, [navigate]);
