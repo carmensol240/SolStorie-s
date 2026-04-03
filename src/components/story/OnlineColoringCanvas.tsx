@@ -1,5 +1,5 @@
 import React, { useRef, useState, useEffect, useCallback, useMemo } from 'react';
-import { Undo2, Redo2, Download, Printer, ArrowRight, PaintBucket, Eraser } from 'lucide-react';
+import { Undo2, Redo2, Download, Printer, ArrowRight, PaintBucket, Eraser, Pencil } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 
 interface OnlineColoringCanvasProps {
@@ -16,6 +16,10 @@ const COLORS = [
   '#A3CB38', '#1DD1A1', '#C4A35A', '#2C3E50',
   '#FFFFFF', '#000000',
 ];
+
+type Tool = 'fill' | 'brush' | 'eraser';
+
+const BRUSH_SIZES = [4, 8, 16];
 
 const FILL_CURSOR = `url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='none' stroke='%23333' stroke-width='2'><path d='M2 22l1-1h3l9-9'/><path d='M3 21v-3l9-9'/><path d='M14.5 5.5l4-4 4 4-4 4z'/><path d='M12 8l4-4'/><path d='M19 15v6a1 1 0 01-1 1h-1a1 1 0 01-1-1v-3.28a1 1 0 01.684-.948L19 15z' fill='%234488ff'/></svg>") 2 22, crosshair`;
 
