@@ -50,6 +50,7 @@ const AGE_BUTTONS = [
   { id: "0-2", label: "0-2", range: "0-2" as const },
   { id: "3-6", label: "3-6", range: "2-4" as const }, // Maps to internal 2-4 range
   { id: "7-8", label: "7-8", range: "5-7" as const }, // Maps to internal 5-7 range
+  { id: "9-12", label: "9-12", range: "8-10" as const }, // Maps to internal 8-10 range
 ];
 
 // Helper to convert age number to age range
