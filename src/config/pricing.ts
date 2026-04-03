@@ -7,7 +7,7 @@ export const PRICING_PACKAGES = [
     pricePerStory: "7₪",
     label: "בסיסי",
     freeEdits: 5,
-    badge: undefined as string | undefined,
+    badge: "מושלם להתחלה ✨" as string | undefined,
   },
   {
     id: "popular",
