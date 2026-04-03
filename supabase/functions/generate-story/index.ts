@@ -1698,16 +1698,21 @@ Child age: ${ageLabel}
 Story:
 ${fullStoryText}`;
 
-      console.log(`[generate-story] Starting text quality rewrite for age ${ageLabel}...`);
+      console.log(`[generate-story] Starting text quality rewrite for age ${ageLabel} (flash-lite + 12s timeout)...`);
+      
+      const rewriteController = new AbortController();
+      const rewriteTimeout = setTimeout(() => rewriteController.abort(), 12000);
       
       const rewriteResponse = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
         method: "POST",
         headers: { Authorization: `Bearer ${LOVABLE_API_KEY}`, "Content-Type": "application/json" },
         body: JSON.stringify({
-          model: "google/gemini-2.5-flash",
+          model: "google/gemini-2.5-flash-lite",
           messages: [{ role: "user", content: rewritePrompt }],
         }),
+        signal: rewriteController.signal,
       });
+      clearTimeout(rewriteTimeout);
 
       if (rewriteResponse.ok) {
         const rewriteData = await rewriteResponse.json();
