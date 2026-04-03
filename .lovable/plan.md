@@ -1,29 +1,40 @@
 
 
-## Plan: Set /adventure as Entry Point with Terms Checkbox and Smart Flow
+## Plan: Fix Google Button Text Color & Inline Avatar Generation
+
+### Issue 1: Google button text invisible
+The Google sign-in button in `GeneratingStep.tsx` (line 760) uses `text-foreground`. While this should be dark, the user reports it appears white. Fix by using an explicit dark color.
+
+### Issue 2: Avatar generation in separate dialog
+Currently clicking "צור אווטאר" opens `AvatarPreviewDialog` as a modal. The user wants avatar generation to happen inline within the photo box — showing the generating state and result side-by-side with the original photo, without opening a separate dialog.
 
 ### Changes
 
-#### 1. `src/App.tsx` — Change root route to Adventure
-- Line 62: Change `<Route path="/" element={<About />} />` to `<Route path="/" element={<Adventure />} />`
-- Keep `/about` route pointing to `<About />` (settings page links to it)
+#### 1. `src/components/wizard/GeneratingStep.tsx` — Fix Google button text color
+- Line 760: Change `text-foreground` to `text-gray-800` for explicit dark text that won't be affected by theme
 
-#### 2. `src/pages/Adventure.tsx` — Add terms checkbox, admin redirect, smart flow
+#### 2. `src/components/wizard/ChildInfoStep.tsx` — Inline avatar generation
 
-**Admin redirect (from About.tsx logic):**
-Add `useEffect` — if logged-in admin email → navigate to `/settings`; other logged-in users → navigate to `/create`.
+**Remove dialog usage:**
+- Remove the `AvatarPreviewDialog` component rendering (lines 916-928)
+- Remove `avatarPreviewOpen` and `pendingPhotoForAvatar` states
+- Remove `AvatarPreviewDialog` import
 
-**Terms checkbox:**
-- Add state `termsAccepted`, initialized from `localStorage.getItem('terms_accepted') === 'true'`
-- Above the CTA button, show a checkbox with label: `קראתי ואני מסכימ/ה ל` + link `תנאי השימוש` → `/terms`
-- Only show checkbox if terms not already accepted (not in localStorage)
-- On check, save `terms_accepted: true` to localStorage
-- Disable CTA button when checkbox is visible and unchecked
+**Add inline avatar generation:**
+- Add `isGeneratingAvatar` state to track generation in progress
+- When "צור אווטאר" button is clicked (line 809-817), instead of opening dialog, call the `preview-child-avatar` edge function directly inline
+- During generation, show a loading spinner in the avatar slot (right side of the side-by-side view)
+- On success, set `formData.childAvatarUrl` with the result — the existing side-by-side layout (lines 714-744) already handles display
+- Keep the "עדכן אווטאר" button (lines 819-832) working the same way but inline
+- Keep the regeneration count logic (from existing `avatarRegenerationCount` state)
+- Keep the "מחק" button as-is
 
-**Smart CTA flow:**
-- Update `handleAdventureCTA`: check `localStorage` for saved children data → if children exist, go to `/create`; if not, go to `/create` (the wizard's first step is child info, so this handles it naturally)
+**Inline flow in the photo box:**
+- Photo uploaded, no avatar → show single photo + "צור אווטאר" button
+- Generating avatar → show original photo on left + spinner on right (side-by-side)
+- Avatar ready → show original photo + avatar side-by-side + "עדכן אווטאר" and "מחק" buttons
 
 ### Files modified
-1. `src/App.tsx` — root route points to Adventure
-2. `src/pages/Adventure.tsx` — terms checkbox, admin redirect, smart navigation
+1. `src/components/wizard/GeneratingStep.tsx` — fix button text color
+2. `src/components/wizard/ChildInfoStep.tsx` — inline avatar generation, remove dialog
 
