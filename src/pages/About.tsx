@@ -17,7 +17,12 @@ const About = () => {
 
   useEffect(() => {
     if (!loading && user) {
-      navigate("/adventure", { replace: true });
+      const ADMIN_EMAILS = ['carmit1901@gmail.com', 'carmit1901+test@gmail.com'];
+      if (ADMIN_EMAILS.includes(user.email || '')) {
+        navigate("/settings", { replace: true });
+      } else {
+        navigate("/create", { replace: true });
+      }
     }
   }, [user, loading, navigate]);
 
