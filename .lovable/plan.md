@@ -1,28 +1,36 @@
 
 
-## Plan: Add Pulsing Animation to Photo Consent Checkbox
+## Plan: Fix GeneratingStep — Icons, Signup Form, and Speed
 
-### Change — `src/components/wizard/ChildInfoStep.tsx`
+### Analysis
 
-On the photo consent checkbox (line 911), add a conditional CSS class that applies a pulsing purple/pink glow when unchecked, and removes it when checked:
+1. **Rotating sentences missing icons**: The `EMPOWERING_SENTENCES` array (line 55) is plain strings with no icons/emojis. They need emoji prefixes to match the original design.
 
+2. **Inline signup form**: Already fully present and working (lines 732-909) — Google button, "או" divider, email/password, terms checkbox, "הירשמו בחינם ✨" button, and "אולי אחר כך" link are all there. No changes needed.
+
+3. **Generation speed**: The rewrite step was already optimized (switched to `gemini-2.5-flash-lite` with abort timeout). This is the fastest available option. No further revert possible — this IS the optimized version.
+
+### Changes — `src/components/wizard/GeneratingStep.tsx`
+
+**Add emojis to EMPOWERING_SENTENCES** (lines 55-64):
+
+Change each sentence to include a leading emoji:
 ```
-className={`border-purple-300 data-[state=checked]:bg-purple-500 ... ${
-  !formData.photoConsent ? 'animate-[pulse-glow_1.5s_infinite]' : ''
-}`}
+"✨ במילים שאתם בוחרים היום..."
+"💛 הזמן שאתם משקיעים עכשיו..."
+"🎁 כל סיפור שאתם יוצרים..."
+"🌱 כל מילה שאתה מקריא..."
+"📖 בזמן שהסיפור נכתב..."
+"🌟 יש לך את הכוח להפוך..."
+"🌈 הקריאה המשותפת היא..."
+"🧭 אתה המדריך הכי טוב..."
 ```
 
-### Change — `src/index.css`
-
-Add a `pulse-glow` keyframe animation:
-```css
-@keyframes pulse-glow {
-  0%, 100% { box-shadow: 0 0 4px rgba(168, 85, 247, 0.4); }
-  50% { box-shadow: 0 0 12px rgba(236, 72, 153, 0.7), 0 0 20px rgba(168, 85, 247, 0.4); }
-}
-```
+### Summary
+- Only the emoji prefixes on sentences are missing — one small edit
+- Signup form is intact and complete
+- Generation speed is already optimized with the faster model + timeout guard
 
 ### Files modified
-1. `src/components/wizard/ChildInfoStep.tsx` — conditional animation class on checkbox
-2. `src/index.css` — pulse-glow keyframe
+1. `src/components/wizard/GeneratingStep.tsx` — add emojis to empowering sentences array
 
