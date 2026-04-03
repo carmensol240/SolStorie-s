@@ -718,6 +718,15 @@ const GeneratingStep = ({ formData, onComplete }: GeneratingStepProps) => {
             </p>
           )}
         </div>
+
+        {/* Rotating motivational sentence (signup view) */}
+        {needsSignup && !signupDismissed && (
+          <div className="w-full max-w-sm bg-white/70 backdrop-blur-sm rounded-2xl p-3 text-center min-h-[3.5rem] flex items-center justify-center">
+            <p className={`text-sm font-medium text-purple-700 transition-opacity duration-500 ${isSentenceVisible ? 'opacity-100' : 'opacity-0'}`}>
+              {EMPOWERING_SENTENCES[sentenceIndex]}
+            </p>
+          </div>
+        )}
       </div>
 
       {/* Bottom: Signup form for unauthenticated users */}
@@ -913,6 +922,13 @@ const GeneratingStep = ({ formData, onComplete }: GeneratingStepProps) => {
                 />
               </div>
             </div>
+          </div>
+
+          {/* Rotating motivational sentence */}
+          <div className="w-full max-w-sm bg-white/70 backdrop-blur-sm rounded-2xl p-4 text-center min-h-[4rem] flex items-center justify-center">
+            <p className={`text-sm font-medium text-purple-700 transition-opacity duration-500 ${isSentenceVisible ? 'opacity-100' : 'opacity-0'}`}>
+              {EMPOWERING_SENTENCES[sentenceIndex]}
+            </p>
           </div>
 
           {signupDismissed && !user && (
