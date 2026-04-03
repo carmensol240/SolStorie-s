@@ -60,7 +60,7 @@ import { usePageRecording } from "@/hooks/use-page-recording";
 import PageRecordingControls from "@/components/story/PageRecordingControls";
 
 import castWavingFarewell from "@/assets/cast-waving-farewell.png";
-import solSuperheroWelcome from "@/assets/sol-superhero-welcome.jpg";
+
 
 interface StoryPage {
   id: string;
