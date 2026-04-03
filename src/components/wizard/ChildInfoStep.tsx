@@ -657,6 +657,17 @@ const ChildInfoStep = ({ formData, updateFormData }: ChildInfoStepProps) => {
             >
               🇺🇸 EN
             </button>
+            <button
+              onClick={() => handleAgeButtonSelect("9-12")}
+              className={cn(
+                "py-1.5 rounded-md border transition-all text-center text-[11px] font-bold",
+                selectedAgeButton === "9-12"
+                  ? "border-purple-500 bg-gradient-to-r from-purple-600 via-pink-500 to-orange-400 text-white"
+                  : "border-border bg-card hover:border-purple-300"
+              )}
+            >
+              ✨ גיל 9-12
+            </button>
           </div>
         </div>
       </div>
