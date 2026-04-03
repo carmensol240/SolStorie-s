@@ -225,7 +225,7 @@ serve(async (req) => {
 
     return jsonResponse({
       error: "לא הצלחנו ליצור אווטאר מהתמונה הזו. נסו תמונה אחרת או נסו שוב בעוד רגע.",
-    });
+    }, 422);
   } catch (error) {
     console.error("Error generating preview:", error);
     return jsonResponse({ error: "שגיאה בעיבוד הבקשה" }, 500);
