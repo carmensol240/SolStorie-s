@@ -20,7 +20,7 @@ const LEO_DESC = CAST_DESCRIPTIONS.leo;
 const ZOE_DESC = CAST_DESCRIPTIONS.zoe;
 
 const NEGATIVE = NEGATIVE_PROMPT_FULL;
-const STYLE_SUFFIX = TOPIC_IMAGE_STYLE_SUFFIX;
+const STYLE_SUFFIX = `${TOPIC_IMAGE_STYLE_SUFFIX} ${GENDER_SYMBOL_RESTRICTION}`;
 
 const TOPIC_PROMPTS: Record<string, { filename: string; prompt: string }> = {
   "blood-test": {
