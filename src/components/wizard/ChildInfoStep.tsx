@@ -11,7 +11,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/use-auth";
 import { isDevModeEnabled } from "@/hooks/use-dev-mode";
 import { toast } from "sonner";
-import { useToast } from "@/hooks/use-toast";
+
 import { getUserData, setUserData } from "@/lib/user-storage";
 import { stripBase64ForStorage } from "@/lib/strip-base64";
 
