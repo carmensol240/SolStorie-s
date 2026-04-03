@@ -481,15 +481,13 @@ const GeneratingStep = ({ formData, onComplete }: GeneratingStepProps) => {
   }, [generateStory, phase, toast]);
 
   // When user authenticates (after signup during loading), start generation
+  // When user signs up during loading, start generation
   useEffect(() => {
-    if (user && !hasStartedRef.current && !signupCompleted) {
-      // User was already logged in when component mounted — handled above
-    }
-    if (user && signupCompleted && !hasStartedRef.current) {
+    if (user && !hasStartedRef.current) {
       hasStartedRef.current = true;
       generateStory();
     }
-  }, [user, signupCompleted, generateStory]);
+  }, [user, generateStory]);
 
   // signupDismissed useEffect removed — generation starts immediately
 
