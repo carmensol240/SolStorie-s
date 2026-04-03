@@ -457,6 +457,11 @@ const GeneratingStep = ({ formData, onComplete }: GeneratingStepProps) => {
   const saveChildToSupabase = async (userId: string) => {
     try {
       const ageMap: Record<string, number> = { "0-2": 1, "2-4": 3, "5-7": 6, "8-10": 9 };
+      
+      // Check for guest avatar saved before signup
+      const guestAvatar = localStorage.getItem('guest_avatar_url');
+      const avatarUrl = guestAvatar || formData.childAvatarUrl || null;
+      
       await supabase.from("children").insert({
         user_id: userId,
         name: formData.childName,
@@ -465,9 +470,15 @@ const GeneratingStep = ({ formData, onComplete }: GeneratingStepProps) => {
         personality_traits: formData.personalityTraits || null,
         fixed_details: formData.fixedDetails || null,
         photo_url: formData.childPhoto || null,
-        avatar_url: formData.childAvatarUrl || null,
+        avatar_url: avatarUrl,
         photo_consent: formData.photoConsent || false,
       });
+      
+      // Clear guest avatar after claiming
+      if (guestAvatar) {
+        localStorage.removeItem('guest_avatar_url');
+        console.log('Guest avatar claimed and saved to child profile');
+      }
     } catch (e) {
       console.warn("Failed to save child profile:", e);
     }

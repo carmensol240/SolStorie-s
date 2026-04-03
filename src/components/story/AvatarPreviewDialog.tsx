@@ -119,8 +119,15 @@ const AvatarPreviewDialog = ({
     
     setIsSaving(true);
     try {
-      // If skipStorage, dev mode, or temp child - just return the base64 URL directly
-      if (skipStorage || childId === 'temp-child' || isDevModeEnabled()) {
+      // If skipStorage, dev mode, temp child, or guest user — return base64 URL directly
+      const { data: { user: currentUser } } = await supabase.auth.getUser();
+      if (skipStorage || childId === 'temp-child' || isDevModeEnabled() || !currentUser) {
+        // For guest users, also save to localStorage for later claim
+        if (!currentUser) {
+          localStorage.setItem('guest_avatar_url', previewUrl);
+          console.log('Saved guest avatar to localStorage');
+        }
+        
         toast({
           title: 'הדמות נוצרה בהצלחה! ✨',
           description: `הדמות של ${childName} מוכנה לסיפורים`,

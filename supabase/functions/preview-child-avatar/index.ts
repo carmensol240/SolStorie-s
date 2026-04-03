@@ -7,59 +7,48 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
 };
 
+const GUEST_RATE_LIMIT = { maxRequests: 2, windowMs: 60 * 60 * 1000 }; // 2 per hour
+
 serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
   }
 
   try {
-    // === AUTHENTICATION CHECK ===
+    // === OPTIONAL AUTHENTICATION ===
     const authHeader = req.headers.get("Authorization");
-    console.log("Auth header present:", !!authHeader, "starts with Bearer:", authHeader?.startsWith("Bearer "));
-    
-    if (!authHeader?.startsWith("Bearer ")) {
-      console.error("Missing or invalid auth header. Header value:", authHeader ? `${authHeader.substring(0, 15)}...` : "null");
-      return new Response(
-        JSON.stringify({ error: "נדרשת התחברות" }),
-        { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-      );
+    let userId: string | null = null;
+
+    if (authHeader?.startsWith("Bearer ")) {
+      const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
+      const supabaseServiceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
+      const supabase = createClient(supabaseUrl, supabaseServiceKey);
+      const token = authHeader.replace("Bearer ", "");
+      const { data: { user }, error: authError } = await supabase.auth.getUser(token);
+      if (!authError && user) {
+        userId = user.id;
+        console.log("Authenticated user:", userId.substring(0, 8) + "...");
+      } else {
+        console.log("Auth token invalid, proceeding as guest");
+      }
+    } else {
+      console.log("No auth header, proceeding as guest");
     }
 
-    const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
-    const supabaseServiceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
-    
-    // Create client with service role key (no global auth headers)
-    const supabase = createClient(supabaseUrl, supabaseServiceKey);
-
-    // Extract token and pass directly to getUser for validation
-    const token = authHeader.replace("Bearer ", "");
-    const { data: { user }, error: authError } = await supabase.auth.getUser(token);
-    console.log("getUser result - user exists:", !!user, "error:", authError?.message);
-    
-    if (authError) {
-      console.error("Auth validation failed:", authError.message, "status:", authError.status);
-      return new Response(
-        JSON.stringify({ error: "טוקן לא תקין או שפג תוקפו" }),
-        { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-      );
-    }
-    
-    if (!user) {
-      console.error("No user found in token - user object is null/undefined");
-      return new Response(
-        JSON.stringify({ error: "לא נמצא משתמש" }),
-        { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-      );
-    }
-    
-    console.log("User authenticated successfully, user id:", user.id.substring(0, 8) + "...");
-    // === END AUTHENTICATION CHECK ===
-
-    // Rate limit by user ID (more reliable than IP)
-    const rateLimit = checkRateLimit(user.id, "preview-avatar", RATE_LIMITS.aiFunction);
-    if (!rateLimit.allowed) {
-      console.log(`Preview avatar rate limit exceeded for user: ${user.id}`);
-      return rateLimitResponse(rateLimit, corsHeaders, "יותר מדי בקשות. נסה שוב מאוחר יותר.");
+    // Rate limit: by user ID if authenticated, by IP if guest
+    if (userId) {
+      const rateLimit = checkRateLimit(userId, "preview-avatar", RATE_LIMITS.aiFunction);
+      if (!rateLimit.allowed) {
+        console.log(`Rate limit exceeded for user: ${userId}`);
+        return rateLimitResponse(rateLimit, corsHeaders, "יותר מדי בקשות. נסה שוב מאוחר יותר.");
+      }
+    } else {
+      const clientIP = getClientIP(req);
+      const rateLimit = checkRateLimit(clientIP, "preview-avatar-guest", GUEST_RATE_LIMIT);
+      if (!rateLimit.allowed) {
+        console.log(`Guest rate limit exceeded for IP: ${clientIP}`);
+        return rateLimitResponse(rateLimit, corsHeaders, "יותר מדי בקשות. נסה שוב מאוחר יותר.");
+      }
     }
 
     const { childPhoto } = await req.json();
@@ -174,7 +163,6 @@ The result must look like a cartoon doll version of the child — immediately re
 
   } catch (error) {
     console.error("Error generating preview:", error);
-    // Return generic error message to client, keep details in server logs
     const userMessage = error instanceof Error && error.message.startsWith("שגיאה") 
       ? error.message 
       : "שגיאה בעיבוד הבקשה";
