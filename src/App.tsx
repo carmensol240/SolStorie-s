@@ -6,7 +6,7 @@ import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import ErrorBoundary from "@/components/ErrorBoundary";
 
 import AccessibilityProvider from "@/components/AccessibilityProvider";
-import PWAInstallPrompt from "@/components/pwa/PWAInstallPrompt";
+import PWAInstallBanner from "@/components/pwa/PWAInstallBanner";
 import AccessibilityMenu from "@/components/AccessibilityMenu";
 import { useTimeTheme } from "@/hooks/use-time-theme";
 
