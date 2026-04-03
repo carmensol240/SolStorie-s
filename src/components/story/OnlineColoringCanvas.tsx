@@ -62,7 +62,6 @@ function floodFill(
   h: number,
   tolerance = 32
 ) {
-  // Merge bg + draw to detect boundaries
   const mergedCanvas = document.createElement('canvas');
   mergedCanvas.width = w;
   mergedCanvas.height = h;
@@ -84,14 +83,12 @@ function floodFill(
   const targetColor: [number, number, number, number] = [md[startIdx], md[startIdx + 1], md[startIdx + 2], md[startIdx + 3]];
   const fillColor = hexToRgba(fillColorHex);
 
-  // Don't fill if target is already the fill color (on merged view)
   if (
     Math.abs(targetColor[0] - fillColor[0]) <= 2 &&
     Math.abs(targetColor[1] - fillColor[1]) <= 2 &&
     Math.abs(targetColor[2] - fillColor[2]) <= 2
   ) return;
 
-  // Don't fill dark outline pixels
   const avgTarget = (targetColor[0] + targetColor[1] + targetColor[2]) / 3;
   if (avgTarget < 80) return;
 
@@ -104,13 +101,11 @@ function floodFill(
     const cx = queue.pop()!;
     const idx = (cy * w + cx) * 4;
 
-    // Write to draw layer
     dd[idx] = fillColor[0];
     dd[idx + 1] = fillColor[1];
     dd[idx + 2] = fillColor[2];
     dd[idx + 3] = fillColor[3];
 
-    // Check 4 neighbors
     const neighbors = [[cx - 1, cy], [cx + 1, cy], [cx, cy - 1], [cx, cy + 1]];
     for (const [nx, ny] of neighbors) {
       if (nx < 0 || nx >= w || ny < 0 || ny >= h) continue;
@@ -132,7 +127,6 @@ export const OnlineColoringCanvas: React.FC<OnlineColoringCanvasProps> = ({
 }) => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const bgCanvasRef = useRef<HTMLCanvasElement>(null);
-  const containerRef = useRef<HTMLDivElement>(null);
   const [isDrawing, setIsDrawing] = useState(false);
   const [color, setColor] = useState(COLORS[0]);
   const [isEraser, setIsEraser] = useState(false);
@@ -142,6 +136,20 @@ export const OnlineColoringCanvas: React.FC<OnlineColoringCanvasProps> = ({
 
   const [history, setHistory] = useState<ImageData[]>([]);
   const [historyIndex, setHistoryIndex] = useState(-1);
+
+  // Fullscreen API
+  useEffect(() => {
+    if (!isOpen) return;
+    const el = document.documentElement;
+    if (el.requestFullscreen && !document.fullscreenElement) {
+      el.requestFullscreen().catch(() => {});
+    }
+    return () => {
+      if (document.fullscreenElement) {
+        document.exitFullscreen().catch(() => {});
+      }
+    };
+  }, [isOpen]);
 
   const saveSnapshot = useCallback(() => {
     const canvas = canvasRef.current;
@@ -176,38 +184,26 @@ export const OnlineColoringCanvas: React.FC<OnlineColoringCanvasProps> = ({
     setHistoryIndex(newIdx);
   }, [history, historyIndex]);
 
-  useEffect(() => {
-    if (!isOpen) return;
-    setBgLoaded(false);
-    setHistory([]);
-    setHistoryIndex(-1);
-    const img = new Image();
-    img.crossOrigin = 'anonymous';
-    img.src = backgroundImage;
-    img.onload = () => {
-      bgImageRef.current = img;
-      resizeCanvases(img);
-      setBgLoaded(true);
-    };
-  }, [isOpen, backgroundImage]);
-
   const resizeCanvases = useCallback((img: HTMLImageElement) => {
-    const container = containerRef.current;
     const bgCanvas = bgCanvasRef.current;
     const drawCanvas = canvasRef.current;
-    if (!container || !bgCanvas || !drawCanvas) return;
-    const rect = container.getBoundingClientRect();
+    if (!bgCanvas || !drawCanvas) return;
+
+    const vw = window.innerWidth;
+    const vh = window.innerHeight;
     const imgRatio = img.naturalWidth / img.naturalHeight;
     let w: number, h: number;
-    if (rect.width / rect.height > imgRatio) {
-      h = Math.floor(rect.height);
-      w = Math.floor(h * imgRatio);
+    if (vw / vh > imgRatio) {
+      h = vh;
+      w = Math.floor(vh * imgRatio);
     } else {
-      w = Math.floor(rect.width);
-      h = Math.floor(w / imgRatio);
+      w = vw;
+      h = Math.floor(vw / imgRatio);
     }
+
     bgCanvas.width = w; bgCanvas.height = h;
     drawCanvas.width = w; drawCanvas.height = h;
+
     const ctx = bgCanvas.getContext('2d');
     if (ctx) {
       ctx.fillStyle = '#FFFFFF';
@@ -227,6 +223,21 @@ export const OnlineColoringCanvas: React.FC<OnlineColoringCanvasProps> = ({
       setHistoryIndex(0);
     }
   }, []);
+
+  useEffect(() => {
+    if (!isOpen) return;
+    setBgLoaded(false);
+    setHistory([]);
+    setHistoryIndex(-1);
+    const img = new Image();
+    img.crossOrigin = 'anonymous';
+    img.src = backgroundImage;
+    img.onload = () => {
+      bgImageRef.current = img;
+      resizeCanvases(img);
+      setBgLoaded(true);
+    };
+  }, [isOpen, backgroundImage]);
 
   useEffect(() => {
     if (!isOpen || !bgImageRef.current) return;
@@ -265,7 +276,6 @@ export const OnlineColoringCanvas: React.FC<OnlineColoringCanvasProps> = ({
       return;
     }
 
-    // Flood fill
     const drawCtx = canvasRef.current?.getContext('2d');
     const bgCtx = bgCanvasRef.current?.getContext('2d');
     if (!drawCtx || !bgCtx || !canvasRef.current) return;
@@ -346,43 +356,19 @@ export const OnlineColoringCanvas: React.FC<OnlineColoringCanvasProps> = ({
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-50 bg-black/50 flex flex-col">
-      {/* Top bar */}
-      <div className="flex justify-between items-center px-3 py-2 bg-gradient-to-r from-purple-600 to-pink-500" dir="rtl">
-        <Button onClick={onClose} variant="ghost" size="sm" className="text-white hover:bg-white/20 rounded-xl gap-1 min-h-[40px] px-3">
-          <ArrowRight className="w-5 h-5" /> חזרה
-        </Button>
-        <div className="flex items-center gap-1">
-          <Button onClick={undo} variant="ghost" size="icon" disabled={historyIndex <= 0}
-            className="text-white hover:bg-white/20 rounded-xl w-10 h-10 disabled:opacity-30">
-            <Redo2 className="w-5 h-5" />
-          </Button>
-          <Button onClick={redo} variant="ghost" size="icon" disabled={historyIndex >= history.length - 1}
-            className="text-white hover:bg-white/20 rounded-xl w-10 h-10 disabled:opacity-30">
-            <Undo2 className="w-5 h-5" />
-          </Button>
-          <div className="w-px h-6 bg-white/30 mx-1" />
-          <Button onClick={handleSave} variant="ghost" size="icon" className="text-white hover:bg-white/20 rounded-xl w-10 h-10">
-            <Download className="w-5 h-5" />
-          </Button>
-          <Button onClick={handlePrint} variant="ghost" size="icon" className="text-white hover:bg-white/20 rounded-xl w-10 h-10">
-            <Printer className="w-5 h-5" />
-          </Button>
-        </div>
-      </div>
-
-      {/* Canvas */}
-      <div ref={containerRef} className="flex-1 relative flex items-center justify-center overflow-hidden bg-white">
+    <div className="fixed inset-0 z-50 bg-white">
+      {/* Canvas area — fills entire screen */}
+      <div className="absolute inset-0 flex items-center justify-center overflow-hidden">
         {!bgLoaded && (
-          <div className="absolute inset-0 flex items-center justify-center">
+          <div className="absolute inset-0 flex items-center justify-center z-10">
             <div className="animate-spin w-10 h-10 border-4 border-purple-400 border-t-transparent rounded-full" />
           </div>
         )}
         <div className="relative" style={{ lineHeight: 0 }}>
-          <canvas ref={bgCanvasRef} className="block rounded-lg shadow-lg" />
+          <canvas ref={bgCanvasRef} className="block" />
           <canvas
             ref={canvasRef}
-            className="absolute top-0 left-0 touch-none rounded-lg"
+            className="absolute top-0 left-0 touch-none"
             style={{ cursor: cursorStyle }}
             onMouseDown={handlePointerDown} onMouseMove={handlePointerMove}
             onMouseUp={stopDrawing} onMouseLeave={stopDrawing}
@@ -391,28 +377,52 @@ export const OnlineColoringCanvas: React.FC<OnlineColoringCanvasProps> = ({
         </div>
       </div>
 
-      {/* Bottom toolbar */}
-      <div className="bg-white border-t-2 border-purple-200 px-3 py-2 space-y-2">
+      {/* Top bar — overlay */}
+      <div className="absolute top-0 left-0 right-0 z-20 flex justify-between items-center px-2 py-1.5 bg-gradient-to-r from-purple-600/90 to-pink-500/90 backdrop-blur-sm" dir="rtl">
+        <Button onClick={onClose} variant="ghost" size="sm" className="text-white hover:bg-white/20 rounded-xl gap-1 min-h-[36px] px-2 text-sm">
+          <ArrowRight className="w-4 h-4" /> חזרה
+        </Button>
+        <div className="flex items-center gap-0.5">
+          <Button onClick={undo} variant="ghost" size="icon" disabled={historyIndex <= 0}
+            className="text-white hover:bg-white/20 rounded-xl w-9 h-9 disabled:opacity-30">
+            <Redo2 className="w-4 h-4" />
+          </Button>
+          <Button onClick={redo} variant="ghost" size="icon" disabled={historyIndex >= history.length - 1}
+            className="text-white hover:bg-white/20 rounded-xl w-9 h-9 disabled:opacity-30">
+            <Undo2 className="w-4 h-4" />
+          </Button>
+          <div className="w-px h-5 bg-white/30 mx-0.5" />
+          <Button onClick={handleSave} variant="ghost" size="icon" className="text-white hover:bg-white/20 rounded-xl w-9 h-9">
+            <Download className="w-4 h-4" />
+          </Button>
+          <Button onClick={handlePrint} variant="ghost" size="icon" className="text-white hover:bg-white/20 rounded-xl w-9 h-9">
+            <Printer className="w-4 h-4" />
+          </Button>
+        </div>
+      </div>
+
+      {/* Bottom toolbar — overlay */}
+      <div className="absolute bottom-0 left-0 right-0 z-20 bg-white/90 backdrop-blur-sm border-t border-purple-200 px-2 py-1.5 space-y-1.5">
         {/* Tools */}
         <div className="flex items-center justify-center gap-2">
           <button onClick={() => setIsEraser(false)}
-            className={`w-11 h-11 rounded-full flex items-center justify-center transition-all ${
-              !isEraser ? 'ring-2 ring-purple-500 ring-offset-2 bg-purple-50 shadow-md' : 'bg-gray-100 hover:bg-gray-200'
+            className={`w-9 h-9 rounded-full flex items-center justify-center transition-all ${
+              !isEraser ? 'ring-2 ring-purple-500 ring-offset-1 bg-purple-50 shadow-md' : 'bg-gray-100 hover:bg-gray-200'
             }`}>
-            <PaintBucket className="w-5 h-5" style={{ color }} />
+            <PaintBucket className="w-4 h-4" style={{ color }} />
           </button>
           <button onClick={() => setIsEraser(true)}
-            className={`w-11 h-11 rounded-full flex items-center justify-center transition-all ${
-              isEraser ? 'ring-2 ring-purple-500 ring-offset-2 bg-purple-50 shadow-md' : 'bg-gray-100 hover:bg-gray-200'
+            className={`w-9 h-9 rounded-full flex items-center justify-center transition-all ${
+              isEraser ? 'ring-2 ring-purple-500 ring-offset-1 bg-purple-50 shadow-md' : 'bg-gray-100 hover:bg-gray-200'
             }`}>
-            <Eraser className="w-5 h-5 text-gray-500" />
+            <Eraser className="w-4 h-4 text-gray-500" />
           </button>
         </div>
         {/* Colors */}
-        <div className="flex items-center justify-center gap-2 flex-wrap">
+        <div className="flex items-center justify-center gap-1.5 flex-wrap">
           {COLORS.map((c) => (
             <button key={c} onClick={() => { setColor(c); setIsEraser(false); }}
-              className={`w-11 h-11 rounded-full border-[3px] transition-all active:scale-95 ${
+              className={`w-9 h-9 rounded-full border-2 transition-all active:scale-95 ${
                 color === c && !isEraser
                   ? 'scale-110 shadow-lg border-gray-700'
                   : 'border-white shadow-md hover:scale-105'
