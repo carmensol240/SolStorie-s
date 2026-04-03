@@ -866,7 +866,7 @@ const ChildInfoStep = ({ formData, updateFormData }: ChildInfoStepProps) => {
                   size="sm"
                   onClick={() => {
                     updateFormData({ childPhoto: null, childAvatarUrl: null, photoConsent: false });
-                    setExistingAvatarForDialog(null);
+                    setPhotoValidation(null);
                     setPhotoValidation(null);
                   }}
                   className="text-sm text-destructive border-destructive/30 hover:bg-destructive/10"
