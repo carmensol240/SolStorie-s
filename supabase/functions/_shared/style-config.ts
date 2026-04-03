@@ -148,6 +148,8 @@ export function buildIllustrationPrompt(
 
   parts.push(`SCENE (THIS IS THE MOST IMPORTANT PART — illustrate THIS specific scene in detail): ${scene}`);
   parts.push("");
+  parts.push(GENDER_SYMBOL_RESTRICTION);
+  parts.push("");
   parts.push(`NEGATIVE: ${CAST_NEGATIVE_PROMPT}`);
 
   return parts.join("\n");
