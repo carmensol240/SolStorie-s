@@ -1160,9 +1160,8 @@ const [currentPage, setCurrentPage] = useState(0);
   }
 
   // Virtual page indexing:
-  // -1 = cover (merged with dedication), 0..N-1 = virtual pages, N = closing, N+1 = end/feedback
+  // 0..N-1 = virtual pages, N = closing, N+1 = end/feedback
   const totalVirtualPages = virtualPages.length;
-  const isCoverPage = currentPage === -1;
   const isClosingPage = currentPage === totalVirtualPages;
   const isEndPage = currentPage >= totalVirtualPages + 1;
   const isContentPage = currentPage >= 0 && currentPage < totalVirtualPages;
