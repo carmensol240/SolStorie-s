@@ -58,6 +58,7 @@ import "./StoryViewer.css";
 import { useChildAvatar } from "@/hooks/use-child-avatar";
 import { usePageRecording } from "@/hooks/use-page-recording";
 import PageRecordingControls from "@/components/story/PageRecordingControls";
+import { OnlineColoringCanvas } from "@/components/story/OnlineColoringCanvas";
 
 import castWavingFarewell from "@/assets/cast-waving-farewell.png";
 
