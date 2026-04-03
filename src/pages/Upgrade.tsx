@@ -340,26 +340,26 @@ const Upgrade = () => {
                 key={pkg.id}
                 onClick={() => handleSelectPackage(pkg.id)}
                 className={cn(
-                  "relative flex flex-col items-center p-3 rounded-2xl border transition-all duration-200",
+                  "relative flex flex-col items-center p-3 rounded-2xl border transition-all duration-200 overflow-hidden",
                   "bg-white/10 backdrop-blur-md",
                   selectedPackage === pkg.id
                     ? "border-white/50 shadow-lg scale-[1.03] bg-white/20"
                     : "border-white/15 hover:border-white/30"
                 )}
               >
-                {/* Badges row */}
-                <div className="absolute -top-2.5 left-1/2 -translate-x-1/2 flex items-center gap-1">
-                  {pkg.badge && (
-                    <div className="bg-gradient-to-r from-purple-500 via-pink-500 to-orange-500 text-white text-[10px] font-black px-2.5 py-0.5 rounded-full whitespace-nowrap shadow-lg">
-                      {pkg.badge}
-                    </div>
-                  )}
-                  <div className="bg-gradient-to-r from-green-500 to-emerald-400 text-white text-[10px] font-black px-2 py-0.5 rounded-full whitespace-nowrap shadow-lg">
-                    חסכו ₪{pkg.originalPrice - pkg.price}! 🔥
+                {/* Top badge (מומלץ / הכי משתלם) */}
+                {pkg.badge && (
+                  <div className="absolute -top-2.5 left-1/2 -translate-x-1/2 bg-gradient-to-r from-purple-500 via-pink-500 to-orange-500 text-white text-[10px] font-black px-2.5 py-0.5 rounded-full whitespace-nowrap shadow-lg z-10">
+                    {pkg.badge}
                   </div>
+                )}
+
+                {/* Diagonal discount ribbon */}
+                <div className="absolute top-[6px] -right-[26px] rotate-[-45deg] bg-gradient-to-r from-green-500 to-emerald-400 text-white text-[9px] font-black px-6 py-[2px] shadow-md z-10 whitespace-nowrap">
+                  חסכו ₪{pkg.originalPrice - pkg.price}
                 </div>
 
-                <div className="text-3xl font-black bg-gradient-to-r from-purple-300 via-pink-300 to-orange-300 bg-clip-text text-transparent">
+                <div className="text-3xl font-black bg-gradient-to-r from-purple-300 via-pink-300 to-orange-300 bg-clip-text text-transparent mt-2">
                   {pkg.stories}
                 </div>
                 <div className="text-sm text-white/80 font-bold mb-1">סיפורים</div>
