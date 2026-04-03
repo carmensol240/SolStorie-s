@@ -1553,6 +1553,86 @@ const [currentPage, setCurrentPage] = useState(0);
                     </DialogContent>
                   </Dialog>
 
+                  {/* Online Coloring Picker Dialog */}
+                  <Dialog open={onlineColoringPickerOpen} onOpenChange={setOnlineColoringPickerOpen}>
+                    <DialogContent className="max-w-md" dir="rtl">
+                      <DialogHeader>
+                        <DialogTitle className="text-center text-lg">🎨 בחרו איור לצביעה אונליין</DialogTitle>
+                      </DialogHeader>
+                      <div className="grid grid-cols-3 gap-3 max-h-[50vh] overflow-y-auto p-1">
+                        {story?.pages?.filter(p => p.illustration_url).map((page, idx) => {
+                          const url = getPublicIllustrationUrl(page.illustration_url!);
+                          const isSelected = selectedOnlineColoringUrl === page.illustration_url;
+                          return (
+                            <button
+                              key={page.id || idx}
+                              onClick={() => setSelectedOnlineColoringUrl(page.illustration_url!)}
+                              className={cn(
+                                "relative rounded-lg overflow-hidden border-2 transition-all aspect-square",
+                                isSelected ? "border-purple-500 ring-2 ring-purple-300 scale-105" : "border-transparent hover:border-purple-200"
+                              )}
+                            >
+                              <img src={url!} alt={`עמוד ${page.page_number}`} className="w-full h-full object-cover" />
+                              <span className="absolute bottom-0 left-0 right-0 bg-black/50 text-white text-xs text-center py-0.5">
+                                עמוד {page.page_number}
+                              </span>
+                            </button>
+                          );
+                        })}
+                      </div>
+                      <Button
+                        disabled={!selectedOnlineColoringUrl || onlineColoringLoading}
+                        className="w-full bg-gradient-to-r from-purple-600 to-pink-500 hover:from-purple-700 hover:to-pink-600 text-white"
+                        onClick={async () => {
+                          if (!story || !selectedOnlineColoringUrl) return;
+                          setOnlineColoringPickerOpen(false);
+                          setOnlineColoringLoading(true);
+                          toast({ title: "מכין את דף הצביעה שלך... זה לוקח כ-30 שניות 🎨" });
+                          try {
+                            const illustrationFullUrl = getPublicIllustrationUrl(selectedOnlineColoringUrl);
+                            const { data, error: fnError } = await supabase.functions.invoke('generate-coloring-page', {
+                              body: {
+                                illustration_url: illustrationFullUrl,
+                                story_title: story.topic,
+                                child_name: story.child_name,
+                              },
+                            });
+                            if (fnError || !data?.image) {
+                              toast({ title: data?.error || "שגיאה ביצירת דף הצביעה", variant: "destructive" });
+                              return;
+                            }
+                            const imgSrc = data.image.startsWith('data:') ? data.image : `data:image/png;base64,${data.image}`;
+                            setOnlineColoringImageUrl(imgSrc);
+                            setOnlineColoringOpen(true);
+                          } catch (err) {
+                            console.error("Online coloring page error:", err);
+                            toast({ title: "שגיאה ביצירת דף הצביעה", variant: "destructive" });
+                          } finally {
+                            setOnlineColoringLoading(false);
+                          }
+                        }}
+                      >
+                        {onlineColoringLoading ? (
+                          <>
+                            <Loader2 className="w-4 h-4 animate-spin ml-2" />
+                            יוצר דף צביעה...
+                          </>
+                        ) : (
+                          "🎨 התחילו לצבוע!"
+                        )}
+                      </Button>
+                    </DialogContent>
+                  </Dialog>
+
+                  {/* Online Coloring Canvas */}
+                  <OnlineColoringCanvas
+                    isOpen={onlineColoringOpen}
+                    onClose={() => setOnlineColoringOpen(false)}
+                    backgroundImage={onlineColoringImageUrl || ''}
+                    childName={story?.child_name}
+                    storyTitle={story?.topic}
+                  />
+
                   <div className="pt-2">
                     <span className="text-xl font-black logo-3d-bubble mt-3"><span className="logo-rainbow">SolStorie's™</span></span>
                   </div>
