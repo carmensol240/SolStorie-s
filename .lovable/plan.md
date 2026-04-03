@@ -1,16 +1,14 @@
 
 
-## Plan: Remove Splash Screen
+## Plan: Replace Email Address
 
-### Changes
-
-#### 1. `index.html`
-Remove the entire `#splash` div (lines ~57-72) from the body.
-
-#### 2. `src/main.tsx`
-Remove the `requestAnimationFrame` block (lines 9-15) that fades out and removes the splash element.
+Replace `souldesign06@gmail.com` with `solstories.nlp@gmail.com` in all 4 files where it appears.
 
 ### Files modified
-1. `index.html`
-2. `src/main.tsx`
+1. **`src/pages/Contact.tsx`** — update mailto link and display text
+2. **`src/pages/TermsOfService.tsx`** — update mailto link and display text
+3. **`supabase/functions/send-feedback-notification/index.ts`** — update recipient `to` field
+4. **`supabase/functions/send-contact-form/index.ts`** — update recipient `to` field
+
+Edge functions will be redeployed after the changes.
 
