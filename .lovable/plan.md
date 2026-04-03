@@ -1,47 +1,39 @@
 
 
-## Plan: Add Story Preview Carousel to Upgrade Page
+## Plan: Update Upgrade Page — Launch Sale Pricing
 
-### Overview
-Add a swipeable carousel section above the pricing cards showing 3 "open book" story pairs. Each pair displays an illustration on one side and a styled text page on the other, giving users a preview of what they'll get.
+### Changes
 
-### Step 1 — Copy illustration images to project
-Copy the 3 illustration images from uploads to `src/assets/`:
-- `preview-sol-mom-kitchen.jpeg` (girl in yellow dress with mom)
-- `preview-soldier-hug.jpeg` (soldier kneeling hugging girl)
-- `preview-mom-hug.jpeg` (mom hugging daughter in living room)
+#### 1. Remove story preview carousel — `src/pages/Upgrade.tsx`
+- Delete the `<StoryPreviewCarousel />` render (line 322-323)
+- Remove the import (line 22)
 
-The text pages will be rendered as styled HTML (not images), matching the dark purple theme shown in the screenshots.
+#### 2. Update pricing — `src/config/pricing.ts`
+Add `originalPrice` field to each package and update `price` and `pricePerStory`:
 
-### Step 2 — Create `StoryPreviewCarousel` component
-New file: `src/components/paywall/StoryPreviewCarousel.tsx`
+| Package | Original | Sale | Per Story |
+|---------|----------|------|-----------|
+| 5 stories | ₪49 | ₪35 | 7₪ |
+| 10 stories | ₪89 | ₪65 | 6.5₪ |
+| 15 stories | ₪129 | ₪95 | 6.3₪ |
 
-- Uses the existing `Carousel` components from `src/components/ui/carousel.tsx`
-- Title: "הציצו לתוך הסיפור ✨"
-- 3 slides, each showing a "book spread" with:
-  - Right side (RTL): illustration image (object-cover, rounded)
-  - Left side (RTL): dark purple text page with Hebrew text, matching the app's night-sky theme
-- Book-like styling: rounded-xl container with subtle border and shadow matching the purple theme
-- `CarouselDots` indicator below
-- Auto-advances every 5 seconds (optional embla autoplay)
-- Responsive: side-by-side on tablet+, stacked or slightly smaller on mobile
-
-Text content for each pair (rendered, not images):
-1. "זאת סול.\nסול בת ארבע.\nהיא יושבת על השטיח.\nהשטיח רך.\nריח מתוק באוויר.\nאמא אופה ופלים."
-2. "אבא תמיד חוזר.\nאבא אוהב אותה.\nהאהבה גדולה.\nהיא בלב של סול."
-3. "כשעצוב, הם מתחבקים.\nחיבוק גדול וחם.\nהרבה אהבה בחיבוק.\nהלב של סול שמח."
-
-### Step 3 — Insert carousel into Upgrade.tsx
-Add the `StoryPreviewCarousel` component between the "Credit Badge" section (line 319) and the "Limited-time offer badge" (line 322). Import the new component at the top.
+#### 3. Show strikethrough pricing — `src/pages/Upgrade.tsx`
+In the package card rendering (lines 362-367), show original price with strikethrough above the sale price:
 
 ```tsx
-<StoryPreviewCarousel />
+<div className="text-sm text-white/40 line-through">₪{pkg.originalPrice}</div>
+<div className="text-xl font-black text-white">₪{pkg.price}</div>
+```
+
+#### 4. Update offer badge text (line 329)
+Change from `"🔥 מבצע מיוחד"` to `"מחיר השקה מיוחד 🔥"`
+
+#### 5. Add expiry text below countdown timer (after line 335)
+```tsx
+<p className="text-center text-white/70 text-xs mb-3">המבצע בתוקף עד 10.4.26 בלבד</p>
 ```
 
 ### Files modified
-1. `src/assets/preview-sol-mom-kitchen.jpeg` — new image asset
-2. `src/assets/preview-soldier-hug.jpeg` — new image asset
-3. `src/assets/preview-mom-hug.jpeg` — new image asset
-4. `src/components/paywall/StoryPreviewCarousel.tsx` — new carousel component
-5. `src/pages/Upgrade.tsx` — import and render the carousel
+1. `src/config/pricing.ts` — add `originalPrice`, update `price` and `pricePerStory`
+2. `src/pages/Upgrade.tsx` — remove carousel, add strikethrough prices, update badge text, add expiry line
 
