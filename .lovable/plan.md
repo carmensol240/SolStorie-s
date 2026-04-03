@@ -1,24 +1,27 @@
 
 
-## Analysis: Story Generation Pipeline Performance
+## Plan: Restore Rotating Motivational Sentences in GeneratingStep
 
-### Current Pipeline (Sequential)
-The `generate-story` edge function makes **3 sequential AI calls** before returning:
+### Analysis
+The code already has everything set up — `EMPOWERING_SENTENCES` array (line 55), rotation state (`sentenceIndex`, `isSentenceVisible`), and the timer (lines 386-392) — but the sentences are **never rendered in the JSX**. The inline signup form is already present and working (lines 724-899).
 
-1. **Story generation** — `gemini-2.5-flash` with JSON output (~10-20s)
-2. **Text quality rewrite** — `gemini-2.5-flash` processes the full story text again (~10-20s)
-3. **Dispatch phase** — fires off nikud, summary, illustrations, cover in parallel, then waits up to 15s for dispatch confirmation
+### Fix — `src/components/wizard/GeneratingStep.tsx`
 
-Total: ~30-50s before the user gets a response.
+**Add the rotating empowering sentence display** in two places:
 
-### Root Cause
-The **text quality rewrite step** (lines 1621-1750) is a full second AI call using `gemini-2.5-flash` that rewrites the entire story. This doubles the text generation time. The same model (`gemini-2.5-flash`) is used for both the initial generation and the rewrite — the rewrite could use the lighter, faster `gemini-2.5-flash-lite` model since it's just polishing language, not generating new content.
+1. **In the authenticated/dismissed view** (lines 903-924): After the animated icon and before the warning message, add the sentence display with fade transition — same white card style used in the illustrations phase for parenting tips.
 
-### Proposed Fix — `supabase/functions/generate-story/index.ts`
+2. **In the signup form view** (around line 700): Below the progress bar, add a compact version of the rotating sentence to keep the screen engaging while users fill the form.
 
-1. **Switch rewrite model to `gemini-2.5-flash-lite`** (line 1707): This model is 2-3x faster for simple text polishing tasks, cutting the rewrite from ~15s to ~5s
-2. **Add a timeout to the rewrite call**: If the rewrite takes too long (>12s), skip it and use the original text — the initial generation prompt already has extensive quality instructions
+The sentence element:
+```
+<div className="w-full max-w-sm bg-white/70 backdrop-blur-sm rounded-2xl p-4 ...">
+  <p className={`transition-opacity duration-500 ${isSentenceVisible ? 'opacity-100' : 'opacity-0'}`}>
+    {EMPOWERING_SENTENCES[sentenceIndex]}
+  </p>
+</div>
+```
 
 ### Files modified
-1. `supabase/functions/generate-story/index.ts` — faster model for rewrite step + timeout guard
+1. `src/components/wizard/GeneratingStep.tsx` — render the rotating sentences in the text generation phase JSX
 
