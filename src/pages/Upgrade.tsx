@@ -18,7 +18,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 import heroImage from "@/assets/cast-group-forest.png";
-import { PRICING_PACKAGES, TOOLKIT_SUBSCRIPTION, EDUCATOR_PACKAGE, EDIT_KIT_PACKAGE } from "@/config/pricing";
+import { PRICING_PACKAGES, TOOLKIT_SUBSCRIPTION, EDUCATOR_PACKAGE, EDIT_KIT_PACKAGE, COLORING_KIT_PACKAGE } from "@/config/pricing";
 
 
 const Upgrade = () => {
@@ -37,6 +37,7 @@ const Upgrade = () => {
   const [userRole, setUserRole] = useState<string>("parent");
   const [showEducatorPayPal, setShowEducatorPayPal] = useState(false);
   const [showEditKitPayPal, setShowEditKitPayPal] = useState(false);
+  const [showColoringKitPayPal, setShowColoringKitPayPal] = useState(false);
   const [showToolkitPayPal, setShowToolkitPayPal] = useState(false);
   const [showSuccess, setShowSuccess] = useState(false);
   const [showSubscriptionSuccess, setShowSubscriptionSuccess] = useState(false);
@@ -501,25 +502,56 @@ const Upgrade = () => {
             />
           </div>
 
-          {/* Edit Kit Package */}
-          <div className="relative rounded-2xl p-[2px] mb-4 overflow-hidden"
-            style={{
-              background: 'linear-gradient(135deg, hsl(150,60%,50%), hsl(200,70%,50%), hsl(150,60%,50%))',
-              backgroundSize: '300% 300%',
-              animation: 'sparkle-border 4s ease-in-out infinite',
-            }}>
-            <div className="bg-[hsl(260,50%,13%)]/95 backdrop-blur-md rounded-[14px] p-4 space-y-3">
-              <div className="flex items-center gap-2">
-                <span className="text-xl">✏️</span>
-                <h3 className="font-black text-sm text-green-200">{EDIT_KIT_PACKAGE.label}</h3>
+          {/* Upsell Packages — 2 column grid */}
+          <div className="grid grid-cols-2 gap-3 mb-4">
+            {/* Coloring Kit */}
+            <div className="relative rounded-2xl p-[2px] overflow-hidden"
+              style={{
+                background: 'linear-gradient(135deg, hsl(30,80%,55%), hsl(340,70%,55%), hsl(30,80%,55%))',
+                backgroundSize: '300% 300%',
+                animation: 'sparkle-border 4s ease-in-out infinite',
+              }}>
+              <div className="bg-[hsl(260,50%,13%)]/95 backdrop-blur-md rounded-[14px] p-3 space-y-2 h-full flex flex-col">
+                <div className="flex items-center gap-1.5">
+                  <span className="text-lg">🎨</span>
+                  <h3 className="font-black text-xs text-orange-200">{COLORING_KIT_PACKAGE.label}</h3>
+                </div>
+                <p className="text-[11px] text-white/70 leading-relaxed flex-1">
+                  {COLORING_KIT_PACKAGE.pages} דפי צביעה מקוריים מבוססי AI לסיפורים שלכם
+                </p>
+                <div className="text-center">
+                  <span className="text-lg font-black text-white">₪{COLORING_KIT_PACKAGE.price}</span>
+                </div>
+                <Button
+                  onClick={() => {
+                    if (!user) { navigate("/auth"); return; }
+                    setShowColoringKitPayPal(true);
+                  }}
+                  size="sm"
+                  className="w-full bg-gradient-to-r from-orange-500 to-pink-500 hover:from-orange-600 hover:to-pink-600 text-white font-bold rounded-xl text-xs"
+                >
+                  🎨 רכשו
+                </Button>
               </div>
-              <p className="text-xs text-white/70 leading-relaxed">
-                {EDIT_KIT_PACKAGE.edits} עריכות לסיפורים קיימים. ערכו כמה עמודים שתרצו בכל סשן — רק עריכה אחת תנוכה!
-              </p>
-              <div className="flex items-center justify-between">
-                <div>
-                  <span className="text-xl font-black text-white">₪{EDIT_KIT_PACKAGE.price}</span>
-                  <span className="text-xs text-white/60 mr-1">({EDIT_KIT_PACKAGE.edits} עריכות)</span>
+            </div>
+
+            {/* Edit Kit */}
+            <div className="relative rounded-2xl p-[2px] overflow-hidden"
+              style={{
+                background: 'linear-gradient(135deg, hsl(150,60%,50%), hsl(200,70%,50%), hsl(150,60%,50%))',
+                backgroundSize: '300% 300%',
+                animation: 'sparkle-border 4s ease-in-out infinite',
+              }}>
+              <div className="bg-[hsl(260,50%,13%)]/95 backdrop-blur-md rounded-[14px] p-3 space-y-2 h-full flex flex-col">
+                <div className="flex items-center gap-1.5">
+                  <span className="text-lg">✏️</span>
+                  <h3 className="font-black text-xs text-green-200">{EDIT_KIT_PACKAGE.label}</h3>
+                </div>
+                <p className="text-[11px] text-white/70 leading-relaxed flex-1">
+                  {EDIT_KIT_PACKAGE.edits} עריכות לסיפורים קיימים — תיקון שגיאות ותוכן
+                </p>
+                <div className="text-center">
+                  <span className="text-lg font-black text-white">₪{EDIT_KIT_PACKAGE.price}</span>
                 </div>
                 <Button
                   onClick={() => {
@@ -527,13 +559,52 @@ const Upgrade = () => {
                     setShowEditKitPayPal(true);
                   }}
                   size="sm"
-                  className="bg-gradient-to-r from-green-500 to-teal-500 hover:from-green-600 hover:to-teal-600 text-white font-bold rounded-xl text-xs px-4"
+                  className="w-full bg-gradient-to-r from-green-500 to-teal-500 hover:from-green-600 hover:to-teal-600 text-white font-bold rounded-xl text-xs"
                 >
-                  ✏️ רכשו חבילת עריכות
+                  ✏️ רכשו
                 </Button>
               </div>
             </div>
           </div>
+
+          {/* Coloring Kit PayPal */}
+          {showColoringKitPayPal && (
+            <div className="bg-white/15 backdrop-blur-md rounded-xl border border-orange-400/30 p-4 mb-4 shadow-lg">
+              <p className="text-sm font-bold text-white text-center mb-3">
+                {COLORING_KIT_PACKAGE.label} — {COLORING_KIT_PACKAGE.pages} דפי צביעה תמורת ₪{COLORING_KIT_PACKAGE.price}
+              </p>
+              <PayPalButton
+                amount={COLORING_KIT_PACKAGE.price}
+                onSuccess={async () => {
+                  if (!user) return;
+                  try {
+                    await supabase.from('purchases').insert({
+                      user_id: user.id,
+                      package_name: COLORING_KIT_PACKAGE.id,
+                      credits_purchased: COLORING_KIT_PACKAGE.pages,
+                      amount_ils: COLORING_KIT_PACKAGE.price,
+                      status: 'completed',
+                    });
+                    setShowColoringKitPayPal(false);
+                    setPurchasedCredits(0);
+                    setShowSuccess(true);
+                    trackEvent({ eventType: 'feature_used', metadata: { feature: 'coloring_kit_purchased', pages: COLORING_KIT_PACKAGE.pages, payment_method: 'paypal' } });
+                    toast.success(`🎨 נוספו ${COLORING_KIT_PACKAGE.pages} דפי צביעה בהצלחה!`);
+                  } catch (error) {
+                    console.error('Coloring kit purchase failed:', error);
+                    setShowColoringKitPayPal(false);
+                    setShowFailed(true);
+                  }
+                }}
+                onError={() => { setShowColoringKitPayPal(false); setShowFailed(true); }}
+                onCancel={() => setShowColoringKitPayPal(false)}
+              />
+              <p className="text-center text-white/60 text-[11px] mt-2">💳 ניתן לשלם גם בכרטיס אשראי ללא חשבון פייפאל</p>
+              <button onClick={() => setShowColoringKitPayPal(false)} className="w-full text-center text-white/50 text-xs mt-3 hover:text-white/70 transition-colors">
+                ביטול
+              </button>
+            </div>
+          )}
 
           {/* Edit Kit PayPal */}
           {showEditKitPayPal && (
