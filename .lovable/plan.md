@@ -1,60 +1,56 @@
 
-## Plan: One Free Coloring Page Per Story with Caching
+
+## Plan: Replace Lovable AI Gateway with Direct Google Gemini API
 
 ### Overview
-Each story gets ONE free AI-generated coloring page. The result is cached in Supabase Storage so subsequent uses (print/online) never call the AI again. If user wants a different illustration colored, show an upsell prompt.
+Replace all Lovable AI Gateway (`ai.gateway.lovable.dev/v1/chat/completions`) calls in two edge functions with direct Google Gemini API calls using `GEMINI_API_KEY`.
 
-### Database Changes
+### Key Difference: API Format
+The Lovable Gateway uses OpenAI-compatible format (`/v1/chat/completions`). The direct Gemini API uses a different format (`/v1beta/models/{model}:generateContent`). The request/response structure differs significantly:
 
-**New table: `story_coloring_pages`**
-```sql
-CREATE TABLE public.story_coloring_pages (
-  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
-  story_id uuid NOT NULL,
-  user_id uuid NOT NULL,
-  illustration_url text NOT NULL,
-  coloring_image_path text NOT NULL,
-  created_at timestamptz DEFAULT now()
-);
-ALTER TABLE public.story_coloring_pages ENABLE ROW LEVEL SECURITY;
--- RLS: users see/insert their own, admins see all
-```
+- **Auth**: Query param `?key=API_KEY` instead of `Authorization: Bearer`
+- **Request body**: `contents` array with `parts` instead of `messages` with `content`
+- **System prompt**: Goes in `systemInstruction` field
+- **JSON mode**: `generationConfig.responseMimeType: "application/json"` instead of `response_format`
+- **Response**: `candidates[0].content.parts[0].text` instead of `choices[0].message.content`
+- **Image output** (coloring): Gemini native image gen uses `responseModalities: ["TEXT", "IMAGE"]` in `generationConfig`, returns inline base64 in parts
 
-**Add `coloring_credits` column to `profiles`**
-```sql
-ALTER TABLE public.profiles ADD COLUMN coloring_credits integer DEFAULT 0;
-```
-This tracks purchased coloring credits. The first coloring per story is free (no credit needed).
+### Changes — `supabase/functions/generate-story/index.ts`
 
-### Edge Function Changes — `generate-coloring-page/index.ts`
+There are **5 call sites** to replace:
 
-1. Before generating, check `story_coloring_pages` for existing entry for this `story_id + user_id`
-2. If cached entry exists:
-   - If same illustration_url: return cached image from storage (no AI call)
-   - If different illustration_url: check `coloring_credits > 0`. If yes, deduct 1 credit and proceed. If no, return `{ upsell: true }`
-3. If no cached entry: generate (free first use), then:
-   - Upload result to `story-illustrations` bucket under `coloring/{story_id}.png`
-   - Insert record into `story_coloring_pages`
-   - Return the image
-4. On subsequent calls with same illustration: serve from storage cache
+1. **Main story generation** (line ~1441): `gemini-2.5-flash` → `gemini-2.0-flash` at `generativelanguage.googleapis.com`
+2. **Retry on parse failure** (line ~1577): Same model/endpoint change
+3. **Text quality rewrite** (line ~1712): `gemini-2.5-flash-lite` → `gemini-2.0-flash` (no lite variant in direct API at that endpoint)
+4. **Summary generation** (line ~1850): `gemini-2.5-flash-lite` → `gemini-2.0-flash`
+5. **Nikud (vowel) function** (line ~513): `gemini-2.5-flash` → `gemini-2.0-flash`
 
-### Client Changes — `src/pages/StoryViewer.tsx`
+For each call:
+- Change URL to `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${GEMINI_API_KEY}`
+- Convert `messages` array to Gemini `contents` format
+- Move system prompt to `systemInstruction`
+- Convert `response_format: { type: "json_object" }` to `generationConfig.responseMimeType: "application/json"`
+- Parse response from `candidates[0].content.parts[0].text`
+- Replace `LOVABLE_API_KEY` env read with `GEMINI_API_KEY`
 
-1. On coloring button click, fetch existing `story_coloring_pages` record for this story
-2. If cached coloring exists:
-   - Skip AI call, load cached image from public storage URL
-   - Go straight to choose-action (print/online)
-   - Show "בחרו איור אחר" that triggers upsell check
-3. If no cached coloring: show illustration picker, generate, save to cache
-4. Handle `upsell: true` response:
-   - Show dialog: "רוצים לצבוע איור נוסף? 🎨" with link to upgrade page
+### Changes — `supabase/functions/generate-coloring-page/index.ts`
 
-### Upgrade Page — `src/pages/Upgrade.tsx`
+The coloring function uses image-in + image-out. The direct Gemini API for image generation:
+- URL: `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-exp:generateContent?key=${GEMINI_API_KEY}`
+- Image input: `inlineData` part with `mimeType` and `data` (base64 without data URL prefix)
+- Image output: `generationConfig.responseModalities: ["TEXT", "IMAGE"]`
+- Response: image in `candidates[0].content.parts[].inlineData.data` (base64)
+- Remove model fallback loop (single model now)
+- Keep retry logic for 429/5xx errors
+- Replace `LOVABLE_API_KEY` with `GEMINI_API_KEY`
 
-Update the coloring kit purchase handler to also increment `coloring_credits` on the profile.
+### What stays the same
+- All prompts (system prompt, user prompt, illustration prompts, Hebrew text)
+- All Supabase/storage/caching/analytics logic
+- All error handling patterns (adapted to new response format)
+- CORS headers, auth flow, credit logic
 
-### Files Modified
-1. Database migration — new `story_coloring_pages` table + `coloring_credits` column on profiles
-2. `supabase/functions/generate-coloring-page/index.ts` — cache check, storage upload, credit deduction
-3. `src/pages/StoryViewer.tsx` — cache-aware coloring flow, upsell dialog
-4. `src/pages/Upgrade.tsx` — increment `coloring_credits` on purchase
+### Files modified
+1. `supabase/functions/generate-story/index.ts` — 5 API call sites converted to Gemini format
+2. `supabase/functions/generate-coloring-page/index.ts` — AI call converted to Gemini image generation format
+
