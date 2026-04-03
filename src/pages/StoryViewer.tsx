@@ -1191,7 +1191,8 @@ const StoryViewer = () => {
     const maxPage = totalVirtualPages + 1;
     
     if (direction === 'next' && currentPage >= maxPage) return;
-    if (direction === 'prev' && currentPage <= -1) return;
+    const minPage = isToddler ? 0 : -1;
+    if (direction === 'prev' && currentPage <= minPage) return;
     
     setSlideDirection(direction);
     setIsFlipping(true);
