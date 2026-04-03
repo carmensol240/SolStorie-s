@@ -190,6 +190,7 @@ const StoryViewer = () => {
   const { avatarUrl: childAvatarUrl } = useChildAvatar(story?.child_name);
 
   const [currentPage, setCurrentPage] = useState(-1);
+  const [toddlerPageFixed, setToddlerPageFixed] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [isFlipping, setIsFlipping] = useState(false);
   const [slideDirection, setSlideDirection] = useState<'next' | 'prev' | null>(null);
