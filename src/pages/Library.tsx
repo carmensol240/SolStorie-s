@@ -1,6 +1,6 @@
-import React, { useState, useEffect, useMemo } from "react";
+import React, { useState, useEffect, useMemo, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
-import { ArrowRight, Plus, Coins, Wand2, BookOpen, WifiOff, Plane } from "lucide-react";
+import { ArrowRight, Plus, Coins, Wand2, BookOpen, WifiOff, Plane, Palette, Download, Paintbrush } from "lucide-react";
 import { getPublicIllustrationUrl } from "@/lib/illustration-url";
 import solMagicBookCover from "@/assets/sol-magic-book-cover.png";
 import libraryGirlReading from "@/assets/library-girl-reading.png";
@@ -54,6 +54,17 @@ interface ChildRecord {
   name: string;
 }
 
+interface ColoringPageRecord {
+  id: string;
+  story_id: string;
+  illustration_url: string;
+  coloring_image_path: string;
+  created_at: string;
+  story_child_name?: string;
+  story_topic?: string;
+  story_slug?: string;
+}
+
 const Library = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
@@ -70,6 +81,8 @@ const Library = () => {
   const [regeneratingCoverId, setRegeneratingCoverId] = useState<string | null>(null);
   const [showOfflineFilter, setShowOfflineFilter] = useState(false);
   const [offlineStories, setOfflineStories] = useState<OfflineStory[]>([]);
+  const [coloringPages, setColoringPages] = useState<ColoringPageRecord[]>([]);
+  const [libraryTab, setLibraryTab] = useState<string>("stories");
 
   const fullOffline = useFullOfflineStorage();
 
@@ -86,6 +99,7 @@ const Library = () => {
     if (isOnline) {
       fetchStories();
       fetchChildren();
+      fetchColoringPages();
     } else {
       setIsLoading(false);
     }
@@ -101,6 +115,38 @@ const Library = () => {
         .order("created_at", { ascending: true });
       setChildren(data || []);
     } catch { setChildren([]); }
+  };
+
+  const fetchColoringPages = async () => {
+    if (!user) { setColoringPages([]); return; }
+    try {
+      const { data } = await supabase
+        .from("story_coloring_pages")
+        .select("id, story_id, illustration_url, coloring_image_path, created_at")
+        .eq("user_id", user.id)
+        .order("created_at", { ascending: false });
+
+      if (!data || data.length === 0) { setColoringPages([]); return; }
+
+      // Fetch story info for labels
+      const storyIds = [...new Set(data.map(cp => cp.story_id))];
+      const { data: storiesData } = await supabase
+        .from("stories")
+        .select("id, child_name, topic, slug")
+        .in("id", storyIds);
+
+      const storyMap = new Map(storiesData?.map(s => [s.id, s]) || []);
+
+      setColoringPages(data.map(cp => {
+        const story = storyMap.get(cp.story_id);
+        return {
+          ...cp,
+          story_child_name: story?.child_name,
+          story_topic: story?.topic,
+          story_slug: story?.slug,
+        };
+      }));
+    } catch { setColoringPages([]); }
   };
 
   const fetchStories = async () => {
@@ -395,6 +441,89 @@ const Library = () => {
     );
   };
 
+  const handleDownloadColoringPage = useCallback(async (coloringImagePath: string, storyTopic?: string) => {
+    try {
+      const url = getPublicIllustrationUrl(coloringImagePath);
+      if (!url) throw new Error('No URL');
+      const res = await fetch(url);
+      const blob = await res.blob();
+      const blobUrl = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = blobUrl;
+      a.download = `coloring-${storyTopic || 'page'}.png`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(blobUrl);
+      toast({ title: "📥 דף הצביעה הורד בהצלחה!" });
+    } catch {
+      toast({ variant: "destructive", title: "שגיאה בהורדה" });
+    }
+  }, [toast]);
+
+  const renderColoringPages = () => {
+    if (coloringPages.length === 0) {
+      return (
+        <div className="text-center py-16 space-y-4">
+          <Palette className="w-16 h-16 mx-auto text-muted-foreground/30" />
+          <h2 className="text-lg font-bold text-muted-foreground">אין עדיין דפי צביעה</h2>
+          <p className="text-sm text-muted-foreground/70">
+            פתחו סיפור ולחצו על 🎨 כדי ליצור דף צביעה
+          </p>
+        </div>
+      );
+    }
+
+    return (
+      <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+        {coloringPages.map(cp => {
+          const imgUrl = getPublicIllustrationUrl(cp.coloring_image_path);
+          const topicLabel = cp.story_topic ? translateTopic(cp.story_topic) : '';
+          return (
+            <div key={cp.id} className="rounded-xl border bg-card shadow-sm overflow-hidden">
+              <div className="aspect-square bg-white relative">
+                <img
+                  src={imgUrl || ''}
+                  alt={`דף צביעה - ${topicLabel}`}
+                  className="w-full h-full object-contain"
+                  loading="lazy"
+                />
+              </div>
+              <div className="p-2 space-y-1.5">
+                {cp.story_child_name && (
+                  <p className="text-xs font-bold text-foreground truncate">{cp.story_child_name}</p>
+                )}
+                {topicLabel && (
+                  <p className="text-xs text-muted-foreground truncate">{topicLabel}</p>
+                )}
+                <div className="flex gap-1.5">
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    className="flex-1 text-xs h-7 gap-1"
+                    onClick={() => navigate(`/story/${cp.story_slug || cp.story_id}`)}
+                  >
+                    <Paintbrush className="w-3 h-3" />
+                    צביעה
+                  </Button>
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    className="flex-1 text-xs h-7 gap-1"
+                    onClick={() => handleDownloadColoringPage(cp.coloring_image_path, cp.story_topic)}
+                  >
+                    <Download className="w-3 h-3" />
+                    הורדה
+                  </Button>
+                </div>
+              </div>
+            </div>
+          );
+        })}
+      </div>
+    );
+  };
+
   const LoadingSkeleton = React.forwardRef<HTMLDivElement>((_, ref) => (
     <div ref={ref} className="grid grid-cols-2 gap-3">
       {[1, 2, 3, 4].map((i) => (
@@ -587,74 +716,100 @@ const Library = () => {
           </div>
         </div>
 
-        {/* Offline filter toggle */}
-        {stories.length > 0 && fullOffline.savedStoryIds.size > 0 && (
-          <div className="flex justify-end mb-3">
-            <button
-              onClick={() => setShowOfflineFilter(!showOfflineFilter)}
-              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold transition-all ${
-                showOfflineFilter
-                  ? 'bg-green-100 text-green-700 border-2 border-green-300'
-                  : 'bg-muted text-muted-foreground border-2 border-transparent hover:bg-muted/80'
-              }`}
+        {/* Top-level library tabs: Stories vs Coloring Pages */}
+        <Tabs value={libraryTab} onValueChange={setLibraryTab} dir="rtl" className="w-full mb-4">
+          <TabsList className="w-full bg-purple-100/60 rounded-xl p-1 gap-1">
+            <TabsTrigger
+              value="stories"
+              className="flex-1 rounded-lg text-sm font-bold gap-1.5 data-[state=active]:bg-white data-[state=active]:text-purple-700 data-[state=active]:shadow-md text-purple-500 px-3 py-1.5"
             >
-              <WifiOff className="w-3.5 h-3.5" />
-              סיפורים אופליין ({fullOffline.savedStoryIds.size})
-            </button>
-          </div>
-        )}
+              <BookOpen className="w-4 h-4" />
+              📚 סיפורים
+            </TabsTrigger>
+            <TabsTrigger
+              value="coloring"
+              className="flex-1 rounded-lg text-sm font-bold gap-1.5 data-[state=active]:bg-white data-[state=active]:text-purple-700 data-[state=active]:shadow-md text-purple-500 px-3 py-1.5"
+            >
+              <Palette className="w-4 h-4" />
+              🎨 דפי צביעה
+            </TabsTrigger>
+          </TabsList>
 
-        {/* Stories content */}
-        {isLoading || authLoading ? (
-          <LoadingSkeleton />
-        ) : displayStories.length === 0 && showOfflineFilter ? (
-          <div className="text-center py-10">
-            <WifiOff className="w-12 h-12 mx-auto text-muted-foreground/30 mb-3" />
-            <p className="text-muted-foreground font-medium">אין סיפורים שמורים אופליין</p>
-            <Button onClick={() => setShowOfflineFilter(false)} variant="outline" className="mt-3">הצג את כל הסיפורים</Button>
-          </div>
-        ) : stories.length === 0 ? (
-          <EmptyState onCreateClick={() => navigate("/create")} />
-        ) : childTabs && !showOfflineFilter ? (
-          <Tabs defaultValue="__all" dir="rtl" className="w-full">
-            <TabsList className="w-full h-auto flex-wrap bg-purple-100/60 rounded-xl p-1 mb-4 gap-1">
-              <TabsTrigger
-                value="__all"
-                className="rounded-lg text-sm font-bold gap-1.5 data-[state=active]:bg-white data-[state=active]:text-purple-700 data-[state=active]:shadow-md text-purple-500 px-3 py-1.5"
-              >
-                <BookOpen className="w-4 h-4" />
-                הכל
-              </TabsTrigger>
-              {childTabs.map(tab => (
-                <TabsTrigger
-                  key={tab.key}
-                  value={tab.key}
-                  className="rounded-lg text-sm font-bold data-[state=active]:bg-white data-[state=active]:text-purple-700 data-[state=active]:shadow-md text-purple-500 px-3 py-1.5"
+          <TabsContent value="stories">
+            {/* Offline filter toggle */}
+            {stories.length > 0 && fullOffline.savedStoryIds.size > 0 && (
+              <div className="flex justify-end mb-3">
+                <button
+                  onClick={() => setShowOfflineFilter(!showOfflineFilter)}
+                  className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold transition-all ${
+                    showOfflineFilter
+                      ? 'bg-green-100 text-green-700 border-2 border-green-300'
+                      : 'bg-muted text-muted-foreground border-2 border-transparent hover:bg-muted/80'
+                  }`}
                 >
-                  {tab.label}
-                </TabsTrigger>
-              ))}
-            </TabsList>
+                  <WifiOff className="w-3.5 h-3.5" />
+                  סיפורים אופליין ({fullOffline.savedStoryIds.size})
+                </button>
+              </div>
+            )}
 
-            <TabsContent value="__all">
-              {renderStoryList(stories)}
-            </TabsContent>
-            {childTabs.map(tab => (
-              <TabsContent key={tab.key} value={tab.key}>
-                {tab.stories.length === 0 ? (
-                  <div className="text-center py-10">
-                    <p className="text-muted-foreground font-medium">אין עדיין סיפורים עבור {tab.label}</p>
-                    <Button onClick={() => navigate("/create")} variant="outline" className="mt-3">
-                      <Plus className="w-4 h-4 ml-1" /> צרו סיפור חדש
-                    </Button>
-                  </div>
-                ) : renderStoryList(tab.stories)}
-              </TabsContent>
-            ))}
-          </Tabs>
-        ) : (
-          renderStoryList(displayStories)
-        )}
+            {/* Stories content */}
+            {isLoading || authLoading ? (
+              <LoadingSkeleton />
+            ) : displayStories.length === 0 && showOfflineFilter ? (
+              <div className="text-center py-10">
+                <WifiOff className="w-12 h-12 mx-auto text-muted-foreground/30 mb-3" />
+                <p className="text-muted-foreground font-medium">אין סיפורים שמורים אופליין</p>
+                <Button onClick={() => setShowOfflineFilter(false)} variant="outline" className="mt-3">הצג את כל הסיפורים</Button>
+              </div>
+            ) : stories.length === 0 ? (
+              <EmptyState onCreateClick={() => navigate("/create")} />
+            ) : childTabs && !showOfflineFilter ? (
+              <Tabs defaultValue="__all" dir="rtl" className="w-full">
+                <TabsList className="w-full h-auto flex-wrap bg-purple-100/60 rounded-xl p-1 mb-4 gap-1">
+                  <TabsTrigger
+                    value="__all"
+                    className="rounded-lg text-sm font-bold gap-1.5 data-[state=active]:bg-white data-[state=active]:text-purple-700 data-[state=active]:shadow-md text-purple-500 px-3 py-1.5"
+                  >
+                    <BookOpen className="w-4 h-4" />
+                    הכל
+                  </TabsTrigger>
+                  {childTabs.map(tab => (
+                    <TabsTrigger
+                      key={tab.key}
+                      value={tab.key}
+                      className="rounded-lg text-sm font-bold data-[state=active]:bg-white data-[state=active]:text-purple-700 data-[state=active]:shadow-md text-purple-500 px-3 py-1.5"
+                    >
+                      {tab.label}
+                    </TabsTrigger>
+                  ))}
+                </TabsList>
+
+                <TabsContent value="__all">
+                  {renderStoryList(stories)}
+                </TabsContent>
+                {childTabs.map(tab => (
+                  <TabsContent key={tab.key} value={tab.key}>
+                    {tab.stories.length === 0 ? (
+                      <div className="text-center py-10">
+                        <p className="text-muted-foreground font-medium">אין עדיין סיפורים עבור {tab.label}</p>
+                        <Button onClick={() => navigate("/create")} variant="outline" className="mt-3">
+                          <Plus className="w-4 h-4 ml-1" /> צרו סיפור חדש
+                        </Button>
+                      </div>
+                    ) : renderStoryList(tab.stories)}
+                  </TabsContent>
+                ))}
+              </Tabs>
+            ) : (
+              renderStoryList(displayStories)
+            )}
+          </TabsContent>
+
+          <TabsContent value="coloring">
+            {isLoading || authLoading ? <LoadingSkeleton /> : renderColoringPages()}
+          </TabsContent>
+        </Tabs>
 
         {/* Create Button */}
         {stories.length > 0 && (
