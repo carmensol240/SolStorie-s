@@ -1991,16 +1991,32 @@ const [currentPage, setCurrentPage] = useState(0);
               <Button
                 onClick={async () => {
                   if (!story || !selectedColoringUrl) return;
+                  const triggerDownload = async (url: string) => {
+                    try {
+                      const res = await fetch(url);
+                      const blob = await res.blob();
+                      const blobUrl = URL.createObjectURL(blob);
+                      const link = document.createElement('a');
+                      link.href = blobUrl;
+                      link.download = `coloring-page-${story.id}.png`;
+                      document.body.appendChild(link);
+                      link.click();
+                      document.body.removeChild(link);
+                      URL.revokeObjectURL(blobUrl);
+                    } catch {
+                      // Fallback: open in new tab
+                      window.open(url, '_blank');
+                    }
+                  };
                   const urlToUse = cachedColoringUrl;
                   if (urlToUse) {
-                    window.open(urlToUse, '_blank');
+                    await triggerDownload(urlToUse);
                     setColoringPickerOpen(false);
                   } else {
-                    setColoringPickerOpen(false);
                     setColoringLoading(true);
                     try {
                       const response = await supabase.functions.invoke("generate-coloring-page", {
-                      body: { illustration_url: getPublicIllustrationUrl(selectedColoringUrl), story_id: story.id },
+                        body: { illustration_url: getPublicIllustrationUrl(selectedColoringUrl), story_id: story.id },
                       });
                       if (response.error) throw response.error;
                       if ((response.data as any)?.upsell) {
@@ -2011,7 +2027,8 @@ const [currentPage, setCurrentPage] = useState(0);
                       if (!coloringUrl) throw new Error("No coloring URL returned");
                       setCachedColoringUrl(coloringUrl);
                       setCachedIllustrationUrl(selectedColoringUrl);
-                      window.open(coloringUrl, '_blank');
+                      await triggerDownload(coloringUrl);
+                      setColoringPickerOpen(false);
                     } catch (err: any) {
                       console.error("Coloring error:", err);
                       toast({ title: "שגיאה ביצירת דף צביעה", description: err.message, variant: "destructive" });
