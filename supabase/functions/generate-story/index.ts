@@ -1470,31 +1470,39 @@ ${topic.endsWith('-edu') ? `
 - כלל ניקוד: אם לא בטוח ב-100% בניקוד - השתמש במילה שאתה בטוח בניקוד שלה.`;
     }
 
-    console.log("[generate-story] 📡 Calling Google Gemini API (gemini-2.0-flash) for story generation...");
-    const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${GEMINI_API_KEY}`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
+    console.log("[generate-story] 📡 Calling Google Gemini API (gemini-2.0-flash) with retry logic...");
+    const geminiResult = await callGeminiWithRetry({
+      apiKey: GEMINI_API_KEY,
+      label: "generate-story",
+      maxRetries: 4,
+      timeoutMs: 120_000,
+      body: {
         systemInstruction: { parts: [{ text: systemPrompt }] },
         contents: [{ role: "user", parts: [{ text: userPrompt }] }],
         generationConfig: {
           responseMimeType: "application/json",
           maxOutputTokens: 8192,
         },
-      }),
+      },
     });
 
-    if (!response.ok) {
-      const errorText = await response.text();
-      console.error(`[generate-story] ❌ Gemini API error: status=${response.status}, body=${errorText}`);
-      await logError("story_generation_error", `Gemini API error: ${response.status}`, { status: response.status, body: errorText.substring(0, 500), topic, childName }, userId);
-      if (response.status === 429) {
+    if (!geminiResult.ok) {
+      console.error(`[generate-story] ❌ Gemini API failed after retries: status=${geminiResult.status}`);
+      await logError("story_generation_error", `Gemini API error: ${geminiResult.status}`, { status: geminiResult.status, body: geminiResult.body.substring(0, 500), topic, childName, isBillingError: geminiResult.isBillingError }, userId);
+      
+      if (geminiResult.isBillingError) {
+        return new Response(
+          JSON.stringify({ error: "שגיאת מערכת זמנית. נסו שוב בעוד מספר דקות." }),
+          { status: 503, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        );
+      }
+      if (geminiResult.status === 429) {
         return new Response(
           JSON.stringify({ error: "הגעתם למגבלת הבקשות. נסו שוב בעוד מספר דקות." }),
           { status: 429, headers: { ...corsHeaders, "Content-Type": "application/json" } }
         );
       }
-      if (response.status === 401 || response.status === 403) {
+      if (geminiResult.status === 401 || geminiResult.status === 403) {
         return new Response(
           JSON.stringify({ error: "שגיאת הרשאה. אנא צרו קשר עם התמיכה." }),
           { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } }
