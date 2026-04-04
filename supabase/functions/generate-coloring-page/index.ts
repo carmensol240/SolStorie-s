@@ -168,27 +168,53 @@ Output ONLY the coloring page image, nothing else. Do not include any text, labe
     }
 
     const aiData = await aiResponse!.json();
+    console.log("AI Gateway response keys:", Object.keys(aiData));
 
-    // Extract image from Gateway response (OpenAI-compatible format)
+    // Extract image from Gateway response — try multiple formats
     let generatedImage: string | undefined;
     const choices = aiData.choices;
     if (Array.isArray(choices)) {
       for (const choice of choices) {
         const content = choice.message?.content;
+        // Format 1: content is an array of parts
         if (Array.isArray(content)) {
           for (const part of content) {
             if (part.type === "image_url" && part.image_url?.url) {
               generatedImage = part.image_url.url;
               break;
             }
+            // Gemini native format via gateway
+            if (part.inlineData?.data) {
+              const partMime = part.inlineData.mimeType || "image/png";
+              generatedImage = `data:${partMime};base64,${part.inlineData.data}`;
+              break;
+            }
           }
+        }
+        // Format 2: content is a string (base64 data URL)
+        if (!generatedImage && typeof content === "string" && content.startsWith("data:image")) {
+          generatedImage = content;
         }
         if (generatedImage) break;
       }
     }
 
+    // Format 3: Gemini native response format
     if (!generatedImage) {
-      console.error("No image returned from Gemini. Response structure:", JSON.stringify(aiData).slice(0, 1000));
+      const parts = aiData.candidates?.[0]?.content?.parts;
+      if (Array.isArray(parts)) {
+        for (const part of parts) {
+          if (part.inlineData?.data) {
+            const partMime = part.inlineData.mimeType || "image/png";
+            generatedImage = `data:${partMime};base64,${part.inlineData.data}`;
+            break;
+          }
+        }
+      }
+    }
+
+    if (!generatedImage) {
+      console.error("No image returned. Response structure:", JSON.stringify(aiData).slice(0, 2000));
       return jsonResponse({ error: "לא התקבלה תמונה מהמערכת" }, 500);
     }
 
