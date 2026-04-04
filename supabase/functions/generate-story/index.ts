@@ -1899,17 +1899,15 @@ ${fullStoryText}`;
     const summaryPromise = (async () => {
       try {
         const fullText = storyData.pages.map((p: any) => p.text).join("\n");
-        const summaryResult = await callGatewayWithRetry({
-          apiKey: LOVABLE_API_KEY,
+        const summaryResult = await callGeminiWithRetry({
+          apiKey: GEMINI_API_KEY,
           label: "summary",
           maxRetries: 1,
           timeoutMs: 10_000,
-          messages: [
-            { role: "user", content: `סכם את הסיפור הבא במשפט אחד קצר בעברית (עד 30 מילים). תן רק את המשפט, ללא הקדמה:\n${fullText}` },
-          ],
+          userPrompt: `סכם את הסיפור הבא במשפט אחד קצר בעברית (עד 30 מילים). תן רק את המשפט, ללא הקדמה:\n${fullText}`,
         });
         if (summaryResult.ok) {
-          const summary = summaryResult.data.choices?.[0]?.message?.content?.trim();
+          const summary = summaryResult.text?.trim();
           if (summary) {
             await supabase.from("stories").update({ summary }).eq("id", story.id);
             console.log(`Summary saved for story ${story.id}: ${summary.substring(0, 60)}...`);
