@@ -752,34 +752,8 @@ serve(async (req) => {
         }
       }
       
-      // === ATOMIC CREDIT DEDUCTION ===
-      {
-        const { data: freshProfile } = await supabase
-          .from("profiles")
-          .select("story_credits")
-          .eq("id", userId)
-          .single();
-        
-        const freshCredits = freshProfile?.story_credits ?? 0;
-        if (freshCredits <= 0) {
-          console.log("Race condition: credits depleted between check and deduction");
-          return new Response(
-            JSON.stringify({ error: "נגמרו הקרדיטים", code: "NO_CREDITS" }),
-            { status: 402, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-          );
-        }
-        
-        const { error: deductError } = await supabase
-          .from("profiles")
-          .update({ story_credits: freshCredits - 1 })
-          .eq("id", userId);
-        
-        if (deductError) {
-          console.error("Error deducting credit:", deductError);
-        } else {
-          console.log(`Credit deducted server-side: ${freshCredits} → ${freshCredits - 1}`);
-        }
-      }
+      // NOTE: Credit deduction moved to AFTER successful AI generation
+      // to prevent burning credits on 429/5xx Gemini errors.
       // === END CREDIT CHECK ===
     }
 
