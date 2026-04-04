@@ -1955,7 +1955,11 @@ const [currentPage, setCurrentPage] = useState(0);
                       body: { illustration_url: getPublicIllustrationUrl(selectedColoringUrl), story_id: story.id },
                     });
                     if (response.error) throw response.error;
-                    const coloringUrl = (response.data as any)?.coloringPageUrl;
+                    if ((response.data as any)?.upsell) {
+                      toast({ title: (response.data as any)?.error || "נגמרו קרדיטים לצביעה 🎨" });
+                      return;
+                    }
+                    const coloringUrl = (response.data as any)?.image;
                     if (!coloringUrl) throw new Error("No coloring URL returned");
                     if (coloringMode === 'online') {
                       setOnlineColoringImageUrl(coloringUrl);
