@@ -535,7 +535,7 @@ async function callGatewayWithRetry(opts: GatewayCallOptions): Promise<{ ok: tru
       : [{ role: "user", content: userPrompt }],
   };
   if (jsonMode) requestBody.response_format = { type: "json_object" };
-  if (maxOutputTokens) requestBody.max_tokens = maxOutputTokens;
+  if (maxOutputTokens) requestBody.max_completion_tokens = maxOutputTokens;
 
   for (let attempt = 0; attempt <= maxRetries; attempt++) {
     try {
