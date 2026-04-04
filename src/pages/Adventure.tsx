@@ -11,8 +11,6 @@ import WelcomeGiftBanner from "@/components/home/WelcomeGiftBanner";
 import MobileNavigation from "@/components/MobileNavigation";
 import heroVideo from "@/assets/hero-solstories-animation-new.mp4";
 
-const ADMIN_EMAILS = ['carmit1901@gmail.com', 'carmit1901+test@gmail.com'];
-
 const Adventure = () => {
   const navigate = useNavigate();
   const { user, loading } = useAuth();
@@ -32,11 +30,7 @@ const Adventure = () => {
   // Admin / logged-in user redirect
   useEffect(() => {
     if (loading || !user) return;
-    if (ADMIN_EMAILS.includes(user.email || '')) {
-      navigate("/settings", { replace: true });
-    } else {
-      navigate("/create", { replace: true });
-    }
+    navigate("/create", { replace: true });
   }, [user, loading, navigate]);
 
   useEffect(() => {
