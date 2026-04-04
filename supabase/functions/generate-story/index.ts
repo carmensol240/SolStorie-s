@@ -1512,8 +1512,7 @@ ${topic.endsWith('-edu') ? `
     }
 
     console.log("[generate-story] ✅ Gemini API response received, parsing...");
-    const aiData = await response.json();
-    const content = aiData.candidates?.[0]?.content?.parts?.[0]?.text;
+    const content = geminiResult.data.candidates?.[0]?.content?.parts?.[0]?.text;
     
     if (!content) {
       throw new Error("שגיאה ביצירת הסיפור. נסו שוב.");
