@@ -121,8 +121,8 @@ Output ONLY the coloring page image, nothing else. Do not include any text, labe
 
     // Try multiple Gemini image generation models in order
     const imageModels = [
-      "gemini-2.0-flash-exp-image-generation",
-      "gemini-2.0-flash-thinking-exp-01-21",
+      "gemini-2.5-flash-image",
+      "gemini-3.1-flash-image-preview",
     ];
 
     let generatedImage: string | undefined;
