@@ -507,25 +507,91 @@ const NIKUD_GRAMMARIAN_PROMPT = `אתה מומחה ניקוד עברי (נקדן
 ### פורמט:
 החזר רק את הטקסט המנוקד, ללא הסברים או תוספות.`;
 
+// === Reusable Gemini fetch helper with exponential backoff ===
+interface GeminiCallOptions {
+  apiKey: string;
+  model?: string;
+  body: Record<string, unknown>;
+  maxRetries?: number;
+  timeoutMs?: number;
+  label?: string;
+}
+
+async function callGeminiWithRetry(opts: GeminiCallOptions): Promise<{ ok: true; data: any } | { ok: false; status: number; body: string; isBillingError: boolean }> {
+  const { apiKey, model = "gemini-2.0-flash", body, maxRetries = 4, timeoutMs = 120_000, label = "gemini" } = opts;
+  const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`;
+  const RETRYABLE = new Set([429, 500, 502, 503, 504]);
+
+  for (let attempt = 0; attempt <= maxRetries; attempt++) {
+    try {
+      const response = await fetch(url, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(body),
+        signal: AbortSignal.timeout(timeoutMs),
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        return { ok: true, data };
+      }
+
+      const errBody = await response.text();
+
+      // Detect billing/quota 429 (limit: 0, free_tier) — not retryable
+      if (response.status === 429 && (errBody.includes('"limit": 0') || errBody.includes('free_tier'))) {
+        console.error(`[${label}] ❌ Billing/quota 429 (limit:0) — not retryable. Body: ${errBody.substring(0, 300)}`);
+        return { ok: false, status: 429, body: errBody, isBillingError: true };
+      }
+
+      if (!RETRYABLE.has(response.status) || attempt === maxRetries) {
+        console.error(`[${label}] ❌ Non-retryable error ${response.status} (attempt ${attempt + 1}/${maxRetries + 1}). Body: ${errBody.substring(0, 300)}`);
+        return { ok: false, status: response.status, body: errBody, isBillingError: false };
+      }
+
+      // Parse Retry-After or use exponential backoff
+      const retryAfter = response.headers.get("retry-after");
+      let waitMs: number;
+      if (retryAfter && !isNaN(Number(retryAfter))) {
+        waitMs = Number(retryAfter) * 1000;
+      } else {
+        waitMs = Math.min(30_000, 5000 * (2 ** attempt)) + Math.floor(Math.random() * 1000);
+      }
+      console.warn(`[${label}] ⏳ Retryable ${response.status} (attempt ${attempt + 1}/${maxRetries + 1}), waiting ${Math.round(waitMs / 1000)}s...`);
+      await new Promise(r => setTimeout(r, waitMs));
+    } catch (err) {
+      if (attempt === maxRetries) {
+        console.error(`[${label}] ❌ Fetch error after ${maxRetries + 1} attempts:`, err);
+        return { ok: false, status: 0, body: String(err), isBillingError: false };
+      }
+      const waitMs = Math.min(30_000, 5000 * (2 ** attempt)) + Math.floor(Math.random() * 1000);
+      console.warn(`[${label}] ⏳ Fetch error (attempt ${attempt + 1}), retrying in ${Math.round(waitMs / 1000)}s...`, err);
+      await new Promise(r => setTimeout(r, waitMs));
+    }
+  }
+  return { ok: false, status: 0, body: "Max retries exceeded", isBillingError: false };
+}
+
 // Function to add nikud to a single page text using the Grammarian agent
 async function addNikudToText(text: string, apiKey: string): Promise<string> {
   try {
-    const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
+    const result = await callGeminiWithRetry({
+      apiKey,
+      label: "nikud",
+      maxRetries: 2,
+      timeoutMs: 15_000,
+      body: {
         systemInstruction: { parts: [{ text: NIKUD_GRAMMARIAN_PROMPT }] },
         contents: [{ role: "user", parts: [{ text: `הוסף ניקוד מלא ומדויק לטקסט הבא:\n\n${text}` }] }],
-      }),
+      },
     });
 
-    if (!response.ok) {
-      console.error("Nikud grammarian failed:", response.status);
+    if (!result.ok) {
+      console.error("Nikud grammarian failed:", result.status);
       return text;
     }
 
-    const data = await response.json();
-    const nikudText = data.candidates?.[0]?.content?.parts?.[0]?.text?.trim();
+    const nikudText = result.data.candidates?.[0]?.content?.parts?.[0]?.text?.trim();
 
     if (!nikudText) {
       console.error("No nikud text returned from grammarian");
@@ -533,12 +599,11 @@ async function addNikudToText(text: string, apiKey: string): Promise<string> {
     }
 
     // === REVIEW STEP: Validate nikud quality ===
-    // Check for common AI nikud mistakes
     const validated = validateNikud(nikudText, text);
     return validated;
   } catch (error) {
     console.error("Error in nikud grammarian:", error);
-    return text; // Fallback to original
+    return text;
   }
 }
 
@@ -687,34 +752,8 @@ serve(async (req) => {
         }
       }
       
-      // === ATOMIC CREDIT DEDUCTION ===
-      {
-        const { data: freshProfile } = await supabase
-          .from("profiles")
-          .select("story_credits")
-          .eq("id", userId)
-          .single();
-        
-        const freshCredits = freshProfile?.story_credits ?? 0;
-        if (freshCredits <= 0) {
-          console.log("Race condition: credits depleted between check and deduction");
-          return new Response(
-            JSON.stringify({ error: "נגמרו הקרדיטים", code: "NO_CREDITS" }),
-            { status: 402, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-          );
-        }
-        
-        const { error: deductError } = await supabase
-          .from("profiles")
-          .update({ story_credits: freshCredits - 1 })
-          .eq("id", userId);
-        
-        if (deductError) {
-          console.error("Error deducting credit:", deductError);
-        } else {
-          console.log(`Credit deducted server-side: ${freshCredits} → ${freshCredits - 1}`);
-        }
-      }
+      // NOTE: Credit deduction moved to AFTER successful AI generation
+      // to prevent burning credits on 429/5xx Gemini errors.
       // === END CREDIT CHECK ===
     }
 
@@ -1431,31 +1470,39 @@ ${topic.endsWith('-edu') ? `
 - כלל ניקוד: אם לא בטוח ב-100% בניקוד - השתמש במילה שאתה בטוח בניקוד שלה.`;
     }
 
-    console.log("[generate-story] 📡 Calling Google Gemini API (gemini-2.0-flash) for story generation...");
-    const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${GEMINI_API_KEY}`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
+    console.log("[generate-story] 📡 Calling Google Gemini API (gemini-2.0-flash) with retry logic...");
+    const geminiResult = await callGeminiWithRetry({
+      apiKey: GEMINI_API_KEY,
+      label: "generate-story",
+      maxRetries: 4,
+      timeoutMs: 120_000,
+      body: {
         systemInstruction: { parts: [{ text: systemPrompt }] },
         contents: [{ role: "user", parts: [{ text: userPrompt }] }],
         generationConfig: {
           responseMimeType: "application/json",
           maxOutputTokens: 8192,
         },
-      }),
+      },
     });
 
-    if (!response.ok) {
-      const errorText = await response.text();
-      console.error(`[generate-story] ❌ Gemini API error: status=${response.status}, body=${errorText}`);
-      await logError("story_generation_error", `Gemini API error: ${response.status}`, { status: response.status, body: errorText.substring(0, 500), topic, childName }, userId);
-      if (response.status === 429) {
+    if (!geminiResult.ok) {
+      console.error(`[generate-story] ❌ Gemini API failed after retries: status=${geminiResult.status}`);
+      await logError("story_generation_error", `Gemini API error: ${geminiResult.status}`, { status: geminiResult.status, body: geminiResult.body.substring(0, 500), topic, childName, isBillingError: geminiResult.isBillingError }, userId);
+      
+      if (geminiResult.isBillingError) {
+        return new Response(
+          JSON.stringify({ error: "שגיאת מערכת זמנית. נסו שוב בעוד מספר דקות." }),
+          { status: 503, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        );
+      }
+      if (geminiResult.status === 429) {
         return new Response(
           JSON.stringify({ error: "הגעתם למגבלת הבקשות. נסו שוב בעוד מספר דקות." }),
           { status: 429, headers: { ...corsHeaders, "Content-Type": "application/json" } }
         );
       }
-      if (response.status === 401 || response.status === 403) {
+      if (geminiResult.status === 401 || geminiResult.status === 403) {
         return new Response(
           JSON.stringify({ error: "שגיאת הרשאה. אנא צרו קשר עם התמיכה." }),
           { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } }
@@ -1465,8 +1512,7 @@ ${topic.endsWith('-edu') ? `
     }
 
     console.log("[generate-story] ✅ Gemini API response received, parsing...");
-    const aiData = await response.json();
-    const content = aiData.candidates?.[0]?.content?.parts?.[0]?.text;
+    const content = geminiResult.data.candidates?.[0]?.content?.parts?.[0]?.text;
     
     if (!content) {
       throw new Error("שגיאה ביצירת הסיפור. נסו שוב.");
@@ -1555,25 +1601,24 @@ ${topic.endsWith('-edu') ? `
         console.log("[generate-story] Truncated JSON repaired successfully");
       } catch (_e2) {
         console.warn("[generate-story] Repair failed, retrying AI call...");
-        // Attempt 3: retry the AI call once
+        // Attempt 3: retry the AI call with retry helper
         try {
-          const retryResponse = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${GEMINI_API_KEY}`, {
-            method: "POST",
-            signal: AbortSignal.timeout(120_000),
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
+          const retryResult = await callGeminiWithRetry({
+            apiKey: GEMINI_API_KEY,
+            label: "generate-story-retry",
+            maxRetries: 2,
+            timeoutMs: 120_000,
+            body: {
               systemInstruction: { parts: [{ text: systemPrompt }] },
               contents: [{ role: "user", parts: [{ text: userPrompt }] }],
               generationConfig: { responseMimeType: "application/json" },
-            }),
+            },
           });
-          if (!retryResponse.ok) {
-            const errBody = await retryResponse.text();
-            console.error(`[generate-story] Retry AI call failed: ${retryResponse.status} - ${errBody}`);
+          if (!retryResult.ok) {
+            console.error(`[generate-story] Retry AI call failed: ${retryResult.status}`);
             throw new Error("Retry failed");
           }
-          const retryData = await retryResponse.json();
-          const retryContent = retryData.candidates?.[0]?.content?.parts?.[0]?.text;
+          const retryContent = retryResult.data.candidates?.[0]?.content?.parts?.[0]?.text;
           if (!retryContent) throw new Error("Empty retry response");
           const cleanedRetry = cleanAiContent(retryContent);
           storyData = JSON.parse(cleanedRetry);
@@ -1601,6 +1646,34 @@ ${topic.endsWith('-edu') ? `
     
     console.log(`Story parsed successfully with ${storyData.pages.length} pages`);
 
+    // === DEFERRED CREDIT DEDUCTION: Only after successful AI generation ===
+    if (userId && !guestMode) {
+      const { data: freshProfile } = await supabase
+        .from("profiles")
+        .select("story_credits")
+        .eq("id", userId)
+        .single();
+      
+      const freshCredits = freshProfile?.story_credits ?? 0;
+      if (freshCredits <= 0) {
+        console.log("Race condition: credits depleted between check and deduction");
+        return new Response(
+          JSON.stringify({ error: "נגמרו הקרדיטים", code: "NO_CREDITS" }),
+          { status: 402, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        );
+      }
+      
+      const { error: deductError } = await supabase
+        .from("profiles")
+        .update({ story_credits: freshCredits - 1 })
+        .eq("id", userId);
+      
+      if (deductError) {
+        console.error("Error deducting credit:", deductError);
+      } else {
+        console.log(`Credit deducted server-side: ${freshCredits} → ${freshCredits - 1}`);
+      }
+    }
     // === TEXT QUALITY REWRITE: Age-appropriate language polish ===
     try {
       const ageLabel = ageRange === "0-2" ? "2" : ageRange === "2-4" ? "3" : ageRange === "5-7" ? "6" : "8";
@@ -1680,25 +1753,21 @@ Return ONLY the corrected story text with the same [עמוד X] structure, nothi
 Child age: ${ageLabel}
 Story:
 ${fullStoryText}`;
-
-      console.log(`[generate-story] Starting text quality rewrite for age ${ageLabel} (flash-lite + 12s timeout)...`);
       
-      const rewriteController = new AbortController();
-      const rewriteTimeout = setTimeout(() => rewriteController.abort(), 12000);
+      console.log(`[generate-story] Starting text quality rewrite for age ${ageLabel} (12s timeout)...`);
       
-      const rewriteResponse = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${GEMINI_API_KEY}`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
+      const rewriteResult = await callGeminiWithRetry({
+        apiKey: GEMINI_API_KEY,
+        label: "rewrite",
+        maxRetries: 1,
+        timeoutMs: 12_000,
+        body: {
           contents: [{ role: "user", parts: [{ text: rewritePrompt }] }],
-        }),
-        signal: rewriteController.signal,
+        },
       });
-      clearTimeout(rewriteTimeout);
 
-      if (rewriteResponse.ok) {
-        const rewriteData = await rewriteResponse.json();
-        const rewrittenText = rewriteData.candidates?.[0]?.content?.parts?.[0]?.text?.trim();
+      if (rewriteResult.ok) {
+        const rewrittenText = rewriteResult.data.candidates?.[0]?.content?.parts?.[0]?.text?.trim();
         
         if (rewrittenText) {
           // Parse rewritten text back into pages by [עמוד X] markers
@@ -1722,8 +1791,7 @@ ${fullStoryText}`;
           console.warn("[generate-story] Text rewrite returned empty, using original text");
         }
       } else {
-        const errStatus = rewriteResponse.status;
-        console.warn(`[generate-story] Text rewrite failed (${errStatus}), using original text`);
+        console.warn(`[generate-story] Text rewrite failed (${rewriteResult.status}), using original text`);
       }
     } catch (rewriteErr) {
       console.warn("[generate-story] Text rewrite error, using original text:", rewriteErr);
@@ -1823,16 +1891,17 @@ ${fullStoryText}`;
     const summaryPromise = (async () => {
       try {
         const fullText = storyData.pages.map((p: any) => p.text).join("\n");
-        const summaryResponse = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${GEMINI_API_KEY}`, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
+        const summaryResult = await callGeminiWithRetry({
+          apiKey: GEMINI_API_KEY,
+          label: "summary",
+          maxRetries: 1,
+          timeoutMs: 10_000,
+          body: {
             contents: [{ role: "user", parts: [{ text: `סכם את הסיפור הבא במשפט אחד קצר בעברית (עד 30 מילים). תן רק את המשפט, ללא הקדמה:\n${fullText}` }] }],
-          }),
+          },
         });
-        if (summaryResponse.ok) {
-          const summaryData = await summaryResponse.json();
-          const summary = summaryData.candidates?.[0]?.content?.parts?.[0]?.text?.trim();
+        if (summaryResult.ok) {
+          const summary = summaryResult.data.candidates?.[0]?.content?.parts?.[0]?.text?.trim();
           if (summary) {
             await supabase.from("stories").update({ summary }).eq("id", story.id);
             console.log(`Summary saved for story ${story.id}: ${summary.substring(0, 60)}...`);
