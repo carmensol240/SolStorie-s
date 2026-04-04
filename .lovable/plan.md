@@ -1,14 +1,21 @@
 
 
-## Plan: Increase Bottom Padding on Coloring Page Toolbar
+## Plan: Add Coloring Icon to BookHeader Toolbar
 
-### Problem
-The bottom color row is still cut off on iPhone — the current `max(80px, ...)` padding isn't enough.
+### What will change
 
-### Solution — single file: `src/components/story/OnlineColoringCanvas.tsx`
+#### 1. `src/components/story/book-frame/BookHeader.tsx`
+- Add `Palette` icon import from `lucide-react`
+- Add `onColoring?: () => void` prop to `BookHeaderProps`
+- Add a new icon button (🎨 Palette) in the center actions area, between the Download PDF and Save Offline buttons
+- The button calls `onColoring` when clicked, with tooltip "דפי צביעה"
 
-**Line 533**: Increase the padding from `max(80px, calc(env(safe-area-inset-bottom, 34px) + 50px))` to `max(120px, calc(env(safe-area-inset-bottom, 34px) + 90px))`.
+#### 2. `src/pages/StoryViewer.tsx`
+- Add a `handleColoringFromHeader` function that opens the coloring picker dialog directly (same logic as the existing print button on the completion screen — sets mode, checks cache, opens `coloringPickerOpen`)
+- Pass `onColoring={handleColoringFromHeader}` to `<BookHeader>`
 
 ### What stays the same
-- Everything else — drawing logic, canvas sizing, tools, colors, desktop behavior
+- All existing coloring dialog logic, picker, print/online flow
+- All other BookHeader buttons and behavior
+- Completion screen coloring buttons still work as before
 
