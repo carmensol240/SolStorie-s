@@ -196,11 +196,13 @@ export const OnlineColoringCanvas: React.FC<OnlineColoringCanvasProps> = ({
 
     const vw = window.innerWidth;
     const vh = window.innerHeight;
+    const toolbarHeight = 44 + 110; // top bar + bottom toolbar
+    const availH = vh - toolbarHeight;
     const imgRatio = img.naturalWidth / img.naturalHeight;
     let w: number, h: number;
-    if (vw / vh > imgRatio) {
-      h = vh;
-      w = Math.floor(vh * imgRatio);
+    if (vw / availH > imgRatio) {
+      h = availH;
+      w = Math.floor(availH * imgRatio);
     } else {
       w = vw;
       h = Math.floor(vw / imgRatio);
@@ -213,9 +215,9 @@ export const OnlineColoringCanvas: React.FC<OnlineColoringCanvasProps> = ({
     if (ctx) {
       ctx.fillStyle = '#FFFFFF';
       ctx.fillRect(0, 0, w, h);
-      const coverScale = Math.max(w / img.naturalWidth, h / img.naturalHeight);
-      const drawW = img.naturalWidth * coverScale;
-      const drawH = img.naturalHeight * coverScale;
+      const containScale = Math.min(w / img.naturalWidth, h / img.naturalHeight);
+      const drawW = img.naturalWidth * containScale;
+      const drawH = img.naturalHeight * containScale;
       const offsetX = (w - drawW) / 2;
       const offsetY = (h - drawH) / 2;
       ctx.drawImage(img, offsetX, offsetY, drawW, drawH);
