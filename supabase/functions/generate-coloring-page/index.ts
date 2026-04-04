@@ -83,7 +83,7 @@ serve(async (req) => {
       }
     }
 
-    // ── AI generation ──
+    // ── AI generation via direct Gemini API ──
     const GEMINI_API_KEY = Deno.env.get("GEMINI_API_KEY");
     if (!GEMINI_API_KEY) {
       console.error("GEMINI_API_KEY not configured");
@@ -119,69 +119,84 @@ serve(async (req) => {
 
 Output ONLY the coloring page image, nothing else. Do not include any text, labels, letter names, or written words anywhere in the image.`;
 
-    const geminiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${GEMINI_API_KEY}`;
-    const geminiBody = JSON.stringify({
-      contents: [{
-        role: "user",
-        parts: [
-          { text: coloringPrompt },
-          { inlineData: { mimeType, data: imgBase64 } },
-        ],
-      }],
-      generationConfig: {
-        responseModalities: ["TEXT", "IMAGE"],
-      },
-    });
+    // Try multiple Gemini image generation models in order
+    const imageModels = [
+      "gemini-2.5-flash-image",
+      "gemini-3.1-flash-image-preview",
+    ];
 
-    const maxRetries = 4;
-    let aiResponse: Response | null = null;
+    let generatedImage: string | undefined;
+    let lastError = "";
 
-    for (let attempt = 0; attempt <= maxRetries; attempt++) {
-      aiResponse = await fetch(geminiUrl, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: geminiBody,
+    for (const model of imageModels) {
+      console.log(`Trying model: ${model}`);
+      const geminiUrl = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent`;
+      const geminiBody = JSON.stringify({
+        contents: [{
+          parts: [
+            { text: coloringPrompt },
+            { inlineData: { mimeType, data: imgBase64 } },
+          ],
+        }],
+        generationConfig: {
+          responseModalities: ["TEXT", "IMAGE"],
+        },
       });
 
-      if (aiResponse.ok) break;
+      const maxRetries = 3;
+      let aiResponse: Response | null = null;
 
-      const retryableStatus = aiResponse.status === 429 || aiResponse.status === 502 || aiResponse.status === 503;
-      if (!retryableStatus || attempt === maxRetries) break;
+      for (let attempt = 0; attempt <= maxRetries; attempt++) {
+        aiResponse = await fetch(geminiUrl, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "x-goog-api-key": GEMINI_API_KEY,
+          },
+          body: geminiBody,
+        });
 
-      const backoffSeconds = Math.min(30, 5 * (2 ** attempt));
-      const jitterMs = Math.floor(Math.random() * 1000);
-      console.log(`Retryable error ${aiResponse.status} (attempt ${attempt + 1}/${maxRetries + 1}), waiting ${backoffSeconds}s...`);
-      await new Promise((r) => setTimeout(r, backoffSeconds * 1000 + jitterMs));
-    }
+        if (aiResponse.ok) break;
 
-    if (!aiResponse!.ok) {
-      const status = aiResponse!.status;
-      if (status === 429) {
-        return jsonResponse({ error: "השירות עמוס כרגע, נסו שוב בעוד כמה דקות 🎨", retryable: true });
+        const retryableStatus = aiResponse.status === 429 || aiResponse.status === 502 || aiResponse.status === 503;
+        if (!retryableStatus || attempt === maxRetries) break;
+
+        const backoffSeconds = Math.min(20, 3 * (2 ** attempt));
+        console.log(`Retryable error ${aiResponse.status} (attempt ${attempt + 1}), waiting ${backoffSeconds}s...`);
+        await new Promise((r) => setTimeout(r, backoffSeconds * 1000));
       }
-      const errText = await aiResponse!.text();
-      console.error("Gemini API error:", status, errText);
-      return jsonResponse({ error: "שגיאה ביצירת דף הצביעה" }, 500);
-    }
 
-    const aiData = await aiResponse!.json();
+      if (!aiResponse!.ok) {
+        lastError = await aiResponse!.text();
+        console.error(`Model ${model} failed:`, aiResponse!.status, lastError.slice(0, 300));
+        continue;
+      }
 
-    // Extract image from Gemini response — look for inlineData in parts
-    let generatedImage: string | undefined;
-    const parts = aiData.candidates?.[0]?.content?.parts;
-    if (Array.isArray(parts)) {
-      for (const part of parts) {
-        if (part.inlineData?.data) {
-          const partMime = part.inlineData.mimeType || "image/png";
-          generatedImage = `data:${partMime};base64,${part.inlineData.data}`;
-          break;
+      const aiData = await aiResponse!.json();
+      const parts = aiData.candidates?.[0]?.content?.parts;
+      if (Array.isArray(parts)) {
+        for (const part of parts) {
+          if (part.inlineData?.data) {
+            const partMime = part.inlineData.mimeType || "image/png";
+            generatedImage = `data:${partMime};base64,${part.inlineData.data}`;
+            break;
+          }
         }
+      }
+
+      if (generatedImage) {
+        console.log(`Coloring page generated successfully with model: ${model}`);
+        break;
+      } else {
+        console.error(`Model ${model} returned no image. Response:`, JSON.stringify(aiData).slice(0, 500));
       }
     }
 
     if (!generatedImage) {
-      console.error("No image returned from Gemini. Response structure:", JSON.stringify(aiData).slice(0, 1000));
-      return jsonResponse({ error: "לא התקבלה תמונה מהמערכת" }, 500);
+      if (lastError.includes("429") || lastError.includes("RESOURCE_EXHAUSTED")) {
+        return jsonResponse({ error: "השירות עמוס כרגע, נסו שוב בעוד כמה דקות 🎨", retryable: true });
+      }
+      return jsonResponse({ error: "שגיאה ביצירת דף הצביעה" }, 500);
     }
 
     console.log("Coloring page generated successfully");

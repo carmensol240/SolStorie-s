@@ -11,6 +11,7 @@ import { cn } from "@/lib/utils";
 import { DrawingCanvas } from "@/components/ui/drawing-canvas";
 import { SignedImage } from "@/components/ui/signed-image";
 import { getPublicIllustrationUrl } from "@/lib/illustration-url";
+import { generateColoringPageClientSide } from "@/lib/coloring-page-generator";
 import OfflineIndicator from "@/components/ui/offline-indicator";
 import EditPageDialog from "@/components/story/edit-page-dialog";
 import DedicationDialog from "@/components/story/DedicationDialog";
@@ -1537,34 +1538,45 @@ const [currentPage, setCurrentPage] = useState(0);
                                 return;
                               }
 
-                              toast({ title: "מכין את דף הצביעה שלך... זה לוקח כ-30 שניות 🎨" });
+                              toast({ title: "מכין את דף הצביעה שלך... 🎨" });
                               try {
                                 const illustrationFullUrl = getPublicIllustrationUrl(selectedColoringUrl);
-                                const invokeColoring = () => supabase.functions.invoke('generate-coloring-page', {
-                                  body: { illustration_url: illustrationFullUrl, story_title: story.topic, child_name: story.child_name, story_id: story.id, device_id: localStorage.getItem('device_id') || 'unknown' },
-                                });
-                                let { data, error: fnError } = await invokeColoring();
-                                if (!fnError && !data?.image && data?.retryable) {
-                                  await new Promise(r => setTimeout(r, 5000));
-                                  ({ data, error: fnError } = await invokeColoring());
+                                
+                                // Try API first, fallback to client-side
+                                let coloringDataUrl: string | null = null;
+                                try {
+                                  const invokeColoring = () => supabase.functions.invoke('generate-coloring-page', {
+                                    body: { illustration_url: illustrationFullUrl, story_title: story.topic, child_name: story.child_name, story_id: story.id, device_id: localStorage.getItem('device_id') || 'unknown' },
+                                  });
+                                  let { data, error: fnError } = await invokeColoring();
+                                  if (!fnError && !data?.image && data?.retryable) {
+                                    await new Promise(r => setTimeout(r, 5000));
+                                    ({ data, error: fnError } = await invokeColoring());
+                                  }
+                                  if (data?.upsell) {
+                                    setShowColoringUpsell(true);
+                                    return;
+                                  }
+                                  if (!fnError && data?.image) {
+                                    coloringDataUrl = data.image.startsWith('data:') ? data.image : (data.image.startsWith('http') ? data.image : `data:image/png;base64,${data.image}`);
+                                    if (data.cached) {
+                                      setCachedColoringUrl(data.image);
+                                      setCachedIllustrationUrl(selectedColoringUrl);
+                                    }
+                                  }
+                                } catch (apiErr) {
+                                  console.warn("API coloring failed, using client-side:", apiErr);
                                 }
-                                if (data?.upsell) {
-                                  setShowColoringUpsell(true);
-                                  return;
+
+                                // Fallback to client-side generation
+                                if (!coloringDataUrl) {
+                                  console.log("Using client-side coloring page generator");
+                                  coloringDataUrl = await generateColoringPageClientSide(illustrationFullUrl);
                                 }
-                                if (fnError || !data?.image) {
-                                  toast({ title: data?.error || "שגיאה ביצירת דף הצביעה", variant: "destructive" });
-                                  return;
-                                }
-                                // Update cache state
-                                if (data.cached) {
-                                  setCachedColoringUrl(data.image);
-                                  setCachedIllustrationUrl(selectedColoringUrl);
-                                }
+
                                 const coloringImg = new Image();
                                 coloringImg.crossOrigin = 'anonymous';
-                                const imgSrc = data.image.startsWith('data:') ? data.image : (data.image.startsWith('http') ? data.image : `data:image/png;base64,${data.image}`);
-                                coloringImg.src = imgSrc;
+                                coloringImg.src = coloringDataUrl;
                                 await new Promise<void>((resolve, reject) => {
                                   coloringImg.onload = () => resolve();
                                   coloringImg.onerror = () => reject(new Error('Failed to load coloring image'));
@@ -1630,31 +1642,41 @@ const [currentPage, setCurrentPage] = useState(0);
                                 return;
                               }
 
-                              toast({ title: "מכין את דף הצביעה שלך... זה לוקח כ-30 שניות 🎨" });
+                              toast({ title: "מכין את דף הצביעה שלך... 🎨" });
                               try {
                                 const illustrationFullUrl = getPublicIllustrationUrl(selectedColoringUrl);
-                                const invokeColoring = () => supabase.functions.invoke('generate-coloring-page', {
-                                  body: { illustration_url: illustrationFullUrl, story_title: story.topic, child_name: story.child_name, story_id: story.id, device_id: localStorage.getItem('device_id') || 'unknown' },
-                                });
-                                let { data, error: fnError } = await invokeColoring();
-                                if (!fnError && !data?.image && data?.retryable) {
-                                  await new Promise(r => setTimeout(r, 5000));
-                                  ({ data, error: fnError } = await invokeColoring());
+                                
+                                let coloringDataUrl: string | null = null;
+                                try {
+                                  const invokeColoring = () => supabase.functions.invoke('generate-coloring-page', {
+                                    body: { illustration_url: illustrationFullUrl, story_title: story.topic, child_name: story.child_name, story_id: story.id, device_id: localStorage.getItem('device_id') || 'unknown' },
+                                  });
+                                  let { data, error: fnError } = await invokeColoring();
+                                  if (!fnError && !data?.image && data?.retryable) {
+                                    await new Promise(r => setTimeout(r, 5000));
+                                    ({ data, error: fnError } = await invokeColoring());
+                                  }
+                                  if (data?.upsell) {
+                                    setShowColoringUpsell(true);
+                                    return;
+                                  }
+                                  if (!fnError && data?.image) {
+                                    coloringDataUrl = data.image.startsWith('data:') ? data.image : (data.image.startsWith('http') ? data.image : `data:image/png;base64,${data.image}`);
+                                    if (data.cached) {
+                                      setCachedColoringUrl(data.image);
+                                      setCachedIllustrationUrl(selectedColoringUrl);
+                                    }
+                                  }
+                                } catch (apiErr) {
+                                  console.warn("API coloring failed, using client-side:", apiErr);
                                 }
-                                if (data?.upsell) {
-                                  setShowColoringUpsell(true);
-                                  return;
+
+                                if (!coloringDataUrl) {
+                                  console.log("Using client-side coloring page generator");
+                                  coloringDataUrl = await generateColoringPageClientSide(illustrationFullUrl);
                                 }
-                                if (fnError || !data?.image) {
-                                  toast({ title: data?.error || "שגיאה ביצירת דף הצביעה", variant: "destructive" });
-                                  return;
-                                }
-                                if (data.cached) {
-                                  setCachedColoringUrl(data.image);
-                                  setCachedIllustrationUrl(selectedColoringUrl);
-                                }
-                                const imgSrc = data.image.startsWith('data:') ? data.image : (data.image.startsWith('http') ? data.image : `data:image/png;base64,${data.image}`);
-                                setOnlineColoringImageUrl(imgSrc);
+
+                                setOnlineColoringImageUrl(coloringDataUrl);
                                 setOnlineColoringOpen(true);
                               } catch (err) {
                                 console.error("Online coloring page error:", err);
