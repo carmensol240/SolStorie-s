@@ -10,6 +10,7 @@ import {
   Download,
   Check,
   Loader2,
+  Palette,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
