@@ -237,6 +237,7 @@ const [currentPage, setCurrentPage] = useState(0);
   const [onlineColoringImageUrl, setOnlineColoringImageUrl] = useState<string | null>(null);
   const [cachedColoringUrl, setCachedColoringUrl] = useState<string | null>(null);
   const [cachedIllustrationUrl, setCachedIllustrationUrl] = useState<string | null>(null);
+  const { user } = useAuth();
   
 
   const getIllustrationComparisonKey = useCallback((url: string | null) => {
@@ -334,7 +335,6 @@ const [currentPage, setCurrentPage] = useState(0);
   const bgMusic = useBgMusic();
   // story-illustrations bucket is public - using direct URLs via getPublicIllustrationUrl
   
-  const { user } = useAuth();
   const [editStoryId, setEditStoryId] = useState<string>('');
   const { fetchEditCount, editCount, freeEditsRemaining } = useStoryEdit(editStoryId);
   const hasTrackedStart = useRef(false);
