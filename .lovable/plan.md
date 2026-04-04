@@ -1,43 +1,40 @@
 
 
-## Plan: Remove Admin Redirect to Settings
+## Plan: Remove Canvas Fallback, Fix Coloring Page via Lovable AI Gateway
 
 ### Problem
-Admin emails (`carmit1901@gmail.com`, `carmit1901+test@gmail.com`) are redirected to `/settings` instead of seeing the normal app flow. The user wants admins to navigate the app like regular users.
+The Gemini API returns 429 (quota exceeded) for coloring page generation. When it fails, the client-side Canvas edge detection fallback kicks in, producing ugly, unprofessional results. The user wants clean AI-generated coloring pages only.
+
+### Root Cause
+The direct Gemini API (`generativelanguage.googleapis.com`) is hitting quota limits. The Canvas Sobel edge detection fallback was added as a safety net but produces terrible quality.
+
+### Solution
+1. **Remove Canvas fallback entirely** — no more ugly edge detection
+2. **Switch coloring page generation to Lovable AI Gateway** — same gateway that works for `generate-story`, using image-capable model `google/gemini-3.1-flash-image-preview`
+3. **Delete `src/lib/coloring-page-generator.ts`** — no longer needed
 
 ### Changes
 
-**1. `src/pages/Adventure.tsx` (line 35-36)**
-Remove the admin email check — treat admins the same as any logged-in user (redirect to `/create`):
-```ts
-// Before:
-if (ADMIN_EMAILS.includes(user.email || '')) {
-  navigate("/settings", { replace: true });
-} else {
-  navigate("/create", { replace: true });
-}
+**1. `supabase/functions/generate-coloring-page/index.ts`**
+- Replace direct Gemini API calls with Lovable AI Gateway (`ai.gateway.lovable.dev/v1/chat/completions`)
+- Use `LOVABLE_API_KEY` instead of `GEMINI_API_KEY`
+- Send illustration as base64 image in OpenAI vision format
+- Use model `google/gemini-3.1-flash-image-preview` (supports image output via gateway)
+- Keep all caching, credits, storage, and analytics logic unchanged
 
-// After:
-navigate("/create", { replace: true });
-```
-Remove the unused `ADMIN_EMAILS` constant.
+**2. `src/pages/StoryViewer.tsx`**
+- Remove import of `generateColoringPageClientSide`
+- Remove both fallback blocks (print + online) that call the Canvas generator
+- If API fails, show error toast instead of falling back to Canvas
 
-**2. `src/pages/About.tsx` (lines 20-25)**
-Same fix — remove admin-specific redirect, just redirect all logged-in users to `/create`:
-```ts
-// Before:
-if (ADMIN_EMAILS.includes(user.email || '')) {
-  navigate("/settings", { replace: true });
-} else {
-  navigate("/create", { replace: true });
-}
+**3. Delete `src/lib/coloring-page-generator.ts`**
+- Remove the entire Canvas edge detection file
 
-// After:
-navigate("/create", { replace: true });
-```
-
-### What stays unchanged
-- Admin dashboard access (`/admin/dashboard`) still works via direct URL
-- Settings page admin features still work when navigated to manually
-- Test mode on Upgrade page stays intact
+### What stays the same
+- All caching logic (story_coloring_pages table, storage upload)
+- Coloring credits system
+- Upsell flow for additional illustrations
+- Prompt text and coloring page quality requirements
+- Analytics tracking
+- Retry logic with exponential backoff
 
