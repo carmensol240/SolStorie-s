@@ -237,7 +237,7 @@ const [currentPage, setCurrentPage] = useState(0);
   const [onlineColoringImageUrl, setOnlineColoringImageUrl] = useState<string | null>(null);
   const [cachedColoringUrl, setCachedColoringUrl] = useState<string | null>(null);
   const [cachedIllustrationUrl, setCachedIllustrationUrl] = useState<string | null>(null);
-  const [showColoringUpsell, setShowColoringUpsell] = useState(false);
+  
 
   const handleImageLoad = useCallback((e: React.SyntheticEvent<HTMLImageElement>) => {
     // Keep object-cover for all images — no white margins
@@ -2092,28 +2092,6 @@ const [currentPage, setCurrentPage] = useState(0);
         storyTitle={story?.topic}
       />
 
-      {/* Coloring Upsell Dialog */}
-      <AlertDialog open={showColoringUpsell} onOpenChange={setShowColoringUpsell}>
-        <AlertDialogContent dir="rtl">
-          <AlertDialogHeader>
-            <AlertDialogTitle className="text-center text-lg">
-              רוצים לצבוע איור נוסף? 🎨
-            </AlertDialogTitle>
-            <AlertDialogDescription className="text-center text-sm">
-              כבר יצרתם דף צביעה לסיפור הזה. כדי לצבוע איור אחר, רכשו חבילת צביעה!
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter className="flex-col gap-2 sm:flex-col">
-            <AlertDialogAction
-              onClick={() => navigate('/upgrade')}
-              className="bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600"
-            >
-              🎨 לחבילת הצביעה
-            </AlertDialogAction>
-            <AlertDialogCancel>ביטול</AlertDialogCancel>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
     </div>
   );
 };
