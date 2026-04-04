@@ -1188,7 +1188,7 @@ serve(async (req) => {
       const charDesc = characterProfile
         ? `A ${characterProfile.gender === "female" ? "girl" : "boy"} aged ${characterProfile.ageDescription} with ${characterProfile.hairDescription}, ${characterProfile.skinTone} skin, ${characterProfile.eyeColor} eyes, wearing ${storyOutfit}`
         : `A child wearing ${storyOutfit}`;
-      const illustrationPrompt = `${charDesc}. SCENE: ${basePrompt}. CAMERA: ${cameraAngle}. LIGHTING: ${lighting}. Pixar 3D CGI style, vibrant colors, fantasy children's book, full body head to toe with feet grounded on surface`;
+      let illustrationPrompt = `${charDesc}. SCENE: ${basePrompt}. CAMERA: ${cameraAngle}. LIGHTING: ${lighting}. Pixar 3D CGI style, vibrant colors, fantasy children's book, full body head to toe with feet grounded on surface`;
       console.log(`[Page ${page.page_number}] 📝 Direct prompt (${illustrationPrompt.length} chars)`);
 
       // Inject IDF military uniform for father in "dad-in-reserves" topic
