@@ -154,6 +154,7 @@ Output ONLY the coloring page image, nothing else. Do not include any text, labe
                 ],
               },
             ],
+            modalities: ["image", "text"],
           }),
         });
 
