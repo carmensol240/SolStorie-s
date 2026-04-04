@@ -1578,15 +1578,6 @@ const [currentPage, setCurrentPage] = useState(0);
                         light
                       />
                     </div>
-                    {isLearningTopic && learningPronunciation && currentPage === virtualPages.length - 1 && (
-                      <button
-                        onClick={() => startReading(learningPronunciation, 'he')}
-                        className="absolute bottom-12 right-3 z-20 w-10 h-10 rounded-full bg-white/90 shadow-lg flex items-center justify-center hover:scale-110 transition-transform border border-purple-200"
-                        aria-label="השמע"
-                      >
-                        <Volume2 className="w-5 h-5 text-purple-600" />
-                      </button>
-                    )}
                   </>
                 ) : currentVirtual.type === 'illustration' ? (
                   /* Illustration-only page — fullscreen image, no text */
