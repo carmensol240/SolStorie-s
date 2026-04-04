@@ -196,16 +196,20 @@ export const OnlineColoringCanvas: React.FC<OnlineColoringCanvasProps> = ({
 
     const vw = window.innerWidth;
     const vh = window.innerHeight;
-    const toolbarHeight = 44 + 110; // top bar + bottom toolbar
+    const isMobile = vw < 768;
+    const toolbarHeight = isMobile ? 44 + 110 : 44 + 110;
     const availH = vh - toolbarHeight;
+    // On desktop, use most of the available space (95%) for a large canvas
+    const canvasMaxH = isMobile ? availH : Math.floor(availH * 0.98);
+    const canvasMaxW = isMobile ? vw : Math.floor(vw * 0.95);
     const imgRatio = img.naturalWidth / img.naturalHeight;
     let w: number, h: number;
-    if (vw / availH > imgRatio) {
-      h = availH;
-      w = Math.floor(availH * imgRatio);
+    if (canvasMaxW / canvasMaxH > imgRatio) {
+      h = canvasMaxH;
+      w = Math.floor(canvasMaxH * imgRatio);
     } else {
-      w = vw;
-      h = Math.floor(vw / imgRatio);
+      w = canvasMaxW;
+      h = Math.floor(canvasMaxW / imgRatio);
     }
 
     bgCanvas.width = w; bgCanvas.height = h;
