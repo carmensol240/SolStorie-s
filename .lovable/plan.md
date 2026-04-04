@@ -1,28 +1,40 @@
 
+מיפוי הקוד מראה ששתי הבעיות יטופלו בקובץ אחד בלבד: `src/components/story/OnlineColoringCanvas.tsx`.
 
-## Plan: Fix Online Coloring Page — Color Selection + Mobile Display
+### מה כנראה גורם לבעיות
+1. **הצבע לא מתחלף**  
+   כרגע פעולת הצביעה נשענת על `color` מתוך state של React בתוך callbacks ממואזים. במובייל, כשבוחרים צבע ואז מיד נוגעים בקנבס, ייתכן שה-handler עדיין משתמש בצבע הישן (האדום). לכן צריך סנכרון מיידי ולא רק re-render.
 
-### Problem 1: Color not changing
-The `handlePointerMove` callback sets `ctx.strokeStyle = color` but doesn't reset `ctx.globalCompositeOperation` to `source-over` before drawing. After using the eraser (which sets `destination-out`), switching back to brush and changing color may still use the stale composite operation from a previous eraser interaction. Additionally, the color buttons need explicit touch handling to ensure they register on mobile.
+2. **האיור קטן עם שוליים לבנים גדולים**  
+   הפונקציה `resizeCanvases` מציירת את כל תמונת המקור כפי שהיא. בדפי הצביעה החדשים יש כנראה הרבה שוליים לבנים כבר בתוך ה-PNG עצמו, ולכן גם כשהקנבס בגודל נכון - התוכן נשאר קטן וממורכז עם רווח לבן גדול מעל ומתחת.
 
-### Problem 2: Page cropped on mobile  
-`h-screen` uses `100vh` which on mobile browsers includes the area behind the address bar. The bottom toolbar (colors/tools) gets pushed off-screen. Need to use `100dvh` (dynamic viewport height) which accounts for browser chrome.
+### מה אשנה
+#### 1. תיקון החלפת צבע
+- אוסיף `colorRef` (וגם ref לכלי אם צריך) כדי שהקנבס תמיד ישתמש בצבע העדכני ביותר מיידית.
+- אחלץ את בחירת הצבע לפונקציה אחת מסודרת, למשל `selectColor(nextColor)`, שתעשה:
+  - עדכון ref מיידי
+  - `setColor(nextColor)`
+  - אם המחק פעיל: מעבר אוטומטי למברשת
+- אעדכן את `handlePointerDown` ו-`handlePointerMove` להשתמש ב-ref העדכני במקום להסתמך רק על state סגור בתוך callback.
+- אשאיר את כל לוגיקת הצביעה, המילוי, המחק, undo/redo כפי שהיא.
 
-### Changes — single file: `src/components/story/OnlineColoringCanvas.tsx`
+#### 2. תיקון התצוגה במובייל בלי שוליים לבנים
+- אוסיף helper פנימי שיחתוך אוטומטית את השוליים הלבנים מתמונת הרקע לפני שמציירים אותה על הקנבס:
+  - טעינת התמונה ל-offscreen canvas
+  - סריקה של הפיקסלים
+  - איתור הגבולות של התוכן הלא-לבן
+  - יצירת גרסה חתוכה של האיור בלבד
+- `resizeCanvases` יעבוד מול התמונה/הקנבס החתוך, כך שהאיור עצמו יתפוס את רוב השטח הזמין ולא דף A4 לבן עם ציור קטן באמצע.
+- אשמור על התאמת יחס גובה/רוחב נכון כדי שלא תהיה מתיחה.
+- במידת הצורך אעדכן גם את יישור אזור הקנבס במובייל כדי שלא יישב ממורכז עם רווחים מיותרים מעל ומתחת.
 
-**Fix 1 — Color application:**
-- In `handlePointerMove`, explicitly set `ctx.globalCompositeOperation = 'source-over'` before brush strokes (not just in `handlePointerDown`)
-- Ensure `ctx.strokeStyle = color` is always applied fresh each move
+### התוצאה הצפויה
+- בחירת צבע חדש תעבוד בפועל, ולא תישאר תקועה על אדום.
+- האיור בדף הצביעה האונליין ימלא הרבה יותר טוב את המסך במובייל, בלי שוליים לבנים גדולים מעל ומתחת.
+- לא אגע ב-`StoryViewer`, בלוגיקת יצירת דף הצביעה, בכפתורים אחרים, או בשום רכיב אחר.
 
-**Fix 2 — Mobile viewport:**
-- Change the root container from `h-screen` to `h-dvh` (Tailwind's dynamic viewport height)
-- Add fallback: `style={{ height: '100dvh' }}` for browsers that support dvh
-- This ensures the full UI (canvas + toolbars) fits within the visible viewport on mobile without being cropped by browser chrome
-
-### What stays the same
-- All drawing, fill, eraser logic
-- Undo/redo, save, print
-- Color palette design and sticker functionality  
-- Desktop behavior
-- Canvas sizing calculations
-
+### מה לא ישתנה
+- כלי מברשת / דלי / מחק
+- Undo / Redo / Save / Print
+- עיצוב כללי של המסך
+- לוגיקת הצביעה והיסטוריה מעבר למה שנדרש כדי לתקן את שתי הבעיות
