@@ -1810,7 +1810,7 @@ const [currentPage, setCurrentPage] = useState(0);
                           key={`${currentVirtual.illustrationUrl}-${failedImages[currentVirtual.illustrationUrl] || 0}`}
                           src={`${getPublicIllustrationUrl(currentVirtual.illustrationUrl) || ''}${failedImages[currentVirtual.illustrationUrl] ? `?retry=${failedImages[currentVirtual.illustrationUrl]}` : ''}`}
                           alt="איור"
-                          className={cn("absolute inset-0 w-full h-full transition-opacity duration-500 object-cover", imageLoadedMap[currentVirtual.illustrationUrl] ? "opacity-100" : "opacity-0")}
+                           className={cn("absolute inset-0 w-full h-full transition-opacity duration-500 object-contain md:object-cover", imageLoadedMap[currentVirtual.illustrationUrl] ? "opacity-100" : "opacity-0")}
                            style={{ transform: isMobile ? undefined : 'scale(1.02)' }}
                           loading="eager"
                           onLoad={(e) => {
@@ -1922,7 +1922,7 @@ const [currentPage, setCurrentPage] = useState(0);
                           key={`${currentVirtual.illustrationUrl}-${failedImages[currentVirtual.illustrationUrl] || 0}`}
                           src={`${getPublicIllustrationUrl(currentVirtual.illustrationUrl) || ''}${failedImages[currentVirtual.illustrationUrl] ? `?retry=${failedImages[currentVirtual.illustrationUrl]}` : ''}`}
                           alt="איור"
-                          className={cn("absolute inset-0 w-full h-full transition-opacity duration-500 object-cover", imageLoadedMap[currentVirtual.illustrationUrl] ? "opacity-100" : "opacity-0")}
+                          className={cn("absolute inset-0 w-full h-full transition-opacity duration-500 object-contain md:object-cover", imageLoadedMap[currentVirtual.illustrationUrl] ? "opacity-100" : "opacity-0")}
                            style={{ transform: isMobile ? undefined : 'scale(1.02)' }}
                           loading="eager"
                           onLoad={(e) => {
