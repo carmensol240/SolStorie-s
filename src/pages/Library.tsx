@@ -441,6 +441,89 @@ const Library = () => {
     );
   };
 
+  const handleDownloadColoringPage = useCallback(async (coloringImagePath: string, storyTopic?: string) => {
+    try {
+      const url = getPublicIllustrationUrl(coloringImagePath);
+      if (!url) throw new Error('No URL');
+      const res = await fetch(url);
+      const blob = await res.blob();
+      const blobUrl = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = blobUrl;
+      a.download = `coloring-${storyTopic || 'page'}.png`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(blobUrl);
+      toast({ title: "📥 דף הצביעה הורד בהצלחה!" });
+    } catch {
+      toast({ variant: "destructive", title: "שגיאה בהורדה" });
+    }
+  }, [toast]);
+
+  const renderColoringPages = () => {
+    if (coloringPages.length === 0) {
+      return (
+        <div className="text-center py-16 space-y-4">
+          <Palette className="w-16 h-16 mx-auto text-muted-foreground/30" />
+          <h2 className="text-lg font-bold text-muted-foreground">אין עדיין דפי צביעה</h2>
+          <p className="text-sm text-muted-foreground/70">
+            פתחו סיפור ולחצו על 🎨 כדי ליצור דף צביעה
+          </p>
+        </div>
+      );
+    }
+
+    return (
+      <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+        {coloringPages.map(cp => {
+          const imgUrl = getPublicIllustrationUrl(cp.coloring_image_path);
+          const topicLabel = cp.story_topic ? translateTopic(cp.story_topic) : '';
+          return (
+            <div key={cp.id} className="rounded-xl border bg-card shadow-sm overflow-hidden">
+              <div className="aspect-square bg-white relative">
+                <img
+                  src={imgUrl || ''}
+                  alt={`דף צביעה - ${topicLabel}`}
+                  className="w-full h-full object-contain"
+                  loading="lazy"
+                />
+              </div>
+              <div className="p-2 space-y-1.5">
+                {cp.story_child_name && (
+                  <p className="text-xs font-bold text-foreground truncate">{cp.story_child_name}</p>
+                )}
+                {topicLabel && (
+                  <p className="text-xs text-muted-foreground truncate">{topicLabel}</p>
+                )}
+                <div className="flex gap-1.5">
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    className="flex-1 text-xs h-7 gap-1"
+                    onClick={() => navigate(`/story/${cp.story_slug || cp.story_id}`)}
+                  >
+                    <Paintbrush className="w-3 h-3" />
+                    צביעה
+                  </Button>
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    className="flex-1 text-xs h-7 gap-1"
+                    onClick={() => handleDownloadColoringPage(cp.coloring_image_path, cp.story_topic)}
+                  >
+                    <Download className="w-3 h-3" />
+                    הורדה
+                  </Button>
+                </div>
+              </div>
+            </div>
+          );
+        })}
+      </div>
+    );
+  };
+
   const LoadingSkeleton = React.forwardRef<HTMLDivElement>((_, ref) => (
     <div ref={ref} className="grid grid-cols-2 gap-3">
       {[1, 2, 3, 4].map((i) => (
