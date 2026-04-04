@@ -130,10 +130,9 @@ Output ONLY the coloring page image, nothing else. Do not include any text, labe
 
     for (const model of imageModels) {
       console.log(`Trying model: ${model}`);
-      const geminiUrl = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${GEMINI_API_KEY}`;
+      const geminiUrl = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent`;
       const geminiBody = JSON.stringify({
         contents: [{
-          role: "user",
           parts: [
             { text: coloringPrompt },
             { inlineData: { mimeType, data: imgBase64 } },
@@ -150,7 +149,10 @@ Output ONLY the coloring page image, nothing else. Do not include any text, labe
       for (let attempt = 0; attempt <= maxRetries; attempt++) {
         aiResponse = await fetch(geminiUrl, {
           method: "POST",
-          headers: { "Content-Type": "application/json" },
+          headers: {
+            "Content-Type": "application/json",
+            "x-goog-api-key": GEMINI_API_KEY,
+          },
           body: geminiBody,
         });
 
