@@ -1900,6 +1900,181 @@ const [currentPage, setCurrentPage] = useState(0);
 
       {/* Install App Prompt - shown only after reaching last page */}
       <InstallAppPrompt justCreatedFirstStory={justCreatedStory && (isClosingPage || isEndPage)} />
+
+      {/* Coloring Picker Dialog — global so it works from header icon too */}
+      <Dialog open={coloringPickerOpen} onOpenChange={(open) => {
+        setColoringPickerOpen(open);
+        if (!open) { setColoringAction('pick'); setColoringMode(null); }
+      }}>
+        <DialogContent className="max-w-md" dir="rtl">
+          <DialogHeader>
+            <DialogTitle className="text-center text-lg">
+              {coloringAction === 'pick' ? '🎨 בחרו איור לדף צביעה' : '🎨 מה תרצו לעשות?'}
+            </DialogTitle>
+          </DialogHeader>
+
+          {coloringAction === 'pick' ? (
+            <>
+              <div className="grid grid-cols-3 gap-3 max-h-[50vh] overflow-y-auto p-1">
+                {story?.pages?.filter(p => p.illustration_url).map((page, idx) => {
+                  const url = getPublicIllustrationUrl(page.illustration_url!);
+                  const isSelected = selectedColoringUrl === page.illustration_url;
+                  return (
+                    <button
+                      key={page.id || idx}
+                      onClick={() => setSelectedColoringUrl(page.illustration_url!)}
+                      className={cn(
+                        "relative rounded-lg overflow-hidden border-2 transition-all aspect-square",
+                        isSelected ? "border-purple-500 ring-2 ring-purple-300 scale-105" : "border-transparent hover:border-purple-200"
+                      )}
+                    >
+                      <img src={url!} alt={`עמוד ${page.page_number}`} className="w-full h-full object-cover" />
+                      <span className="absolute bottom-0 left-0 right-0 bg-black/50 text-white text-xs text-center py-0.5">
+                        עמוד {page.page_number}
+                      </span>
+                      {isSelected && (
+                        <div className="absolute inset-0 bg-purple-500/20 flex items-center justify-center">
+                          <div className="bg-purple-600 text-white rounded-full w-6 h-6 flex items-center justify-center text-sm">✓</div>
+                        </div>
+                      )}
+                    </button>
+                  );
+                })}
+              </div>
+              <Button
+                onClick={async () => {
+                  if (!selectedColoringUrl || !story) return;
+                  if (!coloringMode) {
+                    setColoringAction('choose-action');
+                    return;
+                  }
+                  setColoringPickerOpen(false);
+                  setColoringLoading(true);
+                  try {
+                    const response = await supabase.functions.invoke("generate-coloring-page", {
+                      body: { illustrationUrl: selectedColoringUrl, storyId: story.id },
+                    });
+                    if (response.error) throw response.error;
+                    const coloringUrl = (response.data as any)?.coloringPageUrl;
+                    if (!coloringUrl) throw new Error("No coloring URL returned");
+                    if (coloringMode === 'online') {
+                      setOnlineColoringImageUrl(coloringUrl);
+                      setOnlineColoringOpen(true);
+                    } else {
+                      window.open(coloringUrl, '_blank');
+                    }
+                  } catch (err: any) {
+                    console.error("Coloring error:", err);
+                    toast({ title: "שגיאה ביצירת דף צביעה", description: err.message, variant: "destructive" });
+                  } finally {
+                    setColoringLoading(false);
+                  }
+                }}
+                disabled={!selectedColoringUrl || coloringLoading}
+                className="w-full bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white"
+              >
+                {coloringLoading ? <><Loader2 className="w-4 h-4 animate-spin mr-2" /> מכין דף צביעה...</> : 'המשך →'}
+              </Button>
+            </>
+          ) : (
+            <div className="space-y-3">
+              {cachedColoringUrl && (
+                <div className="rounded-lg overflow-hidden border border-purple-200 mb-2">
+                  <img src={cachedColoringUrl} alt="דף צביעה" className="w-full max-h-48 object-contain bg-white" />
+                </div>
+              )}
+
+              <Button
+                onClick={() => {
+                  if (cachedColoringUrl) {
+                    if (coloringMode === 'online') {
+                      setOnlineColoringImageUrl(cachedColoringUrl);
+                      setOnlineColoringOpen(true);
+                      setColoringPickerOpen(false);
+                    } else {
+                      window.open(cachedColoringUrl, '_blank');
+                      setColoringPickerOpen(false);
+                    }
+                  }
+                }}
+                className="w-full bg-gradient-to-r from-purple-500 to-indigo-600 hover:from-purple-600 hover:to-indigo-700 text-white py-3"
+              >
+                {coloringMode === 'online' ? '🎨 צבעו את דף הצביעה' : '🖨️ הדפיסו דף צביעה'}
+              </Button>
+
+              <Button
+                onClick={async () => {
+                  if (!story || !selectedColoringUrl) return;
+                  setColoringLoading(true);
+                  try {
+                    const newIllustrations = story.pages
+                      ?.filter(p => p.illustration_url && p.illustration_url !== cachedIllustrationUrl)
+                      .map(p => p.illustration_url!) || [];
+                    if (newIllustrations.length === 0) {
+                      toast({ title: "אין איורים נוספים זמינים", variant: "destructive" });
+                      return;
+                    }
+                    setSelectedColoringUrl(null);
+                    setCachedColoringUrl(null);
+                    setCachedIllustrationUrl(null);
+                    setColoringAction('pick');
+                  } finally {
+                    setColoringLoading(false);
+                  }
+                }}
+                variant="outline"
+                className="w-full border-purple-200 text-purple-700 hover:bg-purple-50"
+              >
+                ✨ צרו דף צביעה מאיור חדש
+              </Button>
+
+              <button
+                onClick={() => {
+                  setColoringMode(null);
+                  setCachedColoringUrl(null);
+                  setCachedIllustrationUrl(null);
+                  setColoringAction('pick');
+                }}
+                className="w-full text-xs text-purple-400 hover:text-purple-600 transition-colors"
+              >
+                ← בחרו איור אחר
+              </button>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
+
+      {/* Online Coloring Canvas */}
+      <OnlineColoringCanvas
+        isOpen={onlineColoringOpen}
+        onClose={() => setOnlineColoringOpen(false)}
+        backgroundImage={onlineColoringImageUrl || ''}
+        childName={story?.child_name}
+        storyTitle={story?.topic}
+      />
+
+      {/* Coloring Upsell Dialog */}
+      <AlertDialog open={showColoringUpsell} onOpenChange={setShowColoringUpsell}>
+        <AlertDialogContent dir="rtl">
+          <AlertDialogHeader>
+            <AlertDialogTitle className="text-center text-lg">
+              רוצים לצבוע איור נוסף? 🎨
+            </AlertDialogTitle>
+            <AlertDialogDescription className="text-center text-sm">
+              כבר יצרתם דף צביעה לסיפור הזה. כדי לצבוע איור אחר, רכשו חבילת צביעה!
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter className="flex-col gap-2 sm:flex-col">
+            <AlertDialogAction
+              onClick={() => navigate('/upgrade')}
+              className="bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600"
+            >
+              🎨 לחבילת הצביעה
+            </AlertDialogAction>
+            <AlertDialogCancel>ביטול</AlertDialogCancel>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 };
