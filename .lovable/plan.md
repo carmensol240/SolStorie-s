@@ -1,40 +1,30 @@
 
-מיפוי הקוד מראה ששתי הבעיות יטופלו בקובץ אחד בלבד: `src/components/story/OnlineColoringCanvas.tsx`.
 
-### מה כנראה גורם לבעיות
-1. **הצבע לא מתחלף**  
-   כרגע פעולת הצביעה נשענת על `color` מתוך state של React בתוך callbacks ממואזים. במובייל, כשבוחרים צבע ואז מיד נוגעים בקנבס, ייתכן שה-handler עדיין משתמש בצבע הישן (האדום). לכן צריך סנכרון מיידי ולא רק re-render.
+## Plan: Let Admin Users See All Screens Like Regular Users
 
-2. **האיור קטן עם שוליים לבנים גדולים**  
-   הפונקציה `resizeCanvases` מציירת את כל תמונת המקור כפי שהיא. בדפי הצביעה החדשים יש כנראה הרבה שוליים לבנים כבר בתוך ה-PNG עצמו, ולכן גם כשהקנבס בגודל נכון - התוכן נשאר קטן וממורכז עם רווח לבן גדול מעל ומתחת.
+### Problem
+In `src/pages/Adventure.tsx` (lines 30-34), there's a redirect that sends **all logged-in users** (including admins) away from the Adventure screen to `/create`:
+```tsx
+useEffect(() => {
+  if (loading || !user) return;
+  navigate("/create", { replace: true });
+}, [user, loading, navigate]);
+```
 
-### מה אשנה
-#### 1. תיקון החלפת צבע
-- אוסיף `colorRef` (וגם ref לכלי אם צריך) כדי שהקנבס תמיד ישתמש בצבע העדכני ביותר מיידית.
-- אחלץ את בחירת הצבע לפונקציה אחת מסודרת, למשל `selectColor(nextColor)`, שתעשה:
-  - עדכון ref מיידי
-  - `setColor(nextColor)`
-  - אם המחק פעיל: מעבר אוטומטי למברשת
-- אעדכן את `handlePointerDown` ו-`handlePointerMove` להשתמש ב-ref העדכני במקום להסתמך רק על state סגור בתוך callback.
-- אשאיר את כל לוגיקת הצביעה, המילוי, המחק, undo/redo כפי שהיא.
+This means any logged-in user — including carmit1901 and carmit1901+test — never gets to see the Adventure screen.
 
-#### 2. תיקון התצוגה במובייל בלי שוליים לבנים
-- אוסיף helper פנימי שיחתוך אוטומטית את השוליים הלבנים מתמונת הרקע לפני שמציירים אותה על הקנבס:
-  - טעינת התמונה ל-offscreen canvas
-  - סריקה של הפיקסלים
-  - איתור הגבולות של התוכן הלא-לבן
-  - יצירת גרסה חתוכה של האיור בלבד
-- `resizeCanvases` יעבוד מול התמונה/הקנבס החתוך, כך שהאיור עצמו יתפוס את רוב השטח הזמין ולא דף A4 לבן עם ציור קטן באמצע.
-- אשמור על התאמת יחס גובה/רוחב נכון כדי שלא תהיה מתיחה.
-- במידת הצורך אעדכן גם את יישור אזור הקנבס במובייל כדי שלא יישב ממורכז עם רווחים מיותרים מעל ומתחת.
+Additionally, the user might have a stale `returnTo` value in localStorage pointing to `/settings`, which could cause post-login redirects to the Settings page instead of Adventure.
 
-### התוצאה הצפויה
-- בחירת צבע חדש תעבוד בפועל, ולא תישאר תקועה על אדום.
-- האיור בדף הצביעה האונליין ימלא הרבה יותר טוב את המסך במובייל, בלי שוליים לבנים גדולים מעל ומתחת.
-- לא אגע ב-`StoryViewer`, בלוגיקת יצירת דף הצביעה, בכפתורים אחרים, או בשום רכיב אחר.
+### Solution — single file: `src/pages/Adventure.tsx`
 
-### מה לא ישתנה
-- כלי מברשת / דלי / מחק
-- Undo / Redo / Save / Print
-- עיצוב כללי של המסך
-- לוגיקת הצביעה והיסטוריה מעבר למה שנדרש כדי לתקן את שתי הבעיות
+**Remove lines 30-34** — the automatic redirect from Adventure to `/create` for logged-in users. This will allow admin (and all) users to see the Adventure screen when they navigate to `/` or `/adventure`.
+
+The Adventure page already has a CTA button that takes users to `/create` when they're ready, so the redirect is unnecessary.
+
+### What stays the same
+- Auth flow and login logic
+- Admin detection in Settings, AdminDashboard, AdminReviews
+- All other navigation and redirects
+- MobileNavigation (home/library/settings tabs)
+- Everything else in the app
+
