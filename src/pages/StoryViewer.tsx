@@ -1952,7 +1952,7 @@ const [currentPage, setCurrentPage] = useState(0);
                   setColoringLoading(true);
                   try {
                     const response = await supabase.functions.invoke("generate-coloring-page", {
-                      body: { illustrationUrl: selectedColoringUrl, storyId: story.id },
+                      body: { illustration_url: selectedColoringUrl, story_id: story.id },
                     });
                     if (response.error) throw response.error;
                     const coloringUrl = (response.data as any)?.coloringPageUrl;
