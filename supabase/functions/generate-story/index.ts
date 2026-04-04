@@ -1609,22 +1609,22 @@ ${topic.endsWith('-edu') ? `
         console.warn("[generate-story] Repair failed, retrying AI call...");
         // Attempt 3: retry the AI call with retry helper
         try {
-          const retryResult = await callGeminiWithRetry({
-            apiKey: GEMINI_API_KEY,
+          const retryResult = await callGatewayWithRetry({
+            apiKey: LOVABLE_API_KEY,
             label: "generate-story-retry",
             maxRetries: 2,
             timeoutMs: 120_000,
-            body: {
-              systemInstruction: { parts: [{ text: systemPrompt }] },
-              contents: [{ role: "user", parts: [{ text: userPrompt }] }],
-              generationConfig: { responseMimeType: "application/json" },
-            },
+            messages: [
+              { role: "system", content: systemPrompt },
+              { role: "user", content: userPrompt },
+            ],
+            responseFormat: { type: "json_object" },
           });
           if (!retryResult.ok) {
             console.error(`[generate-story] Retry AI call failed: ${retryResult.status}`);
             throw new Error("Retry failed");
           }
-          const retryContent = retryResult.data.candidates?.[0]?.content?.parts?.[0]?.text;
+          const retryContent = retryResult.data.choices?.[0]?.message?.content;
           if (!retryContent) throw new Error("Empty retry response");
           const cleanedRetry = cleanAiContent(retryContent);
           storyData = JSON.parse(cleanedRetry);
