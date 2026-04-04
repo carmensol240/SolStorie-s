@@ -27,11 +27,6 @@ const Adventure = () => {
     window.scrollTo(0, 0);
   }, []);
 
-  // Admin / logged-in user redirect
-  useEffect(() => {
-    if (loading || !user) return;
-    navigate("/create", { replace: true });
-  }, [user, loading, navigate]);
 
   useEffect(() => {
     if (!user) return;
