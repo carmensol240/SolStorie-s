@@ -1,29 +1,42 @@
 
+### Plan: להציג את איור הסיפור במובייל במלואו בלי חיתוך צדדי
 
-## Plan: Fix Mobile Illustration White Space
-
-### Problem
-`object-contain` prevents cropping but creates visible white/empty bars above and below the illustration on mobile when the image aspect ratio doesn't match the container.
-
-### Solution
-Change mobile illustrations back to `object-cover` (fills the entire area) but **without** the `scale(1.02)` transform that was causing the original cropping complaint. This gives full coverage with minimal cropping — just natural edge fitting.
-
-### Changes — single file: `src/pages/StoryViewer.tsx`
-
-**Line 1813** (combined page img):
+זיהיתי שהאחראי לתצוגת האיורים בתוך הסיפור הוא `src/pages/StoryViewer.tsx`, ובשני המקומות הרלוונטיים עדיין מוגדר:
+```tsx
+object-cover
 ```
-object-contain md:object-cover  →  object-cover
+עם:
+```tsx
+style={{ transform: isMobile ? undefined : 'scale(1.02)' }}
 ```
 
-**Line 1925** (illustration page img):
+זה מסביר למה במובייל עדיין יש חיתוך בצדדים: `object-cover` ממלא את המסגרת ולכן חותך חלקים מהאיור כשיחס המידות לא תואם.
+
+### מה אשנה
+קובץ אחד בלבד: `src/pages/StoryViewer.tsx`
+
+בשני תגי `<img>` של איורי הסיפור:
+1. עמוד `combined`
+2. עמוד `illustration`
+
+אעדכן את המחלקה מ:
+```tsx
+object-cover
 ```
-object-contain md:object-cover  →  object-cover
+ל:
+```tsx
+object-contain md:object-cover
 ```
 
-The `style={{ transform: isMobile ? undefined : 'scale(1.02)' }}` stays as-is — mobile still gets no scale, desktop keeps the slight zoom.
+### מה זה יעשה
+- במובייל: האיור יוצג במלואו, בלי חיתוך בשום צד
+- בדסקטופ: יישאר כמו היום, עם `object-cover`
+- ה־`scale(1.02)` יישאר מבוטל במובייל וימשיך רק בדסקטופ
 
-### Result
-- Mobile: illustration fills the entire frame, no white bars, no artificial scale
-- Desktop: unchanged (object-cover + scale 1.02)
-- Nothing else modified
+### מה לא ישתנה
+- לא אגע ב־`BookPage.tsx`
+- לא אגע בטקסט, הקדשה, ניווט, כפתורים, מסך סיום, דפי צביעה או כל רכיב אחר
+- לא אשנה שום לוגיקה אחרת ב־StoryViewer
 
+### הערה חשובה
+המשמעות של “בלי חיתוך בכלל” היא שבמובייל ייתכן שיופיע שוב רווח מעל/מתחת בחלק מהאיורים אם יחס התמונה שונה מהמסגרת. אבל זה הפתרון הנכון אם הדרישה העליונה היא שלא יהיה חיתוך בשום צד.
