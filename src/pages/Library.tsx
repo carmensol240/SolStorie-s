@@ -99,6 +99,7 @@ const Library = () => {
     if (isOnline) {
       fetchStories();
       fetchChildren();
+      fetchColoringPages();
     } else {
       setIsLoading(false);
     }
