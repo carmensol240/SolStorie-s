@@ -1,56 +1,67 @@
 
+## Plan: Fix 429 handling in `generate-story` and verify the Gemini key
 
-## Plan: Replace Lovable AI Gateway with Direct Google Gemini API
+### What I found
+- The function is reading the secret successfully. The logs show:
+  - `[generate-story] ✅ GEMINI_API_KEY loaded successfully`
+- The exact failure is still coming from Google, not from missing env config:
+  - `status=429`
+  - `status: "RESOURCE_EXHAUSTED"`
+  - quota violations mention:
+    - `generate_content_free_tier_requests`
+    - `generate_content_free_tier_input_token_count`
+    - `limit: 0`
+    - model: `gemini-2.0-flash`
+- That means the key is being read, but Google is still treating that key/project as having zero usable quota for this model. So retry logic will help with temporary minute limits, but it will not solve a true `limit: 0` / billing-configuration issue by itself.
 
-### Overview
-Replace all Lovable AI Gateway (`ai.gateway.lovable.dev/v1/chat/completions`) calls in two edge functions with direct Google Gemini API calls using `GEMINI_API_KEY`.
+### Root cause in code
+- `generate-story` currently has:
+  - no real retry wrapper around the main Gemini API call
+  - only a later retry when JSON parsing fails
+- There is already exponential backoff logic in `generate-coloring-page`, so we can mirror that pattern in `generate-story`.
+- The logs also show story credits are deducted before the Gemini call succeeds, so repeated 429s are burning user credits.
 
-### Key Difference: API Format
-The Lovable Gateway uses OpenAI-compatible format (`/v1/chat/completions`). The direct Gemini API uses a different format (`/v1beta/models/{model}:generateContent`). The request/response structure differs significantly:
+### Implementation
+1. Add a reusable Gemini fetch helper inside `supabase/functions/generate-story/index.ts`
+   - exponential backoff + jitter
+   - retry on `429`, `500`, `502`, `503`, `504`
+   - honor Google retry hints when available
+   - log attempt number, status, shortened body, and wait time
 
-- **Auth**: Query param `?key=API_KEY` instead of `Authorization: Bearer`
-- **Request body**: `contents` array with `parts` instead of `messages` with `content`
-- **System prompt**: Goes in `systemInstruction` field
-- **JSON mode**: `generationConfig.responseMimeType: "application/json"` instead of `response_format`
-- **Response**: `candidates[0].content.parts[0].text` instead of `choices[0].message.content`
-- **Image output** (coloring): Gemini native image gen uses `responseModalities: ["TEXT", "IMAGE"]` in `generationConfig`, returns inline base64 in parts
+2. Use that helper for all Gemini calls in `generate-story`
+   - main story generation
+   - retry generation after parse failure
+   - text rewrite
+   - summary generation
+   - nikud generation
 
-### Changes — `supabase/functions/generate-story/index.ts`
+3. Improve 429 handling
+   - detect quota/billing-style 429s (`limit: 0`, free-tier quota text)
+   - return a clearer system error instead of a generic “try again in a few minutes” when the quota is effectively disabled
+   - keep transient 429s marked as retryable
 
-There are **5 call sites** to replace:
+4. Protect user credits
+   - move credit deduction to after successful story generation, or
+   - rollback/refund the deducted credit if Gemini still fails after all retries
+   - this is important because current logs show multiple deductions during failed attempts
 
-1. **Main story generation** (line ~1441): `gemini-2.5-flash` → `gemini-2.0-flash` at `generativelanguage.googleapis.com`
-2. **Retry on parse failure** (line ~1577): Same model/endpoint change
-3. **Text quality rewrite** (line ~1712): `gemini-2.5-flash-lite` → `gemini-2.0-flash` (no lite variant in direct API at that endpoint)
-4. **Summary generation** (line ~1850): `gemini-2.5-flash-lite` → `gemini-2.0-flash`
-5. **Nikud (vowel) function** (line ~513): `gemini-2.5-flash` → `gemini-2.0-flash`
+5. Keep everything else unchanged
+   - prompts
+   - Hebrew output
+   - Pixar/Disney styling
+   - existing story flow and schema
 
-For each call:
-- Change URL to `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${GEMINI_API_KEY}`
-- Convert `messages` array to Gemini `contents` format
-- Move system prompt to `systemInstruction`
-- Convert `response_format: { type: "json_object" }` to `generationConfig.responseMimeType: "application/json"`
-- Parse response from `candidates[0].content.parts[0].text`
-- Replace `LOVABLE_API_KEY` env read with `GEMINI_API_KEY`
+### Files to update
+- `supabase/functions/generate-story/index.ts`
 
-### Changes — `supabase/functions/generate-coloring-page/index.ts`
+### Technical details
+- Reuse the same retry strategy style already present in `generate-coloring-page`
+- Apply retry before the first failure response is returned to the client
+- For non-critical background tasks like summary/nikud, keep retries shorter so they do not slow the main flow too much
+- No database migration is required for this fix
 
-The coloring function uses image-in + image-out. The direct Gemini API for image generation:
-- URL: `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-exp:generateContent?key=${GEMINI_API_KEY}`
-- Image input: `inlineData` part with `mimeType` and `data` (base64 without data URL prefix)
-- Image output: `generationConfig.responseModalities: ["TEXT", "IMAGE"]`
-- Response: image in `candidates[0].content.parts[].inlineData.data` (base64)
-- Remove model fallback loop (single model now)
-- Keep retry logic for 429/5xx errors
-- Replace `LOVABLE_API_KEY` with `GEMINI_API_KEY`
-
-### What stays the same
-- All prompts (system prompt, user prompt, illustration prompts, Hebrew text)
-- All Supabase/storage/caching/analytics logic
-- All error handling patterns (adapted to new response format)
-- CORS headers, auth flow, credit logic
-
-### Files modified
-1. `supabase/functions/generate-story/index.ts` — 5 API call sites converted to Gemini format
-2. `supabase/functions/generate-coloring-page/index.ts` — AI call converted to Gemini image generation format
-
+### Expected outcome
+- We will confirm in logs that the new key is loaded correctly
+- Temporary rate-limit spikes will be retried automatically
+- Users will stop losing story credits on failed Gemini calls
+- If Google still returns `limit: 0`, the app will fail more clearly, which confirms the remaining issue is on the Google quota/billing side rather than in the function code
