@@ -673,6 +673,9 @@ const GeneratingStep = ({ formData, onComplete }: GeneratingStepProps) => {
           <div 
             key={castIndex}
             className="absolute inset-0 rounded-full overflow-hidden border-4 border-purple-200/60 shadow-xl animate-scale-in"
+            style={{
+              animation: 'scale-in 0.3s ease-out, pulse-glow 2.5s ease-in-out infinite',
+            }}
           >
             <img
               src={currentChar.image}
@@ -697,7 +700,7 @@ const GeneratingStep = ({ formData, onComplete }: GeneratingStepProps) => {
               style={{ width: `${progress}%` }}
             />
           </div>
-          <p className="text-sm text-purple-600 font-medium">{Math.round(progress)}%</p>
+          <p className="text-sm text-purple-600 font-medium text-center">{Math.round(progress)}%</p>
         </div>
 
         {/* Parenting tip */}
@@ -775,7 +778,7 @@ const GeneratingStep = ({ formData, onComplete }: GeneratingStepProps) => {
             />
           </div>
           {!needsSignup && (
-            <p className="text-xs text-purple-600 font-medium">
+            <p className="text-xs text-purple-600 font-medium text-center">
               {Math.round(progress)}%
             </p>
           )}
