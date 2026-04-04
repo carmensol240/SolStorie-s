@@ -30,11 +30,7 @@ const Adventure = () => {
   // Admin / logged-in user redirect
   useEffect(() => {
     if (loading || !user) return;
-    if (ADMIN_EMAILS.includes(user.email || '')) {
-      navigate("/settings", { replace: true });
-    } else {
-      navigate("/create", { replace: true });
-    }
+    navigate("/create", { replace: true });
   }, [user, loading, navigate]);
 
   useEffect(() => {
