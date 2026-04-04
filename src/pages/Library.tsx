@@ -81,6 +81,8 @@ const Library = () => {
   const [regeneratingCoverId, setRegeneratingCoverId] = useState<string | null>(null);
   const [showOfflineFilter, setShowOfflineFilter] = useState(false);
   const [offlineStories, setOfflineStories] = useState<OfflineStory[]>([]);
+  const [coloringPages, setColoringPages] = useState<ColoringPageRecord[]>([]);
+  const [libraryTab, setLibraryTab] = useState<string>("stories");
 
   const fullOffline = useFullOfflineStorage();
 
