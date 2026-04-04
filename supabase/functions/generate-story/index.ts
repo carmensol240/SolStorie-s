@@ -457,6 +457,15 @@ function getHebrewTopic(topicId: string): string {
   return TOPIC_HEBREW_MAP[topicId] || topicId;
 }
 
+const AGE_LABEL_MAP: Record<string, string> = {
+  "0-2": "שנתיים",
+  "2-4": "ארבע",
+  "3-6": "חמש",
+  "5-7": "שש",
+  "6-9": "שבע",
+  "8-10": "שמונה",
+};
+
 // NOTE: Character profile extraction, illustration generation, and image upload
 // are handled entirely by the generate-illustrations edge function (called async).
 // The generate-story function only creates text content.
@@ -507,8 +516,8 @@ const NIKUD_GRAMMARIAN_PROMPT = `אתה מומחה ניקוד עברי (נקדן
 ### פורמט:
 החזר רק את הטקסט המנוקד, ללא הסברים או תוספות.`;
 
-// === Reusable Direct Gemini API fetch helper with exponential backoff ===
-interface GeminiCallOptions {
+// === Reusable Lovable AI Gateway fetch helper with exponential backoff ===
+interface GatewayCallOptions {
   apiKey: string;
   model?: string;
   systemPrompt?: string;
@@ -520,44 +529,56 @@ interface GeminiCallOptions {
   maxOutputTokens?: number;
 }
 
-async function callGeminiWithRetry(opts: GeminiCallOptions): Promise<{ ok: true; text: string } | { ok: false; status: number; body: string; isBillingError: boolean }> {
-  const { apiKey, model = "gemini-2.0-flash", systemPrompt, userPrompt, jsonMode = false, maxRetries = 4, timeoutMs = 120_000, label = "gemini", maxOutputTokens } = opts;
-  const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`;
+async function callGatewayWithRetry(opts: GatewayCallOptions): Promise<{ ok: true; text: string } | { ok: false; status: number; body: string; isBillingError: boolean }> {
+  const { apiKey, model = "google/gemini-2.5-flash", systemPrompt, userPrompt, jsonMode = false, maxRetries = 4, timeoutMs = 120_000, label = "gateway", maxOutputTokens } = opts;
+  const url = "https://ai.gateway.lovable.dev/v1/chat/completions";
   const RETRYABLE = new Set([429, 500, 502, 503, 504]);
 
   const requestBody: Record<string, unknown> = {
-    contents: [{ role: "user", parts: [{ text: userPrompt }] }],
+    model,
+    messages: systemPrompt
+      ? [
+          { role: "system", content: systemPrompt },
+          { role: "user", content: userPrompt },
+        ]
+      : [{ role: "user", content: userPrompt }],
   };
-  if (systemPrompt) {
-    requestBody.systemInstruction = { parts: [{ text: systemPrompt }] };
-  }
-  const genConfig: Record<string, unknown> = {};
-  if (jsonMode) genConfig.responseMimeType = "application/json";
-  if (maxOutputTokens) genConfig.maxOutputTokens = maxOutputTokens;
-  if (Object.keys(genConfig).length > 0) requestBody.generationConfig = genConfig;
+  if (jsonMode) requestBody.response_format = { type: "json_object" };
+  if (maxOutputTokens) requestBody.max_completion_tokens = maxOutputTokens;
 
   for (let attempt = 0; attempt <= maxRetries; attempt++) {
     try {
       const response = await fetch(url, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: {
+          Authorization: `Bearer ${apiKey}`,
+          "Content-Type": "application/json",
+        },
         body: JSON.stringify(requestBody),
         signal: AbortSignal.timeout(timeoutMs),
       });
 
       if (response.ok) {
         const data = await response.json();
-        const text = data.candidates?.[0]?.content?.parts?.[0]?.text;
+        const rawContent = data.choices?.[0]?.message?.content;
+        const text = typeof rawContent === "string"
+          ? rawContent
+          : Array.isArray(rawContent)
+            ? rawContent
+                .map((part: any) => typeof part?.text === "string" ? part.text : "")
+                .join("")
+                .trim()
+            : "";
         if (text) return { ok: true, text };
-        console.error(`[${label}] ❌ No text in Gemini response`);
+        console.error(`[${label}] ❌ No text in AI Gateway response`);
         return { ok: false, status: 200, body: "No text in response", isBillingError: false };
       }
 
       const errBody = await response.text();
 
-      // Detect billing/quota errors
-      if (response.status === 402 || (response.status === 429 && errBody.includes('"limit": 0'))) {
-        console.error(`[${label}] ❌ Billing/quota error (${response.status}). Body: ${errBody.substring(0, 300)}`);
+      // Detect workspace quota / billing-like errors from the gateway
+      if (response.status === 402) {
+        console.error(`[${label}] ❌ Gateway billing/quota error (${response.status}). Body: ${errBody.substring(0, 300)}`);
         return { ok: false, status: response.status, body: errBody, isBillingError: true };
       }
 
@@ -591,7 +612,7 @@ async function callGeminiWithRetry(opts: GeminiCallOptions): Promise<{ ok: true;
 // Function to add nikud to a single page text using the Grammarian agent
 async function addNikudToText(text: string, apiKey: string): Promise<string> {
   try {
-    const result = await callGeminiWithRetry({
+    const result = await callGatewayWithRetry({
       apiKey,
       label: "nikud",
       maxRetries: 2,
@@ -920,13 +941,13 @@ serve(async (req) => {
     // Use avatar URL if available (for character consistency), otherwise use original photo
     const effectivePhoto = childAvatarUrl || childPhoto;
 
-    // GEMINI_API_KEY for all AI calls via direct Google Gemini API
-    const GEMINI_API_KEY = Deno.env.get("GEMINI_API_KEY");
-    if (!GEMINI_API_KEY) {
-      console.error("[generate-story] ❌ GEMINI_API_KEY is NOT configured!");
+    // LOVABLE_API_KEY for all AI calls via Lovable AI Gateway
+    const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
+    if (!LOVABLE_API_KEY) {
+      console.error("[generate-story] ❌ LOVABLE_API_KEY is NOT configured!");
       throw new Error("API key not configured");
     }
-    console.log("[generate-story] ✅ GEMINI_API_KEY loaded successfully");
+    console.log("[generate-story] ✅ LOVABLE_API_KEY loaded successfully");
 
     // Gender text variables moved into language-specific prompt building below
     
@@ -1301,7 +1322,7 @@ ${sequelInstruction}
 שלב את גיל הילד/ה באופן טבעי ועדין בתוך הסיפור — לא כמשפט תיאורי ישיר אלא דרך התנהגות או יכולות המתאימות לגיל.
 - ❌ אסור: "${childGender === "female" ? "היא בת ארבע" : "הוא בן ארבע"}" כמשפט עובדתי יבש
 - ✅ נכון: "${childGender === "female" ? "היא עדיין קטנה, אבל ליבה גדול" : "הוא עדיין קטן, אבל ליבו גדול"}" / "כמו כל ${childGender === "female" ? "ילדה" : "ילד"} ${childGender === "female" ? "בגילה" : "בגילו"}, ${childGender === "female" ? "היא אוהבת" : "הוא אוהב"} לחקור"
-- אם חייבים לציין גיל — לשלב בצורה חמה, לדוגמה: "${childName} ${childGender === "female" ? "בת" : "בן"} ה${{"0-2":"שנתיים","2-4":"ארבע","3-6":"חמש","5-7":"שש","8-10":"שמונה","6-9":"שבע"}[ageRange] || ageRange} ${childGender === "female" ? "המתוקה" : "המתוק"}"
+- אם חייבים לציין גיל — לשלב בצורה חמה, לדוגמה: "${childName} ${childGender === "female" ? "בת" : "בן"} ה${AGE_LABEL_MAP[ageRange] || ageRange} ${childGender === "female" ? "המתוקה" : "המתוק"}"
 
 **נושא הסיפור:** ${topic}
 ${hasCustomDescription ? `**תיאור חופשי:** ${personalityTraits}` : ""}
@@ -1484,9 +1505,9 @@ ${topic.endsWith('-edu') ? `
 - כלל ניקוד: אם לא בטוח ב-100% בניקוד - השתמש במילה שאתה בטוח בניקוד שלה.`;
     }
 
-    console.log("[generate-story] 📡 Calling Google Gemini API (gemini-2.0-flash) with retry logic...");
-    const geminiResult = await callGeminiWithRetry({
-      apiKey: GEMINI_API_KEY,
+    console.log("[generate-story] 📡 Calling Lovable AI Gateway (google/gemini-2.5-flash) with retry logic...");
+    const geminiResult = await callGatewayWithRetry({
+      apiKey: LOVABLE_API_KEY,
       label: "generate-story",
       maxRetries: 4,
       timeoutMs: 120_000,
@@ -1497,8 +1518,8 @@ ${topic.endsWith('-edu') ? `
     });
 
     if (!geminiResult.ok) {
-      console.error(`[generate-story] ❌ Gemini API failed after retries: status=${geminiResult.status}`);
-      await logError("story_generation_error", `Gemini API error: ${geminiResult.status}`, { status: geminiResult.status, body: geminiResult.body.substring(0, 500), topic, childName, isBillingError: geminiResult.isBillingError }, userId);
+      console.error(`[generate-story] ❌ AI Gateway failed after retries: status=${geminiResult.status}`);
+      await logError("story_generation_error", `AI Gateway error: ${geminiResult.status}`, { status: geminiResult.status, body: geminiResult.body.substring(0, 500), topic, childName, isBillingError: geminiResult.isBillingError }, userId ?? undefined);
       
       if (geminiResult.isBillingError) {
         return new Response(
@@ -1521,7 +1542,7 @@ ${topic.endsWith('-edu') ? `
       throw new Error("שגיאה ביצירת הסיפור. נסו שוב מאוחר יותר.");
     }
 
-    console.log("[generate-story] ✅ Gemini API response received, parsing...");
+    console.log("[generate-story] ✅ AI Gateway response received, parsing...");
     const content = geminiResult.text;
     
     if (!content) {
@@ -1613,8 +1634,8 @@ ${topic.endsWith('-edu') ? `
         console.warn("[generate-story] Repair failed, retrying AI call...");
         // Attempt 3: retry the AI call with retry helper
         try {
-          const retryResult = await callGeminiWithRetry({
-            apiKey: GEMINI_API_KEY,
+          const retryResult = await callGatewayWithRetry({
+            apiKey: LOVABLE_API_KEY,
             label: "generate-story-retry",
             maxRetries: 2,
             timeoutMs: 120_000,
@@ -1639,7 +1660,7 @@ ${topic.endsWith('-edu') ? `
             retryError: String(retryErr),
             contentPreview: content?.substring(0, 500), 
             topic, childName 
-          }, userId);
+          }, userId ?? undefined);
           throw new Error("שגיאה ביצירת הסיפור. נסו שוב.");
         }
       }
@@ -1648,7 +1669,7 @@ ${topic.endsWith('-edu') ? `
     // Validate story structure
     if (!storyData.pages || !Array.isArray(storyData.pages) || storyData.pages.length === 0) {
       console.error("Invalid story structure:", JSON.stringify(storyData).substring(0, 300));
-      await logError("story_parse_error", `Invalid story structure from AI`, { keys: Object.keys(storyData), topic, childName }, userId);
+      await logError("story_parse_error", `Invalid story structure from AI`, { keys: Object.keys(storyData), topic, childName }, userId ?? undefined);
       throw new Error("שגיאה ביצירת הסיפור. נסו שוב.");
     }
     
@@ -1764,8 +1785,8 @@ ${fullStoryText}`;
       
       console.log(`[generate-story] Starting text quality rewrite for age ${ageLabel} (12s timeout)...`);
       
-      const rewriteResult = await callGeminiWithRetry({
-        apiKey: GEMINI_API_KEY,
+      const rewriteResult = await callGatewayWithRetry({
+        apiKey: LOVABLE_API_KEY,
         label: "rewrite",
         maxRetries: 1,
         timeoutMs: 12_000,
@@ -1847,7 +1868,7 @@ ${fullStoryText}`;
 
     if (storyError) {
       console.error("Error creating story:", storyError);
-      await logError("story_insert_error", `Story insert failed: ${storyError.message}`, { code: storyError.code, topic, childName }, userId);
+      await logError("story_insert_error", `Story insert failed: ${storyError.message}`, { code: storyError.code, topic, childName }, userId ?? undefined);
       throw storyError;
     }
 
@@ -1897,8 +1918,8 @@ ${fullStoryText}`;
     const summaryPromise = (async () => {
       try {
         const fullText = storyData.pages.map((p: any) => p.text).join("\n");
-        const summaryResult = await callGeminiWithRetry({
-          apiKey: GEMINI_API_KEY,
+        const summaryResult = await callGatewayWithRetry({
+          apiKey: LOVABLE_API_KEY,
           label: "summary",
           maxRetries: 1,
           timeoutMs: 10_000,
@@ -1931,7 +1952,7 @@ ${fullStoryText}`;
           if (savedPages) {
             const nikudResults = await Promise.allSettled(
               savedPages.map(async (page) => {
-                const nikudText = await addNikudToText(page.text, GEMINI_API_KEY);
+                const nikudText = await addNikudToText(page.text, LOVABLE_API_KEY);
                 if (nikudText !== page.text) {
                   await supabase
                     .from("story_pages")
@@ -2062,7 +2083,8 @@ ${fullStoryText}`;
 
   } catch (error) {
     console.error("Error in generate-story:", error);
-    await logError("story_general_error", `generate-story crash: ${error?.message || error}`, {});
+    const crashMessage = error instanceof Error ? error.message : String(error);
+    await logError("story_general_error", `generate-story crash: ${crashMessage}`, {});
     // Return generic error message to client, keep details in server logs
     const userMessage = error instanceof Error && error.message.startsWith("שגיאה") 
       ? error.message 
