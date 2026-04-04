@@ -154,6 +154,7 @@ Output ONLY the coloring page image, nothing else. Do not include any text, labe
                 ],
               },
             ],
+            modalities: ["image", "text"],
           }),
         });
 
@@ -173,35 +174,30 @@ Output ONLY the coloring page image, nothing else. Do not include any text, labe
         continue;
       }
 
-      // Parse OpenAI-compatible response for image content
+      // Parse response - check images array first (Lovable Gateway format)
       const aiData = await aiResponse!.json();
       const choice = aiData.choices?.[0];
-      const content = choice?.message?.content;
+      const message = choice?.message;
 
-      // The gateway may return image data in different formats
-      if (typeof content === "string" && content.startsWith("data:image")) {
-        generatedImage = content;
-      } else if (Array.isArray(content)) {
-        for (const part of content) {
-          if (part.type === "image_url" && part.image_url?.url) {
-            generatedImage = part.image_url.url;
-            break;
-          }
-          if (part.type === "image" && part.data) {
-            generatedImage = `data:image/png;base64,${part.data}`;
+      // Gateway returns images in message.images[]
+      if (Array.isArray(message?.images)) {
+        for (const img of message.images) {
+          if (img.image_url?.url) {
+            generatedImage = img.image_url.url;
             break;
           }
         }
       }
 
-      // Also check for inline image data in Gemini-style response
+      // Fallback: check message.content
       if (!generatedImage) {
-        const parts = aiData.candidates?.[0]?.content?.parts;
-        if (Array.isArray(parts)) {
-          for (const part of parts) {
-            if (part.inlineData?.data) {
-              const partMime = part.inlineData.mimeType || "image/png";
-              generatedImage = `data:${partMime};base64,${part.inlineData.data}`;
+        const content = message?.content;
+        if (typeof content === "string" && content.startsWith("data:image")) {
+          generatedImage = content;
+        } else if (Array.isArray(content)) {
+          for (const part of content) {
+            if (part.type === "image_url" && part.image_url?.url) {
+              generatedImage = part.image_url.url;
               break;
             }
           }
