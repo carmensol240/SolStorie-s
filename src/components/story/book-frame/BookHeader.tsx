@@ -59,6 +59,8 @@ interface BookHeaderProps {
   // Regenerate cover
   onRegenerateCover?: () => void;
   isRegeneratingCover?: boolean;
+  // Coloring shortcut
+  onColoring?: () => void;
 }
 
 export const BookHeader: React.FC<BookHeaderProps> = ({
