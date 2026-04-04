@@ -1646,6 +1646,34 @@ ${topic.endsWith('-edu') ? `
     
     console.log(`Story parsed successfully with ${storyData.pages.length} pages`);
 
+    // === DEFERRED CREDIT DEDUCTION: Only after successful AI generation ===
+    if (userId && !guestMode) {
+      const { data: freshProfile } = await supabase
+        .from("profiles")
+        .select("story_credits")
+        .eq("id", userId)
+        .single();
+      
+      const freshCredits = freshProfile?.story_credits ?? 0;
+      if (freshCredits <= 0) {
+        console.log("Race condition: credits depleted between check and deduction");
+        return new Response(
+          JSON.stringify({ error: "נגמרו הקרדיטים", code: "NO_CREDITS" }),
+          { status: 402, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        );
+      }
+      
+      const { error: deductError } = await supabase
+        .from("profiles")
+        .update({ story_credits: freshCredits - 1 })
+        .eq("id", userId);
+      
+      if (deductError) {
+        console.error("Error deducting credit:", deductError);
+      } else {
+        console.log(`Credit deducted server-side: ${freshCredits} → ${freshCredits - 1}`);
+      }
+    }
     // === TEXT QUALITY REWRITE: Age-appropriate language polish ===
     try {
       const ageLabel = ageRange === "0-2" ? "2" : ageRange === "2-4" ? "3" : ageRange === "5-7" ? "6" : "8";
