@@ -1,22 +1,24 @@
 
 
-## Plan: Fix PWA Banner + iPhone Coloring Toolbar
+## Plan: Fix iPhone Coloring Page — Toolbar Hidden Behind Browser Chrome
 
-### Changes
+### Problem
+From the screenshot: on iPhone Safari, the bottom toolbar (tools + color palette) is mostly hidden behind the browser's bottom navigation bar. The current `paddingBottom: max(6px, env(safe-area-inset-bottom, 6px))` is not enough — `env(safe-area-inset-bottom)` only accounts for the notch/home indicator (~34px), but the Safari toolbar adds ~44px more that `100dvh` doesn't exclude.
 
-#### 1. Remove PWA Install Banner — `src/App.tsx`
-Remove the `<PWAInstallBanner />` component and its import. This removes the "הוסיפו אותנו למסך הבית" banner globally.
+### Solution — single file: `src/components/story/OnlineColoringCanvas.tsx`
 
-#### 2. Fix iPhone toolbar visibility — `src/components/story/OnlineColoringCanvas.tsx`
-On iPhone, the bottom toolbar (colors + tools) is hidden behind the browser's bottom bar because `100dvh` still doesn't account for the safe area inset.
+**Two changes:**
 
-**Fix**: Add `pb-safe` (padding-bottom safe area) to the bottom toolbar, and add `env(safe-area-inset-bottom)` padding so the color palette stays above the iPhone browser chrome. Specifically:
-- Add `pb-[env(safe-area-inset-bottom,12px)]` to the bottom toolbar container (line 533)
-- This ensures the toolbar content is always visible above the iPhone Safari bottom bar
+1. **Root container (line 487)**: Reduce the overall height to leave room for the browser chrome. Change from `height: '100dvh'` to `height: 'calc(100dvh - 60px)'` on mobile, or use a simpler approach: add `pb-16` (64px) to the root container so the bottom toolbar is pushed up above the browser bar.
+
+   Better approach: keep `100dvh` but add a generous `paddingBottom` to the bottom toolbar so all content is visible:
+
+2. **Bottom toolbar (line 533)**: Increase the safe-area padding from `max(6px, env(safe-area-inset-bottom, 6px))` to `max(80px, calc(env(safe-area-inset-bottom, 34px) + 50px))`. This ensures that even when Safari's bottom bar overlaps, the full color palette and tools remain visible.
 
 ### What stays the same
-- All drawing/coloring logic
+- All drawing/fill/eraser logic
 - Canvas sizing and auto-trim
-- Desktop behavior
-- Everything else in the app
+- Desktop behavior (the extra padding is harmless on desktop since `env(safe-area-inset-bottom)` is 0)
+- Undo/redo, save, print
+- Everything else
 
