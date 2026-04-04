@@ -11,7 +11,7 @@ import { cn } from "@/lib/utils";
 import { DrawingCanvas } from "@/components/ui/drawing-canvas";
 import { SignedImage } from "@/components/ui/signed-image";
 import { getPublicIllustrationUrl } from "@/lib/illustration-url";
-import { generateColoringPageClientSide } from "@/lib/coloring-page-generator";
+
 import OfflineIndicator from "@/components/ui/offline-indicator";
 import EditPageDialog from "@/components/story/edit-page-dialog";
 import DedicationDialog from "@/components/story/DedicationDialog";
