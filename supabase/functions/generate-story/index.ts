@@ -507,50 +507,58 @@ const NIKUD_GRAMMARIAN_PROMPT = `אתה מומחה ניקוד עברי (נקדן
 ### פורמט:
 החזר רק את הטקסט המנוקד, ללא הסברים או תוספות.`;
 
-// === Reusable Lovable AI Gateway fetch helper with exponential backoff ===
-interface GatewayCallOptions {
+// === Reusable Direct Gemini API fetch helper with exponential backoff ===
+interface GeminiCallOptions {
   apiKey: string;
   model?: string;
-  messages: Array<{ role: string; content: string }>;
-  responseFormat?: { type: string };
+  systemPrompt?: string;
+  userPrompt: string;
+  jsonMode?: boolean;
   maxRetries?: number;
   timeoutMs?: number;
   label?: string;
   maxOutputTokens?: number;
 }
 
-async function callGatewayWithRetry(opts: GatewayCallOptions): Promise<{ ok: true; data: any } | { ok: false; status: number; body: string; isBillingError: boolean }> {
-  const { apiKey, model = "google/gemini-2.5-flash", messages, responseFormat, maxRetries = 4, timeoutMs = 120_000, label = "gateway", maxOutputTokens } = opts;
-  const url = "https://ai.gateway.lovable.dev/v1/chat/completions";
+async function callGeminiWithRetry(opts: GeminiCallOptions): Promise<{ ok: true; text: string } | { ok: false; status: number; body: string; isBillingError: boolean }> {
+  const { apiKey, model = "gemini-2.0-flash", systemPrompt, userPrompt, jsonMode = false, maxRetries = 4, timeoutMs = 120_000, label = "gemini", maxOutputTokens } = opts;
+  const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`;
   const RETRYABLE = new Set([429, 500, 502, 503, 504]);
 
-  const requestBody: Record<string, unknown> = { model, messages };
-  if (responseFormat) requestBody.response_format = responseFormat;
-  if (maxOutputTokens) requestBody.max_tokens = maxOutputTokens;
+  const requestBody: Record<string, unknown> = {
+    contents: [{ role: "user", parts: [{ text: userPrompt }] }],
+  };
+  if (systemPrompt) {
+    requestBody.systemInstruction = { parts: [{ text: systemPrompt }] };
+  }
+  const genConfig: Record<string, unknown> = {};
+  if (jsonMode) genConfig.responseMimeType = "application/json";
+  if (maxOutputTokens) genConfig.maxOutputTokens = maxOutputTokens;
+  if (Object.keys(genConfig).length > 0) requestBody.generationConfig = genConfig;
 
   for (let attempt = 0; attempt <= maxRetries; attempt++) {
     try {
       const response = await fetch(url, {
         method: "POST",
-        headers: {
-          "Authorization": `Bearer ${apiKey}`,
-          "Content-Type": "application/json",
-        },
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify(requestBody),
         signal: AbortSignal.timeout(timeoutMs),
       });
 
       if (response.ok) {
         const data = await response.json();
-        return { ok: true, data };
+        const text = data.candidates?.[0]?.content?.parts?.[0]?.text;
+        if (text) return { ok: true, text };
+        console.error(`[${label}] ❌ No text in Gemini response`);
+        return { ok: false, status: 200, body: "No text in response", isBillingError: false };
       }
 
       const errBody = await response.text();
 
-      // Detect billing 402 — not retryable
-      if (response.status === 402) {
-        console.error(`[${label}] ❌ Payment required (402). Body: ${errBody.substring(0, 300)}`);
-        return { ok: false, status: 402, body: errBody, isBillingError: true };
+      // Detect billing/quota errors
+      if (response.status === 402 || (response.status === 429 && errBody.includes('"limit": 0'))) {
+        console.error(`[${label}] ❌ Billing/quota error (${response.status}). Body: ${errBody.substring(0, 300)}`);
+        return { ok: false, status: response.status, body: errBody, isBillingError: true };
       }
 
       if (!RETRYABLE.has(response.status) || attempt === maxRetries) {
