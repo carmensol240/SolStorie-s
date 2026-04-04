@@ -1,30 +1,22 @@
 
 
-## Plan: Let Admin Users See All Screens Like Regular Users
+## Plan: Fix PWA Banner + iPhone Coloring Toolbar
 
-### Problem
-In `src/pages/Adventure.tsx` (lines 30-34), there's a redirect that sends **all logged-in users** (including admins) away from the Adventure screen to `/create`:
-```tsx
-useEffect(() => {
-  if (loading || !user) return;
-  navigate("/create", { replace: true });
-}, [user, loading, navigate]);
-```
+### Changes
 
-This means any logged-in user — including carmit1901 and carmit1901+test — never gets to see the Adventure screen.
+#### 1. Remove PWA Install Banner — `src/App.tsx`
+Remove the `<PWAInstallBanner />` component and its import. This removes the "הוסיפו אותנו למסך הבית" banner globally.
 
-Additionally, the user might have a stale `returnTo` value in localStorage pointing to `/settings`, which could cause post-login redirects to the Settings page instead of Adventure.
+#### 2. Fix iPhone toolbar visibility — `src/components/story/OnlineColoringCanvas.tsx`
+On iPhone, the bottom toolbar (colors + tools) is hidden behind the browser's bottom bar because `100dvh` still doesn't account for the safe area inset.
 
-### Solution — single file: `src/pages/Adventure.tsx`
-
-**Remove lines 30-34** — the automatic redirect from Adventure to `/create` for logged-in users. This will allow admin (and all) users to see the Adventure screen when they navigate to `/` or `/adventure`.
-
-The Adventure page already has a CTA button that takes users to `/create` when they're ready, so the redirect is unnecessary.
+**Fix**: Add `pb-safe` (padding-bottom safe area) to the bottom toolbar, and add `env(safe-area-inset-bottom)` padding so the color palette stays above the iPhone browser chrome. Specifically:
+- Add `pb-[env(safe-area-inset-bottom,12px)]` to the bottom toolbar container (line 533)
+- This ensures the toolbar content is always visible above the iPhone Safari bottom bar
 
 ### What stays the same
-- Auth flow and login logic
-- Admin detection in Settings, AdminDashboard, AdminReviews
-- All other navigation and redirects
-- MobileNavigation (home/library/settings tabs)
+- All drawing/coloring logic
+- Canvas sizing and auto-trim
+- Desktop behavior
 - Everything else in the app
 
