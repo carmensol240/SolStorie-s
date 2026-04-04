@@ -1985,52 +1985,79 @@ const [currentPage, setCurrentPage] = useState(0);
               )}
 
               <Button
-                onClick={() => {
-                  if (cachedColoringUrl) {
-                    if (coloringMode === 'online') {
-                      setOnlineColoringImageUrl(cachedColoringUrl);
-                      setOnlineColoringOpen(true);
-                      setColoringPickerOpen(false);
-                    } else {
-                      window.open(cachedColoringUrl, '_blank');
-                      setColoringPickerOpen(false);
+                onClick={async () => {
+                  if (!story || !selectedColoringUrl) return;
+                  const urlToUse = cachedColoringUrl;
+                  if (urlToUse) {
+                    window.open(urlToUse, '_blank');
+                    setColoringPickerOpen(false);
+                  } else {
+                    setColoringPickerOpen(false);
+                    setColoringLoading(true);
+                    try {
+                      const response = await supabase.functions.invoke("generate-coloring-page", {
+                        body: { illustrationUrl: selectedColoringUrl, storyId: story.id },
+                      });
+                      if (response.error) throw response.error;
+                      const coloringUrl = (response.data as any)?.coloringPageUrl;
+                      if (!coloringUrl) throw new Error("No coloring URL returned");
+                      setCachedColoringUrl(coloringUrl);
+                      setCachedIllustrationUrl(selectedColoringUrl);
+                      window.open(coloringUrl, '_blank');
+                    } catch (err: any) {
+                      console.error("Coloring error:", err);
+                      toast({ title: "שגיאה ביצירת דף צביעה", description: err.message, variant: "destructive" });
+                    } finally {
+                      setColoringLoading(false);
                     }
                   }
                 }}
+                disabled={coloringLoading}
                 className="w-full bg-gradient-to-r from-purple-500 to-indigo-600 hover:from-purple-600 hover:to-indigo-700 text-white py-3"
               >
-                {coloringMode === 'online' ? '🎨 צבעו את דף הצביעה' : '🖨️ הדפיסו דף צביעה'}
+                {coloringLoading ? <><Loader2 className="w-4 h-4 animate-spin mr-2" /> מכין דף צביעה...</> : '🖨️ הדפיסו דף צביעה'}
               </Button>
 
               <Button
                 onClick={async () => {
                   if (!story || !selectedColoringUrl) return;
-                  setColoringLoading(true);
-                  try {
-                    const newIllustrations = story.pages
-                      ?.filter(p => p.illustration_url && p.illustration_url !== cachedIllustrationUrl)
-                      .map(p => p.illustration_url!) || [];
-                    if (newIllustrations.length === 0) {
-                      toast({ title: "אין איורים נוספים זמינים", variant: "destructive" });
-                      return;
+                  const urlToUse = cachedColoringUrl;
+                  if (urlToUse) {
+                    setOnlineColoringImageUrl(urlToUse);
+                    setOnlineColoringOpen(true);
+                    setColoringPickerOpen(false);
+                  } else {
+                    setColoringPickerOpen(false);
+                    setColoringLoading(true);
+                    try {
+                      const response = await supabase.functions.invoke("generate-coloring-page", {
+                        body: { illustrationUrl: selectedColoringUrl, storyId: story.id },
+                      });
+                      if (response.error) throw response.error;
+                      const coloringUrl = (response.data as any)?.coloringPageUrl;
+                      if (!coloringUrl) throw new Error("No coloring URL returned");
+                      setCachedColoringUrl(coloringUrl);
+                      setCachedIllustrationUrl(selectedColoringUrl);
+                      setOnlineColoringImageUrl(coloringUrl);
+                      setOnlineColoringOpen(true);
+                    } catch (err: any) {
+                      console.error("Coloring error:", err);
+                      toast({ title: "שגיאה ביצירת דף צביעה", description: err.message, variant: "destructive" });
+                    } finally {
+                      setColoringLoading(false);
                     }
-                    setSelectedColoringUrl(null);
-                    setCachedColoringUrl(null);
-                    setCachedIllustrationUrl(null);
-                    setColoringAction('pick');
-                  } finally {
-                    setColoringLoading(false);
                   }
                 }}
                 variant="outline"
-                className="w-full border-purple-200 text-purple-700 hover:bg-purple-50"
+                disabled={coloringLoading}
+                className="w-full border-purple-200 text-purple-700 hover:bg-purple-50 py-3"
               >
-                ✨ צרו דף צביעה מאיור חדש
+                {coloringLoading ? <><Loader2 className="w-4 h-4 animate-spin mr-2" /> מכין דף צביעה...</> : '🎨 צביעה אונליין'}
               </Button>
 
               <button
                 onClick={() => {
-                  setColoringMode(null);
+                  setSelectedColoringUrl(null);
                   setCachedColoringUrl(null);
                   setCachedIllustrationUrl(null);
                   setColoringAction('pick');
