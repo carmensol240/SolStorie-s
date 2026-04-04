@@ -1,13 +1,36 @@
 
+מיפוי מהיר של הקוד מראה שהאחראי בפועל לתצוגת האיורים בתוך הסיפור הוא `src/pages/StoryViewer.tsx`, לא `BookPage.tsx`.
 
-## Plan: Remove Maintenance Banner
+הקטעים הבעייתיים הם שני בלוקים ב-`StoryViewer.tsx`:
+```tsx
+className="absolute inset-0 w-full h-full object-cover ..."
+style={{ transform: 'scale(1.02)' }}
+```
 
-### What
-Remove the maintenance banner from the Home page — the site is back to normal.
+הם מופיעים ב-2 מצבים:
+1. עמוד `combined` (איור + טקסט)
+2. עמוד `illustration` (איור בלבד)
 
-### Changes — single file: `src/pages/Home.tsx`
+`BookPage.tsx` גם מכיל:
+```tsx
+className="absolute inset-0 w-full h-full object-cover"
+```
+אבל כרגע הוא לא המסלול הפעיל שמרנדר את עמודי הסיפור במסך הזה. לכן התיקון המינימלי והנכון הוא ב-`StoryViewer.tsx` בלבד.
 
-**Remove lines 40-44** (the `{/* Maintenance Banner */}` comment and the `<div>` with the gradient banner text).
+תוכנית תיקון:
+1. לעדכן רק את שני ה-`<img>` של האיורים בתוך `StoryViewer.tsx`.
+2. במובייל בלבד:
+   - להחליף `object-cover` ל-`object-contain`
+   - לבטל את `transform: scale(1.02)` כדי שלא ייווצר חיתוך מלאכותי
+   - לשמור מיקום ממורכז
+3. בדסקטופ להשאיר את ההתנהגות הקיימת כפי שהיא היום, כדי לא לשנות שום דבר אחר.
+4. לא לגעת בטקסט, בהקדשה, בניווט, במסגרת, בטעינה, או בכל רכיב אחר.
 
-No other files or logic affected.
+תוצאה צפויה:
+- במובייל האיור יוצג במלואו, בפרופורציה נכונה, בלי חיתוך
+- בדסקטופ יישאר המראה הנוכחי
+- השינוי יוגבל רק לתצוגת האיורים בתוך הסיפור
 
+מה ישתנה בפועל:
+- קובץ אחד בלבד: `src/pages/StoryViewer.tsx`
+- שני מופעי `<img>` בלבד בתוך אזורי האיור של הסיפור
