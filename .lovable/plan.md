@@ -1,36 +1,29 @@
 
-מיפוי מהיר של הקוד מראה שהאחראי בפועל לתצוגת האיורים בתוך הסיפור הוא `src/pages/StoryViewer.tsx`, לא `BookPage.tsx`.
 
-הקטעים הבעייתיים הם שני בלוקים ב-`StoryViewer.tsx`:
-```tsx
-className="absolute inset-0 w-full h-full object-cover ..."
-style={{ transform: 'scale(1.02)' }}
+## Plan: Fix Mobile Illustration White Space
+
+### Problem
+`object-contain` prevents cropping but creates visible white/empty bars above and below the illustration on mobile when the image aspect ratio doesn't match the container.
+
+### Solution
+Change mobile illustrations back to `object-cover` (fills the entire area) but **without** the `scale(1.02)` transform that was causing the original cropping complaint. This gives full coverage with minimal cropping — just natural edge fitting.
+
+### Changes — single file: `src/pages/StoryViewer.tsx`
+
+**Line 1813** (combined page img):
+```
+object-contain md:object-cover  →  object-cover
 ```
 
-הם מופיעים ב-2 מצבים:
-1. עמוד `combined` (איור + טקסט)
-2. עמוד `illustration` (איור בלבד)
-
-`BookPage.tsx` גם מכיל:
-```tsx
-className="absolute inset-0 w-full h-full object-cover"
+**Line 1925** (illustration page img):
 ```
-אבל כרגע הוא לא המסלול הפעיל שמרנדר את עמודי הסיפור במסך הזה. לכן התיקון המינימלי והנכון הוא ב-`StoryViewer.tsx` בלבד.
+object-contain md:object-cover  →  object-cover
+```
 
-תוכנית תיקון:
-1. לעדכן רק את שני ה-`<img>` של האיורים בתוך `StoryViewer.tsx`.
-2. במובייל בלבד:
-   - להחליף `object-cover` ל-`object-contain`
-   - לבטל את `transform: scale(1.02)` כדי שלא ייווצר חיתוך מלאכותי
-   - לשמור מיקום ממורכז
-3. בדסקטופ להשאיר את ההתנהגות הקיימת כפי שהיא היום, כדי לא לשנות שום דבר אחר.
-4. לא לגעת בטקסט, בהקדשה, בניווט, במסגרת, בטעינה, או בכל רכיב אחר.
+The `style={{ transform: isMobile ? undefined : 'scale(1.02)' }}` stays as-is — mobile still gets no scale, desktop keeps the slight zoom.
 
-תוצאה צפויה:
-- במובייל האיור יוצג במלואו, בפרופורציה נכונה, בלי חיתוך
-- בדסקטופ יישאר המראה הנוכחי
-- השינוי יוגבל רק לתצוגת האיורים בתוך הסיפור
+### Result
+- Mobile: illustration fills the entire frame, no white bars, no artificial scale
+- Desktop: unchanged (object-cover + scale 1.02)
+- Nothing else modified
 
-מה ישתנה בפועל:
-- קובץ אחד בלבד: `src/pages/StoryViewer.tsx`
-- שני מופעי `<img>` בלבד בתוך אזורי האיור של הסיפור
