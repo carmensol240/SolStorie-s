@@ -1,42 +1,17 @@
 
-### Plan: להציג את איור הסיפור במובייל במלואו בלי חיתוך צדדי
 
-זיהיתי שהאחראי לתצוגת האיורים בתוך הסיפור הוא `src/pages/StoryViewer.tsx`, ובשני המקומות הרלוונטיים עדיין מוגדר:
-```tsx
-object-cover
-```
-עם:
-```tsx
-style={{ transform: isMobile ? undefined : 'scale(1.02)' }}
-```
+## Plan: Revert Illustration Display to Original Settings
 
-זה מסביר למה במובייל עדיין יש חיתוך בצדדים: `object-cover` ממלא את המסגרת ולכן חותך חלקים מהאיור כשיחס המידות לא תואם.
+### Problem
+The recent responsive changes (`object-contain md:object-cover`) cause white bars above and below illustrations on mobile. The user wants the original full-frame look back.
 
-### מה אשנה
-קובץ אחד בלבד: `src/pages/StoryViewer.tsx`
+### Changes — single file: `src/pages/StoryViewer.tsx`
 
-בשני תגי `<img>` של איורי הסיפור:
-1. עמוד `combined`
-2. עמוד `illustration`
+**Line 1813** (combined page img) and **Line 1925** (illustration page img):
+- Change `object-contain md:object-cover` back to `object-cover`
+- Change `style={{ transform: isMobile ? undefined : 'scale(1.02)' }}` back to `style={{ transform: 'scale(1.02)' }}`
 
-אעדכן את המחלקה מ:
-```tsx
-object-cover
-```
-ל:
-```tsx
-object-contain md:object-cover
-```
+### Result
+- All illustrations fill the entire frame on both mobile and desktop — no white bars
+- Original behavior fully restored
 
-### מה זה יעשה
-- במובייל: האיור יוצג במלואו, בלי חיתוך בשום צד
-- בדסקטופ: יישאר כמו היום, עם `object-cover`
-- ה־`scale(1.02)` יישאר מבוטל במובייל וימשיך רק בדסקטופ
-
-### מה לא ישתנה
-- לא אגע ב־`BookPage.tsx`
-- לא אגע בטקסט, הקדשה, ניווט, כפתורים, מסך סיום, דפי צביעה או כל רכיב אחר
-- לא אשנה שום לוגיקה אחרת ב־StoryViewer
-
-### הערה חשובה
-המשמעות של “בלי חיתוך בכלל” היא שבמובייל ייתכן שיופיע שוב רווח מעל/מתחת בחלק מהאיורים אם יחס התמונה שונה מהמסגרת. אבל זה הפתרון הנכון אם הדרישה העליונה היא שלא יהיה חיתוך בשום צד.
