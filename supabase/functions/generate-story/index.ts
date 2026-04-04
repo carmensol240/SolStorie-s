@@ -591,15 +591,13 @@ async function callGeminiWithRetry(opts: GeminiCallOptions): Promise<{ ok: true;
 // Function to add nikud to a single page text using the Grammarian agent
 async function addNikudToText(text: string, apiKey: string): Promise<string> {
   try {
-    const result = await callGatewayWithRetry({
+    const result = await callGeminiWithRetry({
       apiKey,
       label: "nikud",
       maxRetries: 2,
       timeoutMs: 15_000,
-      messages: [
-        { role: "system", content: NIKUD_GRAMMARIAN_PROMPT },
-        { role: "user", content: `הוסף ניקוד מלא ומדויק לטקסט הבא:\n\n${text}` },
-      ],
+      systemPrompt: NIKUD_GRAMMARIAN_PROMPT,
+      userPrompt: `הוסף ניקוד מלא ומדויק לטקסט הבא:\n\n${text}`,
     });
 
     if (!result.ok) {
@@ -607,7 +605,7 @@ async function addNikudToText(text: string, apiKey: string): Promise<string> {
       return text;
     }
 
-    const nikudText = result.data.choices?.[0]?.message?.content?.trim();
+    const nikudText = result.text?.trim();
 
     if (!nikudText) {
       console.error("No nikud text returned from grammarian");
