@@ -121,7 +121,7 @@ Output ONLY the coloring page image, nothing else. Do not include any text, labe
 
     const gatewayUrl = "https://ai.gateway.lovable.dev/v1/chat/completions";
     const gatewayBody = JSON.stringify({
-      model: "google/gemini-3-pro-image-preview",
+      model: "google/gemini-2.5-flash",
       messages: [
         {
           role: "user",
@@ -131,6 +131,7 @@ Output ONLY the coloring page image, nothing else. Do not include any text, labe
           ],
         },
       ],
+      modalities: ["text", "image"],
     });
 
     const maxRetries = 4;
