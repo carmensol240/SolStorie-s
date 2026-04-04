@@ -232,6 +232,7 @@ const [currentPage, setCurrentPage] = useState(0);
   const [coloringPickerOpen, setColoringPickerOpen] = useState(false);
   const [selectedColoringUrl, setSelectedColoringUrl] = useState<string | null>(null);
   const [coloringAction, setColoringAction] = useState<'pick' | 'choose-action'>('pick');
+  const [coloringMode, setColoringMode] = useState<'print' | 'online' | null>(null);
   const [onlineColoringOpen, setOnlineColoringOpen] = useState(false);
   const [onlineColoringImageUrl, setOnlineColoringImageUrl] = useState<string | null>(null);
   const [cachedColoringUrl, setCachedColoringUrl] = useState<string | null>(null);
@@ -1323,36 +1324,62 @@ const [currentPage, setCurrentPage] = useState(0);
                 </div>
               </div>
 
-            ) : isEndPage ? (
+             ) : isEndPage ? (
               /* End Page - Feedback & actions */
-              <div className="flex flex-col h-full bg-[#FFFBF5]">
-                <div data-story-scroll className="flex-1 paper-texture overflow-y-auto p-5 md:p-8 text-center flex flex-col items-center justify-center gap-3">
-                  <div className="space-y-2">
-                    <p className="text-2xl md:text-3xl font-bold text-purple-800">✨ נהננו? ✨</p>
-                    <p className="text-sm text-purple-500">הסיפור של {story.child_name}</p>
-                  </div>
+              <div className="flex flex-col h-full bg-[#FFFBF5] relative">
+                {/* Back arrow - top right */}
+                <button
+                  onClick={() => navigate('/library')}
+                  className="absolute top-3 right-3 z-10 p-2 rounded-full hover:bg-purple-50 transition-colors"
+                  aria-label="חזרה לספרייה"
+                >
+                  <ChevronRight className="w-5 h-5 text-purple-500" />
+                </button>
 
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => navigate('/library')}
-                    className="text-purple-600 hover:text-purple-800 hover:bg-purple-50 px-4 py-2 rounded-full text-sm gap-1"
-                  >
-                    <ArrowRight className="w-4 h-4" />
-                    → חזרה
-                  </Button>
+                <div data-story-scroll className="flex-1 paper-texture overflow-y-auto p-5 md:p-8 text-center flex flex-col items-center justify-start gap-4 pt-12">
+                  {/* Title */}
+                  <p className="text-2xl md:text-3xl font-bold text-purple-800">קסום, לא? ✨</p>
 
-                  {/* Unified Coloring Button */}
-                  <div className="pt-2">
+                  {/* Feedback Box - moved up */}
+                  {!endFeedbackSent ? (
+                    <div className="w-full max-w-xs bg-white rounded-xl p-4 shadow-lg border border-purple-100 space-y-3 mx-auto" dir="rtl">
+                      <h3 className="text-center text-sm font-bold text-purple-800">✨ שתפו אותנו בקסם שלכם</h3>
+                      <div className="flex justify-center gap-1">
+                        {[1, 2, 3, 4, 5].map((s) => (
+                          <button key={s} onClick={() => setEndFeedbackRating(s)}
+                            onMouseEnter={() => setEndFeedbackHover(s)} onMouseLeave={() => setEndFeedbackHover(0)}
+                            className="p-1 transition-transform hover:scale-125" aria-label={`דירוג ${s} כוכבים`}>
+                            <Star className={`w-8 h-8 transition-all duration-300 ${s <= (endFeedbackHover || endFeedbackRating) ? 'fill-amber-400 text-amber-400 scale-110' : 'text-purple-200 animate-pulse-glow-soft'}`}
+                              style={{ animationDelay: `${s * 0.15}s` }} />
+                          </button>
+                        ))}
+                      </div>
+                      <Textarea value={endFeedbackMessage} onChange={(e) => setEndFeedbackMessage(e.target.value)}
+                        placeholder="ספרו לנו מה אהבתם 💬" className="text-xs min-h-[40px] resize-none" dir="rtl" />
+                      <Button onClick={handleEndFeedbackSubmit} disabled={endFeedbackRating === 0 || endFeedbackSending}
+                        size="sm" className="w-full gap-1 text-xs bg-gradient-to-r from-purple-600 to-pink-500 hover:from-purple-700 hover:to-pink-600">
+                        <Send className="w-3 h-3" />
+                        {endFeedbackSending ? "שולח..." : "שליחה"}
+                      </Button>
+                    </div>
+                  ) : (
+                    <div className="w-full max-w-xs bg-gradient-to-r from-purple-50 to-pink-50 rounded-xl p-3 shadow-lg border border-purple-100 text-center mx-auto" dir="rtl">
+                      <p className="text-base font-bold text-purple-800">תודה רבה! 💛</p>
+                      <p className="text-xs text-purple-600 mt-1">המשוב שלכם עוזר לנו ליצור סיפורים טובים יותר</p>
+                    </div>
+                  )}
+
+                  {/* Two separate coloring buttons */}
+                  <div className="flex flex-col sm:flex-row gap-3 w-full max-w-xs mx-auto pt-2">
                     <Button
-                    onClick={async () => {
+                      onClick={async () => {
                         if (!story || coloringLoading) return;
                         const illustrations = story.pages?.filter(p => p.illustration_url).map(p => p.illustration_url!) || [];
                         if (illustrations.length === 0) {
                           toast({ title: "אין איורים זמינים ליצירת דף צביעה", variant: "destructive" });
                           return;
                         }
-                        // Check for cached coloring page
+                        setColoringMode('print');
                         if (user && story.id) {
                           const { data: cached } = await supabase
                             .from("story_coloring_pages" as any)
@@ -1377,55 +1404,61 @@ const [currentPage, setCurrentPage] = useState(0);
                         setColoringPickerOpen(true);
                       }}
                       disabled={coloringLoading}
-                      size="sm"
-                      className="bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white px-4 py-3 rounded-full text-sm gap-1"
+                      className="flex-1 bg-gradient-to-r from-amber-400 to-orange-500 hover:from-amber-500 hover:to-orange-600 text-white px-4 py-3 rounded-full text-sm gap-1"
                     >
-                      {coloringLoading ? (
-                        <>
-                          <Loader2 className="w-4 h-4 animate-spin" />
-                          יוצר דף צביעה...
-                        </>
+                      {coloringLoading && coloringMode === 'print' ? (
+                        <><Loader2 className="w-4 h-4 animate-spin" /> מכין...</>
                       ) : (
-                        <>
-                          <Palette className="w-4 h-4" />
-                          🎨 דף צביעה — הדפס או צבע אונליין
-                        </>
+                        <>🖨️ הדפסה</>
+                      )}
+                    </Button>
+                    <Button
+                      onClick={async () => {
+                        if (!story || coloringLoading) return;
+                        const illustrations = story.pages?.filter(p => p.illustration_url).map(p => p.illustration_url!) || [];
+                        if (illustrations.length === 0) {
+                          toast({ title: "אין איורים זמינים ליצירת דף צביעה", variant: "destructive" });
+                          return;
+                        }
+                        setColoringMode('online');
+                        if (user && story.id) {
+                          const { data: cached } = await supabase
+                            .from("story_coloring_pages" as any)
+                            .select("*")
+                            .eq("story_id", story.id)
+                            .eq("user_id", user.id)
+                            .maybeSingle();
+                          if (cached) {
+                            const publicUrl = `${import.meta.env.VITE_SUPABASE_URL || 'https://qvdwmkxviaqcgmjotsxe.supabase.co'}/storage/v1/object/public/story-illustrations/${(cached as any).coloring_image_path}`;
+                            setCachedColoringUrl(publicUrl);
+                            setCachedIllustrationUrl((cached as any).illustration_url);
+                            setSelectedColoringUrl((cached as any).illustration_url);
+                            setColoringAction('choose-action');
+                            setColoringPickerOpen(true);
+                            return;
+                          }
+                        }
+                        setSelectedColoringUrl(null);
+                        setCachedColoringUrl(null);
+                        setCachedIllustrationUrl(null);
+                        setColoringAction('pick');
+                        setColoringPickerOpen(true);
+                      }}
+                      disabled={coloringLoading}
+                      className="flex-1 bg-gradient-to-r from-purple-500 to-indigo-600 hover:from-purple-600 hover:to-indigo-700 text-white px-4 py-3 rounded-full text-sm gap-1"
+                    >
+                      {coloringLoading && coloringMode === 'online' ? (
+                        <><Loader2 className="w-4 h-4 animate-spin" /> מכין...</>
+                      ) : (
+                        <>🎨 צביעה אונליין</>
                       )}
                     </Button>
                   </div>
 
-                  {/* Feedback Box */}
-                  {!endFeedbackSent ? (
-                    <div className="w-full max-w-xs bg-white rounded-xl p-3 shadow-lg border border-purple-100 space-y-2 mt-2 mx-auto" dir="rtl">
-                      <h3 className="text-center text-sm font-bold text-purple-800">✨ שתפו אותנו בקסם שלכם</h3>
-                      <div className="flex justify-center gap-0.5">
-                        {[1, 2, 3, 4, 5].map((s) => (
-                          <button key={s} onClick={() => setEndFeedbackRating(s)}
-                            onMouseEnter={() => setEndFeedbackHover(s)} onMouseLeave={() => setEndFeedbackHover(0)}
-                            className="p-0.5 transition-transform hover:scale-110" aria-label={`דירוג ${s} כוכבים`}>
-                            <Star className={`w-6 h-6 ${s <= (endFeedbackHover || endFeedbackRating) ? 'fill-amber-400 text-amber-400' : 'text-purple-200'} transition-colors`} />
-                          </button>
-                        ))}
-                      </div>
-                      <Textarea value={endFeedbackMessage} onChange={(e) => setEndFeedbackMessage(e.target.value)}
-                        placeholder="ספרו לנו מה אהבתם 💬" className="text-xs min-h-[40px] resize-none" dir="rtl" />
-                      <Button onClick={handleEndFeedbackSubmit} disabled={endFeedbackRating === 0 || endFeedbackSending}
-                        size="sm" className="w-full gap-1 text-xs bg-gradient-to-r from-purple-600 to-pink-500 hover:from-purple-700 hover:to-pink-600">
-                        <Send className="w-3 h-3" />
-                        {endFeedbackSending ? "שולח..." : "שליחה"}
-                      </Button>
-                    </div>
-                  ) : (
-                    <div className="w-full max-w-xs bg-gradient-to-r from-purple-50 to-pink-50 rounded-xl p-3 shadow-lg border border-purple-100 text-center mt-2 mx-auto" dir="rtl">
-                      <p className="text-base font-bold text-purple-800">תודה רבה! 💛</p>
-                      <p className="text-xs text-purple-600 mt-1">המשוב שלכם עוזר לנו ליצור סיפורים טובים יותר</p>
-                    </div>
-                  )}
-
-                  {/* Unified Coloring Picker Dialog */}
+                  {/* Coloring Picker Dialog */}
                   <Dialog open={coloringPickerOpen} onOpenChange={(open) => {
                     setColoringPickerOpen(open);
-                    if (!open) setColoringAction('pick');
+                    if (!open) { setColoringAction('pick'); setColoringMode(null); }
                   }}>
                     <DialogContent className="max-w-md" dir="rtl">
                       <DialogHeader>
@@ -1460,7 +1493,19 @@ const [currentPage, setCurrentPage] = useState(0);
                           <Button
                             disabled={!selectedColoringUrl}
                             className="w-full bg-gradient-to-r from-purple-600 to-pink-500 hover:from-purple-700 hover:to-pink-600 text-white"
-                            onClick={() => setColoringAction('choose-action')}
+                            onClick={() => {
+                              if (coloringMode) {
+                                // Skip choose-action step, go directly to the selected mode
+                                setColoringAction('choose-action');
+                                // Auto-trigger the action
+                                setTimeout(() => {
+                                  const btn = document.querySelector(`[data-coloring-action="${coloringMode}"]`) as HTMLButtonElement;
+                                  btn?.click();
+                                }, 100);
+                              } else {
+                                setColoringAction('choose-action');
+                              }
+                            }}
                           >
                             המשך ➜
                           </Button>
@@ -1477,6 +1522,7 @@ const [currentPage, setCurrentPage] = useState(0);
                             </div>
                           )}
                           <Button
+                            data-coloring-action="print"
                             disabled={coloringLoading}
                             className="w-full bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white py-3 text-sm gap-2"
                             onClick={async () => {
@@ -1484,7 +1530,6 @@ const [currentPage, setCurrentPage] = useState(0);
                               setColoringPickerOpen(false);
                               setColoringLoading(true);
 
-                              // Use cached URL if available (same illustration)
                               if (cachedColoringUrl && cachedIllustrationUrl === selectedColoringUrl) {
                                 try {
                                   const coloringImg = new Image();
@@ -1541,8 +1586,6 @@ const [currentPage, setCurrentPage] = useState(0);
                               toast({ title: "מכין את דף הצביעה שלך... 🎨" });
                               try {
                                 const illustrationFullUrl = getPublicIllustrationUrl(selectedColoringUrl);
-                                
-                                // Try API first, fallback to client-side
                                 let coloringDataUrl: string | null = null;
                                 try {
                                   const invokeColoring = () => supabase.functions.invoke('generate-coloring-page', {
@@ -1627,6 +1670,7 @@ const [currentPage, setCurrentPage] = useState(0);
                             🖨️ הדפס דף צביעה
                           </Button>
                           <Button
+                            data-coloring-action="online"
                             disabled={coloringLoading}
                             className="w-full bg-gradient-to-r from-purple-500 to-indigo-500 hover:from-purple-600 hover:to-indigo-600 text-white py-3 text-sm gap-2"
                             onClick={async () => {
@@ -1634,7 +1678,6 @@ const [currentPage, setCurrentPage] = useState(0);
                               setColoringPickerOpen(false);
                               setColoringLoading(true);
 
-                              // Use cached URL if available (same illustration)
                               if (cachedColoringUrl && cachedIllustrationUrl === selectedColoringUrl) {
                                 setOnlineColoringImageUrl(cachedColoringUrl);
                                 setOnlineColoringOpen(true);
@@ -1645,7 +1688,6 @@ const [currentPage, setCurrentPage] = useState(0);
                               toast({ title: "מכין את דף הצביעה שלך... 🎨" });
                               try {
                                 const illustrationFullUrl = getPublicIllustrationUrl(selectedColoringUrl);
-                                
                                 let coloringDataUrl: string | null = null;
                                 try {
                                   const invokeColoring = () => supabase.functions.invoke('generate-coloring-page', {
@@ -1736,8 +1778,9 @@ const [currentPage, setCurrentPage] = useState(0);
                     </AlertDialogContent>
                   </AlertDialog>
 
-                  <div className="pt-2">
-                    <span className="text-xl font-black logo-3d-bubble mt-3"><span className="logo-rainbow">SolStorie's™</span></span>
+                  {/* Logo footer */}
+                  <div className="pt-4 pb-2">
+                    <span className="text-xl font-black logo-3d-bubble"><span className="logo-rainbow">SolStorie's™</span></span>
                   </div>
                 </div>
               </div>
