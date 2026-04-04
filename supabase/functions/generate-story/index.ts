@@ -457,6 +457,15 @@ function getHebrewTopic(topicId: string): string {
   return TOPIC_HEBREW_MAP[topicId] || topicId;
 }
 
+const AGE_LABEL_MAP: Record<string, string> = {
+  "0-2": "שנתיים",
+  "2-4": "ארבע",
+  "3-6": "חמש",
+  "5-7": "שש",
+  "6-9": "שבע",
+  "8-10": "שמונה",
+};
+
 // NOTE: Character profile extraction, illustration generation, and image upload
 // are handled entirely by the generate-illustrations edge function (called async).
 // The generate-story function only creates text content.
@@ -1313,7 +1322,7 @@ ${sequelInstruction}
 שלב את גיל הילד/ה באופן טבעי ועדין בתוך הסיפור — לא כמשפט תיאורי ישיר אלא דרך התנהגות או יכולות המתאימות לגיל.
 - ❌ אסור: "${childGender === "female" ? "היא בת ארבע" : "הוא בן ארבע"}" כמשפט עובדתי יבש
 - ✅ נכון: "${childGender === "female" ? "היא עדיין קטנה, אבל ליבה גדול" : "הוא עדיין קטן, אבל ליבו גדול"}" / "כמו כל ${childGender === "female" ? "ילדה" : "ילד"} ${childGender === "female" ? "בגילה" : "בגילו"}, ${childGender === "female" ? "היא אוהבת" : "הוא אוהב"} לחקור"
-- אם חייבים לציין גיל — לשלב בצורה חמה, לדוגמה: "${childName} ${childGender === "female" ? "בת" : "בן"} ה${{"0-2":"שנתיים","2-4":"ארבע","3-6":"חמש","5-7":"שש","8-10":"שמונה","6-9":"שבע"}[ageRange] || ageRange} ${childGender === "female" ? "המתוקה" : "המתוק"}"
+- אם חייבים לציין גיל — לשלב בצורה חמה, לדוגמה: "${childName} ${childGender === "female" ? "בת" : "בן"} ה${AGE_LABEL_MAP[ageRange] || ageRange} ${childGender === "female" ? "המתוקה" : "המתוק"}"
 
 **נושא הסיפור:** ${topic}
 ${hasCustomDescription ? `**תיאור חופשי:** ${personalityTraits}` : ""}
@@ -1510,7 +1519,7 @@ ${topic.endsWith('-edu') ? `
 
     if (!geminiResult.ok) {
       console.error(`[generate-story] ❌ AI Gateway failed after retries: status=${geminiResult.status}`);
-      await logError("story_generation_error", `AI Gateway error: ${geminiResult.status}`, { status: geminiResult.status, body: geminiResult.body.substring(0, 500), topic, childName, isBillingError: geminiResult.isBillingError }, userId);
+      await logError("story_generation_error", `AI Gateway error: ${geminiResult.status}`, { status: geminiResult.status, body: geminiResult.body.substring(0, 500), topic, childName, isBillingError: geminiResult.isBillingError }, userId ?? undefined);
       
       if (geminiResult.isBillingError) {
         return new Response(
@@ -1651,7 +1660,7 @@ ${topic.endsWith('-edu') ? `
             retryError: String(retryErr),
             contentPreview: content?.substring(0, 500), 
             topic, childName 
-          }, userId);
+          }, userId ?? undefined);
           throw new Error("שגיאה ביצירת הסיפור. נסו שוב.");
         }
       }
@@ -1660,7 +1669,7 @@ ${topic.endsWith('-edu') ? `
     // Validate story structure
     if (!storyData.pages || !Array.isArray(storyData.pages) || storyData.pages.length === 0) {
       console.error("Invalid story structure:", JSON.stringify(storyData).substring(0, 300));
-      await logError("story_parse_error", `Invalid story structure from AI`, { keys: Object.keys(storyData), topic, childName }, userId);
+      await logError("story_parse_error", `Invalid story structure from AI`, { keys: Object.keys(storyData), topic, childName }, userId ?? undefined);
       throw new Error("שגיאה ביצירת הסיפור. נסו שוב.");
     }
     
@@ -1859,7 +1868,7 @@ ${fullStoryText}`;
 
     if (storyError) {
       console.error("Error creating story:", storyError);
-      await logError("story_insert_error", `Story insert failed: ${storyError.message}`, { code: storyError.code, topic, childName }, userId);
+      await logError("story_insert_error", `Story insert failed: ${storyError.message}`, { code: storyError.code, topic, childName }, userId ?? undefined);
       throw storyError;
     }
 
@@ -2074,7 +2083,8 @@ ${fullStoryText}`;
 
   } catch (error) {
     console.error("Error in generate-story:", error);
-    await logError("story_general_error", `generate-story crash: ${error?.message || error}`, {});
+    const crashMessage = error instanceof Error ? error.message : String(error);
+    await logError("story_general_error", `generate-story crash: ${crashMessage}`, {});
     // Return generic error message to client, keep details in server logs
     const userMessage = error instanceof Error && error.message.startsWith("שגיאה") 
       ? error.message 
