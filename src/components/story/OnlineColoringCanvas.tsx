@@ -530,7 +530,7 @@ export const OnlineColoringCanvas: React.FC<OnlineColoringCanvasProps> = ({
       </div>
 
       {/* Bottom toolbar */}
-      <div className="flex-shrink-0 bg-white/90 backdrop-blur-sm border-t border-purple-200 px-2 py-1.5 space-y-1.5">
+      <div className="flex-shrink-0 bg-white/90 backdrop-blur-sm border-t border-purple-200 px-2 py-1.5 space-y-1.5" style={{ paddingBottom: `max(6px, env(safe-area-inset-bottom, 6px))` }}>
         {/* Tools */}
         <div className="flex items-center justify-center gap-2">
           <button onPointerDown={(e) => { e.stopPropagation(); toolRef.current = 'fill'; setTool('fill'); }}
