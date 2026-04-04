@@ -1478,39 +1478,37 @@ ${topic.endsWith('-edu') ? `
 - כלל ניקוד: אם לא בטוח ב-100% בניקוד - השתמש במילה שאתה בטוח בניקוד שלה.`;
     }
 
-    console.log("[generate-story] 📡 Calling Google Gemini API (gemini-2.0-flash) with retry logic...");
-    const geminiResult = await callGeminiWithRetry({
-      apiKey: GEMINI_API_KEY,
+    console.log("[generate-story] 📡 Calling Lovable AI Gateway (google/gemini-2.5-flash) with retry logic...");
+    const gatewayResult = await callGatewayWithRetry({
+      apiKey: LOVABLE_API_KEY,
       label: "generate-story",
       maxRetries: 4,
       timeoutMs: 120_000,
-      body: {
-        systemInstruction: { parts: [{ text: systemPrompt }] },
-        contents: [{ role: "user", parts: [{ text: userPrompt }] }],
-        generationConfig: {
-          responseMimeType: "application/json",
-          maxOutputTokens: 8192,
-        },
-      },
+      maxOutputTokens: 8192,
+      messages: [
+        { role: "system", content: systemPrompt },
+        { role: "user", content: userPrompt },
+      ],
+      responseFormat: { type: "json_object" },
     });
 
-    if (!geminiResult.ok) {
-      console.error(`[generate-story] ❌ Gemini API failed after retries: status=${geminiResult.status}`);
-      await logError("story_generation_error", `Gemini API error: ${geminiResult.status}`, { status: geminiResult.status, body: geminiResult.body.substring(0, 500), topic, childName, isBillingError: geminiResult.isBillingError }, userId);
+    if (!gatewayResult.ok) {
+      console.error(`[generate-story] ❌ AI Gateway failed after retries: status=${gatewayResult.status}`);
+      await logError("story_generation_error", `AI Gateway error: ${gatewayResult.status}`, { status: gatewayResult.status, body: gatewayResult.body.substring(0, 500), topic, childName, isBillingError: gatewayResult.isBillingError }, userId);
       
-      if (geminiResult.isBillingError) {
+      if (gatewayResult.isBillingError) {
         return new Response(
           JSON.stringify({ error: "שגיאת מערכת זמנית. נסו שוב בעוד מספר דקות." }),
           { status: 503, headers: { ...corsHeaders, "Content-Type": "application/json" } }
         );
       }
-      if (geminiResult.status === 429) {
+      if (gatewayResult.status === 429) {
         return new Response(
           JSON.stringify({ error: "הגעתם למגבלת הבקשות. נסו שוב בעוד מספר דקות." }),
           { status: 429, headers: { ...corsHeaders, "Content-Type": "application/json" } }
         );
       }
-      if (geminiResult.status === 401 || geminiResult.status === 403) {
+      if (gatewayResult.status === 401 || gatewayResult.status === 403) {
         return new Response(
           JSON.stringify({ error: "שגיאת הרשאה. אנא צרו קשר עם התמיכה." }),
           { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } }
@@ -1519,8 +1517,8 @@ ${topic.endsWith('-edu') ? `
       throw new Error("שגיאה ביצירת הסיפור. נסו שוב מאוחר יותר.");
     }
 
-    console.log("[generate-story] ✅ Gemini API response received, parsing...");
-    const content = geminiResult.data.candidates?.[0]?.content?.parts?.[0]?.text;
+    console.log("[generate-story] ✅ AI Gateway response received, parsing...");
+    const content = gatewayResult.data.choices?.[0]?.message?.content;
     
     if (!content) {
       throw new Error("שגיאה ביצירת הסיפור. נסו שוב.");
