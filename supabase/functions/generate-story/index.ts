@@ -1762,18 +1762,18 @@ ${fullStoryText}`;
       
       console.log(`[generate-story] Starting text quality rewrite for age ${ageLabel} (12s timeout)...`);
       
-      const rewriteResult = await callGeminiWithRetry({
-        apiKey: GEMINI_API_KEY,
+      const rewriteResult = await callGatewayWithRetry({
+        apiKey: LOVABLE_API_KEY,
         label: "rewrite",
         maxRetries: 1,
         timeoutMs: 12_000,
-        body: {
-          contents: [{ role: "user", parts: [{ text: rewritePrompt }] }],
-        },
+        messages: [
+          { role: "user", content: rewritePrompt },
+        ],
       });
 
       if (rewriteResult.ok) {
-        const rewrittenText = rewriteResult.data.candidates?.[0]?.content?.parts?.[0]?.text?.trim();
+        const rewrittenText = rewriteResult.data.choices?.[0]?.message?.content?.trim();
         
         if (rewrittenText) {
           // Parse rewritten text back into pages by [עמוד X] markers
