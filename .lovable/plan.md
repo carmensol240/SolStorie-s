@@ -1,27 +1,24 @@
 
 
-## Plan: Fix Print Coloring Page Button
+## Plan: Trim White Margins from Print Coloring Page
 
 ### Problem
-The "הדפיסו דף צביעה" (Print Coloring Page) button doesn't work because it uses `window.open(url, '_blank')` which is blocked by mobile browsers' popup blockers — especially when called after an async operation (the dialog closes first, then the edge function runs, then `window.open` fires outside the user gesture context).
-
-Even when there IS a cached URL, `window.open` on mobile Safari/Chrome can be unreliable.
+The AI-generated coloring page image has large white margins (especially at the bottom). The online coloring canvas already trims these using `getContentBounds()`, but the print/download flow downloads the raw image as-is.
 
 ### Solution — single file: `src/pages/StoryViewer.tsx`
 
-**Lines 1991–2021** (the print button's `onClick` handler):
+**In the `triggerDownload` function (lines 1994–2009)**: After fetching the image blob, add a canvas-based trim step before downloading:
 
-Replace `window.open(urlToUse, '_blank')` with a proper download/print approach:
-- Create a temporary `<a>` element with `href` set to the coloring image URL, `download` attribute set, and programmatically click it
-- This triggers a reliable download on mobile without popup blockers interfering
-- For the async (non-cached) path: keep the dialog open while loading (don't close it prematurely), generate the URL, then trigger the download
+1. Load the blob into an `Image` element
+2. Draw it on a temporary canvas
+3. Scan for content bounds (same white-threshold logic as `OnlineColoringCanvas.getContentBounds`)
+4. Create a new canvas with only the trimmed content
+5. Export the trimmed canvas as PNG blob and trigger download with that
 
-Specifically:
-1. **Cached path** (line 1996): Replace `window.open(urlToUse, '_blank')` with a fetch-and-download approach using `URL.createObjectURL` + temporary anchor click
-2. **Non-cached path** (lines 1999–2020): Don't close the dialog before the async call. After getting the URL, trigger the same download approach, then close the dialog
+This reuses the same trimming algorithm already proven in `OnlineColoringCanvas` (lines 59–121), just inlined into the download helper.
 
 ### What stays the same
-- Online coloring button logic (already working)
+- Online coloring canvas (no changes)
 - Edge function (no changes)
-- All other components and pages
+- All other buttons and logic
 
