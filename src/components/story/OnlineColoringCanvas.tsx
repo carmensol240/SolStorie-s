@@ -392,7 +392,7 @@ export const OnlineColoringCanvas: React.FC<OnlineColoringCanvasProps> = ({
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-50 bg-white flex flex-col h-screen overflow-hidden">
+    <div className="fixed inset-0 z-50 bg-white flex flex-col overflow-hidden" style={{ height: '100dvh' }}>
       {/* Top bar */}
       <div className="flex-shrink-0 flex justify-between items-center px-2 py-1.5 bg-gradient-to-r from-purple-600/90 to-pink-500/90" dir="rtl">
         <Button onClick={onClose} variant="ghost" size="sm" className="text-white hover:bg-white/20 rounded-xl gap-1 min-h-[36px] px-2 text-sm">
@@ -441,20 +441,20 @@ export const OnlineColoringCanvas: React.FC<OnlineColoringCanvasProps> = ({
       <div className="flex-shrink-0 bg-white/90 backdrop-blur-sm border-t border-purple-200 px-2 py-1.5 space-y-1.5">
         {/* Tools */}
         <div className="flex items-center justify-center gap-2">
-          <button onClick={() => setTool('fill')}
-            className={`w-9 h-9 rounded-full flex items-center justify-center transition-all ${
+          <button onPointerDown={(e) => { e.stopPropagation(); setTool('fill'); }}
+            className={`w-9 h-9 rounded-full flex items-center justify-center transition-all touch-manipulation ${
               tool === 'fill' ? 'ring-2 ring-purple-500 ring-offset-1 bg-purple-50 shadow-md' : 'bg-gray-100 hover:bg-gray-200'
             }`}>
             <PaintBucket className="w-4 h-4" style={{ color }} />
           </button>
-          <button onClick={() => setTool('brush')}
-            className={`w-9 h-9 rounded-full flex items-center justify-center transition-all ${
+          <button onPointerDown={(e) => { e.stopPropagation(); setTool('brush'); }}
+            className={`w-9 h-9 rounded-full flex items-center justify-center transition-all touch-manipulation ${
               tool === 'brush' ? 'ring-2 ring-purple-500 ring-offset-1 bg-purple-50 shadow-md' : 'bg-gray-100 hover:bg-gray-200'
             }`}>
             <Pencil className="w-4 h-4" style={{ color: tool === 'brush' ? color : undefined }} />
           </button>
-          <button onClick={() => setTool('eraser')}
-            className={`w-9 h-9 rounded-full flex items-center justify-center transition-all ${
+          <button onPointerDown={(e) => { e.stopPropagation(); setTool('eraser'); }}
+            className={`w-9 h-9 rounded-full flex items-center justify-center transition-all touch-manipulation ${
               tool === 'eraser' ? 'ring-2 ring-purple-500 ring-offset-1 bg-purple-50 shadow-md' : 'bg-gray-100 hover:bg-gray-200'
             }`}>
             <Eraser className="w-4 h-4 text-gray-500" />
@@ -473,8 +473,9 @@ export const OnlineColoringCanvas: React.FC<OnlineColoringCanvasProps> = ({
         {/* Colors */}
         <div className="flex items-center justify-center gap-1.5 flex-wrap">
           {COLORS.map((c) => (
-            <button key={c} onClick={() => { setColor(c); if (tool === 'eraser') setTool('fill'); }}
-              className={`w-9 h-9 rounded-full border-2 transition-all active:scale-95 ${
+            <button key={c}
+              onPointerDown={(e) => { e.stopPropagation(); setColor(c); if (tool === 'eraser') setTool('brush'); }}
+              className={`w-9 h-9 rounded-full border-2 transition-all active:scale-95 touch-manipulation ${
                 color === c && tool !== 'eraser'
                   ? 'scale-110 shadow-lg border-gray-700'
                   : 'border-white shadow-md hover:scale-105'
