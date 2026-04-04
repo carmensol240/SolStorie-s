@@ -3,6 +3,7 @@ import { ArrowRight, ArrowLeft, Loader2, User } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import MobileNavigation from "@/components/MobileNavigation";
+import GlobalFooter from "@/components/shared/GlobalFooter";
 import ChildInfoStep from "@/components/wizard/ChildInfoStep";
 import TopicStep from "@/components/wizard/TopicStep";
 import GeneratingStep from "@/components/wizard/GeneratingStep";
@@ -250,6 +251,10 @@ const CreateStory = () => {
             <ArrowLeft className="w-4 h-4 mr-1.5" />
           </Button>
         </div>
+      </div>
+
+      <div className="pb-24">
+        <GlobalFooter />
       </div>
       
       <MobileNavigation />
