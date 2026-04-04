@@ -38,6 +38,11 @@ const Home = () => {
     <div className="min-h-[100dvh] flex flex-col bg-gradient-to-b from-amber-50/50 to-background overflow-y-auto" style={{ WebkitOverflowScrolling: 'touch' }}>
       <OfflineIndicator isOnline={isOnline} />
       
+      {/* Maintenance Banner */}
+      <div className="w-full bg-gradient-to-r from-amber-400 via-orange-400 to-pink-400 text-white text-center py-3 px-4 font-bold text-sm shadow-md z-50" dir="rtl">
+        🔧 האתר בשיפוצים ושיפורים - נחזור בקרוב עוד יותר טובים! ✨
+      </div>
+      
       <div className="flex-1 overflow-y-auto flex flex-col pb-20" style={{ WebkitOverflowScrolling: 'touch' }}>
         {isLoggedIn ? (
           <>
