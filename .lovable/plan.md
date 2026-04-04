@@ -1,26 +1,17 @@
 
 
-## Plan: Fix Field Name Mismatch — `coloringPageUrl` vs `image`
+## Plan: Remove Coloring Upsell Popup
 
-### Problem
-The edge function `generate-coloring-page` returns the coloring image in a field called `image`, but the client code in `StoryViewer.tsx` reads `response.data?.coloringPageUrl` — which is always `undefined`, causing the "No coloring URL returned" error.
+### Single file: `src/pages/StoryViewer.tsx`
 
-Also need to handle the `upsell` response (when user has no coloring credits).
+1. **Remove the `showColoringUpsell` state** (line 240) and all references to `setShowColoringUpsell`
+2. **Remove the AlertDialog block** (lines 2095–2116) — the "רוצים לצבוע איור נוסף?" popup
+3. **Remove the AlertDialog imports** if no longer used elsewhere (`AlertDialog`, `AlertDialogContent`, `AlertDialogHeader`, `AlertDialogTitle`, `AlertDialogDescription`, `AlertDialogFooter`, `AlertDialogAction`, `AlertDialogCancel`)
 
-### Solution — single file: `src/pages/StoryViewer.tsx`
-
-Change all 3 occurrences (lines ~1958, ~2002, ~2037) from:
-```ts
-const coloringUrl = (response.data as any)?.coloringPageUrl;
-```
-to:
-```ts
-const coloringUrl = (response.data as any)?.image;
-```
-
-Also add handling for the upsell case — when the edge function returns `{ upsell: true }`, show a toast instead of throwing an error.
+The upsell toast messages on lines ~1958, ~2006, ~2045 (showing "נגמרו קרדיטים לצביעה") will remain — they are simple non-blocking toasts, not popups.
 
 ### What stays the same
-- Edge function code (no changes)
-- All other coloring logic, canvas, dialog
+- All coloring logic (print, online, generation)
+- All other dialogs and UI
+- Toast notifications for credit exhaustion
 
