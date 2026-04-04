@@ -441,20 +441,20 @@ export const OnlineColoringCanvas: React.FC<OnlineColoringCanvasProps> = ({
       <div className="flex-shrink-0 bg-white/90 backdrop-blur-sm border-t border-purple-200 px-2 py-1.5 space-y-1.5">
         {/* Tools */}
         <div className="flex items-center justify-center gap-2">
-          <button onClick={() => setTool('fill')}
-            className={`w-9 h-9 rounded-full flex items-center justify-center transition-all ${
+          <button onPointerDown={(e) => { e.stopPropagation(); setTool('fill'); }}
+            className={`w-9 h-9 rounded-full flex items-center justify-center transition-all touch-manipulation ${
               tool === 'fill' ? 'ring-2 ring-purple-500 ring-offset-1 bg-purple-50 shadow-md' : 'bg-gray-100 hover:bg-gray-200'
             }`}>
             <PaintBucket className="w-4 h-4" style={{ color }} />
           </button>
-          <button onClick={() => setTool('brush')}
-            className={`w-9 h-9 rounded-full flex items-center justify-center transition-all ${
+          <button onPointerDown={(e) => { e.stopPropagation(); setTool('brush'); }}
+            className={`w-9 h-9 rounded-full flex items-center justify-center transition-all touch-manipulation ${
               tool === 'brush' ? 'ring-2 ring-purple-500 ring-offset-1 bg-purple-50 shadow-md' : 'bg-gray-100 hover:bg-gray-200'
             }`}>
             <Pencil className="w-4 h-4" style={{ color: tool === 'brush' ? color : undefined }} />
           </button>
-          <button onClick={() => setTool('eraser')}
-            className={`w-9 h-9 rounded-full flex items-center justify-center transition-all ${
+          <button onPointerDown={(e) => { e.stopPropagation(); setTool('eraser'); }}
+            className={`w-9 h-9 rounded-full flex items-center justify-center transition-all touch-manipulation ${
               tool === 'eraser' ? 'ring-2 ring-purple-500 ring-offset-1 bg-purple-50 shadow-md' : 'bg-gray-100 hover:bg-gray-200'
             }`}>
             <Eraser className="w-4 h-4 text-gray-500" />
