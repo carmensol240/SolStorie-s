@@ -507,27 +507,36 @@ const NIKUD_GRAMMARIAN_PROMPT = `אתה מומחה ניקוד עברי (נקדן
 ### פורמט:
 החזר רק את הטקסט המנוקד, ללא הסברים או תוספות.`;
 
-// === Reusable Gemini fetch helper with exponential backoff ===
-interface GeminiCallOptions {
+// === Reusable Lovable AI Gateway fetch helper with exponential backoff ===
+interface GatewayCallOptions {
   apiKey: string;
   model?: string;
-  body: Record<string, unknown>;
+  messages: Array<{ role: string; content: string }>;
+  responseFormat?: { type: string };
   maxRetries?: number;
   timeoutMs?: number;
   label?: string;
+  maxOutputTokens?: number;
 }
 
-async function callGeminiWithRetry(opts: GeminiCallOptions): Promise<{ ok: true; data: any } | { ok: false; status: number; body: string; isBillingError: boolean }> {
-  const { apiKey, model = "gemini-2.0-flash", body, maxRetries = 4, timeoutMs = 120_000, label = "gemini" } = opts;
-  const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`;
+async function callGatewayWithRetry(opts: GatewayCallOptions): Promise<{ ok: true; data: any } | { ok: false; status: number; body: string; isBillingError: boolean }> {
+  const { apiKey, model = "google/gemini-2.5-flash", messages, responseFormat, maxRetries = 4, timeoutMs = 120_000, label = "gateway", maxOutputTokens } = opts;
+  const url = "https://ai.gateway.lovable.dev/v1/chat/completions";
   const RETRYABLE = new Set([429, 500, 502, 503, 504]);
+
+  const requestBody: Record<string, unknown> = { model, messages };
+  if (responseFormat) requestBody.response_format = responseFormat;
+  if (maxOutputTokens) requestBody.max_tokens = maxOutputTokens;
 
   for (let attempt = 0; attempt <= maxRetries; attempt++) {
     try {
       const response = await fetch(url, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(body),
+        headers: {
+          "Authorization": `Bearer ${apiKey}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(requestBody),
         signal: AbortSignal.timeout(timeoutMs),
       });
 
@@ -538,10 +547,10 @@ async function callGeminiWithRetry(opts: GeminiCallOptions): Promise<{ ok: true;
 
       const errBody = await response.text();
 
-      // Detect billing/quota 429 (limit: 0, free_tier) — not retryable
-      if (response.status === 429 && (errBody.includes('"limit": 0') || errBody.includes('free_tier'))) {
-        console.error(`[${label}] ❌ Billing/quota 429 (limit:0) — not retryable. Body: ${errBody.substring(0, 300)}`);
-        return { ok: false, status: 429, body: errBody, isBillingError: true };
+      // Detect billing 402 — not retryable
+      if (response.status === 402) {
+        console.error(`[${label}] ❌ Payment required (402). Body: ${errBody.substring(0, 300)}`);
+        return { ok: false, status: 402, body: errBody, isBillingError: true };
       }
 
       if (!RETRYABLE.has(response.status) || attempt === maxRetries) {
@@ -549,7 +558,6 @@ async function callGeminiWithRetry(opts: GeminiCallOptions): Promise<{ ok: true;
         return { ok: false, status: response.status, body: errBody, isBillingError: false };
       }
 
-      // Parse Retry-After or use exponential backoff
       const retryAfter = response.headers.get("retry-after");
       let waitMs: number;
       if (retryAfter && !isNaN(Number(retryAfter))) {
