@@ -1601,25 +1601,24 @@ ${topic.endsWith('-edu') ? `
         console.log("[generate-story] Truncated JSON repaired successfully");
       } catch (_e2) {
         console.warn("[generate-story] Repair failed, retrying AI call...");
-        // Attempt 3: retry the AI call once
+        // Attempt 3: retry the AI call with retry helper
         try {
-          const retryResponse = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${GEMINI_API_KEY}`, {
-            method: "POST",
-            signal: AbortSignal.timeout(120_000),
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
+          const retryResult = await callGeminiWithRetry({
+            apiKey: GEMINI_API_KEY,
+            label: "generate-story-retry",
+            maxRetries: 2,
+            timeoutMs: 120_000,
+            body: {
               systemInstruction: { parts: [{ text: systemPrompt }] },
               contents: [{ role: "user", parts: [{ text: userPrompt }] }],
               generationConfig: { responseMimeType: "application/json" },
-            }),
+            },
           });
-          if (!retryResponse.ok) {
-            const errBody = await retryResponse.text();
-            console.error(`[generate-story] Retry AI call failed: ${retryResponse.status} - ${errBody}`);
+          if (!retryResult.ok) {
+            console.error(`[generate-story] Retry AI call failed: ${retryResult.status}`);
             throw new Error("Retry failed");
           }
-          const retryData = await retryResponse.json();
-          const retryContent = retryData.candidates?.[0]?.content?.parts?.[0]?.text;
+          const retryContent = retryResult.data.candidates?.[0]?.content?.parts?.[0]?.text;
           if (!retryContent) throw new Error("Empty retry response");
           const cleanedRetry = cleanAiContent(retryContent);
           storyData = JSON.parse(cleanedRetry);
