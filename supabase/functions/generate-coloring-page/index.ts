@@ -83,10 +83,10 @@ serve(async (req) => {
       }
     }
 
-    // ── AI generation via Lovable AI Gateway ──
-    const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
-    if (!LOVABLE_API_KEY) {
-      console.error("LOVABLE_API_KEY not configured");
+    // ── AI generation via direct Gemini API ──
+    const GEMINI_API_KEY = Deno.env.get("GEMINI_API_KEY");
+    if (!GEMINI_API_KEY) {
+      console.error("GEMINI_API_KEY not configured");
       return jsonResponse({ error: "Server configuration error" }, 500);
     }
 
@@ -104,7 +104,7 @@ serve(async (req) => {
     );
     const mimeType = imgResponse.headers.get("content-type") || "image/png";
 
-    console.log("Sending to Lovable AI Gateway for coloring page conversion...");
+    console.log("Sending to Gemini for coloring page conversion...");
 
     const coloringPrompt = `Convert this illustration into a perfect children's coloring book page for printing. Follow these rules strictly:
 
@@ -119,89 +119,58 @@ serve(async (req) => {
 
 Output ONLY the coloring page image, nothing else. Do not include any text, labels, letter names, or written words anywhere in the image.`;
 
-    const gatewayUrl = "https://ai.gateway.lovable.dev/v1/chat/completions";
-    const gatewayBody = JSON.stringify({
-      model: "google/gemini-2.5-flash",
-      messages: [
-        {
+    // Try multiple Gemini image generation models in order
+    const imageModels = [
+      "gemini-2.0-flash-preview-image-generation",
+      "imagen-3.0-generate-002",
+    ];
+
+    let generatedImage: string | undefined;
+    let lastError = "";
+
+    for (const model of imageModels) {
+      console.log(`Trying model: ${model}`);
+      const geminiUrl = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${GEMINI_API_KEY}`;
+      const geminiBody = JSON.stringify({
+        contents: [{
           role: "user",
-          content: [
-            { type: "text", text: coloringPrompt },
-            { type: "image_url", image_url: { url: `data:${mimeType};base64,${imgBase64}` } },
+          parts: [
+            { text: coloringPrompt },
+            { inlineData: { mimeType, data: imgBase64 } },
           ],
+        }],
+        generationConfig: {
+          responseModalities: ["TEXT", "IMAGE"],
         },
-      ],
-      modalities: ["text", "image"],
-    });
-
-    const maxRetries = 4;
-    let aiResponse: Response | null = null;
-
-    for (let attempt = 0; attempt <= maxRetries; attempt++) {
-      aiResponse = await fetch(gatewayUrl, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "Authorization": `Bearer ${LOVABLE_API_KEY}`,
-        },
-        body: gatewayBody,
       });
 
-      if (aiResponse.ok) break;
+      const maxRetries = 3;
+      let aiResponse: Response | null = null;
 
-      const retryableStatus = aiResponse.status === 429 || aiResponse.status === 502 || aiResponse.status === 503;
-      if (!retryableStatus || attempt === maxRetries) break;
+      for (let attempt = 0; attempt <= maxRetries; attempt++) {
+        aiResponse = await fetch(geminiUrl, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: geminiBody,
+        });
 
-      const backoffSeconds = Math.min(30, 5 * (2 ** attempt));
-      const jitterMs = Math.floor(Math.random() * 1000);
-      console.log(`Retryable error ${aiResponse.status} (attempt ${attempt + 1}/${maxRetries + 1}), waiting ${backoffSeconds}s...`);
-      await new Promise((r) => setTimeout(r, backoffSeconds * 1000 + jitterMs));
-    }
+        if (aiResponse.ok) break;
 
-    if (!aiResponse!.ok) {
-      const status = aiResponse!.status;
-      if (status === 429) {
-        return jsonResponse({ error: "השירות עמוס כרגע, נסו שוב בעוד כמה דקות 🎨", retryable: true });
+        const retryableStatus = aiResponse.status === 429 || aiResponse.status === 502 || aiResponse.status === 503;
+        if (!retryableStatus || attempt === maxRetries) break;
+
+        const backoffSeconds = Math.min(20, 3 * (2 ** attempt));
+        console.log(`Retryable error ${aiResponse.status} (attempt ${attempt + 1}), waiting ${backoffSeconds}s...`);
+        await new Promise((r) => setTimeout(r, backoffSeconds * 1000));
       }
-      const errText = await aiResponse!.text();
-      console.error("AI Gateway error:", status, errText);
-      return jsonResponse({ error: "שגיאה ביצירת דף הצביעה" }, 500);
-    }
 
-    const aiData = await aiResponse!.json();
-    console.log("AI Gateway response keys:", Object.keys(aiData));
-
-    // Extract image from Gateway response — try multiple formats
-    let generatedImage: string | undefined;
-    const choices = aiData.choices;
-    if (Array.isArray(choices)) {
-      for (const choice of choices) {
-        const content = choice.message?.content;
-        // Format 1: content is an array of parts
-        if (Array.isArray(content)) {
-          for (const part of content) {
-            if (part.type === "image_url" && part.image_url?.url) {
-              generatedImage = part.image_url.url;
-              break;
-            }
-            // Gemini native format via gateway
-            if (part.inlineData?.data) {
-              const partMime = part.inlineData.mimeType || "image/png";
-              generatedImage = `data:${partMime};base64,${part.inlineData.data}`;
-              break;
-            }
-          }
-        }
-        // Format 2: content is a string (base64 data URL)
-        if (!generatedImage && typeof content === "string" && content.startsWith("data:image")) {
-          generatedImage = content;
-        }
-        if (generatedImage) break;
+      if (!aiResponse!.ok) {
+        lastError = await aiResponse!.text();
+        console.error(`Model ${model} failed:`, aiResponse!.status, lastError.slice(0, 300));
+        continue;
       }
-    }
 
-    // Format 3: Gemini native response format
-    if (!generatedImage) {
+      const aiData = await aiResponse!.json();
       const parts = aiData.candidates?.[0]?.content?.parts;
       if (Array.isArray(parts)) {
         for (const part of parts) {
@@ -212,11 +181,20 @@ Output ONLY the coloring page image, nothing else. Do not include any text, labe
           }
         }
       }
+
+      if (generatedImage) {
+        console.log(`Coloring page generated successfully with model: ${model}`);
+        break;
+      } else {
+        console.error(`Model ${model} returned no image. Response:`, JSON.stringify(aiData).slice(0, 500));
+      }
     }
 
     if (!generatedImage) {
-      console.error("No image returned. Response structure:", JSON.stringify(aiData).slice(0, 2000));
-      return jsonResponse({ error: "לא התקבלה תמונה מהמערכת" }, 500);
+      if (lastError.includes("429") || lastError.includes("RESOURCE_EXHAUSTED")) {
+        return jsonResponse({ error: "השירות עמוס כרגע, נסו שוב בעוד כמה דקות 🎨", retryable: true });
+      }
+      return jsonResponse({ error: "שגיאה ביצירת דף הצביעה" }, 500);
     }
 
     console.log("Coloring page generated successfully");
