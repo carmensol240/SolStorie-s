@@ -1933,7 +1933,7 @@ ${fullStoryText}`;
           if (savedPages) {
             const nikudResults = await Promise.allSettled(
               savedPages.map(async (page) => {
-                const nikudText = await addNikudToText(page.text, LOVABLE_API_KEY);
+                const nikudText = await addNikudToText(page.text, GEMINI_API_KEY);
                 if (nikudText !== page.text) {
                   await supabase
                     .from("story_pages")
