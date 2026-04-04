@@ -1891,16 +1891,17 @@ ${fullStoryText}`;
     const summaryPromise = (async () => {
       try {
         const fullText = storyData.pages.map((p: any) => p.text).join("\n");
-        const summaryResponse = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${GEMINI_API_KEY}`, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
+        const summaryResult = await callGeminiWithRetry({
+          apiKey: GEMINI_API_KEY,
+          label: "summary",
+          maxRetries: 1,
+          timeoutMs: 10_000,
+          body: {
             contents: [{ role: "user", parts: [{ text: `סכם את הסיפור הבא במשפט אחד קצר בעברית (עד 30 מילים). תן רק את המשפט, ללא הקדמה:\n${fullText}` }] }],
-          }),
+          },
         });
-        if (summaryResponse.ok) {
-          const summaryData = await summaryResponse.json();
-          const summary = summaryData.candidates?.[0]?.content?.parts?.[0]?.text?.trim();
+        if (summaryResult.ok) {
+          const summary = summaryResult.data.candidates?.[0]?.content?.parts?.[0]?.text?.trim();
           if (summary) {
             await supabase.from("stories").update({ summary }).eq("id", story.id);
             console.log(`Summary saved for story ${story.id}: ${summary.substring(0, 60)}...`);
