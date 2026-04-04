@@ -83,10 +83,10 @@ serve(async (req) => {
       }
     }
 
-    // ── AI generation ──
-    const GEMINI_API_KEY = Deno.env.get("GEMINI_API_KEY");
-    if (!GEMINI_API_KEY) {
-      console.error("GEMINI_API_KEY not configured");
+    // ── AI generation via Lovable AI Gateway ──
+    const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
+    if (!LOVABLE_API_KEY) {
+      console.error("LOVABLE_API_KEY not configured");
       return jsonResponse({ error: "Server configuration error" }, 500);
     }
 
@@ -104,7 +104,7 @@ serve(async (req) => {
     );
     const mimeType = imgResponse.headers.get("content-type") || "image/png";
 
-    console.log("Sending to Gemini for coloring page conversion...");
+    console.log("Sending to Lovable AI Gateway for coloring page conversion...");
 
     const coloringPrompt = `Convert this illustration into a perfect children's coloring book page for printing. Follow these rules strictly:
 
@@ -119,28 +119,32 @@ serve(async (req) => {
 
 Output ONLY the coloring page image, nothing else. Do not include any text, labels, letter names, or written words anywhere in the image.`;
 
-    const geminiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-exp:generateContent?key=${GEMINI_API_KEY}`;
-    const geminiBody = JSON.stringify({
-      contents: [{
-        role: "user",
-        parts: [
-          { text: coloringPrompt },
-          { inlineData: { mimeType, data: imgBase64 } },
-        ],
-      }],
-      generationConfig: {
-        responseModalities: ["TEXT", "IMAGE"],
-      },
+    const gatewayUrl = "https://ai.gateway.lovable.dev/v1/chat/completions";
+    const gatewayBody = JSON.stringify({
+      model: "google/gemini-3.1-flash-image-preview",
+      messages: [
+        {
+          role: "user",
+          content: [
+            { type: "text", text: coloringPrompt },
+            { type: "image_url", image_url: { url: `data:${mimeType};base64,${imgBase64}` } },
+          ],
+        },
+      ],
+      modalities: ["text", "image"],
     });
 
     const maxRetries = 4;
     let aiResponse: Response | null = null;
 
     for (let attempt = 0; attempt <= maxRetries; attempt++) {
-      aiResponse = await fetch(geminiUrl, {
+      aiResponse = await fetch(gatewayUrl, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: geminiBody,
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${LOVABLE_API_KEY}`,
+        },
+        body: gatewayBody,
       });
 
       if (aiResponse.ok) break;
@@ -160,22 +164,27 @@ Output ONLY the coloring page image, nothing else. Do not include any text, labe
         return jsonResponse({ error: "השירות עמוס כרגע, נסו שוב בעוד כמה דקות 🎨", retryable: true });
       }
       const errText = await aiResponse!.text();
-      console.error("Gemini API error:", status, errText);
+      console.error("AI Gateway error:", status, errText);
       return jsonResponse({ error: "שגיאה ביצירת דף הצביעה" }, 500);
     }
 
     const aiData = await aiResponse!.json();
 
-    // Extract image from Gemini response — look for inlineData in parts
+    // Extract image from Gateway response (OpenAI-compatible format)
     let generatedImage: string | undefined;
-    const parts = aiData.candidates?.[0]?.content?.parts;
-    if (Array.isArray(parts)) {
-      for (const part of parts) {
-        if (part.inlineData?.data) {
-          const partMime = part.inlineData.mimeType || "image/png";
-          generatedImage = `data:${partMime};base64,${part.inlineData.data}`;
-          break;
+    const choices = aiData.choices;
+    if (Array.isArray(choices)) {
+      for (const choice of choices) {
+        const content = choice.message?.content;
+        if (Array.isArray(content)) {
+          for (const part of content) {
+            if (part.type === "image_url" && part.image_url?.url) {
+              generatedImage = part.image_url.url;
+              break;
+            }
+          }
         }
+        if (generatedImage) break;
       }
     }
 
