@@ -1,6 +1,6 @@
-import React, { useState, useEffect, useMemo } from "react";
+import React, { useState, useEffect, useMemo, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
-import { ArrowRight, Plus, Coins, Wand2, BookOpen, WifiOff, Plane } from "lucide-react";
+import { ArrowRight, Plus, Coins, Wand2, BookOpen, WifiOff, Plane, Palette, Download, Paintbrush } from "lucide-react";
 import { getPublicIllustrationUrl } from "@/lib/illustration-url";
 import solMagicBookCover from "@/assets/sol-magic-book-cover.png";
 import libraryGirlReading from "@/assets/library-girl-reading.png";
