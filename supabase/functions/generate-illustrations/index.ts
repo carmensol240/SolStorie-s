@@ -628,7 +628,8 @@ Rules:
 - For hygiene topics (bath, teeth, hands, potty): respond with exactly "KEEP_ORIGINAL"
 
 Examples:
-"חנוכה" → "traditional Jewish festive blue and white tunic with a small kippah"
+"חנוכה" → "traditional Jewish festive blue and white tunic with a golden Star of David necklace and a blue hair ribbon"
+IMPORTANT: For female characters, NEVER include a kippah. Use a blue hair ribbon, bow, or decorative headband instead. Kippah is only for male characters.
 "יציאת מצרים" → "ancient Egyptian-style linen tunic with leather sandals and a woven belt"
 "נח ותיבת נח" → "simple rustic brown robe with a rope belt and wooden sandals"
 "יוסף ואחיו" → "colorful striped coat of many colors over a simple tunic"

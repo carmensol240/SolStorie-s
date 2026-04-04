@@ -97,6 +97,7 @@ const StoryOfTheDay = () => {
                 src={story.cover_url || story.story_pages?.[0]?.illustration_url || ''}
                 alt={story.topic}
                 className="w-full h-full object-cover"
+                style={{ imageOrientation: 'none' }}
               />
             ) : (
               <div className="w-full h-full bg-gradient-to-br from-primary to-accent flex items-center justify-center">

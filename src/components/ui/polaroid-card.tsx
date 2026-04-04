@@ -40,7 +40,7 @@ const CoverImage = ({ src, alt }: { src: string; alt: string }) => {
       loading="lazy"
       onError={() => setHasError(true)}
       className="w-full h-full object-cover"
-      style={{ imageOrientation: 'from-image' }}
+      style={{ imageOrientation: 'none' }}
     />
   );
 };
