@@ -778,7 +778,7 @@ const GeneratingStep = ({ formData, onComplete }: GeneratingStepProps) => {
             />
           </div>
           {!needsSignup && (
-            <p className="text-xs text-purple-600 font-medium">
+            <p className="text-xs text-purple-600 font-medium text-center">
               {Math.round(progress)}%
             </p>
           )}
