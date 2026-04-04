@@ -3,6 +3,7 @@ import { ArrowRight, ArrowLeft, Loader2, User } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import MobileNavigation from "@/components/MobileNavigation";
+import GlobalFooter from "@/components/shared/GlobalFooter";
 import ChildInfoStep from "@/components/wizard/ChildInfoStep";
 import TopicStep from "@/components/wizard/TopicStep";
 import GeneratingStep from "@/components/wizard/GeneratingStep";
