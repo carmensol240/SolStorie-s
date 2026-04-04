@@ -252,6 +252,10 @@ const CreateStory = () => {
           </Button>
         </div>
       </div>
+
+      <div className="pb-24">
+        <GlobalFooter />
+      </div>
       
       <MobileNavigation />
     </div>
