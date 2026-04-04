@@ -716,74 +716,100 @@ const Library = () => {
           </div>
         </div>
 
-        {/* Offline filter toggle */}
-        {stories.length > 0 && fullOffline.savedStoryIds.size > 0 && (
-          <div className="flex justify-end mb-3">
-            <button
-              onClick={() => setShowOfflineFilter(!showOfflineFilter)}
-              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold transition-all ${
-                showOfflineFilter
-                  ? 'bg-green-100 text-green-700 border-2 border-green-300'
-                  : 'bg-muted text-muted-foreground border-2 border-transparent hover:bg-muted/80'
-              }`}
+        {/* Top-level library tabs: Stories vs Coloring Pages */}
+        <Tabs value={libraryTab} onValueChange={setLibraryTab} dir="rtl" className="w-full mb-4">
+          <TabsList className="w-full bg-purple-100/60 rounded-xl p-1 gap-1">
+            <TabsTrigger
+              value="stories"
+              className="flex-1 rounded-lg text-sm font-bold gap-1.5 data-[state=active]:bg-white data-[state=active]:text-purple-700 data-[state=active]:shadow-md text-purple-500 px-3 py-1.5"
             >
-              <WifiOff className="w-3.5 h-3.5" />
-              סיפורים אופליין ({fullOffline.savedStoryIds.size})
-            </button>
-          </div>
-        )}
+              <BookOpen className="w-4 h-4" />
+              📚 סיפורים
+            </TabsTrigger>
+            <TabsTrigger
+              value="coloring"
+              className="flex-1 rounded-lg text-sm font-bold gap-1.5 data-[state=active]:bg-white data-[state=active]:text-purple-700 data-[state=active]:shadow-md text-purple-500 px-3 py-1.5"
+            >
+              <Palette className="w-4 h-4" />
+              🎨 דפי צביעה
+            </TabsTrigger>
+          </TabsList>
 
-        {/* Stories content */}
-        {isLoading || authLoading ? (
-          <LoadingSkeleton />
-        ) : displayStories.length === 0 && showOfflineFilter ? (
-          <div className="text-center py-10">
-            <WifiOff className="w-12 h-12 mx-auto text-muted-foreground/30 mb-3" />
-            <p className="text-muted-foreground font-medium">אין סיפורים שמורים אופליין</p>
-            <Button onClick={() => setShowOfflineFilter(false)} variant="outline" className="mt-3">הצג את כל הסיפורים</Button>
-          </div>
-        ) : stories.length === 0 ? (
-          <EmptyState onCreateClick={() => navigate("/create")} />
-        ) : childTabs && !showOfflineFilter ? (
-          <Tabs defaultValue="__all" dir="rtl" className="w-full">
-            <TabsList className="w-full h-auto flex-wrap bg-purple-100/60 rounded-xl p-1 mb-4 gap-1">
-              <TabsTrigger
-                value="__all"
-                className="rounded-lg text-sm font-bold gap-1.5 data-[state=active]:bg-white data-[state=active]:text-purple-700 data-[state=active]:shadow-md text-purple-500 px-3 py-1.5"
-              >
-                <BookOpen className="w-4 h-4" />
-                הכל
-              </TabsTrigger>
-              {childTabs.map(tab => (
-                <TabsTrigger
-                  key={tab.key}
-                  value={tab.key}
-                  className="rounded-lg text-sm font-bold data-[state=active]:bg-white data-[state=active]:text-purple-700 data-[state=active]:shadow-md text-purple-500 px-3 py-1.5"
+          <TabsContent value="stories">
+            {/* Offline filter toggle */}
+            {stories.length > 0 && fullOffline.savedStoryIds.size > 0 && (
+              <div className="flex justify-end mb-3">
+                <button
+                  onClick={() => setShowOfflineFilter(!showOfflineFilter)}
+                  className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold transition-all ${
+                    showOfflineFilter
+                      ? 'bg-green-100 text-green-700 border-2 border-green-300'
+                      : 'bg-muted text-muted-foreground border-2 border-transparent hover:bg-muted/80'
+                  }`}
                 >
-                  {tab.label}
-                </TabsTrigger>
-              ))}
-            </TabsList>
+                  <WifiOff className="w-3.5 h-3.5" />
+                  סיפורים אופליין ({fullOffline.savedStoryIds.size})
+                </button>
+              </div>
+            )}
 
-            <TabsContent value="__all">
-              {renderStoryList(stories)}
-            </TabsContent>
-            {childTabs.map(tab => (
-              <TabsContent key={tab.key} value={tab.key}>
-                {tab.stories.length === 0 ? (
-                  <div className="text-center py-10">
-                    <p className="text-muted-foreground font-medium">אין עדיין סיפורים עבור {tab.label}</p>
-                    <Button onClick={() => navigate("/create")} variant="outline" className="mt-3">
-                      <Plus className="w-4 h-4 ml-1" /> צרו סיפור חדש
-                    </Button>
-                  </div>
-                ) : renderStoryList(tab.stories)}
-              </TabsContent>
-            ))}
-          </Tabs>
-        ) : (
-          renderStoryList(displayStories)
-        )}
+            {/* Stories content */}
+            {isLoading || authLoading ? (
+              <LoadingSkeleton />
+            ) : displayStories.length === 0 && showOfflineFilter ? (
+              <div className="text-center py-10">
+                <WifiOff className="w-12 h-12 mx-auto text-muted-foreground/30 mb-3" />
+                <p className="text-muted-foreground font-medium">אין סיפורים שמורים אופליין</p>
+                <Button onClick={() => setShowOfflineFilter(false)} variant="outline" className="mt-3">הצג את כל הסיפורים</Button>
+              </div>
+            ) : stories.length === 0 ? (
+              <EmptyState onCreateClick={() => navigate("/create")} />
+            ) : childTabs && !showOfflineFilter ? (
+              <Tabs defaultValue="__all" dir="rtl" className="w-full">
+                <TabsList className="w-full h-auto flex-wrap bg-purple-100/60 rounded-xl p-1 mb-4 gap-1">
+                  <TabsTrigger
+                    value="__all"
+                    className="rounded-lg text-sm font-bold gap-1.5 data-[state=active]:bg-white data-[state=active]:text-purple-700 data-[state=active]:shadow-md text-purple-500 px-3 py-1.5"
+                  >
+                    <BookOpen className="w-4 h-4" />
+                    הכל
+                  </TabsTrigger>
+                  {childTabs.map(tab => (
+                    <TabsTrigger
+                      key={tab.key}
+                      value={tab.key}
+                      className="rounded-lg text-sm font-bold data-[state=active]:bg-white data-[state=active]:text-purple-700 data-[state=active]:shadow-md text-purple-500 px-3 py-1.5"
+                    >
+                      {tab.label}
+                    </TabsTrigger>
+                  ))}
+                </TabsList>
+
+                <TabsContent value="__all">
+                  {renderStoryList(stories)}
+                </TabsContent>
+                {childTabs.map(tab => (
+                  <TabsContent key={tab.key} value={tab.key}>
+                    {tab.stories.length === 0 ? (
+                      <div className="text-center py-10">
+                        <p className="text-muted-foreground font-medium">אין עדיין סיפורים עבור {tab.label}</p>
+                        <Button onClick={() => navigate("/create")} variant="outline" className="mt-3">
+                          <Plus className="w-4 h-4 ml-1" /> צרו סיפור חדש
+                        </Button>
+                      </div>
+                    ) : renderStoryList(tab.stories)}
+                  </TabsContent>
+                ))}
+              </Tabs>
+            ) : (
+              renderStoryList(displayStories)
+            )}
+          </TabsContent>
+
+          <TabsContent value="coloring">
+            {isLoading || authLoading ? <LoadingSkeleton /> : renderColoringPages()}
+          </TabsContent>
+        </Tabs>
 
         {/* Create Button */}
         {stories.length > 0 && (
