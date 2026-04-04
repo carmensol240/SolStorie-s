@@ -1753,25 +1753,21 @@ Return ONLY the corrected story text with the same [עמוד X] structure, nothi
 Child age: ${ageLabel}
 Story:
 ${fullStoryText}`;
-
-      console.log(`[generate-story] Starting text quality rewrite for age ${ageLabel} (flash-lite + 12s timeout)...`);
       
-      const rewriteController = new AbortController();
-      const rewriteTimeout = setTimeout(() => rewriteController.abort(), 12000);
+      console.log(`[generate-story] Starting text quality rewrite for age ${ageLabel} (12s timeout)...`);
       
-      const rewriteResponse = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${GEMINI_API_KEY}`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
+      const rewriteResult = await callGeminiWithRetry({
+        apiKey: GEMINI_API_KEY,
+        label: "rewrite",
+        maxRetries: 1,
+        timeoutMs: 12_000,
+        body: {
           contents: [{ role: "user", parts: [{ text: rewritePrompt }] }],
-        }),
-        signal: rewriteController.signal,
+        },
       });
-      clearTimeout(rewriteTimeout);
 
-      if (rewriteResponse.ok) {
-        const rewriteData = await rewriteResponse.json();
-        const rewrittenText = rewriteData.candidates?.[0]?.content?.parts?.[0]?.text?.trim();
+      if (rewriteResult.ok) {
+        const rewrittenText = rewriteResult.data.candidates?.[0]?.content?.parts?.[0]?.text?.trim();
         
         if (rewrittenText) {
           // Parse rewritten text back into pages by [עמוד X] markers
@@ -1795,8 +1791,7 @@ ${fullStoryText}`;
           console.warn("[generate-story] Text rewrite returned empty, using original text");
         }
       } else {
-        const errStatus = rewriteResponse.status;
-        console.warn(`[generate-story] Text rewrite failed (${errStatus}), using original text`);
+        console.warn(`[generate-story] Text rewrite failed (${rewriteResult.status}), using original text`);
       }
     } catch (rewriteErr) {
       console.warn("[generate-story] Text rewrite error, using original text:", rewriteErr);
