@@ -388,29 +388,9 @@ export const OnlineColoringCanvas: React.FC<OnlineColoringCanvasProps> = ({
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-50 bg-white">
-      {/* Canvas area — fills entire screen */}
-      <div className="absolute inset-0 flex items-center justify-center overflow-hidden">
-        {!bgLoaded && (
-          <div className="absolute inset-0 flex items-center justify-center z-10">
-            <div className="animate-spin w-10 h-10 border-4 border-purple-400 border-t-transparent rounded-full" />
-          </div>
-        )}
-        <div className="relative" style={{ lineHeight: 0 }}>
-          <canvas ref={bgCanvasRef} className="block" />
-          <canvas
-            ref={canvasRef}
-            className="absolute top-0 left-0 touch-none"
-            style={{ cursor: cursorStyle }}
-            onMouseDown={handlePointerDown} onMouseMove={handlePointerMove}
-            onMouseUp={stopDrawing} onMouseLeave={stopDrawing}
-            onTouchStart={handlePointerDown} onTouchMove={handlePointerMove} onTouchEnd={stopDrawing}
-          />
-        </div>
-      </div>
-
-      {/* Top bar — overlay */}
-      <div className="absolute top-0 left-0 right-0 z-20 flex justify-between items-center px-2 py-1.5 bg-gradient-to-r from-purple-600/90 to-pink-500/90 backdrop-blur-sm" dir="rtl">
+    <div className="fixed inset-0 z-50 bg-white flex flex-col h-screen overflow-hidden">
+      {/* Top bar */}
+      <div className="flex-shrink-0 flex justify-between items-center px-2 py-1.5 bg-gradient-to-r from-purple-600/90 to-pink-500/90" dir="rtl">
         <Button onClick={onClose} variant="ghost" size="sm" className="text-white hover:bg-white/20 rounded-xl gap-1 min-h-[36px] px-2 text-sm">
           <ArrowRight className="w-4 h-4" /> חזרה
         </Button>
@@ -433,8 +413,28 @@ export const OnlineColoringCanvas: React.FC<OnlineColoringCanvasProps> = ({
         </div>
       </div>
 
-      {/* Bottom toolbar — overlay */}
-      <div className="absolute bottom-0 left-0 right-0 z-20 bg-white/90 backdrop-blur-sm border-t border-purple-200 px-2 py-1.5 space-y-1.5">
+      {/* Canvas area */}
+      <div className="flex-1 flex items-center justify-center overflow-hidden bg-white">
+        {!bgLoaded && (
+          <div className="absolute inset-0 flex items-center justify-center z-10">
+            <div className="animate-spin w-10 h-10 border-4 border-purple-400 border-t-transparent rounded-full" />
+          </div>
+        )}
+        <div className="relative" style={{ lineHeight: 0 }}>
+          <canvas ref={bgCanvasRef} className="block" />
+          <canvas
+            ref={canvasRef}
+            className="absolute top-0 left-0 touch-none"
+            style={{ cursor: cursorStyle }}
+            onMouseDown={handlePointerDown} onMouseMove={handlePointerMove}
+            onMouseUp={stopDrawing} onMouseLeave={stopDrawing}
+            onTouchStart={handlePointerDown} onTouchMove={handlePointerMove} onTouchEnd={stopDrawing}
+          />
+        </div>
+      </div>
+
+      {/* Bottom toolbar */}
+      <div className="flex-shrink-0 bg-white/90 backdrop-blur-sm border-t border-purple-200 px-2 py-1.5 space-y-1.5">
         {/* Tools */}
         <div className="flex items-center justify-center gap-2">
           <button onClick={() => setTool('fill')}
