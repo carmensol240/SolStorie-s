@@ -1,21 +1,23 @@
 
 
-## Plan: Add Coloring Icon to BookHeader Toolbar
+## Plan: Fix Coloring Icon — Dialog Not Rendering Outside End Page
 
-### What will change
+### Problem
+The coloring picker Dialog, OnlineColoringCanvas, and Coloring Upsell AlertDialog are all rendered **inside** the `isEndPage` conditional block (lines 1473–1793). When the user clicks the 🎨 icon from the header on a story page, `coloringPickerOpen` is set to `true` but the Dialog component doesn't exist in the DOM — so nothing opens.
 
-#### 1. `src/components/story/book-frame/BookHeader.tsx`
-- Add `Palette` icon import from `lucide-react`
-- Add `onColoring?: () => void` prop to `BookHeaderProps`
-- Add a new icon button (🎨 Palette) in the center actions area, between the Download PDF and Save Offline buttons
-- The button calls `onColoring` when clicked, with tooltip "דפי צביעה"
+### Solution — single file: `src/pages/StoryViewer.tsx`
 
-#### 2. `src/pages/StoryViewer.tsx`
-- Add a `handleColoringFromHeader` function that opens the coloring picker dialog directly (same logic as the existing print button on the completion screen — sets mode, checks cache, opens `coloringPickerOpen`)
-- Pass `onColoring={handleColoringFromHeader}` to `<BookHeader>`
+Move these three components **outside** the conditional page rendering block (cover/CTA/end/story pages) so they render regardless of which page is displayed:
+
+1. **Coloring Picker Dialog** (lines ~1472–1761)
+2. **OnlineColoringCanvas** (lines ~1764–1770)
+3. **Coloring Upsell AlertDialog** (lines ~1772–1793)
+
+These will be placed after the `TheaterFrame` closing tag, at the same level as other global dialogs. The logic inside them stays identical — only their position in the JSX tree changes.
 
 ### What stays the same
-- All existing coloring dialog logic, picker, print/online flow
-- All other BookHeader buttons and behavior
-- Completion screen coloring buttons still work as before
+- All coloring logic, picker flow, print/online actions
+- The end page layout (feedback, back arrow, logo)
+- BookHeader icon and its `onColoring` handler
+- All other pages and components
 
