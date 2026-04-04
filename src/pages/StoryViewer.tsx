@@ -1565,13 +1565,13 @@ const [currentPage, setCurrentPage] = useState(0);
                                     }
                                   }
                                 } catch (apiErr) {
-                                  console.warn("API coloring failed, using client-side:", apiErr);
+                                  console.error("API coloring failed:", apiErr);
                                 }
 
-                                // Fallback to client-side generation
                                 if (!coloringDataUrl) {
-                                  console.log("Using client-side coloring page generator");
-                                  coloringDataUrl = await generateColoringPageClientSide(illustrationFullUrl);
+                                  toast({ title: "שגיאה ביצירת דף הצביעה, נסו שוב", variant: "destructive" });
+                                  setColoringLoading(false);
+                                  return;
                                 }
 
                                 const coloringImg = new Image();
