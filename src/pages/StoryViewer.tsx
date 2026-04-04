@@ -295,13 +295,10 @@ const [currentPage, setCurrentPage] = useState(0);
         const publicUrl = `${import.meta.env.VITE_SUPABASE_URL || 'https://qvdwmkxviaqcgmjotsxe.supabase.co'}/storage/v1/object/public/story-illustrations/${(cached as any).coloring_image_path}`;
         setCachedColoringUrl(publicUrl);
         setCachedIllustrationUrl(cachedIllustration);
-
-        if (mode) {
-          setSelectedColoringUrl(cachedIllustration);
-          setColoringAction('choose-action');
-          setColoringPickerOpen(true);
-          return;
-        }
+        setSelectedColoringUrl(cachedIllustration);
+        setColoringAction('choose-action');
+        setColoringPickerOpen(true);
+        return;
       }
     }
 
