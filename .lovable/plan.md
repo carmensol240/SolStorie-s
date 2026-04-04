@@ -1,67 +1,47 @@
 
-## Plan: Fix 429 handling in `generate-story` and verify the Gemini key
 
-### What I found
-- The function is reading the secret successfully. The logs show:
-  - `[generate-story] ✅ GEMINI_API_KEY loaded successfully`
-- The exact failure is still coming from Google, not from missing env config:
-  - `status=429`
-  - `status: "RESOURCE_EXHAUSTED"`
-  - quota violations mention:
-    - `generate_content_free_tier_requests`
-    - `generate_content_free_tier_input_token_count`
-    - `limit: 0`
-    - model: `gemini-2.0-flash`
-- That means the key is being read, but Google is still treating that key/project as having zero usable quota for this model. So retry logic will help with temporary minute limits, but it will not solve a true `limit: 0` / billing-configuration issue by itself.
+## Plan: Revert Both Edge Functions to Lovable AI Gateway
 
-### Root cause in code
-- `generate-story` currently has:
-  - no real retry wrapper around the main Gemini API call
-  - only a later retry when JSON parsing fails
-- There is already exponential backoff logic in `generate-coloring-page`, so we can mirror that pattern in `generate-story`.
-- The logs also show story credits are deducted before the Gemini call succeeds, so repeated 429s are burning user credits.
+### Problem
+The direct Google Gemini API calls are failing with `RESOURCE_EXHAUSTED` / `limit: 0` errors despite having a paid-tier key. The functions need to go back to using the Lovable AI Gateway (`ai.gateway.lovable.dev/v1/chat/completions`) which was working before.
 
-### Implementation
-1. Add a reusable Gemini fetch helper inside `supabase/functions/generate-story/index.ts`
-   - exponential backoff + jitter
-   - retry on `429`, `500`, `502`, `503`, `504`
-   - honor Google retry hints when available
-   - log attempt number, status, shortened body, and wait time
+### Changes — `supabase/functions/generate-story/index.ts`
 
-2. Use that helper for all Gemini calls in `generate-story`
-   - main story generation
-   - retry generation after parse failure
-   - text rewrite
-   - summary generation
-   - nikud generation
+**6 changes:**
 
-3. Improve 429 handling
-   - detect quota/billing-style 429s (`limit: 0`, free-tier quota text)
-   - return a clearer system error instead of a generic “try again in a few minutes” when the quota is effectively disabled
-   - keep transient 429s marked as retryable
+1. **Replace `GEMINI_API_KEY` with `LOVABLE_API_KEY`** (line ~910): Change env var name and log message
 
-4. Protect user credits
-   - move credit deduction to after successful story generation, or
-   - rollback/refund the deducted credit if Gemini still fails after all retries
-   - this is important because current logs show multiple deductions during failed attempts
+2. **Replace `callGeminiWithRetry` helper** (lines ~510-573): Replace the entire Gemini-specific retry helper with an equivalent that calls `https://ai.gateway.lovable.dev/v1/chat/completions` using OpenAI-compatible format (`Authorization: Bearer`, `messages` array, `response_format`)
 
-5. Keep everything else unchanged
-   - prompts
-   - Hebrew output
-   - Pixar/Disney styling
-   - existing story flow and schema
+3. **Update all 5 call sites** to use OpenAI-compatible request format:
+   - **Main generation** (line ~1474): Convert `systemInstruction`/`contents` to `messages` array with `system`+`user` roles; `responseMimeType` → `response_format: { type: "json_object" }`
+   - **Retry on parse failure** (line ~1606): Same conversion
+   - **Nikud** (line ~578): Convert to `messages` format
+   - **Rewrite** (line ~1759): Convert to `messages` format
+   - **Summary** (line ~1894): Convert to `messages` format
 
-### Files to update
-- `supabase/functions/generate-story/index.ts`
+4. **Update all 5 response parsing sites**: Change from `candidates[0].content.parts[0].text` to `choices[0].message.content`
 
-### Technical details
-- Reuse the same retry strategy style already present in `generate-coloring-page`
-- Apply retry before the first failure response is returned to the client
-- For non-critical background tasks like summary/nikud, keep retries shorter so they do not slow the main flow too much
-- No database migration is required for this fix
+5. **Keep the retry logic** (exponential backoff, billing detection) — just change the URL and request format
 
-### Expected outcome
-- We will confirm in logs that the new key is loaded correctly
-- Temporary rate-limit spikes will be retried automatically
-- Users will stop losing story credits on failed Gemini calls
-- If Google still returns `limit: 0`, the app will fail more clearly, which confirms the remaining issue is on the Google quota/billing side rather than in the function code
+6. **Keep credit protection** — deferred credit deduction stays as-is
+
+### Changes — `supabase/functions/generate-coloring-page/index.ts`
+
+**Note:** The coloring page function uses Gemini's native image generation (`responseModalities: ["TEXT", "IMAGE"]` with `inlineData`). The Lovable AI Gateway uses OpenAI-compatible format which does **not** support image-to-image generation in the same way.
+
+**Solution:** Keep this function using direct Gemini API since it requires multimodal image output. Only revert `generate-story`.
+
+**Alternative:** If we must revert coloring too, we would need to restructure the approach — but the coloring function was already using direct Gemini before today's changes (it was always using `GEMINI_API_KEY` with direct Gemini for image generation). So no revert is needed for coloring.
+
+### Model mapping (Gateway uses OpenAI-compatible model names)
+- `gemini-2.0-flash` → `google/gemini-2.5-flash` (or `google/gemini-2.0-flash` if available)
+- The Lovable Gateway supports models like `google/gemini-2.5-flash`, `google/gemini-2.5-flash-lite`
+
+### Files modified
+1. `supabase/functions/generate-story/index.ts` — revert all AI calls to Lovable AI Gateway
+2. `supabase/functions/generate-coloring-page/index.ts` — no changes needed (was already using direct Gemini for image gen)
+
+### Deploy
+Both functions will be redeployed after changes.
+
