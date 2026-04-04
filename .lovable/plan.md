@@ -1,36 +1,40 @@
 
 
-## Plan: Redesign Story End Page
+## Plan: Fix Online Coloring Page Mobile Layout
 
-### Changes — single file: `src/pages/StoryViewer.tsx`
+### Problem
+On mobile (320px wide), the canvas is sized to fill the entire viewport (`window.innerWidth / window.innerHeight`), but the top bar and bottom toolbar overlay on top. The image gets centered vertically in the full screen, leaving dead space above it. The image may also get cropped due to cover-style scaling.
 
-**Lines ~1326-1425** (the `isEndPage` block) will be restructured:
+### Changes — single file: `src/components/story/OnlineColoringCanvas.tsx`
 
-### Layout (top to bottom)
-1. **Back arrow** — small purple `ChevronRight` icon button, positioned absolute top-right corner (no text, no "חזרה")
-2. **Title** — "קסום, לא? ✨" (replaces "✨ נהננו? ✨")
-3. **Remove** "הסיפור של {child_name}" line entirely
-4. **Feedback box** — moved UP, before coloring buttons:
-   - Subtitle "שתפו אותנו בקסם שלכם" (kept as-is)
-   - Stars: larger (`w-8 h-8`), with pulse animation on hover and a gentle scale-in entrance animation
-   - Textarea + send button (unchanged)
-5. **Two separate coloring buttons** (replaces the single unified button):
-   - `🖨️ הדפסה` — amber/orange gradient, opens the coloring picker dialog in print mode
-   - `🎨 צביעה אונליין` — purple/indigo gradient, opens the coloring picker dialog in online mode
-   - Both buttons side by side in a flex row
-6. **Logo footer** — `SolStorie's™` with rainbow gradient at bottom
+**1. Change canvas sizing to account for toolbars (lines 192-230)**
 
-### Coloring button logic
-Currently one button opens the picker dialog, then inside the dialog user chooses print vs online. With two separate buttons, we need a new state `coloringMode: 'print' | 'online'` set before opening the picker. The picker dialog's "choose-action" step is skipped — after picking an illustration, it goes directly to the selected action.
+Instead of using `window.innerWidth / window.innerHeight` for canvas dimensions, calculate available height by subtracting the top bar (~44px) and bottom toolbar (~100px). This removes the white gap above the image.
 
-### Mobile considerations
-- Buttons stack vertically on small screens (`flex-col sm:flex-row`)
-- Padding and gaps reduced for mobile
-- Stars row centered with adequate touch targets
+```
+const toolbarHeight = 44 + 100; // top bar + bottom bar
+const availH = vh - toolbarHeight;
+```
+
+Use `contain` logic (already present) with `availH` instead of `vh` so the image fits fully without cropping.
+
+**2. Change layout from absolute overlay to flex column (lines 388-484)**
+
+Replace the current `absolute inset-0` canvas centering with a proper flex column layout:
+- Top bar (fixed height)
+- Canvas area (flex-1, centered)  
+- Bottom toolbar (fixed height)
+
+This ensures the image sits between the bars with no white gap above it, and tools always appear below.
+
+**3. Keep `object-contain` behavior**
+
+The `resizeCanvases` function already uses contain logic (fit within bounds). Just ensure the bounds exclude the toolbar heights.
 
 ### What stays the same
-- All coloring generation logic (API calls, caching, canvas footer)
-- Feedback submission logic
-- The coloring picker dialog (illustration grid)
-- Everything else in StoryViewer.tsx
+- All drawing/fill/eraser logic
+- Undo/redo, save, print
+- Color palette and tool selection
+- Fullscreen API usage
+- Desktop behavior (toolbars are small relative to screen)
 
