@@ -673,6 +673,9 @@ const GeneratingStep = ({ formData, onComplete }: GeneratingStepProps) => {
           <div 
             key={castIndex}
             className="absolute inset-0 rounded-full overflow-hidden border-4 border-purple-200/60 shadow-xl animate-scale-in"
+            style={{
+              animation: 'scale-in 0.3s ease-out, pulse-glow 2.5s ease-in-out infinite',
+            }}
           >
             <img
               src={currentChar.image}
