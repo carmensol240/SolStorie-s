@@ -11,7 +11,7 @@ import { cn } from "@/lib/utils";
 import { DrawingCanvas } from "@/components/ui/drawing-canvas";
 import { SignedImage } from "@/components/ui/signed-image";
 import { getPublicIllustrationUrl } from "@/lib/illustration-url";
-import { generateColoringPageClientSide } from "@/lib/coloring-page-generator";
+
 import OfflineIndicator from "@/components/ui/offline-indicator";
 import EditPageDialog from "@/components/story/edit-page-dialog";
 import DedicationDialog from "@/components/story/DedicationDialog";
@@ -1565,13 +1565,13 @@ const [currentPage, setCurrentPage] = useState(0);
                                     }
                                   }
                                 } catch (apiErr) {
-                                  console.warn("API coloring failed, using client-side:", apiErr);
+                                  console.error("API coloring failed:", apiErr);
                                 }
 
-                                // Fallback to client-side generation
                                 if (!coloringDataUrl) {
-                                  console.log("Using client-side coloring page generator");
-                                  coloringDataUrl = await generateColoringPageClientSide(illustrationFullUrl);
+                                  toast({ title: "שגיאה ביצירת דף הצביעה, נסו שוב", variant: "destructive" });
+                                  setColoringLoading(false);
+                                  return;
                                 }
 
                                 const coloringImg = new Image();
@@ -1668,12 +1668,13 @@ const [currentPage, setCurrentPage] = useState(0);
                                     }
                                   }
                                 } catch (apiErr) {
-                                  console.warn("API coloring failed, using client-side:", apiErr);
+                                  console.error("API coloring failed:", apiErr);
                                 }
 
                                 if (!coloringDataUrl) {
-                                  console.log("Using client-side coloring page generator");
-                                  coloringDataUrl = await generateColoringPageClientSide(illustrationFullUrl);
+                                  toast({ title: "שגיאה ביצירת דף הצביעה, נסו שוב", variant: "destructive" });
+                                  setColoringLoading(false);
+                                  return;
                                 }
 
                                 setOnlineColoringImageUrl(coloringDataUrl);

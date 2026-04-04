@@ -83,10 +83,10 @@ serve(async (req) => {
       }
     }
 
-    // ── AI generation via direct Gemini API ──
-    const GEMINI_API_KEY = Deno.env.get("GEMINI_API_KEY");
-    if (!GEMINI_API_KEY) {
-      console.error("GEMINI_API_KEY not configured");
+    // ── AI generation via Lovable AI Gateway ──
+    const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
+    if (!LOVABLE_API_KEY) {
+      console.error("LOVABLE_API_KEY not configured");
       return jsonResponse({ error: "Server configuration error" }, 500);
     }
 
@@ -104,8 +104,6 @@ serve(async (req) => {
     );
     const mimeType = imgResponse.headers.get("content-type") || "image/png";
 
-    console.log("Sending to Gemini for coloring page conversion...");
-
     const coloringPrompt = `Convert this illustration into a perfect children's coloring book page for printing. Follow these rules strictly:
 
 1. OUTLINES: Use very thick, bold, solid black outlines (minimum 3-4px weight). Every shape must have a clearly defined closed boundary.
@@ -119,10 +117,11 @@ serve(async (req) => {
 
 Output ONLY the coloring page image, nothing else. Do not include any text, labels, letter names, or written words anywhere in the image.`;
 
-    // Try multiple Gemini image generation models in order
+    console.log("Sending to Lovable AI Gateway for coloring page conversion...");
+
     const imageModels = [
-      "gemini-2.5-flash-image",
-      "gemini-3.1-flash-image-preview",
+      "google/gemini-3.1-flash-image-preview",
+      "google/gemini-2.5-flash-image",
     ];
 
     let generatedImage: string | undefined;
@@ -130,30 +129,32 @@ Output ONLY the coloring page image, nothing else. Do not include any text, labe
 
     for (const model of imageModels) {
       console.log(`Trying model: ${model}`);
-      const geminiUrl = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent`;
-      const geminiBody = JSON.stringify({
-        contents: [{
-          parts: [
-            { text: coloringPrompt },
-            { inlineData: { mimeType, data: imgBase64 } },
-          ],
-        }],
-        generationConfig: {
-          responseModalities: ["TEXT", "IMAGE"],
-        },
-      });
 
       const maxRetries = 3;
       let aiResponse: Response | null = null;
 
       for (let attempt = 0; attempt <= maxRetries; attempt++) {
-        aiResponse = await fetch(geminiUrl, {
+        aiResponse = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
           method: "POST",
           headers: {
+            "Authorization": `Bearer ${LOVABLE_API_KEY}`,
             "Content-Type": "application/json",
-            "x-goog-api-key": GEMINI_API_KEY,
           },
-          body: geminiBody,
+          body: JSON.stringify({
+            model,
+            messages: [
+              {
+                role: "user",
+                content: [
+                  { type: "text", text: coloringPrompt },
+                  {
+                    type: "image_url",
+                    image_url: { url: `data:${mimeType};base64,${imgBase64}` },
+                  },
+                ],
+              },
+            ],
+          }),
         });
 
         if (aiResponse.ok) break;
@@ -172,14 +173,37 @@ Output ONLY the coloring page image, nothing else. Do not include any text, labe
         continue;
       }
 
+      // Parse OpenAI-compatible response for image content
       const aiData = await aiResponse!.json();
-      const parts = aiData.candidates?.[0]?.content?.parts;
-      if (Array.isArray(parts)) {
-        for (const part of parts) {
-          if (part.inlineData?.data) {
-            const partMime = part.inlineData.mimeType || "image/png";
-            generatedImage = `data:${partMime};base64,${part.inlineData.data}`;
+      const choice = aiData.choices?.[0];
+      const content = choice?.message?.content;
+
+      // The gateway may return image data in different formats
+      if (typeof content === "string" && content.startsWith("data:image")) {
+        generatedImage = content;
+      } else if (Array.isArray(content)) {
+        for (const part of content) {
+          if (part.type === "image_url" && part.image_url?.url) {
+            generatedImage = part.image_url.url;
             break;
+          }
+          if (part.type === "image" && part.data) {
+            generatedImage = `data:image/png;base64,${part.data}`;
+            break;
+          }
+        }
+      }
+
+      // Also check for inline image data in Gemini-style response
+      if (!generatedImage) {
+        const parts = aiData.candidates?.[0]?.content?.parts;
+        if (Array.isArray(parts)) {
+          for (const part of parts) {
+            if (part.inlineData?.data) {
+              const partMime = part.inlineData.mimeType || "image/png";
+              generatedImage = `data:${partMime};base64,${part.inlineData.data}`;
+              break;
+            }
           }
         }
       }
@@ -193,7 +217,7 @@ Output ONLY the coloring page image, nothing else. Do not include any text, labe
     }
 
     if (!generatedImage) {
-      if (lastError.includes("429") || lastError.includes("RESOURCE_EXHAUSTED")) {
+      if (lastError.includes("429") || lastError.includes("RESOURCE_EXHAUSTED") || lastError.includes("rate")) {
         return jsonResponse({ error: "השירות עמוס כרגע, נסו שוב בעוד כמה דקות 🎨", retryable: true });
       }
       return jsonResponse({ error: "שגיאה ביצירת דף הצביעה" }, 500);
@@ -204,7 +228,6 @@ Output ONLY the coloring page image, nothing else. Do not include any text, labe
     // ── Upload to storage & cache ──
     if (story_id && userId) {
       try {
-        // Extract base64 data
         const base64Match = generatedImage.match(/^data:image\/\w+;base64,(.+)$/);
         if (base64Match) {
           const raw = base64Match[1];
@@ -218,7 +241,6 @@ Output ONLY the coloring page image, nothing else. Do not include any text, labe
           if (uploadErr) {
             console.error("Failed to upload coloring page to storage:", uploadErr);
           } else {
-            // Insert cache record
             await supabase.from("story_coloring_pages").insert({
               story_id,
               user_id: userId,
@@ -243,7 +265,7 @@ Output ONLY the coloring page image, nothing else. Do not include any text, labe
           story_title: story_title || null,
           child_name: child_name || null,
           user_id: userId,
-          model_used: "gemini-2.0-flash-exp",
+          model_used: "lovable-gateway",
         },
       });
     } catch (trackErr) {
