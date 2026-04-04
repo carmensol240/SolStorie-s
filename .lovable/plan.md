@@ -1,32 +1,36 @@
 
 
-## Plan: Redesign Install App Popup with Platform-Specific Instructions
+## Plan: Redesign Story End Page
 
-### What changes
-**Only one file:** `src/components/story/InstallAppPrompt.tsx`
+### Changes — single file: `src/pages/StoryViewer.tsx`
 
-### New design
-Replace the current conditional iOS/Android/fallback layout with a single clean popup that shows **both** platform instructions always:
+**Lines ~1326-1425** (the `isEndPage` block) will be restructured:
 
-**Header** — gradient background (purple→pink→orange), title "📲 התקינו את האפליקציה!", subtitle "גישה מהירה מהמסך הבית שלכם"
+### Layout (top to bottom)
+1. **Back arrow** — small purple `ChevronRight` icon button, positioned absolute top-right corner (no text, no "חזרה")
+2. **Title** — "קסום, לא? ✨" (replaces "✨ נהננו? ✨")
+3. **Remove** "הסיפור של {child_name}" line entirely
+4. **Feedback box** — moved UP, before coloring buttons:
+   - Subtitle "שתפו אותנו בקסם שלכם" (kept as-is)
+   - Stars: larger (`w-8 h-8`), with pulse animation on hover and a gentle scale-in entrance animation
+   - Textarea + send button (unchanged)
+5. **Two separate coloring buttons** (replaces the single unified button):
+   - `🖨️ הדפסה` — amber/orange gradient, opens the coloring picker dialog in print mode
+   - `🎨 צביעה אונליין` — purple/indigo gradient, opens the coloring picker dialog in online mode
+   - Both buttons side by side in a flex row
+6. **Logo footer** — `SolStorie's™` with rainbow gradient at bottom
 
-**Body** — two instruction cards stacked:
-1. **אייפון** card: "פתחי ב-Safari, לחצי על 📤 ואז ״הוסף למסך הבית״"
-2. **אנדרואיד** card: "לחצי על ⋮ בדפדפן ואז ״הוסף למסך הבית״"
+### Coloring button logic
+Currently one button opens the picker dialog, then inside the dialog user chooses print vs online. With two separate buttons, we need a new state `coloringMode: 'print' | 'online'` set before opening the picker. The picker dialog's "choose-action" step is skipped — after picking an illustration, it goes directly to the selected action.
 
-Each card has a subtle purple-50 background, rounded corners, and platform emoji/icon.
-
-**Close** — X button in top-right corner of the dialog. Remove the "אולי אחר כך" text button.
-
-### Dismiss logic
-- Keep existing `localStorage.getItem(STORAGE_KEY)` check — once dismissed, never show again
-- Set `STORAGE_KEY` on close (already done)
-- If Android `beforeinstallprompt` is available, still show a native install button below the instructions
+### Mobile considerations
+- Buttons stack vertically on small screens (`flex-col sm:flex-row`)
+- Padding and gaps reduced for mobile
+- Stars row centered with adequate touch targets
 
 ### What stays the same
-- The `justCreatedFirstStory` trigger
-- The standalone detection (don't show if already installed)
-- The `beforeinstallprompt` capture for Android native install
-- The `STORAGE_KEY = "install_prompt_seen"` localStorage key
-- No other files are modified
+- All coloring generation logic (API calls, caching, canvas footer)
+- Feedback submission logic
+- The coloring picker dialog (illustration grid)
+- Everything else in StoryViewer.tsx
 
