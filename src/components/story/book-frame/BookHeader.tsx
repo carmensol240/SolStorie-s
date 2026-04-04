@@ -142,6 +142,24 @@ export const BookHeader: React.FC<BookHeaderProps> = ({
             <TooltipContent side="bottom">הורד או הדפס PDF</TooltipContent>
           </Tooltip>
 
+          {/* Coloring Pages Shortcut */}
+          {onColoring && (
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={onColoring}
+                  className="text-slate-600 hover:bg-sky-100/60 min-h-[44px] min-w-[44px] p-2"
+                  aria-label="דפי צביעה"
+                >
+                  <Palette className="w-5 h-5" />
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent side="bottom">דפי צביעה</TooltipContent>
+            </Tooltip>
+          )}
+
           {/* Save for Offline Reading */}
           {onSaveOffline && (
             <Tooltip>
