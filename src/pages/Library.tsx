@@ -117,6 +117,38 @@ const Library = () => {
     } catch { setChildren([]); }
   };
 
+  const fetchColoringPages = async () => {
+    if (!user) { setColoringPages([]); return; }
+    try {
+      const { data } = await supabase
+        .from("story_coloring_pages")
+        .select("id, story_id, illustration_url, coloring_image_path, created_at")
+        .eq("user_id", user.id)
+        .order("created_at", { ascending: false });
+
+      if (!data || data.length === 0) { setColoringPages([]); return; }
+
+      // Fetch story info for labels
+      const storyIds = [...new Set(data.map(cp => cp.story_id))];
+      const { data: storiesData } = await supabase
+        .from("stories")
+        .select("id, child_name, topic, slug")
+        .in("id", storyIds);
+
+      const storyMap = new Map(storiesData?.map(s => [s.id, s]) || []);
+
+      setColoringPages(data.map(cp => {
+        const story = storyMap.get(cp.story_id);
+        return {
+          ...cp,
+          story_child_name: story?.child_name,
+          story_topic: story?.topic,
+          story_slug: story?.slug,
+        };
+      }));
+    } catch { setColoringPages([]); }
+  };
+
   const fetchStories = async () => {
     if (!user) { setStories([]); return; }
     try {
