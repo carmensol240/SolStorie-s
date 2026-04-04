@@ -700,7 +700,7 @@ const GeneratingStep = ({ formData, onComplete }: GeneratingStepProps) => {
               style={{ width: `${progress}%` }}
             />
           </div>
-          <p className="text-sm text-purple-600 font-medium">{Math.round(progress)}%</p>
+          <p className="text-sm text-purple-600 font-medium text-center">{Math.round(progress)}%</p>
         </div>
 
         {/* Parenting tip */}
