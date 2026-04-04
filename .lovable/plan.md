@@ -1,17 +1,28 @@
 
 
-## Plan: Revert Illustration Display to Original Settings
+## Plan: Fix Online Coloring Page — Color Selection + Mobile Display
 
-### Problem
-The recent responsive changes (`object-contain md:object-cover`) cause white bars above and below illustrations on mobile. The user wants the original full-frame look back.
+### Problem 1: Color not changing
+The `handlePointerMove` callback sets `ctx.strokeStyle = color` but doesn't reset `ctx.globalCompositeOperation` to `source-over` before drawing. After using the eraser (which sets `destination-out`), switching back to brush and changing color may still use the stale composite operation from a previous eraser interaction. Additionally, the color buttons need explicit touch handling to ensure they register on mobile.
 
-### Changes — single file: `src/pages/StoryViewer.tsx`
+### Problem 2: Page cropped on mobile  
+`h-screen` uses `100vh` which on mobile browsers includes the area behind the address bar. The bottom toolbar (colors/tools) gets pushed off-screen. Need to use `100dvh` (dynamic viewport height) which accounts for browser chrome.
 
-**Line 1813** (combined page img) and **Line 1925** (illustration page img):
-- Change `object-contain md:object-cover` back to `object-cover`
-- Change `style={{ transform: isMobile ? undefined : 'scale(1.02)' }}` back to `style={{ transform: 'scale(1.02)' }}`
+### Changes — single file: `src/components/story/OnlineColoringCanvas.tsx`
 
-### Result
-- All illustrations fill the entire frame on both mobile and desktop — no white bars
-- Original behavior fully restored
+**Fix 1 — Color application:**
+- In `handlePointerMove`, explicitly set `ctx.globalCompositeOperation = 'source-over'` before brush strokes (not just in `handlePointerDown`)
+- Ensure `ctx.strokeStyle = color` is always applied fresh each move
+
+**Fix 2 — Mobile viewport:**
+- Change the root container from `h-screen` to `h-dvh` (Tailwind's dynamic viewport height)
+- Add fallback: `style={{ height: '100dvh' }}` for browsers that support dvh
+- This ensures the full UI (canvas + toolbars) fits within the visible viewport on mobile without being cropped by browser chrome
+
+### What stays the same
+- All drawing, fill, eraser logic
+- Undo/redo, save, print
+- Color palette design and sticker functionality  
+- Desktop behavior
+- Canvas sizing calculations
 
