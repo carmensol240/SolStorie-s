@@ -10,6 +10,7 @@ import {
   Download,
   Check,
   Loader2,
+  Palette,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
@@ -58,6 +59,8 @@ interface BookHeaderProps {
   // Regenerate cover
   onRegenerateCover?: () => void;
   isRegeneratingCover?: boolean;
+  // Coloring shortcut
+  onColoring?: () => void;
 }
 
 export const BookHeader: React.FC<BookHeaderProps> = ({
@@ -81,6 +84,7 @@ export const BookHeader: React.FC<BookHeaderProps> = ({
   isDownloadingOffline = false,
   onRegenerateCover,
   isRegeneratingCover = false,
+  onColoring,
 }) => {
   return (
     <header className="sticky top-0 z-40 backdrop-blur-md border-b border-white/30 px-3 py-2 shadow-sm" style={{ background: 'rgba(255, 255, 255, 0.75)' }}>
@@ -137,6 +141,24 @@ export const BookHeader: React.FC<BookHeaderProps> = ({
             </TooltipTrigger>
             <TooltipContent side="bottom">הורד או הדפס PDF</TooltipContent>
           </Tooltip>
+
+          {/* Coloring Pages Shortcut */}
+          {onColoring && (
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={onColoring}
+                  className="text-slate-600 hover:bg-sky-100/60 min-h-[44px] min-w-[44px] p-2"
+                  aria-label="דפי צביעה"
+                >
+                  <Palette className="w-5 h-5" />
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent side="bottom">דפי צביעה</TooltipContent>
+            </Tooltip>
+          )}
 
           {/* Save for Offline Reading */}
           {onSaveOffline && (

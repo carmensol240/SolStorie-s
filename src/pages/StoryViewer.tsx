@@ -1250,6 +1250,20 @@ const [currentPage, setCurrentPage] = useState(0);
         isDownloadingOffline={fullOffline.downloadingId === resolvedId}
         onRegenerateCover={handleRegenerateCover}
         isRegeneratingCover={isRegeneratingCover}
+        onColoring={async () => {
+          if (!story || coloringLoading) return;
+          const illustrations = story.pages?.filter(p => p.illustration_url).map(p => p.illustration_url!) || [];
+          if (illustrations.length === 0) {
+            toast({ title: "אין איורים זמינים ליצירת דף צביעה", variant: "destructive" });
+            return;
+          }
+          setColoringMode(null);
+          setSelectedColoringUrl(null);
+          setCachedColoringUrl(null);
+          setCachedIllustrationUrl(null);
+          setColoringAction('pick');
+          setColoringPickerOpen(true);
+        }}
       />
 
       {/* Series navigation bar removed */}
