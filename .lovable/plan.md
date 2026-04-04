@@ -1,47 +1,48 @@
 
 
-## Plan: Revert Both Edge Functions to Lovable AI Gateway
+## Plan: Fix 3 Issues — Cover Rotation, Kippah, Coloring Pages
 
-### Problem
-The direct Google Gemini API calls are failing with `RESOURCE_EXHAUSTED` / `limit: 0` errors despite having a paid-tier key. The functions need to go back to using the Lovable AI Gateway (`ai.gateway.lovable.dev/v1/chat/completions`) which was working before.
+### Issue 1: Cover Image Rotated 90°
 
-### Changes — `supabase/functions/generate-story/index.ts`
+**Root cause:** The `SignedImage` component uses `imageOrientation: 'none'` (line 106), which ignores EXIF orientation data. However, the cover images displayed in `ContinueReading.tsx` and `story-of-the-day.tsx` use plain `<img>` tags without this fix, so they respect EXIF and may rotate. Meanwhile, the `polaroid-card.tsx` and `story-book-card.tsx` use `imageOrientation: 'from-image'` which also reads EXIF.
 
-**6 changes:**
+**Fix:** The cover images on cards (`story-book-card.tsx`, `polaroid-card.tsx`) currently use `imageOrientation: 'from-image'` — change these to `'none'` to match `SignedImage` behavior. Also add `imageOrientation: 'none'` to the plain `<img>` tags in `ContinueReading.tsx` and `story-of-the-day.tsx`.
 
-1. **Replace `GEMINI_API_KEY` with `LOVABLE_API_KEY`** (line ~910): Change env var name and log message
+**Files:** `src/components/ui/story-book-card.tsx`, `src/components/ui/polaroid-card.tsx`, `src/components/home/ContinueReading.tsx`, `src/components/story/story-of-the-day.tsx`
 
-2. **Replace `callGeminiWithRetry` helper** (lines ~510-573): Replace the entire Gemini-specific retry helper with an equivalent that calls `https://ai.gateway.lovable.dev/v1/chat/completions` using OpenAI-compatible format (`Authorization: Bearer`, `messages` array, `response_format`)
+---
 
-3. **Update all 5 call sites** to use OpenAI-compatible request format:
-   - **Main generation** (line ~1474): Convert `systemInstruction`/`contents` to `messages` array with `system`+`user` roles; `responseMimeType` → `response_format: { type: "json_object" }`
-   - **Retry on parse failure** (line ~1606): Same conversion
-   - **Nikud** (line ~578): Convert to `messages` format
-   - **Rewrite** (line ~1759): Convert to `messages` format
-   - **Summary** (line ~1894): Convert to `messages` format
+### Issue 2: Sol Wearing a Kippah
 
-4. **Update all 5 response parsing sites**: Change from `candidates[0].content.parts[0].text` to `choices[0].message.content`
+**Root cause:** In `generate-illustrations/index.ts`, the outfit generation prompt includes an example: `"חנוכה" → "traditional Jewish festive blue and white tunic with a small kippah"`. The AI uses this as a template and applies kippah to all characters including girls. The negative prompts already say "no kippah on girls" but the positive prompt overrides it.
 
-5. **Keep the retry logic** (exponential backoff, billing detection) — just change the URL and request format
+**Fix:**
+1. Change the Hanukkah example to remove kippah: `"חנוכה" → "traditional Jewish festive blue and white tunic with a golden Star of David necklace"`
+2. Add gender-awareness to the outfit prompt: instruct the AI to never include kippah for female characters, and use a blue hair ribbon or bow instead
+3. Strengthen the instruction in the prompt itself (not just negative prompt)
 
-6. **Keep credit protection** — deferred credit deduction stays as-is
+**File:** `supabase/functions/generate-illustrations/index.ts`
 
-### Changes — `supabase/functions/generate-coloring-page/index.ts`
+---
 
-**Note:** The coloring page function uses Gemini's native image generation (`responseModalities: ["TEXT", "IMAGE"]` with `inlineData`). The Lovable AI Gateway uses OpenAI-compatible format which does **not** support image-to-image generation in the same way.
+### Issue 3: Coloring Pages Not Loading
 
-**Solution:** Keep this function using direct Gemini API since it requires multimodal image output. Only revert `generate-story`.
+**Root cause:** The logs show: `models/gemini-2.0-flash-exp is not found for API version v1beta`. Google deprecated/removed this model.
 
-**Alternative:** If we must revert coloring too, we would need to restructure the approach — but the coloring function was already using direct Gemini before today's changes (it was always using `GEMINI_API_KEY` with direct Gemini for image generation). So no revert is needed for coloring.
+**Fix:** Change the model in `generate-coloring-page/index.ts` from `gemini-2.0-flash-exp` to `gemini-2.0-flash` (the stable version that supports image generation via `responseModalities`).
 
-### Model mapping (Gateway uses OpenAI-compatible model names)
-- `gemini-2.0-flash` → `google/gemini-2.5-flash` (or `google/gemini-2.0-flash` if available)
-- The Lovable Gateway supports models like `google/gemini-2.5-flash`, `google/gemini-2.5-flash-lite`
+**File:** `supabase/functions/generate-coloring-page/index.ts` — update the model name on line 122.
 
-### Files modified
-1. `supabase/functions/generate-story/index.ts` — revert all AI calls to Lovable AI Gateway
-2. `supabase/functions/generate-coloring-page/index.ts` — no changes needed (was already using direct Gemini for image gen)
+---
 
-### Deploy
-Both functions will be redeployed after changes.
+### Summary of changes
+
+| File | Change |
+|------|--------|
+| `supabase/functions/generate-coloring-page/index.ts` | Model `gemini-2.0-flash-exp` → `gemini-2.0-flash` |
+| `supabase/functions/generate-illustrations/index.ts` | Remove kippah from examples, add gender-aware outfit instruction |
+| `src/components/ui/story-book-card.tsx` | `imageOrientation: 'from-image'` → `'none'` |
+| `src/components/ui/polaroid-card.tsx` | `imageOrientation: 'from-image'` → `'none'` |
+| `src/components/home/ContinueReading.tsx` | Add `style={{ imageOrientation: 'none' }}` to cover `<img>` |
+| `src/components/story/story-of-the-day.tsx` | Add `style={{ imageOrientation: 'none' }}` to cover `<img>` |
 
