@@ -232,6 +232,7 @@ const [currentPage, setCurrentPage] = useState(0);
   const [coloringPickerOpen, setColoringPickerOpen] = useState(false);
   const [selectedColoringUrl, setSelectedColoringUrl] = useState<string | null>(null);
   const [coloringAction, setColoringAction] = useState<'pick' | 'choose-action'>('pick');
+  const [coloringMode, setColoringMode] = useState<'print' | 'online' | null>(null);
   const [onlineColoringOpen, setOnlineColoringOpen] = useState(false);
   const [onlineColoringImageUrl, setOnlineColoringImageUrl] = useState<string | null>(null);
   const [cachedColoringUrl, setCachedColoringUrl] = useState<string | null>(null);
