@@ -237,7 +237,78 @@ const [currentPage, setCurrentPage] = useState(0);
   const [onlineColoringImageUrl, setOnlineColoringImageUrl] = useState<string | null>(null);
   const [cachedColoringUrl, setCachedColoringUrl] = useState<string | null>(null);
   const [cachedIllustrationUrl, setCachedIllustrationUrl] = useState<string | null>(null);
+  const { user } = useAuth();
   
+
+  const getIllustrationComparisonKey = useCallback((url: string | null) => {
+    if (!url) return null;
+
+    if (url.startsWith("http://") || url.startsWith("https://")) {
+      try {
+        const parsed = new URL(url);
+        const bucketMarker = "/storage/v1/object/public/story-illustrations/";
+        const bucketIndex = parsed.pathname.indexOf(bucketMarker);
+        if (bucketIndex >= 0) {
+          return decodeURIComponent(parsed.pathname.slice(bucketIndex + bucketMarker.length));
+        }
+        return decodeURIComponent(`${parsed.pathname}${parsed.search}`);
+      } catch {
+        return url;
+      }
+    }
+
+    return decodeURIComponent(url.replace(/^\/+/, ""));
+  }, []);
+
+  const getMatchingCachedColoringUrl = useCallback(() => {
+    const selectedKey = getIllustrationComparisonKey(selectedColoringUrl);
+    const cachedKey = getIllustrationComparisonKey(cachedIllustrationUrl);
+
+    if (!selectedKey || !cachedKey || selectedKey !== cachedKey) {
+      return null;
+    }
+
+    return cachedColoringUrl;
+  }, [cachedColoringUrl, cachedIllustrationUrl, getIllustrationComparisonKey, selectedColoringUrl]);
+
+  const preloadStoryCachedColoring = useCallback(async (mode: 'print' | 'online' | null) => {
+    if (!story || coloringLoading) return;
+
+    const illustrations = story.pages?.filter(p => p.illustration_url).map(p => p.illustration_url!) || [];
+    if (illustrations.length === 0) {
+      toast({ title: "אין איורים זמינים ליצירת דף צביעה", variant: "destructive" });
+      return;
+    }
+
+    setColoringMode(mode);
+
+    if (user && story.id) {
+      const { data: cached } = await supabase
+        .from("story_coloring_pages" as any)
+        .select("*")
+        .eq("story_id", story.id)
+        .eq("user_id", user.id)
+        .maybeSingle();
+
+      if (cached) {
+        const cachedIllustration = getPublicIllustrationUrl((cached as any).illustration_url);
+        const publicUrl = `${import.meta.env.VITE_SUPABASE_URL || 'https://qvdwmkxviaqcgmjotsxe.supabase.co'}/storage/v1/object/public/story-illustrations/${(cached as any).coloring_image_path}`;
+        setCachedColoringUrl(publicUrl);
+        setCachedIllustrationUrl(cachedIllustration);
+        setSelectedColoringUrl(cachedIllustration);
+        setColoringAction('choose-action');
+        setColoringPickerOpen(true);
+        return;
+      }
+    }
+
+    setSelectedColoringUrl(null);
+    setCachedColoringUrl(null);
+    setCachedIllustrationUrl(null);
+    setColoringAction('pick');
+    setColoringPickerOpen(true);
+  }, [coloringLoading, story, toast, user]);
+
 
   const handleImageLoad = useCallback((e: React.SyntheticEvent<HTMLImageElement>) => {
     // Keep object-cover for all images — no white margins
@@ -261,7 +332,6 @@ const [currentPage, setCurrentPage] = useState(0);
   const bgMusic = useBgMusic();
   // story-illustrations bucket is public - using direct URLs via getPublicIllustrationUrl
   
-  const { user } = useAuth();
   const [editStoryId, setEditStoryId] = useState<string>('');
   const { fetchEditCount, editCount, freeEditsRemaining } = useStoryEdit(editStoryId);
   const hasTrackedStart = useRef(false);
@@ -1250,20 +1320,7 @@ const [currentPage, setCurrentPage] = useState(0);
         isDownloadingOffline={fullOffline.downloadingId === resolvedId}
         onRegenerateCover={handleRegenerateCover}
         isRegeneratingCover={isRegeneratingCover}
-        onColoring={async () => {
-          if (!story || coloringLoading) return;
-          const illustrations = story.pages?.filter(p => p.illustration_url).map(p => p.illustration_url!) || [];
-          if (illustrations.length === 0) {
-            toast({ title: "אין איורים זמינים ליצירת דף צביעה", variant: "destructive" });
-            return;
-          }
-          setColoringMode(null);
-          setSelectedColoringUrl(null);
-          setCachedColoringUrl(null);
-          setCachedIllustrationUrl(null);
-          setColoringAction('pick');
-          setColoringPickerOpen(true);
-        }}
+        onColoring={() => preloadStoryCachedColoring(null)}
       />
 
       {/* Series navigation bar removed */}
@@ -1386,37 +1443,7 @@ const [currentPage, setCurrentPage] = useState(0);
                   {/* Two separate coloring buttons */}
                   <div className="flex flex-col sm:flex-row gap-3 w-full max-w-xs mx-auto pt-2">
                     <Button
-                      onClick={async () => {
-                        if (!story || coloringLoading) return;
-                        const illustrations = story.pages?.filter(p => p.illustration_url).map(p => p.illustration_url!) || [];
-                        if (illustrations.length === 0) {
-                          toast({ title: "אין איורים זמינים ליצירת דף צביעה", variant: "destructive" });
-                          return;
-                        }
-                        setColoringMode('print');
-                        if (user && story.id) {
-                          const { data: cached } = await supabase
-                            .from("story_coloring_pages" as any)
-                            .select("*")
-                            .eq("story_id", story.id)
-                            .eq("user_id", user.id)
-                            .maybeSingle();
-                          if (cached) {
-                            const publicUrl = `${import.meta.env.VITE_SUPABASE_URL || 'https://qvdwmkxviaqcgmjotsxe.supabase.co'}/storage/v1/object/public/story-illustrations/${(cached as any).coloring_image_path}`;
-                            setCachedColoringUrl(publicUrl);
-                            setCachedIllustrationUrl((cached as any).illustration_url);
-                            setSelectedColoringUrl((cached as any).illustration_url);
-                            setColoringAction('choose-action');
-                            setColoringPickerOpen(true);
-                            return;
-                          }
-                        }
-                        setSelectedColoringUrl(null);
-                        setCachedColoringUrl(null);
-                        setCachedIllustrationUrl(null);
-                        setColoringAction('pick');
-                        setColoringPickerOpen(true);
-                      }}
+                      onClick={() => preloadStoryCachedColoring('print')}
                       disabled={coloringLoading}
                       className="flex-1 bg-gradient-to-r from-amber-400 to-orange-500 hover:from-amber-500 hover:to-orange-600 text-white px-4 py-3 rounded-full text-sm gap-1"
                     >
@@ -1427,37 +1454,7 @@ const [currentPage, setCurrentPage] = useState(0);
                       )}
                     </Button>
                     <Button
-                      onClick={async () => {
-                        if (!story || coloringLoading) return;
-                        const illustrations = story.pages?.filter(p => p.illustration_url).map(p => p.illustration_url!) || [];
-                        if (illustrations.length === 0) {
-                          toast({ title: "אין איורים זמינים ליצירת דף צביעה", variant: "destructive" });
-                          return;
-                        }
-                        setColoringMode('online');
-                        if (user && story.id) {
-                          const { data: cached } = await supabase
-                            .from("story_coloring_pages" as any)
-                            .select("*")
-                            .eq("story_id", story.id)
-                            .eq("user_id", user.id)
-                            .maybeSingle();
-                          if (cached) {
-                            const publicUrl = `${import.meta.env.VITE_SUPABASE_URL || 'https://qvdwmkxviaqcgmjotsxe.supabase.co'}/storage/v1/object/public/story-illustrations/${(cached as any).coloring_image_path}`;
-                            setCachedColoringUrl(publicUrl);
-                            setCachedIllustrationUrl((cached as any).illustration_url);
-                            setSelectedColoringUrl((cached as any).illustration_url);
-                            setColoringAction('choose-action');
-                            setColoringPickerOpen(true);
-                            return;
-                          }
-                        }
-                        setSelectedColoringUrl(null);
-                        setCachedColoringUrl(null);
-                        setCachedIllustrationUrl(null);
-                        setColoringAction('pick');
-                        setColoringPickerOpen(true);
-                      }}
+                      onClick={() => preloadStoryCachedColoring('online')}
                       disabled={coloringLoading}
                       className="flex-1 bg-gradient-to-r from-purple-500 to-indigo-600 hover:from-purple-600 hover:to-indigo-700 text-white px-4 py-3 rounded-full text-sm gap-1"
                     >
@@ -2058,7 +2055,7 @@ const [currentPage, setCurrentPage] = useState(0);
                       window.open(url, '_blank');
                     }
                   };
-                  const urlToUse = cachedColoringUrl;
+                  const urlToUse = getMatchingCachedColoringUrl();
                   if (urlToUse) {
                     await triggerDownload(urlToUse);
                     setColoringPickerOpen(false);
@@ -2076,7 +2073,7 @@ const [currentPage, setCurrentPage] = useState(0);
                       const coloringUrl = (response.data as any)?.image;
                       if (!coloringUrl) throw new Error("No coloring URL returned");
                       setCachedColoringUrl(coloringUrl);
-                      setCachedIllustrationUrl(selectedColoringUrl);
+                      setCachedIllustrationUrl(getPublicIllustrationUrl(selectedColoringUrl));
                       await triggerDownload(coloringUrl);
                       setColoringPickerOpen(false);
                     } catch (err: any) {
@@ -2096,7 +2093,7 @@ const [currentPage, setCurrentPage] = useState(0);
               <Button
                 onClick={async () => {
                   if (!story || !selectedColoringUrl) return;
-                  const urlToUse = cachedColoringUrl;
+                  const urlToUse = getMatchingCachedColoringUrl();
                   if (urlToUse) {
                     setOnlineColoringImageUrl(urlToUse);
                     setOnlineColoringOpen(true);
@@ -2116,7 +2113,7 @@ const [currentPage, setCurrentPage] = useState(0);
                       const coloringUrl = (response.data as any)?.image;
                       if (!coloringUrl) throw new Error("No coloring URL returned");
                       setCachedColoringUrl(coloringUrl);
-                      setCachedIllustrationUrl(selectedColoringUrl);
+                      setCachedIllustrationUrl(getPublicIllustrationUrl(selectedColoringUrl));
                       setOnlineColoringImageUrl(coloringUrl);
                       setOnlineColoringOpen(true);
                     } catch (err: any) {
