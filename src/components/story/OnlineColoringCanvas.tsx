@@ -56,6 +56,70 @@ function colorsMatch(a: Uint8ClampedArray, idx: number, target: [number, number,
   );
 }
 
+/** Auto-trim white borders from an image, returns the cropped bounds */
+function getContentBounds(img: HTMLImageElement, padding = 4): { sx: number; sy: number; sw: number; sh: number } {
+  const c = document.createElement('canvas');
+  c.width = img.naturalWidth;
+  c.height = img.naturalHeight;
+  const ctx = c.getContext('2d')!;
+  ctx.drawImage(img, 0, 0);
+  const data = ctx.getImageData(0, 0, c.width, c.height).data;
+  const w = c.width;
+  const h = c.height;
+  const WHITE_THRESH = 245;
+
+  let top = 0, bottom = h - 1, left = 0, right = w - 1;
+
+  // scan top
+  outer_top: for (let y = 0; y < h; y++) {
+    for (let x = 0; x < w; x++) {
+      const i = (y * w + x) * 4;
+      if (data[i] < WHITE_THRESH || data[i + 1] < WHITE_THRESH || data[i + 2] < WHITE_THRESH) {
+        top = y;
+        break outer_top;
+      }
+    }
+  }
+  // scan bottom
+  outer_bottom: for (let y = h - 1; y >= top; y--) {
+    for (let x = 0; x < w; x++) {
+      const i = (y * w + x) * 4;
+      if (data[i] < WHITE_THRESH || data[i + 1] < WHITE_THRESH || data[i + 2] < WHITE_THRESH) {
+        bottom = y;
+        break outer_bottom;
+      }
+    }
+  }
+  // scan left
+  outer_left: for (let x = 0; x < w; x++) {
+    for (let y = top; y <= bottom; y++) {
+      const i = (y * w + x) * 4;
+      if (data[i] < WHITE_THRESH || data[i + 1] < WHITE_THRESH || data[i + 2] < WHITE_THRESH) {
+        left = x;
+        break outer_left;
+      }
+    }
+  }
+  // scan right
+  outer_right: for (let x = w - 1; x >= left; x--) {
+    for (let y = top; y <= bottom; y++) {
+      const i = (y * w + x) * 4;
+      if (data[i] < WHITE_THRESH || data[i + 1] < WHITE_THRESH || data[i + 2] < WHITE_THRESH) {
+        right = x;
+        break outer_right;
+      }
+    }
+  }
+
+  // add small padding
+  top = Math.max(0, top - padding);
+  left = Math.max(0, left - padding);
+  bottom = Math.min(h - 1, bottom + padding);
+  right = Math.min(w - 1, right + padding);
+
+  return { sx: left, sy: top, sw: right - left + 1, sh: bottom - top + 1 };
+}
+
 function floodFill(
   drawCtx: CanvasRenderingContext2D,
   bgCtx: CanvasRenderingContext2D,
@@ -138,9 +202,29 @@ export const OnlineColoringCanvas: React.FC<OnlineColoringCanvasProps> = ({
   const [bgLoaded, setBgLoaded] = useState(false);
   const lastPos = useRef<{ x: number; y: number } | null>(null);
   const bgImageRef = useRef<HTMLImageElement | null>(null);
+  const trimBoundsRef = useRef<{ sx: number; sy: number; sw: number; sh: number } | null>(null);
+
+  // Refs for immediate access in callbacks (avoids stale closures)
+  const colorRef = useRef(color);
+  const toolRef = useRef(tool);
+  const brushSizeRef = useRef(brushSize);
 
   const [history, setHistory] = useState<ImageData[]>([]);
   const [historyIndex, setHistoryIndex] = useState(-1);
+
+  // Keep refs in sync
+  useEffect(() => { colorRef.current = color; }, [color]);
+  useEffect(() => { toolRef.current = tool; }, [tool]);
+  useEffect(() => { brushSizeRef.current = brushSize; }, [brushSize]);
+
+  const selectColor = useCallback((nextColor: string) => {
+    colorRef.current = nextColor;
+    setColor(nextColor);
+    if (toolRef.current === 'eraser') {
+      toolRef.current = 'brush';
+      setTool('brush');
+    }
+  }, []);
 
   // Fullscreen API
   useEffect(() => {
@@ -194,15 +278,22 @@ export const OnlineColoringCanvas: React.FC<OnlineColoringCanvasProps> = ({
     const drawCanvas = canvasRef.current;
     if (!bgCanvas || !drawCanvas) return;
 
+    // Compute trim bounds once
+    if (!trimBoundsRef.current) {
+      trimBoundsRef.current = getContentBounds(img);
+    }
+    const bounds = trimBoundsRef.current;
+
     const vw = window.innerWidth;
     const vh = window.innerHeight;
     const isMobile = vw < 768;
     const toolbarHeight = isMobile ? 44 + 110 : 44 + 110;
     const availH = vh - toolbarHeight;
-    // On desktop, use most of the available space (95%) for a large canvas
     const canvasMaxH = isMobile ? availH : Math.floor(availH * 0.98);
     const canvasMaxW = isMobile ? vw : Math.floor(vw * 0.95);
-    const imgRatio = img.naturalWidth / img.naturalHeight;
+
+    // Use trimmed content ratio instead of full image ratio
+    const imgRatio = bounds.sw / bounds.sh;
     let w: number, h: number;
     if (canvasMaxW / canvasMaxH > imgRatio) {
       h = canvasMaxH;
@@ -219,12 +310,8 @@ export const OnlineColoringCanvas: React.FC<OnlineColoringCanvasProps> = ({
     if (ctx) {
       ctx.fillStyle = '#FFFFFF';
       ctx.fillRect(0, 0, w, h);
-      const containScale = Math.min(w / img.naturalWidth, h / img.naturalHeight);
-      const drawW = img.naturalWidth * containScale;
-      const drawH = img.naturalHeight * containScale;
-      const offsetX = (w - drawW) / 2;
-      const offsetY = (h - drawH) / 2;
-      ctx.drawImage(img, offsetX, offsetY, drawW, drawH);
+      // Draw only the trimmed content area, scaled to fill the canvas
+      ctx.drawImage(img, bounds.sx, bounds.sy, bounds.sw, bounds.sh, 0, 0, w, h);
       boldenOutlines(ctx, w, h);
     }
     const dCtx = drawCanvas.getContext('2d');
@@ -240,6 +327,7 @@ export const OnlineColoringCanvas: React.FC<OnlineColoringCanvasProps> = ({
     setBgLoaded(false);
     setHistory([]);
     setHistoryIndex(-1);
+    trimBoundsRef.current = null;
     const img = new Image();
     img.crossOrigin = 'anonymous';
     img.src = backgroundImage;
@@ -273,8 +361,11 @@ export const OnlineColoringCanvas: React.FC<OnlineColoringCanvasProps> = ({
   const handlePointerDown = useCallback((e: React.MouseEvent | React.TouchEvent) => {
     e.preventDefault();
     const pos = getCanvasPos(e);
+    const currentTool = toolRef.current;
+    const currentColor = colorRef.current;
+    const currentBrushSize = brushSizeRef.current;
 
-    if (tool === 'eraser') {
+    if (currentTool === 'eraser') {
       setIsDrawing(true);
       lastPos.current = pos;
       const ctx = canvasRef.current?.getContext('2d');
@@ -287,15 +378,15 @@ export const OnlineColoringCanvas: React.FC<OnlineColoringCanvasProps> = ({
       return;
     }
 
-    if (tool === 'brush') {
+    if (currentTool === 'brush') {
       setIsDrawing(true);
       lastPos.current = pos;
       const ctx = canvasRef.current?.getContext('2d');
       if (ctx) {
         ctx.globalCompositeOperation = 'source-over';
-        ctx.fillStyle = color;
+        ctx.fillStyle = currentColor;
         ctx.beginPath();
-        ctx.arc(pos.x, pos.y, brushSize / 2, 0, Math.PI * 2);
+        ctx.arc(pos.x, pos.y, currentBrushSize / 2, 0, Math.PI * 2);
         ctx.fill();
       }
       return;
@@ -305,25 +396,26 @@ export const OnlineColoringCanvas: React.FC<OnlineColoringCanvasProps> = ({
     const drawCtx = canvasRef.current?.getContext('2d');
     const bgCtx = bgCanvasRef.current?.getContext('2d');
     if (!drawCtx || !bgCtx || !canvasRef.current) return;
-    floodFill(drawCtx, bgCtx, pos.x, pos.y, color, canvasRef.current.width, canvasRef.current.height);
+    floodFill(drawCtx, bgCtx, pos.x, pos.y, currentColor, canvasRef.current.width, canvasRef.current.height);
     saveSnapshot();
-  }, [getCanvasPos, tool, color, brushSize, saveSnapshot]);
+  }, [getCanvasPos, saveSnapshot]);
 
   const handlePointerMove = useCallback((e: React.MouseEvent | React.TouchEvent) => {
     e.preventDefault();
     if (!isDrawing || !canvasRef.current || !lastPos.current) return;
-    if (tool !== 'brush' && tool !== 'eraser') return;
+    const currentTool = toolRef.current;
+    if (currentTool !== 'brush' && currentTool !== 'eraser') return;
     const ctx = canvasRef.current.getContext('2d');
     if (!ctx) return;
     const currentPos = getCanvasPos(e);
 
-    if (tool === 'eraser') {
+    if (currentTool === 'eraser') {
       ctx.globalCompositeOperation = 'destination-out';
       ctx.lineWidth = ERASER_SIZE * 2;
     } else {
       ctx.globalCompositeOperation = 'source-over';
-      ctx.strokeStyle = color;
-      ctx.lineWidth = brushSize;
+      ctx.strokeStyle = colorRef.current;
+      ctx.lineWidth = brushSizeRef.current;
     }
     ctx.lineCap = 'round';
     ctx.beginPath();
@@ -331,7 +423,7 @@ export const OnlineColoringCanvas: React.FC<OnlineColoringCanvasProps> = ({
     ctx.lineTo(currentPos.x, currentPos.y);
     ctx.stroke();
     lastPos.current = currentPos;
-  }, [isDrawing, tool, color, brushSize, getCanvasPos]);
+  }, [isDrawing, getCanvasPos]);
 
   const stopDrawing = useCallback(() => {
     if (isDrawing) {
@@ -441,19 +533,19 @@ export const OnlineColoringCanvas: React.FC<OnlineColoringCanvasProps> = ({
       <div className="flex-shrink-0 bg-white/90 backdrop-blur-sm border-t border-purple-200 px-2 py-1.5 space-y-1.5">
         {/* Tools */}
         <div className="flex items-center justify-center gap-2">
-          <button onPointerDown={(e) => { e.stopPropagation(); setTool('fill'); }}
+          <button onPointerDown={(e) => { e.stopPropagation(); toolRef.current = 'fill'; setTool('fill'); }}
             className={`w-9 h-9 rounded-full flex items-center justify-center transition-all touch-manipulation ${
               tool === 'fill' ? 'ring-2 ring-purple-500 ring-offset-1 bg-purple-50 shadow-md' : 'bg-gray-100 hover:bg-gray-200'
             }`}>
             <PaintBucket className="w-4 h-4" style={{ color }} />
           </button>
-          <button onPointerDown={(e) => { e.stopPropagation(); setTool('brush'); }}
+          <button onPointerDown={(e) => { e.stopPropagation(); toolRef.current = 'brush'; setTool('brush'); }}
             className={`w-9 h-9 rounded-full flex items-center justify-center transition-all touch-manipulation ${
               tool === 'brush' ? 'ring-2 ring-purple-500 ring-offset-1 bg-purple-50 shadow-md' : 'bg-gray-100 hover:bg-gray-200'
             }`}>
             <Pencil className="w-4 h-4" style={{ color: tool === 'brush' ? color : undefined }} />
           </button>
-          <button onPointerDown={(e) => { e.stopPropagation(); setTool('eraser'); }}
+          <button onPointerDown={(e) => { e.stopPropagation(); toolRef.current = 'eraser'; setTool('eraser'); }}
             className={`w-9 h-9 rounded-full flex items-center justify-center transition-all touch-manipulation ${
               tool === 'eraser' ? 'ring-2 ring-purple-500 ring-offset-1 bg-purple-50 shadow-md' : 'bg-gray-100 hover:bg-gray-200'
             }`}>
@@ -462,8 +554,8 @@ export const OnlineColoringCanvas: React.FC<OnlineColoringCanvasProps> = ({
           {tool === 'brush' && (
             <div className="flex items-center gap-1 mr-2">
               {BRUSH_SIZES.map((s) => (
-                <button key={s} onClick={() => setBrushSize(s)}
-                  className={`rounded-full bg-gray-700 transition-all ${brushSize === s ? 'ring-2 ring-purple-500 ring-offset-1' : ''}`}
+                <button key={s} onPointerDown={(e) => { e.stopPropagation(); brushSizeRef.current = s; setBrushSize(s); }}
+                  className={`rounded-full bg-gray-700 transition-all touch-manipulation ${brushSize === s ? 'ring-2 ring-purple-500 ring-offset-1' : ''}`}
                   style={{ width: s + 8, height: s + 8 }}
                 />
               ))}
@@ -474,7 +566,7 @@ export const OnlineColoringCanvas: React.FC<OnlineColoringCanvasProps> = ({
         <div className="flex items-center justify-center gap-1.5 flex-wrap">
           {COLORS.map((c) => (
             <button key={c}
-              onPointerDown={(e) => { e.stopPropagation(); setColor(c); if (tool === 'eraser') setTool('brush'); }}
+              onPointerDown={(e) => { e.stopPropagation(); selectColor(c); }}
               className={`w-9 h-9 rounded-full border-2 transition-all active:scale-95 touch-manipulation ${
                 color === c && tool !== 'eraser'
                   ? 'scale-110 shadow-lg border-gray-700'
