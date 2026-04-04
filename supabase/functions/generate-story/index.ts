@@ -507,50 +507,58 @@ const NIKUD_GRAMMARIAN_PROMPT = `אתה מומחה ניקוד עברי (נקדן
 ### פורמט:
 החזר רק את הטקסט המנוקד, ללא הסברים או תוספות.`;
 
-// === Reusable Lovable AI Gateway fetch helper with exponential backoff ===
-interface GatewayCallOptions {
+// === Reusable Direct Gemini API fetch helper with exponential backoff ===
+interface GeminiCallOptions {
   apiKey: string;
   model?: string;
-  messages: Array<{ role: string; content: string }>;
-  responseFormat?: { type: string };
+  systemPrompt?: string;
+  userPrompt: string;
+  jsonMode?: boolean;
   maxRetries?: number;
   timeoutMs?: number;
   label?: string;
   maxOutputTokens?: number;
 }
 
-async function callGatewayWithRetry(opts: GatewayCallOptions): Promise<{ ok: true; data: any } | { ok: false; status: number; body: string; isBillingError: boolean }> {
-  const { apiKey, model = "google/gemini-2.5-flash", messages, responseFormat, maxRetries = 4, timeoutMs = 120_000, label = "gateway", maxOutputTokens } = opts;
-  const url = "https://ai.gateway.lovable.dev/v1/chat/completions";
+async function callGeminiWithRetry(opts: GeminiCallOptions): Promise<{ ok: true; text: string } | { ok: false; status: number; body: string; isBillingError: boolean }> {
+  const { apiKey, model = "gemini-2.0-flash", systemPrompt, userPrompt, jsonMode = false, maxRetries = 4, timeoutMs = 120_000, label = "gemini", maxOutputTokens } = opts;
+  const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`;
   const RETRYABLE = new Set([429, 500, 502, 503, 504]);
 
-  const requestBody: Record<string, unknown> = { model, messages };
-  if (responseFormat) requestBody.response_format = responseFormat;
-  if (maxOutputTokens) requestBody.max_tokens = maxOutputTokens;
+  const requestBody: Record<string, unknown> = {
+    contents: [{ role: "user", parts: [{ text: userPrompt }] }],
+  };
+  if (systemPrompt) {
+    requestBody.systemInstruction = { parts: [{ text: systemPrompt }] };
+  }
+  const genConfig: Record<string, unknown> = {};
+  if (jsonMode) genConfig.responseMimeType = "application/json";
+  if (maxOutputTokens) genConfig.maxOutputTokens = maxOutputTokens;
+  if (Object.keys(genConfig).length > 0) requestBody.generationConfig = genConfig;
 
   for (let attempt = 0; attempt <= maxRetries; attempt++) {
     try {
       const response = await fetch(url, {
         method: "POST",
-        headers: {
-          "Authorization": `Bearer ${apiKey}`,
-          "Content-Type": "application/json",
-        },
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify(requestBody),
         signal: AbortSignal.timeout(timeoutMs),
       });
 
       if (response.ok) {
         const data = await response.json();
-        return { ok: true, data };
+        const text = data.candidates?.[0]?.content?.parts?.[0]?.text;
+        if (text) return { ok: true, text };
+        console.error(`[${label}] ❌ No text in Gemini response`);
+        return { ok: false, status: 200, body: "No text in response", isBillingError: false };
       }
 
       const errBody = await response.text();
 
-      // Detect billing 402 — not retryable
-      if (response.status === 402) {
-        console.error(`[${label}] ❌ Payment required (402). Body: ${errBody.substring(0, 300)}`);
-        return { ok: false, status: 402, body: errBody, isBillingError: true };
+      // Detect billing/quota errors
+      if (response.status === 402 || (response.status === 429 && errBody.includes('"limit": 0'))) {
+        console.error(`[${label}] ❌ Billing/quota error (${response.status}). Body: ${errBody.substring(0, 300)}`);
+        return { ok: false, status: response.status, body: errBody, isBillingError: true };
       }
 
       if (!RETRYABLE.has(response.status) || attempt === maxRetries) {
@@ -583,15 +591,13 @@ async function callGatewayWithRetry(opts: GatewayCallOptions): Promise<{ ok: tru
 // Function to add nikud to a single page text using the Grammarian agent
 async function addNikudToText(text: string, apiKey: string): Promise<string> {
   try {
-    const result = await callGatewayWithRetry({
+    const result = await callGeminiWithRetry({
       apiKey,
       label: "nikud",
       maxRetries: 2,
       timeoutMs: 15_000,
-      messages: [
-        { role: "system", content: NIKUD_GRAMMARIAN_PROMPT },
-        { role: "user", content: `הוסף ניקוד מלא ומדויק לטקסט הבא:\n\n${text}` },
-      ],
+      systemPrompt: NIKUD_GRAMMARIAN_PROMPT,
+      userPrompt: `הוסף ניקוד מלא ומדויק לטקסט הבא:\n\n${text}`,
     });
 
     if (!result.ok) {
@@ -599,7 +605,7 @@ async function addNikudToText(text: string, apiKey: string): Promise<string> {
       return text;
     }
 
-    const nikudText = result.data.choices?.[0]?.message?.content?.trim();
+    const nikudText = result.text?.trim();
 
     if (!nikudText) {
       console.error("No nikud text returned from grammarian");
@@ -914,13 +920,13 @@ serve(async (req) => {
     // Use avatar URL if available (for character consistency), otherwise use original photo
     const effectivePhoto = childAvatarUrl || childPhoto;
 
-    // LOVABLE_API_KEY for all AI calls via Lovable AI Gateway
-    const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
-    if (!LOVABLE_API_KEY) {
-      console.error("[generate-story] ❌ LOVABLE_API_KEY is NOT configured!");
+    // GEMINI_API_KEY for all AI calls via direct Google Gemini API
+    const GEMINI_API_KEY = Deno.env.get("GEMINI_API_KEY");
+    if (!GEMINI_API_KEY) {
+      console.error("[generate-story] ❌ GEMINI_API_KEY is NOT configured!");
       throw new Error("API key not configured");
     }
-    console.log("[generate-story] ✅ LOVABLE_API_KEY loaded successfully");
+    console.log("[generate-story] ✅ GEMINI_API_KEY loaded successfully");
 
     // Gender text variables moved into language-specific prompt building below
     
@@ -1478,37 +1484,35 @@ ${topic.endsWith('-edu') ? `
 - כלל ניקוד: אם לא בטוח ב-100% בניקוד - השתמש במילה שאתה בטוח בניקוד שלה.`;
     }
 
-    console.log("[generate-story] 📡 Calling Lovable AI Gateway (google/gemini-2.5-flash) with retry logic...");
-    const gatewayResult = await callGatewayWithRetry({
-      apiKey: LOVABLE_API_KEY,
+    console.log("[generate-story] 📡 Calling Google Gemini API (gemini-2.0-flash) with retry logic...");
+    const geminiResult = await callGeminiWithRetry({
+      apiKey: GEMINI_API_KEY,
       label: "generate-story",
       maxRetries: 4,
       timeoutMs: 120_000,
       maxOutputTokens: 8192,
-      messages: [
-        { role: "system", content: systemPrompt },
-        { role: "user", content: userPrompt },
-      ],
-      responseFormat: { type: "json_object" },
+      systemPrompt: systemPrompt,
+      userPrompt: userPrompt,
+      jsonMode: true,
     });
 
-    if (!gatewayResult.ok) {
-      console.error(`[generate-story] ❌ AI Gateway failed after retries: status=${gatewayResult.status}`);
-      await logError("story_generation_error", `AI Gateway error: ${gatewayResult.status}`, { status: gatewayResult.status, body: gatewayResult.body.substring(0, 500), topic, childName, isBillingError: gatewayResult.isBillingError }, userId);
+    if (!geminiResult.ok) {
+      console.error(`[generate-story] ❌ Gemini API failed after retries: status=${geminiResult.status}`);
+      await logError("story_generation_error", `Gemini API error: ${geminiResult.status}`, { status: geminiResult.status, body: geminiResult.body.substring(0, 500), topic, childName, isBillingError: geminiResult.isBillingError }, userId);
       
-      if (gatewayResult.isBillingError) {
+      if (geminiResult.isBillingError) {
         return new Response(
           JSON.stringify({ error: "שגיאת מערכת זמנית. נסו שוב בעוד מספר דקות." }),
           { status: 503, headers: { ...corsHeaders, "Content-Type": "application/json" } }
         );
       }
-      if (gatewayResult.status === 429) {
+      if (geminiResult.status === 429) {
         return new Response(
           JSON.stringify({ error: "הגעתם למגבלת הבקשות. נסו שוב בעוד מספר דקות." }),
           { status: 429, headers: { ...corsHeaders, "Content-Type": "application/json" } }
         );
       }
-      if (gatewayResult.status === 401 || gatewayResult.status === 403) {
+      if (geminiResult.status === 401 || geminiResult.status === 403) {
         return new Response(
           JSON.stringify({ error: "שגיאת הרשאה. אנא צרו קשר עם התמיכה." }),
           { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } }
@@ -1517,8 +1521,8 @@ ${topic.endsWith('-edu') ? `
       throw new Error("שגיאה ביצירת הסיפור. נסו שוב מאוחר יותר.");
     }
 
-    console.log("[generate-story] ✅ AI Gateway response received, parsing...");
-    const content = gatewayResult.data.choices?.[0]?.message?.content;
+    console.log("[generate-story] ✅ Gemini API response received, parsing...");
+    const content = geminiResult.text;
     
     if (!content) {
       throw new Error("שגיאה ביצירת הסיפור. נסו שוב.");
@@ -1609,22 +1613,20 @@ ${topic.endsWith('-edu') ? `
         console.warn("[generate-story] Repair failed, retrying AI call...");
         // Attempt 3: retry the AI call with retry helper
         try {
-          const retryResult = await callGatewayWithRetry({
-            apiKey: LOVABLE_API_KEY,
+          const retryResult = await callGeminiWithRetry({
+            apiKey: GEMINI_API_KEY,
             label: "generate-story-retry",
             maxRetries: 2,
             timeoutMs: 120_000,
-            messages: [
-              { role: "system", content: systemPrompt },
-              { role: "user", content: userPrompt },
-            ],
-            responseFormat: { type: "json_object" },
+            systemPrompt: systemPrompt,
+            userPrompt: userPrompt,
+            jsonMode: true,
           });
           if (!retryResult.ok) {
             console.error(`[generate-story] Retry AI call failed: ${retryResult.status}`);
             throw new Error("Retry failed");
           }
-          const retryContent = retryResult.data.choices?.[0]?.message?.content;
+          const retryContent = retryResult.text;
           if (!retryContent) throw new Error("Empty retry response");
           const cleanedRetry = cleanAiContent(retryContent);
           storyData = JSON.parse(cleanedRetry);
@@ -1762,18 +1764,16 @@ ${fullStoryText}`;
       
       console.log(`[generate-story] Starting text quality rewrite for age ${ageLabel} (12s timeout)...`);
       
-      const rewriteResult = await callGatewayWithRetry({
-        apiKey: LOVABLE_API_KEY,
+      const rewriteResult = await callGeminiWithRetry({
+        apiKey: GEMINI_API_KEY,
         label: "rewrite",
         maxRetries: 1,
         timeoutMs: 12_000,
-        messages: [
-          { role: "user", content: rewritePrompt },
-        ],
+        userPrompt: rewritePrompt,
       });
 
       if (rewriteResult.ok) {
-        const rewrittenText = rewriteResult.data.choices?.[0]?.message?.content?.trim();
+        const rewrittenText = rewriteResult.text?.trim();
         
         if (rewrittenText) {
           // Parse rewritten text back into pages by [עמוד X] markers
@@ -1897,17 +1897,15 @@ ${fullStoryText}`;
     const summaryPromise = (async () => {
       try {
         const fullText = storyData.pages.map((p: any) => p.text).join("\n");
-        const summaryResult = await callGatewayWithRetry({
-          apiKey: LOVABLE_API_KEY,
+        const summaryResult = await callGeminiWithRetry({
+          apiKey: GEMINI_API_KEY,
           label: "summary",
           maxRetries: 1,
           timeoutMs: 10_000,
-          messages: [
-            { role: "user", content: `סכם את הסיפור הבא במשפט אחד קצר בעברית (עד 30 מילים). תן רק את המשפט, ללא הקדמה:\n${fullText}` },
-          ],
+          userPrompt: `סכם את הסיפור הבא במשפט אחד קצר בעברית (עד 30 מילים). תן רק את המשפט, ללא הקדמה:\n${fullText}`,
         });
         if (summaryResult.ok) {
-          const summary = summaryResult.data.choices?.[0]?.message?.content?.trim();
+          const summary = summaryResult.text?.trim();
           if (summary) {
             await supabase.from("stories").update({ summary }).eq("id", story.id);
             console.log(`Summary saved for story ${story.id}: ${summary.substring(0, 60)}...`);
@@ -1933,7 +1931,7 @@ ${fullStoryText}`;
           if (savedPages) {
             const nikudResults = await Promise.allSettled(
               savedPages.map(async (page) => {
-                const nikudText = await addNikudToText(page.text, LOVABLE_API_KEY);
+                const nikudText = await addNikudToText(page.text, GEMINI_API_KEY);
                 if (nikudText !== page.text) {
                   await supabase
                     .from("story_pages")
