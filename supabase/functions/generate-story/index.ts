@@ -914,13 +914,13 @@ serve(async (req) => {
     // Use avatar URL if available (for character consistency), otherwise use original photo
     const effectivePhoto = childAvatarUrl || childPhoto;
 
-    // GEMINI_API_KEY for all AI calls (story generation + background tasks)
-    const GEMINI_API_KEY = Deno.env.get("GEMINI_API_KEY");
-    if (!GEMINI_API_KEY) {
-      console.error("[generate-story] ❌ GEMINI_API_KEY is NOT configured!");
+    // LOVABLE_API_KEY for all AI calls via Lovable AI Gateway
+    const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
+    if (!LOVABLE_API_KEY) {
+      console.error("[generate-story] ❌ LOVABLE_API_KEY is NOT configured!");
       throw new Error("API key not configured");
     }
-    console.log("[generate-story] ✅ GEMINI_API_KEY loaded successfully");
+    console.log("[generate-story] ✅ LOVABLE_API_KEY loaded successfully");
 
     // Gender text variables moved into language-specific prompt building below
     
