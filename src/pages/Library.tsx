@@ -54,6 +54,17 @@ interface ChildRecord {
   name: string;
 }
 
+interface ColoringPageRecord {
+  id: string;
+  story_id: string;
+  illustration_url: string;
+  coloring_image_path: string;
+  created_at: string;
+  story_child_name?: string;
+  story_topic?: string;
+  story_slug?: string;
+}
+
 const Library = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
