@@ -1995,7 +1995,58 @@ const [currentPage, setCurrentPage] = useState(0);
                     try {
                       const res = await fetch(url);
                       const blob = await res.blob();
-                      const blobUrl = URL.createObjectURL(blob);
+                      // Trim white margins before downloading
+                      const trimmedBlob = await new Promise<Blob>((resolve) => {
+                        const img = new Image();
+                        img.crossOrigin = 'anonymous';
+                        img.onload = () => {
+                          const c = document.createElement('canvas');
+                          c.width = img.naturalWidth;
+                          c.height = img.naturalHeight;
+                          const ctx = c.getContext('2d')!;
+                          ctx.drawImage(img, 0, 0);
+                          const data = ctx.getImageData(0, 0, c.width, c.height).data;
+                          const w = c.width, h = c.height;
+                          const WHITE = 245;
+                          let top = 0, bottom = h - 1, left = 0, right = w - 1;
+                          scan_top: for (let y = 0; y < h; y++) {
+                            for (let x = 0; x < w; x++) {
+                              const i = (y * w + x) * 4;
+                              if (data[i] < WHITE || data[i+1] < WHITE || data[i+2] < WHITE) { top = y; break scan_top; }
+                            }
+                          }
+                          scan_bottom: for (let y = h - 1; y >= top; y--) {
+                            for (let x = 0; x < w; x++) {
+                              const i = (y * w + x) * 4;
+                              if (data[i] < WHITE || data[i+1] < WHITE || data[i+2] < WHITE) { bottom = y; break scan_bottom; }
+                            }
+                          }
+                          scan_left: for (let x = 0; x < w; x++) {
+                            for (let y = top; y <= bottom; y++) {
+                              const i = (y * w + x) * 4;
+                              if (data[i] < WHITE || data[i+1] < WHITE || data[i+2] < WHITE) { left = x; break scan_left; }
+                            }
+                          }
+                          scan_right: for (let x = w - 1; x >= left; x--) {
+                            for (let y = top; y <= bottom; y++) {
+                              const i = (y * w + x) * 4;
+                              if (data[i] < WHITE || data[i+1] < WHITE || data[i+2] < WHITE) { right = x; break scan_right; }
+                            }
+                          }
+                          const pad = 4;
+                          top = Math.max(0, top - pad); left = Math.max(0, left - pad);
+                          bottom = Math.min(h - 1, bottom + pad); right = Math.min(w - 1, right + pad);
+                          const tw = right - left + 1, th = bottom - top + 1;
+                          const trimmed = document.createElement('canvas');
+                          trimmed.width = tw; trimmed.height = th;
+                          const tCtx = trimmed.getContext('2d')!;
+                          tCtx.drawImage(img, left, top, tw, th, 0, 0, tw, th);
+                          trimmed.toBlob((b) => resolve(b || blob), 'image/png');
+                        };
+                        img.onerror = () => resolve(blob);
+                        img.src = URL.createObjectURL(blob);
+                      });
+                      const blobUrl = URL.createObjectURL(trimmedBlob);
                       const link = document.createElement('a');
                       link.href = blobUrl;
                       link.download = `coloring-page-${story.id}.png`;
@@ -2004,7 +2055,6 @@ const [currentPage, setCurrentPage] = useState(0);
                       document.body.removeChild(link);
                       URL.revokeObjectURL(blobUrl);
                     } catch {
-                      // Fallback: open in new tab
                       window.open(url, '_blank');
                     }
                   };
