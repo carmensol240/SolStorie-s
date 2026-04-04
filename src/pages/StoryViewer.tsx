@@ -1,6 +1,6 @@
 import { useState, useEffect, useLayoutEffect, useRef, useCallback, useMemo } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { Home, BookOpen, Palette, Wand2, Loader2, ImageOff, Star, Send, ChevronRight, ChevronLeft, ArrowRight, Volume2 } from "lucide-react";
+import { Home, BookOpen, Palette, Wand2, Loader2, ImageOff, Star, Send, ChevronRight, ChevronLeft, ArrowRight } from "lucide-react";
 import SeriesNavBar, { SeriesPart } from "@/components/story/SeriesNavBar";
 import { MissingIllustrationPrompt } from "@/components/story/MissingIllustrationPrompt";
 import { Button } from "@/components/ui/button";
@@ -1578,15 +1578,6 @@ const [currentPage, setCurrentPage] = useState(0);
                         light
                       />
                     </div>
-                    {isLearningTopic && learningPronunciation && currentPage === virtualPages.length - 1 && (
-                      <button
-                        onClick={() => startReading(learningPronunciation, 'he')}
-                        className="absolute bottom-12 right-3 z-20 w-10 h-10 rounded-full bg-white/90 shadow-lg flex items-center justify-center hover:scale-110 transition-transform border border-purple-200"
-                        aria-label="השמע"
-                      >
-                        <Volume2 className="w-5 h-5 text-purple-600" />
-                      </button>
-                    )}
                   </>
                 ) : currentVirtual.type === 'illustration' ? (
                   /* Illustration-only page — fullscreen image, no text */
@@ -1686,15 +1677,6 @@ const [currentPage, setCurrentPage] = useState(0);
                         light
                       />
                     </div>
-                    {isLearningTopic && learningPronunciation && currentPage === virtualPages.length - 1 && (
-                      <button
-                        onClick={() => startReading(learningPronunciation, 'he')}
-                        className="absolute bottom-12 right-3 z-20 w-10 h-10 rounded-full bg-white/90 shadow-lg flex items-center justify-center hover:scale-110 transition-transform border border-purple-200"
-                        aria-label="השמע"
-                      >
-                        <Volume2 className="w-5 h-5 text-purple-600" />
-                      </button>
-                    )}
                   </>
                 ) : (
                   /* Text page — dark starry night background, centered white text */
@@ -1735,15 +1717,6 @@ const [currentPage, setCurrentPage] = useState(0);
                             {displayText}
                           </p>
                         </div>
-                        {isLearningTopic && learningPronunciation && currentPage === virtualPages.length - 1 && (
-                          <button
-                            onClick={() => startReading(learningPronunciation, 'he')}
-                            className="absolute bottom-12 right-3 z-20 w-10 h-10 rounded-full bg-white/90 shadow-lg flex items-center justify-center hover:scale-110 transition-transform border border-purple-200"
-                            aria-label="השמע"
-                          >
-                            <Volume2 className="w-5 h-5 text-purple-600" />
-                          </button>
-                        )}
                         <div className="flex-1" />
                         <div className="pb-4 shrink-0">
                           <span className="text-xs font-light" style={{ color: 'rgba(255,255,255,0.25)' }}>{Math.ceil((currentPage + 1) / 2)} / {story.pages.length}</span>
