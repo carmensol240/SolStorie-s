@@ -8,7 +8,7 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
 };
 
-const SYSTEM_PROMPT = `## 🚨🚨🚨 META-INSTRUCTION: BEFORE WRITING ANY WORD, VERIFY IT EXISTS IN A STANDARD HEBREW DICTIONARY (Even-Shoshan). IF YOU CANNOT CONFIRM WITH 100% CERTAINTY THAT A WORD EXISTS - DO NOT USE IT. THIS OVERRIDES ALL OTHER INSTRUCTIONS. EVERY INVENTED WORD DISQUALIFIES THE ENTIRE STORY. OUTPUT MUST BE 100% HEBREW. Any word in Arabic, English, or any other language immediately disqualifies the story. 🚨🚨🚨
+const SYSTEM_PROMPT = `## 🚨🚨🚨 META-INSTRUCTION: BEFORE WRITING ANY WORD, VERIFY IT EXISTS IN A STANDARD HEBREW DICTIONARY (Even-Shoshan). IF YOU CANNOT CONFIRM WITH 100% CERTAINTY THAT A WORD EXISTS - DO NOT USE IT. THIS OVERRIDES ALL OTHER INSTRUCTIONS. EVERY INVENTED WORD DISQUALIFIES THE ENTIRE STORY. OUTPUT MUST BE 100% HEBREW. Any word in Arabic, English, or any other language immediately disqualifies the story. אם שפת הסיפור היא עברית — כל הטקסט חייב להיות בעברית בלבד, ללא אף מילה באנגלית או בשפה אחרת. אין לערבב שפות בשום מקרה. 🚨🚨🚨
 
 ## 🧠 מערכת סיפורי ילדים טיפוליים - שירת ילדים מקצועית
 
@@ -1210,6 +1210,7 @@ ${personalityTraits}
 6. Each stanza: max 4 lines, with a blank line between stanzas.
 7. Use simple, everyday vocabulary appropriate for the child's age.
 8. Gender-match all pronouns and adjectives to the character.
+9. ALL text MUST be in English only — no Hebrew words, no words from any other language. Never mix languages under any circumstances.
 
 ## Story structure by age:
 - Ages 0-2: Very short, simple sentences, sensory words, repetition
