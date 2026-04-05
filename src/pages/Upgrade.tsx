@@ -480,11 +480,13 @@ const Upgrade = () => {
                     const success = await addCredits(EDUCATOR_PACKAGE.stories);
                     if (success) {
                       // Add free edits to profile
-                      const { data: profileData } = await supabase.from('profiles').select('free_edits_remaining, free_edits_total').eq('id', user.id).maybeSingle();
+                      const { data: profileData } = await supabase.from('profiles').select('free_edits_remaining, free_edits_total, coloring_credits').eq('id', user.id).maybeSingle();
                       await supabase.from('profiles').update({
                         free_edits_remaining: (profileData?.free_edits_remaining ?? 0) + EDUCATOR_PACKAGE.freeEdits,
                         free_edits_total: (profileData?.free_edits_total ?? 0) + EDUCATOR_PACKAGE.freeEdits,
+                        coloring_credits: (profileData?.coloring_credits ?? 0) + (EDUCATOR_PACKAGE.freeColoringPages ?? 0),
                       }).eq('id', user.id);
+                      window.dispatchEvent(new CustomEvent('coloring-credits-updated'));
                       setPurchasedCredits(EDUCATOR_PACKAGE.stories);
                       setShowEducatorPayPal(false);
                       setShowSuccess(true);
