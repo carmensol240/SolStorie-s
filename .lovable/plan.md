@@ -1,32 +1,63 @@
 
 
-## Plan: Add "Coloring Pages" Tab to Library
+## Plan: Coloring Credits — Toast with Purchase Link, Instant Refresh, and Separate Display
 
 ### Overview
-Add a new "דפי צביעה" (Coloring Pages) tab to the Library page that displays all coloring pages the user has generated, allowing them to re-color or re-download them.
+Three changes: (1) upsell toast with action button, (2) credits refresh after purchase, (3) separate coloring credits display.
 
-### Data Source
-The `story_coloring_pages` table already exists with columns: `id`, `story_id`, `user_id`, `illustration_url`, `coloring_image_path`, `created_at`. There are already 10 records. The coloring images are stored in the `story-illustrations` bucket (public).
+---
 
-### Changes — single file: `src/pages/Library.tsx`
+### 1. Upsell toast with "לרכישה" button — `src/pages/StoryViewer.tsx`
 
-1. **Add state for coloring pages** — new `coloringPages` state array, fetched from `story_coloring_pages` where `user_id = user.id`, ordered by `created_at desc`
+Replace the 3 upsell toast calls (lines ~1929, ~2043, ~2083) from:
+```ts
+toast({ title: "נגמרו קרדיטים לצביעה 🎨" });
+```
+to using `sonner` toast with an action button:
+```ts
+import { toast } from "sonner";
+// ...
+toast.error("נגמרו קרדיטי הצביעה 🎨", {
+  action: { label: "לרכישה", onClick: () => navigate("/upgrade") },
+});
+```
 
-2. **Add fetch function** — `fetchColoringPages()` that queries the table and joins with `stories` to get `child_name` and `topic` for display labels
+### 2. Instant credit refresh after purchase — `src/pages/Upgrade.tsx`
 
-3. **Wrap the main stories content in a top-level Tabs component** with two tabs:
-   - "📚 סיפורים" (Stories) — current content, unchanged
-   - "🎨 דפי צביעה" (Coloring Pages) — new grid of coloring page thumbnails
+After the coloring kit purchase success (line ~598), broadcast a custom event so StoryViewer (or any open page) can pick up the new credits without a page reload:
 
-4. **Coloring pages grid** — simple responsive grid (2 columns on mobile, 3 on desktop) showing each coloring page as a card with:
-   - Thumbnail image (from `coloring_image_path` via public URL)
-   - Story name + topic label below
-   - Two action buttons: "צביעה אונליין" (navigates to story viewer with coloring mode) and "הורדה" (triggers the same blob-download logic)
+```ts
+window.dispatchEvent(new CustomEvent('coloring-credits-updated'));
+```
 
-5. **Empty state** — when no coloring pages exist, show a friendly message with a palette icon
+In `src/pages/StoryViewer.tsx`, no special listener needed — the edge function re-checks credits server-side on each call, so the next coloring attempt will just work. The main issue is the **client-side display**. We'll handle that via the new hook (see item 3).
+
+### 3. Separate coloring credits display — new hook + UI changes
+
+**New file: `src/hooks/use-coloring-credits.ts`**
+- Fetches `coloring_credits` from `profiles` table
+- Listens for `coloring-credits-updated` window event to auto-refresh
+- Exposes `{ coloringCredits, loading, refetch }`
+
+**`src/components/home/LoggedInHome.tsx`**
+- Import `useColoringCredits`
+- Add a second pill next to the story credits pill showing coloring credits with a `Palette` icon in purple/pink color, e.g.:
+```tsx
+<button className="flex items-center gap-2 bg-white/20 ...">
+  <Palette className="w-5 h-5 text-purple-400" />
+  <span className="font-bold text-purple-900">{coloringCredits}</span>
+</button>
+```
+
+**`src/components/home/UserDashboard.tsx`** (if still used)
+- Add `coloringCredits` prop
+- Add a third stat item with `Palette` icon in purple, showing coloring credits separately from story credits
+
+**`src/pages/Upgrade.tsx`**
+- After successful coloring kit purchase, dispatch `coloring-credits-updated` event
 
 ### What stays the same
-- All existing story list logic, child tabs, offline filter
-- All other pages and components
-- The `story_coloring_pages` table (no schema changes)
+- Edge function logic (server-side credit checks)
+- All other pages, components, and flows
+- Story credits display unchanged
 
