@@ -21,6 +21,7 @@ const LoggedInHome = ({ user, displayName }: LoggedInHomeProps) => {
   const { credits } = useCredits();
   const { shareCoins } = useReferral();
   const { avatarUrl } = useChildAvatar();
+  const { coloringCredits } = useColoringCredits();
   const [storyCount, setStoryCount] = useState<number>(0);
   const [userRole, setUserRole] = useState<string | null>(null);
   const [showEducatorBanner, setShowEducatorBanner] = useState(true);
