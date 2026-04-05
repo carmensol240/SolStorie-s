@@ -10,7 +10,7 @@ interface UserDashboardProps {
   coloringCredits?: number;
 }
 
-const UserDashboard = ({ displayName, storyCount, credits, shareCoins }: UserDashboardProps) => {
+const UserDashboard = ({ displayName, storyCount, credits, shareCoins, coloringCredits = 0 }: UserDashboardProps) => {
   const navigate = useNavigate();
   const totalCoins = (credits ?? 0) + shareCoins;
 
