@@ -1,4 +1,4 @@
-import { BookOpen, Coins, Sparkles } from "lucide-react";
+import { BookOpen, Coins, Sparkles, Palette } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 
@@ -7,9 +7,10 @@ interface UserDashboardProps {
   storyCount: number;
   credits: number | null;
   shareCoins: number;
+  coloringCredits?: number;
 }
 
-const UserDashboard = ({ displayName, storyCount, credits, shareCoins }: UserDashboardProps) => {
+const UserDashboard = ({ displayName, storyCount, credits, shareCoins, coloringCredits = 0 }: UserDashboardProps) => {
   const navigate = useNavigate();
   const totalCoins = (credits ?? 0) + shareCoins;
 
@@ -35,6 +36,14 @@ const UserDashboard = ({ displayName, storyCount, credits, shareCoins }: UserDas
           <span className="font-bold text-foreground">{totalCoins}</span>
           <span className="text-sm text-muted-foreground">קרדיטים</span>
         </div>
+
+        {coloringCredits > 0 && (
+          <div className="flex items-center gap-2 bg-purple-100 rounded-xl px-4 py-2">
+            <Palette className="w-5 h-5 text-purple-500" aria-hidden="true" />
+            <span className="font-bold text-purple-700">{coloringCredits}</span>
+            <span className="text-sm text-muted-foreground">צביעה</span>
+          </div>
+        )}
       </div>
 
       {/* Quick Create Button */}

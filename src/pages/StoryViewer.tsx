@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
+import { toast as sonnerToast } from "sonner";
 import { cn } from "@/lib/utils";
 import { DrawingCanvas } from "@/components/ui/drawing-canvas";
 import { SignedImage } from "@/components/ui/signed-image";
@@ -1926,7 +1927,9 @@ const [currentPage, setCurrentPage] = useState(0);
                     });
                     if (response.error) throw response.error;
                     if ((response.data as any)?.upsell) {
-                      toast({ title: (response.data as any)?.error || "נגמרו קרדיטים לצביעה 🎨" });
+                      sonnerToast.error("נגמרו קרדיטי הצביעה 🎨", {
+                        action: { label: "לרכישה", onClick: () => navigate("/upgrade") },
+                      });
                       return;
                     }
                     const coloringUrl = (response.data as any)?.image;
@@ -2040,7 +2043,9 @@ const [currentPage, setCurrentPage] = useState(0);
                       });
                       if (response.error) throw response.error;
                       if ((response.data as any)?.upsell) {
-                        toast({ title: (response.data as any)?.error || "נגמרו קרדיטים לצביעה 🎨" });
+                        sonnerToast.error("נגמרו קרדיטי הצביעה 🎨", {
+                          action: { label: "לרכישה", onClick: () => navigate("/upgrade") },
+                        });
                         return;
                       }
                       const coloringUrl = (response.data as any)?.image;
@@ -2080,7 +2085,9 @@ const [currentPage, setCurrentPage] = useState(0);
                       });
                       if (response.error) throw response.error;
                       if ((response.data as any)?.upsell) {
-                        toast({ title: (response.data as any)?.error || "נגמרו קרדיטים לצביעה 🎨" });
+                        sonnerToast.error("נגמרו קרדיטי הצביעה 🎨", {
+                          action: { label: "לרכישה", onClick: () => navigate("/upgrade") },
+                        });
                         return;
                       }
                       const coloringUrl = (response.data as any)?.image;

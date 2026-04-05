@@ -1,10 +1,11 @@
 import React, { useState, useEffect } from "react";
-import { Wand2, Coins, X, GraduationCap } from "lucide-react";
+import { Wand2, Coins, X, GraduationCap, Palette } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useCredits } from "@/hooks/use-credits";
 import { useReferral } from "@/hooks/use-referral";
 import { useChildAvatar } from "@/hooks/use-child-avatar";
 import { useAuth } from "@/hooks/use-auth";
+import { useColoringCredits } from "@/hooks/use-coloring-credits";
 import { supabase } from "@/integrations/supabase/client";
 import heroBackground from "@/assets/hero-children-flying-sky.jpg";
 import WelcomeGiftBanner from "./WelcomeGiftBanner";
@@ -20,6 +21,7 @@ const LoggedInHome = ({ user, displayName }: LoggedInHomeProps) => {
   const { credits } = useCredits();
   const { shareCoins } = useReferral();
   const { avatarUrl } = useChildAvatar();
+  const { coloringCredits } = useColoringCredits();
   const [storyCount, setStoryCount] = useState<number>(0);
   const [userRole, setUserRole] = useState<string | null>(null);
   const [showEducatorBanner, setShowEducatorBanner] = useState(true);
@@ -99,6 +101,16 @@ const LoggedInHome = ({ user, displayName }: LoggedInHomeProps) => {
               <Coins className="w-5 h-5 text-amber-700" />
               <span className="font-bold text-amber-900 text-lg">{totalCredits}</span>
             </button>
+            {coloringCredits > 0 && (
+              <button 
+                onClick={() => navigate("/upgrade")}
+                className="flex items-center gap-2 bg-white/20 backdrop-blur-xl border border-white/30 rounded-full px-3 py-2 hover:bg-white/30 transition-colors shadow-lg"
+                aria-label="קרדיטי צביעה"
+              >
+                <Palette className="w-4 h-4 text-purple-400" />
+                <span className="font-bold text-purple-900 text-sm">{coloringCredits}</span>
+              </button>
+            )}
           </div>
 
           {/* Right side: Greeting pill - more transparent */}

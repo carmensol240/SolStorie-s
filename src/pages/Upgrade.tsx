@@ -600,6 +600,7 @@ const Upgrade = () => {
                     setPurchasedCredits(0);
                     setShowSuccess(true);
                     trackEvent({ eventType: 'feature_used', metadata: { feature: 'coloring_kit_purchased', pages: COLORING_KIT_PACKAGE.pages, payment_method: 'paypal' } });
+                    window.dispatchEvent(new CustomEvent('coloring-credits-updated'));
                     toast.success(`🎨 נוספו ${COLORING_KIT_PACKAGE.pages} דפי צביעה בהצלחה!`);
                   } catch (error) {
                     console.error('Coloring kit purchase failed:', error);
