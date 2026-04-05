@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { Wand2, Coins, X, GraduationCap } from "lucide-react";
+import { Wand2, Coins, X, GraduationCap, Palette } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useCredits } from "@/hooks/use-credits";
 import { useReferral } from "@/hooks/use-referral";
