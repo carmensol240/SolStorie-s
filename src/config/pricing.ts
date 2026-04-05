@@ -7,7 +7,7 @@ export const PRICING_PACKAGES = [
     pricePerStory: "9.7₪",
     label: "בסיסי",
     freeEdits: 3,
-    freeColoringPages: 3,
+    freeColoringPages: 1,
     badge: "מושלם להתחלה ✨" as string | undefined,
   },
   {
@@ -18,7 +18,7 @@ export const PRICING_PACKAGES = [
     pricePerStory: "6.9₪",
     label: "פופולרי",
     freeEdits: 10,
-    freeColoringPages: 10,
+    freeColoringPages: 3,
     badge: "מומלץ ⭐" as string | undefined,
   },
   {
@@ -29,7 +29,7 @@ export const PRICING_PACKAGES = [
     pricePerStory: "6.6₪",
     label: "משתלם",
     freeEdits: 15,
-    freeColoringPages: 15,
+    freeColoringPages: 5,
     badge: "הכי משתלם 💰" as string | undefined,
   },
 ] as const;
@@ -57,6 +57,7 @@ export const EDUCATOR_PACKAGE = {
   pricePerStory: "8₪",
   label: "חבילת אנשי חינוך וטיפול",
   freeEdits: 25,
+  freeColoringPages: 8,
   badge: "🏫 לאנשי חינוך וטיפול" as string | undefined,
 };
 

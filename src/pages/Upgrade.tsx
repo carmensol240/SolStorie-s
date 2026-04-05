@@ -437,7 +437,7 @@ const Upgrade = () => {
                   <span className="bg-blue-500/30 text-blue-200 text-[10px] font-bold px-2 py-0.5 rounded-full">חבילה מיוחדת</span>
                 </div>
                 <p className="text-xs text-white/70 leading-relaxed">
-                  30 סיפורים + 2 עריכות לסיפור. מושלם לכיתה, לגן או לקליניקה.
+                  30 סיפורים + 2 עריכות לסיפור + 8 דפי צביעה 🎨. מושלם לכיתה, לגן או לקליניקה.
                 </p>
                 <div className="flex items-center justify-between">
                   <div>
@@ -480,11 +480,13 @@ const Upgrade = () => {
                     const success = await addCredits(EDUCATOR_PACKAGE.stories);
                     if (success) {
                       // Add free edits to profile
-                      const { data: profileData } = await supabase.from('profiles').select('free_edits_remaining, free_edits_total').eq('id', user.id).maybeSingle();
+                      const { data: profileData } = await supabase.from('profiles').select('free_edits_remaining, free_edits_total, coloring_credits').eq('id', user.id).maybeSingle();
                       await supabase.from('profiles').update({
                         free_edits_remaining: (profileData?.free_edits_remaining ?? 0) + EDUCATOR_PACKAGE.freeEdits,
                         free_edits_total: (profileData?.free_edits_total ?? 0) + EDUCATOR_PACKAGE.freeEdits,
+                        coloring_credits: (profileData?.coloring_credits ?? 0) + (EDUCATOR_PACKAGE.freeColoringPages ?? 0),
                       }).eq('id', user.id);
+                      window.dispatchEvent(new CustomEvent('coloring-credits-updated'));
                       setPurchasedCredits(EDUCATOR_PACKAGE.stories);
                       setShowEducatorPayPal(false);
                       setShowSuccess(true);
