@@ -108,11 +108,13 @@ const Upgrade = () => {
       const success = await addCredits(pkg.stories);
       if (success) {
         // Add free edits to profile
-        const { data: profileData } = await supabase.from('profiles').select('free_edits_remaining, free_edits_total').eq('id', user.id).maybeSingle();
+        const { data: profileData } = await supabase.from('profiles').select('free_edits_remaining, free_edits_total, coloring_credits').eq('id', user.id).maybeSingle();
         await supabase.from('profiles').update({
           free_edits_remaining: (profileData?.free_edits_remaining ?? 0) + pkg.freeEdits,
           free_edits_total: (profileData?.free_edits_total ?? 0) + pkg.freeEdits,
+          coloring_credits: (profileData?.coloring_credits ?? 0) + (pkg.freeColoringPages ?? 0),
         }).eq('id', user.id);
+        window.dispatchEvent(new CustomEvent('coloring-credits-updated'));
         setPurchasedCredits(pkg.stories);
         setShowSuccess(true);
         trackEvent({ eventType: 'feature_used', metadata: { feature: 'test_purchase_completed', package: pkg.id, stories: pkg.stories } });
