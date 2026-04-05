@@ -6,7 +6,8 @@ export const PRICING_PACKAGES = [
     originalPrice: 39,
     pricePerStory: "9.7₪",
     label: "בסיסי",
-    freeEdits: 0,
+    freeEdits: 3,
+    freeColoringPages: 3,
     badge: "מושלם להתחלה ✨" as string | undefined,
   },
   {
@@ -17,6 +18,7 @@ export const PRICING_PACKAGES = [
     pricePerStory: "6.9₪",
     label: "פופולרי",
     freeEdits: 10,
+    freeColoringPages: 10,
     badge: "מומלץ ⭐" as string | undefined,
   },
   {
@@ -27,6 +29,7 @@ export const PRICING_PACKAGES = [
     pricePerStory: "6.6₪",
     label: "משתלם",
     freeEdits: 15,
+    freeColoringPages: 15,
     badge: "הכי משתלם 💰" as string | undefined,
   },
 ] as const;
@@ -82,5 +85,6 @@ export type PricingPackage = {
   pricePerStory: string;
   label: string;
   freeEdits: number;
+  freeColoringPages: number;
   badge?: string;
 };
