@@ -29,7 +29,7 @@ export const PRICING_PACKAGES = [
     pricePerStory: "6.6₪",
     label: "משתלם",
     freeEdits: 15,
-    freeColoringPages: 15,
+    freeColoringPages: 5,
     badge: "הכי משתלם 💰" as string | undefined,
   },
 ] as const;
