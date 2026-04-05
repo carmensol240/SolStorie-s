@@ -1,30 +1,28 @@
 
 
-## Plan: Update Coloring Pages in Packages
+## Plan: Add Strict Language Separation Rule to Story Prompts
 
-### 1. `src/config/pricing.ts`
+### Problem
+The AI sometimes mixes Hebrew and English words in stories. Need explicit instructions in both prompts to never mix languages.
 
-Update `freeColoringPages` values:
-- **basic (3 stories)**: `freeColoringPages: 3` → `1`
-- **popular (10 stories)**: `freeColoringPages: 10` → `3`
-- **premium (15 stories)**: `freeColoringPages: 15` → `5`
-- **EDUCATOR_PACKAGE**: add `freeColoringPages: 8` (currently missing)
+### Changes — single file: `supabase/functions/generate-story/index.ts`
 
-### 2. `src/pages/Upgrade.tsx`
+**1. Hebrew system prompt (line 11)** — Add to the META-INSTRUCTION at the top:
 
-In the educator PayPal `onSuccess` handler (line ~483), add coloring credits grant — same pattern as the regular packages:
-```ts
-const { data: profileData } = await supabase.from('profiles')
-  .select('free_edits_remaining, free_edits_total, coloring_credits')
-  .eq('id', user.id).maybeSingle();
-// ... existing edits update ...
-// Add: coloring_credits: (profileData?.coloring_credits ?? 0) + EDUCATOR_PACKAGE.freeColoringPages
+Update the first line of `SYSTEM_PROMPT` to add after the existing "OUTPUT MUST BE 100% HEBREW" text:
+```
+אם שפת הסיפור היא עברית — כל הטקסט חייב להיות בעברית בלבד, ללא אף מילה באנגלית או בשפה אחרת. אין לערבב שפות בשום מקרה.
 ```
 
-Also add a coloring pages badge in the educator package UI section (after the existing label), showing "8 דפי צביעה 🎨".
+**2. English system prompt (line ~1202)** — Add a new rule to the English rules section:
+
+Add rule after the existing rules:
+```
+9. ALL text MUST be in English only — no Hebrew words, no words from any other language. Never mix languages under any circumstances.
+```
 
 ### What stays the same
-- All other packages, pricing, and UI
-- Edge function logic
-- Coloring credits hook and display
+- All other prompt content, logic, and formatting
+- User prompt sections
+- All other files
 
