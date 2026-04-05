@@ -18,7 +18,7 @@ export const PRICING_PACKAGES = [
     pricePerStory: "6.9₪",
     label: "פופולרי",
     freeEdits: 10,
-    freeColoringPages: 10,
+    freeColoringPages: 3,
     badge: "מומלץ ⭐" as string | undefined,
   },
   {
