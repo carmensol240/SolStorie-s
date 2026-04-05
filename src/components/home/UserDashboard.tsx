@@ -7,6 +7,7 @@ interface UserDashboardProps {
   storyCount: number;
   credits: number | null;
   shareCoins: number;
+  coloringCredits?: number;
 }
 
 const UserDashboard = ({ displayName, storyCount, credits, shareCoins }: UserDashboardProps) => {
