@@ -382,6 +382,13 @@ const Upgrade = () => {
                   </span>
                 </div>
                 )}
+                {pkg.freeColoringPages > 0 && (
+                <div className="bg-white/10 backdrop-blur-sm border border-white/15 rounded-lg px-2 py-1 mt-1">
+                  <span className="text-[10px] text-orange-300 font-bold">
+                    {pkg.freeColoringPages} דפי צביעה 🎨
+                  </span>
+                </div>
+                )}
               </button>
             ))}
           </div>
