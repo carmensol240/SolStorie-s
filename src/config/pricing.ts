@@ -85,5 +85,6 @@ export type PricingPackage = {
   pricePerStory: string;
   label: string;
   freeEdits: number;
+  freeColoringPages: number;
   badge?: string;
 };
