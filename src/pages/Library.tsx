@@ -86,6 +86,7 @@ const Library = () => {
   const [libraryTab, setLibraryTab] = useState<string>("stories");
   const [coloringCanvasImage, setColoringCanvasImage] = useState<string | null>(null);
   const [coloringCanvasTitle, setColoringCanvasTitle] = useState<string>('');
+  const [coloringCanvasIndex, setColoringCanvasIndex] = useState<number>(-1);
 
   const fullOffline = useFullOfflineStorage();
 
@@ -507,8 +508,10 @@ const Library = () => {
                     onClick={() => {
                       const url = getPublicIllustrationUrl(cp.coloring_image_path);
                       if (url) {
+                        const idx = coloringPages.findIndex(c => c.id === cp.id);
                         setColoringCanvasImage(url);
                         setColoringCanvasTitle(cp.story_topic ? translateTopic(cp.story_topic) : '');
+                        setColoringCanvasIndex(idx);
                       }
                     }}
                   >
@@ -859,9 +862,33 @@ const Library = () => {
       {/* Online Coloring Canvas */}
       <OnlineColoringCanvas
         isOpen={!!coloringCanvasImage}
-        onClose={() => setColoringCanvasImage(null)}
+        onClose={() => { setColoringCanvasImage(null); setColoringCanvasIndex(-1); }}
         backgroundImage={coloringCanvasImage || ''}
         storyTitle={coloringCanvasTitle}
+        onNavigatePrev={() => {
+          if (coloringCanvasIndex > 0) {
+            const prev = coloringPages[coloringCanvasIndex - 1];
+            const url = getPublicIllustrationUrl(prev.coloring_image_path);
+            if (url) {
+              setColoringCanvasImage(url);
+              setColoringCanvasTitle(prev.story_topic ? translateTopic(prev.story_topic) : '');
+              setColoringCanvasIndex(coloringCanvasIndex - 1);
+            }
+          }
+        }}
+        onNavigateNext={() => {
+          if (coloringCanvasIndex < coloringPages.length - 1) {
+            const next = coloringPages[coloringCanvasIndex + 1];
+            const url = getPublicIllustrationUrl(next.coloring_image_path);
+            if (url) {
+              setColoringCanvasImage(url);
+              setColoringCanvasTitle(next.story_topic ? translateTopic(next.story_topic) : '');
+              setColoringCanvasIndex(coloringCanvasIndex + 1);
+            }
+          }
+        }}
+        canGoPrev={coloringCanvasIndex > 0}
+        canGoNext={coloringCanvasIndex < coloringPages.length - 1}
       />
 
       <MobileNavigation />

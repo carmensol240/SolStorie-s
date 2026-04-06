@@ -8,6 +8,10 @@ interface OnlineColoringCanvasProps {
   backgroundImage: string;
   childName?: string;
   storyTitle?: string;
+  onNavigatePrev?: () => void;
+  onNavigateNext?: () => void;
+  canGoPrev?: boolean;
+  canGoNext?: boolean;
 }
 
 const COLORS = [
@@ -192,6 +196,7 @@ function floodFill(
 
 export const OnlineColoringCanvas: React.FC<OnlineColoringCanvasProps> = ({
   isOpen, onClose, backgroundImage, childName, storyTitle,
+  onNavigatePrev, onNavigateNext, canGoPrev, canGoNext,
 }) => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const bgCanvasRef = useRef<HTMLCanvasElement>(null);
@@ -592,6 +597,34 @@ export const OnlineColoringCanvas: React.FC<OnlineColoringCanvasProps> = ({
           ))}
         </div>
       </div>
+
+      {/* Navigation arrows for browsing coloring pages */}
+      {canGoPrev && onNavigatePrev && (
+        <button
+          onClick={onNavigatePrev}
+          className="fixed z-50 flex items-center justify-center rounded-full shadow-lg active:scale-95 transition-transform"
+          style={{
+            right: 8, top: '50%', transform: 'translateY(-50%)',
+            width: 72, height: 72, backgroundColor: '#7C5CBF',
+          }}
+          aria-label="דף קודם"
+        >
+          <span className="text-white text-3xl font-bold leading-none">❮</span>
+        </button>
+      )}
+      {canGoNext && onNavigateNext && (
+        <button
+          onClick={onNavigateNext}
+          className="fixed z-50 flex items-center justify-center rounded-full shadow-lg active:scale-95 transition-transform"
+          style={{
+            left: 8, top: '50%', transform: 'translateY(-50%)',
+            width: 72, height: 72, backgroundColor: '#7C5CBF',
+          }}
+          aria-label="דף הבא"
+        >
+          <span className="text-white text-3xl font-bold leading-none">❯</span>
+        </button>
+      )}
     </div>
   );
 };
