@@ -519,6 +519,7 @@ const Upgrade = () => {
                     console.error('Educator purchase failed:', error);
                     setShowEducatorPayPal(false);
                     setShowFailed(true);
+                    setFailedPurchaseType('educator');
                   }
                 }}
                 onError={() => { setShowEducatorPayPal(false); setShowFailed(true); setFailedPurchaseType('educator'); }}
