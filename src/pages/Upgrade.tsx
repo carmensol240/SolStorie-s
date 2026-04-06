@@ -46,15 +46,24 @@ const Upgrade = () => {
   const [discountPercent, setDiscountPercent] = useState(0);
   const [appliedCouponCode, setAppliedCouponCode] = useState<string | null>(null);
 
-  // Countdown timer — 15 minutes from page load
-  const [countdown, setCountdown] = useState(15 * 60);
+  // Countdown timer — to April 22, 2026 00:00 Israel time (UTC+3)
+  const TARGET_DATE = new Date('2026-04-21T21:00:00Z');
+  const [timeLeft, setTimeLeft] = useState(() => {
+    const diff = TARGET_DATE.getTime() - Date.now();
+    return diff > 0 ? diff : 0;
+  });
   useEffect(() => {
-    if (countdown <= 0) return;
-    const timer = setInterval(() => setCountdown(prev => Math.max(0, prev - 1)), 1000);
+    if (timeLeft <= 0) return;
+    const timer = setInterval(() => {
+      const diff = TARGET_DATE.getTime() - Date.now();
+      setTimeLeft(diff > 0 ? diff : 0);
+    }, 1000);
     return () => clearInterval(timer);
-  }, [countdown]);
-  const countdownMin = Math.floor(countdown / 60);
-  const countdownSec = countdown % 60;
+  }, [timeLeft > 0]);
+  const days = Math.floor(timeLeft / 86400000);
+  const hours = Math.floor((timeLeft % 86400000) / 3600000);
+  const minutes = Math.floor((timeLeft % 3600000) / 60000);
+  const seconds = Math.floor((timeLeft % 60000) / 1000);
   
 
   const title = "אהבתם? 💛";
@@ -326,17 +335,17 @@ const Upgrade = () => {
 
 
           {/* Limited-time offer badge */}
-          {countdown > 0 && (
+          {timeLeft > 0 && (
             <div className="flex justify-center mb-3">
               <div className="inline-flex items-center gap-2 bg-gradient-to-r from-orange-500/90 to-pink-500/90 backdrop-blur-sm text-white text-sm font-bold px-4 py-2 rounded-full shadow-lg animate-pulse">
-                <span>מחיר השקה מיוחד 🔥</span>
+                <span>🌸 מבצע פסח 🌸</span>
                 <span className="bg-white/20 rounded-md px-2 py-0.5 font-mono text-xs tracking-wider">
-                  {String(countdownMin).padStart(2, '0')}:{String(countdownSec).padStart(2, '0')}
+                  {String(days).padStart(2,'0')} : {String(hours).padStart(2,'0')} : {String(minutes).padStart(2,'0')} : {String(seconds).padStart(2,'0')}
                 </span>
               </div>
             </div>
           )}
-          <p className="text-center text-white/70 text-xs mb-3">לזמן מוגבל בלבד ⏰</p>
+          {timeLeft > 0 && <p className="text-center text-white/70 text-xs mb-3">לזמן מוגבל בלבד ⏰</p>}
 
           {/* Package Cards — Glassmorphism */}
           <div className="grid grid-cols-3 gap-3 mb-4 pt-4">
