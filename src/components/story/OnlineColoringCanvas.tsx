@@ -1,5 +1,5 @@
 import React, { useRef, useState, useEffect, useCallback, useMemo } from 'react';
-import { Undo2, Redo2, Download, Printer, ArrowRight, PaintBucket, Eraser, Pencil } from 'lucide-react';
+import { Undo2, Redo2, Download, Printer, ArrowRight, PaintBucket, Eraser, Pencil, Trash2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 
 interface OnlineColoringCanvasProps {
@@ -505,6 +505,9 @@ export const OnlineColoringCanvas: React.FC<OnlineColoringCanvasProps> = ({
           </Button>
           <Button onClick={handlePrint} variant="ghost" size="icon" className="text-white hover:bg-white/20 rounded-xl w-9 h-9">
             <Printer className="w-4 h-4" />
+          </Button>
+          <Button onClick={handleClear} variant="ghost" size="icon" className="text-white hover:bg-white/20 rounded-xl w-9 h-9" title="נקה צביעה">
+            <Trash2 className="w-4 h-4" />
           </Button>
         </div>
       </div>
