@@ -1,54 +1,58 @@
 
 
-## Plan: Update Illustration Style to Realistic Pixar/Disney 3D
+## Plan: Add Navigation Arrows to Online Coloring Canvas
 
-### Problem
-The current style prompts in `style-config.ts` use phrases like "oversized head with small body", "big expressive cartoon eyes", "soft rounded cute features" — which produce chibi/toy-like characters. The user wants realistic Pixar proportions like Inside Out or Encanto.
+### Overview
+Add left/right arrow buttons inside the `OnlineColoringCanvas` so users can navigate between coloring pages without returning to the gallery.
 
-### Changes — single file: `supabase/functions/_shared/style-config.ts`
+### Changes
 
-**1. Update `PIXAR_STYLE` (line 14)**
+#### 1. `src/components/story/OnlineColoringCanvas.tsx` — Add optional navigation props
 
-Replace:
-```
-Pixar 3D CGI animation style, big expressive cartoon eyes with sparkling highlights, soft rounded cute features, oversized head with small body, vibrant saturated colors, cinematic warm lighting with glowing accents, fantasy children's book, high quality render, Disney-Pixar aesthetic. NOT realistic.
-```
-
-With:
-```
-Pixar 3D animation style, realistic proportions, warm lighting, detailed hair and skin texture, cinematic quality, Disney-Pixar movie aesthetic like Inside Out or Encanto. Natural skin with subtle pores and warmth, expressive realistic eyes with detailed irises, detailed flowing hair with individual strands visible, warm cinematic soft lighting, rich colorful environment with depth and detail. NOT chibi, NOT toy-like, NOT bobblehead, NOT oversized head.
+Add new optional props to the component interface:
+```ts
+onNavigatePrev?: () => void;
+onNavigateNext?: () => void;
+canGoPrev?: boolean;
+canGoNext?: boolean;
 ```
 
-**2. Update `PIXAR_STYLE_COMPACT` (line 16)**
+At the bottom of the component JSX (inside the root container, after the canvas area), render two fixed-position circular arrow buttons:
 
-Replace:
+- **Left arrow (next)**: fixed, left side, vertically centered, 72×72px circle, `#7C5CBF` background, white `❯` chevron. Hidden when `canGoNext` is false.
+- **Right arrow (prev)**: fixed, right side, vertically centered, 72×72px circle, `#7C5CBF` background, white `❮` chevron. Hidden when `canGoPrev` is false.
+
+Buttons use `z-50` to sit above the canvas. Inline styles for the exact size/color spec.
+
+#### 2. `src/pages/Library.tsx` — Track current index and pass navigation callbacks
+
+Add state:
+```ts
+const [coloringCanvasIndex, setColoringCanvasIndex] = useState<number>(-1);
 ```
-Pixar 3D CGI animation style, big expressive eyes, soft rounded features, oversized head with small body, vibrant saturated colors, cinematic warm lighting with glowing accents, fantasy children's book background, high quality render, Disney-Pixar animated movie aesthetic. Characters must look like 3D animated movie characters with consistent proportions and features.
+
+Update the "צביעה" button click handler (~line 507) to also store the index of the clicked coloring page.
+
+Add two handler functions:
+- `handleColoringPrev`: if index > 0, set index - 1 and update `coloringCanvasImage` + `coloringCanvasTitle` from `coloringPages[index - 1]`
+- `handleColoringNext`: if index < coloringPages.length - 1, set index + 1 and update similarly
+
+Pass to `OnlineColoringCanvas`:
+```tsx
+<OnlineColoringCanvas
+  isOpen={!!coloringCanvasImage}
+  onClose={() => { setColoringCanvasImage(null); setColoringCanvasIndex(-1); }}
+  backgroundImage={coloringCanvasImage || ''}
+  storyTitle={coloringCanvasTitle}
+  onNavigatePrev={handleColoringPrev}
+  onNavigateNext={handleColoringNext}
+  canGoPrev={coloringCanvasIndex > 0}
+  canGoNext={coloringCanvasIndex < coloringPages.length - 1}
+/>
 ```
-
-With:
-```
-Pixar 3D animation style, realistic proportions, warm lighting, detailed hair and skin texture, cinematic quality, Disney-Pixar movie aesthetic like Inside Out or Encanto. Natural warm skin, expressive realistic eyes, detailed hair, soft cinematic lighting, rich colorful backgrounds. NOT chibi, NOT toy-like, NOT bobblehead.
-```
-
-**3. Update `CAST_DESCRIPTIONS` (lines 84-90)**
-
-Remove "big round expressive cartoon eyes" and "oversized head with small body" phrases from each character description. Replace with realistic Pixar descriptions — e.g., "expressive eyes with detailed irises" and "smooth stylized skin" stays but remove "cartoon".
-
-**4. Update `TOPIC_IMAGE_STYLE_SUFFIX` (line 106)**
-
-Same pattern — replace chibi/toy phrasing with realistic Pixar style.
-
-**5. Update `NEGATIVE_PROMPT` and `NEGATIVE_PROMPT_FULL` (lines 26-28)**
-
-Add to negative prompts: `chibi, toy-like, bobblehead, oversized head, doll-like, figurine`
 
 ### What stays the same
-- All function logic, all other files
-- `FULL_BLEED_INSTRUCTION`, `CHARACTER_CONSISTENCY_PROMPT`, `GENDER_SYMBOL_RESTRICTION`
-- Character URLs, adventure topics, helper functions
-- The `generate-illustrations` edge function code (only the imported style constants change)
-
-### Deploy
-After updating `style-config.ts`, deploy all edge functions that import from it: `generate-illustrations`, `generate-topic-images-batch`, `generate-cover`, `generate-hero-image`, `retry-illustration`.
+- All existing design, colors, layout, cards, buttons, navigation
+- OnlineColoringCanvas drawing tools, colors, undo/redo, clear functionality
+- StoryViewer coloring page opening (no arrows there — only from library gallery)
 
