@@ -25,6 +25,7 @@ import { useChildAvatar } from "@/hooks/use-child-avatar";
 import { useAuth } from "@/hooks/use-auth";
 import { translateTopic } from '@/lib/topic-translations';
 import libraryEmptyState from "@/assets/library-empty-state.png";
+import { OnlineColoringCanvas } from "@/components/story/OnlineColoringCanvas";
 
 interface StoryPage {
   illustration_url: string | null;
@@ -83,6 +84,8 @@ const Library = () => {
   const [offlineStories, setOfflineStories] = useState<OfflineStory[]>([]);
   const [coloringPages, setColoringPages] = useState<ColoringPageRecord[]>([]);
   const [libraryTab, setLibraryTab] = useState<string>("stories");
+  const [coloringCanvasImage, setColoringCanvasImage] = useState<string | null>(null);
+  const [coloringCanvasTitle, setColoringCanvasTitle] = useState<string>('');
 
   const fullOffline = useFullOfflineStorage();
 
@@ -501,7 +504,13 @@ const Library = () => {
                     size="sm"
                     variant="outline"
                     className="flex-1 text-xs h-7 gap-1"
-                    onClick={() => navigate(`/story/${cp.story_slug || cp.story_id}`)}
+                    onClick={() => {
+                      const url = getPublicIllustrationUrl(cp.coloring_image_path);
+                      if (url) {
+                        setColoringCanvasImage(url);
+                        setColoringCanvasTitle(cp.story_topic ? translateTopic(cp.story_topic) : '');
+                      }
+                    }}
                   >
                     <Paintbrush className="w-3 h-3" />
                     צביעה
