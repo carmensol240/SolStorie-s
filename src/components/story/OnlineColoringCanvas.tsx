@@ -603,12 +603,26 @@ export const OnlineColoringCanvas: React.FC<OnlineColoringCanvasProps> = ({
             </div>
           )}
         </div>
+        {/* Skin & earth tones */}
+        <div className="flex items-center justify-center gap-1.5 flex-wrap">
+          {SKIN_EARTH_COLORS.map((c) => (
+            <button key={c}
+              onPointerDown={(e) => { e.stopPropagation(); selectColor(c); }}
+              className={`w-9 h-9 md:w-14 md:h-14 rounded-full border-2 transition-all active:scale-95 touch-manipulation ${
+                color === c && tool !== 'eraser'
+                  ? 'scale-110 shadow-lg border-gray-700'
+                  : 'border-white shadow-md hover:scale-105'
+              }`}
+              style={{ backgroundColor: c }}
+            />
+          ))}
+        </div>
         {/* Colors */}
         <div className="flex items-center justify-center gap-1.5 flex-wrap">
           {COLORS.map((c) => (
             <button key={c}
               onPointerDown={(e) => { e.stopPropagation(); selectColor(c); }}
-              className={`w-9 h-9 rounded-full border-2 transition-all active:scale-95 touch-manipulation ${
+              className={`w-9 h-9 md:w-14 md:h-14 rounded-full border-2 transition-all active:scale-95 touch-manipulation ${
                 color === c && tool !== 'eraser'
                   ? 'scale-110 shadow-lg border-gray-700'
                   : 'border-white shadow-md hover:scale-105'
