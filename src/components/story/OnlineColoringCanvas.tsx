@@ -21,6 +21,11 @@ const COLORS = [
   '#FFFFFF', '#000000',
 ];
 
+const SKIN_EARTH_COLORS = [
+  '#F5C594', '#C68642', '#8D5524', '#6B8F71', '#FFD700',
+  '#C0C0C0', '#D3D3D3', '#8B4513', '#A0522D', '#D2691E',
+];
+
 type Tool = 'fill' | 'brush' | 'eraser';
 
 const BRUSH_SIZES = [4, 8, 16];
@@ -598,12 +603,26 @@ export const OnlineColoringCanvas: React.FC<OnlineColoringCanvasProps> = ({
             </div>
           )}
         </div>
+        {/* Skin & earth tones */}
+        <div className="flex items-center justify-center gap-1.5 flex-wrap">
+          {SKIN_EARTH_COLORS.map((c) => (
+            <button key={c}
+              onPointerDown={(e) => { e.stopPropagation(); selectColor(c); }}
+              className={`w-9 h-9 md:w-14 md:h-14 rounded-full border-2 transition-all active:scale-95 touch-manipulation ${
+                color === c && tool !== 'eraser'
+                  ? 'scale-110 shadow-lg border-gray-700'
+                  : 'border-white shadow-md hover:scale-105'
+              }`}
+              style={{ backgroundColor: c }}
+            />
+          ))}
+        </div>
         {/* Colors */}
         <div className="flex items-center justify-center gap-1.5 flex-wrap">
           {COLORS.map((c) => (
             <button key={c}
               onPointerDown={(e) => { e.stopPropagation(); selectColor(c); }}
-              className={`w-9 h-9 rounded-full border-2 transition-all active:scale-95 touch-manipulation ${
+              className={`w-9 h-9 md:w-14 md:h-14 rounded-full border-2 transition-all active:scale-95 touch-manipulation ${
                 color === c && tool !== 'eraser'
                   ? 'scale-110 shadow-lg border-gray-700'
                   : 'border-white shadow-md hover:scale-105'
