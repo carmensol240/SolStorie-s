@@ -86,6 +86,7 @@ const Library = () => {
   const [libraryTab, setLibraryTab] = useState<string>("stories");
   const [coloringCanvasImage, setColoringCanvasImage] = useState<string | null>(null);
   const [coloringCanvasTitle, setColoringCanvasTitle] = useState<string>('');
+  const [coloringCanvasIndex, setColoringCanvasIndex] = useState<number>(-1);
 
   const fullOffline = useFullOfflineStorage();
 

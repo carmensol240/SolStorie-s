@@ -8,6 +8,10 @@ interface OnlineColoringCanvasProps {
   backgroundImage: string;
   childName?: string;
   storyTitle?: string;
+  onNavigatePrev?: () => void;
+  onNavigateNext?: () => void;
+  canGoPrev?: boolean;
+  canGoNext?: boolean;
 }
 
 const COLORS = [
