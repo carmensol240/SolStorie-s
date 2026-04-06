@@ -21,6 +21,11 @@ const COLORS = [
   '#FFFFFF', '#000000',
 ];
 
+const SKIN_EARTH_COLORS = [
+  '#F5C594', '#C68642', '#8D5524', '#6B8F71', '#FFD700',
+  '#C0C0C0', '#D3D3D3', '#8B4513', '#A0522D', '#D2691E',
+];
+
 type Tool = 'fill' | 'brush' | 'eraser';
 
 const BRUSH_SIZES = [4, 8, 16];
