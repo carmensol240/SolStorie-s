@@ -732,14 +732,12 @@ const Library = () => {
               value="stories"
               className="flex-1 rounded-lg text-sm font-bold gap-1.5 data-[state=active]:bg-white data-[state=active]:text-purple-700 data-[state=active]:shadow-md text-purple-500 px-3 py-1.5"
             >
-              <BookOpen className="w-4 h-4" />
               📚 סיפורים
             </TabsTrigger>
             <TabsTrigger
               value="coloring"
               className="flex-1 rounded-lg text-sm font-bold gap-1.5 data-[state=active]:bg-white data-[state=active]:text-purple-700 data-[state=active]:shadow-md text-purple-500 px-3 py-1.5"
             >
-              <Palette className="w-4 h-4" />
               🎨 דפי צביעה
             </TabsTrigger>
           </TabsList>
