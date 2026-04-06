@@ -1,45 +1,40 @@
 
 
-## Plan: Add Skin/Earth Tone Color Row + Tablet Size Increase
+## Plan: Remember Credentials + Clarify Password Field
 
-### Single file: `src/components/story/OnlineColoringCanvas.tsx`
+### Problem
+1. The "זכור אותי" (Remember Me) checkbox exists in the login form but does nothing — email/password are not saved or restored.
+2. The login password placeholder is just `••••••••` — no hint that it's a password the user created for this app.
 
-### 1. Add new color array (after line 22)
+### Changes — single file: `src/pages/Auth.tsx`
+
+### 1. Save credentials on successful login (line ~330)
+After `signInWithEmail` succeeds (no error), if `rememberMe` is checked, save email to `localStorage`. If unchecked, clear it.
+
 ```ts
-const SKIN_EARTH_COLORS = [
-  '#F5C594', '#C68642', '#8D5524', '#6B8F71', '#FFD700',
-  '#C0C0C0', '#D3D3D3', '#8B4513', '#A0522D', '#D2691E',
-];
+if (!error) {
+  if (rememberMe) {
+    localStorage.setItem('saved_login_email', email);
+  } else {
+    localStorage.removeItem('saved_login_email');
+  }
+}
 ```
 
-### 2. Add new row ABOVE existing colors (before line 602)
-Insert a new `<div>` with the same layout as the existing color row, mapping `SKIN_EARTH_COLORS` with identical button styling — but add `md:w-14 md:h-14` for tablet size:
+Note: We save only the email (not the password) for security. The browser's built-in password manager handles password autofill natively.
 
-```tsx
-{/* Skin & earth tones */}
-<div className="flex items-center justify-center gap-1.5 flex-wrap">
-  {SKIN_EARTH_COLORS.map((c) => (
-    <button key={c}
-      onPointerDown={(e) => { e.stopPropagation(); selectColor(c); }}
-      className={`w-9 h-9 md:w-14 md:h-14 rounded-full border-2 transition-all active:scale-95 touch-manipulation ${
-        color === c && tool !== 'eraser'
-          ? 'scale-110 shadow-lg border-gray-700'
-          : 'border-white shadow-md hover:scale-105'
-      }`}
-      style={{ backgroundColor: c }}
-    />
-  ))}
-</div>
+### 2. Restore saved email on mount (line ~33)
+Initialize email state from localStorage:
+```ts
+const [email, setEmail] = useState(() => localStorage.getItem('saved_login_email') || "");
+const [rememberMe, setRememberMe] = useState(() => !!localStorage.getItem('saved_login_email'));
 ```
 
-### 3. Update existing color circles (line 606)
-Add `md:w-14 md:h-14` to the existing button className:
-```
-w-9 h-9 md:w-14 md:h-14 rounded-full ...
-```
+### 3. Update login password placeholder (line 1190)
+Change from `"••••••••"` to `"הסיסמה שיצרת"` so users understand this is a password they created for the app.
 
 ### What stays the same
-- All existing colors, tools, layout, design
-- Mobile size stays at `w-9 h-9` (36px)
-- No other files changed
+- All design, colors, layout, buttons
+- Signup form unchanged (already has clear hint text)
+- No other files modified
 
