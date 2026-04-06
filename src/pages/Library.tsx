@@ -858,6 +858,14 @@ const Library = () => {
         />
       )}
 
+      {/* Online Coloring Canvas */}
+      <OnlineColoringCanvas
+        isOpen={!!coloringCanvasImage}
+        onClose={() => setColoringCanvasImage(null)}
+        backgroundImage={coloringCanvasImage || ''}
+        storyTitle={coloringCanvasTitle}
+      />
+
       <MobileNavigation />
     </div>
   );
