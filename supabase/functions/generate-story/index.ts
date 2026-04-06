@@ -601,7 +601,7 @@ async function callGatewayWithRetry(opts: GatewayCallOptions): Promise<{ ok: tru
         console.error(`[${label}] ❌ Fetch error after ${maxRetries + 1} attempts:`, err);
         return { ok: false, status: 0, body: String(err), isBillingError: false };
       }
-      const waitMs = Math.min(30_000, 5000 * (2 ** attempt)) + Math.floor(Math.random() * 1000);
+      let waitMs = Math.min(30_000, 5000 * (2 ** attempt)) + Math.floor(Math.random() * 1000);
       console.warn(`[${label}] ⏳ Fetch error (attempt ${attempt + 1}), retrying in ${Math.round(waitMs / 1000)}s...`, err);
       await new Promise(r => setTimeout(r, waitMs));
     }
@@ -1555,10 +1555,7 @@ ${topic.endsWith('-edu') ? `
     // === Helper: clean raw AI content into parseable JSON string ===
     function cleanAiContent(raw: string): string {
       let c = raw.trim();
-      if (c.startsWith("```json")) c = c.slice(7);
-      else if (c.startsWith("```")) c = c.slice(3);
-      if (c.endsWith("```")) c = c.slice(0, -3);
-      c = c.trim();
+      c = c.replace(/```json\n?|\n?```/g, '').trim();
       // Strip Hebrew nikud (vowel marks) — they break JSON parsing and will be added later
       c = c.replace(/[\u0591-\u05C7]/g, '');
       // Remove non-printable control chars
