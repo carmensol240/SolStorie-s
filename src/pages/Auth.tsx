@@ -350,6 +350,12 @@ const Auth = () => {
         description: message,
         variant: "destructive",
       });
+    } else {
+      if (rememberMe) {
+        localStorage.setItem('saved_login_email', email);
+      } else {
+        localStorage.removeItem('saved_login_email');
+      }
     }
     setIsSubmitting(false);
   };
