@@ -1,40 +1,64 @@
 
+## Plan: Fix Coloring Kit Purchase Flow
 
-## Plan: Remember Credentials + Clarify Password Field
+### Problems Found
+1. **Wrong retry behavior**: When coloring/edit kit purchase fails → `setShowFailed(true)` → user clicks "נסו שוב" → `handleRetry` always opens story package PayPal (`setShowPayPal(true)`) instead of re-opening the correct kit PayPal.
+2. **Wrong success modal after coloring kit purchase**: After successful coloring kit purchase, `PurchaseSuccessModal` shows "הסיפורים שלך מוכנים לקסם!" and an edit-kit upsell — irrelevant for a coloring kit purchase.
+3. **"תהלים" typo**: Could not find this word anywhere in the codebase. It may appear in PayPal's own Hebrew UI or a browser element. If you can screenshot where you see it, I can investigate further.
 
-### Problem
-1. The "זכור אותי" (Remember Me) checkbox exists in the login form but does nothing — email/password are not saved or restored.
-2. The login password placeholder is just `••••••••` — no hint that it's a password the user created for this app.
+### Fix — single file: `src/pages/Upgrade.tsx`
 
-### Changes — single file: `src/pages/Auth.tsx`
-
-### 1. Save credentials on successful login (line ~330)
-After `signInWithEmail` succeeds (no error), if `rememberMe` is checked, save email to `localStorage`. If unchecked, clear it.
-
+**1. Track which purchase type failed (line ~44)**
+Add state to remember what was being purchased when failure occurred:
 ```ts
-if (!error) {
-  if (rememberMe) {
-    localStorage.setItem('saved_login_email', email);
-  } else {
-    localStorage.removeItem('saved_login_email');
+const [failedPurchaseType, setFailedPurchaseType] = useState<'stories' | 'coloring' | 'edit' | 'educator' | 'toolkit' | null>(null);
+```
+
+**2. Set `failedPurchaseType` in each error handler**
+- Story package error (line ~205): `setFailedPurchaseType('stories')`
+- Coloring kit error (line ~629): `setFailedPurchaseType('coloring')`
+- Edit kit error (line ~674): `setFailedPurchaseType('edit')`
+- Educator error (line ~505): `setFailedPurchaseType('educator')`
+- Toolkit error (line ~252): `setFailedPurchaseType('toolkit')`
+
+**3. Fix `handleRetry` (line 221)**
+Replace:
+```ts
+const handleRetry = () => { setShowFailed(false); setShowPayPal(true); };
+```
+With:
+```ts
+const handleRetry = () => {
+  setShowFailed(false);
+  switch (failedPurchaseType) {
+    case 'coloring': setShowColoringKitPayPal(true); break;
+    case 'edit': setShowEditKitPayPal(true); break;
+    case 'educator': setShowEducatorPayPal(true); break;
+    case 'toolkit': setShowToolkitPayPal(true); break;
+    default: setShowPayPal(true); break;
   }
-}
+  setFailedPurchaseType(null);
+};
 ```
 
-Note: We save only the email (not the password) for security. The browser's built-in password manager handles password autofill natively.
-
-### 2. Restore saved email on mount (line ~33)
-Initialize email state from localStorage:
+**4. After coloring kit success — show simple toast instead of wrong modal**
+Replace lines 621-623:
 ```ts
-const [email, setEmail] = useState(() => localStorage.getItem('saved_login_email') || "");
-const [rememberMe, setRememberMe] = useState(() => !!localStorage.getItem('saved_login_email'));
+setShowColoringKitPayPal(false);
+setPurchasedCredits(0);
+setShowSuccess(true);
 ```
+With:
+```ts
+setShowColoringKitPayPal(false);
+```
+(Remove `setShowSuccess(true)` — the toast `🎨 נוספו 5 דפי צביעה בהצלחה!` on line 626 is sufficient. No need to show the story-oriented success modal with edit-kit upsell.)
 
-### 3. Update login password placeholder (line 1190)
-Change from `"••••••••"` to `"הסיסמה שיצרת"` so users understand this is a password they created for the app.
+**5. Same fix for edit kit success (lines 667-669)**
+Remove `setShowSuccess(true)` — the toast on line 671 already confirms success.
 
 ### What stays the same
 - All design, colors, layout, buttons
-- Signup form unchanged (already has clear hint text)
-- No other files modified
-
+- Story package purchase flow (unchanged)
+- PurchaseSuccessModal component (unchanged)
+- All other files
