@@ -44,6 +44,7 @@ const Upgrade = () => {
   const [showFailed, setShowFailed] = useState(false);
   const [purchasedCredits, setPurchasedCredits] = useState(0);
   const [discountPercent, setDiscountPercent] = useState(0);
+  const [failedPurchaseType, setFailedPurchaseType] = useState<'stories' | 'coloring' | 'edit' | 'educator' | 'toolkit' | null>(null);
   const [appliedCouponCode, setAppliedCouponCode] = useState<string | null>(null);
 
   // Countdown timer — to April 8, 2026 00:00 Israel time (UTC+3)
@@ -203,6 +204,7 @@ const Upgrade = () => {
       console.error('Purchase failed:', error);
       setShowPayPal(false);
       setShowFailed(true);
+      setFailedPurchaseType('stories');
       trackEvent({ eventType: 'feature_used', metadata: { feature: 'purchase_failed', package: pkg.id } });
     }
   };
@@ -214,11 +216,22 @@ const Upgrade = () => {
     });
     setShowPayPal(false);
     setShowFailed(true);
+    setFailedPurchaseType('stories');
     const pkg = PRICING_PACKAGES.find(p => p.id === selectedPackage);
     trackEvent({ eventType: 'feature_used', metadata: { feature: 'purchase_failed', package: pkg?.id, error: error?.message || 'paypal_error' } });
   };
 
-  const handleRetry = () => { setShowFailed(false); setShowPayPal(true); };
+  const handleRetry = () => {
+    setShowFailed(false);
+    switch (failedPurchaseType) {
+      case 'coloring': setShowColoringKitPayPal(true); break;
+      case 'edit': setShowEditKitPayPal(true); break;
+      case 'educator': setShowEducatorPayPal(true); break;
+      case 'toolkit': setShowToolkitPayPal(true); break;
+      default: setShowPayPal(true); break;
+    }
+    setFailedPurchaseType(null);
+  };
 
   const handleToolkitPurchase = () => {
     if (!user) { navigate("/auth"); return; }
@@ -251,6 +264,7 @@ const Upgrade = () => {
       console.error('Toolkit purchase failed:', error);
       setShowToolkitPayPal(false);
       setShowFailed(true);
+      setFailedPurchaseType('toolkit');
     }
   };
 
@@ -258,6 +272,7 @@ const Upgrade = () => {
     console.error('Toolkit PayPal error:', error);
     setShowToolkitPayPal(false);
     setShowFailed(true);
+    setFailedPurchaseType('toolkit');
   };
 
   const selectedPkg = PRICING_PACKAGES.find(p => p.id === selectedPackage);
@@ -504,9 +519,10 @@ const Upgrade = () => {
                     console.error('Educator purchase failed:', error);
                     setShowEducatorPayPal(false);
                     setShowFailed(true);
+                    setFailedPurchaseType('educator');
                   }
                 }}
-                onError={() => { setShowEducatorPayPal(false); setShowFailed(true); }}
+                onError={() => { setShowEducatorPayPal(false); setShowFailed(true); setFailedPurchaseType('educator'); }}
                 onCancel={() => setShowEducatorPayPal(false)}
               />
               <p className="text-center text-white/60 text-[11px] mt-2">💳 ניתן לשלם גם בכרטיס אשראי ללא חשבון פייפאל</p>
@@ -619,8 +635,6 @@ const Upgrade = () => {
                       .update({ coloring_credits: currentCredits + COLORING_KIT_PACKAGE.pages } as any)
                       .eq('id', user.id);
                     setShowColoringKitPayPal(false);
-                    setPurchasedCredits(0);
-                    setShowSuccess(true);
                     trackEvent({ eventType: 'feature_used', metadata: { feature: 'coloring_kit_purchased', pages: COLORING_KIT_PACKAGE.pages, payment_method: 'paypal' } });
                     window.dispatchEvent(new CustomEvent('coloring-credits-updated'));
                     toast.success(`🎨 נוספו ${COLORING_KIT_PACKAGE.pages} דפי צביעה בהצלחה!`);
@@ -628,9 +642,10 @@ const Upgrade = () => {
                     console.error('Coloring kit purchase failed:', error);
                     setShowColoringKitPayPal(false);
                     setShowFailed(true);
+                    setFailedPurchaseType('coloring');
                   }
                 }}
-                onError={() => { setShowColoringKitPayPal(false); setShowFailed(true); }}
+                onError={() => { setShowColoringKitPayPal(false); setShowFailed(true); setFailedPurchaseType('coloring'); }}
                 onCancel={() => setShowColoringKitPayPal(false)}
               />
               <p className="text-center text-white/60 text-[11px] mt-2">💳 ניתן לשלם גם בכרטיס אשראי ללא חשבון פייפאל</p>
@@ -665,17 +680,16 @@ const Upgrade = () => {
                       free_edits_total: (profileData?.free_edits_total ?? 0) + EDIT_KIT_PACKAGE.edits,
                     }).eq('id', user.id);
                     setShowEditKitPayPal(false);
-                    setPurchasedCredits(0);
-                    setShowSuccess(true);
                     trackEvent({ eventType: 'feature_used', metadata: { feature: 'edit_kit_purchased', edits: EDIT_KIT_PACKAGE.edits, payment_method: 'paypal' } });
                     toast.success(`✏️ נוספו ${EDIT_KIT_PACKAGE.edits} עריכות בהצלחה!`);
                   } catch (error) {
                     console.error('Edit kit purchase failed:', error);
                     setShowEditKitPayPal(false);
                     setShowFailed(true);
+                    setFailedPurchaseType('edit');
                   }
                 }}
-                onError={() => { setShowEditKitPayPal(false); setShowFailed(true); }}
+                onError={() => { setShowEditKitPayPal(false); setShowFailed(true); setFailedPurchaseType('edit'); }}
                 onCancel={() => setShowEditKitPayPal(false)}
               />
               <p className="text-center text-white/60 text-[11px] mt-2">💳 ניתן לשלם גם בכרטיס אשראי ללא חשבון פייפאל</p>
