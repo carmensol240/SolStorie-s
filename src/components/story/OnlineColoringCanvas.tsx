@@ -475,6 +475,15 @@ export const OnlineColoringCanvas: React.FC<OnlineColoringCanvasProps> = ({
     win.document.close();
   }, [getMergedCanvas]);
 
+  const handleClear = useCallback(() => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return;
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    saveSnapshot();
+  }, [saveSnapshot]);
+
   const cursorStyle = useMemo(() => {
     if (tool === 'eraser') return ERASER_CURSOR;
     if (tool === 'brush') return `url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' width='${brushSize + 4}' height='${brushSize + 4}'><circle cx='${(brushSize + 4) / 2}' cy='${(brushSize + 4) / 2}' r='${brushSize / 2}' fill='${encodeURIComponent(color)}' stroke='%23333' stroke-width='1'/></svg>") ${(brushSize + 4) / 2} ${(brushSize + 4) / 2}, crosshair`;
