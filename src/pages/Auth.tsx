@@ -30,7 +30,7 @@ const Auth = () => {
   const { trackEvent } = useAnalytics();
   const { user, loading, signInWithEmail, signUpWithEmail, resetPasswordForEmail } = useAuth();
   
-  const [email, setEmail] = useState("");
+  const [email, setEmail] = useState(() => localStorage.getItem('saved_login_email') || "");
   const [password, setPassword] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
@@ -49,7 +49,7 @@ const Auth = () => {
   
   // Signup terms consent (inline in registration form)
   const [signupTermsAccepted, setSignupTermsAccepted] = useState(false);
-  const [rememberMe, setRememberMe] = useState(false);
+  const [rememberMe, setRememberMe] = useState(() => !!localStorage.getItem('saved_login_email'));
   const [showTermsModal, setShowTermsModal] = useState(false);
   const [showPrivacyModal, setShowPrivacyModal] = useState(false);
   
@@ -1187,7 +1187,7 @@ const Auth = () => {
                     <Input
                       id="login-password"
                       type={showPassword ? "text" : "password"}
-                      placeholder="••••••••"
+                      placeholder="הסיסמה שיצרת"
                       value={password}
                       onChange={(e) => setPassword(e.target.value)}
                       className="pr-11 pl-11 text-left h-12 rounded-xl border-gray-200"
