@@ -1,5 +1,5 @@
 import React, { useRef, useState, useEffect, useCallback, useMemo } from 'react';
-import { Undo2, Redo2, Download, Printer, ArrowRight, PaintBucket, Eraser, Pencil } from 'lucide-react';
+import { Undo2, Redo2, Download, Printer, ArrowRight, PaintBucket, Eraser, Pencil, Trash2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 
 interface OnlineColoringCanvasProps {
@@ -475,6 +475,15 @@ export const OnlineColoringCanvas: React.FC<OnlineColoringCanvasProps> = ({
     win.document.close();
   }, [getMergedCanvas]);
 
+  const handleClear = useCallback(() => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return;
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    saveSnapshot();
+  }, [saveSnapshot]);
+
   const cursorStyle = useMemo(() => {
     if (tool === 'eraser') return ERASER_CURSOR;
     if (tool === 'brush') return `url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' width='${brushSize + 4}' height='${brushSize + 4}'><circle cx='${(brushSize + 4) / 2}' cy='${(brushSize + 4) / 2}' r='${brushSize / 2}' fill='${encodeURIComponent(color)}' stroke='%23333' stroke-width='1'/></svg>") ${(brushSize + 4) / 2} ${(brushSize + 4) / 2}, crosshair`;
@@ -505,6 +514,9 @@ export const OnlineColoringCanvas: React.FC<OnlineColoringCanvasProps> = ({
           </Button>
           <Button onClick={handlePrint} variant="ghost" size="icon" className="text-white hover:bg-white/20 rounded-xl w-9 h-9">
             <Printer className="w-4 h-4" />
+          </Button>
+          <Button onClick={handleClear} variant="ghost" size="icon" className="text-white hover:bg-white/20 rounded-xl w-9 h-9" title="נקה צביעה">
+            <Trash2 className="w-4 h-4" />
           </Button>
         </div>
       </div>
