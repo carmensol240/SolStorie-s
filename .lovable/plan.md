@@ -1,28 +1,36 @@
 
 
-## Plan: Add Strict Language Separation Rule to Story Prompts
+## Plan: Add "Clear" Button to Online Coloring Canvas
 
-### Problem
-The AI sometimes mixes Hebrew and English words in stories. Need explicit instructions in both prompts to never mix languages.
+### Single file: `src/components/story/OnlineColoringCanvas.tsx`
 
-### Changes — single file: `supabase/functions/generate-story/index.ts`
+### 1. Add `Trash2` to imports (line 2)
+Add `Trash2` to the existing lucide-react import.
 
-**1. Hebrew system prompt (line 11)** — Add to the META-INSTRUCTION at the top:
-
-Update the first line of `SYSTEM_PROMPT` to add after the existing "OUTPUT MUST BE 100% HEBREW" text:
+### 2. Add `handleClear` function (after `handlePrint`, ~line 476)
+Clear only the drawing canvas (user strokes), not the background canvas (the coloring page outline):
+```ts
+const handleClear = useCallback(() => {
+  const canvas = canvasRef.current;
+  if (!canvas) return;
+  const ctx = canvas.getContext('2d');
+  if (!ctx) return;
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  saveSnapshot();
+}, [saveSnapshot]);
 ```
-אם שפת הסיפור היא עברית — כל הטקסט חייב להיות בעברית בלבד, ללא אף מילה באנגלית או בשפה אחרת. אין לערבב שפות בשום מקרה.
-```
 
-**2. English system prompt (line ~1202)** — Add a new rule to the English rules section:
-
-Add rule after the existing rules:
-```
-9. ALL text MUST be in English only — no Hebrew words, no words from any other language. Never mix languages under any circumstances.
+### 3. Add button in top bar (line ~508, after the Print button)
+Add a "נקה 🗑️" button with `Trash2` icon, styled consistently with the existing top bar buttons:
+```tsx
+<Button onClick={handleClear} variant="ghost" size="icon" 
+  className="text-white hover:bg-white/20 rounded-xl w-9 h-9">
+  <Trash2 className="w-4 h-4" />
+</Button>
 ```
 
 ### What stays the same
-- All other prompt content, logic, and formatting
-- User prompt sections
-- All other files
+- Background canvas (outline image) untouched
+- No credit consumption
+- All other tools, colors, undo/redo logic
 
