@@ -523,6 +523,25 @@ export const OnlineColoringCanvas: React.FC<OnlineColoringCanvasProps> = ({
           <Button onClick={handleClear} variant="ghost" size="icon" className="text-white hover:bg-white/20 rounded-xl w-9 h-9" title="נקה צביעה">
             <Trash2 className="w-4 h-4" />
           </Button>
+          {(canGoPrev || canGoNext) && (
+            <div className="hidden md:flex items-center">
+              <div className="w-px h-5 bg-white/30 mx-0.5" />
+              {canGoPrev && onNavigatePrev && (
+                <Button onClick={onNavigatePrev} variant="ghost" size="icon"
+                  className="text-white hover:bg-white/20 rounded-xl w-9 h-9"
+                  aria-label="דף קודם">
+                  <span className="text-lg font-bold">❮</span>
+                </Button>
+              )}
+              {canGoNext && onNavigateNext && (
+                <Button onClick={onNavigateNext} variant="ghost" size="icon"
+                  className="text-white hover:bg-white/20 rounded-xl w-9 h-9"
+                  aria-label="דף הבא">
+                  <span className="text-lg font-bold">❯</span>
+                </Button>
+              )}
+            </div>
+          )}
         </div>
       </div>
 
@@ -598,33 +617,6 @@ export const OnlineColoringCanvas: React.FC<OnlineColoringCanvasProps> = ({
         </div>
       </div>
 
-      {/* Navigation arrows for browsing coloring pages */}
-      {canGoPrev && onNavigatePrev && (
-        <button
-          onClick={onNavigatePrev}
-          className="fixed z-50 flex items-center justify-center rounded-full shadow-lg active:scale-95 transition-transform"
-          style={{
-            right: 8, top: '50%', transform: 'translateY(-50%)',
-            width: 72, height: 72, backgroundColor: '#7C5CBF',
-          }}
-          aria-label="דף קודם"
-        >
-          <span className="text-white text-3xl font-bold leading-none">❮</span>
-        </button>
-      )}
-      {canGoNext && onNavigateNext && (
-        <button
-          onClick={onNavigateNext}
-          className="fixed z-50 flex items-center justify-center rounded-full shadow-lg active:scale-95 transition-transform"
-          style={{
-            left: 8, top: '50%', transform: 'translateY(-50%)',
-            width: 72, height: 72, backgroundColor: '#7C5CBF',
-          }}
-          aria-label="דף הבא"
-        >
-          <span className="text-white text-3xl font-bold leading-none">❯</span>
-        </button>
-      )}
     </div>
   );
 };
