@@ -399,6 +399,10 @@ const AdminDashboard = () => {
     return days;
   }, [profiles]);
 
+  if (isAdmin === null) {
+    return <div className="flex items-center justify-center min-h-screen">טוען...</div>;
+  }
+
   const chartConfig = { count: { label: "נרשמו", color: "hsl(var(--primary))" } };
   const formatDate = (d: string | null) => d ? format(new Date(d), "dd/MM/yyyy HH:mm") : "—";
 
