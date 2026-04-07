@@ -318,10 +318,6 @@ const AdminDashboard = () => {
     return () => clearInterval(interval);
   }, [isAdmin, fetchAllData]);
 
-  if (isAdmin === null) {
-    return <div className="flex items-center justify-center min-h-screen">טוען...</div>;
-  }
-
   const todayStart = startOfDay(new Date());
   const weekAgo = subDays(new Date(), 7);
   const thirtyMinAgo = new Date(Date.now() - 30 * 60 * 1000);
