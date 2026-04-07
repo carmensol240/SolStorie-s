@@ -480,31 +480,16 @@ const Upgrade = () => {
               {!userDetailsValid && <p className="text-red-400 text-xs text-center mb-2">נא להזין טלפון תקין להמשך</p>}
               {userDetailsValid && <PayPalButton
                 amount={EDUCATOR_PACKAGE.price}
-                onSuccess={async () => {
+                onSuccess={async (orderId: string) => {
                   if (!user) return;
                   try {
-                    await supabase.from('purchases').insert({
-                      user_id: user.id,
-                      package_name: EDUCATOR_PACKAGE.id,
-                      credits_purchased: EDUCATOR_PACKAGE.stories,
-                      amount_ils: EDUCATOR_PACKAGE.price,
-                      status: 'completed',
-                    });
-                    const success = await addCredits(EDUCATOR_PACKAGE.stories);
-                    if (success) {
-                      // Add free edits to profile
-                      const { data: profileData } = await supabase.from('profiles').select('free_edits_remaining, free_edits_total, coloring_credits').eq('id', user.id).maybeSingle();
-                      await supabase.from('profiles').update({
-                        free_edits_remaining: (profileData?.free_edits_remaining ?? 0) + EDUCATOR_PACKAGE.freeEdits,
-                        free_edits_total: (profileData?.free_edits_total ?? 0) + EDUCATOR_PACKAGE.freeEdits,
-                        coloring_credits: (profileData?.coloring_credits ?? 0) + (EDUCATOR_PACKAGE.freeColoringPages ?? 0),
-                      }).eq('id', user.id);
-                      window.dispatchEvent(new CustomEvent('coloring-credits-updated'));
-                      setPurchasedCredits(EDUCATOR_PACKAGE.stories);
-                      setShowEducatorPayPal(false);
-                      setShowSuccess(true);
-                      await userDetailsRef.current?.saveToProfile();
-                    }
+                    await verifyPurchase(orderId, EDUCATOR_PACKAGE.id, EDUCATOR_PACKAGE.price);
+                    refetchCredits();
+                    window.dispatchEvent(new CustomEvent('coloring-credits-updated'));
+                    setPurchasedCredits(EDUCATOR_PACKAGE.stories);
+                    setShowEducatorPayPal(false);
+                    setShowSuccess(true);
+                    await userDetailsRef.current?.saveToProfile();
                   } catch (error) {
                     console.error('Educator purchase failed:', error);
                     setShowEducatorPayPal(false);
