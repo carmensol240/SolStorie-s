@@ -158,54 +158,51 @@ const Upgrade = () => {
     setShowPayPal(true);
   };
 
-  const handlePayPalSuccess = async () => {
+  const verifyPurchase = async (orderId: string, packageId: string, amount: number, couponCode?: string | null) => {
+    if (!user) throw new Error('User not authenticated');
+    console.log(`[VERIFY] Calling verify-purchase: order=${orderId}, pkg=${packageId}, amount=${amount}`);
+    const { data, error } = await supabase.functions.invoke('verify-purchase', {
+      body: { orderId, packageId, amount, userId: user.id, couponCode: couponCode || undefined },
+    });
+    if (error) throw error;
+    if (!data?.success) throw new Error(data?.error || 'Verification failed');
+    console.log('[VERIFY] ✅ Purchase verified:', data);
+    return data;
+  };
+
+  const handlePayPalSuccess = async (orderId: string) => {
     const pkg = PRICING_PACKAGES.find(p => p.id === selectedPackage);
-    if (!pkg || !user) return;
+    if (!pkg || !user) {
+      console.error('[PURCHASE] user or pkg is null at callback time', { user: !!user, pkg: !!pkg });
+      setShowFailed(true);
+      setFailedPurchaseType('stories');
+      return;
+    }
     try {
       const finalPrice = discountPercent > 0 ? Math.round(pkg.price * (1 - discountPercent / 100)) : pkg.price;
-      const { error: purchaseError } = await supabase
-        .from('purchases')
-        .insert({
-          user_id: user.id,
-          package_name: appliedCouponCode ? `${pkg.id}_coupon_${appliedCouponCode}` : pkg.id,
-          credits_purchased: pkg.stories,
-          amount_ils: finalPrice,
-          status: 'completed',
-        });
-      if (purchaseError) throw purchaseError;
-      const success = await addCredits(pkg.stories);
-      if (success) {
-        // Add free edits and coloring credits to profile
-        const { data: profileData } = await supabase.from('profiles').select('free_edits_remaining, free_edits_total, coloring_credits').eq('id', user.id).maybeSingle();
-        await supabase.from('profiles').update({
-          free_edits_remaining: (profileData?.free_edits_remaining ?? 0) + pkg.freeEdits,
-          free_edits_total: (profileData?.free_edits_total ?? 0) + pkg.freeEdits,
-          coloring_credits: (profileData?.coloring_credits ?? 0) + (pkg.freeColoringPages ?? 0),
-        }).eq('id', user.id);
-        window.dispatchEvent(new CustomEvent('coloring-credits-updated'));
-        setPurchasedCredits(pkg.stories);
-        setShowPayPal(false);
-        setShowSuccess(true);
-        await userDetailsRef.current?.saveToProfile();
-        trackEvent({ eventType: 'feature_used', metadata: { feature: 'purchase_completed', package: pkg.id, stories: pkg.stories, payment_method: 'paypal' } });
-        if (user.email) {
-          supabase.functions.invoke('send-purchase-confirmation', {
-            body: {
-              email: user.email,
-              packageName: pkg.label,
-              credits: pkg.stories,
-              amount: finalPrice,
-              transactionDate: new Date().toLocaleDateString('he-IL'),
-            }
-          }).then(({ error }) => {
-            if (error) console.error('Failed to send confirmation email:', error);
-          });
-        }
-      } else {
-        throw new Error('Failed to add credits');
+      await verifyPurchase(orderId, pkg.id, finalPrice, appliedCouponCode);
+      
+      refetchCredits();
+      window.dispatchEvent(new CustomEvent('coloring-credits-updated'));
+      setPurchasedCredits(pkg.stories);
+      setShowPayPal(false);
+      setShowSuccess(true);
+      await userDetailsRef.current?.saveToProfile();
+      trackEvent({ eventType: 'feature_used', metadata: { feature: 'purchase_completed', package: pkg.id, stories: pkg.stories, payment_method: 'paypal' } });
+      
+      if (user.email) {
+        supabase.functions.invoke('send-purchase-confirmation', {
+          body: {
+            email: user.email,
+            packageName: pkg.label,
+            credits: pkg.stories,
+            amount: finalPrice,
+            transactionDate: new Date().toLocaleDateString('he-IL'),
+          }
+        }).catch(err => console.error('Failed to send confirmation email:', err));
       }
     } catch (error) {
-      console.error('Purchase failed:', error);
+      console.error('Purchase verification failed:', error);
       setShowPayPal(false);
       setShowFailed(true);
       setFailedPurchaseType('stories');
