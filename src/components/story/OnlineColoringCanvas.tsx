@@ -587,6 +587,9 @@ export const OnlineColoringCanvas: React.FC<OnlineColoringCanvasProps> = ({
           <Button onClick={handleClear} variant="ghost" size="icon" className="text-white hover:bg-white/20 rounded-xl w-9 h-9" title="נקה צביעה">
             <Trash2 className="w-4 h-4" />
           </Button>
+          <Button onClick={toggleLandscape} variant="ghost" size="icon" className="text-white hover:bg-white/20 rounded-xl w-9 h-9" title={isLandscape ? 'מצב עומד' : 'מצב רוחב'}>
+            {isLandscape ? <Smartphone className="w-4 h-4" /> : <ScreenShare className="w-4 h-4" />}
+          </Button>
           {(canGoPrev || canGoNext) && (
             <div className="hidden md:flex items-center">
               <div className="w-px h-5 bg-white/30 mx-0.5" />
