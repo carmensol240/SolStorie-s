@@ -491,6 +491,7 @@ const Upgrade = () => {
               <p className="text-sm font-bold text-white text-center mb-3">
                 {EDUCATOR_PACKAGE.label} — {EDUCATOR_PACKAGE.stories} סיפורים תמורת ₪{EDUCATOR_PACKAGE.price}
               </p>
+              <UserDetailsForm ref={userDetailsRef} />
               <PayPalButton
                 amount={EDUCATOR_PACKAGE.price}
                 onSuccess={async () => {
@@ -516,6 +517,7 @@ const Upgrade = () => {
                       setPurchasedCredits(EDUCATOR_PACKAGE.stories);
                       setShowEducatorPayPal(false);
                       setShowSuccess(true);
+                      await userDetailsRef.current?.saveToProfile();
                     }
                   } catch (error) {
                     console.error('Educator purchase failed:', error);
@@ -612,8 +614,8 @@ const Upgrade = () => {
               <p className="text-sm font-bold text-white text-center mb-3">
                 {COLORING_KIT_PACKAGE.label} — {COLORING_KIT_PACKAGE.pages} דפי צביעה תמורת ₪{COLORING_KIT_PACKAGE.price}
               </p>
+              <UserDetailsForm ref={userDetailsRef} />
               <PayPalButton
-                amount={COLORING_KIT_PACKAGE.price}
                 onSuccess={async () => {
                   if (!user) return;
                   try {
