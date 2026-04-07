@@ -1,25 +1,44 @@
 
 
-## Plan: Update PayPal to Live Credentials
+## Plan: Real-Time Purchase Alerts + Recycle Bin for Admin Dashboard
 
-### Current State
-- `PAYPAL_SANDBOX = false` in `src/config/pricing.ts` — **correct**, already set to Live mode
-- Frontend uses `PAYPAL_LIVE_CLIENT_ID` (`AffM7iJE3...`) — this is the **Live** client ID, already correct
-- The `verify-purchase` edge function reads `PAYPAL_CLIENT_ID` and `PAYPAL_CLIENT_SECRET` from **secrets** and auto-detects sandbox vs live by checking if the ID starts with `"Ac9EH"`
+### Single file changed: `src/pages/AdminDashboard.tsx`
 
-### The Issue
-The secrets `PAYPAL_CLIENT_ID` and `PAYPAL_CLIENT_SECRET` stored in the backend may still contain **Sandbox** credentials. If `PAYPAL_CLIENT_ID` starts with `Ac9EH`, the edge function routes to `api-m.sandbox.paypal.com` instead of `api-m.paypal.com`, causing verification failures for real payments.
+### 1. Real-Time Purchase Notification
 
-### Fix Required
+- Subscribe to Supabase Realtime on `purchases` table (`INSERT` events) when dashboard mounts
+- On new purchase: play a short notification sound (using `new Audio()` with a base64-encoded chime), show a prominent `toast.success` via sonner with user name, package type, and amount
+- Auto-refresh data immediately on new purchase (call `fetchAllData`)
+- Requires enabling realtime on purchases table via migration: `ALTER PUBLICATION supabase_realtime ADD TABLE public.purchases;`
 
-**1. Update `PAYPAL_CLIENT_ID` secret** — set it to your **Live** Client ID: `AffM7iJE3sqAisjBHuiwL0YYi_W5YT9VDKbMB-wM5XBT7HdwoNjyYtfzUWY3dcK6MVkAr3GSjoEvuVDH`
+### 2. Recycle Bin (localStorage-based soft delete)
 
-**2. Update `PAYPAL_CLIENT_SECRET` secret** — set it to your **Live** Secret (from PayPal Developer Dashboard → Live → API Credentials)
+- Add state `trashedItems: Record<string, Set<string>>` keyed by tab name, persisted in localStorage
+- Add a 🗑️ button on each row in users/stories/purchases/errors tabs
+- Clicking moves the item ID to the trashed set for that tab — item disappears from main view
+- Add a new tab "🗑️ סל מחזור" showing all trashed items grouped by source tab
+- Each trashed item shows a "שחזור" (restore) button and "מחיקה סופית" button
+- "Restore" removes from trash set → item reappears in its tab
+- "Permanent delete" removes from trash set permanently (item reappears in main tab on next refresh — true DB deletion is not implemented to avoid accidental data loss; this just clears from the recycle bin view)
 
-I'll use the `update_secret` tool to prompt you to enter both values.
+### Technical details
 
-### No Code Changes Needed
-- `PAYPAL_SANDBOX` is already `false`
-- Frontend already uses the Live client ID
-- Edge function auto-detects live vs sandbox from the client ID prefix
+**Realtime subscription:**
+```ts
+const channel = supabase
+  .channel('admin-purchases')
+  .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'purchases' }, (payload) => {
+    // Play sound, show toast, refresh data
+  })
+  .subscribe();
+```
+
+**Migration needed:** Enable realtime for purchases table
+
+**Sound:** Short base64-encoded notification chime played via Web Audio API
+
+### What stays the same
+- All existing tabs, design, layout, colors, filters
+- All data fetching logic (just adds realtime trigger)
+- No other files changed
 
