@@ -376,15 +376,10 @@ export const OnlineColoringCanvas: React.FC<OnlineColoringCanvasProps> = ({
     const currentBrushSize = brushSizeRef.current;
 
     if (currentTool === 'eraser') {
-      setIsDrawing(true);
-      lastPos.current = pos;
-      const ctx = canvasRef.current?.getContext('2d');
-      if (ctx) {
-        ctx.globalCompositeOperation = 'destination-out';
-        ctx.beginPath();
-        ctx.arc(pos.x, pos.y, ERASER_SIZE, 0, Math.PI * 2);
-        ctx.fill();
-      }
+      const drawCtx = canvasRef.current?.getContext('2d');
+      if (!drawCtx || !canvasRef.current) return;
+      floodErase(drawCtx, pos.x, pos.y, canvasRef.current.width, canvasRef.current.height);
+      saveSnapshot();
       return;
     }
 
@@ -414,19 +409,14 @@ export const OnlineColoringCanvas: React.FC<OnlineColoringCanvasProps> = ({
     e.preventDefault();
     if (!isDrawing || !canvasRef.current || !lastPos.current) return;
     const currentTool = toolRef.current;
-    if (currentTool !== 'brush' && currentTool !== 'eraser') return;
+    if (currentTool !== 'brush') return;
     const ctx = canvasRef.current.getContext('2d');
     if (!ctx) return;
     const currentPos = getCanvasPos(e);
 
-    if (currentTool === 'eraser') {
-      ctx.globalCompositeOperation = 'destination-out';
-      ctx.lineWidth = ERASER_SIZE * 2;
-    } else {
-      ctx.globalCompositeOperation = 'source-over';
-      ctx.strokeStyle = colorRef.current;
-      ctx.lineWidth = brushSizeRef.current;
-    }
+    ctx.globalCompositeOperation = 'source-over';
+    ctx.strokeStyle = colorRef.current;
+    ctx.lineWidth = brushSizeRef.current;
     ctx.lineCap = 'round';
     ctx.beginPath();
     ctx.moveTo(lastPos.current.x, lastPos.current.y);
