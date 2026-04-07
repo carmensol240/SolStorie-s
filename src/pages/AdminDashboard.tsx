@@ -433,13 +433,13 @@ const AdminDashboard = () => {
 
   // Filtered users
   const filteredUsers = useMemo(() => {
-    let items = filterByReviewed(profiles, "users");
+    let items = filterByReviewed(profiles, "users").filter(p => !isTrashed("users", p.id));
     if (usersSearch) {
       const q = usersSearch.toLowerCase();
       items = items.filter(p => (p.display_name || "").toLowerCase().includes(q) || (p.email || "").toLowerCase().includes(q));
     }
     return items;
-  }, [profiles, usersSearch, reviewedCutoffs, showReviewed]);
+  }, [profiles, usersSearch, reviewedCutoffs, showReviewed, trashedItems]);
 
   // Filtered stories
   const filteredStories = useMemo(() => {
