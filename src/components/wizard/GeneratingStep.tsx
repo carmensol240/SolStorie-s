@@ -269,12 +269,23 @@ const GeneratingStep = ({ formData, onComplete }: GeneratingStepProps) => {
         if (apiError.message?.includes("429")) {
           throw new Error("יותר מדי בקשות, ננסה שוב בעוד רגע...");
         }
+        // Billing/quota error — don't retry, show immediately
+        if (apiError.message?.includes("שגיאת מערכת זמנית") || apiError.message?.includes("503")) {
+          setError("שגיאת מערכת זמנית. נסו שוב בעוד מספר דקות.");
+          return;
+        }
         throw apiError;
       }
 
       if (!data?.storyId) {
         console.error("[GeneratingStep] No storyId in response:", data);
-        if (data?.error) throw new Error(data.error);
+        if (data?.error) {
+          if (data.error.includes("שגיאת מערכת זמנית")) {
+            setError(data.error);
+            return;
+          }
+          throw new Error(data.error);
+        }
         throw new Error("לא התקבל מזהה סיפור מהשרת");
       }
 
@@ -313,6 +324,12 @@ const GeneratingStep = ({ formData, onComplete }: GeneratingStepProps) => {
         }
       }
       
+      // Don't auto-retry billing/system errors
+      if (errorMessage.includes("שגיאת מערכת זמנית")) {
+        setError(errorMessage);
+        return;
+      }
+
       if (retryCountRef.current < MAX_RETRIES) {
         retryCountRef.current += 1;
         const delay = Math.min(1000 * Math.pow(2, retryCountRef.current + 1), 10000);
