@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button';
 
 interface PayPalButtonProps {
   amount: number;
-  onSuccess: () => void;
+  onSuccess: (orderId: string) => void;
   onError: (error: any) => void;
   onCancel?: () => void;
 }
@@ -109,10 +109,12 @@ const PayPalButton = ({ amount, onSuccess, onError, onCancel }: PayPalButtonProp
             }
           });
         },
-        onApprove: async (_data: any, actions: any) => {
+        onApprove: async (data: any, actions: any) => {
           try {
             await actions.order.capture();
-            callbacksRef.current.onSuccess();
+            const orderId = data.orderID;
+            console.log('[PayPal] Payment captured, orderId:', orderId);
+            callbacksRef.current.onSuccess(orderId);
           } catch (err) {
             console.error('Payment capture error:', err);
             callbacksRef.current.onError(err);
