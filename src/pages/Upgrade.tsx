@@ -627,49 +627,18 @@ const Upgrade = () => {
               {!userDetailsValid && <p className="text-red-400 text-xs text-center mb-2">נא להזין טלפון תקין להמשך</p>}
               {userDetailsValid && <PayPalButton
                 amount={EDIT_KIT_PACKAGE.price}
-                onSuccess={async () => {
+                onSuccess={async (orderId: string) => {
                   if (!user) return;
                   try {
-                    console.log('✏️ [EDIT PURCHASE] Starting purchase flow for user:', user.id);
-
-                    const { error: purchaseError } = await supabase.from('purchases').insert({
-                      user_id: user.id,
-                      package_name: EDIT_KIT_PACKAGE.id,
-                      credits_purchased: 0,
-                      amount_ils: EDIT_KIT_PACKAGE.price,
-                      status: 'completed',
-                    });
-                    console.log('✏️ [EDIT PURCHASE] Insert result:', purchaseError ? `FAILED: ${purchaseError.message}` : 'SUCCESS');
-                    if (purchaseError) throw purchaseError;
-
-                    const { data: profile, error: selectError } = await supabase
-                      .from('profiles')
-                      .select('editing_credits')
-                      .eq('id', user.id)
-                      .maybeSingle();
-                    console.log('✏️ [EDIT PURCHASE] Current editing_credits:', (profile as any)?.editing_credits, 'Select error:', selectError?.message ?? 'none');
-                    if (selectError) throw selectError;
-
-                    const currentCredits = (profile as any)?.editing_credits ?? 0;
-                    const newCredits = currentCredits + EDIT_KIT_PACKAGE.edits;
-                    console.log('✏️ [EDIT PURCHASE] Updating credits:', currentCredits, '->', newCredits);
-
-                    const { error: updateError } = await supabase
-                      .from('profiles')
-                      .update({ editing_credits: newCredits } as any)
-                      .eq('id', user.id);
-                    console.log('✏️ [EDIT PURCHASE] Update result:', updateError ? `FAILED: ${updateError.message}` : 'SUCCESS');
-                    if (updateError) throw updateError;
-
+                    await verifyPurchase(orderId, EDIT_KIT_PACKAGE.id, EDIT_KIT_PACKAGE.price);
                     setShowEditKitPayPal(false);
                     trackEvent({ eventType: 'feature_used', metadata: { feature: 'edit_kit_purchased', edits: EDIT_KIT_PACKAGE.edits, payment_method: 'paypal' } });
                     window.dispatchEvent(new Event('editing-credits-updated'));
                     toast.success('✏️ נוספו קרדיטי עריכה!', {
-                      description: `נוספו ${EDIT_KIT_PACKAGE.edits} עריכות לחשבונך. יתרה חדשה: ${newCredits}`,
+                      description: `נוספו ${EDIT_KIT_PACKAGE.edits} עריכות לחשבונך`,
                       duration: 6000,
                     });
                     await userDetailsRef.current?.saveToProfile();
-                    console.log('✏️ [EDIT PURCHASE] ✅ Complete! New balance:', newCredits);
                   } catch (error) {
                     console.error('✏️ [EDIT PURCHASE] ❌ FAILED:', error);
                     setShowEditKitPayPal(false);
