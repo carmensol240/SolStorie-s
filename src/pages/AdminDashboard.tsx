@@ -572,6 +572,14 @@ const AdminDashboard = () => {
             <TabsTrigger value="covers" className="text-xs md:text-sm">🖼️ כריכות</TabsTrigger>
             <TabsTrigger value="coupons" className="text-xs md:text-sm">🎟️ קופונים</TabsTrigger>
             <TabsTrigger value="feedback" className="text-xs md:text-sm">💬 משובים</TabsTrigger>
+            <TabsTrigger value="trash" className="text-xs md:text-sm flex items-center gap-1">
+              🗑️ סל מחזור
+              {Object.values(trashedItems).reduce((sum, arr) => sum + arr.length, 0) > 0 && (
+                <Badge className="bg-muted text-muted-foreground text-[10px] px-1.5 py-0">
+                  {Object.values(trashedItems).reduce((sum, arr) => sum + arr.length, 0)}
+                </Badge>
+              )}
+            </TabsTrigger>
           </TabsList>
 
           {/* ===== USERS TAB ===== */}
