@@ -616,6 +616,7 @@ const Upgrade = () => {
                 onSuccess={async () => {
                   if (!user) return;
                   try {
+                    console.log('🎨 [COLORING PURCHASE] Starting purchase flow for user:', user.id);
                     const { error: purchaseError } = await supabase.from('purchases').insert({
                       user_id: user.id,
                       package_name: COLORING_KIT_PACKAGE.id,
@@ -623,26 +624,34 @@ const Upgrade = () => {
                       amount_ils: COLORING_KIT_PACKAGE.price,
                       status: 'completed',
                     });
+                    console.log('🎨 [COLORING PURCHASE] Insert result:', purchaseError ? `FAILED: ${purchaseError.message}` : 'SUCCESS');
                     if (purchaseError) throw purchaseError;
-                    // Increment coloring_credits on profile
                     const { data: profile, error: selectError } = await supabase
                       .from('profiles')
                       .select('coloring_credits')
                       .eq('id', user.id)
                       .maybeSingle();
+                    console.log('🎨 [COLORING PURCHASE] Current credits:', profile?.coloring_credits, 'Select error:', selectError?.message ?? 'none');
                     if (selectError) throw selectError;
                     const currentCredits = profile?.coloring_credits ?? 0;
+                    const newCredits = currentCredits + COLORING_KIT_PACKAGE.pages;
+                    console.log('🎨 [COLORING PURCHASE] Updating credits:', currentCredits, '->', newCredits);
                     const { error: updateError } = await supabase
                       .from('profiles')
-                      .update({ coloring_credits: currentCredits + COLORING_KIT_PACKAGE.pages })
+                      .update({ coloring_credits: newCredits })
                       .eq('id', user.id);
+                    console.log('🎨 [COLORING PURCHASE] Update result:', updateError ? `FAILED: ${updateError.message}` : 'SUCCESS');
                     if (updateError) throw updateError;
                     setShowColoringKitPayPal(false);
                     trackEvent({ eventType: 'feature_used', metadata: { feature: 'coloring_kit_purchased', pages: COLORING_KIT_PACKAGE.pages, payment_method: 'paypal' } });
                     window.dispatchEvent(new CustomEvent('coloring-credits-updated'));
-                    toast.success(`🎨 נוספו ${COLORING_KIT_PACKAGE.pages} דפי צביעה בהצלחה!`);
+                    console.log('🎨 [COLORING PURCHASE] ✅ Complete! New balance:', newCredits);
+                    toast.success('🎨 נוספו קרדיטי צביעה!', {
+                      description: `נוספו ${COLORING_KIT_PACKAGE.pages} דפי צביעה לחשבונך. יתרה חדשה: ${newCredits}`,
+                      duration: 6000,
+                    });
                   } catch (error) {
-                    console.error('Coloring kit purchase failed:', error);
+                    console.error('🎨 [COLORING PURCHASE] ❌ FAILED:', error);
                     setShowColoringKitPayPal(false);
                     setShowFailed(true);
                     setFailedPurchaseType('coloring');
