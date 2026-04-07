@@ -1,11 +1,12 @@
 import React, { useState, useEffect } from "react";
-import { Wand2, Coins, X, GraduationCap, Palette } from "lucide-react";
+import { Wand2, Coins, X, GraduationCap, Palette, Pencil } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useCredits } from "@/hooks/use-credits";
 import { useReferral } from "@/hooks/use-referral";
 import { useChildAvatar } from "@/hooks/use-child-avatar";
 import { useAuth } from "@/hooks/use-auth";
 import { useColoringCredits } from "@/hooks/use-coloring-credits";
+import { useEditingCredits } from "@/hooks/use-editing-credits";
 import { supabase } from "@/integrations/supabase/client";
 import heroBackground from "@/assets/hero-children-flying-sky.jpg";
 import WelcomeGiftBanner from "./WelcomeGiftBanner";
@@ -22,6 +23,7 @@ const LoggedInHome = ({ user, displayName }: LoggedInHomeProps) => {
   const { shareCoins } = useReferral();
   const { avatarUrl } = useChildAvatar();
   const { coloringCredits } = useColoringCredits();
+  const { editingCredits } = useEditingCredits();
   const [storyCount, setStoryCount] = useState<number>(0);
   const [userRole, setUserRole] = useState<string | null>(null);
   const [showEducatorBanner, setShowEducatorBanner] = useState(true);
