@@ -678,24 +678,47 @@ const Upgrade = () => {
                 onSuccess={async () => {
                   if (!user) return;
                   try {
-                    await supabase.from('purchases').insert({
+                    console.log('✏️ [EDIT PURCHASE] Starting purchase flow for user:', user.id);
+
+                    const { error: purchaseError } = await supabase.from('purchases').insert({
                       user_id: user.id,
                       package_name: EDIT_KIT_PACKAGE.id,
                       credits_purchased: 0,
                       amount_ils: EDIT_KIT_PACKAGE.price,
                       status: 'completed',
                     });
-                    // Add edit credits to profile
-                    const { data: profileData } = await supabase.from('profiles').select('free_edits_remaining, free_edits_total').eq('id', user.id).maybeSingle();
-                    await supabase.from('profiles').update({
-                      free_edits_remaining: (profileData?.free_edits_remaining ?? 0) + EDIT_KIT_PACKAGE.edits,
-                      free_edits_total: (profileData?.free_edits_total ?? 0) + EDIT_KIT_PACKAGE.edits,
-                    }).eq('id', user.id);
+                    console.log('✏️ [EDIT PURCHASE] Insert result:', purchaseError ? `FAILED: ${purchaseError.message}` : 'SUCCESS');
+                    if (purchaseError) throw purchaseError;
+
+                    const { data: profile, error: selectError } = await supabase
+                      .from('profiles')
+                      .select('editing_credits')
+                      .eq('id', user.id)
+                      .maybeSingle();
+                    console.log('✏️ [EDIT PURCHASE] Current editing_credits:', (profile as any)?.editing_credits, 'Select error:', selectError?.message ?? 'none');
+                    if (selectError) throw selectError;
+
+                    const currentCredits = (profile as any)?.editing_credits ?? 0;
+                    const newCredits = currentCredits + EDIT_KIT_PACKAGE.edits;
+                    console.log('✏️ [EDIT PURCHASE] Updating credits:', currentCredits, '->', newCredits);
+
+                    const { error: updateError } = await supabase
+                      .from('profiles')
+                      .update({ editing_credits: newCredits } as any)
+                      .eq('id', user.id);
+                    console.log('✏️ [EDIT PURCHASE] Update result:', updateError ? `FAILED: ${updateError.message}` : 'SUCCESS');
+                    if (updateError) throw updateError;
+
                     setShowEditKitPayPal(false);
                     trackEvent({ eventType: 'feature_used', metadata: { feature: 'edit_kit_purchased', edits: EDIT_KIT_PACKAGE.edits, payment_method: 'paypal' } });
-                    toast.success(`✏️ נוספו ${EDIT_KIT_PACKAGE.edits} עריכות בהצלחה!`);
+                    window.dispatchEvent(new Event('editing-credits-updated'));
+                    toast.success('✏️ נוספו קרדיטי עריכה!', {
+                      description: `נוספו ${EDIT_KIT_PACKAGE.edits} עריכות לחשבונך. יתרה חדשה: ${newCredits}`,
+                      duration: 6000,
+                    });
+                    console.log('✏️ [EDIT PURCHASE] ✅ Complete! New balance:', newCredits);
                   } catch (error) {
-                    console.error('Edit kit purchase failed:', error);
+                    console.error('✏️ [EDIT PURCHASE] ❌ FAILED:', error);
                     setShowEditKitPayPal(false);
                     setShowFailed(true);
                     setFailedPurchaseType('edit');

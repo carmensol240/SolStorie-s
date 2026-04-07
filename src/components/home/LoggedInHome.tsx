@@ -1,11 +1,12 @@
 import React, { useState, useEffect } from "react";
-import { Wand2, Coins, X, GraduationCap, Palette } from "lucide-react";
+import { Wand2, Coins, X, GraduationCap, Palette, Pencil } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useCredits } from "@/hooks/use-credits";
 import { useReferral } from "@/hooks/use-referral";
 import { useChildAvatar } from "@/hooks/use-child-avatar";
 import { useAuth } from "@/hooks/use-auth";
 import { useColoringCredits } from "@/hooks/use-coloring-credits";
+import { useEditingCredits } from "@/hooks/use-editing-credits";
 import { supabase } from "@/integrations/supabase/client";
 import heroBackground from "@/assets/hero-children-flying-sky.jpg";
 import WelcomeGiftBanner from "./WelcomeGiftBanner";
@@ -22,6 +23,7 @@ const LoggedInHome = ({ user, displayName }: LoggedInHomeProps) => {
   const { shareCoins } = useReferral();
   const { avatarUrl } = useChildAvatar();
   const { coloringCredits } = useColoringCredits();
+  const { editingCredits } = useEditingCredits();
   const [storyCount, setStoryCount] = useState<number>(0);
   const [userRole, setUserRole] = useState<string | null>(null);
   const [showEducatorBanner, setShowEducatorBanner] = useState(true);
@@ -108,6 +110,14 @@ const LoggedInHome = ({ user, displayName }: LoggedInHomeProps) => {
             >
               <Palette className="w-6 h-6 text-purple-400" />
               <span className="font-bold text-purple-100 text-lg">{coloringCredits}</span>
+            </button>
+            <button 
+              onClick={() => navigate("/upgrade")}
+              className="flex items-center gap-2 bg-white/20 backdrop-blur-xl border border-white/30 rounded-full px-5 py-2.5 hover:bg-white/30 transition-colors shadow-lg"
+              aria-label="קרדיטי עריכה"
+            >
+              <Pencil className="w-6 h-6 text-green-400" />
+              <span className="font-bold text-green-100 text-lg">{editingCredits}</span>
             </button>
           </div>
 
