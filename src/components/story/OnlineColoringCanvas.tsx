@@ -562,7 +562,20 @@ export const OnlineColoringCanvas: React.FC<OnlineColoringCanvasProps> = ({
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-50 bg-white flex flex-col overflow-hidden" style={{ height: '100dvh' }}>
+    <div className="fixed inset-0 z-50 bg-white flex flex-col overflow-hidden" style={{
+      height: '100dvh',
+      ...(isLandscape && !orientationLockSupported.current ? {
+        transform: 'rotate(-90deg)',
+        transformOrigin: 'center center',
+        width: '100dvh',
+        height: '100vw',
+        position: 'fixed' as const,
+        top: '50%',
+        left: '50%',
+        marginTop: 'calc(-50vw)',
+        marginLeft: 'calc(-50dvh)',
+      } : {})
+    }}>
       {/* Top bar */}
       <div className="flex-shrink-0 flex justify-between items-center px-2 py-1.5 bg-gradient-to-r from-purple-600/90 to-pink-500/90" dir="rtl">
         <Button onClick={handleClose} variant="ghost" size="sm" className="text-white hover:bg-white/20 rounded-xl gap-1 min-h-[36px] px-2 text-sm">
