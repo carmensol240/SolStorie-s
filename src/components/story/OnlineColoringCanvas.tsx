@@ -401,8 +401,7 @@ export const OnlineColoringCanvas: React.FC<OnlineColoringCanvasProps> = ({
     }
     onClose();
   }, [isLandscape, onClose]);
-
-
+  useEffect(() => {
     if (!isOpen) return;
     setBgLoaded(false);
     setHistory([]);
