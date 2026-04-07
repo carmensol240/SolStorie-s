@@ -185,6 +185,7 @@ const Upgrade = () => {
         setPurchasedCredits(pkg.stories);
         setShowPayPal(false);
         setShowSuccess(true);
+        await userDetailsRef.current?.saveToProfile();
         trackEvent({ eventType: 'feature_used', metadata: { feature: 'purchase_completed', package: pkg.id, stories: pkg.stories, payment_method: 'paypal' } });
         if (user.email) {
           supabase.functions.invoke('send-purchase-confirmation', {
