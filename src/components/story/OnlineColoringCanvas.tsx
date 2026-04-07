@@ -376,7 +376,33 @@ export const OnlineColoringCanvas: React.FC<OnlineColoringCanvasProps> = ({
     }
   }, []);
 
-  useEffect(() => {
+  const toggleLandscape = useCallback(async () => {
+    const goLandscape = !isLandscape;
+    setIsLandscape(goLandscape);
+    try {
+      if (goLandscape) {
+        await (screen.orientation as any).lock('landscape');
+        orientationLockSupported.current = true;
+      } else {
+        (screen.orientation as any).unlock();
+      }
+    } catch {
+      orientationLockSupported.current = false;
+    }
+    setTimeout(() => {
+      if (bgImageRef.current) resizeCanvases(bgImageRef.current);
+    }, 150);
+  }, [isLandscape, resizeCanvases]);
+
+  const handleClose = useCallback(() => {
+    if (isLandscape) {
+      try { (screen.orientation as any).unlock(); } catch {}
+      setIsLandscape(false);
+    }
+    onClose();
+  }, [isLandscape, onClose]);
+
+
     if (!isOpen) return;
     setBgLoaded(false);
     setHistory([]);
