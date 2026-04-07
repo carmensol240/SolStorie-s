@@ -34,7 +34,7 @@ const FILL_CURSOR = `url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/
 
 const ERASER_CURSOR = `url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' width='24' height='24'><circle cx='12' cy='12' r='10' fill='white' stroke='%23999' stroke-width='2'/></svg>") 12 12, crosshair`;
 
-const ERASER_SIZE = 30;
+const ERASER_SIZE = 10;
 
 function boldenOutlines(ctx: CanvasRenderingContext2D, w: number, h: number) {
   const imageData = ctx.getImageData(0, 0, w, h);
