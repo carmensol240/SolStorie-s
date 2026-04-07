@@ -1,54 +1,59 @@
 
 
-## Plan: Fix Coloring Kit Purchase — Add Error Handling & Remove Unsafe Casts
+## Plan: Add Debug Logging + Prominent Success Toast to Coloring Kit Purchase
 
 ### Problem
-The coloring kit purchase callback in `Upgrade.tsx` doesn't check for Supabase errors from `insert` or `update` calls. If either fails (e.g. RLS, network), it silently continues and shows the success toast without actually updating `coloring_credits`. The `as any` casts also hide potential type issues.
+The coloring kit purchase code looks correct but we need visibility into what happens at each step. The existing `toast.success` may not be prominent enough.
 
-### Fix — single file: `src/pages/Upgrade.tsx`
+### Changes — single file: `src/pages/Upgrade.tsx`
 
-### Lines 619-639: Add error checking to both Supabase calls and remove `as any`
+### 1. Add console.log at each step of the coloring kit purchase callback (lines 616-649)
 
-Replace the coloring kit success handler body with:
-
+Add logging before and after each Supabase call:
 ```ts
-const { error: purchaseError } = await supabase.from('purchases').insert({
-  user_id: user.id,
-  package_name: COLORING_KIT_PACKAGE.id,
-  credits_purchased: COLORING_KIT_PACKAGE.pages,
-  amount_ils: COLORING_KIT_PACKAGE.price,
-  status: 'completed',
-});
-if (purchaseError) throw purchaseError;
+onSuccess={async () => {
+  if (!user) return;
+  try {
+    console.log('🎨 [COLORING PURCHASE] Starting purchase flow for user:', user.id);
+    
+    const { error: purchaseError } = await supabase.from('purchases').insert({...});
+    console.log('🎨 [COLORING PURCHASE] Insert result:', purchaseError ? `FAILED: ${purchaseError.message}` : 'SUCCESS');
+    if (purchaseError) throw purchaseError;
 
-// Increment coloring_credits on profile
-const { data: profile, error: selectError } = await supabase
-  .from('profiles')
-  .select('coloring_credits')
-  .eq('id', user.id)
-  .maybeSingle();
-if (selectError) throw selectError;
+    const { data: profile, error: selectError } = await supabase.from('profiles').select('coloring_credits')...;
+    console.log('🎨 [COLORING PURCHASE] Current credits:', profile?.coloring_credits, 'Select error:', selectError?.message ?? 'none');
+    if (selectError) throw selectError;
 
-const currentCredits = profile?.coloring_credits ?? 0;
-const { error: updateError } = await supabase
-  .from('profiles')
-  .update({ coloring_credits: currentCredits + COLORING_KIT_PACKAGE.pages })
-  .eq('id', user.id);
-if (updateError) throw updateError;
+    const currentCredits = profile?.coloring_credits ?? 0;
+    const newCredits = currentCredits + COLORING_KIT_PACKAGE.pages;
+    console.log('🎨 [COLORING PURCHASE] Updating credits:', currentCredits, '->', newCredits);
+    
+    const { error: updateError } = await supabase.from('profiles').update({ coloring_credits: newCredits })...;
+    console.log('🎨 [COLORING PURCHASE] Update result:', updateError ? `FAILED: ${updateError.message}` : 'SUCCESS');
+    if (updateError) throw updateError;
 
-setShowColoringKitPayPal(false);
-trackEvent({ ... }); // unchanged
-window.dispatchEvent(new CustomEvent('coloring-credits-updated'));
-toast.success(`🎨 נוספו ${COLORING_KIT_PACKAGE.pages} דפי צביעה בהצלחה!`);
+    // ... existing cleanup code ...
+    console.log('🎨 [COLORING PURCHASE] ✅ Complete! New balance:', newCredits);
+  } catch (error) {
+    console.error('🎨 [COLORING PURCHASE] ❌ FAILED:', error);
+    // ... existing error handling ...
+  }
+}
 ```
 
-Key changes:
-1. Destructure and throw `error` from all three Supabase calls (insert, select, update)
-2. Remove `as any` casts — `coloring_credits` is already in the types
-3. If any step fails, it now properly falls into the `catch` block showing the failure modal
+### 2. Replace the toast with a more prominent centered toast (line 643)
+
+Replace the existing `toast.success(...)` with a sonner toast that uses a longer duration and description:
+```ts
+toast.success('🎨 נוספו קרדיטי צביעה!', {
+  description: `נוספו ${COLORING_KIT_PACKAGE.pages} דפי צביעה לחשבונך. יתרה חדשה: ${newCredits}`,
+  duration: 6000,
+});
+```
 
 ### What stays the same
 - All design, layout, colors, buttons
-- Other purchase flows (story, edit kit, educator, toolkit)
+- Purchase logic flow (insert → select → update)
+- Error handling
 - No other files changed
 
