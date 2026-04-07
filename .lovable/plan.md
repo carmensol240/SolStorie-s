@@ -1,53 +1,48 @@
 
-## Plan: Add Dedicated Editing Credits System (Like Coloring Credits)
 
-### Overview
-Add a new `editing_credits` column to profiles and wire it through purchase, display, and consumption — exactly mirroring the `coloring_credits` pattern.
+## Plan: Fix PayPal Payment Screen — Remove Duplicates, Remove Shipping, Save User Details
 
-### 1. Database Migration
-Add `editing_credits` integer column to `profiles` table, default 0.
+### Problem
+1. "ניתן לשלם באשראי ללא חשבון פייפאל" appears multiple times: once inside `PayPalButton.tsx` component (line 228-235) AND once per PayPal section in `Upgrade.tsx` (lines 528, 663, 730, 786), plus a standalone glass box (lines 738-744).
+2. PayPal checkout shows address/shipping fields — inappropriate for digital product.
+3. User details (name, phone, email) are not saved/restored.
 
-### 2. Purchase flow — `src/pages/Upgrade.tsx` (lines 678-702)
-Replace the edit kit `onSuccess` handler with the same robust pattern as coloring kit:
-- Insert into `purchases` with error check
-- Select current `editing_credits` with error check
-- Update `editing_credits + 5` with error check
-- Console logs at each step (`✏️ [EDIT PURCHASE]`)
-- Dispatch `editing-credits-updated` custom event
-- Toast: `✏️ נוספו קרדיטי עריכה!` with description and 6s duration
+### Changes
 
-### 3. New hook — `src/hooks/use-editing-credits.ts`
-Clone `use-coloring-credits.ts` pattern:
-- Fetch `editing_credits` from profiles
-- Listen for `editing-credits-updated` event
-- Export `{ editingCredits, loading, refetch }`
+**File 1: `src/components/paywall/PayPalButton.tsx`**
 
-### 4. Home screen pill — `src/components/home/LoggedInHome.tsx`
-- Import `useEditingCredits` hook and `Pencil` icon
-- Add third pill after coloring pill with ✏️ icon, same enlarged styling
-- Always visible (like coloring credits)
+**1a. Remove the credit card note from inside the component** (lines 227-235)
+Delete the entire `{!isLoading && buttonsRendered && (...)}` block that shows "ניתן לשלם גם בכרטיס אשראי ללא חשבון פייפאל". Each caller in `Upgrade.tsx` already has its own note — removing from the component eliminates the duplication.
 
-### 5. Edit consumption — `src/hooks/use-story-edit.ts`
-Update `performEdit` to check `editing_credits` FIRST (before `free_edits_remaining` and `story_credits`):
-- Fetch `editing_credits` alongside existing fields
-- If `editing_credits > 0` → deduct 1
-- Else if `free_edits_remaining > 0` → deduct 1 (backward compat)
-- Else if `story_credits > 0` → deduct 1
-- Else → block with message: `אין קרדיטי עריכה, לחץ לרכישה`
+**1b. Add `no_shipping` to PayPal order** (line 100-107)
+Add `application_context: { shipping_preference: 'NO_SHIPPING' }` to the `actions.order.create()` call to remove all address/shipping fields from PayPal's checkout:
+```ts
+return actions.order.create({
+  purchase_units: [{
+    amount: { value: amount.toString(), currency_code: 'ILS' }
+  }],
+  application_context: {
+    shipping_preference: 'NO_SHIPPING'
+  }
+});
+```
 
-Update `canEdit` to also check editing credits.
+**File 2: `src/pages/Upgrade.tsx`**
 
-Dispatch `editing-credits-updated` event after successful deduction.
+**2a. Remove duplicate credit card notes per section**
+Remove the "💳 ניתן לשלם..." line from these sections (keep only the standalone glass box on lines 738-744):
+- Line 528 (educator section)
+- Line 663 (coloring kit section)
+- Line 730 (edit kit section)
+- Line 786 (story package section)
 
-### Files changed
-1. **Migration**: Add `editing_credits` column
-2. `src/hooks/use-editing-credits.ts` — new file
-3. `src/pages/Upgrade.tsx` — edit kit purchase handler
-4. `src/components/home/LoggedInHome.tsx` — third credit pill
-5. `src/hooks/use-story-edit.ts` — deduction logic
+This leaves exactly ONE credit card note — the prominent glass box.
+
+**2b. Save user details to profiles** — No changes needed here. The user's name and email already exist in auth and profiles. Phone is not collected in our app (PayPal handles payment details). There are no custom form fields in our purchase flow to save — the user clicks a package and goes straight to PayPal's hosted checkout.
 
 ### What stays the same
 - All design, colors, layout, buttons
-- Coloring credits system untouched
-- Story credits system untouched
-- `free_edits_remaining`/`free_edits_total` columns kept for backward compat
+- All purchase logic and flows
+- No database changes needed
+- No other files changed
+
