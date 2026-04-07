@@ -1,48 +1,43 @@
 
+## Plan: Add User Details Form with Auto-Save to Profiles
 
-## Plan: Fix PayPal Payment Screen — Remove Duplicates, Remove Shipping, Save User Details
+### Overview
+Add `first_name`, `last_name`, `phone`, `email` columns to the `profiles` table. Create a user details form that appears above PayPal buttons in the Upgrade page. The form auto-loads saved data and saves new data on payment success.
 
-### Problem
-1. "ניתן לשלם באשראי ללא חשבון פייפאל" appears multiple times: once inside `PayPalButton.tsx` component (line 228-235) AND once per PayPal section in `Upgrade.tsx` (lines 528, 663, 730, 786), plus a standalone glass box (lines 738-744).
-2. PayPal checkout shows address/shipping fields — inappropriate for digital product.
-3. User details (name, phone, email) are not saved/restored.
-
-### Changes
-
-**File 1: `src/components/paywall/PayPalButton.tsx`**
-
-**1a. Remove the credit card note from inside the component** (lines 227-235)
-Delete the entire `{!isLoading && buttonsRendered && (...)}` block that shows "ניתן לשלם גם בכרטיס אשראי ללא חשבון פייפאל". Each caller in `Upgrade.tsx` already has its own note — removing from the component eliminates the duplication.
-
-**1b. Add `no_shipping` to PayPal order** (line 100-107)
-Add `application_context: { shipping_preference: 'NO_SHIPPING' }` to the `actions.order.create()` call to remove all address/shipping fields from PayPal's checkout:
-```ts
-return actions.order.create({
-  purchase_units: [{
-    amount: { value: amount.toString(), currency_code: 'ILS' }
-  }],
-  application_context: {
-    shipping_preference: 'NO_SHIPPING'
-  }
-});
+### 1. Database Migration
+```sql
+ALTER TABLE public.profiles
+  ADD COLUMN IF NOT EXISTS first_name text,
+  ADD COLUMN IF NOT EXISTS last_name text,
+  ADD COLUMN IF NOT EXISTS phone text,
+  ADD COLUMN IF NOT EXISTS email text;
 ```
 
-**File 2: `src/pages/Upgrade.tsx`**
+### 2. New Component: `src/components/paywall/UserDetailsForm.tsx`
+A compact RTL form with 4 fields: first name, last name, phone, email.
+- On mount: fetch saved values from `profiles` and pre-fill fields
+- Expose current values via a ref or callback so the parent can read them on payment success
+- Fields styled to match existing glass card design in Upgrade page
+- All fields optional (PayPal handles the actual payment validation)
 
-**2a. Remove duplicate credit card notes per section**
-Remove the "💳 ניתן לשלם..." line from these sections (keep only the standalone glass box on lines 738-744):
-- Line 528 (educator section)
-- Line 663 (coloring kit section)
-- Line 730 (edit kit section)
-- Line 786 (story package section)
+### 3. Update `src/pages/Upgrade.tsx`
+- Import and render `UserDetailsForm` inside each PayPal section (story packages, educator, coloring kit, edit kit) — above the PayPal buttons
+- On each `onSuccess` callback, after the existing purchase logic, save the form values to `profiles`:
+  ```ts
+  await supabase.from('profiles').update({
+    first_name, last_name, phone, email
+  }).eq('id', user.id);
+  ```
 
-This leaves exactly ONE credit card note — the prominent glass box.
+### 4. Update `PayPalButton` props
+No changes needed — the form lives in the parent (Upgrade.tsx), not inside PayPalButton.
 
-**2b. Save user details to profiles** — No changes needed here. The user's name and email already exist in auth and profiles. Phone is not collected in our app (PayPal handles payment details). There are no custom form fields in our purchase flow to save — the user clicks a package and goes straight to PayPal's hosted checkout.
+### Files changed
+1. **Migration**: Add 4 columns to profiles
+2. `src/components/paywall/UserDetailsForm.tsx` — new component
+3. `src/pages/Upgrade.tsx` — render form + save on success
 
 ### What stays the same
-- All design, colors, layout, buttons
-- All purchase logic and flows
-- No database changes needed
-- No other files changed
-
+- All existing design, colors, layout, buttons
+- PayPal checkout flow
+- All other purchase logic
