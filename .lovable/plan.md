@@ -1,37 +1,54 @@
 
 
-## Plan: Separate & Enlarge Credit Pills on Home Screen
+## Plan: Fix Coloring Kit Purchase — Add Error Handling & Remove Unsafe Casts
 
-### Single file: `src/components/home/LoggedInHome.tsx`
+### Problem
+The coloring kit purchase callback in `Upgrade.tsx` doesn't check for Supabase errors from `insert` or `update` calls. If either fails (e.g. RLS, network), it silently continues and shows the success toast without actually updating `coloring_credits`. The `as any` casts also hide potential type issues.
 
-### Current state
-- Story credits pill: `px-4 py-2`, icon `w-5 h-5`, text `text-lg`
-- Coloring credits pill: only shown when `coloringCredits > 0`, smaller (`px-3 py-2`, icon `w-4 h-4`, text `text-sm`)
+### Fix — single file: `src/pages/Upgrade.tsx`
 
-### Changes
+### Lines 619-639: Add error checking to both Supabase calls and remove `as any`
 
-**1. Always show coloring credits pill** (remove `coloringCredits > 0` condition on line 104)
-Show it even when 0 so the user always sees both pills side by side.
+Replace the coloring kit success handler body with:
 
-**2. Make both pills slightly larger and visually consistent**
-Both pills get the same styling:
+```ts
+const { error: purchaseError } = await supabase.from('purchases').insert({
+  user_id: user.id,
+  package_name: COLORING_KIT_PACKAGE.id,
+  credits_purchased: COLORING_KIT_PACKAGE.pages,
+  amount_ils: COLORING_KIT_PACKAGE.price,
+  status: 'completed',
+});
+if (purchaseError) throw purchaseError;
+
+// Increment coloring_credits on profile
+const { data: profile, error: selectError } = await supabase
+  .from('profiles')
+  .select('coloring_credits')
+  .eq('id', user.id)
+  .maybeSingle();
+if (selectError) throw selectError;
+
+const currentCredits = profile?.coloring_credits ?? 0;
+const { error: updateError } = await supabase
+  .from('profiles')
+  .update({ coloring_credits: currentCredits + COLORING_KIT_PACKAGE.pages })
+  .eq('id', user.id);
+if (updateError) throw updateError;
+
+setShowColoringKitPayPal(false);
+trackEvent({ ... }); // unchanged
+window.dispatchEvent(new CustomEvent('coloring-credits-updated'));
+toast.success(`🎨 נוספו ${COLORING_KIT_PACKAGE.pages} דפי צביעה בהצלחה!`);
 ```
-px-5 py-2.5, icon w-6 h-6, text text-lg font-bold
-```
 
-**3. Update coloring pill styling**
-- Icon: `Palette` with `text-purple-400` (keep existing)
-- Text: `text-purple-100` for better contrast on the glass background
-- Same `bg-white/20 backdrop-blur-xl border border-white/30 rounded-full shadow-lg` as story pill
-
-### Result
-Two equally-sized glass pills side by side:
-- Left (in RTL): Story credits with Coins icon (amber)
-- Right next to it: Coloring credits with Palette icon (purple)
+Key changes:
+1. Destructure and throw `error` from all three Supabase calls (insert, select, update)
+2. Remove `as any` casts — `coloring_credits` is already in the types
+3. If any step fails, it now properly falls into the `catch` block showing the failure modal
 
 ### What stays the same
-- All other design, layout, colors, buttons, navigation
-- Avatar thumbnail position
-- Greeting pill on the opposite side
+- All design, layout, colors, buttons
+- Other purchase flows (story, edit kit, educator, toolkit)
 - No other files changed
 
