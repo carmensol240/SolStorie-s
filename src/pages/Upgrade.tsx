@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import { useNavigate, useSearchParams, Link } from "react-router-dom";
-import { X, Crown, Gift } from "lucide-react";
+import { X, Crown } from "lucide-react";
 
 const WHITELISTED_TEST_EMAIL = "carmit1901+test@gmail.com";
 import { Button } from "@/components/ui/button";
@@ -755,14 +755,13 @@ const Upgrade = () => {
             </p>
           </div>
 
-          {/* Gift Card Link */}
-          <Link
-            to="/gift"
-            className="flex items-center justify-center gap-2 bg-white/10 backdrop-blur-sm border border-pink-400/20 rounded-xl p-3 mb-4 hover:bg-white/15 transition-colors"
+          {/* Gift Card Link — disabled, coming soon */}
+          <div
+            className="relative flex items-center justify-center gap-2 bg-white/10 backdrop-blur-sm border border-pink-400/20 rounded-xl p-3 mb-4 opacity-60 cursor-not-allowed"
           >
-            <Gift className="w-5 h-5 text-pink-300" />
+            <span className="absolute -top-2 -left-2 bg-amber-400 text-amber-900 text-[10px] font-black px-2 py-0.5 rounded-full shadow">בקרוב</span>
             <span className="text-sm font-bold text-white/90">🎁 רוצה לשלוח סיפורים במתנה?</span>
-          </Link>
+          </div>
 
           {/* Privacy */}
           <p className="text-xs text-center text-white/40 mt-2 mb-4">
