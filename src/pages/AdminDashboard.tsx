@@ -736,9 +736,14 @@ const AdminDashboard = () => {
                               <TableCell>{s.topic}</TableCell>
                               <TableCell className="text-xs whitespace-nowrap">{formatDate(s.created_at)}</TableCell>
                               <TableCell>
-                                <Badge className={`text-xs ${isReady ? "bg-green-100 text-green-800" : "bg-red-100 text-red-800"}`}>
+                                 <Badge className={`text-xs ${isReady ? "bg-green-100 text-green-800" : "bg-red-100 text-red-800"}`}>
                                   {isReady ? "הושלם" : "נכשל"}
                                 </Badge>
+                              </TableCell>
+                              <TableCell>
+                                <Button variant="ghost" size="icon" className="h-7 w-7 text-muted-foreground hover:text-destructive" title="העבר לסל מחזור" onClick={() => trashItem("stories", s.id)}>
+                                  <Trash2 className="h-3.5 w-3.5" />
+                                </Button>
                               </TableCell>
                             </TableRow>
                           );
