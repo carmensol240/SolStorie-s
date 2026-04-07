@@ -239,24 +239,10 @@ const Upgrade = () => {
     setShowToolkitPayPal(true);
   };
 
-  const handleToolkitPayPalSuccess = async () => {
+  const handleToolkitPayPalSuccess = async (orderId: string) => {
     if (!user) return;
     try {
-      const { error: purchaseError } = await supabase
-        .from('purchases')
-        .insert({
-          user_id: user.id,
-          package_name: TOOLKIT_SUBSCRIPTION.id,
-          credits_purchased: 0,
-          amount_ils: TOOLKIT_SUBSCRIPTION.price,
-          status: 'completed',
-        });
-      if (purchaseError) throw purchaseError;
-      const { error: profileError } = await supabase
-        .from('profiles')
-        .update({ is_subscriber: true })
-        .eq('id', user.id);
-      if (profileError) throw profileError;
+      await verifyPurchase(orderId, TOOLKIT_SUBSCRIPTION.id, TOOLKIT_SUBSCRIPTION.price);
       refetchSubscription();
       setShowToolkitPayPal(false);
       setShowSubscriptionSuccess(true);
