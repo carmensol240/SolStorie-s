@@ -1172,6 +1172,76 @@ const AdminDashboard = () => {
             </Card>
           </TabsContent>
 
+          {/* ===== RECYCLE BIN TAB ===== */}
+          <TabsContent value="trash">
+            <Card>
+              <CardContent className="p-4 space-y-6">
+                {Object.values(trashedItems).reduce((sum, arr) => sum + arr.length, 0) === 0 ? (
+                  <div className="text-center text-muted-foreground py-12">🗑️ סל המחזור ריק</div>
+                ) : (
+                  <>
+                    {(trashedItems["users"] || []).length > 0 && (
+                      <div>
+                        <h3 className="text-sm font-bold mb-2">👥 משתמשים ({trashedItems["users"].length})</h3>
+                        <Table>
+                          <TableHeader><TableRow><TableHead className="text-right">שם</TableHead><TableHead className="text-right">אימייל</TableHead><TableHead className="text-right w-32">פעולות</TableHead></TableRow></TableHeader>
+                          <TableBody>
+                            {trashedItems["users"].map(id => {
+                              const p = profiles.find(pr => pr.id === id);
+                              return (<TableRow key={id}><TableCell>{p?.display_name || id.substring(0, 8)}</TableCell><TableCell className="text-xs text-muted-foreground">{p?.email || "—"}</TableCell><TableCell><div className="flex gap-1"><Button variant="outline" size="sm" className="text-xs gap-1" onClick={() => restoreItem("users", id)}><RotateCcw className="h-3 w-3" />שחזור</Button><Button variant="ghost" size="sm" className="text-xs gap-1 text-destructive" onClick={() => permanentDeleteItem("users", id)}><XCircle className="h-3 w-3" />מחיקה</Button></div></TableCell></TableRow>);
+                            })}
+                          </TableBody>
+                        </Table>
+                      </div>
+                    )}
+                    {(trashedItems["stories"] || []).length > 0 && (
+                      <div>
+                        <h3 className="text-sm font-bold mb-2">📖 סיפורים ({trashedItems["stories"].length})</h3>
+                        <Table>
+                          <TableHeader><TableRow><TableHead className="text-right">נושא</TableHead><TableHead className="text-right">שם ילד</TableHead><TableHead className="text-right w-32">פעולות</TableHead></TableRow></TableHeader>
+                          <TableBody>
+                            {trashedItems["stories"].map(id => {
+                              const s = stories.find(st => st.id === id);
+                              return (<TableRow key={id}><TableCell>{s?.topic || id.substring(0, 8)}</TableCell><TableCell>{s?.child_name || "—"}</TableCell><TableCell><div className="flex gap-1"><Button variant="outline" size="sm" className="text-xs gap-1" onClick={() => restoreItem("stories", id)}><RotateCcw className="h-3 w-3" />שחזור</Button><Button variant="ghost" size="sm" className="text-xs gap-1 text-destructive" onClick={() => permanentDeleteItem("stories", id)}><XCircle className="h-3 w-3" />מחיקה</Button></div></TableCell></TableRow>);
+                            })}
+                          </TableBody>
+                        </Table>
+                      </div>
+                    )}
+                    {(trashedItems["purchases"] || []).length > 0 && (
+                      <div>
+                        <h3 className="text-sm font-bold mb-2">💳 רכישות ({trashedItems["purchases"].length})</h3>
+                        <Table>
+                          <TableHeader><TableRow><TableHead className="text-right">חבילה</TableHead><TableHead className="text-right">סכום</TableHead><TableHead className="text-right w-32">פעולות</TableHead></TableRow></TableHeader>
+                          <TableBody>
+                            {trashedItems["purchases"].map(id => {
+                              const pu = purchases.find(p => p.id === id);
+                              return (<TableRow key={id}><TableCell>{pu?.package_name || id.substring(0, 8)}</TableCell><TableCell>₪{pu ? Number(pu.amount_ils).toLocaleString() : "—"}</TableCell><TableCell><div className="flex gap-1"><Button variant="outline" size="sm" className="text-xs gap-1" onClick={() => restoreItem("purchases", id)}><RotateCcw className="h-3 w-3" />שחזור</Button><Button variant="ghost" size="sm" className="text-xs gap-1 text-destructive" onClick={() => permanentDeleteItem("purchases", id)}><XCircle className="h-3 w-3" />מחיקה</Button></div></TableCell></TableRow>);
+                            })}
+                          </TableBody>
+                        </Table>
+                      </div>
+                    )}
+                    {(trashedItems["errors"] || []).length > 0 && (
+                      <div>
+                        <h3 className="text-sm font-bold mb-2">⚠️ שגיאות ({trashedItems["errors"].length})</h3>
+                        <Table>
+                          <TableHeader><TableRow><TableHead className="text-right">שגיאה</TableHead><TableHead className="text-right">תאריך</TableHead><TableHead className="text-right w-32">פעולות</TableHead></TableRow></TableHeader>
+                          <TableBody>
+                            {trashedItems["errors"].map(id => {
+                              const err = errorLogs.find(e => e.id === id);
+                              return (<TableRow key={id}><TableCell className="text-xs">{err ? getErrorExplanation(err) : id.substring(0, 8)}</TableCell><TableCell className="text-xs">{err ? formatDate(err.created_at) : "—"}</TableCell><TableCell><div className="flex gap-1"><Button variant="outline" size="sm" className="text-xs gap-1" onClick={() => restoreItem("errors", id)}><RotateCcw className="h-3 w-3" />שחזור</Button><Button variant="ghost" size="sm" className="text-xs gap-1 text-destructive" onClick={() => permanentDeleteItem("errors", id)}><XCircle className="h-3 w-3" />מחיקה</Button></div></TableCell></TableRow>);
+                            })}
+                          </TableBody>
+                        </Table>
+                      </div>
+                    )}
+                  </>
+                )}
+              </CardContent>
+            </Card>
+          </TabsContent>
+
         </Tabs>
 
         {/* Confirm mark-as-reviewed dialog */}
