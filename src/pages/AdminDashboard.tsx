@@ -776,14 +776,15 @@ const AdminDashboard = () => {
                         <TableHead className="text-right">סוג חבילה</TableHead>
                         <TableHead className="text-right">סכום (₪)</TableHead>
                         <TableHead className="text-right">תאריך</TableHead>
-                        <TableHead className="text-right">סטטוס</TableHead>
+                         <TableHead className="text-right">סטטוס</TableHead>
+                        <TableHead className="text-right w-10"></TableHead>
                       </TableRow>
                     </TableHeader>
                     <TableBody>
                       {loading ? (
-                        <TableRow><TableCell colSpan={6} className="text-center">טוען...</TableCell></TableRow>
+                        <TableRow><TableCell colSpan={7} className="text-center">טוען...</TableCell></TableRow>
                       ) : filteredPurchases.length === 0 ? (
-                        <TableRow><TableCell colSpan={6} className="text-center text-muted-foreground py-8">אין רכישות</TableCell></TableRow>
+                        <TableRow><TableCell colSpan={7} className="text-center text-muted-foreground py-8">אין רכישות</TableCell></TableRow>
                       ) : filteredPurchases.map((p) => {
                         const profile = profiles.find(pr => pr.id === p.user_id);
                         const isRecent = p.created_at && new Date(p.created_at) > thirtyMinAgo;
@@ -795,6 +796,11 @@ const AdminDashboard = () => {
                             <TableCell className="font-bold">₪{Number(p.amount_ils).toLocaleString()}</TableCell>
                             <TableCell className="text-xs whitespace-nowrap">{formatDate(p.created_at)}</TableCell>
                             <TableCell>{purchaseStatusBadge(p.status)}</TableCell>
+                            <TableCell>
+                              <Button variant="ghost" size="icon" className="h-7 w-7 text-muted-foreground hover:text-destructive" title="העבר לסל מחזור" onClick={() => trashItem("purchases", p.id)}>
+                                <Trash2 className="h-3.5 w-3.5" />
+                              </Button>
+                            </TableCell>
                           </TableRow>
                         );
                       })}
