@@ -565,7 +565,7 @@ export const OnlineColoringCanvas: React.FC<OnlineColoringCanvasProps> = ({
     <div className="fixed inset-0 z-50 bg-white flex flex-col overflow-hidden" style={{ height: '100dvh' }}>
       {/* Top bar */}
       <div className="flex-shrink-0 flex justify-between items-center px-2 py-1.5 bg-gradient-to-r from-purple-600/90 to-pink-500/90" dir="rtl">
-        <Button onClick={onClose} variant="ghost" size="sm" className="text-white hover:bg-white/20 rounded-xl gap-1 min-h-[36px] px-2 text-sm">
+        <Button onClick={handleClose} variant="ghost" size="sm" className="text-white hover:bg-white/20 rounded-xl gap-1 min-h-[36px] px-2 text-sm">
           <ArrowRight className="w-4 h-4" /> חזרה
         </Button>
         <div className="flex items-center gap-0.5">
