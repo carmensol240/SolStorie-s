@@ -1,40 +1,28 @@
 
 
-## Plan: Add Phone Validation to UserDetailsForm
+## Plan: Disable Gift Button + Add "Coming Soon" Tag
 
-### Single file: `src/components/paywall/UserDetailsForm.tsx`
+### Single file: `src/pages/Upgrade.tsx`
 
-### Changes
+### Changes (lines 758-765)
 
-**1. Add validation state and helper**
-- Add `phoneError` state
-- Add `isPhoneValid` function: valid if empty (optional) OR matches `/^05\d{8}$/`
-- Validate on every change to `phone`
+Replace the `<Link>` with a `<div>` (non-clickable), remove the `Gift` icon (keep only the emoji 🎁), and add a "בקרוב" badge:
 
-**2. Add `isValid` to the exposed ref interface**
-Update `UserDetailsRef` to include `isValid: () => boolean` so `Upgrade.tsx` can check validity. A phone is valid if it's empty or matches the Israeli format.
+```tsx
+<div
+  className="relative flex items-center justify-center gap-2 bg-white/10 backdrop-blur-sm border border-pink-400/20 rounded-xl p-3 mb-4 opacity-60 cursor-not-allowed"
+>
+  <span className="absolute -top-2 -left-2 bg-amber-400 text-amber-900 text-[10px] font-black px-2 py-0.5 rounded-full shadow">בקרוב</span>
+  <span className="text-sm font-bold text-white/90">🎁 רוצה לשלוח סיפורים במתנה?</span>
+</div>
+```
 
-**3. Show error message below phone field**
-When phone is non-empty and invalid, show red text: `נא להזין מספר טלפון תקין (05XXXXXXXX)`
-
-**4. Restrict input to digits only**
-Filter non-digit characters in the phone `onChange`.
-
-### File 2: `src/pages/Upgrade.tsx`
-
-**5. Block PayPal buttons when phone is invalid**
-- Add state `const [userDetailsValid, setUserDetailsValid] = useState(true)`
-- Add `onValidChange` callback prop to `UserDetailsForm` that reports validity
-- Wrap each `PayPalButton` in a condition: if `!userDetailsValid`, show a disabled overlay or hide the PayPal button
-
-Actually, simpler approach: add an `onValidChange?: (valid: boolean) => void` prop to `UserDetailsForm`, call it whenever validity changes. In `Upgrade.tsx`, track this state and conditionally render PayPal buttons only when valid.
-
-### Files changed
-1. `src/components/paywall/UserDetailsForm.tsx` — validation logic, error display, expose validity
-2. `src/pages/Upgrade.tsx` — track validity, block PayPal when invalid
+- Removes `Gift` icon (pink hollow) — keeps only the 🎁 emoji
+- Changes `Link` → `div` with `cursor-not-allowed` and `opacity-60`
+- Adds a small "בקרוב" badge positioned on the top-left corner
+- Remove `Gift` from the import if no longer used elsewhere in this file
 
 ### What stays the same
-- All design, colors, layout
-- All purchase logic
+- All other buttons, layout, design, purchase flows
 - No other files changed
 
