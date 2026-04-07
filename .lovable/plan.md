@@ -1,43 +1,40 @@
 
-## Plan: Add User Details Form with Auto-Save to Profiles
 
-### Overview
-Add `first_name`, `last_name`, `phone`, `email` columns to the `profiles` table. Create a user details form that appears above PayPal buttons in the Upgrade page. The form auto-loads saved data and saves new data on payment success.
+## Plan: Add Phone Validation to UserDetailsForm
 
-### 1. Database Migration
-```sql
-ALTER TABLE public.profiles
-  ADD COLUMN IF NOT EXISTS first_name text,
-  ADD COLUMN IF NOT EXISTS last_name text,
-  ADD COLUMN IF NOT EXISTS phone text,
-  ADD COLUMN IF NOT EXISTS email text;
-```
+### Single file: `src/components/paywall/UserDetailsForm.tsx`
 
-### 2. New Component: `src/components/paywall/UserDetailsForm.tsx`
-A compact RTL form with 4 fields: first name, last name, phone, email.
-- On mount: fetch saved values from `profiles` and pre-fill fields
-- Expose current values via a ref or callback so the parent can read them on payment success
-- Fields styled to match existing glass card design in Upgrade page
-- All fields optional (PayPal handles the actual payment validation)
+### Changes
 
-### 3. Update `src/pages/Upgrade.tsx`
-- Import and render `UserDetailsForm` inside each PayPal section (story packages, educator, coloring kit, edit kit) — above the PayPal buttons
-- On each `onSuccess` callback, after the existing purchase logic, save the form values to `profiles`:
-  ```ts
-  await supabase.from('profiles').update({
-    first_name, last_name, phone, email
-  }).eq('id', user.id);
-  ```
+**1. Add validation state and helper**
+- Add `phoneError` state
+- Add `isPhoneValid` function: valid if empty (optional) OR matches `/^05\d{8}$/`
+- Validate on every change to `phone`
 
-### 4. Update `PayPalButton` props
-No changes needed — the form lives in the parent (Upgrade.tsx), not inside PayPalButton.
+**2. Add `isValid` to the exposed ref interface**
+Update `UserDetailsRef` to include `isValid: () => boolean` so `Upgrade.tsx` can check validity. A phone is valid if it's empty or matches the Israeli format.
+
+**3. Show error message below phone field**
+When phone is non-empty and invalid, show red text: `נא להזין מספר טלפון תקין (05XXXXXXXX)`
+
+**4. Restrict input to digits only**
+Filter non-digit characters in the phone `onChange`.
+
+### File 2: `src/pages/Upgrade.tsx`
+
+**5. Block PayPal buttons when phone is invalid**
+- Add state `const [userDetailsValid, setUserDetailsValid] = useState(true)`
+- Add `onValidChange` callback prop to `UserDetailsForm` that reports validity
+- Wrap each `PayPalButton` in a condition: if `!userDetailsValid`, show a disabled overlay or hide the PayPal button
+
+Actually, simpler approach: add an `onValidChange?: (valid: boolean) => void` prop to `UserDetailsForm`, call it whenever validity changes. In `Upgrade.tsx`, track this state and conditionally render PayPal buttons only when valid.
 
 ### Files changed
-1. **Migration**: Add 4 columns to profiles
-2. `src/components/paywall/UserDetailsForm.tsx` — new component
-3. `src/pages/Upgrade.tsx` — render form + save on success
+1. `src/components/paywall/UserDetailsForm.tsx` — validation logic, error display, expose validity
+2. `src/pages/Upgrade.tsx` — track validity, block PayPal when invalid
 
 ### What stays the same
-- All existing design, colors, layout, buttons
-- PayPal checkout flow
-- All other purchase logic
+- All design, colors, layout
+- All purchase logic
+- No other files changed
+
