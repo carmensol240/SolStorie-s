@@ -782,6 +782,7 @@ const Upgrade = () => {
               ) : (
                 <p className="text-sm font-bold text-white text-center mb-3">₪{selectedPkg?.price}</p>
               )}
+              <UserDetailsForm ref={userDetailsRef} />
               <PayPalButton
                 amount={discountPercent > 0 ? discountedPrice : (selectedPkg?.price || 0)}
                 onSuccess={handlePayPalSuccess}
