@@ -531,7 +531,7 @@ const Upgrade = () => {
                 }}
                 onError={() => { setShowEducatorPayPal(false); setShowFailed(true); setFailedPurchaseType('educator'); }}
                 onCancel={() => setShowEducatorPayPal(false)}
-              />
+              />}
               <button onClick={() => setShowEducatorPayPal(false)} className="w-full text-center text-white/50 text-xs mt-3 hover:text-white/70 transition-colors">
                 ביטול
               </button>
@@ -668,7 +668,7 @@ const Upgrade = () => {
                 }}
                 onError={() => { setShowColoringKitPayPal(false); setShowFailed(true); setFailedPurchaseType('coloring'); }}
                 onCancel={() => setShowColoringKitPayPal(false)}
-              />
+              />}
               <button onClick={() => setShowColoringKitPayPal(false)} className="w-full text-center text-white/50 text-xs mt-3 hover:text-white/70 transition-colors">
                 ביטול
               </button>
@@ -737,7 +737,7 @@ const Upgrade = () => {
                 }}
                 onError={() => { setShowEditKitPayPal(false); setShowFailed(true); setFailedPurchaseType('edit'); }}
                 onCancel={() => setShowEditKitPayPal(false)}
-              />
+              />}
               
               <button onClick={() => setShowEditKitPayPal(false)} className="w-full text-center text-white/50 text-xs mt-3 hover:text-white/70 transition-colors">
                 ביטול
@@ -794,7 +794,7 @@ const Upgrade = () => {
                 onSuccess={handlePayPalSuccess}
                 onError={handlePayPalError}
                 onCancel={() => setShowPayPal(false)}
-              />
+              />}
               <button
                 onClick={() => setShowPayPal(false)}
                 className="w-full text-center text-white/50 text-xs mt-3 hover:text-white/70 transition-colors"
