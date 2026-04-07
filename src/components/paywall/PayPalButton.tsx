@@ -175,7 +175,7 @@ const PayPalButton = ({ amount, onSuccess, onError, onCancel }: PayPalButtonProp
 
   const handleSimulatedPayment = () => {
     console.log('🔧 Simulating successful payment for testing');
-    callbacksRef.current.onSuccess();
+    callbacksRef.current.onSuccess('SIMULATED_ORDER_' + Date.now());
   };
 
   if (error) {
