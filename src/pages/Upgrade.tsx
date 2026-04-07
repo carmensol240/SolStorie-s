@@ -47,6 +47,7 @@ const Upgrade = () => {
   const [discountPercent, setDiscountPercent] = useState(0);
   const [failedPurchaseType, setFailedPurchaseType] = useState<'stories' | 'coloring' | 'edit' | 'educator' | 'toolkit' | null>(null);
   const [appliedCouponCode, setAppliedCouponCode] = useState<string | null>(null);
+  const userDetailsRef = useRef<UserDetailsRef>(null);
 
   // Countdown timer — to April 8, 2026 00:00 Israel time (UTC+3)
   const TARGET_DATE = new Date('2026-04-07T21:00:00Z');
