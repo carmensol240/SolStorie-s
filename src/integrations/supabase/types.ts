@@ -521,12 +521,16 @@ export type Database = {
           daily_edit_credits: number | null
           display_name: string | null
           editing_credits: number | null
+          email: string | null
+          first_name: string | null
           free_edits_remaining: number | null
           free_edits_total: number | null
           id: string
           is_subscriber: boolean
           last_edit_credits_reset: string | null
+          last_name: string | null
           marketing_consent: boolean | null
+          phone: string | null
           referral_code: string | null
           share_coins: number | null
           story_credits: number | null
@@ -547,12 +551,16 @@ export type Database = {
           daily_edit_credits?: number | null
           display_name?: string | null
           editing_credits?: number | null
+          email?: string | null
+          first_name?: string | null
           free_edits_remaining?: number | null
           free_edits_total?: number | null
           id: string
           is_subscriber?: boolean
           last_edit_credits_reset?: string | null
+          last_name?: string | null
           marketing_consent?: boolean | null
+          phone?: string | null
           referral_code?: string | null
           share_coins?: number | null
           story_credits?: number | null
@@ -573,12 +581,16 @@ export type Database = {
           daily_edit_credits?: number | null
           display_name?: string | null
           editing_credits?: number | null
+          email?: string | null
+          first_name?: string | null
           free_edits_remaining?: number | null
           free_edits_total?: number | null
           id?: string
           is_subscriber?: boolean
           last_edit_credits_reset?: string | null
+          last_name?: string | null
           marketing_consent?: boolean | null
+          phone?: string | null
           referral_code?: string | null
           share_coins?: number | null
           story_credits?: number | null

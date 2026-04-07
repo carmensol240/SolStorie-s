@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useNavigate, useSearchParams, Link } from "react-router-dom";
 import { X, Crown, Gift } from "lucide-react";
 
@@ -9,6 +9,7 @@ import PurchaseSuccessModal from "@/components/paywall/PurchaseSuccessModal";
 import PurchaseFailedModal from "@/components/paywall/PurchaseFailedModal";
 import PayPalButton from "@/components/paywall/PayPalButton";
 import CouponInput from "@/components/paywall/CouponInput";
+import UserDetailsForm, { UserDetailsRef } from "@/components/paywall/UserDetailsForm";
 
 import { useCredits } from "@/hooks/use-credits";
 import { useSubscription } from "@/hooks/use-subscription";
@@ -46,6 +47,7 @@ const Upgrade = () => {
   const [discountPercent, setDiscountPercent] = useState(0);
   const [failedPurchaseType, setFailedPurchaseType] = useState<'stories' | 'coloring' | 'edit' | 'educator' | 'toolkit' | null>(null);
   const [appliedCouponCode, setAppliedCouponCode] = useState<string | null>(null);
+  const userDetailsRef = useRef<UserDetailsRef>(null);
 
   // Countdown timer — to April 8, 2026 00:00 Israel time (UTC+3)
   const TARGET_DATE = new Date('2026-04-07T21:00:00Z');
@@ -183,6 +185,7 @@ const Upgrade = () => {
         setPurchasedCredits(pkg.stories);
         setShowPayPal(false);
         setShowSuccess(true);
+        await userDetailsRef.current?.saveToProfile();
         trackEvent({ eventType: 'feature_used', metadata: { feature: 'purchase_completed', package: pkg.id, stories: pkg.stories, payment_method: 'paypal' } });
         if (user.email) {
           supabase.functions.invoke('send-purchase-confirmation', {
@@ -489,6 +492,7 @@ const Upgrade = () => {
               <p className="text-sm font-bold text-white text-center mb-3">
                 {EDUCATOR_PACKAGE.label} — {EDUCATOR_PACKAGE.stories} סיפורים תמורת ₪{EDUCATOR_PACKAGE.price}
               </p>
+              <UserDetailsForm ref={userDetailsRef} />
               <PayPalButton
                 amount={EDUCATOR_PACKAGE.price}
                 onSuccess={async () => {
@@ -514,6 +518,7 @@ const Upgrade = () => {
                       setPurchasedCredits(EDUCATOR_PACKAGE.stories);
                       setShowEducatorPayPal(false);
                       setShowSuccess(true);
+                      await userDetailsRef.current?.saveToProfile();
                     }
                   } catch (error) {
                     console.error('Educator purchase failed:', error);
@@ -610,6 +615,7 @@ const Upgrade = () => {
               <p className="text-sm font-bold text-white text-center mb-3">
                 {COLORING_KIT_PACKAGE.label} — {COLORING_KIT_PACKAGE.pages} דפי צביעה תמורת ₪{COLORING_KIT_PACKAGE.price}
               </p>
+              <UserDetailsForm ref={userDetailsRef} />
               <PayPalButton
                 amount={COLORING_KIT_PACKAGE.price}
                 onSuccess={async () => {
@@ -649,6 +655,7 @@ const Upgrade = () => {
                       description: `נוספו ${COLORING_KIT_PACKAGE.pages} דפי צביעה לחשבונך. יתרה חדשה: ${newCredits}`,
                       duration: 6000,
                     });
+                    await userDetailsRef.current?.saveToProfile();
                   } catch (error) {
                     console.error('🎨 [COLORING PURCHASE] ❌ FAILED:', error);
                     setShowColoringKitPayPal(false);
@@ -671,6 +678,7 @@ const Upgrade = () => {
               <p className="text-sm font-bold text-white text-center mb-3">
                 {EDIT_KIT_PACKAGE.label} — {EDIT_KIT_PACKAGE.edits} עריכות תמורת ₪{EDIT_KIT_PACKAGE.price}
               </p>
+              <UserDetailsForm ref={userDetailsRef} />
               <PayPalButton
                 amount={EDIT_KIT_PACKAGE.price}
                 onSuccess={async () => {
@@ -714,6 +722,7 @@ const Upgrade = () => {
                       description: `נוספו ${EDIT_KIT_PACKAGE.edits} עריכות לחשבונך. יתרה חדשה: ${newCredits}`,
                       duration: 6000,
                     });
+                    await userDetailsRef.current?.saveToProfile();
                     console.log('✏️ [EDIT PURCHASE] ✅ Complete! New balance:', newCredits);
                   } catch (error) {
                     console.error('✏️ [EDIT PURCHASE] ❌ FAILED:', error);
@@ -774,6 +783,7 @@ const Upgrade = () => {
               ) : (
                 <p className="text-sm font-bold text-white text-center mb-3">₪{selectedPkg?.price}</p>
               )}
+              <UserDetailsForm ref={userDetailsRef} />
               <PayPalButton
                 amount={discountPercent > 0 ? discountedPrice : (selectedPkg?.price || 0)}
                 onSuccess={handlePayPalSuccess}
