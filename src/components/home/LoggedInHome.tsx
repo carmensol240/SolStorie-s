@@ -119,7 +119,6 @@ const LoggedInHome = ({ user, displayName }: LoggedInHomeProps) => {
               <Pencil className="w-6 h-6 text-green-400" />
               <span className="font-bold text-green-100 text-lg">{editingCredits}</span>
             </button>
-            </button>
           </div>
 
           {/* Right side: Greeting pill - more transparent */}
