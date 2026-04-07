@@ -1,4 +1,4 @@
-import { useEffect, useState, useCallback, useMemo } from "react";
+import { useEffect, useState, useCallback, useMemo, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/use-auth";
@@ -7,13 +7,14 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
-import { Users, ShoppingCart, BookOpen, TrendingUp, ArrowRight, AlertTriangle, EyeOff, Eye, Trash2, Palette, Image, Ticket, ChevronDown, ChevronUp, Activity, Copy, Mail, CalendarPlus, RefreshCw, Clock, Search } from "lucide-react";
+import { Users, ShoppingCart, BookOpen, TrendingUp, ArrowRight, AlertTriangle, EyeOff, Eye, Trash2, Palette, Image, Ticket, ChevronDown, ChevronUp, Activity, Copy, Mail, CalendarPlus, RefreshCw, Clock, Search, RotateCcw, XCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { format, subDays, startOfDay } from "date-fns";
 import { ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart";
 import { LineChart, Line, XAxis, YAxis, CartesianGrid } from "recharts";
 import { useToast } from "@/hooks/use-toast";
+import { toast as sonnerToast } from "sonner";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -187,6 +188,44 @@ const AdminDashboard = () => {
   const [purchasesSearch, setPurchasesSearch] = useState("");
   const [errorsSearch, setErrorsSearch] = useState("");
 
+  // Recycle bin state — persisted in localStorage
+  const TRASH_KEY = "admin_trash";
+  const [trashedItems, setTrashedItems] = useState<Record<string, string[]>>(() => {
+    try {
+      const saved = localStorage.getItem(TRASH_KEY);
+      return saved ? JSON.parse(saved) : {};
+    } catch { return {}; }
+  });
+
+  const trashItem = useCallback((tab: string, id: string) => {
+    setTrashedItems(prev => {
+      const next = { ...prev, [tab]: [...(prev[tab] || []), id] };
+      localStorage.setItem(TRASH_KEY, JSON.stringify(next));
+      return next;
+    });
+  }, []);
+
+  const restoreItem = useCallback((tab: string, id: string) => {
+    setTrashedItems(prev => {
+      const next = { ...prev, [tab]: (prev[tab] || []).filter(i => i !== id) };
+      if (next[tab]?.length === 0) delete next[tab];
+      localStorage.setItem(TRASH_KEY, JSON.stringify(next));
+      return next;
+    });
+  }, []);
+
+  const permanentDeleteItem = useCallback((tab: string, id: string) => {
+    restoreItem(tab, id); // Just removes from trash view
+  }, [restoreItem]);
+
+  const isTrashed = useCallback((tab: string, id: string) => {
+    return (trashedItems[tab] || []).includes(id);
+  }, [trashedItems]);
+
+  // Ref to hold profiles for realtime callback
+  const profilesRef = useRef<ProfileRow[]>([]);
+  useEffect(() => { profilesRef.current = profiles; }, [profiles]);
+
   // "Mark as reviewed" — store cutoff timestamps per tab in localStorage
   const REVIEWED_KEY = "admin_reviewed_";
   const [reviewedCutoffs, setReviewedCutoffs] = useState<Record<string, string>>(() => {
@@ -318,6 +357,48 @@ const AdminDashboard = () => {
     return () => clearInterval(interval);
   }, [isAdmin, fetchAllData]);
 
+  // Realtime subscription for new purchases
+  useEffect(() => {
+    if (!isAdmin) return;
+    const channel = supabase
+      .channel('admin-purchases-realtime')
+      .on(
+        'postgres_changes',
+        { event: 'INSERT', schema: 'public', table: 'purchases' },
+        (payload) => {
+          const newPurchase = payload.new as PurchaseRow;
+          // Play notification chime
+          try {
+            const audioCtx = new AudioContext();
+            const oscillator = audioCtx.createOscillator();
+            const gainNode = audioCtx.createGain();
+            oscillator.connect(gainNode);
+            gainNode.connect(audioCtx.destination);
+            oscillator.frequency.value = 880;
+            oscillator.type = 'sine';
+            gainNode.gain.setValueAtTime(0.3, audioCtx.currentTime);
+            gainNode.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.5);
+            oscillator.start(audioCtx.currentTime);
+            oscillator.stop(audioCtx.currentTime + 0.5);
+          } catch (e) { console.warn('Audio notification failed', e); }
+
+          // Show toast
+          const profile = profilesRef.current.find(p => p.id === newPurchase.user_id);
+          const userName = profile?.display_name || profile?.email || 'משתמש';
+          sonnerToast.success('💰 רכישה חדשה!', {
+            description: `${userName} רכש ${newPurchase.package_name} — ₪${Number(newPurchase.amount_ils).toLocaleString()}`,
+            duration: 10000,
+          });
+
+          // Refresh data
+          fetchAllData();
+        }
+      )
+      .subscribe();
+
+    return () => { supabase.removeChannel(channel); };
+  }, [isAdmin, fetchAllData]);
+
   const todayStart = startOfDay(new Date());
   const weekAgo = subDays(new Date(), 7);
   const thirtyMinAgo = new Date(Date.now() - 30 * 60 * 1000);
@@ -352,17 +433,17 @@ const AdminDashboard = () => {
 
   // Filtered users
   const filteredUsers = useMemo(() => {
-    let items = filterByReviewed(profiles, "users");
+    let items = filterByReviewed(profiles, "users").filter(p => !isTrashed("users", p.id));
     if (usersSearch) {
       const q = usersSearch.toLowerCase();
       items = items.filter(p => (p.display_name || "").toLowerCase().includes(q) || (p.email || "").toLowerCase().includes(q));
     }
     return items;
-  }, [profiles, usersSearch, reviewedCutoffs, showReviewed]);
+  }, [profiles, usersSearch, reviewedCutoffs, showReviewed, trashedItems]);
 
   // Filtered stories
   const filteredStories = useMemo(() => {
-    let items = filterByReviewed(stories, "stories");
+    let items = filterByReviewed(stories, "stories").filter(s => !isTrashed("stories", s.id));
     if (storiesSearch) {
       const q = storiesSearch.toLowerCase();
       items = items.filter(s => {
@@ -371,11 +452,11 @@ const AdminDashboard = () => {
       });
     }
     return items;
-  }, [stories, storiesSearch, profiles, reviewedCutoffs, showReviewed]);
+  }, [stories, storiesSearch, profiles, reviewedCutoffs, showReviewed, trashedItems]);
 
   // Filtered purchases
   const filteredPurchases = useMemo(() => {
-    let items = filterByReviewed(purchases, "purchases");
+    let items = filterByReviewed(purchases, "purchases").filter(p => !isTrashed("purchases", p.id));
     if (purchasesSearch) {
       const q = purchasesSearch.toLowerCase();
       items = items.filter(p => {
@@ -384,7 +465,7 @@ const AdminDashboard = () => {
       });
     }
     return items;
-  }, [purchases, purchasesSearch, profiles, reviewedCutoffs, showReviewed]);
+  }, [purchases, purchasesSearch, profiles, reviewedCutoffs, showReviewed, trashedItems]);
 
   // 30-day registration chart data
   const chartData = useMemo(() => {
@@ -491,6 +572,14 @@ const AdminDashboard = () => {
             <TabsTrigger value="covers" className="text-xs md:text-sm">🖼️ כריכות</TabsTrigger>
             <TabsTrigger value="coupons" className="text-xs md:text-sm">🎟️ קופונים</TabsTrigger>
             <TabsTrigger value="feedback" className="text-xs md:text-sm">💬 משובים</TabsTrigger>
+            <TabsTrigger value="trash" className="text-xs md:text-sm flex items-center gap-1">
+              🗑️ סל מחזור
+              {Object.values(trashedItems).reduce((sum, arr) => sum + arr.length, 0) > 0 && (
+                <Badge className="bg-muted text-muted-foreground text-[10px] px-1.5 py-0">
+                  {Object.values(trashedItems).reduce((sum, arr) => sum + arr.length, 0)}
+                </Badge>
+              )}
+            </TabsTrigger>
           </TabsList>
 
           {/* ===== USERS TAB ===== */}
@@ -582,6 +671,10 @@ const AdminDashboard = () => {
                                   onClick={() => { navigator.clipboard.writeText(compensationMsg); toast({ title: "הועתק! ✓" }); }}>
                                   <Copy className="h-3.5 w-3.5" />
                                 </Button>
+                                <Button variant="ghost" size="icon" className="h-7 w-7 text-muted-foreground hover:text-destructive" title="העבר לסל מחזור"
+                                  onClick={() => trashItem("users", p.id)}>
+                                  <Trash2 className="h-3.5 w-3.5" />
+                                </Button>
                               </div>
                             </TableCell>
                           </TableRow>
@@ -616,10 +709,12 @@ const AdminDashboard = () => {
                     <Table>
                       <TableHeader>
                         <TableRow>
-                          <TableHead className="text-right">משתמש</TableHead>
+                         <TableHead className="text-right">משתמש</TableHead>
                           <TableHead className="text-right">שם הילד</TableHead>
                           <TableHead className="text-right">נושא</TableHead>
                           <TableHead className="text-right">תאריך</TableHead>
+                          <TableHead className="text-right">סטטוס</TableHead>
+                          <TableHead className="text-right w-10"></TableHead>
                           <TableHead className="text-right">סטטוס</TableHead>
                         </TableRow>
                       </TableHeader>
@@ -641,9 +736,14 @@ const AdminDashboard = () => {
                               <TableCell>{s.topic}</TableCell>
                               <TableCell className="text-xs whitespace-nowrap">{formatDate(s.created_at)}</TableCell>
                               <TableCell>
-                                <Badge className={`text-xs ${isReady ? "bg-green-100 text-green-800" : "bg-red-100 text-red-800"}`}>
+                                 <Badge className={`text-xs ${isReady ? "bg-green-100 text-green-800" : "bg-red-100 text-red-800"}`}>
                                   {isReady ? "הושלם" : "נכשל"}
                                 </Badge>
+                              </TableCell>
+                              <TableCell>
+                                <Button variant="ghost" size="icon" className="h-7 w-7 text-muted-foreground hover:text-destructive" title="העבר לסל מחזור" onClick={() => trashItem("stories", s.id)}>
+                                  <Trash2 className="h-3.5 w-3.5" />
+                                </Button>
                               </TableCell>
                             </TableRow>
                           );
@@ -676,14 +776,15 @@ const AdminDashboard = () => {
                         <TableHead className="text-right">סוג חבילה</TableHead>
                         <TableHead className="text-right">סכום (₪)</TableHead>
                         <TableHead className="text-right">תאריך</TableHead>
-                        <TableHead className="text-right">סטטוס</TableHead>
+                         <TableHead className="text-right">סטטוס</TableHead>
+                        <TableHead className="text-right w-10"></TableHead>
                       </TableRow>
                     </TableHeader>
                     <TableBody>
                       {loading ? (
-                        <TableRow><TableCell colSpan={6} className="text-center">טוען...</TableCell></TableRow>
+                        <TableRow><TableCell colSpan={7} className="text-center">טוען...</TableCell></TableRow>
                       ) : filteredPurchases.length === 0 ? (
-                        <TableRow><TableCell colSpan={6} className="text-center text-muted-foreground py-8">אין רכישות</TableCell></TableRow>
+                        <TableRow><TableCell colSpan={7} className="text-center text-muted-foreground py-8">אין רכישות</TableCell></TableRow>
                       ) : filteredPurchases.map((p) => {
                         const profile = profiles.find(pr => pr.id === p.user_id);
                         const isRecent = p.created_at && new Date(p.created_at) > thirtyMinAgo;
@@ -695,6 +796,11 @@ const AdminDashboard = () => {
                             <TableCell className="font-bold">₪{Number(p.amount_ils).toLocaleString()}</TableCell>
                             <TableCell className="text-xs whitespace-nowrap">{formatDate(p.created_at)}</TableCell>
                             <TableCell>{purchaseStatusBadge(p.status)}</TableCell>
+                            <TableCell>
+                              <Button variant="ghost" size="icon" className="h-7 w-7 text-muted-foreground hover:text-destructive" title="העבר לסל מחזור" onClick={() => trashItem("purchases", p.id)}>
+                                <Trash2 className="h-3.5 w-3.5" />
+                              </Button>
+                            </TableCell>
                           </TableRow>
                         );
                       })}
@@ -748,17 +854,18 @@ const AdminDashboard = () => {
                         <TableHead className="text-right">מה קרה</TableHead>
                         <TableHead className="text-right">שלב</TableHead>
                         <TableHead className="text-right">פרטים</TableHead>
-                        <TableHead className="text-right">תאריך</TableHead>
+                         <TableHead className="text-right">תאריך</TableHead>
+                        <TableHead className="text-right w-10"></TableHead>
                       </TableRow>
                     </TableHeader>
                     <TableBody>
-                      {filterByReviewed(filteredErrors, "errors").length === 0 ? (
+                      {filterByReviewed(filteredErrors, "errors").filter(e => !isTrashed("errors", e.id)).length === 0 ? (
                         <TableRow>
-                          <TableCell colSpan={5} className="text-center text-muted-foreground py-8">
+                          <TableCell colSpan={6} className="text-center text-muted-foreground py-8">
                             🎉 אין שגיאות חדשות
                           </TableCell>
                         </TableRow>
-                      ) : filterByReviewed(filteredErrors, "errors").map((e) => {
+                      ) : filterByReviewed(filteredErrors, "errors").filter(e => !isTrashed("errors", e.id)).map((e) => {
                         const errProfile = profiles.find(p => p.id === e.user_id);
                         const is402 = e.error_message?.includes("402");
                         return (
@@ -779,6 +886,11 @@ const AdminDashboard = () => {
                               {e.error_message.substring(0, 100)}
                             </TableCell>
                             <TableCell className="text-xs whitespace-nowrap">{formatDate(e.created_at)}</TableCell>
+                            <TableCell>
+                              <Button variant="ghost" size="icon" className="h-7 w-7 text-muted-foreground hover:text-destructive" title="העבר לסל מחזור" onClick={() => trashItem("errors", e.id)}>
+                                <Trash2 className="h-3.5 w-3.5" />
+                              </Button>
+                            </TableCell>
                           </TableRow>
                         );
                       })}
@@ -1056,6 +1168,76 @@ const AdminDashboard = () => {
                     </TableBody>
                   </Table>
                 </div>
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          {/* ===== RECYCLE BIN TAB ===== */}
+          <TabsContent value="trash">
+            <Card>
+              <CardContent className="p-4 space-y-6">
+                {Object.values(trashedItems).reduce((sum, arr) => sum + arr.length, 0) === 0 ? (
+                  <div className="text-center text-muted-foreground py-12">🗑️ סל המחזור ריק</div>
+                ) : (
+                  <>
+                    {(trashedItems["users"] || []).length > 0 && (
+                      <div>
+                        <h3 className="text-sm font-bold mb-2">👥 משתמשים ({trashedItems["users"].length})</h3>
+                        <Table>
+                          <TableHeader><TableRow><TableHead className="text-right">שם</TableHead><TableHead className="text-right">אימייל</TableHead><TableHead className="text-right w-32">פעולות</TableHead></TableRow></TableHeader>
+                          <TableBody>
+                            {trashedItems["users"].map(id => {
+                              const p = profiles.find(pr => pr.id === id);
+                              return (<TableRow key={id}><TableCell>{p?.display_name || id.substring(0, 8)}</TableCell><TableCell className="text-xs text-muted-foreground">{p?.email || "—"}</TableCell><TableCell><div className="flex gap-1"><Button variant="outline" size="sm" className="text-xs gap-1" onClick={() => restoreItem("users", id)}><RotateCcw className="h-3 w-3" />שחזור</Button><Button variant="ghost" size="sm" className="text-xs gap-1 text-destructive" onClick={() => permanentDeleteItem("users", id)}><XCircle className="h-3 w-3" />מחיקה</Button></div></TableCell></TableRow>);
+                            })}
+                          </TableBody>
+                        </Table>
+                      </div>
+                    )}
+                    {(trashedItems["stories"] || []).length > 0 && (
+                      <div>
+                        <h3 className="text-sm font-bold mb-2">📖 סיפורים ({trashedItems["stories"].length})</h3>
+                        <Table>
+                          <TableHeader><TableRow><TableHead className="text-right">נושא</TableHead><TableHead className="text-right">שם ילד</TableHead><TableHead className="text-right w-32">פעולות</TableHead></TableRow></TableHeader>
+                          <TableBody>
+                            {trashedItems["stories"].map(id => {
+                              const s = stories.find(st => st.id === id);
+                              return (<TableRow key={id}><TableCell>{s?.topic || id.substring(0, 8)}</TableCell><TableCell>{s?.child_name || "—"}</TableCell><TableCell><div className="flex gap-1"><Button variant="outline" size="sm" className="text-xs gap-1" onClick={() => restoreItem("stories", id)}><RotateCcw className="h-3 w-3" />שחזור</Button><Button variant="ghost" size="sm" className="text-xs gap-1 text-destructive" onClick={() => permanentDeleteItem("stories", id)}><XCircle className="h-3 w-3" />מחיקה</Button></div></TableCell></TableRow>);
+                            })}
+                          </TableBody>
+                        </Table>
+                      </div>
+                    )}
+                    {(trashedItems["purchases"] || []).length > 0 && (
+                      <div>
+                        <h3 className="text-sm font-bold mb-2">💳 רכישות ({trashedItems["purchases"].length})</h3>
+                        <Table>
+                          <TableHeader><TableRow><TableHead className="text-right">חבילה</TableHead><TableHead className="text-right">סכום</TableHead><TableHead className="text-right w-32">פעולות</TableHead></TableRow></TableHeader>
+                          <TableBody>
+                            {trashedItems["purchases"].map(id => {
+                              const pu = purchases.find(p => p.id === id);
+                              return (<TableRow key={id}><TableCell>{pu?.package_name || id.substring(0, 8)}</TableCell><TableCell>₪{pu ? Number(pu.amount_ils).toLocaleString() : "—"}</TableCell><TableCell><div className="flex gap-1"><Button variant="outline" size="sm" className="text-xs gap-1" onClick={() => restoreItem("purchases", id)}><RotateCcw className="h-3 w-3" />שחזור</Button><Button variant="ghost" size="sm" className="text-xs gap-1 text-destructive" onClick={() => permanentDeleteItem("purchases", id)}><XCircle className="h-3 w-3" />מחיקה</Button></div></TableCell></TableRow>);
+                            })}
+                          </TableBody>
+                        </Table>
+                      </div>
+                    )}
+                    {(trashedItems["errors"] || []).length > 0 && (
+                      <div>
+                        <h3 className="text-sm font-bold mb-2">⚠️ שגיאות ({trashedItems["errors"].length})</h3>
+                        <Table>
+                          <TableHeader><TableRow><TableHead className="text-right">שגיאה</TableHead><TableHead className="text-right">תאריך</TableHead><TableHead className="text-right w-32">פעולות</TableHead></TableRow></TableHeader>
+                          <TableBody>
+                            {trashedItems["errors"].map(id => {
+                              const err = errorLogs.find(e => e.id === id);
+                              return (<TableRow key={id}><TableCell className="text-xs">{err ? getErrorExplanation(err) : id.substring(0, 8)}</TableCell><TableCell className="text-xs">{err ? formatDate(err.created_at) : "—"}</TableCell><TableCell><div className="flex gap-1"><Button variant="outline" size="sm" className="text-xs gap-1" onClick={() => restoreItem("errors", id)}><RotateCcw className="h-3 w-3" />שחזור</Button><Button variant="ghost" size="sm" className="text-xs gap-1 text-destructive" onClick={() => permanentDeleteItem("errors", id)}><XCircle className="h-3 w-3" />מחיקה</Button></div></TableCell></TableRow>);
+                            })}
+                          </TableBody>
+                        </Table>
+                      </div>
+                    )}
+                  </>
+                )}
               </CardContent>
             </Card>
           </TabsContent>
