@@ -199,6 +199,47 @@ function floodFill(
   drawCtx.putImageData(drawData, 0, 0);
 }
 
+function floodErase(
+  drawCtx: CanvasRenderingContext2D,
+  startX: number, startY: number,
+  w: number, h: number,
+  tolerance = 32
+) {
+  const drawData = drawCtx.getImageData(0, 0, w, h);
+  const dd = drawData.data;
+  const sx = Math.floor(startX);
+  const sy = Math.floor(startY);
+  if (sx < 0 || sx >= w || sy < 0 || sy >= h) return;
+
+  const startIdx = (sy * w + sx) * 4;
+  if (dd[startIdx + 3] === 0) return;
+
+  const targetColor: [number, number, number, number] = [dd[startIdx], dd[startIdx+1], dd[startIdx+2], dd[startIdx+3]];
+  const visited = new Uint8Array(w * h);
+  const queue: number[] = [sx, sy];
+  visited[sy * w + sx] = 1;
+
+  while (queue.length > 0) {
+    const cy = queue.pop()!;
+    const cx = queue.pop()!;
+    const idx = (cy * w + cx) * 4;
+    dd[idx] = dd[idx+1] = dd[idx+2] = dd[idx+3] = 0;
+
+    for (const [nx, ny] of [[cx-1,cy],[cx+1,cy],[cx,cy-1],[cx,cy+1]]) {
+      if (nx < 0 || nx >= w || ny < 0 || ny >= h) continue;
+      const nPos = ny * w + nx;
+      if (visited[nPos]) continue;
+      visited[nPos] = 1;
+      const nIdx = nPos * 4;
+      if (dd[nIdx+3] === 0) continue;
+      if (colorsMatch(dd, nIdx, targetColor, tolerance)) {
+        queue.push(nx, ny);
+      }
+    }
+  }
+  drawCtx.putImageData(drawData, 0, 0);
+}
+
 export const OnlineColoringCanvas: React.FC<OnlineColoringCanvasProps> = ({
   isOpen, onClose, backgroundImage, childName, storyTitle,
   onNavigatePrev, onNavigateNext, canGoPrev, canGoNext,
@@ -376,15 +417,10 @@ export const OnlineColoringCanvas: React.FC<OnlineColoringCanvasProps> = ({
     const currentBrushSize = brushSizeRef.current;
 
     if (currentTool === 'eraser') {
-      setIsDrawing(true);
-      lastPos.current = pos;
-      const ctx = canvasRef.current?.getContext('2d');
-      if (ctx) {
-        ctx.globalCompositeOperation = 'destination-out';
-        ctx.beginPath();
-        ctx.arc(pos.x, pos.y, ERASER_SIZE, 0, Math.PI * 2);
-        ctx.fill();
-      }
+      const drawCtx = canvasRef.current?.getContext('2d');
+      if (!drawCtx || !canvasRef.current) return;
+      floodErase(drawCtx, pos.x, pos.y, canvasRef.current.width, canvasRef.current.height);
+      saveSnapshot();
       return;
     }
 
@@ -414,19 +450,14 @@ export const OnlineColoringCanvas: React.FC<OnlineColoringCanvasProps> = ({
     e.preventDefault();
     if (!isDrawing || !canvasRef.current || !lastPos.current) return;
     const currentTool = toolRef.current;
-    if (currentTool !== 'brush' && currentTool !== 'eraser') return;
+    if (currentTool !== 'brush') return;
     const ctx = canvasRef.current.getContext('2d');
     if (!ctx) return;
     const currentPos = getCanvasPos(e);
 
-    if (currentTool === 'eraser') {
-      ctx.globalCompositeOperation = 'destination-out';
-      ctx.lineWidth = ERASER_SIZE * 2;
-    } else {
-      ctx.globalCompositeOperation = 'source-over';
-      ctx.strokeStyle = colorRef.current;
-      ctx.lineWidth = brushSizeRef.current;
-    }
+    ctx.globalCompositeOperation = 'source-over';
+    ctx.strokeStyle = colorRef.current;
+    ctx.lineWidth = brushSizeRef.current;
     ctx.lineCap = 'round';
     ctx.beginPath();
     ctx.moveTo(lastPos.current.x, lastPos.current.y);
