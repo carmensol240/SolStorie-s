@@ -654,6 +654,7 @@ const Upgrade = () => {
                       description: `נוספו ${COLORING_KIT_PACKAGE.pages} דפי צביעה לחשבונך. יתרה חדשה: ${newCredits}`,
                       duration: 6000,
                     });
+                    await userDetailsRef.current?.saveToProfile();
                   } catch (error) {
                     console.error('🎨 [COLORING PURCHASE] ❌ FAILED:', error);
                     setShowColoringKitPayPal(false);
@@ -676,6 +677,7 @@ const Upgrade = () => {
               <p className="text-sm font-bold text-white text-center mb-3">
                 {EDIT_KIT_PACKAGE.label} — {EDIT_KIT_PACKAGE.edits} עריכות תמורת ₪{EDIT_KIT_PACKAGE.price}
               </p>
+              <UserDetailsForm ref={userDetailsRef} />
               <PayPalButton
                 amount={EDIT_KIT_PACKAGE.price}
                 onSuccess={async () => {
@@ -719,6 +721,7 @@ const Upgrade = () => {
                       description: `נוספו ${EDIT_KIT_PACKAGE.edits} עריכות לחשבונך. יתרה חדשה: ${newCredits}`,
                       duration: 6000,
                     });
+                    await userDetailsRef.current?.saveToProfile();
                     console.log('✏️ [EDIT PURCHASE] ✅ Complete! New balance:', newCredits);
                   } catch (error) {
                     console.error('✏️ [EDIT PURCHASE] ❌ FAILED:', error);
