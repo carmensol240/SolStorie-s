@@ -709,10 +709,12 @@ const AdminDashboard = () => {
                     <Table>
                       <TableHeader>
                         <TableRow>
-                          <TableHead className="text-right">משתמש</TableHead>
+                         <TableHead className="text-right">משתמש</TableHead>
                           <TableHead className="text-right">שם הילד</TableHead>
                           <TableHead className="text-right">נושא</TableHead>
                           <TableHead className="text-right">תאריך</TableHead>
+                          <TableHead className="text-right">סטטוס</TableHead>
+                          <TableHead className="text-right w-10"></TableHead>
                           <TableHead className="text-right">סטטוס</TableHead>
                         </TableRow>
                       </TableHeader>
