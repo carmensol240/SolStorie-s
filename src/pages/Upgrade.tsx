@@ -493,8 +493,9 @@ const Upgrade = () => {
               <p className="text-sm font-bold text-white text-center mb-3">
                 {EDUCATOR_PACKAGE.label} — {EDUCATOR_PACKAGE.stories} סיפורים תמורת ₪{EDUCATOR_PACKAGE.price}
               </p>
-              <UserDetailsForm ref={userDetailsRef} />
-              <PayPalButton
+              <UserDetailsForm ref={userDetailsRef} onValidChange={setUserDetailsValid} />
+              {!userDetailsValid && <p className="text-red-400 text-xs text-center mb-2">נא להזין טלפון תקין להמשך</p>}
+              {userDetailsValid && <PayPalButton
                 amount={EDUCATOR_PACKAGE.price}
                 onSuccess={async () => {
                   if (!user) return;
@@ -616,8 +617,9 @@ const Upgrade = () => {
               <p className="text-sm font-bold text-white text-center mb-3">
                 {COLORING_KIT_PACKAGE.label} — {COLORING_KIT_PACKAGE.pages} דפי צביעה תמורת ₪{COLORING_KIT_PACKAGE.price}
               </p>
-              <UserDetailsForm ref={userDetailsRef} />
-              <PayPalButton
+              <UserDetailsForm ref={userDetailsRef} onValidChange={setUserDetailsValid} />
+              {!userDetailsValid && <p className="text-red-400 text-xs text-center mb-2">נא להזין טלפון תקין להמשך</p>}
+              {userDetailsValid && <PayPalButton
                 amount={COLORING_KIT_PACKAGE.price}
                 onSuccess={async () => {
                   if (!user) return;
@@ -679,8 +681,9 @@ const Upgrade = () => {
               <p className="text-sm font-bold text-white text-center mb-3">
                 {EDIT_KIT_PACKAGE.label} — {EDIT_KIT_PACKAGE.edits} עריכות תמורת ₪{EDIT_KIT_PACKAGE.price}
               </p>
-              <UserDetailsForm ref={userDetailsRef} />
-              <PayPalButton
+              <UserDetailsForm ref={userDetailsRef} onValidChange={setUserDetailsValid} />
+              {!userDetailsValid && <p className="text-red-400 text-xs text-center mb-2">נא להזין טלפון תקין להמשך</p>}
+              {userDetailsValid && <PayPalButton
                 amount={EDIT_KIT_PACKAGE.price}
                 onSuccess={async () => {
                   if (!user) return;
@@ -784,8 +787,9 @@ const Upgrade = () => {
               ) : (
                 <p className="text-sm font-bold text-white text-center mb-3">₪{selectedPkg?.price}</p>
               )}
-              <UserDetailsForm ref={userDetailsRef} />
-              <PayPalButton
+              <UserDetailsForm ref={userDetailsRef} onValidChange={setUserDetailsValid} />
+              {!userDetailsValid && <p className="text-red-400 text-xs text-center mb-2">נא להזין טלפון תקין להמשך</p>}
+              {userDetailsValid && <PayPalButton
                 amount={discountPercent > 0 ? discountedPrice : (selectedPkg?.price || 0)}
                 onSuccess={handlePayPalSuccess}
                 onError={handlePayPalError}
