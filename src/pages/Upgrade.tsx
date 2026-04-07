@@ -616,6 +616,7 @@ const Upgrade = () => {
               </p>
               <UserDetailsForm ref={userDetailsRef} />
               <PayPalButton
+                amount={COLORING_KIT_PACKAGE.price}
                 onSuccess={async () => {
                   if (!user) return;
                   try {
