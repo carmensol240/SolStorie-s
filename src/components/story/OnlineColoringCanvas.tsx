@@ -199,6 +199,47 @@ function floodFill(
   drawCtx.putImageData(drawData, 0, 0);
 }
 
+function floodErase(
+  drawCtx: CanvasRenderingContext2D,
+  startX: number, startY: number,
+  w: number, h: number,
+  tolerance = 32
+) {
+  const drawData = drawCtx.getImageData(0, 0, w, h);
+  const dd = drawData.data;
+  const sx = Math.floor(startX);
+  const sy = Math.floor(startY);
+  if (sx < 0 || sx >= w || sy < 0 || sy >= h) return;
+
+  const startIdx = (sy * w + sx) * 4;
+  if (dd[startIdx + 3] === 0) return;
+
+  const targetColor: [number, number, number, number] = [dd[startIdx], dd[startIdx+1], dd[startIdx+2], dd[startIdx+3]];
+  const visited = new Uint8Array(w * h);
+  const queue: number[] = [sx, sy];
+  visited[sy * w + sx] = 1;
+
+  while (queue.length > 0) {
+    const cy = queue.pop()!;
+    const cx = queue.pop()!;
+    const idx = (cy * w + cx) * 4;
+    dd[idx] = dd[idx+1] = dd[idx+2] = dd[idx+3] = 0;
+
+    for (const [nx, ny] of [[cx-1,cy],[cx+1,cy],[cx,cy-1],[cx,cy+1]]) {
+      if (nx < 0 || nx >= w || ny < 0 || ny >= h) continue;
+      const nPos = ny * w + nx;
+      if (visited[nPos]) continue;
+      visited[nPos] = 1;
+      const nIdx = nPos * 4;
+      if (dd[nIdx+3] === 0) continue;
+      if (colorsMatch(dd, nIdx, targetColor, tolerance)) {
+        queue.push(nx, ny);
+      }
+    }
+  }
+  drawCtx.putImageData(drawData, 0, 0);
+}
+
 export const OnlineColoringCanvas: React.FC<OnlineColoringCanvasProps> = ({
   isOpen, onClose, backgroundImage, childName, storyTitle,
   onNavigatePrev, onNavigateNext, canGoPrev, canGoNext,
