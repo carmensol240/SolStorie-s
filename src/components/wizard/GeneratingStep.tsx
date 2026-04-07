@@ -324,6 +324,12 @@ const GeneratingStep = ({ formData, onComplete }: GeneratingStepProps) => {
         }
       }
       
+      // Don't auto-retry billing/system errors
+      if (errorMessage.includes("שגיאת מערכת זמנית")) {
+        setError(errorMessage);
+        return;
+      }
+
       if (retryCountRef.current < MAX_RETRIES) {
         retryCountRef.current += 1;
         const delay = Math.min(1000 * Math.pow(2, retryCountRef.current + 1), 10000);
