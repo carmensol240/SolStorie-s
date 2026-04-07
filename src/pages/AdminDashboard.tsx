@@ -357,6 +357,48 @@ const AdminDashboard = () => {
     return () => clearInterval(interval);
   }, [isAdmin, fetchAllData]);
 
+  // Realtime subscription for new purchases
+  useEffect(() => {
+    if (!isAdmin) return;
+    const channel = supabase
+      .channel('admin-purchases-realtime')
+      .on(
+        'postgres_changes',
+        { event: 'INSERT', schema: 'public', table: 'purchases' },
+        (payload) => {
+          const newPurchase = payload.new as PurchaseRow;
+          // Play notification chime
+          try {
+            const audioCtx = new AudioContext();
+            const oscillator = audioCtx.createOscillator();
+            const gainNode = audioCtx.createGain();
+            oscillator.connect(gainNode);
+            gainNode.connect(audioCtx.destination);
+            oscillator.frequency.value = 880;
+            oscillator.type = 'sine';
+            gainNode.gain.setValueAtTime(0.3, audioCtx.currentTime);
+            gainNode.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.5);
+            oscillator.start(audioCtx.currentTime);
+            oscillator.stop(audioCtx.currentTime + 0.5);
+          } catch (e) { console.warn('Audio notification failed', e); }
+
+          // Show toast
+          const profile = profilesRef.current.find(p => p.id === newPurchase.user_id);
+          const userName = profile?.display_name || profile?.email || 'משתמש';
+          sonnerToast.success('💰 רכישה חדשה!', {
+            description: `${userName} רכש ${newPurchase.package_name} — ₪${Number(newPurchase.amount_ils).toLocaleString()}`,
+            duration: 10000,
+          });
+
+          // Refresh data
+          fetchAllData();
+        }
+      )
+      .subscribe();
+
+    return () => { supabase.removeChannel(channel); };
+  }, [isAdmin, fetchAllData]);
+
   const todayStart = startOfDay(new Date());
   const weekAgo = subDays(new Date(), 7);
   const thirtyMinAgo = new Date(Date.now() - 30 * 60 * 1000);
