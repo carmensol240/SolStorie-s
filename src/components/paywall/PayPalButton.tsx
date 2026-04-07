@@ -103,7 +103,10 @@ const PayPalButton = ({ amount, onSuccess, onError, onCancel }: PayPalButtonProp
                 value: amount.toString(),
                 currency_code: 'ILS'
               }
-            }]
+            }],
+            application_context: {
+              shipping_preference: 'NO_SHIPPING'
+            }
           });
         },
         onApprove: async (_data: any, actions: any) => {
@@ -224,15 +227,6 @@ const PayPalButton = ({ amount, onSuccess, onError, onCancel }: PayPalButtonProp
         className={isLoading ? 'hidden' : 'min-h-[80px]'}
       />
       
-      {/* Note about credit card payments */}
-      {!isLoading && buttonsRendered && (
-        <div className="pt-3 text-center">
-          <p className="text-sm text-muted-foreground flex items-center justify-center gap-2">
-            <CreditCard className="w-4 h-4" />
-            <span>ניתן לשלם גם בכרטיס אשראי ללא חשבון פייפאל</span>
-          </p>
-        </div>
-      )}
     </div>
   );
 };
