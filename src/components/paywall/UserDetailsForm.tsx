@@ -3,18 +3,26 @@ import { Input } from "@/components/ui/input";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/use-auth";
 
+const isPhoneValid = (val: string) => !val || /^05\d{8}$/.test(val);
+
 export interface UserDetailsRef {
   getValues: () => { first_name: string; last_name: string; phone: string; email: string };
   saveToProfile: () => Promise<void>;
+  isValid: () => boolean;
 }
 
-const UserDetailsForm = forwardRef<UserDetailsRef>((_, ref) => {
+interface UserDetailsFormProps {
+  onValidChange?: (valid: boolean) => void;
+}
+
+const UserDetailsForm = forwardRef<UserDetailsRef, UserDetailsFormProps>(({ onValidChange }, ref) => {
   const { user } = useAuth();
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
   const [phone, setPhone] = useState("");
   const [email, setEmail] = useState("");
   const [loaded, setLoaded] = useState(false);
+  const [phoneError, setPhoneError] = useState(false);
 
   useEffect(() => {
     if (!user) return;
@@ -27,7 +35,9 @@ const UserDetailsForm = forwardRef<UserDetailsRef>((_, ref) => {
       if (data) {
         setFirstName((data as any).first_name || "");
         setLastName((data as any).last_name || "");
-        setPhone((data as any).phone || "");
+        const savedPhone = (data as any).phone || "";
+        setPhone(savedPhone);
+        setPhoneError(!isPhoneValid(savedPhone));
         setEmail((data as any).email || user.email || "");
       } else {
         setEmail(user.email || "");
@@ -37,8 +47,20 @@ const UserDetailsForm = forwardRef<UserDetailsRef>((_, ref) => {
     load();
   }, [user]);
 
+  useEffect(() => {
+    const valid = isPhoneValid(phone);
+    onValidChange?.(valid);
+  }, [phone, onValidChange]);
+
+  const handlePhoneChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const digits = e.target.value.replace(/\D/g, '');
+    setPhone(digits);
+    setPhoneError(!isPhoneValid(digits));
+  };
+
   useImperativeHandle(ref, () => ({
     getValues: () => ({ first_name: firstName, last_name: lastName, phone, email }),
+    isValid: () => isPhoneValid(phone),
     saveToProfile: async () => {
       if (!user) return;
       await supabase.from('profiles').update({
@@ -69,13 +91,20 @@ const UserDetailsForm = forwardRef<UserDetailsRef>((_, ref) => {
           className="bg-white/10 border-white/20 text-white placeholder:text-white/40 text-sm h-9 rounded-lg"
         />
       </div>
-      <Input
-        placeholder="טלפון"
-        type="tel"
-        value={phone}
-        onChange={(e) => setPhone(e.target.value)}
-        className="bg-white/10 border-white/20 text-white placeholder:text-white/40 text-sm h-9 rounded-lg"
-      />
+      <div>
+        <Input
+          placeholder="טלפון (05XXXXXXXX)"
+          type="tel"
+          inputMode="numeric"
+          maxLength={10}
+          value={phone}
+          onChange={handlePhoneChange}
+          className={`bg-white/10 border-white/20 text-white placeholder:text-white/40 text-sm h-9 rounded-lg ${phoneError ? 'border-red-400' : ''}`}
+        />
+        {phoneError && (
+          <p className="text-red-400 text-xs mt-1 text-right">נא להזין מספר טלפון תקין (05XXXXXXXX)</p>
+        )}
+      </div>
       <Input
         placeholder="אימייל"
         type="email"
