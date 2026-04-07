@@ -1,5 +1,5 @@
 import React, { useRef, useState, useEffect, useCallback, useMemo } from 'react';
-import { Undo2, Redo2, Download, Printer, ArrowRight, PaintBucket, Eraser, Pencil, Trash2 } from 'lucide-react';
+import { Undo2, Redo2, Download, Printer, ArrowRight, PaintBucket, Eraser, Pencil, Trash2, ScreenShare, Smartphone } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 
 interface OnlineColoringCanvasProps {
@@ -250,6 +250,8 @@ export const OnlineColoringCanvas: React.FC<OnlineColoringCanvasProps> = ({
   const [color, setColor] = useState(COLORS[0]);
   const [tool, setTool] = useState<Tool>('fill');
   const [brushSize, setBrushSize] = useState(8);
+  const [isLandscape, setIsLandscape] = useState(false);
+  const orientationLockSupported = useRef(false);
   const [bgLoaded, setBgLoaded] = useState(false);
   const lastPos = useRef<{ x: number; y: number } | null>(null);
   const bgImageRef = useRef<HTMLImageElement | null>(null);
@@ -276,6 +278,7 @@ export const OnlineColoringCanvas: React.FC<OnlineColoringCanvasProps> = ({
       setTool('brush');
     }
   }, []);
+
 
   // Fullscreen API
   useEffect(() => {
@@ -373,6 +376,31 @@ export const OnlineColoringCanvas: React.FC<OnlineColoringCanvasProps> = ({
     }
   }, []);
 
+  const toggleLandscape = useCallback(async () => {
+    const goLandscape = !isLandscape;
+    setIsLandscape(goLandscape);
+    try {
+      if (goLandscape) {
+        await (screen.orientation as any).lock('landscape');
+        orientationLockSupported.current = true;
+      } else {
+        (screen.orientation as any).unlock();
+      }
+    } catch {
+      orientationLockSupported.current = false;
+    }
+    setTimeout(() => {
+      if (bgImageRef.current) resizeCanvases(bgImageRef.current);
+    }, 150);
+  }, [isLandscape, resizeCanvases]);
+
+  const handleClose = useCallback(() => {
+    if (isLandscape) {
+      try { (screen.orientation as any).unlock(); } catch {}
+      setIsLandscape(false);
+    }
+    onClose();
+  }, [isLandscape, onClose]);
   useEffect(() => {
     if (!isOpen) return;
     setBgLoaded(false);
@@ -534,10 +562,23 @@ export const OnlineColoringCanvas: React.FC<OnlineColoringCanvasProps> = ({
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-50 bg-white flex flex-col overflow-hidden" style={{ height: '100dvh' }}>
+    <div className="fixed inset-0 z-50 bg-white flex flex-col overflow-hidden" style={{
+      height: '100dvh',
+      ...(isLandscape && !orientationLockSupported.current ? {
+        transform: 'rotate(-90deg)',
+        transformOrigin: 'center center',
+        width: '100dvh',
+        height: '100vw',
+        position: 'fixed' as const,
+        top: '50%',
+        left: '50%',
+        marginTop: 'calc(-50vw)',
+        marginLeft: 'calc(-50dvh)',
+      } : {})
+    }}>
       {/* Top bar */}
       <div className="flex-shrink-0 flex justify-between items-center px-2 py-1.5 bg-gradient-to-r from-purple-600/90 to-pink-500/90" dir="rtl">
-        <Button onClick={onClose} variant="ghost" size="sm" className="text-white hover:bg-white/20 rounded-xl gap-1 min-h-[36px] px-2 text-sm">
+        <Button onClick={handleClose} variant="ghost" size="sm" className="text-white hover:bg-white/20 rounded-xl gap-1 min-h-[36px] px-2 text-sm">
           <ArrowRight className="w-4 h-4" /> חזרה
         </Button>
         <div className="flex items-center gap-0.5">
@@ -558,6 +599,9 @@ export const OnlineColoringCanvas: React.FC<OnlineColoringCanvasProps> = ({
           </Button>
           <Button onClick={handleClear} variant="ghost" size="icon" className="text-white hover:bg-white/20 rounded-xl w-9 h-9" title="נקה צביעה">
             <Trash2 className="w-4 h-4" />
+          </Button>
+          <Button onClick={toggleLandscape} variant="ghost" size="icon" className="text-white hover:bg-white/20 rounded-xl w-9 h-9" title={isLandscape ? 'מצב עומד' : 'מצב רוחב'}>
+            {isLandscape ? <Smartphone className="w-4 h-4" /> : <ScreenShare className="w-4 h-4" />}
           </Button>
           {(canGoPrev || canGoNext) && (
             <div className="hidden md:flex items-center">
