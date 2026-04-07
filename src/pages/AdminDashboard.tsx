@@ -188,6 +188,44 @@ const AdminDashboard = () => {
   const [purchasesSearch, setPurchasesSearch] = useState("");
   const [errorsSearch, setErrorsSearch] = useState("");
 
+  // Recycle bin state — persisted in localStorage
+  const TRASH_KEY = "admin_trash";
+  const [trashedItems, setTrashedItems] = useState<Record<string, string[]>>(() => {
+    try {
+      const saved = localStorage.getItem(TRASH_KEY);
+      return saved ? JSON.parse(saved) : {};
+    } catch { return {}; }
+  });
+
+  const trashItem = useCallback((tab: string, id: string) => {
+    setTrashedItems(prev => {
+      const next = { ...prev, [tab]: [...(prev[tab] || []), id] };
+      localStorage.setItem(TRASH_KEY, JSON.stringify(next));
+      return next;
+    });
+  }, []);
+
+  const restoreItem = useCallback((tab: string, id: string) => {
+    setTrashedItems(prev => {
+      const next = { ...prev, [tab]: (prev[tab] || []).filter(i => i !== id) };
+      if (next[tab]?.length === 0) delete next[tab];
+      localStorage.setItem(TRASH_KEY, JSON.stringify(next));
+      return next;
+    });
+  }, []);
+
+  const permanentDeleteItem = useCallback((tab: string, id: string) => {
+    restoreItem(tab, id); // Just removes from trash view
+  }, [restoreItem]);
+
+  const isTrashed = useCallback((tab: string, id: string) => {
+    return (trashedItems[tab] || []).includes(id);
+  }, [trashedItems]);
+
+  // Ref to hold profiles for realtime callback
+  const profilesRef = useRef<ProfileRow[]>([]);
+  useEffect(() => { profilesRef.current = profiles; }, [profiles]);
+
   // "Mark as reviewed" — store cutoff timestamps per tab in localStorage
   const REVIEWED_KEY = "admin_reviewed_";
   const [reviewedCutoffs, setReviewedCutoffs] = useState<Record<string, string>>(() => {
