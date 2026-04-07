@@ -854,17 +854,18 @@ const AdminDashboard = () => {
                         <TableHead className="text-right">מה קרה</TableHead>
                         <TableHead className="text-right">שלב</TableHead>
                         <TableHead className="text-right">פרטים</TableHead>
-                        <TableHead className="text-right">תאריך</TableHead>
+                         <TableHead className="text-right">תאריך</TableHead>
+                        <TableHead className="text-right w-10"></TableHead>
                       </TableRow>
                     </TableHeader>
                     <TableBody>
-                      {filterByReviewed(filteredErrors, "errors").length === 0 ? (
+                      {filterByReviewed(filteredErrors, "errors").filter(e => !isTrashed("errors", e.id)).length === 0 ? (
                         <TableRow>
-                          <TableCell colSpan={5} className="text-center text-muted-foreground py-8">
+                          <TableCell colSpan={6} className="text-center text-muted-foreground py-8">
                             🎉 אין שגיאות חדשות
                           </TableCell>
                         </TableRow>
-                      ) : filterByReviewed(filteredErrors, "errors").map((e) => {
+                      ) : filterByReviewed(filteredErrors, "errors").filter(e => !isTrashed("errors", e.id)).map((e) => {
                         const errProfile = profiles.find(p => p.id === e.user_id);
                         const is402 = e.error_message?.includes("402");
                         return (
@@ -885,6 +886,11 @@ const AdminDashboard = () => {
                               {e.error_message.substring(0, 100)}
                             </TableCell>
                             <TableCell className="text-xs whitespace-nowrap">{formatDate(e.created_at)}</TableCell>
+                            <TableCell>
+                              <Button variant="ghost" size="icon" className="h-7 w-7 text-muted-foreground hover:text-destructive" title="העבר לסל מחזור" onClick={() => trashItem("errors", e.id)}>
+                                <Trash2 className="h-3.5 w-3.5" />
+                              </Button>
+                            </TableCell>
                           </TableRow>
                         );
                       })}
