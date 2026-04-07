@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useNavigate, useSearchParams, Link } from "react-router-dom";
 import { X, Crown, Gift } from "lucide-react";
 
@@ -9,6 +9,7 @@ import PurchaseSuccessModal from "@/components/paywall/PurchaseSuccessModal";
 import PurchaseFailedModal from "@/components/paywall/PurchaseFailedModal";
 import PayPalButton from "@/components/paywall/PayPalButton";
 import CouponInput from "@/components/paywall/CouponInput";
+import UserDetailsForm, { UserDetailsRef } from "@/components/paywall/UserDetailsForm";
 
 import { useCredits } from "@/hooks/use-credits";
 import { useSubscription } from "@/hooks/use-subscription";
