@@ -443,7 +443,7 @@ const AdminDashboard = () => {
 
   // Filtered stories
   const filteredStories = useMemo(() => {
-    let items = filterByReviewed(stories, "stories");
+    let items = filterByReviewed(stories, "stories").filter(s => !isTrashed("stories", s.id));
     if (storiesSearch) {
       const q = storiesSearch.toLowerCase();
       items = items.filter(s => {
@@ -452,11 +452,11 @@ const AdminDashboard = () => {
       });
     }
     return items;
-  }, [stories, storiesSearch, profiles, reviewedCutoffs, showReviewed]);
+  }, [stories, storiesSearch, profiles, reviewedCutoffs, showReviewed, trashedItems]);
 
   // Filtered purchases
   const filteredPurchases = useMemo(() => {
-    let items = filterByReviewed(purchases, "purchases");
+    let items = filterByReviewed(purchases, "purchases").filter(p => !isTrashed("purchases", p.id));
     if (purchasesSearch) {
       const q = purchasesSearch.toLowerCase();
       items = items.filter(p => {
@@ -465,7 +465,7 @@ const AdminDashboard = () => {
       });
     }
     return items;
-  }, [purchases, purchasesSearch, profiles, reviewedCutoffs, showReviewed]);
+  }, [purchases, purchasesSearch, profiles, reviewedCutoffs, showReviewed, trashedItems]);
 
   // 30-day registration chart data
   const chartData = useMemo(() => {
