@@ -341,9 +341,9 @@ export const OnlineColoringCanvas: React.FC<OnlineColoringCanvasProps> = ({
     const vw = window.innerWidth;
     const vh = window.innerHeight;
     const isMobile = vw < 768;
-    const toolbarHeight = isMobile ? 44 + 110 : 44 + 110;
+    const toolbarHeight = isMobile ? 100 : 100;
     const availH = vh - toolbarHeight;
-    const canvasMaxH = isMobile ? availH : Math.floor(availH * 0.98);
+    const canvasMaxH = availH;
     const canvasMaxW = isMobile ? vw : Math.floor(vw * 0.95);
 
     // Use trimmed content ratio instead of full image ratio
@@ -626,7 +626,7 @@ export const OnlineColoringCanvas: React.FC<OnlineColoringCanvasProps> = ({
       </div>
 
       {/* Canvas area */}
-      <div className="flex-1 flex items-center justify-center overflow-hidden bg-white">
+      <div className="flex-1 min-h-0 flex items-center justify-center overflow-hidden bg-white">
         {!bgLoaded && (
           <div className="absolute inset-0 flex items-center justify-center z-10">
             <div className="animate-spin w-10 h-10 border-4 border-purple-400 border-t-transparent rounded-full" />
@@ -646,7 +646,7 @@ export const OnlineColoringCanvas: React.FC<OnlineColoringCanvasProps> = ({
       </div>
 
       {/* Bottom toolbar */}
-      <div className="flex-shrink-0 bg-white/90 backdrop-blur-sm border-t border-purple-200 px-2 py-1.5 space-y-1.5" style={{ paddingBottom: `max(120px, calc(env(safe-area-inset-bottom, 34px) + 90px))` }}>
+      <div className="flex-shrink-0 bg-white/90 backdrop-blur-sm border-t border-purple-200 px-2 py-1.5 space-y-1.5" style={{ paddingBottom: `calc(env(safe-area-inset-bottom, 8px) + 8px)` }}>
         {/* Tools */}
         <div className="flex items-center justify-center gap-2">
           <button onPointerDown={(e) => { e.stopPropagation(); toolRef.current = 'fill'; setTool('fill'); }}
