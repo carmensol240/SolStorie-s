@@ -158,54 +158,51 @@ const Upgrade = () => {
     setShowPayPal(true);
   };
 
-  const handlePayPalSuccess = async () => {
+  const verifyPurchase = async (orderId: string, packageId: string, amount: number, couponCode?: string | null) => {
+    if (!user) throw new Error('User not authenticated');
+    console.log(`[VERIFY] Calling verify-purchase: order=${orderId}, pkg=${packageId}, amount=${amount}`);
+    const { data, error } = await supabase.functions.invoke('verify-purchase', {
+      body: { orderId, packageId, amount, userId: user.id, couponCode: couponCode || undefined },
+    });
+    if (error) throw error;
+    if (!data?.success) throw new Error(data?.error || 'Verification failed');
+    console.log('[VERIFY] ✅ Purchase verified:', data);
+    return data;
+  };
+
+  const handlePayPalSuccess = async (orderId: string) => {
     const pkg = PRICING_PACKAGES.find(p => p.id === selectedPackage);
-    if (!pkg || !user) return;
+    if (!pkg || !user) {
+      console.error('[PURCHASE] user or pkg is null at callback time', { user: !!user, pkg: !!pkg });
+      setShowFailed(true);
+      setFailedPurchaseType('stories');
+      return;
+    }
     try {
       const finalPrice = discountPercent > 0 ? Math.round(pkg.price * (1 - discountPercent / 100)) : pkg.price;
-      const { error: purchaseError } = await supabase
-        .from('purchases')
-        .insert({
-          user_id: user.id,
-          package_name: appliedCouponCode ? `${pkg.id}_coupon_${appliedCouponCode}` : pkg.id,
-          credits_purchased: pkg.stories,
-          amount_ils: finalPrice,
-          status: 'completed',
-        });
-      if (purchaseError) throw purchaseError;
-      const success = await addCredits(pkg.stories);
-      if (success) {
-        // Add free edits and coloring credits to profile
-        const { data: profileData } = await supabase.from('profiles').select('free_edits_remaining, free_edits_total, coloring_credits').eq('id', user.id).maybeSingle();
-        await supabase.from('profiles').update({
-          free_edits_remaining: (profileData?.free_edits_remaining ?? 0) + pkg.freeEdits,
-          free_edits_total: (profileData?.free_edits_total ?? 0) + pkg.freeEdits,
-          coloring_credits: (profileData?.coloring_credits ?? 0) + (pkg.freeColoringPages ?? 0),
-        }).eq('id', user.id);
-        window.dispatchEvent(new CustomEvent('coloring-credits-updated'));
-        setPurchasedCredits(pkg.stories);
-        setShowPayPal(false);
-        setShowSuccess(true);
-        await userDetailsRef.current?.saveToProfile();
-        trackEvent({ eventType: 'feature_used', metadata: { feature: 'purchase_completed', package: pkg.id, stories: pkg.stories, payment_method: 'paypal' } });
-        if (user.email) {
-          supabase.functions.invoke('send-purchase-confirmation', {
-            body: {
-              email: user.email,
-              packageName: pkg.label,
-              credits: pkg.stories,
-              amount: finalPrice,
-              transactionDate: new Date().toLocaleDateString('he-IL'),
-            }
-          }).then(({ error }) => {
-            if (error) console.error('Failed to send confirmation email:', error);
-          });
-        }
-      } else {
-        throw new Error('Failed to add credits');
+      await verifyPurchase(orderId, pkg.id, finalPrice, appliedCouponCode);
+      
+      refetchCredits();
+      window.dispatchEvent(new CustomEvent('coloring-credits-updated'));
+      setPurchasedCredits(pkg.stories);
+      setShowPayPal(false);
+      setShowSuccess(true);
+      await userDetailsRef.current?.saveToProfile();
+      trackEvent({ eventType: 'feature_used', metadata: { feature: 'purchase_completed', package: pkg.id, stories: pkg.stories, payment_method: 'paypal' } });
+      
+      if (user.email) {
+        supabase.functions.invoke('send-purchase-confirmation', {
+          body: {
+            email: user.email,
+            packageName: pkg.label,
+            credits: pkg.stories,
+            amount: finalPrice,
+            transactionDate: new Date().toLocaleDateString('he-IL'),
+          }
+        }).catch(err => console.error('Failed to send confirmation email:', err));
       }
     } catch (error) {
-      console.error('Purchase failed:', error);
+      console.error('Purchase verification failed:', error);
       setShowPayPal(false);
       setShowFailed(true);
       setFailedPurchaseType('stories');
@@ -242,24 +239,10 @@ const Upgrade = () => {
     setShowToolkitPayPal(true);
   };
 
-  const handleToolkitPayPalSuccess = async () => {
+  const handleToolkitPayPalSuccess = async (orderId: string) => {
     if (!user) return;
     try {
-      const { error: purchaseError } = await supabase
-        .from('purchases')
-        .insert({
-          user_id: user.id,
-          package_name: TOOLKIT_SUBSCRIPTION.id,
-          credits_purchased: 0,
-          amount_ils: TOOLKIT_SUBSCRIPTION.price,
-          status: 'completed',
-        });
-      if (purchaseError) throw purchaseError;
-      const { error: profileError } = await supabase
-        .from('profiles')
-        .update({ is_subscriber: true })
-        .eq('id', user.id);
-      if (profileError) throw profileError;
+      await verifyPurchase(orderId, TOOLKIT_SUBSCRIPTION.id, TOOLKIT_SUBSCRIPTION.price);
       refetchSubscription();
       setShowToolkitPayPal(false);
       setShowSubscriptionSuccess(true);
@@ -497,31 +480,16 @@ const Upgrade = () => {
               {!userDetailsValid && <p className="text-red-400 text-xs text-center mb-2">נא להזין טלפון תקין להמשך</p>}
               {userDetailsValid && <PayPalButton
                 amount={EDUCATOR_PACKAGE.price}
-                onSuccess={async () => {
+                onSuccess={async (orderId: string) => {
                   if (!user) return;
                   try {
-                    await supabase.from('purchases').insert({
-                      user_id: user.id,
-                      package_name: EDUCATOR_PACKAGE.id,
-                      credits_purchased: EDUCATOR_PACKAGE.stories,
-                      amount_ils: EDUCATOR_PACKAGE.price,
-                      status: 'completed',
-                    });
-                    const success = await addCredits(EDUCATOR_PACKAGE.stories);
-                    if (success) {
-                      // Add free edits to profile
-                      const { data: profileData } = await supabase.from('profiles').select('free_edits_remaining, free_edits_total, coloring_credits').eq('id', user.id).maybeSingle();
-                      await supabase.from('profiles').update({
-                        free_edits_remaining: (profileData?.free_edits_remaining ?? 0) + EDUCATOR_PACKAGE.freeEdits,
-                        free_edits_total: (profileData?.free_edits_total ?? 0) + EDUCATOR_PACKAGE.freeEdits,
-                        coloring_credits: (profileData?.coloring_credits ?? 0) + (EDUCATOR_PACKAGE.freeColoringPages ?? 0),
-                      }).eq('id', user.id);
-                      window.dispatchEvent(new CustomEvent('coloring-credits-updated'));
-                      setPurchasedCredits(EDUCATOR_PACKAGE.stories);
-                      setShowEducatorPayPal(false);
-                      setShowSuccess(true);
-                      await userDetailsRef.current?.saveToProfile();
-                    }
+                    await verifyPurchase(orderId, EDUCATOR_PACKAGE.id, EDUCATOR_PACKAGE.price);
+                    refetchCredits();
+                    window.dispatchEvent(new CustomEvent('coloring-credits-updated'));
+                    setPurchasedCredits(EDUCATOR_PACKAGE.stories);
+                    setShowEducatorPayPal(false);
+                    setShowSuccess(true);
+                    await userDetailsRef.current?.saveToProfile();
                   } catch (error) {
                     console.error('Educator purchase failed:', error);
                     setShowEducatorPayPal(false);
@@ -621,41 +589,15 @@ const Upgrade = () => {
               {!userDetailsValid && <p className="text-red-400 text-xs text-center mb-2">נא להזין טלפון תקין להמשך</p>}
               {userDetailsValid && <PayPalButton
                 amount={COLORING_KIT_PACKAGE.price}
-                onSuccess={async () => {
+                onSuccess={async (orderId: string) => {
                   if (!user) return;
                   try {
-                    console.log('🎨 [COLORING PURCHASE] Starting purchase flow for user:', user.id);
-                    const { error: purchaseError } = await supabase.from('purchases').insert({
-                      user_id: user.id,
-                      package_name: COLORING_KIT_PACKAGE.id,
-                      credits_purchased: COLORING_KIT_PACKAGE.pages,
-                      amount_ils: COLORING_KIT_PACKAGE.price,
-                      status: 'completed',
-                    });
-                    console.log('🎨 [COLORING PURCHASE] Insert result:', purchaseError ? `FAILED: ${purchaseError.message}` : 'SUCCESS');
-                    if (purchaseError) throw purchaseError;
-                    const { data: profile, error: selectError } = await supabase
-                      .from('profiles')
-                      .select('coloring_credits')
-                      .eq('id', user.id)
-                      .maybeSingle();
-                    console.log('🎨 [COLORING PURCHASE] Current credits:', profile?.coloring_credits, 'Select error:', selectError?.message ?? 'none');
-                    if (selectError) throw selectError;
-                    const currentCredits = profile?.coloring_credits ?? 0;
-                    const newCredits = currentCredits + COLORING_KIT_PACKAGE.pages;
-                    console.log('🎨 [COLORING PURCHASE] Updating credits:', currentCredits, '->', newCredits);
-                    const { error: updateError } = await supabase
-                      .from('profiles')
-                      .update({ coloring_credits: newCredits })
-                      .eq('id', user.id);
-                    console.log('🎨 [COLORING PURCHASE] Update result:', updateError ? `FAILED: ${updateError.message}` : 'SUCCESS');
-                    if (updateError) throw updateError;
+                    const result = await verifyPurchase(orderId, COLORING_KIT_PACKAGE.id, COLORING_KIT_PACKAGE.price);
                     setShowColoringKitPayPal(false);
                     trackEvent({ eventType: 'feature_used', metadata: { feature: 'coloring_kit_purchased', pages: COLORING_KIT_PACKAGE.pages, payment_method: 'paypal' } });
                     window.dispatchEvent(new CustomEvent('coloring-credits-updated'));
-                    console.log('🎨 [COLORING PURCHASE] ✅ Complete! New balance:', newCredits);
                     toast.success('🎨 נוספו קרדיטי צביעה!', {
-                      description: `נוספו ${COLORING_KIT_PACKAGE.pages} דפי צביעה לחשבונך. יתרה חדשה: ${newCredits}`,
+                      description: `נוספו ${COLORING_KIT_PACKAGE.pages} דפי צביעה לחשבונך`,
                       duration: 6000,
                     });
                     await userDetailsRef.current?.saveToProfile();
@@ -685,49 +627,18 @@ const Upgrade = () => {
               {!userDetailsValid && <p className="text-red-400 text-xs text-center mb-2">נא להזין טלפון תקין להמשך</p>}
               {userDetailsValid && <PayPalButton
                 amount={EDIT_KIT_PACKAGE.price}
-                onSuccess={async () => {
+                onSuccess={async (orderId: string) => {
                   if (!user) return;
                   try {
-                    console.log('✏️ [EDIT PURCHASE] Starting purchase flow for user:', user.id);
-
-                    const { error: purchaseError } = await supabase.from('purchases').insert({
-                      user_id: user.id,
-                      package_name: EDIT_KIT_PACKAGE.id,
-                      credits_purchased: 0,
-                      amount_ils: EDIT_KIT_PACKAGE.price,
-                      status: 'completed',
-                    });
-                    console.log('✏️ [EDIT PURCHASE] Insert result:', purchaseError ? `FAILED: ${purchaseError.message}` : 'SUCCESS');
-                    if (purchaseError) throw purchaseError;
-
-                    const { data: profile, error: selectError } = await supabase
-                      .from('profiles')
-                      .select('editing_credits')
-                      .eq('id', user.id)
-                      .maybeSingle();
-                    console.log('✏️ [EDIT PURCHASE] Current editing_credits:', (profile as any)?.editing_credits, 'Select error:', selectError?.message ?? 'none');
-                    if (selectError) throw selectError;
-
-                    const currentCredits = (profile as any)?.editing_credits ?? 0;
-                    const newCredits = currentCredits + EDIT_KIT_PACKAGE.edits;
-                    console.log('✏️ [EDIT PURCHASE] Updating credits:', currentCredits, '->', newCredits);
-
-                    const { error: updateError } = await supabase
-                      .from('profiles')
-                      .update({ editing_credits: newCredits } as any)
-                      .eq('id', user.id);
-                    console.log('✏️ [EDIT PURCHASE] Update result:', updateError ? `FAILED: ${updateError.message}` : 'SUCCESS');
-                    if (updateError) throw updateError;
-
+                    await verifyPurchase(orderId, EDIT_KIT_PACKAGE.id, EDIT_KIT_PACKAGE.price);
                     setShowEditKitPayPal(false);
                     trackEvent({ eventType: 'feature_used', metadata: { feature: 'edit_kit_purchased', edits: EDIT_KIT_PACKAGE.edits, payment_method: 'paypal' } });
                     window.dispatchEvent(new Event('editing-credits-updated'));
                     toast.success('✏️ נוספו קרדיטי עריכה!', {
-                      description: `נוספו ${EDIT_KIT_PACKAGE.edits} עריכות לחשבונך. יתרה חדשה: ${newCredits}`,
+                      description: `נוספו ${EDIT_KIT_PACKAGE.edits} עריכות לחשבונך`,
                       duration: 6000,
                     });
                     await userDetailsRef.current?.saveToProfile();
-                    console.log('✏️ [EDIT PURCHASE] ✅ Complete! New balance:', newCredits);
                   } catch (error) {
                     console.error('✏️ [EDIT PURCHASE] ❌ FAILED:', error);
                     setShowEditKitPayPal(false);

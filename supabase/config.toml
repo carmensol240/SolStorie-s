@@ -78,5 +78,9 @@ verify_jwt = false
 [functions.send-feedback-notification]
 verify_jwt = false
 
+
 [functions.claim-guest-story]
+verify_jwt = false
+
+[functions.verify-purchase]
 verify_jwt = false

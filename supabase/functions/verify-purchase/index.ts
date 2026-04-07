@@ -1,0 +1,249 @@
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2.39.3";
+import { corsHeaders } from "https://deno.land/x/cors@v1.2.2/mod.ts";
+
+const CORS = {
+  "Access-Control-Allow-Origin": "*",
+  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
+};
+
+Deno.serve(async (req) => {
+  if (req.method === "OPTIONS") {
+    return new Response("ok", { headers: CORS });
+  }
+
+  try {
+    const { orderId, packageId, amount, userId, couponCode } = await req.json();
+
+    // Validate inputs
+    if (!orderId || !packageId || !amount || !userId) {
+      return new Response(
+        JSON.stringify({ error: "Missing required fields" }),
+        { status: 400, headers: { ...CORS, "Content-Type": "application/json" } }
+      );
+    }
+
+    console.log(`[VERIFY-PURCHASE] Starting verification for order: ${orderId}, package: ${packageId}, user: ${userId}`);
+
+    // Verify PayPal order
+    const paypalClientId = Deno.env.get("PAYPAL_CLIENT_ID");
+    const paypalSecret = Deno.env.get("PAYPAL_CLIENT_SECRET");
+
+    if (!paypalClientId || !paypalSecret) {
+      console.error("[VERIFY-PURCHASE] PayPal credentials not configured");
+      return new Response(
+        JSON.stringify({ error: "Payment verification not configured" }),
+        { status: 500, headers: { ...CORS, "Content-Type": "application/json" } }
+      );
+    }
+
+    // Get PayPal access token
+    const isLive = !paypalClientId.startsWith("Ac9EH"); // sandbox client IDs start with this
+    const paypalBase = isLive
+      ? "https://api-m.paypal.com"
+      : "https://api-m.sandbox.paypal.com";
+
+    const tokenRes = await fetch(`${paypalBase}/v1/oauth2/token`, {
+      method: "POST",
+      headers: {
+        Authorization: `Basic ${btoa(`${paypalClientId}:${paypalSecret}`)}`,
+        "Content-Type": "application/x-www-form-urlencoded",
+      },
+      body: "grant_type=client_credentials",
+    });
+
+    if (!tokenRes.ok) {
+      const tokenErr = await tokenRes.text();
+      console.error("[VERIFY-PURCHASE] Failed to get PayPal token:", tokenErr);
+      return new Response(
+        JSON.stringify({ error: "Payment verification failed" }),
+        { status: 500, headers: { ...CORS, "Content-Type": "application/json" } }
+      );
+    }
+
+    const { access_token } = await tokenRes.json();
+
+    // Verify the order
+    const orderRes = await fetch(`${paypalBase}/v2/checkout/orders/${orderId}`, {
+      headers: { Authorization: `Bearer ${access_token}` },
+    });
+
+    if (!orderRes.ok) {
+      const orderErr = await orderRes.text();
+      console.error("[VERIFY-PURCHASE] Failed to get order:", orderErr);
+      return new Response(
+        JSON.stringify({ error: "Order verification failed" }),
+        { status: 400, headers: { ...CORS, "Content-Type": "application/json" } }
+      );
+    }
+
+    const order = await orderRes.json();
+    console.log("[VERIFY-PURCHASE] Order status:", order.status);
+
+    if (order.status !== "COMPLETED") {
+      console.error("[VERIFY-PURCHASE] Order not completed:", order.status);
+      return new Response(
+        JSON.stringify({ error: "Payment not completed" }),
+        { status: 400, headers: { ...CORS, "Content-Type": "application/json" } }
+      );
+    }
+
+    // Verify amount matches
+    const paidAmount = parseFloat(order.purchase_units?.[0]?.amount?.value || "0");
+    if (Math.abs(paidAmount - amount) > 1) {
+      console.error(`[VERIFY-PURCHASE] Amount mismatch: paid ${paidAmount}, expected ${amount}`);
+      return new Response(
+        JSON.stringify({ error: "Amount mismatch" }),
+        { status: 400, headers: { ...CORS, "Content-Type": "application/json" } }
+      );
+    }
+
+    // Use service role for DB operations
+    const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
+    const serviceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
+    const supabase = createClient(supabaseUrl, serviceKey);
+
+    // Check for duplicate purchase (idempotency)
+    const { data: existingPurchase } = await supabase
+      .from("purchases")
+      .select("id")
+      .eq("package_name", `paypal_${orderId}`)
+      .maybeSingle();
+
+    if (existingPurchase) {
+      console.log("[VERIFY-PURCHASE] Duplicate order, already processed:", orderId);
+      return new Response(
+        JSON.stringify({ success: true, duplicate: true }),
+        { headers: { ...CORS, "Content-Type": "application/json" } }
+      );
+    }
+
+    // Determine what to credit based on packageId
+    const packageConfig: Record<string, any> = {
+      basic: { stories: 3, freeEdits: 3, coloringPages: 1 },
+      popular: { stories: 10, freeEdits: 10, coloringPages: 3 },
+      premium: { stories: 15, freeEdits: 15, coloringPages: 5 },
+      educator: { stories: 25, freeEdits: 25, coloringPages: 8 },
+      coloring_kit: { stories: 0, freeEdits: 0, coloringPages: 5 },
+      edit_kit: { stories: 0, freeEdits: 0, coloringPages: 0, editingCredits: 5 },
+      toolkit_yearly: { stories: 0, freeEdits: 0, coloringPages: 0, isSubscription: true },
+    };
+
+    const config = packageConfig[packageId];
+    if (!config) {
+      console.error("[VERIFY-PURCHASE] Unknown package:", packageId);
+      return new Response(
+        JSON.stringify({ error: "Unknown package" }),
+        { status: 400, headers: { ...CORS, "Content-Type": "application/json" } }
+      );
+    }
+
+    // Insert purchase record
+    const packageName = couponCode ? `${packageId}_coupon_${couponCode}` : packageId;
+    const { error: purchaseError } = await supabase.from("purchases").insert({
+      user_id: userId,
+      package_name: `paypal_${orderId}_${packageName}`,
+      credits_purchased: config.stories || 0,
+      amount_ils: amount,
+      status: "completed",
+    });
+
+    if (purchaseError) {
+      console.error("[VERIFY-PURCHASE] Failed to insert purchase:", purchaseError);
+      return new Response(
+        JSON.stringify({ error: "Failed to record purchase" }),
+        { status: 500, headers: { ...CORS, "Content-Type": "application/json" } }
+      );
+    }
+
+    // Get current profile
+    const { data: profile, error: profileError } = await supabase
+      .from("profiles")
+      .select("story_credits, free_edits_remaining, free_edits_total, coloring_credits, editing_credits, is_subscriber")
+      .eq("id", userId)
+      .maybeSingle();
+
+    if (profileError || !profile) {
+      console.error("[VERIFY-PURCHASE] Failed to get profile:", profileError);
+      return new Response(
+        JSON.stringify({ error: "Failed to get user profile" }),
+        { status: 500, headers: { ...CORS, "Content-Type": "application/json" } }
+      );
+    }
+
+    // Build update object
+    const updates: Record<string, any> = {};
+
+    if (config.stories > 0) {
+      updates.story_credits = (profile.story_credits ?? 0) + config.stories;
+    }
+    if (config.freeEdits > 0) {
+      updates.free_edits_remaining = (profile.free_edits_remaining ?? 0) + config.freeEdits;
+      updates.free_edits_total = (profile.free_edits_total ?? 0) + config.freeEdits;
+    }
+    if (config.coloringPages > 0) {
+      updates.coloring_credits = (profile.coloring_credits ?? 0) + config.coloringPages;
+    }
+    if (config.editingCredits > 0) {
+      updates.editing_credits = (profile.editing_credits ?? 0) + config.editingCredits;
+    }
+    if (config.isSubscription) {
+      updates.is_subscriber = true;
+    }
+
+    // Update profile
+    if (Object.keys(updates).length > 0) {
+      const { error: updateError } = await supabase
+        .from("profiles")
+        .update(updates)
+        .eq("id", userId);
+
+      if (updateError) {
+        console.error("[VERIFY-PURCHASE] Failed to update profile:", updateError);
+        return new Response(
+          JSON.stringify({ error: "Failed to update credits" }),
+          { status: 500, headers: { ...CORS, "Content-Type": "application/json" } }
+        );
+      }
+    }
+
+    console.log("[VERIFY-PURCHASE] ✅ Purchase verified and credits updated:", {
+      orderId,
+      packageId,
+      userId,
+      updates,
+    });
+
+    return new Response(
+      JSON.stringify({
+        success: true,
+        credits: {
+          storyCredits: updates.story_credits ?? profile.story_credits,
+          coloringCredits: updates.coloring_credits ?? profile.coloring_credits,
+          editingCredits: updates.editing_credits ?? profile.editing_credits,
+          freeEditsRemaining: updates.free_edits_remaining ?? profile.free_edits_remaining,
+          isSubscriber: updates.is_subscriber ?? profile.is_subscriber,
+        },
+      }),
+      { headers: { ...CORS, "Content-Type": "application/json" } }
+    );
+  } catch (error) {
+    console.error("[VERIFY-PURCHASE] Unexpected error:", error);
+
+    // Log to error_logs
+    try {
+      const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
+      const serviceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
+      const supabase = createClient(supabaseUrl, serviceKey);
+      await supabase.from("error_logs").insert({
+        error_type: "verify_purchase_error",
+        error_message: String(error),
+        metadata: { stack: error?.stack },
+      });
+    } catch (_) { /* ignore logging errors */ }
+
+    return new Response(
+      JSON.stringify({ error: "Internal server error" }),
+      { status: 500, headers: { ...CORS, "Content-Type": "application/json" } }
+    );
+  }
+});

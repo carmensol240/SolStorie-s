@@ -58,23 +58,14 @@ const Toolkit = () => {
     trackEvent({ eventType: "feature_used", metadata: { feature: "toolkit_purchase_started" } });
   };
 
-  const handlePayPalSuccess = async () => {
+  const handlePayPalSuccess = async (orderId: string) => {
     if (!user) return;
     try {
-      const { error: purchaseError } = await supabase.from("purchases").insert({
-        user_id: user.id,
-        package_name: TOOLKIT_SUBSCRIPTION.id,
-        credits_purchased: 0,
-        amount_ils: TOOLKIT_SUBSCRIPTION.price,
-        status: "completed",
+      const { data, error } = await supabase.functions.invoke('verify-purchase', {
+        body: { orderId, packageId: TOOLKIT_SUBSCRIPTION.id, amount: TOOLKIT_SUBSCRIPTION.price, userId: user.id },
       });
-      if (purchaseError) throw purchaseError;
-
-      const { error: profileError } = await supabase
-        .from("profiles")
-        .update({ is_subscriber: true })
-        .eq("id", user.id);
-      if (profileError) throw profileError;
+      if (error) throw error;
+      if (!data?.success) throw new Error(data?.error || 'Verification failed');
 
       refetchSubscription();
       setShowPayPal(false);
