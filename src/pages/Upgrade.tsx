@@ -616,24 +616,27 @@ const Upgrade = () => {
                 onSuccess={async () => {
                   if (!user) return;
                   try {
-                    await supabase.from('purchases').insert({
+                    const { error: purchaseError } = await supabase.from('purchases').insert({
                       user_id: user.id,
                       package_name: COLORING_KIT_PACKAGE.id,
                       credits_purchased: COLORING_KIT_PACKAGE.pages,
                       amount_ils: COLORING_KIT_PACKAGE.price,
                       status: 'completed',
                     });
+                    if (purchaseError) throw purchaseError;
                     // Increment coloring_credits on profile
-                    const { data: profile } = await supabase
+                    const { data: profile, error: selectError } = await supabase
                       .from('profiles')
                       .select('coloring_credits')
                       .eq('id', user.id)
                       .maybeSingle();
-                    const currentCredits = (profile as any)?.coloring_credits ?? 0;
-                    await supabase
+                    if (selectError) throw selectError;
+                    const currentCredits = profile?.coloring_credits ?? 0;
+                    const { error: updateError } = await supabase
                       .from('profiles')
-                      .update({ coloring_credits: currentCredits + COLORING_KIT_PACKAGE.pages } as any)
+                      .update({ coloring_credits: currentCredits + COLORING_KIT_PACKAGE.pages })
                       .eq('id', user.id);
+                    if (updateError) throw updateError;
                     setShowColoringKitPayPal(false);
                     trackEvent({ eventType: 'feature_used', metadata: { feature: 'coloring_kit_purchased', pages: COLORING_KIT_PACKAGE.pages, payment_method: 'paypal' } });
                     window.dispatchEvent(new CustomEvent('coloring-credits-updated'));
