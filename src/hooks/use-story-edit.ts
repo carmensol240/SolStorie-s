@@ -66,9 +66,7 @@ export const useStoryEdit = (storyId: string): UseStoryEditResult => {
   }, []);
 
   const canEdit = useCallback(() => {
-    // Admins can always edit
     if (isAdmin) return true;
-    // Can edit if has free edits from package OR has story credits
     return hasEditCredits() || hasCredits();
   }, [isAdmin, hasEditCredits, hasCredits]);
 
@@ -90,7 +88,7 @@ export const useStoryEdit = (storyId: string): UseStoryEditResult => {
         // Always fetch credits directly from DB to avoid stale state / race conditions
         const { data: profileData, error: profileError } = await supabase
           .from('profiles')
-          .select('story_credits, free_edits_remaining')
+          .select('story_credits, free_edits_remaining, editing_credits')
           .eq('id', user.id)
           .maybeSingle();
 
@@ -99,11 +97,19 @@ export const useStoryEdit = (storyId: string): UseStoryEditResult => {
           throw profileError;
         }
 
+        const directEditingCredits = (profileData as any)?.editing_credits ?? 0;
         const directFreeEdits = profileData?.free_edits_remaining ?? 0;
         const directCredits = profileData?.story_credits ?? 0;
-        console.log('[performEdit] DB credits:', { directFreeEdits, directCredits });
+        console.log('[performEdit] DB credits:', { directEditingCredits, directFreeEdits, directCredits });
 
-        if (directFreeEdits > 0) {
+        if (directEditingCredits > 0) {
+          const { error: editError } = await supabase
+            .from('profiles')
+            .update({ editing_credits: directEditingCredits - 1 } as any)
+            .eq('id', user.id);
+          if (editError) throw editError;
+          window.dispatchEvent(new Event('editing-credits-updated'));
+        } else if (directFreeEdits > 0) {
           const { error: editError } = await supabase
             .from('profiles')
             .update({ free_edits_remaining: directFreeEdits - 1 })
@@ -116,7 +122,7 @@ export const useStoryEdit = (storyId: string): UseStoryEditResult => {
             .eq('id', user.id);
           if (creditError) throw creditError;
         } else {
-          const msg = 'אין מספיק קרדיטים לעריכה';
+          const msg = 'אין קרדיטי עריכה, לחץ לרכישה';
           setError(msg);
           setLoading(false);
           return { success: false, errorMessage: msg };
