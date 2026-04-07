@@ -1,0 +1,1 @@
+ALTER TABLE public.profiles ADD COLUMN editing_credits integer DEFAULT 0;
