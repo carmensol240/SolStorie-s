@@ -525,7 +525,6 @@ const Upgrade = () => {
                 onError={() => { setShowEducatorPayPal(false); setShowFailed(true); setFailedPurchaseType('educator'); }}
                 onCancel={() => setShowEducatorPayPal(false)}
               />
-              <p className="text-center text-white/60 text-[11px] mt-2">💳 ניתן לשלם גם בכרטיס אשראי ללא חשבון פייפאל</p>
               <button onClick={() => setShowEducatorPayPal(false)} className="w-full text-center text-white/50 text-xs mt-3 hover:text-white/70 transition-colors">
                 ביטול
               </button>
@@ -660,7 +659,6 @@ const Upgrade = () => {
                 onError={() => { setShowColoringKitPayPal(false); setShowFailed(true); setFailedPurchaseType('coloring'); }}
                 onCancel={() => setShowColoringKitPayPal(false)}
               />
-              <p className="text-center text-white/60 text-[11px] mt-2">💳 ניתן לשלם גם בכרטיס אשראי ללא חשבון פייפאל</p>
               <button onClick={() => setShowColoringKitPayPal(false)} className="w-full text-center text-white/50 text-xs mt-3 hover:text-white/70 transition-colors">
                 ביטול
               </button>
@@ -727,7 +725,7 @@ const Upgrade = () => {
                 onError={() => { setShowEditKitPayPal(false); setShowFailed(true); setFailedPurchaseType('edit'); }}
                 onCancel={() => setShowEditKitPayPal(false)}
               />
-              <p className="text-center text-white/60 text-[11px] mt-2">💳 ניתן לשלם גם בכרטיס אשראי ללא חשבון פייפאל</p>
+              
               <button onClick={() => setShowEditKitPayPal(false)} className="w-full text-center text-white/50 text-xs mt-3 hover:text-white/70 transition-colors">
                 ביטול
               </button>
