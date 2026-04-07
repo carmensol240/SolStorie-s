@@ -16,14 +16,14 @@ interface OnlineColoringCanvasProps {
 
 const COLORS = [
   '#FF6B6B', '#FF9F43', '#FECA57', '#48DBFB',
-  '#0ABDE3', '#5F27CD', '#FF6FF2', '#EE5A24',
-  '#A3CB38', '#1DD1A1', '#C4A35A', '#2C3E50',
-  '#FFFFFF', '#000000',
+  '#0ABDE3', '#1B2A4A', '#5F27CD', '#C4B5E0', '#FF6FF2', '#EE5A24',
+  '#A3CB38', '#BFFF00', '#1DD1A1', '#C4A35A', '#2C3E50',
+  '#FFFFFF',
 ];
 
 const SKIN_EARTH_COLORS = [
-  '#F5C594', '#C68642', '#8D5524', '#6B8F71', '#FFD700',
-  '#C0C0C0', '#D3D3D3', '#8B4513', '#A0522D', '#D2691E',
+  '#000000', '#C68642', '#8D5524', '#6B8F71', '#FFD700',
+  '#C0C0C0', '#8B4513', '#D2691E', '#D4AF37', '#FFB6C1',
 ];
 
 type Tool = 'fill' | 'brush' | 'eraser';
