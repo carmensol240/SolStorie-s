@@ -370,19 +370,11 @@ const Upgrade = () => {
                   </div>
                 )}
 
-                {/* Discount pill */}
-                <div className="bg-gradient-to-r from-green-500 to-emerald-400 text-white text-[9px] font-black px-2 py-0.5 rounded-full mb-1.5 shadow-sm border border-black/70">
-                  חסכו ₪{pkg.originalPrice - pkg.price}
-                </div>
-
                 <div className="text-3xl font-black bg-gradient-to-r from-purple-300 via-pink-300 to-orange-300 bg-clip-text text-transparent">
                   {pkg.stories}
                 </div>
                 <div className="text-sm text-white/80 font-bold mb-1">סיפורים</div>
 
-                <div className="text-sm text-white/40 line-through">
-                  ₪{pkg.originalPrice}
-                </div>
                 <div className="text-xl font-black text-white animate-price-glow">
                   ₪{pkg.price}
                 </div>
