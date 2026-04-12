@@ -1,35 +1,54 @@
 
 
-## Plan: Remove Sale Prices, Keep Full Prices Only
+## Diagnosis: Why Real PayPal Purchases Aren't Recorded
 
-### Single file changed: `src/pages/Upgrade.tsx`
+### Findings
+1. **`verify-purchase` edge function has NEVER been called** in production — zero logs, zero entries in analytics
+2. The function itself works correctly (tested just now with a fake order — returns 400 as expected)
+3. The `purchases` table only has test entries (amount_ils: 0)
+4. No errors in `error_logs` related to purchases
+5. PayPal is correctly configured for **live mode** (client ID `AffM7i...`, `PAYPAL_SANDBOX = false`)
 
-### Changes
+### Root Cause
+The problem is in `PayPalButton.tsx` line 96-104. The `onApprove` callback calls `actions.order.capture()` and if that throws (which can happen if PayPal auto-captures the order, or if there's a network hiccup during the popup-to-app transition), the error is caught and `onError` is called — but by then **the money has already been charged**. The user's payment succeeds on PayPal's end, but the app never calls `verify-purchase`.
 
-**1. Remove the green "חסכו" discount pill (lines 373-376)**
-Delete the entire div showing "חסכו ₪X".
+Additionally, if `actions.order.capture()` throws, the `callbacksRef.current.onSuccess(orderId)` line never executes, so `handlePayPalSuccess` is never called, and the purchase is lost.
 
-**2. Remove the strikethrough original price (lines 383-385)**
-Delete the `line-through` div showing `₪{pkg.originalPrice}`.
+### Fix Plan
 
-**3. Update the displayed price to use `originalPrice` instead of `price` (line 387)**
-Change `₪{pkg.price}` → `₪{pkg.originalPrice}` so it shows 39/99/139.
+**File: `src/components/paywall/PayPalButton.tsx`**
 
-**4. Update price-per-story calculation**
-The `pricePerStory` field in `pricing.ts` is based on the discounted price. Update it to reflect full prices:
-- 3 stories at 39₪ → "13₪"
-- 10 stories at 99₪ → "9.9₪"  
-- 15 stories at 139₪ → "9.3₪"
+1. **Wrap `actions.order.capture()` with retry and fallback** — if capture fails (order already captured), still extract the order ID and call `onSuccess`
+2. **Add detailed console logging** before and after each step so future issues are diagnosable
 
-**5. Update the CTA button text and purchase logic**
-The bottom CTA button and PayPal amount references `pkg.price` / `discountedPrice`. Update these to use `originalPrice` so the actual charge matches the displayed price.
+**Specific change in `onApprove`:**
+```typescript
+onApprove: async (data: any, actions: any) => {
+  try {
+    console.log('[PayPal] onApprove fired, orderId:', data.orderID);
+    try {
+      await actions.order.capture();
+      console.log('[PayPal] Capture succeeded');
+    } catch (captureErr) {
+      // Order may already be captured by PayPal — this is OK
+      console.warn('[PayPal] Capture call failed (may be pre-captured):', captureErr);
+    }
+    // Always call onSuccess with the order ID — verify-purchase 
+    // will check the actual order status with PayPal's API
+    const orderId = data.orderID;
+    console.log('[PayPal] Calling onSuccess with orderId:', orderId);
+    callbacksRef.current.onSuccess(orderId);
+  } catch (err) {
+    console.error('[PayPal] onApprove unexpected error:', err);
+    callbacksRef.current.onError(err);
+  }
+},
+```
 
-### Also update: `src/config/pricing.ts`
-- Set `price` equal to `originalPrice` (39/99/139) so all purchase logic uses the full price
-- Update `pricePerStory` values accordingly
+This ensures that even if `actions.order.capture()` throws, the `verify-purchase` edge function is still called. The edge function independently verifies the order status with PayPal's API (`order.status === "COMPLETED"`), so it will correctly handle both pre-captured and just-captured orders.
 
 ### What stays the same
-- All layout, design, colors, badges, coloring/editing bonuses
-- Coupon system still works (applies discount on the full price)
-- No other files changed
+- `verify-purchase` edge function — no changes needed, it already verifies order status correctly
+- All other payment flows, pricing, dashboard
+- No database changes
 
