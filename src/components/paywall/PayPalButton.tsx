@@ -111,12 +111,20 @@ const PayPalButton = ({ amount, onSuccess, onError, onCancel }: PayPalButtonProp
         },
         onApprove: async (data: any, actions: any) => {
           try {
-            await actions.order.capture();
+            console.log('[PayPal] onApprove fired, orderId:', data.orderID);
+            try {
+              await actions.order.capture();
+              console.log('[PayPal] Capture succeeded');
+            } catch (captureErr) {
+              // Order may already be captured by PayPal — this is OK
+              console.warn('[PayPal] Capture call failed (may be pre-captured):', captureErr);
+            }
+            // Always call onSuccess — verify-purchase will check actual order status
             const orderId = data.orderID;
-            console.log('[PayPal] Payment captured, orderId:', orderId);
+            console.log('[PayPal] Calling onSuccess with orderId:', orderId);
             callbacksRef.current.onSuccess(orderId);
           } catch (err) {
-            console.error('Payment capture error:', err);
+            console.error('[PayPal] onApprove unexpected error:', err);
             callbacksRef.current.onError(err);
           }
         },
