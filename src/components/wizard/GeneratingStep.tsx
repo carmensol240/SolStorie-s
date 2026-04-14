@@ -503,7 +503,7 @@ const GeneratingStep = ({ formData, onComplete }: GeneratingStepProps) => {
       clearInterval(progressInterval);
       clearInterval(messageInterval);
       clearInterval(sentenceInterval);
-      clearInterval(keepaliveInterval);
+      
       clearInterval(castInterval);
       clearInterval(tipInterval);
     };
