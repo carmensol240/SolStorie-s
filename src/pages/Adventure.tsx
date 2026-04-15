@@ -1,12 +1,12 @@
 import { useState, useEffect, useCallback } from "react";
-import { useNavigate, Link } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import { Wand2, Coins } from "lucide-react";
 import { useCredits } from "@/hooks/use-credits";
 import { useReferral } from "@/hooks/use-referral";
 import { useAuth } from "@/hooks/use-auth";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
-import { Checkbox } from "@/components/ui/checkbox";
+
 import WelcomeGiftBanner from "@/components/home/WelcomeGiftBanner";
 import MobileNavigation from "@/components/MobileNavigation";
 import heroVideo from "@/assets/hero-solstories-animation-new.mp4";
@@ -19,9 +19,6 @@ const Adventure = () => {
   const { toast } = useToast();
   const [displayName, setDisplayName] = useState<string | null>(null);
   const [storyCount, setStoryCount] = useState<number>(0);
-  const [termsAccepted, setTermsAccepted] = useState(
-    () => localStorage.getItem('terms_accepted') === 'true'
-  );
 
   useEffect(() => {
     window.scrollTo(0, 0);
@@ -68,14 +65,6 @@ const Adventure = () => {
     fetchCount();
   }, [user?.id]);
 
-  const handleTermsChange = useCallback((checked: boolean) => {
-    setTermsAccepted(checked);
-    if (checked) {
-      localStorage.setItem('terms_accepted', 'true');
-    } else {
-      localStorage.removeItem('terms_accepted');
-    }
-  }, []);
 
   const handleAdventureCTA = useCallback(() => {
     navigate("/create");
@@ -180,27 +169,10 @@ const Adventure = () => {
 
           <WelcomeGiftBanner credits={credits} storyCount={storyCount} />
 
-          {/* Terms checkbox - only show if not yet accepted */}
-          {!localStorage.getItem('terms_accepted') && (
-            <label className="flex items-center gap-2 text-white text-sm cursor-pointer select-none">
-              <Checkbox
-                checked={termsAccepted}
-                onCheckedChange={(checked) => handleTermsChange(checked === true)}
-                className="border-white/60 data-[state=checked]:bg-amber-400 data-[state=checked]:border-amber-400"
-              />
-              <span>
-                קראתי ואני מסכימ/ה ל
-                <Link to="/terms" className="underline font-bold text-amber-300 hover:text-amber-200 mx-1">
-                  תנאי השימוש
-                </Link>
-              </span>
-            </label>
-          )}
 
           <button
             onClick={handleAdventureCTA}
-            disabled={!termsAccepted}
-            className="group flex items-center justify-center gap-2.5 rounded-full px-6 py-3 w-full max-w-[300px] bg-gradient-to-r from-amber-400 via-orange-400 to-pink-400 shadow-[0_0_20px_rgba(251,191,36,0.4)] hover:shadow-[0_0_30px_rgba(251,191,36,0.6)] hover:scale-[1.03] active:scale-95 transition-all duration-300 adventure-cta-pulse border border-white/30 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100 disabled:hover:shadow-[0_0_20px_rgba(251,191,36,0.4)]"
+            className="group flex items-center justify-center gap-2.5 rounded-full px-6 py-3 w-full max-w-[300px] bg-gradient-to-r from-amber-400 via-orange-400 to-pink-400 shadow-[0_0_20px_rgba(251,191,36,0.4)] hover:shadow-[0_0_30px_rgba(251,191,36,0.6)] hover:scale-[1.03] active:scale-95 transition-all duration-300 adventure-cta-pulse border border-white/30"
           >
             <Wand2 className="w-5 h-5 text-white drop-shadow-md group-hover:rotate-12 transition-transform duration-300" />
             <span className="font-black text-base text-white drop-shadow-md">
