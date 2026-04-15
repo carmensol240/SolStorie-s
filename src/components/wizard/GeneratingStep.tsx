@@ -607,11 +607,13 @@ const GeneratingStep = ({ formData, onComplete }: GeneratingStepProps) => {
   const handleGoogleSignIn = async () => {
     localStorage.setItem('pending_story_formData', JSON.stringify(formData));
     try {
-      const { lovable } = await import("@/integrations/lovable/index");
-      const result = await lovable.auth.signInWithOAuth("google", {
-        redirect_uri: "https://soulstory.co.il/create?resume=true",
+      const { error } = await supabase.auth.signInWithOAuth({
+        provider: 'google',
+        options: {
+          redirectTo: 'https://soulstory.co.il/create?resume=true',
+        },
       });
-      if (result.error) {
+      if (error) {
         toast({ title: "שגיאה", description: "ההתחברות עם Google נכשלה", variant: "destructive" });
       }
     } catch (e) {
