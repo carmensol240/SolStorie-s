@@ -607,6 +607,12 @@ const GeneratingStep = ({ formData, onComplete }: GeneratingStepProps) => {
   const handleGoogleSignIn = async () => {
     localStorage.setItem('pending_story_formData', JSON.stringify(formData));
     try {
+      // If we're inside the Lovable preview iframe, Google blocks OAuth via X-Frame-Options.
+      // Pop out to a top-level tab first so the redirect flow can complete normally.
+      if (typeof window !== 'undefined' && window.self !== window.top) {
+        window.open(window.location.href, '_blank', 'noopener');
+        return;
+      }
       const { lovable } = await import("@/integrations/lovable/index");
       const result = await lovable.auth.signInWithOAuth("google", {
         redirect_uri: `${window.location.origin}/create?resume=true`,
