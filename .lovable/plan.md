@@ -1,25 +1,44 @@
 
 
-## Update GA4 Measurement ID in `index.html`
+## Add tooltips + legend to user-table credit badges
 
-The current `index.html` uses `G-TWA52645C8`. You provided `G-TWW52645C8` (different by one character: `TWW` vs `TWA`). I need one quick confirmation before changing it.
+### Scope (only this — nothing else changes)
+The three colored badges in the **Users** tab table column "קרדיטים" of `src/pages/AdminDashboard.tsx`:
+- 📖 amber → story credits
+- 🎨 purple → coloring credits
+- ✏️ blue → editing credits
 
-### Please pick one:
+### Changes
 
-- **A — Replace**: New ID `G-TWW52645C8` is correct. I swap `G-TWA52645C8` → `G-TWW52645C8` in both the script `src` and the `gtag('config', ...)` call. Old ID stops receiving data.
-- **B — Add both**: Keep `G-TWA52645C8` AND add a second `gtag('config', 'G-TWW52645C8', ...)` so both properties receive data in parallel.
-- **C — Cancel**: Leave `index.html` unchanged with the existing `G-TWA52645C8`.
+**File: `src/pages/AdminDashboard.tsx`**
 
-### Planned change (Option A)
-**File**: `index.html` — only the existing GA block in `<head>`:
-- `gtag/js?id=G-TWA52645C8` → `gtag/js?id=G-TWW52645C8`
-- `gtag('config', 'G-TWA52645C8', { anonymize_ip: true });` → `gtag('config', 'G-TWW52645C8', { anonymize_ip: true });`
+1. **Imports** — add (no removals):
+   - `Tooltip, TooltipContent, TooltipProvider, TooltipTrigger` from `@/components/ui/tooltip`
 
-I'll keep `{ anonymize_ip: true }` for GDPR compliance (your snippet omits it; safer to keep). Tell me if you want it removed.
+2. **Wrap each of the three badges in a Tooltip** (lines 634–636), keeping classes, colors, and content identical:
+   - 📖 → tooltip text: `"קרדיטי סיפורים — מספר הסיפורים שהמשתמש יכול ליצור"`
+   - 🎨 → tooltip text: `"קרדיטי צביעה — מספר דפי הצביעה שהמשתמש יכול להפיק"`
+   - ✏️ → tooltip text: `"קרדיטי עריכה — מספר העריכות הזמינות לסיפורים קיימים"`
+   - The whole `<div className="flex gap-1 flex-wrap">` block stays inside a single `<TooltipProvider delayDuration={200}>` so all three share one provider.
+
+3. **Add a small legend row above the users table** (just below the search input at line 594, before `<ReviewedBar … />`):
+   - A single line, muted text, RTL, e.g.:
+     ```
+     <div className="px-3 pb-2 text-xs text-muted-foreground flex flex-wrap gap-x-4 gap-y-1">
+       <span>📖 קרדיטי סיפורים</span>
+       <span>🎨 קרדיטי צביעה</span>
+       <span>✏️ קרדיטי עריכה</span>
+     </div>
+     ```
+   - No background, border, or color overrides — inherits existing card styling so nothing visually shifts.
 
 ### What will NOT change
-- CSP meta tag — already whitelists Google Analytics domains.
-- No other files touched. No SPA route-change tracking added (can be a follow-up).
+- No layout changes, no color changes, no spacing changes anywhere else.
+- Other tabs (Stories, Purchases, Errors, Coupons, etc.) untouched.
+- Stat cards, filters, tables, action buttons untouched.
+- Badge styling (`bg-amber-100`, `bg-purple-100`, `bg-blue-100`, `text-[10px]`) preserved exactly.
+- No changes to data fetching, types, or logic.
 
-Reply **A**, **B**, or **C** and I'll proceed.
+### How to revert
+Remove the Tooltip wrappers around the three badges, remove the legend `<div>`, and remove the four Tooltip imports.
 
