@@ -1,65 +1,38 @@
 
-## Force Google OAuth to use the backend callback URL
 
-### Current state confirmed
-- `/auth` is already mapped correctly in `src/App.tsx`
-- Three Google OAuth entry points currently hardcode `https://soulstory.co.il/auth`:
-  - `src/pages/Auth.tsx`
-  - `src/components/wizard/GeneratingStep.tsx`
-  - `src/hooks/use-auth.ts`
+## Temporarily disable Google sign-in button
 
-### Important correction before implementation
-- The callback host in your last message appears misspelled:
-  - pasted: `https://qvdwmkwviacgmjotsxe.supabase.co/auth/v1/callback`
-  - this project’s callback host: `https://qvdwmkxviaqcgmjotsxe.supabase.co/auth/v1/callback`
-- The implementation should use the real callback URL for this project. If you intentionally meant the pasted hostname, that URL will not match this project.
+### Goal
+Visually disable the Google sign-in button across the app and add a small "בקרוב" label next to it. No code is removed — only disabled state and a label are added, so it can be re-enabled later by reverting these small changes.
 
-### Changes to make
-1. `src/pages/Auth.tsx`
-   - Replace the Google sign-in call with this hardcoded structure:
-   ```ts
-   const { data, error } = await supabase.auth.signInWithOAuth({
-     provider: 'google',
-     options: {
-       redirectTo: 'https://qvdwmkxviaqcgmjotsxe.supabase.co/auth/v1/callback'
-     }
-   })
-   ```
-   - Keep the button UI, toast behavior, and surrounding auth flow unchanged.
-   - Keep existing `returnTo` localStorage persistence unchanged.
+### Where the button appears
+Two active locations:
+1. `src/pages/Auth.tsx` — Google sign-in button on the login/signup screen
+2. `src/components/wizard/GeneratingStep.tsx` — Google sign-in button shown to anonymous users at the end of the story wizard
 
-2. `src/components/wizard/GeneratingStep.tsx`
-   - Replace its Google sign-in call with the same hardcoded callback URL.
-   - Keep `pending_story_formData` and `returnTo` localStorage writes unchanged so the resume data is still preserved on the client.
+(`src/hooks/use-auth.ts` exposes the `signInWithGoogle` helper — left untouched so the underlying logic stays intact.)
 
-3. `src/hooks/use-auth.ts`
-   - Update the shared `signInWithGoogle` helper to use the same hardcoded callback URL so no fallback path still points to `https://soulstory.co.il/auth`.
+### Changes per file
 
-4. `src/App.tsx`
-   - No routing change needed. `/auth` is already registered correctly and should remain untouched.
+**`src/pages/Auth.tsx`**
+- Add `disabled` attribute to the Google button.
+- Add Tailwind classes for grayed-out look: `opacity-50 cursor-not-allowed grayscale hover:opacity-50`.
+- Remove the `onClick` behavior by guarding the handler (early return if disabled flag is true) — handler code stays in place, just gated by a constant `const GOOGLE_SIGNIN_ENABLED = false;` at the top of the component.
+- Add a small `<span className="text-xs text-muted-foreground mr-2">בקרוב</span>` next to or inside the button (RTL-aware placement).
 
-5. Memory sync
-   - Update `mem://auth/google-oauth-production-settings` so project memory matches the forced callback-based configuration.
+**`src/components/wizard/GeneratingStep.tsx`**
+- Same treatment: add the same `GOOGLE_SIGNIN_ENABLED = false` constant, `disabled` prop, grayed-out classes, and `בקרוב` label next to the button.
 
-### What will not change
-- No UI or styling changes
-- No Disney/Pixar visual changes
-- No tablet/mobile layout changes
-- No new routes or pages
-- No auth copy changes
-- No backend schema, policies, or functions
+### What will NOT change
+- No code deletion — `signInWithGoogle`, `handleGoogleSignIn`, and all related logic stay exactly as they are.
+- No changes to `use-auth.ts`, Supabase config, OAuth redirect URLs, or routing.
+- No changes to email/password sign-in — only the Google button is disabled.
+- No layout, copy, or styling changes elsewhere on the page.
 
-### Technical note
-- This is a forced configuration change exactly as requested.
-- It replaces the current app-route redirect pattern with the backend callback URL, so post-login return navigation may behave differently from the current `/auth` flow.
+### How to re-enable later
+Flip `GOOGLE_SIGNIN_ENABLED` from `false` to `true` in both files and remove the `בקרוב` label + grayed-out classes.
 
 ### Files to update
 - `src/pages/Auth.tsx`
 - `src/components/wizard/GeneratingStep.tsx`
-- `src/hooks/use-auth.ts`
-- `mem://auth/google-oauth-production-settings`
 
-### Verification after implementation
-- Confirm all Google OAuth call sites use the same hardcoded callback URL
-- Confirm there are no remaining Google sign-in references to `https://soulstory.co.il/auth`
-- Confirm `/auth` is still mapped in `App.tsx`
