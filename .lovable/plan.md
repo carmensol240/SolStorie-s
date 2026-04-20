@@ -1,22 +1,27 @@
 
 
-## Skip duplicate terms screen for educators (parent flow untouched)
+## Urgent fix: skip /onboarding for both parents AND educators
+
+### Problem
+
+Both parents and educators are seeing a duplicate terms-acceptance screen (`/onboarding`) after signup, even though they already ticked the terms checkbox in `Auth.tsx`. The educator fix from the previous turn only persisted `terms_accepted_at` for educators — parents still hit `/onboarding`.
 
 ### Root cause
 
-In `src/pages/Auth.tsx → handleEmailSignUp` (and `handleGoogleSignIn`), the user already ticks the **תנאי שימוש + מדיניות פרטיות** checkbox (`signupTermsAccepted`) before submitting. But the handler never writes `terms_accepted_at` to the DB — the comment on line 431 ("terms already accepted") is misleading.
+`Auth.tsx → handleEmailSignUp` and `handleGoogleSignIn` only persist `terms_accepted_at` when `userRole === "educator"`. For parents, `terms_accepted_at` stays null, so the `checkTermsAcceptance` effect redirects them to `/onboarding`.
 
-After signup, the `checkTermsAcceptance` useEffect runs, sees `terms_accepted_at` is null, and redirects to `/onboarding`, which renders the **second** pair of checkboxes (lines 240–276 of `Onboarding.tsx`).
+### Fix — single file: `src/pages/Auth.tsx`
 
-### Fix — single targeted change in `src/pages/Auth.tsx`
+Remove the `userRole === "educator"` gate so the terms acceptance is persisted for **all signups** (parents + educators) when `signupTermsAccepted` is true.
 
-Persist `terms_accepted_at` to the `profiles` row **only for educators** immediately after a successful signup, so the redirect logic skips `/onboarding` and lands them on `/adventure`.
-
-**Edit 1 — `handleEmailSignUp` (around line 430–447):**
-After `const { error, data } = await signUpWithEmail(...)` succeeds and before the toast, add (only for educators):
-
+**Edit 1 — `handleEmailSignUp`:**
+Change the existing block:
 ```ts
-if (userRole === "educator" && data?.user?.id && signupTermsAccepted) {
+if (userRole === "educator" && data?.user?.id && signupTermsAccepted) { ... }
+```
+to:
+```ts
+if (data?.user?.id && signupTermsAccepted) {
   await supabase
     .from("profiles")
     .update({
@@ -27,37 +32,40 @@ if (userRole === "educator" && data?.user?.id && signupTermsAccepted) {
 }
 ```
 
-The existing `checkTermsAcceptance` useEffect will then detect terms are accepted and redirect the educator straight to `/adventure` (or to the deep-link `returnTo` if any).
-
-**Edit 2 — `handleGoogleSignIn` (educator path):**
-Google sign-in is a redirect flow, so we cannot write to `profiles` before the redirect. Instead, store a flag in `localStorage` before calling `signInWithOAuth`:
-
+**Edit 2 — `handleGoogleSignIn`:**
+Change:
 ```ts
 if (userRole === "educator" && signupTermsAccepted) {
   localStorage.setItem('pending_educator_terms_accept', '1');
 }
 ```
+to (keep the same flag key for backward compat, but set it for everyone who ticked the box):
+```ts
+if (signupTermsAccepted) {
+  localStorage.setItem('pending_educator_terms_accept', '1');
+}
+```
 
-Then in the existing `checkTermsAcceptance` useEffect (lines 268–299), before the DB read, if the flag is present and the user just signed in, write `terms_accepted_at` once and clear the flag — then continue with the existing redirect logic which will now route to `/adventure`.
+**Edit 3 — `checkTermsAcceptance` useEffect:**
+The existing code already reads `pending_educator_terms_accept` and persists `terms_accepted_at` regardless of role. No change needed — it will now run for parents too.
+
+### Result
+
+- Parent signup (email + Google) → terms persisted → `checkTermsAcceptance` sees terms accepted → redirect straight to `/adventure` (or RequireTerms `returnTo` deep-link). No `/onboarding` screen. ✅
+- Educator signup → unchanged behavior, still skips `/onboarding`. ✅
+- Existing user who somehow lands on `/onboarding` without `terms_accepted_at` (legacy accounts, edge cases) → still sees the screen as a fallback. ✅
 
 ### What stays the same
 
-- **Parent flow** — `userRole === "parent"` is untouched. Parents still go through `/onboarding` exactly as today (per existing product decision).
-- `Onboarding.tsx` is **not modified**. Its checkboxes still render for any user who lands there without `terms_accepted_at` (parents, legacy users, edge cases).
-- `RequireTerms.tsx`, deep-link `returnTo` handling, terms version, toasts — all untouched.
-- The educator-specific welcome toast on signup (lines 436–440) still fires.
-
-### Why this approach (vs. editing Onboarding.tsx)
-
-- Educators bypass the duplicate screen entirely — cleaner UX (no flash of `/onboarding` then redirect).
-- `Onboarding.tsx` keeps a single rendering path — no role-based conditional rendering to maintain.
-- Parents are 100% unaffected because all changes are gated on `userRole === "educator"`.
+- `Onboarding.tsx` — untouched (kept as fallback for legacy accounts).
+- `RequireTerms.tsx`, `returnTo` deep-link logic, toasts, welcome emails, role-based credits, referral codes — all untouched.
+- The signup form's terms checkbox + links — untouched.
 
 ### Memory update
 
-Update `mem://auth/registration-process-updated`: educators have `terms_accepted_at` written immediately on signup (since they already consented in the Auth form), so `/onboarding` is skipped for them. Parents continue through `/onboarding` as before.
+Update `mem://auth/registration-process-updated`: `terms_accepted_at` is now written immediately on signup for **all roles** (parent + educator) when the user ticks the terms box in `Auth.tsx`. `/onboarding` is bypassed for all new signups. The screen remains as a fallback for legacy accounts only.
 
 ### How to revert
 
-Remove the educator-only `profiles.update` block in `handleEmailSignUp` and the `pending_educator_terms_accept` localStorage flag handling in `handleGoogleSignIn` + `checkTermsAcceptance`.
+Restore the `userRole === "educator"` condition in both the `handleEmailSignUp` block and the `handleGoogleSignIn` localStorage flag.
 
