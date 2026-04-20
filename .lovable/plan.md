@@ -1,44 +1,28 @@
 
 
-## Add tooltips + legend to user-table credit badges
+## Fix empty tooltip text on credit badges
 
-### Scope (only this — nothing else changes)
-The three colored badges in the **Users** tab table column "קרדיטים" of `src/pages/AdminDashboard.tsx`:
-- 📖 amber → story credits
-- 🎨 purple → coloring credits
-- ✏️ blue → editing credits
+### Root cause (most likely)
+The tooltip content text IS in the JSX (`קרדיטי סיפורים — ...` etc.), but it appears empty in the popup. The two most common causes given the current code:
 
-### Changes
+1. **Missing `TooltipPortal`** — Radix's `Tooltip.Content` should portal to `<body>`, but in some shadcn setups inside deeply nested table/overflow containers the content can get clipped or rendered without its text node. Wrapping `TooltipContent` in `TooltipPrimitive.Portal` guarantees it escapes the table cell.
+2. **RTL/font issue** — Hebrew text inside `bg-popover text-popover-foreground` without an explicit `dir="rtl"` can render as zero-width in some browsers when the popover is mounted in an LTR context.
 
-**File: `src/pages/AdminDashboard.tsx`**
+### Fix (minimal, targeted)
+**File: `src/components/ui/tooltip.tsx`** — add Portal export and wrap content in Portal so all tooltips across the app render reliably:
+- Import `TooltipPrimitive.Portal` and wrap `<TooltipPrimitive.Content>` with `<TooltipPrimitive.Portal>`.
+- Keep the existing className, ref, and props exactly as-is.
 
-1. **Imports** — add (no removals):
-   - `Tooltip, TooltipContent, TooltipProvider, TooltipTrigger` from `@/components/ui/tooltip`
-
-2. **Wrap each of the three badges in a Tooltip** (lines 634–636), keeping classes, colors, and content identical:
-   - 📖 → tooltip text: `"קרדיטי סיפורים — מספר הסיפורים שהמשתמש יכול ליצור"`
-   - 🎨 → tooltip text: `"קרדיטי צביעה — מספר דפי הצביעה שהמשתמש יכול להפיק"`
-   - ✏️ → tooltip text: `"קרדיטי עריכה — מספר העריכות הזמינות לסיפורים קיימים"`
-   - The whole `<div className="flex gap-1 flex-wrap">` block stays inside a single `<TooltipProvider delayDuration={200}>` so all three share one provider.
-
-3. **Add a small legend row above the users table** (just below the search input at line 594, before `<ReviewedBar … />`):
-   - A single line, muted text, RTL, e.g.:
-     ```
-     <div className="px-3 pb-2 text-xs text-muted-foreground flex flex-wrap gap-x-4 gap-y-1">
-       <span>📖 קרדיטי סיפורים</span>
-       <span>🎨 קרדיטי צביעה</span>
-       <span>✏️ קרדיטי עריכה</span>
-     </div>
-     ```
-   - No background, border, or color overrides — inherits existing card styling so nothing visually shifts.
+**File: `src/pages/AdminDashboard.tsx`** — add `dir="rtl"` to each of the three `<TooltipContent>` elements (lines 645, 651, 657) so the Hebrew text is laid out correctly inside the portaled popup. No text changes — the existing strings stay:
+- `"קרדיטי סיפורים — מספר הסיפורים שהמשתמש יכול ליצור"`
+- `"קרדיטי צביעה — מספר דפי הצביעה שהמשתמש יכול להפיק"`
+- `"קרדיטי עריכה — מספר העריכות הזמינות לסיפורים קיימים"`
 
 ### What will NOT change
-- No layout changes, no color changes, no spacing changes anywhere else.
-- Other tabs (Stories, Purchases, Errors, Coupons, etc.) untouched.
-- Stat cards, filters, tables, action buttons untouched.
-- Badge styling (`bg-amber-100`, `bg-purple-100`, `bg-blue-100`, `text-[10px]`) preserved exactly.
-- No changes to data fetching, types, or logic.
+- No badge styling, colors, layout, legend, or any other dashboard content changes.
+- No changes to data, props, or types.
+- All other tooltips in the app keep working (Portal is backward-compatible).
 
 ### How to revert
-Remove the Tooltip wrappers around the three badges, remove the legend `<div>`, and remove the four Tooltip imports.
+Remove the `Portal` wrapper in `tooltip.tsx` and remove `dir="rtl"` from the three `TooltipContent` tags.
 
