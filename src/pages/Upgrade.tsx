@@ -400,7 +400,7 @@ const Upgrade = () => {
             ))}
           </div>
 
-          <p className="text-center mb-4" style={{ fontSize: '13px', color: '#c084fc' }}>
+          <p className="text-center mb-4 font-bold" style={{ fontSize: '17px', color: '#c084fc' }}>
             תשלום חד פעמי · הקרדיטים שלך לא פגים · אין מינוי
           </p>
 
