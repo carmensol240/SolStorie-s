@@ -21,6 +21,7 @@ import { z } from "zod";
 const emailSchema = z.string().email("כתובת אימייל לא תקינה");
 const passwordSchema = z.string().min(6, "הסיסמה חייבת להכיל לפחות 6 תווים");
 const TERMS_VERSION = "1.0";
+const GOOGLE_SIGNIN_ENABLED = false;
 
 const Auth = () => {
   const navigate = useNavigate();
@@ -361,6 +362,7 @@ const Auth = () => {
   };
 
   const handleGoogleSignIn = async () => {
+    if (!GOOGLE_SIGNIN_ENABLED) return;
     try {
       const returnTo = searchParams.get('returnTo') || localStorage.getItem('returnTo') || '/adventure';
       if (returnTo) localStorage.setItem('returnTo', returnTo);
