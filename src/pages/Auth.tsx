@@ -453,6 +453,20 @@ const Auth = () => {
       if (data?.user?.id) {
         await processReferral(data.user.id);
       }
+      // Educators already consented in the signup form — persist now to skip /onboarding
+      if (userRole === "educator" && data.user.id && signupTermsAccepted) {
+        try {
+          await supabase
+            .from("profiles")
+            .update({
+              terms_accepted_at: new Date().toISOString(),
+              terms_version: TERMS_VERSION,
+            })
+            .eq("id", data.user.id);
+        } catch (e) {
+          console.warn('Failed to persist educator terms acceptance:', e);
+        }
+      }
       if (userRole === "educator") {
         toast({
           title: "ברוכים הבאים, צוות החינוך! 🎓",
