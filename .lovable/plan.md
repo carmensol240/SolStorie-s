@@ -1,91 +1,40 @@
 
 
-## Plan: Switch Google sign-in to direct Supabase OAuth — with one critical correction
+## Fix: Use exact redirect URL `https://soulstory.co.il/auth`
 
-### What you asked vs. what will actually work
+### What changes
 
-You asked for `redirectTo: https://soulstory.co.il/auth/v1/callback`.
+Currently the code passes `redirectTo: https://soulstory.co.il/auth?returnTo=...` and `https://soulstory.co.il/create?resume=true`. With query params, the URL no longer matches the exact `https://soulstory.co.il/auth` you whitelisted in Supabase + Google Console — Supabase's redirect-allowlist matches the **base URL** but Google's OAuth redirect-URI check is **exact**, so any deviation can trigger `redirect_uri_mismatch`.
 
-That path does **not** exist on `soulstory.co.il` — it's Supabase's internal callback path on the Supabase domain (`https://qvdwmkxviaqcgmjotsxe.supabase.co/auth/v1/callback`). Setting `redirectTo` to a non-existent path on your own domain will give you another 404 immediately after Google auth completes.
+I'll make both Google sign-in handlers redirect to **exactly** `https://soulstory.co.il/auth` and preserve the `returnTo` / resume hint in `localStorage` instead of the URL.
 
-Here's how `supabase.auth.signInWithOAuth` actually works:
+### Files touched (2 — handler bodies only, no UI)
 
-```text
-1. Your app  →  https://qvdwmkxviaqcgmjotsxe.supabase.co/auth/v1/authorize?provider=google&redirect_to=<X>
-2. Supabase  →  Google login screen
-3. Google    →  https://qvdwmkxviaqcgmjotsxe.supabase.co/auth/v1/callback   ← Supabase's own callback (fixed, registered in Google Console)
-4. Supabase  →  <X>  ← this is what `redirectTo` controls — must be a real page in your app
-```
+#### 1. `src/pages/Auth.tsx` — `handleGoogleSignIn` (lines 363-394)
+- Save `returnTo` to `localStorage` (already done on line 366 — keep).
+- Change `redirectTo` from `` `https://soulstory.co.il/auth?returnTo=${...}` `` → `'https://soulstory.co.il/auth'` (no query string).
+- Iframe-escape new tab still opens `/auth` on current origin (unchanged — that's preview-only and unrelated to the production redirect URI).
 
-So `redirectTo` must point to a **real route in your React app**, e.g. `/auth` or `/adventure`. The existing `/auth` route already handles the returning session correctly (via `onAuthStateChange` in `use-auth.ts`).
+#### 2. `src/components/wizard/GeneratingStep.tsx` — `handleGoogleSignIn` (lines 607-629)
+- Save `'pending_story_formData'` (already done — keep) and additionally set `localStorage.setItem('returnTo', '/create?resume=true')` so `/auth` knows where to send the user after sign-in.
+- Change `redirectTo` from `` `https://soulstory.co.il/create?resume=true` `` → `'https://soulstory.co.il/auth'` (exact match).
+- After OAuth completes and `/auth` loads, the existing `useEffect` that watches `user` will navigate to `localStorage.getItem('returnTo')` → `/create?resume=true`, where `CreateStory.tsx`'s existing resume logic restores `pending_story_formData` and continues generation.
 
-### What I will change
+### Returnto handling on `/auth` (already exists, no change)
 
-Two files, surgical edits, no UI changes:
+`src/pages/Auth.tsx` already reads `returnTo` from `localStorage` as a fallback (line 365). After Google completes, `useAuth`'s `onAuthStateChange` fires, `user` becomes truthy, and the existing post-auth redirect picks up `localStorage.getItem('returnTo')`.
 
-#### 1. `src/pages/Auth.tsx` — `handleGoogleSignIn`
-Replace the `lovable.auth.signInWithOAuth(...)` call with direct Supabase:
-
-```ts
-const handleGoogleSignIn = async () => {
-  const returnTo = searchParams.get('returnTo') || localStorage.getItem('returnTo') || '/adventure';
-
-  // Iframe escape stays — preview can't run OAuth inside Lovable's iframe
-  if (typeof window !== 'undefined' && window.self !== window.top) {
-    window.open(`${window.location.origin}/auth?returnTo=${encodeURIComponent(returnTo)}`, '_blank', 'noopener');
-    return;
-  }
-
-  const { error } = await supabase.auth.signInWithOAuth({
-    provider: 'google',
-    options: {
-      redirectTo: `https://soulstory.co.il/auth?returnTo=${encodeURIComponent(returnTo)}`,
-    },
-  });
-  if (error) {
-    toast({ title: 'שגיאה', description: error.message, variant: 'destructive' });
-  }
-};
-```
-
-#### 2. `src/components/wizard/GeneratingStep.tsx` — `handleGoogleSignIn`
-Same pattern, redirecting back to `/create?resume=true`:
-
-```ts
-const { error } = await supabase.auth.signInWithOAuth({
-  provider: 'google',
-  options: {
-    redirectTo: `https://soulstory.co.il/create?resume=true`,
-  },
-});
-```
-
-### Backend configuration you must verify (no code change)
-
-For direct `supabase.auth.signInWithOAuth` to succeed against `soulstory.co.il`:
-
-1. **Supabase → Auth → URL Configuration → Redirect URLs allowlist** must contain:
-   - `https://soulstory.co.il/**`
-   - `https://wwwstorytime.lovable.app/**`
-   - `https://id-preview--1702720b-0016-412c-a1d9-a20e9c650989.lovable.app/**`
-2. **Supabase → Auth → Site URL** = `https://soulstory.co.il`
-3. **Google Cloud Console → Authorized redirect URIs** must contain:
-   `https://qvdwmkxviaqcgmjotsxe.supabase.co/auth/v1/callback` (Supabase's own — not your domain)
-
-If any of these are missing, sign-in will still fail. I'll surface a `<lov-open-backend>` button so you can verify them.
+### Backend config (you said this is already done — just confirming what's required)
+- Supabase → Auth → Redirect URLs allowlist must include: `https://soulstory.co.il/auth`
+- Google Cloud Console → Authorized redirect URIs must include: `https://qvdwmkxviaqcgmjotsxe.supabase.co/auth/v1/callback` (Google never redirects to your domain — only to Supabase)
+- Supabase → Auth → Site URL: `https://soulstory.co.il`
 
 ### What is NOT changing
-
 - No UI, no Pixar styling, no buttons, no layout, no tablet optimization
-- No new routes, no `/auth/v1/callback` route in React (it doesn't belong in your app)
-- No `use-auth.ts`, no Supabase client config
-- No RLS, no edge functions
-- The Google button on `/auth` stays exactly where it is — only the click handler's internal call swaps from `lovable.auth.signInWithOAuth` to `supabase.auth.signInWithOAuth`
-
-### Files touched
-- `src/pages/Auth.tsx` (handleGoogleSignIn body only)
-- `src/components/wizard/GeneratingStep.tsx` (handleGoogleSignIn body only)
+- No new routes, no `App.tsx` changes
+- No `use-auth.ts`, no Supabase client, no RLS, no edge functions
+- Iframe-escape logic stays (preview-only workaround)
 
 ### Memory update
-After approval I'll update `mem://auth/google-oauth-production-settings` to reflect the switch from managed Lovable OAuth back to direct Supabase OAuth with `soulstory.co.il` redirect.
+Update `mem://auth/google-oauth-production-settings` to reflect the exact `redirectTo: 'https://soulstory.co.il/auth'` (no query params) and the `localStorage`-based returnTo fallback.
 
