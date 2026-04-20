@@ -853,6 +853,7 @@ const GeneratingStep = ({ formData, onComplete }: GeneratingStepProps) => {
                 <path d="M9 3.58c1.321 0 2.508.454 3.44 1.345l2.582-2.58C13.463.891 11.426 0 9 0A8.997 8.997 0 00.957 4.958L3.964 6.29C4.672 4.163 6.656 2.58 9 3.58z" fill="#EA4335"/>
               </svg>
               המשיכו עם Google
+              {!GOOGLE_SIGNIN_ENABLED && <span className="text-xs text-muted-foreground mr-2">בקרוב</span>}
             </button>
 
             {/* Divider */}
