@@ -21,7 +21,7 @@ import { z } from "zod";
 const emailSchema = z.string().email("כתובת אימייל לא תקינה");
 const passwordSchema = z.string().min(6, "הסיסמה חייבת להכיל לפחות 6 תווים");
 const TERMS_VERSION = "1.0";
-const GOOGLE_SIGNIN_ENABLED = false;
+const GOOGLE_SIGNIN_ENABLED = true;
 
 const Auth = () => {
   const navigate = useNavigate();
