@@ -360,6 +360,30 @@ const Auth = () => {
     setIsSubmitting(false);
   };
 
+  const handleGoogleSignIn = async () => {
+    try {
+      const returnTo = searchParams.get('returnTo') || localStorage.getItem('returnTo') || '/adventure';
+      if (returnTo) localStorage.setItem('returnTo', returnTo);
+      const { lovable } = await import("@/integrations/lovable/index");
+      const result = await lovable.auth.signInWithOAuth("google", {
+        redirect_uri: `${window.location.origin}/auth?returnTo=${encodeURIComponent(returnTo)}`,
+      });
+      if (result.error) {
+        toast({
+          title: "שגיאה",
+          description: "ההתחברות עם Google נכשלה. נסו שוב.",
+          variant: "destructive",
+        });
+      }
+    } catch (e) {
+      toast({
+        title: "שגיאה",
+        description: "אירעה שגיאה, נסו שוב",
+        variant: "destructive",
+      });
+    }
+  };
+
   const handleEmailSignUp = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!validateForm()) return;
