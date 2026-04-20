@@ -1,41 +1,91 @@
 
 
-## Fix: 404 after Google login click
+## Plan: Switch Google sign-in to direct Supabase OAuth — with one critical correction
 
-### Root cause
+### What you asked vs. what will actually work
 
-`handleGoogleSignIn` in `src/pages/Auth.tsx` does this when running inside the Lovable preview iframe:
+You asked for `redirectTo: https://soulstory.co.il/auth/v1/callback`.
 
-```ts
-window.open(window.location.href, '_blank', 'noopener');
+That path does **not** exist on `soulstory.co.il` — it's Supabase's internal callback path on the Supabase domain (`https://qvdwmkxviaqcgmjotsxe.supabase.co/auth/v1/callback`). Setting `redirectTo` to a non-existent path on your own domain will give you another 404 immediately after Google auth completes.
+
+Here's how `supabase.auth.signInWithOAuth` actually works:
+
+```text
+1. Your app  →  https://qvdwmkxviaqcgmjotsxe.supabase.co/auth/v1/authorize?provider=google&redirect_to=<X>
+2. Supabase  →  Google login screen
+3. Google    →  https://qvdwmkxviaqcgmjotsxe.supabase.co/auth/v1/callback   ← Supabase's own callback (fixed, registered in Google Console)
+4. Supabase  →  <X>  ← this is what `redirectTo` controls — must be a real page in your app
 ```
 
-It opens **whatever URL the iframe currently has** in a new tab. Right now the user is on `/index` (per the current route info) — a path that does **not** exist in `App.tsx`'s router, so the new tab loads the `NotFound` 404 page. Same risk for any future route that happens to not match a `<Route>`.
-
-The same flaw exists in `src/components/wizard/GeneratingStep.tsx` (added in the previous round).
-
-The Google OAuth `redirect_uri` itself (`${window.location.origin}/auth?...`) is fine — `/auth` IS registered in `App.tsx`. The 404 is from the **escape-the-iframe** step, not from the OAuth callback.
+So `redirectTo` must point to a **real route in your React app**, e.g. `/auth` or `/adventure`. The existing `/auth` route already handles the returning session correctly (via `onAuthStateChange` in `use-auth.ts`).
 
 ### What I will change
 
-Two surgical edits, no UI/design/route changes:
+Two files, surgical edits, no UI changes:
 
-1. **`src/pages/Auth.tsx` — `handleGoogleSignIn`**
-   Replace `window.open(window.location.href, ...)` with `window.open('${window.location.origin}/auth?returnTo=...', ...)`. The new tab is guaranteed to land on the existing `/auth` route, where the user can click Google again and complete OAuth top-level.
+#### 1. `src/pages/Auth.tsx` — `handleGoogleSignIn`
+Replace the `lovable.auth.signInWithOAuth(...)` call with direct Supabase:
 
-2. **`src/components/wizard/GeneratingStep.tsx` — `handleGoogleSignIn`**
-   Same change: open `${window.location.origin}/auth?returnTo=/create?resume=true` (a valid route) instead of `window.location.href`.
+```ts
+const handleGoogleSignIn = async () => {
+  const returnTo = searchParams.get('returnTo') || localStorage.getItem('returnTo') || '/adventure';
 
-### Files NOT touched
+  // Iframe escape stays — preview can't run OAuth inside Lovable's iframe
+  if (typeof window !== 'undefined' && window.self !== window.top) {
+    window.open(`${window.location.origin}/auth?returnTo=${encodeURIComponent(returnTo)}`, '_blank', 'noopener');
+    return;
+  }
 
-- No UI, design tokens, Tailwind, layout, or navigation
-- No `App.tsx` routes (none added, none removed)
-- No `use-auth.ts`, no Supabase client, no RLS, no edge functions
-- No service worker / Vite PWA config (`/~oauth` already denylisted correctly)
-- No new pages
+  const { error } = await supabase.auth.signInWithOAuth({
+    provider: 'google',
+    options: {
+      redirectTo: `https://soulstory.co.il/auth?returnTo=${encodeURIComponent(returnTo)}`,
+    },
+  });
+  if (error) {
+    toast({ title: 'שגיאה', description: error.message, variant: 'destructive' });
+  }
+};
+```
 
-### Verification after change
+#### 2. `src/components/wizard/GeneratingStep.tsx` — `handleGoogleSignIn`
+Same pattern, redirecting back to `/create?resume=true`:
 
-- Inside preview iframe on any route (including `/index` or any 404 path): click Google → new tab opens at `/auth` (real page) → click Google there → top-level OAuth completes → returns to `returnTo`.
-- On published site (`wwwstorytime.lovable.app`): unchanged, OAuth runs inline.
+```ts
+const { error } = await supabase.auth.signInWithOAuth({
+  provider: 'google',
+  options: {
+    redirectTo: `https://soulstory.co.il/create?resume=true`,
+  },
+});
+```
+
+### Backend configuration you must verify (no code change)
+
+For direct `supabase.auth.signInWithOAuth` to succeed against `soulstory.co.il`:
+
+1. **Supabase → Auth → URL Configuration → Redirect URLs allowlist** must contain:
+   - `https://soulstory.co.il/**`
+   - `https://wwwstorytime.lovable.app/**`
+   - `https://id-preview--1702720b-0016-412c-a1d9-a20e9c650989.lovable.app/**`
+2. **Supabase → Auth → Site URL** = `https://soulstory.co.il`
+3. **Google Cloud Console → Authorized redirect URIs** must contain:
+   `https://qvdwmkxviaqcgmjotsxe.supabase.co/auth/v1/callback` (Supabase's own — not your domain)
+
+If any of these are missing, sign-in will still fail. I'll surface a `<lov-open-backend>` button so you can verify them.
+
+### What is NOT changing
+
+- No UI, no Pixar styling, no buttons, no layout, no tablet optimization
+- No new routes, no `/auth/v1/callback` route in React (it doesn't belong in your app)
+- No `use-auth.ts`, no Supabase client config
+- No RLS, no edge functions
+- The Google button on `/auth` stays exactly where it is — only the click handler's internal call swaps from `lovable.auth.signInWithOAuth` to `supabase.auth.signInWithOAuth`
+
+### Files touched
+- `src/pages/Auth.tsx` (handleGoogleSignIn body only)
+- `src/components/wizard/GeneratingStep.tsx` (handleGoogleSignIn body only)
+
+### Memory update
+After approval I'll update `mem://auth/google-oauth-production-settings` to reflect the switch from managed Lovable OAuth back to direct Supabase OAuth with `soulstory.co.il` redirect.
 
