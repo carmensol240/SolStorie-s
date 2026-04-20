@@ -51,10 +51,17 @@ const Onboarding = () => {
 
   const getReturnTo = () => {
     const returnTo = searchParams.get('returnTo') || '/adventure';
-    if (returnTo.startsWith('/') && !returnTo.startsWith('//')) {
-      return returnTo;
+    // Override stale/generic paths — force home after first-time terms acceptance.
+    // Only honor specific deep-links from RequireTerms (e.g. /library, /create, /upgrade).
+    const forceHome = ['/settings', '/', '/adventure', '/auth', '/onboarding'];
+    if (
+      !returnTo.startsWith('/') ||
+      returnTo.startsWith('//') ||
+      forceHome.includes(returnTo)
+    ) {
+      return '/adventure';
     }
-    return '/adventure';
+    return returnTo;
   };
 
   const handleContinue = async () => {
@@ -92,6 +99,8 @@ const Onboarding = () => {
         title: "ברוכים הבאים ל-SolStorie's™! 🎉",
         description: "מחכה לך סיפור ראשון במתנה מאיתנו כדי להתחיל בקסם ✨",
       });
+      // Clear any stale returnTo so it doesn't leak into future navigations
+      try { localStorage.removeItem('returnTo'); } catch {}
       navigate(getReturnTo(), { replace: true });
     } catch (error) {
       console.error("Error saving consent:", error);
