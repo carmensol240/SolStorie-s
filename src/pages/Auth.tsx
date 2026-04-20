@@ -271,6 +271,23 @@ const Auth = () => {
       
       setCheckingTerms(true);
       try {
+        // If educator just signed in via Google with consent flag, persist terms
+        const pendingEducatorAccept = localStorage.getItem('pending_educator_terms_accept');
+        if (pendingEducatorAccept === '1') {
+          try {
+            await supabase
+              .from("profiles")
+              .update({
+                terms_accepted_at: new Date().toISOString(),
+                terms_version: TERMS_VERSION,
+              })
+              .eq("id", user.id);
+          } catch (e) {
+            console.warn('Failed to persist educator terms acceptance:', e);
+          }
+          localStorage.removeItem('pending_educator_terms_accept');
+        }
+
         const { data } = await supabase
           .from("profiles")
           .select("terms_accepted_at")
@@ -373,6 +390,10 @@ const Auth = () => {
         window.open('https://soulstory.co.il/auth', '_blank', 'noopener');
         return;
       }
+      // Educators already accepted terms in the signup form — persist after OAuth callback
+      if (userRole === "educator" && signupTermsAccepted) {
+        localStorage.setItem('pending_educator_terms_accept', '1');
+      }
       const { data, error } = await supabase.auth.signInWithOAuth({
         provider: 'google',
         options: {
@@ -431,6 +452,20 @@ const Auth = () => {
       // Signup successful - save terms acceptance immediately
       if (data?.user?.id) {
         await processReferral(data.user.id);
+      }
+      // Educators already consented in the signup form — persist now to skip /onboarding
+      if (userRole === "educator" && data.user.id && signupTermsAccepted) {
+        try {
+          await supabase
+            .from("profiles")
+            .update({
+              terms_accepted_at: new Date().toISOString(),
+              terms_version: TERMS_VERSION,
+            })
+            .eq("id", data.user.id);
+        } catch (e) {
+          console.warn('Failed to persist educator terms acceptance:', e);
+        }
       }
       if (userRole === "educator") {
         toast({
