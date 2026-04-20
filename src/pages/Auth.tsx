@@ -374,7 +374,7 @@ const Auth = () => {
       const { error } = await supabase.auth.signInWithOAuth({
         provider: 'google',
         options: {
-          redirectTo: `https://soulstory.co.il/auth?returnTo=${encodeURIComponent(returnTo)}`,
+          redirectTo: 'https://soulstory.co.il/auth',
         },
       });
       if (error) {

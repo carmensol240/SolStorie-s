@@ -606,6 +606,7 @@ const GeneratingStep = ({ formData, onComplete }: GeneratingStepProps) => {
 
   const handleGoogleSignIn = async () => {
     localStorage.setItem('pending_story_formData', JSON.stringify(formData));
+    localStorage.setItem('returnTo', '/create?resume=true');
     try {
       // If we're inside the Lovable preview iframe, Google blocks OAuth via X-Frame-Options.
       // Pop out to a top-level tab first so the redirect flow can complete normally.
@@ -617,7 +618,7 @@ const GeneratingStep = ({ formData, onComplete }: GeneratingStepProps) => {
       const { error } = await supabase.auth.signInWithOAuth({
         provider: 'google',
         options: {
-          redirectTo: `https://soulstory.co.il/create?resume=true`,
+          redirectTo: 'https://soulstory.co.il/auth',
         },
       });
       if (error) {
