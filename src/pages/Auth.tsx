@@ -390,8 +390,8 @@ const Auth = () => {
         window.open('https://soulstory.co.il/auth', '_blank', 'noopener');
         return;
       }
-      // Educators already accepted terms in the signup form — persist after OAuth callback
-      if (userRole === "educator" && signupTermsAccepted) {
+      // User already accepted terms in the signup form — persist after OAuth callback
+      if (signupTermsAccepted) {
         localStorage.setItem('pending_educator_terms_accept', '1');
       }
       const { data, error } = await supabase.auth.signInWithOAuth({
@@ -453,8 +453,8 @@ const Auth = () => {
       if (data?.user?.id) {
         await processReferral(data.user.id);
       }
-      // Educators already consented in the signup form — persist now to skip /onboarding
-      if (userRole === "educator" && data.user.id && signupTermsAccepted) {
+      // User already consented in the signup form — persist now to skip /onboarding
+      if (data.user.id && signupTermsAccepted) {
         try {
           await supabase
             .from("profiles")
@@ -464,7 +464,7 @@ const Auth = () => {
             })
             .eq("id", data.user.id);
         } catch (e) {
-          console.warn('Failed to persist educator terms acceptance:', e);
+          console.warn('Failed to persist terms acceptance:', e);
         }
       }
       if (userRole === "educator") {
