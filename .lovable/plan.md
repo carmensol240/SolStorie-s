@@ -1,28 +1,42 @@
 
 
-## Fix empty tooltip text on credit badges
+## Re-enable Sign in with Google
 
-### Root cause (most likely)
-The tooltip content text IS in the JSX (`קרדיטי סיפורים — ...` etc.), but it appears empty in the popup. The two most common causes given the current code:
+### Root cause
+Two files set a kill-switch constant `const GOOGLE_SIGNIN_ENABLED = false;` which:
+- Disables the Google buttons (`disabled={... || !GOOGLE_SIGNIN_ENABLED}`)
+- Greys them out (`disabled:opacity-50 disabled:grayscale`)
+- Adds a "בקרוב" (coming soon) badge next to the label
+- Causes `handleGoogleSignIn` to early-return without invoking OAuth
 
-1. **Missing `TooltipPortal`** — Radix's `Tooltip.Content` should portal to `<body>`, but in some shadcn setups inside deeply nested table/overflow containers the content can get clipped or rendered without its text node. Wrapping `TooltipContent` in `TooltipPrimitive.Portal` guarantees it escapes the table cell.
-2. **RTL/font issue** — Hebrew text inside `bg-popover text-popover-foreground` without an explicit `dir="rtl"` can render as zero-width in some browsers when the popover is mounted in an LTR context.
+### Changes (two files only)
 
-### Fix (minimal, targeted)
-**File: `src/components/ui/tooltip.tsx`** — add Portal export and wrap content in Portal so all tooltips across the app render reliably:
-- Import `TooltipPrimitive.Portal` and wrap `<TooltipPrimitive.Content>` with `<TooltipPrimitive.Portal>`.
-- Keep the existing className, ref, and props exactly as-is.
+**1. `src/pages/Auth.tsx`**
+- Line 24: change `const GOOGLE_SIGNIN_ENABLED = false;` → `const GOOGLE_SIGNIN_ENABLED = true;`
 
-**File: `src/pages/AdminDashboard.tsx`** — add `dir="rtl"` to each of the three `<TooltipContent>` elements (lines 645, 651, 657) so the Hebrew text is laid out correctly inside the portaled popup. No text changes — the existing strings stay:
-- `"קרדיטי סיפורים — מספר הסיפורים שהמשתמש יכול ליצור"`
-- `"קרדיטי צביעה — מספר דפי הצביעה שהמשתמש יכול להפיק"`
-- `"קרדיטי עריכה — מספר העריכות הזמינות לסיפורים קיימים"`
+**2. `src/components/wizard/GeneratingStep.tsx`**
+- Line 23: change `const GOOGLE_SIGNIN_ENABLED = false;` → `const GOOGLE_SIGNIN_ENABLED = true;`
+
+That single one-line flip in each file:
+- Re-enables the login Google button (Auth.tsx line 1292)
+- Re-enables the signup Google button (Auth.tsx line 1447)
+- Re-enables the wizard Google button (GeneratingStep.tsx line 846)
+- Removes the "בקרוב" badges automatically (they're rendered via `{!GOOGLE_SIGNIN_ENABLED && ...}`)
+- Allows `handleGoogleSignIn` to proceed past the early return on lines 365 / 609
 
 ### What will NOT change
-- No badge styling, colors, layout, legend, or any other dashboard content changes.
-- No changes to data, props, or types.
-- All other tooltips in the app keep working (Portal is backward-compatible).
+- No layout, color, button text, or icon changes.
+- `handleGoogleSignIn` body untouched — it already uses the production-correct `supabase.auth.signInWithOAuth` with hardcoded `redirectTo: 'https://qvdwmkxviaqcgmjotsxe.supabase.co/auth/v1/callback'` (per `mem://auth/google-oauth-production-settings`).
+- Iframe-escape behavior preserved (opens `https://soulstory.co.il/auth` in new tab when in preview).
+- `returnTo` localStorage persistence preserved.
+- No backend, RLS, route, or other component changes.
+
+### Verification after flip
+- Login tab: Google button is colored, clickable, no "בקרוב" badge.
+- Signup tab: Google button enables once terms checkbox is ticked.
+- GeneratingStep wizard: Google button enabled.
+- Click → redirects to Google consent → returns to `/auth` → routes to `/onboarding` or `/adventure` based on terms acceptance.
 
 ### How to revert
-Remove the `Portal` wrapper in `tooltip.tsx` and remove `dir="rtl"` from the three `TooltipContent` tags.
+Flip both constants back to `false`.
 
