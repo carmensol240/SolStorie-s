@@ -1,81 +1,41 @@
 
 
-## Plan: Diagnose `ERR_BLOCKED_BY_RESPONSE` (preview-only)
+## Fix: 404 after Google login click
 
-### What's actually happening
+### Root cause
 
-`ERR_BLOCKED_BY_RESPONSE` on Google sign-in **inside the Lovable preview iframe** is an environment limitation, not a bug in your app:
+`handleGoogleSignIn` in `src/pages/Auth.tsx` does this when running inside the Lovable preview iframe:
 
-- The preview runs your app inside an `<iframe>` on `lovableproject.com`.
-- Google's OAuth screens send `X-Frame-Options: DENY` / `Content-Security-Policy: frame-ancestors`. The browser refuses to render Google inside the iframe → `ERR_BLOCKED_BY_RESPONSE`.
-- Safari (and Chrome incognito) additionally block third-party cookies inside iframes, which breaks the session round-trip even when the redirect succeeds.
-
-This is why the **same code works on the published URL** (`https://wwwstorytime.lovable.app`) but fails inside the preview iframe.
-
-### What the requested "fix" would and would not do
-
-> "Open Google login in a new window (popup) or full-page redirect, not inside an iframe."
-
-- **Full-page redirect** is already what the code does (`window.location.href = ...` via `lovable.auth.signInWithOAuth`). It's the iframe itself — not the code — that the redirect happens inside, so the redirect target is still blocked by Google's frame headers.
-- **Popup-based OAuth** is not supported by `lovable.auth.signInWithOAuth` or `supabase.auth.signInWithOAuth`. Both are redirect-only flows. Implementing a custom popup OAuth handler would be a large rewrite, would still hit Safari's third-party-cookie block, and would break the working production flow.
-
-The standard, correct way to test Google sign-in for a Lovable project is to **test on the published URL**, not the preview iframe.
-
-### What I will do
-
-#### 1. Open the preview in a new tab (workaround for the iframe block)
-
-Add a small helper in `src/components/wizard/GeneratingStep.tsx` and `src/pages/Auth.tsx`: if the app detects it is running inside an iframe (`window.self !== window.top`), the Google button will instead open the same page in a new top-level browser tab before triggering OAuth. In a top-level tab, Google's frame headers no longer apply and the flow works normally — both in the preview environment and in the published site.
-
-Pseudo:
 ```ts
-const handleGoogleSignIn = async () => {
-  if (window.self !== window.top) {
-    // We're inside the Lovable preview iframe — pop out to a real tab first
-    window.open(window.location.href, '_blank', 'noopener');
-    return;
-  }
-  const { lovable } = await import("@/integrations/lovable/index");
-  await lovable.auth.signInWithOAuth("google", {
-    redirect_uri: `${window.location.origin}/auth?returnTo=${encodeURIComponent(returnTo)}`,
-  });
-};
+window.open(window.location.href, '_blank', 'noopener');
 ```
 
-This change is invisible on the published site (where `window.self === window.top`) and only kicks in inside the preview iframe.
+It opens **whatever URL the iframe currently has** in a new tab. Right now the user is on `/index` (per the current route info) — a path that does **not** exist in `App.tsx`'s router, so the new tab loads the `NotFound` 404 page. Same risk for any future route that happens to not match a `<Route>`.
 
-#### 2. Verify admin vs. regular user data isolation (no code change needed)
+The same flaw exists in `src/components/wizard/GeneratingStep.tsx` (added in the previous round).
 
-Already verified in previous round and unchanged:
-- `Library.tsx`, `Adventure.tsx`, `LoggedInHome.tsx` all filter by `.eq("user_id", user.id)`.
-- RLS on `stories`: regular users see only their own; `has_role(auth.uid(), 'admin')` policy lets admins see all; anon blocked.
+The Google OAuth `redirect_uri` itself (`${window.location.origin}/auth?...`) is fine — `/auth` IS registered in `App.tsx`. The 404 is from the **escape-the-iframe** step, not from the OAuth callback.
 
-I will re-run the Supabase linter after the change to confirm nothing regressed.
+### What I will change
 
-#### 3. Verify session persistence (no code change needed)
+Two surgical edits, no UI/design/route changes:
 
-`src/integrations/supabase/client.ts` already configures:
-```ts
-auth: { storage: localStorage, persistSession: true, autoRefreshToken: true }
-```
+1. **`src/pages/Auth.tsx` — `handleGoogleSignIn`**
+   Replace `window.open(window.location.href, ...)` with `window.open('${window.location.origin}/auth?returnTo=...', ...)`. The new tab is guaranteed to land on the existing `/auth` route, where the user can click Google again and complete OAuth top-level.
 
-This means sessions survive refresh and tab close. No change needed.
-
-### Files touched
-
-- `src/pages/Auth.tsx` — wrap `handleGoogleSignIn` with the iframe-escape guard.
-- `src/components/wizard/GeneratingStep.tsx` — same guard on its `handleGoogleSignIn`.
+2. **`src/components/wizard/GeneratingStep.tsx` — `handleGoogleSignIn`**
+   Same change: open `${window.location.origin}/auth?returnTo=/create?resume=true` (a valid route) instead of `window.location.href`.
 
 ### Files NOT touched
 
-- No UI, design, layout, navigation, tailwind, or design tokens
-- No RLS policies, no edge functions, no Supabase config
-- No `use-auth.ts`, no client config, no other components
+- No UI, design tokens, Tailwind, layout, or navigation
+- No `App.tsx` routes (none added, none removed)
+- No `use-auth.ts`, no Supabase client, no RLS, no edge functions
+- No service worker / Vite PWA config (`/~oauth` already denylisted correctly)
+- No new pages
 
-### Important note for testing
+### Verification after change
 
-After this change:
-- **Inside the Lovable preview iframe**: clicking "המשיכו עם Google" will open a new browser tab on the same URL — sign in there. This is the only reliable way to test Google OAuth from the preview.
-- **On the published site (`wwwstorytime.lovable.app`)** and on `localhost`: behavior is unchanged — Google sign-in works inline as before.
-- If after testing on the **published URL** Google sign-in still fails with `ERR_BLOCKED_BY_RESPONSE`, that would indicate a real configuration issue (not the preview iframe), and we will diagnose from there.
+- Inside preview iframe on any route (including `/index` or any 404 path): click Google → new tab opens at `/auth` (real page) → click Google there → top-level OAuth completes → returns to `returnTo`.
+- On published site (`wwwstorytime.lovable.app`): unchanged, OAuth runs inline.
 
