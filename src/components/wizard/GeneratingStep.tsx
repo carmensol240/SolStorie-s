@@ -607,13 +607,11 @@ const GeneratingStep = ({ formData, onComplete }: GeneratingStepProps) => {
   const handleGoogleSignIn = async () => {
     localStorage.setItem('pending_story_formData', JSON.stringify(formData));
     try {
-      const { error } = await supabase.auth.signInWithOAuth({
-        provider: 'google',
-        options: {
-          redirectTo: `${window.location.origin}/create?resume=true`,
-        },
+      const { lovable } = await import("@/integrations/lovable/index");
+      const result = await lovable.auth.signInWithOAuth("google", {
+        redirect_uri: `${window.location.origin}/create?resume=true`,
       });
-      if (error) {
+      if (result.error) {
         toast({ title: "שגיאה", description: "ההתחברות עם Google נכשלה", variant: "destructive" });
       }
     } catch (e) {
