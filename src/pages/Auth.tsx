@@ -390,6 +390,10 @@ const Auth = () => {
         window.open('https://soulstory.co.il/auth', '_blank', 'noopener');
         return;
       }
+      // Educators already accepted terms in the signup form — persist after OAuth callback
+      if (userRole === "educator" && signupTermsAccepted) {
+        localStorage.setItem('pending_educator_terms_accept', '1');
+      }
       const { data, error } = await supabase.auth.signInWithOAuth({
         provider: 'google',
         options: {
