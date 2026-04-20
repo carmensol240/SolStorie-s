@@ -1,35 +1,54 @@
 
 
-## Update shared Onboarding page (Onboarding.tsx)
+## Fix: educator (and parent) post-onboarding redirect lands on Settings instead of Home
 
-Single file change: `src/pages/Onboarding.tsx`. No layout, color, or font changes — only text content and emoji swaps within the existing feature blocks.
+### Root cause
 
-### Changes
+In the signup → about-screen flow:
 
-**1. Topic count (line 158)**
-- "34 נושאים מובנים" → "מעל 100 נושאים מובנים"
+1. User clicks Signup (often arrives at `/auth` from the bottom nav's Settings tab, or from `RequireTerms` blocking `/settings`).
+2. `Auth.tsx` reads `returnTo` from query string OR `localStorage.getItem('returnTo')` — which can be `/settings` from a previous redirect.
+3. After successful signup, `Auth.tsx` redirects to `/onboarding?returnTo=/settings` (the "about" screen with terms checkboxes).
+4. In `Onboarding.tsx`, after the user ticks both checkboxes and presses **המשך** ("continue"), `handleContinue` calls `navigate(getReturnTo())` which reads the same stale `returnTo=/settings` from the query string.
+5. Result: the educator lands on Settings instead of Home.
 
-**2. Replace fragile emojis with text-safe alternatives**
-- Line 187 (`סיפורים מעצימים` block): `🪄` → `⭐` (star — universally rendered)
-   - Note: line 178 already uses `⭐` for the hero block. To avoid two identical emojis, use `🌟` (glowing star) for `סיפורים מעצימים` instead — also universally supported.
-- Line 195 (English stories block): `🇺🇸` (flag, breaks on Windows/older Android) → `🌍` (globe — text-safe)
+This affects educators more visibly because their signup path often passes through Settings/Toolkit gates, but the same bug exists for parents in the same scenario.
 
-**3. Add 3 new feature items** in the same exact style as existing ones (the `flex flex-col items-center gap-1.5` block with `text-3xl` emoji + `text-sm text-white/80 leading-snug px-4` paragraph). Inserted after the English-stories block (line 199), before the "Invitation" paragraph (line 204):
+### Fix
 
-- 🖨️ **הדפסה לספר פיזי** — הדפיסו את הסיפור של הילד כספר אמיתי לקחת הביתה
-- 🎙️ **הקלטה בקול אדם** — הסיפור מוקלט בקול אדם חם ומרגש
-- 🎨 **דפי צביעה** — דפי צביעה מהסיפור להדפסה או לצביעה אונליין
+**Single file change: `src/pages/Onboarding.tsx`**
 
-Each new item uses the same wrapper, the same `text-3xl` emoji, the same `<strong className="text-amber-200">` (or rotating amber/pink/purple/green like existing items) for the bolded label, and the same paragraph classes. To match the existing color rotation, the three new strong-tag colors will be: `text-amber-200` (printer), `text-pink-200` (mic), `text-purple-200` (coloring).
+Change `handleContinue`'s post-success navigation so that the **first time** a user accepts terms (the about-screen acceptance), they are always routed to the home/main screen — `/adventure` — regardless of any stale `returnTo` left in the URL or localStorage.
 
-### Files NOT changed
-- `src/components/shared/AboutSolStoriesContent.tsx` (separate About content shown in Settings dialog — out of scope)
-- `src/pages/About.tsx` (separate About route — out of scope)
-- All other onboarding logic, terms checkboxes, buttons, background, navigation, role-based logic — untouched.
+Specifically:
+
+- Replace `navigate(getReturnTo(), { replace: true });` (current behavior — uses `returnTo`) with `navigate("/adventure", { replace: true });`.
+- Also clear any stale `localStorage.getItem('returnTo')` value so it doesn't leak into later navigations.
+- The unused `getReturnTo()` helper and the `useSearchParams` import can be removed.
+
+Behavior after fix:
+- Parent signup → about/onboarding screen → tick terms → press המשך → **`/adventure`** (home). ✅
+- Educator signup → about/onboarding screen → tick terms → press המשך → **`/adventure`** (home). ✅
+- The educator-specific welcome banner on `/adventure` (in `LoggedInHome.tsx`) continues to work because it reads `user_role` from the profile.
+
+### What will NOT change
+
+- `Auth.tsx` redirect logic, signup handler, terms-acceptance toast, educator-specific welcome toast — all untouched.
+- `RequireTerms.tsx` (which legitimately uses `returnTo` to bring users back to a protected page they tried to visit) — untouched. Its `returnTo` flow is separate: when an already-signed-up user without accepted terms tries to visit, e.g., `/library`, RequireTerms sends them to `/onboarding?returnTo=/library`, and after accepting they correctly land on `/library`.
+
+  → **However**, applying the fix above would also override RequireTerms's intended `returnTo`. To avoid breaking that flow, the fix uses this rule instead:
+
+  > If `returnTo` is missing **or** points to `/settings`, `/`, `/adventure`, or `/auth`, force `/adventure`. Otherwise honor `returnTo` (preserves the RequireTerms deep-link experience).
+
+- All onboarding content (text, emojis, checkboxes, buttons, layout, colors, fonts) — untouched.
+- About page (`/about`), Settings, Toolkit, Educator package logic — untouched.
 
 ### Memory
-No memory updates required (no architectural rules change).
+
+Update `mem://navigation/entry-and-smart-flow` to record:
+> After accepting terms on the onboarding/about screen, the user is always routed to `/adventure` (home) — never to `/settings` — even if a stale `returnTo` query param points elsewhere. Exception: deep-link returnTo from RequireTerms (e.g., `/library`, `/create`, `/upgrade`) is still honored.
 
 ### How to revert
-Restore the original "34 נושאים מובנים" text, restore `🪄` and `🇺🇸`, and remove the 3 new feature blocks.
+
+Restore the original `navigate(getReturnTo(), { replace: true });` call in `Onboarding.tsx` and re-add the `getReturnTo` helper and `useSearchParams` import.
 
