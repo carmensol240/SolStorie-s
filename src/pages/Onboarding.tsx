@@ -155,7 +155,7 @@ const Onboarding = () => {
           יצרתי את <span dir="ltr" className="inline-block">SolStorie's™</span> עבור בתי סול, מתוך רצון להעניק לה עולם של דמיון שמבין את הקצב הייחודי שלה. האפליקציה נולדה מאהבה של אמא לבתה, וכל התכנים והדמויות הם קניין רוחני מוגן.
         </p>
         <p className="text-sm text-white/75 leading-relaxed mb-3 px-1">
-          באפליקציה תמצאו <strong className="text-amber-200">34 נושאים מובנים</strong> לפתרון סיטואציות מחיי היום-יום – מפחד מהחושך, דרך יום ראשון בגן ועד הגעת אח חדש. כל סיפור נבנה בשילוב כלים מעולם ה-NLP, בונה חוסן פנימי ומאפשר לילד להיות הגיבור בסיפור שלו.
+          באפליקציה תמצאו <strong className="text-amber-200">מעל 100 נושאים מובנים</strong> לפתרון סיטואציות מחיי היום-יום – מפחד מהחושך, דרך יום ראשון בגן ועד הגעת אח חדש. כל סיפור נבנה בשילוב כלים מעולם ה-NLP, בונה חוסן פנימי ומאפשר לילד להיות הגיבור בסיפור שלו.
         </p>
         <p className="text-sm text-white/75 leading-relaxed mb-5 px-1">
           אני נרגשת לחלוק את הקסם הזה גם אתכם. הנה מה שתמצאו בתוך <span dir="ltr" className="inline-block">SolStorie's™</span>:
@@ -183,16 +183,37 @@ const Onboarding = () => {
           </div>
 
           <div className="flex flex-col items-center gap-1.5">
-            <span className="text-3xl">🪄</span>
+            <span className="text-3xl">🌟</span>
             <p className="text-sm text-white/80 leading-snug px-4">
               <strong className="text-purple-200">סיפורים מעצימים</strong> — כל סיפור נבנה עם דגש על בניית ביטחון עצמי, חוסן רגשי ומסרים חיוביים שנטמעים בילד בצורה טבעית ומהנה.
             </p>
           </div>
 
           <div className="flex flex-col items-center gap-1.5">
-            <span className="text-3xl">🇺🇸</span>
+            <span className="text-3xl">🌍</span>
             <p className="text-sm text-white/80 leading-snug px-4">
               <strong className="text-green-200">לומדים אנגלית בכיף</strong> — סיפורים ללמידת שפה בצורה חווייתית ומהנה.
+            </p>
+          </div>
+
+          <div className="flex flex-col items-center gap-1.5">
+            <span className="text-3xl">🖨️</span>
+            <p className="text-sm text-white/80 leading-snug px-4">
+              <strong className="text-amber-200">הדפסה לספר פיזי</strong> — הדפיסו את הסיפור של הילד כספר אמיתי לקחת הביתה.
+            </p>
+          </div>
+
+          <div className="flex flex-col items-center gap-1.5">
+            <span className="text-3xl">🎙️</span>
+            <p className="text-sm text-white/80 leading-snug px-4">
+              <strong className="text-pink-200">הקלטה בקול אדם</strong> — הסיפור מוקלט בקול אדם חם ומרגש.
+            </p>
+          </div>
+
+          <div className="flex flex-col items-center gap-1.5">
+            <span className="text-3xl">🎨</span>
+            <p className="text-sm text-white/80 leading-snug px-4">
+              <strong className="text-purple-200">דפי צביעה</strong> — דפי צביעה מהסיפור להדפסה או לצביעה אונליין.
             </p>
           </div>
         </div>
