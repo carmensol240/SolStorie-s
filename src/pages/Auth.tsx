@@ -271,6 +271,23 @@ const Auth = () => {
       
       setCheckingTerms(true);
       try {
+        // If educator just signed in via Google with consent flag, persist terms
+        const pendingEducatorAccept = localStorage.getItem('pending_educator_terms_accept');
+        if (pendingEducatorAccept === '1') {
+          try {
+            await supabase
+              .from("profiles")
+              .update({
+                terms_accepted_at: new Date().toISOString(),
+                terms_version: TERMS_VERSION,
+              })
+              .eq("id", user.id);
+          } catch (e) {
+            console.warn('Failed to persist educator terms acceptance:', e);
+          }
+          localStorage.removeItem('pending_educator_terms_accept');
+        }
+
         const { data } = await supabase
           .from("profiles")
           .select("terms_accepted_at")
