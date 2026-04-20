@@ -610,7 +610,8 @@ const GeneratingStep = ({ formData, onComplete }: GeneratingStepProps) => {
       // If we're inside the Lovable preview iframe, Google blocks OAuth via X-Frame-Options.
       // Pop out to a top-level tab first so the redirect flow can complete normally.
       if (typeof window !== 'undefined' && window.self !== window.top) {
-        window.open(window.location.href, '_blank', 'noopener');
+        // Always open a guaranteed-valid route (/auth) so the new tab doesn't 404.
+        window.open(`${window.location.origin}/auth?returnTo=${encodeURIComponent('/create?resume=true')}`, '_blank', 'noopener');
         return;
       }
       const { lovable } = await import("@/integrations/lovable/index");
