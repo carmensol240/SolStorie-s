@@ -642,19 +642,19 @@ const AdminDashboard = () => {
                                     <TooltipTrigger asChild>
                                       <Badge className="bg-amber-100 text-amber-800 text-[10px] cursor-help">📖 {p.story_credits ?? 0}</Badge>
                                     </TooltipTrigger>
-                                    <TooltipContent>קרדיטי סיפורים — מספר הסיפורים שהמשתמש יכול ליצור</TooltipContent>
+                                    <TooltipContent dir="rtl">קרדיטי סיפורים — מספר הסיפורים שהמשתמש יכול ליצור</TooltipContent>
                                   </Tooltip>
                                   <Tooltip>
                                     <TooltipTrigger asChild>
                                       <Badge className="bg-purple-100 text-purple-800 text-[10px] cursor-help">🎨 {p.coloring_credits ?? 0}</Badge>
                                     </TooltipTrigger>
-                                    <TooltipContent>קרדיטי צביעה — מספר דפי הצביעה שהמשתמש יכול להפיק</TooltipContent>
+                                    <TooltipContent dir="rtl">קרדיטי צביעה — מספר דפי הצביעה שהמשתמש יכול להפיק</TooltipContent>
                                   </Tooltip>
                                   <Tooltip>
                                     <TooltipTrigger asChild>
                                       <Badge className="bg-blue-100 text-blue-800 text-[10px] cursor-help">✏️ {p.editing_credits ?? 0}</Badge>
                                     </TooltipTrigger>
-                                    <TooltipContent>קרדיטי עריכה — מספר העריכות הזמינות לסיפורים קיימים</TooltipContent>
+                                    <TooltipContent dir="rtl">קרדיטי עריכה — מספר העריכות הזמינות לסיפורים קיימים</TooltipContent>
                                   </Tooltip>
                                 </div>
                               </TooltipProvider>
