@@ -371,11 +371,13 @@ const Auth = () => {
         window.open(`${window.location.origin}/auth?returnTo=${encodeURIComponent(returnTo)}`, '_blank', 'noopener');
         return;
       }
-      const { lovable } = await import("@/integrations/lovable/index");
-      const result = await lovable.auth.signInWithOAuth("google", {
-        redirect_uri: `${window.location.origin}/auth?returnTo=${encodeURIComponent(returnTo)}`,
+      const { error } = await supabase.auth.signInWithOAuth({
+        provider: 'google',
+        options: {
+          redirectTo: `https://soulstory.co.il/auth?returnTo=${encodeURIComponent(returnTo)}`,
+        },
       });
-      if (result.error) {
+      if (error) {
         toast({
           title: "שגיאה",
           description: "ההתחברות עם Google נכשלה. נסו שוב.",

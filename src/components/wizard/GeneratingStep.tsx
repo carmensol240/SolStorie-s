@@ -614,11 +614,13 @@ const GeneratingStep = ({ formData, onComplete }: GeneratingStepProps) => {
         window.open(`${window.location.origin}/auth?returnTo=${encodeURIComponent('/create?resume=true')}`, '_blank', 'noopener');
         return;
       }
-      const { lovable } = await import("@/integrations/lovable/index");
-      const result = await lovable.auth.signInWithOAuth("google", {
-        redirect_uri: `${window.location.origin}/create?resume=true`,
+      const { error } = await supabase.auth.signInWithOAuth({
+        provider: 'google',
+        options: {
+          redirectTo: `https://soulstory.co.il/create?resume=true`,
+        },
       });
-      if (result.error) {
+      if (error) {
         toast({ title: "שגיאה", description: "ההתחברות עם Google נכשלה", variant: "destructive" });
       }
     } catch (e) {
