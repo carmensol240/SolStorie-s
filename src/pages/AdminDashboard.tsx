@@ -25,6 +25,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 
 interface ProfileRow {
   id: string;
@@ -592,6 +593,11 @@ const AdminDashboard = () => {
                     <Input placeholder="חיפוש לפי שם או אימייל..." value={usersSearch} onChange={e => setUsersSearch(e.target.value)} className="pr-9 text-sm" />
                   </div>
                 </div>
+                <div className="px-3 pb-2 text-xs text-muted-foreground flex flex-wrap gap-x-4 gap-y-1">
+                  <span>📖 קרדיטי סיפורים</span>
+                  <span>🎨 קרדיטי צביעה</span>
+                  <span>✏️ קרדיטי עריכה</span>
+                </div>
                 <ReviewedBar tab="users" total={profiles.length} filtered={filteredUsers.length} cutoff={reviewedCutoffs["users"]} showReviewed={showReviewed["users"]} onToggleShow={() => setShowReviewed(p => ({ ...p, users: !p.users }))} onMark={() => setConfirmClearTab("users")} onClear={() => clearReviewed("users")} />
                 <div className="overflow-x-auto">
                   <Table>
@@ -630,11 +636,28 @@ const AdminDashboard = () => {
                             <TableCell><Badge variant="outline" className="text-xs">{p.user_role}</Badge></TableCell>
                             <TableCell>{userStories.length}</TableCell>
                             <TableCell>
-                              <div className="flex gap-1 flex-wrap">
-                                <Badge className="bg-amber-100 text-amber-800 text-[10px]">📖 {p.story_credits ?? 0}</Badge>
-                                <Badge className="bg-purple-100 text-purple-800 text-[10px]">🎨 {p.coloring_credits ?? 0}</Badge>
-                                <Badge className="bg-blue-100 text-blue-800 text-[10px]">✏️ {p.editing_credits ?? 0}</Badge>
-                              </div>
+                              <TooltipProvider delayDuration={200}>
+                                <div className="flex gap-1 flex-wrap">
+                                  <Tooltip>
+                                    <TooltipTrigger asChild>
+                                      <Badge className="bg-amber-100 text-amber-800 text-[10px] cursor-help">📖 {p.story_credits ?? 0}</Badge>
+                                    </TooltipTrigger>
+                                    <TooltipContent>קרדיטי סיפורים — מספר הסיפורים שהמשתמש יכול ליצור</TooltipContent>
+                                  </Tooltip>
+                                  <Tooltip>
+                                    <TooltipTrigger asChild>
+                                      <Badge className="bg-purple-100 text-purple-800 text-[10px] cursor-help">🎨 {p.coloring_credits ?? 0}</Badge>
+                                    </TooltipTrigger>
+                                    <TooltipContent>קרדיטי צביעה — מספר דפי הצביעה שהמשתמש יכול להפיק</TooltipContent>
+                                  </Tooltip>
+                                  <Tooltip>
+                                    <TooltipTrigger asChild>
+                                      <Badge className="bg-blue-100 text-blue-800 text-[10px] cursor-help">✏️ {p.editing_credits ?? 0}</Badge>
+                                    </TooltipTrigger>
+                                    <TooltipContent>קרדיטי עריכה — מספר העריכות הזמינות לסיפורים קיימים</TooltipContent>
+                                  </Tooltip>
+                                </div>
+                              </TooltipProvider>
                             </TableCell>
                             <TableCell className="text-xs">
                               {lastPurchase ? (
