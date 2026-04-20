@@ -611,15 +611,15 @@ const GeneratingStep = ({ formData, onComplete }: GeneratingStepProps) => {
       // If we're inside the Lovable preview iframe, Google blocks OAuth via X-Frame-Options.
       // Pop out to a top-level tab first so the redirect flow can complete normally.
       if (typeof window !== 'undefined' && window.self !== window.top) {
-        // Always open a guaranteed-valid route (/auth) so the new tab doesn't 404.
-        window.open(`${window.location.origin}/auth?returnTo=${encodeURIComponent('/create?resume=true')}`, '_blank', 'noopener');
+        // Open the hardcoded production /auth URL in a new tab (no window.location.origin).
+        window.open('https://soulstory.co.il/auth', '_blank', 'noopener');
         return;
       }
-      const { error } = await supabase.auth.signInWithOAuth({
+      const { data, error } = await supabase.auth.signInWithOAuth({
         provider: 'google',
         options: {
-          redirectTo: 'https://soulstory.co.il/auth',
-        },
+          redirectTo: 'https://soulstory.co.il/auth'
+        }
       });
       if (error) {
         toast({ title: "שגיאה", description: "ההתחברות עם Google נכשלה", variant: "destructive" });
