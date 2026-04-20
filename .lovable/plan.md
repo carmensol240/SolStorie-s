@@ -1,40 +1,94 @@
 
+## Fix: force Google OAuth to use the exact hardcoded custom-domain redirect
 
-## Fix: Use exact redirect URL `https://soulstory.co.il/auth`
+### Current state confirmed
+- `App.tsx` already maps `/auth` correctly:
+  `\<Route path="/auth" element={\<Auth />} />`
+- The active Google sign-in handlers in:
+  - `src/pages/Auth.tsx`
+  - `src/components/wizard/GeneratingStep.tsx`
+  already use `redirectTo: 'https://soulstory.co.il/auth'`
+- The remaining problems are:
+  1. both handlers still use `window.location.origin` in the preview iframe escape flow
+  2. `src/hooks/use-auth.ts` still contains older Google OAuth logic using `lovable.auth.signInWithOAuth(...)` and a different redirect path
 
-### What changes
+### What will be changed
 
-Currently the code passes `redirectTo: https://soulstory.co.il/auth?returnTo=...` and `https://soulstory.co.il/create?resume=true`. With query params, the URL no longer matches the exact `https://soulstory.co.il/auth` you whitelisted in Supabase + Google Console — Supabase's redirect-allowlist matches the **base URL** but Google's OAuth redirect-URI check is **exact**, so any deviation can trigger `redirect_uri_mismatch`.
+#### 1. `src/pages/Auth.tsx`
+Update `handleGoogleSignIn` so the Google flow uses only:
+```ts
+const { data, error } = await supabase.auth.signInWithOAuth({
+  provider: 'google',
+  options: {
+    redirectTo: 'https://soulstory.co.il/auth'
+  }
+})
+```
 
-I'll make both Google sign-in handlers redirect to **exactly** `https://soulstory.co.il/auth` and preserve the `returnTo` / resume hint in `localStorage` instead of the URL.
+Also update the iframe escape logic so it does **not** use `window.location.origin`; it will open the hardcoded URL directly in a new tab:
+```ts
+window.open('https://soulstory.co.il/auth', '_blank', 'noopener')
+```
 
-### Files touched (2 — handler bodies only, no UI)
+`returnTo` will continue to be preserved via `localStorage`, not query params.
 
-#### 1. `src/pages/Auth.tsx` — `handleGoogleSignIn` (lines 363-394)
-- Save `returnTo` to `localStorage` (already done on line 366 — keep).
-- Change `redirectTo` from `` `https://soulstory.co.il/auth?returnTo=${...}` `` → `'https://soulstory.co.il/auth'` (no query string).
-- Iframe-escape new tab still opens `/auth` on current origin (unchanged — that's preview-only and unrelated to the production redirect URI).
+#### 2. `src/components/wizard/GeneratingStep.tsx`
+Apply the same exact OAuth structure:
+```ts
+const { data, error } = await supabase.auth.signInWithOAuth({
+  provider: 'google',
+  options: {
+    redirectTo: 'https://soulstory.co.il/auth'
+  }
+})
+```
 
-#### 2. `src/components/wizard/GeneratingStep.tsx` — `handleGoogleSignIn` (lines 607-629)
-- Save `'pending_story_formData'` (already done — keep) and additionally set `localStorage.setItem('returnTo', '/create?resume=true')` so `/auth` knows where to send the user after sign-in.
-- Change `redirectTo` from `` `https://soulstory.co.il/create?resume=true` `` → `'https://soulstory.co.il/auth'` (exact match).
-- After OAuth completes and `/auth` loads, the existing `useEffect` that watches `user` will navigate to `localStorage.getItem('returnTo')` → `/create?resume=true`, where `CreateStory.tsx`'s existing resume logic restores `pending_story_formData` and continues generation.
+Also replace the iframe escape URL with the same hardcoded `https://soulstory.co.il/auth` new-tab open.
 
-### Returnto handling on `/auth` (already exists, no change)
+Keep the existing `localStorage` persistence for:
+- `pending_story_formData`
+- `returnTo = '/create?resume=true'`
 
-`src/pages/Auth.tsx` already reads `returnTo` from `localStorage` as a fallback (line 365). After Google completes, `useAuth`'s `onAuthStateChange` fires, `user` becomes truthy, and the existing post-auth redirect picks up `localStorage.getItem('returnTo')`.
+So the user still returns to the resume flow after auth.
 
-### Backend config (you said this is already done — just confirming what's required)
-- Supabase → Auth → Redirect URLs allowlist must include: `https://soulstory.co.il/auth`
-- Google Cloud Console → Authorized redirect URIs must include: `https://qvdwmkxviaqcgmjotsxe.supabase.co/auth/v1/callback` (Google never redirects to your domain — only to Supabase)
-- Supabase → Auth → Site URL: `https://soulstory.co.il`
+#### 3. `src/hooks/use-auth.ts`
+Replace the stale Google helper so there is no fallback path left in the codebase that can still call:
+- `lovable.auth.signInWithOAuth(...)`
+- `redirect_uri: .../consent...`
 
-### What is NOT changing
-- No UI, no Pixar styling, no buttons, no layout, no tablet optimization
-- No new routes, no `App.tsx` changes
-- No `use-auth.ts`, no Supabase client, no RLS, no edge functions
-- Iframe-escape logic stays (preview-only workaround)
+This keeps all Google auth code paths consistent with the exact hardcoded URL requirement and prevents regressions.
 
-### Memory update
-Update `mem://auth/google-oauth-production-settings` to reflect the exact `redirectTo: 'https://soulstory.co.il/auth'` (no query params) and the `localStorage`-based returnTo fallback.
+#### 4. `src/App.tsx`
+No routing change needed unless a mismatch is found while editing. `/auth` is already correctly registered to the authentication page, so this file should remain functionally unchanged.
 
+### What will NOT change
+- No UI changes
+- No styling changes
+- No Disney/Pixar visuals changes
+- No tablet/mobile layout changes
+- No navigation restructuring
+- No new pages
+- No `/auth/v1/callback` React route
+
+### Technical behavior after the fix
+```text
+Google button click
+→ localStorage saves returnTo / pending form state
+→ preview iframe case: open hardcoded https://soulstory.co.il/auth in a new tab
+→ normal case: call supabase.auth.signInWithOAuth(...)
+   with redirectTo: 'https://soulstory.co.il/auth'
+→ after login, auth session returns to /auth
+→ existing auth/session logic redirects user using localStorage
+```
+
+### Files to update
+- `src/pages/Auth.tsx`
+- `src/components/wizard/GeneratingStep.tsx`
+- `src/hooks/use-auth.ts`
+- optional memory sync:
+  - `mem://auth/google-oauth-production-settings`
+
+### Final confirmation to provide after implementation
+I will explicitly confirm that the Google sign-in flow uses the hardcoded string:
+`https://soulstory.co.il/auth`
+and does not use `window.location.origin` or environment variables for that redirect.
