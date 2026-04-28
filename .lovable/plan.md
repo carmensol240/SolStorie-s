@@ -1,36 +1,71 @@
 
 
-## Remove caption text + bottom CTA from Adventure page (keep gold coin)
+## Urgent fix: skip /onboarding for both parents AND educators
 
-Single file change: `src/pages/Adventure.tsx`. Two precise removals — gold coin animation stays.
+### Problem
 
-### Changes
+Both parents and educators are seeing a duplicate terms-acceptance screen (`/onboarding`) after signup, even though they already ticked the terms checkbox in `Auth.tsx`. The educator fix from the previous turn only persisted `terms_accepted_at` for educators — parents still hit `/onboarding`.
 
-**1. Remove the caption line below the gold coin** (line ~158):
-```tsx
-<p className="text-white/90 text-xs font-bold drop-shadow-md">הסיפור הראשון שלכם במתנה 🎁</p>
+### Root cause
+
+`Auth.tsx → handleEmailSignUp` and `handleGoogleSignIn` only persist `terms_accepted_at` when `userRole === "educator"`. For parents, `terms_accepted_at` stays null, so the `checkTermsAcceptance` effect redirects them to `/onboarding`.
+
+### Fix — single file: `src/pages/Auth.tsx`
+
+Remove the `userRole === "educator"` gate so the terms acceptance is persisted for **all signups** (parents + educators) when `signupTermsAccepted` is true.
+
+**Edit 1 — `handleEmailSignUp`:**
+Change the existing block:
+```ts
+if (userRole === "educator" && data?.user?.id && signupTermsAccepted) { ... }
 ```
-The wrapping `<div className="flex flex-col items-center gap-1">` stays so the spinning gold coin keeps its centered layout.
+to:
+```ts
+if (data?.user?.id && signupTermsAccepted) {
+  await supabase
+    .from("profiles")
+    .update({
+      terms_accepted_at: new Date().toISOString(),
+      terms_version: TERMS_VERSION,
+    })
+    .eq("id", data.user.id);
+}
+```
 
-**2. Remove the orange/pink "יוצאים להרפתקה ✨" CTA button** (the entire `<button onClick={handleAdventureCTA}>...</button>` block at the bottom of the hero section, including its `Wand2` icon and label).
+**Edit 2 — `handleGoogleSignIn`:**
+Change:
+```ts
+if (userRole === "educator" && signupTermsAccepted) {
+  localStorage.setItem('pending_educator_terms_accept', '1');
+}
+```
+to (keep the same flag key for backward compat, but set it for everyone who ticked the box):
+```ts
+if (signupTermsAccepted) {
+  localStorage.setItem('pending_educator_terms_accept', '1');
+}
+```
 
-**3. Clean up dead code only** (no behavior change):
-- Remove the `handleAdventureCTA` callback (only used by the removed button).
-- Remove `Wand2` from the `lucide-react` import (only used by the removed button). Keep `Coins`.
-- Keep `useNavigate` — still used by the coin counter (`navigate("/upgrade")`).
+**Edit 3 — `checkTermsAcceptance` useEffect:**
+The existing code already reads `pending_educator_terms_accept` and persists `terms_accepted_at` regardless of role. No change needed — it will now run for parents too.
 
-### What stays exactly as-is
+### Result
 
-- Spinning **gold coin animation** with "סיפור חינם! ✨" label — untouched.
-- Top-right glassmorphism **coin counter** — untouched.
-- Purple **`WelcomeGiftBanner`** — untouched.
-- `SolStorie's™` rainbow logo, hero video, gradient overlays, sparkle particles, `MobileNavigation` — all untouched.
+- Parent signup (email + Google) → terms persisted → `checkTermsAcceptance` sees terms accepted → redirect straight to `/adventure` (or RequireTerms `returnTo` deep-link). No `/onboarding` screen. ✅
+- Educator signup → unchanged behavior, still skips `/onboarding`. ✅
+- Existing user who somehow lands on `/onboarding` without `terms_accepted_at` (legacy accounts, edge cases) → still sees the screen as a fallback. ✅
 
-### Memory
+### What stays the same
 
-No memory updates required (visual cleanup only).
+- `Onboarding.tsx` — untouched (kept as fallback for legacy accounts).
+- `RequireTerms.tsx`, `returnTo` deep-link logic, toasts, welcome emails, role-based credits, referral codes — all untouched.
+- The signup form's terms checkbox + links — untouched.
+
+### Memory update
+
+Update `mem://auth/registration-process-updated`: `terms_accepted_at` is now written immediately on signup for **all roles** (parent + educator) when the user ticks the terms box in `Auth.tsx`. `/onboarding` is bypassed for all new signups. The screen remains as a fallback for legacy accounts only.
 
 ### How to revert
 
-Restore the caption `<p>`, restore the CTA `<button>` with its `handleAdventureCTA` callback, and re-add `Wand2` to the import.
+Restore the `userRole === "educator"` condition in both the `handleEmailSignUp` block and the `handleGoogleSignIn` localStorage flag.
 
