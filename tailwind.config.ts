@@ -14,6 +14,7 @@ export default {
     },
     extend: {
       fontFamily: {
+        sans: ['Heebo', 'Assistant', 'system-ui', 'sans-serif'],
         heebo: ['Heebo', 'sans-serif'],
         assistant: ['Assistant', 'Heebo', 'sans-serif'],
       },

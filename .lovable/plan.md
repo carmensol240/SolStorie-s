@@ -1,71 +1,50 @@
+## Global Hebrew typography polish — bold, friendly Heebo everywhere
 
+Make Hebrew text render consistently bold and friendly across the entire app, with proper responsive sizing for hero headers and feature lists on desktop and mobile.
 
-## Urgent fix: skip /onboarding for both parents AND educators
+### Changes
 
-### Problem
+**1. `index.html`** — strengthen font loading
+- Keep the existing Google Fonts `<link>` (Heebo 400-900 already loaded).
+- Add `rel="preload"` for the Heebo woff2 to prioritize it over Assistant.
+- Reorder so Heebo loads first.
 
-Both parents and educators are seeing a duplicate terms-acceptance screen (`/onboarding`) after signup, even though they already ticked the terms checkbox in `Auth.tsx`. The educator fix from the previous turn only persisted `terms_accepted_at` for educators — parents still hit `/onboarding`.
+**2. `tailwind.config.ts`** — make Heebo the default sans
+- Set `fontFamily.sans` to `['Heebo', 'Assistant', 'system-ui', 'sans-serif']` so every Tailwind class (`font-sans`, default body) resolves to Heebo.
+- Keep `heebo` and `assistant` aliases for any explicit usage.
 
-### Root cause
+**3. `src/index.css`** — global Hebrew rules
+- Change `body` `font-family` from `'Assistant', 'Heebo'` to `'Heebo', 'Assistant', sans-serif`.
+- Set base body weight to `500` (friendlier than 400 for Hebrew).
+- Add a global heading rule:
+  ```css
+  h1, h2, h3, h4, h5, h6 {
+    font-family: 'Heebo', sans-serif;
+    font-weight: 800;
+    letter-spacing: -0.01em;
+    line-height: 1.2;
+  }
+  h1 { font-weight: 900; }
+  ```
+- Add responsive hero clamp utility:
+  ```css
+  .hero-title-he { font-size: clamp(1.75rem, 6vw, 3.5rem); font-weight: 900; line-height: 1.15; }
+  .hero-subtitle-he { font-size: clamp(1rem, 2.5vw, 1.375rem); font-weight: 600; line-height: 1.5; }
+  .feature-item-he { font-weight: 600; line-height: 1.6; }
+  ```
+- Improve Hebrew rendering:
+  ```css
+  html { -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale; text-rendering: optimizeLegibility; }
+  ```
+- Add a mobile breakpoint tightening tracking for Hebrew at small sizes.
 
-`Auth.tsx → handleEmailSignUp` and `handleGoogleSignIn` only persist `terms_accepted_at` when `userRole === "educator"`. For parents, `terms_accepted_at` stays null, so the `checkTermsAcceptance` effect redirects them to `/onboarding`.
+**4. Verify hero/feature components pick up the new defaults**
+- Spot-check `src/components/home/GuestLanding.tsx`, `src/pages/Welcome.tsx`, `src/pages/Adventure.tsx` — no JSX changes needed since global CSS + Tailwind defaults cascade. Only adjust if a component hardcodes `font-light` or similar (will grep and remove if found).
 
-### Fix — single file: `src/pages/Auth.tsx`
-
-Remove the `userRole === "educator"` gate so the terms acceptance is persisted for **all signups** (parents + educators) when `signupTermsAccepted` is true.
-
-**Edit 1 — `handleEmailSignUp`:**
-Change the existing block:
-```ts
-if (userRole === "educator" && data?.user?.id && signupTermsAccepted) { ... }
-```
-to:
-```ts
-if (data?.user?.id && signupTermsAccepted) {
-  await supabase
-    .from("profiles")
-    .update({
-      terms_accepted_at: new Date().toISOString(),
-      terms_version: TERMS_VERSION,
-    })
-    .eq("id", data.user.id);
-}
-```
-
-**Edit 2 — `handleGoogleSignIn`:**
-Change:
-```ts
-if (userRole === "educator" && signupTermsAccepted) {
-  localStorage.setItem('pending_educator_terms_accept', '1');
-}
-```
-to (keep the same flag key for backward compat, but set it for everyone who ticked the box):
-```ts
-if (signupTermsAccepted) {
-  localStorage.setItem('pending_educator_terms_accept', '1');
-}
-```
-
-**Edit 3 — `checkTermsAcceptance` useEffect:**
-The existing code already reads `pending_educator_terms_accept` and persists `terms_accepted_at` regardless of role. No change needed — it will now run for parents too.
-
-### Result
-
-- Parent signup (email + Google) → terms persisted → `checkTermsAcceptance` sees terms accepted → redirect straight to `/adventure` (or RequireTerms `returnTo` deep-link). No `/onboarding` screen. ✅
-- Educator signup → unchanged behavior, still skips `/onboarding`. ✅
-- Existing user who somehow lands on `/onboarding` without `terms_accepted_at` (legacy accounts, edge cases) → still sees the screen as a fallback. ✅
-
-### What stays the same
-
-- `Onboarding.tsx` — untouched (kept as fallback for legacy accounts).
-- `RequireTerms.tsx`, `returnTo` deep-link logic, toasts, welcome emails, role-based credits, referral codes — all untouched.
-- The signup form's terms checkbox + links — untouched.
-
-### Memory update
-
-Update `mem://auth/registration-process-updated`: `terms_accepted_at` is now written immediately on signup for **all roles** (parent + educator) when the user ticks the terms box in `Auth.tsx`. `/onboarding` is bypassed for all new signups. The screen remains as a fallback for legacy accounts only.
+### Out of scope
+- Logo styling (`logo-3d-bubble` / Baloo 2) stays untouched — already correct.
+- Story-viewer book typography stays untouched — has its own font-size accessibility system.
+- No content/copy changes.
 
 ### How to revert
-
-Restore the `userRole === "educator"` condition in both the `handleEmailSignUp` block and the `handleGoogleSignIn` localStorage flag.
-
+Restore original `body` font-family in `index.css`, remove the new `h1-h6` and `.hero-title-he` rules, revert `tailwind.config.ts` `fontFamily.sans`, remove the preload link in `index.html`.
