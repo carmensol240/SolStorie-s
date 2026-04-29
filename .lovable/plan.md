@@ -1,49 +1,46 @@
-## Hebrew RTL QA Plan
+## שדרוג אזור Before / After של תמונת הילד
 
-Run a structured QA pass to verify the recent global Heebo typography + RTL changes render correctly across the main user flows on both mobile and desktop viewports.
+### היכן בדיוק
+בתוך `src/components/wizard/ChildInfoStep.tsx`, באזור שמופיע **אחרי** העלאת תמונה — שני הריבועים "תמונה מקורית" ו"דמות בסיפור" עם סמל הניצוץ ביניהם (שורות ~744–772). שאר הקוד (העלאה, ולידציה, כפתורים, רשימת ההמלצות לפני העלאה) — לא נוגעים בו.
 
-### Scope (pages to check)
+### מה ישתנה (ויזואלית)
 
-1. `/` Adventure (logged-in home) — hero header, coin counter, WelcomeGiftBanner, feature/category lists
-2. `/` GuestLanding (logged-out) — hero title, subtitle, feature cards, CTA
-3. `/auth` — form labels, terms checkbox, buttons
-4. `/create` — wizard steps (TopicStep, ChildInfoStep) headings + body
-5. `/library` — story cards, filters
-6. `/profile` — section headers, rewards
-7. `/upgrade` — package cards, prices, trust badges
+1. **מסגרת קומיקסית לכל אחד מהריבועים**
+   - מסגרת עבה יותר וכפולה: גבול חיצוני לבן + טבעת פנימית בצבע מותג (סגול לתמונה המקורית, אמבר/ורוד לדמות).
+   - פינות מעוגלות יותר (`rounded-2xl`) וצל עמוק חם (`shadow-xl`) לאפקט סטיקר/קומיקס.
+   - תווית מתחת בצורת "באדג'" קטן עם רקע צבעוני וטקסט מודגש, במקום טקסט אפור פשוט.
+   - הגדלה קלה של הריבועים מ-`w-28 h-28` ל-`w-32 h-32` כדי שיהיו נוכחים יותר.
 
-### Checks per page
+2. **חץ מונפש ביניהם במקום סמל הניצוץ הסטטי**
+   - חץ מצויר ב-SVG (`ArrowLeft` מ-lucide, RTL) בתוך עיגול גרדיאנט סגול→ורוד→אמבר.
+   - אנימציה: פעימה עדינה + תנועה אופקית קטנה הלוך-חזור (`animate-pulse` + keyframes חדשים `arrow-bounce-rtl` ב-`index.css`).
+   - מסביב לחץ — 2-3 ניצוצות קטנים (`Sparkles`) שמהבהבים בעיכובים שונים, לאפקט קומיקסי-קסום.
 
-- **Direction**: container `dir="rtl"`, text aligned right, punctuation (.,!?) on left side of Hebrew lines
-- **Font**: Heebo loaded (not fallback sans-serif) — inspect computed `font-family` on body + h1
-- **Weight**: headings render at 800/900, body at 500 — visually bold, not thin
-- **Sizing**: hero title scales via `clamp()` without overflow at 360px / 768px / 1280px
-- **Wrapping**: no clipped text, no horizontal scroll, no overlap with icons/badges
-- **Mixed LTR**: brand `SolStorie's™` stays LTR inside RTL paragraphs (footer, logo)
-- **Punctuation bidi**: `unicode-bidi: plaintext` working — no stray dots on wrong side
-- **Numbers/coins**: digits in coin counter and prices render correctly inside RTL
+3. **רקע ייחודי לאזור**
+   - ה"קונטיינר" של ה-Before/After יקבל רקע בגרדיאנט עדין (סגול בהיר → ורוד בהיר → אמבר בהיר), במקום `bg-purple-50` שטוח.
+   - הוספת קו מקווקו עדין מסביב (`border-dashed`) לתחושת "מסגרת קומיקס".
 
-### Method
+4. **כותרות צבעוניות עם אייקונים**
+   - "תמונה מקורית" עם אייקון מצלמה קטן ובאדג' אפור-סגול.
+   - "דמות בסיפור" עם אייקון Sparkles ובאדג' גרדיאנט סגול→ורוד, פונט מודגש יותר.
 
-For each page:
-1. `browser--navigate_to_sandbox` at desktop (1280×720)
-2. `browser--screenshot` + visual review
-3. `browser--set_viewport_size` to 375×812 (mobile)
-4. `browser--screenshot` + visual review
-5. `browser--extract` computed font-family/weight on hero h1 to confirm Heebo is active
-6. Note any defects (overflow, wrong weight, fallback font, broken RTL)
+5. **מצב "יוצר דמות..."** — נוסיף אנימציית shimmer עדינה על הריבוע הריק בזמן הטעינה (overlay של גרדיאנט נע), במקום רק ספינר על רקע סגול שטוח.
 
-### Deliverable
+### מה לא משתנה (חשוב)
 
-A QA report listing, per page + viewport:
-- ✅ Pass items
-- ⚠️ Issues found (with screenshot reference + suggested fix)
-- Any follow-up code changes needed (e.g., add `hero-title-he` class to specific component, wrap brand name in `<span dir="ltr">`)
+- כל הלוגיקה (העלאת תמונה, generateAvatarInline, ולידציה, מחיקה, צור/עדכן אווטאר).
+- רשימת ההמלצות **לפני** העלאת תמונה (Camera + 6 הטיפים).
+- אזור הולידציה עם ה-✓/✗ אחרי העלאה.
+- מצב "תמונה יחידה בלבד" (כשאין עדיין אווטאר).
+- שאר השלבים בוויזרד.
 
-No code changes are made during the QA pass itself. After the report, you can approve specific fixes for me to implement.
+### קבצים שייערכו
 
-### Out of scope
+- `src/components/wizard/ChildInfoStep.tsx` — רק בלוק ה-side-by-side (~744–772).
+- `src/index.css` — תוספת keyframes ל-`arrow-bounce-rtl` ול-`shimmer-overlay`. כל שאר הקובץ נשאר.
 
-- Story viewer page (separate font-size accessibility system)
-- Admin dashboard
-- Email templates (server-rendered)
+### הערות עיצוב
+
+- כל הצבעים יילקחו מטוקנים סמנטיים / מהפלטה הקיימת בפרויקט (סגול-ורוד-אמבר), כדי לשמור על שפת המותג.
+- RTL נשמר — החץ פונה משמאל לימין (כי "תמונה מקורית" משמאל ו"דמות" מימין במצב הקיים).
+- נגישות: `aria-label="ההפיכה לדמות בסיפור"` על אזור החץ; אנימציות מכובדות `prefers-reduced-motion` (תיווסף הגנה ב-CSS).

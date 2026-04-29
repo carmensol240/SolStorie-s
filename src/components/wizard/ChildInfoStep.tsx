@@ -1,6 +1,6 @@
 import { useRef, useEffect, useState } from "react";
 import { Checkbox } from "@/components/ui/checkbox";
-import { User, Camera, Sparkles, RefreshCw, Trash2, Heart, ChevronDown, ChevronUp, Check, X, Loader2, Save, Shield, Globe, PlusCircle, BookOpen } from "lucide-react";
+import { User, Camera, Sparkles, RefreshCw, Trash2, Heart, ChevronDown, ChevronUp, Check, X, Loader2, Save, Shield, Globe, PlusCircle, BookOpen, ArrowLeft } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
@@ -740,34 +740,81 @@ const ChildInfoStep = ({ formData, updateFormData }: ChildInfoStepProps) => {
           ) : formData.childPhoto ? (
             <div className="flex flex-col items-center justify-center w-full py-4 bg-card border-2 border-purple-400 bg-purple-50 rounded-xl gap-2">
               {(formData.childAvatarUrl || isGeneratingAvatar) && formData.childPhoto ? (
-                /* Side-by-side: original photo + avatar in one unified box */
-                <div className="flex items-start justify-center gap-4">
-                  <div className="flex flex-col items-center gap-1">
-                    <div className="w-28 h-28 rounded-xl overflow-hidden border-2 border-purple-300 shadow-md">
-                      <img
-                        src={formData.childPhoto}
-                        alt="תמונה מקורית"
-                        className="w-full h-full object-cover"
-                      />
-                    </div>
-                    <span className="text-[11px] text-muted-foreground">תמונה מקורית</span>
-                  </div>
-                  <Sparkles className="w-4 h-4 text-purple-400 flex-shrink-0 animate-pulse mt-12" />
-                  <div className="flex flex-col items-center gap-1">
-                    <div className="w-28 h-28 rounded-xl overflow-hidden border-2 border-purple-300 shadow-md bg-purple-100 flex items-center justify-center">
-                      {isGeneratingAvatar ? (
-                        <Loader2 className="w-8 h-8 animate-spin text-purple-500" />
-                      ) : formData.childAvatarUrl ? (
+                /* Side-by-side: original photo + avatar — comic-style frames with animated arrow */
+                <div className="relative w-full rounded-2xl border-2 border-dashed border-purple-300/70 bg-gradient-to-br from-purple-50 via-pink-50 to-amber-50 p-3 shadow-inner">
+                  <div className="flex items-start justify-center gap-2 sm:gap-3">
+                    {/* Original photo */}
+                    <div className="flex flex-col items-center gap-1.5">
+                      <div className="relative w-32 h-32 rounded-2xl overflow-hidden border-[3px] border-white shadow-xl ring-2 ring-purple-300/80">
                         <img
-                          src={formData.childAvatarUrl}
-                          alt="דמות בסיפור"
+                          src={formData.childPhoto}
+                          alt="תמונה מקורית"
                           className="w-full h-full object-cover"
                         />
-                      ) : null}
+                      </div>
+                      <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-white/80 border border-purple-200 text-[10px] font-bold text-purple-700 shadow-sm">
+                        <Camera className="w-3 h-3" />
+                        תמונה מקורית
+                      </span>
                     </div>
-                    <span className="text-[11px] text-purple-600 font-medium">
-                      {isGeneratingAvatar ? 'יוצר דמות...' : 'דמות בסיפור'}
-                    </span>
+
+                    {/* Animated comic arrow */}
+                    <div
+                      className="relative flex items-center justify-center self-center"
+                      aria-label="ההפיכה לדמות בסיפור"
+                    >
+                      <span className="absolute -top-2 -left-1 text-amber-400 animate-pulse" style={{ animationDelay: "0s" }}>
+                        <Sparkles className="w-3 h-3" />
+                      </span>
+                      <span className="absolute -bottom-2 -right-1 text-pink-400 animate-pulse" style={{ animationDelay: "0.6s" }}>
+                        <Sparkles className="w-2.5 h-2.5" />
+                      </span>
+                      <span className="absolute top-1 -right-3 text-purple-400 animate-pulse" style={{ animationDelay: "1.2s" }}>
+                        <Sparkles className="w-2 h-2" />
+                      </span>
+                      <div
+                        className="w-9 h-9 rounded-full flex items-center justify-center shadow-lg border-2 border-white arrow-bounce-rtl"
+                        style={{
+                          background: "linear-gradient(135deg, hsl(270 80% 65%), hsl(330 85% 70%), hsl(35 95% 65%))",
+                        }}
+                      >
+                        <ArrowLeft className="w-5 h-5 text-white drop-shadow" strokeWidth={3} />
+                      </div>
+                    </div>
+
+                    {/* Avatar */}
+                    <div className="flex flex-col items-center gap-1.5">
+                      <div
+                        className="relative w-32 h-32 rounded-2xl overflow-hidden border-[3px] border-white shadow-xl ring-2 ring-amber-300/80 flex items-center justify-center"
+                        style={{
+                          background: isGeneratingAvatar
+                            ? "linear-gradient(135deg, hsl(280 60% 92%), hsl(330 70% 92%), hsl(40 80% 92%))"
+                            : "hsl(280 60% 96%)",
+                        }}
+                      >
+                        {isGeneratingAvatar ? (
+                          <>
+                            <div className="absolute inset-0 shimmer-overlay pointer-events-none" />
+                            <Loader2 className="w-8 h-8 animate-spin text-purple-500 relative z-10" />
+                          </>
+                        ) : formData.childAvatarUrl ? (
+                          <img
+                            src={formData.childAvatarUrl}
+                            alt="דמות בסיפור"
+                            className="w-full h-full object-cover"
+                          />
+                        ) : null}
+                      </div>
+                      <span
+                        className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold text-white shadow-sm"
+                        style={{
+                          background: "linear-gradient(135deg, hsl(270 80% 60%), hsl(330 85% 65%))",
+                        }}
+                      >
+                        <Sparkles className="w-3 h-3" />
+                        {isGeneratingAvatar ? 'יוצר דמות...' : 'דמות בסיפור'}
+                      </span>
+                    </div>
                   </div>
                 </div>
               ) : (
