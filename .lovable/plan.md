@@ -1,50 +1,49 @@
-## Global Hebrew typography polish — bold, friendly Heebo everywhere
+## Hebrew RTL QA Plan
 
-Make Hebrew text render consistently bold and friendly across the entire app, with proper responsive sizing for hero headers and feature lists on desktop and mobile.
+Run a structured QA pass to verify the recent global Heebo typography + RTL changes render correctly across the main user flows on both mobile and desktop viewports.
 
-### Changes
+### Scope (pages to check)
 
-**1. `index.html`** — strengthen font loading
-- Keep the existing Google Fonts `<link>` (Heebo 400-900 already loaded).
-- Add `rel="preload"` for the Heebo woff2 to prioritize it over Assistant.
-- Reorder so Heebo loads first.
+1. `/` Adventure (logged-in home) — hero header, coin counter, WelcomeGiftBanner, feature/category lists
+2. `/` GuestLanding (logged-out) — hero title, subtitle, feature cards, CTA
+3. `/auth` — form labels, terms checkbox, buttons
+4. `/create` — wizard steps (TopicStep, ChildInfoStep) headings + body
+5. `/library` — story cards, filters
+6. `/profile` — section headers, rewards
+7. `/upgrade` — package cards, prices, trust badges
 
-**2. `tailwind.config.ts`** — make Heebo the default sans
-- Set `fontFamily.sans` to `['Heebo', 'Assistant', 'system-ui', 'sans-serif']` so every Tailwind class (`font-sans`, default body) resolves to Heebo.
-- Keep `heebo` and `assistant` aliases for any explicit usage.
+### Checks per page
 
-**3. `src/index.css`** — global Hebrew rules
-- Change `body` `font-family` from `'Assistant', 'Heebo'` to `'Heebo', 'Assistant', sans-serif`.
-- Set base body weight to `500` (friendlier than 400 for Hebrew).
-- Add a global heading rule:
-  ```css
-  h1, h2, h3, h4, h5, h6 {
-    font-family: 'Heebo', sans-serif;
-    font-weight: 800;
-    letter-spacing: -0.01em;
-    line-height: 1.2;
-  }
-  h1 { font-weight: 900; }
-  ```
-- Add responsive hero clamp utility:
-  ```css
-  .hero-title-he { font-size: clamp(1.75rem, 6vw, 3.5rem); font-weight: 900; line-height: 1.15; }
-  .hero-subtitle-he { font-size: clamp(1rem, 2.5vw, 1.375rem); font-weight: 600; line-height: 1.5; }
-  .feature-item-he { font-weight: 600; line-height: 1.6; }
-  ```
-- Improve Hebrew rendering:
-  ```css
-  html { -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale; text-rendering: optimizeLegibility; }
-  ```
-- Add a mobile breakpoint tightening tracking for Hebrew at small sizes.
+- **Direction**: container `dir="rtl"`, text aligned right, punctuation (.,!?) on left side of Hebrew lines
+- **Font**: Heebo loaded (not fallback sans-serif) — inspect computed `font-family` on body + h1
+- **Weight**: headings render at 800/900, body at 500 — visually bold, not thin
+- **Sizing**: hero title scales via `clamp()` without overflow at 360px / 768px / 1280px
+- **Wrapping**: no clipped text, no horizontal scroll, no overlap with icons/badges
+- **Mixed LTR**: brand `SolStorie's™` stays LTR inside RTL paragraphs (footer, logo)
+- **Punctuation bidi**: `unicode-bidi: plaintext` working — no stray dots on wrong side
+- **Numbers/coins**: digits in coin counter and prices render correctly inside RTL
 
-**4. Verify hero/feature components pick up the new defaults**
-- Spot-check `src/components/home/GuestLanding.tsx`, `src/pages/Welcome.tsx`, `src/pages/Adventure.tsx` — no JSX changes needed since global CSS + Tailwind defaults cascade. Only adjust if a component hardcodes `font-light` or similar (will grep and remove if found).
+### Method
+
+For each page:
+1. `browser--navigate_to_sandbox` at desktop (1280×720)
+2. `browser--screenshot` + visual review
+3. `browser--set_viewport_size` to 375×812 (mobile)
+4. `browser--screenshot` + visual review
+5. `browser--extract` computed font-family/weight on hero h1 to confirm Heebo is active
+6. Note any defects (overflow, wrong weight, fallback font, broken RTL)
+
+### Deliverable
+
+A QA report listing, per page + viewport:
+- ✅ Pass items
+- ⚠️ Issues found (with screenshot reference + suggested fix)
+- Any follow-up code changes needed (e.g., add `hero-title-he` class to specific component, wrap brand name in `<span dir="ltr">`)
+
+No code changes are made during the QA pass itself. After the report, you can approve specific fixes for me to implement.
 
 ### Out of scope
-- Logo styling (`logo-3d-bubble` / Baloo 2) stays untouched — already correct.
-- Story-viewer book typography stays untouched — has its own font-size accessibility system.
-- No content/copy changes.
 
-### How to revert
-Restore original `body` font-family in `index.css`, remove the new `h1-h6` and `.hero-title-he` rules, revert `tailwind.config.ts` `fontFamily.sans`, remove the preload link in `index.html`.
+- Story viewer page (separate font-size accessibility system)
+- Admin dashboard
+- Email templates (server-rendered)
