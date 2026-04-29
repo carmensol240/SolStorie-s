@@ -737,3 +737,35 @@
   0%, 100% { box-shadow: 0 0 0 0 rgba(168, 85, 247, 0); transform: scale(1); }
   50% { box-shadow: 0 0 20px 4px rgba(168, 85, 247, 0.25); transform: scale(1.02); }
 }
+
+/* Before/After arrow — gentle horizontal bounce + pulse for comic feel (RTL: left→right visually) */
+@keyframes arrow-bounce-rtl {
+  0%, 100% { transform: translateX(0) scale(1); box-shadow: 0 6px 14px rgba(168, 85, 247, 0.35); }
+  50%      { transform: translateX(-4px) scale(1.08); box-shadow: 0 8px 18px rgba(236, 72, 153, 0.5); }
+}
+.arrow-bounce-rtl {
+  animation: arrow-bounce-rtl 1.6s ease-in-out infinite;
+}
+
+/* Shimmer overlay for avatar loading state */
+@keyframes shimmer-sweep {
+  0%   { transform: translateX(-100%); }
+  100% { transform: translateX(100%); }
+}
+.shimmer-overlay {
+  background: linear-gradient(
+    105deg,
+    transparent 35%,
+    rgba(255, 255, 255, 0.55) 50%,
+    transparent 65%
+  );
+  background-size: 200% 100%;
+  animation: shimmer-sweep 1.8s linear infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .arrow-bounce-rtl,
+  .shimmer-overlay {
+    animation: none;
+  }
+}
