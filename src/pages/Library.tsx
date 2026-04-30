@@ -607,22 +607,14 @@ const Library = () => {
 
           {/* CTA */}
           <button
-            onClick={() => navigate("/auth")}
+            onClick={() => navigate("/create")}
             className="w-full max-w-xs py-3.5 rounded-full font-black text-base text-white shadow-xl transition-all hover:scale-[1.02] active:scale-95 text-center flex items-center justify-center"
             style={{
               background: 'linear-gradient(135deg, #ec4899, #a855f7, #6366f1)',
               boxShadow: '0 8px 30px -8px rgba(168,85,247,0.5)',
             }}
           >
-            הירשמו חינם והתחילו! 🚀
-          </button>
-
-          {/* Secondary link */}
-          <button
-            onClick={() => navigate("/auth")}
-            className="mt-3 text-sm text-purple-300 hover:text-white transition-colors font-medium"
-          >
-            יש לכם חשבון? <span className="underline">התחברו</span>
+            צרו את הסיפור הראשון שלכם ✨
           </button>
         </div>
 
