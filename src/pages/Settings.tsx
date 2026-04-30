@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { ArrowRight, Mail, Trash2, LogOut, FileText, Shield, Eye, Info, Accessibility, Type, MousePointer, Link2, MonitorOff, Wand2, Sparkles, Download, Share, Smartphone, Volume2, LayoutDashboard, Gift, Copy, Check } from "lucide-react";
+import { ArrowRight, Mail, Trash2, LogOut, FileText, Shield, Eye, Info, Accessibility, Type, MousePointer, Link2, MonitorOff, Wand2, Sparkles, Download, Share, Smartphone, Volume2, LayoutDashboard, Gift, Copy, Check, LogIn } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { usePwaInstall } from "@/hooks/use-pwa-install";
 import { Button } from "@/components/ui/button";
@@ -21,7 +21,7 @@ import { useToast } from "@/hooks/use-toast";
 
 const Settings = () => {
   const navigate = useNavigate();
-  const { user, signOut } = useAuth();
+  const { user, loading: authLoading, signOut } = useAuth();
   const { visualAidMode, setVisualAidMode, audioSupport, setAudioSupport, fontSize, setFontSize } = useAccessibility();
   const { canPrompt, isInstalled, isIOS, promptInstall } = usePwaInstall();
   const { referralCode, loading: referralLoading } = useReferral();
@@ -59,6 +59,55 @@ const Settings = () => {
     sessionStorage.removeItem('devMode');
     window.location.replace("/");
   };
+
+  // Unauthenticated state: show simple login prompt instead of the full menu
+  if (!authLoading && !user) {
+    return (
+      <div className="min-h-[100dvh] flex flex-col bg-gradient-to-b from-purple-50/50 to-background pb-20" dir="rtl">
+        <div className="bg-gradient-to-r from-purple-100 to-pink-50 px-4 py-4 border-b border-purple-100 flex items-center gap-3">
+          <Button variant="outline" size="icon" onClick={() => navigate("/")} className="hidden md:flex" aria-label="חזרה לדף הבית">
+            <ArrowRight className="h-5 w-5" />
+          </Button>
+          <h1 className="text-lg font-bold text-purple-800">הגדרות</h1>
+        </div>
+
+        <div className="flex-1 flex items-center justify-center px-4">
+          <div className="w-full max-w-sm bg-white/70 dark:bg-white/10 backdrop-blur-md rounded-2xl border border-purple-200 dark:border-purple-800 shadow-sm p-6 text-center space-y-4">
+            <div className="w-14 h-14 mx-auto bg-gradient-to-r from-purple-500/20 to-pink-500/20 rounded-2xl flex items-center justify-center">
+              <LogIn className="w-6 h-6 text-purple-600" aria-hidden="true" />
+            </div>
+            <h2 className="text-lg font-bold text-foreground">צריך להתחבר</h2>
+            <p className="text-sm text-muted-foreground leading-relaxed">
+              כדי לגשת להגדרות יש להתחבר לחשבון שלך.
+            </p>
+            <Button
+              onClick={() => navigate('/auth?returnTo=/settings')}
+              className="w-full bg-gradient-to-r from-purple-600 to-pink-500 hover:from-purple-700 hover:to-pink-600 text-white font-bold"
+            >
+              <LogIn className="w-4 h-4 ml-1" />
+              התחברות
+            </Button>
+            <button
+              onClick={() => navigate('/')}
+              className="text-xs text-muted-foreground hover:text-foreground underline"
+            >
+              חזרה לדף הבית
+            </button>
+          </div>
+        </div>
+
+        <MobileNavigation />
+      </div>
+    );
+  }
+
+  if (authLoading) {
+    return (
+      <div className="min-h-[100dvh] flex items-center justify-center bg-background">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary" />
+      </div>
+    );
+  }
 
   // Settings menu items - legal & support only
   const menuItems = [
