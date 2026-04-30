@@ -1315,14 +1315,23 @@ const [currentPage, setCurrentPage] = useState(0);
       <main className="flex-1 flex flex-col min-h-0 px-4 md:px-12 lg:px-20 py-2">
         <div className="relative w-full max-w-2xl mx-auto flex-1 min-h-0 flex flex-col">
           <MagicalBookFrame className="flex-1 min-h-0">
-            {/* Page content with fade transition */}
-            <div className={cn(
-              "relative w-full h-full overflow-hidden",
-              "transition-opacity duration-300 ease-in-out",
-              isFlipping ? "opacity-0" : "opacity-100",
-            )}>
-            
-            {isClosingPage ? (
+            {/* Continuous vertical scroll reader */}
+            <div ref={scrollContainerRef} className="story-scroll-container">
+            {Array.from({ length: totalSections }).map((_, __pageIdx) => (
+              <section
+                key={__pageIdx}
+                ref={(el) => { sectionRefs.current[__pageIdx] = el; }}
+                data-page-index={__pageIdx}
+                className="story-scroll-section"
+              >
+                {(() => {
+                  const isClosingPage = __pageIdx === totalVirtualPages;
+                  const isEndPage = __pageIdx >= totalVirtualPages + 1;
+                  const currentVirtual = (__pageIdx >= 0 && __pageIdx < totalVirtualPages) ? virtualPages[__pageIdx] : null;
+                  const currentPage = __pageIdx;
+                  return (
+                    <>
+                    {isClosingPage ? (
               /* Closing Page - Full cast waving background */
               <div className="relative flex-1 flex flex-col items-center justify-end text-center h-full">
                 {/* Full background image */}
@@ -1370,7 +1379,7 @@ const [currentPage, setCurrentPage] = useState(0);
                       חזרה לספרייה
                     </Button>
                     <Button
-                      onClick={() => handlePageNav('next')}
+                      onClick={() => scrollToPage(__pageIdx + 1)}
                       className="bg-gradient-to-r from-amber-400 to-yellow-500 hover:from-amber-500 hover:to-yellow-600 text-amber-950 font-bold px-8 py-3 rounded-full shadow-xl text-base gap-2 animate-bounce-gentle mt-2"
                     >
                       לדף הסיום ✨
