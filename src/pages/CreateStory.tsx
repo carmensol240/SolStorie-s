@@ -7,6 +7,7 @@ import GlobalFooter from "@/components/shared/GlobalFooter";
 import ChildInfoStep from "@/components/wizard/ChildInfoStep";
 import TopicStep from "@/components/wizard/TopicStep";
 import GeneratingStep from "@/components/wizard/GeneratingStep";
+import AuthStep from "@/components/wizard/AuthStep";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { useAuth } from "@/hooks/use-auth";
 import { useCredits } from "@/hooks/use-credits";
@@ -56,8 +57,8 @@ const INITIAL_DATA: StoryFormData = {
 
 const steps = [
   { number: 1, label: "פרטי הילד/ה" },
-  { number: 2, label: "דמות" },
-  { number: 3, label: "סגנון" },
+  { number: 2, label: "הרשמה" },
+  { number: 3, label: "נושא" },
   { number: 4, label: "יצירה" },
 ];
 
@@ -78,7 +79,7 @@ const CreateStory = () => {
         try {
           const restored = JSON.parse(saved) as StoryFormData;
           setFormData(restored);
-          setStep(3);
+          setStep(4);
           setIsGenerating(true);
         } catch (e) {
           console.warn('[CreateStory] Failed to restore formData:', e);
@@ -141,15 +142,15 @@ const CreateStory = () => {
 
   const handleNext = () => {
     if (step === 1 && canProceedStep1) {
-      setStep(2);
-    } else if (step === 2 && canProceedStep2) {
+      // Skip auth step if user already logged in
+      setStep(user ? 3 : 2);
+    } else if (step === 3 && canProceedStep2) {
       // If logged in, check credits first
       if (user && !hasCredits()) {
         navigate('/upgrade?noCredits=true');
         return;
       }
-      // Proceed to GeneratingStep — it handles signup for unauthenticated users
-      setStep(3);
+      setStep(4);
       setIsGenerating(true);
     }
   };
@@ -157,13 +158,16 @@ const CreateStory = () => {
   const handleBack = () => {
     if (step === 1) {
       navigate("/"); // Go back to home from first step
+    } else if (step === 3) {
+      // Skip auth step on the way back if logged in
+      setStep(user ? 1 : 2);
     } else if (step > 1) {
       setStep(step - 1);
     }
   };
 
-  // Step 3 - Full screen generating, no header/footer
-  if (step === 3) {
+  // Step 4 - Full screen generating, no header/footer
+  if (step === 4) {
     return (
       <GeneratingStep
         formData={formData}
@@ -172,8 +176,9 @@ const CreateStory = () => {
     );
   }
 
-  // Steps 1-2 - Regular wizard layout
+  // Steps 1-3 - Regular wizard layout
   const displayStep = step;
+  const visibleSteps = user ? steps.filter((s) => s.number !== 2) : steps;
 
   return (
     <div className="flex flex-col bg-background" style={{ minHeight: '100dvh', height: 'auto', WebkitOverflowScrolling: 'touch' }}>
@@ -199,7 +204,7 @@ const CreateStory = () => {
         
         <div className="container max-w-lg mx-auto mt-2">
           <div className="flex items-center justify-between">
-            {steps.map((s, index) => (
+            {visibleSteps.map((s, index) => (
               <div key={s.number} className="flex items-center">
                 <div className="flex flex-col items-center">
                   <div
@@ -209,13 +214,13 @@ const CreateStory = () => {
                         : "bg-purple-100 text-purple-400"
                     }`}
                   >
-                    {s.number}
+                    {index + 1}
                   </div>
                   <span className="text-[9px] mt-0.5 text-purple-500 whitespace-nowrap">
                     {s.label}
                   </span>
                 </div>
-                {index < steps.length - 1 && (
+                {index < visibleSteps.length - 1 && (
                   <div
                     className={`h-0.5 w-4 sm:w-8 mx-0.5 rounded-full transition-all ${
                       displayStep > s.number ? "bg-gradient-to-r from-purple-500 to-pink-500" : "bg-purple-100"
@@ -233,25 +238,33 @@ const CreateStory = () => {
           {step === 1 && (
             <ChildInfoStep formData={formData} updateFormData={updateFormData} />
           )}
-          {step === 2 && (
+          {step === 2 && !user && (
+            <AuthStep
+              formData={formData}
+              onAuthenticated={() => setStep(3)}
+            />
+          )}
+          {step === 3 && (
             <TopicStep formData={formData} updateFormData={updateFormData} />
           )}
         </div>
       </main>
 
-      <div className="fixed bottom-[4.5rem] left-0 right-0 z-[50] bg-gradient-to-t from-background via-background to-transparent pt-6 pb-3 px-3 pb-safe">
-        <div className="container max-w-lg mx-auto">
-          <Button
-            onClick={handleNext}
-            disabled={step === 1 ? !canProceedStep1 : !canProceedStep2}
-            size="lg"
-            className="w-full bg-gradient-to-r from-purple-600 via-pink-500 to-orange-400 hover:from-purple-700 hover:via-pink-600 hover:to-orange-500 text-white font-black text-sm py-3 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed shadow-lg hover:shadow-xl transition-all"
-          >
-            {step === 2 ? "צרו את הסיפור" : "המשיכו"}
-            <ArrowLeft className="w-4 h-4 mr-1.5" />
-          </Button>
+      {step !== 2 && (
+        <div className="fixed bottom-[4.5rem] left-0 right-0 z-[50] bg-gradient-to-t from-background via-background to-transparent pt-6 pb-3 px-3 pb-safe">
+          <div className="container max-w-lg mx-auto">
+            <Button
+              onClick={handleNext}
+              disabled={step === 1 ? !canProceedStep1 : !canProceedStep2}
+              size="lg"
+              className="w-full bg-gradient-to-r from-purple-600 via-pink-500 to-orange-400 hover:from-purple-700 hover:via-pink-600 hover:to-orange-500 text-white font-black text-sm py-3 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed shadow-lg hover:shadow-xl transition-all"
+            >
+              {step === 3 ? "צרו את הסיפור" : "המשיכו"}
+              <ArrowLeft className="w-4 h-4 mr-1.5" />
+            </Button>
+          </div>
         </div>
-      </div>
+      )}
 
       <div className="pb-24">
         <GlobalFooter />
