@@ -1237,15 +1237,15 @@ const [currentPage, setCurrentPage] = useState(0);
   // Virtual page indexing:
   // 0..N-1 = virtual pages, N = closing, N+1 = end/feedback
   const totalVirtualPages = virtualPages.length;
-  const isClosingPage = currentPage === totalVirtualPages;
-  const isEndPage = currentPage >= totalVirtualPages + 1;
-  const isContentPage = currentPage >= 0 && currentPage < totalVirtualPages;
-
-  const currentVirtual = isContentPage ? virtualPages[currentPage] : null;
+  const totalSections = totalVirtualPages + 2; // virtual pages + closing + end
+  const activeIsClosing = currentPage === totalVirtualPages;
+  const activeIsEnd = currentPage >= totalVirtualPages + 1;
+  const activeIsContent = currentPage >= 0 && currentPage < totalVirtualPages;
+  const activeVirtual = activeIsContent ? virtualPages[currentPage] : null;
   // For editing/nikud, get the underlying DB page
-  const page = currentVirtual ? currentVirtual.dbPage : null;
+  const page = activeVirtual ? activeVirtual.dbPage : null;
   const currentFontSize = FONT_SIZES[fontSizeIndex];
-  const showPageActions = isContentPage && page !== null;
+  const showPageActions = activeIsContent && page !== null;
 
   // Reset all scroll positions (window + inner scrollable containers)
   const resetScroll = () => {
