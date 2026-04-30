@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback, useRef, useMemo } from "react";
-import { Sparkles, BookOpen, Palette, FileText, RefreshCw, Wand2, Mail, Lock, Eye, EyeOff, Loader2 } from "lucide-react";
+import { Sparkles, BookOpen, Palette, FileText, RefreshCw, Wand2 } from "lucide-react";
 import generatingHeroCast from "@/assets/generating-hero-cast.jpeg";
 import castSolAdventure from "@/assets/cast-sol-adventure.jpg";
 import castBenArt from "@/assets/cast-ben-art-new.jpg";
@@ -7,8 +7,6 @@ import castMiaNature from "@/assets/cast-mia-nature.jpg";
 import castLeoScience from "@/assets/cast-leo-science.jpg";
 import castZoeSports from "@/assets/cast-zoe-sports.jpg";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Checkbox } from "@/components/ui/checkbox";
 import ConfettiCelebration from "@/components/wizard/ConfettiCelebration";
 import { StoryFormData } from "@/pages/CreateStory";
 import { supabase } from "@/integrations/supabase/client";
@@ -16,11 +14,6 @@ import { useToast } from "@/hooks/use-toast";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/hooks/use-auth";
 import { CHARACTER_SECTIONS } from "@/components/wizard/topic-data";
-import { z } from "zod";
-
-const emailSchema = z.string().email("כתובת אימייל לא תקינה");
-const passwordSchema = z.string().min(6, "הסיסמה חייבת להכיל לפחות 6 תווים");
-const GOOGLE_SIGNIN_ENABLED = true;
 
 interface GeneratingStepProps {
   formData: StoryFormData;
@@ -110,7 +103,7 @@ const getTopicLabel = (topicId: string): string => {
 const GeneratingStep = ({ formData, onComplete }: GeneratingStepProps) => {
   const { toast } = useToast();
   const navigate = useNavigate();
-  const { user, signInWithEmail, signUpWithEmail } = useAuth();
+  const { user } = useAuth();
   
   const [progress, setProgress] = useState(0);
   const [messageIndex, setMessageIndex] = useState(0);
@@ -121,17 +114,6 @@ const GeneratingStep = ({ formData, onComplete }: GeneratingStepProps) => {
   const hasNavigatedRef = useRef(false);
   const retryCountRef = useRef(0);
   const MAX_RETRIES = 2;
-
-  // Inline signup form state
-  const [signupEmail, setSignupEmail] = useState("");
-  const [signupPassword, setSignupPassword] = useState("");
-  const [signupShowPassword, setSignupShowPassword] = useState(false);
-  const [signupTermsAccepted, setSignupTermsAccepted] = useState(false);
-  const [marketingConsent, setMarketingConsent] = useState(false);
-  const [signupMode, setSignupMode] = useState<"signup" | "login">("signup");
-  const [signupSubmitting, setSignupSubmitting] = useState(false);
-  const [signupDismissed, setSignupDismissed] = useState(false);
-  const [signupCompleted, setSignupCompleted] = useState(false);
 
   const [phase, setPhase] = useState<'text' | 'illustrations' | 'ready'>('text');
   const [storyId, setStoryId] = useState<string | null>(null);
