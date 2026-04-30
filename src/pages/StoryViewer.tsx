@@ -1258,6 +1258,8 @@ const [currentPage, setCurrentPage] = useState(0);
     });
   };
 
+  // Total of scrollable sections: virtual pages + closing + end
+  // (totalVirtualPages is computed below — we re-derive here for the observer effect)
   // Smooth-scroll the reader to a given section index
   const scrollToPage = (target: number) => {
     const maxPage = totalVirtualPages + 1;
