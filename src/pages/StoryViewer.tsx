@@ -1298,6 +1298,9 @@ const [currentPage, setCurrentPage] = useState(0);
           const idx = Number((best.target as HTMLElement).dataset.pageIndex);
           if (!Number.isNaN(idx)) {
             setCurrentPage((prev) => (prev === idx ? prev : idx));
+            if (idx >= totalVirtualPages + 1 && story) {
+              trackStoryCompleted(story.id);
+            }
           }
         }
       },
