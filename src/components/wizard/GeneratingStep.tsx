@@ -326,7 +326,7 @@ const GeneratingStep = ({ formData, onComplete }: GeneratingStepProps) => {
       
       setError("not_created");
     }
-  }, [formData, toast, navigate, signupDismissed]);
+  }, [formData, toast, navigate]);
 
   // Realtime subscription: watch for illustrations completing
   useEffect(() => {
@@ -476,8 +476,8 @@ const GeneratingStep = ({ formData, onComplete }: GeneratingStepProps) => {
 
 
 
-    // Only start generation for authenticated users
-    if (!hasStartedRef.current && user) {
+    // Auth is now guaranteed before reaching this step
+    if (!hasStartedRef.current) {
       hasStartedRef.current = true;
       generateStory();
     }
@@ -491,133 +491,6 @@ const GeneratingStep = ({ formData, onComplete }: GeneratingStepProps) => {
       clearInterval(tipInterval);
     };
   }, [generateStory, phase, toast]);
-
-  // When user authenticates (after signup during loading), start generation
-  // When user signs up during loading, start generation
-  useEffect(() => {
-    if (user && !hasStartedRef.current) {
-      hasStartedRef.current = true;
-      generateStory();
-    }
-  }, [user, generateStory]);
-
-  // signupDismissed useEffect removed — generation starts immediately
-
-  const saveChildToSupabase = async (userId: string) => {
-    try {
-      const ageMap: Record<string, number> = { "0-2": 1, "2-4": 3, "5-7": 6, "8-10": 9 };
-      
-      // Check for guest avatar saved before signup
-      const guestAvatar = localStorage.getItem('guest_avatar_url');
-      const avatarUrl = guestAvatar || formData.childAvatarUrl || null;
-      
-      await supabase.from("children").insert({
-        user_id: userId,
-        name: formData.childName,
-        age: ageMap[formData.ageRange] || 5,
-        gender: formData.childGender === "female" ? "girl" : "boy",
-        personality_traits: formData.personalityTraits || null,
-        fixed_details: formData.fixedDetails || null,
-        photo_url: formData.childPhoto || null,
-        avatar_url: avatarUrl,
-        photo_consent: formData.photoConsent || false,
-      });
-      
-      // Clear guest avatar after claiming
-      if (guestAvatar) {
-        localStorage.removeItem('guest_avatar_url');
-        console.log('Guest avatar claimed and saved to child profile');
-      }
-    } catch (e) {
-      console.warn("Failed to save child profile:", e);
-    }
-  };
-
-  const handleSignupSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    const emailResult = emailSchema.safeParse(signupEmail);
-    if (!emailResult.success) {
-      toast({ title: "שגיאה", description: emailResult.error.errors[0].message, variant: "destructive" });
-      return;
-    }
-    const passwordResult = passwordSchema.safeParse(signupPassword);
-    if (!passwordResult.success) {
-      toast({ title: "שגיאה", description: passwordResult.error.errors[0].message, variant: "destructive" });
-      return;
-    }
-    if (signupMode === "signup" && !signupTermsAccepted) {
-      toast({ title: "שגיאה", description: "יש לאשר את תנאי השימוש", variant: "destructive" });
-      return;
-    }
-
-    setSignupSubmitting(true);
-    try {
-      if (signupMode === "login") {
-        const { error } = await signInWithEmail(signupEmail, signupPassword);
-        if (error) {
-          toast({ title: "שגיאה בהתחברות", description: error.message, variant: "destructive" });
-          return;
-        }
-      } else {
-        const { error } = await signUpWithEmail(signupEmail, signupPassword, {
-          display_name: signupEmail.split("@")[0],
-        });
-        if (error) {
-          toast({ title: "שגיאה בהרשמה", description: error.message, variant: "destructive" });
-          return;
-        }
-      }
-      // Save child + accept terms
-      const { data: { user: newUser } } = await supabase.auth.getUser();
-      if (newUser) {
-        await saveChildToSupabase(newUser.id);
-        await supabase.from("profiles").update({
-          terms_accepted_at: new Date().toISOString(),
-          terms_version: "1.0",
-          marketing_consent: marketingConsent,
-        }).eq("id", newUser.id);
-      }
-      setSignupCompleted(true);
-      toast({ title: "נרשמתם בהצלחה! 🎉", description: "הסיפור נוצר עכשיו..." });
-    } catch (err) {
-      console.error("Signup error:", err);
-      toast({ title: "שגיאה", description: "אירעה שגיאה, נסו שוב", variant: "destructive" });
-    } finally {
-      setSignupSubmitting(false);
-    }
-  };
-
-  const handleGoogleSignIn = async () => {
-    if (!GOOGLE_SIGNIN_ENABLED) return;
-    localStorage.setItem('pending_story_formData', JSON.stringify(formData));
-    localStorage.setItem('returnTo', '/create?resume=true');
-    // Cookie fallback for mobile: localStorage can be lost across OAuth context switches
-    // (in-app browsers, new tab handoff, ITP/storage partitioning). Cookies are shared
-    // reliably across same-origin tabs/contexts.
-    document.cookie =
-      'ss_return_to=' + encodeURIComponent('/create?resume=true') +
-      '; Max-Age=600; Path=/; SameSite=Lax; Secure';
-    try {
-      // If we're inside the Lovable preview iframe, Google blocks OAuth via X-Frame-Options.
-      // Pop out to a top-level tab first so the redirect flow can complete normally.
-      if (typeof window !== 'undefined' && window.self !== window.top) {
-        // Open the hardcoded production /auth URL in a new tab (no window.location.origin).
-        window.open('https://soulstory.co.il/auth', '_blank', 'noopener');
-        return;
-      }
-      const { data, error } = await supabase.auth.signInWithOAuth({
-        provider: 'google',
-        options: {
-          redirectTo: 'https://qvdwmkxviaqcgmjotsxe.supabase.co/auth/v1/callback'
-        }
-      });
-      if (error) {
-        toast({ title: "שגיאה", description: "ההתחברות עם Google נכשלה", variant: "destructive" });
-      }
-    } catch (e) {
-      toast({ title: "שגיאה", description: "אירעה שגיאה, נסו שוב", variant: "destructive" });
-    }
-  };
 
   const handleRetry = () => {
     setError(null);
@@ -638,8 +511,6 @@ const GeneratingStep = ({ formData, onComplete }: GeneratingStepProps) => {
       onComplete(storyId);
     }
   };
-
-  const needsSignup = !user && !signupCompleted;
 
   // --- ERROR STATE ---
   if (error) {
