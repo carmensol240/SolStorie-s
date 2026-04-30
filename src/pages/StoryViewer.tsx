@@ -1853,7 +1853,7 @@ const [currentPage, setCurrentPage] = useState(0);
       <PdfFeaturePopup userId={user?.id} />
 
       {/* Install App Prompt - shown only after reaching last page */}
-      <InstallAppPrompt justCreatedFirstStory={justCreatedStory && (isClosingPage || isEndPage)} />
+      <InstallAppPrompt justCreatedFirstStory={justCreatedStory && (activeIsClosing || activeIsEnd)} />
 
       {/* Coloring Picker Dialog — global so it works from header icon too */}
       <Dialog open={coloringPickerOpen} onOpenChange={(open) => {
