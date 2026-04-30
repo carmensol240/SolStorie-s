@@ -1,103 +1,39 @@
-## Goal
-Restructure the create-story wizard:
-1. Remove the inline registration/login form from the story-loading screen (`GeneratingStep`). By the time users reach loading, they are guaranteed to be authenticated.
-2. Add a new dedicated **Sign-up / Login** step in the wizard between the child-details step and the topic-selection step.
-3. If the user is already logged in, that new step is skipped automatically (both forward and backward navigation).
+# Fix: Strict gender-appropriate clothing in AI illustrations
 
-No other behavior in the app changes.
+## Problem
+When the child's gender is "boy", AI-generated illustrations sometimes show the character in dresses or feminine clothing. Current safeguards only cover religious symbols (kippah on girls), not general clothing.
 
-## Current flow vs. new flow
-
-Current (`src/pages/CreateStory.tsx`):
-```
-Step 1: ChildInfoStep   → Step 2: TopicStep   → Step 3: GeneratingStep
-```
-`GeneratingStep` itself shows an inline signup form when `!user`.
-
-New flow:
-```
-Step 1: ChildInfoStep   → Step 2: AuthStep (skipped if logged in)   → Step 3: TopicStep   → Step 4: GeneratingStep
-```
+## Approach
+Centralize the fix in `supabase/functions/_shared/style-config.ts` — all image-generating edge functions (`generate-cover`, `generate-hero-image`, `generate-illustrations`, `retry-illustration`, `generate-topic-images`, `generate-topic-images-batch`) already import from this file, so a single update propagates everywhere.
 
 ## Changes
 
-### 1. New file: `src/components/wizard/AuthStep.tsx`
-A dedicated step component matching the visual style of the other wizard steps (same gradient background container is provided by `CreateStory`, so this component just renders the form card).
+### 1. `supabase/functions/_shared/style-config.ts`
 
-Content (lifted/adapted from the current inline signup block in `GeneratingStep.tsx`, lines ~834–991):
-- Heading: "🌟 הירשמו לשמור את הסיפור!" + short subtitle.
-- Google sign-in button (reuses the existing `handleGoogleSignIn` logic, including the iframe pop-out, cookie fallback, and `pending_story_formData` storage so the OAuth resume flow keeps working).
-- Email/password form with signup ↔ login toggle.
-- Terms-accepted checkbox (required for signup) and optional marketing-consent checkbox.
-- On successful signup/login: call `saveChildToSupabase(user.id)` (moved from `GeneratingStep`) and write `terms_accepted_at` / `terms_version` / `marketing_consent` to `profiles`.
-- Props:
-  ```ts
-  interface AuthStepProps {
-    formData: StoryFormData;
-    onAuthenticated: () => void;   // parent advances wizard to next step
-  }
-  ```
-- On success, calls `onAuthenticated()`. The parent will move to the topic step.
-- No "אולי אחר כך" / dismiss option — this step is now mandatory before topic selection.
+**a. Strengthen `GENDER_SYMBOL_RESTRICTION`** — rename concept-wise to cover both clothing and symbols. Add explicit clothing rules:
 
-### 2. `src/components/wizard/GeneratingStep.tsx`
-- Remove all signup-related state, handlers, and JSX:
-  - State: `signupEmail`, `signupPassword`, `signupShowPassword`, `signupTermsAccepted`, `marketingConsent`, `signupMode`, `signupSubmitting`, `signupDismissed`, `signupCompleted`.
-  - Functions: `handleSignupSubmit`, `handleGoogleSignIn`, `saveChildToSupabase` (moved to `AuthStep`).
-  - JSX block "Bottom: Signup form for unauthenticated users" (~lines 834–991).
-  - The conditional wrapper `{(!needsSignup || signupDismissed) && ...}` simplifies to always render the standard animated content.
-  - The `needsSignup`-aware variations in the top section (compressed hero, alternate heading, capped progress bar, hidden percentage, motivational sentence card) are removed; the standard always-authenticated layout remains.
-- Remove the `useEffect` that waits for `user` to appear before starting generation; just start generation on mount (the existing `if (!hasStartedRef.current && user)` check can become `if (!hasStartedRef.current)` since auth is now guaranteed).
-- Remove the now-unused imports (`Mail`, `Lock`, `Eye`, `EyeOff`, `Loader2` if unused elsewhere in the file, `Checkbox`, `Input`, `z`, `emailSchema`, `passwordSchema`, `signInWithEmail`/`signUpWithEmail` from `useAuth`).
-- Keep all generation, retry, illustrations-phase, error-state, and ready-popup logic untouched.
+> CRITICAL — GENDER-APPROPRIATE APPEARANCE:
+> - If the main character is a BOY: he MUST wear masculine clothing only (pants, shorts, t-shirt, hoodie, sweater, jacket, sneakers/boots). ABSOLUTELY NO dresses, NO skirts, NO tutus, NO feminine hair accessories (no flower crowns, no bows, no hair ribbons), NO makeup, NO purses, NO feminine jewelry. Hair must be a boy's hairstyle (short or medium, no ponytails with ribbons, no buns with flowers).
+> - If the main character is a GIRL: NO kippah, NO yarmulke, NO tzitzit, NO male religious clothing or symbols.
+> - Clothing, hairstyle, and accessories must clearly match the stated gender in EVERY scene.
 
-### 3. `src/pages/CreateStory.tsx`
-Update the wizard step machine to a 4-step flow with conditional skipping of the auth step:
+**b. Extend `NEGATIVE_PROMPT_FULL`** — append boy-specific negatives so the diffusion model rejects feminine attributes when generating boys:
+`boy in dress, boy in skirt, boy wearing tutu, boy with flower crown, boy with bow in hair, boy with makeup, boy in feminine clothing, boy with purse, feminine clothing on boy, dress on male character, skirt on male character`.
 
-- Update `steps` labels to match the new order (4 entries):
-  ```ts
-  const steps = [
-    { number: 1, label: "פרטי הילד/ה" },
-    { number: 2, label: "הרשמה" },
-    { number: 3, label: "נושא" },
-    { number: 4, label: "יצירה" },
-  ];
-  ```
-- Import `AuthStep`.
-- Renumber states:
-  - Step 1: `ChildInfoStep` (unchanged)
-  - Step 2: `AuthStep` — rendered only when `!user`; otherwise auto-skipped
-  - Step 3: `TopicStep` (was step 2)
-  - Step 4: `GeneratingStep` (was step 3)
-- `handleNext` logic:
-  - From step 1 (`canProceedStep1`): if `user` exists → go to step 3 (skip auth), else go to step 2.
-  - From step 2 (auth): no manual Next; `AuthStep`'s `onAuthenticated` callback advances to step 3.
-  - From step 3 (`canProceedStep2`): credit check (existing logic), then go to step 4 and `setIsGenerating(true)`.
-- `handleBack` logic:
-  - From step 4: not applicable (full-screen, no header).
-  - From step 3: if `user` exists → step 1 (skip auth), else step 2.
-  - From step 2: step 1.
-  - From step 1: navigate to `/`.
-- Render guards:
-  - Step 4 stays the existing full-screen `GeneratingStep` early return.
-  - Steps 1–3 share the existing wizard layout (header + progress bar + bottom CTA). Step 2's bottom CTA is hidden because `AuthStep` has its own submit buttons inside the card. Implementation: render the bottom CTA only when `step !== 2`.
-- Resume-after-OAuth `useEffect` (currently sets `step = 3` and `isGenerating = true`): update to `step = 4` so it lands on the new generating step number.
-- Stepper indicator: if user is logged in, visually hide step 2 from the indicator (so the user doesn't see a step they never use). Implementation: `const visibleSteps = user ? steps.filter(s => s.number !== 2) : steps;` and renumber dots 1..N for display only; the underlying `step` state continues to use the canonical 1/2/3/4.
+(Existing girl-side negatives — kippah/tzitzit/male religious clothing — remain.)
 
-### 4. Out of scope
-- `src/components/story/SignupBeforeGenerateModal.tsx` is not currently mounted from `CreateStory` flow — leave untouched.
-- `Auth.tsx`, `RequireTerms.tsx`, OAuth callback handling, cookie fallback, and `/create?resume=true` resume logic: unchanged in behavior; only the step number set on resume is updated.
-- No DB migrations, no edge-function changes, no styling system changes.
+### 2. `supabase/functions/generate-illustrations/index.ts`
 
-## Technical notes
-- Persisting `formData` to `localStorage` before Google OAuth must continue to happen inside `AuthStep.handleGoogleSignIn`, identical to the current implementation in `GeneratingStep`. The resume handler in `CreateStory` already restores it and lands on the generating step.
-- `saveChildToSupabase` is called once, inside `AuthStep` after a successful auth. `GeneratingStep` no longer needs it (the row is created earlier in the flow).
-- Backwards/legacy: any old `pending_story_formData` resume that lands on the previously-numbered step 3 will now land on step 4 (new generating step number). This is correct because the resume flow's intent is "go straight to generating".
+In the two scene-prompt builders (lines ~341 and ~1189/1301) and `getCharacterAnchor` (~132), append a one-line gender clothing reminder right after the character description, e.g.:
+`This character is a BOY — masculine clothing only, no dresses or skirts.` (or the girl variant when applicable).
 
-## QA checklist
-- Logged-out user: Step 1 (child) → Step 2 (auth form, no loading visuals) → after signup → Step 3 (topic) → Step 4 (generating, no signup form anywhere).
-- Logged-in user: Step 1 → Step 3 directly → Step 4. Step 2 is skipped both forward and via Back.
-- Google OAuth from Step 2: redirects out, returns to `/create?resume=true`, restores formData, lands on Step 4 generating.
-- Email/password signup from Step 2: child profile saved, terms accepted, advances to Step 3.
-- Existing generating-screen behavior (text → illustrations → ready popup → navigation) unchanged.
-- Stepper indicator shows 4 dots for guests, 3 dots for logged-in users.
+This reinforces the centralized rule at the per-scene prompt level where the model is most attentive.
+
+### 3. No client/UI changes
+Gender is already passed to all image functions; only prompt strings change.
+
+## Files touched
+- `supabase/functions/_shared/style-config.ts` (update `GENDER_SYMBOL_RESTRICTION` + `NEGATIVE_PROMPT_FULL`)
+- `supabase/functions/generate-illustrations/index.ts` (3 small inline reminders)
+
+No DB changes, no schema changes, no other functions edited (they auto-inherit via the shared constants).
