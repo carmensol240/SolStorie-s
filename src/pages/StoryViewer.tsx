@@ -747,28 +747,21 @@ const [currentPage, setCurrentPage] = useState(0);
     }, 300);
   };
 
-  // Scroll to top on every page change — useLayoutEffect ensures it fires before paint
-  useLayoutEffect(() => {
-    window.scrollTo(0, 0);
-    document.documentElement.scrollTop = 0;
-    document.body.scrollTop = 0;
-    document.querySelectorAll('[data-story-scroll]').forEach(el => {
-      el.scrollTop = 0;
-    });
-  }, [currentPage]);
-
-  // Keyboard navigation for desktop
+  // Keyboard navigation for desktop — scrolls to neighbouring section
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === 'ArrowLeft') {
-        handlePageChange('next');
-      } else if (e.key === 'ArrowRight') {
-        handlePageChange('prev');
+      if (e.key === 'ArrowDown' || e.key === 'PageDown' || e.key === 'ArrowLeft') {
+        e.preventDefault();
+        scrollToPage(currentPage + 1);
+      } else if (e.key === 'ArrowUp' || e.key === 'PageUp' || e.key === 'ArrowRight') {
+        e.preventDefault();
+        scrollToPage(currentPage - 1);
       }
     };
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [isFlipping, currentPage, story]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [currentPage, story]);
 
   // Swipe navigation disabled - using arrow buttons only
 
