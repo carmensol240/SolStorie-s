@@ -86,7 +86,7 @@ function App() { useTimeTheme(); return (
             <Route path="/flipbook/:bookId" element={<RequireTerms><FlipbookViewer /></RequireTerms>} />
             {/* Premium/NLP – hidden from navigation, accessible via direct URL only */}
             <Route path="/profile" element={<RequireTerms><Profile /></RequireTerms>} />
-            <Route path="/settings" element={<RequireTerms><Settings /></RequireTerms>} />
+            <Route path="/settings" element={<Settings />} />
             <Route path="/account-exit" element={<RequireTerms><AccountExit /></RequireTerms>} />
             <Route path="/upgrade" element={<RequireTerms><Upgrade /></RequireTerms>} />
             {/* Premium/NLP – hidden from navigation */}
