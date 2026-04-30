@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback, useRef, useMemo } from "react";
-import { Sparkles, BookOpen, Palette, FileText, RefreshCw, Wand2 } from "lucide-react";
+import { Sparkles, BookOpen, FileText, RefreshCw, Wand2 } from "lucide-react";
 import generatingHeroCast from "@/assets/generating-hero-cast.jpeg";
 import castSolAdventure from "@/assets/cast-sol-adventure.jpg";
 import castBenArt from "@/assets/cast-ben-art-new.jpg";
@@ -12,7 +12,6 @@ import { StoryFormData } from "@/pages/CreateStory";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { useNavigate } from "react-router-dom";
-import { useAuth } from "@/hooks/use-auth";
 import { CHARACTER_SECTIONS } from "@/components/wizard/topic-data";
 
 interface GeneratingStepProps {
