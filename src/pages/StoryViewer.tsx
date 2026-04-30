@@ -1258,36 +1258,22 @@ const [currentPage, setCurrentPage] = useState(0);
     });
   };
 
-  // Page navigation with simple fade transition
-  // Page 0 (first virtual page) is skipped — cover merges with it
-  const handlePageNav = (direction: 'next' | 'prev') => {
-    if (isFlipping) return;
-    
+  // Smooth-scroll the reader to a given section index
+  const scrollToPage = (target: number) => {
     const maxPage = totalVirtualPages + 1;
-    
-    if (direction === 'next' && currentPage >= maxPage) return;
-    if (direction === 'prev' && currentPage <= 0) return;
-    
-    setSlideDirection(direction);
-    setIsFlipping(true);
-    
-    // Reset scroll IMMEDIATELY before the page change
-    resetScroll();
-    
-    setTimeout(() => {
-      if (direction === 'next' && currentPage < maxPage) {
-        const newPage = currentPage + 1;
-        setCurrentPage(newPage);
-        
-        if (newPage >= maxPage) {
-          trackStoryCompleted(story.id);
-        }
-      } else if (direction === 'prev' && currentPage > 0) {
-        const newPage = currentPage - 1;
-        setCurrentPage(newPage);
-      }
-      setIsFlipping(false);
-    }, 300);
+    const clamped = Math.max(0, Math.min(maxPage, target));
+    const el = sectionRefs.current[clamped];
+    if (el) {
+      el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+    if (clamped >= maxPage && story) {
+      trackStoryCompleted(story.id);
+    }
+  };
+
+  // Backwards-compatible nav for buttons inside content (closing → end button etc.)
+  const handlePageNav = (direction: 'next' | 'prev') => {
+    scrollToPage(direction === 'next' ? currentPage + 1 : currentPage - 1);
   };
 
   return (
