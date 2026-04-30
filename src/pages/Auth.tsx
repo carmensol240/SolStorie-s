@@ -256,7 +256,14 @@ const Auth = () => {
 
   // Get return URL - default to home/adventure page (with open redirect protection)
   const getReturnTo = () => {
-    const returnTo = searchParams.get('returnTo') || localStorage.getItem('returnTo') || '/adventure';
+    // Cookie fallback for mobile: localStorage can be unavailable after OAuth context switches
+    const cookieMatch = document.cookie.match(/(?:^|;\s*)ss_return_to=([^;]+)/);
+    const cookieReturnTo = cookieMatch ? decodeURIComponent(cookieMatch[1]) : null;
+    const returnTo =
+      searchParams.get('returnTo') ||
+      localStorage.getItem('returnTo') ||
+      cookieReturnTo ||
+      '/adventure';
     // Only allow relative paths starting with / but not // (protocol-relative)
     if (returnTo.startsWith('/') && !returnTo.startsWith('//')) {
       return returnTo;
@@ -298,6 +305,7 @@ const Auth = () => {
           // Terms already accepted - redirect to destination
           const returnTo = getReturnTo();
           localStorage.removeItem('returnTo');
+          document.cookie = 'ss_return_to=; Max-Age=0; Path=/; SameSite=Lax; Secure';
           navigate(returnTo, { replace: true });
         } else {
           // Terms not yet accepted - redirect to onboarding

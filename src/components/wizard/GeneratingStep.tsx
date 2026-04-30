@@ -609,6 +609,12 @@ const GeneratingStep = ({ formData, onComplete }: GeneratingStepProps) => {
     if (!GOOGLE_SIGNIN_ENABLED) return;
     localStorage.setItem('pending_story_formData', JSON.stringify(formData));
     localStorage.setItem('returnTo', '/create?resume=true');
+    // Cookie fallback for mobile: localStorage can be lost across OAuth context switches
+    // (in-app browsers, new tab handoff, ITP/storage partitioning). Cookies are shared
+    // reliably across same-origin tabs/contexts.
+    document.cookie =
+      'ss_return_to=' + encodeURIComponent('/create?resume=true') +
+      '; Max-Age=600; Path=/; SameSite=Lax; Secure';
     try {
       // If we're inside the Lovable preview iframe, Google blocks OAuth via X-Frame-Options.
       // Pop out to a top-level tab first so the redirect flow can complete normally.
