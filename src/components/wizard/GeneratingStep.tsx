@@ -632,7 +632,7 @@ const GeneratingStep = ({ formData, onComplete }: GeneratingStepProps) => {
       {/* Top: Loading animation */}
       <div className="flex flex-col items-center text-center space-y-3 pt-6 px-4">
         {/* Compact hero + loading indicator */}
-        <div className={`w-full max-w-sm mx-auto rounded-2xl overflow-hidden shadow-xl border-4 border-purple-200/50 ${needsSignup ? 'max-h-32' : ''}`}>
+        <div className="w-full max-w-sm mx-auto rounded-2xl overflow-hidden shadow-xl border-4 border-purple-200/50">
           <img
             src={generatingHeroCast}
             alt="סול, בן, מיה, ליאו וזואי מחכים לך"
@@ -643,236 +643,49 @@ const GeneratingStep = ({ formData, onComplete }: GeneratingStepProps) => {
         {/* Status text */}
         <div className="space-y-1">
           <h2 className="text-lg font-bold bg-gradient-to-r from-purple-600 via-pink-500 to-orange-400 bg-clip-text text-transparent">
-            {needsSignup 
-              ? `✨ הסיפור של ${formData.childName} נוצר עכשיו...`
-              : currentMessage.text
-            }
+            {currentMessage.text}
           </h2>
-          {needsSignup ? (
-            <p className="text-purple-700/70 text-xs">
-              זה לוקח כמה דקות, בזמן הזה...
-            </p>
-          ) : (
-            <p className="text-purple-700/70 text-xs">
-              {`יצירת סיפור מותאם אישית עבור ${formData.childName}`}
-            </p>
-          )}
+          <p className="text-purple-700/70 text-xs">
+            {`יצירת סיפור מותאם אישית עבור ${formData.childName}`}
+          </p>
         </div>
 
         {/* Progress Bar */}
         <div className="w-full max-w-xs space-y-1">
           <div className="relative h-2.5 w-full overflow-hidden rounded-full bg-purple-100">
-            <div 
+            <div
               className="h-full bg-gradient-to-r from-purple-600 via-pink-500 to-orange-400 transition-all duration-300"
-              style={{ width: `${needsSignup ? Math.min(progress, 15) : progress}%` }}
+              style={{ width: `${progress}%` }}
             />
           </div>
-          {!needsSignup && (
-            <p className="text-xs text-purple-600 font-medium text-center">
-              {Math.round(progress)}%
-            </p>
-          )}
+          <p className="text-xs text-purple-600 font-medium text-center">
+            {Math.round(progress)}%
+          </p>
         </div>
-
-        {/* Rotating motivational sentence (signup view) */}
-        {needsSignup && !signupDismissed && (
-          <div className="w-full max-w-sm bg-white/70 backdrop-blur-sm rounded-2xl p-3 text-center min-h-[3.5rem] flex items-center justify-center">
-            <p className={`text-sm font-medium text-purple-700 transition-opacity duration-500 ${isSentenceVisible ? 'opacity-100' : 'opacity-0'}`}>
-              {EMPOWERING_SENTENCES[sentenceIndex]}
-            </p>
-          </div>
-        )}
       </div>
 
-      {/* Bottom: Signup form for unauthenticated users */}
-      {needsSignup && !signupDismissed && (
-        <div className="flex-1 flex flex-col items-center justify-center px-4 pb-6 mt-4">
-          <div className="w-full max-w-sm bg-white/80 backdrop-blur-md rounded-2xl p-5 shadow-lg border border-purple-100/50 space-y-3">
-            <div className="text-center space-y-1">
-              <p className="text-base font-black text-purple-700">
-                🌟 הירשמו לשמור את הסיפור!
-              </p>
-              <p className="text-sm text-amber-700 font-bold animate-pulse mt-1" dir="rtl">
-                💡 ההרשמה מאיצה את יצירת הסיפור
-              </p>
+      {/* Animated content for authenticated user */}
+      <div className="flex-1 flex flex-col items-center justify-center text-center space-y-4 px-4 pb-6">
+        {/* Animated Icon */}
+        <div className="relative">
+          <div className="w-16 h-16 bg-gradient-to-br from-purple-500/20 via-pink-500/20 to-orange-400/20 rounded-full flex items-center justify-center shadow-lg">
+            <div className="relative">
+              <Icon className={`w-8 h-8 ${currentMessage.color} animate-bounce`} />
+              <Wand2
+                className="absolute -top-2 -right-3 w-5 h-5 text-purple-600 animate-wiggle"
+                style={{ filter: 'drop-shadow(0 0 4px rgba(168, 85, 247, 0.5))' }}
+              />
             </div>
-
-
-            {/* Google Sign-In Button */}
-            <button
-              type="button"
-              onClick={handleGoogleSignIn}
-              disabled={!GOOGLE_SIGNIN_ENABLED}
-              className="w-full flex items-center justify-center gap-2 py-2.5 px-4 bg-white border border-gray-300 rounded-xl shadow-sm hover:bg-gray-50 transition-all text-sm font-bold text-gray-700 disabled:opacity-50 disabled:cursor-not-allowed disabled:grayscale disabled:hover:bg-white"
-            >
-              <svg width="18" height="18" viewBox="0 0 18 18" xmlns="http://www.w3.org/2000/svg">
-                <path d="M17.64 9.2c0-.637-.057-1.251-.164-1.84H9v3.481h4.844c-.209 1.125-.843 2.078-1.796 2.717v2.258h2.908c1.702-1.567 2.684-3.874 2.684-6.615z" fill="#4285F4"/>
-                <path d="M9 18c2.43 0 4.467-.806 5.956-2.18l-2.908-2.259c-.806.54-1.837.86-3.048.86-2.344 0-4.328-1.584-5.036-3.711H.957v2.332A8.997 8.997 0 009 18z" fill="#34A853"/>
-                <path d="M3.964 10.71A5.41 5.41 0 013.682 9c0-.593.102-1.17.282-1.71V4.958H.957A8.996 8.996 0 000 9c0 1.452.348 2.827.957 4.042l3.007-2.332z" fill="#FBBC05"/>
-                <path d="M9 3.58c1.321 0 2.508.454 3.44 1.345l2.582-2.58C13.463.891 11.426 0 9 0A8.997 8.997 0 00.957 4.958L3.964 6.29C4.672 4.163 6.656 2.58 9 3.58z" fill="#EA4335"/>
-              </svg>
-              המשיכו עם Google
-              {!GOOGLE_SIGNIN_ENABLED && <span className="text-xs text-muted-foreground mr-2">בקרוב</span>}
-            </button>
-
-            {/* Divider */}
-            <div className="flex items-center gap-3">
-              <div className="flex-1 h-px bg-gray-300"></div>
-              <span className="text-xs text-gray-400 font-medium">או</span>
-              <div className="flex-1 h-px bg-gray-300"></div>
-            </div>
-
-            <form onSubmit={handleSignupSubmit} className="space-y-2.5">
-              {/* Mode toggle */}
-              <div className="flex gap-2">
-                <button
-                  type="button"
-                  onClick={() => setSignupMode("signup")}
-                  className={`flex-1 py-1.5 rounded-full text-xs font-bold transition-all ${
-                    signupMode === "signup"
-                      ? "bg-gradient-to-r from-purple-500 to-pink-500 text-white shadow"
-                      : "bg-purple-50 text-purple-400"
-                  }`}
-                >
-                  הרשמה
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setSignupMode("login")}
-                  className={`flex-1 py-1.5 rounded-full text-xs font-bold transition-all ${
-                    signupMode === "login"
-                      ? "bg-gradient-to-r from-purple-500 to-pink-500 text-white shadow"
-                      : "bg-purple-50 text-purple-400"
-                  }`}
-                >
-                  כבר יש לי חשבון
-                </button>
-              </div>
-
-              <div className="relative">
-                <Mail className="absolute right-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-muted-foreground" />
-                <Input
-                  type="email"
-                  placeholder="אימייל"
-                  value={signupEmail}
-                  onChange={(e) => setSignupEmail(e.target.value)}
-                  className="text-right pr-9 text-sm h-9 rounded-xl"
-                  required
-                />
-              </div>
-
-              <div className="relative">
-                <Lock className="absolute right-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-muted-foreground" />
-                <Input
-                  type={signupShowPassword ? "text" : "password"}
-                  placeholder="סיסמה (6+ תווים)"
-                  value={signupPassword}
-                  onChange={(e) => setSignupPassword(e.target.value)}
-                  className="text-right pr-9 pl-9 text-sm h-9 rounded-xl"
-                  required
-                />
-                <button
-                  type="button"
-                  onClick={() => setSignupShowPassword(!signupShowPassword)}
-                  className="absolute left-3 top-1/2 -translate-y-1/2"
-                >
-                  {signupShowPassword ? (
-                    <EyeOff className="w-3.5 h-3.5 text-muted-foreground" />
-                  ) : (
-                    <Eye className="w-3.5 h-3.5 text-muted-foreground" />
-                  )}
-                </button>
-              </div>
-
-              {signupMode === "signup" && (
-                <div className="flex items-center gap-2">
-                  <Checkbox
-                    id="gen-terms"
-                    checked={signupTermsAccepted}
-                    onCheckedChange={(c) => setSignupTermsAccepted(c === true)}
-                    className="border-purple-300 data-[state=checked]:bg-purple-500 data-[state=checked]:border-purple-500 h-4 w-4"
-                  />
-                  <label htmlFor="gen-terms" className="text-[11px] text-muted-foreground cursor-pointer leading-tight">
-                    קראתי ואני מסכימ/ה ל
-                    <a href="/terms" target="_blank" className="text-purple-500 underline underline-offset-2 mx-0.5">
-                      תנאי השימוש
-                    </a>
-                  </label>
-                </div>
-              )}
-
-              {signupMode === "signup" && (
-                <div className="flex items-center gap-2">
-                  <Checkbox
-                    id="gen-marketing"
-                    checked={marketingConsent}
-                    onCheckedChange={(c) => setMarketingConsent(c === true)}
-                    className="border-purple-300 data-[state=checked]:bg-purple-500 data-[state=checked]:border-purple-500 h-4 w-4"
-                  />
-                  <label htmlFor="gen-marketing" className="text-[11px] text-muted-foreground cursor-pointer leading-tight">
-                    אני רוצה לקבל קופונים ומבצעים במייל (אופציונלי)
-                  </label>
-                </div>
-              )}
-
-              <Button
-                type="submit"
-                disabled={signupSubmitting || (signupMode === "signup" && !signupTermsAccepted)}
-                className="w-full bg-gradient-to-r from-purple-600 via-pink-500 to-orange-400 hover:from-purple-700 hover:via-pink-600 hover:to-orange-500 text-white font-black text-sm rounded-full py-2.5 h-auto disabled:opacity-40"
-              >
-                {signupSubmitting ? (
-                  <Loader2 className="w-4 h-4 animate-spin" />
-                ) : signupMode === "signup" ? (
-                  "הירשמו בחינם ✨"
-                ) : (
-                  "התחברו ✨"
-                )}
-              </Button>
-
-              <button
-                type="button"
-                onClick={() => {
-                  setSignupDismissed(true);
-                }}
-                className="w-full text-center text-xs text-muted-foreground hover:text-foreground transition-colors"
-              >
-                אולי אחר כך
-              </button>
-            </form>
           </div>
         </div>
-      )}
 
-      {/* When authenticated or dismissed — show the standard animated content */}
-      {(!needsSignup || signupDismissed) && (
-        <div className="flex-1 flex flex-col items-center justify-center text-center space-y-4 px-4 pb-6">
-          {/* Animated Icon */}
-          <div className="relative">
-            <div className="w-16 h-16 bg-gradient-to-br from-purple-500/20 via-pink-500/20 to-orange-400/20 rounded-full flex items-center justify-center shadow-lg">
-              <div className="relative">
-                <Icon className={`w-8 h-8 ${currentMessage.color} animate-bounce`} />
-                <Wand2 
-                  className="absolute -top-2 -right-3 w-5 h-5 text-purple-600 animate-wiggle"
-                  style={{ filter: 'drop-shadow(0 0 4px rgba(168, 85, 247, 0.5))' }}
-                />
-              </div>
-            </div>
-          </div>
-
-          {/* Rotating motivational sentence */}
-          <div className="w-full max-w-sm bg-white/70 backdrop-blur-sm rounded-2xl p-4 text-center min-h-[4rem] flex items-center justify-center">
-            <p className={`text-sm font-medium text-purple-700 transition-opacity duration-500 ${isSentenceVisible ? 'opacity-100' : 'opacity-0'}`}>
-              {EMPOWERING_SENTENCES[sentenceIndex]}
-            </p>
-          </div>
-
-          {signupDismissed && !user && (
-            <p className="text-sm text-orange-600 font-medium bg-orange-50 rounded-xl px-4 py-2">
-              ⚠️ הסיפור לא יישמר ללא הרשמה
-            </p>
-          )}
+        {/* Rotating motivational sentence */}
+        <div className="w-full max-w-sm bg-white/70 backdrop-blur-sm rounded-2xl p-4 text-center min-h-[4rem] flex items-center justify-center">
+          <p className={`text-sm font-medium text-purple-700 transition-opacity duration-500 ${isSentenceVisible ? 'opacity-100' : 'opacity-0'}`}>
+            {EMPOWERING_SENTENCES[sentenceIndex]}
+          </p>
         </div>
-      )}
+      </div>
     </div>
   );
 };
