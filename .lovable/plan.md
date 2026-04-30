@@ -1,46 +1,36 @@
-## שדרוג אזור Before / After של תמונת הילד
+## Goal
 
-### היכן בדיוק
-בתוך `src/components/wizard/ChildInfoStep.tsx`, באזור שמופיע **אחרי** העלאת תמונה — שני הריבועים "תמונה מקורית" ו"דמות בסיפור" עם סמל הניצוץ ביניהם (שורות ~744–772). שאר הקוד (העלאה, ולידציה, כפתורים, רשימת ההמלצות לפני העלאה) — לא נוגעים בו.
+Eliminate the white flash visible when navigating between story pages in `StoryViewer`. Per the request: change ONLY the background color of the transition container to dark — no other changes.
 
-### מה ישתנה (ויזואלית)
+## Root Cause
 
-1. **מסגרת קומיקסית לכל אחד מהריבועים**
-   - מסגרת עבה יותר וכפולה: גבול חיצוני לבן + טבעת פנימית בצבע מותג (סגול לתמונה המקורית, אמבר/ורוד לדמות).
-   - פינות מעוגלות יותר (`rounded-2xl`) וצל עמוק חם (`shadow-xl`) לאפקט סטיקר/קומיקס.
-   - תווית מתחת בצורת "באדג'" קטן עם רקע צבעוני וטקסט מודגש, במקום טקסט אפור פשוט.
-   - הגדלה קלה של הריבועים מ-`w-28 h-28` ל-`w-32 h-32` כדי שיהיו נוכחים יותר.
+In `src/pages/StoryViewer.tsx` (line 1336), the page content lives in a div that fades to `opacity-0` for 300ms during navigation:
 
-2. **חץ מונפש ביניהם במקום סמל הניצוץ הסטטי**
-   - חץ מצויר ב-SVG (`ArrowLeft` מ-lucide, RTL) בתוך עיגול גרדיאנט סגול→ורוד→אמבר.
-   - אנימציה: פעימה עדינה + תנועה אופקית קטנה הלוך-חזור (`animate-pulse` + keyframes חדשים `arrow-bounce-rtl` ב-`index.css`).
-   - מסביב לחץ — 2-3 ניצוצות קטנים (`Sparkles`) שמהבהבים בעיכובים שונים, לאפקט קומיקסי-קסום.
+```tsx
+<div className={cn(
+  "relative w-full h-full overflow-hidden",
+  "transition-opacity duration-300 ease-in-out",
+  isFlipping ? "opacity-0" : "opacity-100",
+)}>
+```
 
-3. **רקע ייחודי לאזור**
-   - ה"קונטיינר" של ה-Before/After יקבל רקע בגרדיאנט עדין (סגול בהיר → ורוד בהיר → אמבר בהיר), במקום `bg-purple-50` שטוח.
-   - הוספת קו מקווקו עדין מסביב (`border-dashed`) לתחושת "מסגרת קומיקס".
+When the content fades out, the parent `.dream-card` (in `src/components/story/book-frame/magical-book.css`, line 115) shows through with `background: rgba(255, 255, 255, 0.85)` — that's the white flash.
 
-4. **כותרות צבעוניות עם אייקונים**
-   - "תמונה מקורית" עם אייקון מצלמה קטן ובאדג' אפור-סגול.
-   - "דמות בסיפור" עם אייקון Sparkles ובאדג' גרדיאנט סגול→ורוד, פונט מודגש יותר.
+## Change
 
-5. **מצב "יוצר דמות..."** — נוסיף אנימציית shimmer עדינה על הריבוע הריק בזמן הטעינה (overlay של גרדיאנט נע), במקום רק ספינר על רקע סגול שטוח.
+Single CSS edit in `src/components/story/book-frame/magical-book.css`, line 115 only:
 
-### מה לא משתנה (חשוב)
+```css
+/* before */
+background: rgba(255, 255, 255, 0.85);
+/* after */
+background: #1a0f3a;
+```
 
-- כל הלוגיקה (העלאת תמונה, generateAvatarInline, ולידציה, מחיקה, צור/עדכן אווטאר).
-- רשימת ההמלצות **לפני** העלאת תמונה (Camera + 6 הטיפים).
-- אזור הולידציה עם ה-✓/✗ אחרי העלאה.
-- מצב "תמונה יחידה בלבד" (כשאין עדיין אווטאר).
-- שאר השלבים בוויזרד.
+Color `#1a0f3a` matches the existing dark night-purple used elsewhere in the reader (`RAINBOW_BG` in `StoryViewer.tsx`, BookFrame night-sky theme), so the backdrop revealed during the fade is dark and consistent — no white flash.
 
-### קבצים שייערכו
+## Out of Scope
 
-- `src/components/wizard/ChildInfoStep.tsx` — רק בלוק ה-side-by-side (~744–772).
-- `src/index.css` — תוספת keyframes ל-`arrow-bounce-rtl` ול-`shimmer-overlay`. כל שאר הקובץ נשאר.
-
-### הערות עיצוב
-
-- כל הצבעים יילקחו מטוקנים סמנטיים / מהפלטה הקיימת בפרויקט (סגול-ורוד-אמבר), כדי לשמור על שפת המותג.
-- RTL נשמר — החץ פונה משמאל לימין (כי "תמונה מקורית" משמאל ו"דמות" מימין במצב הקיים).
-- נגישות: `aria-label="ההפיכה לדמות בסיפור"` על אזור החץ; אנימציות מכובדות `prefers-reduced-motion` (תיווסף הגנה ב-CSS).
+- No changes to navigation logic, transition type, durations, or any TSX file.
+- No changes to other CSS rules (border, shadow, backdrop-filter, animations all stay).
+- No refactoring.
