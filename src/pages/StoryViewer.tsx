@@ -1278,6 +1278,36 @@ const [currentPage, setCurrentPage] = useState(0);
     scrollToPage(direction === 'next' ? currentPage + 1 : currentPage - 1);
   };
 
+  // IntersectionObserver: update currentPage as the user scrolls between sections
+  useEffect(() => {
+    const root = scrollContainerRef.current;
+    if (!root) return;
+    const sections = sectionRefs.current.filter((el): el is HTMLElement => !!el);
+    if (sections.length === 0) return;
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        // Pick the entry with the largest intersection ratio
+        let best: IntersectionObserverEntry | null = null;
+        for (const entry of entries) {
+          if (!best || entry.intersectionRatio > best.intersectionRatio) {
+            best = entry;
+          }
+        }
+        if (best && best.intersectionRatio >= 0.5) {
+          const idx = Number((best.target as HTMLElement).dataset.pageIndex);
+          if (!Number.isNaN(idx)) {
+            setCurrentPage((prev) => (prev === idx ? prev : idx));
+          }
+        }
+      },
+      { root, threshold: [0.5, 0.75, 1] }
+    );
+
+    sections.forEach((el) => observer.observe(el));
+    return () => observer.disconnect();
+  }, [totalSections, story?.id]);
+
   return (
     <div className="h-[100dvh] bg-gradient-to-b from-[#1a0a1a] via-[#2a1030] to-[#1a0a1a] flex flex-col overflow-hidden" dir="rtl">
       <OfflineIndicator isOnline={isOnline} />
