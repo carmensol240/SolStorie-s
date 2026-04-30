@@ -1720,14 +1720,19 @@ const [currentPage, setCurrentPage] = useState(0);
                 )}
               </div>
             ) : null}
-          </div>
+                    </>
+                  );
+                })()}
+              </section>
+            ))}
+            </div>
           </MagicalBookFrame>
 
           {/* Bottom nav arrows */}
           <div className="absolute bottom-2 left-0 right-0 z-40 flex items-center justify-between px-4">
             <button
-              onClick={() => handlePageNav('next')}
-              disabled={currentPage >= totalVirtualPages + 1 || isFlipping}
+              onClick={() => scrollToPage(currentPage + 1)}
+              disabled={currentPage >= totalVirtualPages + 1}
               className="w-10 h-10 rounded-full bg-black/40 hover:bg-black/50 text-white/80 hover:text-white backdrop-blur-sm transition-all disabled:opacity-20 disabled:cursor-not-allowed flex items-center justify-center"
               aria-label="עמוד הבא"
             >
@@ -1735,8 +1740,8 @@ const [currentPage, setCurrentPage] = useState(0);
             </button>
 
             <button
-              onClick={() => handlePageNav('prev')}
-              disabled={currentPage <= -1 || isFlipping}
+              onClick={() => scrollToPage(currentPage - 1)}
+              disabled={currentPage <= 0}
               className="w-10 h-10 rounded-full bg-black/40 hover:bg-black/50 text-white/80 hover:text-white backdrop-blur-sm transition-all disabled:opacity-20 disabled:cursor-not-allowed flex items-center justify-center"
               aria-label="עמוד קודם"
             >
