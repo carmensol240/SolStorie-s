@@ -214,6 +214,8 @@ const [currentPage, setCurrentPage] = useState(0);
   const [retryingPageId, setRetryingPageId] = useState<string | null>(null);
   const [showPromptInput, setShowPromptInput] = useState<string | null>(null); // pageId or null
   const [customPromptText, setCustomPromptText] = useState('');
+  const scrollContainerRef = useRef<HTMLDivElement | null>(null);
+  const sectionRefs = useRef<Array<HTMLElement | null>>([]);
   
   const [showDedicationDialog, setShowDedicationDialog] = useState(false);
   const [isCreatingDigitalBook, setIsCreatingDigitalBook] = useState(false);
@@ -745,28 +747,21 @@ const [currentPage, setCurrentPage] = useState(0);
     }, 300);
   };
 
-  // Scroll to top on every page change — useLayoutEffect ensures it fires before paint
-  useLayoutEffect(() => {
-    window.scrollTo(0, 0);
-    document.documentElement.scrollTop = 0;
-    document.body.scrollTop = 0;
-    document.querySelectorAll('[data-story-scroll]').forEach(el => {
-      el.scrollTop = 0;
-    });
-  }, [currentPage]);
-
-  // Keyboard navigation for desktop
+  // Keyboard navigation for desktop — scrolls to neighbouring section
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === 'ArrowLeft') {
-        handlePageChange('next');
-      } else if (e.key === 'ArrowRight') {
-        handlePageChange('prev');
+      if (e.key === 'ArrowDown' || e.key === 'PageDown' || e.key === 'ArrowLeft') {
+        e.preventDefault();
+        scrollToPage(currentPage + 1);
+      } else if (e.key === 'ArrowUp' || e.key === 'PageUp' || e.key === 'ArrowRight') {
+        e.preventDefault();
+        scrollToPage(currentPage - 1);
       }
     };
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [isFlipping, currentPage, story]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [currentPage, story]);
 
   // Swipe navigation disabled - using arrow buttons only
 
@@ -1242,15 +1237,15 @@ const [currentPage, setCurrentPage] = useState(0);
   // Virtual page indexing:
   // 0..N-1 = virtual pages, N = closing, N+1 = end/feedback
   const totalVirtualPages = virtualPages.length;
-  const isClosingPage = currentPage === totalVirtualPages;
-  const isEndPage = currentPage >= totalVirtualPages + 1;
-  const isContentPage = currentPage >= 0 && currentPage < totalVirtualPages;
-
-  const currentVirtual = isContentPage ? virtualPages[currentPage] : null;
+  const totalSections = totalVirtualPages + 2; // virtual pages + closing + end
+  const activeIsClosing = currentPage === totalVirtualPages;
+  const activeIsEnd = currentPage >= totalVirtualPages + 1;
+  const activeIsContent = currentPage >= 0 && currentPage < totalVirtualPages;
+  const activeVirtual = activeIsContent ? virtualPages[currentPage] : null;
   // For editing/nikud, get the underlying DB page
-  const page = currentVirtual ? currentVirtual.dbPage : null;
+  const page = activeVirtual ? activeVirtual.dbPage : null;
   const currentFontSize = FONT_SIZES[fontSizeIndex];
-  const showPageActions = isContentPage && page !== null;
+  const showPageActions = activeIsContent && page !== null;
 
   // Reset all scroll positions (window + inner scrollable containers)
   const resetScroll = () => {
@@ -1263,37 +1258,58 @@ const [currentPage, setCurrentPage] = useState(0);
     });
   };
 
-  // Page navigation with simple fade transition
-  // Page 0 (first virtual page) is skipped — cover merges with it
-  const handlePageNav = (direction: 'next' | 'prev') => {
-    if (isFlipping) return;
-    
+  // Total of scrollable sections: virtual pages + closing + end
+  // (totalVirtualPages is computed below — we re-derive here for the observer effect)
+  // Smooth-scroll the reader to a given section index
+  const scrollToPage = (target: number) => {
     const maxPage = totalVirtualPages + 1;
-    
-    if (direction === 'next' && currentPage >= maxPage) return;
-    if (direction === 'prev' && currentPage <= 0) return;
-    
-    setSlideDirection(direction);
-    setIsFlipping(true);
-    
-    // Reset scroll IMMEDIATELY before the page change
-    resetScroll();
-    
-    setTimeout(() => {
-      if (direction === 'next' && currentPage < maxPage) {
-        const newPage = currentPage + 1;
-        setCurrentPage(newPage);
-        
-        if (newPage >= maxPage) {
-          trackStoryCompleted(story.id);
-        }
-      } else if (direction === 'prev' && currentPage > 0) {
-        const newPage = currentPage - 1;
-        setCurrentPage(newPage);
-      }
-      setIsFlipping(false);
-    }, 300);
+    const clamped = Math.max(0, Math.min(maxPage, target));
+    const el = sectionRefs.current[clamped];
+    if (el) {
+      el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+    if (clamped >= maxPage && story) {
+      trackStoryCompleted(story.id);
+    }
   };
+
+  // Backwards-compatible nav for buttons inside content (closing → end button etc.)
+  const handlePageNav = (direction: 'next' | 'prev') => {
+    scrollToPage(direction === 'next' ? currentPage + 1 : currentPage - 1);
+  };
+
+  // IntersectionObserver: update currentPage as the user scrolls between sections
+  useEffect(() => {
+    const root = scrollContainerRef.current;
+    if (!root) return;
+    const sections = sectionRefs.current.filter((el): el is HTMLElement => !!el);
+    if (sections.length === 0) return;
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        // Pick the entry with the largest intersection ratio
+        let best: IntersectionObserverEntry | null = null;
+        for (const entry of entries) {
+          if (!best || entry.intersectionRatio > best.intersectionRatio) {
+            best = entry;
+          }
+        }
+        if (best && best.intersectionRatio >= 0.5) {
+          const idx = Number((best.target as HTMLElement).dataset.pageIndex);
+          if (!Number.isNaN(idx)) {
+            setCurrentPage((prev) => (prev === idx ? prev : idx));
+            if (idx >= totalVirtualPages + 1 && story) {
+              trackStoryCompleted(story.id);
+            }
+          }
+        }
+      },
+      { root, threshold: [0.5, 0.75, 1] }
+    );
+
+    sections.forEach((el) => observer.observe(el));
+    return () => observer.disconnect();
+  }, [totalSections, story?.id]);
 
   return (
     <div className="h-[100dvh] bg-gradient-to-b from-[#1a0a1a] via-[#2a1030] to-[#1a0a1a] flex flex-col overflow-hidden" dir="rtl">
@@ -1332,14 +1348,23 @@ const [currentPage, setCurrentPage] = useState(0);
       <main className="flex-1 flex flex-col min-h-0 px-4 md:px-12 lg:px-20 py-2">
         <div className="relative w-full max-w-2xl mx-auto flex-1 min-h-0 flex flex-col">
           <MagicalBookFrame className="flex-1 min-h-0">
-            {/* Page content with fade transition */}
-            <div className={cn(
-              "relative w-full h-full overflow-hidden",
-              "transition-opacity duration-300 ease-in-out",
-              isFlipping ? "opacity-0" : "opacity-100",
-            )}>
-            
-            {isClosingPage ? (
+            {/* Continuous vertical scroll reader */}
+            <div ref={scrollContainerRef} className="story-scroll-container">
+            {Array.from({ length: totalSections }).map((_, __pageIdx) => (
+              <section
+                key={__pageIdx}
+                ref={(el) => { sectionRefs.current[__pageIdx] = el; }}
+                data-page-index={__pageIdx}
+                className="story-scroll-section"
+              >
+                {(() => {
+                  const isClosingPage = __pageIdx === totalVirtualPages;
+                  const isEndPage = __pageIdx >= totalVirtualPages + 1;
+                  const currentVirtual = (__pageIdx >= 0 && __pageIdx < totalVirtualPages) ? virtualPages[__pageIdx] : null;
+                  const currentPage = __pageIdx;
+                  return (
+                    <>
+                    {isClosingPage ? (
               /* Closing Page - Full cast waving background */
               <div className="relative flex-1 flex flex-col items-center justify-end text-center h-full">
                 {/* Full background image */}
@@ -1387,7 +1412,7 @@ const [currentPage, setCurrentPage] = useState(0);
                       חזרה לספרייה
                     </Button>
                     <Button
-                      onClick={() => handlePageNav('next')}
+                      onClick={() => scrollToPage(__pageIdx + 1)}
                       className="bg-gradient-to-r from-amber-400 to-yellow-500 hover:from-amber-500 hover:to-yellow-600 text-amber-950 font-bold px-8 py-3 rounded-full shadow-xl text-base gap-2 animate-bounce-gentle mt-2"
                     >
                       לדף הסיום ✨
@@ -1728,14 +1753,19 @@ const [currentPage, setCurrentPage] = useState(0);
                 )}
               </div>
             ) : null}
-          </div>
+                    </>
+                  );
+                })()}
+              </section>
+            ))}
+            </div>
           </MagicalBookFrame>
 
           {/* Bottom nav arrows */}
           <div className="absolute bottom-2 left-0 right-0 z-40 flex items-center justify-between px-4">
             <button
-              onClick={() => handlePageNav('next')}
-              disabled={currentPage >= totalVirtualPages + 1 || isFlipping}
+              onClick={() => scrollToPage(currentPage + 1)}
+              disabled={currentPage >= totalVirtualPages + 1}
               className="w-10 h-10 rounded-full bg-black/40 hover:bg-black/50 text-white/80 hover:text-white backdrop-blur-sm transition-all disabled:opacity-20 disabled:cursor-not-allowed flex items-center justify-center"
               aria-label="עמוד הבא"
             >
@@ -1743,8 +1773,8 @@ const [currentPage, setCurrentPage] = useState(0);
             </button>
 
             <button
-              onClick={() => handlePageNav('prev')}
-              disabled={currentPage <= -1 || isFlipping}
+              onClick={() => scrollToPage(currentPage - 1)}
+              disabled={currentPage <= 0}
               className="w-10 h-10 rounded-full bg-black/40 hover:bg-black/50 text-white/80 hover:text-white backdrop-blur-sm transition-all disabled:opacity-20 disabled:cursor-not-allowed flex items-center justify-center"
               aria-label="עמוד קודם"
             >
@@ -1870,7 +1900,7 @@ const [currentPage, setCurrentPage] = useState(0);
       <PdfFeaturePopup userId={user?.id} />
 
       {/* Install App Prompt - shown only after reaching last page */}
-      <InstallAppPrompt justCreatedFirstStory={justCreatedStory && (isClosingPage || isEndPage)} />
+      <InstallAppPrompt justCreatedFirstStory={justCreatedStory && (activeIsClosing || activeIsEnd)} />
 
       {/* Coloring Picker Dialog — global so it works from header icon too */}
       <Dialog open={coloringPickerOpen} onOpenChange={(open) => {
