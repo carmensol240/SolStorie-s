@@ -128,8 +128,12 @@ function getDefaultProfile(childGender: string, genderHebrew: string, ageRange: 
 // This ensures the AI has a consistent mental image of the character across all pages
 function buildVisualAnchor(profile: CharacterProfile, storyOutfit: string): string {
   const genderWord = profile.gender === "female" ? "girl" : "boy";
+  const genderClothingRule = profile.gender === "female"
+    ? "This character is a GIRL — feminine or neutral clothing only; NEVER kippah/yarmulke/tzitzit or any male religious symbols."
+    : "This character is a BOY — masculine clothing only (pants/shorts/t-shirt/hoodie/sneakers); NEVER a dress, skirt, tutu, flower crown, hair bow, makeup, or any feminine clothing or accessories.";
   return `VISUAL ANCHOR (use this EXACT description for the main character in EVERY illustration):
 A ${genderWord} aged ${profile.ageDescription} with ${profile.hairDescription}, ${profile.skinTone} skin, and ${profile.eyeColor} eyes. Wearing ${storyOutfit}. 
+${genderClothingRule}
 ${CHARACTER_CONSISTENCY_PROMPT}`;
 }
 
@@ -338,7 +342,7 @@ async function generateIllustration(
     const finalOutfit = storyOutfit || adventureLogic?.outfit || characterProfile?.clothingDescription || "colorful casual clothes";
 
     const characterInstruction = characterProfile
-      ? `The main character is a ${characterProfile.gender === "female" ? "girl" : "boy"} aged ${characterProfile.ageDescription} with ${characterProfile.hairDescription}, ${characterProfile.skinTone} skin, and ${characterProfile.eyeColor} eyes. Wearing ${finalOutfit}. This character must look IDENTICAL in every illustration — same face, hair, outfit, proportions.`
+      ? `The main character is a ${characterProfile.gender === "female" ? "girl" : "boy"} aged ${characterProfile.ageDescription} with ${characterProfile.hairDescription}, ${characterProfile.skinTone} skin, and ${characterProfile.eyeColor} eyes. Wearing ${finalOutfit}. ${characterProfile.gender === "female" ? "This character is a GIRL — feminine or neutral clothing only; NEVER kippah, yarmulke, tzitzit or any male religious symbols." : "This character is a BOY — masculine clothing only (pants/shorts/t-shirt/hoodie/sneakers); ABSOLUTELY NO dress, skirt, tutu, flower crown, hair bow, makeup or any feminine clothing or accessories."} This character must look IDENTICAL in every illustration — same face, hair, outfit, proportions.`
       : "";
 
     const adventureInstruction = adventureLogic
@@ -1186,7 +1190,7 @@ serve(async (req) => {
       const cameraAngle = CAMERA_ANGLES[page.page_number % CAMERA_ANGLES.length];
       const lighting = LIGHTING_OPTIONS[(page.page_number + 2) % LIGHTING_OPTIONS.length];
       const charDesc = characterProfile
-        ? `A ${characterProfile.gender === "female" ? "girl" : "boy"} aged ${characterProfile.ageDescription} with ${characterProfile.hairDescription}, ${characterProfile.skinTone} skin, ${characterProfile.eyeColor} eyes, wearing ${storyOutfit}`
+        ? `A ${characterProfile.gender === "female" ? "girl" : "boy"} aged ${characterProfile.ageDescription} with ${characterProfile.hairDescription}, ${characterProfile.skinTone} skin, ${characterProfile.eyeColor} eyes, wearing ${storyOutfit}. ${characterProfile.gender === "female" ? "GIRL — feminine/neutral clothing only, no kippah/tzitzit." : "BOY — masculine clothing only, NO dress, skirt, tutu, flower crown, bow, makeup, or feminine accessories."}`
         : `A child wearing ${storyOutfit}`;
       let illustrationPrompt = `${charDesc}. SCENE: ${basePrompt}. CAMERA: ${cameraAngle}. LIGHTING: ${lighting}. Pixar 3D CGI style, vibrant colors, fantasy children's book, full body head to toe with feet grounded on surface`;
       console.log(`[Page ${page.page_number}] 📝 Direct prompt (${illustrationPrompt.length} chars)`);
@@ -1298,7 +1302,7 @@ serve(async (req) => {
         const cameraAngle2 = CAMERA_ANGLES[(page.page_number + 3) % CAMERA_ANGLES.length];
         const lighting2 = LIGHTING_OPTIONS[(page.page_number + 5) % LIGHTING_OPTIONS.length];
         const charDesc2 = characterProfile
-          ? `A ${characterProfile.gender === "female" ? "girl" : "boy"} aged ${characterProfile.ageDescription} with ${characterProfile.hairDescription}, ${characterProfile.skinTone} skin, ${characterProfile.eyeColor} eyes, wearing ${storyOutfit}`
+          ? `A ${characterProfile.gender === "female" ? "girl" : "boy"} aged ${characterProfile.ageDescription} with ${characterProfile.hairDescription}, ${characterProfile.skinTone} skin, ${characterProfile.eyeColor} eyes, wearing ${storyOutfit}. ${characterProfile.gender === "female" ? "GIRL — feminine/neutral clothing only, no kippah/tzitzit." : "BOY — masculine clothing only, NO dress, skirt, tutu, flower crown, bow, makeup, or feminine accessories."}`
           : `A child wearing ${storyOutfit}`;
         const secondIllustrationPrompt = `${charDesc2}. SCENE: ${secondPrompt}. CAMERA: ${cameraAngle2}. LIGHTING: ${lighting2}. Pixar 3D CGI style, vibrant colors, fantasy children's book, full body head to toe`;
 
