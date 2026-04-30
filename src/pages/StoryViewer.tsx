@@ -214,6 +214,8 @@ const [currentPage, setCurrentPage] = useState(0);
   const [retryingPageId, setRetryingPageId] = useState<string | null>(null);
   const [showPromptInput, setShowPromptInput] = useState<string | null>(null); // pageId or null
   const [customPromptText, setCustomPromptText] = useState('');
+  const scrollContainerRef = useRef<HTMLDivElement | null>(null);
+  const sectionRefs = useRef<Array<HTMLElement | null>>([]);
   
   const [showDedicationDialog, setShowDedicationDialog] = useState(false);
   const [isCreatingDigitalBook, setIsCreatingDigitalBook] = useState(false);
