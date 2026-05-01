@@ -12,8 +12,13 @@ const OAuthReturnHandler = () => {
   const location = useLocation();
 
   useEffect(() => {
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((event) => {
-      if (event !== "SIGNED_IN") return;
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+      // Handle SIGNED_IN (in-app sign-in) and INITIAL_SESSION when a session is
+      // restored on a fresh page load (e.g. after Supabase redirects back from
+      // Google OAuth to the site root).
+      if (event !== "SIGNED_IN" && !(event === "INITIAL_SESSION" && session)) {
+        return;
+      }
 
       // Cookie first (more reliable across OAuth context switches on mobile)
       const cookieMatch = document.cookie.match(/(?:^|;\s*)ss_return_to=([^;]+)/);

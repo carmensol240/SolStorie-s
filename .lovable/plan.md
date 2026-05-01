@@ -1,37 +1,40 @@
-## Plan: Restore iframe-escape branch in `handleGoogleSignIn`
+# Fix: After Google login, app stays on splash instead of resuming
 
-### Root cause
+## Root cause
 
-The 403 happens only inside the Lovable preview iframe. Google's OAuth consent screen sets `X-Frame-Options: DENY` / `frame-ancestors 'none'`, so when `supabase.auth.signInWithOAuth` redirects the **iframe itself** to Google, Google refuses to render and the browser shows a 403-style "refused to display" error.
+After Google OAuth completes, Supabase redirects the browser back to the site root (`/`). React Router renders `Adventure` (the splash/animation screen) for `/`. On that fresh page load:
 
-The previously-removed branch detected this case (`window.self !== window.top`) and opened the OAuth flow in a new **top-level** tab, which Google allows. The project memory `auth/google-oauth-production-settings.md` explicitly documents this as required behavior:
-> "Iframe-escape (preview only): if `window.self !== window.top`, open `${origin}/auth?returnTo=...` in a new tab."
+1. `useAuth` calls `supabase.auth.getSession()` and finds the restored session.
+2. `supabase.auth.onAuthStateChange` fires with event **`INITIAL_SESSION`** (because the session was restored from storage on page load), **not `SIGNED_IN`**.
+3. `OAuthReturnHandler` only acts on the `SIGNED_IN` event, so it never reads `ss_return_to` / `localStorage.returnTo` and never navigates to `/create?resume=true`.
+4. `Adventure` is the catch-all landing route for everyone (logged in or not), so the user is left looking at the splash video.
 
-The supabase auth logs confirm the recent `/authorize` requests from the preview domain return `302` successfully — Supabase is fine; the failure is Google refusing to render inside the iframe. (The unrelated `invalid_client` errors from `wwwstorytime.lovable.app` predate this change and are a separate backend configuration matter, not in scope here.)
+The `Auth.tsx` page does have `getReturnTo()` logic that would route correctly — but it only runs when the user lands on `/auth`. After OAuth callback the user lands on `/`, so that code never executes.
 
-### Change
+## Fix (single file: `src/components/auth/OAuthReturnHandler.tsx`)
 
-In `src/components/wizard/AuthStep.tsx`, inside `handleGoogleSignIn`, re-add the iframe-escape branch **before** the `supabase.auth.signInWithOAuth` call. Nothing else changes.
+Make the handler consume `returnTo` on **both** `SIGNED_IN` and `INITIAL_SESSION` events (only when a session is actually present), so it works after the post-OAuth page reload:
 
-```ts
-// Iframe-escape: preview runs inside Lovable iframe; Google OAuth
-// consent refuses to render in a third-party iframe (X-Frame-Options).
-// Open the live /auth flow in a new top-level tab instead.
-if (typeof window !== 'undefined' && window.self !== window.top) {
-  const returnTo = encodeURIComponent('/create?resume=true');
-  window.open(
-    `https://soulstory.co.il/auth?returnTo=${returnTo}`,
-    '_blank',
-    'noopener,noreferrer'
-  );
-  return;
-}
-```
+- Change the event guard from `if (event !== "SIGNED_IN") return;` to:
+  - Allow `SIGNED_IN` always.
+  - Allow `INITIAL_SESSION` only when `session` is non-null (so logged-out visitors to `/` are not affected).
+- Keep all existing behavior:
+  - Read cookie `ss_return_to` first, then `localStorage.returnTo`.
+  - Always clear both after reading.
+  - Open-redirect protection (must start with `/`, not `//`).
+  - Skip if already on the target path.
 
-This branch only triggers inside an iframe (i.e. the Lovable preview). On the published site, on mobile browsers, and in the PWA, `window.self === window.top`, so the existing direct `signInWithOAuth` call runs unchanged — production behavior is not affected.
+This is the minimal change. It does not touch `Adventure`, `Auth.tsx`, the iframe-escape branch in `AuthStep.tsx`, or any auth/storage logic.
 
-### Files touched
+## Why not change `Adventure` to redirect logged-in users?
 
-- `src/components/wizard/AuthStep.tsx` — restore the iframe-escape branch only.
+The product intentionally shows the splash + "יוצאים להרפתקה" CTA to logged-in users on `/` and `/adventure` (it's the main home screen, not just an unauthenticated splash). Redirecting all logged-in visitors away from `/` would break the home experience. The fix should only fire when a `returnTo` was explicitly stored before an OAuth redirect — which is exactly what `OAuthReturnHandler` already gates on.
 
-No other files, no auth backend changes, no routing changes.
+## Verification after implementation
+
+1. From `/create` step 3, click "המשיכו עם Google".
+2. Complete Google consent.
+3. Browser returns to site root; expected: immediate replace-navigation to `/create?resume=true`, wizard resumes at topic selection.
+4. Cookie `ss_return_to` and `localStorage.returnTo` are cleared.
+5. Logged-in users visiting `/` directly (no `returnTo` set) still see the Adventure splash — unchanged.
+6. Logged-out users visiting `/` are unaffected (no session, handler does nothing).
