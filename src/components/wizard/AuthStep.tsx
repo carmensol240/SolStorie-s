@@ -115,10 +115,6 @@ const AuthStep = ({ formData, onAuthenticated }: AuthStepProps) => {
       'ss_return_to=' + encodeURIComponent('/create?resume=true') +
       '; Max-Age=600; Path=/; SameSite=Lax; Secure';
     try {
-      if (typeof window !== 'undefined' && window.self !== window.top) {
-        window.open('https://soulstory.co.il/auth', '_blank', 'noopener');
-        return;
-      }
       const { error } = await supabase.auth.signInWithOAuth({
         provider: 'google',
         options: {
