@@ -38,6 +38,7 @@ import Contact from "./pages/Contact";
 import NotFound from "./pages/NotFound";
 import RequireTerms from "./components/RequireTerms";
 import ScrollToTop from "./components/ScrollToTop";
+import OAuthReturnHandler from "./components/auth/OAuthReturnHandler";
 import Toolkit from "./pages/Toolkit";
 import AdminReviews from "./pages/AdminReviews";
 import AdminDashboard from "./pages/AdminDashboard";
@@ -55,6 +56,7 @@ function App() { useTimeTheme(); return (
         <Sonner />
         <BrowserRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
           <ScrollToTop />
+          <OAuthReturnHandler />
           
           <AccessibilityMenu />
           
