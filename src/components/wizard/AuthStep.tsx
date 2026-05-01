@@ -114,6 +114,19 @@ const AuthStep = ({ formData, onAuthenticated }: AuthStepProps) => {
     document.cookie =
       'ss_return_to=' + encodeURIComponent('/create?resume=true') +
       '; Max-Age=600; Path=/; SameSite=Lax; Secure';
+    // Iframe-escape: in the Lovable preview the app runs inside an iframe,
+    // and Google's OAuth consent screen refuses to render in a third-party
+    // iframe (X-Frame-Options / frame-ancestors), surfacing as a 403.
+    // Open the live /auth flow in a new top-level tab in that case.
+    if (typeof window !== 'undefined' && window.self !== window.top) {
+      const returnTo = encodeURIComponent('/create?resume=true');
+      window.open(
+        `https://soulstory.co.il/auth?returnTo=${returnTo}`,
+        '_blank',
+        'noopener,noreferrer'
+      );
+      return;
+    }
     try {
       const { error } = await supabase.auth.signInWithOAuth({
         provider: 'google',
