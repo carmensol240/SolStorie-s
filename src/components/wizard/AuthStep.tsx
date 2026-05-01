@@ -135,7 +135,7 @@ const AuthStep = ({ formData, onAuthenticated }: AuthStepProps) => {
 
   return (
     <div
-      className="fixed inset-0 flex flex-col items-center justify-center px-3 py-8 overflow-y-auto z-10"
+      className="fixed inset-0 flex flex-col items-center justify-center px-3 py-8 overflow-y-auto z-[110]"
       style={{
         background: '#0d0a1f',
         backgroundImage: `radial-gradient(circle at 20% 30%, rgba(255,255,255,0.6) 0.5px, transparent 1.2px),
