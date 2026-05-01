@@ -8,6 +8,7 @@ import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { z } from "zod";
 import type { StoryFormData } from "@/pages/CreateStory";
+import heroImage from "@/assets/hero-solstories-welcome.png";
 
 const emailSchema = z.string().email("כתובת אימייל לא תקינה");
 const passwordSchema = z.string().min(6, "הסיסמה חייבת להכיל לפחות 6 תווים");
@@ -134,13 +135,30 @@ const AuthStep = ({ formData, onAuthenticated }: AuthStepProps) => {
   };
 
   return (
-    <div className="flex flex-col items-center px-2 py-3" dir="rtl">
-      <div className="w-full max-w-sm bg-white/80 backdrop-blur-md rounded-2xl p-5 shadow-lg border border-purple-100/50 space-y-3">
+    <div
+      className="min-h-screen flex flex-col items-center px-2 py-6 relative overflow-hidden"
+      style={{
+        background: '#0d0a1f',
+        backgroundImage: `radial-gradient(circle at 20% 30%, rgba(255,255,255,0.6) 0.5px, transparent 1.2px),
+                          radial-gradient(circle at 70% 60%, rgba(255,255,255,0.45) 0.5px, transparent 1.2px),
+                          radial-gradient(circle at 40% 80%, rgba(255,255,255,0.5) 0.5px, transparent 1.2px),
+                          radial-gradient(circle at 85% 20%, rgba(255,255,255,0.5) 0.5px, transparent 1.2px)`,
+        backgroundSize: '120px 120px, 200px 200px, 160px 160px, 240px 240px',
+      }}
+      dir="rtl"
+    >
+      <img
+        src={heroImage}
+        alt=""
+        aria-hidden="true"
+        className="w-40 md:w-52 h-auto mb-4 drop-shadow-[0_0_30px_rgba(168,85,247,0.55)] select-none pointer-events-none"
+      />
+      <div className="w-full max-w-sm bg-white/10 backdrop-blur-xl rounded-2xl p-5 border border-white/20 shadow-2xl space-y-3">
         <div className="text-center space-y-1">
-          <p className="text-base font-black text-purple-700">
-            🌟 הירשמו לשמור את הסיפור!
+          <p className="text-base font-black text-white drop-shadow">
+            הצטרפו לעולם הסיפורים ✨
           </p>
-          <p className="text-xs text-purple-600/80">
+          <p className="text-xs text-purple-200/80">
             עוד שלב קטן ואתם ממשיכים לבחירת הנושא
           </p>
         </div>
@@ -161,9 +179,9 @@ const AuthStep = ({ formData, onAuthenticated }: AuthStepProps) => {
         </button>
 
         <div className="flex items-center gap-3">
-          <div className="flex-1 h-px bg-gray-300"></div>
-          <span className="text-xs text-gray-400 font-medium">או</span>
-          <div className="flex-1 h-px bg-gray-300"></div>
+          <div className="flex-1 h-px bg-white/20"></div>
+          <span className="text-xs text-white/60 font-medium">או</span>
+          <div className="flex-1 h-px bg-white/20"></div>
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-2.5">
@@ -174,7 +192,7 @@ const AuthStep = ({ formData, onAuthenticated }: AuthStepProps) => {
               className={`flex-1 py-1.5 rounded-full text-xs font-bold transition-all ${
                 mode === "signup"
                   ? "bg-gradient-to-r from-purple-500 to-pink-500 text-white shadow"
-                  : "bg-purple-50 text-purple-400"
+                  : "bg-white/10 text-white/70"
               }`}
             >
               הרשמה
@@ -185,7 +203,7 @@ const AuthStep = ({ formData, onAuthenticated }: AuthStepProps) => {
               className={`flex-1 py-1.5 rounded-full text-xs font-bold transition-all ${
                 mode === "login"
                   ? "bg-gradient-to-r from-purple-500 to-pink-500 text-white shadow"
-                  : "bg-purple-50 text-purple-400"
+                  : "bg-white/10 text-white/70"
               }`}
             >
               כבר יש לי חשבון
@@ -236,9 +254,9 @@ const AuthStep = ({ formData, onAuthenticated }: AuthStepProps) => {
                   onCheckedChange={(c) => setTermsAccepted(c === true)}
                   className="border-purple-300 data-[state=checked]:bg-purple-500 data-[state=checked]:border-purple-500 h-4 w-4"
                 />
-                <label htmlFor="auth-step-terms" className="text-[11px] text-muted-foreground cursor-pointer leading-tight">
+                <label htmlFor="auth-step-terms" className="text-[11px] text-white/70 cursor-pointer leading-tight">
                   קראתי ואני מסכימ/ה ל
-                  <a href="/terms" target="_blank" className="text-purple-500 underline underline-offset-2 mx-0.5">
+                  <a href="/terms" target="_blank" className="text-purple-300 underline underline-offset-2 mx-0.5">
                     תנאי השימוש
                   </a>
                 </label>
@@ -251,7 +269,7 @@ const AuthStep = ({ formData, onAuthenticated }: AuthStepProps) => {
                   onCheckedChange={(c) => setMarketingConsent(c === true)}
                   className="border-purple-300 data-[state=checked]:bg-purple-500 data-[state=checked]:border-purple-500 h-4 w-4"
                 />
-                <label htmlFor="auth-step-marketing" className="text-[11px] text-muted-foreground cursor-pointer leading-tight">
+                <label htmlFor="auth-step-marketing" className="text-[11px] text-white/70 cursor-pointer leading-tight">
                   אני רוצה לקבל קופונים ומבצעים במייל (אופציונלי)
                 </label>
               </div>
