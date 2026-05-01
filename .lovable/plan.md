@@ -1,40 +1,40 @@
-# Fix: After Google login, app stays on splash instead of resuming
+## Goal
+Change the Google OAuth `redirectTo` in `src/pages/Auth.tsx` so Google sends users back to the app's `/auth` page (which already runs the post-login routing logic) instead of the raw Supabase callback URL.
 
-## Root cause
+## Change
 
-After Google OAuth completes, Supabase redirects the browser back to the site root (`/`). React Router renders `Adventure` (the splash/animation screen) for `/`. On that fresh page load:
+**File: `src/pages/Auth.tsx`** (line 408, inside `handleGoogleSignIn`)
 
-1. `useAuth` calls `supabase.auth.getSession()` and finds the restored session.
-2. `supabase.auth.onAuthStateChange` fires with event **`INITIAL_SESSION`** (because the session was restored from storage on page load), **not `SIGNED_IN`**.
-3. `OAuthReturnHandler` only acts on the `SIGNED_IN` event, so it never reads `ss_return_to` / `localStorage.returnTo` and never navigates to `/create?resume=true`.
-4. `Adventure` is the catch-all landing route for everyone (logged in or not), so the user is left looking at the splash video.
+Replace:
+```ts
+redirectTo: 'https://qvdwmkxviaqcgmjotsxe.supabase.co/auth/v1/callback'
+```
 
-The `Auth.tsx` page does have `getReturnTo()` logic that would route correctly — but it only runs when the user lands on `/auth`. After OAuth callback the user lands on `/`, so that code never executes.
+With:
+```ts
+redirectTo: `https://soulstory.co.il/auth?returnTo=${encodeURIComponent('/create?resume=true')}`
+```
 
-## Fix (single file: `src/components/auth/OAuthReturnHandler.tsx`)
+No other code changes. The existing flow above already:
+- Persists `returnTo` in `localStorage`
+- Handles iframe escape to a top-level tab
+- Persists pending educator terms acceptance
 
-Make the handler consume `returnTo` on **both** `SIGNED_IN` and `INITIAL_SESSION` events (only when a session is actually present), so it works after the post-OAuth page reload:
+## Important caveats to flag
 
-- Change the event guard from `if (event !== "SIGNED_IN") return;` to:
-  - Allow `SIGNED_IN` always.
-  - Allow `INITIAL_SESSION` only when `session` is non-null (so logged-out visitors to `/` are not affected).
-- Keep all existing behavior:
-  - Read cookie `ss_return_to` first, then `localStorage.returnTo`.
-  - Always clear both after reading.
-  - Open-redirect protection (must start with `/`, not `//`).
-  - Skip if already on the target path.
+1. **Memory conflict.** The project memory `mem://auth/google-oauth-production-settings` explicitly states `redirectTo` MUST be exactly `'https://qvdwmkxviaqcgmjotsxe.supabase.co/auth/v1/callback'` to match Google Console. After this change I will update that memory to reflect the new required value, otherwise future sessions will revert it.
 
-This is the minimal change. It does not touch `Adventure`, `Auth.tsx`, the iframe-escape branch in `AuthStep.tsx`, or any auth/storage logic.
+2. **Supabase allowlist (manual step for the user).** For this redirect to work, the Supabase project's **Redirect URLs** allowlist must include:
+   - `https://soulstory.co.il/auth`
+   - `https://soulstory.co.il/auth?returnTo=*` (wildcard form, if Supabase requires the query string to match)
+   
+   This cannot be configured from code. The user must verify this in Lovable Cloud → Users → Auth Settings → URL Configuration.
 
-## Why not change `Adventure` to redirect logged-in users?
+3. **Google Cloud Console.** The Authorized redirect URI in Google Console should remain `https://qvdwmkxviaqcgmjotsxe.supabase.co/auth/v1/callback` — that is Google's callback target (the Supabase backend), not the app's post-login redirect. No Google Console change is needed.
 
-The product intentionally shows the splash + "יוצאים להרפתקה" CTA to logged-in users on `/` and `/adventure` (it's the main home screen, not just an unauthenticated splash). Redirecting all logged-in visitors away from `/` would break the home experience. The fix should only fire when a `returnTo` was explicitly stored before an OAuth redirect — which is exactly what `OAuthReturnHandler` already gates on.
+4. **Hardcoded `returnTo`.** The new value hardcodes `/create?resume=true`, overriding the `returnTo` computed on line 392 from `searchParams`/`localStorage`. This matches your instruction literally, but it means a user signing in from `/auth` without intending to create a story will still be sent to `/create?resume=true`. If that's undesirable, an alternative is to use the dynamic `returnTo` variable. I will implement exactly what you specified.
 
-## Verification after implementation
-
-1. From `/create` step 3, click "המשיכו עם Google".
-2. Complete Google consent.
-3. Browser returns to site root; expected: immediate replace-navigation to `/create?resume=true`, wizard resumes at topic selection.
-4. Cookie `ss_return_to` and `localStorage.returnTo` are cleared.
-5. Logged-in users visiting `/` directly (no `returnTo` set) still see the Adventure splash — unchanged.
-6. Logged-out users visiting `/` are unaffected (no session, handler does nothing).
+## Steps
+1. Edit `src/pages/Auth.tsx` line 408 with the new `redirectTo` string.
+2. Update `mem://auth/google-oauth-production-settings.md` to document the new redirect URL and Supabase allowlist requirement.
+3. Remind the user to verify `https://soulstory.co.il/auth` is in the Supabase Redirect URLs allowlist.
