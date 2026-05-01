@@ -1,24 +1,14 @@
-## Problem
-
-On the AuthStep screen (mobile, 320×543), the "המשיכו עם Google" button is not clickable.
-
-## Root Cause
-
-`AuthStep.tsx` wrapper uses `fixed inset-0 ... z-10`, but the parent `CreateStory.tsx` page renders two overlapping fixed elements at higher z-indexes:
-
-- **Sticky header** (`CreateStory.tsx`): `sticky top-0 z-20` — overlays the top portion of the AuthStep card.
-- **MobileNavigation** (`MobileNavigation.tsx`): `fixed bottom-0 ... z-[100]` — overlays the bottom portion.
-
-Because the AuthStep card is vertically centered and the Google button sits near the top of the card, the sticky header (z-20) sits on top of it and intercepts taps — making the button visually visible but not clickable on small viewports.
-
-This regressed when the AuthStep wrapper was changed from `min-h-screen` (in-flow) to `fixed inset-0 z-10` (overlay) in the previous "center vertically" fix.
-
 ## Fix
 
-Single-line change in `src/components/wizard/AuthStep.tsx`:
+In `src/components/wizard/AuthStep.tsx`, remove the iframe-detection branch in `handleGoogleSignIn`:
 
-- Raise the AuthStep wrapper z-index from `z-10` to `z-[110]` so the entire overlay (including the starry background) sits above both the sticky header (z-20) and the MobileNavigation (z-[100]).
+```ts
+if (typeof window !== 'undefined' && window.self !== window.top) {
+  window.open('https://soulstory.co.il/auth', '_blank', 'noopener');
+  return;
+}
+```
 
-This restores clickability of the Google button (and all other elements in the card) without changing layout, styling, form fields, or auth logic.
+This branch fires inside the Lovable preview (which wraps the app in an iframe) and incorrectly redirects to `/auth` on the production domain instead of starting Google OAuth. In all real user contexts (mobile browser, desktop browser, installed PWA, custom domain, published site), the app is not in an iframe, so the branch never fires — removing it is safe.
 
-No other files are touched.
+After removal, `handleGoogleSignIn` calls `supabase.auth.signInWithOAuth({ provider: 'google', ... })` directly in every context. All other logic (form data persistence to localStorage, `returnTo` cookie, hardcoded Supabase callback URL, error toast) is unchanged. No other files touched.
