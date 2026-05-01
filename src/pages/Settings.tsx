@@ -81,18 +81,12 @@ const Settings = () => {
               כדי לגשת להגדרות יש להתחבר לחשבון שלך.
             </p>
             <Button
-              onClick={() => navigate('/auth?returnTo=/settings')}
+              onClick={() => navigate('/create')}
               className="w-full bg-gradient-to-r from-purple-600 to-pink-500 hover:from-purple-700 hover:to-pink-600 text-white font-bold"
             >
               <LogIn className="w-4 h-4 ml-1" />
-              התחברות
+              צרו סיפור ראשון ✨
             </Button>
-            <button
-              onClick={() => navigate('/')}
-              className="text-xs text-muted-foreground hover:text-foreground underline"
-            >
-              חזרה לדף הבית
-            </button>
           </div>
         </div>
 
