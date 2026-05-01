@@ -8,7 +8,6 @@ import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { z } from "zod";
 import type { StoryFormData } from "@/pages/CreateStory";
-import heroImage from "@/assets/hero-solstories-welcome.png";
 
 const emailSchema = z.string().email("כתובת אימייל לא תקינה");
 const passwordSchema = z.string().min(6, "הסיסמה חייבת להכיל לפחות 6 תווים");
@@ -136,7 +135,7 @@ const AuthStep = ({ formData, onAuthenticated }: AuthStepProps) => {
 
   return (
     <div
-      className="min-h-screen flex flex-col items-center px-2 py-6 relative overflow-hidden"
+      className="min-h-screen flex flex-col items-center justify-center px-3 py-8 relative overflow-hidden"
       style={{
         background: '#0d0a1f',
         backgroundImage: `radial-gradient(circle at 20% 30%, rgba(255,255,255,0.6) 0.5px, transparent 1.2px),
@@ -147,18 +146,12 @@ const AuthStep = ({ formData, onAuthenticated }: AuthStepProps) => {
       }}
       dir="rtl"
     >
-      <img
-        src={heroImage}
-        alt=""
-        aria-hidden="true"
-        className="w-40 md:w-52 h-auto mb-4 drop-shadow-[0_0_30px_rgba(168,85,247,0.55)] select-none pointer-events-none"
-      />
-      <div className="w-full max-w-sm bg-white/10 backdrop-blur-xl rounded-2xl p-5 border border-white/20 shadow-2xl space-y-3">
-        <div className="text-center space-y-1">
-          <p className="text-base font-black text-white drop-shadow">
+      <div className="w-full max-w-sm bg-white/10 backdrop-blur-xl rounded-3xl p-8 border border-white/20 shadow-2xl space-y-6">
+        <div className="text-center space-y-2">
+          <p className="text-lg font-black text-white drop-shadow">
             הצטרפו לעולם הסיפורים ✨
           </p>
-          <p className="text-xs text-purple-200/80">
+          <p className="text-sm text-purple-200/80">
             עוד שלב קטן ואתם ממשיכים לבחירת הנושא
           </p>
         </div>
@@ -167,7 +160,7 @@ const AuthStep = ({ formData, onAuthenticated }: AuthStepProps) => {
           type="button"
           onClick={handleGoogleSignIn}
           disabled={!GOOGLE_SIGNIN_ENABLED}
-          className="w-full flex items-center justify-center gap-2 py-2.5 px-4 bg-white border border-gray-300 rounded-xl shadow-sm hover:bg-gray-50 transition-all text-sm font-bold text-gray-700 disabled:opacity-50 disabled:cursor-not-allowed disabled:grayscale disabled:hover:bg-white"
+          className="w-full flex items-center justify-center gap-2 py-3 px-4 bg-white border border-gray-300 rounded-xl shadow-sm hover:bg-gray-50 transition-all text-sm font-bold text-gray-700 disabled:opacity-50 disabled:cursor-not-allowed disabled:grayscale disabled:hover:bg-white"
         >
           <svg width="18" height="18" viewBox="0 0 18 18" xmlns="http://www.w3.org/2000/svg">
             <path d="M17.64 9.2c0-.637-.057-1.251-.164-1.84H9v3.481h4.844c-.209 1.125-.843 2.078-1.796 2.717v2.258h2.908c1.702-1.567 2.684-3.874 2.684-6.615z" fill="#4285F4"/>
@@ -184,12 +177,12 @@ const AuthStep = ({ formData, onAuthenticated }: AuthStepProps) => {
           <div className="flex-1 h-px bg-white/20"></div>
         </div>
 
-        <form onSubmit={handleSubmit} className="space-y-2.5">
+        <form onSubmit={handleSubmit} className="space-y-4">
           <div className="flex gap-2">
             <button
               type="button"
               onClick={() => setMode("signup")}
-              className={`flex-1 py-1.5 rounded-full text-xs font-bold transition-all ${
+              className={`flex-1 py-2.5 rounded-full text-sm font-bold transition-all ${
                 mode === "signup"
                   ? "bg-gradient-to-r from-purple-500 to-pink-500 text-white shadow"
                   : "bg-white/10 text-white/70"
@@ -200,7 +193,7 @@ const AuthStep = ({ formData, onAuthenticated }: AuthStepProps) => {
             <button
               type="button"
               onClick={() => setMode("login")}
-              className={`flex-1 py-1.5 rounded-full text-xs font-bold transition-all ${
+              className={`flex-1 py-2.5 rounded-full text-sm font-bold transition-all ${
                 mode === "login"
                   ? "bg-gradient-to-r from-purple-500 to-pink-500 text-white shadow"
                   : "bg-white/10 text-white/70"
@@ -217,7 +210,7 @@ const AuthStep = ({ formData, onAuthenticated }: AuthStepProps) => {
               placeholder="אימייל"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              className="text-right pr-9 text-sm h-9 rounded-xl"
+              className="text-right pr-9 text-sm h-11 rounded-xl"
               required
             />
           </div>
@@ -229,7 +222,7 @@ const AuthStep = ({ formData, onAuthenticated }: AuthStepProps) => {
               placeholder="סיסמה (6+ תווים)"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              className="text-right pr-9 pl-9 text-sm h-9 rounded-xl"
+              className="text-right pr-9 pl-9 text-sm h-11 rounded-xl"
               required
             />
             <button
@@ -247,14 +240,14 @@ const AuthStep = ({ formData, onAuthenticated }: AuthStepProps) => {
 
           {mode === "signup" && (
             <>
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-2.5">
                 <Checkbox
                   id="auth-step-terms"
                   checked={termsAccepted}
                   onCheckedChange={(c) => setTermsAccepted(c === true)}
                   className="border-purple-300 data-[state=checked]:bg-purple-500 data-[state=checked]:border-purple-500 h-4 w-4"
                 />
-                <label htmlFor="auth-step-terms" className="text-[11px] text-white/70 cursor-pointer leading-tight">
+                <label htmlFor="auth-step-terms" className="text-xs text-white/70 cursor-pointer leading-tight">
                   קראתי ואני מסכימ/ה ל
                   <a href="/terms" target="_blank" className="text-purple-300 underline underline-offset-2 mx-0.5">
                     תנאי השימוש
@@ -262,14 +255,14 @@ const AuthStep = ({ formData, onAuthenticated }: AuthStepProps) => {
                 </label>
               </div>
 
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-2.5">
                 <Checkbox
                   id="auth-step-marketing"
                   checked={marketingConsent}
                   onCheckedChange={(c) => setMarketingConsent(c === true)}
                   className="border-purple-300 data-[state=checked]:bg-purple-500 data-[state=checked]:border-purple-500 h-4 w-4"
                 />
-                <label htmlFor="auth-step-marketing" className="text-[11px] text-white/70 cursor-pointer leading-tight">
+                <label htmlFor="auth-step-marketing" className="text-xs text-white/70 cursor-pointer leading-tight">
                   אני רוצה לקבל קופונים ומבצעים במייל (אופציונלי)
                 </label>
               </div>
@@ -279,7 +272,7 @@ const AuthStep = ({ formData, onAuthenticated }: AuthStepProps) => {
           <Button
             type="submit"
             disabled={submitting || (mode === "signup" && !termsAccepted)}
-            className="w-full bg-gradient-to-r from-purple-600 via-pink-500 to-orange-400 hover:from-purple-700 hover:via-pink-600 hover:to-orange-500 text-white font-black text-sm rounded-full py-2.5 h-auto disabled:opacity-40"
+            className="w-full bg-gradient-to-r from-purple-600 via-pink-500 to-orange-400 hover:from-purple-700 hover:via-pink-600 hover:to-orange-500 text-white font-black text-base rounded-full py-3.5 h-auto disabled:opacity-40"
           >
             {submitting ? (
               <Loader2 className="w-4 h-4 animate-spin" />
