@@ -20,13 +20,20 @@ const OAuthReturnHandler = () => {
         return;
       }
 
-      // Cookie first (more reliable across OAuth context switches on mobile)
+      // 1. URL query param (most reliable — survives the OAuth round-trip
+      //    because Supabase redirects back to the exact `redirectTo` URL,
+      //    including its query string).
+      const urlReturnTo = new URLSearchParams(window.location.search).get("returnTo");
+
+      // 2. Cookie (mobile-safer than localStorage across OAuth context switches)
       const cookieMatch = document.cookie.match(/(?:^|;\s*)ss_return_to=([^;]+)/);
       const cookieReturnTo = cookieMatch ? decodeURIComponent(cookieMatch[1]) : null;
-      const lsReturnTo = (() => {
-        try { return localStorage.getItem("returnTo"); } catch { return null; }
-      })();
-      const raw = cookieReturnTo || lsReturnTo;
+
+      // 3. localStorage fallback
+      let lsReturnTo: string | null = null;
+      try { lsReturnTo = localStorage.getItem("returnTo"); } catch {}
+
+      const raw = urlReturnTo || cookieReturnTo || lsReturnTo;
 
       // Always clear, regardless of whether we navigate
       try { localStorage.removeItem("returnTo"); } catch {}
