@@ -411,11 +411,19 @@ const Auth = () => {
     try {
       const returnTo = searchParams.get('returnTo') || localStorage.getItem('returnTo') || '/adventure';
       if (returnTo) localStorage.setItem('returnTo', returnTo);
+      // Cookie fallback (mobile-safer than localStorage across OAuth context switches)
+      document.cookie =
+        'ss_return_to=' + encodeURIComponent(returnTo) +
+        '; Max-Age=600; Path=/; SameSite=Lax; Secure';
       // If we're inside the Lovable preview iframe, Google blocks OAuth via X-Frame-Options.
       // Pop out to a top-level tab first so the redirect flow can complete normally.
       if (typeof window !== 'undefined' && window.self !== window.top) {
-        // Open the hardcoded production /auth URL in a new tab (no window.location.origin).
-        window.open('https://soulstory.co.il/auth', '_blank', 'noopener');
+        // Open the production /auth URL in a new tab, preserving the intended destination.
+        window.open(
+          `https://soulstory.co.il/auth?returnTo=${encodeURIComponent(returnTo)}`,
+          '_blank',
+          'noopener'
+        );
         return;
       }
       // User already accepted terms in the signup form — persist after OAuth callback
@@ -425,7 +433,7 @@ const Auth = () => {
       const { data, error } = await supabase.auth.signInWithOAuth({
         provider: 'google',
         options: {
-          redirectTo: `https://soulstory.co.il/auth?returnTo=${encodeURIComponent('/create?resume=true')}`
+          redirectTo: `https://soulstory.co.il/auth?returnTo=${encodeURIComponent(returnTo)}`
         }
       });
       if (error) {
