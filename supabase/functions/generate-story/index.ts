@@ -1736,7 +1736,9 @@ ${topic.endsWith('-edu') ? `
       }
     }
     // === TEXT QUALITY REWRITE: Age-appropriate language polish ===
-    try {
+    if (language === "en") {
+      console.log("[generate-story] Skipping Hebrew text quality rewrite for English story");
+    } else try {
       const ageLabel = ageRange === "0-2" ? "2" : ageRange === "2-4" ? "3" : ageRange === "5-7" ? "6" : "8";
       const fullStoryText = storyData.pages.map((p: any) => `[עמוד ${p.page_number}]\n${p.text}`).join("\n\n");
       
@@ -1792,6 +1794,7 @@ NLP RULES BY AGE:
 CRITICAL RULES:
 - Keep the EXACT same number of pages/sections as the input
 - Keep [עמוד X] markers exactly as they are
+- The child's name in the story is "${childName}". Preserve it EXACTLY as it appears — never replace, shorten, transliterate, or "correct" it.
 - Preserve illustration_prompt content if present - only rewrite the Hebrew story text
 - Do NOT add nikud (vowel marks) — write clean text without nikud
 - Do NOT flatten sentence-per-line formatting into paragraphs
