@@ -278,6 +278,26 @@ const Auth = () => {
       
       setCheckingTerms(true);
       try {
+        // If user just consented in the wizard's Google flow, persist now
+        const pendingWizardTerms = localStorage.getItem('pending_wizard_terms_accept');
+        if (pendingWizardTerms === '1') {
+          const pendingMarketing = localStorage.getItem('pending_wizard_marketing_consent') === '1';
+          try {
+            await supabase
+              .from("profiles")
+              .update({
+                terms_accepted_at: new Date().toISOString(),
+                terms_version: TERMS_VERSION,
+                marketing_consent: pendingMarketing,
+              })
+              .eq("id", user.id);
+          } catch (e) {
+            console.warn('Failed to persist wizard terms acceptance:', e);
+          }
+          localStorage.removeItem('pending_wizard_terms_accept');
+          localStorage.removeItem('pending_wizard_marketing_consent');
+        }
+
         // If educator just signed in via Google with consent flag, persist terms
         const pendingEducatorAccept = localStorage.getItem('pending_educator_terms_accept');
         if (pendingEducatorAccept === '1') {
