@@ -240,7 +240,9 @@ const GeneratingStep = ({ formData, onComplete }: GeneratingStepProps) => {
       }
 
       if (apiError) {
-        console.error("API error:", apiError);
+        console.error("[GeneratingStep] Server error body:", data, apiError);
+        const serverError = (data as any)?.error;
+        const serverDebug = (data as any)?.debug;
         if (apiError.message?.includes("401") || apiError.message?.includes("נדרשת התחברות")) {
           toast({ title: "נדרשת התחברות", description: "אנא התחברו כדי ליצור סיפורים." });
           navigate("/auth?returnTo=/create");
@@ -253,6 +255,9 @@ const GeneratingStep = ({ formData, onComplete }: GeneratingStepProps) => {
         if (apiError.message?.includes("שגיאת מערכת זמנית") || apiError.message?.includes("503")) {
           setError("שגיאת מערכת זמנית. נסו שוב בעוד מספר דקות.");
           return;
+        }
+        if (serverError) {
+          throw new Error(serverError + (serverDebug ? ` — ${serverDebug}` : ""));
         }
         throw apiError;
       }
