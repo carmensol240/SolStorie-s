@@ -1,39 +1,41 @@
-# Fix `generate-story` failure + visible error diagnostics
-
-## Symptoms
-- Frontend shows 5% then fails every time.
-- Edge logs show 6 retried invocations, each stopping at `"Current credits: 30"` (line 746) and never reaching `"Generating story for:"` (line 916). No error log appears.
-- `error_logs` table is empty for the period — meaning the outer `catch` is not firing.
-- Conclusion: function returns a non-2xx response from one of the input-validation branches at lines 850–914 (no logging there), the front-end masks it as `FunctionsHttpError`, and the auto-retry loop reproduces it.
+# Fix: Old onboarding screen appears after Google Sign-In
 
 ## Root cause
-1. **Validation branches return 400 without logging** — we have no way to see which field is failing.
-2. **Front-end loses the server's error body** when calling `supabase.functions.invoke()` on non-2xx (it only keeps a generic message).
-3. **Outer catch returns a generic Hebrew message** even when the real error is something useful.
 
-## Fix scope (only generation logic + error visibility — no UI/feature changes)
+The "old registration/login screen" the user is seeing is **`src/pages/Onboarding.tsx`** — the long welcome page with the two terms/privacy checkboxes.
 
-### 1. `supabase/functions/generate-story/index.ts`
-- Add `console.log("[generate-story] reqBody keys:", Object.keys(reqBody))` and `console.log("[generate-story] field check", { hasName, nameLen, hasTopic, topicLen, topicId, language, ageRange, storyLength, isGuest })` immediately after parsing `reqBody` and before validation.
-- For each validation `return` (missing name, missing topic, length limits, gender), prepend `console.warn("[generate-story] VALIDATION FAIL:", reason, value)` so we can see exactly which check rejected the request.
-- In the outer `catch` block, additionally include `error.stack` in the `logError` metadata and log the full error object (`console.error("[generate-story] CRASH:", error?.message, error?.stack)`).
-- In the response from the outer catch, attach a `debug` field with `error.message` (kept short, no stack) so the front-end can show it during this debugging window. The user-facing `error` string stays the same.
-- Wrap the post-credit `children` lookup (line 921) in try/catch so a slow/failed query can't kill the request silently.
+Flow today:
+1. User is in the create-story wizard, clicks **Google** in `AuthStep` (`src/components/wizard/AuthStep.tsx`).
+2. Google completes → redirect lands on `/auth?returnTo=/create?resume=true`.
+3. `src/pages/Auth.tsx` `checkTermsAcceptance` sees a logged-in user, queries `profiles.terms_accepted_at`, and because a brand-new Google user has no terms record yet, it redirects to **`/onboarding?returnTo=/create?resume=true`**.
+4. That `/onboarding` page is the screen the user is calling "the old registration screen".
 
-### 2. `src/components/wizard/GeneratingStep.tsx`
-- After `supabase.functions.invoke("generate-story", ...)`, when `result.error` exists, also read `result.data` (Supabase populates it even on 4xx) and `console.error("[GeneratingStep] Server error body:", result.data, result.error)`.
-- If `result.data?.error` is present, throw `new Error(result.data.error + (result.data.debug ? " — " + result.data.debug : ""))` instead of throwing the opaque `FunctionsHttpError`.
-- Do not change retry logic, UI, progress bar, or any other feature.
+For the email/password path in `AuthStep`, terms are already required and persisted inline (the `auth-step-terms` checkbox + the `profiles.update({ terms_accepted_at })` call inside `handleSubmit`). The Google branch never persists that consent, so the global terms guard pushes the user to `/onboarding`.
 
-### 3. Verify end-to-end
-- Deploy `generate-story`.
-- Call the edge function with a known-good payload via `supabase--curl_edge_functions` using the user's auth token (logged-in browser session) and confirm a `storyId` is returned.
-- Tail edge logs to confirm we now see either `"Generating story for:"` (success path) or a clear `VALIDATION FAIL` / `CRASH` line with the real reason.
-- Ask the user to retry from the UI and report the new error message that appears.
+## Fix (minimal, scoped to Google flow inside the wizard)
 
-## Files touched
-- `supabase/functions/generate-story/index.ts` (logging + safer children lookup + debug field on error)
-- `src/components/wizard/GeneratingStep.tsx` (surface server error body)
+Only two files. No changes to `Onboarding.tsx`, no changes to the main `/auth` registration UI, no changes to story generation.
 
-## Out of scope
-- AI prompt content, model selection, illustration/cover dispatch, UI, progress animation, auth flow.
+### 1. `src/components/wizard/AuthStep.tsx` — `handleGoogleSignIn`
+- Require the existing `termsAccepted` checkbox before starting Google OAuth (show a toast otherwise — same message used in email signup).
+- Before calling `supabase.auth.signInWithOAuth`, set two localStorage flags so the post-OAuth handler knows the user already consented in the wizard:
+  - `localStorage.setItem('pending_wizard_terms_accept', '1')`
+  - `localStorage.setItem('pending_wizard_marketing_consent', marketingConsent ? '1' : '0')`
+- Also set the same flags inside the iframe-escape branch (before `window.open`) so the popped-out tab can read them — actually they live on a different origin in that case, so this only helps the in-place flow. The iframe path already opens production `/auth` and is a separate UX; we will leave it as-is and not add a new flag there.
+
+### 2. `src/pages/Auth.tsx` — `checkTermsAcceptance` (the existing useEffect around line 275)
+- Before the `profiles.terms_accepted_at` lookup, check for `pending_wizard_terms_accept === '1'`. If present:
+  - `await supabase.from('profiles').update({ terms_accepted_at: new Date().toISOString(), terms_version: TERMS_VERSION, marketing_consent: pendingMarketing === '1' }).eq('id', user.id)`
+  - Remove both pending flags.
+- Then continue with the existing logic. Because terms are now persisted, the next branch will see `terms_accepted_at` set and route the user straight to `returnTo` (`/create?resume=true`), skipping `/onboarding`.
+
+That's it — the user will land on `/create?resume=true`, `CreateStory.tsx` restores `pending_story_formData` from localStorage and resumes the wizard at the generating step (or, if there's no saved form data, at step 1 / the "tell us about your child" screen, which is the screen the user expects).
+
+## Files to edit
+- `src/components/wizard/AuthStep.tsx`
+- `src/pages/Auth.tsx`
+
+## Out of scope (will not change)
+- `src/pages/Onboarding.tsx` — kept as-is for users who reach it via other entry points.
+- Main `/auth` page registration form — untouched.
+- `OAuthReturnHandler`, `RequireTerms`, `generate-story`, wizard steps — untouched.

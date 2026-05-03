@@ -109,8 +109,14 @@ const AuthStep = ({ formData, onAuthenticated }: AuthStepProps) => {
 
   const handleGoogleSignIn = async () => {
     if (!GOOGLE_SIGNIN_ENABLED) return;
+    if (!termsAccepted) {
+      toast({ title: "שגיאה", description: "יש לאשר את תנאי השימוש", variant: "destructive" });
+      return;
+    }
     localStorage.setItem('pending_story_formData', JSON.stringify(formData));
     localStorage.setItem('returnTo', '/create?resume=true');
+    localStorage.setItem('pending_wizard_terms_accept', '1');
+    localStorage.setItem('pending_wizard_marketing_consent', marketingConsent ? '1' : '0');
     document.cookie =
       'ss_return_to=' + encodeURIComponent('/create?resume=true') +
       '; Max-Age=600; Path=/; SameSite=Lax; Secure';
