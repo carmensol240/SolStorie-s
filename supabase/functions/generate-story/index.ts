@@ -1300,6 +1300,8 @@ Gently hint that this isn't the first time: for example "${childName} already kn
 
 **Child details:**
 - Name: ${childName}
+
+🚨 MANDATORY NAME RULE: Use the name "${childName}" EXACTLY as written, letter for letter. Never substitute, shorten, lengthen, "correct", translate, transliterate, or suggest an alternative name. The name appearing on every page, in titles and dialogue, must be exactly "${childName}".
 - Gender: ${genderWordEn} (use ${pronounEn} pronouns)
 - Age: ${ageRange}
 ${childPersonalization}
@@ -1343,6 +1345,8 @@ ${adventureLogic ? `
 
 **פרטי הילד/ה:**
 - שם: ${childName}
+
+🚨 כלל חובה — שם הילד/ה: השתמש בשם "${childName}" בדיוק כפי שנכתב, אות באות. אסור בהחלט להחליף, לקצר, להאריך, "לתקן", לעברת, או להציע שם חלופי. השם המופיע בכל העמודים, בכותרות ובדיאלוגים חייב להיות "${childName}" בדיוק.
 - מגדר: ${genderText}
 - גיל: ${ageRange}
 ${childPersonalization}
