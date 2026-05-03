@@ -1,72 +1,39 @@
-# Fix: `returnTo` ignored after Google OAuth — only `/auth` is reached
+# Fix `generate-story` failure + visible error diagnostics
 
-## Problem
+## Symptoms
+- Frontend shows 5% then fails every time.
+- Edge logs show 6 retried invocations, each stopping at `"Current credits: 30"` (line 746) and never reaching `"Generating story for:"` (line 916). No error log appears.
+- `error_logs` table is empty for the period — meaning the outer `catch` is not firing.
+- Conclusion: function returns a non-2xx response from one of the input-validation branches at lines 850–914 (no logging there), the front-end masks it as `FunctionsHttpError`, and the auto-retry loop reproduces it.
 
-After Google OAuth, the user lands at `https://soulstory.co.il/auth?returnTo=%2Fcreate%3Fresume%3Dtrue` and stays there instead of being forwarded to `/create?resume=true`.
+## Root cause
+1. **Validation branches return 400 without logging** — we have no way to see which field is failing.
+2. **Front-end loses the server's error body** when calling `supabase.functions.invoke()` on non-2xx (it only keeps a generic message).
+3. **Outer catch returns a generic Hebrew message** even when the real error is something useful.
 
-`OAuthReturnHandler` (the global handler the user asked me to fix) currently reads `returnTo` from only two places:
+## Fix scope (only generation logic + error visibility — no UI/feature changes)
 
-1. Cookie `ss_return_to`
-2. `localStorage.getItem('returnTo')`
+### 1. `supabase/functions/generate-story/index.ts`
+- Add `console.log("[generate-story] reqBody keys:", Object.keys(reqBody))` and `console.log("[generate-story] field check", { hasName, nameLen, hasTopic, topicLen, topicId, language, ageRange, storyLength, isGuest })` immediately after parsing `reqBody` and before validation.
+- For each validation `return` (missing name, missing topic, length limits, gender), prepend `console.warn("[generate-story] VALIDATION FAIL:", reason, value)` so we can see exactly which check rejected the request.
+- In the outer `catch` block, additionally include `error.stack` in the `logError` metadata and log the full error object (`console.error("[generate-story] CRASH:", error?.message, error?.stack)`).
+- In the response from the outer catch, attach a `debug` field with `error.message` (kept short, no stack) so the front-end can show it during this debugging window. The user-facing `error` string stays the same.
+- Wrap the post-credit `children` lookup (line 921) in try/catch so a slow/failed query can't kill the request silently.
 
-It does **not** read the `?returnTo=` query parameter from the current URL. During Google OAuth the browser navigates away to `accounts.google.com`, then to Supabase's callback, then back to our domain. On mobile Safari, in-app browsers, and any cross-site/ITP scenario, the cookie and `localStorage` value set before the redirect can be wiped or hidden from the returning context. When that happens, `OAuthReturnHandler` finds nothing and returns early — even though the URL itself still carries `?returnTo=/create?resume=true` (because that is exactly the `redirectTo` we passed to `signInWithOAuth`).
+### 2. `src/components/wizard/GeneratingStep.tsx`
+- After `supabase.functions.invoke("generate-story", ...)`, when `result.error` exists, also read `result.data` (Supabase populates it even on 4xx) and `console.error("[GeneratingStep] Server error body:", result.data, result.error)`.
+- If `result.data?.error` is present, throw `new Error(result.data.error + (result.data.debug ? " — " + result.data.debug : ""))` instead of throwing the opaque `FunctionsHttpError`.
+- Do not change retry logic, UI, progress bar, or any other feature.
 
-`Auth.tsx` has its own effect that does read `searchParams.get('returnTo')`, but it is gated behind a profile/terms DB lookup and a `setCheckingTerms` cycle, so in practice users see `/auth` first and the navigation can be missed (or pre-empted by other UI states on that page).
+### 3. Verify end-to-end
+- Deploy `generate-story`.
+- Call the edge function with a known-good payload via `supabase--curl_edge_functions` using the user's auth token (logged-in browser session) and confirm a `storyId` is returned.
+- Tail edge logs to confirm we now see either `"Generating story for:"` (success path) or a clear `VALIDATION FAIL` / `CRASH` line with the real reason.
+- Ask the user to retry from the UI and report the new error message that appears.
 
-The user's instruction is explicit: only fix `OAuthReturnHandler`, do not touch anything else.
+## Files touched
+- `supabase/functions/generate-story/index.ts` (logging + safer children lookup + debug field on error)
+- `src/components/wizard/GeneratingStep.tsx` (surface server error body)
 
-## Change
-
-Update `src/components/auth/OAuthReturnHandler.tsx` so it picks up `returnTo` from **all three** sources, in this priority order:
-
-1. URL query param `returnTo` on the current location (most reliable — it survives the OAuth round-trip because it's literally in the URL Supabase redirects to)
-2. Cookie `ss_return_to`
-3. `localStorage.getItem('returnTo')`
-
-Keep all existing behavior:
-
-- Trigger on `SIGNED_IN` and on `INITIAL_SESSION` when a session exists
-- Always clear cookie + localStorage after consuming
-- Open-redirect protection: only accept values starting with `/` and not `//`
-- Skip navigation if the resolved path equals the current path+search (prevents loop)
-- Important refinement to that skip check: when we are sitting on `/auth?returnTo=/create?resume=true` and the resolved value is `/create?resume=true`, those are not equal, so navigation will proceed. Good.
-
-No other files are modified. No router config, no `Auth.tsx`, no `AuthStep.tsx` changes.
-
-## Technical details
-
-File: `src/components/auth/OAuthReturnHandler.tsx`
-
-Inside the `onAuthStateChange` callback, replace the current source-resolution block with:
-
-```ts
-// 1. URL query param (survives the OAuth round-trip)
-const urlReturnTo = new URLSearchParams(window.location.search).get("returnTo");
-
-// 2. Cookie (mobile-safer than localStorage across OAuth context switches)
-const cookieMatch = document.cookie.match(/(?:^|;\s*)ss_return_to=([^;]+)/);
-const cookieReturnTo = cookieMatch ? decodeURIComponent(cookieMatch[1]) : null;
-
-// 3. localStorage fallback
-let lsReturnTo: string | null = null;
-try { lsReturnTo = localStorage.getItem("returnTo"); } catch {}
-
-const raw = urlReturnTo || cookieReturnTo || lsReturnTo;
-```
-
-Everything after that (clear cookie + localStorage, validate, compare against `currentPath`, `navigate(raw, { replace: true })`) stays as it is today.
-
-## Verification
-
-After the change, this flow should work end-to-end:
-
-1. User clicks "Continue with Google" in `AuthStep` (wizard) or `Auth` page
-2. Supabase redirects to `https://soulstory.co.il/auth?returnTo=%2Fcreate%3Fresume%3Dtrue`
-3. `OAuthReturnHandler` fires on `INITIAL_SESSION`, reads `returnTo=/create?resume=true` from the URL, clears storage, calls `navigate("/create?resume=true", { replace: true })`
-4. `CreateStory` mounts with `?resume=true` and restores wizard state from `pending_story_formData`
-
-Works even if cookies / localStorage were dropped during the OAuth bounce.
-
-## Out of scope (per user instruction)
-
-- No changes to `Auth.tsx`, `AuthStep.tsx`, routing, Supabase config, or memory files.
+## Out of scope
+- AI prompt content, model selection, illustration/cover dispatch, UI, progress animation, auth flow.

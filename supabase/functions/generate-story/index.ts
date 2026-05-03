@@ -680,6 +680,22 @@ serve(async (req) => {
     // Parse request body once
     const reqBody = await req.json();
     const guestMode = reqBody.guestMode === true;
+    console.log("[generate-story] reqBody keys:", Object.keys(reqBody));
+    console.log("[generate-story] field check", {
+      hasName: !!reqBody.childName,
+      nameLen: reqBody.childName?.length,
+      hasTopic: !!reqBody.topic,
+      topicLen: reqBody.topic?.length,
+      topicId: reqBody.topicId,
+      language: reqBody.language,
+      ageRange: reqBody.ageRange,
+      storyLength: reqBody.storyLength,
+      childGender: reqBody.childGender,
+      hasPhoto: !!reqBody.childPhoto,
+      photoLen: reqBody.childPhoto?.length,
+      hasAvatar: !!reqBody.childAvatarUrl,
+      isGuest: guestMode,
+    });
 
     const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
     const supabaseServiceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
@@ -848,6 +864,7 @@ serve(async (req) => {
     // === INPUT VALIDATION ===
     // Validate required fields
     if (!childName || typeof childName !== "string") {
+      console.warn("[generate-story] VALIDATION FAIL: childName missing/invalid", { childName });
       return new Response(
         JSON.stringify({ error: "שם הילד/ה חסר או לא תקין" }),
         { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
@@ -855,6 +872,7 @@ serve(async (req) => {
     }
     
     if (!topic || typeof topic !== "string") {
+      console.warn("[generate-story] VALIDATION FAIL: topic missing/invalid", { topic, topicId });
       return new Response(
         JSON.stringify({ error: "נושא הסיפור חסר או לא תקין" }),
         { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
@@ -868,6 +886,7 @@ serve(async (req) => {
     const MAX_PHOTO_SIZE = 10 * 1024 * 1024; // 10MB base64
 
     if (childName.length > MAX_NAME_LENGTH) {
+      console.warn("[generate-story] VALIDATION FAIL: childName too long", { len: childName.length });
       return new Response(
         JSON.stringify({ error: `שם הילד/ה ארוך מדי (מקסימום ${MAX_NAME_LENGTH} תווים)` }),
         { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
@@ -875,6 +894,7 @@ serve(async (req) => {
     }
 
     if (topic.length > MAX_TOPIC_LENGTH) {
+      console.warn("[generate-story] VALIDATION FAIL: topic too long", { len: topic.length });
       return new Response(
         JSON.stringify({ error: `נושא הסיפור ארוך מדי (מקסימום ${MAX_TOPIC_LENGTH} תווים)` }),
         { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
@@ -882,6 +902,7 @@ serve(async (req) => {
     }
 
     if (personalityTraits && personalityTraits.length > MAX_TRAITS_LENGTH) {
+      console.warn("[generate-story] VALIDATION FAIL: personalityTraits too long", { len: personalityTraits.length });
       return new Response(
         JSON.stringify({ error: `תיאור התכונות ארוך מדי (מקסימום ${MAX_TRAITS_LENGTH} תווים)` }),
         { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
@@ -889,6 +910,7 @@ serve(async (req) => {
     }
 
     if (childPhoto && childPhoto.length > MAX_PHOTO_SIZE) {
+      console.warn("[generate-story] VALIDATION FAIL: childPhoto too large", { len: childPhoto.length });
       return new Response(
         JSON.stringify({ error: "תמונת הילד/ה גדולה מדי (מקסימום 10MB)" }),
         { status: 413, headers: { ...corsHeaders, "Content-Type": "application/json" } }
@@ -897,6 +919,7 @@ serve(async (req) => {
 
     // Validate gender
     if (childGender && !["male", "female"].includes(childGender)) {
+      console.warn("[generate-story] VALIDATION FAIL: invalid gender", { childGender });
       return new Response(
         JSON.stringify({ error: "מגדר לא תקין" }),
         { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
@@ -907,6 +930,7 @@ serve(async (req) => {
     // Validate className if provided
     const MAX_CLASS_NAME_LENGTH = 100;
     if (className && typeof className === "string" && className.length > MAX_CLASS_NAME_LENGTH) {
+      console.warn("[generate-story] VALIDATION FAIL: className too long", { len: className.length });
       return new Response(
         JSON.stringify({ error: `שם הכיתה/הגן ארוך מדי (מקסימום ${MAX_CLASS_NAME_LENGTH} תווים)` }),
         { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
@@ -918,23 +942,29 @@ serve(async (req) => {
     // === FETCH CHILD PERSONALIZATION FROM DB ===
     let childPersonalization = "";
     if (userId) {
-      const { data: childData } = await supabase
-        .from("children")
-        .select("hobbies, challenges, favorite_friends, fixed_details")
-        .eq("user_id", userId)
-        .eq("name", childName)
-        .maybeSingle();
-      
-      if (childData) {
-        const parts: string[] = [];
-        if (childData.fixed_details?.trim()) parts.push(`רקע קבוע על הילד/ה: ${childData.fixed_details.trim()}`);
-        if (childData.hobbies?.trim()) parts.push(`תחביבים ואהבות: ${childData.hobbies.trim()}`);
-        if (childData.challenges?.trim()) parts.push(`אתגרים נוכחיים: ${childData.challenges.trim()}`);
-        if (childData.favorite_friends?.trim()) parts.push(`חברים וצעצועים אהובים: ${childData.favorite_friends.trim()}`);
-        if (parts.length > 0) {
-          childPersonalization = `\n## 🎯 פרטים אישיים על הילד/ה (שלב בסיפור בצורה טבעית!):\n${parts.join("\n")}\n`;
-          console.log("Using child personalization:", childPersonalization);
+      try {
+        const { data: childData, error: childErr } = await supabase
+          .from("children")
+          .select("hobbies, challenges, favorite_friends, fixed_details")
+          .eq("user_id", userId)
+          .eq("name", childName)
+          .maybeSingle();
+
+        if (childErr) {
+          console.warn("[generate-story] children lookup failed (non-fatal):", childErr.message);
+        } else if (childData) {
+          const parts: string[] = [];
+          if (childData.fixed_details?.trim()) parts.push(`רקע קבוע על הילד/ה: ${childData.fixed_details.trim()}`);
+          if (childData.hobbies?.trim()) parts.push(`תחביבים ואהבות: ${childData.hobbies.trim()}`);
+          if (childData.challenges?.trim()) parts.push(`אתגרים נוכחיים: ${childData.challenges.trim()}`);
+          if (childData.favorite_friends?.trim()) parts.push(`חברים וצעצועים אהובים: ${childData.favorite_friends.trim()}`);
+          if (parts.length > 0) {
+            childPersonalization = `\n## 🎯 פרטים אישיים על הילד/ה (שלב בסיפור בצורה טבעית!):\n${parts.join("\n")}\n`;
+            console.log("Using child personalization:", childPersonalization);
+          }
         }
+      } catch (e) {
+        console.warn("[generate-story] children lookup threw (non-fatal):", e instanceof Error ? e.message : String(e));
       }
     }
 
@@ -2080,15 +2110,16 @@ ${fullStoryText}`;
     );
 
   } catch (error) {
-    console.error("Error in generate-story:", error);
     const crashMessage = error instanceof Error ? error.message : String(error);
-    await logError("story_general_error", `generate-story crash: ${crashMessage}`, {});
-    // Return generic error message to client, keep details in server logs
-    const userMessage = error instanceof Error && error.message.startsWith("שגיאה") 
-      ? error.message 
+    const crashStack = error instanceof Error ? error.stack : undefined;
+    console.error("[generate-story] CRASH:", crashMessage);
+    if (crashStack) console.error("[generate-story] STACK:", crashStack);
+    await logError("story_general_error", `generate-story crash: ${crashMessage}`, { stack: crashStack?.substring(0, 1500) });
+    const userMessage = error instanceof Error && error.message.startsWith("שגיאה")
+      ? error.message
       : "שגיאה בעיבוד הבקשה. נסו שוב מאוחר יותר.";
     return new Response(
-      JSON.stringify({ error: userMessage }),
+      JSON.stringify({ error: userMessage, debug: crashMessage.substring(0, 300) }),
       { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
   }
