@@ -1,40 +1,48 @@
-# Fix: English stories generated in Hebrew + child name being changed
+## Root Cause
 
-## Root cause
+When the user's Supabase session has expired, `supabase.auth.refreshSession()` (called at line 224 of `src/components/wizard/GeneratingStep.tsx` before invoking `generate-story`) throws `AuthApiError: Invalid Refresh Token: Refresh Token Not Found`. This error is caught by the generic catch block on line 232, treated like any other fetch error, and fed into the retry loop — which eventually surfaces as the generic "לא הצלחנו ליצור את הסיפור" toast. The user is never told their session expired and is never sent back to log in.
 
-In `supabase/functions/generate-story/index.ts`:
+## Fix
 
-1. **Language bug**: The initial story generation correctly branches on `language === "en"` (line 1225) and uses an English system + user prompt. BUT immediately after, around **line 1734**, a "TEXT QUALITY REWRITE" step runs **unconditionally** with a fully Hebrew rewrite prompt that explicitly instructs the model to "rewrite it in warm, everyday Hebrew". For English stories, this step translates the entire story into Hebrew. The same block also runs the Hebrew `[עמוד X]` page-marker re-parsing on English output.
+Detect expired-session errors specifically and redirect to the login screen with a clear Hebrew message and a `returnTo` that resumes the wizard right where the user was.
 
-2. **Name bug**: Neither the Hebrew nor English user prompts contain an explicit "do not change or substitute the child's name" rule. The rewrite step also has no name-preservation rule, and combined with the Hebrew bias it can swap names like `נתאי` → `ניצן`. There is one weak mention at line 1467 that only applies to Bible-story flow.
+### 1. Add a helper to detect expired-session errors
 
-## Fix (scoped, two edits in one file)
+In `src/components/wizard/GeneratingStep.tsx`, add a small helper that recognizes the relevant Supabase auth errors:
 
-### `supabase/functions/generate-story/index.ts`
+- `error.name === "AuthApiError"` AND message contains `Refresh Token` / `refresh_token_not_found` / `Invalid Refresh Token`
+- Generic message includes `JWT expired` or `session_not_found`
 
-**A. Skip the Hebrew rewrite for English stories**
-- Wrap the entire `=== TEXT QUALITY REWRITE ===` block (around lines 1734–1853) with `if (language !== "en") { ... }`. English stories already come back in English from the primary generation call — they do not need (and must not get) the Hebrew rewrite pass.
+### 2. Handle it before retrying
 
-**B. Add an explicit "never change the child's name" rule in both prompts**
+Wrap the `refreshSession()` call in its own try/catch. If it fails with an expired-session error:
 
-In the Hebrew user prompt (around line 1345, right after `- שם: ${childName}`), add:
-```
-🚨 כלל חובה — שם הילד/ה: השתמש בשם "${childName}" בדיוק כפי שנכתב, אות באות. אסור בהחלט להחליף, לקצר, להאריך, "לתקן", לעברת, או להציע שם חלופי. השם המופיע בכל העמודים, בכותרות ובדיאלוגים חייב להיות "${childName}" בדיוק.
-```
+1. Persist the in-progress wizard state so we can resume:
+   - `localStorage.setItem('pending_story_formData', JSON.stringify(formData))` (this key is already consumed by `CreateStory.tsx` when `?resume=true` is present).
+2. Show a toast: **"פג תוקף החיבור, אנא התחבר מחדש"**.
+3. Navigate to `/auth?returnTo=/create?resume=true` (URL-encoded). `OAuthReturnHandler` and the existing email-login redirect logic will send the user back to `/create?resume=true`, which re-hydrates `formData` and re-enters the generating step.
+4. `return` immediately — do NOT enter the retry loop and do NOT call `setError`.
 
-In the English user prompt (around line 1302, right after `- Name: ${childName}`), add:
-```
-🚨 MANDATORY NAME RULE: Use the name "${childName}" EXACTLY as written, letter for letter. Never substitute, shorten, lengthen, "correct", translate, transliterate, or suggest an alternative name. The name appearing on every page, in titles and dialogue, must be exactly "${childName}".
-```
+### 3. Also handle the same error if it surfaces from `functions.invoke`
 
-**C. Add the same name-preservation rule inside the Hebrew rewrite prompt** (only relevant now for Hebrew stories after fix A), around line 1788 in the `CRITICAL RULES` list:
-```
-- The child's name in the story is "${childName}". Preserve it EXACTLY as it appears — never replace, shorten, transliterate, or "correct" it.
-```
+In the existing error handling block (around lines 242–262 and the outer catch at 299), add the same detection: if `apiError`/`err` looks like an expired-session error, run the same persist-toast-redirect flow instead of retrying.
 
-## Out of scope
-- No changes to language selection UI, English nikud handling, illustrations pipeline, or any other feature.
-- No DB / RLS / edge-config changes.
+### 4. Scope guard
 
-## Files to edit
-- `supabase/functions/generate-story/index.ts` (only)
+No changes to `Auth.tsx`, `OAuthReturnHandler`, `useAuth`, or any other feature. Only `src/components/wizard/GeneratingStep.tsx` is touched. The existing `?resume=true` mechanism in `CreateStory.tsx` is reused as-is.
+
+## Technical details
+
+- File edited: `src/components/wizard/GeneratingStep.tsx` only.
+- New helper (local to file):
+  ```ts
+  const isSessionExpiredError = (e: unknown) => {
+    const msg = e instanceof Error ? e.message : String(e ?? "");
+    const name = (e as any)?.name ?? "";
+    return (
+      name === "AuthApiError" && /refresh.?token|invalid refresh/i.test(msg)
+    ) || /refresh_token_not_found|JWT expired|session_not_found/i.test(msg);
+  };
+  ```
+- Reuse existing keys: `pending_story_formData` (already restored in `CreateStory.tsx` lines ~85–100) and the `returnTo` query param (already consumed by `OAuthReturnHandler` and the email login flow).
+- Toast uses the existing `useToast` import already present in the file.

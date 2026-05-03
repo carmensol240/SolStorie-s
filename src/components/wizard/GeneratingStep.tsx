@@ -139,6 +139,29 @@ const GeneratingStep = ({ formData, onComplete }: GeneratingStepProps) => {
     return base;
   }, [formData.childAvatarUrl, formData.childName, formData.childGender]);
 
+  const isSessionExpiredError = useCallback((e: unknown): boolean => {
+    const msg = e instanceof Error ? e.message : String((e as any)?.message ?? e ?? "");
+    const name = (e as any)?.name ?? "";
+    if (name === "AuthApiError" && /refresh.?token|invalid refresh/i.test(msg)) return true;
+    return /refresh_token_not_found|Invalid Refresh Token|JWT expired|session_not_found/i.test(msg);
+  }, []);
+
+  const handleSessionExpired = useCallback(() => {
+    try {
+      localStorage.setItem('pending_story_formData', JSON.stringify(formData));
+    } catch (e) {
+      console.warn('[GeneratingStep] Failed to persist formData before re-login:', e);
+    }
+    try { supabase.auth.signOut(); } catch {}
+    toast({
+      title: "פג תוקף החיבור",
+      description: "פג תוקף החיבור, אנא התחבר מחדש",
+      variant: "destructive",
+    });
+    const returnTo = encodeURIComponent('/create?resume=true');
+    navigate(`/auth?returnTo=${returnTo}`, { replace: true });
+  }, [formData, navigate, toast]);
+
   const generateStory = useCallback(async () => {
     try {
       setPhase('text');
@@ -218,10 +241,20 @@ const GeneratingStep = ({ formData, onComplete }: GeneratingStepProps) => {
           data = await resp.json();
           apiError = null;
         } else {
-          // Refresh session token before calling to avoid 401
-          const { data: { session: currentSession } } = await supabase.auth.getSession();
-          if (currentSession) {
-            await supabase.auth.refreshSession();
+          // Refresh session token before calling to avoid 401.
+          // If the refresh token itself is invalid/expired, send the user back to login.
+          try {
+            const { data: { session: currentSession } } = await supabase.auth.getSession();
+            if (currentSession) {
+              const { error: refreshErr } = await supabase.auth.refreshSession();
+              if (refreshErr) throw refreshErr;
+            }
+          } catch (refreshErr) {
+            if (isSessionExpiredError(refreshErr)) {
+              handleSessionExpired();
+              return;
+            }
+            throw refreshErr;
           }
           const result = await supabase.functions.invoke("generate-story", {
             body: bodyPayload,
@@ -231,6 +264,10 @@ const GeneratingStep = ({ formData, onComplete }: GeneratingStepProps) => {
         }
       } catch (fetchError) {
         clearTimeout(timeoutId);
+        if (isSessionExpiredError(fetchError)) {
+          handleSessionExpired();
+          return;
+        }
         if (fetchError instanceof Error && fetchError.name === 'AbortError') {
           throw new Error("הבקשה נכשלה בגלל timeout. נסו שוב.");
         }
@@ -243,6 +280,10 @@ const GeneratingStep = ({ formData, onComplete }: GeneratingStepProps) => {
         console.error("[GeneratingStep] Server error body:", data, apiError);
         const serverError = (data as any)?.error;
         const serverDebug = (data as any)?.debug;
+        if (isSessionExpiredError(apiError)) {
+          handleSessionExpired();
+          return;
+        }
         if (apiError.message?.includes("401") || apiError.message?.includes("נדרשת התחברות")) {
           toast({ title: "נדרשת התחברות", description: "אנא התחברו כדי ליצור סיפורים." });
           navigate("/auth?returnTo=/create");
@@ -298,7 +339,11 @@ const GeneratingStep = ({ formData, onComplete }: GeneratingStepProps) => {
       
     } catch (err) {
       console.error("[GeneratingStep] Error generating story:", err);
-      
+      if (isSessionExpiredError(err)) {
+        handleSessionExpired();
+        return;
+      }
+
       let errorMessage = "שגיאה לא ידועה";
       if (err instanceof Error) {
         errorMessage = err.message;
@@ -328,7 +373,7 @@ const GeneratingStep = ({ formData, onComplete }: GeneratingStepProps) => {
       
       setError("not_created");
     }
-  }, [formData, toast, navigate]);
+  }, [formData, toast, navigate, isSessionExpiredError, handleSessionExpired]);
 
   // Realtime subscription: watch for illustrations completing
   useEffect(() => {
