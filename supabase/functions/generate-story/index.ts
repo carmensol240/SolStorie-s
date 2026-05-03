@@ -864,6 +864,7 @@ serve(async (req) => {
     // === INPUT VALIDATION ===
     // Validate required fields
     if (!childName || typeof childName !== "string") {
+      console.warn("[generate-story] VALIDATION FAIL: childName missing/invalid", { childName });
       return new Response(
         JSON.stringify({ error: "שם הילד/ה חסר או לא תקין" }),
         { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
@@ -871,6 +872,7 @@ serve(async (req) => {
     }
     
     if (!topic || typeof topic !== "string") {
+      console.warn("[generate-story] VALIDATION FAIL: topic missing/invalid", { topic, topicId });
       return new Response(
         JSON.stringify({ error: "נושא הסיפור חסר או לא תקין" }),
         { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
@@ -884,6 +886,7 @@ serve(async (req) => {
     const MAX_PHOTO_SIZE = 10 * 1024 * 1024; // 10MB base64
 
     if (childName.length > MAX_NAME_LENGTH) {
+      console.warn("[generate-story] VALIDATION FAIL: childName too long", { len: childName.length });
       return new Response(
         JSON.stringify({ error: `שם הילד/ה ארוך מדי (מקסימום ${MAX_NAME_LENGTH} תווים)` }),
         { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
@@ -891,6 +894,7 @@ serve(async (req) => {
     }
 
     if (topic.length > MAX_TOPIC_LENGTH) {
+      console.warn("[generate-story] VALIDATION FAIL: topic too long", { len: topic.length });
       return new Response(
         JSON.stringify({ error: `נושא הסיפור ארוך מדי (מקסימום ${MAX_TOPIC_LENGTH} תווים)` }),
         { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
@@ -898,6 +902,7 @@ serve(async (req) => {
     }
 
     if (personalityTraits && personalityTraits.length > MAX_TRAITS_LENGTH) {
+      console.warn("[generate-story] VALIDATION FAIL: personalityTraits too long", { len: personalityTraits.length });
       return new Response(
         JSON.stringify({ error: `תיאור התכונות ארוך מדי (מקסימום ${MAX_TRAITS_LENGTH} תווים)` }),
         { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
@@ -905,6 +910,7 @@ serve(async (req) => {
     }
 
     if (childPhoto && childPhoto.length > MAX_PHOTO_SIZE) {
+      console.warn("[generate-story] VALIDATION FAIL: childPhoto too large", { len: childPhoto.length });
       return new Response(
         JSON.stringify({ error: "תמונת הילד/ה גדולה מדי (מקסימום 10MB)" }),
         { status: 413, headers: { ...corsHeaders, "Content-Type": "application/json" } }
@@ -913,6 +919,7 @@ serve(async (req) => {
 
     // Validate gender
     if (childGender && !["male", "female"].includes(childGender)) {
+      console.warn("[generate-story] VALIDATION FAIL: invalid gender", { childGender });
       return new Response(
         JSON.stringify({ error: "מגדר לא תקין" }),
         { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
@@ -923,6 +930,7 @@ serve(async (req) => {
     // Validate className if provided
     const MAX_CLASS_NAME_LENGTH = 100;
     if (className && typeof className === "string" && className.length > MAX_CLASS_NAME_LENGTH) {
+      console.warn("[generate-story] VALIDATION FAIL: className too long", { len: className.length });
       return new Response(
         JSON.stringify({ error: `שם הכיתה/הגן ארוך מדי (מקסימום ${MAX_CLASS_NAME_LENGTH} תווים)` }),
         { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
