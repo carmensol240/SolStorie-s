@@ -942,23 +942,29 @@ serve(async (req) => {
     // === FETCH CHILD PERSONALIZATION FROM DB ===
     let childPersonalization = "";
     if (userId) {
-      const { data: childData } = await supabase
-        .from("children")
-        .select("hobbies, challenges, favorite_friends, fixed_details")
-        .eq("user_id", userId)
-        .eq("name", childName)
-        .maybeSingle();
-      
-      if (childData) {
-        const parts: string[] = [];
-        if (childData.fixed_details?.trim()) parts.push(`רקע קבוע על הילד/ה: ${childData.fixed_details.trim()}`);
-        if (childData.hobbies?.trim()) parts.push(`תחביבים ואהבות: ${childData.hobbies.trim()}`);
-        if (childData.challenges?.trim()) parts.push(`אתגרים נוכחיים: ${childData.challenges.trim()}`);
-        if (childData.favorite_friends?.trim()) parts.push(`חברים וצעצועים אהובים: ${childData.favorite_friends.trim()}`);
-        if (parts.length > 0) {
-          childPersonalization = `\n## 🎯 פרטים אישיים על הילד/ה (שלב בסיפור בצורה טבעית!):\n${parts.join("\n")}\n`;
-          console.log("Using child personalization:", childPersonalization);
+      try {
+        const { data: childData, error: childErr } = await supabase
+          .from("children")
+          .select("hobbies, challenges, favorite_friends, fixed_details")
+          .eq("user_id", userId)
+          .eq("name", childName)
+          .maybeSingle();
+
+        if (childErr) {
+          console.warn("[generate-story] children lookup failed (non-fatal):", childErr.message);
+        } else if (childData) {
+          const parts: string[] = [];
+          if (childData.fixed_details?.trim()) parts.push(`רקע קבוע על הילד/ה: ${childData.fixed_details.trim()}`);
+          if (childData.hobbies?.trim()) parts.push(`תחביבים ואהבות: ${childData.hobbies.trim()}`);
+          if (childData.challenges?.trim()) parts.push(`אתגרים נוכחיים: ${childData.challenges.trim()}`);
+          if (childData.favorite_friends?.trim()) parts.push(`חברים וצעצועים אהובים: ${childData.favorite_friends.trim()}`);
+          if (parts.length > 0) {
+            childPersonalization = `\n## 🎯 פרטים אישיים על הילד/ה (שלב בסיפור בצורה טבעית!):\n${parts.join("\n")}\n`;
+            console.log("Using child personalization:", childPersonalization);
+          }
         }
+      } catch (e) {
+        console.warn("[generate-story] children lookup threw (non-fatal):", e instanceof Error ? e.message : String(e));
       }
     }
 
