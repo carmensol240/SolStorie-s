@@ -12,13 +12,10 @@ const OAuthReturnHandler = () => {
   const location = useLocation();
 
   useEffect(() => {
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
-      // Handle SIGNED_IN (in-app sign-in) and INITIAL_SESSION when a session is
-      // restored on a fresh page load (e.g. after Supabase redirects back from
-      // Google OAuth to the site root).
-      if (event !== "SIGNED_IN" && !(event === "INITIAL_SESSION" && session)) {
-        return;
-      }
+    let consumed = false;
+
+    const consumeReturnTo = () => {
+      if (consumed) return;
 
       // 1. URL query param (most reliable — survives the OAuth round-trip
       //    because Supabase redirects back to the exact `redirectTo` URL,
@@ -44,10 +41,33 @@ const OAuthReturnHandler = () => {
       // Open-redirect protection: only relative paths
       if (!raw.startsWith("/") || raw.startsWith("//")) return;
 
-      const currentPath = location.pathname + location.search;
+      const currentPath = window.location.pathname + window.location.search;
       if (raw === currentPath) return;
 
+      consumed = true;
       navigate(raw, { replace: true });
+    };
+
+    // Immediate session check — handles the case where Supabase has already
+    // restored the session by the time this listener mounts (e.g. after the
+    // OAuth redirect lands on /auth and the page reloads).
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      if (session) consumeReturnTo();
+    });
+
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+      // Handle SIGNED_IN (in-app sign-in), TOKEN_REFRESHED, and INITIAL_SESSION
+      // when a session is restored on a fresh page load (e.g. after Supabase
+      // redirects back from Google OAuth).
+      if (
+        event !== "SIGNED_IN" &&
+        event !== "TOKEN_REFRESHED" &&
+        !(event === "INITIAL_SESSION" && session)
+      ) {
+        return;
+      }
+      if (!session) return;
+      consumeReturnTo();
     });
 
     return () => subscription.unsubscribe();
