@@ -1300,6 +1300,8 @@ Gently hint that this isn't the first time: for example "${childName} already kn
 
 **Child details:**
 - Name: ${childName}
+
+🚨 MANDATORY NAME RULE: Use the name "${childName}" EXACTLY as written, letter for letter. Never substitute, shorten, lengthen, "correct", translate, transliterate, or suggest an alternative name. The name appearing on every page, in titles and dialogue, must be exactly "${childName}".
 - Gender: ${genderWordEn} (use ${pronounEn} pronouns)
 - Age: ${ageRange}
 ${childPersonalization}
@@ -1343,6 +1345,8 @@ ${adventureLogic ? `
 
 **פרטי הילד/ה:**
 - שם: ${childName}
+
+🚨 כלל חובה — שם הילד/ה: השתמש בשם "${childName}" בדיוק כפי שנכתב, אות באות. אסור בהחלט להחליף, לקצר, להאריך, "לתקן", לעברת, או להציע שם חלופי. השם המופיע בכל העמודים, בכותרות ובדיאלוגים חייב להיות "${childName}" בדיוק.
 - מגדר: ${genderText}
 - גיל: ${ageRange}
 ${childPersonalization}
@@ -1732,7 +1736,9 @@ ${topic.endsWith('-edu') ? `
       }
     }
     // === TEXT QUALITY REWRITE: Age-appropriate language polish ===
-    try {
+    if (language === "en") {
+      console.log("[generate-story] Skipping Hebrew text quality rewrite for English story");
+    } else try {
       const ageLabel = ageRange === "0-2" ? "2" : ageRange === "2-4" ? "3" : ageRange === "5-7" ? "6" : "8";
       const fullStoryText = storyData.pages.map((p: any) => `[עמוד ${p.page_number}]\n${p.text}`).join("\n\n");
       
@@ -1788,6 +1794,7 @@ NLP RULES BY AGE:
 CRITICAL RULES:
 - Keep the EXACT same number of pages/sections as the input
 - Keep [עמוד X] markers exactly as they are
+- The child's name in the story is "${childName}". Preserve it EXACTLY as it appears — never replace, shorten, transliterate, or "correct" it.
 - Preserve illustration_prompt content if present - only rewrite the Hebrew story text
 - Do NOT add nikud (vowel marks) — write clean text without nikud
 - Do NOT flatten sentence-per-line formatting into paragraphs

@@ -1,41 +1,40 @@
-# Fix: Old onboarding screen appears after Google Sign-In
+# Fix: English stories generated in Hebrew + child name being changed
 
 ## Root cause
 
-The "old registration/login screen" the user is seeing is **`src/pages/Onboarding.tsx`** — the long welcome page with the two terms/privacy checkboxes.
+In `supabase/functions/generate-story/index.ts`:
 
-Flow today:
-1. User is in the create-story wizard, clicks **Google** in `AuthStep` (`src/components/wizard/AuthStep.tsx`).
-2. Google completes → redirect lands on `/auth?returnTo=/create?resume=true`.
-3. `src/pages/Auth.tsx` `checkTermsAcceptance` sees a logged-in user, queries `profiles.terms_accepted_at`, and because a brand-new Google user has no terms record yet, it redirects to **`/onboarding?returnTo=/create?resume=true`**.
-4. That `/onboarding` page is the screen the user is calling "the old registration screen".
+1. **Language bug**: The initial story generation correctly branches on `language === "en"` (line 1225) and uses an English system + user prompt. BUT immediately after, around **line 1734**, a "TEXT QUALITY REWRITE" step runs **unconditionally** with a fully Hebrew rewrite prompt that explicitly instructs the model to "rewrite it in warm, everyday Hebrew". For English stories, this step translates the entire story into Hebrew. The same block also runs the Hebrew `[עמוד X]` page-marker re-parsing on English output.
 
-For the email/password path in `AuthStep`, terms are already required and persisted inline (the `auth-step-terms` checkbox + the `profiles.update({ terms_accepted_at })` call inside `handleSubmit`). The Google branch never persists that consent, so the global terms guard pushes the user to `/onboarding`.
+2. **Name bug**: Neither the Hebrew nor English user prompts contain an explicit "do not change or substitute the child's name" rule. The rewrite step also has no name-preservation rule, and combined with the Hebrew bias it can swap names like `נתאי` → `ניצן`. There is one weak mention at line 1467 that only applies to Bible-story flow.
 
-## Fix (minimal, scoped to Google flow inside the wizard)
+## Fix (scoped, two edits in one file)
 
-Only two files. No changes to `Onboarding.tsx`, no changes to the main `/auth` registration UI, no changes to story generation.
+### `supabase/functions/generate-story/index.ts`
 
-### 1. `src/components/wizard/AuthStep.tsx` — `handleGoogleSignIn`
-- Require the existing `termsAccepted` checkbox before starting Google OAuth (show a toast otherwise — same message used in email signup).
-- Before calling `supabase.auth.signInWithOAuth`, set two localStorage flags so the post-OAuth handler knows the user already consented in the wizard:
-  - `localStorage.setItem('pending_wizard_terms_accept', '1')`
-  - `localStorage.setItem('pending_wizard_marketing_consent', marketingConsent ? '1' : '0')`
-- Also set the same flags inside the iframe-escape branch (before `window.open`) so the popped-out tab can read them — actually they live on a different origin in that case, so this only helps the in-place flow. The iframe path already opens production `/auth` and is a separate UX; we will leave it as-is and not add a new flag there.
+**A. Skip the Hebrew rewrite for English stories**
+- Wrap the entire `=== TEXT QUALITY REWRITE ===` block (around lines 1734–1853) with `if (language !== "en") { ... }`. English stories already come back in English from the primary generation call — they do not need (and must not get) the Hebrew rewrite pass.
 
-### 2. `src/pages/Auth.tsx` — `checkTermsAcceptance` (the existing useEffect around line 275)
-- Before the `profiles.terms_accepted_at` lookup, check for `pending_wizard_terms_accept === '1'`. If present:
-  - `await supabase.from('profiles').update({ terms_accepted_at: new Date().toISOString(), terms_version: TERMS_VERSION, marketing_consent: pendingMarketing === '1' }).eq('id', user.id)`
-  - Remove both pending flags.
-- Then continue with the existing logic. Because terms are now persisted, the next branch will see `terms_accepted_at` set and route the user straight to `returnTo` (`/create?resume=true`), skipping `/onboarding`.
+**B. Add an explicit "never change the child's name" rule in both prompts**
 
-That's it — the user will land on `/create?resume=true`, `CreateStory.tsx` restores `pending_story_formData` from localStorage and resumes the wizard at the generating step (or, if there's no saved form data, at step 1 / the "tell us about your child" screen, which is the screen the user expects).
+In the Hebrew user prompt (around line 1345, right after `- שם: ${childName}`), add:
+```
+🚨 כלל חובה — שם הילד/ה: השתמש בשם "${childName}" בדיוק כפי שנכתב, אות באות. אסור בהחלט להחליף, לקצר, להאריך, "לתקן", לעברת, או להציע שם חלופי. השם המופיע בכל העמודים, בכותרות ובדיאלוגים חייב להיות "${childName}" בדיוק.
+```
+
+In the English user prompt (around line 1302, right after `- Name: ${childName}`), add:
+```
+🚨 MANDATORY NAME RULE: Use the name "${childName}" EXACTLY as written, letter for letter. Never substitute, shorten, lengthen, "correct", translate, transliterate, or suggest an alternative name. The name appearing on every page, in titles and dialogue, must be exactly "${childName}".
+```
+
+**C. Add the same name-preservation rule inside the Hebrew rewrite prompt** (only relevant now for Hebrew stories after fix A), around line 1788 in the `CRITICAL RULES` list:
+```
+- The child's name in the story is "${childName}". Preserve it EXACTLY as it appears — never replace, shorten, transliterate, or "correct" it.
+```
+
+## Out of scope
+- No changes to language selection UI, English nikud handling, illustrations pipeline, or any other feature.
+- No DB / RLS / edge-config changes.
 
 ## Files to edit
-- `src/components/wizard/AuthStep.tsx`
-- `src/pages/Auth.tsx`
-
-## Out of scope (will not change)
-- `src/pages/Onboarding.tsx` — kept as-is for users who reach it via other entry points.
-- Main `/auth` page registration form — untouched.
-- `OAuthReturnHandler`, `RequireTerms`, `generate-story`, wizard steps — untouched.
+- `supabase/functions/generate-story/index.ts` (only)
