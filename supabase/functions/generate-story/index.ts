@@ -2110,15 +2110,16 @@ ${fullStoryText}`;
     );
 
   } catch (error) {
-    console.error("Error in generate-story:", error);
     const crashMessage = error instanceof Error ? error.message : String(error);
-    await logError("story_general_error", `generate-story crash: ${crashMessage}`, {});
-    // Return generic error message to client, keep details in server logs
-    const userMessage = error instanceof Error && error.message.startsWith("שגיאה") 
-      ? error.message 
+    const crashStack = error instanceof Error ? error.stack : undefined;
+    console.error("[generate-story] CRASH:", crashMessage);
+    if (crashStack) console.error("[generate-story] STACK:", crashStack);
+    await logError("story_general_error", `generate-story crash: ${crashMessage}`, { stack: crashStack?.substring(0, 1500) });
+    const userMessage = error instanceof Error && error.message.startsWith("שגיאה")
+      ? error.message
       : "שגיאה בעיבוד הבקשה. נסו שוב מאוחר יותר.";
     return new Response(
-      JSON.stringify({ error: userMessage }),
+      JSON.stringify({ error: userMessage, debug: crashMessage.substring(0, 300) }),
       { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
   }
