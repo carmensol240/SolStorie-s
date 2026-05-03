@@ -373,7 +373,7 @@ const GeneratingStep = ({ formData, onComplete }: GeneratingStepProps) => {
       
       setError("not_created");
     }
-  }, [formData, toast, navigate]);
+  }, [formData, toast, navigate, isSessionExpiredError, handleSessionExpired]);
 
   // Realtime subscription: watch for illustrations completing
   useEffect(() => {
