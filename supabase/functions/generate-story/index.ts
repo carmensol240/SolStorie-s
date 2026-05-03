@@ -680,6 +680,22 @@ serve(async (req) => {
     // Parse request body once
     const reqBody = await req.json();
     const guestMode = reqBody.guestMode === true;
+    console.log("[generate-story] reqBody keys:", Object.keys(reqBody));
+    console.log("[generate-story] field check", {
+      hasName: !!reqBody.childName,
+      nameLen: reqBody.childName?.length,
+      hasTopic: !!reqBody.topic,
+      topicLen: reqBody.topic?.length,
+      topicId: reqBody.topicId,
+      language: reqBody.language,
+      ageRange: reqBody.ageRange,
+      storyLength: reqBody.storyLength,
+      childGender: reqBody.childGender,
+      hasPhoto: !!reqBody.childPhoto,
+      photoLen: reqBody.childPhoto?.length,
+      hasAvatar: !!reqBody.childAvatarUrl,
+      isGuest: guestMode,
+    });
 
     const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
     const supabaseServiceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
