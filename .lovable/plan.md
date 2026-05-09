@@ -1,24 +1,31 @@
 ## Goal
-Make "התחברות" reachable from every screen that shows the persistent bottom navigation, not just from the Settings tab — so returning, signed-out users can log in at any time.
+Replace the hardcoded demo content in `DemoStory.tsx` with a real, published library story (slug `wm25f6`, verified in DB), fetched via the same RPC the public/library viewer already uses. Keep the page strictly read-only — no edit, print, or audio controls.
 
 ## File
-`src/components/MobileNavigation.tsx` only.
+`src/pages/DemoStory.tsx` only.
 
-## Change
-1. Import `useAuth` from `@/hooks/use-auth` and `LogIn` from `lucide-react`.
-2. Read `{ user, loading }` from `useAuth()`.
-3. When `!loading && !user`, prepend an extra nav item to `navItems`:
-   - `path: "/auth"`
-   - `icon: LogIn`
-   - `label: "התחברות"`
-4. Keep the existing three items (Home / Library / Settings) and all current styling, active-state logic, accessibility attrs, and layout untouched. The new item uses the exact same className pattern.
+## Changes
+1. Drop `import { DEMO_STORY } from "@/data/demo-story"` (file remains, just unused here).
+2. Add `useEffect` + `supabase` imports.
+3. On mount, fetch the story:
+   ```ts
+   supabase.rpc("get_public_story", { p_story_id: "wm25f6" })
+   ```
+   Store `story`, `loading`, `error` in local state. Returned shape: `{ child_name, topic, age_range, language, cover_url, child_gender, pages: [{ page_number, text, illustration_url }] }`.
+4. UI states (all inside the existing header + main chrome and gradient background):
+   - **Loading:** centered spinner.
+   - **Error / no pages:** short Hebrew message "לא ניתן לטעון את הסיפור" with the existing back button.
+   - **Success:** reuse the current `BookFrame` + dual-pane layout (illustration left, `BookPage` text right) and `NavigationArrows`. Map fields:
+     - `illustrationUrl` → `page.illustration_url`
+     - `text` → `page.text`
+     - `pageNumber` → `page.page_number`
+5. Header title text: use `story.child_name` (e.g. "סול"). Keep the "סיפור לדוגמה" badge as-is.
+6. Keep unchanged: RTL wrapper, sticky header, "חזרה" button, gradient background, `BookFrame`/`BookPage`/`NavigationArrows`, and the CTA button to `/create#photo-upload-section`.
 
-## Result
-- Signed-out users: bottom bar shows 4 items — **התחברות · בית · ספרייה · הגדרות**, available on every screen that already renders `MobileNavigation`.
-- Signed-in users: bottom bar is unchanged (3 items).
-- The existing Settings logged-out login card remains as a secondary entry point.
+## Read-only guarantee
+No new buttons or controls are introduced. Specifically: no edit, print, share, audio, coloring, download, or settings controls.
 
 ## Out of scope
-- `src/pages/Settings.tsx`, `App.tsx`, `/auth` page, any other header/nav.
-- No new routes; `/auth` is already wired in `App.tsx`.
-- No logic, styling, or copy changes anywhere else.
+- `src/data/demo-story.ts` (left in place, unused by this page).
+- `BookFrame`, `BookPage`, `NavigationArrows`, `StoryViewer`, `PublicStoryViewer` — untouched.
+- Routing, RLS, hooks, styles elsewhere — untouched.
