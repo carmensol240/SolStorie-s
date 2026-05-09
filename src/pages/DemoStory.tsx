@@ -43,14 +43,14 @@ const DemoStory = () => {
       <main className="flex-1 flex flex-col items-center justify-center px-3 py-4 md:py-8">
         <div className="relative w-full max-w-6xl">
           <BookFrame>
-            <div className="grid grid-cols-1 md:grid-cols-2 min-h-[60vh] md:min-h-[70vh]">
-              {/* Illustration page (right in RTL) */}
+            <div dir="ltr" className="grid grid-cols-1 md:grid-cols-2 min-h-[60vh] md:min-h-[70vh]">
+              {/* Illustration page (left) */}
               <BookPage
                 type="illustration"
                 illustrationUrl={page.illustrationUrl}
                 pageNumber={page.pageNumber}
               />
-              {/* Text page (left in RTL) */}
+              {/* Text page (right) */}
               <BookPage
                 type="text"
                 text={page.text}
