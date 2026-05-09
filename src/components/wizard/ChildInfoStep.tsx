@@ -219,10 +219,8 @@ const ChildInfoStep = ({ formData, updateFormData }: ChildInfoStepProps) => {
           setIsValidatingPhoto(false);
         }
         
-        // Auto-generate avatar inline if child name exists
-        if (formData.childName.trim()) {
-          generateAvatarInline(photoBase64);
-        }
+        // Auto-generate avatar inline immediately after upload
+        generateAvatarInline(photoBase64);
         
         setIsUploadingPhoto(false);
       };
