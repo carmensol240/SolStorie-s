@@ -751,11 +751,11 @@ const ChildInfoStep = ({ formData, updateFormData }: ChildInfoStepProps) => {
             <div className="flex flex-col items-center justify-center w-full py-4 sm:py-6 bg-card border-2 border-purple-400 bg-purple-50 rounded-xl gap-2">
               {(formData.childAvatarUrl || isGeneratingAvatar) && formData.childPhoto ? (
                 /* Side-by-side: original photo + avatar — comic-style frames with animated arrow */
-                <div className="relative w-full rounded-2xl border-2 border-dashed border-purple-300/70 bg-gradient-to-br from-purple-50 via-pink-50 to-amber-50 p-3 shadow-inner">
-                  <div className="flex items-center justify-center gap-2 sm:gap-4 md:gap-6">
+                <div className="relative w-full rounded-2xl border-2 border-dashed border-purple-300/70 bg-gradient-to-br from-purple-50 via-pink-50 to-amber-50 p-2 sm:p-3 shadow-inner">
+                  <div className="flex items-center justify-center gap-1.5 sm:gap-4 md:gap-6">
                     {/* Original photo */}
                     <div className="flex flex-col items-center gap-1.5">
-                      <div className="relative w-20 h-20 sm:w-28 sm:h-28 md:w-32 md:h-32 rounded-2xl overflow-hidden border-[3px] border-white shadow-md ring-1 ring-purple-300/80">
+                      <div className="relative w-14 h-14 sm:w-28 sm:h-28 md:w-32 md:h-32 rounded-2xl overflow-hidden border-[3px] border-white shadow-md ring-1 ring-purple-300/80">
                         <img
                           src={formData.childPhoto}
                           alt="תמונה מקורית"
@@ -795,7 +795,7 @@ const ChildInfoStep = ({ formData, updateFormData }: ChildInfoStepProps) => {
                     {/* Avatar */}
                     <div className="flex flex-col items-center gap-1.5">
                       <div
-                        className="relative w-44 h-44 sm:w-64 sm:h-64 md:w-72 md:h-72 rounded-2xl overflow-hidden border-[3px] border-white shadow-2xl ring-4 ring-amber-300/80 flex items-center justify-center"
+                        className="relative w-48 h-48 sm:w-64 sm:h-64 md:w-72 md:h-72 rounded-2xl overflow-hidden border-[3px] border-white shadow-2xl ring-4 ring-amber-300/80 flex items-center justify-center"
                         style={{
                           background: isGeneratingAvatar
                             ? "linear-gradient(135deg, hsl(280 60% 92%), hsl(330 70% 92%), hsl(40 80% 92%))"
