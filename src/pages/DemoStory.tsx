@@ -43,13 +43,22 @@ const DemoStory = () => {
       <main className="flex-1 flex flex-col items-center justify-center px-3 py-4 md:py-8">
         <div className="relative w-full max-w-6xl">
           <BookFrame>
-            <div dir="ltr" className="grid grid-cols-1 md:grid-cols-2 min-h-[60vh] md:min-h-[70vh]">
-              {/* Illustration page (left) */}
-              <BookPage
-                type="illustration"
-                illustrationUrl={page.illustrationUrl}
-                pageNumber={page.pageNumber}
-              />
+            <div dir="ltr" className="grid grid-cols-1 md:grid-cols-2 md:min-h-[70vh]">
+              {/* Illustration page (left) — inline so mobile shows the full image */}
+              <div className="relative w-full aspect-square md:aspect-auto md:h-full bg-gradient-to-br from-[#FFFBF5] via-[#F5E6D3] to-[#FAF3E8] overflow-hidden">
+                {page.illustrationUrl && (
+                  <img
+                    src={page.illustrationUrl}
+                    alt=""
+                    className="absolute inset-0 w-full h-full object-contain md:object-cover"
+                  />
+                )}
+                <div className="absolute bottom-4 left-1/2 -translate-x-1/2 z-10">
+                  <span className="text-sm text-white/80 font-serif italic drop-shadow">
+                    {page.pageNumber}
+                  </span>
+                </div>
+              </div>
               {/* Text page (right) */}
               <BookPage
                 type="text"
