@@ -24,6 +24,7 @@ import Onboarding from "./pages/Onboarding";
 import ChildProfiles from "./pages/ChildProfiles";
 import CreateStory from "./pages/CreateStory";
 import StoryViewer from "./pages/StoryViewer";
+import DemoStory from "./pages/DemoStory";
 
 import Library from "./pages/Library";
 import FlipbookViewer from "./pages/FlipbookViewer";
@@ -82,6 +83,7 @@ function App() { useTimeTheme(); return (
             {/* Protected routes - require terms acceptance */}
             <Route path="/children" element={<RequireTerms><ChildProfiles /></RequireTerms>} />
             <Route path="/create" element={<CreateStory />} />
+            <Route path="/demo-story" element={<DemoStory />} />
             {/* Story viewer - handles both slug and UUID, public fallback for unauthenticated */}
             <Route path="/story/:storyId" element={<StoryViewer />} />
             <Route path="/library" element={<Library />} />
