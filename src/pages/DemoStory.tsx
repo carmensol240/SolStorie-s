@@ -34,29 +34,47 @@ const DemoStory = () => {
   useEffect(() => {
     let cancelled = false;
     const tryFetch = async (id: string) => {
+      console.log("[DemoStory] RPC call", { id });
       const { data, error: rpcError } = await supabase.rpc("get_public_story", {
         p_story_id: id,
       });
+      const e = rpcError as any;
+      console.log("[DemoStory] RPC response", {
+        id,
+        data,
+        error: rpcError,
+        code: e?.code,
+        message: e?.message,
+        details: e?.details,
+        hint: e?.hint,
+      });
       if (rpcError || !data) return null;
       const sd = data as unknown as DemoStoryData;
+      console.log("[DemoStory] RPC parsed", { id, pages: sd?.pages?.length ?? null });
       if (!sd.pages || sd.pages.length === 0) return null;
       return sd;
     };
     const fetchStory = async () => {
+      console.log("[DemoStory] fetchStory start", { slug: DEMO_SLUG, uuid: DEMO_UUID });
       try {
         let storyData = await tryFetch(DEMO_SLUG);
         if (cancelled) return;
+        let winner = "slug";
         if (!storyData) {
           console.warn("[DemoStory] slug fetch returned no pages, falling back to UUID overload");
           storyData = await tryFetch(DEMO_UUID);
           if (cancelled) return;
+          winner = storyData ? "uuid" : "none";
         }
         if (!storyData) {
+          console.error("[DemoStory] both fetches failed");
           setError(true);
           return;
         }
+        console.log("[DemoStory] final", { winner, pages: storyData.pages.length });
         setStory(storyData);
-      } catch {
+      } catch (err) {
+        console.error("[DemoStory] fetchStory threw", err);
         if (!cancelled) setError(true);
       } finally {
         if (!cancelled) setLoading(false);
