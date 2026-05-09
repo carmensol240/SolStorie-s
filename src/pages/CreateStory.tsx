@@ -88,6 +88,23 @@ const CreateStory = () => {
       }
       // Clean up URL
       navigate('/create', { replace: true });
+      return;
+    }
+    // Restore wizard draft saved before navigating away to demo story
+    try {
+      const draft = sessionStorage.getItem('create_wizard_draft');
+      if (draft) {
+        const parsed = JSON.parse(draft) as Partial<StoryFormData>;
+        const allowed: (keyof StoryFormData)[] = ['childName', 'childGender', 'ageRange', 'storyLength', 'language'];
+        const filtered: Partial<StoryFormData> = {};
+        for (const k of allowed) {
+          if (parsed[k] !== undefined) (filtered as any)[k] = parsed[k];
+        }
+        setFormData((prev) => ({ ...prev, ...filtered }));
+        sessionStorage.removeItem('create_wizard_draft');
+      }
+    } catch (e) {
+      console.warn('[CreateStory] Failed to restore wizard draft:', e);
     }
   }, [searchParams, navigate]);
 

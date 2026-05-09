@@ -1,24 +1,35 @@
-# Demo CTA → /create Step 1, scroll to photo upload
-
 ## Goal
-The CTA "צרו את הסיפור שלכם ✨" in `DemoStory.tsx` should land on `/create` at Step 1 (`ChildInfoStep`) and auto-scroll to the photo upload section.
+Preserve wizard form data when the user clicks "לצפייה בסיפור לדוגמה 📖" to view the demo story, so when they come back to `/create` the fields they already filled (name, age, gender, language, length) are restored.
 
-## Change
+## Note on location
+The "view demo story" button actually lives in **Step 2 (`AuthStep.tsx`)**, not Step 1 (`ChildInfoStep.tsx`). By the time it is clicked, Step 1's data already lives in `formData` state inside `CreateStory.tsx`. The plan therefore touches `CreateStory.tsx` and `AuthStep.tsx` — no change to `ChildInfoStep.tsx`.
 
-### 1. `src/pages/DemoStory.tsx`
-- Replace the CTA `onClick` to navigate to `/create#photo-upload-section` (was `/create?step=auth`).
-- Nothing else in this file changes.
+If the user meant a different button inside Step 1, let me know and I'll adjust.
 
-### 2. `src/components/wizard/ChildInfoStep.tsx`
-The hash needs a real target and React Router doesn't auto-scroll to hashes, so two tiny additions:
-- Add `id="photo-upload-section"` and `scroll-mt-24` to the existing wrapper `<div className="space-y-1.5">` at line 724 (the "Photo Upload - Enlarged" block). No other markup changes.
-- Add one `useEffect` near the top of the component: on mount, if `window.location.hash === "#photo-upload-section"`, run `setTimeout(() => document.getElementById("photo-upload-section")?.scrollIntoView({ behavior: "smooth", block: "start" }), 100)`. No new imports.
+## Changes
 
-No other logic, validation, copy, or styling in `ChildInfoStep.tsx` changes. `CreateStory.tsx`, `demo-story.ts`, and all other files are untouched.
+### 1. `src/pages/CreateStory.tsx`
+- Add a `sessionStorage` key constant, e.g. `WIZARD_DRAFT_KEY = "create_wizard_draft"`.
+- In the existing initial-mount `useEffect` (the one that handles `?resume=true`), add a branch: if no resume param, try to read `sessionStorage.getItem(WIZARD_DRAFT_KEY)`. If present, parse and restore only the requested fields onto `formData` via `setFormData(prev => ({ ...prev, ...restored }))`, then `sessionStorage.removeItem(WIZARD_DRAFT_KEY)`.
+- Restored fields whitelist: `childName`, `childGender`, `ageRange`, `storyLength`, `language`. (Photo, consent, topic intentionally excluded per the user's list.)
+- Expose a tiny helper or just pass `formData` down to `AuthStep` so it can save it (AuthStep already receives `formData` — confirmed in current code: `<AuthStep formData={formData} ... />`).
 
-## Why ChildInfoStep needs a tiny edit
-Without an `id` target and a scroll effect, navigating to `/create#photo-upload-section` does nothing — Step 1 mounts after the route transition and the browser/router won't scroll to the hash on its own. This is the smallest change required to make "scroll to the photo upload section" actually work.
+### 2. `src/components/wizard/AuthStep.tsx`
+- In the demo-story button's `onClick`, before `navigate("/demo-story")`, save the whitelisted fields:
+  ```ts
+  sessionStorage.setItem("create_wizard_draft", JSON.stringify({
+    childName: formData.childName,
+    childGender: formData.childGender,
+    ageRange: formData.ageRange,
+    storyLength: formData.storyLength,
+    language: formData.language,
+  }));
+  ```
+- No other changes to AuthStep.
 
-## Files touched
-- `src/pages/DemoStory.tsx` — CTA URL only.
-- `src/components/wizard/ChildInfoStep.tsx` — one `id` + `scroll-mt-24` on the photo wrapper, plus a 4-line scroll-on-mount effect.
+## Out of scope
+- `ChildInfoStep.tsx`, `DemoStory.tsx`, `TopicStep.tsx`, routing, photo handling, topic state, and the existing `?resume=true` OAuth flow remain untouched.
+
+## Files to edit
+- `src/pages/CreateStory.tsx`
+- `src/components/wizard/AuthStep.tsx`
