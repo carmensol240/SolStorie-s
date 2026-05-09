@@ -1,35 +1,22 @@
 ## Goal
-Preserve wizard form data when the user clicks "לצפייה בסיפור לדוגמה 📖" to view the demo story, so when they come back to `/create` the fields they already filled (name, age, gender, language, length) are restored.
+Give returning, signed-out users a clearly visible way to log in from anywhere in the app, using the existing `/auth` flow.
 
-## Note on location
-The "view demo story" button actually lives in **Step 2 (`AuthStep.tsx`)**, not Step 1 (`ChildInfoStep.tsx`). By the time it is clicked, Step 1's data already lives in `formData` state inside `CreateStory.tsx`. The plan therefore touches `CreateStory.tsx` and `AuthStep.tsx` — no change to `ChildInfoStep.tsx`.
+## Where it goes
+The bottom `MobileNavigation` (Home / Library / Settings) is shown on every main screen. Tapping **Settings** while signed out already lands on a dedicated "צריך להתחבר" card (`src/pages/Settings.tsx`, lines 64–96), but its only CTA today is "צרו סיפור ראשון ✨", which sends users into the create flow rather than letting a returning user just log in.
 
-If the user meant a different button inside Step 1, let me know and I'll adjust.
+This is the natural, low-risk spot for a login entry point: it's reachable from the persistent nav, and it's the screen a returning user will instinctively open. No new nav item is added (keeps the 3-item bottom bar clean).
 
-## Changes
+## Change
+**File:** `src/pages/Settings.tsx` — logged-out branch only (the `if (!authLoading && !user)` block).
 
-### 1. `src/pages/CreateStory.tsx`
-- Add a `sessionStorage` key constant, e.g. `WIZARD_DRAFT_KEY = "create_wizard_draft"`.
-- In the existing initial-mount `useEffect` (the one that handles `?resume=true`), add a branch: if no resume param, try to read `sessionStorage.getItem(WIZARD_DRAFT_KEY)`. If present, parse and restore only the requested fields onto `formData` via `setFormData(prev => ({ ...prev, ...restored }))`, then `sessionStorage.removeItem(WIZARD_DRAFT_KEY)`.
-- Restored fields whitelist: `childName`, `childGender`, `ageRange`, `storyLength`, `language`. (Photo, consent, topic intentionally excluded per the user's list.)
-- Expose a tiny helper or just pass `formData` down to `AuthStep` so it can save it (AuthStep already receives `formData` — confirmed in current code: `<AuthStep formData={formData} ... />`).
+Add a primary **`התחברות`** button to the card that navigates to `/auth` (the existing login route, already wired in `App.tsx`). Place it above the existing "צרו סיפור ראשון ✨" button so login is the primary action for returning users, and keep the create-story button as a secondary action (e.g. `variant="outline"`) so first-time users still have their path.
 
-### 2. `src/components/wizard/AuthStep.tsx`
-- In the demo-story button's `onClick`, before `navigate("/demo-story")`, save the whitelisted fields:
-  ```ts
-  sessionStorage.setItem("create_wizard_draft", JSON.stringify({
-    childName: formData.childName,
-    childGender: formData.childGender,
-    ageRange: formData.ageRange,
-    storyLength: formData.storyLength,
-    language: formData.language,
-  }));
-  ```
-- No other changes to AuthStep.
+The button uses the existing `LogIn` icon (already imported) and the same gradient styling as the current primary button, so it matches the surrounding design system.
 
 ## Out of scope
-- `ChildInfoStep.tsx`, `DemoStory.tsx`, `TopicStep.tsx`, routing, photo handling, topic state, and the existing `?resume=true` OAuth flow remain untouched.
+- `MobileNavigation.tsx` (no new nav item)
+- The `/auth` page itself
+- Any authenticated UI, routing, or other pages
 
 ## Files to edit
-- `src/pages/CreateStory.tsx`
-- `src/components/wizard/AuthStep.tsx`
+- `src/pages/Settings.tsx` (logged-out card only)
