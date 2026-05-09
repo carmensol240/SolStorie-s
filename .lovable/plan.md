@@ -1,18 +1,29 @@
-# Hide Google Sign-In button
+## Alternate Two Cast Images Across Demo Story Pages
 
-Flip the existing `GOOGLE_SIGNIN_ENABLED` feature flag to `false` in the two files that render the Google button, and remove the now-unused surrounding UI (the button itself and the "או" divider) so users don't see a dead/empty space.
+### Goal
+Make the 6 demo story pages visually varied by alternating the 2 available cast images from the public `topic-images` Supabase bucket.
 
-## Changes
+### Scope
+Only `src/data/demo-story.ts` will be modified. No other files touched (DemoStory.tsx, AuthStep, routing all unchanged).
 
-**`src/pages/Auth.tsx`**
-- Set `GOOGLE_SIGNIN_ENABLED = false` (line 24).
-- Remove the Google button block on the login tab (around lines 1356–1375) and its preceding "או" separator.
-- Remove the Google button block on the signup tab (around lines 1511–1530) and its preceding "או" separator.
+### Available Bucket Images
+- `sol-superhero-book-og.png` — Sol (single hero)
+- `cast-group-forest.png` — Group of friends in the forest
 
-**`src/components/wizard/AuthStep.tsx`** (the wizard auth step shown at GeneratingStep)
-- Set `GOOGLE_SIGNIN_ENABLED = false` (line 14).
-- Remove the Google `<button>` (lines ~174–188) and the "או" divider directly below it.
+Public URL base: `https://qvdwmkxviaqcgmjotsxe.supabase.co/storage/v1/object/public/topic-images/`
 
-## Out of scope (intentionally left alone)
-- `handleGoogleSignIn` functions, OAuth helpers, `OAuthReturnHandler`, `use-auth.signInWithGoogle`, and `pending_*` localStorage flags stay in place — dormant — so re-enabling later is a one-line flip.
-- No other auth, navigation, or storage behavior changes.
+### Alternation Pattern (6 pages)
+| Page | Image | Reason |
+|------|-------|--------|
+| 1 | Sol | Story opens with hero alone |
+| 2 | Group | Friends appear |
+| 3 | Sol | Focus back on hero |
+| 4 | Group | All friends together |
+| 5 | Group | Group climax in forest |
+| 6 | Sol | Hero closes the story |
+
+### Implementation
+1. Remove the 6 local `@/assets/cast-*` imports.
+2. Define two constants with the public Supabase URLs.
+3. Update each page's `illustrationUrl` per the table above.
+4. Page text stays exactly as it is.
