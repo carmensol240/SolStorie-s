@@ -1,18 +1,13 @@
 import React from "react";
-import { Library, Home, Settings, LogIn } from "lucide-react";
+import { Library, Home, Settings } from "lucide-react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { cn } from "@/lib/utils";
-import { useAuth } from "@/hooks/use-auth";
 
 const MobileNavigation = React.forwardRef<HTMLElement>((_, ref) => {
   const location = useLocation();
   const navigate = useNavigate();
-  const { user, loading } = useAuth();
 
   const navItems = [
-    ...(!loading && !user
-      ? [{ path: "/auth", icon: LogIn, label: "התחברות" }]
-      : []),
     { path: "/adventure", icon: Home, label: "בית" },
     { path: "/library", icon: Library, label: "ספרייה" },
     { path: "/settings", icon: Settings, label: "הגדרות" },
