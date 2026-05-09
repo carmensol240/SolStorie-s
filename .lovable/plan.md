@@ -1,25 +1,27 @@
-# Fix: drop redundant `get_public_story(uuid)` overload
+# Demo story: visible arrows + swipe navigation
 
 ## Goal
-Resolve PGRST203 by leaving exactly one `get_public_story` function in the database — the `text` overload, which already accepts both slugs and UUID strings via internal cast.
+Make page navigation obvious and gesture-friendly on `/demo-story` without touching anything else.
 
-## Migration
+## Why current arrows aren't seen
+The shared `NavigationArrows` component is rendered, but it uses a dark `bg-purple-900/50` styling tuned for the night-sky `BookFrame` background. On the demo page's amber/cream background (and at `right-2 / left-2` on mobile) it visually sinks into the page, and at page 0 the prev arrow is `disabled:opacity-20`. Net effect: feels like there are no arrows.
 
-```sql
-DROP FUNCTION IF EXISTS public.get_public_story(uuid);
-```
+## Change (DemoStory only — `src/pages/DemoStory.tsx`)
 
-That's it. The remaining `public.get_public_story(p_story_id text)` is unchanged and already:
-- tries to parse the input as UUID first,
-- falls back to slug lookup,
-- returns the same JSON shape used by `DemoStory.tsx` and `PublicStoryViewer.tsx`,
-- is `SECURITY DEFINER` with `EXECUTE` granted to `anon` and `authenticated`.
-
-## Post-migration cleanup (no code changes by us)
-- The auto-regenerated `src/integrations/supabase/types.ts` will replace the broken overload union with a single clean signature for `get_public_story`. No client edits required.
-- The temporary `console.log` instrumentation added previously to `src/pages/DemoStory.tsx` can stay for one verification reload, then be removed in a follow-up if desired (not part of this plan).
+1. Replace the shared `NavigationArrows` with two locally-styled, high-contrast circular buttons sized for the demo theme:
+   - Prev on the right (RTL), Next on the left.
+   - Always rendered, just hidden via `disabled` + `opacity-40 pointer-events-none` at edges.
+   - Solid amber/orange gradient with white chevrons + drop shadow so they pop on both the cream background and the illustration.
+   - `min-w-[44px] min-h-[44px]` for touch targets; arrows positioned at `right-2 / left-2` on mobile and `right-4 / left-4` on desktop, vertically centered on the book.
+   - `aria-label` "עמוד הבא" / "עמוד קודם".
+2. Add swipe support using existing `useSwipe` hook from `src/hooks/use-swipe.ts`:
+   - `onSwipeLeft` → `goNext` (RTL: swiping the page leftward advances).
+   - `onSwipeRight` → `goPrev`.
+   - Threshold 50, attach handlers to the BookFrame wrapper div.
+3. Keep keyboard nav out of scope (not asked).
+4. No changes to fetch logic, RPC, header, CTA, types, or other files.
 
 ## Out of scope
-- No changes to RLS, grants, or any other function.
-- No changes to `DemoStory.tsx`, `PublicStoryViewer.tsx`, or any other code.
-- No data changes.
+- `PublicStoryViewer`, shared `NavigationArrows`, `BookFrame` styling.
+- Removing the temporary `console.log` debug lines.
+- Any visual overhaul beyond what's needed to make the arrows clearly visible.
