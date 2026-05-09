@@ -1,10 +1,12 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { ArrowRight, Wand2, Loader2 } from "lucide-react";
+import { ArrowRight, Wand2, Loader2, ChevronLeft, ChevronRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { BookFrame, BookPage, NavigationArrows } from "@/components/story/book-frame";
+import { BookFrame, BookPage } from "@/components/story/book-frame";
 import { supabase } from "@/integrations/supabase/client";
 import { getPublicIllustrationUrl } from "@/lib/illustration-url";
+import { useSwipe } from "@/hooks/use-swipe";
+import { cn } from "@/lib/utils";
 
 const DEMO_SLUG = "wm25f6";
 const DEMO_UUID = "a9809104-e088-46f4-810f-0d6d47a9bb24";
@@ -92,6 +94,12 @@ const DemoStory = () => {
   const goPrev = () => setCurrentPage((p) => Math.max(0, p - 1));
   const goNext = () => setCurrentPage((p) => Math.min(totalPages - 1, p + 1));
 
+  const swipeHandlers = useSwipe({
+    onSwipeLeft: goNext,
+    onSwipeRight: goPrev,
+    threshold: 50,
+  });
+
   return (
     <div className="min-h-[100dvh] flex flex-col bg-gradient-to-b from-amber-50/50 to-background" dir="rtl">
       {/* Simple read-only header */}
@@ -131,6 +139,7 @@ const DemoStory = () => {
           </div>
         ) : (
         <div className="relative w-full max-w-6xl">
+          <div {...swipeHandlers} className="touch-pan-y">
           <BookFrame>
             <div dir="ltr" className="grid grid-cols-1 md:grid-cols-2 md:min-h-[70vh]">
               {/* Illustration page (left) — inline so mobile shows the full image */}
@@ -157,13 +166,42 @@ const DemoStory = () => {
               />
             </div>
           </BookFrame>
+          </div>
 
-          <NavigationArrows
-            onPrev={goPrev}
-            onNext={goNext}
-            canGoPrev={currentPage > 0}
-            canGoNext={currentPage < totalPages - 1}
-          />
+          {/* Prev (right side in RTL) */}
+          <button
+            onClick={goPrev}
+            disabled={currentPage <= 0}
+            aria-label="עמוד קודם"
+            className={cn(
+              "absolute right-2 md:right-4 top-1/2 -translate-y-1/2 z-30",
+              "min-w-[44px] min-h-[44px] w-11 h-11 md:w-14 md:h-14 rounded-full",
+              "flex items-center justify-center",
+              "bg-gradient-to-br from-amber-400 via-orange-400 to-pink-400",
+              "text-white shadow-[0_6px_20px_rgba(251,146,60,0.5)] border-2 border-white/70",
+              "hover:scale-110 active:scale-95 transition-all duration-200",
+              currentPage <= 0 && "opacity-40 pointer-events-none"
+            )}
+          >
+            <ChevronRight className="w-6 h-6 md:w-7 md:h-7 drop-shadow" />
+          </button>
+          {/* Next (left side in RTL) */}
+          <button
+            onClick={goNext}
+            disabled={currentPage >= totalPages - 1}
+            aria-label="עמוד הבא"
+            className={cn(
+              "absolute left-2 md:left-4 top-1/2 -translate-y-1/2 z-30",
+              "min-w-[44px] min-h-[44px] w-11 h-11 md:w-14 md:h-14 rounded-full",
+              "flex items-center justify-center",
+              "bg-gradient-to-br from-amber-400 via-orange-400 to-pink-400",
+              "text-white shadow-[0_6px_20px_rgba(251,146,60,0.5)] border-2 border-white/70",
+              "hover:scale-110 active:scale-95 transition-all duration-200",
+              currentPage >= totalPages - 1 && "opacity-40 pointer-events-none"
+            )}
+          >
+            <ChevronLeft className="w-6 h-6 md:w-7 md:h-7 drop-shadow" />
+          </button>
         </div>
         )}
 
