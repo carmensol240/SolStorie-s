@@ -748,14 +748,14 @@ const ChildInfoStep = ({ formData, updateFormData }: ChildInfoStepProps) => {
               <span className="text-sm text-muted-foreground">מעלה תמונה...</span>
             </div>
           ) : formData.childPhoto ? (
-            <div className="flex flex-col items-center justify-center w-full py-4 bg-card border-2 border-purple-400 bg-purple-50 rounded-xl gap-2">
+            <div className="flex flex-col items-center justify-center w-full py-4 sm:py-6 bg-card border-2 border-purple-400 bg-purple-50 rounded-xl gap-2">
               {(formData.childAvatarUrl || isGeneratingAvatar) && formData.childPhoto ? (
                 /* Side-by-side: original photo + avatar — comic-style frames with animated arrow */
                 <div className="relative w-full rounded-2xl border-2 border-dashed border-purple-300/70 bg-gradient-to-br from-purple-50 via-pink-50 to-amber-50 p-3 shadow-inner">
-                  <div className="flex items-start justify-center gap-2 sm:gap-3">
+                  <div className="flex items-center justify-center gap-2 sm:gap-4 md:gap-6">
                     {/* Original photo */}
                     <div className="flex flex-col items-center gap-1.5">
-                      <div className="relative w-32 h-32 rounded-2xl overflow-hidden border-[3px] border-white shadow-xl ring-2 ring-purple-300/80">
+                      <div className="relative w-20 h-20 sm:w-28 sm:h-28 md:w-32 md:h-32 rounded-2xl overflow-hidden border-[3px] border-white shadow-md ring-1 ring-purple-300/80">
                         <img
                           src={formData.childPhoto}
                           alt="תמונה מקורית"
@@ -783,7 +783,7 @@ const ChildInfoStep = ({ formData, updateFormData }: ChildInfoStepProps) => {
                         <Sparkles className="w-2 h-2" />
                       </span>
                       <div
-                        className="w-9 h-9 rounded-full flex items-center justify-center shadow-lg border-2 border-white arrow-bounce-rtl"
+                        className="w-9 h-9 sm:w-11 sm:h-11 rounded-full flex items-center justify-center shadow-lg border-2 border-white arrow-bounce-rtl"
                         style={{
                           background: "linear-gradient(135deg, hsl(270 80% 65%), hsl(330 85% 70%), hsl(35 95% 65%))",
                         }}
@@ -795,7 +795,7 @@ const ChildInfoStep = ({ formData, updateFormData }: ChildInfoStepProps) => {
                     {/* Avatar */}
                     <div className="flex flex-col items-center gap-1.5">
                       <div
-                        className="relative w-32 h-32 rounded-2xl overflow-hidden border-[3px] border-white shadow-xl ring-2 ring-amber-300/80 flex items-center justify-center"
+                        className="relative w-44 h-44 sm:w-64 sm:h-64 md:w-72 md:h-72 rounded-2xl overflow-hidden border-[3px] border-white shadow-2xl ring-4 ring-amber-300/80 flex items-center justify-center"
                         style={{
                           background: isGeneratingAvatar
                             ? "linear-gradient(135deg, hsl(280 60% 92%), hsl(330 70% 92%), hsl(40 80% 92%))"
@@ -805,7 +805,7 @@ const ChildInfoStep = ({ formData, updateFormData }: ChildInfoStepProps) => {
                         {isGeneratingAvatar ? (
                           <>
                             <div className="absolute inset-0 shimmer-overlay pointer-events-none" />
-                            <Loader2 className="w-8 h-8 animate-spin text-purple-500 relative z-10" />
+                            <Loader2 className="w-12 h-12 animate-spin text-purple-500 relative z-10" />
                           </>
                         ) : formData.childAvatarUrl ? (
                           <img
@@ -816,12 +816,12 @@ const ChildInfoStep = ({ formData, updateFormData }: ChildInfoStepProps) => {
                         ) : null}
                       </div>
                       <span
-                        className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold text-white shadow-sm"
+                        className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-bold text-white shadow-md"
                         style={{
                           background: "linear-gradient(135deg, hsl(270 80% 60%), hsl(330 85% 65%))",
                         }}
                       >
-                        <Sparkles className="w-3 h-3" />
+                        <Sparkles className="w-3.5 h-3.5" />
                         {isGeneratingAvatar ? 'יוצר דמות...' : 'דמות בסיפור'}
                       </span>
                     </div>
@@ -934,19 +934,19 @@ const ChildInfoStep = ({ formData, updateFormData }: ChildInfoStepProps) => {
           ) : (
             <label
               htmlFor="photo-upload"
-              className="flex flex-col items-center justify-center w-full bg-card border-2 border-dashed border-purple-200 rounded-xl cursor-pointer hover:border-purple-400 transition-colors p-4 gap-2.5"
+              className="flex flex-col items-center justify-center w-full min-h-[140px] sm:min-h-[260px] md:min-h-[320px] bg-card border-2 border-dashed border-purple-200 rounded-xl cursor-pointer hover:border-purple-400 transition-colors p-4 sm:p-8 gap-2.5 sm:gap-5"
             >
               <div className="flex items-center gap-2">
-                <Camera className="w-6 h-6 text-purple-400" />
-                <span className="text-sm font-medium text-muted-foreground">העלו תמונה</span>
+                <Camera className="w-6 h-6 sm:w-10 sm:h-10 text-purple-400" />
+                <span className="text-sm sm:text-lg font-medium text-muted-foreground">העלו תמונה</span>
               </div>
-              <div className="grid grid-cols-2 gap-x-3 gap-y-1.5 w-full">
+              <div className="grid grid-cols-2 gap-x-3 gap-y-1.5 sm:gap-y-2.5 w-full">
                 {photoTips.map((tip, index) => (
-                  <div key={index} className="flex items-center gap-1 text-[10px]">
+                  <div key={index} className="flex items-center gap-1 text-[10px] sm:text-sm">
                     {tip.isGood ? (
-                      <Check className="w-3 h-3 text-green-500 flex-shrink-0" />
+                      <Check className="w-3 h-3 sm:w-4 sm:h-4 text-green-500 flex-shrink-0" />
                     ) : (
-                      <X className="w-3 h-3 text-destructive flex-shrink-0" />
+                      <X className="w-3 h-3 sm:w-4 sm:h-4 text-destructive flex-shrink-0" />
                     )}
                     <span className={tip.isGood ? "text-foreground" : "text-muted-foreground"}>
                       {tip.text}
