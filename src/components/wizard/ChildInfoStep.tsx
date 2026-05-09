@@ -932,7 +932,7 @@ const ChildInfoStep = ({ formData, updateFormData }: ChildInfoStepProps) => {
           ) : (
             <label
               htmlFor="photo-upload"
-              className="flex flex-col items-center justify-center w-full min-h-[140px] sm:min-h-[260px] md:min-h-[320px] bg-card border-2 border-dashed border-purple-200 rounded-xl cursor-pointer hover:border-purple-400 transition-colors p-4 sm:p-8 gap-2.5 sm:gap-5"
+              className="flex flex-col items-center justify-center w-full min-h-[140px] sm:min-h-[200px] md:min-h-[220px] bg-card border-2 border-dashed border-purple-200 rounded-xl cursor-pointer hover:border-purple-400 transition-colors p-4 sm:p-8 gap-2.5 sm:gap-5"
             >
               <div className="flex items-center gap-2">
                 <Camera className="w-6 h-6 sm:w-10 sm:h-10 text-purple-400" />
