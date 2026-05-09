@@ -1,30 +1,16 @@
 ## Goal
-Replace the hardcoded demo story in `src/pages/DemoStory.tsx` with the real story `wm25f6` fetched via the existing `get_public_story` RPC, mirroring `PublicStoryViewer`.
+In `src/pages/DemoStory.tsx`, if the initial `get_public_story('wm25f6')` (text/slug overload) returns no data or zero pages, retry once with the UUID overload using the known story UUID `a9809104-e088-46f4-810f-0d6d47a9bb24`. Only set the error state if both attempts fail.
 
 ## Changes (single file: `src/pages/DemoStory.tsx`)
 
-1. **Imports**: add `useEffect`, `supabase` from `@/integrations/supabase/client`, `Loader2` from lucide-react, and `getPublicIllustrationUrl` from `@/lib/illustration-url`. Remove `DEMO_STORY` import.
-
-2. **Constants**: `const DEMO_SLUG = "wm25f6";`
-
-3. **Types** (local):
-   ```ts
-   interface DemoPage { page_number: number; text: string; illustration_url: string | null; }
-   interface DemoStoryData { id: string; child_name: string; topic: string; age_range: string; cover_url: string | null; pages: DemoPage[]; }
-   ```
-
-4. **State**: `story` (DemoStoryData|null), `loading` (true), `error` (false). Keep existing `currentPage`.
-
-5. **Fetch effect**: `supabase.rpc("get_public_story", { p_story_id: DEMO_SLUG })` — same shape as `PublicStoryViewer` (lines 94–108). Set error if no data or empty pages. Use a `cancelled` flag for cleanup.
-
-6. **Render**:
-   - Loading: full-screen Loader2 spinner with the existing gradient background.
-   - Error: simple message + back-to-home Button.
-   - Success: same `BookFrame` / `BookPage` / `NavigationArrows` layout already in the file, but driven by `story.pages`. Resolve illustration via `getPublicIllustrationUrl(page.illustration_url)`. Header title uses `story.topic` (matches PublicStoryViewer). Keep the "סיפור לדוגמה" badge, back button, and the bottom CTA exactly as they are.
+1. Add a constant: `const DEMO_UUID = "a9809104-e088-46f4-810f-0d6d47a9bb24";`
+2. Inside the existing `fetchStory` effect:
+   - Call `supabase.rpc("get_public_story", { p_story_id: DEMO_SLUG })` first.
+   - If the response has no data, an error, or `pages.length === 0`, call it again with `{ p_story_id: DEMO_UUID }`.
+   - Use whichever response yields a valid story with non-empty `pages`.
+   - Only set `error=true` if both calls fail or both return empty pages.
+   - Keep the `cancelled` cleanup flag and `finally { setLoading(false) }`.
+3. Log a `console.warn` when falling back to the UUID overload (helps future debugging).
 
 ## Out of scope
-No other files touched. No edits to header chrome, CTA, navigation, auth flow, or `src/data/demo-story.ts` (left intact even though unused).
-
-## Notes
-- The `story-illustrations` bucket is public per `src/lib/illustration-url.ts`, so no signed-URL edge function call is needed (simpler than what was discussed earlier).
-- `get_public_story` is `SECURITY DEFINER`, so anonymous/non-logged-in visitors can read story `wm25f6`.
+No other files. No changes to UI, header, CTA, types, or rendering logic. No RPC or DB changes (the function and grants are already correct on both overloads).
