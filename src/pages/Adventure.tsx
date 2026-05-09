@@ -180,15 +180,6 @@ const Adventure = () => {
             </span>
           </button>
 
-          <button
-            onClick={() => navigate("/demo-story")}
-            className="flex items-center justify-center gap-2 rounded-full px-5 py-2.5 w-full max-w-[300px] bg-white/15 backdrop-blur-xl border border-white/30 hover:bg-white/25 transition-colors"
-            aria-label="לראי סיפור לדוגמה"
-          >
-            <span className="font-bold text-sm text-white drop-shadow-md">
-              לראי סיפור לדוגמה 📖
-            </span>
-          </button>
         </div>
       </div>
 

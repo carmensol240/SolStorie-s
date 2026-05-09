@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { Mail, Lock, Eye, EyeOff, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -21,6 +22,7 @@ interface AuthStepProps {
 const AuthStep = ({ formData, onAuthenticated }: AuthStepProps) => {
   const { toast } = useToast();
   const { signInWithEmail, signUpWithEmail } = useAuth();
+  const navigate = useNavigate();
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -276,6 +278,14 @@ const AuthStep = ({ formData, onAuthenticated }: AuthStepProps) => {
               "התחברו והמשיכו ✨"
             )}
           </Button>
+
+          <button
+            type="button"
+            onClick={() => navigate("/demo-story")}
+            className="w-full bg-gradient-to-r from-purple-600 via-pink-500 to-orange-400 hover:from-purple-700 hover:via-pink-600 hover:to-orange-500 text-white font-black text-sm rounded-full py-2.5 h-auto transition-all"
+          >
+            לצפייה בסיפור לדוגמה 📖
+          </button>
         </form>
       </div>
     </div>
