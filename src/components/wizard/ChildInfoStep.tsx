@@ -106,6 +106,16 @@ const ChildInfoStep = ({ formData, updateFormData }: ChildInfoStepProps) => {
   // Selected age button
   const [selectedAgeButton, setSelectedAgeButton] = useState<string>(rangeToDisplayButton(formData.ageRange));
 
+  // Scroll to photo upload section when navigated with #photo-upload-section hash (e.g. from DemoStory CTA)
+  useEffect(() => {
+    if (typeof window !== "undefined" && window.location.hash === "#photo-upload-section") {
+      const t = setTimeout(() => {
+        document.getElementById("photo-upload-section")?.scrollIntoView({ behavior: "smooth", block: "start" });
+      }, 100);
+      return () => clearTimeout(t);
+    }
+  }, []);
+
   // Load saved children and auto-populate form on mount
   useEffect(() => {
     const fetchChildren = async () => {
@@ -721,7 +731,7 @@ const ChildInfoStep = ({ formData, updateFormData }: ChildInfoStepProps) => {
       )}
 
       {/* Photo Upload - Enlarged */}
-      <div className="space-y-1.5">
+      <div id="photo-upload-section" className="space-y-1.5 scroll-mt-24">
         <Label className="text-xs font-medium">תמונה של הילד/ה (אופציונלי)</Label>
         <div className="relative">
           <input
