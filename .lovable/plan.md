@@ -1,27 +1,24 @@
-# Fix cropped demo illustration on mobile
+# Demo CTA → /create Step 1, scroll to photo upload
 
-## Problem
-On mobile (single column), the illustration page in `DemoStory.tsx` is cropped. The grid cell uses `min-h-[60vh]` and `BookPage` renders the image as `absolute inset-0 ... object-cover` (hardcoded inside `BookPage.tsx`). With `object-cover`, portrait portions of the cast images get cropped at the top/bottom on a tall mobile cell.
+## Goal
+The CTA "צרו את הסיפור שלכם ✨" in `DemoStory.tsx` should land on `/create` at Step 1 (`ChildInfoStep`) and auto-scroll to the photo upload section.
 
-## Root cause
-The image height comes from two places:
-- `DemoStory.tsx`: grid container `min-h-[60vh] md:min-h-[70vh]`
-- `BookPage.tsx` (illustration branch): `absolute inset-0 w-full h-full object-cover` — cover crops to fill.
+## Change
 
-We cannot just add a className to `BookPage` because `object-cover` is hardcoded on its `<img>`. Editing `BookPage.tsx` would affect the real StoryViewer (out of scope).
+### 1. `src/pages/DemoStory.tsx`
+- Replace the CTA `onClick` to navigate to `/create#photo-upload-section` (was `/create?step=auth`).
+- Nothing else in this file changes.
 
-## Fix (scoped to DemoStory only)
-In `src/pages/DemoStory.tsx`, replace the illustration `<BookPage type="illustration" .../>` with an inline illustration block:
+### 2. `src/components/wizard/ChildInfoStep.tsx`
+The hash needs a real target and React Router doesn't auto-scroll to hashes, so two tiny additions:
+- Add `id="photo-upload-section"` and `scroll-mt-24` to the existing wrapper `<div className="space-y-1.5">` at line 724 (the "Photo Upload - Enlarged" block). No other markup changes.
+- Add one `useEffect` near the top of the component: on mount, if `window.location.hash === "#photo-upload-section"`, run `setTimeout(() => document.getElementById("photo-upload-section")?.scrollIntoView({ behavior: "smooth", block: "start" }), 100)`. No new imports.
 
-- Mobile: container uses `aspect-square` (no fixed `min-h`), image uses `object-contain` on a soft background so the full character is visible, no crop.
-- Desktop (`md:`): preserve current look — `aspect-auto h-full` with `object-cover` to fill the spread next to the text page.
-- Keep the page-number badge in the same position.
-- Keep the text `BookPage` and everything else (header, BookFrame, NavigationArrows, CTA, routing, data) untouched.
+No other logic, validation, copy, or styling in `ChildInfoStep.tsx` changes. `CreateStory.tsx`, `demo-story.ts`, and all other files are untouched.
 
-No changes to `BookPage.tsx`, `BookFrame.tsx`, `demo-story.ts`, or any other file.
+## Why ChildInfoStep needs a tiny edit
+Without an `id` target and a scroll effect, navigating to `/create#photo-upload-section` does nothing — Step 1 mounts after the route transition and the browser/router won't scroll to the hash on its own. This is the smallest change required to make "scroll to the photo upload section" actually work.
 
 ## Files touched
-- `src/pages/DemoStory.tsx` — only the illustration cell of the spread.
-
-## Verification
-Reload `/demo-story` at 320px width and confirm the full character is visible (no top/bottom crop), then at desktop width confirm the spread still looks like an open book with the illustration filling the left page next to the text.
+- `src/pages/DemoStory.tsx` — CTA URL only.
+- `src/components/wizard/ChildInfoStep.tsx` — one `id` + `scroll-mt-24` on the photo wrapper, plus a 4-line scroll-on-mount effect.
