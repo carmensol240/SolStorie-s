@@ -7,6 +7,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { getPublicIllustrationUrl } from "@/lib/illustration-url";
 
 const DEMO_SLUG = "wm25f6";
+const DEMO_UUID = "a9809104-e088-46f4-810f-0d6d47a9bb24";
 
 interface DemoPage {
   page_number: number;
@@ -32,18 +33,25 @@ const DemoStory = () => {
 
   useEffect(() => {
     let cancelled = false;
+    const tryFetch = async (id: string) => {
+      const { data, error: rpcError } = await supabase.rpc("get_public_story", {
+        p_story_id: id,
+      });
+      if (rpcError || !data) return null;
+      const sd = data as unknown as DemoStoryData;
+      if (!sd.pages || sd.pages.length === 0) return null;
+      return sd;
+    };
     const fetchStory = async () => {
       try {
-        const { data, error: rpcError } = await supabase.rpc("get_public_story", {
-          p_story_id: DEMO_SLUG,
-        });
+        let storyData = await tryFetch(DEMO_SLUG);
         if (cancelled) return;
-        if (rpcError || !data) {
-          setError(true);
-          return;
+        if (!storyData) {
+          console.warn("[DemoStory] slug fetch returned no pages, falling back to UUID overload");
+          storyData = await tryFetch(DEMO_UUID);
+          if (cancelled) return;
         }
-        const storyData = data as unknown as DemoStoryData;
-        if (!storyData.pages || storyData.pages.length === 0) {
+        if (!storyData) {
           setError(true);
           return;
         }
