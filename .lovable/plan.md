@@ -1,14 +1,24 @@
 ## Goal
-Center the text inside every button in the signup/login card so labels sit visually in the middle under RTL.
+Make "התחברות" reachable from every screen that shows the persistent bottom navigation, not just from the Settings tab — so returning, signed-out users can log in at any time.
 
 ## File
-`src/components/wizard/AuthStep.tsx` only.
+`src/components/MobileNavigation.tsx` only.
 
-## Changes
-Add `flex items-center justify-center text-center` to the className of:
+## Change
+1. Import `useAuth` from `@/hooks/use-auth` and `LogIn` from `lucide-react`.
+2. Read `{ user, loading }` from `useAuth()`.
+3. When `!loading && !user`, prepend an extra nav item to `navItems`:
+   - `path: "/auth"`
+   - `icon: LogIn`
+   - `label: "התחברות"`
+4. Keep the existing three items (Home / Library / Settings) and all current styling, active-state logic, accessibility attrs, and layout untouched. The new item uses the exact same className pattern.
 
-1. The two mode-toggle pills (lines 178–199): "הרשמה" and "כבר יש לי חשבון".
-2. The submit `<Button>` (line 268): "הירשמו והמשיכו ✨" / "התחברו והמשיכו ✨" / spinner.
-3. The "לצפייה בסיפור לדוגמה 📖" button (line 282).
+## Result
+- Signed-out users: bottom bar shows 4 items — **התחברות · בית · ספרייה · הגדרות**, available on every screen that already renders `MobileNavigation`.
+- Signed-in users: bottom bar is unchanged (3 items).
+- The existing Settings logged-out login card remains as a secondary entry point.
 
-No other styling, copy, layout, or logic is modified.
+## Out of scope
+- `src/pages/Settings.tsx`, `App.tsx`, `/auth` page, any other header/nav.
+- No new routes; `/auth` is already wired in `App.tsx`.
+- No logic, styling, or copy changes anywhere else.
