@@ -251,7 +251,7 @@ const CreateStory = () => {
       </header>
 
       <main className="flex-1" style={{ WebkitOverflowScrolling: 'touch' }}>
-        <div className="container max-w-lg mx-auto px-2 py-3" style={{ paddingBottom: '180px' }}>
+        <div className="container max-w-lg mx-auto px-2 py-3" style={{ paddingBottom: '120px' }}>
           {step === 1 && (
             <ChildInfoStep formData={formData} updateFormData={updateFormData} />
           )}
@@ -268,7 +268,7 @@ const CreateStory = () => {
       </main>
 
       {step !== 2 && (
-        <div className="fixed bottom-[4.5rem] left-0 right-0 z-[50] bg-gradient-to-t from-background via-background to-transparent pt-6 pb-3 px-3 pb-safe">
+        <div className="fixed bottom-[4.5rem] left-0 right-0 z-[50] bg-gradient-to-t from-background via-background to-transparent pt-6 pb-2 px-3 pb-safe">
           <div className="container max-w-lg mx-auto">
             <Button
               onClick={handleNext}
@@ -279,14 +279,17 @@ const CreateStory = () => {
               {step === 3 ? "צרו את הסיפור" : "המשיכו"}
               <ArrowLeft className="w-4 h-4 mr-1.5" />
             </Button>
+            <GlobalFooter />
           </div>
         </div>
       )}
 
-      <div className="pb-24">
-        <GlobalFooter />
-      </div>
-      
+      {step === 2 && (
+        <div className="pb-24">
+          <GlobalFooter />
+        </div>
+      )}
+
       <MobileNavigation />
     </div>
   );
