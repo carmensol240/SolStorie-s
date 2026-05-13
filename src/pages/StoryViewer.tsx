@@ -580,6 +580,47 @@ const [currentPage, setCurrentPage] = useState(0);
       }
       
       if (!storyData) {
+        // Fallback: try public RPC (handles shared links for non-owners / logged-out viewers)
+        try {
+          const { data: publicData } = await supabase.rpc("get_public_story", {
+            p_story_id: storyId as string,
+          });
+          if (publicData) {
+            const pd: any = publicData;
+            const resolvedStoryId = pd.id;
+            setResolvedId(resolvedStoryId);
+            setEditStoryId(resolvedStoryId);
+            setGenerationStatus('ready');
+
+            if (pd.slug && storyId !== pd.slug) {
+              window.history.replaceState(null, '', `/story/${pd.slug}`);
+            }
+
+            const storyObj: Story = {
+              id: pd.id,
+              slug: pd.slug || undefined,
+              child_name: pd.child_name,
+              child_gender: pd.child_gender || 'female',
+              topic: pd.topic,
+              language: pd.language || 'he',
+              age_range: pd.age_range || '3-6',
+              cover_url: pd.cover_url || undefined,
+              pages: (pd.pages || []).map((p: any) => ({
+                id: `${pd.id}-${p.page_number}`,
+                page_number: p.page_number,
+                text: p.text,
+                illustration_url: p.illustration_url ?? null,
+              })),
+              generation_status: 'ready',
+            };
+            setStory(storyObj);
+            setIsLoading(false);
+            return;
+          }
+        } catch (e) {
+          console.warn('[StoryViewer] get_public_story RPC fallback failed', e);
+        }
+
         const elapsed = Date.now() - fetchStartTimeRef.current;
         // Retry for up to 20s to handle DB write delays after generation
         if (elapsed < 20000) {
