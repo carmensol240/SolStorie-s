@@ -1,72 +1,60 @@
 ## Goal
-On `/create`, stop the fixed "המשיכו" action bar from covering the SolStorie's logo and copyright, and trim the dead space under the photo upload area.
+Make `/story/:slug` viewable by anyone with the link (including logged-out users) by falling back to the `get_public_story` RPC when the direct table query returns no row due to RLS.
 
-## Root cause
-In `src/pages/CreateStory.tsx`:
-- The action bar is `position: fixed; bottom: 4.5rem` (above `MobileNavigation`).
-- The footer is rendered after `<main>` in normal flow inside `<div className="pb-24">`. It scrolls into the bottom of the viewport and the fixed button sits in front of it, hiding the logo/copyright.
-- `<main>` content uses `paddingBottom: '180px'`, which on tablet/desktop leaves a large empty gap under the photo upload area before the footer.
+## Scope
+Single file: `src/pages/StoryViewer.tsx`, inside the existing `fetchStory` flow (around lines 555–650). No other files, no schema changes, no UI changes.
 
-## Changes
+## Change
 
-### 1. `src/pages/CreateStory.tsx` — render the footer inside the fixed action bar, above the button
+In `fetchStory`, after the direct `stories` table lookup (UUID branch + slug branch) sets `storyData`, if `storyData` is still `null` and the request is online, attempt the public RPC fallback before triggering the retry/“not found” logic:
 
-Replace the current bottom-of-page block:
+```ts
+if (!storyData) {
+  const { data: publicData } = await supabase.rpc("get_public_story", {
+    p_story_id: storyId,
+  });
+  if (publicData) {
+    const pd: any = publicData;
+    const resolvedStoryId = pd.id;
+    setResolvedId(resolvedStoryId);
+    setEditStoryId(resolvedStoryId);
+    setGenerationStatus('ready');
 
-```tsx
-{step !== 2 && (
-  <div className="fixed bottom-[4.5rem] left-0 right-0 z-[50] bg-gradient-to-t from-background via-background to-transparent pt-6 pb-3 px-3 pb-safe">
-    <div className="container max-w-lg mx-auto">
-      <Button ...>...</Button>
-    </div>
-  </div>
-)}
+    if (pd.slug && storyId !== pd.slug) {
+      window.history.replaceState(null, '', `/story/${pd.slug}`);
+    }
 
-<div className="pb-24">
-  <GlobalFooter />
-</div>
-
-<MobileNavigation />
+    const storyObj: Story = {
+      id: pd.id,
+      slug: pd.slug || undefined,
+      child_name: pd.child_name,
+      child_gender: pd.child_gender || 'female',
+      topic: pd.topic,
+      language: pd.language || 'he',
+      age_range: pd.age_range || '3-6',
+      cover_url: pd.cover_url || undefined,
+      pages: (pd.pages || []).map((p: any) => ({
+        id: `${pd.id}-${p.page_number}`,
+        page_number: p.page_number,
+        text: p.text,
+        illustration_url: p.illustration_url ?? null,
+      })),
+      generation_status: 'ready',
+    };
+    setStory(storyObj);
+    setIsLoading(false);
+    return; // skip the owner-only story_pages query and series sidebar
+  }
+  // fall through to existing retry / “not found” handling
+}
 ```
 
-With:
+The fallback is placed **before** the `if (!storyData)` retry block so:
+- Owner viewing their own story: original path runs unchanged (table query succeeds first).
+- Anonymous / non-owner viewer with valid link: RPC returns the story + pages and we render it.
+- Truly missing story: RPC returns null → existing 20s retry / "הסיפור לא נמצא" toast still fires.
 
-```tsx
-{step !== 2 && (
-  <div className="fixed bottom-[4.5rem] left-0 right-0 z-[50] bg-gradient-to-t from-background via-background to-transparent pt-6 pb-2 px-3 pb-safe">
-    <div className="container max-w-lg mx-auto">
-      <Button ...>...</Button>
-      <GlobalFooter />
-    </div>
-  </div>
-)}
-
-{step === 2 && (
-  <div className="pb-24">
-    <GlobalFooter />
-  </div>
-)}
-
-<MobileNavigation />
-```
-
-This guarantees the logo + copyright are always above the button (never covered) on steps 1 and 3, and keeps existing behavior on step 2 (no fixed bar on the auth step).
-
-### 2. `src/pages/CreateStory.tsx` — trim the bottom padding under content
-
-Same file, the `<main>` inner container:
-
-- `style={{ paddingBottom: '180px' }}` → `style={{ paddingBottom: '120px' }}`
-
-Rationale: the action bar + footer now occupy more vertical space, but on tablet/desktop the previous 180 px left a noticeable gap under the upload box. 120 px keeps the button comfortably clear of the last form element while removing the obvious empty stretch the user is seeing.
-
-### 3. `src/components/wizard/ChildInfoStep.tsx` — reduce the empty area inside the upload dropzone on tablet
-
-The dropzone label (line ~935) currently forces `md:min-h-[320px]`, which adds a lot of empty space below the camera/tips block on tablet.
-
-- `min-h-[140px] sm:min-h-[260px] md:min-h-[320px]` → `min-h-[140px] sm:min-h-[200px] md:min-h-[220px]`
-
-Mobile size unchanged.
-
-## Out of scope
-No changes to: the avatar block, the action button itself, `MobileNavigation`, `GlobalFooter` markup, copy, colors, or any logic. No changes outside `CreateStory.tsx` and the single line above in `ChildInfoStep.tsx`.
+## Notes
+- The existing series-siblings query (`stories` select for the user's other parts) is owner-gated by RLS; it stays unchanged and will simply return nothing for non-owners, which is fine.
+- Edit/coloring/PDF actions in `StoryViewer` already require auth+ownership server-side; non-owners just won't be able to use them, matching expected shared-link behavior.
+- No DB migration needed — `get_public_story` already exists as `SECURITY DEFINER` and accepts either UUID or slug.
