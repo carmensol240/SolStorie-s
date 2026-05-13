@@ -14,12 +14,12 @@ const AVATAR_GENERATION_STRATEGIES = [
   {
     model: "google/gemini-2.5-flash-image",
     prompt:
-      "Create a warm 3D animated storybook portrait based on this child photo. Preserve the child's hairstyle, skin tone, facial features, and clothing colors. Friendly family-safe style, rounded features, expressive eyes, soft cinematic lighting, simple pastel background. Head and upper body only. Return image only.",
+      "Create a high-fidelity Pixar 3D animation portrait of the child in this photo. CRITICAL — FACE ACCURACY: The result MUST be an exact likeness of this specific child. Preserve the EXACT face shape, eye shape and color, nose shape, mouth shape, eyebrow shape and arch. Keep the EXACT hair color, hair texture, hair length, and hair style. Match the EXACT skin tone and undertone. STYLE: Disney-Pixar 3D animation aesthetic like Encanto, Coco, and Inside Out — realistic proportions, detailed hair and skin texture, warm cinematic lighting, natural skin with subtle pores and warmth, expressive realistic eyes with detailed irises. Full head and shoulders framing, centered composition, simple clean pastel background. DO NOT change eye color. DO NOT alter hair color. DO NOT smooth away moles, freckles, birthmarks, or any distinguishing facial features. DO NOT change the child's unique facial structure. The result must look like the SAME child, just rendered in Pixar 3D animation style. Return image only.",
   },
   {
     model: "google/gemini-3.1-flash-image-preview",
     prompt:
-      "Create a cute 3D cartoon avatar inspired by this child photo for a children's story. Keep the child recognizable with matching hair, skin tone, face shape, and clothing colors. Soft lighting, clean pastel background, head and shoulders framing. Return image only.",
+      "Create a Pixar 3D animated portrait of this child with MAXIMUM facial accuracy. Keep the EXACT face shape, eye shape and color, nose shape, mouth shape, and eyebrow shape. Match the EXACT hair color, texture, length, and style. Match the EXACT skin tone and undertone. Use Disney-Pixar 3D CGI animation style — realistic proportions, warm cinematic lighting, detailed hair and skin texture, rich colorful rendering as seen in Encanto, Coco, and Inside Out. Head and shoulders framing, clean simple pastel background. DO NOT change eye color. DO NOT alter hair color. DO NOT remove or smooth away moles, freckles, or birthmarks. DO NOT change facial structure. The child must remain perfectly recognizable. Return image only.",
   },
 ] as const;
 
