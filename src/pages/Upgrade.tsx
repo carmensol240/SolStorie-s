@@ -50,24 +50,6 @@ const Upgrade = () => {
   const [userDetailsValid, setUserDetailsValid] = useState(true);
   const userDetailsRef = useRef<UserDetailsRef>(null);
 
-  // Countdown timer — 48 hours from first page mount
-  const targetTimeRef = useRef<number>(Date.now() + 48 * 60 * 60 * 1000);
-  const [timeLeft, setTimeLeft] = useState(() => {
-    const diff = targetTimeRef.current - Date.now();
-    return diff > 0 ? diff : 0;
-  });
-  useEffect(() => {
-    if (timeLeft <= 0) return;
-    const timer = setInterval(() => {
-      const diff = targetTimeRef.current - Date.now();
-      setTimeLeft(diff > 0 ? diff : 0);
-    }, 1000);
-    return () => clearInterval(timer);
-  }, [timeLeft > 0]);
-  const days = Math.floor(timeLeft / 86400000);
-  const hours = Math.floor((timeLeft % 86400000) / 3600000);
-  const minutes = Math.floor((timeLeft % 3600000) / 60000);
-  const seconds = Math.floor((timeLeft % 60000) / 1000);
   
 
   const title = "אהבתם? 💛";
@@ -336,34 +318,12 @@ const Upgrade = () => {
           </div>
 
 
-          {/* Limited-time countdown */}
-          {timeLeft > 0 && (
-            <div className="mb-4">
-              <p className="text-center text-white text-sm font-bold mb-2">
-                ⏰ ההצעה המיוחדת הזו מסתיימת בקרוב!
-              </p>
-              <div className="flex justify-center gap-2" dir="ltr">
-                {[
-                  { value: days, label: 'ימים' },
-                  { value: hours, label: 'שעות' },
-                  { value: minutes, label: 'דקות' },
-                  { value: seconds, label: 'שניות' },
-                ].map((unit, i) => (
-                  <div
-                    key={i}
-                    className="flex flex-col items-center bg-gradient-to-br from-purple-500/30 to-pink-500/30 backdrop-blur-md border border-white/20 rounded-xl px-3 py-2 min-w-[56px] shadow-lg"
-                  >
-                    <span className="text-xl font-black text-white font-mono tabular-nums">
-                      {String(unit.value).padStart(2, '0')}
-                    </span>
-                    <span className="text-[10px] text-purple-200 font-bold mt-0.5">
-                      {unit.label}
-                    </span>
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
+          {/* Holiday promotion */}
+          <div className="mb-4 text-center">
+            <p className="text-white text-sm font-bold">
+              🎉 מבצע חג שבועות
+            </p>
+          </div>
 
           {/* Package Cards — Glassmorphism */}
           <div className="grid grid-cols-3 gap-3 mb-4 pt-4">
