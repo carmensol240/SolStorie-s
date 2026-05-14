@@ -50,24 +50,6 @@ const Upgrade = () => {
   const [userDetailsValid, setUserDetailsValid] = useState(true);
   const userDetailsRef = useRef<UserDetailsRef>(null);
 
-  // Countdown timer — 48 hours from first page mount
-  const targetTimeRef = useRef<number>(Date.now() + 48 * 60 * 60 * 1000);
-  const [timeLeft, setTimeLeft] = useState(() => {
-    const diff = targetTimeRef.current - Date.now();
-    return diff > 0 ? diff : 0;
-  });
-  useEffect(() => {
-    if (timeLeft <= 0) return;
-    const timer = setInterval(() => {
-      const diff = targetTimeRef.current - Date.now();
-      setTimeLeft(diff > 0 ? diff : 0);
-    }, 1000);
-    return () => clearInterval(timer);
-  }, [timeLeft > 0]);
-  const days = Math.floor(timeLeft / 86400000);
-  const hours = Math.floor((timeLeft % 86400000) / 3600000);
-  const minutes = Math.floor((timeLeft % 3600000) / 60000);
-  const seconds = Math.floor((timeLeft % 60000) / 1000);
   
 
   const title = "אהבתם? 💛";
