@@ -50,16 +50,16 @@ const Upgrade = () => {
   const [userDetailsValid, setUserDetailsValid] = useState(true);
   const userDetailsRef = useRef<UserDetailsRef>(null);
 
-  // Countdown timer — to April 8, 2026 00:00 Israel time (UTC+3)
-  const TARGET_DATE = new Date('2026-04-07T21:00:00Z');
+  // Countdown timer — 48 hours from first page mount
+  const targetTimeRef = useRef<number>(Date.now() + 48 * 60 * 60 * 1000);
   const [timeLeft, setTimeLeft] = useState(() => {
-    const diff = TARGET_DATE.getTime() - Date.now();
+    const diff = targetTimeRef.current - Date.now();
     return diff > 0 ? diff : 0;
   });
   useEffect(() => {
     if (timeLeft <= 0) return;
     const timer = setInterval(() => {
-      const diff = TARGET_DATE.getTime() - Date.now();
+      const diff = targetTimeRef.current - Date.now();
       setTimeLeft(diff > 0 ? diff : 0);
     }, 1000);
     return () => clearInterval(timer);
@@ -336,18 +336,34 @@ const Upgrade = () => {
           </div>
 
 
-          {/* Limited-time offer badge */}
+          {/* Limited-time countdown */}
           {timeLeft > 0 && (
-            <div className="flex justify-center mb-3">
-              <div className="inline-flex items-center gap-2 bg-gradient-to-r from-orange-500/90 to-pink-500/90 backdrop-blur-sm text-white text-sm font-bold px-4 py-2 rounded-full shadow-lg animate-pulse">
-                <span>🌸 מבצע פסח 🌸</span>
-                <span className="bg-white/20 rounded-md px-2 py-0.5 font-mono text-xs tracking-wider">
-                  {String(days).padStart(2,'0')} : {String(hours).padStart(2,'0')} : {String(minutes).padStart(2,'0')} : {String(seconds).padStart(2,'0')}
-                </span>
+            <div className="mb-4">
+              <p className="text-center text-white text-sm font-bold mb-2">
+                ⏰ ההצעה המיוחדת הזו מסתיימת בקרוב!
+              </p>
+              <div className="flex justify-center gap-2" dir="ltr">
+                {[
+                  { value: days, label: 'ימים' },
+                  { value: hours, label: 'שעות' },
+                  { value: minutes, label: 'דקות' },
+                  { value: seconds, label: 'שניות' },
+                ].map((unit, i) => (
+                  <div
+                    key={i}
+                    className="flex flex-col items-center bg-gradient-to-br from-purple-500/30 to-pink-500/30 backdrop-blur-md border border-white/20 rounded-xl px-3 py-2 min-w-[56px] shadow-lg"
+                  >
+                    <span className="text-xl font-black text-white font-mono tabular-nums">
+                      {String(unit.value).padStart(2, '0')}
+                    </span>
+                    <span className="text-[10px] text-purple-200 font-bold mt-0.5">
+                      {unit.label}
+                    </span>
+                  </div>
+                ))}
               </div>
             </div>
           )}
-          {timeLeft > 0 && <p className="text-center text-white/70 text-xs mb-3">לזמן מוגבל בלבד ⏰</p>}
 
           {/* Package Cards — Glassmorphism */}
           <div className="grid grid-cols-3 gap-3 mb-4 pt-4">
