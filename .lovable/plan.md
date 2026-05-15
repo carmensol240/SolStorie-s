@@ -1,31 +1,50 @@
-## Objective
-Update the 3 story package prices and replace the existing countdown timer on the `/upgrade` pricing page.
+## Goal
+Add a new **Service Health** section at the top of `AdminDashboard.tsx` showing the status of 4 critical services. Nothing else in the dashboard changes.
 
-## Changes
+## New edge function: `admin-service-health`
 
-### 1. `src/config/pricing.ts`
-Update the 3 main package prices and per-story labels:
+Single admin-only function (verifies caller is admin via `has_role`) that returns:
 
-| Package | Stories | Old Price | New Price | Old per-story | New per-story |
-|---------|---------|-----------|-----------|---------------|---------------|
-| basic   | 3       | ₪39       | **₪49**   | 13₪           | ~16.3₪        |
-| popular | 10      | ₪99       | **₪129**  | 9.9₪          | 12.9₪         |
-| premium | 15      | ₪119      | **₪169**  | 7.9₪          | ~11.3₪        |
+```json
+{
+  "db": { "size_bytes": 123456789, "size_pretty": "117 MB", "limit_bytes": 8589934592 },
+  "resend": { "sent_this_month": 1234, "ok": true, "error": null }
+}
+```
 
-Also update `originalPrice` fields to match.
+- **DB size**: uses `SUPABASE_SERVICE_ROLE_KEY` to run `SELECT pg_database_size(current_database())`. Limit comes from a constant in the function (default 8 GB free tier — easy to update).
+- **Resend**: calls `GET https://api.resend.com/emails?limit=100` (paginated until older than the 1st of current month) using `RESEND_API_KEY`, counts items where `created_at >= startOfMonth`. If Resend API fails, returns `ok: false` and the error message — the UI falls back to showing only error counts.
 
-### 2. `src/pages/Upgrade.tsx`
-Replace the existing countdown timer (currently targeting April 7, 2026 / "מבצע פסח") with:
+Edge function is registered with default settings (no config.toml change needed).
 
-- **Target:** 48 hours from deploy time (`Date.now() + 48 * 60 * 60 * 1000`)
-- **Text above timer:** `⏰ ההצעה המיוחדת הזו מסתיימת בקרוב!`
-- **Display:** Days, hours, minutes, seconds counting down
-- **Styling:** Match existing purple/pink gradient design of the page
-- **Zero behavior:** Hide the entire timer block completely when `timeLeft` reaches 0
+## Frontend changes — `src/pages/AdminDashboard.tsx`
+
+Add a new component block rendered **above the existing tabs / KPI grid**, after the page header. No existing UI is removed or restructured.
+
+Data sources:
+
+| Card | Data source |
+|------|-------------|
+| **Lovable AI Gateway** | Derived from existing `errorLogs` already in state. Filter where `error_message` contains `402` OR `"credits"` OR `"quota"`. Show: last 402 timestamp (relative + absolute), count in last 24h, count in last 7d. |
+| **Fal.ai** | Last usage: max `created_at` from existing `illustrationLogs` where `model_used` ILIKE `%fal%`. Errors: count in `errorLogs` where `error_type = 'illustration_fal_error'` in last 24h / 7d. |
+| **Supabase DB** | From new `admin-service-health` edge function. Show `size_pretty` + a progress bar `size_bytes / limit_bytes`, percentage. |
+| **Resend** | From edge function: `sent_this_month`. If `ok=false`, show "Stats unavailable" + error tooltip. |
+
+Each card:
+- Title + small icon
+- 1–2 stat lines
+- A red badge **"⚠️ Errors in last 24h"** when its 24h error count > 0 (AI Gateway, Fal.ai), or when DB usage > 90%, or when Resend `ok=false`.
+- Otherwise a green "Healthy" badge.
+
+Layout: `grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6`, using existing `<Card>` from `@/components/ui/card` and `<Badge>` — matches the dashboard's current style.
+
+A single `useEffect` calls `supabase.functions.invoke('admin-service-health')` once on mount and refreshes alongside the existing 30s `fetchAllData` interval (piggybacks on it via a `serviceHealth` state setter inside `fetchAllData`, so no second timer).
 
 ## What stays exactly the same
-- Card layout, glassmorphism styling, selection rings
-- PayPal purchase logic, coupon logic, test-user logic
-- All other packages (educator, edit kit, coloring kit, toolkit)
-- Hero image, header text, credit badge, bottom CTA
-- All other page logic and event tracking
+- All existing tabs, KPI cards, tables, filters, realtime subscriptions, trash/reviewed logic.
+- No DB schema changes, no RLS changes.
+- No changes to other pages or any business logic.
+
+## Out of scope (per chosen options)
+- No live AI Gateway balance API call (none available) — relies on `error_logs`.
+- No new `email_send_log` table — Resend totals come from Resend's own API.
