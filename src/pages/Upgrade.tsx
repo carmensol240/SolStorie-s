@@ -340,6 +340,52 @@ const Upgrade = () => {
             </p>
           </div>
 
+          {/* Collapsible features section */}
+          <div className="mb-4">
+            <button
+              type="button"
+              onClick={() => setShowFeatures((v) => !v)}
+              aria-expanded={showFeatures}
+              className={cn(
+                "w-full flex items-center justify-between gap-2 px-4 py-3 rounded-2xl",
+                "bg-gradient-to-r from-purple-500/30 via-pink-500/30 to-purple-500/30",
+                "backdrop-blur-md border border-white/25 hover:border-white/40",
+                "text-white font-bold text-sm sm:text-base shadow-lg transition-all"
+              )}
+            >
+              <span className="flex-1 text-center">✨ הרבה יותר מסיפור רגיל</span>
+              <ChevronDown
+                className={cn(
+                  "w-5 h-5 transition-transform duration-300 shrink-0",
+                  showFeatures && "rotate-180"
+                )}
+              />
+            </button>
+
+            {showFeatures && (
+              <div className="mt-3 grid grid-cols-1 sm:grid-cols-2 gap-2 animate-in fade-in slide-in-from-top-2 duration-300">
+                {FEATURES.map((f) => (
+                  <div
+                    key={f.title}
+                    className="flex items-start gap-2.5 p-3 rounded-xl bg-white/10 backdrop-blur-sm border border-white/15 hover:bg-white/15 transition-colors"
+                  >
+                    <span className="text-2xl leading-none shrink-0" aria-hidden>
+                      {f.icon}
+                    </span>
+                    <div className="flex-1 min-w-0 text-right">
+                      <div className="text-white font-bold text-sm leading-tight">
+                        {f.title}
+                      </div>
+                      <div className="text-white/75 text-xs mt-0.5 leading-snug">
+                        {f.desc}
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+
           {/* Package Cards — Glassmorphism */}
           <div className="grid grid-cols-3 gap-3 mb-4 pt-4">
             {PRICING_PACKAGES.map((pkg) => (
