@@ -1,6 +1,6 @@
 import { useRef, useEffect, useState } from "react";
 import { Checkbox } from "@/components/ui/checkbox";
-import { User, Camera, Sparkles, RefreshCw, Trash2, Heart, ChevronDown, ChevronUp, Check, X, Loader2, Save, Shield, Globe, PlusCircle, BookOpen, ArrowLeft } from "lucide-react";
+import { User, Camera, Sparkles, RefreshCw, Trash2, Heart, ChevronDown, ChevronUp, Check, X, Loader2, Save, Shield, Globe, PlusCircle, BookOpen, ArrowLeft, ArrowDown } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
@@ -748,52 +748,13 @@ const ChildInfoStep = ({ formData, updateFormData }: ChildInfoStepProps) => {
           ) : formData.childPhoto ? (
             <div className="flex flex-col items-center justify-center w-full py-4 sm:py-6 bg-card border-2 border-purple-400 bg-purple-50 rounded-xl gap-2">
               {(formData.childAvatarUrl || isGeneratingAvatar) && formData.childPhoto ? (
-                /* Side-by-side: original photo + avatar — comic-style frames with animated arrow */
+                /* Vertical stack: avatar (top) → arrow down → original photo (bottom) */
                 <div className="relative w-full rounded-2xl border-2 border-dashed border-purple-300/70 bg-gradient-to-br from-purple-50 via-pink-50 to-amber-50 p-2 sm:p-3 shadow-inner">
-                  <div className="flex items-center justify-center gap-1.5 sm:gap-4 md:gap-6">
-                    {/* Original photo */}
-                    <div className="flex flex-col items-center gap-1.5">
-                      <div className="relative w-20 h-20 sm:w-28 sm:h-28 md:w-32 md:h-32 rounded-2xl overflow-hidden border-[3px] border-white shadow-md ring-1 ring-purple-300/80">
-                        <img
-                          src={formData.childPhoto}
-                          alt="תמונה מקורית"
-                          className="w-full h-full object-cover"
-                        />
-                      </div>
-                      <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-white/80 border border-purple-200 text-[10px] font-bold text-purple-700 shadow-sm">
-                        <Camera className="w-3 h-3" />
-                        תמונה מקורית
-                      </span>
-                    </div>
-
-                    {/* Animated comic arrow */}
-                    <div
-                      className="relative flex items-center justify-center self-center"
-                      aria-label="ההפיכה לדמות בסיפור"
-                    >
-                      <span className="absolute -top-2 -left-1 text-amber-400 animate-pulse" style={{ animationDelay: "0s" }}>
-                        <Sparkles className="w-3 h-3" />
-                      </span>
-                      <span className="absolute -bottom-2 -right-1 text-pink-400 animate-pulse" style={{ animationDelay: "0.6s" }}>
-                        <Sparkles className="w-2.5 h-2.5" />
-                      </span>
-                      <span className="absolute top-1 -right-3 text-purple-400 animate-pulse" style={{ animationDelay: "1.2s" }}>
-                        <Sparkles className="w-2 h-2" />
-                      </span>
-                      <div
-                        className="w-9 h-9 sm:w-11 sm:h-11 rounded-full flex items-center justify-center shadow-lg border-2 border-white arrow-bounce-rtl"
-                        style={{
-                          background: "linear-gradient(135deg, hsl(270 80% 65%), hsl(330 85% 70%), hsl(35 95% 65%))",
-                        }}
-                      >
-                        <ArrowLeft className="w-5 h-5 text-white drop-shadow" strokeWidth={3} />
-                      </div>
-                    </div>
-
+                  <div className="flex flex-col items-center justify-center gap-3">
                     {/* Avatar */}
                     <div className="flex flex-col items-center gap-1.5">
                       <div
-                        className="relative w-64 h-64 sm:w-64 sm:h-64 md:w-72 md:h-72 rounded-2xl overflow-hidden border-[3px] border-white shadow-2xl ring-4 ring-amber-300/80 flex items-center justify-center"
+                        className="relative w-56 h-56 rounded-2xl overflow-hidden border-[3px] border-white shadow-2xl ring-4 ring-amber-300/80 flex items-center justify-center"
                         style={{
                           background: isGeneratingAvatar
                             ? "linear-gradient(135deg, hsl(280 60% 92%), hsl(330 70% 92%), hsl(40 80% 92%))"
@@ -809,7 +770,7 @@ const ChildInfoStep = ({ formData, updateFormData }: ChildInfoStepProps) => {
                           <img
                             src={formData.childAvatarUrl}
                             alt="דמות בסיפור"
-                            className="w-full h-full object-cover"
+                            className="w-full h-full object-contain"
                           />
                         ) : null}
                       </div>
@@ -821,6 +782,45 @@ const ChildInfoStep = ({ formData, updateFormData }: ChildInfoStepProps) => {
                       >
                         <Sparkles className="w-3.5 h-3.5" />
                         {isGeneratingAvatar ? 'יוצר דמות...' : 'דמות בסיפור'}
+                      </span>
+                    </div>
+
+                    {/* Animated downward arrow */}
+                    <div
+                      className="relative flex items-center justify-center"
+                      aria-label="התמונה המקורית"
+                    >
+                      <span className="absolute -top-2 -left-1 text-amber-400 animate-pulse" style={{ animationDelay: "0s" }}>
+                        <Sparkles className="w-3 h-3" />
+                      </span>
+                      <span className="absolute -bottom-2 -right-1 text-pink-400 animate-pulse" style={{ animationDelay: "0.6s" }}>
+                        <Sparkles className="w-2.5 h-2.5" />
+                      </span>
+                      <span className="absolute top-1 -right-3 text-purple-400 animate-pulse" style={{ animationDelay: "1.2s" }}>
+                        <Sparkles className="w-2 h-2" />
+                      </span>
+                      <div
+                        className="w-9 h-9 sm:w-11 sm:h-11 rounded-full flex items-center justify-center shadow-lg border-2 border-white"
+                        style={{
+                          background: "linear-gradient(135deg, hsl(270 80% 65%), hsl(330 85% 70%), hsl(35 95% 65%))",
+                        }}
+                      >
+                        <ArrowDown className="w-5 h-5 text-white drop-shadow" strokeWidth={3} />
+                      </div>
+                    </div>
+
+                    {/* Original photo */}
+                    <div className="flex flex-col items-center gap-1.5">
+                      <div className="relative w-24 h-24 rounded-2xl overflow-hidden border-[3px] border-white shadow-md ring-1 ring-purple-300/80 bg-white flex items-center justify-center">
+                        <img
+                          src={formData.childPhoto}
+                          alt="תמונה מקורית"
+                          className="w-full h-full object-contain"
+                        />
+                      </div>
+                      <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-white/80 border border-purple-200 text-[10px] font-bold text-purple-700 shadow-sm">
+                        <Camera className="w-3 h-3" />
+                        תמונה מקורית
                       </span>
                     </div>
                   </div>
