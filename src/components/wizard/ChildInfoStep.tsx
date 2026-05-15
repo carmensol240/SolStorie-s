@@ -757,7 +757,7 @@ const ChildInfoStep = ({ formData, updateFormData }: ChildInfoStepProps) => {
                         <img
                           src={formData.childPhoto}
                           alt="תמונה מקורית"
-                          className="w-full h-full object-contain"
+                          className="w-full h-full object-cover"
                         />
                       </div>
                       <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-white/80 border border-purple-200 text-[10px] font-bold text-purple-700 shadow-sm">
@@ -832,7 +832,7 @@ const ChildInfoStep = ({ formData, updateFormData }: ChildInfoStepProps) => {
                     <img
                       src={formData.childPhoto!}
                       alt="תמונת הילד"
-                      className="w-full h-full object-contain"
+                      className="w-full h-full object-cover"
                     />
                   </div>
                   <span className="text-[11px] text-muted-foreground">תמונה מקורית</span>
