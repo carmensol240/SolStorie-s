@@ -18,6 +18,9 @@ import {
   CHARACTER_CONSISTENCY_PROMPT,
 } from "../_shared/style-config.ts";
 
+// Strict negative instruction — illustrations must be pure children's book art only
+const NO_UI_NEGATIVE = `STRICT: DO NOT include any thumbnails, screenshots, UI elements, app interfaces, image grids, photo galleries, app screens, mobile/tablet/computer screens, browser windows, icons, buttons, menus, toolbars, status bars, or any digital device screens within the illustration. The illustration must show ONLY the story character and the background scene — clean, pure children's book illustration style with no UI elements whatsoever.`;
+
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
@@ -175,7 +178,9 @@ SCENE (THIS IS THE MOST IMPORTANT PART — illustrate THIS specific scene in det
 
 ${CHARACTER_CONSISTENCY_PROMPT}
 
-NEGATIVE: ${CAST_NEGATIVE_PROMPT}`;
+NEGATIVE: ${CAST_NEGATIVE_PROMPT}
+
+${NO_UI_NEGATIVE}`;
 
     console.log("Generating illustration via Gemini Image Generation (face reference)...");
 
