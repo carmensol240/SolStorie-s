@@ -1,11 +1,11 @@
-## Plan: Apply object-contain to both "תמונה מקורית" thumbnails
+## Plan: Enlarge "תמונה מקורית" thumbnail to w-32 h-32
 
-The thumbnail labeled `תמונה מקורית` appears in two branches of `ChildInfoStep.tsx`:
+In `src/components/wizard/ChildInfoStep.tsx`, the original photo thumbnail in the horizontal layout (line ~754) currently uses `w-20 h-20 md:w-32 md:h-32`. On the 390px mobile viewport this renders at the small `w-20 h-20`.
 
-1. **Line 760** — already `object-contain` (post-avatar branch). No change.
-2. **Line 835** — single-image fallback (before avatar exists), still `object-cover`. **Change to `object-contain`**.
-
-Since the user reports it's still cropping, the visible thumbnail is likely the fallback at line 835. Update only that one className.
+### Change
+- Update the thumbnail wrapper to **`w-32 h-32`** at all breakpoints (drop the `md:` variant).
+- Keep `object-contain` on the `<img>` (already set).
+- Avatar, layout, arrow, labels, and everything else unchanged.
 
 ### Files touched
-- `src/components/wizard/ChildInfoStep.tsx` — line 835: `object-cover` → `object-contain`
+- `src/components/wizard/ChildInfoStep.tsx`
