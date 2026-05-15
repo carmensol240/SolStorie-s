@@ -105,6 +105,12 @@ const ServiceHealthSection = ({ errorLogs, illustrationLogs }: Props) => {
             <div className="text-xs text-muted-foreground">{format(new Date(aiLast.created_at), "yyyy-MM-dd HH:mm")}</div>
           )}
           <div className="text-xs pt-1">24h: <span className="font-semibold">{ai24h}</span> · 7d: <span className="font-semibold">{ai7d}</span></div>
+          {ai24h > 0 && (
+            <div className="mt-2 text-xs font-semibold text-destructive flex items-start gap-1">
+              <AlertTriangle className="w-3.5 h-3.5 shrink-0 mt-0.5" />
+              נגמרו קרדיטים — יש לטעון ב-Lovable Settings → Cloud & AI balance
+            </div>
+          )}
         </CardContent>
       </Card>
 
