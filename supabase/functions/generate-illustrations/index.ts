@@ -269,7 +269,9 @@ SCENE (THIS IS THE MOST IMPORTANT PART — illustrate THIS specific scene in det
 
 ${CHARACTER_CONSISTENCY_PROMPT}
 
-NEGATIVE: ${NEGATIVE_PROMPT}`;
+NEGATIVE: ${NEGATIVE_PROMPT}
+
+${NO_UI_NEGATIVE}`;
 
     console.log("Generating illustration via Gemini Image Generation (no face reference)...");
 
@@ -358,7 +360,7 @@ async function generateIllustration(
 
     const negativePrompt = NEGATIVE_PROMPT_FULL;
 
-    const fullPrompt = `${stylePrefix}\n\n${visualAnchor}\n\n${characterInstruction}\n${adventureInstruction}\n\nSCENE: ${prompt}\n\n${CHARACTER_CONSISTENCY_PROMPT}\n\nNEGATIVE: ${negativePrompt}`;
+    const fullPrompt = `${stylePrefix}\n\n${visualAnchor}\n\n${characterInstruction}\n${adventureInstruction}\n\nSCENE: ${prompt}\n\n${CHARACTER_CONSISTENCY_PROMPT}\n\nNEGATIVE: ${negativePrompt}\n\n${NO_UI_NEGATIVE}`;
 
     console.log("Generating illustration via Fal.ai Flux Schnell (no photo, text-only fallback)...");
 
