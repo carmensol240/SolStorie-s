@@ -1,6 +1,6 @@
 import { useRef, useEffect, useState } from "react";
 import { Checkbox } from "@/components/ui/checkbox";
-import { User, Camera, Sparkles, RefreshCw, Trash2, Heart, ChevronDown, ChevronUp, Check, X, Loader2, Save, Shield, Globe, PlusCircle, BookOpen, ArrowLeft, ArrowDown } from "lucide-react";
+import { User, Camera, Sparkles, RefreshCw, Trash2, Heart, ChevronDown, ChevronUp, Check, X, Loader2, Save, Shield, Globe, PlusCircle, BookOpen, ArrowLeft } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
@@ -748,47 +748,28 @@ const ChildInfoStep = ({ formData, updateFormData }: ChildInfoStepProps) => {
           ) : formData.childPhoto ? (
             <div className="flex flex-col items-center justify-center w-full py-4 sm:py-6 bg-card border-2 border-purple-400 bg-purple-50 rounded-xl gap-2">
               {(formData.childAvatarUrl || isGeneratingAvatar) && formData.childPhoto ? (
-                /* Vertical stack: avatar (top) → arrow down → original photo (bottom) */
+                /* Horizontal: original photo → arrow → avatar */
                 <div className="relative w-full rounded-2xl border-2 border-dashed border-purple-300/70 bg-gradient-to-br from-purple-50 via-pink-50 to-amber-50 p-2 sm:p-3 shadow-inner">
-                  <div className="flex flex-col items-center justify-center gap-3">
-                    {/* Avatar */}
+                  <div className="flex items-center justify-center gap-2 sm:gap-4">
+                    {/* Original photo */}
                     <div className="flex flex-col items-center gap-1.5">
-                      <div
-                        className="relative w-56 h-56 rounded-2xl overflow-hidden border-[3px] border-white shadow-2xl ring-4 ring-amber-300/80 flex items-center justify-center"
-                        style={{
-                          background: isGeneratingAvatar
-                            ? "linear-gradient(135deg, hsl(280 60% 92%), hsl(330 70% 92%), hsl(40 80% 92%))"
-                            : "hsl(280 60% 96%)",
-                        }}
-                      >
-                        {isGeneratingAvatar ? (
-                          <>
-                            <div className="absolute inset-0 shimmer-overlay pointer-events-none" />
-                            <Loader2 className="w-12 h-12 animate-spin text-purple-500 relative z-10" />
-                          </>
-                        ) : formData.childAvatarUrl ? (
-                          <img
-                            src={formData.childAvatarUrl}
-                            alt="דמות בסיפור"
-                            className="w-full h-full object-contain"
-                          />
-                        ) : null}
+                      <div className="relative w-20 h-20 md:w-32 md:h-32 rounded-2xl overflow-hidden border-[3px] border-white shadow-md ring-1 ring-purple-300/80 bg-white flex items-center justify-center">
+                        <img
+                          src={formData.childPhoto}
+                          alt="תמונה מקורית"
+                          className="w-full h-full object-contain"
+                        />
                       </div>
-                      <span
-                        className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-bold text-white shadow-md"
-                        style={{
-                          background: "linear-gradient(135deg, hsl(270 80% 60%), hsl(330 85% 65%))",
-                        }}
-                      >
-                        <Sparkles className="w-3.5 h-3.5" />
-                        {isGeneratingAvatar ? 'יוצר דמות...' : 'דמות בסיפור'}
+                      <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-white/80 border border-purple-200 text-[10px] font-bold text-purple-700 shadow-sm">
+                        <Camera className="w-3 h-3" />
+                        תמונה מקורית
                       </span>
                     </div>
 
-                    {/* Animated downward arrow */}
+                    {/* Animated arrow */}
                     <div
                       className="relative flex items-center justify-center"
-                      aria-label="התמונה המקורית"
+                      aria-label="הופך לדמות"
                     >
                       <span className="absolute -top-2 -left-1 text-amber-400 animate-pulse" style={{ animationDelay: "0s" }}>
                         <Sparkles className="w-3 h-3" />
@@ -805,22 +786,41 @@ const ChildInfoStep = ({ formData, updateFormData }: ChildInfoStepProps) => {
                           background: "linear-gradient(135deg, hsl(270 80% 65%), hsl(330 85% 70%), hsl(35 95% 65%))",
                         }}
                       >
-                        <ArrowDown className="w-5 h-5 text-white drop-shadow" strokeWidth={3} />
+                        <ArrowLeft className="w-5 h-5 text-white drop-shadow" strokeWidth={3} />
                       </div>
                     </div>
 
-                    {/* Original photo */}
+                    {/* Avatar */}
                     <div className="flex flex-col items-center gap-1.5">
-                      <div className="relative w-24 h-24 rounded-2xl overflow-hidden border-[3px] border-white shadow-md ring-1 ring-purple-300/80 bg-white flex items-center justify-center">
-                        <img
-                          src={formData.childPhoto}
-                          alt="תמונה מקורית"
-                          className="w-full h-full object-contain"
-                        />
+                      <div
+                        className="relative w-64 h-64 md:w-72 md:h-72 rounded-2xl overflow-hidden border-[3px] border-white shadow-2xl ring-4 ring-amber-300/80 flex items-center justify-center"
+                        style={{
+                          background: isGeneratingAvatar
+                            ? "linear-gradient(135deg, hsl(280 60% 92%), hsl(330 70% 92%), hsl(40 80% 92%))"
+                            : "hsl(280 60% 96%)",
+                        }}
+                      >
+                        {isGeneratingAvatar ? (
+                          <>
+                            <div className="absolute inset-0 shimmer-overlay pointer-events-none" />
+                            <Loader2 className="w-12 h-12 animate-spin text-purple-500 relative z-10" />
+                          </>
+                        ) : formData.childAvatarUrl ? (
+                          <img
+                            src={formData.childAvatarUrl}
+                            alt="דמות בסיפור"
+                            className="w-full h-full object-cover"
+                          />
+                        ) : null}
                       </div>
-                      <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-white/80 border border-purple-200 text-[10px] font-bold text-purple-700 shadow-sm">
-                        <Camera className="w-3 h-3" />
-                        תמונה מקורית
+                      <span
+                        className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-bold text-white shadow-md"
+                        style={{
+                          background: "linear-gradient(135deg, hsl(270 80% 60%), hsl(330 85% 65%))",
+                        }}
+                      >
+                        <Sparkles className="w-3.5 h-3.5" />
+                        {isGeneratingAvatar ? 'יוצר דמות...' : 'דמות בסיפור'}
                       </span>
                     </div>
                   </div>
