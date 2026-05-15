@@ -832,7 +832,7 @@ const ChildInfoStep = ({ formData, updateFormData }: ChildInfoStepProps) => {
                     <img
                       src={formData.childPhoto!}
                       alt="תמונת הילד"
-                      className="w-full h-full object-cover"
+                      className="w-full h-full object-contain"
                     />
                   </div>
                   <span className="text-[11px] text-muted-foreground">תמונה מקורית</span>
