@@ -753,7 +753,7 @@ const ChildInfoStep = ({ formData, updateFormData }: ChildInfoStepProps) => {
                   <div className="flex items-center justify-center gap-2 sm:gap-4">
                     {/* Original photo */}
                     <div className="flex flex-col items-center gap-1.5">
-                      <div className="relative w-20 h-20 md:w-32 md:h-32 rounded-2xl overflow-hidden border-[3px] border-white shadow-md ring-1 ring-purple-300/80 bg-white flex items-center justify-center">
+                      <div className="relative w-32 h-32 rounded-2xl overflow-hidden border-[3px] border-white shadow-md ring-1 ring-purple-300/80 bg-white flex items-center justify-center">
                         <img
                           src={formData.childPhoto}
                           alt="תמונה מקורית"
