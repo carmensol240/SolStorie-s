@@ -874,6 +874,45 @@ const [currentPage, setCurrentPage] = useState(0);
     }
   };
 
+  const handleShareWhatsApp = async () => {
+    if (!story || isExporting) return;
+
+    try {
+      toast({ title: 'מכין PDF לשיתוף בוואטסאפ...' });
+      const pdfFile = await generatePdfFile(story, 'portrait');
+
+      // Trigger PDF download so the user can attach it in WhatsApp
+      const url = URL.createObjectURL(pdfFile);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = pdfFile.name;
+      a.click();
+      URL.revokeObjectURL(url);
+
+      // Build share text (include public link if slug exists)
+      const publicLink = story.slug ? `${window.location.origin}/s/${story.slug}` : '';
+      const lines = [
+        `📚 הסיפור של ${story.child_name} – נוצר באהבה באפליקציית SolStories`,
+        publicLink ? `קישור לקריאה: ${publicLink}` : '',
+        '(קובץ ה-PDF מצורף)',
+      ].filter(Boolean);
+      const text = lines.join('\n');
+
+      window.open(`https://wa.me/?text=${encodeURIComponent(text)}`, '_blank');
+
+      toast({
+        title: "ה-PDF הורד! 📎",
+        description: "צרף אותו בצ'אט בוואטסאפ שנפתח",
+      });
+
+      try { trackFeatureUsed('share_whatsapp', story.id); } catch {}
+    } catch (error: any) {
+      if (error?.name === 'AbortError') return;
+      console.error('Error sharing story to WhatsApp:', error);
+      toast({ title: 'שגיאה בשיתוף', description: 'נסו שוב מאוחר יותר', variant: 'destructive' });
+    }
+  };
+
   const handleDrawingOpen = () => {
     trackFeatureUsed('drawing', story?.id);
     setIsDrawingMode(true);
@@ -1345,6 +1384,7 @@ const [currentPage, setCurrentPage] = useState(0);
         onBack={() => navigate("/library")}
         onShare={handleShare}
         onDownload={() => setShowPdfFormatDialog(true)}
+        onShareWhatsApp={handleShareWhatsApp}
         onToggleFontSize={() => setFontSizeIndex((fontSizeIndex + 1) % FONT_SIZES.length)}
         onEdit={showPageActions ? handleEditClick : undefined}
         onAddNikud={showPageActions ? handleAddNikud : undefined}

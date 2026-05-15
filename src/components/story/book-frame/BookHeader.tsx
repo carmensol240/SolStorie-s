@@ -11,6 +11,7 @@ import {
   Check,
   Loader2,
   Palette,
+  MessageCircle,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
@@ -36,6 +37,7 @@ interface BookHeaderProps {
   onBack: () => void;
   onShare: () => void;
   onDownload: () => void;
+  onShareWhatsApp?: () => void;
   onDigitalBook?: () => void;
   onToggleFontSize: () => void;
   onEdit?: () => void;
@@ -67,6 +69,7 @@ export const BookHeader: React.FC<BookHeaderProps> = ({
   onBack,
   onShare,
   onDownload,
+  onShareWhatsApp,
   onToggleFontSize,
   onEdit,
   onReport,
@@ -141,6 +144,25 @@ export const BookHeader: React.FC<BookHeaderProps> = ({
             </TooltipTrigger>
             <TooltipContent side="bottom">הורד או הדפס PDF</TooltipContent>
           </Tooltip>
+
+          {/* Share to WhatsApp */}
+          {onShareWhatsApp && (
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={onShareWhatsApp}
+                  disabled={isExporting}
+                  className="text-green-600 hover:bg-green-100/60 min-h-[44px] min-w-[44px] p-2 disabled:opacity-50"
+                  aria-label="שיתוף בוואטסאפ"
+                >
+                  <MessageCircle className={cn("w-5 h-5", isExporting && "animate-pulse")} />
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent side="bottom">שלח את ה-PDF בוואטסאפ</TooltipContent>
+            </Tooltip>
+          )}
 
           {/* Coloring Pages Shortcut */}
           {onColoring && (
