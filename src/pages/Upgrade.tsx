@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
-import { X, Crown } from "lucide-react";
+import { X, Crown, ChevronDown } from "lucide-react";
 
 const WHITELISTED_TEST_EMAIL = "carmit1901+test@gmail.com";
 import { Button } from "@/components/ui/button";
@@ -49,6 +49,21 @@ const Upgrade = () => {
   const [appliedCouponCode, setAppliedCouponCode] = useState<string | null>(null);
   const [userDetailsValid, setUserDetailsValid] = useState(true);
   const userDetailsRef = useRef<UserDetailsRef>(null);
+  const [showFeatures, setShowFeatures] = useState(false);
+
+  const FEATURES = [
+    { icon: "🖼️", title: "איורים מדויקים", desc: "מותאמים למראה הילד שלך" },
+    { icon: "🎨", title: "דפי צביעה קסומים", desc: "עם הדמות של הילד עצמו!" },
+    { icon: "🎙️", title: "הקלטה קולית", desc: "בקול של אדם אהוב" },
+    { icon: "🖨️", title: "הדפסה והורדה", desc: "שמרו כקובץ או הדפיסו לספר פיזי ללא עלות נוספת" },
+    { icon: "📲", title: "שליחה בוואטסאפ", desc: "שתפו עם המשפחה" },
+    { icon: "📚", title: "ספרייה חינוכית", desc: "אותיות, מספרים, צבעים וצורות" },
+    { icon: "📖", title: "סיפורים בהמשכים", desc: "ההרפתקה ממשיכה!" },
+    { icon: "🌍", title: "סיפור באנגלית", desc: "ניתן ליצור גם באנגלית" },
+    { icon: "🎵", title: "מוזיקת רקע קסומה", desc: "כמו סרט מצויר אמיתי" },
+    { icon: "✏️", title: "עריכה וניקוד מלא", desc: "תקנו שגיאות וקראו בקלות" },
+    { icon: "💻", title: "גישה מכל מכשיר", desc: "סלולרי, טאבלט ומחשב" },
+  ];
 
   
 
