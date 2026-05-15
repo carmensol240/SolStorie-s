@@ -26,6 +26,7 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import ServiceHealthSection from "@/components/admin/ServiceHealthSection";
 
 interface ProfileRow {
   id: string;
@@ -524,6 +525,9 @@ const AdminDashboard = () => {
             </Button>
           </div>
         </div>
+
+        {/* Service Health */}
+        <ServiceHealthSection errorLogs={errorLogs} illustrationLogs={illustrationLogs} />
 
         {/* Stats Cards */}
         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-7 gap-3">
