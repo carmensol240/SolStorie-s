@@ -465,10 +465,29 @@ const ChildInfoStep = ({ formData, updateFormData }: ChildInfoStepProps) => {
 
     <div className="w-full space-y-2 px-1">
       {/* Title */}
-      <div className="text-center space-y-1">
+      <div className="text-center">
         <h1 className="text-lg font-black bg-gradient-to-r from-purple-600 via-pink-500 to-orange-400 bg-clip-text text-transparent">ספרו לנו על הילד/ה</h1>
-        <p className="text-xs text-muted-foreground">בחרו פרופיל קיים או צרו חדש</p>
-        <div className="flex items-center justify-center gap-2">
+      </div>
+
+      {/* Profiles row: saved children + new/delete actions (actions on the LEFT) */}
+      <div className="flex gap-1.5 flex-wrap items-center" dir="rtl">
+        {savedChildren.map((child) => (
+          <button
+            key={child.id}
+            type="button"
+            onClick={() => loadChildProfile(child)}
+            className={cn(
+              "px-3 py-1.5 rounded-lg border-2 transition-all flex items-center gap-1.5 text-xs font-medium",
+              formData.childName === child.name
+                ? "border-purple-500 bg-gradient-to-r from-purple-100 to-pink-100 text-purple-700"
+                : "border-border bg-card hover:border-purple-300"
+            )}
+          >
+            <span>{child.gender === "female" ? "👧" : "👦"}</span>
+            <span>{child.name}</span>
+          </button>
+        ))}
+        <div className="flex items-center gap-1.5 ms-auto">
           <Button
             type="button"
             variant="outline"
@@ -486,7 +505,7 @@ const ChildInfoStep = ({ formData, updateFormData }: ChildInfoStepProps) => {
                 fixedDetails: "",
               });
               setSelectedAgeButton("3-6");
-              
+
               toast.success("הטופס נוקה - הזינו פרטי ילד/ה חדש/ה");
             }}
             className="text-sm font-bold text-purple-600 border-purple-300 hover:bg-purple-50"
@@ -512,30 +531,6 @@ const ChildInfoStep = ({ formData, updateFormData }: ChildInfoStepProps) => {
           )}
         </div>
       </div>
-
-      {/* Saved Children Quick Select */}
-      {savedChildren.length > 0 && (
-        <div className="space-y-1.5">
-          <div className="flex gap-1.5 flex-wrap">
-            {savedChildren.map((child) => (
-              <button
-                key={child.id}
-                type="button"
-                onClick={() => loadChildProfile(child)}
-                className={cn(
-                  "px-3 py-1.5 rounded-lg border-2 transition-all flex items-center gap-1.5 text-xs font-medium",
-                  formData.childName === child.name
-                    ? "border-purple-500 bg-gradient-to-r from-purple-100 to-pink-100 text-purple-700"
-                    : "border-border bg-card hover:border-purple-300"
-                )}
-              >
-                <span>{child.gender === "female" ? "👧" : "👦"}</span>
-                <span>{child.name}</span>
-              </button>
-            ))}
-          </div>
-        </div>
-      )}
 
       {/* Child Name + Fixed Details Row */}
       <div className="space-y-1">
