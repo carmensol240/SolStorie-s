@@ -18,6 +18,7 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { AboutSolStoriesContent } from "@/components/shared/AboutSolStoriesContent";
 import { useReferral } from "@/hooks/use-referral";
 import { useToast } from "@/hooks/use-toast";
+import { Badge } from "@/components/ui/badge";
 
 const Settings = () => {
   const navigate = useNavigate();
@@ -189,7 +190,7 @@ const Settings = () => {
             <div className="bg-gradient-to-r from-green-50 to-emerald-50 dark:from-green-950/20 dark:to-emerald-950/20 rounded-lg px-3 py-3 border border-green-200 dark:border-green-800 space-y-2.5">
               <div className="flex items-center gap-2 justify-end">
                 <div className="text-right">
-                  <span className="font-bold text-sm text-foreground block">הזמינו חבר/ה וקבלו סיפור במתנה! 🎉</span>
+                  <span className="font-bold text-sm text-foreground block">הזמינו חבר/ה וקבלו סיפור במתנה! 🎉 <Badge variant="secondary" className="text-[10px] px-1.5 py-0 mr-1 align-middle">בקרוב</Badge></span>
                   <span className="text-[11px] text-muted-foreground block">שתפו את הקוד שלכם וקבלו קרדיט סיפור חינם</span>
                 </div>
                 <div className="w-8 h-8 bg-gradient-to-r from-green-400/20 to-emerald-400/20 rounded-lg flex items-center justify-center flex-shrink-0">
