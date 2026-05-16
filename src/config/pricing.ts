@@ -52,9 +52,9 @@ export const COLORING_KIT_PACKAGE = {
 
 export const EDUCATOR_PACKAGE = {
   id: "educator",
-  stories: 25,
-  price: 199,
-  pricePerStory: "8₪",
+  stories: 20,
+  price: 229,
+  pricePerStory: "11.5₪",
   label: "חבילת אנשי חינוך וטיפול",
   freeEdits: 25,
   freeColoringPages: 8,
