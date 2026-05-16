@@ -1,9 +1,13 @@
-Remove price and pricing mentions from the About section (`AboutSolStoriesContent.tsx`) that appears in the Settings page.
+## Goal
 
-**Changes to `src/components/shared/AboutSolStoriesContent.tsx`:**
-- Remove the PDF printing paragraph that mentions "ללא תוספת תשלום (כלול בעלות החבילה!)".
-- Remove the AI edits paragraph that mentions "על כל חבילה שתבחרו, תקבלו מספר עריכות חינם".
-- Remove the pricing sentence from the Web App paragraph: "ניתן להשאיר אותה בנייד ללא עלות גם אם לא מחדשים את חבילת הסיפורים."
-- Remove the explicit price paragraph: "והמחיר? פחות מ-9.90₪ לסיפור דיגיטלי וקובץ PDF להדפסה."
+In `src/components/story/book-frame/BookHeader.tsx`, make the offline download button (`onSaveOffline`) visible **only on desktop**. Hide it on mobile and do not include it in the mobile overflow dropdown.
 
-All other text, structure, and styling remain unchanged.
+## Changes
+
+1. Wrap the existing offline-download `Tooltip` block (the one rendering `Download`/`Check`/`Loader2` from `onSaveOffline`) with `<div className="hidden md:block">` so it's hidden below the `md` breakpoint.
+2. In the mobile-only section of the `DropdownMenu` (`md:hidden` items), remove the "שמור לקריאה אופליין" entry if present. Keep the other mobile entries (font size, "מה קורה בהמשך?") untouched.
+
+## Out of scope
+
+- Desktop layout, icons, handlers, and all other toolbar buttons remain unchanged.
+- No changes to `StoryViewer.tsx` or any other file.
