@@ -636,66 +636,23 @@ const ChildInfoStep = ({ formData, updateFormData }: ChildInfoStepProps) => {
         </div>
       </div>
 
-      {/* Age · Length · Language - Compact Row */}
-      <div className="grid grid-cols-3 gap-2">
-        {/* Age */}
+      {/* Age · Language - Compact Row */}
+      <div className="grid grid-cols-2 gap-2 items-start">
+        {/* Age (numeric input) */}
         <div className="space-y-1">
-          <Label className="text-[10px] font-medium text-center block">גיל</Label>
-          <div className="flex flex-col gap-1">
-            {AGE_BUTTONS.filter(b => b.id !== "9-12").map((button) => (
-              <button
-                key={button.id}
-                onClick={() => handleAgeButtonSelect(button.id)}
-                className={cn(
-                  "py-1.5 rounded-md border transition-all text-center text-sm font-bold",
-                  selectedAgeButton === button.id
-                    ? "border-purple-500 bg-gradient-to-r from-purple-600 via-pink-500 to-orange-400 text-white"
-                    : "border-border bg-card hover:border-purple-300"
-                )}
-              >
-                {button.label}
-              </button>
-            ))}
-          </div>
-        </div>
-
-        {/* Story Length */}
-        <div className="space-y-1">
-          <Label className="text-[10px] font-medium text-center block flex items-center justify-center gap-1"><BookOpen className="w-3 h-3" />אורך</Label>
-          <div className="flex flex-col gap-1">
-            <button
-              onClick={() => updateFormData({ storyLength: "short" })}
-              className={cn(
-                "py-1.5 rounded-md border transition-all text-center text-sm font-bold",
-                formData.storyLength === "short"
-                  ? "border-purple-500 bg-gradient-to-r from-purple-600 via-pink-500 to-orange-400 text-white"
-                  : "border-border bg-card hover:border-purple-300"
-              )}
-            >
-              קצר · 4-5
-            </button>
-            <button
-              onClick={() => updateFormData({ storyLength: "long" })}
-              className={cn(
-                "py-1.5 rounded-md border transition-all text-center text-sm font-bold",
-                formData.storyLength === "long"
-                  ? "border-purple-500 bg-gradient-to-r from-purple-600 via-pink-500 to-orange-400 text-white"
-                  : "border-border bg-card hover:border-purple-300"
-              )}
-            >
-              ארוך · 6-8
-            </button>
-            <button
-              onClick={() => updateFormData({ storyLength: "extra-long" })}
-              className={cn(
-                "py-1.5 rounded-md border transition-all text-center text-[11px] font-bold",
-                formData.storyLength === "extra-long"
-                  ? "border-purple-500 bg-gradient-to-r from-purple-600 via-pink-500 to-orange-400 text-white"
-                  : "border-border bg-card hover:border-purple-300"
-              )}
-            >
-              ארוך במיוחד · 10-12
-            </button>
+          <Label className="text-[10px] font-medium text-center block">גיל הילד/ה</Label>
+          <div className="flex items-center justify-center gap-2 py-1">
+            <Input
+              type="number"
+              min={1}
+              max={12}
+              inputMode="numeric"
+              value={formData.childAge ? String(formData.childAge) : ""}
+              onChange={(e) => handleAgeInputChange(e.target.value)}
+              className="w-16 h-10 text-center text-base font-bold border-2 border-purple-300 focus-visible:border-purple-500"
+              aria-label="גיל הילד/ה בשנים"
+            />
+            <span className="text-xs font-medium text-muted-foreground">שנים</span>
           </div>
         </div>
 
@@ -724,17 +681,6 @@ const ChildInfoStep = ({ formData, updateFormData }: ChildInfoStepProps) => {
               )}
             >
               🇺🇸 EN
-            </button>
-            <button
-              onClick={() => handleAgeButtonSelect("9-12")}
-              className={cn(
-                "py-1.5 rounded-md border transition-all text-center text-[11px] font-bold",
-                selectedAgeButton === "9-12"
-                  ? "border-purple-500 bg-gradient-to-r from-purple-600 via-pink-500 to-orange-400 text-white"
-                  : "border-border bg-card hover:border-purple-300"
-              )}
-            >
-              ✨ גיל 9-12
             </button>
           </div>
         </div>
