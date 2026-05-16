@@ -154,7 +154,7 @@ export const BookHeader: React.FC<BookHeaderProps> = ({
                   size="sm"
                   onClick={onShareWhatsApp}
                   disabled={isExporting}
-                  className="text-green-600 hover:bg-green-100/60 min-h-[44px] min-w-[44px] p-2 disabled:opacity-50"
+                  className="hidden md:inline-flex text-green-600 hover:bg-green-100/60 min-h-[44px] min-w-[44px] p-2 disabled:opacity-50"
                   aria-label="שיתוף בוואטסאפ"
                 >
                   <MessageCircle className={cn("w-5 h-5", isExporting && "animate-pulse")} />
@@ -172,7 +172,7 @@ export const BookHeader: React.FC<BookHeaderProps> = ({
                   variant="ghost"
                   size="sm"
                   onClick={onColoring}
-                  className="text-slate-600 hover:bg-sky-100/60 min-h-[44px] min-w-[44px] p-2"
+                  className="hidden md:inline-flex text-slate-600 hover:bg-sky-100/60 min-h-[44px] min-w-[44px] p-2"
                   aria-label="דפי צביעה"
                 >
                   <Palette className="w-5 h-5" />
@@ -225,7 +225,7 @@ export const BookHeader: React.FC<BookHeaderProps> = ({
                   <Button
                     variant="ghost"
                     size="sm"
-                    className="text-slate-600 hover:bg-sky-100/60 min-h-[44px] min-w-[44px] p-2"
+                    className="hidden md:inline-flex text-slate-600 hover:bg-sky-100/60 min-h-[44px] min-w-[44px] p-2"
                     aria-label="מה קורה בהמשך?"
                   >
                     <Sparkles className="w-5 h-5" />
@@ -254,7 +254,7 @@ export const BookHeader: React.FC<BookHeaderProps> = ({
                   variant="ghost"
                   size="sm"
                   onClick={onToggleMusic}
-                   className="text-slate-600 hover:bg-sky-100/60 min-h-[44px] min-w-[44px] p-2"
+                   className="hidden md:inline-flex text-slate-600 hover:bg-sky-100/60 min-h-[44px] min-w-[44px] p-2"
                   aria-label={isMusicPlaying ? "כבה מוזיקת רקע" : "הפעל מוזיקת רקע"}
                 >
                   {isMusicPlaying ? <Volume2 className="w-5 h-5" /> : <VolumeX className="w-5 h-5" />}
