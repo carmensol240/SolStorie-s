@@ -1,19 +1,28 @@
 ## Goal
-Remember the user's photo-consent approval across sessions. After the first time they check "אני מסכים/ה לשימוש בתמונה לצורך יצירת איורי הסיפור בלבד", store it on their profile. On future visits the checkbox is pre-checked automatically and they don't have to re-approve.
+Show the SolStorie's™ logo (same gradient text as `GlobalFooter`) at the bottom-center of every page inside the story viewer, as a small, non-intrusive link that opens https://soulstory.co.il in a new tab.
 
-## Changes
+## Change (single file)
 
-### 1. Database (migration)
-Add a new column to the `profiles` table:
-- `photo_consent_at` (`timestamptz`, nullable) — timestamp of the user's first approval. `NULL` means not yet consented.
+`src/pages/StoryViewer.tsx` — add one absolutely-positioned overlay just above the existing bottom navigation arrows row (around line 1788, inside the same wrapper that hosts `MagicalBookFrame` and the bottom nav). This single element renders on every page type — combined, illustration-only, text, cover, end — without touching any per-page layout.
 
-No RLS changes needed (existing "Users can update their own profile" policy already covers it).
+```tsx
+{/* Branded footer link — shown on every story page */}
+<a
+  href="https://soulstory.co.il"
+  target="_blank"
+  rel="noopener noreferrer"
+  className="absolute bottom-14 left-1/2 -translate-x-1/2 z-40 opacity-60 hover:opacity-100 transition-opacity"
+  aria-label="SolStorie's"
+>
+  <span className="text-[11px] font-black logo-3d-bubble">
+    <span className="logo-rainbow">SolStorie's™</span>
+  </span>
+</a>
+```
 
-### 2. `src/components/wizard/ChildInfoStep.tsx` (only file touched)
-- In the existing `useEffect` that fetches the profile (the one already reading `display_name`), also select `photo_consent_at`. If it's non-null, call `updateFormData({ photoConsent: true })` so the checkbox starts checked.
-- Wrap the checkbox's `onCheckedChange` so that when it transitions to `true` and the profile doesn't yet have a `photo_consent_at`, write `photo_consent_at = now()` to the user's profile row (fire-and-forget, no UI blocking). Keep the local `updateFormData({ photoConsent: c === true })` call unchanged.
-- No other UI, styling, or logic changes.
+Placement notes:
+- Sits above the bottom-nav arrows (which use `bottom-2`), so it doesn't overlap them.
+- `pointer-events` left default so the link is clickable; it occupies a tiny strip centered horizontally and won't cover the small page-number indicator (which is `bottom-1`, left/right of the logo's narrow footprint).
+- Uses the exact same `logo-3d-bubble` + `logo-rainbow` classes as `GlobalFooter`, just sized smaller.
 
-## Notes
-- Unauthenticated users keep the current in-memory behavior (nothing to persist).
-- Unchecking the box in the same session does not clear the stored consent — once given, it stays approved (matches the user's requirement of "do not require them to check it again").
+No other files, styles, routes, or logic change.

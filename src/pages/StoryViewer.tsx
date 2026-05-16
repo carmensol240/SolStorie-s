@@ -1785,6 +1785,19 @@ const [currentPage, setCurrentPage] = useState(0);
           </div>
           </MagicalBookFrame>
 
+          {/* Branded footer link — shown on every story page */}
+          <a
+            href="https://soulstory.co.il"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="absolute bottom-14 left-1/2 -translate-x-1/2 z-40 opacity-60 hover:opacity-100 transition-opacity"
+            aria-label="SolStorie's"
+          >
+            <span className="text-[11px] font-black logo-3d-bubble">
+              <span className="logo-rainbow">SolStorie's™</span>
+            </span>
+          </a>
+
           {/* Bottom nav arrows */}
           <div className="absolute bottom-2 left-0 right-0 z-40 flex items-center justify-between px-4">
             <button
