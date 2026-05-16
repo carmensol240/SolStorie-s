@@ -499,7 +499,7 @@ const AdminDashboard = () => {
     basic: "בסיסי (3 סיפורים)",
     popular: "פופולרי (10 סיפורים)",
     premium: "משתלם (15 סיפורים)",
-    educator: "אנשי חינוך (25 סיפורים)",
+    educator: "אנשי חינוך (20 סיפורים)",
     edit_kit: "חבילת עריכות (5)",
     coloring_kit: "חבילת צביעה (5)",
     toolkit_yearly: "ארגז כלים שנתי",

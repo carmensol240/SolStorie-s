@@ -477,7 +477,7 @@ const Upgrade = () => {
                   <span className="bg-blue-500/30 text-blue-200 text-[10px] font-bold px-2 py-0.5 rounded-full">חבילה מיוחדת</span>
                 </div>
                 <p className="text-xs text-white/70 leading-relaxed">
-                  30 סיפורים + 2 עריכות לסיפור + 8 דפי צביעה 🎨. מושלם לכיתה, לגן או לקליניקה.
+                  20 סיפורים + 25 עריכות + 8 דפי צביעה 🎨. מושלם לכיתה, לגן או לקליניקה.
                 </p>
                 <div className="flex items-center justify-between">
                   <div>

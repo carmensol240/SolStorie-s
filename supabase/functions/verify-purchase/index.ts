@@ -122,7 +122,7 @@ Deno.serve(async (req) => {
       basic: { stories: 3, freeEdits: 3, coloringPages: 1 },
       popular: { stories: 10, freeEdits: 10, coloringPages: 3 },
       premium: { stories: 15, freeEdits: 15, coloringPages: 5 },
-      educator: { stories: 25, freeEdits: 25, coloringPages: 8 },
+      educator: { stories: 20, freeEdits: 25, coloringPages: 8 },
       coloring_kit: { stories: 0, freeEdits: 0, coloringPages: 5 },
       edit_kit: { stories: 0, freeEdits: 0, coloringPages: 0, editingCredits: 5 },
       toolkit_yearly: { stories: 0, freeEdits: 0, coloringPages: 0, isSubscription: true },
