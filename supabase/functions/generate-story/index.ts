@@ -844,7 +844,7 @@ serve(async (req) => {
       // === END CREDIT CHECK ===
     }
 
-    const { childName, childGender = "male", ageRange, storyLength = "short", topic, topicId, nikud, childPhoto, childAvatarUrl, personalityTraits, adventureLogic, language = "he", className, topicDescription, childId, isCustomTopic = false } = reqBody;
+    const { childName, childGender = "male", ageRange, childAge: childAgeRaw, storyLength = "short", topic, topicId, nikud, childPhoto, childAvatarUrl, personalityTraits, adventureLogic, language = "he", className, topicDescription, childId, isCustomTopic = false } = reqBody;
 
     // === LEARNING TOPIC DETECTION ===
     // Use topicId (e.g. "letter-yod") for detection — topic contains the Hebrew label
