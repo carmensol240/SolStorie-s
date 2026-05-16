@@ -96,6 +96,7 @@ const ChildInfoStep = ({ formData, updateFormData }: ChildInfoStepProps) => {
   const [userRole, setUserRole] = useState<string | null>(null);
   const [isDeletingChild, setIsDeletingChild] = useState(false);
   const [displayName, setDisplayName] = useState<string | null>(null);
+  const [isCreatingNew, setIsCreatingNew] = useState(false);
 
   // Fetch display name from profile for greeting
   useEffect(() => {
@@ -159,6 +160,7 @@ const ChildInfoStep = ({ formData, updateFormData }: ChildInfoStepProps) => {
           // Auto-load the first child's data
           const firstChild = data[0];
           setSelectedAgeButton(rangeToDisplayButton(ageToRange(firstChild.age)));
+          setIsCreatingNew(false);
           updateFormData({
             childName: firstChild.name,
             childGender: firstChild.gender as "male" | "female",
@@ -182,6 +184,7 @@ const ChildInfoStep = ({ formData, updateFormData }: ChildInfoStepProps) => {
           // Auto-load the first child
           const firstChild = localChildren[0];
           setSelectedAgeButton(rangeToDisplayButton(ageToRange(firstChild.age)));
+          setIsCreatingNew(false);
           updateFormData({
             childName: firstChild.name,
             childGender: firstChild.gender as "male" | "female",
@@ -308,6 +311,7 @@ const ChildInfoStep = ({ formData, updateFormData }: ChildInfoStepProps) => {
 
   const loadChildProfile = (child: SavedChild) => {
     setSelectedAgeButton(rangeToDisplayButton(ageToRange(child.age)));
+    setIsCreatingNew(false);
     updateFormData({
       childName: child.name,
       childGender: child.gender as "male" | "female",
@@ -354,9 +358,20 @@ const ChildInfoStep = ({ formData, updateFormData }: ChildInfoStepProps) => {
           fixed_details: formData.fixedDetails || null,
         };
 
-        // Check if child already exists
-        const existingChild = savedChildren.find(c => c.name === formData.childName);
-        
+        // When creating a new profile, never match against existing children by name.
+        // Only treat as an update when the user explicitly loaded an existing profile.
+        const existingChild = isCreatingNew
+          ? undefined
+          : savedChildren.find(c => c.name === formData.childName);
+
+        // If user is creating a new profile but typed a name that collides with an existing one,
+        // refuse to overwrite — ask them to pick a different name.
+        if (isCreatingNew && savedChildren.some(c => c.name === formData.childName)) {
+          toast.error("כבר קיים פרופיל בשם הזה. נא לבחור שם אחר.");
+          setIsSavingChild(false);
+          return;
+        }
+
         if (existingChild) {
           // Update existing child
           const { error } = await supabase
@@ -398,6 +413,7 @@ const ChildInfoStep = ({ formData, updateFormData }: ChildInfoStepProps) => {
           // Add to local state
           if (data) {
             setSavedChildren(prev => [...prev, data]);
+            setIsCreatingNew(false);
           }
         }
         
@@ -415,12 +431,21 @@ const ChildInfoStep = ({ formData, updateFormData }: ChildInfoStepProps) => {
         };
         
         const existingChildren = JSON.parse(getUserData(user?.id, 'savedChildren') || '[]');
-        const existingIndex = existingChildren.findIndex((c: SavedChild) => c.name === formData.childName);
-        
+        const existingIndex = isCreatingNew
+          ? -1
+          : existingChildren.findIndex((c: SavedChild) => c.name === formData.childName);
+
+        if (isCreatingNew && existingChildren.some((c: SavedChild) => c.name === formData.childName)) {
+          toast.error("כבר קיים פרופיל בשם הזה. נא לבחור שם אחר.");
+          setIsSavingChild(false);
+          return;
+        }
+
         if (existingIndex >= 0) {
           existingChildren[existingIndex] = savedChild;
         } else {
           existingChildren.push(savedChild);
+          setIsCreatingNew(false);
         }
         
         setUserData(user?.id, 'savedChildren', JSON.stringify(stripBase64ForStorage(existingChildren)));
@@ -535,7 +560,7 @@ const ChildInfoStep = ({ formData, updateFormData }: ChildInfoStepProps) => {
                 fixedDetails: "",
               });
               setSelectedAgeButton("3-6");
-
+              setIsCreatingNew(true);
               toast.success("הטופס נוקה - הזינו פרטי ילד/ה חדש/ה");
             }}
             className="text-sm font-bold text-purple-600 border-purple-300 hover:bg-purple-50"
