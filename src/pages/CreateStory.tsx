@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback, useRef } from "react";
-import { ArrowRight, ArrowLeft, Loader2, User } from "lucide-react";
+import { ArrowRight, ArrowLeft, Loader2 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import MobileNavigation from "@/components/MobileNavigation";
@@ -212,11 +212,6 @@ const CreateStory = () => {
             חזרה
           </Button>
           
-          {step === 1 && (
-            <div className="w-8 h-8 bg-gradient-to-br from-purple-600 via-pink-500 to-orange-400 rounded-lg flex items-center justify-center shadow-md">
-              <User className="w-4 h-4 text-white" />
-            </div>
-          )}
         </div>
         
         <div className="container max-w-lg mx-auto mt-2">
