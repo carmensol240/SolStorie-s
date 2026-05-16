@@ -24,6 +24,7 @@ export interface StoryFormData {
   childName: string;
   childGender: "male" | "female";
   ageRange: "0-2" | "2-4" | "5-7" | "8-10";
+  childAge: number;
   storyLength: "short" | "long" | "extra-long";
   childPhoto: string | null;
   childAvatarUrl: string | null;
@@ -42,6 +43,7 @@ const INITIAL_DATA: StoryFormData = {
   childName: "",
   childGender: "male",
   ageRange: "2-4",
+  childAge: 4,
   storyLength: "short",
   childPhoto: null,
   childAvatarUrl: null,
