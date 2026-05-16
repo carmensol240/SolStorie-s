@@ -310,6 +310,41 @@ export const BookHeader: React.FC<BookHeaderProps> = ({
                   <span>{showNikud ? 'הסר ניקוד' : 'הוסף ניקוד'}</span>
                 </DropdownMenuItem>
               )}
+              {/* Mobile-only fallbacks for actions hidden in the header on small screens */}
+              {onColoring && (
+                <DropdownMenuItem onClick={onColoring} className="gap-2 cursor-pointer md:hidden">
+                  <Palette className="w-4 h-4" />
+                  <span>דפי צביעה</span>
+                </DropdownMenuItem>
+              )}
+              {onShareWhatsApp && (
+                <DropdownMenuItem onClick={onShareWhatsApp} disabled={isExporting} className="gap-2 cursor-pointer md:hidden">
+                  <MessageCircle className="w-4 h-4 text-green-600" />
+                  <span>שלח בוואטסאפ</span>
+                </DropdownMenuItem>
+              )}
+              {onToggleMusic && (
+                <DropdownMenuItem onClick={onToggleMusic} className="gap-2 cursor-pointer md:hidden">
+                  {isMusicPlaying ? <Volume2 className="w-4 h-4" /> : <VolumeX className="w-4 h-4" />}
+                  <span>{isMusicPlaying ? 'כבה מוזיקת רקע' : 'הפעל מוזיקת רקע'}</span>
+                </DropdownMenuItem>
+              )}
+              {onSaveOffline && (
+                <DropdownMenuItem
+                  onClick={onSaveOffline}
+                  disabled={isDownloadingOffline || isSavedOffline}
+                  className="gap-2 cursor-pointer md:hidden"
+                >
+                  {isDownloadingOffline ? (
+                    <Loader2 className="w-4 h-4 animate-spin" />
+                  ) : isSavedOffline ? (
+                    <Check className="w-4 h-4 text-green-600" />
+                  ) : (
+                    <Download className="w-4 h-4" />
+                  )}
+                  <span>{isSavedOffline ? 'שמור לקריאה אופליין' : 'שמור לקריאה ללא אינטרנט'}</span>
+                </DropdownMenuItem>
+              )}
               {onReport && (
                 <DropdownMenuItem onClick={onReport} className="gap-2 cursor-pointer text-destructive">
                   <span>🚨</span>
