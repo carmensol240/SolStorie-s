@@ -45,31 +45,12 @@ const photoTips: PhotoTip[] = [
   { text: "יותר מילד/ה אחד/ת בתמונה", isGood: false },
 ];
 
-// Age range buttons configuration
-const AGE_BUTTONS = [
-  { id: "0-2", label: "0-2", range: "0-2" as const },
-  { id: "3-6", label: "3-6", range: "2-4" as const }, // Maps to internal 2-4 range
-  { id: "7-8", label: "7-8", range: "5-7" as const }, // Maps to internal 5-7 range
-  { id: "9-12", label: "9-12", range: "8-10" as const }, // Maps to internal 8-10 range
-];
-
 // Helper to convert age number to age range
 const ageToRange = (age: number): "0-2" | "2-4" | "5-7" | "8-10" => {
   if (age <= 2) return "0-2";
   if (age <= 4) return "2-4";
   if (age <= 7) return "5-7";
   return "8-10";
-};
-
-// Helper to get display age button from range
-const rangeToDisplayButton = (range: string): string => {
-  switch (range) {
-    case "0-2": return "0-2";
-    case "2-4": return "3-6";
-    case "5-7": return "7-8";
-    case "8-10": return "9-12";
-    default: return "3-6";
-  }
 };
 
 // Helper to get a representative age from range
@@ -124,8 +105,7 @@ const ChildInfoStep = ({ formData, updateFormData }: ChildInfoStepProps) => {
   } | null>(null);
   const [isValidatingPhoto, setIsValidatingPhoto] = useState(false);
   
-  // Selected age button
-  const [selectedAgeButton, setSelectedAgeButton] = useState<string>(rangeToDisplayButton(formData.ageRange));
+  // (Age is now a free numeric input — formData.childAge is the source of truth)
 
   // Scroll to photo upload section when navigated with #photo-upload-section hash (e.g. from DemoStory CTA)
   useEffect(() => {
@@ -159,12 +139,12 @@ const ChildInfoStep = ({ formData, updateFormData }: ChildInfoStepProps) => {
           setSavedChildren(data);
           // Auto-load the first child's data
           const firstChild = data[0];
-          setSelectedAgeButton(rangeToDisplayButton(ageToRange(firstChild.age)));
           setIsCreatingNew(false);
           updateFormData({
             childName: firstChild.name,
             childGender: firstChild.gender as "male" | "female",
             ageRange: ageToRange(firstChild.age),
+            childAge: firstChild.age,
             childPhoto: firstChild.photo_url,
             childAvatarUrl: firstChild.avatar_url,
             personalityTraits: firstChild.personality_traits || "",
@@ -183,12 +163,12 @@ const ChildInfoStep = ({ formData, updateFormData }: ChildInfoStepProps) => {
           setSavedChildren(localChildren);
           // Auto-load the first child
           const firstChild = localChildren[0];
-          setSelectedAgeButton(rangeToDisplayButton(ageToRange(firstChild.age)));
           setIsCreatingNew(false);
           updateFormData({
             childName: firstChild.name,
             childGender: firstChild.gender as "male" | "female",
             ageRange: ageToRange(firstChild.age),
+            childAge: firstChild.age,
             childPhoto: firstChild.photo_url,
             childAvatarUrl: firstChild.avatar_url,
             personalityTraits: firstChild.personality_traits || "",
@@ -204,13 +184,15 @@ const ChildInfoStep = ({ formData, updateFormData }: ChildInfoStepProps) => {
     fetchChildren();
   }, [user]);
 
-  // Handle age button selection
-  const handleAgeButtonSelect = (buttonId: string) => {
-    setSelectedAgeButton(buttonId);
-    const ageButton = AGE_BUTTONS.find(b => b.id === buttonId);
-    if (ageButton) {
-      updateFormData({ ageRange: ageButton.range });
+  // Handle numeric age input
+  const handleAgeInputChange = (raw: string) => {
+    const n = parseInt(raw, 10);
+    if (Number.isNaN(n)) {
+      updateFormData({ childAge: 0 as any });
+      return;
     }
+    const clamped = Math.max(1, Math.min(12, n));
+    updateFormData({ childAge: clamped, ageRange: ageToRange(clamped) });
   };
 
   const handlePhotoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -310,12 +292,12 @@ const ChildInfoStep = ({ formData, updateFormData }: ChildInfoStepProps) => {
   };
 
   const loadChildProfile = (child: SavedChild) => {
-    setSelectedAgeButton(rangeToDisplayButton(ageToRange(child.age)));
     setIsCreatingNew(false);
     updateFormData({
       childName: child.name,
       childGender: child.gender as "male" | "female",
       ageRange: ageToRange(child.age),
+      childAge: child.age,
       childPhoto: child.photo_url,
       childAvatarUrl: child.avatar_url,
       personalityTraits: child.personality_traits || "",
@@ -338,7 +320,9 @@ const ChildInfoStep = ({ formData, updateFormData }: ChildInfoStepProps) => {
     }
 
     setIsSavingChild(true);
-    const selectedAge = rangeToAge(formData.ageRange);
+    const selectedAge = formData.childAge && formData.childAge > 0
+      ? formData.childAge
+      : rangeToAge(formData.ageRange);
 
     try {
       // In dev mode or for non-logged users, always save to localStorage
@@ -488,14 +472,13 @@ const ChildInfoStep = ({ formData, updateFormData }: ChildInfoStepProps) => {
         childName: "",
         childGender: "male",
         ageRange: "2-4",
-        storyLength: "short",
+        childAge: 4,
         childPhoto: null,
         childAvatarUrl: null,
         personalityTraits: "",
         className: "",
         fixedDetails: "",
       });
-      setSelectedAgeButton("3-6");
       
       toast.success(`הפרופיל של ${currentChild.name} נמחק בהצלחה`);
     } catch (error) {
@@ -552,14 +535,13 @@ const ChildInfoStep = ({ formData, updateFormData }: ChildInfoStepProps) => {
                 childName: "",
                 childGender: "male",
                 ageRange: "2-4",
-                storyLength: "short",
+                childAge: 4,
                 childPhoto: null,
                 childAvatarUrl: null,
                 personalityTraits: "",
                 className: "",
                 fixedDetails: "",
               });
-              setSelectedAgeButton("3-6");
               setIsCreatingNew(true);
               toast.success("הטופס נוקה - הזינו פרטי ילד/ה חדש/ה");
             }}
@@ -654,66 +636,23 @@ const ChildInfoStep = ({ formData, updateFormData }: ChildInfoStepProps) => {
         </div>
       </div>
 
-      {/* Age · Length · Language - Compact Row */}
-      <div className="grid grid-cols-3 gap-2">
-        {/* Age */}
+      {/* Age · Language - Compact Row */}
+      <div className="grid grid-cols-2 gap-2 items-start">
+        {/* Age (numeric input) */}
         <div className="space-y-1">
-          <Label className="text-[10px] font-medium text-center block">גיל</Label>
-          <div className="flex flex-col gap-1">
-            {AGE_BUTTONS.filter(b => b.id !== "9-12").map((button) => (
-              <button
-                key={button.id}
-                onClick={() => handleAgeButtonSelect(button.id)}
-                className={cn(
-                  "py-1.5 rounded-md border transition-all text-center text-sm font-bold",
-                  selectedAgeButton === button.id
-                    ? "border-purple-500 bg-gradient-to-r from-purple-600 via-pink-500 to-orange-400 text-white"
-                    : "border-border bg-card hover:border-purple-300"
-                )}
-              >
-                {button.label}
-              </button>
-            ))}
-          </div>
-        </div>
-
-        {/* Story Length */}
-        <div className="space-y-1">
-          <Label className="text-[10px] font-medium text-center block flex items-center justify-center gap-1"><BookOpen className="w-3 h-3" />אורך</Label>
-          <div className="flex flex-col gap-1">
-            <button
-              onClick={() => updateFormData({ storyLength: "short" })}
-              className={cn(
-                "py-1.5 rounded-md border transition-all text-center text-sm font-bold",
-                formData.storyLength === "short"
-                  ? "border-purple-500 bg-gradient-to-r from-purple-600 via-pink-500 to-orange-400 text-white"
-                  : "border-border bg-card hover:border-purple-300"
-              )}
-            >
-              קצר · 4-5
-            </button>
-            <button
-              onClick={() => updateFormData({ storyLength: "long" })}
-              className={cn(
-                "py-1.5 rounded-md border transition-all text-center text-sm font-bold",
-                formData.storyLength === "long"
-                  ? "border-purple-500 bg-gradient-to-r from-purple-600 via-pink-500 to-orange-400 text-white"
-                  : "border-border bg-card hover:border-purple-300"
-              )}
-            >
-              ארוך · 6-8
-            </button>
-            <button
-              onClick={() => updateFormData({ storyLength: "extra-long" })}
-              className={cn(
-                "py-1.5 rounded-md border transition-all text-center text-[11px] font-bold",
-                formData.storyLength === "extra-long"
-                  ? "border-purple-500 bg-gradient-to-r from-purple-600 via-pink-500 to-orange-400 text-white"
-                  : "border-border bg-card hover:border-purple-300"
-              )}
-            >
-              ארוך במיוחד · 10-12
-            </button>
+          <Label className="text-[10px] font-medium text-center block">גיל הילד/ה</Label>
+          <div className="flex items-center justify-center gap-2 py-1">
+            <Input
+              type="number"
+              min={1}
+              max={12}
+              inputMode="numeric"
+              value={formData.childAge ? String(formData.childAge) : ""}
+              onChange={(e) => handleAgeInputChange(e.target.value)}
+              className="w-16 h-10 text-center text-base font-bold border-2 border-purple-300 focus-visible:border-purple-500"
+              aria-label="גיל הילד/ה בשנים"
+            />
+            <span className="text-xs font-medium text-muted-foreground">שנים</span>
           </div>
         </div>
 
@@ -742,17 +681,6 @@ const ChildInfoStep = ({ formData, updateFormData }: ChildInfoStepProps) => {
               )}
             >
               🇺🇸 EN
-            </button>
-            <button
-              onClick={() => handleAgeButtonSelect("9-12")}
-              className={cn(
-                "py-1.5 rounded-md border transition-all text-center text-[11px] font-bold",
-                selectedAgeButton === "9-12"
-                  ? "border-purple-500 bg-gradient-to-r from-purple-600 via-pink-500 to-orange-400 text-white"
-                  : "border-border bg-card hover:border-purple-300"
-              )}
-            >
-              ✨ גיל 9-12
             </button>
           </div>
         </div>
