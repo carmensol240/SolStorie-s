@@ -1836,6 +1836,7 @@ CRITICAL RULES:
 - Do NOT flatten sentence-per-line formatting into paragraphs
 - Do NOT remove sensory descriptions (smells, sounds, touch) — enhance them in simple language!
 - Do NOT add any explanation, just return the rewritten text
+- **אסור** להוסיף או להשאיר ציון גיל מספרי בטקסט (לא "בת שלוש", לא "בן 5", לא "ילדה בת ארבע"). אם קיים בקלט — להסיר את ציון הגיל או לנסח מחדש בלי המספר.
 
 CHECKLIST before returning:
 ✓ Every sentence fits the age level
