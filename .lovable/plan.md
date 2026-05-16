@@ -1,15 +1,7 @@
-## Landing page tagline update
+Three focused UI edits to `src/components/wizard/ChildInfoStep.tsx`:
 
-In `src/pages/Adventure.tsx` (bottom CTA section, lines ~167–181):
+1. **Remove the subtitle** — Delete the `<p>` element containing "בחרו פרופיל קיים או צרו חדש" (line ~470).
 
-1. Remove the existing paragraph:
-   `<p className="text-white/90 text-xs font-bold drop-shadow-md">הסיפור הראשון שלכם במתנה 🎁</p>`
+2. **Move action buttons into the profiles row** — Relocate the "פרופיל חדש +" button and the trash icon from their current position inside the title section to the **left side** of the saved-children flex row, so they sit inline with the profile chips instead of above them.
 
-2. Add a new tagline directly above the CTA button (after `<WelcomeGiftBanner ... />`), matching existing typography style:
-   ```tsx
-   <p className="text-white text-sm font-bold drop-shadow-md text-center">
-     ✨ סיפורים מותאמים אישית עם הילד שלך כגיבור ⭐
-   </p>
-   ```
-
-Nothing else changes — spinning coin, CTA button, background image, welcome banner, header, and navigation remain untouched.
+3. **Tighten spacing above profiles** — Reduce the vertical gap/margin between the title area and the profiles row to make the section more compact.
