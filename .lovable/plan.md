@@ -1,24 +1,17 @@
-Add a personalized greeting at the very top of `src/components/wizard/ChildInfoStep.tsx`, above the existing "ספרו לנו על הילד/ה" title.
+The greeting itself in `ChildInfoStep.tsx` (line 488) is just text + 👋 — no icon there. The "pink person icon" the user sees right above the greeting is rendered by the parent wizard header in `src/pages/CreateStory.tsx` (lines 215–219): a gradient pink/purple/orange square containing a `<User>` lucide icon, shown only on step 1.
 
-## Changes (single file: `src/components/wizard/ChildInfoStep.tsx`)
+## Change
 
-1. **Imports**: ensure `useAuth` from `@/hooks/use-auth` and `supabase` from `@/integrations/supabase/client` are imported (add if missing). `useState` / `useEffect` are already imported.
+In `src/pages/CreateStory.tsx`, remove the step-1 User icon block:
 
-2. **State + fetch**: inside the component, add:
-   - `const { user } = useAuth();`
-   - `const [displayName, setDisplayName] = useState<string | null>(null);`
-   - `useEffect` that, when `user` exists, queries `profiles.display_name` by `user.id` and falls back to `user.email?.split('@')[0]`. Same pattern used in `src/pages/Home.tsx`.
+```tsx
+{step === 1 && (
+  <div className="w-8 h-8 bg-gradient-to-br from-purple-600 via-pink-500 to-orange-400 rounded-lg flex items-center justify-center shadow-md">
+    <User className="w-4 h-4 text-white" />
+  </div>
+)}
+```
 
-3. **Render greeting** at the very top of the returned JSX (before the existing title block), guarded by `user`:
-   ```tsx
-   {user && (
-     <div className="mb-3 text-center">
-       <h2 className="text-lg sm:text-xl font-bold bg-gradient-to-r from-purple-600 via-pink-500 to-orange-400 bg-clip-text text-transparent">
-         שלום, {displayName || "משתמש"}! 👋
-       </h2>
-     </div>
-   )}
-   ```
-   Style matches the existing wizard's purple→pink→orange gradient theme.
+Also drop the now-unused `User` import from `lucide-react` in that file.
 
-4. Nothing else in the file changes (profiles row, title, spacing, etc. stay exactly as they are).
+Nothing else changes — greeting text, 👋, layout, and other steps stay as-is.
