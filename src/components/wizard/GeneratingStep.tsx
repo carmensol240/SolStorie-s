@@ -206,6 +206,7 @@ const GeneratingStep = ({ formData, onComplete }: GeneratingStepProps) => {
             childName: formData.childName,
             childGender: formData.childGender,
             ageRange: formData.ageRange,
+            childAge: formData.childAge,
             storyLength: formData.storyLength,
             topic: topicLabel,
             topicId: formData.topic,
