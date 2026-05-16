@@ -106,10 +106,13 @@ const ChildInfoStep = ({ formData, updateFormData }: ChildInfoStepProps) => {
     (async () => {
       const { data } = await supabase
         .from("profiles")
-        .select("display_name")
+        .select("display_name, photo_consent_at")
         .eq("id", user.id)
         .maybeSingle();
       setDisplayName(data?.display_name || user.email?.split("@")[0] || null);
+      if ((data as any)?.photo_consent_at) {
+        updateFormData({ photoConsent: true });
+      }
     })();
   }, [user]);
   const [photoValidation, setPhotoValidation] = useState<{
@@ -984,7 +987,18 @@ const ChildInfoStep = ({ formData, updateFormData }: ChildInfoStepProps) => {
             <Checkbox
               id="photo-consent"
               checked={formData.photoConsent || false}
-              onCheckedChange={(c) => updateFormData({ photoConsent: c === true })}
+              onCheckedChange={(c) => {
+                const checked = c === true;
+                updateFormData({ photoConsent: checked });
+                if (checked && user) {
+                  supabase
+                    .from("profiles")
+                    .update({ photo_consent_at: new Date().toISOString() } as any)
+                    .eq("id", user.id)
+                    .is("photo_consent_at", null)
+                    .then(() => {});
+                }
+              }}
               className={`border-purple-300 data-[state=checked]:bg-purple-500 data-[state=checked]:border-purple-500 h-4 w-4 mt-0.5 ${!formData.photoConsent ? 'animate-[checkbox-pulse-glow_1.5s_infinite]' : ''}`}
             />
             <label htmlFor="photo-consent" className="text-[11px] text-muted-foreground cursor-pointer leading-tight">
