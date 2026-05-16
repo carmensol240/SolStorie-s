@@ -292,12 +292,12 @@ const ChildInfoStep = ({ formData, updateFormData }: ChildInfoStepProps) => {
   };
 
   const loadChildProfile = (child: SavedChild) => {
-    setSelectedAgeButton(rangeToDisplayButton(ageToRange(child.age)));
     setIsCreatingNew(false);
     updateFormData({
       childName: child.name,
       childGender: child.gender as "male" | "female",
       ageRange: ageToRange(child.age),
+      childAge: child.age,
       childPhoto: child.photo_url,
       childAvatarUrl: child.avatar_url,
       personalityTraits: child.personality_traits || "",
@@ -320,7 +320,9 @@ const ChildInfoStep = ({ formData, updateFormData }: ChildInfoStepProps) => {
     }
 
     setIsSavingChild(true);
-    const selectedAge = rangeToAge(formData.ageRange);
+    const selectedAge = formData.childAge && formData.childAge > 0
+      ? formData.childAge
+      : rangeToAge(formData.ageRange);
 
     try {
       // In dev mode or for non-logged users, always save to localStorage
@@ -470,14 +472,13 @@ const ChildInfoStep = ({ formData, updateFormData }: ChildInfoStepProps) => {
         childName: "",
         childGender: "male",
         ageRange: "2-4",
-        storyLength: "short",
+        childAge: 4,
         childPhoto: null,
         childAvatarUrl: null,
         personalityTraits: "",
         className: "",
         fixedDetails: "",
       });
-      setSelectedAgeButton("3-6");
       
       toast.success(`הפרופיל של ${currentChild.name} נמחק בהצלחה`);
     } catch (error) {
@@ -534,14 +535,13 @@ const ChildInfoStep = ({ formData, updateFormData }: ChildInfoStepProps) => {
                 childName: "",
                 childGender: "male",
                 ageRange: "2-4",
-                storyLength: "short",
+                childAge: 4,
                 childPhoto: null,
                 childAvatarUrl: null,
                 personalityTraits: "",
                 className: "",
                 fixedDetails: "",
               });
-              setSelectedAgeButton("3-6");
               setIsCreatingNew(true);
               toast.success("הטופס נוקה - הזינו פרטי ילד/ה חדש/ה");
             }}
