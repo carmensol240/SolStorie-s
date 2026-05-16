@@ -164,11 +164,13 @@ const Adventure = () => {
                 </span>
               </div>
             </div>
-            <p className="text-white/90 text-xs font-bold drop-shadow-md">הסיפור הראשון שלכם במתנה 🎁</p>
           </div>
 
           <WelcomeGiftBanner credits={credits} storyCount={storyCount} />
 
+          <p className="text-white text-sm font-bold drop-shadow-md text-center">
+            ✨ סיפורים מותאמים אישית עם הילד שלך כגיבור ⭐
+          </p>
 
           <button
             onClick={handleAdventureCTA}
