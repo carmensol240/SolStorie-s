@@ -1339,16 +1339,15 @@ Gently hint that this isn't the first time: for example "${childName} already kn
 
 🚨 MANDATORY NAME RULE: Use the name "${childName}" EXACTLY as written, letter for letter. Never substitute, shorten, lengthen, "correct", translate, transliterate, or suggest an alternative name. The name appearing on every page, in titles and dialogue, must be exactly "${childName}".
 - Gender: ${genderWordEn} (use ${pronounEn} pronouns)
-- Age: ${ageRange}
+- Age range for language calibration ONLY (do NOT mention any age in the story): ${ageRange}
 ${childPersonalization}
 ${contentFraming}
 ${sequelInstructionEn}
 
-### Age Integration Rule (MANDATORY)
-Weave the child's age naturally into the story through behavior or abilities — never as a dry factual statement like "She is four years old" or "He is six."
-- ❌ FORBIDDEN: "She is four years old" / "He was six" as a factual sentence
-- ✅ CORRECT: "still little, but with a big heart" / "like every child her age, she loved to explore"
-- If you must mention age — use warm phrasing, e.g.: "${childName}, the sweet ${ageRange.split('-').pop()}-year-old"
+### Age Rule (MANDATORY — STRICT)
+- NEVER state a numeric age in the story — not in words, not in digits. No "she is four", no "the 5-year-old", no "${childName}, the six-year-old".
+- The age range above is for the AUTHOR ONLY — use it to calibrate vocabulary, sentence length, and plot complexity. Do not surface it in the text.
+- EXCEPTION: only if the user's "fixed details" (background about the child) explicitly contain a specific age, you may use that age exactly as the user wrote it. Otherwise, no age at all.
 
 **Story topic:** ${topic}
 ${hasCustomDescription ? `**Custom description:** ${personalityTraits}` : ""}
