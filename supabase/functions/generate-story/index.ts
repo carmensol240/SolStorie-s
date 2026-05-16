@@ -1339,16 +1339,15 @@ Gently hint that this isn't the first time: for example "${childName} already kn
 
 🚨 MANDATORY NAME RULE: Use the name "${childName}" EXACTLY as written, letter for letter. Never substitute, shorten, lengthen, "correct", translate, transliterate, or suggest an alternative name. The name appearing on every page, in titles and dialogue, must be exactly "${childName}".
 - Gender: ${genderWordEn} (use ${pronounEn} pronouns)
-- Age: ${ageRange}
+- Age range for language calibration ONLY (do NOT mention any age in the story): ${ageRange}
 ${childPersonalization}
 ${contentFraming}
 ${sequelInstructionEn}
 
-### Age Integration Rule (MANDATORY)
-Weave the child's age naturally into the story through behavior or abilities — never as a dry factual statement like "She is four years old" or "He is six."
-- ❌ FORBIDDEN: "She is four years old" / "He was six" as a factual sentence
-- ✅ CORRECT: "still little, but with a big heart" / "like every child her age, she loved to explore"
-- If you must mention age — use warm phrasing, e.g.: "${childName}, the sweet ${ageRange.split('-').pop()}-year-old"
+### Age Rule (MANDATORY — STRICT)
+- NEVER state a numeric age in the story — not in words, not in digits. No "she is four", no "the 5-year-old", no "${childName}, the six-year-old".
+- The age range above is for the AUTHOR ONLY — use it to calibrate vocabulary, sentence length, and plot complexity. Do not surface it in the text.
+- EXCEPTION: only if the user's "fixed details" (background about the child) explicitly contain a specific age, you may use that age exactly as the user wrote it. Otherwise, no age at all.
 
 **Story topic:** ${topic}
 ${hasCustomDescription ? `**Custom description:** ${personalityTraits}` : ""}
@@ -1384,16 +1383,17 @@ ${adventureLogic ? `
 
 🚨 כלל חובה — שם הילד/ה: השתמש בשם "${childName}" בדיוק כפי שנכתב, אות באות. אסור בהחלט להחליף, לקצר, להאריך, "לתקן", לעברת, או להציע שם חלופי. השם המופיע בכל העמודים, בכותרות ובדיאלוגים חייב להיות "${childName}" בדיוק.
 - מגדר: ${genderText}
-- גיל: ${ageRange}
+- טווח גיל לכיול רמת השפה בלבד (אסור להזכיר גיל בסיפור): ${ageRange}
 ${childPersonalization}
 ${contentFraming}
 ${sequelInstruction}
 
-### 🎂 שילוב גיל באופן טבעי — כלל חובה!
-שלב את גיל הילד/ה באופן טבעי ועדין בתוך הסיפור — לא כמשפט תיאורי ישיר אלא דרך התנהגות או יכולות המתאימות לגיל.
-- ❌ אסור: "${childGender === "female" ? "היא בת ארבע" : "הוא בן ארבע"}" כמשפט עובדתי יבש
-- ✅ נכון: "${childGender === "female" ? "היא עדיין קטנה, אבל ליבה גדול" : "הוא עדיין קטן, אבל ליבו גדול"}" / "כמו כל ${childGender === "female" ? "ילדה" : "ילד"} ${childGender === "female" ? "בגילה" : "בגילו"}, ${childGender === "female" ? "היא אוהבת" : "הוא אוהב"} לחקור"
-- אם חייבים לציין גיל — לשלב בצורה חמה, לדוגמה: "${childName} ${childGender === "female" ? "בת" : "בן"} ה${AGE_LABEL_MAP[ageRange] || ageRange} ${childGender === "female" ? "המתוקה" : "המתוק"}"
+### 🎂 כלל גיל — חובה מוחלטת (אכיפה קפדנית)
+- **אסור בהחלט** לציין גיל מספרי כלשהו בסיפור — לא במילים ("${childGender === "female" ? "בת שלוש" : "בן שלוש"}", "${childGender === "female" ? "בת חמש" : "בן חמש"}") ולא בספרות ("בת 5", "ילד בן 6").
+- **אסור** לכתוב משפטים כמו "${childGender === "female" ? "היא בת ארבע" : "הוא בן ארבע"}" או "${childName} ${childGender === "female" ? "המתוקה בת ה-שש" : "המתוק בן ה-שש"}".
+- טווח הגיל למעלה הוא **רק לכותב/ת** — לכיול אוצר המילים, אורך המשפטים ומורכבות העלילה. לא להעלות אותו לטקסט.
+- אם רוצים לרמוז על גיל — דרך התנהגות/יכולות בלבד: "${childGender === "female" ? "היא עדיין קטנה, אבל ליבה גדול" : "הוא עדיין קטן, אבל ליבו גדול"}".
+- **חריג יחיד:** אם ב"רקע קבוע על הילד/ה" שצוין על-ידי המשתמש מופיע גיל מפורש — מותר להשתמש בו בדיוק כפי שנכתב. אחרת — אין שום ציון גיל.
 
 **נושא הסיפור:** ${topic}
 ${hasCustomDescription ? `**תיאור חופשי:** ${personalityTraits}` : ""}
@@ -1836,6 +1836,7 @@ CRITICAL RULES:
 - Do NOT flatten sentence-per-line formatting into paragraphs
 - Do NOT remove sensory descriptions (smells, sounds, touch) — enhance them in simple language!
 - Do NOT add any explanation, just return the rewritten text
+- **אסור** להוסיף או להשאיר ציון גיל מספרי בטקסט (לא "בת שלוש", לא "בן 5", לא "ילדה בת ארבע"). אם קיים בקלט — להסיר את ציון הגיל או לנסח מחדש בלי המספר.
 
 CHECKLIST before returning:
 ✓ Every sentence fits the age level
