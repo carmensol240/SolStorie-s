@@ -531,6 +531,7 @@ export type Database = {
           last_name: string | null
           marketing_consent: boolean | null
           phone: string | null
+          photo_consent_at: string | null
           referral_code: string | null
           share_coins: number | null
           story_credits: number | null
@@ -561,6 +562,7 @@ export type Database = {
           last_name?: string | null
           marketing_consent?: boolean | null
           phone?: string | null
+          photo_consent_at?: string | null
           referral_code?: string | null
           share_coins?: number | null
           story_credits?: number | null
@@ -591,6 +593,7 @@ export type Database = {
           last_name?: string | null
           marketing_consent?: boolean | null
           phone?: string | null
+          photo_consent_at?: string | null
           referral_code?: string | null
           share_coins?: number | null
           story_credits?: number | null
