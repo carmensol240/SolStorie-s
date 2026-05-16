@@ -154,7 +154,7 @@ export const BookHeader: React.FC<BookHeaderProps> = ({
                   size="sm"
                   onClick={onShareWhatsApp}
                   disabled={isExporting}
-                  className="text-green-600 hover:bg-green-100/60 min-h-[44px] min-w-[44px] p-2 disabled:opacity-50"
+                  className="hidden md:inline-flex text-green-600 hover:bg-green-100/60 min-h-[44px] min-w-[44px] p-2 disabled:opacity-50"
                   aria-label="שיתוף בוואטסאפ"
                 >
                   <MessageCircle className={cn("w-5 h-5", isExporting && "animate-pulse")} />
@@ -172,7 +172,7 @@ export const BookHeader: React.FC<BookHeaderProps> = ({
                   variant="ghost"
                   size="sm"
                   onClick={onColoring}
-                  className="text-slate-600 hover:bg-sky-100/60 min-h-[44px] min-w-[44px] p-2"
+                  className="hidden md:inline-flex text-slate-600 hover:bg-sky-100/60 min-h-[44px] min-w-[44px] p-2"
                   aria-label="דפי צביעה"
                 >
                   <Palette className="w-5 h-5" />
@@ -225,7 +225,7 @@ export const BookHeader: React.FC<BookHeaderProps> = ({
                   <Button
                     variant="ghost"
                     size="sm"
-                    className="text-slate-600 hover:bg-sky-100/60 min-h-[44px] min-w-[44px] p-2"
+                    className="hidden md:inline-flex text-slate-600 hover:bg-sky-100/60 min-h-[44px] min-w-[44px] p-2"
                     aria-label="מה קורה בהמשך?"
                   >
                     <Sparkles className="w-5 h-5" />
@@ -254,7 +254,7 @@ export const BookHeader: React.FC<BookHeaderProps> = ({
                   variant="ghost"
                   size="sm"
                   onClick={onToggleMusic}
-                   className="text-slate-600 hover:bg-sky-100/60 min-h-[44px] min-w-[44px] p-2"
+                   className="hidden md:inline-flex text-slate-600 hover:bg-sky-100/60 min-h-[44px] min-w-[44px] p-2"
                   aria-label={isMusicPlaying ? "כבה מוזיקת רקע" : "הפעל מוזיקת רקע"}
                 >
                   {isMusicPlaying ? <Volume2 className="w-5 h-5" /> : <VolumeX className="w-5 h-5" />}
@@ -308,6 +308,41 @@ export const BookHeader: React.FC<BookHeaderProps> = ({
                 <DropdownMenuItem onClick={onToggleNikud} className="gap-2 cursor-pointer">
                   <span>{showNikud ? 'א' : 'אָ'}</span>
                   <span>{showNikud ? 'הסר ניקוד' : 'הוסף ניקוד'}</span>
+                </DropdownMenuItem>
+              )}
+              {/* Mobile-only fallbacks for actions hidden in the header on small screens */}
+              {onColoring && (
+                <DropdownMenuItem onClick={onColoring} className="gap-2 cursor-pointer md:hidden">
+                  <Palette className="w-4 h-4" />
+                  <span>דפי צביעה</span>
+                </DropdownMenuItem>
+              )}
+              {onShareWhatsApp && (
+                <DropdownMenuItem onClick={onShareWhatsApp} disabled={isExporting} className="gap-2 cursor-pointer md:hidden">
+                  <MessageCircle className="w-4 h-4 text-green-600" />
+                  <span>שלח בוואטסאפ</span>
+                </DropdownMenuItem>
+              )}
+              {onToggleMusic && (
+                <DropdownMenuItem onClick={onToggleMusic} className="gap-2 cursor-pointer md:hidden">
+                  {isMusicPlaying ? <Volume2 className="w-4 h-4" /> : <VolumeX className="w-4 h-4" />}
+                  <span>{isMusicPlaying ? 'כבה מוזיקת רקע' : 'הפעל מוזיקת רקע'}</span>
+                </DropdownMenuItem>
+              )}
+              {onSaveOffline && (
+                <DropdownMenuItem
+                  onClick={onSaveOffline}
+                  disabled={isDownloadingOffline || isSavedOffline}
+                  className="gap-2 cursor-pointer md:hidden"
+                >
+                  {isDownloadingOffline ? (
+                    <Loader2 className="w-4 h-4 animate-spin" />
+                  ) : isSavedOffline ? (
+                    <Check className="w-4 h-4 text-green-600" />
+                  ) : (
+                    <Download className="w-4 h-4" />
+                  )}
+                  <span>{isSavedOffline ? 'שמור לקריאה אופליין' : 'שמור לקריאה ללא אינטרנט'}</span>
                 </DropdownMenuItem>
               )}
               {onReport && (
