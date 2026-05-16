@@ -484,8 +484,10 @@ const ChildInfoStep = ({ formData, updateFormData }: ChildInfoStepProps) => {
       {/* Personalized greeting (logged-in users) */}
       {user && (
         <div className="text-center mb-1">
-          <h2 className="text-base sm:text-lg font-bold bg-gradient-to-r from-purple-600 via-pink-500 to-orange-400 bg-clip-text text-transparent">
-            שלום, {displayName || "משתמש"}! 👋
+          <h2 className="text-base sm:text-lg font-bold">
+            <span className="bg-gradient-to-r from-purple-600 via-pink-500 to-orange-400 bg-clip-text text-transparent">
+              שלום, {displayName || "משתמש"}!
+            </span>{" "}👋
           </h2>
         </div>
       )}
