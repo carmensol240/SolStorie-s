@@ -95,6 +95,23 @@ const ChildInfoStep = ({ formData, updateFormData }: ChildInfoStepProps) => {
   const [avatarRegenerationCount, setAvatarRegenerationCount] = useState(0);
   const [userRole, setUserRole] = useState<string | null>(null);
   const [isDeletingChild, setIsDeletingChild] = useState(false);
+  const [displayName, setDisplayName] = useState<string | null>(null);
+
+  // Fetch display name from profile for greeting
+  useEffect(() => {
+    if (!user) {
+      setDisplayName(null);
+      return;
+    }
+    (async () => {
+      const { data } = await supabase
+        .from("profiles")
+        .select("display_name")
+        .eq("id", user.id)
+        .maybeSingle();
+      setDisplayName(data?.display_name || user.email?.split("@")[0] || null);
+    })();
+  }, [user]);
   const [photoValidation, setPhotoValidation] = useState<{
     facingForward: boolean;
     singlePerson: boolean;
@@ -464,6 +481,14 @@ const ChildInfoStep = ({ formData, updateFormData }: ChildInfoStepProps) => {
   return (
 
     <div className="w-full space-y-2 px-1">
+      {/* Personalized greeting (logged-in users) */}
+      {user && (
+        <div className="text-center mb-1">
+          <h2 className="text-base sm:text-lg font-bold bg-gradient-to-r from-purple-600 via-pink-500 to-orange-400 bg-clip-text text-transparent">
+            שלום, {displayName || "משתמש"}! 👋
+          </h2>
+        </div>
+      )}
       {/* Title */}
       <div className="text-center">
         <h1 className="text-lg font-black bg-gradient-to-r from-purple-600 via-pink-500 to-orange-400 bg-clip-text text-transparent">ספרו לנו על הילד/ה</h1>
