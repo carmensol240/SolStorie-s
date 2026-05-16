@@ -184,6 +184,7 @@ export const BookHeader: React.FC<BookHeaderProps> = ({
 
           {/* Save for Offline Reading */}
           {onSaveOffline && (
+            <div className="hidden md:block">
             <Tooltip>
               <TooltipTrigger asChild>
                 <Button
@@ -213,6 +214,7 @@ export const BookHeader: React.FC<BookHeaderProps> = ({
                 {isSavedOffline ? "✅ שמור לקריאה אופליין" : "שמור לקריאה ללא אינטרנט"}
               </TooltipContent>
             </Tooltip>
+            </div>
           )}
 
           {/* What Happens Next? */}
