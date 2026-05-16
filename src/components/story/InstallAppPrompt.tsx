@@ -109,6 +109,9 @@ const InstallAppPrompt = ({ justCreatedFirstStory }: InstallAppPromptProps) => {
             <p className="text-sm text-purple-900 leading-relaxed pr-7">
               לחצי על <strong>⋮</strong> בפינת הדפדפן ואז בחרי <strong>״הוסף למסך הבית״</strong>
             </p>
+            <p className="text-xs text-purple-700 leading-relaxed pr-7 pt-1">
+              מומלץ להתקין דרך <strong>Chrome</strong> כדי להימנע מאזהרת Google Play Protect.
+            </p>
           </div>
 
           {/* Native install button for Android */}

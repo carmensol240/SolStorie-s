@@ -1,21 +1,39 @@
-## Goal
+## Root cause
 
-Replace the demo story viewer in `src/pages/DemoStory.tsx` with a video player using the uploaded MP4, and add a WhatsApp share button below it. Keep the existing header and the "צרו את הסיפור שלכם ✨" CTA intact.
+The "אפליקציה לא בטוחה / תוכננה לגרסה ישנה של Android" warning is **not** a bug in our code — it is shown by Google Play Protect when the Android system detects a WebAPK with an outdated `targetSdkVersion`.
+
+When you "Add to Home Screen" from **Chrome**, Google mints a fresh WebAPK with an up‑to‑date `targetSdk` and Play Protect stays silent.
+When you do it from **Samsung Internet** (which is what the screenshot shows — note the Samsung browser chrome and the `82` battery widget), Samsung generates its own WebAPK with an older `targetSdk`, which is exactly what Play Protect flags.
+
+So the fix is twofold:
+1. Tighten the `manifest.webmanifest` so Chrome's WebAPK minting service accepts it cleanly (any missing/invalid field forces the browser to fall back to a "shortcut" or a degraded WebAPK, which on some OEM browsers also triggers the warning).
+2. Steer users to install via **Chrome** in our in‑app install prompt, so the WebAPK they get is the modern one.
+
+No app code, no routing, no story logic is touched.
 
 ## Changes
 
-1. **Copy the uploaded video** `user-uploads://סרטון_לדוגמא.mp4` to `src/assets/demo-story-video.mp4` so it can be imported and bundled.
+### 1. `vite.config.ts` — manifest cleanup
+Inside the existing `VitePWA({ manifest: { ... } })` block only:
+- Add `"display_override": ["standalone", "minimal-ui"]` (helps Chrome pick the correct install path).
+- Add `"launch_handler": { "client_mode": "navigate-existing" }` (silences a newer WebAPK lint warning).
+- Remove the duplicate icon entries with `purpose: "maskable"` that point at the **same non‑padded** PNG as `purpose: "any"`. Declaring a non‑padded icon as `maskable` is what often causes Chrome to refuse to mint a WebAPK and fall back to a legacy shortcut (which Play Protect then flags). Keep only the two `purpose: "any"` entries (192 + 512). If proper padded maskable icons are added later we can re‑introduce them, but per the request we will not generate new image assets now.
+- Add `"prefer_related_applications": false` is already there — keep.
+- Add `"related_applications": []` for completeness.
 
-2. **Rewrite `src/pages/DemoStory.tsx`**:
-   - Remove all story-fetching logic: `useState`/`useEffect` for `story`/`loading`/`error`, the `supabase.rpc("get_public_story")` call, `tryFetch`, `DEMO_SLUG`/`DEMO_UUID` constants, `DemoPage`/`DemoStoryData` interfaces, pagination state (`currentPage`, `goPrev`, `goNext`), swipe handlers, and the prev/next chevron buttons.
-   - Remove imports no longer used: `useState`, `useEffect`, `Loader2`, `ChevronLeft`, `ChevronRight`, `BookFrame`, `BookPage`, `supabase`, `getPublicIllustrationUrl`, `useSwipe`, `cn`.
-   - Add a `<video>` element with `controls`, `playsInline`, `preload="metadata"`, centered with `max-w-3xl mx-auto w-full`, `rounded-2xl overflow-hidden shadow-xl border border-white/40`, `aspect-video` for responsive sizing, importing the video via `import demoVideo from "@/assets/demo-story-video.mp4"`.
-   - Keep the existing header exactly as is (back button + "סיפור לדוגמה" badge).
-   - Below the video, add a WhatsApp share button styled to match the existing rounded gradient buttons in the file. It opens `https://wa.me/?text=<encoded>` in a new tab with the exact prefilled text: `ראו איך יצרתי סיפור מותאם אישית לילד שלי עם SolStorie's ✨ סיפור ראשון חינם! soulstory.co.il`. Use the `MessageCircle` icon from `lucide-react` (since `WhatsApp` isn't in lucide) with green gradient colors to differentiate from the primary CTA.
-   - Keep the existing "צרו את הסיפור שלכם ✨" CTA button below the WhatsApp button, unchanged.
+Nothing else in `vite.config.ts` changes (workbox config, runtimeCaching, etc. all stay).
+
+### 2. `src/components/story/InstallAppPrompt.tsx` — recommend Chrome on Android
+In the existing Android (🤖) card only, append one short line:
+> מומלץ להתקין דרך **Chrome** כדי להימנע מאזהרת Google Play Protect.
+
+No other text, layout, button, or behavior changes.
+
+### 3. `src/components/pwa/PWAInstallPrompt.tsx` and `PWAInstallBanner.tsx`
+No changes. They already rely on the native `beforeinstallprompt` event, which only fires in Chromium browsers — exactly the path we want users to take.
 
 ## Out of scope
-
-- No changes to routing, the header, the bottom CTA, or any other file.
-- No changes to the `get_public_story` RPC or demo DB data.
-
+- No new icon assets, no maskable‑icon regeneration.
+- No changes to PWA service worker, caching, or registration.
+- No changes to `index.html`, routing, or any unrelated component.
+- No changes to anything outside the three files listed above.
