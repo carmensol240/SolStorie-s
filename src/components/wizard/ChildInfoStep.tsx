@@ -105,8 +105,7 @@ const ChildInfoStep = ({ formData, updateFormData }: ChildInfoStepProps) => {
   } | null>(null);
   const [isValidatingPhoto, setIsValidatingPhoto] = useState(false);
   
-  // Selected age button
-  const [selectedAgeButton, setSelectedAgeButton] = useState<string>(rangeToDisplayButton(formData.ageRange));
+  // (Age is now a free numeric input — formData.childAge is the source of truth)
 
   // Scroll to photo upload section when navigated with #photo-upload-section hash (e.g. from DemoStory CTA)
   useEffect(() => {
@@ -140,12 +139,12 @@ const ChildInfoStep = ({ formData, updateFormData }: ChildInfoStepProps) => {
           setSavedChildren(data);
           // Auto-load the first child's data
           const firstChild = data[0];
-          setSelectedAgeButton(rangeToDisplayButton(ageToRange(firstChild.age)));
           setIsCreatingNew(false);
           updateFormData({
             childName: firstChild.name,
             childGender: firstChild.gender as "male" | "female",
             ageRange: ageToRange(firstChild.age),
+            childAge: firstChild.age,
             childPhoto: firstChild.photo_url,
             childAvatarUrl: firstChild.avatar_url,
             personalityTraits: firstChild.personality_traits || "",
@@ -164,12 +163,12 @@ const ChildInfoStep = ({ formData, updateFormData }: ChildInfoStepProps) => {
           setSavedChildren(localChildren);
           // Auto-load the first child
           const firstChild = localChildren[0];
-          setSelectedAgeButton(rangeToDisplayButton(ageToRange(firstChild.age)));
           setIsCreatingNew(false);
           updateFormData({
             childName: firstChild.name,
             childGender: firstChild.gender as "male" | "female",
             ageRange: ageToRange(firstChild.age),
+            childAge: firstChild.age,
             childPhoto: firstChild.photo_url,
             childAvatarUrl: firstChild.avatar_url,
             personalityTraits: firstChild.personality_traits || "",
@@ -185,13 +184,15 @@ const ChildInfoStep = ({ formData, updateFormData }: ChildInfoStepProps) => {
     fetchChildren();
   }, [user]);
 
-  // Handle age button selection
-  const handleAgeButtonSelect = (buttonId: string) => {
-    setSelectedAgeButton(buttonId);
-    const ageButton = AGE_BUTTONS.find(b => b.id === buttonId);
-    if (ageButton) {
-      updateFormData({ ageRange: ageButton.range });
+  // Handle numeric age input
+  const handleAgeInputChange = (raw: string) => {
+    const n = parseInt(raw, 10);
+    if (Number.isNaN(n)) {
+      updateFormData({ childAge: 0 as any });
+      return;
     }
+    const clamped = Math.max(1, Math.min(12, n));
+    updateFormData({ childAge: clamped, ageRange: ageToRange(clamped) });
   };
 
   const handlePhotoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
