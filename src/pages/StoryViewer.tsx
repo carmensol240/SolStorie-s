@@ -1395,7 +1395,7 @@ const [currentPage, setCurrentPage] = useState(0);
             
             {isClosingPage ? (
               /* Closing Page - Full cast waving background */
-              <div className="relative flex-1 flex flex-col items-center justify-end text-center h-full">
+              <div className="relative flex-1 flex flex-col items-center justify-end text-center h-full overflow-hidden">
                 {/* Full background image */}
                 <img
                   src={castWavingFarewell}
@@ -1406,14 +1406,14 @@ const [currentPage, setCurrentPage] = useState(0);
                 <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/20 to-transparent" />
 
                 {/* Centered closing line */}
-                <div className="absolute inset-0 z-10 flex items-center justify-center px-6 pointer-events-none">
-                  <p className="text-2xl md:text-4xl font-bold text-white drop-shadow-lg text-center" dir="rtl">
+                <div className="absolute inset-0 z-20 flex items-center justify-center px-4 sm:px-6 pointer-events-none">
+                  <p className="text-xl sm:text-2xl md:text-4xl font-bold text-white drop-shadow-lg text-center leading-tight break-words max-w-[90%] mx-auto" dir="rtl" style={{ textAlign: 'center' }}>
                     ✨ סוף – נתראה בסיפור הבא! ✨
                   </p>
                 </div>
 
                 {/* Content overlay */}
-                <div className="relative z-10 space-y-3 pb-8 px-6">
+                <div className="relative z-10 space-y-3 pb-8 px-4 sm:px-6">
                   <div className="pt-2">
                     <a
                       href="https://soulstory.co.il"
@@ -1421,9 +1421,10 @@ const [currentPage, setCurrentPage] = useState(0);
                       rel="noopener noreferrer"
                       className="inline-flex items-center gap-2 hover:opacity-80 transition-opacity"
                       aria-label="SolStorie's - פתח באתר soulstory.co.il"
+                      style={{ opacity: 0.85 }}
                     >
                       <Link2 className="w-5 h-5 text-white drop-shadow" />
-                      <span className="text-xl md:text-2xl font-black logo-3d-bubble">
+                      <span className="text-xl md:text-2xl font-black logo-3d-bubble whitespace-nowrap" dir="ltr">
                         <span className="logo-rainbow">SolStorie's™ | soulstory.co.il</span>
                       </span>
                     </a>
