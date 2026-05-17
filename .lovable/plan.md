@@ -1,20 +1,32 @@
-## שינוי לוגו במסך הסיום
+## הוספת הגדרת מילים מחייבת לעמוד ב-getAgeLengthInstruction
 
-**קובץ:** `src/pages/StoryViewer.tsx` בלבד, שורות 1418–1432.
+**קובץ יחיד:** `supabase/functions/generate-story/index.ts` (שורות 1026-1145)
 
-**מצב נוכחי:** הקישור מכיל אייקון 🔗 + לוגו צבעוני "SolStorie's™" + טקסט לבן נפרד עם קו תחתון "soulstory.co.il".
+לכל ענף בפונקציה `getAgeLengthInstruction` אוסיף שורה מודגשת ומחייבת על מספר מילים מדויק לעמוד, לפי החלוקה הבאה:
 
-**שינוי:** להסיר את ה-`<span>` הלבן הנפרד עם הקו התחתון, ולשלב הכל בשורה אחת בסגנון הלוגו הצבעוני:
+| גיל | מילים לעמוד |
+|---|---|
+| 0-2 | 5-8 מילים |
+| 3-6 | 20-30 מילים בדיוק |
+| 7-9 | 35-45 מילים |
+| 10-12 | 50-60 מילים |
 
-```tsx
-<a href="https://soulstory.co.il" target="_blank" rel="noopener noreferrer"
-   className="inline-flex items-center gap-2 hover:opacity-80 transition-opacity"
-   aria-label="SolStorie's - פתח באתר soulstory.co.il">
-  <Link2 className="w-5 h-5 text-white drop-shadow" />
-  <span className="text-xl md:text-2xl font-black logo-3d-bubble">
-    <span className="logo-rainbow">SolStorie's™ | soulstory.co.il</span>
-  </span>
-</a>
+### השינוי בכל ענף
+
+בתוך כל מחרוזת `instruction` תתווסף שורה בולטת בסוף, בנוסח:
+
+```
+- ⚠️ חובה מוחלטת: כל עמוד חייב להכיל בין X ל-Y מילים בדיוק – לא פחות ולא יותר. זו הגדרה מחייבת ואין לחרוג ממנה.
 ```
 
-**לא משתנה:** שום אלמנט אחר במסך, שום קובץ אחר, שום לוגיקה.
+מיפוי מדויק:
+- `age <= 2` → 5-8 מילים לעמוד
+- `age === 3,4,5,6` → 20-30 מילים לעמוד
+- `age === 7,8,9` → 35-45 מילים לעמוד
+- `age === 10,11,12` → 50-60 מילים לעמוד
+
+### מה לא ישתנה
+- מספר העמודים (`pages`) בכל ענף
+- סך המילים הכולל לסיפור
+- כל שאר השורות בכל `instruction`
+- כל קוד אחר בקובץ או בפרויקט
