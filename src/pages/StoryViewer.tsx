@@ -1424,10 +1424,7 @@ const [currentPage, setCurrentPage] = useState(0);
                     >
                       <Link2 className="w-5 h-5 text-white drop-shadow" />
                       <span className="text-xl md:text-2xl font-black logo-3d-bubble">
-                        <span className="logo-rainbow">SolStorie's™</span>
-                      </span>
-                      <span className="text-sm md:text-base font-bold text-white/90 drop-shadow underline">
-                        soulstory.co.il
+                        <span className="logo-rainbow">SolStorie's™ | soulstory.co.il</span>
                       </span>
                     </a>
                   </div>
