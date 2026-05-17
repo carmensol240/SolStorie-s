@@ -1412,7 +1412,21 @@ const [currentPage, setCurrentPage] = useState(0);
                     נִתְרָאֶה בַּסִּפּוּר הַבָּא!
                   </p>
                   <div className="pt-2">
-                    <span className="text-base font-black logo-3d-bubble"><span className="logo-rainbow">SolStorie's™</span></span>
+                    <a
+                      href="https://soulstory.co.il"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-flex items-center gap-2 hover:opacity-80 transition-opacity"
+                      aria-label="SolStorie's - פתח באתר soulstory.co.il"
+                    >
+                      <Link2 className="w-5 h-5 text-white drop-shadow" />
+                      <span className="text-xl md:text-2xl font-black logo-3d-bubble">
+                        <span className="logo-rainbow">SolStorie's™</span>
+                      </span>
+                      <span className="text-sm md:text-base font-bold text-white/90 drop-shadow underline">
+                        soulstory.co.il
+                      </span>
+                    </a>
                   </div>
                   {/* Next part in series or back to library */}
                   <div className="flex flex-col items-center gap-2 pt-4">
@@ -1782,19 +1796,17 @@ const [currentPage, setCurrentPage] = useState(0);
           </div>
           </MagicalBookFrame>
 
-          {/* Branded footer link — shown on every story page */}
-          <a
-            href="https://soulstory.co.il"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="absolute bottom-14 left-1/2 -translate-x-1/2 z-40 opacity-60 hover:opacity-100 transition-opacity flex items-center gap-1"
-            aria-label="SolStorie's - פתח באתר"
-          >
-            <Link2 className="w-3 h-3 text-purple-600" />
-            <span className="text-[11px] font-black logo-3d-bubble">
-              <span className="logo-rainbow">SolStorie's™</span>
-            </span>
-          </a>
+          {/* Watermark — non-clickable, shown only on illustration/cover pages */}
+          {!isClosingPage && !isEndPage && currentVirtual && currentVirtual.type !== 'text' && (
+            <div
+              className="absolute bottom-14 left-1/2 -translate-x-1/2 z-40 opacity-30 pointer-events-none select-none"
+              aria-hidden="true"
+            >
+              <span className="text-[11px] font-black logo-3d-bubble">
+                <span className="logo-rainbow">SolStorie's™</span>
+              </span>
+            </div>
+          )}
 
           {/* Bottom nav arrows */}
           <div className="absolute bottom-2 left-0 right-0 z-40 flex items-center justify-between px-4">
