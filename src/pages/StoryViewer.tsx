@@ -1,6 +1,6 @@
 import { useState, useEffect, useLayoutEffect, useRef, useCallback, useMemo } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { Home, BookOpen, Palette, Wand2, Loader2, ImageOff, Star, Send, ChevronRight, ChevronLeft, ArrowRight } from "lucide-react";
+import { Home, BookOpen, Palette, Wand2, Loader2, ImageOff, Star, Send, ChevronRight, ChevronLeft, ArrowRight, Link2 } from "lucide-react";
 import SeriesNavBar, { SeriesPart } from "@/components/story/SeriesNavBar";
 import { MissingIllustrationPrompt } from "@/components/story/MissingIllustrationPrompt";
 import { Button } from "@/components/ui/button";
@@ -1444,7 +1444,8 @@ const [currentPage, setCurrentPage] = useState(0);
                       onClick={() => handlePageNav('next')}
                       className="bg-gradient-to-r from-amber-400 to-yellow-500 hover:from-amber-500 hover:to-yellow-600 text-amber-950 font-bold px-8 py-3 rounded-full shadow-xl text-base gap-2 animate-bounce-gentle mt-2"
                     >
-                      לדף הסיום ✨
+                      <Palette className="w-5 h-5" />
+                      לדפי הצביעה
                     </Button>
                   </div>
                 </div>
@@ -1521,10 +1522,6 @@ const [currentPage, setCurrentPage] = useState(0);
                     </Button>
                   </div>
 
-                  {/* Logo footer */}
-                  <div className="pt-4 pb-2">
-                    <span className="text-xl font-black logo-3d-bubble"><span className="logo-rainbow">SolStorie's™</span></span>
-                  </div>
                 </div>
               </div>
 
@@ -1790,9 +1787,10 @@ const [currentPage, setCurrentPage] = useState(0);
             href="https://soulstory.co.il"
             target="_blank"
             rel="noopener noreferrer"
-            className="absolute bottom-14 left-1/2 -translate-x-1/2 z-40 opacity-60 hover:opacity-100 transition-opacity"
-            aria-label="SolStorie's"
+            className="absolute bottom-14 left-1/2 -translate-x-1/2 z-40 opacity-60 hover:opacity-100 transition-opacity flex items-center gap-1"
+            aria-label="SolStorie's - פתח באתר"
           >
+            <Link2 className="w-3 h-3 text-purple-600" />
             <span className="text-[11px] font-black logo-3d-bubble">
               <span className="logo-rainbow">SolStorie's™</span>
             </span>
