@@ -1404,13 +1404,16 @@ const [currentPage, setCurrentPage] = useState(0);
                 />
                 {/* Dark overlay for text readability */}
                 <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/20 to-transparent" />
-                
+
+                {/* Centered closing line */}
+                <div className="absolute inset-0 z-10 flex items-center justify-center px-6 pointer-events-none">
+                  <p className="text-2xl md:text-4xl font-bold text-white drop-shadow-lg text-center" dir="rtl">
+                    ✨ סוף – נתראה בסיפור הבא! ✨
+                  </p>
+                </div>
+
                 {/* Content overlay */}
                 <div className="relative z-10 space-y-3 pb-8 px-6">
-                  <p className="text-3xl md:text-4xl font-bold text-white drop-shadow-lg">✦ סוֹף ✦</p>
-                  <p className="text-lg text-white/90 font-medium drop-shadow-md" dir="rtl">
-                    נִתְרָאֶה בַּסִּפּוּר הַבָּא!
-                  </p>
                   <div className="pt-2">
                     <a
                       href="https://soulstory.co.il"
