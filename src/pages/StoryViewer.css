@@ -152,6 +152,10 @@
 /* ==========================================
    Print styles — clean, readable output
    ========================================== */
+@media (max-width: 480px) {
+  .logo-3d-bubble { font-size: 1rem !important; }
+}
+
 @media print {
   /* Hide all UI chrome */
   header,
