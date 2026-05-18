@@ -15,6 +15,9 @@ export default defineConfig(({ mode }) => ({
     mode === "development" && componentTagger(),
     VitePWA({
       registerType: "autoUpdate",
+      devOptions: {
+        enabled: false,
+      },
       includeAssets: ["favicon.png", "favicon.ico", "pwa-icon-192.png", "pwa-icon-512.png"],
       manifest: {
         id: "/",
@@ -62,6 +65,20 @@ export default defineConfig(({ mode }) => ({
         navigateFallbackDenylist: [/^\/~oauth/],
         globPatterns: ["**/*.{js,css,html,ico,png,svg,jpg,jpeg,woff2}"],
         runtimeCaching: [
+          {
+            // HTML navigations: always try network first so a fresh Publish
+            // shows up immediately and devices don't lock onto an old shell.
+            urlPattern: ({ request }) => request.mode === "navigate",
+            handler: "NetworkFirst",
+            options: {
+              cacheName: "html",
+              networkTimeoutSeconds: 3,
+              expiration: {
+                maxEntries: 20,
+                maxAgeSeconds: 60 * 60 * 24 // 1 day
+              }
+            }
+          },
           {
             urlPattern: /^https:\/\/fonts\.googleapis\.com\/.*/i,
             handler: "CacheFirst",
