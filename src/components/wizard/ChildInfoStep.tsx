@@ -1,6 +1,6 @@
 import { useRef, useEffect, useState } from "react";
 import { Checkbox } from "@/components/ui/checkbox";
-import { User, Camera, Sparkles, RefreshCw, Trash2, Heart, ChevronDown, ChevronUp, Check, X, Loader2, Save, Shield, Globe, PlusCircle, BookOpen, ArrowLeft } from "lucide-react";
+import { User, Camera, Sparkles, RefreshCw, Trash2, Heart, ChevronDown, ChevronUp, Check, X, Loader2, Save, Shield, Globe, PlusCircle, BookOpen, ArrowLeft, Star } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
