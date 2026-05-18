@@ -1,40 +1,38 @@
-# תיקון Preview שנתקע על גרסה ישנה
+# עיצוב מחדש של תצוגת האווטאר ב-ChildInfoStep — סגנון דיסני קסום
 
-## הבעיה
+## מה אשנה (קובץ יחיד)
 
-הפרויקט משתמש ב-`vite-plugin-pwa` עם `registerType: "autoUpdate"` ו-`registerSW({ immediate: true })` ללא שום הגנה.
-ה-Service Worker נרשם גם בתוך ה-iframe של Preview של Lovable וגם בדומיין `lovable.app`, ומגיש HTML מה-cache במקום מהשרת.
-התוצאה: כל שינוי קוד "לא מתעדכן" בעיני המשתמש עד hard refresh ידני.
+**`src/components/wizard/ChildInfoStep.tsx`** — בלוק שמתחיל בשורה 730 (התנאי `(formData.childAvatarUrl || isGeneratingAvatar)`):
 
-המשתמש בחר להשאיר את האופליין פעיל בפרודקשן (`soulstory.co.il`), אז הפתרון הוא להשאיר את ה-PWA חי, אבל לחסום אותו בסביבת Preview ולהפסיק להגיש HTML מ-cache.
+1. **הסרת המסגרת הסגולה המקווקוות:** מסיר את ה-`div` החיצוני `border-2 border-dashed border-purple-300/70 bg-gradient-to-br ... p-2 sm:p-3 shadow-inner`. במקום זה — `div` שקוף שתופס רוחב מלא בלי border.
 
-## מה אשנה
+2. **אווטאר רחב יותר:** במקום מרובע קבוע `w-64 h-64 md:w-72 md:h-72` — לעבור ל-`w-full max-w-md aspect-square mx-auto` כך שהאווטאר ימלא את הרוחב הזמין של הקלף ויהיה דומיננטי.
 
-### 1. `src/main.tsx` — Guard סביב registerSW
-- לא לרשום SW כשהאפליקציה רצה בתוך iframe.
-- לא לרשום SW על דומייני Preview של Lovable (`id-preview--*.lovable.app`, `*.lovableproject.com`).
-- בסביבות האלה — להפעיל ניקוי: `unregister()` לכל SW קיים + `caches.delete()` לכל ה-caches, כדי לנקות מכשירים שכבר תפסו את ה-SW הישן.
+3. **זוהר זהוב קסום:** מוסיף סביב האווטאר שכבת glow:
+   - `::before` / div אבסולוטי מאחורי האווטאר עם `bg-gradient-radial from-amber-300/60 via-yellow-200/30 to-transparent blur-2xl` שפועם.
+   - אנימציית פעימה רכה דרך `animate-pulse` קיים או keyframe חדש `magic-glow` (opacity + scale עדינים).
+   - מסגרת רכה במקום ה-`ring-4 ring-amber-300/80` הקיים — נשמרת אבל מתעדנת ל-`ring-[6px] ring-amber-300/60` עם `shadow-[0_0_60px_rgba(251,191,36,0.5)]`.
 
-### 2. `vite.config.ts` — Workbox בטוח יותר
-- להוסיף `devOptions: { enabled: false }` (SW רק ב-build production).
-- להוסיף `runtimeCaching` עבור navigations: `NetworkFirst` עם `networkTimeoutSeconds: 3` ו-`cacheName: "html"`. כך HTML תמיד מנסה רשת קודם, ורק אם אין רשת — נופל ל-cache. זה הסעיף המרכזי שמונע "תקיעה על גרסה ישנה".
-- להשאיר את הגדרות הפונטים הקיימות.
-- להשאיר `registerType: "autoUpdate"` כדי שגרסאות חדשות יתפסו אוטומטית.
+4. **ניצוצות/כוכבים אנימטיביים:** 4–6 אייקוני `Sparkles` / `Star` (כבר מיובאים מ-lucide) מפוזרים אבסולוטית סביב האווטאר (פינות + צדדים), בגדלים שונים (w-3 עד w-6), בצבעי `text-amber-400`, `text-yellow-300`, `text-pink-300`, כל אחד עם delay שונה ואנימציה `animate-twinkle` (keyframe חדש: opacity 0→1→0 + scale 0.6→1→0.6 + rotate קל). מוסתרים בזמן `isGeneratingAvatar`.
 
-### 3. ללא נגיעה בלוגיקה הקיימת
-- לא לגעת ב-`PWAInstallPrompt`, `PWAInstallBanner`, `InstallAppPrompt`, `use-pwa-install` — הם רק מאזינים ל-`beforeinstallprompt` ולא רושמים SW.
-- לא לגעת ב-Manifest, אייקונים, או הגדרות PayPal/CSP.
-- לא לשנות באנדים בפרודקשן — האפליקציה תמשיך להיות מותקנת כ-PWA ולעבוד אופליין ב-`soulstory.co.il`.
+5. **שני keyframes חדשים ב-`tailwind.config.ts`:**
+   - `twinkle` — לניצוצות.
+   - `magic-glow` — לפעימה של ה-glow.
+   - מוסיף גם `animation: { twinkle, "magic-glow" }`.
 
-## למה זה ימנע חזרה של הבעיה
+6. **נשמר ללא שינוי:**
+   - ה-pill `דמות בסיפור` עם גרדיאנט סגול-ורוד נשאר מתחת לאווטאר בדיוק כפי שהוא.
+   - שני הכפתורים `החלף תמונה מקורית` ו-`עדכן אווטאר` נשארים בדיוק כמו עכשיו (שורות 841–865).
+   - מצב `isGeneratingAvatar` עם ה-shimmer וה-spinner נשמר — רק בתוך העיצוב החדש (בלי ה-border המקווקו).
+   - כל הלוגיקה, ה-state, ה-handlers, ה-validation והענפים האחרים (`!childAvatarUrl`, מצב מחיקה) — לא נוגעים.
 
-- ב-Preview של Lovable: אין יותר SW בכלל, אז אין שכבת cache בין הקוד החדש לבין מה שהמשתמש רואה.
-- בפרודקשן: ה-HTML תמיד נטען עם `NetworkFirst`, כך שגרסה חדשה אחרי `Publish` נראית מיד; ה-`autoUpdate` של ה-plugin מחליף את ה-SW ברקע.
-- ניקוי חד-פעמי: משתמשים שכבר תפסו את ה-SW הישן בתוך ה-Preview יקבלו `unregister` + מחיקת caches בטעינה הבאה.
+## מה לא ייגע
 
-## עדכון Memory
+- אין שינוי ב-`generateAvatarInline`, `handleFileChange`, `updateFormData`, או כל פונקציה.
+- אין שינוי באזור התמונה המקורית (שורות 766–778) — רק במצב שבו יש אווטאר/יוצרים אווטאר.
+- אין שינוי בקריטריוני האימות (שורות 779–821) או בכפתורי הפעולה (שורות 822–880).
+- אין שינוי ב-`index.css` חוץ מהוספת keyframes ב-tailwind config.
 
-להוסיף ל-Core של `mem://index.md`:
-> "PWA disabled in Lovable Preview/iframe. Production uses NetworkFirst for HTML navigations to prevent stale-cache lock-in."
+## אימות
 
-ולקובץ חדש `mem://constraints/pwa-preview-guard` עם הפרטים המלאים, כדי שזה לא יחזור על עצמו בעתיד.
+לאחר ההטמעה: לבדוק שהבילד עובר ושהאווטאר מוצג מוגדל עם זוהר זהוב פועם וניצוצות מנצנצים מסביב, בלי המסגרת הסגולה המקווקוות.
