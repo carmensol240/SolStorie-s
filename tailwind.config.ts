@@ -103,12 +103,22 @@ export default {
           "0%": { backgroundPosition: "200% 0" },
           "100%": { backgroundPosition: "-200% 0" },
         },
+        twinkle: {
+          "0%, 100%": { opacity: "0", transform: "scale(0.5) rotate(0deg)" },
+          "50%": { opacity: "1", transform: "scale(1.1) rotate(20deg)" },
+        },
+        "magic-glow": {
+          "0%, 100%": { opacity: "0.55", transform: "scale(1)" },
+          "50%": { opacity: "0.95", transform: "scale(1.08)" },
+        },
       },
       animation: {
         "accordion-down": "accordion-down 0.2s ease-out",
         "accordion-up": "accordion-up 0.2s ease-out",
         wiggle: "wiggle 2s ease-in-out infinite",
         "price-glow": "subtle-price-pulse 3s ease-in-out infinite",
+        twinkle: "twinkle 2.4s ease-in-out infinite",
+        "magic-glow": "magic-glow 3s ease-in-out infinite",
       },
     },
   },
