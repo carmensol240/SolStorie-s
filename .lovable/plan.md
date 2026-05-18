@@ -1,26 +1,40 @@
-## שינוי בתצוגת התמונה ב-`ChildInfoStep.tsx`
+# תיקון Preview שנתקע על גרסה ישנה
 
-מיקום: `src/components/wizard/ChildInfoStep.tsx`, שורות ~726-908 (בלוק תצוגת התמונה/אווטאר אחרי העלאה).
+## הבעיה
 
-### לפני יצירת אווטאר (אין `childAvatarUrl` ולא בתהליך יצירה)
-ללא שינוי — התמונה המקורית מוצגת גדולה (היום בתיבת 28x28 / w-28 h-28). אופציונלית להגדיל ל-w-48 h-48 כדי שתהיה "גדולה וברורה" יותר.
+הפרויקט משתמש ב-`vite-plugin-pwa` עם `registerType: "autoUpdate"` ו-`registerSW({ immediate: true })` ללא שום הגנה.
+ה-Service Worker נרשם גם בתוך ה-iframe של Preview של Lovable וגם בדומיין `lovable.app`, ומגיש HTML מה-cache במקום מהשרת.
+התוצאה: כל שינוי קוד "לא מתעדכן" בעיני המשתמש עד hard refresh ידני.
 
-### אחרי יצירת אווטאר (יש `childAvatarUrl`)
-- להסיר לחלוטין את התמונה המקורית הקטנה ואת החץ והאנימציה (כל ה-layout האופקי "מקורית → חץ → אווטאר").
-- להציג רק את האווטאר במרכז, גדול ובולט (להשאיר את התיבה w-64 h-64 md:w-72 h-72 הקיימת + תווית "דמות בסיפור").
+המשתמש בחר להשאיר את האופליין פעיל בפרודקשן (`soulstory.co.il`), אז הפתרון הוא להשאיר את ה-PWA חי, אבל לחסום אותו בסביבת Preview ולהפסיק להגיש HTML מ-cache.
 
-### כפתורים מתחת לאווטאר (אחרי שיש אווטאר)
-להחליף את שלושת הכפתורים הקיימים (צור אווטאר / עדכן אווטאר / מחק) בשני כפתורים בלבד:
+## מה אשנה
 
-1. **"החלף תמונה מקורית"** — קורא ל-`fileInputRef.current?.click()` כדי לפתוח גלריה לבחירת תמונה חדשה (זה כבר יקפיץ ל-`handlePhotoUpload` שמייצר אווטאר חדש אוטומטית).
-2. **"עדכן אווטאר"** — קורא ל-`generateAvatarInline()` עם `formData.childPhoto` הקיים (התנהגות זהה לכפתור הקיים, כולל ה-disable כש-`avatarRegenerationCount >= 2` ותצוגת מספר הניסיונות שנותרו).
+### 1. `src/main.tsx` — Guard סביב registerSW
+- לא לרשום SW כשהאפליקציה רצה בתוך iframe.
+- לא לרשום SW על דומייני Preview של Lovable (`id-preview--*.lovable.app`, `*.lovableproject.com`).
+- בסביבות האלה — להפעיל ניקוי: `unregister()` לכל SW קיים + `caches.delete()` לכל ה-caches, כדי לנקות מכשירים שכבר תפסו את ה-SW הישן.
 
-מצב טעינה (`isGeneratingAvatar`) — נשמר עם הספינר כפי שהוא היום.
+### 2. `vite.config.ts` — Workbox בטוח יותר
+- להוסיף `devOptions: { enabled: false }` (SW רק ב-build production).
+- להוסיף `runtimeCaching` עבור navigations: `NetworkFirst` עם `networkTimeoutSeconds: 3` ו-`cacheName: "html"`. כך HTML תמיד מנסה רשת קודם, ורק אם אין רשת — נופל ל-cache. זה הסעיף המרכזי שמונע "תקיעה על גרסה ישנה".
+- להשאיר את הגדרות הפונטים הקיימות.
+- להשאיר `registerType: "autoUpdate"` כדי שגרסאות חדשות יתפסו אוטומטית.
 
-### מה לא משתנה
-- כל הלוגיקה: `handlePhotoUpload`, `generateAvatarInline`, ספירת רגנרציות, ולידציית תמונה.
-- שדות הטופס, ההסכמה לתמונה, יתר ה-UI של ChildInfoStep.
-- אין שינוי ב-`AvatarPreviewDialog`, ב-state, או ב-DB.
+### 3. ללא נגיעה בלוגיקה הקיימת
+- לא לגעת ב-`PWAInstallPrompt`, `PWAInstallBanner`, `InstallAppPrompt`, `use-pwa-install` — הם רק מאזינים ל-`beforeinstallprompt` ולא רושמים SW.
+- לא לגעת ב-Manifest, אייקונים, או הגדרות PayPal/CSP.
+- לא לשנות באנדים בפרודקשן — האפליקציה תמשיך להיות מותקנת כ-PWA ולעבוד אופליין ב-`soulstory.co.il`.
 
-### מצב "מחק תמונה"
-כפתור המחיקה הקיים יוסר ממסך האווטאר (לא נדרש לפי הבקשה). אם יש צורך להשאיר דרך למחוק לחלוטין — אפשר להוסיף הערה, אבל לפי הבקשה "אין לשנות שום דבר אחר" + רק שני כפתורים, הוא יוסר.
+## למה זה ימנע חזרה של הבעיה
+
+- ב-Preview של Lovable: אין יותר SW בכלל, אז אין שכבת cache בין הקוד החדש לבין מה שהמשתמש רואה.
+- בפרודקשן: ה-HTML תמיד נטען עם `NetworkFirst`, כך שגרסה חדשה אחרי `Publish` נראית מיד; ה-`autoUpdate` של ה-plugin מחליף את ה-SW ברקע.
+- ניקוי חד-פעמי: משתמשים שכבר תפסו את ה-SW הישן בתוך ה-Preview יקבלו `unregister` + מחיקת caches בטעינה הבאה.
+
+## עדכון Memory
+
+להוסיף ל-Core של `mem://index.md`:
+> "PWA disabled in Lovable Preview/iframe. Production uses NetworkFirst for HTML navigations to prevent stale-cache lock-in."
+
+ולקובץ חדש `mem://constraints/pwa-preview-guard` עם הפרטים המלאים, כדי שזה לא יחזור על עצמו בעתיד.
