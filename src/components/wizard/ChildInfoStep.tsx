@@ -726,42 +726,89 @@ const ChildInfoStep = ({ formData, updateFormData }: ChildInfoStepProps) => {
           ) : formData.childPhoto ? (
             <div className="flex flex-col items-center justify-center w-full py-4 sm:py-6 bg-card border-2 border-purple-400 bg-purple-50 rounded-xl gap-2">
               {(formData.childAvatarUrl || isGeneratingAvatar) && formData.childPhoto ? (
-                /* Avatar only — large and prominent */
-                <div className="relative w-full rounded-2xl border-2 border-dashed border-purple-300/70 bg-gradient-to-br from-purple-50 via-pink-50 to-amber-50 p-2 sm:p-3 shadow-inner">
-                  <div className="flex items-center justify-center">
-                    <div className="flex flex-col items-center gap-1.5">
-                      <div
-                        className="relative w-64 h-64 md:w-72 md:h-72 rounded-2xl overflow-hidden border-[3px] border-white shadow-2xl ring-4 ring-amber-300/80 flex items-center justify-center"
-                        style={{
-                          background: isGeneratingAvatar
-                            ? "linear-gradient(135deg, hsl(280 60% 92%), hsl(330 70% 92%), hsl(40 80% 92%))"
-                            : "hsl(280 60% 96%)",
-                        }}
-                      >
-                        {isGeneratingAvatar ? (
-                          <>
-                            <div className="absolute inset-0 shimmer-overlay pointer-events-none" />
-                            <Loader2 className="w-12 h-12 animate-spin text-purple-500 relative z-10" />
-                          </>
-                        ) : formData.childAvatarUrl ? (
-                          <img
-                            src={formData.childAvatarUrl}
-                            alt="דמות בסיפור"
-                            className="w-full h-full object-cover"
-                          />
-                        ) : null}
-                      </div>
-                      <span
-                        className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-bold text-white shadow-md"
-                        style={{
-                          background: "linear-gradient(135deg, hsl(270 80% 60%), hsl(330 85% 65%))",
-                        }}
-                      >
-                        <Sparkles className="w-3.5 h-3.5" />
-                        {isGeneratingAvatar ? 'יוצר דמות...' : 'דמות בסיפור'}
-                      </span>
+                /* Avatar only — magical Disney-style display */
+                <div className="relative w-full flex flex-col items-center gap-3 py-2">
+                  <div className="relative w-full max-w-md mx-auto aspect-square">
+                    {/* Golden magical glow behind avatar */}
+                    <div
+                      className="absolute -inset-6 rounded-full pointer-events-none animate-magic-glow"
+                      style={{
+                        background:
+                          "radial-gradient(circle, rgba(251,191,36,0.55) 0%, rgba(253,224,71,0.35) 40%, rgba(244,114,182,0.15) 65%, transparent 80%)",
+                        filter: "blur(28px)",
+                      }}
+                      aria-hidden
+                    />
+
+                    {/* Avatar frame */}
+                    <div
+                      className="relative w-full h-full rounded-3xl overflow-hidden border-[3px] border-white ring-[6px] ring-amber-300/60 shadow-[0_0_60px_rgba(251,191,36,0.5)] flex items-center justify-center"
+                      style={{
+                        background: isGeneratingAvatar
+                          ? "linear-gradient(135deg, hsl(280 60% 92%), hsl(330 70% 92%), hsl(40 80% 92%))"
+                          : "hsl(280 60% 96%)",
+                      }}
+                    >
+                      {isGeneratingAvatar ? (
+                        <>
+                          <div className="absolute inset-0 shimmer-overlay pointer-events-none" />
+                          <Loader2 className="w-12 h-12 animate-spin text-purple-500 relative z-10" />
+                        </>
+                      ) : formData.childAvatarUrl ? (
+                        <img
+                          src={formData.childAvatarUrl}
+                          alt="דמות בסיפור"
+                          className="w-full h-full object-cover"
+                        />
+                      ) : null}
                     </div>
+
+                    {/* Sparkles around avatar — hidden while generating */}
+                    {!isGeneratingAvatar && formData.childAvatarUrl && (
+                      <>
+                        <Sparkles
+                          className="absolute -top-3 -right-2 w-6 h-6 text-amber-400 animate-twinkle drop-shadow-[0_0_6px_rgba(251,191,36,0.8)]"
+                          style={{ animationDelay: "0s" }}
+                          aria-hidden
+                        />
+                        <Star
+                          className="absolute top-6 -left-4 w-4 h-4 text-yellow-300 fill-yellow-300 animate-twinkle drop-shadow-[0_0_4px_rgba(253,224,71,0.9)]"
+                          style={{ animationDelay: "0.4s" }}
+                          aria-hidden
+                        />
+                        <Sparkles
+                          className="absolute top-1/3 -right-5 w-5 h-5 text-pink-300 animate-twinkle drop-shadow-[0_0_5px_rgba(249,168,212,0.8)]"
+                          style={{ animationDelay: "0.9s" }}
+                          aria-hidden
+                        />
+                        <Star
+                          className="absolute bottom-8 -right-3 w-3 h-3 text-amber-300 fill-amber-300 animate-twinkle"
+                          style={{ animationDelay: "1.3s" }}
+                          aria-hidden
+                        />
+                        <Sparkles
+                          className="absolute -bottom-2 left-6 w-5 h-5 text-yellow-400 animate-twinkle drop-shadow-[0_0_5px_rgba(250,204,21,0.85)]"
+                          style={{ animationDelay: "1.7s" }}
+                          aria-hidden
+                        />
+                        <Star
+                          className="absolute bottom-1/3 -left-3 w-3.5 h-3.5 text-pink-200 fill-pink-200 animate-twinkle"
+                          style={{ animationDelay: "2.1s" }}
+                          aria-hidden
+                        />
+                      </>
+                    )}
                   </div>
+
+                  <span
+                    className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-bold text-white shadow-md"
+                    style={{
+                      background: "linear-gradient(135deg, hsl(270 80% 60%), hsl(330 85% 65%))",
+                    }}
+                  >
+                    <Sparkles className="w-3.5 h-3.5" />
+                    {isGeneratingAvatar ? 'יוצר דמות...' : 'דמות בסיפור'}
+                  </span>
                 </div>
               ) : (
                 /* Single image: original photo only — larger square */
