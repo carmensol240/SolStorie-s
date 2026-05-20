@@ -342,6 +342,22 @@ const [currentPage, setCurrentPage] = useState(0);
 
   // No orientation lock needed - vertical portrait layout
 
+  // Check if user has purchased a story package (controls "print to book" button behavior)
+  useEffect(() => {
+    if (!user?.id) { setHasPurchasedPackage(false); return; }
+    let cancelled = false;
+    (async () => {
+      const { data, error } = await supabase
+        .from('purchases')
+        .select('id')
+        .eq('user_id', user.id)
+        .in('status', ['completed', 'test_completed'])
+        .limit(1);
+      if (!cancelled && !error) setHasPurchasedPackage((data?.length ?? 0) > 0);
+    })();
+    return () => { cancelled = true; };
+  }, [user?.id]);
+
   // Set age-appropriate font size on story load
   useEffect(() => {
     if (story?.age_range) {
