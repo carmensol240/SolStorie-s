@@ -95,7 +95,8 @@ export const usePdfExport = () => {
   const captureHtmlToPage = async (
     content: HTMLDivElement,
     pdf: jsPDF,
-    isFirstPage: boolean
+    isFirstPage: boolean,
+    skipFooter: boolean = false
   ) => {
     const canvas = await html2canvas(content, {
       scale: 2,
@@ -108,7 +109,7 @@ export const usePdfExport = () => {
     const pageHeight = pdf.internal.pageSize.getHeight();
     if (!isFirstPage) pdf.addPage();
     pdf.addImage(imgData, 'PNG', 0, 0, pageWidth, pageHeight);
-    drawFooter(pdf);
+    if (!skipFooter) drawFooter(pdf);
   };
 
   // ─── Build virtual pages (merge for toddlers 0-2) ──
@@ -156,14 +157,19 @@ export const usePdfExport = () => {
     `;
     coverPage.innerHTML = `
       <img src="${coverDataUrl}" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;" />
-      <div style="position:absolute;inset:0;background:linear-gradient(to top, rgba(0,0,0,0.75) 0%, rgba(0,0,0,0.25) 45%, transparent 75%);"></div>
-      <div style="position:relative;z-index:1;text-align:center;padding:0 80px 140px 80px;">
-        <p style="color:rgba(255,255,255,0.9);font-size:42px;margin:0 0 24px 0;font-weight:600;text-shadow:0 2px 8px rgba(0,0,0,0.6);">${escapeHtml(hebrewTopic)}</p>
-        <h1 style="color:white;font-size:64px;font-weight:900;margin:0 0 16px 0;text-shadow:0 2px 8px rgba(0,0,0,0.6);">הַסִּפּוּר שֶׁל</h1>
-        <h2 style="font-size:96px;font-weight:900;margin:0;
-          background:linear-gradient(to right,#c4b5fd,#f9a8d4,#fdba74);
-          -webkit-background-clip:text;-webkit-text-fill-color:transparent;
-          text-shadow:none;filter:drop-shadow(0 4px 8px rgba(0,0,0,0.4));">${escapeHtml(childName)}</h2>
+      <div style="position:absolute;top:40px;right:40px;z-index:2;
+        background:rgba(255,255,255,0.18);border:1px solid rgba(255,255,255,0.35);
+        border-radius:999px;padding:10px 22px;color:#ffffff;font-size:22px;font-weight:600;
+        text-shadow:0 1px 4px rgba(0,0,0,0.4);">✨ SolStorie's™</div>
+      <div style="position:absolute;bottom:0;left:0;right:0;height:55%;
+        background:linear-gradient(to top, rgba(0,0,0,0.88) 0%, rgba(0,0,0,0.55) 50%, transparent 100%);"></div>
+      <div style="position:absolute;bottom:0;left:0;right:0;z-index:1;text-align:center;padding:0 80px 60px 80px;">
+        <h1 style="color:#ffffff;font-size:88px;font-weight:900;margin:0 0 20px 0;line-height:1.1;
+          text-shadow:0 2px 10px rgba(0,0,0,0.7);">${escapeHtml(hebrewTopic)}</h1>
+        <p style="color:#FFD66B;font-size:42px;font-weight:700;margin:0 0 50px 0;
+          text-shadow:0 2px 8px rgba(0,0,0,0.6);">💛 הסיפור של ${escapeHtml(childName)}</p>
+        <p style="color:rgba(255,255,255,0.75);font-size:20px;font-weight:500;margin:0;
+          letter-spacing:0.5px;">SolStorie's™ · soulstory.co.il</p>
       </div>
     `;
     return coverPage;
@@ -248,7 +254,7 @@ export const usePdfExport = () => {
     container.innerHTML = '';
     const coverEl = await renderCoverPage(story.child_name, story.topic, story.language, story.cover_url);
     container.appendChild(coverEl);
-    await captureHtmlToPage(container, pdf, true);
+    await captureHtmlToPage(container, pdf, true, true);
 
     // -- 2. Dedication page --
     container.innerHTML = '';
