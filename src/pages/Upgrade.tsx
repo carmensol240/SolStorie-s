@@ -396,7 +396,7 @@ const Upgrade = () => {
           </div>
 
           {/* Package Cards — Glassmorphism (parents only) */}
-          {roleLoaded && userRole !== 'educator' && (
+          {roleLoaded && userRole === 'parent' && (
           <div className="grid grid-cols-3 gap-3 mb-4 pt-4">
             {PRICING_PACKAGES.map((pkg) => (
               <button
@@ -474,7 +474,7 @@ const Upgrade = () => {
           )}
 
           {/* Educator Packages — 3 cards */}
-          {userRole === 'educator' && (
+          {roleLoaded && userRole === 'educator' && (
             <div className="mb-4">
               <h3 className="text-center text-sm font-black text-blue-200 mb-3">
                 🎓 חבילות לאנשי חינוך וטיפול
