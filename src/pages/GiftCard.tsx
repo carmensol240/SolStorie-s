@@ -147,7 +147,7 @@ const GiftCard = () => {
               המתנה מוכנה! 🎁
             </h1>
             <p className="text-white/80 text-center text-sm mb-6">
-              הקוד נוצר בהצלחה. שלחי אותו למי שתרצי!
+              הקוד נוצר בהצלחה. שלחו אותו למי שתרצו!
             </p>
 
             {/* Gift Code Display */}

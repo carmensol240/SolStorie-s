@@ -161,7 +161,7 @@ const PurchaseSuccessModal = ({
               רוצה שכל סיפור יהיה מושלם? ✨
             </h3>
             <p className="text-white/80 text-sm mb-1">
-              הוסיפי חבילת 5 עריכות מלאות
+              הוסיפו חבילת 5 עריכות מלאות
             </p>
             <p className="text-white/60 text-xs">
               תיקון שגיאות כתיב + עריכת תוכן לכל סיפור
@@ -186,7 +186,7 @@ const PurchaseSuccessModal = ({
                 size="lg"
                 className="w-full bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white font-bold rounded-xl text-base"
               >
-                כן! הוסיפי לי עריכות ✅
+                כן! הוסיפו לי עריכות ✅
               </Button>
               <button
                 onClick={handleSkip}
@@ -201,7 +201,7 @@ const PurchaseSuccessModal = ({
                 amount={EDIT_KIT_PACKAGE.price}
                 onSuccess={handleEditPurchaseSuccess}
                 onError={() => {
-                  toast.error("שגיאה בתשלום, נסי שוב");
+                  toast.error("שגיאה בתשלום, נסו שוב");
                   setShowPayPal(false);
                 }}
               />
