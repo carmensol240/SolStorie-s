@@ -474,7 +474,7 @@ const Upgrade = () => {
           )}
 
           {/* Educator Packages — 3 cards */}
-          {userRole === 'educator' && (
+          {roleLoaded && userRole === 'educator' && (
             <div className="mb-4">
               <h3 className="text-center text-sm font-black text-blue-200 mb-3">
                 🎓 חבילות לאנשי חינוך וטיפול
