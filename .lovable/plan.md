@@ -1,21 +1,34 @@
 ## מטרה
-להסיר את תיבת בחירת הפורמט מלחצן הורדת ה-PDF ולהשאיר כפתור הורדה יחיד שמפעיל ישירות את הפורמט הריבועי.
+להוסיף במסך הסיום (Closing Page) ב-StoryViewer כפתור חדש "🖨️ הדפס את הסיפור לספר", מתחת לכפתור "לדפי הצביעה". התנהגות הכפתור תלויה אם המשתמש רכש חבילת סיפורים בעבר.
 
-## שינויים
+## שינויים — קובץ יחיד: `src/pages/StoryViewer.tsx`
 
-### 1. `src/pages/StoryViewer.tsx`
-- **הסרת מצב תיבת דו-שיח:** מחיקת `showPdfFormatDialog` ו-`setShowPdfFormatDialog`.
-- **שינוי פעולת לחצן ההורדה:** `onDownload` יקרא ישירות ל-`exportToPdf(story)` במקום לפתוח תיבת דו-שיח.
-- **הסרת תיבת דו-שיח PDF:** מחיקת כל בלוק ה-AlertDialog של "בחר פורמט PDF" (שתי האפשרויות וכפתור הביטול).
-- **עדכון שיתוף:** קריאה ל-`generatePdfFile(story)` ללא פרמטר `layout`.
-- **ניקוי יבואים:** הסרת `FileDown` (משמש רק בתיבת הדו-שיח).
+### 1. זיהוי "רכש חבילה"
+- מצב חדש: `const [hasPurchasedPackage, setHasPurchasedPackage] = useState(false)`.
+- `useEffect` שמופעל כשהמשתמש מזוהה: שאילתה לטבלת `purchases` עבור `user.id` עם `status IN ('completed', 'test_completed')`, `limit(1)`. אם נמצא לפחות רכישה אחת → `setHasPurchasedPackage(true)`.
 
-### 2. `src/hooks/use-pdf-export.ts`
-- **הסרת טיפוס לא בשימוש:** מחיקת `PdfLayout`.
-- **פישוט חתימות פונקציות:** `buildPdf`, `exportToPdf`, `generatePdfFile`, ו-`makePdfFileName` יקבלו רק את אובייקט הסיפור ללא פרמטר `layout`.
-- **שם קובץ אחיד:** `makePdfFileName` ישתמש תמיד בקידומת `SoulStory_` (הפורמט הריבועי).
+### 2. מצב הפופאפ
+- `const [showBuyToPrintDialog, setShowBuyToPrintDialog] = useState(false)`.
+
+### 3. כפתור חדש ב-Closing Page
+- מיקום: ב-`<div className="flex flex-col items-center gap-2 pt-4">` ב-Closing Page, מיד **מתחת** לכפתור "לדפי הצביעה".
+- עיצוב: עקבי עם הכפתורים הקיימים (rounded-full, shadow-xl, גרדיאנט שונה לבידול — למשל גרדיאנט סגול/כחול).
+- אייקון: `Printer` מ-lucide-react (להוסיף ליבוא הקיים).
+- טקסט: `🖨️ הדפס את הסיפור לספר`.
+- `onClick`:
+  - אם `hasPurchasedPackage === true` וגם `story` קיים → קריאה ל-`exportToPdf(story)`.
+  - אחרת → `setShowBuyToPrintDialog(true)`.
+
+### 4. תיבת דו-שיח (AlertDialog) "הפוך את הסיפור לספר אמיתי"
+- ממוקמת ליד שאר ה-AlertDialogs בסוף ה-JSX.
+- `dir="rtl"`, `max-w-md`.
+- **כותרת:** `✨ הפוך את הסיפור לספר אמיתי!`
+- **גוף:** `הסיפור של {story.child_name} מוכן ומחכה להיהפך לספר מודפס שישמח אותו שנים קדימה. כדי להוריד את הסיפור כקובץ PDF מוכן להדפסה, בחרי חבילת סיפורים שתתאים לך.`
+- **Footer:**
+  - `AlertDialogCancel`: `אולי אחר כך`
+  - `AlertDialogAction`: `🎁 לרכישת חבילה` → `navigate('/upgrade')` ו-`setShowBuyToPrintDialog(false)`.
 
 ## מה לא משתנה
-- תצוגת הסיפור באפליקציה
-- BookHeader – רק פעולת ה-onDownload שלו תשתנה
-- כל שאר הדיאלוגים והפונקציות ב-StoryViewer
+- שום קומפוננטה אחרת, שום מסך אחר, שום לוגיקה אחרת.
+- כפתור "לדפי הצביעה" נשאר זהה.
+- לוגיקת ההורדה ב-Header נשארת זהה (תמיד מורידה ישירות).
