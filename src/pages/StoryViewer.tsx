@@ -1889,48 +1889,6 @@ const [currentPage, setCurrentPage] = useState(0);
         isLoading={isCreatingDigitalBook}
       />
 
-      {/* PDF Format Selection Dialog */}
-      <AlertDialog open={showPdfFormatDialog} onOpenChange={setShowPdfFormatDialog}>
-        <AlertDialogContent className="max-w-sm">
-          <AlertDialogHeader>
-            <AlertDialogTitle>בחר פורמט PDF</AlertDialogTitle>
-            <AlertDialogDescription className="text-right">
-              בחר את סגנון ה-PDF שברצונך להוריד
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <div className="flex flex-col gap-3 py-4">
-            <Button 
-              variant="outline" 
-              className="h-20 flex flex-col gap-1 border-2 hover:border-purple-400 hover:bg-purple-50"
-              onClick={() => {
-                setShowPdfFormatDialog(false);
-                story && exportToPdf(story, 'portrait');
-              }}
-            >
-              <FileDown className="w-6 h-6" />
-              <span className="font-bold">עמוד רגיל (לאורך)</span>
-              <span className="text-xs text-muted-foreground">תמונה וטקסט באותו עמוד</span>
-            </Button>
-            
-            <Button 
-              variant="outline" 
-              className="h-20 flex flex-col gap-1 border-2 hover:border-purple-400 hover:bg-purple-50"
-              onClick={() => {
-                setShowPdfFormatDialog(false);
-                story && exportToPdf(story, 'landscape-book');
-              }}
-            >
-              <BookOpen className="w-6 h-6" />
-              <span className="font-bold">ספר פתוח (לרוחב)</span>
-              <span className="text-xs text-muted-foreground">תמונה בצד אחד, טקסט בצד השני</span>
-            </Button>
-          </div>
-          <AlertDialogFooter>
-            <AlertDialogCancel>ביטול</AlertDialogCancel>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
-
       {/* Gender Swap Dialog */}
       {storyId && story?.child_gender && (
         <GenderSwapDialog
