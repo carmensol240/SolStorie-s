@@ -1,34 +1,36 @@
-## מטרה
-להוסיף במסך הסיום (Closing Page) ב-StoryViewer כפתור חדש "🖨️ הדפס את הסיפור לספר", מתחת לכפתור "לדפי הצביעה". התנהגות הכפתור תלויה אם המשתמש רכש חבילת סיפורים בעבר.
+## עדכון חבילות הסיפורים בלבד
 
-## שינויים — קובץ יחיד: `src/pages/StoryViewer.tsx`
+עדכון 3 החבילות הראשיות (basic / popular / premium) — חבילת העריכות, חבילת הצביעה, וחבילת אנשי החינוך נשארות ללא שינוי.
 
-### 1. זיהוי "רכש חבילה"
-- מצב חדש: `const [hasPurchasedPackage, setHasPurchasedPackage] = useState(false)`.
-- `useEffect` שמופעל כשהמשתמש מזוהה: שאילתה לטבלת `purchases` עבור `user.id` עם `status IN ('completed', 'test_completed')`, `limit(1)`. אם נמצא לפחות רכישה אחת → `setHasPurchasedPackage(true)`.
+### 1. `src/config/pricing.ts`
 
-### 2. מצב הפופאפ
-- `const [showBuyToPrintDialog, setShowBuyToPrintDialog] = useState(false)`.
+עדכון `PRICING_PACKAGES`:
 
-### 3. כפתור חדש ב-Closing Page
-- מיקום: ב-`<div className="flex flex-col items-center gap-2 pt-4">` ב-Closing Page, מיד **מתחת** לכפתור "לדפי הצביעה".
-- עיצוב: עקבי עם הכפתורים הקיימים (rounded-full, shadow-xl, גרדיאנט שונה לבידול — למשל גרדיאנט סגול/כחול).
-- אייקון: `Printer` מ-lucide-react (להוסיף ליבוא הקיים).
-- טקסט: `🖨️ הדפס את הסיפור לספר`.
-- `onClick`:
-  - אם `hasPurchasedPackage === true` וגם `story` קיים → קריאה ל-`exportToPdf(story)`.
-  - אחרת → `setShowBuyToPrintDialog(true)`.
+- **basic** → `label: "להתנסות"`, `stories: 2`, `price: 59`, `originalPrice: 59`, `pricePerStory: "29.5₪"`, `freeEdits: 2`, `freeColoringPages: 2`, `badge: "להתנסות ✨"`
+- **popular** → `label: "הכי פופולרי"`, `stories: 6`, `price: 149`, `originalPrice: 149`, `pricePerStory: "24.8₪"`, `freeEdits: 6`, `freeColoringPages: 6`, `badge: "מומלץ ⭐"` (נשאר)
+- **premium** → `label: "לאוהבי סיפורים"`, `stories: 10`, `price: 219`, `originalPrice: 219`, `pricePerStory: "21.9₪"`, `freeEdits: 10`, `freeColoringPages: 10`, `badge: "הכי משתלם 💰"`
 
-### 4. תיבת דו-שיח (AlertDialog) "הפוך את הסיפור לספר אמיתי"
-- ממוקמת ליד שאר ה-AlertDialogs בסוף ה-JSX.
-- `dir="rtl"`, `max-w-md`.
-- **כותרת:** `✨ הפוך את הסיפור לספר אמיתי!`
-- **גוף:** `הסיפור של {story.child_name} מוכן ומחכה להיהפך לספר מודפס שישמח אותו שנים קדימה. כדי להוריד את הסיפור כקובץ PDF מוכן להדפסה, בחרי חבילת סיפורים שתתאים לך.`
-- **Footer:**
-  - `AlertDialogCancel`: `אולי אחר כך`
-  - `AlertDialogAction`: `🎁 לרכישת חבילה` → `navigate('/upgrade')` ו-`setShowBuyToPrintDialog(false)`.
+### 2. `supabase/functions/verify-purchase/index.ts`
 
-## מה לא משתנה
-- שום קומפוננטה אחרת, שום מסך אחר, שום לוגיקה אחרת.
-- כפתור "לדפי הצביעה" נשאר זהה.
-- לוגיקת ההורדה ב-Header נשארת זהה (תמיד מורידה ישירות).
+עדכון `packageConfig` כדי שהזיכוי בצד השרת יתאים:
+
+```ts
+basic:   { stories: 2,  freeEdits: 2,  coloringPages: 2 },
+popular: { stories: 6,  freeEdits: 6,  coloringPages: 6 },
+premium: { stories: 10, freeEdits: 10, coloringPages: 10 },
+```
+
+שאר הערכים (`educator`, `coloring_kit`, `edit_kit`, `toolkit_yearly`) נשארים ללא שינוי.
+
+### לא משתנה
+
+- חבילת העריכות הנפרדת (`EDIT_KIT_PACKAGE`)
+- חבילת הצביעה הנפרדת (`COLORING_KIT_PACKAGE`)
+- חבילת אנשי החינוך (`EDUCATOR_PACKAGE`)
+- ארגז הכלים (`TOOLKIT_SUBSCRIPTION`)
+- לוגיקת ספירת העריכות (כבר עובדת כסבב תיקונים שלם = עריכה אחת)
+- UI של דף `Upgrade.tsx` — הקלפים נטענים אוטומטית מ-`PRICING_PACKAGES`
+
+### הערה על memory
+
+קובץ ה-Core memory מציין `Full prices only (39, 99, 139)`. אעדכן אותו ל-`(59, 149, 219)` כדי לשמור על עקביות עם הכלל "Full prices only".
