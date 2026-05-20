@@ -8,8 +8,12 @@ const CORS = {
 // Map amounts to package configs (used when webhook fires without client-side context)
 const AMOUNT_TO_PACKAGE: Record<number, { id: string; stories: number; freeEdits: number; coloringPages: number; editingCredits?: number; isSubscription?: boolean }> = {
   39:    { id: "basic",    stories: 3,  freeEdits: 3,  coloringPages: 1 },
+  59:    { id: "basic",    stories: 2,  freeEdits: 2,  coloringPages: 2 },
   99:    { id: "popular",  stories: 10, freeEdits: 10, coloringPages: 3 },
   119:   { id: "premium",  stories: 15, freeEdits: 15, coloringPages: 5 },
+  149:   { id: "popular",  stories: 6,  freeEdits: 6,  coloringPages: 6 },
+  199:   { id: "educator_premium", stories: 10, freeEdits: 10, coloringPages: 10 },
+  219:   { id: "premium",  stories: 10, freeEdits: 10, coloringPages: 10 },
   229:   { id: "educator", stories: 20, freeEdits: 25, coloringPages: 8 },
   19.9:  { id: "coloring_kit", stories: 0, freeEdits: 0, coloringPages: 5 },
   9.9:   { id: "edit_kit",    stories: 0, freeEdits: 0, coloringPages: 0, editingCredits: 5 },
