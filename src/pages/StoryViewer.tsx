@@ -1920,6 +1920,30 @@ const [currentPage, setCurrentPage] = useState(0);
         isLoading={isCreatingDigitalBook}
       />
 
+      {/* Buy package to print PDF dialog */}
+      <AlertDialog open={showBuyToPrintDialog} onOpenChange={setShowBuyToPrintDialog}>
+        <AlertDialogContent dir="rtl" className="max-w-md">
+          <AlertDialogHeader>
+            <AlertDialogTitle className="text-right">✨ הפוך את הסיפור לספר אמיתי!</AlertDialogTitle>
+            <AlertDialogDescription className="text-right leading-relaxed">
+              הסיפור של {story?.child_name} מוכן ומחכה להיהפך לספר מודפס שישמח אותו שנים קדימה. כדי להוריד את הסיפור כקובץ PDF מוכן להדפסה, בחרי חבילת סיפורים שתתאים לך.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter className="gap-2 sm:gap-0">
+            <AlertDialogCancel>אולי אחר כך</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={() => {
+                setShowBuyToPrintDialog(false);
+                navigate('/upgrade');
+              }}
+              className="bg-gradient-to-r from-purple-600 to-pink-500 hover:from-purple-700 hover:to-pink-600"
+            >
+              🎁 לרכישת חבילה
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
       {/* Gender Swap Dialog */}
       {storyId && story?.child_gender && (
         <GenderSwapDialog
