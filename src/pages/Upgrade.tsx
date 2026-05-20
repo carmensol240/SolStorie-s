@@ -18,7 +18,6 @@ import { useAuth } from "@/hooks/use-auth";
 import { supabase } from "@/integrations/supabase/client";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
-import heroImage from "@/assets/cast-group-forest.png";
 import { PRICING_PACKAGES, EDUCATOR_PACKAGES, TOOLKIT_SUBSCRIPTION, EDIT_KIT_PACKAGE, COLORING_KIT_PACKAGE } from "@/config/pricing";
 import FlippingBookAnimation from "@/components/upgrade/FlippingBookAnimation";
 
@@ -312,19 +311,6 @@ const Upgrade = () => {
 
       <div className="flex-1 overflow-y-auto pb-32 relative z-10" style={{ WebkitOverflowScrolling: 'touch' }}>
         <div className="container max-w-md mx-auto px-4 pt-4">
-          {/* Large Elephant Hero */}
-          <div className="flex justify-center mb-4">
-            <div className="w-48 h-48 rounded-3xl overflow-hidden shadow-2xl border-2 border-white/20"
-              style={{ boxShadow: '0 0 40px rgba(168, 85, 247, 0.3), 0 0 80px rgba(236, 72, 153, 0.15)' }}
-            >
-              <img 
-                src={heroImage} 
-                alt="דמויות SolStorie's" 
-                className="w-full h-full object-cover"
-              />
-            </div>
-          </div>
-
           {/* Header */}
           <div className="text-center mb-4 flex flex-col items-center">
             <h1 className="text-2xl font-black bg-gradient-to-r from-purple-300 via-pink-300 to-orange-300 bg-clip-text text-transparent mb-1">
