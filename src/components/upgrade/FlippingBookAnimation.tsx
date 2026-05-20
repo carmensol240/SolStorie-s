@@ -19,7 +19,7 @@ export const FlippingBookAnimation = () => {
           </div>
         </div>
       </div>
-      <div className="fba-caption">הורידי PDF ✓ שלחי לבית דפוס ✓ או הדפיסי בבית</div>
+      <div className="fba-caption">הורידו PDF ✓ שלחו לבית דפוס ✓ או הדפיסו בבית</div>
     </div>
   );
 };
