@@ -546,13 +546,14 @@ const Upgrade = () => {
           {/* Upsell Packages — 2 column grid */}
           <div className="grid grid-cols-2 gap-3 mb-4">
             {/* Coloring Kit */}
-            <div className="relative rounded-2xl p-[2px] overflow-hidden"
+            <div className="relative rounded-2xl p-[2px]"
               style={{
                 background: 'linear-gradient(135deg, hsl(30,80%,55%), hsl(340,70%,55%), hsl(30,80%,55%))',
                 backgroundSize: '300% 300%',
                 animation: 'sparkle-border 4s ease-in-out infinite',
               }}>
-              <div className="bg-[hsl(260,50%,13%)]/95 backdrop-blur-md rounded-[14px] p-3 space-y-2 h-full flex flex-col">
+              <span className="absolute -top-2 -left-2 bg-amber-400 text-amber-900 text-[10px] font-black px-2 py-0.5 rounded-full shadow z-10">בקרוב 🔜</span>
+              <div className="bg-[hsl(260,50%,13%)]/95 backdrop-blur-md rounded-[14px] p-3 space-y-2 h-full flex flex-col opacity-60">
                 <div className="flex items-center gap-1.5">
                   <span className="text-lg">🎨</span>
                   <h3 className="font-black text-xs text-orange-200">{COLORING_KIT_PACKAGE.label}</h3>
@@ -564,26 +565,24 @@ const Upgrade = () => {
                   <span className="text-lg font-black text-white">₪{COLORING_KIT_PACKAGE.price}</span>
                 </div>
                 <Button
-                  onClick={() => {
-                    if (!user) { navigate("/auth"); return; }
-                    setShowColoringKitPayPal(true);
-                  }}
+                  disabled
                   size="sm"
-                  className="w-full bg-gradient-to-r from-orange-500 to-pink-500 hover:from-orange-600 hover:to-pink-600 text-white font-bold rounded-xl text-xs"
+                  className="w-full bg-gradient-to-r from-orange-500 to-pink-500 text-white font-bold rounded-xl text-xs cursor-not-allowed disabled:opacity-100"
                 >
-                  🎨 רכשו
+                  בקרוב 🔜
                 </Button>
               </div>
             </div>
 
             {/* Edit Kit */}
-            <div className="relative rounded-2xl p-[2px] overflow-hidden"
+            <div className="relative rounded-2xl p-[2px]"
               style={{
                 background: 'linear-gradient(135deg, hsl(150,60%,50%), hsl(200,70%,50%), hsl(150,60%,50%))',
                 backgroundSize: '300% 300%',
                 animation: 'sparkle-border 4s ease-in-out infinite',
               }}>
-              <div className="bg-[hsl(260,50%,13%)]/95 backdrop-blur-md rounded-[14px] p-3 space-y-2 h-full flex flex-col">
+              <span className="absolute -top-2 -left-2 bg-amber-400 text-amber-900 text-[10px] font-black px-2 py-0.5 rounded-full shadow z-10">בקרוב 🔜</span>
+              <div className="bg-[hsl(260,50%,13%)]/95 backdrop-blur-md rounded-[14px] p-3 space-y-2 h-full flex flex-col opacity-60">
                 <div className="flex items-center gap-1.5">
                   <span className="text-lg">✏️</span>
                   <h3 className="font-black text-xs text-green-200">{EDIT_KIT_PACKAGE.label}</h3>
@@ -595,14 +594,11 @@ const Upgrade = () => {
                   <span className="text-lg font-black text-white">₪{EDIT_KIT_PACKAGE.price}</span>
                 </div>
                 <Button
-                  onClick={() => {
-                    if (!user) { navigate("/auth"); return; }
-                    setShowEditKitPayPal(true);
-                  }}
+                  disabled
                   size="sm"
-                  className="w-full bg-gradient-to-r from-green-500 to-teal-500 hover:from-green-600 hover:to-teal-600 text-white font-bold rounded-xl text-xs"
+                  className="w-full bg-gradient-to-r from-green-500 to-teal-500 text-white font-bold rounded-xl text-xs cursor-not-allowed disabled:opacity-100"
                 >
-                  ✏️ רכשו
+                  בקרוב 🔜
                 </Button>
               </div>
             </div>
