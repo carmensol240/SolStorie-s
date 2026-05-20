@@ -19,7 +19,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 import heroImage from "@/assets/cast-group-forest.png";
-import { PRICING_PACKAGES, TOOLKIT_SUBSCRIPTION, EDUCATOR_PACKAGE, EDIT_KIT_PACKAGE, COLORING_KIT_PACKAGE } from "@/config/pricing";
+import { PRICING_PACKAGES, EDUCATOR_PACKAGES, TOOLKIT_SUBSCRIPTION, EDIT_KIT_PACKAGE, COLORING_KIT_PACKAGE } from "@/config/pricing";
 
 
 const Upgrade = () => {
@@ -36,7 +36,6 @@ const Upgrade = () => {
   const [selectedPackage, setSelectedPackage] = useState<string>("popular");
   const [showPayPal, setShowPayPal] = useState(false);
   const [userRole, setUserRole] = useState<string>("parent");
-  const [showEducatorPayPal, setShowEducatorPayPal] = useState(false);
   const [showEditKitPayPal, setShowEditKitPayPal] = useState(false);
   const [showColoringKitPayPal, setShowColoringKitPayPal] = useState(false);
   const [showToolkitPayPal, setShowToolkitPayPal] = useState(false);
@@ -45,7 +44,7 @@ const Upgrade = () => {
   const [showFailed, setShowFailed] = useState(false);
   const [purchasedCredits, setPurchasedCredits] = useState(0);
   const [discountPercent, setDiscountPercent] = useState(0);
-  const [failedPurchaseType, setFailedPurchaseType] = useState<'stories' | 'coloring' | 'edit' | 'educator' | 'toolkit' | null>(null);
+  const [failedPurchaseType, setFailedPurchaseType] = useState<'stories' | 'coloring' | 'edit' | 'toolkit' | null>(null);
   const [appliedCouponCode, setAppliedCouponCode] = useState<string | null>(null);
   const [userDetailsValid, setUserDetailsValid] = useState(true);
   const userDetailsRef = useRef<UserDetailsRef>(null);
@@ -91,9 +90,11 @@ const Upgrade = () => {
 
   const isTestUser = user?.email?.toLowerCase() === WHITELISTED_TEST_EMAIL.toLowerCase();
 
+  const ALL_PURCHASE_PACKAGES = [...PRICING_PACKAGES, ...EDUCATOR_PACKAGES];
+
   const handleSelectPackage = (packageId: string) => {
     setSelectedPackage(packageId);
-    const pkg = PRICING_PACKAGES.find(p => p.id === packageId);
+    const pkg = ALL_PURCHASE_PACKAGES.find(p => p.id === packageId);
     trackEvent({ 
       eventType: 'feature_used', 
       metadata: { feature: 'package_selected', package: packageId, stories: pkg?.stories } 
@@ -102,7 +103,7 @@ const Upgrade = () => {
 
   const handleTestPurchase = async () => {
     if (!isTestUser || !user) return;
-    const pkg = PRICING_PACKAGES.find(p => p.id === selectedPackage);
+    const pkg = ALL_PURCHASE_PACKAGES.find(p => p.id === selectedPackage);
     if (!pkg) return;
     try {
       const { error: purchaseError } = await supabase
@@ -168,7 +169,7 @@ const Upgrade = () => {
   };
 
   const handlePayPalSuccess = async (orderId: string) => {
-    const pkg = PRICING_PACKAGES.find(p => p.id === selectedPackage);
+    const pkg = ALL_PURCHASE_PACKAGES.find(p => p.id === selectedPackage);
     if (!pkg || !user) {
       console.error('[PURCHASE] user or pkg is null at callback time', { user: !!user, pkg: !!pkg });
       setShowFailed(true);
@@ -215,7 +216,7 @@ const Upgrade = () => {
     setShowPayPal(false);
     setShowFailed(true);
     setFailedPurchaseType('stories');
-    const pkg = PRICING_PACKAGES.find(p => p.id === selectedPackage);
+    const pkg = ALL_PURCHASE_PACKAGES.find(p => p.id === selectedPackage);
     trackEvent({ eventType: 'feature_used', metadata: { feature: 'purchase_failed', package: pkg?.id, error: error?.message || 'paypal_error' } });
   };
 
@@ -224,7 +225,6 @@ const Upgrade = () => {
     switch (failedPurchaseType) {
       case 'coloring': setShowColoringKitPayPal(true); break;
       case 'edit': setShowEditKitPayPal(true); break;
-      case 'educator': setShowEducatorPayPal(true); break;
       case 'toolkit': setShowToolkitPayPal(true); break;
       default: setShowPayPal(true); break;
     }
@@ -259,7 +259,7 @@ const Upgrade = () => {
     setFailedPurchaseType('toolkit');
   };
 
-  const selectedPkg = PRICING_PACKAGES.find(p => p.id === selectedPackage);
+  const selectedPkg = ALL_PURCHASE_PACKAGES.find(p => p.id === selectedPackage);
   const discountedPrice = selectedPkg ? Math.round(selectedPkg.price * (1 - discountPercent / 100)) : 0;
 
   return (
@@ -462,76 +462,57 @@ const Upgrade = () => {
             </div>
           )}
 
-          {/* Educator Package */}
+          {/* Educator Packages — 3 cards */}
           {userRole === 'educator' && (
-            <div className="relative rounded-2xl p-[2px] mb-4 overflow-hidden"
-              style={{
-                background: 'linear-gradient(135deg, hsl(200,80%,50%), hsl(260,60%,60%), hsl(200,80%,50%))',
-                backgroundSize: '300% 300%',
-                animation: 'sparkle-border 4s ease-in-out infinite',
-              }}>
-              <div className="bg-[hsl(260,50%,13%)]/95 backdrop-blur-md rounded-[14px] p-4 space-y-3">
-                <div className="flex items-center gap-2">
-                  <span className="text-xl">🏫</span>
-                  <h3 className="font-black text-sm text-blue-200">{EDUCATOR_PACKAGE.label}</h3>
-                  <span className="bg-blue-500/30 text-blue-200 text-[10px] font-bold px-2 py-0.5 rounded-full">חבילה מיוחדת</span>
-                </div>
-                <p className="text-xs text-white/70 leading-relaxed">
-                  20 סיפורים + 25 עריכות + 8 דפי צביעה 🎨. מושלם לכיתה, לגן או לקליניקה.
-                </p>
-                <div className="flex items-center justify-between">
-                  <div>
-                    <span className="text-xl font-black text-white">₪{EDUCATOR_PACKAGE.price}</span>
-                    <span className="text-xs text-white/60 mr-1">({EDUCATOR_PACKAGE.pricePerStory} לסיפור)</span>
-                  </div>
-                  <Button
-                    onClick={() => {
-                      if (!user) { navigate("/auth"); return; }
-                      setShowEducatorPayPal(true);
-                    }}
-                    size="sm"
-                    className="bg-gradient-to-r from-blue-500 to-purple-500 hover:from-blue-600 hover:to-purple-600 text-white font-bold rounded-xl text-xs px-4"
+            <div className="mb-4">
+              <h3 className="text-center text-sm font-black text-blue-200 mb-3">
+                🎓 חבילות לאנשי חינוך וטיפול
+              </h3>
+              <div className="grid grid-cols-3 gap-3 pt-4">
+                {EDUCATOR_PACKAGES.map((pkg) => (
+                  <button
+                    key={pkg.id}
+                    onClick={() => handleSelectPackage(pkg.id)}
+                    className={cn(
+                      "relative flex flex-col items-center p-3 pt-4 rounded-2xl border transition-all duration-200",
+                      "bg-white/10 backdrop-blur-md",
+                      selectedPackage === pkg.id
+                        ? "border-white/50 shadow-lg scale-[1.03] bg-white/20"
+                        : "border-white/15 hover:border-white/30"
+                    )}
                   >
-                    🏫 רכשו חבילת אנשי חינוך וטיפול
-                  </Button>
-                </div>
+                    {pkg.badge && (
+                      <div className="absolute -top-3 left-1/2 -translate-x-1/2 bg-gradient-to-r from-blue-500 via-purple-500 to-pink-500 text-white text-[10px] font-black px-2.5 py-0.5 rounded-full whitespace-nowrap shadow-lg z-10">
+                        {pkg.badge}
+                      </div>
+                    )}
+                    <div className="text-3xl font-black bg-gradient-to-r from-blue-300 via-purple-300 to-pink-300 bg-clip-text text-transparent">
+                      {pkg.stories}
+                    </div>
+                    <div className="text-sm text-white/80 font-bold mb-1">סיפורים</div>
+                    <div className="text-xl font-black text-white animate-price-glow">
+                      ₪{pkg.price}
+                    </div>
+                    <div className="text-xs text-blue-300 font-bold">
+                      {pkg.pricePerStory} לסיפור
+                    </div>
+                    {pkg.freeEdits > 0 && (
+                      <div className="bg-white/10 backdrop-blur-sm border border-white/15 rounded-lg px-2 py-1 mt-2">
+                        <span className="text-[10px] text-green-300 font-bold">
+                          {pkg.freeEdits} עריכות 🎁
+                        </span>
+                      </div>
+                    )}
+                    {pkg.freeColoringPages > 0 && (
+                      <div className="bg-white/10 backdrop-blur-sm border border-white/15 rounded-lg px-2 py-1 mt-1">
+                        <span className="text-[10px] text-orange-300 font-bold">
+                          {pkg.freeColoringPages} דפי צביעה 🎨
+                        </span>
+                      </div>
+                    )}
+                  </button>
+                ))}
               </div>
-            </div>
-          )}
-
-          {/* Educator PayPal */}
-          {showEducatorPayPal && (
-            <div className="bg-white/15 backdrop-blur-md rounded-xl border border-blue-400/30 p-4 mb-4 shadow-lg">
-              <p className="text-sm font-bold text-white text-center mb-3">
-                {EDUCATOR_PACKAGE.label} — {EDUCATOR_PACKAGE.stories} סיפורים תמורת ₪{EDUCATOR_PACKAGE.price}
-              </p>
-              <UserDetailsForm ref={userDetailsRef} onValidChange={setUserDetailsValid} />
-              {!userDetailsValid && <p className="text-red-400 text-xs text-center mb-2">נא להזין טלפון תקין להמשך</p>}
-              {userDetailsValid && <PayPalButton
-                amount={EDUCATOR_PACKAGE.price}
-                onSuccess={async (orderId: string) => {
-                  if (!user) return;
-                  try {
-                    await verifyPurchase(orderId, EDUCATOR_PACKAGE.id, EDUCATOR_PACKAGE.price);
-                    refetchCredits();
-                    window.dispatchEvent(new CustomEvent('coloring-credits-updated'));
-                    setPurchasedCredits(EDUCATOR_PACKAGE.stories);
-                    setShowEducatorPayPal(false);
-                    setShowSuccess(true);
-                    await userDetailsRef.current?.saveToProfile();
-                  } catch (error) {
-                    console.error('Educator purchase failed:', error);
-                    setShowEducatorPayPal(false);
-                    setShowFailed(true);
-                    setFailedPurchaseType('educator');
-                  }
-                }}
-                onError={() => { setShowEducatorPayPal(false); setShowFailed(true); setFailedPurchaseType('educator'); }}
-                onCancel={() => setShowEducatorPayPal(false)}
-              />}
-              <button onClick={() => setShowEducatorPayPal(false)} className="w-full text-center text-white/50 text-xs mt-3 hover:text-white/70 transition-colors">
-                ביטול
-              </button>
             </div>
           )}
 
