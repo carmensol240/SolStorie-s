@@ -1926,7 +1926,7 @@ const [currentPage, setCurrentPage] = useState(0);
           <AlertDialogHeader>
             <AlertDialogTitle className="text-right">✨ הפוך את הסיפור לספר אמיתי!</AlertDialogTitle>
             <AlertDialogDescription className="text-right leading-relaxed">
-              הסיפור של {story?.child_name} מוכן ומחכה להיהפך לספר מודפס שישמח אותו שנים קדימה. כדי להוריד את הסיפור כקובץ PDF מוכן להדפסה, בחרי חבילת סיפורים שתתאים לך.
+              הסיפור של {story?.child_name} מוכן ומחכה להיהפך לספר מודפס שישמח אותו שנים קדימה. כדי להוריד את הסיפור כקובץ PDF מוכן להדפסה, בחרו חבילת סיפורים שתתאים לכם.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter className="gap-2 sm:gap-0">
