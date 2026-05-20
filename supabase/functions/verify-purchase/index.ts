@@ -119,9 +119,9 @@ Deno.serve(async (req) => {
 
     // Determine what to credit based on packageId
     const packageConfig: Record<string, any> = {
-      basic: { stories: 3, freeEdits: 3, coloringPages: 1 },
-      popular: { stories: 10, freeEdits: 10, coloringPages: 3 },
-      premium: { stories: 15, freeEdits: 15, coloringPages: 5 },
+      basic: { stories: 2, freeEdits: 2, coloringPages: 2 },
+      popular: { stories: 6, freeEdits: 6, coloringPages: 6 },
+      premium: { stories: 10, freeEdits: 10, coloringPages: 10 },
       educator: { stories: 20, freeEdits: 25, coloringPages: 8 },
       coloring_kit: { stories: 0, freeEdits: 0, coloringPages: 5 },
       edit_kit: { stories: 0, freeEdits: 0, coloringPages: 0, editingCredits: 5 },
