@@ -61,6 +61,42 @@ export const EDUCATOR_PACKAGE = {
   badge: "🏫 לאנשי חינוך וטיפול" as string | undefined,
 };
 
+export const EDUCATOR_PACKAGES = [
+  {
+    id: "educator_basic",
+    stories: 2,
+    price: 59,
+    originalPrice: 59,
+    pricePerStory: "29.5₪",
+    label: "להתנסות",
+    freeEdits: 2,
+    freeColoringPages: 2,
+    badge: "להתנסות ✨" as string | undefined,
+  },
+  {
+    id: "educator_popular",
+    stories: 6,
+    price: 149,
+    originalPrice: 149,
+    pricePerStory: "24.8₪",
+    label: "פופולרי",
+    freeEdits: 6,
+    freeColoringPages: 6,
+    badge: "מומלץ ⭐" as string | undefined,
+  },
+  {
+    id: "educator_premium",
+    stories: 10,
+    price: 199,
+    originalPrice: 199,
+    pricePerStory: "19.9₪",
+    label: "מקצועית",
+    freeEdits: 10,
+    freeColoringPages: 10,
+    badge: "🎓 מקצועית" as string | undefined,
+  },
+] as const;
+
 export const TOOLKIT_SUBSCRIPTION = {
   id: "toolkit_yearly",
   price: 29.90,
