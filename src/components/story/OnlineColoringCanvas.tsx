@@ -36,15 +36,24 @@ const ERASER_CURSOR = `url("data:image/svg+xml,<svg xmlns='http://www.w3.org/200
 
 const ERASER_SIZE = 10;
 
-function boldenOutlines(ctx: CanvasRenderingContext2D, w: number, h: number) {
+/**
+ * Binarize the background to pure black-and-white line art.
+ * This guarantees no colored/grey pixels remain on the bg layer, so:
+ *  - Pages never appear pre-colored from the AI output.
+ *  - The eraser (which only clears the draw layer) can remove any color the user paints.
+ */
+function binarizeToLineArt(ctx: CanvasRenderingContext2D, w: number, h: number) {
   const imageData = ctx.getImageData(0, 0, w, h);
   const d = imageData.data;
-  const threshold = 180;
+  const OUTLINE_THRESHOLD = 170;
   for (let i = 0; i < d.length; i += 4) {
     const avg = (d[i] + d[i + 1] + d[i + 2]) / 3;
-    if (avg < threshold) {
-      d[i] = d[i + 1] = d[i + 2] = Math.max(0, avg * 0.5);
+    if (avg < OUTLINE_THRESHOLD) {
+      d[i] = d[i + 1] = d[i + 2] = 0;
+    } else {
+      d[i] = d[i + 1] = d[i + 2] = 255;
     }
+    d[i + 3] = 255;
   }
   ctx.putImageData(imageData, 0, 0);
 }
@@ -366,10 +375,12 @@ export const OnlineColoringCanvas: React.FC<OnlineColoringCanvasProps> = ({
       ctx.fillRect(0, 0, w, h);
       // Draw only the trimmed content area, scaled to fill the canvas
       ctx.drawImage(img, bounds.sx, bounds.sy, bounds.sw, bounds.sh, 0, 0, w, h);
-      boldenOutlines(ctx, w, h);
+      binarizeToLineArt(ctx, w, h);
     }
     const dCtx = drawCanvas.getContext('2d');
     if (dCtx) {
+      // Ensure the draw layer starts completely empty on every load.
+      dCtx.clearRect(0, 0, w, h);
       const snap = dCtx.getImageData(0, 0, w, h);
       setHistory([snap]);
       setHistoryIndex(0);
