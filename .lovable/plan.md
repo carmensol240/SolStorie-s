@@ -1,31 +1,22 @@
-## עיצוב מחדש של עמוד הכריכה ב-PDF
+## המרת אנימציית "ספר מתהפך" לקומפוננטה והטמעה בדף הרכישה
 
-שינוי רק בפונקציה `renderCoverPage` בקובץ `src/hooks/use-pdf-export.ts`. שאר הקובץ והעמודים האחרים (הקדשה, טקסט, איור) לא משתנים. גם ה-`drawFooter` הרגיל ימשיך לרוץ — אבל מכיוון שהוא מצויר מעל הקאנבס, נשקול אם להשאיר אותו על הכריכה (ראה הערה בסוף).
+### מה ניצור
+1. **`src/components/upgrade/FlippingBookAnimation.tsx`** – קומפוננטת React שמכילה את ה-JSX המומר מה-HTML שהדבקת (stage + book-wrap + spine + book + dots + bottom).
+   - המרה: `class` → `className`, `style="..."` → `style={{...}}`.
+   - State לעמוד הפעיל (`activePage`) + `useEffect` עם `setInterval` שמחליף עמוד כל ~2.5 שניות (מחזורי, עם cleanup).
+   - תמיכה ב-RTL מקומית דרך `dir="rtl"` על ה-wrapper (לא משנה את כיוון האפליקציה).
+   - תמיכה ב-`prefers-reduced-motion` – ביטול ה-floating/pulse/auto-flip.
+2. **`src/components/upgrade/flipping-book.css`** – כל ה-CSS מה-`<style>` עם prefix `fba-` לכל מחלקה כדי למנוע התנגשויות (`.stage` → `.fba-stage`, `.book` → `.fba-book` וכו'). הפונט Rubik יישאר כ-`@import` בראש הקובץ.
+3. **`src/pages/Upgrade.tsx`** – הוספת `import FlippingBookAnimation from "@/components/upgrade/FlippingBookAnimation"` ורינדור `<FlippingBookAnimation />` **בראש הדף, מעל החבילות** (לפני הבלוק שמרנדר את כרטיסי החבילות, אחרי הכותרת/Header אם קיימים).
 
-### עיצוב חדש (תואם למוקאפ)
+### מה לא נשנה
+- הלוגיקה של החבילות (הפרדת הורה/איש חינוך), מחירים, קופונים, PayPal, או כל לוגיקה עסקית.
+- שום קובץ אחר מלבד השלושה לעיל.
 
-1. **רקע מלא**: `<img>` של ה-cover במצב `object-fit: cover` שתופס את כל העמוד (1240x1240) — כך הוא כבר עכשיו, נשמור.
+### שאלה אחת לפני יישום
+ב-HTML שהדבקת חסרים תגי `<img>` בפועל וגם פריטי `.page` ו-`.dot` (יש רק את הסקלטון/CSS). יש שתי אפשרויות:
 
-2. **תגית עליונה ימנית** (מתחת לפינה): כיתוב קטן `✨ SolStorie's™` על רקע שקוף עדין:
-   - מיקום: `top: 40px; right: 40px`
-   - רקע: `rgba(255,255,255,0.15)` עם `backdrop-filter` ו-`border: 1px solid rgba(255,255,255,0.3)`, `border-radius: 999px`
-   - טקסט לבן, `font-size: 22px`, padding `10px 20px`
+**א.** תשלח את ה-HTML המלא הכולל את ה-`<img src="...">` של עמודי הספר ואת רשימת ה-`<div class="page">`/`<div class="dot">`.
+**ב.** אשתמש ב-3 תמונות placeholder קיימות מהפרויקט (למשל מתוך `demo-story` או עטיפות לדוגמה) עד שתספק תמונות סופיות, ואז תוכל להחליף בקלות.
 
-3. **שכבת gradient כהה בתחתית**: 
-   - `position:absolute; bottom:0; left:0; right:0; height:55%;`
-   - `background: linear-gradient(to top, rgba(0,0,0,0.85) 0%, rgba(0,0,0,0.55) 50%, transparent 100%);`
-
-4. **טקסטים בתוך השכבה הכהה** (יישור מרכז, RTL):
-   - **שם הסיפור** (כותרת): לבן, `font-size: 88px`, `font-weight: 900`, מרווח תחתון 20px. הטקסט מגיע מ-`story.topic` (מתורגם דרך `translateTopic`). מסירים את הכיתוב "הסיפור של" כשורה נפרדת.
-   - **שורת משנה**: `💛 הסיפור של {childName}` בצבע צהוב/זהב (`#FFD66B`), `font-size: 42px`, `font-weight: 700`.
-   - **לוגו תחתון**: `SolStorie's™ · soulstory.co.il` בלבן עמום (`rgba(255,255,255,0.75)`), `font-size: 20px`, `font-weight: 500`, ממוקם 50px מתחתית.
-   - מיקום הבלוק: `position:absolute; bottom:0; padding: 0 80px 60px 80px; width:100%;`
-
-### החלפת ה-footer הרגיל בעמוד הכריכה
-
-`captureHtmlToPage` קוראת ל-`drawFooter` בכל עמוד, כולל הכריכה — מה שמצייר קו זהב + `SolStorie's™` + `soulstory.co.il` מעל הכריכה ויוצר כפילות עם הלוגו החדש בתוך השכבה הכהה.
-
-נוסיף פרמטר `skipFooter` ל-`captureHtmlToPage` ונקרא לו עם `true` רק לעמוד הכריכה. שאר העמודים ממשיכים לקבל את ה-footer הקיים בלי שינוי.
-
-### לא משתנה
-- מבנה ה-PDF, גודל, יחס, כל שאר העמודים, ה-footer בעמודים אחרים, שמות הקבצים, אינטגרציה עם share/save.
+איזה מהן? אם (א) – הדבק את הגרסה המלאה. אם (ב) – אתחיל מיד עם placeholders.
