@@ -5,7 +5,6 @@ import { useToast } from '@/hooks/use-toast';
 import { useSignedUrls } from '@/hooks/use-signed-urls';
 import { translateTopic } from '@/lib/topic-translations';
 import solMagicBookCover from '@/assets/sol-magic-book-cover.png';
-import castWavingFarewell from '@/assets/cast-waving-farewell.png';
 
 // Helper function to escape HTML entities and prevent XSS
 const escapeHtml = (unsafe: string): string => {
