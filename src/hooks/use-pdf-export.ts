@@ -29,6 +29,7 @@ interface Story {
   topic: string;
   language?: string;
   age_range?: string;
+  cover_url?: string | null;
   pages: StoryPage[];
 }
 
@@ -69,19 +70,25 @@ export const usePdfExport = () => {
     const W = pdf.internal.pageSize.getWidth();
     const H = pdf.internal.pageSize.getHeight();
 
+    // Square px units now — scale margins relative to page size
+    const margin = Math.round(W * 0.025);
+    const lineY = H - Math.round(W * 0.045);
+    const brandY = H - Math.round(W * 0.030);
+    const urlY = H - Math.round(W * 0.013);
+
     pdf.setDrawColor(212, 165, 116);
-    pdf.setLineWidth(0.3);
-    pdf.line(20, H - 18, W - 20, H - 18);
+    pdf.setLineWidth(1);
+    pdf.line(margin, lineY, W - margin, lineY);
 
     pdf.setFont('helvetica', 'bold');
-    pdf.setFontSize(9);
+    pdf.setFontSize(Math.round(W * 0.011));
     pdf.setTextColor(147, 51, 234);
-    pdf.text("SolStorie's\u2122", W / 2, H - 13, { align: 'center' });
+    pdf.text("SolStorie's\u2122", W / 2, brandY, { align: 'center' });
 
     pdf.setFont('helvetica', 'normal');
-    pdf.setFontSize(8);
+    pdf.setFontSize(Math.round(W * 0.010));
     pdf.setTextColor(37, 99, 235);
-    pdf.textWithLink('soulstory.co.il', W / 2, H - 8, {
+    pdf.textWithLink('soulstory.co.il', W / 2, urlY, {
       url: 'https://soulstory.co.il',
       align: 'center',
     });
@@ -134,8 +141,15 @@ export const usePdfExport = () => {
   };
 
   // ─── Cover Page: Sol with magic book as full-bleed background ──
-  const renderCoverPage = async (childName: string, topic: string, language?: string): Promise<HTMLDivElement> => {
-    const coverDataUrl = await loadImageAsDataUrl(solMagicBookCover);
+  const renderCoverPage = async (
+    childName: string,
+    topic: string,
+    language?: string,
+    coverUrl?: string | null,
+  ): Promise<HTMLDivElement> => {
+    const coverDataUrl = coverUrl
+      ? await loadImageAsDataUrl(coverUrl).catch(() => loadImageAsDataUrl(solMagicBookCover))
+      : await loadImageAsDataUrl(solMagicBookCover);
     const hebrewTopic = translateTopic(topic, language);
     const coverPage = document.createElement('div');
     coverPage.style.cssText = `
@@ -145,195 +159,114 @@ export const usePdfExport = () => {
     `;
     coverPage.innerHTML = `
       <img src="${coverDataUrl}" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;" />
-      <div style="position:absolute;inset:0;background:linear-gradient(to top, rgba(0,0,0,0.7) 0%, rgba(0,0,0,0.2) 40%, transparent 70%);"></div>
-      <div style="position:relative;z-index:1;text-align:center;padding:0 40px 60px 40px;">
-        <h1 style="color:white;font-size:32px;font-weight:900;margin:0 0 8px 0;text-shadow:0 2px 8px rgba(0,0,0,0.5);">הַסִּפּוּר שֶׁל</h1>
-        <h2 style="font-size:46px;font-weight:900;margin:0 0 16px 0;
+      <div style="position:absolute;inset:0;background:linear-gradient(to top, rgba(0,0,0,0.75) 0%, rgba(0,0,0,0.25) 45%, transparent 75%);"></div>
+      <div style="position:relative;z-index:1;text-align:center;padding:0 80px 140px 80px;">
+        <p style="color:rgba(255,255,255,0.9);font-size:42px;margin:0 0 24px 0;font-weight:600;text-shadow:0 2px 8px rgba(0,0,0,0.6);">${escapeHtml(hebrewTopic)}</p>
+        <h1 style="color:white;font-size:64px;font-weight:900;margin:0 0 16px 0;text-shadow:0 2px 8px rgba(0,0,0,0.6);">הַסִּפּוּר שֶׁל</h1>
+        <h2 style="font-size:96px;font-weight:900;margin:0;
           background:linear-gradient(to right,#c4b5fd,#f9a8d4,#fdba74);
           -webkit-background-clip:text;-webkit-text-fill-color:transparent;
-          text-shadow:none;filter:drop-shadow(0 2px 4px rgba(0,0,0,0.3));">${escapeHtml(childName)}</h2>
-        <div style="display:flex;align-items:center;justify-content:center;gap:12px;margin-bottom:12px;">
-          <div style="width:40px;height:2px;background:linear-gradient(to right,transparent,#f9a8d4);border-radius:2px;"></div>
-          <span style="font-size:18px;">✨</span>
-          <div style="width:40px;height:2px;background:linear-gradient(to left,transparent,#f9a8d4);border-radius:2px;"></div>
-        </div>
-        <p style="color:rgba(255,255,255,0.9);font-size:16px;margin:0;font-weight:500;text-shadow:0 1px 4px rgba(0,0,0,0.4);">${escapeHtml(hebrewTopic)}</p>
+          text-shadow:none;filter:drop-shadow(0 4px 8px rgba(0,0,0,0.4));">${escapeHtml(childName)}</h2>
       </div>
     `;
     return coverPage;
   };
 
-  // ─── Dedication Page: Rainbow/unicorn design ──
-  const renderDedicationPage = (childName: string): HTMLDivElement => {
+  // ─── Dedication Page: clean white page with handwriting lines ──
+  const renderDedicationPage = (_childName: string): HTMLDivElement => {
     const page = document.createElement('div');
     page.style.cssText = `
       width: 100%; height: 100%; display: flex; flex-direction: column;
-      align-items: center; justify-content: center; text-align: center;
-      background: ${RAINBOW_CSS}; direction: rtl;
+      align-items: center; justify-content: flex-start; text-align: center;
+      background: #ffffff; direction: rtl;
       font-family: Heebo, Assistant, sans-serif; position: relative;
+      padding: 200px 140px 180px 140px; box-sizing: border-box;
     `;
+    const lines = Array.from({ length: 9 })
+      .map(() => `<div style="height:0;border-bottom:2px solid #d4d4d8;margin:0 0 80px 0;"></div>`) 
+      .join('');
     page.innerHTML = `
-      <div style="max-width:80%;space-y:24px;">
-        <div style="font-size:64px;margin-bottom:24px;">🦄</div>
-        <p style="color:#6B4423;font-size:22px;font-weight:500;margin:0 0 12px 0;">הַסִּפּוּר מוּקְדָּשׁ בְּאַהֲבָה לְ-</p>
-        <p style="font-size:48px;font-weight:900;margin:0 0 16px 0;
-          background:linear-gradient(to right,#9333ea,#ec4899,#f97316);
-          -webkit-background-clip:text;-webkit-text-fill-color:transparent;">${escapeHtml(childName)}</p>
-        <div style="display:flex;align-items:center;justify-content:center;gap:12px;">
-          <div style="width:32px;height:2px;background:linear-gradient(to right,transparent,#f472b6);border-radius:2px;"></div>
-          <span style="font-size:16px;">💛</span>
-          <div style="width:32px;height:2px;background:linear-gradient(to left,transparent,#f472b6);border-radius:2px;"></div>
-        </div>
-      </div>
-      <div style="position:absolute;bottom:24px;left:0;right:0;text-align:center;">
-        <span style="font-size:14px;color:rgba(139,115,85,0.5);font-weight:500;">SolStorie's™</span>
-      </div>
+      <p style="color:#1f2937;font-size:56px;font-weight:700;margin:0 0 120px 0;line-height:1.5;">
+        הַסִּפּוּר הַזֶּה נִכְתַּב בִּמְיֻחָד עֲבוּר ______________
+      </p>
+      <div style="width:100%;text-align:right;">${lines}</div>
     `;
     return page;
   };
 
-  // ─── Closing Page: Cast waving farewell ──
-  const renderClosingPage = async (): Promise<HTMLDivElement> => {
-    const castDataUrl = await loadImageAsDataUrl(castWavingFarewell);
-    const page = document.createElement('div');
-    page.style.cssText = `
-      width: 100%; height: 100%; position: relative; overflow: hidden;
-      display: flex; flex-direction: column; align-items: center; justify-content: flex-end;
-      font-family: Heebo, Assistant, sans-serif; direction: rtl;
-    `;
-    page.innerHTML = `
-      <img src="${castDataUrl}" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;" />
-      <div style="position:absolute;inset:0;background:linear-gradient(to top, rgba(0,0,0,0.6) 0%, rgba(0,0,0,0.2) 40%, transparent 60%);"></div>
-      <div style="position:relative;z-index:1;text-align:center;padding-bottom:48px;">
-        <p style="color:white;font-size:36px;font-weight:bold;text-shadow:0 2px 8px rgba(0,0,0,0.5);margin:0 0 8px 0;">✦ סוֹף ✦</p>
-        <p style="color:rgba(255,255,255,0.9);font-size:22px;font-weight:500;text-shadow:0 1px 4px rgba(0,0,0,0.4);margin:0 0 12px 0;">נִתְרָאֶה בַּסִּפּוּר הַבָּא!</p>
-        <span style="font-size:14px;color:rgba(255,255,255,0.6);font-weight:500;">SolStorie's™</span>
-      </div>
-    `;
-    return page;
-  };
-
-  // ─── Fullscreen story page: illustration background + gradient overlay + white text ──
-  const renderFullscreenStoryPage = (
-    text: string,
-    illustrationDataUrl: string | null,
-    pageNumber: number,
-    totalPages: number
-  ): HTMLDivElement => {
+  // ─── Text-only white page ──
+  const renderTextOnlyPage = (text: string): HTMLDivElement => {
     const pageEl = document.createElement('div');
     pageEl.style.cssText = `
-      width: 100%; height: 100%; position: relative; overflow: hidden;
-      font-family: Heebo, Assistant, sans-serif; direction: rtl;
+      width: 100%; height: 100%; background:#ffffff; display:flex;
+      align-items:center; justify-content:center; padding:180px 160px;
+      box-sizing:border-box; direction:rtl;
+      font-family: Heebo, Assistant, sans-serif;
     `;
-
-    const bgHtml = illustrationDataUrl
-      ? `<img src="${illustrationDataUrl}" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;" />`
-      : `<div style="position:absolute;inset:0;background:${RAINBOW_CSS};display:flex;align-items:center;justify-content:center;">
-           <span style="font-size:80px;opacity:0.2;">✨</span>
-         </div>`;
-
     pageEl.innerHTML = `
-      ${bgHtml}
-      <div style="position:absolute;bottom:0;left:0;right:0;height:45%;
-        background:linear-gradient(to top, rgba(0,0,0,0.3) 0%, rgba(0,0,0,0.15) 60%, transparent 100%);"></div>
-      <div style="position:absolute;bottom:0;left:0;right:0;z-index:1;padding:24px 32px 36px 32px;text-align:center;">
-        <p style="color:white;font-size:24px;line-height:2;font-weight:600;margin:0;
-          text-shadow:0 1px 3px rgba(0,0,0,0.9), 0 3px 8px rgba(0,0,0,0.7), 0 0 16px rgba(0,0,0,0.5);
-          background:rgba(0,0,0,0.15);padding:12px 16px;border-radius:12px;
-          word-wrap:break-word;overflow-wrap:break-word;white-space:pre-line;">
-          ${escapeHtml(text)}
-        </p>
-        <div style="margin-top:12px;">
-          <span style="font-size:12px;color:rgba(255,255,255,0.4);">${pageNumber} / ${totalPages}</span>
-        </div>
-      </div>
+      <p style="color:#1f2937;font-size:54px;line-height:1.9;font-weight:500;margin:0;
+        text-align:center;word-wrap:break-word;overflow-wrap:break-word;white-space:pre-line;">
+        ${escapeHtml(text)}
+      </p>
     `;
     return pageEl;
   };
 
-  // ─── Portrait - fully html2canvas based for Hebrew support ──
-  const exportPortrait = async (story: Story) => {
-    const illustrationUrls = story.pages
-      .map(p => p.illustration_url)
-      .filter((url): url is string => !!url);
-    const signedUrlMap = await fetchSignedUrls(illustrationUrls, story.id);
-
-    const pdf = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
-    const W = pdf.internal.pageSize.getWidth();
-    const H = pdf.internal.pageSize.getHeight();
-
-    const pageWidthPx = W * 3.78;
-    const pageHeightPx = H * 3.78;
-    const container = document.createElement('div');
-    container.style.cssText = `position:absolute;left:-9999px;top:0;width:${pageWidthPx}px;height:${pageHeightPx}px;font-family:Heebo,Assistant,sans-serif;direction:rtl;`;
-    document.body.appendChild(container);
-
-    // -- Cover page --
-    container.innerHTML = '';
-    const coverEl = await renderCoverPage(story.child_name, story.topic, story.language);
-    container.appendChild(coverEl);
-    await captureHtmlToPage(container, pdf, true);
-
-    // -- Dedication page --
-    container.innerHTML = '';
-    container.appendChild(renderDedicationPage(story.child_name));
-    await captureHtmlToPage(container, pdf, false);
-
-    // -- Story pages (fullscreen) --
-    const vPages = buildVirtualPages(story);
-    for (const vPage of vPages) {
-      let illustrationDataUrl: string | null = null;
-      if (vPage.illustration_url) {
-        try {
-          const resolvedUrl = signedUrlMap[vPage.illustration_url] || vPage.illustration_url;
-          illustrationDataUrl = await loadImageAsDataUrl(resolvedUrl);
-        } catch { /* skip */ }
-      }
-
-      container.innerHTML = '';
-      container.appendChild(renderFullscreenStoryPage(vPage.text, illustrationDataUrl, vPage.page_number, vPages.length));
-      await captureHtmlToPage(container, pdf, false);
-    }
-
-    // -- Closing page --
-    container.innerHTML = '';
-    const closingEl = await renderClosingPage();
-    container.appendChild(closingEl);
-    await captureHtmlToPage(container, pdf, false);
-
-    document.body.removeChild(container);
-    return pdf;
+  // ─── Illustration-only white page ──
+  const renderIllustrationOnlyPage = (illustrationDataUrl: string | null): HTMLDivElement => {
+    const pageEl = document.createElement('div');
+    pageEl.style.cssText = `
+      width: 100%; height: 100%; background:#ffffff; display:flex;
+      align-items:center; justify-content:center; padding:80px;
+      box-sizing:border-box;
+    `;
+    pageEl.innerHTML = illustrationDataUrl
+      ? `<img src="${illustrationDataUrl}" style="max-width:100%;max-height:100%;object-fit:contain;" />`
+      : `<div style="width:100%;height:100%;background:${RAINBOW_CSS};border-radius:24px;"></div>`;
+    return pageEl;
   };
 
-  // ─── Landscape Book - fullscreen illustration per page ───────────────────
-  const exportLandscapeBook = async (story: Story) => {
+  // ─── Square PDF builder ──
+  const exportSquare = async (story: Story) => {
     const illustrationUrls = story.pages
       .map(p => p.illustration_url)
       .filter((url): url is string => !!url);
     const signedUrlMap = await fetchSignedUrls(illustrationUrls, story.id);
 
-    const pdf = new jsPDF({ orientation: 'landscape', unit: 'mm', format: 'a4' });
-    const pageWidth = pdf.internal.pageSize.getWidth();
-    const pageHeight = pdf.internal.pageSize.getHeight();
+    const SIZE = 2480;
+    const pdf = new jsPDF({
+      orientation: 'portrait',
+      unit: 'px',
+      format: [SIZE, SIZE],
+      hotfixes: ['px_scaling'],
+    });
 
+    // Design canvas is 1240px (scale:2 in html2canvas → 2480px output)
+    const designSize = 1240;
     const container = document.createElement('div');
-    container.style.cssText = `position:absolute;left:-9999px;top:0;width:${pageWidth * 3.78}px;height:${pageHeight * 3.78}px;font-family:Heebo,Assistant,sans-serif;direction:rtl;`;
+    container.style.cssText = `position:absolute;left:-9999px;top:0;width:${designSize}px;height:${designSize}px;font-family:Heebo,Assistant,sans-serif;direction:rtl;`;
     document.body.appendChild(container);
 
-    // Cover
+    // -- 1. Cover page (uses existing app cover_url) --
     container.innerHTML = '';
-    const coverEl = await renderCoverPage(story.child_name, story.topic, story.language);
+    const coverEl = await renderCoverPage(story.child_name, story.topic, story.language, story.cover_url);
     container.appendChild(coverEl);
     await captureHtmlToPage(container, pdf, true);
 
-    // Dedication
+    // -- 2. Dedication page --
     container.innerHTML = '';
     container.appendChild(renderDedicationPage(story.child_name));
     await captureHtmlToPage(container, pdf, false);
 
-    // Story pages (fullscreen)
+    // -- 3+. For each story page: text-only page, then illustration-only page --
     const vPages = buildVirtualPages(story);
     for (const vPage of vPages) {
+      // Text page
+      container.innerHTML = '';
+      container.appendChild(renderTextOnlyPage(vPage.text));
+      await captureHtmlToPage(container, pdf, false);
+
+      // Illustration page
       let illustrationDataUrl: string | null = null;
       if (vPage.illustration_url) {
         try {
@@ -341,17 +274,10 @@ export const usePdfExport = () => {
           illustrationDataUrl = await loadImageAsDataUrl(resolvedUrl);
         } catch { /* skip */ }
       }
-
       container.innerHTML = '';
-      container.appendChild(renderFullscreenStoryPage(vPage.text, illustrationDataUrl, vPage.page_number, vPages.length));
+      container.appendChild(renderIllustrationOnlyPage(illustrationDataUrl));
       await captureHtmlToPage(container, pdf, false);
     }
-
-    // Closing page
-    container.innerHTML = '';
-    const closingEl = await renderClosingPage();
-    container.appendChild(closingEl);
-    await captureHtmlToPage(container, pdf, false);
 
     document.body.removeChild(container);
     return pdf;
@@ -364,10 +290,9 @@ export const usePdfExport = () => {
   };
 
   const buildPdf = async (story: Story, layout: PdfLayout = 'portrait') => {
-    if (layout === 'landscape-book') {
-      return await exportLandscapeBook(story);
-    }
-    return await exportPortrait(story);
+    // Layout argument kept for API compatibility — output is always square now
+    void layout;
+    return await exportSquare(story);
   };
 
   const exportToPdf = async (story: Story, layout: PdfLayout = 'portrait') => {
