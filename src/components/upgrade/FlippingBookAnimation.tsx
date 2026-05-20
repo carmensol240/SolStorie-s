@@ -4,6 +4,7 @@ import cover from "@/assets/sol-vet-cover.jpg";
 export const FlippingBookAnimation = () => {
   return (
     <div className="fba-root" dir="rtl" aria-hidden="true">
+      <div className="fba-heading">✨ הפוך את הסיפור לספר מודפס אמיתי!</div>
       <div className="fba-scene">
         <div className="fba-spine">
           <span className="fba-spine-text">סול רופאת החיות · SolStorie&apos;s™</span>
