@@ -332,7 +332,7 @@ const Upgrade = () => {
           {/* Holiday promotion */}
           <div className="mb-4 text-center">
             <p className="text-white text-sm font-bold">
-              🎉 מבצע חג שבועות
+              {"\u200B"}
             </p>
           </div>
 
