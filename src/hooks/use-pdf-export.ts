@@ -38,8 +38,6 @@ interface VirtualPdfPage {
   page_number: number;
 }
 
-export type PdfLayout = 'portrait' | 'landscape-book';
-
 // Rainbow gradient for decorative fallback
 const RAINBOW_CSS = 'linear-gradient(135deg, #FFE4E1 0%, #FFDAB9 15%, #FFFACD 30%, #E0FFE0 45%, #E0F0FF 60%, #E8D8FF 75%, #FFE4F0 90%, #FFE4E1 100%)';
 
@@ -282,26 +280,23 @@ export const usePdfExport = () => {
     return pdf;
   };
 
-  const makePdfFileName = (story: Story, layout: PdfLayout) => {
+  const makePdfFileName = (story: Story) => {
     const safeName = story.child_name.replace(/[^\u0590-\u05FFa-zA-Z0-9]/g, '_').replace(/_+/g, '_');
-    const prefix = layout === 'landscape-book' ? 'SoulStory_Book' : 'SoulStory';
-    return `${prefix}_${safeName}_${story.id.slice(0, 8)}.pdf`;
+    return `SoulStory_${safeName}_${story.id.slice(0, 8)}.pdf`;
   };
 
-  const buildPdf = async (story: Story, layout: PdfLayout = 'portrait') => {
-    // Layout argument kept for API compatibility — output is always square now
-    void layout;
+  const buildPdf = async (story: Story) => {
     return await exportSquare(story);
   };
 
-  const exportToPdf = async (story: Story, layout: PdfLayout = 'portrait') => {
+  const exportToPdf = async (story: Story) => {
     if (isExporting) return;
     setIsExporting(true);
     toast({ title: 'מכין את קובץ ה-PDF...' });
 
     try {
-      const pdf = await buildPdf(story, layout);
-      const fileName = makePdfFileName(story, layout);
+      const pdf = await buildPdf(story);
+      const fileName = makePdfFileName(story);
       const blob = pdf.output('blob');
       const pdfFile = new File([blob], fileName, { type: 'application/pdf' });
 
@@ -331,10 +326,10 @@ export const usePdfExport = () => {
     }
   };
 
-  const generatePdfFile = async (story: Story, layout: PdfLayout = 'portrait'): Promise<File> => {
-    const pdf = await buildPdf(story, layout);
+  const generatePdfFile = async (story: Story): Promise<File> => {
+    const pdf = await buildPdf(story);
     const blob = pdf.output('blob');
-    const fileName = makePdfFileName(story, layout);
+    const fileName = makePdfFileName(story);
     return new File([blob], fileName, { type: 'application/pdf' });
   };
 
