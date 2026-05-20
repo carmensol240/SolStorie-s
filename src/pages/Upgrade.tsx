@@ -20,6 +20,7 @@ import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 import heroImage from "@/assets/cast-group-forest.png";
 import { PRICING_PACKAGES, EDUCATOR_PACKAGES, TOOLKIT_SUBSCRIPTION, EDIT_KIT_PACKAGE, COLORING_KIT_PACKAGE } from "@/config/pricing";
+import FlippingBookAnimation from "@/components/upgrade/FlippingBookAnimation";
 
 
 const Upgrade = () => {
@@ -396,6 +397,7 @@ const Upgrade = () => {
           </div>
 
           {/* Package Cards — Glassmorphism (parents only) */}
+          <FlippingBookAnimation />
           {roleLoaded && userRole === 'parent' && (
           <div className="grid grid-cols-3 gap-3 mb-4 pt-4">
             {PRICING_PACKAGES.map((pkg) => (
