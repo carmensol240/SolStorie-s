@@ -1,22 +1,26 @@
-## המרת אנימציית "ספר מתהפך" לקומפוננטה והטמעה בדף הרכישה
+## החלפת FlippingBookAnimation במוקאפ הספר החדש
 
-### מה ניצור
-1. **`src/components/upgrade/FlippingBookAnimation.tsx`** – קומפוננטת React שמכילה את ה-JSX המומר מה-HTML שהדבקת (stage + book-wrap + spine + book + dots + bottom).
-   - המרה: `class` → `className`, `style="..."` → `style={{...}}`.
-   - State לעמוד הפעיל (`activePage`) + `useEffect` עם `setInterval` שמחליף עמוד כל ~2.5 שניות (מחזורי, עם cleanup).
-   - תמיכה ב-RTL מקומית דרך `dir="rtl"` על ה-wrapper (לא משנה את כיוון האפליקציה).
-   - תמיכה ב-`prefers-reduced-motion` – ביטול ה-floating/pulse/auto-flip.
-2. **`src/components/upgrade/flipping-book.css`** – כל ה-CSS מה-`<style>` עם prefix `fba-` לכל מחלקה כדי למנוע התנגשויות (`.stage` → `.fba-stage`, `.book` → `.fba-book` וכו'). הפונט Rubik יישאר כ-`@import` בראש הקובץ.
-3. **`src/pages/Upgrade.tsx`** – הוספת `import FlippingBookAnimation from "@/components/upgrade/FlippingBookAnimation"` ורינדור `<FlippingBookAnimation />` **בראש הדף, מעל החבילות** (לפני הבלוק שמרנדר את כרטיסי החבילות, אחרי הכותרת/Header אם קיימים).
+ה-HTML שהעלית הוא **מוקאפ של ספר יחיד** (לא אנימציית התהפכות) – שדרה סגולה משמאל, כריכה אחת עם תמונת base64 מוטמעת, overlay כהה בתחתית עם כותרת/subtitle/לוגו, ותגית `✨ SolStorie's™` בפינה. אחליף את הקומפוננטה הקיימת בדיוק לפי העיצוב הזה.
+
+### מה ניצור / נשנה
+
+1. **`src/assets/sol-vet-cover.jpg`** – חילוץ תמונת ה-base64 מתוך ה-HTML ושמירה כקובץ JPG אמיתי (לבאנדל יעיל, במקום base64 ענק בקוד).
+
+2. **`src/components/upgrade/FlippingBookAnimation.tsx`** – החלפה מלאה: רינדור של "scene" יחיד – `spine` (שדרה סגולה אנכית עם הטקסט `סול רופאת החיות · SolStorie's™`) + `book` (תמונת הכריכה ב-`object-cover`) + `overlay` gradient בתחתית עם:
+   - כותרת: **"סול רופאת החיות"** (לבן, מודגש)
+   - subtitle: **"הסיפור של סול"** (זהב `#ffd166`)
+   - לוגו: `SolStorie's™ · soulstory.co.il` (לבן שקוף)
+   - `badge` בפינה עליונה-ימנית: `✨ SolStorie's™`
+   - מתחת לסצנה: caption קטן `📖 ספר ילדים מותאם אישית · A5 · כריכה קשה · צבעוני`
+   
+   ללא state, ללא setInterval, ללא dots – זה מוקאפ סטטי. שמירה על `dir="rtl"`, `aria-hidden="true"`, ותמיכה ב-`prefers-reduced-motion`.
+
+3. **`src/components/upgrade/flipping-book.css`** – החלפת ה-CSS למחלקות שתואמות ל-HTML החדש (`fba-scene`, `fba-spine`, `fba-spine-text`, `fba-book`, `fba-cover-img`, `fba-overlay`, `fba-title`, `fba-subtitle`, `fba-logo-text`, `fba-badge`, `fba-caption`) עם הצללה רכה (`drop-shadow`), `writing-mode: vertical-rl` לטקסט בשדרה, ו-gradient ל-overlay זהה למקור. מידות מותאמות (רוחב ~316px, גובה 400px) כך שיתאים גם למובייל.
 
 ### מה לא נשנה
-- הלוגיקה של החבילות (הפרדת הורה/איש חינוך), מחירים, קופונים, PayPal, או כל לוגיקה עסקית.
-- שום קובץ אחר מלבד השלושה לעיל.
 
-### שאלה אחת לפני יישום
-ב-HTML שהדבקת חסרים תגי `<img>` בפועל וגם פריטי `.page` ו-`.dot` (יש רק את הסקלטון/CSS). יש שתי אפשרויות:
+- `src/pages/Upgrade.tsx` – הקומפוננטה כבר משובצת שם, אין צורך לגעת.
+- שום קובץ אחר. אין שינויי לוגיקה עסקית / תמחור / PayPal / מסד נתונים.
 
-**א.** תשלח את ה-HTML המלא הכולל את ה-`<img src="...">` של עמודי הספר ואת רשימת ה-`<div class="page">`/`<div class="dot">`.
-**ב.** אשתמש ב-3 תמונות placeholder קיימות מהפרויקט (למשל מתוך `demo-story` או עטיפות לדוגמה) עד שתספק תמונות סופיות, ואז תוכל להחליף בקלות.
-
-איזה מהן? אם (א) – הדבק את הגרסה המלאה. אם (ב) – אתחיל מיד עם placeholders.
+### הערה
+התמונה הוסיפה ב-base64 ל-HTML מתארת את העטיפה של "סול רופאת החיות" – נשתמש בה כפי שהיא. אם תרצה להחליף בעתיד לכריכות אחרות / מתחלפות (קרוסלה אמיתית) – נעשה את זה בצעד נפרד.
