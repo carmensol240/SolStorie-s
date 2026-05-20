@@ -1,6 +1,6 @@
 import { useState, useEffect, useLayoutEffect, useRef, useCallback, useMemo } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { Home, BookOpen, Palette, Wand2, Loader2, ImageOff, Star, Send, ChevronRight, ChevronLeft, ArrowRight, Link2 } from "lucide-react";
+import { Home, BookOpen, Palette, Wand2, Loader2, ImageOff, Star, Send, ChevronRight, ChevronLeft, ArrowRight, Link2, Printer } from "lucide-react";
 import SeriesNavBar, { SeriesPart } from "@/components/story/SeriesNavBar";
 import { MissingIllustrationPrompt } from "@/components/story/MissingIllustrationPrompt";
 import { Button } from "@/components/ui/button";
@@ -218,6 +218,8 @@ const [currentPage, setCurrentPage] = useState(0);
   const [isCreatingDigitalBook, setIsCreatingDigitalBook] = useState(false);
   const [showGenderSwapDialog, setShowGenderSwapDialog] = useState(false);
   const [showEditConfirmDialog, setShowEditConfirmDialog] = useState(false);
+  const [showBuyToPrintDialog, setShowBuyToPrintDialog] = useState(false);
+  const [hasPurchasedPackage, setHasPurchasedPackage] = useState(false);
   // isReadAloudDismissed removed — read-aloud only in Accessibility Menu
   // Portrait overlay removed - using vertical layout now
   
@@ -339,6 +341,22 @@ const [currentPage, setCurrentPage] = useState(0);
   const pageRecording = usePageRecording(resolvedId ?? undefined);
 
   // No orientation lock needed - vertical portrait layout
+
+  // Check if user has purchased a story package (controls "print to book" button behavior)
+  useEffect(() => {
+    if (!user?.id) { setHasPurchasedPackage(false); return; }
+    let cancelled = false;
+    (async () => {
+      const { data, error } = await supabase
+        .from('purchases')
+        .select('id')
+        .eq('user_id', user.id)
+        .in('status', ['completed', 'test_completed'])
+        .limit(1);
+      if (!cancelled && !error) setHasPurchasedPackage((data?.length ?? 0) > 0);
+    })();
+    return () => { cancelled = true; };
+  }, [user?.id]);
 
   // Set age-appropriate font size on story load
   useEffect(() => {
@@ -1460,6 +1478,19 @@ const [currentPage, setCurrentPage] = useState(0);
                       <Palette className="w-5 h-5" />
                       לדפי הצביעה
                     </Button>
+                    <Button
+                      onClick={() => {
+                        if (hasPurchasedPackage && story) {
+                          exportToPdf(story);
+                        } else {
+                          setShowBuyToPrintDialog(true);
+                        }
+                      }}
+                      className="bg-gradient-to-r from-indigo-500 to-purple-600 hover:from-indigo-600 hover:to-purple-700 text-white font-bold px-8 py-3 rounded-full shadow-xl text-base gap-2 mt-2"
+                    >
+                      <Printer className="w-5 h-5" />
+                      🖨️ הדפס את הסיפור לספר
+                    </Button>
                   </div>
                 </div>
               </div>
@@ -1888,6 +1919,30 @@ const [currentPage, setCurrentPage] = useState(0);
         childName={story.child_name}
         isLoading={isCreatingDigitalBook}
       />
+
+      {/* Buy package to print PDF dialog */}
+      <AlertDialog open={showBuyToPrintDialog} onOpenChange={setShowBuyToPrintDialog}>
+        <AlertDialogContent dir="rtl" className="max-w-md">
+          <AlertDialogHeader>
+            <AlertDialogTitle className="text-right">✨ הפוך את הסיפור לספר אמיתי!</AlertDialogTitle>
+            <AlertDialogDescription className="text-right leading-relaxed">
+              הסיפור של {story?.child_name} מוכן ומחכה להיהפך לספר מודפס שישמח אותו שנים קדימה. כדי להוריד את הסיפור כקובץ PDF מוכן להדפסה, בחרי חבילת סיפורים שתתאים לך.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter className="gap-2 sm:gap-0">
+            <AlertDialogCancel>אולי אחר כך</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={() => {
+                setShowBuyToPrintDialog(false);
+                navigate('/upgrade');
+              }}
+              className="bg-gradient-to-r from-purple-600 to-pink-500 hover:from-purple-700 hover:to-pink-600"
+            >
+              🎁 לרכישת חבילה
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
 
       {/* Gender Swap Dialog */}
       {storyId && story?.child_gender && (
