@@ -36,7 +36,6 @@ const Upgrade = () => {
   const [selectedPackage, setSelectedPackage] = useState<string>("popular");
   const [showPayPal, setShowPayPal] = useState(false);
   const [userRole, setUserRole] = useState<string>("parent");
-  const [showEducatorPayPal, setShowEducatorPayPal] = useState(false);
   const [showEditKitPayPal, setShowEditKitPayPal] = useState(false);
   const [showColoringKitPayPal, setShowColoringKitPayPal] = useState(false);
   const [showToolkitPayPal, setShowToolkitPayPal] = useState(false);
@@ -45,7 +44,7 @@ const Upgrade = () => {
   const [showFailed, setShowFailed] = useState(false);
   const [purchasedCredits, setPurchasedCredits] = useState(0);
   const [discountPercent, setDiscountPercent] = useState(0);
-  const [failedPurchaseType, setFailedPurchaseType] = useState<'stories' | 'coloring' | 'edit' | 'educator' | 'toolkit' | null>(null);
+  const [failedPurchaseType, setFailedPurchaseType] = useState<'stories' | 'coloring' | 'edit' | 'toolkit' | null>(null);
   const [appliedCouponCode, setAppliedCouponCode] = useState<string | null>(null);
   const [userDetailsValid, setUserDetailsValid] = useState(true);
   const userDetailsRef = useRef<UserDetailsRef>(null);
@@ -226,7 +225,6 @@ const Upgrade = () => {
     switch (failedPurchaseType) {
       case 'coloring': setShowColoringKitPayPal(true); break;
       case 'edit': setShowEditKitPayPal(true); break;
-      case 'educator': setShowEducatorPayPal(true); break;
       case 'toolkit': setShowToolkitPayPal(true); break;
       default: setShowPayPal(true); break;
     }
