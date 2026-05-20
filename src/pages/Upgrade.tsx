@@ -36,6 +36,7 @@ const Upgrade = () => {
   const [selectedPackage, setSelectedPackage] = useState<string>("popular");
   const [showPayPal, setShowPayPal] = useState(false);
   const [userRole, setUserRole] = useState<string>("parent");
+  const [roleLoaded, setRoleLoaded] = useState(false);
   const [showEditKitPayPal, setShowEditKitPayPal] = useState(false);
   const [showColoringKitPayPal, setShowColoringKitPayPal] = useState(false);
   const [showToolkitPayPal, setShowToolkitPayPal] = useState(false);
@@ -77,16 +78,24 @@ const Upgrade = () => {
   // Fetch user role
   useEffect(() => {
     const fetchRole = async () => {
-      if (!user) return;
+      if (!user) { setRoleLoaded(true); return; }
       const { data } = await supabase
         .from('profiles')
         .select('user_role')
         .eq('id', user.id)
         .maybeSingle();
       if (data?.user_role) setUserRole(data.user_role);
+      setRoleLoaded(true);
     };
     fetchRole();
   }, [user]);
+
+  // Default selected package to educator_popular for educators
+  useEffect(() => {
+    if (roleLoaded && userRole === 'educator' && selectedPackage === 'popular') {
+      setSelectedPackage('educator_popular');
+    }
+  }, [roleLoaded, userRole]);
 
   const isTestUser = user?.email?.toLowerCase() === WHITELISTED_TEST_EMAIL.toLowerCase();
 
@@ -386,7 +395,8 @@ const Upgrade = () => {
             )}
           </div>
 
-          {/* Package Cards — Glassmorphism */}
+          {/* Package Cards — Glassmorphism (parents only) */}
+          {roleLoaded && userRole !== 'educator' && (
           <div className="grid grid-cols-3 gap-3 mb-4 pt-4">
             {PRICING_PACKAGES.map((pkg) => (
               <button
@@ -436,6 +446,7 @@ const Upgrade = () => {
               </button>
             ))}
           </div>
+          )}
 
           <p className="text-center mb-4 font-bold" style={{ fontSize: '17px', color: '#c084fc' }}>
             תשלום חד פעמי · הקרדיטים שלך לא פגים · אין מינוי
