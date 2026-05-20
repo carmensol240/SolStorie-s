@@ -1478,6 +1478,19 @@ const [currentPage, setCurrentPage] = useState(0);
                       <Palette className="w-5 h-5" />
                       לדפי הצביעה
                     </Button>
+                    <Button
+                      onClick={() => {
+                        if (hasPurchasedPackage && story) {
+                          exportToPdf(story);
+                        } else {
+                          setShowBuyToPrintDialog(true);
+                        }
+                      }}
+                      className="bg-gradient-to-r from-indigo-500 to-purple-600 hover:from-indigo-600 hover:to-purple-700 text-white font-bold px-8 py-3 rounded-full shadow-xl text-base gap-2 mt-2"
+                    >
+                      <Printer className="w-5 h-5" />
+                      🖨️ הדפס את הסיפור לספר
+                    </Button>
                   </div>
                 </div>
               </div>
