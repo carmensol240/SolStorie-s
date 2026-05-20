@@ -50,7 +50,6 @@ import { useIsMobile } from "@/hooks/use-mobile";
 // useSignedUrls removed - story-illustrations bucket is public
 import { BookFrame, BookPage, BookHeader, NavigationArrows, MagicalBookFrame } from "@/components/story/book-frame";
 import { TheaterFrame } from "@/components/story/theater-frame";
-import { FileDown } from "lucide-react";
 import PdfFeaturePopup from "@/components/story/PdfFeaturePopup";
 import InstallAppPrompt from "@/components/story/InstallAppPrompt";
 
@@ -217,7 +216,6 @@ const [currentPage, setCurrentPage] = useState(0);
   
   const [showDedicationDialog, setShowDedicationDialog] = useState(false);
   const [isCreatingDigitalBook, setIsCreatingDigitalBook] = useState(false);
-  const [showPdfFormatDialog, setShowPdfFormatDialog] = useState(false);
   const [showGenderSwapDialog, setShowGenderSwapDialog] = useState(false);
   const [showEditConfirmDialog, setShowEditConfirmDialog] = useState(false);
   // isReadAloudDismissed removed — read-aloud only in Accessibility Menu
@@ -849,7 +847,7 @@ const [currentPage, setCurrentPage] = useState(0);
 
     try {
       toast({ title: 'מכין PDF לשיתוף...' });
-      const pdfFile = await generatePdfFile(story, 'portrait');
+      const pdfFile = await generatePdfFile(story);
 
       if (navigator.share && navigator.canShare?.({ files: [pdfFile] })) {
         await navigator.share({
@@ -1356,7 +1354,7 @@ const [currentPage, setCurrentPage] = useState(0);
       <BookHeader
         onBack={() => navigate("/library")}
         onShare={handleShare}
-        onDownload={() => setShowPdfFormatDialog(true)}
+            onDownload={() => story && exportToPdf(story)}
         onShareWhatsApp={handleShareWhatsApp}
         onToggleFontSize={() => setFontSizeIndex((fontSizeIndex + 1) % FONT_SIZES.length)}
         onEdit={showPageActions ? handleEditClick : undefined}
@@ -1890,48 +1888,6 @@ const [currentPage, setCurrentPage] = useState(0);
         childName={story.child_name}
         isLoading={isCreatingDigitalBook}
       />
-
-      {/* PDF Format Selection Dialog */}
-      <AlertDialog open={showPdfFormatDialog} onOpenChange={setShowPdfFormatDialog}>
-        <AlertDialogContent className="max-w-sm">
-          <AlertDialogHeader>
-            <AlertDialogTitle>בחר פורמט PDF</AlertDialogTitle>
-            <AlertDialogDescription className="text-right">
-              בחר את סגנון ה-PDF שברצונך להוריד
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <div className="flex flex-col gap-3 py-4">
-            <Button 
-              variant="outline" 
-              className="h-20 flex flex-col gap-1 border-2 hover:border-purple-400 hover:bg-purple-50"
-              onClick={() => {
-                setShowPdfFormatDialog(false);
-                story && exportToPdf(story, 'portrait');
-              }}
-            >
-              <FileDown className="w-6 h-6" />
-              <span className="font-bold">עמוד רגיל (לאורך)</span>
-              <span className="text-xs text-muted-foreground">תמונה וטקסט באותו עמוד</span>
-            </Button>
-            
-            <Button 
-              variant="outline" 
-              className="h-20 flex flex-col gap-1 border-2 hover:border-purple-400 hover:bg-purple-50"
-              onClick={() => {
-                setShowPdfFormatDialog(false);
-                story && exportToPdf(story, 'landscape-book');
-              }}
-            >
-              <BookOpen className="w-6 h-6" />
-              <span className="font-bold">ספר פתוח (לרוחב)</span>
-              <span className="text-xs text-muted-foreground">תמונה בצד אחד, טקסט בצד השני</span>
-            </Button>
-          </div>
-          <AlertDialogFooter>
-            <AlertDialogCancel>ביטול</AlertDialogCancel>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
 
       {/* Gender Swap Dialog */}
       {storyId && story?.child_gender && (
