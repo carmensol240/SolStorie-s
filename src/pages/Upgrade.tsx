@@ -91,9 +91,11 @@ const Upgrade = () => {
 
   const isTestUser = user?.email?.toLowerCase() === WHITELISTED_TEST_EMAIL.toLowerCase();
 
+  const ALL_PURCHASE_PACKAGES = [...PRICING_PACKAGES, ...EDUCATOR_PACKAGES];
+
   const handleSelectPackage = (packageId: string) => {
     setSelectedPackage(packageId);
-    const pkg = PRICING_PACKAGES.find(p => p.id === packageId);
+    const pkg = ALL_PURCHASE_PACKAGES.find(p => p.id === packageId);
     trackEvent({ 
       eventType: 'feature_used', 
       metadata: { feature: 'package_selected', package: packageId, stories: pkg?.stories } 
@@ -102,7 +104,7 @@ const Upgrade = () => {
 
   const handleTestPurchase = async () => {
     if (!isTestUser || !user) return;
-    const pkg = PRICING_PACKAGES.find(p => p.id === selectedPackage);
+    const pkg = ALL_PURCHASE_PACKAGES.find(p => p.id === selectedPackage);
     if (!pkg) return;
     try {
       const { error: purchaseError } = await supabase
@@ -168,7 +170,7 @@ const Upgrade = () => {
   };
 
   const handlePayPalSuccess = async (orderId: string) => {
-    const pkg = PRICING_PACKAGES.find(p => p.id === selectedPackage);
+    const pkg = ALL_PURCHASE_PACKAGES.find(p => p.id === selectedPackage);
     if (!pkg || !user) {
       console.error('[PURCHASE] user or pkg is null at callback time', { user: !!user, pkg: !!pkg });
       setShowFailed(true);
@@ -215,7 +217,7 @@ const Upgrade = () => {
     setShowPayPal(false);
     setShowFailed(true);
     setFailedPurchaseType('stories');
-    const pkg = PRICING_PACKAGES.find(p => p.id === selectedPackage);
+    const pkg = ALL_PURCHASE_PACKAGES.find(p => p.id === selectedPackage);
     trackEvent({ eventType: 'feature_used', metadata: { feature: 'purchase_failed', package: pkg?.id, error: error?.message || 'paypal_error' } });
   };
 
@@ -259,7 +261,7 @@ const Upgrade = () => {
     setFailedPurchaseType('toolkit');
   };
 
-  const selectedPkg = PRICING_PACKAGES.find(p => p.id === selectedPackage);
+  const selectedPkg = ALL_PURCHASE_PACKAGES.find(p => p.id === selectedPackage);
   const discountedPrice = selectedPkg ? Math.round(selectedPkg.price * (1 - discountPercent / 100)) : 0;
 
   return (
