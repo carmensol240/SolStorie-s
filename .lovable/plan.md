@@ -1,29 +1,37 @@
-## Two changes
+## תיקון פריסת יתרונות במסך הספרייה (Guest) בנייד
 
-### 1) Closing page button → preview modal (StoryViewer.tsx)
+### רקע
+במסך הספרייה למשתמשים לא רשומים (guest mode) יש 5 יתרונות (feature pills) שהוצגו לאחר עדכון אחרון. עם מעבר מ-3 ל-5 יתרונות, הפריסה בנייד צריכה התאמה כדי להישאר קריאה ומסודרת גם במסכים קטנים (320px ומעלה).
 
-**Button (line ~1481-1493):**
-- Change label to: `👁️ ראו איך הספר של {story.child_name} ייראה מודפס!` (replace printer icon with Eye icon).
-- On click: open a new local modal (`showPrintPreviewModal` state) instead of calling `exportToPdf` / `setShowBuyToPrintDialog` directly.
+### בעיות שזוהו
+1. **תמונת Hero גדולה מדי** — `w-64 h-64` (256px) תופסת יותר מדי שטח אנכי בנייד קטן
+2. **5 pills במקום 3** — מצריכים יותר גובה, ה-CTA יורד מתחת לקצה המסך
+3. **padding ומרווחים קבועים** — `px-4 py-3` ו-`gap-3` עלולים להיות מוגזמים במסכים צרים
+4. **טקסט ארוך** — חלק מהיתרונות מכילים משפטים ארוכים שעלולים להתעטף בצורה לא אחידה במסך צר
 
-**New modal `PrintBookPreviewModal`** (new component `src/components/story/PrintBookPreviewModal.tsx`):
-- Reuses the existing flipping-book visual language from `FlippingBookAnimation` (same CSS `flipping-book.css`), but parameterized:
-  - Cover image: `story.cover_url`
-  - Child name overlay on cover (already supported via the dynamic title pattern just added in `FlippingBookAnimation`).
-  - A simple flip animation cycling through 3-4 of the story's first illustrations (`story.pages[*].illustration_url`) shown on the right page.
-- Bottom of modal:
-  - Text: `קובץ PDF מוכן להדפסה – הדפיסו בבית או שלחו לבית דפוס`
-  - Primary button: `🖨️ להורדת קובץ ה-PDF המלא`
-    - If `hasPurchasedPackage` → call `exportToPdf(story)` and close modal.
-    - Else → close modal and `setShowBuyToPrintDialog(true)` (existing purchase popup, unchanged).
+### שינויים מתוכננים
 
-**Out of scope:** existing `BuyToPrintDialog`, PDF generation logic, coloring buttons, feedback box — untouched.
+#### 1. התאמת תמונת ה-Hero
+- הקטנה ל-`w-52 h-52` (208px) במסכים קטנים (`max-w-xs` ומטה)
+- שמירה על `w-64 h-64` במסכים רחבים יותר (`sm` ומעלה)
 
-### 2) Confirm existing plan
-- Approve the already-implemented change in `FlippingBookAnimation.tsx` showing the active child's name from the `children` table (fallback `הסיפור שלך`). No further code changes needed there.
+#### 2. התאמת ה-feature pills
+- הקטנת padding במסכים קטנים: `px-3 py-2.5` במקום `px-4 py-3`
+- הקטנת gap בין pills: `gap-2` במקום `gap-3`
+- הקטנת emoji: `text-xl` במקום `text-2xl`
+- הקטנת טקסט: `text-xs` במקום `text-sm` במסכים קטנים, עם `leading-relaxed` לקריאות טובה יותר
+- הוספת `sm:text-sm` כדי לחזור לגודל רגיל במסכים רחבים יותר
 
-## Files touched
-- `src/pages/StoryViewer.tsx` — change button label/icon + wire new modal state.
-- `src/components/story/PrintBookPreviewModal.tsx` — new modal component (uses existing `flipping-book.css`).
+#### 3. התאמת מרווחים כלליים
+- הקטנת `mb-8` ל-`mb-6` ו-`pt-6` ל-`pt-4` במסכים קטנים
+- שמירה על הערכים המקוריים ב-`sm` ומעלה
 
-Nothing else changes.
+### קובץ לשינוי
+- `src/pages/Library.tsx` — שורות 572-620 (אזור ה-guest mode)
+
+### מה לא ישתנה
+- לוגיקת ההרשאות והAuth
+- מבנה ה-pills והתוכן שלהם
+- צבעים, רקע, אנימציות
+- כפתור ה-CTA ופונקציונליותו
+- כל שאר מסכי האפליקציה
