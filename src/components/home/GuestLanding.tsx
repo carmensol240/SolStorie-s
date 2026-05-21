@@ -88,7 +88,7 @@ const GuestLanding = ({ user, isLoggedIn }: GuestLandingProps) => {
   };
 
   // Determine button text based on login state
-  const buttonText = isLoggedIn ? "להתחלה לחצו כאן" : "בואו נתחיל! סיפור ראשון חינם ✨";
+  const buttonText = isLoggedIn ? "להתחלה לחצו כאן" : "בואו נתחיל! סיפור לדוגמא ✨";
 
   return (
     <div className="flex-1 flex flex-col animate-fade-in relative">

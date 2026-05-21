@@ -3,7 +3,7 @@ import { ArrowRight, Wand2, MessageCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import demoVideo from "@/assets/demo-story-video.mp4";
 
-const WHATSAPP_TEXT = "ראו איך יצרתי סיפור מותאם אישית לילד שלי עם SolStorie's ✨ סיפור ראשון חינם! soulstory.co.il";
+const WHATSAPP_TEXT = "ראו איך יצרתי סיפור מותאם אישית לילד שלי עם SolStorie's ✨ סיפור לדוגמא! soulstory.co.il";
 
 const DemoStory = () => {
   const navigate = useNavigate();

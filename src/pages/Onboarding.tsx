@@ -97,7 +97,7 @@ const Onboarding = () => {
 
       toast({
         title: "ברוכים הבאים ל-SolStorie's™! 🎉",
-        description: "מחכה לך סיפור ראשון במתנה מאיתנו כדי להתחיל בקסם ✨",
+        description: "מחכה לך סיפור לדוגמא מאיתנו כדי שתתרשמו מהקסם ✨",
       });
       // Clear any stale returnTo so it doesn't leak into future navigations
       try { localStorage.removeItem('returnTo'); } catch {}

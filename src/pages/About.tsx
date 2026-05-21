@@ -239,7 +239,7 @@ const About = () => {
             boxShadow: termsAccepted ? '0 0 40px rgba(168, 85, 247, 0.4), 0 0 80px rgba(236, 72, 153, 0.2)' : 'none'
           }}
         >
-          בואו נתחיל! סיפור ראשון חינם ✨
+          בואו נתחיל! סיפור לדוגמא ✨
         </button>
       </div>
 

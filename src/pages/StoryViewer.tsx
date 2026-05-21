@@ -53,6 +53,7 @@ import { TheaterFrame } from "@/components/story/theater-frame";
 import PdfFeaturePopup from "@/components/story/PdfFeaturePopup";
 import PrintBookPreviewModal from "@/components/story/PrintBookPreviewModal";
 import InstallAppPrompt from "@/components/story/InstallAppPrompt";
+import DemoLockModal from "@/components/story/DemoLockModal";
 
 import "./StoryViewer.css";
 import { translateTopic } from "@/lib/topic-translations";
@@ -222,6 +223,8 @@ const [currentPage, setCurrentPage] = useState(0);
   const [showBuyToPrintDialog, setShowBuyToPrintDialog] = useState(false);
   const [showPrintPreviewModal, setShowPrintPreviewModal] = useState(false);
   const [hasPurchasedPackage, setHasPurchasedPackage] = useState(false);
+  const [isSubscriberUser, setIsSubscriberUser] = useState(false);
+  const [demoLockOpen, setDemoLockOpen] = useState(false);
   // isReadAloudDismissed removed — read-aloud only in Accessibility Menu
   // Portrait overlay removed - using vertical layout now
   
@@ -359,6 +362,34 @@ const [currentPage, setCurrentPage] = useState(0);
     })();
     return () => { cancelled = true; };
   }, [user?.id]);
+
+  // Check subscriber flag (subscribers are not demo-locked even without purchase rows)
+  useEffect(() => {
+    if (!user?.id) { setIsSubscriberUser(false); return; }
+    let cancelled = false;
+    (async () => {
+      const { data } = await supabase
+        .from('profiles')
+        .select('is_subscriber')
+        .eq('id', user.id)
+        .maybeSingle();
+      if (!cancelled) setIsSubscriberUser(!!data?.is_subscriber);
+    })();
+    return () => { cancelled = true; };
+  }, [user?.id]);
+
+  // Demo user = logged in, no completed purchase, not subscriber.
+  // For demo users, save/share/download/coloring/recording actions are blocked.
+  const isDemoUser = !!user && !hasPurchasedPackage && !isSubscriberUser;
+  const guardDemo = useCallback((fn: () => void) => {
+    return () => {
+      if (isDemoUser) {
+        setDemoLockOpen(true);
+        return;
+      }
+      fn();
+    };
+  }, [isDemoUser]);
 
   // Set age-appropriate font size on story load
   useEffect(() => {
@@ -1374,8 +1405,8 @@ const [currentPage, setCurrentPage] = useState(0);
       <BookHeader
         onBack={() => navigate("/library")}
         onShare={handleShare}
-            onDownload={() => story && exportToPdf(story)}
-        onShareWhatsApp={handleShareWhatsApp}
+            onDownload={guardDemo(() => story && exportToPdf(story))}
+        onShareWhatsApp={guardDemo(handleShareWhatsApp)}
         onToggleFontSize={() => setFontSizeIndex((fontSizeIndex + 1) % FONT_SIZES.length)}
         onEdit={showPageActions ? handleEditClick : undefined}
         onAddNikud={showPageActions ? handleAddNikud : undefined}
@@ -1388,12 +1419,12 @@ const [currentPage, setCurrentPage] = useState(0);
         showPageActions={showPageActions}
         isMusicPlaying={bgMusic.isPlaying}
         onToggleMusic={bgMusic.toggle}
-        onSaveOffline={handleSaveOffline}
+        onSaveOffline={guardDemo(handleSaveOffline)}
         isSavedOffline={resolvedId ? fullOffline.savedStoryIds.has(resolvedId) : false}
         isDownloadingOffline={fullOffline.downloadingId === resolvedId}
         onRegenerateCover={handleRegenerateCover}
         isRegeneratingCover={isRegeneratingCover}
-        onColoring={() => preloadStoryCachedColoring(null)}
+        onColoring={guardDemo(() => preloadStoryCachedColoring(null))}
       />
 
       {/* Series navigation bar removed */}
@@ -1663,7 +1694,7 @@ const [currentPage, setCurrentPage] = useState(0);
                         hasPendingBlob={pageRecording.pendingBlob?.page === currentVirtual.dbPage.page_number}
                         hasSaved={pageRecording.hasSavedRecording(currentVirtual.dbPage.page_number)}
                         isPlaying={pageRecording.playingPage === currentVirtual.dbPage.page_number}
-                        onStartRecording={() => pageRecording.startRecording(currentVirtual.dbPage.page_number)}
+                        onStartRecording={guardDemo(() => pageRecording.startRecording(currentVirtual.dbPage.page_number))}
                         onStopRecording={pageRecording.stopRecording}
                         onSave={pageRecording.saveRecording}
                         onDiscard={pageRecording.discardPending}
@@ -1762,7 +1793,7 @@ const [currentPage, setCurrentPage] = useState(0);
                         hasPendingBlob={pageRecording.pendingBlob?.page === currentVirtual.dbPage.page_number}
                         hasSaved={pageRecording.hasSavedRecording(currentVirtual.dbPage.page_number)}
                         isPlaying={pageRecording.playingPage === currentVirtual.dbPage.page_number}
-                        onStartRecording={() => pageRecording.startRecording(currentVirtual.dbPage.page_number)}
+                        onStartRecording={guardDemo(() => pageRecording.startRecording(currentVirtual.dbPage.page_number))}
                         onStopRecording={pageRecording.stopRecording}
                         onSave={pageRecording.saveRecording}
                         onDiscard={pageRecording.discardPending}
@@ -1791,7 +1822,7 @@ const [currentPage, setCurrentPage] = useState(0);
                             hasPendingBlob={pageRecording.pendingBlob?.page === currentVirtual.dbPage.page_number}
                             hasSaved={pageRecording.hasSavedRecording(currentVirtual.dbPage.page_number)}
                             isPlaying={pageRecording.playingPage === currentVirtual.dbPage.page_number}
-                            onStartRecording={() => pageRecording.startRecording(currentVirtual.dbPage.page_number)}
+                            onStartRecording={guardDemo(() => pageRecording.startRecording(currentVirtual.dbPage.page_number))}
                             onStopRecording={pageRecording.stopRecording}
                             onSave={pageRecording.saveRecording}
                             onDiscard={pageRecording.discardPending}
@@ -1961,6 +1992,9 @@ const [currentPage, setCurrentPage] = useState(0);
           }}
         />
       )}
+
+      {/* Demo lock modal — shown when demo users try to save/share/download/color/record */}
+      <DemoLockModal open={demoLockOpen} onOpenChange={setDemoLockOpen} />
 
       {/* Gender Swap Dialog */}
       {storyId && story?.child_gender && (
