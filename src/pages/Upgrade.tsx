@@ -331,6 +331,9 @@ const Upgrade = () => {
                 <div className="text-[10px] text-white/70 font-semibold mt-1">
                   ✨ 1 קרדיט = סיפור מלא
                 </div>
+                <div className="text-[9px] text-white/60 font-semibold mt-0.5 leading-tight">
+                  📱 דיגיטלי + 🖨️ PDF להדפסה כלולים
+                </div>
 
                 {pkg.freeEdits > 0 && (
                 <div className="bg-white/10 backdrop-blur-sm border border-white/15 rounded-lg px-2 py-1 mt-2">
@@ -415,6 +418,9 @@ const Upgrade = () => {
                     </div>
                     <div className="text-[10px] text-white/70 font-semibold mt-1">
                       ✨ 1 קרדיט = סיפור מלא
+                    </div>
+                    <div className="text-[9px] text-white/60 font-semibold mt-0.5 leading-tight">
+                      📱 דיגיטלי + 🖨️ PDF להדפסה כלולים
                     </div>
                     {pkg.freeEdits > 0 && (
                       <div className="bg-white/10 backdrop-blur-sm border border-white/15 rounded-lg px-2 py-1 mt-2">
