@@ -225,6 +225,7 @@ const [currentPage, setCurrentPage] = useState(0);
   const [hasPurchasedPackage, setHasPurchasedPackage] = useState(false);
   const [isSubscriberUser, setIsSubscriberUser] = useState(false);
   const [demoLockOpen, setDemoLockOpen] = useState(false);
+  const [demoPaywallOpen, setDemoPaywallOpen] = useState(false);
   // isReadAloudDismissed removed — read-aloud only in Accessibility Menu
   // Portrait overlay removed - using vertical layout now
   
@@ -1349,6 +1350,16 @@ const [currentPage, setCurrentPage] = useState(0);
   const isContentPage = currentPage >= 0 && currentPage < totalVirtualPages;
 
   const currentVirtual = isContentPage ? virtualPages[currentPage] : null;
+
+  // Demo paywall: limit demo users to first 3 DB pages
+  const DEMO_PAGE_LIMIT = 3;
+  const isLockedVirtualPage = (index: number) => {
+    if (!isDemoUser) return false;
+    const vp = virtualPages[index];
+    if (!vp) return false;
+    return (vp.dbPage?.page_number ?? 0) > DEMO_PAGE_LIMIT;
+  };
+  const isCurrentPageLocked = isContentPage && isLockedVirtualPage(currentPage);
   // For editing/nikud, get the underlying DB page
   const page = currentVirtual ? currentVirtual.dbPage : null;
   const currentFontSize = FONT_SIZES[fontSizeIndex];
@@ -1374,6 +1385,12 @@ const [currentPage, setCurrentPage] = useState(0);
     
     if (direction === 'next' && currentPage >= maxPage) return;
     if (direction === 'prev' && currentPage <= 0) return;
+
+    // Demo paywall: block forward navigation past page 3
+    if (direction === 'next' && isLockedVirtualPage(currentPage + 1)) {
+      setDemoPaywallOpen(true);
+      return;
+    }
     
     setSlideDirection(direction);
     setIsFlipping(true);
@@ -1995,6 +2012,12 @@ const [currentPage, setCurrentPage] = useState(0);
 
       {/* Demo lock modal — shown when demo users try to save/share/download/color/record */}
       <DemoLockModal open={demoLockOpen} onOpenChange={setDemoLockOpen} />
+      <DemoLockModal
+        open={demoPaywallOpen}
+        onOpenChange={setDemoPaywallOpen}
+        title="✨ רוצים לקרוא את הסיפור המלא?"
+        description="רכשו חבילת סיפורים"
+      />
 
       {/* Gender Swap Dialog */}
       {storyId && story?.child_gender && (
