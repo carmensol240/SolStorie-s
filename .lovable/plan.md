@@ -1,29 +1,29 @@
+## Two changes
 
-# Show active child's name in the purchase-page book mockup
+### 1) Closing page button → preview modal (StoryViewer.tsx)
 
-Scope: `src/components/upgrade/FlippingBookAnimation.tsx` only.
+**Button (line ~1481-1493):**
+- Change label to: `👁️ ראו איך הספר של {story.child_name} ייראה מודפס!` (replace printer icon with Eye icon).
+- On click: open a new local modal (`showPrintPreviewModal` state) instead of calling `exportToPdf` / `setShowBuyToPrintDialog` directly.
 
-## Behavior
-- Fetch the current user's active child (`children` table, `is_active = true`) and use that `name` in the mockup title.
-- Fallback when no user / no active child: `"הסיפור שלך"`.
+**New modal `PrintBookPreviewModal`** (new component `src/components/story/PrintBookPreviewModal.tsx`):
+- Reuses the existing flipping-book visual language from `FlippingBookAnimation` (same CSS `flipping-book.css`), but parameterized:
+  - Cover image: `story.cover_url`
+  - Child name overlay on cover (already supported via the dynamic title pattern just added in `FlippingBookAnimation`).
+  - A simple flip animation cycling through 3-4 of the story's first illustrations (`story.pages[*].illustration_url`) shown on the right page.
+- Bottom of modal:
+  - Text: `קובץ PDF מוכן להדפסה – הדפיסו בבית או שלחו לבית דפוס`
+  - Primary button: `🖨️ להורדת קובץ ה-PDF המלא`
+    - If `hasPurchasedPackage` → call `exportToPdf(story)` and close modal.
+    - Else → close modal and `setShowBuyToPrintDialog(true)` (existing purchase popup, unchanged).
 
-## Changes in `FlippingBookAnimation.tsx`
-1. Make the component dynamic:
-   - Import `useAuth` and `supabase`.
-   - Add `useState<string>` for `childName`, default `"הסיפור שלך"`.
-   - `useEffect` on `user?.id`: query
-     ```ts
-     supabase.from("children")
-       .select("name")
-       .eq("user_id", user.id)
-       .eq("is_active", true)
-       .maybeSingle()
-     ```
-     and set `childName` to `data?.name` when present.
-2. Replace the two hardcoded `"סול רופאת החיות"` strings (spine and front-cover title) with `childName`.
-3. Update the subtitle `"💛 הסיפור של סול"` to `` `💛 הסיפור של ${childName}` ``.
-4. Keep all visuals, classes, image, branding text, and caption unchanged.
+**Out of scope:** existing `BuyToPrintDialog`, PDF generation logic, coloring buttons, feedback box — untouched.
 
-## Out of scope
-- No changes to pricing, layout, or any other component.
-- No prop API change; component remains parameterless.
+### 2) Confirm existing plan
+- Approve the already-implemented change in `FlippingBookAnimation.tsx` showing the active child's name from the `children` table (fallback `הסיפור שלך`). No further code changes needed there.
+
+## Files touched
+- `src/pages/StoryViewer.tsx` — change button label/icon + wire new modal state.
+- `src/components/story/PrintBookPreviewModal.tsx` — new modal component (uses existing `flipping-book.css`).
+
+Nothing else changes.
