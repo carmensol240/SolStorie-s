@@ -1942,6 +1942,25 @@ const [currentPage, setCurrentPage] = useState(0);
         </AlertDialogContent>
       </AlertDialog>
 
+      {/* Print book preview modal */}
+      {story && (
+        <PrintBookPreviewModal
+          open={showPrintPreviewModal}
+          onOpenChange={setShowPrintPreviewModal}
+          childName={story.child_name}
+          coverUrl={story.cover_url}
+          illustrations={(story.pages || []).map(p => p.illustration_url).filter(Boolean) as string[]}
+          onDownload={() => {
+            setShowPrintPreviewModal(false);
+            if (hasPurchasedPackage) {
+              exportToPdf(story);
+            } else {
+              setShowBuyToPrintDialog(true);
+            }
+          }}
+        />
+      )}
+
       {/* Gender Swap Dialog */}
       {storyId && story?.child_gender && (
         <GenderSwapDialog
