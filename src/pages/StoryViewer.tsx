@@ -1993,6 +1993,9 @@ const [currentPage, setCurrentPage] = useState(0);
         />
       )}
 
+      {/* Demo lock modal — shown when demo users try to save/share/download/color/record */}
+      <DemoLockModal open={demoLockOpen} onOpenChange={setDemoLockOpen} />
+
       {/* Gender Swap Dialog */}
       {storyId && story?.child_gender && (
         <GenderSwapDialog
