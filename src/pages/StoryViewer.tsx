@@ -349,20 +349,32 @@ const [currentPage, setCurrentPage] = useState(0);
   // No orientation lock needed - vertical portrait layout
 
   // Check if user has purchased a story package (controls "print to book" button behavior)
+  const refetchPurchaseStatus = useCallback(async () => {
+    if (!user?.id) { setHasPurchasedPackage(false); return; }
+    const { data, error } = await supabase
+      .from('purchases')
+      .select('id')
+      .eq('user_id', user.id)
+      .in('status', ['completed', 'test_completed'])
+      .limit(1);
+    if (!error) setHasPurchasedPackage((data?.length ?? 0) > 0);
+  }, [user?.id]);
+
   useEffect(() => {
     if (!user?.id) { setHasPurchasedPackage(false); return; }
-    let cancelled = false;
-    (async () => {
-      const { data, error } = await supabase
-        .from('purchases')
-        .select('id')
-        .eq('user_id', user.id)
-        .in('status', ['completed', 'test_completed'])
-        .limit(1);
-      if (!cancelled && !error) setHasPurchasedPackage((data?.length ?? 0) > 0);
-    })();
-    return () => { cancelled = true; };
-  }, [user?.id]);
+    refetchPurchaseStatus();
+  }, [user?.id, refetchPurchaseStatus]);
+
+  // Listen for purchase completion (fired by Upgrade page) — unlocks features without a refresh
+  useEffect(() => {
+    const handler = () => {
+      refetchPurchaseStatus();
+      setDemoLockOpen(false);
+      setDemoPaywallOpen(false);
+    };
+    window.addEventListener('purchase-completed', handler);
+    return () => window.removeEventListener('purchase-completed', handler);
+  }, [refetchPurchaseStatus]);
 
   // Check subscriber flag (subscribers are not demo-locked even without purchase rows)
   useEffect(() => {
