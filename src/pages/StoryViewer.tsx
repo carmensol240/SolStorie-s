@@ -225,6 +225,7 @@ const [currentPage, setCurrentPage] = useState(0);
   const [hasPurchasedPackage, setHasPurchasedPackage] = useState(false);
   const [isSubscriberUser, setIsSubscriberUser] = useState(false);
   const [demoLockOpen, setDemoLockOpen] = useState(false);
+  const [demoPaywallOpen, setDemoPaywallOpen] = useState(false);
   // isReadAloudDismissed removed — read-aloud only in Accessibility Menu
   // Portrait overlay removed - using vertical layout now
   
