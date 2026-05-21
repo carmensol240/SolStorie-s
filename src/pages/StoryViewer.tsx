@@ -2012,6 +2012,12 @@ const [currentPage, setCurrentPage] = useState(0);
 
       {/* Demo lock modal — shown when demo users try to save/share/download/color/record */}
       <DemoLockModal open={demoLockOpen} onOpenChange={setDemoLockOpen} />
+      <DemoLockModal
+        open={demoPaywallOpen}
+        onOpenChange={setDemoPaywallOpen}
+        title="✨ רוצים לקרוא את הסיפור המלא?"
+        description="רכשו חבילת סיפורים"
+      />
 
       {/* Gender Swap Dialog */}
       {storyId && story?.child_gender && (
