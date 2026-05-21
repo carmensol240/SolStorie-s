@@ -51,6 +51,7 @@ import { useIsMobile } from "@/hooks/use-mobile";
 import { BookFrame, BookPage, BookHeader, NavigationArrows, MagicalBookFrame } from "@/components/story/book-frame";
 import { TheaterFrame } from "@/components/story/theater-frame";
 import PdfFeaturePopup from "@/components/story/PdfFeaturePopup";
+import PrintBookPreviewModal from "@/components/story/PrintBookPreviewModal";
 import InstallAppPrompt from "@/components/story/InstallAppPrompt";
 
 import "./StoryViewer.css";
