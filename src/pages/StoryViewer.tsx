@@ -55,7 +55,7 @@ import PrintBookPreviewModal from "@/components/story/PrintBookPreviewModal";
 import InstallAppPrompt from "@/components/story/InstallAppPrompt";
 
 import "./StoryViewer.css";
-// translateTopic removed from cover — topic shown only in library
+import { translateTopic } from "@/lib/topic-translations";
 // solMagicBookCover removed — cover now uses first page illustration
 import { useChildAvatar } from "@/hooks/use-child-avatar";
 import { usePageRecording } from "@/hooks/use-page-recording";
@@ -1948,8 +1948,9 @@ const [currentPage, setCurrentPage] = useState(0);
           open={showPrintPreviewModal}
           onOpenChange={setShowPrintPreviewModal}
           childName={story.child_name}
+          storyTitle={translateTopic(story.topic, story.language)}
           coverUrl={story.cover_url}
-          illustrations={(story.pages || []).map(p => p.illustration_url).filter(Boolean) as string[]}
+          pages={(story.pages || []).slice(0, 4).map(p => ({ illustration_url: p.illustration_url || null, text: p.text || '' }))}
           onDownload={() => {
             setShowPrintPreviewModal(false);
             if (hasPurchasedPackage) {

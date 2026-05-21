@@ -9,8 +9,9 @@ interface PrintBookPreviewModalProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   childName: string;
+  storyTitle: string;
   coverUrl?: string | null;
-  illustrations: string[]; // raw storage paths or urls
+  pages: { illustration_url: string | null; text: string }[];
   onDownload: () => void;
 }
 
@@ -18,11 +19,26 @@ export const PrintBookPreviewModal = ({
   open,
   onOpenChange,
   childName,
+  storyTitle,
   coverUrl,
-  illustrations,
+  pages,
   onDownload,
 }: PrintBookPreviewModalProps) => {
-  const slides = [coverUrl || null, ...illustrations.slice(0, 4).map(getPublicIllustrationUrl)].filter(Boolean) as string[];
+  type Slide =
+    | { type: "cover"; src: string }
+    | { type: "image"; src: string }
+    | { type: "text"; text: string };
+
+  const slides: Slide[] = [];
+  if (coverUrl) slides.push({ type: "cover", src: coverUrl });
+  pages.slice(0, 4).forEach((p) => {
+    if (p.illustration_url) {
+      slides.push({ type: "image", src: getPublicIllustrationUrl(p.illustration_url) });
+    }
+    if (p.text && p.text.trim()) {
+      slides.push({ type: "text", text: p.text.trim() });
+    }
+  });
   const [idx, setIdx] = useState(0);
   const [flipping, setFlipping] = useState(false);
 
@@ -42,8 +58,8 @@ export const PrintBookPreviewModal = ({
     if (open) setIdx(0);
   }, [open]);
 
-  const currentSrc = slides[idx];
-  const isCover = idx === 0 && !!coverUrl;
+  const current = slides[idx];
+  const isCover = current?.type === "cover";
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -57,25 +73,62 @@ export const PrintBookPreviewModal = ({
                 <span className="fba-spine-text">{childName} · SolStorie&apos;s™</span>
               </div>
               <div className="fba-book" style={{ perspective: "900px" }}>
-                <img
-                  key={idx}
-                  className="fba-cover-img"
-                  src={currentSrc}
-                  alt=""
-                  loading="lazy"
-                  style={{
-                    transition: "transform 0.45s ease-in-out, opacity 0.45s",
-                    transformOrigin: "left center",
-                    transform: flipping ? "rotateY(-75deg)" : "rotateY(0)",
-                    opacity: flipping ? 0.3 : 1,
-                  }}
-                />
+                {current?.type === "text" ? (
+                  <div
+                    key={idx}
+                    className="fba-cover-img flex items-center justify-center p-5 text-center"
+                    style={{
+                      background: "linear-gradient(180deg, #1a0a3e 0%, #2a1050 100%)",
+                      transition: "transform 0.45s ease-in-out, opacity 0.45s",
+                      transformOrigin: "left center",
+                      transform: flipping ? "rotateY(-75deg)" : "rotateY(0)",
+                      opacity: flipping ? 0.3 : 1,
+                    }}
+                  >
+                    <p
+                      className="text-white font-medium overflow-hidden"
+                      style={{
+                        fontSize: "0.95rem",
+                        lineHeight: 1.55,
+                        display: "-webkit-box",
+                        WebkitLineClamp: 9,
+                        WebkitBoxOrient: "vertical",
+                        textShadow: "0 1px 2px rgba(0,0,0,0.35)",
+                      }}
+                    >
+                      {current.text}
+                    </p>
+                  </div>
+                ) : (
+                  <img
+                    key={idx}
+                    className="fba-cover-img"
+                    src={current?.src}
+                    alt=""
+                    loading="lazy"
+                    style={{
+                      transition: "transform 0.45s ease-in-out, opacity 0.45s",
+                      transformOrigin: "left center",
+                      transform: flipping ? "rotateY(-75deg)" : "rotateY(0)",
+                      opacity: flipping ? 0.3 : 1,
+                    }}
+                  />
+                )}
                 <div className="fba-badge">✨ SolStorie&apos;s™</div>
                 {isCover && (
                   <div className="fba-overlay">
-                    <div className="fba-title">{childName}</div>
-                    <div className="fba-subtitle">💛 הסיפור של {childName}</div>
-                    <div className="fba-logo-text">SolStorie&apos;s™ · soulstory.co.il</div>
+                    <div
+                      className="text-white font-extrabold leading-tight"
+                      style={{ fontSize: "1.25rem", textShadow: "0 2px 6px rgba(0,0,0,0.55)" }}
+                    >
+                      {storyTitle}
+                    </div>
+                    <div
+                      className="font-bold mt-1"
+                      style={{ color: "#fbbf24", fontSize: "1.05rem", textShadow: "0 2px 6px rgba(0,0,0,0.55)" }}
+                    >
+                      {childName}
+                    </div>
                   </div>
                 )}
               </div>
