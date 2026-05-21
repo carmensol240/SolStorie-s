@@ -294,18 +294,7 @@ const Upgrade = () => {
             <h1 className="text-2xl font-black bg-gradient-to-r from-purple-300 via-pink-300 to-orange-300 bg-clip-text text-transparent mb-1">
               {title}
             </h1>
-            <p className="text-white/80 text-base font-semibold leading-snug">
-              {subtitle}
-            </p>
           </div>
-
-          {/* Credit Badge */}
-          <div className="flex justify-center mb-4">
-            <Badge className="bg-white/10 backdrop-blur-sm border border-white/20 text-white/90 px-4 py-2 text-sm font-bold rounded-full">
-              ✨ 1 קרדיט = 1 סיפור מלא + איורים
-            </Badge>
-          </div>
-
 
           {/* Holiday promotion */}
           <div className="mb-4 text-center">
@@ -314,54 +303,7 @@ const Upgrade = () => {
             </p>
           </div>
 
-          {/* Collapsible features section */}
-          <div className="mb-4">
-            <button
-              type="button"
-              onClick={() => setShowFeatures((v) => !v)}
-              aria-expanded={showFeatures}
-              className={cn(
-                "w-full flex items-center justify-between gap-2 px-4 py-3 rounded-2xl",
-                "bg-gradient-to-r from-purple-500/30 via-pink-500/30 to-purple-500/30",
-                "backdrop-blur-md border border-white/25 hover:border-white/40",
-                "text-white font-bold text-sm sm:text-base shadow-lg transition-all"
-              )}
-            >
-              <span className="flex-1 text-center">✨ הרבה יותר מסיפור רגיל</span>
-              <ChevronDown
-                className={cn(
-                  "w-5 h-5 transition-transform duration-300 shrink-0",
-                  showFeatures && "rotate-180"
-                )}
-              />
-            </button>
-
-            {showFeatures && (
-              <div className="mt-3 grid grid-cols-1 sm:grid-cols-2 gap-2 animate-in fade-in slide-in-from-top-2 duration-300">
-                {FEATURES.map((f) => (
-                  <div
-                    key={f.title}
-                    className="flex items-start gap-2.5 p-3 rounded-xl bg-white/10 backdrop-blur-sm border border-white/15 hover:bg-white/15 transition-colors"
-                  >
-                    <span className="text-2xl leading-none shrink-0" aria-hidden>
-                      {f.icon}
-                    </span>
-                    <div className="flex-1 min-w-0 text-right">
-                      <div className="text-white font-bold text-sm leading-tight">
-                        {f.title}
-                      </div>
-                      <div className="text-white/75 text-xs mt-0.5 leading-snug">
-                        {f.desc}
-                      </div>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            )}
-          </div>
-
           {/* Package Cards — Glassmorphism (parents only) */}
-          <FlippingBookAnimation />
           {roleLoaded && userRole === 'parent' && (
           <div className="grid grid-cols-3 gap-3 mb-4 pt-4">
             {PRICING_PACKAGES.map((pkg) => (
@@ -394,7 +336,10 @@ const Upgrade = () => {
                 <div className="text-xs text-purple-300 font-bold">
                   {pkg.pricePerStory} לסיפור
                 </div>
-                
+                <div className="text-[10px] text-white/70 font-semibold mt-1">
+                  ✨ 1 קרדיט = סיפור מלא
+                </div>
+
                 {pkg.freeEdits > 0 && (
                 <div className="bg-white/10 backdrop-blur-sm border border-white/15 rounded-lg px-2 py-1 mt-2">
                   <span className="text-[10px] text-green-300 font-bold">
@@ -413,6 +358,9 @@ const Upgrade = () => {
             ))}
           </div>
           )}
+
+          {/* Book mockup — below packages */}
+          <FlippingBookAnimation />
 
           <p className="text-center mb-4 font-bold" style={{ fontSize: '17px', color: '#c084fc' }}>
             תשלום חד פעמי · הקרדיטים שלך לא פגים · אין מינוי
