@@ -223,6 +223,8 @@ const [currentPage, setCurrentPage] = useState(0);
   const [showBuyToPrintDialog, setShowBuyToPrintDialog] = useState(false);
   const [showPrintPreviewModal, setShowPrintPreviewModal] = useState(false);
   const [hasPurchasedPackage, setHasPurchasedPackage] = useState(false);
+  const [isSubscriberUser, setIsSubscriberUser] = useState(false);
+  const [demoLockOpen, setDemoLockOpen] = useState(false);
   // isReadAloudDismissed removed — read-aloud only in Accessibility Menu
   // Portrait overlay removed - using vertical layout now
   
