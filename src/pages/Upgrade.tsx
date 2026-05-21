@@ -334,6 +334,16 @@ const Upgrade = () => {
                 <div className="text-[9px] text-white/60 font-semibold mt-0.5 leading-tight">
                   📱 דיגיטלי + 🖨️ PDF להדפסה כלולים
                 </div>
+                {pkg.stories === 6 && (
+                  <div className="mt-1.5 bg-gradient-to-r from-orange-500/20 to-red-500/20 border border-orange-400/30 rounded-full px-2 py-0.5">
+                    <span className="text-[10px] font-black text-orange-300">🔥 חסכו 16%</span>
+                  </div>
+                )}
+                {pkg.stories === 10 && (
+                  <div className="mt-1.5 bg-gradient-to-r from-yellow-500/20 to-amber-500/20 border border-yellow-400/30 rounded-full px-2 py-0.5">
+                    <span className="text-[10px] font-black text-yellow-300">⭐ חסכו 29%</span>
+                  </div>
+                )}
 
                 {pkg.freeEdits > 0 && (
                 <div className="bg-white/10 backdrop-blur-sm border border-white/15 rounded-lg px-2 py-1 mt-2">
@@ -422,6 +432,16 @@ const Upgrade = () => {
                     <div className="text-[9px] text-white/60 font-semibold mt-0.5 leading-tight">
                       📱 דיגיטלי + 🖨️ PDF להדפסה כלולים
                     </div>
+                    {pkg.stories === 6 && (
+                      <div className="mt-1.5 bg-gradient-to-r from-orange-500/20 to-red-500/20 border border-orange-400/30 rounded-full px-2 py-1">
+                        <span className="text-[10px] font-black text-orange-300">🔥 חסכו 16%</span>
+                      </div>
+                    )}
+                    {pkg.stories === 10 && (
+                      <div className="mt-1.5 bg-gradient-to-r from-yellow-500/20 to-amber-500/20 border border-yellow-400/30 rounded-full px-2 py-1">
+                        <span className="text-[10px] font-black text-yellow-300">⭐ חסכו 29%</span>
+                      </div>
+                    )}
                     {pkg.freeEdits > 0 && (
                       <div className="bg-white/10 backdrop-blur-sm border border-white/15 rounded-lg px-2 py-1 mt-2">
                         <span className="text-[10px] text-green-300 font-bold">
