@@ -1405,8 +1405,8 @@ const [currentPage, setCurrentPage] = useState(0);
       <BookHeader
         onBack={() => navigate("/library")}
         onShare={handleShare}
-            onDownload={() => story && exportToPdf(story)}
-        onShareWhatsApp={handleShareWhatsApp}
+            onDownload={guardDemo(() => story && exportToPdf(story))}
+        onShareWhatsApp={guardDemo(handleShareWhatsApp)}
         onToggleFontSize={() => setFontSizeIndex((fontSizeIndex + 1) % FONT_SIZES.length)}
         onEdit={showPageActions ? handleEditClick : undefined}
         onAddNikud={showPageActions ? handleAddNikud : undefined}
@@ -1419,12 +1419,12 @@ const [currentPage, setCurrentPage] = useState(0);
         showPageActions={showPageActions}
         isMusicPlaying={bgMusic.isPlaying}
         onToggleMusic={bgMusic.toggle}
-        onSaveOffline={handleSaveOffline}
+        onSaveOffline={guardDemo(handleSaveOffline)}
         isSavedOffline={resolvedId ? fullOffline.savedStoryIds.has(resolvedId) : false}
         isDownloadingOffline={fullOffline.downloadingId === resolvedId}
         onRegenerateCover={handleRegenerateCover}
         isRegeneratingCover={isRegeneratingCover}
-        onColoring={() => preloadStoryCachedColoring(null)}
+        onColoring={guardDemo(() => preloadStoryCachedColoring(null))}
       />
 
       {/* Series navigation bar removed */}
