@@ -4,7 +4,6 @@ import { X, Crown } from "lucide-react";
 
 const WHITELISTED_TEST_EMAIL = "carmit1901+test@gmail.com";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
 import PurchaseSuccessModal from "@/components/paywall/PurchaseSuccessModal";
 import PurchaseFailedModal from "@/components/paywall/PurchaseFailedModal";
 import PayPalButton from "@/components/paywall/PayPalButton";
@@ -294,13 +293,6 @@ const Upgrade = () => {
             <h1 className="text-2xl font-black bg-gradient-to-r from-purple-300 via-pink-300 to-orange-300 bg-clip-text text-transparent mb-1">
               {title}
             </h1>
-          </div>
-
-          {/* Holiday promotion */}
-          <div className="mb-4 text-center">
-            <p className="text-white text-sm font-bold">
-              {"\u200B"}
-            </p>
           </div>
 
           {/* Package Cards — Glassmorphism (parents only) */}
