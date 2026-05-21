@@ -1694,7 +1694,7 @@ const [currentPage, setCurrentPage] = useState(0);
                         hasPendingBlob={pageRecording.pendingBlob?.page === currentVirtual.dbPage.page_number}
                         hasSaved={pageRecording.hasSavedRecording(currentVirtual.dbPage.page_number)}
                         isPlaying={pageRecording.playingPage === currentVirtual.dbPage.page_number}
-                        onStartRecording={() => pageRecording.startRecording(currentVirtual.dbPage.page_number)}
+                        onStartRecording={guardDemo(() => pageRecording.startRecording(currentVirtual.dbPage.page_number))}
                         onStopRecording={pageRecording.stopRecording}
                         onSave={pageRecording.saveRecording}
                         onDiscard={pageRecording.discardPending}
@@ -1793,7 +1793,7 @@ const [currentPage, setCurrentPage] = useState(0);
                         hasPendingBlob={pageRecording.pendingBlob?.page === currentVirtual.dbPage.page_number}
                         hasSaved={pageRecording.hasSavedRecording(currentVirtual.dbPage.page_number)}
                         isPlaying={pageRecording.playingPage === currentVirtual.dbPage.page_number}
-                        onStartRecording={() => pageRecording.startRecording(currentVirtual.dbPage.page_number)}
+                        onStartRecording={guardDemo(() => pageRecording.startRecording(currentVirtual.dbPage.page_number))}
                         onStopRecording={pageRecording.stopRecording}
                         onSave={pageRecording.saveRecording}
                         onDiscard={pageRecording.discardPending}
@@ -1822,7 +1822,7 @@ const [currentPage, setCurrentPage] = useState(0);
                             hasPendingBlob={pageRecording.pendingBlob?.page === currentVirtual.dbPage.page_number}
                             hasSaved={pageRecording.hasSavedRecording(currentVirtual.dbPage.page_number)}
                             isPlaying={pageRecording.playingPage === currentVirtual.dbPage.page_number}
-                            onStartRecording={() => pageRecording.startRecording(currentVirtual.dbPage.page_number)}
+                            onStartRecording={guardDemo(() => pageRecording.startRecording(currentVirtual.dbPage.page_number))}
                             onStopRecording={pageRecording.stopRecording}
                             onSave={pageRecording.saveRecording}
                             onDiscard={pageRecording.discardPending}
