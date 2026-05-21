@@ -329,7 +329,7 @@ const Upgrade = () => {
                   {pkg.pricePerStory} לסיפור
                 </div>
                 <div className="text-[10px] text-white/70 font-semibold mt-1">
-                  ✨ 1 קרדיט = סיפור מלא
+                  ​
                 </div>
                 <div className="text-[9px] text-white/60 font-semibold mt-0.5 leading-tight">
                   📱 דיגיטלי + 🖨️ PDF להדפסה כלולים
@@ -417,7 +417,7 @@ const Upgrade = () => {
                       {pkg.pricePerStory} לסיפור
                     </div>
                     <div className="text-[10px] text-white/70 font-semibold mt-1">
-                      ✨ 1 קרדיט = סיפור מלא
+                      ​
                     </div>
                     <div className="text-[9px] text-white/60 font-semibold mt-0.5 leading-tight">
                       📱 דיגיטלי + 🖨️ PDF להדפסה כלולים
