@@ -1,5 +1,5 @@
 import { useState, useEffect, useLayoutEffect, useRef, useCallback, useMemo } from "react";
-import { useParams, useNavigate } from "react-router-dom";
+import { useParams, useNavigate, useLocation } from "react-router-dom";
 import { Home, BookOpen, Palette, Wand2, Loader2, ImageOff, Star, Send, ChevronRight, ChevronLeft, ArrowRight, Link2, Printer, Eye } from "lucide-react";
 import SeriesNavBar, { SeriesPart } from "@/components/story/SeriesNavBar";
 import { MissingIllustrationPrompt } from "@/components/story/MissingIllustrationPrompt";
@@ -185,6 +185,7 @@ const getAgeFontIndex = (ageRange?: string): number => {
 const StoryViewer = () => {
   const { storyId } = useParams();
   const navigate = useNavigate();
+  const location = useLocation();
   const { toast } = useToast();
   const isMobile = useIsMobile();
   
@@ -349,20 +350,32 @@ const [currentPage, setCurrentPage] = useState(0);
   // No orientation lock needed - vertical portrait layout
 
   // Check if user has purchased a story package (controls "print to book" button behavior)
+  const refetchPurchaseStatus = useCallback(async () => {
+    if (!user?.id) { setHasPurchasedPackage(false); return; }
+    const { data, error } = await supabase
+      .from('purchases')
+      .select('id')
+      .eq('user_id', user.id)
+      .in('status', ['completed', 'test_completed'])
+      .limit(1);
+    if (!error) setHasPurchasedPackage((data?.length ?? 0) > 0);
+  }, [user?.id]);
+
   useEffect(() => {
     if (!user?.id) { setHasPurchasedPackage(false); return; }
-    let cancelled = false;
-    (async () => {
-      const { data, error } = await supabase
-        .from('purchases')
-        .select('id')
-        .eq('user_id', user.id)
-        .in('status', ['completed', 'test_completed'])
-        .limit(1);
-      if (!cancelled && !error) setHasPurchasedPackage((data?.length ?? 0) > 0);
-    })();
-    return () => { cancelled = true; };
-  }, [user?.id]);
+    refetchPurchaseStatus();
+  }, [user?.id, refetchPurchaseStatus]);
+
+  // Listen for purchase completion (fired by Upgrade page) — unlocks features without a refresh
+  useEffect(() => {
+    const handler = () => {
+      refetchPurchaseStatus();
+      setDemoLockOpen(false);
+      setDemoPaywallOpen(false);
+    };
+    window.addEventListener('purchase-completed', handler);
+    return () => window.removeEventListener('purchase-completed', handler);
+  }, [refetchPurchaseStatus]);
 
   // Check subscriber flag (subscribers are not demo-locked even without purchase rows)
   useEffect(() => {
@@ -407,6 +420,28 @@ const [currentPage, setCurrentPage] = useState(0);
       }
     };
   }, []);
+
+  // Restore last-viewed page after returning from purchase (or any in-tab navigation)
+  const didRestorePageRef = useRef(false);
+  useEffect(() => {
+    if (didRestorePageRef.current) return;
+    if (!story) return;
+    try {
+      const saved = sessionStorage.getItem(`storyReturnPage:${location.pathname}`);
+      if (saved != null) {
+        const n = Number(saved);
+        if (Number.isFinite(n) && n > 0) setCurrentPage(n);
+      }
+    } catch {}
+    didRestorePageRef.current = true;
+  }, [story, location.pathname]);
+
+  // Persist current page so we can restore it after a paywall round-trip
+  useEffect(() => {
+    try {
+      sessionStorage.setItem(`storyReturnPage:${location.pathname}`, String(currentPage));
+    } catch {}
+  }, [currentPage, location.pathname]);
 
   // Realtime subscription for progressive illustration loading
   useEffect(() => {

@@ -114,6 +114,7 @@ const Upgrade = () => {
           coloring_credits: (profileData?.coloring_credits ?? 0) + (pkg.freeColoringPages ?? 0),
         }).eq('id', user.id);
         window.dispatchEvent(new CustomEvent('coloring-credits-updated'));
+        window.dispatchEvent(new CustomEvent('purchase-completed'));
         setPurchasedCredits(pkg.stories);
         setShowSuccess(true);
         trackEvent({ eventType: 'feature_used', metadata: { feature: 'test_purchase_completed', package: pkg.id, stories: pkg.stories } });
@@ -170,6 +171,7 @@ const Upgrade = () => {
       
       refetchCredits();
       window.dispatchEvent(new CustomEvent('coloring-credits-updated'));
+      window.dispatchEvent(new CustomEvent('purchase-completed'));
       setPurchasedCredits(pkg.stories);
       setShowPayPal(false);
       setShowSuccess(true);
