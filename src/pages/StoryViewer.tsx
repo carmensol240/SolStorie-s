@@ -1350,6 +1350,16 @@ const [currentPage, setCurrentPage] = useState(0);
   const isContentPage = currentPage >= 0 && currentPage < totalVirtualPages;
 
   const currentVirtual = isContentPage ? virtualPages[currentPage] : null;
+
+  // Demo paywall: limit demo users to first 3 DB pages
+  const DEMO_PAGE_LIMIT = 3;
+  const isLockedVirtualPage = (index: number) => {
+    if (!isDemoUser) return false;
+    const vp = virtualPages[index];
+    if (!vp) return false;
+    return (vp.dbPage?.page_number ?? 0) > DEMO_PAGE_LIMIT;
+  };
+  const isCurrentPageLocked = isContentPage && isLockedVirtualPage(currentPage);
   // For editing/nikud, get the underlying DB page
   const page = currentVirtual ? currentVirtual.dbPage : null;
   const currentFontSize = FONT_SIZES[fontSizeIndex];
