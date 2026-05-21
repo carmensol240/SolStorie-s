@@ -569,9 +569,9 @@ const Library = () => {
           ))}
         </div>
 
-        <div className="relative z-10 flex-1 flex flex-col items-center px-5 pt-6 pb-24">
+        <div className="relative z-10 flex-1 flex flex-col items-center px-4 sm:px-5 pt-4 sm:pt-6 pb-24">
           {/* Hero image */}
-          <div className="w-64 h-64 rounded-2xl overflow-hidden border-4 border-purple-400/40 shadow-2xl mb-5" style={{ boxShadow: '0 0 50px rgba(108,92,231,0.5), 0 0 100px rgba(168,85,247,0.2)' }}>
+          <div className="w-44 h-44 sm:w-64 sm:h-64 rounded-2xl overflow-hidden border-4 border-purple-400/40 shadow-2xl mb-4 sm:mb-5" style={{ boxShadow: '0 0 50px rgba(108,92,231,0.5), 0 0 100px rgba(168,85,247,0.2)' }}>
             <img
               src={libraryGirlReading}
               alt="ילדה קוראת סיפור"
@@ -580,19 +580,19 @@ const Library = () => {
           </div>
 
           {/* Headline */}
-          <h1 className="text-2xl font-black text-center mb-2">
+          <h1 className="text-xl sm:text-2xl font-black text-center mb-2">
             <span className="text-transparent bg-clip-text" style={{ backgroundImage: 'linear-gradient(90deg, #e8d5ff, #f0c040, #e8d5ff)' }}>
               ✨ הספרייה הקסומה מחכה לכם!
             </span>
           </h1>
 
           {/* Subtitle */}
-          <p className="text-sm text-purple-200 text-center font-medium leading-relaxed mb-6 max-w-xs">
+          <p className="text-xs sm:text-sm text-purple-200 text-center font-medium leading-relaxed mb-4 sm:mb-6 max-w-xs">
             צרו סיפורים מותאמים אישית עם הילד שלכם כגיבור — ושמרו אותם בספרייה האישית שלכם לתמיד
           </p>
 
           {/* Feature pills */}
-          <div className="flex flex-col gap-3 w-full max-w-xs mb-8">
+          <div className="flex flex-col gap-2 sm:gap-3 w-full max-w-xs mb-5 sm:mb-8">
             {[
               { emoji: "📚", text: "ספרייה משפחתית עם כל הסיפורים " },
               { emoji: "🎨", text: "איורים מקצועיים בסגנון סרטי ילדים המותאמים לילד שלך" },
@@ -600,9 +600,9 @@ const Library = () => {
               { emoji: "🖨️", text: "הורידו PDF והדפיסו לספר אמיתי" },
               { emoji: "🎙️", text: "הקליטו את הסיפור לזכרון לכל החיים" },
             ].map((feature, i) => (
-              <div key={i} className="flex items-center gap-3 rounded-2xl px-4 py-3" style={{ background: 'rgba(255,255,255,0.08)', backdropFilter: 'blur(8px)' }}>
-                <span className="text-2xl flex-shrink-0">{feature.emoji}</span>
-                <span className="text-sm font-bold text-white/90">{feature.text}</span>
+              <div key={i} className="flex items-center gap-2.5 sm:gap-3 rounded-2xl px-3 py-2 sm:px-4 sm:py-3" style={{ background: 'rgba(255,255,255,0.08)', backdropFilter: 'blur(8px)' }}>
+                <span className="text-xl sm:text-2xl flex-shrink-0 leading-none">{feature.emoji}</span>
+                <span className="text-[13px] sm:text-sm font-bold text-white/90 leading-snug">{feature.text}</span>
               </div>
             ))}
           </div>
