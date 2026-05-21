@@ -421,6 +421,9 @@ const Upgrade = () => {
                     <div className="text-xs text-blue-300 font-bold">
                       {pkg.pricePerStory} לסיפור
                     </div>
+                    <div className="text-[10px] text-white/70 font-semibold mt-1">
+                      ✨ 1 קרדיט = סיפור מלא
+                    </div>
                     {pkg.freeEdits > 0 && (
                       <div className="bg-white/10 backdrop-blur-sm border border-white/15 rounded-lg px-2 py-1 mt-2">
                         <span className="text-[10px] text-green-300 font-bold">
