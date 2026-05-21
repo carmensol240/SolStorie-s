@@ -1948,8 +1948,9 @@ const [currentPage, setCurrentPage] = useState(0);
           open={showPrintPreviewModal}
           onOpenChange={setShowPrintPreviewModal}
           childName={story.child_name}
+          storyTitle={translateTopic(story.topic, story.language)}
           coverUrl={story.cover_url}
-          illustrations={(story.pages || []).map(p => p.illustration_url).filter(Boolean) as string[]}
+          pages={(story.pages || []).slice(0, 4).map(p => ({ illustration_url: p.illustration_url || null, text: p.text || '' }))}
           onDownload={() => {
             setShowPrintPreviewModal(false);
             if (hasPurchasedPackage) {
