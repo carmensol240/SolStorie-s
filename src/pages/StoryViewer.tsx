@@ -363,6 +363,34 @@ const [currentPage, setCurrentPage] = useState(0);
     return () => { cancelled = true; };
   }, [user?.id]);
 
+  // Check subscriber flag (subscribers are not demo-locked even without purchase rows)
+  useEffect(() => {
+    if (!user?.id) { setIsSubscriberUser(false); return; }
+    let cancelled = false;
+    (async () => {
+      const { data } = await supabase
+        .from('profiles')
+        .select('is_subscriber')
+        .eq('id', user.id)
+        .maybeSingle();
+      if (!cancelled) setIsSubscriberUser(!!data?.is_subscriber);
+    })();
+    return () => { cancelled = true; };
+  }, [user?.id]);
+
+  // Demo user = logged in, no completed purchase, not subscriber.
+  // For demo users, save/share/download/coloring/recording actions are blocked.
+  const isDemoUser = !!user && !hasPurchasedPackage && !isSubscriberUser;
+  const guardDemo = useCallback((fn: () => void) => {
+    return () => {
+      if (isDemoUser) {
+        setDemoLockOpen(true);
+        return;
+      }
+      fn();
+    };
+  }, [isDemoUser]);
+
   // Set age-appropriate font size on story load
   useEffect(() => {
     if (story?.age_range) {
