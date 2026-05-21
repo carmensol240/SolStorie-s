@@ -55,7 +55,7 @@ import PrintBookPreviewModal from "@/components/story/PrintBookPreviewModal";
 import InstallAppPrompt from "@/components/story/InstallAppPrompt";
 
 import "./StoryViewer.css";
-// translateTopic removed from cover — topic shown only in library
+import { translateTopic } from "@/lib/topic-translations";
 // solMagicBookCover removed — cover now uses first page illustration
 import { useChildAvatar } from "@/hooks/use-child-avatar";
 import { usePageRecording } from "@/hooks/use-page-recording";
