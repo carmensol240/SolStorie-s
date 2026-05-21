@@ -5,19 +5,21 @@ import { useNavigate } from "react-router-dom";
 interface DemoLockModalProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
+  title?: string;
+  description?: string;
 }
 
-const DemoLockModal = ({ open, onOpenChange }: DemoLockModalProps) => {
+const DemoLockModal = ({ open, onOpenChange, title, description }: DemoLockModalProps) => {
   const navigate = useNavigate();
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent dir="rtl" className="max-w-md text-center">
         <DialogHeader>
           <DialogTitle className="text-xl font-black text-foreground">
-            ✨ אהבתם?
+            {title ?? "✨ אהבתם?"}
           </DialogTitle>
           <DialogDescription className="text-base text-muted-foreground pt-2">
-            כדי לשמור ולשתף את הסיפור רכשו חבילת סיפורים
+            {description ?? "כדי לשמור ולשתף את הסיפור רכשו חבילת סיפורים"}
           </DialogDescription>
         </DialogHeader>
         <DialogFooter className="flex-col-reverse sm:flex-col-reverse gap-2 mt-2">
