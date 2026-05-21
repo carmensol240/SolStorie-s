@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
-import { X, Crown, ChevronDown } from "lucide-react";
+import { X, Crown } from "lucide-react";
 
 const WHITELISTED_TEST_EMAIL = "carmit1901+test@gmail.com";
 import { Button } from "@/components/ui/button";
@@ -18,7 +18,7 @@ import { useAuth } from "@/hooks/use-auth";
 import { supabase } from "@/integrations/supabase/client";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
-import { PRICING_PACKAGES, EDUCATOR_PACKAGES, TOOLKIT_SUBSCRIPTION, EDIT_KIT_PACKAGE, COLORING_KIT_PACKAGE } from "@/config/pricing";
+import { PRICING_PACKAGES, EDUCATOR_PACKAGES, TOOLKIT_SUBSCRIPTION } from "@/config/pricing";
 import FlippingBookAnimation from "@/components/upgrade/FlippingBookAnimation";
 
 
@@ -37,8 +37,6 @@ const Upgrade = () => {
   const [showPayPal, setShowPayPal] = useState(false);
   const [userRole, setUserRole] = useState<string>("parent");
   const [roleLoaded, setRoleLoaded] = useState(false);
-  const [showEditKitPayPal, setShowEditKitPayPal] = useState(false);
-  const [showColoringKitPayPal, setShowColoringKitPayPal] = useState(false);
   const [showToolkitPayPal, setShowToolkitPayPal] = useState(false);
   const [showSuccess, setShowSuccess] = useState(false);
   const [showSubscriptionSuccess, setShowSubscriptionSuccess] = useState(false);
@@ -49,26 +47,8 @@ const Upgrade = () => {
   const [appliedCouponCode, setAppliedCouponCode] = useState<string | null>(null);
   const [userDetailsValid, setUserDetailsValid] = useState(true);
   const userDetailsRef = useRef<UserDetailsRef>(null);
-  const [showFeatures, setShowFeatures] = useState(false);
-
-  const FEATURES = [
-    { icon: "🖼️", title: "איורים מדויקים", desc: "מותאמים למראה הילד שלך" },
-    { icon: "🎨", title: "דפי צביעה קסומים", desc: "עם הדמות של הילד עצמו!" },
-    { icon: "🎙️", title: "הקלטה קולית", desc: "בקול של אדם אהוב" },
-    { icon: "🖨️", title: "הדפסה והורדה", desc: "שמרו כקובץ או הדפיסו לספר פיזי ללא עלות נוספת" },
-    { icon: "📲", title: "שליחה בוואטסאפ", desc: "שתפו עם המשפחה" },
-    { icon: "📚", title: "ספרייה חינוכית", desc: "אותיות, מספרים, צבעים וצורות" },
-    { icon: "📖", title: "סיפורים בהמשכים", desc: "ההרפתקה ממשיכה!" },
-    { icon: "🌍", title: "סיפור באנגלית", desc: "ניתן ליצור גם באנגלית" },
-    { icon: "🎵", title: "מוזיקת רקע קסומה", desc: "כמו סרט מצויר אמיתי" },
-    { icon: "✏️", title: "עריכה וניקוד מלא", desc: "תקנו שגיאות וקראו בקלות" },
-    { icon: "💻", title: "גישה מכל מכשיר", desc: "סלולרי, טאבלט ומחשב" },
-  ];
-
-  
 
   const title = "אהבתם? 💛";
-  const subtitle = "המשיכו את הקסם עם חבילת קרדיטים חדשה";
 
   useEffect(() => {
     const viewType = firstStoryId ? 'first_story' : noCredits ? 'no_credits' : 'regular';
@@ -232,8 +212,6 @@ const Upgrade = () => {
   const handleRetry = () => {
     setShowFailed(false);
     switch (failedPurchaseType) {
-      case 'coloring': setShowColoringKitPayPal(true); break;
-      case 'edit': setShowEditKitPayPal(true); break;
       case 'toolkit': setShowToolkitPayPal(true); break;
       default: setShowPayPal(true); break;
     }
