@@ -32,21 +32,37 @@ const PurchaseSuccessModal = ({
   const { user } = useAuth();
   const [showPayPal, setShowPayPal] = useState(false);
 
-  const redirectPath = isSubscription ? "/profile" : "/create";
+  // After a one-time purchase, prefer returning to the story the user came from
+  const getRedirectPath = () => {
+    if (isSubscription) return "/profile";
+    try {
+      const raw = sessionStorage.getItem("pendingStoryReturn");
+      if (raw) {
+        const parsed = JSON.parse(raw);
+        if (parsed?.path && typeof parsed.path === "string") return parsed.path as string;
+      }
+    } catch {}
+    return "/create";
+  };
+  const consumePendingReturn = () => {
+    try { sessionStorage.removeItem("pendingStoryReturn"); } catch {}
+  };
 
   // Auto-navigate only for subscriptions
   useEffect(() => {
     if (open && isSubscription) {
       const timer = setTimeout(() => {
-        navigate(redirectPath);
+        navigate(getRedirectPath());
       }, 3000);
       return () => clearTimeout(timer);
     }
-  }, [open, isSubscription, navigate, redirectPath]);
+  }, [open, isSubscription, navigate]);
 
   const handleSkip = () => {
     onOpenChange(false);
-    navigate(redirectPath);
+    const path = getRedirectPath();
+    consumePendingReturn();
+    navigate(path);
   };
 
   const handleEditPurchaseSuccess = async () => {
@@ -82,7 +98,9 @@ const PurchaseSuccessModal = ({
       console.error("Error adding edit credits:", err);
     }
     onOpenChange(false);
-    navigate(redirectPath);
+    const path = getRedirectPath();
+    consumePendingReturn();
+    navigate(path);
   };
 
   // Subscription flow — unchanged

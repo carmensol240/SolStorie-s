@@ -170,6 +170,7 @@ const Upgrade = () => {
       
       refetchCredits();
       window.dispatchEvent(new CustomEvent('coloring-credits-updated'));
+      window.dispatchEvent(new CustomEvent('purchase-completed'));
       setPurchasedCredits(pkg.stories);
       setShowPayPal(false);
       setShowSuccess(true);
