@@ -1,10 +1,9 @@
 import { useState, useEffect, useRef } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
-import { X, Crown, ChevronDown } from "lucide-react";
+import { X, Crown } from "lucide-react";
 
 const WHITELISTED_TEST_EMAIL = "carmit1901+test@gmail.com";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
 import PurchaseSuccessModal from "@/components/paywall/PurchaseSuccessModal";
 import PurchaseFailedModal from "@/components/paywall/PurchaseFailedModal";
 import PayPalButton from "@/components/paywall/PayPalButton";
@@ -18,7 +17,7 @@ import { useAuth } from "@/hooks/use-auth";
 import { supabase } from "@/integrations/supabase/client";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
-import { PRICING_PACKAGES, EDUCATOR_PACKAGES, TOOLKIT_SUBSCRIPTION, EDIT_KIT_PACKAGE, COLORING_KIT_PACKAGE } from "@/config/pricing";
+import { PRICING_PACKAGES, EDUCATOR_PACKAGES, TOOLKIT_SUBSCRIPTION } from "@/config/pricing";
 import FlippingBookAnimation from "@/components/upgrade/FlippingBookAnimation";
 
 
@@ -37,8 +36,6 @@ const Upgrade = () => {
   const [showPayPal, setShowPayPal] = useState(false);
   const [userRole, setUserRole] = useState<string>("parent");
   const [roleLoaded, setRoleLoaded] = useState(false);
-  const [showEditKitPayPal, setShowEditKitPayPal] = useState(false);
-  const [showColoringKitPayPal, setShowColoringKitPayPal] = useState(false);
   const [showToolkitPayPal, setShowToolkitPayPal] = useState(false);
   const [showSuccess, setShowSuccess] = useState(false);
   const [showSubscriptionSuccess, setShowSubscriptionSuccess] = useState(false);
@@ -49,26 +46,8 @@ const Upgrade = () => {
   const [appliedCouponCode, setAppliedCouponCode] = useState<string | null>(null);
   const [userDetailsValid, setUserDetailsValid] = useState(true);
   const userDetailsRef = useRef<UserDetailsRef>(null);
-  const [showFeatures, setShowFeatures] = useState(false);
-
-  const FEATURES = [
-    { icon: "🖼️", title: "איורים מדויקים", desc: "מותאמים למראה הילד שלך" },
-    { icon: "🎨", title: "דפי צביעה קסומים", desc: "עם הדמות של הילד עצמו!" },
-    { icon: "🎙️", title: "הקלטה קולית", desc: "בקול של אדם אהוב" },
-    { icon: "🖨️", title: "הדפסה והורדה", desc: "שמרו כקובץ או הדפיסו לספר פיזי ללא עלות נוספת" },
-    { icon: "📲", title: "שליחה בוואטסאפ", desc: "שתפו עם המשפחה" },
-    { icon: "📚", title: "ספרייה חינוכית", desc: "אותיות, מספרים, צבעים וצורות" },
-    { icon: "📖", title: "סיפורים בהמשכים", desc: "ההרפתקה ממשיכה!" },
-    { icon: "🌍", title: "סיפור באנגלית", desc: "ניתן ליצור גם באנגלית" },
-    { icon: "🎵", title: "מוזיקת רקע קסומה", desc: "כמו סרט מצויר אמיתי" },
-    { icon: "✏️", title: "עריכה וניקוד מלא", desc: "תקנו שגיאות וקראו בקלות" },
-    { icon: "💻", title: "גישה מכל מכשיר", desc: "סלולרי, טאבלט ומחשב" },
-  ];
-
-  
 
   const title = "אהבתם? 💛";
-  const subtitle = "המשיכו את הקסם עם חבילת קרדיטים חדשה";
 
   useEffect(() => {
     const viewType = firstStoryId ? 'first_story' : noCredits ? 'no_credits' : 'regular';
@@ -232,8 +211,6 @@ const Upgrade = () => {
   const handleRetry = () => {
     setShowFailed(false);
     switch (failedPurchaseType) {
-      case 'coloring': setShowColoringKitPayPal(true); break;
-      case 'edit': setShowEditKitPayPal(true); break;
       case 'toolkit': setShowToolkitPayPal(true); break;
       default: setShowPayPal(true); break;
     }
@@ -316,74 +293,9 @@ const Upgrade = () => {
             <h1 className="text-2xl font-black bg-gradient-to-r from-purple-300 via-pink-300 to-orange-300 bg-clip-text text-transparent mb-1">
               {title}
             </h1>
-            <p className="text-white/80 text-base font-semibold leading-snug">
-              {subtitle}
-            </p>
-          </div>
-
-          {/* Credit Badge */}
-          <div className="flex justify-center mb-4">
-            <Badge className="bg-white/10 backdrop-blur-sm border border-white/20 text-white/90 px-4 py-2 text-sm font-bold rounded-full">
-              ✨ 1 קרדיט = 1 סיפור מלא + איורים
-            </Badge>
-          </div>
-
-
-          {/* Holiday promotion */}
-          <div className="mb-4 text-center">
-            <p className="text-white text-sm font-bold">
-              {"\u200B"}
-            </p>
-          </div>
-
-          {/* Collapsible features section */}
-          <div className="mb-4">
-            <button
-              type="button"
-              onClick={() => setShowFeatures((v) => !v)}
-              aria-expanded={showFeatures}
-              className={cn(
-                "w-full flex items-center justify-between gap-2 px-4 py-3 rounded-2xl",
-                "bg-gradient-to-r from-purple-500/30 via-pink-500/30 to-purple-500/30",
-                "backdrop-blur-md border border-white/25 hover:border-white/40",
-                "text-white font-bold text-sm sm:text-base shadow-lg transition-all"
-              )}
-            >
-              <span className="flex-1 text-center">✨ הרבה יותר מסיפור רגיל</span>
-              <ChevronDown
-                className={cn(
-                  "w-5 h-5 transition-transform duration-300 shrink-0",
-                  showFeatures && "rotate-180"
-                )}
-              />
-            </button>
-
-            {showFeatures && (
-              <div className="mt-3 grid grid-cols-1 sm:grid-cols-2 gap-2 animate-in fade-in slide-in-from-top-2 duration-300">
-                {FEATURES.map((f) => (
-                  <div
-                    key={f.title}
-                    className="flex items-start gap-2.5 p-3 rounded-xl bg-white/10 backdrop-blur-sm border border-white/15 hover:bg-white/15 transition-colors"
-                  >
-                    <span className="text-2xl leading-none shrink-0" aria-hidden>
-                      {f.icon}
-                    </span>
-                    <div className="flex-1 min-w-0 text-right">
-                      <div className="text-white font-bold text-sm leading-tight">
-                        {f.title}
-                      </div>
-                      <div className="text-white/75 text-xs mt-0.5 leading-snug">
-                        {f.desc}
-                      </div>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            )}
           </div>
 
           {/* Package Cards — Glassmorphism (parents only) */}
-          <FlippingBookAnimation />
           {roleLoaded && userRole === 'parent' && (
           <div className="grid grid-cols-3 gap-3 mb-4 pt-4">
             {PRICING_PACKAGES.map((pkg) => (
@@ -416,7 +328,10 @@ const Upgrade = () => {
                 <div className="text-xs text-purple-300 font-bold">
                   {pkg.pricePerStory} לסיפור
                 </div>
-                
+                <div className="text-[10px] text-white/70 font-semibold mt-1">
+                  ✨ 1 קרדיט = סיפור מלא
+                </div>
+
                 {pkg.freeEdits > 0 && (
                 <div className="bg-white/10 backdrop-blur-sm border border-white/15 rounded-lg px-2 py-1 mt-2">
                   <span className="text-[10px] text-green-300 font-bold">
@@ -435,6 +350,9 @@ const Upgrade = () => {
             ))}
           </div>
           )}
+
+          {/* Book mockup — below packages */}
+          <FlippingBookAnimation />
 
           <p className="text-center mb-4 font-bold" style={{ fontSize: '17px', color: '#c084fc' }}>
             תשלום חד פעמי · הקרדיטים שלך לא פגים · אין מינוי
@@ -495,6 +413,9 @@ const Upgrade = () => {
                     <div className="text-xs text-blue-300 font-bold">
                       {pkg.pricePerStory} לסיפור
                     </div>
+                    <div className="text-[10px] text-white/70 font-semibold mt-1">
+                      ✨ 1 קרדיט = סיפור מלא
+                    </div>
                     {pkg.freeEdits > 0 && (
                       <div className="bg-white/10 backdrop-blur-sm border border-white/15 rounded-lg px-2 py-1 mt-2">
                         <span className="text-[10px] text-green-300 font-bold">
@@ -522,144 +443,6 @@ const Upgrade = () => {
               onStoriesAdded={() => { refetchCredits(); }}
             />
           </div>
-
-          {/* Upsell Packages — 2 column grid */}
-          <div className="grid grid-cols-2 gap-3 mb-4">
-            {/* Coloring Kit */}
-            <div className="relative rounded-2xl p-[2px]"
-              style={{
-                background: 'linear-gradient(135deg, hsl(30,80%,55%), hsl(340,70%,55%), hsl(30,80%,55%))',
-                backgroundSize: '300% 300%',
-                animation: 'sparkle-border 4s ease-in-out infinite',
-              }}>
-              <span className="absolute -top-2 -left-2 bg-amber-400 text-amber-900 text-[10px] font-black px-2 py-0.5 rounded-full shadow z-10">בקרוב 🔜</span>
-              <div className="bg-[hsl(260,50%,13%)]/95 backdrop-blur-md rounded-[14px] p-3 space-y-2 h-full flex flex-col opacity-60">
-                <div className="flex items-center gap-1.5">
-                  <span className="text-lg">🎨</span>
-                  <h3 className="font-black text-xs text-orange-200">{COLORING_KIT_PACKAGE.label}</h3>
-                </div>
-                <p className="text-[11px] text-white/70 leading-relaxed flex-1">
-                  {COLORING_KIT_PACKAGE.pages} דפי צביעה מקוריים מבוססי AI לסיפורים שלכם
-                </p>
-                <div className="text-center">
-                  <span className="text-lg font-black text-white">₪{COLORING_KIT_PACKAGE.price}</span>
-                </div>
-                <Button
-                  disabled
-                  size="sm"
-                  className="w-full bg-gradient-to-r from-orange-500 to-pink-500 text-white font-bold rounded-xl text-xs cursor-not-allowed disabled:opacity-100"
-                >
-                  בקרוב 🔜
-                </Button>
-              </div>
-            </div>
-
-            {/* Edit Kit */}
-            <div className="relative rounded-2xl p-[2px]"
-              style={{
-                background: 'linear-gradient(135deg, hsl(150,60%,50%), hsl(200,70%,50%), hsl(150,60%,50%))',
-                backgroundSize: '300% 300%',
-                animation: 'sparkle-border 4s ease-in-out infinite',
-              }}>
-              <span className="absolute -top-2 -left-2 bg-amber-400 text-amber-900 text-[10px] font-black px-2 py-0.5 rounded-full shadow z-10">בקרוב 🔜</span>
-              <div className="bg-[hsl(260,50%,13%)]/95 backdrop-blur-md rounded-[14px] p-3 space-y-2 h-full flex flex-col opacity-60">
-                <div className="flex items-center gap-1.5">
-                  <span className="text-lg">✏️</span>
-                  <h3 className="font-black text-xs text-green-200">{EDIT_KIT_PACKAGE.label}</h3>
-                </div>
-                <p className="text-[11px] text-white/70 leading-relaxed flex-1">
-                  {EDIT_KIT_PACKAGE.edits} עריכות לסיפורים קיימים — תיקון שגיאות ותוכן
-                </p>
-                <div className="text-center">
-                  <span className="text-lg font-black text-white">₪{EDIT_KIT_PACKAGE.price}</span>
-                </div>
-                <Button
-                  disabled
-                  size="sm"
-                  className="w-full bg-gradient-to-r from-green-500 to-teal-500 text-white font-bold rounded-xl text-xs cursor-not-allowed disabled:opacity-100"
-                >
-                  בקרוב 🔜
-                </Button>
-              </div>
-            </div>
-          </div>
-
-          {/* Coloring Kit PayPal */}
-          {showColoringKitPayPal && (
-            <div className="bg-white/15 backdrop-blur-md rounded-xl border border-orange-400/30 p-4 mb-4 shadow-lg">
-              <p className="text-sm font-bold text-white text-center mb-3">
-                {COLORING_KIT_PACKAGE.label} — {COLORING_KIT_PACKAGE.pages} דפי צביעה תמורת ₪{COLORING_KIT_PACKAGE.price}
-              </p>
-              <UserDetailsForm ref={userDetailsRef} onValidChange={setUserDetailsValid} />
-              {!userDetailsValid && <p className="text-red-400 text-xs text-center mb-2">נא להזין טלפון תקין להמשך</p>}
-              {userDetailsValid && <PayPalButton
-                amount={COLORING_KIT_PACKAGE.price}
-                onSuccess={async (orderId: string) => {
-                  if (!user) return;
-                  try {
-                    const result = await verifyPurchase(orderId, COLORING_KIT_PACKAGE.id, COLORING_KIT_PACKAGE.price);
-                    setShowColoringKitPayPal(false);
-                    trackEvent({ eventType: 'feature_used', metadata: { feature: 'coloring_kit_purchased', pages: COLORING_KIT_PACKAGE.pages, payment_method: 'paypal' } });
-                    window.dispatchEvent(new CustomEvent('coloring-credits-updated'));
-                    toast.success('🎨 נוספו קרדיטי צביעה!', {
-                      description: `נוספו ${COLORING_KIT_PACKAGE.pages} דפי צביעה לחשבונך`,
-                      duration: 6000,
-                    });
-                    await userDetailsRef.current?.saveToProfile();
-                  } catch (error) {
-                    console.error('🎨 [COLORING PURCHASE] ❌ FAILED:', error);
-                    setShowColoringKitPayPal(false);
-                    setShowFailed(true);
-                    setFailedPurchaseType('coloring');
-                  }
-                }}
-                onError={() => { setShowColoringKitPayPal(false); setShowFailed(true); setFailedPurchaseType('coloring'); }}
-                onCancel={() => setShowColoringKitPayPal(false)}
-              />}
-              <button onClick={() => setShowColoringKitPayPal(false)} className="w-full text-center text-white/50 text-xs mt-3 hover:text-white/70 transition-colors">
-                ביטול
-              </button>
-            </div>
-          )}
-
-          {/* Edit Kit PayPal */}
-          {showEditKitPayPal && (
-            <div className="bg-white/15 backdrop-blur-md rounded-xl border border-green-400/30 p-4 mb-4 shadow-lg">
-              <p className="text-sm font-bold text-white text-center mb-3">
-                {EDIT_KIT_PACKAGE.label} — {EDIT_KIT_PACKAGE.edits} עריכות תמורת ₪{EDIT_KIT_PACKAGE.price}
-              </p>
-              <UserDetailsForm ref={userDetailsRef} onValidChange={setUserDetailsValid} />
-              {!userDetailsValid && <p className="text-red-400 text-xs text-center mb-2">נא להזין טלפון תקין להמשך</p>}
-              {userDetailsValid && <PayPalButton
-                amount={EDIT_KIT_PACKAGE.price}
-                onSuccess={async (orderId: string) => {
-                  if (!user) return;
-                  try {
-                    await verifyPurchase(orderId, EDIT_KIT_PACKAGE.id, EDIT_KIT_PACKAGE.price);
-                    setShowEditKitPayPal(false);
-                    trackEvent({ eventType: 'feature_used', metadata: { feature: 'edit_kit_purchased', edits: EDIT_KIT_PACKAGE.edits, payment_method: 'paypal' } });
-                    window.dispatchEvent(new Event('editing-credits-updated'));
-                    toast.success('✏️ נוספו קרדיטי עריכה!', {
-                      description: `נוספו ${EDIT_KIT_PACKAGE.edits} עריכות לחשבונך`,
-                      duration: 6000,
-                    });
-                    await userDetailsRef.current?.saveToProfile();
-                  } catch (error) {
-                    console.error('✏️ [EDIT PURCHASE] ❌ FAILED:', error);
-                    setShowEditKitPayPal(false);
-                    setShowFailed(true);
-                    setFailedPurchaseType('edit');
-                  }
-                }}
-                onError={() => { setShowEditKitPayPal(false); setShowFailed(true); setFailedPurchaseType('edit'); }}
-                onCancel={() => setShowEditKitPayPal(false)}
-              />}
-              
-              <button onClick={() => setShowEditKitPayPal(false)} className="w-full text-center text-white/50 text-xs mt-3 hover:text-white/70 transition-colors">
-                ביטול
-              </button>
-            </div>
-          )}
 
           {/* Credit Card Note — glass style */}
           <div className="bg-white/10 backdrop-blur-sm border border-white/15 rounded-xl p-3 mb-4">
