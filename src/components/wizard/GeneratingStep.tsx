@@ -178,8 +178,11 @@ const GeneratingStep = ({ formData, onComplete }: GeneratingStepProps) => {
         });
       }
 
-      const topicLabel = formData.topic === "custom" 
-        ? formData.customTopic 
+      const isCustom = formData.topic === "custom";
+      // For custom (free-text) topics, do NOT send the user's text as the displayed topic.
+      // It should only guide the prompt — never appear as a story page text or as the cover title.
+      const topicLabel = isCustom
+        ? (formData.language === "en" ? "A Personal Adventure" : "הרפתקה אישית")
         : getTopicLabel(formData.topic);
 
       const allTopics = CHARACTER_SECTIONS.flatMap(s => s.topics);
@@ -211,7 +214,8 @@ const GeneratingStep = ({ formData, onComplete }: GeneratingStepProps) => {
             topic: topicLabel,
             topicId: formData.topic,
             isCustomTopic: formData.topic === "custom",
-            topicDescription,
+            // For custom topics, pass the user's free-text as hidden prompt guidance only.
+            topicDescription: isCustom ? (formData.customTopic || "") : topicDescription,
             nikud: formData.nikud,
             language: formData.language,
             childPhoto: formData.childPhoto,

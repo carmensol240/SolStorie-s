@@ -234,7 +234,11 @@ export const usePdfExport = () => {
     const illustrationUrls = story.pages
       .map(p => p.illustration_url)
       .filter((url): url is string => !!url);
-    const signedUrlMap = await fetchSignedUrls(illustrationUrls, story.id);
+    // Include the cover image so it gets a signed URL too — otherwise the private bucket
+    // returns 401 and we fall back to the generic app cover.
+    const urlsToSign = [...illustrationUrls];
+    if (story.cover_url) urlsToSign.push(story.cover_url);
+    const signedUrlMap = await fetchSignedUrls(urlsToSign, story.id);
 
     const SIZE = 2480;
     const pdf = new jsPDF({
@@ -252,7 +256,10 @@ export const usePdfExport = () => {
 
     // -- 1. Cover page (uses existing app cover_url) --
     container.innerHTML = '';
-    const coverEl = await renderCoverPage(story.child_name, story.topic, story.language, story.cover_url);
+    const signedCoverUrl = story.cover_url
+      ? (signedUrlMap[story.cover_url] || story.cover_url)
+      : null;
+    const coverEl = await renderCoverPage(story.child_name, story.topic, story.language, signedCoverUrl);
     container.appendChild(coverEl);
     await captureHtmlToPage(container, pdf, true, true);
 
@@ -277,9 +284,13 @@ export const usePdfExport = () => {
           illustrationDataUrl = await loadImageAsDataUrl(resolvedUrl);
         } catch { /* skip */ }
       }
-      container.innerHTML = '';
-      container.appendChild(renderIllustrationOnlyPage(illustrationDataUrl));
-      await captureHtmlToPage(container, pdf, false);
+      // Only add an illustration page when we actually have an illustration —
+      // otherwise we'd render an empty rainbow placeholder page.
+      if (illustrationDataUrl) {
+        container.innerHTML = '';
+        container.appendChild(renderIllustrationOnlyPage(illustrationDataUrl));
+        await captureHtmlToPage(container, pdf, false);
+      }
     }
 
     document.body.removeChild(container);

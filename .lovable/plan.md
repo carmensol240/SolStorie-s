@@ -1,67 +1,51 @@
-## מטרה
-לעבור על כל הטקסטים הגלויים למשתמש באפליקציה ולהמיר את לשון הפנייה מנקבה יחיד (הורידי, שלחי, בחרי...) ללשון רבים ניטרלית (הורידו, שלחו, בחרו...).
 
-## היקף
-סריקה ראשונית מצאה כ-34 קבצים עם ~120 מופעים של פעלים בלשון נקבה. הקבצים העיקריים:
+## תיקון 1 — טקסט חופשי לא מופיע בסיפור / ב-PDF
 
-**עמודים (Pages):**
-- `Upgrade.tsx`, `Auth.tsx`, `Library.tsx`, `StoryViewer.tsx`, `Settings.tsx`, `About.tsx`, `Onboarding.tsx`, `ShareAndEarn.tsx`, `GiftCard.tsx`, `FlipbookViewer.tsx`, `ResetPassword.tsx`, `LegalConsent.tsx`, `TermsOfService.tsx`, `AdminDashboard.tsx`, `AdminReviews.tsx`
+**מקור הבעיה:** ב-`GeneratingStep.tsx` `topicLabel` נשלח כ-`topic` כשהמשתמש בחר "custom". בצד השרת (`generate-story/index.ts`) המחרוזת נמסרת כמשפט מלא ל-AI (`**נושא הסיפור:** ${topic}`) וגם נשמרת ל-`stories.topic` — ומשם היא מוצגת בכריכת ה-PDF ובאפליקציה.
 
-**קומפוננטות:**
-- `wizard/topic-data.ts` (33 מופעים – הקובץ הכבד ביותר), `wizard/GeneratingStep.tsx`, `wizard/TopicStep.tsx`, `wizard/ChildInfoStep.tsx`
-- `paywall/PurchaseSuccessModal.tsx`, `paywall/TrustBadges.tsx`
-- `story/BookHeader.tsx`, `story/InstallAppPrompt.tsx`, `story/PdfFeaturePopup.tsx`
-- `upgrade/FlippingBookAnimation.tsx`
-- `home/GuestLanding.tsx`, `shared/AboutSolStoriesContent.tsx`, `profile/GoldenHeartRewards.tsx`
-- `MobileNavigation.tsx`, `AccessibilityMenu.tsx`, `DebugMenu.tsx`, `parental/math-challenge.tsx`
+**שינוי:**
+1. ב-`GeneratingStep.tsx` — כשהנושא הוא `custom`, לשלוח:
+   - `topic: ""` (ריק)
+   - `customTopic: formData.customTopic` (שדה ייעודי חדש להעברה)
+   - `isCustomTopic: true` (קיים)
+2. ב-`supabase/functions/generate-story/index.ts`:
+   - לקרוא את `customTopic` מהבקשה.
+   - בפרומפט (גרסת עברית ואנגלית): להחליף את `**נושא הסיפור:** ${topic}` בבלוק הנחיה מוסתר כשמדובר בנושא חופשי, למשל:
+     ```
+     **השראה ליצירת הסיפור (להנחיה בלבד — אסור לצטט מילולית ואסור להכניס את הטקסט הזה לסיפור):**
+     ${customTopic}
+     ```
+   - להנחות מפורשות שאסור להעתיק את הטקסט הזה לתוך עמודי הסיפור.
+   - לבקש מהמודל ליצור כותרת קצרה (3–5 מילים) שתישמר כ-`stories.topic` — לשימוש בכריכת PDF ובתצוגה. אם המודל לא מחזיר כותרת, fallback קצר: לקצץ את `customTopic` ל-30 תווים ראשונים.
+3. אין לשנות את הצגת `story.topic` במקומות אחרים — היא תקבל אוטומטית את הכותרת הקצרה ולא את הטקסט החופשי.
 
-**נתונים:**
-- `lib/topic-translations.ts`, `data/demo-story.ts`
+## תיקון 2 — כריכת PDF מציגה כריכה גנרית
 
-## כללי המרה
-| נקבה יחיד | רבים ניטרלי |
-|-----------|-------------|
-| הורידי | הורידו |
-| שלחי | שלחו |
-| היכנסי / הכנסי | היכנסו / הכנסו |
-| בחרי | בחרו |
-| צרי / יצרי | צרו / יצרו |
-| לחצי | לחצו |
-| נסי | נסו |
-| הוסיפי | הוסיפו |
-| מלאי | מלאו |
-| שמרי | שמרו |
-| ערכי | ערכו |
-| הדפיסי | הדפיסו |
-| צבעי | צבעו |
-| הקליטי | הקליטו |
-| כתבי / הקלידי | כתבו / הקלידו |
-| אשרי | אשרו |
-| המשיכי | המשיכו |
-| חזרי / סגרי / פתחי | חזרו / סגרו / פתחו |
-| העלי / בדקי | העלו / בדקו |
-| שתפי | שתפו |
-| התחילי / סיימי | התחילו / סיימו |
-| תארי / ספרי (פועל) | תארו / ספרו |
-| גלי | גלו |
-| רשמי / הירשמי | רשמו / הירשמו |
-| התחברי / התנתקי | התחברו / התנתקו |
-| ראי / קראי / שמעי | ראו / קראו / שמעו |
+**מקור הבעיה:** ב-`use-pdf-export.ts` `renderCoverPage` מקבל `story.cover_url` ישירות ל-`loadImageAsDataUrl`. כש-`cover_url` הוא נתיב יחסי בבאקט פרטי, `fetch` נכשל ונופל ל-`solMagicBookCover`.
 
-ארחיב את הרשימה לפי הצורך בזמן העבודה (כל פועל נוסף בנקבה שייתקל).
+**שינוי ב-`exportSquare` בלבד:**
+- לפני קריאת `renderCoverPage`, להוסיף את `story.cover_url` לרשימה שעוברת ל-`fetchSignedUrls(...)` יחד עם איורי העמודים (אותה קריאה אחת, אותו `storyId`).
+- להעביר ל-`renderCoverPage` את ה-URL החתום מתוך `signedUrlMap[story.cover_url] || story.cover_url`.
+- שום שינוי בלוגיקת ה-fallback — אם החתימה נכשלת באמת, עדיין יוצג `solMagicBookCover`.
 
-## גישת ביצוע
-1. לעבור קובץ-קובץ לפי הרשימה למעלה (לא search-and-replace גורף, כדי להימנע מהחלפות שגויות).
-2. **זהירות במילים דו-משמעיות** – לא להחליף:
-   - `ספרי` כשמדובר ב״ספרי ילדים״ (שם עצם – ספרים), רק כשמדובר בפועל ״ספרי לי״.
-   - `גלי` כשמדובר ב״גלים״ (waves).
-   - `יצרי` כחלק ממילה ארוכה יותר.
-   - מחרוזות ב-prompts ל-AI שמיועדות למודל ולא למשתמש (אם יש כאלה).
-3. שינוי רק בטקסטים גלויים למשתמש – לא להחליף שמות משתנים, מפתחות, או הערות קוד.
-4. שמירה על שאר הניסוח, ניקוד, אימוג'ים וסימני פיסוק.
+## תיקון 3 — דף קשת ריק בין דפי הטקסט
 
-## אימות
-לאחר השינויים – הרצת חיפוש חוזר על אותם הפעלים בנקבה כדי לוודא שלא נשארו מופעים גלויים למשתמש.
+**מקור הבעיה:** ב-`exportSquare` כל עמוד וירטואלי מייצר *תמיד* שני דפי PDF: דף טקסט + דף איור. כש-`illustrationDataUrl` הוא `null`, `renderIllustrationOnlyPage` מצייר ריבוע קשת ריק.
 
-## הערה
-זיכרון הפרויקט הקיים (`mem://ai/hebrew-grammar-and-style`) מתייחס לכללי דקדוק להפקת סיפורים – ייתכן שיש לעדכן גם אותו כדי שכל סיפור עתידי ייכתב בלשון רבים ניטרלית. אם רוצים – אעדכן גם את הכלל הזה בסיום.
+**שינוי ב-`exportSquare` בלבד:** לעטוף את חלק האיור ב-`if (illustrationDataUrl)`:
+```ts
+if (illustrationDataUrl) {
+  container.innerHTML = '';
+  container.appendChild(renderIllustrationOnlyPage(illustrationDataUrl));
+  await captureHtmlToPage(container, pdf, false);
+}
+```
+כשאין איור — לא נוסף דף כלל. דף הטקסט תמיד נשאר. (פונקציית ה-Rainbow לא נמחקת — רק לא תיקרא בפועל בזרימה הזו, כדי לשמור על שינוי מינימלי.)
+
+## קבצים להעריכה
+
+- `src/components/wizard/GeneratingStep.tsx` — שליחת `customTopic` נפרד ו-`topic` ריק כשמדובר בנושא חופשי.
+- `supabase/functions/generate-story/index.ts` — קליטת `customTopic`, הכנסתה כהנחיית פרומפט בלבד, יצירת/שמירת כותרת קצרה כ-`topic`.
+- `src/hooks/use-pdf-export.ts` — חתימת `cover_url` ודילוג על דף איור ריק.
+
+לא נוגעים בקבצים נוספים, ב-UI של הקורא הדיגיטלי, או בלוגיקת תרגום הנושאים.
