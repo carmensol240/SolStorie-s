@@ -1,7 +1,12 @@
 import "https://deno.land/x/xhr@0.1.0/mod.ts";
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.39.3";
-import { NEGATIVE_PROMPT, GENDER_SYMBOL_RESTRICTION } from "../_shared/style-config.ts";
+import {
+  NEGATIVE_PROMPT,
+  GENDER_SYMBOL_RESTRICTION,
+  CHARACTER_CONSISTENCY_PROMPT,
+  PIXAR_STYLE,
+} from "../_shared/style-config.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -109,6 +114,78 @@ async function resolveIllustrationUrl(
   return data?.publicUrl || null;
 }
 
+// ── Resolve a child photo (storage path / data URI / http URL) to an HTTP URL ──
+async function resolveChildPhotoUrl(
+  supabase: ReturnType<typeof createClient>,
+  photo: string | null | undefined,
+  userId: string | null,
+): Promise<string | null> {
+  if (!photo) return null;
+  if (photo.startsWith("http")) return photo;
+
+  if (photo.startsWith("data:")) {
+    try {
+      const base64Content = photo.split(",")[1] || photo;
+      const binaryString = atob(base64Content);
+      const bytes = new Uint8Array(binaryString.length);
+      for (let i = 0; i < binaryString.length; i++) bytes[i] = binaryString.charCodeAt(i);
+      const tempPath = `temp-refs/${userId || "anon"}/${Date.now()}.png`;
+      const { error: uploadErr } = await supabase.storage
+        .from("child-photos")
+        .upload(tempPath, bytes, { contentType: "image/png", upsert: true });
+      if (uploadErr) return null;
+      const { data: signedData } = await supabase.storage
+        .from("child-photos")
+        .createSignedUrl(tempPath, 3600);
+      return signedData?.signedUrl || null;
+    } catch {
+      return null;
+    }
+  }
+
+  const { data: signedData } = await supabase.storage
+    .from("child-photos")
+    .createSignedUrl(photo, 3600);
+  return signedData?.signedUrl || null;
+}
+
+// ── Build a structured character description block from saved avatar profile ──
+function buildCharacterDescription(
+  avatarDescriptionJson: string | null,
+  gender: string | null,
+  ageRange: string | null,
+): string {
+  const isFemale = (gender || "").toLowerCase() === "female";
+  const genderWord = isFemale ? "girl" : "boy";
+  const genderRule = isFemale
+    ? "This character is a GIRL — feminine or neutral clothing only; NEVER kippah/yarmulke/tzitzit or any male religious symbols."
+    : "This character is a BOY — masculine clothing only (pants/shorts/t-shirt/hoodie/sneakers); NEVER a dress, skirt, tutu, flower crown, hair bow, makeup, or any feminine clothing or accessories.";
+
+  let hair = isFemale ? "long dark brown hair" : "short tousled dark brown hair";
+  let clothing = "colorful casual clothes";
+  let skin = "warm medium olive";
+  let eyes = "large warm brown";
+  const age = ageRange || (isFemale ? "4" : "3-6");
+
+  if (avatarDescriptionJson) {
+    try {
+      const p = JSON.parse(avatarDescriptionJson);
+      if (p.hairDescription) hair = p.hairDescription;
+      else if (p.hair_color || p.hair_style) hair = `${p.hair_color || "brown"} ${p.hair_style || "hair"}`;
+      if (p.clothingDescription) clothing = p.clothingDescription;
+      else if (p.clothing_color || p.clothing_type) clothing = `${p.clothing_color || "colorful"} ${p.clothing_type || "clothes"}`;
+      if (p.skinTone || p.skin_tone) skin = p.skinTone || p.skin_tone;
+      if (p.eyeColor || p.eye_color) eyes = p.eyeColor || p.eye_color;
+    } catch {
+      // ignore, use defaults
+    }
+  }
+
+  return `CHARACTER DESCRIPTION (the main character MUST look IDENTICAL to this in the cover):
+A ${genderWord} aged ${age} with ${hair}, ${skin} skin, and ${eyes} eyes. Wearing ${clothing}.
+${genderRule}`;
+}
+
 serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
@@ -136,7 +213,54 @@ serve(async (req) => {
 
     console.log(`📋 Generating cover for story ${storyId}, topic: ${topic}, title: ${title}`);
 
-    // ── Find the page with the longest illustration_prompt ──
+    // ── Load story (for child + gender) ──
+    const { data: story } = await supabase
+      .from("stories")
+      .select("child_id, child_name, child_gender, age_range, user_id")
+      .eq("id", storyId)
+      .maybeSingle();
+
+    // ── Load child (for photo + structured avatar description) ──
+    let childPhoto: string | null = null;
+    let avatarUrl: string | null = null;
+    let avatarDescription: string | null = null;
+    if (story?.child_id) {
+      const { data: child } = await supabase
+        .from("children")
+        .select("photo_url, avatar_url, avatar_description")
+        .eq("id", story.child_id)
+        .maybeSingle();
+      childPhoto = child?.photo_url || null;
+      avatarUrl = child?.avatar_url || null;
+      avatarDescription = child?.avatar_description || null;
+    } else if (story?.user_id && story?.child_name) {
+      const { data: child } = await supabase
+        .from("children")
+        .select("photo_url, avatar_url, avatar_description")
+        .eq("user_id", story.user_id)
+        .eq("name", story.child_name)
+        .maybeSingle();
+      childPhoto = child?.photo_url || null;
+      avatarUrl = child?.avatar_url || null;
+      avatarDescription = child?.avatar_description || null;
+    }
+
+    // Prefer avatar_url (already a Pixar-style render), fall back to original photo
+    const facePhoto = avatarUrl || childPhoto;
+    const faceUrl = await resolveChildPhotoUrl(supabase, facePhoto, story?.user_id || null);
+    if (faceUrl) {
+      console.log(`🖼️ Face reference resolved (avatar=${!!avatarUrl}, photo=${!!childPhoto})`);
+    } else {
+      console.warn(`⚠️ No face reference available for story ${storyId} — cover will use description-only`);
+    }
+
+    const characterDescription = buildCharacterDescription(
+      avatarDescription,
+      story?.child_gender || null,
+      story?.age_range || null,
+    );
+
+    // ── Find the page with the longest illustration_prompt (for scene/outfit context) ──
     const { data: allPages } = await supabase
       .from("story_pages")
       .select("illustration_prompt, illustration_url, page_number")
@@ -151,47 +275,47 @@ serve(async (req) => {
       ?.sort((a, b) => (b.illustration_prompt?.length || 0) - (a.illustration_prompt?.length || 0))
       ?.[0];
 
-    if (!bestPage?.illustration_url) {
-      console.error(`❌ No illustrated page found for story ${storyId}`);
-      return new Response(JSON.stringify({ error: "No illustrated pages found to base cover on" }), {
-        status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
-    }
+    const sceneContext = bestPage?.illustration_prompt
+      ? bestPage.illustration_prompt.substring(0, 600)
+      : (topic ? `A heroic moment from a children's story about ${topic}.` : "A magical heroic moment from the story.");
 
-    console.log(`📋 Best page: #${bestPage.page_number}, prompt length: ${bestPage.illustration_prompt?.length}, url: ${bestPage.illustration_url}`);
+    console.log(`📋 Scene context source: ${bestPage ? `page #${bestPage.page_number}` : "topic-fallback"}`);
 
-    // ── Resolve the illustration URL to a full HTTP URL ──
-    const referenceImageUrl = await resolveIllustrationUrl(supabase, bestPage.illustration_url);
-    if (!referenceImageUrl) {
-      console.error(`❌ Could not resolve illustration URL: ${bestPage.illustration_url}`);
-      return new Response(JSON.stringify({ error: "Could not resolve reference illustration URL" }), {
-        status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
-    }
+    // ── Build the cover prompt — face reference + structured character description ──
+    const faceRefBlock = faceUrl
+      ? `FACE REFERENCE: The main character's face MUST be an EXACT 3D Pixar rendering of the child in the reference photo. Keep all facial features, hair color, hair texture, and skin tone identical to the reference.`
+      : "";
 
-    console.log(`📋 Reference image URL: ${referenceImageUrl}`);
+    const coverPrompt = `${faceRefBlock}
 
-    // ── Build the cover prompt ──
-    const coverPrompt = `Create a children's book COVER illustration in the EXACT SAME art style as the reference image — same color palette, same lighting, same Pixar 3D CGI quality. This is a DIFFERENT scene from the same story: use a different pose, different camera angle, and different composition than the reference. Leave 20% space at the top for the title. No text. Same character, same environment theme, but a fresh new moment.
+${characterDescription}
+
+STYLE: ${PIXAR_STYLE}
+
+SCENE: A children's book COVER illustration showing the main character in a fresh, heroic moment inspired by this story: ${sceneContext}
+
+COMPOSITION: Leave roughly 20% empty space at the TOP of the image for a title (do NOT add any text). Full-bleed Pixar 3D CGI illustration. Cinematic warm lighting, rich colorful background.
+
+${CHARACTER_CONSISTENCY_PROMPT}
 
 ${GENDER_SYMBOL_RESTRICTION}
 
 NEGATIVE: ${NEGATIVE_PROMPT}`;
 
-    console.log(`📋 Cover prompt: ${coverPrompt.substring(0, 300)}...`);
+    console.log(`📋 Cover prompt (first 300): ${coverPrompt.substring(0, 300)}...`);
 
     const coverStartTime = Date.now();
+
+    const userContent: Array<Record<string, unknown>> = [];
+    if (faceUrl) {
+      userContent.push({ type: "image_url", image_url: { url: faceUrl } });
+    }
+    userContent.push({ type: "text", text: coverPrompt });
 
     const requestBody = {
       model: "google/gemini-3-pro-image-preview",
       modalities: ["image", "text"],
-      messages: [{
-        role: "user",
-        content: [
-          { type: "image_url", image_url: { url: referenceImageUrl } },
-          { type: "text", text: coverPrompt },
-        ],
-      }],
+      messages: [{ role: "user", content: userContent }],
     };
 
     const imageUrl = await callGeminiImage(LOVABLE_API_KEY, requestBody, 3, "cover");
@@ -201,12 +325,12 @@ NEGATIVE: ${NEGATIVE_PROMPT}`;
     try {
       await supabase.from("cover_logs").insert({
         story_id: storyId,
-        selected_illustration_prompt: bestPage.illustration_prompt?.substring(0, 1000) || null,
-        had_face_reference: false,
+        selected_illustration_prompt: bestPage?.illustration_prompt?.substring(0, 1000) || null,
+        had_face_reference: !!faceUrl,
         cast_character: null,
         topic_setting: null,
-        story_context: `Reference page: ${bestPage.page_number}`,
-        cover_path: "illustration-reference",
+        story_context: bestPage ? `Reference page: ${bestPage.page_number}` : "topic-fallback",
+        cover_path: faceUrl ? "face-reference+character-description" : "character-description-only",
         duration_ms: durationMs,
       });
     } catch (logErr) {
@@ -220,7 +344,7 @@ NEGATIVE: ${NEGATIVE_PROMPT}`;
       });
     }
 
-    console.log(`✅ Cover generated for story ${storyId} (based on page ${bestPage.page_number}, ${durationMs}ms)`);
+    console.log(`✅ Cover generated for story ${storyId} (face_ref=${!!faceUrl}, scene_src=${bestPage ? `page#${bestPage.page_number}` : "topic"}, ${durationMs}ms)`);
     return uploadCoverAndSave(supabase, storyId, imageUrl);
   } catch (error) {
     console.error("generate-cover error:", error);
