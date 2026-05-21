@@ -1,6 +1,6 @@
 import { useState, useEffect, useLayoutEffect, useRef, useCallback, useMemo } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { Home, BookOpen, Palette, Wand2, Loader2, ImageOff, Star, Send, ChevronRight, ChevronLeft, ArrowRight, Link2, Printer } from "lucide-react";
+import { Home, BookOpen, Palette, Wand2, Loader2, ImageOff, Star, Send, ChevronRight, ChevronLeft, ArrowRight, Link2, Printer, Eye } from "lucide-react";
 import SeriesNavBar, { SeriesPart } from "@/components/story/SeriesNavBar";
 import { MissingIllustrationPrompt } from "@/components/story/MissingIllustrationPrompt";
 import { Button } from "@/components/ui/button";
@@ -219,6 +219,7 @@ const [currentPage, setCurrentPage] = useState(0);
   const [showGenderSwapDialog, setShowGenderSwapDialog] = useState(false);
   const [showEditConfirmDialog, setShowEditConfirmDialog] = useState(false);
   const [showBuyToPrintDialog, setShowBuyToPrintDialog] = useState(false);
+  const [showPrintPreviewModal, setShowPrintPreviewModal] = useState(false);
   const [hasPurchasedPackage, setHasPurchasedPackage] = useState(false);
   // isReadAloudDismissed removed — read-aloud only in Accessibility Menu
   // Portrait overlay removed - using vertical layout now
@@ -1480,16 +1481,12 @@ const [currentPage, setCurrentPage] = useState(0);
                     </Button>
                     <Button
                       onClick={() => {
-                        if (hasPurchasedPackage && story) {
-                          exportToPdf(story);
-                        } else {
-                          setShowBuyToPrintDialog(true);
-                        }
+                        setShowPrintPreviewModal(true);
                       }}
                       className="bg-gradient-to-r from-indigo-500 to-purple-600 hover:from-indigo-600 hover:to-purple-700 text-white font-bold px-8 py-3 rounded-full shadow-xl text-base gap-2 mt-2"
                     >
-                      <Printer className="w-5 h-5" />
-                      🖨️ הדפס את הסיפור לספר
+                      <Eye className="w-5 h-5" />
+                      👁️ ראו איך הספר של {story?.child_name} ייראה מודפס!
                     </Button>
                   </div>
                 </div>
