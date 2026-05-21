@@ -595,8 +595,10 @@ const Library = () => {
           <div className="flex flex-col gap-3 w-full max-w-xs mb-8">
             {[
               { emoji: "📚", text: "ספרייה משפחתית עם כל הסיפורים " },
-              { emoji: "🎨", text: "איורים תלת-ממדיים קסומים בדמות הילד" },
+              { emoji: "🎨", text: "איורים מקצועיים בסגנון סרטי ילדים המותאמים לילד שלך" },
               { emoji: "📥", text: "קראו גם ללא אינטרנט בכל מקום ובכל שעה" },
+              { emoji: "🖨️", text: "הורידו PDF והדפיסו לספר אמיתי" },
+              { emoji: "🎙️", text: "הקליטו את הסיפור לזכרון לכל החיים" },
             ].map((feature, i) => (
               <div key={i} className="flex items-center gap-3 rounded-2xl px-4 py-3" style={{ background: 'rgba(255,255,255,0.08)', backdropFilter: 'blur(8px)' }}>
                 <span className="text-2xl flex-shrink-0">{feature.emoji}</span>
