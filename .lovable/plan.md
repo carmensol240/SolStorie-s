@@ -1,23 +1,28 @@
-## תיקון פלטת צבעים נחתכת בדסקטופ – Online Coloring Canvas
+## הבעיה
 
-### הבעיה
-ב-`src/components/story/OnlineColoringCanvas.tsx`:
-- בדסקטופ (`md+`) כפתורי הצבע גדלים ל-`w-14 h-14` (56px), והפלטה כוללת 3 שורות (כלים + skin/earth + צבעים) – גובה כולל ~170-200px.
-- `resizeCanvases` שומר רק `toolbarHeight = 100` בכל הגדלים.
-- המעטפת `h-100dvh` עם `overflow-hidden` חותכת את התחתית של הפלטה.
+בקומפוננטה `src/components/upgrade/FlippingBookAnimation.tsx` (שמופיעה בדף `/upgrade`), על גב הספר מוצג טקסט ברירת מחדל "הסיפור של הסיפור שלך" כשאין שם זמין. הקומפוננטה כיום שולפת שם מטבלת `children`, ולא מהפרופיל של המשתמש.
 
-### השינוי
-קובץ יחיד: `src/components/story/OnlineColoringCanvas.tsx`
+## התיקון
 
-1. ב-`resizeCanvases` להחליף:
-   - `const toolbarHeight = isMobile ? 100 : 100;`
-   - ב-`isMobile ? 110 : 200` (top bar ~48 + bottom toolbar ~150 בדסקטופ).
+לעדכן את `FlippingBookAnimation.tsx` כך שישלוף את שם הילד מטבלת `profiles` ב-Supabase במקום מטבלת `children`.
 
-2. בשתי שורות הצבעים (SKIN_EARTH + COLORS) להחליף:
-   - `md:w-14 md:h-14` → `md:w-11 md:h-11` (44px) כדי שהפלטה תיכנס במסכי לפטופ נמוכים (768-800px).
+### סדר העדיפויות לשם המוצג
 
-לא נוגעים בלוגיקת ציור, היסטוריה או כל UI אחר.
+1. `profiles.first_name` (הכי מועדף — שם פרטי נקי)
+2. `profiles.display_name` (גיבוי)
+3. fallback ל-`children.name` של הילד האחרון שנוצר (לתאימות אחורה, אם בפרופיל אין שם)
+4. אם אין כלום — להציג רק "הסיפור שלי" (ולא "הסיפור של הסיפור שלך")
 
-### בדיקה
-- דסקטופ 1366×768 ו-1280×800: כל שלוש שורות הפלטה נראות במלואן.
-- מובייל: ללא רגרסיה (השינוי במידות חל רק ב-`md+`).
+### שינויים בקובץ
+
+`src/components/upgrade/FlippingBookAnimation.tsx`:
+- להחליף את ה-`useEffect` שמושך מ-`children` בשאילתה שמושכת קודם את `first_name, display_name` מ-`profiles` לפי `user.id`.
+- אם שניהם ריקים — לבצע fallback ל-`children` כפי שקיים היום.
+- ה-state `childName` יישאר, אבל ה-default יהיה `"הסיפור שלי"` במקום `"הסיפור שלך"` כדי שגם במקרה הקיצון לא יופיע הטקסט הכפול "הסיפור של הסיפור שלך".
+- הרינדור (`{childName}` ו-`💛 הסיפור של {childName}`) נשאר זהה.
+
+### מה לא משתנה
+
+- שום קובץ אחר.
+- הלוגיקה של הרכישה, ה-state של הסיפור, או ה-RLS.
+- העיצוב והאנימציה של הספר.

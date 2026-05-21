@@ -6,23 +6,39 @@ import { supabase } from "@/integrations/supabase/client";
 
 export const FlippingBookAnimation = () => {
   const { user } = useAuth();
-  const [childName, setChildName] = useState<string>("הסיפור שלך");
+  const [childName, setChildName] = useState<string>("הסיפור שלי");
 
   useEffect(() => {
     if (!user?.id) {
-      setChildName("הסיפור שלך");
+      setChildName("הסיפור שלי");
       return;
     }
     let cancelled = false;
     (async () => {
-      const { data } = await supabase
+      // 1) Prefer name from profiles (first_name → display_name)
+      const { data: profile } = await supabase
+        .from("profiles")
+        .select("first_name, display_name")
+        .eq("id", user.id)
+        .maybeSingle();
+
+      const profileName =
+        profile?.first_name?.trim() || profile?.display_name?.trim() || "";
+
+      if (!cancelled && profileName) {
+        setChildName(profileName);
+        return;
+      }
+
+      // 2) Fallback to latest child name
+      const { data: child } = await supabase
         .from("children")
         .select("name")
         .eq("user_id", user.id)
         .order("created_at", { ascending: false })
         .limit(1)
         .maybeSingle();
-      if (!cancelled && data?.name) setChildName(data.name);
+      if (!cancelled && child?.name) setChildName(child.name);
     })();
     return () => { cancelled = true; };
   }, [user?.id]);
