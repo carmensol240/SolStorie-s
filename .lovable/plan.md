@@ -1,28 +1,48 @@
-## הבעיה
+## תיקון `isDemoUser` ב-`src/pages/StoryViewer.tsx`
 
-בקומפוננטה `src/components/upgrade/FlippingBookAnimation.tsx` (שמופיעה בדף `/upgrade`), על גב הספר מוצג טקסט ברירת מחדל "הסיפור של הסיפור שלך" כשאין שם זמין. הקומפוננטה כיום שולפת שם מטבלת `children`, ולא מהפרופיל של המשתמש.
+### שינויים
 
-## התיקון
+**1. הוספת state חדש (ליד שורה 227):**
+```ts
+const [isAdminUser, setIsAdminUser] = useState(false);
+```
 
-לעדכן את `FlippingBookAnimation.tsx` כך שישלוף את שם הילד מטבלת `profiles` ב-Supabase במקום מטבלת `children`.
+**2. הוספת קבוע מיילי טסטר (בראש הקובץ):**
+```ts
+const TESTER_EMAILS = ['carmit1901@gmail.com', 'carmit1901+test@gmail.com'];
+```
 
-### סדר העדיפויות לשם המוצג
+**3. הוספת useEffect לבדיקת admin (ליד הבדיקה הקיימת של subscriber, שורה ~381):**
+```ts
+useEffect(() => {
+  if (!user?.id) { setIsAdminUser(false); return; }
+  let cancelled = false;
+  (async () => {
+    const { data } = await supabase
+      .from('user_roles')
+      .select('role')
+      .eq('user_id', user.id)
+      .eq('role', 'admin')
+      .maybeSingle();
+    if (!cancelled) setIsAdminUser(!!data);
+  })();
+  return () => { cancelled = true; };
+}, [user?.id]);
+```
 
-1. `profiles.first_name` (הכי מועדף — שם פרטי נקי)
-2. `profiles.display_name` (גיבוי)
-3. fallback ל-`children.name` של הילד האחרון שנוצר (לתאימות אחורה, אם בפרופיל אין שם)
-4. אם אין כלום — להציג רק "הסיפור שלי" (ולא "הסיפור של הסיפור שלך")
+**4. חישוב `isTester` ועדכון `isDemoUser` (שורה 397):**
+```ts
+const isTester = !!user?.email && TESTER_EMAILS.includes(user.email.toLowerCase());
+const isDemoUser = !!user
+  && !hasPurchasedPackage
+  && !isSubscriberUser
+  && !isAdminUser
+  && !isTester;
+```
 
-### שינויים בקובץ
+### תוצאה
+- מנהלות (`user_roles.role='admin'`) — פתוחות לגישה מלאה לכל הפיצ'רים.
+- שני מיילי הטסטר — פתוחים לגישה מלאה.
+- שאר המשתמשים — ממשיכים בלוגיקה הקיימת (רכישה / מנוי).
 
-`src/components/upgrade/FlippingBookAnimation.tsx`:
-- להחליף את ה-`useEffect` שמושך מ-`children` בשאילתה שמושכת קודם את `first_name, display_name` מ-`profiles` לפי `user.id`.
-- אם שניהם ריקים — לבצע fallback ל-`children` כפי שקיים היום.
-- ה-state `childName` יישאר, אבל ה-default יהיה `"הסיפור שלי"` במקום `"הסיפור שלך"` כדי שגם במקרה הקיצון לא יופיע הטקסט הכפול "הסיפור של הסיפור שלך".
-- הרינדור (`{childName}` ו-`💛 הסיפור של {childName}`) נשאר זהה.
-
-### מה לא משתנה
-
-- שום קובץ אחר.
-- הלוגיקה של הרכישה, ה-state של הסיפור, או ה-RLS.
-- העיצוב והאנימציה של הספר.
+אישור להעברה ל-Build mode וביצוע השינוי?

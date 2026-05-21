@@ -14,6 +14,8 @@ import { SignedImage } from "@/components/ui/signed-image";
 import { getPublicIllustrationUrl } from "@/lib/illustration-url";
 
 import OfflineIndicator from "@/components/ui/offline-indicator";
+
+const TESTER_EMAILS = ['carmit1901@gmail.com', 'carmit1901+test@gmail.com'];
 import EditPageDialog from "@/components/story/edit-page-dialog";
 import DedicationDialog from "@/components/story/DedicationDialog";
 import { GenderSwapDialog } from "@/components/story/GenderSwapDialog";
@@ -225,6 +227,7 @@ const [currentPage, setCurrentPage] = useState(0);
   const [showPrintPreviewModal, setShowPrintPreviewModal] = useState(false);
   const [hasPurchasedPackage, setHasPurchasedPackage] = useState(false);
   const [isSubscriberUser, setIsSubscriberUser] = useState(false);
+  const [isAdminUser, setIsAdminUser] = useState(false);
   const [demoLockOpen, setDemoLockOpen] = useState(false);
   const [demoPaywallOpen, setDemoPaywallOpen] = useState(false);
   // isReadAloudDismissed removed — read-aloud only in Accessibility Menu
@@ -392,9 +395,30 @@ const [currentPage, setCurrentPage] = useState(0);
     return () => { cancelled = true; };
   }, [user?.id]);
 
-  // Demo user = logged in, no completed purchase, not subscriber.
+  // Check admin role (admins are not demo-locked)
+  useEffect(() => {
+    if (!user?.id) { setIsAdminUser(false); return; }
+    let cancelled = false;
+    (async () => {
+      const { data } = await supabase
+        .from('user_roles')
+        .select('role')
+        .eq('user_id', user.id)
+        .eq('role', 'admin')
+        .maybeSingle();
+      if (!cancelled) setIsAdminUser(!!data);
+    })();
+    return () => { cancelled = true; };
+  }, [user?.id]);
+
+  // Demo user = logged in, no completed purchase, not subscriber, not admin, not tester.
   // For demo users, save/share/download/coloring/recording actions are blocked.
-  const isDemoUser = !!user && !hasPurchasedPackage && !isSubscriberUser;
+  const isTester = !!user?.email && TESTER_EMAILS.includes(user.email.toLowerCase());
+  const isDemoUser = !!user
+    && !hasPurchasedPackage
+    && !isSubscriberUser
+    && !isAdminUser
+    && !isTester;
   const guardDemo = useCallback((fn: () => void) => {
     return () => {
       if (isDemoUser) {
