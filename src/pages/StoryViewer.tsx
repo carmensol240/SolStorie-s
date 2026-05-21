@@ -53,6 +53,7 @@ import { TheaterFrame } from "@/components/story/theater-frame";
 import PdfFeaturePopup from "@/components/story/PdfFeaturePopup";
 import PrintBookPreviewModal from "@/components/story/PrintBookPreviewModal";
 import InstallAppPrompt from "@/components/story/InstallAppPrompt";
+import DemoLockModal from "@/components/story/DemoLockModal";
 
 import "./StoryViewer.css";
 import { translateTopic } from "@/lib/topic-translations";
