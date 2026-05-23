@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { getPublicIllustrationUrl } from "@/lib/illustration-url";
+import "@/components/upgrade/flipping-book.css";
 
 interface PersonalizedStoryCoverProps {
   storyId: string;
@@ -65,27 +66,36 @@ const PersonalizedStoryCover = ({ storyId }: PersonalizedStoryCoverProps) => {
   }
 
   return (
-    <div className="flex justify-center mb-4">
-      <div
-        className="relative rounded-2xl overflow-hidden shadow-2xl border border-white/20"
-        style={{ height: "200px", aspectRatio: "3 / 4" }}
-      >
-        <img
-          src={cover.url}
-          alt={cover.name ? `הספר של ${cover.name}` : "ספר הסיפור שלך"}
-          className="absolute inset-0 w-full h-full object-cover"
-          loading="eager"
-        />
-        {/* Bottom gradient + name */}
-        {cover.name && (
-          <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent px-3 py-2">
-            <p className="text-white text-sm font-black text-center drop-shadow-lg">
-              {cover.name}
-            </p>
-          </div>
-        )}
-        {/* Subtle book spine highlight */}
-        <div className="absolute inset-y-0 right-0 w-2 bg-gradient-to-l from-black/30 to-transparent pointer-events-none" />
+    <div className="flex justify-center my-1">
+      <div className="fba-scene">
+        <div className="fba-spine">
+          <span className="fba-spine-text">
+            {cover.name ? `${cover.name} · ` : ""}SolStorie&apos;s™
+          </span>
+        </div>
+        <div className="fba-book">
+          <img
+            src={cover.url}
+            alt={cover.name ? `הספר של ${cover.name}` : "ספר הסיפור שלך"}
+            className="fba-cover-img"
+            loading="eager"
+          />
+          <div className="fba-badge">✨ SolStorie&apos;s™</div>
+          {cover.name && (
+            <div className="fba-overlay">
+              <div
+                className="font-bold text-center"
+                style={{
+                  color: "#fbbf24",
+                  fontSize: "1.05rem",
+                  textShadow: "0 2px 6px rgba(0,0,0,0.55)",
+                }}
+              >
+                {cover.name}
+              </div>
+            </div>
+          )}
+        </div>
       </div>
     </div>
   );
