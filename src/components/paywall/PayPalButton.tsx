@@ -12,11 +12,18 @@ interface PayPalButtonProps {
 
 const PayPalButton = ({ amount, onSuccess, onError, onCancel }: PayPalButtonProps) => {
   const paypalRef = useRef<HTMLDivElement>(null);
+  const cardNumberRef = useRef<HTMLDivElement>(null);
+  const cardExpiryRef = useRef<HTMLDivElement>(null);
+  const cardCvvRef = useRef<HTMLDivElement>(null);
+  const cardNameRef = useRef<HTMLDivElement>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [scriptLoaded, setScriptLoaded] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [buttonsRendered, setButtonsRendered] = useState(false);
   const [simulationMode, setSimulationMode] = useState(false);
+  const [cardFieldsEligible, setCardFieldsEligible] = useState(false);
+  const [cardSubmitting, setCardSubmitting] = useState(false);
+  const cardFieldsInstanceRef = useRef<any>(null);
   
   // Store callbacks in ref to prevent re-renders breaking PayPal buttons
   const callbacksRef = useRef({ onSuccess, onError, onCancel });
@@ -59,7 +66,7 @@ const PayPalButton = ({ amount, onSuccess, onError, onCancel }: PayPalButtonProp
 
     // Load PayPal SDK - enable credit card funding explicitly
     const script = document.createElement('script');
-    script.src = `https://www.paypal.com/sdk/js?client-id=${PAYPAL_CLIENT_ID}&currency=ILS&locale=he_IL&enable-funding=card`;
+    script.src = `https://www.paypal.com/sdk/js?client-id=${PAYPAL_CLIENT_ID}&currency=ILS&locale=he_IL&enable-funding=card&components=buttons,card-fields`;
     script.async = true;
     
     script.onload = () => {
@@ -163,6 +170,108 @@ const PayPalButton = ({ amount, onSuccess, onError, onCancel }: PayPalButtonProp
     };
   }, [scriptLoaded, amount]);
 
+  // Render inline Card Fields (card number, expiry, CVV, name)
+  useEffect(() => {
+    if (!scriptLoaded || !window.paypal || !(window.paypal as any).CardFields) return;
+
+    let cancelled = false;
+
+    const createOrder = () => {
+      return (window.paypal as any).rest
+        ? Promise.resolve()
+        : Promise.resolve();
+    };
+
+    try {
+      const cardFields = (window.paypal as any).CardFields({
+        createOrder: (_data: any, actions: any) => {
+          return actions.order.create({
+            purchase_units: [{
+              amount: { value: amount.toString(), currency_code: 'ILS' }
+            }],
+            application_context: { shipping_preference: 'NO_SHIPPING' }
+          });
+        },
+        onApprove: async (data: any) => {
+          try {
+            console.log('[PayPal CardFields] onApprove, orderId:', data.orderID);
+            callbacksRef.current.onSuccess(data.orderID);
+          } catch (err) {
+            callbacksRef.current.onError(err);
+          } finally {
+            setCardSubmitting(false);
+          }
+        },
+        onError: (err: any) => {
+          console.error('[PayPal CardFields] error:', err);
+          setCardSubmitting(false);
+          callbacksRef.current.onError(err);
+        },
+        style: {
+          input: {
+            'font-size': '14px',
+            'font-family': 'system-ui, -apple-system, sans-serif',
+            color: '#ffffff',
+            'background-color': 'transparent',
+          },
+          '.invalid': { color: '#ff6b6b' },
+        },
+      });
+
+      if (!cardFields.isEligible || !cardFields.isEligible()) {
+        console.warn('[PayPal CardFields] not eligible — hiding inline card form');
+        setCardFieldsEligible(false);
+        return;
+      }
+
+      cardFieldsInstanceRef.current = cardFields;
+      setCardFieldsEligible(true);
+
+      // Clear containers
+      if (cardNumberRef.current) cardNumberRef.current.innerHTML = '';
+      if (cardExpiryRef.current) cardExpiryRef.current.innerHTML = '';
+      if (cardCvvRef.current) cardCvvRef.current.innerHTML = '';
+      if (cardNameRef.current) cardNameRef.current.innerHTML = '';
+
+      // Render after refs are ready (next tick to ensure DOM is mounted)
+      setTimeout(() => {
+        if (cancelled) return;
+        try {
+          if (cardNumberRef.current) cardFields.NumberField({ placeholder: 'מספר כרטיס' }).render(cardNumberRef.current);
+          if (cardExpiryRef.current) cardFields.ExpiryField({ placeholder: 'MM/YY' }).render(cardExpiryRef.current);
+          if (cardCvvRef.current) cardFields.CVVField({ placeholder: 'CVV' }).render(cardCvvRef.current);
+          if (cardNameRef.current) cardFields.NameField({ placeholder: 'שם בעל הכרטיס' }).render(cardNameRef.current);
+        } catch (e) {
+          console.error('[PayPal CardFields] render error:', e);
+          setCardFieldsEligible(false);
+        }
+      }, 0);
+    } catch (err) {
+      console.error('[PayPal CardFields] init error:', err);
+      setCardFieldsEligible(false);
+    }
+
+    return () => {
+      cancelled = true;
+      cardFieldsInstanceRef.current = null;
+      [cardNumberRef, cardExpiryRef, cardCvvRef, cardNameRef].forEach((r) => {
+        if (r.current) r.current.innerHTML = '';
+      });
+    };
+  }, [scriptLoaded, amount]);
+
+  const handleCardSubmit = async () => {
+    if (!cardFieldsInstanceRef.current) return;
+    setCardSubmitting(true);
+    try {
+      await cardFieldsInstanceRef.current.submit();
+    } catch (err) {
+      console.error('[PayPal CardFields] submit error:', err);
+      setCardSubmitting(false);
+      callbacksRef.current.onError(err);
+    }
+  };
+
   const handleRetry = () => {
     setError(null);
     setIsLoading(true);
@@ -236,7 +345,47 @@ const PayPalButton = ({ amount, onSuccess, onError, onCancel }: PayPalButtonProp
         ref={paypalRef} 
         className={isLoading ? 'hidden' : 'min-h-[80px]'}
       />
-      
+
+      {/* Inline Card Fields */}
+      {!isLoading && cardFieldsEligible && (
+        <div className="space-y-2" dir="rtl">
+          <div className="flex items-center gap-2 my-2">
+            <div className="flex-1 h-px bg-white/20" />
+            <span className="text-xs text-white/60">או שלמו בכרטיס אשראי</span>
+            <div className="flex-1 h-px bg-white/20" />
+          </div>
+          <div
+            ref={cardNameRef}
+            className="bg-white/10 border border-white/20 rounded-lg px-3 h-10 flex items-center"
+          />
+          <div
+            ref={cardNumberRef}
+            className="bg-white/10 border border-white/20 rounded-lg px-3 h-10 flex items-center"
+          />
+          <div className="grid grid-cols-2 gap-2">
+            <div
+              ref={cardExpiryRef}
+              className="bg-white/10 border border-white/20 rounded-lg px-3 h-10 flex items-center"
+            />
+            <div
+              ref={cardCvvRef}
+              className="bg-white/10 border border-white/20 rounded-lg px-3 h-10 flex items-center"
+            />
+          </div>
+          <Button
+            onClick={handleCardSubmit}
+            disabled={cardSubmitting}
+            className="w-full bg-gradient-to-r from-pink-500 via-purple-500 to-orange-500 hover:opacity-90 text-white font-bold h-11 rounded-lg"
+          >
+            {cardSubmitting ? (
+              <><Loader2 className="w-4 h-4 ml-2 animate-spin" /> מעבד תשלום...</>
+            ) : (
+              <><CreditCard className="w-4 h-4 ml-2" /> שלם בכרטיס אשראי</>
+            )}
+          </Button>
+        </div>
+      )}
+
     </div>
   );
 };
