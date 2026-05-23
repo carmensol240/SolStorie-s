@@ -1,6 +1,6 @@
 import { useState, useEffect, useLayoutEffect, useRef, useCallback, useMemo } from "react";
 import { useParams, useNavigate, useLocation } from "react-router-dom";
-import { Home, BookOpen, Palette, Wand2, Loader2, ImageOff, Star, Send, ChevronRight, ChevronLeft, ArrowRight, Link2, Printer, Eye, Share2 } from "lucide-react";
+import { Home, BookOpen, Palette, Wand2, Loader2, ImageOff, Star, Send, ChevronRight, ChevronLeft, ArrowRight, Link2, Printer, Eye } from "lucide-react";
 import SeriesNavBar, { SeriesPart } from "@/components/story/SeriesNavBar";
 import { MissingIllustrationPrompt } from "@/components/story/MissingIllustrationPrompt";
 import { Button } from "@/components/ui/button";
@@ -231,12 +231,18 @@ const [currentPage, setCurrentPage] = useState(0);
   const [isSingleStoryUnlock, setIsSingleStoryUnlock] = useState(false);
   const [demoLockOpen, setDemoLockOpen] = useState(false);
   const [demoPaywallOpen, setDemoPaywallOpen] = useState(false);
+  // Tracks whether all 3 entitlement checks (purchases, subscriber, admin) have completed at least once.
+  const [purchaseChecked, setPurchaseChecked] = useState(false);
+  const [subscriberChecked, setSubscriberChecked] = useState(false);
+  const [adminChecked, setAdminChecked] = useState(false);
+  const purchaseChecksReady = purchaseChecked && subscriberChecked && adminChecked;
+  const [pendingPaywallOpen, setPendingPaywallOpen] = useState(false);
 
   // Re-open paywall popup when returning from /upgrade via close button
   useEffect(() => {
     const params = new URLSearchParams(location.search);
     if (params.get('paywall') === '1') {
-      setDemoLockOpen(true);
+      setPendingPaywallOpen(true);
       params.delete('paywall');
       const qs = params.toString();
       navigate(`${location.pathname}${qs ? `?${qs}` : ''}`, { replace: true });
@@ -367,7 +373,7 @@ const [currentPage, setCurrentPage] = useState(0);
 
   // Check if user has purchased a story package (controls "print to book" button behavior)
   const refetchPurchaseStatus = useCallback(async () => {
-    if (!user?.id) { setHasPurchasedPackage(false); return; }
+    if (!user?.id) { setHasPurchasedPackage(false); setPurchaseChecked(true); return; }
     const { data, error } = await supabase
       .from('purchases')
       .select('id')
@@ -375,6 +381,7 @@ const [currentPage, setCurrentPage] = useState(0);
       .in('status', ['completed', 'test_completed'])
       .limit(1);
     if (!error) setHasPurchasedPackage((data?.length ?? 0) > 0);
+    setPurchaseChecked(true);
   }, [user?.id]);
 
   useEffect(() => {
@@ -395,7 +402,7 @@ const [currentPage, setCurrentPage] = useState(0);
 
   // Check subscriber flag (subscribers are not demo-locked even without purchase rows)
   useEffect(() => {
-    if (!user?.id) { setIsSubscriberUser(false); return; }
+    if (!user?.id) { setIsSubscriberUser(false); setSubscriberChecked(true); return; }
     let cancelled = false;
     (async () => {
       const { data } = await supabase
@@ -403,7 +410,7 @@ const [currentPage, setCurrentPage] = useState(0);
         .select('is_subscriber')
         .eq('id', user.id)
         .maybeSingle();
-      if (!cancelled) setIsSubscriberUser(!!data?.is_subscriber);
+      if (!cancelled) { setIsSubscriberUser(!!data?.is_subscriber); setSubscriberChecked(true); }
     })();
     return () => { cancelled = true; };
   }, [user?.id]);
@@ -427,7 +434,7 @@ const [currentPage, setCurrentPage] = useState(0);
 
   // Check admin role (admins are not demo-locked)
   useEffect(() => {
-    if (!user?.id) { setIsAdminUser(false); return; }
+    if (!user?.id) { setIsAdminUser(false); setAdminChecked(true); return; }
     let cancelled = false;
     (async () => {
       const { data } = await supabase
@@ -436,7 +443,7 @@ const [currentPage, setCurrentPage] = useState(0);
         .eq('user_id', user.id)
         .eq('role', 'admin')
         .maybeSingle();
-      if (!cancelled) setIsAdminUser(!!data);
+      if (!cancelled) { setIsAdminUser(!!data); setAdminChecked(true); }
     })();
     return () => { cancelled = true; };
   }, [user?.id]);
@@ -459,6 +466,17 @@ const [currentPage, setCurrentPage] = useState(0);
     };
   }, [isDemoUser]);
 
+  // Open paywall popup (from ?paywall=1) only after entitlement checks complete
+  // AND the user is actually a demo user. Avoids the brief "flash" for paid users.
+  useEffect(() => {
+    if (!pendingPaywallOpen) return;
+    if (!purchaseChecksReady) return;
+    if (isDemoUser) {
+      setDemoLockOpen(true);
+    }
+    setPendingPaywallOpen(false);
+  }, [pendingPaywallOpen, purchaseChecksReady, isDemoUser]);
+
   // Set age-appropriate font size on story load
   useEffect(() => {
     if (story?.age_range) {
@@ -480,15 +498,25 @@ const [currentPage, setCurrentPage] = useState(0);
   useEffect(() => {
     if (didRestorePageRef.current) return;
     if (!story) return;
+    // Wait for entitlement checks so we can clamp demo users to their allowed range.
+    if (!purchaseChecksReady) return;
     try {
       const saved = sessionStorage.getItem(`storyReturnPage:${location.pathname}`);
       if (saved != null) {
-        const n = Number(saved);
-        if (Number.isFinite(n) && n > 0) setCurrentPage(n);
+        let n = Number(saved);
+        if (Number.isFinite(n) && n > 0) {
+          // Demo users may not land on a locked page after returning from /upgrade.
+          // DEMO_PAGE_LIMIT (3) refers to page_number (1-based); allowed indices are 0..2.
+          if (isDemoUser) {
+            const maxAllowedIndex = 3 - 1; // DEMO_PAGE_LIMIT - 1
+            n = Math.min(n, maxAllowedIndex);
+          }
+          setCurrentPage(n);
+        }
       }
     } catch {}
     didRestorePageRef.current = true;
-  }, [story, location.pathname]);
+  }, [story, location.pathname, purchaseChecksReady, isDemoUser]);
 
   // Persist current page so we can restore it after a paywall round-trip
   useEffect(() => {
@@ -1537,17 +1565,6 @@ const [currentPage, setCurrentPage] = useState(0);
       {/* Book Container - Vertical Single Page */}
       <main className="flex-1 flex flex-col min-h-0 px-4 md:px-12 lg:px-20 py-2">
         <div className="relative w-full max-w-2xl mx-auto flex-1 min-h-0 flex flex-col">
-          {/* Subtle WhatsApp share icon - top left */}
-          {!isEndPage && story && (
-            <button
-              onClick={guardDemo(handleShareWhatsApp)}
-              className="absolute top-2 left-2 z-50 p-1.5 rounded-full bg-black/20 hover:bg-black/40 text-white/70 hover:text-white opacity-60 hover:opacity-100 backdrop-blur-sm transition-all"
-              aria-label="שתף בוואטסאפ"
-              title="שתף בוואטסאפ"
-            >
-              <Share2 className="w-3.5 h-3.5" />
-            </button>
-          )}
           <MagicalBookFrame className="flex-1 min-h-0">
             {/* Page content with fade transition */}
             <div className={cn(

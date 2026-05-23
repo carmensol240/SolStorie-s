@@ -101,11 +101,6 @@ const DemoLockModal = ({ open, onOpenChange, title, description, storyId }: Demo
           >
             📦 רכישת חבילת סיפורים
           </button>
-          {storyId && (
-            <p className="text-[11px] font-bold text-purple-200/90 -mt-1">
-              🎁 סיפור הדוגמא שלך נוסף אוטומטית בחינם
-            </p>
-          )}
 
           {storyId && (
             <>
