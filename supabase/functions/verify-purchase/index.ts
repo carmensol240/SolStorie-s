@@ -128,6 +128,7 @@ Deno.serve(async (req) => {
       coloring_kit: { stories: 0, freeEdits: 0, coloringPages: 5 },
       edit_kit: { stories: 0, freeEdits: 0, coloringPages: 0, editingCredits: 5 },
       toolkit_yearly: { stories: 0, freeEdits: 0, coloringPages: 0, isSubscription: true },
+      single_story: { stories: 0, freeEdits: 0, coloringPages: 0 },
     };
 
     const config = packageConfig[packageId];
