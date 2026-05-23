@@ -1864,7 +1864,7 @@ const [currentPage, setCurrentPage] = useState(0);
           <div className="absolute bottom-2 left-0 right-0 z-40 flex items-center justify-between px-4">
             <button
               onClick={() => handlePageNav('next')}
-              disabled={currentPage >= totalVirtualPages + 1 || isFlipping}
+              disabled={currentPage >= totalVirtualPages || isFlipping}
               className="w-10 h-10 rounded-full bg-black/40 hover:bg-black/50 text-white/80 hover:text-white backdrop-blur-sm transition-all disabled:opacity-20 disabled:cursor-not-allowed flex items-center justify-center"
               aria-label="עמוד הבא"
             >
