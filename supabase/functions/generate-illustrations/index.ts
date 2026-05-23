@@ -1194,13 +1194,20 @@ serve(async (req) => {
 
       // Build prompt directly from illustration_prompt — skip AI scene analysis for speed
       const basePrompt = page.illustration_prompt || `A cheerful children's book illustration for page ${page.page_number}`;
+      const pageNarrative = (page.text || "").toString().slice(0, 400);
       const cameraAngle = CAMERA_ANGLES[page.page_number % CAMERA_ANGLES.length];
       const lighting = LIGHTING_OPTIONS[(page.page_number + 2) % LIGHTING_OPTIONS.length];
       const charDesc = characterProfile
         ? `A ${characterProfile.gender === "female" ? "girl" : "boy"} aged ${characterProfile.ageDescription} with ${characterProfile.hairDescription}, ${characterProfile.skinTone} skin, ${characterProfile.eyeColor} eyes, wearing ${storyOutfit}. ${characterProfile.gender === "female" ? "GIRL — feminine/neutral clothing only, no kippah/tzitzit." : "BOY — masculine clothing only, NO dress, skirt, tutu, flower crown, bow, makeup, or feminine accessories."}`
         : `A child wearing ${storyOutfit}`;
-      let illustrationPrompt = `${charDesc}. SCENE: ${basePrompt}. CAMERA: ${cameraAngle}. LIGHTING: ${lighting}. Pixar 3D CGI style, vibrant colors, fantasy children's book, full body head to toe with feet grounded on surface`;
-      console.log(`[Page ${page.page_number}] 📝 Direct prompt (${illustrationPrompt.length} chars)`);
+      const sceneBlock = pageNarrative
+        ? `SCENE (MUST MATCH THE STORY TEXT EXACTLY — illustrate precisely what happens in this page, not a different action):
+STORY TEXT FOR THIS PAGE: "${pageNarrative}"
+VISUAL DESCRIPTION: ${basePrompt}
+The action, objects, characters, and emotions shown MUST come from the STORY TEXT above. Do not invent a different scene.`
+        : `SCENE (MUST MATCH TEXT EXACTLY): ${basePrompt}`;
+      let illustrationPrompt = `${charDesc}. ${sceneBlock}. CAMERA: ${cameraAngle}. LIGHTING: ${lighting}. Pixar 3D CGI style, vibrant colors, fantasy children's book, full body head to toe with feet grounded on surface`;
+      console.log(`[Page ${page.page_number}] 📝 Direct prompt (${illustrationPrompt.length} chars, text-anchored=${!!pageNarrative})`);
 
       // Inject IDF military uniform for father in "dad-in-reserves" topic
       const FATHER_MILITARY_CLOTHING = "Israeli IDF military uniform, olive green (yarok tzava) fatigues, green combat boots, Israeli army green beret - NOT US army, NOT American military";
@@ -1311,7 +1318,13 @@ serve(async (req) => {
         const charDesc2 = characterProfile
           ? `A ${characterProfile.gender === "female" ? "girl" : "boy"} aged ${characterProfile.ageDescription} with ${characterProfile.hairDescription}, ${characterProfile.skinTone} skin, ${characterProfile.eyeColor} eyes, wearing ${storyOutfit}. ${characterProfile.gender === "female" ? "GIRL — feminine/neutral clothing only, no kippah/tzitzit." : "BOY — masculine clothing only, NO dress, skirt, tutu, flower crown, bow, makeup, or feminine accessories."}`
           : `A child wearing ${storyOutfit}`;
-        const secondIllustrationPrompt = `${charDesc2}. SCENE: ${secondPrompt}. CAMERA: ${cameraAngle2}. LIGHTING: ${lighting2}. Pixar 3D CGI style, vibrant colors, fantasy children's book, full body head to toe`;
+        const sceneBlock2 = pageNarrative
+          ? `SCENE (MUST MATCH THE STORY TEXT EXACTLY — illustrate precisely what happens in this page, not a different action):
+STORY TEXT FOR THIS PAGE: "${pageNarrative}"
+VISUAL DESCRIPTION: ${secondPrompt}
+The action, objects, characters, and emotions shown MUST come from the STORY TEXT above. Do not invent a different scene.`
+          : `SCENE (MUST MATCH TEXT EXACTLY): ${secondPrompt}`;
+        const secondIllustrationPrompt = `${charDesc2}. ${sceneBlock2}. CAMERA: ${cameraAngle2}. LIGHTING: ${lighting2}. Pixar 3D CGI style, vibrant colors, fantasy children's book, full body head to toe`;
 
         for (let attempt = 1; attempt <= MAX_RETRIES; attempt++) {
           if (childPhotoSignedUrl) {
