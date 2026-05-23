@@ -1,33 +1,46 @@
-## מטרה
-לאחד את `characterProfile` + `storyOutfit` בין `generate-cover` ל-`generate-illustrations`, כך שהדמות בכריכה תלבש את אותו לבוש ותיראה זהה לדמות בעמודי הסיפור.
+# תיקון באג בידוד פרופילי ילדים
 
-## המצב היום
-- **generate-illustrations** מחלץ `characterProfile` (מגדר/גיל/שיער/עור/עיניים/בגדים) מתמונת הילד ושומר אותו ב-`children.avatar_description` כ-JSON. בנוסף הוא קובע `storyOutfit` אחיד לכל הסיפור = `adventureLogic.outfit || characterProfile.clothingDescription || "colorful casual clothes"`.
-- **generate-cover** קורא את `children.avatar_description` ובונה תיאור דמות משלו (`buildCharacterDescription`), אבל לוקח את הבגדים מתוך `clothingDescription` של הפרופיל — **לא** משתמש ב-`storyOutfit` של הסיפור. לכן הלבוש בכריכה שונה מהעמודים הפנימיים.
-- שתי הפונקציות רצות במקביל מ-`generate-story`, אז ייתכן ש-`avatar_description` עדיין לא נשמר ל-DB כשהכריכה רצה (race condition קיים גם היום).
+## הבעיה
 
-## השינוי המוצע
+במסך "ספרו לנו על הילד" כל פרופיל מזוהה לפי **שם** (`formData.childName`) ולא לפי **id**, וקיים `useEffect` שטוען אוטומטית את הילד הראשון. שני אלה יחד גורמים למצבים שהמשתמש תיאר:
 
-### קבצים שישתנו
-1. **`supabase/functions/generate-cover/index.ts`**
-   - לקבל `adventureLogic` ב-body של הבקשה.
-   - לחשב `storyOutfit` בדיוק כמו ב-illustrations: `adventureLogic?.outfit || profile.clothingDescription || "colorful casual clothes"`.
-   - להעביר את `storyOutfit` ל-`buildCharacterDescription` ולהשתמש בו במקום `clothing` שמגיע מ-`clothingDescription`.
-   - להשתמש באותה ניסוח של מגבלות מגדר כמו ב-illustrations (כבר דומה — להאחיד).
+1. **בחירה בסול → קופץ לעומר**
+   ה־`useEffect` בשורות ~121-185 ב־`src/components/wizard/ChildInfoStep.tsx` תלוי ב־`[user]` ובכל ריצה שלו טוען בכוח את `data[0]` ל־`formData`. כשמתרחש רענון auth (token refresh, חזרה מטאב), אובייקט ה־`user` משתנה — ה־effect רץ שוב — והבחירה הנוכחית נדרסת לטובת הילד הראשון ברשימה.
 
-2. **`supabase/functions/generate-story/index.ts`** (שורות ~2122-2133)
-   - להוסיף `adventureLogic` ל-body שנשלח ל-`generate-cover`.
+2. **החלפת תמונה → חוזרת לקודמת**
+   אחרי שמעלים תמונה (`updateFormData({ childPhoto })`) אבל לפני שלוחצים "שמור", אם ה־effect הנ"ל רץ שוב הוא טוען מחדש את `photo_url` מה־DB/localStorage ודורס את התמונה החדשה.
+   בנוסף, `generateAvatarInline` ו־`handleSaveChildProfile` (שורות 260, 282, 349, 419-420, 450) מאתרים את הפרופיל לעדכון ע"י `savedChildren.find(c => c.name === formData.childName)`. אם המשתמש החליף שם בשדה, או אם יש שני פרופילים עם דמיון, העדכון נכתב לפרופיל הלא נכון — ואז התמונה "מתערבבת" בין פרופילים.
 
-### קבצים שלא ישתנו
-- `src/pages/StoryViewer.tsx` ו-`src/pages/Library.tsx` (regenerate cover) — לא נעביר `adventureLogic` כי הוא לא נשמר ב-DB. במקרה הזה הכריכה תיפול חזרה ל-`clothingDescription` מהפרופיל השמור — בדיוק כמו היום.
-- `_shared/style-config.ts`, `generate-illustrations`, `retry-illustration` — ללא שינוי.
+3. **זיהוי פרופיל פעיל בכפתורים** (שורה 519, 553) משתמש גם הוא ב־`formData.childName === child.name` — שביר לאותן סיבות.
 
-## סיכונים
-1. **Race condition (קיים כבר היום, לא חדש):** הכריכה רצה במקביל ל-illustrations. אם generate-illustrations עוד לא הספיק לשמור את `characterProfile` ל-`avatar_description`, הכריכה תשתמש בברירות מחדל לתיאור הדמות (שיער/עור/עיניים). העברת `adventureLogic.outfit` פותרת לפחות את חלק הלבוש מיד.
-2. **כריכה שונה לרגנרציה:** אם משתמש מחדש כריכה מ-StoryViewer/Library — אין `adventureLogic` בידיים, אז הלבוש יהיה זה ששמור ב-`avatar_description.clothingDescription`. זה עשוי להיות שונה מהלבוש בעמודי הסיפור עצמם (כי שם נעשה fallback של `adventureLogic.outfit`). פתרון אפשרי בעתיד: לשמור את `story_outfit` בטבלת `stories`.
-3. **שינוי תיאור דמות לכריכות חדשות:** סיפורים חדשים יקבלו כריכה עם לבוש שונה ממה שהיה מתקבל עד היום (יותר נכון — תואם לעמודי הסיפור).
+## הקבצים שישתנו
 
-## השפעה על סיפורים קיימים
-- **אפס השפעה אוטומטית.** ה-`cover_url` של סיפורים קיימים כבר שמור ב-DB; הוא לא ייווצר מחדש אלא אם המשתמש לוחץ "חדש כריכה".
-- בסיפורים חדשים: הכריכה תהיה תואמת יותר לעמודים הפנימיים.
-- ברגנרציה ידנית של כריכה לסיפור קיים: הלבוש יילקח מ-`avatar_description.clothingDescription` (התנהגות זהה לעצם בקריאה ישירה כיום).
+רק קובץ אחד: `src/components/wizard/ChildInfoStep.tsx`.
+
+## התיקון
+
+1. **state חדש**: `selectedChildId: string | null` שמחזיק את ה־id של הפרופיל הפעיל (מקור אמת יחיד).
+
+2. **`loadChildProfile(child)`**: יקבע `setSelectedChildId(child.id)` בנוסף ל־`updateFormData`.
+
+3. **כפתור "פרופיל חדש"**: יקבע `setSelectedChildId(null)` + `setIsCreatingNew(true)`.
+
+4. **`useEffect` של טעינת ילדים (שורות 121-185)**:
+   - יישאר תלוי ב־`[user?.id]` בלבד (במקום ב־`user` כאובייקט) כדי לא לרוץ על כל רענון טוקן.
+   - יתווסף `hasLoadedRef = useRef(false)` כדי שטעינה ראשונית של ה־first child תקרה **פעם אחת בלבד** לכל user. אם כבר נטענו ילדים — לא דורסים בחירה קיימת.
+
+5. **`generateAvatarInline`, `handleRegenerationCountChange`, `handleSaveChildProfile`, `handleDeleteChildProfile`**: יחפשו את הילד הנוכחי לפי `selectedChildId` במקום לפי `formData.childName`. שמירה של פרופיל קיים תזוהה ע"י id; שמירת פרופיל חדש (כש־`selectedChildId === null` או `isCreatingNew === true`) תיצור רשומה חדשה.
+
+6. **תצוגת הכפתורים** (שורות 519, 553): השוואה לפי `selectedChildId === child.id` במקום לפי שם.
+
+7. **אחרי insert מוצלח של פרופיל חדש**: נקרא `setSelectedChildId(data.id)` כדי שעריכות עוקבות יעדכנו את הרשומה הנכונה.
+
+## סיכון
+
+- שינוי ממוקד בקובץ אחד, ללא נגיעה ב־DB, RLS, edge functions או שאר ה־wizard.
+- פרופילים קיימים נטענים כרגיל מה־DB/localStorage — רק מנגנון הבחירה הפנימי משתנה.
+- אין שינוי בשמות שדות או בפורמט localStorage (`savedChildren` נשמר זהה).
+
+## מה לא נכלל
+
+לא משנים שום קובץ אחר, לא את אופן יצירת הכריכה/האיורים, לא את ה־DB ולא לוגיקה עסקית אחרת — רק את בידוד מצב הבחירה במסך הזה.
