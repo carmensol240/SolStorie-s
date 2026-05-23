@@ -434,7 +434,7 @@ const [currentPage, setCurrentPage] = useState(0);
 
   // Check admin role (admins are not demo-locked)
   useEffect(() => {
-    if (!user?.id) { setIsAdminUser(false); return; }
+    if (!user?.id) { setIsAdminUser(false); setAdminChecked(true); return; }
     let cancelled = false;
     (async () => {
       const { data } = await supabase
@@ -443,7 +443,7 @@ const [currentPage, setCurrentPage] = useState(0);
         .eq('user_id', user.id)
         .eq('role', 'admin')
         .maybeSingle();
-      if (!cancelled) setIsAdminUser(!!data);
+      if (!cancelled) { setIsAdminUser(!!data); setAdminChecked(true); }
     })();
     return () => { cancelled = true; };
   }, [user?.id]);
