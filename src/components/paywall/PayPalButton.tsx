@@ -95,7 +95,7 @@ const PayPalButton = ({ amount, onSuccess, onError, onCancel }: PayPalButtonProp
     console.log('Rendering PayPal buttons for amount:', amount);
 
     try {
-      window.paypal.Buttons({
+      const baseConfig: any = {
         createOrder: (_data: any, actions: any) => {
           return actions.order.create({
             purchase_units: [{
@@ -135,21 +135,47 @@ const PayPalButton = ({ amount, onSuccess, onError, onCancel }: PayPalButtonProp
         onCancel: () => {
           callbacksRef.current.onCancel?.();
         },
-        style: {
-          layout: 'vertical',
-          color: 'gold',
-          shape: 'pill',
-          label: 'pay',
-          height: 40
+      };
+
+      const fundingSources = [
+        window.paypal.FUNDING.PAYPAL,
+        window.paypal.FUNDING.CARD,
+      ];
+
+      (async () => {
+        let anyRendered = false;
+        for (const fundingSource of fundingSources) {
+          const isPayPal = fundingSource === window.paypal.FUNDING.PAYPAL;
+          const button = window.paypal.Buttons({
+            ...baseConfig,
+            fundingSource,
+            style: {
+              layout: 'vertical',
+              shape: 'pill',
+              label: 'pay',
+              height: 40,
+              color: isPayPal ? 'gold' : 'black',
+            },
+          });
+          if (!button.isEligible()) {
+            console.warn('[PayPal] Funding source not eligible:', fundingSource);
+            continue;
+          }
+          try {
+            await button.render(paypalRef.current!);
+            anyRendered = true;
+          } catch (err) {
+            console.error('[PayPal] render error for', fundingSource, err);
+          }
         }
-      }).render(paypalRef.current).then(() => {
-        console.log('PayPal buttons rendered successfully');
-        setButtonsRendered(true);
-      }).catch((err: any) => {
-        console.error('PayPal render error:', err);
-        setError('שגיאה בטעינת כפתורי התשלום');
-        setSimulationMode(true);
-      });
+        if (anyRendered) {
+          console.log('PayPal buttons rendered successfully');
+          setButtonsRendered(true);
+        } else {
+          setError('שגיאה בטעינת כפתורי התשלום');
+          setSimulationMode(true);
+        }
+      })();
     } catch (err) {
       console.error('PayPal initialization error:', err);
       setError('שגיאה בהפעלת מערכת התשלום');
