@@ -231,12 +231,18 @@ const [currentPage, setCurrentPage] = useState(0);
   const [isSingleStoryUnlock, setIsSingleStoryUnlock] = useState(false);
   const [demoLockOpen, setDemoLockOpen] = useState(false);
   const [demoPaywallOpen, setDemoPaywallOpen] = useState(false);
+  // Tracks whether all 3 entitlement checks (purchases, subscriber, admin) have completed at least once.
+  const [purchaseChecked, setPurchaseChecked] = useState(false);
+  const [subscriberChecked, setSubscriberChecked] = useState(false);
+  const [adminChecked, setAdminChecked] = useState(false);
+  const purchaseChecksReady = purchaseChecked && subscriberChecked && adminChecked;
+  const [pendingPaywallOpen, setPendingPaywallOpen] = useState(false);
 
   // Re-open paywall popup when returning from /upgrade via close button
   useEffect(() => {
     const params = new URLSearchParams(location.search);
     if (params.get('paywall') === '1') {
-      setDemoLockOpen(true);
+      setPendingPaywallOpen(true);
       params.delete('paywall');
       const qs = params.toString();
       navigate(`${location.pathname}${qs ? `?${qs}` : ''}`, { replace: true });
