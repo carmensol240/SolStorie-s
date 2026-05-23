@@ -1507,7 +1507,7 @@ const [currentPage, setCurrentPage] = useState(0);
       {/* Header */}
       <BookHeader
         onBack={() => navigate("/library")}
-        onShare={handleShare}
+        onShare={guardDemo(handleShare)}
             onDownload={guardDemo(() => story && exportToPdf(story))}
         onShareWhatsApp={guardDemo(handleShareWhatsApp)}
         onToggleFontSize={() => setFontSizeIndex((fontSizeIndex + 1) % FONT_SIZES.length)}
