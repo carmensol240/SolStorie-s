@@ -9,6 +9,7 @@ import PurchaseFailedModal from "@/components/paywall/PurchaseFailedModal";
 import PayPalButton from "@/components/paywall/PayPalButton";
 import CouponInput from "@/components/paywall/CouponInput";
 import UserDetailsForm, { UserDetailsRef } from "@/components/paywall/UserDetailsForm";
+import PersonalizedStoryCover from "@/components/paywall/PersonalizedStoryCover";
 
 import { useCredits } from "@/hooks/use-credits";
 import { useSubscription } from "@/hooks/use-subscription";
@@ -19,6 +20,8 @@ import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 import { PRICING_PACKAGES, EDUCATOR_PACKAGES, TOOLKIT_SUBSCRIPTION } from "@/config/pricing";
 import FlippingBookAnimation from "@/components/upgrade/FlippingBookAnimation";
+
+const SINGLE_STORY_PRICE = 19.90;
 
 
 const Upgrade = () => {
@@ -34,6 +37,7 @@ const Upgrade = () => {
   
   const [selectedPackage, setSelectedPackage] = useState<string>("popular");
   const [showPayPal, setShowPayPal] = useState(false);
+  const [showSinglePayPal, setShowSinglePayPal] = useState(false);
   const [userRole, setUserRole] = useState<string>("parent");
   const [roleLoaded, setRoleLoaded] = useState(false);
   const [showToolkitPayPal, setShowToolkitPayPal] = useState(false);
@@ -145,6 +149,58 @@ const Upgrade = () => {
     setShowPayPal(true);
   };
 
+  const handleSingleStoryPurchase = () => {
+    if (!firstStoryId) {
+      toast.error("הסיפור לא נמצא");
+      return;
+    }
+    if (!user) { navigate("/auth"); return; }
+    setShowSinglePayPal(true);
+  };
+
+  const insertBundledFreeUnlock = async () => {
+    if (!firstStoryId || !user) return;
+    try {
+      await supabase.from("story_unlocks").upsert({
+        user_id: user.id,
+        story_id: firstStoryId,
+        unlock_type: "bundled_free",
+        amount_paid: 0,
+      }, { onConflict: "user_id,story_id", ignoreDuplicates: true });
+    } catch (err) {
+      console.error("Failed to insert bundled_free unlock:", err);
+    }
+  };
+
+  const handleSinglePayPalSuccess = async (orderId: string) => {
+    if (!user || !firstStoryId) {
+      setShowSinglePayPal(false);
+      setShowFailed(true);
+      setFailedPurchaseType('stories');
+      return;
+    }
+    try {
+      await verifyPurchase(orderId, 'single_story', SINGLE_STORY_PRICE, null);
+      await supabase.from("story_unlocks").upsert({
+        user_id: user.id,
+        story_id: firstStoryId,
+        unlock_type: "single",
+        amount_paid: SINGLE_STORY_PRICE,
+      }, { onConflict: "user_id,story_id", ignoreDuplicates: true });
+      await userDetailsRef.current?.saveToProfile();
+      toast.success("הסיפור נפתח! חזרה לסיפור...");
+      trackEvent({ eventType: 'feature_used', metadata: { feature: 'single_story_purchased', storyId: firstStoryId } });
+      setShowSinglePayPal(false);
+      // Navigate back to the story
+      navigate(`/story/${firstStoryId}?upgrade=true`);
+    } catch (err) {
+      console.error('Single story purchase failed:', err);
+      setShowSinglePayPal(false);
+      setShowFailed(true);
+      setFailedPurchaseType('stories');
+    }
+  };
+
   const verifyPurchase = async (orderId: string, packageId: string, amount: number, couponCode?: string | null) => {
     if (!user) throw new Error('User not authenticated');
     console.log(`[VERIFY] Calling verify-purchase: order=${orderId}, pkg=${packageId}, amount=${amount}`);
@@ -176,6 +232,8 @@ const Upgrade = () => {
       setShowPayPal(false);
       setShowSuccess(true);
       await userDetailsRef.current?.saveToProfile();
+      // Auto-unlock the demo/current story as a bundled free unlock
+      await insertBundledFreeUnlock();
       trackEvent({ eventType: 'feature_used', metadata: { feature: 'purchase_completed', package: pkg.id, stories: pkg.stories, payment_method: 'paypal' } });
       
       if (user.email) {
