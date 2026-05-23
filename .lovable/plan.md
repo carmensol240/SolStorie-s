@@ -1,8 +1,7 @@
-**Goal:** Revert `src/pages/Upgrade.tsx` to the exact state it was in on April 12th (commit `c6245cee`), matching how `PayPalButton.tsx` was previously reverted.
+**מטרה:** להחזיר את `src/pages/Upgrade.tsx` לגרסה האחרונה שהייתה לפני 23 במאי 2026 — commit `df783825` מ-21 במאי 2026.
 
-**Approach:**
-1. Extract `src/pages/Upgrade.tsx` from git commit `c6245cee` (April 12) into a temp file.
-2. Copy the temp file over the current `src/pages/Upgrade.tsx`, overwriting it completely.
-3. Do not touch any other file.
+**שלבים:**
+1. לחלץ את `src/pages/Upgrade.tsx` מ-commit `df783825` ולכתוב אותו על הקובץ הנוכחי.
+2. לא לגעת בשום קובץ אחר.
 
-**Verification:** Read the restored file to confirm it has 744 lines (same as the April 12 version).
+**אימות:** קריאה מהירה של הקובץ אחרי השחזור כדי לוודא שהוא תואם לגרסת `df783825`.
