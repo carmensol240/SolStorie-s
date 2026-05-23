@@ -70,6 +70,8 @@ interface PolaroidCardProps {
   offlineSize?: number;
   onDownloadOffline?: (id: string) => void;
   onDeleteOffline?: (id: string) => void;
+  canShare?: boolean;
+  onLockedShare?: (id: string) => void;
 }
 
 const PolaroidCard = ({
@@ -90,6 +92,8 @@ const PolaroidCard = ({
   offlineSize = 0,
   onDownloadOffline,
   onDeleteOffline,
+  canShare = true,
+  onLockedShare,
 }: PolaroidCardProps) => {
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
@@ -115,6 +119,10 @@ const PolaroidCard = ({
 
   const handleShareWhatsApp = (e: React.MouseEvent) => {
     e.stopPropagation();
+    if (!canShare) {
+      onLockedShare?.(id);
+      return;
+    }
     const text = `✨ ${childName} קיבל סיפור מותאם אישית ב-SolStorie's! רוצים גם? 👉 soulstory.co.il`;
     window.open(`https://wa.me/?text=${encodeURIComponent(text)}`, '_blank');
   };
