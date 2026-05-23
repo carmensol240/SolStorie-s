@@ -94,6 +94,7 @@ const Upgrade = () => {
   const handleSelectPackage = (packageId: string) => {
     setSelectedPackage(packageId);
     const pkg = ALL_PURCHASE_PACKAGES.find(p => p.id === packageId);
+    console.log('[Upgrade] Package selected:', packageId, pkg?.stories, pkg?.price);
     trackEvent({ 
       eventType: 'feature_used', 
       metadata: { feature: 'package_selected', package: packageId, stories: pkg?.stories } 
