@@ -231,6 +231,18 @@ const [currentPage, setCurrentPage] = useState(0);
   const [isSingleStoryUnlock, setIsSingleStoryUnlock] = useState(false);
   const [demoLockOpen, setDemoLockOpen] = useState(false);
   const [demoPaywallOpen, setDemoPaywallOpen] = useState(false);
+
+  // Re-open paywall popup when returning from /upgrade via close button
+  useEffect(() => {
+    const params = new URLSearchParams(location.search);
+    if (params.get('paywall') === '1') {
+      setDemoLockOpen(true);
+      params.delete('paywall');
+      const qs = params.toString();
+      navigate(`${location.pathname}${qs ? `?${qs}` : ''}`, { replace: true });
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [location.search]);
   // isReadAloudDismissed removed — read-aloud only in Accessibility Menu
   // Portrait overlay removed - using vertical layout now
   

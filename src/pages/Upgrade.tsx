@@ -346,7 +346,13 @@ const Upgrade = () => {
         <Button
           variant="ghost"
           size="icon"
-          onClick={() => navigate(-1)}
+          onClick={() => {
+            if (firstStoryId) {
+              navigate(`/story/${firstStoryId}?paywall=1`, { replace: true });
+            } else {
+              navigate(-1);
+            }
+          }}
           className="rounded-full bg-white/10 backdrop-blur-sm text-white hover:bg-white/20"
         >
           <X className="w-5 h-5" />
