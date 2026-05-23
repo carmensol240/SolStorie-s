@@ -362,9 +362,9 @@ const ChildInfoStep = ({ formData, updateFormData }: ChildInfoStepProps) => {
 
         // When creating a new profile, never match against existing children by name.
         // Only treat as an update when the user explicitly loaded an existing profile.
-        const existingChild = isCreatingNew
+        const existingChild = isCreatingNew || !selectedChildId
           ? undefined
-          : savedChildren.find(c => c.name === formData.childName);
+          : savedChildren.find(c => c.id === selectedChildId);
 
         // If user is creating a new profile but typed a name that collides with an existing one,
         // refuse to overwrite — ask them to pick a different name.
@@ -379,6 +379,7 @@ const ChildInfoStep = ({ formData, updateFormData }: ChildInfoStepProps) => {
           const { error } = await supabase
             .from("children")
             .update({
+              name: formData.childName,
               age: selectedAge,
               gender: formData.childGender,
               photo_url: formData.childPhoto,
@@ -396,7 +397,7 @@ const ChildInfoStep = ({ formData, updateFormData }: ChildInfoStepProps) => {
           // Update local state
           setSavedChildren(prev => prev.map(c => 
             c.id === existingChild.id 
-              ? { ...c, age: selectedAge, gender: formData.childGender, photo_url: formData.childPhoto, avatar_url: formData.childAvatarUrl, personality_traits: formData.personalityTraits }
+              ? { ...c, name: formData.childName, age: selectedAge, gender: formData.childGender, photo_url: formData.childPhoto, avatar_url: formData.childAvatarUrl, personality_traits: formData.personalityTraits }
               : c
           ));
         } else {
@@ -416,6 +417,7 @@ const ChildInfoStep = ({ formData, updateFormData }: ChildInfoStepProps) => {
           if (data) {
             setSavedChildren(prev => [...prev, data]);
             setIsCreatingNew(false);
+            setSelectedChildId(data.id);
           }
         }
         
@@ -423,7 +425,7 @@ const ChildInfoStep = ({ formData, updateFormData }: ChildInfoStepProps) => {
       } else {
         // Save to localStorage for dev mode or non-logged users
         const savedChild = {
-          id: `local-${Date.now()}`,
+          id: selectedChildId && !isCreatingNew ? selectedChildId : `local-${Date.now()}`,
           name: formData.childName,
           age: selectedAge,
           gender: formData.childGender,
@@ -433,9 +435,9 @@ const ChildInfoStep = ({ formData, updateFormData }: ChildInfoStepProps) => {
         };
         
         const existingChildren = JSON.parse(getUserData(user?.id, 'savedChildren') || '[]');
-        const existingIndex = isCreatingNew
+        const existingIndex = isCreatingNew || !selectedChildId
           ? -1
-          : existingChildren.findIndex((c: SavedChild) => c.name === formData.childName);
+          : existingChildren.findIndex((c: SavedChild) => c.id === selectedChildId);
 
         if (isCreatingNew && existingChildren.some((c: SavedChild) => c.name === formData.childName)) {
           toast.error("כבר קיים פרופיל בשם הזה. נא לבחור שם אחר.");
@@ -448,6 +450,7 @@ const ChildInfoStep = ({ formData, updateFormData }: ChildInfoStepProps) => {
         } else {
           existingChildren.push(savedChild);
           setIsCreatingNew(false);
+          setSelectedChildId(savedChild.id);
         }
         
         setUserData(user?.id, 'savedChildren', JSON.stringify(stripBase64ForStorage(existingChildren)));
