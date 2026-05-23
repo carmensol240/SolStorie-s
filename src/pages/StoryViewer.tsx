@@ -1507,6 +1507,17 @@ const [currentPage, setCurrentPage] = useState(0);
       {/* Book Container - Vertical Single Page */}
       <main className="flex-1 flex flex-col min-h-0 px-4 md:px-12 lg:px-20 py-2">
         <div className="relative w-full max-w-2xl mx-auto flex-1 min-h-0 flex flex-col">
+          {/* Subtle WhatsApp share icon - top left */}
+          {!isEndPage && story && (
+            <button
+              onClick={guardDemo(handleShareWhatsApp)}
+              className="absolute top-2 left-2 z-50 p-1.5 rounded-full bg-black/20 hover:bg-black/40 text-white/70 hover:text-white opacity-60 hover:opacity-100 backdrop-blur-sm transition-all"
+              aria-label="שתף בוואטסאפ"
+              title="שתף בוואטסאפ"
+            >
+              <Share2 className="w-3.5 h-3.5" />
+            </button>
+          )}
           <MagicalBookFrame className="flex-1 min-h-0">
             {/* Page content with fade transition */}
             <div className={cn(
