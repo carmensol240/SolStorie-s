@@ -142,9 +142,6 @@ const PayPalButton = ({ amount, onSuccess, onError, onCancel }: PayPalButtonProp
         ...baseConfig,
         style: {
           layout: 'vertical',
-          shape: 'pill',
-          label: 'pay',
-          height: 40,
           color: 'gold',
         },
       }).render(paypalRef.current!).then(() => {
