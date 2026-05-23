@@ -61,7 +61,7 @@ const DemoLockModal = ({ open, onOpenChange, title, description, storyId }: Demo
             {title ?? "אהבתם? 💛"}
           </DialogTitle>
           {description && (
-            <DialogDescription className="text-sm text-white/80 pt-1">
+            <DialogDescription className="text-sm text-white/80 pt-1 text-center">
               {description}
             </DialogDescription>
           )}
@@ -96,7 +96,7 @@ const DemoLockModal = ({ open, onOpenChange, title, description, storyId }: Demo
           {/* Primary: package */}
           <button
             onClick={goPackage}
-            className="w-full relative overflow-hidden bg-gradient-to-r from-purple-500 via-pink-500 to-orange-500 hover:from-purple-400 hover:via-pink-400 hover:to-orange-400 text-white font-black text-sm py-3 rounded-xl shadow-xl"
+            className="w-auto max-w-[280px] mx-auto relative overflow-hidden bg-gradient-to-r from-purple-500 via-pink-500 to-orange-500 hover:from-purple-400 hover:via-pink-400 hover:to-orange-400 text-white font-black text-sm py-3 px-6 rounded-xl shadow-xl text-center"
             style={{ boxShadow: '0 0 30px rgba(168, 85, 247, 0.4), 0 0 60px rgba(236, 72, 153, 0.2)' }}
           >
             📦 רכישת חבילת סיפורים
