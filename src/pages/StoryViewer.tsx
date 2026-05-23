@@ -1507,7 +1507,7 @@ const [currentPage, setCurrentPage] = useState(0);
       {/* Header */}
       <BookHeader
         onBack={() => navigate("/library")}
-        onShare={handleShare}
+        onShare={guardDemo(handleShare)}
             onDownload={guardDemo(() => story && exportToPdf(story))}
         onShareWhatsApp={guardDemo(handleShareWhatsApp)}
         onToggleFontSize={() => setFontSizeIndex((fontSizeIndex + 1) % FONT_SIZES.length)}
@@ -1612,7 +1612,7 @@ const [currentPage, setCurrentPage] = useState(0);
                   {/* Two separate coloring buttons */}
                   <div className="flex flex-col sm:flex-row gap-3 w-full max-w-xs mx-auto pt-2">
                     <Button
-                      onClick={() => preloadStoryCachedColoring('print')}
+                      onClick={guardDemo(() => preloadStoryCachedColoring('print'))}
                       disabled={coloringLoading}
                       className="flex-1 bg-gradient-to-r from-amber-400 to-orange-500 hover:from-amber-500 hover:to-orange-600 text-white px-4 py-3 rounded-full text-sm gap-1"
                     >
@@ -1623,7 +1623,7 @@ const [currentPage, setCurrentPage] = useState(0);
                       )}
                     </Button>
                     <Button
-                      onClick={() => preloadStoryCachedColoring('online')}
+                      onClick={guardDemo(() => preloadStoryCachedColoring('online'))}
                       disabled={coloringLoading}
                       className="flex-1 bg-gradient-to-r from-purple-500 to-indigo-600 hover:from-purple-600 hover:to-indigo-700 text-white px-4 py-3 rounded-full text-sm gap-1"
                     >
@@ -1749,9 +1749,9 @@ const [currentPage, setCurrentPage] = useState(0);
                         isPlaying={pageRecording.playingPage === currentVirtual.dbPage.page_number}
                         onStartRecording={guardDemo(() => pageRecording.startRecording(currentVirtual.dbPage.page_number))}
                         onStopRecording={pageRecording.stopRecording}
-                        onSave={pageRecording.saveRecording}
+                        onSave={guardDemo(pageRecording.saveRecording)}
                         onDiscard={pageRecording.discardPending}
-                        onPlay={() => pageRecording.playRecording(currentVirtual.dbPage.page_number)}
+                        onPlay={guardDemo(() => pageRecording.playRecording(currentVirtual.dbPage.page_number))}
                         onStopPlaying={pageRecording.stopPlaying}
                         light
                       />
@@ -1848,9 +1848,9 @@ const [currentPage, setCurrentPage] = useState(0);
                         isPlaying={pageRecording.playingPage === currentVirtual.dbPage.page_number}
                         onStartRecording={guardDemo(() => pageRecording.startRecording(currentVirtual.dbPage.page_number))}
                         onStopRecording={pageRecording.stopRecording}
-                        onSave={pageRecording.saveRecording}
+                        onSave={guardDemo(pageRecording.saveRecording)}
                         onDiscard={pageRecording.discardPending}
-                        onPlay={() => pageRecording.playRecording(currentVirtual.dbPage.page_number)}
+                        onPlay={guardDemo(() => pageRecording.playRecording(currentVirtual.dbPage.page_number))}
                         onStopPlaying={pageRecording.stopPlaying}
                         light
                       />
@@ -1877,9 +1877,9 @@ const [currentPage, setCurrentPage] = useState(0);
                             isPlaying={pageRecording.playingPage === currentVirtual.dbPage.page_number}
                             onStartRecording={guardDemo(() => pageRecording.startRecording(currentVirtual.dbPage.page_number))}
                             onStopRecording={pageRecording.stopRecording}
-                            onSave={pageRecording.saveRecording}
+                            onSave={guardDemo(pageRecording.saveRecording)}
                             onDiscard={pageRecording.discardPending}
-                            onPlay={() => pageRecording.playRecording(currentVirtual.dbPage.page_number)}
+                            onPlay={guardDemo(() => pageRecording.playRecording(currentVirtual.dbPage.page_number))}
                             onStopPlaying={pageRecording.stopPlaying}
                           />
                         </div>

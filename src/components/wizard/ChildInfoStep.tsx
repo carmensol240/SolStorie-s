@@ -81,6 +81,14 @@ const ChildInfoStep = ({ formData, updateFormData }: ChildInfoStepProps) => {
   const [selectedChildId, setSelectedChildId] = useState<string | null>(null);
   const hasAutoLoadedRef = useRef<string | null>(null);
 
+  // Persist selected child id so other screens (e.g. Library) can show the matching avatar
+  useEffect(() => {
+    if (!user?.id) return;
+    if (selectedChildId) {
+      setUserData(user.id, 'selected_child_id', selectedChildId);
+    }
+  }, [user?.id, selectedChildId]);
+
   // Fetch display name from profile for greeting
   useEffect(() => {
     if (!user) {

@@ -127,6 +127,11 @@ const Upgrade = () => {
         window.dispatchEvent(new CustomEvent('coloring-credits-updated'));
         window.dispatchEvent(new CustomEvent('purchase-completed'));
         setPurchasedCredits(pkg.stories);
+        if (firstStoryId) {
+          try {
+            sessionStorage.setItem('pendingStoryReturn', JSON.stringify({ path: `/story/${firstStoryId}?upgrade=true` }));
+          } catch {}
+        }
         setShowSuccess(true);
         trackEvent({ eventType: 'feature_used', metadata: { feature: 'test_purchase_completed', package: pkg.id, stories: pkg.stories } });
         toast.success(`🧪 קרדיטים נוספו בהצלחה (מצב בדיקה)`);
@@ -237,6 +242,12 @@ const Upgrade = () => {
       window.dispatchEvent(new CustomEvent('purchase-completed'));
       setPurchasedCredits(pkg.stories);
       setShowPayPal(false);
+      // Ensure success modal returns the user back to the story they came from
+      if (firstStoryId) {
+        try {
+          sessionStorage.setItem('pendingStoryReturn', JSON.stringify({ path: `/story/${firstStoryId}?upgrade=true` }));
+        } catch {}
+      }
       setShowSuccess(true);
       await userDetailsRef.current?.saveToProfile();
       // Auto-unlock the demo/current story as a bundled free unlock

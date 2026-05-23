@@ -1,46 +1,56 @@
-# תיקון באג בידוד פרופילי ילדים
+## תיקון 6 ממצאים קריטיים בלבד
 
-## הבעיה
+### 1. שיתוף וואטסאפ בכרטיסי הספרייה — חסימת דמו
+**קובץ:** `src/components/ui/polaroid-card.tsx`, `src/pages/Library.tsx`
 
-במסך "ספרו לנו על הילד" כל פרופיל מזוהה לפי **שם** (`formData.childName`) ולא לפי **id**, וקיים `useEffect` שטוען אוטומטית את הילד הראשון. שני אלה יחד גורמים למצבים שהמשתמש תיאר:
+- ב-`Library.tsx`: לחשב פעם אחת `hasAnyPurchase` (קיים `purchases` או `subscriptions` או `story_unlocks` למשתמש). אפשר בקריאה אחת קצרה אחרי `fetchStories`.
+- להעביר ל-`PolaroidCard` prop חדש `canShare: boolean` ו-`onLockedShare: (storyId) => void` (שמנווט ל-`/upgrade?firstStory={id}&from=library_share`).
+- ב-`polaroid-card.tsx`: ב-`handleShareWhatsApp`, אם `!canShare` ⇒ קריאה ל-`onLockedShare(id)` במקום `window.open`.
+- אם אין כפתור שיתוף נראה לעין — להוסיף אותו בכרטיס (בהתאם לאיקון `Share2`) רק אם הוקצה `onLockedShare`/`canShare`. (אם כבר קיים — רק לעטוף.)
 
-1. **בחירה בסול → קופץ לעומר**
-   ה־`useEffect` בשורות ~121-185 ב־`src/components/wizard/ChildInfoStep.tsx` תלוי ב־`[user]` ובכל ריצה שלו טוען בכוח את `data[0]` ל־`formData`. כשמתרחש רענון auth (token refresh, חזרה מטאב), אובייקט ה־`user` משתנה — ה־effect רץ שוב — והבחירה הנוכחית נדרסת לטובת הילד הראשון ברשימה.
+### 2. PDF / הדפסה — `guardDemo` ב-`handleShare`
+**קובץ:** `src/pages/StoryViewer.tsx`
 
-2. **החלפת תמונה → חוזרת לקודמת**
-   אחרי שמעלים תמונה (`updateFormData({ childPhoto })`) אבל לפני שלוחצים "שמור", אם ה־effect הנ"ל רץ שוב הוא טוען מחדש את `photo_url` מה־DB/localStorage ודורס את התמונה החדשה.
-   בנוסף, `generateAvatarInline` ו־`handleSaveChildProfile` (שורות 260, 282, 349, 419-420, 450) מאתרים את הפרופיל לעדכון ע"י `savedChildren.find(c => c.name === formData.childName)`. אם המשתמש החליף שם בשדה, או אם יש שני פרופילים עם דמיון, העדכון נכתב לפרופיל הלא נכון — ואז התמונה "מתערבבת" בין פרופילים.
+- בשורה ~1510: `onShare={handleShare}` ⇒ `onShare={guardDemo(handleShare)}`.
+- `handleShare` עצמו נשאר ללא שינוי.
 
-3. **זיהוי פרופיל פעיל בכפתורים** (שורה 519, 553) משתמש גם הוא ב־`formData.childName === child.name` — שביר לאותן סיבות.
+### 3. הקלטת קול — חסימה מלאה לדמו
+**קובץ:** `src/pages/StoryViewer.tsx`
 
-## הקבצים שישתנו
+- `onStartRecording` כבר עטוף בכל 3 המקומות, אבל `onSave` ו-`onPlay` לא — דמו שהצליח איכשהו להתחיל הקלטה (race) יכול לשמור.
+- לעטוף בכל 3 המופעים (שורות ~1750/1849/1878):
+  - `onSave={guardDemo(pageRecording.saveRecording)}`
+  - `onPlay={guardDemo(() => pageRecording.playRecording(currentVirtual.dbPage.page_number))}`
 
-רק קובץ אחד: `src/components/wizard/ChildInfoStep.tsx`.
+### 4. כפתורי צביעה במסך הסיום — `guardDemo`
+**קובץ:** `src/pages/StoryViewer.tsx` (שורות ~1614 ו-~1626)
 
-## התיקון
+- `onClick={() => preloadStoryCachedColoring('print')}` ⇒ `onClick={guardDemo(() => preloadStoryCachedColoring('print'))}`
+- אותו דבר לכפתור `'online'`.
 
-1. **state חדש**: `selectedChildId: string | null` שמחזיק את ה־id של הפרופיל הפעיל (מקור אמת יחיד).
+### 5. `useChildAvatar` בספרייה — child_id הנכון
+**קובץ:** `src/pages/Library.tsx`
 
-2. **`loadChildProfile(child)`**: יקבע `setSelectedChildId(child.id)` בנוסף ל־`updateFormData`.
+- במקום `useChildAvatar()` (שמחזיר תמיד את הילד הראשון), לקרוא את ה-`selectedChildId` שנשמר מ-`ChildInfoStep` ב-localStorage (`getUserData(user?.id, 'selectedChildId')` או הילד שמשויך לסיפור האחרון שנפתח), למצוא ב-`children` את ה-name של הילד הזה, ולהעביר אותו: `useChildAvatar(selectedChildName)`.
+- אם אין selected — להציג את הראשון כברירת מחדל (התנהגות נוכחית).
 
-3. **כפתור "פרופיל חדש"**: יקבע `setSelectedChildId(null)` + `setIsCreatingNew(true)`.
+### 6. רכישת חבילה — חזרה לסיפור אחרי תשלום
+**קובץ:** `src/pages/Upgrade.tsx`
 
-4. **`useEffect` של טעינת ילדים (שורות 121-185)**:
-   - יישאר תלוי ב־`[user?.id]` בלבד (במקום ב־`user` כאובייקט) כדי לא לרוץ על כל רענון טוקן.
-   - יתווסף `hasLoadedRef = useRef(false)` כדי שטעינה ראשונית של ה־first child תקרה **פעם אחת בלבד** לכל user. אם כבר נטענו ילדים — לא דורסים בחירה קיימת.
+- ב-`handlePayPalSuccess` (חבילה), לפני `setShowSuccess(true)`: אם `firstStoryId` קיים — לשמור:
+  ```ts
+  sessionStorage.setItem('pendingStoryReturn', JSON.stringify({ path: `/story/${firstStoryId}?upgrade=true` }));
+  ```
+- `PurchaseSuccessModal` כבר משתמש ב-`pendingStoryReturn` ב-`getRedirectPath()` ⇒ יחזיר אוטומטית לסיפור בלחיצה על "סיום".
+- אופציה: לעשות אותו דבר ב-`handleTestPurchase` למשתמש בדיקה, ליציבות.
 
-5. **`generateAvatarInline`, `handleRegenerationCountChange`, `handleSaveChildProfile`, `handleDeleteChildProfile`**: יחפשו את הילד הנוכחי לפי `selectedChildId` במקום לפי `formData.childName`. שמירה של פרופיל קיים תזוהה ע"י id; שמירת פרופיל חדש (כש־`selectedChildId === null` או `isCreatingNew === true`) תיצור רשומה חדשה.
+---
 
-6. **תצוגת הכפתורים** (שורות 519, 553): השוואה לפי `selectedChildId === child.id` במקום לפי שם.
+### מה לא משתנה
+- שום שינוי ב-DB, RLS, edge functions, או לוגיקת רכישה/קרדיטים.
+- שום שינוי ב-`ChildInfoStep.tsx` (כבר תוקן בסבב הקודם).
+- שום שינוי בכפתורים/תהליכים אחרים מחוץ ל-6 הפריטים האלה.
 
-7. **אחרי insert מוצלח של פרופיל חדש**: נקרא `setSelectedChildId(data.id)` כדי שעריכות עוקבות יעדכנו את הרשומה הנכונה.
-
-## סיכון
-
-- שינוי ממוקד בקובץ אחד, ללא נגיעה ב־DB, RLS, edge functions או שאר ה־wizard.
-- פרופילים קיימים נטענים כרגיל מה־DB/localStorage — רק מנגנון הבחירה הפנימי משתנה.
-- אין שינוי בשמות שדות או בפורמט localStorage (`savedChildren` נשמר זהה).
-
-## מה לא נכלל
-
-לא משנים שום קובץ אחר, לא את אופן יצירת הכריכה/האיורים, לא את ה־DB ולא לוגיקה עסקית אחרת — רק את בידוד מצב הבחירה במסך הזה.
+### סיכון
+- נמוך מאוד — כל השינויים הם עטיפת קריאות קיימות ב-`guardDemo`, הוספת prop ל-PolaroidCard, ושינוי שתי שורות ב-Upgrade.
+- אין השפעה על סיפורים קיימים או על משתמשים ששילמו.
