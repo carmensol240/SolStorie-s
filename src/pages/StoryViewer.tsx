@@ -1439,7 +1439,7 @@ const [currentPage, setCurrentPage] = useState(0);
   const handlePageNav = (direction: 'next' | 'prev') => {
     if (isFlipping) return;
     
-    const maxPage = totalVirtualPages + 1;
+    const maxPage = totalVirtualPages;
     
     if (direction === 'next' && currentPage >= maxPage) return;
     if (direction === 'prev' && currentPage <= 0) return;
