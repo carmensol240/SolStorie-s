@@ -2130,6 +2130,7 @@ ${fullStoryText}`;
           title: hebrewTopic,
           topic: topic,
           language: language,
+          adventureLogic: adventureLogic,
         }),
       }).then(response => {
         console.log(`generate-cover response status: ${response.status}`);
