@@ -468,7 +468,9 @@ const ChildInfoStep = ({ formData, updateFormData }: ChildInfoStepProps) => {
   };
 
   const handleDeleteChildProfile = async () => {
-    const currentChild = savedChildren.find(c => c.name === formData.childName);
+    const currentChild = selectedChildId
+      ? savedChildren.find(c => c.id === selectedChildId)
+      : undefined;
     if (!currentChild) {
       toast.error("לא נבחר פרופיל למחיקה");
       return;
@@ -489,6 +491,7 @@ const ChildInfoStep = ({ formData, updateFormData }: ChildInfoStepProps) => {
       }
 
       setSavedChildren(prev => prev.filter(c => c.id !== currentChild.id));
+      setSelectedChildId(null);
       updateFormData({
         childName: "",
         childGender: "male",
