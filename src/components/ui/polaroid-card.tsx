@@ -1,6 +1,6 @@
 import { useState, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Book, Trash2, MoreVertical, Pencil, Download, Check, Loader2, HardDriveDownload, Trash } from 'lucide-react';
+import { Book, Trash2, MoreVertical, Pencil, Download, Check, Loader2, HardDriveDownload, Trash, Share2 } from 'lucide-react';
 import { Button } from './button';
 import { SignedImage } from './signed-image';
 import { formatBytes } from '@/hooks/use-full-offline-storage';
@@ -113,6 +113,12 @@ const PolaroidCard = ({
     }
   };
 
+  const handleShareWhatsApp = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    const text = `✨ ${childName} קיבל סיפור מותאם אישית ב-SolStorie's! רוצים גם? 👉 soulstory.co.il`;
+    window.open(`https://wa.me/?text=${encodeURIComponent(text)}`, '_blank');
+  };
+
   return (
     <>
       <div
@@ -201,6 +207,16 @@ const PolaroidCard = ({
                 <Check className="w-3 h-3 text-white" strokeWidth={3} />
               </div>
             )}
+
+            {/* WhatsApp share button - bottom left */}
+            <button
+              onClick={handleShareWhatsApp}
+              className="absolute bottom-1 left-1 z-20 w-7 h-7 rounded-full bg-black/40 hover:bg-green-600 backdrop-blur-sm text-white flex items-center justify-center transition-colors opacity-70 hover:opacity-100 shadow-md"
+              aria-label="שתף בוואטסאפ"
+              title="שתף בוואטסאפ"
+            >
+              <Share2 className="w-3.5 h-3.5" />
+            </button>
 
             {/* Download button */}
             {onDownloadOffline && !isOfflineSaved && (

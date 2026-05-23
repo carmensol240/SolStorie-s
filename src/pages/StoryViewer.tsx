@@ -1,6 +1,6 @@
 import { useState, useEffect, useLayoutEffect, useRef, useCallback, useMemo } from "react";
 import { useParams, useNavigate, useLocation } from "react-router-dom";
-import { Home, BookOpen, Palette, Wand2, Loader2, ImageOff, Star, Send, ChevronRight, ChevronLeft, ArrowRight, Link2, Printer, Eye } from "lucide-react";
+import { Home, BookOpen, Palette, Wand2, Loader2, ImageOff, Star, Send, ChevronRight, ChevronLeft, ArrowRight, Link2, Printer, Eye, Share2 } from "lucide-react";
 import SeriesNavBar, { SeriesPart } from "@/components/story/SeriesNavBar";
 import { MissingIllustrationPrompt } from "@/components/story/MissingIllustrationPrompt";
 import { Button } from "@/components/ui/button";
@@ -986,9 +986,7 @@ const [currentPage, setCurrentPage] = useState(0);
   const handleShareWhatsApp = () => {
     if (!story) return;
 
-    const slug = story.slug || story.id;
-    const link = `${window.location.origin}/story/${slug}`;
-    const text = `📚 הסיפור של ${story.child_name} – נוצר באהבה באפליקציית SolStorie's™ ✨\nלחצו לקריאה: ${link}`;
+    const text = `✨ ${story.child_name} קיבל סיפור מותאם אישית ב-SolStorie's! רוצים גם? 👉 soulstory.co.il`;
 
     window.open(`https://wa.me/?text=${encodeURIComponent(text)}`, '_blank');
 
@@ -1402,10 +1400,9 @@ const [currentPage, setCurrentPage] = useState(0);
   }
 
   // Virtual page indexing:
-  // 0..N-1 = virtual pages, N = closing, N+1 = end/feedback
+  // 0..N-1 = virtual pages, N = end/feedback
   const totalVirtualPages = virtualPages.length;
-  const isClosingPage = currentPage === totalVirtualPages;
-  const isEndPage = currentPage >= totalVirtualPages + 1;
+  const isEndPage = currentPage >= totalVirtualPages;
   const isContentPage = currentPage >= 0 && currentPage < totalVirtualPages;
 
   const currentVirtual = isContentPage ? virtualPages[currentPage] : null;
@@ -1440,7 +1437,7 @@ const [currentPage, setCurrentPage] = useState(0);
   const handlePageNav = (direction: 'next' | 'prev') => {
     if (isFlipping) return;
     
-    const maxPage = totalVirtualPages + 1;
+    const maxPage = totalVirtualPages;
     
     if (direction === 'next' && currentPage >= maxPage) return;
     if (direction === 'prev' && currentPage <= 0) return;
@@ -1510,6 +1507,17 @@ const [currentPage, setCurrentPage] = useState(0);
       {/* Book Container - Vertical Single Page */}
       <main className="flex-1 flex flex-col min-h-0 px-4 md:px-12 lg:px-20 py-2">
         <div className="relative w-full max-w-2xl mx-auto flex-1 min-h-0 flex flex-col">
+          {/* Subtle WhatsApp share icon - top left */}
+          {!isEndPage && story && (
+            <button
+              onClick={guardDemo(handleShareWhatsApp)}
+              className="absolute top-2 left-2 z-50 p-1.5 rounded-full bg-black/20 hover:bg-black/40 text-white/70 hover:text-white opacity-60 hover:opacity-100 backdrop-blur-sm transition-all"
+              aria-label="שתף בוואטסאפ"
+              title="שתף בוואטסאפ"
+            >
+              <Share2 className="w-3.5 h-3.5" />
+            </button>
+          )}
           <MagicalBookFrame className="flex-1 min-h-0">
             {/* Page content with fade transition */}
             <div className={cn(
@@ -1518,89 +1526,7 @@ const [currentPage, setCurrentPage] = useState(0);
               isFlipping ? "opacity-0" : "opacity-100",
             )}>
             
-            {isClosingPage ? (
-              /* Closing Page - Full cast waving background */
-              <div className="relative flex-1 flex flex-col items-center justify-end text-center h-full overflow-hidden">
-                {/* Full background image */}
-                <img
-                  src={castWavingFarewell}
-                  alt="הקאסט נפרד לשלום"
-                  className="absolute inset-0 w-full h-full object-cover"
-                />
-                {/* Dark overlay for text readability */}
-                <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/20 to-transparent" />
-
-                {/* Centered closing line */}
-                <div className="absolute inset-0 z-20 flex items-center justify-center px-4 sm:px-6 pointer-events-none">
-                  <p className="text-xl sm:text-2xl md:text-4xl font-bold text-white drop-shadow-lg text-center leading-tight break-words max-w-[90%] mx-auto" dir="rtl" style={{ textAlign: 'center' }}>
-                    ✨ סוף – נתראה בסיפור הבא! ✨
-                  </p>
-                </div>
-
-                {/* Content overlay */}
-                <div className="relative z-10 space-y-3 pb-8 px-4 sm:px-6">
-                  <div className="pt-2">
-                    <a
-                      href="https://soulstory.co.il"
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="inline-flex items-center gap-2 hover:opacity-80 transition-opacity"
-                      aria-label="SolStorie's - פתח באתר soulstory.co.il"
-                      style={{ opacity: 0.85 }}
-                    >
-                      <Link2 className="w-5 h-5 text-white drop-shadow" />
-                      <span className="text-xl md:text-2xl font-black logo-3d-bubble whitespace-nowrap" dir="ltr">
-                        <span className="logo-rainbow">SolStorie's™ | soulstory.co.il</span>
-                      </span>
-                    </a>
-                  </div>
-                  {/* Next part in series or back to library */}
-                  <div className="flex flex-col items-center gap-2 pt-4">
-                    {(() => {
-                      const idx = seriesParts.findIndex(p => p.id === resolvedId);
-                      if (idx >= 0 && idx < seriesParts.length - 1) {
-                        const next = seriesParts[idx + 1];
-                        return (
-                          <Button
-                            onClick={() => navigate(`/story/${next.slug || next.id}`)}
-                            className="bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white font-bold px-6 py-3 rounded-full shadow-xl text-base gap-2 animate-pulse"
-                          >
-                            <BookOpen className="w-5 h-5" />
-                            המשיכו לחלק {idx + 2} →
-                          </Button>
-                        );
-                      }
-                      return null;
-                    })()}
-                    <Button
-                      onClick={() => navigate('/library')}
-                      variant="ghost"
-                      className="text-white/80 hover:text-white hover:bg-white/10 font-medium px-6 py-3 rounded-full text-sm gap-2"
-                    >
-                      <ArrowRight className="w-4 h-4" />
-                      חזרה לספרייה
-                    </Button>
-                    <Button
-                      onClick={() => handlePageNav('next')}
-                      className="bg-gradient-to-r from-amber-400 to-yellow-500 hover:from-amber-500 hover:to-yellow-600 text-amber-950 font-bold px-8 py-3 rounded-full shadow-xl text-base gap-2 animate-bounce-gentle mt-2"
-                    >
-                      <Palette className="w-5 h-5" />
-                      לדפי הצביעה
-                    </Button>
-                    <Button
-                      onClick={() => {
-                        setShowPrintPreviewModal(true);
-                      }}
-                      className="bg-gradient-to-r from-indigo-500 to-purple-600 hover:from-indigo-600 hover:to-purple-700 text-white font-bold px-8 py-3 rounded-full shadow-xl text-base gap-2 mt-2"
-                    >
-                      <Eye className="w-5 h-5" />
-                      👁️ ראו איך הספר של {story?.child_name} ייראה מודפס!
-                    </Button>
-                  </div>
-                </div>
-              </div>
-
-             ) : isEndPage ? (
+            {isEndPage ? (
               /* End Page - Feedback & actions */
               <div className="flex flex-col h-full bg-[#FFFBF5] relative">
                 {/* Back arrow - top right */}
@@ -1613,6 +1539,14 @@ const [currentPage, setCurrentPage] = useState(0);
                 </button>
 
                 <div data-story-scroll className="flex-1 paper-texture overflow-y-auto p-5 md:p-8 text-center flex flex-col items-center justify-start gap-4 pt-12">
+                  {/* Cast image at top */}
+                  <img
+                    src={castWavingFarewell}
+                    alt="הדמויות נפרדות לשלום"
+                    className="w-full max-w-sm rounded-2xl object-cover shadow-md"
+                    style={{ height: '180px' }}
+                  />
+
                   {/* Title */}
                   <p className="text-2xl md:text-3xl font-bold text-purple-800">קסום, לא? ✨</p>
 
@@ -1670,6 +1604,9 @@ const [currentPage, setCurrentPage] = useState(0);
                       )}
                     </Button>
                   </div>
+
+                  {/* Footer message */}
+                  <p className="text-sm text-purple-600 pt-2">נתראה בסיפור הבא 💜</p>
 
                 </div>
               </div>
@@ -1932,7 +1869,7 @@ const [currentPage, setCurrentPage] = useState(0);
           </MagicalBookFrame>
 
           {/* Watermark — non-clickable, shown only on illustration/cover pages */}
-          {!isClosingPage && !isEndPage && currentVirtual && currentVirtual.type !== 'text' && (
+          {!isEndPage && currentVirtual && currentVirtual.type !== 'text' && (
             <div
               className="absolute bottom-14 left-1/2 -translate-x-1/2 z-40 opacity-30 pointer-events-none select-none"
               aria-hidden="true"
@@ -1947,7 +1884,7 @@ const [currentPage, setCurrentPage] = useState(0);
           <div className="absolute bottom-2 left-0 right-0 z-40 flex items-center justify-between px-4">
             <button
               onClick={() => handlePageNav('next')}
-              disabled={currentPage >= totalVirtualPages + 1 || isFlipping}
+              disabled={currentPage >= totalVirtualPages || isFlipping}
               className="w-10 h-10 rounded-full bg-black/40 hover:bg-black/50 text-white/80 hover:text-white backdrop-blur-sm transition-all disabled:opacity-20 disabled:cursor-not-allowed flex items-center justify-center"
               aria-label="עמוד הבא"
             >
@@ -2093,7 +2030,7 @@ const [currentPage, setCurrentPage] = useState(0);
       <PdfFeaturePopup userId={user?.id} />
 
       {/* Install App Prompt - shown only after reaching last page */}
-      <InstallAppPrompt justCreatedFirstStory={justCreatedStory && (isClosingPage || isEndPage)} />
+      <InstallAppPrompt justCreatedFirstStory={justCreatedStory && isEndPage} />
 
       {/* Coloring Picker Dialog — global so it works from header icon too */}
       <Dialog open={coloringPickerOpen} onOpenChange={(open) => {
