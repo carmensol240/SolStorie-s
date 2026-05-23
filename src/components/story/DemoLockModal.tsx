@@ -1,5 +1,6 @@
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { useNavigate, useLocation } from "react-router-dom";
+import { useState } from "react";
 import PersonalizedStoryCover from "@/components/paywall/PersonalizedStoryCover";
 
 interface DemoLockModalProps {
@@ -13,6 +14,18 @@ interface DemoLockModalProps {
 const DemoLockModal = ({ open, onOpenChange, title, description, storyId }: DemoLockModalProps) => {
   const navigate = useNavigate();
   const location = useLocation();
+  const [showFeatures, setShowFeatures] = useState(false);
+
+  const features = [
+    "🎨 אווטאר מצויר ומותאם אישית לילד שלך",
+    "🎙️ הקלטה והשמעה",
+    "📲 שיתוף בוואטסאפ",
+    "🖨️ הדפסה עצמאית (PDF)",
+    "🎨 דפי צביעה",
+    "📴 שימוש ללא אינטרנט",
+    "📚 ספריית לימוד — צבעים, צורות, אותיות ומספרים",
+    "🌍 סיפורים בעברית ואנגלית",
+  ];
 
   const rememberReturn = () => {
     try {
@@ -59,6 +72,25 @@ const DemoLockModal = ({ open, onOpenChange, title, description, storyId }: Demo
             <PersonalizedStoryCover storyId={storyId} />
           </div>
         )}
+
+        <div className="mt-1">
+          <button
+            type="button"
+            onClick={() => setShowFeatures((v) => !v)}
+            className="text-white/60 hover:text-white/90 text-[11px] font-semibold transition-colors py-1"
+          >
+            מה מקבלים? {showFeatures ? "▲" : "▼"}
+          </button>
+          {showFeatures && (
+            <ul className="mt-1.5 flex flex-col gap-1 text-right bg-white/5 border border-white/10 rounded-lg px-3 py-2">
+              {features.map((f) => (
+                <li key={f} className="text-[11px] text-white/70 leading-snug">
+                  {f}
+                </li>
+              ))}
+            </ul>
+          )}
+        </div>
 
         <div className="flex flex-col gap-2 mt-2">
           {/* Primary: package */}
