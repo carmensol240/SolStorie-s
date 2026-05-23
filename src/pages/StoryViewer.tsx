@@ -2035,12 +2035,13 @@ const [currentPage, setCurrentPage] = useState(0);
       )}
 
       {/* Demo lock modal — shown when demo users try to save/share/download/color/record */}
-      <DemoLockModal open={demoLockOpen} onOpenChange={setDemoLockOpen} />
+      <DemoLockModal open={demoLockOpen} onOpenChange={setDemoLockOpen} storyId={storyId} />
       <DemoLockModal
         open={demoPaywallOpen}
         onOpenChange={setDemoPaywallOpen}
         title="✨ רוצים לקרוא את הסיפור המלא?"
-        description="רכשו חבילת סיפורים"
+        description="רכשו חבילת סיפורים או רק את הסיפור הזה"
+        storyId={storyId}
       />
 
       {/* Gender Swap Dialog */}
