@@ -1,50 +1,52 @@
-## מטרה
+## הבעיה
 
-כפתור פשוט שמחליף את `carmit1901+test@gmail.com` בין שני מצבים בלי שינויי DB:
+ב-`PayPalButton.tsx` נטענת SDK של PayPal עם `enable-funding=card` והכפתורים מוצגים ב-layout vertical. PayPal אמור להציג שני כפתורים — PayPal הצהוב, ומתחתיו "Debit or Credit Card". בלחיצה על כפתור הכרטיס לא קורה כלום.
 
-1. **מצב דמו** — `isDemoUser=true` תמיד, פופאפ רכישה אחרי עמוד 3, פיצ'רי משלם חסומים.
-2. **מצב אדמין** — גישה מלאה לסיפורים שלמים, ללא paywall.
+הסיבה הכי סבירה: `Buttons()` עם הגדרה גנרית מצייר את כפתור הכרטיס דרך FUNDING.CARD, אבל בלחיצה הוא מנסה לפתוח חלון popup לטופס כרטיס מתארח. כשהמרצ'נט לא הפעיל "Advanced Card Processing" / "Standard Card Fields" — הלחיצה נכשלת שקטה (no-op), בלי להפעיל onError.
 
-## מימוש
+## הפתרון
 
-### 1. `src/pages/StoryViewer.tsx` (שורות 18, 451-458)
+לרנדר את כפתור הכרטיס בנפרד דרך `fundingSource: paypal.FUNDING.CARD`, כך שאם הוא לא נתמך — `.isEligible()` יחזיר false והכפתור פשוט לא יצויר (במקום כפתור מת). אם הוא כן נתמך — הוא ייפתח כמו שצריך.
 
-החלפת הקבוע הקיים בקריאה ל-localStorage flag:
+## שינויים
+
+**`src/components/paywall/PayPalButton.tsx`** (קובץ יחיד):
+
+ב-useEffect שמרנדר את הכפתורים, להחליף את הקריאה היחידה ל-`window.paypal.Buttons({...}).render(...)` בלולאה שמרנדרת בנפרד כל funding source זמין:
 
 ```ts
-const TESTER_EMAIL = 'carmit1901+test@gmail.com';
-const ORIGINAL_TESTER = 'carmit1901@gmail.com';
+const fundingSources = [
+  window.paypal.FUNDING.PAYPAL,
+  window.paypal.FUNDING.CARD,
+];
 
-// בתוך הקומפוננטה:
-const emailLower = user?.email?.toLowerCase();
-const isTesterAccount = emailLower === TESTER_EMAIL;
-// קריאה מ-localStorage: ברירת מחדל = 'demo'
-const testerMode = isTesterAccount
-  ? (localStorage.getItem('tester_mode') ?? 'demo')
-  : null;
-const isForcedDemo = testerMode === 'demo';
-const isTester = emailLower === ORIGINAL_TESTER || testerMode === 'admin';
+const config = {
+  createOrder: (...) => {...},  // זהה לקיים
+  onApprove: async (...) => {...},  // זהה לקיים
+  onError: (...) => {...},
+  onCancel: () => {...},
+  style: { layout: 'vertical', shape: 'pill', height: 40, label: 'pay' },
+};
 
-const isDemoUser = !!user && (
-  isForcedDemo ||
-  (!hasPurchasedPackage && !isSubscriberUser && !isAdminUser && !isTester)
-);
+for (const fundingSource of fundingSources) {
+  const button = window.paypal.Buttons({
+    ...config,
+    fundingSource,
+    style: { 
+      ...config.style, 
+      color: fundingSource === window.paypal.FUNDING.PAYPAL ? 'gold' : 'black' 
+    },
+  });
+  if (button.isEligible()) {
+    await button.render(paypalRef.current);
+  }
+}
 ```
 
-### 2. `src/pages/Settings.tsx`
+זה גם נותן fallback ויזואלי ברור: אם כרטיס לא נתמך בחשבון — אין כפתור שבור, יש רק כפתור PayPal (שגם הוא מאפשר תשלום בכרטיס דרך אורח).
 
-הוספת כרטיס קטן חדש שמוצג **רק** אם `user.email === 'carmit1901+test@gmail.com'`:
+## בדיקה
 
-- כותרת: "מצב בדיקה (Tester)"
-- Toggle/Switch בין שני מצבים: "דמו" / "אדמין"
-- בלחיצה: `localStorage.setItem('tester_mode', 'demo'|'admin')` + `window.location.reload()` כדי שכל הקומפוננטות יקבלו את המצב החדש.
-- מצב נוכחי נקרא מ-`localStorage.getItem('tester_mode') ?? 'demo'`.
+לאחר היישום: לפתוח את `/upgrade`, לוודא בקונסולה ש-`PayPal buttons rendered successfully` עדיין מודפס, וללחוץ על כפתור הכרטיס השחור — צריך להיפתח חלון/טופס. אם הוא לא נטען כי המרצ'נט לא מאופשר — הכפתור פשוט לא יופיע (וזה התנהגות נכונה במקום no-op).
 
-הכרטיס לא תלוי ב-`isAdmin`, רק במייל — כך גם במצב דמו עדיין רואים את הכפתור להחזיר ל-אדמין.
-
-## מה לא נעשה
-
-- אין שינוי DB / RLS / roles.
-- אין שינוי לחשבונות אחרים.
-- אין שינוי ב-`DemoLockModal`, `Upgrade`, או hooks של credits.
-- `carmit1901@gmail.com` נשאר tester משלם כרגיל.
+לא נוגעים בשום קובץ אחר.
