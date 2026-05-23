@@ -1,52 +1,20 @@
-## הבעיה
+## תיקון 3 בעיות שנשברו היום
 
-ב-`PayPalButton.tsx` נטענת SDK של PayPal עם `enable-funding=card` והכפתורים מוצגים ב-layout vertical. PayPal אמור להציג שני כפתורים — PayPal הצהוב, ומתחתיו "Debit or Credit Card". בלחיצה על כפתור הכרטיס לא קורה כלום.
+### בעיה 1+3: רכישה נכשלת + כפתור כרטיס אשראי לא עובד
 
-הסיבה הכי סבירה: `Buttons()` עם הגדרה גנרית מצייר את כפתור הכרטיס דרך FUNDING.CARD, אבל בלחיצה הוא מנסה לפתוח חלון popup לטופס כרטיס מתארח. כשהמרצ'נט לא הפעיל "Advanced Card Processing" / "Standard Card Fields" — הלחיצה נכשלת שקטה (no-op), בלי להפעיל onError.
+**סיבה:** השינוי האחרון ב-`PayPalButton.tsx` החליף קריאה אחת ל-`paypal.Buttons().render()` בלולאה שמרנדרת בנפרד `FUNDING.PAYPAL` ו-`FUNDING.CARD`. רינדור נפרד של `FUNDING.CARD` דורש חשבון סוחר עם "Advanced Card Processing" — אצלנו זה לא מופעל, ולכן הכפתור או לא נטען, או נטען בצורה שגויה שמפילה את ה-`onApprove`.
 
-## הפתרון
+**תיקון:** להחזיר את `PayPalButton.tsx` ללוגיקה הקודמת — קריאה אחת ל-`window.paypal.Buttons({...}).render(paypalRef.current)` בלי לולאת funding sources. כש-SDK נטען עם `enable-funding=card` ו-`style.layout: 'vertical'`, ה-SDK של PayPal מציג אוטומטית גם את כפתור ה-PayPal הצהוב וגם כפתור "Debit or Credit Card" שחור. לחיצה על כפתור הכרטיס פותחת חלון hosted של PayPal עם שדות לכרטיס (זו ההתנהגות הסטנדרטית — לא inline fields, אלא popup).
 
-לרנדר את כפתור הכרטיס בנפרד דרך `fundingSource: paypal.FUNDING.CARD`, כך שאם הוא לא נתמך — `.isEligible()` יחזיר false והכפתור פשוט לא יצויר (במקום כפתור מת). אם הוא כן נתמך — הוא ייפתח כמו שצריך.
+### בעיה 2: כפתור "רכשו" תמיד מציג "6 סיפורים ב-199₪"
 
-## שינויים
+**סיבה משוערת:** ב-`Upgrade.tsx` שורות 679-683, הטקסט קורא נכון מ-`selectedPkg?.stories`/`selectedPkg?.price`, ו-`handleSelectPackage` מעדכן נכון את ה-state. צריך לאמת בזמן הריצה. ייתכן שיש בעיית caching של `selectedPkg` או שהלחיצה על הכרטיסים לא מגיעה ל-handler (overlay/z-index).
 
-**`src/components/paywall/PayPalButton.tsx`** (קובץ יחיד):
+**תיקון:** להוסיף `console.log` ב-`handleSelectPackage` כדי לוודא שה-state מתעדכן, ולוודא ש-`selectedPkg` מחושב מחדש כראוי. אם ה-state אכן מתעדכן והבעיה היא רינדור — לוודא שמפתח ה-key של ה-Button או ה-Fragment לא חוסם רענון. אם הבעיה היא קליק שלא נתפס — להוסיף `type="button"` לכפתורי הכרטיסים.
 
-ב-useEffect שמרנדר את הכפתורים, להחליף את הקריאה היחידה ל-`window.paypal.Buttons({...}).render(...)` בלולאה שמרנדרת בנפרד כל funding source זמין:
+### קבצים שיתעדכנו (רק אלה)
 
-```ts
-const fundingSources = [
-  window.paypal.FUNDING.PAYPAL,
-  window.paypal.FUNDING.CARD,
-];
+1. **`src/components/paywall/PayPalButton.tsx`** — להחזיר לרינדור יחיד של `paypal.Buttons()` עם vertical layout, להסיר את הלולאה.
+2. **`src/pages/Upgrade.tsx`** — להוסיף `type="button"` לכפתורי בחירת חבילה (parent + educator) ולהוסיף `console.log` קצר ב-`handleSelectPackage` לאימות. אם זה לא פותר — לבדוק את ה-CTA לעומק.
 
-const config = {
-  createOrder: (...) => {...},  // זהה לקיים
-  onApprove: async (...) => {...},  // זהה לקיים
-  onError: (...) => {...},
-  onCancel: () => {...},
-  style: { layout: 'vertical', shape: 'pill', height: 40, label: 'pay' },
-};
-
-for (const fundingSource of fundingSources) {
-  const button = window.paypal.Buttons({
-    ...config,
-    fundingSource,
-    style: { 
-      ...config.style, 
-      color: fundingSource === window.paypal.FUNDING.PAYPAL ? 'gold' : 'black' 
-    },
-  });
-  if (button.isEligible()) {
-    await button.render(paypalRef.current);
-  }
-}
-```
-
-זה גם נותן fallback ויזואלי ברור: אם כרטיס לא נתמך בחשבון — אין כפתור שבור, יש רק כפתור PayPal (שגם הוא מאפשר תשלום בכרטיס דרך אורח).
-
-## בדיקה
-
-לאחר היישום: לפתוח את `/upgrade`, לוודא בקונסולה ש-`PayPal buttons rendered successfully` עדיין מודפס, וללחוץ על כפתור הכרטיס השחור — צריך להיפתח חלון/טופס. אם הוא לא נטען כי המרצ'נט לא מאופשר — הכפתור פשוט לא יופיע (וזה התנהגות נכונה במקום no-op).
-
-לא נוגעים בשום קובץ אחר.
+לא נוגעים בשום קובץ נוסף.

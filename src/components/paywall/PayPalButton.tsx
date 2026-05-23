@@ -138,45 +138,23 @@ const PayPalButton = ({ amount, onSuccess, onError, onCancel }: PayPalButtonProp
       };
 
       const paypalAny = window.paypal as any;
-      const fundingSources = [
-        paypalAny.FUNDING.PAYPAL,
-        paypalAny.FUNDING.CARD,
-      ];
-
-      (async () => {
-        let anyRendered = false;
-        for (const fundingSource of fundingSources) {
-          const isPayPal = fundingSource === paypalAny.FUNDING.PAYPAL;
-          const button: any = paypalAny.Buttons({
-            ...baseConfig,
-            fundingSource,
-            style: {
-              layout: 'vertical',
-              shape: 'pill',
-              label: 'pay',
-              height: 40,
-              color: isPayPal ? 'gold' : 'black',
-            },
-          });
-          if (!button.isEligible()) {
-            console.warn('[PayPal] Funding source not eligible:', fundingSource);
-            continue;
-          }
-          try {
-            await button.render(paypalRef.current!);
-            anyRendered = true;
-          } catch (err) {
-            console.error('[PayPal] render error for', fundingSource, err);
-          }
-        }
-        if (anyRendered) {
-          console.log('PayPal buttons rendered successfully');
-          setButtonsRendered(true);
-        } else {
-          setError('שגיאה בטעינת כפתורי התשלום');
-          setSimulationMode(true);
-        }
-      })();
+      paypalAny.Buttons({
+        ...baseConfig,
+        style: {
+          layout: 'vertical',
+          shape: 'pill',
+          label: 'pay',
+          height: 40,
+          color: 'gold',
+        },
+      }).render(paypalRef.current!).then(() => {
+        console.log('PayPal buttons rendered successfully');
+        setButtonsRendered(true);
+      }).catch((err: any) => {
+        console.error('[PayPal] render error:', err);
+        setError('שגיאה בטעינת כפתורי התשלום');
+        setSimulationMode(true);
+      });
     } catch (err) {
       console.error('PayPal initialization error:', err);
       setError('שגיאה בהפעלת מערכת התשלום');
