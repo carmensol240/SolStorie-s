@@ -1721,7 +1721,7 @@ const [currentPage, setCurrentPage] = useState(0);
                       </div>
                     )}
                     {/* Text overlay at the bottom */}
-                    {currentVirtual.text && currentVirtual.text.trim() && (
+                    {currentVirtual.text && currentVirtual.text.trim() && currentVirtual.dbPage.page_number !== 1 && (
                       <div className="absolute bottom-0 left-0 right-0 z-10 p-4 md:p-6" dir="rtl">
                         <div className="max-w-lg mx-auto text-center">
                           <p className={cn(
