@@ -1,50 +1,110 @@
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
-import { Button } from "@/components/ui/button";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { useNavigate, useLocation } from "react-router-dom";
+import PersonalizedStoryCover from "@/components/paywall/PersonalizedStoryCover";
 
 interface DemoLockModalProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   title?: string;
   description?: string;
+  storyId?: string;
 }
 
-const DemoLockModal = ({ open, onOpenChange, title, description }: DemoLockModalProps) => {
+const DemoLockModal = ({ open, onOpenChange, title, description, storyId }: DemoLockModalProps) => {
   const navigate = useNavigate();
   const location = useLocation();
+
+  const rememberReturn = () => {
+    try {
+      const page = sessionStorage.getItem(`storyReturnPage:${location.pathname}`);
+      sessionStorage.setItem(
+        "pendingStoryReturn",
+        JSON.stringify({ path: location.pathname, page: page ? Number(page) : 0 })
+      );
+    } catch {}
+  };
+
+  const goPackage = () => {
+    onOpenChange(false);
+    rememberReturn();
+    navigate(storyId ? `/upgrade?firstStory=${storyId}` : "/upgrade");
+  };
+
+  const goSingle = () => {
+    if (!storyId) return;
+    onOpenChange(false);
+    rememberReturn();
+    navigate(`/upgrade?firstStory=${storyId}&mode=single`);
+  };
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent dir="rtl" className="max-w-md text-center">
+      <DialogContent
+        dir="rtl"
+        className="max-w-md text-center border-white/20 bg-gradient-to-b from-[hsl(260,60%,15%)] via-[hsl(270,40%,20%)] to-[hsl(250,50%,12%)] text-white p-5"
+      >
         <DialogHeader>
-          <DialogTitle className="text-xl font-black text-foreground">
-            {title ?? "✨ אהבתם?"}
+          <DialogTitle className="text-2xl font-black bg-gradient-to-r from-purple-300 via-pink-300 to-orange-300 bg-clip-text text-transparent">
+            {title ?? "אהבתם? 💛"}
           </DialogTitle>
-          <DialogDescription className="text-base text-muted-foreground pt-2">
-            {description ?? "כדי לשמור ולשתף את הסיפור רכשו חבילת סיפורים"}
-          </DialogDescription>
+          {description && (
+            <DialogDescription className="text-sm text-white/80 pt-1">
+              {description}
+            </DialogDescription>
+          )}
         </DialogHeader>
-        <DialogFooter className="flex-col-reverse sm:flex-col-reverse gap-2 mt-2">
-          <Button variant="ghost" onClick={() => onOpenChange(false)}>
-            לא עכשיו
-          </Button>
-          <Button
-            className="bg-gradient-to-r from-purple-600 to-pink-500 text-white font-bold"
-            onClick={() => {
-              onOpenChange(false);
-              // Remember where to return after purchase
-              try {
-                const page = sessionStorage.getItem(`storyReturnPage:${location.pathname}`);
-                sessionStorage.setItem(
-                  "pendingStoryReturn",
-                  JSON.stringify({ path: location.pathname, page: page ? Number(page) : 0 })
-                );
-              } catch {}
-              navigate("/upgrade");
-            }}
+
+        {storyId && (
+          <div className="pt-2">
+            <PersonalizedStoryCover storyId={storyId} />
+          </div>
+        )}
+
+        <div className="flex flex-col gap-2 mt-2">
+          {/* Primary: package */}
+          <button
+            onClick={goPackage}
+            className="w-full relative overflow-hidden bg-gradient-to-r from-purple-500 via-pink-500 to-orange-500 hover:from-purple-400 hover:via-pink-400 hover:to-orange-400 text-white font-black text-sm py-3 rounded-xl shadow-xl"
+            style={{ boxShadow: '0 0 30px rgba(168, 85, 247, 0.4), 0 0 60px rgba(236, 72, 153, 0.2)' }}
           >
-            לרכישת חבילה
-          </Button>
-        </DialogFooter>
+            📦 רכישת חבילת סיפורים
+          </button>
+          {storyId && (
+            <p className="text-[11px] font-bold text-purple-200/90 -mt-1">
+              🎁 סיפור הדוגמא שלך נוסף אוטומטית בחינם
+            </p>
+          )}
+
+          {storyId && (
+            <>
+              <div className="flex items-center gap-3 my-1">
+                <div className="flex-1 h-px bg-gradient-to-l from-transparent via-white/30 to-transparent" />
+                <span className="text-white/70 text-xs font-bold px-2">או</span>
+                <div className="flex-1 h-px bg-gradient-to-r from-transparent via-white/30 to-transparent" />
+              </div>
+
+              {/* Secondary: single story */}
+              <button
+                onClick={goSingle}
+                className="w-full bg-white/10 backdrop-blur-md border border-white/20 hover:bg-white/15 transition-colors rounded-xl px-4 py-3 text-center"
+              >
+                <div className="text-white font-black text-sm">
+                  רק הסיפור הזה — 19.90₪ 📖
+                </div>
+                <div className="text-white/60 text-[11px] font-semibold mt-0.5">
+                  קריאה מלאה + שיתוף בוואטסאפ + הקלטת קול
+                </div>
+              </button>
+            </>
+          )}
+
+          <button
+            onClick={() => onOpenChange(false)}
+            className="text-white/50 text-xs font-semibold hover:text-white/80 transition-colors py-2 mt-1"
+          >
+            לא עכשיו
+          </button>
+        </div>
       </DialogContent>
     </Dialog>
   );
