@@ -373,7 +373,7 @@ const [currentPage, setCurrentPage] = useState(0);
 
   // Check if user has purchased a story package (controls "print to book" button behavior)
   const refetchPurchaseStatus = useCallback(async () => {
-    if (!user?.id) { setHasPurchasedPackage(false); return; }
+    if (!user?.id) { setHasPurchasedPackage(false); setPurchaseChecked(true); return; }
     const { data, error } = await supabase
       .from('purchases')
       .select('id')
@@ -381,6 +381,7 @@ const [currentPage, setCurrentPage] = useState(0);
       .in('status', ['completed', 'test_completed'])
       .limit(1);
     if (!error) setHasPurchasedPackage((data?.length ?? 0) > 0);
+    setPurchaseChecked(true);
   }, [user?.id]);
 
   useEffect(() => {
@@ -401,7 +402,7 @@ const [currentPage, setCurrentPage] = useState(0);
 
   // Check subscriber flag (subscribers are not demo-locked even without purchase rows)
   useEffect(() => {
-    if (!user?.id) { setIsSubscriberUser(false); return; }
+    if (!user?.id) { setIsSubscriberUser(false); setSubscriberChecked(true); return; }
     let cancelled = false;
     (async () => {
       const { data } = await supabase
@@ -409,7 +410,7 @@ const [currentPage, setCurrentPage] = useState(0);
         .select('is_subscriber')
         .eq('id', user.id)
         .maybeSingle();
-      if (!cancelled) setIsSubscriberUser(!!data?.is_subscriber);
+      if (!cancelled) { setIsSubscriberUser(!!data?.is_subscriber); setSubscriberChecked(true); }
     })();
     return () => { cancelled = true; };
   }, [user?.id]);
