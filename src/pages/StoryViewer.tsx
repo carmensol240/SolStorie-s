@@ -396,6 +396,23 @@ const [currentPage, setCurrentPage] = useState(0);
     return () => { cancelled = true; };
   }, [user?.id]);
 
+  // Check if this specific story was unlocked via a one-time single purchase
+  useEffect(() => {
+    if (!user?.id || !story?.id) { setIsSingleStoryUnlock(false); return; }
+    let cancelled = false;
+    (async () => {
+      const { data } = await supabase
+        .from('story_unlocks' as any)
+        .select('unlock_type')
+        .eq('user_id', user.id)
+        .eq('story_id', story.id)
+        .eq('unlock_type', 'single')
+        .maybeSingle();
+      if (!cancelled) setIsSingleStoryUnlock(!!data);
+    })();
+    return () => { cancelled = true; };
+  }, [user?.id, story?.id]);
+
   // Check admin role (admins are not demo-locked)
   useEffect(() => {
     if (!user?.id) { setIsAdminUser(false); return; }
