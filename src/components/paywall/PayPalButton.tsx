@@ -95,7 +95,7 @@ const PayPalButton = ({ amount, onSuccess, onError, onCancel }: PayPalButtonProp
     console.log('Rendering PayPal buttons for amount:', amount);
 
     try {
-      const baseConfig: any = {
+      window.paypal.Buttons({
         createOrder: (_data: any, actions: any) => {
           return actions.order.create({
             purchase_units: [{
@@ -135,20 +135,18 @@ const PayPalButton = ({ amount, onSuccess, onError, onCancel }: PayPalButtonProp
         onCancel: () => {
           callbacksRef.current.onCancel?.();
         },
-      };
-
-      const paypalAny = window.paypal as any;
-      paypalAny.Buttons({
-        ...baseConfig,
         style: {
           layout: 'vertical',
           color: 'gold',
-        },
-      }).render(paypalRef.current!).then(() => {
+          shape: 'pill',
+          label: 'pay',
+          height: 40
+        }
+      }).render(paypalRef.current).then(() => {
         console.log('PayPal buttons rendered successfully');
         setButtonsRendered(true);
       }).catch((err: any) => {
-        console.error('[PayPal] render error:', err);
+        console.error('PayPal render error:', err);
         setError('שגיאה בטעינת כפתורי התשלום');
         setSimulationMode(true);
       });
