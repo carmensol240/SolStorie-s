@@ -154,15 +154,16 @@ function buildCharacterDescription(
   avatarDescriptionJson: string | null,
   gender: string | null,
   ageRange: string | null,
+  storyOutfitOverride: string | null,
 ): string {
   const isFemale = (gender || "").toLowerCase() === "female";
   const genderWord = isFemale ? "girl" : "boy";
   const genderRule = isFemale
-    ? "This character is a GIRL — feminine or neutral clothing only; NEVER kippah/yarmulke/tzitzit or any male religious symbols."
-    : "This character is a BOY — masculine clothing only (pants/shorts/t-shirt/hoodie/sneakers); NEVER a dress, skirt, tutu, flower crown, hair bow, makeup, or any feminine clothing or accessories.";
+    ? "This character is a GIRL — feminine or neutral clothing only; NEVER kippah, yarmulke, tzitzit or any male religious symbols."
+    : "This character is a BOY — masculine clothing only (pants/shorts/t-shirt/hoodie/sneakers); ABSOLUTELY NO dress, skirt, tutu, flower crown, hair bow, makeup or any feminine clothing or accessories.";
 
   let hair = isFemale ? "long dark brown hair" : "short tousled dark brown hair";
-  let clothing = "colorful casual clothes";
+  let clothingFromProfile: string | null = null;
   let skin = "warm medium olive";
   let eyes = "large warm brown";
   const age = ageRange || (isFemale ? "4" : "3-6");
@@ -172,14 +173,17 @@ function buildCharacterDescription(
       const p = JSON.parse(avatarDescriptionJson);
       if (p.hairDescription) hair = p.hairDescription;
       else if (p.hair_color || p.hair_style) hair = `${p.hair_color || "brown"} ${p.hair_style || "hair"}`;
-      if (p.clothingDescription) clothing = p.clothingDescription;
-      else if (p.clothing_color || p.clothing_type) clothing = `${p.clothing_color || "colorful"} ${p.clothing_type || "clothes"}`;
+      if (p.clothingDescription) clothingFromProfile = p.clothingDescription;
+      else if (p.clothing_color || p.clothing_type) clothingFromProfile = `${p.clothing_color || "colorful"} ${p.clothing_type || "clothes"}`;
       if (p.skinTone || p.skin_tone) skin = p.skinTone || p.skin_tone;
       if (p.eyeColor || p.eye_color) eyes = p.eyeColor || p.eye_color;
     } catch {
       // ignore, use defaults
     }
   }
+
+  // Prefer the story-wide outfit (matches inner pages) over the avatar's saved clothing
+  const clothing = storyOutfitOverride || clothingFromProfile || "colorful casual clothes";
 
   return `CHARACTER DESCRIPTION (the main character MUST look IDENTICAL to this in the cover):
 A ${genderWord} aged ${age} with ${hair}, ${skin} skin, and ${eyes} eyes. Wearing ${clothing}.
@@ -203,7 +207,7 @@ serve(async (req) => {
     }
 
     const supabase = createClient(supabaseUrl, supabaseServiceKey);
-    const { storyId, title, topic } = await req.json();
+    const { storyId, title, topic, adventureLogic } = await req.json();
 
     if (!storyId) {
       return new Response(JSON.stringify({ error: "Missing storyId" }), {
@@ -254,10 +258,26 @@ serve(async (req) => {
       console.warn(`⚠️ No face reference available for story ${storyId} — cover will use description-only`);
     }
 
+    // Compute storyOutfit the same way generate-illustrations does, so the cover
+    // shows the SAME outfit as the inner pages.
+    let profileClothing: string | null = null;
+    if (avatarDescription) {
+      try {
+        const p = JSON.parse(avatarDescription);
+        profileClothing = p?.clothingDescription || null;
+      } catch { /* ignore */ }
+    }
+    const storyOutfit: string =
+      (adventureLogic && typeof adventureLogic === "object" && (adventureLogic as any).outfit) ||
+      profileClothing ||
+      "colorful casual clothes";
+    console.log(`🎽 Cover storyOutfit: "${storyOutfit}" (source: ${adventureLogic?.outfit ? "adventureLogic" : profileClothing ? "avatar_description" : "fallback"})`);
+
     const characterDescription = buildCharacterDescription(
       avatarDescription,
       story?.child_gender || null,
       story?.age_range || null,
+      storyOutfit,
     );
 
     // ── Find the page with the longest illustration_prompt (for scene/outfit context) ──
