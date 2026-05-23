@@ -94,6 +94,7 @@ const Upgrade = () => {
   const handleSelectPackage = (packageId: string) => {
     setSelectedPackage(packageId);
     const pkg = ALL_PURCHASE_PACKAGES.find(p => p.id === packageId);
+    console.log('[Upgrade] Package selected:', packageId, pkg?.stories, pkg?.price);
     trackEvent({ 
       eventType: 'feature_used', 
       metadata: { feature: 'package_selected', package: packageId, stories: pkg?.stories } 
@@ -388,6 +389,7 @@ const Upgrade = () => {
             {PRICING_PACKAGES.map((pkg) => (
               <button
                 key={pkg.id}
+                type="button"
                 onClick={() => handleSelectPackage(pkg.id)}
                 className={cn(
                   "relative flex flex-col items-center p-3 pt-4 rounded-2xl border transition-all duration-200",
@@ -515,6 +517,7 @@ const Upgrade = () => {
                 {EDUCATOR_PACKAGES.map((pkg) => (
                   <button
                     key={pkg.id}
+                    type="button"
                     onClick={() => handleSelectPackage(pkg.id)}
                     className={cn(
                       "relative flex flex-col items-center p-3 pt-4 rounded-2xl border transition-all duration-200",
