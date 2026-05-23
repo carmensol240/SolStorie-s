@@ -1530,6 +1530,14 @@ const [currentPage, setCurrentPage] = useState(0);
                 </button>
 
                 <div data-story-scroll className="flex-1 paper-texture overflow-y-auto p-5 md:p-8 text-center flex flex-col items-center justify-start gap-4 pt-12">
+                  {/* Cast image at top */}
+                  <img
+                    src={castWavingFarewell}
+                    alt="הדמויות נפרדות לשלום"
+                    className="w-full max-w-sm rounded-2xl object-cover shadow-md"
+                    style={{ height: '180px' }}
+                  />
+
                   {/* Title */}
                   <p className="text-2xl md:text-3xl font-bold text-purple-800">קסום, לא? ✨</p>
 
@@ -1587,6 +1595,9 @@ const [currentPage, setCurrentPage] = useState(0);
                       )}
                     </Button>
                   </div>
+
+                  {/* Footer message */}
+                  <p className="text-sm text-purple-600 pt-2">נתראה בסיפור הבא 💜</p>
 
                 </div>
               </div>
