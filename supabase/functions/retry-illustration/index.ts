@@ -133,6 +133,13 @@ serve(async (req) => {
     console.log(`Sol variant: ${sol.label} for topic "${story.topic}"`);
 
     const prompt = customPrompt || page.illustration_prompt || `A cheerful children's book illustration for page ${page.page_number}`;
+    const pageNarrative = ((page as any).text || "").toString().slice(0, 400);
+    const sceneBlock = pageNarrative
+      ? `SCENE (MUST MATCH THE STORY TEXT EXACTLY — illustrate precisely what happens in this page, not a different action):
+STORY TEXT FOR THIS PAGE: "${pageNarrative}"
+VISUAL DESCRIPTION: ${prompt}
+The action, objects, characters, and emotions shown MUST come from the STORY TEXT above. Do not invent a different scene.`
+      : `SCENE (THIS IS THE MOST IMPORTANT PART — illustrate THIS specific scene in detail): ${prompt}`;
 
     let imageUrl: string | null = null;
     let modelUsed = "unknown";
@@ -148,7 +155,7 @@ serve(async (req) => {
 
 STYLE: ${PIXAR_STYLE}
 
-SCENE (THIS IS THE MOST IMPORTANT PART — illustrate THIS specific scene in detail): ${prompt}
+${sceneBlock}
 
 ${CHARACTER_CONSISTENCY_PROMPT}
 
@@ -213,7 +220,7 @@ NEGATIVE: ${NEGATIVE_PROMPT}`;
           status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" },
         });
       }
-      const fullPrompt = `${PIXAR_STYLE}\n\nSCENE: ${prompt}\n\n${CHARACTER_CONSISTENCY_PROMPT}\n\nNEGATIVE: ${NEGATIVE_PROMPT_FULL}`;
+      const fullPrompt = `${PIXAR_STYLE}\n\n${sceneBlock}\n\n${CHARACTER_CONSISTENCY_PROMPT}\n\nNEGATIVE: ${NEGATIVE_PROMPT_FULL}`;
       console.log(`Retrying illustration via Flux Schnell for story ${storyId}, page ${page.page_number}...`);
 
       for (let attempt = 1; attempt <= MAX_ATTEMPTS; attempt++) {
