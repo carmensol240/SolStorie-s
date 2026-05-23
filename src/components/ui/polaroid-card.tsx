@@ -208,6 +208,16 @@ const PolaroidCard = ({
               </div>
             )}
 
+            {/* WhatsApp share button - bottom left */}
+            <button
+              onClick={handleShareWhatsApp}
+              className="absolute bottom-1 left-1 z-20 w-7 h-7 rounded-full bg-black/40 hover:bg-green-600 backdrop-blur-sm text-white flex items-center justify-center transition-colors opacity-70 hover:opacity-100 shadow-md"
+              aria-label="שתף בוואטסאפ"
+              title="שתף בוואטסאפ"
+            >
+              <Share2 className="w-3.5 h-3.5" />
+            </button>
+
             {/* Download button */}
             {onDownloadOffline && !isOfflineSaved && (
               <button
