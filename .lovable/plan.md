@@ -1,42 +1,37 @@
+## Goal
+When user clicks "Package" in the paywall popup → goes to `/upgrade?firstStory={id}` → then clicks back / close ("X") on Upgrade, return to `/story/{storyId}` with the paywall popup re-opened, instead of `navigate(-1)` which dumps them to the home/previous page.
 
-# הפיכת פופאפ הרכישה לפופאפ העשיר
+## Changes (scoped, popup/upgrade only)
 
-## הבעיה (אומתה בקוד)
-`src/components/story/DemoLockModal.tsx` הוא עדיין הפופאפ הישן: רק כותרת, תיאור, וכפתור "לרכישת חבילה" שמנווט ל-`/upgrade`. הוא לא מציג כריכה אישית, לא את 19.90₪, ולא את "🎁 הסיפור נוסף אוטומטית". זו הסיבה שב-Incognito רואים את הפופאפ הישן — כי הוא לא שונה מעולם.
+### 1. `src/pages/Upgrade.tsx` — close button behavior
+At line 349 the close (X) button currently does `navigate(-1)`. Replace with smart handler:
+```ts
+const handleClose = () => {
+  if (firstStoryId) {
+    navigate(`/story/${firstStoryId}?paywall=1`, { replace: true });
+  } else {
+    navigate(-1);
+  }
+};
+```
+Wire `onClick={handleClose}`. No other Upgrade behavior changes.
 
-`src/pages/Upgrade.tsx` כבר מכיל את כל האלמנטים הללו (אומת — שורות 351, 432, 444-455), פשוט המשתמש לא תמיד מגיע לשם — הוא רואה קודם את ה-Modal הקצר ולוחץ "לא עכשיו".
+### 2. `src/pages/StoryViewer.tsx` — auto-reopen paywall on return
+Add a small `useEffect` that reads `searchParams.get('paywall')`. If `=== '1'`:
+- `setDemoLockOpen(true)`
+- Remove the param from the URL (`navigate(location.pathname, { replace: true })`) so refresh doesn't keep reopening.
 
-## השינויים
+This restores the exact previous popup using the existing `demoLockOpen` state and existing `<DemoLockModal storyId={storyId} />`. The `pendingStoryReturn` sessionStorage (already saved by DemoLockModal before navigation) continues to govern which page the reader lands on.
 
-### 1. `src/components/story/DemoLockModal.tsx` — שכתוב מלא
-- Prop חדש: `storyId?: string`
-- מבנה חדש (RTL):
-  - כותרת קצרה (props קיימים)
-  - אם יש `storyId`: `<PersonalizedStoryCover storyId={storyId} />` במרכז (~200px)
-  - כפתור ראשי (gradient סגול-ורוד-כתום): **"📦 חבילת סיפורים"** → ניווט ל-`/upgrade?firstStory={storyId}`
-  - מתחת לכפתור החבילה, כיתוב קטן: `🎁 סיפור הדוגמא נוסף אוטומטית בחינם`
-  - מפריד דק "או"
-  - כפתור משני (glass/outline): **"רק הסיפור הזה — 19.90₪ 📖"** → ניווט ל-`/upgrade?firstStory={storyId}&mode=single`
-  - לינק "לא עכשיו" (ghost) בתחתית
-- שמירת `pendingStoryReturn` ב-sessionStorage לפני כל ניווט (לוגיקה קיימת — לשמר)
-- אם אין `storyId` (שימוש שאינו מסיפור) — להתנהג כמו היום: ללא כריכה, ללא כפתור 19.90, רק כפתור חבילה.
+### 3. No other files touched
+- `DemoLockModal.tsx` — unchanged (already saves `pendingStoryReturn` and passes `storyId`).
+- Package cards, PayPal flow, single-story flow — unchanged.
+- Browser back button still works naturally (history entry exists).
 
-### 2. `src/pages/StoryViewer.tsx` — שינוי נקודתי
-שורות 2038-2044: להוסיף `storyId={storyId}` לשתי המופעים של `<DemoLockModal>`.
-לא נוגעים בשום דבר אחר בקובץ הזה.
+## Why this works
+- The user's mental model: "I opened a popup, I closed the upgrade page → I should be back at the popup". The `?paywall=1` round-trip makes that explicit and survives even hard refreshes of `/upgrade`.
+- `replace: true` on the return keeps the history clean (no infinite back loop between Upgrade and StoryViewer).
 
-### 3. `src/pages/Upgrade.tsx` — תוספת קצרה
-- קריאת פרמטר חדש: `const mode = searchParams.get('mode')`
-- `useEffect` חדש שמופעל פעם אחת אחרי טעינה: אם `mode === 'single' && firstStoryId && user` → `setShowSinglePayPal(true)` (גלילה אוטומטית אל ה-PayPal אופציונלי)
-- שאר הקובץ ללא שינוי.
-
-## קבצים שלא ייגעו
-כל מה שמחוץ לזרימת פופאפ-הרכישה והשדרוג:
-- `generate-illustrations`, `generate-story`, `retry-illustration`, `_shared/style-config.ts` — הבעיה של אי-התאמת טקסט↔תמונה תיפתר בסבב נפרד.
-- שום קובץ עיצוב/לוגיקה אחר.
-
-## אימות אחרי הפריסה
-1. פתיחת `/story/{slug}` עם משתמש דמו → לחיצה על שמירה/הורדה → הפופאפ החדש נפתח עם כריכה אישית, שני כפתורים, וכיתוב המתנה.
-2. לחיצה על "רק הסיפור הזה 19.90₪" → ניווט ל-`/upgrade?firstStory=...&mode=single` ופתיחה אוטומטית של PayPal לתשלום בודד.
-3. לחיצה על "חבילת סיפורים" → `/upgrade?firstStory=...` עם הכריכה האישית בראש העמוד.
-4. בדיקה ב-Incognito אחרי Publish — צריך לראות מיד את הפופאפ החדש.
+## Out of scope
+- Text/image mismatch in Gemini/fal prompts (deferred).
+- Any change to the "package" or "single story" purchase actions themselves.
