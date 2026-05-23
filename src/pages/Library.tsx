@@ -23,6 +23,7 @@ import { useCredits } from "@/hooks/use-credits";
 import { useReferral } from "@/hooks/use-referral";
 import { useChildAvatar } from "@/hooks/use-child-avatar";
 import { useAuth } from "@/hooks/use-auth";
+import { getUserData } from "@/lib/user-storage";
 import { translateTopic } from '@/lib/topic-translations';
 import libraryEmptyState from "@/assets/library-empty-state.png";
 import { OnlineColoringCanvas } from "@/components/story/OnlineColoringCanvas";
@@ -73,7 +74,6 @@ const Library = () => {
   const { credits } = useCredits();
   const { shareCoins } = useReferral();
   const { user, loading: authLoading } = useAuth();
-  const { avatarUrl } = useChildAvatar();
   const [stories, setStories] = useState<Story[]>([]);
   const [children, setChildren] = useState<ChildRecord[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -87,6 +87,15 @@ const Library = () => {
   const [coloringCanvasImage, setColoringCanvasImage] = useState<string | null>(null);
   const [coloringCanvasTitle, setColoringCanvasTitle] = useState<string>('');
   const [coloringCanvasIndex, setColoringCanvasIndex] = useState<number>(-1);
+  const [hasAnyPurchase, setHasAnyPurchase] = useState(false);
+  const [unlockedStoryIds, setUnlockedStoryIds] = useState<Set<string>>(new Set());
+
+  // Selected child for header avatar — falls back to first child
+  const selectedChildId = user ? getUserData(user.id, 'selected_child_id') : null;
+  const selectedChildName = selectedChildId
+    ? children.find(c => c.id === selectedChildId)?.name
+    : undefined;
+  const { avatarUrl } = useChildAvatar(selectedChildName);
 
   const fullOffline = useFullOfflineStorage();
 
@@ -104,10 +113,32 @@ const Library = () => {
       fetchStories();
       fetchChildren();
       fetchColoringPages();
+      fetchPurchaseStatus();
     } else {
       setIsLoading(false);
     }
   }, [user, isOnline]);
+
+  const fetchPurchaseStatus = async () => {
+    if (!user) { setHasAnyPurchase(false); setUnlockedStoryIds(new Set()); return; }
+    try {
+      const [purchasesRes, unlocksRes, subRes] = await Promise.all([
+        supabase.from('purchases').select('id').eq('user_id', user.id).limit(1),
+        supabase.from('story_unlocks').select('story_id').eq('user_id', user.id),
+        supabase.from('subscriptions').select('id').eq('user_id', user.id).eq('status', 'active').limit(1),
+      ]);
+      const hasPkg = (purchasesRes.data?.length ?? 0) > 0 || (subRes.data?.length ?? 0) > 0;
+      setHasAnyPurchase(hasPkg);
+      setUnlockedStoryIds(new Set((unlocksRes.data || []).map((u: any) => u.story_id)));
+    } catch {
+      setHasAnyPurchase(false);
+      setUnlockedStoryIds(new Set());
+    }
+  };
+
+  const handleLockedShare = (storyId: string) => {
+    navigate(`/upgrade?firstStory=${storyId}&from=library_share`);
+  };
 
   const fetchChildren = async () => {
     if (!user) { setChildren([]); return; }
