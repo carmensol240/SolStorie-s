@@ -1849,7 +1849,7 @@ const [currentPage, setCurrentPage] = useState(0);
           </MagicalBookFrame>
 
           {/* Watermark — non-clickable, shown only on illustration/cover pages */}
-          {!isClosingPage && !isEndPage && currentVirtual && currentVirtual.type !== 'text' && (
+          {!isEndPage && currentVirtual && currentVirtual.type !== 'text' && (
             <div
               className="absolute bottom-14 left-1/2 -translate-x-1/2 z-40 opacity-30 pointer-events-none select-none"
               aria-hidden="true"
@@ -2010,7 +2010,7 @@ const [currentPage, setCurrentPage] = useState(0);
       <PdfFeaturePopup userId={user?.id} />
 
       {/* Install App Prompt - shown only after reaching last page */}
-      <InstallAppPrompt justCreatedFirstStory={justCreatedStory && (isClosingPage || isEndPage)} />
+      <InstallAppPrompt justCreatedFirstStory={justCreatedStory && isEndPage} />
 
       {/* Coloring Picker Dialog — global so it works from header icon too */}
       <Dialog open={coloringPickerOpen} onOpenChange={(open) => {
