@@ -986,9 +986,7 @@ const [currentPage, setCurrentPage] = useState(0);
   const handleShareWhatsApp = () => {
     if (!story) return;
 
-    const slug = story.slug || story.id;
-    const link = `${window.location.origin}/story/${slug}`;
-    const text = `📚 הסיפור של ${story.child_name} – נוצר באהבה באפליקציית SolStorie's™ ✨\nלחצו לקריאה: ${link}`;
+    const text = `✨ ${story.child_name} קיבל סיפור מותאם אישית ב-SolStorie's! רוצים גם? 👉 soulstory.co.il`;
 
     window.open(`https://wa.me/?text=${encodeURIComponent(text)}`, '_blank');
 
