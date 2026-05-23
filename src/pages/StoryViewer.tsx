@@ -498,15 +498,25 @@ const [currentPage, setCurrentPage] = useState(0);
   useEffect(() => {
     if (didRestorePageRef.current) return;
     if (!story) return;
+    // Wait for entitlement checks so we can clamp demo users to their allowed range.
+    if (!purchaseChecksReady) return;
     try {
       const saved = sessionStorage.getItem(`storyReturnPage:${location.pathname}`);
       if (saved != null) {
-        const n = Number(saved);
-        if (Number.isFinite(n) && n > 0) setCurrentPage(n);
+        let n = Number(saved);
+        if (Number.isFinite(n) && n > 0) {
+          // Demo users may not land on a locked page after returning from /upgrade.
+          // DEMO_PAGE_LIMIT (3) refers to page_number (1-based); allowed indices are 0..2.
+          if (isDemoUser) {
+            const maxAllowedIndex = 3 - 1; // DEMO_PAGE_LIMIT - 1
+            n = Math.min(n, maxAllowedIndex);
+          }
+          setCurrentPage(n);
+        }
       }
     } catch {}
     didRestorePageRef.current = true;
-  }, [story, location.pathname]);
+  }, [story, location.pathname, purchaseChecksReady, isDemoUser]);
 
   // Persist current page so we can restore it after a paywall round-trip
   useEffect(() => {
