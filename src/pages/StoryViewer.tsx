@@ -1749,9 +1749,9 @@ const [currentPage, setCurrentPage] = useState(0);
                         isPlaying={pageRecording.playingPage === currentVirtual.dbPage.page_number}
                         onStartRecording={guardDemo(() => pageRecording.startRecording(currentVirtual.dbPage.page_number))}
                         onStopRecording={pageRecording.stopRecording}
-                        onSave={pageRecording.saveRecording}
+                        onSave={guardDemo(pageRecording.saveRecording)}
                         onDiscard={pageRecording.discardPending}
-                        onPlay={() => pageRecording.playRecording(currentVirtual.dbPage.page_number)}
+                        onPlay={guardDemo(() => pageRecording.playRecording(currentVirtual.dbPage.page_number))}
                         onStopPlaying={pageRecording.stopPlaying}
                         light
                       />
@@ -1848,9 +1848,9 @@ const [currentPage, setCurrentPage] = useState(0);
                         isPlaying={pageRecording.playingPage === currentVirtual.dbPage.page_number}
                         onStartRecording={guardDemo(() => pageRecording.startRecording(currentVirtual.dbPage.page_number))}
                         onStopRecording={pageRecording.stopRecording}
-                        onSave={pageRecording.saveRecording}
+                        onSave={guardDemo(pageRecording.saveRecording)}
                         onDiscard={pageRecording.discardPending}
-                        onPlay={() => pageRecording.playRecording(currentVirtual.dbPage.page_number)}
+                        onPlay={guardDemo(() => pageRecording.playRecording(currentVirtual.dbPage.page_number))}
                         onStopPlaying={pageRecording.stopPlaying}
                         light
                       />
@@ -1877,9 +1877,9 @@ const [currentPage, setCurrentPage] = useState(0);
                             isPlaying={pageRecording.playingPage === currentVirtual.dbPage.page_number}
                             onStartRecording={guardDemo(() => pageRecording.startRecording(currentVirtual.dbPage.page_number))}
                             onStopRecording={pageRecording.stopRecording}
-                            onSave={pageRecording.saveRecording}
+                            onSave={guardDemo(pageRecording.saveRecording)}
                             onDiscard={pageRecording.discardPending}
-                            onPlay={() => pageRecording.playRecording(currentVirtual.dbPage.page_number)}
+                            onPlay={guardDemo(() => pageRecording.playRecording(currentVirtual.dbPage.page_number))}
                             onStopPlaying={pageRecording.stopPlaying}
                           />
                         </div>
