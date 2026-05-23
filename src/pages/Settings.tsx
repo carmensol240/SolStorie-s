@@ -315,6 +315,44 @@ const Settings = () => {
           </button>
         )}
 
+        {/* Tester Mode Toggle - visible only to the tester account */}
+        {user?.email?.toLowerCase() === 'carmit1901+test@gmail.com' && (() => {
+          const currentMode = localStorage.getItem('tester_mode') ?? 'demo';
+          const setMode = (mode: 'demo' | 'admin') => {
+            localStorage.setItem('tester_mode', mode);
+            window.location.reload();
+          };
+          return (
+            <div className="mt-2 bg-purple-50 dark:bg-purple-950/20 border border-purple-300 dark:border-purple-700 rounded-lg p-3 space-y-2">
+              <div className="flex items-center justify-between">
+                <span className="text-xs font-bold text-purple-800 dark:text-purple-200">🧪 מצב בדיקה (Tester)</span>
+                <Badge variant="secondary" className="text-[10px]">{currentMode === 'demo' ? 'דמו' : 'אדמין'}</Badge>
+              </div>
+              <div className="flex gap-1.5">
+                <Button
+                  size="sm"
+                  variant={currentMode === 'demo' ? 'default' : 'outline'}
+                  className="flex-1 h-8 text-xs"
+                  onClick={() => setMode('demo')}
+                >
+                  מצב דמו
+                </Button>
+                <Button
+                  size="sm"
+                  variant={currentMode === 'admin' ? 'default' : 'outline'}
+                  className="flex-1 h-8 text-xs"
+                  onClick={() => setMode('admin')}
+                >
+                  מצב אדמין
+                </Button>
+              </div>
+              <p className="text-[10px] text-purple-700/70 dark:text-purple-300/70 leading-tight">
+                דמו: רואה פופאפ רכישה אחרי עמוד 3, פיצ'רי משלם חסומים. אדמין: גישה מלאה.
+              </p>
+            </div>
+          );
+        })()}
+
         {/* Danger Zone - Accessible */}
         <div className="space-y-1.5 mt-3 pt-2 border-t border-purple-200/50">
           <Button
