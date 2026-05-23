@@ -348,6 +348,9 @@ const Upgrade = () => {
 
       <div className="flex-1 overflow-y-auto pb-32 relative z-10" style={{ WebkitOverflowScrolling: 'touch' }}>
         <div className="container max-w-md mx-auto px-4 pt-4">
+          {/* 1. Personalized story cover at the very top */}
+          {firstStoryId && <PersonalizedStoryCover storyId={firstStoryId} />}
+
           {/* Header */}
           <div className="text-center mb-4 flex flex-col items-center">
             <h1 className="text-2xl font-black bg-gradient-to-r from-purple-300 via-pink-300 to-orange-300 bg-clip-text text-transparent mb-1">
@@ -424,8 +427,34 @@ const Upgrade = () => {
           </div>
           )}
 
-          {/* Book mockup — below packages */}
-          <FlippingBookAnimation />
+          {/* 4. Caption — demo story included free */}
+          {firstStoryId && (roleLoaded && (userRole === 'parent' || userRole === 'educator')) && (
+            <p className="text-center text-xs font-bold text-purple-200/90 mb-3 -mt-1">
+              🎁 סיפור הדוגמא שלך נוסף אוטומטית בחינם לכל חבילה
+            </p>
+          )}
+
+          {/* 5. "או" divider + 6. one-time purchase button */}
+          {firstStoryId && (
+            <div className="mb-4">
+              <div className="flex items-center gap-3 my-3">
+                <div className="flex-1 h-px bg-gradient-to-l from-transparent via-white/30 to-transparent" />
+                <span className="text-white/70 text-xs font-bold px-2">או</span>
+                <div className="flex-1 h-px bg-gradient-to-r from-transparent via-white/30 to-transparent" />
+              </div>
+              <button
+                onClick={handleSingleStoryPurchase}
+                className="w-full bg-white/10 backdrop-blur-md border border-white/20 hover:bg-white/15 transition-colors rounded-xl px-4 py-3 text-center"
+              >
+                <div className="text-white font-black text-sm">
+                  רק הסיפור הזה — 19.90₪ 📖
+                </div>
+                <div className="text-white/60 text-[11px] font-semibold mt-0.5">
+                  קריאה מלאה + שיתוף בוואטסאפ + הקלטת קול
+                </div>
+              </button>
+            </div>
+          )}
 
           <p className="text-center mb-4 font-bold" style={{ fontSize: '17px', color: '#c084fc' }}>
             תשלום חד פעמי · הקרדיטים שלך לא פגים · אין מינוי
