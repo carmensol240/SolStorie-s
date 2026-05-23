@@ -1623,6 +1623,16 @@ const [currentPage, setCurrentPage] = useState(0);
                     </Button>
                   </div>
 
+                  {/* Upgrade CTA — only when story was unlocked via a single purchase */}
+                  {isSingleStoryUnlock && !hasPurchasedPackage && (
+                    <button
+                      onClick={() => navigate(`/upgrade?firstStory=${story?.id ?? ''}&from=single_upgrade`)}
+                      className="mt-2 w-full max-w-xs mx-auto bg-gradient-to-r from-purple-600 via-pink-500 to-orange-500 text-white font-black text-sm px-4 py-3 rounded-full shadow-lg hover:scale-[1.02] transition-transform"
+                    >
+                      שדרג לחבילה מלאה וחסוך! ✨
+                    </button>
+                  )}
+
                   {/* Footer message */}
                   <p className="text-sm text-purple-600 pt-2">נתראה בסיפור הבא 💜</p>
 
