@@ -78,6 +78,8 @@ const ChildInfoStep = ({ formData, updateFormData }: ChildInfoStepProps) => {
   const [isDeletingChild, setIsDeletingChild] = useState(false);
   const [displayName, setDisplayName] = useState<string | null>(null);
   const [isCreatingNew, setIsCreatingNew] = useState(false);
+  const [selectedChildId, setSelectedChildId] = useState<string | null>(null);
+  const hasAutoLoadedRef = useRef<string | null>(null);
 
   // Fetch display name from profile for greeting
   useEffect(() => {
@@ -118,8 +120,13 @@ const ChildInfoStep = ({ formData, updateFormData }: ChildInfoStepProps) => {
   }, []);
 
   // Load saved children and auto-populate form on mount
+  // Depend on user.id (not user object) so token refresh doesn't re-trigger.
+  // Use hasAutoLoadedRef so we auto-load the first child only ONCE per user
+  // and never overwrite a selection the user already made.
   useEffect(() => {
     const fetchChildren = async () => {
+      const userKey = user?.id || '__guest__';
+      const shouldAutoLoadFirst = hasAutoLoadedRef.current !== userKey;
       if (user) {
         // Fetch role
         const { data: profileData } = await supabase
@@ -137,21 +144,24 @@ const ChildInfoStep = ({ formData, updateFormData }: ChildInfoStepProps) => {
         
         if (!error && data && data.length > 0) {
           setSavedChildren(data);
-          // Auto-load the first child's data
-          const firstChild = data[0];
-          setIsCreatingNew(false);
-          updateFormData({
-            childName: firstChild.name,
-            childGender: firstChild.gender as "male" | "female",
-            ageRange: ageToRange(firstChild.age),
-            childAge: firstChild.age,
-            childPhoto: firstChild.photo_url,
-            childAvatarUrl: firstChild.avatar_url,
-            personalityTraits: firstChild.personality_traits || "",
-            fixedDetails: (firstChild as any).fixed_details || "",
-          });
-          if (firstChild.personality_traits) {
-            setShowPersonalityField(true);
+          if (shouldAutoLoadFirst) {
+            hasAutoLoadedRef.current = userKey;
+            const firstChild = data[0];
+            setIsCreatingNew(false);
+            setSelectedChildId(firstChild.id);
+            updateFormData({
+              childName: firstChild.name,
+              childGender: firstChild.gender as "male" | "female",
+              ageRange: ageToRange(firstChild.age),
+              childAge: firstChild.age,
+              childPhoto: firstChild.photo_url,
+              childAvatarUrl: firstChild.avatar_url,
+              personalityTraits: firstChild.personality_traits || "",
+              fixedDetails: (firstChild as any).fixed_details || "",
+            });
+            if (firstChild.personality_traits) {
+              setShowPersonalityField(true);
+            }
           }
         } else if (!error && data) {
           setSavedChildren(data);
@@ -161,28 +171,31 @@ const ChildInfoStep = ({ formData, updateFormData }: ChildInfoStepProps) => {
         const localChildren = JSON.parse(getUserData(user?.id, 'savedChildren') || '[]');
         if (localChildren.length > 0) {
           setSavedChildren(localChildren);
-          // Auto-load the first child
-          const firstChild = localChildren[0];
-          setIsCreatingNew(false);
-          updateFormData({
-            childName: firstChild.name,
-            childGender: firstChild.gender as "male" | "female",
-            ageRange: ageToRange(firstChild.age),
-            childAge: firstChild.age,
-            childPhoto: firstChild.photo_url,
-            childAvatarUrl: firstChild.avatar_url,
-            personalityTraits: firstChild.personality_traits || "",
-            fixedDetails: firstChild.fixed_details || "",
-          });
-          if (firstChild.personality_traits) {
-            setShowPersonalityField(true);
+          if (shouldAutoLoadFirst) {
+            hasAutoLoadedRef.current = userKey;
+            const firstChild = localChildren[0];
+            setIsCreatingNew(false);
+            setSelectedChildId(firstChild.id);
+            updateFormData({
+              childName: firstChild.name,
+              childGender: firstChild.gender as "male" | "female",
+              ageRange: ageToRange(firstChild.age),
+              childAge: firstChild.age,
+              childPhoto: firstChild.photo_url,
+              childAvatarUrl: firstChild.avatar_url,
+              personalityTraits: firstChild.personality_traits || "",
+              fixedDetails: firstChild.fixed_details || "",
+            });
+            if (firstChild.personality_traits) {
+              setShowPersonalityField(true);
+            }
           }
         }
       }
     };
     
     fetchChildren();
-  }, [user]);
+  }, [user?.id]);
 
   // Handle numeric age input
   const handleAgeInputChange = (raw: string) => {
@@ -257,10 +270,12 @@ const ChildInfoStep = ({ formData, updateFormData }: ChildInfoStepProps) => {
         const newCount = avatarRegenerationCount + 1;
         setAvatarRegenerationCount(newCount);
         // Persist count
-        const currentChild = savedChildren.find(c => c.name === formData.childName);
+        const currentChild = selectedChildId
+          ? savedChildren.find(c => c.id === selectedChildId)
+          : undefined;
         if (currentChild) {
           const updatedChildren = savedChildren.map(c =>
-            c.name === formData.childName ? { ...c, avatar_regeneration_count: newCount } : c
+            c.id === currentChild.id ? { ...c, avatar_regeneration_count: newCount } : c
           );
           setSavedChildren(updatedChildren);
           setUserData(user?.id, 'savedChildren', JSON.stringify(stripBase64ForStorage(updatedChildren)));
@@ -279,10 +294,12 @@ const ChildInfoStep = ({ formData, updateFormData }: ChildInfoStepProps) => {
   const handleRegenerationCountChange = (count: number) => {
     setAvatarRegenerationCount(count);
     // Update in saved children if exists
-    const currentChild = savedChildren.find(c => c.name === formData.childName);
+    const currentChild = selectedChildId
+      ? savedChildren.find(c => c.id === selectedChildId)
+      : undefined;
     if (currentChild) {
       const updatedChildren = savedChildren.map(c => 
-        c.name === formData.childName ? { ...c, avatar_regeneration_count: count } : c
+        c.id === currentChild.id ? { ...c, avatar_regeneration_count: count } : c
       );
       setSavedChildren(updatedChildren);
       
@@ -293,6 +310,7 @@ const ChildInfoStep = ({ formData, updateFormData }: ChildInfoStepProps) => {
 
   const loadChildProfile = (child: SavedChild) => {
     setIsCreatingNew(false);
+    setSelectedChildId(child.id);
     updateFormData({
       childName: child.name,
       childGender: child.gender as "male" | "female",
@@ -344,9 +362,9 @@ const ChildInfoStep = ({ formData, updateFormData }: ChildInfoStepProps) => {
 
         // When creating a new profile, never match against existing children by name.
         // Only treat as an update when the user explicitly loaded an existing profile.
-        const existingChild = isCreatingNew
+        const existingChild = isCreatingNew || !selectedChildId
           ? undefined
-          : savedChildren.find(c => c.name === formData.childName);
+          : savedChildren.find(c => c.id === selectedChildId);
 
         // If user is creating a new profile but typed a name that collides with an existing one,
         // refuse to overwrite — ask them to pick a different name.
@@ -361,6 +379,7 @@ const ChildInfoStep = ({ formData, updateFormData }: ChildInfoStepProps) => {
           const { error } = await supabase
             .from("children")
             .update({
+              name: formData.childName,
               age: selectedAge,
               gender: formData.childGender,
               photo_url: formData.childPhoto,
@@ -378,7 +397,7 @@ const ChildInfoStep = ({ formData, updateFormData }: ChildInfoStepProps) => {
           // Update local state
           setSavedChildren(prev => prev.map(c => 
             c.id === existingChild.id 
-              ? { ...c, age: selectedAge, gender: formData.childGender, photo_url: formData.childPhoto, avatar_url: formData.childAvatarUrl, personality_traits: formData.personalityTraits }
+              ? { ...c, name: formData.childName, age: selectedAge, gender: formData.childGender, photo_url: formData.childPhoto, avatar_url: formData.childAvatarUrl, personality_traits: formData.personalityTraits }
               : c
           ));
         } else {
@@ -398,6 +417,7 @@ const ChildInfoStep = ({ formData, updateFormData }: ChildInfoStepProps) => {
           if (data) {
             setSavedChildren(prev => [...prev, data]);
             setIsCreatingNew(false);
+            setSelectedChildId(data.id);
           }
         }
         
@@ -405,7 +425,7 @@ const ChildInfoStep = ({ formData, updateFormData }: ChildInfoStepProps) => {
       } else {
         // Save to localStorage for dev mode or non-logged users
         const savedChild = {
-          id: `local-${Date.now()}`,
+          id: selectedChildId && !isCreatingNew ? selectedChildId : `local-${Date.now()}`,
           name: formData.childName,
           age: selectedAge,
           gender: formData.childGender,
@@ -415,9 +435,9 @@ const ChildInfoStep = ({ formData, updateFormData }: ChildInfoStepProps) => {
         };
         
         const existingChildren = JSON.parse(getUserData(user?.id, 'savedChildren') || '[]');
-        const existingIndex = isCreatingNew
+        const existingIndex = isCreatingNew || !selectedChildId
           ? -1
-          : existingChildren.findIndex((c: SavedChild) => c.name === formData.childName);
+          : existingChildren.findIndex((c: SavedChild) => c.id === selectedChildId);
 
         if (isCreatingNew && existingChildren.some((c: SavedChild) => c.name === formData.childName)) {
           toast.error("כבר קיים פרופיל בשם הזה. נא לבחור שם אחר.");
@@ -430,6 +450,7 @@ const ChildInfoStep = ({ formData, updateFormData }: ChildInfoStepProps) => {
         } else {
           existingChildren.push(savedChild);
           setIsCreatingNew(false);
+          setSelectedChildId(savedChild.id);
         }
         
         setUserData(user?.id, 'savedChildren', JSON.stringify(stripBase64ForStorage(existingChildren)));
@@ -447,7 +468,9 @@ const ChildInfoStep = ({ formData, updateFormData }: ChildInfoStepProps) => {
   };
 
   const handleDeleteChildProfile = async () => {
-    const currentChild = savedChildren.find(c => c.name === formData.childName);
+    const currentChild = selectedChildId
+      ? savedChildren.find(c => c.id === selectedChildId)
+      : undefined;
     if (!currentChild) {
       toast.error("לא נבחר פרופיל למחיקה");
       return;
@@ -468,6 +491,7 @@ const ChildInfoStep = ({ formData, updateFormData }: ChildInfoStepProps) => {
       }
 
       setSavedChildren(prev => prev.filter(c => c.id !== currentChild.id));
+      setSelectedChildId(null);
       updateFormData({
         childName: "",
         childGender: "male",
@@ -516,7 +540,7 @@ const ChildInfoStep = ({ formData, updateFormData }: ChildInfoStepProps) => {
             onClick={() => loadChildProfile(child)}
             className={cn(
               "px-3 py-1.5 rounded-lg border-2 transition-all flex items-center gap-1.5 text-xs font-medium",
-              formData.childName === child.name
+              selectedChildId === child.id
                 ? "border-purple-500 bg-gradient-to-r from-purple-100 to-pink-100 text-purple-700"
                 : "border-border bg-card hover:border-purple-300"
             )}
@@ -543,6 +567,8 @@ const ChildInfoStep = ({ formData, updateFormData }: ChildInfoStepProps) => {
                 fixedDetails: "",
               });
               setIsCreatingNew(true);
+              setSelectedChildId(null);
+              setAvatarRegenerationCount(0);
               toast.success("הטופס נוקה - הזינו פרטי ילד/ה חדש/ה");
             }}
             className="text-sm font-bold text-purple-600 border-purple-300 hover:bg-purple-50"
@@ -550,7 +576,7 @@ const ChildInfoStep = ({ formData, updateFormData }: ChildInfoStepProps) => {
             <PlusCircle className="w-4 h-4 ml-1" />
             פרופיל חדש +
           </Button>
-          {formData.childName && savedChildren.some(c => c.name === formData.childName) && (
+          {selectedChildId && savedChildren.some(c => c.id === selectedChildId) && (
             <Button
               type="button"
               variant="outline"
