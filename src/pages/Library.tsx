@@ -432,6 +432,8 @@ const Library = () => {
                 offlineSize={fullOffline.getSize(story.id)}
                 onDownloadOffline={handleDownloadOffline}
                 onDeleteOffline={handleDeleteOffline}
+                canShare={hasAnyPurchase || unlockedStoryIds.has(story.id)}
+                onLockedShare={handleLockedShare}
               />
             );
           }
@@ -468,6 +470,8 @@ const Library = () => {
               offlineSize={fullOffline.getSize(mainStory.id)}
               onDownloadOffline={handleDownloadOffline}
               onDeleteOffline={handleDeleteOffline}
+              canShare={hasAnyPurchase || unlockedStoryIds.has(mainStory.id)}
+              onLockedShare={handleLockedShare}
             />
           );
         })}
