@@ -15,7 +15,8 @@ import { getPublicIllustrationUrl } from "@/lib/illustration-url";
 
 import OfflineIndicator from "@/components/ui/offline-indicator";
 
-const TESTER_EMAILS = ['carmit1901@gmail.com', 'carmit1901+test@gmail.com'];
+const TESTER_EMAIL = 'carmit1901+test@gmail.com';
+const ORIGINAL_TESTER = 'carmit1901@gmail.com';
 import EditPageDialog from "@/components/story/edit-page-dialog";
 import DedicationDialog from "@/components/story/DedicationDialog";
 import { GenderSwapDialog } from "@/components/story/GenderSwapDialog";
