@@ -19,7 +19,6 @@ import { supabase } from "@/integrations/supabase/client";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 import { PRICING_PACKAGES, EDUCATOR_PACKAGES, TOOLKIT_SUBSCRIPTION } from "@/config/pricing";
-import FlippingBookAnimation from "@/components/upgrade/FlippingBookAnimation";
 
 const SINGLE_STORY_PRICE = 19.90;
 
