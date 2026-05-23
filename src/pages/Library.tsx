@@ -122,12 +122,11 @@ const Library = () => {
   const fetchPurchaseStatus = async () => {
     if (!user) { setHasAnyPurchase(false); setUnlockedStoryIds(new Set()); return; }
     try {
-      const [purchasesRes, unlocksRes, subRes] = await Promise.all([
+      const [purchasesRes, unlocksRes] = await Promise.all([
         supabase.from('purchases').select('id').eq('user_id', user.id).limit(1),
         supabase.from('story_unlocks').select('story_id').eq('user_id', user.id),
-        supabase.from('subscriptions').select('id').eq('user_id', user.id).eq('status', 'active').limit(1),
       ]);
-      const hasPkg = (purchasesRes.data?.length ?? 0) > 0 || (subRes.data?.length ?? 0) > 0;
+      const hasPkg = (purchasesRes.data?.length ?? 0) > 0;
       setHasAnyPurchase(hasPkg);
       setUnlockedStoryIds(new Set((unlocksRes.data || []).map((u: any) => u.story_id)));
     } catch {
