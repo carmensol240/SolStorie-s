@@ -137,16 +137,17 @@ const PayPalButton = ({ amount, onSuccess, onError, onCancel }: PayPalButtonProp
         },
       };
 
+      const paypalAny = window.paypal as any;
       const fundingSources = [
-        window.paypal.FUNDING.PAYPAL,
-        window.paypal.FUNDING.CARD,
+        paypalAny.FUNDING.PAYPAL,
+        paypalAny.FUNDING.CARD,
       ];
 
       (async () => {
         let anyRendered = false;
         for (const fundingSource of fundingSources) {
-          const isPayPal = fundingSource === window.paypal.FUNDING.PAYPAL;
-          const button = window.paypal.Buttons({
+          const isPayPal = fundingSource === paypalAny.FUNDING.PAYPAL;
+          const button: any = paypalAny.Buttons({
             ...baseConfig,
             fundingSource,
             style: {
