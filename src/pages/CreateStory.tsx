@@ -13,6 +13,7 @@ import { useAuth } from "@/hooks/use-auth";
 import { useCredits } from "@/hooks/use-credits";
 import { isDevModeEnabled } from "@/hooks/use-dev-mode";
 import { supabase } from "@/integrations/supabase/client";
+import MaintenanceBlock from "@/components/MaintenanceBlock";
 
 export interface AdventureLogic {
   outfit: string;
@@ -65,6 +66,7 @@ const steps = [
 ];
 
 const CreateStory = () => {
+  return <MaintenanceBlock />;
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const { user, loading } = useAuth();

@@ -10,8 +10,10 @@ import { supabase } from "@/integrations/supabase/client";
 import WelcomeGiftBanner from "@/components/home/WelcomeGiftBanner";
 import MobileNavigation from "@/components/MobileNavigation";
 import heroVideo from "@/assets/hero-solstories-animation-new.mp4";
+import MaintenanceBlock from "@/components/MaintenanceBlock";
 
 const Adventure = () => {
+  return <MaintenanceBlock />;
   const navigate = useNavigate();
   const { user, loading } = useAuth();
   const { credits } = useCredits();
