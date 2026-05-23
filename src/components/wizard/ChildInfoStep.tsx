@@ -540,7 +540,7 @@ const ChildInfoStep = ({ formData, updateFormData }: ChildInfoStepProps) => {
             onClick={() => loadChildProfile(child)}
             className={cn(
               "px-3 py-1.5 rounded-lg border-2 transition-all flex items-center gap-1.5 text-xs font-medium",
-              formData.childName === child.name
+              selectedChildId === child.id
                 ? "border-purple-500 bg-gradient-to-r from-purple-100 to-pink-100 text-purple-700"
                 : "border-border bg-card hover:border-purple-300"
             )}
@@ -567,6 +567,8 @@ const ChildInfoStep = ({ formData, updateFormData }: ChildInfoStepProps) => {
                 fixedDetails: "",
               });
               setIsCreatingNew(true);
+              setSelectedChildId(null);
+              setAvatarRegenerationCount(0);
               toast.success("הטופס נוקה - הזינו פרטי ילד/ה חדש/ה");
             }}
             className="text-sm font-bold text-purple-600 border-purple-300 hover:bg-purple-50"
@@ -574,7 +576,7 @@ const ChildInfoStep = ({ formData, updateFormData }: ChildInfoStepProps) => {
             <PlusCircle className="w-4 h-4 ml-1" />
             פרופיל חדש +
           </Button>
-          {formData.childName && savedChildren.some(c => c.name === formData.childName) && (
+          {selectedChildId && savedChildren.some(c => c.id === selectedChildId) && (
             <Button
               type="button"
               variant="outline"
