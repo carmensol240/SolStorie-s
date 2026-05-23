@@ -1,21 +1,50 @@
-## תיקון מוק הכריכה בפופאפ הרכישה
+## מטרה
 
-קובץ יחיד: `src/components/paywall/PersonalizedStoryCover.tsx`
+כפתור פשוט שמחליף את `carmit1901+test@gmail.com` בין שני מצבים בלי שינויי DB:
 
-### הבעיה
-המוק הנוכחי הוא תמונה מלבנית פשוטה (3:4) עם מסגרת לבנה ושוליים רחבים בראש הפופאפ, ואינו דומה למוק היפה יותר של "ספר פיזי" שמופיע ב-`PrintBookPreviewModal` (סגנון `.fba-` עם שדרה + תג SolStorie).
+1. **מצב דמו** — `isDemoUser=true` תמיד, פופאפ רכישה אחרי עמוד 3, פיצ'רי משלם חסומים.
+2. **מצב אדמין** — גישה מלאה לסיפורים שלמים, ללא paywall.
 
-### התיקון
-לעצב מחדש את `PersonalizedStoryCover` כך שיציג את אותו מוק ספר פיזי המוצלח:
+## מימוש
 
-1. ייבוא `@/components/upgrade/flipping-book.css`.
-2. שימוש במבנה: `fba-scene` → `fba-spine` (שדרת הספר עם הטקסט `{name} · SolStorie's™`) + `fba-book` עם:
-   - `<img className="fba-cover-img" />` (כבר `object-fit: cover` — ימלא בלי שוליים לבנים).
-   - `fba-badge` (✨ SolStorie's™) בפינה.
-   - `fba-overlay` עם שם הילד בזהב (כמו בכריכה הקודמת).
-3. להוריד את ה-`mb-4` המיותר ולעטוף ב-flex-center חסכוני (`my-1` במקום `mb-4`) כדי לצמצם את הרווח הלבן מעל.
-4. להסיר את ה-`border border-white/20` ואת ה-`shadow-2xl` החיצוניים — הסגנון `.fba-scene` כבר מוסיף `drop-shadow` עשיר.
+### 1. `src/pages/StoryViewer.tsx` (שורות 18, 451-458)
 
-### ללא שינויים
-- אין שינוי ב-`DemoLockModal.tsx`, ב-CSS, או בלוגיקת ה-fetch של הכריכה.
-- אין שינוי בצינור יצירת הכריכה (נשמר לפעם הבאה כמו שביקשת).
+החלפת הקבוע הקיים בקריאה ל-localStorage flag:
+
+```ts
+const TESTER_EMAIL = 'carmit1901+test@gmail.com';
+const ORIGINAL_TESTER = 'carmit1901@gmail.com';
+
+// בתוך הקומפוננטה:
+const emailLower = user?.email?.toLowerCase();
+const isTesterAccount = emailLower === TESTER_EMAIL;
+// קריאה מ-localStorage: ברירת מחדל = 'demo'
+const testerMode = isTesterAccount
+  ? (localStorage.getItem('tester_mode') ?? 'demo')
+  : null;
+const isForcedDemo = testerMode === 'demo';
+const isTester = emailLower === ORIGINAL_TESTER || testerMode === 'admin';
+
+const isDemoUser = !!user && (
+  isForcedDemo ||
+  (!hasPurchasedPackage && !isSubscriberUser && !isAdminUser && !isTester)
+);
+```
+
+### 2. `src/pages/Settings.tsx`
+
+הוספת כרטיס קטן חדש שמוצג **רק** אם `user.email === 'carmit1901+test@gmail.com'`:
+
+- כותרת: "מצב בדיקה (Tester)"
+- Toggle/Switch בין שני מצבים: "דמו" / "אדמין"
+- בלחיצה: `localStorage.setItem('tester_mode', 'demo'|'admin')` + `window.location.reload()` כדי שכל הקומפוננטות יקבלו את המצב החדש.
+- מצב נוכחי נקרא מ-`localStorage.getItem('tester_mode') ?? 'demo'`.
+
+הכרטיס לא תלוי ב-`isAdmin`, רק במייל — כך גם במצב דמו עדיין רואים את הכפתור להחזיר ל-אדמין.
+
+## מה לא נעשה
+
+- אין שינוי DB / RLS / roles.
+- אין שינוי לחשבונות אחרים.
+- אין שינוי ב-`DemoLockModal`, `Upgrade`, או hooks של credits.
+- `carmit1901@gmail.com` נשאר tester משלם כרגיל.

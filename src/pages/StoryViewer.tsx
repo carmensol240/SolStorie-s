@@ -15,7 +15,8 @@ import { getPublicIllustrationUrl } from "@/lib/illustration-url";
 
 import OfflineIndicator from "@/components/ui/offline-indicator";
 
-const TESTER_EMAILS = ['carmit1901@gmail.com', 'carmit1901+test@gmail.com'];
+const TESTER_EMAIL = 'carmit1901+test@gmail.com';
+const ORIGINAL_TESTER = 'carmit1901@gmail.com';
 import EditPageDialog from "@/components/story/edit-page-dialog";
 import DedicationDialog from "@/components/story/DedicationDialog";
 import { GenderSwapDialog } from "@/components/story/GenderSwapDialog";
@@ -450,12 +451,18 @@ const [currentPage, setCurrentPage] = useState(0);
 
   // Demo user = logged in, no completed purchase, not subscriber, not admin, not tester.
   // For demo users, save/share/download/coloring/recording actions are blocked.
-  const isTester = !!user?.email && TESTER_EMAILS.includes(user.email.toLowerCase());
-  const isDemoUser = !!user
-    && !hasPurchasedPackage
-    && !isSubscriberUser
-    && !isAdminUser
-    && !isTester;
+  const emailLower = user?.email?.toLowerCase();
+  const isTesterAccount = emailLower === TESTER_EMAIL;
+  // For the tester account, a localStorage flag toggles between 'demo' and 'admin'. Default = 'demo'.
+  const testerMode = isTesterAccount
+    ? (typeof window !== 'undefined' ? (localStorage.getItem('tester_mode') ?? 'demo') : 'demo')
+    : null;
+  const isForcedDemo = testerMode === 'demo';
+  const isTester = emailLower === ORIGINAL_TESTER || testerMode === 'admin';
+  const isDemoUser = !!user && (
+    isForcedDemo ||
+    (!hasPurchasedPackage && !isSubscriberUser && !isAdminUser && !isTester)
+  );
   const guardDemo = useCallback((fn: () => void) => {
     return () => {
       if (isDemoUser) {
