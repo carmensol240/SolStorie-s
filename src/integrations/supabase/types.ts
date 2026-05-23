@@ -836,6 +836,36 @@ export type Database = {
           },
         ]
       }
+      story_unlocks: {
+        Row: {
+          amount_paid: number
+          created_at: string
+          id: string
+          paid_at: string
+          story_id: string
+          unlock_type: string
+          user_id: string
+        }
+        Insert: {
+          amount_paid?: number
+          created_at?: string
+          id?: string
+          paid_at?: string
+          story_id: string
+          unlock_type: string
+          user_id: string
+        }
+        Update: {
+          amount_paid?: number
+          created_at?: string
+          id?: string
+          paid_at?: string
+          story_id?: string
+          unlock_type?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       topic_wishlist: {
         Row: {
           created_at: string

@@ -9,6 +9,7 @@ import PurchaseFailedModal from "@/components/paywall/PurchaseFailedModal";
 import PayPalButton from "@/components/paywall/PayPalButton";
 import CouponInput from "@/components/paywall/CouponInput";
 import UserDetailsForm, { UserDetailsRef } from "@/components/paywall/UserDetailsForm";
+import PersonalizedStoryCover from "@/components/paywall/PersonalizedStoryCover";
 
 import { useCredits } from "@/hooks/use-credits";
 import { useSubscription } from "@/hooks/use-subscription";
@@ -18,7 +19,8 @@ import { supabase } from "@/integrations/supabase/client";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 import { PRICING_PACKAGES, EDUCATOR_PACKAGES, TOOLKIT_SUBSCRIPTION } from "@/config/pricing";
-import FlippingBookAnimation from "@/components/upgrade/FlippingBookAnimation";
+
+const SINGLE_STORY_PRICE = 19.90;
 
 
 const Upgrade = () => {
@@ -34,6 +36,7 @@ const Upgrade = () => {
   
   const [selectedPackage, setSelectedPackage] = useState<string>("popular");
   const [showPayPal, setShowPayPal] = useState(false);
+  const [showSinglePayPal, setShowSinglePayPal] = useState(false);
   const [userRole, setUserRole] = useState<string>("parent");
   const [roleLoaded, setRoleLoaded] = useState(false);
   const [showToolkitPayPal, setShowToolkitPayPal] = useState(false);
@@ -145,6 +148,58 @@ const Upgrade = () => {
     setShowPayPal(true);
   };
 
+  const handleSingleStoryPurchase = () => {
+    if (!firstStoryId) {
+      toast.error("הסיפור לא נמצא");
+      return;
+    }
+    if (!user) { navigate("/auth"); return; }
+    setShowSinglePayPal(true);
+  };
+
+  const insertBundledFreeUnlock = async () => {
+    if (!firstStoryId || !user) return;
+    try {
+      await supabase.from("story_unlocks").upsert({
+        user_id: user.id,
+        story_id: firstStoryId,
+        unlock_type: "bundled_free",
+        amount_paid: 0,
+      }, { onConflict: "user_id,story_id", ignoreDuplicates: true });
+    } catch (err) {
+      console.error("Failed to insert bundled_free unlock:", err);
+    }
+  };
+
+  const handleSinglePayPalSuccess = async (orderId: string) => {
+    if (!user || !firstStoryId) {
+      setShowSinglePayPal(false);
+      setShowFailed(true);
+      setFailedPurchaseType('stories');
+      return;
+    }
+    try {
+      await verifyPurchase(orderId, 'single_story', SINGLE_STORY_PRICE, null);
+      await supabase.from("story_unlocks").upsert({
+        user_id: user.id,
+        story_id: firstStoryId,
+        unlock_type: "single",
+        amount_paid: SINGLE_STORY_PRICE,
+      }, { onConflict: "user_id,story_id", ignoreDuplicates: true });
+      await userDetailsRef.current?.saveToProfile();
+      toast.success("הסיפור נפתח! חזרה לסיפור...");
+      trackEvent({ eventType: 'feature_used', metadata: { feature: 'single_story_purchased', storyId: firstStoryId } });
+      setShowSinglePayPal(false);
+      // Navigate back to the story
+      navigate(`/story/${firstStoryId}?upgrade=true`);
+    } catch (err) {
+      console.error('Single story purchase failed:', err);
+      setShowSinglePayPal(false);
+      setShowFailed(true);
+      setFailedPurchaseType('stories');
+    }
+  };
+
   const verifyPurchase = async (orderId: string, packageId: string, amount: number, couponCode?: string | null) => {
     if (!user) throw new Error('User not authenticated');
     console.log(`[VERIFY] Calling verify-purchase: order=${orderId}, pkg=${packageId}, amount=${amount}`);
@@ -176,6 +231,8 @@ const Upgrade = () => {
       setShowPayPal(false);
       setShowSuccess(true);
       await userDetailsRef.current?.saveToProfile();
+      // Auto-unlock the demo/current story as a bundled free unlock
+      await insertBundledFreeUnlock();
       trackEvent({ eventType: 'feature_used', metadata: { feature: 'purchase_completed', package: pkg.id, stories: pkg.stories, payment_method: 'paypal' } });
       
       if (user.email) {
@@ -290,6 +347,9 @@ const Upgrade = () => {
 
       <div className="flex-1 overflow-y-auto pb-32 relative z-10" style={{ WebkitOverflowScrolling: 'touch' }}>
         <div className="container max-w-md mx-auto px-4 pt-4">
+          {/* 1. Personalized story cover at the very top */}
+          {firstStoryId && <PersonalizedStoryCover storyId={firstStoryId} />}
+
           {/* Header */}
           <div className="text-center mb-4 flex flex-col items-center">
             <h1 className="text-2xl font-black bg-gradient-to-r from-purple-300 via-pink-300 to-orange-300 bg-clip-text text-transparent mb-1">
@@ -366,8 +426,34 @@ const Upgrade = () => {
           </div>
           )}
 
-          {/* Book mockup — below packages */}
-          <FlippingBookAnimation />
+          {/* 4. Caption — demo story included free */}
+          {firstStoryId && (roleLoaded && (userRole === 'parent' || userRole === 'educator')) && (
+            <p className="text-center text-xs font-bold text-purple-200/90 mb-3 -mt-1">
+              🎁 סיפור הדוגמא שלך נוסף אוטומטית בחינם לכל חבילה
+            </p>
+          )}
+
+          {/* 5. "או" divider + 6. one-time purchase button */}
+          {firstStoryId && (
+            <div className="mb-4">
+              <div className="flex items-center gap-3 my-3">
+                <div className="flex-1 h-px bg-gradient-to-l from-transparent via-white/30 to-transparent" />
+                <span className="text-white/70 text-xs font-bold px-2">או</span>
+                <div className="flex-1 h-px bg-gradient-to-r from-transparent via-white/30 to-transparent" />
+              </div>
+              <button
+                onClick={handleSingleStoryPurchase}
+                className="w-full bg-white/10 backdrop-blur-md border border-white/20 hover:bg-white/15 transition-colors rounded-xl px-4 py-3 text-center"
+              >
+                <div className="text-white font-black text-sm">
+                  רק הסיפור הזה — 19.90₪ 📖
+                </div>
+                <div className="text-white/60 text-[11px] font-semibold mt-0.5">
+                  קריאה מלאה + שיתוף בוואטסאפ + הקלטת קול
+                </div>
+              </button>
+            </div>
+          )}
 
           <p className="text-center mb-4 font-bold" style={{ fontSize: '17px', color: '#c084fc' }}>
             תשלום חד פעמי · הקרדיטים שלך לא פגים · אין מינוי
@@ -500,21 +586,21 @@ const Upgrade = () => {
 
           {/* PayPal */}
           {showPayPal && (
-            <div className="bg-white/15 backdrop-blur-md rounded-xl border border-white/20 p-4 mb-4 shadow-lg">
-              <p className="text-sm font-bold text-white text-center mb-1">
+            <div className="bg-white/15 backdrop-blur-md rounded-xl border border-white/20 p-3 mb-4 shadow-lg">
+              <p className="text-sm font-bold text-white text-center mb-0.5">
                 {selectedPkg?.stories} סיפורים
               </p>
               {discountPercent > 0 ? (
-                <div className="text-center mb-3">
+                <div className="text-center mb-1.5">
                   <span className="text-white/50 line-through text-sm">₪{selectedPkg?.price}</span>
                   <span className="text-green-300 font-black text-lg mr-2">₪{discountedPrice}</span>
                   <span className="text-green-300 text-xs font-bold">({discountPercent}% הנחה)</span>
                 </div>
               ) : (
-                <p className="text-sm font-bold text-white text-center mb-3">₪{selectedPkg?.price}</p>
+                <p className="text-sm font-bold text-white text-center mb-1.5">₪{selectedPkg?.price}</p>
               )}
               <UserDetailsForm ref={userDetailsRef} onValidChange={setUserDetailsValid} />
-              {!userDetailsValid && <p className="text-red-400 text-xs text-center mb-2">נא להזין טלפון תקין להמשך</p>}
+              {!userDetailsValid && <p className="text-red-400 text-xs text-center mb-1">נא להזין טלפון תקין להמשך</p>}
               {userDetailsValid && <PayPalButton
                 amount={discountPercent > 0 ? discountedPrice : (selectedPkg?.price || 0)}
                 onSuccess={handlePayPalSuccess}
@@ -523,7 +609,31 @@ const Upgrade = () => {
               />}
               <button
                 onClick={() => setShowPayPal(false)}
-                className="w-full text-center text-white/50 text-xs mt-3 hover:text-white/70 transition-colors"
+                className="w-full text-center text-white/50 text-xs mt-2 hover:text-white/70 transition-colors"
+              >
+                ביטול
+              </button>
+            </div>
+          )}
+
+          {/* Single-story PayPal */}
+          {showSinglePayPal && (
+            <div className="bg-white/15 backdrop-blur-md rounded-xl border border-white/20 p-3 mb-4 shadow-lg">
+              <p className="text-sm font-bold text-white text-center mb-0.5">
+                רק הסיפור הזה 📖
+              </p>
+              <p className="text-sm font-bold text-white text-center mb-1.5">₪{SINGLE_STORY_PRICE}</p>
+              <UserDetailsForm ref={userDetailsRef} onValidChange={setUserDetailsValid} />
+              {!userDetailsValid && <p className="text-red-400 text-xs text-center mb-1">נא להזין טלפון תקין להמשך</p>}
+              {userDetailsValid && <PayPalButton
+                amount={SINGLE_STORY_PRICE}
+                onSuccess={handleSinglePayPalSuccess}
+                onError={(err) => { console.error('Single PayPal error:', err); setShowSinglePayPal(false); setShowFailed(true); setFailedPurchaseType('stories'); }}
+                onCancel={() => setShowSinglePayPal(false)}
+              />}
+              <button
+                onClick={() => setShowSinglePayPal(false)}
+                className="w-full text-center text-white/50 text-xs mt-2 hover:text-white/70 transition-colors"
               >
                 ביטול
               </button>
@@ -533,7 +643,7 @@ const Upgrade = () => {
       </div>
 
       {/* Fixed CTA */}
-      {!showPayPal && (
+      {!showPayPal && !showSinglePayPal && (
         <div className="fixed bottom-0 left-0 right-0 bg-[hsl(250,50%,12%)]/95 backdrop-blur border-t border-white/10 px-4 py-3 safe-area-bottom z-20">
           <div className="container max-w-md mx-auto flex flex-col items-center gap-1">
             <Button
