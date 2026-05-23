@@ -466,6 +466,17 @@ const [currentPage, setCurrentPage] = useState(0);
     };
   }, [isDemoUser]);
 
+  // Open paywall popup (from ?paywall=1) only after entitlement checks complete
+  // AND the user is actually a demo user. Avoids the brief "flash" for paid users.
+  useEffect(() => {
+    if (!pendingPaywallOpen) return;
+    if (!purchaseChecksReady) return;
+    if (isDemoUser) {
+      setDemoLockOpen(true);
+    }
+    setPendingPaywallOpen(false);
+  }, [pendingPaywallOpen, purchaseChecksReady, isDemoUser]);
+
   // Set age-appropriate font size on story load
   useEffect(() => {
     if (story?.age_range) {
