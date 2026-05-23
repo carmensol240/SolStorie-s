@@ -28,6 +28,7 @@ const Upgrade = () => {
   const [searchParams] = useSearchParams();
   const firstStoryId = searchParams.get('firstStory');
   const noCredits = searchParams.get('noCredits') === 'true';
+  const mode = searchParams.get('mode');
   const { user } = useAuth();
   const { addCredits, refetch: refetchCredits } = useCredits();
   const { isSubscriber, refetch: refetchSubscription } = useSubscription();
@@ -56,6 +57,13 @@ const Upgrade = () => {
     const viewType = firstStoryId ? 'first_story' : noCredits ? 'no_credits' : 'regular';
     trackEvent({ eventType: 'feature_used', metadata: { feature: 'paywall_view', view_type: viewType } });
   }, [trackEvent, firstStoryId, noCredits]);
+
+  // Auto-open single-story PayPal when arriving with ?mode=single
+  useEffect(() => {
+    if (mode === 'single' && firstStoryId && user) {
+      setShowSinglePayPal(true);
+    }
+  }, [mode, firstStoryId, user]);
 
   // Fetch user role
   useEffect(() => {

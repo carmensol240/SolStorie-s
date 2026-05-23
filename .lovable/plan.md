@@ -1,29 +1,42 @@
-## תיקון כיוון תמונות בסיפור
 
-### הבעיה
-תמונות שנוצרות ב-fal.ai מגיעות לפעמים עם EXIF orientation metadata שגורם להן להופיע מסובבות 90° בדפדפן.
+# הפיכת פופאפ הרכישה לפופאפ העשיר
 
-### הפתרון (CSS-only, מינימלי)
-הוספת `image-orientation: from-image` גלובלית לכל ה-`<img>` בפרויקט. זה אוכף על הדפדפן לכבד את ה-EXIF orientation ולהציג את התמונה זקופה.
+## הבעיה (אומתה בקוד)
+`src/components/story/DemoLockModal.tsx` הוא עדיין הפופאפ הישן: רק כותרת, תיאור, וכפתור "לרכישת חבילה" שמנווט ל-`/upgrade`. הוא לא מציג כריכה אישית, לא את 19.90₪, ולא את "🎁 הסיפור נוסף אוטומטית". זו הסיבה שב-Incognito רואים את הפופאפ הישן — כי הוא לא שונה מעולם.
 
-### קובץ שישתנה
-**`src/index.css`** — הוספת כלל גלובלי:
-```css
-img {
-  image-orientation: from-image;
-}
-```
+`src/pages/Upgrade.tsx` כבר מכיל את כל האלמנטים הללו (אומת — שורות 351, 432, 444-455), פשוט המשתמש לא תמיד מגיע לשם — הוא רואה קודם את ה-Modal הקצר ולוחץ "לא עכשיו".
 
-זה יחול אוטומטית על:
-- `SignedImage` (איורי הסיפור)
-- תמונות בכרטיסי ספרייה
-- תמונת הדמויות במסך הסיום
-- כל שאר התמונות בפרויקט
+## השינויים
 
-### למה לא לתקן בצד השרת
-תיקון server-side (sharp/ImageMagick ב-edge function) ידרוש שינוי pipeline של generate-illustrations + retry-illustration + תלות חדשה. הפתרון הזה רק ל-presentation layer, ללא שינוי לוגיקה או backend — כפי שביקשת.
+### 1. `src/components/story/DemoLockModal.tsx` — שכתוב מלא
+- Prop חדש: `storyId?: string`
+- מבנה חדש (RTL):
+  - כותרת קצרה (props קיימים)
+  - אם יש `storyId`: `<PersonalizedStoryCover storyId={storyId} />` במרכז (~200px)
+  - כפתור ראשי (gradient סגול-ורוד-כתום): **"📦 חבילת סיפורים"** → ניווט ל-`/upgrade?firstStory={storyId}`
+  - מתחת לכפתור החבילה, כיתוב קטן: `🎁 סיפור הדוגמא נוסף אוטומטית בחינם`
+  - מפריד דק "או"
+  - כפתור משני (glass/outline): **"רק הסיפור הזה — 19.90₪ 📖"** → ניווט ל-`/upgrade?firstStory={storyId}&mode=single`
+  - לינק "לא עכשיו" (ghost) בתחתית
+- שמירת `pendingStoryReturn` ב-sessionStorage לפני כל ניווט (לוגיקה קיימת — לשמר)
+- אם אין `storyId` (שימוש שאינו מסיפור) — להתנהג כמו היום: ללא כריכה, ללא כפתור 19.90, רק כפתור חבילה.
 
-### לא ישתנה
-- אין שינוי ב-edge functions
-- אין שינוי ב-storage
-- אין שינוי בלוגיקה של הסיפור
+### 2. `src/pages/StoryViewer.tsx` — שינוי נקודתי
+שורות 2038-2044: להוסיף `storyId={storyId}` לשתי המופעים של `<DemoLockModal>`.
+לא נוגעים בשום דבר אחר בקובץ הזה.
+
+### 3. `src/pages/Upgrade.tsx` — תוספת קצרה
+- קריאת פרמטר חדש: `const mode = searchParams.get('mode')`
+- `useEffect` חדש שמופעל פעם אחת אחרי טעינה: אם `mode === 'single' && firstStoryId && user` → `setShowSinglePayPal(true)` (גלילה אוטומטית אל ה-PayPal אופציונלי)
+- שאר הקובץ ללא שינוי.
+
+## קבצים שלא ייגעו
+כל מה שמחוץ לזרימת פופאפ-הרכישה והשדרוג:
+- `generate-illustrations`, `generate-story`, `retry-illustration`, `_shared/style-config.ts` — הבעיה של אי-התאמת טקסט↔תמונה תיפתר בסבב נפרד.
+- שום קובץ עיצוב/לוגיקה אחר.
+
+## אימות אחרי הפריסה
+1. פתיחת `/story/{slug}` עם משתמש דמו → לחיצה על שמירה/הורדה → הפופאפ החדש נפתח עם כריכה אישית, שני כפתורים, וכיתוב המתנה.
+2. לחיצה על "רק הסיפור הזה 19.90₪" → ניווט ל-`/upgrade?firstStory=...&mode=single` ופתיחה אוטומטית של PayPal לתשלום בודד.
+3. לחיצה על "חבילת סיפורים" → `/upgrade?firstStory=...` עם הכריכה האישית בראש העמוד.
+4. בדיקה ב-Incognito אחרי Publish — צריך לראות מיד את הפופאפ החדש.
