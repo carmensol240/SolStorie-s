@@ -65,6 +65,7 @@ const steps = [
 ];
 
 const CreateStory = () => {
+  return <MaintenanceBlock />;
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const { user, loading } = useAuth();
