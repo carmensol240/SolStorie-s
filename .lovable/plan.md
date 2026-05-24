@@ -1,24 +1,50 @@
-## Changes to `src/pages/Upgrade.tsx` (mode=single only)
+## Problem
 
-### 1. Remove user-details save from single-story success handler
-Line 186: Remove `await userDetailsRef.current?.saveToProfile();` from `handleSinglePayPalSuccess`.
+Package-mode purchases (79 / 199 / 249) fail for the whitelisted test user (`carmit1901+test@gmail.com`) with the toast "שגיאה בהוספת קרדיטים".
 
-### 2. Replace single-story PayPal block (lines 547-568)
-Remove the `UserDetailsForm` component and the `userDetailsValid` conditional gate. Show `PayPalButton` directly without any form preceding it.
+Root cause: the DB trigger `prevent_profile_privilege_escalation` blocks any non-service-role update to `story_credits`, `free_edits_remaining`, `free_edits_total`, `coloring_credits`. The test-user shortcut in `Upgrade.tsx` (`handleTestPurchase`) updates these fields directly from the client → trigger raises → purchase fails.
 
-Current:
-```tsx
-<UserDetailsForm ref={userDetailsRef} onValidChange={setUserDetailsValid} />
-{!userDetailsValid && <p className="text-red-400 text-xs text-center mb-2">...</p>}
-{userDetailsValid && <PayPalButton ... />}
-```
+The recent `mode=single` changes did **not** touch the package UI flow — package cards, conditions, handlers, and `UserDetailsForm` are all intact. The failure is independent.
 
-New:
-```tsx
-<PayPalButton ... />
-```
+## Scope
 
-### 3. Fix price display format
-Line 552: Change `₪{SINGLE_STORY_PRICE}` to `₪{SINGLE_STORY_PRICE.toFixed(2)}` so it renders as "₪19.90" instead of "₪19.9".
+Touch only the test-user code path. Do **not** modify:
+- `mode=single` logic
+- Real PayPal/CC flow (`handlePayPalSuccess`, `verifyPurchase`, `PayPalButton`)
+- Package card rendering or conditions
+- RLS policies or DB triggers
 
-No other code, imports, or package-mode behavior is changed.
+## Changes
+
+### 1. `src/pages/Upgrade.tsx` — rewrite `handleTestPurchase` only
+
+Replace the body of `handleTestPurchase` (lines ~95-132) to call the existing `verify-purchase` edge function with a synthetic test order ID and a special test marker, instead of writing to `profiles` from the client.
+
+Approach: invoke `verify-purchase` with `{ orderId: 'test_<timestamp>', packageId: pkg.id, amount: 0, userId: user.id, testMode: true }`. After success, run the same post-purchase UX the real flow uses (`refetchCredits`, dispatch events, `setPurchasedCredits`, `setShowSuccess`, success toast).
+
+No other functions in this file change.
+
+### 2. `supabase/functions/verify-purchase/index.ts` — accept a test-mode bypass
+
+Add a tightly-scoped branch:
+- When `testMode === true`, skip the PayPal token + order verification.
+- Still require `userId` and verify the user's email matches the hardcoded `carmit1901+test@gmail.com` (server-side check using service-role `auth.admin.getUserById`).
+- Use `amount = 0` and prefix `package_name` with `test_` for the `purchases` insert.
+- Then continue with the existing credit-update logic (already service-role, so the trigger allows it).
+
+Reject `testMode` for any other user with 403.
+
+No changes to the real PayPal verification branch.
+
+### Technical details
+
+- Test user constant already exists in `Upgrade.tsx` (`WHITELISTED_TEST_EMAIL`); mirror it in the edge function.
+- `verify-purchase` already has the package config dictionary for `basic` / `popular` / `premium` / `educator_*`, so credit math is reused.
+- Idempotency check (`existingPurchase`) keeps using `package_name = paypal_${orderId}`; the test path uses a different `orderId` prefix so no collision.
+- Frontend toast on failure stays as-is; success toast text stays "🧪 קרדיטים נוספו בהצלחה (מצב בדיקה)".
+
+## Out of scope (intentionally not changed)
+
+- The `userDetailsValid` gate that hides the package PayPal button when the saved phone is invalid. This is pre-existing behavior; ping me if you also want it relaxed.
+- `handleSinglePayPalSuccess` / `handleSinglePayPalError` and the single-story block.
+- `prevent_profile_privilege_escalation` trigger (kept — it's a security boundary).
