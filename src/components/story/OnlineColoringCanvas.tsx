@@ -361,18 +361,11 @@ export const OnlineColoringCanvas: React.FC<OnlineColoringCanvasProps> = ({
     const areaW = area?.clientWidth ?? 0;
     const SAFETY = 4;
     const canvasMaxH = Math.max(120, (areaH || (vh - 240)) - SAFETY);
-    const canvasMaxW = Math.max(120, (areaW || (isMobile ? vw : Math.floor(vw * 0.95))) - SAFETY);
+    const canvasMaxW = Math.max(120, (areaW || (isMobile ? vw : vw)) - SAFETY);
 
-    // Use trimmed content ratio instead of full image ratio
-    const imgRatio = bounds.sw / bounds.sh;
-    let w: number, h: number;
-    if (canvasMaxW / canvasMaxH > imgRatio) {
-      h = canvasMaxH;
-      w = Math.floor(canvasMaxH * imgRatio);
-    } else {
-      w = canvasMaxW;
-      h = Math.floor(canvasMaxW / imgRatio);
-    }
+    // Fill the entire available area — no aspect-ratio constraint.
+    const w = canvasMaxW;
+    const h = canvasMaxH;
 
     bgCanvas.width = w; bgCanvas.height = h;
     drawCanvas.width = w; drawCanvas.height = h;
