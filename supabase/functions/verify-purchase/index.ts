@@ -6,24 +6,55 @@ const CORS = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
+const WHITELISTED_TEST_EMAIL = "carmit1901+test@gmail.com";
+
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response("ok", { headers: CORS });
   }
 
   try {
-    const { orderId, packageId, amount, userId, couponCode, storyId } = await req.json();
+    const { orderId, packageId, amount, userId, couponCode, storyId, testMode } = await req.json();
 
     // Validate inputs
     if (!orderId || !packageId || !amount || !userId) {
+      // testMode is allowed to have amount=0
+      if (!(testMode && orderId && packageId && userId)) {
       return new Response(
         JSON.stringify({ error: "Missing required fields" }),
         { status: 400, headers: { ...CORS, "Content-Type": "application/json" } }
       );
+      }
     }
 
     console.log(`[VERIFY-PURCHASE] Starting verification for order: ${orderId}, package: ${packageId}, user: ${userId}`);
 
+    // Service-role client (used for everything below)
+    const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
+    const serviceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
+    const supabase = createClient(supabaseUrl, serviceKey);
+
+    // ===== TEST MODE BYPASS =====
+    if (testMode === true) {
+      // Verify user email matches the whitelisted test account
+      const { data: userData, error: userErr } = await supabase.auth.admin.getUserById(userId);
+      if (userErr || !userData?.user) {
+        console.error("[VERIFY-PURCHASE] testMode: user lookup failed", userErr);
+        return new Response(
+          JSON.stringify({ error: "Forbidden" }),
+          { status: 403, headers: { ...CORS, "Content-Type": "application/json" } }
+        );
+      }
+      const email = (userData.user.email || "").toLowerCase();
+      if (email !== WHITELISTED_TEST_EMAIL.toLowerCase()) {
+        console.error("[VERIFY-PURCHASE] testMode rejected for non-test user:", email);
+        return new Response(
+          JSON.stringify({ error: "Forbidden" }),
+          { status: 403, headers: { ...CORS, "Content-Type": "application/json" } }
+        );
+      }
+      console.log("[VERIFY-PURCHASE] ✅ testMode authorized for", email);
+    } else {
     // Verify PayPal order
     const paypalClientId = Deno.env.get("PAYPAL_CLIENT_ID");
     const paypalSecret = Deno.env.get("PAYPAL_CLIENT_SECRET");
@@ -96,11 +127,8 @@ Deno.serve(async (req) => {
         { status: 400, headers: { ...CORS, "Content-Type": "application/json" } }
       );
     }
-
-    // Use service role for DB operations
-    const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
-    const serviceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
-    const supabase = createClient(supabaseUrl, serviceKey);
+    }
+    // ===== end PayPal verification =====
 
     // Check for duplicate purchase (idempotency)
     const { data: existingPurchase } = await supabase
@@ -141,13 +169,14 @@ Deno.serve(async (req) => {
     }
 
     // Insert purchase record
+    const packagePrefix = testMode ? "test" : "paypal";
     const packageName = couponCode ? `${packageId}_coupon_${couponCode}` : packageId;
     const { error: purchaseError } = await supabase.from("purchases").insert({
       user_id: userId,
-      package_name: `paypal_${orderId}_${packageName}`,
+      package_name: `${packagePrefix}_${orderId}_${packageName}`,
       credits_purchased: config.stories || 0,
-      amount_ils: amount,
-      status: "completed",
+      amount_ils: testMode ? 0 : amount,
+      status: testMode ? "test_completed" : "completed",
     });
 
     if (purchaseError) {
