@@ -343,7 +343,7 @@ const Upgrade = () => {
           </div>
 
           {/* Package Cards — Glassmorphism (parents only) */}
-          {roleLoaded && userRole === 'parent' && (
+          {!isSingleMode && roleLoaded && userRole === 'parent' && (
           <div className="grid grid-cols-3 gap-3 mb-4 pt-4">
             {PRICING_PACKAGES.map((pkg) => (
               <button
