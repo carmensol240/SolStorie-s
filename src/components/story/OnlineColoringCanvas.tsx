@@ -255,6 +255,8 @@ export const OnlineColoringCanvas: React.FC<OnlineColoringCanvasProps> = ({
 }) => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const bgCanvasRef = useRef<HTMLCanvasElement>(null);
+  const topBarRef = useRef<HTMLDivElement>(null);
+  const bottomBarRef = useRef<HTMLDivElement>(null);
   const [isDrawing, setIsDrawing] = useState(false);
   const [color, setColor] = useState(COLORS[0]);
   const [tool, setTool] = useState<Tool>('fill');
@@ -350,8 +352,11 @@ export const OnlineColoringCanvas: React.FC<OnlineColoringCanvasProps> = ({
     const vw = window.innerWidth;
     const vh = window.innerHeight;
     const isMobile = vw < 768;
-    const toolbarHeight = isMobile ? 110 : 240;
-    const availH = vh - toolbarHeight;
+    // Measure actual chrome heights so the canvas never overflows the toolbar
+    const topH = topBarRef.current?.offsetHeight ?? (isMobile ? 44 : 48);
+    const bottomH = bottomBarRef.current?.offsetHeight ?? (isMobile ? 70 : 180);
+    const SAFETY = 8;
+    const availH = Math.max(120, vh - topH - bottomH - SAFETY);
     const canvasMaxH = availH;
     const canvasMaxW = isMobile ? vw : Math.floor(vw * 0.95);
 
@@ -433,6 +438,20 @@ export const OnlineColoringCanvas: React.FC<OnlineColoringCanvasProps> = ({
     const handler = () => { if (bgImageRef.current) resizeCanvases(bgImageRef.current); };
     window.addEventListener('resize', handler);
     return () => window.removeEventListener('resize', handler);
+  }, [isOpen, resizeCanvases]);
+
+  // Re-measure when toolbar height changes (e.g., color rows wrapping, brush sizes appearing)
+  useEffect(() => {
+    if (!isOpen) return;
+    const bottom = bottomBarRef.current;
+    const top = topBarRef.current;
+    if (!bottom || !top || typeof ResizeObserver === 'undefined') return;
+    const ro = new ResizeObserver(() => {
+      if (bgImageRef.current) resizeCanvases(bgImageRef.current);
+    });
+    ro.observe(bottom);
+    ro.observe(top);
+    return () => ro.disconnect();
   }, [isOpen, resizeCanvases]);
 
   const getCanvasPos = useCallback((e: React.MouseEvent | React.TouchEvent) => {
@@ -588,7 +607,7 @@ export const OnlineColoringCanvas: React.FC<OnlineColoringCanvasProps> = ({
       } : {})
     }}>
       {/* Top bar */}
-      <div className="flex-shrink-0 flex justify-between items-center px-2 py-1.5 bg-gradient-to-r from-purple-600/90 to-pink-500/90" dir="rtl">
+      <div ref={topBarRef} className="flex-shrink-0 flex justify-between items-center px-2 py-1.5 bg-gradient-to-r from-purple-600/90 to-pink-500/90" dir="rtl">
         <Button onClick={handleClose} variant="ghost" size="sm" className="text-white hover:bg-white/20 rounded-xl gap-1 min-h-[36px] px-2 text-sm">
           <ArrowRight className="w-4 h-4" /> חזרה
         </Button>
@@ -657,7 +676,7 @@ export const OnlineColoringCanvas: React.FC<OnlineColoringCanvasProps> = ({
       </div>
 
       {/* Bottom toolbar */}
-      <div className="flex-shrink-0 bg-white/90 backdrop-blur-sm border-t border-purple-200 px-2 py-1.5 space-y-1.5" style={{ paddingBottom: `calc(env(safe-area-inset-bottom, 8px) + 8px)` }}>
+      <div ref={bottomBarRef} className="flex-shrink-0 bg-white/90 backdrop-blur-sm border-t border-purple-200 px-2 py-1.5 space-y-1.5" style={{ paddingBottom: `calc(env(safe-area-inset-bottom, 8px) + 8px)` }}>
         {/* Tools */}
         <div className="flex items-center justify-center gap-2">
           <button onPointerDown={(e) => { e.stopPropagation(); toolRef.current = 'fill'; setTool('fill'); }}
