@@ -566,9 +566,23 @@ export const OnlineColoringCanvas: React.FC<OnlineColoringCanvasProps> = ({
     const win = window.open('', '_blank');
     if (!win) return;
     win.document.write(`<html><head><title>דף צביעה</title>
-      <style>body{margin:0;display:flex;justify-content:center;align-items:center;min-height:100vh}
-      img{max-width:100%;max-height:100vh;object-fit:contain}
-      @media print{body{margin:0}img{max-width:100%;max-height:100%}}</style>
+      <style>
+        body{margin:0;display:flex;justify-content:center;align-items:center;min-height:100vh}
+        img{max-width:100%;max-height:100vh;object-fit:contain}
+        @media print{
+          @page { margin: 0; }
+          html, body { margin: 0; padding: 0; width: 100%; height: 100%; }
+          body > *:not(img) { display: none !important; }
+          img {
+            width: 100% !important;
+            height: auto !important;
+            max-width: 100% !important;
+            max-height: 100% !important;
+            page-break-inside: avoid;
+            display: block;
+          }
+        }
+      </style>
       </head><body><img src="${dataUrl}" onload="window.print();window.close()" /></body></html>`);
     win.document.close();
   }, [getMergedCanvas]);
