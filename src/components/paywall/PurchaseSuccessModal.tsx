@@ -210,7 +210,7 @@ const PurchaseSuccessModal = ({
                 onClick={handleSkip}
                 className="text-white/40 hover:text-white/60 text-xs transition-colors"
               >
-                לא תודה, אני מסתדרת
+                לא תודה, אני מסתדר
               </button>
             </div>
           ) : (
