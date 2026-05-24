@@ -183,7 +183,6 @@ const Upgrade = () => {
       await verifyPurchase(orderId, 'single_story', SINGLE_STORY_PRICE);
       window.dispatchEvent(new CustomEvent('purchase-completed'));
       setShowSinglePayPal(false);
-      await userDetailsRef.current?.saveToProfile();
       trackEvent({ eventType: 'feature_used', metadata: { feature: 'purchase_completed', package: 'single_story', payment_method: 'paypal' } });
       toast.success('הסיפור נפתח! 🎉');
       navigate(`/story/${firstStoryId}`);
@@ -549,15 +548,13 @@ const Upgrade = () => {
               <p className="text-sm font-bold text-white text-center mb-1">
                 רק הסיפור הזה 📖
               </p>
-              <p className="text-sm font-bold text-white text-center mb-3">₪{SINGLE_STORY_PRICE}</p>
-              <UserDetailsForm ref={userDetailsRef} onValidChange={setUserDetailsValid} />
-              {!userDetailsValid && <p className="text-red-400 text-xs text-center mb-2">נא להזין טלפון תקין להמשך</p>}
-              {userDetailsValid && <PayPalButton
+              <p className="text-sm font-bold text-white text-center mb-3">₪{SINGLE_STORY_PRICE.toFixed(2)}</p>
+              <PayPalButton
                 amount={SINGLE_STORY_PRICE}
                 onSuccess={handleSinglePayPalSuccess}
                 onError={handleSinglePayPalError}
                 onCancel={() => setShowSinglePayPal(false)}
-              />}
+              />
               <button
                 onClick={() => navigate(-1)}
                 className="w-full text-center text-white/50 text-xs mt-3 hover:text-white/70 transition-colors"
