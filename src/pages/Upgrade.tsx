@@ -97,34 +97,25 @@ const Upgrade = () => {
     const pkg = ALL_PURCHASE_PACKAGES.find(p => p.id === selectedPackage);
     if (!pkg) return;
     try {
-      const { error: purchaseError } = await supabase
-        .from('purchases')
-        .insert({
-          user_id: user.id,
-          package_name: `test_${pkg.id}`,
-          credits_purchased: pkg.stories,
-          amount_ils: 0,
-          status: 'test_completed',
-        });
-      if (purchaseError) throw purchaseError;
-      const success = await addCredits(pkg.stories);
-      if (success) {
-        // Add free edits to profile
-        const { data: profileData } = await supabase.from('profiles').select('free_edits_remaining, free_edits_total, coloring_credits').eq('id', user.id).maybeSingle();
-        await supabase.from('profiles').update({
-          free_edits_remaining: (profileData?.free_edits_remaining ?? 0) + pkg.freeEdits,
-          free_edits_total: (profileData?.free_edits_total ?? 0) + pkg.freeEdits,
-          coloring_credits: (profileData?.coloring_credits ?? 0) + (pkg.freeColoringPages ?? 0),
-        }).eq('id', user.id);
-        window.dispatchEvent(new CustomEvent('coloring-credits-updated'));
-        window.dispatchEvent(new CustomEvent('purchase-completed'));
-        setPurchasedCredits(pkg.stories);
-        setShowSuccess(true);
-        trackEvent({ eventType: 'feature_used', metadata: { feature: 'test_purchase_completed', package: pkg.id, stories: pkg.stories } });
-        toast.success(`🧪 קרדיטים נוספו בהצלחה (מצב בדיקה)`);
-      } else {
-        throw new Error('Failed to add credits');
-      }
+      const testOrderId = `test_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
+      const { data, error } = await supabase.functions.invoke('verify-purchase', {
+        body: {
+          orderId: testOrderId,
+          packageId: pkg.id,
+          amount: 0,
+          userId: user.id,
+          testMode: true,
+        },
+      });
+      if (error) throw error;
+      if (!data?.success) throw new Error(data?.error || 'Test purchase failed');
+      refetchCredits();
+      window.dispatchEvent(new CustomEvent('coloring-credits-updated'));
+      window.dispatchEvent(new CustomEvent('purchase-completed'));
+      setPurchasedCredits(pkg.stories);
+      setShowSuccess(true);
+      trackEvent({ eventType: 'feature_used', metadata: { feature: 'test_purchase_completed', package: pkg.id, stories: pkg.stories } });
+      toast.success(`🧪 קרדיטים נוספו בהצלחה (מצב בדיקה)`);
     } catch (error) {
       console.error('Test purchase failed:', error);
       toast.error('שגיאה בהוספת קרדיטים');
