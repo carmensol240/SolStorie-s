@@ -440,7 +440,7 @@ const Upgrade = () => {
           )}
 
           {/* Educator Packages — 3 cards */}
-          {roleLoaded && userRole === 'educator' && (
+          {!isSingleMode && roleLoaded && userRole === 'educator' && (
             <div className="mb-4">
               <h3 className="text-center text-sm font-black text-blue-200 mb-3">
                 🎓 חבילות לאנשי חינוך וטיפול
@@ -510,12 +510,12 @@ const Upgrade = () => {
           )}
 
           {/* Coupon */}
-          <div className="mb-4">
+          {!isSingleMode && <div className="mb-4">
             <CouponInput 
               onDiscountApplied={(percent, code) => { setDiscountPercent(percent); setAppliedCouponCode(code || null); }}
               onStoriesAdded={() => { refetchCredits(); }}
             />
-          </div>
+          </div>}
 
           {/* Credit Card Note — glass style */}
           <div className="bg-white/10 backdrop-blur-sm border border-white/15 rounded-xl p-3 mb-4">
@@ -543,8 +543,32 @@ const Upgrade = () => {
             <a href="/terms" className="text-purple-300 underline font-semibold mx-1">תנאי השימוש</a>
           </p>
 
+          {/* Single-story PayPal */}
+          {isSingleMode && showSinglePayPal && (
+            <div className="bg-white/15 backdrop-blur-md rounded-xl border border-white/20 p-4 mb-4 shadow-lg">
+              <p className="text-sm font-bold text-white text-center mb-1">
+                רק הסיפור הזה 📖
+              </p>
+              <p className="text-sm font-bold text-white text-center mb-3">₪{SINGLE_STORY_PRICE}</p>
+              <UserDetailsForm ref={userDetailsRef} onValidChange={setUserDetailsValid} />
+              {!userDetailsValid && <p className="text-red-400 text-xs text-center mb-2">נא להזין טלפון תקין להמשך</p>}
+              {userDetailsValid && <PayPalButton
+                amount={SINGLE_STORY_PRICE}
+                onSuccess={handleSinglePayPalSuccess}
+                onError={handleSinglePayPalError}
+                onCancel={() => setShowSinglePayPal(false)}
+              />}
+              <button
+                onClick={() => navigate(-1)}
+                className="w-full text-center text-white/50 text-xs mt-3 hover:text-white/70 transition-colors"
+              >
+                ביטול
+              </button>
+            </div>
+          )}
+
           {/* PayPal */}
-          {showPayPal && (
+          {!isSingleMode && showPayPal && (
             <div className="bg-white/15 backdrop-blur-md rounded-xl border border-white/20 p-4 mb-4 shadow-lg">
               <p className="text-sm font-bold text-white text-center mb-1">
                 {selectedPkg?.stories} סיפורים
@@ -578,7 +602,7 @@ const Upgrade = () => {
       </div>
 
       {/* Fixed CTA */}
-      {!showPayPal && (
+      {!isSingleMode && !showPayPal && (
         <div className="fixed bottom-0 left-0 right-0 bg-[hsl(250,50%,12%)]/95 backdrop-blur border-t border-white/10 px-4 py-3 safe-area-bottom z-20">
           <div className="container max-w-md mx-auto flex flex-col items-center gap-1">
             <Button
