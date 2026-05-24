@@ -374,6 +374,9 @@ export const OnlineColoringCanvas: React.FC<OnlineColoringCanvasProps> = ({
       h = canvasMaxH;
       w = Math.round(canvasMaxH * imgRatio);
     }
+    // Cap at the image's natural resolution so we never upscale/blur.
+    w = Math.min(w, img.naturalWidth);
+    h = Math.min(h, img.naturalHeight);
 
     bgCanvas.width = w; bgCanvas.height = h;
     drawCanvas.width = w; drawCanvas.height = h;
