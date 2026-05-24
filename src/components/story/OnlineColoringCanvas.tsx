@@ -257,6 +257,7 @@ export const OnlineColoringCanvas: React.FC<OnlineColoringCanvasProps> = ({
   const bgCanvasRef = useRef<HTMLCanvasElement>(null);
   const topBarRef = useRef<HTMLDivElement>(null);
   const bottomBarRef = useRef<HTMLDivElement>(null);
+  const canvasAreaRef = useRef<HTMLDivElement>(null);
   const [isDrawing, setIsDrawing] = useState(false);
   const [color, setColor] = useState(COLORS[0]);
   const [tool, setTool] = useState<Tool>('fill');
@@ -352,13 +353,15 @@ export const OnlineColoringCanvas: React.FC<OnlineColoringCanvasProps> = ({
     const vw = window.innerWidth;
     const vh = window.innerHeight;
     const isMobile = vw < 768;
-    // Measure actual chrome heights so the canvas never overflows the toolbar
-    const topH = topBarRef.current?.offsetHeight ?? (isMobile ? 44 : 48);
-    const bottomH = bottomBarRef.current?.offsetHeight ?? (isMobile ? 70 : 180);
-    const SAFETY = 8;
-    const availH = Math.max(120, vh - topH - bottomH - SAFETY);
-    const canvasMaxH = availH;
-    const canvasMaxW = isMobile ? vw : Math.floor(vw * 0.95);
+    // Measure the canvas container directly — its size is already set by the
+    // flex layout (flex-1 min-h-0) AFTER the top/bottom toolbars take their
+    // natural height. This avoids guessing toolbar heights.
+    const area = canvasAreaRef.current;
+    const areaH = area?.clientHeight ?? 0;
+    const areaW = area?.clientWidth ?? 0;
+    const SAFETY = 4;
+    const canvasMaxH = Math.max(120, (areaH || (vh - 240)) - SAFETY);
+    const canvasMaxW = Math.max(120, (areaW || (isMobile ? vw : Math.floor(vw * 0.95))) - SAFETY);
 
     // Use trimmed content ratio instead of full image ratio
     const imgRatio = bounds.sw / bounds.sh;
@@ -440,17 +443,20 @@ export const OnlineColoringCanvas: React.FC<OnlineColoringCanvasProps> = ({
     return () => window.removeEventListener('resize', handler);
   }, [isOpen, resizeCanvases]);
 
-  // Re-measure when toolbar height changes (e.g., color rows wrapping, brush sizes appearing)
+  // Re-measure when toolbar height or canvas area size changes
+  // (e.g., color rows wrapping, brush sizes appearing, orientation change).
   useEffect(() => {
     if (!isOpen) return;
     const bottom = bottomBarRef.current;
     const top = topBarRef.current;
-    if (!bottom || !top || typeof ResizeObserver === 'undefined') return;
+    const area = canvasAreaRef.current;
+    if (typeof ResizeObserver === 'undefined') return;
     const ro = new ResizeObserver(() => {
       if (bgImageRef.current) resizeCanvases(bgImageRef.current);
     });
-    ro.observe(bottom);
-    ro.observe(top);
+    if (bottom) ro.observe(bottom);
+    if (top) ro.observe(top);
+    if (area) ro.observe(area);
     return () => ro.disconnect();
   }, [isOpen, resizeCanvases]);
 
@@ -656,7 +662,7 @@ export const OnlineColoringCanvas: React.FC<OnlineColoringCanvasProps> = ({
       </div>
 
       {/* Canvas area */}
-      <div className="flex-1 min-h-0 flex items-center justify-center overflow-hidden bg-white">
+      <div ref={canvasAreaRef} className="flex-1 min-h-0 flex items-center justify-center overflow-hidden bg-white">
         {!bgLoaded && (
           <div className="absolute inset-0 flex items-center justify-center z-10">
             <div className="animate-spin w-10 h-10 border-4 border-purple-400 border-t-transparent rounded-full" />
