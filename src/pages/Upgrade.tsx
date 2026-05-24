@@ -26,6 +26,8 @@ const Upgrade = () => {
   const [searchParams] = useSearchParams();
   const firstStoryId = searchParams.get('firstStory');
   const noCredits = searchParams.get('noCredits') === 'true';
+  const isSingleMode = searchParams.get('mode') === 'single' && !!firstStoryId;
+  const SINGLE_STORY_PRICE = 19.90;
   const { user } = useAuth();
   const { addCredits, refetch: refetchCredits } = useCredits();
   const { isSubscriber, refetch: refetchSubscription } = useSubscription();
@@ -34,6 +36,7 @@ const Upgrade = () => {
   
   const [selectedPackage, setSelectedPackage] = useState<string>("popular");
   const [showPayPal, setShowPayPal] = useState(false);
+  const [showSinglePayPal, setShowSinglePayPal] = useState(false);
   const [userRole, setUserRole] = useState<string>("parent");
   const [roleLoaded, setRoleLoaded] = useState(false);
   const [showToolkitPayPal, setShowToolkitPayPal] = useState(false);
@@ -149,12 +152,54 @@ const Upgrade = () => {
     if (!user) throw new Error('User not authenticated');
     console.log(`[VERIFY] Calling verify-purchase: order=${orderId}, pkg=${packageId}, amount=${amount}`);
     const { data, error } = await supabase.functions.invoke('verify-purchase', {
-      body: { orderId, packageId, amount, userId: user.id, couponCode: couponCode || undefined },
+      body: {
+        orderId,
+        packageId,
+        amount,
+        userId: user.id,
+        couponCode: couponCode || undefined,
+        storyId: packageId === 'single_story' ? firstStoryId : undefined,
+      },
     });
     if (error) throw error;
     if (!data?.success) throw new Error(data?.error || 'Verification failed');
     console.log('[VERIFY] ✅ Purchase verified:', data);
     return data;
+  };
+
+  // Auto-open single-story PayPal when arriving from mode=single
+  useEffect(() => {
+    if (isSingleMode) setShowSinglePayPal(true);
+  }, [isSingleMode]);
+
+  const handleSinglePayPalSuccess = async (orderId: string) => {
+    if (!user || !firstStoryId) {
+      setShowSinglePayPal(false);
+      setShowFailed(true);
+      setFailedPurchaseType('stories');
+      return;
+    }
+    try {
+      await verifyPurchase(orderId, 'single_story', SINGLE_STORY_PRICE);
+      window.dispatchEvent(new CustomEvent('purchase-completed'));
+      setShowSinglePayPal(false);
+      await userDetailsRef.current?.saveToProfile();
+      trackEvent({ eventType: 'feature_used', metadata: { feature: 'purchase_completed', package: 'single_story', payment_method: 'paypal' } });
+      toast.success('הסיפור נפתח! 🎉');
+      navigate(`/story/${firstStoryId}`);
+    } catch (error) {
+      console.error('Single-story purchase verification failed:', error);
+      setShowSinglePayPal(false);
+      setShowFailed(true);
+      setFailedPurchaseType('stories');
+    }
+  };
+
+  const handleSinglePayPalError = (error: any) => {
+    console.error('Single-story PayPal error:', error);
+    setShowSinglePayPal(false);
+    setShowFailed(true);
+    setFailedPurchaseType('stories');
   };
 
   const handlePayPalSuccess = async (orderId: string) => {
@@ -298,7 +343,7 @@ const Upgrade = () => {
           </div>
 
           {/* Package Cards — Glassmorphism (parents only) */}
-          {roleLoaded && userRole === 'parent' && (
+          {!isSingleMode && roleLoaded && userRole === 'parent' && (
           <div className="grid grid-cols-3 gap-3 mb-4 pt-4">
             {PRICING_PACKAGES.map((pkg) => (
               <button
@@ -395,7 +440,7 @@ const Upgrade = () => {
           )}
 
           {/* Educator Packages — 3 cards */}
-          {roleLoaded && userRole === 'educator' && (
+          {!isSingleMode && roleLoaded && userRole === 'educator' && (
             <div className="mb-4">
               <h3 className="text-center text-sm font-black text-blue-200 mb-3">
                 🎓 חבילות לאנשי חינוך וטיפול
@@ -465,12 +510,12 @@ const Upgrade = () => {
           )}
 
           {/* Coupon */}
-          <div className="mb-4">
+          {!isSingleMode && <div className="mb-4">
             <CouponInput 
               onDiscountApplied={(percent, code) => { setDiscountPercent(percent); setAppliedCouponCode(code || null); }}
               onStoriesAdded={() => { refetchCredits(); }}
             />
-          </div>
+          </div>}
 
           {/* Credit Card Note — glass style */}
           <div className="bg-white/10 backdrop-blur-sm border border-white/15 rounded-xl p-3 mb-4">
@@ -498,8 +543,32 @@ const Upgrade = () => {
             <a href="/terms" className="text-purple-300 underline font-semibold mx-1">תנאי השימוש</a>
           </p>
 
+          {/* Single-story PayPal */}
+          {isSingleMode && showSinglePayPal && (
+            <div className="bg-white/15 backdrop-blur-md rounded-xl border border-white/20 p-4 mb-4 shadow-lg">
+              <p className="text-sm font-bold text-white text-center mb-1">
+                רק הסיפור הזה 📖
+              </p>
+              <p className="text-sm font-bold text-white text-center mb-3">₪{SINGLE_STORY_PRICE}</p>
+              <UserDetailsForm ref={userDetailsRef} onValidChange={setUserDetailsValid} />
+              {!userDetailsValid && <p className="text-red-400 text-xs text-center mb-2">נא להזין טלפון תקין להמשך</p>}
+              {userDetailsValid && <PayPalButton
+                amount={SINGLE_STORY_PRICE}
+                onSuccess={handleSinglePayPalSuccess}
+                onError={handleSinglePayPalError}
+                onCancel={() => setShowSinglePayPal(false)}
+              />}
+              <button
+                onClick={() => navigate(-1)}
+                className="w-full text-center text-white/50 text-xs mt-3 hover:text-white/70 transition-colors"
+              >
+                ביטול
+              </button>
+            </div>
+          )}
+
           {/* PayPal */}
-          {showPayPal && (
+          {!isSingleMode && showPayPal && (
             <div className="bg-white/15 backdrop-blur-md rounded-xl border border-white/20 p-4 mb-4 shadow-lg">
               <p className="text-sm font-bold text-white text-center mb-1">
                 {selectedPkg?.stories} סיפורים
@@ -533,7 +602,7 @@ const Upgrade = () => {
       </div>
 
       {/* Fixed CTA */}
-      {!showPayPal && (
+      {!isSingleMode && !showPayPal && (
         <div className="fixed bottom-0 left-0 right-0 bg-[hsl(250,50%,12%)]/95 backdrop-blur border-t border-white/10 px-4 py-3 safe-area-bottom z-20">
           <div className="container max-w-md mx-auto flex flex-col items-center gap-1">
             <Button

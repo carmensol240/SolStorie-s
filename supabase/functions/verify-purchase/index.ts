@@ -12,7 +12,7 @@ Deno.serve(async (req) => {
   }
 
   try {
-    const { orderId, packageId, amount, userId, couponCode } = await req.json();
+    const { orderId, packageId, amount, userId, couponCode, storyId } = await req.json();
 
     // Validate inputs
     if (!orderId || !packageId || !amount || !userId) {
@@ -204,6 +204,23 @@ Deno.serve(async (req) => {
         console.error("[VERIFY-PURCHASE] Failed to update profile:", updateError);
         return new Response(
           JSON.stringify({ error: "Failed to update credits" }),
+          { status: 500, headers: { ...CORS, "Content-Type": "application/json" } }
+        );
+      }
+    }
+
+    // Insert story unlock for single-story purchases
+    if (packageId === "single_story" && storyId) {
+      const { error: unlockError } = await supabase.from("story_unlocks").insert({
+        user_id: userId,
+        story_id: storyId,
+        unlock_type: "single",
+        amount_paid: amount,
+      });
+      if (unlockError) {
+        console.error("[VERIFY-PURCHASE] Failed to insert story unlock:", unlockError);
+        return new Response(
+          JSON.stringify({ error: "Failed to unlock story" }),
           { status: 500, headers: { ...CORS, "Content-Type": "application/json" } }
         );
       }
