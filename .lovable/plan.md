@@ -1,29 +1,23 @@
-## Problem
+## מטרה
+לתקן את חיתוך פלטת הצבעים בדסקטופ כך שכל שורות הצבעים יוצגו במלואן, בלי לשנות שום דבר אחר.
 
-In `src/components/story/OnlineColoringCanvas.tsx`, the canvas size is computed by reserving a fixed `toolbarHeight` from the viewport height:
+## מה אשנה
+אבצע תיקון נקודתי רק ב־`src/components/story/OnlineColoringCanvas.tsx`:
 
-```ts
-const toolbarHeight = isMobile ? 110 : 200;
-```
+1. אחליף את חישוב הגובה הקשיח של האזור העליון/התחתון במדידה אמיתית של ה־top bar וה־bottom toolbar.
+2. אחשב את גובה הקנבס לפי הגובה שנמדד בפועל, במקום לפי `toolbarHeight` קבוע.
+3. אדאג שהחישוב יתעדכן גם בטעינת המסך, גם ב־resize, וגם אחרי שינויים שמשפיעים על גובה הטולבר בדסקטופ.
 
-On desktop the actual chrome is taller than 200px:
-- Top bar (~45px)
-- Bottom toolbar: vertical padding + tools row (~36px) + skin/earth row (`md:h-11` = 44px) + colors row (44px) + `space-y-1.5` gaps + safe-area bottom padding ≈ ~165–180px
+## למה זה יפתור את הבעיה
+כרגע הקנבס מקבל גובה לפי הערכה קשיחה, אבל הטולבר התחתון בפועל יכול להיות גבוה יותר בדסקטופ בגלל עטיפה/ריווחים/כפתורים. המדידה הישירה תמנע מצב שבו הקנבס “דוחף” את שורת הצבעים השנייה מחוץ למסך.
 
-Total ≈ 210–230px, so the canvas pushes the bottom toolbar past `100dvh` and the **last row of color swatches gets clipped** on desktop.
+## מחוץ לתחום
+- לא אשנה צבעים
+- לא אשנה מבנה UI מעבר למדידת הגבהים
+- לא אשנה מובייל או לוגיקה עסקית
+- לא אגע בקבצים אחרים
 
-## Fix (single file, presentation only)
-
-Edit only `src/components/story/OnlineColoringCanvas.tsx`:
-
-1. In `resizeCanvases`, raise the desktop reserve so both color rows always fit:
-   ```ts
-   const toolbarHeight = isMobile ? 110 : 240;
-   ```
-2. As a belt-and-braces guard, ensure the bottom toolbar never gets squeezed/hidden — keep `flex-shrink-0` (already set) and confirm the outer container's `overflow-hidden` plus `flex-1 min-h-0` canvas area still let the toolbar render fully (no other change needed).
-
-That's it — palette will display in full on every screen size including desktop.
-
-## Out of scope
-
-- No changes to colors, tools, layout structure, mobile behavior, business logic, or any other file.
+## פרטים טכניים
+- הוספת refs ל־top bar ול־bottom toolbar
+- שימוש ב־`offsetHeight`/מדידה בזמן אמת לחישוב `available height`
+- קריאה מחודשת ל־`resizeCanvases` לאחר render ובאירועי `resize`/orientation
