@@ -1,23 +1,39 @@
 ## מטרה
-לתקן את חיתוך פלטת הצבעים בדסקטופ כך שכל שורות הצבעים יוצגו במלואן, בלי לשנות שום דבר אחר.
+להחזיר את הקנבס לחישוב לפי יחס תמונה (contain) כדי שהאיור לא ייחתך, אבל לשמור על מילוי מקסימלי של אזור הציור.
 
-## מה אשנה
-אבצע תיקון נקודתי רק ב־`src/components/story/OnlineColoringCanvas.tsx`:
+## קובץ יחיד
+`src/components/story/OnlineColoringCanvas.tsx`
 
-1. אחליף את חישוב הגובה הקשיח של האזור העליון/התחתון במדידה אמיתית של ה־top bar וה־bottom toolbar.
-2. אחשב את גובה הקנבס לפי הגובה שנמדד בפועל, במקום לפי `toolbarHeight` קבוע.
-3. אדאג שהחישוב יתעדכן גם בטעינת המסך, גם ב־resize, וגם אחרי שינויים שמשפיעים על גובה הטולבר בדסקטופ.
+## שינוי
+בתוך `resizeCanvases`, להחליף את החישוב הנוכחי (`w = canvasMaxW; h = canvasMaxH`) בחישוב fit-contain לפי יחס התמונה המקוצצת (`bounds.sw / bounds.sh`):
 
-## למה זה יפתור את הבעיה
-כרגע הקנבס מקבל גובה לפי הערכה קשיחה, אבל הטולבר התחתון בפועל יכול להיות גבוה יותר בדסקטופ בגלל עטיפה/ריווחים/כפתורים. המדידה הישירה תמנע מצב שבו הקנבס “דוחף” את שורת הצבעים השנייה מחוץ למסך.
+```ts
+const imgRatio = bounds.sw / bounds.sh;
+const areaRatio = canvasMaxW / canvasMaxH;
+let w: number, h: number;
+if (imgRatio > areaRatio) {
+  // התמונה רחבה יחסית — מלא לפי רוחב
+  w = canvasMaxW;
+  h = Math.round(canvasMaxW / imgRatio);
+} else {
+  // התמונה גבוהה יחסית — מלא לפי גובה
+  h = canvasMaxH;
+  w = Math.round(canvasMaxH * imgRatio);
+}
+```
 
-## מחוץ לתחום
-- לא אשנה צבעים
-- לא אשנה מבנה UI מעבר למדידת הגבהים
-- לא אשנה מובייל או לוגיקה עסקית
-- לא אגע בקבצים אחרים
+## עדכון משלים ב-JSX
+בעטיפת הקנבס הפנימית (`<div className="relative w-full h-full">`) — כיום ה-canvases משתמשים ב-`style={{ width: '100%', height: '100%' }}`, שמותח אותם מעבר ליחס שחישבנו. נסיר את ה-`width/height: 100%` מה-style של שני ה-canvases ונחזיר אותם להצגה בגודל הפיקסלי הטבעי שלהם (canvas.width/canvas.height ב-CSS pixels). את העטיפה הפנימית נחזיר ל-`flex items-center justify-center` ברמת ה-canvas area כדי שהקנבס יתמרכז באזור הציור.
 
-## פרטים טכניים
-- הוספת refs ל־top bar ול־bottom toolbar
-- שימוש ב־`offsetHeight`/מדידה בזמן אמת לחישוב `available height`
-- קריאה מחודשת ל־`resizeCanvases` לאחר render ובאירועי `resize`/orientation
+שינויים מדויקים:
+- בעטיפה החיצונית (`canvasAreaRef`): להחזיר `flex items-center justify-center` (תוך שמירה על `flex-1 min-h-0 w-full overflow-hidden bg-white relative`).
+- בעטיפה הפנימית: להסיר `w-full h-full` ולהשאיר רק `relative` + `lineHeight: 0`.
+- ב-`<canvas>` (שניהם): להסיר את `width: '100%', height: '100%'` מה-style.
+
+## תוצאה
+- הקנבס יהיה הכי גדול שאפשר באזור הציור בלי לחתוך ובלי לעוות.
+- האיור יישמר ביחס המקורי שלו (אחרי trim).
+- ה-`ResizeObserver` על `canvasAreaRef` ממשיך לעבוד כפי שהוא.
+
+## מה לא נוגעים בו
+- חישוב `canvasMaxW`/`canvasMaxH`, ה-refs, ה-print CSS, הצבעים, הכפתורים, מובייל, ושאר הלוגיקה.
