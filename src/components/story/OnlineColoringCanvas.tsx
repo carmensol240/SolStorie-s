@@ -361,18 +361,11 @@ export const OnlineColoringCanvas: React.FC<OnlineColoringCanvasProps> = ({
     const areaW = area?.clientWidth ?? 0;
     const SAFETY = 4;
     const canvasMaxH = Math.max(120, (areaH || (vh - 240)) - SAFETY);
-    const canvasMaxW = Math.max(120, (areaW || (isMobile ? vw : Math.floor(vw * 0.95))) - SAFETY);
+    const canvasMaxW = Math.max(120, (areaW || (isMobile ? vw : vw)) - SAFETY);
 
-    // Use trimmed content ratio instead of full image ratio
-    const imgRatio = bounds.sw / bounds.sh;
-    let w: number, h: number;
-    if (canvasMaxW / canvasMaxH > imgRatio) {
-      h = canvasMaxH;
-      w = Math.floor(canvasMaxH * imgRatio);
-    } else {
-      w = canvasMaxW;
-      h = Math.floor(canvasMaxW / imgRatio);
-    }
+    // Fill the entire available area — no aspect-ratio constraint.
+    const w = canvasMaxW;
+    const h = canvasMaxH;
 
     bgCanvas.width = w; bgCanvas.height = h;
     drawCanvas.width = w; drawCanvas.height = h;
@@ -573,9 +566,23 @@ export const OnlineColoringCanvas: React.FC<OnlineColoringCanvasProps> = ({
     const win = window.open('', '_blank');
     if (!win) return;
     win.document.write(`<html><head><title>דף צביעה</title>
-      <style>body{margin:0;display:flex;justify-content:center;align-items:center;min-height:100vh}
-      img{max-width:100%;max-height:100vh;object-fit:contain}
-      @media print{body{margin:0}img{max-width:100%;max-height:100%}}</style>
+      <style>
+        body{margin:0;display:flex;justify-content:center;align-items:center;min-height:100vh}
+        img{max-width:100%;max-height:100vh;object-fit:contain}
+        @media print{
+          @page { margin: 0; }
+          html, body { margin: 0; padding: 0; width: 100%; height: 100%; }
+          body > *:not(img) { display: none !important; }
+          img {
+            width: 100% !important;
+            height: auto !important;
+            max-width: 100% !important;
+            max-height: 100% !important;
+            page-break-inside: avoid;
+            display: block;
+          }
+        }
+      </style>
       </head><body><img src="${dataUrl}" onload="window.print();window.close()" /></body></html>`);
     win.document.close();
   }, [getMergedCanvas]);
@@ -662,18 +669,18 @@ export const OnlineColoringCanvas: React.FC<OnlineColoringCanvasProps> = ({
       </div>
 
       {/* Canvas area */}
-      <div ref={canvasAreaRef} className="flex-1 min-h-0 flex items-center justify-center overflow-hidden bg-white">
+      <div ref={canvasAreaRef} className="flex-1 min-h-0 w-full overflow-hidden bg-white relative">
         {!bgLoaded && (
           <div className="absolute inset-0 flex items-center justify-center z-10">
             <div className="animate-spin w-10 h-10 border-4 border-purple-400 border-t-transparent rounded-full" />
           </div>
         )}
-        <div className="relative" style={{ lineHeight: 0 }}>
-          <canvas ref={bgCanvasRef} className="block" />
+        <div className="relative w-full h-full" style={{ lineHeight: 0 }}>
+          <canvas ref={bgCanvasRef} className="block" style={{ width: '100%', height: '100%' }} />
           <canvas
             ref={canvasRef}
             className="absolute top-0 left-0 touch-none"
-            style={{ cursor: cursorStyle }}
+            style={{ cursor: cursorStyle, width: '100%', height: '100%' }}
             onMouseDown={handlePointerDown} onMouseMove={handlePointerMove}
             onMouseUp={stopDrawing} onMouseLeave={stopDrawing}
             onTouchStart={handlePointerDown} onTouchMove={handlePointerMove} onTouchEnd={stopDrawing}
