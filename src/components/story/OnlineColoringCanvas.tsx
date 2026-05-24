@@ -655,18 +655,18 @@ export const OnlineColoringCanvas: React.FC<OnlineColoringCanvasProps> = ({
       </div>
 
       {/* Canvas area */}
-      <div ref={canvasAreaRef} className="flex-1 min-h-0 flex items-center justify-center overflow-hidden bg-white">
+      <div ref={canvasAreaRef} className="flex-1 min-h-0 w-full overflow-hidden bg-white relative">
         {!bgLoaded && (
           <div className="absolute inset-0 flex items-center justify-center z-10">
             <div className="animate-spin w-10 h-10 border-4 border-purple-400 border-t-transparent rounded-full" />
           </div>
         )}
-        <div className="relative" style={{ lineHeight: 0 }}>
-          <canvas ref={bgCanvasRef} className="block" />
+        <div className="relative w-full h-full" style={{ lineHeight: 0 }}>
+          <canvas ref={bgCanvasRef} className="block" style={{ width: '100%', height: '100%' }} />
           <canvas
             ref={canvasRef}
             className="absolute top-0 left-0 touch-none"
-            style={{ cursor: cursorStyle }}
+            style={{ cursor: cursorStyle, width: '100%', height: '100%' }}
             onMouseDown={handlePointerDown} onMouseMove={handlePointerMove}
             onMouseUp={stopDrawing} onMouseLeave={stopDrawing}
             onTouchStart={handlePointerDown} onTouchMove={handlePointerMove} onTouchEnd={stopDrawing}
