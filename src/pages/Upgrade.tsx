@@ -26,6 +26,8 @@ const Upgrade = () => {
   const [searchParams] = useSearchParams();
   const firstStoryId = searchParams.get('firstStory');
   const noCredits = searchParams.get('noCredits') === 'true';
+  const isSingleMode = searchParams.get('mode') === 'single' && !!firstStoryId;
+  const SINGLE_STORY_PRICE = 19.90;
   const { user } = useAuth();
   const { addCredits, refetch: refetchCredits } = useCredits();
   const { isSubscriber, refetch: refetchSubscription } = useSubscription();
@@ -34,6 +36,7 @@ const Upgrade = () => {
   
   const [selectedPackage, setSelectedPackage] = useState<string>("popular");
   const [showPayPal, setShowPayPal] = useState(false);
+  const [showSinglePayPal, setShowSinglePayPal] = useState(false);
   const [userRole, setUserRole] = useState<string>("parent");
   const [roleLoaded, setRoleLoaded] = useState(false);
   const [showToolkitPayPal, setShowToolkitPayPal] = useState(false);
@@ -149,12 +152,54 @@ const Upgrade = () => {
     if (!user) throw new Error('User not authenticated');
     console.log(`[VERIFY] Calling verify-purchase: order=${orderId}, pkg=${packageId}, amount=${amount}`);
     const { data, error } = await supabase.functions.invoke('verify-purchase', {
-      body: { orderId, packageId, amount, userId: user.id, couponCode: couponCode || undefined },
+      body: {
+        orderId,
+        packageId,
+        amount,
+        userId: user.id,
+        couponCode: couponCode || undefined,
+        storyId: packageId === 'single_story' ? firstStoryId : undefined,
+      },
     });
     if (error) throw error;
     if (!data?.success) throw new Error(data?.error || 'Verification failed');
     console.log('[VERIFY] ✅ Purchase verified:', data);
     return data;
+  };
+
+  // Auto-open single-story PayPal when arriving from mode=single
+  useEffect(() => {
+    if (isSingleMode) setShowSinglePayPal(true);
+  }, [isSingleMode]);
+
+  const handleSinglePayPalSuccess = async (orderId: string) => {
+    if (!user || !firstStoryId) {
+      setShowSinglePayPal(false);
+      setShowFailed(true);
+      setFailedPurchaseType('stories');
+      return;
+    }
+    try {
+      await verifyPurchase(orderId, 'single_story', SINGLE_STORY_PRICE);
+      window.dispatchEvent(new CustomEvent('purchase-completed'));
+      setShowSinglePayPal(false);
+      await userDetailsRef.current?.saveToProfile();
+      trackEvent({ eventType: 'feature_used', metadata: { feature: 'purchase_completed', package: 'single_story', payment_method: 'paypal' } });
+      toast.success('הסיפור נפתח! 🎉');
+      navigate(`/story/${firstStoryId}`);
+    } catch (error) {
+      console.error('Single-story purchase verification failed:', error);
+      setShowSinglePayPal(false);
+      setShowFailed(true);
+      setFailedPurchaseType('stories');
+    }
+  };
+
+  const handleSinglePayPalError = (error: any) => {
+    console.error('Single-story PayPal error:', error);
+    setShowSinglePayPal(false);
+    setShowFailed(true);
+    setFailedPurchaseType('stories');
   };
 
   const handlePayPalSuccess = async (orderId: string) => {
