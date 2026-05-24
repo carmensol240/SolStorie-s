@@ -363,9 +363,17 @@ export const OnlineColoringCanvas: React.FC<OnlineColoringCanvasProps> = ({
     const canvasMaxH = Math.max(120, (areaH || (vh - 240)) - SAFETY);
     const canvasMaxW = Math.max(120, (areaW || (isMobile ? vw : vw)) - SAFETY);
 
-    // Fill the entire available area — no aspect-ratio constraint.
-    const w = canvasMaxW;
-    const h = canvasMaxH;
+    // Fit-contain: preserve the trimmed image aspect ratio so nothing gets cropped.
+    const imgRatio = bounds.sw / bounds.sh;
+    const areaRatio = canvasMaxW / canvasMaxH;
+    let w: number, h: number;
+    if (imgRatio > areaRatio) {
+      w = canvasMaxW;
+      h = Math.round(canvasMaxW / imgRatio);
+    } else {
+      h = canvasMaxH;
+      w = Math.round(canvasMaxH * imgRatio);
+    }
 
     bgCanvas.width = w; bgCanvas.height = h;
     drawCanvas.width = w; drawCanvas.height = h;
@@ -669,14 +677,12 @@ export const OnlineColoringCanvas: React.FC<OnlineColoringCanvasProps> = ({
       </div>
 
       {/* Canvas area */}
-      <div ref={canvasAreaRef} className="flex-1 min-h-0 w-full overflow-hidden bg-white relative">
+      <div ref={canvasAreaRef} className="flex-1 min-h-0 w-full overflow-hidden bg-white relative flex items-center justify-center">
         {!bgLoaded && (
           <div className="absolute inset-0 flex items-center justify-center z-10">
             <div className="animate-spin w-10 h-10 border-4 border-purple-400 border-t-transparent rounded-full" />
           </div>
         )}
-        <div className="relative w-full h-full" style={{ lineHeight: 0 }}>
-          <canvas ref={bgCanvasRef} className="block" style={{ width: '100%', height: '100%' }} />
           <canvas
             ref={canvasRef}
             className="absolute top-0 left-0 touch-none"
