@@ -52,6 +52,25 @@ const Upgrade = () => {
 
   const title = "אהבתם? 💛";
 
+  // Close paywall and return to the story the user came from (if any)
+  const handleClose = () => {
+    try {
+      const raw = sessionStorage.getItem("pendingStoryReturn");
+      if (raw) {
+        const parsed = JSON.parse(raw);
+        if (parsed?.path && typeof parsed.path === "string") {
+          navigate(parsed.path);
+          return;
+        }
+      }
+    } catch {}
+    if (window.history.length > 1) {
+      navigate(-1);
+    } else {
+      navigate("/");
+    }
+  };
+
   useEffect(() => {
     const viewType = firstStoryId ? 'first_story' : noCredits ? 'no_credits' : 'regular';
     trackEvent({ eventType: 'feature_used', metadata: { feature: 'paywall_view', view_type: viewType } });
