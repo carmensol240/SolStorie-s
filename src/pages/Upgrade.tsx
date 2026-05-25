@@ -244,15 +244,6 @@ const Upgrade = () => {
             />
           </div>
 
-          {/* Payment Options */}
-          <div className="bg-white/10 backdrop-blur-sm border border-white/15 rounded-xl p-3 mb-4">
-            <p className="text-sm text-center text-white/80 font-bold flex items-center justify-center gap-2">
-              💳 ניתן לשלם בכרטיס אשראי גם ללא חשבון PayPal
-            </p>
-            <p className="text-xs text-center text-white/50 mt-1">
-              Visa, Mastercard, American Express ועוד
-            </p>
-          </div>
 
           {/* Terms */}
           <p className="text-xs text-center text-white/40 mt-2 mb-4">
