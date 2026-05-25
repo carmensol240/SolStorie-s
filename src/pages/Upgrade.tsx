@@ -404,7 +404,6 @@ const Upgrade = () => {
             </Button>
           </div>
         </div>
-      )}
 
       {/* Modals */}
       <PurchaseSuccessModal open={showSuccess} onOpenChange={setShowSuccess} creditsAdded={1} />
