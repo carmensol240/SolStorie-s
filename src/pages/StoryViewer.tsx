@@ -1497,18 +1497,6 @@ const [currentPage, setCurrentPage] = useState(0);
   const currentFontSize = FONT_SIZES[fontSizeIndex];
   const showPageActions = isContentPage && page !== null;
 
-  // Show "print PDF" offer when a free/demo user finishes the story (once per story)
-  useEffect(() => {
-    if (!isEndPage || !isDemoUser || !story?.id || !purchaseChecksReady) return;
-    const key = `print_pdf_offer_shown_${story.id}`;
-    if (localStorage.getItem(key)) return;
-    const t = setTimeout(() => {
-      setShowPrintPdfOffer(true);
-      localStorage.setItem(key, "1");
-    }, 600);
-    return () => clearTimeout(t);
-  }, [isEndPage, isDemoUser, story?.id, purchaseChecksReady]);
-
   // Reset all scroll positions (window + inner scrollable containers)
   const resetScroll = () => {
     window.scrollTo(0, 0);
