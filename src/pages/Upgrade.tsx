@@ -38,8 +38,8 @@ const TIERS = {
     features: [
       { label: "סיפור דיגיטלי יחיד", included: true },
       { label: "קובץ PDF להדפסה עצמית והפיכת הסיפור לספר 📖", included: true },
-      { label: "דף צביעה", included: true },
-      { label: "עריכה אחת", included: true },
+      { label: "🎨 דף צביעה און ליין ולהדפסה", included: true },
+      { label: "✏️ תיקון טקסט חינם – אם הבינה טעתה, אנחנו מתקנים!", included: true },
     ],
   },
 } as const;
