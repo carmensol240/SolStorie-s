@@ -73,25 +73,6 @@ const DemoLockModal = ({ open, onOpenChange, title, description, storyId }: Demo
           </div>
         )}
 
-        <div className="mt-1">
-          <button
-            type="button"
-            onClick={() => setShowFeatures((v) => !v)}
-            className="text-white/60 hover:text-white/90 text-[11px] font-semibold transition-colors py-1"
-          >
-            מה מקבלים? {showFeatures ? "▲" : "▼"}
-          </button>
-          {showFeatures && (
-            <ul className="mt-1.5 flex flex-col gap-1 text-right bg-white/5 border border-white/10 rounded-lg px-3 py-2">
-              {features.map((f) => (
-                <li key={f} className="text-[11px] text-white/70 leading-snug">
-                  {f}
-                </li>
-              ))}
-            </ul>
-          )}
-        </div>
-
         <div className="flex flex-col gap-2 mt-2">
           {/* Primary: package */}
           <button
