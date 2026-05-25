@@ -216,7 +216,7 @@ const Upgrade = () => {
                     ₪{tier.price.toFixed(2)}
                   </div>
                   <div className="w-full space-y-2">
-                    {tier.features.map((feature) => (
+                    {(tier.id === "digital" ? tier.features.filter((f) => f.included) : tier.features).map((feature) => (
                       <div key={feature.label} className="flex items-center gap-2">
                         {feature.included ? (
                           <Check className="w-4 h-4 text-green-400 shrink-0" />
