@@ -240,18 +240,44 @@ Deno.serve(async (req) => {
 
     // Insert story unlock for single-story purchases
     if (packageId === "single_story" && storyId) {
+      // storyId may be a UUID or a slug — resolve to UUID
+      let resolvedStoryId: string | null = null;
+      const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+      if (uuidRegex.test(storyId)) {
+        resolvedStoryId = storyId;
+      } else {
+        const { data: storyRow, error: storyErr } = await supabase
+          .from("stories")
+          .select("id")
+          .eq("slug", storyId)
+          .maybeSingle();
+        if (storyErr || !storyRow) {
+          console.error("[VERIFY-PURCHASE] Failed to resolve story slug:", storyId, storyErr);
+          return new Response(
+            JSON.stringify({ error: "Story not found" }),
+            { status: 400, headers: { ...CORS, "Content-Type": "application/json" } }
+          );
+        }
+        resolvedStoryId = storyRow.id;
+      }
+
       const { error: unlockError } = await supabase.from("story_unlocks").insert({
         user_id: userId,
-        story_id: storyId,
+        story_id: resolvedStoryId,
         unlock_type: "single",
         amount_paid: amount,
       });
       if (unlockError) {
+        // Ignore duplicate unlocks (user already owns it) — treat as success
+        if ((unlockError as any).code === "23505") {
+          console.log("[VERIFY-PURCHASE] Story already unlocked for user, continuing");
+        } else {
         console.error("[VERIFY-PURCHASE] Failed to insert story unlock:", unlockError);
         return new Response(
           JSON.stringify({ error: "Failed to unlock story" }),
           { status: 500, headers: { ...CORS, "Content-Type": "application/json" } }
         );
+        }
       }
     }
 

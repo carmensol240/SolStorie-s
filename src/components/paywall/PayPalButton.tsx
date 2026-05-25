@@ -347,8 +347,12 @@ const PayPalButton = ({ amount, onSuccess, onError, onCancel }: PayPalButtonProp
       />
 
       {/* Inline Card Fields */}
-      {!isLoading && cardFieldsEligible && (
-        <div className="space-y-2" dir="rtl">
+      {!isLoading && (
+        <div
+          className="space-y-2"
+          dir="rtl"
+          style={{ display: cardFieldsEligible ? undefined : 'none' }}
+        >
           <div className="flex items-center gap-2 my-2">
             <div className="flex-1 h-px bg-white/20" />
             <span className="text-xs text-white/60">או שלמו בכרטיס אשראי</span>
