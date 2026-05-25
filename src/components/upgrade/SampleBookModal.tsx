@@ -44,18 +44,21 @@ const SampleBookModal = ({ open, onOpenChange }: SampleBookModalProps) => {
 
           {/* Book pages */}
           <div className="px-4 pb-4 space-y-4 max-h-[70vh] overflow-y-auto">
-            {CONTENT.pages.map((page, idx) => (
+            {CONTENT.pages.map((page, idx) => {
+              const isLast = idx === CONTENT.pages.length - 1;
+              return (
               <div
                 key={idx}
                 className="relative rounded-xl overflow-hidden border border-purple-400/30"
               >
                 {/* Illustration top */}
-                <div className="w-full aspect-[4/3] bg-gradient-to-br from-[#FFFBF5] via-[#F5E6D3] to-[#FAF3E8]">
+                <div className="w-full aspect-[4/3] bg-gradient-to-br from-[#FFFBF5] via-[#F5E6D3] to-[#FAF3E8] overflow-hidden relative">
                   {page.illustrationUrl && (
                     <img
                       src={page.illustrationUrl}
                       alt=""
-                      className="w-full h-full object-cover"
+                      className={`w-full object-cover ${isLast ? "h-[200%] absolute bottom-0 left-1/2 -translate-x-1/2" : "h-full"}`}
+                      style={isLast ? { objectPosition: "center bottom" } : undefined}
                       loading="lazy"
                     />
                   )}
