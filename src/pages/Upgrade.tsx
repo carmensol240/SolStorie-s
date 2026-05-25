@@ -22,23 +22,26 @@ const TIERS = {
   digital: {
     id: "digital" as Tier,
     label: "דיגיטלי",
-    price: 19.90,
+    price: 29.90,
     features: [
       { label: "סיפור דיגיטלי יחיד", included: true },
       { label: "קובץ PDF להדפסה עצמית והפיכת הסיפור לספר 📖", included: false },
       { label: "🎨 דף צביעה און ליין ולהדפסה", included: false },
       { label: "✏️ תיקון טקסט חינם\n\n", included: true },
+      { label: "📚 ספרייה חינמית לכל החיים", included: true },
     ],
   },
   full: {
     id: "full" as Tier,
-    label: "חבילה מלאה",
-    price: 49.90,
+    label: "דיגיטלי + מודפס",
+    price: 59.90,
     features: [
       { label: "סיפור דיגיטלי יחיד", included: true },
       { label: "קובץ PDF להדפסה עצמית והפיכת הסיפור לספר 📖", included: true },
       { label: "🎨 דף צביעה און ליין ולהדפסה", included: true },
       { label: "✏️ תיקון טקסט חינם\n\n", included: true },
+      { label: "קובץ להדפסה עצמית לספר 📖", included: true },
+      { label: "📚 ספרייה חינמית לכל החיים", included: true },
     ],
   },
 } as const;
