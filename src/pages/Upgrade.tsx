@@ -272,7 +272,10 @@ const Upgrade = () => {
               return (
                 <button
                   key={tier.id}
-                  onClick={() => setSelectedTier(tier.id)}
+                  onClick={() => {
+                    setSelectedTier(tier.id);
+                    setTimeout(() => handlePurchase(), 50);
+                  }}
                   className={cn(
                     "relative flex flex-col items-center p-4 pt-5 rounded-2xl border transition-all duration-200",
                     "bg-white/10 backdrop-blur-md",
