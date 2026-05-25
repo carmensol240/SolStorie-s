@@ -30,6 +30,8 @@ const TIERS = {
       { label: "🎨 דף צביעה און ליין ולהדפסה", included: false },
       { label: "✏️ תיקון טקסט חינם\n\n", included: true },
       { label: "📚 ספרייה חינמית לכל החיים", included: true },
+      { label: "🎙️ ניתן להקליט בקולך ולהשמיע מרחוק", included: true },
+      { label: "🎵 מוזיקת רקע של יער קסום", included: true },
     ],
   },
   full: {
