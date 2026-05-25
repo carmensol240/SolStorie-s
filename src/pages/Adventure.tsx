@@ -41,12 +41,6 @@ const Adventure = () => {
     return () => { cancelled = true; };
   }, [user?.id]);
 
-  if (loading || isAdmin === null) {
-    if (!user) return <MaintenanceBlock />;
-    return null;
-  }
-  if (!isAdmin) return <MaintenanceBlock />;
-
   useEffect(() => {
     window.scrollTo(0, 0);
   }, []);
@@ -98,6 +92,12 @@ const Adventure = () => {
   }, [navigate]);
 
   const totalCredits = (credits ?? 0) + shareCoins;
+
+  if (loading || isAdmin === null) {
+    if (!user) return <MaintenanceBlock />;
+    return null;
+  }
+  if (!isAdmin) return <MaintenanceBlock />;
 
   return (
     <div className="min-h-[100dvh] flex flex-col bg-gradient-to-b from-amber-50/50 to-background animate-fade-in" dir="rtl">
