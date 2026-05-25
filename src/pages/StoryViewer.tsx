@@ -54,6 +54,7 @@ import { useIsMobile } from "@/hooks/use-mobile";
 import { BookFrame, BookPage, BookHeader, NavigationArrows, MagicalBookFrame } from "@/components/story/book-frame";
 import { TheaterFrame } from "@/components/story/theater-frame";
 import PdfFeaturePopup from "@/components/story/PdfFeaturePopup";
+import PrintPdfOfferModal from "@/components/story/PrintPdfOfferModal";
 import PrintBookPreviewModal from "@/components/story/PrintBookPreviewModal";
 import InstallAppPrompt from "@/components/story/InstallAppPrompt";
 import DemoLockModal from "@/components/story/DemoLockModal";
@@ -226,6 +227,7 @@ const [currentPage, setCurrentPage] = useState(0);
   const [showEditConfirmDialog, setShowEditConfirmDialog] = useState(false);
   const [showBuyToPrintDialog, setShowBuyToPrintDialog] = useState(false);
   const [showPrintPreviewModal, setShowPrintPreviewModal] = useState(false);
+  const [showPrintPdfOffer, setShowPrintPdfOffer] = useState(false);
   const [hasPurchasedPackage, setHasPurchasedPackage] = useState(false);
   const [isSubscriberUser, setIsSubscriberUser] = useState(false);
   const [isAdminUser, setIsAdminUser] = useState(false);
@@ -1495,6 +1497,18 @@ const [currentPage, setCurrentPage] = useState(0);
   const currentFontSize = FONT_SIZES[fontSizeIndex];
   const showPageActions = isContentPage && page !== null;
 
+  // Show "print PDF" offer when a free/demo user finishes the story (once per story)
+  useEffect(() => {
+    if (!isEndPage || !isDemoUser || !story?.id || !purchaseChecksReady) return;
+    const key = `print_pdf_offer_shown_${story.id}`;
+    if (localStorage.getItem(key)) return;
+    const t = setTimeout(() => {
+      setShowPrintPdfOffer(true);
+      localStorage.setItem(key, "1");
+    }, 600);
+    return () => clearTimeout(t);
+  }, [isEndPage, isDemoUser, story?.id, purchaseChecksReady]);
+
   // Reset all scroll positions (window + inner scrollable containers)
   const resetScroll = () => {
     window.scrollTo(0, 0);
@@ -2102,6 +2116,19 @@ const [currentPage, setCurrentPage] = useState(0);
 
       {/* PDF Feature Popup - one-time per user */}
       <PdfFeaturePopup userId={user?.id} />
+
+      {/* Print PDF offer for free users on last page */}
+      <PrintPdfOfferModal
+        open={showPrintPdfOffer}
+        onOpenChange={setShowPrintPdfOffer}
+        coverUrl={story?.cover_url || null}
+        childName={story?.child_name}
+        storyTitle={story?.child_name ? `הסיפור של ${story.child_name}` : undefined}
+        onPurchase={() => {
+          setShowPrintPdfOffer(false);
+          navigate(`/upgrade?firstStory=${storyId || ""}`);
+        }}
+      />
 
       {/* Install App Prompt - shown only after reaching last page */}
       <InstallAppPrompt justCreatedFirstStory={justCreatedStory && isEndPage} />
