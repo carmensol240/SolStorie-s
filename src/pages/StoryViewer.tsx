@@ -511,6 +511,21 @@ const [currentPage, setCurrentPage] = useState(0);
     };
   }, []);
 
+  // Show "print PDF" offer when a free/demo user finishes the story (once per story)
+  useEffect(() => {
+    if (!story?.id || !purchaseChecksReady || !isDemoUser) return;
+    const total = (story.pages?.length ?? 0);
+    if (total === 0) return;
+    if (currentPage < total) return;
+    const key = `print_pdf_offer_shown_${story.id}`;
+    if (localStorage.getItem(key)) return;
+    const t = setTimeout(() => {
+      setShowPrintPdfOffer(true);
+      localStorage.setItem(key, "1");
+    }, 600);
+    return () => clearTimeout(t);
+  }, [currentPage, isDemoUser, story?.id, story?.pages?.length, purchaseChecksReady]);
+
   // Restore last-viewed page after returning from purchase (or any in-tab navigation)
   const didRestorePageRef = useRef(false);
   useEffect(() => {
@@ -1496,18 +1511,6 @@ const [currentPage, setCurrentPage] = useState(0);
   const page = currentVirtual ? currentVirtual.dbPage : null;
   const currentFontSize = FONT_SIZES[fontSizeIndex];
   const showPageActions = isContentPage && page !== null;
-
-  // Show "print PDF" offer when a free/demo user finishes the story (once per story)
-  useEffect(() => {
-    if (!isEndPage || !isDemoUser || !story?.id || !purchaseChecksReady) return;
-    const key = `print_pdf_offer_shown_${story.id}`;
-    if (localStorage.getItem(key)) return;
-    const t = setTimeout(() => {
-      setShowPrintPdfOffer(true);
-      localStorage.setItem(key, "1");
-    }, 600);
-    return () => clearTimeout(t);
-  }, [isEndPage, isDemoUser, story?.id, purchaseChecksReady]);
 
   // Reset all scroll positions (window + inner scrollable containers)
   const resetScroll = () => {
