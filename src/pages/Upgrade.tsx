@@ -38,7 +38,7 @@ const TIERS = {
     price: 49.90,
     features: [
       { label: "סיפור דיגיטלי", included: true },
-      { label: "PDF", included: true },
+      { label: "PDF להדפסה עצמית והפיכת הסיפור לספר 📖", included: true },
       { label: "דף צביעה", included: true },
       { label: "עריכה אחת", included: true },
     ],
