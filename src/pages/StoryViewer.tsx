@@ -2123,7 +2123,7 @@ const [currentPage, setCurrentPage] = useState(0);
         onOpenChange={setShowPrintPdfOffer}
         coverUrl={story?.cover_url || null}
         childName={story?.child_name}
-        storyTitle={story?.title}
+        storyTitle={story?.child_name ? `הסיפור של ${story.child_name}` : undefined}
         onPurchase={() => {
           setShowPrintPdfOffer(false);
           navigate(`/upgrade?firstStory=${storyId || ""}`);
