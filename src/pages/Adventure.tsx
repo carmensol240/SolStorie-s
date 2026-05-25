@@ -13,7 +13,6 @@ import heroVideo from "@/assets/hero-solstories-animation-new.mp4";
 import MaintenanceBlock from "@/components/MaintenanceBlock";
 
 const Adventure = () => {
-  return <MaintenanceBlock />;
   const navigate = useNavigate();
   const { user, loading } = useAuth();
   const { credits } = useCredits();
@@ -21,6 +20,32 @@ const Adventure = () => {
   const { toast } = useToast();
   const [displayName, setDisplayName] = useState<string | null>(null);
   const [storyCount, setStoryCount] = useState<number>(0);
+  const [isAdmin, setIsAdmin] = useState<boolean | null>(null);
+
+  useEffect(() => {
+    let cancelled = false;
+    const checkAdmin = async () => {
+      if (!user?.id) {
+        if (!cancelled) setIsAdmin(false);
+        return;
+      }
+      const { data } = await supabase
+        .from("user_roles")
+        .select("role")
+        .eq("user_id", user.id)
+        .eq("role", "admin")
+        .maybeSingle();
+      if (!cancelled) setIsAdmin(!!data);
+    };
+    checkAdmin();
+    return () => { cancelled = true; };
+  }, [user?.id]);
+
+  if (loading || isAdmin === null) {
+    if (!user) return <MaintenanceBlock />;
+    return null;
+  }
+  if (!isAdmin) return <MaintenanceBlock />;
 
   useEffect(() => {
     window.scrollTo(0, 0);
