@@ -541,6 +541,7 @@ export type Database = {
           editing_credits: number | null
           email: string | null
           first_name: string | null
+          first_purchase_bonus_given: boolean
           free_edits_remaining: number | null
           free_edits_total: number | null
           id: string
@@ -572,6 +573,7 @@ export type Database = {
           editing_credits?: number | null
           email?: string | null
           first_name?: string | null
+          first_purchase_bonus_given?: boolean
           free_edits_remaining?: number | null
           free_edits_total?: number | null
           id: string
@@ -603,6 +605,7 @@ export type Database = {
           editing_credits?: number | null
           email?: string | null
           first_name?: string | null
+          first_purchase_bonus_given?: boolean
           free_edits_remaining?: number | null
           free_edits_total?: number | null
           id?: string
