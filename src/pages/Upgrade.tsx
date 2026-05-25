@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { X, Check } from "lucide-react";
 import bookMockup from "@/assets/book-mockup.png";
@@ -7,9 +7,7 @@ const WHITELISTED_TEST_EMAIL = "carmit1901+test@gmail.com";
 import { Button } from "@/components/ui/button";
 import PurchaseSuccessModal from "@/components/paywall/PurchaseSuccessModal";
 import PurchaseFailedModal from "@/components/paywall/PurchaseFailedModal";
-import PayPalButton from "@/components/paywall/PayPalButton";
 import CouponInput from "@/components/paywall/CouponInput";
-import UserDetailsForm, { UserDetailsRef } from "@/components/paywall/UserDetailsForm";
 
 import { useCredits } from "@/hooks/use-credits";
 import { useAnalytics } from "@/hooks/use-analytics";
@@ -55,13 +53,10 @@ const Upgrade = () => {
   const { trackEvent } = useAnalytics();
 
   const [selectedTier, setSelectedTier] = useState<Tier>("full");
-  const [showPayPal, setShowPayPal] = useState(false);
   const [showSuccess, setShowSuccess] = useState(false);
   const [showFailed, setShowFailed] = useState(false);
   const [discountPercent, setDiscountPercent] = useState(0);
   const [appliedCouponCode, setAppliedCouponCode] = useState<string | null>(null);
-  const [userDetailsValid, setUserDetailsValid] = useState(true);
-  const userDetailsRef = useRef<UserDetailsRef>(null);
 
   const isTestUser = user?.email?.toLowerCase() === WHITELISTED_TEST_EMAIL.toLowerCase();
 
@@ -117,92 +112,13 @@ const Upgrade = () => {
   };
 
   const handlePurchase = () => {
-    if (showPayPal) return;
     if (!user) { navigate("/auth"); return; }
     if (isTestUser) { handleTestPurchase(); return; }
-    setShowPayPal(true);
-  };
-
-  const verifyPurchase = async (
-    orderId: string,
-    packageId: string,
-    amount: number,
-    couponCode?: string | null
-  ) => {
-    if (!user) throw new Error("User not authenticated");
-    const { data, error } = await supabase.functions.invoke("verify-purchase", {
-      body: {
-        orderId,
-        packageId,
-        amount,
-        userId: user.id,
-        couponCode: couponCode || undefined,
-        storyId: firstStoryId || undefined,
-      },
-    });
-    if (error) throw error;
-    if (!data?.success) throw new Error(data?.error || "Verification failed");
-    return data;
-  };
-
-  const handlePayPalSuccess = async (orderId: string) => {
-    if (!user) {
-      setShowFailed(true);
-      return;
-    }
-    try {
-      const packageId = selectedTier === "digital" ? "single_story_digital" : "single_story_full";
-      await verifyPurchase(orderId, packageId, discountedPrice, appliedCouponCode);
-
-      refetchCredits();
-      window.dispatchEvent(new CustomEvent("purchase-completed"));
-      setShowPayPal(false);
-      setShowSuccess(true);
-      await userDetailsRef.current?.saveToProfile();
-      trackEvent({
-        eventType: "feature_used",
-        metadata: { feature: "purchase_completed", tier: selectedTier, payment_method: "paypal" },
-      });
-
-      if (user.email) {
-        supabase.functions.invoke("send-purchase-confirmation", {
-          body: {
-            email: user.email,
-            packageName: selectedTierData.label,
-            credits: 1,
-            amount: discountedPrice,
-            transactionDate: new Date().toLocaleDateString("he-IL"),
-          },
-        }).catch((err) => console.error("Failed to send confirmation email:", err));
-      }
-
-      if (firstStoryId) {
-        navigate(`/story/${firstStoryId}`);
-      }
-    } catch (error) {
-      console.error("Purchase verification failed:", error);
-      setShowPayPal(false);
-      setShowFailed(true);
-      trackEvent({
-        eventType: "feature_used",
-        metadata: { feature: "purchase_failed", tier: selectedTier, error: (error as Error)?.message || "paypal_error" },
-      });
-    }
-  };
-
-  const handlePayPalError = (error: any) => {
-    console.error("PayPal error:", error);
-    setShowPayPal(false);
-    setShowFailed(true);
-    trackEvent({
-      eventType: "feature_used",
-      metadata: { feature: "purchase_failed", tier: selectedTier, error: error?.message || "paypal_error" },
-    });
+    toast.info("בקרוב — אמצעי תשלום חדשים בדרך! 🌿");
   };
 
   const handleRetry = () => {
     setShowFailed(false);
-    setShowPayPal(true);
   };
 
   return (
@@ -328,15 +244,6 @@ const Upgrade = () => {
             />
           </div>
 
-          {/* Payment Options */}
-          <div className="bg-white/10 backdrop-blur-sm border border-white/15 rounded-xl p-3 mb-4">
-            <p className="text-sm text-center text-white/80 font-bold flex items-center justify-center gap-2">
-              💳 ניתן לשלם בכרטיס אשראי גם ללא חשבון PayPal
-            </p>
-            <p className="text-xs text-center text-white/50 mt-1">
-              Visa, Mastercard, American Express ועוד
-            </p>
-          </div>
 
           {/* Terms */}
           <p className="text-xs text-center text-white/40 mt-2 mb-4">
@@ -346,41 +253,6 @@ const Upgrade = () => {
             <a href="/terms" className="text-purple-300 underline font-semibold mx-1">תנאי השימוש</a>
           </p>
 
-          {/* PayPal Modal */}
-          {showPayPal && (
-            <div className="bg-white/15 backdrop-blur-md rounded-xl border border-white/20 p-4 mb-4 shadow-lg">
-              <p className="text-sm font-bold text-white text-center mb-1">
-                {selectedTierData.label}
-              </p>
-              {discountPercent > 1 ? (
-                <div className="text-center mb-3">
-                  <span className="text-white/50 line-through text-sm">₪{selectedTierData.price.toFixed(2)}</span>
-                  <span className="text-green-300 font-black text-lg mr-2">₪{discountedPrice}</span>
-                  <span className="text-green-300 text-xs font-bold">({discountPercent}% הנחה)</span>
-                </div>
-              ) : (
-                <p className="text-sm font-bold text-white text-center mb-3">₪{discountedPrice}</p>
-              )}
-              <UserDetailsForm ref={userDetailsRef} onValidChange={setUserDetailsValid} />
-              {!userDetailsValid && (
-                <p className="text-red-400 text-xs text-center mb-2">נא להזין טלפון תקין להמשך</p>
-              )}
-              {userDetailsValid && (
-                <PayPalButton
-                  amount={discountedPrice}
-                  onSuccess={handlePayPalSuccess}
-                  onError={handlePayPalError}
-                  onCancel={() => setShowPayPal(false)}
-                />
-              )}
-              <button
-                onClick={() => setShowPayPal(false)}
-                className="w-full text-center text-white/50 text-xs mt-3 hover:text-white/70 transition-colors"
-              >
-                ביטול
-              </button>
-            </div>
-          )}
         </div>
       </div>
 
