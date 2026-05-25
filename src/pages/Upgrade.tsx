@@ -204,6 +204,18 @@ const Upgrade = () => {
                       : "border-white/15 hover:border-white/30"
                   )}
                 >
+                  {tier.id === "full" && (
+                    <span
+                      role="button"
+                      tabIndex={0}
+                      onClick={(e) => { e.stopPropagation(); setShowSampleBook(true); }}
+                      onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); e.stopPropagation(); setShowSampleBook(true); } }}
+                      className="absolute -top-3 -right-3 z-10 rotate-12 px-2.5 py-1 rounded-full text-[11px] font-black text-white bg-gradient-to-br from-yellow-400 via-orange-400 to-amber-500 border border-yellow-200/70 shadow-[0_0_18px_rgba(251,191,36,0.7)] cursor-pointer hover:scale-110 active:scale-95 transition-transform animate-pulse"
+                      style={{ textShadow: "0 1px 2px rgba(120,53,15,0.4)" }}
+                    >
+                      📖 לדוגמא
+                    </span>
+                  )}
                   {tier.id === "digital" && (
                     <div className="mb-1 px-2 py-0.5 rounded-full bg-green-500/20 text-green-300 text-[10px] font-bold border border-green-500/30">
                       🌱 מושלם להתחיל!
@@ -240,17 +252,6 @@ const Upgrade = () => {
                 </button>
               );
             })}
-          </div>
-
-          {/* Sample book preview button */}
-          <div className="flex justify-center mb-6">
-            <button
-              type="button"
-              onClick={() => setShowSampleBook(true)}
-              className="px-5 py-2.5 rounded-full bg-white/10 hover:bg-white/20 backdrop-blur-md border border-purple-300/40 text-white text-sm font-bold transition-all hover:scale-[1.03] shadow-lg"
-            >
-              לספר לדוגמא 📖
-            </button>
           </div>
 
           {/* Coupon */}
