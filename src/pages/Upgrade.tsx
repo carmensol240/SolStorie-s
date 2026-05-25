@@ -53,13 +53,10 @@ const Upgrade = () => {
   const { trackEvent } = useAnalytics();
 
   const [selectedTier, setSelectedTier] = useState<Tier>("full");
-  const [showPayPal, setShowPayPal] = useState(false);
   const [showSuccess, setShowSuccess] = useState(false);
   const [showFailed, setShowFailed] = useState(false);
   const [discountPercent, setDiscountPercent] = useState(0);
   const [appliedCouponCode, setAppliedCouponCode] = useState<string | null>(null);
-  const [userDetailsValid, setUserDetailsValid] = useState(true);
-  const userDetailsRef = useRef<UserDetailsRef>(null);
 
   const isTestUser = user?.email?.toLowerCase() === WHITELISTED_TEST_EMAIL.toLowerCase();
 
