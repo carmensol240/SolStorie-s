@@ -8,6 +8,7 @@ import PurchaseSuccessModal from "@/components/paywall/PurchaseSuccessModal";
 import PurchaseFailedModal from "@/components/paywall/PurchaseFailedModal";
 import CouponInput from "@/components/paywall/CouponInput";
 import FirstPurchaseBonusModal from "@/components/paywall/FirstPurchaseBonusModal";
+import SampleBookModal from "@/components/upgrade/SampleBookModal";
 
 import { useCredits } from "@/hooks/use-credits";
 import { useAnalytics } from "@/hooks/use-analytics";
@@ -59,6 +60,7 @@ const Upgrade = () => {
   const [showSuccess, setShowSuccess] = useState(false);
   const [showFailed, setShowFailed] = useState(false);
   const [showBonus, setShowBonus] = useState(false);
+  const [showSampleBook, setShowSampleBook] = useState(false);
   const [discountPercent, setDiscountPercent] = useState(0);
   const [appliedCouponCode, setAppliedCouponCode] = useState<string | null>(null);
 
@@ -236,6 +238,17 @@ const Upgrade = () => {
             })}
           </div>
 
+          {/* Sample book preview button */}
+          <div className="flex justify-center mb-6">
+            <button
+              type="button"
+              onClick={() => setShowSampleBook(true)}
+              className="px-5 py-2.5 rounded-full bg-white/10 hover:bg-white/20 backdrop-blur-md border border-purple-300/40 text-white text-sm font-bold transition-all hover:scale-[1.03] shadow-lg"
+            >
+              לספר לדוגמא 📖
+            </button>
+          </div>
+
           {/* Coupon */}
           <div className="mb-4">
             <CouponInput
@@ -284,6 +297,7 @@ const Upgrade = () => {
       <PurchaseSuccessModal open={showSuccess} onOpenChange={setShowSuccess} creditsAdded={1} />
       <PurchaseFailedModal open={showFailed} onOpenChange={setShowFailed} onRetry={handleRetry} />
       <FirstPurchaseBonusModal open={showBonus} onOpenChange={setShowBonus} />
+      <SampleBookModal open={showSampleBook} onOpenChange={setShowSampleBook} />
     </div>
   );
 };
