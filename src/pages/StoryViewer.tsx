@@ -2102,7 +2102,7 @@ const [currentPage, setCurrentPage] = useState(0);
         open={demoPaywallOpen}
         onOpenChange={setDemoPaywallOpen}
         title="✨ רוצים לקרוא את הסיפור המלא?"
-        description="רכשו חבילת סיפורים או רק את הסיפור הזה"
+        description="רוצים להמשיך לקרוא את הסיפור? ב־19.90₪ בלבד וקבלו קרדיט לסיפור נוסף חינם! 🎁"
         storyId={storyId}
       />
 
