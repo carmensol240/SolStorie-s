@@ -10,17 +10,23 @@ interface SampleBookModalProps {
   onOpenChange: (open: boolean) => void;
 }
 
-interface BookContent {
-  title: string;
+interface BookPage {
   text: string;
   illustrationUrl: string | null;
+}
+
+interface BookContent {
+  title: string;
+  pages: BookPage[];
   isUserStory: boolean;
 }
 
 const FALLBACK: BookContent = {
   title: DEMO_STORY.title,
-  text: DEMO_STORY.pages[0].text,
-  illustrationUrl: DEMO_STORY.pages[0].illustrationUrl,
+  pages: DEMO_STORY.pages.map((p) => ({
+    text: p.text,
+    illustrationUrl: p.illustrationUrl,
+  })),
   isUserStory: false,
 };
 
@@ -56,20 +62,19 @@ const SampleBookModal = ({ open, onOpenChange }: SampleBookModalProps) => {
           .from("story_pages")
           .select("text, illustration_url, page_number")
           .eq("story_id", story.id)
-          .order("page_number", { ascending: true })
-          .limit(1);
+          .order("page_number", { ascending: true });
 
-        const firstPage = pages?.[0];
-        const illustration =
-          getPublicIllustrationUrl(firstPage?.illustration_url ?? null) ||
-          story.cover_url ||
-          FALLBACK.illustrationUrl;
+        const mapped: BookPage[] = (pages ?? []).map((p, i) => ({
+          text: p.text || "",
+          illustrationUrl:
+            getPublicIllustrationUrl(p.illustration_url ?? null) ||
+            (i === 0 ? story.cover_url ?? null : null),
+        }));
 
         if (!cancelled) {
           setContent({
             title: story.topic || story.child_name || FALLBACK.title,
-            text: firstPage?.text || FALLBACK.text,
-            illustrationUrl: illustration,
+            pages: mapped.length ? mapped : FALLBACK.pages,
             isUserStory: true,
           });
         }
@@ -107,38 +112,40 @@ const SampleBookModal = ({ open, onOpenChange }: SampleBookModalProps) => {
             </h3>
           </div>
 
-          {/* Book mockup */}
-          <div className="px-4 pb-4">
-            <div
-              className="relative rounded-xl overflow-hidden border border-purple-400/30"
-              style={{ aspectRatio: "3/4" }}
-            >
-              {/* Illustration half */}
-              <div className="absolute inset-x-0 top-0 h-1/2 bg-gradient-to-br from-[#FFFBF5] via-[#F5E6D3] to-[#FAF3E8]">
-                {content.illustrationUrl && !loading && (
-                  <img
-                    src={content.illustrationUrl}
-                    alt=""
-                    className="w-full h-full object-cover"
-                    loading="lazy"
-                  />
-                )}
-              </div>
-              {/* Text half */}
+          {/* Book pages */}
+          <div className="px-4 pb-4 space-y-4 max-h-[70vh] overflow-y-auto">
+            {content.pages.map((page, idx) => (
               <div
-                className="absolute inset-x-0 bottom-0 h-1/2 p-4 flex items-center"
-                style={{ background: "linear-gradient(135deg, #2d1a6e, #1a0f3a)" }}
+                key={idx}
+                className="relative rounded-xl overflow-hidden border border-purple-400/30"
               >
-                <p
-                  className="text-purple-100 text-right text-sm leading-relaxed font-medium line-clamp-6"
-                  dir="rtl"
+                {/* Illustration top */}
+                <div className="w-full aspect-[4/3] bg-gradient-to-br from-[#FFFBF5] via-[#F5E6D3] to-[#FAF3E8]">
+                  {page.illustrationUrl && !loading && (
+                    <img
+                      src={page.illustrationUrl}
+                      alt=""
+                      className="w-full h-full object-cover"
+                      loading="lazy"
+                    />
+                  )}
+                </div>
+                {/* Text bottom */}
+                <div
+                  className="p-4"
+                  style={{ background: "linear-gradient(135deg, #2d1a6e, #1a0f3a)" }}
                 >
-                  {content.text}
-                </p>
+                  <p
+                    className="text-purple-100 text-right text-sm leading-relaxed font-medium"
+                    dir="rtl"
+                  >
+                    {page.text}
+                  </p>
+                </div>
+                {/* Spine shadow */}
+                <div className="absolute left-0 top-0 bottom-0 w-2 bg-gradient-to-r from-black/40 to-transparent pointer-events-none" />
               </div>
-              {/* Spine shadow */}
-              <div className="absolute left-0 top-0 bottom-0 w-2 bg-gradient-to-r from-black/40 to-transparent pointer-events-none" />
-            </div>
+            ))}
           </div>
 
           <div className="px-5 pb-5 text-center">
