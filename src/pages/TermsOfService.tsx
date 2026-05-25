@@ -76,6 +76,22 @@ const TermsOfService = () => {
               </p>
             </section>
 
+            <section>
+              <h2 className="text-lg font-bold text-foreground mb-2">8. הגנה על פרטיות ילדים (תיקון 13 לחוק הגנת הפרטיות)</h2>
+              <p className="text-muted-foreground leading-relaxed">
+                <span dir="ltr" className="inline-block">SolStorie's™</span> מיועדת לשימוש על ידי הורים ומטפלים עבור ילדיהם. איננו אוספים מידע אישי ישירות מילדים מתחת לגיל 13.
+              </p>
+              <p className="text-muted-foreground leading-relaxed mt-2">
+                כל הרשמה ושימוש באפליקציה נעשים על ידי הורה או אפוטרופוס בלבד, האחראי לפעילות הילד באפליקציה.
+              </p>
+              <p className="text-muted-foreground leading-relaxed mt-2">
+                המידע היחיד שנאסף הוא מידע ההורה/האפוטרופוס הרושם (כתובת מייל ופרטי תשלום). מידע זה אינו משותף עם צדדים שלישיים.
+              </p>
+              <p className="text-muted-foreground leading-relaxed mt-2">
+                הורה או אפוטרופוס רשאי בכל עת לפנות אלינו לכתובת <a href="mailto:solstories.nlp@gmail.com" className="text-primary underline" dir="ltr">solstories.nlp@gmail.com</a> לצורך עיון, תיקון או מחיקה של המידע הקשור לחשבונו.
+              </p>
+            </section>
+
           </div>
         </article>
 
