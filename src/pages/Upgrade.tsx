@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { X, Check } from "lucide-react";
+import bookMockup from "@/assets/book-mockup.png";
 
 const WHITELISTED_TEST_EMAIL = "carmit1901+test@gmail.com";
 import { Button } from "@/components/ui/button";
@@ -37,7 +38,7 @@ const TIERS = {
     price: 49.90,
     features: [
       { label: "סיפור דיגיטלי", included: true },
-      { label: "PDF", included: true },
+      { label: "PDF להדפסה עצמית והפיכת הסיפור לספר 📖", included: true },
       { label: "דף צביעה", included: true },
       { label: "עריכה אחת", included: true },
     ],
@@ -243,6 +244,26 @@ const Upgrade = () => {
 
       <div className="flex-1 overflow-y-auto pb-32 relative z-10" style={{ WebkitOverflowScrolling: "touch" }}>
         <div className="container max-w-md mx-auto px-4 pt-8">
+          {/* Title */}
+          <div className="text-center mb-4">
+            <h1 className="text-2xl font-black text-white mb-1">
+              אהבתם את הסיפור? 💛
+            </h1>
+            <p className="text-sm text-white/70 font-semibold">
+              בחרו איך תרצו להמשיך
+            </p>
+          </div>
+
+          {/* Book Mockup */}
+          <div className="flex justify-center mb-5">
+            <img
+              src={bookMockup}
+              alt="תצוגה של הסיפור המודפס כספר"
+              className="w-48 h-auto rounded-xl shadow-2xl"
+              style={{ boxShadow: "0 0 40px rgba(168, 85, 247,  0.3)" }}
+            />
+          </div>
+
           {/* Tier Cards */}
           <div className="grid grid-cols-2 gap-3 mb-6">
             {(Object.values(TIERS) as Array<typeof TIERS.digital>).map((tier) => {
