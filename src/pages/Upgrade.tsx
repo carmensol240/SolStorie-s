@@ -181,16 +181,6 @@ const Upgrade = () => {
             </p>
           </div>
 
-          {/* Book Mockup */}
-          <div className="flex justify-center mb-5">
-            <img
-              src={bookMockup}
-              alt="תצוגה של הסיפור המודפס כספר"
-              className="w-48 h-auto rounded-xl shadow-2xl"
-              style={{ boxShadow: "0 0 40px rgba(168, 85, 247,  0.3)" }}
-            />
-          </div>
-
           {/* Tier Cards */}
           <div className="grid grid-cols-2 gap-3 mb-6">
             {(Object.values(TIERS) as Array<typeof TIERS.digital>).map((tier) => {
