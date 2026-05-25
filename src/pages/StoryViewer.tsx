@@ -377,11 +377,20 @@ const [currentPage, setCurrentPage] = useState(0);
     if (!user?.id) { setHasPurchasedPackage(false); setPurchaseChecked(true); return; }
     const { data, error } = await supabase
       .from('purchases')
-      .select('id')
+      .select('id, package_name')
       .eq('user_id', user.id)
       .in('status', ['completed', 'test_completed'])
-      .limit(1);
-    if (!error) setHasPurchasedPackage((data?.length ?? 0) > 0);
+      .limit(50);
+    if (!error) {
+      // A "package" purchase unlocks all stories. Single-story purchases
+      // (package_name contains "single_story") must NOT bypass the demo paywall
+      // for other stories — they only unlock the specific story via story_unlocks.
+      const hasPackage = (data ?? []).some((row: any) => {
+        const name: string = row?.package_name ?? '';
+        return !name.includes('single_story');
+      });
+      setHasPurchasedPackage(hasPackage);
+    }
     setPurchaseChecked(true);
   }, [user?.id]);
 
