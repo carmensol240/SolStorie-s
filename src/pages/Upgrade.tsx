@@ -112,92 +112,13 @@ const Upgrade = () => {
   };
 
   const handlePurchase = () => {
-    if (showPayPal) return;
     if (!user) { navigate("/auth"); return; }
     if (isTestUser) { handleTestPurchase(); return; }
-    setShowPayPal(true);
-  };
-
-  const verifyPurchase = async (
-    orderId: string,
-    packageId: string,
-    amount: number,
-    couponCode?: string | null
-  ) => {
-    if (!user) throw new Error("User not authenticated");
-    const { data, error } = await supabase.functions.invoke("verify-purchase", {
-      body: {
-        orderId,
-        packageId,
-        amount,
-        userId: user.id,
-        couponCode: couponCode || undefined,
-        storyId: firstStoryId || undefined,
-      },
-    });
-    if (error) throw error;
-    if (!data?.success) throw new Error(data?.error || "Verification failed");
-    return data;
-  };
-
-  const handlePayPalSuccess = async (orderId: string) => {
-    if (!user) {
-      setShowFailed(true);
-      return;
-    }
-    try {
-      const packageId = selectedTier === "digital" ? "single_story_digital" : "single_story_full";
-      await verifyPurchase(orderId, packageId, discountedPrice, appliedCouponCode);
-
-      refetchCredits();
-      window.dispatchEvent(new CustomEvent("purchase-completed"));
-      setShowPayPal(false);
-      setShowSuccess(true);
-      await userDetailsRef.current?.saveToProfile();
-      trackEvent({
-        eventType: "feature_used",
-        metadata: { feature: "purchase_completed", tier: selectedTier, payment_method: "paypal" },
-      });
-
-      if (user.email) {
-        supabase.functions.invoke("send-purchase-confirmation", {
-          body: {
-            email: user.email,
-            packageName: selectedTierData.label,
-            credits: 1,
-            amount: discountedPrice,
-            transactionDate: new Date().toLocaleDateString("he-IL"),
-          },
-        }).catch((err) => console.error("Failed to send confirmation email:", err));
-      }
-
-      if (firstStoryId) {
-        navigate(`/story/${firstStoryId}`);
-      }
-    } catch (error) {
-      console.error("Purchase verification failed:", error);
-      setShowPayPal(false);
-      setShowFailed(true);
-      trackEvent({
-        eventType: "feature_used",
-        metadata: { feature: "purchase_failed", tier: selectedTier, error: (error as Error)?.message || "paypal_error" },
-      });
-    }
-  };
-
-  const handlePayPalError = (error: any) => {
-    console.error("PayPal error:", error);
-    setShowPayPal(false);
-    setShowFailed(true);
-    trackEvent({
-      eventType: "feature_used",
-      metadata: { feature: "purchase_failed", tier: selectedTier, error: error?.message || "paypal_error" },
-    });
+    toast.info("בקרוב — אמצעי תשלום חדשים בדרך! 🌿");
   };
 
   const handleRetry = () => {
     setShowFailed(false);
-    setShowPayPal(true);
   };
 
   return (
