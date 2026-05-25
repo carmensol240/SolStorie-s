@@ -21,6 +21,11 @@ const AVATAR_GENERATION_STRATEGIES = [
     prompt:
       "Create a Pixar 3D animated portrait of this child with MAXIMUM facial accuracy. Keep the EXACT face shape, eye shape and color, nose shape, mouth shape, and eyebrow shape. Match the EXACT hair color, texture, length, and style. Match the EXACT skin tone and undertone. Use Disney-Pixar 3D CGI animation style — realistic proportions, warm cinematic lighting, detailed hair and skin texture, rich colorful rendering as seen in Encanto, Coco, and Inside Out. Head and shoulders framing, clean simple pastel background. DO NOT change eye color. DO NOT alter hair color. DO NOT remove or smooth away moles, freckles, or birthmarks. DO NOT change facial structure. The child must remain perfectly recognizable. Return image only.",
   },
+  {
+    model: "google/gemini-3-pro-image-preview",
+    prompt:
+      "Pixar/Disney 3D animation portrait of this exact child. Preserve face shape, eye shape and color, nose, mouth, hair color/texture/length, skin tone, freckles and moles. Head-and-shoulders, soft pastel background, warm cinematic lighting. Return image only.",
+  },
 ] as const;
 
 const jsonResponse = (body: Record<string, unknown>, status = 200) =>
@@ -223,9 +228,13 @@ serve(async (req) => {
       );
     }
 
+    // All strategies failed — return 200 with a fallback signal so the
+    // client can show a friendly message without throwing on non-2xx.
     return jsonResponse({
-      error: "לא הצלחנו ליצור אווטאר מהתמונה הזו. נסו תמונה אחרת או נסו שוב בעוד רגע.",
-    }, 422);
+      error: "AVATAR_GENERATION_FAILED",
+      fallback: true,
+      message: "לא הצלחנו ליצור אווטאר מהתמונה הזו. נסו תמונה אחרת או נסו שוב בעוד רגע.",
+    }, 200);
   } catch (error) {
     console.error("Error generating preview:", error);
     return jsonResponse({ error: "שגיאה בעיבוד הבקשה" }, 500);
