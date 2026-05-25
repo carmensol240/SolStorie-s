@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { X, Check } from "lucide-react";
 import bookMockup from "@/assets/book-mockup.png";
@@ -7,9 +7,7 @@ const WHITELISTED_TEST_EMAIL = "carmit1901+test@gmail.com";
 import { Button } from "@/components/ui/button";
 import PurchaseSuccessModal from "@/components/paywall/PurchaseSuccessModal";
 import PurchaseFailedModal from "@/components/paywall/PurchaseFailedModal";
-import PayPalButton from "@/components/paywall/PayPalButton";
 import CouponInput from "@/components/paywall/CouponInput";
-import UserDetailsForm, { UserDetailsRef } from "@/components/paywall/UserDetailsForm";
 
 import { useCredits } from "@/hooks/use-credits";
 import { useAnalytics } from "@/hooks/use-analytics";
