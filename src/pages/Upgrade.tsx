@@ -26,8 +26,8 @@ const TIERS = {
     label: "דיגיטלי",
     price: 19.90,
     features: [
-      { label: "סיפור דיגיטלי", included: true },
-      { label: "PDF", included: false },
+      { label: "סיפור דיגיטלי יחיד", included: true },
+      { label: "📖להדפסה עצמית והפיכת הסיפור לספר PDF קובץ", included: false },
       { label: "דף צביעה", included: false },
       { label: "עריכה אחת", included: true },
     ],
@@ -37,8 +37,8 @@ const TIERS = {
     label: "חבילה מלאה",
     price: 49.90,
     features: [
-      { label: "סיפור דיגיטלי", included: true },
-      { label: "PDF להדפסה עצמית והפיכת הסיפור לספר 📖", included: true },
+      { label: "סיפור דיגיטלי יחיד", included: true },
+      { label: "📖להדפסה עצמית והפיכת הסיפור לספר PDF קובץ", included: true },
       { label: "דף צביעה", included: true },
       { label: "עריכה אחת", included: true },
     ],
