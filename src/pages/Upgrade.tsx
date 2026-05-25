@@ -269,7 +269,7 @@ const Upgrade = () => {
                         {feature.included ? (
                           <Check className="w-4 h-4 text-green-400 shrink-0" />
                         ) : (
-                          <XIcon className="w-4 h-4 text-red-400 shrink-0" />
+                          <X className="w-4 h-4 text-red-400 shrink-1" />
                         )}
                         <span
                           className={cn(
