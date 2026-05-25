@@ -253,41 +253,6 @@ const Upgrade = () => {
             <a href="/terms" className="text-purple-300 underline font-semibold mx-1">תנאי השימוש</a>
           </p>
 
-          {/* PayPal Modal */}
-          {showPayPal && (
-            <div className="bg-white/15 backdrop-blur-md rounded-xl border border-white/20 p-4 mb-4 shadow-lg">
-              <p className="text-sm font-bold text-white text-center mb-1">
-                {selectedTierData.label}
-              </p>
-              {discountPercent > 1 ? (
-                <div className="text-center mb-3">
-                  <span className="text-white/50 line-through text-sm">₪{selectedTierData.price.toFixed(2)}</span>
-                  <span className="text-green-300 font-black text-lg mr-2">₪{discountedPrice}</span>
-                  <span className="text-green-300 text-xs font-bold">({discountPercent}% הנחה)</span>
-                </div>
-              ) : (
-                <p className="text-sm font-bold text-white text-center mb-3">₪{discountedPrice}</p>
-              )}
-              <UserDetailsForm ref={userDetailsRef} onValidChange={setUserDetailsValid} />
-              {!userDetailsValid && (
-                <p className="text-red-400 text-xs text-center mb-2">נא להזין טלפון תקין להמשך</p>
-              )}
-              {userDetailsValid && (
-                <PayPalButton
-                  amount={discountedPrice}
-                  onSuccess={handlePayPalSuccess}
-                  onError={handlePayPalError}
-                  onCancel={() => setShowPayPal(false)}
-                />
-              )}
-              <button
-                onClick={() => setShowPayPal(false)}
-                className="w-full text-center text-white/50 text-xs mt-3 hover:text-white/70 transition-colors"
-              >
-                ביטול
-              </button>
-            </div>
-          )}
         </div>
       </div>
 
