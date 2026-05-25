@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { supabase } from "@/integrations/supabase/client";
@@ -145,6 +146,13 @@ const MaintenanceBlock = () => {
           אנחנו לא נשלח ספאם. רק בשורה אחת — שחזרנו ✨
         </p>
       </div>
+
+      {/* Hidden admin access */}
+      <Link
+        to="/auth"
+        aria-label="admin"
+        className="fixed bottom-2 left-2 z-[10000] h-8 w-8 rounded-full opacity-0 hover:opacity-20 active:opacity-30 bg-white"
+      />
     </div>
   );
 };
