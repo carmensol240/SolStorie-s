@@ -2117,6 +2117,19 @@ const [currentPage, setCurrentPage] = useState(0);
       {/* PDF Feature Popup - one-time per user */}
       <PdfFeaturePopup userId={user?.id} />
 
+      {/* Print PDF offer for free users on last page */}
+      <PrintPdfOfferModal
+        open={showPrintPdfOffer}
+        onOpenChange={setShowPrintPdfOffer}
+        coverUrl={story?.cover_url || null}
+        childName={story?.child_name}
+        storyTitle={story?.title}
+        onPurchase={() => {
+          setShowPrintPdfOffer(false);
+          navigate(`/upgrade?firstStory=${storyId || ""}`);
+        }}
+      />
+
       {/* Install App Prompt - shown only after reaching last page */}
       <InstallAppPrompt justCreatedFirstStory={justCreatedStory && isEndPage} />
 
