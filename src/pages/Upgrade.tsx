@@ -2,7 +2,6 @@ import { useState, useEffect } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { X, Check } from "lucide-react";
 import bookMockup from "@/assets/sol-magic-book-cover.png";
-import solVetCover from "@/assets/sol-vet-cover.jpg";
 
 const WHITELISTED_TEST_EMAIL = "carmit1901+test@gmail.com";
 import { Button } from "@/components/ui/button";
@@ -194,17 +193,6 @@ const Upgrade = () => {
           </div>
 
           {/* Tier Cards */}
-          {/* Vet cover image above the "חבילה מלאה" card (left column in RTL) */}
-          <div className="grid grid-cols-2 gap-3 mb-2">
-            <div className="flex justify-center">
-              <img
-                src={solVetCover}
-                alt="סול כרופאה וטרינרית"
-                className="w-28 h-28 object-cover rounded-xl shadow-lg ring-2 ring-white/20"
-              />
-            </div>
-            <div />
-          </div>
           <div className="grid grid-cols-2 gap-3 mb-6">
             {(Object.values(TIERS) as Array<typeof TIERS.digital>).map((tier) => {
               const isSelected = selectedTier === tier.id;
