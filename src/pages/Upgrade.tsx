@@ -385,8 +385,7 @@ const Upgrade = () => {
       </div>
 
       {/* Fixed CTA */}
-      {!showPayPal && (
-        <div className="fixed bottom-0 left-0 right-0 bg-[hsl(250,50%,12%)]/95 backdrop-blur border-t border-white/10 px-4 py-3 safe-area-bottom z-20">
+      <div className="fixed bottom-0 left-1/2 -translate-x-1/2 w-full max-w-md bg-[hsl(250,50%,12%)]/95 backdrop-blur border-t border-white/10 px-4 py-3 safe-area-bottom z-20">
           <div className="container max-w-md mx-auto flex flex-col items-center gap-1">
             <Button
               onClick={handlePurchase}
