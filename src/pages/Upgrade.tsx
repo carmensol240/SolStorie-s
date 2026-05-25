@@ -28,7 +28,7 @@ const TIERS = {
       { label: "סיפור דיגיטלי יחיד", included: true },
       { label: "קובץ PDF להדפסה עצמית והפיכת הסיפור לספר 📖", included: false },
       { label: "🎨 דף צביעה און ליין ולהדפסה", included: false },
-      { label: "✏️ תיקון טקסט חינם – אם הבינה טעתה, אנחנו מתקנים!", included: true },
+      { label: "✏️ תיקון טקסט חינם – \nאם הבינה טעתה,\n אנחנו מתקנים!", included: true },
     ],
   },
   full: {
@@ -39,7 +39,7 @@ const TIERS = {
       { label: "סיפור דיגיטלי יחיד", included: true },
       { label: "קובץ PDF להדפסה עצמית והפיכת הסיפור לספר 📖", included: true },
       { label: "🎨 דף צביעה און ליין ולהדפסה", included: true },
-      { label: "✏️ תיקון טקסט חינם – אם הבינה טעתה, אנחנו מתקנים!", included: true },
+      { label: "✏️ תיקון טקסט חינם – \nאם הבינה טעתה,\n אנחנו מתקנים!", included: true },
     ],
   },
 } as const;
@@ -225,7 +225,7 @@ const Upgrade = () => {
                         )}
                         <span
                           className={cn(
-                            "text-xs font-semibold",
+                            "text-xs font-semibold whitespace-pre-line",
                             feature.included ? "text-white/90" : "text-white/40 line-through"
                           )}
                         >
