@@ -117,6 +117,7 @@ const Upgrade = () => {
   };
 
   const handlePurchase = () => {
+    if (showPayPal) return;
     if (!user) { navigate("/auth"); return; }
     if (isTestUser) { handleTestPurchase(); return; }
     setShowPayPal(true);
