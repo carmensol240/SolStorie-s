@@ -69,21 +69,8 @@ const Upgrade = () => {
   const discountedPrice = Math.round(selectedTierData.price * (1 - discountPercent / 100));
 
   const handleClose = () => {
-    try {
-      const raw = sessionStorage.getItem("pendingStoryReturn");
-      if (raw) {
-        const parsed = JSON.parse(raw);
-        if (parsed?.path && typeof parsed.path === "string") {
-          navigate(parsed.path);
-          return;
-        }
-      }
-    } catch {}
-    if (window.history.length > 1) {
-      navigate(-1);
-    } else {
-      navigate("/");
-    }
+    try { sessionStorage.removeItem("pendingStoryReturn"); } catch {}
+    navigate("/");
   };
 
   useEffect(() => {
