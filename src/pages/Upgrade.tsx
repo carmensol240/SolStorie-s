@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { X, Check } from "lucide-react";
-import bookMockup from "@/assets/book-mockup.png";
+import bookMockup from "@/assets/sol-magic-book-cover.png";
 
 const WHITELISTED_TEST_EMAIL = "carmit1901+test@gmail.com";
 import { Button } from "@/components/ui/button";
@@ -216,7 +216,7 @@ const Upgrade = () => {
                     ₪{tier.price.toFixed(2)}
                   </div>
                   <div className="w-full space-y-2">
-                    {tier.features.map((feature) => (
+                    {(tier.id === "digital" ? tier.features.filter((f) => f.included) : tier.features).map((feature) => (
                       <div key={feature.label} className="flex items-center gap-2">
                         {feature.included ? (
                           <Check className="w-4 h-4 text-green-400 shrink-0" />
