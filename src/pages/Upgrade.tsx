@@ -1,7 +1,6 @@
 import { useState, useEffect } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { X, Check } from "lucide-react";
-import bookMockup from "@/assets/sol-magic-book-cover.png";
 
 const WHITELISTED_TEST_EMAIL = "carmit1901+test@gmail.com";
 import { Button } from "@/components/ui/button";
@@ -180,16 +179,6 @@ const Upgrade = () => {
             <p className="text-sm text-white/70 font-semibold">
               בחרו איך תרצו להמשיך
             </p>
-          </div>
-
-          {/* Book Mockup */}
-          <div className="flex justify-center mb-5">
-            <img
-              src={bookMockup}
-              alt="תצוגה של הסיפור המודפס כספר"
-              className="w-48 h-auto rounded-xl shadow-2xl"
-              style={{ boxShadow: "0 0 40px rgba(168, 85, 247,  0.3)" }}
-            />
           </div>
 
           {/* Tier Cards */}
