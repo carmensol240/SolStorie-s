@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import PurchaseSuccessModal from "@/components/paywall/PurchaseSuccessModal";
 import PurchaseFailedModal from "@/components/paywall/PurchaseFailedModal";
 import CouponInput from "@/components/paywall/CouponInput";
+import FirstPurchaseBonusModal from "@/components/paywall/FirstPurchaseBonusModal";
 
 import { useCredits } from "@/hooks/use-credits";
 import { useAnalytics } from "@/hooks/use-analytics";
@@ -55,6 +56,7 @@ const Upgrade = () => {
   const [selectedTier, setSelectedTier] = useState<Tier>("full");
   const [showSuccess, setShowSuccess] = useState(false);
   const [showFailed, setShowFailed] = useState(false);
+  const [showBonus, setShowBonus] = useState(false);
   const [discountPercent, setDiscountPercent] = useState(0);
   const [appliedCouponCode, setAppliedCouponCode] = useState<string | null>(null);
 
@@ -105,6 +107,15 @@ const Upgrade = () => {
       setShowSuccess(true);
       trackEvent({ eventType: "feature_used", metadata: { feature: "test_purchase_completed", tier: selectedTier } });
       toast.success("🧪 רכישת בדיקה הצליחה");
+      try {
+        const { data: bonus } = await supabase.functions.invoke("grant-first-purchase-bonus");
+        if (bonus?.granted) {
+          setShowBonus(true);
+          refetchCredits();
+        }
+      } catch (err) {
+        console.error("bonus grant failed", err);
+      }
     } catch (error) {
       console.error("Test purchase failed:", error);
       toast.error("שגיאה ברכישה");
@@ -280,6 +291,7 @@ const Upgrade = () => {
       {/* Modals */}
       <PurchaseSuccessModal open={showSuccess} onOpenChange={setShowSuccess} creditsAdded={1} />
       <PurchaseFailedModal open={showFailed} onOpenChange={setShowFailed} onRetry={handleRetry} />
+      <FirstPurchaseBonusModal open={showBonus} onOpenChange={setShowBonus} />
     </div>
   );
 };
