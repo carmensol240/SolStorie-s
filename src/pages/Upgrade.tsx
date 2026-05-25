@@ -27,8 +27,8 @@ const TIERS = {
     features: [
       { label: "סיפור דיגיטלי יחיד", included: true },
       { label: "קובץ PDF להדפסה עצמית והפיכת הסיפור לספר 📖", included: false },
-      { label: "דף צביעה", included: false },
-      { label: "עריכה אחת", included: true },
+      { label: "🎨 דף צביעה און ליין ולהדפסה", included: false },
+      { label: "✏️ תיקון טקסט חינם – אם הבינה טעתה, אנחנו מתקנים!", included: true },
     ],
   },
   full: {
