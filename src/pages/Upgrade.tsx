@@ -335,7 +335,7 @@ const Upgrade = () => {
         <Button
           variant="ghost"
           size="icon"
-          onClick={() => navigate(-1)}
+          onClick={handleClose}
           className="rounded-full bg-white/10 backdrop-blur-sm text-white hover:bg-white/20"
         >
           <X className="w-5 h-5" />
@@ -566,7 +566,7 @@ const Upgrade = () => {
                 onCancel={() => setShowSinglePayPal(false)}
               />
               <button
-                onClick={() => navigate(-1)}
+                onClick={handleClose}
                 className="w-full text-center text-white/50 text-xs mt-3 hover:text-white/70 transition-colors"
               >
                 ביטול
