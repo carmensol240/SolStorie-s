@@ -9,6 +9,7 @@ import PurchaseFailedModal from "@/components/paywall/PurchaseFailedModal";
 import CouponInput from "@/components/paywall/CouponInput";
 import FirstPurchaseBonusModal from "@/components/paywall/FirstPurchaseBonusModal";
 import SampleBookModal from "@/components/upgrade/SampleBookModal";
+import PurchaseSummaryModal from "@/components/paywall/PurchaseSummaryModal";
 
 import { useCredits } from "@/hooks/use-credits";
 import { useAnalytics } from "@/hooks/use-analytics";
@@ -60,6 +61,7 @@ const Upgrade = () => {
   const [showFailed, setShowFailed] = useState(false);
   const [showBonus, setShowBonus] = useState(false);
   const [showSampleBook, setShowSampleBook] = useState(false);
+  const [showSummary, setShowSummary] = useState(false);
   const [discountPercent, setDiscountPercent] = useState(0);
   const [appliedCouponCode, setAppliedCouponCode] = useState<string | null>(null);
 
@@ -195,7 +197,6 @@ const Upgrade = () => {
                   key={tier.id}
                   onClick={() => {
                     setSelectedTier(tier.id);
-                    setTimeout(() => handlePurchase(), 50);
                   }}
                   className={cn(
                     "relative flex flex-col items-center p-4 pt-5 rounded-2xl border transition-all duration-200",
@@ -282,7 +283,11 @@ const Upgrade = () => {
       <div className="fixed bottom-0 left-0 right-0 bg-[hsl(250,50%,12%)]/95 backdrop-blur border-t border-white/10 px-4 py-3 safe-area-bottom z-20">
         <div className="container max-w-md mx-auto flex flex-col items-center gap-1">
           <Button
-            onClick={handlePurchase}
+            onClick={() => {
+              if (!user) { navigate("/auth"); return; }
+              setShowSummary(true);
+              trackEvent({ eventType: "feature_used", metadata: { feature: "purchase_summary_viewed", tier: selectedTier } });
+            }}
             className="w-full relative overflow-hidden bg-gradient-to-r from-purple-500 via-pink-500 to-orange-500 hover:from-purple-400 hover:via-pink-400 hover:to-orange-400 text-white font-black text-sm py-3 rounded-xl shadow-xl before:absolute before:inset-0 before:bg-[linear-gradient(120deg,transparent_30%,rgba(255,255,255,0.15)_50%,transparent_70%)] before:bg-[length:200%_100%] before:animate-[cta-shimmer_4s_ease-in-out_infinite]"
             style={{ boxShadow: "0 0 30px rgba(168, 85, 247, 0.4), 0 0 60px rgba(236, 72, 153, 0.2)" }}
           >
@@ -304,6 +309,16 @@ const Upgrade = () => {
       <PurchaseFailedModal open={showFailed} onOpenChange={setShowFailed} onRetry={handleRetry} />
       <FirstPurchaseBonusModal open={showBonus} onOpenChange={setShowBonus} />
       <SampleBookModal open={showSampleBook} onOpenChange={setShowSampleBook} />
+      <PurchaseSummaryModal
+        open={showSummary}
+        onOpenChange={setShowSummary}
+        tier={selectedTierData}
+        originalPrice={selectedTierData.price}
+        finalPrice={discountedPrice}
+        discountPercent={discountPercent}
+        couponCode={appliedCouponCode}
+        onConfirm={handlePurchase}
+      />
     </div>
   );
 };
