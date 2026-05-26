@@ -766,14 +766,14 @@ const Library = () => {
             <div className="flex items-center gap-3">
               <div className="text-3xl">🎁</div>
               <div className="flex-1">
-                <div className="text-yellow-200 font-black text-sm leading-tight">
+                <div className="text-purple-800 font-black text-sm leading-tight">
                   יש לך {credits} קרדיט{(credits ?? 0) > 1 ? 'ים' : ''} לסיפור נוסף חינם!
                 </div>
-                <div className="text-white/70 text-[11px] font-semibold mt-0.5">
+                <div className="text-purple-600/80 text-[11px] font-semibold mt-0.5">
                   ✨ ללא תוקף – הקרדיט שמור לכם לכל החיים
                 </div>
               </div>
-              <div className="text-yellow-300 text-xs font-bold whitespace-nowrap">
+              <div className="text-purple-700 text-xs font-bold whitespace-nowrap">
                 צרו עכשיו ←
               </div>
             </div>
