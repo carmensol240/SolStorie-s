@@ -213,7 +213,7 @@ const Upgrade = () => {
                   )}
                   <div className="text-lg font-black text-white mb-1">{tier.label}</div>
                   <div className="text-2xl font-black bg-gradient-to-r from-purple-300 via-pink-300 to-orange-300 bg-clip-text text-transparent mb-3">
-                    ₪{(tier.price === 59.90 ? 59.90 : tier.price).toFixed(2).replace(".00", ".90")}
+                    ₪{tier.id === "full" ? "59.90" : tier.price.toFixed(2)}
                   </div>
                   <div className="w-full space-y-2">
                     {(tier.id === "digital" ? tier.features.filter((f) => f.included) : tier.features).map((feature) => (
