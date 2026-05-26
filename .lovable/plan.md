@@ -1,29 +1,48 @@
-## תיקון כפתור הסגירה (X) במסך הרכישה `/upgrade`
+## Goal
+Add a short "purchase summary" confirmation screen that appears after the user clicks "Buy", BEFORE the payment is actually executed — so they can verify the package type, final price, and what's included to reduce mistaken purchases.
 
-### הבעיה
-כרגע `handleClose` ב-`src/pages/Upgrade.tsx` תמיד מנווט ל-`"/"` ומוחק את `pendingStoryReturn`, כך שהמשתמש "נזרק" למסך הבית במקום לחזור למסך שממנו הגיע (בדרך כלל מסך הצעת רכישה של הסיפור, או הספרייה/הגדרות וכו').
+## Where it fits in the flow
+Current flow (in `src/pages/Upgrade.tsx`):
+1. User picks a tier card (digital / digital+printable) → tier card click immediately calls `handlePurchase()`
+2. Bottom CTA button also calls `handlePurchase()` directly
+3. `handlePurchase()` → either redirects to `/auth`, runs `handleTestPurchase`, or shows a "coming soon" toast
 
-### השינוי (קובץ יחיד: `src/pages/Upgrade.tsx`)
-לעדכן את `handleClose` כך שיחזיר את המשתמש למסך הקודם לפי סדר עדיפויות:
+New flow:
+1. User picks a tier card (no auto-purchase anymore)
+2. User taps bottom CTA → opens a **Purchase Summary Modal** (not a new route)
+3. In the modal: user reviews and taps "אישור ורכישה" to actually charge, or "חזרה" to cancel and pick again
+4. Confirmation → existing `handlePurchase()` logic runs (auth redirect / test purchase / toast)
 
-1. **אם הגיע מסיפור (paywall של DemoLockModal):** קיים `sessionStorage.pendingStoryReturn` שמכיל `{ path, page }`. במקרה זה לנווט חזרה ל-`${path}?paywall=1` (ה-StoryViewer כבר מאזין ל-`paywall=1` ופותח שוב את ה-`DemoLockModal`). לנקות את `pendingStoryReturn` אחרי הקריאה.
-2. **משתמש רשום שהגיע ממסך אחר** (ספרייה / הגדרות / Adventure / יצירת סיפור ללא קרדיטים): להשתמש ב-`navigate(-1)` כדי לחזור בדיוק למסך הקודם.
-3. **Fallback** (אין היסטוריה ואין `pendingStoryReturn`): לנווט ל-`"/"`.
+## What the summary modal shows
+A compact card, in Hebrew, RTL, matching the magical dark theme of the Upgrade page:
 
-לא ייגעו בקבצים אחרים, ולא בהתנהגות אחרת של המסך.
+- Header: "סיכום הרכישה 🌿"
+- **חבילה**: tier label (e.g. "דיגיטלי + מודפס")
+- **מה כלול**: bullet list of `tier.features` that are `included: true` (for the digital tier we already filter; for the full tier show the included list)
+- **קופון**: if `appliedCouponCode` is set, show `code` + `-X%`
+- **מחיר**:
+  - If discount applied: original price (line-through) + discounted price
+  - Else: original price only
+- Small note: "📚 הסיפור נשמר בספרייה החינמית שלך לכל החיים"
+- Buttons:
+  - Primary: "אישור ורכישה ₪{finalPrice} ✨" (gradient, same style as current CTA)
+  - Secondary: "חזרה" (ghost) → closes modal, returns to selection
 
-### Pseudocode
-```ts
-const handleClose = () => {
-  try {
-    const raw = sessionStorage.getItem("pendingStoryReturn");
-    if (raw) {
-      const { path } = JSON.parse(raw);
-      sessionStorage.removeItem("pendingStoryReturn");
-      if (path) { navigate(`${path}?paywall=1`); return; }
-    }
-  } catch {}
-  if (user && window.history.length > 1) { navigate(-1); return; }
-  navigate("/");
-};
-```
+## Files to change
+- `src/pages/Upgrade.tsx`
+  - Add `const [showSummary, setShowSummary] = useState(false);`
+  - Tier card `onClick` → only `setSelectedTier(tier.id)` (remove the `setTimeout(handlePurchase)`)
+  - Bottom CTA `onClick` → `setShowSummary(true)` instead of `handlePurchase`
+  - Pass `selectedTierData`, `discountPercent`, `discountedPrice`, `appliedCouponCode`, and an `onConfirm` callback (which calls existing `handlePurchase`) to the new modal
+  - Track analytics event `purchase_summary_viewed` when the modal opens
+
+- New file `src/components/paywall/PurchaseSummaryModal.tsx`
+  - Built on shadcn `Dialog` (already used elsewhere in the project)
+  - Receives: `open`, `onOpenChange`, `tier`, `originalPrice`, `finalPrice`, `discountPercent`, `couponCode`, `onConfirm`
+  - Renders the layout described above
+
+## Out of scope
+- No changes to actual payment processing, `verify-purchase`, or first-purchase-bonus logic
+- No changes to copy of the existing tier cards
+- No changes to coupon validation
+- No route changes — the summary is a modal, not a separate `/checkout` page
