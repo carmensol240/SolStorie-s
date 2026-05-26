@@ -757,6 +757,28 @@ const Library = () => {
         </div>
 
         {/* Top-level library tabs: Stories vs Coloring Pages */}
+        {hasAnyPurchase && (credits ?? 0) > 0 && (
+          <button
+            onClick={() => navigate('/create')}
+            className="w-full mb-3 rounded-2xl px-4 py-3 text-right shadow-lg border border-yellow-300/50 bg-gradient-to-l from-yellow-500/20 via-amber-500/15 to-purple-600/20 hover:from-yellow-500/30 hover:to-purple-600/30 transition-all"
+            aria-label="צרו סיפור נוסף עם הקרדיט החינמי שלכם"
+          >
+            <div className="flex items-center gap-3">
+              <div className="text-3xl">🎁</div>
+              <div className="flex-1">
+                <div className="text-yellow-200 font-black text-sm leading-tight">
+                  יש לך {credits} קרדיט{(credits ?? 0) > 1 ? 'ים' : ''} לסיפור נוסף חינם!
+                </div>
+                <div className="text-white/70 text-[11px] font-semibold mt-0.5">
+                  ✨ ללא תוקף – הקרדיט שמור לכם לכל החיים
+                </div>
+              </div>
+              <div className="text-yellow-300 text-xs font-bold whitespace-nowrap">
+                צרו עכשיו ←
+              </div>
+            </div>
+          </button>
+        )}
         <Tabs value={libraryTab} onValueChange={setLibraryTab} dir="rtl" className="w-full mb-4">
           <TabsList className="w-full bg-purple-100/60 rounded-xl p-1 gap-1">
             <TabsTrigger
