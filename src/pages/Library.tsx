@@ -740,14 +740,16 @@ const Library = () => {
                   <img src={avatarUrl} alt="דמות הילד" className="w-full h-full object-cover" />
                 </div>
               )}
-              <button
-                onClick={() => navigate("/upgrade")}
-                className="flex items-center gap-1.5 bg-white/10 border border-purple-400/40 rounded-full px-3 py-1.5 hover:bg-white/20 transition-colors shadow-md"
-                aria-label="סיפורים זמינים ליצירה"
-              >
-                <Wand2 className="w-4 h-4 text-yellow-400" aria-hidden="true" />
-                <span className="font-bold text-yellow-300 text-sm">{credits ?? 0}</span>
-              </button>
+              {(credits ?? 0) > 0 && (
+                <button
+                  onClick={() => navigate("/upgrade")}
+                  className="flex items-center gap-1.5 bg-white/10 border border-purple-400/40 rounded-full px-3 py-1.5 hover:bg-white/20 transition-colors shadow-md"
+                  aria-label="סיפורים זמינים ליצירה"
+                >
+                  <Wand2 className="w-4 h-4 text-yellow-400" aria-hidden="true" />
+                  <span className="font-bold text-yellow-300 text-sm">{credits}</span>
+                </button>
+              )}
               <div className="flex items-center gap-1 bg-white/10 border border-purple-400/40 rounded-full px-3 py-1.5 shadow-md">
                 <BookOpen className="w-4 h-4 text-purple-300" aria-hidden="true" />
                 <span className="font-bold text-purple-200 text-sm">{stories.length}</span>
