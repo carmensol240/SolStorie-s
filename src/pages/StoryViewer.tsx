@@ -1497,8 +1497,8 @@ const [currentPage, setCurrentPage] = useState(0);
 
   const currentVirtual = isContentPage ? virtualPages[currentPage] : null;
 
-  // Demo paywall: limit demo users to first 2 DB pages (free preview)
-  const DEMO_PAGE_LIMIT = 2;
+  // Demo paywall: limit demo users to first 3 DB pages (free preview)
+  const DEMO_PAGE_LIMIT = 3;
   const isLockedVirtualPage = (index: number) => {
     if (!isDemoUser) return false;
     const vp = virtualPages[index];
