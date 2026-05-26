@@ -1,48 +1,37 @@
-## Goal
-Add a short "purchase summary" confirmation screen that appears after the user clicks "Buy", BEFORE the payment is actually executed — so they can verify the package type, final price, and what's included to reduce mistaken purchases.
+## הבעיה
 
-## Where it fits in the flow
-Current flow (in `src/pages/Upgrade.tsx`):
-1. User picks a tier card (digital / digital+printable) → tier card click immediately calls `handlePurchase()`
-2. Bottom CTA button also calls `handlePurchase()` directly
-3. `handlePurchase()` → either redirects to `/auth`, runs `handleTestPurchase`, or shows a "coming soon" toast
+הקרדיט לא עולה אחרי רכישה, ומסך הספרייה לא מתעדכן אוטומטית.
 
-New flow:
-1. User picks a tier card (no auto-purchase anymore)
-2. User taps bottom CTA → opens a **Purchase Summary Modal** (not a new route)
-3. In the modal: user reviews and taps "אישור ורכישה" to actually charge, or "חזרה" to cancel and pick again
-4. Confirmation → existing `handlePurchase()` logic runs (auth redirect / test purchase / toast)
+שני באגים מאחורי זה:
 
-## What the summary modal shows
-A compact card, in Hebrew, RTL, matching the magical dark theme of the Upgrade page:
+1. **בקצה האחורי (`verify-purchase`)** — מסך השדרוג שולח `packageId: "single_story_digital"` או `"single_story_full"`, אבל `packageConfig` יודע רק על `"single_story"` (וגם הוא מוגדר עם `stories: 0`). התוצאה: כל רכישה נדחית כ-"Unknown package", או — אם בכלל עוברת — לא מוסיפה קרדיט סיפור.
+2. **במסך הספרייה** — `useCredits` נטען פעם אחת ולא מאזין לאירוע `purchase-completed` ש-`Upgrade.tsx` כבר משדר. ל-`StoryViewer` יש מאזין כזה, ל-`Library` אין.
 
-- Header: "סיכום הרכישה 🌿"
-- **חבילה**: tier label (e.g. "דיגיטלי + מודפס")
-- **מה כלול**: bullet list of `tier.features` that are `included: true` (for the digital tier we already filter; for the full tier show the included list)
-- **קופון**: if `appliedCouponCode` is set, show `code` + `-X%`
-- **מחיר**:
-  - If discount applied: original price (line-through) + discounted price
-  - Else: original price only
-- Small note: "📚 הסיפור נשמר בספרייה החינמית שלך לכל החיים"
-- Buttons:
-  - Primary: "אישור ורכישה ₪{finalPrice} ✨" (gradient, same style as current CTA)
-  - Secondary: "חזרה" (ghost) → closes modal, returns to selection
+## מה לבנות
 
-## Files to change
-- `src/pages/Upgrade.tsx`
-  - Add `const [showSummary, setShowSummary] = useState(false);`
-  - Tier card `onClick` → only `setSelectedTier(tier.id)` (remove the `setTimeout(handlePurchase)`)
-  - Bottom CTA `onClick` → `setShowSummary(true)` instead of `handlePurchase`
-  - Pass `selectedTierData`, `discountPercent`, `discountedPrice`, `appliedCouponCode`, and an `onConfirm` callback (which calls existing `handlePurchase`) to the new modal
-  - Track analytics event `purchase_summary_viewed` when the modal opens
+### 1. `supabase/functions/verify-purchase/index.ts`
+- להוסיף ל-`packageConfig`:
+  - `single_story_digital: { stories: 1, freeEdits: 1, coloringPages: 0 }`
+  - `single_story_full:    { stories: 1, freeEdits: 1, coloringPages: 1 }`
+- כך כל רכישה = קרדיט סיפור אחד נוסף לפרופיל. הזיכוי נעשה ב-DB (`profiles.story_credits += 1`), אטומי ובלתי תלוי ברענון לקוח.
+- להחזיר בתגובה `credits.storyCredits` החדש (כבר קיים) — נשתמש בלקוח לעדכון מיידי.
 
-- New file `src/components/paywall/PurchaseSummaryModal.tsx`
-  - Built on shadcn `Dialog` (already used elsewhere in the project)
-  - Receives: `open`, `onOpenChange`, `tier`, `originalPrice`, `finalPrice`, `discountPercent`, `couponCode`, `onConfirm`
-  - Renders the layout described above
+### 2. `src/hooks/use-credits.ts`
+- להוסיף `useEffect` שמאזין ל-`window` event `purchase-completed` ומפעיל `fetchCredits()`. כך **כל** מסך שמשתמש ב-hook (Library, StoryViewer, Home וכו') יתעדכן מיד אחרי רכישה — בלי לגעת בכל מסך בנפרד.
+- בנוסף: לרענן אוטומטית כש-טאב המסמך חוזר לפוקוס (`visibilitychange`) — שומר על סנכרון גם אחרי חזרה מ-PayPal בחלון אחר.
 
-## Out of scope
-- No changes to actual payment processing, `verify-purchase`, or first-purchase-bonus logic
-- No changes to copy of the existing tier cards
-- No changes to coupon validation
-- No route changes — the summary is a modal, not a separate `/checkout` page
+### 3. `src/pages/Upgrade.tsx`
+- ב-`handleTestPurchase` (וכל מסלול רכישה עתידי) — אחרי `refetchCredits()` כבר משדר `purchase-completed`. נוודא שזה נשאר, ושנקרא לזה **אחרי** שהשרת אישר ולא רק אופטימית.
+- אופציונלי: אם הרספונס מכיל `credits.storyCredits`, להציג ב-`PurchaseSuccessModal` את הערך המעודכן (במקום הקבוע `creditsAdded={1}` — נשאיר 1 כי זה אכן 1 לרכישה).
+
+### פרטים טכניים
+
+- אין שינוי סכמה — `profiles.story_credits` כבר קיים והעדכון נעשה ע"י service role (עוקף את ה-trigger `prevent_profile_privilege_escalation`).
+- האירוע `purchase-completed` הוא `CustomEvent` קיים; ההאזנה ב-hook נעשית פעם אחת ומסונכרנת בין מסכים באותו tab.
+- אין צורך ב-Realtime/Postgres changes — האירוע מתפעל בצד הלקוח ברגע שה-Edge Function מחזיר הצלחה.
+
+### בדיקות ידניות
+
+1. עם משתמש הטסט (`carmit1901+test@gmail.com`) ללחוץ "רכשו" → לאשר במודאל הסיכום → לוודא ש-`story_credits` עלה ב-1 ב-DB.
+2. לחזור לספרייה → ה-Pill "סיפורים זמינים" עלה ב-1 מיד, בלי refresh.
+3. רכישה שנייה → +1 נוסף, מצטבר.
