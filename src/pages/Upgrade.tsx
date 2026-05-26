@@ -206,18 +206,6 @@ const Upgrade = () => {
                       : "border-white/15 hover:border-white/30"
                   )}
                 >
-                  {tier.id === "full" && (
-                    <span
-                      role="button"
-                      tabIndex={0}
-                      onClick={(e) => { e.stopPropagation(); setShowSampleBook(true); }}
-                      onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); e.stopPropagation(); setShowSampleBook(true); } }}
-                      className="absolute -top-3 -right-3 z-10 rotate-12 px-2.5 py-1 rounded-full text-[11px] font-black text-white bg-gradient-to-br from-yellow-400 via-orange-400 to-amber-500 border border-yellow-200/70 shadow-[0_0_18px_rgba(251,191,36,0.7)] cursor-pointer hover:scale-110 active:scale-95 transition-transform animate-pulse"
-                      style={{ textShadow: "0 1px 2px rgba(120,53,15,0.4)" }}
-                    >
-                      📖 לדוגמא לספר המודפס
-                    </span>
-                  )}
                   {tier.id === "digital" && (
                     <div className="mb-1 px-2 py-0.5 rounded-full bg-green-500/20 text-green-300 text-[10px] font-bold border border-green-500/30">
                       🌱 מושלם להתחיל!
@@ -229,20 +217,31 @@ const Upgrade = () => {
                   </div>
                   <div className="w-full space-y-2">
                     {(tier.id === "digital" ? tier.features.filter((f) => f.included) : tier.features).map((feature) => (
-                      <div key={feature.label} className="flex items-center gap-2">
-                        {feature.included ? (
-                          <Check className="w-4 h-4 text-green-400 shrink-0" />
-                        ) : (
-                          <X className="w-4 h-4 text-red-400 shrink-0" />
-                        )}
-                        <span
-                          className={cn(
-                            "text-xs font-semibold whitespace-pre-line",
-                            feature.included ? "text-white/90" : "text-white/40 line-through"
+                      <div key={feature.label}>
+                        <div className="flex items-center gap-2">
+                          {feature.included ? (
+                            <Check className="w-4 h-4 text-green-400 shrink-0" />
+                          ) : (
+                            <X className="w-4 h-4 text-red-400 shrink-0" />
                           )}
-                        >
-                          {feature.label}
-                        </span>
+                          <span
+                            className={cn(
+                              "text-xs font-semibold whitespace-pre-line",
+                              feature.included ? "text-white/90" : "text-white/40 line-through"
+                            )}
+                          >
+                            {feature.label}
+                          </span>
+                        </div>
+                        {tier.id === "full" && feature.label.includes("קובץ להדפסה עצמית לספר") && (
+                          <button
+                            type="button"
+                            onClick={(e) => { e.stopPropagation(); setShowSampleBook(true); }}
+                            className="mt-1.5 inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-bold text-amber-200 bg-amber-500/20 border border-amber-400/40 hover:bg-amber-500/30 transition-colors cursor-pointer"
+                          >
+                            📖 לדוגמא לספר המודפס
+                          </button>
+                        )}
                       </div>
                     ))}
                   </div>
