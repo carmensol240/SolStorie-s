@@ -84,10 +84,10 @@ const PurchaseSummaryModal = ({
               <span className="text-xl font-black">
                 {hasDiscount && (
                   <span className="line-through opacity-50 text-sm mx-1 font-bold">
-                    ₪{originalPrice.toFixed(2)}
+                    ₪{tier.id === "full" ? "59.90" : originalPrice.toFixed(2)}
                   </span>
                 )}
-                ₪{Number(finalPrice).toFixed(2)}
+                ₪{(tier.id === "full" && !hasDiscount) ? "59.90" : Number(finalPrice).toFixed(2)}
               </span>
             </div>
           </div>
