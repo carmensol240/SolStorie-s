@@ -781,6 +781,28 @@ const Library = () => {
             </div>
           </button>
         )}
+        {(credits ?? 0) <= 0 && (
+          <button
+            onClick={() => navigate('/upgrade')}
+            className="w-full mb-3 rounded-2xl px-4 py-3 text-right shadow-lg border border-purple-300/50 bg-gradient-to-l from-purple-500/10 to-pink-500/10 hover:from-purple-500/20 hover:to-pink-500/20 transition-all"
+            aria-label="רכשו קרדיטים ליצירת סיפורים חדשים"
+          >
+            <div className="flex items-center gap-3">
+              <div className="text-3xl">💎</div>
+              <div className="flex-1">
+                <div className="text-purple-800 font-bold text-sm leading-tight">
+                  אין לכם כרגע קרדיטים זמינים
+                </div>
+                <div className="text-purple-600/80 text-[11px] font-semibold mt-0.5">
+                  רכשו סיפור חדש כדי ליצור תוכן מותאם אישית
+                </div>
+              </div>
+              <div className="text-purple-700 text-xs font-bold whitespace-nowrap">
+                לרכישה ←
+              </div>
+            </div>
+          </button>
+        )}
         <Tabs value={libraryTab} onValueChange={setLibraryTab} dir="rtl" className="w-full mb-4">
           <TabsList className="w-full bg-purple-100/60 rounded-xl p-1 gap-1">
             <TabsTrigger
