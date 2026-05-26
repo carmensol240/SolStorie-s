@@ -43,6 +43,22 @@ export const useCredits = () => {
     fetchCredits();
   }, [fetchCredits]);
 
+  // Refresh credits when a purchase completes or the tab regains focus
+  useEffect(() => {
+    const onPurchase = () => fetchCredits();
+    const onVisibility = () => {
+      if (document.visibilityState === 'visible') fetchCredits();
+    };
+    window.addEventListener('purchase-completed', onPurchase);
+    document.addEventListener('visibilitychange', onVisibility);
+    window.addEventListener('focus', onPurchase);
+    return () => {
+      window.removeEventListener('purchase-completed', onPurchase);
+      document.removeEventListener('visibilitychange', onVisibility);
+      window.removeEventListener('focus', onPurchase);
+    };
+  }, [fetchCredits]);
+
   const hasCredits = useCallback(() => {
     return credits !== null && credits > 0;
   }, [credits]);

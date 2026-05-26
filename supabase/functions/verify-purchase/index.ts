@@ -157,6 +157,8 @@ Deno.serve(async (req) => {
       edit_kit: { stories: 0, freeEdits: 0, coloringPages: 0, editingCredits: 5 },
       toolkit_yearly: { stories: 0, freeEdits: 0, coloringPages: 0, isSubscription: true },
       single_story: { stories: 0, freeEdits: 0, coloringPages: 0 },
+      single_story_digital: { stories: 1, freeEdits: 1, coloringPages: 0 },
+      single_story_full: { stories: 1, freeEdits: 1, coloringPages: 1 },
     };
 
     const config = packageConfig[packageId];
