@@ -757,7 +757,6 @@ const Library = () => {
         </div>
 
         {/* Top-level library tabs: Stories vs Coloring Pages */}
-        <Tabs value={libraryTab} onValueChange={setLibraryTab} dir="rtl" className="w-full mb-4">
         {hasAnyPurchase && (credits ?? 0) > 0 && (
           <button
             onClick={() => navigate('/create')}
