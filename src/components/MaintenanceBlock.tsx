@@ -103,7 +103,7 @@ const MaintenanceBlock = () => {
 
         {/* Subtitle */}
         <p className="max-w-md text-base sm:text-lg text-white/85 leading-relaxed">
-          אנחנו משפרים את החוויה שלכם. השאירו מייל ונהיה הראשונים לדעת!
+          אנחנו משפרים את החוויה שלכם. השאירו מייל ותהיו הראשונים לדעת!
         </p>
 
         {/* Form */}
