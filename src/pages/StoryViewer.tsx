@@ -539,9 +539,8 @@ const [currentPage, setCurrentPage] = useState(0);
         let n = Number(saved);
         if (Number.isFinite(n) && n > 0) {
           // Demo users may not land on a locked page after returning from /upgrade.
-          // DEMO_PAGE_LIMIT (3) refers to page_number (1-based); allowed indices are 0..2.
           if (isDemoUser) {
-            const maxAllowedIndex = 3 - 1; // DEMO_PAGE_LIMIT - 1
+            const maxAllowedIndex = DEMO_PAGE_LIMIT - 1;
             n = Math.min(n, maxAllowedIndex);
           }
           setCurrentPage(n);
@@ -1498,8 +1497,8 @@ const [currentPage, setCurrentPage] = useState(0);
 
   const currentVirtual = isContentPage ? virtualPages[currentPage] : null;
 
-  // Demo paywall: limit demo users to first 4 DB pages (free preview)
-  const DEMO_PAGE_LIMIT = 4;
+  // Demo paywall: limit demo users to first 2 DB pages (free preview)
+  const DEMO_PAGE_LIMIT = 2;
   const isLockedVirtualPage = (index: number) => {
     if (!isDemoUser) return false;
     const vp = virtualPages[index];
@@ -2102,7 +2101,7 @@ const [currentPage, setCurrentPage] = useState(0);
         open={demoPaywallOpen}
         onOpenChange={setDemoPaywallOpen}
         title="✨ רוצים לקרוא את הסיפור המלא?"
-        description="רוצים להמשיך לקרוא את הסיפור? ב־19.90₪ בלבד וקבלו קרדיט לסיפור נוסף חינם! 🎁"
+        description="רוצים להמשיך לקרוא את הסיפור? ב־29.90₪ בלבד וקבלו קרדיט לסיפור נוסף חינם! 🎁"
         storyId={storyId}
       />
 
