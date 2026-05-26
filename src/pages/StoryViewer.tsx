@@ -1532,7 +1532,7 @@ const [currentPage, setCurrentPage] = useState(0);
     if (direction === 'next' && currentPage >= maxPage) return;
     if (direction === 'prev' && currentPage <= 0) return;
 
-    // Demo paywall: block forward navigation past page 3
+    // Demo paywall: block forward navigation past the free preview limit
     if (direction === 'next' && isLockedVirtualPage(currentPage + 1)) {
       setDemoPaywallOpen(true);
       return;
