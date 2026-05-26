@@ -213,7 +213,7 @@ const Upgrade = () => {
                   )}
                   <div className="text-lg font-black text-white mb-1">{tier.label}</div>
                   <div className="text-2xl font-black bg-gradient-to-r from-purple-300 via-pink-300 to-orange-300 bg-clip-text text-transparent mb-3">
-                    ₪{tier.price.toFixed(2)}
+                    ₪{tier.id === "full" ? "59.90" : tier.price.toFixed(2)}
                   </div>
                   <div className="w-full space-y-2">
                     {(tier.id === "digital" ? tier.features.filter((f) => f.included) : tier.features).map((feature) => (
@@ -293,11 +293,11 @@ const Upgrade = () => {
             {discountPercent > 1 ? (
               <>
                 רכשו {selectedTierData.label} ב-
-                <span className="line-through opacity-60 mx-1">₪{selectedTierData.price.toFixed(2)}</span>
+                <span className="line-through opacity-60 mx-1">₪{selectedTierData.id === "full" ? "59.90" : selectedTierData.price.toFixed(2)}</span>
                 ₪{discountedPrice} ✨
               </>
             ) : (
-              <>רכשו {selectedTierData.label} ב-₪{selectedTierData.price.toFixed(2)} ✨</>
+              <>רכשו {selectedTierData.label} ב-₪{selectedTierData.id === "full" ? "59.90" : selectedTierData.price.toFixed(2)} ✨</>
             )}
           </Button>
         </div>
