@@ -769,7 +769,7 @@ const Library = () => {
               <div className="text-3xl">🎁</div>
               <div className="flex-1">
                 <div className="text-purple-800 font-black text-sm leading-tight whitespace-pre-line">
-                  יש לך {credits} קרדיטים לסיפורים נוספים{"\n"}!
+                  יש לך {credits} קרדיטים לסיפורים נוספים {"\n"}
                 </div>
                 <div className="text-purple-600/80 text-[11px] font-semibold mt-0.5">
                   ✨ ללא תוקף – הקרדיט שמור לכם לכל החיים
