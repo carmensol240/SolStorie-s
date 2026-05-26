@@ -743,10 +743,10 @@ const Library = () => {
               <button
                 onClick={() => navigate("/upgrade")}
                 className="flex items-center gap-1.5 bg-white/10 border border-purple-400/40 rounded-full px-3 py-1.5 hover:bg-white/20 transition-colors shadow-md"
-                aria-label="צפה בקרדיטים ושדרג"
+                aria-label="סיפורים זמינים ליצירה"
               >
-                <Coins className="w-4 h-4 text-yellow-400" aria-hidden="true" />
-                <span className="font-bold text-yellow-300 text-sm">{totalCredits}</span>
+                <Wand2 className="w-4 h-4 text-yellow-400" aria-hidden="true" />
+                <span className="font-bold text-yellow-300 text-sm">{credits ?? 0}</span>
               </button>
               <div className="flex items-center gap-1 bg-white/10 border border-purple-400/40 rounded-full px-3 py-1.5 shadow-md">
                 <BookOpen className="w-4 h-4 text-purple-300" aria-hidden="true" />
