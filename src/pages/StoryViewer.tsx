@@ -1497,8 +1497,8 @@ const [currentPage, setCurrentPage] = useState(0);
 
   const currentVirtual = isContentPage ? virtualPages[currentPage] : null;
 
-  // Demo paywall: limit demo users to first 2 DB pages (free preview)
-  const DEMO_PAGE_LIMIT = 2;
+  // Demo paywall: limit demo users to first 3 DB pages (free preview)
+  const DEMO_PAGE_LIMIT = 3;
   const isLockedVirtualPage = (index: number) => {
     if (!isDemoUser) return false;
     const vp = virtualPages[index];
@@ -1532,7 +1532,7 @@ const [currentPage, setCurrentPage] = useState(0);
     if (direction === 'next' && currentPage >= maxPage) return;
     if (direction === 'prev' && currentPage <= 0) return;
 
-    // Demo paywall: block forward navigation past page 3
+    // Demo paywall: block forward navigation past the free preview limit
     if (direction === 'next' && isLockedVirtualPage(currentPage + 1)) {
       setDemoPaywallOpen(true);
       return;
