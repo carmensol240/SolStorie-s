@@ -24,7 +24,7 @@ const TIERS = {
   digital: {
     id: "digital" as Tier,
     label: "דיגיטלי",
-    price: 59.90,
+    price: 29.90,
     features: [
       { label: "סיפור דיגיטלי יחיד", included: true },
       { label: "קובץ PDF להדפסה עצמית והפיכת הסיפור לספר 📖", included: false },
