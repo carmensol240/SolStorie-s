@@ -557,20 +557,21 @@ const [currentPage, setCurrentPage] = useState(0);
   }, []);
 
   // Show "print PDF" offer when a free/demo user OR a single_story_digital buyer finishes the story (once per story)
-  const shouldShowPdfOffer = isDemoUser || (hasPurchasedPackage && !hasPdfEntitlement);
+  const testPdfOfferFlag = new URLSearchParams(location.search).get('test_pdf_offer') === '1';
+  const shouldShowPdfOffer = testPdfOfferFlag || isDemoUser || (hasPurchasedPackage && !hasPdfEntitlement);
   useEffect(() => {
     if (!story?.id || !purchaseChecksReady || !shouldShowPdfOffer) return;
     const total = (story.pages?.length ?? 0);
     if (total === 0) return;
     if (currentPage < total) return;
     const key = `print_pdf_offer_shown_${story.id}`;
-    if (localStorage.getItem(key)) return;
+    if (!testPdfOfferFlag && localStorage.getItem(key)) return;
     const t = setTimeout(() => {
       setShowPrintPdfOffer(true);
-      localStorage.setItem(key, "1");
+      if (!testPdfOfferFlag) localStorage.setItem(key, "1");
     }, 600);
     return () => clearTimeout(t);
-  }, [currentPage, shouldShowPdfOffer, story?.id, story?.pages?.length, purchaseChecksReady]);
+  }, [currentPage, shouldShowPdfOffer, story?.id, story?.pages?.length, purchaseChecksReady, testPdfOfferFlag]);
 
   // Restore last-viewed page after returning from purchase (or any in-tab navigation)
   const didRestorePageRef = useRef(false);
