@@ -272,6 +272,7 @@ const [currentPage, setCurrentPage] = useState(0);
   const [onlineColoringImageUrl, setOnlineColoringImageUrl] = useState<string | null>(null);
   const [cachedColoringUrl, setCachedColoringUrl] = useState<string | null>(null);
   const [cachedIllustrationUrl, setCachedIllustrationUrl] = useState<string | null>(null);
+  const [coloringUpsellOpen, setColoringUpsellOpen] = useState(false);
   const { user } = useAuth();
   const { coloringCredits } = useColoringCredits();
 
@@ -2208,9 +2209,7 @@ const [currentPage, setCurrentPage] = useState(0);
                     });
                     if (response.error) throw response.error;
                     if ((response.data as any)?.upsell) {
-                      sonnerToast.error("נגמרו קרדיטי הצביעה 🎨", {
-                        action: { label: "לרכישה", onClick: () => navigate("/upgrade") },
-                      });
+                      setColoringUpsellOpen(true);
                       return;
                     }
                     const coloringUrl = (response.data as any)?.image;
@@ -2324,9 +2323,7 @@ const [currentPage, setCurrentPage] = useState(0);
                       });
                       if (response.error) throw response.error;
                       if ((response.data as any)?.upsell) {
-                        sonnerToast.error("נגמרו קרדיטי הצביעה 🎨", {
-                          action: { label: "לרכישה", onClick: () => navigate("/upgrade") },
-                        });
+                        setColoringUpsellOpen(true);
                         return;
                       }
                       const coloringUrl = (response.data as any)?.image;
@@ -2366,9 +2363,7 @@ const [currentPage, setCurrentPage] = useState(0);
                       });
                       if (response.error) throw response.error;
                       if ((response.data as any)?.upsell) {
-                        sonnerToast.error("נגמרו קרדיטי הצביעה 🎨", {
-                          action: { label: "לרכישה", onClick: () => navigate("/upgrade") },
-                        });
+                        setColoringUpsellOpen(true);
                         return;
                       }
                       const coloringUrl = (response.data as any)?.image;
