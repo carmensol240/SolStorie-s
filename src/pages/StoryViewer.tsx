@@ -2121,7 +2121,7 @@ const [currentPage, setCurrentPage] = useState(0);
         open={demoPaywallOpen}
         onOpenChange={setDemoPaywallOpen}
         title="✨ רוצים לקרוא את הסיפור המלא?"
-        description="רוצים להמשיך לקרוא את הסיפור? ב־29.90₪ בלבד וקבלו קרדיט לסיפור נוסף חינם! 🎁"
+        description="🎁 סיפור ראשון? מגיע לך מתנה! רכשו ב-29.90 ₪ וקבלו סיפור דיגיטלי נוסף"
         storyId={storyId}
       />
 
