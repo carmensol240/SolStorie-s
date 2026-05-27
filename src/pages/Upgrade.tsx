@@ -27,7 +27,7 @@ const TIERS = {
     price: 29.90,
     features: [
       { label: "סיפור דיגיטלי יחיד", included: true },
-      { label: "קובץ PDF להדפסה עצמית והפיכת הסיפור לספר 📖", included: false },
+      { label: "הדפס את הסיפור לספר- \nקובץ FDF להדפסת הספר בבית\n", included: false },
       { label: "🎨 דף צביעה דיגיטלי+ להדפסה", included: false },
       { label: "✏️ תיקון טקסט חינם\n\n", included: true },
       { label: "📚 ספרייה חינמית לכל החיים", included: true },
@@ -42,7 +42,7 @@ const TIERS = {
     features: [
       { label: "✅ כולל את כל מה שבחבילה הדיגיטלית +", included: true },
       { label: "🎨 דף צביעה דיגיטלי+ להדפסה", included: true },
-      { label: "קובץ להדפסה עצמית לספר 📖", included: true },
+      { label: "הדפס את הסיפור לספר- \nקובץ FDF להדפסת הספר בבית\n", included: true },
     ],
   },
 } as const;
@@ -233,7 +233,7 @@ const Upgrade = () => {
                             {feature.label}
                           </span>
                         </div>
-                        {tier.id === "full" && feature.label.includes("קובץ להדפסה עצמית לספר") && (
+                        {tier.id === "full" && feature.label.includes("הדפס את הסיפור לספר") && (
                           <button
                             type="button"
                             onClick={(e) => { e.stopPropagation(); setShowSampleBook(true); }}
