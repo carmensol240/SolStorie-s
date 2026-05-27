@@ -231,6 +231,7 @@ const [currentPage, setCurrentPage] = useState(0);
   const [showPrintPreviewModal, setShowPrintPreviewModal] = useState(false);
   const [showPrintPdfOffer, setShowPrintPdfOffer] = useState(false);
   const [hasPurchasedPackage, setHasPurchasedPackage] = useState(false);
+  const [hasPdfEntitlement, setHasPdfEntitlement] = useState(false);
   const [isSubscriberUser, setIsSubscriberUser] = useState(false);
   const [hasStoryCredits, setHasStoryCredits] = useState(false);
   const [isAdminUser, setIsAdminUser] = useState(false);
@@ -397,6 +398,13 @@ const [currentPage, setCurrentPage] = useState(0);
         return !name.includes('single_story');
       });
       setHasPurchasedPackage(hasPackage);
+      // PDF download requires either a multi-story package OR a single_story_full unlock.
+      // single_story_digital (29.90 ₪) does NOT grant PDF rights.
+      const hasFullPdfRight = (data ?? []).some((row: any) => {
+        const name: string = row?.package_name ?? '';
+        return !name.includes('single_story') || name.includes('single_story_full');
+      });
+      setHasPdfEntitlement(hasFullPdfRight);
     }
     setPurchaseChecked(true);
   }, [user?.id]);
@@ -503,6 +511,23 @@ const [currentPage, setCurrentPage] = useState(0);
       fn();
     };
   }, [isDemoUser]);
+
+  // PDF download is gated more strictly than other demo-locked actions:
+  // only single_story_full (79.90 ₪), multi-story packages, subscribers,
+  // admins, or testers may download. single_story_digital buyers see the
+  // upgrade modal so they can buy the full version.
+  const canDownloadPdf = !!user && (
+    hasPdfEntitlement || isSubscriberUser || isAdminUser || isTester
+  ) && !isForcedDemo;
+  const guardPdfDownload = useCallback((fn: () => void) => {
+    return () => {
+      if (!canDownloadPdf) {
+        setDemoLockOpen(true);
+        return;
+      }
+      fn();
+    };
+  }, [canDownloadPdf]);
 
   // Open paywall popup (from ?paywall=1) only after entitlement checks complete
   // AND the user is actually a demo user. Avoids the brief "flash" for paid users.
@@ -1588,7 +1613,7 @@ const [currentPage, setCurrentPage] = useState(0);
       <BookHeader
         onBack={() => navigate("/library")}
         onShare={guardDemo(handleShare)}
-            onDownload={guardDemo(() => story && exportToPdf(story))}
+            onDownload={guardPdfDownload(() => story && exportToPdf(story))}
         onShareWhatsApp={guardDemo(handleShareWhatsApp)}
         onToggleFontSize={() => setFontSizeIndex((fontSizeIndex + 1) % FONT_SIZES.length)}
         onEdit={showPageActions ? handleEditClick : undefined}
