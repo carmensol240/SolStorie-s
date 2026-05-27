@@ -618,7 +618,7 @@ export const OnlineColoringCanvas: React.FC<OnlineColoringCanvasProps> = ({
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-50 bg-white flex flex-col overflow-hidden" style={{
+    <div className="fixed inset-0 z-50 bg-white overflow-hidden" style={{
       height: '100dvh',
       ...(isLandscape && !orientationLockSupported.current ? {
         transform: 'rotate(-90deg)',
@@ -632,8 +632,8 @@ export const OnlineColoringCanvas: React.FC<OnlineColoringCanvasProps> = ({
         marginLeft: 'calc(-50dvh)',
       } : {})
     }}>
-      {/* Top bar */}
-      <div ref={topBarRef} className="flex-shrink-0 flex justify-between items-center px-2 py-1.5 bg-gradient-to-r from-purple-600/90 to-pink-500/90" dir="rtl">
+      {/* Top bar — floating overlay */}
+      <div ref={topBarRef} className="absolute top-0 left-0 right-0 z-20 flex justify-between items-center px-2 py-1.5 bg-gradient-to-r from-purple-600/80 to-pink-500/80 backdrop-blur-sm" dir="rtl">
         <Button onClick={handleClose} variant="ghost" size="sm" className="text-white hover:bg-white/20 rounded-xl gap-1 min-h-[36px] px-2 text-sm">
           <ArrowRight className="w-4 h-4" /> חזרה
         </Button>
@@ -682,7 +682,7 @@ export const OnlineColoringCanvas: React.FC<OnlineColoringCanvasProps> = ({
       </div>
 
       {/* Canvas area */}
-      <div ref={canvasAreaRef} className="flex-1 min-h-0 w-full overflow-hidden bg-white relative flex items-center justify-center">
+      <div ref={canvasAreaRef} className="absolute inset-0 z-0 w-full h-full overflow-hidden bg-white flex items-center justify-center">
         {!bgLoaded && (
           <div className="absolute inset-0 flex items-center justify-center z-10">
             <div className="animate-spin w-10 h-10 border-4 border-purple-400 border-t-transparent rounded-full" />
@@ -701,8 +701,8 @@ export const OnlineColoringCanvas: React.FC<OnlineColoringCanvasProps> = ({
         </div>
       </div>
 
-      {/* Bottom toolbar */}
-      <div ref={bottomBarRef} className="flex-shrink-0 bg-white/90 backdrop-blur-sm border-t border-purple-200 px-2 py-1.5 space-y-1.5" style={{ paddingBottom: `calc(env(safe-area-inset-bottom, 8px) + 8px)` }}>
+      {/* Bottom toolbar — floating overlay */}
+      <div ref={bottomBarRef} className="absolute bottom-0 left-0 right-0 z-20 bg-white/85 backdrop-blur-sm border-t border-purple-200 px-2 py-1.5 space-y-1.5" style={{ paddingBottom: `calc(env(safe-area-inset-bottom, 8px) + 8px)` }}>
         {/* Tools */}
         <div className="flex items-center justify-center gap-2">
           <button onPointerDown={(e) => { e.stopPropagation(); toolRef.current = 'fill'; setTool('fill'); }}
