@@ -58,6 +58,7 @@ import PdfFeaturePopup from "@/components/story/PdfFeaturePopup";
 import PrintPdfOfferModal from "@/components/story/PrintPdfOfferModal";
 import PrintBookPreviewModal from "@/components/story/PrintBookPreviewModal";
 import InstallAppPrompt from "@/components/story/InstallAppPrompt";
+import ColoringPurchaseModal from "@/components/paywall/ColoringPurchaseModal";
 import DemoLockModal from "@/components/story/DemoLockModal";
 
 import "./StoryViewer.css";
