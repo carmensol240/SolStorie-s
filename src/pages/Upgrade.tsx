@@ -27,7 +27,7 @@ const TIERS = {
     price: 29.90,
     features: [
       { label: "סיפור דיגיטלי יחיד", included: true },
-      { label: "קובץ PDF להדפסה עצמית והפיכת הסיפור לספר 📖", included: false },
+      { label: "הדפס את הסיפור לספר- \nקובץ FDF להדפסת הספר בבית\n", included: false },
       { label: "🎨 דף צביעה דיגיטלי+ להדפסה", included: false },
       { label: "✏️ תיקון טקסט חינם\n\n", included: true },
       { label: "📚 ספרייה חינמית לכל החיים", included: true },
