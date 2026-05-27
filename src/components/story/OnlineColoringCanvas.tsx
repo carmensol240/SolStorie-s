@@ -367,29 +367,18 @@ export const OnlineColoringCanvas: React.FC<OnlineColoringCanvasProps> = ({
     const canvasMaxH = Math.max(120, (areaH || (vh - 240)) - SAFETY);
     const canvasMaxW = Math.max(120, (areaW || (isMobile ? vw : vw)) - SAFETY);
 
-    // Fit-cover: the canvas takes the full available area, and we crop the
-    // source image (centered) to match the area aspect ratio. The trimmed
-    // line art is roughly square; cover only crops the white margin that
-    // getContentBounds left as padding, so no line art is lost in practice.
-    const w = Math.round(canvasMaxW);
-    const h = Math.round(canvasMaxH);
-    const areaRatio = w / h;
+    // Fit-contain: preserve the trimmed image aspect ratio so the full
+    // illustration is always visible — never cropped, never larger than the
+    // available area.
     const imgRatio = bounds.sw / bounds.sh;
-
-    let srcX = bounds.sx;
-    let srcY = bounds.sy;
-    let srcW = bounds.sw;
-    let srcH = bounds.sh;
+    const areaRatio = canvasMaxW / canvasMaxH;
+    let w: number, h: number;
     if (imgRatio > areaRatio) {
-      // Source is wider than target → crop horizontally (left/right).
-      const newSrcW = bounds.sh * areaRatio;
-      srcX = bounds.sx + (bounds.sw - newSrcW) / 2;
-      srcW = newSrcW;
+      w = canvasMaxW;
+      h = Math.round(canvasMaxW / imgRatio);
     } else {
-      // Source is taller/squarer than target → crop vertically (top/bottom).
-      const newSrcH = bounds.sw / areaRatio;
-      srcY = bounds.sy + (bounds.sh - newSrcH) / 2;
-      srcH = newSrcH;
+      h = canvasMaxH;
+      w = Math.round(canvasMaxH * imgRatio);
     }
 
     bgCanvas.width = w; bgCanvas.height = h;
@@ -399,7 +388,7 @@ export const OnlineColoringCanvas: React.FC<OnlineColoringCanvasProps> = ({
     if (ctx) {
       ctx.fillStyle = '#FFFFFF';
       ctx.fillRect(0, 0, w, h);
-      ctx.drawImage(img, srcX, srcY, srcW, srcH, 0, 0, w, h);
+      ctx.drawImage(img, bounds.sx, bounds.sy, bounds.sw, bounds.sh, 0, 0, w, h);
       binarizeToLineArt(ctx, w, h);
     }
     const dCtx = drawCanvas.getContext('2d');
