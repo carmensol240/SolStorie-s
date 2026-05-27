@@ -338,12 +338,20 @@ const [currentPage, setCurrentPage] = useState(0);
       }
     }
 
+    // No cached coloring page for this story → require coloring credits
+    if (coloringCredits <= 0) {
+      sonnerToast.error("דף צביעה דורש קרדיט 🎨", {
+        action: { label: "לרכישה", onClick: () => navigate("/upgrade") },
+      });
+      return;
+    }
+
     setSelectedColoringUrl(null);
     setCachedColoringUrl(null);
     setCachedIllustrationUrl(null);
     setColoringAction('pick');
     setColoringPickerOpen(true);
-  }, [coloringLoading, story, toast, user]);
+  }, [coloringLoading, story, toast, user, coloringCredits, navigate]);
 
 
   const handleImageLoad = useCallback((e: React.SyntheticEvent<HTMLImageElement>) => {
