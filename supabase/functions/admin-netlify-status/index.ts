@@ -60,9 +60,9 @@ Deno.serve(async (req) => {
       });
     }
 
-    const netlifyToken = Deno.env.get("NETLIFY_API_TOKEN");
-    const accountId = Deno.env.get("NETLIFY_ACCOUNT_ID");
-    const siteId = Deno.env.get("NETLIFY_SITE_ID");
+    const netlifyToken = Deno.env.get("NETLIFY_API_TOKEN")?.trim();
+    const accountId = Deno.env.get("NETLIFY_ACCOUNT_ID")?.trim();
+    const siteId = Deno.env.get("NETLIFY_SITE_ID")?.trim();
 
     const authHeaders = { Authorization: `Bearer ${netlifyToken}` };
 
