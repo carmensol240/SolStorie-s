@@ -224,14 +224,20 @@ const Upgrade = () => {
                           ) : (
                             <X className="w-4 h-4 text-red-400 shrink-0" />
                           )}
-                          <span
-                            className={cn(
-                              "text-xs font-semibold whitespace-pre-line",
-                              feature.included ? "text-white/90" : "text-white/40 line-through"
-                            )}
-                          >
-                            {feature.label}
-                          </span>
+                          {tier.id === "digital" && feature.label.includes("📚 כל הסיפורים") ? (
+                            <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-bold text-amber-200 bg-amber-500/20 border border-amber-400/40">
+                              {feature.label}
+                            </span>
+                          ) : (
+                            <span
+                              className={cn(
+                                "text-xs font-semibold whitespace-pre-line",
+                                feature.included ? "text-white/90" : "text-white/40 line-through"
+                              )}
+                            >
+                              {feature.label}
+                            </span>
+                          )}
                         </div>
                         {tier.id === "full" && feature.label.includes("הדפס את הסיפור לספר") && (
                           <button
