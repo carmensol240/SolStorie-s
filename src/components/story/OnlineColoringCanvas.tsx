@@ -517,6 +517,11 @@ export const OnlineColoringCanvas: React.FC<OnlineColoringCanvasProps> = ({
     const drawCtx = canvasRef.current?.getContext('2d');
     const bgCtx = bgCanvasRef.current?.getContext('2d');
     if (!drawCtx || !bgCtx || !canvasRef.current) return;
+    // Bounds check: ignore clicks outside the trimmed image content
+    // (the canvas is sized exactly to getContentBounds, so canvas dims === content bounds).
+    const cw = canvasRef.current.width;
+    const ch = canvasRef.current.height;
+    if (pos.x < 0 || pos.y < 0 || pos.x >= cw || pos.y >= ch) return;
     floodFill(drawCtx, bgCtx, pos.x, pos.y, currentColor, canvasRef.current.width, canvasRef.current.height);
     saveSnapshot();
   }, [getCanvasPos, saveSnapshot]);
