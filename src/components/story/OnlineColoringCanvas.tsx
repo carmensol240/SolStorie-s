@@ -367,29 +367,29 @@ export const OnlineColoringCanvas: React.FC<OnlineColoringCanvasProps> = ({
     const canvasMaxH = Math.max(120, (areaH || (vh - 240)) - SAFETY);
     const canvasMaxW = Math.max(120, (areaW || (isMobile ? vw : vw)) - SAFETY);
 
-    // Fit-cover: fill the entire available area while preserving the image
-    // aspect ratio. Some of the trimmed white margin may be cropped, but
-    // getContentBounds already removed most empty space so actual line art
-    // is preserved. This gives a much larger drawing surface on wide screens
-    // where the (roughly square) coloring page would otherwise leave large
-    // white bands on the sides.
+    // Fit-cover: the canvas takes the full available area, and we crop the
+    // source image (centered) to match the area aspect ratio. The trimmed
+    // line art is roughly square; cover only crops the white margin that
+    // getContentBounds left as padding, so no line art is lost in practice.
+    const w = Math.round(canvasMaxW);
+    const h = Math.round(canvasMaxH);
+    const areaRatio = w / h;
     const imgRatio = bounds.sw / bounds.sh;
-    const areaRatio = canvasMaxW / canvasMaxH;
-    let w: number, h: number;
+
+    let srcX = bounds.sx;
+    let srcY = bounds.sy;
+    let srcW = bounds.sw;
+    let srcH = bounds.sh;
     if (imgRatio > areaRatio) {
-      // Image is wider than area → match height, overflow width (we still
-      // clamp to area width so nothing actually overflows the container).
-      h = canvasMaxH;
-      w = Math.round(canvasMaxH * imgRatio);
-      if (w > canvasMaxW) w = canvasMaxW;
+      // Source is wider than target → crop horizontally (left/right).
+      const newSrcW = bounds.sh * areaRatio;
+      srcX = bounds.sx + (bounds.sw - newSrcW) / 2;
+      srcW = newSrcW;
     } else {
-      // Image is taller/squarer than area → match width, then allow height
-      // up to the area height.
-      w = canvasMaxW;
-      h = Math.round(canvasMaxW / imgRatio);
-      if (h > canvasMaxH) {
-        h = canvasMaxH;
-      }
+      // Source is taller/squarer than target → crop vertically (top/bottom).
+      const newSrcH = bounds.sw / areaRatio;
+      srcY = bounds.sy + (bounds.sh - newSrcH) / 2;
+      srcH = newSrcH;
     }
 
     bgCanvas.width = w; bgCanvas.height = h;
@@ -399,8 +399,7 @@ export const OnlineColoringCanvas: React.FC<OnlineColoringCanvasProps> = ({
     if (ctx) {
       ctx.fillStyle = '#FFFFFF';
       ctx.fillRect(0, 0, w, h);
-      // Draw only the trimmed content area, scaled to fill the canvas
-      ctx.drawImage(img, bounds.sx, bounds.sy, bounds.sw, bounds.sh, 0, 0, w, h);
+      ctx.drawImage(img, srcX, srcY, srcW, srcH, 0, 0, w, h);
       binarizeToLineArt(ctx, w, h);
     }
     const dCtx = drawCanvas.getContext('2d');
