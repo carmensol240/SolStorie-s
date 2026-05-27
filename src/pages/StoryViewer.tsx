@@ -272,6 +272,7 @@ const [currentPage, setCurrentPage] = useState(0);
   const [onlineColoringImageUrl, setOnlineColoringImageUrl] = useState<string | null>(null);
   const [cachedColoringUrl, setCachedColoringUrl] = useState<string | null>(null);
   const [cachedIllustrationUrl, setCachedIllustrationUrl] = useState<string | null>(null);
+  const [coloringUpsellOpen, setColoringUpsellOpen] = useState(false);
   const { user } = useAuth();
   const { coloringCredits } = useColoringCredits();
 
@@ -336,14 +337,6 @@ const [currentPage, setCurrentPage] = useState(0);
         setColoringPickerOpen(true);
         return;
       }
-    }
-
-    // No cached coloring page for this story → require coloring credits
-    if (coloringCredits <= 0) {
-      sonnerToast.error("דף צביעה דורש קרדיט 🎨", {
-        action: { label: "לרכישה", onClick: () => navigate("/upgrade") },
-      });
-      return;
     }
 
     setSelectedColoringUrl(null);
@@ -1694,7 +1687,7 @@ const [currentPage, setCurrentPage] = useState(0);
                       {coloringLoading && coloringMode === 'print' ? (
                         <><Loader2 className="w-4 h-4 animate-spin" /> מכין...</>
                       ) : (
-                        <>{coloringCredits <= 0 ? '🔒' : '🖨️'} הדפסה</>
+                        <>🖨️ הדפסה</>
                       )}
                     </Button>
                     <Button
@@ -1705,7 +1698,7 @@ const [currentPage, setCurrentPage] = useState(0);
                       {coloringLoading && coloringMode === 'online' ? (
                         <><Loader2 className="w-4 h-4 animate-spin" /> מכין...</>
                       ) : (
-                        <>{coloringCredits <= 0 ? '🔒' : '🎨'} צביעה אונליין</>
+                        <>🎨 צביעה אונליין</>
                       )}
                     </Button>
                   </div>
@@ -2216,9 +2209,7 @@ const [currentPage, setCurrentPage] = useState(0);
                     });
                     if (response.error) throw response.error;
                     if ((response.data as any)?.upsell) {
-                      sonnerToast.error("נגמרו קרדיטי הצביעה 🎨", {
-                        action: { label: "לרכישה", onClick: () => navigate("/upgrade") },
-                      });
+                      setColoringUpsellOpen(true);
                       return;
                     }
                     const coloringUrl = (response.data as any)?.image;
@@ -2332,9 +2323,7 @@ const [currentPage, setCurrentPage] = useState(0);
                       });
                       if (response.error) throw response.error;
                       if ((response.data as any)?.upsell) {
-                        sonnerToast.error("נגמרו קרדיטי הצביעה 🎨", {
-                          action: { label: "לרכישה", onClick: () => navigate("/upgrade") },
-                        });
+                        setColoringUpsellOpen(true);
                         return;
                       }
                       const coloringUrl = (response.data as any)?.image;
@@ -2374,9 +2363,7 @@ const [currentPage, setCurrentPage] = useState(0);
                       });
                       if (response.error) throw response.error;
                       if ((response.data as any)?.upsell) {
-                        sonnerToast.error("נגמרו קרדיטי הצביעה 🎨", {
-                          action: { label: "לרכישה", onClick: () => navigate("/upgrade") },
-                        });
+                        setColoringUpsellOpen(true);
                         return;
                       }
                       const coloringUrl = (response.data as any)?.image;
@@ -2424,6 +2411,39 @@ const [currentPage, setCurrentPage] = useState(0);
         childName={story?.child_name}
         storyTitle={story?.topic}
       />
+
+      {/* Coloring Pages Locked Upsell */}
+      <Dialog open={coloringUpsellOpen} onOpenChange={setColoringUpsellOpen}>
+        <DialogContent className="max-w-sm text-center" dir="rtl">
+          <DialogHeader>
+            <div className="w-16 h-16 mx-auto mb-2 rounded-full bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center text-3xl shadow-lg">
+              🔒
+            </div>
+            <DialogTitle className="text-xl font-black">
+              דפי הצביעה נעולים 🎨
+            </DialogTitle>
+          </DialogHeader>
+          <p className="text-sm text-muted-foreground leading-relaxed">
+            דפי הצביעה זמינים בחבילת התוספת.<br />
+            הוסיפו אותם לסיפור והפכו אותו לחוויה יצירתית מלאה ✨
+          </p>
+          <div className="flex flex-col gap-2 mt-3">
+            <Button
+              onClick={() => { setColoringUpsellOpen(false); navigate("/upgrade"); }}
+              size="lg"
+              className="w-full bg-gradient-to-r from-purple-500 to-pink-500 hover:opacity-95 text-white font-bold rounded-xl"
+            >
+              לפתיחת דפי הצביעה 🚀
+            </Button>
+            <button
+              onClick={() => setColoringUpsellOpen(false)}
+              className="text-xs text-muted-foreground hover:text-foreground"
+            >
+              אולי בפעם אחרת
+            </button>
+          </div>
+        </DialogContent>
+      </Dialog>
 
     </div>
   );
