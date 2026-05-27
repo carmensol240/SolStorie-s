@@ -68,7 +68,7 @@ const Upgrade = () => {
   const isTestUser = user?.email?.toLowerCase() === WHITELISTED_TEST_EMAIL.toLowerCase();
 
   const selectedTierData = TIERS[selectedTier];
-  const discountedPrice = Math.round(selectedTierData.price * (1 - discountPercent / 100));
+  const fullTierDiscountedPrice = Math.round(TIERS.full.price * (1 - discountPercent / 100));
 
   const handleClose = () => {
     try {
@@ -100,7 +100,7 @@ const Upgrade = () => {
       const { data, error } = await supabase.functions.invoke("verify-purchase", {
         body: {
           orderId: testOrderId,
-          packageId: selectedTier === "digital" ? "single_story_digital" : "single_story_full",
+          packageId: "single_story_full",
           amount: 1,
           userId: user.id,
           testMode: true,
@@ -111,7 +111,7 @@ const Upgrade = () => {
       refetchCredits();
       window.dispatchEvent(new CustomEvent("purchase-completed"));
       setShowSuccess(true);
-      trackEvent({ eventType: "feature_used", metadata: { feature: "test_purchase_completed", tier: selectedTier } });
+      trackEvent({ eventType: "feature_used", metadata: { feature: "test_purchase_completed", tier: "full" } });
       toast.success("🧪 רכישת בדיקה הצליחה");
       try {
         const { data: bonus } = await supabase.functions.invoke("grant-first-purchase-bonus");
@@ -203,11 +203,13 @@ const Upgrade = () => {
                     "bg-white/10 backdrop-blur-md",
                     isSelected
                       ? "border-white/50 shadow-lg scale-[1.03] bg-white/20 ring-2 ring-white/30"
-                      : "border-white/15 hover:border-white/30"
+                      : "border-white/15 hover:border-white/30",
+                    tier.id === "full" && "shadow-[0_0_25px_rgba(168,85,247,0.35)] border-purple-400/40",
+                    tier.id === "full" && isSelected && "shadow-[0_0_40px_rgba(236,72,153,0.5)] border-pink-400/60 ring-2 ring-pink-400/50"
                   )}
                 >
                   {tier.id === "digital" && (
-                    <div className="mb-1 px-2 py-0.5 rounded-full bg-green-500/20 text-green-300 text-[10px] font-bold border border-green-500/30">
+                    <div className="mb-2 px-3 py-1 rounded-full bg-green-500/20 text-green-300 text-xs font-bold border border-green-500/30">
                       ✨ מושלם להתחיל
                     </div>
                   )}
@@ -291,19 +293,19 @@ const Upgrade = () => {
             onClick={() => {
               if (!user) { navigate("/auth"); return; }
               setShowSummary(true);
-              trackEvent({ eventType: "feature_used", metadata: { feature: "purchase_summary_viewed", tier: selectedTier } });
+              trackEvent({ eventType: "feature_used", metadata: { feature: "purchase_summary_viewed", tier: "full" } });
             }}
             className="w-full relative overflow-hidden bg-gradient-to-r from-purple-500 via-pink-500 to-orange-500 hover:from-purple-400 hover:via-pink-400 hover:to-orange-400 text-white font-black text-sm py-3 rounded-xl shadow-xl before:absolute before:inset-0 before:bg-[linear-gradient(120deg,transparent_30%,rgba(255,255,255,0.15)_50%,transparent_70%)] before:bg-[length:200%_100%] before:animate-[cta-shimmer_4s_ease-in-out_infinite]"
             style={{ boxShadow: "0 0 30px rgba(168, 85, 247, 0.4), 0 0 60px rgba(236, 72, 153, 0.2)" }}
           >
             {discountPercent > 1 ? (
               <>
-                רכשו {selectedTierData.label} ב-
-                <span className="line-through opacity-60 mx-1">₪{selectedTierData.id === "full" ? "79.90" : selectedTierData.price.toFixed(2)}</span>
-                ₪{discountedPrice} ✨
+                רכשו הכי פופולרי 🔥 ב-
+                <span className="line-through opacity-60 mx-1">₪79.90</span>
+                ₪{fullTierDiscountedPrice} ✨
               </>
             ) : (
-              <>רכשו {selectedTierData.label} ב-₪{selectedTierData.id === "full" ? "79.90" : selectedTierData.price.toFixed(2)} ✨</>
+              <>רכשו הכי פופולרי 🔥 ב-₪79.90 ✨</>
             )}
           </Button>
         </div>
@@ -317,9 +319,9 @@ const Upgrade = () => {
       <PurchaseSummaryModal
         open={showSummary}
         onOpenChange={setShowSummary}
-        tier={selectedTierData}
-        originalPrice={selectedTierData.price}
-        finalPrice={discountedPrice}
+        tier={TIERS.full}
+        originalPrice={TIERS.full.price}
+        finalPrice={fullTierDiscountedPrice}
         discountPercent={discountPercent}
         couponCode={appliedCouponCode}
         onConfirm={handlePurchase}
