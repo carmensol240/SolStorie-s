@@ -770,6 +770,20 @@ export const OnlineColoringCanvas: React.FC<OnlineColoringCanvasProps> = ({
             />
           ))}
         </div>
+        {/* Extra colors */}
+        <div className="flex items-center justify-center gap-1.5 flex-wrap">
+          {EXTRA_COLORS.map((c) => (
+            <button key={c}
+              onPointerDown={(e) => { e.stopPropagation(); selectColor(c); }}
+              className={`w-9 h-9 md:w-11 md:h-11 rounded-full border-2 transition-all active:scale-95 touch-manipulation ${
+                color === c && tool !== 'eraser'
+                  ? 'scale-110 shadow-lg border-gray-700'
+                  : 'border-white shadow-md hover:scale-105'
+              }`}
+              style={{ backgroundColor: c }}
+            />
+          ))}
+        </div>
       </div>
 
     </div>
