@@ -319,9 +319,9 @@ const Upgrade = () => {
       <PurchaseSummaryModal
         open={showSummary}
         onOpenChange={setShowSummary}
-        tier={selectedTierData}
-        originalPrice={selectedTierData.price}
-        finalPrice={discountedPrice}
+        tier={TIERS.full}
+        originalPrice={TIERS.full.price}
+        finalPrice={fullTierDiscountedPrice}
         discountPercent={discountPercent}
         couponCode={appliedCouponCode}
         onConfirm={handlePurchase}
