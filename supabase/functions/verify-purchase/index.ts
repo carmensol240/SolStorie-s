@@ -322,6 +322,37 @@ Deno.serve(async (req) => {
       updates,
     });
 
+    // Send notification email (non-blocking)
+    try {
+      const resendKey = Deno.env.get("RESEND_API_KEY");
+      if (resendKey) {
+        const { data: buyerData } = await supabase.auth.admin.getUserById(userId);
+        const buyerEmail = buyerData?.user?.email || "unknown";
+        const now = new Date().toLocaleString("he-IL", { timeZone: "Asia/Jerusalem" });
+        const amountStr = testMode ? "0 (test)" : `${amount} ₪`;
+        await fetch("https://api.resend.com/emails", {
+          method: "POST",
+          headers: {
+            Authorization: `Bearer ${resendKey}`,
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            from: "SoulStory <onboarding@resend.dev>",
+            to: ["solstories.nlp@gmail.com"],
+            subject: `רכישה חדשה: ${packageId}`,
+            html: `<div dir="rtl"><h2>רכישה חדשה בוצעה ✅</h2>
+              <p><b>חבילה:</b> ${packageId}</p>
+              <p><b>סכום:</b> ${amountStr}</p>
+              <p><b>מייל הקונה:</b> ${buyerEmail}</p>
+              <p><b>תאריך ושעה:</b> ${now}</p>
+              <p><b>Order ID:</b> ${orderId}</p></div>`,
+          }),
+        });
+      }
+    } catch (mailErr) {
+      console.error("[VERIFY-PURCHASE] Notification email failed:", mailErr);
+    }
+
     return new Response(
       JSON.stringify({
         success: true,
