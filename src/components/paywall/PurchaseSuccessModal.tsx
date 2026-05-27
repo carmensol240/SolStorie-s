@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import {
   Dialog,
@@ -7,13 +7,9 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { BookOpen, X } from "lucide-react";
+import { X } from "lucide-react";
 import ConfettiCelebration from "@/components/wizard/ConfettiCelebration";
-import PayPalButton from "@/components/paywall/PayPalButton";
-import { EDIT_KIT_PACKAGE, CURRENCY } from "@/config/pricing";
-import { supabase } from "@/integrations/supabase/client";
-import { useAuth } from "@/hooks/use-auth";
-import { toast } from "sonner";
+import solHero from "@/assets/sol-hero-celebrate.png";
 
 interface PurchaseSuccessModalProps {
   open: boolean;
@@ -29,8 +25,6 @@ const PurchaseSuccessModal = ({
   isSubscription = false,
 }: PurchaseSuccessModalProps) => {
   const navigate = useNavigate();
-  const { user } = useAuth();
-  const [showPayPal, setShowPayPal] = useState(false);
 
   // After a one-time purchase, prefer returning to the story the user came from
   const getRedirectPath = () => {
@@ -58,45 +52,7 @@ const PurchaseSuccessModal = ({
     }
   }, [open, isSubscription, navigate]);
 
-  const handleSkip = () => {
-    onOpenChange(false);
-    const path = getRedirectPath();
-    consumePendingReturn();
-    navigate(path);
-  };
-
-  const handleEditPurchaseSuccess = async () => {
-    if (!user) return;
-    try {
-      const { data } = await supabase
-        .from("profiles")
-        .select("free_edits_remaining, free_edits_total")
-        .eq("id", user.id)
-        .maybeSingle();
-
-      const currentRemaining = data?.free_edits_remaining ?? 0;
-      const currentTotal = data?.free_edits_total ?? 0;
-
-      await supabase
-        .from("profiles")
-        .update({
-          free_edits_remaining: currentRemaining + EDIT_KIT_PACKAGE.edits,
-          free_edits_total: currentTotal + EDIT_KIT_PACKAGE.edits,
-        })
-        .eq("id", user.id);
-
-      await supabase.from("purchases").insert({
-        user_id: user.id,
-        package_name: EDIT_KIT_PACKAGE.id,
-        credits_purchased: EDIT_KIT_PACKAGE.edits,
-        amount_ils: EDIT_KIT_PACKAGE.price,
-        status: "completed",
-      });
-
-      toast.success("חבילת העריכות נוספה בהצלחה! ✨");
-    } catch (err) {
-      console.error("Error adding edit credits:", err);
-    }
+  const handleGo = () => {
     onOpenChange(false);
     const path = getRedirectPath();
     consumePendingReturn();
@@ -123,7 +79,7 @@ const PurchaseSuccessModal = ({
             {`בהצלחה ובשמחה,\nאמא של סול`}
           </p>
           <Button
-            onClick={handleSkip}
+            onClick={handleGo}
             size="lg"
             className="w-full bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white font-bold rounded-xl"
           >
@@ -137,18 +93,49 @@ const PurchaseSuccessModal = ({
     );
   }
 
-  // One-time purchase — upsell flow
+  // One-time purchase — celebration with Sol
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent
-        className="p-0 border-0 max-w-sm overflow-hidden [&>button]:hidden"
+        className="p-0 border-0 max-w-md overflow-hidden [&>button]:hidden bg-transparent shadow-none"
         dir="rtl"
       >
-        <div className="relative bg-gradient-to-b from-[#1a0533] to-[#2d1b69] rounded-2xl p-6 text-center">
-          {/* Close / skip button */}
+        <div className="relative bg-gradient-to-br from-[#1a0533] via-[#2d1b69] to-[#3b1d6b] rounded-3xl p-6 pt-8 text-center overflow-hidden border border-white/10 shadow-[0_20px_60px_-10px_rgba(168,85,247,0.5)]">
+          {/* Twinkling stars background */}
+          <div className="pointer-events-none absolute inset-0 overflow-hidden">
+            {Array.from({ length: 28 }).map((_, i) => {
+              const left = (i * 37) % 100;
+              const top = (i * 53) % 100;
+              const size = 6 + ((i * 7) % 10);
+              const delay = (i % 8) * 0.25;
+              const colors = ["#fbbf24", "#f0abfc", "#7dd3fc", "#fde68a", "#c4b5fd"];
+              const color = colors[i % colors.length];
+              return (
+                <span
+                  key={i}
+                  className="absolute animate-pulse"
+                  style={{
+                    left: `${left}%`,
+                    top: `${top}%`,
+                    width: `${size}px`,
+                    height: `${size}px`,
+                    color,
+                    animationDelay: `${delay}s`,
+                    animationDuration: "2.2s",
+                    filter: "drop-shadow(0 0 6px currentColor)",
+                  }}
+                  aria-hidden
+                >
+                  ✦
+                </span>
+              );
+            })}
+          </div>
+
+          {/* Close button */}
           <button
-            onClick={handleSkip}
-            className="absolute top-3 left-3 text-white/50 hover:text-white/80 transition-colors z-10"
+            onClick={() => onOpenChange(false)}
+            className="absolute top-3 left-3 text-white/50 hover:text-white/80 transition-colors z-20"
             aria-label="סגירה"
           >
             <X className="w-5 h-5" />
@@ -157,80 +144,51 @@ const PurchaseSuccessModal = ({
           {/* Confetti */}
           {open && <ConfettiCelebration />}
 
-          {/* Success section */}
-          <div className="mb-5">
-            <div className="w-16 h-16 bg-green-500/20 rounded-full flex items-center justify-center mx-auto mb-3">
-              <span className="text-4xl">🎉</span>
-            </div>
-            <h2 className="text-xl font-black text-white mb-1">
+          <DialogHeader className="relative z-10">
+            <DialogTitle className="text-2xl font-black text-white text-center drop-shadow-lg">
               הרכישה הושלמה בהצלחה! 🎉
-            </h2>
-            <p className="text-white/70 text-sm">
-              הסיפורים שלך מוכנים לקסם!
-            </p>
-          </div>
+            </DialogTitle>
+          </DialogHeader>
 
-          {/* Divider */}
-          <div className="w-16 h-px bg-white/20 mx-auto mb-5" />
-
-          {/* Upsell section */}
-          <div className="mb-5">
-            <h3 className="text-lg font-bold text-white mb-2">
-              רוצה שכל סיפור יהיה מושלם? ✨
-            </h3>
-            <p className="text-white/80 text-sm mb-1">
-              הוסיפו חבילת 5 עריכות מלאות
-            </p>
-            <p className="text-white/60 text-xs">
-              תיקון שגיאות כתיב + עריכת תוכן לכל סיפור
-            </p>
-          </div>
-
-          {/* Price */}
-          <div className="bg-white/10 rounded-xl p-3 mb-5">
-            <p className="text-white font-bold text-lg">
-              רק ₪19.9 לכל 5 עריכות
-            </p>
-            <p className="text-white/60 text-xs">
-              (₪4 לעריכה בלבד)
-            </p>
-          </div>
-
-          {/* CTA buttons */}
-          {!showPayPal ? (
-            <div className="space-y-3">
-              <Button
-                onClick={() => setShowPayPal(true)}
-                size="lg"
-                className="w-full bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white font-bold rounded-xl text-base"
-              >
-                כן! הוסיפו לי עריכות ✅
-              </Button>
-              <button
-                onClick={handleSkip}
-                className="text-white/40 hover:text-white/60 text-xs transition-colors"
-              >
-                לא תודה, אני מסתדר
-              </button>
+          {/* Sol + speech bubble */}
+          <div className="relative z-10 mt-4 flex flex-col items-center">
+            {/* Speech bubble */}
+            <div className="relative bg-white rounded-2xl px-5 py-3 mb-3 shadow-xl max-w-[260px]">
+              <p className="text-[#2d1b69] font-bold text-base leading-snug">
+                הסיפור שלך מוכן לקסם! ✨
+              </p>
+              {/* Tail pointing down to Sol */}
+              <div className="absolute -bottom-2 right-10 w-4 h-4 bg-white rotate-45" />
             </div>
-          ) : (
-            <div className="space-y-3">
-              <PayPalButton
-                amount={EDIT_KIT_PACKAGE.price}
-                onSuccess={handleEditPurchaseSuccess}
-                onError={() => {
-                  toast.error("שגיאה בתשלום, נסו שוב");
-                  setShowPayPal(false);
-                }}
-              />
-              <button
-                onClick={() => setShowPayPal(false)}
-                className="text-white/40 hover:text-white/60 text-xs transition-colors"
-              >
-                ביטול
-              </button>
-            </div>
-          )}
+
+            <img
+              src={solHero}
+              alt="סול חוגגת"
+              width={220}
+              height={293}
+              loading="lazy"
+              className="w-44 sm:w-52 h-auto drop-shadow-[0_10px_25px_rgba(0,0,0,0.4)] animate-bounce-slow"
+              style={{ animation: "float 3s ease-in-out infinite" }}
+            />
+          </div>
+
+          {/* CTA */}
+          <div className="relative z-10 mt-5">
+            <Button
+              onClick={handleGo}
+              size="lg"
+              className="w-full bg-gradient-to-r from-amber-400 via-pink-500 to-purple-500 hover:opacity-95 text-white font-black rounded-2xl text-lg h-14 shadow-[0_8px_25px_-5px_rgba(236,72,153,0.6)]"
+            >
+              בואו ניצור! 🚀
+            </Button>
+          </div>
+
+          <style>{`
+            @keyframes float {
+              0%, 100% { transform: translateY(0); }
+              50% { transform: translateY(-8px); }
+            }
+          `}</style>
         </div>
       </DialogContent>
     </Dialog>
