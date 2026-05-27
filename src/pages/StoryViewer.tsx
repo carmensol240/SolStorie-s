@@ -1726,7 +1726,7 @@ const [currentPage, setCurrentPage] = useState(0);
                       {coloringLoading && coloringMode === 'online' ? (
                         <><Loader2 className="w-4 h-4 animate-spin" /> מכין...</>
                       ) : (
-                        <>🎨 צביעה אונליין</>
+                        <>​</>
                       )}
                     </Button>
                   </div>
