@@ -70,35 +70,43 @@ Deno.serve(async (req) => {
     let bandwidth: Bandwidth = {};
     let last_deploy: LastDeploy = {};
 
-    // Account capabilities (build minutes + bandwidth)
-    const accountPromise = (async () => {
-      if (!netlifyToken) { build_minutes.error = bandwidth.error = "NETLIFY_API_TOKEN not set"; return; }
-      if (!accountId) { build_minutes.error = bandwidth.error = "NETLIFY_ACCOUNT_ID not set"; return; }
+    // Build minutes: GET /api/v1/{slug}/builds/status
+    const minutesPromise = (async () => {
+      if (!netlifyToken) { build_minutes.error = "NETLIFY_API_TOKEN not set"; return; }
+      if (!accountId) { build_minutes.error = "NETLIFY_ACCOUNT_ID not set"; return; }
       try {
-        const resp = await fetch(`https://api.netlify.com/api/v1/accounts/${accountId}`, { headers: authHeaders });
-        if (!resp.ok) {
-          const msg = `Netlify API ${resp.status}`;
-          build_minutes.error = msg; bandwidth.error = msg; return;
-        }
+        const resp = await fetch(`https://api.netlify.com/api/v1/${accountId}/builds/status`, { headers: authHeaders });
+        if (!resp.ok) { build_minutes.error = `Netlify API ${resp.status}`; return; }
         const json = await resp.json();
-        const caps = json?.capabilities ?? {};
-        const bm = caps.build_minutes ?? {};
-        const bw = caps.bandwidth ?? {};
+        const m = json?.minutes ?? {};
         build_minutes = {
-          used: typeof bm.used === "number" ? bm.used : undefined,
-          included: typeof bm.included === "number" ? bm.included : undefined,
-          period_start: bm.period_start_date ?? bm.period_start,
-          period_end: bm.period_end_date ?? bm.period_end,
-        };
-        bandwidth = {
-          used_bytes: typeof bw.used === "number" ? bw.used : undefined,
-          included_bytes: typeof bw.included === "number" ? bw.included : undefined,
-          period_start: bw.period_start_date ?? bw.period_start,
-          period_end: bw.period_end_date ?? bw.period_end,
+          used: typeof m.current === "number" ? m.current : undefined,
+          included: typeof m.included_minutes_with_packs === "number" ? m.included_minutes_with_packs
+                    : (typeof m.included_minutes === "number" ? m.included_minutes : undefined),
+          period_start: m.period_start_date,
+          period_end: m.period_end_date,
         };
       } catch (e) {
-        const msg = e instanceof Error ? e.message : String(e);
-        build_minutes.error = msg; bandwidth.error = msg;
+        build_minutes.error = e instanceof Error ? e.message : String(e);
+      }
+    })();
+
+    // Bandwidth: GET /api/v1/accounts/{slug}/bandwidth
+    const bandwidthPromise = (async () => {
+      if (!netlifyToken) { bandwidth.error = "NETLIFY_API_TOKEN not set"; return; }
+      if (!accountId) { bandwidth.error = "NETLIFY_ACCOUNT_ID not set"; return; }
+      try {
+        const resp = await fetch(`https://api.netlify.com/api/v1/accounts/${accountId}/bandwidth`, { headers: authHeaders });
+        if (!resp.ok) { bandwidth.error = `Netlify API ${resp.status}`; return; }
+        const b = await resp.json();
+        bandwidth = {
+          used_bytes: typeof b.used === "number" ? b.used : undefined,
+          included_bytes: typeof b.included === "number" ? b.included : undefined,
+          period_start: b.period_start_date,
+          period_end: b.period_end_date,
+        };
+      } catch (e) {
+        bandwidth.error = e instanceof Error ? e.message : String(e);
       }
     })();
 
@@ -124,7 +132,7 @@ Deno.serve(async (req) => {
       }
     })();
 
-    await Promise.all([accountPromise, deployPromise]);
+    await Promise.all([minutesPromise, bandwidthPromise, deployPromise]);
 
     return new Response(JSON.stringify({ build_minutes, bandwidth, last_deploy }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
