@@ -230,6 +230,7 @@ const [currentPage, setCurrentPage] = useState(0);
   const [showPrintPdfOffer, setShowPrintPdfOffer] = useState(false);
   const [hasPurchasedPackage, setHasPurchasedPackage] = useState(false);
   const [isSubscriberUser, setIsSubscriberUser] = useState(false);
+  const [hasStoryCredits, setHasStoryCredits] = useState(false);
   const [isAdminUser, setIsAdminUser] = useState(false);
   const [isSingleStoryUnlock, setIsSingleStoryUnlock] = useState(false);
   const [demoLockOpen, setDemoLockOpen] = useState(false);
@@ -414,17 +415,32 @@ const [currentPage, setCurrentPage] = useState(0);
 
   // Check subscriber flag (subscribers are not demo-locked even without purchase rows)
   useEffect(() => {
-    if (!user?.id) { setIsSubscriberUser(false); setSubscriberChecked(true); return; }
+    if (!user?.id) {
+      setIsSubscriberUser(false);
+      setHasStoryCredits(false);
+      setSubscriberChecked(true);
+      return;
+    }
     let cancelled = false;
-    (async () => {
+    const fetchProfile = async () => {
       const { data } = await supabase
         .from('profiles')
-        .select('is_subscriber')
+        .select('is_subscriber, story_credits')
         .eq('id', user.id)
         .maybeSingle();
-      if (!cancelled) { setIsSubscriberUser(!!data?.is_subscriber); setSubscriberChecked(true); }
-    })();
-    return () => { cancelled = true; };
+      if (!cancelled) {
+        setIsSubscriberUser(!!data?.is_subscriber);
+        setHasStoryCredits((data?.story_credits ?? 0) > 0);
+        setSubscriberChecked(true);
+      }
+    };
+    fetchProfile();
+    const onPurchase = () => { fetchProfile(); };
+    window.addEventListener('purchase-completed', onPurchase);
+    return () => {
+      cancelled = true;
+      window.removeEventListener('purchase-completed', onPurchase);
+    };
   }, [user?.id]);
 
   // Check if this specific story was unlocked via a one-time single purchase
@@ -472,7 +488,7 @@ const [currentPage, setCurrentPage] = useState(0);
   const isTester = emailLower === ORIGINAL_TESTER || testerMode === 'admin';
   const isDemoUser = !!user && (
     isForcedDemo ||
-    (!hasPurchasedPackage && !isSubscriberUser && !isAdminUser && !isTester)
+    (!hasPurchasedPackage && !isSubscriberUser && !isAdminUser && !isTester && !hasStoryCredits)
   );
   const guardDemo = useCallback((fn: () => void) => {
     return () => {
