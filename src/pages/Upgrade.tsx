@@ -37,7 +37,7 @@ const TIERS = {
   },
   full: {
     id: "full" as Tier,
-    label: "דיגיטלי + מודפס",
+    label: "הכי פופולרי 🔥",
     price: 59.90,
     features: [
       { label: "✅ כולל את כל מה שבחבילה הדיגיטלית +", included: true },
@@ -209,11 +209,6 @@ const Upgrade = () => {
                   {tier.id === "digital" && (
                     <div className="mb-1 px-2 py-0.5 rounded-full bg-green-500/20 text-green-300 text-[10px] font-bold border border-green-500/30">
                       🌱 מושלם להתחיל!
-                    </div>
-                  )}
-                  {tier.id === "full" && (
-                    <div className="mb-1 px-2 py-0.5 rounded-full bg-gradient-to-r from-purple-500/30 to-pink-500/30 text-pink-200 text-[10px] font-bold border border-purple-400/30">
-                      ✨ ערך מושלם
                     </div>
                   )}
                   <div className="text-lg font-black text-white mb-1">{tier.label}</div>
