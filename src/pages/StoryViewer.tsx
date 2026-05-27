@@ -263,6 +263,7 @@ const [currentPage, setCurrentPage] = useState(0);
   const [endFeedbackRating, setEndFeedbackRating] = useState(0);
   const [endFeedbackHover, setEndFeedbackHover] = useState(0);
   const [endFeedbackMessage, setEndFeedbackMessage] = useState("");
+  const [endImprovementSuggestion, setEndImprovementSuggestion] = useState("");
   const [endFeedbackSent, setEndFeedbackSent] = useState(false);
   const [endFeedbackSending, setEndFeedbackSending] = useState(false);
   const [coloringLoading, setColoringLoading] = useState(false);
