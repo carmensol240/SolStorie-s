@@ -127,13 +127,14 @@ serve(async (req) => {
     const coloringPrompt = `Convert this illustration into a perfect children's coloring book page for printing. Follow these rules strictly:
 
 1. OUTLINES: Use very thick, bold, solid black outlines (minimum 3-4px weight). Every shape must have a clearly defined closed boundary.
-2. SIMPLICITY: Create large, simple areas for coloring. Merge small details into bigger shapes. A 3-year-old should be able to color inside the lines.
-3. STYLE: Disney/Pixar cartoon style with rounded, friendly shapes. Keep the character recognizable but simplified.
-4. NO SHADING: Absolutely no shadows, gradients, cross-hatching, stippling, or any form of shading. Pure black outlines on pure white background only.
-5. NO 3D DEPTH: Flatten all 3D elements into simple 2D cartoon outlines.
-6. MINIMAL DETAILS: Remove textures, patterns, small decorative elements. Keep only the essential shapes of the character and main objects.
-7. RESOLUTION: Output a high-resolution image (at least 2400x3200 pixels) suitable for 300 DPI A4 printing.
-8. BACKGROUND: Pure white (#FFFFFF) background with no marks or artifacts.
+2. CLOSED REGIONS: Every colored area MUST be completely enclosed by black outlines with no gaps whatsoever. Sky, ground, trees, clothing and all elements must be separated by continuous unbroken black lines. No area should bleed into another area. Test: flood-fill from any point should not leak into adjacent regions.
+3. SIMPLICITY: Create large, simple areas for coloring. Merge small details into bigger shapes. A 3-year-old should be able to color inside the lines.
+4. STYLE: Disney/Pixar cartoon style with rounded, friendly shapes. Keep the character recognizable but simplified.
+5. NO SHADING: Absolutely no shadows, gradients, cross-hatching, stippling, or any form of shading. Pure black outlines on pure white background only.
+6. NO 3D DEPTH: Flatten all 3D elements into simple 2D cartoon outlines.
+7. MINIMAL DETAILS: Remove textures, patterns, small decorative elements. Keep only the essential shapes of the character and main objects.
+8. RESOLUTION: Output a high-resolution image (at least 2400x3200 pixels) suitable for 300 DPI A4 printing.
+9. BACKGROUND: Pure white (#FFFFFF) background with no marks or artifacts.
 
 Output ONLY the coloring page image, nothing else. Do not include any text, labels, letter names, or written words anywhere in the image.`;
 
