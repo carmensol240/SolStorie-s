@@ -30,9 +30,9 @@ const TIERS = {
       { label: "הדפס את הסיפור לספר- \nקובץ FDF להדפסת הספר בבית\n", included: false },
       { label: "🎨 דף צביעה דיגיטלי+ להדפסה", included: false },
       { label: "✏️ תיקון טקסט חינם\n\n", included: true },
-      { label: "📚 כל הסיפורים שיצרת שמורים לך לתמיד — בחינם", included: true },
       { label: "🎙️ ניתן להקליט בקולך ולהשמיע מרחוק", included: true },
       { label: "🎵 מוזיקת רקע של יער קסום", included: true },
+      { label: "📚 כל הסיפורים שיצרת שמורים לך לתמיד — בחינם", included: true },
     ],
   },
   full: {
