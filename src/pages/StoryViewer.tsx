@@ -2410,7 +2410,7 @@ const [currentPage, setCurrentPage] = useState(0);
                 disabled={coloringLoading}
                 className="w-full border-purple-200 text-purple-700 hover:bg-purple-50 py-3"
               >
-                {coloringLoading ? <><Loader2 className="w-4 h-4 animate-spin mr-2" /> מכין דף צביעה...</> : '🎨 צביעה אונליין'}
+                {coloringLoading ? <><Loader2 className="w-4 h-4 animate-spin mr-2" /> מכין דף צביעה...</> : '​'}
               </Button>
 
               <button
