@@ -82,6 +82,9 @@ const DemoLockModal = ({ open, onOpenChange, title, description, storyId }: Demo
           >
             רכישת הסיפור הדיגיטלי 📱 – 29.90₪
           </button>
+          <p className="text-white/80 text-[11px] font-bold text-center -mt-1">
+            🎁 + סיפור נוסף במתנה לרוכשים חדשים!
+          </p>
 
           {storyId && (
             <>
