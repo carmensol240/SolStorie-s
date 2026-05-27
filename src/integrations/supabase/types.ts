@@ -913,6 +913,7 @@ export type Database = {
           created_at: string
           display_name: string | null
           id: string
+          improvement_suggestion: string | null
           is_approved: boolean | null
           message: string | null
           page_url: string | null
@@ -924,6 +925,7 @@ export type Database = {
           created_at?: string
           display_name?: string | null
           id?: string
+          improvement_suggestion?: string | null
           is_approved?: boolean | null
           message?: string | null
           page_url?: string | null
@@ -935,6 +937,7 @@ export type Database = {
           created_at?: string
           display_name?: string | null
           id?: string
+          improvement_suggestion?: string | null
           is_approved?: boolean | null
           message?: string | null
           page_url?: string | null
