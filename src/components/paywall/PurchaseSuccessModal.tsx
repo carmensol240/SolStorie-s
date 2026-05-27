@@ -9,7 +9,8 @@ import {
 import { Button } from "@/components/ui/button";
 import { X } from "lucide-react";
 import ConfettiCelebration from "@/components/wizard/ConfettiCelebration";
-import solHero from "@/assets/sol-hero-celebrate.png";
+
+const solHero = "https://qvdwmkxviaqcgmjotsxe.supabase.co/storage/v1/object/public/topic-images/sol-superhero-book-og.png";
 
 interface PurchaseSuccessModalProps {
   open: boolean;
