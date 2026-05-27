@@ -15,6 +15,7 @@ import topicSharing from "@/assets/topic-sharing.jpg";
 import topicNewSibling from "@/assets/topic-new-sibling.jpeg";
 import topicPottyTraining from "@/assets/topic-potty-training.jpeg";
 import topicFirstDayKindergarten from "@/assets/topic-first-day-kindergarten.jpg";
+import topicFirstDaySchool from "@/assets/topic-first-day-school.jpg";
 import topicMomDontGo from "@/assets/topic-mom-dont-go.jpg";
 import topicPacifier from "@/assets/topic-pacifier.jpg";
 import topicSpaceHero from "@/assets/topic-space-hero.jpg";
