@@ -1695,6 +1695,16 @@ const [currentPage, setCurrentPage] = useState(0);
                       </div>
                       <Textarea value={endFeedbackMessage} onChange={(e) => setEndFeedbackMessage(e.target.value)}
                         placeholder="ספרו לנו מה אהבתם 💬" className="text-xs min-h-[40px] resize-none" dir="rtl" />
+                      <div className="text-right">
+                        <p className="text-xs font-semibold text-purple-800 mb-1">מה תרצו שנוסיף או נשפר? 💬</p>
+                        <Textarea
+                          value={endImprovementSuggestion}
+                          onChange={(e) => setEndImprovementSuggestion(e.target.value)}
+                          placeholder="יש לכם רעיון? נשמח לשמוע..."
+                          className="text-xs min-h-[40px] resize-none"
+                          dir="rtl"
+                        />
+                      </div>
                       <Button onClick={handleEndFeedbackSubmit} disabled={endFeedbackRating === 0 || endFeedbackSending}
                         size="sm" className="w-full gap-1 text-xs bg-gradient-to-r from-purple-600 to-pink-500 hover:from-purple-700 hover:to-pink-600">
                         <Send className="w-3 h-3" />
@@ -1707,32 +1717,6 @@ const [currentPage, setCurrentPage] = useState(0);
                       <p className="text-xs text-purple-600 mt-1">המשוב שלכם עוזר לנו ליצור סיפורים טובים יותר</p>
                     </div>
                   )}
-
-                  {/* Two separate coloring buttons */}
-                  <div className="flex flex-col sm:flex-row gap-3 w-full max-w-xs mx-auto pt-2">
-                    <Button
-                      onClick={guardDemo(() => preloadStoryCachedColoring('print'))}
-                      disabled={coloringLoading}
-                      className="flex-1 bg-gradient-to-r from-amber-400 to-orange-500 hover:from-amber-500 hover:to-orange-600 text-white px-4 py-3 rounded-full text-sm gap-1"
-                    >
-                      {coloringLoading && coloringMode === 'print' ? (
-                        <><Loader2 className="w-4 h-4 animate-spin" /> מכין...</>
-                      ) : (
-                        <>🖨️ הדפסה</>
-                      )}
-                    </Button>
-                    <Button
-                      onClick={guardDemo(() => preloadStoryCachedColoring('online'))}
-                      disabled={coloringLoading}
-                      className="flex-1 bg-gradient-to-r from-purple-500 to-indigo-600 hover:from-purple-600 hover:to-indigo-700 text-white px-4 py-3 rounded-full text-sm gap-1"
-                    >
-                      {coloringLoading && coloringMode === 'online' ? (
-                        <><Loader2 className="w-4 h-4 animate-spin" /> מכין...</>
-                      ) : (
-                        <>​</>
-                      )}
-                    </Button>
-                  </div>
 
                   {/* Upgrade CTA — only when story was unlocked via a single purchase */}
                   {isSingleStoryUnlock && !hasPurchasedPackage && (
