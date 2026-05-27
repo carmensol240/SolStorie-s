@@ -203,7 +203,9 @@ const Upgrade = () => {
                     "bg-white/10 backdrop-blur-md",
                     isSelected
                       ? "border-white/50 shadow-lg scale-[1.03] bg-white/20 ring-2 ring-white/30"
-                      : "border-white/15 hover:border-white/30"
+                      : "border-white/15 hover:border-white/30",
+                    tier.id === "full" && "shadow-[0_0_25px_rgba(168,85,247,0.35)] border-purple-400/40",
+                    tier.id === "full" && isSelected && "shadow-[0_0_40px_rgba(236,72,153,0.5)] border-pink-400/60 ring-2 ring-pink-400/50"
                   )}
                 >
                   {tier.id === "digital" && (
