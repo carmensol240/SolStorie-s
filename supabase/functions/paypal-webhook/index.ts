@@ -9,6 +9,7 @@ const CORS = {
 const AMOUNT_TO_PACKAGE: Record<number, { id: string; stories: number; freeEdits: number; coloringPages: number; editingCredits?: number; isSubscription?: boolean }> = {
   39:    { id: "basic",    stories: 3,  freeEdits: 3,  coloringPages: 1 },
   59:    { id: "basic",    stories: 2,  freeEdits: 2,  coloringPages: 2 },
+  79.9:  { id: "single_story_full", stories: 1, freeEdits: 1, coloringPages: 1 },
   99:    { id: "popular",  stories: 10, freeEdits: 10, coloringPages: 3 },
   119:   { id: "premium",  stories: 15, freeEdits: 15, coloringPages: 5 },
   149:   { id: "popular",  stories: 6,  freeEdits: 6,  coloringPages: 6 },
