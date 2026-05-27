@@ -230,6 +230,7 @@ const [currentPage, setCurrentPage] = useState(0);
   const [showPrintPdfOffer, setShowPrintPdfOffer] = useState(false);
   const [hasPurchasedPackage, setHasPurchasedPackage] = useState(false);
   const [isSubscriberUser, setIsSubscriberUser] = useState(false);
+  const [hasStoryCredits, setHasStoryCredits] = useState(false);
   const [isAdminUser, setIsAdminUser] = useState(false);
   const [isSingleStoryUnlock, setIsSingleStoryUnlock] = useState(false);
   const [demoLockOpen, setDemoLockOpen] = useState(false);
