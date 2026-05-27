@@ -397,6 +397,13 @@ const [currentPage, setCurrentPage] = useState(0);
         return !name.includes('single_story');
       });
       setHasPurchasedPackage(hasPackage);
+      // PDF download requires either a multi-story package OR a single_story_full unlock.
+      // single_story_digital (29.90 ₪) does NOT grant PDF rights.
+      const hasFullPdfRight = (data ?? []).some((row: any) => {
+        const name: string = row?.package_name ?? '';
+        return !name.includes('single_story') || name.includes('single_story_full');
+      });
+      setHasPdfEntitlement(hasFullPdfRight);
     }
     setPurchaseChecked(true);
   }, [user?.id]);
