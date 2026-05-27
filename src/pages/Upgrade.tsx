@@ -208,7 +208,7 @@ const Upgrade = () => {
                 >
                   {tier.id === "digital" && (
                     <div className="mb-1 px-2 py-0.5 rounded-full bg-green-500/20 text-green-300 text-[10px] font-bold border border-green-500/30">
-                      🌱 מושלם להתחיל!
+                      
                     </div>
                   )}
                   <div className="text-lg font-black text-white mb-1">{tier.label}</div>
