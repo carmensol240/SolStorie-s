@@ -1694,7 +1694,7 @@ const [currentPage, setCurrentPage] = useState(0);
                       {coloringLoading && coloringMode === 'print' ? (
                         <><Loader2 className="w-4 h-4 animate-spin" /> מכין...</>
                       ) : (
-                        <>🖨️ הדפסה</>
+                        <>{coloringCredits <= 0 ? '🔒' : '🖨️'} הדפסה</>
                       )}
                     </Button>
                     <Button
@@ -1705,7 +1705,7 @@ const [currentPage, setCurrentPage] = useState(0);
                       {coloringLoading && coloringMode === 'online' ? (
                         <><Loader2 className="w-4 h-4 animate-spin" /> מכין...</>
                       ) : (
-                        <>🎨 צביעה אונליין</>
+                        <>{coloringCredits <= 0 ? '🔒' : '🎨'} צביעה אונליין</>
                       )}
                     </Button>
                   </div>
