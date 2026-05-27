@@ -21,6 +21,11 @@ const COLORS = [
   '#FFFFFF',
 ];
 
+const EXTRA_COLORS = [
+  '#00BFFF', '#00008B', '#87CEEB', '#000080',
+  '#8A2BE2', '#9370DB', '#7CFC00', '#FFB6C1',
+];
+
 const SKIN_EARTH_COLORS = [
   '#000000', '#C68642', '#8D5524', '#6B8F71', '#FFD700',
   '#C0C0C0', '#8B4513', '#D2691E', '#D4AF37', '#FFB6C1',
