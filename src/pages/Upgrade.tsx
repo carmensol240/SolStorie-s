@@ -299,11 +299,11 @@ const Upgrade = () => {
             {discountPercent > 1 ? (
               <>
                 רכשו {selectedTierData.label} ב-
-                <span className="line-through opacity-60 mx-1">₪{selectedTierData.id === "full" ? "59.90" : selectedTierData.price.toFixed(2)}</span>
+                <span className="line-through opacity-60 mx-1">₪{selectedTierData.id === "full" ? "79.90" : selectedTierData.price.toFixed(2)}</span>
                 ₪{discountedPrice} ✨
               </>
             ) : (
-              <>רכשו {selectedTierData.label} ב-₪{selectedTierData.id === "full" ? "59.90" : selectedTierData.price.toFixed(2)} ✨</>
+              <>רכשו {selectedTierData.label} ב-₪{selectedTierData.id === "full" ? "79.90" : selectedTierData.price.toFixed(2)} ✨</>
             )}
           </Button>
         </div>
