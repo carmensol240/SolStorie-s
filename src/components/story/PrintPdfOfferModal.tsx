@@ -100,9 +100,12 @@ const PrintPdfOfferModal = ({
             style={{ boxShadow: "0 0 24px rgba(168, 85, 247, 0.4)" }}
           >
             <Printer className="w-4 h-4" />
-            קבל קובץ PDF – 29.90₪
+            קבל קובץ PDF – 39.90₪
           </Button>
           <p className="text-[11px] text-white/50 -mt-2">תשלום חד פעמי</p>
+          <p className="text-[10px] text-orange-300/90 font-semibold -mt-1">
+            🔥 מחיר השקה — המחיר יעלה בקרוב
+          </p>
         </div>
       </DialogContent>
     </Dialog>
