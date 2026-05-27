@@ -1278,6 +1278,7 @@ const [currentPage, setCurrentPage] = useState(0);
       await supabase.from("user_feedback").insert({
         rating: endFeedbackRating,
         message: endFeedbackMessage.trim() || null,
+        improvement_suggestion: endImprovementSuggestion.trim() || null,
         page_url: `story/${storyId}`,
         user_id: user?.id || null,
         display_name: displayName,
@@ -1293,6 +1294,7 @@ const [currentPage, setCurrentPage] = useState(0);
           childName: story?.child_name || '',
           rating: endFeedbackRating,
           message: endFeedbackMessage.trim() || '',
+          improvementSuggestion: endImprovementSuggestion.trim() || '',
           userEmail: user?.email || '',
         },
       }).catch(err => console.error('Feedback email error:', err));
