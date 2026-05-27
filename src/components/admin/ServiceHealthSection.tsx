@@ -242,9 +242,11 @@ const ServiceHealthSection = ({ errorLogs, illustrationLogs }: Props) => {
                 <div className="text-xs text-muted-foreground">Build minutes:</div>
                 {nlBM?.error ? (
                   <div className="text-xs text-destructive truncate" title={nlBM.error}>{nlBM.error}</div>
-                ) : nlBM?.used != null && nlBM?.included != null ? (
+                ) : nlBM?.used != null ? (
                   <>
-                    <div className="font-medium">{nlBM.used} / {nlBM.included} min</div>
+                    <div className="font-medium">
+                      {nlBM.used} {nlBM.included != null ? `/ ${nlBM.included}` : ""} min
+                    </div>
                     {bmPct !== null && (
                       <div className="h-1.5 bg-muted rounded-full overflow-hidden mt-1">
                         <div
@@ -264,9 +266,10 @@ const ServiceHealthSection = ({ errorLogs, illustrationLogs }: Props) => {
                 <div className="text-xs text-muted-foreground">Bandwidth:</div>
                 {nlBW?.error ? (
                   <div className="text-xs text-destructive truncate" title={nlBW.error}>{nlBW.error}</div>
-                ) : nlBW?.used_bytes != null && nlBW?.included_bytes != null ? (
+                ) : nlBW?.used_bytes != null ? (
                   <div className="font-medium text-xs">
-                    {prettyBytes(nlBW.used_bytes)} / {prettyBytes(nlBW.included_bytes)}
+                    {prettyBytes(nlBW.used_bytes)}
+                    {nlBW.included_bytes != null ? ` / ${prettyBytes(nlBW.included_bytes)}` : ""}
                   </div>
                 ) : (
                   <div className="text-xs text-muted-foreground">—</div>
