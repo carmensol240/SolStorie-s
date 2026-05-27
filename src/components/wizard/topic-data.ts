@@ -181,6 +181,7 @@ export const CHARACTER_SECTIONS: CharacterSection[] = [
       { id: "potty-training", label: "גמילה מחיתולים", description: "סיפור מעודד על המעבר לסיר או אסלה: כל ילד/ה עושה את זה בקצב שלו – וזה בסדר גמור!", image: topicPottyTraining, ageRange: "0-3" },
       { id: "pacifier-fairy", label: "פיית המוצץ", description: "סיפור קסום על פרידה מהמוצץ: פיית המוצץ מגיעה לאסוף אותו ומשאירה הפתעה מיוחדת.", image: topicPacifier, ageRange: "0-3" },
       { id: "first-day-kindergarten", label: "יום ראשון בגן", description: "סיפור על ההתרגשות והחשש של היום הראשון בגן: חברים חדשים, משחקים והגננת החמה.", image: topicFirstDayKindergarten, ageRange: "3-6" },
+      { id: "first-day-school", label: "היום הראשון בכיתה א'", description: "סיפור על ההתרגשות והחששות של היום הראשון בכיתה א': תיק חדש, מורה, חברים חדשים והרפתקה גדולה שמתחילה.", image: topicFirstDaySchool, ageRange: "4-8", keywords: ["כיתה א", "בית ספר", "תיק", "יום ראשון", "מורה"] },
       { id: "mom-dont-go", label: "אמא אל תלכי", description: "סיפור על חרדת נטישה: איך מתמודדים עם הרגע שאמא הולכת ומגלים שהיא תמיד חוזרת.", image: topicMomDontGo, ageRange: "3-6" },
       { id: "fear-of-dark", label: "סול מגלה שהחושך לא מפחיד", description: "סיפור על התגברות על פחד מהחושך: לגלות שהחושך מלא כוכבים, ירח וחלומות יפים.", image: topicFearOfDark, ageRange: "3-6" },
       { id: "friendship-courage", label: "חברים בגן", description: "סיפור על חברות אמיתית: איך מתחילים לדבר עם ילד חדש, מה עושים כשיש ריב ואיך מתפייסים.", image: topicFriendshipCourage, ageRange: "3-6" },
