@@ -2169,9 +2169,7 @@ const [currentPage, setCurrentPage] = useState(0);
       <PrintPdfOfferModal
         open={showPrintPdfOffer}
         onOpenChange={setShowPrintPdfOffer}
-        coverUrl={story?.cover_url || null}
-        childName={story?.child_name}
-        storyTitle={story?.child_name ? `הסיפור של ${story.child_name}` : undefined}
+        storyId={storyId || ""}
         onPurchase={() => {
           setShowPrintPdfOffer(false);
           navigate(`/upgrade?firstStory=${storyId || ""}`);
