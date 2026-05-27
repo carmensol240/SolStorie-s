@@ -156,7 +156,7 @@ const PurchaseSuccessModal = ({
             {/* Speech bubble */}
             <div className="relative bg-white rounded-2xl px-5 py-3 mb-3 shadow-xl max-w-[260px]">
               <p className="text-[#2d1b69] font-bold text-base leading-snug">
-                הסיפור שלך מוכן לקסם! ✨
+                🎉 ברוכים הבאים למשפחת SolStories! ✨
               </p>
               {/* Tail pointing down to Sol */}
               <div className="absolute -bottom-2 right-10 w-4 h-4 bg-white rotate-45" />
