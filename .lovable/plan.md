@@ -1,42 +1,53 @@
 ## מטרה
-משתמש עם `story_credits > 0` (למשל מקופון `extra_stories`) יוכל לקרוא סיפור דיגיטלי במלואו, בלי חסימה בעמוד 3.
+להוסיף ללוח הבקרה של האדמין כרטיס שמציג את הסטטוס של Netlify לחודש הנוכחי: Build minutes, Bandwidth, וסטטוס ה-deploy האחרון.
 
-## שינויים ב-`src/pages/StoryViewer.tsx`
+## שלבי ביצוע
 
-### 1. הוספת state חדש
-ליד `isSubscriberUser` / `subscriberChecked`:
-```ts
-const [hasStoryCredits, setHasStoryCredits] = useState(false);
-```
+### 1. Secrets
+לבקש מהמשתמש להוסיף שלושה secrets:
+- `NETLIFY_API_TOKEN` — Personal Access Token
+- `NETLIFY_ACCOUNT_ID` — מזהה ה-account/team ב-Netlify
+- `NETLIFY_SITE_ID` — מזהה האתר (עבור deploy status)
 
-### 2. הרחבת ה-useEffect בשורה 416
-לשנות את ה-SELECT מ-`'is_subscriber'` ל-`'is_subscriber, story_credits'`, ולעדכן גם את `hasStoryCredits`:
-```ts
-const { data } = await supabase
-  .from('profiles')
-  .select('is_subscriber, story_credits')
-  .eq('id', user.id)
-  .maybeSingle();
-if (!cancelled) {
-  setIsSubscriberUser(!!data?.is_subscriber);
-  setHasStoryCredits((data?.story_credits ?? 0) > 0);
-  setSubscriberChecked(true);
-}
-```
+### 2. Edge Function חדשה: `admin-netlify-status`
+קובץ חדש: `supabase/functions/admin-netlify-status/index.ts`
 
-### 3. שילוב ב-`isDemoUser` (שורות 473-476)
-```ts
-const isDemoUser = !!user && (
-  isForcedDemo ||
-  (!hasPurchasedPackage && !isSubscriberUser && !isAdminUser && !isTester && !hasStoryCredits)
-);
-```
-`isForcedDemo` (מצב tester ידני) נשאר גובר — בודקי QA עדיין יוכלו לראות את החסימה.
+מבנה זהה ל-`admin-service-health` הקיימת:
+- אימות `Authorization: Bearer` ובדיקת `has_role(user_id, 'admin')` דרך service role client
+- אם לא admin — 403
+- שלוש קריאות מקבילות ל-Netlify API:
+  1. `GET https://api.netlify.com/api/v1/accounts/{NETLIFY_ACCOUNT_ID}` — מחזיר `capabilities.build_minutes` ו-`capabilities.bandwidth` (used/included, period_start/end)
+  2. `GET https://api.netlify.com/api/v1/sites/{NETLIFY_SITE_ID}/deploys?per_page=1` — סטטוס deploy אחרון (state, created_at, deploy_time, branch)
+- כותרת `Authorization: Bearer ${NETLIFY_API_TOKEN}`
+- החזרת JSON:
+  ```json
+  {
+    "build_minutes": { "used": 123, "included": 300, "period_end": "..." },
+    "bandwidth": { "used_bytes": ..., "included_bytes": ..., "period_end": "..." },
+    "last_deploy": { "state": "ready", "created_at": "...", "deploy_time": 42, "branch": "main", "url": "..." },
+    "errors": { ... }
+  }
+  ```
+- כל קריאה עטופה ב-try/catch, נכשלת בצורה רכה (מחזירה `error` בשדה הרלוונטי במקום להפיל הכל)
 
-### 4. רענון אחרי רכישה/קופון
-ה-useEffect הזה תלוי ב-`user?.id` בלבד. כדי שאחרי מימוש קופון/רכישה הסטטוס יתעדכן בלי refresh, נוסיף האזנה לאירוע `purchase-completed` הקיים (וגם משדרים אותו ב-`CouponInput` אם עוד לא — לבדוק; אם לא משודר שם, נוסיף שידור אחרי מימוש מוצלח).
+### 3. כרטיס חדש ב-`ServiceHealthSection.tsx`
+תוספת לקובץ `src/components/admin/ServiceHealthSection.tsx`:
+- State חדש: `netlify` + fetch ב-`useEffect` שכבר קיים (ריענון כל 30 שניות) — קריאה ל-`supabase.functions.invoke("admin-netlify-status")`
+- כרטיס חדש בגריד (יורחב ל-5 עמודות ב-lg, או יישאר 4 ויעבור לשורה שנייה):
+  - אייקון: `Rocket` או `Globe` מ-lucide-react
+  - **Build minutes**: פס התקדמות (used/included), אזהרה אדומה מעל 90%
+  - **Bandwidth**: מספר ב-pretty bytes (used / included) — שימוש חוזר בפונקציה `prettyBytes` הקיימת בקובץ
+  - **Last deploy**: badge עם צבע לפי `state` (ready=ירוק, building=צהוב, error=אדום) + זמן יחסי (`formatDistanceToNow`)
+  - `StatusBadge` קיים — שימוש חוזר עם `warn` כאשר minutes > 90% או deploy state = error
 
-## הערות
-- אין שינוי DB / RLS / Edge Functions.
-- אין שינוי בלוגיקת `useCredit` — קרדיט נצרך רק ביצירת סיפור חדש, לא בקריאה. כלומר משתמש עם קרדיט אחד יוכל לקרוא חופשי גם אחרי שהשתמש בו ליצירה (כי `story_credits` יורד ל-0 רק אחרי יצירה). זה תואם להתנהגות של מנויים/קונים.
-- אם תרצי התנהגות הפוכה — "פתוח רק אם הסיפור עצמו נוצר עם קרדיט" — צריך לסמן סיפורים בטבלת `stories` בעת יצירה (שינוי גדול יותר). התוכנית הנוכחית בוחרת בגישה הפשוטה.
+### 4. בדיקה
+- אחרי deploy של ה-Edge Function: `curl_edge_functions` לכרטיס כדי לוודא שהמבנה תקין
+- בדיקה בדפדפן ב-`/admin/dashboard` שהכרטיס נטען ומציג נתונים
+
+## פרטים טכניים
+
+**Netlify API endpoints מאומתים:**
+- `GET /api/v1/accounts/{account_id}` — מחזיר `capabilities: { build_minutes: { included, used, period_start, period_end }, bandwidth: { included, used, ... } }`
+- `GET /api/v1/sites/{site_id}/deploys?per_page=1` — מערך deploys, ה-`[0]` הוא האחרון
+
+**אין שינויים ב-DB.** אין שינויים ב-RLS. אין שינויים בקבצים אחרים מלבד `ServiceHealthSection.tsx` והוספת ה-Edge Function החדשה.
