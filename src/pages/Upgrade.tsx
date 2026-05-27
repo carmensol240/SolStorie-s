@@ -28,7 +28,7 @@ const TIERS = {
     features: [
       { label: "סיפור דיגיטלי יחיד", included: true },
       { label: "קובץ PDF להדפסה עצמית והפיכת הסיפור לספר 📖", included: false },
-      { label: "🎨 דף צביעה און ליין ולהדפסה", included: false },
+      { label: "🎨 דף צביעה דיגיטלי+ להדפסה", included: false },
       { label: "✏️ תיקון טקסט חינם\n\n", included: true },
       { label: "📚 ספרייה חינמית לכל החיים", included: true },
       { label: "🎙️ ניתן להקליט בקולך ולהשמיע מרחוק", included: true },
@@ -41,7 +41,7 @@ const TIERS = {
     price: 59.90,
     features: [
       { label: "✅ כולל את כל מה שבחבילה הדיגיטלית +", included: true },
-      { label: "🎨 דף צביעה און ליין ולהדפסה", included: true },
+      { label: "🎨 דף צביעה דיגיטלי+ להדפסה", included: true },
       { label: "קובץ להדפסה עצמית לספר 📖", included: true },
     ],
   },
