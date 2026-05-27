@@ -16,6 +16,7 @@ const AMOUNT_TO_PACKAGE: Record<number, { id: string; stories: number; freeEdits
   219:   { id: "premium",  stories: 10, freeEdits: 10, coloringPages: 10 },
   229:   { id: "educator", stories: 20, freeEdits: 25, coloringPages: 8 },
   19.9:  { id: "coloring_kit", stories: 0, freeEdits: 0, coloringPages: 5 },
+  6.9:   { id: "coloring_single", stories: 0, freeEdits: 0, coloringPages: 1 },
   9.9:   { id: "edit_kit",    stories: 0, freeEdits: 0, coloringPages: 0, editingCredits: 5 },
   29.9:  { id: "toolkit_yearly", stories: 0, freeEdits: 0, coloringPages: 0, isSubscription: true },
 };
