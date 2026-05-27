@@ -231,6 +231,7 @@ const [currentPage, setCurrentPage] = useState(0);
   const [showPrintPreviewModal, setShowPrintPreviewModal] = useState(false);
   const [showPrintPdfOffer, setShowPrintPdfOffer] = useState(false);
   const [hasPurchasedPackage, setHasPurchasedPackage] = useState(false);
+  const [hasPdfEntitlement, setHasPdfEntitlement] = useState(false);
   const [isSubscriberUser, setIsSubscriberUser] = useState(false);
   const [hasStoryCredits, setHasStoryCredits] = useState(false);
   const [isAdminUser, setIsAdminUser] = useState(false);
