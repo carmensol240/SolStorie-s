@@ -61,7 +61,7 @@ const DemoLockModal = ({ open, onOpenChange, title, description, storyId }: Demo
             {title ?? "רוצים להמשיך לקרוא? 📖"}
           </DialogTitle>
           <p className="text-sm text-white/80 pt-1 text-center">
-            רכשו את הסיפור וקבלו קרדיט ליצירת סיפור נוסף במתנה! 🎁
+            {"\u200B"}
           </p>
           {description && (
             <DialogDescription className="text-sm text-white/80 pt-1 text-center">
