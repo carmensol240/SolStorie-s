@@ -47,6 +47,7 @@ import { useTextToSpeech } from "@/hooks/use-text-to-speech";
 import { useAccessibility } from "@/hooks/use-accessibility";
 
 import { useAuth } from "@/hooks/use-auth";
+import { useColoringCredits } from "@/hooks/use-coloring-credits";
 import { useStoryEdit } from "@/hooks/use-story-edit";
 import { useIsMobile } from "@/hooks/use-mobile";
 // useSwipe removed - swipe navigation disabled per user request
