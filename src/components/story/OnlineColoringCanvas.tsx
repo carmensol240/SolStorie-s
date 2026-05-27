@@ -18,7 +18,7 @@ const COLORS = [
   '#FF6B6B', '#FF9F43', '#FECA57', '#48DBFB',
   '#0ABDE3', '#1B2A4A', '#5F27CD', '#C4B5E0', '#FF6FF2', '#EE5A24',
   '#A3CB38', '#BFFF00', '#1DD1A1', '#C4A35A', '#2C3E50',
-  '#FFFFFF',
+  '#C0C0C0',
 ];
 
 const EXTRA_COLORS = [
