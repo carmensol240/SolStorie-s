@@ -57,6 +57,7 @@ const CouponInput = ({ onDiscountApplied, onStoriesAdded }: CouponInputProps) =>
         toast.success(`🎉 קיבלת ${data.value} סיפורים חינם!`);
         onStoriesAdded?.(data.value);
         refetchCredits?.();
+        window.dispatchEvent(new CustomEvent("purchase-completed"));
       } else if (data.coupon_type === "discount") {
         toast.success(`🎉 הנחה של ${data.value}% הוחלה!`);
         onDiscountApplied?.(data.value, data.code);
