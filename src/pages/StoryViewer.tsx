@@ -488,7 +488,7 @@ const [currentPage, setCurrentPage] = useState(0);
   const isTester = emailLower === ORIGINAL_TESTER || testerMode === 'admin';
   const isDemoUser = !!user && (
     isForcedDemo ||
-    (!hasPurchasedPackage && !isSubscriberUser && !isAdminUser && !isTester)
+    (!hasPurchasedPackage && !isSubscriberUser && !isAdminUser && !isTester && !hasStoryCredits)
   );
   const guardDemo = useCallback((fn: () => void) => {
     return () => {
