@@ -1,5 +1,5 @@
 import { useState, useEffect, useLayoutEffect, useRef, useCallback, useMemo } from "react";
-import { useParams, useNavigate, useLocation } from "react-router-dom";
+import { useParams, useNavigate, useLocation, useSearchParams } from "react-router-dom";
 import { Home, BookOpen, Palette, Wand2, Loader2, ImageOff, Star, Send, ChevronRight, ChevronLeft, ArrowRight, Link2, Printer, Eye } from "lucide-react";
 import SeriesNavBar, { SeriesPart } from "@/components/story/SeriesNavBar";
 import { MissingIllustrationPrompt } from "@/components/story/MissingIllustrationPrompt";
