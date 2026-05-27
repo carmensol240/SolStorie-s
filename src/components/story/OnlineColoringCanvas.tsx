@@ -146,7 +146,7 @@ function floodFill(
   fillColorHex: string,
   w: number,
   h: number,
-  tolerance = 32
+  tolerance = 12
 ) {
   const mergedCanvas = document.createElement('canvas');
   mergedCanvas.width = w;
@@ -374,9 +374,6 @@ export const OnlineColoringCanvas: React.FC<OnlineColoringCanvasProps> = ({
       h = canvasMaxH;
       w = Math.round(canvasMaxH * imgRatio);
     }
-    // Cap at the image's natural resolution so we never upscale/blur.
-    w = Math.min(w, img.naturalWidth);
-    h = Math.min(h, img.naturalHeight);
 
     bgCanvas.width = w; bgCanvas.height = h;
     drawCanvas.width = w; drawCanvas.height = h;
