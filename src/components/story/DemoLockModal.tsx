@@ -63,11 +63,12 @@ const DemoLockModal = ({ open, onOpenChange, title, description, storyId }: Demo
           <p className="text-sm text-white/80 pt-1 text-center">
             {"\u200B"}
           </p>
-          {description && (
-            <DialogDescription className="text-sm text-white/80 pt-1 text-center">
-              {description}
-            </DialogDescription>
-          )}
+          <DialogDescription className="text-sm text-white/80 pt-1 text-center">
+            🎁 סיפור ראשון? מגיע לך מתנה!
+          </DialogDescription>
+          <DialogDescription className="text-sm text-white/80 pt-1 text-center">
+            רכשו ב-29.90 ₪ וקבלו סיפור דיגיטלי נוסף
+          </DialogDescription>
         </DialogHeader>
 
         {storyId && (
