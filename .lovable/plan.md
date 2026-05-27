@@ -1,53 +1,16 @@
-## מטרה
-להוסיף ללוח הבקרה של האדמין כרטיס שמציג את הסטטוס של Netlify לחודש הנוכחי: Build minutes, Bandwidth, וסטטוס ה-deploy האחרון.
+## תיקון דף הצביעה
 
-## שלבי ביצוע
+### 1) הגדלת הקנבס למילוי המסך
+ב-`src/components/story/OnlineColoringCanvas.tsx`, פונקציית `resizeCanvases`:
 
-### 1. Secrets
-לבקש מהמשתמש להוסיף שלושה secrets:
-- `NETLIFY_API_TOKEN` — Personal Access Token
-- `NETLIFY_ACCOUNT_ID` — מזהה ה-account/team ב-Netlify
-- `NETLIFY_SITE_ID` — מזהה האתר (עבור deploy status)
+- להחליף את לוגיקת ה-`fit-contain` (שמותירה פסים לבנים גדולים כשהתמונה ריבועית והאזור רחב) ב-`fit-cover` עדין: לבחור את הציר הגדול יותר כך שהקנבס ימלא את כל אזור התצוגה, וחיתוך קל של 10–15% מהשוליים (השוליים של תמונת הצביעה בלאו הכי לבנים אחרי `getContentBounds`).
+- שמירה על יחס הצדדים של התמונה (לא מתיחה/עיוות), אבל הקנבס יתפוס את מלוא `areaW × areaH` של אזור הקנבס.
+- כדי לוודא שאזור הקנבס באמת תופס את כל הגובה הזמין: לשמור על `flex-1 min-h-0` של אזור הקנבס, ולוודא שגובה הסרגל התחתון לא מתנפח שלא לצורך (ראה סעיף 2).
 
-### 2. Edge Function חדשה: `admin-netlify-status`
-קובץ חדש: `supabase/functions/admin-netlify-status/index.ts`
+### 2) השלמת הצבעים החסרים (להישאר 2 שורות)
+ב-`src/components/story/OnlineColoringCanvas.tsx`, להרחיב את `SKIN_EARTH_COLORS` כך שיכלול את גווני העור והאדמה/טבע המלאים שהיו בעבר. הוספה מוצעת (להישאר עם שורה אחת רחבה שיכולה לעטוף לשתי שורות-משנה במידת הצורך):
 
-מבנה זהה ל-`admin-service-health` הקיימת:
-- אימות `Authorization: Bearer` ובדיקת `has_role(user_id, 'admin')` דרך service role client
-- אם לא admin — 403
-- שלוש קריאות מקבילות ל-Netlify API:
-  1. `GET https://api.netlify.com/api/v1/accounts/{NETLIFY_ACCOUNT_ID}` — מחזיר `capabilities.build_minutes` ו-`capabilities.bandwidth` (used/included, period_start/end)
-  2. `GET https://api.netlify.com/api/v1/sites/{NETLIFY_SITE_ID}/deploys?per_page=1` — סטטוס deploy אחרון (state, created_at, deploy_time, branch)
-- כותרת `Authorization: Bearer ${NETLIFY_API_TOKEN}`
-- החזרת JSON:
-  ```json
-  {
-    "build_minutes": { "used": 123, "included": 300, "period_end": "..." },
-    "bandwidth": { "used_bytes": ..., "included_bytes": ..., "period_end": "..." },
-    "last_deploy": { "state": "ready", "created_at": "...", "deploy_time": 42, "branch": "main", "url": "..." },
-    "errors": { ... }
-  }
-  ```
-- כל קריאה עטופה ב-try/catch, נכשלת בצורה רכה (מחזירה `error` בשדה הרלוונטי במקום להפיל הכל)
+- גווני עור נוספים: בז' בהיר, אפרסק, חום בהיר, חום כהה (`#F1C27D`, `#FFDBAC`, `#E0AC69`, `#5C3317`).
+- גווני אדמה/טבע נוספים: ירוק יער, ירוק זית, חרדל, טרקוטה, חום עץ בהיר (`#228B22`, `#808000`, `#DAA520`, `#E2725B`, `#A0522D`).
 
-### 3. כרטיס חדש ב-`ServiceHealthSection.tsx`
-תוספת לקובץ `src/components/admin/ServiceHealthSection.tsx`:
-- State חדש: `netlify` + fetch ב-`useEffect` שכבר קיים (ריענון כל 30 שניות) — קריאה ל-`supabase.functions.invoke("admin-netlify-status")`
-- כרטיס חדש בגריד (יורחב ל-5 עמודות ב-lg, או יישאר 4 ויעבור לשורה שנייה):
-  - אייקון: `Rocket` או `Globe` מ-lucide-react
-  - **Build minutes**: פס התקדמות (used/included), אזהרה אדומה מעל 90%
-  - **Bandwidth**: מספר ב-pretty bytes (used / included) — שימוש חוזר בפונקציה `prettyBytes` הקיימת בקובץ
-  - **Last deploy**: badge עם צבע לפי `state` (ready=ירוק, building=צהוב, error=אדום) + זמן יחסי (`formatDistanceToNow`)
-  - `StatusBadge` קיים — שימוש חוזר עם `warn` כאשר minutes > 90% או deploy state = error
-
-### 4. בדיקה
-- אחרי deploy של ה-Edge Function: `curl_edge_functions` לכרטיס כדי לוודא שהמבנה תקין
-- בדיקה בדפדפן ב-`/admin/dashboard` שהכרטיס נטען ומציג נתונים
-
-## פרטים טכניים
-
-**Netlify API endpoints מאומתים:**
-- `GET /api/v1/accounts/{account_id}` — מחזיר `capabilities: { build_minutes: { included, used, period_start, period_end }, bandwidth: { included, used, ... } }`
-- `GET /api/v1/sites/{site_id}/deploys?per_page=1` — מערך deploys, ה-`[0]` הוא האחרון
-
-**אין שינויים ב-DB.** אין שינויים ב-RLS. אין שינויים בקבצים אחרים מלבד `ServiceHealthSection.tsx` והוספת ה-Edge Function החדשה.
+`COLORS` נשאר עם 16 הצבעים הקיימים (שורה שנייה). שתי השורות יישארו `flex-wrap` כך שעל מסכים צרים יעטפ

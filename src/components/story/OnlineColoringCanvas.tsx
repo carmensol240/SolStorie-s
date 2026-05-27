@@ -24,6 +24,10 @@ const COLORS = [
 const SKIN_EARTH_COLORS = [
   '#000000', '#C68642', '#8D5524', '#6B8F71', '#FFD700',
   '#C0C0C0', '#8B4513', '#D2691E', '#D4AF37', '#FFB6C1',
+  // Additional skin tones
+  '#F1C27D', '#FFDBAC', '#E0AC69', '#5C3317',
+  // Additional earth / nature tones
+  '#228B22', '#808000', '#DAA520', '#E2725B', '#A0522D',
 ];
 
 type Tool = 'fill' | 'brush' | 'eraser';
@@ -363,16 +367,29 @@ export const OnlineColoringCanvas: React.FC<OnlineColoringCanvasProps> = ({
     const canvasMaxH = Math.max(120, (areaH || (vh - 240)) - SAFETY);
     const canvasMaxW = Math.max(120, (areaW || (isMobile ? vw : vw)) - SAFETY);
 
-    // Fit-contain: preserve the trimmed image aspect ratio so nothing gets cropped.
+    // Fit-cover: fill the entire available area while preserving the image
+    // aspect ratio. Some of the trimmed white margin may be cropped, but
+    // getContentBounds already removed most empty space so actual line art
+    // is preserved. This gives a much larger drawing surface on wide screens
+    // where the (roughly square) coloring page would otherwise leave large
+    // white bands on the sides.
     const imgRatio = bounds.sw / bounds.sh;
     const areaRatio = canvasMaxW / canvasMaxH;
     let w: number, h: number;
     if (imgRatio > areaRatio) {
-      w = canvasMaxW;
-      h = Math.round(canvasMaxW / imgRatio);
-    } else {
+      // Image is wider than area → match height, overflow width (we still
+      // clamp to area width so nothing actually overflows the container).
       h = canvasMaxH;
       w = Math.round(canvasMaxH * imgRatio);
+      if (w > canvasMaxW) w = canvasMaxW;
+    } else {
+      // Image is taller/squarer than area → match width, then allow height
+      // up to the area height.
+      w = canvasMaxW;
+      h = Math.round(canvasMaxW / imgRatio);
+      if (h > canvasMaxH) {
+        h = canvasMaxH;
+      }
     }
 
     bgCanvas.width = w; bgCanvas.height = h;
