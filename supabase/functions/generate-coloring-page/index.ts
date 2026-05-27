@@ -80,6 +80,26 @@ serve(async (req) => {
           .from("story_coloring_pages")
           .delete()
           .eq("id", cached.id);
+      } else {
+        // No cached page for this story → first generation requires a credit too
+        const { data: profile } = await supabase
+          .from("profiles")
+          .select("coloring_credits")
+          .eq("id", userId)
+          .maybeSingle();
+
+        const credits = profile?.coloring_credits ?? 0;
+        if (credits <= 0) {
+          console.log("User has no coloring credits for first generation");
+          return jsonResponse({ upsell: true, error: "דף צביעה דורש קרדיט 🎨" });
+        }
+
+        // Deduct 1 credit for the first coloring page of this story
+        await supabase
+          .from("profiles")
+          .update({ coloring_credits: credits - 1 })
+          .eq("id", userId);
+        console.log("Deducted 1 coloring credit (first page), remaining:", credits - 1);
       }
     }
 

@@ -47,6 +47,7 @@ import { useTextToSpeech } from "@/hooks/use-text-to-speech";
 import { useAccessibility } from "@/hooks/use-accessibility";
 
 import { useAuth } from "@/hooks/use-auth";
+import { useColoringCredits } from "@/hooks/use-coloring-credits";
 import { useStoryEdit } from "@/hooks/use-story-edit";
 import { useIsMobile } from "@/hooks/use-mobile";
 // useSwipe removed - swipe navigation disabled per user request
@@ -272,7 +273,8 @@ const [currentPage, setCurrentPage] = useState(0);
   const [cachedColoringUrl, setCachedColoringUrl] = useState<string | null>(null);
   const [cachedIllustrationUrl, setCachedIllustrationUrl] = useState<string | null>(null);
   const { user } = useAuth();
-  
+  const { coloringCredits } = useColoringCredits();
+
 
   const getIllustrationComparisonKey = useCallback((url: string | null) => {
     if (!url) return null;
@@ -336,12 +338,20 @@ const [currentPage, setCurrentPage] = useState(0);
       }
     }
 
+    // No cached coloring page for this story → require coloring credits
+    if (coloringCredits <= 0) {
+      sonnerToast.error("דף צביעה דורש קרדיט 🎨", {
+        action: { label: "לרכישה", onClick: () => navigate("/upgrade") },
+      });
+      return;
+    }
+
     setSelectedColoringUrl(null);
     setCachedColoringUrl(null);
     setCachedIllustrationUrl(null);
     setColoringAction('pick');
     setColoringPickerOpen(true);
-  }, [coloringLoading, story, toast, user]);
+  }, [coloringLoading, story, toast, user, coloringCredits, navigate]);
 
 
   const handleImageLoad = useCallback((e: React.SyntheticEvent<HTMLImageElement>) => {
@@ -1684,7 +1694,7 @@ const [currentPage, setCurrentPage] = useState(0);
                       {coloringLoading && coloringMode === 'print' ? (
                         <><Loader2 className="w-4 h-4 animate-spin" /> מכין...</>
                       ) : (
-                        <>🖨️ הדפסה</>
+                        <>{coloringCredits <= 0 ? '🔒' : '🖨️'} הדפסה</>
                       )}
                     </Button>
                     <Button
@@ -1695,7 +1705,7 @@ const [currentPage, setCurrentPage] = useState(0);
                       {coloringLoading && coloringMode === 'online' ? (
                         <><Loader2 className="w-4 h-4 animate-spin" /> מכין...</>
                       ) : (
-                        <>🎨 צביעה אונליין</>
+                        <>{coloringCredits <= 0 ? '🔒' : '🎨'} צביעה אונליין</>
                       )}
                     </Button>
                   </div>
