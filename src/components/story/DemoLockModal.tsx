@@ -87,14 +87,14 @@ const DemoLockModal = ({ open, onOpenChange, title, description, storyId }: Demo
             רכישת הסיפור הדיגיטלי 📱 – 29.90₪
           </button>
           <p className="text-white/80 text-[11px] font-bold text-center -mt-1">
-            🎁 + סיפור נוסף במתנה לרוכשים חדשים!
+            {"\u200B"}
           </p>
 
           {storyId && (
             <>
               <div className="flex items-center gap-3 my-1">
                 <div className="flex-1 h-px bg-gradient-to-l from-transparent via-white/30 to-transparent" />
-                <span className="text-white/70 text-xs font-bold px-2">או</span>
+                <span className="text-white/70 text-xs font-bold px-2">{"\u200B"}או</span>
                 <div className="flex-1 h-px bg-gradient-to-r from-transparent via-white/30 to-transparent" />
               </div>
 
