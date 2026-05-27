@@ -100,7 +100,7 @@ const Upgrade = () => {
       const { data, error } = await supabase.functions.invoke("verify-purchase", {
         body: {
           orderId: testOrderId,
-          packageId: selectedTier === "digital" ? "single_story_digital" : "single_story_full",
+          packageId: "single_story_full",
           amount: 1,
           userId: user.id,
           testMode: true,
@@ -111,7 +111,7 @@ const Upgrade = () => {
       refetchCredits();
       window.dispatchEvent(new CustomEvent("purchase-completed"));
       setShowSuccess(true);
-      trackEvent({ eventType: "feature_used", metadata: { feature: "test_purchase_completed", tier: selectedTier } });
+      trackEvent({ eventType: "feature_used", metadata: { feature: "test_purchase_completed", tier: "full" } });
       toast.success("🧪 רכישת בדיקה הצליחה");
       try {
         const { data: bonus } = await supabase.functions.invoke("grant-first-purchase-bonus");
