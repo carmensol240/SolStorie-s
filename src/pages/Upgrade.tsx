@@ -243,9 +243,9 @@ const Upgrade = () => {
                           <button
                             type="button"
                             onClick={(e) => { e.stopPropagation(); setShowSampleBook(true); }}
-                            className=\"mt-1.5 inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-bold text-amber-200 bg-amber-500/20 border border-amber-400/40 hover:bg-amber-500/30 transition-colors cursor-pointer whitespace-pre-line text-center\"
+                            className="mt-1.5 inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-bold text-amber-200 bg-amber-500/20 border border-amber-400/40 hover:bg-amber-500/30 transition-colors cursor-pointer"
                           >
-                            📖 לדוגמא לספר {"\n"} המודפס
+                            📖 לדוגמא לספר המודפס
                           </button>
                         )}
                       </div>
