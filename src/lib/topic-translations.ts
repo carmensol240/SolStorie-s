@@ -26,6 +26,7 @@ const TOPIC_HEBREW_MAP: Record<string, string> = {
   'potty-training': 'גמילה מחיתולים',
   'pacifier-fairy': 'פיית המוצץ',
   'first-day-kindergarten': 'יום ראשון בגן',
+  'first-day-school': 'היום הראשון בכיתה א\'',
   'mom-dont-go': 'אמא אל תלכי',
   'fear-of-dark': 'פחד מהחושך',
   'friendship-courage': 'חברים בגן',
