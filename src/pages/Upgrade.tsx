@@ -30,7 +30,7 @@ const TIERS = {
       { label: "הדפס את הסיפור לספר- \nקובץ FDF להדפסת הספר בבית\n", included: false },
       { label: "🎨 דף צביעה דיגיטלי+ להדפסה", included: false },
       { label: "✏️ תיקון טקסט חינם\n\n", included: true },
-      { label: "📚 ספרייה חינמית לכל החיים", included: true },
+      { label: "📚 כל הסיפורים שיצרת שמורים לך לתמיד — בחינם", included: true },
       { label: "🎙️ ניתן להקליט בקולך ולהשמיע מרחוק", included: true },
       { label: "🎵 מוזיקת רקע של יער קסום", included: true },
     ],
@@ -209,6 +209,11 @@ const Upgrade = () => {
                   {tier.id === "digital" && (
                     <div className="mb-1 px-2 py-0.5 rounded-full bg-green-500/20 text-green-300 text-[10px] font-bold border border-green-500/30">
                       🌱 מושלם להתחיל!
+                    </div>
+                  )}
+                  {tier.id === "full" && (
+                    <div className="mb-1 px-2 py-0.5 rounded-full bg-gradient-to-r from-purple-500/30 to-pink-500/30 text-pink-200 text-[10px] font-bold border border-purple-400/30">
+                      ✨ ערך מושלם
                     </div>
                   )}
                   <div className="text-lg font-black text-white mb-1">{tier.label}</div>
