@@ -273,7 +273,8 @@ const [currentPage, setCurrentPage] = useState(0);
   const [cachedColoringUrl, setCachedColoringUrl] = useState<string | null>(null);
   const [cachedIllustrationUrl, setCachedIllustrationUrl] = useState<string | null>(null);
   const { user } = useAuth();
-  
+  const { coloringCredits } = useColoringCredits();
+
 
   const getIllustrationComparisonKey = useCallback((url: string | null) => {
     if (!url) return null;
