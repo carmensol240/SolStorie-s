@@ -415,17 +415,32 @@ const [currentPage, setCurrentPage] = useState(0);
 
   // Check subscriber flag (subscribers are not demo-locked even without purchase rows)
   useEffect(() => {
-    if (!user?.id) { setIsSubscriberUser(false); setSubscriberChecked(true); return; }
+    if (!user?.id) {
+      setIsSubscriberUser(false);
+      setHasStoryCredits(false);
+      setSubscriberChecked(true);
+      return;
+    }
     let cancelled = false;
-    (async () => {
+    const fetchProfile = async () => {
       const { data } = await supabase
         .from('profiles')
-        .select('is_subscriber')
+        .select('is_subscriber, story_credits')
         .eq('id', user.id)
         .maybeSingle();
-      if (!cancelled) { setIsSubscriberUser(!!data?.is_subscriber); setSubscriberChecked(true); }
-    })();
-    return () => { cancelled = true; };
+      if (!cancelled) {
+        setIsSubscriberUser(!!data?.is_subscriber);
+        setHasStoryCredits((data?.story_credits ?? 0) > 0);
+        setSubscriberChecked(true);
+      }
+    };
+    fetchProfile();
+    const onPurchase = () => { fetchProfile(); };
+    window.addEventListener('purchase-completed', onPurchase);
+    return () => {
+      cancelled = true;
+      window.removeEventListener('purchase-completed', onPurchase);
+    };
   }, [user?.id]);
 
   // Check if this specific story was unlocked via a one-time single purchase
