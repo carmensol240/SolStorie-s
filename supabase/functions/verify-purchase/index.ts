@@ -154,6 +154,8 @@ Deno.serve(async (req) => {
       educator_popular: { stories: 6, freeEdits: 6, coloringPages: 6 },
       educator_premium: { stories: 10, freeEdits: 10, coloringPages: 10 },
       coloring_kit: { stories: 0, freeEdits: 0, coloringPages: 5 },
+      coloring_single: { stories: 0, freeEdits: 0, coloringPages: 1 },
+      coloring_story: { stories: 0, freeEdits: 0, coloringPages: 0, dynamicColoringFromStory: true },
       edit_kit: { stories: 0, freeEdits: 0, coloringPages: 0, editingCredits: 5 },
       toolkit_yearly: { stories: 0, freeEdits: 0, coloringPages: 0, isSubscription: true },
       single_story: { stories: 0, freeEdits: 0, coloringPages: 0 },
@@ -168,6 +170,36 @@ Deno.serve(async (req) => {
         JSON.stringify({ error: "Unknown package" }),
         { status: 400, headers: { ...CORS, "Content-Type": "application/json" } }
       );
+    }
+
+    // Dynamic coloring credits — count illustrations in the story
+    if (config.dynamicColoringFromStory) {
+      let resolvedStoryUuid: string | null = null;
+      if (storyId) {
+        const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+        if (uuidRegex.test(storyId)) {
+          resolvedStoryUuid = storyId;
+        } else {
+          const { data: storyRow } = await supabase
+            .from("stories")
+            .select("id")
+            .eq("slug", storyId)
+            .maybeSingle();
+          resolvedStoryUuid = storyRow?.id ?? null;
+        }
+      }
+      if (resolvedStoryUuid) {
+        const { count } = await supabase
+          .from("story_pages")
+          .select("id", { count: "exact", head: true })
+          .eq("story_id", resolvedStoryUuid)
+          .not("illustration_url", "is", null);
+        config.coloringPages = Math.max(1, count ?? 1);
+      } else {
+        // Fallback: typical story has 5 illustrations
+        config.coloringPages = 5;
+      }
+      console.log("[VERIFY-PURCHASE] coloring_story → credits:", config.coloringPages);
     }
 
     // Insert purchase record

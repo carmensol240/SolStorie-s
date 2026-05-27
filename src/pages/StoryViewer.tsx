@@ -58,6 +58,7 @@ import PdfFeaturePopup from "@/components/story/PdfFeaturePopup";
 import PrintPdfOfferModal from "@/components/story/PrintPdfOfferModal";
 import PrintBookPreviewModal from "@/components/story/PrintBookPreviewModal";
 import InstallAppPrompt from "@/components/story/InstallAppPrompt";
+import ColoringPurchaseModal from "@/components/paywall/ColoringPurchaseModal";
 import DemoLockModal from "@/components/story/DemoLockModal";
 
 import "./StoryViewer.css";
@@ -2413,37 +2414,12 @@ const [currentPage, setCurrentPage] = useState(0);
       />
 
       {/* Coloring Pages Locked Upsell */}
-      <Dialog open={coloringUpsellOpen} onOpenChange={setColoringUpsellOpen}>
-        <DialogContent className="max-w-sm text-center" dir="rtl">
-          <DialogHeader>
-            <div className="w-16 h-16 mx-auto mb-2 rounded-full bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center text-3xl shadow-lg">
-              🔒
-            </div>
-            <DialogTitle className="text-xl font-black">
-              דפי הצביעה נעולים 🎨
-            </DialogTitle>
-          </DialogHeader>
-          <p className="text-sm text-muted-foreground leading-relaxed">
-            דפי הצביעה זמינים בחבילת התוספת.<br />
-            הוסיפו אותם לסיפור והפכו אותו לחוויה יצירתית מלאה ✨
-          </p>
-          <div className="flex flex-col gap-2 mt-3">
-            <Button
-              onClick={() => { setColoringUpsellOpen(false); navigate("/upgrade"); }}
-              size="lg"
-              className="w-full bg-gradient-to-r from-purple-500 to-pink-500 hover:opacity-95 text-white font-bold rounded-xl"
-            >
-              לפתיחת דפי הצביעה 🚀
-            </Button>
-            <button
-              onClick={() => setColoringUpsellOpen(false)}
-              className="text-xs text-muted-foreground hover:text-foreground"
-            >
-              אולי בפעם אחרת
-            </button>
-          </div>
-        </DialogContent>
-      </Dialog>
+      <ColoringPurchaseModal
+        open={coloringUpsellOpen}
+        onOpenChange={setColoringUpsellOpen}
+        storyId={story?.id ?? null}
+        illustrationCount={story?.pages?.filter(p => p.illustration_url).length ?? 0}
+      />
 
     </div>
   );
