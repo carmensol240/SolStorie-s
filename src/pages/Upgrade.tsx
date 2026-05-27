@@ -68,7 +68,7 @@ const Upgrade = () => {
   const isTestUser = user?.email?.toLowerCase() === WHITELISTED_TEST_EMAIL.toLowerCase();
 
   const selectedTierData = TIERS[selectedTier];
-  const discountedPrice = Math.round(selectedTierData.price * (1 - discountPercent / 100));
+  const fullTierDiscountedPrice = Math.round(TIERS.full.price * (1 - discountPercent / 100));
 
   const handleClose = () => {
     try {
