@@ -512,6 +512,23 @@ const [currentPage, setCurrentPage] = useState(0);
     };
   }, [isDemoUser]);
 
+  // PDF download is gated more strictly than other demo-locked actions:
+  // only single_story_full (79.90 ₪), multi-story packages, subscribers,
+  // admins, or testers may download. single_story_digital buyers see the
+  // upgrade modal so they can buy the full version.
+  const canDownloadPdf = !!user && (
+    hasPdfEntitlement || isSubscriberUser || isAdminUser || isTester
+  ) && !isForcedDemo;
+  const guardPdfDownload = useCallback((fn: () => void) => {
+    return () => {
+      if (!canDownloadPdf) {
+        setDemoLockOpen(true);
+        return;
+      }
+      fn();
+    };
+  }, [canDownloadPdf]);
+
   // Open paywall popup (from ?paywall=1) only after entitlement checks complete
   // AND the user is actually a demo user. Avoids the brief "flash" for paid users.
   useEffect(() => {
@@ -1596,7 +1613,7 @@ const [currentPage, setCurrentPage] = useState(0);
       <BookHeader
         onBack={() => navigate("/library")}
         onShare={guardDemo(handleShare)}
-            onDownload={guardDemo(() => story && exportToPdf(story))}
+            onDownload={guardPdfDownload(() => story && exportToPdf(story))}
         onShareWhatsApp={guardDemo(handleShareWhatsApp)}
         onToggleFontSize={() => setFontSizeIndex((fontSizeIndex + 1) % FONT_SIZES.length)}
         onEdit={showPageActions ? handleEditClick : undefined}
