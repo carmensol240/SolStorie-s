@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { AlertTriangle, CheckCircle2, Database, Mail, Sparkles, Image as ImageIcon } from "lucide-react";
+import { AlertTriangle, CheckCircle2, Database, Mail, Sparkles, Image as ImageIcon, Rocket } from "lucide-react";
 import { format, formatDistanceToNow } from "date-fns";
 
 interface ErrorLogRow {
@@ -26,16 +26,29 @@ interface ServiceHealthResp {
   resend: { sent_this_month: number; ok: boolean; error: string | null };
 }
 
+interface NetlifyStatusResp {
+  build_minutes: { used?: number; included?: number; period_end?: string; error?: string };
+  bandwidth: { used_bytes?: number; included_bytes?: number; period_end?: string; error?: string };
+  last_deploy: { state?: string; created_at?: string; deploy_time?: number | null; branch?: string; url?: string; error?: string };
+}
+
 const ServiceHealthSection = ({ errorLogs, illustrationLogs }: Props) => {
   const [health, setHealth] = useState<ServiceHealthResp | null>(null);
+  const [netlify, setNetlify] = useState<NetlifyStatusResp | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     let cancelled = false;
     const load = async () => {
       try {
-        const { data, error } = await supabase.functions.invoke("admin-service-health");
-        if (!cancelled && !error) setHealth(data as ServiceHealthResp);
+        const [health, netlify] = await Promise.all([
+          supabase.functions.invoke("admin-service-health"),
+          supabase.functions.invoke("admin-netlify-status"),
+        ]);
+        if (!cancelled) {
+          if (!health.error) setHealth(health.data as ServiceHealthResp);
+          if (!netlify.error) setNetlify(netlify.data as NetlifyStatusResp);
+        }
       } finally {
         if (!cancelled) setLoading(false);
       }
@@ -74,6 +87,20 @@ const ServiceHealthSection = ({ errorLogs, illustrationLogs }: Props) => {
   // Resend
   const resendWarn = !!health && !health.resend.ok;
 
+  // Netlify
+  const nlBM = netlify?.build_minutes;
+  const nlBW = netlify?.bandwidth;
+  const nlDeploy = netlify?.last_deploy;
+  const bmPct = nlBM?.used != null && nlBM?.included
+    ? Math.min(100, (nlBM.used / nlBM.included) * 100)
+    : null;
+  const bwPct = nlBW?.used_bytes != null && nlBW?.included_bytes
+    ? Math.min(100, (nlBW.used_bytes / nlBW.included_bytes) * 100)
+    : null;
+  const deployState = (nlDeploy?.state || "").toLowerCase();
+  const deployError = deployState === "error" || deployState === "failed";
+  const netlifyWarn = (bmPct !== null && bmPct > 90) || (bwPct !== null && bwPct > 90) || deployError;
+
   const StatusBadge = ({ warn, label }: { warn: boolean; label?: string }) => (
     warn ? (
       <Badge variant="destructive" className="gap-1">
@@ -87,7 +114,7 @@ const ServiceHealthSection = ({ errorLogs, illustrationLogs }: Props) => {
   );
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 xl:grid-cols-5 gap-4 mb-6">
       {/* Lovable AI Gateway */}
       <Card className={ai24h > 0 ? "border-destructive" : ""}>
         <CardHeader className="pb-2 flex-row items-center justify-between space-y-0">
@@ -192,6 +219,87 @@ const ServiceHealthSection = ({ errorLogs, illustrationLogs }: Props) => {
                   {health.resend.error}
                 </div>
               )}
+            </>
+          )}
+        </CardContent>
+      </Card>
+
+      {/* Netlify */}
+      <Card className={netlifyWarn ? "border-destructive" : ""}>
+        <CardHeader className="pb-2 flex-row items-center justify-between space-y-0">
+          <CardTitle className="text-sm font-medium flex items-center gap-2">
+            <Rocket className="w-4 h-4" /> Netlify
+          </CardTitle>
+          <StatusBadge warn={netlifyWarn} label={deployError ? "Deploy failed" : "Quota > 90%"} />
+        </CardHeader>
+        <CardContent className="space-y-2 text-sm">
+          {loading && !netlify ? (
+            <div className="text-xs text-muted-foreground">Loading…</div>
+          ) : (
+            <>
+              {/* Build minutes */}
+              <div>
+                <div className="text-xs text-muted-foreground">Build minutes:</div>
+                {nlBM?.error ? (
+                  <div className="text-xs text-destructive truncate" title={nlBM.error}>{nlBM.error}</div>
+                ) : nlBM?.used != null && nlBM?.included != null ? (
+                  <>
+                    <div className="font-medium">{nlBM.used} / {nlBM.included} min</div>
+                    {bmPct !== null && (
+                      <div className="h-1.5 bg-muted rounded-full overflow-hidden mt-1">
+                        <div
+                          className={`h-full ${bmPct > 90 ? "bg-destructive" : "bg-primary"}`}
+                          style={{ width: `${bmPct}%` }}
+                        />
+                      </div>
+                    )}
+                  </>
+                ) : (
+                  <div className="text-xs text-muted-foreground">—</div>
+                )}
+              </div>
+
+              {/* Bandwidth */}
+              <div>
+                <div className="text-xs text-muted-foreground">Bandwidth:</div>
+                {nlBW?.error ? (
+                  <div className="text-xs text-destructive truncate" title={nlBW.error}>{nlBW.error}</div>
+                ) : nlBW?.used_bytes != null && nlBW?.included_bytes != null ? (
+                  <div className="font-medium text-xs">
+                    {prettyBytes(nlBW.used_bytes)} / {prettyBytes(nlBW.included_bytes)}
+                  </div>
+                ) : (
+                  <div className="text-xs text-muted-foreground">—</div>
+                )}
+              </div>
+
+              {/* Last deploy */}
+              <div>
+                <div className="text-xs text-muted-foreground">Last deploy:</div>
+                {nlDeploy?.error ? (
+                  <div className="text-xs text-destructive truncate" title={nlDeploy.error}>{nlDeploy.error}</div>
+                ) : nlDeploy?.created_at ? (
+                  <div className="flex items-center gap-1.5 flex-wrap">
+                    <Badge
+                      variant="secondary"
+                      className={
+                        deployError
+                          ? "bg-destructive/15 text-destructive"
+                          : deployState === "ready"
+                          ? "bg-green-100 text-green-800"
+                          : "bg-yellow-100 text-yellow-800"
+                      }
+                    >
+                      {nlDeploy.state || "?"}
+                    </Badge>
+                    <span className="text-xs text-muted-foreground">
+                      {formatDistanceToNow(new Date(nlDeploy.created_at))} ago
+                    </span>
+                  </div>
+                ) : (
+                  <div className="text-xs text-muted-foreground">—</div>
+                )}
+              </div>
             </>
           )}
         </CardContent>
