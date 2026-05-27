@@ -1,37 +1,42 @@
-## הבעיה
+## מטרה
+משתמש עם `story_credits > 0` (למשל מקופון `extra_stories`) יוכל לקרוא סיפור דיגיטלי במלואו, בלי חסימה בעמוד 3.
 
-הקרדיט לא עולה אחרי רכישה, ומסך הספרייה לא מתעדכן אוטומטית.
+## שינויים ב-`src/pages/StoryViewer.tsx`
 
-שני באגים מאחורי זה:
+### 1. הוספת state חדש
+ליד `isSubscriberUser` / `subscriberChecked`:
+```ts
+const [hasStoryCredits, setHasStoryCredits] = useState(false);
+```
 
-1. **בקצה האחורי (`verify-purchase`)** — מסך השדרוג שולח `packageId: "single_story_digital"` או `"single_story_full"`, אבל `packageConfig` יודע רק על `"single_story"` (וגם הוא מוגדר עם `stories: 0`). התוצאה: כל רכישה נדחית כ-"Unknown package", או — אם בכלל עוברת — לא מוסיפה קרדיט סיפור.
-2. **במסך הספרייה** — `useCredits` נטען פעם אחת ולא מאזין לאירוע `purchase-completed` ש-`Upgrade.tsx` כבר משדר. ל-`StoryViewer` יש מאזין כזה, ל-`Library` אין.
+### 2. הרחבת ה-useEffect בשורה 416
+לשנות את ה-SELECT מ-`'is_subscriber'` ל-`'is_subscriber, story_credits'`, ולעדכן גם את `hasStoryCredits`:
+```ts
+const { data } = await supabase
+  .from('profiles')
+  .select('is_subscriber, story_credits')
+  .eq('id', user.id)
+  .maybeSingle();
+if (!cancelled) {
+  setIsSubscriberUser(!!data?.is_subscriber);
+  setHasStoryCredits((data?.story_credits ?? 0) > 0);
+  setSubscriberChecked(true);
+}
+```
 
-## מה לבנות
+### 3. שילוב ב-`isDemoUser` (שורות 473-476)
+```ts
+const isDemoUser = !!user && (
+  isForcedDemo ||
+  (!hasPurchasedPackage && !isSubscriberUser && !isAdminUser && !isTester && !hasStoryCredits)
+);
+```
+`isForcedDemo` (מצב tester ידני) נשאר גובר — בודקי QA עדיין יוכלו לראות את החסימה.
 
-### 1. `supabase/functions/verify-purchase/index.ts`
-- להוסיף ל-`packageConfig`:
-  - `single_story_digital: { stories: 1, freeEdits: 1, coloringPages: 0 }`
-  - `single_story_full:    { stories: 1, freeEdits: 1, coloringPages: 1 }`
-- כך כל רכישה = קרדיט סיפור אחד נוסף לפרופיל. הזיכוי נעשה ב-DB (`profiles.story_credits += 1`), אטומי ובלתי תלוי ברענון לקוח.
-- להחזיר בתגובה `credits.storyCredits` החדש (כבר קיים) — נשתמש בלקוח לעדכון מיידי.
+### 4. רענון אחרי רכישה/קופון
+ה-useEffect הזה תלוי ב-`user?.id` בלבד. כדי שאחרי מימוש קופון/רכישה הסטטוס יתעדכן בלי refresh, נוסיף האזנה לאירוע `purchase-completed` הקיים (וגם משדרים אותו ב-`CouponInput` אם עוד לא — לבדוק; אם לא משודר שם, נוסיף שידור אחרי מימוש מוצלח).
 
-### 2. `src/hooks/use-credits.ts`
-- להוסיף `useEffect` שמאזין ל-`window` event `purchase-completed` ומפעיל `fetchCredits()`. כך **כל** מסך שמשתמש ב-hook (Library, StoryViewer, Home וכו') יתעדכן מיד אחרי רכישה — בלי לגעת בכל מסך בנפרד.
-- בנוסף: לרענן אוטומטית כש-טאב המסמך חוזר לפוקוס (`visibilitychange`) — שומר על סנכרון גם אחרי חזרה מ-PayPal בחלון אחר.
-
-### 3. `src/pages/Upgrade.tsx`
-- ב-`handleTestPurchase` (וכל מסלול רכישה עתידי) — אחרי `refetchCredits()` כבר משדר `purchase-completed`. נוודא שזה נשאר, ושנקרא לזה **אחרי** שהשרת אישר ולא רק אופטימית.
-- אופציונלי: אם הרספונס מכיל `credits.storyCredits`, להציג ב-`PurchaseSuccessModal` את הערך המעודכן (במקום הקבוע `creditsAdded={1}` — נשאיר 1 כי זה אכן 1 לרכישה).
-
-### פרטים טכניים
-
-- אין שינוי סכמה — `profiles.story_credits` כבר קיים והעדכון נעשה ע"י service role (עוקף את ה-trigger `prevent_profile_privilege_escalation`).
-- האירוע `purchase-completed` הוא `CustomEvent` קיים; ההאזנה ב-hook נעשית פעם אחת ומסונכרנת בין מסכים באותו tab.
-- אין צורך ב-Realtime/Postgres changes — האירוע מתפעל בצד הלקוח ברגע שה-Edge Function מחזיר הצלחה.
-
-### בדיקות ידניות
-
-1. עם משתמש הטסט (`carmit1901+test@gmail.com`) ללחוץ "רכשו" → לאשר במודאל הסיכום → לוודא ש-`story_credits` עלה ב-1 ב-DB.
-2. לחזור לספרייה → ה-Pill "סיפורים זמינים" עלה ב-1 מיד, בלי refresh.
-3. רכישה שנייה → +1 נוסף, מצטבר.
+## הערות
+- אין שינוי DB / RLS / Edge Functions.
+- אין שינוי בלוגיקת `useCredit` — קרדיט נצרך רק ביצירת סיפור חדש, לא בקריאה. כלומר משתמש עם קרדיט אחד יוכל לקרוא חופשי גם אחרי שהשתמש בו ליצירה (כי `story_credits` יורד ל-0 רק אחרי יצירה). זה תואם להתנהגות של מנויים/קונים.
+- אם תרצי התנהגות הפוכה — "פתוח רק אם הסיפור עצמו נוצר עם קרדיט" — צריך לסמן סיפורים בטבלת `stories` בעת יצירה (שינוי גדול יותר). התוכנית הנוכחית בוחרת בגישה הפשוטה.
