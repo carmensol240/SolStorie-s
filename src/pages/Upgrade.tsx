@@ -38,7 +38,7 @@ const TIERS = {
   full: {
     id: "full" as Tier,
     label: "הכי פופולרי 🔥",
-    price: 59.90,
+    price: 79.90,
     features: [
       { label: "✅ כולל את כל מה שבחבילה הדיגיטלית +", included: true },
       { label: "🎨 דף צביעה דיגיטלי+ להדפסה", included: true },
