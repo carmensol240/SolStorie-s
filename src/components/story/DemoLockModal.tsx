@@ -101,7 +101,7 @@ const DemoLockModal = ({ open, onOpenChange, title, description, storyId }: Demo
 
               {/* Secondary: story + print file */}
               <button
-                onClick={goSingle}
+                onClick={goPopular}
                 className="w-full bg-white/10 backdrop-blur-md border border-white/20 hover:bg-white/15 transition-colors rounded-xl px-4 py-3 text-center"
               >
                 <div className="text-white font-black text-sm">
