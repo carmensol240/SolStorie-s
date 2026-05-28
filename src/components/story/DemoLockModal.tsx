@@ -2,6 +2,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } f
 import { useNavigate, useLocation } from "react-router-dom";
 import { useState } from "react";
 import PersonalizedStoryCover from "@/components/paywall/PersonalizedStoryCover";
+import { openGrowCheckout } from "@/config/grow-links";
 
 interface DemoLockModalProps {
   open: boolean;
