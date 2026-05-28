@@ -10,7 +10,6 @@ import { supabase } from "@/integrations/supabase/client";
 import WelcomeGiftBanner from "@/components/home/WelcomeGiftBanner";
 import MobileNavigation from "@/components/MobileNavigation";
 import heroVideo from "@/assets/hero-solstories-animation-new.mp4";
-import MaintenanceBlock from "@/components/MaintenanceBlock";
 
 const Adventure = () => {
   const navigate = useNavigate();
@@ -20,26 +19,8 @@ const Adventure = () => {
   const { toast } = useToast();
   const [displayName, setDisplayName] = useState<string | null>(null);
   const [storyCount, setStoryCount] = useState<number>(0);
-  const [isAdmin, setIsAdmin] = useState<boolean | null>(null);
+  
 
-  useEffect(() => {
-    let cancelled = false;
-    const checkAdmin = async () => {
-      if (!user?.id) {
-        if (!cancelled) setIsAdmin(false);
-        return;
-      }
-      const { data } = await supabase
-        .from("user_roles")
-        .select("role")
-        .eq("user_id", user.id)
-        .eq("role", "admin")
-        .maybeSingle();
-      if (!cancelled) setIsAdmin(!!data);
-    };
-    checkAdmin();
-    return () => { cancelled = true; };
-  }, [user?.id]);
 
   useEffect(() => {
     window.scrollTo(0, 0);
@@ -92,12 +73,6 @@ const Adventure = () => {
   }, [navigate]);
 
   const totalCredits = (credits ?? 0) + shareCoins;
-
-  if (loading || isAdmin === null) {
-    if (!user) return <MaintenanceBlock />;
-    return null;
-  }
-  if (!isAdmin) return <MaintenanceBlock />;
 
   return (
     <div className="min-h-[100dvh] flex flex-col bg-gradient-to-b from-amber-50/50 to-background animate-fade-in" dir="rtl">
