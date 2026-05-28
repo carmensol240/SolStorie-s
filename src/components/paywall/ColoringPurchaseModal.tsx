@@ -7,6 +7,7 @@ import PayPalButton from "./PayPalButton";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/use-auth";
 import { toast } from "sonner";
+import { openGrowCheckout } from "@/config/grow-links";
 
 interface ColoringPurchaseModalProps {
   open: boolean;
@@ -48,6 +49,11 @@ const ColoringPurchaseModal = ({
   } as const;
 
   const current = options[selected];
+
+  const handleGrowCheckout = () => {
+    openGrowCheckout(selected === "single" ? "coloringSingle" : "coloringBundle");
+    onOpenChange(false);
+  };
 
   const handlePayPalSuccess = async (orderId: string) => {
     if (!user) return;
@@ -137,7 +143,7 @@ const ColoringPurchaseModal = ({
               </div>
 
               <Button
-                onClick={() => setShowPaypal(true)}
+                onClick={handleGrowCheckout}
                 disabled={!user}
                 size="lg"
                 className="w-full bg-gradient-to-r from-purple-500 via-pink-500 to-orange-500 hover:opacity-95 text-white font-black rounded-xl"
@@ -145,6 +151,14 @@ const ColoringPurchaseModal = ({
               >
                 לרכישה — ₪{current.price.toFixed(2)} ✨
               </Button>
+
+              <button
+                onClick={() => setShowPaypal(true)}
+                disabled={!user}
+                className="w-full mt-2 text-xs text-white/60 hover:text-white py-2 underline"
+              >
+                לתשלום ב-PayPal
+              </button>
 
               <button
                 onClick={() => onOpenChange(false)}
