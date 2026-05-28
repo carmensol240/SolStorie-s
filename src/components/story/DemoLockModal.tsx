@@ -38,17 +38,17 @@ const DemoLockModal = ({ open, onOpenChange, title, description, storyId }: Demo
     } catch {}
   };
 
-  const goPackage = () => {
+  const goSingleStory = () => {
     onOpenChange(false);
     rememberReturn();
-    navigate(storyId ? `/upgrade?firstStory=${storyId}` : "/upgrade");
+    openGrowCheckout("singleStory");
   };
 
-  const goSingle = () => {
+  const goPopular = () => {
     if (!storyId) return;
     onOpenChange(false);
     rememberReturn();
-    navigate(`/upgrade?firstStory=${storyId}&mode=single`);
+    openGrowCheckout("popular");
   };
 
   return (
