@@ -2160,7 +2160,7 @@ const [currentPage, setCurrentPage] = useState(0);
         storyId={storyId || ""}
         onPurchase={() => {
           setShowPrintPdfOffer(false);
-          navigate(`/upgrade?firstStory=${storyId || ""}`);
+          import("@/config/grow-links").then(({ openGrowCheckout }) => openGrowCheckout("pdf"));
         }}
       />
 
