@@ -20,6 +20,24 @@ const Adventure = () => {
   const { toast } = useToast();
   const [displayName, setDisplayName] = useState<string | null>(null);
   const [storyCount, setStoryCount] = useState<number>(0);
+  const [isAdmin, setIsAdmin] = useState(false);
+
+  useEffect(() => {
+    if (!user) return;
+    const checkAdmin = async () => {
+      const { data, error } = await supabase
+        .from("user_roles")
+        .select("role")
+        .eq("user_id", user.id)
+        .eq("role", "admin")
+        .maybeSingle();
+      if (!error && data) setIsAdmin(true);
+    };
+    checkAdmin();
+  }, [user]);
+
+  if (!user) return <MaintenanceBlock />;
+  if (!isAdmin) return <MaintenanceBlock />;
   
 
 
