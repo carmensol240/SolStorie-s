@@ -1,5 +1,5 @@
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
-import { useNavigate, useLocation } from "react-router-dom";
+import { useLocation } from "react-router-dom";
 import { useState } from "react";
 import PersonalizedStoryCover from "@/components/paywall/PersonalizedStoryCover";
 import { openGrowCheckout } from "@/config/grow-links";
