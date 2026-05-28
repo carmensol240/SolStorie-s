@@ -13,7 +13,6 @@ interface DemoLockModalProps {
 }
 
 const DemoLockModal = ({ open, onOpenChange, title, description, storyId }: DemoLockModalProps) => {
-  const navigate = useNavigate();
   const location = useLocation();
   const [showFeatures, setShowFeatures] = useState(false);
 
