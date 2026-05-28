@@ -16,6 +16,7 @@ import { useAuth } from "@/hooks/use-auth";
 import { supabase } from "@/integrations/supabase/client";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
+import { openGrowCheckout } from "@/config/grow-links";
 
 type Tier = "digital" | "full";
 
@@ -134,7 +135,7 @@ const Upgrade = () => {
   const handlePurchase = () => {
     if (!user) { navigate("/auth"); return; }
     if (isTestUser) { handleTestPurchase(); return; }
-    toast.info("בקרוב — אמצעי תשלום חדשים בדרך! 🌿");
+    openGrowCheckout(selectedTier === "full" ? "popular" : "basic");
   };
 
   const handleRetry = () => {
