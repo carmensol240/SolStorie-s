@@ -74,6 +74,8 @@ const CreateStory = () => {
   const [formData, setFormData] = useState<StoryFormData>(INITIAL_DATA);
   const [isGenerating, setIsGenerating] = useState(false);
 
+  return <MaintenanceBlock />;
+
   // Resume after Google OAuth redirect
   useEffect(() => {
     if (searchParams.get('resume') === 'true') {
