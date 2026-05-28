@@ -9,6 +9,7 @@ import { supabase } from "@/integrations/supabase/client";
 
 import WelcomeGiftBanner from "@/components/home/WelcomeGiftBanner";
 import MobileNavigation from "@/components/MobileNavigation";
+import MaintenanceBlock from "@/components/MaintenanceBlock";
 import heroVideo from "@/assets/hero-solstories-animation-new.mp4";
 
 const Adventure = () => {
