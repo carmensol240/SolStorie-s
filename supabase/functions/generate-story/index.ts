@@ -1642,7 +1642,10 @@ ${topic.endsWith('-edu') ? `
       c = c.replace(/[\u0591-\u05C7]/g, '');
       // Remove non-printable control chars
       c = c.replace(/[\x00-\x08\x0B\x0C\x0E-\x1F\x7F]/g, '');
-      // Escape raw newlines/tabs inside JSON string values
+      // Escape raw newlines/tabs AND stray unescaped quotes inside JSON string values.
+      // A `"` is treated as a real string terminator only if the next non-whitespace
+      // character is one of: , } ] : (i.e. a valid JSON delimiter). Otherwise it's
+      // an embedded quote inside the string value and must be escaped.
       let inString = false;
       let escaped = false;
       let result = '';
@@ -1650,7 +1653,25 @@ ${topic.endsWith('-edu') ? `
         const ch = c[i];
         if (escaped) { result += ch; escaped = false; continue; }
         if (ch === '\\' && inString) { result += ch; escaped = true; continue; }
-        if (ch === '"') { inString = !inString; result += ch; continue; }
+        if (ch === '"') {
+          if (inString) {
+            // Look ahead: is this a real string terminator?
+            let j = i + 1;
+            while (j < c.length && (c[j] === ' ' || c[j] === '\n' || c[j] === '\r' || c[j] === '\t')) j++;
+            const next = c[j];
+            if (next === ',' || next === '}' || next === ']' || next === ':' || j >= c.length) {
+              inString = false;
+              result += ch;
+            } else {
+              // Stray quote inside string value — escape it
+              result += '\\"';
+            }
+          } else {
+            inString = true;
+            result += ch;
+          }
+          continue;
+        }
         if (inString) {
           if (ch === '\n') { result += '\\n'; continue; }
           if (ch === '\r') { result += '\\r'; continue; }
