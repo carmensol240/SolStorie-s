@@ -81,7 +81,7 @@ const DemoLockModal = ({ open, onOpenChange, title, description, storyId }: Demo
         <div className="flex flex-col gap-2 mt-2">
           {/* Primary: digital story */}
           <button
-            onClick={goPackage}
+            onClick={goSingleStory}
             className="w-auto max-w-[280px] mx-auto relative overflow-hidden bg-gradient-to-r from-purple-500 via-pink-500 to-orange-500 hover:from-purple-400 hover:via-pink-400 hover:to-orange-400 text-white font-black text-sm py-3 px-6 rounded-xl shadow-xl text-center"
             style={{ boxShadow: '0 0 30px rgba(168, 85, 247, 0.4), 0 0 60px rgba(236, 72, 153, 0.2)' }}
           >
