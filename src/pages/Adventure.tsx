@@ -9,7 +9,6 @@ import { supabase } from "@/integrations/supabase/client";
 
 import WelcomeGiftBanner from "@/components/home/WelcomeGiftBanner";
 import MobileNavigation from "@/components/MobileNavigation";
-import MaintenanceBlock from "@/components/MaintenanceBlock";
 import heroVideo from "@/assets/hero-solstories-animation-new.mp4";
 
 const Adventure = () => {
@@ -87,9 +86,6 @@ const Adventure = () => {
   }, [navigate]);
 
   const totalCredits = (credits ?? 0) + shareCoins;
-
-  if (!user) return <MaintenanceBlock />;
-  if (!isAdmin) return <MaintenanceBlock />;
 
   return (
     <div className="min-h-[100dvh] flex flex-col bg-gradient-to-b from-amber-50/50 to-background animate-fade-in" dir="rtl">

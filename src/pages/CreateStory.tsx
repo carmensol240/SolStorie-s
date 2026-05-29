@@ -74,7 +74,7 @@ const CreateStory = () => {
   const [formData, setFormData] = useState<StoryFormData>(INITIAL_DATA);
   const [isGenerating, setIsGenerating] = useState(false);
 
-  return <MaintenanceBlock />;
+  // Maintenance removed — site is live
 
   // Resume after Google OAuth redirect
   useEffect(() => {
