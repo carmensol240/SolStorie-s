@@ -24,15 +24,13 @@ const TIERS = {
   digital: {
     id: "digital" as Tier,
     label: "דיגיטלי",
-    price: 29.90,
+    price: 39.90,
     features: [
       { label: "סיפור דיגיטלי יחיד", included: true },
-      { label: "הדפס את הסיפור לספר- \nקובץ FDF להדפסת הספר בבית\n", included: false },
-      { label: "🎨 דף צביעה דיגיטלי+ להדפסה", included: false },
-      { label: "✏️ סבב עריכה מלא חינם \nלכל סיפור\n\n", included: true },
+      { label: "✏️ סבב עריכה מלא חינם לכל סיפור", included: true },
       { label: "🎙️ גם כשאתה רחוק — קולך ילווה את הילד בסיפור שלו", included: true },
-      { label: "🎵 מוזיקת רקע של יער קסום", included: true },
-      { label: "📚 כל הסיפורים שיצרת שמורים לך לתמיד — בחינם", included: true },
+      { label: "🎵 מוזיקת רקע קסומה", included: true },
+      { label: "📚 כל הסיפורים שמורים לתמיד — בחינם", included: true },
     ],
   },
   full: {
@@ -40,9 +38,9 @@ const TIERS = {
     label: "הכי פופולרי 🔥",
     price: 99.90,
     features: [
-      { label: "✅ כולל את כל מה שבחבילה הדיגיטלית +", included: true },
-      { label: "🎨 דף צביעה דיגיטלי+ להדפסה", included: true },
-      { label: "הדפס את הסיפור לספר- \nקובץ FDF להדפסת הספר בבית\n", included: true },
+      { label: "✅ כל מה שבדיגיטלי, ובנוסף:", included: true },
+      { label: "📖 קובץ PDF להדפסה", included: true },
+      { label: "🎨 דף צביעה דיגיטלי ופיזי", included: true },
     ],
   },
 } as const;
