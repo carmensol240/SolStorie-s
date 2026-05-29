@@ -29,7 +29,7 @@ const TIERS = {
       { label: "סיפור דיגיטלי יחיד", included: true },
       { label: "הדפס את הסיפור לספר- \nקובץ FDF להדפסת הספר בבית\n", included: false },
       { label: "🎨 דף צביעה דיגיטלי+ להדפסה", included: false },
-      { label: "✏️ תיקון טקסט חינם\n\n", included: true },
+      { label: "✏️ סבב עריכה מלא חינם \nלכל סיפור\n\n", included: true },
       { label: "🎙️ גם כשאתה רחוק — קולך ילווה את הילד בסיפור שלו", included: true },
       { label: "🎵 מוזיקת רקע של יער קסום", included: true },
       { label: "📚 כל הסיפורים שיצרת שמורים לך לתמיד — בחינם", included: true },
