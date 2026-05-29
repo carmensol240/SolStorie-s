@@ -1957,7 +1957,7 @@ const [currentPage, setCurrentPage] = useState(0);
                     const rawText = currentVirtual.text;
                     const displayText = showNikud ? rawText : rawText.replace(/[\u0591-\u05C7]/g, '');
                       return (
-                      <div data-story-scroll className="absolute inset-0 w-full h-full overflow-y-auto flex flex-col items-center" style={{ background: '#0d0a1f' }}>
+                      <div ref={textPageContainerRef} data-story-scroll className="absolute inset-0 w-full h-full overflow-y-auto flex flex-col items-center" style={{ background: '#0d0a1f' }}>
                         {/* Starry dots */}
                         {starDots.map((s, i) => (
                           <span key={i} className="absolute rounded-full" style={{ top: s.top, left: s.left, width: `${s.size}px`, height: `${s.size}px`, backgroundColor: '#fff', opacity: s.opacity, pointerEvents: 'none' }} />
@@ -1980,7 +1980,7 @@ const [currentPage, setCurrentPage] = useState(0);
                         </div>
                         <div className="flex-1" />
                         <div className="max-w-lg mx-auto w-full px-6 md:px-10 py-6 shrink-0">
-                          <p className={cn(
+                          <p ref={textPageTextRef} className={cn(
                             "text-center font-semibold whitespace-pre-line",
                             currentFontSize.size,
                           )} style={{
