@@ -45,7 +45,7 @@ export const EDIT_KIT_PACKAGE = {
 export const COLORING_KIT_PACKAGE = {
   id: "coloring_kit",
   pages: 5,
-  price: 19.90,
+  price: 24.90,
   label: "חבילת צביעה",
   badge: "🎨 לדפי צביעה" as string | undefined,
 };
