@@ -201,7 +201,8 @@ const Upgrade = () => {
                     setSelectedTier(tier.id);
                   }}
                   className={cn(
-                    "relative h-full flex flex-col items-center p-4 pt-5 rounded-2xl border transition-all duration-200",
+                    "relative h-full flex flex-col items-center rounded-2xl border transition-all duration-200",
+                    tier.id === "full" ? "p-3 pt-4 justify-between" : "p-4 pt-5",
                     "bg-white/10 backdrop-blur-md",
                     isSelected
                       ? "border-white/50 shadow-lg scale-[1.03] bg-white/20 ring-2 ring-white/30"
