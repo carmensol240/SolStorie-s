@@ -26,6 +26,17 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
 };
 
+// Build a public URL for an illustration stored in the public `story-illustrations` bucket.
+// Used so that the first-page illustration can be re-sent as a visual reference to Gemini
+// on subsequent pages, locking character appearance across the story.
+const SUPABASE_PUBLIC_URL = Deno.env.get("SUPABASE_URL") || "";
+const STORY_ILLUSTRATIONS_PUBLIC_BASE = `${SUPABASE_PUBLIC_URL}/storage/v1/object/public/story-illustrations`;
+function buildPublicIllustrationUrl(path: string | null | undefined): string | null {
+  if (!path) return null;
+  if (path.startsWith("http://") || path.startsWith("https://")) return path;
+  return `${STORY_ILLUSTRATIONS_PUBLIC_BASE}/${path}`;
+}
+
 // Character Profile interface for consistency across illustrations
 interface CharacterProfile {
   gender: string;
@@ -156,6 +167,7 @@ async function generateIllustrationWithFace(
   storyOutfit: string,
   visualAnchor: string,
   adventureLogic?: { outfit: string; background: string; theme: string },
+  coverReferenceUrl?: string | null,
 ): Promise<string | null> {
   try {
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
@@ -168,7 +180,11 @@ async function generateIllustrationWithFace(
       ? `Setting: ${adventureLogic.background}. Theme: ${adventureLogic.theme}.`
       : "";
 
-    const illustrationPrompt = `FACE REFERENCE: The main character's face MUST be an EXACT 3D Pixar rendering of the child in the reference photo. Keep all facial features, hair color, hair texture, and skin tone identical.
+    const coverReferenceBlock = coverReferenceUrl
+      ? `\n\nSTYLE & CHARACTER REFERENCE (SECOND IMAGE): The SECOND image attached is a finished Pixar 3D illustration of the SAME main character from EARLIER in this same storybook. The character in this new page MUST MATCH that second image EXACTLY — same face shape, same hair color/style, same skin tone, same outfit, same proportions, same Pixar 3D rendering style. Treat the second image as the canonical look of this character. Only the scene/pose/background changes; the character itself does not.`
+      : "";
+
+    const illustrationPrompt = `FACE REFERENCE (FIRST IMAGE): The main character's face MUST be an EXACT 3D Pixar rendering of the child in the FIRST reference photo. Keep all facial features, hair color, hair texture, and skin tone identical.${coverReferenceBlock}
 
 STYLE: ${PIXAR_STYLE}
 
@@ -182,7 +198,15 @@ NEGATIVE: ${CAST_NEGATIVE_PROMPT}
 
 ${NO_UI_NEGATIVE}`;
 
-    console.log("Generating illustration via Gemini Image Generation (face reference)...");
+    console.log(`Generating illustration via Gemini Image Generation (face reference${coverReferenceUrl ? " + cover reference" : ""})...`);
+
+    const messageContent: any[] = [
+      { type: "image_url", image_url: { url: childPhotoUrl } },
+    ];
+    if (coverReferenceUrl) {
+      messageContent.push({ type: "image_url", image_url: { url: coverReferenceUrl } });
+    }
+    messageContent.push({ type: "text", text: illustrationPrompt });
 
     const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
       method: "POST",
@@ -196,10 +220,7 @@ ${NO_UI_NEGATIVE}`;
         modalities: ["image", "text"],
         messages: [{
           role: "user",
-          content: [
-            { type: "image_url", image_url: { url: childPhotoUrl } },
-            { type: "text", text: illustrationPrompt },
-          ],
+          content: messageContent,
         }],
       }),
     });
@@ -247,6 +268,7 @@ async function generateIllustrationGeminiNoFace(
   storyOutfit: string,
   visualAnchor: string,
   adventureLogic?: { outfit: string; background: string; theme: string },
+  coverReferenceUrl?: string | null,
 ): Promise<string | null> {
   try {
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
@@ -259,7 +281,11 @@ async function generateIllustrationGeminiNoFace(
       ? `Setting: ${adventureLogic.background}. Theme: ${adventureLogic.theme}.`
       : "";
 
-    const illustrationPrompt = `${visualAnchor}
+    const coverReferenceBlock = coverReferenceUrl
+      ? `\n\nSTYLE & CHARACTER REFERENCE (ATTACHED IMAGE): The attached image is a finished Pixar 3D illustration of the SAME main character from EARLIER in this same storybook. The character in this new page MUST MATCH that image EXACTLY — same face, same hair color/style, same skin tone, same outfit, same proportions, same Pixar 3D rendering style. Treat the attached image as the canonical look of this character. Only the scene/pose/background changes; the character itself does not.`
+      : "";
+
+    const illustrationPrompt = `${visualAnchor}${coverReferenceBlock}
 
 STYLE: ${PIXAR_STYLE}
 
@@ -273,7 +299,14 @@ NEGATIVE: ${NEGATIVE_PROMPT}
 
 ${NO_UI_NEGATIVE}`;
 
-    console.log("Generating illustration via Gemini Image Generation (no face reference)...");
+    console.log(`Generating illustration via Gemini Image Generation (no face reference${coverReferenceUrl ? ", with cover reference" : ""})...`);
+
+    const messageContent: any = coverReferenceUrl
+      ? [
+          { type: "image_url", image_url: { url: coverReferenceUrl } },
+          { type: "text", text: illustrationPrompt },
+        ]
+      : illustrationPrompt;
 
     const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
       method: "POST",
@@ -287,7 +320,7 @@ ${NO_UI_NEGATIVE}`;
         modalities: ["image", "text"],
         messages: [{
           role: "user",
-          content: illustrationPrompt,
+          content: messageContent,
         }],
       }),
     });
@@ -340,6 +373,15 @@ async function generateIllustration(
   topic?: string
 ): Promise<string | null> {
   try {
+    // HARD GUARD: when a child photo exists, NEVER fall back to Flux Schnell.
+    // Flux has no face reference and breaks character consistency. The caller must
+    // retry Gemini (face or no-face) instead. This guard makes the policy explicit
+    // even if future call sites forget to gate the fallback themselves.
+    if (childPhoto) {
+      console.warn("⚠️ generateIllustration (Flux Schnell) called while childPhoto exists — refusing fallback to preserve character consistency. Caller should retry Gemini.");
+      return null;
+    }
+
     const FAL_KEY = Deno.env.get("FAL_KEY");
     if (!FAL_KEY) {
       console.error("FAL_KEY is not configured, cannot generate illustration");
@@ -1189,8 +1231,14 @@ serve(async (req) => {
 
     // === PARALLEL ILLUSTRATION GENERATION ===
     // Each page is processed independently and concurrently
-    async function generatePageIllustration(page: typeof pagesToIllustrate[0]) {
+    async function generatePageIllustration(
+      page: typeof pagesToIllustrate[0],
+      coverReferenceUrl: string | null,
+    ) {
       console.log(`[Page ${page.page_number}] Starting illustration generation...`);
+      if (coverReferenceUrl) {
+        console.log(`[Page ${page.page_number}] 🔗 Using cover/page-1 illustration as additional reference for character consistency`);
+      }
 
       // Build prompt directly from illustration_prompt — skip AI scene analysis for speed
       const basePrompt = page.illustration_prompt || `A cheerful children's book illustration for page ${page.page_number}`;
@@ -1240,12 +1288,16 @@ The action, objects, characters, and emotions shown MUST come from the STORY TEX
           base64Image = await generateIllustrationWithFace(
             illustrationPrompt, childPhotoSignedUrl, characterProfile,
             storyOutfit, visualAnchor, effectiveAdventureLogic,
+            coverReferenceUrl,
           );
           if (base64Image) { modelUsed = "gemini_with_face"; break; }
+          // No Flux fallback when childPhoto exists — loop will retry Gemini face path
+          fallbackReason = `Gemini face failed (attempt ${attempt}); Flux fallback blocked because childPhoto exists`;
         } else {
           base64Image = await generateIllustrationGeminiNoFace(
             illustrationPrompt, characterProfile,
             storyOutfit, visualAnchor, effectiveAdventureLogic,
+            coverReferenceUrl,
           );
           if (base64Image) { modelUsed = "gemini_no_face"; break; }
 
@@ -1331,11 +1383,14 @@ The action, objects, characters, and emotions shown MUST come from the STORY TEX
             secondImage = await generateIllustrationWithFace(
               secondIllustrationPrompt, childPhotoSignedUrl, characterProfile,
               storyOutfit, visualAnchor, effectiveAdventureLogic,
+              coverReferenceUrl,
             );
+            // No Flux fallback when childPhoto exists — loop retries Gemini instead
           } else {
             secondImage = await generateIllustrationGeminiNoFace(
               secondIllustrationPrompt, characterProfile,
               storyOutfit, visualAnchor, effectiveAdventureLogic,
+              coverReferenceUrl,
             );
             if (!secondImage) {
               secondImage = await generateIllustration(
@@ -1362,16 +1417,58 @@ The action, objects, characters, and emotions shown MUST come from the STORY TEX
       return illustrationUrl;
     }
 
-    // Run ALL page illustrations in parallel (+ cover for topics with dedicated prompts)
+    // === TWO-PHASE GENERATION FOR CHARACTER CONSISTENCY ===
+    // Phase 1: generate page 1 first (in parallel with the topic cover, which is independent).
+    // Phase 2: generate pages 2+ in parallel, passing page 1's finished illustration as an
+    //          additional visual reference so Gemini locks the character's exact appearance.
+    // For single-page mode (re-generating one page that isn't page 1), fetch the existing
+    // page 1 illustration from the DB and use it as the reference.
+    const sortedPages = [...pagesToIllustrate].sort((a, b) => a.page_number - b.page_number);
+    const firstPage = sortedPages.find(p => p.page_number === 1) || null;
+    const restPages = sortedPages.filter(p => p !== firstPage);
+
     const coverPromise = TOPIC_COVER_PROMPTS[topic]
       ? generateCoverImage(supabase, storyId, LOVABLE_API_KEY, topic)
       : Promise.resolve(null);
 
-    const [coverResult, ...illustrationResults] = await Promise.all([
+    let coverReferenceForRest: string | null = null;
+
+    // If single-page mode and the page isn't page 1, look up page 1's existing illustration
+    if (!firstPage && restPages.length > 0) {
+      const { data: existingFirst } = await supabase
+        .from("story_pages")
+        .select("illustration_url")
+        .eq("story_id", storyId)
+        .eq("page_number", 1)
+        .maybeSingle();
+      coverReferenceForRest = buildPublicIllustrationUrl(existingFirst?.illustration_url || null);
+      if (coverReferenceForRest) {
+        console.log(`🔗 Single-page re-gen: using existing page-1 illustration as character reference`);
+      }
+    }
+
+    // Phase 1: page 1 + topic cover in parallel
+    const [coverResult, firstResult] = await Promise.all([
       coverPromise,
-      ...pagesToIllustrate.map(page => generatePageIllustration(page)),
+      firstPage ? generatePageIllustration(firstPage, null) : Promise.resolve(null),
     ]);
     if (coverResult) console.log(`✅ Cover generated for topic "${topic}": ${coverResult}`);
+
+    // After page 1 succeeds, use its uploaded illustration as reference for pages 2+
+    if (firstPage && firstResult && !coverReferenceForRest) {
+      coverReferenceForRest = buildPublicIllustrationUrl(firstResult);
+      if (coverReferenceForRest) {
+        console.log(`🔗 Phase 2: using page-1 illustration as character reference for ${restPages.length} remaining pages`);
+      } else {
+        console.warn(`⚠️ Phase 2: page 1 illustration URL unavailable — pages 2+ will generate without cover reference`);
+      }
+    }
+
+    // Phase 2: pages 2+ in parallel, with page-1 reference
+    const restResults = await Promise.all(
+      restPages.map(page => generatePageIllustration(page, coverReferenceForRest)),
+    );
+    const illustrationResults = [firstResult, ...restResults].filter(r => r !== null || firstPage);
     console.log(`All ${pagesToIllustrate.length} illustration tasks completed. Success: ${illustrationResults.filter(Boolean).length}/${pagesToIllustrate.length}`);
 
     // Check if ALL illustration pages now have illustration_url before marking as ready
