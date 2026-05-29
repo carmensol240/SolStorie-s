@@ -373,6 +373,15 @@ async function generateIllustration(
   topic?: string
 ): Promise<string | null> {
   try {
+    // HARD GUARD: when a child photo exists, NEVER fall back to Flux Schnell.
+    // Flux has no face reference and breaks character consistency. The caller must
+    // retry Gemini (face or no-face) instead. This guard makes the policy explicit
+    // even if future call sites forget to gate the fallback themselves.
+    if (childPhoto) {
+      console.warn("⚠️ generateIllustration (Flux Schnell) called while childPhoto exists — refusing fallback to preserve character consistency. Caller should retry Gemini.");
+      return null;
+    }
+
     const FAL_KEY = Deno.env.get("FAL_KEY");
     if (!FAL_KEY) {
       console.error("FAL_KEY is not configured, cannot generate illustration");
