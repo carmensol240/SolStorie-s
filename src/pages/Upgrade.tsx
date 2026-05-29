@@ -26,11 +26,12 @@ const TIERS = {
     label: "דיגיטלי",
     price: 39.90,
     features: [
-      { label: "סיפור דיגיטלי יחיד", included: true },
-      { label: "✏️ סבב עריכה מלא חינם לכל סיפור", included: true },
-      { label: "🎙️ גם כשאתה רחוק — קולך ילווה את הילד בסיפור שלו", included: true },
+      { label: "✨ הילד שלך — הגיבור של הסיפור", included: true },
+      { label: "🎨 דמות מותאמת אישית עם הפנים שלו", included: true },
       { label: "🎵 מוזיקת רקע קסומה", included: true },
-      { label: "📚 כל הסיפורים שמורים לתמיד — בחינם", included: true },
+      { label: "🎙️ הקלט את קולך — הילד ישמע אותך גם מרחוק", included: true },
+      { label: "✏️ סבב עריכה מלא חינם", included: true },
+      { label: "📚 הסיפור שמור לתמיד", included: true },
     ],
   },
   full: {
@@ -190,7 +191,7 @@ const Upgrade = () => {
           </div>
 
           {/* Tier Cards */}
-          <div className="grid grid-cols-2 gap-3 mb-6">
+          <div className="grid grid-cols-2 gap-3 mb-6 items-stretch">
             {(Object.values(TIERS) as Array<typeof TIERS.digital>).map((tier) => {
               const isSelected = selectedTier === tier.id;
               return (
@@ -200,7 +201,7 @@ const Upgrade = () => {
                     setSelectedTier(tier.id);
                   }}
                   className={cn(
-                    "relative flex flex-col items-center p-4 pt-5 rounded-2xl border transition-all duration-200",
+                    "relative h-full flex flex-col items-center p-4 pt-5 rounded-2xl border transition-all duration-200",
                     "bg-white/10 backdrop-blur-md",
                     isSelected
                       ? "border-white/50 shadow-lg scale-[1.03] bg-white/20 ring-2 ring-white/30"
