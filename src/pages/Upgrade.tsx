@@ -134,7 +134,6 @@ const Upgrade = () => {
 
   const handlePurchase = () => {
     if (!user) { navigate("/auth"); return; }
-    if (isTestUser) { handleTestPurchase(); return; }
     openGrowCheckout(selectedTier === "full" ? "popular" : "basic");
   };
 
