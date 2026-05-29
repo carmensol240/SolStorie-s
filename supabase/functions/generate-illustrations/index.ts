@@ -26,6 +26,17 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
 };
 
+// Build a public URL for an illustration stored in the public `story-illustrations` bucket.
+// Used so that the first-page illustration can be re-sent as a visual reference to Gemini
+// on subsequent pages, locking character appearance across the story.
+const SUPABASE_PUBLIC_URL = Deno.env.get("SUPABASE_URL") || "";
+const STORY_ILLUSTRATIONS_PUBLIC_BASE = `${SUPABASE_PUBLIC_URL}/storage/v1/object/public/story-illustrations`;
+function buildPublicIllustrationUrl(path: string | null | undefined): string | null {
+  if (!path) return null;
+  if (path.startsWith("http://") || path.startsWith("https://")) return path;
+  return `${STORY_ILLUSTRATIONS_PUBLIC_BASE}/${path}`;
+}
+
 // Character Profile interface for consistency across illustrations
 interface CharacterProfile {
   gender: string;
