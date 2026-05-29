@@ -268,6 +268,7 @@ async function generateIllustrationGeminiNoFace(
   storyOutfit: string,
   visualAnchor: string,
   adventureLogic?: { outfit: string; background: string; theme: string },
+  coverReferenceUrl?: string | null,
 ): Promise<string | null> {
   try {
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
@@ -280,7 +281,11 @@ async function generateIllustrationGeminiNoFace(
       ? `Setting: ${adventureLogic.background}. Theme: ${adventureLogic.theme}.`
       : "";
 
-    const illustrationPrompt = `${visualAnchor}
+    const coverReferenceBlock = coverReferenceUrl
+      ? `\n\nSTYLE & CHARACTER REFERENCE (ATTACHED IMAGE): The attached image is a finished Pixar 3D illustration of the SAME main character from EARLIER in this same storybook. The character in this new page MUST MATCH that image EXACTLY — same face, same hair color/style, same skin tone, same outfit, same proportions, same Pixar 3D rendering style. Treat the attached image as the canonical look of this character. Only the scene/pose/background changes; the character itself does not.`
+      : "";
+
+    const illustrationPrompt = `${visualAnchor}${coverReferenceBlock}
 
 STYLE: ${PIXAR_STYLE}
 
@@ -294,7 +299,14 @@ NEGATIVE: ${NEGATIVE_PROMPT}
 
 ${NO_UI_NEGATIVE}`;
 
-    console.log("Generating illustration via Gemini Image Generation (no face reference)...");
+    console.log(`Generating illustration via Gemini Image Generation (no face reference${coverReferenceUrl ? ", with cover reference" : ""})...`);
+
+    const messageContent: any = coverReferenceUrl
+      ? [
+          { type: "image_url", image_url: { url: coverReferenceUrl } },
+          { type: "text", text: illustrationPrompt },
+        ]
+      : illustrationPrompt;
 
     const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
       method: "POST",
@@ -308,7 +320,7 @@ ${NO_UI_NEGATIVE}`;
         modalities: ["image", "text"],
         messages: [{
           role: "user",
-          content: illustrationPrompt,
+          content: messageContent,
         }],
       }),
     });
