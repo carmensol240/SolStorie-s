@@ -311,6 +311,9 @@ const Upgrade = () => {
               <>רכשו {selectedTierData.label} ב-₪{selectedBasePrice.toFixed(2)} ✨</>
             )}
           </Button>
+          <p className="text-[11px] text-white/70 font-semibold mt-1">
+            ✏️ סבב עריכה מלא כלול בכל סיפור
+          </p>
         </div>
       </div>
 
