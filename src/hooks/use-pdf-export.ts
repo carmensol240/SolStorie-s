@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { jsPDF } from 'jspdf';
 import html2canvas from 'html2canvas';
+import QRCode from 'qrcode';
 import { useToast } from '@/hooks/use-toast';
 import { useSignedUrls } from '@/hooks/use-signed-urls';
 import { translateTopic } from '@/lib/topic-translations';
@@ -227,6 +228,59 @@ export const usePdfExport = () => {
       ? `<img src="${illustrationDataUrl}" style="max-width:100%;max-height:100%;object-fit:contain;" />`
       : `<div style="width:100%;height:100%;background:${RAINBOW_CSS};border-radius:24px;"></div>`;
     return pageEl;
+  };
+
+  // ─── Back Cover Page: brand purple background ──
+  const renderBackCoverPage = async (childName: string): Promise<HTMLDivElement> => {
+    const qrDataUrl = await QRCode.toDataURL('https://soulstory.co.il', {
+      width: 360,
+      margin: 1,
+      color: { dark: '#1a0a3e', light: '#ffffff' },
+    });
+    const today = new Date().toLocaleDateString('he-IL', {
+      day: 'numeric', month: 'long', year: 'numeric',
+    });
+    const page = document.createElement('div');
+    page.style.cssText = `
+      width: 100%; height: 100%; position: relative; overflow: hidden;
+      display: flex; flex-direction: column; align-items: center; justify-content: space-between;
+      direction: rtl; font-family: Heebo, Assistant, sans-serif;
+      background: linear-gradient(160deg, #1a0a3e 0%, #2a1050 45%, #3b1466 100%);
+      padding: 120px 100px; box-sizing: border-box; text-align: center;
+    `;
+    page.innerHTML = `
+      <div style="display:flex;flex-direction:column;align-items:center;">
+        <div style="color:#FFD66B;font-size:96px;font-weight:900;letter-spacing:1px;
+          text-shadow:0 2px 12px rgba(0,0,0,0.5);">✨ SolStorie's™</div>
+        <p style="color:#ffffff;font-size:48px;font-weight:700;margin:60px 0 0 0;line-height:1.4;">
+          כל ילד הוא גיבור הסיפור שלו ✨
+        </p>
+        <p style="color:rgba(255,255,255,0.85);font-size:32px;font-weight:500;margin:30px 0 0 0;line-height:1.5;">
+          סיפורים מותאמים אישית עם הילד שלך כגיבור
+        </p>
+      </div>
+
+      <div style="display:flex;flex-direction:column;align-items:center;background:rgba(255,255,255,0.08);
+        border:1px solid rgba(255,255,255,0.18);border-radius:32px;padding:40px 60px;">
+        <img src="${qrDataUrl}" style="width:280px;height:280px;border-radius:16px;background:#ffffff;padding:14px;" />
+        <p style="color:#ffffff;font-size:28px;font-weight:600;margin:24px 0 6px 0;">
+          סרקו ליצירת הסיפור הבא של הילד שלכם 📱✨
+        </p>
+        <p style="color:#FFD66B;font-size:22px;font-weight:500;margin:0;letter-spacing:0.5px;">
+          soulstory.co.il
+        </p>
+      </div>
+
+      <div style="display:flex;flex-direction:column;align-items:center;gap:10px;">
+        <p style="color:rgba(255,255,255,0.75);font-size:22px;font-weight:500;margin:0;">
+          הסיפור של ${escapeHtml(childName)} · נוצר ב-${today}
+        </p>
+        <p style="color:rgba(255,255,255,0.5);font-size:18px;font-weight:400;margin:0;">
+          © SolStorie's™ · כל הזכויות שמורות
+        </p>
+      </div>
+    `;
+    return page;
   };
 
   // ─── Square PDF builder ──
