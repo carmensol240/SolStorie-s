@@ -50,6 +50,7 @@ import { useAuth } from "@/hooks/use-auth";
 import { useColoringCredits } from "@/hooks/use-coloring-credits";
 import { useStoryEdit } from "@/hooks/use-story-edit";
 import { useIsMobile } from "@/hooks/use-mobile";
+import { useAutoFitText } from "@/hooks/use-auto-fit-text";
 // useSwipe removed - swipe navigation disabled per user request
 // useSignedUrls removed - story-illustrations bucket is public
 import { BookFrame, BookPage, BookHeader, NavigationArrows, MagicalBookFrame } from "@/components/story/book-frame";
@@ -1559,6 +1560,17 @@ const [currentPage, setCurrentPage] = useState(0);
   // For editing/nikud, get the underlying DB page
   const page = currentVirtual ? currentVirtual.dbPage : null;
   const currentFontSize = FONT_SIZES[fontSizeIndex];
+
+  // Auto-fit refs for the standalone text page — shrinks font to avoid scrolling.
+  const textPageContainerRef = useRef<HTMLDivElement>(null);
+  const textPageTextRef = useRef<HTMLParagraphElement>(null);
+  useAutoFitText(textPageContainerRef, textPageTextRef, [
+    currentVirtual?.text,
+    currentVirtual?.type,
+    currentPage,
+    currentFontSize?.size,
+    showNikud,
+  ]);
   const showPageActions = isContentPage && page !== null;
 
   // Reset all scroll positions (window + inner scrollable containers)
@@ -1945,7 +1957,7 @@ const [currentPage, setCurrentPage] = useState(0);
                     const rawText = currentVirtual.text;
                     const displayText = showNikud ? rawText : rawText.replace(/[\u0591-\u05C7]/g, '');
                       return (
-                      <div data-story-scroll className="absolute inset-0 w-full h-full overflow-y-auto flex flex-col items-center" style={{ background: '#0d0a1f' }}>
+                      <div ref={textPageContainerRef} data-story-scroll className="absolute inset-0 w-full h-full overflow-y-auto flex flex-col items-center" style={{ background: '#0d0a1f' }}>
                         {/* Starry dots */}
                         {starDots.map((s, i) => (
                           <span key={i} className="absolute rounded-full" style={{ top: s.top, left: s.left, width: `${s.size}px`, height: `${s.size}px`, backgroundColor: '#fff', opacity: s.opacity, pointerEvents: 'none' }} />
@@ -1968,7 +1980,7 @@ const [currentPage, setCurrentPage] = useState(0);
                         </div>
                         <div className="flex-1" />
                         <div className="max-w-lg mx-auto w-full px-6 md:px-10 py-6 shrink-0">
-                          <p className={cn(
+                          <p ref={textPageTextRef} className={cn(
                             "text-center font-semibold whitespace-pre-line",
                             currentFontSize.size,
                           )} style={{

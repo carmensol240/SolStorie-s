@@ -1,7 +1,8 @@
-import React from "react";
+import React, { useRef } from "react";
 import { cn } from "@/lib/utils";
 
 import { SignedImage } from "@/components/ui/signed-image";
+import { useAutoFitText } from "@/hooks/use-auto-fit-text";
 
 interface BookPageProps {
   type: 'illustration' | 'text';
@@ -29,6 +30,10 @@ export const BookPage: React.FC<BookPageProps> = ({
   storyId,
 }) => {
   const isGeneratingIllustration = type === 'illustration' && !illustrationUrl && !!illustrationPrompt;
+  const textContainerRef = useRef<HTMLDivElement>(null);
+  const textRef = useRef<HTMLParagraphElement>(null);
+  // Auto-fit: shrink font size until text fits the page without scrolling.
+  useAutoFitText(textContainerRef, textRef, [text, fontSize, type]);
   if (type === 'illustration') {
     return (
       <div className={cn(
@@ -67,16 +72,21 @@ export const BookPage: React.FC<BookPageProps> = ({
   // Text page
   const sanitizedText = (text || "").replace(/\[\s*(?:עמוד|page|עמ׳|עמ\.?)\s*\d+\s*\]/gi, "").replace(/[ \t]+\n/g, "\n").replace(/\n{3,}/g, "\n\n").trim();
   return (
-    <div className={cn(
-      "relative flex-1 flex flex-col justify-center p-6 md:p-8 lg:p-10",
-      className
-    )} style={{ background: 'linear-gradient(135deg, #2d1a6e, #1a0f3a)' }}>
+    <div
+      ref={textContainerRef}
+      className={cn(
+        "relative flex-1 flex flex-col justify-center p-6 md:p-8 lg:p-10 overflow-hidden",
+        className
+      )}
+      style={{ background: 'linear-gradient(135deg, #2d1a6e, #1a0f3a)' }}
+    >
       {/* Page fold effect */}
       <div className="absolute top-0 right-0 w-8 h-8 bg-gradient-to-bl from-white/5 to-transparent" />
       
       {/* Main text content */}
       <div className="flex-1 flex flex-col items-start justify-start">
-        <p 
+        <p
+          ref={textRef}
           className={cn(
             "leading-loose text-purple-100 text-right font-medium transition-all w-full",
             fontSize
