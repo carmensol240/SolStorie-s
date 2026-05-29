@@ -26,7 +26,7 @@ const WelcomeGiftBanner = ({ credits, storyCount }: WelcomeGiftBannerProps) => {
         
         <div className="flex-1 min-w-0">
           <h3 className="font-black text-white text-lg leading-tight">
-            🎁 יש לך סיפור לדוגמא!
+            🎁 בונוס חד פעמי — סיפור מתנה ברכישה ראשונה!
           </h3>
           <p className="text-white/90 text-sm mt-0.5">
             התחילו להרפתקה הקסומה שלכם

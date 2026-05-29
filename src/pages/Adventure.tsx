@@ -175,7 +175,7 @@ const Adventure = () => {
                 }}
               >
                 <span className="font-black text-[11px] text-white drop-shadow-[0_1px_2px_rgba(0,0,0,0.5)] leading-tight text-center pointer-events-none" style={{ textShadow: "0 0 6px rgba(255,215,0,0.6)" }}>
-                  סיפור<br/>לדוגמא ✨
+                  סיפור<br/>מתנה ✨
                 </span>
               </div>
             </div>
