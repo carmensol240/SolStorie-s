@@ -39,7 +39,7 @@ const TIERS = {
     price: 99.90,
     features: [
       { label: "✅ כל מה שבדיגיטלי, ובנוסף:", included: true },
-      { label: "📖 קובץ PDF להדפסה", included: true },
+      { label: "📖 קובץ PDF להדפסה לספר ", included: true },
       { label: "🎨 דף צביעה דיגיטלי ופיזי", included: true },
     ],
   },
