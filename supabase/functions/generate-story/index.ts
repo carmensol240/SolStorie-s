@@ -1929,6 +1929,16 @@ ${fullStoryText}`;
       console.warn("[generate-story] Text rewrite error, using original text:", rewriteErr);
     }
 
+    // === SANITIZE: strip any leaked page markers like [עמוד N] / [Page N] from page text ===
+    // These markers are an internal scaffolding used by the rewrite/nikud passes and must
+    // never appear inside the visible story text.
+    const PAGE_MARKER_RE = /\[\s*(?:עמוד|page|עמ׳|עמ\.?)\s*\d+\s*\]/gi;
+    for (const p of storyData.pages as any[]) {
+      if (typeof p.text === "string" && PAGE_MARKER_RE.test(p.text)) {
+        p.text = p.text.replace(PAGE_MARKER_RE, "").replace(/[ \t]+\n/g, "\n").replace(/\n{3,}/g, "\n\n").trim();
+      }
+    }
+
     // === NIKUD: Deferred to background for faster response ===
     // Nikud will be applied after story+pages are saved, in a fire-and-forget manner
     const shouldApplyNikud = nikud && language === "he";
