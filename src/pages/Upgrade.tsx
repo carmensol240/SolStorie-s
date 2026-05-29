@@ -24,15 +24,13 @@ const TIERS = {
   digital: {
     id: "digital" as Tier,
     label: "דיגיטלי",
-    price: 29.90,
+    price: 39.90,
     features: [
       { label: "סיפור דיגיטלי יחיד", included: true },
-      { label: "הדפס את הסיפור לספר- \nקובץ FDF להדפסת הספר בבית\n", included: false },
-      { label: "🎨 דף צביעה דיגיטלי+ להדפסה", included: false },
-      { label: "✏️ סבב עריכה מלא חינם \nלכל סיפור\n\n", included: true },
+      { label: "✏️ סבב עריכה מלא חינם לכל סיפור", included: true },
       { label: "🎙️ גם כשאתה רחוק — קולך ילווה את הילד בסיפור שלו", included: true },
-      { label: "🎵 מוזיקת רקע של יער קסום", included: true },
-      { label: "📚 כל הסיפורים שיצרת שמורים לך לתמיד — בחינם", included: true },
+      { label: "🎵 מוזיקת רקע קסומה", included: true },
+      { label: "📚 כל הסיפורים שמורים לתמיד — בחינם", included: true },
     ],
   },
   full: {
@@ -40,9 +38,9 @@ const TIERS = {
     label: "הכי פופולרי 🔥",
     price: 99.90,
     features: [
-      { label: "✅ כולל את כל מה שבחבילה הדיגיטלית +", included: true },
-      { label: "🎨 דף צביעה דיגיטלי+ להדפסה", included: true },
-      { label: "הדפס את הסיפור לספר- \nקובץ FDF להדפסת הספר בבית\n", included: true },
+      { label: "✅ כל מה שבדיגיטלי, ובנוסף:", included: true },
+      { label: "📖 קובץ PDF להדפסה", included: true },
+      { label: "🎨 דף צביעה דיגיטלי ופיזי", included: true },
     ],
   },
 } as const;
@@ -220,39 +218,12 @@ const Upgrade = () => {
                   <div className="text-2xl font-black bg-gradient-to-r from-purple-300 via-pink-300 to-orange-300 bg-clip-text text-transparent mb-3">
                     ₪{tier.id === "full" ? "99.90" : tier.price.toFixed(2)}
                   </div>
-                  <div className="w-full space-y-2">
-                    {(tier.id === "digital" ? tier.features.filter((f) => f.included) : tier.features).map((feature) => (
-                      <div key={feature.label}>
-                        <div className="flex items-center gap-2">
-                          {feature.included ? (
-                            <Check className="w-4 h-4 text-green-400 shrink-0" />
-                          ) : (
-                            <X className="w-4 h-4 text-red-400 shrink-0" />
-                          )}
-                          {tier.id === "digital" && feature.label.includes("📚 כל הסיפורים") ? (
-                            <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-bold text-amber-200 bg-amber-500/20 border border-amber-400/40">
-                              {feature.label}
-                            </span>
-                          ) : (
-                            <span
-                              className={cn(
-                                "text-xs font-semibold whitespace-pre-line",
-                                feature.included ? "text-white/90" : "text-white/40 line-through"
-                              )}
-                            >
-                              {feature.label}
-                            </span>
-                          )}
-                        </div>
-                        {tier.id === "full" && feature.label.includes("הדפס את הסיפור לספר") && (
-                          <button
-                            type="button"
-                            onClick={(e) => { e.stopPropagation(); setShowSampleBook(true); }}
-                            className="mt-1.5 inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-bold text-amber-200 bg-amber-500/20 border border-amber-400/40 hover:bg-amber-500/30 transition-colors cursor-pointer"
-                          >
-                            📖 לדוגמא לספר המודפס
-                          </button>
-                        )}
+                  <div className="w-full space-y-3">
+                    {tier.features.filter((f) => f.included).map((feature) => (
+                      <div key={feature.label} className="text-center">
+                        <span className="text-xs font-semibold text-white/90 leading-relaxed block">
+                          {feature.label}
+                        </span>
                       </div>
                     ))}
                   </div>
