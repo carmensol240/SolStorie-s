@@ -401,7 +401,7 @@ const [currentPage, setCurrentPage] = useState(0);
       });
       setHasPurchasedPackage(hasPackage);
       // PDF download requires either a multi-story package OR a single_story_full unlock.
-      // single_story_digital (29.90 ₪) does NOT grant PDF rights.
+      // single_story_digital (39.90 ₪) does NOT grant PDF rights.
       const hasFullPdfRight = (data ?? []).some((row: any) => {
         const name: string = row?.package_name ?? '';
         return !name.includes('single_story') || name.includes('single_story_full');
@@ -515,7 +515,7 @@ const [currentPage, setCurrentPage] = useState(0);
   }, [isDemoUser]);
 
   // PDF download is gated more strictly than other demo-locked actions:
-  // only single_story_full (79.90 ₪), multi-story packages, subscribers,
+  // only single_story_full (99.90 ₪), multi-story packages, subscribers,
   // admins, or testers may download. single_story_digital buyers see the
   // upgrade modal so they can buy the full version.
   const canDownloadPdf = !!user && (
@@ -2147,7 +2147,7 @@ const [currentPage, setCurrentPage] = useState(0);
         open={demoPaywallOpen}
         onOpenChange={setDemoPaywallOpen}
         title="✨ רוצים לקרוא את הסיפור המלא?"
-        description=" סיפור ראשון? מגיע לך מתנה! רכשו ב-29.90 ₪ וקבלו סיפור דיגיטלי נוסף🎁"
+        description=" סיפור ראשון? מגיע לך מתנה! רכשו ב-39.90 ₪ וקבלו סיפור דיגיטלי נוסף🎁"
         storyId={storyId}
       />
 

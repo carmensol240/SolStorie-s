@@ -34,14 +34,14 @@ const ColoringPurchaseModal = ({
   const options = {
     single: {
       packageId: "coloring_single",
-      price: 6.9,
+      price: 9.9,
       title: "דף צביעה אחד",
       subtitle: "עמוד אחד לבחירה",
       badge: null as string | null,
     },
     story: {
       packageId: "coloring_story",
-      price: 19.9,
+      price: 24.9,
       title: "כל דפי הסיפור",
       subtitle: `${illustrationCount} דפי צביעה — אחד לכל איור`,
       badge: "הכי משתלם 💰",
