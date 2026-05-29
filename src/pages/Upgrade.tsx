@@ -178,7 +178,7 @@ const Upgrade = () => {
         </Button>
       </div>
 
-      <div className="flex-1 overflow-y-auto pb-32 relative z-10" style={{ WebkitOverflowScrolling: "touch" }}>
+      <div className="flex-1 overflow-y-auto pb-24 relative z-10" style={{ WebkitOverflowScrolling: "touch" }}>
         <div className="container max-w-md mx-auto px-4 pt-8">
           {/* Title */}
           <div className="text-center mb-4">
@@ -191,7 +191,7 @@ const Upgrade = () => {
           </div>
 
           {/* Tier Cards */}
-          <div className="grid grid-cols-2 gap-3 mb-6 items-stretch">
+          <div className="grid grid-cols-2 gap-3 mb-4 items-stretch">
             {(Object.values(TIERS) as Array<typeof TIERS.digital>).map((tier) => {
               const isSelected = selectedTier === tier.id;
               return (
@@ -211,13 +211,15 @@ const Upgrade = () => {
                     tier.id === "full" && isSelected && "shadow-[0_0_40px_rgba(236,72,153,0.5)] border-pink-400/60 ring-2 ring-pink-400/50"
                   )}
                 >
-                  {tier.id === "digital" && (
-                    <div className="mb-2 px-3 py-1 rounded-full bg-green-500/20 text-green-300 text-xs font-bold border border-green-500/30">
-                      ✨ מושלם להתחיל
-                    </div>
-                  )}
-                  <div className="text-lg font-black text-white mb-1">{tier.label}</div>
-                  <div className="text-2xl font-black bg-gradient-to-r from-purple-300 via-pink-300 to-orange-300 bg-clip-text text-transparent mb-3">
+                  <div className="h-7 mb-2 flex items-center justify-center">
+                    {tier.id === "digital" && (
+                      <div className="px-3 py-1 rounded-full bg-green-500/20 text-green-300 text-xs font-bold border border-green-500/30">
+                        ✨ מושלם להתחיל
+                      </div>
+                    )}
+                  </div>
+                  <div className="text-lg font-black text-white mb-1 h-7 flex items-center">{tier.label}</div>
+                  <div className="text-2xl font-black bg-gradient-to-r from-purple-300 via-pink-300 to-orange-300 bg-clip-text text-transparent mb-3 h-8 flex items-center">
                     ₪{tier.id === "full" ? "99.90" : tier.price.toFixed(2)}
                   </div>
                   <div className="w-full space-y-3">
