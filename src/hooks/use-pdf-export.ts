@@ -347,6 +347,12 @@ export const usePdfExport = () => {
       }
     }
 
+    // -- Last. Back cover page --
+    container.innerHTML = '';
+    const backCoverEl = await renderBackCoverPage(story.child_name);
+    container.appendChild(backCoverEl);
+    await captureHtmlToPage(container, pdf, false, true);
+
     document.body.removeChild(container);
     return pdf;
   };
