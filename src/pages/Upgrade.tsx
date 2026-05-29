@@ -211,15 +211,15 @@ const Upgrade = () => {
                     tier.id === "full" && isSelected && "shadow-[0_0_40px_rgba(236,72,153,0.5)] border-pink-400/60 ring-2 ring-pink-400/50"
                   )}
                 >
-                  <div className="h-7 mb-2 flex items-center justify-center">
+                  <div className="min-h-7 mb-2 flex items-start justify-center">
                     {tier.id === "digital" && (
                       <div className="px-3 py-1 rounded-full bg-green-500/20 text-green-300 text-xs font-bold border border-green-500/30">
                         ✨ מושלם להתחיל
                       </div>
                     )}
                   </div>
-                  <div className="text-lg font-black text-white mb-1 h-7 flex items-center">{tier.label}</div>
-                  <div className="text-2xl font-black bg-gradient-to-r from-purple-300 via-pink-300 to-orange-300 bg-clip-text text-transparent mb-3 h-8 flex items-center">
+                  <div className="text-lg font-black text-white mb-1 min-h-7 flex items-start">{tier.label}</div>
+                  <div className="text-2xl font-black bg-gradient-to-r from-purple-300 via-pink-300 to-orange-300 bg-clip-text text-transparent mb-3 min-h-8 flex items-start">
                     ₪{tier.id === "full" ? "99.90" : tier.price.toFixed(2)}
                   </div>
                   <div className="w-full space-y-3">
@@ -231,11 +231,6 @@ const Upgrade = () => {
                       </div>
                     ))}
                   </div>
-                  {isSelected && (
-                    <div className="mt-3 w-6 h-6 rounded-full bg-gradient-to-r from-purple-500 to-pink-500 flex items-center justify-center">
-                      <Check className="w-4 h-4 text-white" />
-                    </div>
-                  )}
                 </button>
               );
             })}
