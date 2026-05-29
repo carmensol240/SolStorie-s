@@ -1560,6 +1560,17 @@ const [currentPage, setCurrentPage] = useState(0);
   // For editing/nikud, get the underlying DB page
   const page = currentVirtual ? currentVirtual.dbPage : null;
   const currentFontSize = FONT_SIZES[fontSizeIndex];
+
+  // Auto-fit refs for the standalone text page — shrinks font to avoid scrolling.
+  const textPageContainerRef = useRef<HTMLDivElement>(null);
+  const textPageTextRef = useRef<HTMLParagraphElement>(null);
+  useAutoFitText(textPageContainerRef, textPageTextRef, [
+    currentVirtual?.text,
+    currentVirtual?.type,
+    currentPage,
+    currentFontSize?.size,
+    showNikud,
+  ]);
   const showPageActions = isContentPage && page !== null;
 
   // Reset all scroll positions (window + inner scrollable containers)
