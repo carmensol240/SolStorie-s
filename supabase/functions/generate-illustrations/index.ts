@@ -167,6 +167,7 @@ async function generateIllustrationWithFace(
   storyOutfit: string,
   visualAnchor: string,
   adventureLogic?: { outfit: string; background: string; theme: string },
+  coverReferenceUrl?: string | null,
 ): Promise<string | null> {
   try {
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
@@ -179,7 +180,11 @@ async function generateIllustrationWithFace(
       ? `Setting: ${adventureLogic.background}. Theme: ${adventureLogic.theme}.`
       : "";
 
-    const illustrationPrompt = `FACE REFERENCE: The main character's face MUST be an EXACT 3D Pixar rendering of the child in the reference photo. Keep all facial features, hair color, hair texture, and skin tone identical.
+    const coverReferenceBlock = coverReferenceUrl
+      ? `\n\nSTYLE & CHARACTER REFERENCE (SECOND IMAGE): The SECOND image attached is a finished Pixar 3D illustration of the SAME main character from EARLIER in this same storybook. The character in this new page MUST MATCH that second image EXACTLY — same face shape, same hair color/style, same skin tone, same outfit, same proportions, same Pixar 3D rendering style. Treat the second image as the canonical look of this character. Only the scene/pose/background changes; the character itself does not.`
+      : "";
+
+    const illustrationPrompt = `FACE REFERENCE (FIRST IMAGE): The main character's face MUST be an EXACT 3D Pixar rendering of the child in the FIRST reference photo. Keep all facial features, hair color, hair texture, and skin tone identical.${coverReferenceBlock}
 
 STYLE: ${PIXAR_STYLE}
 
@@ -193,7 +198,15 @@ NEGATIVE: ${CAST_NEGATIVE_PROMPT}
 
 ${NO_UI_NEGATIVE}`;
 
-    console.log("Generating illustration via Gemini Image Generation (face reference)...");
+    console.log(`Generating illustration via Gemini Image Generation (face reference${coverReferenceUrl ? " + cover reference" : ""})...`);
+
+    const messageContent: any[] = [
+      { type: "image_url", image_url: { url: childPhotoUrl } },
+    ];
+    if (coverReferenceUrl) {
+      messageContent.push({ type: "image_url", image_url: { url: coverReferenceUrl } });
+    }
+    messageContent.push({ type: "text", text: illustrationPrompt });
 
     const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
       method: "POST",
@@ -207,10 +220,7 @@ ${NO_UI_NEGATIVE}`;
         modalities: ["image", "text"],
         messages: [{
           role: "user",
-          content: [
-            { type: "image_url", image_url: { url: childPhotoUrl } },
-            { type: "text", text: illustrationPrompt },
-          ],
+          content: messageContent,
         }],
       }),
     });
