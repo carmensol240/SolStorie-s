@@ -67,8 +67,10 @@ export const useStoryEdit = (storyId: string): UseStoryEditResult => {
 
   const canEdit = useCallback(() => {
     if (isAdmin) return true;
+    // First editing round is free for every story (text + nikud + save across all pages)
+    if (editCount !== null && editCount === 0) return true;
     return hasEditCredits() || hasCredits();
-  }, [isAdmin, hasEditCredits, hasCredits]);
+  }, [isAdmin, editCount, hasEditCredits, hasCredits]);
 
   const performEdit = useCallback(async (): Promise<{ success: boolean; errorMessage?: string }> => {
     console.log('[performEdit] Starting...', { userId: user?.id, storyId, isAdmin });
@@ -83,8 +85,18 @@ export const useStoryEdit = (storyId: string): UseStoryEditResult => {
     setError(null);
 
     try {
-      // Admins skip credit deduction
-      if (!isAdmin) {
+      // Fetch fresh edit_count first to decide if this edit is part of the free round
+      const { data: storyPre, error: storyPreErr } = await supabase
+        .from('stories')
+        .select('edit_count')
+        .eq('id', storyId)
+        .maybeSingle();
+      if (storyPreErr) throw storyPreErr;
+      const currentEditCount = storyPre?.edit_count ?? 0;
+      const isFreeRound = currentEditCount === 0;
+
+      // Admins and the first free editing round skip credit deduction
+      if (!isAdmin && !isFreeRound) {
         // Always fetch credits directly from DB to avoid stale state / race conditions
         const { data: profileData, error: profileError } = await supabase
           .from('profiles')
@@ -127,20 +139,13 @@ export const useStoryEdit = (storyId: string): UseStoryEditResult => {
           setLoading(false);
           return { success: false, errorMessage: msg };
         }
-      } else {
+      } else if (isAdmin) {
         console.log('[performEdit] Admin user, skipping credits');
+      } else {
+        console.log('[performEdit] Free editing round, skipping credits');
       }
 
-      // Fetch fresh edit_count from DB to avoid stale state / race conditions
-      const { data: storyData, error: storyFetchError } = await supabase
-        .from('stories')
-        .select('edit_count')
-        .eq('id', storyId)
-        .maybeSingle();
-
-      if (storyFetchError) throw storyFetchError;
-
-      const freshEditCount = storyData?.edit_count ?? 0;
+      const freshEditCount = currentEditCount;
       const { error: updateError } = await supabase
         .from('stories')
         .update({ edit_count: freshEditCount + 1 })
