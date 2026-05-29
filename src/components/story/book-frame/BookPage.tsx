@@ -65,6 +65,7 @@ export const BookPage: React.FC<BookPageProps> = ({
   }
 
   // Text page
+  const sanitizedText = (text || "").replace(/\[\s*(?:עמוד|page|עמ׳|עמ\.?)\s*\d+\s*\]/gi, "").replace(/[ \t]+\n/g, "\n").replace(/\n{3,}/g, "\n\n").trim();
   return (
     <div className={cn(
       "relative flex-1 flex flex-col justify-center p-6 md:p-8 lg:p-10",
@@ -82,7 +83,7 @@ export const BookPage: React.FC<BookPageProps> = ({
           )} 
           dir="rtl"
         >
-          {text}
+          {sanitizedText}
         </p>
       </div>
       
