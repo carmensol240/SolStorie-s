@@ -38,7 +38,7 @@ const TIERS = {
   full: {
     id: "full" as Tier,
     label: "הכי פופולרי 🔥",
-    price: 79.90,
+    price: 99.90,
     features: [
       { label: "✅ כולל את כל מה שבחבילה הדיגיטלית +", included: true },
       { label: "🎨 דף צביעה דיגיטלי+ להדפסה", included: true },
@@ -68,7 +68,7 @@ const Upgrade = () => {
 
   const selectedTierData = TIERS[selectedTier];
   const fullTierDiscountedPrice = Math.round(TIERS.full.price * (1 - discountPercent / 100));
-  const selectedBasePrice = selectedTier === "full" ? 79.90 : TIERS.digital.price;
+  const selectedBasePrice = selectedTier === "full" ? 99.90 : TIERS.digital.price;
   const selectedFinalPrice =
     selectedTier === "full"
       ? fullTierDiscountedPrice
@@ -218,7 +218,7 @@ const Upgrade = () => {
                   )}
                   <div className="text-lg font-black text-white mb-1">{tier.label}</div>
                   <div className="text-2xl font-black bg-gradient-to-r from-purple-300 via-pink-300 to-orange-300 bg-clip-text text-transparent mb-3">
-                    ₪{tier.id === "full" ? "79.90" : tier.price.toFixed(2)}
+                    ₪{tier.id === "full" ? "99.90" : tier.price.toFixed(2)}
                   </div>
                   <div className="w-full space-y-2">
                     {(tier.id === "digital" ? tier.features.filter((f) => f.included) : tier.features).map((feature) => (
