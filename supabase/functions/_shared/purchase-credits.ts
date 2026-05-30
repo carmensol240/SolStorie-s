@@ -192,9 +192,12 @@ export async function applyPurchaseCredits(
 export function packageIdFromAmount(amount: number): string | null {
   const a = Math.round(amount * 100) / 100;
   if (a === 39.9) return "single_story_digital";
+  if (a === 49.9) return "single_story_digital";
   if (a === 99.9) return "popular";
+  if (a === 119.9) return "popular";
   if (a === 9.9) return "coloring_single";
   if (a === 24.9) return "coloring_bundle";
   if (a === 59.9) return "pdf";
+  if (a === 69.9) return "pdf";
   return null;
 }

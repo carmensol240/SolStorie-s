@@ -2169,7 +2169,7 @@ const [currentPage, setCurrentPage] = useState(0);
           open={demoPaywallOpen}
           onOpenChange={setDemoPaywallOpen}
           title="✨ רוצים לקרוא את הסיפור המלא?"
-          description=" סיפור ראשון? מגיע לך מתנה! רכשו ב-39.90 ₪ וקבלו סיפור דיגיטלי נוסף🎁"
+          description=" סיפור ראשון? מגיע לך מתנה! רכשו ב-49.90 ₪ וקבלו סיפור דיגיטלי נוסף🎁"
           storyId={resolvedId ?? storyId}
         />
       )}
