@@ -1512,6 +1512,21 @@ const [currentPage, setCurrentPage] = useState(0);
     }
   }, [currentPage, virtualPages, preloadIllustration]);
 
+  // Auto-fit refs for the standalone text page — shrinks font to avoid scrolling.
+  // IMPORTANT: these hooks must be called on EVERY render (before any early
+  // return) to keep hook order stable and avoid React error #310.
+  const textPageContainerRef = useRef<HTMLDivElement>(null);
+  const textPageTextRef = useRef<HTMLParagraphElement>(null);
+  const _fitVirtual = (currentPage >= 0 && currentPage < virtualPages.length) ? virtualPages[currentPage] : null;
+  const _fitFontSize = FONT_SIZES[fontSizeIndex];
+  useAutoFitText(textPageContainerRef, textPageTextRef, [
+    _fitVirtual?.text,
+    _fitVirtual?.type,
+    currentPage,
+    _fitFontSize?.size,
+    showNikud,
+  ]);
+
   if (isLoading) {
     return (
       <div className="min-h-screen bg-gradient-to-b from-purple-50 via-pink-50 to-orange-50 flex items-center justify-center" dir="rtl">
@@ -1565,16 +1580,6 @@ const [currentPage, setCurrentPage] = useState(0);
   const page = currentVirtual ? currentVirtual.dbPage : null;
   const currentFontSize = FONT_SIZES[fontSizeIndex];
 
-  // Auto-fit refs for the standalone text page — shrinks font to avoid scrolling.
-  const textPageContainerRef = useRef<HTMLDivElement>(null);
-  const textPageTextRef = useRef<HTMLParagraphElement>(null);
-  useAutoFitText(textPageContainerRef, textPageTextRef, [
-    currentVirtual?.text,
-    currentVirtual?.type,
-    currentPage,
-    currentFontSize?.size,
-    showNikud,
-  ]);
   const showPageActions = isContentPage && page !== null;
 
   // Reset all scroll positions (window + inner scrollable containers)
