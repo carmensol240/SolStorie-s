@@ -1546,7 +1546,11 @@ const [currentPage, setCurrentPage] = useState(0);
   const isEndPage = currentPage >= totalVirtualPages;
   const isContentPage = currentPage >= 0 && currentPage < totalVirtualPages;
 
-  const currentVirtual = isContentPage ? virtualPages[currentPage] : null;
+  // Defensive: require both the virtual page AND its underlying dbPage to exist
+  // before treating it as renderable. Prevents `Cannot read properties of undefined`
+  // crashes on mobile where re-renders during page flips can briefly desync state.
+  const rawVirtual = isContentPage ? virtualPages[currentPage] : null;
+  const currentVirtual = rawVirtual && rawVirtual.dbPage ? rawVirtual : null;
 
   // Demo paywall: limit demo users to first 4 DB pages (free preview)
   const DEMO_PAGE_LIMIT = 4;
