@@ -240,6 +240,7 @@ const [currentPage, setCurrentPage] = useState(0);
   const [isSingleStoryUnlock, setIsSingleStoryUnlock] = useState(false);
   const [demoLockOpen, setDemoLockOpen] = useState(false);
   const [demoPaywallOpen, setDemoPaywallOpen] = useState(false);
+  const [shareCompletionOpen, setShareCompletionOpen] = useState(false);
   // Tracks whether all 3 entitlement checks (purchases, subscriber, admin) have completed at least once.
   const [purchaseChecked, setPurchaseChecked] = useState(false);
   const [subscriberChecked, setSubscriberChecked] = useState(false);
