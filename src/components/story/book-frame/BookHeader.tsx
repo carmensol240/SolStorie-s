@@ -66,6 +66,7 @@ interface BookHeaderProps {
   onColoring?: () => void;
   // PDF entitlement
   pdfLocked?: boolean;
+  coloringLocked?: boolean;
 }
 
 export const BookHeader: React.FC<BookHeaderProps> = ({
