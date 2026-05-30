@@ -15,24 +15,20 @@ interface OnlineColoringCanvasProps {
 }
 
 const COLORS = [
-  '#FF6B6B', '#FF9F43', '#FECA57', '#48DBFB',
-  '#0ABDE3', '#1B2A4A', '#5F27CD', '#C4B5E0', '#FF6FF2', '#EE5A24',
-  '#A3CB38', '#BFFF00', '#1DD1A1', '#C4A35A', '#2C3E50',
-  '#C0C0C0',
+  '#FF6B6B', '#EE5A24', '#FF9F43', '#FECA57',
+  '#A3CB38', '#1DD1A1', '#48DBFB', '#0ABDE3',
+  '#5F27CD', '#FF6FF2', '#C0C0C0', '#2C3E50',
 ];
 
 const EXTRA_COLORS = [
-  '#00BFFF', '#00008B', '#87CEEB', '#000080',
-  '#8A2BE2', '#9370DB', '#7CFC00', '#FFB6C1',
+  '#87CEEB', '#000080', '#9370DB', '#8A2BE2',
+  '#FFB6C1',
 ];
 
 const SKIN_EARTH_COLORS = [
-  '#000000', '#C68642', '#8D5524', '#6B8F71', '#FFD700',
-  '#C0C0C0', '#8B4513', '#D2691E', '#D4AF37', '#FFB6C1',
-  // Additional skin tones
-  '#F1C27D', '#FFDBAC', '#E0AC69', '#5C3317',
-  // Additional earth / nature tones
-  '#228B22', '#808000', '#DAA520', '#E2725B', '#A0522D',
+  '#000000', '#FFDBAC', '#F1C27D', '#E0AC69',
+  '#C68642', '#8D5524', '#5C3317', '#A0522D',
+  '#DAA520', '#808000', '#228B22', '#6B8F71',
 ];
 
 type Tool = 'fill' | 'brush' | 'eraser';
