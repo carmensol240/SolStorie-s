@@ -1,39 +1,17 @@
-## Goal
-
-1. Change the WhatsApp share message format on the story viewer to include the child's name and a direct link to the shared story.
-2. When a recipient opens the shared link while logged out, send them to the auth page first and automatically return them to the story after they sign up or log in.
+Add a lock-state indicator to the PDF/print icon in the book header for users without PDF entitlement.
 
 ## Changes
 
-### 1. `src/pages/StoryViewer.tsx` — `handleShareWhatsApp`
+### `src/components/story/book-frame/BookHeader.tsx`
+- Add `Lock` to the lucide-react imports.
+- Add a new optional prop `pdfLocked?: boolean` to `BookHeaderProps` (and destructure with default `false`).
+- In the "Download PDF" Tooltip block (lines 131–146):
+  - Wrap the `FileDown` icon in a `relative` span and, when `pdfLocked`, overlay a small `Lock` badge in the corner (white circle background, slate icon, e.g. `absolute -top-1 -left-1 w-3.5 h-3.5 bg-white rounded-full p-[1px] text-slate-700 shadow-sm`).
+  - When `pdfLocked`, change the `TooltipContent` text to `שדרגו לחבילת ההדפסה` (otherwise keep `הורד או הדפס PDF`).
+- Keep the existing `onClick={onDownload}` so the upsell modal continues to open via the existing `guardPdfDownload` flow. Do not disable the button when locked.
 
-Replace the current text with the new format and include a real public link built from the story slug:
-
-```ts
-const slug = story.slug || story.id;
-const link = `https://soulstory.co.il/s/${slug}`;
-const text = `${story.child_name} קיבל/ה סיפור מותאם אישית ב-SolStories 🌟 הכנסו לראות את הקסם 🎉 ${link}`;
-```
-
-Keep the existing `window.open(...wa.me...)` call and analytics tracking unchanged.
-
-### 2. `src/pages/PublicStoryViewer.tsx` — gate public link behind auth
-
-At the top of the component (after `useAuth`), add an effect that redirects unauthenticated visitors to the auth page with a `returnTo` pointing back to the same `/s/<slug>` URL:
-
-```ts
-useEffect(() => {
-  if (!user && storySlug) {
-    const returnTo = `/s/${storySlug}`;
-    navigate(`/auth?returnTo=${encodeURIComponent(returnTo)}`, { replace: true });
-  }
-}, [user, storySlug, navigate]);
-```
-
-Guard the existing fetch / render flow so it doesn't run while we're redirecting (e.g. skip `fetchStory` when `!user`).
-
-The existing Auth page already honors the `returnTo` query param for both email signup/login and Google OAuth, so after the user authenticates they will be sent back to `/s/<slug>` automatically and the story will load.
+### `src/pages/StoryViewer.tsx`
+- Pass `pdfLocked={!canDownloadPdf}` to `<BookHeader … />` (around line 1641).
 
 ## Out of scope
-
-No other share surfaces (GiftCard, ShareAndEarn, DemoStory) and no other behavior change.
+No other behavior change. Entitlement logic, modal, and download flow remain identical.

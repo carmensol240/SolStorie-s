@@ -12,6 +12,7 @@ import {
   Loader2,
   Palette,
   MessageCircle,
+  Lock,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
@@ -63,6 +64,8 @@ interface BookHeaderProps {
   isRegeneratingCover?: boolean;
   // Coloring shortcut
   onColoring?: () => void;
+  // PDF entitlement
+  pdfLocked?: boolean;
 }
 
 export const BookHeader: React.FC<BookHeaderProps> = ({
@@ -88,6 +91,7 @@ export const BookHeader: React.FC<BookHeaderProps> = ({
   onRegenerateCover,
   isRegeneratingCover = false,
   onColoring,
+  pdfLocked = false,
 }) => {
   return (
     <header className="sticky top-0 z-40 backdrop-blur-md border-b border-white/30 px-3 py-2 shadow-sm" style={{ background: 'rgba(255, 255, 255, 0.75)' }}>
@@ -139,10 +143,20 @@ export const BookHeader: React.FC<BookHeaderProps> = ({
                 className="text-slate-600 hover:bg-sky-100/60 min-h-[44px] min-w-[44px] p-2 disabled:opacity-50"
                 aria-label="הורדה או הדפסה"
               >
-                <FileDown className={cn("w-5 h-5", isExporting && "animate-pulse")} />
+                <span className="relative inline-flex">
+                  <FileDown className={cn("w-5 h-5", isExporting && "animate-pulse")} />
+                  {pdfLocked && (
+                    <Lock
+                      className="absolute -top-1 -left-1 w-3.5 h-3.5 bg-white rounded-full p-[1px] text-slate-700 shadow-sm"
+                      aria-hidden="true"
+                    />
+                  )}
+                </span>
               </Button>
             </TooltipTrigger>
-            <TooltipContent side="bottom">הורד או הדפס PDF</TooltipContent>
+            <TooltipContent side="bottom">
+              {pdfLocked ? "שדרגו לחבילת ההדפסה" : "הורד או הדפס PDF"}
+            </TooltipContent>
           </Tooltip>
 
           {/* Share to WhatsApp */}

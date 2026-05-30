@@ -1642,6 +1642,7 @@ const [currentPage, setCurrentPage] = useState(0);
         onBack={() => navigate("/library")}
         onShare={guardDemo(handleShare)}
             onDownload={guardPdfDownload(() => story && exportToPdf(story))}
+        pdfLocked={!canDownloadPdf}
         onShareWhatsApp={guardDemo(handleShareWhatsApp)}
         onToggleFontSize={() => setFontSizeIndex((fontSizeIndex + 1) % FONT_SIZES.length)}
         onEdit={showPageActions ? handleEditClick : undefined}
