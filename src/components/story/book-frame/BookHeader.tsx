@@ -339,8 +339,16 @@ export const BookHeader: React.FC<BookHeaderProps> = ({
               {/* Mobile-only fallbacks for actions hidden in the header on small screens */}
               {onColoring && (
                 <DropdownMenuItem onClick={onColoring} className="gap-2 cursor-pointer md:hidden">
-                  <Palette className="w-4 h-4" />
-                  <span>דפי צביעה</span>
+                  <span className="relative inline-flex">
+                    <Palette className="w-4 h-4" />
+                    {coloringLocked && (
+                      <Lock
+                        className="absolute -top-1 -left-1 w-3 h-3 bg-white rounded-full p-[1px] text-slate-700 shadow-sm"
+                        aria-hidden="true"
+                      />
+                    )}
+                  </span>
+                  <span>{coloringLocked ? "דפי צביעה (נעול)" : "דפי צביעה"}</span>
                 </DropdownMenuItem>
               )}
               {onShareWhatsApp && (
