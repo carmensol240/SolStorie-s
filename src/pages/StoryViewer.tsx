@@ -61,6 +61,7 @@ import PrintBookPreviewModal from "@/components/story/PrintBookPreviewModal";
 import InstallAppPrompt from "@/components/story/InstallAppPrompt";
 import ColoringPurchaseModal from "@/components/paywall/ColoringPurchaseModal";
 import DemoLockModal from "@/components/story/DemoLockModal";
+import ShareCompletionBanner from "@/components/story/ShareCompletionBanner";
 
 import "./StoryViewer.css";
 import { translateTopic } from "@/lib/topic-translations";
@@ -239,6 +240,7 @@ const [currentPage, setCurrentPage] = useState(0);
   const [isSingleStoryUnlock, setIsSingleStoryUnlock] = useState(false);
   const [demoLockOpen, setDemoLockOpen] = useState(false);
   const [demoPaywallOpen, setDemoPaywallOpen] = useState(false);
+  const [shareCompletionOpen, setShareCompletionOpen] = useState(false);
   // Tracks whether all 3 entitlement checks (purchases, subscriber, admin) have completed at least once.
   const [purchaseChecked, setPurchaseChecked] = useState(false);
   const [subscriberChecked, setSubscriberChecked] = useState(false);
@@ -1627,6 +1629,12 @@ const [currentPage, setCurrentPage] = useState(0);
         
         if (newPage >= maxPage) {
           trackStoryCompleted(story.id);
+          try {
+            const key = `whatsapp_share_prompt_shown_${story.id}`;
+            if (!isDemoUser && !localStorage.getItem(key)) {
+              setShareCompletionOpen(true);
+            }
+          } catch {}
         }
       } else if (direction === 'prev' && currentPage > 0) {
         const newPage = currentPage - 1;
@@ -2468,6 +2476,24 @@ const [currentPage, setCurrentPage] = useState(0);
         onOpenChange={setColoringUpsellOpen}
         storyId={story?.id ?? null}
         illustrationCount={story?.pages?.filter(p => p.illustration_url).length ?? 0}
+      />
+
+      {/* First-completion WhatsApp share prompt */}
+      <ShareCompletionBanner
+        open={shareCompletionOpen}
+        onClose={() => {
+          if (story) {
+            try { localStorage.setItem(`whatsapp_share_prompt_shown_${story.id}`, '1'); } catch {}
+          }
+          setShareCompletionOpen(false);
+        }}
+        onShare={() => {
+          if (story) {
+            try { localStorage.setItem(`whatsapp_share_prompt_shown_${story.id}`, '1'); } catch {}
+          }
+          handleShareWhatsApp();
+          setShareCompletionOpen(false);
+        }}
       />
 
     </div>
