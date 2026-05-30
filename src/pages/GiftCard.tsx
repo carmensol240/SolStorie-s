@@ -223,7 +223,10 @@ const GiftCard = () => {
     const sender = senderName.trim() || "מישהו/י שאוהב/ת אתכם";
     const child = childName.trim();
 
-    const message = `${sender} שלח/ה לך מתנה קסומה! חבילת ${selectedPkg.stories} סיפורים אישיים שבהם ${child} הופך/ת לגיבור/ה של הרפתקאות מרגשות. איך מממשים? נכנסים ונרשמים בקלות בכתובת https://soulstory.co.il (או מתחברים), ומזינים את קוד הקופון האישי שלכם: ${generatedCode}! קריאה מהנה ומרגשת! ❤️`;
+    const storiesPhrase = selectedPkg.stories === 1
+      ? "סיפור אישי אחד"
+      : `${selectedPkg.stories} סיפורים אישיים`;
+    const message = `${sender} שלח/ה לך מתנה קסומה! ${storiesPhrase} שבהם ${child} הופך/ת לגיבור/ה של הרפתקאות מרגשות. איך מממשים? נכנסים ונרשמים בקלות בכתובת https://soulstory.co.il (או מתחברים), ומזינים את קוד הקופון האישי שלכם: ${generatedCode}! קריאה מהנה ומרגשת! ❤️`;
 
     const whatsappUrl = `https://wa.me/?text=${encodeURIComponent(message)}`;
     window.open(whatsappUrl, "_blank");
