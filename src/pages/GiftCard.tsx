@@ -531,12 +531,6 @@ const GiftCard = () => {
             </div>
           )}
 
-          {/* Credit Card Note */}
-          <div className="bg-white/10 backdrop-blur-sm border border-white/15 rounded-xl p-3 mb-4">
-            <p className="text-sm text-center text-white/80 font-light">
-              ​
-            </p>
-          </div>
         </div>
       </div>
 
