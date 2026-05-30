@@ -1,25 +1,43 @@
-## Goal
-Add a celebratory gift-card entry point on the Upgrade screen (`src/pages/Upgrade.tsx`) that navigates to `/gift`. No other files change.
+## Problem
 
-## Placement
-Insert a new section directly after the Coupon block (after line 253) and before the Terms paragraph (line 256). This keeps it below the packages but above the fixed bottom CTA, so it doesn't compete with the primary purchase action.
+Opening a story from the library crashes with the friendly ErrorBoundary screen ("רק רגע... משהו קטן קרה"). The browser console shows **React minified error #310** ("Rendered fewer hooks than expected"), with the stack pointing to `useRef` inside `src/pages/StoryViewer.tsx`.
 
-## Design
-Festive, magical, on-brand with the existing purple/pink/orange gradient palette already used by the CTA:
+## Root cause
 
-- Container: rounded-2xl card, subtle gradient background (`from-pink-500/10 via-purple-500/10 to-orange-500/10`), soft border `border-white/10`, inner padding, `text-center`, `dir="rtl"`.
-- Decorative floating emojis (🎈🎁✨🎉) positioned absolutely in the corners with low opacity and a slow `animate-bounce` / `animate-pulse` for a magical feel.
-- Headline (h3): "רוצה לשמח מישהו? 🎁" — bold, white, text-lg.
-- Sub-line: short warm sentence, e.g. "כרטיס מתנה דיגיטלי עם קוד אישי — מושלם ליום הולדת, חג או סתם ככה" — text-xs, white/70.
-- Button: full-width, gradient `from-pink-500 via-purple-500 to-orange-500`, white bold text, rounded-xl, shadow-glow, label: `🎁 שלח כמתנה`. Hover lifts brightness. On click → `navigate("/gift")`.
+`src/pages/StoryViewer.tsx` has two early `return` statements:
 
-Reuse the existing `Button` component and `navigate` hook already imported in the file. No new imports needed beyond what's already there.
+- Line 1515 — `if (isLoading) return <Spinner />`
+- Line 1529 — `if (!story || story.pages.length === 0) return <NotFound />`
 
-## Technical notes
-- Tailwind only; no new dependencies.
-- Use semantic gradient utilities already proven in this file (lines 276–277 pattern).
-- Tracking: fire `trackEvent({ eventType: "feature_used", metadata: { feature: "gift_entry_clicked" } })` before navigating, matching the existing tracking pattern on this page.
-- No changes to packages, pricing logic, coupon, terms, CTA, or modals.
+But three hooks are declared AFTER those returns:
 
-## Files
-- `src/pages/Upgrade.tsx` — insert the new section only.
+- Line 1569 — `const textPageContainerRef = useRef<HTMLDivElement>(null);`
+- Line 1570 — `const textPageTextRef = useRef<HTMLParagraphElement>(null);`
+- Line 1571 — `useAutoFitText(textPageContainerRef, textPageTextRef, [...]);`
+
+First render → `isLoading=true` → early-return skips those 3 hooks.
+Next render → `isLoading=false` → component runs past the early returns and suddenly calls 3 more hooks than before → React throws #310.
+
+This is hit every time a story is opened over a network slow enough to show the loading spinner (i.e. virtually always on mobile).
+
+## Fix
+
+Move the two `useRef`s and the `useAutoFitText(...)` call **above** the `if (isLoading)` early return, so they run on every render regardless of state. The values they depend on (`currentVirtual?.text`, `currentVirtual?.type`, `currentFontSize?.size`, `showNikud`, `currentPage`) are all already nullable-safe — we just need to compute `currentFontSize` before the early returns too (it's a pure lookup: `FONT_SIZES[fontSizeIndex]`).
+
+### Edit plan (single file)
+
+`src/pages/StoryViewer.tsx`:
+
+1. Just before `if (isLoading) {` (around line 1515), insert:
+   - `const textPageContainerRef = useRef<HTMLDivElement>(null);`
+   - `const textPageTextRef = useRef<HTMLParagraphElement>(null);`
+   - `const currentFontSizeForFit = FONT_SIZES[fontSizeIndex];`
+   - `const currentVirtualForFit = (currentPage >= 0 && currentPage < virtualPages.length) ? virtualPages[currentPage] : null;`
+   - `useAutoFitText(textPageContainerRef, textPageTextRef, [currentVirtualForFit?.text, currentVirtualForFit?.type, currentPage, currentFontSizeForFit?.size, showNikud]);`
+2. Remove the duplicated declarations at lines 1569-1577 (the two `useRef`s and the `useAutoFitText` call). Keep `currentFontSize` where it is (still used below) — or replace it with the lifted constant.
+
+The refs are still attached to the same DOM nodes lower in the JSX, so behavior is unchanged.
+
+## Out of scope
+
+No other files touched. No styling, business-logic, or backend changes — purely a hook-ordering fix.
