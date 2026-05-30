@@ -1,41 +1,18 @@
 ## Goal
+On mobile, the "דפי צביעה" item in the BookHeader dropdown menu should visually indicate it's locked (matching the desktop icon's lock badge) for users without coloring entitlement, and tapping it should trigger the upsell flow directly (no tooltip, since mobile has no hover).
 
-When a user finishes viewing a story for the first time (reaches the last page), show a friendly prompt:
+## Scope
+Single file: `src/components/story/book-frame/BookHeader.tsx` — the mobile-only `DropdownMenuItem` for coloring (around the `md:hidden` block that currently renders just `<Palette/>` + "דפי צביעה").
 
-> שתפו את הסיפור שלכם בוואטסאפ עם האנשים שאתם אוהבים 💛
+## Changes
 
-with a single WhatsApp share button. Shown once per story per device.
+1. **Add lock badge to the mobile dropdown item** when `coloringLocked` is true:
+   - Wrap the `<Palette>` icon in a `relative inline-flex` span and overlay a small `<Lock>` icon (`w-3 h-3`, white rounded background, slate-700) at `-top-1 -left-1`, mirroring the desktop button's badge.
+   - Append a short locked hint to the label (e.g. " 🔒" suffix or change label to "דפי צביעה (נעול)") so the locked state is clear in the text as well — final wording TBD, will match the desktop tooltip phrasing "שדרגו לחבילת דפי הצביעה" only if it fits; otherwise keep label "דפי צביעה" with just the badge.
 
-## Where
-
-`src/pages/StoryViewer.tsx` — the completion moment already exists at line ~1628 where `trackStoryCompleted(story.id)` fires after `newPage >= maxPage`. The existing `handleShareWhatsApp` (line 1128) already builds the correct WhatsApp URL using the story's public slug and a Hebrew message, so the banner button will simply call it.
-
-## Behavior
-
-- On reaching the last page for the first time per story:
-  - Check `localStorage` key `whatsapp_share_prompt_shown_{storyId}`.
-  - If not set, open a bottom sheet / centered modal banner with:
-    - Text: "שתפו את הסיפור שלכם בוואטסאפ עם האנשים שאתם אוהבים 💛"
-    - Primary button: "שתפו בוואטסאפ" (green WhatsApp style) → calls `handleShareWhatsApp()` then closes.
-    - Small close (X) button → closes and marks as shown.
-  - In both cases set the localStorage flag so it does not appear again.
-- Guarded so it does not show in demo mode (mirrors `guardDemo` wrapping that already exists on `handleShareWhatsApp` in the header).
-- Does not appear if `story.is_demo` / locked virtual page logic blocks navigation past the preview (only fires on actual completion).
-
-## Implementation
-
-1. Add a new lightweight component `src/components/story/ShareCompletionBanner.tsx`:
-   - Props: `open: boolean`, `onClose: () => void`, `onShare: () => void`.
-   - RTL Dialog (shadcn) styled to match the dark StoryViewer theme: warm gradient card, 💛 emoji, large WhatsApp icon button (`MessageCircle` from lucide or simple WhatsApp green `#25D366` styling using semantic tokens where possible — local one-off color is acceptable since this matches WhatsApp brand).
-2. In `StoryViewer.tsx`:
-   - Add state: `const [shareCompletionOpen, setShareCompletionOpen] = useState(false);`
-   - In the `if (newPage >= maxPage)` block (line 1628), after `trackStoryCompleted`, check the localStorage flag and `setShareCompletionOpen(true)` if not previously shown and not in demo.
-   - Render `<ShareCompletionBanner open={shareCompletionOpen} onClose={...} onShare={...} />` at the bottom of the JSX tree alongside other modals.
-   - On close or share, write `localStorage.setItem('whatsapp_share_prompt_shown_' + story.id, '1')`.
-   - On share, call existing `handleShareWhatsApp()` then close.
+2. **Click behavior**: keep `onClick={onColoring}`. The existing `onColoring` handler (passed from `StoryViewer`) is already responsible for opening the coloring upsell modal when the user lacks entitlement — same handler the desktop button uses — so no new callback wiring is needed. No tooltip is added (dropdown items don't use tooltips anyway).
 
 ## Out of scope
-
-- No changes to analytics events, pricing, or any other modal.
-- No changes to FlipbookViewer or PublicStoryViewer.
-- No changes to the existing share button in the header.
+- Desktop header button (already shows the lock badge).
+- Any change to `onColoring` logic, entitlement checks, or the upsell modal itself.
+- PDF lock badge or any other menu items.
