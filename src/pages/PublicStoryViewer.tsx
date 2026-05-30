@@ -38,7 +38,7 @@ interface VirtualPage {
 const PublicStoryViewer = () => {
   const { storySlug } = useParams();
   const navigate = useNavigate();
-  const { user } = useAuth();
+  const { user, loading: authLoading } = useAuth();
   const [story, setStory] = useState<PublicStory | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(false);
@@ -91,8 +91,16 @@ const PublicStoryViewer = () => {
     };
   }, []);
 
+  // Require auth: redirect logged-out visitors to /auth and return them back
   useEffect(() => {
-    if (!storySlug) return;
+    if (authLoading) return;
+    if (!user && storySlug) {
+      navigate(`/auth?returnTo=${encodeURIComponent(`/s/${storySlug}`)}`, { replace: true });
+    }
+  }, [user, authLoading, storySlug, navigate]);
+
+  useEffect(() => {
+    if (!storySlug || authLoading || !user) return;
     const fetchStory = async () => {
       try {
         const { data, error: rpcError } = await supabase.rpc("get_public_story", {
@@ -105,7 +113,7 @@ const PublicStoryViewer = () => {
       } catch { setError(true); } finally { setIsLoading(false); }
     };
     fetchStory();
-  }, [storySlug]);
+  }, [storySlug, authLoading, user]);
 
   const isToddler = story?.age_range === '0-2';
 
