@@ -36,7 +36,7 @@ const TIERS = {
   },
   full: {
     id: "full" as Tier,
-    label: " \u200B\u05d4\u05db\u05d9 \u05e4\u05d5\u05e4\u05dc\u05e8\u05d9 \u05d1\u05d3\u05d9\u05d2\u05d9\u05d8\u05dc \ud83d\udd25",
+    label: " \u200B\u05d4\u05db\u05d9 \u05e4\u05d5\u05e4\u05dc\u05e8\u05d9 \ud83d\udd25",
     price: 99.90,
     features: [
       { label: "✨ הילד שלך — הגיבור של הסיפור", included: true },
