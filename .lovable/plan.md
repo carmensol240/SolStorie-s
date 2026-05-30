@@ -1,17 +1,33 @@
-Add a lock-state indicator to the PDF/print icon in the book header for users without PDF entitlement.
+Apply the same lock-indicator pattern (already used for PDF) to the coloring pages icon in the book header.
 
 ## Changes
 
 ### `src/components/story/book-frame/BookHeader.tsx`
-- Add `Lock` to the lucide-react imports.
-- Add a new optional prop `pdfLocked?: boolean` to `BookHeaderProps` (and destructure with default `false`).
-- In the "Download PDF" Tooltip block (lines 131–146):
-  - Wrap the `FileDown` icon in a `relative` span and, when `pdfLocked`, overlay a small `Lock` badge in the corner (white circle background, slate icon, e.g. `absolute -top-1 -left-1 w-3.5 h-3.5 bg-white rounded-full p-[1px] text-slate-700 shadow-sm`).
-  - When `pdfLocked`, change the `TooltipContent` text to `שדרגו לחבילת ההדפסה` (otherwise keep `הורד או הדפס PDF`).
-- Keep the existing `onClick={onDownload}` so the upsell modal continues to open via the existing `guardPdfDownload` flow. Do not disable the button when locked.
+- Add `coloringLocked?: boolean` to `BookHeaderProps`, destructured with default `false`.
+- In the "Coloring Pages Shortcut" Tooltip block (around line 181):
+  - Wrap `<Palette />` in a `relative inline-flex` span; when `coloringLocked`, overlay a small `<Lock />` badge in the corner with the same styling used for the PDF lock (`absolute -top-1 -left-1 w-3.5 h-3.5 bg-white rounded-full p-[1px] text-slate-700 shadow-sm`).
+  - When `coloringLocked`, change the `TooltipContent` text from `דפי צביעה` to `שדרגו לחבילת דפי הצביעה`.
+- Keep `onClick={onColoring}` unchanged so the click flow stays the parent's responsibility.
 
 ### `src/pages/StoryViewer.tsx`
-- Pass `pdfLocked={!canDownloadPdf}` to `<BookHeader … />` (around line 1641).
+- Derive `canUseColoring` using the same entitlement check as `canDownloadPdf`:
+  ```ts
+  const canUseColoring = !!user && (
+    hasPdfEntitlement || isSubscriberUser || isAdminUser || isTester
+  ) && !isForcedDemo;
+  ```
+  (place it right after `canDownloadPdf`).
+- Update the `<BookHeader … />` call (around line 1664):
+  - Pass `coloringLocked={!canUseColoring}`.
+  - Replace `onColoring={guardDemo(() => preloadStoryCachedColoring(null))}` with a wrapper that opens the existing upsell when locked:
+    ```ts
+    onColoring={() => {
+      if (!canUseColoring) { setColoringUpsellOpen(true); return; }
+      guardDemo(() => preloadStoryCachedColoring(null))();
+    }}
+    ```
+
+The existing `ColoringPurchaseModal` (already wired to `coloringUpsellOpen`) acts as the upsell on lock click.
 
 ## Out of scope
-No other behavior change. Entitlement logic, modal, and download flow remain identical.
+No changes to coloring credits logic, no changes to the in-flow `setColoringUpsellOpen(true)` triggers downstream (lines 2255, 2369, 2409), no changes to entitlement enforcement on the server.
