@@ -470,12 +470,37 @@ const GiftCard = () => {
                 onError={handlePayPalError}
                 onCancel={() => setShowPayPal(false)}
               />
+              {selectedPkg && (GROW_LINKS as any)[selectedPkg.id] && (
+                <>
+                  <div className="flex items-center gap-2 my-3">
+                    <div className="flex-1 h-px bg-white/15" />
+                    <span className="text-white/50 text-xs">או</span>
+                    <div className="flex-1 h-px bg-white/15" />
+                  </div>
+                  <Button
+                    onClick={handleGrowPurchase}
+                    className="w-full bg-white text-[hsl(250,50%,15%)] hover:bg-white/90 font-black py-3 rounded-xl"
+                  >
+                    💳 תשלום בכרטיס אשראי (Grow)
+                  </Button>
+                </>
+              )}
               <button
                 onClick={() => setShowPayPal(false)}
                 className="w-full text-center text-white/50 text-xs mt-3 hover:text-white/70 transition-colors"
               >
                 ביטול
               </button>
+            </div>
+          )}
+
+          {waitingForGrow && (
+            <div className="bg-white/15 backdrop-blur-md rounded-xl border border-white/20 p-4 mb-4 text-center">
+              <div className="inline-block w-6 h-6 border-2 border-white/30 border-t-white rounded-full animate-spin mb-2" />
+              <p className="text-white/80 text-sm font-bold">ממתינים לאישור התשלום…</p>
+              <p className="text-white/50 text-xs mt-1">
+                לאחר השלמת התשלום ב-Grow, קוד המתנה יופיע כאן אוטומטית.
+              </p>
             </div>
           )}
 
