@@ -109,15 +109,16 @@ const Library = () => {
   }, [isOnline]);
 
   useEffect(() => {
-    if (isOnline) {
-      fetchStories();
-      fetchChildren();
-      fetchColoringPages();
-      fetchPurchaseStatus();
-    } else {
-      setIsLoading(false);
-    }
-  }, [user, isOnline]);
+    // Always try to fetch — don't gate on isOnline (unreliable on mobile).
+    // If fetches fail, the offline fallback UI will kick in via the catch
+    // blocks inside each fetch function.
+    fetchStories();
+    fetchChildren();
+    fetchColoringPages();
+    fetchPurchaseStatus();
+    // Also preload offline stories so the offline filter works if needed.
+    fullOffline.getAllOfflineStories().then(setOfflineStories).catch(() => {});
+  }, [user]);
 
   const fetchPurchaseStatus = async () => {
     if (!user) { setHasAnyPurchase(false); setUnlockedStoryIds(new Set()); return; }
