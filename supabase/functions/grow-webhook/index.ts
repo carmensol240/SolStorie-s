@@ -30,6 +30,31 @@ function flattenFormData(fd: FormData): Record<string, string> {
   return obj;
 }
 
+function generateGiftCouponCode(): string {
+  const chars = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
+  let code = "GIFT-";
+  for (let i = 0; i < 8; i++) {
+    code += chars.charAt(Math.floor(Math.random() * chars.length));
+  }
+  return code;
+}
+
+// Map a packageId resolved from the Grow payment to the number of free
+// stories embedded in a gift coupon (mirrors packageConfig in purchase-credits).
+function giftStoriesForPackage(packageId: string): number | null {
+  switch (packageId) {
+    case "basic":
+    case "single_story_digital":
+      return 2;
+    case "popular":
+      return 6;
+    case "premium":
+      return 10;
+    default:
+      return null;
+  }
+}
+
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response("ok", { headers: CORS });
@@ -142,6 +167,116 @@ Deno.serve(async (req) => {
       customFields.cField3 && typeof customFields.cField3 === "string"
         ? customFields.cField3.trim() || null
         : null;
+
+    // ---------- GIFT FLOW ----------
+    // If the buyer has a recent pending_gifts row for this package, treat the
+    // purchase as a gift: generate a coupon, attach it to the pending_gifts
+    // row, record the purchase, and SKIP applyPurchaseCredits (the buyer
+    // should not receive credits — the recipient redeems them).
+    const giftStories = giftStoriesForPackage(packageId);
+    if (giftStories) {
+      const { data: pendingGift } = await supabase
+        .from("pending_gifts")
+        .select("id, child_name, sender_name")
+        .eq("user_id", userId)
+        .eq("package_id", packageId)
+        .eq("status", "pending")
+        .gte("created_at", new Date(Date.now() - 1000 * 60 * 60 * 2).toISOString())
+        .order("created_at", { ascending: false })
+        .limit(1)
+        .maybeSingle();
+
+      if (pendingGift) {
+        // Idempotency for gift flow
+        const { data: existingGiftPurchase } = await supabase
+          .from("purchases")
+          .select("id")
+          .like("package_name", `grow_${transactionId}_%`)
+          .maybeSingle();
+        if (existingGiftPurchase) {
+          return ok({ received: true, duplicate: true, gift: true });
+        }
+
+        // Generate a unique coupon code (retry on rare collision)
+        let code = generateGiftCouponCode();
+        for (let attempt = 0; attempt < 5; attempt++) {
+          const { error: couponError } = await supabase.from("coupons").insert({
+            code,
+            coupon_type: "extra_stories",
+            free_stories: giftStories,
+            max_uses: 1,
+            current_uses: 0,
+            is_active: true,
+          });
+          if (!couponError) break;
+          if ((couponError as any).code === "23505") {
+            code = generateGiftCouponCode();
+            continue;
+          }
+          console.error("[GROW-WEBHOOK] Failed to insert gift coupon:", couponError);
+          await supabase.from("error_logs").insert({
+            error_type: "grow_webhook_gift_coupon_failure",
+            error_message: String(couponError.message || couponError),
+            metadata: { transactionId, userId, packageId, amount },
+          });
+          return ok({ received: true, warning: "gift_coupon_failed" });
+        }
+
+        await supabase.from("purchases").insert({
+          user_id: userId,
+          package_name: `grow_${transactionId}_gift_${packageId}`,
+          credits_purchased: giftStories,
+          amount_ils: amount,
+          status: "completed",
+        });
+
+        await supabase
+          .from("pending_gifts")
+          .update({
+            status: "completed",
+            coupon_code: code,
+            completed_at: new Date().toISOString(),
+          })
+          .eq("id", pendingGift.id);
+
+        console.log(
+          `[GROW-WEBHOOK] Gift coupon issued: ${code} for ${giftStories} stories (tx ${transactionId})`
+        );
+
+        // Notify admin (non-blocking)
+        try {
+          const resendKey = Deno.env.get("RESEND_API_KEY");
+          if (resendKey) {
+            const now = new Date().toLocaleString("he-IL", { timeZone: "Asia/Jerusalem" });
+            await fetch("https://api.resend.com/emails", {
+              method: "POST",
+              headers: {
+                Authorization: `Bearer ${resendKey}`,
+                "Content-Type": "application/json",
+              },
+              body: JSON.stringify({
+                from: "SoulStory <onboarding@resend.dev>",
+                to: ["solstories.nlp@gmail.com"],
+                subject: `🎁 רכישת מתנה (Grow): ${packageId}`,
+                html: `<div dir="rtl"><h2>רכישת מתנה דרך Grow ✅</h2>
+                  <p><b>חבילה:</b> ${packageId} (${giftStories} סיפורים)</p>
+                  <p><b>סכום:</b> ${amount} ₪</p>
+                  <p><b>מייל הקונה:</b> ${payerEmail || "unknown"}</p>
+                  <p><b>מקבל/ת:</b> ${pendingGift.child_name}</p>
+                  <p><b>קוד הקופון:</b> ${code}</p>
+                  <p><b>תאריך ושעה:</b> ${now}</p>
+                  <p><b>Transaction ID:</b> ${transactionId}</p></div>`,
+              }),
+            });
+          }
+        } catch (mailErr) {
+          console.error("[GROW-WEBHOOK] Gift notification email failed:", mailErr);
+        }
+
+        return ok({ received: true, success: true, gift: true });
+      }
+    }
+    // ---------- /GIFT FLOW ----------
 
     // Apply credits via shared module (idempotent by source+transactionId)
     const result = await applyPurchaseCredits({

@@ -449,6 +449,42 @@ export type Database = {
         }
         Relationships: []
       }
+      pending_gifts: {
+        Row: {
+          child_name: string
+          completed_at: string | null
+          coupon_code: string | null
+          created_at: string
+          id: string
+          package_id: string
+          sender_name: string | null
+          status: string
+          user_id: string
+        }
+        Insert: {
+          child_name: string
+          completed_at?: string | null
+          coupon_code?: string | null
+          created_at?: string
+          id?: string
+          package_id: string
+          sender_name?: string | null
+          status?: string
+          user_id: string
+        }
+        Update: {
+          child_name?: string
+          completed_at?: string | null
+          coupon_code?: string | null
+          created_at?: string
+          id?: string
+          package_id?: string
+          sender_name?: string | null
+          status?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       premium_stories: {
         Row: {
           cover_url: string | null
