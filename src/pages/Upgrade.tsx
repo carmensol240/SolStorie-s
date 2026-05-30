@@ -253,6 +253,28 @@ const Upgrade = () => {
           </div>
 
 
+          {/* Gift Card Entry */}
+          <div dir="rtl" className="relative overflow-hidden rounded-2xl border border-white/10 bg-gradient-to-br from-pink-500/10 via-purple-500/10 to-orange-500/10 p-5 mb-4 text-center">
+            <span aria-hidden className="pointer-events-none absolute top-2 right-3 text-2xl opacity-70 animate-bounce" style={{ animationDuration: "2.6s" }}>🎈</span>
+            <span aria-hidden className="pointer-events-none absolute top-2 left-3 text-2xl opacity-70 animate-pulse">✨</span>
+            <span aria-hidden className="pointer-events-none absolute bottom-2 right-4 text-xl opacity-60 animate-pulse" style={{ animationDelay: "0.5s" }}>🎉</span>
+            <span aria-hidden className="pointer-events-none absolute bottom-2 left-4 text-xl opacity-60 animate-bounce" style={{ animationDuration: "3.2s", animationDelay: "0.3s" }}>🎁</span>
+            <h3 className="relative text-lg font-black text-white mb-1">רוצה לשמח מישהו? 🎁</h3>
+            <p className="relative text-xs text-white/70 mb-3 leading-relaxed">
+              כרטיס מתנה דיגיטלי עם קוד אישי — מושלם ליום הולדת, חג או סתם ככה
+            </p>
+            <Button
+              onClick={() => {
+                trackEvent({ eventType: "feature_used", metadata: { feature: "gift_entry_clicked" } });
+                navigate("/gift");
+              }}
+              className="relative w-full bg-gradient-to-r from-pink-500 via-purple-500 to-orange-500 hover:from-pink-400 hover:via-purple-400 hover:to-orange-400 text-white font-black text-sm py-3 rounded-xl shadow-xl"
+              style={{ boxShadow: "0 0 24px rgba(236, 72, 153, 0.35), 0 0 48px rgba(168, 85, 247, 0.2)" }}
+            >
+              🎁 שלח כמתנה
+            </Button>
+          </div>
+
           {/* Terms */}
           <p className="text-xs text-center text-white/40 mt-2 mb-4">
             בלחיצה על "רכשו" הינך מסכים/ה ל
