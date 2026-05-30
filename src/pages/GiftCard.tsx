@@ -386,7 +386,7 @@ const GiftCard = () => {
         </Button>
       </div>
 
-      <div className="flex-1 overflow-y-auto pb-32 relative z-10" style={{ WebkitOverflowScrolling: "touch" }}>
+      <div className="flex-1 overflow-y-auto pb-40 relative z-10" style={{ WebkitOverflowScrolling: "touch" }}>
         <div className="container max-w-md mx-auto px-4 pt-14">
           {/* Hero */}
           <div className="flex justify-center mb-4">
@@ -536,7 +536,7 @@ const GiftCard = () => {
 
       {/* Fixed CTA */}
       {!showPayPal && (
-        <div className="fixed bottom-[4.5rem] left-0 right-0 bg-[hsl(250,50%,12%)]/95 backdrop-blur border-t border-white/10 px-4 py-3 z-20">
+        <div className="fixed bottom-[7.5rem] left-0 right-0 bg-[hsl(250,50%,12%)]/95 backdrop-blur border-t border-white/10 px-4 py-3 z-[10000]">
           <div className="container max-w-md mx-auto">
             <Button
               onClick={handlePurchase}
