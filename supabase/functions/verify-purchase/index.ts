@@ -1,5 +1,6 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.39.3";
 import { corsHeaders } from "https://deno.land/x/cors@v1.2.2/mod.ts";
+import { applyPurchaseCredits } from "../_shared/purchase-credits.ts";
 
 const CORS = {
   "Access-Control-Allow-Origin": "*",
@@ -130,197 +131,34 @@ Deno.serve(async (req) => {
     }
     // ===== end PayPal verification =====
 
-    // Check for duplicate purchase (idempotency)
-    const { data: existingPurchase } = await supabase
-      .from("purchases")
-      .select("id")
-      .eq("package_name", `paypal_${orderId}`)
-      .maybeSingle();
+    // Apply credits via shared module (handles idempotency, package map, profile updates, story unlocks)
+    const result = await applyPurchaseCredits({
+      supabase,
+      userId,
+      packageId,
+      amount,
+      orderId,
+      source: testMode ? "test" : "paypal",
+      storyId,
+      couponCode,
+    });
 
-    if (existingPurchase) {
-      console.log("[VERIFY-PURCHASE] Duplicate order, already processed:", orderId);
+    if (!result.success) {
+      return new Response(
+        JSON.stringify({ error: result.error }),
+        { status: result.status ?? 500, headers: { ...CORS, "Content-Type": "application/json" } }
+      );
+    }
+
+    if (result.duplicate) {
       return new Response(
         JSON.stringify({ success: true, duplicate: true }),
         { headers: { ...CORS, "Content-Type": "application/json" } }
       );
     }
 
-    // Determine what to credit based on packageId
-    const packageConfig: Record<string, any> = {
-      basic: { stories: 2, freeEdits: 2, coloringPages: 2 },
-      popular: { stories: 6, freeEdits: 6, coloringPages: 6 },
-      premium: { stories: 10, freeEdits: 10, coloringPages: 10 },
-      educator_basic: { stories: 2, freeEdits: 2, coloringPages: 2 },
-      educator_popular: { stories: 6, freeEdits: 6, coloringPages: 6 },
-      educator_premium: { stories: 10, freeEdits: 10, coloringPages: 10 },
-      coloring_kit: { stories: 0, freeEdits: 0, coloringPages: 5 },
-      coloring_single: { stories: 0, freeEdits: 0, coloringPages: 1 },
-      coloring_story: { stories: 0, freeEdits: 0, coloringPages: 0, dynamicColoringFromStory: true },
-      edit_kit: { stories: 0, freeEdits: 0, coloringPages: 0, editingCredits: 5 },
-      toolkit_yearly: { stories: 0, freeEdits: 0, coloringPages: 0, isSubscription: true },
-      single_story: { stories: 0, freeEdits: 0, coloringPages: 0 },
-      single_story_digital: { stories: 1, freeEdits: 1, coloringPages: 0 },
-      single_story_full: { stories: 1, freeEdits: 1, coloringPages: 1 },
-    };
-
-    const config = packageConfig[packageId];
-    if (!config) {
-      console.error("[VERIFY-PURCHASE] Unknown package:", packageId);
-      return new Response(
-        JSON.stringify({ error: "Unknown package" }),
-        { status: 400, headers: { ...CORS, "Content-Type": "application/json" } }
-      );
-    }
-
-    // Dynamic coloring credits — count illustrations in the story
-    if (config.dynamicColoringFromStory) {
-      let resolvedStoryUuid: string | null = null;
-      if (storyId) {
-        const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
-        if (uuidRegex.test(storyId)) {
-          resolvedStoryUuid = storyId;
-        } else {
-          const { data: storyRow } = await supabase
-            .from("stories")
-            .select("id")
-            .eq("slug", storyId)
-            .maybeSingle();
-          resolvedStoryUuid = storyRow?.id ?? null;
-        }
-      }
-      if (resolvedStoryUuid) {
-        const { count } = await supabase
-          .from("story_pages")
-          .select("id", { count: "exact", head: true })
-          .eq("story_id", resolvedStoryUuid)
-          .not("illustration_url", "is", null);
-        config.coloringPages = Math.max(1, count ?? 1);
-      } else {
-        // Fallback: typical story has 5 illustrations
-        config.coloringPages = 5;
-      }
-      console.log("[VERIFY-PURCHASE] coloring_story → credits:", config.coloringPages);
-    }
-
-    // Insert purchase record
-    const packagePrefix = testMode ? "test" : "paypal";
-    const packageName = couponCode ? `${packageId}_coupon_${couponCode}` : packageId;
-    const { error: purchaseError } = await supabase.from("purchases").insert({
-      user_id: userId,
-      package_name: `${packagePrefix}_${orderId}_${packageName}`,
-      credits_purchased: config.stories || 0,
-      amount_ils: testMode ? 0 : amount,
-      status: testMode ? "test_completed" : "completed",
-    });
-
-    if (purchaseError) {
-      console.error("[VERIFY-PURCHASE] Failed to insert purchase:", purchaseError);
-      return new Response(
-        JSON.stringify({ error: "Failed to record purchase" }),
-        { status: 500, headers: { ...CORS, "Content-Type": "application/json" } }
-      );
-    }
-
-    // Get current profile
-    const { data: profile, error: profileError } = await supabase
-      .from("profiles")
-      .select("story_credits, free_edits_remaining, free_edits_total, coloring_credits, editing_credits, is_subscriber")
-      .eq("id", userId)
-      .maybeSingle();
-
-    if (profileError || !profile) {
-      console.error("[VERIFY-PURCHASE] Failed to get profile:", profileError);
-      return new Response(
-        JSON.stringify({ error: "Failed to get user profile" }),
-        { status: 500, headers: { ...CORS, "Content-Type": "application/json" } }
-      );
-    }
-
-    // Build update object
-    const updates: Record<string, any> = {};
-
-    if (config.stories > 0) {
-      updates.story_credits = (profile.story_credits ?? 0) + config.stories;
-    }
-    if (config.freeEdits > 0) {
-      updates.free_edits_remaining = (profile.free_edits_remaining ?? 0) + config.freeEdits;
-      updates.free_edits_total = (profile.free_edits_total ?? 0) + config.freeEdits;
-    }
-    if (config.coloringPages > 0) {
-      updates.coloring_credits = (profile.coloring_credits ?? 0) + config.coloringPages;
-    }
-    if (config.editingCredits > 0) {
-      updates.editing_credits = (profile.editing_credits ?? 0) + config.editingCredits;
-    }
-    if (config.isSubscription) {
-      updates.is_subscriber = true;
-    }
-
-    // Update profile
-    if (Object.keys(updates).length > 0) {
-      const { error: updateError } = await supabase
-        .from("profiles")
-        .update(updates)
-        .eq("id", userId);
-
-      if (updateError) {
-        console.error("[VERIFY-PURCHASE] Failed to update profile:", updateError);
-        return new Response(
-          JSON.stringify({ error: "Failed to update credits" }),
-          { status: 500, headers: { ...CORS, "Content-Type": "application/json" } }
-        );
-      }
-    }
-
-    // Insert story unlock for single-story purchases
-    if (packageId === "single_story" && storyId) {
-      // storyId may be a UUID or a slug — resolve to UUID
-      let resolvedStoryId: string | null = null;
-      const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
-      if (uuidRegex.test(storyId)) {
-        resolvedStoryId = storyId;
-      } else {
-        const { data: storyRow, error: storyErr } = await supabase
-          .from("stories")
-          .select("id")
-          .eq("slug", storyId)
-          .maybeSingle();
-        if (storyErr || !storyRow) {
-          console.error("[VERIFY-PURCHASE] Failed to resolve story slug:", storyId, storyErr);
-          return new Response(
-            JSON.stringify({ error: "Story not found" }),
-            { status: 400, headers: { ...CORS, "Content-Type": "application/json" } }
-          );
-        }
-        resolvedStoryId = storyRow.id;
-      }
-
-      const { error: unlockError } = await supabase.from("story_unlocks").insert({
-        user_id: userId,
-        story_id: resolvedStoryId,
-        unlock_type: "single",
-        amount_paid: amount,
-      });
-      if (unlockError) {
-        // Ignore duplicate unlocks (user already owns it) — treat as success
-        if ((unlockError as any).code === "23505") {
-          console.log("[VERIFY-PURCHASE] Story already unlocked for user, continuing");
-        } else {
-        console.error("[VERIFY-PURCHASE] Failed to insert story unlock:", unlockError);
-        return new Response(
-          JSON.stringify({ error: "Failed to unlock story" }),
-          { status: 500, headers: { ...CORS, "Content-Type": "application/json" } }
-        );
-        }
-      }
-    }
-
-    console.log("[VERIFY-PURCHASE] ✅ Purchase verified and credits updated:", {
-      orderId,
-      packageId,
-      userId,
-      updates,
-    });
+    const updates = result.updates ?? {};
+    const profile = result.profile ?? {};
 
     // Send notification email (non-blocking)
     try {
