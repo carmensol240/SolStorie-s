@@ -386,7 +386,7 @@ const GiftCard = () => {
         </Button>
       </div>
 
-      <div className="flex-1 overflow-y-auto pb-40 relative z-10" style={{ WebkitOverflowScrolling: "touch" }}>
+      <div className="flex-1 overflow-y-auto pb-48 relative z-10" style={{ WebkitOverflowScrolling: "touch" }}>
         <div className="container max-w-md mx-auto px-4 pt-14">
           {/* Hero */}
           <div className="flex justify-center mb-4">
@@ -534,11 +534,12 @@ const GiftCard = () => {
         </div>
       </div>
 
-      {/* Fixed CTA */}
+      {/* Fixed CTA — anchored above the mobile bottom navigation (h-14) */}
       {!showPayPal && (
-        <div className="fixed bottom-[7.5rem] left-0 right-0 bg-[hsl(250,50%,12%)]/95 backdrop-blur border-t border-white/10 px-4 py-3 z-[10000]">
+        <div className="fixed bottom-14 left-0 right-0 bg-[hsl(250,50%,12%)]/95 backdrop-blur border-t border-white/10 px-4 py-3 z-[110] pointer-events-auto">
           <div className="container max-w-md mx-auto">
             <Button
+              type="button"
               onClick={handlePurchase}
               disabled={!childName.trim()}
               className="w-full bg-gradient-to-r from-pink-500 via-purple-500 to-orange-500 hover:from-pink-400 hover:via-purple-400 hover:to-orange-400 text-white font-black text-sm py-3 rounded-xl shadow-xl disabled:opacity-50 disabled:cursor-not-allowed"
