@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import { Gift, ArrowRight, Check, Share2, Copy, Sparkles } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -12,6 +12,7 @@ import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import { PRICING_PACKAGES, CURRENCY_SYMBOL } from "@/config/pricing";
 import MobileNavigation from "@/components/MobileNavigation";
+import { GROW_LINKS, type GrowLinkKey } from "@/config/grow-links";
 
 const GIFT_PACKAGES = PRICING_PACKAGES.map(pkg => ({
   ...pkg,
@@ -31,8 +32,112 @@ const GiftCard = () => {
   const [generatedCode, setGeneratedCode] = useState<string | null>(null);
   const [purchaseComplete, setPurchaseComplete] = useState(false);
   const [copied, setCopied] = useState(false);
+  const [waitingForGrow, setWaitingForGrow] = useState(false);
+  const pollAbortRef = useRef<{ cancelled: boolean } | null>(null);
 
   const selectedPkg = GIFT_PACKAGES.find(p => p.id === selectedPackage);
+
+  const PENDING_GIFT_KEY = "pending_gift_id";
+
+  // Poll the get-gift-coupon edge function until the webhook attaches a code
+  // (or we time out after ~60s). Reuses the same success screen as PayPal.
+  const pollForGiftCoupon = useCallback(
+    async (pendingGiftId: string) => {
+      setWaitingForGrow(true);
+      const ctrl = { cancelled: false };
+      pollAbortRef.current = ctrl;
+      const deadline = Date.now() + 60_000;
+      while (!ctrl.cancelled && Date.now() < deadline) {
+        try {
+          const { data, error } = await supabase.functions.invoke("get-gift-coupon", {
+            body: { pendingGiftId },
+          });
+          if (!error && data?.status === "completed" && data?.code) {
+            setGeneratedCode(data.code);
+            setPurchaseComplete(true);
+            setWaitingForGrow(false);
+            localStorage.removeItem(PENDING_GIFT_KEY);
+            trackEvent({
+              eventType: "feature_used",
+              metadata: { feature: "gift_card_purchased", provider: "grow" },
+            });
+            return;
+          }
+        } catch (_) {
+          // ignore and retry
+        }
+        await new Promise((r) => setTimeout(r, 2500));
+      }
+      if (!ctrl.cancelled) {
+        setWaitingForGrow(false);
+        toast.error("התשלום עדיין לא אומת. בדקו את המייל או רעננו עוד מעט.");
+      }
+    },
+    [trackEvent]
+  );
+
+  // On mount: if we have a pending gift id stored from a Grow redirect, poll.
+  useEffect(() => {
+    if (!user) return;
+    const stored = localStorage.getItem(PENDING_GIFT_KEY);
+    if (stored) {
+      pollForGiftCoupon(stored);
+    }
+    return () => {
+      if (pollAbortRef.current) pollAbortRef.current.cancelled = true;
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [user]);
+
+  const handleGrowPurchase = async () => {
+    if (!user) {
+      localStorage.setItem("returnTo", "/gift");
+      navigate("/auth");
+      return;
+    }
+    if (!childName.trim()) {
+      toast.error("יש להזין את שם הילד/ה מקבל/ת המתנה");
+      return;
+    }
+    if (!selectedPkg) return;
+    const growKey = selectedPkg.id as GrowLinkKey;
+    if (!GROW_LINKS[growKey]) {
+      toast.error("חבילה זו אינה זמינה כרגע בתשלום באשראי. נסו PayPal.");
+      return;
+    }
+
+    try {
+      const { data, error } = await supabase
+        .from("pending_gifts")
+        .insert({
+          user_id: user.id,
+          package_id: selectedPkg.id,
+          child_name: childName.trim(),
+          sender_name: senderName.trim() || null,
+          status: "pending",
+        })
+        .select("id")
+        .single();
+
+      if (error || !data) throw error || new Error("insert failed");
+
+      localStorage.setItem(PENDING_GIFT_KEY, data.id);
+      trackEvent({
+        eventType: "feature_used",
+        metadata: {
+          feature: "gift_card_grow_started",
+          package: selectedPkg.id,
+        },
+      });
+
+      const url = GROW_LINKS[growKey];
+      const win = window.open(url, "_blank", "noopener,noreferrer");
+      if (!win) window.location.href = url;
+    } catch (err) {
+      console.error("Failed to start Grow gift purchase:", err);
+      toast.error("שגיאה בהתחלת התשלום. נסו שוב.");
+    }
+  };
 
   const handlePurchase = () => {
     if (!user) {
