@@ -1,47 +1,25 @@
 ## Goal
-Allow gift card purchases via Grow (in addition to PayPal) to automatically generate a unique coupon code, then display it on the success screen with copy + WhatsApp share options — identical to the current PayPal flow.
+Add a celebratory gift-card entry point on the Upgrade screen (`src/pages/Upgrade.tsx`) that navigates to `/gift`. No other files change.
 
-## Design decisions (per user answers)
-- Reuse existing Grow links (basic / popular / premium prices match regular packages — same amounts). A `gift=1` flag identifies gift purchases.
-- Recipient info (childName, senderName) is saved to a new `pending_gifts` table before redirecting to Grow.
-- After return from Grow, GiftCard.tsx polls a lightweight Edge Function for ~30s until the webhook has written the coupon code.
+## Placement
+Insert a new section directly after the Coupon block (after line 253) and before the Terms paragraph (line 256). This keeps it below the packages but above the fixed bottom CTA, so it doesn't compete with the primary purchase action.
 
-## Changes
+## Design
+Festive, magical, on-brand with the existing purple/pink/orange gradient palette already used by the CTA:
 
-### 1. New table `pending_gifts` (migration)
-Columns: `id`, `user_id`, `package_id`, `child_name`, `sender_name`, `status` (`pending` / `completed`), `coupon_code` (nullable), `created_at`, `completed_at`.
-RLS: owner can SELECT/INSERT own rows; service_role can UPDATE. GRANTs for authenticated + service_role.
+- Container: rounded-2xl card, subtle gradient background (`from-pink-500/10 via-purple-500/10 to-orange-500/10`), soft border `border-white/10`, inner padding, `text-center`, `dir="rtl"`.
+- Decorative floating emojis (🎈🎁✨🎉) positioned absolutely in the corners with low opacity and a slow `animate-bounce` / `animate-pulse` for a magical feel.
+- Headline (h3): "רוצה לשמח מישהו? 🎁" — bold, white, text-lg.
+- Sub-line: short warm sentence, e.g. "כרטיס מתנה דיגיטלי עם קוד אישי — מושלם ליום הולדת, חג או סתם ככה" — text-xs, white/70.
+- Button: full-width, gradient `from-pink-500 via-purple-500 to-orange-500`, white bold text, rounded-xl, shadow-glow, label: `🎁 שלח כמתנה`. Hover lifts brightness. On click → `navigate("/gift")`.
 
-### 2. `src/pages/GiftCard.tsx`
-- Add a "שלם בכרטיס אשראי (Grow)" button next to existing PayPal flow.
-- On click: validate childName → insert a `pending_gifts` row with status=`pending` → store its `id` in `localStorage` (`pending_gift_id`) → open Grow checkout URL (existing `openGrowCheckout(selectedPackage as GrowLinkKey)` — append `?gift=1&pgid=<id>` via a small helper or use Grow custom fields if URL params unsupported — fall back to lookup by `user_id + status=pending` most-recent).
-- On mount: if URL contains `?grow_return=1` (or simply on every mount when a `pending_gift_id` exists in localStorage), start polling a new edge function `get-gift-coupon` every 2s for up to 30s. When `coupon_code` returns → set `generatedCode`, `purchaseComplete=true`, clear localStorage key. Reuse the existing success screen exactly as-is.
-- Show "ממתין לאישור התשלום…" spinner state during polling.
+Reuse the existing `Button` component and `navigate` hook already imported in the file. No new imports needed beyond what's already there.
 
-### 3. New Edge Function `get-gift-coupon`
-- Auth-required (validate JWT).
-- Input: `{ pendingGiftId }`.
-- Returns `{ status, code }` from `pending_gifts` where `user_id = auth.uid()`.
+## Technical notes
+- Tailwind only; no new dependencies.
+- Use semantic gradient utilities already proven in this file (lines 276–277 pattern).
+- Tracking: fire `trackEvent({ eventType: "feature_used", metadata: { feature: "gift_entry_clicked" } })` before navigating, matching the existing tracking pattern on this page.
+- No changes to packages, pricing logic, coupon, terms, CTA, or modals.
 
-### 4. `supabase/functions/grow-webhook/index.ts` (extend, do not break existing flow)
-- After successful identification of `userId` + `packageId`, before calling `applyPurchaseCredits`:
-  - Look up most-recent `pending_gifts` row for this `user_id` with `status='pending'` (matching `package_id`).
-  - If found → treat as gift:
-    - Generate unique coupon code (`GIFT-XXXXXXXX`, same alphabet as `create-gift-coupon`).
-    - Insert into `coupons` (`coupon_type='extra_stories'`, `free_stories=<config.stories>`, `max_uses=1`, `is_active=true`).
-    - Insert into `purchases` (`package_name='gift_<packageId>'`) for record-keeping. Skip `applyPurchaseCredits` (buyer should NOT receive credits — it's a gift).
-    - Update `pending_gifts` row: `status='completed'`, `coupon_code=<code>`, `completed_at=now()`.
-  - If not found → existing behavior (apply credits to buyer as normal purchase).
-- Idempotency: keep the existing `purchases.package_name LIKE 'grow_<tx>_%'` guard.
-
-### 5. `supabase/config.toml`
-Add `[functions.get-gift-coupon] verify_jwt = false` (in-code JWT validation).
-
-## What is NOT changed
-- PayPal gift flow (`create-gift-coupon` + `handlePayPalSuccess` in GiftCard.tsx).
-- Existing Grow non-gift purchase flow.
-- `grow-links.ts`, `pricing.ts`, `purchase-credits.ts`.
-
-## Risk notes
-- Grow static links may not allow URL query params. The plan uses a per-user `pending_gifts` lookup (most-recent pending row matching package) as the primary match key, so query-param support isn't required.
-- Race condition is bounded: a user is unlikely to start two gift purchases of the same package within the polling window.
+## Files
+- `src/pages/Upgrade.tsx` — insert the new section only.
