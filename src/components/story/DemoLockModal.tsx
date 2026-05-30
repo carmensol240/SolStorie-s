@@ -67,7 +67,7 @@ const DemoLockModal = ({ open, onOpenChange, title, description, storyId }: Demo
             🎁 סיפור ראשון? מגיע לך מתנה!
           </DialogDescription>
           <DialogDescription className="text-sm text-white/80 pt-1 text-center">
-            רכשו ב-39.90 ₪ וקבלו סיפור דיגיטלי נוסף
+            רכשו ב-49.90 ₪ וקבלו סיפור דיגיטלי נוסף
           </DialogDescription>
         </DialogHeader>
 
@@ -84,7 +84,7 @@ const DemoLockModal = ({ open, onOpenChange, title, description, storyId }: Demo
             className="w-auto max-w-[280px] mx-auto relative overflow-hidden bg-gradient-to-r from-purple-500 via-pink-500 to-orange-500 hover:from-purple-400 hover:via-pink-400 hover:to-orange-400 text-white font-black text-sm py-3 px-6 rounded-xl shadow-xl text-center"
             style={{ boxShadow: '0 0 30px rgba(168, 85, 247, 0.4), 0 0 60px rgba(236, 72, 153, 0.2)' }}
           >
-            רכישת הסיפור הדיגיטלי 📱 – 39.90₪
+            רכישת הסיפור הדיגיטלי 📱 – 49.90₪
           </button>
           <p className="text-white/80 text-[11px] font-bold text-center -mt-1">
             {"\u200B"}
@@ -104,7 +104,7 @@ const DemoLockModal = ({ open, onOpenChange, title, description, storyId }: Demo
                 className="w-full bg-white/10 backdrop-blur-md border border-white/20 hover:bg-white/15 transition-colors rounded-xl px-4 py-3 text-center"
               >
                 <div className="text-white font-black text-sm">
-                  רכישת הסיפור + קובץ להדפסה 📖 – 99.90₪
+                  רכישת הסיפור + קובץ להדפסה 📖 – 119.90₪
                 </div>
                 <div className="text-white/60 text-[11px] font-semibold mt-0.5">
                   קריאה מלאה + שיתוף בוואטסאפ + הקלטת קול
