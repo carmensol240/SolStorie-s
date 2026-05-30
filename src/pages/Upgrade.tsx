@@ -36,7 +36,7 @@ const TIERS = {
   },
   full: {
     id: "full" as Tier,
-    label: "הכי פופולרי 🔥",
+    label: "סיפור דיגיטלי+ קובץ להדפסת ספר  +דף צביעה ",
     price: 99.90,
     features: [
       { label: "✨ הילד שלך — הגיבור של הסיפור", included: true },
@@ -216,6 +216,11 @@ const Upgrade = () => {
                     tier.id === "full" && isSelected && "shadow-[0_0_40px_rgba(236,72,153,0.5)] border-pink-400/60 ring-2 ring-pink-400/50"
                   )}
                 >
+                  {tier.id === "full" && (
+                    <div className="absolute -top-3 left-1/2 -translate-x-1/2 bg-gradient-to-r from-purple-500 to-pink-500 text-white text-[10px] font-black px-3 py-1 rounded-full whitespace-nowrap shadow-lg z-10">
+                      הכי פופולרי 🔥
+                    </div>
+                  )}
                   <div className="min-h-7 mb-2 flex items-start justify-center">
                     {tier.id === "digital" && (
                       <div className="px-3 py-1 rounded-full bg-green-500/20 text-green-300 text-xs font-bold border border-green-500/30">
