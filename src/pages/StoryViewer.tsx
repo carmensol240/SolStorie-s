@@ -2478,6 +2478,24 @@ const [currentPage, setCurrentPage] = useState(0);
         illustrationCount={story?.pages?.filter(p => p.illustration_url).length ?? 0}
       />
 
+      {/* First-completion WhatsApp share prompt */}
+      <ShareCompletionBanner
+        open={shareCompletionOpen}
+        onClose={() => {
+          if (story) {
+            try { localStorage.setItem(`whatsapp_share_prompt_shown_${story.id}`, '1'); } catch {}
+          }
+          setShareCompletionOpen(false);
+        }}
+        onShare={() => {
+          if (story) {
+            try { localStorage.setItem(`whatsapp_share_prompt_shown_${story.id}`, '1'); } catch {}
+          }
+          handleShareWhatsApp();
+          setShareCompletionOpen(false);
+        }}
+      />
+
     </div>
   );
 };
