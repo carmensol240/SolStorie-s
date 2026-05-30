@@ -23,30 +23,49 @@ export function useAutoFitText(
     if (!container || !textEl) return;
 
     const fit = () => {
+      // Guard: refs may have been cleared if the component unmounted
+      // between scheduling and execution (common on mobile WebKit where
+      // ResizeObserver callbacks can fire after unmount).
+      const c = containerRef.current;
+      const t = textRef.current;
+      if (!c || !t) return;
+
       // Reset to the natural size defined by classes/inline parent styles.
-      textEl.style.fontSize = "";
-      const base = parseFloat(getComputedStyle(textEl).fontSize);
+      t.style.fontSize = "";
+      const base = parseFloat(getComputedStyle(t).fontSize);
       if (!Number.isFinite(base) || base <= 0) return;
 
       let current = base;
       let guard = 0;
       // Allow a 1px tolerance to avoid sub-pixel jitter.
       while (
-        container.scrollHeight > container.clientHeight + 1 &&
+        c.scrollHeight > c.clientHeight + 1 &&
         current > minPx &&
         guard < 120
       ) {
         current -= stepPx;
-        textEl.style.fontSize = `${current}px`;
+        t.style.fontSize = `${current}px`;
         guard++;
       }
     };
 
     fit();
 
-    const ro = new ResizeObserver(() => fit());
-    ro.observe(container);
-    return () => ro.disconnect();
+    let disposed = false;
+    const ro = new ResizeObserver(() => {
+      if (disposed) return;
+      if (!containerRef.current || !textRef.current) return;
+      fit();
+    });
+    try {
+      ro.observe(container);
+    } catch {
+      // ResizeObserver can throw in older WebKit if element is detached
+    }
+    return () => {
+      disposed = true;
+      try { ro.disconnect(); } catch {}
+    };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, deps);
 }
