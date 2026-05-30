@@ -61,6 +61,7 @@ import PrintBookPreviewModal from "@/components/story/PrintBookPreviewModal";
 import InstallAppPrompt from "@/components/story/InstallAppPrompt";
 import ColoringPurchaseModal from "@/components/paywall/ColoringPurchaseModal";
 import DemoLockModal from "@/components/story/DemoLockModal";
+import ShareCompletionBanner from "@/components/story/ShareCompletionBanner";
 
 import "./StoryViewer.css";
 import { translateTopic } from "@/lib/topic-translations";
