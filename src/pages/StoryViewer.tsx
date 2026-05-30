@@ -521,6 +521,9 @@ const [currentPage, setCurrentPage] = useState(0);
   const canDownloadPdf = !!user && (
     hasPdfEntitlement || isSubscriberUser || isAdminUser || isTester
   ) && !isForcedDemo;
+  const canUseColoring = !!user && (
+    hasPdfEntitlement || isSubscriberUser || isAdminUser || isTester
+  ) && !isForcedDemo;
   const guardPdfDownload = useCallback((fn: () => void) => {
     return () => {
       if (!canDownloadPdf) {
@@ -1661,7 +1664,11 @@ const [currentPage, setCurrentPage] = useState(0);
         isDownloadingOffline={fullOffline.downloadingId === resolvedId}
         onRegenerateCover={handleRegenerateCover}
         isRegeneratingCover={isRegeneratingCover}
-        onColoring={guardDemo(() => preloadStoryCachedColoring(null))}
+        onColoring={() => {
+          if (!canUseColoring) { setColoringUpsellOpen(true); return; }
+          guardDemo(() => preloadStoryCachedColoring(null))();
+        }}
+        coloringLocked={!canUseColoring}
       />
 
       {/* Series navigation bar removed */}

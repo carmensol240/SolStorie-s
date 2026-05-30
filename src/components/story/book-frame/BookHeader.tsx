@@ -66,6 +66,7 @@ interface BookHeaderProps {
   onColoring?: () => void;
   // PDF entitlement
   pdfLocked?: boolean;
+  coloringLocked?: boolean;
 }
 
 export const BookHeader: React.FC<BookHeaderProps> = ({
@@ -92,6 +93,7 @@ export const BookHeader: React.FC<BookHeaderProps> = ({
   isRegeneratingCover = false,
   onColoring,
   pdfLocked = false,
+  coloringLocked = false,
 }) => {
   return (
     <header className="sticky top-0 z-40 backdrop-blur-md border-b border-white/30 px-3 py-2 shadow-sm" style={{ background: 'rgba(255, 255, 255, 0.75)' }}>
@@ -189,10 +191,20 @@ export const BookHeader: React.FC<BookHeaderProps> = ({
                   className="hidden md:inline-flex text-slate-600 hover:bg-sky-100/60 min-h-[44px] min-w-[44px] p-2"
                   aria-label="דפי צביעה"
                 >
-                  <Palette className="w-5 h-5" />
+                  <span className="relative inline-flex">
+                    <Palette className="w-5 h-5" />
+                    {coloringLocked && (
+                      <Lock
+                        className="absolute -top-1 -left-1 w-3.5 h-3.5 bg-white rounded-full p-[1px] text-slate-700 shadow-sm"
+                        aria-hidden="true"
+                      />
+                    )}
+                  </span>
                 </Button>
               </TooltipTrigger>
-              <TooltipContent side="bottom">דפי צביעה</TooltipContent>
+              <TooltipContent side="bottom">
+                {coloringLocked ? "שדרגו לחבילת דפי הצביעה" : "דפי צביעה"}
+              </TooltipContent>
             </Tooltip>
           )}
 
