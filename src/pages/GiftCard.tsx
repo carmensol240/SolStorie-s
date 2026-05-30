@@ -125,9 +125,9 @@ const GiftCard = () => {
       return;
     }
     if (!selectedPkg) return;
-    const growKey = selectedPkg.id as GrowLinkKey;
-    if (!GROW_LINKS[growKey]) {
-      toast.error("חבילה זו אינה זמינה כרגע בתשלום באשראי. נסו PayPal.");
+    const growKey = selectedPkg.growKey;
+    if (!growKey || !GROW_LINKS[growKey]) {
+      toast.error("התשלום באשראי לחבילה זו יתווסף בקרוב — אפשר להשלים ב-PayPal.");
       return;
     }
 
@@ -424,15 +424,14 @@ const GiftCard = () => {
                 )}
 
                 <Gift className="w-6 h-6 text-pink-300 mb-1" />
-                <div className="text-2xl font-black bg-gradient-to-r from-purple-300 via-pink-300 to-orange-300 bg-clip-text text-transparent">
-                  {pkg.stories}
+                <div className="text-sm font-black text-white text-center leading-tight min-h-[2.5rem] flex items-center">
+                  {pkg.label}
                 </div>
-                <div className="text-xs text-white/80 font-bold mb-1">סיפורים</div>
-                <div className="text-lg font-black text-white">
-                  {CURRENCY_SYMBOL}{pkg.price}
+                <div className="text-lg font-black bg-gradient-to-r from-purple-300 via-pink-300 to-orange-300 bg-clip-text text-transparent mt-1">
+                  {CURRENCY_SYMBOL}{pkg.price.toFixed(2)}
                 </div>
-                <div className="text-[10px] text-purple-300 font-bold">
-                  {pkg.pricePerStory} לסיפור
+                <div className="text-[10px] text-white/70 font-bold mt-1 text-center">
+                  {pkg.subtitle}
                 </div>
               </button>
             ))}
