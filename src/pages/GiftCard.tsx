@@ -4,7 +4,6 @@ import { Gift, ArrowRight, Check, Share2, Copy, Sparkles } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import PayPalButton from "@/components/paywall/PayPalButton";
 import { useAuth } from "@/hooks/use-auth";
 import { supabase } from "@/integrations/supabase/client";
 import { useAnalytics } from "@/hooks/use-analytics";
@@ -53,7 +52,6 @@ const GiftCard = () => {
   const [selectedPackage, setSelectedPackage] = useState("gift_single_full");
   const [childName, setChildName] = useState("");
   const [senderName, setSenderName] = useState(user?.user_metadata?.display_name || "");
-  const [showPayPal, setShowPayPal] = useState(false);
   const [generatedCode, setGeneratedCode] = useState<string | null>(null);
   const [purchaseComplete, setPurchaseComplete] = useState(false);
   const [copied, setCopied] = useState(false);
@@ -127,7 +125,7 @@ const GiftCard = () => {
     if (!selectedPkg) return;
     const growKey = selectedPkg.growKey;
     if (!growKey || !GROW_LINKS[growKey]) {
-      toast.error("התשלום באשראי לחבילה זו יתווסף בקרוב — אפשר להשלים ב-PayPal.");
+      toast.error("התשלום לחבילה זו עדיין לא זמין.");
       return;
     }
 
@@ -165,56 +163,7 @@ const GiftCard = () => {
   };
 
   const handlePurchase = () => {
-    if (!user) {
-      localStorage.setItem("returnTo", "/gift");
-      navigate("/auth");
-      return;
-    }
-    if (!childName.trim()) {
-      toast.error("יש להזין את שם הילד/ה מקבל/ת המתנה");
-      return;
-    }
-    setShowPayPal(true);
-  };
-
-  const handlePayPalSuccess = async () => {
-    if (!user || !selectedPkg) return;
-
-    try {
-      const { data, error } = await supabase.functions.invoke("create-gift-coupon", {
-        body: {
-          stories: selectedPkg.stories,
-          price: selectedPkg.price,
-          packageId: selectedPkg.id,
-        },
-      });
-
-      if (error || !data?.code) {
-        throw new Error(data?.error || "Failed to create gift coupon");
-      }
-
-      setGeneratedCode(data.code);
-      setPurchaseComplete(true);
-      setShowPayPal(false);
-
-      trackEvent({
-        eventType: "feature_used",
-        metadata: {
-          feature: "gift_card_purchased",
-          package: selectedPkg.id,
-          stories: selectedPkg.stories,
-        },
-      });
-    } catch (error) {
-      console.error("Gift card purchase failed:", error);
-      toast.error("שגיאה ביצירת כרטיס המתנה. נסו שוב.");
-      setShowPayPal(false);
-    }
-  };
-
-  const handlePayPalError = () => {
-    toast.error("שגיאה בתשלום. נסו שוב.");
-    setShowPayPal(false);
+    handleGrowPurchase();
   };
 
   const handleShareWhatsApp = () => {
@@ -485,42 +434,6 @@ const GiftCard = () => {
             </div>
           </div>
 
-          {/* PayPal Section */}
-          {showPayPal && selectedPkg && (
-            <div className="bg-white/15 backdrop-blur-md rounded-xl border border-pink-400/30 p-4 mb-4 shadow-lg">
-              <p className="text-sm font-bold text-white text-center mb-3">
-                🎁 {selectedPkg.stories} סיפורים במתנה — {CURRENCY_SYMBOL}{selectedPkg.price}
-              </p>
-              <PayPalButton
-                amount={selectedPkg.price}
-                onSuccess={handlePayPalSuccess}
-                onError={handlePayPalError}
-                onCancel={() => setShowPayPal(false)}
-              />
-              {selectedPkg && (GROW_LINKS as any)[selectedPkg.id] && (
-                <>
-                  <div className="flex items-center gap-2 my-3">
-                    <div className="flex-1 h-px bg-white/15" />
-                    <span className="text-white/50 text-xs">או</span>
-                    <div className="flex-1 h-px bg-white/15" />
-                  </div>
-                  <Button
-                    onClick={handleGrowPurchase}
-                    className="w-full bg-white text-[hsl(250,50%,15%)] hover:bg-white/90 font-black py-3 rounded-xl"
-                  >
-                    💳 תשלום בכרטיס אשראי (Grow)
-                  </Button>
-                </>
-              )}
-              <button
-                onClick={() => setShowPayPal(false)}
-                className="w-full text-center text-white/50 text-xs mt-3 hover:text-white/70 transition-colors"
-              >
-                ביטול
-              </button>
-            </div>
-          )}
-
           {waitingForGrow && (
             <div className="bg-white/15 backdrop-blur-md rounded-xl border border-white/20 p-4 mb-4 text-center">
               <div className="inline-block w-6 h-6 border-2 border-white/30 border-t-white rounded-full animate-spin mb-2" />
@@ -535,25 +448,23 @@ const GiftCard = () => {
       </div>
 
       {/* Fixed CTA — anchored above the mobile bottom navigation (h-14) */}
-      {!showPayPal && (
-        <div className="fixed bottom-14 left-0 right-0 bg-[hsl(250,50%,12%)]/95 backdrop-blur border-t border-white/10 px-4 py-3 z-[110] pointer-events-auto">
-          <div className="container max-w-md mx-auto">
-            <Button
-              type="button"
-              onClick={handlePurchase}
-              disabled={!childName.trim()}
-              className="w-full bg-gradient-to-r from-pink-500 via-purple-500 to-orange-500 hover:from-pink-400 hover:via-purple-400 hover:to-orange-400 text-white font-black text-sm py-3 rounded-xl shadow-xl disabled:opacity-50 disabled:cursor-not-allowed"
-              style={{
-                boxShadow:
-                  "0 0 30px rgba(236, 72, 153, 0.4), 0 0 60px rgba(168, 85, 247, 0.2)",
-              }}
-            >
-              <Gift className="w-5 h-5 ml-2" />
-              רכשו {selectedPkg?.stories} סיפורים במתנה — {CURRENCY_SYMBOL}{selectedPkg?.price} ✨
-            </Button>
-          </div>
+      <div className="fixed bottom-14 left-0 right-0 bg-[hsl(250,50%,12%)]/95 backdrop-blur border-t border-white/10 px-4 py-3 z-[110] pointer-events-auto">
+        <div className="container max-w-md mx-auto">
+          <Button
+            type="button"
+            onClick={handlePurchase}
+            disabled={!childName.trim()}
+            className="w-full bg-gradient-to-r from-pink-500 via-purple-500 to-orange-500 hover:from-pink-400 hover:via-purple-400 hover:to-orange-400 text-white font-black text-sm py-3 rounded-xl shadow-xl disabled:opacity-50 disabled:cursor-not-allowed"
+            style={{
+              boxShadow:
+                "0 0 30px rgba(236, 72, 153, 0.4), 0 0 60px rgba(168, 85, 247, 0.2)",
+            }}
+          >
+            <Gift className="w-5 h-5 ml-2" />
+            רכשו {selectedPkg?.stories} סיפורים במתנה — {CURRENCY_SYMBOL}{selectedPkg?.price} ✨
+          </Button>
         </div>
-      )}
+      </div>
 
       <MobileNavigation />
     </div>
