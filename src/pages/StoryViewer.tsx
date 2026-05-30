@@ -2146,21 +2146,25 @@ const [currentPage, setCurrentPage] = useState(0);
       )}
 
       {/* Demo lock modal — shown when demo users try to save/share/download/color/record */}
-      <DemoLockModal open={demoLockOpen} onOpenChange={setDemoLockOpen} storyId={storyId} />
-      <DemoLockModal
-        open={demoPaywallOpen}
-        onOpenChange={setDemoPaywallOpen}
-        title="✨ רוצים לקרוא את הסיפור המלא?"
-        description=" סיפור ראשון? מגיע לך מתנה! רכשו ב-39.90 ₪ וקבלו סיפור דיגיטלי נוסף🎁"
-        storyId={storyId}
-      />
+      {resolvedId && (
+        <DemoLockModal open={demoLockOpen} onOpenChange={setDemoLockOpen} storyId={resolvedId ?? storyId} />
+      )}
+      {resolvedId && (
+        <DemoLockModal
+          open={demoPaywallOpen}
+          onOpenChange={setDemoPaywallOpen}
+          title="✨ רוצים לקרוא את הסיפור המלא?"
+          description=" סיפור ראשון? מגיע לך מתנה! רכשו ב-39.90 ₪ וקבלו סיפור דיגיטלי נוסף🎁"
+          storyId={resolvedId ?? storyId}
+        />
+      )}
 
       {/* Gender Swap Dialog */}
-      {storyId && story?.child_gender && (
+      {resolvedId && story?.child_gender && (
         <GenderSwapDialog
           open={showGenderSwapDialog}
           onOpenChange={setShowGenderSwapDialog}
-          storyId={storyId}
+          storyId={resolvedId ?? storyId}
           currentGender={story.child_gender as "male" | "female"}
           onSuccess={fetchStory}
         />
@@ -2170,15 +2174,17 @@ const [currentPage, setCurrentPage] = useState(0);
       <PdfFeaturePopup userId={user?.id} />
 
       {/* Print PDF offer for free users on last page */}
-      <PrintPdfOfferModal
-        open={showPrintPdfOffer}
-        onOpenChange={setShowPrintPdfOffer}
-        storyId={storyId || ""}
-        onPurchase={() => {
-          setShowPrintPdfOffer(false);
-          import("@/config/grow-links").then(({ openGrowCheckout }) => openGrowCheckout("pdf"));
-        }}
-      />
+      {resolvedId && (
+        <PrintPdfOfferModal
+          open={showPrintPdfOffer}
+          onOpenChange={setShowPrintPdfOffer}
+          storyId={resolvedId ?? storyId ?? ""}
+          onPurchase={() => {
+            setShowPrintPdfOffer(false);
+            import("@/config/grow-links").then(({ openGrowCheckout }) => openGrowCheckout("pdf"));
+          }}
+        />
+      )}
 
       {/* Install App Prompt - shown only after reaching last page */}
       <InstallAppPrompt justCreatedFirstStory={justCreatedStory && isEndPage} />
