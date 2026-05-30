@@ -87,3 +87,6 @@ verify_jwt = false
 
 [functions.grow-webhook]
 verify_jwt = false
+
+[functions.get-gift-coupon]
+verify_jwt = false
