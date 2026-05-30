@@ -10,14 +10,39 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAnalytics } from "@/hooks/use-analytics";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
-import { PRICING_PACKAGES, CURRENCY_SYMBOL } from "@/config/pricing";
+import { CURRENCY_SYMBOL } from "@/config/pricing";
 import MobileNavigation from "@/components/MobileNavigation";
 import { GROW_LINKS, type GrowLinkKey } from "@/config/grow-links";
 
-const GIFT_PACKAGES = PRICING_PACKAGES.map(pkg => ({
-  ...pkg,
-  giftLabel: `${pkg.stories} סיפורים במתנה`,
-}));
+const GIFT_PACKAGES = [
+  {
+    id: "gift_single_digital",
+    stories: 1,
+    price: 39.90,
+    label: "סיפור בודד",
+    subtitle: "דיגיטלי",
+    badge: undefined as string | undefined,
+    growKey: "basic" as GrowLinkKey | null,
+  },
+  {
+    id: "gift_single_full",
+    stories: 1,
+    price: 99.90,
+    label: "סיפור בודד",
+    subtitle: "חוויה מלאה",
+    badge: "הכי פופולרי 🔥" as string | undefined,
+    growKey: "popular" as GrowLinkKey | null,
+  },
+  {
+    id: "gift_two_stories",
+    stories: 2,
+    price: 79.90,
+    label: "2 סיפורים",
+    subtitle: "חבילה זוגית",
+    badge: undefined as string | undefined,
+    growKey: null as GrowLinkKey | null,
+  },
+];
 
 
 const GiftCard = () => {
@@ -25,7 +50,7 @@ const GiftCard = () => {
   const { user } = useAuth();
   const { trackEvent } = useAnalytics();
 
-  const [selectedPackage, setSelectedPackage] = useState("popular");
+  const [selectedPackage, setSelectedPackage] = useState("gift_single_full");
   const [childName, setChildName] = useState("");
   const [senderName, setSenderName] = useState(user?.user_metadata?.display_name || "");
   const [showPayPal, setShowPayPal] = useState(false);

@@ -1,43 +1,34 @@
-## Problem
+## Goal
 
-Opening a story from the library crashes with the friendly ErrorBoundary screen ("רק רגע... משהו קטן קרה"). The browser console shows **React minified error #310** ("Rendered fewer hooks than expected"), with the stack pointing to `useRef` inside `src/pages/StoryViewer.tsx`.
+Replace the gift packages on `/gift` with exactly three options (in one row):
+1. **Single Digital** — 39.90₪ — 1 story
+2. **Single Full** — 99.90₪ — 1 story (marked as popular)
+3. **2 Stories Gift** — 79.90₪ — 2 stories
 
-## Root cause
+Remove the 6-story and 10-story packages entirely. Keep everything else on the page (hero, "how it works", name fields, PayPal/Grow buttons, success screen, copy) unchanged.
 
-`src/pages/StoryViewer.tsx` has two early `return` statements:
+## Changes
 
-- Line 1515 — `if (isLoading) return <Spinner />`
-- Line 1529 — `if (!story || story.pages.length === 0) return <NotFound />`
+### `src/pages/GiftCard.tsx`
+- Replace the `GIFT_PACKAGES` definition. Stop importing `PRICING_PACKAGES`; define a local array with three entries:
+  - `{ id: "gift_single_digital", stories: 1, price: 39.90, label: "סיפור בודד", subtitle: "דיגיטלי", badge: undefined, growKey: "basic" }`
+  - `{ id: "gift_single_full", stories: 1, price: 99.90, label: "סיפור בודד", subtitle: "חוויה מלאה", badge: "הכי פופולרי 🔥", growKey: "popular" }`
+  - `{ id: "gift_two_stories", stories: 2, price: 79.90, label: "2 סיפורים במתנה", subtitle: "חבילה זוגית", badge: undefined, growKey: null }` (no Grow link yet — Grow button hidden/disabled for this option, PayPal still works)
+- Default `selectedPackage` becomes `"gift_single_full"` (the popular one).
+- Card grid: keep `grid-cols-3`. Since each card now represents 1 or 2 stories, adjust the visible card content so it doesn't read awkwardly:
+  - Show `pkg.label` as the title row.
+  - Show price `₪{pkg.price.toFixed(2)}`.
+  - Show `pkg.subtitle` underneath instead of "X לסיפור".
+  - Keep the Gift icon and the badge ribbon.
+- Update `handleGrowPurchase` to use `selectedPkg.growKey` instead of `selectedPkg.id`. If `growKey` is null, show a toast ("התשלום באשראי לחבילה זו יתווסף בקרוב — אפשר להשלים ב-PayPal") and return. PayPal flow remains unchanged and uses `selectedPkg.stories` + `selectedPkg.price` (already generic).
+- WhatsApp share message currently reads `חבילת ${selectedPkg.stories} סיפורים` — leave the template as-is; for `stories: 1` it will read "חבילת 1 סיפורים". Acceptable for now, or quick fix: branch on `stories === 1 ? "סיפור אישי אחד" : "${stories} סיפורים אישיים"`. Will apply the small branch for cleaner Hebrew.
 
-But three hooks are declared AFTER those returns:
-
-- Line 1569 — `const textPageContainerRef = useRef<HTMLDivElement>(null);`
-- Line 1570 — `const textPageTextRef = useRef<HTMLParagraphElement>(null);`
-- Line 1571 — `useAutoFitText(textPageContainerRef, textPageTextRef, [...]);`
-
-First render → `isLoading=true` → early-return skips those 3 hooks.
-Next render → `isLoading=false` → component runs past the early returns and suddenly calls 3 more hooks than before → React throws #310.
-
-This is hit every time a story is opened over a network slow enough to show the loading spinner (i.e. virtually always on mobile).
-
-## Fix
-
-Move the two `useRef`s and the `useAutoFitText(...)` call **above** the `if (isLoading)` early return, so they run on every render regardless of state. The values they depend on (`currentVirtual?.text`, `currentVirtual?.type`, `currentFontSize?.size`, `showNikud`, `currentPage`) are all already nullable-safe — we just need to compute `currentFontSize` before the early returns too (it's a pure lookup: `FONT_SIZES[fontSizeIndex]`).
-
-### Edit plan (single file)
-
-`src/pages/StoryViewer.tsx`:
-
-1. Just before `if (isLoading) {` (around line 1515), insert:
-   - `const textPageContainerRef = useRef<HTMLDivElement>(null);`
-   - `const textPageTextRef = useRef<HTMLParagraphElement>(null);`
-   - `const currentFontSizeForFit = FONT_SIZES[fontSizeIndex];`
-   - `const currentVirtualForFit = (currentPage >= 0 && currentPage < virtualPages.length) ? virtualPages[currentPage] : null;`
-   - `useAutoFitText(textPageContainerRef, textPageTextRef, [currentVirtualForFit?.text, currentVirtualForFit?.type, currentPage, currentFontSizeForFit?.size, showNikud]);`
-2. Remove the duplicated declarations at lines 1569-1577 (the two `useRef`s and the `useAutoFitText` call). Keep `currentFontSize` where it is (still used below) — or replace it with the lifted constant.
-
-The refs are still attached to the same DOM nodes lower in the JSX, so behavior is unchanged.
+### No other files changed
+- `src/config/pricing.ts` stays untouched (still used by `/upgrade` and elsewhere).
+- `src/config/grow-links.ts` stays untouched; we reuse existing `basic` and `popular` keys for the two single-story variants. The 79.90 Grow link will be added later.
+- Backend (`create-gift-coupon`, `grow-webhook`) accepts the package id + stories/price from the client, so the new ids work without server changes for the PayPal path. The Grow path for the new ids isn't wired anyway (only `gift_two_stories` lacks a link, and the two single variants reuse existing webhook-known keys `basic`/`popular`).
 
 ## Out of scope
-
-No other files touched. No styling, business-logic, or backend changes — purely a hook-ordering fix.
+- No design overhaul of the page.
+- No changes to success screen, hero, copy, or "how it works".
+- No backend / webhook changes.
