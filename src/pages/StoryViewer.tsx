@@ -1629,6 +1629,12 @@ const [currentPage, setCurrentPage] = useState(0);
         
         if (newPage >= maxPage) {
           trackStoryCompleted(story.id);
+          try {
+            const key = `whatsapp_share_prompt_shown_${story.id}`;
+            if (!isDemoUser && !localStorage.getItem(key)) {
+              setShareCompletionOpen(true);
+            }
+          } catch {}
         }
       } else if (direction === 'prev' && currentPage > 0) {
         const newPage = currentPage - 1;
