@@ -10,14 +10,39 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAnalytics } from "@/hooks/use-analytics";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
-import { PRICING_PACKAGES, CURRENCY_SYMBOL } from "@/config/pricing";
+import { CURRENCY_SYMBOL } from "@/config/pricing";
 import MobileNavigation from "@/components/MobileNavigation";
 import { GROW_LINKS, type GrowLinkKey } from "@/config/grow-links";
 
-const GIFT_PACKAGES = PRICING_PACKAGES.map(pkg => ({
-  ...pkg,
-  giftLabel: `${pkg.stories} סיפורים במתנה`,
-}));
+const GIFT_PACKAGES = [
+  {
+    id: "gift_single_digital",
+    stories: 1,
+    price: 39.90,
+    label: "סיפור בודד",
+    subtitle: "דיגיטלי",
+    badge: undefined as string | undefined,
+    growKey: "basic" as GrowLinkKey | null,
+  },
+  {
+    id: "gift_single_full",
+    stories: 1,
+    price: 99.90,
+    label: "סיפור בודד",
+    subtitle: "חוויה מלאה",
+    badge: "הכי פופולרי 🔥" as string | undefined,
+    growKey: "popular" as GrowLinkKey | null,
+  },
+  {
+    id: "gift_two_stories",
+    stories: 2,
+    price: 79.90,
+    label: "2 סיפורים",
+    subtitle: "חבילה זוגית",
+    badge: undefined as string | undefined,
+    growKey: null as GrowLinkKey | null,
+  },
+];
 
 
 const GiftCard = () => {
@@ -25,7 +50,7 @@ const GiftCard = () => {
   const { user } = useAuth();
   const { trackEvent } = useAnalytics();
 
-  const [selectedPackage, setSelectedPackage] = useState("popular");
+  const [selectedPackage, setSelectedPackage] = useState("gift_single_full");
   const [childName, setChildName] = useState("");
   const [senderName, setSenderName] = useState(user?.user_metadata?.display_name || "");
   const [showPayPal, setShowPayPal] = useState(false);
@@ -100,9 +125,9 @@ const GiftCard = () => {
       return;
     }
     if (!selectedPkg) return;
-    const growKey = selectedPkg.id as GrowLinkKey;
-    if (!GROW_LINKS[growKey]) {
-      toast.error("חבילה זו אינה זמינה כרגע בתשלום באשראי. נסו PayPal.");
+    const growKey = selectedPkg.growKey;
+    if (!growKey || !GROW_LINKS[growKey]) {
+      toast.error("התשלום באשראי לחבילה זו יתווסף בקרוב — אפשר להשלים ב-PayPal.");
       return;
     }
 
@@ -198,7 +223,10 @@ const GiftCard = () => {
     const sender = senderName.trim() || "מישהו/י שאוהב/ת אתכם";
     const child = childName.trim();
 
-    const message = `${sender} שלח/ה לך מתנה קסומה! חבילת ${selectedPkg.stories} סיפורים אישיים שבהם ${child} הופך/ת לגיבור/ה של הרפתקאות מרגשות. איך מממשים? נכנסים ונרשמים בקלות בכתובת https://soulstory.co.il (או מתחברים), ומזינים את קוד הקופון האישי שלכם: ${generatedCode}! קריאה מהנה ומרגשת! ❤️`;
+    const storiesPhrase = selectedPkg.stories === 1
+      ? "סיפור אישי אחד"
+      : `${selectedPkg.stories} סיפורים אישיים`;
+    const message = `${sender} שלח/ה לך מתנה קסומה! ${storiesPhrase} שבהם ${child} הופך/ת לגיבור/ה של הרפתקאות מרגשות. איך מממשים? נכנסים ונרשמים בקלות בכתובת https://soulstory.co.il (או מתחברים), ומזינים את קוד הקופון האישי שלכם: ${generatedCode}! קריאה מהנה ומרגשת! ❤️`;
 
     const whatsappUrl = `https://wa.me/?text=${encodeURIComponent(message)}`;
     window.open(whatsappUrl, "_blank");
@@ -399,15 +427,14 @@ const GiftCard = () => {
                 )}
 
                 <Gift className="w-6 h-6 text-pink-300 mb-1" />
-                <div className="text-2xl font-black bg-gradient-to-r from-purple-300 via-pink-300 to-orange-300 bg-clip-text text-transparent">
-                  {pkg.stories}
+                <div className="text-sm font-black text-white text-center leading-tight min-h-[2.5rem] flex items-center">
+                  {pkg.label}
                 </div>
-                <div className="text-xs text-white/80 font-bold mb-1">סיפורים</div>
-                <div className="text-lg font-black text-white">
-                  {CURRENCY_SYMBOL}{pkg.price}
+                <div className="text-lg font-black bg-gradient-to-r from-purple-300 via-pink-300 to-orange-300 bg-clip-text text-transparent mt-1">
+                  {CURRENCY_SYMBOL}{pkg.price.toFixed(2)}
                 </div>
-                <div className="text-[10px] text-purple-300 font-bold">
-                  {pkg.pricePerStory} לסיפור
+                <div className="text-[10px] text-white/70 font-bold mt-1 text-center">
+                  {pkg.subtitle}
                 </div>
               </button>
             ))}
