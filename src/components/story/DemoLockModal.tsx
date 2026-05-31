@@ -104,7 +104,7 @@ const DemoLockModal = ({ open, onOpenChange, title, description, storyId }: Demo
                 className="w-full bg-white/10 backdrop-blur-md border border-white/20 hover:bg-white/15 transition-colors rounded-xl px-4 py-3 text-center"
               >
                 <div className="text-white font-black text-sm">
-                  רכישת הסיפור + קובץ להדפסה 📖 – 119.90₪
+                  רכישת הסיפור + קובץ להדפסה 📖 – 129.90₪
                 </div>
                 <div className="text-white/60 text-[11px] font-semibold mt-0.5">
                   קריאה מלאה + שיתוף בוואטסאפ + הקלטת קול

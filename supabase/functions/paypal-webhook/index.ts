@@ -12,7 +12,7 @@ const AMOUNT_TO_PACKAGE: Record<number, { id: string; stories: number; freeEdits
   79.9:  { id: "single_story_full", stories: 1, freeEdits: 1, coloringPages: 1 },
   49.9:  { id: "basic",    stories: 1,  freeEdits: 1,  coloringPages: 0 },
   69.9:  { id: "pdf",      stories: 0,  freeEdits: 0,  coloringPages: 0 },
-  119.9: { id: "popular",  stories: 1,  freeEdits: 1,  coloringPages: 1 },
+  129.9: { id: "popular",  stories: 1,  freeEdits: 1,  coloringPages: 1 },
   99:    { id: "popular",  stories: 10, freeEdits: 10, coloringPages: 3 },
   119:   { id: "premium",  stories: 15, freeEdits: 15, coloringPages: 5 },
   149:   { id: "popular",  stories: 6,  freeEdits: 6,  coloringPages: 6 },
