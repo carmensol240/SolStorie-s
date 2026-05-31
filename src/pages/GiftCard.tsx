@@ -26,7 +26,7 @@ const GIFT_PACKAGES = [
   {
     id: "gift_single_full",
     stories: 1,
-    price: 119.90,
+    price: 129.90,
     label: "סיפור דיגיטלי+ קובץ להדפסת ספר  +דף צביעה ",
     subtitle: "חוויה מלאה",
     badge: "הכי פופולרי 🔥" as string | undefined,
