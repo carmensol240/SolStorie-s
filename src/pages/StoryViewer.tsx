@@ -524,7 +524,7 @@ const [currentPage, setCurrentPage] = useState(0);
     hasPdfEntitlement || isSubscriberUser || isAdminUser || isTester
   ) && !isForcedDemo;
   const canUseColoring = !!user && (
-    hasPdfEntitlement || isSubscriberUser || isAdminUser || isTester
+    hasPdfEntitlement || isSubscriberUser || isTester
   ) && !isForcedDemo;
   const guardPdfDownload = useCallback((fn: () => void) => {
     return () => {

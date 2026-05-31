@@ -1,10 +1,11 @@
-Update `src/components/story/DemoLockModal.tsx` only.
+In `src/pages/StoryViewer.tsx` around line 526-528, the `canUseColoring` flag treats admins (and testers) as entitled, so admin accounts skip the coloring lock even when the story has no purchase/PDF entitlement.
 
-1. **Digital plan button** (`goSingleStory`): Below the price line "רכישת הסיפור הדיגיטלי 📱 – 49.90₪", add a small second line: `+ סיפור דיגיטלי נוסף במתנה 🎁`.
-   - Shown only for first-time buyers. Detect via existing credits/purchase signal — check `useCredits` / purchase history hook to gate the line. If no straightforward signal exists in this component, I'll reuse the same logic already used elsewhere for "first purchase bonus" (e.g. the `grant-first-purchase-bonus` flow / `FirstPurchaseBonusModal` trigger).
-   - Styling: small text, white/80, font-bold, tight spacing under main label.
+**Change (one line):** drop `isAdminUser` from `canUseColoring` so admin status no longer unlocks the coloring icon. Keep `hasPdfEntitlement`, `isSubscriberUser`, and `isTester` intact — only the admin bypass is removed.
 
-2. **Popular plan button** (`goPopular`): Below the existing subtitle "קריאה מלאה + שיתוף בוואטסאפ + הקלטת קול", add a compact line: `+ חבילת דפי צביעה מלאה 🎨`.
-   - Same `text-[11px]` size, kept on one line for 320px mobile width.
+```ts
+const canUseColoring = !!user && (
+  hasPdfEntitlement || isSubscriberUser || isTester
+) && !isForcedDemo;
+```
 
-No other text, layout, pricing, or logic changes.
+No other change. `canDownloadPdf`, demo-user calculation, and all other admin-gated behavior remain untouched.
