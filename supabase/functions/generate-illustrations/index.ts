@@ -1279,6 +1279,29 @@ The action, objects, characters, and emotions shown MUST come from the STORY TEX
       let illustrationPrompt = `${charDesc}. ${sceneBlock}. CAMERA: ${cameraAngle}. LIGHTING: ${lighting}. Pixar 3D CGI style, vibrant colors, fantasy children's book, full body head to toe with feet grounded on surface`;
       console.log(`[Page ${page.page_number}] 📝 Direct prompt (${illustrationPrompt.length} chars, text-anchored=${!!pageNarrative})`);
 
+      // Inject CAST_DESCRIPTIONS for any recurring cast character that
+      // appears in this page so the illustrator renders them with the
+      // canonical traits (hair, outfit, accessories) instead of inventing
+      // a new look each time.
+      const castMatchers: Array<{ key: keyof typeof CAST_DESCRIPTIONS; patterns: RegExp[] }> = [
+        { key: "sol", patterns: [/\bSol\b/i, /סול/] },
+        { key: "ben", patterns: [/\bBen\b/i, /\bבן\b/] },
+        { key: "mia", patterns: [/\bMia\b/i, /מיה|מיא/] },
+        { key: "leo", patterns: [/\bLeo\b/i, /ליאו/] },
+        { key: "zoe", patterns: [/\bZoe\b/i, /זואי/] },
+      ];
+      const haystack = `${page.text || ""}\n${basePrompt}`;
+      const matchedCast = castMatchers.filter(({ patterns }) =>
+        patterns.some((re) => re.test(haystack)),
+      );
+      if (matchedCast.length > 0) {
+        const castBlock = matchedCast
+          .map(({ key }) => `- ${key.toUpperCase()}: ${CAST_DESCRIPTIONS[key]}`)
+          .join("\n");
+        illustrationPrompt += `\n\nCAST CHARACTER REFERENCE (these characters appear on this page — render them EXACTLY as described, keep traits consistent across every page):\n${castBlock}`;
+        console.log(`[Page ${page.page_number}] 🎭 Injected CAST_DESCRIPTIONS for: ${matchedCast.map(c => c.key).join(", ")}`);
+      }
+
       // Inject IDF military uniform for father in "dad-in-reserves" topic
       const FATHER_MILITARY_CLOTHING = "Israeli IDF military uniform, olive green (yarok tzava) fatigues, green combat boots, Israeli army green beret - NOT US army, NOT American military";
       if (topic === "dad-in-reserves") {
