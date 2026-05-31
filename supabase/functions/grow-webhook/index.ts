@@ -43,11 +43,19 @@ function generateGiftCouponCode(): string {
 // stories embedded in a gift coupon (mirrors packageConfig in purchase-credits).
 function giftStoriesForPackage(packageId: string): number | null {
   switch (packageId) {
+    // Gift package IDs sent by GiftCard.tsx
+    case "gift_single_digital":
+      return 1;
+    case "gift_single_full":
+      return 1;
+    case "gift_two_stories":
+      return 2;
+    // Legacy / amount-derived IDs
     case "basic":
     case "single_story_digital":
-      return 2;
+      return 1;
     case "popular":
-      return 6;
+      return 1;
     case "premium":
       return 10;
     default:
@@ -173,20 +181,22 @@ Deno.serve(async (req) => {
     // purchase as a gift: generate a coupon, attach it to the pending_gifts
     // row, record the purchase, and SKIP applyPurchaseCredits (the buyer
     // should not receive credits — the recipient redeems them).
-    const giftStories = giftStoriesForPackage(packageId);
-    if (giftStories) {
+    // Look up any recent pending_gift for this buyer regardless of packageId —
+    // the GiftCard form stores its own gift_* ids which don't match the
+    // amount-derived packageId, so we must not constrain on package_id.
+    {
       const { data: pendingGift } = await supabase
         .from("pending_gifts")
-        .select("id, child_name, sender_name")
+        .select("id, child_name, sender_name, package_id")
         .eq("user_id", userId)
-        .eq("package_id", packageId)
         .eq("status", "pending")
         .gte("created_at", new Date(Date.now() - 1000 * 60 * 60 * 2).toISOString())
         .order("created_at", { ascending: false })
         .limit(1)
         .maybeSingle();
 
-      if (pendingGift) {
+      const giftStories = pendingGift ? giftStoriesForPackage(pendingGift.package_id) : null;
+      if (pendingGift && giftStories) {
         // Idempotency for gift flow
         const { data: existingGiftPurchase } = await supabase
           .from("purchases")
@@ -224,7 +234,7 @@ Deno.serve(async (req) => {
 
         await supabase.from("purchases").insert({
           user_id: userId,
-          package_name: `grow_${transactionId}_gift_${packageId}`,
+          package_name: `grow_${transactionId}_gift_${pendingGift.package_id}`,
           credits_purchased: giftStories,
           amount_ils: amount,
           status: "completed",
