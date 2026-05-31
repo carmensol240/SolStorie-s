@@ -3,13 +3,18 @@ import { ArrowRight, Wand2, MessageCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import demoVideo from "@/assets/demo-story-video.mp4";
 
-const WHATSAPP_TEXT = "ראו איך יצרתי סיפור מותאם אישית לילד שלי עם SolStorie's ✨ סיפור לדוגמא! soulstory.co.il";
-
 const DemoStory = () => {
   const navigate = useNavigate();
 
   const handleWhatsAppShare = () => {
-    const url = `https://wa.me/?text=${encodeURIComponent(WHATSAPP_TEXT)}`;
+    let childName = "ילד שלי";
+    try {
+      const stored = localStorage.getItem("guest_child_name") || localStorage.getItem("child_name");
+      if (stored && stored.trim()) childName = stored.trim();
+    } catch {}
+    const link = "https://soulstory.co.il/demo-story";
+    const text = `${childName} קיבל/ה סיפור מותאם אישית ב-SolStories 🌟 הכנסו לראות את הקסם 🎉 ${link}`;
+    const url = `https://wa.me/?text=${encodeURIComponent(text)}`;
     window.open(url, "_blank", "noopener,noreferrer");
   };
 
