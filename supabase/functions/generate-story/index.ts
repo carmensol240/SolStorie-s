@@ -1011,14 +1011,33 @@ serve(async (req) => {
     
     // Determine story length based on age AND user preference
     // Map age range → representative integer (fallback when childAge isn't sent)
+    // Map an age range string (e.g. "0-2", "3-6", "5-7", "4-8") to a single
+    // representative age. Topic data uses many ranges beyond the wizard's
+    // canonical four, so we parse generically and use the rounded midpoint
+    // — this means ages like 3 and 5 are actually reachable instead of
+    // always rounding to 4 / 6.
     const rangeToExactAge = (r: string): number => {
-      switch (r) {
-        case "0-2": return 2;
-        case "2-4": return 4;
-        case "5-7": return 6;
-        case "8-10": return 9;
-        default: return 4;
+      const canonical: Record<string, number> = {
+        "0-2": 1,
+        "2-4": 3,
+        "3-6": 5,
+        "5-7": 6,
+        "4-8": 6,
+        "3-8": 5,
+        "0-3": 2,
+        "8-10": 9,
+        "9-12": 10,
+      };
+      if (canonical[r] !== undefined) return canonical[r];
+      const m = /^(\d+)\s*-\s*(\d+)$/.exec(String(r ?? ""));
+      if (m) {
+        const lo = parseInt(m[1], 10);
+        const hi = parseInt(m[2], 10);
+        if (Number.isFinite(lo) && Number.isFinite(hi) && hi >= lo) {
+          return Math.round((lo + hi) / 2);
+        }
       }
+      return 4;
     };
     const exactAge: number = (() => {
       const n = typeof childAgeRaw === "number" ? childAgeRaw : parseInt(String(childAgeRaw ?? ""), 10);
