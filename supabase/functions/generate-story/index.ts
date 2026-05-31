@@ -786,10 +786,14 @@ serve(async (req) => {
       console.log("Current credits:", currentCredits);
       
       if (currentCredits <= 0) {
+        // Only count real, user-authored stories — exclude demo / daily
+        // stories so a user who has only viewed sample content is still
+        // recognised as new and gets their welcome credit.
         const { count: storyCount, error: countError } = await supabase
           .from("stories")
           .select("*", { count: "exact", head: true })
-          .eq("user_id", userId);
+          .eq("user_id", userId)
+          .or("is_daily_story.is.null,is_daily_story.eq.false");
         
         if (countError) {
           console.error("Error counting stories:", countError);

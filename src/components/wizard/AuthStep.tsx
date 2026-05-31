@@ -31,6 +31,7 @@ const AuthStep = ({ formData, onAuthenticated }: AuthStepProps) => {
   const [marketingConsent, setMarketingConsent] = useState(false);
   const [mode, setMode] = useState<"signup" | "login">("signup");
   const [submitting, setSubmitting] = useState(false);
+  const [userRole, setUserRole] = useState<"parent" | "educator">("parent");
 
   const saveChildToSupabase = async (userId: string) => {
     try {
@@ -84,6 +85,7 @@ const AuthStep = ({ formData, onAuthenticated }: AuthStepProps) => {
       } else {
         const { error } = await signUpWithEmail(email, password, {
           display_name: email.split("@")[0],
+          user_role: userRole,
         });
         if (error) {
           toast({ title: "שגיאה בהרשמה", description: error.message, variant: "destructive" });
@@ -257,6 +259,36 @@ const AuthStep = ({ formData, onAuthenticated }: AuthStepProps) => {
 
           {mode === "signup" && (
             <>
+              <div className="space-y-1.5">
+                <p className="text-xs text-white/80 font-bold">אני...</p>
+                <div className="grid grid-cols-2 gap-2">
+                  <button
+                    type="button"
+                    onClick={() => setUserRole("parent")}
+                    className={`flex flex-col items-center gap-0.5 py-2 rounded-xl border-2 transition-all ${
+                      userRole === "parent"
+                        ? "border-purple-300 bg-white/15"
+                        : "border-white/15 bg-white/5"
+                    }`}
+                  >
+                    <span className="text-xl">👨‍👩‍👧</span>
+                    <span className="text-[11px] font-bold text-white">הורה</span>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setUserRole("educator")}
+                    className={`flex flex-col items-center gap-0.5 py-2 rounded-xl border-2 transition-all ${
+                      userRole === "educator"
+                        ? "border-purple-300 bg-white/15"
+                        : "border-white/15 bg-white/5"
+                    }`}
+                  >
+                    <span className="text-xl">📚</span>
+                    <span className="text-[11px] font-bold text-white">איש/ת חינוך</span>
+                  </button>
+                </div>
+              </div>
+
               <div className="flex items-center gap-2.5">
                 <Checkbox
                   id="auth-step-terms"
