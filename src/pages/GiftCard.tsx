@@ -10,7 +10,6 @@ import { useAnalytics } from "@/hooks/use-analytics";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import { CURRENCY_SYMBOL } from "@/config/pricing";
-import MobileNavigation from "@/components/MobileNavigation";
 import { GROW_LINKS, type GrowLinkKey } from "@/config/grow-links";
 
 const GIFT_PACKAGES = [
@@ -294,7 +293,6 @@ const GiftCard = () => {
           </div>
         </div>
 
-        <MobileNavigation />
       </div>
     );
   }
@@ -447,8 +445,7 @@ const GiftCard = () => {
         </div>
       </div>
 
-      {/* Fixed CTA — anchored above the mobile bottom navigation (h-14) */}
-      <div className="fixed bottom-14 left-0 right-0 bg-[hsl(250,50%,12%)]/95 backdrop-blur border-t border-white/10 px-4 py-3 z-[110] pointer-events-auto">
+      <div className="fixed bottom-0 left-0 right-0 bg-[hsl(250,50%,12%)]/95 backdrop-blur border-t border-white/10 px-4 py-3 z-[110] pointer-events-auto">
         <div className="container max-w-md mx-auto">
           <Button
             type="button"
@@ -465,8 +462,6 @@ const GiftCard = () => {
           </Button>
         </div>
       </div>
-
-      <MobileNavigation />
     </div>
   );
 };
