@@ -93,7 +93,14 @@ Return only the JSON, no other text.`
     });
 
     if (!response.ok) {
-      console.error("Profile extraction failed, using defaults");
+      console.warn(
+        `⚠️ VISION FALLBACK: character profile extraction failed (HTTP ${response.status}) — falling back to generic ${childGender === "female" ? "Sol-style girl" : "generic boy"} defaults. Illustrations will NOT match the child's photo.`,
+      );
+      await logError(
+        "illustration_vision_fallback",
+        `extractCharacterProfile HTTP ${response.status} — using generic defaults`,
+        { status: response.status, gender: childGender, ageRange },
+      );
       return getDefaultProfile(childGender, genderHebrew, ageRange);
     }
 
@@ -113,12 +120,26 @@ Return only the JSON, no other text.`
         skinTone: profile.skin_tone || "medium",
         eyeColor: profile.eye_color || "brown",
       };
-    } catch {
-      console.log("Could not parse profile, using defaults");
+    } catch (parseErr) {
+      console.warn(
+        `⚠️ VISION FALLBACK: could not parse vision-model JSON profile — falling back to generic ${childGender === "female" ? "Sol-style girl" : "generic boy"} defaults. Illustrations will NOT match the child's photo. Raw content: ${String(content).substring(0, 200)}`,
+      );
+      await logError(
+        "illustration_vision_fallback",
+        `extractCharacterProfile JSON parse failed — using generic defaults: ${(parseErr as Error)?.message || parseErr}`,
+        { gender: childGender, ageRange, sample: String(content).substring(0, 200) },
+      );
       return getDefaultProfile(childGender, genderHebrew, ageRange);
     }
   } catch (error) {
-    console.error("Error extracting character profile:", error);
+    console.warn(
+      `⚠️ VISION FALLBACK: character profile extraction threw — falling back to generic ${childGender === "female" ? "Sol-style girl" : "generic boy"} defaults. Illustrations will NOT match the child's photo. Error: ${(error as Error)?.message || error}`,
+    );
+    await logError(
+      "illustration_vision_fallback",
+      `extractCharacterProfile threw — using generic defaults: ${(error as Error)?.message || error}`,
+      { gender: childGender, ageRange },
+    );
     return getDefaultProfile(childGender, genderHebrew, ageRange);
   }
 }
