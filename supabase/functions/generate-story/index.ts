@@ -1778,30 +1778,50 @@ ${topic.endsWith('-edu') ? `
 
     // === DEFERRED CREDIT DEDUCTION: Only after successful AI generation ===
     if (userId && !guestMode) {
-      const { data: freshProfile } = await supabase
-        .from("profiles")
-        .select("story_credits")
-        .eq("id", userId)
-        .single();
-      
-      const freshCredits = freshProfile?.story_credits ?? 0;
-      if (freshCredits <= 0) {
-        console.log("Race condition: credits depleted between check and deduction");
+      // Atomic check-and-decrement via optimistic concurrency (CAS):
+      // UPDATE ... WHERE id = ? AND story_credits = expected AND story_credits > 0
+      // If no row is returned, another request decremented in between — retry up to 3x.
+      let deducted = false;
+      for (let attempt = 0; attempt < 3 && !deducted; attempt++) {
+        const { data: freshProfile } = await supabase
+          .from("profiles")
+          .select("story_credits")
+          .eq("id", userId)
+          .single();
+
+        const freshCredits = freshProfile?.story_credits ?? 0;
+        if (freshCredits <= 0) {
+          console.log("Race condition: credits depleted between check and deduction");
+          return new Response(
+            JSON.stringify({ error: "נגמרו הקרדיטים", code: "NO_CREDITS" }),
+            { status: 402, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+          );
+        }
+
+        const { data: updatedRows, error: deductError } = await supabase
+          .from("profiles")
+          .update({ story_credits: freshCredits - 1 })
+          .eq("id", userId)
+          .eq("story_credits", freshCredits)
+          .gt("story_credits", 0)
+          .select("story_credits");
+
+        if (deductError) {
+          console.error("Error deducting credit:", deductError);
+          break;
+        }
+        if (updatedRows && updatedRows.length > 0) {
+          console.log(`Credit deducted atomically: ${freshCredits} → ${freshCredits - 1}`);
+          deducted = true;
+        } else {
+          console.warn(`CAS miss on credit deduction (attempt ${attempt + 1}), retrying`);
+        }
+      }
+      if (!deducted) {
         return new Response(
           JSON.stringify({ error: "נגמרו הקרדיטים", code: "NO_CREDITS" }),
           { status: 402, headers: { ...corsHeaders, "Content-Type": "application/json" } }
         );
-      }
-      
-      const { error: deductError } = await supabase
-        .from("profiles")
-        .update({ story_credits: freshCredits - 1 })
-        .eq("id", userId);
-      
-      if (deductError) {
-        console.error("Error deducting credit:", deductError);
-      } else {
-        console.log(`Credit deducted server-side: ${freshCredits} → ${freshCredits - 1}`);
       }
     }
     // === TEXT QUALITY REWRITE: Age-appropriate language polish ===
@@ -1941,7 +1961,9 @@ ${fullStoryText}`;
 
     // === NIKUD: Deferred to background for faster response ===
     // Nikud will be applied after story+pages are saved, in a fire-and-forget manner
-    const shouldApplyNikud = nikud && language === "he";
+    // Auto-apply nikud for ages 0-4 regardless of parent toggle.
+    const isYoungAge = ageRange === "0-2" || ageRange === "2-4";
+    const shouldApplyNikud = (nikud || isYoungAge) && language === "he";
     if (!shouldApplyNikud) {
       console.log("Nikud not requested, skipping");
     }

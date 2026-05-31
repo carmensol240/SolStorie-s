@@ -13,6 +13,8 @@ export const GROW_LINKS = {
   coloringBundle: "https://pay.grow.link/MTAxMTMz~902b4d6ad465f743bf5de838d04f1c5b-MzQ3NDYxNQ",
   // Printable PDF file (69.90 ₪)
   pdf: "https://pay.grow.link/MTAxMTMz~966f337ed54d7ce20445cd22c4cc239e-MzQ3NDYxOA",
+  // Two digital stories gift package (89.90 ₪) — TODO: replace with real link
+  twoStories: "",
 } as const;
 
 export type GrowLinkKey = keyof typeof GROW_LINKS;

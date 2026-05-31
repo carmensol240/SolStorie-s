@@ -2013,6 +2013,8 @@ const [currentPage, setCurrentPage] = useState(0);
                           )} style={{
                             lineHeight: '2',
                             color: '#FFFFFF',
+                            overflowWrap: 'break-word',
+                            wordBreak: 'break-word',
                           }} dir="rtl">
                             {displayText}
                           </p>
