@@ -154,7 +154,7 @@ const Adventure = () => {
         {/* Top bar - Glassmorphism credits & profile */}
         <div className="absolute top-0 left-0 right-0 z-10 flex items-center justify-between px-4 pt-[max(env(safe-area-inset-top,12px),24px)] pb-2">
           <button
-            onClick={() => navigate("/upgrade")}
+            onClick={() => navigate(user ? "/upgrade" : "/auth")}
             className="flex items-center gap-1.5 bg-white/15 backdrop-blur-xl border border-white/20 rounded-full px-3 py-1.5 hover:bg-white/25 transition-colors"
             aria-label="צפה בקרדיטים ושדרג"
           >
