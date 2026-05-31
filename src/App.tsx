@@ -38,6 +38,7 @@ import ShareAndEarn from "./pages/ShareAndEarn";
 import Contact from "./pages/Contact";
 import NotFound from "./pages/NotFound";
 import RequireTerms from "./components/RequireTerms";
+import RequireAdmin from "./components/RequireAdmin";
 import ScrollToTop from "./components/ScrollToTop";
 import OAuthReturnHandler from "./components/auth/OAuthReturnHandler";
 import Toolkit from "./pages/Toolkit";
@@ -97,8 +98,8 @@ function App() { useTimeTheme(); return (
             <Route path="/gift" element={<GiftCard />} />
             
             <Route path="/toolkit" element={<RequireTerms><Toolkit /></RequireTerms>} />
-            <Route path="/admin/dashboard" element={<AdminDashboard />} />
-            <Route path="/admin/reviews" element={<AdminReviews />} />
+            <Route path="/admin/dashboard" element={<RequireAdmin><AdminDashboard /></RequireAdmin>} />
+            <Route path="/admin/reviews" element={<RequireAdmin><AdminReviews /></RequireAdmin>} />
             <Route path="/share" element={<RequireTerms><ShareAndEarn /></RequireTerms>} />
             <Route path="/contact" element={<Contact />} />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}

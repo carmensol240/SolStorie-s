@@ -182,7 +182,8 @@ const GiftCard = () => {
     const storiesPhrase = selectedPkg.stories === 1
       ? "סיפור אישי אחד"
       : `${selectedPkg.stories} סיפורים אישיים`;
-    const message = `${sender} שלח/ה לך מתנה קסומה! ${storiesPhrase} שבהם ${child} הופך/ת לגיבור/ה של הרפתקאות מרגשות. איך מממשים? נכנסים ונרשמים בקלות בכתובת https://soulstory.co.il (או מתחברים), ומזינים את קוד הקופון האישי שלכם: ${generatedCode}! קריאה מהנה ומרגשת! ❤️`;
+    const redeemUrl = `https://soulstory.co.il/upgrade?coupon=${encodeURIComponent(generatedCode)}`;
+    const message = `${sender} שלח/ה לך מתנה קסומה! ${storiesPhrase} שבהם ${child} הופך/ת לגיבור/ה של הרפתקאות מרגשות. איך מממשים? נכנסים לקישור הבא, נרשמים/מתחברים, והקופון יוזן עבורכם אוטומטית: ${redeemUrl} (קוד הקופון: ${generatedCode}). קריאה מהנה ומרגשת! ❤️`;
 
     const whatsappUrl = `https://wa.me/?text=${encodeURIComponent(message)}`;
     window.open(whatsappUrl, "_blank");
