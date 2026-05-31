@@ -293,7 +293,7 @@ const Onboarding = () => {
           ) : (
             <>
               המשך
-              <ArrowLeft className="h-5 w-5 mr-2" />
+              <ArrowRight className="h-5 w-5 mr-2" />
             </>
           )}
         </Button>
