@@ -93,11 +93,32 @@ const AuthStep = ({ formData, onAuthenticated }: AuthStepProps) => {
       const { data: { user: newUser } } = await supabase.auth.getUser();
       if (newUser) {
         await saveChildToSupabase(newUser.id);
-        await supabase.from("profiles").update({
+        const termsPayload = {
           terms_accepted_at: new Date().toISOString(),
           terms_version: "1.0",
           marketing_consent: marketingConsent,
-        }).eq("id", newUser.id);
+        };
+        const { data: updated, error: updateErr } = await supabase
+          .from("profiles")
+          .update(termsPayload)
+          .eq("id", newUser.id)
+          .select("id");
+        if (updateErr || !updated || updated.length === 0) {
+          // Profile row not yet created by the handle_new_user trigger —
+          // upsert as a fallback so terms acceptance is never lost.
+          const { error: upsertErr } = await supabase
+            .from("profiles")
+            .upsert({ id: newUser.id, ...termsPayload }, { onConflict: "id" });
+          if (upsertErr) {
+            console.error("Failed to persist terms acceptance:", updateErr || upsertErr);
+            toast({
+              title: "שגיאה בשמירת אישור התנאים",
+              description: "נסו שוב או רעננו את הדף",
+              variant: "destructive",
+            });
+            return;
+          }
+        }
       }
       toast({ title: "ברוכים הבאים! 🎉", description: "בואו נמשיך ליצור את הסיפור..." });
       onAuthenticated();
