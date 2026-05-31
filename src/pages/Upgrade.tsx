@@ -239,7 +239,7 @@ const Upgrade = () => {
                         במקום ₪144
                       </span>
                       <span className="text-[11px] font-black text-green-300">
-                        חסכו ₪14
+                        חסכו ₪15
                       </span>
                     </div>
                   )}
