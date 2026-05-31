@@ -10,6 +10,7 @@ import { useSubscription } from "@/hooks/use-subscription";
 import { useAnalytics } from "@/hooks/use-analytics";
 import { supabase } from "@/integrations/supabase/client";
 import { TOOLKIT_SUBSCRIPTION } from "@/config/pricing";
+import { toast } from "sonner";
 
 const BENEFITS = [
   {
@@ -73,6 +74,7 @@ const Toolkit = () => {
       trackEvent({ eventType: "feature_used", metadata: { feature: "toolkit_subscription_completed", payment_method: "paypal" } });
     } catch (error) {
       console.error("Toolkit purchase failed:", error);
+      toast.error("שגיאה באימות הרכישה. אם חויבתם, צרו איתנו קשר.");
       setShowPayPal(false);
       setShowFailed(true);
     }

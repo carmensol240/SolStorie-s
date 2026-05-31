@@ -54,6 +54,11 @@ const AuthStep = ({ formData, onAuthenticated }: AuthStepProps) => {
       }
     } catch (e) {
       console.warn("Failed to save child profile:", e);
+      toast({
+        title: "שגיאה בשמירת פרטי הילד",
+        description: "ההרשמה הצליחה, אך לא הצלחנו לשמור את פרטי הילד. תוכלו להוסיף אותם מאוחר יותר.",
+        variant: "destructive",
+      });
     }
   };
 

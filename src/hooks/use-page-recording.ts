@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
+import { toast } from 'sonner';
 
 const DB_NAME = 'solstories_recordings';
 const STORE_NAME = 'page_recordings';
@@ -87,6 +88,14 @@ export function usePageRecording(storyId: string | undefined) {
       setPendingBlob(null);
     } catch (err) {
       console.error('Failed to start recording:', err);
+      const name = (err as any)?.name;
+      if (name === 'NotAllowedError' || name === 'SecurityError' || name === 'PermissionDeniedError') {
+        toast.error('לא ניתן להקליט — אנא אפשרו גישה למיקרופון בהגדרות הדפדפן');
+      } else if (name === 'NotFoundError' || name === 'DevicesNotFoundError') {
+        toast.error('לא נמצא מיקרופון במכשיר. אנא חברו מיקרופון ונסו שוב');
+      } else {
+        toast.error('שגיאה בהפעלת ההקלטה. נסו שוב מאוחר יותר');
+      }
     }
   }, []);
 
@@ -108,6 +117,7 @@ export function usePageRecording(storyId: string | undefined) {
       setPendingBlob(null);
     } catch (err) {
       console.error('Failed to save recording:', err);
+      toast.error('שגיאה בשמירת ההקלטה. נסו שוב');
     }
   }, [pendingBlob, storyId]);
 
@@ -142,6 +152,7 @@ export function usePageRecording(storyId: string | undefined) {
       };
     } catch (err) {
       console.error('Failed to play recording:', err);
+      toast.error('שגיאה בהשמעת ההקלטה');
     }
   }, [storyId]);
 
