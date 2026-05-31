@@ -135,6 +135,7 @@ export const useTextToSpeech = (): UseTextToSpeechReturn => {
         } catch (playError) {
           console.error('Play() failed:', playError);
           cleanup();
+          setIsLoading(false);
           setLastError('הדפדפן חסם את ניגון השמע');
           toast({
             title: 'הדפדפן חסם את ניגון השמע',

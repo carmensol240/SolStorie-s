@@ -14,7 +14,7 @@ export function useAutoFitText(
   deps: ReadonlyArray<unknown>,
   options?: { minPx?: number; stepPx?: number }
 ) {
-  const minPx = options?.minPx ?? 11;
+  const minPx = options?.minPx ?? 14;
   const stepPx = options?.stepPx ?? 1;
 
   useLayoutEffect(() => {

@@ -38,7 +38,7 @@ const GIFT_PACKAGES = [
     label: "2 סיפורים דיגיטליים",
     subtitle: "חבילה זוגית",
     badge: undefined as string | undefined,
-    growKey: null as GrowLinkKey | null,
+    growKey: "twoStories" as GrowLinkKey | null,
   },
 ];
 

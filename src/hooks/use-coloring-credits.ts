@@ -39,7 +39,11 @@ export const useColoringCredits = () => {
   useEffect(() => {
     const handler = () => fetchCredits();
     window.addEventListener('coloring-credits-updated', handler);
-    return () => window.removeEventListener('coloring-credits-updated', handler);
+    window.addEventListener('purchase-completed', handler);
+    return () => {
+      window.removeEventListener('coloring-credits-updated', handler);
+      window.removeEventListener('purchase-completed', handler);
+    };
   }, [fetchCredits]);
 
   return { coloringCredits, loading, refetch: fetchCredits };
