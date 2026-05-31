@@ -6,6 +6,7 @@ import heroBackground from "@/assets/hero-soli-tree.png";
 import MobileNavigation from "@/components/MobileNavigation";
 import { useAuth } from "@/hooks/use-auth";
 import { supabase } from "@/integrations/supabase/client";
+import { toast } from "sonner";
 
 const Welcome = () => {
   const navigate = useNavigate();
@@ -32,7 +33,9 @@ const Welcome = () => {
       } else {
         navigate("/onboarding");
       }
-    } catch {
+    } catch (err) {
+      console.error("Welcome terms check failed:", err);
+      toast.error("שגיאה בטעינת הפרופיל. ממשיכים להרפתקה...");
       navigate("/adventure");
     } finally {
       setIsNavigating(false);
