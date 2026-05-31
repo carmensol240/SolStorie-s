@@ -5,6 +5,7 @@ import QRCode from 'qrcode';
 import { useToast } from '@/hooks/use-toast';
 import { useSignedUrls } from '@/hooks/use-signed-urls';
 import { translateTopic } from '@/lib/topic-translations';
+import { supabase } from '@/integrations/supabase/client';
 import solMagicBookCover from '@/assets/sol-magic-book-cover.png';
 
 // Helper function to escape HTML entities and prevent XSS
@@ -46,6 +47,62 @@ export const usePdfExport = () => {
   const [isExporting, setIsExporting] = useState(false);
   const { toast } = useToast();
   const { fetchSignedUrls } = useSignedUrls();
+
+  // Defense-in-depth entitlement check: ensures PDF generation cannot be
+  // triggered programmatically without an active PDF entitlement, even if
+  // the calling UI's paywall guard is bypassed.
+  const verifyPdfEntitlement = async (storyId?: string): Promise<boolean> => {
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user?.id) return false;
+
+      // Admins always allowed
+      const { data: roleRow } = await supabase
+        .from('user_roles')
+        .select('role')
+        .eq('user_id', user.id)
+        .eq('role', 'admin')
+        .maybeSingle();
+      if (roleRow) return true;
+
+      // Subscribers allowed
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('is_subscriber')
+        .eq('id', user.id)
+        .maybeSingle();
+      if (profile?.is_subscriber) return true;
+
+      // Multi-story package or single_story_full purchase grants PDF rights
+      const { data: purchases } = await supabase
+        .from('purchases')
+        .select('package_name')
+        .eq('user_id', user.id)
+        .in('status', ['completed', 'test_completed'])
+        .limit(50);
+      const hasFullPdfRight = (purchases ?? []).some((row: any) => {
+        const name: string = row?.package_name ?? '';
+        return !name.includes('single_story') || name.includes('single_story_full');
+      });
+      if (hasFullPdfRight) return true;
+
+      // Single-story full unlock for this specific story
+      if (storyId) {
+        const { data: unlock } = await supabase
+          .from('story_unlocks' as any)
+          .select('unlock_type')
+          .eq('user_id', user.id)
+          .eq('story_id', storyId)
+          .eq('unlock_type', 'single')
+          .maybeSingle();
+        if (unlock) return true;
+      }
+      return false;
+    } catch (e) {
+      console.error('PDF entitlement check failed:', e);
+      return false;
+    }
+  };
 
   const loadImageAsDataUrl = async (url: string): Promise<string> => {
     try {
@@ -368,6 +425,15 @@ export const usePdfExport = () => {
 
   const exportToPdf = async (story: Story) => {
     if (isExporting) return;
+    const entitled = await verifyPdfEntitlement(story.id);
+    if (!entitled) {
+      toast({
+        title: 'הורדת ה-PDF דורשת רכישה',
+        description: 'נדרשת רכישה כדי להוריד את הסיפור כקובץ PDF.',
+        variant: 'destructive',
+      });
+      return;
+    }
     setIsExporting(true);
     toast({ title: 'מכין את קובץ ה-PDF...' });
 
@@ -404,6 +470,10 @@ export const usePdfExport = () => {
   };
 
   const generatePdfFile = async (story: Story): Promise<File> => {
+    const entitled = await verifyPdfEntitlement(story.id);
+    if (!entitled) {
+      throw new Error('PDF entitlement required');
+    }
     const pdf = await buildPdf(story);
     const blob = pdf.output('blob');
     const fileName = makePdfFileName(story);

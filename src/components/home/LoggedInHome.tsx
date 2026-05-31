@@ -161,7 +161,7 @@ const LoggedInHome = ({ user, displayName }: LoggedInHomeProps) => {
           <div className="pb-24 flex justify-center px-6">
             <button
               onClick={() => navigate("/create")}
-              className="group flex items-center justify-center gap-4 rounded-[2rem] px-10 py-5 md:px-14 md:py-6 w-full max-w-[380px] bg-gradient-to-r from-amber-400 via-orange-400 to-pink-400 shadow-[0_0_30px_rgba(251,191,36,0.4),0_0_60px_rgba(251,146,60,0.2)] hover:shadow-[0_0_40px_rgba(251,191,36,0.6),0_0_80px_rgba(251,146,60,0.3)] hover:scale-[1.04] active:scale-95 transition-all duration-300 animate-[glow-pulse_2.5s_ease-in-out_infinite] border-2 border-white/30"
+              className="group flex items-center justify-center gap-4 rounded-[2rem] px-6 py-5 sm:px-10 md:px-14 md:py-6 w-full max-w-full sm:max-w-[380px] bg-gradient-to-r from-amber-400 via-orange-400 to-pink-400 shadow-[0_0_30px_rgba(251,191,36,0.4),0_0_60px_rgba(251,146,60,0.2)] hover:shadow-[0_0_40px_rgba(251,191,36,0.6),0_0_80px_rgba(251,146,60,0.3)] hover:scale-[1.04] active:scale-95 transition-all duration-300 animate-[glow-pulse_2.5s_ease-in-out_infinite] border-2 border-white/30"
             >
               <div className="w-12 h-12 md:w-14 md:h-14 bg-white/25 backdrop-blur-sm rounded-2xl flex items-center justify-center flex-shrink-0 group-hover:rotate-12 transition-transform duration-300">
                 <Wand2 className="w-6 h-6 md:w-7 md:h-7 text-white drop-shadow-md" />
