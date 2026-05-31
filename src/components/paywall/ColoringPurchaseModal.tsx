@@ -112,6 +112,10 @@ const ColoringPurchaseModal = ({
             לרכישה — ₪{current.price.toFixed(2)} ✨
           </Button>
 
+          <p className="text-[11px] text-white/70 text-center mt-2 font-semibold">
+            🎨 לצביעה דיגיטלית באפליקציה ולהדפסה מהבית
+          </p>
+
           <button
             onClick={() => onOpenChange(false)}
             className="w-full mt-2 text-xs text-white/60 hover:text-white py-2"
