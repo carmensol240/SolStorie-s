@@ -461,7 +461,7 @@ const GiftCard = () => {
             }}
           >
             <Gift className="w-5 h-5 ml-2" />
-            רכשו {selectedPkg?.stories} סיפורים במתנה — {CURRENCY_SYMBOL}{selectedPkg?.price} ✨
+            רכשו {selectedPkg?.subtitle} — {CURRENCY_SYMBOL}{selectedPkg?.price.toFixed(2)} ✨
           </Button>
         </div>
       </div>
