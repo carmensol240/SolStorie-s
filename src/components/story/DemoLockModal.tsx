@@ -1,8 +1,10 @@
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { useLocation } from "react-router-dom";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import PersonalizedStoryCover from "@/components/paywall/PersonalizedStoryCover";
 import { openGrowCheckout } from "@/config/grow-links";
+import { useAuth } from "@/hooks/use-auth";
+import { supabase } from "@/integrations/supabase/client";
 
 interface DemoLockModalProps {
   open: boolean;
@@ -15,6 +17,26 @@ interface DemoLockModalProps {
 const DemoLockModal = ({ open, onOpenChange, title, description, storyId }: DemoLockModalProps) => {
   const location = useLocation();
   const [showFeatures, setShowFeatures] = useState(false);
+  const { user } = useAuth();
+  const [isFirstTimeBuyer, setIsFirstTimeBuyer] = useState(false);
+
+  useEffect(() => {
+    if (!open || !user) return;
+    let cancelled = false;
+    (async () => {
+      try {
+        const { data } = await supabase
+          .from("profiles")
+          .select("first_purchase_bonus_given")
+          .eq("id", user.id)
+          .maybeSingle();
+        if (!cancelled) setIsFirstTimeBuyer(!data?.first_purchase_bonus_given);
+      } catch {
+        if (!cancelled) setIsFirstTimeBuyer(false);
+      }
+    })();
+    return () => { cancelled = true; };
+  }, [open, user]);
 
   const features = [
     "🎨 אווטאר מצויר ומותאם אישית לילד שלך",
@@ -84,7 +106,12 @@ const DemoLockModal = ({ open, onOpenChange, title, description, storyId }: Demo
             className="w-auto max-w-[280px] mx-auto relative overflow-hidden bg-gradient-to-r from-purple-500 via-pink-500 to-orange-500 hover:from-purple-400 hover:via-pink-400 hover:to-orange-400 text-white font-black text-sm py-3 px-6 rounded-xl shadow-xl text-center"
             style={{ boxShadow: '0 0 30px rgba(168, 85, 247, 0.4), 0 0 60px rgba(236, 72, 153, 0.2)' }}
           >
-            רכישת הסיפור הדיגיטלי 📱 – 49.90₪
+            <div>רכישת הסיפור הדיגיטלי 📱 – 49.90₪</div>
+            {isFirstTimeBuyer && (
+              <div className="text-[11px] font-bold text-white/90 mt-0.5">
+                + סיפור דיגיטלי נוסף במתנה 🎁
+              </div>
+            )}
           </button>
           <p className="text-white/80 text-[11px] font-bold text-center -mt-1">
             {"\u200B"}
@@ -108,6 +135,9 @@ const DemoLockModal = ({ open, onOpenChange, title, description, storyId }: Demo
                 </div>
                 <div className="text-white/60 text-[11px] font-semibold mt-0.5">
                   קריאה מלאה + שיתוף בוואטסאפ + הקלטת קול
+                </div>
+                <div className="text-white/80 text-[11px] font-bold mt-0.5">
+                  + חבילת דפי צביעה מלאה 🎨
                 </div>
               </button>
             </>

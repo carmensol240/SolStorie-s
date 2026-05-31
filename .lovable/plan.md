@@ -1,22 +1,10 @@
-# Plan
+Update `src/components/story/DemoLockModal.tsx` only.
 
-## What I’ll change
-1. Update the fixed bottom purchase CTA on `src/pages/GiftCard.tsx` so it uses the same stable bottom anchoring pattern as the working purchase flows instead of the current custom `bottom-[7.5rem]` placement.
-2. Preserve the existing `handlePurchase` logic, auth redirect, validation, pricing, and payment panel behavior exactly as-is.
-3. Verify in the preview on mobile that tapping the bottom CTA opens the payment section reliably and does not conflict with the bottom navigation.
+1. **Digital plan button** (`goSingleStory`): Below the price line "רכישת הסיפור הדיגיטלי 📱 – 49.90₪", add a small second line: `+ סיפור דיגיטלי נוסף במתנה 🎁`.
+   - Shown only for first-time buyers. Detect via existing credits/purchase signal — check `useCredits` / purchase history hook to gate the line. If no straightforward signal exists in this component, I'll reuse the same logic already used elsewhere for "first purchase bonus" (e.g. the `grant-first-purchase-bonus` flow / `FirstPurchaseBonusModal` trigger).
+   - Styling: small text, white/80, font-bold, tight spacing under main label.
 
-## Why this is the smallest fix
-- The purchase logic already works when the click lands.
-- The problem appears to be mobile-specific interaction/layout around the fixed CTA, not the payment code.
-- Matching the proven fixed-CTA pattern used elsewhere avoids changing any business logic.
+2. **Popular plan button** (`goPopular`): Below the existing subtitle "קריאה מלאה + שיתוף בוואטסאפ + הקלטת קול", add a compact line: `+ חבילת דפי צביעה מלאה 🎨`.
+   - Same `text-[11px]` size, kept on one line for 320px mobile width.
 
-## Technical details
-- File: `src/pages/GiftCard.tsx`
-- Focus area: the fixed CTA wrapper near the bottom of the page
-- Expected adjustment: replace the custom fixed offset/stacking approach with a bottom-safe anchored container that remains tappable above mobile UI chrome
-- No changes to:
-  - `handlePurchase`
-  - PayPal or Grow logic
-  - package selection
-  - form validation
-  - any other page or component
+No other text, layout, pricing, or logic changes.
