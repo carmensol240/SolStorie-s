@@ -1,19 +1,25 @@
-In `src/pages/StoryViewer.tsx` the demo limit is gated by **DB page number** (`DEMO_PAGE_LIMIT = 4` on `dbPage.page_number`), which allows ~8 virtual pages (each DB page renders as illustration + text). The user wants the demo to expose exactly 4 visible pages: cover (illustration), text, text, illustration — then trigger `DemoLockModal`.
+## Goal
+Remove the "לתשלום ב-PayPal" link from the coloring purchase modal, and any other user-visible PayPal text still showing in the app. PayPal flows are gone; checkout uses Grow.
 
-**Change:** switch the demo lock to count **virtual pages** instead of DB pages, capped at 4.
+## Changes
 
-```ts
-// Demo paywall: limit demo users to the first 4 virtual pages (cover + ~2 text + 1 illustration)
-const DEMO_VIRTUAL_PAGE_LIMIT = 4;
-const isLockedVirtualPage = (index: number) => {
-  if (!isDemoUser) return false;
-  if (index < 0 || index >= virtualPages.length) return false;
-  return index >= DEMO_VIRTUAL_PAGE_LIMIT;
-};
-```
+### 1. `src/components/paywall/ColoringPurchaseModal.tsx`
+- Remove the `<button onClick={() => setShowPaypal(true)}>לתשלום ב-PayPal</button>` (the link under the main CTA).
+- Remove the entire `showPaypal` branch (the PayPal payment view with `PayPalButton`, verify flow UI, and "חזרה" button) since it's no longer reachable.
+- Remove the now-unused `showPaypal` state, `setShowPaypal` calls in `handleClose` and `handlePayPalSuccess`, the `PayPalButton` import, and the `handlePayPalSuccess` handler if it becomes orphaned. Keep Grow checkout path intact (`handleGrowCheckout`, main CTA, "אולי בפעם אחרת").
 
-Effect: virtual indices 0–3 free (cover ill1, text1, ill2, text2); navigating to index 4 opens the demo paywall. All other behavior — toddler-mode combined pages, forward-nav guard, `setDemoPaywallOpen(true)` trigger — stays as-is.
+### 2. `src/pages/Onboarding.tsx` (lines 278–284)
+- Remove the "PayPal Notice" block: `💳 ניתן לשלם גם בכרטיס אשראי ללא חשבון פייפאל`. Misleading now that PayPal is gone.
 
-Note: virtual pages alternate illustration/text for ages 3+. The 4-page allowance matches the user's "cover + 2 text + 1 illustration" count even though the actual visual order is illustration-first.
+### 3. `src/components/shared/AboutSolStoriesContent.tsx` (line 28)
+- Remove the line `💳 תשלום נוח באשראי: ניתן לשלם בכרטיס אשראי ישירות, ללא צורך בחשבון PayPal.` (or rewrite to just "תשלום נוח באשראי" without the PayPal mention). Preferred: drop the PayPal phrasing, keep `💳 תשלום נוח באשראי ישירות.`
 
-No other file changes.
+### Not changed
+- `src/pages/Toolkit.tsx`: only internal variable names (`showPayPal`) and a no-op `{!showPayPal && …}` guard — no visible "PayPal" text to the user. Leave as-is (out of scope: behavior change).
+- `src/pages/GiftCard.tsx`: only an internal code comment.
+- `src/config/grow-links.ts`, `src/components/paywall/PayPalButton.tsx`: not user-visible strings; leaving the button component file untouched (still imported elsewhere if any). No behavior changes requested.
+
+## Verification
+- Open coloring purchase modal → confirm no "לתשלום ב-PayPal" link, Grow CTA still works.
+- Open onboarding final step → no PayPal notice.
+- Open About content → no PayPal mention.
