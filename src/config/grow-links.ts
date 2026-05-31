@@ -3,7 +3,7 @@
 export const GROW_LINKS = {
   // Basic package — single digital story (49.90 ₪)
   basic: "https://pay.grow.link/MTAxMTMz~c553eb7e7fdf0752b8277d9777188b87-MzQ3NDUyNg",
-  // Popular package — digital story + printable PDF (119.90 ₪)
+  // Popular package — digital story + printable PDF (129.90 ₪)
   popular: "https://pay.grow.link/MTAxMTMz~f9ccdeaddca44b395381ec366f8af6c5-MzQ3NDUzMg",
   // Single story (49.90 ₪)
   singleStory: "https://pay.grow.link/MTAxMTMz~469de3bb12a9b6f58fe5d9c40ae3b868-MzQ3NDUzNw",
