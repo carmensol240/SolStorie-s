@@ -1574,13 +1574,13 @@ const [currentPage, setCurrentPage] = useState(0);
   const rawVirtual = isContentPage ? virtualPages[currentPage] : null;
   const currentVirtual = rawVirtual && rawVirtual.dbPage ? rawVirtual : null;
 
-  // Demo paywall: limit demo users to first 4 DB pages (free preview)
-  const DEMO_PAGE_LIMIT = 4;
+  // Demo paywall: limit demo users to the first 4 virtual pages
+  // (cover illustration + text + illustration + text), then trigger DemoLockModal.
+  const DEMO_VIRTUAL_PAGE_LIMIT = 4;
   const isLockedVirtualPage = (index: number) => {
     if (!isDemoUser) return false;
-    const vp = virtualPages[index];
-    if (!vp) return false;
-    return (vp.dbPage?.page_number ?? 0) > DEMO_PAGE_LIMIT;
+    if (index < 0 || index >= virtualPages.length) return false;
+    return index >= DEMO_VIRTUAL_PAGE_LIMIT;
   };
   const isCurrentPageLocked = isContentPage && isLockedVirtualPage(currentPage);
   // For editing/nikud, get the underlying DB page
