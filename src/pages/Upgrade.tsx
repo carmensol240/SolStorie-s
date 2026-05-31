@@ -32,6 +32,7 @@ const TIERS = {
       { label: "🎙️ הקלט את קולך — הילד ישמע אותך גם מרחוק", included: true },
       { label: "✏️ סבב עריכה מלא חינם", included: true },
       { label: "📚 הסיפור שמור לתמיד", included: true },
+      { label: "🎨 דף צביעה אחד במתנה", included: true },
     ],
   },
   full: {
@@ -46,7 +47,7 @@ const TIERS = {
       { label: "✏️ סבב עריכה מלא חינם", included: true },
       { label: "📚 הסיפור שמור לתמיד", included: true },
       { label: "📖 קובץ PDF להדפסה", included: true },
-      { label: "🎨 דף צביעה דיגיטלי ופיזי", included: true },
+      { label: "🎨 חבילת צביעה מלאה לכל איורי הסיפור", included: true },
     ],
   },
 } as const;
