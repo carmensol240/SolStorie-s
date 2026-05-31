@@ -102,8 +102,15 @@ const GiftCard = () => {
   useEffect(() => {
     if (!user) return;
     const stored = localStorage.getItem(PENDING_GIFT_KEY);
-    if (stored) {
+    // Only resume polling if we returned from a Grow checkout in this tab
+    // (sessionStorage flag set right before redirect). Otherwise clear any
+    // stale pending id so the page loads normally without a waiting state.
+    const resumed = sessionStorage.getItem("gift_grow_in_progress");
+    if (stored && resumed) {
+      sessionStorage.removeItem("gift_grow_in_progress");
       pollForGiftCoupon(stored);
+    } else if (stored && !resumed) {
+      localStorage.removeItem(PENDING_GIFT_KEY);
     }
     return () => {
       if (pollAbortRef.current) pollAbortRef.current.cancelled = true;
@@ -144,6 +151,7 @@ const GiftCard = () => {
       if (error || !data) throw error || new Error("insert failed");
 
       localStorage.setItem(PENDING_GIFT_KEY, data.id);
+      sessionStorage.setItem("gift_grow_in_progress", "1");
       trackEvent({
         eventType: "feature_used",
         metadata: {
