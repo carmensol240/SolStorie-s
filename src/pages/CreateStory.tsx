@@ -156,7 +156,12 @@ const CreateStory = () => {
     setFormData((prev) => ({ ...prev, ...updates }));
   };
 
-  const canProceedStep1 = formData.childName.trim().length > 0 && (!formData.childPhoto || formData.photoConsent);
+  const canProceedStep1 =
+    formData.childName.trim().length > 0 &&
+    typeof formData.childAge === "number" &&
+    formData.childAge >= 1 &&
+    formData.childAge <= 12 &&
+    (!formData.childPhoto || formData.photoConsent);
   const canProceedStep2 = formData.topic.length > 0 || formData.customTopic.trim().length > 0;
 
   const handleNext = () => {
