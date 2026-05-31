@@ -2,7 +2,7 @@
 
 export const packageConfig: Record<string, any> = {
   basic: { stories: 2, freeEdits: 2, coloringPages: 2 },
-  popular: { stories: 6, freeEdits: 6, coloringPages: 6 },
+  popular: { stories: 6, freeEdits: 6, coloringPages: 10 },
   premium: { stories: 10, freeEdits: 10, coloringPages: 10 },
   educator_basic: { stories: 2, freeEdits: 2, coloringPages: 2 },
   educator_popular: { stories: 6, freeEdits: 6, coloringPages: 6 },
@@ -14,7 +14,7 @@ export const packageConfig: Record<string, any> = {
   edit_kit: { stories: 0, freeEdits: 0, coloringPages: 0, editingCredits: 5 },
   toolkit_yearly: { stories: 0, freeEdits: 0, coloringPages: 0, isSubscription: true },
   single_story: { stories: 0, freeEdits: 0, coloringPages: 0 },
-  single_story_digital: { stories: 1, freeEdits: 1, coloringPages: 0 },
+  single_story_digital: { stories: 1, freeEdits: 1, coloringPages: 1 },
   single_story_full: { stories: 1, freeEdits: 1, coloringPages: 1 },
   pdf: { stories: 0, freeEdits: 0, coloringPages: 0, pdfDownload: true },
 };
