@@ -46,4 +46,87 @@ if (isInIframe || isPreviewHost) {
   registerSW({ immediate: true });
 }
 
+// ---------------------------------------------------------------------------
+// Auto-reload on new deploy
+// ---------------------------------------------------------------------------
+// Poll the root HTML periodically. If its content hash changes, a new version
+// was deployed — force a hard reload so users (and the Lovable preview) never
+// stay stuck on a stale build.
+(() => {
+  const POLL_MS = 30_000;
+
+  const hash = async (s: string) => {
+    try {
+      const buf = new TextEncoder().encode(s);
+      const digest = await crypto.subtle.digest("SHA-256", buf);
+      return Array.from(new Uint8Array(digest))
+        .map((b) => b.toString(16).padStart(2, "0"))
+        .join("");
+    } catch {
+      // Fallback: simple string hash
+      let h = 0;
+      for (let i = 0; i < s.length; i++) h = (h * 31 + s.charCodeAt(i)) | 0;
+      return String(h);
+    }
+  };
+
+  const fetchHtmlHash = async (): Promise<string | null> => {
+    try {
+      const res = await fetch(`/?_v=${Date.now()}`, {
+        cache: "no-store",
+        headers: { "Cache-Control": "no-cache" },
+      });
+      if (!res.ok) return null;
+      const text = await res.text();
+      // Hash only the <script> + <link> asset references — those change on every
+      // new build (Vite emits hashed filenames). This avoids false positives
+      // from dynamic meta/SSR content.
+      const assets =
+        text.match(/(?:src|href)="[^"]*\/assets\/[^"]+"/g)?.join("|") || text;
+      return await hash(assets);
+    } catch {
+      return null;
+    }
+  };
+
+  let initial: string | null = null;
+  let reloading = false;
+
+  const check = async () => {
+    if (reloading) return;
+    const current = await fetchHtmlHash();
+    if (!current) return;
+    if (initial === null) {
+      initial = current;
+      return;
+    }
+    if (current !== initial) {
+      reloading = true;
+      // Clear caches + SW before hard reload so the new HTML is fetched fresh.
+      try {
+        if ("caches" in window) {
+          const names = await caches.keys();
+          await Promise.all(names.map((n) => caches.delete(n)));
+        }
+        if ("serviceWorker" in navigator) {
+          const regs = await navigator.serviceWorker.getRegistrations();
+          await Promise.all(regs.map((r) => r.unregister()));
+        }
+      } catch {
+        // ignore
+      }
+      window.location.reload();
+    }
+  };
+
+  // Prime the baseline, then poll.
+  void check();
+  setInterval(check, POLL_MS);
+  // Also check when the tab regains focus — covers users returning after a deploy.
+  window.addEventListener("focus", () => void check());
+  document.addEventListener("visibilitychange", () => {
+    if (document.visibilityState === "visible") void check();
+  });
+})();
+
 createRoot(document.getElementById("root")!).render(<App />);
