@@ -19,13 +19,45 @@ export const GROW_LINKS = {
 
 export type GrowLinkKey = keyof typeof GROW_LINKS;
 
+export interface GrowCheckoutOptions {
+  discountPercent?: number;
+  couponCode?: string | null;
+}
+
 /**
  * Opens the given Grow payment link in a new tab.
  * Falls back to same-tab navigation if the popup is blocked.
+ *
+ * When a discount coupon has been applied, the discount percent and coupon
+ * code are appended to the checkout URL as query params so Grow opens with
+ * the discounted price (and the coupon is recorded against the transaction).
  */
-export const openGrowCheckout = (key: GrowLinkKey) => {
-  const url = GROW_LINKS[key];
-  if (!url) return;
+export const openGrowCheckout = (
+  key: GrowLinkKey,
+  options: GrowCheckoutOptions = {}
+) => {
+  const base = GROW_LINKS[key];
+  if (!base) return;
+
+  let url = base;
+  const { discountPercent, couponCode } = options;
+
+  if ((discountPercent && discountPercent > 0) || couponCode) {
+    try {
+      const u = new URL(base);
+      if (discountPercent && discountPercent > 0) {
+        u.searchParams.set("discount", String(discountPercent));
+      }
+      if (couponCode) {
+        u.searchParams.set("coupon", couponCode);
+      }
+      url = u.toString();
+    } catch {
+      // If URL parsing fails for any reason, fall back to the base link.
+      url = base;
+    }
+  }
+
   const win = window.open(url, "_blank", "noopener,noreferrer");
   if (!win) {
     window.location.href = url;
