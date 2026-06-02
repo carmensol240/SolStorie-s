@@ -39,7 +39,7 @@ export const openGrowCheckout = (
   const base = GROW_LINKS[key];
   if (!base) return;
 
-  let url = base;
+  let url: string = base;
   const { discountPercent, couponCode } = options;
 
   if ((discountPercent && discountPercent > 0) || couponCode) {
