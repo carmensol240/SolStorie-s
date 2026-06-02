@@ -21,7 +21,7 @@ interface AuthStepProps {
 
 const AuthStep = ({ formData, onAuthenticated }: AuthStepProps) => {
   const { toast } = useToast();
-  const { signInWithEmail, signUpWithEmail } = useAuth();
+  const { signInWithEmail, signUpWithEmail, resetPasswordForEmail } = useAuth();
   const navigate = useNavigate();
 
   const [email, setEmail] = useState("");
@@ -31,6 +31,9 @@ const AuthStep = ({ formData, onAuthenticated }: AuthStepProps) => {
   const [marketingConsent, setMarketingConsent] = useState(false);
   const [mode, setMode] = useState<"signup" | "login">("signup");
   const [submitting, setSubmitting] = useState(false);
+  const [showForgotPassword, setShowForgotPassword] = useState(false);
+  const [resetEmail, setResetEmail] = useState("");
+  const [isResetting, setIsResetting] = useState(false);
   const [userRole, setUserRole] = useState<"parent" | "educator">("parent");
 
   const saveChildToSupabase = async (userId: string) => {
@@ -178,6 +181,27 @@ const AuthStep = ({ formData, onAuthenticated }: AuthStepProps) => {
     }
   };
 
+  const handleForgotPassword = async (e: React.FormEvent) => {
+    e.preventDefault();
+    const result = emailSchema.safeParse(resetEmail);
+    if (!result.success) {
+      toast({ title: "שגיאה", description: "כתובת אימייל לא תקינה", variant: "destructive" });
+      return;
+    }
+    setIsResetting(true);
+    try {
+      const { error } = await resetPasswordForEmail(resetEmail);
+      if (error) throw error;
+      toast({ title: "נשלח! ✉️", description: "בדקו את תיבת הדואר (גם בספאם)" });
+      setShowForgotPassword(false);
+      setResetEmail("");
+    } catch (err) {
+      toast({ title: "שגיאה", description: "לא הצלחנו לשלוח את הקישור", variant: "destructive" });
+    } finally {
+      setIsResetting(false);
+    }
+  };
+
   return (
     <div
       className="fixed inset-0 flex flex-col items-center justify-center px-3 py-8 overflow-y-auto z-[110]"
@@ -262,6 +286,52 @@ const AuthStep = ({ formData, onAuthenticated }: AuthStepProps) => {
             </button>
           </div>
 
+          {mode === "login" && !showForgotPassword && (
+            <div className="text-left -mt-2">
+              <button
+                type="button"
+                onClick={() => setShowForgotPassword(true)}
+                className="text-xs text-purple-300 hover:underline"
+              >
+                שכחתי סיסמה
+              </button>
+            </div>
+          )}
+
+          {showForgotPassword && (
+            <div className="space-y-3 p-3 bg-white/10 rounded-xl border border-white/20">
+              <p className="text-sm text-white font-bold">איפוס סיסמה</p>
+              <div className="relative">
+                <Mail className="absolute right-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-muted-foreground" />
+                <Input
+                  type="email"
+                  placeholder="אימייל"
+                  value={resetEmail}
+                  onChange={(e) => setResetEmail(e.target.value)}
+                  className="text-right pr-9 text-sm h-11 rounded-xl"
+                  required
+                />
+              </div>
+              <div className="flex gap-2">
+                <Button
+                  type="button"
+                  onClick={handleForgotPassword}
+                  disabled={isResetting}
+                  className="flex-1 bg-gradient-to-r from-purple-500 to-pink-500 text-white font-bold text-sm rounded-full py-2 h-auto"
+                >
+                  {isResetting ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : "שלחו קישור"}
+                </Button>
+                <button
+                  type="button"
+                  onClick={() => setShowForgotPassword(false)}
+                  className="flex-1 text-xs text-white/70 hover:text-white transition-colors"
+                >
+                  ביטול
+                </button>
+              </div>
+            </div>
+          )}
+
           {mode === "signup" && (
             <>
               <div className="space-y-1.5">
@@ -337,26 +407,6 @@ const AuthStep = ({ formData, onAuthenticated }: AuthStepProps) => {
             )}
           </Button>
 
-          <button
-            type="button"
-            onClick={() => {
-              try {
-                sessionStorage.setItem("create_wizard_draft", JSON.stringify({
-                  childName: formData.childName,
-                  childGender: formData.childGender,
-                  ageRange: formData.ageRange,
-                  storyLength: formData.storyLength,
-                  language: formData.language,
-                }));
-              } catch (e) {
-                console.warn("[AuthStep] Failed to save wizard draft:", e);
-              }
-              navigate("/demo-story");
-            }}
-            className="w-full flex items-center justify-center text-center bg-gradient-to-r from-purple-600 via-pink-500 to-orange-400 hover:from-purple-700 hover:via-pink-600 hover:to-orange-500 text-white font-black text-sm rounded-full py-2.5 h-auto transition-all"
-          >
-            לצפייה בסיפור לדוגמה 📖
-          </button>
         </form>
       </div>
     </div>
