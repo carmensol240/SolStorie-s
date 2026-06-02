@@ -7,7 +7,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
-import { Users, ShoppingCart, BookOpen, TrendingUp, ArrowRight, AlertTriangle, EyeOff, Eye, Trash2, Palette, Image, Ticket, ChevronDown, ChevronUp, Activity, Copy, Mail, CalendarPlus, RefreshCw, Clock, Search, RotateCcw, XCircle } from "lucide-react";
+import { Users, ShoppingCart, BookOpen, TrendingUp, ArrowRight, AlertTriangle, EyeOff, Eye, Trash2, Palette, Image, Ticket, ChevronDown, ChevronUp, Activity, Copy, Mail, CalendarPlus, RefreshCw, Clock, Search, RotateCcw, XCircle, Unlock, Lock } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { format, subDays, startOfDay } from "date-fns";
@@ -25,6 +25,13 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+} from "@/components/ui/dialog";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import ServiceHealthSection from "@/components/admin/ServiceHealthSection";
 
@@ -176,6 +183,9 @@ const AdminDashboard = () => {
   const [feedbacks, setFeedbacks] = useState<FeedbackRow[]>([]);
   const [feedbackStories, setFeedbackStories] = useState<Record<string, { child_name: string; topic: string }>>({});
   const [feedbackEmails, setFeedbackEmails] = useState<Record<string, string>>({});
+  const [storyUnlocks, setStoryUnlocks] = useState<{ user_id: string; story_id: string }[]>([]);
+  const [unlockDialogUserId, setUnlockDialogUserId] = useState<string | null>(null);
+  const [unlockingStoryId, setUnlockingStoryId] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [authReady, setAuthReady] = useState(false);
   const { toast } = useToast();
@@ -258,6 +268,27 @@ const AdminDashboard = () => {
     });
   }, []);
 
+  const handleUnlockStory = useCallback(async (userId: string, storyId: string) => {
+    setUnlockingStoryId(storyId);
+    const { error } = await supabase.from("story_unlocks").insert({
+      user_id: userId,
+      story_id: storyId,
+      unlock_type: "admin_manual",
+      amount_paid: 0,
+    });
+    setUnlockingStoryId(null);
+    if (error) {
+      if ((error as any).code === "23505") {
+        toast({ title: "הסיפור כבר פתוח", description: "המשתמש כבר קיבל גישה לסיפור זה" });
+      } else {
+        toast({ title: "שגיאה בפתיחת הסיפור", description: error.message, variant: "destructive" });
+      }
+      return;
+    }
+    setStoryUnlocks(prev => [...prev, { user_id: userId, story_id: storyId }]);
+    toast({ title: "הסיפור נפתח ✓", description: "המשתמש יקבל גישה מיידית" });
+  }, [toast]);
+
   const filterByReviewed = <T extends { created_at: string | null }>(items: T[], tab: string): T[] => {
     const cutoff = reviewedCutoffs[tab];
     if (!cutoff || showReviewed[tab]) return items;
@@ -290,7 +321,7 @@ const AdminDashboard = () => {
     if (!isAdmin) return;
     setLoading(true);
 
-    const [profilesRes, purchasesRes, storiesRes, emailsRes, couponsRes, redemptionsRes, errorsRes, illustrationsRes, coversRes, fbRes] = await Promise.all([
+    const [profilesRes, purchasesRes, storiesRes, emailsRes, couponsRes, redemptionsRes, errorsRes, illustrationsRes, coversRes, fbRes, unlocksRes] = await Promise.all([
       supabase.from("profiles").select("id, display_name, created_at, story_credits, coloring_credits, editing_credits, is_subscriber, user_role").not("id", "in", `(${EXCLUDED_IDS.join(",")})`).order("created_at", { ascending: false }).limit(500),
       supabase.from("purchases").select("*").not("user_id", "in", `(${EXCLUDED_IDS.join(",")})`).order("created_at", { ascending: false }).limit(500),
       supabase.from("stories").select("id, child_name, topic, created_at, user_id, generation_status").not("user_id", "in", `(${EXCLUDED_IDS.join(",")})`).order("created_at", { ascending: false }).limit(500),
@@ -301,6 +332,7 @@ const AdminDashboard = () => {
       supabase.from("illustration_logs").select("*").order("created_at", { ascending: false }).limit(300),
       supabase.from("cover_logs").select("*").order("created_at", { ascending: false }).limit(200),
       supabase.from("user_feedback").select("id, user_id, rating, message, display_name, page_url, created_at, is_approved").order("created_at", { ascending: false }).limit(200),
+      supabase.from("story_unlocks").select("user_id, story_id").limit(2000),
     ]);
 
     const emailMap = new Map<string, string>();
@@ -323,6 +355,7 @@ const AdminDashboard = () => {
 
     setPurchases(filterAdmin(purchasesRes.data));
     setStories(filterAdmin(storiesRes.data));
+    if (unlocksRes.data) setStoryUnlocks(unlocksRes.data as { user_id: string; story_id: string }[]);
     setCoupons((couponsRes.data as CouponRow[]) || []);
     setCouponRedemptions((redemptionsRes.data as CouponRedemptionRow[]) || []);
     if (errorsRes.data) setErrorLogs(errorsRes.data as ErrorLogRow[]);
@@ -697,6 +730,10 @@ const AdminDashboard = () => {
                                 <Button variant="ghost" size="icon" className="h-7 w-7" title="העתק הודעת פיצוי"
                                   onClick={() => { navigator.clipboard.writeText(compensationMsg); toast({ title: "הועתק! ✓" }); }}>
                                   <Copy className="h-3.5 w-3.5" />
+                                </Button>
+                                <Button variant="ghost" size="icon" className="h-7 w-7 text-emerald-600 hover:text-emerald-700" title="פתח סיפור ידנית"
+                                  onClick={() => setUnlockDialogUserId(p.id)}>
+                                  <Unlock className="h-3.5 w-3.5" />
                                 </Button>
                                 <Button variant="ghost" size="icon" className="h-7 w-7 text-muted-foreground hover:text-destructive" title="העבר לסל מחזור"
                                   onClick={() => trashItem("users", p.id)}>
@@ -1285,6 +1322,55 @@ const AdminDashboard = () => {
           </AlertDialogContent>
         </AlertDialog>
       </div>
+
+      {/* Manual story unlock dialog */}
+      <Dialog open={!!unlockDialogUserId} onOpenChange={(o) => !o && setUnlockDialogUserId(null)}>
+        <DialogContent dir="rtl" className="max-w-lg">
+          <DialogHeader>
+            <DialogTitle>פתיחה ידנית של סיפור</DialogTitle>
+            <DialogDescription>
+              בחר סיפור מהרשימה כדי להעניק למשתמש גישה מלאה (ללא תשלום).
+            </DialogDescription>
+          </DialogHeader>
+          {(() => {
+            if (!unlockDialogUserId) return null;
+            const userStories = stories.filter(s => s.user_id === unlockDialogUserId);
+            const profile = profiles.find(p => p.id === unlockDialogUserId);
+            if (userStories.length === 0) {
+              return <p className="text-sm text-muted-foreground text-center py-6">למשתמש זה אין סיפורים</p>;
+            }
+            return (
+              <div className="space-y-2 max-h-96 overflow-y-auto">
+                <div className="text-xs text-muted-foreground pb-2 border-b">
+                  {profile?.display_name || profile?.email || "משתמש"}
+                </div>
+                {userStories.map(s => {
+                  const isUnlocked = storyUnlocks.some(u => u.user_id === unlockDialogUserId && u.story_id === s.id);
+                  return (
+                    <div key={s.id} className="flex items-center justify-between gap-2 p-2 rounded-md border">
+                      <div className="min-w-0 flex-1">
+                        <div className="text-sm font-medium truncate">{s.child_name} — {s.topic}</div>
+                        <div className="text-xs text-muted-foreground">{formatDate(s.created_at)}</div>
+                      </div>
+                      {isUnlocked ? (
+                        <Badge className="bg-emerald-100 text-emerald-800 text-[10px] gap-1">
+                          <Unlock className="h-3 w-3" /> פתוח
+                        </Badge>
+                      ) : (
+                        <Button size="sm" variant="outline" disabled={unlockingStoryId === s.id}
+                          onClick={() => handleUnlockStory(unlockDialogUserId, s.id)}>
+                          <Lock className="h-3.5 w-3.5 ml-1" />
+                          {unlockingStoryId === s.id ? "פותח..." : "פתח"}
+                        </Button>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
+            );
+          })()}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
