@@ -547,6 +547,14 @@ const [currentPage, setCurrentPage] = useState(0);
     isForcedDemo ||
     (!hasPurchasedPackage && !isSubscriberUser && !isAdminUser && !isTester && !hasStoryCredits && !isSingleStoryUnlock)
   );
+
+  useEffect(() => {
+    if (!isDemoUser) {
+      setDemoLockOpen(false);
+      setDemoPaywallOpen(false);
+    }
+  }, [isDemoUser]);
+
   const guardDemo = useCallback((fn: () => void) => {
     return () => {
       if (isDemoUser) {
