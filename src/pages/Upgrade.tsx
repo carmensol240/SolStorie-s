@@ -139,13 +139,94 @@ const Upgrade = () => {
 
   const handlePurchase = () => {
     if (!user) { navigate("/auth"); return; }
+    // Best-effort: pull the story the user is trying to unlock from
+    // sessionStorage so the Grow webhook can attach the purchase to it.
+    let storyIdForCheckout: string | null = null;
+    try {
+      const raw = sessionStorage.getItem("pendingStoryReturn");
+      if (raw) {
+        const parsed = JSON.parse(raw);
+        if (parsed?.path && typeof parsed.path === "string") {
+          const m = parsed.path.match(/\/story\/([^/?#]+)/);
+          if (m) storyIdForCheckout = m[1];
+        }
+      }
+    } catch {}
     openGrowCheckout(
       selectedTier === "full" ? "popular" : "basic",
-      discountPercent > 0
-        ? { discountPercent, couponCode: appliedCouponCode }
-        : {}
+      {
+        ...(discountPercent > 0
+          ? { discountPercent, couponCode: appliedCouponCode }
+          : {}),
+        userId: user.id,
+        storyId: storyIdForCheckout,
+      }
     );
   };
+
+  // After the user returns from the Grow checkout tab, poll their credits
+  // for a short window so the locked story unlocks as soon as the webhook
+  // applies the purchase — without forcing a manual refresh.
+  useEffect(() => {
+    if (!user?.id) return;
+    let cancelled = false;
+    let polling = false;
+    let baselineCredits: number | null = null;
+
+    const readCredits = async () => {
+      const { data } = await supabase
+        .from("profiles")
+        .select("story_credits, coloring_credits, editing_credits, free_edits_remaining, is_subscriber")
+        .eq("id", user.id)
+        .maybeSingle();
+      return data;
+    };
+
+    const startPoll = async () => {
+      if (polling || cancelled) return;
+      polling = true;
+      try {
+        const initial = await readCredits();
+        baselineCredits = initial?.story_credits ?? 0;
+        const baselineColoring = initial?.coloring_credits ?? 0;
+        const baselineEditing = initial?.editing_credits ?? 0;
+        const baselineSub = !!initial?.is_subscriber;
+
+        const MAX_ATTEMPTS = 20; // ~40s
+        for (let i = 0; i < MAX_ATTEMPTS; i++) {
+          if (cancelled) return;
+          await new Promise((r) => setTimeout(r, 2000));
+          const fresh = await readCredits();
+          if (!fresh) continue;
+          const changed =
+            (fresh.story_credits ?? 0) > baselineCredits! ||
+            (fresh.coloring_credits ?? 0) > baselineColoring ||
+            (fresh.editing_credits ?? 0) > baselineEditing ||
+            (!!fresh.is_subscriber && !baselineSub);
+          if (changed) {
+            refetchCredits();
+            window.dispatchEvent(new CustomEvent("purchase-completed"));
+            toast.success("הרכישה התקבלה ✅");
+            return;
+          }
+        }
+      } finally {
+        polling = false;
+      }
+    };
+
+    const onFocus = () => { startPoll(); };
+    const onVisibility = () => {
+      if (document.visibilityState === "visible") startPoll();
+    };
+    window.addEventListener("focus", onFocus);
+    document.addEventListener("visibilitychange", onVisibility);
+    return () => {
+      cancelled = true;
+      window.removeEventListener("focus", onFocus);
+      document.removeEventListener("visibilitychange", onVisibility);
+    };
+  }, [user?.id, refetchCredits]);
 
   const handleRetry = () => {
     setShowFailed(false);
