@@ -150,8 +150,15 @@ export async function applyPurchaseCredits(
     }
   }
 
-  // Insert story unlock for single-story purchases
-  if (packageId === "single_story" && storyId) {
+  // Insert story unlock for single-story purchases (any package that grants
+  // access to one specific story when a storyId is passed in cField3).
+  const SINGLE_STORY_PACKAGES = new Set([
+    "single_story",
+    "single_story_digital",
+    "single_story_full",
+    "basic",
+  ]);
+  if (storyId && SINGLE_STORY_PACKAGES.has(packageId)) {
     let resolvedStoryId: string | null = null;
     if (UUID_REGEX.test(storyId)) {
       resolvedStoryId = storyId;
@@ -162,24 +169,28 @@ export async function applyPurchaseCredits(
         .eq("slug", storyId)
         .maybeSingle();
       if (storyErr || !storyRow) {
-        console.error("[PURCHASE-CREDITS] Failed to resolve story slug:", storyId, storyErr);
-        return { success: false, error: "Story not found", status: 400 };
+        console.error("[PURCHASE-CREDITS] Failed to resolve story slug, skipping unlock:", storyId, storyErr);
+        resolvedStoryId = null;
       }
-      resolvedStoryId = storyRow.id;
+      if (storyRow) resolvedStoryId = storyRow.id;
     }
 
-    const { error: unlockError } = await supabase.from("story_unlocks").insert({
-      user_id: userId,
-      story_id: resolvedStoryId,
-      unlock_type: "single",
-      amount_paid: amount,
-    });
-    if (unlockError) {
-      if ((unlockError as any).code === "23505") {
-        console.log("[PURCHASE-CREDITS] Story already unlocked, continuing");
+    if (resolvedStoryId) {
+      const { error: unlockError } = await supabase.from("story_unlocks").insert({
+        user_id: userId,
+        story_id: resolvedStoryId,
+        unlock_type: "single",
+        amount_paid: amount,
+      });
+      if (unlockError) {
+        if ((unlockError as any).code === "23505") {
+          console.log("[PURCHASE-CREDITS] Story already unlocked, continuing");
+        } else {
+          console.error("[PURCHASE-CREDITS] Failed to insert story unlock:", unlockError);
+          // Do not fail the whole purchase — credits already applied.
+        }
       } else {
-        console.error("[PURCHASE-CREDITS] Failed to insert story unlock:", unlockError);
-        return { success: false, error: "Failed to unlock story", status: 500 };
+        console.log("[PURCHASE-CREDITS] ✅ Story unlocked:", resolvedStoryId);
       }
     }
   }
