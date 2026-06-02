@@ -139,7 +139,12 @@ const Upgrade = () => {
 
   const handlePurchase = () => {
     if (!user) { navigate("/auth"); return; }
-    openGrowCheckout(selectedTier === "full" ? "popular" : "basic");
+    openGrowCheckout(
+      selectedTier === "full" ? "popular" : "basic",
+      discountPercent > 0
+        ? { discountPercent, couponCode: appliedCouponCode }
+        : {}
+    );
   };
 
   const handleRetry = () => {
