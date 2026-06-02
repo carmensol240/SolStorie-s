@@ -407,26 +407,6 @@ const AuthStep = ({ formData, onAuthenticated }: AuthStepProps) => {
             )}
           </Button>
 
-          <button
-            type="button"
-            onClick={() => {
-              try {
-                sessionStorage.setItem("create_wizard_draft", JSON.stringify({
-                  childName: formData.childName,
-                  childGender: formData.childGender,
-                  ageRange: formData.ageRange,
-                  storyLength: formData.storyLength,
-                  language: formData.language,
-                }));
-              } catch (e) {
-                console.warn("[AuthStep] Failed to save wizard draft:", e);
-              }
-              navigate("/demo-story");
-            }}
-            className="w-full flex items-center justify-center text-center bg-gradient-to-r from-purple-600 via-pink-500 to-orange-400 hover:from-purple-700 hover:via-pink-600 hover:to-orange-500 text-white font-black text-sm rounded-full py-2.5 h-auto transition-all"
-          >
-            לצפייה בסיפור לדוגמה 📖
-          </button>
         </form>
       </div>
     </div>
