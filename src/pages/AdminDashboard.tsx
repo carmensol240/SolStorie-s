@@ -1373,8 +1373,11 @@ const AdminDashboard = () => {
           </DialogHeader>
           {(() => {
             if (!unlockDialogUserId) return null;
-            const userStories = stories.filter(s => s.user_id === unlockDialogUserId);
+            const userStories = dialogStories;
             const profile = profiles.find(p => p.id === unlockDialogUserId);
+            if (dialogStoriesLoading) {
+              return <p className="text-sm text-muted-foreground text-center py-6">טוען סיפורים…</p>;
+            }
             if (userStories.length === 0) {
               return <p className="text-sm text-muted-foreground text-center py-6">למשתמש זה אין סיפורים</p>;
             }
