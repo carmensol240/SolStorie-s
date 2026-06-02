@@ -186,6 +186,8 @@ const AdminDashboard = () => {
   const [storyUnlocks, setStoryUnlocks] = useState<{ user_id: string; story_id: string }[]>([]);
   const [unlockDialogUserId, setUnlockDialogUserId] = useState<string | null>(null);
   const [unlockingStoryId, setUnlockingStoryId] = useState<string | null>(null);
+  const [dialogStories, setDialogStories] = useState<StoryRow[]>([]);
+  const [dialogStoriesLoading, setDialogStoriesLoading] = useState(false);
   const [loading, setLoading] = useState(true);
   const [authReady, setAuthReady] = useState(false);
   const { toast } = useToast();
@@ -269,6 +271,7 @@ const AdminDashboard = () => {
   }, []);
 
   const handleUnlockStory = useCallback(async (userId: string, storyId: string) => {
+    console.log("[ADMIN] Unlocking story:", { userId, storyId });
     setUnlockingStoryId(storyId);
     const { error } = await supabase.from("story_unlocks").insert({
       user_id: userId,
@@ -278,6 +281,7 @@ const AdminDashboard = () => {
     });
     setUnlockingStoryId(null);
     if (error) {
+      console.error("[ADMIN] Unlock failed:", error);
       if ((error as any).code === "23505") {
         toast({ title: "הסיפור כבר פתוח", description: "המשתמש כבר קיבל גישה לסיפור זה" });
       } else {
@@ -288,6 +292,41 @@ const AdminDashboard = () => {
     setStoryUnlocks(prev => [...prev, { user_id: userId, story_id: storyId }]);
     toast({ title: "הסיפור נפתח ✓", description: "המשתמש יקבל גישה מיידית" });
   }, [toast]);
+
+  // Fetch the target user's stories + unlocks directly whenever the unlock
+  // dialog opens — the cached `stories` state is limited to 500 rows and
+  // filtered, so it may not contain the specific story we need to unlock.
+  useEffect(() => {
+    if (!unlockDialogUserId) {
+      setDialogStories([]);
+      return;
+    }
+    let cancelled = false;
+    (async () => {
+      setDialogStoriesLoading(true);
+      const [storiesRes, unlocksRes] = await Promise.all([
+        supabase
+          .from("stories")
+          .select("id, child_name, topic, created_at, user_id, generation_status")
+          .eq("user_id", unlockDialogUserId)
+          .order("created_at", { ascending: false }),
+        supabase
+          .from("story_unlocks")
+          .select("user_id, story_id")
+          .eq("user_id", unlockDialogUserId),
+      ]);
+      if (cancelled) return;
+      setDialogStories((storiesRes.data as StoryRow[]) || []);
+      if (unlocksRes.data) {
+        setStoryUnlocks(prev => {
+          const next = prev.filter(u => u.user_id !== unlockDialogUserId);
+          return [...next, ...(unlocksRes.data as { user_id: string; story_id: string }[])];
+        });
+      }
+      setDialogStoriesLoading(false);
+    })();
+    return () => { cancelled = true; };
+  }, [unlockDialogUserId]);
 
   const filterByReviewed = <T extends { created_at: string | null }>(items: T[], tab: string): T[] => {
     const cutoff = reviewedCutoffs[tab];
@@ -1334,8 +1373,11 @@ const AdminDashboard = () => {
           </DialogHeader>
           {(() => {
             if (!unlockDialogUserId) return null;
-            const userStories = stories.filter(s => s.user_id === unlockDialogUserId);
+            const userStories = dialogStories;
             const profile = profiles.find(p => p.id === unlockDialogUserId);
+            if (dialogStoriesLoading) {
+              return <p className="text-sm text-muted-foreground text-center py-6">טוען סיפורים…</p>;
+            }
             if (userStories.length === 0) {
               return <p className="text-sm text-muted-foreground text-center py-6">למשתמש זה אין סיפורים</p>;
             }
