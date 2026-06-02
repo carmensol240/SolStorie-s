@@ -268,6 +268,27 @@ const AdminDashboard = () => {
     });
   }, []);
 
+  const handleUnlockStory = useCallback(async (userId: string, storyId: string) => {
+    setUnlockingStoryId(storyId);
+    const { error } = await supabase.from("story_unlocks").insert({
+      user_id: userId,
+      story_id: storyId,
+      unlock_type: "admin_manual",
+      amount_paid: 0,
+    });
+    setUnlockingStoryId(null);
+    if (error) {
+      if ((error as any).code === "23505") {
+        toast({ title: "הסיפור כבר פתוח", description: "המשתמש כבר קיבל גישה לסיפור זה" });
+      } else {
+        toast({ title: "שגיאה בפתיחת הסיפור", description: error.message, variant: "destructive" });
+      }
+      return;
+    }
+    setStoryUnlocks(prev => [...prev, { user_id: userId, story_id: storyId }]);
+    toast({ title: "הסיפור נפתח ✓", description: "המשתמש יקבל גישה מיידית" });
+  }, [toast]);
+
   const filterByReviewed = <T extends { created_at: string | null }>(items: T[], tab: string): T[] => {
     const cutoff = reviewedCutoffs[tab];
     if (!cutoff || showReviewed[tab]) return items;
