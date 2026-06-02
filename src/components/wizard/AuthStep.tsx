@@ -31,6 +31,9 @@ const AuthStep = ({ formData, onAuthenticated }: AuthStepProps) => {
   const [marketingConsent, setMarketingConsent] = useState(false);
   const [mode, setMode] = useState<"signup" | "login">("signup");
   const [submitting, setSubmitting] = useState(false);
+  const [showForgotPassword, setShowForgotPassword] = useState(false);
+  const [resetEmail, setResetEmail] = useState("");
+  const [isResetting, setIsResetting] = useState(false);
   const [userRole, setUserRole] = useState<"parent" | "educator">("parent");
 
   const saveChildToSupabase = async (userId: string) => {
