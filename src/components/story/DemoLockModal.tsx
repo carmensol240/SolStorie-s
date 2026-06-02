@@ -62,14 +62,20 @@ const DemoLockModal = ({ open, onOpenChange, title, description, storyId }: Demo
   const goSingleStory = () => {
     onOpenChange(false);
     rememberReturn();
-    openGrowCheckout("singleStory");
+    openGrowCheckout("singleStory", {
+      userId: user?.id ?? null,
+      storyId: storyId ?? null,
+    });
   };
 
   const goPopular = () => {
     if (!storyId) return;
     onOpenChange(false);
     rememberReturn();
-    openGrowCheckout("popular");
+    openGrowCheckout("popular", {
+      userId: user?.id ?? null,
+      storyId,
+    });
   };
 
   return (

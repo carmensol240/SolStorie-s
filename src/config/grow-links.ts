@@ -19,9 +19,30 @@ export const GROW_LINKS = {
 
 export type GrowLinkKey = keyof typeof GROW_LINKS;
 
+/**
+ * Mapping from Grow link key → internal packageId expected by the
+ * verify-purchase / grow-webhook edge functions. Used as the default cField2
+ * when the caller does not pass an explicit packageId.
+ */
+const DEFAULT_PACKAGE_ID: Record<GrowLinkKey, string> = {
+  basic: "single_story_digital",
+  popular: "popular",
+  singleStory: "single_story",
+  coloringSingle: "coloring_single",
+  coloringBundle: "coloring_bundle",
+  pdf: "pdf",
+  twoStories: "gift_two_stories",
+};
+
 export interface GrowCheckoutOptions {
   discountPercent?: number;
   couponCode?: string | null;
+  /** Authenticated user id — sent as cField1 so the Grow webhook can identify the buyer reliably (even if payerEmail differs from the account email). */
+  userId?: string | null;
+  /** Internal package id — sent as cField2 so the webhook applies credits for the exact package, instead of falling back to amount→package mapping. */
+  packageId?: string | null;
+  /** Optional story id / slug — sent as cField3 so single-story unlocks can be attached to the right story. */
+  storyId?: string | null;
 }
 
 /**
@@ -40,22 +61,34 @@ export const openGrowCheckout = (
   if (!base) return;
 
   let url: string = base;
-  const { discountPercent, couponCode } = options;
+  const { discountPercent, couponCode, userId, storyId } = options;
+  const packageId = options.packageId ?? DEFAULT_PACKAGE_ID[key] ?? null;
 
-  if ((discountPercent && discountPercent > 0) || couponCode) {
-    try {
-      const u = new URL(base);
-      if (discountPercent && discountPercent > 0) {
-        u.searchParams.set("discount", String(discountPercent));
-      }
-      if (couponCode) {
-        u.searchParams.set("coupon", couponCode);
-      }
-      url = u.toString();
-    } catch {
-      // If URL parsing fails for any reason, fall back to the base link.
-      url = base;
+  try {
+    const u = new URL(base);
+    if (discountPercent && discountPercent > 0) {
+      u.searchParams.set("discount", String(discountPercent));
     }
+    if (couponCode) {
+      u.searchParams.set("coupon", couponCode);
+    }
+    // Grow custom fields — surfaced back to us in the webhook payload as
+    // customFields.cField1 / cField2 / cField3. Without these, the webhook has
+    // to identify the user purely by payerEmail (which often mismatches the
+    // account email) and cannot attach the purchase to a specific story.
+    if (userId) {
+      u.searchParams.set("cField1", userId);
+    }
+    if (packageId) {
+      u.searchParams.set("cField2", packageId);
+    }
+    if (storyId) {
+      u.searchParams.set("cField3", storyId);
+    }
+    url = u.toString();
+  } catch {
+    // If URL parsing fails for any reason, fall back to the base link.
+    url = base;
   }
 
   const win = window.open(url, "_blank", "noopener,noreferrer");
