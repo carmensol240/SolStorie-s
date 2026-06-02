@@ -362,7 +362,11 @@ const AdminDashboard = () => {
 
     const [profilesRes, purchasesRes, storiesRes, emailsRes, couponsRes, redemptionsRes, errorsRes, illustrationsRes, coversRes, fbRes, unlocksRes] = await Promise.all([
       supabase.from("profiles").select("id, display_name, created_at, story_credits, coloring_credits, editing_credits, is_subscriber, user_role").not("id", "in", `(${EXCLUDED_IDS.join(",")})`).order("created_at", { ascending: false }).limit(500),
-      supabase.from("purchases").select("*").not("user_id", "in", `(${EXCLUDED_IDS.join(",")})`).order("created_at", { ascending: false }).limit(500),
+      // Do NOT exclude admin/test users from purchases — they need to be
+      // visible in the dashboard so admins can verify that the Grow / PayPal
+      // flow actually produced a row. Filtering by EXCLUDED_IDS here was
+      // hiding every recorded purchase and making the counter read 0.
+      supabase.from("purchases").select("*").order("created_at", { ascending: false }).limit(500),
       supabase.from("stories").select("id, child_name, topic, created_at, user_id, generation_status").not("user_id", "in", `(${EXCLUDED_IDS.join(",")})`).order("created_at", { ascending: false }).limit(500),
       supabase.rpc("get_admin_user_emails"),
       supabase.from("coupons").select("*").order("created_at", { ascending: false }),
@@ -392,7 +396,9 @@ const AdminDashboard = () => {
       return data.filter(item => !item.user_id || !adminUserIds.includes(item.user_id));
     };
 
-    setPurchases(filterAdmin(purchasesRes.data));
+    // Keep ALL purchases visible — including those made by admin/test accounts
+    // — so the dashboard reflects what actually landed in the DB.
+    setPurchases((purchasesRes.data ?? []) as PurchaseRow[]);
     setStories(filterAdmin(storiesRes.data));
     if (unlocksRes.data) setStoryUnlocks(unlocksRes.data as { user_id: string; story_id: string }[]);
     setCoupons((couponsRes.data as CouponRow[]) || []);
@@ -607,7 +613,7 @@ const AdminDashboard = () => {
           <StatCard title="נרשמו השבוע" value={registeredThisWeek} icon={<CalendarPlus className="h-4 w-4" />} />
           <StatCard title="פעילים היום" value={activeUsersToday} icon={<Activity className="h-4 w-4" />} color="green" />
           <StatCard title="סיפורים היום" value={storiesToday} icon={<BookOpen className="h-4 w-4" />} color="green" />
-          <StatCard title="רכישות" value={purchases.filter(p => p.status === "completed").length} icon={<ShoppingCart className="h-4 w-4" />} />
+          <StatCard title="רכישות" value={purchases.filter(p => p.status === "completed" || p.status === "test_completed").length} icon={<ShoppingCart className="h-4 w-4" />} />
           <StatCard title="הכנסות" value={`₪${totalRevenue.toLocaleString()}`} icon={<TrendingUp className="h-4 w-4" />} />
           <StatCard title="שגיאות היום" value={errorsToday} icon={<AlertTriangle className="h-4 w-4" />} color={errorsToday > 0 ? "red" : undefined} />
         </div>
