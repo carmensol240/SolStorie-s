@@ -429,6 +429,24 @@ const [currentPage, setCurrentPage] = useState(0);
     return () => window.removeEventListener('purchase-completed', handler);
   }, [refetchPurchaseStatus]);
 
+  // When the user returns to this tab from an external checkout (Grow opens
+ // in a new tab), refresh entitlements so a freshly-paid story unlocks
+  // without forcing a manual reload.
+  useEffect(() => {
+    if (!user?.id) return;
+    const trigger = () => window.dispatchEvent(new CustomEvent('purchase-completed'));
+    const onFocus = () => trigger();
+    const onVisibility = () => {
+      if (document.visibilityState === 'visible') trigger();
+    };
+    window.addEventListener('focus', onFocus);
+    document.addEventListener('visibilitychange', onVisibility);
+    return () => {
+      window.removeEventListener('focus', onFocus);
+      document.removeEventListener('visibilitychange', onVisibility);
+    };
+  }, [user?.id]);
+
   // Check subscriber flag (subscribers are not demo-locked even without purchase rows)
   useEffect(() => {
     if (!user?.id) {
