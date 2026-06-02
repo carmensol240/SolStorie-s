@@ -397,18 +397,20 @@ const Upgrade = () => {
               trackEvent({ eventType: "feature_used", metadata: { feature: "purchase_cta_clicked", tier: selectedTier } });
               handlePurchase();
             }}
-            className="w-full relative overflow-hidden bg-gradient-to-r from-purple-500 via-pink-500 to-orange-500 hover:from-purple-400 hover:via-pink-400 hover:to-orange-400 text-white font-black text-sm py-3 rounded-xl shadow-xl before:absolute before:inset-0 before:bg-[linear-gradient(120deg,transparent_30%,rgba(255,255,255,0.15)_50%,transparent_70%)] before:bg-[length:200%_100%] before:animate-[cta-shimmer_4s_ease-in-out_infinite]"
+            className="w-full h-auto min-h-12 relative overflow-hidden bg-gradient-to-r from-purple-500 via-pink-500 to-orange-500 hover:from-purple-400 hover:via-pink-400 hover:to-orange-400 text-white font-black text-xs sm:text-sm py-3 px-3 rounded-xl shadow-xl whitespace-normal leading-tight break-words before:absolute before:inset-0 before:bg-[linear-gradient(120deg,transparent_30%,rgba(255,255,255,0.15)_50%,transparent_70%)] before:bg-[length:200%_100%] before:animate-[cta-shimmer_4s_ease-in-out_infinite]"
             style={{ boxShadow: "0 0 30px rgba(168, 85, 247, 0.4), 0 0 60px rgba(236, 72, 153, 0.2)" }}
           >
-            {discountPercent > 1 ? (
-              <>
-                רכשו {selectedTier === "full" ? "את החבילה הפופולרית" : selectedTierData.label} ב-
-                <span className="line-through opacity-60 mx-1">₪{selectedBasePrice.toFixed(2)}</span>
-                ₪{Number(selectedFinalPrice).toFixed(2)} ✨
-              </>
-            ) : (
-              <>רכשו {selectedTier === "full" ? "את החבילה הפופולרית" : selectedTierData.label} ב-₪{selectedBasePrice.toFixed(2)} ✨</>
-            )}
+            <span className="inline-flex flex-wrap items-center justify-center gap-x-1 gap-y-0.5 w-full">
+              {discountPercent > 1 ? (
+                <>
+                  <span>רכשו {selectedTier === "full" ? "את החבילה הפופולרית" : selectedTierData.label} ב-</span>
+                  <span className="line-through opacity-60">₪{selectedBasePrice.toFixed(2)}</span>
+                  <span>₪{Number(selectedFinalPrice).toFixed(2)} ✨</span>
+                </>
+              ) : (
+                <span>רכשו {selectedTier === "full" ? "את החבילה הפופולרית" : selectedTierData.label} ב-₪{selectedBasePrice.toFixed(2)} ✨</span>
+              )}
+            </span>
           </Button>
           <p className="text-[11px] text-white/70 font-semibold mt-1">
             ✏️ סבב עריכה מלא כלול בכל סיפור
