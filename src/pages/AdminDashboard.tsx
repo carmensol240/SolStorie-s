@@ -1322,6 +1322,55 @@ const AdminDashboard = () => {
           </AlertDialogContent>
         </AlertDialog>
       </div>
+
+      {/* Manual story unlock dialog */}
+      <Dialog open={!!unlockDialogUserId} onOpenChange={(o) => !o && setUnlockDialogUserId(null)}>
+        <DialogContent dir="rtl" className="max-w-lg">
+          <DialogHeader>
+            <DialogTitle>פתיחה ידנית של סיפור</DialogTitle>
+            <DialogDescription>
+              בחר סיפור מהרשימה כדי להעניק למשתמש גישה מלאה (ללא תשלום).
+            </DialogDescription>
+          </DialogHeader>
+          {(() => {
+            if (!unlockDialogUserId) return null;
+            const userStories = stories.filter(s => s.user_id === unlockDialogUserId);
+            const profile = profiles.find(p => p.id === unlockDialogUserId);
+            if (userStories.length === 0) {
+              return <p className="text-sm text-muted-foreground text-center py-6">למשתמש זה אין סיפורים</p>;
+            }
+            return (
+              <div className="space-y-2 max-h-96 overflow-y-auto">
+                <div className="text-xs text-muted-foreground pb-2 border-b">
+                  {profile?.display_name || profile?.email || "משתמש"}
+                </div>
+                {userStories.map(s => {
+                  const isUnlocked = storyUnlocks.some(u => u.user_id === unlockDialogUserId && u.story_id === s.id);
+                  return (
+                    <div key={s.id} className="flex items-center justify-between gap-2 p-2 rounded-md border">
+                      <div className="min-w-0 flex-1">
+                        <div className="text-sm font-medium truncate">{s.child_name} — {s.topic}</div>
+                        <div className="text-xs text-muted-foreground">{formatDate(s.created_at)}</div>
+                      </div>
+                      {isUnlocked ? (
+                        <Badge className="bg-emerald-100 text-emerald-800 text-[10px] gap-1">
+                          <Unlock className="h-3 w-3" /> פתוח
+                        </Badge>
+                      ) : (
+                        <Button size="sm" variant="outline" disabled={unlockingStoryId === s.id}
+                          onClick={() => handleUnlockStory(unlockDialogUserId, s.id)}>
+                          <Lock className="h-3.5 w-3.5 ml-1" />
+                          {unlockingStoryId === s.id ? "פותח..." : "פתח"}
+                        </Button>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
+            );
+          })()}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
