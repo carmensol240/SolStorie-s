@@ -100,18 +100,34 @@ Deno.serve(async (req) => {
 
     if (coupon.coupon_type === "extra_stories" && coupon.free_stories) {
       // Add credits to user profile
-      const { data: profile } = await adminClient
+      const { data: profile, error: profileFetchError } = await adminClient
         .from("profiles")
         .select("story_credits")
         .eq("id", userId)
         .single();
 
+      if (profileFetchError || !profile) {
+        console.error("Failed to fetch profile for coupon redemption:", profileFetchError);
+        return new Response(JSON.stringify({ error: "שגיאה בטעינת הפרופיל" }), {
+          status: 500,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+
       const currentCredits = profile?.story_credits ?? 0;
 
-      await adminClient
+      const { error: updateError } = await adminClient
         .from("profiles")
         .update({ story_credits: currentCredits + coupon.free_stories })
         .eq("id", userId);
+
+      if (updateError) {
+        console.error("Failed to add story credits from coupon:", updateError);
+        return new Response(JSON.stringify({ error: "שגיאה בהוספת הסיפורים לחשבון" }), {
+          status: 500,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
 
       result = { type: "extra_stories", value: coupon.free_stories };
     } else if (coupon.coupon_type === "discount" && coupon.discount_percent) {
