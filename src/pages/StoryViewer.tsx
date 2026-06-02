@@ -477,21 +477,44 @@ const [currentPage, setCurrentPage] = useState(0);
     };
   }, [user?.id]);
 
-  // Check if this specific story was unlocked via a one-time single purchase
+  // Check if this specific story was unlocked via any direct story unlock
+  // (Grow single-story purchase or admin manual unlock).
   useEffect(() => {
     if (!user?.id || !story?.id) { setIsSingleStoryUnlock(false); return; }
     let cancelled = false;
-    (async () => {
+
+    const fetchStoryUnlock = async () => {
       const { data } = await supabase
         .from('story_unlocks' as any)
-        .select('unlock_type')
+        .select('id')
         .eq('user_id', user.id)
         .eq('story_id', story.id)
-        .eq('unlock_type', 'single')
+        .limit(1)
         .maybeSingle();
-      if (!cancelled) setIsSingleStoryUnlock(!!data);
-    })();
-    return () => { cancelled = true; };
+
+      if (!cancelled) {
+        setIsSingleStoryUnlock(!!data);
+      }
+    };
+
+    fetchStoryUnlock();
+
+    const onPurchase = () => { fetchStoryUnlock(); };
+    const onFocus = () => { fetchStoryUnlock(); };
+    const onVisibility = () => {
+      if (document.visibilityState === 'visible') fetchStoryUnlock();
+    };
+
+    window.addEventListener('purchase-completed', onPurchase);
+    window.addEventListener('focus', onFocus);
+    document.addEventListener('visibilitychange', onVisibility);
+
+    return () => {
+      cancelled = true;
+      window.removeEventListener('purchase-completed', onPurchase);
+      window.removeEventListener('focus', onFocus);
+      document.removeEventListener('visibilitychange', onVisibility);
+    };
   }, [user?.id, story?.id]);
 
   // Check admin role (admins are not demo-locked)
@@ -522,7 +545,7 @@ const [currentPage, setCurrentPage] = useState(0);
   const isTester = emailLower === ORIGINAL_TESTER || testerMode === 'admin';
   const isDemoUser = !!user && (
     isForcedDemo ||
-    (!hasPurchasedPackage && !isSubscriberUser && !isAdminUser && !isTester && !hasStoryCredits)
+    (!hasPurchasedPackage && !isSubscriberUser && !isAdminUser && !isTester && !hasStoryCredits && !isSingleStoryUnlock)
   );
   const guardDemo = useCallback((fn: () => void) => {
     return () => {
