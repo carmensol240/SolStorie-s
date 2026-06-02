@@ -9,7 +9,7 @@ export const packageConfig: Record<string, any> = {
   educator_premium: { stories: 10, freeEdits: 10, coloringPages: 10 },
   coloring_kit: { stories: 0, freeEdits: 0, coloringPages: 5 },
   coloring_single: { stories: 0, freeEdits: 0, coloringPages: 1 },
-  coloring_bundle: { stories: 0, freeEdits: 0, coloringPages: 5 },
+  coloring_bundle: { stories: 0, freeEdits: 0, coloringPages: 0, dynamicColoringFromStory: true },
   coloring_story: { stories: 0, freeEdits: 0, coloringPages: 0, dynamicColoringFromStory: true },
   edit_kit: { stories: 0, freeEdits: 0, coloringPages: 0, editingCredits: 5 },
   toolkit_yearly: { stories: 0, freeEdits: 0, coloringPages: 0, isSubscription: true },
