@@ -150,6 +150,36 @@ export async function applyPurchaseCredits(
     }
   }
 
+  // PDF entitlement — grants the user permission to download the printable
+  // PDF for the specified story (or globally when no storyId is attached).
+  if (config.pdfDownload) {
+    let pdfStoryUuid: string | null = null;
+    if (storyId) {
+      if (UUID_REGEX.test(storyId)) {
+        pdfStoryUuid = storyId;
+      } else {
+        const { data: storyRow } = await supabase
+          .from("stories")
+          .select("id")
+          .eq("slug", storyId)
+          .maybeSingle();
+        pdfStoryUuid = storyRow?.id ?? null;
+      }
+    }
+    const { error: pdfError } = await supabase.from("pdf_entitlements").insert({
+      user_id: userId,
+      story_id: pdfStoryUuid,
+      source,
+      amount_paid: amount,
+    });
+    if (pdfError && (pdfError as any).code !== "23505") {
+      console.error("[PURCHASE-CREDITS] Failed to insert pdf entitlement:", pdfError);
+      // Do not fail the whole purchase — purchase row is already recorded.
+    } else if (!pdfError) {
+      console.log("[PURCHASE-CREDITS] ✅ PDF entitlement granted:", { userId, pdfStoryUuid });
+    }
+  }
+
   // Insert story unlock for single-story purchases (any package that grants
   // access to one specific story when a storyId is passed in cField3).
   const SINGLE_STORY_PACKAGES = new Set([

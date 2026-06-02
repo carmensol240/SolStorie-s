@@ -1396,10 +1396,20 @@ const AdminDashboard = () => {
                 </div>
                 {userStories.map(s => {
                   const isUnlocked = storyUnlocks.some(u => u.user_id === unlockDialogUserId && u.story_id === s.id);
+                  const statusLabel = s.generation_status && s.generation_status !== "ready"
+                    ? s.generation_status
+                    : null;
                   return (
                     <div key={s.id} className="flex items-center justify-between gap-2 p-2 rounded-md border">
                       <div className="min-w-0 flex-1">
-                        <div className="text-sm font-medium truncate">{s.child_name} — {s.topic}</div>
+                        <div className="text-sm font-medium truncate flex items-center gap-1.5">
+                          <span className="truncate">{s.child_name} — {s.topic}</span>
+                          {statusLabel && (
+                            <Badge variant="outline" className="text-[10px] shrink-0">
+                              {statusLabel}
+                            </Badge>
+                          )}
+                        </div>
                         <div className="text-xs text-muted-foreground">{formatDate(s.created_at)}</div>
                       </div>
                       {isUnlocked ? (
