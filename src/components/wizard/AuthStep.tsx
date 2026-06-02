@@ -181,6 +181,27 @@ const AuthStep = ({ formData, onAuthenticated }: AuthStepProps) => {
     }
   };
 
+  const handleForgotPassword = async (e: React.FormEvent) => {
+    e.preventDefault();
+    const result = emailSchema.safeParse(resetEmail);
+    if (!result.success) {
+      toast({ title: "שגיאה", description: "כתובת אימייל לא תקינה", variant: "destructive" });
+      return;
+    }
+    setIsResetting(true);
+    try {
+      const { error } = await resetPasswordForEmail(resetEmail);
+      if (error) throw error;
+      toast({ title: "נשלח! ✉️", description: "בדקו את תיבת הדואר (גם בספאם)" });
+      setShowForgotPassword(false);
+      setResetEmail("");
+    } catch (err) {
+      toast({ title: "שגיאה", description: "לא הצלחנו לשלוח את הקישור", variant: "destructive" });
+    } finally {
+      setIsResetting(false);
+    }
+  };
+
   return (
     <div
       className="fixed inset-0 flex flex-col items-center justify-center px-3 py-8 overflow-y-auto z-[110]"
