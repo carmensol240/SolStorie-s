@@ -92,7 +92,33 @@ export const openGrowCheckout = (
   }
 
   const win = window.open(url, "_blank", "noopener,noreferrer");
-  if (!win) {
-    window.location.href = url;
-  }
+  if (win && !win.closed) return;
+
+  // Popup was blocked (common on mobile Safari and inside in-app webviews
+  // like Instagram/Facebook/TikTok). DO NOT fall back to
+  // `window.location.href = url` — that replaces the app tab with the Grow
+  // checkout, and when the user closes Grow the app appears to "disappear".
+  //
+  // Instead, surface a toast with a real <a target="_blank"> the user can
+  // tap. A user-gesture click on an anchor is not blocked by popup blockers
+  // and works inside in-app browsers, while leaving the app tab intact.
+  void import("sonner").then(({ toast }) => {
+    toast("הדפדפן חסם את חלון התשלום", {
+      description: "לחצו כדי להמשיך לתשלום בכרטיסייה חדשה",
+      duration: 15000,
+      action: {
+        label: "המשך לתשלום",
+        onClick: () => {
+          // Real user gesture — allowed by popup blockers / in-app webviews.
+          const a = document.createElement("a");
+          a.href = url;
+          a.target = "_blank";
+          a.rel = "noopener noreferrer";
+          document.body.appendChild(a);
+          a.click();
+          a.remove();
+        },
+      },
+    });
+  });
 };
