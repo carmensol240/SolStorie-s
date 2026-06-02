@@ -396,7 +396,9 @@ const AdminDashboard = () => {
       return data.filter(item => !item.user_id || !adminUserIds.includes(item.user_id));
     };
 
-    setPurchases(filterAdmin(purchasesRes.data));
+    // Keep ALL purchases visible — including those made by admin/test accounts
+    // — so the dashboard reflects what actually landed in the DB.
+    setPurchases((purchasesRes.data ?? []) as PurchaseRow[]);
     setStories(filterAdmin(storiesRes.data));
     if (unlocksRes.data) setStoryUnlocks(unlocksRes.data as { user_id: string; story_id: string }[]);
     setCoupons((couponsRes.data as CouponRow[]) || []);
