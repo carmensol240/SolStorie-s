@@ -21,7 +21,7 @@ interface AuthStepProps {
 
 const AuthStep = ({ formData, onAuthenticated }: AuthStepProps) => {
   const { toast } = useToast();
-  const { signInWithEmail, signUpWithEmail } = useAuth();
+  const { signInWithEmail, signUpWithEmail, resetPasswordForEmail } = useAuth();
   const navigate = useNavigate();
 
   const [email, setEmail] = useState("");
