@@ -19,6 +19,21 @@ export const GROW_LINKS = {
 
 export type GrowLinkKey = keyof typeof GROW_LINKS;
 
+/**
+ * Mapping from Grow link key → internal packageId expected by the
+ * verify-purchase / grow-webhook edge functions. Used as the default cField2
+ * when the caller does not pass an explicit packageId.
+ */
+const DEFAULT_PACKAGE_ID: Record<GrowLinkKey, string> = {
+  basic: "single_story_digital",
+  popular: "popular",
+  singleStory: "single_story",
+  coloringSingle: "coloring_single",
+  coloringBundle: "coloring_bundle",
+  pdf: "pdf",
+  twoStories: "gift_two_stories",
+};
+
 export interface GrowCheckoutOptions {
   discountPercent?: number;
   couponCode?: string | null;
@@ -46,7 +61,8 @@ export const openGrowCheckout = (
   if (!base) return;
 
   let url: string = base;
-  const { discountPercent, couponCode, userId, packageId, storyId } = options;
+  const { discountPercent, couponCode, userId, storyId } = options;
+  const packageId = options.packageId ?? DEFAULT_PACKAGE_ID[key] ?? null;
 
   try {
     const u = new URL(base);
