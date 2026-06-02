@@ -1,0 +1,2 @@
+ALTER TABLE public.story_unlocks DROP CONSTRAINT story_unlocks_unlock_type_check;
+ALTER TABLE public.story_unlocks ADD CONSTRAINT story_unlocks_unlock_type_check CHECK (unlock_type = ANY (ARRAY['single'::text, 'bundled_free'::text, 'admin_manual'::text]));
