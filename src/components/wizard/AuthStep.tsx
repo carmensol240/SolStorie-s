@@ -286,6 +286,52 @@ const AuthStep = ({ formData, onAuthenticated }: AuthStepProps) => {
             </button>
           </div>
 
+          {mode === "login" && !showForgotPassword && (
+            <div className="text-left -mt-2">
+              <button
+                type="button"
+                onClick={() => setShowForgotPassword(true)}
+                className="text-xs text-purple-300 hover:underline"
+              >
+                שכחתי סיסמה
+              </button>
+            </div>
+          )}
+
+          {showForgotPassword && (
+            <div className="space-y-3 p-3 bg-white/10 rounded-xl border border-white/20">
+              <p className="text-sm text-white font-bold">איפוס סיסמה</p>
+              <div className="relative">
+                <Mail className="absolute right-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-muted-foreground" />
+                <Input
+                  type="email"
+                  placeholder="אימייל"
+                  value={resetEmail}
+                  onChange={(e) => setResetEmail(e.target.value)}
+                  className="text-right pr-9 text-sm h-11 rounded-xl"
+                  required
+                />
+              </div>
+              <div className="flex gap-2">
+                <Button
+                  type="button"
+                  onClick={handleForgotPassword}
+                  disabled={isResetting}
+                  className="flex-1 bg-gradient-to-r from-purple-500 to-pink-500 text-white font-bold text-sm rounded-full py-2 h-auto"
+                >
+                  {isResetting ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : "שלחו קישור"}
+                </Button>
+                <button
+                  type="button"
+                  onClick={() => setShowForgotPassword(false)}
+                  className="flex-1 text-xs text-white/70 hover:text-white transition-colors"
+                >
+                  ביטול
+                </button>
+              </div>
+            </div>
+          )}
+
           {mode === "signup" && (
             <>
               <div className="space-y-1.5">
