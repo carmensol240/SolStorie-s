@@ -300,7 +300,7 @@ const AdminDashboard = () => {
     if (!isAdmin) return;
     setLoading(true);
 
-    const [profilesRes, purchasesRes, storiesRes, emailsRes, couponsRes, redemptionsRes, errorsRes, illustrationsRes, coversRes, fbRes] = await Promise.all([
+    const [profilesRes, purchasesRes, storiesRes, emailsRes, couponsRes, redemptionsRes, errorsRes, illustrationsRes, coversRes, fbRes, unlocksRes] = await Promise.all([
       supabase.from("profiles").select("id, display_name, created_at, story_credits, coloring_credits, editing_credits, is_subscriber, user_role").not("id", "in", `(${EXCLUDED_IDS.join(",")})`).order("created_at", { ascending: false }).limit(500),
       supabase.from("purchases").select("*").not("user_id", "in", `(${EXCLUDED_IDS.join(",")})`).order("created_at", { ascending: false }).limit(500),
       supabase.from("stories").select("id, child_name, topic, created_at, user_id, generation_status").not("user_id", "in", `(${EXCLUDED_IDS.join(",")})`).order("created_at", { ascending: false }).limit(500),
@@ -311,6 +311,7 @@ const AdminDashboard = () => {
       supabase.from("illustration_logs").select("*").order("created_at", { ascending: false }).limit(300),
       supabase.from("cover_logs").select("*").order("created_at", { ascending: false }).limit(200),
       supabase.from("user_feedback").select("id, user_id, rating, message, display_name, page_url, created_at, is_approved").order("created_at", { ascending: false }).limit(200),
+      supabase.from("story_unlocks").select("user_id, story_id").limit(2000),
     ]);
 
     const emailMap = new Map<string, string>();
@@ -333,6 +334,7 @@ const AdminDashboard = () => {
 
     setPurchases(filterAdmin(purchasesRes.data));
     setStories(filterAdmin(storiesRes.data));
+    if (unlocksRes.data) setStoryUnlocks(unlocksRes.data as { user_id: string; story_id: string }[]);
     setCoupons((couponsRes.data as CouponRow[]) || []);
     setCouponRedemptions((redemptionsRes.data as CouponRedemptionRow[]) || []);
     if (errorsRes.data) setErrorLogs(errorsRes.data as ErrorLogRow[]);
