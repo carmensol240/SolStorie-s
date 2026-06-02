@@ -77,6 +77,7 @@ const ChildInfoStep = ({ formData, updateFormData }: ChildInfoStepProps) => {
   const [userRole, setUserRole] = useState<string | null>(null);
   const [isDeletingChild, setIsDeletingChild] = useState(false);
   const [displayName, setDisplayName] = useState<string | null>(null);
+  const [priorPhotoConsent, setPriorPhotoConsent] = useState(false);
   const [isCreatingNew, setIsCreatingNew] = useState(false);
   const [selectedChildId, setSelectedChildId] = useState<string | null>(null);
   const hasAutoLoadedRef = useRef<string | null>(null);
@@ -104,6 +105,7 @@ const ChildInfoStep = ({ formData, updateFormData }: ChildInfoStepProps) => {
       setDisplayName(data?.display_name || user.email?.split("@")[0] || null);
       if ((data as any)?.photo_consent_at) {
         updateFormData({ photoConsent: true });
+        setPriorPhotoConsent(true);
       }
     })();
   }, [user]);
@@ -988,8 +990,8 @@ const ChildInfoStep = ({ formData, updateFormData }: ChildInfoStepProps) => {
           )}
         </div>
 
-        {/* Photo consent checkbox - only when photo is uploaded */}
-        {formData.childPhoto && (
+        {/* Photo consent checkbox - only when photo is uploaded AND user hasn't previously consented */}
+        {formData.childPhoto && !priorPhotoConsent && (
           <div className="flex items-start gap-2 mt-2">
             <Checkbox
               id="photo-consent"
