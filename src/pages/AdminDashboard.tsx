@@ -183,6 +183,9 @@ const AdminDashboard = () => {
   const [feedbacks, setFeedbacks] = useState<FeedbackRow[]>([]);
   const [feedbackStories, setFeedbackStories] = useState<Record<string, { child_name: string; topic: string }>>({});
   const [feedbackEmails, setFeedbackEmails] = useState<Record<string, string>>({});
+  const [storyUnlocks, setStoryUnlocks] = useState<{ user_id: string; story_id: string }[]>([]);
+  const [unlockDialogUserId, setUnlockDialogUserId] = useState<string | null>(null);
+  const [unlockingStoryId, setUnlockingStoryId] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [authReady, setAuthReady] = useState(false);
   const { toast } = useToast();
