@@ -731,6 +731,10 @@ const AdminDashboard = () => {
                                   onClick={() => { navigator.clipboard.writeText(compensationMsg); toast({ title: "הועתק! ✓" }); }}>
                                   <Copy className="h-3.5 w-3.5" />
                                 </Button>
+                                <Button variant="ghost" size="icon" className="h-7 w-7 text-emerald-600 hover:text-emerald-700" title="פתח סיפור ידנית"
+                                  onClick={() => setUnlockDialogUserId(p.id)}>
+                                  <Unlock className="h-3.5 w-3.5" />
+                                </Button>
                                 <Button variant="ghost" size="icon" className="h-7 w-7 text-muted-foreground hover:text-destructive" title="העבר לסל מחזור"
                                   onClick={() => trashItem("users", p.id)}>
                                   <Trash2 className="h-3.5 w-3.5" />
