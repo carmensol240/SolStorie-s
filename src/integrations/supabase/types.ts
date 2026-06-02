@@ -449,6 +449,33 @@ export type Database = {
         }
         Relationships: []
       }
+      pdf_entitlements: {
+        Row: {
+          amount_paid: number
+          granted_at: string
+          id: string
+          source: string | null
+          story_id: string | null
+          user_id: string
+        }
+        Insert: {
+          amount_paid?: number
+          granted_at?: string
+          id?: string
+          source?: string | null
+          story_id?: string | null
+          user_id: string
+        }
+        Update: {
+          amount_paid?: number
+          granted_at?: string
+          id?: string
+          source?: string | null
+          story_id?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
       pending_gifts: {
         Row: {
           child_name: string
