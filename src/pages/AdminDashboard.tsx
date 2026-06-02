@@ -361,7 +361,7 @@ const AdminDashboard = () => {
     setLoading(true);
 
     const [profilesRes, purchasesRes, storiesRes, emailsRes, couponsRes, redemptionsRes, errorsRes, illustrationsRes, coversRes, fbRes, unlocksRes] = await Promise.all([
-      supabase.from("profiles").select("id, display_name, created_at, story_credits, coloring_credits, editing_credits, is_subscriber, user_role").not("id", "in", `(${EXCLUDED_IDS.join(",")})`).order("created_at", { ascending: false }).limit(500),
+      supabase.from("profiles").select("id, display_name, email, created_at, story_credits, coloring_credits, editing_credits, is_subscriber, user_role").not("id", "in", `(${EXCLUDED_IDS.join(",")})`).order("created_at", { ascending: false }).limit(500),
       // Do NOT exclude admin/test users from purchases — they need to be
       // visible in the dashboard so admins can verify that the Grow / PayPal
       // flow actually produced a row. Filtering by EXCLUDED_IDS here was
@@ -381,13 +381,15 @@ const AdminDashboard = () => {
     const emailMap = new Map<string, string>();
     if (emailsRes.data) {
       (emailsRes.data as { user_id: string; email: string }[]).forEach(e => emailMap.set(e.user_id, e.email));
+    } else if (emailsRes.error) {
+      console.warn('[AdminDashboard] get_admin_user_emails RPC failed:', emailsRes.error);
     }
     const adminUserIds = [...emailMap.entries()].filter(([, email]) => ADMIN_EMAILS.includes(email)).map(([id]) => id);
 
     if (profilesRes.data) {
       setProfiles(profilesRes.data
-        .filter(p => !ADMIN_EMAILS.includes(emailMap.get(p.id) || ""))
-        .map(p => ({ ...p, email: emailMap.get(p.id) || undefined })) as ProfileRow[]);
+        .filter(p => !ADMIN_EMAILS.includes(emailMap.get(p.id) || (p as any).email || ""))
+        .map(p => ({ ...p, email: emailMap.get(p.id) || (p as any).email || undefined })) as ProfileRow[]);
     }
 
     const filterAdmin = <T extends { user_id?: string | null }>(data: T[] | null): T[] => {
@@ -713,7 +715,7 @@ const AdminDashboard = () => {
 
                         return (
                           <TableRow key={p.id} className={hasErrors ? "bg-destructive/5" : ""}>
-                            <TableCell className="font-medium">{p.display_name || "—"}</TableCell>
+                            <TableCell className="font-medium">{p.display_name || displayName}</TableCell>
                             <TableCell className="text-xs text-muted-foreground">{p.email || "—"}</TableCell>
                             <TableCell><Badge variant="outline" className="text-xs">{p.user_role}</Badge></TableCell>
                             <TableCell>{userStories.length}</TableCell>

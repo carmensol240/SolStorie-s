@@ -1,71 +1,33 @@
-## Problem
+## Why users show "—" in the admin users table
 
-`openGrowCheckout` in `src/config/grow-links.ts` opens Grow with `window.open(url, "_blank")`. When the browser blocks the popup (common on mobile Safari, and universal inside in-app webviews like Instagram/Facebook/TikTok), `window.open` returns `null` and the code falls back to:
+I checked the database and the dashboard code:
 
-```js
-window.location.href = url;
-```
+- **125 profiles, but 105 have `display_name = NULL`.** The `handle_new_user` trigger only stores `display_name` when the signup metadata contains one. Google OAuth signups and most email signups don't supply it, so the column stays empty.
+- **`profiles.email` is NULL for all 125 profiles.** That column exists but is never populated on signup.
+- Emails are pulled at runtime via the `get_admin_user_emails` RPC and merged into a map. If that RPC ever returns null/error (network blip, transient auth issue), the email column shows "—" for *everyone* because there's no fallback.
+- The dashboard's name cell renders `p.display_name || "—"` — it ignores the `displayName` fallback (`email.split("@")[0]`) that's already computed two lines above for the email button.
 
-This navigates the user's app tab to Grow. When they close or hit "back" on the Grow screen, there is no app tab to return to — the app appears to "disappear".
+Net effect: even when everything works, 105 rows show "—" for name; if the RPC hiccups, the whole email column also shows "—".
 
 ## Fix
 
-Change `openGrowCheckout` so we never replace the app tab. Two-tier strategy:
+Two surgical changes, both in `src/pages/AdminDashboard.tsx`, plus one backfill so the email column is never empty again.
 
-1. **Primary path — same tab, but the app remembers state and resumes on return.**
-   Before navigating to Grow, save a small `pendingGrowCheckout` marker in `sessionStorage` (key, timestamp, current path, userId, storyId). Then navigate via `window.location.href = url`. When the user taps "back" from Grow, the browser restores the app tab to the same path, and an existing `OAuthReturnHandler`-style listener clears the marker and (optionally) triggers a purchase refresh.
+### 1. Frontend fallbacks (`src/pages/AdminDashboard.tsx`)
 
-   Actually simpler and safer: keep the new-tab behavior as the **primary** path on desktop, and on mobile (or whenever `window.open` returns null) do NOT fall back to `window.location.href`. Instead:
+- **Name cell** (line 716): use the already-computed `displayName` variable instead of `p.display_name || "—"`, so users with no display name show their email local-part.
+- **Email cell** (line 717): fall back to `p.email` (from the profiles row) when the RPC map doesn't have an entry: `emailMap.get(p.id) || p.email || "—"`. This protects against an RPC failure.
+- Add the `email` column to the profiles SELECT on line 364 so the fallback has data to use.
+- Log a warning when `emailsRes.error` is set, so future RPC failures are visible in the console instead of silently blanking the column.
+- Apply the same fallback wherever a profile is looked up for display (stories tab line 841-842, purchases tab line 902-903, errors tab line 983-984).
 
-2. **Render a tiny "Continue to payment" intermediate screen** (a modal already controlled by the caller, or a dedicated `/checkout-redirect` route) with a real `<a href={growUrl} target="_blank" rel="noopener noreferrer">` link the user taps. A user-gesture click on an anchor is not blocked by popup blockers and works inside in-app webviews. If the user closes Grow, the app tab is still there underneath.
+### 2. Backfill + auto-populate `profiles.email` (new migration)
 
-## Recommended implementation (minimal, low-risk)
+So the fallback always has real data:
 
-Change `openGrowCheckout` to:
+- Backfill: `UPDATE profiles SET email = au.email FROM auth.users au WHERE profiles.id = au.id AND profiles.email IS NULL;`
+- Update `handle_new_user()` to also insert `new.email` into `profiles.email` for future signups.
 
-- Try `window.open(url, "_blank", "noopener,noreferrer")`.
-- If it succeeds → done (current behavior, unchanged).
-- If it returns `null` → **do not** call `window.location.href`. Instead:
-  - Save `sessionStorage.setItem("grow:pendingUrl", url)`.
-  - Return a sentinel (e.g. `{ blocked: true, url }`) so the caller can show a small "המשך לתשלום" button that is a real `<a target="_blank" href={url}>` the user clicks. This converts the programmatic open into a user-gesture open, which browsers allow.
+### Out of scope
 
-Update the few call sites that today call `openGrowCheckout(...)` and immediately close their modal:
-- `src/components/paywall/ColoringPurchaseModal.tsx`
-- any other `openGrowCheckout(...)` callers (PackageCard, Upgrade page, PurchaseSummaryModal, etc.)
-
-Pattern at each call site:
-
-```ts
-const res = openGrowCheckout(key, opts);
-if (res?.blocked) {
-  // show inline "המשך לתשלום" anchor instead of closing the modal
-  setBlockedUrl(res.url);
-  return;
-}
-onOpenChange(false);
-```
-
-The inline anchor:
-
-```tsx
-<a
-  href={blockedUrl}
-  target="_blank"
-  rel="noopener noreferrer"
-  className="..."
->
-  המשך לתשלום ✨
-</a>
-```
-
-## Files to change
-
-- `src/config/grow-links.ts` — change fallback behavior, return `{ blocked, url }` on popup-block.
-- `src/components/paywall/ColoringPurchaseModal.tsx` — handle blocked result with inline anchor.
-- `src/components/paywall/PurchaseSummaryModal.tsx` and other Grow callers — same pattern. I'll grep for `openGrowCheckout(` to find all sites during build mode.
-
-## Out of scope
-
-- No backend / webhook changes.
-- No change to checkout URLs, pricing, or `cField*` parameters.
-- No change to post-purchase verification flow.
+No changes to RLS, the admin RPC, purchase/stats logic, or any other tab's data fetching. Display-only fixes plus an email backfill.
