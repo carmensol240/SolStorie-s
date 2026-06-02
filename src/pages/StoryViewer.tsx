@@ -2255,7 +2255,12 @@ const [currentPage, setCurrentPage] = useState(0);
           storyId={resolvedId ?? storyId ?? ""}
           onPurchase={() => {
             setShowPrintPdfOffer(false);
-            import("@/config/grow-links").then(({ openGrowCheckout }) => openGrowCheckout("pdf"));
+            import("@/config/grow-links").then(({ openGrowCheckout }) =>
+              openGrowCheckout("pdf", {
+                userId: user?.id ?? null,
+                storyId: resolvedId ?? storyId ?? null,
+              })
+            );
           }}
         />
       )}

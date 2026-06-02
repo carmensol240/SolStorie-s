@@ -46,7 +46,10 @@ const ColoringPurchaseModal = ({
   const current = options[selected];
 
   const handleGrowCheckout = () => {
-    openGrowCheckout(selected === "single" ? "coloringSingle" : "coloringBundle");
+    openGrowCheckout(selected === "single" ? "coloringSingle" : "coloringBundle", {
+      userId: user?.id ?? null,
+      storyId: storyId ?? null,
+    });
     onOpenChange(false);
   };
 

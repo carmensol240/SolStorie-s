@@ -177,19 +177,22 @@ Deno.serve(async (req) => {
         : null;
 
     // ---------- GIFT FLOW ----------
-    // If the buyer has a recent pending_gifts row for this package, treat the
-    // purchase as a gift: generate a coupon, attach it to the pending_gifts
-    // row, record the purchase, and SKIP applyPurchaseCredits (the buyer
-    // should not receive credits — the recipient redeems them).
-    // Look up any recent pending_gift for this buyer regardless of packageId —
-    // the GiftCard form stores its own gift_* ids which don't match the
-    // amount-derived packageId, so we must not constrain on package_id.
+    // If the buyer has a recent pending_gifts row whose package_id matches
+    // this purchase, treat it as a gift: generate a coupon, attach it to
+    // the pending_gifts row, record the purchase, and SKIP
+    // applyPurchaseCredits (the buyer should not receive credits — the
+    // recipient redeems them).
+    //
+    // IMPORTANT: we MUST match on package_id. Without it, any stale
+    // pending_gift from the last 2 hours would hijack an unrelated regular
+    // purchase and misclassify it as a gift.
     {
       const { data: pendingGift } = await supabase
         .from("pending_gifts")
         .select("id, child_name, sender_name, package_id")
         .eq("user_id", userId)
         .eq("status", "pending")
+        .eq("package_id", packageId)
         .gte("created_at", new Date(Date.now() - 1000 * 60 * 60 * 2).toISOString())
         .order("created_at", { ascending: false })
         .limit(1)
