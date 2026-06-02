@@ -1101,7 +1101,7 @@ const AdminDashboard = () => {
                             <TableRow key={coupon.id} className="cursor-pointer" onClick={() => setExpandedCoupon(isExpanded ? null : coupon.id)}>
                               <TableCell className="text-center">{isExpanded ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}</TableCell>
                               <TableCell className="font-mono font-bold">{coupon.code}</TableCell>
-                              <TableCell><Badge variant="outline" className="text-xs">{coupon.coupon_type === "free_stories" ? `${coupon.free_stories} סיפורים` : `${coupon.discount_percent}% הנחה`}</Badge></TableCell>
+                              <TableCell><Badge variant="outline" className="text-xs">{coupon.coupon_type === "extra_stories" ? `${coupon.free_stories} סיפורים` : `${coupon.discount_percent}% הנחה`}</Badge></TableCell>
                               <TableCell>{redemptionsForCoupon.length}{coupon.max_uses ? ` / ${coupon.max_uses}` : ""}</TableCell>
                               <TableCell><Badge variant={coupon.is_active ? "default" : "secondary"} className="text-xs">{coupon.is_active ? "פעיל" : "לא פעיל"}</Badge></TableCell>
                               <TableCell className="text-xs">{formatDate(coupon.created_at)}</TableCell>
