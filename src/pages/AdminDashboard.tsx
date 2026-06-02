@@ -186,6 +186,8 @@ const AdminDashboard = () => {
   const [storyUnlocks, setStoryUnlocks] = useState<{ user_id: string; story_id: string }[]>([]);
   const [unlockDialogUserId, setUnlockDialogUserId] = useState<string | null>(null);
   const [unlockingStoryId, setUnlockingStoryId] = useState<string | null>(null);
+  const [dialogStories, setDialogStories] = useState<StoryRow[]>([]);
+  const [dialogStoriesLoading, setDialogStoriesLoading] = useState(false);
   const [loading, setLoading] = useState(true);
   const [authReady, setAuthReady] = useState(false);
   const { toast } = useToast();
