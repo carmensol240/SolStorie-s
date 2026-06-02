@@ -715,7 +715,7 @@ const AdminDashboard = () => {
 
                         return (
                           <TableRow key={p.id} className={hasErrors ? "bg-destructive/5" : ""}>
-                            <TableCell className="font-medium">{p.display_name || "—"}</TableCell>
+                            <TableCell className="font-medium">{p.display_name || displayName}</TableCell>
                             <TableCell className="text-xs text-muted-foreground">{p.email || "—"}</TableCell>
                             <TableCell><Badge variant="outline" className="text-xs">{p.user_role}</Badge></TableCell>
                             <TableCell>{userStories.length}</TableCell>
