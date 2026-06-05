@@ -20,96 +20,13 @@ Deno.serve(async (req) => {
     return new Response(null, { headers: corsHeaders });
   }
 
-  try {
-    // Authenticate user
-    const authHeader = req.headers.get("Authorization");
-    if (!authHeader?.startsWith("Bearer ")) {
-      return new Response(JSON.stringify({ error: "Unauthorized" }), {
-        status: 401,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
-    }
-
-    const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
-    const supabaseAnonKey = Deno.env.get("SUPABASE_ANON_KEY")!;
-    const serviceRoleKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
-
-    // Verify user with anon client
-    const anonClient = createClient(supabaseUrl, supabaseAnonKey, {
-      global: { headers: { Authorization: authHeader } },
-    });
-
-    const token = authHeader.replace("Bearer ", "");
-    const { data: claimsData, error: claimsError } = await anonClient.auth.getClaims(token);
-    if (claimsError || !claimsData?.claims) {
-      return new Response(JSON.stringify({ error: "Unauthorized" }), {
-        status: 401,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
-    }
-
-    const userId = claimsData.claims.sub as string;
-
-    const { stories, price, packageId } = await req.json();
-
-    // Validate input
-    if (!stories || !price || !packageId) {
-      return new Response(JSON.stringify({ error: "Missing required fields" }), {
-        status: 400,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
-    }
-
-    if (typeof stories !== "number" || stories < 1 || stories > 100) {
-      return new Response(JSON.stringify({ error: "Invalid stories count" }), {
-        status: 400,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
-    }
-
-    // Use service role to create coupon (bypasses RLS)
-    const adminClient = createClient(supabaseUrl, serviceRoleKey);
-
-    const code = generateCouponCode();
-
-    // Create coupon
-    const { error: couponError } = await adminClient.from("coupons").insert({
-      code,
-      coupon_type: "extra_stories",
-      free_stories: stories,
-      max_uses: 1,
-      current_uses: 0,
-      is_active: true,
-    });
-
-    if (couponError) {
-      console.error("Failed to create coupon:", couponError);
-      return new Response(JSON.stringify({ error: "Failed to create coupon" }), {
-        status: 500,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
-    }
-
-    // Record purchase
-    await adminClient.from("purchases").insert({
-      user_id: userId,
-      package_name: `gift_${packageId}`,
-      credits_purchased: stories,
-      amount_ils: price,
-      status: "completed",
-    });
-
-    console.log(`Gift coupon created: ${code} for ${stories} stories by user ${userId.substring(0, 8)}...`);
-
-    return new Response(JSON.stringify({ code }), {
-      status: 200,
-      headers: { ...corsHeaders, "Content-Type": "application/json" },
-    });
-  } catch (err) {
-    console.error("Error in create-gift-coupon:", err);
-    return new Response(JSON.stringify({ error: "Internal server error" }), {
-      status: 500,
-      headers: { ...corsHeaders, "Content-Type": "application/json" },
-    });
-  }
+  // This endpoint is DISABLED. Gift coupons are now issued only by the
+  // payment-verified flow in `grow-webhook` (matched against `pending_gifts`).
+  // The previous implementation allowed any authenticated user to mint
+  // unlimited gift coupons without payment verification.
+  console.warn("[create-gift-coupon] Disabled endpoint called");
+  return new Response(
+    JSON.stringify({ error: "Gone: gift coupons are issued only via verified payment webhook" }),
+    { status: 410, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+  );
 });
