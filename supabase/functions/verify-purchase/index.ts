@@ -139,7 +139,7 @@ Deno.serve(async (req) => {
       supabase,
       userId,
       packageId,
-      amount,
+      amount: testMode ? 0 : amount,
       orderId,
       source: testMode ? "test" : "paypal",
       storyId,
