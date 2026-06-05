@@ -615,7 +615,7 @@ const AdminDashboard = () => {
           <StatCard title="נרשמו השבוע" value={registeredThisWeek} icon={<CalendarPlus className="h-4 w-4" />} />
           <StatCard title="פעילים היום" value={activeUsersToday} icon={<Activity className="h-4 w-4" />} color="green" />
           <StatCard title="סיפורים היום" value={storiesToday} icon={<BookOpen className="h-4 w-4" />} color="green" />
-          <StatCard title="רכישות" value={purchases.filter(p => p.status === "completed" || p.status === "test_completed").length} icon={<ShoppingCart className="h-4 w-4" />} />
+          <StatCard title="רכישות" value={purchases.filter(p => p.status === "completed").length} icon={<ShoppingCart className="h-4 w-4" />} />
           <StatCard title="הכנסות" value={`₪${totalRevenue.toLocaleString()}`} icon={<TrendingUp className="h-4 w-4" />} />
           <StatCard title="שגיאות היום" value={errorsToday} icon={<AlertTriangle className="h-4 w-4" />} color={errorsToday > 0 ? "red" : undefined} />
         </div>
