@@ -87,80 +87,15 @@ Deno.serve(async (req) => {
         console.warn("[VERIFY-PURCHASE] ⚠️ testMode received non-zero amount, forcing to 0:", amount);
       }
     } else {
-    // Verify PayPal order
-    const paypalClientId = Deno.env.get("PAYPAL_CLIENT_ID");
-    const paypalSecret = Deno.env.get("PAYPAL_CLIENT_SECRET");
-
-    if (!paypalClientId || !paypalSecret) {
-      console.error("[VERIFY-PURCHASE] PayPal credentials not configured");
+      // PayPal has been removed. Grow is the sole active payment provider
+      // and is verified server-side via the grow-webhook function. The only
+      // remaining caller of verify-purchase is the whitelisted testMode flow.
+      console.error("[VERIFY-PURCHASE] Non-test request rejected — PayPal is no longer supported");
       return new Response(
-        JSON.stringify({ error: "Payment verification not configured" }),
-        { status: 500, headers: { ...CORS, "Content-Type": "application/json" } }
+        JSON.stringify({ error: "Payment provider not supported" }),
+        { status: 410, headers: { ...CORS, "Content-Type": "application/json" } }
       );
     }
-
-    // Get PayPal access token
-    const isLive = !paypalClientId.startsWith("Ac9EH"); // sandbox client IDs start with this
-    const paypalBase = isLive
-      ? "https://api-m.paypal.com"
-      : "https://api-m.sandbox.paypal.com";
-
-    const tokenRes = await fetch(`${paypalBase}/v1/oauth2/token`, {
-      method: "POST",
-      headers: {
-        Authorization: `Basic ${btoa(`${paypalClientId}:${paypalSecret}`)}`,
-        "Content-Type": "application/x-www-form-urlencoded",
-      },
-      body: "grant_type=client_credentials",
-    });
-
-    if (!tokenRes.ok) {
-      const tokenErr = await tokenRes.text();
-      console.error("[VERIFY-PURCHASE] Failed to get PayPal token:", tokenErr);
-      return new Response(
-        JSON.stringify({ error: "Payment verification failed" }),
-        { status: 500, headers: { ...CORS, "Content-Type": "application/json" } }
-      );
-    }
-
-    const { access_token } = await tokenRes.json();
-
-    // Verify the order
-    const orderRes = await fetch(`${paypalBase}/v2/checkout/orders/${orderId}`, {
-      headers: { Authorization: `Bearer ${access_token}` },
-    });
-
-    if (!orderRes.ok) {
-      const orderErr = await orderRes.text();
-      console.error("[VERIFY-PURCHASE] Failed to get order:", orderErr);
-      return new Response(
-        JSON.stringify({ error: "Order verification failed" }),
-        { status: 400, headers: { ...CORS, "Content-Type": "application/json" } }
-      );
-    }
-
-    const order = await orderRes.json();
-    console.log("[VERIFY-PURCHASE] Order status:", order.status);
-
-    if (order.status !== "COMPLETED") {
-      console.error("[VERIFY-PURCHASE] Order not completed:", order.status);
-      return new Response(
-        JSON.stringify({ error: "Payment not completed" }),
-        { status: 400, headers: { ...CORS, "Content-Type": "application/json" } }
-      );
-    }
-
-    // Verify amount matches
-    const paidAmount = parseFloat(order.purchase_units?.[0]?.amount?.value || "0");
-    if (Math.abs(paidAmount - amount) > 1) {
-      console.error(`[VERIFY-PURCHASE] Amount mismatch: paid ${paidAmount}, expected ${amount}`);
-      return new Response(
-        JSON.stringify({ error: "Amount mismatch" }),
-        { status: 400, headers: { ...CORS, "Content-Type": "application/json" } }
-      );
-    }
-    }
-    // ===== end PayPal verification =====
 
     // Apply credits via shared module (handles idempotency, package map, profile updates, story unlocks)
     const result = await applyPurchaseCredits({
@@ -169,7 +104,7 @@ Deno.serve(async (req) => {
       packageId,
       amount: testMode ? 0 : amount,
       orderId,
-      source: testMode ? "test" : "paypal",
+      source: "test",
       storyId,
       couponCode,
     });
