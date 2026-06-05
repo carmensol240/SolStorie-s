@@ -76,6 +76,31 @@ Deno.serve(async (req) => {
     });
 
   try {
+    // ── Shared-secret authentication ──
+    // Grow does not sign webhooks, so we require a shared secret in either
+    // the `?token=` query string or an `x-webhook-token` header. Configure
+    // the same value in the Grow merchant webhook URL.
+    const expectedToken = Deno.env.get("GROW_WEBHOOK_SECRET");
+    if (!expectedToken) {
+      console.error("[GROW-WEBHOOK] GROW_WEBHOOK_SECRET not configured — refusing all requests");
+      return new Response(JSON.stringify({ error: "Webhook not configured" }), {
+        status: 503,
+        headers: { ...CORS, "Content-Type": "application/json" },
+      });
+    }
+    const url = new URL(req.url);
+    const providedToken =
+      url.searchParams.get("token") ||
+      req.headers.get("x-webhook-token") ||
+      "";
+    if (providedToken !== expectedToken) {
+      console.warn("[GROW-WEBHOOK] Rejected unauthenticated request");
+      return new Response(JSON.stringify({ error: "Unauthorized" }), {
+        status: 401,
+        headers: { ...CORS, "Content-Type": "application/json" },
+      });
+    }
+
     const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
     const serviceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
     const supabase = createClient(supabaseUrl, serviceKey);
