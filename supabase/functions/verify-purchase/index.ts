@@ -15,6 +15,15 @@ Deno.serve(async (req) => {
   }
 
   try {
+    // Require authenticated caller and ensure the JWT user matches the body userId
+    const authHeader = req.headers.get("authorization") || req.headers.get("Authorization") || "";
+    if (!authHeader.startsWith("Bearer ")) {
+      return new Response(
+        JSON.stringify({ error: "Unauthorized" }),
+        { status: 401, headers: { ...CORS, "Content-Type": "application/json" } }
+      );
+    }
+
     const { orderId, packageId, amount, userId, couponCode, storyId, testMode } = await req.json();
 
     // Validate inputs
@@ -34,6 +43,25 @@ Deno.serve(async (req) => {
     const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
     const serviceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
     const supabase = createClient(supabaseUrl, serviceKey);
+
+    // Validate the caller's JWT and assert it matches the supplied userId
+    {
+      const token = authHeader.replace("Bearer ", "");
+      const { data: authData, error: authErr } = await supabase.auth.getUser(token);
+      if (authErr || !authData?.user?.id) {
+        return new Response(
+          JSON.stringify({ error: "Unauthorized" }),
+          { status: 401, headers: { ...CORS, "Content-Type": "application/json" } }
+        );
+      }
+      if (authData.user.id !== userId) {
+        console.error("[VERIFY-PURCHASE] userId mismatch: jwt=%s body=%s", authData.user.id, userId);
+        return new Response(
+          JSON.stringify({ error: "Forbidden" }),
+          { status: 403, headers: { ...CORS, "Content-Type": "application/json" } }
+        );
+      }
+    }
 
     // ===== TEST MODE BYPASS =====
     if (testMode === true) {
