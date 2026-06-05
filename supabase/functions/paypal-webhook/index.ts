@@ -44,10 +44,83 @@ Deno.serve(async (req) => {
   }
 
   try {
-    const body = await req.json();
+    const rawBody = await req.text();
+    const body = JSON.parse(rawBody);
     const eventType = body.event_type;
 
     console.log(`[PAYPAL-WEBHOOK] Received event: ${eventType}`);
+
+    // ── Verify webhook signature with PayPal ──
+    const webhookId = Deno.env.get("PAYPAL_WEBHOOK_ID");
+    const paypalClientIdEarly = Deno.env.get("PAYPAL_CLIENT_ID");
+    const paypalSecretEarly = Deno.env.get("PAYPAL_CLIENT_SECRET");
+    if (!webhookId) {
+      console.error("[PAYPAL-WEBHOOK] PAYPAL_WEBHOOK_ID not configured — rejecting");
+      return new Response(JSON.stringify({ error: "Webhook not configured" }), {
+        status: 503,
+        headers: { ...CORS, "Content-Type": "application/json" },
+      });
+    }
+    if (paypalClientIdEarly && paypalSecretEarly) {
+      const isLiveEarly = !paypalClientIdEarly.startsWith("Ac9EH");
+      const paypalBaseEarly = isLiveEarly
+        ? "https://api-m.paypal.com"
+        : "https://api-m.sandbox.paypal.com";
+
+      try {
+        const tokenRes = await fetch(`${paypalBaseEarly}/v1/oauth2/token`, {
+          method: "POST",
+          headers: {
+            Authorization: `Basic ${btoa(`${paypalClientIdEarly}:${paypalSecretEarly}`)}`,
+            "Content-Type": "application/x-www-form-urlencoded",
+          },
+          body: "grant_type=client_credentials",
+        });
+        if (!tokenRes.ok) throw new Error("token fetch failed");
+        const { access_token } = await tokenRes.json();
+
+        const verifyRes = await fetch(
+          `${paypalBaseEarly}/v1/notifications/verify-webhook-signature`,
+          {
+            method: "POST",
+            headers: {
+              Authorization: `Bearer ${access_token}`,
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+              auth_algo: req.headers.get("paypal-auth-algo"),
+              cert_url: req.headers.get("paypal-cert-url"),
+              transmission_id: req.headers.get("paypal-transmission-id"),
+              transmission_sig: req.headers.get("paypal-transmission-sig"),
+              transmission_time: req.headers.get("paypal-transmission-time"),
+              webhook_id: webhookId,
+              webhook_event: body,
+            }),
+          }
+        );
+        const verifyJson = await verifyRes.json().catch(() => ({}));
+        if (!verifyRes.ok || verifyJson.verification_status !== "SUCCESS") {
+          console.error("[PAYPAL-WEBHOOK] Signature verification FAILED:", verifyJson);
+          return new Response(JSON.stringify({ error: "Invalid signature" }), {
+            status: 401,
+            headers: { ...CORS, "Content-Type": "application/json" },
+          });
+        }
+        console.log("[PAYPAL-WEBHOOK] ✅ Signature verified");
+      } catch (sigErr) {
+        console.error("[PAYPAL-WEBHOOK] Signature verification error:", sigErr);
+        return new Response(JSON.stringify({ error: "Signature verification failed" }), {
+          status: 401,
+          headers: { ...CORS, "Content-Type": "application/json" },
+        });
+      }
+    } else {
+      console.error("[PAYPAL-WEBHOOK] PayPal credentials not configured — rejecting");
+      return new Response(JSON.stringify({ error: "Webhook not configured" }), {
+        status: 503,
+        headers: { ...CORS, "Content-Type": "application/json" },
+      });
+    }
 
     // Only process completed payments
     if (eventType !== "CHECKOUT.ORDER.COMPLETED" && eventType !== "PAYMENT.CAPTURE.COMPLETED") {
