@@ -1,37 +1,81 @@
-## Findings
+## Goal
+Make it structurally hard to ship a new `public` table without RLS, grants, and policies — so future schema work is secure by default instead of secure by remembering.
 
-- `purchases` table has 22 rows, **all** `status='test_completed'`, **all** `amount_ils=0`, **all** from the whitelisted test user `carmit1901+test@gmail.com` (`49cd7676-ab96-496b-9287-61a9d67d3e68`).
-- Zero rows with `status='completed'` exist. No real (paid) purchase has been recorded in the DB.
-- The dashboard "רכישות" card counts BOTH `completed` and `test_completed` (AdminDashboard.tsx:618), which is why it shows 22.
+## Approach: 4 complementary layers
 
-So the 22 are test-mode bypass purchases accumulated over ~2 months. The 2 "real credit card" purchases are either:
-- (a) Also routed through `testMode` because they were made on the whitelisted test email (then they'd be among the 22, with amount=0 — losing the real amount), or
-- (b) Real Grow webhook calls that never inserted a row (webhook failure, signature mismatch, or user-id resolution failure).
+### Layer 1 — Database event trigger (auto-lockdown)
+Create a `public` event trigger that runs on every `CREATE TABLE` in `public` and:
 
-## Plan
+```sql
+CREATE OR REPLACE FUNCTION public.auto_secure_new_table()
+RETURNS event_trigger
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = public
+AS $$
+DECLARE
+  obj record;
+BEGIN
+  FOR obj IN
+    SELECT * FROM pg_event_trigger_ddl_commands()
+    WHERE command_tag = 'CREATE TABLE'
+      AND schema_name = 'public'
+  LOOP
+    EXECUTE format('ALTER TABLE %s ENABLE ROW LEVEL SECURITY', obj.object_identity);
+    EXECUTE format('ALTER TABLE %s FORCE ROW LEVEL SECURITY', obj.object_identity);
+    EXECUTE format('REVOKE ALL ON %s FROM anon, authenticated', obj.object_identity);
+    -- service_role keeps full access via its own GRANT below
+    EXECUTE format('GRANT ALL ON %s TO service_role', obj.object_identity);
+  END LOOP;
+END;
+$$;
 
-### 1. Diagnose the 2 missing real purchases
-- Pull `grow-webhook` edge function logs from the past 7 days and look for any incoming requests, signature failures, or errors.
-- Check `error_logs` for `verify_purchase_error` or grow-webhook errors in the same window.
-- Confirm which email/card the 2 real purchases were made under. If it was the whitelisted test email, the client likely sent `testMode: true` → that's why they recorded as `test_completed` with amount 0 (data loss).
+CREATE EVENT TRIGGER auto_secure_new_table_trg
+ON ddl_command_end
+WHEN TAG IN ('CREATE TABLE')
+EXECUTE FUNCTION public.auto_secure_new_table();
+```
 
-### 2. Fix the admin counter so test purchases don't inflate "real" stats
-In `src/pages/AdminDashboard.tsx`:
-- "רכישות" StatCard (line 618): count only `status === 'completed'` (exclude `test_completed`).
-- Optionally add a second small badge/card "בדיקות" showing `test_completed` count, so admin can still see test activity.
-- `totalRevenue` (line 488) already correctly excludes `test_completed` — leave as-is.
+Result: a new table created with no policies returns zero rows to anon/authenticated until we add explicit grants + policies. service_role (edge functions, admin scripts) still works out of the box.
 
-### 3. Prevent real purchases from being silently swallowed by testMode
-In `supabase/functions/verify-purchase/index.ts`:
-- Currently any request from the whitelisted email with `testMode:true` becomes a free `test_completed` row. If the client accidentally passes `testMode:true` on a real PayPal/Grow flow, the real amount is lost.
-- Add a guard: when `testMode === true`, require that `amount === 0` (or simply ignore amount and store 0). Real flows must NOT send `testMode:true`. Also log a warning if a non-zero amount arrives with testMode.
-- Audit the client (Upgrade.tsx, paywall components) to confirm `testMode:true` is only sent from an explicit "Test purchase" debug button, never from the real checkout buttons.
+Risks / caveats:
+- Existing migration patterns must still include explicit GRANT + POLICY blocks. The trigger only prevents the "forgot to enable RLS" footgun; it does NOT write your policies for you.
+- `FORCE RLS` means even the table owner is subject to policies. If any current migrations rely on owner-bypass, we should validate before enabling FORCE. Safe alternative: enable only `ENABLE ROW LEVEL SECURITY` (not FORCE).
+- Event triggers run as superuser; the function should be minimal and audited.
 
-### 4. (Optional) Clean up old test rows
-Provide a one-off SQL the user can run via migration to delete the 22 old `test_completed` rows so the counter starts clean. Only if user wants.
+### Layer 2 — Standard policy templates
+Add a `.lovable/templates/secure-table.sql` (or memory entry) with copy-paste recipes for the 3 most common table shapes in this project:
+
+1. **Owner-scoped table** (most common): `auth.uid() = user_id` for select/insert/update/delete, plus admin override, plus service_role.
+2. **Admin-only table** (logs, audit): SELECT only via `has_role(auth.uid(),'admin')`, INSERT only via service_role.
+3. **Public-read table** (catalog, premium_stories): SELECT to `anon, authenticated` with a column filter (e.g. `is_active=true`), writes admin-only.
+
+Each template includes the matching GRANT block and a comment block reminding the author to think about anon access.
+
+### Layer 3 — Mandatory post-migration linter run
+Adopt a workflow rule (and add it to project memory):
+> After any migration that touches schema, run `supabase--linter` and resolve every WARN/ERROR before moving on.
+
+The linter already detects:
+- Tables with RLS disabled
+- Overly permissive policies
+- SECURITY DEFINER functions exposed to anon/authenticated
+- Functions with mutable search_path
+
+We can additionally run `security--run_security_scan` for the scanner-level findings (the ones the user just resolved).
+
+### Layer 4 — Memory rule reinforcement
+Update `mem://core` with a single non-negotiable line:
+
+> Every new `public` table migration MUST follow: CREATE → GRANT → ENABLE RLS → POLICY, plus a `supabase--linter` run at the end. The `auto_secure_new_table_trg` event trigger is a backstop, not a substitute.
 
 ## Deliverables
-- Diagnostic report (from step 1) — which path the 2 real purchases took.
-- Code change in `AdminDashboard.tsx` to count only real `completed`.
-- Hardening of `verify-purchase` to prevent real revenue being recorded as test.
-- Optional migration to wipe stale test rows.
+1. New migration that installs `auto_secure_new_table()` + event trigger.
+2. `.lovable/templates/secure-table.sql` with the 3 standard templates.
+3. Memory update under `mem://security/database-access-control` describing the new workflow + event trigger behavior.
+4. (Optional, recommended) Run `supabase--linter` now to surface any current tables that would benefit from tightening.
+
+## Open question
+Do you want `FORCE ROW LEVEL SECURITY` (strict — even table owner respects RLS) or just `ENABLE ROW LEVEL SECURITY` (standard — owner bypasses, edge functions use service_role which bypasses anyway)?
+
+Recommendation: **ENABLE only**, not FORCE. FORCE can break legitimate admin SQL run via `psql` as the database owner. ENABLE + the existing service_role pattern is already enough to lock out anon/authenticated.
