@@ -1,16 +1,9 @@
-import { useState, useEffect } from "react";
+import { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { X, Sparkles, Heart, Users, Crown, Shield } from "lucide-react";
+import { X, Sparkles, Heart, Users, Crown } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import PurchaseSuccessModal from "@/components/paywall/PurchaseSuccessModal";
-import PurchaseFailedModal from "@/components/paywall/PurchaseFailedModal";
-import PayPalButton from "@/components/paywall/PayPalButton";
 import { useAuth } from "@/hooks/use-auth";
-import { useSubscription } from "@/hooks/use-subscription";
 import { useAnalytics } from "@/hooks/use-analytics";
-import { supabase } from "@/integrations/supabase/client";
-import { TOOLKIT_SUBSCRIPTION } from "@/config/pricing";
-import { toast } from "sonner";
 
 const BENEFITS = [
   {
@@ -39,52 +32,14 @@ const BENEFITS = [
 const Toolkit = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
-  const { refetch: refetchSubscription } = useSubscription();
   const { trackEvent } = useAnalytics();
-
-  const [showPayPal, setShowPayPal] = useState(false);
-  const [showSuccess, setShowSuccess] = useState(false);
-  const [showFailed, setShowFailed] = useState(false);
 
   useEffect(() => {
     window.scrollTo(0, 0);
   }, []);
 
-  const handlePurchase = () => {
-    if (!user) {
-      navigate("/auth");
-      return;
-    }
-    setShowPayPal(true);
-    trackEvent({ eventType: "feature_used", metadata: { feature: "toolkit_purchase_started" } });
-  };
-
-  const handlePayPalSuccess = async (orderId: string) => {
-    if (!user) return;
-    try {
-      const { data, error } = await supabase.functions.invoke('verify-purchase', {
-        body: { orderId, packageId: TOOLKIT_SUBSCRIPTION.id, amount: TOOLKIT_SUBSCRIPTION.price, userId: user.id },
-      });
-      if (error) throw error;
-      if (!data?.success) throw new Error(data?.error || 'Verification failed');
-
-      refetchSubscription();
-      setShowPayPal(false);
-      setShowSuccess(true);
-      trackEvent({ eventType: "feature_used", metadata: { feature: "toolkit_subscription_completed", payment_method: "paypal" } });
-    } catch (error) {
-      console.error("Toolkit purchase failed:", error);
-      toast.error("שגיאה באימות הרכישה. אם חויבתם, צרו איתנו קשר.");
-      setShowPayPal(false);
-      setShowFailed(true);
-    }
-  };
-
-  const handlePayPalError = (error: any) => {
-    console.error("Toolkit PayPal error:", error);
-    setShowPayPal(false);
-    setShowFailed(true);
-  };
+  void user;
+  void trackEvent;
 
   return (
     <div className="min-h-[100dvh] flex flex-col relative overflow-hidden" dir="rtl">
@@ -180,8 +135,7 @@ const Toolkit = () => {
       </div>
 
       {/* Fixed Bottom CTA */}
-      {!showPayPal && (
-        <div className="fixed bottom-0 inset-x-0 z-30 p-4 bg-gradient-to-t from-[hsl(250,50%,12%)] via-[hsl(250,50%,12%)]/95 to-transparent pt-10">
+      <div className="fixed bottom-0 inset-x-0 z-30 p-4 bg-gradient-to-t from-[hsl(250,50%,12%)] via-[hsl(250,50%,12%)]/95 to-transparent pt-10">
           <div className="max-w-md mx-auto space-y-3">
             <Button
               disabled
@@ -199,26 +153,7 @@ const Toolkit = () => {
               אולי אחר כך
             </button>
           </div>
-        </div>
-      )}
-
-      {/* Success Modal */}
-      <PurchaseSuccessModal
-        open={showSuccess}
-        onOpenChange={setShowSuccess}
-        creditsAdded={0}
-        isSubscription={true}
-      />
-
-      {/* Failed Modal */}
-      <PurchaseFailedModal
-        open={showFailed}
-        onOpenChange={setShowFailed}
-        onRetry={() => {
-          setShowFailed(false);
-          setShowPayPal(true);
-        }}
-      />
+      </div>
     </div>
   );
 };
