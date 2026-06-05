@@ -363,7 +363,7 @@ const AdminDashboard = () => {
     const [profilesRes, purchasesRes, storiesRes, emailsRes, couponsRes, redemptionsRes, errorsRes, illustrationsRes, coversRes, fbRes, unlocksRes] = await Promise.all([
       supabase.from("profiles").select("id, display_name, email, created_at, story_credits, coloring_credits, editing_credits, is_subscriber, user_role").not("id", "in", `(${EXCLUDED_IDS.join(",")})`).order("created_at", { ascending: false }).limit(500),
       // Do NOT exclude admin/test users from purchases — they need to be
-      // visible in the dashboard so admins can verify that the Grow / PayPal
+      // visible in the dashboard so admins can verify that the Grow
       // flow actually produced a row. Filtering by EXCLUDED_IDS here was
       // hiding every recorded purchase and making the counter read 0.
       supabase.from("purchases").select("*").order("created_at", { ascending: false }).limit(500),
