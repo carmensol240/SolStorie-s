@@ -31,11 +31,31 @@ serve(async (req) => {
     const supabaseKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
     const supabase = createClient(supabaseUrl, supabaseKey);
 
-    // Extract user ID from JWT if available
-    let userId: string | null = null;
-    if (authHeader.startsWith("Bearer ")) {
-      const { data: { user } } = await supabase.auth.getUser(authHeader.replace("Bearer ", ""));
-      userId = user?.id ?? null;
+    // Require authentication — anonymous callers must not consume AI quota
+    if (!authHeader.startsWith("Bearer ")) {
+      return jsonResponse({ error: "Unauthorized" }, 401);
+    }
+    const { data: { user }, error: authErr } = await supabase.auth.getUser(
+      authHeader.replace("Bearer ", "")
+    );
+    if (authErr || !user?.id) {
+      return jsonResponse({ error: "Unauthorized" }, 401);
+    }
+    const userId: string = user.id;
+
+    if (!story_id) {
+      return jsonResponse({ error: "story_id is required" }, 400);
+    }
+
+    // Verify the story belongs to this user
+    const { data: storyOwner } = await supabase
+      .from("stories")
+      .select("id")
+      .eq("id", story_id)
+      .eq("user_id", userId)
+      .maybeSingle();
+    if (!storyOwner) {
+      return jsonResponse({ error: "Forbidden" }, 403);
     }
 
     // ── Cache check ──
