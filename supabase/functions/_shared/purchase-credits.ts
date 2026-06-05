@@ -27,7 +27,7 @@ export interface ApplyCreditsParams {
   packageId: string;
   amount: number;
   orderId: string;
-  source: "paypal" | "grow" | "test";
+  source: "grow" | "test";
   storyId?: string | null;
   couponCode?: string | null;
   status?: string;

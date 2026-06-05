@@ -1,5 +1,5 @@
 // Grow payment links. Each key represents a purchasable item / package.
-// Used as the primary checkout flow; PayPal remains available as a fallback.
+// Grow is the sole active payment provider.
 export const GROW_LINKS = {
   // Basic package — single digital story (49.90 ₪)
   basic: "https://pay.grow.link/MTAxMTMz~c553eb7e7fdf0752b8277d9777188b87-MzQ3NDUyNg",

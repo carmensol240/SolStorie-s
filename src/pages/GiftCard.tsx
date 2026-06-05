@@ -62,7 +62,7 @@ const GiftCard = () => {
   const PENDING_GIFT_KEY = "pending_gift_id";
 
   // Poll the get-gift-coupon edge function until the webhook attaches a code
-  // (or we time out after ~60s). Reuses the same success screen as PayPal.
+  // (or we time out after ~60s). Shows the standard success screen on completion.
   const pollForGiftCoupon = useCallback(
     async (pendingGiftId: string) => {
       setWaitingForGrow(true);
