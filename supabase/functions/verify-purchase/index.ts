@@ -55,6 +55,9 @@ Deno.serve(async (req) => {
         );
       }
       console.log("[VERIFY-PURCHASE] ✅ testMode authorized for", email);
+      if (Number(amount) > 0) {
+        console.warn("[VERIFY-PURCHASE] ⚠️ testMode received non-zero amount, forcing to 0:", amount);
+      }
     } else {
     // Verify PayPal order
     const paypalClientId = Deno.env.get("PAYPAL_CLIENT_ID");
