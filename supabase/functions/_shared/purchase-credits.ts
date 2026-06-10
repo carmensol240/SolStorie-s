@@ -93,6 +93,21 @@ export async function applyPurchaseCredits(
     console.log("[PURCHASE-CREDITS] coloring_story → credits:", config.coloringPages);
   }
 
+  // First-purchase bonus — applies ONLY to single_story package.
+  // If user has no prior completed purchase, double the stories/freeEdits.
+  if (config.firstPurchaseBonus) {
+    const { count: priorCount } = await supabase
+      .from("purchases")
+      .select("id", { count: "exact", head: true })
+      .eq("user_id", userId)
+      .in("status", ["completed", "test_completed"]);
+    if ((priorCount ?? 0) === 0) {
+      config.stories = (config.stories ?? 0) + 1;
+      config.freeEdits = (config.freeEdits ?? 0) + 1;
+      console.log("[PURCHASE-CREDITS] single_story first-purchase bonus applied → +1 story, +1 edit");
+    }
+  }
+
   // Insert purchase record
   const packageName = couponCode ? `${packageId}_coupon_${couponCode}` : packageId;
   const status = params.status ?? (source === "test" ? "test_completed" : "completed");
