@@ -40,6 +40,7 @@ import RequireTerms from "./components/RequireTerms";
 import RequireAdmin from "./components/RequireAdmin";
 import ScrollToTop from "./components/ScrollToTop";
 import OAuthReturnHandler from "./components/auth/OAuthReturnHandler";
+import GlobalPurchaseHandler from "./components/paywall/GlobalPurchaseHandler";
 import Toolkit from "./pages/Toolkit";
 import AdminReviews from "./pages/AdminReviews";
 import AdminDashboard from "./pages/AdminDashboard";
@@ -57,6 +58,7 @@ function App() { useTimeTheme(); return (
         <BrowserRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
           <ScrollToTop />
           <OAuthReturnHandler />
+          <GlobalPurchaseHandler />
           
           <AccessibilityMenu />
           
