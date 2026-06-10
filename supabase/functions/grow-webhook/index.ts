@@ -237,11 +237,17 @@ Deno.serve(async (req) => {
 
         // Generate a unique coupon code (retry on rare collision)
         let code = generateGiftCouponCode();
+        // Gift "Popular" package = 1 story + 1 coloring + global PDF
+        const isPopularGift = pendingGift.package_id === "gift_single_full";
+        const giftColoring = isPopularGift ? 1 : 0;
+        const giftGlobalPdf = isPopularGift;
         for (let attempt = 0; attempt < 5; attempt++) {
           const { error: couponError } = await supabase.from("coupons").insert({
             code,
             coupon_type: "extra_stories",
             free_stories: giftStories,
+            extra_coloring_credits: giftColoring,
+            grants_global_pdf: giftGlobalPdf,
             max_uses: 1,
             current_uses: 0,
             is_active: true,
