@@ -2,7 +2,7 @@
 
 export const packageConfig: Record<string, any> = {
   basic: { stories: 2, freeEdits: 2, coloringPages: 2 },
-  popular: { stories: 6, freeEdits: 6, coloringPages: 10 },
+  popular: { stories: 1, freeEdits: 1, coloringPages: 1, pdfDownload: true },
   premium: { stories: 10, freeEdits: 10, coloringPages: 10 },
   educator_basic: { stories: 2, freeEdits: 2, coloringPages: 2 },
   educator_popular: { stories: 6, freeEdits: 6, coloringPages: 6 },
@@ -13,7 +13,7 @@ export const packageConfig: Record<string, any> = {
   coloring_story: { stories: 0, freeEdits: 0, coloringPages: 0, dynamicColoringFromStory: true },
   edit_kit: { stories: 0, freeEdits: 0, coloringPages: 0, editingCredits: 5 },
   toolkit_yearly: { stories: 0, freeEdits: 0, coloringPages: 0, isSubscription: true },
-  single_story: { stories: 0, freeEdits: 0, coloringPages: 0 },
+  single_story: { stories: 1, freeEdits: 1, coloringPages: 0, firstPurchaseBonus: true },
   single_story_digital: { stories: 1, freeEdits: 1, coloringPages: 1 },
   single_story_full: { stories: 1, freeEdits: 1, coloringPages: 1 },
   pdf: { stories: 0, freeEdits: 0, coloringPages: 0, pdfDownload: true },
@@ -91,6 +91,21 @@ export async function applyPurchaseCredits(
       config.coloringPages = 5;
     }
     console.log("[PURCHASE-CREDITS] coloring_story → credits:", config.coloringPages);
+  }
+
+  // First-purchase bonus — applies ONLY to single_story package.
+  // If user has no prior completed purchase, double the stories/freeEdits.
+  if (config.firstPurchaseBonus) {
+    const { count: priorCount } = await supabase
+      .from("purchases")
+      .select("id", { count: "exact", head: true })
+      .eq("user_id", userId)
+      .in("status", ["completed", "test_completed"]);
+    if ((priorCount ?? 0) === 0) {
+      config.stories = (config.stories ?? 0) + 1;
+      config.freeEdits = (config.freeEdits ?? 0) + 1;
+      console.log("[PURCHASE-CREDITS] single_story first-purchase bonus applied → +1 story, +1 edit");
+    }
   }
 
   // Insert purchase record
