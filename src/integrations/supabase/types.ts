@@ -209,7 +209,9 @@ export type Database = {
           current_uses: number | null
           discount_percent: number | null
           expires_at: string | null
+          extra_coloring_credits: number
           free_stories: number | null
+          grants_global_pdf: boolean
           id: string
           is_active: boolean | null
           max_uses: number | null
@@ -221,7 +223,9 @@ export type Database = {
           current_uses?: number | null
           discount_percent?: number | null
           expires_at?: string | null
+          extra_coloring_credits?: number
           free_stories?: number | null
+          grants_global_pdf?: boolean
           id?: string
           is_active?: boolean | null
           max_uses?: number | null
@@ -233,7 +237,9 @@ export type Database = {
           current_uses?: number | null
           discount_percent?: number | null
           expires_at?: string | null
+          extra_coloring_credits?: number
           free_stories?: number | null
+          grants_global_pdf?: boolean
           id?: string
           is_active?: boolean | null
           max_uses?: number | null
