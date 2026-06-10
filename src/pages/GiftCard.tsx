@@ -10,7 +10,7 @@ import { useAnalytics } from "@/hooks/use-analytics";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import { CURRENCY_SYMBOL } from "@/config/pricing";
-import { GROW_LINKS, type GrowLinkKey } from "@/config/grow-links";
+import { GROW_LINKS, openGrowCheckout, type GrowLinkKey } from "@/config/grow-links";
 
 const GIFT_PACKAGES = [
   {
@@ -160,9 +160,15 @@ const GiftCard = () => {
         },
       });
 
-      const url = GROW_LINKS[growKey];
-      const win = window.open(url, "_blank", "noopener,noreferrer");
-      if (!win) window.location.href = url;
+      // Use openGrowCheckout so cField1 (userId) and cField2 (packageId) are
+      // appended to the Grow URL — without these the webhook cannot identify
+      // the buyer or the exact gift package, and would treat the payment as
+      // a regular purchase (giving credits to the buyer instead of issuing
+      // a gift coupon for the recipient).
+      openGrowCheckout(growKey, {
+        userId: user.id,
+        packageId: selectedPkg.id,
+      });
     } catch (err) {
       console.error("Failed to start Grow gift purchase:", err);
       toast.error("שגיאה בהתחלת התשלום. נסו שוב.");
