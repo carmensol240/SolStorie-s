@@ -237,11 +237,17 @@ Deno.serve(async (req) => {
 
         // Generate a unique coupon code (retry on rare collision)
         let code = generateGiftCouponCode();
+        // Gift "Popular" package = 1 story + 1 coloring + global PDF
+        const isPopularGift = pendingGift.package_id === "gift_single_full";
+        const giftColoring = isPopularGift ? 1 : 0;
+        const giftGlobalPdf = isPopularGift;
         for (let attempt = 0; attempt < 5; attempt++) {
           const { error: couponError } = await supabase.from("coupons").insert({
             code,
             coupon_type: "extra_stories",
             free_stories: giftStories,
+            extra_coloring_credits: giftColoring,
+            grants_global_pdf: giftGlobalPdf,
             max_uses: 1,
             current_uses: 0,
             is_active: true,
@@ -280,6 +286,72 @@ Deno.serve(async (req) => {
         console.log(
           `[GROW-WEBHOOK] Gift coupon issued: ${code} for ${giftStories} stories (tx ${transactionId})`
         );
+
+        // Resolve sender (buyer) email for the gift confirmation email
+        let senderEmail = payerEmail || "";
+        try {
+          const { data: buyerData } = await supabase.auth.admin.getUserById(userId);
+          if (buyerData?.user?.email) senderEmail = buyerData.user.email;
+        } catch (_) { /* ignore */ }
+
+        // Send Hebrew gift email to the SENDER with code + redemption
+        // instructions (non-blocking — failures are logged).
+        try {
+          const resendKey = Deno.env.get("RESEND_API_KEY");
+          if (resendKey && senderEmail) {
+            const senderName = pendingGift.sender_name || "אתם";
+            const childName = pendingGift.child_name || "";
+            const storiesLabel =
+              giftStories === 1 ? "סיפור אישי אחד" : `${giftStories} סיפורים אישיים`;
+            const redeemUrl = `https://soulstory.co.il/upgrade?coupon=${encodeURIComponent(code)}`;
+            const shareMessage =
+              `${senderName} שלח/ה לך מתנה קסומה! ${storiesLabel} שבהם ${childName} הופך/ת לגיבור/ה של הרפתקאות מרגשות. ` +
+              `איך מממשים? נכנסים לקישור הבא, נרשמים/מתחברים, והקופון יוזן עבורכם אוטומטית: ${redeemUrl} (קוד הקופון: ${code}). קריאה מהנה ומרגשת! ❤️`;
+            const whatsappUrl = `https://wa.me/?text=${encodeURIComponent(shareMessage)}`;
+
+            await fetch("https://api.resend.com/emails", {
+              method: "POST",
+              headers: {
+                Authorization: `Bearer ${resendKey}`,
+                "Content-Type": "application/json",
+              },
+              body: JSON.stringify({
+                from: "SoulStory <onboarding@resend.dev>",
+                to: [senderEmail],
+                subject: `🎁 קוד המתנה שלך ל-${childName} מוכן!`,
+                html: `<div dir="rtl" style="font-family: Arial, sans-serif; max-width: 560px; margin: 0 auto; padding: 24px; color: #1a1a2e;">
+                  <h1 style="color: #6d28d9;">🎁 קוד המתנה שלך מוכן!</h1>
+                  <p>היי ${senderName},</p>
+                  <p>תודה שרכשתם מתנה ל-<b>${childName}</b> ב-SoulStory! ✨</p>
+                  <p>קיבלתם <b>${storiesLabel}</b> שבהם ${childName} הופך/ת לגיבור/ה ראשי/ת של ההרפתקה.</p>
+                  <div style="background: #f3e8ff; border: 2px dashed #6d28d9; border-radius: 12px; padding: 16px; text-align: center; margin: 20px 0;">
+                    <div style="font-size: 13px; color: #6b7280; margin-bottom: 8px;">קוד הקופון</div>
+                    <div style="font-size: 28px; font-weight: bold; letter-spacing: 2px; color: #6d28d9;">${code}</div>
+                  </div>
+                  <h3>איך מממשים?</h3>
+                  <ol style="line-height: 1.8;">
+                    <li>שולחים ל-${childName} (או להורה) את הקוד ואת קישור המימוש:
+                      <br/><a href="${redeemUrl}" style="color: #6d28d9; word-break: break-all;">${redeemUrl}</a>
+                    </li>
+                    <li>הם נרשמים / מתחברים לאפליקציה.</li>
+                    <li>הקופון יוזן עבורם אוטומטית והקרדיטים יתווספו לחשבון.</li>
+                  </ol>
+                  <p style="margin-top: 24px;">
+                    <a href="${whatsappUrl}" style="background: #25d366; color: white; padding: 12px 24px; border-radius: 8px; text-decoration: none; display: inline-block;">
+                      📲 שתף בוואטסאפ
+                    </a>
+                  </p>
+                  <hr style="margin: 32px 0; border: none; border-top: 1px solid #e5e7eb;"/>
+                  <p style="font-size: 12px; color: #6b7280;">קריאה מהנה ומרגשת! ❤️ — צוות SoulStory</p>
+                </div>`,
+              }),
+            });
+          } else if (!senderEmail) {
+            console.warn("[GROW-WEBHOOK] Gift sender email not resolved — skipped sender email");
+          }
+        } catch (mailErr) {
+          console.error("[GROW-WEBHOOK] Gift sender email failed:", mailErr);
+        }
 
         // Notify admin (non-blocking)
         try {
