@@ -13,10 +13,11 @@ export const packageConfig: Record<string, any> = {
   coloring_story: { stories: 0, freeEdits: 0, coloringPages: 0, dynamicColoringFromStory: true },
   edit_kit: { stories: 0, freeEdits: 0, coloringPages: 0, editingCredits: 5 },
   toolkit_yearly: { stories: 0, freeEdits: 0, coloringPages: 0, isSubscription: true },
-  single_story: { stories: 0, freeEdits: 0, coloringPages: 0 },
+  single_story: { stories: 1, freeEdits: 1, coloringPages: 0, firstPurchaseBonus: true },
   single_story_digital: { stories: 1, freeEdits: 1, coloringPages: 1 },
   single_story_full: { stories: 1, freeEdits: 1, coloringPages: 1 },
   pdf: { stories: 0, freeEdits: 0, coloringPages: 0, pdfDownload: true },
+  popular: { stories: 1, freeEdits: 1, coloringPages: 1, pdfDownload: true },
 };
 
 const UUID_REGEX = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
