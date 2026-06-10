@@ -91,6 +91,16 @@ export const openGrowCheckout = (
     url = base;
   }
 
+  // Flag pending checkout so the global purchase handler knows to poll on
+  // window focus and show the success modal in ANY flow (Upgrade, DemoLock,
+  // ColoringPurchase, PDF offer, etc.).
+  try {
+    sessionStorage.setItem(
+      "growCheckoutPending",
+      JSON.stringify({ key, packageId, startedAt: Date.now() })
+    );
+  } catch {}
+
   const win = window.open(url, "_blank", "noopener,noreferrer");
   if (win && !win.closed) return;
 
