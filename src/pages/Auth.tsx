@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import { useNavigate, Link, useSearchParams } from "react-router-dom";
-import { Mail, Lock, Loader2, Eye, EyeOff, KeyRound, FileText, Shield, CheckCircle2, Sparkles, Heart, Users, Camera, Check, ArrowRight, RefreshCw, Smartphone, Tablet, Monitor, X, Gift } from "lucide-react";
+import { Mail, Lock, Loader2, Eye, EyeOff, KeyRound, FileText, Shield, CheckCircle2, Sparkles, Heart, Users, Camera, Check, ArrowRight, RefreshCw, Smartphone, Tablet, Monitor, X } from "lucide-react";
 import MobileNavigation from "@/components/MobileNavigation";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -1428,23 +1428,6 @@ const Auth = () => {
                   </div>
                 </div>
 
-                {/* Referral Code Input */}
-                <div className="space-y-1.5">
-                  <Label htmlFor="referral-code" className="text-black/70 font-medium text-sm">יש לך קוד הפניה? הזן כאן (אופציונלי)</Label>
-                  <div className="relative">
-                    <Gift className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-                    <Input
-                      id="referral-code"
-                      type="text"
-                      placeholder="לדוגמה: SOL-X7K2"
-                      value={referralCodeInput}
-                      onChange={(e) => setReferralCodeInput(e.target.value)}
-                      className="pr-10 text-left h-10 rounded-xl border-gray-200 text-sm"
-                      dir="ltr"
-                      maxLength={10}
-                    />
-                  </div>
-                </div>
 
                 {/* Terms consent checkbox - simplified */}
                 <div className="flex items-start gap-3 p-3 bg-gray-50 rounded-xl border border-gray-200">
