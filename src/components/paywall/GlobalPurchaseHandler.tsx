@@ -111,6 +111,22 @@ const GlobalPurchaseHandler = () => {
       };
     })();
 
+    // Ensure Realtime uses the current access token so RLS row filtering
+    // matches the authenticated user (otherwise postgres_changes events
+    // are silently dropped for rows the anon role can't SELECT).
+    (async () => {
+      const { data } = await supabase.auth.getSession();
+      const token = data.session?.access_token;
+      if (token) {
+        try {
+          (supabase.realtime as any).setAuth(token);
+          console.log("[Realtime] auth token set on realtime client");
+        } catch (e) {
+          console.warn("[Realtime] setAuth failed", e);
+        }
+      }
+    })();
+
     const channel = supabase
       .channel(`profile-credits-${user.id}`)
       .on(
