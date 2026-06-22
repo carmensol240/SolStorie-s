@@ -242,11 +242,42 @@ const GlobalPurchaseHandler = () => {
   }, [user?.id]);
 
   return (
-    <PurchaseSuccessModal
-      open={showSuccess}
-      onOpenChange={setShowSuccess}
-      creditsAdded={creditsAdded}
-    />
+    <>
+      <PurchaseSuccessModal
+        open={showSuccess}
+        onOpenChange={setShowSuccess}
+        creditsAdded={creditsAdded}
+      />
+      <PurchaseFailedModal
+        open={showFailed}
+        onOpenChange={setShowFailed}
+        onRetry={() => {
+          setShowFailed(false);
+          try {
+            const raw = sessionStorage.getItem("growCheckoutLastFailed");
+            const parsed = raw ? JSON.parse(raw) : null;
+            const url: string | undefined = parsed?.url;
+            if (!url) return;
+            sessionStorage.setItem(
+              "growCheckoutPending",
+              JSON.stringify({ ...parsed, startedAt: Date.now() })
+            );
+            sessionStorage.removeItem("growCheckoutLastFailed");
+            // User-gesture anchor click — works in in-app webviews and
+            // bypasses popup blockers.
+            const a = document.createElement("a");
+            a.href = url;
+            a.target = "_blank";
+            a.rel = "noopener noreferrer";
+            document.body.appendChild(a);
+            a.click();
+            a.remove();
+          } catch {
+            // no-op
+          }
+        }}
+      />
+    </>
   );
 };
 
