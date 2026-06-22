@@ -16,7 +16,7 @@ const GIFT_PACKAGES = [
   {
     id: "gift_single_digital",
     stories: 1,
-    price: 49.90,
+    price: 39.90,
     label: "סיפור בודד",
     subtitle: "דיגיטלי",
     badge: undefined as string | undefined,
@@ -25,7 +25,7 @@ const GIFT_PACKAGES = [
   {
     id: "gift_single_full",
     stories: 1,
-    price: 129.90,
+    price: 109.90,
     label: "סיפור דיגיטלי+ קובץ להדפסת ספר  + חבילת דפי צביעה ",
     subtitle: "חוויה מלאה",
     badge: "הכי פופולרי 🔥" as string | undefined,
@@ -34,7 +34,7 @@ const GIFT_PACKAGES = [
   {
     id: "gift_two_stories",
     stories: 2,
-    price: 89.90,
+    price: 79.90,
     label: "2 סיפורים דיגיטליים",
     subtitle: "חבילה זוגית",
     badge: undefined as string | undefined,

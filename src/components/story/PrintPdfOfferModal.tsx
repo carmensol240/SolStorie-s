@@ -50,7 +50,7 @@ const PrintPdfOfferModal = ({
 
           {/* Price */}
           <p className="text-sm text-amber-300 font-bold">
-            69.90 ₪ בלבד — השלמה לחבילה המלאה
+            59.90 ₪ בלבד — השלמה לחבילה המלאה
           </p>
 
           {/* CTA Button */}
