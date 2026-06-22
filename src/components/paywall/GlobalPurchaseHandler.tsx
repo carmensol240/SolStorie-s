@@ -74,6 +74,7 @@ const GlobalPurchaseHandler = () => {
       if (pollingRef.current) return;
       if (!hasPending()) return;
       pollingRef.current = true;
+      let succeeded = false;
       try {
         const baseline = await readProfile();
         if (!baseline) return;
@@ -92,11 +93,41 @@ const GlobalPurchaseHandler = () => {
           const editingDelta = (fresh.editing_credits ?? 0) - bEditing;
           const subChanged = !!fresh.is_subscriber && !bSub;
           if (handleDelta(storyDelta, coloringDelta, editingDelta, subChanged)) {
+            succeeded = true;
             return;
           }
         }
       } finally {
         pollingRef.current = false;
+        // If we exhausted the polling window without seeing any positive
+        // credit delta AND a checkout is still pending, the payment most
+        // likely failed or was abandoned. Surface the failure modal so the
+        // user can retry instead of being stuck wondering.
+        if (!succeeded && hasPending()) {
+          try {
+            const raw = sessionStorage.getItem("growCheckoutPending");
+            const parsed = raw ? JSON.parse(raw) : null;
+            const elapsed = Date.now() - (parsed?.startedAt ?? 0);
+            // Only treat as failure after ~20s — avoids a flash failure
+            // when the webhook is just slow.
+            if (elapsed > 20 * 1000) {
+              sessionStorage.removeItem("growCheckoutPending");
+              // Stash the last attempted URL for the retry handler.
+              if (parsed?.url) {
+                try {
+                  sessionStorage.setItem(
+                    "growCheckoutLastFailed",
+                    JSON.stringify(parsed)
+                  );
+                } catch {}
+              }
+              setShowFailed(true);
+            }
+          } catch {
+            sessionStorage.removeItem("growCheckoutPending");
+            setShowFailed(true);
+          }
+        }
       }
     };
 
