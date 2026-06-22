@@ -578,6 +578,7 @@ export type Database = {
           daily_edit_credits: number | null
           display_name: string | null
           editing_credits: number | null
+          education_bonus_claimed: boolean
           email: string | null
           first_name: string | null
           first_purchase_bonus_given: boolean
@@ -610,6 +611,7 @@ export type Database = {
           daily_edit_credits?: number | null
           display_name?: string | null
           editing_credits?: number | null
+          education_bonus_claimed?: boolean
           email?: string | null
           first_name?: string | null
           first_purchase_bonus_given?: boolean
@@ -642,6 +644,7 @@ export type Database = {
           daily_edit_credits?: number | null
           display_name?: string | null
           editing_credits?: number | null
+          education_bonus_claimed?: boolean
           email?: string | null
           first_name?: string | null
           first_purchase_bonus_given?: boolean

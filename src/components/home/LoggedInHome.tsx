@@ -147,7 +147,7 @@ const LoggedInHome = ({ user, displayName }: LoggedInHomeProps) => {
                 <GraduationCap className="w-6 h-6 text-white" />
               </div>
               <p className="text-white font-bold text-sm leading-relaxed pr-2">
-                ברוכה הבאה לנבחרת המחנכות של <span dir="ltr" className="inline-block">SolStorie's™</span>! כפי שהובטח, 2 סיפורים לדוגמא מחכים לך בחשבון. אל תשכחי לבדוק את החבילות המיוחדות עבורך — כולל החבילה המקצועית של 10 סיפורים ב-199 ש״ח. 🎓
+                🎓 כאיש/ת חינוך תקבלו בהרשמה — סיפור אחד חינם + דף צביעה אחד במתנה לצביעה אונליין ולהדפסה!
               </p>
             </div>
           </div>
