@@ -6,6 +6,7 @@ import {
   GENDER_SYMBOL_RESTRICTION,
   CHARACTER_CONSISTENCY_PROMPT,
   PIXAR_STYLE,
+  buildGenderHeader,
 } from "../_shared/style-config.ts";
 
 const corsHeaders = {
@@ -306,7 +307,9 @@ serve(async (req) => {
       ? `FACE REFERENCE: The main character's face MUST be an EXACT 3D Pixar rendering of the child in the reference photo. Keep all facial features, hair color, hair texture, and skin tone identical to the reference.`
       : "";
 
-    const coverPrompt = `${faceRefBlock}
+    const coverPrompt = `${buildGenderHeader(story?.child_gender || null)}
+
+${faceRefBlock}
 
 ${characterDescription}
 
