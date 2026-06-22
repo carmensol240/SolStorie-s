@@ -53,7 +53,7 @@ export const BookPage: React.FC<BookPageProps> = ({
           <SignedImage
             src={illustrationUrl}
             storyId={storyId}
-            alt=""
+            alt={text ? `איור לעמוד: ${text.slice(0, 60)}` : "איור לסיפור"}
             className="absolute inset-0 w-full h-full object-cover"
           />
         ) : null}

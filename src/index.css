@@ -764,10 +764,45 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .arrow-bounce-rtl,
-  .shimmer-overlay {
-    animation: none;
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+    scroll-behavior: auto !important;
   }
+}
+
+/* Honor the in-app accessibility toggle as well */
+html.reduced-motion *,
+html.reduced-motion *::before,
+html.reduced-motion *::after {
+  animation-duration: 0.001ms !important;
+  animation-iteration-count: 1 !important;
+  transition-duration: 0.001ms !important;
+  scroll-behavior: auto !important;
+}
+
+/* Skip-to-content link — visible only on keyboard focus */
+.skip-to-content {
+  position: absolute;
+  top: -100px;
+  right: 1rem;
+  z-index: 9999;
+  padding: 0.75rem 1.25rem;
+  background: hsl(var(--primary));
+  color: hsl(var(--primary-foreground));
+  font-weight: 700;
+  border-radius: 0.5rem;
+  text-decoration: none;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+  transition: top 0.2s ease;
+}
+.skip-to-content:focus {
+  top: 1rem;
+  outline: 3px solid hsl(var(--ring));
+  outline-offset: 2px;
 }
 
 /* Honor EXIF orientation metadata so AI-generated images (e.g. fal.ai)

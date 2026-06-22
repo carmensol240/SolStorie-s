@@ -57,7 +57,7 @@ const StorySeriesCard = ({
           {coverUrl ? (
             <img
               src={coverUrl}
-              alt={mainStory.topic}
+              alt={`כריכה לחלק 1: ${mainStory.topic || ''}`}
               className="w-full h-full object-cover"
               loading="lazy"
             />
@@ -123,7 +123,7 @@ const StorySeriesCard = ({
                   {getCoverImage(story) ? (
                     <img
                       src={getCoverImage(story)!}
-                      alt={`חלק ${idx + 1}`}
+                      alt={`כריכה לחלק ${idx + 1}: ${story.topic || ''}`}
                       className="w-full h-full object-cover"
                     />
                   ) : (

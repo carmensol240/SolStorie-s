@@ -104,7 +104,7 @@ export const PrintBookPreviewModal = ({
                     key={idx}
                     className="fba-cover-img"
                     src={current?.src}
-                    alt=""
+                    alt={current?.type === "cover" ? `כריכת הספר של ${childName}` : `איור מהספר של ${childName}`}
                     loading="lazy"
                     style={{
                       transition: "transform 0.45s ease-in-out, opacity 0.45s",

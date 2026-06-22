@@ -61,16 +61,18 @@ class ErrorBoundary extends Component<Props, State> {
             <div className="flex gap-3 justify-center">
               <button
                 onClick={this.handleRetry}
+                aria-label="נסה שוב לטעון את הדף"
                 className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-gradient-to-r from-purple-600 via-pink-500 to-orange-400 text-white font-medium text-sm shadow-md hover:shadow-lg transition-all hover:scale-[1.02] active:scale-95"
               >
-                <RefreshCw className="w-4 h-4" />
+                <RefreshCw className="w-4 h-4" aria-hidden="true" />
                 נסו שוב
               </button>
               <button
                 onClick={this.handleGoHome}
+                aria-label="חזרה לדף הבית"
                 className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl border border-purple-200 bg-white text-purple-600 font-medium text-sm hover:bg-purple-50 transition-all hover:scale-[1.02] active:scale-95"
               >
-                <Home className="w-4 h-4" />
+                <Home className="w-4 h-4" aria-hidden="true" />
                 חזרה לדף הבית
               </button>
             </div>

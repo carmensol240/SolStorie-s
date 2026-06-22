@@ -39,6 +39,7 @@ import NotFound from "./pages/NotFound";
 import RequireTerms from "./components/RequireTerms";
 import RequireAdmin from "./components/RequireAdmin";
 import ScrollToTop from "./components/ScrollToTop";
+import PageTitle from "./components/PageTitle";
 import OAuthReturnHandler from "./components/auth/OAuthReturnHandler";
 import GlobalPurchaseHandler from "./components/paywall/GlobalPurchaseHandler";
 import Toolkit from "./pages/Toolkit";
@@ -57,6 +58,7 @@ function App() { useTimeTheme(); return (
         <Sonner />
         <BrowserRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
           <ScrollToTop />
+          <PageTitle />
           <OAuthReturnHandler />
           <GlobalPurchaseHandler />
           

@@ -636,13 +636,20 @@ const GeneratingStep = ({ formData, onComplete }: GeneratingStepProps) => {
 
         {/* Progress bar */}
         <div className="w-full max-w-xs space-y-2">
-          <div className="relative h-3 w-full overflow-hidden rounded-full bg-purple-100">
+          <div
+            className="relative h-3 w-full overflow-hidden rounded-full bg-purple-100"
+            role="progressbar"
+            aria-valuenow={Math.round(progress)}
+            aria-valuemin={0}
+            aria-valuemax={100}
+            aria-label="התקדמות יצירת הסיפור"
+          >
             <div 
               className="h-full bg-gradient-to-r from-purple-600 via-pink-500 to-orange-400 transition-all duration-500"
               style={{ width: `${progress}%` }}
             />
           </div>
-          <p className="text-sm text-purple-600 font-medium text-center">{Math.round(progress)}%</p>
+          <p className="text-sm text-purple-600 font-medium text-center" aria-live="polite">{Math.round(progress)}%</p>
         </div>
 
         {/* Parenting tip */}
@@ -704,13 +711,20 @@ const GeneratingStep = ({ formData, onComplete }: GeneratingStepProps) => {
 
         {/* Progress Bar */}
         <div className="w-full max-w-xs space-y-1">
-          <div className="relative h-2.5 w-full overflow-hidden rounded-full bg-purple-100">
+          <div
+            className="relative h-2.5 w-full overflow-hidden rounded-full bg-purple-100"
+            role="progressbar"
+            aria-valuenow={Math.round(progress)}
+            aria-valuemin={0}
+            aria-valuemax={100}
+            aria-label="התקדמות יצירת הסיפור"
+          >
             <div
               className="h-full bg-gradient-to-r from-purple-600 via-pink-500 to-orange-400 transition-all duration-300"
               style={{ width: `${progress}%` }}
             />
           </div>
-          <p className="text-xs text-purple-600 font-medium text-center">
+          <p className="text-xs text-purple-600 font-medium text-center" aria-live="polite">
             {Math.round(progress)}%
           </p>
         </div>
