@@ -2457,7 +2457,7 @@ const [currentPage, setCurrentPage] = useState(0);
                 disabled={coloringLoading}
                 className="w-full bg-gradient-to-r from-purple-500 to-indigo-600 hover:from-purple-600 hover:to-indigo-700 text-white py-3"
               >
-                {coloringLoading ? <><Loader2 className="w-4 h-4 animate-spin mr-2" /> מכין דף צביעה...</> : '🖨️ הדפיסו דף צביעה'}
+                {coloringLoading ? <><Loader2 className="w-4 h-4 animate-spin mr-2" /> מכין דף צביעה...</> : '🖨️ הורידו להדפסה'}
               </Button>
 
               <Button
@@ -2498,7 +2498,7 @@ const [currentPage, setCurrentPage] = useState(0);
                 disabled={coloringLoading}
                 className="w-full border-purple-200 text-purple-700 hover:bg-purple-50 py-3"
               >
-                {coloringLoading ? <><Loader2 className="w-4 h-4 animate-spin mr-2" /> מכין דף צביעה...</> : '​'}
+                {coloringLoading ? <><Loader2 className="w-4 h-4 animate-spin mr-2" /> מכין דף צביעה...</> : '🎨 צבעו אונליין באפליקציה'}
               </Button>
 
               <button
