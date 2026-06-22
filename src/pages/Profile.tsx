@@ -225,6 +225,7 @@ const Profile = () => {
         <img
           src={heroBackground}
           alt=""
+          aria-hidden="true"
           className="w-full h-full object-cover"
           style={{ filter: "blur(25px) brightness(1.15) saturate(1.2)", transform: "scale(1.1)" }}
         />

@@ -56,7 +56,7 @@ const SampleBookModal = ({ open, onOpenChange }: SampleBookModalProps) => {
                   {page.illustrationUrl && (
                     <img
                       src={page.illustrationUrl}
-                      alt=""
+                      alt={page.text ? `איור לעמוד: ${page.text.slice(0, 60)}` : "איור מהסיפור לדוגמא"}
                       className={`w-full object-cover ${isLast ? "h-[200%] absolute bottom-0 left-1/2 -translate-x-1/2" : "h-full"}`}
                       style={isLast ? { objectPosition: "center bottom" } : undefined}
                       loading="lazy"

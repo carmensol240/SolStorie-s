@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Accessibility, Eye, Volume2, Type, X } from "lucide-react";
+import { Accessibility, Eye, Volume2, Type, Wind, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   Popover,
@@ -18,10 +18,32 @@ const fontSizeOptions: { value: FontSize; label: string }[] = [
 ];
 
 const AccessibilityMenu = () => {
-  const { visualAidMode, setVisualAidMode, audioSupport, setAudioSupport, fontSize, setFontSize } = useAccessibility();
-  const [dismissed, setDismissed] = useState(() => localStorage.getItem(DISMISSED_KEY) === 'true');
+  const {
+    visualAidMode,
+    setVisualAidMode,
+    audioSupport,
+    setAudioSupport,
+    fontSize,
+    setFontSize,
+    reducedMotion,
+    setReducedMotion,
+  } = useAccessibility();
+  const [minimized, setMinimized] = useState(() => localStorage.getItem(DISMISSED_KEY) === 'true');
 
-  if (dismissed) return null;
+  if (minimized) {
+    return (
+      <button
+        onClick={() => {
+          localStorage.removeItem(DISMISSED_KEY);
+          setMinimized(false);
+        }}
+        className="fixed bottom-20 left-4 z-50 h-10 w-10 rounded-full bg-blue-500 hover:bg-blue-600 shadow-md flex items-center justify-center"
+        aria-label="פתח תפריט נגישות"
+      >
+        <Accessibility className="h-5 w-5 text-white" />
+      </button>
+    );
+  }
 
   return (
     <div className="fixed bottom-20 left-4 z-50 flex items-center gap-1">
@@ -33,17 +55,19 @@ const AccessibilityMenu = () => {
             className="h-12 w-12 rounded-full bg-blue-500 hover:bg-blue-600 shadow-lg border-0"
             aria-label="הגדרות נגישות"
           >
-            <Accessibility className="h-6 w-6 text-white" />
+            <Accessibility className="h-6 w-6 text-white" aria-hidden="true" />
           </Button>
         </PopoverTrigger>
         <PopoverContent 
           className="w-72 p-4" 
           align="start"
           side="top"
+          role="dialog"
+          aria-label="תפריט נגישות"
         >
           <div className="space-y-4">
             <h3 className="font-bold text-lg text-foreground flex items-center gap-2">
-              <Accessibility className="h-5 w-5 text-blue-500" />
+              <Accessibility className="h-5 w-5 text-blue-500" aria-hidden="true" />
               נגישות
             </h3>
 
@@ -99,7 +123,7 @@ const AccessibilityMenu = () => {
             <div className="flex items-center justify-between gap-3 p-3 rounded-xl bg-muted/50">
               <div className="flex items-center gap-3">
                 <div className="h-9 w-9 rounded-lg bg-green-100 dark:bg-green-900/30 flex items-center justify-center">
-                  <Volume2 className="h-5 w-5 text-green-600 dark:text-green-400" />
+                  <Volume2 className="h-5 w-5 text-green-600 dark:text-green-400" aria-hidden="true" />
                 </div>
                 <div className="text-right">
                   <p className="font-medium text-sm text-foreground">הקראה קולית</p>
@@ -112,6 +136,24 @@ const AccessibilityMenu = () => {
                 aria-label="הפעל הקראה קולית"
               />
             </div>
+
+            {/* Reduced Motion */}
+            <div className="flex items-center justify-between gap-3 p-3 rounded-xl bg-muted/50">
+              <div className="flex items-center gap-3">
+                <div className="h-9 w-9 rounded-lg bg-purple-100 dark:bg-purple-900/30 flex items-center justify-center">
+                  <Wind className="h-5 w-5 text-purple-600 dark:text-purple-400" aria-hidden="true" />
+                </div>
+                <div className="text-right">
+                  <p className="font-medium text-sm text-foreground">עצירת אנימציות</p>
+                  <p className="text-xs text-muted-foreground">מצמצם תנועה ואפקטים על המסך</p>
+                </div>
+              </div>
+              <Switch
+                checked={reducedMotion}
+                onCheckedChange={setReducedMotion}
+                aria-label="עצור אנימציות"
+              />
+            </div>
           </div>
         </PopoverContent>
       </Popover>
@@ -119,12 +161,12 @@ const AccessibilityMenu = () => {
       <button
         onClick={() => {
           localStorage.setItem(DISMISSED_KEY, 'true');
-          setDismissed(true);
+          setMinimized(true);
         }}
         className="h-6 w-6 rounded-full bg-muted/80 hover:bg-muted flex items-center justify-center shadow-sm"
-        aria-label="הסתר כפתור נגישות"
+        aria-label="מזער תפריט נגישות"
       >
-        <X className="h-3.5 w-3.5 text-muted-foreground" />
+        <X className="h-3.5 w-3.5 text-muted-foreground" aria-hidden="true" />
       </button>
     </div>
   );

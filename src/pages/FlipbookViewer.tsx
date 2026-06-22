@@ -312,7 +312,7 @@ const FlipbookViewer = () => {
                           src={page.illustration_url}
                           storyId={story.id}
                           shareToken={shareToken || undefined}
-                          alt=""
+                          alt={page.text ? `איור לעמוד: ${page.text.slice(0, 60)}` : "איור לסיפור"}
                           className="w-full h-full object-contain"
                         />
                       </div>

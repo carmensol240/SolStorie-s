@@ -51,7 +51,7 @@ export const FlippingBookAnimation = () => {
           <span className="fba-spine-text">{childName} · SolStorie&apos;s™</span>
         </div>
         <div className="fba-book">
-          <img className="fba-cover-img" src={cover} alt="" loading="lazy" />
+          <img className="fba-cover-img" src={cover} alt="" aria-hidden="true" loading="lazy" />
           <div className="fba-badge">✨ SolStorie&apos;s™</div>
           <div className="fba-overlay">
             <div className="fba-title">{childName}</div>
