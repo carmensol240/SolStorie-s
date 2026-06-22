@@ -9,6 +9,8 @@ import {
   CHARACTER_BASE_REFS,
   getSolUrl,
   CHARACTER_CONSISTENCY_PROMPT,
+  GENDER_SYMBOL_RESTRICTION,
+  buildGenderHeader,
 } from "../_shared/style-config.ts";
 
 const corsHeaders = {
@@ -134,12 +136,14 @@ serve(async (req) => {
 
     const prompt = customPrompt || page.illustration_prompt || `A cheerful children's book illustration for page ${page.page_number}`;
     const pageNarrative = ((page as any).text || "").toString().slice(0, 400);
-    const sceneBlock = pageNarrative
+    const genderHeader = buildGenderHeader((story as any).child_gender);
+    const sceneBlockRaw = pageNarrative
       ? `SCENE (MUST MATCH THE STORY TEXT EXACTLY — illustrate precisely what happens in this page, not a different action):
 STORY TEXT FOR THIS PAGE: "${pageNarrative}"
 VISUAL DESCRIPTION: ${prompt}
 The action, objects, characters, and emotions shown MUST come from the STORY TEXT above. Do not invent a different scene.`
       : `SCENE (THIS IS THE MOST IMPORTANT PART — illustrate THIS specific scene in detail): ${prompt}`;
+    const sceneBlock = `${genderHeader}\n\n${sceneBlockRaw}\n\n${GENDER_SYMBOL_RESTRICTION}`;
 
     let imageUrl: string | null = null;
     let modelUsed = "unknown";
