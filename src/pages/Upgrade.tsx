@@ -24,7 +24,7 @@ const TIERS = {
   digital: {
     id: "digital" as Tier,
     label: "דיגיטלי",
-    price: 39.90,
+    price: 29.90,
     features: [
       { label: "✨ הילד שלך — הגיבור של הסיפור", included: true },
       { label: "🎨 דמות מותאמת אישית עם הפנים שלו", included: true },
@@ -38,7 +38,7 @@ const TIERS = {
   full: {
     id: "full" as Tier,
     label: " \u200B\u05d4\u05db\u05d9 \u05e4\u05d5\u05e4\u05dc\u05e8\u05d9 \ud83d\udd25",
-    price: 109.90,
+    price: 99.90,
     features: [
       { label: "✨ הילד שלך — הגיבור של הסיפור", included: true },
       { label: "🎨 דמות מותאמת אישית עם הפנים שלו", included: true },
@@ -73,7 +73,7 @@ const Upgrade = () => {
 
   const selectedTierData = TIERS[selectedTier];
   const fullTierDiscountedPrice = Math.round(TIERS.full.price * (1 - discountPercent / 100));
-  const selectedBasePrice = selectedTier === "full" ? 109.90 : TIERS.digital.price;
+  const selectedBasePrice = selectedTier === "full" ? 99.90 : TIERS.digital.price;
   const selectedFinalPrice =
     selectedTier === "full"
       ? fullTierDiscountedPrice
