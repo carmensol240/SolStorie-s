@@ -17,6 +17,8 @@ import {
   buildCharacterRefs,
   CHARACTER_CONSISTENCY_PROMPT,
   CAST_DESCRIPTIONS,
+  GENDER_SYMBOL_RESTRICTION,
+  buildGenderHeader,
 } from "../_shared/style-config.ts";
 
 // Strict negative instruction — illustrations must be pure children's book art only
