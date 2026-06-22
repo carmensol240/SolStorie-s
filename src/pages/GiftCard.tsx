@@ -41,7 +41,7 @@ const GIFT_PACKAGES = [
     subtitle: "חבילה זוגית",
     badge: undefined as string | undefined,
     growKey: "twoStories" as GrowLinkKey | null,
-    coloringDesc: undefined as string | undefined,
+    coloringDesc: "✨ 2 סיפורים מותאמים אישית עם הילד כגיבור — 🎨 2 דפי צביעה במתנה — לצביעה אונליין ולהדפסה" as string | undefined,
   },
 ];
 
