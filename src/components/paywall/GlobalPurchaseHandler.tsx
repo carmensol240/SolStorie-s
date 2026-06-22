@@ -111,25 +111,29 @@ const GlobalPurchaseHandler = () => {
       };
     })();
 
-    // Ensure Realtime uses the current access token so RLS row filtering
-    // matches the authenticated user (otherwise postgres_changes events
-    // are silently dropped for rows the anon role can't SELECT).
-    (async () => {
-      const { data } = await supabase.auth.getSession();
-      const token = data.session?.access_token;
-      if (token) {
-        try {
-          (supabase.realtime as any).setAuth(token);
-          console.log("[Realtime] auth token set on realtime client");
-        } catch (e) {
-          console.warn("[Realtime] setAuth failed", e);
-        }
-      }
-    })();
+    let channel: ReturnType<typeof supabase.channel> | null = null;
 
-    const channel = supabase
-      .channel(`profile-credits-${user.id}`)
-      .on(
+    const setupChannel = async () => {
+      // Set Realtime auth BEFORE subscribing so RLS row filtering
+      // matches the authenticated user (postgres_changes events are
+      // silently dropped for rows the anon role can't SELECT).
+      try {
+        const { data } = await supabase.auth.getSession();
+        const token = data.session?.access_token;
+        if (token) {
+          await (supabase.realtime as any).setAuth(token);
+          console.log("[Realtime] auth token set on realtime client");
+        } else {
+          console.warn("[Realtime] no access token available; events may be blocked by RLS");
+        }
+      } catch (e) {
+        console.warn("[Realtime] setAuth failed", e);
+      }
+
+      if (cancelled) return;
+      channel = supabase
+        .channel(`profile-credits-${user.id}`)
+        .on(
         "postgres_changes",
         {
           event: "UPDATE",
@@ -185,6 +189,8 @@ const GlobalPurchaseHandler = () => {
           console.warn(`[Realtime] ⚠️ channel ${status} — polling fallback will cover this`);
         }
       });
+    };
+    void setupChannel();
 
     const onFocus = () => { void poll(); };
     const onVisibility = () => {
@@ -196,7 +202,7 @@ const GlobalPurchaseHandler = () => {
     void poll();
     return () => {
       cancelled = true;
-      supabase.removeChannel(channel);
+      if (channel) supabase.removeChannel(channel);
       window.removeEventListener("focus", onFocus);
       document.removeEventListener("visibilitychange", onVisibility);
     };
