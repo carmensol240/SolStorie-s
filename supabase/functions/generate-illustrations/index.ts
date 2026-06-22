@@ -1278,7 +1278,8 @@ STORY TEXT FOR THIS PAGE: "${pageNarrative}"
 VISUAL DESCRIPTION: ${basePrompt}
 The action, objects, characters, and emotions shown MUST come from the STORY TEXT above. Do not invent a different scene.`
         : `SCENE (MUST MATCH TEXT EXACTLY): ${basePrompt}`;
-      let illustrationPrompt = `${charDesc}. ${sceneBlock}. CAMERA: ${cameraAngle}. LIGHTING: ${lighting}. Pixar 3D CGI style, vibrant colors, fantasy children's book, full body head to toe with feet grounded on surface`;
+      const genderHeader = buildGenderHeader(childGender);
+      let illustrationPrompt = `${genderHeader}\n\n${charDesc}. ${sceneBlock}. CAMERA: ${cameraAngle}. LIGHTING: ${lighting}. Pixar 3D CGI style, vibrant colors, fantasy children's book, full body head to toe with feet grounded on surface\n\n${GENDER_SYMBOL_RESTRICTION}`;
       console.log(`[Page ${page.page_number}] 📝 Direct prompt (${illustrationPrompt.length} chars, text-anchored=${!!pageNarrative})`);
 
       // Inject CAST_DESCRIPTIONS for any recurring cast character that
@@ -1423,7 +1424,7 @@ STORY TEXT FOR THIS PAGE: "${pageNarrative}"
 VISUAL DESCRIPTION: ${secondPrompt}
 The action, objects, characters, and emotions shown MUST come from the STORY TEXT above. Do not invent a different scene.`
           : `SCENE (MUST MATCH TEXT EXACTLY): ${secondPrompt}`;
-        const secondIllustrationPrompt = `${charDesc2}. ${sceneBlock2}. CAMERA: ${cameraAngle2}. LIGHTING: ${lighting2}. Pixar 3D CGI style, vibrant colors, fantasy children's book, full body head to toe`;
+        const secondIllustrationPrompt = `${buildGenderHeader(childGender)}\n\n${charDesc2}. ${sceneBlock2}. CAMERA: ${cameraAngle2}. LIGHTING: ${lighting2}. Pixar 3D CGI style, vibrant colors, fantasy children's book, full body head to toe\n\n${GENDER_SYMBOL_RESTRICTION}`;
 
         for (let attempt = 1; attempt <= MAX_RETRIES; attempt++) {
           if (childPhotoSignedUrl) {
