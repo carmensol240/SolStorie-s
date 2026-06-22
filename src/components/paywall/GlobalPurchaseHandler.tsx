@@ -111,9 +111,29 @@ const GlobalPurchaseHandler = () => {
       };
     })();
 
-    const channel = supabase
-      .channel(`profile-credits-${user.id}`)
-      .on(
+    let channel: ReturnType<typeof supabase.channel> | null = null;
+
+    const setupChannel = async () => {
+      // Set Realtime auth BEFORE subscribing so RLS row filtering
+      // matches the authenticated user (postgres_changes events are
+      // silently dropped for rows the anon role can't SELECT).
+      try {
+        const { data } = await supabase.auth.getSession();
+        const token = data.session?.access_token;
+        if (token) {
+          await (supabase.realtime as any).setAuth(token);
+          console.log("[Realtime] auth token set on realtime client");
+        } else {
+          console.warn("[Realtime] no access token available; events may be blocked by RLS");
+        }
+      } catch (e) {
+        console.warn("[Realtime] setAuth failed", e);
+      }
+
+      if (cancelled) return;
+      channel = supabase
+        .channel(`profile-credits-${user.id}`)
+        .on(
         "postgres_changes",
         {
           event: "UPDATE",
@@ -122,6 +142,10 @@ const GlobalPurchaseHandler = () => {
           filter: `id=eq.${user.id}`,
         },
         (payload) => {
+          console.log("[Realtime] profiles UPDATE received", {
+            old: payload.old,
+            new: payload.new,
+          });
           const nw: any = payload.new ?? {};
           const od: any = payload.old ?? {};
           // Prefer payload.old when available (REPLICA IDENTITY FULL),
@@ -137,7 +161,17 @@ const GlobalPurchaseHandler = () => {
           const editingDelta = (nw.editing_credits ?? 0) - bEditing;
           const subChanged = !!nw.is_subscriber && !bSub;
 
-          handleDelta(storyDelta, coloringDelta, editingDelta, subChanged);
+          console.log("[Realtime] deltas", {
+            storyDelta,
+            coloringDelta,
+            editingDelta,
+            subChanged,
+            hasPending: !!sessionStorage.getItem("growCheckoutPending"),
+          });
+          const handled = handleDelta(storyDelta, coloringDelta, editingDelta, subChanged);
+          if (!handled) {
+            console.log("[Realtime] no positive credit delta — ignored");
+          }
 
           baselineRef.current = {
             story: nw.story_credits ?? bStory,
@@ -147,7 +181,16 @@ const GlobalPurchaseHandler = () => {
           };
         },
       )
-      .subscribe();
+      .subscribe((status, err) => {
+        console.log("[Realtime] channel status:", status, err ?? "");
+        if (status === "SUBSCRIBED") {
+          console.log(`[Realtime] ✅ subscribed to profile-credits-${user.id}`);
+        } else if (status === "CHANNEL_ERROR" || status === "TIMED_OUT" || status === "CLOSED") {
+          console.warn(`[Realtime] ⚠️ channel ${status} — polling fallback will cover this`);
+        }
+      });
+    };
+    void setupChannel();
 
     const onFocus = () => { void poll(); };
     const onVisibility = () => {
@@ -159,7 +202,7 @@ const GlobalPurchaseHandler = () => {
     void poll();
     return () => {
       cancelled = true;
-      supabase.removeChannel(channel);
+      if (channel) supabase.removeChannel(channel);
       window.removeEventListener("focus", onFocus);
       document.removeEventListener("visibilitychange", onVisibility);
     };
