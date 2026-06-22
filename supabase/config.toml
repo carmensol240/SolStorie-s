@@ -3,6 +3,9 @@ project_id = "qvdwmkxviaqcgmjotsxe"
 [functions.generate-story]
 verify_jwt = false
 
+[functions.cleanup-temp-refs]
+verify_jwt = false
+
 [functions.add-nikud]
 verify_jwt = false
 

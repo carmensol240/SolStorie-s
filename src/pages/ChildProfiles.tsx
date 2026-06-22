@@ -402,10 +402,9 @@ const ChildProfiles = () => {
 
   const deletePhotoFromStorage = async (photoUrl: string) => {
     try {
-      const fileName = photoUrl.split('/').pop();
-      if (fileName) {
-        await supabase.storage.from('child-photos').remove([fileName]);
-      }
+      // Only attempt deletion for actual storage paths (not data: URLs, http URLs, blobs)
+      if (!isStoragePath(photoUrl)) return;
+      await supabase.storage.from('child-photos').remove([photoUrl]);
     } catch (error) {
       console.error("Error deleting photo from storage:", error);
     }
@@ -424,6 +423,12 @@ const ChildProfiles = () => {
       }
 
       if (editPhoto && user) {
+        // Delete the previous photo from storage to avoid accumulating old files.
+        // The active photo lives at children.photo_url; only that single file is preserved.
+        if (editingChild.photo_url && isStoragePath(editingChild.photo_url)) {
+          await deletePhotoFromStorage(editingChild.photo_url);
+        }
+
         // Upload new photo with unique timestamp to avoid overwriting
         const fileExt = editPhoto.name.split('.').pop();
         const timestamp = Date.now();
@@ -503,9 +508,20 @@ const ChildProfiles = () => {
 
     setDeleting(true);
     try {
-      // Delete photo from storage if exists
-      if (childToDelete.photo_url) {
-        await deletePhotoFromStorage(childToDelete.photo_url);
+      // Delete photo AND avatar from storage so we don't leave orphaned files
+      const filesToRemove: string[] = [];
+      if (childToDelete.photo_url && isStoragePath(childToDelete.photo_url)) {
+        filesToRemove.push(childToDelete.photo_url);
+      }
+      if (childToDelete.avatar_url && isStoragePath(childToDelete.avatar_url)) {
+        filesToRemove.push(childToDelete.avatar_url);
+      }
+      if (filesToRemove.length > 0) {
+        try {
+          await supabase.storage.from('child-photos').remove(filesToRemove);
+        } catch (storageErr) {
+          console.error('Error deleting child files from storage:', storageErr);
+        }
       }
 
       const { error } = await supabase
