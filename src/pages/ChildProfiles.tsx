@@ -32,10 +32,8 @@ import {
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/use-auth";
 import { useToast } from "@/hooks/use-toast";
-import { useChildPhotoHistory } from "@/hooks/use-child-photo-history";
 import MobileNavigation from "@/components/MobileNavigation";
 import AvatarPreviewDialog from "@/components/story/AvatarPreviewDialog";
-import PhotoHistoryGallery from "@/components/child/PhotoHistoryGallery";
 import { getUserData, setUserData } from "@/lib/user-storage";
 import { stripBase64ForStorage } from "@/lib/strip-base64";
 
