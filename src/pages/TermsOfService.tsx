@@ -95,6 +95,21 @@ const TermsOfService = () => {
               </p>
             </section>
 
+            <section>
+              <h2 className="text-lg font-bold text-foreground mb-2">9. תמונות ילדים ואווטאר אישי</h2>
+              <p className="text-muted-foreground leading-relaxed">
+                להורה הזכות המלאה על תמונת ילדו באפליקציה. התמונה משמשת אך ורק ליצירת הדמות המצויירת האישית של הילד בסיפורים. <span dir="ltr" className="inline-block">SolStorie's™</span> אינה משתמשת בתמונות לאימון מודלי AI, אינה מוכרת אותן ואינה משתפת אותן עם צדדים שלישיים.
+              </p>
+              <p className="text-muted-foreground leading-relaxed mt-2">
+                ההורה רשאי בכל עת:
+              </p>
+              <ul className="list-disc list-inside text-muted-foreground leading-relaxed mt-1 mr-4 space-y-1">
+                <li>להחליף את התמונה (הישנה תימחק אוטומטית)</li>
+                <li>למחוק את פרופיל הילד ואת כל התמונות הקשורות אליו</li>
+                <li>לפנות אלינו בכתובת <a href="mailto:solstories.nlp@gmail.com" className="text-primary underline" dir="ltr">solstories.nlp@gmail.com</a> לצורך מחיקה ידנית של כל המידע</li>
+              </ul>
+            </section>
+
           </div>
         </article>
 
