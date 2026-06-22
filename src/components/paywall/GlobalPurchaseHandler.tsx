@@ -2,6 +2,7 @@ import { useEffect, useState, useRef } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/use-auth";
 import PurchaseSuccessModal from "./PurchaseSuccessModal";
+import PurchaseFailedModal from "./PurchaseFailedModal";
 
 /**
  * Global handler mounted at the app root. Primary mechanism is a Supabase
@@ -12,6 +13,7 @@ import PurchaseSuccessModal from "./PurchaseSuccessModal";
 const GlobalPurchaseHandler = () => {
   const { user } = useAuth();
   const [showSuccess, setShowSuccess] = useState(false);
+  const [showFailed, setShowFailed] = useState(false);
   const [creditsAdded, setCreditsAdded] = useState(1);
   const pollingRef = useRef(false);
   const baselineRef = useRef<{
@@ -72,6 +74,7 @@ const GlobalPurchaseHandler = () => {
       if (pollingRef.current) return;
       if (!hasPending()) return;
       pollingRef.current = true;
+      let succeeded = false;
       try {
         const baseline = await readProfile();
         if (!baseline) return;
@@ -90,11 +93,41 @@ const GlobalPurchaseHandler = () => {
           const editingDelta = (fresh.editing_credits ?? 0) - bEditing;
           const subChanged = !!fresh.is_subscriber && !bSub;
           if (handleDelta(storyDelta, coloringDelta, editingDelta, subChanged)) {
+            succeeded = true;
             return;
           }
         }
       } finally {
         pollingRef.current = false;
+        // If we exhausted the polling window without seeing any positive
+        // credit delta AND a checkout is still pending, the payment most
+        // likely failed or was abandoned. Surface the failure modal so the
+        // user can retry instead of being stuck wondering.
+        if (!succeeded && hasPending()) {
+          try {
+            const raw = sessionStorage.getItem("growCheckoutPending");
+            const parsed = raw ? JSON.parse(raw) : null;
+            const elapsed = Date.now() - (parsed?.startedAt ?? 0);
+            // Only treat as failure after ~20s — avoids a flash failure
+            // when the webhook is just slow.
+            if (elapsed > 20 * 1000) {
+              sessionStorage.removeItem("growCheckoutPending");
+              // Stash the last attempted URL for the retry handler.
+              if (parsed?.url) {
+                try {
+                  sessionStorage.setItem(
+                    "growCheckoutLastFailed",
+                    JSON.stringify(parsed)
+                  );
+                } catch {}
+              }
+              setShowFailed(true);
+            }
+          } catch {
+            sessionStorage.removeItem("growCheckoutPending");
+            setShowFailed(true);
+          }
+        }
       }
     };
 
@@ -209,11 +242,42 @@ const GlobalPurchaseHandler = () => {
   }, [user?.id]);
 
   return (
-    <PurchaseSuccessModal
-      open={showSuccess}
-      onOpenChange={setShowSuccess}
-      creditsAdded={creditsAdded}
-    />
+    <>
+      <PurchaseSuccessModal
+        open={showSuccess}
+        onOpenChange={setShowSuccess}
+        creditsAdded={creditsAdded}
+      />
+      <PurchaseFailedModal
+        open={showFailed}
+        onOpenChange={setShowFailed}
+        onRetry={() => {
+          setShowFailed(false);
+          try {
+            const raw = sessionStorage.getItem("growCheckoutLastFailed");
+            const parsed = raw ? JSON.parse(raw) : null;
+            const url: string | undefined = parsed?.url;
+            if (!url) return;
+            sessionStorage.setItem(
+              "growCheckoutPending",
+              JSON.stringify({ ...parsed, startedAt: Date.now() })
+            );
+            sessionStorage.removeItem("growCheckoutLastFailed");
+            // User-gesture anchor click — works in in-app webviews and
+            // bypasses popup blockers.
+            const a = document.createElement("a");
+            a.href = url;
+            a.target = "_blank";
+            a.rel = "noopener noreferrer";
+            document.body.appendChild(a);
+            a.click();
+            a.remove();
+          } catch {
+            // no-op
+          }
+        }}
+      />
+    </>
   );
 };
 
