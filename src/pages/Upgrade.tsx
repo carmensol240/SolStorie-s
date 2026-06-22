@@ -322,10 +322,10 @@ const Upgrade = () => {
                   {tier.id === "full" && (
                     <div className="mb-2 flex flex-col items-center gap-0.5">
                       <span className="text-[11px] font-bold text-white/60 line-through">
-                        במקום ₪144
+                        במקום ₪114.70
                       </span>
                       <span className="text-[11px] font-black text-green-300">
-                        חסכו ₪15
+                        חסכו 14.80₪
                       </span>
                     </div>
                   )}
