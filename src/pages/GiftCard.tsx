@@ -401,6 +401,11 @@ const GiftCard = () => {
                 <div className="text-[10px] text-white/70 font-bold mt-1 text-center">
                   {pkg.subtitle}
                 </div>
+                {pkg.coloringDesc && (
+                  <div className="text-[10px] text-emerald-300/80 mt-0.5 text-center leading-tight px-1">
+                    {pkg.coloringDesc}
+                  </div>
+                )}
               </button>
             ))}
           </div>
