@@ -88,36 +88,6 @@ export type Database = {
           },
         ]
       }
-      child_photos: {
-        Row: {
-          avatar_url: string | null
-          child_id: string
-          created_at: string
-          id: string
-          is_active: boolean
-          original_image_url: string | null
-          user_id: string
-        }
-        Insert: {
-          avatar_url?: string | null
-          child_id: string
-          created_at?: string
-          id?: string
-          is_active?: boolean
-          original_image_url?: string | null
-          user_id: string
-        }
-        Update: {
-          avatar_url?: string | null
-          child_id?: string
-          created_at?: string
-          id?: string
-          is_active?: boolean
-          original_image_url?: string | null
-          user_id?: string
-        }
-        Relationships: []
-      }
       children: {
         Row: {
           age: number
