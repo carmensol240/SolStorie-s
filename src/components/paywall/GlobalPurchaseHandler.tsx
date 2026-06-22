@@ -122,6 +122,10 @@ const GlobalPurchaseHandler = () => {
           filter: `id=eq.${user.id}`,
         },
         (payload) => {
+          console.log("[Realtime] profiles UPDATE received", {
+            old: payload.old,
+            new: payload.new,
+          });
           const nw: any = payload.new ?? {};
           const od: any = payload.old ?? {};
           // Prefer payload.old when available (REPLICA IDENTITY FULL),
@@ -137,7 +141,17 @@ const GlobalPurchaseHandler = () => {
           const editingDelta = (nw.editing_credits ?? 0) - bEditing;
           const subChanged = !!nw.is_subscriber && !bSub;
 
-          handleDelta(storyDelta, coloringDelta, editingDelta, subChanged);
+          console.log("[Realtime] deltas", {
+            storyDelta,
+            coloringDelta,
+            editingDelta,
+            subChanged,
+            hasPending: !!sessionStorage.getItem("growCheckoutPending"),
+          });
+          const handled = handleDelta(storyDelta, coloringDelta, editingDelta, subChanged);
+          if (!handled) {
+            console.log("[Realtime] no positive credit delta — ignored");
+          }
 
           baselineRef.current = {
             story: nw.story_credits ?? bStory,
@@ -147,7 +161,14 @@ const GlobalPurchaseHandler = () => {
           };
         },
       )
-      .subscribe();
+      .subscribe((status, err) => {
+        console.log("[Realtime] channel status:", status, err ?? "");
+        if (status === "SUBSCRIBED") {
+          console.log(`[Realtime] ✅ subscribed to profile-credits-${user.id}`);
+        } else if (status === "CHANNEL_ERROR" || status === "TIMED_OUT" || status === "CLOSED") {
+          console.warn(`[Realtime] ⚠️ channel ${status} — polling fallback will cover this`);
+        }
+      });
 
     const onFocus = () => { void poll(); };
     const onVisibility = () => {
