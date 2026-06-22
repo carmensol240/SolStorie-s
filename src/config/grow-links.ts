@@ -97,7 +97,22 @@ export const openGrowCheckout = (
   try {
     sessionStorage.setItem(
       "growCheckoutPending",
-      JSON.stringify({ key, packageId, startedAt: Date.now() })
+      JSON.stringify({
+        key,
+        packageId,
+        startedAt: Date.now(),
+        // Persist the resolved checkout URL so the global failure-recovery
+        // modal can re-open the exact same checkout on "Retry" without
+        // needing to know which paywall/component initiated it.
+        url,
+        options: {
+          discountPercent: discountPercent ?? null,
+          couponCode: couponCode ?? null,
+          userId: userId ?? null,
+          storyId: storyId ?? null,
+          packageId,
+        },
+      })
     );
   } catch {}
 
