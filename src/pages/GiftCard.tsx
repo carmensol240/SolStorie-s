@@ -16,29 +16,32 @@ const GIFT_PACKAGES = [
   {
     id: "gift_single_digital",
     stories: 1,
-    price: 39.90,
+    price: 29.90,
     label: "סיפור בודד",
     subtitle: "דיגיטלי",
     badge: undefined as string | undefined,
     growKey: "basic" as GrowLinkKey | null,
+    coloringDesc: "🎨 דף צביעה אחד במתנה — לצביעה אונליין ולהדפסה" as string | undefined,
   },
   {
     id: "gift_single_full",
     stories: 1,
-    price: 109.90,
+    price: 99.90,
     label: "סיפור דיגיטלי+ קובץ להדפסת ספר  + חבילת דפי צביעה ",
     subtitle: "חוויה מלאה",
     badge: "הכי פופולרי 🔥" as string | undefined,
     growKey: "popular" as GrowLinkKey | null,
+    coloringDesc: "🎨 חבילת דפי צביעה מלאה — לצביעה אונליין ולהדפסה" as string | undefined,
   },
   {
     id: "gift_two_stories",
     stories: 2,
-    price: 79.90,
+    price: 59.90,
     label: "2 סיפורים דיגיטליים",
     subtitle: "חבילה זוגית",
     badge: undefined as string | undefined,
     growKey: "twoStories" as GrowLinkKey | null,
+    coloringDesc: undefined as string | undefined,
   },
 ];
 
@@ -398,6 +401,11 @@ const GiftCard = () => {
                 <div className="text-[10px] text-white/70 font-bold mt-1 text-center">
                   {pkg.subtitle}
                 </div>
+                {pkg.coloringDesc && (
+                  <div className="text-[10px] text-emerald-300/80 mt-0.5 text-center leading-tight px-1">
+                    {pkg.coloringDesc}
+                  </div>
+                )}
               </button>
             ))}
           </div>
