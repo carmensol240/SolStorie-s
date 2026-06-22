@@ -317,7 +317,7 @@ const Upgrade = () => {
                   </div>
                   <div className="text-lg font-black text-white mb-1 min-h-7 flex items-start">{tier.label}</div>
                   <div className="text-2xl font-black bg-gradient-to-r from-purple-300 via-pink-300 to-orange-300 bg-clip-text text-transparent mb-1 min-h-8 flex items-start">
-                    ₪{tier.id === "full" ? "109.90" : tier.price.toFixed(2)}
+                    ₪{tier.id === "full" ? "99.90" : tier.price.toFixed(2)}
                   </div>
                   {tier.id === "full" && (
                     <div className="mb-2 flex flex-col items-center gap-0.5">
