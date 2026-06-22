@@ -2,7 +2,7 @@
 
 export const packageConfig: Record<string, any> = {
   basic: { stories: 2, freeEdits: 2, coloringPages: 2 },
-  popular: { stories: 1, freeEdits: 1, coloringPages: 1, pdfDownload: true },
+  popular: { stories: 1, freeEdits: 1, coloringPages: 0, pdfDownload: true, dynamicColoringFromStory: true },
   premium: { stories: 10, freeEdits: 10, coloringPages: 10 },
   educator_basic: { stories: 2, freeEdits: 2, coloringPages: 2 },
   educator_popular: { stories: 6, freeEdits: 6, coloringPages: 6 },
