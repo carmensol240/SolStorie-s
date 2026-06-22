@@ -2,6 +2,7 @@ import { useEffect, useState, useRef } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/use-auth";
 import PurchaseSuccessModal from "./PurchaseSuccessModal";
+import PurchaseFailedModal from "./PurchaseFailedModal";
 
 /**
  * Global handler mounted at the app root. Primary mechanism is a Supabase
@@ -12,6 +13,7 @@ import PurchaseSuccessModal from "./PurchaseSuccessModal";
 const GlobalPurchaseHandler = () => {
   const { user } = useAuth();
   const [showSuccess, setShowSuccess] = useState(false);
+  const [showFailed, setShowFailed] = useState(false);
   const [creditsAdded, setCreditsAdded] = useState(1);
   const pollingRef = useRef(false);
   const baselineRef = useRef<{
