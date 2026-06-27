@@ -1046,6 +1046,37 @@ serve(async (req) => {
       );
     }
 
+    // ── Authentication & ownership check ──
+    // Accept either: (a) service-role bearer for internal calls from generate-story,
+    // or (b) an authenticated end user who owns the target story.
+    const authHeader = req.headers.get("Authorization") || "";
+    const bearer = authHeader.replace(/^Bearer\s+/i, "").trim();
+    if (!bearer) {
+      return new Response(JSON.stringify({ error: "Missing auth" }), {
+        status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+    const isServiceRole = bearer === supabaseServiceKey;
+    if (!isServiceRole) {
+      const { data: { user }, error: authError } = await supabase.auth.getUser(bearer);
+      if (authError || !user) {
+        return new Response(JSON.stringify({ error: "Unauthorized" }), {
+          status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+      const { data: ownerCheck } = await supabase
+        .from("stories")
+        .select("id")
+        .eq("id", storyId)
+        .eq("user_id", user.id)
+        .maybeSingle();
+      if (!ownerCheck) {
+        return new Response(JSON.stringify({ error: "Forbidden" }), {
+          status: 403, headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+    }
+
     console.log(`Starting illustration generation for story ${storyId}`);
 
     // Get the story pages
