@@ -1,9 +1,30 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2.39.3";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
 };
+
+// ── In-memory IP + user rate limiter ──
+// Prevents abuse of the (expensive) AI vision endpoint by anonymous or
+// scripted callers. Limits each IP to 10 requests / minute and each
+// authenticated user to 20 requests / minute.
+const RATE_WINDOW_MS = 60_000;
+const IP_LIMIT = 10;
+const USER_LIMIT = 20;
+const rateBuckets = new Map<string, number[]>();
+function isRateLimited(key: string, limit: number): boolean {
+  const now = Date.now();
+  const arr = (rateBuckets.get(key) || []).filter((t) => now - t < RATE_WINDOW_MS);
+  if (arr.length >= limit) {
+    rateBuckets.set(key, arr);
+    return true;
+  }
+  arr.push(now);
+  rateBuckets.set(key, arr);
+  return false;
+}
 
 serve(async (req) => {
   if (req.method === "OPTIONS") {
@@ -11,6 +32,38 @@ serve(async (req) => {
   }
 
   try {
+    // ── Authentication ──
+    const authHeader = req.headers.get("Authorization") || "";
+    const bearer = authHeader.replace(/^Bearer\s+/i, "").trim();
+    if (!bearer) {
+      return new Response(
+        JSON.stringify({ error: "Missing auth" }),
+        { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+    const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
+    const serviceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
+    const supabase = createClient(supabaseUrl, serviceKey);
+    const { data: { user }, error: authError } = await supabase.auth.getUser(bearer);
+    if (authError || !user) {
+      return new Response(
+        JSON.stringify({ error: "Unauthorized" }),
+        { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
+    // ── Rate limiting (IP + user) ──
+    const ip =
+      req.headers.get("x-forwarded-for")?.split(",")[0].trim() ||
+      req.headers.get("cf-connecting-ip") ||
+      "unknown";
+    if (isRateLimited(`ip:${ip}`, IP_LIMIT) || isRateLimited(`u:${user.id}`, USER_LIMIT)) {
+      return new Response(
+        JSON.stringify({ error: "יותר מדי בקשות, נסו שוב בעוד דקה" }),
+        { status: 429, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
     const { childPhoto } = await req.json();
 
     if (!childPhoto) {
