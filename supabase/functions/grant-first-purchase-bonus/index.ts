@@ -48,6 +48,22 @@ Deno.serve(async (req) => {
       });
     }
 
+    // ── Verify user actually has a completed purchase ──
+    // Prevents the bonus from being granted just by calling this endpoint
+    // without ever paying.
+    const { count: completedCount, error: purchaseErr } = await admin
+      .from("purchases")
+      .select("id", { count: "exact", head: true })
+      .eq("user_id", userId)
+      .eq("status", "completed");
+    if (purchaseErr) throw purchaseErr;
+    if (!completedCount || completedCount < 1) {
+      return new Response(
+        JSON.stringify({ granted: false, reason: "no_completed_purchase" }),
+        { status: 403, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
     const { error: uErr } = await admin
       .from("profiles")
       .update({
