@@ -19,15 +19,15 @@ import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 import { openGrowCheckout } from "@/config/grow-links";
 
-type ProductId = "digital" | "digital_plus_bonus" | "two_stories" | "pdf" | "popular" | "coloring_pages";
+type ProductId = "digital" | "popular" | "coloring_pages";
 
 interface Product {
-  id: ProductId;
+  id: Exclude<ProductId, "coloring_pages">;
   title: string;
   description: string;
   launchPrice: number;
   originalPrice: number;
-  growKey: "basic" | "singleStory" | "twoStories" | "pdf" | "popular";
+  growKey: "basic" | "popular";
   features: string[];
   badge?: string;
 }
@@ -46,52 +46,6 @@ const PRODUCTS: Product[] = [
       "🎵 מוזיקת רקע קסומה",
       "🎙️ הקלטה והשמעה",
       "📚 הסיפור שמור לתמיד",
-    ],
-  },
-  {
-    id: "digital_plus_bonus",
-    title: "סיפור דיגיטלי פלוס 1 במתנה",
-    description: "סיפור אחד + סיפור נוסף במתנה",
-    launchPrice: 39.90,
-    originalPrice: 49.90,
-    growKey: "singleStory",
-    features: [
-      "✨ הילד שלך — הגיבור של הסיפור",
-      "🎨 דמות מותאמת אישית עם הפנים שלו",
-      "🎵 מוזיקת רקע קסומה",
-      "🎙️ הקלטה והשמעה",
-      "🎁 סיפור דיגיטלי נוסף במתנה",
-      "📚 הסיפור שמור לתמיד",
-    ],
-  },
-  {
-    id: "two_stories",
-    title: "2 סיפורים דיגיטליים",
-    description: "שני סיפורים מותאמים אישית",
-    launchPrice: 59.90,
-    originalPrice: 69.90,
-    growKey: "twoStories",
-    features: [
-      "✨ הילד שלך — הגיבור של הסיפור",
-      "🎨 דמות מותאמת אישית עם הפנים שלו",
-      "🎵 מוזיקת רקע קסומה",
-      "🎙️ הקלטה והשמעה",
-      "📚 שני סיפורים שמורים לתמיד",
-    ],
-  },
-  {
-    id: "pdf",
-    title: "קובץ PDF להדפסה",
-    description: "קובץ PDF מקצועי להדפסה עצמאית",
-    launchPrice: 59.90,
-    originalPrice: 69.90,
-    growKey: "pdf",
-    features: [
-      "📖 קובץ PDF להדפסה בבית",
-      "🎨 כריכה מעוצבת עם איורי הסיפור",
-      "✨ הילד שלך — הגיבור של הסיפור",
-      "🖨️ מוכן להדפסה מיידית",
-      "📚 שמור לתמיד",
     ],
   },
   {
