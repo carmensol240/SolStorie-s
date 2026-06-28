@@ -17,31 +17,31 @@ const GIFT_PACKAGES = [
     id: "gift_single_digital",
     stories: 1,
     price: 29.90,
+    originalPrice: 39.90,
     label: "סיפור בודד",
     subtitle: "דיגיטלי",
-    badge: undefined as string | undefined,
     growKey: "basic" as GrowLinkKey | null,
     coloringDesc: "🎨 דף צביעה אחד במתנה — לצביעה אונליין ולהדפסה" as string | undefined,
-  },
-  {
-    id: "gift_single_full",
-    stories: 1,
-    price: 99.90,
-    label: "סיפור דיגיטלי+ קובץ להדפסת ספר  + חבילת דפי צביעה ",
-    subtitle: "חוויה מלאה",
-    badge: "הכי פופולרי 🔥" as string | undefined,
-    growKey: "popular" as GrowLinkKey | null,
-    coloringDesc: "🎨 חבילת דפי צביעה מלאה — לצביעה אונליין ולהדפסה" as string | undefined,
   },
   {
     id: "gift_two_stories",
     stories: 2,
     price: 59.90,
+    originalPrice: 79.90,
     label: "2 סיפורים דיגיטליים",
     subtitle: "חבילה זוגית",
-    badge: undefined as string | undefined,
     growKey: "twoStories" as GrowLinkKey | null,
     coloringDesc: "✨ 2 סיפורים מותאמים אישית עם הילד כגיבור — 🎨 2 דפי צביעה במתנה — לצביעה אונליין ולהדפסה" as string | undefined,
+  },
+  {
+    id: "gift_single_full",
+    stories: 1,
+    price: 99.90,
+    originalPrice: 119.90,
+    label: "סיפור דיגיטלי + קובץ להדפסת ספר + חבילת דפי צביעה",
+    subtitle: "חוויה מלאה",
+    growKey: "popular" as GrowLinkKey | null,
+    coloringDesc: "🎨 חבילת דפי צביעה מלאה — לצביעה אונליין ולהדפסה" as string | undefined,
   },
 ];
 
@@ -385,18 +385,22 @@ const GiftCard = () => {
                     : "border-white/15 hover:border-white/30"
                 )}
               >
-                {pkg.badge && (
-                  <div className="absolute -top-2.5 left-1/2 -translate-x-1/2 bg-gradient-to-r from-pink-500 via-purple-500 to-orange-500 text-white text-[10px] font-black px-2.5 py-0.5 rounded-full whitespace-nowrap shadow-lg">
-                    {pkg.badge}
-                  </div>
-                )}
+                <div className="absolute -top-2.5 left-1/2 -translate-x-1/2 bg-gradient-to-r from-pink-500 via-purple-500 to-orange-500 text-white text-[10px] font-black px-2.5 py-0.5 rounded-full whitespace-nowrap shadow-lg">
+                  🔥 מחיר השקה
+                </div>
 
                 <Gift className="w-6 h-6 text-pink-300 mb-1" />
                 <div className="text-sm font-black text-white text-center leading-tight min-h-[2.5rem] flex items-center">
                   {pkg.label}
                 </div>
-                <div className="text-lg font-black bg-gradient-to-r from-purple-300 via-pink-300 to-orange-300 bg-clip-text text-transparent mt-1">
+                <div className="text-xs text-white/40 line-through mt-1">
+                  {CURRENCY_SYMBOL}{pkg.originalPrice.toFixed(2)}
+                </div>
+                <div className="text-xl font-black bg-gradient-to-r from-purple-300 via-pink-300 to-orange-300 bg-clip-text text-transparent">
                   {CURRENCY_SYMBOL}{pkg.price.toFixed(2)}
+                </div>
+                <div className="text-[9px] text-amber-300/90 font-bold mt-1 text-center">
+                  אחרי 12/7 המחיר עולה
                 </div>
                 <div className="text-[10px] text-white/70 font-bold mt-1 text-center">
                   {pkg.subtitle}
