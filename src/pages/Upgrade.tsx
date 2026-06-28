@@ -1,6 +1,6 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
-import { X, Check } from "lucide-react";
+import { X, Check, Flame } from "lucide-react";
 
 const WHITELISTED_TEST_EMAIL = "carmit1901+test@gmail.com";
 import { Button } from "@/components/ui/button";
@@ -9,6 +9,7 @@ import PurchaseFailedModal from "@/components/paywall/PurchaseFailedModal";
 import CouponInput from "@/components/paywall/CouponInput";
 import FirstPurchaseBonusModal from "@/components/paywall/FirstPurchaseBonusModal";
 import SampleBookModal from "@/components/upgrade/SampleBookModal";
+import ColoringPurchaseModal from "@/components/paywall/ColoringPurchaseModal";
 
 import { useCredits } from "@/hooks/use-credits";
 import { useAnalytics } from "@/hooks/use-analytics";
@@ -18,39 +19,133 @@ import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 import { openGrowCheckout } from "@/config/grow-links";
 
-type Tier = "digital" | "full";
+type ProductId = "digital" | "digital_plus_bonus" | "two_stories" | "pdf" | "popular" | "coloring_pages";
 
-const TIERS = {
-  digital: {
-    id: "digital" as Tier,
-    label: "דיגיטלי",
-    price: 29.90,
+interface Product {
+  id: ProductId;
+  title: string;
+  description: string;
+  launchPrice: number;
+  originalPrice: number;
+  growKey: "basic" | "singleStory" | "twoStories" | "pdf" | "popular";
+  features: string[];
+  badge?: string;
+}
+
+const PRODUCTS: Product[] = [
+  {
+    id: "digital",
+    title: "דיגיטלי",
+    description: "סיפור דיגיטלי בודד",
+    launchPrice: 29.90,
+    originalPrice: 39.90,
+    growKey: "basic",
     features: [
-      { label: "✨ הילד שלך — הגיבור של הסיפור", included: true },
-      { label: "🎨 דמות מותאמת אישית עם הפנים שלו", included: true },
-      { label: "🎵 מוזיקת רקע קסומה", included: true },
-      { label: "🎙️ הקלט את קולך — הילד ישמע אותך גם מרחוק", included: true },
-      { label: "✏️ סבב עריכה מלא חינם", included: true },
-      { label: "📚 הסיפור שמור לתמיד", included: true },
-      { label: "🎨 דף צביעה אחד במתנה", included: true },
+      "✨ הילד שלך — הגיבור של הסיפור",
+      "🎨 דמות מותאמת אישית עם הפנים שלו",
+      "🎵 מוזיקת רקע קסומה",
+      "🎙️ הקלטה והשמעה",
+      "📚 הסיפור שמור לתמיד",
     ],
   },
-  full: {
-    id: "full" as Tier,
-    label: " \u200B\u05d4\u05db\u05d9 \u05e4\u05d5\u05e4\u05dc\u05e8\u05d9 \ud83d\udd25",
-    price: 99.90,
+  {
+    id: "digital_plus_bonus",
+    title: "סיפור דיגיטלי פלוס 1 במתנה",
+    description: "סיפור אחד + סיפור נוסף במתנה",
+    launchPrice: 39.90,
+    originalPrice: 49.90,
+    growKey: "singleStory",
     features: [
-      { label: "✨ הילד שלך — הגיבור של הסיפור", included: true },
-      { label: "🎨 דמות מותאמת אישית עם הפנים שלו", included: true },
-      { label: "🎵 מוזיקת רקע קסומה", included: true },
-      { label: "🎙️ הקלט את קולך — הילד ישמע אותך גם מרחוק", included: true },
-      { label: "✏️ סבב עריכה מלא חינם", included: true },
-      { label: "📚 הסיפור שמור לתמיד", included: true },
-      { label: "📖 קובץ PDF להדפסה", included: true },
-      { label: "🎨 חבילת צביעה מלאה לכל איורי הסיפור", included: true },
+      "✨ הילד שלך — הגיבור של הסיפור",
+      "🎨 דמות מותאמת אישית עם הפנים שלו",
+      "🎵 מוזיקת רקע קסומה",
+      "🎙️ הקלטה והשמעה",
+      "🎁 סיפור דיגיטלי נוסף במתנה",
+      "📚 הסיפור שמור לתמיד",
     ],
   },
-} as const;
+  {
+    id: "two_stories",
+    title: "2 סיפורים דיגיטליים",
+    description: "שני סיפורים מותאמים אישית",
+    launchPrice: 59.90,
+    originalPrice: 69.90,
+    growKey: "twoStories",
+    features: [
+      "✨ הילד שלך — הגיבור של הסיפור",
+      "🎨 דמות מותאמת אישית עם הפנים שלו",
+      "🎵 מוזיקת רקע קסומה",
+      "🎙️ הקלטה והשמעה",
+      "📚 שני סיפורים שמורים לתמיד",
+    ],
+  },
+  {
+    id: "pdf",
+    title: "קובץ PDF להדפסה",
+    description: "קובץ PDF מקצועי להדפסה עצמאית",
+    launchPrice: 59.90,
+    originalPrice: 69.90,
+    growKey: "pdf",
+    features: [
+      "📖 קובץ PDF להדפסה בבית",
+      "🎨 כריכה מעוצבת עם איורי הסיפור",
+      "✨ הילד שלך — הגיבור של הסיפור",
+      "🖨️ מוכן להדפסה מיידית",
+      "📚 שמור לתמיד",
+    ],
+  },
+  {
+    id: "popular",
+    title: "הכי פופולרי",
+    description: "סיפור דיגיטלי + PDF + דפי צביעה",
+    launchPrice: 99.90,
+    originalPrice: 119.90,
+    growKey: "popular",
+    badge: "הכי פופולרי 🔥",
+    features: [
+      "✨ הילד שלך — הגיבור של הסיפור",
+      "🎨 דמות מותאמת אישית עם הפנים שלו",
+      "🎵 מוזיקת רקע קסומה",
+      "🎙️ הקלטה והשמעה",
+      "📖 קובץ PDF להדפסה",
+      "🎨 חבילת דפי צביעה מלאה לכל איורי הסיפור",
+      "📚 הסיפור שמור לתמיד",
+    ],
+  },
+];
+
+const LAUNCH_DEADLINE = new Date("2026-07-12T23:59:59");
+
+function useCountdown(target: Date) {
+  const [now, setNow] = useState(new Date());
+
+  useEffect(() => {
+    const id = setInterval(() => setNow(new Date()), 1000);
+    return () => clearInterval(id);
+  }, []);
+
+  return useMemo(() => {
+    const diff = Math.max(0, target.getTime() - now.getTime());
+    const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+    const hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+    const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+    const seconds = Math.floor((diff % (1000 * 60)) / 1000);
+    return { days, hours, minutes, seconds, expired: diff === 0 };
+  }, [now, target]);
+}
+
+function CountdownUnit({ value, label }: { value: number; label: string }) {
+  return (
+    <div className="flex flex-col items-center">
+      <div className="min-w-[3.2rem] sm:min-w-[3.6rem] bg-white/10 backdrop-blur-md border border-white/20 rounded-xl px-2 py-2 text-center">
+        <span className="text-xl sm:text-2xl font-black text-white tabular-nums">
+          {String(value).padStart(2, "0")}
+        </span>
+      </div>
+      <span className="text-[10px] sm:text-xs text-white/70 font-semibold mt-1">{label}</span>
+    </div>
+  );
+}
 
 const Upgrade = () => {
   const navigate = useNavigate();
@@ -61,23 +156,23 @@ const Upgrade = () => {
   const { refetch: refetchCredits } = useCredits();
   const { trackEvent } = useAnalytics();
 
-  const [selectedTier, setSelectedTier] = useState<Tier>("full");
+  const [selectedProduct, setSelectedProduct] = useState<ProductId>("popular");
   const [showSuccess, setShowSuccess] = useState(false);
   const [showFailed, setShowFailed] = useState(false);
   const [showBonus, setShowBonus] = useState(false);
   const [showSampleBook, setShowSampleBook] = useState(false);
+  const [showColoringModal, setShowColoringModal] = useState(false);
   const [discountPercent, setDiscountPercent] = useState(0);
   const [appliedCouponCode, setAppliedCouponCode] = useState<string | null>(null);
+  const [coloringStoryId, setColoringStoryId] = useState<string | null>(null);
 
+  const countdown = useCountdown(LAUNCH_DEADLINE);
   const isTestUser = user?.email?.toLowerCase() === WHITELISTED_TEST_EMAIL.toLowerCase();
 
-  const selectedTierData = TIERS[selectedTier];
-  const fullTierDiscountedPrice = Math.round(TIERS.full.price * (1 - discountPercent / 100));
-  const selectedBasePrice = selectedTier === "full" ? 99.90 : TIERS.digital.price;
+  const selectedProductData = PRODUCTS.find((p) => p.id === selectedProduct)!;
+  const selectedBasePrice = selectedProductData.launchPrice;
   const selectedFinalPrice =
-    selectedTier === "full"
-      ? fullTierDiscountedPrice
-      : Math.round(TIERS.digital.price * (1 - discountPercent / 100) * 100) / 100;
+    Math.round(selectedBasePrice * (1 - discountPercent / 100) * 100) / 100;
 
   const handleClose = () => {
     try {
@@ -99,8 +194,23 @@ const Upgrade = () => {
   };
 
   useEffect(() => {
-    trackEvent({ eventType: "feature_used", metadata: { feature: "paywall_view", tier: selectedTier } });
-  }, [trackEvent, selectedTier]);
+    trackEvent({ eventType: "feature_used", metadata: { feature: "paywall_view", product: selectedProduct } });
+  }, [trackEvent, selectedProduct]);
+
+  useEffect(() => {
+    let storyIdForCheckout: string | null = null;
+    try {
+      const raw = sessionStorage.getItem("pendingStoryReturn");
+      if (raw) {
+        const parsed = JSON.parse(raw);
+        if (parsed?.path && typeof parsed.path === "string") {
+          const m = parsed.path.match(/\/story\/([^/?#]+)/);
+          if (m) storyIdForCheckout = m[1];
+        }
+      }
+    } catch {}
+    setColoringStoryId(storyIdForCheckout);
+  }, []);
 
   const handleTestPurchase = async () => {
     if (!isTestUser || !user) return;
@@ -120,7 +230,7 @@ const Upgrade = () => {
       refetchCredits();
       window.dispatchEvent(new CustomEvent("purchase-completed"));
       setShowSuccess(true);
-      trackEvent({ eventType: "feature_used", metadata: { feature: "test_purchase_completed", tier: "full" } });
+      trackEvent({ eventType: "feature_used", metadata: { feature: "test_purchase_completed", product: "popular" } });
       toast.success("🧪 רכישת בדיקה הצליחה");
       try {
         const { data: bonus } = await supabase.functions.invoke("grant-first-purchase-bonus");
@@ -139,8 +249,10 @@ const Upgrade = () => {
 
   const handlePurchase = () => {
     if (!user) { navigate("/auth"); return; }
-    // Best-effort: pull the story the user is trying to unlock from
-    // sessionStorage so the Grow webhook can attach the purchase to it.
+    if (selectedProduct === "coloring_pages") {
+      setShowColoringModal(true);
+      return;
+    }
     let storyIdForCheckout: string | null = null;
     try {
       const raw = sessionStorage.getItem("pendingStoryReturn");
@@ -152,21 +264,15 @@ const Upgrade = () => {
         }
       }
     } catch {}
-    openGrowCheckout(
-      selectedTier === "full" ? "popular" : "basic",
-      {
-        ...(discountPercent > 0
-          ? { discountPercent, couponCode: appliedCouponCode }
-          : {}),
-        userId: user.id,
-        storyId: storyIdForCheckout,
-      }
-    );
+    openGrowCheckout(selectedProductData.growKey, {
+      ...(discountPercent > 0
+        ? { discountPercent, couponCode: appliedCouponCode }
+        : {}),
+      userId: user.id,
+      storyId: storyIdForCheckout,
+    });
   };
 
-  // After the user returns from the Grow checkout tab, poll their credits
-  // for a short window so the locked story unlocks as soon as the webhook
-  // applies the purchase — without forcing a manual refresh.
   useEffect(() => {
     if (!user?.id) return;
     let cancelled = false;
@@ -192,7 +298,7 @@ const Upgrade = () => {
         const baselineEditing = initial?.editing_credits ?? 0;
         const baselineSub = !!initial?.is_subscriber;
 
-        const MAX_ATTEMPTS = 20; // ~40s
+        const MAX_ATTEMPTS = 20;
         for (let i = 0; i < MAX_ATTEMPTS; i++) {
           if (cancelled) return;
           await new Promise((r) => setTimeout(r, 2000));
@@ -270,7 +376,7 @@ const Upgrade = () => {
         </Button>
       </div>
 
-      <div className="flex-1 overflow-y-auto pb-24 relative z-10" style={{ WebkitOverflowScrolling: "touch" }}>
+      <div className="flex-1 overflow-y-auto pb-28 relative z-10" style={{ WebkitOverflowScrolling: "touch" }}>
         <div className="container max-w-md mx-auto px-4 pt-8">
           {/* Title */}
           <div className="text-center mb-4">
@@ -282,58 +388,80 @@ const Upgrade = () => {
             </p>
           </div>
 
-          {/* Tier Cards */}
-          <div className="grid grid-cols-2 gap-3 mb-4 items-stretch">
-            {(Object.values(TIERS) as Array<typeof TIERS.digital>).map((tier) => {
-              const isSelected = selectedTier === tier.id;
+          {/* Countdown */}
+          <div className="relative overflow-hidden rounded-2xl border border-amber-400/30 bg-gradient-to-br from-amber-500/15 via-orange-500/10 to-red-500/10 p-4 mb-3 text-center">
+            <div className="absolute top-1 right-2 text-xl opacity-40">🔥</div>
+            <div className="absolute top-1 left-2 text-xl opacity-40">🔥</div>
+            <p className="text-sm font-black text-amber-200 mb-3">
+              מחיר השקה מיוחד — ההצעה מסתיימת בעוד:
+            </p>
+            <div className="flex items-center justify-center gap-2 sm:gap-3">
+              <CountdownUnit value={countdown.days} label="ימים" />
+              <span className="text-xl font-black text-white/60">:</span>
+              <CountdownUnit value={countdown.hours} label="שעות" />
+              <span className="text-xl font-black text-white/60">:</span>
+              <CountdownUnit value={countdown.minutes} label="דקות" />
+              <span className="text-xl font-black text-white/60">:</span>
+              <CountdownUnit value={countdown.seconds} label="שניות" />
+            </div>
+            <p className="text-xs font-bold text-amber-200/80 mt-3">
+              אחרי 12/7 המחירים יעלו
+            </p>
+          </div>
+
+          {/* Product Cards */}
+          <div className="space-y-3 mb-4">
+            {PRODUCTS.map((product) => {
+              const isSelected = selectedProduct === product.id;
               return (
                 <button
-                  key={tier.id}
-                  onClick={() => {
-                    setSelectedTier(tier.id);
-                  }}
+                  key={product.id}
+                  onClick={() => setSelectedProduct(product.id)}
                   className={cn(
-                    "relative h-full flex flex-col items-center rounded-2xl border transition-all duration-200",
-                    tier.id === "full" ? "p-3 pt-4 justify-between" : "p-4 pt-5",
+                    "relative w-full flex flex-col rounded-2xl border transition-all duration-200 p-4 text-right",
                     "bg-white/10 backdrop-blur-md",
                     isSelected
-                      ? "border-white/50 shadow-lg scale-[1.03] bg-white/20 ring-2 ring-white/30"
+                      ? "border-white/50 shadow-lg scale-[1.02] bg-white/20 ring-2 ring-white/30"
                       : "border-white/15 hover:border-white/30",
-                    tier.id === "full" && "shadow-[0_0_25px_rgba(168,85,247,0.35)] border-purple-400/40",
-                    tier.id === "full" && isSelected && "shadow-[0_0_40px_rgba(236,72,153,0.5)] border-pink-400/60 ring-2 ring-pink-400/50"
+                    product.id === "popular" && "shadow-[0_0_25px_rgba(168,85,247,0.35)] border-purple-400/40",
+                    product.id === "popular" && isSelected && "shadow-[0_0_40px_rgba(236,72,153,0.5)] border-pink-400/60 ring-2 ring-pink-400/50"
                   )}
                 >
-                  {tier.id === "full" && (
-                    <div className="absolute -top-3 left-1/2 -translate-x-1/2 bg-gradient-to-r from-purple-500 to-pink-500 text-white text-[10px] font-black px-3 py-1 rounded-full whitespace-nowrap shadow-lg z-10">
-                      הכי פופולרי 🔥
-                    </div>
-                  )}
-                  <div className="min-h-7 mb-2 flex items-start justify-center">
-                    {tier.id === "digital" && (
-                      <div className="px-3 py-1 rounded-full bg-green-500/20 text-green-300 text-xs font-bold border border-green-500/30">
-                        ✨ מושלם להתחיל
+                  <div className="flex items-start justify-between gap-3">
+                    <div className="flex-1">
+                      <div className="flex items-center gap-2 mb-1 flex-wrap">
+                        <span className="text-lg font-black text-white">{product.title}</span>
+                        <span className="inline-flex items-center gap-1 bg-gradient-to-r from-orange-500 to-red-500 text-white text-[10px] font-black px-2 py-0.5 rounded-full">
+                          <Flame className="w-3 h-3" />
+                          מחיר השקה
+                        </span>
                       </div>
-                    )}
-                  </div>
-                  <div className="text-lg font-black text-white mb-1 min-h-7 flex items-start">{tier.label}</div>
-                  <div className="text-2xl font-black bg-gradient-to-r from-purple-300 via-pink-300 to-orange-300 bg-clip-text text-transparent mb-1 min-h-8 flex items-start">
-                    ₪{tier.id === "full" ? "99.90" : tier.price.toFixed(2)}
-                  </div>
-                  {tier.id === "full" && (
-                    <div className="mb-2 flex flex-col items-center gap-0.5">
-                      <span className="text-[11px] font-bold text-white/60 line-through">
-                        במקום ₪114.70
+                      <p className="text-xs text-white/70 font-semibold">{product.description}</p>
+                    </div>
+                    <div className="flex flex-col items-end shrink-0">
+                      <span className="text-xs text-white/50 line-through font-semibold">
+                        ₪{product.originalPrice.toFixed(2)}
                       </span>
+                      <span className="text-xl font-black bg-gradient-to-r from-purple-300 via-pink-300 to-orange-300 bg-clip-text text-transparent">
+                        ₪{product.launchPrice.toFixed(2)}
+                      </span>
+                    </div>
+                  </div>
+
+                  {product.id === "popular" && (
+                    <div className="mt-2 mb-2 flex items-center gap-1">
                       <span className="text-[11px] font-black text-green-300">
-                        חסכו 14.80₪
+                        חסכו ₪{(product.originalPrice - product.launchPrice).toFixed(2)}
                       </span>
                     </div>
                   )}
-                  <div className="w-full space-y-3">
-                    {tier.features.filter((f) => f.included).map((feature) => (
-                      <div key={feature.label} className="text-center">
-                        <span className="text-xs font-semibold text-white/90 leading-relaxed block">
-                          {feature.label}
+
+                  <div className="mt-3 grid grid-cols-2 gap-x-2 gap-y-1.5">
+                    {product.features.map((feature) => (
+                      <div key={feature} className="flex items-center gap-1.5">
+                        <Check className="w-3.5 h-3.5 text-green-400 shrink-0" />
+                        <span className="text-[11px] font-semibold text-white/90 leading-tight">
+                          {feature}
                         </span>
                       </div>
                     ))}
@@ -341,6 +469,42 @@ const Upgrade = () => {
                 </button>
               );
             })}
+
+            {/* Coloring pages — unchanged price, no launch tag */}
+            <button
+              onClick={() => setSelectedProduct("coloring_pages")}
+              className={cn(
+                "relative w-full flex flex-col rounded-2xl border transition-all duration-200 p-4 text-right",
+                "bg-white/10 backdrop-blur-md",
+                selectedProduct === "coloring_pages"
+                  ? "border-white/50 shadow-lg scale-[1.02] bg-white/20 ring-2 ring-white/30"
+                  : "border-white/15 hover:border-white/30"
+              )}
+            >
+              <div className="flex items-start justify-between gap-3">
+                <div className="flex-1">
+                  <div className="text-lg font-black text-white mb-1">🎨 דפי צביעה</div>
+                  <p className="text-xs text-white/70 font-semibold">דפי צביעה לכל איורי הסיפור</p>
+                </div>
+                <div className="flex flex-col items-end shrink-0">
+                  <span className="text-xl font-black text-pink-300">₪24.90</span>
+                  <span className="text-[10px] text-white/60 font-semibold">או דף בודד ₪9.90</span>
+                </div>
+              </div>
+              <div className="mt-3 grid grid-cols-2 gap-x-2 gap-y-1.5">
+                {[
+                  "🎨 צביעה אונליין באפליקציה",
+                  "🖨️ הדפסה מהבית",
+                  "✨ דף לכל איור בסיפור",
+                  "📚 שמור לתמיד",
+                ].map((feature) => (
+                  <div key={feature} className="flex items-center gap-1.5">
+                    <Check className="w-3.5 h-3.5 text-green-400 shrink-0" />
+                    <span className="text-[11px] font-semibold text-white/90 leading-tight">{feature}</span>
+                  </div>
+                ))}
+              </div>
+            </button>
           </div>
 
           {/* Coupon */}
@@ -353,7 +517,6 @@ const Upgrade = () => {
               onStoriesAdded={() => { refetchCredits(); }}
             />
           </div>
-
 
           {/* Gift Card Entry */}
           <div dir="rtl" className="relative overflow-hidden rounded-2xl border border-white/10 bg-gradient-to-br from-pink-500/10 via-purple-500/10 to-orange-500/10 p-5 mb-4 text-center">
@@ -394,21 +557,23 @@ const Upgrade = () => {
           <Button
             onClick={() => {
               if (!user) { navigate("/auth"); return; }
-              trackEvent({ eventType: "feature_used", metadata: { feature: "purchase_cta_clicked", tier: selectedTier } });
+              trackEvent({ eventType: "feature_used", metadata: { feature: "purchase_cta_clicked", product: selectedProduct } });
               handlePurchase();
             }}
             className="w-full h-auto min-h-12 relative overflow-hidden bg-gradient-to-r from-purple-500 via-pink-500 to-orange-500 hover:from-purple-400 hover:via-pink-400 hover:to-orange-400 text-white font-black text-xs sm:text-sm py-3 px-3 rounded-xl shadow-xl whitespace-normal leading-tight break-words before:absolute before:inset-0 before:bg-[linear-gradient(120deg,transparent_30%,rgba(255,255,255,0.15)_50%,transparent_70%)] before:bg-[length:200%_100%] before:animate-[cta-shimmer_4s_ease-in-out_infinite]"
             style={{ boxShadow: "0 0 30px rgba(168, 85, 247, 0.4), 0 0 60px rgba(236, 72, 153, 0.2)" }}
           >
             <span className="inline-flex flex-wrap items-center justify-center gap-x-1 gap-y-0.5 w-full">
-              {discountPercent > 1 ? (
+              {selectedProduct === "coloring_pages" ? (
+                <span>רכשו דפי צביעה ✨</span>
+              ) : discountPercent > 1 ? (
                 <>
-                  <span>רכשו {selectedTier === "full" ? "את החבילה הפופולרית" : selectedTierData.label} ב-</span>
+                  <span>רכשו {selectedProductData.title} ב-</span>
                   <span className="line-through opacity-60">₪{selectedBasePrice.toFixed(2)}</span>
-                  <span>₪{Number(selectedFinalPrice).toFixed(2)} ✨</span>
+                  <span>₪{selectedFinalPrice.toFixed(2)} ✨</span>
                 </>
               ) : (
-                <span>רכשו {selectedTier === "full" ? "את החבילה הפופולרית" : selectedTierData.label} ב-₪{selectedBasePrice.toFixed(2)} ✨</span>
+                <span>רכשו {selectedProductData.title} ב-₪{selectedBasePrice.toFixed(2)} ✨</span>
               )}
             </span>
           </Button>
@@ -423,6 +588,13 @@ const Upgrade = () => {
       <PurchaseFailedModal open={showFailed} onOpenChange={setShowFailed} onRetry={handleRetry} />
       <FirstPurchaseBonusModal open={showBonus} onOpenChange={setShowBonus} />
       <SampleBookModal open={showSampleBook} onOpenChange={setShowSampleBook} />
+      <ColoringPurchaseModal
+        open={showColoringModal}
+        onOpenChange={setShowColoringModal}
+        storyId={coloringStoryId}
+        illustrationCount={6}
+        onSuccess={() => setShowSuccess(true)}
+      />
     </div>
   );
 };
