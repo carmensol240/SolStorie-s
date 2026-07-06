@@ -5,6 +5,7 @@ import PersonalizedStoryCover from "@/components/paywall/PersonalizedStoryCover"
 import { openGrowCheckout } from "@/config/grow-links";
 import { useAuth } from "@/hooks/use-auth";
 import { supabase } from "@/integrations/supabase/client";
+import { isPromoActive } from "@/config/promo";
 
 interface DemoLockModalProps {
   open: boolean;
@@ -19,6 +20,8 @@ const DemoLockModal = ({ open, onOpenChange, title, description, storyId }: Demo
   const [showFeatures, setShowFeatures] = useState(false);
   const { user } = useAuth();
   const [isFirstTimeBuyer, setIsFirstTimeBuyer] = useState(false);
+  const promoActive = isPromoActive();
+  const showBonusOffer = isFirstTimeBuyer && promoActive;
 
   useEffect(() => {
     if (!open || !user) return;
@@ -91,12 +94,16 @@ const DemoLockModal = ({ open, onOpenChange, title, description, storyId }: Demo
           <p className="text-sm text-white/80 pt-1 text-center">
             {"\u200B"}
           </p>
-          <DialogDescription className="text-sm text-white/80 pt-1 text-center">
-            🎁 סיפור ראשון? מגיע לך מתנה!
-          </DialogDescription>
-          <DialogDescription className="text-sm text-white/80 pt-1 text-center">
-            רכשו ב-39.90 ₪ וקבלו סיפור דיגיטלי נוסף
-          </DialogDescription>
+          {showBonusOffer && (
+            <>
+              <DialogDescription className="text-sm text-white/80 pt-1 text-center">
+                🎁 סיפור ראשון? מגיע לך מתנה!
+              </DialogDescription>
+              <DialogDescription className="text-sm text-white/80 pt-1 text-center">
+                רכשו ב-39.90 ₪ וקבלו סיפור דיגיטלי נוסף
+              </DialogDescription>
+            </>
+          )}
         </DialogHeader>
 
         {storyId && (
@@ -113,7 +120,7 @@ const DemoLockModal = ({ open, onOpenChange, title, description, storyId }: Demo
             style={{ boxShadow: '0 0 30px rgba(168, 85, 247, 0.4), 0 0 60px rgba(236, 72, 153, 0.2)' }}
           >
             <div>רכישת הסיפור הדיגיטלי 📱 – 39.90₪</div>
-            {isFirstTimeBuyer && (
+            {showBonusOffer && (
               <div className="text-[11px] font-bold text-white/90 mt-0.5">
                 + סיפור דיגיטלי נוסף במתנה 🎁
               </div>

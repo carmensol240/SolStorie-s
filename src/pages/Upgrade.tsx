@@ -1,6 +1,7 @@
 import { useState, useEffect, useMemo } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { X, Check, Flame } from "lucide-react";
+import { PROMO_END, PROMO_END_LABEL, isPromoActive } from "@/config/promo";
 
 const WHITELISTED_TEST_EMAILS = [
   "carmit1901+test@gmail.com",
@@ -71,7 +72,7 @@ const PRODUCTS: Product[] = [
   },
 ];
 
-const LAUNCH_DEADLINE = new Date("2026-07-12T23:59:59");
+const LAUNCH_DEADLINE = PROMO_END;
 
 function useCountdown(target: Date) {
   const [now, setNow] = useState(new Date());
@@ -124,11 +125,14 @@ const Upgrade = () => {
   const [coloringStoryId, setColoringStoryId] = useState<string | null>(null);
 
   const countdown = useCountdown(LAUNCH_DEADLINE);
+  const promoActive = isPromoActive();
   const isTestUser = !!user?.email &&
     WHITELISTED_TEST_EMAILS.includes(user.email.toLowerCase());
 
   const selectedProductData = PRODUCTS.find((p) => p.id === selectedProduct)!;
-  const selectedBasePrice = selectedProductData.launchPrice;
+  const selectedBasePrice = promoActive
+    ? selectedProductData.launchPrice
+    : selectedProductData.originalPrice;
   const selectedFinalPrice =
     Math.round(selectedBasePrice * (1 - discountPercent / 100) * 100) / 100;
 
@@ -347,6 +351,7 @@ const Upgrade = () => {
           </div>
 
           {/* Countdown */}
+          {promoActive && (
           <div className="relative overflow-hidden rounded-2xl border border-amber-400/30 bg-gradient-to-br from-amber-500/15 via-orange-500/10 to-red-500/10 p-4 mb-3 text-center">
             <div className="absolute top-1 right-2 text-xl opacity-40">🔥</div>
             <div className="absolute top-1 left-2 text-xl opacity-40">🔥</div>
@@ -363,9 +368,10 @@ const Upgrade = () => {
               <CountdownUnit value={countdown.seconds} label="שניות" />
             </div>
             <p className="text-xs font-bold text-amber-200/80 mt-3">
-              אחרי 12/7 המחירים יעלו
+              אחרי {PROMO_END_LABEL} המחירים יעלו
             </p>
           </div>
+          )}
 
           {/* Product Cards */}
           <div className="space-y-3 mb-4">
@@ -389,24 +395,28 @@ const Upgrade = () => {
                     <div className="flex-1">
                       <div className="flex items-center gap-2 mb-1 flex-wrap">
                         <span className="text-lg font-black text-white">{product.title}</span>
-                        <span className="inline-flex items-center gap-1 bg-gradient-to-r from-orange-500 to-red-500 text-white text-[10px] font-black px-2 py-0.5 rounded-full">
-                          <Flame className="w-3 h-3" />
-                          מחיר השקה
-                        </span>
+                        {promoActive && (
+                          <span className="inline-flex items-center gap-1 bg-gradient-to-r from-orange-500 to-red-500 text-white text-[10px] font-black px-2 py-0.5 rounded-full">
+                            <Flame className="w-3 h-3" />
+                            מחיר השקה
+                          </span>
+                        )}
                       </div>
                       <p className="text-xs text-white/70 font-semibold">{product.description}</p>
                     </div>
                     <div className="flex flex-col items-end shrink-0">
-                      <span className="text-xs text-white/50 line-through font-semibold">
-                        ₪{product.originalPrice.toFixed(2)}
-                      </span>
+                      {promoActive && (
+                        <span className="text-xs text-white/50 line-through font-semibold">
+                          ₪{product.originalPrice.toFixed(2)}
+                        </span>
+                      )}
                       <span className="text-xl font-black bg-gradient-to-r from-purple-300 via-pink-300 to-orange-300 bg-clip-text text-transparent">
-                        ₪{product.launchPrice.toFixed(2)}
+                        ₪{(promoActive ? product.launchPrice : product.originalPrice).toFixed(2)}
                       </span>
                     </div>
                   </div>
 
-                  {product.id === "popular" && (
+                  {product.id === "popular" && promoActive && (
                     <div className="mt-2 mb-2 flex items-center gap-1">
                       <span className="text-[11px] font-black text-green-300">
                         חסכו ₪{(product.originalPrice - product.launchPrice).toFixed(2)}
