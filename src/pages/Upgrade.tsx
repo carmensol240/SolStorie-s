@@ -2,7 +2,10 @@ import { useState, useEffect, useMemo } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { X, Check, Flame } from "lucide-react";
 
-const WHITELISTED_TEST_EMAIL = "carmit1901+test@gmail.com";
+const WHITELISTED_TEST_EMAILS = [
+  "carmit1901+test@gmail.com",
+  "souldesign06@gmail.com",
+];
 import { Button } from "@/components/ui/button";
 import PurchaseSuccessModal from "@/components/paywall/PurchaseSuccessModal";
 import PurchaseFailedModal from "@/components/paywall/PurchaseFailedModal";
@@ -121,7 +124,8 @@ const Upgrade = () => {
   const [coloringStoryId, setColoringStoryId] = useState<string | null>(null);
 
   const countdown = useCountdown(LAUNCH_DEADLINE);
-  const isTestUser = user?.email?.toLowerCase() === WHITELISTED_TEST_EMAIL.toLowerCase();
+  const isTestUser = !!user?.email &&
+    WHITELISTED_TEST_EMAILS.includes(user.email.toLowerCase());
 
   const selectedProductData = PRODUCTS.find((p) => p.id === selectedProduct)!;
   const selectedBasePrice = selectedProductData.launchPrice;
