@@ -11,6 +11,7 @@ import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import { CURRENCY_SYMBOL } from "@/config/pricing";
 import { GROW_LINKS, openGrowCheckout, type GrowLinkKey } from "@/config/grow-links";
+import { PROMO_END_LABEL, isPromoActive } from "@/config/promo";
 
 const GIFT_PACKAGES = [
   {
@@ -50,6 +51,7 @@ const GiftCard = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
   const { trackEvent } = useAnalytics();
+  const promoActive = isPromoActive();
 
   const [selectedPackage, setSelectedPackage] = useState("gift_single_full");
   const [childName, setChildName] = useState("");
