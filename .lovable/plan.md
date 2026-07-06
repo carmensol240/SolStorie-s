@@ -1,45 +1,39 @@
+# בדיקת מבצע 1+1 (סיפור דיגיטלי + סיפור נוסף במתנה)
 
-# עדכון קרדיטים בזמן אמת דרך Realtime Subscription
+## מה מצאתי בקוד היום
 
-המטרה: להחליף את ה-polling (שבודק כל 2 שניות אחרי focus) במנגנון Realtime של Supabase שמאזין לשינויים בשורת ה-`profiles` של המשתמש המחובר. ה-polling יישאר כ-fallback בלבד.
+**איך המערכת מזהה "משתמש חדש"?**
+לפי **חשבון המשתמש המחובר** (`user.id` בטבלת `profiles` / `purchases`) — לא לפי אימייל ולא לפי מכשיר. משתמש שמתנתק ופותח חשבון חדש עם אימייל אחר ייחשב חדש; משתמש שמתחבר לחשבון קיים לא.
 
-## שינויים מתוכננים
+**האם יש בדיקה בפועל שמונעת ניצול חוזר?**
+חלקית. יש שתי שכבות שונות והן לא מסונכרנות:
 
-### 1. מיגרציה — הפעלת Realtime על `profiles`
-```sql
-ALTER TABLE public.profiles REPLICA IDENTITY FULL;
-ALTER PUBLICATION supabase_realtime ADD TABLE public.profiles;
-```
-(REPLICA IDENTITY FULL כדי שנקבל את ערכי old + new של כל העמודות, נדרש להשוואת deltas.)
+1. **צד שרת (`supabase/functions/_shared/purchase-credits.ts`)** — כשהחבילה היא `single_story`, הקוד סופר רכישות קודמות של המשתמש בטבלת `purchases` (סטטוס `completed`/`test_completed`). אם `priorCount === 0` — מוסיף +1 סיפור ו-+1 עריכה. **זו ההגנה האמיתית בפועל** — משתמש חוזר לא יקבל כפילות של הקרדיטים.
+2. **צד לקוח (`src/components/story/DemoLockModal.tsx`)** — מציג את הטקסט "+ סיפור דיגיטלי נוסף במתנה 🎁" רק אם `profiles.first_purchase_bonus_given === false`.
 
-מדיניות ה-RLS הקיימת על `profiles` (משתמש קורא את הרשומה של עצמו) כבר מבטיחה שמשתמש יקבל אך ורק עדכונים על השורה שלו.
+**הבאג/החולשה:** נתיב הבונוס ב-`purchase-credits.ts` **לא מסמן** את `first_purchase_bonus_given = true` אחרי שהוענק הבונוס. הדגל מתעדכן רק ב-Edge Function נפרד (`grant-first-purchase-bonus`) שלא נקרא בזרימת הרכישה של `single_story`. התוצאה:
+- משתמש שרכש כבר `single_story` וקיבל את הבונוס — יראה **שוב** את הטקסט "+ סיפור נוסף במתנה" בפופ-אפ.
+- אם ילחץ ויקנה שוב — ה-backend כן יחסום את הבונוס (`priorCount>0`), אבל הוא ישלם 39.90 ₪ בציפייה לקבל 2 סיפורים ויקבל רק אחד. חוויה שגויה + טענה לגיטימית להחזר.
 
-### 2. `src/components/paywall/GlobalPurchaseHandler.tsx`
-- להוסיף `useEffect` שמרשם channel ל-`postgres_changes` עם:
-  - `event: 'UPDATE'`, `schema: 'public'`, `table: 'profiles'`, `filter: id=eq.${user.id}`
-- בכל עדכון: להשוות `story_credits / coloring_credits / editing_credits / is_subscriber` בין `payload.old` ל-`payload.new`.
-- אם יש delta חיובי או `is_subscriber` הפך ל-true:
-  - לשגר `purchase-completed` ו-`coloring-credits-updated` (כדי שכל ההוקים הקיימים יתרעננו).
-  - אם `growCheckoutPending` קיים ב-sessionStorage — לנקות אותו, לפתוח את `PurchaseSuccessModal` עם ה-delta הגדול ביותר.
-  - אם אין pending — עדיין לשגר את האירועים (כדי שספירת הקרדיטים בכותרת תתעדכן מיידית), בלי לפתוח מודאל.
-- ניקוי: `supabase.removeChannel(channel)` ב-cleanup, כדי למנוע חיובי Realtime מצטברים.
-- ה-polling הקיים נשאר כ-fallback (למקרה ש-WebSocket חסום ע"י רשת/דפדפן), אבל עם backoff פחות אגרסיבי: ננסה פעם אחת מיד בחזרה לפוקוס, ואז כל 5 שניות עד 30 שניות במקום 2 שניות × 20.
+בנוסף, כל שאר החבילות (`popular`, `single_story_digital`, `single_story_full`, `basic` וכו') לא מפעילות מבצע 1+1 בכלל — רק המפתח `single_story` דרך הלינק `singleStory` ב-`grow-links`.
 
-### 3. `src/hooks/use-credits.ts`
-- האזנה ל-`purchase-completed` כבר קיימת — תמשיך לעבוד כי ה-handler החדש משגר את אותו אירוע.
-- אופציונלי: להוסיף subscription מקומי קצר לאותה שורה כדי לעדכן את ה-state בלי round-trip נוסף ל-DB. נשאיר את הקיים (refetch על האירוע) כדי לא לכפול channels — עדיף channel אחד מרכזי ב-`GlobalPurchaseHandler`.
+## מה אני מציע לשנות (הידוק ההגבלה)
 
-### 4. ללא שינוי
-- `verify-purchase` / `grow-webhook` / `purchase-credits.ts` — הם כבר מעדכנים את `profiles`, וה-Realtime יתפוס את ה-UPDATE אוטומטית.
-- `use-coloring-credits` / `use-editing-credits` / `use-subscription` ממשיכים להאזין לאירועים הגלובליים הקיימים.
+מטרה: להבטיח שהבונוס יוענק **פעם אחת בלבד לכל חשבון**, ושה-UI תמיד יתאים למצב האמיתי.
 
-## הערות טכניות
-- Channel יחיד פר-משתמש ב-handler גלובלי = עלות Realtime מינימלית.
-- Filter ב-`postgres_changes` מבוצע בצד השרת — לא נחשפים שינויים של משתמשים אחרים.
-- `REPLICA IDENTITY FULL` מעט יותר יקר ב-WAL אבל `profiles` קטנה ומתעדכנת נדירות, אז ההשפעה זניחה.
-- Fallback ה-polling נשמר כדי לא לשבור משתמשים מאחורי פרוקסי שחוסם WebSocket.
+1. **`supabase/functions/_shared/purchase-credits.ts`** — בבלוק `if (config.firstPurchaseBonus)`:
+   - להוסיף בדיקה נוספת שקוראת מ-`profiles.first_purchase_bonus_given`. אם כבר `true` — לא להעניק בונוס (גם אם `priorCount===0` מסיבה כלשהי).
+   - אם הבונוס אכן הוענק — להוסיף `updates.first_purchase_bonus_given = true` כך שיישמר יחד עם עדכון הקרדיטים באותה טרנזקציה של `update profiles`.
 
-## בדיקות אחרי היישום
-1. רכישה אמיתית/test → לאמת שהמודאל נפתח תוך < 2 שניות (לפני זה היה עד 40 שניות עם polling).
-2. שינוי ידני של `story_credits` ב-DB → לוודא שהכותרת מתעדכנת בלי refresh.
-3. ניתוק רשת ל-WebSocket → לוודא ש-polling fallback עדיין עובד.
+2. **`src/components/story/DemoLockModal.tsx`** — להשאיר את הבדיקה הקיימת על `first_purchase_bonus_given`. אחרי שינוי 1, הדגל יהיה מדויק והטקסט "+ סיפור נוסף במתנה" ייעלם אוטומטית ממשתמשים שכבר ניצלו.
+
+3. **הגנה נוספת (defense-in-depth)** — לוודא שהתנאי `priorCount === 0` נשאר גם הוא, כך שגם אם הדגל אבד מסיבה כלשהי, לא יינתן בונוס כפול.
+
+4. **אין שינוי** ב-`grant-first-purchase-bonus` (Edge Function הנפרד) ואין שינוי בשאר החבילות — המבצע נשאר מוגבל לחבילת `single_story` בלבד, כמו היום.
+
+## פרטים טכניים
+
+- הדגל `education_bonus_claimed` (הטבת אנשי חינוך) לא מושפע — הוא כבר עובד נכון דרך `handle_new_user`.
+- מיגרציית DB לא נדרשת — העמודה `first_purchase_bonus_given` כבר קיימת ב-`profiles` וה-trigger `prevent_profile_privilege_escalation` כבר מרשה עדכון שלה דרך `service_role` (שזה מה ש-`purchase-credits.ts` משתמש בו).
+- הבדיקה נעשית לפי `user_id` בלבד. אם רוצים חסימה גם לפי אימייל/מכשיר (למניעת פתיחת חשבון חדש) — זה שינוי גדול יותר שדורש דיון נפרד; לא כלול בתוכנית זו.
+
