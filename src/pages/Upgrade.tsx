@@ -1,6 +1,7 @@
 import { useState, useEffect, useMemo } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { X, Check, Flame } from "lucide-react";
+import { PROMO_END, PROMO_END_LABEL, isPromoActive } from "@/config/promo";
 
 const WHITELISTED_TEST_EMAILS = [
   "carmit1901+test@gmail.com",
@@ -71,7 +72,7 @@ const PRODUCTS: Product[] = [
   },
 ];
 
-const LAUNCH_DEADLINE = new Date("2026-07-12T23:59:59");
+const LAUNCH_DEADLINE = PROMO_END;
 
 function useCountdown(target: Date) {
   const [now, setNow] = useState(new Date());
@@ -124,11 +125,14 @@ const Upgrade = () => {
   const [coloringStoryId, setColoringStoryId] = useState<string | null>(null);
 
   const countdown = useCountdown(LAUNCH_DEADLINE);
+  const promoActive = isPromoActive();
   const isTestUser = !!user?.email &&
     WHITELISTED_TEST_EMAILS.includes(user.email.toLowerCase());
 
   const selectedProductData = PRODUCTS.find((p) => p.id === selectedProduct)!;
-  const selectedBasePrice = selectedProductData.launchPrice;
+  const selectedBasePrice = promoActive
+    ? selectedProductData.launchPrice
+    : selectedProductData.originalPrice;
   const selectedFinalPrice =
     Math.round(selectedBasePrice * (1 - discountPercent / 100) * 100) / 100;
 
