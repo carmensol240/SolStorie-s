@@ -95,16 +95,28 @@ export async function applyPurchaseCredits(
 
   // First-purchase bonus — applies ONLY to single_story package.
   // If user has no prior completed purchase, double the stories/freeEdits.
+  // Also flips profiles.first_purchase_bonus_given so the UI stops advertising
+  // the 1+1 offer to a user who already used it.
+  let firstPurchaseBonusGranted = false;
   if (config.firstPurchaseBonus) {
+    const { data: bonusProfile } = await supabase
+      .from("profiles")
+      .select("first_purchase_bonus_given")
+      .eq("id", userId)
+      .maybeSingle();
     const { count: priorCount } = await supabase
       .from("purchases")
       .select("id", { count: "exact", head: true })
       .eq("user_id", userId)
       .in("status", ["completed", "test_completed"]);
-    if ((priorCount ?? 0) === 0) {
+    const alreadyGranted = !!bonusProfile?.first_purchase_bonus_given;
+    if (!alreadyGranted && (priorCount ?? 0) === 0) {
       config.stories = (config.stories ?? 0) + 1;
       config.freeEdits = (config.freeEdits ?? 0) + 1;
+      firstPurchaseBonusGranted = true;
       console.log("[PURCHASE-CREDITS] single_story first-purchase bonus applied → +1 story, +1 edit");
+    } else {
+      console.log("[PURCHASE-CREDITS] single_story bonus SKIPPED (already granted or prior purchase exists)", { alreadyGranted, priorCount });
     }
   }
 
@@ -152,6 +164,9 @@ export async function applyPurchaseCredits(
   }
   if (config.isSubscription) {
     updates.is_subscriber = true;
+  }
+  if (firstPurchaseBonusGranted) {
+    updates.first_purchase_bonus_given = true;
   }
 
   if (Object.keys(updates).length > 0) {
