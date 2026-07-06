@@ -1,4 +1,5 @@
 // Shared purchase credit logic used by verify-purchase and grow-webhook
+import { isPromoActive } from "./promo.ts";
 
 export const packageConfig: Record<string, any> = {
   basic: { stories: 2, freeEdits: 2, coloringPages: 2 },
@@ -98,7 +99,7 @@ export async function applyPurchaseCredits(
   // Also flips profiles.first_purchase_bonus_given so the UI stops advertising
   // the 1+1 offer to a user who already used it.
   let firstPurchaseBonusGranted = false;
-  if (config.firstPurchaseBonus) {
+  if (config.firstPurchaseBonus && isPromoActive()) {
     const { data: bonusProfile } = await supabase
       .from("profiles")
       .select("first_purchase_bonus_given")
