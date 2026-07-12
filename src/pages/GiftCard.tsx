@@ -11,14 +11,13 @@ import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import { CURRENCY_SYMBOL } from "@/config/pricing";
 import { GROW_LINKS, openGrowCheckout, type GrowLinkKey } from "@/config/grow-links";
-import { PROMO_END_LABEL, isPromoActive } from "@/config/promo";
+import { PROMO_END_LABEL, isPromoActive, getPrice, getRegularPrice, type PriceKey } from "@/config/promo";
 
 const GIFT_PACKAGES = [
   {
     id: "gift_single_digital",
     stories: 1,
-    price: 29.90,
-    originalPrice: 39.90,
+    priceKey: "basic" as PriceKey,
     label: "סיפור בודד",
     subtitle: "דיגיטלי",
     growKey: "basic" as GrowLinkKey | null,
@@ -27,8 +26,7 @@ const GIFT_PACKAGES = [
   {
     id: "gift_two_stories",
     stories: 2,
-    price: 59.90,
-    originalPrice: 79.90,
+    priceKey: "gift_two_stories" as PriceKey,
     label: "2 סיפורים דיגיטליים",
     subtitle: "חבילה זוגית",
     growKey: "twoStories" as GrowLinkKey | null,
@@ -37,8 +35,7 @@ const GIFT_PACKAGES = [
   {
     id: "gift_single_full",
     stories: 1,
-    price: 99.90,
-    originalPrice: 119.90,
+    priceKey: "popular" as PriceKey,
     label: "סיפור דיגיטלי + קובץ להדפסת ספר + חבילת דפי צביעה",
     subtitle: "חוויה מלאה",
     growKey: "popular" as GrowLinkKey | null,
@@ -399,11 +396,11 @@ const GiftCard = () => {
                 </div>
                 {promoActive && (
                   <div className="text-xs text-white/40 line-through mt-1">
-                    {CURRENCY_SYMBOL}{pkg.originalPrice.toFixed(2)}
+                    {CURRENCY_SYMBOL}{getRegularPrice(pkg.priceKey).toFixed(2)}
                   </div>
                 )}
                 <div className="text-xl font-black bg-gradient-to-r from-purple-300 via-pink-300 to-orange-300 bg-clip-text text-transparent">
-                  {CURRENCY_SYMBOL}{(promoActive ? pkg.price : pkg.originalPrice).toFixed(2)}
+                  {CURRENCY_SYMBOL}{getPrice(pkg.priceKey).toFixed(2)}
                 </div>
                 {promoActive && (
                   <div className="text-[9px] text-amber-300/90 font-bold mt-1 text-center">
@@ -493,7 +490,7 @@ const GiftCard = () => {
             }}
           >
             <Gift className="w-5 h-5 ml-2" />
-            רכשו {selectedPkg?.subtitle} — {CURRENCY_SYMBOL}{selectedPkg?.price.toFixed(2)} ✨
+            רכשו {selectedPkg?.subtitle} — {CURRENCY_SYMBOL}{selectedPkg ? getPrice(selectedPkg.priceKey).toFixed(2) : ""} ✨
           </Button>
         </div>
       </div>
