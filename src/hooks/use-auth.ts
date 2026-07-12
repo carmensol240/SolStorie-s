@@ -29,17 +29,35 @@ export const useAuth = () => {
     );
 
     // THEN check for existing session
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      setSession(session);
-      setUser(session?.user ?? null);
+    // Guard against getSession() hanging indefinitely (e.g. flaky network,
+    // in-app webviews). Force loading=false after 10s no matter what.
+    const SESSION_TIMEOUT_MS = 10000;
+    const timeoutId = setTimeout(() => {
+      console.warn('[useAuth] getSession() timed out after 10s — forcing loading=false');
       setLoading(false);
-      // Migrate legacy localStorage data to user-scoped keys
-      if (session?.user?.id) {
-        migrateToUserScoped(session.user.id);
-      }
-    });
+    }, SESSION_TIMEOUT_MS);
 
-    return () => subscription.unsubscribe();
+    supabase.auth.getSession()
+      .then(({ data: { session } }) => {
+        setSession(session);
+        setUser(session?.user ?? null);
+        // Migrate legacy localStorage data to user-scoped keys
+        if (session?.user?.id) {
+          migrateToUserScoped(session.user.id);
+        }
+      })
+      .catch((err) => {
+        console.warn('[useAuth] getSession() rejected:', err);
+      })
+      .finally(() => {
+        clearTimeout(timeoutId);
+        setLoading(false);
+      });
+
+    return () => {
+      clearTimeout(timeoutId);
+      subscription.unsubscribe();
+    };
   }, []);
 
   const signInWithGoogle = async () => {

@@ -51,9 +51,13 @@ const OAuthReturnHandler = () => {
     // Immediate session check — handles the case where Supabase has already
     // restored the session by the time this listener mounts (e.g. after the
     // OAuth redirect lands on /auth and the page reloads).
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      if (session) consumeReturnTo();
-    });
+    supabase.auth.getSession()
+      .then(({ data: { session } }) => {
+        if (session) consumeReturnTo();
+      })
+      .catch((err) => {
+        console.warn('[OAuthReturnHandler] getSession() rejected:', err);
+      });
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
       // Handle SIGNED_IN (in-app sign-in), TOKEN_REFRESHED, and INITIAL_SESSION
