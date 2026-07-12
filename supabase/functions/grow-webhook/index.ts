@@ -6,6 +6,50 @@ const CORS = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
+// ─── Admin alerts on purchase failures ──────────────────────────────────────
+// Sends a plain email to the store owner whenever the webhook cannot resolve
+// a purchase (unknown user / unknown package / credit application failure).
+// Uses the same Resend + sender pattern as send-feedback-notification.
+const ADMIN_ALERT_EMAIL = "solstories.nlp@gmail.com";
+async function sendPurchaseFailureAlert(kind: string, details: Record<string, unknown>) {
+  const RESEND_API_KEY = Deno.env.get("RESEND_API_KEY");
+  if (!RESEND_API_KEY) {
+    console.warn("[GROW-WEBHOOK] RESEND_API_KEY missing — cannot send admin alert");
+    return;
+  }
+  try {
+    const rows = Object.entries(details)
+      .map(([k, v]) => `<tr><td style="padding:4px 10px;font-weight:bold">${k}</td><td style="padding:4px 10px">${String(v ?? "—")}</td></tr>`)
+      .join("");
+    const html = `
+      <div style="font-family:Arial,sans-serif;max-width:600px">
+        <h2 style="color:#c0392b">⚠️ כשל ברכישה ב-Grow: ${kind}</h2>
+        <p>ה-webhook לא הצליח לעבד רכישה. יש לבדוק ידנית ב-Grow ובבסיס הנתונים.</p>
+        <table style="border-collapse:collapse;border:1px solid #ddd">${rows}</table>
+        <p style="color:#888;font-size:12px;margin-top:16px">נשלח אוטומטית מ-grow-webhook · ${new Date().toISOString()}</p>
+      </div>
+    `;
+    const resp = await fetch("https://api.resend.com/emails", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${RESEND_API_KEY}`,
+      },
+      body: JSON.stringify({
+        from: "SolStorie's™ <noreply@soulstory.co.il>",
+        to: [ADMIN_ALERT_EMAIL],
+        subject: `⚠️ כשל ברכישה (${kind})`,
+        html,
+      }),
+    });
+    if (!resp.ok) {
+      console.error("[GROW-WEBHOOK] Admin alert email failed:", resp.status, await resp.text());
+    }
+  } catch (e) {
+    console.error("[GROW-WEBHOOK] Admin alert email exception:", e);
+  }
+}
+
 // Find a user_id by email using the auth admin API (paginates through users)
 async function findUserIdByEmail(supabase: any, email: string): Promise<string | null> {
   const normalized = email.trim().toLowerCase();
@@ -173,6 +217,9 @@ Deno.serve(async (req) => {
         error_message: `Could not resolve user for Grow tx ${transactionId}`,
         metadata: { transactionId, payerEmail, amount, customFields },
       });
+      await sendPurchaseFailureAlert("unknown_user", {
+        transactionId, payerEmail, amount, cField1: customFields.cField1, cField2: customFields.cField2,
+      });
       return ok({ received: true, warning: "unknown_user" });
     }
 
@@ -190,6 +237,10 @@ Deno.serve(async (req) => {
         error_type: "grow_webhook_unknown_package",
         error_message: `Could not resolve package for Grow tx ${transactionId} amount ${amount}`,
         metadata: { transactionId, payerEmail, amount, customFields },
+      });
+      await sendPurchaseFailureAlert("unknown_package", {
+        transactionId, userId, payerEmail, amount,
+        cField2: customFields.cField2 ?? "(missing)",
       });
       return ok({ received: true, warning: "unknown_package" });
     }
@@ -403,6 +454,10 @@ Deno.serve(async (req) => {
         error_type: "grow_webhook_credit_failure",
         error_message: result.error || "unknown",
         metadata: { transactionId, userId, packageId, amount },
+      });
+      await sendPurchaseFailureAlert("credit_failure", {
+        transactionId, userId, packageId, amount,
+        error: result.error || "unknown",
       });
       // Still return 200 so Grow doesn't keep retrying.
       return ok({ received: true, warning: result.error });
