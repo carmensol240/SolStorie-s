@@ -220,3 +220,50 @@ describe("GIFT_PACKAGES", () => {
     expect(PROMO_END.toISOString()).toBe("2026-08-31T20:59:59.000Z");
   });
 });
+
+/**
+ * הגנה על מסך /upgrade: כל tile שקורא ל-`setSelectedProduct(x)` חייב שיהיה
+ * לו מיפוי מלא — או ב-PRODUCTS (כדי ש-selectedProductData ימצא רשומה) או
+ * כמקרה מיוחד מטופל במפורש בקוד. אם מישהו יוסיף בעתיד ProductId חדש בלי
+ * לעדכן את PRODUCTS ובלי להוסיף לו special-case, הטסט הזה יאדים לפני
+ * שהוא יגיע למשתמש אמיתי (במקום ליפול בזמן render עם TypeError).
+ */
+describe("Upgrade page — ProductId ↔ PRODUCTS coherence", () => {
+  it("כל ProductId שנשלח ל-setSelectedProduct נמצא ב-PRODUCTS או שהוא coloring_pages", async () => {
+    const fs = await import("node:fs/promises");
+    const path = await import("node:path");
+    const src = await fs.readFile(
+      path.resolve(__dirname, "../pages/Upgrade.tsx"),
+      "utf8",
+    );
+
+    // 1) חלץ את מזהי המוצרים מתוך מערך PRODUCTS (id: "digital" | "popular" וכו').
+    const productIds = new Set<string>();
+    const productBlock = src.match(/const PRODUCTS[^\[]*\[([\s\S]*?)\n\];/);
+    expect(productBlock, "PRODUCTS array should exist in Upgrade.tsx").toBeTruthy();
+    for (const m of productBlock![1].matchAll(/id:\s*"([^"]+)"/g)) {
+      productIds.add(m[1]);
+    }
+    expect(productIds.size).toBeGreaterThan(0);
+
+    // 2) חלץ כל setSelectedProduct("...") מה-JSX.
+    const called = new Set<string>();
+    for (const m of src.matchAll(/setSelectedProduct\(\s*"([^"]+)"\s*\)/g)) {
+      called.add(m[1]);
+    }
+    // גם וריאנט דינמי setSelectedProduct(product.id) — נסמך על PRODUCTS.map.
+    // עצם קיומו לא דורש בדיקה נוספת: product.id בטבעו ⊆ PRODUCTS.
+
+    // 3) חייבים לכסות: או שהוא ב-PRODUCTS, או שהוא "coloring_pages" (special-case).
+    const SPECIAL_CASES = new Set(["coloring_pages"]);
+    for (const id of called) {
+      const covered = productIds.has(id) || SPECIAL_CASES.has(id);
+      expect(
+        covered,
+        `setSelectedProduct("${id}") ב-Upgrade.tsx חייב להיות ב-PRODUCTS או במקרים מיוחדים (${[
+          ...SPECIAL_CASES,
+        ].join(", ")}). אחרת PRODUCTS.find יחזיר undefined והדף יקרוס.`,
+      ).toBe(true);
+    }
+  });
+});
