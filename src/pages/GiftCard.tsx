@@ -10,38 +10,9 @@ import { useAnalytics } from "@/hooks/use-analytics";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import { CURRENCY_SYMBOL } from "@/config/pricing";
-import { GROW_LINKS, openGrowCheckout, type GrowLinkKey } from "@/config/grow-links";
+import { GROW_LINKS, openGrowCheckout } from "@/config/grow-links";
 import { PROMO_END_LABEL, isPromoActive, getPrice, getRegularPrice, type PriceKey } from "@/config/promo";
-
-const GIFT_PACKAGES = [
-  {
-    id: "gift_single_digital",
-    stories: 1,
-    priceKey: "basic" as PriceKey,
-    label: "סיפור בודד",
-    subtitle: "דיגיטלי",
-    growKey: "basic" as GrowLinkKey | null,
-    coloringDesc: "🎨 דף צביעה אחד במתנה — לצביעה אונליין ולהדפסה" as string | undefined,
-  },
-  {
-    id: "gift_two_stories",
-    stories: 2,
-    priceKey: "gift_two_stories" as PriceKey,
-    label: "2 סיפורים דיגיטליים",
-    subtitle: "חבילה זוגית",
-    growKey: "twoStories" as GrowLinkKey | null,
-    coloringDesc: "✨ 2 סיפורים מותאמים אישית עם הילד כגיבור — 🎨 2 דפי צביעה במתנה — לצביעה אונליין ולהדפסה" as string | undefined,
-  },
-  {
-    id: "gift_single_full",
-    stories: 1,
-    priceKey: "popular" as PriceKey,
-    label: "סיפור דיגיטלי + קובץ להדפסת ספר + חבילת דפי צביעה",
-    subtitle: "חוויה מלאה",
-    growKey: "popular" as GrowLinkKey | null,
-    coloringDesc: "🎨 חבילת דפי צביעה מלאה — לצביעה אונליין ולהדפסה" as string | undefined,
-  },
-];
+import { GIFT_PACKAGES } from "@/config/gift-packages";
 
 
 const GiftCard = () => {
@@ -131,6 +102,10 @@ const GiftCard = () => {
       return;
     }
     if (!selectedPkg) return;
+    if (selectedPkg.comingSoon) {
+      toast.error("חבילה זו תהיה זמינה בקרוב 🌟");
+      return;
+    }
     const growKey = selectedPkg.growKey;
     if (!growKey || !GROW_LINKS[growKey]) {
       toast.error("התשלום לחבילה זו עדיין לא זמין.");
