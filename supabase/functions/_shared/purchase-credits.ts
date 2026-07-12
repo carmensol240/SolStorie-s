@@ -287,10 +287,14 @@ export function packageIdFromAmount(amount: number): string | null {
   // coloring
   if (a === 9.9) return "coloring_single";
   if (a === 24.9) return "coloring_bundle";
-  // pdf — 59.90 promo, 69.90 regular. NOTE: gift_two_stories shares these
-  // amounts; disambiguation requires cField2 (see comment above).
-  if (a === 59.9) return "pdf";
-  if (a === 69.9) return "pdf";
+  // AMBIGUOUS: 59.90 and 69.90 are used by BOTH `pdf` and `gift_two_stories`.
+  // We intentionally return null instead of guessing — the webhook logs an
+  // `unknown_package` alert and no credits are issued to the wrong product.
+  // `openGrowCheckout` always sends cField2, so real user flows are unaffected;
+  // only direct paylink clicks that bypass our wrapper (or a misconfigured
+  // Grow link) will hit this branch.
+  if (a === 59.9) return null;
+  if (a === 69.9) return null;
   // gift_two_stories legacy standalone amount (89.90 before 12/7/26 relaunch)
   if (a === 89.9) return "gift_two_stories";
   return null;
