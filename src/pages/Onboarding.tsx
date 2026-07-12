@@ -171,7 +171,7 @@ const Onboarding = () => {
           </p>
           <Button
             onClick={() => window.location.reload()}
-            className="px-5 py-2 rounded-full bg-white text-purple-950 hover:bg-white/90 text-sm font-bold"
+            className="px-5 py-2 rounded-full bg-primary text-primary-foreground hover:bg-primary/90 text-sm font-bold"
           >
             נסי שוב
           </Button>
