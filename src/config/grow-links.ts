@@ -7,19 +7,19 @@
 // חובה לעדכן ידנית את אותו מחיר גם בכל לינק כאן דרך ממשק Grow — אחרת ה-UI
 // יראה מחיר אחד וה-checkout יגבה מחיר אחר.
 export const GROW_LINKS = {
-  // Basic package — single digital story (49.90 ₪)
+  // Basic package — single digital story (promo 29.90 ₪ / regular 39.90 ₪)
   basic: "https://pay.grow.link/MTAxMTMz~c553eb7e7fdf0752b8277d9777188b87-MzQ3NDUyNg",
-  // Popular package — digital story + printable PDF (129.90 ₪)
+  // Popular package — digital story + printable PDF (promo 99.90 ₪ / regular 119.90 ₪)
   popular: "https://pay.grow.link/MTAxMTMz~f9ccdeaddca44b395381ec366f8af6c5-MzQ3NDUzMg",
-  // Single story (49.90 ₪)
+  // Single digital story — DemoLockModal main button (39.90 ₪ קבוע)
   singleStory: "https://pay.grow.link/MTAxMTMz~469de3bb12a9b6f58fe5d9c40ae3b868-MzQ3NDUzNw",
   // Single coloring page (9.90 ₪)
   coloringSingle: "https://pay.grow.link/MTAxMTMz~026a9822516963910b4c656b1533b479-MzQ3NDU0MA",
   // Coloring pages bundle for a whole story (24.90 ₪)
   coloringBundle: "https://pay.grow.link/MTAxMTMz~902b4d6ad465f743bf5de838d04f1c5b-MzQ3NDYxNQ",
-  // Printable PDF file (69.90 ₪)
+  // Printable PDF file — PrintPdfOfferModal (promo 59.90 ₪ / regular 69.90 ₪)
   pdf: "https://pay.grow.link/MTAxMTMz~966f337ed54d7ce20445cd22c4cc239e-MzQ3NDYxOA",
-  // Two digital stories gift package (89.90 ₪)
+  // Two digital stories gift package (promo 59.90 ₪ / regular 69.90 ₪)
   twoStories: "https://grow.website/products/view/477248",
 } as const;
 
