@@ -10,38 +10,9 @@ import { useAnalytics } from "@/hooks/use-analytics";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import { CURRENCY_SYMBOL } from "@/config/pricing";
-import { GROW_LINKS, openGrowCheckout, type GrowLinkKey } from "@/config/grow-links";
+import { GROW_LINKS, openGrowCheckout } from "@/config/grow-links";
 import { PROMO_END_LABEL, isPromoActive, getPrice, getRegularPrice, type PriceKey } from "@/config/promo";
-
-const GIFT_PACKAGES = [
-  {
-    id: "gift_single_digital",
-    stories: 1,
-    priceKey: "basic" as PriceKey,
-    label: "סיפור בודד",
-    subtitle: "דיגיטלי",
-    growKey: "basic" as GrowLinkKey | null,
-    coloringDesc: "🎨 דף צביעה אחד במתנה — לצביעה אונליין ולהדפסה" as string | undefined,
-  },
-  {
-    id: "gift_two_stories",
-    stories: 2,
-    priceKey: "gift_two_stories" as PriceKey,
-    label: "2 סיפורים דיגיטליים",
-    subtitle: "חבילה זוגית",
-    growKey: "twoStories" as GrowLinkKey | null,
-    coloringDesc: "✨ 2 סיפורים מותאמים אישית עם הילד כגיבור — 🎨 2 דפי צביעה במתנה — לצביעה אונליין ולהדפסה" as string | undefined,
-  },
-  {
-    id: "gift_single_full",
-    stories: 1,
-    priceKey: "popular" as PriceKey,
-    label: "סיפור דיגיטלי + קובץ להדפסת ספר + חבילת דפי צביעה",
-    subtitle: "חוויה מלאה",
-    growKey: "popular" as GrowLinkKey | null,
-    coloringDesc: "🎨 חבילת דפי צביעה מלאה — לצביעה אונליין ולהדפסה" as string | undefined,
-  },
-];
+import { GIFT_PACKAGES } from "@/config/gift-packages";
 
 
 const GiftCard = () => {
@@ -131,6 +102,10 @@ const GiftCard = () => {
       return;
     }
     if (!selectedPkg) return;
+    if (selectedPkg.comingSoon) {
+      toast.error("חבילה זו תהיה זמינה בקרוב 🌟");
+      return;
+    }
     const growKey = selectedPkg.growKey;
     if (!growKey || !GROW_LINKS[growKey]) {
       toast.error("התשלום לחבילה זו עדיין לא זמין.");
@@ -381,10 +356,15 @@ const GiftCard = () => {
                   "bg-white/10 backdrop-blur-md",
                   selectedPackage === pkg.id
                     ? "border-pink-400/50 shadow-lg scale-[1.03] bg-white/20"
-                    : "border-white/15 hover:border-white/30"
+                    : "border-white/15 hover:border-white/30",
+                  pkg.comingSoon && "opacity-70"
                 )}
               >
-                {promoActive && (
+                {pkg.comingSoon ? (
+                  <div className="absolute -top-2.5 left-1/2 -translate-x-1/2 bg-gradient-to-r from-amber-500 to-orange-500 text-white text-[10px] font-black px-2.5 py-0.5 rounded-full whitespace-nowrap shadow-lg">
+                    ⏳ בקרוב
+                  </div>
+                ) : promoActive && (
                   <div className="absolute -top-2.5 left-1/2 -translate-x-1/2 bg-gradient-to-r from-pink-500 via-purple-500 to-orange-500 text-white text-[10px] font-black px-2.5 py-0.5 rounded-full whitespace-nowrap shadow-lg">
                     🔥 מחיר השקה
                   </div>
@@ -482,7 +462,7 @@ const GiftCard = () => {
           <Button
             type="button"
             onClick={handlePurchase}
-            disabled={!childName.trim()}
+            disabled={!childName.trim() || !!selectedPkg?.comingSoon}
             className="w-full bg-gradient-to-r from-pink-500 via-purple-500 to-orange-500 hover:from-pink-400 hover:via-purple-400 hover:to-orange-400 text-white font-black text-sm py-3 rounded-xl shadow-xl disabled:opacity-50 disabled:cursor-not-allowed"
             style={{
               boxShadow:
@@ -490,7 +470,9 @@ const GiftCard = () => {
             }}
           >
             <Gift className="w-5 h-5 ml-2" />
-            רכשו {selectedPkg?.subtitle} — {CURRENCY_SYMBOL}{selectedPkg ? getPrice(selectedPkg.priceKey).toFixed(2) : ""} ✨
+            {selectedPkg?.comingSoon
+              ? "⏳ בקרוב — לא זמין לרכישה"
+              : <>רכשו {selectedPkg?.subtitle} — {CURRENCY_SYMBOL}{selectedPkg ? getPrice(selectedPkg.priceKey).toFixed(2) : ""} ✨</>}
           </Button>
         </div>
       </div>
