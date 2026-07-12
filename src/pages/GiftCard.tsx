@@ -356,10 +356,15 @@ const GiftCard = () => {
                   "bg-white/10 backdrop-blur-md",
                   selectedPackage === pkg.id
                     ? "border-pink-400/50 shadow-lg scale-[1.03] bg-white/20"
-                    : "border-white/15 hover:border-white/30"
+                    : "border-white/15 hover:border-white/30",
+                  pkg.comingSoon && "opacity-70"
                 )}
               >
-                {promoActive && (
+                {pkg.comingSoon ? (
+                  <div className="absolute -top-2.5 left-1/2 -translate-x-1/2 bg-gradient-to-r from-amber-500 to-orange-500 text-white text-[10px] font-black px-2.5 py-0.5 rounded-full whitespace-nowrap shadow-lg">
+                    ⏳ בקרוב
+                  </div>
+                ) : promoActive && (
                   <div className="absolute -top-2.5 left-1/2 -translate-x-1/2 bg-gradient-to-r from-pink-500 via-purple-500 to-orange-500 text-white text-[10px] font-black px-2.5 py-0.5 rounded-full whitespace-nowrap shadow-lg">
                     🔥 מחיר השקה
                   </div>
