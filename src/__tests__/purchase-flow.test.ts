@@ -31,7 +31,8 @@ import { GIFT_PACKAGES } from "@/config/gift-packages";
 
 // Grow keys שידוע לנו שאין להם עדיין paylink תקין. כל עוד מפתח נמצא כאן,
 // ה-UI חייב לחסום אותו (disabled/comingSoon) — הבדיקה למטה אוכפת את זה.
-const KNOWN_BROKEN_GROW_KEYS: readonly GrowLinkKey[] = ["twoStories"];
+// כרגע אין מפתחות שבורים ידועים — twoStories תוקן עם paylink חדש.
+const KNOWN_BROKEN_GROW_KEYS: readonly GrowLinkKey[] = [];
 
 describe("GROW_LINKS", () => {
   it("כל קישור פעיל משתמש ב-pay.grow.link (לא grow.website / דומיין אחר)", () => {
@@ -114,13 +115,15 @@ describe("packageIdFromAmount fallback (webhook)", () => {
     if (a === 129.9) return "popular";
     if (a === 9.9) return "coloring_single";
     if (a === 24.9) return "coloring_bundle";
-    if (a === 59.9) return "pdf";
-    if (a === 69.9) return "pdf";
+    // AMBIGUOUS 59.90/69.90 — pdf ו-gift_two_stories חולקים את הסכום.
+    // ה-fallback לא מנחש: מחזיר null וה-webhook יזעיק unknown_package.
+    if (a === 59.9) return null;
+    if (a === 69.9) return null;
     if (a === 89.9) return "gift_two_stories";
     return null;
   }
 
-  it("מזהה כל סכום פעיל בקונפיג", () => {
+  it("מזהה סכומים חד-משמעיים בקונפיג (למעט 59.90/69.90 המעורפלים)", () => {
     const activeAmounts = new Set<number>();
     (Object.keys({ basic: 0, popular: 0, pdf: 0, gift_two_stories: 0, single_story: 0 }) as PriceKey[])
       .forEach((k) => {
@@ -128,15 +131,21 @@ describe("packageIdFromAmount fallback (webhook)", () => {
         activeAmounts.add(getRegularPrice(k));
       });
     for (const amount of activeAmounts) {
-      expect(packageIdFromAmount(amount), `amount=${amount}`).not.toBeNull();
+      if (amount === 59.9 || amount === 69.9) {
+        // מעורפל בכוונה — cField2 נדרש כדי לזהות pdf מול gift_two_stories.
+        expect(packageIdFromAmount(amount), `amount=${amount}`).toBeNull();
+      } else {
+        expect(packageIdFromAmount(amount), `amount=${amount}`).not.toBeNull();
+      }
     }
   });
 
-  it("59.90 ו-69.90 מתועדות כהתנגשות pdf ↔ gift_two_stories (fallback בוחר pdf)", () => {
-    expect(packageIdFromAmount(59.9)).toBe("pdf");
-    expect(packageIdFromAmount(69.9)).toBe("pdf");
-    // כשה-UI שולח את הגיפט הוא חייב להעביר cField2 = gift_two_stories מפורש,
-    // אחרת ה-webhook יזרים קרדיטים לחבילת pdf.
+  it("59.90 ו-69.90 מחזירים null (התנגשות pdf ↔ gift_two_stories — לא מנחשים)", () => {
+    // בעבר ה-fallback בחר pdf אוטומטית וסיכן זיכוי במוצר הלא נכון.
+    // כעת הזרימות חייבות להעביר cField2, וה-webhook מזעיק unknown_package
+    // (עם התראת מייל) במקום להזרים קרדיטים בשקט.
+    expect(packageIdFromAmount(59.9)).toBeNull();
+    expect(packageIdFromAmount(69.9)).toBeNull();
   });
 
   it("סכומים לא מוכרים מחזירים null (במקום ליפול בשקט לחבילה)", () => {
@@ -200,10 +209,11 @@ describe("GIFT_PACKAGES", () => {
     expect(new Set(ids).size).toBe(ids.length);
   });
 
-  it("twoStories מסומן comingSoon עד תיקון ה-paylink", () => {
+  it("twoStories פעיל עם paylink תקין ב-pay.grow.link", () => {
     const two = GIFT_PACKAGES.find((p) => p.growKey === "twoStories");
     expect(two).toBeTruthy();
-    expect(two!.comingSoon).toBe(true);
+    expect(two!.comingSoon).toBeFalsy();
+    expect(GROW_LINKS.twoStories).toMatch(/^https:\/\/pay\.grow\.link\//);
   });
 
   it("PROMO_END הוא ה-31/8/26 23:59 בשעון ישראל", () => {
