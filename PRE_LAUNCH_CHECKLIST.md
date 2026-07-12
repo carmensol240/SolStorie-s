@@ -42,7 +42,8 @@
 
 ## 5. חבילת הטסטים האוטומטית
 
-- [ ] `bun test` רץ ומחזיר **ירוק לחלוטין** (17/17 ומעלה — מותר לגדול, אסור להתכווץ).
+- [ ] `bun run test` (או `bunx vitest run`) רץ ומחזיר **ירוק לחלוטין** (17/17 ומעלה — מותר לגדול, אסור להתכווץ).
+  - ⚠️ אל תשתמש/י ב-`bun test` הסתמי: זו פקודת builtin של Bun שמריצה את ה-runner שלה, מתעלמת מהסקריפט `"test"` ב-`package.json` ולא טוענת jsdom — לכן טסטים שמסתמכים על `window`/`sessionStorage` ייכשלו כוזבות.
 - [ ] אם הוספתי חבילה/מחיר/growKey — הוספתי גם טסט מתאים ב-`src/__tests__/purchase-flow.test.ts`.
 - [ ] אם שיניתי מחיר promo/regular — עדכנתי את `EXPECTED_PROMO` / `EXPECTED_REGULAR` באותו קובץ טסטים.
 
@@ -64,7 +65,7 @@
 
 ## 8. Sanity אחרון לפני deploy
 
-- [ ] `bun test` ירוק.
+- [ ] `bun run test` ירוק (ולא `bun test` — ראה סעיף 5).
 - [ ] Build עובר בלי warnings חדשים על מחירים/חבילות.
 - [ ] לא נשארו הפניות ל-PayPal בקוד (`rg -i paypal` נקי).
 - [ ] `git diff` על `src/config/promo.ts`, `src/config/grow-links.ts`, `src/config/gift-packages.ts`, `supabase/functions/_shared/purchase-credits.ts` — נקרא ואושר ידנית.
