@@ -217,6 +217,9 @@ Deno.serve(async (req) => {
         error_message: `Could not resolve user for Grow tx ${transactionId}`,
         metadata: { transactionId, payerEmail, amount, customFields },
       });
+      await sendPurchaseFailureAlert("unknown_user", {
+        transactionId, payerEmail, amount, cField1: customFields.cField1, cField2: customFields.cField2,
+      });
       return ok({ received: true, warning: "unknown_user" });
     }
 
@@ -234,6 +237,10 @@ Deno.serve(async (req) => {
         error_type: "grow_webhook_unknown_package",
         error_message: `Could not resolve package for Grow tx ${transactionId} amount ${amount}`,
         metadata: { transactionId, payerEmail, amount, customFields },
+      });
+      await sendPurchaseFailureAlert("unknown_package", {
+        transactionId, userId, payerEmail, amount,
+        cField2: customFields.cField2 ?? "(missing)",
       });
       return ok({ received: true, warning: "unknown_package" });
     }
