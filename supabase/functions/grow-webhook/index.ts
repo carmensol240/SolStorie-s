@@ -455,6 +455,10 @@ Deno.serve(async (req) => {
         error_message: result.error || "unknown",
         metadata: { transactionId, userId, packageId, amount },
       });
+      await sendPurchaseFailureAlert("credit_failure", {
+        transactionId, userId, packageId, amount,
+        error: result.error || "unknown",
+      });
       // Still return 200 so Grow doesn't keep retrying.
       return ok({ received: true, warning: result.error });
     }
