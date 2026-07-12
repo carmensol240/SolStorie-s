@@ -126,10 +126,20 @@ const Upgrade = () => {
   const isTestUser = !!user?.email &&
     WHITELISTED_TEST_EMAILS.includes(user.email.toLowerCase());
 
-  const selectedProductData = PRODUCTS.find((p) => p.id === selectedProduct)!;
-  const selectedBasePrice = getPrice(selectedProductData.priceKey);
-  const selectedFinalPrice =
-    Math.round(selectedBasePrice * (1 - discountPercent / 100) * 100) / 100;
+  // NOTE: `coloring_pages` is a special-case tile rendered outside PRODUCTS
+  // (see the standalone <button> below). PRODUCTS only contains the two
+  // priced-per-story packages. Never assume `find` returns a match — use a
+  // safe lookup so future ProductId additions can't crash render at runtime.
+  const selectedProductData =
+    selectedProduct === "coloring_pages"
+      ? null
+      : PRODUCTS.find((p) => p.id === selectedProduct) ?? null;
+  const selectedBasePrice = selectedProductData
+    ? getPrice(selectedProductData.priceKey)
+    : 24.9; // coloring bundle default; actual price picked inside modal
+  const selectedFinalPrice = selectedProductData
+    ? Math.round(selectedBasePrice * (1 - discountPercent / 100) * 100) / 100
+    : selectedBasePrice;
 
   const handleClose = () => {
     try {
@@ -208,6 +218,11 @@ const Upgrade = () => {
     if (!user) { navigate("/auth"); return; }
     if (selectedProduct === "coloring_pages") {
       setShowColoringModal(true);
+      return;
+    }
+    if (!selectedProductData) {
+      // Defensive: unreachable given the guard above, but keeps TS honest
+      // and prevents any future ProductId addition from crashing checkout.
       return;
     }
     let storyIdForCheckout: string | null = null;
@@ -527,7 +542,7 @@ const Upgrade = () => {
             style={{ boxShadow: "0 0 30px rgba(168, 85, 247, 0.4), 0 0 60px rgba(236, 72, 153, 0.2)" }}
           >
             <span className="inline-flex flex-wrap items-center justify-center gap-x-1 gap-y-0.5 w-full">
-              {selectedProduct === "coloring_pages" ? (
+              {selectedProduct === "coloring_pages" || !selectedProductData ? (
                 <span>רכשו דפי צביעה ✨</span>
               ) : discountPercent > 1 ? (
                 <>
