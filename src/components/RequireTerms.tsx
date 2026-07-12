@@ -80,6 +80,25 @@ const RequireTerms = ({ children }: RequireTermsProps) => {
           return;
         }
 
+        // Defensive: profile row is missing entirely (handle_new_user trigger
+        // didn't fire, or account predates the trigger). Auto-create a minimal
+        // profile so the user isn't stuck in a redirect loop, then send them
+        // to onboarding to accept terms.
+        if (!data) {
+          console.warn("[RequireTerms] Profile row missing for user", user.id, "— creating minimal profile");
+          try {
+            await supabase.from("profiles").upsert(
+              { id: user.id, email: user.email, story_credits: 1, coloring_credits: 0, user_role: 'parent' },
+              { onConflict: "id" },
+            );
+          } catch (e) {
+            console.warn("[RequireTerms] Auto-create profile failed:", e);
+          }
+          const returnTo = encodeURIComponent(window.location.pathname + window.location.search);
+          navigate(`/onboarding?returnTo=${returnTo}`, { replace: true });
+          return;
+        }
+
         if (!data?.terms_accepted_at) {
           const returnTo = encodeURIComponent(window.location.pathname + window.location.search);
           navigate(`/onboarding?returnTo=${returnTo}`, { replace: true });
