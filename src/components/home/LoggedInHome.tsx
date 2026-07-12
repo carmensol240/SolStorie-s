@@ -147,7 +147,7 @@ const LoggedInHome = ({ user, displayName }: LoggedInHomeProps) => {
                 <GraduationCap className="w-6 h-6 text-white" />
               </div>
               <p className="text-white font-bold text-sm leading-relaxed pr-2">
-                🎓 כאיש/ת חינוך תקבלו בהרשמה — סיפור אחד חינם + דף צביעה אחד במתנה לצביעה אונליין ולהדפסה!
+                🎓 ברוכים הבאים, צוות החינוך! מחכה לכם סיפור לדוגמא כדי להתרשם מהקסם ✨
               </p>
             </div>
           </div>
