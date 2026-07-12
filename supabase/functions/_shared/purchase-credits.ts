@@ -260,16 +260,45 @@ export async function applyPurchaseCredits(
   return { success: true, updates, profile };
 }
 
-// Amount → packageId mapping for fallback identification (Grow static links)
+// Amount → packageId fallback mapping. Used ONLY when cField2 is missing from
+// the Grow webhook payload. Keep this in sync with actual Grow dashboard prices.
+//
+// Current Grow prices (promo, until 31/8/26):
+//   basic (single_story_digital)       29.90
+//   popular                             99.90
+//   single_story (DemoLockModal)        39.90
+//   coloring_single                      9.90
+//   coloring_bundle                     24.90
+//   pdf                                 59.90  ⚠ collides with gift_two_stories 59.90
+//   gift_two_stories                    59.90  ⚠ collides with pdf 59.90
+//
+// Regular prices (from 1/9/26): basic 39.90, popular 119.90, pdf 69.90,
+// gift_two_stories 69.90 (also collides). Legacy amounts kept for
+// backwards-compat with older Grow links that may still be live.
+//
+// COLLISIONS: 59.90 and 69.90 map to BOTH pdf and gift_two_stories. This
+// fallback prefers `pdf` (higher-volume flow); gift purchases MUST arrive with
+// cField2="gift_two_stories" or they'll be miscategorised. `openGrowCheckout`
+// always sets cField2, so this only affects direct Grow-link clicks bypassing
+// our checkout wrapper.
 export function packageIdFromAmount(amount: number): string | null {
   const a = Math.round(amount * 100) / 100;
+  // single_story_digital (basic) — 29.90 promo, 39.90 regular, 49.90 legacy
+  if (a === 29.9) return "single_story_digital";
   if (a === 39.9) return "single_story_digital";
   if (a === 49.9) return "single_story_digital";
+  // popular — 99.90 promo, 119.90 regular, 129.90 legacy
   if (a === 99.9) return "popular";
+  if (a === 119.9) return "popular";
   if (a === 129.9) return "popular";
+  // coloring
   if (a === 9.9) return "coloring_single";
   if (a === 24.9) return "coloring_bundle";
+  // pdf — 59.90 promo, 69.90 regular. NOTE: gift_two_stories shares these
+  // amounts; disambiguation requires cField2 (see comment above).
   if (a === 59.9) return "pdf";
   if (a === 69.9) return "pdf";
+  // gift_two_stories legacy standalone amount (89.90 before 12/7/26 relaunch)
+  if (a === 89.9) return "gift_two_stories";
   return null;
 }
