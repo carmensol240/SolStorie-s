@@ -5,7 +5,7 @@ import PersonalizedStoryCover from "@/components/paywall/PersonalizedStoryCover"
 import { openGrowCheckout } from "@/config/grow-links";
 import { useAuth } from "@/hooks/use-auth";
 import { supabase } from "@/integrations/supabase/client";
-import { isPromoActive } from "@/config/promo";
+import { isPromoActive, getPrice } from "@/config/promo";
 
 interface DemoLockModalProps {
   open: boolean;
@@ -22,6 +22,8 @@ const DemoLockModal = ({ open, onOpenChange, title, description, storyId }: Demo
   const [isFirstTimeBuyer, setIsFirstTimeBuyer] = useState(false);
   const promoActive = isPromoActive();
   const showBonusOffer = isFirstTimeBuyer && promoActive;
+  const singleStoryPrice = getPrice("single_story").toFixed(2);
+  const popularPrice = getPrice("popular").toFixed(2);
 
   useEffect(() => {
     if (!open || !user) return;
@@ -100,7 +102,7 @@ const DemoLockModal = ({ open, onOpenChange, title, description, storyId }: Demo
                 🎁 סיפור ראשון? מגיע לך מתנה!
               </DialogDescription>
               <DialogDescription className="text-sm text-white/80 pt-1 text-center">
-                רכשו ב-39.90 ₪ וקבלו סיפור דיגיטלי נוסף
+                רכשו ב-{singleStoryPrice} ₪ וקבלו סיפור דיגיטלי נוסף
               </DialogDescription>
             </>
           )}
