@@ -339,7 +339,12 @@ const AdminDashboard = () => {
     const { data: { subscription } } = supabase.auth.onAuthStateChange(() => {
       setAuthReady(true);
     });
-    supabase.auth.getSession().then(() => setAuthReady(true));
+    supabase.auth.getSession()
+      .then(() => setAuthReady(true))
+      .catch((err) => {
+        console.warn('[AdminDashboard] getSession() rejected:', err);
+        setAuthReady(true);
+      });
     return () => subscription.unsubscribe();
   }, []);
 
