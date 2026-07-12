@@ -8,11 +8,35 @@ interface RequireTermsProps {
   children: ReactNode;
 }
 
+const PROFILE_QUERY_TIMEOUT_MS = 8000;
+const GATE_TIMEOUT_MS = 12000;
+
+const withTimeout = <T,>(promise: PromiseLike<T>, ms: number, label: string): Promise<T> =>
+  new Promise<T>((resolve, reject) => {
+    const t = setTimeout(() => reject(new Error(`${label} timed out after ${ms}ms`)), ms);
+    Promise.resolve(promise).then(
+      (v) => { clearTimeout(t); resolve(v); },
+      (e) => { clearTimeout(t); reject(e); },
+    );
+  });
+
 const RequireTerms = ({ children }: RequireTermsProps) => {
   const { user, loading: authLoading } = useAuth();
   const navigate = useNavigate();
   const [termsChecked, setTermsChecked] = useState(false);
   const [checking, setChecking] = useState(true);
+  const [stuck, setStuck] = useState(false);
+
+  // Global gate fallback: if we're still loading after GATE_TIMEOUT_MS,
+  // stop showing an infinite spinner and offer recovery actions.
+  useEffect(() => {
+    if (!authLoading && !checking) return;
+    const t = setTimeout(() => {
+      console.warn('[RequireTerms] gate stuck loading > 12s — showing fallback UI');
+      setStuck(true);
+    }, GATE_TIMEOUT_MS);
+    return () => clearTimeout(t);
+  }, [authLoading, checking]);
 
   useEffect(() => {
     const checkTermsAccepted = async () => {
@@ -39,14 +63,18 @@ const RequireTerms = ({ children }: RequireTermsProps) => {
       }
 
       try {
-        const { data, error } = await supabase
-          .from("profiles")
-          .select("terms_accepted_at")
-          .eq("id", user.id)
-          .maybeSingle();
+        const { data, error } = await withTimeout(
+          supabase
+            .from("profiles")
+            .select("terms_accepted_at")
+            .eq("id", user.id)
+            .maybeSingle(),
+          PROFILE_QUERY_TIMEOUT_MS,
+          'profiles.terms_accepted_at query',
+        );
 
         if (error) {
-          console.error("Error checking terms:", error);
+          console.warn("[RequireTerms] Error checking terms:", error);
           // If profile doesn't exist yet, redirect to auth with consent step
           navigate(`/auth?returnTo=${encodeURIComponent(window.location.pathname + window.location.search)}`);
           return;
@@ -60,8 +88,9 @@ const RequireTerms = ({ children }: RequireTermsProps) => {
 
         setTermsChecked(true);
       } catch (error) {
-        console.error("Error checking terms:", error);
-        navigate(`/auth?returnTo=${encodeURIComponent(window.location.pathname + window.location.search)}`);
+        console.warn("[RequireTerms] Terms check failed / timed out:", error);
+        // Do NOT redirect on timeout — let the gate fallback UI show
+        // so the user can retry without losing their route.
       } finally {
         setChecking(false);
       }
@@ -69,6 +98,36 @@ const RequireTerms = ({ children }: RequireTermsProps) => {
 
     checkTermsAccepted();
   }, [user, authLoading, navigate]);
+
+  if (stuck && (authLoading || checking)) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center p-6">
+        <div className="flex flex-col items-center gap-4 max-w-md text-center">
+          <p className="text-lg font-semibold">הטעינה נתקעה</p>
+          <p className="text-sm text-muted-foreground">
+            נראה שהחיבור לשרת איטי או לא זמין. נסי שוב, או התנתקי והתחברי מחדש.
+          </p>
+          <div className="flex gap-2">
+            <button
+              onClick={() => window.location.reload()}
+              className="px-4 py-2 rounded-md bg-primary text-primary-foreground text-sm font-medium"
+            >
+              נסי שוב
+            </button>
+            <button
+              onClick={async () => {
+                try { await supabase.auth.signOut(); } catch {}
+                window.location.href = '/auth';
+              }}
+              className="px-4 py-2 rounded-md border text-sm font-medium"
+            >
+              התנתקי והתחברי שוב
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   if (authLoading || checking) {
     return (
