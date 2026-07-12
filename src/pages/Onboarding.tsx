@@ -9,6 +9,23 @@ import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 
 const TERMS_VERSION = "1.0";
+const PROFILE_QUERY_TIMEOUT_MS = 8000;
+const ONBOARDING_GATE_TIMEOUT_MS = 12000;
+
+const withTimeout = <T,>(promise: PromiseLike<T>, ms: number, label: string): Promise<T> =>
+  new Promise<T>((resolve, reject) => {
+    const t = window.setTimeout(() => reject(new Error(`${label} timed out after ${ms}ms`)), ms);
+    Promise.resolve(promise).then(
+      (value) => {
+        window.clearTimeout(t);
+        resolve(value);
+      },
+      (error) => {
+        window.clearTimeout(t);
+        reject(error);
+      },
+    );
+  });
 
 const Onboarding = () => {
   const navigate = useNavigate();
@@ -20,6 +37,20 @@ const Onboarding = () => {
   const [hasAgreedPrivacy, setHasAgreedPrivacy] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [checkingTerms, setCheckingTerms] = useState(true);
+  const [stuck, setStuck] = useState(false);
+  const [loadError, setLoadError] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (!loading && !checkingTerms) return;
+
+    const t = window.setTimeout(() => {
+      console.warn('[Onboarding] gate stuck loading > 12s — showing fallback UI');
+      setLoadError('timeout');
+      setStuck(true);
+    }, ONBOARDING_GATE_TIMEOUT_MS);
+
+    return () => window.clearTimeout(t);
+  }, [loading, checkingTerms]);
 
   // Guard: Check if user already accepted terms
   useEffect(() => {
@@ -30,18 +61,34 @@ const Onboarding = () => {
         return;
       }
       setCheckingTerms(true);
+      setLoadError(null);
+      setStuck(false);
       try {
-        const { data } = await supabase
-          .from("profiles")
-          .select("terms_accepted_at")
-          .eq("id", user.id)
-          .maybeSingle();
+        const { data, error } = await withTimeout(
+          supabase
+            .from("profiles")
+            .select("terms_accepted_at")
+            .eq("id", user.id)
+            .maybeSingle(),
+          PROFILE_QUERY_TIMEOUT_MS,
+          'onboarding profiles.terms_accepted_at query',
+        );
+
+        if (error) {
+          console.warn("[Onboarding] Error checking terms:", error);
+          setLoadError('query-error');
+          setStuck(true);
+          return;
+        }
+
         if (data?.terms_accepted_at) {
           navigate("/adventure", { replace: true });
           return;
         }
       } catch (error) {
-        console.error("Error checking terms:", error);
+        console.warn("[Onboarding] Terms check failed / timed out:", error);
+        setLoadError('timeout');
+        setStuck(true);
       } finally {
         setCheckingTerms(false);
       }
@@ -113,6 +160,25 @@ const Onboarding = () => {
       setIsSubmitting(false);
     }
   };
+
+  if (stuck || loadError) {
+    return (
+      <div className="min-h-[100dvh] flex items-center justify-center bg-gradient-to-b from-[hsl(260,60%,15%)] via-[hsl(270,40%,20%)] to-[hsl(250,50%,12%)] p-6" dir="rtl">
+        <div className="flex flex-col items-center gap-4 max-w-md text-center text-white">
+          <p className="text-lg font-semibold">הטעינה נתקעה</p>
+          <p className="text-sm text-white/75">
+            נראה שהחיבור לשרת איטי או לא זמין. נסי שוב כדי להמשיך לאישור התנאים.
+          </p>
+          <Button
+            onClick={() => window.location.reload()}
+            className="px-5 py-2 rounded-full bg-white text-purple-950 hover:bg-white/90 text-sm font-bold"
+          >
+            נסי שוב
+          </Button>
+        </div>
+      </div>
+    );
+  }
 
   if (loading || checkingTerms) {
     return (

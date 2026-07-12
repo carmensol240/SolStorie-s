@@ -87,10 +87,13 @@ const RequireTerms = ({ children }: RequireTermsProps) => {
         if (!data) {
           console.warn("[RequireTerms] Profile row missing for user", user.id, "— creating minimal profile");
           try {
-            await supabase.from("profiles").upsert(
+            const { error: upsertError } = await supabase.from("profiles").upsert(
               { id: user.id, email: user.email, story_credits: 1, coloring_credits: 0, user_role: 'parent' },
               { onConflict: "id" },
             );
+            if (upsertError) {
+              console.warn("[RequireTerms] Auto-create profile returned error:", upsertError);
+            }
           } catch (e) {
             console.warn("[RequireTerms] Auto-create profile failed:", e);
           }
