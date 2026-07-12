@@ -462,7 +462,7 @@ const GiftCard = () => {
           <Button
             type="button"
             onClick={handlePurchase}
-            disabled={!childName.trim()}
+            disabled={!childName.trim() || !!selectedPkg?.comingSoon}
             className="w-full bg-gradient-to-r from-pink-500 via-purple-500 to-orange-500 hover:from-pink-400 hover:via-purple-400 hover:to-orange-400 text-white font-black text-sm py-3 rounded-xl shadow-xl disabled:opacity-50 disabled:cursor-not-allowed"
             style={{
               boxShadow:
@@ -470,7 +470,9 @@ const GiftCard = () => {
             }}
           >
             <Gift className="w-5 h-5 ml-2" />
-            רכשו {selectedPkg?.subtitle} — {CURRENCY_SYMBOL}{selectedPkg ? getPrice(selectedPkg.priceKey).toFixed(2) : ""} ✨
+            {selectedPkg?.comingSoon
+              ? "⏳ בקרוב — לא זמין לרכישה"
+              : <>רכשו {selectedPkg?.subtitle} — {CURRENCY_SYMBOL}{selectedPkg ? getPrice(selectedPkg.priceKey).toFixed(2) : ""} ✨</>}
           </Button>
         </div>
       </div>
