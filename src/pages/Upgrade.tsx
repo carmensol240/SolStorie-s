@@ -1,7 +1,7 @@
 import { useState, useEffect, useMemo } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { X, Check, Flame } from "lucide-react";
-import { PROMO_END, PROMO_END_LABEL, isPromoActive } from "@/config/promo";
+import { PROMO_END, PROMO_END_LABEL, isPromoActive, getPrice, getRegularPrice, type PriceKey } from "@/config/promo";
 
 const WHITELISTED_TEST_EMAILS = [
   "carmit1901+test@gmail.com",
@@ -29,8 +29,7 @@ interface Product {
   id: Exclude<ProductId, "coloring_pages">;
   title: string;
   description: string;
-  launchPrice: number;
-  originalPrice: number;
+  priceKey: PriceKey;
   growKey: "basic" | "popular";
   features: string[];
   badge?: string;
@@ -41,8 +40,7 @@ const PRODUCTS: Product[] = [
     id: "digital",
     title: "דיגיטלי",
     description: "סיפור דיגיטלי בודד",
-    launchPrice: 29.90,
-    originalPrice: 39.90,
+    priceKey: "basic",
     growKey: "basic",
     features: [
       "✨ הילד שלך — הגיבור של הסיפור",
@@ -56,8 +54,7 @@ const PRODUCTS: Product[] = [
     id: "popular",
     title: "הכי פופולרי",
     description: "סיפור דיגיטלי + PDF + דפי צביעה",
-    launchPrice: 99.90,
-    originalPrice: 119.90,
+    priceKey: "popular",
     growKey: "popular",
     badge: "הכי פופולרי 🔥",
     features: [
@@ -130,9 +127,7 @@ const Upgrade = () => {
     WHITELISTED_TEST_EMAILS.includes(user.email.toLowerCase());
 
   const selectedProductData = PRODUCTS.find((p) => p.id === selectedProduct)!;
-  const selectedBasePrice = promoActive
-    ? selectedProductData.launchPrice
-    : selectedProductData.originalPrice;
+  const selectedBasePrice = getPrice(selectedProductData.priceKey);
   const selectedFinalPrice =
     Math.round(selectedBasePrice * (1 - discountPercent / 100) * 100) / 100;
 
@@ -407,11 +402,11 @@ const Upgrade = () => {
                     <div className="flex flex-col items-end shrink-0">
                       {promoActive && (
                         <span className="text-xs text-white/50 line-through font-semibold">
-                          ₪{product.originalPrice.toFixed(2)}
+                           ₪{getRegularPrice(product.priceKey).toFixed(2)}
                         </span>
                       )}
                       <span className="text-xl font-black bg-gradient-to-r from-purple-300 via-pink-300 to-orange-300 bg-clip-text text-transparent">
-                        ₪{(promoActive ? product.launchPrice : product.originalPrice).toFixed(2)}
+                         ₪{getPrice(product.priceKey).toFixed(2)}
                       </span>
                     </div>
                   </div>
@@ -419,7 +414,7 @@ const Upgrade = () => {
                   {product.id === "popular" && promoActive && (
                     <div className="mt-2 mb-2 flex items-center gap-1">
                       <span className="text-[11px] font-black text-green-300">
-                        חסכו ₪{(product.originalPrice - product.launchPrice).toFixed(2)}
+                         חסכו ₪{(getRegularPrice(product.priceKey) - getPrice(product.priceKey)).toFixed(2)}
                       </span>
                     </div>
                   )}

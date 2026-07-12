@@ -1,6 +1,7 @@
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import PersonalizedStoryCover from "@/components/paywall/PersonalizedStoryCover";
+import { getPrice } from "@/config/promo";
 
 interface PrintPdfOfferModalProps {
   open: boolean;
@@ -18,6 +19,7 @@ const PrintPdfOfferModal = ({
   storyId,
   onPurchase,
 }: PrintPdfOfferModalProps) => {
+  const pdfPrice = getPrice("pdf").toFixed(2);
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent
@@ -50,7 +52,7 @@ const PrintPdfOfferModal = ({
 
           {/* Price */}
           <p className="text-sm text-amber-300 font-bold">
-            59.90 ₪ בלבד — השלמה לחבילה המלאה
+            {pdfPrice} ₪ בלבד — השלמה לחבילה המלאה
           </p>
 
           {/* CTA Button */}

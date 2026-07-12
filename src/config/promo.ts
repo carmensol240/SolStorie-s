@@ -7,6 +7,43 @@ export const isPromoActive = (now: Date = new Date()): boolean =>
   now.getTime() < PROMO_END.getTime();
 
 // ─────────────────────────────────────────────────────────────────────────────
+// מחירים מרכזיים לפי תאריך.
+// כל המחירים ב-UI חייבים לעבור דרך `getPrice(key)` / `getRegularPrice(key)`
+// כדי שהמעבר האוטומטי ב-1/9/26 יקרה במקום אחד ולא ידרוש שינוי ידני בקבצים.
+// שים לב: קישורי Grow עצמם (המחיר שנגבה בפועל) *לא* מנוהלים מכאן — הם
+// מוגדרים חיצונית בלוח הבקרה של Grow ודורשים עדכון ידני שם.
+// ─────────────────────────────────────────────────────────────────────────────
+export type PriceKey =
+  | "basic"              // חבילת דיגיטלי — סיפור בודד ב-Upgrade
+  | "popular"            // הכי פופולרי — סיפור + PDF + דפי צביעה
+  | "pdf"                // PDF להשלמה (PrintPdfOfferModal)
+  | "gift_two_stories"   // גיפטקארד — 2 סיפורים דיגיטליים
+  | "single_story";      // סיפור דיגיטלי בודד (כפתור ראשי ב-DemoLockModal)
+
+const PROMO_PRICES: Record<PriceKey, number> = {
+  basic: 29.90,
+  popular: 99.90,
+  pdf: 59.90,
+  gift_two_stories: 59.90,
+  single_story: 39.90,
+};
+
+const REGULAR_PRICES: Record<PriceKey, number> = {
+  basic: 39.90,
+  popular: 119.90,
+  pdf: 69.90,
+  gift_two_stories: 69.90,
+  single_story: 39.90, // ללא שינוי אחרי 1/9
+};
+
+/** מחזיר את המחיר האפקטיבי — מחיר השקה עד `PROMO_END`, אחריו המחיר הרגיל. */
+export const getPrice = (key: PriceKey, now: Date = new Date()): number =>
+  isPromoActive(now) ? PROMO_PRICES[key] : REGULAR_PRICES[key];
+
+/** מחזיר תמיד את המחיר הרגיל (post-promo) — לשימוש כמחיר "מחוק" עם קו חוצה. */
+export const getRegularPrice = (key: PriceKey): number => REGULAR_PRICES[key];
+
+// ─────────────────────────────────────────────────────────────────────────────
 // TODO 1/9/26 — עדכון מחירים ידני (לבצע ביום עצמו, לא אוטומטי):
 //
 // שינויי מחיר:
