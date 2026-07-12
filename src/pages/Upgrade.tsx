@@ -220,6 +220,11 @@ const Upgrade = () => {
       setShowColoringModal(true);
       return;
     }
+    if (!selectedProductData) {
+      // Defensive: unreachable given the guard above, but keeps TS honest
+      // and prevents any future ProductId addition from crashing checkout.
+      return;
+    }
     let storyIdForCheckout: string | null = null;
     try {
       const raw = sessionStorage.getItem("pendingStoryReturn");
