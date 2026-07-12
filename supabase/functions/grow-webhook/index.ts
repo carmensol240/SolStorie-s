@@ -56,8 +56,6 @@ function giftStoriesForPackage(packageId: string): number | null {
       return 1;
     case "popular":
       return 1;
-    case "premium":
-      return 10;
     default:
       return null;
   }
