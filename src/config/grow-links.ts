@@ -1,5 +1,11 @@
 // Grow payment links. Each key represents a purchasable item / package.
 // Grow is the sole active payment provider.
+//
+// ⚠️ חשוב: המחירים כאן הם חיצוניים — הם מוגדרים בלוח הבקרה של Grow עצמו,
+// לא בקוד הזה. ה-URL רק פותח את דף התשלום; המחיר הנגבה בפועל נשלט ע"י Grow.
+// כשמעדכנים מחיר ב-`src/config/promo.ts` (למשל בהחלפת promo→regular ב-1/9/26),
+// חובה לעדכן ידנית את אותו מחיר גם בכל לינק כאן דרך ממשק Grow — אחרת ה-UI
+// יראה מחיר אחד וה-checkout יגבה מחיר אחר.
 export const GROW_LINKS = {
   // Basic package — single digital story (49.90 ₪)
   basic: "https://pay.grow.link/MTAxMTMz~c553eb7e7fdf0752b8277d9777188b87-MzQ3NDUyNg",
