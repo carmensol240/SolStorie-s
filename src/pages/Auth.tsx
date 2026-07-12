@@ -21,7 +21,24 @@ import { z } from "zod";
 const emailSchema = z.string().email("כתובת אימייל לא תקינה");
 const passwordSchema = z.string().min(6, "הסיסמה חייבת להכיל לפחות 6 תווים");
 const TERMS_VERSION = "1.0";
+const PROFILE_QUERY_TIMEOUT_MS = 8000;
+const AUTH_GATE_TIMEOUT_MS = 12000;
 const GOOGLE_SIGNIN_ENABLED = false;
+
+const withTimeout = <T,>(promise: PromiseLike<T>, ms: number, label: string): Promise<T> =>
+  new Promise<T>((resolve, reject) => {
+    const t = window.setTimeout(() => reject(new Error(`${label} timed out after ${ms}ms`)), ms);
+    Promise.resolve(promise).then(
+      (value) => {
+        window.clearTimeout(t);
+        resolve(value);
+      },
+      (error) => {
+        window.clearTimeout(t);
+        reject(error);
+      },
+    );
+  });
 
 const Auth = () => {
   const navigate = useNavigate();
@@ -47,6 +64,8 @@ const Auth = () => {
   const [hasReadTerms, setHasReadTerms] = useState(false);
   const [isParentConsent, setIsParentConsent] = useState(false);
   const [checkingTerms, setCheckingTerms] = useState(false);
+  const [authGateStuck, setAuthGateStuck] = useState(false);
+  const [authGateError, setAuthGateError] = useState<string | null>(null);
   
   // Signup terms consent (inline in registration form)
   const [signupTermsAccepted, setSignupTermsAccepted] = useState(false);
@@ -273,10 +292,24 @@ const Auth = () => {
 
   // Check terms acceptance when user is logged in
   useEffect(() => {
+    if (!loading && !checkingTerms) return;
+
+    const t = window.setTimeout(() => {
+      console.warn('[Auth] gate stuck loading > 12s — showing fallback UI');
+      setAuthGateError('timeout');
+      setAuthGateStuck(true);
+    }, AUTH_GATE_TIMEOUT_MS);
+
+    return () => window.clearTimeout(t);
+  }, [loading, checkingTerms]);
+
+  useEffect(() => {
     const checkTermsAcceptance = async () => {
       if (!user || loading) return;
       
       setCheckingTerms(true);
+      setAuthGateError(null);
+      setAuthGateStuck(false);
       try {
         // If user just consented in the wizard's Google flow, persist now
         const pendingWizardTerms = localStorage.getItem('pending_wizard_terms_accept');
@@ -315,11 +348,22 @@ const Auth = () => {
           localStorage.removeItem('pending_educator_terms_accept');
         }
 
-        const { data } = await supabase
-          .from("profiles")
-          .select("terms_accepted_at")
-          .eq("id", user.id)
-          .maybeSingle();
+        const { data, error } = await withTimeout(
+          supabase
+            .from("profiles")
+            .select("terms_accepted_at")
+            .eq("id", user.id)
+            .maybeSingle(),
+          PROFILE_QUERY_TIMEOUT_MS,
+          'auth profiles.terms_accepted_at query',
+        );
+
+        if (error) {
+          console.warn("[Auth] Error checking terms:", error);
+          setAuthGateError('query-error');
+          setAuthGateStuck(true);
+          return;
+        }
 
         if (data?.terms_accepted_at) {
           // Terms already accepted - redirect to destination
@@ -333,8 +377,9 @@ const Auth = () => {
           navigate(`/onboarding?returnTo=${encodeURIComponent(returnTo)}`, { replace: true });
         }
       } catch (error) {
-        console.error("Error checking terms:", error);
-        navigate("/onboarding", { replace: true });
+        console.warn("[Auth] Terms check failed / timed out:", error);
+        setAuthGateError('timeout');
+        setAuthGateStuck(true);
       } finally {
         setCheckingTerms(false);
       }
@@ -620,6 +665,33 @@ const Auth = () => {
       setIsSubmitting(false);
     }
   };
+
+  if (authGateStuck || authGateError) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center p-6" dir="rtl">
+        <div className="flex flex-col items-center gap-4 max-w-md text-center">
+          <p className="text-lg font-semibold">הטעינה נתקעה</p>
+          <p className="text-sm text-muted-foreground">
+            נראה שהחיבור לשרת איטי או לא זמין. נסי שוב, או התחברי מחדש.
+          </p>
+          <div className="flex gap-2">
+            <Button onClick={() => window.location.reload()}>
+              נסי שוב
+            </Button>
+            <Button
+              variant="outline"
+              onClick={async () => {
+                try { await supabase.auth.signOut(); } catch {}
+                window.location.href = '/auth';
+              }}
+            >
+              התחברות מחדש
+            </Button>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   if (loading || checkingTerms) {
     return (
