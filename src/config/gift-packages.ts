@@ -33,11 +33,7 @@ export const GIFT_PACKAGES: readonly GiftPackage[] = [
     priceKey: "gift_two_stories",
     label: "2 סיפורים דיגיטליים",
     subtitle: "חבילה זוגית",
-    // ⚠ Grow link (twoStories) currently points to grow.website product page,
-    // not a real pay.grow.link paylink. Marked comingSoon until we get a new
-    // paylink from Grow. See src/config/grow-links.ts comment above twoStories.
     growKey: "twoStories",
-    comingSoon: true,
     coloringDesc:
       "✨ 2 סיפורים מותאמים אישית עם הילד כגיבור — 🎨 2 דפי צביעה במתנה — לצביעה אונליין ולהדפסה",
   },

@@ -20,7 +20,7 @@ export const GROW_LINKS = {
   // Printable PDF file — PrintPdfOfferModal (promo 59.90 ₪ / regular 69.90 ₪)
   pdf: "https://pay.grow.link/MTAxMTMz~966f337ed54d7ce20445cd22c4cc239e-MzQ3NDYxOA",
   // Two digital stories gift package (promo 59.90 ₪ / regular 69.90 ₪)
-  twoStories: "https://grow.website/products/view/477248",
+  twoStories: "https://pay.grow.link/MTAxMTMz~bc37be155aed440bdbff7ebc3ff9eb84-MzY4NTAwMg",
 } as const;
 
 export type GrowLinkKey = keyof typeof GROW_LINKS;
