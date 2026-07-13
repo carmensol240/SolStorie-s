@@ -2040,13 +2040,37 @@ ${fullStoryText}`;
     // Age 0-2: EVERY page gets an illustration_prompt (+ illustration_prompt_2 for dual layout)
     // Other ages: Odd pages (1, 3, 5...) get illustration prompts; even pages are text-only
     const isToddlerAge = ageRange === "0-2";
+    // Track how many times we had to synthesize a fallback illustration_prompt
+    // because the model omitted it on a page that requires an illustration.
+    // Rare by design (see the MANDATORY output rule above). We log every hit
+    // so we can catch a regression where the model starts omitting broadly.
+    let fallbackPromptCount = 0;
+    const buildFallbackPromptFromText = (pageText: string, pageNumber: number): string => {
+      const safeText = (pageText || "").toString().trim().slice(0, 600);
+      const genderWord =
+        childGender === "female" ? "girl" : childGender === "male" ? "boy" : "child";
+      // Deterministic, no extra AI call: derive a scene prompt directly from the
+      // page text so the illustration still matches this page exactly.
+      return `A children's book illustration for page ${pageNumber}. Illustrate EXACTLY what happens in this page's story text: "${safeText}". The main character is a ${genderWord} named ${childName}, aged ${ageRange}. Show the specific action, environment, objects, and characters mentioned in the text — do not invent a different scene. Character appearance and outfit must match the rest of the storybook.`;
+    };
     const pagesWithoutIllustrations = storyData.pages.map((page: any) => {
       const shouldHaveIllustration = isToddlerAge || (page.page_number % 2 === 1);
+      let promptForPage: string | null = shouldHaveIllustration ? page.illustration_prompt : null;
+      // SAFETY NET: model was told to always include illustration_prompt on
+      // required pages, but if it slipped, synthesize one from the page text
+      // so the paid story never ships with a missing illustration.
+      if (shouldHaveIllustration && (!promptForPage || String(promptForPage).trim() === "")) {
+        promptForPage = buildFallbackPromptFromText(page.text, page.page_number);
+        fallbackPromptCount += 1;
+        console.warn(
+          `Fallback illustration prompt generated for page ${page.page_number} - model omitted prompt`,
+        );
+      }
       return {
         story_id: story.id,
         page_number: page.page_number,
         text: page.text,
-        illustration_prompt: shouldHaveIllustration ? page.illustration_prompt : null,
+        illustration_prompt: promptForPage,
         illustration_prompt_2: isToddlerAge && page.illustration_prompt
           ? `Same scene as the main illustration but from a DIFFERENT camera angle or showing the NEXT moment in the action. Original scene: ${page.illustration_prompt}`
           : null,
@@ -2054,6 +2078,17 @@ ${fullStoryText}`;
         illustration_url_2: null,
       };
     });
+    if (fallbackPromptCount > 0) {
+      console.warn(
+        `⚠️ illustration_prompt fallback triggered ${fallbackPromptCount} time(s) for story ${story.id} (age ${ageRange}, ${storyData.pages.length} pages)`,
+      );
+      await logError(
+        "illustration_prompt_fallback",
+        `Model omitted illustration_prompt on ${fallbackPromptCount} required page(s)`,
+        { story_id: story.id, age_range: ageRange, total_pages: storyData.pages.length, fallback_count: fallbackPromptCount },
+        userId ?? undefined,
+      );
+    }
 
     // For learning topics, override the LAST page's illustration prompt
     if (isLearningTopic && pagesWithoutIllustrations.length > 0) {
