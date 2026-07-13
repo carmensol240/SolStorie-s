@@ -7,7 +7,7 @@ export const packageConfig: Record<string, any> = {
   coloring_single: { stories: 0, freeEdits: 0, coloringPages: 1 },
   coloring_bundle: { stories: 0, freeEdits: 0, coloringPages: 0, dynamicColoringFromStory: true },
   coloring_story: { stories: 0, freeEdits: 0, coloringPages: 0, dynamicColoringFromStory: true },
-  single_story: { stories: 1, freeEdits: 1, coloringPages: 0, firstPurchaseBonus: true },
+  single_story: { stories: 1, freeEdits: 1, coloringPages: 0 },
   single_story_digital: { stories: 1, freeEdits: 1, coloringPages: 1 },
   single_story_full: { stories: 1, freeEdits: 1, coloringPages: 1 },
   pdf: { stories: 0, freeEdits: 0, coloringPages: 0, pdfDownload: true },
@@ -88,11 +88,17 @@ export async function applyPurchaseCredits(
   }
 
   // First-purchase bonus — applies ONLY to single_story package.
-  // If user has no prior completed purchase, double the stories/freeEdits.
-  // Also flips profiles.first_purchase_bonus_given so the UI stops advertising
-  // the 1+1 offer to a user who already used it.
+  // First-purchase 1+1 bonus — applies to ANY package on the user's very first
+  // successful purchase. Grants +1 of the primary product type that was
+  // purchased: +1 story credit if the package includes stories, otherwise
+  // +1 coloring credit if the package includes coloring pages. Skips packages
+  // that don't grant either (e.g. standalone pdf).
+  //
+  // We use an atomic conditional UPDATE at the end (WHERE first_purchase_bonus_given = false)
+  // to guarantee the bonus flag is set only once even under concurrent webhooks.
   let firstPurchaseBonusGranted = false;
-  if (config.firstPurchaseBonus && isPromoActive()) {
+  let firstPurchaseBonusType: "story" | "coloring" | null = null;
+  if (isPromoActive()) {
     const { data: bonusProfile } = await supabase
       .from("profiles")
       .select("first_purchase_bonus_given")
@@ -105,12 +111,22 @@ export async function applyPurchaseCredits(
       .in("status", ["completed", "test_completed"]);
     const alreadyGranted = !!bonusProfile?.first_purchase_bonus_given;
     if (!alreadyGranted && (priorCount ?? 0) === 0) {
-      config.stories = (config.stories ?? 0) + 1;
-      config.freeEdits = (config.freeEdits ?? 0) + 1;
-      firstPurchaseBonusGranted = true;
-      console.log("[PURCHASE-CREDITS] single_story first-purchase bonus applied → +1 story, +1 edit");
+      if ((config.stories ?? 0) > 0) {
+        config.stories = (config.stories ?? 0) + 1;
+        config.freeEdits = (config.freeEdits ?? 0) + 1;
+        firstPurchaseBonusType = "story";
+        firstPurchaseBonusGranted = true;
+        console.log("[PURCHASE-CREDITS] first-purchase 1+1 bonus applied → +1 story, +1 edit");
+      } else if ((config.coloringPages ?? 0) > 0 || config.dynamicColoringFromStory) {
+        config.coloringPages = (config.coloringPages ?? 0) + 1;
+        firstPurchaseBonusType = "coloring";
+        firstPurchaseBonusGranted = true;
+        console.log("[PURCHASE-CREDITS] first-purchase 1+1 bonus applied → +1 coloring page");
+      } else {
+        console.log("[PURCHASE-CREDITS] first-purchase bonus skipped — package has no story or coloring product");
+      }
     } else {
-      console.log("[PURCHASE-CREDITS] single_story bonus SKIPPED (already granted or prior purchase exists)", { alreadyGranted, priorCount });
+      console.log("[PURCHASE-CREDITS] first-purchase bonus SKIPPED (already granted or prior purchase exists)", { alreadyGranted, priorCount });
     }
   }
 
@@ -159,18 +175,68 @@ export async function applyPurchaseCredits(
   if (config.isSubscription) {
     updates.is_subscriber = true;
   }
-  if (firstPurchaseBonusGranted) {
-    updates.first_purchase_bonus_given = true;
-  }
-
   if (Object.keys(updates).length > 0) {
-    const { error: updateError } = await supabase
-      .from("profiles")
-      .update(updates)
-      .eq("id", userId);
-    if (updateError) {
-      console.error("[PURCHASE-CREDITS] Failed to update profile:", updateError);
-      return { success: false, error: "Failed to update credits", status: 500 };
+    if (firstPurchaseBonusGranted) {
+      // Atomic: only set the flag (and its extra +1 embedded in updates) if the
+      // flag wasn't already set by a concurrent webhook. If the guarded update
+      // affects 0 rows, back the bonus out and retry without it.
+      updates.first_purchase_bonus_given = true;
+      const { data: updatedRows, error: updateError } = await supabase
+        .from("profiles")
+        .update(updates)
+        .eq("id", userId)
+        .eq("first_purchase_bonus_given", false)
+        .select("id");
+      if (updateError) {
+        console.error("[PURCHASE-CREDITS] Failed to update profile (guarded):", updateError);
+        return { success: false, error: "Failed to update credits", status: 500 };
+      }
+      if (!updatedRows || updatedRows.length === 0) {
+        // Another concurrent purchase already claimed the bonus. Re-apply the
+        // purchase credits WITHOUT the +1 bonus.
+        console.log("[PURCHASE-CREDITS] Bonus race lost — reapplying without bonus");
+        const retryUpdates: Record<string, any> = {};
+        const baseStories = (packageConfig[packageId].stories ?? 0);
+        const baseColoring = (packageConfig[packageId].coloringPages ?? 0);
+        if (baseStories > 0) {
+          retryUpdates.story_credits = (profile.story_credits ?? 0) + baseStories;
+          retryUpdates.free_edits_remaining = (profile.free_edits_remaining ?? 0) + (packageConfig[packageId].freeEdits ?? 0);
+          retryUpdates.free_edits_total = (profile.free_edits_total ?? 0) + (packageConfig[packageId].freeEdits ?? 0);
+        }
+        // Recompute dynamic coloring value already stored in config.coloringPages
+        // minus the +1 bonus, if the bonus was of type coloring.
+        const finalColoring = firstPurchaseBonusType === "coloring"
+          ? Math.max(0, (config.coloringPages ?? 0) - 1)
+          : (config.coloringPages ?? 0);
+        if (finalColoring > 0) {
+          retryUpdates.coloring_credits = (profile.coloring_credits ?? 0) + finalColoring;
+        }
+        if (config.editingCredits > 0) {
+          retryUpdates.editing_credits = (profile.editing_credits ?? 0) + config.editingCredits;
+        }
+        if (config.isSubscription) {
+          retryUpdates.is_subscriber = true;
+        }
+        if (Object.keys(retryUpdates).length > 0) {
+          const { error: retryErr } = await supabase
+            .from("profiles")
+            .update(retryUpdates)
+            .eq("id", userId);
+          if (retryErr) {
+            console.error("[PURCHASE-CREDITS] Retry update failed:", retryErr);
+            return { success: false, error: "Failed to update credits", status: 500 };
+          }
+        }
+      }
+    } else {
+      const { error: updateError } = await supabase
+        .from("profiles")
+        .update(updates)
+        .eq("id", userId);
+      if (updateError) {
+        console.error("[PURCHASE-CREDITS] Failed to update profile:", updateError);
+        return { success: false, error: "Failed to update credits", status: 500 };
+      }
     }
   }
 

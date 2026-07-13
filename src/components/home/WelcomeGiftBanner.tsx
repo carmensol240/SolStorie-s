@@ -6,9 +6,10 @@ interface WelcomeGiftBannerProps {
 }
 
 const WelcomeGiftBanner = ({ credits, storyCount }: WelcomeGiftBannerProps) => {
-  
-  // Show banner only for new users: exactly 1 credit AND 0 stories
-  const showBanner = credits === 1 && storyCount === 0;
+  // Show banner to brand-new users who haven't purchased yet:
+  // 0 credits AND 0 stories. The banner advertises the 1+1 launch offer,
+  // which is applied automatically on their first purchase.
+  const showBanner = (credits ?? 0) === 0 && storyCount === 0;
   
   if (!showBanner) return null;
 
@@ -26,10 +27,10 @@ const WelcomeGiftBanner = ({ credits, storyCount }: WelcomeGiftBannerProps) => {
         
         <div className="flex-1 min-w-0">
           <h3 className="font-black text-white text-lg leading-tight">
-            🎁 בונוס חד פעמי — סיפור מתנה ברכישה ראשונה!
+            🎁 מבצע 1+1 — קנו סיפור וקבלו סיפור נוסף במתנה!
           </h3>
           <p className="text-white/90 text-sm mt-0.5">
-            התחילו להרפתקה הקסומה שלכם
+            הבונוס יתווסף אוטומטית ברכישה הראשונה
           </p>
         </div>
       </div>
