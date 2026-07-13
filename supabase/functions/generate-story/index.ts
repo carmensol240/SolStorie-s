@@ -1148,6 +1148,18 @@ serve(async (req) => {
 
     const ageLengthConfig = getAgeLengthInstruction(exactAge);
 
+    // === COST OPTIMIZATION: pre-compute which pages will actually keep their
+    // illustration_prompt after insert (see parity/toddler logic further below,
+    // ~line 2009-2023). We ask the model to emit the field ONLY for those pages,
+    // so we don't pay output tokens for prompts that get discarded.
+    // IMPORTANT: the parity logic itself is NOT changed here.
+    const isToddlerAgeForPrompt = ageRange === "0-2";
+    const illustrationPageNumbers: number[] = [];
+    for (let i = 1; i <= ageLengthConfig.pages; i++) {
+      if (isToddlerAgeForPrompt || i % 2 === 1) illustrationPageNumbers.push(i);
+    }
+    const illustrationPagesListStr = illustrationPageNumbers.join(", ");
+
     // === SEQUEL LOGIC: Check for previous stories on the same topic by same child ===
     // Skip sequel logic for custom/free-text stories
     let sequelInstruction = "";
@@ -1579,6 +1591,27 @@ ${topic.endsWith('-edu') ? `
 - כלל: אם לא בטוח ב-100% שהמילה קיימת - השתמש באלטרנטיבה פשוטה.
 - כלל ניקוד: אם לא בטוח ב-100% בניקוד - השתמש במילה שאתה בטוח בניקוד שלה.`;
     }
+
+    // === COST OPTIMIZATION: instruct AI to emit `illustration_prompt` ONLY for
+    // pages that will actually be illustrated (see parity/toddler logic near line
+    // ~2020). Other pages must OMIT the field entirely — saves output tokens.
+    // The model may still mentally visualize the scene for narrative coherence,
+    // but it must not serialize the field for non-illustrated pages.
+    const illustrationRuleEn = `
+
+## 🖼️ Illustration prompt field — output rule (MANDATORY, cost-critical)
+- Include the "illustration_prompt" field in the JSON ONLY for these page_numbers: [${illustrationPagesListStr}].
+- For every OTHER page, DO NOT include an "illustration_prompt" key at all — not empty string, not null, not placeholder. Just omit the field.
+- You MAY still mentally visualize the scene for those pages to keep the narrative coherent, but do not serialize it.
+- The text quality, plot, and per-page word counts must remain exactly as instructed above — this rule affects only the JSON output shape.`;
+    const illustrationRuleHe = `
+
+## 🖼️ שדה illustration_prompt — כלל פלט (חובה, קריטי לעלות)
+- כלול את השדה "illustration_prompt" ב-JSON **רק** בעמודים הבאים: [${illustrationPagesListStr}].
+- בכל שאר העמודים **אל תכלול** את המפתח "illustration_prompt" בכלל — לא מחרוזת ריקה, לא null, לא placeholder. פשוט השמט את השדה.
+- מותר לך "לדמיין" בפנימיות את הסצנה גם בעמודים האחרים כדי לשמור על קוהרנטיות הסיפור, אבל אל תוציא אותה ל-JSON.
+- איכות הטקסט, העלילה ומספר המילים לעמוד חייבים להישאר בדיוק לפי ההנחיות למעלה — הכלל הזה משפיע רק על צורת ה-JSON.`;
+    userPrompt = userPrompt + (language === "en" ? illustrationRuleEn : illustrationRuleHe);
 
     console.log("[generate-story] 📡 Calling Lovable AI Gateway (google/gemini-2.5-flash) with retry logic...");
     const geminiResult = await callGatewayWithRetry({
