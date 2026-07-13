@@ -765,7 +765,10 @@ serve(async (req) => {
       userId = user.id;
       console.log("Authenticated user:", userId.substring(0, 8) + "...");
 
-      // === CREDIT CHECK WITH WELCOME CREDIT SAFETY NET ===
+      // === CREDIT CHECK ===
+      // No signup credit and no auto-grant "welcome credit" safety net.
+      // A user with 0 story_credits must purchase before generating.
+      // The 1+1 first-purchase bonus is applied by applyPurchaseCredits.
       console.log("Checking story credits for user...");
       
       const { data: profile, error: profileError } = await supabase
@@ -786,49 +789,15 @@ serve(async (req) => {
       console.log("Current credits:", currentCredits);
       
       if (currentCredits <= 0) {
-        // Only count real, user-authored stories — exclude demo / daily
-        // stories so a user who has only viewed sample content is still
-        // recognised as new and gets their welcome credit.
-        const { count: storyCount, error: countError } = await supabase
-          .from("stories")
-          .select("*", { count: "exact", head: true })
-          .eq("user_id", userId)
-          .or("is_daily_story.is.null,is_daily_story.eq.false");
-        
-        if (countError) {
-          console.error("Error counting stories:", countError);
-        }
-        
-        console.log("Story count for user:", storyCount);
-        
-        if (storyCount === 0 || storyCount === null) {
-          console.log("New user without welcome credit detected - auto-fixing...");
-          
-          const { error: updateError } = await supabase
-            .from("profiles")
-            .update({ story_credits: 1 })
-            .eq("id", userId);
-          
-          if (updateError) {
-            console.error("Error granting welcome credit:", updateError);
-            return new Response(
-              JSON.stringify({ error: "שגיאה בהענקת קרדיט פתיחה" }),
-              { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-            );
-          }
-          
-          console.log("Welcome credit granted successfully!");
-        } else {
-          console.log("User has used all credits");
-          return new Response(
-            JSON.stringify({ 
-              error: "נגמרו הקרדיטים",
-              code: "NO_CREDITS",
-              message: "אין לך קרדיטים נותרים. רכוש קרדיטים חדשים כדי ליצור סיפורים."
-            }),
-            { status: 402, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-          );
-        }
+        console.log("User has no story credits — blocking generation (NO_CREDITS)");
+        return new Response(
+          JSON.stringify({
+            error: "נגמרו הקרדיטים",
+            code: "NO_CREDITS",
+            message: "אין לך קרדיטים לסיפור. רכוש חבילה כדי להתחיל ליצור.",
+          }),
+          { status: 402, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        );
       }
       
       // NOTE: Credit deduction moved to AFTER successful AI generation
