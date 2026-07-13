@@ -51,7 +51,7 @@ serve(async (req) => {
       body: JSON.stringify({
         childName: "טסט",
         childGender: "male",
-        ageRange: "4-6",
+        ageRange: "5-7",
         topic: "יום בגן",
         language: "he",
         nikud: false,
