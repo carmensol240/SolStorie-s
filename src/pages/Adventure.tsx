@@ -123,13 +123,13 @@ const Adventure = () => {
 
         {/* Floating sparkle particles */}
         <div className="absolute inset-0 overflow-hidden pointer-events-none">
-          {[...Array(15)].map((_, i) => (
+          {[...Array(6)].map((_, i) => (
             <div
               key={`sparkle-${i}`}
               className="absolute rounded-full float-up-particle"
               style={{
-                width: `${2 + Math.random() * 3}px`,
-                height: `${2 + Math.random() * 3}px`,
+                width: `${2 + Math.random() * 2}px`,
+                height: `${2 + Math.random() * 2}px`,
                 left: `${5 + Math.random() * 90}%`,
                 bottom: `${-5 + Math.random() * 10}%`,
                 background: i % 3 === 0
@@ -146,8 +146,8 @@ const Adventure = () => {
         </div>
 
         {/* SolStorie's™ Title */}
-        <div className="absolute top-20 left-0 right-0 z-10 flex justify-center">
-          <h1 className="text-3xl sm:text-4xl font-black logo-3d-bubble">
+        <div className="absolute top-16 sm:top-20 left-0 right-0 z-10 flex justify-center px-4">
+          <h1 className="text-5xl sm:text-6xl md:text-7xl font-black logo-3d-bubble tracking-tight">
             <span className="logo-rainbow">SolStorie's™</span>
           </h1>
         </div>
@@ -165,23 +165,7 @@ const Adventure = () => {
         </div>
 
         {/* Bottom section - CTA & Welcome banner */}
-        <div className="absolute bottom-0 left-0 right-0 z-10 flex flex-col items-center gap-3 px-4 pb-[72px]">
-          {/* Spinning Gold Coin */}
-          <div className="flex flex-col items-center gap-1">
-            <div style={{ perspective: "800px" }}>
-              <div
-                className="gold-coin relative w-20 h-20 rounded-full flex items-center justify-center border-2 border-yellow-300/60"
-                style={{
-                  background: "radial-gradient(circle at 35% 35%, #ffe066, #f5a623 40%, #c87f0a 80%, #a56200)",
-                }}
-              >
-                <span className="font-black text-[11px] text-white drop-shadow-[0_1px_2px_rgba(0,0,0,0.5)] leading-tight text-center pointer-events-none" style={{ textShadow: "0 0 6px rgba(255,215,0,0.6)" }}>
-                  סיפור<br/>מתנה ✨
-                </span>
-              </div>
-            </div>
-          </div>
-
+        <div className="absolute bottom-0 left-0 right-0 z-10 flex flex-col items-center gap-3 px-4 pb-[96px]">
           <WelcomeGiftBanner credits={credits} storyCount={storyCount} />
 
           <p className="text-white text-sm font-bold drop-shadow-md text-center">
