@@ -121,30 +121,6 @@ const Adventure = () => {
           }}
         />
 
-        {/* Floating sparkle particles */}
-        <div className="absolute inset-0 overflow-hidden pointer-events-none">
-          {[...Array(6)].map((_, i) => (
-            <div
-              key={`sparkle-${i}`}
-              className="absolute rounded-full float-up-particle"
-              style={{
-                width: `${2 + Math.random() * 2}px`,
-                height: `${2 + Math.random() * 2}px`,
-                left: `${5 + Math.random() * 90}%`,
-                bottom: `${-5 + Math.random() * 10}%`,
-                background: i % 3 === 0
-                  ? "rgba(255,215,0,0.8)"
-                  : i % 3 === 1
-                  ? "rgba(255,255,255,0.7)"
-                  : "rgba(255,180,220,0.7)",
-                boxShadow: `0 0 ${4 + Math.random() * 4}px rgba(255,215,0,0.5)`,
-                animationDelay: `${Math.random() * 8}s`,
-                animationDuration: `${6 + Math.random() * 6}s`,
-              }}
-            />
-          ))}
-        </div>
-
         {/* SolStorie's™ Title */}
         <div className="absolute top-16 sm:top-20 left-0 right-0 z-10 flex justify-center px-4">
           <h1 className="text-5xl sm:text-6xl md:text-7xl font-black logo-3d-bubble tracking-tight">
@@ -167,10 +143,6 @@ const Adventure = () => {
         {/* Bottom section - CTA & Welcome banner */}
         <div className="absolute bottom-0 left-0 right-0 z-10 flex flex-col items-center gap-3 px-4 pb-[96px]">
           <WelcomeGiftBanner credits={credits} storyCount={storyCount} />
-
-          <p className="text-white text-sm font-bold drop-shadow-md text-center">
-            ✨ סיפורים מותאמים אישית עם הילד שלך כגיבור ⭐
-          </p>
 
           <button
             onClick={handleAdventureCTA}
