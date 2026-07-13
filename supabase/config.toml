@@ -93,6 +93,3 @@ verify_jwt = false
 
 [functions.get-gift-coupon]
 verify_jwt = false
-
-[functions.sanity-test-illustration-fallback]
-verify_jwt = false
