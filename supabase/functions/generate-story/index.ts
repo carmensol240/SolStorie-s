@@ -1148,6 +1148,18 @@ serve(async (req) => {
 
     const ageLengthConfig = getAgeLengthInstruction(exactAge);
 
+    // === COST OPTIMIZATION: pre-compute which pages will actually keep their
+    // illustration_prompt after insert (see parity/toddler logic further below,
+    // ~line 2009-2023). We ask the model to emit the field ONLY for those pages,
+    // so we don't pay output tokens for prompts that get discarded.
+    // IMPORTANT: the parity logic itself is NOT changed here.
+    const isToddlerAgeForPrompt = ageRange === "0-2";
+    const illustrationPageNumbers: number[] = [];
+    for (let i = 1; i <= ageLengthConfig.pages; i++) {
+      if (isToddlerAgeForPrompt || i % 2 === 1) illustrationPageNumbers.push(i);
+    }
+    const illustrationPagesListStr = illustrationPageNumbers.join(", ");
+
     // === SEQUEL LOGIC: Check for previous stories on the same topic by same child ===
     // Skip sequel logic for custom/free-text stories
     let sequelInstruction = "";
