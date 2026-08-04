@@ -79,7 +79,6 @@ const Library = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [editingStory, setEditingStory] = useState<Story | null>(null);
   const [genderSwapStory, setGenderSwapStory] = useState<Story | null>(null);
-  const [regeneratingCoverId, setRegeneratingCoverId] = useState<string | null>(null);
   const [showOfflineFilter, setShowOfflineFilter] = useState(false);
   const [offlineStories, setOfflineStories] = useState<OfflineStory[]>([]);
   const [coloringPages, setColoringPages] = useState<ColoringPageRecord[]>([]);
