@@ -452,7 +452,7 @@ NEGATIVE: ${NEGATIVE_PROMPT}`;
         cast_character: null,
         topic_setting: null,
         story_context: bestPage ? `Reference page: ${bestPage.page_number}` : "topic-fallback",
-        cover_path: faceUrl ? "face-reference+character-description" : "character-description-only",
+        cover_path: `${faceUrl ? "face-reference" : "no-face"}+${pageOneReferenceUrl ? "page1-reference" : "no-page1-reference"}`,
         duration_ms: durationMs,
       });
     } catch (logErr) {
