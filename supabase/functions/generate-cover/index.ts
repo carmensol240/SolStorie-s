@@ -188,6 +188,7 @@ function buildCharacterDescription(
   gender: string | null,
   ageRange: string | null,
   storyOutfitOverride: string | null,
+  hasVisualReference: boolean,
 ): string {
   const isFemale = (gender || "").toLowerCase() === "female";
   const genderWord = isFemale ? "girl" : "boy";
@@ -195,11 +196,11 @@ function buildCharacterDescription(
     ? "This character is a GIRL — feminine or neutral clothing only; NEVER kippah, yarmulke, tzitzit or any male religious symbols."
     : "This character is a BOY — masculine clothing only (pants/shorts/t-shirt/hoodie/sneakers); ABSOLUTELY NO dress, skirt, tutu, flower crown, hair bow, makeup or any feminine clothing or accessories.";
 
-  let hair = isFemale ? "long dark brown hair" : "short tousled dark brown hair";
+  let hair: string | null = null;
   let clothingFromProfile: string | null = null;
-  let skin = "warm medium olive";
-  let eyes = "large warm brown";
-  const age = ageRange || (isFemale ? "4" : "3-6");
+  let skin: string | null = null;
+  let eyes: string | null = null;
+  const age = ageRange || null;
 
   if (avatarDescriptionJson) {
     try {
@@ -218,8 +219,23 @@ function buildCharacterDescription(
   // Prefer the story-wide outfit (matches inner pages) over the avatar's saved clothing
   const clothing = storyOutfitOverride || clothingFromProfile || "colorful casual clothes";
 
+  // When we have a visual reference (child photo and/or page-1 illustration), never invent
+  // hair/eye/skin/age values — invented traits contradict the reference and make the cover
+  // character look like a different child than the inner pages.
+  const traits = [
+    hair ? `${hair}` : null,
+    skin ? `${skin} skin` : null,
+    eyes ? `${eyes} eyes` : null,
+  ].filter(Boolean).join(", ");
+
+  const identityLine = traits
+    ? `A ${genderWord}${age ? ` aged ${age}` : ""} with ${traits}. Wearing ${clothing}.`
+    : hasVisualReference
+      ? `A ${genderWord}${age ? ` aged ${age}` : ""} wearing ${clothing}. Hair color and texture, eye color, skin tone and apparent age come ONLY from the attached reference image(s) — do not invent or change them.`
+      : `A ${genderWord}${age ? ` aged ${age}` : ""} wearing ${clothing}.`;
+
   return `CHARACTER DESCRIPTION (the main character MUST look IDENTICAL to this in the cover):
-A ${genderWord} aged ${age} with ${hair}, ${skin} skin, and ${eyes} eyes. Wearing ${clothing}.
+${identityLine}
 ${genderRule}`;
 }
 
