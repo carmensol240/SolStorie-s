@@ -1448,6 +1448,8 @@ const [currentPage, setCurrentPage] = useState(0);
       setPage1OldUrl(getPublicIllustrationUrl(firstPage.illustration_url) || story.cover_url || null);
       setPage1CandidateUrl(data.candidateUrl);
       setPage1CompareOpen(true);
+      // The server flips page1_regen_used only after a successful upload.
+      setStory(prev => prev ? { ...prev, page1_regen_used: true } : prev);
     } catch (err) {
       console.error('Page-1 regeneration error:', err);
       toast({ title: 'שגיאה ביצירת האיור', description: 'לא חויבתם בניסיון — אפשר לנסות שוב', variant: 'destructive' });
