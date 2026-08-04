@@ -35,6 +35,7 @@ import {
   DialogContent,
   DialogHeader,
   DialogTitle,
+  DialogDescription,
 } from "@/components/ui/dialog";
 import { useAnalytics } from "@/hooks/use-analytics";
 import { useOfflineStorage } from "@/hooks/use-offline-storage";
