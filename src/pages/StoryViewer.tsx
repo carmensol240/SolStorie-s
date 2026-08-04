@@ -1452,7 +1452,10 @@ const [currentPage, setCurrentPage] = useState(0);
       setPage1CandidateUrl(data.candidateUrl);
       setPage1CompareOpen(true);
       // The server flips page1_regen_used only after a successful upload.
-      setStory(prev => prev ? { ...prev, page1_regen_used: true } : prev);
+      // Admins have unlimited attempts, so the flag never gets set for them.
+      if (!isAdminUser) {
+        setStory(prev => prev ? { ...prev, page1_regen_used: true } : prev);
+      }
     } catch (err) {
       console.error('Page-1 regeneration error:', err);
       const serverMsg = (() => {
