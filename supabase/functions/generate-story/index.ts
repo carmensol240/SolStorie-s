@@ -1476,7 +1476,11 @@ ${adventureLogic ? `
 - Outfit: ${adventureLogic.outfit}
 - Background: ${adventureLogic.background}  
 - Theme: ${adventureLogic.theme}
-` : ''}`;
+` : `
+## Wardrobe lock:
+- Decide the character's outfit once on page 1 (use the outfit described by the parent if given, otherwise simple everyday clothes) and repeat that exact outfit description word-for-word in every illustration_prompt.
+- Never swap, upgrade or reinvent the clothes between pages. The only exception is a wardrobe change the page text states explicitly (pyjamas before sleep, a raincoat in the rain).
+`}`;
     } else {
       // Hebrew prompt (existing)
       systemPrompt = SYSTEM_PROMPT;
