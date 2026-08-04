@@ -88,6 +88,7 @@ interface StoryPage {
 interface Story {
   id: string;
   slug?: string;
+  user_id?: string | null;
   child_name: string;
   child_gender?: string;
   topic: string;
@@ -96,6 +97,7 @@ interface Story {
   cover_url?: string;
   pages: StoryPage[];
   generation_status?: string;
+  page1_regen_used?: boolean;
 }
 
 const FONT_SIZES = [
@@ -988,6 +990,7 @@ const [currentPage, setCurrentPage] = useState(0);
       const storyObj: Story = {
         id: storyData.id,
         slug: storyData.slug || undefined,
+        user_id: (storyData as any).user_id ?? null,
         child_name: storyData.child_name,
         child_gender: (storyData as any).child_gender || 'female',
         topic: storyData.topic,
@@ -995,6 +998,7 @@ const [currentPage, setCurrentPage] = useState(0);
         age_range: (storyData as any).age_range || '3-6',
         pages: pagesData || [],
         generation_status: status,
+        page1_regen_used: !!(storyData as any).page1_regen_used,
       };
       
       setStory(storyObj);
@@ -1444,6 +1448,8 @@ const [currentPage, setCurrentPage] = useState(0);
       setPage1OldUrl(getPublicIllustrationUrl(firstPage.illustration_url) || story.cover_url || null);
       setPage1CandidateUrl(data.candidateUrl);
       setPage1CompareOpen(true);
+      // The server flips page1_regen_used only after a successful upload.
+      setStory(prev => prev ? { ...prev, page1_regen_used: true } : prev);
     } catch (err) {
       console.error('Page-1 regeneration error:', err);
       toast({ title: 'שגיאה ביצירת האיור', description: 'לא חויבתם בניסיון — אפשר לנסות שוב', variant: 'destructive' });
@@ -1665,6 +1671,15 @@ const [currentPage, setCurrentPage] = useState(0);
 
   const showPageActions = isContentPage && page !== null;
 
+  // Page 1 doubles as the book cover — only its real owner may regenerate it.
+  const isStoryOwner = !!user?.id && !!story?.user_id && story.user_id === user.id;
+  const canRegenerateCover =
+    isStoryOwner &&
+    !isDemoUser &&
+    showPageActions &&
+    page?.page_number === 1 &&
+    !!page?.illustration_url;
+
   // Reset all scroll positions (window + inner scrollable containers)
   const resetScroll = () => {
     window.scrollTo(0, 0);
@@ -1748,6 +1763,8 @@ const [currentPage, setCurrentPage] = useState(0);
         isDownloadingOffline={fullOffline.downloadingId === resolvedId}
         onRegenerateCover={handleRegenerateCover}
         isRegeneratingCover={isRegeneratingCover}
+        canRegenerateCover={canRegenerateCover}
+        page1RegenUsed={!!story?.page1_regen_used}
         onColoring={() => {
           if (!canUseColoring) { setColoringUpsellOpen(true); return; }
           guardDemo(() => preloadStoryCachedColoring(null))();

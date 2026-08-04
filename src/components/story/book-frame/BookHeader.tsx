@@ -13,6 +13,7 @@ import {
   Palette,
   MessageCircle,
   Lock,
+  RefreshCw,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
@@ -62,6 +63,8 @@ interface BookHeaderProps {
   // Regenerate cover
   onRegenerateCover?: () => void;
   isRegeneratingCover?: boolean;
+  canRegenerateCover?: boolean;
+  page1RegenUsed?: boolean;
   // Coloring shortcut
   onColoring?: () => void;
   // PDF entitlement
@@ -91,6 +94,8 @@ export const BookHeader: React.FC<BookHeaderProps> = ({
   isDownloadingOffline = false,
   onRegenerateCover,
   isRegeneratingCover = false,
+  canRegenerateCover = false,
+  page1RegenUsed = false,
   onColoring,
   pdfLocked = false,
   coloringLocked = false,
@@ -334,6 +339,32 @@ export const BookHeader: React.FC<BookHeaderProps> = ({
                 <DropdownMenuItem onClick={onToggleNikud} className="gap-2 cursor-pointer">
                   <span>{showNikud ? 'א' : 'אָ'}</span>
                   <span>{showNikud ? 'הסר ניקוד' : 'הוסף ניקוד'}</span>
+                </DropdownMenuItem>
+              )}
+              {onRegenerateCover && canRegenerateCover && (
+                <DropdownMenuItem
+                  onClick={(e) => {
+                    if (page1RegenUsed || isRegeneratingCover) { e.preventDefault(); return; }
+                    onRegenerateCover();
+                  }}
+                  disabled={page1RegenUsed || isRegeneratingCover}
+                  className="gap-2 cursor-pointer"
+                  title={page1RegenUsed ? 'השתמשתם בניסיון היחיד' : undefined}
+                >
+                  {isRegeneratingCover ? (
+                    <Loader2 className="w-4 h-4 animate-spin" />
+                  ) : page1RegenUsed ? (
+                    <Lock className="w-4 h-4" />
+                  ) : (
+                    <RefreshCw className="w-4 h-4" />
+                  )}
+                  <span>
+                    {isRegeneratingCover
+                      ? 'מייצרים איור חדש…'
+                      : page1RegenUsed
+                        ? 'נסה שוב — נוצל'
+                        : 'נסה שוב — איור עמוד 1'}
+                  </span>
                 </DropdownMenuItem>
               )}
               {/* Mobile-only fallbacks for actions hidden in the header on small screens */}
