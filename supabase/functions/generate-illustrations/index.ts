@@ -455,7 +455,8 @@ async function generateIllustration(
   storyOutfit: string,
   visualAnchor: string,
   adventureLogic?: { outfit: string; background: string; theme: string },
-  topic?: string
+  topic?: string,
+  seed?: number | null,
 ): Promise<string | null> {
   try {
     // HARD GUARD: when a child photo exists, NEVER fall back to Flux Schnell.
@@ -489,7 +490,7 @@ async function generateIllustration(
 
     const fullPrompt = `${stylePrefix}\n\n${visualAnchor}\n\n${characterInstruction}\n${adventureInstruction}\n\nSCENE: ${prompt}\n\n${CHARACTER_CONSISTENCY_PROMPT}\n\nNEGATIVE: ${negativePrompt}\n\n${NO_UI_NEGATIVE}`;
 
-    console.log("Generating illustration via Fal.ai Flux Schnell (no photo, text-only fallback)...");
+    console.log(`Generating illustration via Fal.ai Flux Schnell (no photo, text-only fallback, seed=${seed ?? "n/a"})...`);
 
     const response = await fetch("https://fal.run/fal-ai/flux/schnell", {
       method: "POST",
@@ -504,6 +505,7 @@ async function generateIllustration(
         num_inference_steps: 4,
         num_images: 1,
         enable_safety_checker: true,
+        ...(typeof seed === "number" ? { seed } : {}),
       }),
     });
 
