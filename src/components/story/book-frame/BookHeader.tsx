@@ -341,6 +341,32 @@ export const BookHeader: React.FC<BookHeaderProps> = ({
                   <span>{showNikud ? 'הסר ניקוד' : 'הוסף ניקוד'}</span>
                 </DropdownMenuItem>
               )}
+              {onRegenerateCover && canRegenerateCover && (
+                <DropdownMenuItem
+                  onClick={(e) => {
+                    if (page1RegenUsed || isRegeneratingCover) { e.preventDefault(); return; }
+                    onRegenerateCover();
+                  }}
+                  disabled={page1RegenUsed || isRegeneratingCover}
+                  className="gap-2 cursor-pointer"
+                  title={page1RegenUsed ? 'השתמשתם בניסיון היחיד' : undefined}
+                >
+                  {isRegeneratingCover ? (
+                    <Loader2 className="w-4 h-4 animate-spin" />
+                  ) : page1RegenUsed ? (
+                    <Lock className="w-4 h-4" />
+                  ) : (
+                    <RefreshCw className="w-4 h-4" />
+                  )}
+                  <span>
+                    {isRegeneratingCover
+                      ? 'מייצרים איור חדש…'
+                      : page1RegenUsed
+                        ? 'נסה שוב — נוצל'
+                        : 'נסה שוב — איור עמוד 1'}
+                  </span>
+                </DropdownMenuItem>
+              )}
               {/* Mobile-only fallbacks for actions hidden in the header on small screens */}
               {onColoring && (
                 <DropdownMenuItem onClick={onColoring} className="gap-2 cursor-pointer md:hidden">
