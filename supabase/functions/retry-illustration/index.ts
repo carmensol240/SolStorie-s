@@ -208,16 +208,50 @@ serve(async (req) => {
       });
     };
 
-    // Get child photo if available
+    // Get child photo if available.
+    // Lookup chain — a name-only match breaks whenever the story's child name differs
+    // from any saved child profile, which silently killed the face reference on retries.
+    //   1. the exact reference path stored on the story at creation time
+    //   2. the linked child row (by id)
+    //   3. a child row matching the story's child name (legacy behaviour)
+    //   4. the photo saved on the user's profile
     let childPhoto: string | null = null;
-    const { data: child } = await supabase
-      .from("children")
-      .select("avatar_url, photo_url, avatar_description")
-      .eq("user_id", user.id)
-      .eq("name", story.child_name)
-      .maybeSingle();
+    let photoSource = "none";
+    let photoPath: string | null = (story as any).child_photo_path || null;
+    if (photoPath) photoSource = "story";
 
-    const photoPath = child?.photo_url || child?.avatar_url;
+    if (!photoPath && (story as any).child_id) {
+      const { data: childById } = await supabase
+        .from("children")
+        .select("avatar_url, photo_url")
+        .eq("id", (story as any).child_id)
+        .eq("user_id", user.id)
+        .maybeSingle();
+      photoPath = childById?.photo_url || childById?.avatar_url || null;
+      if (photoPath) photoSource = "child_id";
+    }
+
+    if (!photoPath) {
+      const { data: child } = await supabase
+        .from("children")
+        .select("avatar_url, photo_url")
+        .eq("user_id", user.id)
+        .eq("name", story.child_name)
+        .maybeSingle();
+      photoPath = child?.photo_url || child?.avatar_url || null;
+      if (photoPath) photoSource = "name";
+    }
+
+    if (!photoPath) {
+      const { data: profile } = await supabase
+        .from("profiles")
+        .select("child_photo_url, child_avatar_url")
+        .eq("id", user.id)
+        .maybeSingle();
+      photoPath = profile?.child_photo_url || profile?.child_avatar_url || null;
+      if (photoPath) photoSource = "profile";
+    }
+
     if (photoPath) {
       if (photoPath.startsWith("http")) {
         childPhoto = photoPath;
