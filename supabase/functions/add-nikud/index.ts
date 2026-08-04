@@ -91,7 +91,8 @@ serve(async (req) => {
 3. הוסף ניקוד מלא לכל מילה (פתח, קמץ, צירי, סגול, חולם, שורוק, קובוץ, חיריק, שווא)
 4. הוסף דגש כשצריך
 5. אל תשנה סימני פיסוק או רווחים
-6. אם יש מילים שכבר מנוקדות, השאר אותן כפי שהן`,
+6. אם יש מילים שכבר מנוקדות, השאר אותן כפי שהן
+7. 🚨 קריטי: מותר להוסיף אך ורק סימני ניקוד. אסור בהחלט להוסיף, למחוק או להחליף אותיות. שמות פרטיים קצרים (למשל "ארי") חייבים להישאר בדיוק באותן אותיות — אסור להפוך אותם למילה דומה ("אריה", "אראי" וכד')`,
           },
           {
             role: "user",
@@ -120,10 +121,33 @@ serve(async (req) => {
     }
 
     const data = await response.json();
-    const nikudText = data.choices?.[0]?.message?.content?.trim();
+    let nikudText = data.choices?.[0]?.message?.content?.trim();
 
     if (!nikudText) {
       throw new Error("No response from AI");
+    }
+
+    // === LETTER-SKELETON GUARD ===
+    // Nikud may only add vowel marks. Revert any word whose letters were changed
+    // (this is what turned the name "ארי" into "אריה"/"אראי" between pages).
+    const stripNikud = (s: string) => s.replace(/[\u0591-\u05C7]/g, "");
+    const origTokens = text.split(/(\s+)/);
+    const nikudTokens = nikudText.split(/(\s+)/);
+    if (origTokens.length === nikudTokens.length) {
+      let reverted = 0;
+      for (let i = 0; i < origTokens.length; i++) {
+        if (/^\s*$/.test(origTokens[i])) continue;
+        if (stripNikud(nikudTokens[i]) !== stripNikud(origTokens[i])) {
+          console.warn(`Nikud guard: reverting "${stripNikud(nikudTokens[i])}" → "${stripNikud(origTokens[i])}"`);
+          nikudTokens[i] = origTokens[i];
+          reverted++;
+        }
+      }
+      if (reverted > 0) console.warn(`Nikud guard: reverted ${reverted} altered word(s)`);
+      nikudText = nikudTokens.join("");
+    } else {
+      console.warn("Nikud guard: token count mismatch — returning original text");
+      nikudText = text;
     }
 
     console.log("Nikud added successfully");

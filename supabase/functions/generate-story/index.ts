@@ -341,6 +341,15 @@ const SYSTEM_PROMPT = `## 🚨🚨🚨 META-INSTRUCTION: BEFORE WRITING ANY WORD
   עמוד 4: "לילה טוב, [שם].\nחלומות מתוקים."
 - **אסור:** משפטים ארוכים, מילים מורכבות, עלילה מסובכת, דיאלוגים ארוכים
 
+## 👕 אסור "רשימת בגדים" — תיאור לבוש חייב להיות סיפורי
+- ❌ **אסור בהחלט** לכתוב טקסט שנשמע כמו קטלוג/תיאור טכני של הבגדים:
+  "מעל החולצה, יש לו מכנסיים אדומים. למטה, יש לו טייץ כחול. יש לו גם גלימה אדומה."
+- ❌ אסור להשתמש במבנים "יש לו/יש לה + פריט לבוש", "מעל/מתחת/למטה + פריט לבוש" כדי לפרט בגדים.
+- ✅ נכון: משפט אחד חם וסיפורי שמחבר את הלבוש לרגש ולעלילה:
+  "ארי לובש את התלבושת האהובה עליו — חולצה צהובה, מכנסיים אדומים וגלימה שמתנופפת ברוח. הוא מוכן להרפתקה גדולה!"
+- כלל: לכל היותר **משפט אחד** בכל הסיפור עוסק בלבוש, והוא תמיד מוביל לפעולה או לרגש — לא רשימה.
+- כל עמוד חייב לקדם את הסיפור (פעולה/רגש/גילוי) — עמוד שכולו תיאור חיצוני הוא פסול.
+
 ### גילאי 3-6 (ברירת מחדל)
 - פסקה קצרה בכל עמוד (3-4 משפטים מקסימום)
 - שפה פשוטה וקצבית
@@ -692,7 +701,78 @@ function validateNikud(nikudText: string, originalText: string): string {
     return originalText;
   }
 
+  // 4. LETTER-SKELETON GUARD (critical):
+  //    Nikud must ONLY add vowel marks — it must never add, drop or swap letters.
+  //    Without this guard the model "re-reads" short names and rewrites them,
+  //    e.g. ארי → אַרְיֵה (lion) or אַרְאִי, which made the hero's name change
+  //    between pages. Any word whose consonant skeleton changed is reverted.
+  const stripNikud = (s: string) => s.replace(/[\u0591-\u05C7]/g, "");
+  const origTokens = originalText.split(/(\s+)/);
+  const nikudTokens = nikudText.split(/(\s+)/);
+  if (origTokens.length === nikudTokens.length) {
+    let reverted = 0;
+    for (let i = 0; i < origTokens.length; i++) {
+      if (/^\s*$/.test(origTokens[i])) continue;
+      if (stripNikud(nikudTokens[i]) !== stripNikud(origTokens[i])) {
+        console.warn(`Nikud guard: reverting altered word "${stripNikud(nikudTokens[i])}" → "${stripNikud(origTokens[i])}"`);
+        nikudTokens[i] = origTokens[i];
+        reverted++;
+      }
+    }
+    if (reverted > 0) {
+      console.warn(`Nikud guard: reverted ${reverted} word(s) whose letters were changed by the nikud pass`);
+    }
+    return nikudTokens.join("");
+  }
+
   return nikudText;
+}
+
+// === NAME CONSISTENCY GUARD ===
+// The hero's name must be byte-identical on every page. Models occasionally
+// "expand" a short name by inserting a letter (ארי → אריה / אראי). This pass
+// restores the exact name for any word that is the name with exactly ONE extra
+// letter inserted (ignoring nikud). Substitutions are NOT touched, so ordinary
+// words that merely resemble the name are left alone.
+function enforceChildName(text: string, childName: string): string {
+  if (!text || !childName) return text;
+  const stripNikud = (s: string) => s.replace(/[\u0591-\u05C7]/g, "");
+  const target = stripNikud(childName).trim();
+  if (target.length < 3) return text;
+
+  const isSingleInsertion = (candidate: string) => {
+    if (candidate.length !== target.length + 1) return false;
+    let i = 0, j = 0, skipped = 0;
+    while (i < target.length && j < candidate.length) {
+      if (target[i] === candidate[j]) { i++; j++; continue; }
+      skipped++;
+      if (skipped > 1) return false;
+      j++;
+    }
+    return true;
+  };
+
+  let replaced = 0;
+  const result = text.split(/(\s+)/).map((token) => {
+    if (/^\s*$/.test(token)) return token;
+    // Separate leading/trailing punctuation so "אריה," is still matched.
+    const match = token.match(/^([^\u05D0-\u05EA]*)([\u05D0-\u05EA\u0591-\u05C7]+)(.*)$/s);
+    if (!match) return token;
+    const [, prefix, word, suffix] = match;
+    const bare = stripNikud(word);
+    if (bare === target) return token;
+    if (isSingleInsertion(bare)) {
+      replaced++;
+      console.warn(`Name guard: "${bare}" → "${target}"`);
+      return `${prefix}${target}${suffix}`;
+    }
+    return token;
+  }).join("");
+
+  if (replaced > 0) {
+    console.warn(`Name guard: normalized ${replaced} name variant(s) to "${target}"`);
+  }
+  return result;
 }
 
 serve(async (req) => {
@@ -1909,6 +1989,9 @@ CRITICAL RULES:
 - Keep the EXACT same number of pages/sections as the input
 - Keep [עמוד X] markers exactly as they are
 - The child's name in the story is "${childName}". Preserve it EXACTLY as it appears — never replace, shorten, transliterate, or "correct" it.
+- The name "${childName}" must be spelled IDENTICALLY on every page — never add or drop a letter (e.g. never turn a short name into a longer similar-looking word).
+- **אסור "רשימת בגדים":** אם עמוד כלשהו מתאר בגדים בסגנון טכני ("מעל החולצה, יש לו מכנסיים אדומים. למטה, יש לו טייץ כחול. יש לו גם גלימה אדומה.") — נסח אותו מחדש כמשפט סיפורי אחד שמחבר את הלבוש לרגש ולפעולה, למשל: "${childName} לובש/ת את התלבושת האהובה — חולצה צהובה, מכנסיים אדומים וגלימה שמתנופפת ברוח. הוא/היא מוכן/ה להרפתקה!"
+- Fix spelling mistakes in Hebrew words (e.g. "כחל" → "כחול").
 - Preserve illustration_prompt content if present - only rewrite the Hebrew story text
 - Do NOT add nikud (vowel marks) — write clean text without nikud
 - Do NOT flatten sentence-per-line formatting into paragraphs
@@ -1982,6 +2065,14 @@ ${fullStoryText}`;
       if (typeof p.text === "string" && PAGE_MARKER_RE.test(p.text)) {
         p.text = p.text.replace(PAGE_MARKER_RE, "").replace(/[ \t]+\n/g, "\n").replace(/\n{3,}/g, "\n\n").trim();
       }
+    }
+
+    // === NAME CONSISTENCY: the hero's name must be identical on every page ===
+    for (const p of storyData.pages as any[]) {
+      if (typeof p.text === "string") p.text = enforceChildName(p.text, childName);
+    }
+    if (typeof storyData.title === "string") {
+      storyData.title = enforceChildName(storyData.title, childName);
     }
 
     // === NIKUD: Deferred to background for faster response ===
