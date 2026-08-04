@@ -63,6 +63,7 @@ serve(async (req) => {
     }
 
     const { storyId, pageId, customPrompt, mode, choice } = await req.json();
+    console.log(`[retry-illustration] request story=${storyId} page=${pageId} mode=${mode ?? "default"} choice=${choice ?? "-"} user=${user.id}`);
     if (!storyId || !pageId) {
       return new Response(JSON.stringify({ error: "Missing storyId or pageId" }), {
         status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" },
@@ -152,19 +153,40 @@ serve(async (req) => {
           status: 409, headers: { ...corsHeaders, "Content-Type": "application/json" },
         });
       }
-      // Atomic double-click guard: only ONE concurrent request can win this
-      // conditional UPDATE (stale locks older than 3 minutes are reclaimable).
+      // Atomic double-click guard. Each conditional UPDATE is atomic on its own,
+      // so only ONE concurrent request can win. We run two typed-filter updates
+      // instead of a raw `.or()` string (which breaks on the ISO timestamp's
+      // reserved characters): first "no lock", then "stale lock" (>3 minutes).
       const staleBefore = new Date(Date.now() - 3 * 60_000).toISOString();
-      const { data: locked } = await supabase
-        .from("stories")
-        .update({ page1_regen_lock_at: new Date().toISOString() })
-        .eq("id", storyId)
-        .eq("user_id", user.id)
-        .eq("page1_regen_used", false)
-        .or(`page1_regen_lock_at.is.null,page1_regen_lock_at.lt.${staleBefore}`)
-        .select("id");
+      const tryLock = async (variant: "free" | "stale") => {
+        let q = supabase
+          .from("stories")
+          .update({ page1_regen_lock_at: new Date().toISOString() })
+          .eq("id", storyId)
+          .eq("user_id", user.id)
+          .eq("page1_regen_used", false);
+        q = variant === "free"
+          ? q.is("page1_regen_lock_at", null)
+          : q.lt("page1_regen_lock_at", staleBefore);
+        return await q.select("id");
+      };
+
+      let { data: locked, error: lockError } = await tryLock("free");
+      if (!lockError && (!locked || locked.length === 0)) {
+        ({ data: locked, error: lockError } = await tryLock("stale"));
+      }
+
+      if (lockError) {
+        // A failed query is NOT "someone else is running" — surface it instead of
+        // masking it behind a misleading 409.
+        console.error(`[page1_regen] lock query failed story=${storyId}:`, lockError);
+        return new Response(JSON.stringify({ error: "lock_failed", details: lockError.message }), {
+          status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
 
       if (!locked || locked.length === 0) {
+        console.warn(`[page1_regen] lock not acquired (another run in progress) story=${storyId}`);
         return new Response(JSON.stringify({ error: "in_progress" }), {
           status: 409, headers: { ...corsHeaders, "Content-Type": "application/json" },
         });
