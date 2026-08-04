@@ -271,6 +271,7 @@ NEGATIVE: ${NEGATIVE_PROMPT}`;
       for (let attempt = 1; attempt <= MAX_ATTEMPTS; attempt++) {
         try {
           console.log(`Schnell attempt ${attempt}/${MAX_ATTEMPTS}...`);
+          logImageGenCall("fal.run/fal-ai/flux/schnell", "flux-schnell", fullPrompt, fluxSeed);
           const response = await fetch("https://fal.run/fal-ai/flux/schnell", {
             method: "POST",
             signal: AbortSignal.timeout(30_000),
@@ -284,6 +285,7 @@ NEGATIVE: ${NEGATIVE_PROMPT}`;
               num_inference_steps: 4,
               num_images: 1,
               enable_safety_checker: true,
+              seed: fluxSeed,
             }),
           });
 
@@ -328,6 +330,7 @@ NEGATIVE: ${NEGATIVE_PROMPT}`;
       }
     }
     const durationMs = Date.now() - genStart;
+    console.log(`[IMG-GEN-RESULT] story=${storyId} page=${page.page_number} success=${!!imageUrl} model=${modelUsed} durationMs=${durationMs}${fallbackReason ? ` reason="${fallbackReason}"` : ""}`);
 
     if (!imageUrl) {
       return new Response(JSON.stringify({ error: "No image generated after retries" }), {
