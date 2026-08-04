@@ -1754,6 +1754,38 @@ const [currentPage, setCurrentPage] = useState(0);
         coloringLocked={!canUseColoring}
       />
 
+      {/* Page-1 (cover) regeneration — compare original vs. new */}
+      <Dialog open={page1CompareOpen} onOpenChange={(o) => { if (!page1Confirming) setPage1CompareOpen(o); }}>
+        <DialogContent className="max-w-2xl" dir="rtl">
+          <DialogHeader>
+            <DialogTitle>איזה איור לשמור?</DialogTitle>
+            <DialogDescription>
+              עמוד 1 הוא גם הכריכה של הספר. הבחירה נשמרת בשני המקומות, וזהו הניסיון היחיד.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="grid grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <p className="text-sm font-medium text-center">האיור המקורי</p>
+              {page1OldUrl && (
+                <img src={page1OldUrl} alt="האיור המקורי של עמוד 1" className="w-full aspect-square object-cover rounded-lg border" />
+              )}
+              <Button variant="outline" className="w-full" disabled={page1Confirming} onClick={() => handlePage1Choice('old')}>
+                שמרו את המקורי
+              </Button>
+            </div>
+            <div className="space-y-2">
+              <p className="text-sm font-medium text-center">האיור החדש</p>
+              {page1CandidateUrl && (
+                <img src={page1CandidateUrl} alt="האיור החדש של עמוד 1" className="w-full aspect-square object-cover rounded-lg border" />
+              )}
+              <Button className="w-full" disabled={page1Confirming} onClick={() => handlePage1Choice('new')}>
+                {page1Confirming ? <Loader2 className="h-4 w-4 animate-spin" /> : 'בחרו את החדש'}
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+
       {/* Series navigation bar removed */}
 
       {/* Portrait overlay removed - vertical layout */}
