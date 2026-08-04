@@ -1424,6 +1424,18 @@ The action, objects, characters, and emotions shown MUST come from the STORY TEX
       let fallbackReason: string | undefined;
       const MAX_RETRIES = 2;
       const genStart = Date.now();
+      const fluxSeed = seedFromStoryId(storyId);
+
+      logImageGenCall({
+        storyId,
+        page: page.page_number,
+        api: childPhotoSignedUrl || true ? "lovable-gateway/chat-completions" : "lovable-gateway/chat-completions",
+        model: "google/gemini-3-pro-image-preview",
+        hasFaceRef: !!childPhotoSignedUrl,
+        hasPageOneRef: !!coverReferenceUrl,
+        seed: null,
+        prompt: illustrationPrompt,
+      });
 
       for (let attempt = 1; attempt <= MAX_RETRIES; attempt++) {
         if (childPhotoSignedUrl) {
@@ -1447,7 +1459,7 @@ The action, objects, characters, and emotions shown MUST come from the STORY TEX
           console.log(`[Page ${page.page_number}] Gemini failed, trying Flux Schnell fallback...`);
           base64Image = await generateIllustration(
             illustrationPrompt, effectivePhoto, characterProfile,
-            LOVABLE_API_KEY, storyOutfit, visualAnchor, effectiveAdventureLogic, topic
+            LOVABLE_API_KEY, storyOutfit, visualAnchor, effectiveAdventureLogic, topic, fluxSeed
           );
           if (base64Image) { modelUsed = "fal_schnell_fallback"; break; }
           fallbackReason = "Both Gemini no-face and Fal Schnell failed";
@@ -1464,6 +1476,10 @@ The action, objects, characters, and emotions shown MUST come from the STORY TEX
         }
       }
       const durationMs = Date.now() - genStart;
+      console.log(
+        `[IMG-GEN-RESULT] story=${storyId} page=${page.page_number} success=${!!base64Image} ` +
+          `model=${modelUsed} durationMs=${durationMs}${fallbackReason ? ` reason="${fallbackReason}"` : ""}`,
+      );
 
       if (!base64Image) {
         console.log(`[Page ${page.page_number}] No image generated`);
