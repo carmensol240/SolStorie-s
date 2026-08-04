@@ -380,8 +380,7 @@ NEGATIVE: ${NEGATIVE_PROMPT}`;
               messages: [{
                 role: "user",
                 content: [
-                  { type: "image_url", image_url: { url: childPhoto } },
-                  ...(pageOneReferenceUrl ? [{ type: "image_url", image_url: { url: pageOneReferenceUrl } }] : []),
+                  ...refImages,
                   { type: "text", text: personalizedPrompt },
                 ],
               }],
@@ -391,7 +390,7 @@ NEGATIVE: ${NEGATIVE_PROMPT}`;
           if (!response.ok) {
             const errorBody = await response.text().catch(() => "no body");
             console.error(`Gemini attempt ${attempt} failed: ${response.status} - ${errorBody}`);
-            fallbackReason = `Gemini with face failed: HTTP ${response.status}`;
+            fallbackReason = `Gemini with reference failed: HTTP ${response.status}`;
             if (attempt < MAX_ATTEMPTS) { await new Promise(r => setTimeout(r, 3000)); continue; }
             break;
           }
@@ -400,7 +399,7 @@ NEGATIVE: ${NEGATIVE_PROMPT}`;
           imageUrl = data.choices?.[0]?.message?.images?.[0]?.image_url?.url || null;
 
           if (imageUrl) {
-            modelUsed = "gemini_with_face";
+            modelUsed = childPhoto ? "gemini_with_face" : "gemini_with_page1_ref";
             console.log(`Gemini illustration generated successfully on attempt ${attempt}`);
             break;
           }
@@ -413,7 +412,19 @@ NEGATIVE: ${NEGATIVE_PROMPT}`;
       }
     }
 
-    // Fallback to Schnell if no photo or Gemini failed
+    // Fallback to Schnell if no reference or Gemini failed.
+    // NEVER for a page-1 regeneration: Schnell ignores references entirely and would
+    // return a completely different child, burning the user's single attempt.
+    if (!imageUrl && isPage1Regen) {
+      console.error(`[page1_regen] refusing Schnell fallback story=${storyId} reason="${fallbackReason || "no visual reference"}"`);
+      return await failure(
+        hasVisualReference
+          ? "יצירת האיור נכשלה. נסי שוב בעוד רגע — הניסיון שלך לא נוצל."
+          : "לא נמצאה תמונת ייחוס לדמות, ולכן לא ניתן ליצור מחדש את איור עמוד 1 בלי לשנות את הילד/ה.",
+        hasVisualReference ? 502 : 422,
+      );
+    }
+
     if (!imageUrl) {
       if (!fallbackReason && !childPhoto) {
         fallbackReason = "No child photo available";
