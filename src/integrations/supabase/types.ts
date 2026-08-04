@@ -761,6 +761,8 @@ export type Database = {
           max_age: number | null
           min_age: number | null
           nikud: boolean
+          page1_regen_lock_at: string | null
+          page1_regen_used: boolean
           slug: string | null
           story_type: string | null
           summary: string | null
@@ -786,6 +788,8 @@ export type Database = {
           max_age?: number | null
           min_age?: number | null
           nikud?: boolean
+          page1_regen_lock_at?: string | null
+          page1_regen_used?: boolean
           slug?: string | null
           story_type?: string | null
           summary?: string | null
@@ -811,6 +815,8 @@ export type Database = {
           max_age?: number | null
           min_age?: number | null
           nikud?: boolean
+          page1_regen_lock_at?: string | null
+          page1_regen_used?: boolean
           slug?: string | null
           story_type?: string | null
           summary?: string | null

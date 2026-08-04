@@ -79,7 +79,6 @@ const Library = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [editingStory, setEditingStory] = useState<Story | null>(null);
   const [genderSwapStory, setGenderSwapStory] = useState<Story | null>(null);
-  const [regeneratingCoverId, setRegeneratingCoverId] = useState<string | null>(null);
   const [showOfflineFilter, setShowOfflineFilter] = useState(false);
   const [offlineStories, setOfflineStories] = useState<OfflineStory[]>([]);
   const [coloringPages, setColoringPages] = useState<ColoringPageRecord[]>([]);
@@ -254,25 +253,8 @@ const Library = () => {
     }
   };
 
-  const handleRegenerateCover = async (storyId: string) => {
-    if (regeneratingCoverId) return;
-    setRegeneratingCoverId(storyId);
-    try {
-      const story = stories.find(s => s.id === storyId);
-      const { data, error } = await supabase.functions.invoke('generate-cover', {
-        body: { storyId, title: story?.topic || '', topic: story?.topic || '' },
-      });
-      if (error) throw error;
-      if (data?.coverUrl) {
-        setStories(prev => prev.map(s => s.id === storyId ? { ...s, cover_url: data.coverUrl } : s));
-        toast({ title: "הכריכה נוצרה בהצלחה! 🎨" });
-      }
-    } catch {
-      toast({ variant: "destructive", title: "שגיאה ביצירת כריכה", description: "נסו שוב מאוחר יותר" });
-    } finally {
-      setRegeneratingCoverId(null);
-    }
-  };
+  // Cover regeneration removed: the cover is always page 1's illustration,
+  // regenerated (once) from the story viewer.
 
   const handleDownloadOffline = async (storyId: string) => {
     try {

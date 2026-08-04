@@ -1374,6 +1374,10 @@ The action, objects, characters, and emotions shown MUST come from the STORY TEX
         : `SCENE (MUST MATCH TEXT EXACTLY): ${basePrompt}`;
       const genderHeader = buildGenderHeader(childGender);
       let illustrationPrompt = `${genderHeader}\n\n${charDesc}. ${sceneBlock}. CAMERA: ${cameraAngle}. LIGHTING: ${lighting}. Pixar 3D CGI style, vibrant colors, fantasy children's book, full body head to toe with feet grounded on surface\n\n${GENDER_SYMBOL_RESTRICTION}`;
+      if (page.page_number === 1) {
+        // Page 1 is also cropped into the square library cover card.
+        illustrationPrompt += `\n\nCOMPOSITION (COVER SAFE ZONE): The main character is centered in the frame, full body visible, with at least 15% empty margin on every side and extra headroom at the top. Nothing important touches the edges — this image is also cropped to a square cover card.`;
+      }
       console.log(`[Page ${page.page_number}] 📝 Direct prompt (${illustrationPrompt.length} chars, text-anchored=${!!pageNarrative})`);
 
       // Inject CAST_DESCRIPTIONS for any recurring cast character that
@@ -1514,6 +1518,15 @@ The action, objects, characters, and emotions shown MUST come from the STORY TEX
 
         if (page.page_number === 1) {
           firstIllustrationUrl = illustrationUrl;
+          // Page 1 IS the book cover — no separate cover image is generated anymore.
+          const coverPublic = buildPublicIllustrationUrl(illustrationUrl);
+          if (coverPublic) {
+            await supabase
+              .from("stories")
+              .update({ cover_url: `${coverPublic.split("?")[0]}?v=${Date.now()}` })
+              .eq("id", storyId);
+            console.log(`[Page 1] ✅ cover_url synced to page-1 illustration`);
+          }
         }
       }
 
@@ -1585,9 +1598,8 @@ The action, objects, characters, and emotions shown MUST come from the STORY TEX
     const firstPage = sortedPages.find(p => p.page_number === 1) || null;
     const restPages = sortedPages.filter(p => p !== firstPage);
 
-    const coverPromise = TOPIC_COVER_PROMPTS[topic]
-      ? generateCoverImage(supabase, storyId, LOVABLE_API_KEY, topic)
-      : Promise.resolve(null);
+    // Cover generation is retired: page 1 doubles as the cover (see page-1 sync above).
+    const coverPromise: Promise<string | null> = Promise.resolve(null);
 
     let coverReferenceForRest: string | null = null;
 

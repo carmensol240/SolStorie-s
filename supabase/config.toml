@@ -45,9 +45,6 @@ verify_jwt = false
 [functions.azure-speech-tts]
 verify_jwt = false
 
-[functions.generate-cover]
-verify_jwt = false
-
 [functions.manage-reviews]
 verify_jwt = false
 

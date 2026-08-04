@@ -2321,32 +2321,8 @@ ${fullStoryText}`;
         fetchPromises.push(p);
       }
 
-      // Cover generation
-      console.log(`Triggering generate-cover for story ${story.id}...`);
-      const coverPromise = fetch(`${supabaseUrl}/functions/v1/generate-cover`, {
-        method: "POST",
-        headers: {
-          "Authorization": `Bearer ${serviceRoleKey}`,
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          storyId: story.id,
-          title: hebrewTopic,
-          topic: topic,
-          language: language,
-          adventureLogic: adventureLogic,
-        }),
-      }).then(response => {
-        console.log(`generate-cover response status: ${response.status}`);
-        if (!response.ok) {
-          response.text().then(text => {
-            console.error("generate-cover error response:", text);
-          });
-        }
-      }).catch(err => {
-        console.error("Error triggering cover generation:", err);
-      });
-      fetchPromises.push(coverPromise);
+      // No separate cover generation: page 1's illustration is used as the book cover
+      // (generate-illustrations syncs stories.cover_url once page 1 is saved).
 
       // Wait for dispatch with a 3-second timeout — only need HTTP acceptance
       await Promise.race([

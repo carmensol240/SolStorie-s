@@ -62,7 +62,7 @@ serve(async (req) => {
       });
     }
 
-    const { storyId, pageId, customPrompt } = await req.json();
+    const { storyId, pageId, customPrompt, mode, choice } = await req.json();
     if (!storyId || !pageId) {
       return new Response(JSON.stringify({ error: "Missing storyId or pageId" }), {
         status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" },
@@ -72,7 +72,7 @@ serve(async (req) => {
     // Verify story ownership
     const { data: story, error: storyError } = await supabase
       .from("stories")
-      .select("id, user_id, child_gender, age_range, child_name, topic")
+      .select("id, user_id, child_gender, age_range, child_name, topic, page1_regen_used, page1_regen_lock_at")
       .eq("id", storyId)
       .eq("user_id", user.id)
       .maybeSingle();
@@ -96,6 +96,95 @@ serve(async (req) => {
         status: 404, headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
+
+    // ===== Page-1 one-shot regeneration =====
+    // Page 1 doubles as the book cover, so users get exactly ONE redo attempt.
+    // The flag `page1_regen_used` is only flipped AFTER the new image is safely in
+    // storage — a failed generation leaves it false so the user can try again.
+    const isPage1Regen = mode === "page1_regen" || mode === "page1_confirm";
+    const candidatePath = `${storyId}/page-1-candidate.png`;
+    const finalPage1Path = `${storyId}/page-1.png`;
+    const publicUrl = (path: string) =>
+      supabase.storage.from("story-illustrations").getPublicUrl(path).data.publicUrl;
+
+    if (isPage1Regen && page.page_number !== 1) {
+      return new Response(JSON.stringify({ error: "mode is only valid for page 1" }), {
+        status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
+    // Step 2 of the flow: user picked which version to keep.
+    if (mode === "page1_confirm") {
+      if (choice === "new") {
+        const { data: blob, error: dlErr } = await supabase.storage
+          .from("story-illustrations").download(candidatePath);
+        if (dlErr || !blob) {
+          return new Response(JSON.stringify({ error: "Candidate image not found" }), {
+            status: 404, headers: { ...corsHeaders, "Content-Type": "application/json" },
+          });
+        }
+        const bytes = new Uint8Array(await blob.arrayBuffer());
+        const { error: upErr } = await supabase.storage
+          .from("story-illustrations")
+          .upload(finalPage1Path, bytes, { contentType: "image/png", upsert: true });
+        if (upErr) {
+          return new Response(JSON.stringify({ error: "Upload failed" }), {
+            status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" },
+          });
+        }
+        // Page 1 IS the cover — keep both pointers identical.
+        await supabase.from("story_pages").update({ illustration_url: finalPage1Path }).eq("id", pageId);
+        await supabase.from("stories")
+          .update({ cover_url: `${publicUrl(finalPage1Path)}?v=${Date.now()}` })
+          .eq("id", storyId);
+      }
+      await supabase.storage.from("story-illustrations").remove([candidatePath]).catch(() => {});
+      return new Response(
+        JSON.stringify({ success: true, illustrationUrl: finalPage1Path, kept: choice === "new" ? "new" : "old" }),
+        { headers: { ...corsHeaders, "Content-Type": "application/json" } },
+      );
+    }
+
+    let lockAcquired = false;
+    if (mode === "page1_regen") {
+      if ((story as any).page1_regen_used) {
+        return new Response(JSON.stringify({ error: "already_used" }), {
+          status: 409, headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+      // Atomic double-click guard: only ONE concurrent request can win this
+      // conditional UPDATE (stale locks older than 3 minutes are reclaimable).
+      const staleBefore = new Date(Date.now() - 3 * 60_000).toISOString();
+      const { data: locked } = await supabase
+        .from("stories")
+        .update({ page1_regen_lock_at: new Date().toISOString() })
+        .eq("id", storyId)
+        .eq("user_id", user.id)
+        .eq("page1_regen_used", false)
+        .or(`page1_regen_lock_at.is.null,page1_regen_lock_at.lt.${staleBefore}`)
+        .select("id");
+
+      if (!locked || locked.length === 0) {
+        return new Response(JSON.stringify({ error: "in_progress" }), {
+          status: 409, headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+      lockAcquired = true;
+    }
+
+    const releaseLock = async () => {
+      if (lockAcquired) {
+        await supabase.from("stories").update({ page1_regen_lock_at: null }).eq("id", storyId);
+        lockAcquired = false;
+      }
+    };
+
+    const failure = async (message: string, status = 500) => {
+      await releaseLock(); // generation failed → flag stays false, user may retry
+      return new Response(JSON.stringify({ error: message }), {
+        status, headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    };
 
     // Get child photo if available
     let childPhoto: string | null = null;
@@ -173,7 +262,10 @@ STORY TEXT FOR THIS PAGE: "${pageNarrative}"
 VISUAL DESCRIPTION: ${prompt}
 The action, objects, characters, and emotions shown MUST come from the STORY TEXT above. Do not invent a different scene.`
       : `SCENE (THIS IS THE MOST IMPORTANT PART — illustrate THIS specific scene in detail): ${prompt}`;
-    const sceneBlock = `${genderHeader}\n\n${sceneBlockRaw}\n\n${GENDER_SYMBOL_RESTRICTION}`;
+    // Page 1 is also used as the library cover card (square/landscape crop), so it needs a
+    // safe composition: character centered, generous margins, headroom for title overlays.
+    const COVER_SAFE_ZONE = `COMPOSITION (COVER SAFE ZONE): The main character is centered in the frame, full body visible, with at least 15% empty margin on every side and extra headroom at the top. Nothing important touches the edges — this image is also cropped to a square cover card.`;
+    const sceneBlock = `${genderHeader}\n\n${sceneBlockRaw}\n\n${page.page_number === 1 ? `${COVER_SAFE_ZONE}\n\n` : ""}${GENDER_SYMBOL_RESTRICTION}`;
 
     let imageUrl: string | null = null;
     let modelUsed = "unknown";
@@ -261,9 +353,7 @@ NEGATIVE: ${NEGATIVE_PROMPT}`;
       }
       const FAL_KEY = Deno.env.get("FAL_KEY");
       if (!FAL_KEY) {
-        return new Response(JSON.stringify({ error: "FAL_KEY not configured" }), {
-          status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" },
-        });
+        return await failure("FAL_KEY not configured");
       }
       const fullPrompt = `${PIXAR_STYLE}\n\n${sceneBlock}\n\n${CHARACTER_CONSISTENCY_PROMPT}\n\nNEGATIVE: ${NEGATIVE_PROMPT_FULL}`;
       console.log(`Retrying illustration via Flux Schnell for story ${storyId}, page ${page.page_number}...`);
@@ -293,9 +383,7 @@ NEGATIVE: ${NEGATIVE_PROMPT}`;
             const errorBody = await response.text().catch(() => "no body");
             console.error(`Schnell attempt ${attempt} failed: ${response.status} - ${errorBody}`);
             if (attempt < MAX_ATTEMPTS) { await new Promise(r => setTimeout(r, 1000)); continue; }
-            return new Response(JSON.stringify({ error: "Image generation failed" }), {
-              status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" },
-            });
+            return await failure("Image generation failed");
           }
 
           const data = await response.json();
@@ -333,9 +421,7 @@ NEGATIVE: ${NEGATIVE_PROMPT}`;
     console.log(`[IMG-GEN-RESULT] story=${storyId} page=${page.page_number} success=${!!imageUrl} model=${modelUsed} durationMs=${durationMs}${fallbackReason ? ` reason="${fallbackReason}"` : ""}`);
 
     if (!imageUrl) {
-      return new Response(JSON.stringify({ error: "No image generated after retries" }), {
-        status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
+      return await failure("No image generated after retries");
     }
 
     // Upload to storage
@@ -346,22 +432,31 @@ NEGATIVE: ${NEGATIVE_PROMPT}`;
       bytes[i] = binaryString.charCodeAt(i);
     }
 
-    const filePath = `${storyId}/page-${page.page_number}.png`;
+    // In one-shot page-1 mode the new art lands on a candidate path first, so the user can
+    // compare it with the original before anything is overwritten.
+    const filePath = mode === "page1_regen" ? candidatePath : `${storyId}/page-${page.page_number}.png`;
     const { error: uploadError } = await supabase.storage
       .from("story-illustrations")
       .upload(filePath, bytes, { contentType: "image/png", upsert: true });
 
     if (uploadError) {
       console.error("Upload error:", uploadError);
-      return new Response(JSON.stringify({ error: "Upload failed" }), {
-        status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
+      return await failure("Upload failed");
     }
 
-    await supabase
-      .from("story_pages")
-      .update({ illustration_url: filePath })
-      .eq("id", pageId);
+    if (mode === "page1_regen") {
+      // Image is safely stored → NOW the one-shot attempt counts as used.
+      await supabase
+        .from("stories")
+        .update({ page1_regen_used: true, page1_regen_lock_at: null })
+        .eq("id", storyId);
+      lockAcquired = false;
+    } else {
+      await supabase
+        .from("story_pages")
+        .update({ illustration_url: filePath })
+        .eq("id", pageId);
+    }
 
     // Log the illustration generation
     await supabase.from("illustration_logs").insert({
@@ -376,7 +471,13 @@ NEGATIVE: ${NEGATIVE_PROMPT}`;
     console.log(`✅ Retry illustration success for page ${page.page_number} (model: ${modelUsed})`);
 
     return new Response(
-      JSON.stringify({ success: true, illustrationUrl: filePath }),
+      JSON.stringify({
+        success: true,
+        illustrationUrl: filePath,
+        ...(mode === "page1_regen"
+          ? { candidateUrl: `${publicUrl(candidatePath)}?v=${Date.now()}`, regenUsed: true }
+          : {}),
+      }),
       { headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
   } catch (error) {
