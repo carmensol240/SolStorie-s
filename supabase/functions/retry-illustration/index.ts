@@ -543,7 +543,8 @@ NEGATIVE: ${NEGATIVE_PROMPT}`;
     if (mode === "page1_regen") {
       // Image is safely stored → NOW the one-shot attempt counts as used.
       // Only reference-based models count; a referenceless fallback must never burn the attempt.
-      const referenceBased = modelUsed.startsWith("gemini_");
+      // Admins are exempt: never mark the flag so the story stays clean for re-testing.
+      const referenceBased = !isAdmin && modelUsed.startsWith("gemini_");
       await supabase
         .from("stories")
         .update({ page1_regen_used: referenceBased, page1_regen_lock_at: null })
