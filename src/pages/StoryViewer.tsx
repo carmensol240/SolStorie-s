@@ -1763,6 +1763,8 @@ const [currentPage, setCurrentPage] = useState(0);
         isDownloadingOffline={fullOffline.downloadingId === resolvedId}
         onRegenerateCover={handleRegenerateCover}
         isRegeneratingCover={isRegeneratingCover}
+        canRegenerateCover={canRegenerateCover}
+        page1RegenUsed={!!story?.page1_regen_used}
         onColoring={() => {
           if (!canUseColoring) { setColoringUpsellOpen(true); return; }
           guardDemo(() => preloadStoryCachedColoring(null))();
