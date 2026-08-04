@@ -62,6 +62,8 @@ interface BookHeaderProps {
   // Regenerate cover
   onRegenerateCover?: () => void;
   isRegeneratingCover?: boolean;
+  canRegenerateCover?: boolean;
+  page1RegenUsed?: boolean;
   // Coloring shortcut
   onColoring?: () => void;
   // PDF entitlement
@@ -91,6 +93,8 @@ export const BookHeader: React.FC<BookHeaderProps> = ({
   isDownloadingOffline = false,
   onRegenerateCover,
   isRegeneratingCover = false,
+  canRegenerateCover = false,
+  page1RegenUsed = false,
   onColoring,
   pdfLocked = false,
   coloringLocked = false,
