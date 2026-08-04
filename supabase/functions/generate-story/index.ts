@@ -321,7 +321,16 @@ const SYSTEM_PROMPT = `## 🚨🚨🚨 META-INSTRUCTION: BEFORE WRITING ANY WORD
 
 ### נעילת מראה הדמות (Consistency Lock)
 - **הגדר את הלבוש פעם אחת** והשאר אותו זהה בכל העמודים
-- אין שינויי לבוש בין עמודים!
+
+### 👕 נעילת לבוש (Wardrobe Lock) — חובה מוחלטת
+- הלבוש של הדמות הראשית נקבע **פעם אחת בעמוד 1** ונשאר **זהה מילה במילה** בכל עמודי הסיפור ובכל שדה illustration_prompt — אותם פריטים, אותם צבעים, אותם סמלים.
+- אם ההורה תיאר לבוש מפורש (למשל "חולצה צהובה עם כוכב וגלימה אדומה") — זהו הלבוש המחייב. אסור להחליף אותו, אסור "לשדרג" אותו ואסור להוסיף/להוריד פריטים.
+- **תלבושת ז'אנרית** (גיבור-על, אסטרונאוט, אביר, פיה) היא חלק ממהות ההרפתקה — החלפתה סותרת את העלילה. היא חייבת להופיע בכל עמוד ללא יוצא מן הכלל.
+- **החריג היחיד:** שינוי לבוש מותר רק כשהעלילה עצמה מחייבת אותו במפורש (מעבר לשינה, יציאה לגשם/שלג, כניסה למים). במקרה כזה:
+  1. השינוי חייב להיכתב בטקסט במפורש: "הילד/ה מחליף/ה לפיג'מה", "לובש/ת מעיל גשם".
+  2. ה-illustration_prompt של אותו עמוד ואילך ישקף את הלבוש החדש.
+  3. אין שינוי לבוש "שקט" שקורה רק באיור ולא בטקסט — זו שגיאה.
+- **בדיקה לפני הפלט:** עבור על כל ה-illustration_prompt ברצף וּודא שתיאור הבגדים זהה בכולם, למעט עמודים שבהם הטקסט מציין שינוי מפורש.
 
 ### סמלים חייבים להתאים למגדר
 - **אסור:** כיפה על ילדה (אלא אם ההורה ביקש במפורש)
@@ -405,7 +414,7 @@ const SYSTEM_PROMPT = `## 🚨🚨🚨 META-INSTRUCTION: BEFORE WRITING ANY WORD
     {
       "page_number": 1,
       "text": "כל משפט בשורה נפרדת.\nשפה חושית וציורית.\nללא ניקוד.\n\nפסקה חדשה אחרי שורה ריקה.\nתיאורים של ריחות, צלילים ומגע.",
-      "illustration_prompt": "CRITICAL: Describe the SPECIFIC scene on this page in English. The illustration MUST match the page text EXACTLY — if the text says the child hugs a teddy bear, the illustration must show a teddy bear hug, NOT two characters hugging. Include: (1) What the main character is DOING — use the EXACT action from the text (e.g., 'petting a giraffe', 'hugging a teddy bear', 'hiding under a blanket'), (2) The EXACT environment/background from the text (e.g., 'zoo with elephants and trees', 'bedroom with stars on the ceiling'), (3) Character's EXACT appearance: gender, hair color/style, skin tone, clothing, (4) Any specific objects, animals, or secondary characters mentioned in the text. Do NOT add elements that are not in the text. Do NOT change the action described in the text. Each page MUST have a DIFFERENT scene that precisely reflects its text."
+      "illustration_prompt": "CRITICAL: Describe the SPECIFIC scene on this page in English. The illustration MUST match the page text EXACTLY — if the text says the child hugs a teddy bear, the illustration must show a teddy bear hug, NOT two characters hugging. Include: (1) What the main character is DOING — use the EXACT action from the text (e.g., 'petting a giraffe', 'hugging a teddy bear', 'hiding under a blanket'), (2) The EXACT environment/background from the text (e.g., 'zoo with elephants and trees', 'bedroom with stars on the ceiling'), (3) Character's EXACT appearance: gender, hair color/style, skin tone, and the SAME clothing as page 1 — identical garments, identical colors, identical emblems/cape; never invent or swap an outfit (the only exception is a wardrobe change explicitly written in this page's text), (4) Any specific objects, animals, or secondary characters mentioned in the text. Do NOT add elements that are not in the text. Do NOT change the action described in the text. Each page MUST have a DIFFERENT scene that precisely reflects its text."
     }
   ]
 }`;
@@ -1349,6 +1358,10 @@ ${personalityTraits}
 ${personalityTraits}
 
 התאם את עולם הסיפור והסביבה לתוכן שתואר.
+
+**לבוש קבוע לאורך כל הסיפור (Wardrobe Lock):**
+אם התיאור החופשי כולל לבוש מפורש לדמות — זהו הלבוש המחייב. אם אינו כולל לבוש — קבע בעצמך לבוש אחד פשוט ועקבי בעמוד 1.
+בשני המקרים: אותו לבוש בדיוק חוזר בכל העמודים ובכל שדה illustration_prompt (אותם פריטים, צבעים וסמלים), אלא אם העלילה מחייבת שינוי מפורש שנכתב גם בטקסט (מעבר לפיג'מה לפני שינה, מעיל בגשם וכו').
 `;
     }
     // === BUILD PROMPT BASED ON LANGUAGE ===
@@ -1384,7 +1397,7 @@ Return ONLY valid JSON:
     {
       "page_number": 1,
       "text": "Rhyming stanza in English (4 lines max)",
-      "illustration_prompt": "English description including EXACT character appearance: gender, hair color/style, skin tone, clothing. Character must look IDENTICAL in every page."
+      "illustration_prompt": "English description including EXACT character appearance: gender, hair color/style, skin tone, and the SAME clothing as page 1 (identical garments, colors and emblems — never invent or swap an outfit unless this page's text explicitly describes a wardrobe change). Character must look IDENTICAL in every page."
     }
   ]
 }`;
@@ -1463,7 +1476,11 @@ ${adventureLogic ? `
 - Outfit: ${adventureLogic.outfit}
 - Background: ${adventureLogic.background}  
 - Theme: ${adventureLogic.theme}
-` : ''}`;
+` : `
+## Wardrobe lock:
+- Decide the character's outfit once on page 1 (use the outfit described by the parent if given, otherwise simple everyday clothes) and repeat that exact outfit description word-for-word in every illustration_prompt.
+- Never swap, upgrade or reinvent the clothes between pages. The only exception is a wardrobe change the page text states explicitly (pyjamas before sleep, a raincoat in the rain).
+`}`;
     } else {
       // Hebrew prompt (existing)
       systemPrompt = SYSTEM_PROMPT;
@@ -1556,7 +1573,9 @@ ${adventureLogic ? `
 - הדמות חייבת ללבוש: ${adventureLogic.outfit}
 - הרקע חייב להיות: ${adventureLogic.background}
 - הנושא הכללי: ${adventureLogic.theme}
-` : ''}
+` : `
+- **נעילת לבוש:** קבע את לבוש הדמות בעמוד 1 (לפי הלבוש שתיאר ההורה, ואם לא תואר — לבוש יומיומי פשוט), וחזור על אותו תיאור לבוש **מילה במילה** בכל illustration_prompt בכל העמודים. אסור להחליף בגדים בין עמודים, אלא אם טקסט העמוד מציין שינוי מפורש (פיג'מה לפני שינה, מעיל בגשם).
+`}
 ${isLearningTopic ? `
 ${learningLetter ? `- באיור הראשון: האות ${illustrationLearningTarget} מופיעה גדולה, שלמה ומלאה במרכז האיור בצבע זוהר — האות חייבת להיות FULLY VISIBLE, COMPLETE, NOT CROPPED in any direction, positioned in the CENTER of the image with clear empty space around it on ALL sides
 - בכל איור: האות ${illustrationLearningTarget} מופיעה שלמה ומלאה איפשהו בסצנה — על קיר, על עץ, על חולצה. The letter must be entirely within the frame, never touching or near any edge.
