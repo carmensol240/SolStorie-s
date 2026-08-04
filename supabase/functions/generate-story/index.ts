@@ -1989,6 +1989,9 @@ CRITICAL RULES:
 - Keep the EXACT same number of pages/sections as the input
 - Keep [עמוד X] markers exactly as they are
 - The child's name in the story is "${childName}". Preserve it EXACTLY as it appears — never replace, shorten, transliterate, or "correct" it.
+- The name "${childName}" must be spelled IDENTICALLY on every page — never add or drop a letter (e.g. never turn a short name into a longer similar-looking word).
+- **אסור "רשימת בגדים":** אם עמוד כלשהו מתאר בגדים בסגנון טכני ("מעל החולצה, יש לו מכנסיים אדומים. למטה, יש לו טייץ כחול. יש לו גם גלימה אדומה.") — נסח אותו מחדש כמשפט סיפורי אחד שמחבר את הלבוש לרגש ולפעולה, למשל: "${childName} לובש/ת את התלבושת האהובה — חולצה צהובה, מכנסיים אדומים וגלימה שמתנופפת ברוח. הוא/היא מוכן/ה להרפתקה!"
+- Fix spelling mistakes in Hebrew words (e.g. "כחל" → "כחול").
 - Preserve illustration_prompt content if present - only rewrite the Hebrew story text
 - Do NOT add nikud (vowel marks) — write clean text without nikud
 - Do NOT flatten sentence-per-line formatting into paragraphs
