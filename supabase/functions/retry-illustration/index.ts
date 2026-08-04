@@ -62,7 +62,7 @@ serve(async (req) => {
       });
     }
 
-    const { storyId, pageId, customPrompt } = await req.json();
+    const { storyId, pageId, customPrompt, mode, choice } = await req.json();
     if (!storyId || !pageId) {
       return new Response(JSON.stringify({ error: "Missing storyId or pageId" }), {
         status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" },
@@ -72,7 +72,7 @@ serve(async (req) => {
     // Verify story ownership
     const { data: story, error: storyError } = await supabase
       .from("stories")
-      .select("id, user_id, child_gender, age_range, child_name, topic")
+      .select("id, user_id, child_gender, age_range, child_name, topic, page1_regen_used, page1_regen_lock_at")
       .eq("id", storyId)
       .eq("user_id", user.id)
       .maybeSingle();
@@ -96,6 +96,95 @@ serve(async (req) => {
         status: 404, headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
+
+    // ===== Page-1 one-shot regeneration =====
+    // Page 1 doubles as the book cover, so users get exactly ONE redo attempt.
+    // The flag `page1_regen_used` is only flipped AFTER the new image is safely in
+    // storage — a failed generation leaves it false so the user can try again.
+    const isPage1Regen = mode === "page1_regen" || mode === "page1_confirm";
+    const candidatePath = `${storyId}/page-1-candidate.png`;
+    const finalPage1Path = `${storyId}/page-1.png`;
+    const publicUrl = (path: string) =>
+      supabase.storage.from("story-illustrations").getPublicUrl(path).data.publicUrl;
+
+    if (isPage1Regen && page.page_number !== 1) {
+      return new Response(JSON.stringify({ error: "mode is only valid for page 1" }), {
+        status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
+    // Step 2 of the flow: user picked which version to keep.
+    if (mode === "page1_confirm") {
+      if (choice === "new") {
+        const { data: blob, error: dlErr } = await supabase.storage
+          .from("story-illustrations").download(candidatePath);
+        if (dlErr || !blob) {
+          return new Response(JSON.stringify({ error: "Candidate image not found" }), {
+            status: 404, headers: { ...corsHeaders, "Content-Type": "application/json" },
+          });
+        }
+        const bytes = new Uint8Array(await blob.arrayBuffer());
+        const { error: upErr } = await supabase.storage
+          .from("story-illustrations")
+          .upload(finalPage1Path, bytes, { contentType: "image/png", upsert: true });
+        if (upErr) {
+          return new Response(JSON.stringify({ error: "Upload failed" }), {
+            status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" },
+          });
+        }
+        // Page 1 IS the cover — keep both pointers identical.
+        await supabase.from("story_pages").update({ illustration_url: finalPage1Path }).eq("id", pageId);
+        await supabase.from("stories")
+          .update({ cover_url: `${publicUrl(finalPage1Path)}?v=${Date.now()}` })
+          .eq("id", storyId);
+      }
+      await supabase.storage.from("story-illustrations").remove([candidatePath]).catch(() => {});
+      return new Response(
+        JSON.stringify({ success: true, illustrationUrl: finalPage1Path, kept: choice === "new" ? "new" : "old" }),
+        { headers: { ...corsHeaders, "Content-Type": "application/json" } },
+      );
+    }
+
+    let lockAcquired = false;
+    if (mode === "page1_regen") {
+      if ((story as any).page1_regen_used) {
+        return new Response(JSON.stringify({ error: "already_used" }), {
+          status: 409, headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+      // Atomic double-click guard: only ONE concurrent request can win this
+      // conditional UPDATE (stale locks older than 3 minutes are reclaimable).
+      const staleBefore = new Date(Date.now() - 3 * 60_000).toISOString();
+      const { data: locked } = await supabase
+        .from("stories")
+        .update({ page1_regen_lock_at: new Date().toISOString() })
+        .eq("id", storyId)
+        .eq("user_id", user.id)
+        .eq("page1_regen_used", false)
+        .or(`page1_regen_lock_at.is.null,page1_regen_lock_at.lt.${staleBefore}`)
+        .select("id");
+
+      if (!locked || locked.length === 0) {
+        return new Response(JSON.stringify({ error: "in_progress" }), {
+          status: 409, headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+      lockAcquired = true;
+    }
+
+    const releaseLock = async () => {
+      if (lockAcquired) {
+        await supabase.from("stories").update({ page1_regen_lock_at: null }).eq("id", storyId);
+        lockAcquired = false;
+      }
+    };
+
+    const failure = async (message: string, status = 500) => {
+      await releaseLock(); // generation failed → flag stays false, user may retry
+      return new Response(JSON.stringify({ error: message }), {
+        status, headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    };
 
     // Get child photo if available
     let childPhoto: string | null = null;
