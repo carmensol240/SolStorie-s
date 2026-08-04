@@ -1374,6 +1374,10 @@ The action, objects, characters, and emotions shown MUST come from the STORY TEX
         : `SCENE (MUST MATCH TEXT EXACTLY): ${basePrompt}`;
       const genderHeader = buildGenderHeader(childGender);
       let illustrationPrompt = `${genderHeader}\n\n${charDesc}. ${sceneBlock}. CAMERA: ${cameraAngle}. LIGHTING: ${lighting}. Pixar 3D CGI style, vibrant colors, fantasy children's book, full body head to toe with feet grounded on surface\n\n${GENDER_SYMBOL_RESTRICTION}`;
+      if (page.page_number === 1) {
+        // Page 1 is also cropped into the square library cover card.
+        illustrationPrompt += `\n\nCOMPOSITION (COVER SAFE ZONE): The main character is centered in the frame, full body visible, with at least 15% empty margin on every side and extra headroom at the top. Nothing important touches the edges — this image is also cropped to a square cover card.`;
+      }
       console.log(`[Page ${page.page_number}] 📝 Direct prompt (${illustrationPrompt.length} chars, text-anchored=${!!pageNarrative})`);
 
       // Inject CAST_DESCRIPTIONS for any recurring cast character that
