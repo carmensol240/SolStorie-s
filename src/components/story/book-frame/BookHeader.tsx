@@ -13,6 +13,7 @@ import {
   Palette,
   MessageCircle,
   Lock,
+  RefreshCw,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
