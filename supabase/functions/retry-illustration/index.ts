@@ -145,6 +145,25 @@ serve(async (req) => {
     const sol = getSolUrl(story.topic || "");
     console.log(`Sol variant: ${sol.label} for topic "${story.topic}"`);
 
+    // Page-1 illustration is the canonical look of the character. Reuse it whenever the
+    // page being retried is NOT page 1, so the regenerated art matches the rest of the book.
+    let pageOneReferenceUrl: string | null = null;
+    if (page.page_number !== 1) {
+      const { data: firstPage } = await supabase
+        .from("story_pages")
+        .select("illustration_url")
+        .eq("story_id", storyId)
+        .eq("page_number", 1)
+        .maybeSingle();
+      const raw = (firstPage as { illustration_url?: string } | null)?.illustration_url;
+      if (raw) {
+        pageOneReferenceUrl = raw.startsWith("http")
+          ? raw.split("?")[0]
+          : supabase.storage.from("story-illustrations").getPublicUrl(raw).data?.publicUrl || null;
+      }
+      console.log(`🔗 page-1 character reference: ${pageOneReferenceUrl ? "found" : "not available"}`);
+    }
+
     const prompt = customPrompt || page.illustration_prompt || `A cheerful children's book illustration for page ${page.page_number}`;
     const pageNarrative = ((page as any).text || "").toString().slice(0, 400);
     const genderHeader = buildGenderHeader((story as any).child_gender);
