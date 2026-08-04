@@ -1514,6 +1514,15 @@ The action, objects, characters, and emotions shown MUST come from the STORY TEX
 
         if (page.page_number === 1) {
           firstIllustrationUrl = illustrationUrl;
+          // Page 1 IS the book cover — no separate cover image is generated anymore.
+          const coverPublic = buildPublicIllustrationUrl(illustrationUrl);
+          if (coverPublic) {
+            await supabase
+              .from("stories")
+              .update({ cover_url: `${coverPublic.split("?")[0]}?v=${Date.now()}` })
+              .eq("id", storyId);
+            console.log(`[Page 1] ✅ cover_url synced to page-1 illustration`);
+          }
         }
       }
 
@@ -1585,9 +1594,8 @@ The action, objects, characters, and emotions shown MUST come from the STORY TEX
     const firstPage = sortedPages.find(p => p.page_number === 1) || null;
     const restPages = sortedPages.filter(p => p !== firstPage);
 
-    const coverPromise = TOPIC_COVER_PROMPTS[topic]
-      ? generateCoverImage(supabase, storyId, LOVABLE_API_KEY, topic)
-      : Promise.resolve(null);
+    // Cover generation is retired: page 1 doubles as the cover (see page-1 sync above).
+    const coverPromise: Promise<string | null> = Promise.resolve(null);
 
     let coverReferenceForRest: string | null = null;
 
