@@ -749,6 +749,7 @@ export type Database = {
           child_gender: string | null
           child_id: string | null
           child_name: string
+          child_photo_path: string | null
           cover_url: string | null
           created_at: string
           daily_story_date: string | null
@@ -776,6 +777,7 @@ export type Database = {
           child_gender?: string | null
           child_id?: string | null
           child_name: string
+          child_photo_path?: string | null
           cover_url?: string | null
           created_at?: string
           daily_story_date?: string | null
@@ -803,6 +805,7 @@ export type Database = {
           child_gender?: string | null
           child_id?: string | null
           child_name?: string
+          child_photo_path?: string | null
           cover_url?: string | null
           created_at?: string
           daily_story_date?: string | null

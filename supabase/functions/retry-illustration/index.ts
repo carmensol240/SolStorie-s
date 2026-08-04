@@ -73,7 +73,7 @@ serve(async (req) => {
     // Verify story ownership
     const { data: story, error: storyError } = await supabase
       .from("stories")
-      .select("id, user_id, child_gender, age_range, child_name, topic, page1_regen_used, page1_regen_lock_at")
+      .select("id, user_id, child_id, child_photo_path, child_gender, age_range, child_name, topic, page1_regen_used, page1_regen_lock_at")
       .eq("id", storyId)
       .eq("user_id", user.id)
       .maybeSingle();
@@ -208,16 +208,50 @@ serve(async (req) => {
       });
     };
 
-    // Get child photo if available
+    // Get child photo if available.
+    // Lookup chain — a name-only match breaks whenever the story's child name differs
+    // from any saved child profile, which silently killed the face reference on retries.
+    //   1. the exact reference path stored on the story at creation time
+    //   2. the linked child row (by id)
+    //   3. a child row matching the story's child name (legacy behaviour)
+    //   4. the photo saved on the user's profile
     let childPhoto: string | null = null;
-    const { data: child } = await supabase
-      .from("children")
-      .select("avatar_url, photo_url, avatar_description")
-      .eq("user_id", user.id)
-      .eq("name", story.child_name)
-      .maybeSingle();
+    let photoSource = "none";
+    let photoPath: string | null = (story as any).child_photo_path || null;
+    if (photoPath) photoSource = "story";
 
-    const photoPath = child?.photo_url || child?.avatar_url;
+    if (!photoPath && (story as any).child_id) {
+      const { data: childById } = await supabase
+        .from("children")
+        .select("avatar_url, photo_url")
+        .eq("id", (story as any).child_id)
+        .eq("user_id", user.id)
+        .maybeSingle();
+      photoPath = childById?.photo_url || childById?.avatar_url || null;
+      if (photoPath) photoSource = "child_id";
+    }
+
+    if (!photoPath) {
+      const { data: child } = await supabase
+        .from("children")
+        .select("avatar_url, photo_url")
+        .eq("user_id", user.id)
+        .eq("name", story.child_name)
+        .maybeSingle();
+      photoPath = child?.photo_url || child?.avatar_url || null;
+      if (photoPath) photoSource = "name";
+    }
+
+    if (!photoPath) {
+      const { data: profile } = await supabase
+        .from("profiles")
+        .select("child_photo_url, child_avatar_url")
+        .eq("id", user.id)
+        .maybeSingle();
+      photoPath = profile?.child_photo_url || profile?.child_avatar_url || null;
+      if (photoPath) photoSource = "profile";
+    }
+
     if (photoPath) {
       if (photoPath.startsWith("http")) {
         childPhoto = photoPath;
@@ -258,8 +292,10 @@ serve(async (req) => {
 
     // Page-1 illustration is the canonical look of the character. Reuse it whenever the
     // page being retried is NOT page 1, so the regenerated art matches the rest of the book.
+    // When regenerating page 1 itself, the CURRENT page-1 art is the canonical look of the
+    // character — it must be used as the reference so the redo keeps the same child.
     let pageOneReferenceUrl: string | null = null;
-    if (page.page_number !== 1) {
+    {
       const { data: firstPage } = await supabase
         .from("story_pages")
         .select("illustration_url")
@@ -299,16 +335,25 @@ The action, objects, characters, and emotions shown MUST come from the STORY TEX
     const logImageGenCall = (api: string, model: string, prompt: string, seed: number | null) =>
       console.log(
         `[IMG-GEN] story=${storyId} page=${page.page_number} api=${api} model=${model} ` +
-          `refs=[face:${childPhoto ? "yes" : "no"}, page1:${pageOneReferenceUrl ? "yes" : "no"}] ` +
+          `refs=[face:${childPhoto ? "yes" : "no"}(${photoSource}), page1:${pageOneReferenceUrl ? "yes" : "no"}] ` +
           `seed=${seed ?? "n/a"} promptChars=${prompt.length} promptHead="${prompt.substring(0, 200).replace(/\s+/g, " ")}"`,
       );
 
-    // Branch: use Gemini Image Generation when child photo exists, Schnell otherwise
-    if (childPhoto) {
-      console.log(`Retrying illustration via Gemini Image Generation (face reference) for story ${storyId}, page ${page.page_number}...`);
+    // Branch: use Gemini Image Generation whenever ANY visual reference exists
+    // (face photo and/or the existing page-1 art). Schnell has no reference input,
+    // so it can only be used when there is nothing to stay consistent with.
+    const hasVisualReference = !!childPhoto || !!pageOneReferenceUrl;
+    if (hasVisualReference) {
+      console.log(`Retrying illustration via Gemini Image Generation (refs: face=${!!childPhoto}, page1=${!!pageOneReferenceUrl}) for story ${storyId}, page ${page.page_number}...`);
 
-      const personalizedPrompt = `FACE REFERENCE (FIRST IMAGE): The main character's face MUST be an EXACT 3D Pixar rendering of the child in the first reference photo. Keep all facial features, hair color, hair texture, and skin tone identical.
-${pageOneReferenceUrl ? `\nCHARACTER CANON REFERENCE (SECOND IMAGE): The second image is a finished illustration of the SAME character from page 1 of this book. Match it EXACTLY — identical hair color/texture/length, eye color, apparent age, skin tone, outfit and rendering style. Only the pose, action and background change.\n` : ""}
+      const refImages = [
+        ...(childPhoto ? [{ type: "image_url", image_url: { url: childPhoto } }] : []),
+        ...(pageOneReferenceUrl ? [{ type: "image_url", image_url: { url: pageOneReferenceUrl } }] : []),
+      ];
+      const faceOrdinal = childPhoto ? "FIRST" : null;
+      const canonOrdinal = childPhoto ? "SECOND" : "FIRST";
+
+      const personalizedPrompt = `${faceOrdinal ? `FACE REFERENCE (${faceOrdinal} IMAGE): The main character's face MUST be an EXACT 3D Pixar rendering of the child in that reference photo. Keep all facial features, hair color, hair texture, and skin tone identical.\n` : ""}${pageOneReferenceUrl ? `\nIDENTITY LOCK — CHARACTER CANON REFERENCE (${canonOrdinal} IMAGE): That image is a finished illustration of the SAME character in this book. Reproduce the character EXACTLY as shown: identical face, hair color / texture / length, eye color, apparent age, skin tone, AND identical clothing (same garments, same colors, same emblems, same cape) and rendering style. Do NOT redesign the character, do NOT change the outfit, do NOT invent new clothes or hair. Only the pose, framing, lighting and background may change.\n` : ""}
 
 STYLE: ${PIXAR_STYLE}
 
@@ -335,8 +380,7 @@ NEGATIVE: ${NEGATIVE_PROMPT}`;
               messages: [{
                 role: "user",
                 content: [
-                  { type: "image_url", image_url: { url: childPhoto } },
-                  ...(pageOneReferenceUrl ? [{ type: "image_url", image_url: { url: pageOneReferenceUrl } }] : []),
+                  ...refImages,
                   { type: "text", text: personalizedPrompt },
                 ],
               }],
@@ -346,7 +390,7 @@ NEGATIVE: ${NEGATIVE_PROMPT}`;
           if (!response.ok) {
             const errorBody = await response.text().catch(() => "no body");
             console.error(`Gemini attempt ${attempt} failed: ${response.status} - ${errorBody}`);
-            fallbackReason = `Gemini with face failed: HTTP ${response.status}`;
+            fallbackReason = `Gemini with reference failed: HTTP ${response.status}`;
             if (attempt < MAX_ATTEMPTS) { await new Promise(r => setTimeout(r, 3000)); continue; }
             break;
           }
@@ -355,7 +399,7 @@ NEGATIVE: ${NEGATIVE_PROMPT}`;
           imageUrl = data.choices?.[0]?.message?.images?.[0]?.image_url?.url || null;
 
           if (imageUrl) {
-            modelUsed = "gemini_with_face";
+            modelUsed = childPhoto ? "gemini_with_face" : "gemini_with_page1_ref";
             console.log(`Gemini illustration generated successfully on attempt ${attempt}`);
             break;
           }
@@ -368,7 +412,19 @@ NEGATIVE: ${NEGATIVE_PROMPT}`;
       }
     }
 
-    // Fallback to Schnell if no photo or Gemini failed
+    // Fallback to Schnell if no reference or Gemini failed.
+    // NEVER for a page-1 regeneration: Schnell ignores references entirely and would
+    // return a completely different child, burning the user's single attempt.
+    if (!imageUrl && isPage1Regen) {
+      console.error(`[page1_regen] refusing Schnell fallback story=${storyId} reason="${fallbackReason || "no visual reference"}"`);
+      return await failure(
+        hasVisualReference
+          ? "יצירת האיור נכשלה. נסי שוב בעוד רגע — הניסיון שלך לא נוצל."
+          : "לא נמצאה תמונת ייחוס לדמות, ולכן לא ניתן ליצור מחדש את איור עמוד 1 בלי לשנות את הילד/ה.",
+        hasVisualReference ? 502 : 422,
+      );
+    }
+
     if (!imageUrl) {
       if (!fallbackReason && !childPhoto) {
         fallbackReason = "No child photo available";
@@ -468,9 +524,11 @@ NEGATIVE: ${NEGATIVE_PROMPT}`;
 
     if (mode === "page1_regen") {
       // Image is safely stored → NOW the one-shot attempt counts as used.
+      // Only reference-based models count; a referenceless fallback must never burn the attempt.
+      const referenceBased = modelUsed.startsWith("gemini_");
       await supabase
         .from("stories")
-        .update({ page1_regen_used: true, page1_regen_lock_at: null })
+        .update({ page1_regen_used: referenceBased, page1_regen_lock_at: null })
         .eq("id", storyId);
       lockAcquired = false;
     } else {

@@ -1306,9 +1306,13 @@ serve(async (req) => {
 
     // Resolve HTTP URL for child photo (Gemini requires HTTP URL, not base64)
     let childPhotoSignedUrl: string | null = null;
+    // Durable reference path (NOT the signed URL) persisted on the story so a later
+    // page-1 regeneration can reuse the exact same face reference.
+    let childPhotoRefPath: string | null = null;
     if (effectivePhoto) {
       if (effectivePhoto.startsWith("http")) {
         childPhotoSignedUrl = effectivePhoto;
+        childPhotoRefPath = effectivePhoto;
       } else if (effectivePhoto.startsWith("data:")) {
         console.log(`🖼️ Child photo is a data URI — uploading to storage for HTTP URL...`);
         try {
@@ -1327,6 +1331,7 @@ serve(async (req) => {
               .from("child-photos")
               .createSignedUrl(tempPath, 3600);
             childPhotoSignedUrl = signedData?.signedUrl || null;
+            childPhotoRefPath = tempPath;
             console.log(`✅ Photo uploaded to storage, using signed URL`);
           } else {
             console.warn(`Upload failed, falling back to data URI:`, uploadErr);
@@ -1341,10 +1346,21 @@ serve(async (req) => {
           .from("child-photos")
           .createSignedUrl(effectivePhoto, 3600);
         childPhotoSignedUrl = signedData?.signedUrl || null;
+        childPhotoRefPath = effectivePhoto;
       }
       if (childPhotoSignedUrl) {
         console.log(`🖼️ Child photo available for face-consistent illustrations`);
       }
+    }
+
+    // Persist the reference path once per story (best effort — never blocks generation).
+    if (childPhotoRefPath) {
+      const { error: refErr } = await supabase
+        .from("stories")
+        .update({ child_photo_path: childPhotoRefPath })
+        .eq("id", storyId)
+        .is("child_photo_path", null);
+      if (refErr) console.warn("Could not persist child_photo_path:", refErr.message);
     }
 
     // === PARALLEL ILLUSTRATION GENERATION ===
