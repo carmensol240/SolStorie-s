@@ -1425,11 +1425,14 @@ const [currentPage, setCurrentPage] = useState(0);
     if (!firstPage) return;
 
     setIsRegeneratingCover(true);
+    // Keep a handle on the loading toast so it is dismissed the moment a response
+    // arrives — otherwise the error toast stacks on top of a still-visible spinner.
+    const loadingToast = toast({ title: 'מייצרים איור חדש לעמוד 1... 🎨', description: 'זה עשוי לקחת עד דקה' });
     try {
-      toast({ title: 'מייצרים איור חדש לעמוד 1... 🎨', description: 'זה עשוי לקחת עד דקה' });
       const { data, error } = await supabase.functions.invoke('retry-illustration', {
         body: { storyId: resolvedId, pageId: firstPage.id, mode: 'page1_regen' },
       });
+      loadingToast.dismiss();
       if (error) {
         const raw = (error as any)?.context?.body ?? '';
         const msg = typeof raw === 'string' ? raw : JSON.stringify(raw);
@@ -1452,8 +1455,22 @@ const [currentPage, setCurrentPage] = useState(0);
       setStory(prev => prev ? { ...prev, page1_regen_used: true } : prev);
     } catch (err) {
       console.error('Page-1 regeneration error:', err);
-      toast({ title: 'שגיאה ביצירת האיור', description: 'לא חויבתם בניסיון — אפשר לנסות שוב', variant: 'destructive' });
+      const serverMsg = (() => {
+        const raw = (err as any)?.context?.body;
+        if (typeof raw === 'string' && raw.trim()) {
+          try { return JSON.parse(raw)?.details || JSON.parse(raw)?.error || null; } catch { return raw.slice(0, 120); }
+        }
+        return null;
+      })();
+      toast({
+        title: 'שגיאה ביצירת האיור',
+        description: serverMsg
+          ? `לא חויבתם בניסיון — אפשר לנסות שוב (${serverMsg})`
+          : 'לא חויבתם בניסיון — אפשר לנסות שוב',
+        variant: 'destructive',
+      });
     } finally {
+      loadingToast.dismiss();
       setIsRegeneratingCover(false);
     }
   };
