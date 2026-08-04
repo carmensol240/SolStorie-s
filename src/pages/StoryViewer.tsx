@@ -1408,51 +1408,73 @@ const [currentPage, setCurrentPage] = useState(0);
     }
   }, [generationStatus, story, userStartedReading]);
 
-  // Regenerate cover
+  // Page 1 doubles as the book cover. Users get exactly ONE redo attempt, and only
+  // after it succeeds do they choose between the original and the new illustration.
   const handleRegenerateCover = async () => {
     if (!story || !resolvedId || isRegeneratingCover) return;
+    const firstPage = story.pages?.find(p => p.page_number === 1);
+    if (!firstPage) return;
+
     setIsRegeneratingCover(true);
     try {
-      toast({ title: 'מייצר כריכה חדשה... 🎨', description: 'זה עשוי לקחת עד דקה' });
-      const { data, error } = await supabase.functions.invoke('generate-cover', {
-        body: { storyId: resolvedId, title: story.topic, topic: story.topic, language: story.language || 'he' },
+      toast({ title: 'מייצרים איור חדש לעמוד 1... 🎨', description: 'זה עשוי לקחת עד דקה' });
+      const { data, error } = await supabase.functions.invoke('retry-illustration', {
+        body: { storyId: resolvedId, pageId: firstPage.id, mode: 'page1_regen' },
       });
-      if (error) throw error;
-
-      // Always verify from DB to ensure persistence
-      const { data: storyData } = await supabase
-        .from('stories')
-        .select('cover_url')
-        .eq('id', resolvedId)
-        .maybeSingle();
-
-      const newCoverUrl = storyData?.cover_url || data?.coverUrl;
-      if (newCoverUrl) {
-        const freshUrl = `${newCoverUrl.split('?')[0]}?v=${Date.now()}`;
-        setStory(prev => prev ? { ...prev, cover_url: freshUrl } : prev);
-        toast({ title: 'הכריכה חודשה ונשמרה בהצלחה! 🎨✅' });
-      } else {
-        throw new Error('No cover returned');
-      }
-    } catch (err) {
-      console.error('Cover regeneration error:', err);
-      // Even on error, check if DB was updated (function may have saved but timed out)
-      try {
-        const { data: storyData } = await supabase
-          .from('stories')
-          .select('cover_url')
-          .eq('id', resolvedId)
-          .maybeSingle();
-        if (storyData?.cover_url && storyData.cover_url !== story.cover_url) {
-          const freshUrl = `${storyData.cover_url.split('?')[0]}?v=${Date.now()}`;
-          setStory(prev => prev ? { ...prev, cover_url: freshUrl } : prev);
-          toast({ title: 'הכריכה חודשה ונשמרה בהצלחה! 🎨✅' });
+      if (error) {
+        const raw = (error as any)?.context?.body ?? '';
+        const msg = typeof raw === 'string' ? raw : JSON.stringify(raw);
+        if (msg.includes('already_used')) {
+          toast({ title: 'כבר השתמשתם בניסיון היחיד', description: 'אפשר לייצר איור חדש לעמוד 1 פעם אחת בלבד', variant: 'destructive' });
           return;
         }
-      } catch { /* ignore */ }
-      toast({ title: 'שגיאה בייצור הכריכה', description: 'נסו שוב מאוחר יותר', variant: 'destructive' });
+        if (msg.includes('in_progress')) {
+          toast({ title: 'היצירה כבר רצה', description: 'רגע אחד, האיור בדרך...' });
+          return;
+        }
+        throw error;
+      }
+      if (!data?.candidateUrl) throw new Error('No candidate returned');
+
+      setPage1OldUrl(getPublicIllustrationUrl(firstPage.illustration_url) || story.cover_url || null);
+      setPage1CandidateUrl(data.candidateUrl);
+      setPage1CompareOpen(true);
+    } catch (err) {
+      console.error('Page-1 regeneration error:', err);
+      toast({ title: 'שגיאה ביצירת האיור', description: 'לא חויבתם בניסיון — אפשר לנסות שוב', variant: 'destructive' });
     } finally {
       setIsRegeneratingCover(false);
+    }
+  };
+
+  const handlePage1Choice = async (choice: 'new' | 'old') => {
+    if (!story || !resolvedId || page1Confirming) return;
+    const firstPage = story.pages?.find(p => p.page_number === 1);
+    if (!firstPage) return;
+    setPage1Confirming(true);
+    try {
+      const { data, error } = await supabase.functions.invoke('retry-illustration', {
+        body: { storyId: resolvedId, pageId: firstPage.id, mode: 'page1_confirm', choice },
+      });
+      if (error) throw error;
+      if (choice === 'new' && data?.illustrationUrl) {
+        const fresh = `${getPublicIllustrationUrl(data.illustrationUrl)}?v=${Date.now()}`;
+        setStory(prev => prev ? {
+          ...prev,
+          cover_url: fresh,
+          pages: prev.pages.map(p => p.page_number === 1 ? { ...p, illustration_url: data.illustrationUrl } : p),
+        } : prev);
+        toast({ title: 'האיור החדש נשמר! 🎨✅' });
+      } else {
+        toast({ title: 'השארנו את האיור המקורי' });
+      }
+      setPage1CompareOpen(false);
+      setPage1CandidateUrl(null);
+    } catch (err) {
+      console.error('Page-1 confirm error:', err);
+      toast({ title: 'שגיאה בשמירת הבחירה', description: 'נסו שוב', variant: 'destructive' });
+    } finally {
+      setPage1Confirming(false);
     }
   };
 
