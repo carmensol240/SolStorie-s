@@ -73,7 +73,7 @@ serve(async (req) => {
     // Verify story ownership
     const { data: story, error: storyError } = await supabase
       .from("stories")
-      .select("id, user_id, child_gender, age_range, child_name, topic, page1_regen_used, page1_regen_lock_at")
+      .select("id, user_id, child_id, child_photo_path, child_gender, age_range, child_name, topic, page1_regen_used, page1_regen_lock_at")
       .eq("id", storyId)
       .eq("user_id", user.id)
       .maybeSingle();
