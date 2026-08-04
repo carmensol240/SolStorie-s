@@ -692,7 +692,78 @@ function validateNikud(nikudText: string, originalText: string): string {
     return originalText;
   }
 
+  // 4. LETTER-SKELETON GUARD (critical):
+  //    Nikud must ONLY add vowel marks — it must never add, drop or swap letters.
+  //    Without this guard the model "re-reads" short names and rewrites them,
+  //    e.g. ארי → אַרְיֵה (lion) or אַרְאִי, which made the hero's name change
+  //    between pages. Any word whose consonant skeleton changed is reverted.
+  const stripNikud = (s: string) => s.replace(/[\u0591-\u05C7]/g, "");
+  const origTokens = originalText.split(/(\s+)/);
+  const nikudTokens = nikudText.split(/(\s+)/);
+  if (origTokens.length === nikudTokens.length) {
+    let reverted = 0;
+    for (let i = 0; i < origTokens.length; i++) {
+      if (/^\s*$/.test(origTokens[i])) continue;
+      if (stripNikud(nikudTokens[i]) !== stripNikud(origTokens[i])) {
+        console.warn(`Nikud guard: reverting altered word "${stripNikud(nikudTokens[i])}" → "${stripNikud(origTokens[i])}"`);
+        nikudTokens[i] = origTokens[i];
+        reverted++;
+      }
+    }
+    if (reverted > 0) {
+      console.warn(`Nikud guard: reverted ${reverted} word(s) whose letters were changed by the nikud pass`);
+    }
+    return nikudTokens.join("");
+  }
+
   return nikudText;
+}
+
+// === NAME CONSISTENCY GUARD ===
+// The hero's name must be byte-identical on every page. Models occasionally
+// "expand" a short name by inserting a letter (ארי → אריה / אראי). This pass
+// restores the exact name for any word that is the name with exactly ONE extra
+// letter inserted (ignoring nikud). Substitutions are NOT touched, so ordinary
+// words that merely resemble the name are left alone.
+function enforceChildName(text: string, childName: string): string {
+  if (!text || !childName) return text;
+  const stripNikud = (s: string) => s.replace(/[\u0591-\u05C7]/g, "");
+  const target = stripNikud(childName).trim();
+  if (target.length < 3) return text;
+
+  const isSingleInsertion = (candidate: string) => {
+    if (candidate.length !== target.length + 1) return false;
+    let i = 0, j = 0, skipped = 0;
+    while (i < target.length && j < candidate.length) {
+      if (target[i] === candidate[j]) { i++; j++; continue; }
+      skipped++;
+      if (skipped > 1) return false;
+      j++;
+    }
+    return true;
+  };
+
+  let replaced = 0;
+  const result = text.split(/(\s+)/).map((token) => {
+    if (/^\s*$/.test(token)) return token;
+    // Separate leading/trailing punctuation so "אריה," is still matched.
+    const match = token.match(/^([^\u05D0-\u05EA]*)([\u05D0-\u05EA\u0591-\u05C7]+)(.*)$/s);
+    if (!match) return token;
+    const [, prefix, word, suffix] = match;
+    const bare = stripNikud(word);
+    if (bare === target) return token;
+    if (isSingleInsertion(bare)) {
+      replaced++;
+      console.warn(`Name guard: "${bare}" → "${target}"`);
+      return `${prefix}${target}${suffix}`;
+    }
+    return token;
+  }).join("");
+
+  if (replaced > 0) {
+    console.warn(`Name guard: normalized ${replaced} name variant(s) to "${target}"`);
+  }
+  return result;
 }
 
 serve(async (req) => {
