@@ -359,6 +359,9 @@ serve(async (req) => {
       ?.sort((a, b) => (b.illustration_prompt?.length || 0) - (a.illustration_prompt?.length || 0))
       ?.[0];
 
+    // Wait for page 1's illustration — it is the canonical look of the character.
+    const pageOneReferenceUrl = await waitForPageOneIllustration(supabase, storyId);
+
     const sceneContext = bestPage?.illustration_prompt
       ? bestPage.illustration_prompt.substring(0, 600)
       : (topic ? `A heroic moment from a children's story about ${topic}.` : "A magical heroic moment from the story.");
@@ -367,12 +370,16 @@ serve(async (req) => {
 
     // ── Build the cover prompt — face reference + structured character description ──
     const faceRefBlock = faceUrl
-      ? `FACE REFERENCE: The main character's face MUST be an EXACT 3D Pixar rendering of the child in the reference photo. Keep all facial features, hair color, hair texture, and skin tone identical to the reference.`
+      ? `FACE REFERENCE (FIRST IMAGE): The main character's face MUST be an EXACT 3D Pixar rendering of the child in the FIRST reference photo. Keep all facial features, hair color, hair texture, and skin tone identical to the reference.`
+      : "";
+
+    const pageOneRefBlock = pageOneReferenceUrl
+      ? `\n\nCHARACTER CANON REFERENCE (${faceUrl ? "SECOND" : "ATTACHED"} IMAGE): The ${faceUrl ? "second" : "attached"} image is a finished Pixar 3D illustration of the SAME main character from page 1 of THIS storybook. The character on the cover MUST MATCH that image EXACTLY — identical face shape, hair color, hair texture and length, eye color, apparent age, skin tone, outfit, and Pixar 3D rendering style. Treat it as the canonical look of this character. Only the pose, background and composition change; the character itself does not.`
       : "";
 
     const coverPrompt = `${buildGenderHeader(story?.child_gender || null)}
 
-${faceRefBlock}
+${faceRefBlock}${pageOneRefBlock}
 
 ${characterDescription}
 
@@ -396,6 +403,9 @@ NEGATIVE: ${NEGATIVE_PROMPT}`;
     if (faceUrl) {
       userContent.push({ type: "image_url", image_url: { url: faceUrl } });
     }
+    if (pageOneReferenceUrl) {
+      userContent.push({ type: "image_url", image_url: { url: pageOneReferenceUrl } });
+    }
     userContent.push({ type: "text", text: coverPrompt });
 
     const requestBody = {
@@ -404,8 +414,16 @@ NEGATIVE: ${NEGATIVE_PROMPT}`;
       messages: [{ role: "user", content: userContent }],
     };
 
+    console.log(
+      `[IMG-GEN] story=${storyId} page=cover api=lovable-gateway/chat-completions ` +
+        `model=google/gemini-3-pro-image-preview ` +
+        `refs=[face:${faceUrl ? "yes" : "no"}, page1:${pageOneReferenceUrl ? "yes" : "no"}] ` +
+        `seed=n/a promptChars=${coverPrompt.length} promptHead="${coverPrompt.substring(0, 200).replace(/\s+/g, " ")}"`,
+    );
+
     const imageUrl = await callGeminiImage(LOVABLE_API_KEY, requestBody, 3, "cover");
     const durationMs = Date.now() - coverStartTime;
+    console.log(`[IMG-GEN-RESULT] story=${storyId} page=cover success=${!!imageUrl} model=google/gemini-3-pro-image-preview durationMs=${durationMs}`);
 
     // Log cover generation
     try {
