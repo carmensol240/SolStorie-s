@@ -88,6 +88,7 @@ interface StoryPage {
 interface Story {
   id: string;
   slug?: string;
+  user_id?: string | null;
   child_name: string;
   child_gender?: string;
   topic: string;
@@ -96,6 +97,7 @@ interface Story {
   cover_url?: string;
   pages: StoryPage[];
   generation_status?: string;
+  page1_regen_used?: boolean;
 }
 
 const FONT_SIZES = [
