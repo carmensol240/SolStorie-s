@@ -103,6 +103,23 @@ serve(async (req) => {
     // The flag `page1_regen_used` is only flipped AFTER the new image is safely in
     // storage — a failed generation leaves it false so the user can try again.
     const isPage1Regen = mode === "page1_regen" || mode === "page1_confirm";
+
+    // Admins (public.user_roles) get unlimited page-1 retries for QA purposes.
+    // Ownership is still enforced above — this only lifts the one-shot quota.
+    let isAdmin = false;
+    {
+      const { data: adminRow, error: adminErr } = await supabase
+        .from("user_roles")
+        .select("role")
+        .eq("user_id", user.id)
+        .eq("role", "admin")
+        .maybeSingle();
+      if (adminErr) console.warn("[page1_regen] admin lookup failed:", adminErr.message);
+      isAdmin = !!adminRow;
+      if (isAdmin && isPage1Regen) {
+        console.log(`[page1_regen] admin bypass user=${user.id} story=${storyId}`);
+      }
+    }
     const candidatePath = `${storyId}/page-1-candidate.png`;
     const finalPage1Path = `${storyId}/page-1.png`;
     const publicUrl = (path: string) =>
@@ -148,7 +165,7 @@ serve(async (req) => {
 
     let lockAcquired = false;
     if (mode === "page1_regen") {
-      if ((story as any).page1_regen_used) {
+      if (!isAdmin && (story as any).page1_regen_used) {
         return new Response(JSON.stringify({ error: "already_used" }), {
           status: 409, headers: { ...corsHeaders, "Content-Type": "application/json" },
         });
@@ -163,8 +180,9 @@ serve(async (req) => {
           .from("stories")
           .update({ page1_regen_lock_at: new Date().toISOString() })
           .eq("id", storyId)
-          .eq("user_id", user.id)
-          .eq("page1_regen_used", false);
+          .eq("user_id", user.id);
+        // Non-admins: the quota flag is part of the atomic guard.
+        if (!isAdmin) q = q.eq("page1_regen_used", false);
         q = variant === "free"
           ? q.is("page1_regen_lock_at", null)
           : q.lt("page1_regen_lock_at", staleBefore);
@@ -525,7 +543,8 @@ NEGATIVE: ${NEGATIVE_PROMPT}`;
     if (mode === "page1_regen") {
       // Image is safely stored → NOW the one-shot attempt counts as used.
       // Only reference-based models count; a referenceless fallback must never burn the attempt.
-      const referenceBased = modelUsed.startsWith("gemini_");
+      // Admins are exempt: never mark the flag so the story stays clean for re-testing.
+      const referenceBased = !isAdmin && modelUsed.startsWith("gemini_");
       await supabase
         .from("stories")
         .update({ page1_regen_used: referenceBased, page1_regen_lock_at: null })
