@@ -1784,7 +1784,7 @@ const [currentPage, setCurrentPage] = useState(0);
         onRegenerateCover={handleRegenerateCover}
         isRegeneratingCover={isRegeneratingCover}
         canRegenerateCover={canRegenerateCover}
-        page1RegenUsed={!!story?.page1_regen_used}
+        page1RegenUsed={!!story?.page1_regen_used && !isAdminUser}
         onColoring={() => {
           if (!canUseColoring) { setColoringUpsellOpen(true); return; }
           guardDemo(() => preloadStoryCachedColoring(null))();
