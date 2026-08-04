@@ -1429,7 +1429,7 @@ The action, objects, characters, and emotions shown MUST come from the STORY TEX
       logImageGenCall({
         storyId,
         page: page.page_number,
-        api: childPhotoSignedUrl || true ? "lovable-gateway/chat-completions" : "lovable-gateway/chat-completions",
+        api: "lovable-gateway/chat-completions",
         model: "google/gemini-3-pro-image-preview",
         hasFaceRef: !!childPhotoSignedUrl,
         hasPageOneRef: !!coverReferenceUrl,
