@@ -1569,7 +1569,9 @@ ${adventureLogic ? `
 - הדמות חייבת ללבוש: ${adventureLogic.outfit}
 - הרקע חייב להיות: ${adventureLogic.background}
 - הנושא הכללי: ${adventureLogic.theme}
-` : ''}
+` : `
+- **נעילת לבוש:** קבע את לבוש הדמות בעמוד 1 (לפי הלבוש שתיאר ההורה, ואם לא תואר — לבוש יומיומי פשוט), וחזור על אותו תיאור לבוש **מילה במילה** בכל illustration_prompt בכל העמודים. אסור להחליף בגדים בין עמודים, אלא אם טקסט העמוד מציין שינוי מפורש (פיג'מה לפני שינה, מעיל בגשם).
+`}
 ${isLearningTopic ? `
 ${learningLetter ? `- באיור הראשון: האות ${illustrationLearningTarget} מופיעה גדולה, שלמה ומלאה במרכז האיור בצבע זוהר — האות חייבת להיות FULLY VISIBLE, COMPLETE, NOT CROPPED in any direction, positioned in the CENTER of the image with clear empty space around it on ALL sides
 - בכל איור: האות ${illustrationLearningTarget} מופיעה שלמה ומלאה איפשהו בסצנה — על קיר, על עץ, על חולצה. The letter must be entirely within the frame, never touching or near any edge.
