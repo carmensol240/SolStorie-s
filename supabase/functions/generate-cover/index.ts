@@ -115,6 +115,38 @@ async function resolveIllustrationUrl(
   return data?.publicUrl || null;
 }
 
+// ── Wait (bounded) for page 1's illustration so the cover can reuse it as the
+//    canonical look of the character (same hair, eyes, age, outfit as inner pages). ──
+async function waitForPageOneIllustration(
+  supabase: ReturnType<typeof createClient>,
+  storyId: string,
+  maxWaitMs = 60_000,
+  intervalMs = 3_000,
+): Promise<string | null> {
+  const deadline = Date.now() + maxWaitMs;
+  let attempts = 0;
+  while (Date.now() < deadline) {
+    attempts++;
+    const { data } = await supabase
+      .from("story_pages")
+      .select("illustration_url")
+      .eq("story_id", storyId)
+      .eq("page_number", 1)
+      .maybeSingle();
+    const raw = (data as { illustration_url?: string } | null)?.illustration_url;
+    if (raw) {
+      const url = await resolveIllustrationUrl(supabase, raw);
+      if (url) {
+        console.log(`🔗 [ref-wait] story=${storyId} page-1 illustration ready after ${attempts} check(s)`);
+        return url;
+      }
+    }
+    await new Promise((r) => setTimeout(r, intervalMs));
+  }
+  console.warn(`⚠️ [ref-wait] story=${storyId} page-1 illustration NOT ready after ${maxWaitMs}ms — cover falls back to face reference only`);
+  return null;
+}
+
 // ── Resolve a child photo (storage path / data URI / http URL) to an HTTP URL ──
 async function resolveChildPhotoUrl(
   supabase: ReturnType<typeof createClient>,
@@ -156,6 +188,7 @@ function buildCharacterDescription(
   gender: string | null,
   ageRange: string | null,
   storyOutfitOverride: string | null,
+  hasVisualReference: boolean,
 ): string {
   const isFemale = (gender || "").toLowerCase() === "female";
   const genderWord = isFemale ? "girl" : "boy";
@@ -163,11 +196,11 @@ function buildCharacterDescription(
     ? "This character is a GIRL — feminine or neutral clothing only; NEVER kippah, yarmulke, tzitzit or any male religious symbols."
     : "This character is a BOY — masculine clothing only (pants/shorts/t-shirt/hoodie/sneakers); ABSOLUTELY NO dress, skirt, tutu, flower crown, hair bow, makeup or any feminine clothing or accessories.";
 
-  let hair = isFemale ? "long dark brown hair" : "short tousled dark brown hair";
+  let hair: string | null = null;
   let clothingFromProfile: string | null = null;
-  let skin = "warm medium olive";
-  let eyes = "large warm brown";
-  const age = ageRange || (isFemale ? "4" : "3-6");
+  let skin: string | null = null;
+  let eyes: string | null = null;
+  const age = ageRange || null;
 
   if (avatarDescriptionJson) {
     try {
@@ -186,8 +219,23 @@ function buildCharacterDescription(
   // Prefer the story-wide outfit (matches inner pages) over the avatar's saved clothing
   const clothing = storyOutfitOverride || clothingFromProfile || "colorful casual clothes";
 
+  // When we have a visual reference (child photo and/or page-1 illustration), never invent
+  // hair/eye/skin/age values — invented traits contradict the reference and make the cover
+  // character look like a different child than the inner pages.
+  const traits = [
+    hair ? `${hair}` : null,
+    skin ? `${skin} skin` : null,
+    eyes ? `${eyes} eyes` : null,
+  ].filter(Boolean).join(", ");
+
+  const identityLine = traits
+    ? `A ${genderWord}${age ? ` aged ${age}` : ""} with ${traits}. Wearing ${clothing}.`
+    : hasVisualReference
+      ? `A ${genderWord}${age ? ` aged ${age}` : ""} wearing ${clothing}. Hair color and texture, eye color, skin tone and apparent age come ONLY from the attached reference image(s) — do not invent or change them.`
+      : `A ${genderWord}${age ? ` aged ${age}` : ""} wearing ${clothing}.`;
+
   return `CHARACTER DESCRIPTION (the main character MUST look IDENTICAL to this in the cover):
-A ${genderWord} aged ${age} with ${hair}, ${skin} skin, and ${eyes} eyes. Wearing ${clothing}.
+${identityLine}
 ${genderRule}`;
 }
 
@@ -305,11 +353,16 @@ serve(async (req) => {
       "colorful casual clothes";
     console.log(`🎽 Cover storyOutfit: "${storyOutfit}" (source: ${adventureLogic?.outfit ? "adventureLogic" : profileClothing ? "avatar_description" : "fallback"})`);
 
+    // Wait for page 1's illustration — it is the canonical look of the character,
+    // and it also guarantees the scene-context query below sees at least one finished page.
+    const pageOneReferenceUrl = await waitForPageOneIllustration(supabase, storyId);
+
     const characterDescription = buildCharacterDescription(
       avatarDescription,
       story?.child_gender || null,
       story?.age_range || null,
       storyOutfit,
+      !!faceUrl || !!pageOneReferenceUrl,
     );
 
     // ── Find the page with the longest illustration_prompt (for scene/outfit context) ──
@@ -335,12 +388,16 @@ serve(async (req) => {
 
     // ── Build the cover prompt — face reference + structured character description ──
     const faceRefBlock = faceUrl
-      ? `FACE REFERENCE: The main character's face MUST be an EXACT 3D Pixar rendering of the child in the reference photo. Keep all facial features, hair color, hair texture, and skin tone identical to the reference.`
+      ? `FACE REFERENCE (FIRST IMAGE): The main character's face MUST be an EXACT 3D Pixar rendering of the child in the FIRST reference photo. Keep all facial features, hair color, hair texture, and skin tone identical to the reference.`
+      : "";
+
+    const pageOneRefBlock = pageOneReferenceUrl
+      ? `\n\nCHARACTER CANON REFERENCE (${faceUrl ? "SECOND" : "ATTACHED"} IMAGE): The ${faceUrl ? "second" : "attached"} image is a finished Pixar 3D illustration of the SAME main character from page 1 of THIS storybook. The character on the cover MUST MATCH that image EXACTLY — identical face shape, hair color, hair texture and length, eye color, apparent age, skin tone, outfit, and Pixar 3D rendering style. Treat it as the canonical look of this character. Only the pose, background and composition change; the character itself does not.`
       : "";
 
     const coverPrompt = `${buildGenderHeader(story?.child_gender || null)}
 
-${faceRefBlock}
+${faceRefBlock}${pageOneRefBlock}
 
 ${characterDescription}
 
@@ -364,6 +421,9 @@ NEGATIVE: ${NEGATIVE_PROMPT}`;
     if (faceUrl) {
       userContent.push({ type: "image_url", image_url: { url: faceUrl } });
     }
+    if (pageOneReferenceUrl) {
+      userContent.push({ type: "image_url", image_url: { url: pageOneReferenceUrl } });
+    }
     userContent.push({ type: "text", text: coverPrompt });
 
     const requestBody = {
@@ -372,8 +432,16 @@ NEGATIVE: ${NEGATIVE_PROMPT}`;
       messages: [{ role: "user", content: userContent }],
     };
 
+    console.log(
+      `[IMG-GEN] story=${storyId} page=cover api=lovable-gateway/chat-completions ` +
+        `model=google/gemini-3-pro-image-preview ` +
+        `refs=[face:${faceUrl ? "yes" : "no"}, page1:${pageOneReferenceUrl ? "yes" : "no"}] ` +
+        `seed=n/a promptChars=${coverPrompt.length} promptHead="${coverPrompt.substring(0, 200).replace(/\s+/g, " ")}"`,
+    );
+
     const imageUrl = await callGeminiImage(LOVABLE_API_KEY, requestBody, 3, "cover");
     const durationMs = Date.now() - coverStartTime;
+    console.log(`[IMG-GEN-RESULT] story=${storyId} page=cover success=${!!imageUrl} model=google/gemini-3-pro-image-preview durationMs=${durationMs}`);
 
     // Log cover generation
     try {
@@ -384,7 +452,7 @@ NEGATIVE: ${NEGATIVE_PROMPT}`;
         cast_character: null,
         topic_setting: null,
         story_context: bestPage ? `Reference page: ${bestPage.page_number}` : "topic-fallback",
-        cover_path: faceUrl ? "face-reference+character-description" : "character-description-only",
+        cover_path: `${faceUrl ? "face-reference" : "no-face"}+${pageOneReferenceUrl ? "page1-reference" : "no-page1-reference"}`,
         duration_ms: durationMs,
       });
     } catch (logErr) {

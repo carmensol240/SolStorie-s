@@ -18,6 +18,17 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
 };
 
+// Deterministic seed per story — keeps the seed-capable fallback (Flux Schnell)
+// stable across every page of the same story.
+function seedFromStoryId(storyId: string): number {
+  let hash = 2166136261;
+  for (let i = 0; i < storyId.length; i++) {
+    hash ^= storyId.charCodeAt(i);
+    hash = Math.imul(hash, 16777619);
+  }
+  return Math.abs(hash) % 2147483647;
+}
+
 serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
@@ -134,6 +145,25 @@ serve(async (req) => {
     const sol = getSolUrl(story.topic || "");
     console.log(`Sol variant: ${sol.label} for topic "${story.topic}"`);
 
+    // Page-1 illustration is the canonical look of the character. Reuse it whenever the
+    // page being retried is NOT page 1, so the regenerated art matches the rest of the book.
+    let pageOneReferenceUrl: string | null = null;
+    if (page.page_number !== 1) {
+      const { data: firstPage } = await supabase
+        .from("story_pages")
+        .select("illustration_url")
+        .eq("story_id", storyId)
+        .eq("page_number", 1)
+        .maybeSingle();
+      const raw = (firstPage as { illustration_url?: string } | null)?.illustration_url;
+      if (raw) {
+        pageOneReferenceUrl = raw.startsWith("http")
+          ? raw.split("?")[0]
+          : supabase.storage.from("story-illustrations").getPublicUrl(raw).data?.publicUrl || null;
+      }
+      console.log(`🔗 page-1 character reference: ${pageOneReferenceUrl ? "found" : "not available"}`);
+    }
+
     const prompt = customPrompt || page.illustration_prompt || `A cheerful children's book illustration for page ${page.page_number}`;
     const pageNarrative = ((page as any).text || "").toString().slice(0, 400);
     const genderHeader = buildGenderHeader((story as any).child_gender);
@@ -150,12 +180,21 @@ The action, objects, characters, and emotions shown MUST come from the STORY TEX
     let fallbackReason: string | undefined;
     const MAX_ATTEMPTS = 2;
     const genStart = Date.now();
+    const fluxSeed = seedFromStoryId(storyId);
+
+    const logImageGenCall = (api: string, model: string, prompt: string, seed: number | null) =>
+      console.log(
+        `[IMG-GEN] story=${storyId} page=${page.page_number} api=${api} model=${model} ` +
+          `refs=[face:${childPhoto ? "yes" : "no"}, page1:${pageOneReferenceUrl ? "yes" : "no"}] ` +
+          `seed=${seed ?? "n/a"} promptChars=${prompt.length} promptHead="${prompt.substring(0, 200).replace(/\s+/g, " ")}"`,
+      );
 
     // Branch: use Gemini Image Generation when child photo exists, Schnell otherwise
     if (childPhoto) {
       console.log(`Retrying illustration via Gemini Image Generation (face reference) for story ${storyId}, page ${page.page_number}...`);
 
-      const personalizedPrompt = `FACE REFERENCE: The main character's face MUST be an EXACT 3D Pixar rendering of the child in the reference photo. Keep all facial features, hair color, hair texture, and skin tone identical.
+      const personalizedPrompt = `FACE REFERENCE (FIRST IMAGE): The main character's face MUST be an EXACT 3D Pixar rendering of the child in the first reference photo. Keep all facial features, hair color, hair texture, and skin tone identical.
+${pageOneReferenceUrl ? `\nCHARACTER CANON REFERENCE (SECOND IMAGE): The second image is a finished illustration of the SAME character from page 1 of this book. Match it EXACTLY — identical hair color/texture/length, eye color, apparent age, skin tone, outfit and rendering style. Only the pose, action and background change.\n` : ""}
 
 STYLE: ${PIXAR_STYLE}
 
@@ -168,6 +207,7 @@ NEGATIVE: ${NEGATIVE_PROMPT}`;
       for (let attempt = 1; attempt <= MAX_ATTEMPTS; attempt++) {
         try {
           console.log(`Gemini Image Generation attempt ${attempt}/${MAX_ATTEMPTS}...`);
+          logImageGenCall("lovable-gateway/chat-completions", "google/gemini-3-pro-image-preview", personalizedPrompt, null);
           const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
             method: "POST",
             signal: AbortSignal.timeout(120_000),
@@ -182,6 +222,7 @@ NEGATIVE: ${NEGATIVE_PROMPT}`;
                 role: "user",
                 content: [
                   { type: "image_url", image_url: { url: childPhoto } },
+                  ...(pageOneReferenceUrl ? [{ type: "image_url", image_url: { url: pageOneReferenceUrl } }] : []),
                   { type: "text", text: personalizedPrompt },
                 ],
               }],
@@ -230,6 +271,7 @@ NEGATIVE: ${NEGATIVE_PROMPT}`;
       for (let attempt = 1; attempt <= MAX_ATTEMPTS; attempt++) {
         try {
           console.log(`Schnell attempt ${attempt}/${MAX_ATTEMPTS}...`);
+          logImageGenCall("fal.run/fal-ai/flux/schnell", "flux-schnell", fullPrompt, fluxSeed);
           const response = await fetch("https://fal.run/fal-ai/flux/schnell", {
             method: "POST",
             signal: AbortSignal.timeout(30_000),
@@ -243,6 +285,7 @@ NEGATIVE: ${NEGATIVE_PROMPT}`;
               num_inference_steps: 4,
               num_images: 1,
               enable_safety_checker: true,
+              seed: fluxSeed,
             }),
           });
 
@@ -287,6 +330,7 @@ NEGATIVE: ${NEGATIVE_PROMPT}`;
       }
     }
     const durationMs = Date.now() - genStart;
+    console.log(`[IMG-GEN-RESULT] story=${storyId} page=${page.page_number} success=${!!imageUrl} model=${modelUsed} durationMs=${durationMs}${fallbackReason ? ` reason="${fallbackReason}"` : ""}`);
 
     if (!imageUrl) {
       return new Response(JSON.stringify({ error: "No image generated after retries" }), {
