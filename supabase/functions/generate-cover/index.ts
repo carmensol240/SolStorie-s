@@ -115,6 +115,38 @@ async function resolveIllustrationUrl(
   return data?.publicUrl || null;
 }
 
+// ── Wait (bounded) for page 1's illustration so the cover can reuse it as the
+//    canonical look of the character (same hair, eyes, age, outfit as inner pages). ──
+async function waitForPageOneIllustration(
+  supabase: ReturnType<typeof createClient>,
+  storyId: string,
+  maxWaitMs = 60_000,
+  intervalMs = 3_000,
+): Promise<string | null> {
+  const deadline = Date.now() + maxWaitMs;
+  let attempts = 0;
+  while (Date.now() < deadline) {
+    attempts++;
+    const { data } = await supabase
+      .from("story_pages")
+      .select("illustration_url")
+      .eq("story_id", storyId)
+      .eq("page_number", 1)
+      .maybeSingle();
+    const raw = (data as { illustration_url?: string } | null)?.illustration_url;
+    if (raw) {
+      const url = await resolveIllustrationUrl(supabase, raw);
+      if (url) {
+        console.log(`🔗 [ref-wait] story=${storyId} page-1 illustration ready after ${attempts} check(s)`);
+        return url;
+      }
+    }
+    await new Promise((r) => setTimeout(r, intervalMs));
+  }
+  console.warn(`⚠️ [ref-wait] story=${storyId} page-1 illustration NOT ready after ${maxWaitMs}ms — cover falls back to face reference only`);
+  return null;
+}
+
 // ── Resolve a child photo (storage path / data URI / http URL) to an HTTP URL ──
 async function resolveChildPhotoUrl(
   supabase: ReturnType<typeof createClient>,
