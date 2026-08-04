@@ -2055,6 +2055,14 @@ ${fullStoryText}`;
       }
     }
 
+    // === NAME CONSISTENCY: the hero's name must be identical on every page ===
+    for (const p of storyData.pages as any[]) {
+      if (typeof p.text === "string") p.text = enforceChildName(p.text, childName);
+    }
+    if (typeof storyData.title === "string") {
+      storyData.title = enforceChildName(storyData.title, childName);
+    }
+
     // === NIKUD: Deferred to background for faster response ===
     // Nikud will be applied after story+pages are saved, in a fire-and-forget manner
     // Auto-apply nikud for ages 0-4 regardless of parent toggle.
