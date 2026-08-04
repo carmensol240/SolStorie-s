@@ -292,8 +292,10 @@ serve(async (req) => {
 
     // Page-1 illustration is the canonical look of the character. Reuse it whenever the
     // page being retried is NOT page 1, so the regenerated art matches the rest of the book.
+    // When regenerating page 1 itself, the CURRENT page-1 art is the canonical look of the
+    // character — it must be used as the reference so the redo keeps the same child.
     let pageOneReferenceUrl: string | null = null;
-    if (page.page_number !== 1) {
+    {
       const { data: firstPage } = await supabase
         .from("story_pages")
         .select("illustration_url")
