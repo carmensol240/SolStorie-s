@@ -353,11 +353,16 @@ serve(async (req) => {
       "colorful casual clothes";
     console.log(`🎽 Cover storyOutfit: "${storyOutfit}" (source: ${adventureLogic?.outfit ? "adventureLogic" : profileClothing ? "avatar_description" : "fallback"})`);
 
+    // Wait for page 1's illustration — it is the canonical look of the character,
+    // and it also guarantees the scene-context query below sees at least one finished page.
+    const pageOneReferenceUrl = await waitForPageOneIllustration(supabase, storyId);
+
     const characterDescription = buildCharacterDescription(
       avatarDescription,
       story?.child_gender || null,
       story?.age_range || null,
       storyOutfit,
+      !!faceUrl || !!pageOneReferenceUrl,
     );
 
     // ── Find the page with the longest illustration_prompt (for scene/outfit context) ──
@@ -374,9 +379,6 @@ serve(async (req) => {
       ?.filter(p => p.illustration_prompt && p.illustration_url)
       ?.sort((a, b) => (b.illustration_prompt?.length || 0) - (a.illustration_prompt?.length || 0))
       ?.[0];
-
-    // Wait for page 1's illustration — it is the canonical look of the character.
-    const pageOneReferenceUrl = await waitForPageOneIllustration(supabase, storyId);
 
     const sceneContext = bestPage?.illustration_prompt
       ? bestPage.illustration_prompt.substring(0, 600)
