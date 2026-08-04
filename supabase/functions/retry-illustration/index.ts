@@ -180,12 +180,21 @@ The action, objects, characters, and emotions shown MUST come from the STORY TEX
     let fallbackReason: string | undefined;
     const MAX_ATTEMPTS = 2;
     const genStart = Date.now();
+    const fluxSeed = seedFromStoryId(storyId);
+
+    const logImageGenCall = (api: string, model: string, prompt: string, seed: number | null) =>
+      console.log(
+        `[IMG-GEN] story=${storyId} page=${page.page_number} api=${api} model=${model} ` +
+          `refs=[face:${childPhoto ? "yes" : "no"}, page1:${pageOneReferenceUrl ? "yes" : "no"}] ` +
+          `seed=${seed ?? "n/a"} promptChars=${prompt.length} promptHead="${prompt.substring(0, 200).replace(/\s+/g, " ")}"`,
+      );
 
     // Branch: use Gemini Image Generation when child photo exists, Schnell otherwise
     if (childPhoto) {
       console.log(`Retrying illustration via Gemini Image Generation (face reference) for story ${storyId}, page ${page.page_number}...`);
 
-      const personalizedPrompt = `FACE REFERENCE: The main character's face MUST be an EXACT 3D Pixar rendering of the child in the reference photo. Keep all facial features, hair color, hair texture, and skin tone identical.
+      const personalizedPrompt = `FACE REFERENCE (FIRST IMAGE): The main character's face MUST be an EXACT 3D Pixar rendering of the child in the first reference photo. Keep all facial features, hair color, hair texture, and skin tone identical.
+${pageOneReferenceUrl ? `\nCHARACTER CANON REFERENCE (SECOND IMAGE): The second image is a finished illustration of the SAME character from page 1 of this book. Match it EXACTLY — identical hair color/texture/length, eye color, apparent age, skin tone, outfit and rendering style. Only the pose, action and background change.\n` : ""}
 
 STYLE: ${PIXAR_STYLE}
 
@@ -198,6 +207,7 @@ NEGATIVE: ${NEGATIVE_PROMPT}`;
       for (let attempt = 1; attempt <= MAX_ATTEMPTS; attempt++) {
         try {
           console.log(`Gemini Image Generation attempt ${attempt}/${MAX_ATTEMPTS}...`);
+          logImageGenCall("lovable-gateway/chat-completions", "google/gemini-3-pro-image-preview", personalizedPrompt, null);
           const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
             method: "POST",
             signal: AbortSignal.timeout(120_000),
@@ -212,6 +222,7 @@ NEGATIVE: ${NEGATIVE_PROMPT}`;
                 role: "user",
                 content: [
                   { type: "image_url", image_url: { url: childPhoto } },
+                  ...(pageOneReferenceUrl ? [{ type: "image_url", image_url: { url: pageOneReferenceUrl } }] : []),
                   { type: "text", text: personalizedPrompt },
                 ],
               }],
