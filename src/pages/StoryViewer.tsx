@@ -990,6 +990,7 @@ const [currentPage, setCurrentPage] = useState(0);
       const storyObj: Story = {
         id: storyData.id,
         slug: storyData.slug || undefined,
+        user_id: (storyData as any).user_id ?? null,
         child_name: storyData.child_name,
         child_gender: (storyData as any).child_gender || 'female',
         topic: storyData.topic,
@@ -997,6 +998,7 @@ const [currentPage, setCurrentPage] = useState(0);
         age_range: (storyData as any).age_range || '3-6',
         pages: pagesData || [],
         generation_status: status,
+        page1_regen_used: !!(storyData as any).page1_regen_used,
       };
       
       setStory(storyObj);
