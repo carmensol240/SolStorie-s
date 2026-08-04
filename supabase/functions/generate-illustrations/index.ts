@@ -1553,7 +1553,7 @@ The action, objects, characters, and emotions shown MUST come from the STORY TEX
             if (!secondImage) {
               secondImage = await generateIllustration(
                 secondIllustrationPrompt, effectivePhoto, characterProfile,
-                LOVABLE_API_KEY, storyOutfit, visualAnchor, effectiveAdventureLogic, topic
+                LOVABLE_API_KEY, storyOutfit, visualAnchor, effectiveAdventureLogic, topic, fluxSeed
               );
             }
           }
@@ -1591,17 +1591,14 @@ The action, objects, characters, and emotions shown MUST come from the STORY TEX
 
     let coverReferenceForRest: string | null = null;
 
-    // If single-page mode and the page isn't page 1, look up page 1's existing illustration
+    // If this invocation is NOT generating page 1 (distributed mode / single-page re-gen),
+    // wait — bounded — for page 1's illustration to exist and use it as the canonical
+    // character reference. Without this wait all pages race and generate reference-free,
+    // which is what caused the character to drift between the cover and pages 2+.
     if (!firstPage && restPages.length > 0) {
-      const { data: existingFirst } = await supabase
-        .from("story_pages")
-        .select("illustration_url")
-        .eq("story_id", storyId)
-        .eq("page_number", 1)
-        .maybeSingle();
-      coverReferenceForRest = buildPublicIllustrationUrl(existingFirst?.illustration_url || null);
+      coverReferenceForRest = await waitForPageOneIllustration(supabase, storyId);
       if (coverReferenceForRest) {
-        console.log(`🔗 Single-page re-gen: using existing page-1 illustration as character reference`);
+        console.log(`🔗 Using page-1 illustration as character reference for page(s) ${restPages.map(p => p.page_number).join(", ")}`);
       }
     }
 
