@@ -335,16 +335,25 @@ The action, objects, characters, and emotions shown MUST come from the STORY TEX
     const logImageGenCall = (api: string, model: string, prompt: string, seed: number | null) =>
       console.log(
         `[IMG-GEN] story=${storyId} page=${page.page_number} api=${api} model=${model} ` +
-          `refs=[face:${childPhoto ? "yes" : "no"}, page1:${pageOneReferenceUrl ? "yes" : "no"}] ` +
+          `refs=[face:${childPhoto ? "yes" : "no"}(${photoSource}), page1:${pageOneReferenceUrl ? "yes" : "no"}] ` +
           `seed=${seed ?? "n/a"} promptChars=${prompt.length} promptHead="${prompt.substring(0, 200).replace(/\s+/g, " ")}"`,
       );
 
-    // Branch: use Gemini Image Generation when child photo exists, Schnell otherwise
-    if (childPhoto) {
-      console.log(`Retrying illustration via Gemini Image Generation (face reference) for story ${storyId}, page ${page.page_number}...`);
+    // Branch: use Gemini Image Generation whenever ANY visual reference exists
+    // (face photo and/or the existing page-1 art). Schnell has no reference input,
+    // so it can only be used when there is nothing to stay consistent with.
+    const hasVisualReference = !!childPhoto || !!pageOneReferenceUrl;
+    if (hasVisualReference) {
+      console.log(`Retrying illustration via Gemini Image Generation (refs: face=${!!childPhoto}, page1=${!!pageOneReferenceUrl}) for story ${storyId}, page ${page.page_number}...`);
 
-      const personalizedPrompt = `FACE REFERENCE (FIRST IMAGE): The main character's face MUST be an EXACT 3D Pixar rendering of the child in the first reference photo. Keep all facial features, hair color, hair texture, and skin tone identical.
-${pageOneReferenceUrl ? `\nCHARACTER CANON REFERENCE (SECOND IMAGE): The second image is a finished illustration of the SAME character from page 1 of this book. Match it EXACTLY — identical hair color/texture/length, eye color, apparent age, skin tone, outfit and rendering style. Only the pose, action and background change.\n` : ""}
+      const refImages = [
+        ...(childPhoto ? [{ type: "image_url", image_url: { url: childPhoto } }] : []),
+        ...(pageOneReferenceUrl ? [{ type: "image_url", image_url: { url: pageOneReferenceUrl } }] : []),
+      ];
+      const faceOrdinal = childPhoto ? "FIRST" : null;
+      const canonOrdinal = childPhoto ? "SECOND" : "FIRST";
+
+      const personalizedPrompt = `${faceOrdinal ? `FACE REFERENCE (${faceOrdinal} IMAGE): The main character's face MUST be an EXACT 3D Pixar rendering of the child in that reference photo. Keep all facial features, hair color, hair texture, and skin tone identical.\n` : ""}${pageOneReferenceUrl ? `\nIDENTITY LOCK — CHARACTER CANON REFERENCE (${canonOrdinal} IMAGE): That image is a finished illustration of the SAME character in this book. Reproduce the character EXACTLY as shown: identical face, hair color / texture / length, eye color, apparent age, skin tone, AND identical clothing (same garments, same colors, same emblems, same cape) and rendering style. Do NOT redesign the character, do NOT change the outfit, do NOT invent new clothes or hair. Only the pose, framing, lighting and background may change.\n` : ""}
 
 STYLE: ${PIXAR_STYLE}
 
