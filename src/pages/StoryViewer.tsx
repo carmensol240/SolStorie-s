@@ -1671,6 +1671,15 @@ const [currentPage, setCurrentPage] = useState(0);
 
   const showPageActions = isContentPage && page !== null;
 
+  // Page 1 doubles as the book cover — only its real owner may regenerate it.
+  const isStoryOwner = !!user?.id && !!story?.user_id && story.user_id === user.id;
+  const canRegenerateCover =
+    isStoryOwner &&
+    !isDemoUser &&
+    showPageActions &&
+    page?.page_number === 1 &&
+    !!page?.illustration_url;
+
   // Reset all scroll positions (window + inner scrollable containers)
   const resetScroll = () => {
     window.scrollTo(0, 0);
