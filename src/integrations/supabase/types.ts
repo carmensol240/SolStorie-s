@@ -328,31 +328,46 @@ export type Database = {
       }
       illustration_logs: {
         Row: {
+          attempts: number | null
+          camera_angle: string | null
           created_at: string
           duration_ms: number | null
           fallback_reason: string | null
           had_face_reference: boolean | null
+          had_page1_reference: boolean | null
           id: string
+          identity_check: string | null
+          identity_retried: boolean
           model_used: string
           page_number: number
           story_id: string
         }
         Insert: {
+          attempts?: number | null
+          camera_angle?: string | null
           created_at?: string
           duration_ms?: number | null
           fallback_reason?: string | null
           had_face_reference?: boolean | null
+          had_page1_reference?: boolean | null
           id?: string
+          identity_check?: string | null
+          identity_retried?: boolean
           model_used: string
           page_number: number
           story_id: string
         }
         Update: {
+          attempts?: number | null
+          camera_angle?: string | null
           created_at?: string
           duration_ms?: number | null
           fallback_reason?: string | null
           had_face_reference?: boolean | null
+          had_page1_reference?: boolean | null
           id?: string
+          identity_check?: string | null
+          identity_retried?: boolean
           model_used?: string
           page_number?: number
           story_id?: string
