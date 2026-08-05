@@ -1526,6 +1526,7 @@ The action, objects, characters, and emotions shown MUST come from the STORY TEX
       let base64Image: string | null = null;
       let modelUsed = "unknown";
       let fallbackReason: string | undefined;
+      let attemptsUsed = 0;
       const MAX_RETRIES = 2;
       const genStart = Date.now();
       const fluxSeed = seedFromStoryId(storyId);
@@ -1543,6 +1544,7 @@ The action, objects, characters, and emotions shown MUST come from the STORY TEX
       });
 
       for (let attempt = 1; attempt <= MAX_RETRIES; attempt++) {
+        attemptsUsed = attempt;
         if (childPhotoSignedUrl) {
           base64Image = await generateIllustrationWithFace(
             illustrationPrompt, childPhotoSignedUrl, characterProfile,
@@ -1593,11 +1595,55 @@ The action, objects, characters, and emotions shown MUST come from the STORY TEX
           model_used: modelUsed === "unknown" ? "none_failed" : modelUsed,
           fallback_reason: fallbackReason || "All attempts failed",
           had_face_reference: !!childPhotoSignedUrl, duration_ms: durationMs,
+          had_page1_reference: !!coverReferenceUrl,
+          camera_angle: cameraAngle,
+          attempts: attemptsUsed,
         });
         return null;
       }
 
-      const illustrationUrl = await uploadImageToStorage(supabase, base64Image, storyId, page.page_number);
+      let illustrationUrl = await uploadImageToStorage(supabase, base64Image, storyId, page.page_number);
+
+      // === IDENTITY SAFETY NET ===
+      // Even with the page-1 reference attached, a single model call can occasionally
+      // render a completely different child. Compare against page 1 and regenerate once.
+      let identityCheck: string | null = null;
+      let identityRetried = false;
+      if (illustrationUrl && page.page_number !== 1 && coverReferenceUrl) {
+        const publicPageUrl = buildPublicIllustrationUrl(illustrationUrl);
+        if (publicPageUrl) {
+          const verdict = await checkIdentityMatch(publicPageUrl, coverReferenceUrl, LOVABLE_API_KEY);
+          if (!verdict) {
+            identityCheck = "unavailable";
+          } else if (verdict.match) {
+            identityCheck = "match";
+          } else {
+            identityCheck = `mismatch: ${verdict.reason}`;
+            console.warn(`[IDENTITY-CHECK] story=${storyId} page=${page.page_number} MISMATCH — ${verdict.reason}; regenerating once`);
+            const retryImage = childPhotoSignedUrl
+              ? await generateIllustrationWithFace(
+                  illustrationPrompt, childPhotoSignedUrl, characterProfile,
+                  storyOutfit, visualAnchor, effectiveAdventureLogic,
+                  coverReferenceUrl,
+                )
+              : await generateIllustrationGeminiNoFace(
+                  illustrationPrompt, characterProfile,
+                  storyOutfit, visualAnchor, effectiveAdventureLogic,
+                  coverReferenceUrl,
+                );
+            if (retryImage) {
+              const retryUrl = await uploadImageToStorage(supabase, retryImage, storyId, page.page_number);
+              if (retryUrl) {
+                illustrationUrl = retryUrl;
+                identityRetried = true;
+                console.log(`[IDENTITY-CHECK] story=${storyId} page=${page.page_number} regenerated after identity mismatch`);
+              }
+            } else {
+              console.warn(`[IDENTITY-CHECK] story=${storyId} page=${page.page_number} regeneration failed — keeping original image`);
+            }
+          }
+        }
+      }
 
       if (illustrationUrl) {
         const { error: updateError } = await supabase
