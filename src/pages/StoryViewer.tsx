@@ -1693,7 +1693,9 @@ const [currentPage, setCurrentPage] = useState(0);
 
   // Demo paywall: limit demo users to the first 4 virtual pages
   // (cover illustration + text + illustration + text), then trigger DemoLockModal.
-  const DEMO_VIRTUAL_PAGE_LIMIT = 4;
+  // Toddler mode adds a dedicated cover slide before the page-1 text, so it gets
+  // one extra slide to expose the same amount of actual content.
+  const DEMO_VIRTUAL_PAGE_LIMIT = isToddler ? 5 : 4;
   const isLockedVirtualPage = (index: number) => {
     if (!isDemoUser) return false;
     if (index < 0 || index >= virtualPages.length) return false;
