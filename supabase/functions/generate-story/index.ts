@@ -2212,6 +2212,13 @@ ${fullStoryText}`;
         : `The child ${childName} stands next to the giant glowing Arabic numeral digit ${learningNumber} (NOT a Hebrew letter), which fills half the image and is fully visible, not cropped. The number is large, clear, bold, 3D golden style, complete and uncut. Wide shot showing both the child and the full number. Full body shot of the child, showing complete figure from head to toe. Do NOT cut off any body parts. Full bleed, no white margins, no borders, image fills entire frame edge to edge.`;
     }
 
+    // === WARDROBE DRIFT DETECTION (logging only) ===
+    try {
+      checkWardrobeDrift(pagesWithoutIllustrations, story.id);
+    } catch (e) {
+      console.warn("[WARDROBE_DRIFT] check failed (ignored):", (e as Error)?.message);
+    }
+
     const { error: pagesError } = await supabase
       .from("story_pages")
       .insert(pagesWithoutIllustrations);
