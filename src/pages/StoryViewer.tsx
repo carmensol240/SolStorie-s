@@ -1516,6 +1516,8 @@ const [currentPage, setCurrentPage] = useState(0);
     illustrationUrl: string | null;
     illustrationPrompt: string | null;
     text: string;
+    // Toddler mode: the first slide doubles as the book cover (no story text on it).
+    isCover?: boolean;
   };
 
   const isToddler = story?.age_range === '0-2';
