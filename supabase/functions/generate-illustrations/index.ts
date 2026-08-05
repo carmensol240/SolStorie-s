@@ -1487,6 +1487,7 @@ The action, objects, characters, and emotions shown MUST come from the STORY TEX
         hasPageOneRef: !!coverReferenceUrl,
         seed: null,
         prompt: illustrationPrompt,
+        cameraAngle,
       });
 
       for (let attempt = 1; attempt <= MAX_RETRIES; attempt++) {
