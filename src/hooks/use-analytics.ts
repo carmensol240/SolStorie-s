@@ -2,12 +2,21 @@ import { useCallback, useRef, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useDeviceId } from './use-device-id';
 
-type EventType = 
+export type EventType = 
   | 'story_started'
   | 'story_completed'
   | 'page_viewed'
   | 'feature_used'
   | 'drawing_used'
+  | 'signup_completed'
+  | 'create_story_opened'
+  | 'child_info_completed'
+  | 'photo_uploaded'
+  | 'topic_selected'
+  | 'generation_started'
+  | 'generation_failed'
+  | 'story_created'
+  | 'checkout_started'
   | 'paywall_view'
   | 'package_selected'
   | 'purchase_completed'

@@ -31,7 +31,24 @@ serve(async (req) => {
     }
 
     // Validate event type
-    const validEventTypes = ['story_started', 'story_completed', 'page_viewed', 'feature_used', 'drawing_used']
+    const validEventTypes = [
+      // legacy / reading events
+      'story_started', 'story_completed', 'page_viewed', 'feature_used', 'drawing_used',
+      'coloring_page_generated', 'share_screen_view', 'share_clicked',
+      // funnel events
+      'signup_completed',
+      'create_story_opened',
+      'child_info_completed',
+      'photo_uploaded',
+      'topic_selected',
+      'generation_started',
+      'generation_failed',
+      'story_created',
+      'paywall_view',
+      'checkout_started',
+      'purchase_completed',
+      'purchase_failed',
+    ]
     if (!validEventTypes.includes(event_type)) {
       throw new Error('Invalid event_type')
     }
@@ -60,9 +77,24 @@ serve(async (req) => {
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
     )
 
+    // Resolve the acting user from the Authorization header (never trust the body)
+    let resolvedUserId: string | null = null;
+    try {
+      const authHeader = req.headers.get('Authorization') ?? '';
+      const token = authHeader.replace(/^Bearer\s+/i, '').trim();
+      const anonKey = Deno.env.get('SUPABASE_ANON_KEY') ?? '';
+      if (token && token !== anonKey) {
+        const { data: userData } = await supabase.auth.getUser(token);
+        resolvedUserId = userData?.user?.id ?? null;
+      }
+    } catch (_e) {
+      resolvedUserId = null;
+    }
+
     const { error } = await supabase.from('analytics_events').insert({
       device_id,
       event_type,
+      user_id: resolvedUserId,
       story_id: story_id || null,
       page_number: page_number ?? null,
       time_spent_seconds: time_spent_seconds ?? null,
