@@ -12,6 +12,7 @@ import { StoryFormData } from "@/pages/CreateStory";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { useNavigate } from "react-router-dom";
+import { useAnalytics } from "@/hooks/use-analytics";
 import { CHARACTER_SECTIONS } from "@/components/wizard/topic-data";
 
 interface GeneratingStepProps {
