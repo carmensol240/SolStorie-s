@@ -647,6 +647,7 @@ const AdminDashboard = () => {
         <Tabs defaultValue="users" className="w-full">
           <TabsList className="w-full overflow-x-auto flex justify-start gap-0.5 h-auto flex-wrap">
             <TabsTrigger value="users" className="text-xs md:text-sm">👥 משתמשים</TabsTrigger>
+            <TabsTrigger value="funnel" className="text-xs md:text-sm">📊 משפך</TabsTrigger>
             <TabsTrigger value="stories" className="text-xs md:text-sm">📖 סיפורים</TabsTrigger>
             <TabsTrigger value="purchases" className="text-xs md:text-sm flex items-center gap-1">
               💳 רכישות
@@ -671,6 +672,11 @@ const AdminDashboard = () => {
               )}
             </TabsTrigger>
           </TabsList>
+
+          {/* ===== FUNNEL TAB ===== */}
+          <TabsContent value="funnel">
+            <FunnelSection />
+          </TabsContent>
 
           {/* ===== USERS TAB ===== */}
           <TabsContent value="users">
