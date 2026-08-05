@@ -1311,6 +1311,13 @@ serve(async (req) => {
     let pagesToIllustrate = pages.filter(p => p.illustration_prompt);
     console.log(`${pagesToIllustrate.length} of ${pages.length} pages need illustrations (spread layout)`);
 
+    // Highest page number in the WHOLE story (not just the filtered subset) so that
+    // single-page mode also knows which page is the closing one.
+    const lastPageNumber = pages.length > 0
+      ? Math.max(...pages.map((p: { page_number: number }) => p.page_number))
+      : null;
+    console.log(`📄 Last page of story = ${lastPageNumber} (close-up angle disabled for it)`);
+
     // If singlePageNumber is specified, only generate for that one page
     if (singlePageNumber !== undefined && singlePageNumber !== null) {
       pagesToIllustrate = pagesToIllustrate.filter(p => p.page_number === singlePageNumber);
