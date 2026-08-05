@@ -8,6 +8,117 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
 };
 
+// ─── Wardrobe drift detection (logging only, never blocks a story) ───
+
+const WARDROBE_ITEMS = [
+  "t-shirt", "tshirt", "shirt", "cape", "dress", "overalls", "pants", "trousers",
+  "shorts", "skirt", "boots", "sneakers", "shoes", "hat", "cap", "jacket", "coat",
+  "pajamas", "pyjamas", "suit", "belt", "gloves", "crown", "headband", "scarf",
+  "leggings", "tights", "hoodie", "sweater", "vest", "robe", "swimsuit",
+];
+
+const WARDROBE_COLORS = [
+  "red", "blue", "yellow", "green", "purple", "pink", "white", "black", "gold",
+  "golden", "silver", "orange", "brown", "grey", "gray", "turquoise", "beige",
+];
+
+/** Extract normalized `color item` wardrobe tokens from an illustration prompt. */
+export function extractWardrobeTokens(prompt: string): Set<string> {
+  const tokens = new Set<string>();
+  if (!prompt) return tokens;
+  const text = prompt.toLowerCase().replace(/[^a-z\s-]/g, " ").replace(/\s+/g, " ");
+  for (const item of WARDROBE_ITEMS) {
+    const re = new RegExp(`(?:(${WARDROBE_COLORS.join("|")})\\s+(?:\\w+\\s+){0,2})?\\b${item}\\b`, "g");
+    let m: RegExpExecArray | null;
+    while ((m = re.exec(text)) !== null) {
+      tokens.add(m[1] ? `${m[1]} ${item}` : item);
+    }
+  }
+  return tokens;
+}
+
+const WARDROBE_CHANGE_HINTS = [
+  "פיג'מ", "פיג׳מ", "פיגמ", "מעיל", "מתלבש", "מתלבשת", "מחליף", "מחליפה",
+  "בגד ים", "בגדי ים", "מחליפים בגדים", "לובש מעיל", "מתכסה",
+  "pajama", "pyjama", "coat", "raincoat", "changes into", "changed into",
+  "swimsuit", "swimming suit", "puts on",
+];
+
+function hasExplicitWardrobeChange(pageText: string): boolean {
+  const t = (pageText || "").toLowerCase();
+  return WARDROBE_CHANGE_HINTS.some((h) => t.includes(h));
+}
+
+/**
+ * Compares wardrobe tokens across pages that have an illustration_prompt and
+ * logs a warning for any unexplained deviation from page 1's outfit.
+ * Detection only — never mutates prompts and never blocks the story.
+ */
+function checkWardrobeDrift(
+  pages: Array<{ page_number: number; text: string; illustration_prompt: string | null }>,
+  storyId: string,
+): void {
+  const withPrompts = pages
+    .filter((p) => p.illustration_prompt && String(p.illustration_prompt).trim() !== "")
+    .sort((a, b) => a.page_number - b.page_number);
+  if (withPrompts.length < 2) return;
+
+  const baselineTokens = extractWardrobeTokens(withPrompts[0].illustration_prompt as string);
+  if (baselineTokens.size === 0) return;
+  const baseline = [...baselineTokens];
+  const baselineItems = new Map<string, string>(); // item -> color (or "")
+  for (const tok of baseline) {
+    const parts = tok.split(" ");
+    const item = parts[parts.length - 1];
+    const color = parts.length > 1 ? parts[0] : "";
+    if (color || !baselineItems.has(item)) baselineItems.set(item, color);
+  }
+
+  let driftedPages = 0;
+  for (const page of withPrompts.slice(1)) {
+    const found = extractWardrobeTokens(page.illustration_prompt as string);
+    if (found.size === 0) continue;
+    if (hasExplicitWardrobeChange(page.text)) continue;
+
+    const foundItems = new Map<string, string>();
+    for (const tok of found) {
+      const parts = tok.split(" ");
+      const item = parts[parts.length - 1];
+      const color = parts.length > 1 ? parts[0] : "";
+      if (color || !foundItems.has(item)) foundItems.set(item, color);
+    }
+
+    const missing: string[] = [];
+    const recolored: string[] = [];
+    for (const [item, color] of baselineItems) {
+      if (!foundItems.has(item)) {
+        missing.push(color ? `${color} ${item}` : item);
+      } else {
+        const newColor = foundItems.get(item) || "";
+        if (color && newColor && newColor !== color) {
+          recolored.push(`${item}: ${color} -> ${newColor}`);
+        }
+      }
+    }
+
+    if (missing.length > 0 || recolored.length > 0) {
+      driftedPages += 1;
+      console.warn("[WARDROBE_DRIFT]", JSON.stringify({
+        storyId,
+        page: page.page_number,
+        baseline,
+        found: [...found],
+        missing,
+        recolored,
+      }));
+    }
+  }
+
+  console.log(
+    `[WARDROBE_DRIFT] summary: ${driftedPages}/${withPrompts.length - 1} illustrated pages deviated from page ${withPrompts[0].page_number} outfit (story ${storyId})`,
+  );
+}
+
 const SYSTEM_PROMPT = `## 🚨🚨🚨 META-INSTRUCTION: BEFORE WRITING ANY WORD, VERIFY IT EXISTS IN A STANDARD HEBREW DICTIONARY (Even-Shoshan). IF YOU CANNOT CONFIRM WITH 100% CERTAINTY THAT A WORD EXISTS - DO NOT USE IT. THIS OVERRIDES ALL OTHER INSTRUCTIONS. EVERY INVENTED WORD DISQUALIFIES THE ENTIRE STORY. OUTPUT MUST BE 100% HEBREW. Any word in Arabic, English, or any other language immediately disqualifies the story. אם שפת הסיפור היא עברית — כל הטקסט חייב להיות בעברית בלבד, ללא אף מילה באנגלית או בשפה אחרת. אין לערבב שפות בשום מקרה. 🚨🚨🚨
 
 ## ⚠️ CRITICAL HEBREW TEXT QUALITY RULES — MUST FOLLOW ALL (NON-NEGOTIABLE):
