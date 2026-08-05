@@ -1567,6 +1567,19 @@ const [currentPage, setCurrentPage] = useState(0);
         const hasText = page.text && page.text.trim().length > 0;
         const hasIllustration = !!page.illustration_url;
 
+        // Page 1 doubles as the cover: first a cover slide with NO story text,
+        // then a normal slide with the opening text so it is never skipped.
+        if (page.page_number === 1 && (hasIllustration || hasText)) {
+          result.push({
+            type: 'combined',
+            dbPage: page,
+            illustrationUrl: page.illustration_url,
+            illustrationPrompt: page.illustration_prompt || null,
+            text: '',
+            isCover: true,
+          });
+        }
+
         if (hasIllustration || hasText) {
           result.push({
             type: 'combined',
