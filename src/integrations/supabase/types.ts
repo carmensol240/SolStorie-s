@@ -57,6 +57,7 @@ export type Database = {
           page_number: number | null
           story_id: string | null
           time_spent_seconds: number | null
+          user_id: string | null
         }
         Insert: {
           created_at?: string | null
@@ -67,6 +68,7 @@ export type Database = {
           page_number?: number | null
           story_id?: string | null
           time_spent_seconds?: number | null
+          user_id?: string | null
         }
         Update: {
           created_at?: string | null
@@ -77,6 +79,7 @@ export type Database = {
           page_number?: number | null
           story_id?: string | null
           time_spent_seconds?: number | null
+          user_id?: string | null
         }
         Relationships: [
           {

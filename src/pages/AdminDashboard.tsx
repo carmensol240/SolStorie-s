@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/use-auth";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import FunnelSection from "@/components/admin/FunnelSection";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
@@ -647,6 +648,7 @@ const AdminDashboard = () => {
         <Tabs defaultValue="users" className="w-full">
           <TabsList className="w-full overflow-x-auto flex justify-start gap-0.5 h-auto flex-wrap">
             <TabsTrigger value="users" className="text-xs md:text-sm">👥 משתמשים</TabsTrigger>
+            <TabsTrigger value="funnel" className="text-xs md:text-sm">📊 משפך</TabsTrigger>
             <TabsTrigger value="stories" className="text-xs md:text-sm">📖 סיפורים</TabsTrigger>
             <TabsTrigger value="purchases" className="text-xs md:text-sm flex items-center gap-1">
               💳 רכישות
@@ -671,6 +673,11 @@ const AdminDashboard = () => {
               )}
             </TabsTrigger>
           </TabsList>
+
+          {/* ===== FUNNEL TAB ===== */}
+          <TabsContent value="funnel">
+            <FunnelSection />
+          </TabsContent>
 
           {/* ===== USERS TAB ===== */}
           <TabsContent value="users">

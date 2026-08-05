@@ -161,7 +161,7 @@ const Upgrade = () => {
   };
 
   useEffect(() => {
-    trackEvent({ eventType: "feature_used", metadata: { feature: "paywall_view", product: selectedProduct } });
+    trackEvent({ eventType: "paywall_view", metadata: { product: selectedProduct } });
   }, [trackEvent, selectedProduct]);
 
   useEffect(() => {
@@ -236,6 +236,10 @@ const Upgrade = () => {
         }
       }
     } catch {}
+    trackEvent({
+      eventType: "checkout_started",
+      metadata: { product: selectedProduct, discount_percent: discountPercent },
+    });
     openGrowCheckout(selectedProductData.growKey, {
       ...(discountPercent > 0
         ? { discountPercent, couponCode: appliedCouponCode }

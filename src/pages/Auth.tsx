@@ -534,6 +534,7 @@ const Auth = () => {
       if (data?.user?.id) {
         await processReferral(data.user.id);
       }
+      trackEvent({ eventType: "signup_completed", metadata: { method: "email", user_role: userRole } });
       // User already consented in the signup form — persist now to skip /onboarding
       if (data.user.id && signupTermsAccepted) {
         try {

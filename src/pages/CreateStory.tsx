@@ -13,6 +13,7 @@ import { useAuth } from "@/hooks/use-auth";
 import { useCredits } from "@/hooks/use-credits";
 import { isDevModeEnabled } from "@/hooks/use-dev-mode";
 import { supabase } from "@/integrations/supabase/client";
+import { useAnalytics } from "@/hooks/use-analytics";
 
 export interface AdventureLogic {
   outfit: string;
@@ -69,9 +70,15 @@ const CreateStory = () => {
   const [searchParams] = useSearchParams();
   const { user, loading } = useAuth();
   const { credits, loading: creditsLoading, hasCredits, refetch: refetchCredits } = useCredits();
+  const { trackEvent } = useAnalytics();
   const [step, setStep] = useState(1);
   const [formData, setFormData] = useState<StoryFormData>(INITIAL_DATA);
   const [isGenerating, setIsGenerating] = useState(false);
+
+  // Funnel: wizard opened
+  useEffect(() => {
+    trackEvent({ eventType: "create_story_opened" });
+  }, [trackEvent]);
 
   // Resume after Google OAuth redirect
   useEffect(() => {
@@ -166,14 +173,35 @@ const CreateStory = () => {
 
   const handleNext = () => {
     if (step === 1 && canProceedStep1) {
+      trackEvent({
+        eventType: "child_info_completed",
+        metadata: {
+          age_range: formData.ageRange,
+          gender: formData.childGender,
+          has_photo: Boolean(formData.childPhoto),
+          language: formData.language,
+        },
+      });
+      if (formData.childPhoto) {
+        trackEvent({ eventType: "photo_uploaded" });
+      }
       // Skip auth step if user already logged in
       setStep(user ? 3 : 2);
     } else if (step === 3 && canProceedStep2) {
+      trackEvent({
+        eventType: "topic_selected",
+        metadata: {
+          topic: formData.topic || "custom",
+          is_custom: !formData.topic,
+        },
+      });
       // If logged in, check credits first
       if (user && !hasCredits()) {
+        trackEvent({ eventType: "paywall_view", metadata: { reason: "no_credits" } });
         navigate('/upgrade?noCredits=true');
         return;
       }
+      trackEvent({ eventType: "generation_started" });
       setStep(4);
       setIsGenerating(true);
     }

@@ -12,6 +12,7 @@ import { StoryFormData } from "@/pages/CreateStory";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { useNavigate } from "react-router-dom";
+import { useAnalytics } from "@/hooks/use-analytics";
 import { CHARACTER_SECTIONS } from "@/components/wizard/topic-data";
 
 interface GeneratingStepProps {
@@ -102,6 +103,7 @@ const getTopicLabel = (topicId: string): string => {
 const GeneratingStep = ({ formData, onComplete }: GeneratingStepProps) => {
   const { toast } = useToast();
   const navigate = useNavigate();
+  const { trackEvent } = useAnalytics();
   const [progress, setProgress] = useState(0);
   const [messageIndex, setMessageIndex] = useState(0);
   const [sentenceIndex, setSentenceIndex] = useState(() => Math.floor(Math.random() * EMPOWERING_SENTENCES.length));
@@ -339,6 +341,7 @@ const GeneratingStep = ({ formData, onComplete }: GeneratingStepProps) => {
 
       console.log("[GeneratingStep] Text verified. Moving to illustrations phase...");
       setStoryId(data.storyId);
+      trackEvent({ eventType: "story_created", storyId: data.storyId });
       setPhase('illustrations');
       setProgress(50);
       
@@ -361,6 +364,7 @@ const GeneratingStep = ({ formData, onComplete }: GeneratingStepProps) => {
       
       // Don't auto-retry billing/system errors
       if (errorMessage.includes("שגיאת מערכת זמנית")) {
+        trackEvent({ eventType: "generation_failed", metadata: { reason: "system_error" } });
         setError(errorMessage);
         return;
       }
@@ -376,9 +380,10 @@ const GeneratingStep = ({ formData, onComplete }: GeneratingStepProps) => {
         return;
       }
       
+      trackEvent({ eventType: "generation_failed", metadata: { reason: errorMessage.slice(0, 200) } });
       setError("not_created");
     }
-  }, [formData, toast, navigate, isSessionExpiredError, handleSessionExpired]);
+  }, [formData, toast, navigate, isSessionExpiredError, handleSessionExpired, trackEvent]);
 
   // Realtime subscription: watch for illustrations completing
   useEffect(() => {

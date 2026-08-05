@@ -467,6 +467,19 @@ Deno.serve(async (req) => {
       return ok({ received: true, duplicate: true });
     }
 
+    // Funnel: record the completed purchase server-side (reliable, not browser-dependent)
+    try {
+      await supabase.from("analytics_events").insert({
+        device_id: `server:grow:${transactionId}`,
+        event_type: "purchase_completed",
+        user_id: userId,
+        story_id: storyId || null,
+        metadata: { packageId, amount, source: "grow" },
+      });
+    } catch (e) {
+      console.warn("[GROW-WEBHOOK] funnel event insert failed:", e);
+    }
+
     // Notification email via Resend (non-blocking)
     try {
       const resendKey = Deno.env.get("RESEND_API_KEY");
