@@ -650,7 +650,7 @@ const [currentPage, setCurrentPage] = useState(0);
         if (Number.isFinite(n) && n > 0) {
           // Demo users may not land on a locked page after returning from /upgrade.
           if (isDemoUser) {
-            const maxAllowedIndex = 3; // DEMO_VIRTUAL_PAGE_LIMIT - 1
+            const maxAllowedIndex = (story?.age_range === '0-2' ? 5 : 4) - 1; // DEMO_VIRTUAL_PAGE_LIMIT - 1
             n = Math.min(n, maxAllowedIndex);
           }
           setCurrentPage(n);
