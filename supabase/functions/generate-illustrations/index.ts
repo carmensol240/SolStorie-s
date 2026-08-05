@@ -106,6 +106,7 @@ export function logImageGenCall(params: {
 // Character Profile interface for consistency across illustrations
 interface CharacterProfile {
   gender: string;
+  gender: string;
   genderHebrew: string;
   hairDescription: string;
   clothingDescription: string;
