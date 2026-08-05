@@ -92,12 +92,14 @@ export function logImageGenCall(params: {
   hasPageOneRef: boolean;
   seed?: number | null;
   prompt: string;
+  cameraAngle?: string;
 }) {
-  const { storyId, page, api, model, hasFaceRef, hasPageOneRef, seed, prompt } = params;
+  const { storyId, page, api, model, hasFaceRef, hasPageOneRef, seed, prompt, cameraAngle } = params;
   console.log(
     `[IMG-GEN] story=${storyId} page=${page} api=${api} model=${model} ` +
       `refs=[face:${hasFaceRef ? "yes" : "no"}, page1:${hasPageOneRef ? "yes" : "no"}] ` +
-      `seed=${seed ?? "n/a"} promptChars=${prompt.length} promptHead="${prompt.substring(0, 200).replace(/\s+/g, " ")}"`,
+      `seed=${seed ?? "n/a"} camera="${cameraAngle ?? "n/a"}" ` +
+      `promptChars=${prompt.length} promptHead="${prompt.substring(0, 200).replace(/\s+/g, " ")}"`,
   );
 }
 
