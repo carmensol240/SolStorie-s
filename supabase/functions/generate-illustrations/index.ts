@@ -568,6 +568,29 @@ const LIGHTING_OPTIONS = [
   "bright cheerful midday sun with vivid colors",
 ];
 
+// The close-up angle renders the face at high resolution, so ANY drift from the
+// reference becomes obvious. It also reads badly as a closing image. We keep it
+// available mid-story for variety, but never on the LAST page of a story.
+const CLOSE_UP_ANGLE = CAMERA_ANGLES[0];
+const LAST_PAGE_SAFE_ANGLE = CAMERA_ANGLES[2]; // medium shot from waist up
+
+// Deterministic (never random) angle selection so the same page of the same story
+// always renders with the same framing — including on "try again".
+function pickCameraAngle(pageNumber: number, lastPageNumber: number | null, offset = 0): string {
+  const angle = CAMERA_ANGLES[(pageNumber + offset) % CAMERA_ANGLES.length];
+  if (lastPageNumber !== null && pageNumber === lastPageNumber && angle === CLOSE_UP_ANGLE) {
+    return LAST_PAGE_SAFE_ANGLE;
+  }
+  return angle;
+}
+
+// Composition clause must not contradict the chosen camera angle.
+function compositionClause(angle: string): string {
+  return angle === CLOSE_UP_ANGLE
+    ? "head and upper body clearly framed, face fully visible, not cropped"
+    : "full body head to toe with feet grounded on surface";
+}
+
 interface SceneAnalysis {
   scene_action: string;
   environment: string;
