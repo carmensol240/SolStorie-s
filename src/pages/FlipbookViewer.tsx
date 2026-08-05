@@ -86,13 +86,35 @@ const FlipbookViewer = () => {
         toast({
           variant: "destructive",
           title: "שגיאה",
-          description: "הספרון לא נמצא",
+          description: "הספרון לא נמצא או שאינו משותף",
         });
-        navigate("/");
+        if (!shareToken) navigate("/");
         return;
       }
 
       setDigitalBook(bookData);
+
+      // Public (unauthenticated) viewers: read everything through the public RPC,
+      // since stories/story_pages are not readable without a session.
+      if (shareToken) {
+        const { data: publicStory, error: publicStoryError } = await supabase
+          .rpc("get_public_story", { p_story_id: bookData.story_id });
+
+        if (publicStoryError) throw publicStoryError;
+        const ps = publicStory as any;
+        if (!ps) throw new Error("Story not found");
+
+        setStory({ id: ps.id, child_name: ps.child_name, topic: ps.topic } as Story);
+        setPages(
+          ((ps.pages || []) as any[]).map((p, i) => ({
+            id: `${ps.id}-${p.page_number ?? i}`,
+            page_number: p.page_number,
+            text: p.text,
+            illustration_url: p.illustration_url ?? null,
+          }))
+        );
+        return;
+      }
 
       // Fetch story
       const { data: storyData, error: storyError } = await supabase
