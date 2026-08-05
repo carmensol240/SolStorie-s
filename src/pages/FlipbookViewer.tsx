@@ -86,9 +86,9 @@ const FlipbookViewer = () => {
         toast({
           variant: "destructive",
           title: "שגיאה",
-          description: "הספרון לא נמצא",
+          description: "הספרון לא נמצא או שאינו משותף",
         });
-        navigate("/");
+        if (!shareToken) navigate("/");
         return;
       }
 
