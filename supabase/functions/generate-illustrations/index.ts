@@ -92,12 +92,14 @@ export function logImageGenCall(params: {
   hasPageOneRef: boolean;
   seed?: number | null;
   prompt: string;
+  cameraAngle?: string;
 }) {
-  const { storyId, page, api, model, hasFaceRef, hasPageOneRef, seed, prompt } = params;
+  const { storyId, page, api, model, hasFaceRef, hasPageOneRef, seed, prompt, cameraAngle } = params;
   console.log(
     `[IMG-GEN] story=${storyId} page=${page} api=${api} model=${model} ` +
       `refs=[face:${hasFaceRef ? "yes" : "no"}, page1:${hasPageOneRef ? "yes" : "no"}] ` +
-      `seed=${seed ?? "n/a"} promptChars=${prompt.length} promptHead="${prompt.substring(0, 200).replace(/\s+/g, " ")}"`,
+      `seed=${seed ?? "n/a"} camera="${cameraAngle ?? "n/a"}" ` +
+      `promptChars=${prompt.length} promptHead="${prompt.substring(0, 200).replace(/\s+/g, " ")}"`,
   );
 }
 
@@ -567,6 +569,29 @@ const LIGHTING_OPTIONS = [
   "cozy warm indoor lamplight",
   "bright cheerful midday sun with vivid colors",
 ];
+
+// The close-up angle renders the face at high resolution, so ANY drift from the
+// reference becomes obvious. It also reads badly as a closing image. We keep it
+// available mid-story for variety, but never on the LAST page of a story.
+const CLOSE_UP_ANGLE = CAMERA_ANGLES[0];
+const LAST_PAGE_SAFE_ANGLE = CAMERA_ANGLES[2]; // medium shot from waist up
+
+// Deterministic (never random) angle selection so the same page of the same story
+// always renders with the same framing — including on "try again".
+function pickCameraAngle(pageNumber: number, lastPageNumber: number | null, offset = 0): string {
+  const angle = CAMERA_ANGLES[(pageNumber + offset) % CAMERA_ANGLES.length];
+  if (lastPageNumber !== null && pageNumber === lastPageNumber && angle === CLOSE_UP_ANGLE) {
+    return LAST_PAGE_SAFE_ANGLE;
+  }
+  return angle;
+}
+
+// Composition clause must not contradict the chosen camera angle.
+function compositionClause(angle: string): string {
+  return angle === CLOSE_UP_ANGLE
+    ? "head and upper body clearly framed, face fully visible, not cropped"
+    : "full body head to toe with feet grounded on surface";
+}
 
 interface SceneAnalysis {
   scene_action: string;
@@ -1288,6 +1313,13 @@ serve(async (req) => {
     let pagesToIllustrate = pages.filter(p => p.illustration_prompt);
     console.log(`${pagesToIllustrate.length} of ${pages.length} pages need illustrations (spread layout)`);
 
+    // Highest page number in the WHOLE story (not just the filtered subset) so that
+    // single-page mode also knows which page is the closing one.
+    const lastPageNumber = pages.length > 0
+      ? Math.max(...pages.map((p: { page_number: number }) => p.page_number))
+      : null;
+    console.log(`📄 Last page of story = ${lastPageNumber} (close-up angle disabled for it)`);
+
     // If singlePageNumber is specified, only generate for that one page
     if (singlePageNumber !== undefined && singlePageNumber !== null) {
       pagesToIllustrate = pagesToIllustrate.filter(p => p.page_number === singlePageNumber);
@@ -1377,7 +1409,7 @@ serve(async (req) => {
       // Build prompt directly from illustration_prompt — skip AI scene analysis for speed
       const basePrompt = page.illustration_prompt || `A cheerful children's book illustration for page ${page.page_number}`;
       const pageNarrative = (page.text || "").toString().slice(0, 400);
-      const cameraAngle = CAMERA_ANGLES[page.page_number % CAMERA_ANGLES.length];
+      const cameraAngle = pickCameraAngle(page.page_number, lastPageNumber);
       const lighting = LIGHTING_OPTIONS[(page.page_number + 2) % LIGHTING_OPTIONS.length];
       const charDesc = characterProfile
         ? `A ${characterProfile.gender === "female" ? "girl" : "boy"} aged ${characterProfile.ageDescription} with ${characterProfile.hairDescription}, ${characterProfile.skinTone} skin, ${characterProfile.eyeColor} eyes, wearing ${storyOutfit}. ${characterProfile.gender === "female" ? "GIRL — feminine/neutral clothing only, no kippah/tzitzit." : "BOY — masculine clothing only, NO dress, skirt, tutu, flower crown, bow, makeup, or feminine accessories."}`
@@ -1389,7 +1421,7 @@ VISUAL DESCRIPTION: ${basePrompt}
 The action, objects, characters, and emotions shown MUST come from the STORY TEXT above. Do not invent a different scene.`
         : `SCENE (MUST MATCH TEXT EXACTLY): ${basePrompt}`;
       const genderHeader = buildGenderHeader(childGender);
-      let illustrationPrompt = `${genderHeader}\n\n${charDesc}. ${sceneBlock}. CAMERA: ${cameraAngle}. LIGHTING: ${lighting}. Pixar 3D CGI style, vibrant colors, fantasy children's book, full body head to toe with feet grounded on surface\n\n${GENDER_SYMBOL_RESTRICTION}`;
+      let illustrationPrompt = `${genderHeader}\n\n${charDesc}. ${sceneBlock}. CAMERA: ${cameraAngle}. LIGHTING: ${lighting}. Pixar 3D CGI style, vibrant colors, fantasy children's book, ${compositionClause(cameraAngle)}\n\n${GENDER_SYMBOL_RESTRICTION}`;
       if (page.page_number === 1) {
         // Page 1 is also cropped into the square library cover card.
         illustrationPrompt += `\n\nCOMPOSITION (COVER SAFE ZONE): The main character is centered in the frame, full body visible, with at least 15% empty margin on every side and extra headroom at the top. Nothing important touches the edges — this image is also cropped to a square cover card.`;
@@ -1455,6 +1487,7 @@ The action, objects, characters, and emotions shown MUST come from the STORY TEX
         hasPageOneRef: !!coverReferenceUrl,
         seed: null,
         prompt: illustrationPrompt,
+        cameraAngle,
       });
 
       for (let attempt = 1; attempt <= MAX_RETRIES; attempt++) {
@@ -1552,7 +1585,7 @@ The action, objects, characters, and emotions shown MUST come from the STORY TEX
         const secondPrompt = page.illustration_prompt_2;
         let secondImage: string | null = null;
 
-        const cameraAngle2 = CAMERA_ANGLES[(page.page_number + 3) % CAMERA_ANGLES.length];
+        const cameraAngle2 = pickCameraAngle(page.page_number, lastPageNumber, 3);
         const lighting2 = LIGHTING_OPTIONS[(page.page_number + 5) % LIGHTING_OPTIONS.length];
         const charDesc2 = characterProfile
           ? `A ${characterProfile.gender === "female" ? "girl" : "boy"} aged ${characterProfile.ageDescription} with ${characterProfile.hairDescription}, ${characterProfile.skinTone} skin, ${characterProfile.eyeColor} eyes, wearing ${storyOutfit}. ${characterProfile.gender === "female" ? "GIRL — feminine/neutral clothing only, no kippah/tzitzit." : "BOY — masculine clothing only, NO dress, skirt, tutu, flower crown, bow, makeup, or feminine accessories."}`
@@ -1563,7 +1596,7 @@ STORY TEXT FOR THIS PAGE: "${pageNarrative}"
 VISUAL DESCRIPTION: ${secondPrompt}
 The action, objects, characters, and emotions shown MUST come from the STORY TEXT above. Do not invent a different scene.`
           : `SCENE (MUST MATCH TEXT EXACTLY): ${secondPrompt}`;
-        const secondIllustrationPrompt = `${buildGenderHeader(childGender)}\n\n${charDesc2}. ${sceneBlock2}. CAMERA: ${cameraAngle2}. LIGHTING: ${lighting2}. Pixar 3D CGI style, vibrant colors, fantasy children's book, full body head to toe\n\n${GENDER_SYMBOL_RESTRICTION}`;
+        const secondIllustrationPrompt = `${buildGenderHeader(childGender)}\n\n${charDesc2}. ${sceneBlock2}. CAMERA: ${cameraAngle2}. LIGHTING: ${lighting2}. Pixar 3D CGI style, vibrant colors, fantasy children's book, ${compositionClause(cameraAngle2)}\n\n${GENDER_SYMBOL_RESTRICTION}`;
 
         for (let attempt = 1; attempt <= MAX_RETRIES; attempt++) {
           if (childPhotoSignedUrl) {

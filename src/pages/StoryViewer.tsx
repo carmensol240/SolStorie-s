@@ -650,7 +650,7 @@ const [currentPage, setCurrentPage] = useState(0);
         if (Number.isFinite(n) && n > 0) {
           // Demo users may not land on a locked page after returning from /upgrade.
           if (isDemoUser) {
-            const maxAllowedIndex = 3; // DEMO_VIRTUAL_PAGE_LIMIT - 1
+            const maxAllowedIndex = (story?.age_range === '0-2' ? 5 : 4) - 1; // DEMO_VIRTUAL_PAGE_LIMIT - 1
             n = Math.min(n, maxAllowedIndex);
           }
           setCurrentPage(n);
@@ -1516,6 +1516,8 @@ const [currentPage, setCurrentPage] = useState(0);
     illustrationUrl: string | null;
     illustrationPrompt: string | null;
     text: string;
+    // Toddler mode: the first slide doubles as the book cover (no story text on it).
+    isCover?: boolean;
   };
 
   const isToddler = story?.age_range === '0-2';
@@ -1564,6 +1566,19 @@ const [currentPage, setCurrentPage] = useState(0);
       for (const page of story.pages) {
         const hasText = page.text && page.text.trim().length > 0;
         const hasIllustration = !!page.illustration_url;
+
+        // Page 1 doubles as the cover: first a cover slide with NO story text,
+        // then a normal slide with the opening text so it is never skipped.
+        if (page.page_number === 1 && (hasIllustration || hasText)) {
+          result.push({
+            type: 'combined',
+            dbPage: page,
+            illustrationUrl: page.illustration_url,
+            illustrationPrompt: page.illustration_prompt || null,
+            text: '',
+            isCover: true,
+          });
+        }
 
         if (hasIllustration || hasText) {
           result.push({
@@ -1678,7 +1693,9 @@ const [currentPage, setCurrentPage] = useState(0);
 
   // Demo paywall: limit demo users to the first 4 virtual pages
   // (cover illustration + text + illustration + text), then trigger DemoLockModal.
-  const DEMO_VIRTUAL_PAGE_LIMIT = 4;
+  // Toddler mode adds a dedicated cover slide before the page-1 text, so it gets
+  // one extra slide to expose the same amount of actual content.
+  const DEMO_VIRTUAL_PAGE_LIMIT = isToddler ? 5 : 4;
   const isLockedVirtualPage = (index: number) => {
     if (!isDemoUser) return false;
     if (index < 0 || index >= virtualPages.length) return false;
@@ -1979,7 +1996,7 @@ const [currentPage, setCurrentPage] = useState(0);
                     {/* Dark gradient overlay for text readability */}
                     <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-transparent z-[1]" />
                     {/* Dedication overlay on first page */}
-                    {currentPage === 0 && story && (
+                    {currentVirtual.isCover && story && (
                       <div className="absolute top-0 left-0 right-0 z-20 p-4 pt-6 bg-gradient-to-b from-black/60 via-black/30 to-transparent">
                         <div className="text-center text-white drop-shadow-lg flex flex-col items-center gap-1" dir="rtl">
                           <span className="text-base md:text-lg font-bold">הספר הזה נוצר במיוחד עבורך</span>
@@ -1988,7 +2005,7 @@ const [currentPage, setCurrentPage] = useState(0);
                       </div>
                     )}
                     {/* Text overlay at the bottom */}
-                    {currentVirtual.text && currentVirtual.text.trim() && currentVirtual.dbPage.page_number !== 1 && (
+                    {currentVirtual.text && currentVirtual.text.trim() && !currentVirtual.isCover && (
                       <div className="absolute bottom-0 left-0 right-0 z-10 p-4 md:p-6" dir="rtl">
                         <div className="max-w-lg mx-auto text-center">
                           <p className={cn(
