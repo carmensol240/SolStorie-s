@@ -1661,6 +1661,11 @@ The action, objects, characters, and emotions shown MUST come from the STORY TEX
           story_id: storyId, page_number: page.page_number,
           model_used: modelUsed, fallback_reason: fallbackReason || null,
           had_face_reference: !!childPhotoSignedUrl, duration_ms: durationMs,
+          had_page1_reference: !!coverReferenceUrl,
+          camera_angle: cameraAngle,
+          attempts: attemptsUsed,
+          identity_check: identityCheck,
+          identity_retried: identityRetried,
         });
 
         if (page.page_number === 1) {
