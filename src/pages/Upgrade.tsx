@@ -236,6 +236,10 @@ const Upgrade = () => {
         }
       }
     } catch {}
+    trackEvent({
+      eventType: "checkout_started",
+      metadata: { product: selectedProduct, discount_percent: discountPercent },
+    });
     openGrowCheckout(selectedProductData.growKey, {
       ...(discountPercent > 0
         ? { discountPercent, couponCode: appliedCouponCode }
