@@ -161,7 +161,7 @@ const Upgrade = () => {
   };
 
   useEffect(() => {
-    trackEvent({ eventType: "feature_used", metadata: { feature: "paywall_view", product: selectedProduct } });
+    trackEvent({ eventType: "paywall_view", metadata: { product: selectedProduct } });
   }, [trackEvent, selectedProduct]);
 
   useEffect(() => {
