@@ -1,39 +1,26 @@
-# דוח: אזהרת "Users can escalate their own privileges by modifying protected profile columns"
+# תיקון: הגנת הסלמת הרשאות גם ב-INSERT לטבלת profiles
 
-## 1. באילו עמודות מדובר
-בטבלת `profiles` יש 31 עמודות. הרגישות שבהן (כאלה שמשפיעות על הרשאות/כסף):
-`user_role`, `is_subscriber`, `story_credits`, `coloring_credits`, `editing_credits`,
-`free_edits_remaining`, `free_edits_total`, `daily_edit_credits`, `last_edit_credits_reset`,
-`share_coins`, `first_purchase_bonus_given`, `education_bonus_claimed`,
-`commercial_abuse_flagged`, `commercial_abuse_flagged_at`.
+## מה יבוצע (מיגרציה אחת, ללא שינוי קוד לקוח)
 
-"הסלמת הרשאות" כאן פירושה בעיקר **הענקה עצמית של קרדיטים/מנוי/הטבת חינוך** — כלומר קבלת מוצר בלי לשלם — ולא הפיכה לאדמין.
+1. **הרחבת פונקציית ההגנה גם ל-INSERT** — טריגר חדש `BEFORE INSERT ON public.profiles`, בנוסף לטריגר ה-UPDATE הקיים.
+2. **התנהגות בהכנסה מהלקוח**: במקום לזרוק שגיאה (שתשבור upsert לגיטימי במסך התנאים), הערכים הרגישים **מאופסים בשקט** לערכי ברירת מחדל בטוחים: `story_credits=0`, `coloring_credits=0`, `editing_credits=0`, `share_coins=0`, `free_edits_*=0`, `daily_edit_credits=0`, `is_subscriber=false`, `first_purchase_bonus_given=false`, `education_bonus_claimed=false`, `commercial_abuse_flagged=false`, ו-`user_role` מוגבל ל-`parent`/`educator` בלבד (ברירת מחדל `parent`).
+3. **צמצום מדיניות ה-INSERT** מ-`public` ל-`authenticated` (ה-`WITH CHECK (auth.uid() = id)` נשמר כפי שהוא).
 
-## 2. האם משתמשת יכולה להפוך את עצמה לאדמין
-לא. תפקידי אדמין **אינם** ב-`profiles` אלא בטבלה נפרדת `public.user_roles`, שנבדקת דרך `has_role()`.
-המדיניות על `user_roles`:
-- קריאה: רק השורות של המשתמשת עצמה.
-- כתיבה (ALL): רק כשה-JWT הוא `service_role`.
-כלומר אין שום נתיב מהלקוח להוסיף לעצמה `admin`. גם `profiles.user_role` (parent/educator) אינו מקנה הרשאות אדמין — רק הטבת קרדיט חד-פעמית.
+## איך מובטח ש-handle_new_user לא נשבר
 
-## 3. האם יש היום הגנה בפועל
-כן, שתי שכבות:
-- **RLS**: `Users can update their own profile` מוגבל ל-`authenticated` עם `auth.uid() = id`, ומדיניות RESTRICTIVE שחוסמת אנונימיים. משתמשת יכולה לעדכן רק את השורה שלה.
-- **טריגר `prevent_profile_privilege_escalation_trg`** (BEFORE UPDATE, פעיל — `tgenabled = 'O'`): זורק שגיאה אם מישהו שאינו `service_role` מנסה לשנות אחת מכל 14 העמודות הרגישות שנמנו למעלה.
-כלומר עדכון מהלקוח מוגבל בפועל לשדות תצוגה בלבד (שם, אימוג'י, טלפון, הסכמות וכו').
+זו בדיוק הנקודה החשובה, ולכן ההגנה **לא** מסתמכת על `auth.jwt()`:
 
-## 4. האם נוצל בפועל
-לא נמצאה עדות לניצול. בדיקת נתונים (131 פרופילים):
-- `is_subscriber = true`: 0 משתמשות.
-- `education_bonus_claimed = true`: 0.
-- `editing_credits` מקסימלי: 0; `coloring_credits` מקסימלי: 11.
-- `story_credits` מקסימלי: 981 — שייך לחשבון אדמין קיים (מופיע ב-`user_roles`), לא חריגה.
-- 33 מסומנות `educator`, ערך שנקבע בהרשמה ב-`handle_new_user` ומוגבל ל-parent/educator; אף אחת לא קיבלה בונוס חינוך.
-המסקנה: הממצא **תיאורטי**, וכבר מנוטרל בפועל על ידי הטריגר.
+- `handle_new_user` הוא טריגר `SECURITY DEFINER` על `auth.users` שרץ במסגרת תהליך ההרשמה של שירות ה-Auth. בהקשר הזה `auth.uid()` הוא NULL ו-`auth.jwt()` ריק — כלומר בדיקה לפי `role = 'service_role'` בלבד **הייתה** עלולה לחסום אותו.
+- לכן תנאי האכיפה יהיה: **אכוף רק כאשר `auth.uid() IS NOT NULL`** (כלומר בקשה שהגיעה מלקוח מחובר דרך ה-Data API). כשההכנסה מגיעה מ-`handle_new_user`, מפונקציות שרת עם service role, או ממיגרציה — התנאי לא מתקיים והשורה נכנסת כמות שהיא.
+- בנוסף: מכיוון שההתנהגות היא איפוס ולא שגיאה, גם במקרה קצה שבו התנאי כן מתקיים — יצירת המשתמשת לא נכשלת.
 
-## 5. פערים קטנים שנותרו (לא קריטיים, לידיעה בלבד)
-- `Users can insert their own profile` מוגדר לרול `public` ולא `authenticated` (ה-`WITH CHECK (auth.uid() = id)` עדיין חוסם, וגם ה-RESTRICTIVE חוסם אנונימיים) — ניסוח בלבד.
-- ה-INSERT הראשוני אינו עובר את הטריגר (הוא BEFORE UPDATE בלבד); בפועל הפרופיל נוצר על ידי `handle_new_user` עם 0 קרדיטים, אבל upsert מהלקוח יכול תיאורטית להכניס שורה עם קרדיטים אם השורה עדיין לא קיימת. זו נקודת התיקון היחידה ששווה לשקול.
+## אימות אחרי ההרצה
 
-## אם תרצי שאתקן
-תיקון מוצע (מיגרציה אחת, ללא שינוי קוד לקוח): להרחיב את הטריגר גם ל-INSERT כך שיאפס/יחסום ערכים רגישים בהכנסה מהלקוח, ולצמצם את מדיניות ה-INSERT ל-`authenticated`.
+1. הרשמת משתמשת בדיקה מקצה לקצה ווידוא שנוצר פרופיל תקין (`user_role` נכון, 0 קרדיטים) — הרשמה שנכשלת תיראה מיד כשגיאת signup.
+2. בדיקת מסד: השוואת מספר הפרופילים למספר המשתמשים לפני ואחרי, כדי לוודא שאין פערים.
+3. וידוא שמסך התנאים (`RequireTerms`) עדיין מצליח ב-upsert.
+4. ניסיון upsert מהלקוח עם `story_credits` גבוה — צפוי להיכנס כ-0.
+5. הרצת בדיקת האבטחה מחדש וסימון הממצא כטופל.
+
+## נסיגה
+אם משהו משתבש, ביטול הטריגר החדש בלבד (`DROP TRIGGER`) מחזיר את המצב הקודם מיידית, ללא השפעה על נתונים.
