@@ -1,5 +1,7 @@
 import { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
+import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/hooks/use-auth";
 import {
   Dialog,
   DialogContent,
@@ -26,6 +28,48 @@ const PurchaseSuccessModal = ({
   isSubscription = false,
 }: PurchaseSuccessModalProps) => {
   const navigate = useNavigate();
+  const { user } = useAuth();
+
+  // Fire the Meta Pixel Purchase event exactly once per transaction,
+  // using the real amount recorded for the purchase (never hardcoded).
+  useEffect(() => {
+    if (!open || !user?.id) return;
+    let cancelled = false;
+
+    (async () => {
+      try {
+        const { data } = await supabase
+          .from("purchases")
+          .select("id, amount_ils, package_name, created_at")
+          .eq("user_id", user.id)
+          .order("created_at", { ascending: false })
+          .limit(1)
+          .maybeSingle();
+
+        if (cancelled || !data?.id) return;
+        const amount = Number(data.amount_ils);
+        if (!Number.isFinite(amount) || amount <= 0) return;
+
+        const dedupeKey = `fb_purchase_fired_${data.id}`;
+        if (localStorage.getItem(dedupeKey)) return;
+
+        if (typeof window.fbq !== "function") return;
+        window.fbq("track", "Purchase", {
+          value: amount,
+          currency: "ILS",
+          content_type: "product",
+          content_name: data.package_name ?? undefined,
+        });
+        localStorage.setItem(dedupeKey, String(Date.now()));
+      } catch {
+        // Analytics must never break the success flow.
+      }
+    })();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [open, user?.id]);
 
   // After a one-time purchase, prefer returning to the story the user came from
   const getRedirectPath = () => {
