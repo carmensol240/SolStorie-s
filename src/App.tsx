@@ -40,6 +40,7 @@ import RequireTerms from "./components/RequireTerms";
 import RequireAdmin from "./components/RequireAdmin";
 import ScrollToTop from "./components/ScrollToTop";
 import PageTitle from "./components/PageTitle";
+import MetaPixel from "./components/MetaPixel";
 import OAuthReturnHandler from "./components/auth/OAuthReturnHandler";
 import GlobalPurchaseHandler from "./components/paywall/GlobalPurchaseHandler";
 import Toolkit from "./pages/Toolkit";
@@ -59,6 +60,7 @@ function App() { useTimeTheme(); return (
         <BrowserRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
           <ScrollToTop />
           <PageTitle />
+          <MetaPixel />
           <OAuthReturnHandler />
           <GlobalPurchaseHandler />
           
