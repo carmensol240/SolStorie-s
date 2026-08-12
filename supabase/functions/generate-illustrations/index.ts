@@ -1283,7 +1283,14 @@ serve(async (req) => {
     // Check if we already have a saved character profile for this child
     let characterProfile: CharacterProfile | null = null;
     let savedProfileFromDb = false;
-    
+
+    // Fetch parent-provided appearance fields once. These take precedence over
+    // AI-extracted photo description to avoid conflicting character sources.
+    let parentHairColor = "";
+    let parentHairStyle = "";
+    let parentClothingType = "";
+    let parentClothingColor = "";
+
     if (userId && childName) {
       console.log(`Checking for existing avatar profile for ${childName}...`);
       const { data: existingChild } = await supabase
@@ -1293,12 +1300,10 @@ serve(async (req) => {
         .eq('name', childName)
         .maybeSingle();
 
-      // Capture parent-provided appearance fields, if any. These take precedence
-      // over AI-extracted photo description to avoid conflicting character sources.
-      const parentHairColor = (existingChild?.hair_color || "").trim();
-      const parentHairStyle = (existingChild?.hair_style || "").trim();
-      const parentClothingType = (existingChild?.clothing_type || "").trim();
-      const parentClothingColor = (existingChild?.clothing_color || "").trim();
+      parentHairColor = (existingChild?.hair_color || "").trim();
+      parentHairStyle = (existingChild?.hair_style || "").trim();
+      parentClothingType = (existingChild?.clothing_type || "").trim();
+      parentClothingColor = (existingChild?.clothing_color || "").trim();
 
       if (existingChild?.avatar_description) {
         try {
@@ -1307,25 +1312,6 @@ serve(async (req) => {
           console.log(`✅ Reusing saved avatar profile for ${childName}:`, characterProfile);
         } catch (e) {
           console.log("Could not parse saved profile, will generate new one");
-        }
-      }
-
-      // Apply parent overrides (if present) to the currently resolved profile.
-      // This works whether the profile came from the DB or was just extracted.
-      if (characterProfile) {
-        if (parentHairColor && parentHairStyle) {
-          const override = `${parentHairColor} ${parentHairStyle}`;
-          if (characterProfile.hairDescription !== override) {
-            console.log(`👤 Parent hair override: "${characterProfile.hairDescription}" -> "${override}"`);
-            characterProfile.hairDescription = override;
-          }
-        }
-        if (parentClothingColor && parentClothingType) {
-          const override = `${parentClothingColor} ${parentClothingType}`;
-          if (characterProfile.clothingDescription !== override) {
-            console.log(`👤 Parent clothing override: "${characterProfile.clothingDescription}" -> "${override}"`);
-            characterProfile.clothingDescription = override;
-          }
         }
       }
     }
@@ -1353,32 +1339,36 @@ serve(async (req) => {
       }
     }
 
-    // If a parent form override exists but we never entered the avatar block above
-    // (e.g. no photo and no saved profile), we cannot determine skin/eye color, so
-    // fall back to the default profile. Keep any manual overrides if they were set.
-    if (userId && childName && !characterProfile) {
-      const { data: fallbackChild } = await supabase
-        .from('children')
-        .select('hair_color, hair_style, clothing_type, clothing_color')
-        .eq('user_id', userId)
-        .eq('name', childName)
-        .maybeSingle();
-
-      const parentHairColor = (fallbackChild?.hair_color || "").trim();
-      const parentHairStyle = (fallbackChild?.hair_style || "").trim();
-      const parentClothingType = (fallbackChild?.clothing_type || "").trim();
-      const parentClothingColor = (fallbackChild?.clothing_color || "").trim();
-
-      if (parentHairColor || parentHairStyle || parentClothingType || parentClothingColor) {
-        characterProfile = getDefaultProfile(childGender || "male", childGender === "female" ? "ילדה" : "ילד", ageRange || "3-6");
-        if (parentHairColor && parentHairStyle) {
-          characterProfile.hairDescription = `${parentHairColor} ${parentHairStyle}`;
+    // Apply parent overrides (if present) to the resolved profile, regardless of
+    // whether it came from the DB, from photo extraction, or from a default.
+    if (characterProfile) {
+      if (parentHairColor && parentHairStyle) {
+        const override = `${parentHairColor} ${parentHairStyle}`;
+        if (characterProfile.hairDescription !== override) {
+          console.log(`👤 Parent hair override: "${characterProfile.hairDescription}" -> "${override}"`);
+          characterProfile.hairDescription = override;
         }
-        if (parentClothingColor && parentClothingType) {
-          characterProfile.clothingDescription = `${parentClothingColor} ${parentClothingType}`;
-        }
-        console.log("👤 Fallback default profile with parent overrides:", characterProfile);
       }
+      if (parentClothingColor && parentClothingType) {
+        const override = `${parentClothingColor} ${parentClothingType}`;
+        if (characterProfile.clothingDescription !== override) {
+          console.log(`👤 Parent clothing override: "${characterProfile.clothingDescription}" -> "${override}"`);
+          characterProfile.clothingDescription = override;
+        }
+      }
+    }
+
+    // If we still have no profile, and at least one parent field is present,
+    // start from the default profile and apply the parent overrides.
+    if (!characterProfile && (parentHairColor || parentHairStyle || parentClothingType || parentClothingColor)) {
+      characterProfile = getDefaultProfile(childGender || "male", childGender === "female" ? "ילדה" : "ילד", ageRange || "3-6");
+      if (parentHairColor && parentHairStyle) {
+        characterProfile.hairDescription = `${parentHairColor} ${parentHairStyle}`;
+      }
+      if (parentClothingColor && parentClothingType) {
+        characterProfile.clothingDescription = `${parentClothingColor} ${parentClothingType}`;
+      }
+      console.log("👤 Fallback default profile with parent overrides:", characterProfile);
     }
     
     // === DYNAMIC OUTFIT BASED ON TOPIC ===
