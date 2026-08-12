@@ -89,8 +89,20 @@ const Library = () => {
   const [hasAnyPurchase, setHasAnyPurchase] = useState(false);
   const [unlockedStoryIds, setUnlockedStoryIds] = useState<Set<string>>(new Set());
 
-  // Selected child for header avatar — falls back to first child
-  const selectedChildId = user ? getUserData(user.id, 'selected_child_id') : null;
+  // Active child tab used to sync header avatar
+  const [activeTabValue, setActiveTabValue] = useState<string>('__all');
+
+  // Selected child for header avatar — syncs with the active child tab, persisted storage, or first child
+  const storedSelectedChildId = user ? getUserData(user.id, 'selected_child_id') : null;
+  const selectedChildId = useMemo(() => {
+    if (activeTabValue && activeTabValue !== '__all' && activeTabValue !== '__other') {
+      return activeTabValue;
+    }
+    if (storedSelectedChildId && children.some(c => c.id === storedSelectedChildId)) {
+      return storedSelectedChildId;
+    }
+    return children[0]?.id || null;
+  }, [activeTabValue, storedSelectedChildId, children]);
   const selectedChildName = selectedChildId
     ? children.find(c => c.id === selectedChildId)?.name
     : undefined;
