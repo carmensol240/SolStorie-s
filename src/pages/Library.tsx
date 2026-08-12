@@ -912,7 +912,58 @@ const Library = () => {
           </TabsContent>
 
           <TabsContent value="coloring">
-            {isLoading || authLoading ? <LoadingSkeleton /> : renderColoringPages()}
+            {isLoading || authLoading ? (
+              <LoadingSkeleton />
+            ) : coloringChildTabs ? (
+              <Tabs
+                value={coloringActiveTabValue}
+                onValueChange={(value) => {
+                  setColoringActiveTabValue(value);
+                  if (user && value !== '__all' && value !== '__other') {
+                    setUserData(user.id, 'selected_child_id', value);
+                  }
+                }}
+                dir="rtl"
+                className="w-full"
+              >
+                <TabsList className="w-full h-auto flex-wrap bg-purple-100/60 rounded-xl p-1 mb-4 gap-1">
+                  <TabsTrigger
+                    value="__all"
+                    className="rounded-lg text-sm font-bold gap-1.5 data-[state=active]:bg-white data-[state=active]:text-purple-700 data-[state=active]:shadow-md text-purple-500 px-3 py-1.5"
+                  >
+                    <Palette className="w-4 h-4" />
+                    הכל
+                  </TabsTrigger>
+                  {coloringChildTabs.map(tab => (
+                    <TabsTrigger
+                      key={tab.key}
+                      value={tab.key}
+                      className="rounded-lg text-sm font-bold data-[state=active]:bg-white data-[state=active]:text-purple-700 data-[state=active]:shadow-md text-purple-500 px-3 py-1.5"
+                    >
+                      {tab.label}
+                    </TabsTrigger>
+                  ))}
+                </TabsList>
+
+                <TabsContent value="__all">
+                  {renderColoringPages(coloringPages)}
+                </TabsContent>
+                {coloringChildTabs.map(tab => (
+                  <TabsContent key={tab.key} value={tab.key}>
+                    {tab.pages.length === 0 ? (
+                      <div className="text-center py-10">
+                        <p className="text-muted-foreground font-medium">אין עדיין דפי צביעה עבור {tab.label}</p>
+                        <Button onClick={() => navigate("/create")} variant="outline" className="mt-3">
+                          <Plus className="w-4 h-4 ml-1" /> צרו סיפור חדש
+                        </Button>
+                      </div>
+                    ) : renderColoringPages(tab.pages)}
+                  </TabsContent>
+                ))}
+              </Tabs>
+            ) : (
+              renderColoringPages()
+            )}
           </TabsContent>
         </Tabs>
 
