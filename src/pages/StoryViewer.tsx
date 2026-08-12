@@ -2226,7 +2226,11 @@ const [currentPage, setCurrentPage] = useState(0);
             <button
               onClick={() => handlePageNav('next')}
               disabled={currentPage >= totalVirtualPages || isFlipping}
-              className="w-10 h-10 rounded-full bg-black/40 hover:bg-black/50 text-white/80 hover:text-white backdrop-blur-sm transition-all disabled:opacity-20 disabled:cursor-not-allowed flex items-center justify-center"
+              className={cn(
+                "w-10 h-10 rounded-full bg-black/70 hover:bg-black/80 text-white/80 hover:text-white backdrop-blur-sm transition-all disabled:opacity-20 disabled:cursor-not-allowed flex items-center justify-center",
+                "border-2 border-white/40 shadow-lg",
+                currentPage === -1 && "animate-pulse"
+              )}
               aria-label="עמוד הבא"
             >
               <ChevronLeft className="w-5 h-5" />
@@ -2235,7 +2239,7 @@ const [currentPage, setCurrentPage] = useState(0);
             <button
               onClick={() => handlePageNav('prev')}
               disabled={currentPage <= -1 || isFlipping}
-              className="w-10 h-10 rounded-full bg-black/40 hover:bg-black/50 text-white/80 hover:text-white backdrop-blur-sm transition-all disabled:opacity-20 disabled:cursor-not-allowed flex items-center justify-center"
+              className="w-10 h-10 rounded-full bg-black/70 hover:bg-black/80 text-white/80 hover:text-white backdrop-blur-sm transition-all disabled:opacity-20 disabled:cursor-not-allowed flex items-center justify-center border-2 border-white/40 shadow-lg"
               aria-label="עמוד קודם"
             >
               <ChevronRight className="w-5 h-5" />
