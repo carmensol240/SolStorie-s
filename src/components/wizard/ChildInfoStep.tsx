@@ -46,6 +46,17 @@ const photoTips: PhotoTip[] = [
 ];
 
 // Helper to convert age number to age range
+const CLOTHING_TYPES = [
+  { value: "בגדי יומיום", emoji: "👕" },
+  { value: "גיבור/ת על", emoji: "🦸" },
+  { value: "שמלה", emoji: "👗" },
+  { value: "בגד ים", emoji: "🩳" },
+  { value: "פיג'מה", emoji: "🌙" },
+  { value: "בגדי חורף", emoji: "❄️" },
+];
+
+const CLOTHING_COLORS = ["כחול", "ורוד", "אדום", "ירוק", "סגול", "צהוב"];
+
 const ageToRange = (age: number): "0-2" | "2-4" | "5-7" | "8-10" => {
   if (age <= 2) return "0-2";
   if (age <= 4) return "2-4";
