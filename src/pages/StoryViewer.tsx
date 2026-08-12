@@ -276,6 +276,7 @@ const [currentPage, setCurrentPage] = useState(0);
   const [endImprovementSuggestion, setEndImprovementSuggestion] = useState("");
   const [endFeedbackSent, setEndFeedbackSent] = useState(false);
   const [endFeedbackSending, setEndFeedbackSending] = useState(false);
+  const [showFeedbackForm, setShowFeedbackForm] = useState(false);
   const [coloringLoading, setColoringLoading] = useState(false);
   const [coloringPickerOpen, setColoringPickerOpen] = useState(false);
   const [selectedColoringUrl, setSelectedColoringUrl] = useState<string | null>(null);
