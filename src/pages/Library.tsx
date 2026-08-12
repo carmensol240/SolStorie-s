@@ -23,7 +23,7 @@ import { useCredits } from "@/hooks/use-credits";
 import { useReferral } from "@/hooks/use-referral";
 import { useChildAvatar } from "@/hooks/use-child-avatar";
 import { useAuth } from "@/hooks/use-auth";
-import { getUserData } from "@/lib/user-storage";
+import { getUserData, setUserData } from "@/lib/user-storage";
 import { translateTopic } from '@/lib/topic-translations';
 import libraryEmptyState from "@/assets/library-empty-state.png";
 import { OnlineColoringCanvas } from "@/components/story/OnlineColoringCanvas";
