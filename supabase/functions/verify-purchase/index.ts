@@ -7,7 +7,8 @@ const CORS = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
-const WHITELISTED_TEST_EMAIL = "carmit1901+test@gmail.com";
+const WHITELISTED_TEST_EMAILS = ["shirley.u85@gmail.com"];
+const MAX_TEST_PURCHASES = 3;
 
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") {
@@ -75,13 +76,35 @@ Deno.serve(async (req) => {
         );
       }
       const email = (userData.user.email || "").toLowerCase();
-      if (email !== WHITELISTED_TEST_EMAIL.toLowerCase()) {
+      if (!WHITELISTED_TEST_EMAILS.map((e) => e.toLowerCase()).includes(email)) {
         console.error("[VERIFY-PURCHASE] testMode rejected for non-test user:", email);
         return new Response(
           JSON.stringify({ error: "Forbidden" }),
           { status: 403, headers: { ...CORS, "Content-Type": "application/json" } }
         );
       }
+
+      // Quota: at most MAX_TEST_PURCHASES test purchases per user.
+      const { count: testCount, error: countErr } = await supabase
+        .from("purchases")
+        .select("id", { count: "exact", head: true })
+        .eq("user_id", userId)
+        .like("package_name", "test_%");
+      if (countErr) {
+        console.error("[VERIFY-PURCHASE] testMode quota check failed", countErr);
+        return new Response(
+          JSON.stringify({ error: "Internal server error" }),
+          { status: 500, headers: { ...CORS, "Content-Type": "application/json" } }
+        );
+      }
+      if ((testCount ?? 0) >= MAX_TEST_PURCHASES) {
+        console.error("[VERIFY-PURCHASE] testMode quota exceeded:", { userId, testCount });
+        return new Response(
+          JSON.stringify({ error: "מכסת רכישות הבדיקה נוצלה" }),
+          { status: 403, headers: { ...CORS, "Content-Type": "application/json" } }
+        );
+      }
+
       console.log("[VERIFY-PURCHASE] ✅ testMode authorized for", email);
       if (Number(amount) > 0) {
         console.warn("[VERIFY-PURCHASE] ⚠️ testMode received non-zero amount, forcing to 0:", amount);
