@@ -149,7 +149,7 @@ const ChildInfoStep = ({ formData, updateFormData }: ChildInfoStepProps) => {
         // Fetch from database for authenticated users
         const { data, error } = await supabase
           .from("children")
-          .select("id, name, age, gender, photo_url, avatar_url, personality_traits, fixed_details")
+          .select("id, name, age, gender, photo_url, avatar_url, personality_traits, fixed_details, clothing_type, clothing_color")
           .eq("user_id", user.id);
         
         if (!error && data && data.length > 0) {
@@ -168,6 +168,8 @@ const ChildInfoStep = ({ formData, updateFormData }: ChildInfoStepProps) => {
               childAvatarUrl: firstChild.avatar_url,
               personalityTraits: firstChild.personality_traits || "",
               fixedDetails: (firstChild as any).fixed_details || "",
+              clothingType: (firstChild as any).clothing_type || "",
+              clothingColor: (firstChild as any).clothing_color || "",
             });
             if (firstChild.personality_traits) {
               setShowPersonalityField(true);
@@ -195,6 +197,8 @@ const ChildInfoStep = ({ formData, updateFormData }: ChildInfoStepProps) => {
               childAvatarUrl: firstChild.avatar_url,
               personalityTraits: firstChild.personality_traits || "",
               fixedDetails: firstChild.fixed_details || "",
+              clothingType: firstChild.clothing_type || "",
+              clothingColor: firstChild.clothing_color || "",
             });
             if (firstChild.personality_traits) {
               setShowPersonalityField(true);
@@ -330,6 +334,8 @@ const ChildInfoStep = ({ formData, updateFormData }: ChildInfoStepProps) => {
       childAvatarUrl: child.avatar_url,
       personalityTraits: child.personality_traits || "",
       fixedDetails: (child as any).fixed_details || "",
+      clothingType: (child as any).clothing_type || "",
+      clothingColor: (child as any).clothing_color || "",
     });
     
     // Load avatar regeneration count
@@ -368,6 +374,8 @@ const ChildInfoStep = ({ formData, updateFormData }: ChildInfoStepProps) => {
           avatar_url: formData.childAvatarUrl,
           personality_traits: formData.personalityTraits || null,
           fixed_details: formData.fixedDetails || null,
+          clothing_type: formData.clothingType || null,
+          clothing_color: formData.clothingColor || null,
         };
 
         // When creating a new profile, never match against existing children by name.
@@ -396,6 +404,8 @@ const ChildInfoStep = ({ formData, updateFormData }: ChildInfoStepProps) => {
               avatar_url: formData.childAvatarUrl,
               personality_traits: formData.personalityTraits || null,
               fixed_details: formData.fixedDetails || null,
+              clothing_type: formData.clothingType || null,
+              clothing_color: formData.clothingColor || null,
             })
             .eq("id", existingChild.id);
 
@@ -512,6 +522,8 @@ const ChildInfoStep = ({ formData, updateFormData }: ChildInfoStepProps) => {
         personalityTraits: "",
         className: "",
         fixedDetails: "",
+        clothingType: "",
+        clothingColor: "",
       });
       
       toast.success(`הפרופיל של ${currentChild.name} נמחק בהצלחה`);
@@ -575,6 +587,8 @@ const ChildInfoStep = ({ formData, updateFormData }: ChildInfoStepProps) => {
                 personalityTraits: "",
                 className: "",
                 fixedDetails: "",
+                clothingType: "",
+                clothingColor: "",
               });
               setIsCreatingNew(true);
               setSelectedChildId(null);
