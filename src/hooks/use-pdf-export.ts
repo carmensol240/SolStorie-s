@@ -241,13 +241,14 @@ export const usePdfExport = () => {
       align-items: center; justify-content: flex-start; text-align: center;
       background: #ffffff; direction: rtl;
       font-family: Heebo, Assistant, sans-serif; position: relative;
-      padding: 200px 140px 180px 140px; box-sizing: border-box;
+      padding: 120px 140px 180px 140px; box-sizing: border-box;
     `;
     const lines = Array.from({ length: 9 })
       .map(() => `<div style="height:0;border-bottom:2px solid #d4d4d8;margin:0 0 80px 0;"></div>`) 
       .join('');
     page.innerHTML = `
-      <p style="color:#1f2937;font-size:56px;font-weight:700;margin:0 0 120px 0;line-height:1.5;">
+      <div style="font-size:64px;line-height:1;margin:0 0 24px 0;color:#FFD66B;">✨</div>
+      <p style="color:#1f2937;font-size:56px;font-weight:700;margin:0 0 30px 0;line-height:1.5;">
         הַסִּפּוּר הַזֶּה נִכְתַּב בִּמְיֻחָד עֲבוּר ______________
       </p>
       <div style="width:100%;text-align:right;">${lines}</div>
