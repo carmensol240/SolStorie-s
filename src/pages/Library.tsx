@@ -91,6 +91,7 @@ const Library = () => {
 
   // Active child tab used to sync header avatar
   const [activeTabValue, setActiveTabValue] = useState<string>('__all');
+  const [coloringActiveTabValue, setColoringActiveTabValue] = useState<string>('__all');
 
   // Selected child for header avatar — syncs with the active child tab, persisted storage, or first child
   const storedSelectedChildId = user ? getUserData(user.id, 'selected_child_id') : null;
