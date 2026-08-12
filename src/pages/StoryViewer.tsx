@@ -1879,10 +1879,15 @@ const [currentPage, setCurrentPage] = useState(0);
                   />
 
                   {/* Title */}
-                  <p className="text-2xl md:text-3xl font-bold text-purple-800">קסום, לא? ✨</p>
+                  <p className="text-2xl md:text-3xl font-bold text-purple-800">כל הכבוד, {story?.child_name || 'חבר/ה'}! ✨</p>
 
-                  {/* Feedback Box - moved up */}
-                  {!endFeedbackSent ? (
+                  {/* Feedback Box - optional or existing form */}
+                  {endFeedbackSent ? (
+                    <div className="w-full max-w-xs bg-gradient-to-r from-purple-50 to-pink-50 rounded-xl p-3 shadow-lg border border-purple-100 text-center mx-auto" dir="rtl">
+                      <p className="text-base font-bold text-purple-800">תודה רבה! 💛</p>
+                      <p className="text-xs text-purple-600 mt-1">המשוב שלכם עוזר לנו ליצור סיפורים טובים יותר</p>
+                    </div>
+                  ) : showFeedbackForm ? (
                     <div className="w-full max-w-xs bg-white rounded-xl p-4 shadow-lg border border-purple-100 space-y-3 mx-auto" dir="rtl">
                       <h3 className="text-center text-sm font-bold text-purple-800">✨ שתפו אותנו בקסם שלכם</h3>
                       <div className="flex justify-center gap-1">
@@ -1914,9 +1919,18 @@ const [currentPage, setCurrentPage] = useState(0);
                       </Button>
                     </div>
                   ) : (
-                    <div className="w-full max-w-xs bg-gradient-to-r from-purple-50 to-pink-50 rounded-xl p-3 shadow-lg border border-purple-100 text-center mx-auto" dir="rtl">
-                      <p className="text-base font-bold text-purple-800">תודה רבה! 💛</p>
-                      <p className="text-xs text-purple-600 mt-1">המשוב שלכם עוזר לנו ליצור סיפורים טובים יותר</p>
+                    <div className="w-full max-w-xs space-y-3 mx-auto" dir="rtl">
+                      <button
+                        onClick={() => setShowFeedbackForm(true)}
+                        className="w-full bg-white rounded-xl px-4 py-3 shadow-lg border border-purple-100 text-sm font-bold text-purple-800 hover:bg-purple-50 transition-colors"
+                      >
+                        רוצים לספר לנו מה חשבתם? 💬
+                      </button>
+                      <p className="text-sm text-purple-700 leading-relaxed">
+                        {story?.child_gender === 'male'
+                          ? `${story?.child_name || 'הילד'} סיים את הסיפור שלו היום, וזה רק תחילת הדרך! 🌟`
+                          : `${story?.child_name || 'הילדה'} סיימה את הסיפור שלה היום, וזה רק תחילת הדרך! 🌟`}
+                      </p>
                     </div>
                   )}
 
