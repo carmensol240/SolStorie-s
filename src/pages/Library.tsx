@@ -91,6 +91,7 @@ const Library = () => {
 
   // Active child tab used to sync header avatar
   const [activeTabValue, setActiveTabValue] = useState<string>('__all');
+  const [coloringActiveTabValue, setColoringActiveTabValue] = useState<string>('__all');
 
   // Selected child for header avatar — syncs with the active child tab, persisted storage, or first child
   const storedSelectedChildId = user ? getUserData(user.id, 'selected_child_id') : null;
@@ -249,6 +250,21 @@ const Library = () => {
     }
     return tabs;
   }, [children, stories]);
+
+  const coloringChildTabs = useMemo(() => {
+    if (children.length < 2) return null;
+    const childNameSet = new Set(children.map(c => c.name));
+    const unmatchedPages = coloringPages.filter(cp => cp.story_child_name && !childNameSet.has(cp.story_child_name));
+    const tabs = children.map(child => ({
+      key: child.id,
+      label: child.name,
+      pages: coloringPages.filter(cp => cp.story_child_name === child.name),
+    }));
+    if (unmatchedPages.length > 0) {
+      tabs.push({ key: "__other", label: "אחר", pages: unmatchedPages });
+    }
+    return tabs;
+  }, [children, coloringPages]);
 
   const handleDeleteStory = async (storyId: string) => {
     try {
@@ -494,8 +510,8 @@ const Library = () => {
     }
   }, [toast]);
 
-  const renderColoringPages = () => {
-    if (coloringPages.length === 0) {
+  const renderColoringPages = (pages: ColoringPageRecord[] = coloringPages) => {
+    if (pages.length === 0) {
       return (
         <div className="text-center py-16 space-y-4">
           <Palette className="w-16 h-16 mx-auto text-muted-foreground/30" />
@@ -509,7 +525,7 @@ const Library = () => {
 
     return (
       <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
-        {coloringPages.map(cp => {
+        {pages.map(cp => {
           const imgUrl = getPublicIllustrationUrl(cp.coloring_image_path);
           const topicLabel = cp.story_topic ? translateTopic(cp.story_topic) : '';
           return (
@@ -896,7 +912,58 @@ const Library = () => {
           </TabsContent>
 
           <TabsContent value="coloring">
-            {isLoading || authLoading ? <LoadingSkeleton /> : renderColoringPages()}
+            {isLoading || authLoading ? (
+              <LoadingSkeleton />
+            ) : coloringChildTabs ? (
+              <Tabs
+                value={coloringActiveTabValue}
+                onValueChange={(value) => {
+                  setColoringActiveTabValue(value);
+                  if (user && value !== '__all' && value !== '__other') {
+                    setUserData(user.id, 'selected_child_id', value);
+                  }
+                }}
+                dir="rtl"
+                className="w-full"
+              >
+                <TabsList className="w-full h-auto flex-wrap bg-purple-100/60 rounded-xl p-1 mb-4 gap-1">
+                  <TabsTrigger
+                    value="__all"
+                    className="rounded-lg text-sm font-bold gap-1.5 data-[state=active]:bg-white data-[state=active]:text-purple-700 data-[state=active]:shadow-md text-purple-500 px-3 py-1.5"
+                  >
+                    <Palette className="w-4 h-4" />
+                    הכל
+                  </TabsTrigger>
+                  {coloringChildTabs.map(tab => (
+                    <TabsTrigger
+                      key={tab.key}
+                      value={tab.key}
+                      className="rounded-lg text-sm font-bold data-[state=active]:bg-white data-[state=active]:text-purple-700 data-[state=active]:shadow-md text-purple-500 px-3 py-1.5"
+                    >
+                      {tab.label}
+                    </TabsTrigger>
+                  ))}
+                </TabsList>
+
+                <TabsContent value="__all">
+                  {renderColoringPages(coloringPages)}
+                </TabsContent>
+                {coloringChildTabs.map(tab => (
+                  <TabsContent key={tab.key} value={tab.key}>
+                    {tab.pages.length === 0 ? (
+                      <div className="text-center py-10">
+                        <p className="text-muted-foreground font-medium">אין עדיין דפי צביעה עבור {tab.label}</p>
+                        <Button onClick={() => navigate("/create")} variant="outline" className="mt-3">
+                          <Plus className="w-4 h-4 ml-1" /> צרו סיפור חדש
+                        </Button>
+                      </div>
+                    ) : renderColoringPages(tab.pages)}
+                  </TabsContent>
+                ))}
+              </Tabs>
+            ) : (
+              renderColoringPages()
+            )}
           </TabsContent>
         </Tabs>
 
