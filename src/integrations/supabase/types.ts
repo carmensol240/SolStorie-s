@@ -97,6 +97,8 @@ export type Database = {
           avatar_description: string | null
           avatar_url: string | null
           challenges: string | null
+          clothing_color: string | null
+          clothing_type: string | null
           created_at: string
           favorite_friends: string | null
           fixed_details: string | null
@@ -114,6 +116,8 @@ export type Database = {
           avatar_description?: string | null
           avatar_url?: string | null
           challenges?: string | null
+          clothing_color?: string | null
+          clothing_type?: string | null
           created_at?: string
           favorite_friends?: string | null
           fixed_details?: string | null
@@ -131,6 +135,8 @@ export type Database = {
           avatar_description?: string | null
           avatar_url?: string | null
           challenges?: string | null
+          clothing_color?: string | null
+          clothing_type?: string | null
           created_at?: string
           favorite_friends?: string | null
           fixed_details?: string | null
