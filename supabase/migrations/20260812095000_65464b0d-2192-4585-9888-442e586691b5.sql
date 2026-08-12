@@ -1,0 +1,1 @@
+ALTER TABLE public.children ADD COLUMN IF NOT EXISTS hair_color TEXT, ADD COLUMN IF NOT EXISTS hair_style TEXT;
