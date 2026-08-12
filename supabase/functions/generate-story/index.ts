@@ -1142,7 +1142,7 @@ serve(async (req) => {
       try {
         const { data: childData, error: childErr } = await supabase
           .from("children")
-          .select("hobbies, challenges, favorite_friends, fixed_details, clothing_type, clothing_color")
+          .select("hobbies, challenges, favorite_friends, fixed_details, clothing_type, clothing_color, hair_color, hair_style")
           .eq("user_id", userId)
           .eq("name", childName)
           .maybeSingle();
@@ -1157,6 +1157,9 @@ serve(async (req) => {
           if (childData.favorite_friends?.trim()) parts.push(`חברים וצעצועים אהובים: ${childData.favorite_friends.trim()}`);
           if (childData.clothing_type?.trim() && childData.clothing_color?.trim()) {
             parts.push(`לבוש קבוע של הדמות: ${childData.clothing_type.trim()} בצבע ${childData.clothing_color.trim()} — יש לשמור על הלבוש הזה זהה בכל עמודי הסיפור.`);
+          }
+          if (childData.hair_color?.trim() && childData.hair_style?.trim()) {
+            parts.push(`שיער הדמות: ${childData.hair_color.trim()}, בתסרוקת ${childData.hair_style.trim()} — יש לשמור על מראה השיער הזה זהה בכל עמודי הסיפור.`);
           }
           if (parts.length > 0) {
             childPersonalization = `\n## 🎯 פרטים אישיים על הילד/ה (שלב בסיפור בצורה טבעית!):\n${parts.join("\n")}\n`;

@@ -103,6 +103,8 @@ export type Database = {
           favorite_friends: string | null
           fixed_details: string | null
           gender: string | null
+          hair_color: string | null
+          hair_style: string | null
           hobbies: string | null
           id: string
           name: string
@@ -122,6 +124,8 @@ export type Database = {
           favorite_friends?: string | null
           fixed_details?: string | null
           gender?: string | null
+          hair_color?: string | null
+          hair_style?: string | null
           hobbies?: string | null
           id?: string
           name: string
@@ -141,6 +145,8 @@ export type Database = {
           favorite_friends?: string | null
           fixed_details?: string | null
           gender?: string | null
+          hair_color?: string | null
+          hair_style?: string | null
           hobbies?: string | null
           id?: string
           name?: string
