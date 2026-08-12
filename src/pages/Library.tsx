@@ -23,7 +23,7 @@ import { useCredits } from "@/hooks/use-credits";
 import { useReferral } from "@/hooks/use-referral";
 import { useChildAvatar } from "@/hooks/use-child-avatar";
 import { useAuth } from "@/hooks/use-auth";
-import { getUserData } from "@/lib/user-storage";
+import { getUserData, setUserData } from "@/lib/user-storage";
 import { translateTopic } from '@/lib/topic-translations';
 import libraryEmptyState from "@/assets/library-empty-state.png";
 import { OnlineColoringCanvas } from "@/components/story/OnlineColoringCanvas";
@@ -89,8 +89,20 @@ const Library = () => {
   const [hasAnyPurchase, setHasAnyPurchase] = useState(false);
   const [unlockedStoryIds, setUnlockedStoryIds] = useState<Set<string>>(new Set());
 
-  // Selected child for header avatar — falls back to first child
-  const selectedChildId = user ? getUserData(user.id, 'selected_child_id') : null;
+  // Active child tab used to sync header avatar
+  const [activeTabValue, setActiveTabValue] = useState<string>('__all');
+
+  // Selected child for header avatar — syncs with the active child tab, persisted storage, or first child
+  const storedSelectedChildId = user ? getUserData(user.id, 'selected_child_id') : null;
+  const selectedChildId = useMemo(() => {
+    if (activeTabValue && activeTabValue !== '__all' && activeTabValue !== '__other') {
+      return activeTabValue;
+    }
+    if (storedSelectedChildId && children.some(c => c.id === storedSelectedChildId)) {
+      return storedSelectedChildId;
+    }
+    return children[0]?.id || null;
+  }, [activeTabValue, storedSelectedChildId, children]);
   const selectedChildName = selectedChildId
     ? children.find(c => c.id === selectedChildId)?.name
     : undefined;
@@ -832,7 +844,17 @@ const Library = () => {
             ) : stories.length === 0 ? (
               <EmptyState onCreateClick={() => navigate("/create")} />
             ) : childTabs && !showOfflineFilter ? (
-              <Tabs defaultValue="__all" dir="rtl" className="w-full">
+              <Tabs
+                value={activeTabValue}
+                onValueChange={(value) => {
+                  setActiveTabValue(value);
+                  if (user && value !== '__all' && value !== '__other') {
+                    setUserData(user.id, 'selected_child_id', value);
+                  }
+                }}
+                dir="rtl"
+                className="w-full"
+              >
                 <TabsList className="w-full h-auto flex-wrap bg-purple-100/60 rounded-xl p-1 mb-4 gap-1">
                   <TabsTrigger
                     value="__all"
