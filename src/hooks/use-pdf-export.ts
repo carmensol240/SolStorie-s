@@ -162,11 +162,11 @@ export const usePdfExport = () => {
       allowTaint: false,
       backgroundColor: null,
     });
-    const imgData = canvas.toDataURL('image/png');
+    const imgData = canvas.toDataURL('image/jpeg', 0.92);
     const pageWidth = pdf.internal.pageSize.getWidth();
     const pageHeight = pdf.internal.pageSize.getHeight();
     if (!isFirstPage) pdf.addPage();
-    pdf.addImage(imgData, 'PNG', 0, 0, pageWidth, pageHeight);
+    pdf.addImage(imgData, 'JPEG', 0, 0, pageWidth, pageHeight);
     if (!skipFooter) drawFooter(pdf);
   };
 
@@ -283,12 +283,12 @@ export const usePdfExport = () => {
     const pageEl = document.createElement('div');
     pageEl.style.cssText = `
       width: 100%; height: 100%; background:#ffffff; display:flex;
-      align-items:center; justify-content:center; padding:80px;
+      align-items:center; justify-content:center; padding:0;
       box-sizing:border-box;
     `;
     pageEl.innerHTML = illustrationDataUrl
-      ? `<img src="${illustrationDataUrl}" style="max-width:100%;max-height:100%;object-fit:contain;" />`
-      : `<div style="width:100%;height:100%;background:${RAINBOW_CSS};border-radius:24px;"></div>`;
+      ? `<img src="${illustrationDataUrl}" style="width:100%;height:100%;object-fit:cover;" />`
+      : `<div style="width:100%;height:100%;background:${RAINBOW_CSS};border-radius:0;"></div>`;
     return pageEl;
   };
 
