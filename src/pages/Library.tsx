@@ -510,8 +510,8 @@ const Library = () => {
     }
   }, [toast]);
 
-  const renderColoringPages = () => {
-    if (coloringPages.length === 0) {
+  const renderColoringPages = (pages: ColoringPageRecord[] = coloringPages) => {
+    if (pages.length === 0) {
       return (
         <div className="text-center py-16 space-y-4">
           <Palette className="w-16 h-16 mx-auto text-muted-foreground/30" />
@@ -525,7 +525,7 @@ const Library = () => {
 
     return (
       <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
-        {coloringPages.map(cp => {
+        {pages.map(cp => {
           const imgUrl = getPublicIllustrationUrl(cp.coloring_image_path);
           const topicLabel = cp.story_topic ? translateTopic(cp.story_topic) : '';
           return (
