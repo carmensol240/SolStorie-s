@@ -46,6 +46,17 @@ const photoTips: PhotoTip[] = [
 ];
 
 // Helper to convert age number to age range
+const CLOTHING_TYPES = [
+  { value: "בגדי יומיום", emoji: "👕" },
+  { value: "גיבור/ת על", emoji: "🦸" },
+  { value: "שמלה", emoji: "👗" },
+  { value: "בגד ים", emoji: "🩳" },
+  { value: "פיג'מה", emoji: "🌙" },
+  { value: "בגדי חורף", emoji: "❄️" },
+];
+
+const CLOTHING_COLORS = ["כחול", "ורוד", "אדום", "ירוק", "סגול", "צהוב"];
+
 const ageToRange = (age: number): "0-2" | "2-4" | "5-7" | "8-10" => {
   if (age <= 2) return "0-2";
   if (age <= 4) return "2-4";
@@ -149,7 +160,7 @@ const ChildInfoStep = ({ formData, updateFormData }: ChildInfoStepProps) => {
         // Fetch from database for authenticated users
         const { data, error } = await supabase
           .from("children")
-          .select("id, name, age, gender, photo_url, avatar_url, personality_traits, fixed_details")
+          .select("id, name, age, gender, photo_url, avatar_url, personality_traits, fixed_details, clothing_type, clothing_color")
           .eq("user_id", user.id);
         
         if (!error && data && data.length > 0) {
@@ -168,6 +179,8 @@ const ChildInfoStep = ({ formData, updateFormData }: ChildInfoStepProps) => {
               childAvatarUrl: firstChild.avatar_url,
               personalityTraits: firstChild.personality_traits || "",
               fixedDetails: (firstChild as any).fixed_details || "",
+              clothingType: (firstChild as any).clothing_type || "",
+              clothingColor: (firstChild as any).clothing_color || "",
             });
             if (firstChild.personality_traits) {
               setShowPersonalityField(true);
@@ -195,6 +208,8 @@ const ChildInfoStep = ({ formData, updateFormData }: ChildInfoStepProps) => {
               childAvatarUrl: firstChild.avatar_url,
               personalityTraits: firstChild.personality_traits || "",
               fixedDetails: firstChild.fixed_details || "",
+              clothingType: firstChild.clothing_type || "",
+              clothingColor: firstChild.clothing_color || "",
             });
             if (firstChild.personality_traits) {
               setShowPersonalityField(true);
@@ -330,6 +345,8 @@ const ChildInfoStep = ({ formData, updateFormData }: ChildInfoStepProps) => {
       childAvatarUrl: child.avatar_url,
       personalityTraits: child.personality_traits || "",
       fixedDetails: (child as any).fixed_details || "",
+      clothingType: (child as any).clothing_type || "",
+      clothingColor: (child as any).clothing_color || "",
     });
     
     // Load avatar regeneration count
@@ -368,6 +385,8 @@ const ChildInfoStep = ({ formData, updateFormData }: ChildInfoStepProps) => {
           avatar_url: formData.childAvatarUrl,
           personality_traits: formData.personalityTraits || null,
           fixed_details: formData.fixedDetails || null,
+          clothing_type: formData.clothingType || null,
+          clothing_color: formData.clothingColor || null,
         };
 
         // When creating a new profile, never match against existing children by name.
@@ -396,6 +415,8 @@ const ChildInfoStep = ({ formData, updateFormData }: ChildInfoStepProps) => {
               avatar_url: formData.childAvatarUrl,
               personality_traits: formData.personalityTraits || null,
               fixed_details: formData.fixedDetails || null,
+              clothing_type: formData.clothingType || null,
+              clothing_color: formData.clothingColor || null,
             })
             .eq("id", existingChild.id);
 
@@ -512,6 +533,8 @@ const ChildInfoStep = ({ formData, updateFormData }: ChildInfoStepProps) => {
         personalityTraits: "",
         className: "",
         fixedDetails: "",
+        clothingType: "",
+        clothingColor: "",
       });
       
       toast.success(`הפרופיל של ${currentChild.name} נמחק בהצלחה`);
@@ -575,6 +598,8 @@ const ChildInfoStep = ({ formData, updateFormData }: ChildInfoStepProps) => {
                 personalityTraits: "",
                 className: "",
                 fixedDetails: "",
+                clothingType: "",
+                clothingColor: "",
               });
               setIsCreatingNew(true);
               setSelectedChildId(null);
@@ -719,6 +744,50 @@ const ChildInfoStep = ({ formData, updateFormData }: ChildInfoStepProps) => {
               🇺🇸 EN
             </button>
           </div>
+        </div>
+      </div>
+
+      {/* Clothing type · Clothing color */}
+      <div className="space-y-1">
+        <Label className="text-xs font-medium">סוג לבוש</Label>
+        <div className="grid grid-cols-3 gap-2">
+          {CLOTHING_TYPES.map((item) => (
+            <button
+              key={item.value}
+              type="button"
+              onClick={() => updateFormData({ clothingType: item.value })}
+              className={cn(
+                "p-1.5 rounded-lg border-2 transition-all text-center flex items-center justify-center gap-1",
+                formData.clothingType === item.value
+                  ? "border-purple-500 bg-gradient-to-r from-purple-100 to-pink-100"
+                  : "border-border bg-card hover:border-purple-300"
+              )}
+            >
+              <span className="text-base">{item.emoji}</span>
+              <span className="text-[11px] font-bold">{item.value}</span>
+            </button>
+          ))}
+        </div>
+      </div>
+
+      <div className="space-y-1">
+        <Label className="text-xs font-medium">צבע עיקרי</Label>
+        <div className="grid grid-cols-3 gap-2">
+          {CLOTHING_COLORS.map((color) => (
+            <button
+              key={color}
+              type="button"
+              onClick={() => updateFormData({ clothingColor: color })}
+              className={cn(
+                "p-1.5 rounded-lg border-2 transition-all text-center flex items-center justify-center",
+                formData.clothingColor === color
+                  ? "border-purple-500 bg-gradient-to-r from-purple-100 to-pink-100"
+                  : "border-border bg-card hover:border-purple-300"
+              )}
+            >
+              <span className="text-[11px] font-bold">{color}</span>
+            </button>
+          ))}
         </div>
       </div>
 

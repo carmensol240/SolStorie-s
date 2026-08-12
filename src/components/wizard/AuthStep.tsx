@@ -48,6 +48,8 @@ const AuthStep = ({ formData, onAuthenticated }: AuthStepProps) => {
         gender: formData.childGender === "female" ? "girl" : "boy",
         personality_traits: formData.personalityTraits || null,
         fixed_details: formData.fixedDetails || null,
+        clothing_type: formData.clothingType || null,
+        clothing_color: formData.clothingColor || null,
         photo_url: formData.childPhoto || null,
         avatar_url: avatarUrl,
         photo_consent: formData.photoConsent || false,
