@@ -1288,11 +1288,18 @@ serve(async (req) => {
       console.log(`Checking for existing avatar profile for ${childName}...`);
       const { data: existingChild } = await supabase
         .from('children')
-        .select('avatar_description, avatar_url')
+        .select('avatar_description, avatar_url, hair_color, hair_style, clothing_type, clothing_color')
         .eq('user_id', userId)
         .eq('name', childName)
         .maybeSingle();
-      
+
+      // Capture parent-provided appearance fields, if any. These take precedence
+      // over AI-extracted photo description to avoid conflicting character sources.
+      const parentHairColor = (existingChild?.hair_color || "").trim();
+      const parentHairStyle = (existingChild?.hair_style || "").trim();
+      const parentClothingType = (existingChild?.clothing_type || "").trim();
+      const parentClothingColor = (existingChild?.clothing_color || "").trim();
+
       if (existingChild?.avatar_description) {
         try {
           characterProfile = JSON.parse(existingChild.avatar_description);
@@ -1302,14 +1309,33 @@ serve(async (req) => {
           console.log("Could not parse saved profile, will generate new one");
         }
       }
+
+      // Apply parent overrides (if present) to the currently resolved profile.
+      // This works whether the profile came from the DB or was just extracted.
+      if (characterProfile) {
+        if (parentHairColor && parentHairStyle) {
+          const override = `${parentHairColor} ${parentHairStyle}`;
+          if (characterProfile.hairDescription !== override) {
+            console.log(`👤 Parent hair override: "${characterProfile.hairDescription}" -> "${override}"`);
+            characterProfile.hairDescription = override;
+          }
+        }
+        if (parentClothingColor && parentClothingType) {
+          const override = `${parentClothingColor} ${parentClothingType}`;
+          if (characterProfile.clothingDescription !== override) {
+            console.log(`👤 Parent clothing override: "${characterProfile.clothingDescription}" -> "${override}"`);
+            characterProfile.clothingDescription = override;
+          }
+        }
+      }
     }
-    
+
     // If no saved profile, extract from photo
     if (!characterProfile && effectivePhoto) {
       console.log("Extracting character profile from photo...");
       characterProfile = await extractCharacterProfile(effectivePhoto, childGender || "male", ageRange || "3-6", LOVABLE_API_KEY);
       console.log("Character profile extracted:", characterProfile);
-      
+
       // Save the profile for future stories (only if we have userId and childName)
       if (userId && childName && characterProfile) {
         console.log(`Saving avatar profile for ${childName} for future stories...`);
@@ -1318,12 +1344,40 @@ serve(async (req) => {
           .update({ avatar_description: JSON.stringify(characterProfile) })
           .eq('user_id', userId)
           .eq('name', childName);
-        
+
         if (updateError) {
           console.warn("Could not save avatar profile:", updateError);
         } else {
           console.log("✅ Avatar profile saved for future stories");
         }
+      }
+    }
+
+    // If a parent form override exists but we never entered the avatar block above
+    // (e.g. no photo and no saved profile), we cannot determine skin/eye color, so
+    // fall back to the default profile. Keep any manual overrides if they were set.
+    if (userId && childName && !characterProfile) {
+      const { data: fallbackChild } = await supabase
+        .from('children')
+        .select('hair_color, hair_style, clothing_type, clothing_color')
+        .eq('user_id', userId)
+        .eq('name', childName)
+        .maybeSingle();
+
+      const parentHairColor = (fallbackChild?.hair_color || "").trim();
+      const parentHairStyle = (fallbackChild?.hair_style || "").trim();
+      const parentClothingType = (fallbackChild?.clothing_type || "").trim();
+      const parentClothingColor = (fallbackChild?.clothing_color || "").trim();
+
+      if (parentHairColor || parentHairStyle || parentClothingType || parentClothingColor) {
+        characterProfile = getDefaultProfile(childGender || "male", childGender === "female" ? "ילדה" : "ילד", ageRange || "3-6");
+        if (parentHairColor && parentHairStyle) {
+          characterProfile.hairDescription = `${parentHairColor} ${parentHairStyle}`;
+        }
+        if (parentClothingColor && parentClothingType) {
+          characterProfile.clothingDescription = `${parentClothingColor} ${parentClothingType}`;
+        }
+        console.log("👤 Fallback default profile with parent overrides:", characterProfile);
       }
     }
     
