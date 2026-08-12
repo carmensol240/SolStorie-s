@@ -847,7 +847,6 @@ const Library = () => {
               <Tabs
                 value={activeTabValue}
                 onValueChange={(value) => {
-                  console.log('Library tab onValueChange', { userId: user?.id, value });
                   setActiveTabValue(value);
                   if (user && value !== '__all' && value !== '__other') {
                     setUserData(user.id, 'selected_child_id', value);
