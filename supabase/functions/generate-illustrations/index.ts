@@ -58,7 +58,7 @@ function seedFromStoryId(storyId: string): number {
 async function waitForPageOneIllustration(
   supabase: any,
   storyId: string,
-  maxWaitMs = 60_000,
+  maxWaitMs = 120_000,
   intervalMs = 3_000,
 ): Promise<string | null> {
   const deadline = Date.now() + maxWaitMs;
