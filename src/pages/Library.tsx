@@ -844,7 +844,17 @@ const Library = () => {
             ) : stories.length === 0 ? (
               <EmptyState onCreateClick={() => navigate("/create")} />
             ) : childTabs && !showOfflineFilter ? (
-              <Tabs defaultValue="__all" dir="rtl" className="w-full">
+              <Tabs
+                value={activeTabValue}
+                onValueChange={(value) => {
+                  setActiveTabValue(value);
+                  if (user && value !== '__all' && value !== '__other') {
+                    setUserData(user.id, 'selected_child_id', value);
+                  }
+                }}
+                dir="rtl"
+                className="w-full"
+              >
                 <TabsList className="w-full h-auto flex-wrap bg-purple-100/60 rounded-xl p-1 mb-4 gap-1">
                   <TabsTrigger
                     value="__all"
