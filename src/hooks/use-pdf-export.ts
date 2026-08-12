@@ -354,11 +354,14 @@ export const usePdfExport = () => {
     container.style.cssText = `position:absolute;left:-9999px;top:0;width:${designSize}px;height:${designSize}px;font-family:Heebo,Assistant,sans-serif;direction:rtl;`;
     document.body.appendChild(container);
 
-    // -- 1. Cover page (uses existing app cover_url) --
+    // -- 1. Cover page (always use the actual page 1 illustration, fallback to cover_url, then generic) --
     container.innerHTML = '';
-    const signedCoverUrl = story.cover_url
-      ? (signedUrlMap[story.cover_url] || story.cover_url)
-      : null;
+    const page1IllustrationUrl = story.pages.find(p => p.page_number === 1)?.illustration_url;
+    const signedCoverUrl = page1IllustrationUrl
+      ? (signedUrlMap[page1IllustrationUrl] || page1IllustrationUrl)
+      : story.cover_url
+        ? (signedUrlMap[story.cover_url] || story.cover_url)
+        : null;
     const coverEl = await renderCoverPage(story.child_name, story.topic, story.language, signedCoverUrl);
     container.appendChild(coverEl);
     await captureHtmlToPage(container, pdf, true, true);
