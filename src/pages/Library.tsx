@@ -251,6 +251,21 @@ const Library = () => {
     return tabs;
   }, [children, stories]);
 
+  const coloringChildTabs = useMemo(() => {
+    if (children.length < 2) return null;
+    const childNameSet = new Set(children.map(c => c.name));
+    const unmatchedPages = coloringPages.filter(cp => cp.story_child_name && !childNameSet.has(cp.story_child_name));
+    const tabs = children.map(child => ({
+      key: child.id,
+      label: child.name,
+      pages: coloringPages.filter(cp => cp.story_child_name === child.name),
+    }));
+    if (unmatchedPages.length > 0) {
+      tabs.push({ key: "__other", label: "אחר", pages: unmatchedPages });
+    }
+    return tabs;
+  }, [children, coloringPages]);
+
   const handleDeleteStory = async (storyId: string) => {
     try {
       const { error } = await supabase.from("stories").delete().eq("id", storyId);
