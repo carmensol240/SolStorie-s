@@ -186,7 +186,7 @@ const Upgrade = () => {
       const { data, error } = await supabase.functions.invoke("verify-purchase", {
         body: {
           orderId: testOrderId,
-          packageId: "single_story_full",
+          packageId: "popular",
           amount: 1,
           userId: user.id,
           testMode: true,
