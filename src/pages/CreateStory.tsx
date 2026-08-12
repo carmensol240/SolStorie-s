@@ -39,6 +39,8 @@ export interface StoryFormData {
   fixedDetails: string;
   clothingType: string;
   clothingColor: string;
+  hairColor: string;
+  hairStyle: string;
   adventureLogic?: AdventureLogic;
 }
 
@@ -60,6 +62,8 @@ const INITIAL_DATA: StoryFormData = {
   fixedDetails: "",
   clothingType: "",
   clothingColor: "",
+  hairColor: "",
+  hairStyle: "",
 };
 
 const steps = [
@@ -174,6 +178,8 @@ const CreateStory = () => {
     formData.childAge <= 12 &&
     formData.clothingType.trim().length > 0 &&
     formData.clothingColor.trim().length > 0 &&
+    formData.hairColor.trim().length > 0 &&
+    formData.hairStyle.trim().length > 0 &&
     (!formData.childPhoto || formData.photoConsent);
   const canProceedStep2 = formData.topic.length > 0 || formData.customTopic.trim().length > 0;
 
