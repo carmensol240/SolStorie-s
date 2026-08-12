@@ -170,25 +170,9 @@ export const usePdfExport = () => {
     if (!skipFooter) drawFooter(pdf);
   };
 
-  // ─── Build virtual pages (merge for toddlers 0-2) ──
+  // ─── Build virtual pages (one story page per PDF page) ──
   const buildVirtualPages = (story: Story): VirtualPdfPage[] => {
     const pages = story.pages;
-    const isToddler = story.age_range === '0-2';
-
-    if (isToddler) {
-      const result: VirtualPdfPage[] = [];
-      for (let i = 0; i < pages.length; i += 2) {
-        const p1 = pages[i];
-        const p2 = pages[i + 1];
-        result.push({
-          text: p2 ? `${p1.text}\n${p2.text}` : p1.text,
-          illustration_url: p1.illustration_url,
-          page_number: result.length + 1,
-        });
-      }
-      return result;
-    }
-
     return pages.map((p, i) => ({
       text: p.text,
       illustration_url: p.illustration_url,
