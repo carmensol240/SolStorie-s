@@ -29,6 +29,8 @@ interface SavedChild {
 interface ChildInfoStepProps {
   formData: StoryFormData;
   updateFormData: (updates: Partial<StoryFormData>) => void;
+  /** 1 = basics (name/age/gender/language), 2 = personalization (photo/clothing/hair) */
+  screen?: 1 | 2;
 }
 
 interface PhotoTip {
@@ -85,7 +87,7 @@ const rangeToAge = (range: string): number => {
   }
 };
 
-const ChildInfoStep = ({ formData, updateFormData }: ChildInfoStepProps) => {
+const ChildInfoStep = ({ formData, updateFormData, screen = 1 }: ChildInfoStepProps) => {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const { user } = useAuth();
   const [savedChildren, setSavedChildren] = useState<SavedChild[]>([]);
