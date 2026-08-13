@@ -573,6 +573,8 @@ const ChildInfoStep = ({ formData, updateFormData, screen = 1 }: ChildInfoStepPr
   return (
 
     <div className="w-full space-y-2 px-1">
+      {screen === 1 && (
+      <>
       {/* Personalized greeting (logged-in users) */}
       {user && (
         <div className="text-center mb-1">
@@ -771,6 +773,15 @@ const ChildInfoStep = ({ formData, updateFormData, screen = 1 }: ChildInfoStepPr
             </button>
           </div>
         </div>
+      </div>
+      </>
+      )}
+
+      {screen === 2 && (
+      <>
+      {/* Title */}
+      <div className="text-center">
+        <h1 className="text-lg font-black bg-gradient-to-r from-purple-600 via-pink-500 to-orange-400 bg-clip-text text-transparent">נוסיף תמונה והתאמה אישית</h1>
       </div>
 
       {/* Clothing type · Clothing color */}
