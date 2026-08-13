@@ -152,7 +152,7 @@ const CreateStory = () => {
     // If user is not authenticated, route to public viewer with guest banner
     if (!user) {
       sessionStorage.setItem("guest_story_id", storyId);
-      navigate(`/public-story/${slug}`);
+      navigate(`/s/${slug}`);
       return;
     }
     
