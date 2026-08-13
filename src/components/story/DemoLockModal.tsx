@@ -121,10 +121,14 @@ const DemoLockModal = ({ open, onOpenChange, title, description, storyId }: Demo
             className="w-auto max-w-[280px] mx-auto relative overflow-hidden bg-gradient-to-r from-purple-500 via-pink-500 to-orange-500 hover:from-purple-400 hover:via-pink-400 hover:to-orange-400 text-white font-black text-sm py-3 px-6 rounded-xl shadow-xl text-center"
             style={{ boxShadow: '0 0 30px rgba(168, 85, 247, 0.4), 0 0 60px rgba(236, 72, 153, 0.2)' }}
           >
-            <div>רכישת הסיפור הדיגיטלי 📱 – {singleStoryPrice}₪</div>
+            <div>
+              {showBonusOffer
+                ? `רכישת 2 סיפורים דיגיטליים - ${singleStoryPrice}₪`
+                : `רכישת הסיפור הדיגיטלי 📱 – ${singleStoryPrice}₪`}
+            </div>
             {showBonusOffer && (
               <div className="text-[11px] font-bold text-white/90 mt-0.5">
-                + סיפור דיגיטלי נוסף במתנה 🎁
+                כולל סיפור דיגיטלי שני במתנה 🎁
               </div>
             )}
           </button>
@@ -146,14 +150,32 @@ const DemoLockModal = ({ open, onOpenChange, title, description, storyId }: Demo
                 className="w-full bg-white/10 backdrop-blur-md border border-white/20 hover:bg-white/15 transition-colors rounded-xl px-4 py-3 text-center"
               >
                 <div className="text-white font-black text-sm">
-                  רכישת הסיפור + קובץ להדפסה 📖 – {popularPrice}₪
+                  {showBonusOffer
+                    ? `🎉 חבילת פתיחה - ${popularPrice}₪`
+                    : `רכישת הסיפור + קובץ להדפסה 📖 – ${popularPrice}₪`}
                 </div>
-                <div className="text-white/60 text-[11px] font-semibold mt-0.5">
-                  קריאה מלאה + שיתוף בוואטסאפ + הקלטת קול
-                </div>
-                <div className="text-white/80 text-[11px] font-bold mt-0.5">
-                  + חבילת דפי צביעה מלאה 🎨
-                </div>
+                {showBonusOffer ? (
+                  <>
+                    <div className="text-white/60 text-[11px] font-semibold mt-0.5">
+                      2 סיפורים דיגיטליים + 2 קבצים להדפסה
+                    </div>
+                    <div className="text-white/80 text-[11px] font-bold mt-0.5">
+                      חבילת דפי צביעה מלאה 🎨
+                    </div>
+                    <div className="text-white/60 text-[11px] font-semibold mt-0.5">
+                      (מבצע חד-פעמי לרכישה ראשונה)
+                    </div>
+                  </>
+                ) : (
+                  <>
+                    <div className="text-white/60 text-[11px] font-semibold mt-0.5">
+                      קריאה מלאה + שיתוף בוואטסאפ + הקלטת קול
+                    </div>
+                    <div className="text-white/80 text-[11px] font-bold mt-0.5">
+                      + חבילת דפי צביעה מלאה 🎨
+                    </div>
+                  </>
+                )}
               </button>
             </>
           )}
