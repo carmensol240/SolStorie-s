@@ -2237,7 +2237,9 @@ ${fullStoryText}`;
       language: language,
       generation_status: "generating_illustrations",
       story_type: isCustomTopic ? "custom" : "text",
+      child_photo_url: childPhoto || childAvatarUrl || null,
     };
+
     
     // Only add user_id if we have one (for gallery privacy)
     if (userId) {

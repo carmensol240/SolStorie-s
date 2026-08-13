@@ -881,7 +881,7 @@ const ChildInfoStep = ({ formData, updateFormData }: ChildInfoStepProps) => {
 
       {/* Photo Upload - Enlarged */}
       <div id="photo-upload-section" className="space-y-1.5 scroll-mt-24">
-        <Label className="text-xs font-medium">תמונה של הילד/ה (אופציונלי)</Label>
+        <Label className="text-xs font-medium">תמונה של הילד/ה</Label>
         <div className="relative">
           <input
             ref={fileInputRef}

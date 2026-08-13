@@ -95,10 +95,12 @@ interface Story {
   language?: string;
   age_range?: string;
   cover_url?: string;
+  child_photo_url?: string | null;
   pages: StoryPage[];
   generation_status?: string;
   page1_regen_used?: boolean;
 }
+
 
 const FONT_SIZES = [
   { label: 'קטן', size: 'text-xl md:text-2xl' },
@@ -828,6 +830,7 @@ const [currentPage, setCurrentPage] = useState(0);
             language: 'he',
             age_range: offlineStory.meta.age_range || '3-6',
             cover_url: offlineStory.coverBlob ? URL.createObjectURL(offlineStory.coverBlob) : undefined,
+            child_photo_url: (offlineStory.meta as any).child_photo_url || undefined,
             pages: offlineStory.pages.map(p => ({
               id: p.id,
               page_number: p.page_number,
@@ -836,6 +839,7 @@ const [currentPage, setCurrentPage] = useState(0);
               illustration_prompt: p.illustration_prompt,
             })),
           };
+
           setStory(storyObj);
           setResolvedId(offlineStory.id);
           setIsLoading(false);
@@ -915,6 +919,7 @@ const [currentPage, setCurrentPage] = useState(0);
               language: pd.language || 'he',
               age_range: pd.age_range || '3-6',
               cover_url: pd.cover_url || undefined,
+              child_photo_url: pd.child_photo_url || undefined,
               pages: (pd.pages || []).map((p: any) => ({
                 id: `${pd.id}-${p.page_number}`,
                 page_number: p.page_number,
@@ -923,6 +928,7 @@ const [currentPage, setCurrentPage] = useState(0);
               })),
               generation_status: 'ready',
             };
+
             setStory(storyObj);
             setIsLoading(false);
             return;
@@ -997,10 +1003,13 @@ const [currentPage, setCurrentPage] = useState(0);
         topic: storyData.topic,
         language: (storyData as any).language || 'he',
         age_range: (storyData as any).age_range || '3-6',
+        cover_url: (storyData as any).cover_url || undefined,
+        child_photo_url: (storyData as any).child_photo_url || undefined,
         pages: pagesData || [],
         generation_status: status,
         page1_regen_used: !!(storyData as any).page1_regen_used,
       };
+
       
       setStory(storyObj);
 
