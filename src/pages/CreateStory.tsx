@@ -180,8 +180,10 @@ const CreateStory = () => {
     formData.clothingColor.trim().length > 0 &&
     formData.hairColor.trim().length > 0 &&
     formData.hairStyle.trim().length > 0 &&
+    formData.childPhoto &&
     formData.childPhoto.trim().length > 0 &&
     formData.photoConsent;
+
 
   const canProceedStep2 = formData.topic.length > 0 || formData.customTopic.trim().length > 0;
 
