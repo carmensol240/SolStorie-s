@@ -68,9 +68,10 @@ const INITIAL_DATA: StoryFormData = {
 
 const steps = [
   { number: 1, label: "פרטי הילד/ה" },
-  { number: 2, label: "הרשמה" },
-  { number: 3, label: "נושא" },
-  { number: 4, label: "יצירה" },
+  { number: 2, label: "התאמה אישית" },
+  { number: 3, label: "הרשמה" },
+  { number: 4, label: "נושא" },
+  { number: 5, label: "יצירה" },
 ];
 
 const CreateStory = () => {
@@ -96,7 +97,7 @@ const CreateStory = () => {
         try {
           const restored = JSON.parse(saved) as StoryFormData;
           setFormData(restored);
-          setStep(4);
+          setStep(5);
           setIsGenerating(true);
         } catch (e) {
           console.warn('[CreateStory] Failed to restore formData:', e);
@@ -175,20 +176,20 @@ const CreateStory = () => {
     formData.childName.trim().length > 0 &&
     typeof formData.childAge === "number" &&
     formData.childAge >= 1 &&
-    formData.childAge <= 12 &&
-    formData.clothingType.trim().length > 0 &&
-    formData.clothingColor.trim().length > 0 &&
-    formData.hairColor.trim().length > 0 &&
-    formData.hairStyle.trim().length > 0 &&
+    formData.childAge <= 12;
+
+  const canProceedPersonalization = Boolean(
     formData.childPhoto &&
     formData.childPhoto.trim().length > 0 &&
-    formData.photoConsent;
+    formData.photoConsent
+  );
 
-
-  const canProceedStep2 = formData.topic.length > 0 || formData.customTopic.trim().length > 0;
+  const canProceedTopic = formData.topic.length > 0 || formData.customTopic.trim().length > 0;
 
   const handleNext = () => {
     if (step === 1 && canProceedStep1) {
+      setStep(2);
+    } else if (step === 2 && canProceedPersonalization) {
       trackEvent({
         eventType: "child_info_completed",
         metadata: {
@@ -202,8 +203,8 @@ const CreateStory = () => {
         trackEvent({ eventType: "photo_uploaded" });
       }
       // Skip auth step if user already logged in
-      setStep(user ? 3 : 2);
-    } else if (step === 3 && canProceedStep2) {
+      setStep(user ? 4 : 3);
+    } else if (step === 4 && canProceedTopic) {
       trackEvent({
         eventType: "topic_selected",
         metadata: {
@@ -218,7 +219,7 @@ const CreateStory = () => {
         return;
       }
       trackEvent({ eventType: "generation_started" });
-      setStep(4);
+      setStep(5);
       setIsGenerating(true);
     }
   };
@@ -226,16 +227,16 @@ const CreateStory = () => {
   const handleBack = () => {
     if (step === 1) {
       navigate("/"); // Go back to home from first step
-    } else if (step === 3) {
+    } else if (step === 4) {
       // Skip auth step on the way back if logged in
-      setStep(user ? 1 : 2);
+      setStep(user ? 2 : 3);
     } else if (step > 1) {
       setStep(step - 1);
     }
   };
 
-  // Step 4 - Full screen generating, no header/footer
-  if (step === 4) {
+  // Step 5 - Full screen generating, no header/footer
+  if (step === 5) {
     return (
       <GeneratingStep
         formData={formData}
@@ -244,9 +245,9 @@ const CreateStory = () => {
     );
   }
 
-  // Steps 1-3 - Regular wizard layout
+  // Steps 1-4 - Regular wizard layout
   const displayStep = step;
-  const visibleSteps = user ? steps.filter((s) => s.number !== 2) : steps;
+  const visibleSteps = user ? steps.filter((s) => s.number !== 3) : steps;
 
   return (
     <div className="flex flex-col bg-background" style={{ minHeight: '100dvh', height: 'auto', WebkitOverflowScrolling: 'touch' }}>
@@ -299,30 +300,39 @@ const CreateStory = () => {
       <main className="flex-1" style={{ WebkitOverflowScrolling: 'touch' }}>
         <div className="container max-w-lg mx-auto px-2 py-3" style={{ paddingBottom: '120px' }}>
           {step === 1 && (
-            <ChildInfoStep formData={formData} updateFormData={updateFormData} />
+            <ChildInfoStep formData={formData} updateFormData={updateFormData} screen={1} />
           )}
-          {step === 2 && !user && (
+          {step === 2 && (
+            <ChildInfoStep formData={formData} updateFormData={updateFormData} screen={2} />
+          )}
+          {step === 3 && !user && (
             <AuthStep
               formData={formData}
-              onAuthenticated={() => setStep(3)}
+              onAuthenticated={() => setStep(4)}
             />
           )}
-          {step === 3 && (
+          {step === 4 && (
             <TopicStep formData={formData} updateFormData={updateFormData} />
           )}
         </div>
       </main>
 
-      {step !== 2 && (
+      {step !== 3 && (
         <div className="fixed bottom-[4.5rem] left-0 right-0 z-[50] bg-gradient-to-t from-background via-background to-transparent pt-6 pb-2 px-3 pb-safe">
           <div className="container max-w-lg mx-auto">
             <Button
               onClick={handleNext}
-              disabled={step === 1 ? !canProceedStep1 : !canProceedStep2}
+              disabled={
+                step === 1
+                  ? !canProceedStep1
+                  : step === 2
+                    ? !canProceedPersonalization
+                    : !canProceedTopic
+              }
               size="lg"
               className="w-full bg-gradient-to-r from-purple-600 via-pink-500 to-orange-400 hover:from-purple-700 hover:via-pink-600 hover:to-orange-500 text-white font-black text-sm py-3 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed shadow-lg hover:shadow-xl transition-all"
             >
-              {step === 3 ? "צרו את הסיפור" : "המשיכו"}
+              {step === 4 ? "צרו את הסיפור" : "המשיכו"}
               <ArrowLeft className="w-4 h-4 mr-1.5" />
             </Button>
             <GlobalFooter />
@@ -330,7 +340,7 @@ const CreateStory = () => {
         </div>
       )}
 
-      {step === 2 && (
+      {step === 3 && (
         <div className="pb-24">
           <GlobalFooter />
         </div>
