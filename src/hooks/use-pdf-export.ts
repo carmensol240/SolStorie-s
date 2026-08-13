@@ -31,8 +31,10 @@ interface Story {
   language?: string;
   age_range?: string;
   cover_url?: string | null;
+  child_photo_url?: string | null;
   pages: StoryPage[];
 }
+
 
 interface VirtualPdfPage {
   text: string;
