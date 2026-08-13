@@ -1,5 +1,5 @@
 import React from "react";
-import { Library, Home, Settings } from "lucide-react";
+import { Library, Home, Settings, PlusCircle } from "lucide-react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { cn } from "@/lib/utils";
 
@@ -9,6 +9,7 @@ const MobileNavigation = React.forwardRef<HTMLElement>((_, ref) => {
 
   const navItems = [
     { path: "/adventure", icon: Home, label: "בית" },
+    { path: "/create", icon: PlusCircle, label: "צור סיפור" },
     { path: "/library", icon: Library, label: "ספרייה" },
     { path: "/settings", icon: Settings, label: "הגדרות" },
   ];
