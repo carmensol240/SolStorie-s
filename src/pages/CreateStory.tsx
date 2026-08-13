@@ -299,11 +299,12 @@ const CreateStory = () => {
 
       <main className="flex-1" style={{ WebkitOverflowScrolling: 'touch' }}>
         <div className="container max-w-lg mx-auto px-2 py-3" style={{ paddingBottom: '120px' }}>
-          {step === 1 && (
-            <ChildInfoStep formData={formData} updateFormData={updateFormData} screen={1} />
-          )}
-          {step === 2 && (
-            <ChildInfoStep formData={formData} updateFormData={updateFormData} screen={2} />
+          {(step === 1 || step === 2) && (
+            <ChildInfoStep
+              formData={formData}
+              updateFormData={updateFormData}
+              screen={step === 1 ? 1 : 2}
+            />
           )}
           {step === 3 && !user && (
             <AuthStep
