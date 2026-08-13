@@ -29,6 +29,8 @@ interface SavedChild {
 interface ChildInfoStepProps {
   formData: StoryFormData;
   updateFormData: (updates: Partial<StoryFormData>) => void;
+  /** 1 = basics (name/age/gender/language), 2 = personalization (photo/clothing/hair) */
+  screen?: 1 | 2;
 }
 
 interface PhotoTip {
@@ -85,7 +87,7 @@ const rangeToAge = (range: string): number => {
   }
 };
 
-const ChildInfoStep = ({ formData, updateFormData }: ChildInfoStepProps) => {
+const ChildInfoStep = ({ formData, updateFormData, screen = 1 }: ChildInfoStepProps) => {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const { user } = useAuth();
   const [savedChildren, setSavedChildren] = useState<SavedChild[]>([]);
@@ -571,6 +573,8 @@ const ChildInfoStep = ({ formData, updateFormData }: ChildInfoStepProps) => {
   return (
 
     <div className="w-full space-y-2 px-1">
+      {screen === 1 && (
+      <>
       {/* Personalized greeting (logged-in users) */}
       {user && (
         <div className="text-center mb-1">
@@ -769,6 +773,15 @@ const ChildInfoStep = ({ formData, updateFormData }: ChildInfoStepProps) => {
             </button>
           </div>
         </div>
+      </div>
+      </>
+      )}
+
+      {screen === 2 && (
+      <>
+      {/* Title */}
+      <div className="text-center">
+        <h1 className="text-lg font-black bg-gradient-to-r from-purple-600 via-pink-500 to-orange-400 bg-clip-text text-transparent">נוסיף תמונה והתאמה אישית</h1>
       </div>
 
       {/* Clothing type · Clothing color */}
@@ -1170,6 +1183,8 @@ const ChildInfoStep = ({ formData, updateFormData }: ChildInfoStepProps) => {
           שמור פרטים לסיפורים הבאים
         </Button>
       </div>
+      </>
+      )}
 
       {/* Privacy Note */}
       <div className="flex items-center justify-center gap-1.5 text-[10px] text-muted-foreground text-center pt-1">
