@@ -1183,6 +1183,8 @@ const ChildInfoStep = ({ formData, updateFormData, screen = 1 }: ChildInfoStepPr
           שמור פרטים לסיפורים הבאים
         </Button>
       </div>
+      </>
+      )}
 
       {/* Privacy Note */}
       <div className="flex items-center justify-center gap-1.5 text-[10px] text-muted-foreground text-center pt-1">
