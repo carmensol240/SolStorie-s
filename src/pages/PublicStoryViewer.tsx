@@ -391,10 +391,10 @@ const PublicStoryViewer = () => {
 
         {/* Page indicator */}
         <div className="dot-indicator pb-2">
-          {virtualPages.length <= 10 ? (
+          {visiblePagesCount <= 10 ? (
             <>
               <div className={cn("dot", currentPage === -1 && "active")} />
-              {virtualPages.map((_, i) => (
+              {Array.from({ length: visiblePagesCount }).map((_, i) => (
                 <div key={i} className={cn("dot", currentPage === i && "active")} />
               ))}
               <div className={cn("dot", isEndPage && "active")} />
@@ -406,6 +406,24 @@ const PublicStoryViewer = () => {
           )}
         </div>
       </main>
+
+      {/* Signup lock modal */}
+      <Dialog open={signupLockOpen} onOpenChange={setSignupLockOpen}>
+        <DialogContent dir="rtl" className="sm:max-w-md text-center">
+          <DialogHeader>
+            <DialogTitle className="text-center">הירשמו כדי להמשיך לקרוא</DialogTitle>
+            <DialogDescription className="text-center">
+              קראתם את הטעימה מהסיפור. הרשמה חינמית פותחת את שאר העמודים ושומרת את הסיפור בספרייה שלכם.
+            </DialogDescription>
+          </DialogHeader>
+          <Button
+            onClick={() => navigate(signupUrl)}
+            className="w-full bg-gradient-to-r from-purple-600 to-pink-500 text-white font-bold rounded-full h-12"
+          >
+            הירשמו והמשיכו לקרוא ✨
+          </Button>
+        </DialogContent>
+      </Dialog>
 
       {/* Guest signup banner */}
       {showGuestBanner && (
