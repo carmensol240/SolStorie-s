@@ -27,6 +27,7 @@ interface StoryPage {
 interface Story {
   id: string;
   child_name: string;
+  child_gender?: string;
   topic: string;
   language?: string;
   age_range?: string;
