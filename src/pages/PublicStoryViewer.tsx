@@ -1,7 +1,8 @@
 import { useState, useEffect, useLayoutEffect, useCallback, useMemo } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { BookOpen, Loader2, ChevronLeft, ChevronRight, Home, Save } from "lucide-react";
+import { BookOpen, Loader2, ChevronLeft, ChevronRight, Home, Save, Lock } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { supabase } from "@/integrations/supabase/client";
 import { cn } from "@/lib/utils";
 import { getPublicIllustrationUrl } from "@/lib/illustration-url";
@@ -44,6 +45,7 @@ const PublicStoryViewer = () => {
   const [error, setError] = useState(false);
   const [currentPage, setCurrentPage] = useState(-1); // -1 = cover
   const [showGuestBanner, setShowGuestBanner] = useState(false);
+  const [signupLockOpen, setSignupLockOpen] = useState(false);
   const guestStoryId = sessionStorage.getItem("guest_story_id");
 
   // Show guest banner if this is a guest-generated story
@@ -116,6 +118,9 @@ const PublicStoryViewer = () => {
   }, [storySlug, authLoading, user]);
 
   const isToddler = story?.age_range === '0-2';
+  // Free taste for public/guest viewers — same limit as unpaid logged-in users
+  const DEMO_VIRTUAL_PAGE_LIMIT = isToddler ? 5 : 4;
+  const isLockedVirtualPage = (index: number) => index >= DEMO_VIRTUAL_PAGE_LIMIT;
 
   // Build virtual pages — age-based layout
   const virtualPages = useMemo<VirtualPage[]>(() => {
@@ -151,8 +156,19 @@ const PublicStoryViewer = () => {
   const handlePageNav = useCallback((dir: 'next' | 'prev') => {
     if (!story) return;
     const maxPage = virtualPages.length; // end page
-    setCurrentPage(p => dir === 'next' ? Math.min(p + 1, maxPage) : Math.max(p - 1, -1));
-  }, [story, virtualPages.length]);
+    if (dir === 'next') {
+      setCurrentPage(p => {
+        const next = Math.min(p + 1, maxPage);
+        if (next < virtualPages.length && isLockedVirtualPage(next)) {
+          setSignupLockOpen(true);
+          return p;
+        }
+        return next;
+      });
+      return;
+    }
+    setCurrentPage(p => Math.max(p - 1, -1));
+  }, [story, virtualPages.length, DEMO_VIRTUAL_PAGE_LIMIT]);
 
   // Scroll to top on every page change — fires before paint
   useLayoutEffect(() => {
