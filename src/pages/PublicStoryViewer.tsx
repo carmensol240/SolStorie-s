@@ -216,10 +216,13 @@ const PublicStoryViewer = () => {
 
   const isCoverPage = currentPage === -1;
   const isEndPage = currentPage >= virtualPages.length;
-  const currentVirtual = (!isCoverPage && !isEndPage && currentPage >= 0) ? virtualPages[currentPage] : null;
+  const isCurrentLocked = !isCoverPage && !isEndPage && currentPage >= 0 && isLockedVirtualPage(currentPage);
+  const currentVirtual = (!isCoverPage && !isEndPage && currentPage >= 0 && !isCurrentLocked) ? virtualPages[currentPage] : null;
   const illustrationSrc = currentVirtual?.illustrationUrl ? getPublicIllustrationUrl(currentVirtual.illustrationUrl) : null;
   const displayText = currentVirtual?.text || '';
   const dbPageCount = story?.pages?.length || 0;
+  const visiblePagesCount = Math.min(virtualPages.length, DEMO_VIRTUAL_PAGE_LIMIT);
+  const signupUrl = `/auth?returnTo=${encodeURIComponent(`/s/${storySlug}`)}`;
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-[#1a0a1a] via-[#2a1030] to-[#1a0a1a] flex flex-col story-viewer-landscape" dir="rtl">
@@ -261,6 +264,29 @@ const PublicStoryViewer = () => {
                   </button>
                   <span className="mt-2 text-xs text-white/60 font-bold">SolStorie's™</span>
                 </div>
+              </div>
+            )}
+
+            {/* Locked page — guest taste limit reached */}
+            {isCurrentLocked && (
+              <div className="h-full w-full relative bg-gradient-to-br from-[#2a1030] via-[#3a1840] to-[#1a0a1a] flex flex-col items-center justify-center text-center px-6">
+                <div className="w-16 h-16 rounded-full bg-white/10 flex items-center justify-center mb-4">
+                  <Lock className="w-8 h-8 text-[#FFD66B]" />
+                </div>
+                <h2 className="text-xl md:text-2xl font-black text-white">רוצים לדעת איך זה נגמר?</h2>
+                <p className="text-white/80 mt-2 max-w-sm">
+                  המשך הסיפור מחכה לכם — הירשמו בחינם כדי להמשיך לקרוא ולשמור את הסיפור.
+                </p>
+                <Button
+                  onClick={() => navigate(signupUrl)}
+                  className="mt-5 bg-gradient-to-r from-purple-600 to-pink-500 text-white font-bold rounded-full px-6 h-12"
+                >
+                  הירשמו והמשיכו לקרוא ✨
+                </Button>
+                <button onClick={() => handlePageNav('prev')} aria-label="עמוד קודם"
+                  className="absolute right-3 top-1/2 -translate-y-1/2 z-20 w-8 h-8 rounded-full flex items-center justify-center bg-white/20 hover:bg-white/40 text-white transition-all">
+                  <ChevronRight className="w-5 h-5" />
+                </button>
               </div>
             )}
 
