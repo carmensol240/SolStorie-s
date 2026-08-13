@@ -37,7 +37,7 @@ const AccessibilityMenu = () => {
           localStorage.removeItem(DISMISSED_KEY);
           setMinimized(false);
         }}
-        className="fixed bottom-20 left-4 z-50 h-10 w-10 rounded-full bg-blue-500 hover:bg-blue-600 shadow-md flex items-center justify-center"
+        className="fixed bottom-28 left-4 z-50 h-10 w-10 rounded-full bg-blue-500 hover:bg-blue-600 shadow-md flex items-center justify-center"
         aria-label="פתח תפריט נגישות"
       >
         <Accessibility className="h-5 w-5 text-white" />
@@ -46,7 +46,7 @@ const AccessibilityMenu = () => {
   }
 
   return (
-    <div className="fixed bottom-20 left-4 z-50 flex items-center gap-1">
+    <div className="fixed bottom-28 left-4 z-50 flex items-center gap-1">
       <Popover>
         <PopoverTrigger asChild>
           <Button
