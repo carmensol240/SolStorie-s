@@ -278,8 +278,11 @@ export const usePdfExport = () => {
     return pageEl;
   };
 
-  // ─── Back Cover Page: brand purple background ──
-  const renderBackCoverPage = async (childName: string): Promise<HTMLDivElement> => {
+  // ─── Back Cover Page: brand purple background with child photo ──
+  const renderBackCoverPage = async (
+    childName: string,
+    childPhotoUrl?: string | null,
+  ): Promise<HTMLDivElement> => {
     const qrDataUrl = await QRCode.toDataURL('https://soulstory.co.il', {
       width: 360,
       margin: 1,
@@ -288,6 +291,11 @@ export const usePdfExport = () => {
     const today = new Date().toLocaleDateString('he-IL', {
       day: 'numeric', month: 'long', year: 'numeric',
     });
+
+    const photoDataUrl = childPhotoUrl
+      ? await loadImageAsDataUrl(childPhotoUrl).catch(() => null)
+      : null;
+
     const page = document.createElement('div');
     page.style.cssText = `
       width: 100%; height: 100%; position: relative; overflow: hidden;
@@ -300,6 +308,15 @@ export const usePdfExport = () => {
       <div style="display:flex;flex-direction:column;align-items:center;">
         <div style="color:#FFD66B;font-size:96px;font-weight:900;letter-spacing:1px;
           text-shadow:0 2px 12px rgba(0,0,0,0.5);">✨ SolStorie's™</div>
+        ${photoDataUrl ? `
+        <div style="margin-top:40px;display:flex;flex-direction:column;align-items:center;gap:12px;">
+          <img src="${photoDataUrl}" style="width:120px;height:120px;border-radius:50%;object-fit:cover;
+            border:4px solid #FFD66B;box-shadow:0 4px 16px rgba(0,0,0,0.4);" />
+          <p style="color:#ffffff;font-size:26px;font-weight:700;margin:0;line-height:1.3;">
+            ${escapeHtml(childName)} — הגיבור/ה של הסיפור
+          </p>
+        </div>
+        ` : ''}
         <p style="color:#ffffff;font-size:48px;font-weight:700;margin:60px 0 0 0;line-height:1.4;">
           כל ילד הוא גיבור הסיפור שלו ✨
         </p>
@@ -330,6 +347,7 @@ export const usePdfExport = () => {
     `;
     return page;
   };
+
 
   // ─── Square PDF builder ──
   const exportSquare = async (story: Story) => {
