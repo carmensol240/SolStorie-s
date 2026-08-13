@@ -27,6 +27,7 @@ interface StoryPage {
 interface Story {
   id: string;
   child_name: string;
+  child_gender?: string;
   topic: string;
   language?: string;
   age_range?: string;
@@ -348,6 +349,41 @@ export const usePdfExport = () => {
     return page;
   };
 
+  // ─── The End Page: brand closing with app benefits ──
+  const renderTheEndPage = (childName: string, childGender?: string): HTMLDivElement => {
+    const isMale = childGender === 'male' || childGender === 'boy' || childGender === 'זכר';
+    const closingLine = isMale
+      ? `${escapeHtml(childName)} סיים הרפתקה קסומה - אבל זו רק ההתחלה! 🌟`
+      : `${escapeHtml(childName)} סיימה הרפתקה קסומה - אבל זו רק ההתחלה! 🌟`;
+
+    const page = document.createElement('div');
+    page.style.cssText = `
+      width: 100%; height: 100%; position: relative; overflow: hidden;
+      display: flex; flex-direction: column; align-items: center; justify-content: center;
+      direction: rtl; font-family: Heebo, Assistant, sans-serif; text-align: center;
+      background: linear-gradient(160deg, #1a0a3e 0%, #2a1050 45%, #3b1466 100%);
+      padding: 120px 120px; box-sizing: border-box;
+    `;
+    page.innerHTML = `
+      <div style="color:#FFD66B;font-size:96px;font-weight:900;letter-spacing:1px;
+        text-shadow:0 2px 12px rgba(0,0,0,0.5);margin-bottom:40px;">סוֹף ✨</div>
+      <p style="color:#ffffff;font-size:54px;font-weight:700;margin:0 0 70px 0;line-height:1.4;">
+        ${closingLine}
+      </p>
+      <p style="color:rgba(255,255,255,0.85);font-size:40px;font-weight:600;margin:0 0 50px 0;">
+        באפליקציה הדיגיטלית מקבלים גם:
+      </p>
+      <div style="display:flex;flex-direction:column;align-items:flex-start;gap:24px;background:rgba(255,255,255,0.08);
+        border:1px solid rgba(255,255,255,0.18);border-radius:32px;padding:50px 70px;max-width:900px;">
+        <div style="color:#ffffff;font-size:36px;font-weight:500;line-height:1.5;">🎙️ הקלטה והשמעה בקול שלכם</div>
+        <div style="color:#ffffff;font-size:36px;font-weight:500;line-height:1.5;">🎵 מוזיקת רקע קסומה</div>
+        <div style="color:#ffffff;font-size:36px;font-weight:500;line-height:1.5;">🎨 עשרות נושאים נוספים</div>
+        <div style="color:#ffffff;font-size:36px;font-weight:500;line-height:1.5;">🖍️ דפי צביעה דיגיטליים</div>
+      </div>
+    `;
+    return page;
+  };
+
 
   // ─── Square PDF builder ──
   const exportSquare = async (story: Story) => {
@@ -415,6 +451,11 @@ export const usePdfExport = () => {
         await captureHtmlToPage(container, pdf, false);
       }
     }
+
+    // -- The End page (before back cover) --
+    container.innerHTML = '';
+    container.appendChild(renderTheEndPage(story.child_name, story.child_gender));
+    await captureHtmlToPage(container, pdf, false, true);
 
     // -- Last. Back cover page --
     container.innerHTML = '';
