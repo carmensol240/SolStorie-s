@@ -452,6 +452,11 @@ export const usePdfExport = () => {
       }
     }
 
+    // -- The End page (before back cover) --
+    container.innerHTML = '';
+    container.appendChild(renderTheEndPage(story.child_name, story.child_gender));
+    await captureHtmlToPage(container, pdf, false, true);
+
     // -- Last. Back cover page --
     container.innerHTML = '';
     const backCoverEl = await renderBackCoverPage(story.child_name, story.child_photo_url);
