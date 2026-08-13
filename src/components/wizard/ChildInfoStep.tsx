@@ -784,50 +784,6 @@ const ChildInfoStep = ({ formData, updateFormData, screen = 1 }: ChildInfoStepPr
         <h1 className="text-lg font-black bg-gradient-to-r from-purple-600 via-pink-500 to-orange-400 bg-clip-text text-transparent">נוסיף תמונה והתאמה אישית</h1>
       </div>
 
-      {/* Clothing type · Clothing color */}
-      <div className="space-y-1">
-        <Label className="text-xs font-medium">סוג לבוש</Label>
-        <div className="grid grid-cols-3 gap-2">
-          {CLOTHING_TYPES.map((item) => (
-            <button
-              key={item.value}
-              type="button"
-              onClick={() => updateFormData({ clothingType: item.value })}
-              className={cn(
-                "p-1.5 rounded-lg border-2 transition-all text-center flex items-center justify-center gap-1",
-                formData.clothingType === item.value
-                  ? "border-purple-500 bg-gradient-to-r from-purple-100 to-pink-100"
-                  : "border-border bg-card hover:border-purple-300"
-              )}
-            >
-              <span className="text-base">{item.emoji}</span>
-              <span className="text-[11px] font-bold">{item.value}</span>
-            </button>
-          ))}
-        </div>
-      </div>
-
-      <div className="space-y-1">
-        <Label className="text-xs font-medium">צבע עיקרי</Label>
-        <div className="grid grid-cols-3 gap-2">
-          {CLOTHING_COLORS.map((color) => (
-            <button
-              key={color}
-              type="button"
-              onClick={() => updateFormData({ clothingColor: color })}
-              className={cn(
-                "p-1.5 rounded-lg border-2 transition-all text-center flex items-center justify-center",
-                formData.clothingColor === color
-                  ? "border-purple-500 bg-gradient-to-r from-purple-100 to-pink-100"
-                  : "border-border bg-card hover:border-purple-300"
-              )}
-            >
-              <span className="text-[11px] font-bold">{color}</span>
-            </button>
-          ))}
-        </div>
-      </div>
-
       {/* Hair color · Hair style */}
       <div className="space-y-1">
         <Label className="text-xs font-medium">צבע שיער</Label>
