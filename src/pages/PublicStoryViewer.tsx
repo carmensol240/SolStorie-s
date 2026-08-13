@@ -93,13 +93,6 @@ const PublicStoryViewer = () => {
     };
   }, []);
 
-  // Require auth: redirect logged-out visitors to /auth and return them back
-  useEffect(() => {
-    if (authLoading) return;
-    if (!user && storySlug) {
-      navigate(`/auth?returnTo=${encodeURIComponent(`/s/${storySlug}`)}`, { replace: true });
-    }
-  }, [user, authLoading, storySlug, navigate]);
 
   useEffect(() => {
     if (!storySlug || authLoading || !user) return;
@@ -434,7 +427,7 @@ const PublicStoryViewer = () => {
               <p className="text-sm font-bold truncate">💾 הסיפור לא נשמר — הירשמו כדי לשמור אותו!</p>
             </div>
             <Button
-              onClick={() => navigate(`/auth?returnTo=/public-story/${storySlug}`)}
+              onClick={() => navigate(`/auth?returnTo=/s/${storySlug}`)}
               size="sm"
               className="bg-white text-purple-700 hover:bg-purple-50 font-black text-xs shrink-0 rounded-full px-4"
             >
