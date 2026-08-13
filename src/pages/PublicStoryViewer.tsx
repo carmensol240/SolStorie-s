@@ -95,7 +95,7 @@ const PublicStoryViewer = () => {
 
 
   useEffect(() => {
-    if (!storySlug || authLoading || !user) return;
+    if (!storySlug) return;
     const fetchStory = async () => {
       try {
         const { data, error: rpcError } = await supabase.rpc("get_public_story", {
@@ -108,7 +108,7 @@ const PublicStoryViewer = () => {
       } catch { setError(true); } finally { setIsLoading(false); }
     };
     fetchStory();
-  }, [storySlug, authLoading, user]);
+  }, [storySlug]);
 
   const isToddler = story?.age_range === '0-2';
   // Free taste for public/guest viewers — same limit as unpaid logged-in users
