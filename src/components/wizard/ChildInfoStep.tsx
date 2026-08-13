@@ -774,15 +774,6 @@ const ChildInfoStep = ({ formData, updateFormData, screen = 1 }: ChildInfoStepPr
           </div>
         </div>
       </div>
-      </>
-      )}
-
-      {screen === 2 && (
-      <>
-      {/* Title */}
-      <div className="text-center">
-        <h1 className="text-lg font-black bg-gradient-to-r from-purple-600 via-pink-500 to-orange-400 bg-clip-text text-transparent">נוסיף תמונה והתאמה אישית</h1>
-      </div>
 
       {/* Clothing type · Clothing color */}
       <div className="space-y-1">
@@ -826,6 +817,15 @@ const ChildInfoStep = ({ formData, updateFormData, screen = 1 }: ChildInfoStepPr
             </button>
           ))}
         </div>
+      </div>
+      </>
+      )}
+
+      {screen === 2 && (
+      <>
+      {/* Title */}
+      <div className="text-center">
+        <h1 className="text-lg font-black bg-gradient-to-r from-purple-600 via-pink-500 to-orange-400 bg-clip-text text-transparent">נוסיף תמונה והתאמה אישית</h1>
       </div>
 
       {/* Hair color · Hair style */}
