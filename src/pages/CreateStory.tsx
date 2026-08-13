@@ -186,7 +186,7 @@ const CreateStory = () => {
 
   const canProceedTopic = formData.topic.length > 0 || formData.customTopic.trim().length > 0;
 
-  const handleNext = () => {
+  const handleNext = async () => {
     if (step === 1 && canProceedStep1) {
       setStep(2);
     } else if (step === 2 && canProceedPersonalization) {
@@ -214,9 +214,18 @@ const CreateStory = () => {
       });
       // If logged in, check credits first
       if (user && !hasCredits()) {
-        trackEvent({ eventType: "paywall_view", metadata: { reason: "no_credits" } });
-        navigate('/upgrade?noCredits=true');
-        return;
+        // Check whether this user has ever created a story before
+        const { count } = await supabase
+          .from('stories')
+          .select('id', { count: 'exact', head: true })
+          .eq('user_id', user.id);
+
+        // Returning users go straight to purchase; new users get the one-time free taste
+        if (count && count > 0) {
+          trackEvent({ eventType: "paywall_view", metadata: { reason: "no_credits_returning" } });
+          navigate('/upgrade?noCredits=true');
+          return;
+        }
       }
       trackEvent({ eventType: "generation_started" });
       setStep(5);
