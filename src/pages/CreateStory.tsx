@@ -186,7 +186,7 @@ const CreateStory = () => {
 
   const canProceedTopic = formData.topic.length > 0 || formData.customTopic.trim().length > 0;
 
-  const handleNext = () => {
+  const handleNext = async () => {
     if (step === 1 && canProceedStep1) {
       setStep(2);
     } else if (step === 2 && canProceedPersonalization) {
