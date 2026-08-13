@@ -1,7 +1,8 @@
 import { useState, useEffect, useLayoutEffect, useCallback, useMemo } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { BookOpen, Loader2, ChevronLeft, ChevronRight, Home, Save } from "lucide-react";
+import { BookOpen, Loader2, ChevronLeft, ChevronRight, Home, Save, Lock } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { supabase } from "@/integrations/supabase/client";
 import { cn } from "@/lib/utils";
 import { getPublicIllustrationUrl } from "@/lib/illustration-url";
@@ -44,6 +45,7 @@ const PublicStoryViewer = () => {
   const [error, setError] = useState(false);
   const [currentPage, setCurrentPage] = useState(-1); // -1 = cover
   const [showGuestBanner, setShowGuestBanner] = useState(false);
+  const [signupLockOpen, setSignupLockOpen] = useState(false);
   const guestStoryId = sessionStorage.getItem("guest_story_id");
 
   // Show guest banner if this is a guest-generated story
@@ -116,6 +118,9 @@ const PublicStoryViewer = () => {
   }, [storySlug, authLoading, user]);
 
   const isToddler = story?.age_range === '0-2';
+  // Free taste for public/guest viewers — same limit as unpaid logged-in users
+  const DEMO_VIRTUAL_PAGE_LIMIT = isToddler ? 5 : 4;
+  const isLockedVirtualPage = (index: number) => index >= DEMO_VIRTUAL_PAGE_LIMIT;
 
   // Build virtual pages — age-based layout
   const virtualPages = useMemo<VirtualPage[]>(() => {
@@ -151,8 +156,19 @@ const PublicStoryViewer = () => {
   const handlePageNav = useCallback((dir: 'next' | 'prev') => {
     if (!story) return;
     const maxPage = virtualPages.length; // end page
-    setCurrentPage(p => dir === 'next' ? Math.min(p + 1, maxPage) : Math.max(p - 1, -1));
-  }, [story, virtualPages.length]);
+    if (dir === 'next') {
+      setCurrentPage(p => {
+        const next = Math.min(p + 1, maxPage);
+        if (next < virtualPages.length && isLockedVirtualPage(next)) {
+          setSignupLockOpen(true);
+          return p;
+        }
+        return next;
+      });
+      return;
+    }
+    setCurrentPage(p => Math.max(p - 1, -1));
+  }, [story, virtualPages.length, DEMO_VIRTUAL_PAGE_LIMIT]);
 
   // Scroll to top on every page change — fires before paint
   useLayoutEffect(() => {
@@ -200,10 +216,13 @@ const PublicStoryViewer = () => {
 
   const isCoverPage = currentPage === -1;
   const isEndPage = currentPage >= virtualPages.length;
-  const currentVirtual = (!isCoverPage && !isEndPage && currentPage >= 0) ? virtualPages[currentPage] : null;
+  const isCurrentLocked = !isCoverPage && !isEndPage && currentPage >= 0 && isLockedVirtualPage(currentPage);
+  const currentVirtual = (!isCoverPage && !isEndPage && currentPage >= 0 && !isCurrentLocked) ? virtualPages[currentPage] : null;
   const illustrationSrc = currentVirtual?.illustrationUrl ? getPublicIllustrationUrl(currentVirtual.illustrationUrl) : null;
   const displayText = currentVirtual?.text || '';
   const dbPageCount = story?.pages?.length || 0;
+  const visiblePagesCount = Math.min(virtualPages.length, DEMO_VIRTUAL_PAGE_LIMIT);
+  const signupUrl = `/auth?returnTo=${encodeURIComponent(`/s/${storySlug}`)}`;
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-[#1a0a1a] via-[#2a1030] to-[#1a0a1a] flex flex-col story-viewer-landscape" dir="rtl">
@@ -245,6 +264,29 @@ const PublicStoryViewer = () => {
                   </button>
                   <span className="mt-2 text-xs text-white/60 font-bold">SolStorie's™</span>
                 </div>
+              </div>
+            )}
+
+            {/* Locked page — guest taste limit reached */}
+            {isCurrentLocked && (
+              <div className="h-full w-full relative bg-gradient-to-br from-[#2a1030] via-[#3a1840] to-[#1a0a1a] flex flex-col items-center justify-center text-center px-6">
+                <div className="w-16 h-16 rounded-full bg-white/10 flex items-center justify-center mb-4">
+                  <Lock className="w-8 h-8 text-[#FFD66B]" />
+                </div>
+                <h2 className="text-xl md:text-2xl font-black text-white">רוצים לדעת איך זה נגמר?</h2>
+                <p className="text-white/80 mt-2 max-w-sm">
+                  המשך הסיפור מחכה לכם — הירשמו בחינם כדי להמשיך לקרוא ולשמור את הסיפור.
+                </p>
+                <Button
+                  onClick={() => navigate(signupUrl)}
+                  className="mt-5 bg-gradient-to-r from-purple-600 to-pink-500 text-white font-bold rounded-full px-6 h-12"
+                >
+                  הירשמו והמשיכו לקרוא ✨
+                </Button>
+                <button onClick={() => handlePageNav('prev')} aria-label="עמוד קודם"
+                  className="absolute right-3 top-1/2 -translate-y-1/2 z-20 w-8 h-8 rounded-full flex items-center justify-center bg-white/20 hover:bg-white/40 text-white transition-all">
+                  <ChevronRight className="w-5 h-5" />
+                </button>
               </div>
             )}
 
@@ -349,10 +391,10 @@ const PublicStoryViewer = () => {
 
         {/* Page indicator */}
         <div className="dot-indicator pb-2">
-          {virtualPages.length <= 10 ? (
+          {visiblePagesCount <= 10 ? (
             <>
               <div className={cn("dot", currentPage === -1 && "active")} />
-              {virtualPages.map((_, i) => (
+              {Array.from({ length: visiblePagesCount }).map((_, i) => (
                 <div key={i} className={cn("dot", currentPage === i && "active")} />
               ))}
               <div className={cn("dot", isEndPage && "active")} />
@@ -364,6 +406,24 @@ const PublicStoryViewer = () => {
           )}
         </div>
       </main>
+
+      {/* Signup lock modal */}
+      <Dialog open={signupLockOpen} onOpenChange={setSignupLockOpen}>
+        <DialogContent dir="rtl" className="sm:max-w-md text-center">
+          <DialogHeader>
+            <DialogTitle className="text-center">הירשמו כדי להמשיך לקרוא</DialogTitle>
+            <DialogDescription className="text-center">
+              קראתם את הטעימה מהסיפור. הרשמה חינמית פותחת את שאר העמודים ושומרת את הסיפור בספרייה שלכם.
+            </DialogDescription>
+          </DialogHeader>
+          <Button
+            onClick={() => navigate(signupUrl)}
+            className="w-full bg-gradient-to-r from-purple-600 to-pink-500 text-white font-bold rounded-full h-12"
+          >
+            הירשמו והמשיכו לקרוא ✨
+          </Button>
+        </DialogContent>
+      </Dialog>
 
       {/* Guest signup banner */}
       {showGuestBanner && (
