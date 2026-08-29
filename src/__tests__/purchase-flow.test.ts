@@ -80,10 +80,10 @@ describe("UI prices == config prices", () => {
     single_story: 39.9,
   };
 
-  const beforeEnd = new Date("2026-07-15T12:00:00+03:00");
-  const afterEnd = new Date("2026-09-01T00:00:01+03:00");
+  const beforeEnd = new Date("2026-09-15T12:00:00+03:00");
+  const afterEnd = new Date("2026-10-01T00:00:01+03:00");
 
-  it("promo פעיל לפני 31/8/26 23:59 IDT", () => {
+  it("promo פעיל לפני 30/9/26 23:59 IDT", () => {
     expect(isPromoActive(beforeEnd)).toBe(true);
     expect(isPromoActive(afterEnd)).toBe(false);
   });
@@ -216,8 +216,8 @@ describe("GIFT_PACKAGES", () => {
     expect(GROW_LINKS.twoStories).toMatch(/^https:\/\/pay\.grow\.link\//);
   });
 
-  it("PROMO_END הוא ה-31/8/26 23:59 בשעון ישראל", () => {
-    expect(PROMO_END.toISOString()).toBe("2026-08-31T20:59:59.000Z");
+  it("PROMO_END הוא ה-30/9/26 23:59 בשעון ישראל", () => {
+    expect(PROMO_END.toISOString()).toBe("2026-09-30T20:59:59.000Z");
   });
 });
 
