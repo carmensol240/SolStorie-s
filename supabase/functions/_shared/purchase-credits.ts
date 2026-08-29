@@ -322,7 +322,7 @@ export async function applyPurchaseCredits(
 // Amount → packageId fallback mapping. Used ONLY when cField2 is missing from
 // the Grow webhook payload. Keep this in sync with actual Grow dashboard prices.
 //
-// Current Grow prices (promo, until 31/8/26):
+// Current Grow prices (promo, until 30/9/26):
 //   basic (single_story_digital)       29.90
 //   popular                             99.90
 //   single_story (DemoLockModal)        39.90
@@ -331,7 +331,7 @@ export async function applyPurchaseCredits(
 //   pdf                                 59.90  ⚠ collides with gift_two_stories 59.90
 //   gift_two_stories                    59.90  ⚠ collides with pdf 59.90
 //
-// Regular prices (from 1/9/26): basic 39.90, popular 119.90, pdf 69.90,
+// Regular prices (from 1/10/26): basic 39.90, popular 119.90, pdf 69.90,
 // gift_two_stories 69.90 (also collides). Legacy amounts kept for
 // backwards-compat with older Grow links that may still be live.
 //
