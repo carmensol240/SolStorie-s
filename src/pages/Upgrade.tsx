@@ -370,7 +370,7 @@ const Upgrade = () => {
             <div className="absolute top-1 right-2 text-xl opacity-40">🔥</div>
             <div className="absolute top-1 left-2 text-xl opacity-40">🔥</div>
             <p className="text-sm font-black text-amber-200 mb-3">
-              מחיר השקה מיוחד — ההצעה מסתיימת בעוד:
+              מבצע תחילת שנה — ההצעה מסתיימת בעוד:
             </p>
             <div className="flex items-center justify-center gap-2 sm:gap-3">
               <CountdownUnit value={countdown.days} label="ימים" />
