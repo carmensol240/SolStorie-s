@@ -2017,54 +2017,6 @@ ${topic.endsWith('-edu') ? `
     
     console.log(`Story parsed successfully with ${storyData.pages.length} pages`);
 
-    // === DEFERRED CREDIT DEDUCTION: Only after successful AI generation ===
-    if (userId && !guestMode) {
-      // Atomic check-and-decrement via optimistic concurrency (CAS):
-      // UPDATE ... WHERE id = ? AND story_credits = expected AND story_credits > 0
-      // If no row is returned, another request decremented in between — retry up to 3x.
-      let deducted = false;
-      for (let attempt = 0; attempt < 3 && !deducted; attempt++) {
-        const { data: freshProfile } = await supabase
-          .from("profiles")
-          .select("story_credits")
-          .eq("id", userId)
-          .single();
-
-        const freshCredits = freshProfile?.story_credits ?? 0;
-        if (freshCredits <= 0) {
-          console.log("Race condition: credits depleted between check and deduction");
-          return new Response(
-            JSON.stringify({ error: "נגמרו הקרדיטים", code: "NO_CREDITS" }),
-            { status: 402, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-          );
-        }
-
-        const { data: updatedRows, error: deductError } = await supabase
-          .from("profiles")
-          .update({ story_credits: freshCredits - 1 })
-          .eq("id", userId)
-          .eq("story_credits", freshCredits)
-          .gt("story_credits", 0)
-          .select("story_credits");
-
-        if (deductError) {
-          console.error("Error deducting credit:", deductError);
-          break;
-        }
-        if (updatedRows && updatedRows.length > 0) {
-          console.log(`Credit deducted atomically: ${freshCredits} → ${freshCredits - 1}`);
-          deducted = true;
-        } else {
-          console.warn(`CAS miss on credit deduction (attempt ${attempt + 1}), retrying`);
-        }
-      }
-      if (!deducted) {
-        return new Response(
-          JSON.stringify({ error: "נגמרו הקרדיטים", code: "NO_CREDITS" }),
-          { status: 402, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-        );
-      }
-    }
     // === TEXT QUALITY REWRITE: Age-appropriate language polish ===
     if (language === "en") {
       console.log("[generate-story] Skipping Hebrew text quality rewrite for English story");
@@ -2237,7 +2189,6 @@ ${fullStoryText}`;
       language: language,
       generation_status: "generating_illustrations",
       story_type: isCustomTopic ? "custom" : "text",
-      child_photo_url: childPhoto || childAvatarUrl || null,
     };
 
     
@@ -2345,6 +2296,54 @@ ${fullStoryText}`;
     if (pagesError) {
       console.error("Error creating pages:", pagesError);
       throw pagesError;
+    }
+
+    // === DEFERRED CREDIT DEDUCTION ===
+    // Charge only after both the story and all of its pages are safely persisted.
+    // This prevents failed inserts from consuming a paid story credit.
+    if (userId && !guestMode) {
+      let deducted = false;
+      for (let attempt = 0; attempt < 3 && !deducted; attempt++) {
+        const { data: freshProfile } = await supabase
+          .from("profiles")
+          .select("story_credits")
+          .eq("id", userId)
+          .single();
+
+        const freshCredits = freshProfile?.story_credits ?? 0;
+        if (freshCredits <= 0) {
+          console.log("Race condition: credits depleted before post-save deduction");
+          return new Response(
+            JSON.stringify({ error: "נגמרו הקרדיטים", code: "NO_CREDITS" }),
+            { status: 402, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+          );
+        }
+
+        const { data: updatedRows, error: deductError } = await supabase
+          .from("profiles")
+          .update({ story_credits: freshCredits - 1 })
+          .eq("id", userId)
+          .eq("story_credits", freshCredits)
+          .gt("story_credits", 0)
+          .select("story_credits");
+
+        if (deductError) {
+          console.error("Error deducting credit after story save:", deductError);
+          break;
+        }
+        if (updatedRows && updatedRows.length > 0) {
+          console.log(`Credit deducted atomically after save: ${freshCredits} → ${freshCredits - 1}`);
+          deducted = true;
+        } else {
+          console.warn(`CAS miss on post-save credit deduction (attempt ${attempt + 1}), retrying`);
+        }
+      }
+      if (!deducted) {
+        return new Response(
+          JSON.stringify({ error: "לא הצלחנו לחייב קרדיט עבור הסיפור שנשמר. פנו לתמיכה.", code: "CREDIT_DEDUCTION_FAILED", storyId: story.id }),
+          { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        );
+      }
     }
 
     // === DEFERRED SUMMARY: runs in parallel with illustrations ===
@@ -2492,7 +2491,18 @@ ${fullStoryText}`;
     );
 
   } catch (error) {
-    const crashMessage = error instanceof Error ? error.message : String(error);
+    let crashMessage: string;
+    if (error instanceof Error) {
+      crashMessage = error.message;
+    } else if (typeof error === "object" && error !== null) {
+      try {
+        crashMessage = JSON.stringify(error);
+      } catch {
+        crashMessage = String(error);
+      }
+    } else {
+      crashMessage = String(error);
+    }
     const crashStack = error instanceof Error ? error.stack : undefined;
     console.error("[generate-story] CRASH:", crashMessage);
     if (crashStack) console.error("[generate-story] STACK:", crashStack);
