@@ -304,6 +304,25 @@ serve(async (req) => {
       }
     }
 
+    // The AI provider cannot fetch signed storage URLs (URL_ERROR) — inline as base64.
+    if (childPhoto && childPhoto.includes("/storage/v1/object/sign/")) {
+      try {
+        const imgRes = await fetch(childPhoto);
+        if (imgRes.ok) {
+          const buf = new Uint8Array(await imgRes.arrayBuffer());
+          let bin = "";
+          for (let i = 0; i < buf.length; i += 0x8000) {
+            bin += String.fromCharCode(...buf.subarray(i, i + 0x8000));
+          }
+          childPhoto = `data:${imgRes.headers.get("content-type") || "image/jpeg"};base64,${btoa(bin)}`;
+        } else {
+          await imgRes.text();
+        }
+      } catch (e) {
+        console.warn("Could not inline child photo:", e);
+      }
+    }
+
     // Select correct Sol variant based on story topic
     const sol = getSolUrl(story.topic || "");
     console.log(`Sol variant: ${sol.label} for topic "${story.topic}"`);
