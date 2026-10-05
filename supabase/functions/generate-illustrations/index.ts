@@ -1476,6 +1476,25 @@ serve(async (req) => {
         childPhotoSignedUrl = signedData?.signedUrl || null;
         childPhotoRefPath = effectivePhoto;
       }
+      // The AI provider cannot fetch signed storage URLs (URL_ERROR) — inline as base64.
+      if (childPhotoSignedUrl && childPhotoSignedUrl.startsWith("http")) {
+        try {
+          const imgRes = await fetch(childPhotoSignedUrl);
+          if (imgRes.ok) {
+            const buf = new Uint8Array(await imgRes.arrayBuffer());
+            let bin = "";
+            for (let i = 0; i < buf.length; i += 0x8000) {
+              bin += String.fromCharCode(...buf.subarray(i, i + 0x8000));
+            }
+            const mime = imgRes.headers.get("content-type") || "image/jpeg";
+            childPhotoSignedUrl = `data:${mime};base64,${btoa(bin)}`;
+          } else {
+            await imgRes.text();
+          }
+        } catch (e) {
+          console.warn("Could not inline child photo:", e);
+        }
+      }
       if (childPhotoSignedUrl) {
         console.log(`🖼️ Child photo available for face-consistent illustrations`);
       }
