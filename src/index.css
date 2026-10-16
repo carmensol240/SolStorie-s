@@ -810,3 +810,19 @@ html.reduced-motion *::after {
 img {
   image-orientation: from-image;
 }
+
+/* A4 coloring page print (only #a4-print-root prints) */
+#a4-print-root { display: none; }
+@media print {
+  @page { size: A4 portrait; margin: 10mm; }
+  body > *:not(#a4-print-root) { display: none !important; }
+  #a4-print-root {
+    display: flex !important; align-items: center; justify-content: center;
+    width: 100%; height: 277mm; background: #fff !important;
+    break-inside: avoid; page-break-inside: avoid;
+  }
+  #a4-print-root img {
+    max-width: 100%; max-height: 277mm; object-fit: contain;
+    break-inside: avoid; page-break-inside: avoid;
+  }
+}

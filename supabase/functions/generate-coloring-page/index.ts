@@ -156,6 +156,8 @@ serve(async (req) => {
 8. RESOLUTION: Output a high-resolution image (at least 2400x3200 pixels) suitable for 300 DPI A4 printing.
 9. BACKGROUND: Pure white (#FFFFFF) background with no marks or artifacts.
 
+10. LAYOUT: full-page portrait composition in A4 proportions, the illustration fills the whole page from edge to edge, pure white background, clean bold black outlines, no gray shading, no text.
+
 Output ONLY the coloring page image, nothing else. Do not include any text, labels, letter names, or written words anywhere in the image.`;
 
     console.log("Sending to Lovable AI Gateway for coloring page conversion...");
@@ -196,6 +198,7 @@ Output ONLY the coloring page image, nothing else. Do not include any text, labe
               },
             ],
             modalities: ["image", "text"],
+            image_config: { aspect_ratio: "2:3" },
           }),
         });
 

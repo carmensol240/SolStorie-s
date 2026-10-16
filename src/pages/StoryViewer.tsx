@@ -285,6 +285,7 @@ const [currentPage, setCurrentPage] = useState(0);
   const [coloringAction, setColoringAction] = useState<'pick' | 'choose-action'>('pick');
   const [coloringMode, setColoringMode] = useState<'print' | 'online' | null>(null);
   const [onlineColoringOpen, setOnlineColoringOpen] = useState(false);
+  const [a4PreviewUrl, setA4PreviewUrl] = useState<string | null>(null);
   const [onlineColoringImageUrl, setOnlineColoringImageUrl] = useState<string | null>(null);
   const [cachedColoringUrl, setCachedColoringUrl] = useState<string | null>(null);
   const [cachedIllustrationUrl, setCachedIllustrationUrl] = useState<string | null>(null);
@@ -2473,7 +2474,7 @@ const [currentPage, setCurrentPage] = useState(0);
                       setOnlineColoringImageUrl(coloringUrl);
                       setOnlineColoringOpen(true);
                     } else {
-                      window.open(coloringUrl, '_blank');
+                      setA4PreviewUrl(coloringUrl);
                     }
                   } catch (err: any) {
                     console.error("Coloring error:", err);
@@ -2587,6 +2588,7 @@ const [currentPage, setCurrentPage] = useState(0);
                       setCachedIllustrationUrl(getPublicIllustrationUrl(selectedColoringUrl));
                       await triggerDownload(coloringUrl);
                       setColoringPickerOpen(false);
+                      setA4PreviewUrl(coloringUrl);
                     } catch (err: any) {
                       console.error("Coloring error:", err);
                       toast({ title: "שגיאה ביצירת דף צביעה", description: err.message, variant: "destructive" });
