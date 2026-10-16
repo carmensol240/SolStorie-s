@@ -71,6 +71,7 @@ import { useChildAvatar } from "@/hooks/use-child-avatar";
 import { usePageRecording } from "@/hooks/use-page-recording";
 import PageRecordingControls from "@/components/story/PageRecordingControls";
 import { OnlineColoringCanvas } from "@/components/story/OnlineColoringCanvas";
+import A4ColoringFrame from "@/components/coloring/A4ColoringFrame";
 
 import castWavingFarewell from "@/assets/cast-waving-farewell.png";
 
@@ -2661,6 +2662,12 @@ const [currentPage, setCurrentPage] = useState(0);
       </Dialog>
 
       {/* Online Coloring Canvas */}
+      <Dialog open={!!a4PreviewUrl} onOpenChange={(o) => !o && setA4PreviewUrl(null)}>
+        <DialogContent className="max-w-sm" dir="rtl">
+          <DialogHeader><DialogTitle>דף צביעה A4</DialogTitle></DialogHeader>
+          {a4PreviewUrl && <A4ColoringFrame imageUrl={a4PreviewUrl} name={story?.child_name} />}
+        </DialogContent>
+      </Dialog>
       <OnlineColoringCanvas
         isOpen={onlineColoringOpen}
         onClose={() => setOnlineColoringOpen(false)}
