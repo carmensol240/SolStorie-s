@@ -27,6 +27,7 @@ import { getUserData, setUserData } from "@/lib/user-storage";
 import { translateTopic } from '@/lib/topic-translations';
 import libraryEmptyState from "@/assets/library-empty-state.png";
 import { OnlineColoringCanvas } from "@/components/story/OnlineColoringCanvas";
+import { A4Frame, A4ColoringActions } from "@/components/coloring/A4ColoringFrame";
 
 interface StoryPage {
   illustration_url: string | null;
@@ -530,14 +531,7 @@ const Library = () => {
           const topicLabel = cp.story_topic ? translateTopic(cp.story_topic) : '';
           return (
             <div key={cp.id} className="rounded-xl border bg-card shadow-sm overflow-hidden">
-              <div className="aspect-square bg-white relative">
-                <img
-                  src={imgUrl || ''}
-                  alt={`דף צביעה - ${topicLabel}`}
-                  className="w-full h-full object-contain"
-                  loading="lazy"
-                />
-              </div>
+              <A4Frame imageUrl={imgUrl || ''} alt={`דף צביעה - ${topicLabel}`} className="border-0 border-b" />
               <div className="p-2 space-y-1.5">
                 {cp.story_child_name && (
                   <p className="text-xs font-bold text-foreground truncate">{cp.story_child_name}</p>
@@ -573,6 +567,7 @@ const Library = () => {
                     הורדה
                   </Button>
                 </div>
+                {imgUrl && <A4ColoringActions imageUrl={imgUrl} name={cp.story_child_name || topicLabel} />}
               </div>
             </div>
           );

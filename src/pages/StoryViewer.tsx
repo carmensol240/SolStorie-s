@@ -71,6 +71,7 @@ import { useChildAvatar } from "@/hooks/use-child-avatar";
 import { usePageRecording } from "@/hooks/use-page-recording";
 import PageRecordingControls from "@/components/story/PageRecordingControls";
 import { OnlineColoringCanvas } from "@/components/story/OnlineColoringCanvas";
+import A4ColoringFrame from "@/components/coloring/A4ColoringFrame";
 
 import castWavingFarewell from "@/assets/cast-waving-farewell.png";
 
@@ -285,6 +286,7 @@ const [currentPage, setCurrentPage] = useState(0);
   const [coloringAction, setColoringAction] = useState<'pick' | 'choose-action'>('pick');
   const [coloringMode, setColoringMode] = useState<'print' | 'online' | null>(null);
   const [onlineColoringOpen, setOnlineColoringOpen] = useState(false);
+  const [a4PreviewUrl, setA4PreviewUrl] = useState<string | null>(null);
   const [onlineColoringImageUrl, setOnlineColoringImageUrl] = useState<string | null>(null);
   const [cachedColoringUrl, setCachedColoringUrl] = useState<string | null>(null);
   const [cachedIllustrationUrl, setCachedIllustrationUrl] = useState<string | null>(null);
@@ -2473,7 +2475,7 @@ const [currentPage, setCurrentPage] = useState(0);
                       setOnlineColoringImageUrl(coloringUrl);
                       setOnlineColoringOpen(true);
                     } else {
-                      window.open(coloringUrl, '_blank');
+                      setA4PreviewUrl(coloringUrl);
                     }
                   } catch (err: any) {
                     console.error("Coloring error:", err);
@@ -2587,6 +2589,7 @@ const [currentPage, setCurrentPage] = useState(0);
                       setCachedIllustrationUrl(getPublicIllustrationUrl(selectedColoringUrl));
                       await triggerDownload(coloringUrl);
                       setColoringPickerOpen(false);
+                      setA4PreviewUrl(coloringUrl);
                     } catch (err: any) {
                       console.error("Coloring error:", err);
                       toast({ title: "שגיאה ביצירת דף צביעה", description: err.message, variant: "destructive" });
@@ -2659,6 +2662,12 @@ const [currentPage, setCurrentPage] = useState(0);
       </Dialog>
 
       {/* Online Coloring Canvas */}
+      <Dialog open={!!a4PreviewUrl} onOpenChange={(o) => !o && setA4PreviewUrl(null)}>
+        <DialogContent className="max-w-sm" dir="rtl">
+          <DialogHeader><DialogTitle>דף צביעה A4</DialogTitle></DialogHeader>
+          {a4PreviewUrl && <A4ColoringFrame imageUrl={a4PreviewUrl} name={story?.child_name} />}
+        </DialogContent>
+      </Dialog>
       <OnlineColoringCanvas
         isOpen={onlineColoringOpen}
         onClose={() => setOnlineColoringOpen(false)}
