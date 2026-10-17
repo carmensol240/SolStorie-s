@@ -9,7 +9,6 @@ import { useColoringCredits } from "@/hooks/use-coloring-credits";
 import { useEditingCredits } from "@/hooks/use-editing-credits";
 import { supabase } from "@/integrations/supabase/client";
 import heroBackground from "@/assets/hero-children-flying-sky.jpg";
-import WelcomeGiftBanner from "./WelcomeGiftBanner";
 import { getUserData, setUserData } from "@/lib/user-storage";
 
 interface LoggedInHomeProps {
@@ -154,7 +153,6 @@ const LoggedInHome = ({ user, displayName }: LoggedInHomeProps) => {
         )}
 
         {/* Welcome Gift Banner - shows only for new users */}
-        <WelcomeGiftBanner credits={credits} storyCount={storyCount} />
 
         {/* Primary CTA Button - only shown when welcome banner is NOT visible */}
         {!showWelcomeBanner && (

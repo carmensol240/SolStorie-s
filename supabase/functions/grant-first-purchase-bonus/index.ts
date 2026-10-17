@@ -1,5 +1,6 @@
 import { createClient } from "npm:@supabase/supabase-js@2";
 import { corsHeaders } from "npm:@supabase/supabase-js@2/cors";
+import { isPromoActive } from "../_shared/promo.ts";
 
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response("ok", { headers: corsHeaders });
@@ -39,6 +40,12 @@ Deno.serve(async (req) => {
     if (pErr) throw pErr;
     if (!profile) {
       return new Response(JSON.stringify({ granted: false, reason: "no_profile" }), {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+    // The 1+1 first-purchase bonus ended with the launch promo (30/9/2026).
+    if (!isPromoActive()) {
+      return new Response(JSON.stringify({ granted: false, reason: "promo_ended" }), {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
