@@ -87,21 +87,21 @@ const DemoLockModal = ({ open, onOpenChange, title, description, storyId }: Demo
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent
         dir="rtl"
-        className="max-w-md text-center border-white/20 bg-gradient-to-b from-[hsl(260,60%,15%)] via-[hsl(270,40%,20%)] to-[hsl(250,50%,12%)] text-white p-5"
+        className="max-w-md text-center border-border bg-background text-foreground p-5"
       >
         <DialogHeader>
-          <DialogTitle className="text-2xl font-black bg-gradient-to-r from-purple-300 via-pink-300 to-orange-300 bg-clip-text text-transparent">
+          <DialogTitle className="text-2xl font-black text-primary">
             {title ?? "רוצים להמשיך לקרוא? 📖"}
           </DialogTitle>
-          <p className="text-sm text-white/80 pt-1 text-center">
+          <p className="text-sm text-foreground pt-1 text-center">
             {"\u200B"}
           </p>
           {showBonusOffer && (
             <>
-              <DialogDescription className="text-sm text-white/80 pt-1 text-center">
+              <DialogDescription className="text-sm text-foreground pt-1 text-center">
                 🎁 סיפור ראשון? מגיע לך מתנה!
               </DialogDescription>
-              <DialogDescription className="text-sm text-white/80 pt-1 text-center">
+              <DialogDescription className="text-sm text-foreground pt-1 text-center">
                 רכשו ב-{singleStoryPrice} ₪ וקבלו סיפור דיגיטלי נוסף
               </DialogDescription>
             </>
@@ -127,12 +127,12 @@ const DemoLockModal = ({ open, onOpenChange, title, description, storyId }: Demo
                 : `רכישת הסיפור הדיגיטלי 📱 – ${singleStoryPrice}₪`}
             </div>
             {showBonusOffer && (
-              <div className="text-xs font-bold text-white/90 mt-0.5">
+              <div className="text-xs font-bold text-foreground mt-0.5">
                 כולל סיפור דיגיטלי שני במתנה 🎁
               </div>
             )}
           </button>
-          <p className="text-white/80 text-xs font-bold text-center -mt-1">
+          <p className="text-foreground text-xs font-bold text-center -mt-1">
             {"\u200B"}
           </p>
 
@@ -140,38 +140,38 @@ const DemoLockModal = ({ open, onOpenChange, title, description, storyId }: Demo
             <>
               <div className="flex items-center gap-3 my-1">
                 <div className="flex-1 h-px bg-gradient-to-l from-transparent via-white/30 to-transparent" />
-                <span className="text-white/70 text-xs font-bold px-2">{"\u200B"}או</span>
+                <span className="text-muted-foreground text-xs font-bold px-2">{"\u200B"}או</span>
                 <div className="flex-1 h-px bg-gradient-to-r from-transparent via-white/30 to-transparent" />
               </div>
 
               {/* Secondary: story + print file */}
               <button
                 onClick={goPopular}
-                className="w-full bg-white/10 backdrop-blur-md border border-white/20 hover:bg-white/15 transition-colors rounded-xl px-4 py-3 text-center"
+                className="w-full bg-card border border-border hover:bg-muted transition-colors rounded-xl px-4 py-3 text-center"
               >
-                <div className="text-white font-black text-sm">
+                <div className="text-foreground font-black text-sm">
                   {showBonusOffer
                     ? `🎉 חבילת פתיחה - ${popularPrice}₪`
                     : `רכישת הסיפור + קובץ להדפסה 📖 – ${popularPrice}₪`}
                 </div>
                 {showBonusOffer ? (
                   <>
-                    <div className="text-white/60 text-xs font-semibold mt-0.5">
+                    <div className="text-muted-foreground text-xs font-semibold mt-0.5">
                       2 סיפורים דיגיטליים + 2 קבצים להדפסה
                     </div>
-                    <div className="text-white/80 text-xs font-bold mt-0.5">
+                    <div className="text-foreground text-xs font-bold mt-0.5">
                       חבילת דפי צביעה מלאה 🎨
                     </div>
-                    <div className="text-white/60 text-xs font-semibold mt-0.5">
+                    <div className="text-muted-foreground text-xs font-semibold mt-0.5">
                       (מבצע חד-פעמי לרכישה ראשונה)
                     </div>
                   </>
                 ) : (
                   <>
-                    <div className="text-white/60 text-xs font-semibold mt-0.5">
+                    <div className="text-muted-foreground text-xs font-semibold mt-0.5">
                       קריאה מלאה + שיתוף בוואטסאפ + הקלטת קול
                     </div>
-                    <div className="text-white/80 text-xs font-bold mt-0.5">
+                    <div className="text-foreground text-xs font-bold mt-0.5">
                       + חבילת דפי צביעה מלאה 🎨
                     </div>
                   </>
@@ -180,13 +180,13 @@ const DemoLockModal = ({ open, onOpenChange, title, description, storyId }: Demo
             </>
           )}
 
-          <p className="text-white/60 text-xs font-semibold text-center pt-1">
+          <p className="text-muted-foreground text-xs font-semibold text-center pt-1">
             📚 הסיפור נשמר בספרייה החינמית שלך לכל החיים
           </p>
 
           <button
             onClick={() => onOpenChange(false)}
-            className="text-white/50 text-xs font-semibold hover:text-white/80 transition-colors py-2 mt-1"
+            className="text-muted-foreground text-xs font-semibold hover:text-foreground/80 transition-colors py-2 mt-1"
           >
             לא עכשיו
           </button>

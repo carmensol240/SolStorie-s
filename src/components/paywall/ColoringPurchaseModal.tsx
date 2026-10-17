@@ -57,11 +57,11 @@ const ColoringPurchaseModal = ({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent
         dir="rtl"
-        className="max-w-md border-white/20 bg-gradient-to-b from-[hsl(260,60%,18%)] via-[hsl(270,40%,22%)] to-[hsl(250,50%,14%)] text-white p-0 overflow-hidden"
+        className="max-w-md border-border bg-background text-foreground p-0 overflow-hidden"
       >
         <div className="p-5">
           <h2 className="text-xl font-black text-center mb-1">🎨 רוצה לצבוע את הסיפור?</h2>
-          <p className="text-xs text-white/70 text-center mb-4">
+          <p className="text-xs text-muted-foreground text-center mb-4">
             הפכו כל איור לדף צביעה קסום ✨
           </p>
 
@@ -76,8 +76,8 @@ const ColoringPurchaseModal = ({
                       className={cn(
                         "relative flex flex-col items-center text-center p-4 rounded-2xl border-2 transition-all",
                         isSel
-                          ? "border-pink-400 bg-white/15 scale-[1.02]"
-                          : "border-white/15 bg-white/5 hover:border-white/30"
+                          ? "border-pink-400 bg-card scale-[1.02]"
+                          : "border-border bg-card hover:border-border"
                       )}
                     >
                       {opt.badge && (
@@ -86,19 +86,19 @@ const ColoringPurchaseModal = ({
                         </div>
                       )}
                       <div className="text-sm font-black mb-1">{opt.title}</div>
-                      <div className="text-xs text-white/70 mb-2 leading-tight min-h-[28px]">
+                      <div className="text-xs text-muted-foreground mb-2 leading-tight min-h-[28px]">
                         {opt.subtitle}
                       </div>
-                      <div className="text-xl font-black text-amber-300">
+                      <div className="text-xl font-black text-amber-700">
                         ₪{opt.price.toFixed(2)}
                       </div>
                       <div
                         className={cn(
                           "mt-2 w-6 h-6 rounded-full flex items-center justify-center transition-colors",
-                          isSel ? "bg-pink-500" : "border-2 border-white/30"
+                          isSel ? "bg-pink-500" : "border-2 border-border"
                         )}
                       >
-                        {isSel && <Check className="w-4 h-4 text-white" />}
+                        {isSel && <Check className="w-4 h-4 text-foreground" />}
                       </div>
                     </button>
                   );
@@ -115,13 +115,13 @@ const ColoringPurchaseModal = ({
             לרכישה — ₪{current.price.toFixed(2)} ✨
           </Button>
 
-          <p className="text-xs text-white/70 text-center mt-2 font-semibold">
+          <p className="text-xs text-muted-foreground text-center mt-2 font-semibold">
             🎨 לצביעה דיגיטלית באפליקציה ולהדפסה מהבית
           </p>
 
           <button
             onClick={() => onOpenChange(false)}
-            className="w-full mt-2 text-xs text-white/60 hover:text-white py-2"
+            className="w-full mt-2 text-xs text-muted-foreground hover:text-foreground py-2"
           >
             אולי בפעם אחרת
           </button>
