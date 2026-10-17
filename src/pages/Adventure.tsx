@@ -116,7 +116,7 @@ const Adventure = () => {
   const totalCredits = (credits ?? 0) + shareCoins;
 
   return (
-    <div id="main-content" className="min-h-[100dvh] flex flex-col bg-gradient-to-b from-amber-50/50 to-background animate-fade-in" dir="rtl">
+    <div id="main-content" className="min-h-[100dvh] flex flex-col bg-gradient-to-b from-amber-50/50 to-background dark:from-background animate-fade-in" dir="rtl">
       {/* Hero Video Section */}
       <div className="relative w-full h-[100dvh] flex-shrink-0 overflow-hidden">
         {/* Video Background */}
