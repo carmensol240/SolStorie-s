@@ -136,7 +136,7 @@ const SignupBeforeGenerateModal = ({
         dir="rtl"
       >
         {/* Header */}
-        <div className="bg-gradient-to-r from-purple-600 via-pink-500 to-orange-400 px-6 pt-6 pb-4 text-center">
+        <div className="bg-primary px-6 pt-6 pb-4 text-center">
           <Sparkles className="w-8 h-8 text-white/90 mx-auto mb-2" />
           <h2 className="text-xl font-black text-white drop-shadow-md">
             🌟 עוד רגע והסיפור שלכם מוכן!
@@ -155,7 +155,7 @@ const SignupBeforeGenerateModal = ({
               onClick={() => setMode("signup")}
               className={`flex-1 py-1.5 rounded-full text-sm font-bold transition-all ${
                 mode === "signup"
-                  ? "bg-gradient-to-r from-purple-500 to-pink-500 text-white shadow"
+                  ? "bg-primary text-white shadow"
                   : "bg-muted text-muted-foreground"
               }`}
             >
@@ -166,7 +166,7 @@ const SignupBeforeGenerateModal = ({
               onClick={() => setMode("login")}
               className={`flex-1 py-1.5 rounded-full text-sm font-bold transition-all ${
                 mode === "login"
-                  ? "bg-gradient-to-r from-purple-500 to-pink-500 text-white shadow"
+                  ? "bg-primary text-white shadow"
                   : "bg-muted text-muted-foreground"
               }`}
             >
@@ -240,7 +240,7 @@ const SignupBeforeGenerateModal = ({
           <Button
             type="submit"
             disabled={isSubmitting || (mode === "signup" && !termsAccepted)}
-            className="w-full bg-gradient-to-r from-purple-600 via-pink-500 to-orange-400 hover:from-purple-700 hover:via-pink-600 hover:to-orange-500 text-white font-black rounded-full py-3 disabled:opacity-40"
+            className="w-full bg-primary hover:bg-primary/90 text-white font-black rounded-full py-3 disabled:opacity-40"
           >
             {isSubmitting ? (
               <Loader2 className="w-4 h-4 animate-spin" />

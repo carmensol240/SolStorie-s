@@ -37,7 +37,7 @@ const SeriesNavBar = ({ parts, currentStoryId, onNavigate }: SeriesNavBarProps) 
                 className={cn(
                   "px-3 py-1 rounded-full text-xs font-bold transition-all duration-200 whitespace-nowrap",
                   isCurrent
-                    ? "bg-gradient-to-r from-purple-500 to-pink-500 text-white shadow-md scale-105"
+                    ? "bg-primary text-white shadow-md scale-105"
                     : "bg-white/15 text-purple-200 hover:bg-white/25 hover:text-white active:scale-95"
                 )}
               >

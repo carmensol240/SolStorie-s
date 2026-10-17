@@ -31,7 +31,7 @@ const MobileNavigation = React.forwardRef<HTMLElement>((_, ref) => {
                 "flex flex-col items-center justify-center gap-0.5 px-3 py-2 rounded-xl transition-all duration-200 min-h-[48px] min-w-[48px]",
                 "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-purple-400 focus-visible:ring-offset-2",
                 isActive 
-                  ? "bg-gradient-to-r from-purple-600 via-pink-500 to-orange-400 text-white" 
+                  ? "bg-primary text-white" 
                   : "text-purple-800 hover:text-pink-600 hover:bg-purple-50"
               )}
             >

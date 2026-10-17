@@ -269,7 +269,7 @@ const PuzzleGame = ({ ageRange, onReadStory, isStoryReady }: PuzzleGameProps) =>
           <Button 
             onClick={onReadStory} 
             size="lg" 
-            className="gap-2 bg-gradient-to-r from-purple-600 to-pink-500 hover:from-purple-700 hover:to-pink-600 text-white text-lg px-8 py-3 rounded-xl shadow-lg mt-2"
+            className="gap-2 bg-primary hover:bg-primary/90 text-white text-lg px-8 py-3 rounded-xl shadow-lg mt-2"
           >
             <BookOpen className="w-5 h-5" />
             קראו את הסיפור 📖
@@ -343,7 +343,7 @@ const PuzzleGame = ({ ageRange, onReadStory, isStoryReady }: PuzzleGameProps) =>
       )}
 
       {allPiecesPlaced && !completed && (
-        <Button onClick={() => setCompleted(true)} className="gap-2 bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white text-lg px-8 py-3 rounded-xl shadow-lg animate-pulse">
+        <Button onClick={() => setCompleted(true)} className="gap-2 bg-primary hover:bg-primary/90 text-white text-lg px-8 py-3 rounded-xl shadow-lg animate-pulse">
           🎉 סיימתי!
         </Button>
       )}

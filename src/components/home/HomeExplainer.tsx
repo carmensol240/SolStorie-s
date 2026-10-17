@@ -191,7 +191,7 @@ const HomeExplainer = () => {
         <div className="text-center">
           <button
             onClick={() => navigate("/create")}
-            className="inline-flex items-center justify-center gap-2.5 rounded-full px-8 py-4 w-full max-w-[320px] bg-gradient-to-r from-amber-500 via-orange-500 to-pink-500 text-white font-black text-lg shadow-lg hover:shadow-xl hover:scale-[1.02] active:scale-95 transition-all"
+            className="inline-flex items-center justify-center gap-2.5 rounded-full px-8 py-4 w-full max-w-[320px] bg-primary text-white font-black text-lg shadow-lg hover:shadow-xl hover:scale-[1.02] active:scale-95 transition-all"
           >
             <Wand2 className="w-5 h-5" aria-hidden="true" />
             יוצרים סיפור עכשיו

@@ -164,7 +164,7 @@ const TopicStep = ({ formData, updateFormData }: TopicStepProps) => {
               className={cn(
                 "px-3 py-1.5 rounded-full text-xs font-medium whitespace-nowrap border transition-all flex-shrink-0",
                 activeTab === "all"
-                  ? "bg-gradient-to-r from-purple-600 via-pink-500 to-orange-400 text-white border-transparent shadow-md"
+                  ? "bg-primary text-white border-transparent shadow-md"
                   : "border-border bg-card text-foreground hover:border-purple-300"
               )}
             >
@@ -177,7 +177,7 @@ const TopicStep = ({ formData, updateFormData }: TopicStepProps) => {
                 className={cn(
                   "px-3 py-1.5 rounded-full text-xs font-medium whitespace-nowrap border transition-all flex-shrink-0",
                   activeTab === section.id
-                    ? "bg-gradient-to-r from-purple-600 via-pink-500 to-orange-400 text-white border-transparent shadow-md"
+                    ? "bg-primary text-white border-transparent shadow-md"
                     : "border-border bg-card text-foreground hover:border-purple-300"
                 )}
               >
@@ -377,7 +377,7 @@ const SimpleTile = ({ topic, isSelected, onSelect }: SimpleTileProps) => {
             </div>
             {/* Selected check */}
             {isSelected && (
-              <div className="absolute top-1.5 left-1.5 w-5 h-5 bg-gradient-to-r from-purple-600 to-pink-500 rounded-full flex items-center justify-center">
+              <div className="absolute top-1.5 left-1.5 w-5 h-5 bg-primary rounded-full flex items-center justify-center">
                 <span className="text-white text-xs">✓</span>
               </div>
             )}
@@ -426,7 +426,7 @@ const SimpleTile = ({ topic, isSelected, onSelect }: SimpleTileProps) => {
               <div className="flex flex-col gap-2 pt-1">
                 <Button
                   onClick={handleSelect}
-                  className="w-full bg-gradient-to-r from-purple-600 via-pink-500 to-orange-400 text-white font-bold text-base h-12 rounded-xl border-0"
+                  className="w-full bg-primary text-white font-bold text-base h-12 rounded-xl border-0"
                 >
                   {isSelected ? "✓ נושא זה נבחר" : "בחרו נושא זה ←"}
                 </Button>

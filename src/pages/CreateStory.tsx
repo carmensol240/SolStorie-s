@@ -319,7 +319,7 @@ const CreateStory = () => {
                   <div
                     className={`w-6 h-6 rounded-full flex items-center justify-center font-bold text-xs transition-all ${
                       displayStep >= s.number
-                        ? "bg-gradient-to-r from-purple-600 via-pink-500 to-orange-400 text-white shadow-md"
+                        ? "bg-primary text-white shadow-md"
                         : "bg-purple-100 text-purple-400"
                     }`}
                   >
@@ -332,7 +332,7 @@ const CreateStory = () => {
                 {index < visibleSteps.length - 1 && (
                   <div
                     className={`h-0.5 w-4 sm:w-8 mx-0.5 rounded-full transition-all ${
-                      displayStep > s.number ? "bg-gradient-to-r from-purple-500 to-pink-500" : "bg-purple-100"
+                      displayStep > s.number ? "bg-primary" : "bg-purple-100"
                     }`}
                   />
                 )}
@@ -376,7 +376,7 @@ const CreateStory = () => {
                     : !canProceedTopic
               }
               size="lg"
-              className="w-full bg-gradient-to-r from-purple-600 via-pink-500 to-orange-400 hover:from-purple-700 hover:via-pink-600 hover:to-orange-500 text-white font-black text-sm py-3 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed shadow-lg hover:shadow-xl transition-all"
+              className="w-full bg-primary hover:bg-primary/90 text-white font-black text-sm py-3 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed shadow-lg hover:shadow-xl transition-all"
             >
               {step === 3 ? "צרו את הסיפור" : "המשיכו"}
               <ArrowLeft className="w-4 h-4 mr-1.5" />
