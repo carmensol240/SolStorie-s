@@ -292,8 +292,8 @@ const Settings = () => {
         <div className="mt-2 px-1">
           <div className="bg-muted/30 border border-border rounded-lg p-2.5 text-center">
             <p className="text-xs text-muted-foreground leading-relaxed">
-              🔒 כל המידע מטופל בהתאם לתקנות פרטיות ילדים (COPPA/GDPR).{' '}
-              <button onClick={() => navigate('/terms')} className="text-primary underline font-medium">מדיניות פרטיות</button>
+              🔒 איך אנחנו שומרים על המידע שלכם ושל הילדים:{' '}
+              <button onClick={() => navigate('/privacy')} className="text-primary underline font-medium">מדיניות פרטיות</button>
             </p>
           </div>
         </div>

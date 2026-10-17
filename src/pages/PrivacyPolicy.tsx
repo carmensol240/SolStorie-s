@@ -1,145 +1,141 @@
-import { useNavigate } from "react-router-dom";
-import { Button } from "@/components/ui/button";
-import { Shield, ArrowRight, Mail } from "lucide-react";
+import { Shield } from "lucide-react";
 import GlobalFooter from "@/components/shared/GlobalFooter";
 
-const PrivacyPolicy = () => {
-  const navigate = useNavigate();
+// Privacy policy. Must stay accurate: every service provider that receives
+// personal data is listed in PROVIDERS. Update it (and LAST_UPDATED) whenever
+// a provider is added or removed.
+const LAST_UPDATED = "17/10/2026";
+const CONTACT_EMAIL = "solstories.nlp@gmail.com";
 
+const PROVIDERS: { name: string; purpose: string }[] = [
+  { name: "Supabase", purpose: "אחסון החשבון, פרטי הילדים, התמונות והסיפורים" },
+  { name: "Lovable AI", purpose: "כתיבת הסיפורים ויצירת האיורים, באמצעות מודלים של ספקי בינה מלאכותית" },
+  { name: "fal.ai", purpose: "גיבוי ליצירת איורים" },
+  { name: "ElevenLabs ו-Microsoft Azure", purpose: "הקראת הסיפור בקול" },
+  { name: "Grow", purpose: "סליקת התשלום. פרטי כרטיס האשראי נמסרים ישירות ל-Grow ואינם נשמרים אצלנו" },
+  { name: "Resend", purpose: "שליחת מיילים (אישורי רכישה, איפוס סיסמה)" },
+  { name: "Netlify", purpose: "אחסון האתר" },
+  { name: "Meta (Facebook)", purpose: "מדידת פרסום ושיווק באמצעות Meta Pixel" },
+];
+
+const Section = ({ title, children }: { title: string; children: React.ReactNode }) => (
+  <section>
+    <h2 className="text-lg font-bold text-foreground mb-2">{title}</h2>
+    <div className="text-muted-foreground leading-relaxed space-y-2">{children}</div>
+  </section>
+);
+
+const PrivacyPolicy = () => {
   return (
-    <div className="min-h-[100dvh] flex flex-col bg-background pb-8 overflow-y-auto" dir="rtl" style={{ WebkitOverflowScrolling: 'touch' }}>
-      <div className="container max-w-4xl mx-auto px-4 py-8 flex-1">
-        {/* Header */}
+    <div
+      className="min-h-[100dvh] flex flex-col bg-background pb-8 overflow-y-auto"
+      dir="rtl"
+      style={{ WebkitOverflowScrolling: "touch" }}
+    >
+      <main id="main-content" className="container max-w-4xl mx-auto px-4 py-8 flex-1">
         <div className="text-center mb-8">
           <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-primary/10 mb-4">
-            <Shield className="w-8 h-8 text-primary" />
+            <Shield className="w-8 h-8 text-primary" aria-hidden="true" />
           </div>
           <h1 className="text-3xl font-bold text-foreground mb-2">
-            תנאי שימוש ומדיניות פרטיות — <span dir="ltr" className="inline-block">SolStorie's™</span>
+            מדיניות פרטיות — <span dir="ltr" className="inline-block">SolStorie's™</span>
           </h1>
+          <p className="text-sm text-muted-foreground">עודכן לאחרונה: {LAST_UPDATED}</p>
         </div>
 
-        {/* Content */}
-        <article className="bg-card rounded-2xl border shadow-sm p-6 mb-6">
-          <div className="space-y-6 text-right leading-relaxed">
+        <article className="bg-card rounded-2xl border shadow-sm p-6 mb-6 space-y-6 text-right">
+          <Section title="1. על מה המדיניות הזו">
+            <p>
+              המדיניות מסבירה איזה מידע אנחנו אוספים כשאתם משתמשים ב-
+              <span dir="ltr" className="inline-block">SolStorie's™</span>, למה, עם מי הוא משותף, ומה
+              הזכויות שלכם. השירות מיועד להורים ולאנשי חינוך. ילדים אינם נרשמים לשירות בעצמם.
+            </p>
+          </Section>
 
-            <section>
-              <h2 className="text-lg font-bold text-foreground mb-2">1. כללי</h2>
-              <p className="text-muted-foreground leading-relaxed">
-                <span dir="ltr" className="inline-block">SolStorie's™</span> היא אפליקציית סיפורים אישית לילדים. השימוש באפליקציה מהווה הסכמה לתנאים המפורטים להלן. האפליקציה מיועדת לשימוש הורים ומטפלים — כל משתמש נושא באחריות לשימוש תקין בהתאם לתנאים אלו.
-              </p>
-            </section>
+          <Section title="2. איזה מידע אנחנו אוספים">
+            <ul className="list-disc pr-5 space-y-1">
+              <li><strong>פרטי החשבון:</strong> כתובת אימייל, סיסמה (נשמרת מוצפנת), שם תצוגה, והאם אתם הורה או איש/ת חינוך.</li>
+              <li><strong>פרטי הילד שאתם מזינים:</strong> שם, גיל, מגדר, בחירות מראה (שיער, לבוש), שם הגן או הכיתה, ופרטים נוספים שבחרתם לכתוב.</li>
+              <li><strong>תמונת הילד:</strong> כדי שהדמות בסיפור תהיה דומה לו.</li>
+              <li><strong>הסיפורים והאיורים</strong> שנוצרו עבורכם.</li>
+              <li><strong>רכישות:</strong> איזו חבילה נקנתה, הסכום והתאריך. את פרטי כרטיס האשראי אנחנו לא רואים ולא שומרים.</li>
+              <li><strong>נתוני שימוש:</strong> פעולות באתר (למשל התחלת יצירת סיפור), כדי לשפר את השירות, ונתוני מדידה של Meta Pixel.</li>
+            </ul>
+            <p>
+              הקלטות הקול שלכם (הקראת הסיפור בקולכם) נשמרות רק בדפדפן במכשיר שלכם, ואינן נשלחות אלינו.
+            </p>
+          </Section>
 
-            <section>
-              <h2 className="text-lg font-bold text-foreground mb-2">2. פרטיות והגנת מידע</h2>
-              <p className="text-muted-foreground leading-relaxed">
-                המידע האישי שלך נשמר בהצפנה ואינו משותף עם צדדים שלישיים. ניתן למחוק את כל הנתונים בכל עת על ידי פנייה אלינו. השירות פועל בהתאם לרגולציות COPPA ו-GDPR. בנוגע לתמונות ילדים: נשמרת תמונה אחת בלבד לכל ילד בשרת מאובטח. התמונה מוצגת להורה בלבד. העלאת תמונה חדשה מוחקת אוטומטית את הקודמת. מחיקת פרופיל הילד מוחקת את התמונה לצמיתות.
-              </p>
-            </section>
+          <Section title="3. למה אנחנו משתמשים במידע">
+            <ul className="list-disc pr-5 space-y-1">
+              <li>כדי לכתוב את הסיפור ולאייר אותו עם הילד כגיבור.</li>
+              <li>כדי לנהל את החשבון, הרכישות והגישה לסיפורים.</li>
+              <li>כדי לענות לפניות ולטפל בתקלות.</li>
+              <li>כדי לשפר את השירות ולמדוד את הפרסום שלנו.</li>
+              <li>כדי לשלוח עדכונים ומבצעים, רק אם הסכמתם לכך בהרשמה. אפשר להסיר את ההסכמה בכל עת.</li>
+            </ul>
+          </Section>
 
-            <section>
-              <h2 className="text-lg font-bold text-foreground mb-2">3. תוכן שנוצר באמצעות בינה מלאכותית (AI)</h2>
-              <p className="text-muted-foreground leading-relaxed">
-                הסיפורים, האיורים והטקסטים נוצרים באמצעות AI. ייתכנו שגיאות לשוניות או אי-דיוקים. נתקלת בשגיאה? פנה אלינו בכתובת <a href="mailto:solstories.nlp@gmail.com" className="text-primary underline" dir="ltr">solstories.nlp@gmail.com</a> ונטפל בהקדם. <span dir="ltr" className="inline-block">SolStorie's™</span> אינה אחראית לנזק שנגרם משימוש בתוכן ה-AI.
-              </p>
-            </section>
+          <Section title="4. עם מי המידע משותף">
+            <p>
+              אנחנו לא מוכרים מידע. כדי להפעיל את השירות, המידע מועבר לספקי השירות הבאים, רק במידה
+              הנדרשת לתפקידם. חלקם מעבדים ושומרים מידע מחוץ לישראל.
+            </p>
+            <ul className="list-disc pr-5 space-y-1">
+              {PROVIDERS.map((p) => (
+                <li key={p.name}>
+                  <strong dir="ltr" className="inline-block">{p.name}</strong>: {p.purpose}
+                </li>
+              ))}
+            </ul>
+            <p>נמסור מידע לרשויות רק אם נחויב לכך על פי דין.</p>
+          </Section>
 
-            <section>
-              <h2 className="text-lg font-bold text-foreground mb-2">4. קניין רוחני</h2>
-              <p className="text-muted-foreground leading-relaxed">
-                כל התכנים, הדמויות (סול וחבריה), האיורים והטקסטים הם קניין רוחני של <span dir="ltr" className="inline-block">SolStorie's™</span>. אין לעשות שימוש מסחרי ללא אישור בכתב.
-              </p>
-            </section>
+          <Section title="5. תמונות ילדים">
+            <ul className="list-disc pr-5 space-y-1">
+              <li>התמונות נשמרות בשרת מאובטח ומוצגות רק לכם.</li>
+              <li>התמונה נשלחת לשירות יצירת האיורים רק כדי ליצור את הדמות בסיפורים שלכם.</li>
+              <li>אנחנו לא משתמשים בתמונות לאימון בינה מלאכותית, לא מוכרים אותן ולא מפרסמים אותן.</li>
+              <li>מחיקת פרופיל הילד מוחקת גם את התמונות שלו.</li>
+            </ul>
+          </Section>
 
-            <section>
-              <h2 className="text-lg font-bold text-foreground mb-2">5. הגבלת אחריות מקצועית</h2>
-              <p className="text-muted-foreground leading-relaxed">
-                השימוש באפליקציה הינו כלי טכנולוגי בלבד ואינו מהווה תחליף לייעוץ מקצועי, חינוכי או רפואי.
-              </p>
-            </section>
+          <Section title="6. כמה זמן המידע נשמר ואיך מוחקים">
+            <p>
+              המידע נשמר כל עוד החשבון פעיל. אפשר לבקש מחיקה של החשבון וכל המידע (כולל תמונות וסיפורים)
+              דרך ההגדרות באתר, או במייל. נמחק את המידע תוך 14 יום ונשלח אישור. מידע על רכישות עשוי
+              להישמר זמן נוסף, ככל שהחוק מחייב לשמור רשומות חשבונאיות.
+            </p>
+          </Section>
 
-            <section>
-              <h2 className="text-lg font-bold text-foreground mb-2">6. תשלומים ורכישות</h2>
-              <p className="text-muted-foreground leading-relaxed">
-                רכישה חד-פעמית בלבד. אין מנויים, אין חיוב אוטומטי, אין תשלום נסתר.
-              </p>
-            </section>
+          <Section title="7. הזכויות שלכם">
+            <p>
+              לפי חוק הגנת הפרטיות, אתם רשאים לעיין במידע שנשמר עליכם, לבקש לתקן אותו או למחוק אותו.
+              כתבו לנו ונטפל בבקשה.
+            </p>
+          </Section>
 
-            <section>
-              <h2 className="text-lg font-bold text-foreground mb-2">7. מדיניות ביטולים והחזרים</h2>
-              <p className="text-muted-foreground leading-relaxed">
-                ניתן לבטל תוך 14 יום בתנאי שלא נוצר סיפור. לאחר יצירת סיפור — לא ניתן לקבל החזר. החזר יינתן רק במקרה של תקלה טכנית מוכחת.
-              </p>
-            </section>
+          <Section title="8. אבטחת מידע">
+            <p>
+              המידע נשמר אצל ספקי ענן מאובטחים, הגישה אליו מוגבלת, והתמונות נגישות רק דרך קישורים
+              זמניים. אין אבטחה מושלמת, ואם יתגלה אירוע אבטחה נפעל כפי שהחוק מחייב.
+            </p>
+          </Section>
 
-            <section>
-              <h2 className="text-lg font-bold text-foreground mb-2">8. זמינות השירות</h2>
-              <p className="text-muted-foreground leading-relaxed">
-                אין התחייבות לזמינות 100%. במקרה של השבתה מעל 72 שעות ניתן לפנות לפיצוי.
-              </p>
-            </section>
+          <Section title="9. שינויים במדיניות">
+            <p>אם נשנה את המדיניות, נעדכן את התאריך בראש העמוד. בשינוי מהותי נודיע במייל.</p>
+          </Section>
 
-            <section>
-              <h2 className="text-lg font-bold text-foreground mb-2">9. עדכונים ושינויי עיצוב</h2>
-              <p className="text-muted-foreground leading-relaxed">
-                האפליקציה מתעדכנת באופן שוטף. שינויי עיצוב אינם מהווים עילה לתלונה.
-              </p>
-            </section>
-
-            <section>
-              <h2 className="text-lg font-bold text-foreground mb-2">10. שיפוט וסמכות</h2>
-              <p className="text-muted-foreground leading-relaxed">
-                החוק הישראלי חל. כל מחלוקת תידון בבתי המשפט במחוז תל אביב בלבד.
-              </p>
-            </section>
-
-            <section>
-              <h2 className="text-lg font-bold text-foreground mb-2">11. יצירת קשר</h2>
-              <p className="text-muted-foreground leading-relaxed flex items-center gap-2">
-                <Mail className="w-4 h-4 shrink-0" aria-hidden="true" />
-                <a href="mailto:solstories.nlp@gmail.com" className="text-primary underline" dir="ltr">
-                  solstories.nlp@gmail.com
-                </a>
-              </p>
-            </section>
-
-            <section>
-              <h2 className="text-lg font-bold text-foreground mb-2">12. הגנה על פרטיות ילדים</h2>
-              <p className="text-muted-foreground leading-relaxed">
-                האפליקציה מיועדת לשימוש הורים בלבד. לא אוספים מידע מילדים. הורה רשאי לפנות למחיקת כל המידע.
-              </p>
-            </section>
-
-            <section>
-              <h2 className="text-lg font-bold text-foreground mb-2">13. תמונות ילדים ואווטאר אישי</h2>
-              <p className="text-muted-foreground leading-relaxed">
-                תמונה אחת בלבד לכל ילד. לא משמשת לאימון AI. לא נמכרת ולא משותפת. ההורה רשאי להחליף, למחוק, או לבקש מחיקה ידנית בכתובת <a href="mailto:solstories.nlp@gmail.com" className="text-primary underline" dir="ltr">solstories.nlp@gmail.com</a>.
-              </p>
-            </section>
-
-          </div>
+          <Section title="10. יצירת קשר">
+            <p>
+              שאלות או בקשות בנושא פרטיות:{" "}
+              <a href={`mailto:${CONTACT_EMAIL}`} className="text-primary underline underline-offset-4" dir="ltr">
+                {CONTACT_EMAIL}
+              </a>
+            </p>
+          </Section>
         </article>
-
-        {/* Back Button */}
-        <div className="flex justify-center">
-          <Button
-            variant="outline"
-            onClick={() => {
-              if (window.history.length > 1) {
-                navigate(-1);
-              } else {
-                navigate("/settings");
-              }
-            }}
-            className="gap-2 min-h-[44px]"
-            aria-label="חזרה לעמוד הקודם"
-          >
-            <ArrowRight className="w-4 h-4" aria-hidden="true" />
-            חזרה
-          </Button>
-        </div>
-      </div>
-
+      </main>
       <GlobalFooter />
     </div>
   );

@@ -1024,7 +1024,7 @@ const Auth = () => {
                   <Shield className="w-4 h-4 text-primary" />
                 </div>
                 <div>
-                  <p className="font-medium text-foreground">בטיחות ילדים (COPPA)</p>
+                  <p className="font-medium text-foreground">בטיחות ילדים</p>
                   <p className="text-sm text-muted-foreground">שומרים על פרטיות הילדים בהתאם לתקנות הבינלאומיות</p>
                 </div>
               </div>
@@ -1069,7 +1069,7 @@ const Auth = () => {
                     <section>
                       <h3 className="font-bold text-foreground mb-2">3. הגנה על פרטיות ילדים</h3>
                       <p className="text-muted-foreground text-sm">
-                        אנו מחויבים להגנה על פרטיותם של ילדים ופועלים בהתאם לחוק הגנת הפרטיות ולתקנות COPPA.
+                        אנו מחויבים להגנה על פרטיותם של ילדים ופועלים בהתאם לחוק הגנת הפרטיות.
                       </p>
                     </section>
                     <section>
@@ -1119,7 +1119,7 @@ const Auth = () => {
                       </p>
                     </section>
                     <section>
-                      <h3 className="font-bold text-foreground mb-2">3. הגנה על פרטיות ילדים (COPPA)</h3>
+                      <h3 className="font-bold text-foreground mb-2">3. הגנה על פרטיות ילדים</h3>
                       <p className="text-muted-foreground text-sm">
                         אנו לא אוספים מידע אישי מזהה ישירות מילדים. כל איסוף נעשה באמצעות ההורה.
                       </p>
@@ -1617,7 +1617,7 @@ const Auth = () => {
                 <ul className="list-disc list-inside text-muted-foreground space-y-1 mr-2">
                   <li><strong>מינימום מידע:</strong> אנו אוספים רק את שם הילד/ה, טווח הגיל ותיאור הדמות.</li>
                   <li><strong>ללא שיווק:</strong> מידע הילדים אינו משמש לפרסום, שיווק או יצירת פרופילים מסחריים.</li>
-                  <li><strong>ללא שיתוף:</strong> מידע הילדים אינו מועבר, נמכר או משותף עם צדדים שלישיים.</li>
+                  <li><strong>ללא מכירה:</strong> מידע הילדים אינו נמכר. הוא מועבר רק לספקי השירות שמפעילים את האתר, כמפורט במדיניות הפרטיות.</li>
                   <li><strong>מחיקה:</strong> ניתן למחוק את כל מידע הילדים בכל עת דרך הגדרות החשבון.</li>
                 </ul>
               </section>
@@ -1631,7 +1631,7 @@ const Auth = () => {
               </section>
               <section>
                 <h3 className="font-bold text-foreground mb-1">אבטחת מידע</h3>
-                <p className="text-muted-foreground">אנו נוקטים באמצעי אבטחה מתקדמים להגנה על המידע השמור במערכותינו. המידע אינו מועבר, נמכר או משותף עם צדדים שלישיים.</p>
+                <p className="text-muted-foreground">אנו נוקטים באמצעי אבטחה מתקדמים להגנה על המידע השמור במערכותינו. המידע אינו נמכר, ומועבר רק לספקי השירות שמפעילים את האתר, כמפורט במדיניות הפרטיות.</p>
               </section>
               <section>
                 <h3 className="font-bold text-foreground mb-1">תשלומים ופרטיות פיננסית</h3>
