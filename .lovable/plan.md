@@ -27,7 +27,8 @@ The old sign-up step (and the wait-for-sign-in-after-sign-up flag) doesn't reset
    - Resuming never starts a new creation if there's an "in progress" mark from the last 15 minutes. It only waits for the existing story.
    - Server-side protection: every creation gets a one-time ID. The server first saves the story row with that ID, and the database allows only one row per ID. Only if that save succeeds is the credit taken and the story created. If the ID already exists, the server returns the existing story without charging. This needs one new field on stories (the request ID, unique per user).
    - Automated tests: two simultaneous requests with the same ID give one story and one charge, and resuming with an "in progress" mark doesn't call creation again.
-7. No change to payments, prices, Grow, the form fields, the story text or the pictures.
+7. **Library and credits:** the library (and anywhere stories are listed or shared) never shows a story that is still being created or that failed. Only finished stories appear. If there aren't enough credits, the saved story row is deleted immediately and the user goes to the purchase screen as today, with no charge.
+8. No change to payments, prices, Grow, the form fields, the story text or the pictures.
 
 ## Testing
 
