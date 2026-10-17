@@ -358,6 +358,7 @@ NEGATIVE: ${CAST_NEGATIVE_PROMPT}
 
 ${NO_UI_NEGATIVE}`;
 
+    console.log(`[IMG-GEN-FULL-PROMPT] ${JSON.stringify(illustrationPrompt)}`);
     console.log(`Generating illustration via Gemini Image Generation (face reference${coverReferenceUrl ? " + cover reference" : ""})...`);
 
     const messageContent: any[] = [
@@ -467,6 +468,7 @@ NEGATIVE: ${NEGATIVE_PROMPT}
 
 ${NO_UI_NEGATIVE}`;
 
+    console.log(`[IMG-GEN-FULL-PROMPT] ${JSON.stringify(illustrationPrompt)}`);
     console.log(`Generating illustration via Gemini Image Generation (no face reference${coverReferenceUrl ? ", with cover reference" : ""})...`);
 
     const messageContent: any = coverReferenceUrl
@@ -1865,11 +1867,25 @@ The action, objects, characters, and emotions shown MUST come from the STORY TEX
       if (illustrationUrl && page.page_number !== 1 && coverReferenceUrl) {
         const publicPageUrl = buildPublicIllustrationUrl(illustrationUrl);
         if (publicPageUrl) {
-          const verdict = await checkIdentityMatch(publicPageUrl, coverReferenceUrl, LOVABLE_API_KEY);
+          const isBackup = modelUsed === "backup_gpt_image";
+          const verdict = await checkIdentityMatch(publicPageUrl, coverReferenceUrl, LOVABLE_API_KEY, isBackup);
           if (!verdict) {
             identityCheck = "unavailable";
           } else if (verdict.match) {
             identityCheck = "match";
+          } else if (isBackup) {
+            // Backup picture doesn't match the book: do NOT save it. Hold for admin.
+            identityCheck = `mismatch: ${verdict.reason}`;
+            console.warn(`[IDENTITY-CHECK] story=${storyId} page=${page.page_number} backup MISMATCH — ${verdict.reason}; not saving, holding for admin`);
+            await supabase.from("illustration_logs").insert({
+              story_id: storyId, page_number: page.page_number,
+              model_used: "held_mismatch",
+              fallback_reason: `${fallbackReason || ""}; backup picture mismatched: ${verdict.reason}`,
+              had_face_reference: !!childPhotoSignedUrl, duration_ms: Date.now() - genStart,
+              had_page1_reference: !!coverReferenceUrl, camera_angle: cameraAngle,
+              attempts: attemptsUsed, identity_check: identityCheck, identity_retried: false,
+            });
+            return null;
           } else {
             identityCheck = `mismatch: ${verdict.reason}`;
             console.warn(`[IDENTITY-CHECK] story=${storyId} page=${page.page_number} MISMATCH — ${verdict.reason}; regenerating once`);
