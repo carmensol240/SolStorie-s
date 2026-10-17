@@ -1970,29 +1970,39 @@ The action, objects, characters, and emotions shown MUST come from the STORY TEX
           : `SCENE (MUST MATCH TEXT EXACTLY): ${secondPrompt}`;
         const secondIllustrationPrompt = `${buildGenderHeader(childGender)}\n\n${charDesc2}. ${sceneBlock2}. CAMERA: ${cameraAngle2}. LIGHTING: ${lighting2}. Pixar 3D CGI style, vibrant colors, fantasy children's book, ${compositionClause(cameraAngle2)}\n\n${GENDER_SYMBOL_RESTRICTION}\n\n${characterLock}`;
 
-        for (let attempt = 1; attempt <= MAX_RETRIES; attempt++) {
-          if (childPhotoSignedUrl) {
-            secondImage = await generateIllustrationWithFace(
-              secondIllustrationPrompt, childPhotoSignedUrl, characterProfile,
-              storyOutfit, visualAnchor, effectiveAdventureLogic,
-              coverReferenceUrl,
-            );
-            // No Flux fallback when childPhoto exists — loop retries Gemini instead
-          } else {
-            secondImage = await generateIllustrationGeminiNoFace(
-              secondIllustrationPrompt, characterProfile,
-              storyOutfit, visualAnchor, effectiveAdventureLogic,
-              coverReferenceUrl,
-            );
-            if (!secondImage) {
-              secondImage = await generateIllustration(
-                secondIllustrationPrompt, effectivePhoto, characterProfile,
-                LOVABLE_API_KEY, storyOutfit, visualAnchor, effectiveAdventureLogic, topic, fluxSeed
+        let secondStop = false;
+        for (let attempt = 1; attempt <= 3; attempt++) {
+          const o2: GenOutcome = {};
+          secondImage = childPhotoSignedUrl
+            ? await generateIllustrationWithFace(
+                secondIllustrationPrompt, childPhotoSignedUrl, characterProfile,
+                storyOutfit, visualAnchor, effectiveAdventureLogic,
+                coverReferenceUrl, o2,
+              )
+            : await generateIllustrationGeminiNoFace(
+                secondIllustrationPrompt, characterProfile,
+                storyOutfit, visualAnchor, effectiveAdventureLogic,
+                coverReferenceUrl, o2,
               );
-            }
-          }
           if (secondImage) break;
-          if (attempt < MAX_RETRIES) await new Promise(r => setTimeout(r, 1000));
+          if (o2.kind === "refused" || o2.kind === "terminal") { secondStop = true; break; }
+          if (attempt < 3) await new Promise(r => setTimeout(r, [2000, 5000][attempt - 1]));
+        }
+        // Backup with the same references (never Flux after page 1, never after a block).
+        if (!secondImage && !secondStop && (coverReferenceUrl || childPhotoSignedUrl)) {
+          const b = await generateIllustrationBackup(
+            secondIllustrationPrompt, visualAnchor, effectiveAdventureLogic,
+            { page1: coverReferenceUrl, face: childPhotoSignedUrl }, storyId, page.page_number,
+          );
+          if (b && coverReferenceUrl) {
+            const tmpUrl = await uploadImageToStorage(supabase, b, storyId, page.page_number * 10 + 2);
+            const pub = tmpUrl ? buildPublicIllustrationUrl(tmpUrl) : null;
+            const v = pub ? await checkIdentityMatch(pub, coverReferenceUrl, LOVABLE_API_KEY, true) : null;
+            if (v && !v.match) console.warn(`[Page ${page.page_number}] second picture backup mismatched — not saved`);
+            else secondImage = b;
+          } else if (b) {
+            secondImage = b;
+          }
         }
 
         if (secondImage) {
