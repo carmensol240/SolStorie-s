@@ -1,5 +1,6 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.39.3";
 import { applyPurchaseCredits, packageIdFromAmount } from "../_shared/purchase-credits.ts";
+import { isAmountValidForPackage } from "../_shared/package-prices.ts";
 
 const CORS = {
   "Access-Control-Allow-Origin": "*",
@@ -223,10 +224,43 @@ Deno.serve(async (req) => {
       return ok({ received: true, warning: "unknown_user" });
     }
 
-    // Identify package: customFields.cField2 first, then amount→packageId
+    // Identify package: customFields.cField2 first, then amount→packageId.
+    // cField2 comes from the checkout URL, which the buyer can edit, so it is
+    // only trusted when the amount actually paid matches that package's price
+    // (or that price minus an active discount coupon).
     let packageId: string | null = null;
-    if (customFields.cField2 && typeof customFields.cField2 === "string") {
-      packageId = customFields.cField2.trim() || null;
+    const requestedPackageId =
+      customFields.cField2 && typeof customFields.cField2 === "string"
+        ? customFields.cField2.trim() || null
+        : null;
+    if (requestedPackageId) {
+      let discounts: number[] = [];
+      if (!isAmountValidForPackage(requestedPackageId, amount)) {
+        const { data: discountCoupons } = await supabase
+          .from("coupons")
+          .select("discount_percent")
+          .eq("is_active", true)
+          .not("discount_percent", "is", null);
+        discounts = (discountCoupons ?? [])
+          .map((c: { discount_percent: number | null }) => Number(c.discount_percent))
+          .filter((d: number) => Number.isFinite(d) && d > 0 && d < 100);
+      }
+      if (isAmountValidForPackage(requestedPackageId, amount, discounts)) {
+        packageId = requestedPackageId;
+      } else {
+        console.error("[GROW-WEBHOOK] Amount does not match requested package:", {
+          transactionId, requestedPackageId, amount,
+        });
+        await supabase.from("error_logs").insert({
+          error_type: "grow_webhook_amount_mismatch",
+          error_message: `Paid ${amount} does not match package ${requestedPackageId} (tx ${transactionId})`,
+          metadata: { transactionId, userId, payerEmail, amount, customFields },
+        });
+        await sendPurchaseFailureAlert("amount_mismatch", {
+          transactionId, userId, payerEmail, amount, requestedPackage: requestedPackageId,
+          note: "החבילה המבוקשת לא ניתנה. אם הסכום תואם לחבילה אחרת, ניתנה החבילה התואמת לסכום.",
+        });
+      }
     }
     if (!packageId) {
       packageId = packageIdFromAmount(amount);
