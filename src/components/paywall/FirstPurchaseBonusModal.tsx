@@ -11,19 +11,19 @@ const FirstPurchaseBonusModal = ({ open, onOpenChange }: Props) => {
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent
         dir="rtl"
-        className="max-w-sm border-0 p-0 overflow-hidden bg-gradient-to-b from-[hsl(260,60%,18%)] via-[hsl(270,45%,22%)] to-[hsl(250,55%,14%)]"
+        className="max-w-sm border-0 p-0 overflow-hidden bg-background"
       >
         <div className="relative px-6 pt-8 pb-6 text-center">
           <div className="absolute inset-0 pointer-events-none">
-            <div className="absolute top-4 left-6 w-24 h-24 rounded-full bg-purple-500/20 blur-3xl" />
-            <div className="absolute bottom-4 right-6 w-28 h-28 rounded-full bg-pink-400/20 blur-3xl" />
+            <div className="absolute top-4 left-6 w-24 h-24 rounded-full bg-primary/10 blur-3xl" />
+            <div className="absolute bottom-4 right-6 w-28 h-28 rounded-full bg-primary/10 blur-3xl" />
           </div>
           <div className="relative">
             <div className="text-7xl mb-4 animate-bounce">🎁</div>
-            <h2 className="text-2xl font-black text-white mb-3">
+            <h2 className="text-2xl font-black text-foreground mb-3">
               מתנה בשבילך!
             </h2>
-            <p className="text-sm text-white/80 font-semibold mb-6 leading-relaxed">
+            <p className="text-sm text-foreground font-semibold mb-6 leading-relaxed">
               קיבלת סיפור נוסף במתנה! יוסף אוטומטית לחשבונך
             </p>
             <Button

@@ -48,9 +48,22 @@ export default {
           DEFAULT: "hsl(var(--success))",
           foreground: "hsl(var(--success-foreground))",
         },
+        // Unified palette: the old purple accents now follow the coral brand
+        // color, so every bg/text/border-purple-* class matches the theme.
         purple: {
           DEFAULT: "hsl(var(--purple))",
           foreground: "hsl(var(--purple-foreground))",
+          50: "#FDF3EC",
+          100: "#FBE3D5",
+          200: "#F6C6AC",
+          300: "#EFA27D",
+          400: "#E57E50",
+          500: "#D4652F",
+          600: "#C2531F",
+          700: "#9E4218",
+          800: "#7A3314",
+          900: "#5A2611",
+          950: "#3A180A",
         },
         whatsapp: {
           DEFAULT: "hsl(var(--whatsapp))",
