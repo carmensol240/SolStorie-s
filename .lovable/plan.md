@@ -1,48 +1,33 @@
-# Appearance choices (hair, clothes): check results and proposed fix
+# Fix: stop backup-made pictures that don't match the book
 
-Nothing has been changed yet. This is the report, plus the fix I suggest.
+## What happened (findings, nothing changed)
 
-## 1. Where the hairstyle choice goes
+Story "נועה בדיקה" (z32hec, 17/10 12:11). In the viewer, screen 4 of 12 is story page 3.
 
-1. The parent taps a hairstyle on the second form screen. It is kept in the form while the parent fills it in.
-2. It is saved to the child's profile **only** when the parent taps "Save profile" (or during sign-up in the wizard). If the parent picks a hairstyle and goes on without saving, it is never stored.
-3. When the story is created, the choice is **not sent along with the request**. Story writing and picture creation each look the child up again in saved profiles **by name**, and read the hair and clothes from there.
-4. If a saved profile is found, the hair choice is added to the story text instructions and to the picture instructions.
+- Main picture service was asked first. It answered without a picture, with the reason **"prohibited content"** (a safety block, not a crash or timeout). Exact request is the one shown in the AI log `01a149c6-96db-79b5-b771-a05f54ea0df4` (12:12:18): page 1 picture attached as reference, then the visual anchor ("girl aged 5-7, brown hair in two pigtails, blue dress"), Pixar style block, scene text, camera "bird's eye view looking down", lighting.
+- The code then went **straight to the backup** on the first attempt (no second try of the main service).
+- The backup (Fal Flux Schnell) gets **text only** — no page 1 picture, no photo. It uses a different, shorter style block and its own outfit logic, and the long text is cut off by that service's prompt limit. Its exact prompt was not saved (only the first 200 characters are logged), so it can't be shown word for word.
+- The look check against page 1 said "match", so it wasn't redone.
 
-## 2. Why the story and pictures ignore it
+Backup use in the last 6 months: 11 pages in 7 stories (Flux). Another 20 pages in 5 stories got no picture at all. 261 pages used the main service.
 
-Several causes add up, in this order of impact:
+## Important limit
 
-- **A. It usually never reaches the story at all.** Only 5 of 51 saved child profiles have a hairstyle stored. The choice depends on the profile being saved, and on the name matching exactly. If the name differs, the profile is new and unsaved, or the parent changed the choice after saving, the old value or no value is used.
-- **B. Both hair fields are needed.** Hair is only used if hair color **and** hairstyle are both chosen. Picking only "קוקיות" is ignored without any message.
-- **C. The child's photo wins.** The photo is sent to the picture service as the face reference. The service tends to copy the hair from the photo (for example loose hair) and pay less attention to the written hairstyle.
-- **D. Hebrew words in English instructions.** The picture instructions are in English, but the choice goes in as Hebrew ("חום קוקיות"). The picture service follows this less reliably.
-- **E. Clothes are replaced by the story topic.** The picture step first picks a topic outfit (for example space suit, superhero costume) and only uses the parent's clothes if there is no topic outfit. So in practice the clothes choice is almost always ignored in pictures.
+When the main service blocks a picture for safety, sending the same request again won't work and the AI rules say not to repeat it automatically. So retrying 2–3 times only helps for normal failures (timeout, busy, server error).
 
-## 3. Each appearance choice
+## Proposed fix (illustration generation only)
 
-| Choice in the form | Story text | Pictures |
-|---|---|---|
-| Hairstyle | ✅ only if saved in the profile and hair color is also chosen | ⚠️ same condition, then often overridden by the photo |
-| Hair color | ✅ only if saved and hairstyle is also chosen | ⚠️ same as hairstyle |
-| Clothing type | ✅ only if saved and color is also chosen | ❌ replaced by the topic outfit |
-| Clothing color | ✅ only if saved and type is also chosen | ❌ replaced by the topic outfit |
-| Skin tone | ❌ no such choice in the form (taken from the photo) | ✅ from the photo |
-| Glasses | ❌ no such choice in the form | only if visible in the photo |
-| Gender, age | ✅ | ✅ |
-
-## Proposed fix (only after you approve)
-
-1. Send the hair and clothing choices straight from the form with the story request, so they are used even if the profile wasn't saved. Use the saved profile only as a fallback.
-2. Use each choice on its own: a hairstyle without a hair color still counts, and the same for clothes.
-3. Translate the choices into clear English for the pictures (for example "קוקיות" → "two pigtails") and mark them as required, with a note that hair must follow the parent's choice, not the photo.
-4. Use the parent's clothes for every page, ahead of the topic outfit. The topic outfit is used only when no clothes were chosen. If you prefer topic costumes (like a space suit) to win, tell me and I'll keep that.
-5. Pass the same choices to "Try again" for page 1, so retries match.
-6. Add small tests: the hairstyle alone is used, and the parent's clothes win over the topic outfit.
+1. **Retry the main service** up to 3 times with growing waits, but only for normal failures. A safety block skips the retries.
+2. **Replace the text-only backup** with a backup that can see pictures (the default image model in the Lovable AI service). It gets the same Pixar style text, the same fixed character description, the page 1 picture, and the child's photo when there is one.
+3. **Stricter check of backup pictures**: compare with page 1 for face, hair, clothes and art style. If it fails, the bad picture is **not saved**.
+4. **No mismatched picture saved**: the page is left without a picture and marked "needs picture"; the story still opens. The existing "Try again" button (a parent choice, not automatic) makes it again. Safety-blocked pages are never repeated automatically.
+5. **Save the full prompt** for every attempt (main and backup) with the service used and the reason, so a page can be traced exactly next time.
 
 ## Technical details
 
-- Today: `generate-story` (~line 1145) and `generate-illustrations` (~line 1298) both use `children` `.eq("name", childName).maybeSingle()`; neither reads the values from the request. `GeneratingStep` sends no hair/clothing fields.
-- AND conditions: `generate-story` 1158/1161, `generate-illustrations` 1345/1352.
-- Clothes: `storyOutfit = THEME_OUTFITS[topic] || generateOutfitForTopic(...) || characterProfile.clothingDescription` (~1380–1398).
-- Fix touches: `GeneratingStep.tsx` (payload), `generate-story`, `generate-illustrations`, `retry-illustration`, and a new Hebrew→English mapping in `_shared/`. No changes to the form design, the database or pricing.
+- `generate-illustrations/index.ts`: retry loop with a classified result (`ok | transient | refused`) taken from HTTP status and `native_finish_reason`; backoff of 2s/5s/10s for transient errors only.
+- New backup function using `openai/gpt-image-2.5-sunburst` edit with page-1 + face reference images and the same prompt as the main service (style block + `buildCharacterLock`). Flux kept only as last resort for stories with no photo and no page 1 reference, or removed — your choice.
+- Backup results go through `checkIdentityMatch` with an added style/outfit check; failure → `illustration_url` stays empty, `illustration_logs.model_used = 'held_mismatch'`.
+- Add the full prompt text to `illustration_logs` details (column already allows extra info, or logged in function logs, no schema change).
+- `retry-illustration` gets the same retry/backup logic.
+- Small tests for the failure classifier and the "don't save mismatch" decision.
