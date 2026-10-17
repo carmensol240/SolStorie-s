@@ -10,6 +10,7 @@
 - [ ] לכל `packageId` פעיל: המחיר המוצג ב-UI תואם למחיר שנגבה בפועל ב-Grow (לא רק ההערה בקוד).
   - נבדק ע"י פתיחת הקישור בפועל ולא ע"י קריאת comment ב-`src/config/grow-links.ts`.
   - חבילות פעילות: `basic`, `popular`, `singleStory`, `coloringSingle`, `coloringBundle`, `pdf` (+ `twoStories` כשיתוקן).
+- [ ] `supabase/functions/_shared/package-prices.ts` — כל מחיר חדש נוסף כאן, אחרת ה-webhook לא ייתן את החבילה וישלח התראה.
 - [ ] `src/config/promo.ts` — `PROMO_PRICES` ו-`REGULAR_PRICES` מסונכרנים עם מה שבאמת מוגדר בלוח הבקרה של Grow.
 - [ ] אם עדכנתי מחיר promo→regular ב-1/9/26 (או בכל תאריך אחר) — עדכנתי גם ב-Grow ידנית לפני שהתאריך עבר.
 
