@@ -7,7 +7,6 @@ import { useAuth } from "@/hooks/use-auth";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 
-import WelcomeGiftBanner from "@/components/home/WelcomeGiftBanner";
 import MobileNavigation from "@/components/MobileNavigation";
 import heroVideo from "@/assets/hero-solstories-animation-new.mp4";
 
@@ -142,7 +141,6 @@ const Adventure = () => {
 
         {/* Bottom section - CTA & Welcome banner */}
         <div className="absolute bottom-0 left-0 right-0 z-10 flex flex-col items-center gap-3 px-4 pb-[96px]">
-          <WelcomeGiftBanner credits={credits} storyCount={storyCount} />
 
           <button
             onClick={handleAdventureCTA}
