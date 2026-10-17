@@ -66,17 +66,7 @@ const HomeExplainer = () => {
 
   return (
     <div className="w-full bg-gradient-to-b from-amber-50 to-background dark:from-background dark:to-background" dir="rtl">
-      <div className="max-w-2xl mx-auto px-4 pt-12 pb-28 space-y-14">
-        {/* What it is */}
-        <section className="text-center space-y-3" aria-labelledby="home-what">
-          <h2 id="home-what" className="text-center text-3xl sm:text-4xl font-black text-foreground leading-tight">
-            כל ילד ראוי לסיפור משלו
-          </h2>
-          <p className="text-center text-lg text-muted-foreground leading-relaxed">
-            סיפור אישי בעברית, עם השם, המראה והעולם של הילד, על הנושא שהכי חשוב לכם עכשיו.
-          </p>
-        </section>
-
+      <div className="max-w-2xl mx-auto px-4 pt-10 pb-28 space-y-14">
         {/* How it works */}
         <section aria-labelledby="home-how" className="space-y-5">
           <h2 id="home-how" className="text-2xl font-black text-foreground text-center">
