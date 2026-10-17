@@ -152,7 +152,7 @@ const CorkBoard = ({ title, children }: CorkBoardProps) => {
           >
             <ChevronLeft className="w-4 h-4" />
           </button>
-          <span className="text-[11px] font-bold" style={{ color: '#c8b4ff' }}>
+          <span className="text-xs font-bold" style={{ color: '#c8b4ff' }}>
             {currentPage + 1} / {totalPages}
           </span>
           <button

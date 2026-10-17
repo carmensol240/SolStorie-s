@@ -190,7 +190,7 @@ const FunnelSection = () => {
                     <span className="flex items-center gap-2">
                       <span className="tabular-nums font-bold">{c.count}</span>
                       {drop !== null && drop > 0 && (
-                        <Badge variant="destructive" className="text-[10px] px-1.5 py-0">
+                        <Badge variant="destructive" className="text-xs px-1.5 py-0">
                           -{drop}%
                         </Badge>
                       )}

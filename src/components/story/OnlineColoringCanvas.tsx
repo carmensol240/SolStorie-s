@@ -604,7 +604,7 @@ export const OnlineColoringCanvas: React.FC<OnlineColoringCanvasProps> = ({
           }
         }
       </style>
-      </head><body><img src="${dataUrl}" onload="window.print();window.close()" /></body></html>`);
+      </head><body><img src="${dataUrl}" alt="דף צביעה" onload="window.print();window.close()" /></body></html>`);
     win.document.close();
   }, [getMergedCanvas]);
 

@@ -2226,7 +2226,7 @@ const [currentPage, setCurrentPage] = useState(0);
               className="absolute bottom-14 left-1/2 -translate-x-1/2 z-40 opacity-30 pointer-events-none select-none"
               aria-hidden="true"
             >
-              <span className="text-[11px] font-black logo-3d-bubble">
+              <span className="text-xs font-black logo-3d-bubble">
                 <span className="logo-rainbow">SolStorie's™</span>
               </span>
             </div>

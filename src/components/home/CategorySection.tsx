@@ -61,7 +61,7 @@ const CategorySection = ({ section, colorClass, bgClass, borderClass }: Category
                         </div>
                         <div className="p-2.5">
                           <h3 className="text-sm font-bold text-foreground leading-tight">{topic.label}</h3>
-                          <p className="text-[10px] text-muted-foreground mt-1 line-clamp-2">{topic.description}</p>
+                          <p className="text-xs text-muted-foreground mt-1 line-clamp-2">{topic.description}</p>
                         </div>
                       </button>
                     ))}
@@ -82,7 +82,7 @@ const CategorySection = ({ section, colorClass, bgClass, borderClass }: Category
                           </div>
                           <div className="p-2.5">
                             <h3 className="text-sm font-bold text-foreground leading-tight">{topic.label}</h3>
-                            <p className="text-[10px] text-muted-foreground mt-1 line-clamp-2">{topic.description}</p>
+                            <p className="text-xs text-muted-foreground mt-1 line-clamp-2">{topic.description}</p>
                           </div>
                         </button>
                       ))}

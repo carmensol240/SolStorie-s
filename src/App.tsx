@@ -17,6 +17,7 @@ import Auth from "./pages/Auth";
 import VerifyEmail from "./pages/VerifyEmail";
 import ResetPassword from "./pages/ResetPassword";
 import TermsOfService from "./pages/TermsOfService";
+import AccessibilityStatement from "./pages/AccessibilityStatement";
 import PrivacyPolicy from "./pages/PrivacyPolicy";
 import LegalConsent from "./pages/LegalConsent";
 import Onboarding from "./pages/Onboarding";
@@ -78,6 +79,7 @@ function App() { useTimeTheme(); return (
             <Route path="/reset-password" element={<ResetPassword />} />
             <Route path="/terms" element={<TermsOfService />} />
             <Route path="/privacy" element={<PrivacyPolicy />} />
+            <Route path="/accessibility" element={<AccessibilityStatement />} />
             <Route path="/consent" element={<LegalConsent />} />
             <Route path="/onboarding" element={<Onboarding />} />
             {/* Public flipbook viewer - accessible via share link */}

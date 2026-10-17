@@ -81,12 +81,12 @@ const ColoringPurchaseModal = ({
                       )}
                     >
                       {opt.badge && (
-                        <div className="absolute -top-2.5 left-1/2 -translate-x-1/2 bg-gradient-to-r from-pink-500 to-purple-500 text-white text-[10px] font-black px-2 py-0.5 rounded-full whitespace-nowrap shadow-lg">
+                        <div className="absolute -top-2.5 left-1/2 -translate-x-1/2 bg-gradient-to-r from-pink-500 to-purple-500 text-white text-xs font-black px-2 py-0.5 rounded-full whitespace-nowrap shadow-lg">
                           {opt.badge}
                         </div>
                       )}
                       <div className="text-sm font-black mb-1">{opt.title}</div>
-                      <div className="text-[11px] text-white/70 mb-2 leading-tight min-h-[28px]">
+                      <div className="text-xs text-white/70 mb-2 leading-tight min-h-[28px]">
                         {opt.subtitle}
                       </div>
                       <div className="text-xl font-black text-amber-300">
@@ -115,7 +115,7 @@ const ColoringPurchaseModal = ({
             לרכישה — ₪{current.price.toFixed(2)} ✨
           </Button>
 
-          <p className="text-[11px] text-white/70 text-center mt-2 font-semibold">
+          <p className="text-xs text-white/70 text-center mt-2 font-semibold">
             🎨 לצביעה דיגיטלית באפליקציה ולהדפסה מהבית
           </p>
 

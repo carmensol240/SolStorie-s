@@ -351,7 +351,7 @@ const AuthStep = ({ formData, onAuthenticated }: AuthStepProps) => {
                     }`}
                   >
                     <span className="text-xl">👨‍👩‍👧</span>
-                    <span className="text-[11px] font-bold text-white">הורה</span>
+                    <span className="text-xs font-bold text-white">הורה</span>
                   </button>
                   <button
                     type="button"
@@ -363,7 +363,7 @@ const AuthStep = ({ formData, onAuthenticated }: AuthStepProps) => {
                     }`}
                   >
                     <span className="text-xl">📚</span>
-                    <span className="text-[11px] font-bold text-white">איש/ת חינוך</span>
+                    <span className="text-xs font-bold text-white">איש/ת חינוך</span>
                   </button>
                 </div>
               </div>

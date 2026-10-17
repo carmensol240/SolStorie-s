@@ -76,7 +76,7 @@ const PWAInstallPrompt = () => {
           </div>
           <div className="flex-1 min-w-0">
             <p className="font-bold text-xs leading-tight">התקינו את האפליקציה לגישה מהירה</p>
-            <p className="text-[10px] opacity-80 leading-tight mt-0.5">
+            <p className="text-xs opacity-80 leading-tight mt-0.5">
               לחצו <Share className="w-3 h-3 inline mx-0.5" /> ואז "הוסף למסך הבית"
             </p>
           </div>
@@ -124,7 +124,7 @@ const PWAInstallPrompt = () => {
         </div>
         <div className="flex-1 min-w-0">
           <p className="font-bold text-xs leading-tight">הוסיפו קיצור דרך למסך הבית</p>
-          <p className="text-[10px] opacity-80 leading-tight mt-0.5">
+          <p className="text-xs opacity-80 leading-tight mt-0.5">
             פתחו את התפריט של הדפדפן ולחצו "הוסף למסך הבית"
           </p>
         </div>

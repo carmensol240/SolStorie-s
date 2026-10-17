@@ -97,7 +97,7 @@ function CountdownUnit({ value, label }: { value: number; label: string }) {
           {String(value).padStart(2, "0")}
         </span>
       </div>
-      <span className="text-[10px] sm:text-xs text-white/70 font-semibold mt-1">{label}</span>
+      <span className="text-xs sm:text-xs text-white/70 font-semibold mt-1">{label}</span>
     </div>
   );
 }
@@ -410,7 +410,7 @@ const Upgrade = () => {
                       <div className="flex items-center gap-2 mb-1 flex-wrap">
                         <span className="text-lg font-black text-white">{product.title}</span>
                         {promoActive && (
-                          <span className="inline-flex items-center gap-1 bg-gradient-to-r from-orange-500 to-red-500 text-white text-[10px] font-black px-2 py-0.5 rounded-full">
+                          <span className="inline-flex items-center gap-1 bg-gradient-to-r from-orange-500 to-red-500 text-white text-xs font-black px-2 py-0.5 rounded-full">
                             <Flame className="w-3 h-3" />
                             מחיר השקה
                           </span>
@@ -432,7 +432,7 @@ const Upgrade = () => {
 
                   {product.id === "popular" && promoActive && (
                     <div className="mt-2 mb-2 flex items-center gap-1">
-                      <span className="text-[11px] font-black text-green-300">
+                      <span className="text-xs font-black text-green-300">
                          חסכו ₪{(getRegularPrice(product.priceKey) - getPrice(product.priceKey)).toFixed(2)}
                       </span>
                     </div>
@@ -442,7 +442,7 @@ const Upgrade = () => {
                     {product.features.map((feature) => (
                       <div key={feature} className="flex items-center gap-1.5">
                         <Check className="w-3.5 h-3.5 text-green-400 shrink-0" />
-                        <span className="text-[11px] font-semibold text-white/90 leading-tight">
+                        <span className="text-xs font-semibold text-white/90 leading-tight">
                           {feature}
                         </span>
                       </div>
@@ -470,7 +470,7 @@ const Upgrade = () => {
                 </div>
                 <div className="flex flex-col items-end shrink-0">
                   <span className="text-xl font-black text-pink-300">₪24.90</span>
-                  <span className="text-[10px] text-white/60 font-semibold">או דף בודד ₪9.90</span>
+                  <span className="text-xs text-white/60 font-semibold">או דף בודד ₪9.90</span>
                 </div>
               </div>
               <div className="mt-3 grid grid-cols-2 gap-x-2 gap-y-1.5">
@@ -482,7 +482,7 @@ const Upgrade = () => {
                 ].map((feature) => (
                   <div key={feature} className="flex items-center gap-1.5">
                     <Check className="w-3.5 h-3.5 text-green-400 shrink-0" />
-                    <span className="text-[11px] font-semibold text-white/90 leading-tight">{feature}</span>
+                    <span className="text-xs font-semibold text-white/90 leading-tight">{feature}</span>
                   </div>
                 ))}
               </div>
@@ -559,7 +559,7 @@ const Upgrade = () => {
               )}
             </span>
           </Button>
-          <p className="text-[11px] text-white/70 font-semibold mt-1">
+          <p className="text-xs text-white/70 font-semibold mt-1">
             ✏️ סבב עריכה מלא כלול בכל סיפור
           </p>
         </div>

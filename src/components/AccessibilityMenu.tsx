@@ -155,6 +155,12 @@ const AccessibilityMenu = () => {
               />
             </div>
           </div>
+          <a
+            href="/accessibility"
+            className="block mt-3 text-center text-sm font-semibold text-primary underline underline-offset-4"
+          >
+            להצהרת הנגישות המלאה
+          </a>
         </PopoverContent>
       </Popover>
 

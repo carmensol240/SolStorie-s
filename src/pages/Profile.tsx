@@ -302,7 +302,7 @@ const Profile = () => {
                 >
                   <img src={char.image} alt={char.name} className="w-full h-full object-cover" />
                 </div>
-                <span className="text-[10px] font-bold" style={{ color: "hsl(260, 40%, 30%)" }}>
+                <span className="text-xs font-bold" style={{ color: "hsl(260, 40%, 30%)" }}>
                   {char.name}
                 </span>
               </button>
@@ -368,6 +368,19 @@ const Profile = () => {
                   className={`flex flex-col items-center gap-1 transition-all ${
                     badge.unlocked ? "" : "opacity-40 grayscale cursor-pointer"
                   }`}
+                  {...(!badge.unlocked
+                    ? {
+                        role: "button",
+                        tabIndex: 0,
+                        "aria-label": `${badge.name}: ${badge.unlockHint}`,
+                        onKeyDown: (e: React.KeyboardEvent) => {
+                          if (e.key === "Enter" || e.key === " ") {
+                            e.preventDefault();
+                            toast(badge.name, { description: badge.unlockHint, icon: badge.emoji });
+                          }
+                        },
+                      }
+                    : {})}
                   onClick={() => {
                     if (!badge.unlocked) {
                       toast(badge.name, {
@@ -390,7 +403,7 @@ const Profile = () => {
                   >
                     {badge.unlocked ? badge.emoji : <Lock className="w-4 h-4 text-gray-400" />}
                   </div>
-                  <span className="text-[9px] font-bold text-center leading-tight" style={{ color: "hsl(260, 30%, 40%)" }}>
+                  <span className="text-xs font-bold text-center leading-tight" style={{ color: "hsl(260, 30%, 40%)" }}>
                     {badge.name}
                   </span>
                 </div>
@@ -474,7 +487,7 @@ const Profile = () => {
               dir="rtl"
             />
             <div className="px-4 py-2 flex items-center justify-between border-t" style={{ borderColor: "rgba(180,160,120,0.2)", background: "#FDF8EC" }}>
-              <p className="text-[10px]" style={{ color: "rgba(120,100,60,0.6)" }}>
+              <p className="text-xs" style={{ color: "rgba(120,100,60,0.6)" }}>
                 🔒 פנקס פרטי — רק אתם רואים
               </p>
               <Button
