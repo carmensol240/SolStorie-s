@@ -65,7 +65,7 @@ const HomeExplainer = () => {
   ];
 
   return (
-    <div className="w-full bg-gradient-to-b from-amber-50 to-background" dir="rtl">
+    <div className="w-full bg-gradient-to-b from-amber-50 to-background dark:from-background dark:to-background" dir="rtl">
       <div className="max-w-2xl mx-auto px-4 pt-12 pb-28 space-y-14">
         {/* What it is */}
         <section className="text-center space-y-3" aria-labelledby="home-what">
