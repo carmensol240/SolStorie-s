@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Link } from "react-router-dom";
 import { Loader2, Mail, ArrowRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -34,6 +34,45 @@ const QuickSignIn = ({ returnTo, onPasswordLogin }: QuickSignInProps) => {
   const [stage, setStage] = useState<"email" | "code">("email");
   const [busy, setBusy] = useState<null | "google" | "send" | "verify">(null);
 
+  const finishLogin = async (payload: Record<string, string>) => {
+    setBusy("verify");
+    const { data, error } = await supabase.functions.invoke("verify-login-code", { body: payload });
+    if (error || !data?.token_hash) {
+      let reason = "";
+      try { reason = (await (error as any)?.context?.json())?.error ?? ""; } catch {}
+      setBusy(null);
+      const msg =
+        reason === "too_many" ? "יותר מדי ניסיונות. בקשו קוד חדש." :
+        reason === "expired" ? "הקוד או הקישור פגו תוקף. בקשו קוד חדש." :
+        "הקוד שגוי. נסו שוב.";
+      toast({ title: msg, variant: "destructive" });
+      return false;
+    }
+    if (data.returnTo) localStorage.setItem("returnTo", data.returnTo);
+    localStorage.setItem("pending_wizard_terms_accept", "1");
+    const { error: otpErr } = await supabase.auth.verifyOtp({ token_hash: data.token_hash, type: "magiclink" });
+    setBusy(null);
+    if (otpErr) {
+      toast({ title: "הכניסה נכשלה", description: "בקשו קוד חדש ונסו שוב.", variant: "destructive" });
+      return false;
+    }
+    return true;
+    // Success: Auth page sees the session and navigates to returnTo.
+  };
+
+  // Sign-in link from the email: /auth?login_token=...
+  const linkHandled = useRef(false);
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const linkToken = params.get("login_token");
+    if (!linkToken || linkHandled.current) return;
+    linkHandled.current = true;
+    params.delete("login_token");
+    window.history.replaceState(null, "", `${window.location.pathname}?${params.toString()}`);
+    void finishLogin({ linkToken });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   const handleGoogle = async () => {
     setBusy("google");
     markPending(returnTo);
@@ -56,26 +95,21 @@ const QuickSignIn = ({ returnTo, onPasswordLogin }: QuickSignInProps) => {
     }
     setBusy("send");
     markPending(returnTo);
-    const { error } = await supabase.auth.signInWithOtp({
-      email: clean,
-      options: {
-        shouldCreateUser: true,
-        emailRedirectTo: `${window.location.origin}/auth?returnTo=${encodeURIComponent(returnTo)}`,
-      },
-    });
+    const { error } = await supabase.functions.invoke("send-login-code", { body: { email: clean, returnTo } });
     setBusy(null);
     if (error) {
-      const tooMany = /rate|seconds/i.test(error.message);
+      let busySite = false;
+      try { busySite = (await (error as any).context?.json())?.error === "busy"; } catch {}
       toast({
-        title: tooMany ? "נשלח קוד לפני רגע" : "לא הצלחנו לשלוח קוד",
-        description: tooMany ? "המתינו דקה ונסו שוב." : "בדקו את כתובת המייל ונסו שוב.",
+        title: busySite ? "יש עומס כרגע" : "לא הצלחנו לשלוח קוד",
+        description: busySite ? "נסו שוב מאוחר יותר, או המשיכו עם Google." : "בדקו את כתובת המייל ונסו שוב.",
         variant: "destructive",
       });
       return;
     }
     setEmail(clean);
     setStage("code");
-    toast({ title: "שלחנו לכם קוד למייל", description: "בדקו גם בתיקיית הספאם." });
+    toast({ title: `שלחנו קוד ל-${clean}`, description: "בדקו גם בתיקיית הספאם." });
   };
 
   const verifyCode = async (e: React.FormEvent) => {
@@ -85,12 +119,7 @@ const QuickSignIn = ({ returnTo, onPasswordLogin }: QuickSignInProps) => {
       toast({ title: "הקלידו את הקוד מהמייל", variant: "destructive" });
       return;
     }
-    setBusy("verify");
-    const { error } = await supabase.auth.verifyOtp({ email, token, type: "email" });
-    setBusy(null);
-    if (error) {
-      toast({ title: "הקוד שגוי או שפג תוקפו", description: "נסו שוב או בקשו קוד חדש.", variant: "destructive" });
-    }
+    await finishLogin({ email, code: token });
     // Success: onAuthStateChange → Auth page navigates to returnTo.
   };
 
