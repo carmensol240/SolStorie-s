@@ -7,8 +7,8 @@
 - [x] Full prompt saved in logs
 
 ## Story creation jump fix (Oct 2026)
-- [ ] No auto-reload during creation; sign-up guard only at entry; one-time request ID; safety net screen; library hides unfinished stories
-- [ ] End-to-end browser test (wait, tab switch, reload)
+- [x] No auto-reload during creation; sign-up guard only at entry; one-time request ID; safety net screen; library hides unfinished stories
+- [x] End-to-end browser test (wait, tab switch, reload)
 
 ## Pricing audit (Oct 2026) — report only, wait for approval
 - [ ] List every place a price is shown/calculated + current value
