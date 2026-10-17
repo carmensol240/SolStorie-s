@@ -102,15 +102,31 @@ export function logImageGenCall(params: {
       `seed=${seed ?? "n/a"} camera="${cameraAngle ?? "n/a"}" ` +
       `promptChars=${prompt.length} promptHead="${prompt.substring(0, 200).replace(/\s+/g, " ")}"`,
   );
+  // Full prompt, so any page can be traced exactly later.
+  console.log(`[IMG-GEN-PROMPT] story=${storyId} page=${page} model=${model} prompt=${JSON.stringify(prompt)}`);
+}
+
+// Outcome of one main-service image call, used to decide retry vs. stop.
+type GenOutcome = { kind?: "ok" | "transient" | "refused" | "terminal"; detail?: string };
+
+function isRefusal(data: any): string | null {
+  const choice = data?.choices?.[0];
+  const native = String(choice?.native_finish_reason ?? "");
+  const finish = String(choice?.finish_reason ?? "");
+  if (/PROHIBITED|SAFETY|BLOCK|SPII|RECITATION/i.test(native)) return native;
+  if (finish === "content_filter") return finish;
+  return null;
 }
 
 // Cheap vision check: does the freshly generated page show the SAME child as page 1?
 // Runs on a small/fast model with a strict JSON answer, so it costs a fraction of an
 // image generation. Returns null when the check itself could not run (never blocks).
+// strict=true also requires the same art style (used for backup-service pictures).
 async function checkIdentityMatch(
   pageImageUrl: string,
   pageOneImageUrl: string,
   apiKey: string,
+  strict = false,
 ): Promise<{ match: boolean; reason: string } | null> {
   try {
     const res = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
@@ -127,6 +143,9 @@ async function checkIdentityMatch(
                 text:
                   "Image A is the reference. Image B is another page of the same children's book and MUST show the same child character. " +
                   "Compare ONLY the child: hair (color, length, texture), face structure, apparent age, and the colors/layout of the outfit. " +
+                  (strict
+                    ? "ALSO require the SAME art style: both must be the same Pixar-like 3D CGI render style (not flat 2D, not painterly, not photo). Any style difference means same_child=false. "
+                    : "") +
                   "Ignore pose, camera angle, background and lighting. " +
                   'Answer with strict JSON only: {"same_child": true|false, "reason": "<max 12 words>"}',
               },
@@ -308,6 +327,7 @@ async function generateIllustrationWithFace(
   visualAnchor: string,
   adventureLogic?: { outfit: string; background: string; theme: string },
   coverReferenceUrl?: string | null,
+  outcome: GenOutcome = {},
 ): Promise<string | null> {
   try {
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
@@ -338,6 +358,7 @@ NEGATIVE: ${CAST_NEGATIVE_PROMPT}
 
 ${NO_UI_NEGATIVE}`;
 
+    console.log(`[IMG-GEN-FULL-PROMPT] ${JSON.stringify(illustrationPrompt)}`);
     console.log(`Generating illustration via Gemini Image Generation (face reference${coverReferenceUrl ? " + cover reference" : ""})...`);
 
     const messageContent: any[] = [
@@ -367,6 +388,8 @@ ${NO_UI_NEGATIVE}`;
 
     if (!response.ok) {
       const errorBody = await response.text().catch(() => "no body");
+      outcome.kind = (response.status === 429 || response.status >= 500) ? "transient" : "terminal";
+      outcome.detail = `http ${response.status}`;
       console.error(`Gemini Image Generation failed: ${response.status} - ${errorBody}`);
       await logError("illustration_gemini_error", `Gemini Image Gen failed: ${response.status}`, { status: response.status, body: errorBody.substring(0, 500) });
       return null;
@@ -383,6 +406,9 @@ ${NO_UI_NEGATIVE}`;
     }
 
     const imageUrl = data.choices?.[0]?.message?.images?.[0]?.image_url?.url;
+    const refusal = imageUrl ? null : isRefusal(data);
+    outcome.kind = imageUrl ? "ok" : refusal ? "refused" : "transient";
+    outcome.detail = refusal || (imageUrl ? undefined : "no image in response");
 
     if (imageUrl) {
       console.log("Gemini illustration generated successfully");
@@ -393,6 +419,8 @@ ${NO_UI_NEGATIVE}`;
     return null;
   } catch (error) {
     const isTimeout = error instanceof DOMException && error.name === "TimeoutError";
+    outcome.kind = "transient";
+    outcome.detail = isTimeout ? "timeout" : String((error as Error)?.message || error).slice(0, 120);
     const errorType = isTimeout ? "illustration_timeout" : "illustration_gemini_error";
     console.error("Error in Gemini Image Generation:", error);
     await logError(errorType, `Gemini Image Gen: ${error?.message || error}`, { model: "google/gemini-3-pro-image-preview" });
@@ -409,6 +437,7 @@ async function generateIllustrationGeminiNoFace(
   visualAnchor: string,
   adventureLogic?: { outfit: string; background: string; theme: string },
   coverReferenceUrl?: string | null,
+  outcome: GenOutcome = {},
 ): Promise<string | null> {
   try {
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
@@ -439,6 +468,7 @@ NEGATIVE: ${NEGATIVE_PROMPT}
 
 ${NO_UI_NEGATIVE}`;
 
+    console.log(`[IMG-GEN-FULL-PROMPT] ${JSON.stringify(illustrationPrompt)}`);
     console.log(`Generating illustration via Gemini Image Generation (no face reference${coverReferenceUrl ? ", with cover reference" : ""})...`);
 
     const messageContent: any = coverReferenceUrl
@@ -467,6 +497,8 @@ ${NO_UI_NEGATIVE}`;
 
     if (!response.ok) {
       const errorBody = await response.text().catch(() => "no body");
+      outcome.kind = (response.status === 429 || response.status >= 500) ? "transient" : "terminal";
+      outcome.detail = `http ${response.status}`;
       console.error(`Gemini Image Generation (no face) failed: ${response.status} - ${errorBody}`);
       await logError("illustration_gemini_noface_error", `Gemini no-face failed: ${response.status}`, { status: response.status, body: errorBody.substring(0, 500) });
       return null;
@@ -483,6 +515,9 @@ ${NO_UI_NEGATIVE}`;
     }
 
     const imageUrl = data.choices?.[0]?.message?.images?.[0]?.image_url?.url;
+    const refusal = imageUrl ? null : isRefusal(data);
+    outcome.kind = imageUrl ? "ok" : refusal ? "refused" : "transient";
+    outcome.detail = refusal || (imageUrl ? undefined : "no image in response");
 
     if (imageUrl) {
       console.log("Gemini illustration (no face) generated successfully");
@@ -493,9 +528,113 @@ ${NO_UI_NEGATIVE}`;
     return null;
   } catch (error) {
     const isTimeout = error instanceof DOMException && error.name === "TimeoutError";
+    outcome.kind = "transient";
+    outcome.detail = isTimeout ? "timeout" : String((error as Error)?.message || error).slice(0, 120);
     const errorType = isTimeout ? "illustration_timeout" : "illustration_gemini_noface_error";
     console.error("Error in Gemini Image Generation (no face):", error);
     await logError(errorType, `Gemini no-face: ${error?.message || error}`, { model: "google/gemini-3-pro-image-preview" });
+    return null;
+  }
+}
+
+// BACKUP image service (used only after the main service failed with normal errors).
+// Gets the SAME style text, the SAME fixed character description and the SAME reference
+// pictures (page 1 + child photo) as the main service, so the page matches the book.
+const BACKUP_IMAGE_MODEL = "openai/gpt-image-2.5-sunburst";
+
+async function refToBlob(ref: string): Promise<Blob | null> {
+  try {
+    if (ref.startsWith("data:")) {
+      const [meta, b64] = ref.split(",", 2);
+      const mime = meta.match(/data:([^;]+)/)?.[1] || "image/png";
+      const bin = atob(b64);
+      const bytes = new Uint8Array(bin.length);
+      for (let i = 0; i < bin.length; i++) bytes[i] = bin.charCodeAt(i);
+      return new Blob([bytes], { type: mime });
+    }
+    const r = await fetch(ref);
+    if (!r.ok) return null;
+    return await r.blob();
+  } catch {
+    return null;
+  }
+}
+
+async function generateIllustrationBackup(
+  prompt: string,
+  visualAnchor: string,
+  adventureLogic: { outfit: string; background: string; theme: string } | undefined,
+  references: { page1?: string | null; face?: string | null },
+  storyId: string,
+  pageNumber: number,
+): Promise<string | null> {
+  try {
+    const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
+    if (!LOVABLE_API_KEY) return null;
+    const adventureInstruction = adventureLogic
+      ? `Setting: ${adventureLogic.background}. Theme: ${adventureLogic.theme}.`
+      : "";
+    const refNotes: string[] = [];
+    const blobs: Blob[] = [];
+    if (references.page1) {
+      const b = await refToBlob(references.page1);
+      if (b) { blobs.push(b); refNotes.push(`IMAGE ${blobs.length} is a finished Pixar 3D page of the SAME main character from this same book — match its face, hair, outfit, proportions and EXACT 3D rendering style.`); }
+    }
+    if (references.face) {
+      const b = await refToBlob(references.face);
+      if (b) { blobs.push(b); refNotes.push(`IMAGE ${blobs.length} is the real child's photo — the character's face must be a Pixar 3D rendering of this child.`); }
+    }
+    if (blobs.length === 0) return null;
+
+    const fullPrompt = `Create a NEW full illustration (not an edit of the inputs) for a children's storybook page.
+REFERENCES: ${refNotes.join(" ")}
+
+${visualAnchor}
+
+STYLE: ${PIXAR_STYLE}
+
+${adventureInstruction}
+
+SCENE (THIS IS THE MOST IMPORTANT PART — illustrate THIS specific scene in detail): ${prompt}
+
+${CHARACTER_CONSISTENCY_PROMPT}
+
+NEGATIVE: ${NEGATIVE_PROMPT}
+
+${NO_UI_NEGATIVE}`;
+
+    logImageGenCall({
+      storyId, page: pageNumber, api: "lovable-gateway/images-edits", model: BACKUP_IMAGE_MODEL,
+      hasFaceRef: !!references.face, hasPageOneRef: !!references.page1, seed: null, prompt: fullPrompt,
+    });
+
+    const form = new FormData();
+    form.append("model", BACKUP_IMAGE_MODEL);
+    form.append("prompt", fullPrompt);
+    form.append("size", "1536x1024"); // book pages are landscape
+    blobs.forEach((b, i) => form.append("image[]", b, `ref-${i + 1}.png`));
+
+    const response = await fetch("https://ai.gateway.lovable.dev/v1/images/edits", {
+      method: "POST",
+      headers: { Authorization: `Bearer ${LOVABLE_API_KEY}` },
+      body: form,
+    });
+    if (!response.ok) {
+      const body = await response.text().catch(() => "");
+      console.error(`Backup image failed: ${response.status} - ${body.slice(0, 300)}`);
+      await logError("illustration_backup_error", `Backup image failed: ${response.status}`, { status: response.status, body: body.slice(0, 500) });
+      return null;
+    }
+    const data = await response.json();
+    const b64 = data?.data?.[0]?.b64_json;
+    if (!b64) {
+      console.warn("Backup image: no image in response", JSON.stringify(data).slice(0, 200));
+      return null;
+    }
+    return `data:image/png;base64,${b64}`;
+  } catch (error) {
+    console.error("Error in backup image generation:", error);
+    await logError("illustration_backup_error", `Backup image: ${(error as Error)?.message || error}`, { model: BACKUP_IMAGE_MODEL });
     return null;
   }
 }
@@ -1633,45 +1772,71 @@ The action, objects, characters, and emotions shown MUST come from the STORY TEX
         cameraAngle,
       });
 
-      for (let attempt = 1; attempt <= MAX_RETRIES; attempt++) {
+      // 1) MAIN service: up to MAIN_ATTEMPTS tries with growing waits — only for normal
+      //    failures (timeout / busy / server error). A safety block ("prohibited content")
+      //    is never repeated: the page is held for the admin instead.
+      const MAIN_ATTEMPTS = 3;
+      const BACKOFF_MS = [2000, 5000];
+      let refusedReason: string | null = null;
+      let terminalReason: string | null = null;
+      for (let attempt = 1; attempt <= MAIN_ATTEMPTS; attempt++) {
         attemptsUsed = attempt;
-        if (childPhotoSignedUrl) {
-          base64Image = await generateIllustrationWithFace(
-            illustrationPrompt, childPhotoSignedUrl, characterProfile,
-            storyOutfit, visualAnchor, effectiveAdventureLogic,
-            coverReferenceUrl,
-          );
-          if (base64Image) { modelUsed = "gemini_with_face"; break; }
-          // No Flux fallback when childPhoto exists — loop will retry Gemini face path
-          fallbackReason = `Gemini face failed (attempt ${attempt}); Flux fallback blocked because childPhoto exists`;
-        } else {
-          base64Image = await generateIllustrationGeminiNoFace(
-            illustrationPrompt, characterProfile,
-            storyOutfit, visualAnchor, effectiveAdventureLogic,
-            coverReferenceUrl,
-          );
-          if (base64Image) { modelUsed = "gemini_no_face"; break; }
+        const outcome: GenOutcome = {};
+        base64Image = childPhotoSignedUrl
+          ? await generateIllustrationWithFace(
+              illustrationPrompt, childPhotoSignedUrl, characterProfile,
+              storyOutfit, visualAnchor, effectiveAdventureLogic,
+              coverReferenceUrl, outcome,
+            )
+          : await generateIllustrationGeminiNoFace(
+              illustrationPrompt, characterProfile,
+              storyOutfit, visualAnchor, effectiveAdventureLogic,
+              coverReferenceUrl, outcome,
+            );
+        if (base64Image) {
+          modelUsed = childPhotoSignedUrl ? "gemini_with_face" : "gemini_no_face";
+          if (attempt > 1) console.log(`[Page ${page.page_number}] ✅ Succeeded on retry ${attempt}`);
+          break;
+        }
+        if (outcome.kind === "refused") {
+          refusedReason = outcome.detail || "prohibited content";
+          console.warn(`[Page ${page.page_number}] 🚫 Main service blocked the picture (${refusedReason}) — not repeating; holding page for admin`);
+          break;
+        }
+        if (outcome.kind === "terminal") {
+          terminalReason = outcome.detail || "terminal error";
+          console.warn(`[Page ${page.page_number}] Main service terminal error (${terminalReason}) — not retrying`);
+          break;
+        }
+        fallbackReason = `Main service failed (attempt ${attempt}: ${outcome.detail || "unknown"})`;
+        console.warn(`[Page ${page.page_number}] ⚠️ Attempt ${attempt}/${MAIN_ATTEMPTS} failed, ${attempt < MAIN_ATTEMPTS ? "retrying..." : "giving up on main service"}`);
+        if (attempt < MAIN_ATTEMPTS) await new Promise(r => setTimeout(r, BACKOFF_MS[attempt - 1]));
+      }
 
-          fallbackReason = "Gemini no-face failed";
-          console.log(`[Page ${page.page_number}] Gemini failed, trying Flux Schnell fallback...`);
+      // 2) BACKUP, only after normal failures (never after a safety block or a terminal error).
+      if (!base64Image && !refusedReason && !terminalReason) {
+        const page1Ref = page.page_number !== 1 ? coverReferenceUrl : null;
+        if (page1Ref || childPhotoSignedUrl) {
+          console.log(`[Page ${page.page_number}] Main service failed ${MAIN_ATTEMPTS}x — trying backup with same style/character/references`);
+          base64Image = await generateIllustrationBackup(
+            illustrationPrompt, visualAnchor, effectiveAdventureLogic,
+            { page1: page1Ref, face: childPhotoSignedUrl },
+            storyId, page.page_number,
+          );
+          if (base64Image) modelUsed = "backup_gpt_image";
+          else fallbackReason = `${fallbackReason}; backup failed`;
+        } else {
+          // No page-1 picture and no photo at all: Flux text-only is the only option.
           base64Image = await generateIllustration(
             illustrationPrompt, effectivePhoto, characterProfile,
             LOVABLE_API_KEY, storyOutfit, visualAnchor, effectiveAdventureLogic, topic, fluxSeed
           );
-          if (base64Image) { modelUsed = "fal_schnell_fallback"; break; }
-          fallbackReason = "Both Gemini no-face and Fal Schnell failed";
-        }
-
-        if (base64Image) {
-          if (attempt > 1) console.log(`[Page ${page.page_number}] ✅ Succeeded on retry ${attempt}`);
-          break;
-        }
-
-        console.warn(`[Page ${page.page_number}] ⚠️ Attempt ${attempt}/${MAX_RETRIES} failed, ${attempt < MAX_RETRIES ? 'retrying...' : 'giving up'}`);
-        if (attempt < MAX_RETRIES) {
-          await new Promise(r => setTimeout(r, 1000));
+          if (base64Image) modelUsed = "fal_schnell_fallback";
+          else fallbackReason = `${fallbackReason}; Flux failed`;
         }
       }
+      if (refusedReason) { modelUsed = "held_refused"; fallbackReason = `Main service blocked: ${refusedReason}`; }
+      if (terminalReason) fallbackReason = `Main service: ${terminalReason}`;
       const durationMs = Date.now() - genStart;
       console.log(
         `[IMG-GEN-RESULT] story=${storyId} page=${page.page_number} success=${!!base64Image} ` +
@@ -1702,11 +1867,25 @@ The action, objects, characters, and emotions shown MUST come from the STORY TEX
       if (illustrationUrl && page.page_number !== 1 && coverReferenceUrl) {
         const publicPageUrl = buildPublicIllustrationUrl(illustrationUrl);
         if (publicPageUrl) {
-          const verdict = await checkIdentityMatch(publicPageUrl, coverReferenceUrl, LOVABLE_API_KEY);
+          const isBackup = modelUsed === "backup_gpt_image";
+          const verdict = await checkIdentityMatch(publicPageUrl, coverReferenceUrl, LOVABLE_API_KEY, isBackup);
           if (!verdict) {
             identityCheck = "unavailable";
           } else if (verdict.match) {
             identityCheck = "match";
+          } else if (isBackup) {
+            // Backup picture doesn't match the book: do NOT save it. Hold for admin.
+            identityCheck = `mismatch: ${verdict.reason}`;
+            console.warn(`[IDENTITY-CHECK] story=${storyId} page=${page.page_number} backup MISMATCH — ${verdict.reason}; not saving, holding for admin`);
+            await supabase.from("illustration_logs").insert({
+              story_id: storyId, page_number: page.page_number,
+              model_used: "held_mismatch",
+              fallback_reason: `${fallbackReason || ""}; backup picture mismatched: ${verdict.reason}`,
+              had_face_reference: !!childPhotoSignedUrl, duration_ms: Date.now() - genStart,
+              had_page1_reference: !!coverReferenceUrl, camera_angle: cameraAngle,
+              attempts: attemptsUsed, identity_check: identityCheck, identity_retried: false,
+            });
+            return null;
           } else {
             identityCheck = `mismatch: ${verdict.reason}`;
             console.warn(`[IDENTITY-CHECK] story=${storyId} page=${page.page_number} MISMATCH — ${verdict.reason}; regenerating once`);
@@ -1791,29 +1970,39 @@ The action, objects, characters, and emotions shown MUST come from the STORY TEX
           : `SCENE (MUST MATCH TEXT EXACTLY): ${secondPrompt}`;
         const secondIllustrationPrompt = `${buildGenderHeader(childGender)}\n\n${charDesc2}. ${sceneBlock2}. CAMERA: ${cameraAngle2}. LIGHTING: ${lighting2}. Pixar 3D CGI style, vibrant colors, fantasy children's book, ${compositionClause(cameraAngle2)}\n\n${GENDER_SYMBOL_RESTRICTION}\n\n${characterLock}`;
 
-        for (let attempt = 1; attempt <= MAX_RETRIES; attempt++) {
-          if (childPhotoSignedUrl) {
-            secondImage = await generateIllustrationWithFace(
-              secondIllustrationPrompt, childPhotoSignedUrl, characterProfile,
-              storyOutfit, visualAnchor, effectiveAdventureLogic,
-              coverReferenceUrl,
-            );
-            // No Flux fallback when childPhoto exists — loop retries Gemini instead
-          } else {
-            secondImage = await generateIllustrationGeminiNoFace(
-              secondIllustrationPrompt, characterProfile,
-              storyOutfit, visualAnchor, effectiveAdventureLogic,
-              coverReferenceUrl,
-            );
-            if (!secondImage) {
-              secondImage = await generateIllustration(
-                secondIllustrationPrompt, effectivePhoto, characterProfile,
-                LOVABLE_API_KEY, storyOutfit, visualAnchor, effectiveAdventureLogic, topic, fluxSeed
+        let secondStop = false;
+        for (let attempt = 1; attempt <= 3; attempt++) {
+          const o2: GenOutcome = {};
+          secondImage = childPhotoSignedUrl
+            ? await generateIllustrationWithFace(
+                secondIllustrationPrompt, childPhotoSignedUrl, characterProfile,
+                storyOutfit, visualAnchor, effectiveAdventureLogic,
+                coverReferenceUrl, o2,
+              )
+            : await generateIllustrationGeminiNoFace(
+                secondIllustrationPrompt, characterProfile,
+                storyOutfit, visualAnchor, effectiveAdventureLogic,
+                coverReferenceUrl, o2,
               );
-            }
-          }
           if (secondImage) break;
-          if (attempt < MAX_RETRIES) await new Promise(r => setTimeout(r, 1000));
+          if (o2.kind === "refused" || o2.kind === "terminal") { secondStop = true; break; }
+          if (attempt < 3) await new Promise(r => setTimeout(r, [2000, 5000][attempt - 1]));
+        }
+        // Backup with the same references (never Flux after page 1, never after a block).
+        if (!secondImage && !secondStop && (coverReferenceUrl || childPhotoSignedUrl)) {
+          const b = await generateIllustrationBackup(
+            secondIllustrationPrompt, visualAnchor, effectiveAdventureLogic,
+            { page1: coverReferenceUrl, face: childPhotoSignedUrl }, storyId, page.page_number,
+          );
+          if (b && coverReferenceUrl) {
+            const tmpUrl = await uploadImageToStorage(supabase, b, storyId, page.page_number * 10 + 2);
+            const pub = tmpUrl ? buildPublicIllustrationUrl(tmpUrl) : null;
+            const v = pub ? await checkIdentityMatch(pub, coverReferenceUrl, LOVABLE_API_KEY, true) : null;
+            if (v && !v.match) console.warn(`[Page ${page.page_number}] second picture backup mismatched — not saved`);
+            else secondImage = b;
+          } else if (b) {
+            secondImage = b;
+          }
         }
 
         if (secondImage) {
