@@ -1,6 +1,7 @@
 import { useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
+import { safeReturnTo } from "@/lib/safe-return-to";
 
 /**
  * Global handler that consumes a `returnTo` value (set before an OAuth redirect)
@@ -37,15 +38,14 @@ const OAuthReturnHandler = () => {
       document.cookie = "ss_return_to=; Max-Age=0; Path=/; SameSite=Lax; Secure";
 
       if (!raw) return;
-
-      // Open-redirect protection: only relative paths
-      if (!raw.startsWith("/") || raw.startsWith("//")) return;
+      // Open-redirect protection: only internal paths, otherwise /create
+      const target = safeReturnTo(raw);
 
       const currentPath = window.location.pathname + window.location.search;
-      if (raw === currentPath) return;
+      if (target === currentPath) return;
 
       consumed = true;
-      navigate(raw, { replace: true });
+      navigate(target, { replace: true });
     };
 
     // Immediate session check — handles the case where Supabase has already

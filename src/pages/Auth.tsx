@@ -16,6 +16,8 @@ import { useToast } from "@/hooks/use-toast";
 import { useAnalytics } from "@/hooks/use-analytics";
 import { supabase } from "@/integrations/supabase/client";
 import { z } from "zod";
+import QuickSignIn from "@/components/auth/QuickSignIn";
+import { safeReturnTo } from "@/lib/safe-return-to";
 // Background is now CSS-only (adventure sky theme)
 
 const emailSchema = z.string().email("כתובת אימייל לא תקינה");
@@ -55,6 +57,7 @@ const Auth = () => {
   const [showForgotPassword, setShowForgotPassword] = useState(false);
   const [resetEmail, setResetEmail] = useState("");
   const [activeTab, setActiveTab] = useState<"login" | "signup">("login");
+  const [showPasswordLogin, setShowPasswordLogin] = useState(false);
   const [showEmailVerificationMessage, setShowEmailVerificationMessage] = useState(false);
   const [pendingEmail, setPendingEmail] = useState("");
   
@@ -281,13 +284,8 @@ const Auth = () => {
     const returnTo =
       searchParams.get('returnTo') ||
       localStorage.getItem('returnTo') ||
-      cookieReturnTo ||
-      '/adventure';
-    // Only allow relative paths starting with / but not // (protocol-relative)
-    if (returnTo.startsWith('/') && !returnTo.startsWith('//')) {
-      return returnTo;
-    }
-    return '/adventure';
+      cookieReturnTo;
+    return safeReturnTo(returnTo);
   };
 
   // Check terms acceptance when user is logged in
@@ -347,6 +345,18 @@ const Auth = () => {
           }
           localStorage.removeItem('pending_educator_terms_accept');
         }
+
+        // Welcome email only for a genuinely new account (created in the last 10 min), once.
+        try {
+          const createdMs = user.created_at ? new Date(user.created_at).getTime() : 0;
+          const flag = `welcome_sent_${user.id}`;
+          if (Date.now() - createdMs < 10 * 60 * 1000 && !localStorage.getItem(flag) && user.email) {
+            localStorage.setItem(flag, '1');
+            supabase.functions.invoke('send-welcome-email', {
+              body: { email: user.email, displayName: (user.user_metadata as any)?.full_name || '' },
+            }).catch((err) => console.warn('Welcome email failed:', err));
+          }
+        } catch {}
 
         const { data, error } = await withTimeout(
           supabase
@@ -1223,6 +1233,10 @@ const Auth = () => {
         </div>
       </div>
     );
+  }
+
+  if (!showPasswordLogin && !showForgotPassword) {
+    return <QuickSignIn returnTo={getReturnTo()} onPasswordLogin={() => setShowPasswordLogin(true)} />;
   }
 
   return (

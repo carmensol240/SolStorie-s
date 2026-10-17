@@ -105,7 +105,8 @@ export const useAuth = () => {
         console.warn('Auto-login after signup failed:', signInError.message);
       }
 
-      // Send welcome email (fire-and-forget)
+      // Send welcome email (fire-and-forget); flag prevents a second send from /auth
+      try { localStorage.setItem(`welcome_sent_${data.user.id}`, '1'); } catch {}
       supabase.functions.invoke('send-welcome-email', {
         body: { email, displayName: metadata?.display_name || '' },
       }).catch((err) => console.warn('Welcome email failed:', err));
