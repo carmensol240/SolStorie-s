@@ -327,6 +327,7 @@ async function generateIllustrationWithFace(
   visualAnchor: string,
   adventureLogic?: { outfit: string; background: string; theme: string },
   coverReferenceUrl?: string | null,
+  outcome: GenOutcome = {},
 ): Promise<string | null> {
   try {
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
@@ -386,6 +387,8 @@ ${NO_UI_NEGATIVE}`;
 
     if (!response.ok) {
       const errorBody = await response.text().catch(() => "no body");
+      outcome.kind = (response.status === 429 || response.status >= 500) ? "transient" : "terminal";
+      outcome.detail = `http ${response.status}`;
       console.error(`Gemini Image Generation failed: ${response.status} - ${errorBody}`);
       await logError("illustration_gemini_error", `Gemini Image Gen failed: ${response.status}`, { status: response.status, body: errorBody.substring(0, 500) });
       return null;
@@ -402,6 +405,9 @@ ${NO_UI_NEGATIVE}`;
     }
 
     const imageUrl = data.choices?.[0]?.message?.images?.[0]?.image_url?.url;
+    const refusal = imageUrl ? null : isRefusal(data);
+    outcome.kind = imageUrl ? "ok" : refusal ? "refused" : "transient";
+    outcome.detail = refusal || (imageUrl ? undefined : "no image in response");
 
     if (imageUrl) {
       console.log("Gemini illustration generated successfully");
@@ -412,6 +418,8 @@ ${NO_UI_NEGATIVE}`;
     return null;
   } catch (error) {
     const isTimeout = error instanceof DOMException && error.name === "TimeoutError";
+    outcome.kind = "transient";
+    outcome.detail = isTimeout ? "timeout" : String((error as Error)?.message || error).slice(0, 120);
     const errorType = isTimeout ? "illustration_timeout" : "illustration_gemini_error";
     console.error("Error in Gemini Image Generation:", error);
     await logError(errorType, `Gemini Image Gen: ${error?.message || error}`, { model: "google/gemini-3-pro-image-preview" });
@@ -428,6 +436,7 @@ async function generateIllustrationGeminiNoFace(
   visualAnchor: string,
   adventureLogic?: { outfit: string; background: string; theme: string },
   coverReferenceUrl?: string | null,
+  outcome: GenOutcome = {},
 ): Promise<string | null> {
   try {
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
@@ -486,6 +495,8 @@ ${NO_UI_NEGATIVE}`;
 
     if (!response.ok) {
       const errorBody = await response.text().catch(() => "no body");
+      outcome.kind = (response.status === 429 || response.status >= 500) ? "transient" : "terminal";
+      outcome.detail = `http ${response.status}`;
       console.error(`Gemini Image Generation (no face) failed: ${response.status} - ${errorBody}`);
       await logError("illustration_gemini_noface_error", `Gemini no-face failed: ${response.status}`, { status: response.status, body: errorBody.substring(0, 500) });
       return null;
@@ -502,6 +513,9 @@ ${NO_UI_NEGATIVE}`;
     }
 
     const imageUrl = data.choices?.[0]?.message?.images?.[0]?.image_url?.url;
+    const refusal = imageUrl ? null : isRefusal(data);
+    outcome.kind = imageUrl ? "ok" : refusal ? "refused" : "transient";
+    outcome.detail = refusal || (imageUrl ? undefined : "no image in response");
 
     if (imageUrl) {
       console.log("Gemini illustration (no face) generated successfully");
@@ -512,6 +526,8 @@ ${NO_UI_NEGATIVE}`;
     return null;
   } catch (error) {
     const isTimeout = error instanceof DOMException && error.name === "TimeoutError";
+    outcome.kind = "transient";
+    outcome.detail = isTimeout ? "timeout" : String((error as Error)?.message || error).slice(0, 120);
     const errorType = isTimeout ? "illustration_timeout" : "illustration_gemini_noface_error";
     console.error("Error in Gemini Image Generation (no face):", error);
     await logError(errorType, `Gemini no-face: ${error?.message || error}`, { model: "google/gemini-3-pro-image-preview" });
