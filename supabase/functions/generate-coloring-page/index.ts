@@ -1,4 +1,5 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+import { mergeAppearance, hairToEnglish, clothingToEnglish, buildCharacterLock } from "../_shared/appearance.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.49.1";
 
 const corsHeaders = {
@@ -50,7 +51,7 @@ serve(async (req) => {
     // Verify the story belongs to this user
     const { data: storyOwner } = await supabase
       .from("stories")
-      .select("id")
+      .select("id, child_id, child_name, child_gender, age_range")
       .eq("id", story_id)
       .eq("user_id", userId)
       .maybeSingle();
@@ -144,6 +145,19 @@ serve(async (req) => {
     );
     const mimeType = imgResponse.headers.get("content-type") || "image/png";
 
+    // Same fixed character description as the story illustrations.
+    let characterLock = "";
+    try {
+      let q = supabase.from("children").select("age, hair_color, hair_style, clothing_type, clothing_color").eq("user_id", userId);
+      q = (storyOwner as any).child_id ? q.eq("id", (storyOwner as any).child_id) : q.eq("name", (storyOwner as any).child_name);
+      const { data: ch } = await q.limit(1).maybeSingle();
+      const ap = mergeAppearance(null, { hairColor: ch?.hair_color, hairStyle: ch?.hair_style, clothingType: ch?.clothing_type, clothingColor: ch?.clothing_color });
+      const hair = hairToEnglish(ap);
+      if (hair || clothingToEnglish(ap)) {
+        characterLock = buildCharacterLock({ gender: (storyOwner as any).child_gender, age: ch?.age ?? null, ageRange: (storyOwner as any).age_range, hair, outfit: clothingToEnglish(ap) });
+      }
+    } catch (e) { console.warn("character lock lookup failed", e); }
+
     const coloringPrompt = `Convert this illustration into a perfect children's coloring book page for printing. Follow these rules strictly:
 
 1. OUTLINES: Use very thick, bold, solid black outlines (minimum 3-4px weight). Every shape must have a clearly defined closed boundary.
@@ -158,7 +172,7 @@ serve(async (req) => {
 
 10. LAYOUT: full-page portrait composition in A4 proportions, the illustration fills the whole page from edge to edge, pure white background, clean bold black outlines, no gray shading, no text.
 
-Output ONLY the coloring page image, nothing else. Do not include any text, labels, letter names, or written words anywhere in the image.`;
+${characterLock ? `11. CHARACTER: Keep the main character recognizable. ${characterLock}\n\n` : ""}Output ONLY the coloring page image, nothing else. Do not include any text, labels, letter names, or written words anywhere in the image.`;
 
     console.log("Sending to Lovable AI Gateway for coloring page conversion...");
 
