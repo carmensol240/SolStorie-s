@@ -1,33 +1,41 @@
-# Fix: stop backup-made pictures that don't match the book
+# הרשמה פשוטה בתחילת יצירת הסיפור
 
-## What happened (findings, nothing changed)
+## הזרימה החדשה
+```text
+אורח לוחץ "יוצאים להרפתקה" / "צור סיפור"
+   -> מסך הרשמה אחד (/auth?returnTo=/create)
+   -> אחרי הרשמה: ישר לשלב 1 "פרטי הילד"
+מחובר -> ישר ל"פרטי הילד" (בלי מסך הרשמה)
+```
+מונה השלבים: פרטי הילד ← התאמה אישית ← נושא ← יצירה (4 שלבים). שלב ההרשמה מאמצע התהליך יוסר.
 
-Story "נועה בדיקה" (z32hec, 17/10 12:11). In the viewer, screen 4 of 12 is story page 3.
+## מסך ההרשמה (חדש, במקום המסך הנוכחי ב-/auth)
+- כותרת: "נרשמים בקליק, והסיפורים שלכם נשמרים בספרייה"
+- כפתור גדול ראשון: "המשך עם Google"
+- מתחתיו: שדה מייל + "שלחו לי קוד" ← מסך הקלדת קוד בן 6 ספרות + "שלחו שוב" + "שינוי מייל"
+- שורה קטנה: "בהרשמה אתם מאשרים את תנאי השימוש ומדיניות הפרטיות" עם קישורים
+- קישור קטן: "התחברות עם סיסמה" ← פותח מייל+סיסמה+"שכחתי סיסמה" (הקיים) למשתמשים ותיקים
+- טקסט 14px לפחות, כפתורים 48px לפחות, עברית מימין לשמאל, עיצוב האתר
+- בלי שם/טלפון/סיסמה בהרשמה
+- אישור התנאים נשמר אוטומטית לפרופיל אחרי ההרשמה (כמו היום), כך שלא יופיע מסך ביניים של תנאים
 
-- Main picture service was asked first. It answered without a picture, with the reason **"prohibited content"** (a safety block, not a crash or timeout). Exact request is the one shown in the AI log `01a149c6-96db-79b5-b771-a05f54ea0df4` (12:12:18): page 1 picture attached as reference, then the visual anchor ("girl aged 5-7, brown hair in two pigtails, blue dress"), Pixar style block, scene text, camera "bird's eye view looking down", lighting.
-- The code then went **straight to the backup** on the first attempt (no second try of the main service).
-- The backup (Fal Flux Schnell) gets **text only** — no page 1 picture, no photo. It uses a different, shorter style block and its own outfit logic, and the long text is cut off by that service's prompt limit. Its exact prompt was not saved (only the first 200 characters are logged), so it can't be shown word for word.
-- The look check against page 1 said "match", so it wasn't redone.
+## מה לא משתנה
+תשלום, מחירים, Grow, קרדיט המתנה למשתמש חדש, איפוס סיסמה, מסך המחנכים (נשאר דרך קישור קטן אם קיים היום), כל שאר האתר.
 
-Backup use in the last 6 months: 11 pages in 7 stories (Flux). Another 20 pages in 5 stories got no picture at all. 261 pages used the main service.
+## מה את צריכה לעשות בעצמך
+- **Google:** כבר עובד היום באתר עם ההגדרה הקיימת שלך, ולא נדרש ממך כלום. אם אחרי הבדיקה משהו לא יעבוד, אסביר שלב אחר שלב.
+- **קוד במייל:** כדי שהמייל יכיל קוד (ולא קישור), צריך תבנית מייל של קוד. אבדוק אם מוגדר דומיין שליחה לאתר; אם לא, אבקש ממך לאשר הגדרה בחלון שיופיע (לחיצה אחת, בלי Google Cloud).
 
-## Important limit
+## בדיקות שאבצע ואדווח
+1. משתמש חדש עם Google — מגיע לפרטי הילד (בתצוגה המקדימה Google נפתח בחלון; אבדוק עד כמה שניתן אוטומטית ואציין מה צריך בדיקה ידנית שלך)
+2. משתמש חדש עם קוד במייל — נשלח קוד, הקלדה, נכנס לפרטי הילד, יש קרדיט מתנה
+3. משתמש קיים עם סיסמה — "התחברות עם סיסמה" עובד
+4. משתמש מחובר — לחיצה על "צור סיפור" מגיעה ישר לפרטי הילד, 4 שלבים, היצירה מתחילה בלי הרשמה
 
-When the main service blocks a picture for safety, sending the same request again won't work and the AI rules say not to repeat it automatically. So retrying 2–3 times only helps for normal failures (timeout, busy, server error).
-
-## Proposed fix (illustration generation only)
-
-1. **Retry the main service** up to 3 times with growing waits, but only for normal failures. A safety block skips the retries.
-2. **Replace the text-only backup** with a backup that can see pictures (the default image model in the Lovable AI service). It gets the same Pixar style text, the same fixed character description, the page 1 picture, and the child's photo when there is one.
-3. **Stricter check of backup pictures**: compare with page 1 for face, hair, clothes and art style. If it fails, the bad picture is **not saved**.
-4. **No mismatched picture saved**: the page is left without a picture and marked "needs picture"; the story still opens. The existing "Try again" button (a parent choice, not automatic) makes it again. Safety-blocked pages are never repeated automatically.
-5. **Save the full prompt** for every attempt (main and backup) with the service used and the reason, so a page can be traced exactly next time.
-
-## Technical details
-
-- `generate-illustrations/index.ts`: retry loop with a classified result (`ok | transient | refused`) taken from HTTP status and `native_finish_reason`; backoff of 2s/5s/10s for transient errors only.
-- New backup function using `openai/gpt-image-2.5-sunburst` edit with page-1 + face reference images and the same prompt as the main service (style block + `buildCharacterLock`). Flux kept only as last resort for stories with no photo and no page 1 reference, or removed — your choice.
-- Backup results go through `checkIdentityMatch` with an added style/outfit check; failure → `illustration_url` stays empty, `illustration_logs.model_used = 'held_mismatch'`.
-- Add the full prompt text to `illustration_logs` details (column already allows extra info, or logged in function logs, no schema change).
-- `retry-illustration` gets the same retry/backup logic.
-- Small tests for the failure classifier and the "don't save mismatch" decision.
+## פרטים טכניים
+- `Auth.tsx`: מסך ברירת מחדל חדש; Google נשאר עם `supabase.auth.signInWithOAuth` וה-redirect הקיים לפי הזיכרון (soulstory.co.il/auth?returnTo=...) — לא לשבור את ההגדרה החיה. מייל: `signInWithOtp({ email, options:{ shouldCreateUser:true } })` + `verifyOtp({ email, token, type:'email' })`. אחרי session: upsert `terms_accepted_at`, ניווט ל-returnTo (ברירת מחדל `/create`).
+- `CreateStory.tsx`: אם אין משתמש (אחרי טעינה) ← `navigate('/auth?returnTo=/create')` תוך שמירת preselectedTopic; הסרת שלב 4 (AuthStep) ו-`awaitingGenerationAfterAuth`; שלב היצירה הופך ל-4; מסלול resume נשאר תואם.
+- `Adventure.tsx` / `GuestLanding` / דף הבית: כפתורי ההתחלה מפנים לאורח ל-/auth?returnTo=/create.
+- תבנית מייל OTP עם `{{ .Token }}` דרך תבניות מייל ההתחברות של Lovable Cloud.
+- `send-welcome-email` יישלח גם להרשמה חדשה דרך קוד/Google (פעם אחת).
+- עדכון זיכרון הרשמה (registration/signup-timing) לזרימה החדשה.
