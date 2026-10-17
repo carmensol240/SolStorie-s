@@ -24,7 +24,7 @@
 - After that, publish so the fix reaches the live site.
 
 ## Technical details
-- `src/lib/coloring-a4.ts` `printColoringA4`: keep the existing `afterprint` cleanup, and also run the same `cleanup` from `window.focus` (once, after print) and from `setTimeout(60000)`. Make `cleanup` idempotent.
+- `src/lib/coloring-a4.ts` `printColoringA4`: keep the existing `afterprint` cleanup. Attach the `window.focus` listener only after a delay of at least 1.5 s from the `window.print()` call, so it can't clear the marker before the print on non-blocking browsers (iPhone). Also add a `setTimeout(60000)` fallback. Make `cleanup` idempotent.
 - No changes to `src/index.css`, `StoryViewer.css`, `OnlineColoringCanvas.tsx`, `use-pdf-export.ts`.
 - Test in `src/__tests__/coloring-a4.test.ts` (jsdom): after calling cleanup, `body` no longer has `printing-coloring-page` and `#a4-print-root` is gone.
 - Verify with Playwright `page.pdf()` on a story page: the PDF contains the story text.
