@@ -611,7 +611,7 @@ ${NO_UI_NEGATIVE}`;
     const form = new FormData();
     form.append("model", BACKUP_IMAGE_MODEL);
     form.append("prompt", fullPrompt);
-    form.append("size", "1024x1536");
+    form.append("size", "1536x1024"); // book pages are landscape
     blobs.forEach((b, i) => form.append("image[]", b, `ref-${i + 1}.png`));
 
     const response = await fetch("https://ai.gateway.lovable.dev/v1/images/edits", {
