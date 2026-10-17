@@ -1,4 +1,5 @@
 import "https://deno.land/x/xhr@0.1.0/mod.ts";
+import { mergeAppearance, type Appearance } from "../_shared/appearance.ts";
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.39.3";
 import { logError } from "../_shared/log-error.ts";
@@ -895,6 +896,13 @@ function enforceChildName(text: string, childName: string): string {
   return result;
 }
 
+function appendAppearanceParts(parts: string[], ap: Appearance) {
+  const clothes = [ap.clothingType, ap.clothingColor ? `בצבע ${ap.clothingColor}` : ""].filter(Boolean).join(" ");
+  if (clothes) parts.push(`לבוש קבוע של הדמות: ${clothes} — יש לשמור על הלבוש הזה זהה בכל עמודי הסיפור.`);
+  const hair = [ap.hairColor ? `שיער ${ap.hairColor}` : "שיער", ap.hairStyle ? `בתסרוקת ${ap.hairStyle}` : ""].filter(Boolean).join(", ");
+  if (ap.hairColor || ap.hairStyle) parts.push(`שיער הדמות: ${hair} — יש לשמור על מראה השיער הזה זהה בכל עמודי הסיפור.`);
+}
+
 serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
@@ -1137,6 +1145,13 @@ serve(async (req) => {
     console.log("Generating story for:", { childName, childGender, ageRange, storyLength, topic, nikud, hasPhoto: !!childPhoto, hasAvatar: !!childAvatarUrl, hasTraits: !!personalityTraits, hasAdventureLogic: !!adventureLogic, className: className || null });
     
     // === FETCH CHILD PERSONALIZATION FROM DB ===
+    // Appearance chosen in the form (sent with the request) wins over the saved profile.
+    const reqAppearance: Appearance = (reqBody && typeof reqBody.appearance === "object" && reqBody.appearance) ? {
+      hairColor: String(reqBody.appearance.hairColor ?? "").slice(0, 40),
+      hairStyle: String(reqBody.appearance.hairStyle ?? "").slice(0, 40),
+      clothingType: String(reqBody.appearance.clothingType ?? "").slice(0, 40),
+      clothingColor: String(reqBody.appearance.clothingColor ?? "").slice(0, 40),
+    } : {};
     let childPersonalization = "";
     if (userId) {
       try {
@@ -1149,18 +1164,23 @@ serve(async (req) => {
 
         if (childErr) {
           console.warn("[generate-story] children lookup failed (non-fatal):", childErr.message);
+        } else if (!childData) {
+          const parts: string[] = [];
+          appendAppearanceParts(parts, mergeAppearance(reqAppearance, null));
+          if (parts.length > 0) {
+            childPersonalization = `\n## 🎯 פרטים אישיים על הילד/ה (שלב בסיפור בצורה טבעית!):\n${parts.join("\n")}\n`;
+          }
         } else if (childData) {
           const parts: string[] = [];
           if (childData.fixed_details?.trim()) parts.push(`רקע קבוע על הילד/ה: ${childData.fixed_details.trim()}`);
           if (childData.hobbies?.trim()) parts.push(`תחביבים ואהבות: ${childData.hobbies.trim()}`);
           if (childData.challenges?.trim()) parts.push(`אתגרים נוכחיים: ${childData.challenges.trim()}`);
           if (childData.favorite_friends?.trim()) parts.push(`חברים וצעצועים אהובים: ${childData.favorite_friends.trim()}`);
-          if (childData.clothing_type?.trim() && childData.clothing_color?.trim()) {
-            parts.push(`לבוש קבוע של הדמות: ${childData.clothing_type.trim()} בצבע ${childData.clothing_color.trim()} — יש לשמור על הלבוש הזה זהה בכל עמודי הסיפור.`);
-          }
-          if (childData.hair_color?.trim() && childData.hair_style?.trim()) {
-            parts.push(`שיער הדמות: ${childData.hair_color.trim()}, בתסרוקת ${childData.hair_style.trim()} — יש לשמור על מראה השיער הזה זהה בכל עמודי הסיפור.`);
-          }
+          const ap = mergeAppearance(reqAppearance, {
+            hairColor: childData.hair_color, hairStyle: childData.hair_style,
+            clothingType: childData.clothing_type, clothingColor: childData.clothing_color,
+          });
+          appendAppearanceParts(parts, ap);
           if (parts.length > 0) {
             childPersonalization = `\n## 🎯 פרטים אישיים על הילד/ה (שלב בסיפור בצורה טבעית!):\n${parts.join("\n")}\n`;
             console.log("Using child personalization:", childPersonalization);
@@ -2451,6 +2471,8 @@ ${fullStoryText}`;
             childName: childName,
             topic: topic,
             singlePageNumber: page.page_number,
+            appearance: reqAppearance,
+            childAge: childAgeRaw,
           }),
         }).then(response => {
           console.log(`generate-illustrations (page ${page.page_number}) response: ${response.status}`);

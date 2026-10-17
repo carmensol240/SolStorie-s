@@ -226,6 +226,12 @@ const GeneratingStep = ({ formData, onComplete }: GeneratingStepProps) => {
             adventureLogic: formData.adventureLogic,
             className: formData.className || undefined,
             childId: (formData as any).childId || undefined,
+            appearance: {
+              hairColor: formData.hairColor || "",
+              hairStyle: formData.hairStyle || "",
+              clothingType: formData.clothingType || "",
+              clothingColor: formData.clothingColor || "",
+            },
         };
         
         if (isGuest) {
