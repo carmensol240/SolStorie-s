@@ -102,15 +102,31 @@ export function logImageGenCall(params: {
       `seed=${seed ?? "n/a"} camera="${cameraAngle ?? "n/a"}" ` +
       `promptChars=${prompt.length} promptHead="${prompt.substring(0, 200).replace(/\s+/g, " ")}"`,
   );
+  // Full prompt, so any page can be traced exactly later.
+  console.log(`[IMG-GEN-PROMPT] story=${storyId} page=${page} model=${model} prompt=${JSON.stringify(prompt)}`);
+}
+
+// Outcome of one main-service image call, used to decide retry vs. stop.
+type GenOutcome = { kind?: "ok" | "transient" | "refused" | "terminal"; detail?: string };
+
+function isRefusal(data: any): string | null {
+  const choice = data?.choices?.[0];
+  const native = String(choice?.native_finish_reason ?? "");
+  const finish = String(choice?.finish_reason ?? "");
+  if (/PROHIBITED|SAFETY|BLOCK|SPII|RECITATION/i.test(native)) return native;
+  if (finish === "content_filter") return finish;
+  return null;
 }
 
 // Cheap vision check: does the freshly generated page show the SAME child as page 1?
 // Runs on a small/fast model with a strict JSON answer, so it costs a fraction of an
 // image generation. Returns null when the check itself could not run (never blocks).
+// strict=true also requires the same art style (used for backup-service pictures).
 async function checkIdentityMatch(
   pageImageUrl: string,
   pageOneImageUrl: string,
   apiKey: string,
+  strict = false,
 ): Promise<{ match: boolean; reason: string } | null> {
   try {
     const res = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
@@ -127,6 +143,9 @@ async function checkIdentityMatch(
                 text:
                   "Image A is the reference. Image B is another page of the same children's book and MUST show the same child character. " +
                   "Compare ONLY the child: hair (color, length, texture), face structure, apparent age, and the colors/layout of the outfit. " +
+                  (strict
+                    ? "ALSO require the SAME art style: both must be the same Pixar-like 3D CGI render style (not flat 2D, not painterly, not photo). Any style difference means same_child=false. "
+                    : "") +
                   "Ignore pose, camera angle, background and lighting. " +
                   'Answer with strict JSON only: {"same_child": true|false, "reason": "<max 12 words>"}',
               },
