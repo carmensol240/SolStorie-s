@@ -1,11 +1,10 @@
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { useLocation } from "react-router-dom";
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import PersonalizedStoryCover from "@/components/paywall/PersonalizedStoryCover";
 import { openGrowCheckout } from "@/config/grow-links";
 import { useAuth } from "@/hooks/use-auth";
-import { supabase } from "@/integrations/supabase/client";
-import { isPromoActive, getPrice } from "@/config/promo";
+import { getPrice } from "@/config/promo";
 
 interface DemoLockModalProps {
   open: boolean;
@@ -19,29 +18,9 @@ const DemoLockModal = ({ open, onOpenChange, title, description, storyId }: Demo
   const location = useLocation();
   const [showFeatures, setShowFeatures] = useState(false);
   const { user } = useAuth();
-  const [isFirstTimeBuyer, setIsFirstTimeBuyer] = useState(false);
-  const promoActive = isPromoActive();
-  const showBonusOffer = isFirstTimeBuyer && promoActive;
   const singleStoryPrice = getPrice("single_story").toFixed(2);
   const popularPrice = getPrice("popular").toFixed(2);
 
-  useEffect(() => {
-    if (!open || !user) return;
-    let cancelled = false;
-    (async () => {
-      try {
-        const { data } = await supabase
-          .from("profiles")
-          .select("first_purchase_bonus_given")
-          .eq("id", user.id)
-          .maybeSingle();
-        if (!cancelled) setIsFirstTimeBuyer(!data?.first_purchase_bonus_given);
-      } catch {
-        if (!cancelled) setIsFirstTimeBuyer(false);
-      }
-    })();
-    return () => { cancelled = true; };
-  }, [open, user]);
 
   const features = [
     "🎨 אווטאר מצויר ומותאם אישית לילד שלך",
@@ -96,16 +75,6 @@ const DemoLockModal = ({ open, onOpenChange, title, description, storyId }: Demo
           <p className="text-sm text-white/80 pt-1 text-center">
             {"\u200B"}
           </p>
-          {showBonusOffer && (
-            <>
-              <DialogDescription className="text-sm text-white/80 pt-1 text-center">
-                🎁 סיפור ראשון? מגיע לך מתנה!
-              </DialogDescription>
-              <DialogDescription className="text-sm text-white/80 pt-1 text-center">
-                רכשו ב-{singleStoryPrice} ₪ וקבלו סיפור דיגיטלי נוסף
-              </DialogDescription>
-            </>
-          )}
         </DialogHeader>
 
         {storyId && (
@@ -122,15 +91,8 @@ const DemoLockModal = ({ open, onOpenChange, title, description, storyId }: Demo
             style={{ boxShadow: '0 0 30px rgba(168, 85, 247, 0.4), 0 0 60px rgba(236, 72, 153, 0.2)' }}
           >
             <div>
-              {showBonusOffer
-                ? `רכישת 2 סיפורים דיגיטליים - ${singleStoryPrice}₪`
-                : `רכישת הסיפור הדיגיטלי 📱 – ${singleStoryPrice}₪`}
+              {`רכישת הסיפור הדיגיטלי 📱 – ${singleStoryPrice}₪`}
             </div>
-            {showBonusOffer && (
-              <div className="text-xs font-bold text-white/90 mt-0.5">
-                כולל סיפור דיגיטלי שני במתנה 🎁
-              </div>
-            )}
           </button>
           <p className="text-white/80 text-xs font-bold text-center -mt-1">
             {"\u200B"}
@@ -150,32 +112,16 @@ const DemoLockModal = ({ open, onOpenChange, title, description, storyId }: Demo
                 className="w-full bg-white/10 backdrop-blur-md border border-white/20 hover:bg-white/15 transition-colors rounded-xl px-4 py-3 text-center"
               >
                 <div className="text-white font-black text-sm">
-                  {showBonusOffer
-                    ? `🎉 חבילת פתיחה - ${popularPrice}₪`
-                    : `רכישת הסיפור + קובץ להדפסה 📖 – ${popularPrice}₪`}
+                  {`רכישת הסיפור + קובץ להדפסה 📖 – ${popularPrice}₪`}
                 </div>
-                {showBonusOffer ? (
-                  <>
-                    <div className="text-white/60 text-xs font-semibold mt-0.5">
-                      2 סיפורים דיגיטליים + 2 קבצים להדפסה
-                    </div>
-                    <div className="text-white/80 text-xs font-bold mt-0.5">
-                      חבילת דפי צביעה מלאה 🎨
-                    </div>
-                    <div className="text-white/60 text-xs font-semibold mt-0.5">
-                      (מבצע חד-פעמי לרכישה ראשונה)
-                    </div>
-                  </>
-                ) : (
-                  <>
+                <>
                     <div className="text-white/60 text-xs font-semibold mt-0.5">
                       קריאה מלאה + שיתוף בוואטסאפ + הקלטת קול
                     </div>
                     <div className="text-white/80 text-xs font-bold mt-0.5">
                       + חבילת דפי צביעה מלאה 🎨
                     </div>
-                  </>
-                )}
+                </>
               </button>
             </>
           )}

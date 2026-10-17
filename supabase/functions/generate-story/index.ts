@@ -976,7 +976,6 @@ serve(async (req) => {
       // === CREDIT CHECK ===
       // No signup credit and no auto-grant "welcome credit" safety net.
       // A user with 0 story_credits must purchase before generating.
-      // The 1+1 first-purchase bonus is applied by applyPurchaseCredits.
       console.log("Checking story credits for user...");
       
       const { data: profile, error: profileError } = await supabase

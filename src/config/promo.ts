@@ -1,6 +1,6 @@
 // Promo end: 30/9/2026 23:59 Israel time (UTC+3).
 // After this moment: countdown hidden, launch prices revert to originalPrice,
-// and the 1+1 first-purchase bonus is disabled everywhere in the UI.
+// The 1+1 first-purchase offer was cancelled permanently.
 export const PROMO_END = new Date("2026-09-30T23:59:59+03:00");
 export const PROMO_END_LABEL = "ה-30/9";
 export const isPromoActive = (now: Date = new Date()): boolean =>
@@ -63,19 +63,7 @@ export const getRegularPrice = (key: PriceKey): number => REGULAR_PRICES[key];
 //   • סיפור דיגיטלי בודד: מחיר קבוע 39.90 (ראה שינוי בפופאפ למטה)
 //     - src/components/story/DemoLockModal.tsx (כפתור "רכישת הסיפור הדיגיטלי")
 //
-// שינוי נוסף (לא מחיר) — הפופאפ באמצע קריאת הסיפור:
-//   קובץ:     src/components/story/DemoLockModal.tsx
-//   מיקום:    בלוק `showBonusOffer` — שורות ~97-106 (טקסט 1+1 בכותרת)
-//             ובלוק תת-הכפתור — שורות ~123-127 ("+ סיפור דיגיטלי נוסף במתנה 🎁")
-//   מקור הדגל: `showBonusOffer` מחושב מ-`isPromoActive() && isFirstTimeBuyer`
-//             (שורות ~40-55 באותו קובץ).
-//   פעולה ב-1/10: להסיר לחלוטין את הבטחת "סיפור חינם" — להשאיר רק את כפתור
-//             הרכישה הרגיל ב-39.90 ₪ ללא כותרת המתנה וללא שורת הבונוס.
-//             ניתן פשוט להסיר את בלוקי `showBonusOffer` (או להעביר את הדגל
-//             ל-`false` קבוע), כי `isPromoActive()` כבר יחזיר `false` אחרי
-//             30/9/26 23:59 — כך שהפופאפ יתנקה אוטומטית ברגע ש-`PROMO_END`
-//             יעבור, ואין חובה לגעת בקוד הפופאפ ידנית אלא רק אם רוצים לנקות
-//             את הענף המת.
+// מבצע 1+1 לרכישה ראשונה בוטל לצמיתות והוסר מהקוד.
 //
 // תזכורת: לסמן ביומן 29/9/26 — לוודא שה-TODO הזה בוצע לפני 1/10.
 // ─────────────────────────────────────────────────────────────────────────────
