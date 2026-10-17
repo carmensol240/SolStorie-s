@@ -103,7 +103,7 @@ const PurchaseSummaryModal = ({
                 onOpenChange(false);
                 onConfirm();
               }}
-              className="w-full bg-gradient-to-r from-purple-500 via-pink-500 to-orange-500 hover:from-purple-400 hover:via-pink-400 hover:to-orange-400 text-white font-black text-sm py-3 rounded-xl shadow-xl"
+              className="w-full bg-primary hover:bg-primary/90 text-white font-black text-sm py-3 rounded-xl shadow-xl"
               style={{ boxShadow: "0 0 30px rgba(168, 85, 247, 0.4)" }}
             >
               אישור ורכישה ₪{(tier.id === "full" && !hasDiscount) ? "129.90" : Number(finalPrice).toFixed(2)} ✨

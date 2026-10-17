@@ -79,7 +79,7 @@ const InstallAppPrompt = ({ justCreatedFirstStory }: InstallAppPromptProps) => {
         </button>
 
         {/* Header */}
-        <div className="bg-gradient-to-r from-purple-600 via-pink-500 to-orange-400 px-6 pt-7 pb-5 text-center text-white">
+        <div className="bg-primary px-6 pt-7 pb-5 text-center text-white">
           <p className="text-3xl mb-1">📲</p>
           <p className="font-bold text-lg leading-tight">התקינו את האפליקציה!</p>
           <p className="text-sm opacity-90 mt-1 leading-snug">
@@ -118,7 +118,7 @@ const InstallAppPrompt = ({ justCreatedFirstStory }: InstallAppPromptProps) => {
           {hasDeferredPrompt && (
             <Button
               onClick={handleInstall}
-              className="w-full bg-gradient-to-r from-purple-600 via-pink-500 to-orange-400 hover:from-purple-700 hover:via-pink-600 hover:to-orange-500 text-white font-bold text-base py-5 rounded-xl shadow-lg"
+              className="w-full bg-primary hover:bg-primary/90 text-white font-bold text-base py-5 rounded-xl shadow-lg"
             >
               <Download className="w-5 h-5 ml-2" />
               התקינו עכשיו בלחיצה אחת 📲

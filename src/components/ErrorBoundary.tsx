@@ -49,7 +49,7 @@ class ErrorBoundary extends Component<Props, State> {
 
             {/* Friendly Message */}
             <div className="space-y-2">
-              <h2 className="text-2xl font-bold bg-gradient-to-r from-purple-600 via-pink-500 to-orange-400 bg-clip-text text-transparent">
+              <h2 className="text-2xl font-bold bg-primary bg-clip-text text-transparent">
                 רק רגע... משהו קטן קרה
               </h2>
               <p className="text-muted-foreground">
@@ -62,7 +62,7 @@ class ErrorBoundary extends Component<Props, State> {
               <button
                 onClick={this.handleRetry}
                 aria-label="נסה שוב לטעון את הדף"
-                className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-gradient-to-r from-purple-600 via-pink-500 to-orange-400 text-white font-medium text-sm shadow-md hover:shadow-lg transition-all hover:scale-[1.02] active:scale-95"
+                className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-primary text-white font-medium text-sm shadow-md hover:shadow-lg transition-all hover:scale-[1.02] active:scale-95"
               >
                 <RefreshCw className="w-4 h-4" aria-hidden="true" />
                 נסו שוב

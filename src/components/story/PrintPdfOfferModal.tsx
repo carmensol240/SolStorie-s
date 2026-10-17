@@ -58,7 +58,7 @@ const PrintPdfOfferModal = ({
           {/* CTA Button */}
           <Button
             onClick={onPurchase}
-            className="w-full mt-2 bg-gradient-to-r from-purple-500 via-pink-500 to-orange-500 hover:from-purple-400 hover:via-pink-400 hover:to-orange-400 text-white font-black text-sm py-5 rounded-xl shadow-xl gap-2"
+            className="w-full mt-2 bg-primary hover:bg-primary/90 text-white font-black text-sm py-5 rounded-xl shadow-xl gap-2"
             style={{ boxShadow: "0 0 24px rgba(168, 85, 247, 0.4)" }}
           >
             הורידו לקובץ PDF 📥

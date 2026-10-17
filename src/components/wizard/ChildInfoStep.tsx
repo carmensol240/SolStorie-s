@@ -579,7 +579,7 @@ const ChildInfoStep = ({ formData, updateFormData, screen = 1 }: ChildInfoStepPr
       {user && (
         <div className="text-center mb-1">
           <h2 className="text-base sm:text-lg font-bold">
-            <span className="bg-gradient-to-r from-purple-600 via-pink-500 to-orange-400 bg-clip-text text-transparent">
+            <span className="bg-primary bg-clip-text text-transparent">
               שלום, {displayName || "משתמש"}!
             </span>{" "}👋
           </h2>
@@ -587,7 +587,7 @@ const ChildInfoStep = ({ formData, updateFormData, screen = 1 }: ChildInfoStepPr
       )}
       {/* Title */}
       <div className="text-center">
-        <h1 className="text-lg font-black bg-gradient-to-r from-purple-600 via-pink-500 to-orange-400 bg-clip-text text-transparent">ספרו לנו על הילד/ה</h1>
+        <h1 className="text-lg font-black bg-primary bg-clip-text text-transparent">ספרו לנו על הילד/ה</h1>
       </div>
 
       {/* Profiles row: saved children + new/delete actions (actions on the LEFT) */}
@@ -754,7 +754,7 @@ const ChildInfoStep = ({ formData, updateFormData, screen = 1 }: ChildInfoStepPr
               className={cn(
                 "py-1.5 rounded-md border transition-all text-center text-sm font-bold flex items-center justify-center gap-1",
                 formData.language === "he"
-                  ? "border-purple-500 bg-gradient-to-r from-purple-600 via-pink-500 to-orange-400 text-white"
+                  ? "border-purple-500 bg-primary text-white"
                   : "border-border bg-card hover:border-purple-300"
               )}
             >
@@ -765,7 +765,7 @@ const ChildInfoStep = ({ formData, updateFormData, screen = 1 }: ChildInfoStepPr
               className={cn(
                 "py-1.5 rounded-md border transition-all text-center text-sm font-bold flex items-center justify-center gap-1",
                 formData.language === "en"
-                  ? "border-purple-500 bg-gradient-to-r from-purple-600 via-pink-500 to-orange-400 text-white"
+                  ? "border-purple-500 bg-primary text-white"
                   : "border-border bg-card hover:border-purple-300"
               )}
             >
@@ -825,7 +825,7 @@ const ChildInfoStep = ({ formData, updateFormData, screen = 1 }: ChildInfoStepPr
       <>
       {/* Title */}
       <div className="text-center">
-        <h1 className="text-lg font-black bg-gradient-to-r from-purple-600 via-pink-500 to-orange-400 bg-clip-text text-transparent">נוסיף תמונה והתאמה אישית</h1>
+        <h1 className="text-lg font-black bg-primary bg-clip-text text-transparent">נוסיף תמונה והתאמה אישית</h1>
       </div>
 
       {/* Hair color · Hair style */}
@@ -1173,7 +1173,7 @@ const ChildInfoStep = ({ formData, updateFormData, screen = 1 }: ChildInfoStepPr
           type="button"
           onClick={handleSaveChildProfile}
           disabled={isSavingChild || !formData.childName.trim()}
-          className="w-full h-12 bg-gradient-to-r from-purple-100 to-pink-100 hover:from-purple-200 hover:to-pink-200 text-purple-700 font-bold text-sm rounded-xl border-2 border-purple-300 shadow-md hover:shadow-lg transition-all"
+          className="w-full h-12 bg-gradient-to-r from-purple-100 to-pink-100 hover:bg-primary/90 text-purple-700 font-bold text-sm rounded-xl border-2 border-purple-300 shadow-md hover:shadow-lg transition-all"
         >
           {isSavingChild ? (
             <Loader2 className="w-4 h-4 animate-spin ml-1.5" />
