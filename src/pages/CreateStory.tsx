@@ -69,8 +69,8 @@ const INITIAL_DATA: StoryFormData = {
 const steps = [
   { number: 1, label: "פרטי הילד/ה" },
   { number: 2, label: "התאמה אישית" },
-  { number: 3, label: "הרשמה" },
-  { number: 4, label: "נושא" },
+  { number: 3, label: "נושא" },
+  { number: 4, label: "הרשמה" },
   { number: 5, label: "יצירה" },
 ];
 
@@ -83,6 +83,8 @@ const CreateStory = () => {
   const [step, setStep] = useState(1);
   const [formData, setFormData] = useState<StoryFormData>(INITIAL_DATA);
   const [isGenerating, setIsGenerating] = useState(false);
+  const [awaitingGenerationAfterAuth, setAwaitingGenerationAfterAuth] = useState(false);
+  const startGenerationRef = useRef<(freshUserId?: string) => Promise<void>>(async () => {});
 
   // Funnel: wizard opened
   useEffect(() => {
@@ -162,6 +164,14 @@ const CreateStory = () => {
     navigate(`/story/${slug}`);
   }, [refetchCredits, navigate, user]);
 
+  // After signing up / logging in on the last wizard step, start generation
+  // as soon as the session is available.
+  useEffect(() => {
+    if (!awaitingGenerationAfterAuth || !user) return;
+    setAwaitingGenerationAfterAuth(false);
+    void startGenerationRef.current(user.id);
+  }, [awaitingGenerationAfterAuth, user]);
+
   const handleStoryGeneratedRef = useRef(handleStoryGenerated);
   useEffect(() => { handleStoryGeneratedRef.current = handleStoryGenerated; }, [handleStoryGenerated]);
   const stableOnComplete = useCallback((id: string) => handleStoryGeneratedRef.current(id), []);
@@ -202,9 +212,8 @@ const CreateStory = () => {
       if (formData.childPhoto) {
         trackEvent({ eventType: "photo_uploaded" });
       }
-      // Skip auth step if user already logged in
-      setStep(user ? 4 : 3);
-    } else if (step === 4 && canProceedTopic) {
+      setStep(3);
+    } else if (step === 3 && canProceedTopic) {
       trackEvent({
         eventType: "topic_selected",
         metadata: {
@@ -212,13 +221,41 @@ const CreateStory = () => {
           is_custom: !formData.topic,
         },
       });
-      // If logged in, check credits first
-      if (user && !hasCredits()) {
+      // Sign-up comes last, right before generation, so parents first see
+      // the whole personalised flow. Logged-in users skip it.
+      if (!user) {
+        setStep(4);
+        return;
+      }
+      await startGeneration();
+    }
+  };
+
+  // Credit check + start generation. Used after the topic step (logged in)
+  // and right after signing up / logging in on the auth step.
+  // `freshUserId` is passed right after sign-up / log-in, when the credits
+  // hook may not have reloaded yet; credits are then read straight from the
+  // profile so a returning user with credits is not sent to the paywall.
+  const startGeneration = async (freshUserId?: string) => {
+    {
+      const uid = freshUserId ?? user?.id ?? null;
+      let noCredits = false;
+      if (freshUserId) {
+        const { data } = await supabase
+          .from('profiles')
+          .select('story_credits')
+          .eq('id', freshUserId)
+          .maybeSingle();
+        noCredits = (data?.story_credits ?? 1) <= 0;
+      } else {
+        noCredits = !!user && !hasCredits();
+      }
+      if (uid && noCredits) {
         // Check whether this user has ever created a story before
         const { count } = await supabase
           .from('stories')
           .select('id', { count: 'exact', head: true })
-          .eq('user_id', user.id);
+          .eq('user_id', uid);
 
         // Returning users go straight to purchase; new users get the one-time free taste
         if (count && count > 0) {
@@ -233,12 +270,11 @@ const CreateStory = () => {
     }
   };
 
+  startGenerationRef.current = startGeneration;
+
   const handleBack = () => {
     if (step === 1) {
       navigate("/"); // Go back to home from first step
-    } else if (step === 4) {
-      // Skip auth step on the way back if logged in
-      setStep(user ? 2 : 3);
     } else if (step > 1) {
       setStep(step - 1);
     }
@@ -256,7 +292,7 @@ const CreateStory = () => {
 
   // Steps 1-4 - Regular wizard layout
   const displayStep = step;
-  const visibleSteps = user ? steps.filter((s) => s.number !== 3) : steps;
+  const visibleSteps = user ? steps.filter((s) => s.number !== 4) : steps;
 
   return (
     <div className="flex flex-col bg-background" style={{ minHeight: '100dvh', height: 'auto', WebkitOverflowScrolling: 'touch' }}>
@@ -315,19 +351,19 @@ const CreateStory = () => {
               screen={step === 1 ? 1 : 2}
             />
           )}
-          {step === 3 && !user && (
+          {step === 3 && (
+            <TopicStep formData={formData} updateFormData={updateFormData} />
+          )}
+          {step === 4 && !user && (
             <AuthStep
               formData={formData}
-              onAuthenticated={() => setStep(4)}
+              onAuthenticated={() => setAwaitingGenerationAfterAuth(true)}
             />
-          )}
-          {step === 4 && (
-            <TopicStep formData={formData} updateFormData={updateFormData} />
           )}
         </div>
       </main>
 
-      {step !== 3 && (
+      {step !== 4 && (
         <div className="fixed bottom-[4.5rem] left-0 right-0 z-[50] bg-gradient-to-t from-background via-background to-transparent pt-6 pb-2 px-3 pb-safe">
           <div className="container max-w-lg mx-auto">
             <Button
@@ -342,7 +378,7 @@ const CreateStory = () => {
               size="lg"
               className="w-full bg-gradient-to-r from-purple-600 via-pink-500 to-orange-400 hover:from-purple-700 hover:via-pink-600 hover:to-orange-500 text-white font-black text-sm py-3 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed shadow-lg hover:shadow-xl transition-all"
             >
-              {step === 4 ? "צרו את הסיפור" : "המשיכו"}
+              {step === 3 ? "צרו את הסיפור" : "המשיכו"}
               <ArrowLeft className="w-4 h-4 mr-1.5" />
             </Button>
             <GlobalFooter />
@@ -350,7 +386,7 @@ const CreateStory = () => {
         </div>
       )}
 
-      {step === 3 && (
+      {step === 4 && (
         <div className="pb-24">
           <GlobalFooter />
         </div>
