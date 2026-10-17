@@ -1789,7 +1789,7 @@ STORY TEXT FOR THIS PAGE: "${pageNarrative}"
 VISUAL DESCRIPTION: ${secondPrompt}
 The action, objects, characters, and emotions shown MUST come from the STORY TEXT above. Do not invent a different scene.`
           : `SCENE (MUST MATCH TEXT EXACTLY): ${secondPrompt}`;
-        const secondIllustrationPrompt = `${buildGenderHeader(childGender)}\n\n${charDesc2}. ${sceneBlock2}. CAMERA: ${cameraAngle2}. LIGHTING: ${lighting2}. Pixar 3D CGI style, vibrant colors, fantasy children's book, ${compositionClause(cameraAngle2)}\n\n${GENDER_SYMBOL_RESTRICTION}`;
+        const secondIllustrationPrompt = `${buildGenderHeader(childGender)}\n\n${charDesc2}. ${sceneBlock2}. CAMERA: ${cameraAngle2}. LIGHTING: ${lighting2}. Pixar 3D CGI style, vibrant colors, fantasy children's book, ${compositionClause(cameraAngle2)}\n\n${GENDER_SYMBOL_RESTRICTION}\n\n${characterLock}`;
 
         for (let attempt = 1; attempt <= MAX_RETRIES; attempt++) {
           if (childPhotoSignedUrl) {
