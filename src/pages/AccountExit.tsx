@@ -15,6 +15,7 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { useAuth } from "@/hooks/use-auth";
+import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { useAnalytics } from "@/hooks/use-analytics";
 
@@ -46,7 +47,7 @@ const RESPONSES: Record<ExitReason, string> = {
 
 const AccountExit = () => {
   const navigate = useNavigate();
-  const { signOut } = useAuth();
+  const { signOut, user } = useAuth();
   const { toast } = useToast();
   const { trackEvent } = useAnalytics();
   
@@ -88,13 +89,27 @@ const AccountExit = () => {
         metadata: selectedReason ? { reason: selectedReason } : undefined 
       });
       
-      // Note: Account deletion should be handled by a backend function
-      // This is a placeholder for the UI
+      // Deletion is handled manually by the admin: send a deletion request
+      // (same channel as the contact form's "delete_account" subject), then
+      // sign out. Never tell the user the data is already gone.
+      if (!user?.email) throw new Error("missing user email");
+      const { error: requestError } = await supabase.functions.invoke("send-contact-form", {
+        body: {
+          name: user.email.split("@")[0],
+          email: user.email,
+          subject: "delete_account",
+          message:
+            `בקשה למחיקת חשבון וכל המידע (ילדים, תמונות, סיפורים).\n` +
+            `user id: ${user.id}\n` +
+            `סיבה: ${selectedReason ?? "לא צוינה"}`,
+        },
+      });
+      if (requestError) throw requestError;
       await signOut();
-      
+
       toast({
-        title: "החשבון נמחק",
-        description: "תודה שהיית איתנו. להתראות!",
+        title: "בקשת המחיקה התקבלה",
+        description: "נמחק את החשבון וכל המידע (כולל תמונות) תוך 14 יום, ונשלח אישור למייל.",
       });
       navigate("/");
     } catch (error) {
@@ -214,7 +229,7 @@ const AccountExit = () => {
               אישור מחיקה
             </AlertDialogTitle>
             <AlertDialogDescription className="text-right">
-              פעולה זו תמחק את כל הנתונים שלך לצמיתות.
+              נמחק את החשבון וכל הנתונים שלך, כולל תמונות הילדים והסיפורים, תוך 14 יום.
               <br />
               <strong className="text-destructive">לא ניתן לשחזר.</strong>
             </AlertDialogDescription>

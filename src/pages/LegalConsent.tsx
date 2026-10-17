@@ -150,7 +150,7 @@ const LegalConsent = () => {
                 <Shield className="w-4 h-4 text-primary" />
               </div>
               <div>
-                <p className="font-medium text-foreground">בטיחות ילדים (COPPA)</p>
+                <p className="font-medium text-foreground">בטיחות ילדים</p>
                 <p className="text-sm text-muted-foreground">שומרים על פרטיות הילדים בהתאם לתקנות הבינלאומיות</p>
               </div>
             </div>
@@ -195,7 +195,7 @@ const LegalConsent = () => {
                   <section>
                     <h3 className="font-bold text-foreground mb-2">3. הגנה על פרטיות ילדים</h3>
                     <p className="text-muted-foreground text-sm">
-                      אנו מחויבים להגנה על פרטיותם של ילדים ופועלים בהתאם לחוק הגנת הפרטיות ולתקנות COPPA.
+                      אנו מחויבים להגנה על פרטיותם של ילדים ופועלים בהתאם לחוק הגנת הפרטיות.
                     </p>
                   </section>
                   <section>
@@ -245,7 +245,7 @@ const LegalConsent = () => {
                     </p>
                   </section>
                   <section>
-                    <h3 className="font-bold text-foreground mb-2">3. הגנה על פרטיות ילדים (COPPA)</h3>
+                    <h3 className="font-bold text-foreground mb-2">3. הגנה על פרטיות ילדים</h3>
                     <p className="text-muted-foreground text-sm">
                       אנו לא אוספים מידע אישי מזהה ישירות מילדים. כל איסוף נעשה באמצעות ההורה.
                     </p>
