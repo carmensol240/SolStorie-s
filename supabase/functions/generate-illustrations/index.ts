@@ -1770,45 +1770,71 @@ The action, objects, characters, and emotions shown MUST come from the STORY TEX
         cameraAngle,
       });
 
-      for (let attempt = 1; attempt <= MAX_RETRIES; attempt++) {
+      // 1) MAIN service: up to MAIN_ATTEMPTS tries with growing waits — only for normal
+      //    failures (timeout / busy / server error). A safety block ("prohibited content")
+      //    is never repeated: the page is held for the admin instead.
+      const MAIN_ATTEMPTS = 3;
+      const BACKOFF_MS = [2000, 5000];
+      let refusedReason: string | null = null;
+      let terminalReason: string | null = null;
+      for (let attempt = 1; attempt <= MAIN_ATTEMPTS; attempt++) {
         attemptsUsed = attempt;
-        if (childPhotoSignedUrl) {
-          base64Image = await generateIllustrationWithFace(
-            illustrationPrompt, childPhotoSignedUrl, characterProfile,
-            storyOutfit, visualAnchor, effectiveAdventureLogic,
-            coverReferenceUrl,
-          );
-          if (base64Image) { modelUsed = "gemini_with_face"; break; }
-          // No Flux fallback when childPhoto exists — loop will retry Gemini face path
-          fallbackReason = `Gemini face failed (attempt ${attempt}); Flux fallback blocked because childPhoto exists`;
-        } else {
-          base64Image = await generateIllustrationGeminiNoFace(
-            illustrationPrompt, characterProfile,
-            storyOutfit, visualAnchor, effectiveAdventureLogic,
-            coverReferenceUrl,
-          );
-          if (base64Image) { modelUsed = "gemini_no_face"; break; }
+        const outcome: GenOutcome = {};
+        base64Image = childPhotoSignedUrl
+          ? await generateIllustrationWithFace(
+              illustrationPrompt, childPhotoSignedUrl, characterProfile,
+              storyOutfit, visualAnchor, effectiveAdventureLogic,
+              coverReferenceUrl, outcome,
+            )
+          : await generateIllustrationGeminiNoFace(
+              illustrationPrompt, characterProfile,
+              storyOutfit, visualAnchor, effectiveAdventureLogic,
+              coverReferenceUrl, outcome,
+            );
+        if (base64Image) {
+          modelUsed = childPhotoSignedUrl ? "gemini_with_face" : "gemini_no_face";
+          if (attempt > 1) console.log(`[Page ${page.page_number}] ✅ Succeeded on retry ${attempt}`);
+          break;
+        }
+        if (outcome.kind === "refused") {
+          refusedReason = outcome.detail || "prohibited content";
+          console.warn(`[Page ${page.page_number}] 🚫 Main service blocked the picture (${refusedReason}) — not repeating; holding page for admin`);
+          break;
+        }
+        if (outcome.kind === "terminal") {
+          terminalReason = outcome.detail || "terminal error";
+          console.warn(`[Page ${page.page_number}] Main service terminal error (${terminalReason}) — not retrying`);
+          break;
+        }
+        fallbackReason = `Main service failed (attempt ${attempt}: ${outcome.detail || "unknown"})`;
+        console.warn(`[Page ${page.page_number}] ⚠️ Attempt ${attempt}/${MAIN_ATTEMPTS} failed, ${attempt < MAIN_ATTEMPTS ? "retrying..." : "giving up on main service"}`);
+        if (attempt < MAIN_ATTEMPTS) await new Promise(r => setTimeout(r, BACKOFF_MS[attempt - 1]));
+      }
 
-          fallbackReason = "Gemini no-face failed";
-          console.log(`[Page ${page.page_number}] Gemini failed, trying Flux Schnell fallback...`);
+      // 2) BACKUP, only after normal failures (never after a safety block or a terminal error).
+      if (!base64Image && !refusedReason && !terminalReason) {
+        const page1Ref = page.page_number !== 1 ? coverReferenceUrl : null;
+        if (page1Ref || childPhotoSignedUrl) {
+          console.log(`[Page ${page.page_number}] Main service failed ${MAIN_ATTEMPTS}x — trying backup with same style/character/references`);
+          base64Image = await generateIllustrationBackup(
+            illustrationPrompt, visualAnchor, effectiveAdventureLogic,
+            { page1: page1Ref, face: childPhotoSignedUrl },
+            storyId, page.page_number,
+          );
+          if (base64Image) modelUsed = "backup_gpt_image";
+          else fallbackReason = `${fallbackReason}; backup failed`;
+        } else {
+          // No page-1 picture and no photo at all: Flux text-only is the only option.
           base64Image = await generateIllustration(
             illustrationPrompt, effectivePhoto, characterProfile,
             LOVABLE_API_KEY, storyOutfit, visualAnchor, effectiveAdventureLogic, topic, fluxSeed
           );
-          if (base64Image) { modelUsed = "fal_schnell_fallback"; break; }
-          fallbackReason = "Both Gemini no-face and Fal Schnell failed";
-        }
-
-        if (base64Image) {
-          if (attempt > 1) console.log(`[Page ${page.page_number}] ✅ Succeeded on retry ${attempt}`);
-          break;
-        }
-
-        console.warn(`[Page ${page.page_number}] ⚠️ Attempt ${attempt}/${MAX_RETRIES} failed, ${attempt < MAX_RETRIES ? 'retrying...' : 'giving up'}`);
-        if (attempt < MAX_RETRIES) {
-          await new Promise(r => setTimeout(r, 1000));
+          if (base64Image) modelUsed = "fal_schnell_fallback";
+          else fallbackReason = `${fallbackReason}; Flux failed`;
         }
       }
+      if (refusedReason) { modelUsed = "held_refused"; fallbackReason = `Main service blocked: ${refusedReason}`; }
+      if (terminalReason) fallbackReason = `Main service: ${terminalReason}`;
       const durationMs = Date.now() - genStart;
       console.log(
         `[IMG-GEN-RESULT] story=${storyId} page=${page.page_number} success=${!!base64Image} ` +
