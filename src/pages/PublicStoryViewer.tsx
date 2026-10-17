@@ -252,7 +252,7 @@ const PublicStoryViewer = () => {
                 {/* Bottom — open button */}
                 <div className="absolute bottom-6 left-0 right-0 z-10 flex flex-col items-center">
                   <button onClick={() => handlePageNav('next')} aria-label="התחל לקרוא"
-                    className="bg-gradient-to-r from-purple-600 to-pink-500 text-white font-bold px-6 py-3 rounded-full shadow-xl hover:shadow-2xl transition-all border-2 border-white/50 text-sm">
+                    className="bg-primary text-white font-bold px-6 py-3 rounded-full shadow-xl hover:shadow-2xl transition-all border-2 border-white/50 text-sm">
                     📖 פִּתְחוּ אֶת הַסֵּפֶר
                   </button>
                   <span className="mt-2 text-xs text-white/60 font-bold">SolStorie's™</span>
@@ -272,7 +272,7 @@ const PublicStoryViewer = () => {
                 </p>
                 <Button
                   onClick={() => navigate(signupUrl)}
-                  className="mt-5 bg-gradient-to-r from-purple-600 to-pink-500 text-white font-bold rounded-full px-6 h-12"
+                  className="mt-5 bg-primary text-white font-bold rounded-full px-6 h-12"
                 >
                   הירשמו והמשיכו לקרוא ✨
                 </Button>
@@ -411,7 +411,7 @@ const PublicStoryViewer = () => {
           </DialogHeader>
           <Button
             onClick={() => navigate(signupUrl)}
-            className="w-full bg-gradient-to-r from-purple-600 to-pink-500 text-white font-bold rounded-full h-12"
+            className="w-full bg-primary text-white font-bold rounded-full h-12"
           >
             הירשמו והמשיכו לקרוא ✨
           </Button>
@@ -420,7 +420,7 @@ const PublicStoryViewer = () => {
 
       {/* Guest signup banner */}
       {showGuestBanner && (
-        <div className="fixed bottom-0 left-0 right-0 z-50 bg-gradient-to-r from-purple-600 via-pink-500 to-orange-400 text-white px-4 py-3 shadow-2xl" dir="rtl">
+        <div className="fixed bottom-0 left-0 right-0 z-50 bg-primary text-white px-4 py-3 shadow-2xl" dir="rtl">
           <div className="max-w-lg mx-auto flex items-center justify-between gap-3">
             <div className="flex items-center gap-2 flex-1 min-w-0">
               <Save className="w-5 h-5 shrink-0" />

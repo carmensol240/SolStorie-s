@@ -1682,7 +1682,7 @@ const [currentPage, setCurrentPage] = useState(0);
       <div className="min-h-screen bg-gradient-to-b from-purple-50 via-pink-50 to-orange-50 flex items-center justify-center">
         <div className="text-center space-y-4">
           <p className="text-xl font-bold text-purple-700">הסיפור לא נמצא</p>
-          <Button onClick={() => navigate("/")} className="bg-gradient-to-r from-purple-600 to-pink-500 hover:from-purple-700 hover:to-pink-600">
+          <Button onClick={() => navigate("/")} className="bg-primary hover:bg-primary/90">
             <Home className="w-4 h-4 ml-2" />
             חזרה לדף הבית
           </Button>
@@ -1924,7 +1924,7 @@ const [currentPage, setCurrentPage] = useState(0);
                         />
                       </div>
                       <Button onClick={handleEndFeedbackSubmit} disabled={endFeedbackRating === 0 || endFeedbackSending}
-                        size="sm" className="w-full gap-1 text-xs bg-gradient-to-r from-purple-600 to-pink-500 hover:from-purple-700 hover:to-pink-600">
+                        size="sm" className="w-full gap-1 text-xs bg-primary hover:bg-primary/90">
                         <Send className="w-3 h-3" />
                         {endFeedbackSending ? "שולח..." : "שליחה"}
                       </Button>
@@ -2334,7 +2334,7 @@ const [currentPage, setCurrentPage] = useState(0);
                 setShowBuyToPrintDialog(false);
                 navigate('/upgrade');
               }}
-              className="bg-gradient-to-r from-purple-600 to-pink-500 hover:from-purple-700 hover:to-pink-600"
+              className="bg-primary hover:bg-primary/90"
             >
               🎁 לרכישת חבילה
             </AlertDialogAction>
@@ -2485,7 +2485,7 @@ const [currentPage, setCurrentPage] = useState(0);
                   }
                 }}
                 disabled={!selectedColoringUrl || coloringLoading}
-                className="w-full bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white"
+                className="w-full bg-primary hover:bg-primary/90 text-white"
               >
                 {coloringLoading ? <><Loader2 className="w-4 h-4 animate-spin mr-2" /> מכין דף צביעה...</> : 'המשך →'}
               </Button>
@@ -2599,7 +2599,7 @@ const [currentPage, setCurrentPage] = useState(0);
                   }
                 }}
                 disabled={coloringLoading}
-                className="w-full bg-gradient-to-r from-purple-500 to-indigo-600 hover:from-purple-600 hover:to-indigo-700 text-white py-3"
+                className="w-full bg-gradient-to-r from-purple-500 to-indigo-600 hover:bg-primary/90 text-white py-3"
               >
                 {coloringLoading ? <><Loader2 className="w-4 h-4 animate-spin mr-2" /> מכין דף צביעה...</> : '🖨️ הורידו להדפסה'}
               </Button>

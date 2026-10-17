@@ -361,11 +361,11 @@ const GiftCard = () => {
                 )}
               >
                 {pkg.comingSoon ? (
-                  <div className="absolute -top-2.5 left-1/2 -translate-x-1/2 bg-gradient-to-r from-amber-500 to-orange-500 text-white text-xs font-black px-2.5 py-0.5 rounded-full whitespace-nowrap shadow-lg">
+                  <div className="absolute -top-2.5 left-1/2 -translate-x-1/2 bg-primary text-white text-xs font-black px-2.5 py-0.5 rounded-full whitespace-nowrap shadow-lg">
                     ⏳ בקרוב
                   </div>
                 ) : promoActive && (
-                  <div className="absolute -top-2.5 left-1/2 -translate-x-1/2 bg-gradient-to-r from-pink-500 via-purple-500 to-orange-500 text-white text-xs font-black px-2.5 py-0.5 rounded-full whitespace-nowrap shadow-lg">
+                  <div className="absolute -top-2.5 left-1/2 -translate-x-1/2 bg-primary text-white text-xs font-black px-2.5 py-0.5 rounded-full whitespace-nowrap shadow-lg">
                     🔥 מחיר השקה
                   </div>
                 )}
@@ -410,7 +410,7 @@ const GiftCard = () => {
                 "מזינים את הקוד ומקבלים את הסיפורים!",
               ].map((step, i) => (
                 <div key={i} className="flex items-start gap-2">
-                  <div className="w-5 h-5 rounded-full bg-gradient-to-r from-pink-500 to-purple-500 flex items-center justify-center flex-shrink-0 mt-0.5">
+                  <div className="w-5 h-5 rounded-full bg-primary flex items-center justify-center flex-shrink-0 mt-0.5">
                     <span className="text-xs font-black text-white">{i + 1}</span>
                   </div>
                   <p className="text-xs text-white/70">{step}</p>
@@ -463,7 +463,7 @@ const GiftCard = () => {
             type="button"
             onClick={handlePurchase}
             disabled={!childName.trim() || !!selectedPkg?.comingSoon}
-            className="w-full bg-gradient-to-r from-pink-500 via-purple-500 to-orange-500 hover:from-pink-400 hover:via-purple-400 hover:to-orange-400 text-white font-black text-sm py-3 rounded-xl shadow-xl disabled:opacity-50 disabled:cursor-not-allowed"
+            className="w-full bg-primary hover:bg-primary/90 text-white font-black text-sm py-3 rounded-xl shadow-xl disabled:opacity-50 disabled:cursor-not-allowed"
             style={{
               boxShadow:
                 "0 0 30px rgba(236, 72, 153, 0.4), 0 0 60px rgba(168, 85, 247, 0.2)",

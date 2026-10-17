@@ -62,7 +62,7 @@ const PWAInstallBanner = () => {
   return (
     <div
       dir="rtl"
-      className="fixed bottom-[4.5rem] left-0 right-0 z-[9999] flex items-center justify-between bg-gradient-to-r from-purple-600 via-pink-500 to-orange-400 text-white px-4 py-2.5 shadow-lg text-sm font-medium"
+      className="fixed bottom-[4.5rem] left-0 right-0 z-[9999] flex items-center justify-between bg-primary text-white px-4 py-2.5 shadow-lg text-sm font-medium"
     >
       <button onClick={handleInstall} className="flex-1 text-right">
         📲 הוסיפו אותנו למסך הבית לגישה מהירה

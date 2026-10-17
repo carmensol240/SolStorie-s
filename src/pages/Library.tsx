@@ -968,7 +968,7 @@ const Library = () => {
             <Button
               onClick={() => navigate("/create")}
               size="lg"
-              className="w-10 h-10 rounded-full bg-gradient-to-br from-purple-500 via-pink-500 to-orange-400 hover:from-purple-600 hover:via-pink-600 hover:to-orange-500 text-white comic-shadow min-h-[40px] min-w-[40px]"
+              className="w-10 h-10 rounded-full bg-gradient-to-br from-purple-500 via-pink-500 to-orange-400 hover:bg-primary/90 text-white comic-shadow min-h-[40px] min-w-[40px]"
               aria-label="צור סיפור חדש"
             >
               <Plus className="w-4 h-4" aria-hidden="true" />
@@ -1055,13 +1055,13 @@ const EmptyState = ({ onCreateClick }: { onCreateClick: () => void }) => (
       </div>
     </div>
     <div className="space-y-2 pt-4">
-      <h2 className="text-2xl font-black bg-gradient-to-r from-purple-600 via-pink-500 to-orange-400 bg-clip-text text-transparent">הספרייה שלך מחכה לסיפור הראשון!</h2>
+      <h2 className="text-2xl font-black bg-primary bg-clip-text text-transparent">הספרייה שלך מחכה לסיפור הראשון!</h2>
       <p className="text-purple-600/80">בואו נתחיל?</p>
     </div>
     <Button
       onClick={onCreateClick}
       size="lg"
-      className="bg-gradient-to-r from-purple-600 to-pink-500 hover:from-purple-700 hover:to-pink-600 text-white font-bold px-8 py-6 rounded-2xl shadow-lg"
+      className="bg-primary hover:bg-primary/90 text-white font-bold px-8 py-6 rounded-2xl shadow-lg"
     >
       <Plus className="w-5 h-5 ml-2" />
       צרו סיפור חדש

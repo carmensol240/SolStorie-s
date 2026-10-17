@@ -583,7 +583,7 @@ const GeneratingStep = ({ formData, onComplete }: GeneratingStepProps) => {
           <span className="text-5xl">😔</span>
         </div>
         <div className="space-y-3 max-w-sm">
-          <h2 className="text-2xl font-bold bg-gradient-to-r from-purple-600 via-pink-500 to-orange-400 bg-clip-text text-transparent">
+          <h2 className="text-2xl font-bold bg-primary bg-clip-text text-transparent">
             {error.includes("שגיאת מערכת") ? "עומס זמני במערכת" : "לא הצלחנו ליצור את הסיפור הפעם"}
           </h2>
           <p className="text-[#5B3E96] text-base leading-relaxed">
@@ -594,7 +594,7 @@ const GeneratingStep = ({ formData, onComplete }: GeneratingStepProps) => {
           <Button 
             onClick={handleRetry} 
             size="lg" 
-            className="gap-2 bg-gradient-to-r from-purple-600 via-pink-500 to-orange-400 hover:from-purple-700 hover:via-pink-600 hover:to-orange-500 text-white shadow-lg text-base px-8 py-6 rounded-2xl w-full"
+            className="gap-2 bg-primary hover:bg-primary/90 text-white shadow-lg text-base px-8 py-6 rounded-2xl w-full"
           >
             <RefreshCw className="w-5 h-5" />
             נסו שוב ✨
@@ -656,7 +656,7 @@ const GeneratingStep = ({ formData, onComplete }: GeneratingStepProps) => {
             aria-label="התקדמות יצירת הסיפור"
           >
             <div 
-              className="h-full bg-gradient-to-r from-purple-600 via-pink-500 to-orange-400 transition-all duration-500"
+              className="h-full bg-primary transition-all duration-500"
               style={{ width: `${progress}%` }}
             />
           </div>
@@ -682,7 +682,7 @@ const GeneratingStep = ({ formData, onComplete }: GeneratingStepProps) => {
             <Button 
               onClick={handleOpenStory} 
               size="lg" 
-              className="gap-2 bg-gradient-to-r from-purple-600 to-pink-500 hover:from-purple-700 hover:to-pink-600 text-white shadow-lg text-lg px-8 py-6"
+              className="gap-2 bg-primary hover:bg-primary/90 text-white shadow-lg text-lg px-8 py-6"
             >
               <BookOpen className="w-6 h-6" />
               קראו את הסיפור 📖
@@ -712,7 +712,7 @@ const GeneratingStep = ({ formData, onComplete }: GeneratingStepProps) => {
 
         {/* Status text */}
         <div className="space-y-1">
-          <h2 className="text-lg font-bold bg-gradient-to-r from-purple-600 via-pink-500 to-orange-400 bg-clip-text text-transparent">
+          <h2 className="text-lg font-bold bg-primary bg-clip-text text-transparent">
             {currentMessage.text}
           </h2>
           <p className="text-purple-700/70 text-xs">
@@ -731,7 +731,7 @@ const GeneratingStep = ({ formData, onComplete }: GeneratingStepProps) => {
             aria-label="התקדמות יצירת הסיפור"
           >
             <div
-              className="h-full bg-gradient-to-r from-purple-600 via-pink-500 to-orange-400 transition-all duration-300"
+              className="h-full bg-primary transition-all duration-300"
               style={{ width: `${progress}%` }}
             />
           </div>

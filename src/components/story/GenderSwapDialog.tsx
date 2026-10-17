@@ -141,7 +141,7 @@ export function GenderSwapDialog({
           <Button
             onClick={handleSwap}
             disabled={isLoading || selectedGender === currentGender}
-            className="flex-1 bg-gradient-to-r from-purple-600 via-pink-500 to-orange-400 hover:from-purple-700 hover:via-pink-600 hover:to-orange-500"
+            className="flex-1 bg-primary hover:bg-primary/90"
           >
             {isLoading ? (
               <>

@@ -199,7 +199,7 @@ const ShareAndEarn = () => {
               onClick={handleRedeemCoin}
               disabled={redeeming}
               size="sm"
-              className="bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600"
+              className="bg-primary hover:bg-primary/90"
             >
               {redeeming ? "ממיר..." : "השתמשו במטבע ליצירת סיפור"}
             </Button>

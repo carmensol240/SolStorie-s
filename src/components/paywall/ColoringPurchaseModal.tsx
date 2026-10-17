@@ -81,7 +81,7 @@ const ColoringPurchaseModal = ({
                       )}
                     >
                       {opt.badge && (
-                        <div className="absolute -top-2.5 left-1/2 -translate-x-1/2 bg-gradient-to-r from-pink-500 to-purple-500 text-white text-xs font-black px-2 py-0.5 rounded-full whitespace-nowrap shadow-lg">
+                        <div className="absolute -top-2.5 left-1/2 -translate-x-1/2 bg-primary text-white text-xs font-black px-2 py-0.5 rounded-full whitespace-nowrap shadow-lg">
                           {opt.badge}
                         </div>
                       )}
@@ -109,7 +109,7 @@ const ColoringPurchaseModal = ({
             onClick={handleGrowCheckout}
             disabled={!user}
             size="lg"
-            className="w-full bg-gradient-to-r from-purple-500 via-pink-500 to-orange-500 hover:opacity-95 text-white font-black rounded-xl"
+            className="w-full bg-primary hover:opacity-95 text-white font-black rounded-xl"
             style={{ boxShadow: "0 0 30px rgba(168, 85, 247, 0.4)" }}
           >
             לרכישה — ₪{current.price.toFixed(2)} ✨

@@ -42,7 +42,7 @@ const InspirationScreen = ({ onContinue }: InspirationScreenProps) => {
           <Button 
             onClick={onContinue}
             size="lg"
-            className="w-full bg-gradient-to-r from-purple-600 via-pink-500 to-orange-400 hover:from-purple-700 hover:via-pink-600 hover:to-orange-500 text-white font-black text-lg py-6 rounded-full shadow-lg hover:shadow-xl transition-all hover:scale-[1.02]"
+            className="w-full bg-primary hover:bg-primary/90 text-white font-black text-lg py-6 rounded-full shadow-lg hover:shadow-xl transition-all hover:scale-[1.02]"
           >
             בואו נתחיל! ✨
           </Button>

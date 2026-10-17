@@ -48,7 +48,7 @@ const PdfFeaturePopup = ({ userId }: PdfFeaturePopupProps) => {
         <div className="px-6 pt-5 pb-6 flex flex-col items-center text-center gap-4">
           {/* Icon cluster */}
           <div className="relative">
-            <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center shadow-lg">
+            <div className="w-16 h-16 rounded-2xl bg-primary flex items-center justify-center shadow-lg">
               <Printer className="w-8 h-8 text-white" />
             </div>
             <Sparkles className="absolute -top-2 -right-2 w-5 h-5 text-amber-400 animate-pulse" />
@@ -66,7 +66,7 @@ const PdfFeaturePopup = ({ userId }: PdfFeaturePopupProps) => {
 
           <Button
             onClick={handleClose}
-            className="w-full rounded-xl py-5 text-base font-bold bg-gradient-to-r from-purple-600 via-pink-500 to-orange-400 text-white hover:opacity-90 transition-opacity"
+            className="w-full rounded-xl py-5 text-base font-bold bg-primary text-white hover:opacity-90 transition-opacity"
           >
             איזה כיף! בואו נקרא 🎉
           </Button>

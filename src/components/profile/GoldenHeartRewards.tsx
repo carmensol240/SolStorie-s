@@ -245,7 +245,7 @@ const GoldenHeartRewards = ({ childName, isUnlocked }: GoldenHeartRewardsProps) 
           <Button
             onClick={() => handleDownload("coloring")}
             disabled={generating !== null}
-            className="flex-1 bg-gradient-to-r from-pink-500 to-purple-500 hover:from-pink-600 hover:to-purple-600 text-white font-bold text-xs rounded-xl h-10"
+            className="flex-1 bg-primary hover:bg-primary/90 text-white font-bold text-xs rounded-xl h-10"
           >
             <FileText className="w-4 h-4 ml-1" />
             {generating === "coloring" ? "יוצר..." : "דף צביעה"}
@@ -253,7 +253,7 @@ const GoldenHeartRewards = ({ childName, isUnlocked }: GoldenHeartRewardsProps) 
           <Button
             onClick={() => handleDownload("certificate")}
             disabled={generating !== null}
-            className="flex-1 bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white font-bold text-xs rounded-xl h-10"
+            className="flex-1 bg-primary hover:bg-primary/90 text-white font-bold text-xs rounded-xl h-10"
           >
             <Award className="w-4 h-4 ml-1" />
             {generating === "certificate" ? "יוצר..." : "תעודת חברות"}

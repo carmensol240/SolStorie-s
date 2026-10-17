@@ -7,26 +7,26 @@
     direction: rtl;
     
     /* Clean Natural Palette - Matching Landing Page */
-    --background: 40 30% 97%;
-    --foreground: 25 20% 20%;
+    --background: 37 62% 96%;
+    --foreground: 259 32% 19%;
 
     --card: 0 0% 100%;
-    --card-foreground: 25 20% 20%;
+    --card-foreground: 259 32% 19%;
 
     --popover: 0 0% 100%;
-    --popover-foreground: 25 20% 20%;
+    --popover-foreground: 259 32% 19%;
 
     /* Warm Orange Primary - From Landing Button */
-    --primary: 28 90% 55%;
+    --primary: 19 72% 44%;
     --primary-foreground: 0 0% 100%;
 
     /* Soft Cream Secondary */
     --secondary: 35 40% 92%;
-    --secondary-foreground: 25 20% 25%;
+    --secondary-foreground: 259 32% 22%;
 
     /* Light Cream Accent */
     --accent: 40 35% 95%;
-    --accent-foreground: 25 20% 20%;
+    --accent-foreground: 259 32% 19%;
 
     /* Success Green */
     --success: 142 70% 45%;
@@ -37,14 +37,14 @@
     --purple-foreground: 0 0% 100%;
 
     --muted: 40 20% 94%;
-    --muted-foreground: 25 15% 45%;
+    --muted-foreground: 263 10% 40%;
 
     --destructive: 0 84.2% 60.2%;
     --destructive-foreground: 210 40% 98%;
 
-    --border: 35 20% 88%;
-    --input: 35 20% 88%;
-    --ring: 28 90% 55%;
+    --border: 35 38% 87%;
+    --input: 35 38% 87%;
+    --ring: 19 72% 44%;
 
     --radius: 1rem;
 
@@ -59,12 +59,12 @@
 
     --sidebar-background: 40 30% 98%;
     --sidebar-foreground: 25 15% 30%;
-    --sidebar-primary: 28 90% 55%;
+    --sidebar-primary: 19 72% 44%;
     --sidebar-primary-foreground: 0 0% 98%;
     --sidebar-accent: 40 25% 95%;
     --sidebar-accent-foreground: 25 15% 25%;
     --sidebar-border: 35 15% 90%;
-    --sidebar-ring: 28 90% 55%;
+    --sidebar-ring: 19 72% 44%;
   }
 
   .dark {
@@ -77,7 +77,7 @@
     --popover: 25 15% 14%;
     --popover-foreground: 40 30% 95%;
 
-    --primary: 28 85% 55%;
+    --primary: 19 72% 44%;
     --primary-foreground: 0 0% 100%;
 
     --secondary: 35 30% 20%;
@@ -94,16 +94,16 @@
 
     --border: 25 15% 22%;
     --input: 25 15% 22%;
-    --ring: 28 85% 55%;
+    --ring: 19 72% 50%;
 
     --sidebar-background: 25 15% 10%;
     --sidebar-foreground: 25 10% 90%;
-    --sidebar-primary: 28 85% 55%;
+    --sidebar-primary: 19 72% 44%;
     --sidebar-primary-foreground: 0 0% 100%;
     --sidebar-accent: 25 12% 16%;
     --sidebar-accent-foreground: 25 10% 90%;
     --sidebar-border: 25 12% 18%;
-    --sidebar-ring: 28 85% 55%;
+    --sidebar-ring: 19 72% 50%;
   }
 }
 

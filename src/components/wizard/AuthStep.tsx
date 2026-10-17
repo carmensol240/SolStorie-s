@@ -236,7 +236,7 @@ const AuthStep = ({ formData, onAuthenticated }: AuthStepProps) => {
               onClick={() => setMode("signup")}
               className={`flex-1 flex items-center justify-center text-center py-2.5 rounded-full text-sm font-bold transition-all ${
                 mode === "signup"
-                  ? "bg-gradient-to-r from-purple-500 to-pink-500 text-white shadow"
+                  ? "bg-primary text-white shadow"
                   : "bg-white/10 text-white/70"
               }`}
             >
@@ -247,7 +247,7 @@ const AuthStep = ({ formData, onAuthenticated }: AuthStepProps) => {
               onClick={() => setMode("login")}
               className={`flex-1 flex items-center justify-center text-center py-2.5 rounded-full text-sm font-bold transition-all ${
                 mode === "login"
-                  ? "bg-gradient-to-r from-purple-500 to-pink-500 text-white shadow"
+                  ? "bg-primary text-white shadow"
                   : "bg-white/10 text-white/70"
               }`}
             >
@@ -321,7 +321,7 @@ const AuthStep = ({ formData, onAuthenticated }: AuthStepProps) => {
                   type="button"
                   onClick={handleForgotPassword}
                   disabled={isResetting}
-                  className="flex-1 bg-gradient-to-r from-purple-500 to-pink-500 text-white font-bold text-sm rounded-full py-2 h-auto"
+                  className="flex-1 bg-primary text-white font-bold text-sm rounded-full py-2 h-auto"
                 >
                   {isResetting ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : "שלחו קישור"}
                 </Button>
@@ -400,7 +400,7 @@ const AuthStep = ({ formData, onAuthenticated }: AuthStepProps) => {
           <Button
             type="submit"
             disabled={submitting || (mode === "signup" && !termsAccepted)}
-            className="w-full flex items-center justify-center text-center bg-gradient-to-r from-purple-600 via-pink-500 to-orange-400 hover:from-purple-700 hover:via-pink-600 hover:to-orange-500 text-white font-black text-base rounded-full py-3.5 h-auto disabled:opacity-40"
+            className="w-full flex items-center justify-center text-center bg-primary hover:bg-primary/90 text-white font-black text-base rounded-full py-3.5 h-auto disabled:opacity-40"
           >
             {submitting ? (
               <Loader2 className="w-4 h-4 animate-spin" />
