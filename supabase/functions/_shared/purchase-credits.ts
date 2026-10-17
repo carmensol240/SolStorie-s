@@ -331,8 +331,10 @@ export async function applyPurchaseCredits(
 //   pdf                                 59.90  ⚠ collides with gift_two_stories 59.90
 //   gift_two_stories                    59.90  ⚠ collides with pdf 59.90
 //
-// Regular prices (from 1/10/26): basic 39.90, popular 119.90, pdf 69.90,
-// gift_two_stories 69.90 (also collides). Legacy amounts kept for
+// Regular prices 1/10/26–mid 10/26: basic 39.90, popular 119.90, pdf 69.90,
+// gift_two_stories 69.90 (also collides).
+// Current prices (from 10/2026): basic 39.90, popular (full story) 69.90,
+// pdf add-on 34.90, single_story 39.90, coloring 9.90 / 24.90. Legacy amounts kept for
 // backwards-compat with older Grow links that may still be live.
 //
 // COLLISIONS: 59.90 and 69.90 map to BOTH pdf and gift_two_stories. This
@@ -346,14 +348,18 @@ export function packageIdFromAmount(amount: number): string | null {
   if (a === 29.9) return "single_story_digital";
   if (a === 39.9) return "single_story_digital";
   if (a === 49.9) return "single_story_digital";
-  // popular — 99.90 promo, 119.90 regular, 129.90 legacy
+  // popular — 99.90 promo, 119.90 regular, 129.90 legacy (69.90 from 10/2026 is
+  // ambiguous, handled below)
   if (a === 99.9) return "popular";
   if (a === 119.9) return "popular";
   if (a === 129.9) return "popular";
+  // pdf add-on — 34.90 from 10/2026
+  if (a === 34.9) return "pdf";
   // coloring
   if (a === 9.9) return "coloring_single";
   if (a === 24.9) return "coloring_bundle";
-  // AMBIGUOUS: 59.90 and 69.90 are used by BOTH `pdf` and `gift_two_stories`.
+  // AMBIGUOUS: 59.90 and 69.90 are used by BOTH `pdf` and `gift_two_stories`
+  // (and 69.90 is also the full-story `popular` price from 10/2026).
   // We intentionally return null instead of guessing — the webhook logs an
   // `unknown_package` alert and no credits are issued to the wrong product.
   // `openGrowCheckout` always sends cField2, so real user flows are unaffected;

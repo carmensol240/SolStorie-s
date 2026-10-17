@@ -13,16 +13,16 @@ export const PACKAGE_PRICES: Record<string, number[]> = {
   gift_single_digital: [29.9, 39.9, 49.9],
   // Single story from the demo lock modal
   single_story: [39.9],
-  // Story + PDF + coloring ("popular")
-  popular: [99.9, 119.9, 129.9],
-  single_story_full: [99.9, 119.9, 129.9],
-  gift_single_full: [99.9, 119.9, 129.9],
+  // Full story: digital + print PDF + coloring ("popular"), 69.90 from 10/2026
+  popular: [69.9, 99.9, 119.9, 129.9],
+  single_story_full: [69.9, 99.9, 119.9, 129.9],
+  gift_single_full: [69.9, 99.9, 119.9, 129.9],
   // Coloring
   coloring_single: [9.9],
   coloring_bundle: [24.9],
   coloring_story: [24.9],
   // Print PDF
-  pdf: [59.9, 69.9],
+  pdf: [34.9, 59.9, 69.9],
   // Gift: two digital stories
   gift_two_stories: [59.9, 69.9, 89.9],
 };
