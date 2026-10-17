@@ -67,17 +67,37 @@ export function printColoringA4(url: string) {
   pageStyle.textContent = "@media print { @page { size: A4 portrait; margin: 10mm; } }";
   document.head.appendChild(pageStyle);
   document.body.classList.add("printing-coloring-page");
+  let done = false;
+  let focusTimer: ReturnType<typeof setTimeout> | undefined;
+  let fallbackTimer: ReturnType<typeof setTimeout> | undefined;
   const cleanup = () => {
+    if (done) return;
+    done = true;
     document.body.classList.remove("printing-coloring-page");
     pageStyle.remove();
     root.remove();
     window.removeEventListener("afterprint", cleanup);
+    window.removeEventListener("focus", cleanup);
+    if (focusTimer) clearTimeout(focusTimer);
+    if (fallbackTimer) clearTimeout(fallbackTimer);
   };
   window.addEventListener("afterprint", cleanup);
-  const go = () => window.print();
+  const go = () => {
+    window.print();
+    // Non-blocking print (iPhone etc.): only listen for focus after a delay,
+    // so the marker can't be cleared before the page is actually printed.
+    focusTimer = setTimeout(() => {
+      if (!done) window.addEventListener("focus", cleanup, { once: true });
+    }, PRINT_FOCUS_DELAY_MS);
+    fallbackTimer = setTimeout(cleanup, PRINT_FALLBACK_MS);
+  };
   if (img.complete) go();
   else {
     img.onload = go;
     img.onerror = go;
   }
+  return cleanup;
 }
+
+export const PRINT_FOCUS_DELAY_MS = 1500;
+export const PRINT_FALLBACK_MS = 60000;
