@@ -204,6 +204,7 @@ const Library = () => {
         .from("stories")
         .select("id, slug, child_name, topic, created_at, cover_url, theme, story_type, min_age, max_age, is_premium, child_gender, child_id, language")
         .eq("user_id", user.id)
+        .or("generation_status.is.null,generation_status.not.in.(generating,failed)")
         .order("created_at", { ascending: false });
 
       if (storiesError || !storiesData || storiesData.length === 0) {

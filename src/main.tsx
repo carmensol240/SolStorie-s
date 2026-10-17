@@ -1,5 +1,6 @@
 import { createRoot } from "react-dom/client";
 import { registerSW } from "virtual:pwa-register";
+import { shouldDeferAutoReload } from "./lib/story-generation-session";
 import App from "./App.tsx";
 import "./index.css";
 
@@ -43,7 +44,20 @@ if (isInIframe || isPreviewHost) {
   };
   cleanup();
 } else {
-  registerSW({ immediate: true });
+  registerSW({
+    immediate: true,
+    // Never reload in the middle of creating a story — wait until it's safe.
+    onNeedReload: () => {
+      const tryReload = () => {
+        if (shouldDeferAutoReload(window.location.pathname)) {
+          setTimeout(tryReload, 5000);
+        } else {
+          window.location.reload();
+        }
+      };
+      tryReload();
+    },
+  });
 }
 
 // ---------------------------------------------------------------------------
@@ -101,6 +115,9 @@ if (isInIframe || isPreviewHost) {
       return;
     }
     if (current !== initial) {
+      // A story is being created (or the story form is open): keep polling and
+      // reload only after the user has left that flow.
+      if (shouldDeferAutoReload(window.location.pathname)) return;
       reloading = true;
       // Clear caches + SW before hard reload so the new HTML is fetched fresh.
       try {

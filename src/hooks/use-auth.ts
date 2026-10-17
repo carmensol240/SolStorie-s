@@ -22,8 +22,16 @@ export const useAuth = () => {
     // Set up auth state listener FIRST
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       (event, session) => {
-        setSession(session);
-        setUser(session?.user ?? null);
+        // A token refresh for the same user must not look like a new user to the
+        // app (pages would re-run their sign-in checks); and a momentary empty
+        // session is only treated as "signed out" on an explicit SIGNED_OUT.
+        if (session) {
+          setSession(session);
+          setUser((prev) => (prev && prev.id === session.user.id && event !== "USER_UPDATED" ? prev : session.user));
+        } else if (event === "SIGNED_OUT" || event === "INITIAL_SESSION") {
+          setSession(null);
+          setUser(null);
+        }
         setLoading(false);
       }
     );

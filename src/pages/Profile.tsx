@@ -102,6 +102,7 @@ const Profile = () => {
       .from("stories")
       .select("id, theme, topic, cover_url")
       .eq("user_id", user.id)
+      .or("generation_status.is.null,generation_status.not.in.(generating,failed)")
       .then(({ data, count }) => {
         const stories = data ?? [];
         setStoryCount(stories.length);
