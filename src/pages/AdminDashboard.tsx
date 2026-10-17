@@ -4,6 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/use-auth";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import FunnelSection from "@/components/admin/FunnelSection";
+import IllustrationIssuesSection from "@/components/admin/IllustrationIssuesSection";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
@@ -677,6 +678,7 @@ const AdminDashboard = () => {
           {/* ===== FUNNEL TAB ===== */}
           <TabsContent value="funnel">
             <FunnelSection />
+            <div className="mt-6"><IllustrationIssuesSection /></div>
           </TabsContent>
 
           {/* ===== USERS TAB ===== */}
