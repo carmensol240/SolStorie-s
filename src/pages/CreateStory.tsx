@@ -7,7 +7,6 @@ import GlobalFooter from "@/components/shared/GlobalFooter";
 import ChildInfoStep from "@/components/wizard/ChildInfoStep";
 import TopicStep from "@/components/wizard/TopicStep";
 import GeneratingStep from "@/components/wizard/GeneratingStep";
-import AuthStep from "@/components/wizard/AuthStep";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { useAuth } from "@/hooks/use-auth";
 import { useCredits } from "@/hooks/use-credits";
@@ -70,7 +69,6 @@ const steps = [
   { number: 1, label: "פרטי הילד/ה" },
   { number: 2, label: "התאמה אישית" },
   { number: 3, label: "נושא" },
-  { number: 4, label: "הרשמה" },
   { number: 5, label: "יצירה" },
 ];
 
@@ -176,7 +174,12 @@ const CreateStory = () => {
   useEffect(() => { handleStoryGeneratedRef.current = handleStoryGenerated; }, [handleStoryGenerated]);
   const stableOnComplete = useCallback((id: string) => handleStoryGeneratedRef.current(id), []);
 
-  // No auth redirect — unauthenticated users can browse freely
+  // Sign-up happens before the wizard: guests are sent to the single sign-up screen.
+  useEffect(() => {
+    if (loading || user || isDevModeEnabled()) return;
+    if (searchParams.get('resume') === 'true') return;
+    navigate('/auth?returnTo=%2Fcreate', { replace: true });
+  }, [loading, user, searchParams, navigate]);
 
   const updateFormData = (updates: Partial<StoryFormData>) => {
     setFormData((prev) => ({ ...prev, ...updates }));
@@ -221,10 +224,8 @@ const CreateStory = () => {
           is_custom: !formData.topic,
         },
       });
-      // Sign-up comes last, right before generation, so parents first see
-      // the whole personalised flow. Logged-in users skip it.
-      if (!user) {
-        setStep(4);
+      if (!user && !isDevModeEnabled()) {
+        navigate('/auth?returnTo=%2Fcreate');
         return;
       }
       await startGeneration();
@@ -292,7 +293,7 @@ const CreateStory = () => {
 
   // Steps 1-4 - Regular wizard layout
   const displayStep = step;
-  const visibleSteps = user ? steps.filter((s) => s.number !== 4) : steps;
+  const visibleSteps = steps;
 
   return (
     <div className="flex flex-col bg-background" style={{ minHeight: '100dvh', height: 'auto', WebkitOverflowScrolling: 'touch' }}>
@@ -354,16 +355,10 @@ const CreateStory = () => {
           {step === 3 && (
             <TopicStep formData={formData} updateFormData={updateFormData} />
           )}
-          {step === 4 && !user && (
-            <AuthStep
-              formData={formData}
-              onAuthenticated={() => setAwaitingGenerationAfterAuth(true)}
-            />
-          )}
         </div>
       </main>
 
-      {step !== 4 && (
+      {(
         <div className="fixed bottom-[4.5rem] left-0 right-0 z-[50] bg-gradient-to-t from-background via-background to-transparent pt-6 pb-2 px-3 pb-safe">
           <div className="container max-w-lg mx-auto">
             <Button
@@ -383,12 +378,6 @@ const CreateStory = () => {
             </Button>
             <GlobalFooter />
           </div>
-        </div>
-      )}
-
-      {step === 4 && (
-        <div className="pb-24">
-          <GlobalFooter />
         </div>
       )}
 
