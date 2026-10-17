@@ -578,7 +578,7 @@ const [currentPage, setCurrentPage] = useState(0);
   }, [isDemoUser]);
 
   // PDF download is gated more strictly than other demo-locked actions:
-  // only single_story_full (99.90 ₪), multi-story packages, subscribers,
+  // only single_story_full (69.90 ₪), multi-story packages, subscribers,
   // admins, or testers may download. single_story_digital buyers see the
   // upgrade modal so they can buy the full version.
   const canDownloadPdf = !!user && (

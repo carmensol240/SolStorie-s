@@ -29,11 +29,11 @@ const PROMO_PRICES: Record<PriceKey, number> = {
 };
 
 const REGULAR_PRICES: Record<PriceKey, number> = {
-  basic: 39.90,
-  popular: 119.90,
-  pdf: 69.90,
+  basic: 39.90,            // סיפור דיגיטלי
+  popular: 69.90,          // סיפור מלא: דיגיטלי + קובץ להדפסה + דפי צביעה (מ-10/2026)
+  pdf: 34.90,              // תוספת קובץ להדפסה לסיפור שכבר נקנה (מ-10/2026)
   gift_two_stories: 69.90,
-  single_story: 39.90, // ללא שינוי אחרי 1/10
+  single_story: 39.90,
 };
 
 /** מחזיר את המחיר האפקטיבי — מחיר השקה עד `PROMO_END`, אחריו המחיר הרגיל. */

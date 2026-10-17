@@ -52,11 +52,11 @@ const PRODUCTS: Product[] = [
   },
   {
     id: "popular",
-    title: "הכי פופולרי",
-    description: "סיפור דיגיטלי + PDF + דפי צביעה",
+    title: "סיפור מלא",
+    description: "סיפור דיגיטלי + קובץ להדפסת ספר + דפי צביעה",
     priceKey: "popular",
     growKey: "popular",
-    badge: "הכי פופולרי 🔥",
+    badge: "הכי משתלם 🔥",
     features: [
       "✨ הילד שלך — הגיבור של הסיפור",
       "🎨 דמות מותאמת אישית עם הפנים שלו",

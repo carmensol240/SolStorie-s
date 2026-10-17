@@ -28,6 +28,7 @@ import {
   type PriceKey,
 } from "@/config/promo";
 import { GIFT_PACKAGES } from "@/config/gift-packages";
+import { packageIdFromAmount } from "../../supabase/functions/_shared/purchase-credits";
 
 // Grow keys שידוע לנו שאין להם עדיין paylink תקין. כל עוד מפתח נמצא כאן,
 // ה-UI חייב לחסום אותו (disabled/comingSoon) — הבדיקה למטה אוכפת את זה.
@@ -74,8 +75,8 @@ describe("UI prices == config prices", () => {
   };
   const EXPECTED_REGULAR: Record<PriceKey, number> = {
     basic: 39.9,
-    popular: 119.9,
-    pdf: 69.9,
+    popular: 69.9, // סיפור מלא (מ-10/2026)
+    pdf: 34.9, // תוספת קובץ להדפסה (מ-10/2026)
     gift_two_stories: 69.9,
     single_story: 39.9,
   };
@@ -103,25 +104,7 @@ describe("packageIdFromAmount fallback (webhook)", () => {
   // כשה-cField חסר. הבדיקה מבטיחה שכל סכום פעיל ממופה למשהו סביר, ושה-
   // התנגשות הידועה 59.90 / 69.90 מתועדת (pdf זוכה, gift_two_stories לא).
   //
-  // מכיוון שהקוד יושב תחת supabase/functions ו-deno, אנחנו לא מייבאים אותו
-  // כאן — משכפלים את הלוגיקה כדי לבדוק שהמיפוי מדויק ולא מתפזר בשתיקה.
-  function packageIdFromAmount(amount: number): string | null {
-    const a = Math.round(amount * 100) / 100;
-    if (a === 29.9) return "single_story_digital";
-    if (a === 39.9) return "single_story_digital";
-    if (a === 49.9) return "single_story_digital";
-    if (a === 99.9) return "popular";
-    if (a === 119.9) return "popular";
-    if (a === 129.9) return "popular";
-    if (a === 9.9) return "coloring_single";
-    if (a === 24.9) return "coloring_bundle";
-    // AMBIGUOUS 59.90/69.90 — pdf ו-gift_two_stories חולקים את הסכום.
-    // ה-fallback לא מנחש: מחזיר null וה-webhook יזעיק unknown_package.
-    if (a === 59.9) return null;
-    if (a === 69.9) return null;
-    if (a === 89.9) return "gift_two_stories";
-    return null;
-  }
+  // הפונקציה האמיתית מיובאת מקוד השרת (ולא משוכפלת), כדי שהבדיקה תתפוס כל שינוי בה.
 
   it("מזהה סכומים חד-משמעיים בקונפיג (למעט 59.90/69.90 המעורפלים)", () => {
     const activeAmounts = new Set<number>();
