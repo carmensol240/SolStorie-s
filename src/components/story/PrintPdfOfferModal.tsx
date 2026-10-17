@@ -65,7 +65,7 @@ const PrintPdfOfferModal = ({
           </Button>
 
           {/* Sub text */}
-          <p className="text-[11px] text-white/60 -mt-1">
+          <p className="text-xs text-white/60 -mt-1">
             שמרו על המחשב והדפיסו מתי שתרצו
           </p>
         </div>

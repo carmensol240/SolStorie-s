@@ -177,7 +177,7 @@ const Settings = () => {
             <div className="flex items-center gap-2">
               <div className="text-right">
                 <span className="font-bold text-sm text-white block">רכישת חבילת סיפורים</span>
-                <span className="text-[11px] text-white/80 block">המשיכו את הקסם עם חבילת קרדיטים חדשה</span>
+                <span className="text-xs text-white/80 block">המשיכו את הקסם עם חבילת קרדיטים חדשה</span>
               </div>
               <div className="w-8 h-8 bg-white/20 backdrop-blur-sm rounded-lg flex items-center justify-center flex-shrink-0">
                 <Wand2 className="w-4 h-4 text-yellow-200" aria-hidden="true" />
@@ -190,8 +190,8 @@ const Settings = () => {
             <div className="bg-gradient-to-r from-green-50 to-emerald-50 dark:from-green-950/20 dark:to-emerald-950/20 rounded-lg px-3 py-3 border border-green-200 dark:border-green-800 space-y-2.5">
               <div className="flex items-center gap-2 justify-end">
                 <div className="text-right">
-                  <span className="font-bold text-sm text-foreground block">הזמינו חבר/ה וקבלו סיפור במתנה! 🎉 <Badge variant="secondary" className="text-[10px] px-1.5 py-0 mr-1 align-middle">בקרוב</Badge></span>
-                  <span className="text-[11px] text-muted-foreground block">שתפו את הקוד שלכם וקבלו קרדיט סיפור חינם</span>
+                  <span className="font-bold text-sm text-foreground block">הזמינו חבר/ה וקבלו סיפור במתנה! 🎉 <Badge variant="secondary" className="text-xs px-1.5 py-0 mr-1 align-middle">בקרוב</Badge></span>
+                  <span className="text-xs text-muted-foreground block">שתפו את הקוד שלכם וקבלו קרדיט סיפור חינם</span>
                 </div>
                 <div className="w-8 h-8 bg-gradient-to-r from-green-400/20 to-emerald-400/20 rounded-lg flex items-center justify-center flex-shrink-0">
                   <Gift className="w-4 h-4 text-green-600 dark:text-green-400" />
@@ -220,7 +220,7 @@ const Settings = () => {
                 </div>
               </div>
               
-              <p className="text-[11px] text-muted-foreground text-center leading-relaxed">
+              <p className="text-xs text-muted-foreground text-center leading-relaxed">
                 שתפו את ההודעה עם חברים – כשהם נרשמים עם הקוד שלכם, אתם מקבלים סיפור חינם!
               </p>
             </div>
@@ -232,7 +232,7 @@ const Settings = () => {
               <div className="flex items-center gap-2 justify-end">
                 <div className="text-right">
                   <span className="font-bold text-sm text-foreground block">התקנת <span dir="ltr" className="inline-block">SolStorie's™</span></span>
-                  <span className="text-[11px] text-muted-foreground block">גישה מהירה לכל הסיפורים שלכם ישירות ממסך הבית.</span>
+                  <span className="text-xs text-muted-foreground block">גישה מהירה לכל הסיפורים שלכם ישירות ממסך הבית.</span>
                 </div>
                 <div className="w-8 h-8 bg-gradient-to-r from-amber-400/20 to-orange-400/20 rounded-lg flex items-center justify-center flex-shrink-0">
                   <Smartphone className="w-4 h-4 text-amber-600 dark:text-amber-400" />
@@ -326,7 +326,7 @@ const Settings = () => {
             <div className="mt-2 bg-purple-50 dark:bg-purple-950/20 border border-purple-300 dark:border-purple-700 rounded-lg p-3 space-y-2">
               <div className="flex items-center justify-between">
                 <span className="text-xs font-bold text-purple-800 dark:text-purple-200">🧪 מצב בדיקה (Tester)</span>
-                <Badge variant="secondary" className="text-[10px]">{currentMode === 'demo' ? 'דמו' : 'אדמין'}</Badge>
+                <Badge variant="secondary" className="text-xs">{currentMode === 'demo' ? 'דמו' : 'אדמין'}</Badge>
               </div>
               <div className="flex gap-1.5">
                 <Button
@@ -346,7 +346,7 @@ const Settings = () => {
                   מצב אדמין
                 </Button>
               </div>
-              <p className="text-[10px] text-purple-700/70 dark:text-purple-300/70 leading-tight">
+              <p className="text-xs text-purple-700/70 dark:text-purple-300/70 leading-tight">
                 דמו: רואה פופאפ רכישה אחרי עמוד 3, פיצ'רי משלם חסומים. אדמין: גישה מלאה.
               </p>
             </div>

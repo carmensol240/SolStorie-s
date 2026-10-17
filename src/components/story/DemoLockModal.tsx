@@ -127,12 +127,12 @@ const DemoLockModal = ({ open, onOpenChange, title, description, storyId }: Demo
                 : `רכישת הסיפור הדיגיטלי 📱 – ${singleStoryPrice}₪`}
             </div>
             {showBonusOffer && (
-              <div className="text-[11px] font-bold text-white/90 mt-0.5">
+              <div className="text-xs font-bold text-white/90 mt-0.5">
                 כולל סיפור דיגיטלי שני במתנה 🎁
               </div>
             )}
           </button>
-          <p className="text-white/80 text-[11px] font-bold text-center -mt-1">
+          <p className="text-white/80 text-xs font-bold text-center -mt-1">
             {"\u200B"}
           </p>
 
@@ -156,22 +156,22 @@ const DemoLockModal = ({ open, onOpenChange, title, description, storyId }: Demo
                 </div>
                 {showBonusOffer ? (
                   <>
-                    <div className="text-white/60 text-[11px] font-semibold mt-0.5">
+                    <div className="text-white/60 text-xs font-semibold mt-0.5">
                       2 סיפורים דיגיטליים + 2 קבצים להדפסה
                     </div>
-                    <div className="text-white/80 text-[11px] font-bold mt-0.5">
+                    <div className="text-white/80 text-xs font-bold mt-0.5">
                       חבילת דפי צביעה מלאה 🎨
                     </div>
-                    <div className="text-white/60 text-[11px] font-semibold mt-0.5">
+                    <div className="text-white/60 text-xs font-semibold mt-0.5">
                       (מבצע חד-פעמי לרכישה ראשונה)
                     </div>
                   </>
                 ) : (
                   <>
-                    <div className="text-white/60 text-[11px] font-semibold mt-0.5">
+                    <div className="text-white/60 text-xs font-semibold mt-0.5">
                       קריאה מלאה + שיתוף בוואטסאפ + הקלטת קול
                     </div>
-                    <div className="text-white/80 text-[11px] font-bold mt-0.5">
+                    <div className="text-white/80 text-xs font-bold mt-0.5">
                       + חבילת דפי צביעה מלאה 🎨
                     </div>
                   </>
@@ -180,7 +180,7 @@ const DemoLockModal = ({ open, onOpenChange, title, description, storyId }: Demo
             </>
           )}
 
-          <p className="text-white/60 text-[11px] font-semibold text-center pt-1">
+          <p className="text-white/60 text-xs font-semibold text-center pt-1">
             📚 הסיפור נשמר בספרייה החינמית שלך לכל החיים
           </p>
 

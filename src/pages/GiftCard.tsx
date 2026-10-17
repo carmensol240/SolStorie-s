@@ -361,11 +361,11 @@ const GiftCard = () => {
                 )}
               >
                 {pkg.comingSoon ? (
-                  <div className="absolute -top-2.5 left-1/2 -translate-x-1/2 bg-gradient-to-r from-amber-500 to-orange-500 text-white text-[10px] font-black px-2.5 py-0.5 rounded-full whitespace-nowrap shadow-lg">
+                  <div className="absolute -top-2.5 left-1/2 -translate-x-1/2 bg-gradient-to-r from-amber-500 to-orange-500 text-white text-xs font-black px-2.5 py-0.5 rounded-full whitespace-nowrap shadow-lg">
                     ⏳ בקרוב
                   </div>
                 ) : promoActive && (
-                  <div className="absolute -top-2.5 left-1/2 -translate-x-1/2 bg-gradient-to-r from-pink-500 via-purple-500 to-orange-500 text-white text-[10px] font-black px-2.5 py-0.5 rounded-full whitespace-nowrap shadow-lg">
+                  <div className="absolute -top-2.5 left-1/2 -translate-x-1/2 bg-gradient-to-r from-pink-500 via-purple-500 to-orange-500 text-white text-xs font-black px-2.5 py-0.5 rounded-full whitespace-nowrap shadow-lg">
                     🔥 מחיר השקה
                   </div>
                 )}
@@ -383,15 +383,15 @@ const GiftCard = () => {
                   {CURRENCY_SYMBOL}{getPrice(pkg.priceKey).toFixed(2)}
                 </div>
                 {promoActive && (
-                  <div className="text-[9px] text-amber-300/90 font-bold mt-1 text-center">
+                  <div className="text-xs text-amber-300/90 font-bold mt-1 text-center">
                     אחרי {PROMO_END_LABEL} המחיר עולה
                   </div>
                 )}
-                <div className="text-[10px] text-white/70 font-bold mt-1 text-center">
+                <div className="text-xs text-white/70 font-bold mt-1 text-center">
                   {pkg.subtitle}
                 </div>
                 {pkg.coloringDesc && (
-                  <div className="text-[10px] text-emerald-300/80 mt-0.5 text-center leading-tight px-1">
+                  <div className="text-xs text-emerald-300/80 mt-0.5 text-center leading-tight px-1">
                     {pkg.coloringDesc}
                   </div>
                 )}
@@ -411,7 +411,7 @@ const GiftCard = () => {
               ].map((step, i) => (
                 <div key={i} className="flex items-start gap-2">
                   <div className="w-5 h-5 rounded-full bg-gradient-to-r from-pink-500 to-purple-500 flex items-center justify-center flex-shrink-0 mt-0.5">
-                    <span className="text-[10px] font-black text-white">{i + 1}</span>
+                    <span className="text-xs font-black text-white">{i + 1}</span>
                   </div>
                   <p className="text-xs text-white/70">{step}</p>
                 </div>

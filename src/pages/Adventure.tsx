@@ -1,6 +1,6 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { useNavigate } from "react-router-dom";
-import { Wand2, Coins } from "lucide-react";
+import { Wand2, Coins, Pause, Play } from "lucide-react";
 import { useCredits } from "@/hooks/use-credits";
 import { useReferral } from "@/hooks/use-referral";
 import { useAuth } from "@/hooks/use-auth";
@@ -20,6 +20,34 @@ const Adventure = () => {
   const [displayName, setDisplayName] = useState<string | null>(null);
   const [storyCount, setStoryCount] = useState<number>(0);
   const [isAdmin, setIsAdmin] = useState(false);
+  // Hero video: respects the OS "reduce motion" setting and can be paused
+  // (accessibility: moving content longer than 5 seconds needs a pause control).
+  const videoRef = useRef<HTMLVideoElement>(null);
+  const [videoPlaying, setVideoPlaying] = useState(() => {
+    try {
+      return (
+        !window.matchMedia("(prefers-reduced-motion: reduce)").matches &&
+        !document.documentElement.classList.contains("reduced-motion")
+      );
+    } catch {
+      return true;
+    }
+  });
+  // Follow the site's own "עצירת אנימציות" accessibility switch too.
+  useEffect(() => {
+    const root = document.documentElement;
+    const obs = new MutationObserver(() => {
+      if (root.classList.contains("reduced-motion")) setVideoPlaying(false);
+    });
+    obs.observe(root, { attributes: true, attributeFilter: ["class"] });
+    return () => obs.disconnect();
+  }, []);
+  useEffect(() => {
+    const v = videoRef.current;
+    if (!v) return;
+    if (videoPlaying) v.play().catch(() => {});
+    else v.pause();
+  }, [videoPlaying]);
 
   useEffect(() => {
     if (!user) return;
@@ -93,7 +121,8 @@ const Adventure = () => {
       <div className="relative w-full h-[100dvh] flex-shrink-0 overflow-hidden">
         {/* Video Background */}
         <video
-          autoPlay
+          ref={videoRef}
+          autoPlay={videoPlaying}
           loop
           muted
           playsInline
@@ -140,6 +169,16 @@ const Adventure = () => {
           </button>
         </div>
 
+        {/* Pause / play the background video */}
+        <button
+          type="button"
+          onClick={() => setVideoPlaying((p) => !p)}
+          className="absolute z-20 left-4 top-[max(env(safe-area-inset-top,12px),24px)] flex items-center justify-center w-11 h-11 rounded-full bg-black/30 backdrop-blur-md border border-white/30 text-white hover:bg-black/45 transition-colors"
+          aria-label={videoPlaying ? "עצירת סרטון הרקע" : "הפעלת סרטון הרקע"}
+          aria-pressed={!videoPlaying}
+        >
+          {videoPlaying ? <Pause className="w-5 h-5" aria-hidden="true" /> : <Play className="w-5 h-5" aria-hidden="true" />}
+        </button>
         {/* Bottom section - CTA & Welcome banner */}
         <div className="absolute bottom-0 left-0 right-0 z-10 flex flex-col items-center gap-3 px-4 pb-[96px]">
           <WelcomeGiftBanner credits={credits} storyCount={storyCount} />

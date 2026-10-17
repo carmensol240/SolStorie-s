@@ -77,7 +77,7 @@ const StorySeriesCard = ({
             {mainStory.topic}
           </h3>
           <div className="flex items-center gap-1.5">
-            <Badge className="bg-primary/90 text-primary-foreground text-[10px] px-1.5 py-0.5 gap-1 shadow-md">
+            <Badge className="bg-primary/90 text-primary-foreground text-xs px-1.5 py-0.5 gap-1 shadow-md">
               📖 {count} חלקים
             </Badge>
             <ChevronDown

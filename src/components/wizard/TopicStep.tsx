@@ -205,7 +205,7 @@ const TopicStep = ({ formData, updateFormData }: TopicStepProps) => {
                     <img src={section.heroImage} alt={section.categoryLabel} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" />
                     <div className="absolute inset-0" style={{ background: "linear-gradient(to top, rgba(0,0,0,0.7) 0%, rgba(0,0,0,0.2) 50%, transparent 100%)" }} />
                     {/* Expand/collapse hint */}
-                    <div className="absolute top-2 left-2 bg-black/40 backdrop-blur-sm rounded-full px-2 py-0.5 text-white text-[10px] font-bold flex items-center gap-1">
+                    <div className="absolute top-2 left-2 bg-black/40 backdrop-blur-sm rounded-full px-2 py-0.5 text-white text-xs font-bold flex items-center gap-1">
                       {isExpanded ? <ChevronUp className="w-3 h-3" /> : <ChevronDown className="w-3 h-3" />}
                       {isExpanded ? "סגור" : "פתח"}
                     </div>
@@ -236,7 +236,7 @@ const TopicStep = ({ formData, updateFormData }: TopicStepProps) => {
                             <span className="text-red-500 text-lg font-black">*</span>
                             <h3 className="text-sm font-black text-foreground leading-tight">{topic.label}</h3>
                           </div>
-                          <p className="text-[10px] text-muted-foreground mt-1 line-clamp-2">{topic.description}</p>
+                          <p className="text-xs text-muted-foreground mt-1 line-clamp-2">{topic.description}</p>
                         </div>
                         {formData.topic === topic.id && (
                           <div className="pl-2 pr-3">
@@ -372,7 +372,7 @@ const SimpleTile = ({ topic, isSelected, onSelect }: SimpleTileProps) => {
             <img src={topic.image} alt={topic.label} className="w-full h-full object-cover" loading="lazy" />
             <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/10 to-transparent" />
             {/* Age badge */}
-            <div className="absolute bottom-1.5 left-1.5 bg-black/40 text-white text-[9px] font-bold px-1.5 py-0.5 rounded-md backdrop-blur-sm">
+            <div className="absolute bottom-1.5 left-1.5 bg-black/40 text-white text-xs font-bold px-1.5 py-0.5 rounded-md backdrop-blur-sm">
               {topic.ageRange}
             </div>
             {/* Selected check */}
@@ -389,11 +389,11 @@ const SimpleTile = ({ topic, isSelected, onSelect }: SimpleTileProps) => {
 
         {/* Short description */}
         <div className="px-2.5 pb-2">
-          <p className="text-[10px] text-muted-foreground line-clamp-2">{topic.description}</p>
+          <p className="text-xs text-muted-foreground line-clamp-2">{topic.description}</p>
           {topic.description && (
             <button
               onClick={() => setShowDrawer(true)}
-              className="flex items-center gap-0.5 mt-0.5 text-[10px] font-semibold text-purple-500 hover:text-purple-700 transition-colors"
+              className="flex items-center gap-0.5 mt-0.5 text-xs font-semibold text-purple-500 hover:text-purple-700 transition-colors"
             >
               <ChevronDown className="w-3 h-3" />
               קרא עוד

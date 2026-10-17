@@ -777,7 +777,7 @@ const Library = () => {
                 <div className="text-purple-800 font-black text-sm leading-tight whitespace-pre-line">
                   יש לך {credits} קרדיטים לסיפורים נוספים {"\n"}
                 </div>
-                <div className="text-purple-600/80 text-[11px] font-semibold mt-0.5">
+                <div className="text-purple-600/80 text-xs font-semibold mt-0.5">
                   ✨ ללא תוקף – הקרדיט שמור לכם לכל החיים
                 </div>
               </div>
@@ -799,7 +799,7 @@ const Library = () => {
                 <div className="text-purple-800 font-bold text-sm leading-tight">
                   אין לכם כרגע קרדיטים זמינים
                 </div>
-                <div className="text-purple-600/80 text-[11px] font-semibold mt-0.5">
+                <div className="text-purple-600/80 text-xs font-semibold mt-0.5">
                   רכשו סיפור חדש כדי ליצור תוכן מותאם אישית
                 </div>
               </div>

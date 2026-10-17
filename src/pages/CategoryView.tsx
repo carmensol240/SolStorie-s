@@ -79,8 +79,8 @@ const CategoryView = () => {
               </div>
               <div className="p-2.5">
                 <h3 className="text-sm font-bold text-foreground leading-tight">{topic.label}</h3>
-                <p className="text-[10px] text-muted-foreground mt-1 line-clamp-2">{topic.description}</p>
-                <span className={`text-[10px] font-medium ${colors.colorClass} mt-1 inline-block`}>
+                <p className="text-xs text-muted-foreground mt-1 line-clamp-2">{topic.description}</p>
+                <span className={`text-xs font-medium ${colors.colorClass} mt-1 inline-block`}>
                   גילאי {topic.ageRange}
                 </span>
               </div>
