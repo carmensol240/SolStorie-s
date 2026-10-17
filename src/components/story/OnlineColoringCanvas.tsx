@@ -592,16 +592,14 @@ export const OnlineColoringCanvas: React.FC<OnlineColoringCanvasProps> = ({
         img{max-width:100%;max-height:100vh;object-fit:contain}
         @media print{
           @page { size: A4 portrait; margin: 10mm; }
-          html, body { margin: 0; padding: 0; }
+          html, body { width: 190mm; height: 277mm; margin: 0; padding: 0; }
           body > *:not(img) { display: none !important; }
           img {
             display: block;
-            margin: 0 auto;
-            width: auto;
-            height: auto;
-            max-width: 190mm;
-            max-height: 277mm;
+            width: 190mm;
+            height: 277mm;
             object-fit: contain;
+            object-position: center;
             page-break-inside: avoid;
           }
         }
