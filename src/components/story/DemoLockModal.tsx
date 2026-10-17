@@ -1,11 +1,10 @@
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { useLocation } from "react-router-dom";
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import PersonalizedStoryCover from "@/components/paywall/PersonalizedStoryCover";
 import { openGrowCheckout } from "@/config/grow-links";
 import { useAuth } from "@/hooks/use-auth";
-import { supabase } from "@/integrations/supabase/client";
-import { isPromoActive, getPrice } from "@/config/promo";
+import { getPrice } from "@/config/promo";
 
 interface DemoLockModalProps {
   open: boolean;
