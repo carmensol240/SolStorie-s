@@ -7,9 +7,10 @@ describe("paid amount must match the package price", () => {
     expect(isAmountValidForPackage("popular", 1)).toBe(false);
   });
   for (const [pkg, price] of Object.entries(PACKAGE_PRICES)) {
-    const p = Array.isArray(price) ? Math.max(...(price as number[])) : (price as number);
-    it(`${pkg}: paying below the price (${p - 10}₪) is rejected, full price (${p}₪) is accepted`, () => {
-      expect(isAmountValidForPackage(pkg, p - 10)).toBe(false);
+    const p = Math.min(...price);
+    const low = Math.round((p - 1) * 100) / 100;
+    it(`${pkg}: paying below the price (${low}₪) is rejected, full price (${p}₪) is accepted`, () => {
+      expect(isAmountValidForPackage(pkg, low)).toBe(false);
       expect(isAmountValidForPackage(pkg, p)).toBe(true);
     });
   }
