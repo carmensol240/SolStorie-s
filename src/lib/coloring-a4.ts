@@ -60,7 +60,16 @@ export function printColoringA4(url: string) {
   img.alt = "coloring page";
   root.appendChild(img);
   document.body.appendChild(root);
+  // A4 page size only for this print (an @page rule can't be scoped by class).
+  document.getElementById("a4-print-page-style")?.remove();
+  const pageStyle = document.createElement("style");
+  pageStyle.id = "a4-print-page-style";
+  pageStyle.textContent = "@media print { @page { size: A4 portrait; margin: 10mm; } }";
+  document.head.appendChild(pageStyle);
+  document.body.classList.add("printing-coloring-page");
   const cleanup = () => {
+    document.body.classList.remove("printing-coloring-page");
+    pageStyle.remove();
     root.remove();
     window.removeEventListener("afterprint", cleanup);
   };
