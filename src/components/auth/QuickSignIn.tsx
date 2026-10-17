@@ -155,7 +155,7 @@ const QuickSignIn = ({ returnTo, onPasswordLogin }: QuickSignInProps) => {
               placeholder="הקוד מהמייל"
               value={code}
               onChange={(e) => setCode(e.target.value)}
-              className="min-h-[52px] text-2xl tracking-[0.4em] text-center font-bold"
+              className="min-h-[52px] text-2xl tracking-[0.4em] placeholder:tracking-normal placeholder:text-base text-center font-bold"
               autoFocus
             />
             <Button type="submit" disabled={busy !== null} className="w-full min-h-[48px] text-base font-bold rounded-full">
