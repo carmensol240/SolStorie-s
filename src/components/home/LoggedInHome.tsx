@@ -39,7 +39,7 @@ const LoggedInHome = ({ user, displayName }: LoggedInHomeProps) => {
       if (!user?.id) return;
       
       const [storiesRes, profileRes] = await Promise.all([
-        supabase.from("stories").select("*", { count: "exact", head: true }).eq("user_id", user.id),
+        supabase.from("stories").select("*", { count: "exact", head: true }).eq("user_id", user.id).or("generation_status.is.null,generation_status.not.in.(generating,failed)"),
         supabase.from("profiles").select("user_role").eq("id", user.id).maybeSingle(),
       ]);
       

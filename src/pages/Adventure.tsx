@@ -102,7 +102,8 @@ const Adventure = () => {
       const { count } = await supabase
         .from("stories")
         .select("id", { count: "exact", head: true })
-        .eq("user_id", user.id);
+        .eq("user_id", user.id)
+        .or("generation_status.is.null,generation_status.not.in.(generating,failed)");
       if (count !== null) setStoryCount(count);
     };
     fetchCount();

@@ -17,6 +17,7 @@ import { CHARACTER_SECTIONS } from "@/components/wizard/topic-data";
 
 interface GeneratingStepProps {
   formData: StoryFormData;
+  requestId: string;
   onComplete: (storyId: string) => void;
 }
 
@@ -100,7 +101,7 @@ const getTopicLabel = (topicId: string): string => {
   return topics[topicId] || topicId;
 };
 
-const GeneratingStep = ({ formData, onComplete }: GeneratingStepProps) => {
+const GeneratingStep = ({ formData, requestId, onComplete }: GeneratingStepProps) => {
   const { toast } = useToast();
   const navigate = useNavigate();
   const { trackEvent } = useAnalytics();
@@ -154,7 +155,7 @@ const GeneratingStep = ({ formData, onComplete }: GeneratingStepProps) => {
     } catch (e) {
       console.warn('[GeneratingStep] Failed to persist formData before re-login:', e);
     }
-    try { supabase.auth.signOut(); } catch {}
+    try { supabase.auth.signOut({ scope: 'local' }); } catch {}
     toast({
       title: "פג תוקף החיבור",
       description: "פג תוקף החיבור, אנא התחבר מחדש",
@@ -226,6 +227,8 @@ const GeneratingStep = ({ formData, onComplete }: GeneratingStepProps) => {
             adventureLogic: formData.adventureLogic,
             className: formData.className || undefined,
             childId: (formData as any).childId || undefined,
+            // One-time ID: the server creates and charges at most once per ID.
+            client_request_id: requestId,
             appearance: {
               hairColor: formData.hairColor || "",
               hairStyle: formData.hairStyle || "",
@@ -254,20 +257,14 @@ const GeneratingStep = ({ formData, onComplete }: GeneratingStepProps) => {
           data = await resp.json();
           apiError = null;
         } else {
-          // Refresh session token before calling to avoid 401.
-          // If the refresh token itself is invalid/expired, send the user back to login.
-          try {
-            const { data: { session: currentSession } } = await supabase.auth.getSession();
-            if (currentSession) {
-              const { error: refreshErr } = await supabase.auth.refreshSession();
-              if (refreshErr) throw refreshErr;
-            }
-          } catch (refreshErr) {
-            if (isSessionExpiredError(refreshErr)) {
-              handleSessionExpired();
-              return;
-            }
-            throw refreshErr;
+          // Do NOT force refreshSession() here: it races the client's own automatic
+          // refresh, the server rejects the reused refresh token ("already used"),
+          // and the user was signed out mid-creation. getSession() refreshes safely
+          // (under the client's lock) only when the token is actually expired.
+          const { data: { session: currentSession } } = await supabase.auth.getSession();
+          if (!currentSession) {
+            handleSessionExpired();
+            return;
           }
           const result = await supabase.functions.invoke("generate-story", {
             body: bodyPayload,
@@ -299,7 +296,7 @@ const GeneratingStep = ({ formData, onComplete }: GeneratingStepProps) => {
         }
         if (apiError.message?.includes("401") || apiError.message?.includes("נדרשת התחברות")) {
           toast({ title: "נדרשת התחברות", description: "אנא התחברו כדי ליצור סיפורים." });
-          navigate("/auth?returnTo=/create");
+          navigate(`/auth?returnTo=${encodeURIComponent('/create?resume=true')}`);
           return;
         }
         if (apiError.message?.includes("429")) {
@@ -314,6 +311,25 @@ const GeneratingStep = ({ formData, onComplete }: GeneratingStepProps) => {
           throw new Error(serverError + (serverDebug ? ` — ${serverDebug}` : ""));
         }
         throw apiError;
+      }
+
+      // Same request already on the server (resume / retry / double send):
+      // never create again — wait for that story's text to be saved.
+      if (data?.duplicate && data?.storyId && data?.status === "generating") {
+        const deadline = Date.now() + 150_000;
+        let status: string | null = "generating";
+        while (status === "generating" && Date.now() < deadline) {
+          await new Promise((r) => setTimeout(r, 3000));
+          const { data: row } = await supabase
+            .from("stories")
+            .select("generation_status")
+            .eq("id", data.storyId)
+            .maybeSingle();
+          status = row ? (row.generation_status ?? "ready") : null;
+        }
+        if (status === null || status === "generating" || status === "failed") {
+          throw new Error("הסיפור לא נוצר. מנסים שוב...");
+        }
       }
 
       if (!data?.storyId) {
@@ -389,7 +405,7 @@ const GeneratingStep = ({ formData, onComplete }: GeneratingStepProps) => {
       trackEvent({ eventType: "generation_failed", metadata: { reason: errorMessage.slice(0, 200) } });
       setError("not_created");
     }
-  }, [formData, toast, navigate, isSessionExpiredError, handleSessionExpired, trackEvent]);
+  }, [formData, requestId, toast, navigate, isSessionExpiredError, handleSessionExpired, trackEvent]);
 
   // Realtime subscription: watch for illustrations completing
   useEffect(() => {

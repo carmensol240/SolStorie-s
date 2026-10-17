@@ -1,0 +1,2 @@
+ALTER TABLE public.stories ADD COLUMN IF NOT EXISTS client_request_id text;
+CREATE UNIQUE INDEX IF NOT EXISTS stories_user_client_request_uidx ON public.stories (user_id, client_request_id) WHERE client_request_id IS NOT NULL;

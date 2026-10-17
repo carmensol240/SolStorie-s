@@ -3,6 +3,7 @@ import { mergeAppearance, type Appearance } from "../_shared/appearance.ts";
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.39.3";
 import { logError } from "../_shared/log-error.ts";
+import { claimStoryRequest, releaseStoryRequest, supabaseStoryRequestStore, isValidRequestId } from "../_shared/story-request.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -903,7 +904,25 @@ function appendAppearanceParts(parts: string[], ap: Appearance) {
   if (ap.hairColor || ap.hairStyle) parts.push(`שיער הדמות: ${hair} — יש לשמור על מראה השיער הזה זהה בכל עמודי הסיפור.`);
 }
 
+interface RequestCtx { placeholderId: string | null; userId: string | null; charged: boolean; done: boolean }
+
 serve(async (req) => {
+  const ctx: RequestCtx = { placeholderId: null, userId: null, charged: false, done: false };
+  const res = await handleGenerateStory(req, ctx);
+  // Any exit after the row was claimed that didn't finish the story: remove it and refund.
+  if (ctx.placeholderId && ctx.userId && !ctx.done) {
+    try {
+      const sb = createClient(Deno.env.get("SUPABASE_URL")!, Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!);
+      await releaseStoryRequest(supabaseStoryRequestStore(sb), ctx.userId, ctx.placeholderId);
+      console.log("[generate-story] released unfinished request and refunded credit");
+    } catch (e) {
+      console.error("[generate-story] release failed:", e);
+    }
+  }
+  return res;
+});
+
+async function handleGenerateStory(req: Request, ctx: RequestCtx): Promise<Response> {
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
   }
@@ -1139,6 +1158,44 @@ serve(async (req) => {
         JSON.stringify({ error: `שם הכיתה/הגן ארוך מדי (מקסימום ${MAX_CLASS_NAME_LENGTH} תווים)` }),
         { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
+    }
+
+    // === ONE-TIME REQUEST: save the row first, then charge ===
+    if (userId && !guestMode && isValidRequestId(reqBody.client_request_id)) {
+      const claim = await claimStoryRequest(
+        supabaseStoryRequestStore(supabase),
+        userId,
+        reqBody.client_request_id,
+        {
+          child_name: childName,
+          child_gender: childGender,
+          age_range: ageRange,
+          topic: getHebrewTopic(topic),
+          nikud: !!nikud,
+          language,
+          story_type: isCustomTopic ? "custom" : "text",
+          ...(childId ? { child_id: childId } : {}),
+        },
+      );
+      if (claim.kind === "duplicate") {
+        console.log("[generate-story] duplicate request — returning existing story, no charge");
+        return new Response(
+          JSON.stringify({ storyId: claim.storyId, duplicate: true, status: claim.status }),
+          { headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        );
+      }
+      if (claim.kind === "no_credits") {
+        return new Response(
+          JSON.stringify({ error: "נגמרו הקרדיטים", code: "NO_CREDITS" }),
+          { status: 402, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        );
+      }
+      if (claim.kind === "error") {
+        throw new Error(`claim failed: ${claim.error}`);
+      }
+      ctx.placeholderId = claim.storyId;
+      ctx.userId = userId;
+      ctx.charged = true;
     }
 
     console.log("Generating story for:", { childName, childGender, ageRange, storyLength, topic, nikud, hasPhoto: !!childPhoto, hasAvatar: !!childAvatarUrl, hasTraits: !!personalityTraits, hasAdventureLogic: !!adventureLogic, className: className || null });
@@ -2221,11 +2278,19 @@ ${fullStoryText}`;
       storyInsertData.child_id = childId;
     }
     
-    const { data: story, error: storyError } = await supabase
-      .from("stories")
-      .insert(storyInsertData)
-      .select()
-      .single();
+    // With a claimed one-time request, fill in the row saved earlier instead of inserting a new one.
+    const { data: story, error: storyError } = ctx.placeholderId
+      ? await supabase
+          .from("stories")
+          .update(storyInsertData)
+          .eq("id", ctx.placeholderId)
+          .select()
+          .single()
+      : await supabase
+          .from("stories")
+          .insert(storyInsertData)
+          .select()
+          .single();
 
     if (storyError) {
       console.error("Error creating story:", storyError);
@@ -2320,7 +2385,8 @@ ${fullStoryText}`;
     // === DEFERRED CREDIT DEDUCTION ===
     // Charge only after both the story and all of its pages are safely persisted.
     // This prevents failed inserts from consuming a paid story credit.
-    if (userId && !guestMode) {
+    // Requests with a one-time ID were already charged when the row was claimed.
+    if (userId && !guestMode && !ctx.charged) {
       let deducted = false;
       for (let attempt = 0; attempt < 3 && !deducted; attempt++) {
         const { data: freshProfile } = await supabase
@@ -2501,6 +2567,8 @@ ${fullStoryText}`;
     }
 
     console.log("Illustration + cover generation triggered, returning storyId immediately");
+    ctx.done = true;
+
 
     return new Response(
       JSON.stringify({ 
@@ -2536,4 +2604,4 @@ ${fullStoryText}`;
       { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
   }
-});
+}

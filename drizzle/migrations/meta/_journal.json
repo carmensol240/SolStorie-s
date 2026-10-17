@@ -8,6 +8,13 @@
       "when": 1792249851666,
       "tag": "0000_login_codes",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1792251349591,
+      "tag": "0001_story_client_request_id",
+      "breakpoints": true
     }
   ]
 }

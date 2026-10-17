@@ -13,6 +13,14 @@ import { useCredits } from "@/hooks/use-credits";
 import { isDevModeEnabled } from "@/hooks/use-dev-mode";
 import { supabase } from "@/integrations/supabase/client";
 import { useAnalytics } from "@/hooks/use-analytics";
+import {
+  startGenerationSession,
+  getActiveGenerationSession,
+  clearGenerationSession,
+  decideArrival,
+  newRequestId,
+  type ArrivalDecision,
+} from "@/lib/story-generation-session";
 
 export interface AdventureLogic {
   outfit: string;
@@ -82,6 +90,9 @@ const CreateStory = () => {
   const [formData, setFormData] = useState<StoryFormData>(INITIAL_DATA);
   const [isGenerating, setIsGenerating] = useState(false);
   const [awaitingGenerationAfterAuth, setAwaitingGenerationAfterAuth] = useState(false);
+  const [requestId, setRequestId] = useState<string | null>(null);
+  const [arrival, setArrival] = useState<ArrivalDecision | null>(null);
+  const [arrivalChecked, setArrivalChecked] = useState(false);
   const startGenerationRef = useRef<(freshUserId?: string) => Promise<void>>(async () => {});
 
   // Funnel: wizard opened
@@ -89,22 +100,10 @@ const CreateStory = () => {
     trackEvent({ eventType: "create_story_opened" });
   }, [trackEvent]);
 
-  // Resume after Google OAuth redirect
+  // Returning with ?resume=true (after re-login): the in-progress mark drives
+  // the resume (see the arrival check below) — just clean up the URL.
   useEffect(() => {
     if (searchParams.get('resume') === 'true') {
-      const saved = localStorage.getItem('pending_story_formData');
-      if (saved) {
-        try {
-          const restored = JSON.parse(saved) as StoryFormData;
-          setFormData(restored);
-          setStep(5);
-          setIsGenerating(true);
-        } catch (e) {
-          console.warn('[CreateStory] Failed to restore formData:', e);
-        }
-        localStorage.removeItem('pending_story_formData');
-      }
-      // Clean up URL
       navigate('/create', { replace: true });
       return;
     }
@@ -156,6 +155,8 @@ const CreateStory = () => {
       return;
     }
     
+    // Creation finished: drop the in-progress mark and the saved form
+    clearGenerationSession(user.id);
     // Mark that a story was just created so the PDF popup shows
     sessionStorage.setItem("just_created_story", "true");
     // Navigate using slug for clean URLs — guaranteed to run
@@ -175,11 +176,71 @@ const CreateStory = () => {
   const stableOnComplete = useCallback((id: string) => handleStoryGeneratedRef.current(id), []);
 
   // Sign-up happens before the wizard: guests are sent to the single sign-up screen.
+  // Only at entry: once a user was seen on this page, or a creation is running,
+  // a momentary "no user" (sign-in refresh) never sends anyone away.
+  const hasConfirmedUserRef = useRef(false);
+  if (user) hasConfirmedUserRef.current = true;
   useEffect(() => {
     if (loading || user || isDevModeEnabled()) return;
-    if (searchParams.get('resume') === 'true') return;
-    navigate('/auth?returnTo=%2Fcreate', { replace: true });
-  }, [loading, user, searchParams, navigate]);
+    if (hasConfirmedUserRef.current || step === 5) return;
+    navigate('/auth?returnTo=%2Fcreate%3Fresume%3Dtrue', { replace: true });
+  }, [loading, user, step, navigate]);
+
+  // Safety net on arrival: a valid in-progress mark means a creation was
+  // interrupted (reload, tab closed, re-login). Show / resume it instead of the form.
+  useEffect(() => {
+    if (loading || !user || arrivalChecked) return;
+    if (step === 5) { setArrivalChecked(true); return; }
+    const session = getActiveGenerationSession<StoryFormData>(user.id);
+    if (!session) { setArrivalChecked(true); return; }
+    let cancelled = false;
+    (async () => {
+      const { data: story } = await supabase
+        .from("stories")
+        .select("id, slug, generation_status")
+        .eq("user_id", user.id)
+        .eq("client_request_id", session.requestId)
+        .maybeSingle();
+      if (cancelled) return;
+      const decision = decideArrival(session as any, story ?? null);
+      if (decision.kind === "resume_generation" && session.formData) {
+        // Never reached the server (or it failed and was refunded): re-send the SAME ID.
+        setFormData({ ...INITIAL_DATA, ...session.formData });
+        setRequestId(session.requestId);
+        setStep(5);
+      } else if (decision.kind === "restore_form" && session.formData) {
+        clearGenerationSession(user.id);
+        setFormData({ ...INITIAL_DATA, ...session.formData, childPhoto: null, photoConsent: false });
+        setStep(2);
+      } else if (decision.kind === "form") {
+        clearGenerationSession(user.id);
+      } else {
+        setArrival(decision);
+      }
+      setArrivalChecked(true);
+    })();
+    return () => { cancelled = true; };
+  }, [loading, user, arrivalChecked, step]);
+
+  // While "still being created", keep checking until the story is ready.
+  useEffect(() => {
+    if (arrival?.kind !== "still_generating" || !user) return;
+    const id = arrival.storyId;
+    const t = setInterval(async () => {
+      const { data } = await supabase.from("stories").select("id, slug, generation_status").eq("id", id).maybeSingle();
+      if (!data || data.generation_status === "failed") {
+        clearInterval(t);
+        clearGenerationSession(user.id);
+        setArrival(null);
+        return;
+      }
+      if (data.generation_status !== "generating") {
+        clearInterval(t);
+        setArrival({ kind: "ready", storyId: data.id, slug: data.slug });
+      }
+    }, 4000);
+    return () => clearInterval(t);
+  }, [arrival, user]);
 
   const updateFormData = (updates: Partial<StoryFormData>) => {
     setFormData((prev) => ({ ...prev, ...updates }));
@@ -256,7 +317,8 @@ const CreateStory = () => {
         const { count } = await supabase
           .from('stories')
           .select('id', { count: 'exact', head: true })
-          .eq('user_id', uid);
+          .eq('user_id', uid)
+          .or('generation_status.is.null,generation_status.not.in.(generating,failed)');
 
         // Returning users go straight to purchase; new users get the one-time free taste
         if (count && count > 0) {
@@ -266,12 +328,33 @@ const CreateStory = () => {
         }
       }
       trackEvent({ eventType: "generation_started" });
+      // One-time ID + saved form: a reload / re-login resumes this same creation
+      // and the server never creates or charges twice for it.
+      const session = uid
+        ? startGenerationSession(uid, formData as unknown as Record<string, unknown>)
+        : { requestId: newRequestId() };
+      setRequestId(session.requestId);
       setStep(5);
       setIsGenerating(true);
     }
   };
 
   startGenerationRef.current = startGeneration;
+
+  const startNewStory = () => {
+    clearGenerationSession(user?.id);
+    setArrival(null);
+    setRequestId(null);
+    setFormData(INITIAL_DATA);
+    setStep(1);
+  };
+
+  const openReadyStory = () => {
+    if (arrival?.kind !== "ready") return;
+    clearGenerationSession(user?.id);
+    sessionStorage.setItem("just_created_story", "true");
+    navigate(`/story/${arrival.slug || arrival.storyId}`);
+  };
 
   const handleBack = () => {
     if (step === 1) {
@@ -282,12 +365,54 @@ const CreateStory = () => {
   };
 
   // Step 5 - Full screen generating, no header/footer
-  if (step === 5) {
+  if (step === 5 && requestId) {
     return (
       <GeneratingStep
         formData={formData}
+        requestId={requestId}
         onComplete={stableOnComplete}
       />
+    );
+  }
+
+  // Checking for a creation in progress before showing the form
+  if (!arrivalChecked && user) {
+    return (
+      <div className="flex items-center justify-center bg-background" style={{ minHeight: '100dvh' }}>
+        <Loader2 className="w-8 h-8 animate-spin text-primary" aria-label="טוען" />
+      </div>
+    );
+  }
+
+  // Safety net: a creation was in progress when the page reloaded / reopened
+  if (arrival && (arrival.kind === "ready" || arrival.kind === "still_generating")) {
+    const ready = arrival.kind === "ready";
+    return (
+      <div className="flex flex-col items-center justify-center bg-background px-6 text-center" style={{ minHeight: '100dvh' }} dir="rtl">
+        <div className="max-w-sm w-full space-y-5">
+          {!ready && <Loader2 className="w-10 h-10 animate-spin text-primary mx-auto" aria-hidden="true" />}
+          <h1 className="text-2xl font-black text-foreground">
+            {ready ? "הסיפור שלך מוכן! 🎉" : "הסיפור עדיין נוצר…"}
+          </h1>
+          <p className="text-base text-muted-foreground">
+            {ready
+              ? "אפשר לפתוח אותו עכשיו. האיורים ממשיכים להופיע תוך כדי קריאה."
+              : "זה לוקח עוד כמה רגעים. הסיפור יופיע גם בספרייה ברגע שיהיה מוכן."}
+          </p>
+          {ready ? (
+            <Button size="lg" className="w-full min-h-[48px] text-base font-bold" onClick={openReadyStory}>
+              לסיפור
+            </Button>
+          ) : (
+            <Button size="lg" className="w-full min-h-[48px] text-base font-bold" onClick={() => navigate('/library')}>
+              לספרייה
+            </Button>
+          )}
+          <Button size="lg" variant="outline" className="w-full min-h-[48px] text-base" onClick={startNewStory}>
+            צור סיפור חדש
+          </Button>
+        </div>
+      </div>
     );
   }
 
