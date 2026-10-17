@@ -11,7 +11,6 @@ import { Button } from "@/components/ui/button";
 import PurchaseSuccessModal from "@/components/paywall/PurchaseSuccessModal";
 import PurchaseFailedModal from "@/components/paywall/PurchaseFailedModal";
 import CouponInput from "@/components/paywall/CouponInput";
-import FirstPurchaseBonusModal from "@/components/paywall/FirstPurchaseBonusModal";
 import SampleBookModal from "@/components/upgrade/SampleBookModal";
 import ColoringPurchaseModal from "@/components/paywall/ColoringPurchaseModal";
 
@@ -114,7 +113,6 @@ const Upgrade = () => {
   const [selectedProduct, setSelectedProduct] = useState<ProductId>("popular");
   const [showSuccess, setShowSuccess] = useState(false);
   const [showFailed, setShowFailed] = useState(false);
-  const [showBonus, setShowBonus] = useState(false);
   const [showSampleBook, setShowSampleBook] = useState(false);
   const [showColoringModal, setShowColoringModal] = useState(false);
   const [discountPercent, setDiscountPercent] = useState(0);
@@ -199,15 +197,6 @@ const Upgrade = () => {
       setShowSuccess(true);
       trackEvent({ eventType: "feature_used", metadata: { feature: "test_purchase_completed", product: "popular" } });
       toast.success("🧪 רכישת בדיקה הצליחה");
-      try {
-        const { data: bonus } = await supabase.functions.invoke("grant-first-purchase-bonus");
-        if (bonus?.granted) {
-          setShowBonus(true);
-          refetchCredits();
-        }
-      } catch (err) {
-        console.error("bonus grant failed", err);
-      }
     } catch (error) {
       console.error("Test purchase failed:", error);
       toast.error("שגיאה ברכישה");
@@ -568,7 +557,6 @@ const Upgrade = () => {
       {/* Modals */}
       <PurchaseSuccessModal open={showSuccess} onOpenChange={setShowSuccess} creditsAdded={1} />
       <PurchaseFailedModal open={showFailed} onOpenChange={setShowFailed} onRetry={handleRetry} />
-      <FirstPurchaseBonusModal open={showBonus} onOpenChange={setShowBonus} />
       <SampleBookModal open={showSampleBook} onOpenChange={setShowSampleBook} />
       <ColoringPurchaseModal
         open={showColoringModal}
