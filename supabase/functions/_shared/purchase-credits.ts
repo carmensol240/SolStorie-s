@@ -140,7 +140,6 @@ export async function applyPurchaseCredits(
       console.error("[PURCHASE-CREDITS] Failed to update profile:", updateError);
       return { success: false, error: "Failed to update credits", status: 500 };
     }
-    }
   }
 
   // PDF entitlement — grants the user permission to download the printable
