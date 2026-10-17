@@ -1,11 +1,10 @@
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
+import { Check } from "lucide-react";
 import { useLocation } from "react-router-dom";
-import { useState, useEffect } from "react";
 import PersonalizedStoryCover from "@/components/paywall/PersonalizedStoryCover";
 import { openGrowCheckout } from "@/config/grow-links";
 import { useAuth } from "@/hooks/use-auth";
-import { supabase } from "@/integrations/supabase/client";
-import { isPromoActive, getPrice } from "@/config/promo";
+import { getPrice } from "@/config/promo";
 
 interface DemoLockModalProps {
   open: boolean;
@@ -17,42 +16,9 @@ interface DemoLockModalProps {
 
 const DemoLockModal = ({ open, onOpenChange, title, description, storyId }: DemoLockModalProps) => {
   const location = useLocation();
-  const [showFeatures, setShowFeatures] = useState(false);
   const { user } = useAuth();
-  const [isFirstTimeBuyer, setIsFirstTimeBuyer] = useState(false);
-  const promoActive = isPromoActive();
-  const showBonusOffer = isFirstTimeBuyer && promoActive;
   const singleStoryPrice = getPrice("single_story").toFixed(2);
   const popularPrice = getPrice("popular").toFixed(2);
-
-  useEffect(() => {
-    if (!open || !user) return;
-    let cancelled = false;
-    (async () => {
-      try {
-        const { data } = await supabase
-          .from("profiles")
-          .select("first_purchase_bonus_given")
-          .eq("id", user.id)
-          .maybeSingle();
-        if (!cancelled) setIsFirstTimeBuyer(!data?.first_purchase_bonus_given);
-      } catch {
-        if (!cancelled) setIsFirstTimeBuyer(false);
-      }
-    })();
-    return () => { cancelled = true; };
-  }, [open, user]);
-
-  const features = [
-    "🎨 אווטאר מצויר ומותאם אישית לילד שלך",
-    "🎙️ הקלטה והשמעה",
-    "📲 שיתוף בוואטסאפ",
-    "🖨️ הדפסה עצמאית (PDF)",
-    "🎨 דפי צביעה",
-    "📴 שימוש ללא אינטרנט",
-    "📚 ספריית לימוד — צבעים, צורות, אותיות ומספרים",
-    "🌍 סיפורים בעברית ואנגלית",
-  ];
 
   const rememberReturn = () => {
     try {
@@ -85,108 +51,53 @@ const DemoLockModal = ({ open, onOpenChange, title, description, storyId }: Demo
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent
-        dir="rtl"
-        className="max-w-md text-center border-border bg-background text-foreground p-5"
-      >
+      <DialogContent dir="rtl" className="max-w-md text-center border-border bg-background text-foreground p-5">
         <DialogHeader>
-          <DialogTitle className="text-2xl font-black text-primary">
-            {title ?? "רוצים להמשיך לקרוא? 📖"}
+          <DialogTitle className="text-2xl font-black text-foreground text-center">
+            {title ?? "רוצים להמשיך לקרוא?"}
           </DialogTitle>
-          <p className="text-sm text-foreground pt-1 text-center">
-            {"\u200B"}
-          </p>
-          {showBonusOffer && (
-            <>
-              <DialogDescription className="text-sm text-foreground pt-1 text-center">
-                🎁 סיפור ראשון? מגיע לך מתנה!
-              </DialogDescription>
-              <DialogDescription className="text-sm text-foreground pt-1 text-center">
-                רכשו ב-{singleStoryPrice} ₪ וקבלו סיפור דיגיטלי נוסף
-              </DialogDescription>
-            </>
+          {description && (
+            <DialogDescription className="text-base text-muted-foreground text-center">
+              {description}
+            </DialogDescription>
           )}
         </DialogHeader>
 
         {storyId && (
-          <div className="pt-2">
+          <div className="pt-1">
             <PersonalizedStoryCover storyId={storyId} />
           </div>
         )}
 
-        <div className="flex flex-col gap-2 mt-2">
-          {/* Primary: digital story */}
+        <div className="flex flex-col gap-3 mt-2">
+          {storyId && (
+            <button
+              onClick={goPopular}
+              className="w-full rounded-2xl bg-primary hover:bg-primary/90 text-white px-4 py-3 text-center transition-colors"
+            >
+              <span className="block text-center text-base font-black">סיפור מלא · {popularPrice} ₪</span>
+              <span className="block text-center text-sm text-white/90">כולל קובץ להדפסה ודפי צביעה</span>
+            </button>
+          )}
           <button
             onClick={goSingleStory}
-            className="w-auto max-w-[280px] mx-auto relative overflow-hidden bg-primary hover:bg-primary/90 text-white font-black text-sm py-3 px-6 rounded-xl shadow-xl text-center"
-            style={{ boxShadow: '0 0 30px rgba(168, 85, 247, 0.4), 0 0 60px rgba(236, 72, 153, 0.2)' }}
+            className={
+              storyId
+                ? "w-full rounded-2xl border-2 border-border bg-card hover:bg-muted text-foreground px-4 py-3 text-center transition-colors"
+                : "w-full rounded-2xl bg-primary hover:bg-primary/90 text-white px-4 py-3 text-center transition-colors"
+            }
           >
-            <div>
-              {showBonusOffer
-                ? `רכישת 2 סיפורים דיגיטליים - ${singleStoryPrice}₪`
-                : `רכישת הסיפור הדיגיטלי 📱 – ${singleStoryPrice}₪`}
-            </div>
-            {showBonusOffer && (
-              <div className="text-xs font-bold text-foreground mt-0.5">
-                כולל סיפור דיגיטלי שני במתנה 🎁
-              </div>
-            )}
+            <span className="block text-center text-base font-black">סיפור דיגיטלי · {singleStoryPrice} ₪</span>
           </button>
-          <p className="text-foreground text-xs font-bold text-center -mt-1">
-            {"\u200B"}
-          </p>
 
-          {storyId && (
-            <>
-              <div className="flex items-center gap-3 my-1">
-                <div className="flex-1 h-px bg-gradient-to-l from-transparent via-white/30 to-transparent" />
-                <span className="text-muted-foreground text-xs font-bold px-2">{"\u200B"}או</span>
-                <div className="flex-1 h-px bg-gradient-to-r from-transparent via-white/30 to-transparent" />
-              </div>
-
-              {/* Secondary: story + print file */}
-              <button
-                onClick={goPopular}
-                className="w-full bg-card border border-border hover:bg-muted transition-colors rounded-xl px-4 py-3 text-center"
-              >
-                <div className="text-foreground font-black text-sm">
-                  {showBonusOffer
-                    ? `🎉 חבילת פתיחה - ${popularPrice}₪`
-                    : `רכישת הסיפור + קובץ להדפסה 📖 – ${popularPrice}₪`}
-                </div>
-                {showBonusOffer ? (
-                  <>
-                    <div className="text-muted-foreground text-xs font-semibold mt-0.5">
-                      2 סיפורים דיגיטליים + 2 קבצים להדפסה
-                    </div>
-                    <div className="text-foreground text-xs font-bold mt-0.5">
-                      חבילת דפי צביעה מלאה 🎨
-                    </div>
-                    <div className="text-muted-foreground text-xs font-semibold mt-0.5">
-                      (מבצע חד-פעמי לרכישה ראשונה)
-                    </div>
-                  </>
-                ) : (
-                  <>
-                    <div className="text-muted-foreground text-xs font-semibold mt-0.5">
-                      קריאה מלאה + שיתוף בוואטסאפ + הקלטת קול
-                    </div>
-                    <div className="text-foreground text-xs font-bold mt-0.5">
-                      + חבילת דפי צביעה מלאה 🎨
-                    </div>
-                  </>
-                )}
-              </button>
-            </>
-          )}
-
-          <p className="text-muted-foreground text-xs font-semibold text-center pt-1">
-            📚 הסיפור נשמר בספרייה החינמית שלך לכל החיים
+          <p className="flex items-center justify-center gap-1.5 text-sm text-muted-foreground">
+            <Check className="w-4 h-4 text-green-700" aria-hidden="true" />
+            תשלום חד-פעמי, והסיפור נשמר אצלכם לתמיד
           </p>
 
           <button
             onClick={() => onOpenChange(false)}
-            className="text-muted-foreground text-xs font-semibold hover:text-foreground/80 transition-colors py-2 mt-1"
+            className="min-h-[44px] text-sm font-semibold text-muted-foreground hover:text-foreground transition-colors"
           >
             לא עכשיו
           </button>

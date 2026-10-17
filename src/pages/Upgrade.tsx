@@ -1,6 +1,6 @@
 import { useState, useEffect, useMemo } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
-import { X, Check, Flame } from "lucide-react";
+import { X, Flame, Gift, ChevronLeft } from "lucide-react";
 import { PROMO_END, PROMO_END_LABEL, isPromoActive, getPrice, getRegularPrice, type PriceKey } from "@/config/promo";
 
 const WHITELISTED_TEST_EMAILS = [
@@ -38,8 +38,8 @@ interface Product {
 const PRODUCTS: Product[] = [
   {
     id: "digital",
-    title: "דיגיטלי",
-    description: "סיפור דיגיטלי בודד",
+    title: "סיפור דיגיטלי",
+    description: "לקריאה, הקראה בקול והקלטת הקול שלכם",
     priceKey: "basic",
     growKey: "basic",
     features: [
@@ -53,10 +53,10 @@ const PRODUCTS: Product[] = [
   {
     id: "popular",
     title: "סיפור מלא",
-    description: "סיפור דיגיטלי + קובץ להדפסת ספר + דפי צביעה",
+    description: "הסיפור הדיגיטלי + קובץ להדפסת ספר + דפי צביעה",
     priceKey: "popular",
     growKey: "popular",
-    badge: "הכי משתלם 🔥",
+    badge: "הכי משתלם",
     features: [
       "✨ הילד שלך — הגיבור של הסיפור",
       "🎨 דמות מותאמת אישית עם הפנים שלו",
@@ -316,29 +316,7 @@ const Upgrade = () => {
 
   return (
     <div className="min-h-[100dvh] flex flex-col relative overflow-hidden" dir="rtl">
-      {/* Magical dark background */}
       <div className="absolute inset-0 bg-background" />
-
-      {/* Floating stars */}
-      <div className="absolute inset-0 overflow-hidden pointer-events-none">
-        {[...Array(20)].map((_, i) => (
-          <div
-            key={i}
-            className="absolute rounded-full bg-primary/20 animate-pulse"
-            style={{
-              width: `${2 + Math.random() * 3}px`,
-              height: `${2 + Math.random() * 3}px`,
-              top: `${Math.random() * 100}%`,
-              left: `${Math.random() * 100}%`,
-              animationDelay: `${Math.random() * 4}s`,
-              animationDuration: `${2 + Math.random() * 3}s`,
-            }}
-          />
-        ))}
-        <div className="absolute top-10 left-10 w-40 h-40 rounded-full bg-primary/10 blur-3xl" />
-        <div className="absolute top-1/3 right-5 w-56 h-56 rounded-full bg-pink-400/8 blur-3xl" />
-        <div className="absolute bottom-32 left-1/4 w-48 h-48 rounded-full bg-amber-400/8 blur-3xl" />
-      </div>
 
       {/* Close Button */}
       <div className="absolute top-3 left-3 z-20">
@@ -346,6 +324,7 @@ const Upgrade = () => {
           variant="ghost"
           size="icon"
           onClick={handleClose}
+          aria-label="סגירה"
           className="rounded-full bg-card text-foreground hover:bg-muted"
         >
           <X className="w-5 h-5" />
@@ -357,10 +336,10 @@ const Upgrade = () => {
           {/* Title */}
           <div className="text-center mb-4">
             <h1 className="text-2xl font-black text-foreground mb-1">
-              מוכנים לסיפור הבא? 🚀
+              בחרו חבילה
             </h1>
-            <p className="text-sm text-muted-foreground font-semibold">
-              בחרו חבילה וחזרו ליצור
+            <p className="text-base text-muted-foreground">
+              תשלום חד-פעמי, בלי מנוי
             </p>
           </div>
 
@@ -401,14 +380,15 @@ const Upgrade = () => {
                     isSelected
                       ? "border-primary shadow-lg scale-[1.02] bg-card ring-2 ring-primary/20"
                       : "border-border hover:border-border",
-                    product.id === "popular" && "shadow-[0_0_25px_rgba(168,85,247,0.35)] border-purple-400/40",
-                    product.id === "popular" && isSelected && "shadow-[0_0_40px_rgba(236,72,153,0.5)] border-pink-400/60 ring-2 ring-pink-400/50"
                   )}
                 >
                   <div className="flex items-start justify-between gap-3">
                     <div className="flex-1">
                       <div className="flex items-center gap-2 mb-1 flex-wrap">
                         <span className="text-lg font-black text-foreground">{product.title}</span>
+                        {product.badge && (
+                          <span className="bg-primary text-white text-xs font-bold px-2 py-0.5 rounded-full">{product.badge}</span>
+                        )}
                         {promoActive && (
                           <span className="inline-flex items-center gap-1 bg-gradient-to-r from-orange-500 to-red-500 text-white text-xs font-black px-2 py-0.5 rounded-full">
                             <Flame className="w-3 h-3" />
@@ -416,7 +396,7 @@ const Upgrade = () => {
                           </span>
                         )}
                       </div>
-                      <p className="text-xs text-muted-foreground font-semibold">{product.description}</p>
+                      <p className="text-sm text-muted-foreground">{product.description}</p>
                     </div>
                     <div className="flex flex-col items-end shrink-0">
                       {promoActive && (
@@ -438,16 +418,6 @@ const Upgrade = () => {
                     </div>
                   )}
 
-                  <div className="mt-3 grid grid-cols-2 gap-x-2 gap-y-1.5">
-                    {product.features.map((feature) => (
-                      <div key={feature} className="flex items-center gap-1.5">
-                        <Check className="w-3.5 h-3.5 text-green-700 shrink-0" />
-                        <span className="text-xs font-semibold text-foreground leading-tight">
-                          {feature}
-                        </span>
-                      </div>
-                    ))}
-                  </div>
                 </button>
               );
             })}
@@ -465,26 +435,13 @@ const Upgrade = () => {
             >
               <div className="flex items-start justify-between gap-3">
                 <div className="flex-1">
-                  <div className="text-lg font-black text-foreground mb-1">🎨 דפי צביעה</div>
-                  <p className="text-xs text-muted-foreground font-semibold">דפי צביעה לכל איורי הסיפור</p>
+                  <div className="text-lg font-black text-foreground mb-1">דפי צביעה</div>
+                  <p className="text-sm text-muted-foreground">לצביעה באפליקציה ולהדפסה, מכל איורי הסיפור</p>
                 </div>
                 <div className="flex flex-col items-end shrink-0">
                   <span className="text-xl font-black text-primary">₪24.90</span>
                   <span className="text-xs text-muted-foreground font-semibold">או דף בודד ₪9.90</span>
                 </div>
-              </div>
-              <div className="mt-3 grid grid-cols-2 gap-x-2 gap-y-1.5">
-                {[
-                  "🎨 צביעה אונליין באפליקציה",
-                  "🖨️ הדפסה מהבית",
-                  "✨ דף לכל איור בסיפור",
-                  "📚 שמור לתמיד",
-                ].map((feature) => (
-                  <div key={feature} className="flex items-center gap-1.5">
-                    <Check className="w-3.5 h-3.5 text-green-700 shrink-0" />
-                    <span className="text-xs font-semibold text-foreground leading-tight">{feature}</span>
-                  </div>
-                ))}
               </div>
             </button>
           </div>
@@ -501,26 +458,20 @@ const Upgrade = () => {
           </div>
 
           {/* Gift Card Entry */}
-          <div dir="rtl" className="relative overflow-hidden rounded-2xl border border-border bg-gradient-to-br from-pink-500/10 via-purple-500/10 to-orange-500/10 p-5 mb-4 text-center">
-            <span aria-hidden className="pointer-events-none absolute top-2 right-3 text-2xl opacity-70 animate-bounce" style={{ animationDuration: "2.6s" }}>🎈</span>
-            <span aria-hidden className="pointer-events-none absolute top-2 left-3 text-2xl opacity-70 animate-pulse">✨</span>
-            <span aria-hidden className="pointer-events-none absolute bottom-2 right-4 text-xl opacity-60 animate-pulse" style={{ animationDelay: "0.5s" }}>🎉</span>
-            <span aria-hidden className="pointer-events-none absolute bottom-2 left-4 text-xl opacity-60 animate-bounce" style={{ animationDuration: "3.2s", animationDelay: "0.3s" }}>🎁</span>
-            <h3 className="relative text-lg font-black text-foreground mb-1">רוצה לשמח מישהו? 🎁</h3>
-            <p className="relative text-xs text-muted-foreground mb-3 leading-relaxed">
-              כרטיס מתנה דיגיטלי עם קוד אישי — מושלם ליום הולדת, חג או סתם ככה
-            </p>
-            <Button
-              onClick={() => {
-                trackEvent({ eventType: "feature_used", metadata: { feature: "gift_entry_clicked" } });
-                navigate("/gift");
-              }}
-              className="relative w-full bg-primary hover:bg-primary/90 text-white font-black text-sm py-3 rounded-xl shadow-xl"
-              style={{ boxShadow: "0 0 24px rgba(236, 72, 153, 0.35), 0 0 48px rgba(168, 85, 247, 0.2)" }}
-            >
-              🎁 שלח כמתנה
-            </Button>
-          </div>
+          <button
+            type="button"
+            onClick={() => {
+              trackEvent({ eventType: "feature_used", metadata: { feature: "gift_entry_clicked" } });
+              navigate("/gift");
+            }}
+            className="w-full flex items-center justify-between gap-3 rounded-2xl border border-border bg-card hover:bg-muted px-4 py-3 mb-4 text-right transition-colors"
+          >
+            <span className="flex items-center gap-3">
+              <Gift className="w-5 h-5 text-primary shrink-0" aria-hidden="true" />
+              <span className="text-base font-bold text-foreground">רוצים לשלוח סיפור כמתנה?</span>
+            </span>
+            <ChevronLeft className="w-5 h-5 text-muted-foreground shrink-0" aria-hidden="true" />
+          </button>
 
           {/* Terms */}
           <p className="text-xs text-center text-muted-foreground mt-2 mb-4">
