@@ -386,6 +386,48 @@ export type Database = {
         }
         Relationships: []
       }
+      login_codes: {
+        Row: {
+          attempts: number
+          code_hash: string
+          created_at: string
+          email: string
+          expires_at: string
+          id: string
+          ip_hash: string | null
+          link_token_hash: string
+          return_to: string | null
+          superseded: boolean
+          used_at: string | null
+        }
+        Insert: {
+          attempts?: number
+          code_hash: string
+          created_at?: string
+          email: string
+          expires_at: string
+          id?: string
+          ip_hash?: string | null
+          link_token_hash: string
+          return_to?: string | null
+          superseded?: boolean
+          used_at?: string | null
+        }
+        Update: {
+          attempts?: number
+          code_hash?: string
+          created_at?: string
+          email?: string
+          expires_at?: string
+          id?: string
+          ip_hash?: string | null
+          link_token_hash?: string
+          return_to?: string | null
+          superseded?: boolean
+          used_at?: string | null
+        }
+        Relationships: []
+      }
       maintenance_signups: {
         Row: {
           created_at: string
