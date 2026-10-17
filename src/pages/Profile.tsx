@@ -497,7 +497,7 @@ const Profile = () => {
                 className={`font-bold rounded-xl text-xs px-4 h-8 transition-all ${
                   noteSaved
                     ? "bg-green-500 hover:bg-green-500 text-white"
-                    : "bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white"
+                    : "bg-primary hover:bg-primary/90 text-white"
                 }`}
                 style={{ boxShadow: "0 0 16px rgba(245, 158, 11, 0.4)" }}
               >
@@ -511,7 +511,7 @@ const Profile = () => {
         {/* Toolkit Navigation */}
         <Button
           onClick={() => navigate("/toolkit")}
-          className="w-full py-6 bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white font-black text-lg rounded-2xl"
+          className="w-full py-6 bg-primary hover:bg-primary/90 text-white font-black text-lg rounded-2xl"
           style={{ boxShadow: "0 0 24px rgba(245, 158, 11, 0.35), 0 8px 20px rgba(0,0,0,0.1)" }}
         >
           <Crown className="w-5 h-5 ml-2" />

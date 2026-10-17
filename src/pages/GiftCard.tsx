@@ -189,13 +189,13 @@ const GiftCard = () => {
   if (purchaseComplete && generatedCode) {
     return (
       <div className="min-h-[100dvh] flex flex-col relative overflow-hidden" dir="rtl">
-        <div className="absolute inset-0 bg-gradient-to-b from-[hsl(260,60%,15%)] via-[hsl(270,40%,20%)] to-[hsl(250,50%,12%)]" />
+        <div className="absolute inset-0 bg-background" />
 
         <div className="absolute inset-0 overflow-hidden pointer-events-none">
           {[...Array(15)].map((_, i) => (
             <div
               key={i}
-              className="absolute rounded-full bg-white/60 animate-pulse"
+              className="absolute rounded-full bg-primary/20 animate-pulse"
               style={{
                 width: `${2 + Math.random() * 3}px`,
                 height: `${2 + Math.random() * 3}px`,
@@ -212,36 +212,36 @@ const GiftCard = () => {
             {/* Success Icon */}
             <div className="flex justify-center mb-6">
               <div className="w-24 h-24 rounded-full bg-gradient-to-br from-green-400 to-emerald-500 flex items-center justify-center shadow-2xl">
-                <Check className="w-12 h-12 text-white" />
+                <Check className="w-12 h-12 text-foreground" />
               </div>
             </div>
 
-            <h1 className="text-2xl font-black text-center bg-gradient-to-r from-purple-300 via-pink-300 to-orange-300 bg-clip-text text-transparent mb-2">
+            <h1 className="text-2xl font-black text-center text-primary mb-2">
               המתנה מוכנה! 🎁
             </h1>
-            <p className="text-white/80 text-center text-sm mb-6">
+            <p className="text-foreground text-center text-sm mb-6">
               הקוד נוצר בהצלחה. שלחו אותו למי שתרצו!
             </p>
 
             {/* Gift Code Display */}
-            <div className="bg-white/15 backdrop-blur-md rounded-2xl border border-white/20 p-6 mb-6 text-center">
-              <p className="text-white/60 text-sm mb-2">קוד המתנה:</p>
-              <div className="bg-white/10 rounded-xl py-3 px-4 mb-4">
-                <p className="text-2xl font-black text-white tracking-widest" dir="ltr">
+            <div className="bg-card rounded-2xl border border-border p-6 mb-6 text-center">
+              <p className="text-muted-foreground text-sm mb-2">קוד המתנה:</p>
+              <div className="bg-card rounded-xl py-3 px-4 mb-4">
+                <p className="text-2xl font-black text-foreground tracking-widest" dir="ltr">
                   {generatedCode}
                 </p>
               </div>
-              <p className="text-white/70 text-sm">
+              <p className="text-muted-foreground text-sm">
                 <Sparkles className="w-4 h-4 inline ml-1" />
                 {selectedPkg?.stories} סיפורים מותאמים אישית
               </p>
             </div>
 
             {/* Gift details */}
-            <div className="bg-white/10 backdrop-blur-sm border border-white/15 rounded-xl p-4 mb-6 text-center">
-              <p className="text-white/70 text-sm">
-                🎁 מתנה ל<span className="text-white font-bold">{childName}</span>
-                {senderName.trim() ? <> מאת <span className="text-white font-bold">{senderName}</span></> : null}
+            <div className="bg-card border border-border rounded-xl p-4 mb-6 text-center">
+              <p className="text-muted-foreground text-sm">
+                🎁 מתנה ל<span className="text-foreground font-bold">{childName}</span>
+                {senderName.trim() ? <> מאת <span className="text-foreground font-bold">{senderName}</span></> : null}
               </p>
             </div>
 
@@ -259,7 +259,7 @@ const GiftCard = () => {
               <Button
                 onClick={handleCopyCode}
                 variant="outline"
-                className="w-full border-white/20 text-white hover:bg-white/10"
+                className="w-full border-border text-foreground hover:bg-muted"
               >
                 {copied ? (
                   <>
@@ -277,7 +277,7 @@ const GiftCard = () => {
               <Button
                 onClick={() => navigate("/adventure")}
                 variant="ghost"
-                className="w-full text-white/60 hover:text-white/90"
+                className="w-full text-muted-foreground hover:text-foreground/90"
               >
                 חזרה לדף הבית
               </Button>
@@ -292,13 +292,13 @@ const GiftCard = () => {
   // Purchase flow screen
   return (
     <div className="min-h-[100dvh] flex flex-col relative overflow-hidden" dir="rtl">
-      <div className="absolute inset-0 bg-gradient-to-b from-[hsl(260,60%,15%)] via-[hsl(270,40%,20%)] to-[hsl(250,50%,12%)]" />
+      <div className="absolute inset-0 bg-background" />
 
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
         {[...Array(20)].map((_, i) => (
           <div
             key={i}
-            className="absolute rounded-full bg-white/60 animate-pulse"
+            className="absolute rounded-full bg-primary/20 animate-pulse"
             style={{
               width: `${2 + Math.random() * 3}px`,
               height: `${2 + Math.random() * 3}px`,
@@ -308,7 +308,7 @@ const GiftCard = () => {
             }}
           />
         ))}
-        <div className="absolute top-10 left-10 w-40 h-40 rounded-full bg-pink-500/10 blur-3xl" />
+        <div className="absolute top-10 left-10 w-40 h-40 rounded-full bg-primary/10 blur-3xl" />
         <div className="absolute bottom-32 right-10 w-48 h-48 rounded-full bg-amber-400/8 blur-3xl" />
       </div>
 
@@ -318,7 +318,7 @@ const GiftCard = () => {
           variant="ghost"
           size="sm"
           onClick={() => navigate(-1)}
-          className="text-white/70 hover:text-white hover:bg-white/10"
+          className="text-muted-foreground hover:text-foreground hover:bg-muted"
         >
           <ArrowRight className="w-4 h-4 ml-1" />
           חזרה
@@ -330,14 +330,14 @@ const GiftCard = () => {
           {/* Hero */}
           <div className="flex justify-center mb-4">
             <div className="w-20 h-20 rounded-full bg-gradient-to-br from-pink-400 via-purple-500 to-amber-400 flex items-center justify-center shadow-2xl">
-              <Gift className="w-10 h-10 text-white" />
+              <Gift className="w-10 h-10 text-foreground" />
             </div>
           </div>
 
-          <h1 className="text-2xl font-black text-center bg-gradient-to-r from-purple-300 via-pink-300 to-orange-300 bg-clip-text text-transparent mb-1">
+          <h1 className="text-2xl font-black text-center text-primary mb-1">
             שלחו סיפורים במתנה 🎁
           </h1>
-          <p className="text-white/80 text-center text-sm mb-6 leading-relaxed">
+          <p className="text-foreground text-center text-sm mb-6 leading-relaxed">
             מחפשים מתנה מקורית וערכית ליום הולדת?
             <br />
             מעכשיו תוכלו להעניק ליקרים לכם חבילת סיפורים אישיים
@@ -353,45 +353,45 @@ const GiftCard = () => {
                 onClick={() => setSelectedPackage(pkg.id)}
                 className={cn(
                   "relative flex flex-col items-center p-3 rounded-2xl border transition-all duration-200",
-                  "bg-white/10 backdrop-blur-md",
+                  "bg-card",
                   selectedPackage === pkg.id
-                    ? "border-pink-400/50 shadow-lg scale-[1.03] bg-white/20"
-                    : "border-white/15 hover:border-white/30",
+                    ? "border-primary shadow-lg scale-[1.03] bg-card"
+                    : "border-border hover:border-border",
                   pkg.comingSoon && "opacity-70"
                 )}
               >
                 {pkg.comingSoon ? (
-                  <div className="absolute -top-2.5 left-1/2 -translate-x-1/2 bg-gradient-to-r from-amber-500 to-orange-500 text-white text-xs font-black px-2.5 py-0.5 rounded-full whitespace-nowrap shadow-lg">
+                  <div className="absolute -top-2.5 left-1/2 -translate-x-1/2 bg-primary text-white text-xs font-black px-2.5 py-0.5 rounded-full whitespace-nowrap shadow-lg">
                     ⏳ בקרוב
                   </div>
                 ) : promoActive && (
-                  <div className="absolute -top-2.5 left-1/2 -translate-x-1/2 bg-gradient-to-r from-pink-500 via-purple-500 to-orange-500 text-white text-xs font-black px-2.5 py-0.5 rounded-full whitespace-nowrap shadow-lg">
+                  <div className="absolute -top-2.5 left-1/2 -translate-x-1/2 bg-primary text-white text-xs font-black px-2.5 py-0.5 rounded-full whitespace-nowrap shadow-lg">
                     🔥 מחיר השקה
                   </div>
                 )}
 
-                <Gift className="w-6 h-6 text-pink-300 mb-1" />
-                <div className="text-sm font-black text-white text-center leading-tight min-h-[2.5rem] flex items-center">
+                <Gift className="w-6 h-6 text-primary mb-1" />
+                <div className="text-sm font-black text-foreground text-center leading-tight min-h-[2.5rem] flex items-center">
                   {pkg.label}
                 </div>
                 {promoActive && (
-                  <div className="text-xs text-white/40 line-through mt-1">
+                  <div className="text-xs text-muted-foreground line-through mt-1">
                     {CURRENCY_SYMBOL}{getRegularPrice(pkg.priceKey).toFixed(2)}
                   </div>
                 )}
-                <div className="text-xl font-black bg-gradient-to-r from-purple-300 via-pink-300 to-orange-300 bg-clip-text text-transparent">
+                <div className="text-xl font-black text-primary">
                   {CURRENCY_SYMBOL}{getPrice(pkg.priceKey).toFixed(2)}
                 </div>
                 {promoActive && (
-                  <div className="text-xs text-amber-300/90 font-bold mt-1 text-center">
+                  <div className="text-xs text-amber-700/90 font-bold mt-1 text-center">
                     אחרי {PROMO_END_LABEL} המחיר עולה
                   </div>
                 )}
-                <div className="text-xs text-white/70 font-bold mt-1 text-center">
+                <div className="text-xs text-muted-foreground font-bold mt-1 text-center">
                   {pkg.subtitle}
                 </div>
                 {pkg.coloringDesc && (
-                  <div className="text-xs text-emerald-300/80 mt-0.5 text-center leading-tight px-1">
+                  <div className="text-xs text-green-700/80 mt-0.5 text-center leading-tight px-1">
                     {pkg.coloringDesc}
                   </div>
                 )}
@@ -400,8 +400,8 @@ const GiftCard = () => {
           </div>
 
           {/* How it works */}
-          <div className="bg-white/10 backdrop-blur-sm border border-white/15 rounded-xl p-4 mb-6">
-            <h3 className="text-sm font-black text-white mb-3">איך זה עובד? ✨</h3>
+          <div className="bg-card border border-border rounded-xl p-4 mb-6">
+            <h3 className="text-sm font-black text-foreground mb-3">איך זה עובד? ✨</h3>
             <div className="space-y-2.5">
               {[
                 "בחרו חבילת סיפורים ושלמו בצורה מאובטחת",
@@ -410,10 +410,10 @@ const GiftCard = () => {
                 "מזינים את הקוד ומקבלים את הסיפורים!",
               ].map((step, i) => (
                 <div key={i} className="flex items-start gap-2">
-                  <div className="w-5 h-5 rounded-full bg-gradient-to-r from-pink-500 to-purple-500 flex items-center justify-center flex-shrink-0 mt-0.5">
-                    <span className="text-xs font-black text-white">{i + 1}</span>
+                  <div className="w-5 h-5 rounded-full bg-primary flex items-center justify-center flex-shrink-0 mt-0.5">
+                    <span className="text-xs font-black text-foreground">{i + 1}</span>
                   </div>
-                  <p className="text-xs text-white/70">{step}</p>
+                  <p className="text-xs text-muted-foreground">{step}</p>
                 </div>
               ))}
             </div>
@@ -422,33 +422,33 @@ const GiftCard = () => {
           {/* Name Fields */}
           <div className="space-y-3 mb-6">
             <div>
-              <Label className="text-white/80 text-sm">שם הילד/ה מקבל/ת המתנה *</Label>
+              <Label className="text-foreground text-sm">שם הילד/ה מקבל/ת המתנה *</Label>
               <Input
                 value={childName}
                 onChange={(e) => setChildName(e.target.value)}
                 placeholder="למשל: נועה, יואב"
-                className="bg-white/10 border-white/20 text-white placeholder:text-white/40 mt-1"
+                className="bg-card border-border text-foreground placeholder:text-muted-foreground mt-1"
                 maxLength={50}
                 required
               />
             </div>
             <div>
-              <Label className="text-white/80 text-sm">השם שלך (אופציונלי)</Label>
+              <Label className="text-foreground text-sm">השם שלך (אופציונלי)</Label>
               <Input
                 value={senderName}
                 onChange={(e) => setSenderName(e.target.value)}
                 placeholder="למשל: שירה"
-                className="bg-white/10 border-white/20 text-white placeholder:text-white/40 mt-1"
+                className="bg-card border-border text-foreground placeholder:text-muted-foreground mt-1"
                 maxLength={50}
               />
             </div>
           </div>
 
           {waitingForGrow && (
-            <div className="bg-white/15 backdrop-blur-md rounded-xl border border-white/20 p-4 mb-4 text-center">
-              <div className="inline-block w-6 h-6 border-2 border-white/30 border-t-white rounded-full animate-spin mb-2" />
-              <p className="text-white/80 text-sm font-bold">ממתינים לאישור התשלום…</p>
-              <p className="text-white/50 text-xs mt-1">
+            <div className="bg-card rounded-xl border border-border p-4 mb-4 text-center">
+              <div className="inline-block w-6 h-6 border-2 border-border border-t-white rounded-full animate-spin mb-2" />
+              <p className="text-foreground text-sm font-bold">ממתינים לאישור התשלום…</p>
+              <p className="text-muted-foreground text-xs mt-1">
                 לאחר השלמת התשלום ב-Grow, קוד המתנה יופיע כאן אוטומטית.
               </p>
             </div>
@@ -457,13 +457,13 @@ const GiftCard = () => {
         </div>
       </div>
 
-      <div className="fixed bottom-0 left-0 right-0 bg-[hsl(250,50%,12%)]/95 backdrop-blur border-t border-white/10 px-4 py-3 z-[110] pointer-events-auto">
+      <div className="fixed bottom-0 left-0 right-0 bg-background/95 border-t border-border px-4 py-3 z-[110] pointer-events-auto">
         <div className="container max-w-md mx-auto">
           <Button
             type="button"
             onClick={handlePurchase}
             disabled={!childName.trim() || !!selectedPkg?.comingSoon}
-            className="w-full bg-gradient-to-r from-pink-500 via-purple-500 to-orange-500 hover:from-pink-400 hover:via-purple-400 hover:to-orange-400 text-white font-black text-sm py-3 rounded-xl shadow-xl disabled:opacity-50 disabled:cursor-not-allowed"
+            className="w-full bg-primary hover:bg-primary/90 text-white font-black text-sm py-3 rounded-xl shadow-xl disabled:opacity-50 disabled:cursor-not-allowed"
             style={{
               boxShadow:
                 "0 0 30px rgba(236, 72, 153, 0.4), 0 0 60px rgba(168, 85, 247, 0.2)",

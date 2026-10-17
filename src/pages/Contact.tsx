@@ -119,12 +119,12 @@ const Contact = () => {
             <div className="inline-flex items-center justify-center w-20 h-20 rounded-full bg-gradient-to-r from-purple-100 to-pink-100 mb-6">
               <CheckCircle className="w-10 h-10 text-purple-600" />
             </div>
-            <h1 className="text-2xl font-bold bg-gradient-to-r from-purple-600 via-pink-500 to-orange-400 bg-clip-text text-transparent mb-3">ההודעה נשלחה בהצלחה!</h1>
+            <h1 className="text-2xl font-bold bg-primary bg-clip-text text-transparent mb-3">ההודעה נשלחה בהצלחה!</h1>
             <p className="text-muted-foreground mb-6">
               תודה על פנייתך. נחזור אליך בהקדם האפשרי, בדרך כלל תוך 1-3 ימי עסקים.
             </p>
             <div className="flex flex-col gap-3">
-              <Button onClick={() => navigate("/")} className="gap-2 bg-gradient-to-r from-purple-600 via-pink-500 to-orange-400 hover:from-purple-700 hover:via-pink-600 hover:to-orange-500 text-white">
+              <Button onClick={() => navigate("/")} className="gap-2 bg-primary hover:bg-primary/90 text-white">
                 <ArrowRight className="w-4 h-4" />
                 חזרה לדף הבית
               </Button>
@@ -153,7 +153,7 @@ const Contact = () => {
           <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-gradient-to-r from-purple-100 to-pink-100 mb-4">
             <Mail className="w-8 h-8 text-purple-600" />
           </div>
-          <h1 className="text-3xl font-bold bg-gradient-to-r from-purple-600 via-pink-500 to-orange-400 bg-clip-text text-transparent mb-2">צור קשר</h1>
+          <h1 className="text-3xl font-bold bg-primary bg-clip-text text-transparent mb-2">צור קשר</h1>
           <p className="text-muted-foreground">
             יש לך שאלה או הצעה? נשמח לשמוע ממך!
           </p>
@@ -246,7 +246,7 @@ const Contact = () => {
             {/* Submit Button */}
             <Button
               type="submit"
-              className="w-full gap-2 bg-gradient-to-r from-purple-600 via-pink-500 to-orange-400 hover:from-purple-700 hover:via-pink-600 hover:to-orange-500 text-white"
+              className="w-full gap-2 bg-primary hover:bg-primary/90 text-white"
               disabled={isSubmitting}
             >
               {isSubmitting ? (

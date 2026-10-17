@@ -537,7 +537,7 @@ const ChildProfiles = () => {
             חזרה
           </Button>
           <div className="flex-1 text-center">
-            <h1 className="text-2xl font-black bg-gradient-to-r from-purple-600 via-pink-500 to-orange-400 bg-clip-text text-transparent">
+            <h1 className="text-2xl font-black bg-primary bg-clip-text text-transparent">
               בחרו ילד
             </h1>
           </div>

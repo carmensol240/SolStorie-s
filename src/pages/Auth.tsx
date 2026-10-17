@@ -835,7 +835,7 @@ const Auth = () => {
                 size="lg"
                 className="w-full h-16 text-lg font-bold rounded-2xl 
                            bg-gradient-to-r from-amber-400 to-amber-500
-                           hover:from-amber-500 hover:to-amber-600
+                           hover:bg-primary/90
                            text-white shadow-lg transition-all hover:scale-[1.02]
                            gap-2"
               >
@@ -936,7 +936,7 @@ const Auth = () => {
                     </Button>
                     <Button
                       onClick={handleConfirmPhoto}
-                      className="flex-1 gap-2 rounded-xl bg-gradient-to-r from-amber-400 to-amber-500 hover:from-amber-500 hover:to-amber-600"
+                      className="flex-1 gap-2 rounded-xl bg-gradient-to-r from-amber-400 to-amber-500 hover:bg-primary/90"
                       disabled={uploadingPhoto}
                     >
                       {uploadingPhoto ? (
@@ -1288,7 +1288,7 @@ const Auth = () => {
                 type="submit"
                 disabled={isSubmitting}
                 size="lg"
-                className="w-full bg-gradient-to-r from-orange-400 via-pink-500 to-purple-600 hover:from-orange-500 hover:via-pink-600 hover:to-purple-700 text-white font-black text-lg h-14 rounded-full shadow-xl shadow-black/25 hover:shadow-2xl hover:scale-[1.02] transition-all"
+                className="w-full bg-primary hover:bg-primary/90 text-white font-black text-lg h-14 rounded-full shadow-xl shadow-black/25 hover:shadow-2xl hover:scale-[1.02] transition-all"
               >
                 {isSubmitting ? (
                   <Loader2 className="w-5 h-5 animate-spin" />
@@ -1412,7 +1412,7 @@ const Auth = () => {
                   type="submit"
                   disabled={isSubmitting}
                   size="lg"
-                  className="w-full bg-gradient-to-r from-orange-400 via-pink-500 to-purple-600 hover:from-orange-500 hover:via-pink-600 hover:to-purple-700 text-white font-black text-lg h-14 rounded-full shadow-xl shadow-black/25 hover:shadow-2xl hover:scale-[1.02] transition-all"
+                  className="w-full bg-primary hover:bg-primary/90 text-white font-black text-lg h-14 rounded-full shadow-xl shadow-black/25 hover:shadow-2xl hover:scale-[1.02] transition-all"
                 >
                   {isSubmitting ? (
                     <Loader2 className="w-5 h-5 animate-spin" />
@@ -1525,7 +1525,7 @@ const Auth = () => {
                   type="submit"
                   disabled={isSubmitting || !signupTermsAccepted}
                   size="lg"
-                  className="w-full bg-gradient-to-r from-orange-400 via-pink-500 to-purple-600 hover:from-orange-500 hover:via-pink-600 hover:to-purple-700 text-white font-black text-lg h-14 rounded-full shadow-xl shadow-black/25 hover:shadow-2xl hover:scale-[1.02] transition-all disabled:opacity-50"
+                  className="w-full bg-primary hover:bg-primary/90 text-white font-black text-lg h-14 rounded-full shadow-xl shadow-black/25 hover:shadow-2xl hover:scale-[1.02] transition-all disabled:opacity-50"
                 >
                   {isSubmitting ? (
                     <Loader2 className="w-5 h-5 animate-spin" />

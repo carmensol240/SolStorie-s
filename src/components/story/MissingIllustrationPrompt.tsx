@@ -70,7 +70,7 @@ export const MissingIllustrationPrompt = ({
               size="sm"
               onClick={() => onSubmit(pageId, customPromptText || undefined)}
               disabled={!customPromptText.trim()}
-              className="bg-gradient-to-r from-purple-600 via-pink-500 to-orange-400 hover:from-purple-700 hover:via-pink-600 hover:to-orange-500 text-white text-xs gap-1"
+              className="bg-primary hover:bg-primary/90 text-white text-xs gap-1"
             >
               <Send className="w-3 h-3" />
               צרו איור
@@ -95,7 +95,7 @@ export const MissingIllustrationPrompt = ({
           <Button
             size="sm"
             onClick={() => onSubmit(pageId)}
-            className="bg-gradient-to-r from-purple-600 via-pink-500 to-orange-400 hover:from-purple-700 hover:via-pink-600 hover:to-orange-500 text-white text-xs gap-1.5"
+            className="bg-primary hover:bg-primary/90 text-white text-xs gap-1.5"
           >
             <Sparkles className="w-3.5 h-3.5" />
             נסו ליצור איור שוב 🎨

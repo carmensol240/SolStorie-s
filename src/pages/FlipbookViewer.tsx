@@ -246,7 +246,7 @@ const FlipbookViewer = () => {
           <span className="text-sm">לספרייה</span>
         </Button>
         
-        <h1 className="font-serif text-lg font-semibold bg-gradient-to-r from-purple-600 via-pink-500 to-orange-400 bg-clip-text text-transparent">
+        <h1 className="font-serif text-lg font-semibold bg-primary bg-clip-text text-transparent">
           הספרון של {story.child_name}
         </h1>
 
@@ -315,7 +315,7 @@ const FlipbookViewer = () => {
                   <h2 className="font-serif text-3xl md:text-4xl font-bold text-purple-900" style={{ lineHeight: '1.5' }}>
                     הסיפור של
                   </h2>
-                  <h3 className="font-serif text-4xl md:text-5xl font-bold bg-gradient-to-r from-purple-600 via-pink-500 to-orange-400 bg-clip-text text-transparent">
+                  <h3 className="font-serif text-4xl md:text-5xl font-bold bg-primary bg-clip-text text-transparent">
                     {story.child_name}
                   </h3>
                   <p className="font-serif text-lg text-purple-600 mt-4 max-w-xs" style={{ lineHeight: '1.6' }}>

@@ -66,17 +66,7 @@ const HomeExplainer = () => {
 
   return (
     <div className="w-full bg-gradient-to-b from-amber-50 to-background dark:from-background dark:to-background" dir="rtl">
-      <div className="max-w-2xl mx-auto px-4 pt-12 pb-28 space-y-14">
-        {/* What it is */}
-        <section className="text-center space-y-3" aria-labelledby="home-what">
-          <h2 id="home-what" className="text-center text-3xl sm:text-4xl font-black text-foreground leading-tight">
-            כל ילד ראוי לסיפור משלו
-          </h2>
-          <p className="text-center text-lg text-muted-foreground leading-relaxed">
-            סיפור אישי בעברית, עם השם, המראה והעולם של הילד, על הנושא שהכי חשוב לכם עכשיו.
-          </p>
-        </section>
-
+      <div className="max-w-2xl mx-auto px-4 pt-10 pb-28 space-y-14">
         {/* How it works */}
         <section aria-labelledby="home-how" className="space-y-5">
           <h2 id="home-how" className="text-2xl font-black text-foreground text-center">
@@ -191,7 +181,7 @@ const HomeExplainer = () => {
         <div className="text-center">
           <button
             onClick={() => navigate("/create")}
-            className="inline-flex items-center justify-center gap-2.5 rounded-full px-8 py-4 w-full max-w-[320px] bg-gradient-to-r from-amber-500 via-orange-500 to-pink-500 text-white font-black text-lg shadow-lg hover:shadow-xl hover:scale-[1.02] active:scale-95 transition-all"
+            className="inline-flex items-center justify-center gap-2.5 rounded-full px-8 py-4 w-full max-w-[320px] bg-primary text-white font-black text-lg shadow-lg hover:shadow-xl hover:scale-[1.02] active:scale-95 transition-all"
           >
             <Wand2 className="w-5 h-5" aria-hidden="true" />
             יוצרים סיפור עכשיו

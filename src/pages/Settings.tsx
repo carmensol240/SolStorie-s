@@ -83,7 +83,7 @@ const Settings = () => {
             </p>
             <Button
               onClick={() => navigate('/auth')}
-              className="w-full bg-gradient-to-r from-purple-600 to-pink-500 hover:from-purple-700 hover:to-pink-600 text-white font-bold"
+              className="w-full bg-primary hover:bg-primary/90 text-white font-bold"
             >
               <LogIn className="w-4 h-4 ml-1" />
               התחברות
@@ -167,7 +167,7 @@ const Settings = () => {
           {/* Buy Credits / Premium Upgrade Box */}
           <button
             onClick={() => navigate("/upgrade")}
-            className="w-full flex items-center justify-between bg-gradient-to-r from-purple-600/90 via-pink-500/90 to-orange-400/90 backdrop-blur-md rounded-lg px-3 py-3 border border-white/20 hover:from-purple-700 hover:via-pink-600 hover:to-orange-500 transition-all text-right shadow-lg"
+            className="w-full flex items-center justify-between bg-gradient-to-r from-purple-600/90 via-pink-500/90 to-orange-400/90 backdrop-blur-md rounded-lg px-3 py-3 border border-white/20 hover:bg-primary/90 transition-all text-right shadow-lg"
             aria-label="רכישת חבילת סיפורים"
           >
             <span className="flex items-center gap-1">
@@ -241,7 +241,7 @@ const Settings = () => {
               {canPrompt ? (
                 <button
                   onClick={promptInstall}
-                  className="w-full py-2 bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white font-bold text-sm rounded-xl transition-all flex items-center justify-center gap-1.5"
+                  className="w-full py-2 bg-primary hover:bg-primary/90 text-white font-bold text-sm rounded-xl transition-all flex items-center justify-center gap-1.5"
                 >
                   <Download className="w-3.5 h-3.5" />
                   התקנת אפליקציה על מסך הבית
@@ -249,7 +249,7 @@ const Settings = () => {
               ) : (
                 <button
                   onClick={() => setInstallHelpOpen(true)}
-                  className="w-full py-2 bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white font-bold text-sm rounded-xl transition-all flex items-center justify-center gap-1.5"
+                  className="w-full py-2 bg-primary hover:bg-primary/90 text-white font-bold text-sm rounded-xl transition-all flex items-center justify-center gap-1.5"
                 >
                   <Download className="w-3.5 h-3.5" />
                   איך מתקינים את <span dir="ltr" className="inline-block">SolStorie's™</span>?
@@ -260,12 +260,12 @@ const Settings = () => {
 
           <button
             onClick={() => setAccessibilityOpen(true)}
-            className="w-full flex items-center justify-between bg-gradient-to-r from-purple-50 to-pink-50 dark:from-purple-950/30 dark:to-pink-950/30 backdrop-blur-md rounded-lg px-3 py-2 border border-purple-200 dark:border-purple-800 hover:from-purple-100 hover:to-pink-100 dark:hover:from-purple-900/40 dark:hover:to-pink-900/40 transition-all text-right shadow-sm"
+            className="w-full flex items-center justify-between bg-gradient-to-r from-purple-50 to-pink-50 dark:from-purple-950/30 dark:to-pink-950/30 backdrop-blur-md rounded-lg px-3 py-2 border border-purple-200 dark:border-purple-800 hover:bg-primary/90 dark:hover:from-purple-900/40 dark:hover:to-pink-900/40 transition-all text-right shadow-sm"
             aria-label="הגדרות נגישות"
           >
             <ArrowRight className="w-3.5 h-3.5 text-purple-500" aria-hidden="true" />
             <div className="flex items-center gap-2">
-              <span className="font-medium text-sm bg-gradient-to-r from-purple-600 via-pink-500 to-orange-400 bg-clip-text text-transparent">הגדרות נגישות</span>
+              <span className="font-medium text-sm bg-primary bg-clip-text text-transparent">הגדרות נגישות</span>
               <div className="w-7 h-7 bg-gradient-to-r from-purple-500/20 to-pink-500/20 rounded-lg flex items-center justify-center flex-shrink-0">
                 <Eye className="w-3.5 h-3.5 text-purple-500" aria-hidden="true" />
               </div>
@@ -302,7 +302,7 @@ const Settings = () => {
         {isAdmin && (
           <button
             onClick={() => navigate("/admin/dashboard")}
-            className="w-full flex items-center justify-between bg-gradient-to-r from-amber-50 to-yellow-50 dark:from-amber-950/20 dark:to-yellow-950/20 backdrop-blur-md rounded-lg px-3 py-2.5 border border-amber-300 dark:border-amber-700 hover:from-amber-100 hover:to-yellow-100 transition-all text-right shadow-sm mt-2"
+            className="w-full flex items-center justify-between bg-gradient-to-r from-amber-50 to-yellow-50 dark:from-amber-950/20 dark:to-yellow-950/20 backdrop-blur-md rounded-lg px-3 py-2.5 border border-amber-300 dark:border-amber-700 hover:bg-primary/90 transition-all text-right shadow-sm mt-2"
             aria-label="לוח בקרה למנהל"
           >
             <ArrowRight className="w-3.5 h-3.5 text-amber-500" aria-hidden="true" />
@@ -383,7 +383,7 @@ const Settings = () => {
       <Dialog open={aboutOpen} onOpenChange={setAboutOpen}>
         <DialogContent className="max-w-lg max-h-[80vh]" dir="rtl">
           <DialogHeader>
-            <DialogTitle className="text-center text-lg font-bold bg-gradient-to-r from-purple-600 via-pink-500 to-orange-400 bg-clip-text text-transparent">
+            <DialogTitle className="text-center text-lg font-bold bg-primary bg-clip-text text-transparent">
               📖 להפוך את הקושי לסיפור קסום – <span dir="ltr" className="inline-block">SolStorie's™</span> ✨
             </DialogTitle>
           </DialogHeader>
