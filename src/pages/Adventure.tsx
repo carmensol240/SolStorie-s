@@ -8,6 +8,7 @@ import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 
 import MobileNavigation from "@/components/MobileNavigation";
+import HomeExplainer from "@/components/home/HomeExplainer";
 import heroVideo from "@/assets/hero-solstories-animation-new.mp4";
 
 const Adventure = () => {
@@ -155,6 +156,9 @@ const Adventure = () => {
             <span className="logo-rainbow">SolStorie's™</span>
           </h1>
         </div>
+        <p className="absolute top-36 sm:top-44 left-0 right-0 z-10 px-6 text-center text-lg sm:text-xl font-bold text-white drop-shadow-[0_2px_6px_rgba(0,0,0,0.6)]">
+          ספר מאויר שהילד שלכם הוא הגיבור שלו
+        </p>
 
         {/* Top bar - Glassmorphism credits & profile */}
         <div className="absolute top-0 left-0 right-0 z-10 flex items-center justify-between px-4 pt-[max(env(safe-area-inset-top,12px),24px)] pb-2">
@@ -193,7 +197,7 @@ const Adventure = () => {
 
         </div>
       </div>
-
+      <HomeExplainer />
       <MobileNavigation />
     </div>
   );
