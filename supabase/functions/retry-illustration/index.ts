@@ -1,4 +1,5 @@
 import "https://deno.land/x/xhr@0.1.0/mod.ts";
+import { mergeAppearance, hairToEnglish, clothingToEnglish, pageMentionsOutfit, buildCharacterLock } from "../_shared/appearance.ts";
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.39.3";
 import {
@@ -348,7 +349,21 @@ serve(async (req) => {
       console.log(`🔗 page-1 character reference: ${pageOneReferenceUrl ? "found" : "not available"}`);
     }
 
-    const prompt = customPrompt || page.illustration_prompt || `A cheerful children's book illustration for page ${page.page_number}`;
+    // Same fixed character description as the original illustrations.
+    let characterLock = "";
+    {
+      let q = supabase.from("children").select("age, hair_color, hair_style, clothing_type, clothing_color").eq("user_id", user.id);
+      q = (story as any).child_id ? q.eq("id", (story as any).child_id) : q.eq("name", story.child_name);
+      const { data: ch } = await q.limit(1).maybeSingle();
+      const ap = mergeAppearance(null, {
+        hairColor: ch?.hair_color, hairStyle: ch?.hair_style,
+        clothingType: ch?.clothing_type, clothingColor: ch?.clothing_color,
+      });
+      const hair = hairToEnglish(ap);
+      const outfit = pageMentionsOutfit((page as any).text) ? "" : clothingToEnglish(ap);
+      characterLock = buildCharacterLock({ gender: (story as any).child_gender, age: ch?.age ?? null, ageRange: (story as any).age_range, hair, outfit });
+    }
+    const prompt = `${customPrompt || page.illustration_prompt || `A cheerful children's book illustration for page ${page.page_number}`}\n\n${characterLock}`;
     const pageNarrative = ((page as any).text || "").toString().slice(0, 400);
     const genderHeader = buildGenderHeader((story as any).child_gender);
     const sceneBlockRaw = pageNarrative

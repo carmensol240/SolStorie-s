@@ -1,4 +1,5 @@
 import "https://deno.land/x/xhr@0.1.0/mod.ts";
+import { mergeAppearance, hairToEnglish, clothingToEnglish, resolvePageOutfit, buildCharacterLock, type Appearance } from "../_shared/appearance.ts";
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.39.3";
 import { logError } from "../_shared/log-error.ts";
@@ -1164,6 +1165,8 @@ serve(async (req) => {
 
     const requestBody = await req.json();
     const { storyId, childPhoto, childAvatarUrl, childGender, ageRange, adventureLogic, userId, childName, topic, singlePageNumber } = requestBody;
+    const reqAppearance: Appearance = (requestBody && typeof requestBody.appearance === "object" && requestBody.appearance) ? requestBody.appearance : {};
+    const reqChildAge: number | null = Number.isFinite(Number(requestBody?.childAge)) ? Number(requestBody.childAge) : null;
     
     console.log("Request body received:", { 
       storyId, 
@@ -1316,6 +1319,15 @@ serve(async (req) => {
       }
     }
 
+    // Form values (sent with the request) win over the saved profile; each field independent.
+    const mergedAppearance = mergeAppearance(reqAppearance, {
+      hairColor: parentHairColor, hairStyle: parentHairStyle,
+      clothingType: parentClothingType, clothingColor: parentClothingColor,
+    });
+    const parentHairEn = hairToEnglish(mergedAppearance);
+    const parentOutfitEn = clothingToEnglish(mergedAppearance);
+    console.log(`👤 Parent appearance: hair="${parentHairEn}" outfit="${parentOutfitEn}"`);
+
     // If no saved profile, extract from photo
     if (!characterProfile && effectivePhoto) {
       console.log("Extracting character profile from photo...");
@@ -1342,15 +1354,15 @@ serve(async (req) => {
     // Apply parent overrides (if present) to the resolved profile, regardless of
     // whether it came from the DB, from photo extraction, or from a default.
     if (characterProfile) {
-      if (parentHairColor && parentHairStyle) {
-        const override = `${parentHairColor} ${parentHairStyle}`;
+      if (parentHairEn) {
+        const override = parentHairEn;
         if (characterProfile.hairDescription !== override) {
           console.log(`👤 Parent hair override: "${characterProfile.hairDescription}" -> "${override}"`);
           characterProfile.hairDescription = override;
         }
       }
-      if (parentClothingColor && parentClothingType) {
-        const override = `${parentClothingColor} ${parentClothingType}`;
+      if (parentOutfitEn) {
+        const override = parentOutfitEn;
         if (characterProfile.clothingDescription !== override) {
           console.log(`👤 Parent clothing override: "${characterProfile.clothingDescription}" -> "${override}"`);
           characterProfile.clothingDescription = override;
@@ -1360,14 +1372,10 @@ serve(async (req) => {
 
     // If we still have no profile, and at least one parent field is present,
     // start from the default profile and apply the parent overrides.
-    if (!characterProfile && (parentHairColor || parentHairStyle || parentClothingType || parentClothingColor)) {
+    if (!characterProfile && (parentHairEn || parentOutfitEn)) {
       characterProfile = getDefaultProfile(childGender || "male", childGender === "female" ? "ילדה" : "ילד", ageRange || "3-6");
-      if (parentHairColor && parentHairStyle) {
-        characterProfile.hairDescription = `${parentHairColor} ${parentHairStyle}`;
-      }
-      if (parentClothingColor && parentClothingType) {
-        characterProfile.clothingDescription = `${parentClothingColor} ${parentClothingType}`;
-      }
+      if (parentHairEn) characterProfile.hairDescription = parentHairEn;
+      if (parentOutfitEn) characterProfile.clothingDescription = parentOutfitEn;
       console.log("👤 Fallback default profile with parent overrides:", characterProfile);
     }
     
@@ -1395,7 +1403,10 @@ serve(async (req) => {
     }
     
     // Final fallback
-    storyOutfit = storyOutfit || characterProfile?.clothingDescription || "colorful casual clothes";
+    // Topic outfit is kept for pages whose text puts the child in it; otherwise
+    // the parent's chosen clothes are used on every page.
+    const topicOutfit: string | null = storyOutfit;
+    storyOutfit = parentOutfitEn || storyOutfit || characterProfile?.clothingDescription || "colorful casual clothes";
     console.log(`🎽 Story outfit locked for all pages: "${storyOutfit}"`);
 
     // === BUILD VISUAL ANCHOR ===
@@ -1510,6 +1521,9 @@ serve(async (req) => {
       if (refErr) console.warn("Could not persist child_photo_path:", refErr.message);
     }
 
+    const baseStoryOutfit = storyOutfit;
+    const baseVisualAnchor = visualAnchor;
+
     // === PARALLEL ILLUSTRATION GENERATION ===
     // Each page is processed independently and concurrently
     async function generatePageIllustration(
@@ -1520,6 +1534,18 @@ serve(async (req) => {
       if (coverReferenceUrl) {
         console.log(`[Page ${page.page_number}] 🔗 Using cover/page-1 illustration as additional reference for character consistency`);
       }
+
+      // Per-page outfit: parent clothes by default, topic outfit only where the text describes it.
+      const storyOutfit = parentOutfitEn
+        ? resolvePageOutfit(parentOutfitEn, topicOutfit, page.text)
+        : baseStoryOutfit;
+      const visualAnchor = storyOutfit === baseStoryOutfit
+        ? baseVisualAnchor
+        : (characterProfile ? buildVisualAnchor(characterProfile, storyOutfit) : `VISUAL ANCHOR: A child wearing ${storyOutfit}. Maintain strict visual character continuity across ALL illustrations.`);
+      const characterLock = buildCharacterLock({
+        gender: characterProfile?.gender || childGender, age: reqChildAge, ageRange,
+        hair: parentHairEn || characterProfile?.hairDescription || "", outfit: storyOutfit,
+      });
 
       // Build prompt directly from illustration_prompt — skip AI scene analysis for speed
       const basePrompt = page.illustration_prompt || `A cheerful children's book illustration for page ${page.page_number}`;
@@ -1537,6 +1563,7 @@ The action, objects, characters, and emotions shown MUST come from the STORY TEX
         : `SCENE (MUST MATCH TEXT EXACTLY): ${basePrompt}`;
       const genderHeader = buildGenderHeader(childGender);
       let illustrationPrompt = `${genderHeader}\n\n${charDesc}. ${sceneBlock}. CAMERA: ${cameraAngle}. LIGHTING: ${lighting}. Pixar 3D CGI style, vibrant colors, fantasy children's book, ${compositionClause(cameraAngle)}\n\n${GENDER_SYMBOL_RESTRICTION}`;
+      illustrationPrompt += `\n\n${characterLock}`;
       if (page.page_number === 1) {
         // Page 1 is also cropped into the square library cover card.
         illustrationPrompt += `\n\nCOMPOSITION (COVER SAFE ZONE): The main character is centered in the frame, full body visible, with at least 15% empty margin on every side and extra headroom at the top. Nothing important touches the edges — this image is also cropped to a square cover card.`;
@@ -1762,7 +1789,7 @@ STORY TEXT FOR THIS PAGE: "${pageNarrative}"
 VISUAL DESCRIPTION: ${secondPrompt}
 The action, objects, characters, and emotions shown MUST come from the STORY TEXT above. Do not invent a different scene.`
           : `SCENE (MUST MATCH TEXT EXACTLY): ${secondPrompt}`;
-        const secondIllustrationPrompt = `${buildGenderHeader(childGender)}\n\n${charDesc2}. ${sceneBlock2}. CAMERA: ${cameraAngle2}. LIGHTING: ${lighting2}. Pixar 3D CGI style, vibrant colors, fantasy children's book, ${compositionClause(cameraAngle2)}\n\n${GENDER_SYMBOL_RESTRICTION}`;
+        const secondIllustrationPrompt = `${buildGenderHeader(childGender)}\n\n${charDesc2}. ${sceneBlock2}. CAMERA: ${cameraAngle2}. LIGHTING: ${lighting2}. Pixar 3D CGI style, vibrant colors, fantasy children's book, ${compositionClause(cameraAngle2)}\n\n${GENDER_SYMBOL_RESTRICTION}\n\n${characterLock}`;
 
         for (let attempt = 1; attempt <= MAX_RETRIES; attempt++) {
           if (childPhotoSignedUrl) {

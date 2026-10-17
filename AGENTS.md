@@ -1,0 +1,1 @@
+- Parent-chosen appearance (hair/clothes) is turned into one English character description by supabase/functions/_shared/appearance.ts and added to every illustration, retry and coloring prompt; form values sent with the request win over the saved profile. Why: keeps the child identical on every page.
