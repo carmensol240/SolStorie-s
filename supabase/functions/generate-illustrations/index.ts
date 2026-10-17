@@ -535,6 +535,108 @@ ${NO_UI_NEGATIVE}`;
   }
 }
 
+// BACKUP image service (used only after the main service failed with normal errors).
+// Gets the SAME style text, the SAME fixed character description and the SAME reference
+// pictures (page 1 + child photo) as the main service, so the page matches the book.
+const BACKUP_IMAGE_MODEL = "openai/gpt-image-2.5-sunburst";
+
+async function refToBlob(ref: string): Promise<Blob | null> {
+  try {
+    if (ref.startsWith("data:")) {
+      const [meta, b64] = ref.split(",", 2);
+      const mime = meta.match(/data:([^;]+)/)?.[1] || "image/png";
+      const bin = atob(b64);
+      const bytes = new Uint8Array(bin.length);
+      for (let i = 0; i < bin.length; i++) bytes[i] = bin.charCodeAt(i);
+      return new Blob([bytes], { type: mime });
+    }
+    const r = await fetch(ref);
+    if (!r.ok) return null;
+    return await r.blob();
+  } catch {
+    return null;
+  }
+}
+
+async function generateIllustrationBackup(
+  prompt: string,
+  visualAnchor: string,
+  adventureLogic: { outfit: string; background: string; theme: string } | undefined,
+  references: { page1?: string | null; face?: string | null },
+  storyId: string,
+  pageNumber: number,
+): Promise<string | null> {
+  try {
+    const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
+    if (!LOVABLE_API_KEY) return null;
+    const adventureInstruction = adventureLogic
+      ? `Setting: ${adventureLogic.background}. Theme: ${adventureLogic.theme}.`
+      : "";
+    const refNotes: string[] = [];
+    const blobs: Blob[] = [];
+    if (references.page1) {
+      const b = await refToBlob(references.page1);
+      if (b) { blobs.push(b); refNotes.push(`IMAGE ${blobs.length} is a finished Pixar 3D page of the SAME main character from this same book — match its face, hair, outfit, proportions and EXACT 3D rendering style.`); }
+    }
+    if (references.face) {
+      const b = await refToBlob(references.face);
+      if (b) { blobs.push(b); refNotes.push(`IMAGE ${blobs.length} is the real child's photo — the character's face must be a Pixar 3D rendering of this child.`); }
+    }
+    if (blobs.length === 0) return null;
+
+    const fullPrompt = `Create a NEW full illustration (not an edit of the inputs) for a children's storybook page.
+REFERENCES: ${refNotes.join(" ")}
+
+${visualAnchor}
+
+STYLE: ${PIXAR_STYLE}
+
+${adventureInstruction}
+
+SCENE (THIS IS THE MOST IMPORTANT PART — illustrate THIS specific scene in detail): ${prompt}
+
+${CHARACTER_CONSISTENCY_PROMPT}
+
+NEGATIVE: ${NEGATIVE_PROMPT}
+
+${NO_UI_NEGATIVE}`;
+
+    logImageGenCall({
+      storyId, page: pageNumber, api: "lovable-gateway/images-edits", model: BACKUP_IMAGE_MODEL,
+      hasFaceRef: !!references.face, hasPageOneRef: !!references.page1, seed: null, prompt: fullPrompt,
+    });
+
+    const form = new FormData();
+    form.append("model", BACKUP_IMAGE_MODEL);
+    form.append("prompt", fullPrompt);
+    form.append("size", "1024x1536");
+    blobs.forEach((b, i) => form.append("image[]", b, `ref-${i + 1}.png`));
+
+    const response = await fetch("https://ai.gateway.lovable.dev/v1/images/edits", {
+      method: "POST",
+      headers: { Authorization: `Bearer ${LOVABLE_API_KEY}` },
+      body: form,
+    });
+    if (!response.ok) {
+      const body = await response.text().catch(() => "");
+      console.error(`Backup image failed: ${response.status} - ${body.slice(0, 300)}`);
+      await logError("illustration_backup_error", `Backup image failed: ${response.status}`, { status: response.status, body: body.slice(0, 500) });
+      return null;
+    }
+    const data = await response.json();
+    const b64 = data?.data?.[0]?.b64_json;
+    if (!b64) {
+      console.warn("Backup image: no image in response", JSON.stringify(data).slice(0, 200));
+      return null;
+    }
+    return `data:image/png;base64,${b64}`;
+  } catch (error) {
+    console.error("Error in backup image generation:", error);
+    await logError("illustration_backup_error", `Backup image: ${(error as Error)?.message || error}`, { model: BACKUP_IMAGE_MODEL });
+    return null;
+  }
+}
+
 // Helper function to generate illustration using Fal.ai Flux Schnell (FALLBACK ONLY)
 // Fast (~2-4s per image) text-to-image model — used when NO child photo is available
 async function generateIllustration(
