@@ -58,16 +58,28 @@ export const TASTE_UNLOCK_PACKAGES = new Set([
 
 // ---------- Unlock ----------
 
+export type CreditKind = "digital" | "full";
+
+/** Spend credits by kind. null kind = parent didn't choose: full first, then digital. */
+export async function spendCredit(
+  consume: (kind: CreditKind) => Promise<CreditKind | null>,
+  kind: CreditKind | null | undefined,
+): Promise<CreditKind | null> {
+  if (kind) return consume(kind);
+  return (await consume("full")) ?? (await consume("digital"));
+}
+
 export interface TasteUnlockStore {
   getStory(storyId: string): Promise<{ id: string; user_id: string | null; is_taste: boolean } | null>;
-  getCredits(userId: string): Promise<number>;
-  casCredits(userId: string, from: number, to: number): Promise<boolean>;
-  /** Flip is_taste true→false only if still true. Returns false if someone else already did. */
+  /** Take one credit of this kind; returns the kind taken, or null if none. */
+  consume(userId: string, kind: CreditKind): Promise<CreditKind | null>;
+  refund(userId: string, kind: CreditKind): Promise<void>;
+  /** Flip is_taste true->false only if still true. Returns false if someone else already did. */
   markUnlocked(storyId: string): Promise<boolean>;
 }
 
 export type UnlockResult =
-  | { kind: "unlocked" }
+  | { kind: "unlocked"; creditKind: CreditKind }
   | { kind: "not_found" }
   | { kind: "not_owner" }
   | { kind: "not_taste" }
@@ -78,65 +90,18 @@ export type UnlockResult =
  * Opens a taste story with one story credit. Opens ONLY when the story belongs
  * to `userId` and is still a taste; otherwise nothing is charged.
  */
-export async function unlockTasteStory(store: TasteUnlockStore, userId: string, storyId: string): Promise<UnlockResult> {
+export async function unlockTasteStory(
+  store: TasteUnlockStore, userId: string, storyId: string, creditKind?: CreditKind | null,
+): Promise<UnlockResult> {
   const story = await store.getStory(storyId);
   if (!story) return { kind: "not_found" };
   if (!story.user_id || story.user_id !== userId) return { kind: "not_owner" };
   if (!story.is_taste) return { kind: "not_taste" };
 
-  for (let attempt = 0; attempt < 5; attempt++) {
-    const credits = await store.getCredits(userId);
-    if (credits <= 0) return { kind: "no_credits" };
-    if (await store.casCredits(userId, credits, credits - 1)) {
-      if (await store.markUnlocked(storyId)) return { kind: "unlocked" };
-      // Opened in parallel by another request — give the credit back.
-      for (let r = 0; r < 5; r++) {
-        const c = await store.getCredits(userId);
-        if (await store.casCredits(userId, c, c + 1)) break;
-      }
-      return { kind: "not_taste" };
-    }
-  }
-  return { kind: "error", error: "credit_cas_failed" };
-}
-
-export interface TastePurchaseExtras {
-  /** Print file tied to the taste story. */
-  storyPdf: boolean;
-  /** Print file usable on any story (paid for, but the story isn't the buyer's). */
-  globalPdf: boolean;
-  /** Coloring pages tied to the taste story. */
-  storyColoring: number;
-  /** Coloring pages added to the general balance. */
-  generalColoring: number;
-}
-
-/**
- * What a purchase from a taste lock screen gives, once we know whether the
- * taste opened. plannedPictures = every picture the story will have;
- * existingPictures = pictures already drawn (used when it did not open).
- */
-export function decideTastePurchaseExtras(
-  packageId: string,
-  unlockKind: UnlockResult["kind"] | "error",
-  plannedPictures: number,
-  existingPictures: number,
-): TastePurchaseExtras {
-  const opened = unlockKind === "unlocked";
-  const full = packageId === "popular";
-  if (opened) {
-    return {
-      storyPdf: full,
-      globalPdf: false,
-      storyColoring: full ? Math.max(1, plannedPictures) : packageId === "single_story" ? 1 : 0,
-      generalColoring: 0,
-    };
-  }
-  // Not opened: behaves like a normal purchase.
-  return {
-    storyPdf: full && unlockKind !== "not_owner",
-    globalPdf: full && unlockKind === "not_owner",
-    storyColoring: 0,
-    generalColoring: full ? Math.max(1, existingPictures) : 0,
-  };
+  const spent = await spendCredit((k) => store.consume(userId, k), creditKind);
+  if (!spent) return { kind: "no_credits" };
+  if (await store.markUnlocked(storyId)) return { kind: "unlocked", creditKind: spent };
+  // Opened in parallel by another request: give the credit back.
+  await store.refund(userId, spent);
+  return { kind: "not_taste" };
 }
