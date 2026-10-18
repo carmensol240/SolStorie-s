@@ -100,6 +100,7 @@ interface Story {
   pages: StoryPage[];
   generation_status?: string;
   page1_regen_used?: boolean;
+  is_taste?: boolean;
 }
 
 
@@ -488,6 +489,22 @@ const [currentPage, setCurrentPage] = useState(0);
       window.removeEventListener('purchase-completed', onPurchase);
     };
   }, [user?.id]);
+
+  // Free taste: after paying (webhook) the story opens — reload it to show the rest.
+  useEffect(() => {
+    if (!story?.id || !story.is_taste) return;
+    const check = async () => {
+      const { data } = await supabase.from("stories").select("is_taste").eq("id", story.id).maybeSingle();
+      if (data && !(data as any).is_taste) {
+        toast({ title: "משלימים את הסיפור שלך…", description: "העמודים הנותרים יופיעו תוך דקה-שתיים ✨" });
+        fetchStory();
+      }
+    };
+    const t = setInterval(check, 5000);
+    window.addEventListener('purchase-completed', check);
+    return () => { clearInterval(t); window.removeEventListener('purchase-completed', check); };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [story?.id, story?.is_taste]);
 
   // Check if this specific story was unlocked via any direct story unlock
   // (Grow single-story purchase or admin manual unlock).
@@ -1010,6 +1027,7 @@ const [currentPage, setCurrentPage] = useState(0);
         pages: pagesData || [],
         generation_status: status,
         page1_regen_used: !!(storyData as any).page1_regen_used,
+        is_taste: !!(storyData as any).is_taste,
       };
 
       
@@ -1708,7 +1726,10 @@ const [currentPage, setCurrentPage] = useState(0);
   // Toddler mode adds a dedicated cover slide before the page-1 text, so it gets
   // one extra slide to expose the same amount of actual content.
   const DEMO_VIRTUAL_PAGE_LIMIT = isToddler ? 5 : 4;
+  // Unpaid free taste: only its open pages exist; the lock comes after the last one.
+  const isTasteLocked = !!story?.is_taste && !isAdminUser;
   const isLockedVirtualPage = (index: number) => {
+    if (story?.is_taste) return false;
     if (!isDemoUser) return false;
     if (index < 0 || index >= virtualPages.length) return false;
     return index >= DEMO_VIRTUAL_PAGE_LIMIT;
@@ -1749,6 +1770,12 @@ const [currentPage, setCurrentPage] = useState(0);
     
     if (direction === 'next' && currentPage >= maxPage) return;
     if (direction === 'prev' && currentPage <= 0) return;
+
+    // Free taste: after the last open page, show the purchase screen.
+    if (direction === 'next' && isTasteLocked && currentPage + 1 >= totalVirtualPages) {
+      setDemoPaywallOpen(true);
+      return;
+    }
 
     // Demo paywall: block forward navigation past the free preview limit
     if (direction === 'next' && isLockedVirtualPage(currentPage + 1)) {
@@ -2370,6 +2397,8 @@ const [currentPage, setCurrentPage] = useState(0);
         <DemoLockModal
           open={demoPaywallOpen}
           onOpenChange={setDemoPaywallOpen}
+          isTaste={!!story?.is_taste}
+          onUnlocked={() => { setDemoPaywallOpen(false); fetchStory(); }}
           title="✨ רוצים לקרוא את הסיפור המלא?"
           description="רכשו את הסיפור כדי לקרוא אותו עד הסוף, להאזין לו ולשמור אותו לתמיד ✨"
           storyId={resolvedId ?? storyId}

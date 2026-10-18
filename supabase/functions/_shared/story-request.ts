@@ -54,6 +54,67 @@ export async function claimStoryRequest(
   return { kind: "error", error: "credit_cas_failed" };
 }
 
+export interface TasteClaimStore {
+  /** Insert the one-time taste claim. Returns false when a unique rule (user/email/device) already has one. */
+  insertClaim(claim: Record<string, unknown>): Promise<boolean>;
+  deleteClaimForStory(storyId: string): Promise<void>;
+}
+
+export type TasteClaimResult =
+  | { kind: "claimed"; storyId: string }
+  | { kind: "duplicate"; storyId: string; slug: string | null; status: string | null }
+  | { kind: "not_eligible" }
+  | { kind: "error"; error: string };
+
+/** Free taste: save the row first (same one-time ID rule), then take the one-time claim. No credit is charged. */
+export async function claimTasteRequest(
+  store: StoryRequestStore,
+  claims: TasteClaimStore,
+  userId: string,
+  requestId: string,
+  row: Record<string, unknown>,
+  claim: Record<string, unknown>,
+): Promise<TasteClaimResult> {
+  const ins = await store.insertPlaceholder({
+    ...row,
+    user_id: userId,
+    client_request_id: requestId,
+    generation_status: "generating",
+  });
+  if ("conflict" in ins) {
+    const existing = await store.findByRequest(userId, requestId);
+    if (!existing) return { kind: "error", error: "duplicate_not_found" };
+    return { kind: "duplicate", storyId: existing.id, slug: existing.slug, status: existing.generation_status };
+  }
+  if ("error" in ins) return { kind: "error", error: ins.error };
+  const ok = await claims.insertClaim({ ...claim, user_id: userId, story_id: ins.id });
+  if (!ok) {
+    await store.deleteStory(ins.id);
+    return { kind: "not_eligible" };
+  }
+  return { kind: "claimed", storyId: ins.id };
+}
+
+/** Undo an unfinished taste: remove the story and its claim so the user can try again. No refund (nothing was charged). */
+export async function releaseTasteRequest(store: StoryRequestStore, claims: TasteClaimStore, storyId: string): Promise<void> {
+  await store.deleteStory(storyId);
+  await claims.deleteClaimForStory(storyId);
+}
+
+// deno-lint-ignore no-explicit-any
+export function supabaseTasteClaimStore(sb: any): TasteClaimStore {
+  return {
+    async insertClaim(claim) {
+      const { error } = await sb.from("free_taste_claims").insert(claim);
+      if (error && error.code !== "23505") console.error("[taste] claim insert error:", error.message);
+      return !error;
+    },
+    async deleteClaimForStory(storyId) {
+      await sb.from("free_taste_claims").delete().eq("story_id", storyId);
+    },
+  };
+}
+
 /** Undo a claimed request after a failure: remove the unfinished story and give the credit back. */
 export async function releaseStoryRequest(store: StoryRequestStore, userId: string, storyId: string): Promise<void> {
   await store.deleteStory(storyId);

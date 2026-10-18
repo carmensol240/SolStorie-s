@@ -49,6 +49,7 @@ interface Story {
   child_gender: string | null;
   child_id: string | null;
   language?: string;
+  is_taste?: boolean;
   story_pages: StoryPage[];
 }
 
@@ -202,7 +203,7 @@ const Library = () => {
     try {
       const { data: storiesData, error: storiesError } = await supabase
         .from("stories")
-        .select("id, slug, child_name, topic, created_at, cover_url, theme, story_type, min_age, max_age, is_premium, child_gender, child_id, language")
+        .select("id, slug, child_name, topic, created_at, cover_url, theme, story_type, min_age, max_age, is_premium, child_gender, child_id, language, is_taste")
         .eq("user_id", user.id)
         .or("generation_status.is.null,generation_status.not.in.(generating,failed)")
         .order("created_at", { ascending: false });
@@ -427,7 +428,7 @@ const Library = () => {
           if (group.length === 1) {
             const story = group[0];
             const idx = cardIndex++;
-            return (
+            const card = (
               <PolaroidCard
                 key={story.id}
                 id={story.id}
@@ -448,6 +449,21 @@ const Library = () => {
                 canShare={hasAnyPurchase || unlockedStoryIds.has(story.id)}
                 onLockedShare={handleLockedShare}
               />
+            );
+            if (!story.is_taste) return card;
+            return (
+              <div key={story.id} className="flex flex-col items-center gap-2">
+                {card}
+                <span className="text-sm font-bold text-muted-foreground">טעימה, ממתין לתשלום</span>
+                <Button
+                  size="sm"
+                  className="min-h-[48px] text-sm font-bold"
+                  disabled={unlockingTasteId === story.id}
+                  onClick={() => unlockTaste(story.id)}
+                >
+                  {unlockingTasteId === story.id ? "פותחים…" : "פתחו את הסיפור הזה בקרדיט אחד"}
+                </Button>
+              </div>
             );
           }
 
@@ -490,6 +506,24 @@ const Library = () => {
         })}
       </CorkBoard>
     );
+  };
+
+  const [unlockingTasteId, setUnlockingTasteId] = useState<string | null>(null);
+  const unlockTaste = async (storyId: string) => {
+    setUnlockingTasteId(storyId);
+    const { error } = await supabase.functions.invoke("unlock-taste-story", { body: { storyId } });
+    setUnlockingTasteId(null);
+    if (error) {
+      const status = (error as any)?.context?.status;
+      if (status === 402) {
+        navigate(`/upgrade?noCredits=true`);
+        return;
+      }
+      toast({ variant: "destructive", title: "לא הצלחנו לפתוח את הסיפור", description: "נסו שוב בעוד רגע." });
+      return;
+    }
+    setStories((prev) => prev.map((s) => (s.id === storyId ? { ...s, is_taste: false } : s)));
+    toast({ title: "משלימים את הסיפור שלך…", description: "העמודים הנותרים יופיעו תוך דקה-שתיים ✨" });
   };
 
   const handleDownloadColoringPage = useCallback(async (coloringImagePath: string, storyTopic?: string) => {

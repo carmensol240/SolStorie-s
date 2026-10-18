@@ -1,3 +1,4 @@
+import { clearGenerationSession } from "@/lib/story-generation-session";
 import { useState, useEffect, useCallback, useRef, useMemo } from "react";
 import { Sparkles, BookOpen, FileText, RefreshCw, Wand2 } from "lucide-react";
 import generatingHeroCast from "@/assets/generating-hero-cast.jpeg";
@@ -229,6 +230,8 @@ const GeneratingStep = ({ formData, requestId, onComplete }: GeneratingStepProps
             childId: (formData as any).childId || undefined,
             // One-time ID: the server creates and charges at most once per ID.
             client_request_id: requestId,
+            // Device ID: the free taste is limited to one per device.
+            device_id: (() => { try { let d = localStorage.getItem('storyteller_device_id'); if (!d) { d = 'device_' + crypto.randomUUID(); localStorage.setItem('storyteller_device_id', d); } return d; } catch { return undefined; } })(),
             appearance: {
               hairColor: formData.hairColor || "",
               hairStyle: formData.hairStyle || "",
@@ -297,6 +300,14 @@ const GeneratingStep = ({ formData, requestId, onComplete }: GeneratingStepProps
         if (apiError.message?.includes("401") || apiError.message?.includes("נדרשת התחברות")) {
           toast({ title: "נדרשת התחברות", description: "אנא התחברו כדי ליצור סיפורים." });
           navigate(`/auth?returnTo=${encodeURIComponent('/create?resume=true')}`);
+          return;
+        }
+        if ((apiError as any)?.context?.status === 402 || serverError === "נגמרו הקרדיטים") {
+          // No credits and no free taste left: go to purchase, drop the in-progress mark.
+          const { data: { session: s } } = await supabase.auth.getSession();
+          clearGenerationSession(s?.user?.id);
+          trackEvent({ eventType: "paywall_view", metadata: { reason: "no_credits_server" } });
+          navigate('/upgrade?noCredits=true');
           return;
         }
         if (apiError.message?.includes("429")) {
