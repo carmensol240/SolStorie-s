@@ -6,6 +6,10 @@ import solMagicBookCover from "@/assets/sol-magic-book-cover.png";
 import libraryGirlReading from "@/assets/library-girl-reading.png";
 
 import { Button } from "@/components/ui/button";
+import { useCreditKinds, type CreditKind } from "@/hooks/use-credit-kinds";
+import CreditChoiceDialog from "@/components/story/CreditChoiceDialog";
+import { openGrowCheckout } from "@/config/grow-links";
+import { formatPrice } from "@/config/promo";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import MobileNavigation from "@/components/MobileNavigation";
 import PolaroidCard from "@/components/ui/polaroid-card";
@@ -450,7 +454,17 @@ const Library = () => {
                 onLockedShare={handleLockedShare}
               />
             );
-            if (!story.is_taste) return card;
+            if (!story.is_taste) {
+              if (!unlockedIds.has(story.id) || pdfIds.has(story.id)) return card;
+              return (
+                <div key={story.id} className="flex flex-col items-center gap-2">
+                  {card}
+                  <Button size="sm" variant="outline" className="min-h-[48px] text-sm font-bold" onClick={() => buyPdf(story.id)}>
+                    🖨️ קובץ להדפסה – {formatPrice("pdf")} ₪
+                  </Button>
+                </div>
+              );
+            }
             return (
               <div key={story.id} className="flex flex-col items-center gap-2">
                 {card}
@@ -509,9 +523,17 @@ const Library = () => {
   };
 
   const [unlockingTasteId, setUnlockingTasteId] = useState<string | null>(null);
+  const [choiceFor, setChoiceFor] = useState<string | null>(null);
+  const creditKinds = useCreditKinds(user?.id);
   const unlockTaste = async (storyId: string) => {
+    await creditKinds.refresh();
+    if (creditKinds.full > 0 && creditKinds.digital > 0) { setChoiceFor(storyId); return; }
+    doUnlockTaste(storyId, creditKinds.full > 0 ? "full" : "digital");
+  };
+  const doUnlockTaste = async (storyId: string, creditKind: CreditKind) => {
+    setChoiceFor(null);
     setUnlockingTasteId(storyId);
-    const { error } = await supabase.functions.invoke("unlock-taste-story", { body: { storyId } });
+    const { error } = await supabase.functions.invoke("unlock-taste-story", { body: { storyId, creditKind } });
     setUnlockingTasteId(null);
     if (error) {
       const status = (error as any)?.context?.status;
@@ -523,8 +545,26 @@ const Library = () => {
       return;
     }
     setStories((prev) => prev.map((s) => (s.id === storyId ? { ...s, is_taste: false } : s)));
+    creditKinds.refresh();
+    fetchStoryAccess();
     toast({ title: "משלימים את הסיפור שלך…", description: "העמודים הנותרים יופיעו תוך דקה-שתיים ✨" });
   };
+
+  // Per-story access: which stories are bought, and which already have the print file.
+  const [unlockedIds, setUnlockedIds] = useState<Set<string>>(new Set());
+  const [pdfIds, setPdfIds] = useState<Set<string>>(new Set());
+  const fetchStoryAccess = useCallback(async () => {
+    if (!user?.id) return;
+    const [{ data: u }, { data: p }] = await Promise.all([
+      supabase.from("story_unlocks").select("story_id").eq("user_id", user.id),
+      supabase.from("pdf_entitlements").select("story_id").eq("user_id", user.id),
+    ]);
+    setUnlockedIds(new Set((u ?? []).map((r) => r.story_id)));
+    setPdfIds(new Set((p ?? []).map((r) => r.story_id).filter(Boolean) as string[]));
+  }, [user?.id]);
+  useEffect(() => { fetchStoryAccess(); }, [fetchStoryAccess]);
+  const buyPdf = (storyId: string) =>
+    openGrowCheckout("pdf", { userId: user?.id ?? null, storyId });
 
   const handleDownloadColoringPage = useCallback(async (coloringImagePath: string, storyTopic?: string) => {
     try {
