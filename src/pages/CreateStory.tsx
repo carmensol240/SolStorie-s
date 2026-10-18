@@ -447,6 +447,13 @@ const CreateStory = () => {
 
   return (
     <div className="flex flex-col bg-background" style={{ minHeight: '100dvh', height: 'auto', WebkitOverflowScrolling: 'touch' }}>
+      <CreditChoiceDialog
+        open={!!creditChoice}
+        onOpenChange={(o) => { if (!o) setCreditChoice(null); }}
+        digital={creditChoice?.digital ?? 0}
+        full={creditChoice?.full ?? 0}
+        onChoose={(k) => { const uid = creditChoice?.uid ?? null; setCreditChoice(null); launchGeneration(uid, k); }}
+      />
       <header className="sticky top-0 z-20 bg-gradient-to-r from-[#FAF3E8] to-[#F5E6D3] px-3 py-2 border-b border-purple-200 shadow-sm">
         <div className="container max-w-lg mx-auto flex items-center justify-between">
           <Button
