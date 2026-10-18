@@ -105,3 +105,10 @@ describe("value packs (3 stories)", () => {
     expect(packageIdFromAmount(179)).toBe("full_pack3");
   });
 });
+
+describe("value pack Grow links", () => {
+  it("each pack has its own Grow link", () => {
+    expect(CATALOG.full_pack3.growUrl).toBe("https://pay.grow.link/MTAxMTMz~4c066b17a38c2c7d52af981039a3559e-NDE1MTAzMQ");
+    expect(CATALOG.digital_pack3.growUrl).toBe("https://pay.grow.link/MTAxMTMz~3fc959a3cdda1aa50d81ff0a7b40350d-NDE1MTA0Mw");
+  });
+});

@@ -12,7 +12,7 @@
 
 ## Value packs (Oct 2026)
 - [x] 3 full (179) + 3 digital (99) in catalog, credits, purchase screen only; exact amount match
-- [ ] Grow links for both packs — waiting for the URLs from Carmit
+- [x] Grow links for both packs connected
 
 ## Pricing audit (Oct 2026) — report only, wait for approval
 - [ ] List every place a price is shown/calculated + current value
