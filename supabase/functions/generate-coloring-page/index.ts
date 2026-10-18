@@ -59,45 +59,29 @@ serve(async (req) => {
       return jsonResponse({ error: "Forbidden" }, 403);
     }
 
-    // ── Cache check ──
-    if (story_id && userId) {
-      const { data: cached } = await supabase
-        .from("story_coloring_pages")
-        .select("*")
-        .eq("story_id", story_id)
-        .eq("user_id", userId)
-        .maybeSingle();
+    // ── Access: every purchased story opens all of its coloring pages (no credits) ──
+    const [{ data: unlock }, { data: isAdmin }] = await Promise.all([
+      supabase.from("story_unlocks").select("id").eq("story_id", story_id).eq("user_id", userId).maybeSingle(),
+      supabase.rpc("has_role", { _user_id: userId, _role: "admin" }),
+    ]);
+    if (!unlock && !isAdmin) {
+      return jsonResponse({ upsell: true, error: "דפי הצביעה נפתחים עם רכישת הסיפור 🎨" });
+    }
 
-      if (cached) {
-        // Same illustration → return cached
-        if (cached.illustration_url === illustration_url) {
-          console.log("Returning cached coloring page for story:", story_id);
-          const publicUrl = `${supabaseUrl}/storage/v1/object/public/story-illustrations/${cached.coloring_image_path}`;
-          return jsonResponse({ image: publicUrl, cached: true, story_title, child_name });
-        }
-
-        // Different illustration → spend a credit (this story's own first)
-        const { data: spent } = await supabase.rpc("consume_coloring_credit", { p_user_id: userId, p_story_id: story_id });
-        if (spent !== "story" && spent !== "general") {
-          console.log("User wants different illustration but has no coloring credits");
-          return jsonResponse({ upsell: true, error: "רוצים לצבוע איור נוסף? 🎨" });
-        }
-        console.log("Spent 1 coloring credit from:", spent);
-
-        // Delete old cache record so we can insert the new one
-        await supabase
-          .from("story_coloring_pages")
-          .delete()
-          .eq("id", cached.id);
-      } else {
-        // No cached page for this story → first generation requires a credit too
-        const { data: spent } = await supabase.rpc("consume_coloring_credit", { p_user_id: userId, p_story_id: story_id });
-        if (spent !== "story" && spent !== "general") {
-          console.log("User has no coloring credits for first generation");
-          return jsonResponse({ upsell: true, error: "דף צביעה דורש קרדיט 🎨" });
-        }
-        console.log("Spent 1 coloring credit (first page) from:", spent);
-      }
+    // ── Cache: one saved coloring page per illustration ──
+    const { data: cachedRows } = await supabase
+      .from("story_coloring_pages")
+      .select("*")
+      .eq("story_id", story_id)
+      .eq("user_id", userId)
+      .eq("illustration_url", illustration_url)
+      .order("created_at", { ascending: false })
+      .limit(1);
+    const cached = cachedRows?.[0];
+    if (cached) {
+      console.log("Returning cached coloring page for story:", story_id);
+      const publicUrl = `${supabaseUrl}/storage/v1/object/public/story-illustrations/${cached.coloring_image_path}`;
+      return jsonResponse({ image: publicUrl, cached: true, story_title, child_name });
     }
 
     // ── AI generation via Lovable AI Gateway ──

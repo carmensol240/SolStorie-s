@@ -340,12 +340,14 @@ const [currentPage, setCurrentPage] = useState(0);
     setColoringMode(mode);
 
     if (user && story.id) {
-      const { data: cached } = await supabase
+      const { data: cachedRows } = await supabase
         .from("story_coloring_pages" as any)
         .select("*")
         .eq("story_id", story.id)
         .eq("user_id", user.id)
-        .maybeSingle();
+        .order("created_at", { ascending: false })
+        .limit(1);
+      const cached = (cachedRows as any[] | null)?.[0];
 
       if (cached) {
         const cachedIllustration = getPublicIllustrationUrl((cached as any).illustration_url);
