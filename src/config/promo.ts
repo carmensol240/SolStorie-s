@@ -12,6 +12,6 @@ export const isPromoActive = (now: Date = new Date()): boolean => now.getTime() 
 /** Price keys used across the site, mapped to catalog products. */
 export type PriceKey = ProductKey;
 
-export const getPrice = (key: PriceKey): number => CATALOG[key].price;
+export const getPrice = (key: PriceKey): number => CATALOG[key]?.price ?? 0;
 export const getRegularPrice = getPrice;
-export const formatPrice = (key: PriceKey): string => CATALOG[key].price.toFixed(2);
+export const formatPrice = (key: PriceKey): string => getPrice(key).toFixed(2);
