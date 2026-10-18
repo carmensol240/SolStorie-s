@@ -99,3 +99,44 @@ export async function unlockTasteStory(store: TasteUnlockStore, userId: string, 
   }
   return { kind: "error", error: "credit_cas_failed" };
 }
+
+export interface TastePurchaseExtras {
+  /** Print file tied to the taste story. */
+  storyPdf: boolean;
+  /** Print file usable on any story (paid for, but the story isn't the buyer's). */
+  globalPdf: boolean;
+  /** Coloring pages tied to the taste story. */
+  storyColoring: number;
+  /** Coloring pages added to the general balance. */
+  generalColoring: number;
+}
+
+/**
+ * What a purchase from a taste lock screen gives, once we know whether the
+ * taste opened. plannedPictures = every picture the story will have;
+ * existingPictures = pictures already drawn (used when it did not open).
+ */
+export function decideTastePurchaseExtras(
+  packageId: string,
+  unlockKind: UnlockResult["kind"] | "error",
+  plannedPictures: number,
+  existingPictures: number,
+): TastePurchaseExtras {
+  const opened = unlockKind === "unlocked";
+  const full = packageId === "popular";
+  if (opened) {
+    return {
+      storyPdf: full,
+      globalPdf: false,
+      storyColoring: full ? Math.max(1, plannedPictures) : packageId === "single_story" ? 1 : 0,
+      generalColoring: 0,
+    };
+  }
+  // Not opened: behaves like a normal purchase.
+  return {
+    storyPdf: full && unlockKind !== "not_owner",
+    globalPdf: full && unlockKind === "not_owner",
+    storyColoring: 0,
+    generalColoring: full ? Math.max(1, existingPictures) : 0,
+  };
+}

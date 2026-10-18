@@ -76,25 +76,13 @@ serve(async (req) => {
           return jsonResponse({ image: publicUrl, cached: true, story_title, child_name });
         }
 
-        // Different illustration → check coloring credits
-        const { data: profile } = await supabase
-          .from("profiles")
-          .select("coloring_credits")
-          .eq("id", userId)
-          .maybeSingle();
-
-        const credits = profile?.coloring_credits ?? 0;
-        if (credits <= 0) {
+        // Different illustration → spend a credit (this story's own first)
+        const { data: spent } = await supabase.rpc("consume_coloring_credit", { p_user_id: userId, p_story_id: story_id });
+        if (spent !== "story" && spent !== "general") {
           console.log("User wants different illustration but has no coloring credits");
           return jsonResponse({ upsell: true, error: "רוצים לצבוע איור נוסף? 🎨" });
         }
-
-        // Deduct 1 credit
-        await supabase
-          .from("profiles")
-          .update({ coloring_credits: credits - 1 })
-          .eq("id", userId);
-        console.log("Deducted 1 coloring credit, remaining:", credits - 1);
+        console.log("Spent 1 coloring credit from:", spent);
 
         // Delete old cache record so we can insert the new one
         await supabase
@@ -103,24 +91,12 @@ serve(async (req) => {
           .eq("id", cached.id);
       } else {
         // No cached page for this story → first generation requires a credit too
-        const { data: profile } = await supabase
-          .from("profiles")
-          .select("coloring_credits")
-          .eq("id", userId)
-          .maybeSingle();
-
-        const credits = profile?.coloring_credits ?? 0;
-        if (credits <= 0) {
+        const { data: spent } = await supabase.rpc("consume_coloring_credit", { p_user_id: userId, p_story_id: story_id });
+        if (spent !== "story" && spent !== "general") {
           console.log("User has no coloring credits for first generation");
           return jsonResponse({ upsell: true, error: "דף צביעה דורש קרדיט 🎨" });
         }
-
-        // Deduct 1 credit for the first coloring page of this story
-        await supabase
-          .from("profiles")
-          .update({ coloring_credits: credits - 1 })
-          .eq("id", userId);
-        console.log("Deducted 1 coloring credit (first page), remaining:", credits - 1);
+        console.log("Spent 1 coloring credit (first page) from:", spent);
       }
     }
 

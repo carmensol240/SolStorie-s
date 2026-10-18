@@ -951,6 +951,44 @@ export type Database = {
           },
         ]
       }
+      story_coloring_allowances: {
+        Row: {
+          created_at: string
+          id: string
+          order_id: string
+          remaining: number
+          source: string | null
+          story_id: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          order_id: string
+          remaining?: number
+          source?: string | null
+          story_id: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          order_id?: string
+          remaining?: number
+          source?: string | null
+          story_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "story_coloring_allowances_story_id_fkey"
+            columns: ["story_id"]
+            isOneToOne: false
+            referencedRelation: "stories"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       story_coloring_pages: {
         Row: {
           coloring_image_path: string
@@ -1212,6 +1250,10 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      consume_coloring_credit: {
+        Args: { p_story_id: string; p_user_id: string }
+        Returns: string
+      }
       generate_story_slug: {
         Args: { p_child_name: string; p_topic: string }
         Returns: string
