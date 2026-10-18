@@ -1,3 +1,4 @@
+import { openCookieSettings } from "@/lib/consent";
 import { useState } from "react";
 import { Accessibility, Eye, Volume2, Type, Wind, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -161,6 +162,13 @@ const AccessibilityMenu = () => {
           >
             להצהרת הנגישות המלאה
           </a>
+          <button
+            type="button"
+            onClick={openCookieSettings}
+            className="block w-full mt-2 text-center text-sm font-semibold text-primary underline underline-offset-4"
+          >
+            הגדרות עוגיות
+          </button>
         </PopoverContent>
       </Popover>
 

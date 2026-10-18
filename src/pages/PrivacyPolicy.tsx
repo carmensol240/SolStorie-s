@@ -117,6 +117,12 @@ const PrivacyPolicy = () => {
               </p>
             </section>
 
+            <section>
+              <h2 className="text-lg font-bold text-foreground mb-2">14. עוגיות וכלי מדידה</h2>
+              <p className="text-muted-foreground leading-relaxed">
+                עוגיות הכרחיות (התחברות ושמירת העדפות ונגישות) פועלות תמיד. רק אם בחרת "מאשר/ת הכל" נטענים גם Meta Pixel של Meta Platforms (מדידת פרסום ושיפורו) ו-Google Analytics של Google (סטטיסטיקת שימוש, עם הסתרת כתובת IP). כלים אלה מקבלים מידע על הדפים שבהם ביקרת ועל רכישות באתר. בחירה ב"רק הכרחיות" או ללא בחירה – הם אינם נטענים ולא נשלח אליהם מידע. אפשר לשנות את הבחירה בכל עת דרך "הגדרות עוגיות" בתחתית העמוד או בתפריט הנגישות.
+              </p>
+            </section>
           </div>
         </article>
 

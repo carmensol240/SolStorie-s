@@ -1,3 +1,4 @@
+import { openCookieSettings } from "@/lib/consent";
 import { Link } from "react-router-dom";
 
 const FOOTER_LINKS = [
@@ -21,6 +22,9 @@ const GlobalFooter = () => {
             {l.label}
           </Link>
         ))}
+        <button type="button" onClick={openCookieSettings} className="text-xs text-muted-foreground hover:text-foreground underline underline-offset-2">
+          הגדרות עוגיות
+        </button>
       </nav>
       <p className="text-xs text-muted-foreground font-medium">
         <span dir="ltr" className="inline-block">SolStorie's™</span> | כל הזכויות שמורות
