@@ -1,6 +1,8 @@
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { useLocation } from "react-router-dom";
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { supabase } from "@/integrations/supabase/client";
+import { toast } from "@/hooks/use-toast";
 import PersonalizedStoryCover from "@/components/paywall/PersonalizedStoryCover";
 import { openGrowCheckout } from "@/config/grow-links";
 import { useAuth } from "@/hooks/use-auth";
@@ -12,14 +14,39 @@ interface DemoLockModalProps {
   title?: string;
   description?: string;
   storyId?: string;
+  /** Unpaid free taste: also offers opening it with an existing credit. */
+  isTaste?: boolean;
+  onUnlocked?: () => void;
 }
 
-const DemoLockModal = ({ open, onOpenChange, title, description, storyId }: DemoLockModalProps) => {
+const DemoLockModal = ({ open, onOpenChange, title, description, storyId, isTaste, onUnlocked }: DemoLockModalProps) => {
   const location = useLocation();
   const [showFeatures, setShowFeatures] = useState(false);
   const { user } = useAuth();
   const singleStoryPrice = getPrice("single_story").toFixed(2);
   const popularPrice = getPrice("popular").toFixed(2);
+  const [credits, setCredits] = useState(0);
+  const [unlocking, setUnlocking] = useState(false);
+
+  useEffect(() => {
+    if (!open || !isTaste || !user?.id) return;
+    supabase.from("profiles").select("story_credits").eq("id", user.id).maybeSingle()
+      .then(({ data }) => setCredits(data?.story_credits ?? 0));
+  }, [open, isTaste, user?.id]);
+
+  const unlockWithCredit = async () => {
+    if (!storyId || unlocking) return;
+    setUnlocking(true);
+    const { data: s } = await supabase.from("stories").select("id").or(`id.eq.${/^[0-9a-f-]{36}$/i.test(storyId) ? storyId : "00000000-0000-0000-0000-000000000000"},slug.eq.${storyId}`).maybeSingle();
+    const { error } = await supabase.functions.invoke("unlock-taste-story", { body: { storyId: s?.id ?? storyId } });
+    setUnlocking(false);
+    if (error) {
+      toast({ variant: "destructive", title: "לא הצלחנו לפתוח את הסיפור", description: "נסו שוב בעוד רגע." });
+      return;
+    }
+    toast({ title: "משלימים את הסיפור שלך…", description: "העמודים הנותרים יופיעו תוך דקה-שתיים ✨" });
+    onUnlocked?.();
+  };
 
 
   const features = [
@@ -84,6 +111,15 @@ const DemoLockModal = ({ open, onOpenChange, title, description, storyId }: Demo
         )}
 
         <div className="flex flex-col gap-2 mt-2">
+          {isTaste && credits > 0 && (
+            <button
+              onClick={unlockWithCredit}
+              disabled={unlocking}
+              className="w-full min-h-[48px] bg-primary hover:bg-primary/90 text-white font-black text-base py-3 px-6 rounded-xl shadow-xl disabled:opacity-60"
+            >
+              {unlocking ? "פותחים…" : "פתחו את הסיפור הזה בקרדיט אחד"}
+            </button>
+          )}
           {/* Primary: digital story */}
           <button
             onClick={goSingleStory}
