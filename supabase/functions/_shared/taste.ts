@@ -105,3 +105,11 @@ export async function unlockTasteStory(
   await store.refund(userId, spent);
   return { kind: "not_taste" };
 }
+
+/** One-way code of the normalized email, kept after account deletion so the taste isn't given twice. */
+export async function emailTasteHash(email: string | null | undefined): Promise<string | null> {
+  const n = normalizeEmail(email);
+  if (!n) return null;
+  const buf = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(`taste-email:${n}`));
+  return "sha256:" + Array.from(new Uint8Array(buf)).map((b) => b.toString(16).padStart(2, "0")).join("");
+}

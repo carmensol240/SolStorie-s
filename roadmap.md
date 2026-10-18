@@ -19,3 +19,4 @@
 - [ ] List all other packages/products with current prices
 - [ ] Propose single price source (incl. lock screen + server amount check), unique amounts, delete unused price screens, guard test
 - [ ] List Grow links with the price each should charge
+- [ ] Accessibility audit (IS 5568 / WCAG AA): report findings per section, no changes until approval

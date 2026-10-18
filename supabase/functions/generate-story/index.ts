@@ -7,7 +7,7 @@ import { normalizeGender } from "../_shared/gender.ts";
 import { grantStoryAccess, consumeCredit } from "../_shared/story-access.ts";
 import { spendCredit } from "../_shared/taste.ts";
 import { claimStoryRequest, releaseStoryRequest, supabaseStoryRequestStore, isValidRequestId, claimTasteRequest, releaseTasteRequest, supabaseTasteClaimStore } from "../_shared/story-request.ts";
-import { normalizeEmail, decideTasteEligibility, tastePageLimit } from "../_shared/taste.ts";
+import { normalizeEmail, decideTasteEligibility, tastePageLimit, emailTasteHash } from "../_shared/taste.ts";
 
 async function sha256Hex(s: string): Promise<string> {
   const buf = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(s));
@@ -1039,7 +1039,7 @@ async function handleGenerateStory(req: Request, ctx: RequestCtx): Promise<Respo
         const [prior, byUser, byEmail, byDevice, byIp] = await Promise.all([
           supabase.from("stories").select("id", { count: "exact", head: true }).eq("user_id", userId),
           supabase.from("free_taste_claims").select("id", { count: "exact", head: true }).eq("user_id", userId),
-          normalizedEmail ? supabase.from("free_taste_claims").select("id", { count: "exact", head: true }).eq("normalized_email", normalizedEmail) : Promise.resolve({ count: 0 }),
+          normalizedEmail ? supabase.from("free_taste_claims").select("id", { count: "exact", head: true }).in("normalized_email", [normalizedEmail, (await emailTasteHash(user.email)) as string]) : Promise.resolve({ count: 0 }),
           deviceId ? supabase.from("free_taste_claims").select("id", { count: "exact", head: true }).eq("device_id", deviceId) : Promise.resolve({ count: 0 }),
           ipHash ? supabase.from("free_taste_claims").select("id", { count: "exact", head: true }).eq("ip_hash", ipHash).gte("created_at", since) : Promise.resolve({ count: 0 }),
         ]);
