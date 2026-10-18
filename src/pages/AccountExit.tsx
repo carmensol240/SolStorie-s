@@ -1,3 +1,4 @@
+import { supabase } from "@/integrations/supabase/client";
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { ArrowRight, Loader2 } from "lucide-react";
@@ -53,6 +54,14 @@ const AccountExit = () => {
   const [selectedReason, setSelectedReason] = useState<ExitReason | null>(null);
   const [showConfirmDialog, setShowConfirmDialog] = useState(false);
   const [deletingAccount, setDeletingAccount] = useState(false);
+  const [confirmText, setConfirmText] = useState("");
+  const [unusedCredits, setUnusedCredits] = useState<number | null>(null);
+
+  useEffect(() => {
+    if (!user?.id) return;
+    supabase.from("profiles").select("story_credits, coloring_credits").eq("id", user.id).maybeSingle()
+      .then(({ data }) => setUnusedCredits((data?.story_credits ?? 0) + (data?.coloring_credits ?? 0)));
+  }, [user?.id]);
 
   // Track screen view on mount
   useEffect(() => {
@@ -88,8 +97,15 @@ const AccountExit = () => {
         metadata: selectedReason ? { reason: selectedReason } : undefined 
       });
       
-      // Note: Account deletion should be handled by a backend function
-      // This is a placeholder for the UI
+      const { data: res, error } = await supabase.functions.invoke("delete-user-data", {
+        body: { action: "delete_account", confirm: confirmText.trim() },
+      });
+      if (error || res?.error) throw new Error(res?.error || error?.message);
+      try {
+        localStorage.clear();
+        sessionStorage.clear();
+        indexedDB.databases?.().then((dbs) => dbs.forEach((d) => d.name && indexedDB.deleteDatabase(d.name)));
+      } catch { /* ignore */ }
       await signOut();
       
       toast({
@@ -213,18 +229,30 @@ const AccountExit = () => {
             <AlertDialogTitle className="text-right">
               אישור מחיקה
             </AlertDialogTitle>
-            <AlertDialogDescription className="text-right">
-              פעולה זו תמחק את כל הנתונים שלך לצמיתות.
-              <br />
-              <strong className="text-destructive">לא ניתן לשחזר.</strong>
+            <AlertDialogDescription asChild>
+              <div className="text-right space-y-2 text-base">
+                <p>יימחקו לצמיתות: החשבון, פרופילי הילדים והתמונות שלהם, כל הסיפורים, האיורים, ההקלטות ודפי הצביעה, כולל הקבצים באחסון.</p>
+                {!!unusedCredits && unusedCredits > 0 && (
+                  <p className="font-bold text-destructive">נותרו לך {unusedCredits} קרדיטים שלא נוצלו – הם יימחקו ולא יוחזרו.</p>
+                )}
+                <p>רשומות רכישה נשמרות לצורכי הנהלת חשבונות בלבד, ללא שם או מייל.</p>
+                <p><strong className="text-destructive">אי אפשר לשחזר.</strong> לאישור, הקלידו <strong>מחק</strong>:</p>
+                <input
+                  value={confirmText}
+                  onChange={(e) => setConfirmText(e.target.value)}
+                  className="w-full min-h-12 rounded-md border border-input bg-background px-3 text-base"
+                  aria-label='הקלידו "מחק" לאישור'
+                  dir="rtl"
+                />
+              </div>
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter className="flex-row-reverse gap-2">
             <AlertDialogCancel>ביטול</AlertDialogCancel>
             <AlertDialogAction
-              onClick={handleDeleteAccount}
+              onClick={(e) => { e.preventDefault(); handleDeleteAccount(); }}
               className="bg-transparent text-destructive hover:bg-destructive/10 border border-destructive/30"
-              disabled={deletingAccount}
+              disabled={deletingAccount || confirmText.trim() !== "מחק"}
             >
               {deletingAccount ? (
                 <Loader2 className="w-4 h-4 animate-spin" />

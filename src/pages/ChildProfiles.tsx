@@ -462,7 +462,31 @@ const ChildProfiles = () => {
   const handleDeleteChild = (child: Child, e: React.MouseEvent) => {
     e.stopPropagation();
     setChildToDelete(child);
+    setDeleteStories(false);
     setDeleteDialogOpen(true);
+  };
+
+  const [deleteStories, setDeleteStories] = useState(false);
+  const [photoToDelete, setPhotoToDelete] = useState<Child | null>(null);
+  const [deletingPhoto, setDeletingPhoto] = useState(false);
+
+  const confirmDeletePhoto = async () => {
+    if (!photoToDelete) return;
+    setDeletingPhoto(true);
+    try {
+      const { data: res, error } = await supabase.functions.invoke("delete-user-data", {
+        body: { action: "delete_child_photo", child_id: photoToDelete.id },
+      });
+      if (error || res?.error) throw new Error(res?.error || error?.message);
+      toast({ title: "התמונה נמחקה", description: "הסיפורים שכבר נוצרו נשארים" });
+      setPhotoToDelete(null);
+      refetchChildren();
+    } catch (e) {
+      console.error(e);
+      toast({ title: "שגיאה", description: "לא הצלחנו למחוק את התמונה", variant: "destructive" });
+    } finally {
+      setDeletingPhoto(false);
+    }
   };
 
   const confirmDelete = async () => {
@@ -470,27 +494,10 @@ const ChildProfiles = () => {
 
     setDeleting(true);
     try {
-      // Delete photo AND avatar from storage so we don't leave orphaned files
-      const filesToRemove: string[] = [];
-      if (childToDelete.photo_url && isStoragePath(childToDelete.photo_url)) {
-        filesToRemove.push(childToDelete.photo_url);
-      }
-      if (childToDelete.avatar_url && isStoragePath(childToDelete.avatar_url)) {
-        filesToRemove.push(childToDelete.avatar_url);
-      }
-      if (filesToRemove.length > 0) {
-        try {
-          await supabase.storage.from('child-photos').remove(filesToRemove);
-        } catch (storageErr) {
-          console.error('Error deleting child files from storage:', storageErr);
-        }
-      }
-
-      const { error } = await supabase
-        .from("children")
-        .delete()
-        .eq("id", childToDelete.id);
-
+      const { data: res, error } = await supabase.functions.invoke("delete-user-data", {
+        body: { action: "delete_child", child_id: childToDelete.id, delete_stories: deleteStories },
+      });
+      if (!error && res?.error) throw new Error(res.error);
       if (error) throw error;
 
       toast({
@@ -620,10 +627,19 @@ const ChildProfiles = () => {
                 >
                   <Pencil className="w-5 h-5 text-muted-foreground hover:text-primary" aria-hidden="true" />
                 </button>
+                {(child.photo_url || child.avatar_url) && (
+                  <button
+                    onClick={(e) => { e.stopPropagation(); setPhotoToDelete(child); }}
+                    className="px-2 rounded-full hover:bg-destructive/10 min-h-[44px] text-sm text-muted-foreground hover:text-destructive focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                    aria-label={`מחק את התמונה של ${child.name}`}
+                  >
+                    מחק את התמונה
+                  </button>
+                )}
                 <button
                   onClick={(e) => handleDeleteChild(child, e)}
                   className="p-2 rounded-full hover:bg-destructive/10 transition-all duration-200 min-h-[44px] min-w-[44px] flex items-center justify-center hover:scale-110 active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-                  aria-label={`מחק את ${child.name}`}
+                  aria-label={`מחק את הפרופיל של ${child.name}`}
                 >
                   <Trash2 className="w-5 h-5 text-muted-foreground hover:text-destructive" aria-hidden="true" />
                 </button>
@@ -901,9 +917,19 @@ const ChildProfiles = () => {
                   האם למחוק את {childToDelete?.name}?
                 </AlertDialogTitle>
                 <AlertDialogDescription className="text-right">
-                  פעולה זו תמחק את הפרופיל לצמיתות ולא ניתן יהיה לשחזר אותו.
+                  הפרופיל והתמונה יימחקו לצמיתות ולא ניתן יהיה לשחזר אותם. מה לעשות עם הסיפורים של {childToDelete?.name}?
                 </AlertDialogDescription>
               </AlertDialogHeader>
+              <div className="space-y-2 text-right" role="radiogroup" aria-label="מה לעשות עם הסיפורים">
+                <label className="flex items-center gap-2 text-base cursor-pointer min-h-[44px]">
+                  <input type="radio" name="del-stories" checked={!deleteStories} onChange={() => setDeleteStories(false)} />
+                  להשאיר את הסיפורים בספרייה
+                </label>
+                <label className="flex items-center gap-2 text-base cursor-pointer min-h-[44px]">
+                  <input type="radio" name="del-stories" checked={deleteStories} onChange={() => setDeleteStories(true)} />
+                  למחוק גם את הסיפורים, האיורים ודפי הצביעה
+                </label>
+              </div>
               <AlertDialogFooter className="flex-row-reverse gap-2">
                 <AlertDialogCancel disabled={deleting}>ביטול</AlertDialogCancel>
                 <AlertDialogAction
@@ -912,6 +938,23 @@ const ChildProfiles = () => {
                   className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
                 >
                   {deleting ? <Loader2 className="w-4 h-4 animate-spin" /> : "מחיקה"}
+                </AlertDialogAction>
+              </AlertDialogFooter>
+            </AlertDialogContent>
+          </AlertDialog>
+
+          <AlertDialog open={!!photoToDelete} onOpenChange={(o) => !o && setPhotoToDelete(null)}>
+            <AlertDialogContent>
+              <AlertDialogHeader>
+                <AlertDialogTitle className="text-right">למחוק את התמונה של {photoToDelete?.name}?</AlertDialogTitle>
+                <AlertDialogDescription className="text-right">
+                  התמונה המקורית תימחק מהאחסון ומהפרופיל. הסיפורים שכבר נוצרו נשארים. בסיפור חדש תתבקשו להעלות תמונה שוב.
+                </AlertDialogDescription>
+              </AlertDialogHeader>
+              <AlertDialogFooter className="flex-row-reverse gap-2">
+                <AlertDialogCancel disabled={deletingPhoto}>ביטול</AlertDialogCancel>
+                <AlertDialogAction onClick={(e) => { e.preventDefault(); confirmDeletePhoto(); }} disabled={deletingPhoto} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
+                  {deletingPhoto ? <Loader2 className="w-4 h-4 animate-spin" /> : "מחק את התמונה"}
                 </AlertDialogAction>
               </AlertDialogFooter>
             </AlertDialogContent>
