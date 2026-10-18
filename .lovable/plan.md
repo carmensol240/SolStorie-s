@@ -60,6 +60,10 @@ So yes, this needs to change.
 - The site adds three fields to the link itself when the parent clicks, so nothing needs to be typed into Grow: field 1 (user identity), field 2 = `popular` (the package), field 3 = the story (when buying from a lock screen). Field passing ("cField") needs to be allowed on the link, just like the existing links.
 - If the fields are missing, the server identifies the package by amount (69.90) and the buyer by email.
 
+## Protecting what already exists
+- **Existing stories:** any story already created with a credit that has no unlock record gets one (as a digital story), so it doesn't suddenly lock. Tastes that haven't been opened yet stay locked.
+- **The zoo sample story** (on the purchase screen and at /demo-story) stays open to everyone, as it is today.
+
 ## Checks
 - Digital purchase: all coloring pages for the story are open, the print file is locked, and the offer appears.
 - Full purchase: coloring pages and the print file are open, and the offer doesn't appear.
