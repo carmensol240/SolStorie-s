@@ -1,43 +1,19 @@
-// Grow payment links. Each key represents a purchasable item / package.
-// Grow is the sole active payment provider.
-//
-// ⚠️ חשוב: המחירים כאן הם חיצוניים — הם מוגדרים בלוח הבקרה של Grow עצמו,
-// לא בקוד הזה. ה-URL רק פותח את דף התשלום; המחיר הנגבה בפועל נשלט ע"י Grow.
-// כשמעדכנים מחיר ב-`src/config/promo.ts` (למשל בהחלפת promo→regular ב-1/10/26),
-// חובה לעדכן ידנית את אותו מחיר גם בכל לינק כאן דרך ממשק Grow — אחרת ה-UI
-// יראה מחיר אחד וה-checkout יגבה מחיר אחר.
+// Grow payment links (the only payment provider). Prices/links live in the central catalog.
+import { CATALOG } from "../../supabase/functions/_shared/catalog";
+
+// Links and package ids come from the central catalog.
 export const GROW_LINKS = {
-  // Basic package — single digital story (promo 29.90 ₪ / regular 39.90 ₪)
-  basic: "https://pay.grow.link/MTAxMTMz~c553eb7e7fdf0752b8277d9777188b87-MzQ3NDUyNg",
-  // Popular package — full story: digital + printable PDF + coloring (69.90 ₪ from 10/2026)
-  popular: "https://pay.grow.link/MTAxMTMz~f9ccdeaddca44b395381ec366f8af6c5-MzQ3NDUzMg",
-  // Single digital story — DemoLockModal main button (39.90 ₪ קבוע)
-  singleStory: "https://pay.grow.link/MTAxMTMz~469de3bb12a9b6f58fe5d9c40ae3b868-MzQ3NDUzNw",
-  // Single coloring page (9.90 ₪)
-  coloringSingle: "https://pay.grow.link/MTAxMTMz~026a9822516963910b4c656b1533b479-MzQ3NDU0MA",
-  // Coloring pages bundle for a whole story (24.90 ₪)
-  coloringBundle: "https://pay.grow.link/MTAxMTMz~902b4d6ad465f743bf5de838d04f1c5b-MzQ3NDYxNQ",
-  // Printable PDF add-on — PrintPdfOfferModal (34.90 ₪ from 10/2026)
-  pdf: "https://pay.grow.link/MTAxMTMz~966f337ed54d7ce20445cd22c4cc239e-MzQ3NDYxOA",
-  // Two digital stories gift package (promo 59.90 ₪ / regular 69.90 ₪)
-  twoStories: "https://pay.grow.link/MTAxMTMz~bc37be155aed440bdbff7ebc3ff9eb84-MzY4NTAwMg",
+  digital: CATALOG.digital.growUrl,
+  full: CATALOG.full.growUrl,
+  pdf: CATALOG.pdf.growUrl,
 } as const;
 
 export type GrowLinkKey = keyof typeof GROW_LINKS;
 
-/**
- * Mapping from Grow link key → internal packageId expected by the
- * verify-purchase / grow-webhook edge functions. Used as the default cField2
- * when the caller does not pass an explicit packageId.
- */
 const DEFAULT_PACKAGE_ID: Record<GrowLinkKey, string> = {
-  basic: "single_story_digital",
-  popular: "popular",
-  singleStory: "single_story",
-  coloringSingle: "coloring_single",
-  coloringBundle: "coloring_bundle",
-  pdf: "pdf",
-  twoStories: "gift_two_stories",
+  digital: CATALOG.digital.packageId,
+  full: CATALOG.full.packageId,
+  pdf: CATALOG.pdf.packageId,
 };
 
 export interface GrowCheckoutOptions {

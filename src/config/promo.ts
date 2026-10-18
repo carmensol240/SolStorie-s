@@ -1,69 +1,17 @@
-// Promo end: 30/9/2026 23:59 Israel time (UTC+3).
-// After this moment: countdown hidden, launch prices revert to originalPrice,
-// The 1+1 first-purchase offer was cancelled permanently.
+// Prices come only from the central catalog (supabase/functions/_shared/catalog.ts).
+import { CATALOG, type ProductKey } from "../../supabase/functions/_shared/catalog";
+
+export { CATALOG };
+export type { ProductKey };
+
+// The launch promotion ended 30/9/2026. Kept so old imports compile; always false now.
 export const PROMO_END = new Date("2026-09-30T23:59:59+03:00");
 export const PROMO_END_LABEL = "ה-30/9";
-export const isPromoActive = (now: Date = new Date()): boolean =>
-  now.getTime() < PROMO_END.getTime();
+export const isPromoActive = (now: Date = new Date()): boolean => now.getTime() < PROMO_END.getTime() && false;
 
-// ─────────────────────────────────────────────────────────────────────────────
-// מחירים מרכזיים לפי תאריך.
-// כל המחירים ב-UI חייבים לעבור דרך `getPrice(key)` / `getRegularPrice(key)`
-// כדי שהמעבר האוטומטי ב-1/10/26 יקרה במקום אחד ולא ידרוש שינוי ידני בקבצים.
-// שים לב: קישורי Grow עצמם (המחיר שנגבה בפועל) *לא* מנוהלים מכאן — הם
-// מוגדרים חיצונית בלוח הבקרה של Grow ודורשים עדכון ידני שם.
-// ─────────────────────────────────────────────────────────────────────────────
-export type PriceKey =
-  | "basic"              // חבילת דיגיטלי — סיפור בודד ב-Upgrade
-  | "popular"            // הכי פופולרי — סיפור + PDF + דפי צביעה
-  | "pdf"                // PDF להשלמה (PrintPdfOfferModal)
-  | "gift_two_stories"   // גיפטקארד — 2 סיפורים דיגיטליים
-  | "single_story";      // סיפור דיגיטלי בודד (כפתור ראשי ב-DemoLockModal)
+/** Price keys used across the site, mapped to catalog products. */
+export type PriceKey = ProductKey;
 
-const PROMO_PRICES: Record<PriceKey, number> = {
-  basic: 29.90,
-  popular: 99.90,
-  pdf: 59.90,
-  gift_two_stories: 59.90,
-  single_story: 39.90,
-};
-
-const REGULAR_PRICES: Record<PriceKey, number> = {
-  basic: 39.90,            // סיפור דיגיטלי
-  popular: 69.90,          // סיפור מלא: דיגיטלי + קובץ להדפסה + דפי צביעה (מ-10/2026)
-  pdf: 34.90,              // תוספת קובץ להדפסה לסיפור שכבר נקנה (מ-10/2026)
-  gift_two_stories: 69.90,
-  single_story: 39.90,
-};
-
-/** מחזיר את המחיר האפקטיבי — מחיר השקה עד `PROMO_END`, אחריו המחיר הרגיל. */
-export const getPrice = (key: PriceKey, now: Date = new Date()): number =>
-  isPromoActive(now) ? PROMO_PRICES[key] : REGULAR_PRICES[key];
-
-/** מחזיר תמיד את המחיר הרגיל (post-promo) — לשימוש כמחיר "מחוק" עם קו חוצה. */
-export const getRegularPrice = (key: PriceKey): number => REGULAR_PRICES[key];
-
-// ─────────────────────────────────────────────────────────────────────────────
-// TODO 1/10/26 — עדכון מחירים ידני (לבצע ביום עצמו, לא אוטומטי):
-//
-// שינויי מחיר:
-//   • PDF:                              59.90  →  69.90
-//     - src/components/story/PrintPdfOfferModal.tsx (טקסט "59.90 ₪ בלבד")
-//     - src/config/grow-links.ts        (GROW_LINKS.pdf + packageIdFromAmount)
-//   • חבילת דיגיטלי (basic):            29.90  →  39.90
-//     - src/pages/Upgrade.tsx           (מוצר single_story_digital)
-//     - src/config/grow-links.ts        (GROW_LINKS.single_story + packageIdFromAmount)
-//   • הכי פופולרי (popular):            99.90  → 119.90
-//     - src/pages/Upgrade.tsx           (מוצר popular)
-//     - src/components/story/DemoLockModal.tsx (כפתור "החבילה הפופולרית")
-//     - src/config/grow-links.ts        (GROW_LINKS.popular + packageIdFromAmount)
-//   • גיפטקארד — 2 סיפורים דיגיטליים:   59.90  →  69.90
-//     - src/pages/GiftCard.tsx          (מוצר gift_two_stories)
-//     - src/config/grow-links.ts        (GROW_LINKS.gift_two_stories + packageIdFromAmount)
-//   • סיפור דיגיטלי בודד: מחיר קבוע 39.90 (ראה שינוי בפופאפ למטה)
-//     - src/components/story/DemoLockModal.tsx (כפתור "רכישת הסיפור הדיגיטלי")
-//
-// מבצע 1+1 לרכישה ראשונה בוטל לצמיתות והוסר מהקוד.
-//
-// תזכורת: לסמן ביומן 29/9/26 — לוודא שה-TODO הזה בוצע לפני 1/10.
-// ─────────────────────────────────────────────────────────────────────────────
+export const getPrice = (key: PriceKey): number => CATALOG[key].price;
+export const getRegularPrice = getPrice;
+export const formatPrice = (key: PriceKey): string => CATALOG[key].price.toFixed(2);
