@@ -1,3 +1,5 @@
+import { spendCredit, type CreditKind } from "./taste.ts";
+import { consumeCredit, refundCredit } from "./story-access.ts";
 // One-time story request handling for generate-story.
 // Order: save the story row with the client's request ID first (a unique index
 // allows only one row per user + ID), and only if that succeeds take one credit.
@@ -6,13 +8,14 @@
 export interface StoryRequestStore {
   insertPlaceholder(row: Record<string, unknown>): Promise<{ id: string } | { conflict: true } | { error: string }>;
   findByRequest(userId: string, requestId: string): Promise<{ id: string; slug: string | null; generation_status: string | null } | null>;
-  getCredits(userId: string): Promise<number>;
-  casCredits(userId: string, from: number, to: number): Promise<boolean>;
+  /** Take one credit of this kind; returns the kind taken or null. */
+  consume(userId: string, kind: CreditKind): Promise<CreditKind | null>;
+  refund(userId: string, kind: CreditKind): Promise<void>;
   deleteStory(storyId: string): Promise<void>;
 }
 
 export type ClaimResult =
-  | { kind: "claimed"; storyId: string }
+  | { kind: "claimed"; storyId: string; creditKind: CreditKind }
   | { kind: "duplicate"; storyId: string; slug: string | null; status: string | null }
   | { kind: "no_credits" }
   | { kind: "error"; error: string };
@@ -26,6 +29,7 @@ export async function claimStoryRequest(
   userId: string,
   requestId: string,
   row: Record<string, unknown>,
+  creditKind?: CreditKind | null,
 ): Promise<ClaimResult> {
   const ins = await store.insertPlaceholder({
     ...row,
@@ -40,18 +44,12 @@ export async function claimStoryRequest(
   }
   if ("error" in ins) return { kind: "error", error: ins.error };
 
-  for (let attempt = 0; attempt < 5; attempt++) {
-    const credits = await store.getCredits(userId);
-    if (credits <= 0) {
-      await store.deleteStory(ins.id);
-      return { kind: "no_credits" };
-    }
-    if (await store.casCredits(userId, credits, credits - 1)) {
-      return { kind: "claimed", storyId: ins.id };
-    }
+  const spent = await spendCredit((k) => store.consume(userId, k), creditKind);
+  if (!spent) {
+    await store.deleteStory(ins.id);
+    return { kind: "no_credits" };
   }
-  await store.deleteStory(ins.id);
-  return { kind: "error", error: "credit_cas_failed" };
+  return { kind: "claimed", storyId: ins.id, creditKind: spent };
 }
 
 export interface TasteClaimStore {
@@ -115,14 +113,10 @@ export function supabaseTasteClaimStore(sb: any): TasteClaimStore {
   };
 }
 
-/** Undo a claimed request after a failure: remove the unfinished story and give the credit back. */
-export async function releaseStoryRequest(store: StoryRequestStore, userId: string, storyId: string): Promise<void> {
+/** Undo a claimed request after a failure: remove the unfinished story and give the same kind of credit back. */
+export async function releaseStoryRequest(store: StoryRequestStore, userId: string, storyId: string, kind: CreditKind = "digital"): Promise<void> {
   await store.deleteStory(storyId);
-  for (let attempt = 0; attempt < 5; attempt++) {
-    const credits = await store.getCredits(userId);
-    if (await store.casCredits(userId, credits, credits + 1)) return;
-  }
-  console.error("[story-request] refund failed for user", userId.substring(0, 8));
+  await store.refund(userId, kind);
 }
 
 // deno-lint-ignore no-explicit-any
@@ -142,20 +136,11 @@ export function supabaseStoryRequestStore(sb: any): StoryRequestStore {
         .maybeSingle();
       return data ?? null;
     },
-    async getCredits(userId) {
-      const { data } = await sb.from("profiles").select("story_credits").eq("id", userId).maybeSingle();
-      return data?.story_credits ?? 0;
-    },
-    async casCredits(userId, from, to) {
-      const { data, error } = await sb
-        .from("profiles")
-        .update({ story_credits: to })
-        .eq("id", userId)
-        .eq("story_credits", from)
-        .select("id");
-      return !error && Array.isArray(data) && data.length > 0;
-    },
+    consume: (userId, kind) => consumeCredit(sb, userId, kind),
+    refund: (userId, kind) => refundCredit(sb, userId, kind),
     async deleteStory(storyId) {
+      await sb.from("story_unlocks").delete().eq("story_id", storyId);
+      await sb.from("pdf_entitlements").delete().eq("story_id", storyId);
       await sb.from("story_pages").delete().eq("story_id", storyId);
       await sb.from("stories").delete().eq("id", storyId);
     },

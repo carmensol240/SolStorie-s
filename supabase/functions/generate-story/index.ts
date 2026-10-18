@@ -4,6 +4,7 @@ import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.39.3";
 import { logError } from "../_shared/log-error.ts";
 import { normalizeGender } from "../_shared/gender.ts";
+import { grantStoryAccess } from "../_shared/story-access.ts";
 import { claimStoryRequest, releaseStoryRequest, supabaseStoryRequestStore, isValidRequestId, claimTasteRequest, releaseTasteRequest, supabaseTasteClaimStore } from "../_shared/story-request.ts";
 import { normalizeEmail, decideTasteEligibility, tastePageLimit } from "../_shared/taste.ts";
 
@@ -911,7 +912,7 @@ function appendAppearanceParts(parts: string[], ap: Appearance) {
   if (ap.hairColor || ap.hairStyle) parts.push(`שיער הדמות: ${hair} — יש לשמור על מראה השיער הזה זהה בכל עמודי הסיפור.`);
 }
 
-interface RequestCtx { placeholderId: string | null; userId: string | null; charged: boolean; done: boolean; taste: boolean }
+interface RequestCtx { placeholderId: string | null; userId: string | null; charged: boolean; done: boolean; taste: boolean; creditKind?: "digital" | "full" }
 
 serve(async (req) => {
   const ctx: RequestCtx = { placeholderId: null, userId: null, charged: false, done: false, taste: false };
@@ -923,7 +924,7 @@ serve(async (req) => {
       if (ctx.taste) {
         await releaseTasteRequest(supabaseStoryRequestStore(sb), supabaseTasteClaimStore(sb), ctx.placeholderId);
       } else {
-        await releaseStoryRequest(supabaseStoryRequestStore(sb), ctx.userId, ctx.placeholderId);
+        await releaseStoryRequest(supabaseStoryRequestStore(sb), ctx.userId, ctx.placeholderId, ctx.creditKind ?? "digital");
       }
       console.log("[generate-story] released unfinished request and refunded credit");
     } catch (e) {
@@ -1254,6 +1255,7 @@ async function handleGenerateStory(req: Request, ctx: RequestCtx): Promise<Respo
           story_type: isCustomTopic ? "custom" : "text",
           ...(childId ? { child_id: childId } : {}),
         },
+        reqBody.creditKind === "full" || reqBody.creditKind === "digital" ? reqBody.creditKind : null,
       );
       if (claim.kind === "duplicate") {
         console.log("[generate-story] duplicate request — returning existing story, no charge");
@@ -1274,6 +1276,9 @@ async function handleGenerateStory(req: Request, ctx: RequestCtx): Promise<Respo
       ctx.placeholderId = claim.storyId;
       ctx.userId = userId;
       ctx.charged = true;
+      ctx.creditKind = claim.creditKind;
+      // Digital credit: story + coloring pages. Full credit: also the print file for this story.
+      await grantStoryAccess(supabase, userId, claim.storyId, claim.creditKind);
     }
 
     console.log("Generating story for:", { childName, childGender, ageRange, storyLength, topic, nikud, hasPhoto: !!childPhoto, hasAvatar: !!childAvatarUrl, hasTraits: !!personalityTraits, hasAdventureLogic: !!adventureLogic, className: className || null });
