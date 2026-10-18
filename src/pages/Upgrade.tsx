@@ -424,6 +424,11 @@ const Upgrade = () => {
 
           </div>
 
+          {/* Value packs */}
+          <div className="mb-4">
+            <h2 className="text-base font-black text-white mb-2">חבilot משתלמות".replace</h2>
+          </div>
+
           {/* Coupon */}
           <div className="mb-4">
             <CouponInput
