@@ -23,7 +23,8 @@ Deno.serve(async (req) => {
     const storyId = typeof body?.storyId === "string" ? body.storyId : "";
     if (!/^[0-9a-f-]{36}$/i.test(storyId)) return json({ error: "מזהה סיפור לא תקין" }, 400);
 
-    const result = await unlockTasteAndComplete(sb, user.id, storyId);
+    const ck = body?.creditKind === "full" || body?.creditKind === "digital" ? body.creditKind : null;
+    const result = await unlockTasteAndComplete(sb, user.id, storyId, ck);
     if (result.kind === "unlocked") return json({ success: true });
     if (result.kind === "no_credits") return json({ error: "אין קרדיטים", code: "NO_CREDITS" }, 402);
     if (result.kind === "not_taste") return json({ success: true, alreadyOpen: true });
