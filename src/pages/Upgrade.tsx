@@ -45,11 +45,11 @@ const PRODUCTS: Product[] = [
   {
     id: "popular",
     title: CATALOG.full.title,
-    description: CATALOG.full.includes[0],
+    description: "ספר מאויר + קובץ להדפסה בבית",
     priceKey: "full",
     growKey: "full",
     badge: "הכי משתלם",
-    features: [...CATALOG.digital.includes, "קובץ להדפסת הספר בבית"],
+    features: CATALOG.full.includes,
   },
 ];
 
@@ -409,10 +409,10 @@ const Upgrade = () => {
                   )}
 
                   <div className="mt-3 grid grid-cols-2 gap-x-2 gap-y-1.5">
-                    {product.features.map((feature) => (
+                    {product.features.map((feature, i) => (
                       <div key={feature} className="flex items-center gap-1.5">
                         <Check className="w-3.5 h-3.5 text-green-400 shrink-0" />
-                        <span className="text-xs font-semibold text-white/90 leading-tight">
+                        <span className={product.id === "popular" && i === product.features.length - 1 ? "text-xs font-black text-primary leading-tight" : "text-xs font-semibold text-white/90 leading-tight"}>
                           {feature}
                         </span>
                       </div>

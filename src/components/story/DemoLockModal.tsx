@@ -155,9 +155,16 @@ const DemoLockModal = ({ open, onOpenChange, title, description, storyId, isTast
                 <div className="text-white font-black text-sm">
                   {`${CATALOG.full.title} – ${formatPrice("full")} ₪`}
                 </div>
-                <div className="text-white/80 text-sm font-semibold mt-0.5">
-                  {CATALOG.full.includes[0]}
-                </div>
+                <ul className="mt-1.5 space-y-1 text-right">
+                  {CATALOG.full.includes.map((t, i) => (
+                    <li
+                      key={t}
+                      className={i === CATALOG.full.includes.length - 1 ? "text-xs font-black text-primary leading-snug" : "text-xs font-semibold text-white/80 leading-snug"}
+                    >
+                      {t}
+                    </li>
+                  ))}
+                </ul>
               </button>
             </>
           )}
