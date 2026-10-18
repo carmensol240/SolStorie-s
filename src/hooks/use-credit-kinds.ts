@@ -12,13 +12,15 @@ export function splitCredits(total: number, fullRemaining: number) {
 export function useCreditKinds(userId?: string | null, enabled = true) {
   const [state, setState] = useState({ digital: 0, full: 0, total: 0, loaded: false });
   const refresh = useCallback(async () => {
-    if (!userId) { setState({ digital: 0, full: 0, total: 0, loaded: true }); return; }
+    if (!userId) { setState({ digital: 0, full: 0, total: 0, loaded: true }); return { digital: 0, full: 0, total: 0 }; }
     const [{ data: prof }, { data: lots }] = await Promise.all([
       supabase.from("profiles").select("story_credits").eq("id", userId).maybeSingle(),
       supabase.from("story_credit_lots").select("remaining").eq("user_id", userId),
     ]);
     const fullRemaining = (lots ?? []).reduce((a, r) => a + (r.remaining ?? 0), 0);
-    setState({ ...splitCredits(prof?.story_credits ?? 0, fullRemaining), loaded: true });
+    const split = splitCredits(prof?.story_credits ?? 0, fullRemaining);
+    setState({ ...split, loaded: true });
+    return split;
   }, [userId]);
   useEffect(() => { if (enabled) refresh(); }, [enabled, refresh]);
   return { ...state, refresh };

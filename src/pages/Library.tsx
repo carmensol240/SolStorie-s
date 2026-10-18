@@ -526,9 +526,9 @@ const Library = () => {
   const [choiceFor, setChoiceFor] = useState<string | null>(null);
   const creditKinds = useCreditKinds(user?.id);
   const unlockTaste = async (storyId: string) => {
-    await creditKinds.refresh();
-    if (creditKinds.full > 0 && creditKinds.digital > 0) { setChoiceFor(storyId); return; }
-    doUnlockTaste(storyId, creditKinds.full > 0 ? "full" : "digital");
+    const c = await creditKinds.refresh();
+    if (c.full > 0 && c.digital > 0) { setChoiceFor(storyId); return; }
+    doUnlockTaste(storyId, c.full > 0 ? "full" : "digital");
   };
   const doUnlockTaste = async (storyId: string, creditKind: CreditKind) => {
     setChoiceFor(null);
