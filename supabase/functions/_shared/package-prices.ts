@@ -32,7 +32,7 @@ const round2 = (n: number) => Math.round(n * 100) / 100;
 /**
  * True when `amount` is a legitimate price for `packageId`: one of its known
  * prices, or one of them reduced by one of `discountPercents` (active
- * discount coupons). A 0.05 ₪ tolerance covers Grow's rounding.
+ * discount coupons). Matching is exact (at most 0.01 ₪ difference): 99 and 99.90 are different packages.
  */
 export function isAmountValidForPackage(
   packageId: string,
@@ -43,10 +43,10 @@ export function isAmountValidForPackage(
   if (!prices || !Number.isFinite(amount) || amount <= 0) return false;
   const paid = round2(amount);
   for (const price of prices) {
-    if (Math.abs(paid - price) <= 0.05) return true;
+    if (Math.abs(paid - price) <= 0.011) return true;
     for (const d of discountPercents) {
       if (!Number.isFinite(d) || d <= 0 || d >= 100) continue;
-      if (Math.abs(paid - round2(price * (1 - d / 100))) <= 0.05) return true;
+      if (Math.abs(paid - round2(price * (1 - d / 100))) <= 0.011) return true;
     }
   }
   return false;
