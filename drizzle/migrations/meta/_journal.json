@@ -29,6 +29,13 @@
       "when": 1792316630233,
       "tag": "0003_story_coloring_allowances",
       "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1792317340729,
+      "tag": "0004_full_story_credit_lots",
+      "breakpoints": true
     }
   ]
 }

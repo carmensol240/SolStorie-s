@@ -1016,6 +1016,36 @@ export type Database = {
         }
         Relationships: []
       }
+      story_credit_lots: {
+        Row: {
+          created_at: string
+          id: string
+          kind: string
+          order_id: string
+          remaining: number
+          source: string | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          kind?: string
+          order_id: string
+          remaining?: number
+          source?: string | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          kind?: string
+          order_id?: string
+          remaining?: number
+          source?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
       story_pages: {
         Row: {
           created_at: string
@@ -1254,6 +1284,10 @@ export type Database = {
         Args: { p_story_id: string; p_user_id: string }
         Returns: string
       }
+      consume_story_credit: {
+        Args: { p_kind: string; p_user_id: string }
+        Returns: string
+      }
       generate_story_slug: {
         Args: { p_child_name: string; p_topic: string }
         Returns: string
@@ -1287,6 +1321,10 @@ export type Database = {
       redeem_coupon_atomic: {
         Args: { p_code: string; p_user_id: string }
         Returns: Json
+      }
+      refund_story_credit: {
+        Args: { p_kind: string; p_user_id: string }
+        Returns: undefined
       }
     }
     Enums: {
