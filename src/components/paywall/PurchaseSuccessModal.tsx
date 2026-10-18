@@ -1,4 +1,5 @@
 import { useEffect } from "react";
+import { hasAdConsent } from "@/lib/consent";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/use-auth";
@@ -53,7 +54,7 @@ const PurchaseSuccessModal = ({
         const dedupeKey = `fb_purchase_fired_${data.id}`;
         if (localStorage.getItem(dedupeKey)) return;
 
-        if (typeof window.fbq !== "function") return;
+        if (!hasAdConsent() || typeof window.fbq !== "function") return;
         window.fbq("track", "Purchase", {
           value: amount,
           currency: "ILS",

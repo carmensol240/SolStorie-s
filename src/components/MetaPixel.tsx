@@ -1,4 +1,5 @@
 import { useEffect, useRef } from "react";
+import { hasAdConsent } from "@/lib/consent";
 import { useLocation } from "react-router-dom";
 
 declare global {
@@ -22,7 +23,7 @@ const MetaPixel = () => {
       return;
     }
     try {
-      window.fbq?.("track", "PageView");
+      if (hasAdConsent()) window.fbq?.("track", "PageView");
     } catch {
       // Pixel blocked or unavailable — ignore silently.
     }
