@@ -32,7 +32,6 @@ import PublicStoryViewer from "./pages/PublicStoryViewer";
 import AccountExit from "./pages/AccountExit";
 import Settings from "./pages/Settings";
 import Upgrade from "./pages/Upgrade";
-import GiftCard from "./pages/GiftCard";
 
 import ShareAndEarn from "./pages/ShareAndEarn";
 import Contact from "./pages/Contact";
@@ -101,7 +100,7 @@ function App() { useTimeTheme(); return (
             <Route path="/account-exit" element={<RequireTerms><AccountExit /></RequireTerms>} />
             <Route path="/upgrade" element={<RequireTerms><Upgrade /></RequireTerms>} />
             {/* Premium/NLP – hidden from navigation */}
-            <Route path="/gift" element={<GiftCard />} />
+            <Route path="/gift" element={<Navigate to="/upgrade" replace />} />
             
             <Route path="/toolkit" element={<RequireTerms><Toolkit /></RequireTerms>} />
             <Route path="/admin/dashboard" element={<RequireAdmin><AdminDashboard /></RequireAdmin>} />
