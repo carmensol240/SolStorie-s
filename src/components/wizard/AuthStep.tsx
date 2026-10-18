@@ -45,7 +45,7 @@ const AuthStep = ({ formData, onAuthenticated }: AuthStepProps) => {
         user_id: userId,
         name: formData.childName,
         age: ageMap[formData.ageRange] || 5,
-        gender: formData.childGender === "female" ? "girl" : "boy",
+        gender: formData.childGender === "female" ? "female" : "male",
         personality_traits: formData.personalityTraits || null,
         fixed_details: formData.fixedDetails || null,
         clothing_type: formData.clothingType || null,

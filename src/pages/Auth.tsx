@@ -175,7 +175,7 @@ const Auth = () => {
         user_id: user.id,
         name: 'הילד/ה שלי',
         age: 5,
-        gender: 'boy',
+        gender: 'male',
         photo_url: fileName,
       }, { onConflict: 'user_id,name' });
       
@@ -184,7 +184,7 @@ const Auth = () => {
           user_id: user.id,
           name: 'הילד/ה שלי',
           age: 5,
-          gender: 'boy',
+          gender: 'male',
           photo_url: fileName,
         });
       }

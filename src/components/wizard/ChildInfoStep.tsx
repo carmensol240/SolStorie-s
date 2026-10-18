@@ -1,3 +1,4 @@
+import { normalizeGender } from "../../../supabase/functions/_shared/gender";
 import { useRef, useEffect, useState } from "react";
 import { Checkbox } from "@/components/ui/checkbox";
 import { User, Camera, Sparkles, RefreshCw, Trash2, Heart, ChevronDown, ChevronUp, Check, X, Loader2, Save, Shield, Globe, PlusCircle, BookOpen, ArrowLeft, Star } from "lucide-react";
@@ -184,7 +185,7 @@ const ChildInfoStep = ({ formData, updateFormData, screen = 1 }: ChildInfoStepPr
             setSelectedChildId(firstChild.id);
             updateFormData({
               childName: firstChild.name,
-              childGender: firstChild.gender as "male" | "female",
+              childGender: normalizeGender(firstChild.gender) ?? "male",
               ageRange: ageToRange(firstChild.age),
               childAge: firstChild.age,
               childPhoto: firstChild.photo_url,
@@ -215,7 +216,7 @@ const ChildInfoStep = ({ formData, updateFormData, screen = 1 }: ChildInfoStepPr
             setSelectedChildId(firstChild.id);
             updateFormData({
               childName: firstChild.name,
-              childGender: firstChild.gender as "male" | "female",
+              childGender: normalizeGender(firstChild.gender) ?? "male",
               ageRange: ageToRange(firstChild.age),
               childAge: firstChild.age,
               childPhoto: firstChild.photo_url,
@@ -354,7 +355,7 @@ const ChildInfoStep = ({ formData, updateFormData, screen = 1 }: ChildInfoStepPr
     setSelectedChildId(child.id);
     updateFormData({
       childName: child.name,
-      childGender: child.gender as "male" | "female",
+      childGender: normalizeGender(child.gender) ?? "male",
       ageRange: ageToRange(child.age),
       childAge: child.age,
       childPhoto: child.photo_url,
@@ -604,7 +605,7 @@ const ChildInfoStep = ({ formData, updateFormData, screen = 1 }: ChildInfoStepPr
                 : "border-border bg-card hover:border-purple-300"
             )}
           >
-            <span>{child.gender === "female" ? "👧" : "👦"}</span>
+            <span>{normalizeGender(child.gender) === "female" ? "👧" : "👦"}</span>
             <span>{child.name}</span>
           </button>
         ))}
