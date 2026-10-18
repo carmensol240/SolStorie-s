@@ -136,7 +136,7 @@ const TopicStep = ({ formData, updateFormData }: TopicStepProps) => {
           dir="rtl"
         />
         {searchQuery && (
-          <button onClick={() => setSearchQuery("")} className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors">
+          <button type="button" aria-label="ניקוי החיפוש" onClick={() => setSearchQuery("")} className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors">
             <X className="w-4 h-4" />
           </button>
         )}

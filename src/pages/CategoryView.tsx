@@ -1,3 +1,4 @@
+import GlobalFooter from "@/components/shared/GlobalFooter";
 import { useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { ArrowRight } from "lucide-react";
@@ -107,6 +108,7 @@ const CategoryView = () => {
         })()}
       </div>
 
+      <GlobalFooter />
       <MobileNavigation />
     </div>
   );

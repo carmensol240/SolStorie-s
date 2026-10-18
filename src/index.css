@@ -826,3 +826,19 @@ img {
     break-inside: avoid; page-break-inside: avoid;
   }
 }
+
+/* WCAG 2.4.7 — every keyboard-focusable element always shows a clear focus
+   outline, even where a component sets outline-none. Mouse/touch clicks
+   don't trigger :focus-visible, so the look for pointer users is unchanged. */
+a:focus-visible,
+button:focus-visible,
+input:focus-visible,
+textarea:focus-visible,
+select:focus-visible,
+summary:focus-visible,
+[role]:focus-visible,
+[tabindex]:not([tabindex="-1"]):focus-visible,
+[contenteditable="true"]:focus-visible {
+  outline: 3px solid hsl(var(--ring)) !important;
+  outline-offset: 2px !important;
+}

@@ -253,6 +253,9 @@ export const DrawingCanvas: React.FC<DrawingCanvasProps> = ({ isOpen, onClose })
             <Pencil className="w-5 h-5" style={{ color: color }} />
           </button>
           <button
+            type="button"
+            aria-label="מחק"
+            aria-pressed={isEraser && !isStamping}
             onClick={() => { setIsEraser(true); setIsStamping(false); }}
             className={`min-w-[44px] min-h-[44px] rounded-2xl border-2 flex items-center justify-center transition-all active:scale-95 ${
               isEraser && !isStamping
@@ -263,6 +266,9 @@ export const DrawingCanvas: React.FC<DrawingCanvasProps> = ({ isOpen, onClose })
             <Eraser className="w-5 h-5 text-muted-foreground" />
           </button>
           <button
+            type="button"
+            aria-label="חותמות"
+            aria-pressed={isStamping}
             onClick={() => { setIsStamping(true); setIsEraser(false); }}
             className={`min-w-[44px] min-h-[44px] rounded-2xl border-2 flex items-center justify-center transition-all active:scale-95 ${
               isStamping

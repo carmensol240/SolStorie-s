@@ -157,7 +157,7 @@ const MathChallenge = ({ onSuccess, onCancel }: MathChallengeProps) => {
             className="text-center text-xl font-bold"
             autoFocus
           />
-          <Button variant="outline" size="icon" onClick={handleNewProblem}>
+          <Button variant="outline" size="icon" onClick={handleNewProblem} aria-label="תרגיל חדש">
             <RefreshCw className="h-4 w-4" />
           </Button>
         </div>

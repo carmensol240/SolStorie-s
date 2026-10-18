@@ -599,7 +599,7 @@ const AdminDashboard = () => {
         <div className="max-w-sm"><AdminModeSwitch /></div>
         {/* Header */}
         <div className="flex items-center gap-3 flex-wrap">
-          <Button variant="outline" size="icon" onClick={() => navigate("/")}>
+          <Button variant="outline" size="icon" onClick={() => navigate("/")} aria-label="חזרה לדף הבית">
             <ArrowRight className="h-5 w-5" />
           </Button>
           <h1 className="text-xl md:text-2xl font-bold">לוח בקרה למנהל</h1>

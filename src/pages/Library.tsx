@@ -1,3 +1,4 @@
+import GlobalFooter from "@/components/shared/GlobalFooter";
 import React, { useState, useEffect, useMemo, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import { ArrowRight, Plus, Coins, Wand2, BookOpen, WifiOff, Plane, Palette, Download, Paintbrush } from "lucide-react";
@@ -1114,6 +1115,7 @@ const Library = () => {
         canGoNext={coloringCanvasIndex < coloringPages.length - 1}
       />
 
+      <GlobalFooter />
       <MobileNavigation />
     </div>
   );
