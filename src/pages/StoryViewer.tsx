@@ -1,3 +1,4 @@
+import GlobalFooter from "@/components/shared/GlobalFooter";
 import { useState, useEffect, useLayoutEffect, useRef, useCallback, useMemo } from "react";
 import { isLegacyOpenStory } from "../../supabase/functions/_shared/legacy-access";
 import { useParams, useNavigate, useLocation, useSearchParams } from "react-router-dom";
@@ -2262,6 +2263,8 @@ const [currentPage, setCurrentPage] = useState(0);
           </div>
         </div>
       </main>
+
+      <GlobalFooter compact onDark />
 
       {/* Drawing Canvas */}
       <DrawingCanvas isOpen={isDrawingMode} onClose={() => setIsDrawingMode(false)} />
