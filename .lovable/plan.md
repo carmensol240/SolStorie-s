@@ -15,7 +15,11 @@ So yes, this needs to change.
 - **Using a credit** (creating a new story, or opening a taste from the library or the lock screen) attaches the story to that package:
   - Digital story: the story opens, along with all its coloring pages.
   - Full story: as above, plus the print file for that story.
-- **When the parent has both kinds**, they choose: a short question before creating or opening, "use a full story credit (with print file) or a digital one?". With only one kind, there's no question.
+- **When the parent has both kinds**, a short question appears before creating or opening:
+  "באיזה קרדיט להשתמש לסיפור הזה?"
+  - סיפור מלא: כולל קובץ להדפסת הספר (selected by default)
+  - סיפור דיגיטלי
+  Next to each option, how many credits of that kind are left. With only one kind, there's no question.
 - The account screen shows separately: "X digital stories, Y full stories".
 - There are no paying customers yet, so existing credits are treated as digital and nothing is migrated.
 
