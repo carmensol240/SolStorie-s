@@ -47,6 +47,24 @@ export type Database = {
         }
         Relationships: []
       }
+      admin_view_mode: {
+        Row: {
+          mode: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          mode?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          mode?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       analytics_events: {
         Row: {
           created_at: string | null
@@ -1318,6 +1336,7 @@ export type Database = {
         }
         Returns: boolean
       }
+      is_effective_admin: { Args: { _user_id: string }; Returns: boolean }
       redeem_coupon_atomic: {
         Args: { p_code: string; p_user_id: string }
         Returns: Json
