@@ -956,6 +956,7 @@ async function handleGenerateStory(req: Request, ctx: RequestCtx): Promise<Respo
     const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
     let userId: string | null = null;
+    let tasteClaim: Record<string, unknown> | null = null;
 
     if (guestMode) {
       // === GUEST MODE: Rate limit by IP, no auth required ===
@@ -1016,15 +1017,41 @@ async function handleGenerateStory(req: Request, ctx: RequestCtx): Promise<Respo
       console.log("Current credits:", currentCredits);
       
       if (currentCredits <= 0) {
-        console.log("User has no story credits — blocking generation (NO_CREDITS)");
-        return new Response(
-          JSON.stringify({
-            error: "נגמרו הקרדיטים",
-            code: "NO_CREDITS",
-            message: "אין לך קרדיטים לסיפור. רכוש חבילה כדי להתחיל ליצור.",
-          }),
-          { status: 402, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-        );
+        // Free taste: one per account / mailbox / device, max 3 per network in 30 days.
+        const normalizedEmail = normalizeEmail(user.email);
+        const deviceId = typeof reqBody.device_id === "string" && /^[A-Za-z0-9-]{8,80}$/.test(reqBody.device_id) ? reqBody.device_id : null;
+        const fwd = req.headers.get("x-forwarded-for");
+        const ip = fwd ? fwd.split(",")[0].trim() : (req.headers.get("x-real-ip") || "");
+        const ipHash = ip ? await sha256Hex(`taste:${ip}`) : null;
+        const since = new Date(Date.now() - 30 * 24 * 3600 * 1000).toISOString();
+        const [prior, byUser, byEmail, byDevice, byIp] = await Promise.all([
+          supabase.from("stories").select("id", { count: "exact", head: true }).eq("user_id", userId),
+          supabase.from("free_taste_claims").select("id", { count: "exact", head: true }).eq("user_id", userId),
+          normalizedEmail ? supabase.from("free_taste_claims").select("id", { count: "exact", head: true }).eq("normalized_email", normalizedEmail) : Promise.resolve({ count: 0 }),
+          deviceId ? supabase.from("free_taste_claims").select("id", { count: "exact", head: true }).eq("device_id", deviceId) : Promise.resolve({ count: 0 }),
+          ipHash ? supabase.from("free_taste_claims").select("id", { count: "exact", head: true }).eq("ip_hash", ipHash).gte("created_at", since) : Promise.resolve({ count: 0 }),
+        ]);
+        const decision = decideTasteEligibility({
+          hasPriorStory: (prior.count ?? 0) > 0,
+          userClaimed: (byUser.count ?? 0) > 0,
+          emailClaimed: (byEmail.count ?? 0) > 0,
+          deviceClaimed: (byDevice.count ?? 0) > 0,
+          ipClaimsLast30d: byIp.count ?? 0,
+        });
+        if (decision.eligible && isValidRequestId(reqBody.client_request_id)) {
+          tasteClaim = { normalized_email: normalizedEmail, device_id: deviceId, ip_hash: ipHash };
+          console.log("[generate-story] free taste granted");
+        } else {
+          console.log("User has no story credits — blocking generation (NO_CREDITS)", decision);
+          return new Response(
+            JSON.stringify({
+              error: "נגמרו הקרדיטים",
+              code: "NO_CREDITS",
+              message: "אין לך קרדיטים לסיפור. רכוש חבילה כדי להתחיל ליצור.",
+            }),
+            { status: 402, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+          );
+        }
       }
       
       // NOTE: Credit deduction moved to AFTER successful AI generation
