@@ -38,7 +38,8 @@
    - Everything is deleted on the server, files included: child profiles, photos, avatars, stories, illustrations, coloring pages, print-file and unlock records, notes, wishlist, feedback, settings, roles, the sign-in account, and recordings on the device.
    - A confirmation email is sent to the parent's address just before it is erased.
 4. **What has to stay (bookkeeping):** the purchase records (date, amount, package, status). They are disconnected from the parent, kept under a random anonymous ID, with no name or email. They hold no name or email anyway. Unused credits are not refunded automatically. The invoice inside Grow stays with Grow; we can't delete it, and it is the legal copy for tax purposes. Israeli law requires keeping accounting records for 7 years. Payment-related admin alerts are cleaned of personal details.
-5. **Nothing else changes.**
+5. **Free taste after re-signup:** when an account is deleted, its free-taste records are replaced by one record holding only a one-way code (hash) of the normalized email. There is no user, device or IP in it, and the code doesn't identify the person. If the same email signs up again, the taste check matches the code and no second taste is given. An automated check covers this.
+6. **Nothing else changes.**
 
 ## Checks
 
@@ -52,4 +53,5 @@
 - Storage cleanup covers `child-photos/{userId}/**` and `taste-refs/{userId}/**` (and `temp-refs`), plus illustrations and coloring images in `story-illustrations` belonging to the user's stories.
 - Purchases: `user_id` is replaced by a random UUID. A comment documents the retention.
 - The auth user is removed with `auth.admin.deleteUser`, and the profile cascades. The confirmation is sent via Resend from the existing sender before deletion.
+- free_taste_claims on deletion: the user's rows are deleted, then one row is inserted with `normalized_email = 'sha256:' + sha256(normalizeEmail(email))`, a random UUID in `user_id` (the column is required), and device_id/ip_hash/story_id set to null. `generate-story` eligibility also matches the hashed form. Shared hash helper in `_shared/taste.ts`, with a test.
 - `AccountExit.tsx` gets the real confirm dialog. `ChildProfiles.tsx` gets the photo button and the delete-choice dialog.
