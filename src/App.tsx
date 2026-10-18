@@ -1,4 +1,5 @@
 import { Toaster as Sonner } from "@/components/ui/sonner";
+import CookieBanner from "@/components/CookieBanner";
 import { AdminDemoBadge } from "@/components/admin/AdminModeSwitch";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
@@ -67,6 +68,7 @@ function App() { useTimeTheme(); return (
           
           <AccessibilityMenu />
           <AdminDemoBadge />
+          <CookieBanner />
           
           <Routes>
             <Route path="/" element={<Adventure />} />
