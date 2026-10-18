@@ -1,6 +1,6 @@
 import { TASTE_UNLOCK_PACKAGES } from "./taste.ts";
 import { unlockTasteAndComplete } from "./taste-server.ts";
-import { creditKindForPackage } from "./catalog.ts";
+import { creditKindForPackage, CATALOG } from "./catalog.ts";
 import { consumeCredit, grantStoryAccess } from "./story-access.ts";
 // Shared purchase credit logic used by verify-purchase and grow-webhook.
 // Story credits remember their package: "full" credits are tracked as lots
@@ -160,7 +160,6 @@ export async function applyPurchaseCredits(
 
 // Amount → packageId fallback, used ONLY when cField2 is missing from the
 // Grow webhook. Current amounts come from the catalog; each amount is one package.
-import { CATALOG } from "./catalog.ts";
 export function packageIdFromAmount(amount: number): string | null {
   const a = Math.round(amount * 100) / 100;
   for (const p of Object.values(CATALOG)) if (Math.abs(p.price - a) < 0.001) return p.packageId;
