@@ -1,3 +1,4 @@
+import GlobalFooter from "@/components/shared/GlobalFooter";
 import { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { Plus, Loader2, Camera, Pencil, Trash2, RefreshCw, Heart, ArrowRight, Sparkles } from "lucide-react";
@@ -978,7 +979,7 @@ const ChildProfiles = () => {
           )}
         </div>
       </div>
-      <MobileNavigation />
+      <GlobalFooter />      <MobileNavigation />
     </div>
   );
 };

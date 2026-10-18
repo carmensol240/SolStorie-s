@@ -1,3 +1,4 @@
+import GlobalFooter from "@/components/shared/GlobalFooter";
 import { useState, useEffect } from "react";
 import { AdminModeSwitch } from "@/components/admin/AdminModeSwitch";
 import { useNavigate } from "react-router-dom";
@@ -99,6 +100,7 @@ const Settings = () => {
           </div>
         </div>
 
+        <GlobalFooter />
         <MobileNavigation />
       </div>
     );
@@ -343,6 +345,7 @@ const Settings = () => {
         </div>
       </div>
       
+      <GlobalFooter />      
       <MobileNavigation />
 
       {/* About Dialog */}

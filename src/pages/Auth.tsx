@@ -1,3 +1,4 @@
+import GlobalFooter from "@/components/shared/GlobalFooter";
 import { useState, useEffect, useRef } from "react";
 import { useNavigate, Link, useSearchParams } from "react-router-dom";
 import { Mail, Lock, Loader2, Eye, EyeOff, KeyRound, FileText, Shield, CheckCircle2, Sparkles, Heart, Users, Camera, Check, ArrowRight, RefreshCw, Smartphone, Tablet, Monitor, X } from "lucide-react";
@@ -1566,7 +1567,7 @@ const Auth = () => {
           <p className="text-xs font-bold text-white drop-shadow-md">זמינה עבורכם בכל מקום</p>
         </div>
       </div>
-      <MobileNavigation />
+      <GlobalFooter />      <MobileNavigation />
 
       {/* Terms of Service Modal */}
       <Dialog open={showTermsModal} onOpenChange={setShowTermsModal}>

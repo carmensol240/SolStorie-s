@@ -1,3 +1,4 @@
+import GlobalFooter from "@/components/shared/GlobalFooter";
 import { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { ArrowRight, Share2, UserPlus, Coins, BookOpen, Copy, Check } from "lucide-react";
@@ -213,6 +214,7 @@ const ShareAndEarn = () => {
         </p>
       </main>
 
+      <GlobalFooter />
       <MobileNavigation />
     </div>
   );

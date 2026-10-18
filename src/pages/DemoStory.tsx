@@ -1,3 +1,4 @@
+import GlobalFooter from "@/components/shared/GlobalFooter";
 import { useNavigate } from "react-router-dom";
 import { ArrowRight, Wand2, MessageCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -77,6 +78,7 @@ const DemoStory = () => {
           </span>
         </button>
       </main>
+      <GlobalFooter />
     </div>
   );
 };
