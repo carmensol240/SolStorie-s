@@ -41,7 +41,11 @@ So yes, this needs to change.
 - Promotion prices that have ended (29.90 / 99.90 / 59.90)
 - The old price lists in the comments of the server code
 
-The 2-story gift card isn't in your document. It currently costs 69.90, the same as the full story, so the server can't tell them apart by amount. I'll need your decision on whether to remove it or give it a different price.
+**Your decisions:**
+- The 2-story gift card comes off the site for now. The server still honors purchases already made, and its 69.90 amount no longer identifies a package. Gifts will return later with a unique price.
+- All the deletions are approved. Before deleting the "sample book" window, I'll check it and report what I found.
+- The print file is granted per story only, with no general permission or exceptions.
+- Grow: you'll set the webhook and field passing on the new link, and we'll make a test purchase afterward.
 
 ## Places in the code with prices (to be switched to the central source)
 - The price list on the site and the Grow links
@@ -69,6 +73,6 @@ The 2-story gift card isn't in your document. It currently costs 69.90, the same
 ## Technical details
 - New table `story_credit_lots` (user_id, kind digital|full, remaining, order_id unique). `profiles.story_credits` stays as the total for the existing display and consumers.
 - Purchase functions add a lot by package. Spending happens through an RPC, `consume_story_credit(user, kind)`, that atomically decrements the lot and the total. generate-story and unlock-taste-story accept `creditKind` and, on use, grant `story_unlocks` (+ story-scoped `pdf_entitlements` for full).
-- Story screen permissions: coloring = the story has an unlock/purchase; print file = a `pdf_entitlements` row for the story (or a global legacy one). The purchase-name check (`hasPurchasedPackage`) is removed.
+- Story screen permissions: coloring = the story has an unlock/purchase; print file = a `pdf_entitlements` row for this story only (rows with story_id NULL are not honored). The purchase-name check (`hasPurchasedPackage`) is removed.
 - generate-coloring-page: allowed if the story is purchased, with no credit charge. The `story_coloring_allowances` from the previous step is marked deprecated.
 - A central catalog file shared by the client and `_shared/package-prices.ts`, with a test comparing them.
