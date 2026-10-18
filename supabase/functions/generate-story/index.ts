@@ -4,7 +4,8 @@ import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.39.3";
 import { logError } from "../_shared/log-error.ts";
 import { normalizeGender } from "../_shared/gender.ts";
-import { grantStoryAccess } from "../_shared/story-access.ts";
+import { grantStoryAccess, consumeCredit } from "../_shared/story-access.ts";
+import { spendCredit } from "../_shared/taste.ts";
 import { claimStoryRequest, releaseStoryRequest, supabaseStoryRequestStore, isValidRequestId, claimTasteRequest, releaseTasteRequest, supabaseTasteClaimStore } from "../_shared/story-request.ts";
 import { normalizeEmail, decideTasteEligibility, tastePageLimit } from "../_shared/taste.ts";
 
@@ -2480,48 +2481,18 @@ ${fullStoryText}`;
     // This prevents failed inserts from consuming a paid story credit.
     // Requests with a one-time ID were already charged when the row was claimed.
     if (userId && !guestMode && !ctx.charged) {
-      let deducted = false;
-      for (let attempt = 0; attempt < 3 && !deducted; attempt++) {
-        const { data: freshProfile } = await supabase
-          .from("profiles")
-          .select("story_credits")
-          .eq("id", userId)
-          .single();
-
-        const freshCredits = freshProfile?.story_credits ?? 0;
-        if (freshCredits <= 0) {
-          console.log("Race condition: credits depleted before post-save deduction");
-          return new Response(
-            JSON.stringify({ error: "נגמרו הקרדיטים", code: "NO_CREDITS" }),
-            { status: 402, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-          );
-        }
-
-        const { data: updatedRows, error: deductError } = await supabase
-          .from("profiles")
-          .update({ story_credits: freshCredits - 1 })
-          .eq("id", userId)
-          .eq("story_credits", freshCredits)
-          .gt("story_credits", 0)
-          .select("story_credits");
-
-        if (deductError) {
-          console.error("Error deducting credit after story save:", deductError);
-          break;
-        }
-        if (updatedRows && updatedRows.length > 0) {
-          console.log(`Credit deducted atomically after save: ${freshCredits} → ${freshCredits - 1}`);
-          deducted = true;
-        } else {
-          console.warn(`CAS miss on post-save credit deduction (attempt ${attempt + 1}), retrying`);
-        }
-      }
-      if (!deducted) {
+      // Older clients without a request ID: charge after save, by credit kind.
+      const ck = reqBody.creditKind === "full" || reqBody.creditKind === "digital" ? reqBody.creditKind : null;
+      const spent = await spendCredit((k) => consumeCredit(supabase, userId, k), ck);
+      if (!spent) {
+        await supabase.from("story_pages").delete().eq("story_id", story.id);
+        await supabase.from("stories").delete().eq("id", story.id);
         return new Response(
-          JSON.stringify({ error: "לא הצלחנו לחייב קרדיט עבור הסיפור שנשמר. פנו לתמיכה.", code: "CREDIT_DEDUCTION_FAILED", storyId: story.id }),
-          { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+          JSON.stringify({ error: "נגמרו הקרדיטים", code: "NO_CREDITS" }),
+          { status: 402, headers: { ...corsHeaders, "Content-Type": "application/json" } }
         );
       }
+      await grantStoryAccess(supabase, userId, story.id, spent);
     }
 
     // === DEFERRED SUMMARY: runs in parallel with illustrations ===
