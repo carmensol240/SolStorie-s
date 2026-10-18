@@ -338,6 +338,36 @@ export type Database = {
         }
         Relationships: []
       }
+      free_taste_claims: {
+        Row: {
+          created_at: string
+          device_id: string | null
+          id: string
+          ip_hash: string | null
+          normalized_email: string | null
+          story_id: string | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          device_id?: string | null
+          id?: string
+          ip_hash?: string | null
+          normalized_email?: string | null
+          story_id?: string | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          device_id?: string | null
+          id?: string
+          ip_hash?: string | null
+          normalized_email?: string | null
+          story_id?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
       illustration_logs: {
         Row: {
           attempts: number | null
@@ -831,6 +861,7 @@ export type Database = {
           id: string
           is_daily_story: boolean | null
           is_premium: boolean | null
+          is_taste: boolean
           language: string
           max_age: number | null
           min_age: number | null
@@ -840,6 +871,8 @@ export type Database = {
           slug: string | null
           story_type: string | null
           summary: string | null
+          taste_page_limit: number | null
+          taste_resume: Json | null
           theme: string | null
           topic: string
           user_id: string | null
@@ -860,6 +893,7 @@ export type Database = {
           id?: string
           is_daily_story?: boolean | null
           is_premium?: boolean | null
+          is_taste?: boolean
           language?: string
           max_age?: number | null
           min_age?: number | null
@@ -869,6 +903,8 @@ export type Database = {
           slug?: string | null
           story_type?: string | null
           summary?: string | null
+          taste_page_limit?: number | null
+          taste_resume?: Json | null
           theme?: string | null
           topic: string
           user_id?: string | null
@@ -889,6 +925,7 @@ export type Database = {
           id?: string
           is_daily_story?: boolean | null
           is_premium?: boolean | null
+          is_taste?: boolean
           language?: string
           max_age?: number | null
           min_age?: number | null
@@ -898,6 +935,8 @@ export type Database = {
           slug?: string | null
           story_type?: string | null
           summary?: string | null
+          taste_page_limit?: number | null
+          taste_resume?: Json | null
           theme?: string | null
           topic?: string
           user_id?: string | null
