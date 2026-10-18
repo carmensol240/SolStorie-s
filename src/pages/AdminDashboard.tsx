@@ -1,4 +1,5 @@
 import { useEffect, useState, useCallback, useMemo, useRef } from "react";
+import { AdminModeSwitch } from "@/components/admin/AdminModeSwitch";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/use-auth";
@@ -595,6 +596,7 @@ const AdminDashboard = () => {
   return (
     <div className="min-h-screen bg-background p-3 md:p-8" dir="rtl">
       <div className="max-w-7xl mx-auto space-y-4">
+        <div className="max-w-sm"><AdminModeSwitch /></div>
         {/* Header */}
         <div className="flex items-center gap-3 flex-wrap">
           <Button variant="outline" size="icon" onClick={() => navigate("/")}>

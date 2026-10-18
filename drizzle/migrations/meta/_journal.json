@@ -43,6 +43,13 @@
       "when": 1792317358812,
       "tag": "0005_story_unlock_types",
       "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1792341647495,
+      "tag": "0006_admin_view_mode",
+      "breakpoints": true
     }
   ]
 }

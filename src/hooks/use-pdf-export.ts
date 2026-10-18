@@ -60,13 +60,8 @@ export const usePdfExport = () => {
       if (!user?.id) return false;
 
       // Admins always allowed
-      const { data: roleRow } = await supabase
-        .from('user_roles')
-        .select('role')
-        .eq('user_id', user.id)
-        .eq('role', 'admin')
-        .maybeSingle();
-      if (roleRow) return true;
+      const { data: effAdmin } = await supabase.rpc('is_effective_admin', { _user_id: user.id });
+      if (effAdmin) return true;
 
       // Subscribers allowed
       const { data: profile } = await supabase

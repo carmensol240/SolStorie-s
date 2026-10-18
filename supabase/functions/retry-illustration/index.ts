@@ -109,12 +109,9 @@ serve(async (req) => {
     // Ownership is still enforced above — this only lifts the one-shot quota.
     let isAdmin = false;
     {
+      // Admin in demo mode is treated like a parent.
       const { data: adminRow, error: adminErr } = await supabase
-        .from("user_roles")
-        .select("role")
-        .eq("user_id", user.id)
-        .eq("role", "admin")
-        .maybeSingle();
+        .rpc("is_effective_admin", { _user_id: user.id });
       if (adminErr) console.warn("[page1_regen] admin lookup failed:", adminErr.message);
       isAdmin = !!adminRow;
       if (isAdmin && isPage1Regen) {

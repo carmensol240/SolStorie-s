@@ -63,7 +63,7 @@ serve(async (req) => {
     // ── Access: every purchased story opens all of its coloring pages (no credits) ──
     const [{ data: unlock }, { data: isAdmin }] = await Promise.all([
       supabase.from("story_unlocks").select("id").eq("story_id", story_id).eq("user_id", userId).maybeSingle(),
-      supabase.rpc("has_role", { _user_id: userId, _role: "admin" }),
+      supabase.rpc("is_effective_admin", { _user_id: userId }),
     ]);
     if (!unlock && !isAdmin && !isLegacyOpenStory(storyOwner, userId)) {
       return jsonResponse({ upsell: true, error: "דפי הצביעה נפתחים עם רכישת הסיפור 🎨" });
