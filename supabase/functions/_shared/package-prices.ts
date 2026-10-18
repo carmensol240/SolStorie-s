@@ -13,6 +13,8 @@ export const PACKAGE_PRICES: Record<string, number[]> = {
   [CATALOG.digital.packageId]: [CATALOG.digital.price],
   [CATALOG.full.packageId]: [CATALOG.full.price, 99.9, 119.9, 129.9],
   [CATALOG.pdf.packageId]: [CATALOG.pdf.price, 59.9, 69.9],
+  [CATALOG.full_pack3.packageId]: [CATALOG.full_pack3.price],
+  [CATALOG.digital_pack3.packageId]: [CATALOG.digital_pack3.price],
   // Retired
   single_story_digital: [29.9, 39.9, 49.9],
   basic: [29.9, 39.9, 49.9],

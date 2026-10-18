@@ -10,6 +10,8 @@ export const packageConfig: Record<string, any> = {
   // Current packages (prices in catalog.ts)
   single_story: { stories: 1, freeEdits: 1 },
   popular: { stories: 1, freeEdits: 1 },
+  full_pack3: { stories: 3, freeEdits: 3 },
+  digital_pack3: { stories: 3, freeEdits: 3 },
   pdf: { stories: 0, freeEdits: 0, pdfForStory: true },
   // Retired packages — still honored for payments already made / old links
   basic: { stories: 1, freeEdits: 1 },
