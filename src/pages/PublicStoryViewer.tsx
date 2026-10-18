@@ -251,7 +251,7 @@ const PublicStoryViewer = () => {
 
                 {/* Bottom — open button */}
                 <div className="absolute bottom-6 left-0 right-0 z-10 flex flex-col items-center">
-                  <button type="button" aria-label="העמוד הבא" onClick={() => handlePageNav('next')} aria-label="התחל לקרוא"
+                  <button type="button" onClick={() => handlePageNav('next')} aria-label="התחל לקרוא"
                     className="bg-primary text-white font-bold px-6 py-3 rounded-full shadow-xl hover:shadow-2xl transition-all border-2 border-white/50 text-sm">
                     📖 פִּתְחוּ אֶת הַסֵּפֶר
                   </button>
@@ -276,7 +276,7 @@ const PublicStoryViewer = () => {
                 >
                   הירשמו והמשיכו לקרוא ✨
                 </Button>
-                <button type="button" aria-label="העמוד הקודם" onClick={() => handlePageNav('prev')} aria-label="עמוד קודם"
+                <button type="button" onClick={() => handlePageNav('prev')} aria-label="עמוד קודם"
                   className="absolute right-3 top-1/2 -translate-y-1/2 z-20 w-8 h-8 rounded-full flex items-center justify-center bg-white/20 hover:bg-white/40 text-white transition-all">
                   <ChevronRight className="w-5 h-5" />
                 </button>
