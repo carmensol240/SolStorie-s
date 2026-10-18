@@ -2,7 +2,8 @@
 declare const Deno: any;
 // Supabase-backed taste unlock: charge one credit, open the story, and create
 // the missing pictures with the same reference images and character description.
-import { unlockTasteStory, type TasteUnlockStore, type UnlockResult } from "./taste.ts";
+import { unlockTasteStory, type TasteUnlockStore, type UnlockResult, type CreditKind } from "./taste.ts";
+import { consumeCredit, refundCredit, grantStoryAccess } from "./story-access.ts";
 
 // deno-lint-ignore no-explicit-any
 export function supabaseTasteUnlockStore(sb: any): TasteUnlockStore {
@@ -11,15 +12,8 @@ export function supabaseTasteUnlockStore(sb: any): TasteUnlockStore {
       const { data } = await sb.from("stories").select("id, user_id, is_taste").eq("id", storyId).maybeSingle();
       return data ?? null;
     },
-    async getCredits(userId) {
-      const { data } = await sb.from("profiles").select("story_credits").eq("id", userId).maybeSingle();
-      return data?.story_credits ?? 0;
-    },
-    async casCredits(userId, from, to) {
-      const { data, error } = await sb.from("profiles").update({ story_credits: to })
-        .eq("id", userId).eq("story_credits", from).select("id");
-      return !error && Array.isArray(data) && data.length > 0;
-    },
+    consume: (userId, kind) => consumeCredit(sb, userId, kind),
+    refund: (userId, kind) => refundCredit(sb, userId, kind),
     async markUnlocked(storyId) {
       const { data, error } = await sb.from("stories")
         .update({ is_taste: false, generation_status: "generating_illustrations" })
@@ -29,18 +23,15 @@ export function supabaseTasteUnlockStore(sb: any): TasteUnlockStore {
   };
 }
 
-/** Full unlock: ownership + taste check, charge, open, record unlock, start missing pictures. */
+/** Full unlock: ownership + taste check, charge the chosen credit, open, grant access, start missing pictures. */
 // deno-lint-ignore no-explicit-any
-export async function unlockTasteAndComplete(sb: any, userId: string, storyId: string, amountPaid = 0): Promise<UnlockResult> {
-  const result = await unlockTasteStory(supabaseTasteUnlockStore(sb), userId, storyId);
+export async function unlockTasteAndComplete(sb: any, userId: string, storyId: string, creditKind?: CreditKind | null): Promise<UnlockResult> {
+  const result = await unlockTasteStory(supabaseTasteUnlockStore(sb), userId, storyId, creditKind);
   if (result.kind !== "unlocked") {
     console.log("[taste] unlock skipped:", result.kind, storyId.substring(0, 8));
     return result;
   }
-  const { error: uErr } = await sb.from("story_unlocks").insert({
-    user_id: userId, story_id: storyId, unlock_type: "taste", amount_paid: amountPaid,
-  });
-  if (uErr && uErr.code !== "23505") console.error("[taste] story_unlocks insert failed:", uErr.message);
+  await grantStoryAccess(sb, userId, storyId, result.creditKind);
   await dispatchMissingIllustrations(sb, storyId);
   return result;
 }
