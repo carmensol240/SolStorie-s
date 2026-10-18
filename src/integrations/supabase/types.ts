@@ -1306,6 +1306,11 @@ export type Database = {
         Args: { p_kind: string; p_user_id: string }
         Returns: string
       }
+      delete_story_rows: { Args: { p_story_ids: string[] }; Returns: undefined }
+      delete_user_rows: {
+        Args: { p_email_hash: string; p_user: string }
+        Returns: undefined
+      }
       generate_story_slug: {
         Args: { p_child_name: string; p_topic: string }
         Returns: string
