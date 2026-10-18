@@ -1567,6 +1567,14 @@ serve(async (req) => {
     console.log(`📄 Last page of story = ${lastPageNumber} (close-up angle disabled for it)`);
 
     // If singlePageNumber is specified, only generate for that one page
+    // Unpaid free taste: only its open pages get pictures.
+    {
+      const { data: tasteRow } = await supabase.from("stories").select("is_taste, taste_page_limit").eq("id", storyId).maybeSingle();
+      if (tasteRow?.is_taste) {
+        const lim = tasteRow.taste_page_limit ?? 0;
+        pagesToIllustrate = pagesToIllustrate.filter(p => p.page_number <= lim);
+      }
+    }
     if (singlePageNumber !== undefined && singlePageNumber !== null) {
       pagesToIllustrate = pagesToIllustrate.filter(p => p.page_number === singlePageNumber);
       console.log(`Single-page mode: generating only page ${singlePageNumber} (${pagesToIllustrate.length} match)`);
@@ -2077,8 +2085,11 @@ The action, objects, characters, and emotions shown MUST come from the STORY TEX
       .eq("story_id", storyId)
       .not("illustration_prompt", "is", null);
 
-    const totalNeeded = allIllustrationPages?.length || 0;
-    const totalDone = allIllustrationPages?.filter(p => p.illustration_url)?.length || 0;
+    const { data: tasteState } = await supabase.from("stories").select("is_taste, taste_page_limit").eq("id", storyId).maybeSingle();
+    const neededPages = (allIllustrationPages ?? []).filter(p =>
+      !tasteState?.is_taste || p.page_number <= (tasteState.taste_page_limit ?? 0));
+    const totalNeeded = neededPages.length;
+    const totalDone = neededPages.filter(p => p.illustration_url).length;
     console.log(`Illustration progress: ${totalDone}/${totalNeeded} pages completed`);
 
     if (totalDone >= totalNeeded) {

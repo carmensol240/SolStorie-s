@@ -1,3 +1,5 @@
+import { TASTE_UNLOCK_PACKAGES } from "./taste.ts";
+import { unlockTasteAndComplete } from "./taste-server.ts";
 // Shared purchase credit logic used by verify-purchase and grow-webhook
 
 export const packageConfig: Record<string, any> = {
@@ -58,6 +60,14 @@ export async function applyPurchaseCredits(
     return { success: false, error: "Unknown package", status: 400 };
   }
 
+  // Is the attached story an unpaid free taste?
+  let tasteStoryId: string | null = null;
+  if (storyId && TASTE_UNLOCK_PACKAGES.has(packageId)) {
+    const col = UUID_REGEX.test(storyId) ? "id" : "slug";
+    const { data: ts } = await supabase.from("stories").select("id, is_taste").eq(col, storyId).maybeSingle();
+    if (ts?.is_taste) tasteStoryId = ts.id;
+  }
+
   // Dynamic coloring credits — count illustrations in the story
   if (config.dynamicColoringFromStory) {
     let resolvedStoryUuid: string | null = null;
@@ -78,7 +88,8 @@ export async function applyPurchaseCredits(
         .from("story_pages")
         .select("id", { count: "exact", head: true })
         .eq("story_id", resolvedStoryUuid)
-        .not("illustration_url", "is", null);
+        // A taste only has its first pictures yet: count every planned picture.
+        .not(tasteStoryId === resolvedStoryUuid ? "illustration_prompt" : "illustration_url", "is", null);
       config.coloringPages = Math.max(1, count ?? 1);
     } else {
       config.coloringPages = 5;
@@ -122,6 +133,8 @@ export async function applyPurchaseCredits(
     updates.free_edits_remaining = (profile.free_edits_remaining ?? 0) + config.freeEdits;
     updates.free_edits_total = (profile.free_edits_total ?? 0) + config.freeEdits;
   }
+  // Digital story bought from a taste lock screen also gets its coloring page credit.
+  if (tasteStoryId && packageId === "single_story") config.coloringPages = (config.coloringPages || 0) + 1;
   if (config.coloringPages > 0) {
     updates.coloring_credits = (profile.coloring_credits ?? 0) + config.coloringPages;
   }
@@ -180,7 +193,16 @@ export async function applyPurchaseCredits(
     "single_story_full",
     "basic",
   ]);
-  if (storyId && SINGLE_STORY_PACKAGES.has(packageId)) {
+  if (tasteStoryId) {
+    // Opens only if the taste belongs to this buyer and is still locked;
+    // otherwise the credit simply stays on the account.
+    try {
+      const r = await unlockTasteAndComplete(supabase, userId, tasteStoryId, amount);
+      console.log("[PURCHASE-CREDITS] taste unlock:", r.kind);
+    } catch (e) {
+      console.error("[PURCHASE-CREDITS] taste unlock failed:", e);
+    }
+  } else if (storyId && SINGLE_STORY_PACKAGES.has(packageId)) {
     let resolvedStoryId: string | null = null;
     if (UUID_REGEX.test(storyId)) {
       resolvedStoryId = storyId;
