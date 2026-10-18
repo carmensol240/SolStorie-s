@@ -37,8 +37,12 @@ const DemoLockModal = ({ open, onOpenChange, title, description, storyId, isTast
   const unlockWithCredit = async () => {
     if (!storyId || unlocking) return;
     setUnlocking(true);
-    const { data: s } = await supabase.from("stories").select("id").or(`id.eq.${/^[0-9a-f-]{36}$/i.test(storyId) ? storyId : "00000000-0000-0000-0000-000000000000"},slug.eq.${storyId}`).maybeSingle();
-    const { error } = await supabase.functions.invoke("unlock-taste-story", { body: { storyId: s?.id ?? storyId } });
+    let id = storyId;
+    if (!/^[0-9a-f-]{36}$/i.test(id)) {
+      const { data: row } = await supabase.from("stories").select("id").eq("slug", id).maybeSingle();
+      id = row?.id ?? id;
+    }
+    const { error } = await supabase.functions.invoke("unlock-taste-story", { body: { storyId: id } });
     setUnlocking(false);
     if (error) {
       toast({ variant: "destructive", title: "לא הצלחנו לפתוח את הסיפור", description: "נסו שוב בעוד רגע." });
