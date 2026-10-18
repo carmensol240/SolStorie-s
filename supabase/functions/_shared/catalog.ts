@@ -56,7 +56,7 @@ export const CATALOG: Record<ProductKey, Product> = {
     packageId: "full_pack3",
     title: "3 סיפורים מלאים",
     price: 179,
-    growUrl: "",
+    growUrl: "https://pay.grow.link/MTAxMTMz~4c066b17a38c2c7d52af981039a3559e-NDE1MTAzMQ",
     includes: ["3 סיפורים מלאים, כל אחד עם קובץ להדפסה ודפי צביעה"],
   },
   digital_pack3: {
@@ -64,7 +64,7 @@ export const CATALOG: Record<ProductKey, Product> = {
     packageId: "digital_pack3",
     title: "3 סיפורים דיגיטליים",
     price: 99,
-    growUrl: "",
+    growUrl: "https://pay.grow.link/MTAxMTMz~3fc959a3cdda1aa50d81ff0a7b40350d-NDE1MTA0Mw",
     includes: ["3 סיפורים דיגיטליים, כל אחד עם דפי צביעה"],
   },
 };
