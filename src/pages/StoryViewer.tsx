@@ -16,7 +16,6 @@ import { getPublicIllustrationUrl } from "@/lib/illustration-url";
 
 import OfflineIndicator from "@/components/ui/offline-indicator";
 
-const TESTER_EMAIL = 'carmit1901+test@gmail.com';
 const ORIGINAL_TESTER = 'carmit1901@gmail.com';
 import EditPageDialog from "@/components/story/edit-page-dialog";
 import DedicationDialog from "@/components/story/DedicationDialog";
@@ -546,12 +545,8 @@ const [currentPage, setCurrentPage] = useState(0);
     if (!user?.id) { setIsAdminUser(false); setAdminChecked(true); return; }
     let cancelled = false;
     (async () => {
-      const { data } = await supabase
-        .from('user_roles')
-        .select('role')
-        .eq('user_id', user.id)
-        .eq('role', 'admin')
-        .maybeSingle();
+      // Server decides: admin role AND not in demo mode.
+      const { data } = await supabase.rpc('is_effective_admin', { _user_id: user.id });
       if (!cancelled) { setIsAdminUser(!!data); setAdminChecked(true); }
     })();
     return () => { cancelled = true; };
@@ -560,13 +555,10 @@ const [currentPage, setCurrentPage] = useState(0);
   // Demo user = logged in, no completed purchase, not subscriber, not admin, not tester.
   // For demo users, save/share/download/coloring/recording actions are blocked.
   const emailLower = user?.email?.toLowerCase();
-  const isTesterAccount = emailLower === TESTER_EMAIL;
-  // For the tester account, a localStorage flag toggles between 'demo' and 'admin'. Default = 'demo'.
-  const testerMode = isTesterAccount
-    ? (typeof window !== 'undefined' ? (localStorage.getItem('tester_mode') ?? 'demo') : 'demo')
-    : null;
-  const isForcedDemo = testerMode === 'demo';
-  const isTester = emailLower === ORIGINAL_TESTER || testerMode === 'admin';
+  // Demo/admin mode now lives on the server (admin_view_mode); isAdminUser is already
+  // false for an admin in demo mode. The email tester only counts with effective admin.
+  const isForcedDemo = false;
+  const isTester = emailLower === ORIGINAL_TESTER && isAdminUser;
   const isDemoUser = !!user && (
     isForcedDemo ||
     (!isSubscriberUser && !isAdminUser && !isTester && !isSingleStoryUnlock)

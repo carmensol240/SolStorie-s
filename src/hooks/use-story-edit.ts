@@ -36,11 +36,7 @@ export const useStoryEdit = (storyId: string): UseStoryEditResult => {
   useEffect(() => {
     if (!user) { setIsAdmin(false); return; }
     supabase
-      .from('user_roles')
-      .select('role')
-      .eq('user_id', user.id)
-      .eq('role', 'admin')
-      .maybeSingle()
+      .rpc('is_effective_admin', { _user_id: user.id })
       .then(({ data }) => setIsAdmin(!!data));
   }, [user]);
 

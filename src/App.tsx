@@ -1,4 +1,5 @@
 import { Toaster as Sonner } from "@/components/ui/sonner";
+import { AdminDemoBadge } from "@/components/admin/AdminModeSwitch";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
@@ -65,6 +66,7 @@ function App() { useTimeTheme(); return (
           <GlobalPurchaseHandler />
           
           <AccessibilityMenu />
+          <AdminDemoBadge />
           
           <Routes>
             <Route path="/" element={<Adventure />} />
