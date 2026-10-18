@@ -96,6 +96,7 @@ const ShareAndEarn = () => {
             variant="ghost"
             size="icon"
             onClick={() => navigate(-1)}
+            aria-label="חזרה"
             className="ml-2"
           >
             <ArrowRight className="h-5 w-5" />

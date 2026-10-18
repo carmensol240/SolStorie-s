@@ -101,6 +101,7 @@ const CouponInput = ({ onDiscountApplied, onStoriesAdded }: CouponInputProps) =>
           variant="ghost"
           size="sm"
           onClick={clearCoupon}
+          aria-label="הסרת הקופון"
           className="text-green-600 hover:text-green-700 hover:bg-green-100"
         >
           <X className="w-4 h-4" />

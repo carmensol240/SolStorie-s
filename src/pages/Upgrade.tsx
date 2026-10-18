@@ -317,6 +317,7 @@ const Upgrade = () => {
           variant="ghost"
           size="icon"
           onClick={handleClose}
+          aria-label="סגירה"
           className="rounded-full bg-white/10 backdrop-blur-sm text-white hover:bg-white/20"
         >
           <X className="w-5 h-5" />

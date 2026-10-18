@@ -646,25 +646,25 @@ export const OnlineColoringCanvas: React.FC<OnlineColoringCanvasProps> = ({
           <ArrowRight className="w-4 h-4" /> חזרה
         </Button>
         <div className="flex items-center gap-0.5">
-          <Button onClick={undo} variant="ghost" size="icon" disabled={historyIndex <= 0}
+          <Button onClick={undo} aria-label="ביטול פעולה" variant="ghost" size="icon" disabled={historyIndex <= 0}
             className="text-white hover:bg-white/20 rounded-xl w-9 h-9 disabled:opacity-30">
             <Redo2 className="w-4 h-4" />
           </Button>
-          <Button onClick={redo} variant="ghost" size="icon" disabled={historyIndex >= history.length - 1}
+          <Button onClick={redo} aria-label="ביצוע מחדש" variant="ghost" size="icon" disabled={historyIndex >= history.length - 1}
             className="text-white hover:bg-white/20 rounded-xl w-9 h-9 disabled:opacity-30">
             <Undo2 className="w-4 h-4" />
           </Button>
           <div className="w-px h-5 bg-white/30 mx-0.5" />
-          <Button onClick={handleSave} variant="ghost" size="icon" className="text-white hover:bg-white/20 rounded-xl w-9 h-9">
+          <Button onClick={handleSave} aria-label="שמירת הציור" variant="ghost" size="icon" className="text-white hover:bg-white/20 rounded-xl w-9 h-9">
             <Download className="w-4 h-4" />
           </Button>
-          <Button onClick={handlePrint} variant="ghost" size="icon" className="text-white hover:bg-white/20 rounded-xl w-9 h-9">
+          <Button onClick={handlePrint} aria-label="הדפסה" variant="ghost" size="icon" className="text-white hover:bg-white/20 rounded-xl w-9 h-9">
             <Printer className="w-4 h-4" />
           </Button>
-          <Button onClick={handleClear} variant="ghost" size="icon" className="text-white hover:bg-white/20 rounded-xl w-9 h-9" title="נקה צביעה">
+          <Button onClick={handleClear} aria-label="נקה צביעה" variant="ghost" size="icon" className="text-white hover:bg-white/20 rounded-xl w-9 h-9" title="נקה צביעה">
             <Trash2 className="w-4 h-4" />
           </Button>
-          <Button onClick={toggleLandscape} variant="ghost" size="icon" className="text-white hover:bg-white/20 rounded-xl w-9 h-9" title={isLandscape ? 'מצב עומד' : 'מצב רוחב'}>
+          <Button onClick={toggleLandscape} aria-label={isLandscape ? 'מצב עומד' : 'מצב רוחב'} variant="ghost" size="icon" className="text-white hover:bg-white/20 rounded-xl w-9 h-9" title={isLandscape ? 'מצב עומד' : 'מצב רוחב'}>
             {isLandscape ? <Smartphone className="w-4 h-4" /> : <ScreenShare className="w-4 h-4" />}
           </Button>
           {(canGoPrev || canGoNext) && (
@@ -725,7 +725,7 @@ export const OnlineColoringCanvas: React.FC<OnlineColoringCanvasProps> = ({
             }`}>
             <Pencil className="w-4 h-4" style={{ color: tool === 'brush' ? color : undefined }} />
           </button>
-          <button onPointerDown={(e) => { e.stopPropagation(); toolRef.current = 'eraser'; setTool('eraser'); }}
+          <button type="button" aria-label="מחק" aria-pressed={tool === 'eraser'} onPointerDown={(e) => { e.stopPropagation(); toolRef.current = 'eraser'; setTool('eraser'); }}
             className={`w-9 h-9 rounded-full flex items-center justify-center transition-all touch-manipulation ${
               tool === 'eraser' ? 'ring-2 ring-purple-500 ring-offset-1 bg-purple-50 shadow-md' : 'bg-gray-100 hover:bg-gray-200'
             }`}>

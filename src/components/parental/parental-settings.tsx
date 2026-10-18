@@ -60,7 +60,7 @@ const ParentalSettings = ({ onBack }: ParentalSettingsProps) => {
       {/* Header */}
       <div className="flex items-center justify-between">
         {onBack && (
-          <Button variant="ghost" size="icon" onClick={onBack}>
+          <Button variant="ghost" size="icon" onClick={onBack} aria-label="חזרה">
             <ChevronLeft className="h-5 w-5" />
           </Button>
         )}
