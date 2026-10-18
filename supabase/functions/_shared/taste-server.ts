@@ -1,3 +1,5 @@
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+declare const Deno: any;
 // Supabase-backed taste unlock: charge one credit, open the story, and create
 // the missing pictures with the same reference images and character description.
 import { unlockTasteStory, type TasteUnlockStore, type UnlockResult } from "./taste.ts";
