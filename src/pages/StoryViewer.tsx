@@ -57,10 +57,9 @@ import { useAutoFitText } from "@/hooks/use-auto-fit-text";
 import { BookFrame, BookPage, BookHeader, NavigationArrows, MagicalBookFrame } from "@/components/story/book-frame";
 import { TheaterFrame } from "@/components/story/theater-frame";
 import PdfFeaturePopup from "@/components/story/PdfFeaturePopup";
-import PrintPdfOfferModal from "@/components/story/PrintPdfOfferModal";
 import PrintBookPreviewModal from "@/components/story/PrintBookPreviewModal";
 import InstallAppPrompt from "@/components/story/InstallAppPrompt";
-import ColoringPurchaseModal from "@/components/paywall/ColoringPurchaseModal";
+import { formatPrice } from "@/config/promo";
 import DemoLockModal from "@/components/story/DemoLockModal";
 import ShareCompletionBanner from "@/components/story/ShareCompletionBanner";
 
@@ -401,38 +400,23 @@ const [currentPage, setCurrentPage] = useState(0);
   // No orientation lock needed - vertical portrait layout
 
   // Check if user has purchased a story package (controls "print to book" button behavior)
+  // Access is per story: the print file needs a permission for THIS story.
   const refetchPurchaseStatus = useCallback(async () => {
-    if (!user?.id) { setHasPurchasedPackage(false); setPurchaseChecked(true); return; }
-    const { data, error } = await supabase
-      .from('purchases')
-      .select('id, package_name')
+    setHasPurchasedPackage(false);
+    if (!user?.id || !story?.id) { setHasPdfEntitlement(false); setPurchaseChecked(true); return; }
+    const { data } = await supabase
+      .from('pdf_entitlements')
+      .select('id')
       .eq('user_id', user.id)
-      .in('status', ['completed', 'test_completed'])
-      .limit(50);
-    if (!error) {
-      // A "package" purchase unlocks all stories. Single-story purchases
-      // (package_name contains "single_story") must NOT bypass the demo paywall
-      // for other stories — they only unlock the specific story via story_unlocks.
-      const hasPackage = (data ?? []).some((row: any) => {
-        const name: string = row?.package_name ?? '';
-        return !name.includes('single_story');
-      });
-      setHasPurchasedPackage(hasPackage);
-      // PDF download requires either a multi-story package OR a single_story_full unlock.
-      // single_story_digital (39.90 ₪) does NOT grant PDF rights.
-      const hasFullPdfRight = (data ?? []).some((row: any) => {
-        const name: string = row?.package_name ?? '';
-        return !name.includes('single_story') || name.includes('single_story_full');
-      });
-      setHasPdfEntitlement(hasFullPdfRight);
-    }
+      .eq('story_id', story.id)
+      .limit(1);
+    setHasPdfEntitlement((data?.length ?? 0) > 0);
     setPurchaseChecked(true);
-  }, [user?.id]);
+  }, [user?.id, story?.id]);
 
   useEffect(() => {
-    if (!user?.id) { setHasPurchasedPackage(false); return; }
     refetchPurchaseStatus();
-  }, [user?.id, refetchPurchaseStatus]);
+  }, [refetchPurchaseStatus]);
 
   // Listen for purchase completion (fired by Upgrade page) — unlocks features without a refresh
   useEffect(() => {
@@ -577,7 +561,7 @@ const [currentPage, setCurrentPage] = useState(0);
   const isTester = emailLower === ORIGINAL_TESTER || testerMode === 'admin';
   const isDemoUser = !!user && (
     isForcedDemo ||
-    (!hasPurchasedPackage && !isSubscriberUser && !isAdminUser && !isTester && !hasStoryCredits && !isSingleStoryUnlock)
+    (!isSubscriberUser && !isAdminUser && !isTester && !isSingleStoryUnlock)
   );
 
   useEffect(() => {
@@ -602,11 +586,19 @@ const [currentPage, setCurrentPage] = useState(0);
   // admins, or testers may download. single_story_digital buyers see the
   // upgrade modal so they can buy the full version.
   const canDownloadPdf = !!user && (
-    hasPdfEntitlement || isSubscriberUser || isAdminUser || isTester
+    hasPdfEntitlement || isAdminUser || isTester
   ) && !isForcedDemo;
+  // Every purchased story opens all of its coloring pages.
   const canUseColoring = !!user && (
-    hasPdfEntitlement || isSubscriberUser || isTester
+    isSingleStoryUnlock || isSubscriberUser || isAdminUser || isTester
   ) && !isForcedDemo;
+  // Digital-only story: offer the print file until it's bought.
+  const showPdfAddOn = !!user && isSingleStoryUnlock && !hasPdfEntitlement && !isAdminUser && !isTester && purchaseChecked && !story?.is_taste;
+  const buyPdfForStory = useCallback(() => {
+    import("@/config/grow-links").then(({ openGrowCheckout }) =>
+      openGrowCheckout("pdf", { userId: user?.id ?? null, storyId: story?.id ?? null })
+    );
+  }, [user?.id, story?.id]);
   const guardPdfDownload = useCallback((fn: () => void) => {
     return () => {
       if (!canDownloadPdf) {
@@ -643,23 +635,6 @@ const [currentPage, setCurrentPage] = useState(0);
       }
     };
   }, []);
-
-  // Show "print PDF" offer when a free/demo user OR a single_story_digital buyer finishes the story (once per story)
-  const testPdfOfferFlag = new URLSearchParams(location.search).get('test_pdf_offer') === '1';
-  const shouldShowPdfOffer = testPdfOfferFlag || isDemoUser || (hasPurchasedPackage && !hasPdfEntitlement);
-  useEffect(() => {
-    if (!story?.id || !purchaseChecksReady || !shouldShowPdfOffer) return;
-    const total = (story.pages?.length ?? 0);
-    if (total === 0) return;
-    if (currentPage < total) return;
-    const key = `print_pdf_offer_shown_${story.id}`;
-    if (!testPdfOfferFlag && localStorage.getItem(key)) return;
-    const t = setTimeout(() => {
-      setShowPrintPdfOffer(true);
-      if (!testPdfOfferFlag) localStorage.setItem(key, "1");
-    }, 600);
-    return () => clearTimeout(t);
-  }, [currentPage, shouldShowPdfOffer, story?.id, story?.pages?.length, purchaseChecksReady, testPdfOfferFlag]);
 
   // Restore last-viewed page after returning from purchase (or any in-tab navigation)
   const didRestorePageRef = useRef(false);
@@ -1845,7 +1820,7 @@ const [currentPage, setCurrentPage] = useState(0);
         canRegenerateCover={canRegenerateCover}
         page1RegenUsed={!!story?.page1_regen_used && !isAdminUser}
         onColoring={() => {
-          if (!canUseColoring) { setColoringUpsellOpen(true); return; }
+          if (!canUseColoring) { setDemoLockOpen(true); return; }
           guardDemo(() => preloadStoryCachedColoring(null))();
         }}
         coloringLocked={!canUseColoring}
@@ -1975,14 +1950,13 @@ const [currentPage, setCurrentPage] = useState(0);
                     </div>
                   )}
 
-                  {/* Upgrade CTA — only when story was unlocked via a single purchase */}
-                  {isSingleStoryUnlock && !hasPurchasedPackage && (
-                    <button
-                      onClick={() => navigate(`/upgrade?firstStory=${story?.id ?? ''}&from=single_upgrade`)}
-                      className="mt-2 w-full max-w-xs mx-auto bg-gradient-to-r from-purple-600 via-pink-500 to-orange-500 text-white font-black text-sm px-4 py-3 rounded-full shadow-lg hover:scale-[1.02] transition-transform"
-                    >
-                      שדרג לחבילה מלאה וחסוך! ✨
-                    </button>
+                  {showPdfAddOn && (
+                    <div className="mt-2 w-full max-w-xs mx-auto rounded-2xl border border-border bg-card p-4 text-center space-y-2">
+                      <p className="text-base font-bold text-foreground">רוצים להדפיס את הספר?</p>
+                      <Button onClick={buyPdfForStory} className="w-full min-h-[48px] text-base font-bold">
+                        קובץ להדפסה – {formatPrice("pdf")} ₪
+                      </Button>
+                    </div>
                   )}
 
                   {/* Footer message */}
@@ -2383,10 +2357,12 @@ const [currentPage, setCurrentPage] = useState(0);
           pages={(story.pages || []).slice(0, 4).map(p => ({ illustration_url: p.illustration_url || null, text: p.text || '' }))}
           onDownload={() => {
             setShowPrintPreviewModal(false);
-            if (hasPurchasedPackage) {
+            if (canDownloadPdf) {
               exportToPdf(story);
+            } else if (isSingleStoryUnlock) {
+              buyPdfForStory();
             } else {
-              setShowBuyToPrintDialog(true);
+              setDemoLockOpen(true);
             }
           }}
         />
@@ -2422,22 +2398,14 @@ const [currentPage, setCurrentPage] = useState(0);
       {/* PDF Feature Popup - one-time per user */}
       <PdfFeaturePopup userId={user?.id} />
 
-      {/* Print PDF offer for free users on last page */}
-      {resolvedId && (
-        <PrintPdfOfferModal
-          open={showPrintPdfOffer}
-          onOpenChange={setShowPrintPdfOffer}
-          storyId={resolvedId ?? storyId ?? ""}
-          onPurchase={() => {
-            setShowPrintPdfOffer(false);
-            import("@/config/grow-links").then(({ openGrowCheckout }) =>
-              openGrowCheckout("pdf", {
-                userId: user?.id ?? null,
-                storyId: resolvedId ?? storyId ?? null,
-              })
-            );
-          }}
-        />
+      {/* Permanent print-file button for digital-only stories (not a pop-up) */}
+      {showPdfAddOn && (
+        <button
+          onClick={buyPdfForStory}
+          className="fixed top-20 left-3 z-40 min-h-[48px] rounded-full bg-card border border-border shadow-lg px-4 text-sm font-bold text-foreground"
+        >
+          🖨️ קובץ להדפסה – {formatPrice("pdf")} ₪
+        </button>
       )}
 
       {/* Install App Prompt - shown only after reaching last page */}
@@ -2504,7 +2472,7 @@ const [currentPage, setCurrentPage] = useState(0);
                     });
                     if (response.error) throw response.error;
                     if ((response.data as any)?.upsell) {
-                      setColoringUpsellOpen(true);
+                      setDemoLockOpen(true);
                       return;
                     }
                     const coloringUrl = (response.data as any)?.image;
@@ -2618,7 +2586,7 @@ const [currentPage, setCurrentPage] = useState(0);
                       });
                       if (response.error) throw response.error;
                       if ((response.data as any)?.upsell) {
-                        setColoringUpsellOpen(true);
+                        setDemoLockOpen(true);
                         return;
                       }
                       const coloringUrl = (response.data as any)?.image;
@@ -2659,7 +2627,7 @@ const [currentPage, setCurrentPage] = useState(0);
                       });
                       if (response.error) throw response.error;
                       if ((response.data as any)?.upsell) {
-                        setColoringUpsellOpen(true);
+                        setDemoLockOpen(true);
                         return;
                       }
                       const coloringUrl = (response.data as any)?.image;
@@ -2712,14 +2680,6 @@ const [currentPage, setCurrentPage] = useState(0);
         backgroundImage={onlineColoringImageUrl || ''}
         childName={story?.child_name}
         storyTitle={story?.topic}
-      />
-
-      {/* Coloring Pages Locked Upsell */}
-      <ColoringPurchaseModal
-        open={coloringUpsellOpen}
-        onOpenChange={setColoringUpsellOpen}
-        storyId={story?.id ?? null}
-        illustrationCount={story?.pages?.filter(p => p.illustration_url).length ?? 0}
       />
 
       {/* First-completion WhatsApp share prompt */}
