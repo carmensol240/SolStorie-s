@@ -53,4 +53,5 @@
 - Storage cleanup covers `child-photos/{userId}/**` and `taste-refs/{userId}/**` (and `temp-refs`), plus illustrations and coloring images in `story-illustrations` belonging to the user's stories.
 - Purchases: `user_id` is replaced by a random UUID. A comment documents the retention.
 - The auth user is removed with `auth.admin.deleteUser`, and the profile cascades. The confirmation is sent via Resend from the existing sender before deletion.
+- free_taste_claims on deletion: the user's rows are deleted, then one row is inserted with `normalized_email = 'sha256:' + sha256(normalizeEmail(email))`, a random UUID in `user_id` (the column is required), and device_id/ip_hash/story_id set to null. `generate-story` eligibility also matches the hashed form. Shared hash helper in `_shared/taste.ts`, with a test.
 - `AccountExit.tsx` gets the real confirm dialog. `ChildProfiles.tsx` gets the photo button and the delete-choice dialog.
