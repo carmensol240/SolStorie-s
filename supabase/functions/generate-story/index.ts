@@ -4,7 +4,13 @@ import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.39.3";
 import { logError } from "../_shared/log-error.ts";
 import { normalizeGender } from "../_shared/gender.ts";
-import { claimStoryRequest, releaseStoryRequest, supabaseStoryRequestStore, isValidRequestId } from "../_shared/story-request.ts";
+import { claimStoryRequest, releaseStoryRequest, supabaseStoryRequestStore, isValidRequestId, claimTasteRequest, releaseTasteRequest, supabaseTasteClaimStore } from "../_shared/story-request.ts";
+import { normalizeEmail, decideTasteEligibility, tastePageLimit } from "../_shared/taste.ts";
+
+async function sha256Hex(s: string): Promise<string> {
+  const buf = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(s));
+  return Array.from(new Uint8Array(buf)).map((b) => b.toString(16).padStart(2, "0")).join("");
+}
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -905,16 +911,20 @@ function appendAppearanceParts(parts: string[], ap: Appearance) {
   if (ap.hairColor || ap.hairStyle) parts.push(`שיער הדמות: ${hair} — יש לשמור על מראה השיער הזה זהה בכל עמודי הסיפור.`);
 }
 
-interface RequestCtx { placeholderId: string | null; userId: string | null; charged: boolean; done: boolean }
+interface RequestCtx { placeholderId: string | null; userId: string | null; charged: boolean; done: boolean; taste: boolean }
 
 serve(async (req) => {
-  const ctx: RequestCtx = { placeholderId: null, userId: null, charged: false, done: false };
+  const ctx: RequestCtx = { placeholderId: null, userId: null, charged: false, done: false, taste: false };
   const res = await handleGenerateStory(req, ctx);
   // Any exit after the row was claimed that didn't finish the story: remove it and refund.
   if (ctx.placeholderId && ctx.userId && !ctx.done) {
     try {
       const sb = createClient(Deno.env.get("SUPABASE_URL")!, Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!);
-      await releaseStoryRequest(supabaseStoryRequestStore(sb), ctx.userId, ctx.placeholderId);
+      if (ctx.taste) {
+        await releaseTasteRequest(supabaseStoryRequestStore(sb), supabaseTasteClaimStore(sb), ctx.placeholderId);
+      } else {
+        await releaseStoryRequest(supabaseStoryRequestStore(sb), ctx.userId, ctx.placeholderId);
+      }
       console.log("[generate-story] released unfinished request and refunded credit");
     } catch (e) {
       console.error("[generate-story] release failed:", e);
@@ -1191,7 +1201,45 @@ async function handleGenerateStory(req: Request, ctx: RequestCtx): Promise<Respo
     }
 
     // === ONE-TIME REQUEST: save the row first, then charge ===
-    if (userId && !guestMode && isValidRequestId(reqBody.client_request_id)) {
+    const tastePages = tasteClaim ? tastePageLimit(ageRange) : null;
+    if (userId && !guestMode && tasteClaim) {
+      const tc = await claimTasteRequest(
+        supabaseStoryRequestStore(supabase),
+        supabaseTasteClaimStore(supabase),
+        userId,
+        reqBody.client_request_id,
+        {
+          child_name: childName,
+          child_gender: childGender,
+          age_range: ageRange,
+          topic: getHebrewTopic(topic),
+          nikud: !!nikud,
+          language,
+          story_type: isCustomTopic ? "custom" : "text",
+          is_taste: true,
+          taste_page_limit: tastePages,
+          ...(childId ? { child_id: childId } : {}),
+        },
+        tasteClaim,
+      );
+      if (tc.kind === "duplicate") {
+        return new Response(
+          JSON.stringify({ storyId: tc.storyId, duplicate: true, status: tc.status }),
+          { headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        );
+      }
+      if (tc.kind === "not_eligible") {
+        return new Response(
+          JSON.stringify({ error: "נגמרו הקרדיטים", code: "NO_CREDITS" }),
+          { status: 402, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        );
+      }
+      if (tc.kind === "error") throw new Error(`taste claim failed: ${tc.error}`);
+      ctx.placeholderId = tc.storyId;
+      ctx.userId = userId;
+      ctx.charged = true; // nothing to charge for a taste
+      ctx.taste = true;
+    } else if (userId && !guestMode && isValidRequestId(reqBody.client_request_id)) {
       const claim = await claimStoryRequest(
         supabaseStoryRequestStore(supabase),
         userId,
@@ -2307,6 +2355,16 @@ ${fullStoryText}`;
     if (childId) {
       storyInsertData.child_id = childId;
     }
+    if (ctx.taste) {
+      // Saved so the remaining pictures can be made after payment with the same character.
+      storyInsertData.taste_resume = {
+        childAvatarUrl: childAvatarUrl || null,
+        adventureLogic: adventureLogic || null,
+        topic,
+        appearance: reqAppearance,
+        childAge: childAgeRaw ?? null,
+      };
+    }
     
     // With a claimed one-time request, fill in the row saved earlier instead of inserting a new one.
     const { data: story, error: storyError } = ctx.placeholderId
@@ -2534,7 +2592,26 @@ ${fullStoryText}`;
       // === DISTRIBUTED ILLUSTRATION GENERATION ===
       // Fire a SEPARATE call for each page that needs an illustration.
       // Each invocation handles one page (~80s), staying well within the Edge Function timeout (~150s).
-      const illustrationPages = pagesWithoutIllustrations.filter((p: any) => p.illustration_prompt);
+      const illustrationPages = pagesWithoutIllustrations.filter((p: any) =>
+        p.illustration_prompt && (tastePages == null || p.page_number <= tastePages));
+      // Taste: keep the child's photo in permanent storage so the remaining
+      // pages can use the same reference after payment.
+      let dispatchPhoto = childPhoto;
+      if (ctx.taste && typeof childPhoto === "string" && childPhoto.startsWith("data:") && userId) {
+        try {
+          const b64 = childPhoto.split(",")[1] || "";
+          const bin = atob(b64);
+          const bytes = new Uint8Array(bin.length);
+          for (let i = 0; i < bin.length; i++) bytes[i] = bin.charCodeAt(i);
+          const mime = childPhoto.slice(5, childPhoto.indexOf(";")) || "image/jpeg";
+          const path = `taste-refs/${userId}/${story.id}.${mime.includes("png") ? "png" : "jpg"}`;
+          const { error: upErr } = await supabase.storage.from("child-photos").upload(path, bytes, { contentType: mime, upsert: true });
+          if (!upErr) {
+            await supabase.from("stories").update({ child_photo_path: path }).eq("id", story.id);
+            dispatchPhoto = path;
+          } else console.warn("[taste] photo save failed:", upErr.message);
+        } catch (e) { console.warn("[taste] photo save error:", e); }
+      }
       console.log(`Triggering ${illustrationPages.length} separate generate-illustrations calls (one per page)...`);
 
       // Collect all fetch promises — we MUST await them before returning
@@ -2557,7 +2634,7 @@ ${fullStoryText}`;
           },
           body: JSON.stringify({
             storyId: story.id,
-            childPhoto: childPhoto,
+            childPhoto: dispatchPhoto,
             childAvatarUrl: childAvatarUrl,
             childGender: childGender,
             ageRange: ageRange,
