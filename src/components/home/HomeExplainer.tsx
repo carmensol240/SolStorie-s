@@ -40,7 +40,7 @@ const TOPICS = [
 const INCLUDED = [
   { icon: BookOpen, text: "ספר מאויר לקריאה בטלפון ובמחשב" },
   { icon: Volume2, text: "הקראה בקול, ואפשרות להקליט את הקול שלכם" },
-  { icon: Printer, text: "קובץ להדפסת הספר בבית" },
+  { icon: Printer, text: "ספר אמיתי ביד: קובץ להדפסה (בסיפור המלא)" },
   { icon: Palette, text: "דפי צביעה מאיורי הסיפור" },
 ];
 
@@ -141,10 +141,10 @@ const HomeExplainer = () => {
                   <h3 className="text-center text-lg font-black text-foreground">{p.title}</h3>
                   <p className="text-center text-2xl font-black text-primary mt-1">₪{formatPrice(k)}</p>
                   <ul className="mt-4 space-y-2">
-                    {p.includes.map((t) => (
+                    {p.includes.map((t, i) => (
                       <li key={t} className="flex items-start gap-2 text-base text-foreground">
                         <Check className="w-5 h-5 text-green-600 shrink-0 mt-0.5" aria-hidden="true" />
-                        <span>{t}</span>
+                        <span className={k === "full" && i === p.includes.length - 1 ? "text-primary font-black" : undefined}>{t}</span>
                       </li>
                     ))}
                   </ul>

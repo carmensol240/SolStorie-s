@@ -39,7 +39,7 @@ export const CATALOG: Record<ProductKey, Product> = {
     title: "סיפור מלא",
     price: 69.9,
     growUrl: "https://pay.grow.link/MTAxMTMz~cb4021f916e22b79f369e594e6df3c22-NDE0NzM1Mw",
-    includes: ["כל מה שבסיפור הדיגיטלי, ובנוסף: קובץ להדפסת הספר בבית"],
+    includes: [...DIGITAL_INCLUDES, "📖 ספר אמיתי ביד: קובץ מוכן להדפסה בבית או בכל מכון הדפסה"],
   },
   pdf: {
     key: "pdf",
