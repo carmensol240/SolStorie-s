@@ -230,6 +230,8 @@ const GeneratingStep = ({ formData, requestId, onComplete }: GeneratingStepProps
             childId: (formData as any).childId || undefined,
             // One-time ID: the server creates and charges at most once per ID.
             client_request_id: requestId,
+            // Which credit the parent chose (full includes the print file).
+            creditKind: (formData as any).creditKind || undefined,
             // Device ID: the free taste is limited to one per device.
             device_id: (() => { try { let d = localStorage.getItem('storyteller_device_id'); if (!d) { d = 'device_' + crypto.randomUUID(); localStorage.setItem('storyteller_device_id', d); } return d; } catch { return undefined; } })(),
             appearance: {

@@ -1,7 +1,7 @@
 import { useState, useEffect, useMemo } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { X, Check, Flame } from "lucide-react";
-import { PROMO_END, PROMO_END_LABEL, isPromoActive, getPrice, getRegularPrice, type PriceKey } from "@/config/promo";
+import { PROMO_END, PROMO_END_LABEL, isPromoActive, getPrice, getRegularPrice, CATALOG, type PriceKey } from "@/config/promo";
 
 const WHITELISTED_TEST_EMAILS = [
   "carmit1901+test@gmail.com",
@@ -12,7 +12,6 @@ import PurchaseSuccessModal from "@/components/paywall/PurchaseSuccessModal";
 import PurchaseFailedModal from "@/components/paywall/PurchaseFailedModal";
 import CouponInput from "@/components/paywall/CouponInput";
 import SampleBookModal from "@/components/upgrade/SampleBookModal";
-import ColoringPurchaseModal from "@/components/paywall/ColoringPurchaseModal";
 
 import { useCredits } from "@/hooks/use-credits";
 import { useAnalytics } from "@/hooks/use-analytics";
@@ -29,7 +28,7 @@ interface Product {
   title: string;
   description: string;
   priceKey: PriceKey;
-  growKey: "basic" | "popular";
+  growKey: "digital" | "full";
   features: string[];
   badge?: string;
 }
@@ -37,34 +36,20 @@ interface Product {
 const PRODUCTS: Product[] = [
   {
     id: "digital",
-    title: "דיגיטלי",
-    description: "סיפור דיגיטלי בודד",
-    priceKey: "basic",
-    growKey: "basic",
-    features: [
-      "✨ הילד שלך — הגיבור של הסיפור",
-      "🎨 דמות מותאמת אישית עם הפנים שלו",
-      "🎵 מוזיקת רקע קסומה",
-      "🎙️ הקלטה והשמעה",
-      "📚 הסיפור שמור לתמיד",
-    ],
+    title: CATALOG.digital.title,
+    description: "ספר מאויר עם כל דפי הצביעה",
+    priceKey: "digital",
+    growKey: "digital",
+    features: CATALOG.digital.includes,
   },
   {
     id: "popular",
-    title: "סיפור מלא",
-    description: "סיפור דיגיטלי + קובץ להדפסת ספר + דפי צביעה",
-    priceKey: "popular",
-    growKey: "popular",
-    badge: "הכי משתלם 🔥",
-    features: [
-      "✨ הילד שלך — הגיבור של הסיפור",
-      "🎨 דמות מותאמת אישית עם הפנים שלו",
-      "🎵 מוזיקת רקע קסומה",
-      "🎙️ הקלטה והשמעה",
-      "📖 קובץ PDF להדפסה",
-      "🎨 חבילת דפי צביעה מלאה לכל איורי הסיפור",
-      "📚 הסיפור שמור לתמיד",
-    ],
+    title: CATALOG.full.title,
+    description: CATALOG.full.includes[0],
+    priceKey: "full",
+    growKey: "full",
+    badge: "הכי משתלם",
+    features: [...CATALOG.digital.includes, "קובץ להדפסת הספר בבית"],
   },
 ];
 
@@ -134,7 +119,7 @@ const Upgrade = () => {
       : PRODUCTS.find((p) => p.id === selectedProduct) ?? null;
   const selectedBasePrice = selectedProductData
     ? getPrice(selectedProductData.priceKey)
-    : 24.9; // coloring bundle default; actual price picked inside modal
+    : 0;
   const selectedFinalPrice = selectedProductData
     ? Math.round(selectedBasePrice * (1 - discountPercent / 100) * 100) / 100
     : selectedBasePrice;
@@ -205,10 +190,6 @@ const Upgrade = () => {
 
   const handlePurchase = () => {
     if (!user) { navigate("/auth"); return; }
-    if (selectedProduct === "coloring_pages") {
-      setShowColoringModal(true);
-      return;
-    }
     if (!selectedProductData) {
       // Defensive: unreachable given the guard above, but keeps TS honest
       // and prevents any future ProductId addition from crashing checkout.
@@ -441,41 +422,6 @@ const Upgrade = () => {
               );
             })}
 
-            {/* Coloring pages — unchanged price, no launch tag */}
-            <button
-              onClick={() => setSelectedProduct("coloring_pages")}
-              className={cn(
-                "relative w-full flex flex-col rounded-2xl border transition-all duration-200 p-4 text-right",
-                "bg-white/10 backdrop-blur-md",
-                selectedProduct === "coloring_pages"
-                  ? "border-white/50 shadow-lg scale-[1.02] bg-white/20 ring-2 ring-white/30"
-                  : "border-white/15 hover:border-white/30"
-              )}
-            >
-              <div className="flex items-start justify-between gap-3">
-                <div className="flex-1">
-                  <div className="text-lg font-black text-white mb-1">🎨 דפי צביעה</div>
-                  <p className="text-xs text-white/70 font-semibold">דפי צביעה לכל איורי הסיפור</p>
-                </div>
-                <div className="flex flex-col items-end shrink-0">
-                  <span className="text-xl font-black text-pink-300">₪24.90</span>
-                  <span className="text-xs text-white/60 font-semibold">או דף בודד ₪9.90</span>
-                </div>
-              </div>
-              <div className="mt-3 grid grid-cols-2 gap-x-2 gap-y-1.5">
-                {[
-                  "🎨 צביעה אונליין באפליקציה",
-                  "🖨️ הדפסה מהבית",
-                  "✨ דף לכל איור בסיפור",
-                  "📚 שמור לתמיד",
-                ].map((feature) => (
-                  <div key={feature} className="flex items-center gap-1.5">
-                    <Check className="w-3.5 h-3.5 text-green-400 shrink-0" />
-                    <span className="text-xs font-semibold text-white/90 leading-tight">{feature}</span>
-                  </div>
-                ))}
-              </div>
-            </button>
           </div>
 
           {/* Coupon */}
@@ -487,28 +433,6 @@ const Upgrade = () => {
               }}
               onStoriesAdded={() => { refetchCredits(); }}
             />
-          </div>
-
-          {/* Gift Card Entry */}
-          <div dir="rtl" className="relative overflow-hidden rounded-2xl border border-white/10 bg-gradient-to-br from-pink-500/10 via-purple-500/10 to-orange-500/10 p-5 mb-4 text-center">
-            <span aria-hidden className="pointer-events-none absolute top-2 right-3 text-2xl opacity-70 animate-bounce" style={{ animationDuration: "2.6s" }}>🎈</span>
-            <span aria-hidden className="pointer-events-none absolute top-2 left-3 text-2xl opacity-70 animate-pulse">✨</span>
-            <span aria-hidden className="pointer-events-none absolute bottom-2 right-4 text-xl opacity-60 animate-pulse" style={{ animationDelay: "0.5s" }}>🎉</span>
-            <span aria-hidden className="pointer-events-none absolute bottom-2 left-4 text-xl opacity-60 animate-bounce" style={{ animationDuration: "3.2s", animationDelay: "0.3s" }}>🎁</span>
-            <h3 className="relative text-lg font-black text-white mb-1">רוצה לשמח מישהו? 🎁</h3>
-            <p className="relative text-xs text-white/70 mb-3 leading-relaxed">
-              כרטיס מתנה דיגיטלי עם קוד אישי — מושלם ליום הולדת, חג או סתם ככה
-            </p>
-            <Button
-              onClick={() => {
-                trackEvent({ eventType: "feature_used", metadata: { feature: "gift_entry_clicked" } });
-                navigate("/gift");
-              }}
-              className="relative w-full bg-primary hover:bg-primary/90 text-white font-black text-sm py-3 rounded-xl shadow-xl"
-              style={{ boxShadow: "0 0 24px rgba(236, 72, 153, 0.35), 0 0 48px rgba(168, 85, 247, 0.2)" }}
-            >
-              🎁 שלח כמתנה
-            </Button>
           </div>
 
           {/* Terms */}
@@ -558,13 +482,7 @@ const Upgrade = () => {
       <PurchaseSuccessModal open={showSuccess} onOpenChange={setShowSuccess} creditsAdded={1} />
       <PurchaseFailedModal open={showFailed} onOpenChange={setShowFailed} onRetry={handleRetry} />
       <SampleBookModal open={showSampleBook} onOpenChange={setShowSampleBook} />
-      <ColoringPurchaseModal
-        open={showColoringModal}
-        onOpenChange={setShowColoringModal}
-        storyId={coloringStoryId}
-        illustrationCount={6}
-        onSuccess={() => setShowSuccess(true)}
-      />
+
     </div>
   );
 };

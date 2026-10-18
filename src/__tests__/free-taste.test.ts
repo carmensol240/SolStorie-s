@@ -9,6 +9,7 @@ import {
 } from "../../supabase/functions/_shared/taste";
 import { claimTasteRequest, type StoryRequestStore, type TasteClaimStore } from "../../supabase/functions/_shared/story-request";
 import { normalizeGender } from "../../supabase/functions/_shared/gender";
+import { splitCredits } from "@/hooks/use-credit-kinds";
 
 const none = { hasPriorStory: false, userClaimed: false, emailClaimed: false, deviceClaimed: false, ipClaimsLast30d: 0 };
 
@@ -51,12 +52,17 @@ describe("free taste — limits", () => {
   });
 });
 
-function unlockStore(story: { id: string; user_id: string | null; is_taste: boolean } | null, credits: number) {
-  const s = { story, credits };
+function unlockStore(story: { id: string; user_id: string | null; is_taste: boolean } | null, credits: number, full = 0) {
+  const s = { story, credits, full };
   const store: TasteUnlockStore = {
     async getStory() { return s.story ? { ...s.story } : null; },
-    async getCredits() { return s.credits; },
-    async casCredits(_u, from, to) { if (s.credits !== from) return false; s.credits = to; return true; },
+    async consume(_u, kind) {
+      if (s.credits <= 0) return null;
+      if (kind === "full") { if (s.full <= 0) return null; s.full--; }
+      else if (s.credits - s.full <= 0) return null;
+      s.credits--; return kind;
+    },
+    async refund(_u, kind) { s.credits++; if (kind === "full") s.full++; },
     async markUnlocked() { if (!s.story?.is_taste) return false; s.story.is_taste = false; return true; },
   };
   return { s, store };
@@ -103,8 +109,8 @@ describe("free taste — creating", () => {
     const store: StoryRequestStore = {
       async insertPlaceholder(row) { rows.push(row); return { id: `s${rows.length}` }; },
       async findByRequest() { return null; },
-      async getCredits() { return 0; },
-      async casCredits() { return false; },
+      async consume() { return null; },
+      async refund() {},
       async deleteStory(id) { const i = rows.findIndex((_, k) => `s${k + 1}` === id); if (i >= 0) rows[i] = { deleted: true }; },
     };
     const claims: TasteClaimStore = { async insertClaim() { return !claimTaken; }, async deleteClaimForStory() {} };
@@ -135,19 +141,70 @@ describe("saved child gender", () => {
   });
 });
 
-import { decideTastePurchaseExtras } from "../../supabase/functions/_shared/taste";
+describe("credits remember their package", () => {
+  it("a full credit opens the taste as a full story", async () => {
+    const { s, store } = unlockStore({ id: "st", user_id: "u1", is_taste: true }, 2, 1);
+    const r = await unlockTasteStory(store, "u1", "st", "full");
+    expect(r).toEqual({ kind: "unlocked", creditKind: "full" });
+    expect(s.full).toBe(0);
+    expect(s.credits).toBe(1);
+  });
+  it("choosing digital keeps the full credit", async () => {
+    const { s, store } = unlockStore({ id: "st", user_id: "u1", is_taste: true }, 2, 1);
+    const r = await unlockTasteStory(store, "u1", "st", "digital");
+    expect(r).toEqual({ kind: "unlocked", creditKind: "digital" });
+    expect(s.full).toBe(1);
+  });
+  it("asking for a full credit without one opens nothing", async () => {
+    const { s, store } = unlockStore({ id: "st", user_id: "u1", is_taste: true }, 1, 0);
+    expect((await unlockTasteStory(store, "u1", "st", "full")).kind).toBe("no_credits");
+    expect(s.story!.is_taste).toBe(true);
+  });
+  it("splits the balance into full and digital", () => {
+    expect(splitCredits(3, 1)).toEqual({ full: 1, digital: 2, total: 3 });
+    expect(splitCredits(1, 5)).toEqual({ full: 1, digital: 0, total: 1 });
+  });
+});
 
-describe("free taste — what an opened taste gets", () => {
-  it("full story: print file + one coloring page per picture, all for that story", () => {
-    expect(decideTastePurchaseExtras("popular", "unlocked", 12, 4)).toEqual({ storyPdf: true, globalPdf: false, storyColoring: 12, generalColoring: 0 });
+import { claimStoryRequest } from "../../supabase/functions/_shared/story-request";
+
+describe("creating a story with the chosen credit", () => {
+  function store(credits: number, full: number) {
+    const s = { credits, full, rows: 0 };
+    const st: StoryRequestStore = {
+      async insertPlaceholder() { s.rows++; return { id: `s${s.rows}` }; },
+      async findByRequest() { return null; },
+      async consume(_u, kind) {
+        if (s.credits <= 0) return null;
+        if (kind === "full") { if (s.full <= 0) return null; s.full--; }
+        else if (s.credits - s.full <= 0) return null;
+        s.credits--; return kind;
+      },
+      async refund() {},
+      async deleteStory() { s.rows--; },
+    };
+    return { s, st };
+  }
+  it("full chosen: the story is a full story and the full credit is used", async () => {
+    const { s, st } = store(2, 1);
+    const r = await claimStoryRequest(st, "u1", "req-12345678", {}, "full");
+    expect(r).toEqual({ kind: "claimed", storyId: "s1", creditKind: "full" });
+    expect(s.full).toBe(0);
   });
-  it("digital story: 1 coloring page for that story, no print file", () => {
-    expect(decideTastePurchaseExtras("single_story", "unlocked", 12, 4)).toEqual({ storyPdf: false, globalPdf: false, storyColoring: 1, generalColoring: 0 });
+  it("digital chosen: the full credit stays", async () => {
+    const { s, st } = store(2, 1);
+    const r = await claimStoryRequest(st, "u1", "req-12345678", {}, "digital");
+    expect(r).toEqual({ kind: "claimed", storyId: "s1", creditKind: "digital" });
+    expect(s.full).toBe(1);
   });
-  it("someone else's story: nothing tied to it, credits go to the general balance", () => {
-    expect(decideTastePurchaseExtras("popular", "not_owner", 12, 4)).toEqual({ storyPdf: false, globalPdf: true, storyColoring: 0, generalColoring: 4 });
+  it("only full credits and no choice sent: uses the full credit", async () => {
+    const { st } = store(1, 1);
+    const r = await claimStoryRequest(st, "u1", "req-12345678", {});
+    expect(r).toMatchObject({ kind: "claimed", creditKind: "full" });
   });
-  it("digital purchase that didn't open gives no story extras", () => {
-    expect(decideTastePurchaseExtras("single_story", "not_taste", 12, 12)).toEqual({ storyPdf: false, globalPdf: false, storyColoring: 0, generalColoring: 0 });
+  it("no credits: nothing is created", async () => {
+    const { s, st } = store(0, 0);
+    expect((await claimStoryRequest(st, "u1", "req-12345678", {})).kind).toBe("no_credits");
+    expect(s.rows).toBe(0);
   });
 });

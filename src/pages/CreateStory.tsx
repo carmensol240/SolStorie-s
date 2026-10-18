@@ -10,6 +10,8 @@ import GeneratingStep from "@/components/wizard/GeneratingStep";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { useAuth } from "@/hooks/use-auth";
 import { useCredits } from "@/hooks/use-credits";
+import { splitCredits, type CreditKind } from "@/hooks/use-credit-kinds";
+import CreditChoiceDialog from "@/components/story/CreditChoiceDialog";
 import { isDevModeEnabled } from "@/hooks/use-dev-mode";
 import { supabase } from "@/integrations/supabase/client";
 import { useAnalytics } from "@/hooks/use-analytics";
@@ -327,11 +329,33 @@ const CreateStory = () => {
           return;
         }
       }
+      // Both kinds of credit: the parent chooses which to use (full is the default).
+      if (uid && !noCredits) {
+        const [{ data: prof }, { data: lots }] = await Promise.all([
+          supabase.from('profiles').select('story_credits').eq('id', uid).maybeSingle(),
+          supabase.from('story_credit_lots').select('remaining').eq('user_id', uid),
+        ]);
+        const c = splitCredits(prof?.story_credits ?? 0, (lots ?? []).reduce((a, r) => a + (r.remaining ?? 0), 0));
+        if (c.full > 0 && c.digital > 0) {
+          setCreditChoice({ digital: c.digital, full: c.full, uid });
+          return;
+        }
+        launchGeneration(uid, c.full > 0 ? "full" : c.digital > 0 ? "digital" : undefined);
+        return;
+      }
+      launchGeneration(uid);
+    }
+  };
+
+  const launchGeneration = (uid: string | null, creditKind?: CreditKind) => {
+    {
+      const data = creditKind ? { ...formData, creditKind } : formData;
+      if (creditKind) updateFormData({ creditKind } as any);
       trackEvent({ eventType: "generation_started" });
       // One-time ID + saved form: a reload / re-login resumes this same creation
       // and the server never creates or charges twice for it.
       const session = uid
-        ? startGenerationSession(uid, formData as unknown as Record<string, unknown>)
+        ? startGenerationSession(uid, data as unknown as Record<string, unknown>)
         : { requestId: newRequestId() };
       setRequestId(session.requestId);
       setStep(5);
@@ -340,6 +364,7 @@ const CreateStory = () => {
   };
 
   startGenerationRef.current = startGeneration;
+  const [creditChoice, setCreditChoice] = useState<{ digital: number; full: number; uid: string } | null>(null);
 
   const startNewStory = () => {
     clearGenerationSession(user?.id);
@@ -422,6 +447,13 @@ const CreateStory = () => {
 
   return (
     <div className="flex flex-col bg-background" style={{ minHeight: '100dvh', height: 'auto', WebkitOverflowScrolling: 'touch' }}>
+      <CreditChoiceDialog
+        open={!!creditChoice}
+        onOpenChange={(o) => { if (!o) setCreditChoice(null); }}
+        digital={creditChoice?.digital ?? 0}
+        full={creditChoice?.full ?? 0}
+        onChoose={(k) => { const uid = creditChoice?.uid ?? null; setCreditChoice(null); launchGeneration(uid, k); }}
+      />
       <header className="sticky top-0 z-20 bg-gradient-to-r from-[#FAF3E8] to-[#F5E6D3] px-3 py-2 border-b border-purple-200 shadow-sm">
         <div className="container max-w-lg mx-auto flex items-center justify-between">
           <Button

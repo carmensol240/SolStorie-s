@@ -2,7 +2,7 @@ import { useState } from "react";
 import { Wand2, BookOpen, Volume2, Printer, Palette, ShieldCheck, UserRound, Sparkles, Check, Minus } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import GlobalFooter from "@/components/shared/GlobalFooter";
-import { getPrice } from "@/config/promo";
+import { CATALOG, formatPrice } from "@/config/promo";
 import topicFearOfDark from "@/assets/topic-fear-of-dark.jpg";
 import topicNewSibling from "@/assets/topic-new-sibling.jpeg";
 import topicKindergarten from "@/assets/topic-first-day-kindergarten.jpg";
@@ -45,24 +45,9 @@ const INCLUDED = [
 ];
 
 // What each option includes (mirrors the Upgrade page products).
-const PLAN_FEATURES: { text: string; digital: boolean; full: boolean }[] = [
-  { text: "ספר מאויר שהילד הוא הגיבור שלו", digital: true, full: true },
-  { text: "דמות שדומה לילד", digital: true, full: true },
-  { text: "הקראה בקול, מוזיקת רקע והקלטת הקול שלכם", digital: true, full: true },
-  { text: "הסיפור שמור אצלכם לתמיד", digital: true, full: true },
-  { text: "קובץ להדפסת הספר בבית", digital: false, full: true },
-  { text: "דפי צביעה מכל איורי הסיפור", digital: false, full: true },
-];
 
 const HomeExplainer = () => {
   const navigate = useNavigate();
-  const storyPrice = getPrice("basic").toFixed(2);
-  const fullPrice = getPrice("popular").toFixed(2);
-  const [plan, setPlan] = useState<"digital" | "full">("full");
-  const plans = [
-    { id: "digital" as const, title: "סיפור דיגיטלי", price: storyPrice },
-    { id: "full" as const, title: "סיפור מלא", price: fullPrice, badge: "הכי משתלם" },
-  ];
 
   return (
     <div className="w-full bg-gradient-to-b from-amber-50 to-background dark:from-background dark:to-background" dir="rtl">
@@ -140,50 +125,33 @@ const HomeExplainer = () => {
           </div>
         </section>
 
-        {/* Prices */}
+        {/* Prices — every card lists what it includes (central catalog) */}
         <section aria-labelledby="home-prices" className="space-y-4 text-center">
           <h2 id="home-prices" className="text-center text-2xl font-black text-foreground">כמה זה עולה</h2>
-          <div className="grid grid-cols-2 gap-3" role="radiogroup" aria-label="בחירת סוג סיפור">
-            {plans.map((p) => {
-              const selected = plan === p.id;
+          <div className="grid gap-4 sm:grid-cols-2">
+            {(["digital", "full"] as const).map((k) => {
+              const p = CATALOG[k];
               return (
-                <button
-                  key={p.id}
-                  type="button"
-                  role="radio"
-                  aria-checked={selected}
-                  onClick={() => setPlan(p.id)}
-                  className={`relative rounded-2xl p-4 shadow-sm transition-all bg-card ${
-                    selected ? "border-2 border-primary ring-2 ring-primary/20" : "border-2 border-border hover:border-primary/40"
-                  }`}
-                >
-                  {p.badge && (
+                <div key={k} className={`relative rounded-2xl bg-card p-5 shadow-sm text-right ${k === "full" ? "border-2 border-primary" : "border-2 border-border"}`}>
+                  {k === "full" && (
                     <span className="absolute -top-3 inset-x-0 mx-auto w-fit rounded-full bg-primary px-3 py-0.5 text-xs font-bold text-primary-foreground">
-                      {p.badge}
+                      הכי משתלם
                     </span>
                   )}
-                  <span className="block text-center text-base font-black text-foreground">{p.title}</span>
-                  <span className="block text-center text-2xl font-black text-primary mt-1">₪{p.price}</span>
-                </button>
+                  <h3 className="text-center text-lg font-black text-foreground">{p.title}</h3>
+                  <p className="text-center text-2xl font-black text-primary mt-1">₪{formatPrice(k)}</p>
+                  <ul className="mt-4 space-y-2">
+                    {p.includes.map((t) => (
+                      <li key={t} className="flex items-start gap-2 text-base text-foreground">
+                        <Check className="w-5 h-5 text-green-600 shrink-0 mt-0.5" aria-hidden="true" />
+                        <span>{t}</span>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
               );
             })}
           </div>
-          <ul className="bg-card rounded-2xl border p-5 shadow-sm space-y-2.5" aria-live="polite">
-            {PLAN_FEATURES.map((f) => {
-              const included = plan === "full" ? f.full : f.digital;
-              return (
-                <li key={f.text} className={`flex items-center gap-3 text-base ${included ? "text-foreground" : "text-muted-foreground line-through"}`}>
-                  {included ? (
-                    <Check className="w-5 h-5 text-green-600 shrink-0" aria-hidden="true" />
-                  ) : (
-                    <Minus className="w-5 h-5 text-muted-foreground shrink-0" aria-hidden="true" />
-                  )}
-                  <span>{f.text}</span>
-                  <span className="sr-only">{included ? "(כלול)" : "(לא כלול)"}</span>
-                </li>
-              );
-            })}
-          </ul>
           <p className="text-center text-sm text-muted-foreground">התשלום רק אחרי שרואים את תחילת הסיפור.</p>
         </section>
 
