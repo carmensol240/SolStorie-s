@@ -6,7 +6,9 @@ import { toast } from "@/hooks/use-toast";
 import PersonalizedStoryCover from "@/components/paywall/PersonalizedStoryCover";
 import { openGrowCheckout } from "@/config/grow-links";
 import { useAuth } from "@/hooks/use-auth";
-import { getPrice } from "@/config/promo";
+import { CATALOG, formatPrice } from "@/config/promo";
+import { useCreditKinds, type CreditKind } from "@/hooks/use-credit-kinds";
+import CreditChoiceDialog from "@/components/story/CreditChoiceDialog";
 
 interface DemoLockModalProps {
   open: boolean;
@@ -23,18 +25,17 @@ const DemoLockModal = ({ open, onOpenChange, title, description, storyId, isTast
   const location = useLocation();
   const [showFeatures, setShowFeatures] = useState(false);
   const { user } = useAuth();
-  const singleStoryPrice = getPrice("single_story").toFixed(2);
-  const popularPrice = getPrice("popular").toFixed(2);
-  const [credits, setCredits] = useState(0);
   const [unlocking, setUnlocking] = useState(false);
+  const [choiceOpen, setChoiceOpen] = useState(false);
+  const credits = useCreditKinds(user?.id, open && !!isTaste);
 
-  useEffect(() => {
-    if (!open || !isTaste || !user?.id) return;
-    supabase.from("profiles").select("story_credits").eq("id", user.id).maybeSingle()
-      .then(({ data }) => setCredits(data?.story_credits ?? 0));
-  }, [open, isTaste, user?.id]);
+  const startUnlock = () => {
+    if (credits.full > 0 && credits.digital > 0) { setChoiceOpen(true); return; }
+    unlockWithCredit(credits.full > 0 ? "full" : "digital");
+  };
 
-  const unlockWithCredit = async () => {
+  const unlockWithCredit = async (creditKind: CreditKind) => {
+    setChoiceOpen(false);
     if (!storyId || unlocking) return;
     setUnlocking(true);
     let id = storyId;
@@ -42,7 +43,7 @@ const DemoLockModal = ({ open, onOpenChange, title, description, storyId, isTast
       const { data: row } = await supabase.from("stories").select("id").eq("slug", id).maybeSingle();
       id = row?.id ?? id;
     }
-    const { error } = await supabase.functions.invoke("unlock-taste-story", { body: { storyId: id } });
+    const { error } = await supabase.functions.invoke("unlock-taste-story", { body: { storyId: id, creditKind } });
     setUnlocking(false);
     if (error) {
       toast({ variant: "destructive", title: "לא הצלחנו לפתוח את הסיפור", description: "נסו שוב בעוד רגע." });
@@ -77,7 +78,7 @@ const DemoLockModal = ({ open, onOpenChange, title, description, storyId, isTast
   const goSingleStory = () => {
     onOpenChange(false);
     rememberReturn();
-    openGrowCheckout("singleStory", {
+    openGrowCheckout("digital", {
       userId: user?.id ?? null,
       storyId: storyId ?? null,
     });
@@ -87,7 +88,7 @@ const DemoLockModal = ({ open, onOpenChange, title, description, storyId, isTast
     if (!storyId) return;
     onOpenChange(false);
     rememberReturn();
-    openGrowCheckout("popular", {
+    openGrowCheckout("full", {
       userId: user?.id ?? null,
       storyId,
     });
@@ -115,9 +116,9 @@ const DemoLockModal = ({ open, onOpenChange, title, description, storyId, isTast
         )}
 
         <div className="flex flex-col gap-2 mt-2">
-          {isTaste && credits > 0 && (
+          {isTaste && credits.total > 0 && (
             <button
-              onClick={unlockWithCredit}
+              onClick={startUnlock}
               disabled={unlocking}
               className="w-full min-h-[48px] bg-primary hover:bg-primary/90 text-white font-black text-base py-3 px-6 rounded-xl shadow-xl disabled:opacity-60"
             >
@@ -131,11 +132,11 @@ const DemoLockModal = ({ open, onOpenChange, title, description, storyId, isTast
             style={{ boxShadow: '0 0 30px rgba(168, 85, 247, 0.4), 0 0 60px rgba(236, 72, 153, 0.2)' }}
           >
             <div>
-              {`רכישת הסיפור הדיגיטלי 📱 – ${singleStoryPrice}₪`}
+              {`${CATALOG.digital.title} – ${formatPrice("digital")} ₪`}
             </div>
           </button>
-          <p className="text-white/80 text-xs font-bold text-center -mt-1">
-            {"\u200B"}
+          <p className="text-white/80 text-sm font-semibold text-center -mt-1">
+            כולל את כל דפי הצביעה מאיורי הסיפור
           </p>
 
           {storyId && (
@@ -152,16 +153,11 @@ const DemoLockModal = ({ open, onOpenChange, title, description, storyId, isTast
                 className="w-full bg-white/10 backdrop-blur-md border border-white/20 hover:bg-white/15 transition-colors rounded-xl px-4 py-3 text-center"
               >
                 <div className="text-white font-black text-sm">
-                  {`רכישת הסיפור + קובץ להדפסה 📖 – ${popularPrice}₪`}
+                  {`${CATALOG.full.title} – ${formatPrice("full")} ₪`}
                 </div>
-                <>
-                    <div className="text-white/60 text-xs font-semibold mt-0.5">
-                      קריאה מלאה + שיתוף בוואטסאפ + הקלטת קול
-                    </div>
-                    <div className="text-white/80 text-xs font-bold mt-0.5">
-                      + חבילת דפי צביעה מלאה 🎨
-                    </div>
-                </>
+                <div className="text-white/80 text-sm font-semibold mt-0.5">
+                  {CATALOG.full.includes[0]}
+                </div>
               </button>
             </>
           )}
@@ -178,6 +174,13 @@ const DemoLockModal = ({ open, onOpenChange, title, description, storyId, isTast
           </button>
         </div>
       </DialogContent>
+      <CreditChoiceDialog
+        open={choiceOpen}
+        onOpenChange={setChoiceOpen}
+        digital={credits.digital}
+        full={credits.full}
+        onChoose={unlockWithCredit}
+      />
     </Dialog>
   );
 };
