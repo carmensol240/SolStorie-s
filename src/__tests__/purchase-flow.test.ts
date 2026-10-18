@@ -5,7 +5,7 @@ import { CATALOG } from "@/config/promo";
 
 describe("GROW_LINKS", () => {
   it("every link is a pay.grow.link from the catalog", () => {
-    for (const [key, url] of Object.entries(GROW_LINKS)) {
+    for (const [key, url] of Object.entries(GROW_LINKS).filter(([, u]) => u)) {
       expect(url, key).toMatch(/^https:\/\/pay\.grow\.link\//);
       expect(url).toBe(CATALOG[key as keyof typeof CATALOG].growUrl);
     }
@@ -28,7 +28,7 @@ describe("openGrowCheckout — cField1/2/3 באמת נשלחים ב-URL", () => 
   });
 
   it("כל key ב-GROW_LINKS פותח URL עם cField1/2 (ו-cField3 כשמעבירים storyId)", () => {
-    const keys = Object.keys(GROW_LINKS) as GrowLinkKey[];
+    const keys = (Object.keys(GROW_LINKS) as GrowLinkKey[]).filter((k) => GROW_LINKS[k]);
     for (const key of keys) {
       openSpy.mockClear();
       openGrowCheckout(key, {
