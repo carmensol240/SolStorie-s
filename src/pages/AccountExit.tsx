@@ -1,3 +1,4 @@
+import GlobalFooter from "@/components/shared/GlobalFooter";
 import { supabase } from "@/integrations/supabase/client";
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
@@ -263,6 +264,7 @@ const AccountExit = () => {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+      <GlobalFooter />
     </div>
   );
 };

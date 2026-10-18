@@ -1567,7 +1567,8 @@ const Auth = () => {
           <p className="text-xs font-bold text-white drop-shadow-md">זמינה עבורכם בכל מקום</p>
         </div>
       </div>
-      <GlobalFooter />      <MobileNavigation />
+      <GlobalFooter />
+      <MobileNavigation />
 
       {/* Terms of Service Modal */}
       <Dialog open={showTermsModal} onOpenChange={setShowTermsModal}>

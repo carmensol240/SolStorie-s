@@ -345,7 +345,7 @@ const Settings = () => {
         </div>
       </div>
       
-      <GlobalFooter />      
+      <GlobalFooter />
       <MobileNavigation />
 
       {/* About Dialog */}

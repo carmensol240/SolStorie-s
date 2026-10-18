@@ -1,3 +1,4 @@
+import GlobalFooter from "@/components/shared/GlobalFooter";
 import { useState, useEffect, useMemo } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { X, Check, Flame } from "lucide-react";
@@ -522,6 +523,8 @@ const Upgrade = () => {
           </p>
         </div>
       </div>
+
+      <GlobalFooter />
 
       {/* Modals */}
       <PurchaseSuccessModal open={showSuccess} onOpenChange={setShowSuccess} creditsAdded={1} />

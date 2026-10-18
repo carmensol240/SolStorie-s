@@ -1,3 +1,4 @@
+import GlobalFooter from "@/components/shared/GlobalFooter";
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -292,6 +293,7 @@ const Contact = () => {
           </p>
         </div>
       </div>
+      <GlobalFooter />
     </div>
   );
 };
