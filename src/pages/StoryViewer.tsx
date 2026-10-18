@@ -283,6 +283,7 @@ const [currentPage, setCurrentPage] = useState(0);
   const [showFeedbackForm, setShowFeedbackForm] = useState(false);
   const [coloringLoading, setColoringLoading] = useState(false);
   const [coloringPickerOpen, setColoringPickerOpen] = useState(false);
+  const [storyColoringIncluded, setStoryColoringIncluded] = useState(0);
   const [selectedColoringUrl, setSelectedColoringUrl] = useState<string | null>(null);
   const [coloringAction, setColoringAction] = useState<'pick' | 'choose-action'>('pick');
   const [coloringMode, setColoringMode] = useState<'print' | 'online' | null>(null);
@@ -2441,6 +2442,7 @@ const [currentPage, setCurrentPage] = useState(0);
       <InstallAppPrompt justCreatedFirstStory={justCreatedStory && isEndPage} />
 
       {/* Coloring Picker Dialog — global so it works from header icon too */}
+      <StoryColoringAllowanceLoader open={coloringPickerOpen} storyId={story?.id} userId={user?.id} onLoad={setStoryColoringIncluded} />
       <Dialog open={coloringPickerOpen} onOpenChange={(open) => {
         setColoringPickerOpen(open);
         if (!open) { setColoringAction('pick'); setColoringMode(null); }
@@ -2450,6 +2452,11 @@ const [currentPage, setCurrentPage] = useState(0);
             <DialogTitle className="text-center text-lg">
               {coloringAction === 'pick' ? '🎨 בחרו איור לדף צביעה' : '🎨 מה תרצו לעשות?'}
             </DialogTitle>
+            {storyColoringIncluded > 0 && (
+              <p className="text-center text-sm font-bold text-muted-foreground">
+                {storyColoringIncluded} דפי צביעה כלולים בסיפור הזה
+              </p>
+            )}
           </DialogHeader>
 
           {coloringAction === 'pick' ? (
@@ -2736,3 +2743,13 @@ const [currentPage, setCurrentPage] = useState(0);
 };
 
 export default StoryViewer;
+
+// Reads how many coloring pages are included with this specific story.
+function StoryColoringAllowanceLoader({ open, storyId, userId, onLoad }: { open: boolean; storyId?: string; userId?: string; onLoad: (n: number) => void }) {
+  useEffect(() => {
+    if (!open || !storyId || !userId) return;
+    supabase.from("story_coloring_allowances").select("remaining").eq("story_id", storyId).eq("user_id", userId)
+      .then(({ data }) => onLoad((data ?? []).reduce((a, r) => a + (r.remaining ?? 0), 0)));
+  }, [open, storyId, userId, onLoad]);
+  return null;
+}

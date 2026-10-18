@@ -134,3 +134,20 @@ describe("saved child gender", () => {
     expect(normalizeGender("other")).toBe(null);
   });
 });
+
+import { decideTastePurchaseExtras } from "../../supabase/functions/_shared/taste";
+
+describe("free taste — what an opened taste gets", () => {
+  it("full story: print file + one coloring page per picture, all for that story", () => {
+    expect(decideTastePurchaseExtras("popular", "unlocked", 12, 4)).toEqual({ storyPdf: true, globalPdf: false, storyColoring: 12, generalColoring: 0 });
+  });
+  it("digital story: 1 coloring page for that story, no print file", () => {
+    expect(decideTastePurchaseExtras("single_story", "unlocked", 12, 4)).toEqual({ storyPdf: false, globalPdf: false, storyColoring: 1, generalColoring: 0 });
+  });
+  it("someone else's story: nothing tied to it, credits go to the general balance", () => {
+    expect(decideTastePurchaseExtras("popular", "not_owner", 12, 4)).toEqual({ storyPdf: false, globalPdf: true, storyColoring: 0, generalColoring: 4 });
+  });
+  it("digital purchase that didn't open gives no story extras", () => {
+    expect(decideTastePurchaseExtras("single_story", "not_taste", 12, 12)).toEqual({ storyPdf: false, globalPdf: false, storyColoring: 0, generalColoring: 0 });
+  });
+});
