@@ -10,6 +10,10 @@
 - [x] No auto-reload during creation; sign-up guard only at entry; one-time request ID; safety net screen; library hides unfinished stories
 - [x] End-to-end browser test (wait, tab switch, reload)
 
+## Value packs (Oct 2026)
+- [x] 3 full (179) + 3 digital (99) in catalog, credits, purchase screen only; exact amount match
+- [ ] Grow links for both packs — waiting for the URLs from Carmit
+
 ## Pricing audit (Oct 2026) — report only, wait for approval
 - [ ] List every place a price is shown/calculated + current value
 - [ ] List all other packages/products with current prices

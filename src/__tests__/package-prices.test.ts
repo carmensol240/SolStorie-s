@@ -82,3 +82,26 @@ describe("no price in the site code outside the catalog", () => {
     expect(bad).toEqual([]);
   });
 });
+
+describe("value packs (3 stories)", () => {
+  it("3 full stories cost 179, 3 digital stories cost 99", () => {
+    expect(CATALOG.full_pack3.price).toBe(179);
+    expect(CATALOG.digital_pack3.price).toBe(99);
+  });
+  it("each pack gives 3 credits of the right kind", async () => {
+    const { packageConfig } = await import("../../supabase/functions/_shared/purchase-credits");
+    expect(packageConfig.full_pack3.stories).toBe(3);
+    expect(packageConfig.digital_pack3.stories).toBe(3);
+    expect(creditKindForPackage("full_pack3")).toBe("full");
+    expect(creditKindForPackage("digital_pack3")).toBe("digital");
+  });
+  it("amount matching is exact: 99 and 99.90 are different packages", () => {
+    expect(isAmountValidForPackage("digital_pack3", 99)).toBe(true);
+    expect(isAmountValidForPackage("digital_pack3", 99.9)).toBe(false);
+    expect(isAmountValidForPackage("digital_pack3", 99.05)).toBe(false);
+    expect(isAmountValidForPackage("popular", 99)).toBe(false);
+    expect(isAmountValidForPackage("full_pack3", 178.9)).toBe(false);
+    expect(packageIdFromAmount(99)).toBe("digital_pack3");
+    expect(packageIdFromAmount(179)).toBe("full_pack3");
+  });
+});
