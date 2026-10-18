@@ -1,4 +1,4 @@
-import { TASTE_UNLOCK_PACKAGES } from "./taste.ts";
+import { TASTE_UNLOCK_PACKAGES, decideTastePurchaseExtras } from "./taste.ts";
 import { unlockTasteAndComplete } from "./taste-server.ts";
 // Shared purchase credit logic used by verify-purchase and grow-webhook
 
@@ -69,6 +69,8 @@ export async function applyPurchaseCredits(
   }
 
   // Dynamic coloring credits — count illustrations in the story
+  // Taste purchases get their print file / coloring pages after the unlock (below).
+  if (tasteStoryId) { config.coloringPages = 0; config.pdfDownload = false; config.dynamicColoringFromStory = false; }
   if (config.dynamicColoringFromStory) {
     let resolvedStoryUuid: string | null = null;
     if (storyId) {
@@ -134,7 +136,6 @@ export async function applyPurchaseCredits(
     updates.free_edits_total = (profile.free_edits_total ?? 0) + config.freeEdits;
   }
   // Digital story bought from a taste lock screen also gets its coloring page credit.
-  if (tasteStoryId && packageId === "single_story") config.coloringPages = (config.coloringPages || 0) + 1;
   if (config.coloringPages > 0) {
     updates.coloring_credits = (profile.coloring_credits ?? 0) + config.coloringPages;
   }
@@ -196,12 +197,15 @@ export async function applyPurchaseCredits(
   if (tasteStoryId) {
     // Opens only if the taste belongs to this buyer and is still locked;
     // otherwise the credit simply stays on the account.
+    let kind: string = "error";
     try {
       const r = await unlockTasteAndComplete(supabase, userId, tasteStoryId, amount);
+      kind = r.kind;
       console.log("[PURCHASE-CREDITS] taste unlock:", r.kind);
     } catch (e) {
       console.error("[PURCHASE-CREDITS] taste unlock failed:", e);
     }
+    await grantTasteExtras(supabase, { userId, storyId: tasteStoryId, packageId, kind, orderId, source, amount });
   } else if (storyId && SINGLE_STORY_PACKAGES.has(packageId)) {
     let resolvedStoryId: string | null = null;
     if (UUID_REGEX.test(storyId)) {
@@ -294,4 +298,35 @@ export function packageIdFromAmount(amount: number): string | null {
   // gift_two_stories legacy standalone amount (89.90 before 12/7/26 relaunch)
   if (a === 89.9) return "gift_two_stories";
   return null;
+}
+// Gives the print file / coloring pages for a purchase made from a taste lock screen.
+// deno-lint-ignore no-explicit-any
+export async function grantTasteExtras(supabase: any, p: {
+  userId: string; storyId: string; packageId: string; kind: string; orderId: string; source: string; amount: number;
+}) {
+  const { count: planned } = await supabase.from("story_pages").select("id", { count: "exact", head: true })
+    .eq("story_id", p.storyId).not("illustration_prompt", "is", null);
+  const { count: existing } = await supabase.from("story_pages").select("id", { count: "exact", head: true })
+    .eq("story_id", p.storyId).not("illustration_url", "is", null);
+  // deno-lint-ignore no-explicit-any
+  const x = decideTastePurchaseExtras(p.packageId, p.kind as any, planned ?? 0, existing ?? 0);
+
+  if (x.storyPdf || x.globalPdf) {
+    const { error } = await supabase.from("pdf_entitlements").insert({
+      user_id: p.userId, story_id: x.storyPdf ? p.storyId : null, source: p.source, amount_paid: p.amount,
+    });
+    if (error && error.code !== "23505") console.error("[PURCHASE-CREDITS] taste pdf failed:", error);
+  }
+  if (x.storyColoring > 0) {
+    const { error } = await supabase.from("story_coloring_allowances").insert({
+      user_id: p.userId, story_id: p.storyId, remaining: x.storyColoring, source: p.source, order_id: p.orderId,
+    });
+    if (error && error.code !== "23505") console.error("[PURCHASE-CREDITS] taste coloring failed:", error);
+  }
+  if (x.generalColoring > 0) {
+    const { data: prof } = await supabase.from("profiles").select("coloring_credits").eq("id", p.userId).maybeSingle();
+    await supabase.from("profiles").update({ coloring_credits: (prof?.coloring_credits ?? 0) + x.generalColoring }).eq("id", p.userId);
+  }
+  console.log("[PURCHASE-CREDITS] taste extras:", p.kind, x);
+  return x;
 }
