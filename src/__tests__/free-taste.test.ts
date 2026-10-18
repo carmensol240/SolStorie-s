@@ -165,3 +165,46 @@ describe("credits remember their package", () => {
     expect(splitCredits(1, 5)).toEqual({ full: 1, digital: 0, total: 1 });
   });
 });
+
+import { claimStoryRequest } from "../../supabase/functions/_shared/story-request";
+
+describe("creating a story with the chosen credit", () => {
+  function store(credits: number, full: number) {
+    const s = { credits, full, rows: 0 };
+    const st: StoryRequestStore = {
+      async insertPlaceholder() { s.rows++; return { id: `s${s.rows}` }; },
+      async findByRequest() { return null; },
+      async consume(_u, kind) {
+        if (s.credits <= 0) return null;
+        if (kind === "full") { if (s.full <= 0) return null; s.full--; }
+        else if (s.credits - s.full <= 0) return null;
+        s.credits--; return kind;
+      },
+      async refund() {},
+      async deleteStory() { s.rows--; },
+    };
+    return { s, st };
+  }
+  it("full chosen: the story is a full story and the full credit is used", async () => {
+    const { s, st } = store(2, 1);
+    const r = await claimStoryRequest(st, "u1", "req-12345678", {}, "full");
+    expect(r).toEqual({ kind: "claimed", storyId: "s1", creditKind: "full" });
+    expect(s.full).toBe(0);
+  });
+  it("digital chosen: the full credit stays", async () => {
+    const { s, st } = store(2, 1);
+    const r = await claimStoryRequest(st, "u1", "req-12345678", {}, "digital");
+    expect(r).toEqual({ kind: "claimed", storyId: "s1", creditKind: "digital" });
+    expect(s.full).toBe(1);
+  });
+  it("only full credits and no choice sent: uses the full credit", async () => {
+    const { st } = store(1, 1);
+    const r = await claimStoryRequest(st, "u1", "req-12345678", {});
+    expect(r).toMatchObject({ kind: "claimed", creditKind: "full" });
+  });
+  it("no credits: nothing is created", async () => {
+    const { s, st } = store(0, 0);
+    expect((await claimStoryRequest(st, "u1", "req-12345678", {})).kind).toBe("no_credits");
+    expect(s.rows).toBe(0);
+  });
+});
