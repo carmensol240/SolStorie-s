@@ -231,7 +231,7 @@ const GeneratingStep = ({ formData, requestId, onComplete }: GeneratingStepProps
             // One-time ID: the server creates and charges at most once per ID.
             client_request_id: requestId,
             // Device ID: the free taste is limited to one per device.
-            device_id: (() => { try { return localStorage.getItem('storyteller_device_id') || undefined; } catch { return undefined; } })(),
+            device_id: (() => { try { let d = localStorage.getItem('storyteller_device_id'); if (!d) { d = 'device_' + crypto.randomUUID(); localStorage.setItem('storyteller_device_id', d); } return d; } catch { return undefined; } })(),
             appearance: {
               hairColor: formData.hairColor || "",
               hairStyle: formData.hairStyle || "",

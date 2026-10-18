@@ -1029,7 +1029,7 @@ async function handleGenerateStory(req: Request, ctx: RequestCtx): Promise<Respo
       if (currentCredits <= 0) {
         // Free taste: one per account / mailbox / device, max 3 per network in 30 days.
         const normalizedEmail = normalizeEmail(user.email);
-        const deviceId = typeof reqBody.device_id === "string" && /^[A-Za-z0-9-]{8,80}$/.test(reqBody.device_id) ? reqBody.device_id : null;
+        const deviceId = typeof reqBody.device_id === "string" && /^[A-Za-z0-9_-]{8,80}$/.test(reqBody.device_id) ? reqBody.device_id : null;
         const fwd = req.headers.get("x-forwarded-for");
         const ip = fwd ? fwd.split(",")[0].trim() : (req.headers.get("x-real-ip") || "");
         const ipHash = ip ? await sha256Hex(`taste:${ip}`) : null;
