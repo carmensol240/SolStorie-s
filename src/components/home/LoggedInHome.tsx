@@ -146,7 +146,7 @@ const LoggedInHome = ({ user, displayName }: LoggedInHomeProps) => {
                 <GraduationCap className="w-6 h-6 text-white" />
               </div>
               <p className="text-white font-bold text-sm leading-relaxed pr-2">
-                🎓 ברוכים הבאים, צוות החינוך! מחכה לכם סיפור לדוגמא כדי להתרשם מהקסם ✨
+                🎓 ברוכים הבאים, צוות החינוך! בואו ניצור את הסיפור הראשון ✨
               </p>
             </div>
           </div>

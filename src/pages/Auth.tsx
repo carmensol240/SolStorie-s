@@ -562,13 +562,13 @@ const Auth = () => {
       if (userRole === "educator") {
         toast({
           title: "ברוכים הבאים, צוות החינוך! 🎓",
-          description: "מחכה לכם סיפור לדוגמא מאיתנו כדי שתתרשמו מהקסם ✨",
+          description: "בואו ניצור את הסיפור הראשון ✨",
           duration: 6000,
         });
       } else {
         toast({
           title: "ברוכים הבאים ל-SolStorie's™! 🎉",
-          description: "מחכה לך סיפור לדוגמא מאיתנו כדי שתתרשמו מהקסם ✨",
+          description: "בואו ניצור את הסיפור הראשון ✨",
         });
       }
       // The useEffect will handle redirect - terms already accepted so goes straight to /adventure
@@ -626,7 +626,7 @@ const Auth = () => {
 
       toast({
         title: "ברוכים הבאים ל-SolStorie's™! 🎉",
-        description: "מחכה לך סיפור לדוגמא מאיתנו כדי שתתרשמו מהקסם ✨",
+        description: "בואו ניצור את הסיפור הראשון ✨",
       });
       
       // Navigate to home page after accepting terms

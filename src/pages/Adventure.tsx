@@ -69,21 +69,6 @@ const Adventure = () => {
 
 
   useEffect(() => {
-    if (!user) return;
-    const welcomeKey = `welcome_shown_${user.id}`;
-    if (!sessionStorage.getItem(welcomeKey)) {
-      sessionStorage.setItem(welcomeKey, "true");
-      const timer = setTimeout(() => {
-        toast({
-          title: "ברוכים הבאים! 🎉",
-          description: "קיבלתם סיפור לדוגמא. בואו נתחיל ליצור קסם ✨",
-        });
-      }, 800);
-      return () => clearTimeout(timer);
-    }
-  }, [user]);
-
-  useEffect(() => {
     const fetchProfile = async () => {
       if (!user) return;
       const { data } = await supabase
