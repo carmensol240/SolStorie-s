@@ -6,6 +6,8 @@ export const GROW_LINKS = {
   digital: CATALOG.digital.growUrl,
   full: CATALOG.full.growUrl,
   pdf: CATALOG.pdf.growUrl,
+  full_pack3: CATALOG.full_pack3.growUrl,
+  digital_pack3: CATALOG.digital_pack3.growUrl,
 } as const;
 
 export type GrowLinkKey = keyof typeof GROW_LINKS;
@@ -14,6 +16,8 @@ const DEFAULT_PACKAGE_ID: Record<GrowLinkKey, string> = {
   digital: CATALOG.digital.packageId,
   full: CATALOG.full.packageId,
   pdf: CATALOG.pdf.packageId,
+  full_pack3: CATALOG.full_pack3.packageId,
+  digital_pack3: CATALOG.digital_pack3.packageId,
 };
 
 export interface GrowCheckoutOptions {
