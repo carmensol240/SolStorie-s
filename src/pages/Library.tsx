@@ -792,6 +792,13 @@ const Library = () => {
   return (
     <div className="h-screen h-[100dvh] bg-background pb-20 overflow-y-auto overscroll-contain">
       <OfflineIndicator isOnline={isOnline} />
+      <CreditChoiceDialog
+        open={!!choiceFor}
+        onOpenChange={(o) => { if (!o) setChoiceFor(null); }}
+        digital={creditKinds.digital}
+        full={creditKinds.full}
+        onChoose={(k) => choiceFor && doUnlockTaste(choiceFor, k)}
+      />
 
       <div className="container max-w-lg mx-auto px-3 py-3">
         {/* Header */}
