@@ -47,7 +47,7 @@ const RESPONSES: Record<ExitReason, string> = {
 
 const AccountExit = () => {
   const navigate = useNavigate();
-  const { signOut } = useAuth();
+  const { signOut, user } = useAuth();
   const { toast } = useToast();
   const { trackEvent } = useAnalytics();
   
