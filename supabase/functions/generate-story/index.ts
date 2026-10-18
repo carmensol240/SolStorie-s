@@ -3,6 +3,7 @@ import { mergeAppearance, type Appearance } from "../_shared/appearance.ts";
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.39.3";
 import { logError } from "../_shared/log-error.ts";
+import { normalizeGender } from "../_shared/gender.ts";
 import { claimStoryRequest, releaseStoryRequest, supabaseStoryRequestStore, isValidRequestId } from "../_shared/story-request.ts";
 
 const corsHeaders = {
@@ -1031,6 +1032,8 @@ async function handleGenerateStory(req: Request, ctx: RequestCtx): Promise<Respo
       // === END CREDIT CHECK ===
     }
 
+    // Old saved profiles use "boy"/"girl" — accept both formats.
+    if (reqBody.childGender != null) reqBody.childGender = normalizeGender(reqBody.childGender) ?? reqBody.childGender;
     const { childName, childGender = "male", ageRange, childAge: childAgeRaw, storyLength = "short", topic, topicId, nikud, childPhoto, childAvatarUrl, personalityTraits, adventureLogic, language = "he", className, topicDescription, childId, isCustomTopic = false } = reqBody;
 
     // === LEARNING TOPIC DETECTION ===
