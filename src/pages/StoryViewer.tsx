@@ -1,4 +1,5 @@
 import { useState, useEffect, useLayoutEffect, useRef, useCallback, useMemo } from "react";
+import { isLegacyOpenStory } from "../../supabase/functions/_shared/legacy-access";
 import { useParams, useNavigate, useLocation, useSearchParams } from "react-router-dom";
 import { Home, BookOpen, Palette, Wand2, Loader2, ImageOff, Star, Send, ChevronRight, ChevronLeft, ArrowRight, Link2, Printer, Eye } from "lucide-react";
 import SeriesNavBar, { SeriesPart } from "@/components/story/SeriesNavBar";
@@ -508,8 +509,15 @@ const [currentPage, setCurrentPage] = useState(0);
         .limit(1)
         .maybeSingle();
 
+      let open = !!data;
+      if (!open) {
+        // Older credit stories may lack an unlock record — keep them open.
+        const { data: s } = await supabase.from('stories')
+          .select('user_id, is_taste, created_at').eq('id', story.id).maybeSingle();
+        open = isLegacyOpenStory(s as any, user.id);
+      }
       if (!cancelled) {
-        setIsSingleStoryUnlock(!!data);
+        setIsSingleStoryUnlock(open);
       }
     };
 

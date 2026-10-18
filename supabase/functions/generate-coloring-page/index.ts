@@ -1,4 +1,5 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+import { isLegacyOpenStory } from "../_shared/legacy-access.ts";
 import { mergeAppearance, hairToEnglish, clothingToEnglish, buildCharacterLock } from "../_shared/appearance.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.49.1";
 
@@ -51,7 +52,7 @@ serve(async (req) => {
     // Verify the story belongs to this user
     const { data: storyOwner } = await supabase
       .from("stories")
-      .select("id, child_id, child_name, child_gender, age_range")
+      .select("id, child_id, child_name, child_gender, age_range, user_id, is_taste, created_at")
       .eq("id", story_id)
       .eq("user_id", userId)
       .maybeSingle();
@@ -64,7 +65,7 @@ serve(async (req) => {
       supabase.from("story_unlocks").select("id").eq("story_id", story_id).eq("user_id", userId).maybeSingle(),
       supabase.rpc("has_role", { _user_id: userId, _role: "admin" }),
     ]);
-    if (!unlock && !isAdmin) {
+    if (!unlock && !isAdmin && !isLegacyOpenStory(storyOwner, userId)) {
       return jsonResponse({ upsell: true, error: "דפי הצביעה נפתחים עם רכישת הסיפור 🎨" });
     }
 

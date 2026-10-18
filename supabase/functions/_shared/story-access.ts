@@ -39,6 +39,7 @@ export async function grantStoryAccess(sb: any, userId: string, storyId: string,
     });
     if (pErr && pErr.code !== "23505") console.error("[access] pdf_entitlements failed:", pErr.message);
   }
+  return ok;
 }
 
 /** Undo grantStoryAccess (failed creation). */
