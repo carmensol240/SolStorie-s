@@ -2,6 +2,7 @@ import { useState, useEffect, useMemo } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { X, Check, Flame } from "lucide-react";
 import { PROMO_END, PROMO_END_LABEL, isPromoActive, getPrice, getRegularPrice, CATALOG, type PriceKey } from "@/config/promo";
+import { PACK_STORY_COUNT } from "../../supabase/functions/_shared/catalog";
 
 const WHITELISTED_TEST_EMAILS = [
   "carmit1901+test@gmail.com",
@@ -424,10 +425,48 @@ const Upgrade = () => {
 
           </div>
 
-          {/* Value packs */}
-          <div className="mb-4">
-            <h2 className="text-base font-black text-white mb-2">חבilot משתלמות".replace</h2>
-          </div>
+          {/* Value packs — purchase screen only */}
+          <section className="mb-4" aria-labelledby="value-packs-title">
+            <h2 id="value-packs-title" className="text-base font-black text-white mb-2">חבילות משתלמות</h2>
+            <div className="space-y-2">
+              {(["full_pack3", "digital_pack3"] as const).map((key) => {
+                const pack = CATALOG[key];
+                const count = PACK_STORY_COUNT[key] ?? 1;
+                const single = key === "full_pack3" ? CATALOG.full.price : CATALOG.digital.price;
+                const perStory = pack.price / count;
+                const saving = single * count - pack.price;
+                const available = Boolean(pack.growUrl);
+                return (
+                  <div key={key} className="rounded-2xl border border-white/15 bg-white/10 p-4 text-right">
+                    <div className="flex items-start justify-between gap-3">
+                      <div className="flex-1">
+                        <p className="text-base font-black text-white">{pack.title}</p>
+                        <p className="text-sm text-white/80 font-semibold">{pack.includes[0]}</p>
+                        <p className="text-sm font-black text-green-300 mt-1">
+                          {perStory.toFixed(2)} ₪ לסיפור · חוסכים {saving.toFixed(2)} ₪
+                        </p>
+                      </div>
+                      <span className="text-xl font-black text-white shrink-0">{pack.price} ₪</span>
+                    </div>
+                    <Button
+                      disabled={!available}
+                      onClick={() => {
+                        if (!user) { navigate("/auth"); return; }
+                        trackEvent({ eventType: "checkout_started", metadata: { product: key, discount_percent: discountPercent } });
+                        openGrowCheckout(key, {
+                          ...(discountPercent > 0 ? { discountPercent, couponCode: appliedCouponCode } : {}),
+                          userId: user.id,
+                        });
+                      }}
+                      className="w-full min-h-12 mt-3 font-black"
+                    >
+                      {available ? `רכשו ב-${pack.price} ₪` : "בקרוב"}
+                    </Button>
+                  </div>
+                );
+              })}
+            </div>
+          </section>
 
           {/* Coupon */}
           <div className="mb-4">
