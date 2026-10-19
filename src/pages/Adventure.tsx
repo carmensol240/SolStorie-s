@@ -167,7 +167,7 @@ const Adventure = () => {
         <button
           type="button"
           onClick={() => setVideoPlaying((p) => !p)}
-          className="absolute z-20 left-4 top-[max(env(safe-area-inset-top,12px),24px)] flex items-center justify-center w-11 h-11 rounded-full bg-black/30 backdrop-blur-md border border-white/30 text-white hover:bg-black/45 transition-colors"
+          className="absolute z-20 left-4 top-[max(env(safe-area-inset-top,12px),24px)] flex items-center justify-center w-11 h-11 rounded-full bg-black/50 backdrop-blur-md border border-white/40 text-white hover:bg-black/65 transition-colors"
           aria-label={videoPlaying ? "עצירת האנימציה" : "הפעלת האנימציה"}
           aria-pressed={!videoPlaying}
         >
