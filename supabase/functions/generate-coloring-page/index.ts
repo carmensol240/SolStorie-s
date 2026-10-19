@@ -52,7 +52,7 @@ serve(async (req) => {
     // Verify the story belongs to this user
     const { data: storyOwner } = await supabase
       .from("stories")
-      .select("id, child_id, child_name, child_gender, age_range, user_id, is_taste, created_at")
+      .select("id, child_id, child_name, child_gender, age_range, user_id, is_taste, created_at, story_outfit")
       .eq("id", story_id)
       .eq("user_id", userId)
       .maybeSingle();
@@ -114,8 +114,9 @@ serve(async (req) => {
       const { data: ch } = await q.limit(1).maybeSingle();
       const ap = mergeAppearance(null, { hairColor: ch?.hair_color, hairStyle: ch?.hair_style, clothingType: ch?.clothing_type, clothingColor: ch?.clothing_color });
       const hair = hairToEnglish(ap);
-      if (hair || clothingToEnglish(ap)) {
-        characterLock = buildCharacterLock({ gender: (storyOwner as any).child_gender, age: ch?.age ?? null, ageRange: (storyOwner as any).age_range, hair, outfit: clothingToEnglish(ap) });
+      const outfit = clothingToEnglish(ap, (storyOwner as any).child_gender) || (storyOwner as any).story_outfit || "";
+      if (hair || outfit) {
+        characterLock = buildCharacterLock({ gender: (storyOwner as any).child_gender, age: ch?.age ?? null, ageRange: (storyOwner as any).age_range, hair, outfit });
       }
     } catch (e) { console.warn("character lock lookup failed", e); }
 

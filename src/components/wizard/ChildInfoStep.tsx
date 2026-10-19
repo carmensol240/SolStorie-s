@@ -700,7 +700,7 @@ const ChildInfoStep = ({ formData, updateFormData, screen = 1 }: ChildInfoStepPr
         <Label className="text-xs font-medium">מגדר</Label>
         <div className="grid grid-cols-2 gap-2">
           <button
-            onClick={() => updateFormData({ childGender: "male" })}
+            onClick={() => updateFormData(formData.clothingType === "שמלה" ? { childGender: "male", clothingType: "בגדי יומיום" } : { childGender: "male" })}
             className={cn(
               "p-1.5 rounded-lg border-2 transition-all text-center flex items-center justify-center gap-1.5",
               formData.childGender === "male"
@@ -780,7 +780,7 @@ const ChildInfoStep = ({ formData, updateFormData, screen = 1 }: ChildInfoStepPr
       <div className="space-y-1">
         <Label className="text-xs font-medium">סוג לבוש</Label>
         <div className="grid grid-cols-3 gap-2">
-          {CLOTHING_TYPES.map((item) => (
+          {CLOTHING_TYPES.filter((item) => item.value !== "שמלה" || formData.childGender === "female").map((item) => (
             <button
               key={item.value}
               type="button"

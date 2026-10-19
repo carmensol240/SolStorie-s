@@ -1,5 +1,5 @@
 import "https://deno.land/x/xhr@0.1.0/mod.ts";
-import { mergeAppearance, hairToEnglish, clothingToEnglish, resolvePageOutfit, buildCharacterLock, type Appearance } from "../_shared/appearance.ts";
+import { mergeAppearance, hairToEnglish, clothingToEnglish, resolvePageOutfit, buildCharacterLock, translateOutfitWords, pickDefaultOutfit, type Appearance } from "../_shared/appearance.ts";
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.39.3";
 import { logError } from "../_shared/log-error.ts";
@@ -181,6 +181,7 @@ interface CharacterProfile {
   genderHebrew: string;
   hairDescription: string;
   clothingDescription: string;
+  glasses?: boolean;
   ageDescription: string;
   skinTone: string;
   eyeColor: string;
@@ -215,12 +216,11 @@ Return ONLY a JSON object with these exact fields:
 {
   "hair_color": "specific color (e.g., dark brown, light blonde, black, auburn)",
   "hair_style": "specific style (e.g., short curly, long straight with bangs, pigtails, buzz cut)",
-  "clothing_color": "primary clothing color",
-  "clothing_type": "type of clothing (e.g., red t-shirt, blue dress, green sweater)",
+  "glasses": true or false (does the child wear eyeglasses),
   "skin_tone": "skin tone description (e.g., fair, medium, olive, dark)",
   "eye_color": "eye color if visible (e.g., brown, blue, green)"
 }
-Be very specific and detailed. This profile will be used to ensure the character looks IDENTICAL in every illustration.
+Describe ONLY the face, skin, eyes, hair and glasses — never the clothes in the photo. Be very specific and detailed. This profile will be used to ensure the character looks IDENTICAL in every illustration.
 Return only the JSON, no other text.`
               },
               { type: "image_url", image_url: { url: childPhoto } }
@@ -253,7 +253,8 @@ Return only the JSON, no other text.`
         gender: childGender,
         genderHebrew: genderHebrew,
         hairDescription: `${profile.hair_color || "brown"} ${profile.hair_style || "hair"}`,
-        clothingDescription: `${profile.clothing_color || "colorful"} ${profile.clothing_type || "clothes"}`,
+        clothingDescription: "",
+        glasses: profile.glasses === true,
         ageDescription: ageRange,
         skinTone: profile.skin_tone || "medium",
         eyeColor: profile.eye_color || "brown",
@@ -290,7 +291,7 @@ function getDefaultProfile(childGender: string, genderHebrew: string, ageRange: 
     gender: childGender,
     genderHebrew: genderHebrew,
     hairDescription: isFemale ? "long dark brown hair styled in a high bun with a pink hair band" : "short tousled dark brown hair",
-    clothingDescription: isFemale ? "a superhero costume — red cape, light blue shirt with a golden star emblem on the chest, purple pants, and white sneakers" : "colorful casual clothes",
+    clothingDescription: "",
     ageDescription: ageRange || (isFemale ? "4" : "3-6"),
     skinTone: "warm medium olive",
     eyeColor: isFemale ? "large warm brown" : "large dark brown",
@@ -980,13 +981,13 @@ Rules:
 - For fantasy/magic topics: describe magical/whimsical clothing
 - For nature/animal topics: describe outdoor/explorer clothing
 - For space topics: describe astronaut or sci-fi clothing
-- For holiday/celebration topics: describe festive clothing matching the holiday
+- For holiday/celebration topics: festive COLORS only (e.g. blue and white), no symbols on the clothes; holiday symbols belong in the scene as objects, never on the child
+- NEVER include religious items of any kind (no kippah, yarmulke, tzitzit, sidelocks, head covering, veil, Star of David jewelry, cross) — for boys and girls alike
 - For everyday/neutral topics (emotions, friendship, family, fears, siblings, kindness, sharing, manners): respond with exactly "KEEP_ORIGINAL"
 - For hygiene topics (bath, teeth, hands, potty): respond with exactly "KEEP_ORIGINAL"
 
 Examples:
-"חנוכה" → "traditional Jewish festive blue and white tunic with a golden Star of David necklace and a blue hair ribbon"
-IMPORTANT: For female characters, NEVER include a kippah. Use a blue hair ribbon, bow, or decorative headband instead. Kippah is only for male characters.
+"חנוכה" → "festive blue and white everyday clothes"
 "יציאת מצרים" → "ancient Egyptian-style linen tunic with leather sandals and a woven belt"
 "נח ותיבת נח" → "simple rustic brown robe with a rope belt and wooden sandals"
 "יוסף ואחיו" → "colorful striped coat of many colors over a simple tunic"
@@ -1464,7 +1465,7 @@ serve(async (req) => {
       clothingType: parentClothingType, clothingColor: parentClothingColor,
     });
     const parentHairEn = hairToEnglish(mergedAppearance);
-    const parentOutfitEn = clothingToEnglish(mergedAppearance);
+    const parentOutfitEn = clothingToEnglish(mergedAppearance, childGender);
     console.log(`👤 Parent appearance: hair="${parentHairEn}" outfit="${parentOutfitEn}"`);
 
     // If no saved profile, extract from photo
@@ -1493,6 +1494,7 @@ serve(async (req) => {
     // Apply parent overrides (if present) to the resolved profile, regardless of
     // whether it came from the DB, from photo extraction, or from a default.
     if (characterProfile) {
+      characterProfile.clothingDescription = translateOutfitWords(characterProfile.clothingDescription);
       if (parentHairEn) {
         const override = parentHairEn;
         if (characterProfile.hairDescription !== override) {
@@ -1545,7 +1547,17 @@ serve(async (req) => {
     // Topic outfit is kept for pages whose text puts the child in it; otherwise
     // the parent's chosen clothes are used on every page.
     const topicOutfit: string | null = storyOutfit;
-    storyOutfit = parentOutfitEn || storyOutfit || characterProfile?.clothingDescription || "colorful casual clothes";
+    // No parent clothes and no topic outfit → one fixed everyday outfit per story, saved with the
+    // story so page retries and coloring pages reuse exactly the same clothes.
+    let savedOutfit: string | null = null;
+    if (!parentOutfitEn && storyId) {
+      const { data: so } = await supabase.from("stories").select("story_outfit").eq("id", storyId).maybeSingle();
+      savedOutfit = (so as any)?.story_outfit || null;
+    }
+    storyOutfit = parentOutfitEn || savedOutfit || storyOutfit || pickDefaultOutfit(String(storyId || childName || "story"));
+    if (!parentOutfitEn && !savedOutfit && storyId && !singlePageNumber) {
+      await supabase.from("stories").update({ story_outfit: storyOutfit }).eq("id", storyId).is("story_outfit", null);
+    }
     console.log(`🎽 Story outfit locked for all pages: "${storyOutfit}"`);
 
     // === BUILD VISUAL ANCHOR ===
@@ -1684,14 +1696,14 @@ serve(async (req) => {
 
       // Per-page outfit: parent clothes by default, topic outfit only where the text describes it.
       const storyOutfit = parentOutfitEn
-        ? resolvePageOutfit(parentOutfitEn, topicOutfit, page.text)
+        ? resolvePageOutfit(parentOutfitEn, topicOutfit, page.text, pages.find((pp) => pp.page_number === page.page_number - 1)?.text)
         : baseStoryOutfit;
       const visualAnchor = storyOutfit === baseStoryOutfit
         ? baseVisualAnchor
         : (characterProfile ? buildVisualAnchor(characterProfile, storyOutfit) : `VISUAL ANCHOR: A child wearing ${storyOutfit}. Maintain strict visual character continuity across ALL illustrations.`);
       const characterLock = buildCharacterLock({
         gender: characterProfile?.gender || childGender, age: reqChildAge, ageRange,
-        hair: parentHairEn || characterProfile?.hairDescription || "", outfit: storyOutfit,
+        hair: parentHairEn || characterProfile?.hairDescription || "", outfit: storyOutfit, glasses: !!characterProfile?.glasses,
       });
 
       // Build prompt directly from illustration_prompt — skip AI scene analysis for speed

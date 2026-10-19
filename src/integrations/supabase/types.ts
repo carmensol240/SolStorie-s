@@ -888,6 +888,7 @@ export type Database = {
           page1_regen_lock_at: string | null
           page1_regen_used: boolean
           slug: string | null
+          story_outfit: string | null
           story_type: string | null
           summary: string | null
           taste_page_limit: number | null
@@ -921,6 +922,7 @@ export type Database = {
           page1_regen_lock_at?: string | null
           page1_regen_used?: boolean
           slug?: string | null
+          story_outfit?: string | null
           story_type?: string | null
           summary?: string | null
           taste_page_limit?: number | null
@@ -954,6 +956,7 @@ export type Database = {
           page1_regen_lock_at?: string | null
           page1_regen_used?: boolean
           slug?: string | null
+          story_outfit?: string | null
           story_type?: string | null
           summary?: string | null
           taste_page_limit?: number | null
