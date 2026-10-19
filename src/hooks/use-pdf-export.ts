@@ -7,6 +7,7 @@ import { useSignedUrls } from '@/hooks/use-signed-urls';
 import { translateTopic } from '@/lib/topic-translations';
 import { supabase } from '@/integrations/supabase/client';
 import solMagicBookCover from '@/assets/sol-magic-book-cover.png';
+import { fetchTalkQuestions, talkTitle, NEXT_ADVENTURE_URL, INSTAGRAM_HANDLE } from '@/lib/talk-questions';
 import { PAGE_MM, PAGE_PX, SAFE_MM, PRINT_TEXTS, buildPageSequence, TEXT_FIT_STEPS, containRect, printLang, type PrintLang } from '@/lib/print-layout';
 
 // Helper function to escape HTML entities and prevent XSS
@@ -307,28 +308,75 @@ export const usePdfExport = () => {
 
   const purpleBg = 'background:linear-gradient(160deg, #1a0a3e 0%, #2a1050 45%, #3b1466 100%);';
 
-  const renderTheEndPage = (childName: string, lang: PrintLang, childGender?: string): HTMLDivElement => {
+  const isMaleGender = (g?: string) => g === 'male' || g === 'boy' || g === 'זכר';
+  const paperBg = 'background:#FFF8EC;';
+  const pad = SAFE_PX + 50; // everything stays inside the safe area
+  const instagramSvg = (size: number, color = '#1a0a3e') =>
+    `<svg width="${size}" height="${size}" viewBox="0 0 24 24" style="vertical-align:middle;" fill="none" stroke="${color}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="2" width="20" height="20" rx="5"/><circle cx="12" cy="12" r="4.2"/><circle cx="17.6" cy="6.4" r="1" fill="${color}" stroke="none"/></svg>`;
+
+  const renderTalkPage = (questions: string[], lang: PrintLang, nikud: boolean): HTMLDivElement => {
     const T = PRINT_TEXTS[lang];
-    const isMale = childGender === 'male' || childGender === 'boy' || childGender === 'זכר';
     const el = document.createElement('div');
-    el.style.cssText = pageBase(T.dir) + purpleBg + `display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:120px 120px 200px;`;
+    el.style.cssText = pageBase(T.dir) + paperBg + `display:flex;flex-direction:column;justify-content:center;padding:${pad}px ${pad + 20}px;`;
     el.innerHTML = `
-      <div style="color:#FFD66B;font-size:96px;font-weight:900;margin-bottom:40px;">${escapeHtml(T.theEnd)} ${starSvg(72)}</div>
-      <p style="color:#ffffff;font-size:50px;font-weight:700;margin:0 0 60px 0;line-height:1.4;">${escapeHtml(T.closing(childName, isMale))}</p>
-      <p style="color:rgba(255,255,255,0.85);font-size:38px;font-weight:600;margin:0 0 40px 0;">${escapeHtml(T.appIntro)}</p>
-      <div style="display:flex;flex-direction:column;align-items:flex-start;gap:22px;background:rgba(255,255,255,0.08);
-        border:1px solid rgba(255,255,255,0.18);border-radius:32px;padding:44px 64px;max-width:900px;">
-        ${T.benefits.map(b => `<div style="color:#ffffff;font-size:34px;font-weight:500;line-height:1.5;">${starSvg(30)} ${escapeHtml(b)}</div>`).join('')}
+      <div style="text-align:center;color:#3b1466;font-size:76px;font-weight:900;margin-bottom:24px;">${heartSvg(56, '#F28AB2')} ${escapeHtml(talkTitle(lang, nikud))}</div>
+      <div style="width:220px;height:6px;border-radius:3px;background:#F5B942;margin:0 auto 64px;"></div>
+      <div style="display:flex;flex-direction:column;gap:46px;">
+        ${questions.map((q, i) => `
+        <div style="display:flex;align-items:flex-start;gap:30px;">
+          <div style="flex:0 0 auto;width:78px;height:78px;border-radius:50%;background:#3b1466;color:#FFD66B;font-size:42px;font-weight:900;display:flex;align-items:center;justify-content:center;direction:ltr;">${i + 1}</div>
+          <p style="margin:0;color:#2a1050;font-size:50px;font-weight:600;line-height:1.55;padding-top:4px;">${escapeHtml(q)}</p>
+        </div>`).join('')}
+      </div>`;
+    return el;
+  };
+
+  const renderTheEndPage = async (childName: string, lang: PrintLang, childGender?: string): Promise<HTMLDivElement> => {
+    const T = PRINT_TEXTS[lang];
+    const qr = await QRCode.toDataURL(NEXT_ADVENTURE_URL, { width: 520, margin: 1, color: { dark: '#1a0a3e', light: '#ffffff' } });
+    const el = document.createElement('div');
+    el.style.cssText = pageBase(T.dir) + purpleBg + `display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:${pad}px;`;
+    el.innerHTML = `
+      <div style="color:#FFD66B;font-size:190px;font-weight:900;line-height:1;margin-bottom:44px;">${escapeHtml(T.theEnd)}</div>
+      <div style="margin-bottom:40px;">${starSvg(44)} ${starSvg(60)} ${starSvg(44)}</div>
+      <p style="color:#ffffff;font-size:58px;font-weight:700;margin:0 0 70px 0;line-height:1.4;">${escapeHtml(T.nextAdventure(childName, isMaleGender(childGender)))}</p>
+      <img src="${qr}" style="width:300px;height:300px;border-radius:20px;background:#ffffff;padding:16px;" />
+      <p style="color:#ffffff;font-size:36px;font-weight:600;margin:28px 0 0 0;">${escapeHtml(T.scanNext)}</p>`;
+    return el;
+  };
+
+  const renderDrawMomentPage = (lang: PrintLang): HTMLDivElement => {
+    const T = PRINT_TEXTS[lang];
+    const el = document.createElement('div');
+    el.style.cssText = pageBase(T.dir) + `background:#ffffff;display:flex;flex-direction:column;padding:${pad}px;`;
+    el.innerHTML = `
+      <p style="text-align:center;color:#3b1466;font-size:56px;font-weight:800;margin:0 0 40px 0;">${starSvg(44, '#F5B942')} ${escapeHtml(T.drawMoment)}</p>
+      <div style="flex:1;border:6px dashed #C9B6E4;border-radius:40px;"></div>`;
+    return el;
+  };
+
+  const renderOurHeroPage = (childName: string, lang: PrintLang, childGender?: string): HTMLDivElement => {
+    const T = PRINT_TEXTS[lang];
+    const el = document.createElement('div');
+    const line = 'border-bottom:3px solid #C9B6E4;height:64px;';
+    el.style.cssText = pageBase(T.dir) + paperBg + `display:flex;flex-direction:column;align-items:center;padding:${pad}px;`;
+    el.innerHTML = `
+      <p style="color:#3b1466;font-size:64px;font-weight:900;margin:0;">${escapeHtml(T.ourHero(isMaleGender(childGender)))}</p>
+      <p style="color:#6b4f9a;font-size:44px;font-weight:700;margin:10px 0 36px;">${escapeHtml(childName)}</p>
+      <div style="width:560px;height:560px;background:#ffffff;border:6px dashed #C9B6E4;border-radius:28px;display:flex;align-items:center;justify-content:center;color:#a08cc4;font-size:34px;font-weight:600;transform:rotate(-2deg);">${escapeHtml(T.photoHere)}</div>
+      <div style="width:100%;margin-top:50px;color:#3b1466;font-size:36px;font-weight:600;">
+        <div style="display:flex;gap:20px;align-items:flex-end;${line}"><span>${escapeHtml(T.dateLine)}</span></div>
+        <div style="margin-top:26px;${line}"><span>${escapeHtml(T.memoryLine)}</span></div>
+        <div style="${line}"></div>
       </div>`;
     return el;
   };
 
   const renderBackCoverPage = async (childName: string, lang: PrintLang, photoSrc: string | null): Promise<HTMLDivElement> => {
     const T = PRINT_TEXTS[lang];
-    const qrDataUrl = await QRCode.toDataURL('https://soulstory.co.il', { width: 360, margin: 1, color: { dark: '#1a0a3e', light: '#ffffff' } });
     const today = new Date().toLocaleDateString(T.locale, { day: 'numeric', month: 'long', year: 'numeric' });
     const el = document.createElement('div');
-    el.style.cssText = pageBase(T.dir) + purpleBg + `display:flex;flex-direction:column;align-items:center;justify-content:space-between;padding:120px 110px;text-align:center;`;
+    el.style.cssText = pageBase(T.dir) + purpleBg + `display:flex;flex-direction:column;align-items:center;justify-content:space-between;padding:${pad}px;text-align:center;`;
     el.innerHTML = `
       <div style="display:flex;flex-direction:column;align-items:center;">
         <div style="color:#FFD66B;font-size:90px;font-weight:900;direction:ltr;">${starSvg(70)} SolStorie's™</div>
@@ -341,10 +389,12 @@ export const usePdfExport = () => {
         <p style="color:rgba(255,255,255,0.85);font-size:30px;font-weight:500;margin:24px 0 0 0;">${escapeHtml(T.sub)}</p>
       </div>
       <div style="display:flex;flex-direction:column;align-items:center;background:rgba(255,255,255,0.08);
-        border:1px solid rgba(255,255,255,0.18);border-radius:32px;padding:36px 56px;">
-        <img src="${qrDataUrl}" style="width:260px;height:260px;border-radius:16px;background:#ffffff;padding:14px;" />
-        <p style="color:#ffffff;font-size:28px;font-weight:600;margin:22px 0 6px 0;">${escapeHtml(T.scan)}</p>
-        <p style="color:#FFD66B;font-size:22px;font-weight:500;margin:0;">soulstory.co.il</p>
+        border:1px solid rgba(255,255,255,0.18);border-radius:32px;padding:40px 60px;">
+        <p style="color:#ffffff;font-size:40px;font-weight:700;margin:0 0 22px 0;line-height:1.4;">${escapeHtml(T.tagUs(childName))}</p>
+        <div style="display:inline-flex;align-items:center;gap:16px;background:#ffffff;border-radius:999px;padding:14px 34px;direction:ltr;">
+          ${instagramSvg(44)}<span style="color:#1a0a3e;font-size:38px;font-weight:800;">${INSTAGRAM_HANDLE}</span>
+        </div>
+        <p style="color:#FFD66B;font-size:26px;font-weight:600;margin:24px 0 0 0;direction:ltr;">soulstory.co.il</p>
       </div>
       <div style="display:flex;flex-direction:column;align-items:center;gap:10px;">
         <p style="color:rgba(255,255,255,0.75);font-size:22px;margin:0;">${escapeHtml(T.created(childName, today))}</p>
@@ -412,6 +462,8 @@ export const usePdfExport = () => {
     document.body.appendChild(container);
 
     const seq = buildPageSequence(story.pages);
+    const storyNikud = lang === 'he' && /[\u05B0-\u05BC]/.test(story.pages.map(p => p.text).join(' '));
+    const talkQuestions = await fetchTalkQuestions(story.id);
     try {
       for (let i = 0; i < seq.length; i++) {
         const slot = seq[i];
@@ -459,8 +511,18 @@ export const usePdfExport = () => {
             await captureHtml(container, renderDecorativePage(), pdf, 'JPEG');
             drawFooter(pdf, { onPicture: true });
             break;
+          case 'talk':
+            if (talkQuestions.length) await captureHtml(container, renderTalkPage(talkQuestions, lang, storyNikud), pdf, 'PNG');
+            else await captureHtml(container, renderDrawMomentPage(lang), pdf, 'PNG'); // questions unavailable → still a useful page
+            break;
           case 'theEnd':
-            await captureHtml(container, renderTheEndPage(story.child_name, lang, story.child_gender), pdf, 'JPEG');
+            await captureHtml(container, await renderTheEndPage(story.child_name, lang, story.child_gender), pdf, 'JPEG');
+            break;
+          case 'drawMoment':
+            await captureHtml(container, renderDrawMomentPage(lang), pdf, 'PNG');
+            break;
+          case 'ourHero':
+            await captureHtml(container, renderOurHeroPage(story.child_name, lang, story.child_gender), pdf, 'PNG');
             break;
           case 'blank':
             break;
