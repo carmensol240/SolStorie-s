@@ -70,3 +70,7 @@
 ## Hebrew language editor (Oct 2026)
 - [x] Editor step after writing, before saving (story creation, gender swap, text enhance); nikud retry once; failure keeps original
 - [x] Ran on "אבא במילואים" only and saved
+
+## Reserves uniform (Oct 2026)
+- [x] IDF uniform lock for a family member in the reserves/army; no weapons/helmet; home scenes may be casual
+- [x] Redrew page 7 of "אבא במילואים" only
