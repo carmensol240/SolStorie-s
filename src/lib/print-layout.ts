@@ -28,7 +28,7 @@ export const printLang = (language?: string | null): PrintLang =>
  * Builds the full page order. Index 0 = printed page 1.
  * A story page with a picture opens a spread: text (even page) facing its picture (odd page).
  * A page without a picture joins the previous spread's text when that spread has a picture
- * and still holds only one story page (max two story pages per text page). Otherwise it opens
+ * (or is itself a picture-less spread) and still holds only one story page (max two per text page). Otherwise it opens
  * its own spread facing a decorative page — so decorative pages appear only for truly missing pictures.
  */
 export function buildPageSequence(pages: { illustration_url: string | null }[]): PrintSlot[] {
@@ -37,7 +37,7 @@ export function buildPageSequence(pages: { illustration_url: string | null }[]):
   pages.forEach((p, i) => {
     const pic = !!p.illustration_url;
     const last = spreads[spreads.length - 1];
-    if (!pic && last && last.pic && last.idx.length === 1) last.idx.push(i);
+    if (!pic && last && last.idx.length === 1) last.idx.push(i);
     else spreads.push({ idx: [i], pic });
   });
   const seq: PrintSlot[] = [{ kind: 'cover' }, { kind: 'insideCover' }, { kind: 'dedication' }];
