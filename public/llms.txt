@@ -1,8 +1,8 @@
 # SolStorie's
 
-> SolStorie's creates personalized, AI-generated children's stories in Hebrew where your child is the hero. Safe, ad-free, and tailored for kids.
+> SolStorie's creates personalized, AI-generated children's stories in Hebrew or English where your child is the hero. Safe, ad-free, and tailored for kids.
 
-SolStorie's is a Hebrew-language platform for parents and educators to generate magical, personalized picture stories starring their child. Stories are illustrated in a warm Pixar/Disney 3D style and can be read online, printed, or shared.
+SolStorie's is a Hebrew-language platform (stories can be created in Hebrew or English) for parents and educators to generate magical, personalized picture stories starring their child. Stories are illustrated in a warm Pixar/Disney 3D style and can be read online, printed, or shared.
 
 ## Pages
 
