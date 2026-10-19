@@ -243,9 +243,10 @@ Deno.serve(async (req) => {
 
     // Hebrew language editor on all swapped pages together (failure keeps the swapped text)
     const editorKey = Deno.env.get("LOVABLE_API_KEY");
+    let newTalkQuestions: string[] | null = null; // null → cleared, remade on demand in the new gender
     if (editorKey && (story as any).language !== "en" && updatedPages.length) {
       const numbered = (pages || []).map((p, i) => ({ page_number: p.page_number, text: updatedPages[i].text }));
-      const { pages: edited, report } = await editHebrewPages({
+      const { pages: edited, report, talkQuestions } = await editHebrewPages({
         pages: numbered,
         gender: targetGender,
         heroName: (story as any).child_name || "",
@@ -253,6 +254,7 @@ Deno.serve(async (req) => {
         call: gatewayEditorCall(editorKey),
       });
       edited.forEach((p, i) => { updatedPages[i].text = p.text; });
+      if (talkQuestions.length) newTalkQuestions = talkQuestions;
       console.log("Hebrew editor (swap-gender):", JSON.stringify(report));
     }
 
@@ -271,7 +273,7 @@ Deno.serve(async (req) => {
     // Update story's child_gender
     const { error: storyUpdateError } = await supabaseAdmin
       .from("stories")
-      .update({ child_gender: targetGender })
+      .update({ child_gender: targetGender, talk_questions: newTalkQuestions })
       .eq("id", storyId);
 
     if (storyUpdateError) {

@@ -2388,9 +2388,10 @@ ${fullStoryText}`;
     // === HEBREW LANGUAGE EDITOR: gender agreement, whole sentences, nikud (all pages at once) ===
     // A failure keeps the original text; the old per-page nikud pass then runs as before.
     let editorNikudPages = new Set<number>();
+    let talkQuestions: string[] = [];
     if (language === "he") {
       try {
-        const { pages: editedPages, report } = await editHebrewPages({
+        const { pages: editedPages, report, talkQuestions: tq } = await editHebrewPages({
           pages: storyData.pages.map((p: any) => ({ page_number: p.page_number, text: String(p.text || "") })),
           gender: childGender,
           heroName: childName,
@@ -2398,6 +2399,7 @@ ${fullStoryText}`;
           call: gatewayEditorCall(LOVABLE_API_KEY!),
           maxChars: MAX_PAGE_CHARS,
         });
+        talkQuestions = tq;
         for (const ep of editedPages) {
           const target = storyData.pages.find((p: any) => p.page_number === ep.page_number);
           if (target) target.text = ep.text;
@@ -2432,6 +2434,8 @@ ${fullStoryText}`;
       story_type: isCustomTopic ? "custom" : "text",
     };
     if (nlpReport) storyInsertData.nlp_report = nlpReport;
+    // "Let's talk about the story" questions from the editor call (English/old stories: made later on demand).
+    if (talkQuestions.length) storyInsertData.talk_questions = talkQuestions;
     // Kippah: only what the form sent now (never the saved profile); girls never.
     storyInsertData.kippah = kippahOn;
     storyInsertData.kippah_color = kippahOn ? kippahColor(reqAppearance) : null;

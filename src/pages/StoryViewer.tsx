@@ -45,6 +45,7 @@ import { useSettings } from "@/hooks/use-settings";
 import { usePdfExport } from "@/hooks/use-pdf-export";
 import { useBgMusic } from "@/hooks/use-bg-music";
 import { useNikud } from "@/hooks/use-nikud";
+import { fetchTalkQuestions, talkTitle } from "@/lib/talk-questions";
 import { useTextToSpeech } from "@/hooks/use-text-to-speech";
 import { useAccessibility } from "@/hooks/use-accessibility";
 
@@ -1742,6 +1743,16 @@ const [currentPage, setCurrentPage] = useState(0);
     };
   }, [currentPage, virtualPages, preloadIllustration]);
 
+  // "Let's talk about the story" — shown at the end; made once on the server for older stories.
+  const [talkQuestions, setTalkQuestions] = useState<string[]>([]);
+  const reachedEnd = !!story && virtualPages.length > 0 && currentPage >= virtualPages.length;
+  useEffect(() => {
+    if (!reachedEnd || !story?.id || talkQuestions.length || !user) return;
+    let alive = true;
+    fetchTalkQuestions(story.id).then(q => { if (alive) setTalkQuestions(q); });
+    return () => { alive = false; };
+  }, [reachedEnd, story?.id, user, talkQuestions.length]);
+
   // Auto-fit refs for the standalone text page — shrinks font to avoid scrolling.
   // IMPORTANT: these hooks must be called on EVERY render (before any early
   // return) to keep hook order stable and avoid React error #310.
@@ -1991,6 +2002,26 @@ const [currentPage, setCurrentPage] = useState(0);
                     className="w-full max-w-sm rounded-2xl object-cover shadow-md"
                     style={{ height: '180px' }}
                   />
+
+                  {talkQuestions.length > 0 && (
+                    <section
+                      aria-labelledby="talk-title"
+                      dir={story?.language === 'en' ? 'ltr' : 'rtl'}
+                      className="w-full max-w-md rounded-2xl border border-border bg-card p-5 shadow-md text-start"
+                    >
+                      <h2 id="talk-title" className="text-xl md:text-2xl font-bold text-foreground text-center mb-4">
+                        {talkTitle(story?.language === 'en' ? 'en' : 'he', /[\u05B0-\u05BC]/.test(talkQuestions.join('')))}
+                      </h2>
+                      <ol className="space-y-3">
+                        {talkQuestions.map((q, i) => (
+                          <li key={i} className="flex items-start gap-3">
+                            <span className="flex-none w-8 h-8 rounded-full bg-primary text-primary-foreground font-bold flex items-center justify-center" aria-hidden="true">{i + 1}</span>
+                            <span className="text-lg leading-relaxed text-foreground">{q}</span>
+                          </li>
+                        ))}
+                      </ol>
+                    </section>
+                  )}
 
                   {/* Title */}
                   <p className="text-2xl md:text-3xl font-bold text-purple-800">כל הכבוד, {story?.child_name || 'חבר/ה'}! ✨</p>

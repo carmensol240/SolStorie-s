@@ -17,7 +17,10 @@ export type PrintSlot =
   | { kind: 'text'; storyIndex: number; storyIndexes: number[] }
   | { kind: 'illustration'; storyIndex: number }
   | { kind: 'decorative'; storyIndex: number }
+  | { kind: 'talk' }
   | { kind: 'theEnd' }
+  | { kind: 'drawMoment' }
+  | { kind: 'ourHero' }
   | { kind: 'blank' }
   | { kind: 'backCover' };
 
@@ -46,8 +49,10 @@ export function buildPageSequence(pages: { illustration_url: string | null }[]):
     seq.push({ kind: 'text', storyIndex: first, storyIndexes: sp.idx }); // even printed page
     seq.push(sp.pic ? { kind: 'illustration', storyIndex: first } : { kind: 'decorative', storyIndex: first });
   });
-  seq.push({ kind: 'theEnd' });
-  while ((seq.length + 1) % 4 !== 0) seq.push({ kind: 'blank' });
+  // Ending: talk page and "next adventure" always; fillers to a multiple of 4 in this order, blank only after them.
+  seq.push({ kind: 'talk' }, { kind: 'theEnd' });
+  const fillers: PrintSlot[] = [{ kind: 'drawMoment' }, { kind: 'ourHero' }];
+  while ((seq.length + 1) % 4 !== 0) seq.push(fillers.shift() ?? { kind: 'blank' });
   seq.push({ kind: 'backCover' });
   return seq;
 }
@@ -66,9 +71,14 @@ export const PRINT_TEXTS = {
     belongsTo: 'הספר הזה שייך ל-',
     dedication: 'הַסִּפּוּר הַזֶּה נִכְתַּב בִּמְיֻחָד עֲבוּר ______________',
     theEnd: 'סוֹף',
-    closing: (n: string, male: boolean) => `${n} ${male ? 'סיים' : 'סיימה'} הרפתקה קסומה - אבל זו רק ההתחלה!`,
-    appIntro: 'באפליקציה הדיגיטלית מקבלים גם:',
-    benefits: ['הקלטה והשמעה בקול שלכם', 'מוזיקת רקע קסומה', 'עשרות נושאים נוספים', 'דפי צביעה דיגיטליים'],
+    nextAdventure: (n: string, male: boolean) => `לאן ${male ? 'ייצא' : 'תצא'} ${n} להרפתקה הבאה?`,
+    scanNext: 'סרקו ויוצרים את הסיפור הבא',
+    drawMoment: 'ציירו את הרגע האהוב עליכם בסיפור',
+    ourHero: (male: boolean) => (male ? 'הגיבור שלנו' : 'הגיבורה שלנו'),
+    photoHere: 'הדביקו כאן תמונה',
+    dateLine: 'תאריך:',
+    memoryLine: 'זיכרון מהיום שקראנו:',
+    tagUs: (n: string) => `צלמו את ${n} עם הספר ותייגו אותנו`,
     heroOf: (n: string) => `${n} — הגיבור/ה של הסיפור`,
     tagline: 'כל ילד הוא גיבור הסיפור שלו',
     sub: 'סיפורים מותאמים אישית עם הילד שלך כגיבור',
@@ -83,9 +93,14 @@ export const PRINT_TEXTS = {
     belongsTo: 'This book belongs to',
     dedication: 'This story was written especially for ______________',
     theEnd: 'The End',
-    closing: (n: string, _male: boolean) => `${n} finished a magical adventure - but this is only the beginning!`,
-    appIntro: 'In the digital app you also get:',
-    benefits: ['Record and play in your own voice', 'Magical background music', 'Dozens of more topics', 'Digital coloring pages'],
+    nextAdventure: (n: string, _male: boolean) => `Where will ${n} go on the next adventure?`,
+    scanNext: 'Scan to create the next story',
+    drawMoment: 'Draw your favorite moment from the story',
+    ourHero: (_male: boolean) => 'Our hero',
+    photoHere: 'Stick a photo here',
+    dateLine: 'Date:',
+    memoryLine: 'A memory from the day we read it:',
+    tagUs: (n: string) => `Snap a photo of ${n} with the book and tag us`,
     heroOf: (n: string) => `${n} — the hero of the story`,
     tagline: 'Every child is the hero of their own story',
     sub: 'Personalized stories with your child as the hero',

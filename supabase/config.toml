@@ -90,3 +90,6 @@ verify_jwt = false
 
 [functions.get-gift-coupon]
 verify_jwt = false
+
+[functions.story-talk-questions]
+verify_jwt = false
