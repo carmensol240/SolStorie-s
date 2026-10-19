@@ -1295,6 +1295,7 @@ async function handleGenerateStory(req: Request, ctx: RequestCtx): Promise<Respo
       clothingType: String(reqBody.appearance.clothingType ?? "").slice(0, 40),
       clothingColor: String(reqBody.appearance.clothingColor ?? "").slice(0, 40),
     } : {};
+    const kippahOn = kippahForRequest(normalizeGender(childGender) ?? childGender, reqBody?.appearance?.kippah);
     let childPersonalization = "";
     if (userId) {
       try {
