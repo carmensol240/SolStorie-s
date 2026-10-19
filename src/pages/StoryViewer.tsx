@@ -2040,7 +2040,7 @@ const [currentPage, setCurrentPage] = useState(0);
                     {currentVirtual.isCover && story && (
                       <div className="absolute top-0 left-0 right-0 z-20 p-4 pt-6 bg-gradient-to-b from-black/60 via-black/30 to-transparent">
                         <div className="text-center text-white drop-shadow-lg flex flex-col items-center gap-2" dir="rtl">
-                          <h1 className="text-3xl md:text-5xl font-black leading-tight">{story.topic.split(' – ')[0]}</h1>
+                          <h1 className="text-3xl md:text-5xl font-black leading-tight">{translateTopic(story.topic, story.language)}</h1>
                           <span className="text-sm md:text-base font-medium text-white/90">הספר הזה נוצר במיוחד עבור {story.child_name}</span>
                         </div>
                       </div>
@@ -2155,7 +2155,7 @@ const [currentPage, setCurrentPage] = useState(0);
                     {(currentVirtual.isCover || currentPage === 0) && story && (
                       <div className="absolute top-0 left-0 right-0 z-20 p-4 pt-6 bg-gradient-to-b from-black/60 via-black/30 to-transparent">
                         <div className="text-center text-white drop-shadow-lg flex flex-col items-center gap-2" dir="rtl">
-                          <h1 className="text-3xl md:text-5xl font-black leading-tight">{story.topic.split(' – ')[0]}</h1>
+                          <h1 className="text-3xl md:text-5xl font-black leading-tight">{translateTopic(story.topic, story.language)}</h1>
                           <span className="text-sm md:text-base font-medium text-white/90">הספר הזה נוצר במיוחד עבור {story.child_name}</span>
                         </div>
                       </div>
@@ -2204,7 +2204,7 @@ const [currentPage, setCurrentPage] = useState(0);
                         {/* Text page (right on wide screens, below the picture on phones) */}
                         <div data-story-scroll className="order-2 lg:order-1 flex-initial min-h-0 lg:h-full lg:min-h-0 overflow-y-auto flex flex-col lg:justify-center px-5 md:px-10 pt-2 lg:pt-8 pb-14 lg:pb-16 lg:border-l lg:border-paper-muted lg:shadow-[inset_-12px_0_18px_-14px_hsl(var(--paper-foreground)/0.35)]">
                           {displayText.trim() && (
-                            <p className={cn("text-center font-semibold whitespace-pre-line", currentFontSize.size)} style={{ lineHeight: '1.75', overflowWrap: 'break-word' }} dir="rtl">
+                            <p className={cn("text-center font-semibold whitespace-pre-line", currentFontSize.size)} style={{ lineHeight: '1.65', overflowWrap: 'break-word' }} dir="rtl">
                               {displayText}
                             </p>
                           )}
