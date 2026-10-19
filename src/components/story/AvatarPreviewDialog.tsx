@@ -239,7 +239,7 @@ const AvatarPreviewDialog = ({
           <div className="grid grid-cols-2 gap-3 sm:gap-4 w-full">
             {/* Original Photo */}
             <div className="space-y-2">
-              <p className="text-xs text-muted-foreground text-center">תמונה מקורית</p>
+              <p className="text-sm text-muted-foreground text-center">תמונה מקורית</p>
               <div className="aspect-square w-full rounded-xl overflow-hidden border-2 border-muted">
                 <img
                   src={originalPhoto}
@@ -251,17 +251,17 @@ const AvatarPreviewDialog = ({
 
             {/* Generated Avatar */}
             <div className="space-y-2">
-              <p className="text-xs text-muted-foreground text-center">דמות בסיפור</p>
+              <p className="text-sm text-muted-foreground text-center">דמות בסיפור</p>
               <div className="aspect-square w-full rounded-xl overflow-hidden border-2 border-primary bg-muted flex items-center justify-center">
                 {isGenerating ? (
                   <div className="flex flex-col items-center gap-2 p-2">
                     <Loader2 className="w-8 h-8 animate-spin text-primary" />
-                    <span className="text-xs text-muted-foreground text-center">יוצר דמות מונפשת...</span>
+                    <span className="text-sm text-muted-foreground text-center">יוצר דמות מונפשת...</span>
                   </div>
                 ) : errorMessage ? (
                   <div className="flex flex-col items-center gap-2 p-2">
                     <AlertCircle className="w-8 h-8 text-destructive" />
-                    <span className="text-xs text-destructive text-center">{errorMessage}</span>
+                    <span className="text-sm text-destructive text-center">{errorMessage}</span>
                   </div>
                 ) : previewUrl ? (
                   <img
@@ -272,7 +272,7 @@ const AvatarPreviewDialog = ({
                 ) : (
                   <div className="flex flex-col items-center gap-2">
                     <Loader2 className="w-6 h-6 animate-spin text-muted-foreground" />
-                    <span className="text-xs text-muted-foreground">מתחיל...</span>
+                    <span className="text-sm text-muted-foreground">מתחיל...</span>
                   </div>
                 )}
               </div>
@@ -297,10 +297,10 @@ const AvatarPreviewDialog = ({
           {/* Info text */}
           {!errorMessage && (
             <div className="bg-primary/5 rounded-xl p-3 text-center">
-              <p className="text-xs text-muted-foreground">
+              <p className="text-sm text-muted-foreground">
                 💡 הדמות הזו תופיע בכל הסיפורים של {childName} כדי לשמור על עקביות
               </p>
-              <p className="text-xs text-muted-foreground mt-1">
+              <p className="text-sm text-muted-foreground mt-1">
                 {canRegenerate ? (
                   <>נותרו לך <strong>{MAX_AVATAR_REGENERATIONS - localRegenerationCount}</strong> יצירות מחדש</>
                 ) : (

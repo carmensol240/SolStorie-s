@@ -50,7 +50,7 @@ export const MissingIllustrationPrompt = ({
         <div className="text-center text-[#A08060]">
           <Loader2 className="w-10 h-10 mx-auto mb-2 animate-spin text-purple-500" />
           <p className="text-sm font-medium text-purple-600">מייצר את האיור...</p>
-          <p className="text-xs text-purple-400 mt-1">זה יכול לקחת כמה שניות</p>
+          <p className="text-sm text-purple-400 mt-1">זה יכול לקחת כמה שניות</p>
         </div>
       ) : showPromptInput ? (
         <div className="w-full max-w-xs space-y-3 text-center" dir="rtl">
@@ -70,7 +70,7 @@ export const MissingIllustrationPrompt = ({
               size="sm"
               onClick={() => onSubmit(pageId, customPromptText || undefined)}
               disabled={!customPromptText.trim()}
-              className="bg-primary hover:bg-primary/90 text-white text-xs gap-1"
+              className="bg-primary hover:bg-primary/90 text-white text-sm gap-1"
             >
               <Send className="w-3 h-3" />
               צרו איור
@@ -79,7 +79,7 @@ export const MissingIllustrationPrompt = ({
               size="sm"
               variant="ghost"
               onClick={onTogglePrompt}
-              className="text-xs text-[#8B7355]"
+              className="text-sm text-[#8B7355]"
             >
               ביטול
             </Button>
@@ -90,12 +90,12 @@ export const MissingIllustrationPrompt = ({
           <div className="text-center text-[#A08060]">
             <Sparkles className="w-10 h-10 mx-auto mb-1 opacity-50 text-purple-400" />
             <p className="text-sm font-medium">האיור עדיין בדרך 🎨</p>
-            <p className="text-xs opacity-70 mt-0.5">אבל אפשר כבר לקרוא את הסיפור ולהקליט בקולכם!</p>
+            <p className="text-sm opacity-70 mt-0.5">אבל אפשר כבר לקרוא את הסיפור ולהקליט בקולכם!</p>
           </div>
           <Button
             size="sm"
             onClick={() => onSubmit(pageId)}
-            className="bg-primary hover:bg-primary/90 text-white text-xs gap-1.5"
+            className="bg-primary hover:bg-primary/90 text-white text-sm gap-1.5"
           >
             <Sparkles className="w-3.5 h-3.5" />
             נסו ליצור איור שוב 🎨
@@ -104,7 +104,7 @@ export const MissingIllustrationPrompt = ({
             size="sm"
             variant="ghost"
             onClick={onTogglePrompt}
-            className="text-xs text-[#8B7355]"
+            className="text-sm text-[#8B7355]"
           >
             תארו מה לצייר ✏️
           </Button>

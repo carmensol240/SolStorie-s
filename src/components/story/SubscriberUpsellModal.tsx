@@ -63,7 +63,7 @@ const SubscriberUpsellModal = ({ open, onOpenChange }: SubscriberUpsellModalProp
                 </div>
                 <div className="text-right">
                   <h4 className="font-bold text-foreground text-sm">{feature.title}</h4>
-                  <p className="text-xs text-muted-foreground">{feature.description}</p>
+                  <p className="text-sm text-muted-foreground">{feature.description}</p>
                 </div>
               </div>
             );

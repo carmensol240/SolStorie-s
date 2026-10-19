@@ -33,7 +33,7 @@ export const AboutSolStoriesContent = () => {
 
       {/* IP Statement */}
       <div className="bg-muted/30 border border-border rounded-lg p-3 mt-4">
-        <p className="text-xs text-muted-foreground leading-relaxed">
+        <p className="text-sm text-muted-foreground leading-relaxed">
           📌 התוכן, הדמויות (סול וחבריה), והאיורים באפליקציה הם קניין רוחני בלעדי של <span dir="ltr" className="inline-block">SolStorie's™</span>.
         </p>
       </div>

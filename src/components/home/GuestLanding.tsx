@@ -157,12 +157,12 @@ const GuestLanding = ({ user, isLoggedIn }: GuestLandingProps) => {
         </div>
 
         {/* Device availability */}
-        <p className="text-center text-xs text-gray-800 font-bold mb-1" style={{ textShadow: '1px 1px 2px rgba(255,255,255,0.7)' }}>
+        <p className="text-center text-sm text-gray-800 font-bold mb-1" style={{ textShadow: '1px 1px 2px rgba(255,255,255,0.7)' }}>
           זמינה בכל המכשירים: נייד, טאבלט ומחשב · ניתן לשלם בכרטיס אשראי ללא חשבון פייפאל
         </p>
 
         {/* Privacy Link */}
-        <p className="text-center text-xs text-gray-800 font-semibold">
+        <p className="text-center text-sm text-gray-800 font-semibold">
           בהמשך, אתם מסכימים ל
           <a href="/privacy" className="text-purple-700 font-bold hover:underline mx-1">מדיניות הפרטיות</a>
         </p>

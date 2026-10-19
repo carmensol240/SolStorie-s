@@ -238,14 +238,14 @@ const GoldenHeartRewards = ({ childName, isUnlocked }: GoldenHeartRewardsProps) 
           boxShadow: "0 8px 32px rgba(0,0,0,0.06)",
         }}
       >
-        <p className="text-xs text-center font-medium" style={{ color: "hsl(260, 30%, 40%)" }}>
+        <p className="text-sm text-center font-medium" style={{ color: "hsl(260, 30%, 40%)" }}>
           🎉 מזל טוב! פתחתם את לב הזהב — הנה הפרסים שלכם:
         </p>
         <div className="flex gap-3">
           <Button
             onClick={() => handleDownload("coloring")}
             disabled={generating !== null}
-            className="flex-1 bg-primary hover:bg-primary/90 text-white font-bold text-xs rounded-xl h-10"
+            className="flex-1 bg-primary hover:bg-primary/90 text-white font-bold text-sm rounded-xl h-10"
           >
             <FileText className="w-4 h-4 ml-1" />
             {generating === "coloring" ? "יוצר..." : "דף צביעה"}
@@ -253,7 +253,7 @@ const GoldenHeartRewards = ({ childName, isUnlocked }: GoldenHeartRewardsProps) 
           <Button
             onClick={() => handleDownload("certificate")}
             disabled={generating !== null}
-            className="flex-1 bg-primary hover:bg-primary/90 text-white font-bold text-xs rounded-xl h-10"
+            className="flex-1 bg-primary hover:bg-primary/90 text-white font-bold text-sm rounded-xl h-10"
           >
             <Award className="w-4 h-4 ml-1" />
             {generating === "certificate" ? "יוצר..." : "תעודת חברות"}

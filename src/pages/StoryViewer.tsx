@@ -1583,6 +1583,13 @@ const [currentPage, setCurrentPage] = useState(0);
   };
 
   // Build virtual pages — split each DB page into illustration + text
+  // Accessible description for a page picture: the page text (≤150 chars, no nikud), or "איור לעמוד X".
+  const illustrationAlt = (text: string | null | undefined, pageNumber?: number | null) => {
+    const clean = (text || '').replace(/[\u0591-\u05C7]/g, '').replace(/\s+/g, ' ').trim();
+    if (!clean) return pageNumber ? `איור לעמוד ${pageNumber}` : 'איור לסיפור';
+    return clean.length > 150 ? clean.slice(0, 149).trimEnd() + '…' : clean;
+  };
+
   type VirtualPage = {
     type: 'illustration' | 'text' | 'combined' | 'spread';
     dbPage: StoryPage;
@@ -1990,7 +1997,7 @@ const [currentPage, setCurrentPage] = useState(0);
                   {endFeedbackSent ? (
                     <div className="w-full max-w-xs bg-gradient-to-r from-purple-50 to-pink-50 rounded-xl p-3 shadow-lg border border-purple-100 text-center mx-auto" dir="rtl">
                       <p className="text-base font-bold text-purple-800">תודה רבה! 💛</p>
-                      <p className="text-xs text-purple-600 mt-1">המשוב שלכם עוזר לנו ליצור סיפורים טובים יותר</p>
+                      <p className="text-sm text-purple-600 mt-1">המשוב שלכם עוזר לנו ליצור סיפורים טובים יותר</p>
                     </div>
                   ) : showFeedbackForm ? (
                     <div className="w-full max-w-xs bg-white rounded-xl p-4 shadow-lg border border-purple-100 space-y-3 mx-auto" dir="rtl">
@@ -2006,19 +2013,19 @@ const [currentPage, setCurrentPage] = useState(0);
                         ))}
                       </div>
                       <Textarea value={endFeedbackMessage} onChange={(e) => setEndFeedbackMessage(e.target.value)}
-                        placeholder="ספרו לנו מה אהבתם 💬" className="text-xs min-h-[40px] resize-none" dir="rtl" />
+                        placeholder="ספרו לנו מה אהבתם 💬" className="text-sm min-h-[40px] resize-none" dir="rtl" />
                       <div className="text-right">
-                        <p className="text-xs font-semibold text-purple-800 mb-1">מה תרצו שנוסיף או נשפר? 💬</p>
+                        <p className="text-sm font-semibold text-purple-800 mb-1">מה תרצו שנוסיף או נשפר? 💬</p>
                         <Textarea
                           value={endImprovementSuggestion}
                           onChange={(e) => setEndImprovementSuggestion(e.target.value)}
                           placeholder="יש לכם רעיון? נשמח לשמוע..."
-                          className="text-xs min-h-[40px] resize-none"
+                          className="text-sm min-h-[40px] resize-none"
                           dir="rtl"
                         />
                       </div>
                       <Button onClick={handleEndFeedbackSubmit} disabled={endFeedbackRating === 0 || endFeedbackSending}
-                        size="sm" className="w-full gap-1 text-xs bg-primary hover:bg-primary/90">
+                        size="sm" className="w-full gap-1 text-sm bg-primary hover:bg-primary/90">
                         <Send className="w-3 h-3" />
                         {endFeedbackSending ? "שולח..." : "שליחה"}
                       </Button>
@@ -2071,14 +2078,14 @@ const [currentPage, setCurrentPage] = useState(0);
                                   <span className="text-2xl">✨</span>
                                 </div>
                               </div>
-                              <p className="text-xs text-[#8B7355] font-serif">טוען איור...</p>
+                              <p className="text-sm text-[#8B7355] font-serif">טוען איור...</p>
                             </div>
                           </div>
                         )}
                         <img
                           key={`${currentVirtual.illustrationUrl}-${failedImages[currentVirtual.illustrationUrl] || 0}`}
                           src={`${(failedImages[currentVirtual.illustrationUrl] ? getPublicIllustrationUrl(currentVirtual.illustrationUrl) : getReadingIllustrationUrl(currentVirtual.illustrationUrl)) || ''}${failedImages[currentVirtual.illustrationUrl] ? `?retry=${failedImages[currentVirtual.illustrationUrl]}` : ''}`}
-                          alt="איור"
+                          alt={currentVirtual.isCover ? (story?.topic || 'כריכת הספר') : illustrationAlt(currentVirtual.text, currentVirtual.dbPage?.page_number)}
                           className={cn("absolute inset-0 w-full h-full transition-opacity duration-500 object-contain bg-paper", imageLoadedMap[currentVirtual.illustrationUrl] ? "opacity-100" : "opacity-0")}
                           loading="eager"
                           onLoad={(e) => {
@@ -2173,14 +2180,14 @@ const [currentPage, setCurrentPage] = useState(0);
                                   <span className="text-2xl">✨</span>
                                 </div>
                               </div>
-                              <p className="text-xs text-[#8B7355] font-serif">טוען איור...</p>
+                              <p className="text-sm text-[#8B7355] font-serif">טוען איור...</p>
                             </div>
                           </div>
                         )}
                         <img
                           key={`${currentVirtual.illustrationUrl}-${failedImages[currentVirtual.illustrationUrl] || 0}`}
                           src={`${(failedImages[currentVirtual.illustrationUrl] ? getPublicIllustrationUrl(currentVirtual.illustrationUrl) : getReadingIllustrationUrl(currentVirtual.illustrationUrl)) || ''}${failedImages[currentVirtual.illustrationUrl] ? `?retry=${failedImages[currentVirtual.illustrationUrl]}` : ''}`}
-                          alt="איור"
+                          alt={currentVirtual.isCover ? (story?.topic || 'כריכת הספר') : illustrationAlt(currentVirtual.text, currentVirtual.dbPage?.page_number)}
                            className={cn("absolute inset-0 w-full h-full transition-opacity duration-500 object-contain bg-paper", imageLoadedMap[currentVirtual.illustrationUrl] ? "opacity-100" : "opacity-0")}
                           loading="eager"
                           onLoad={(e) => {
@@ -2214,7 +2221,7 @@ const [currentPage, setCurrentPage] = useState(0);
                           </div>
                           <div className="space-y-1">
                             <p className="text-sm font-semibold text-[#6B4423]" dir="rtl">מכינים איור קסום...</p>
-                            <p className="text-xs text-[#8B7355]/70" dir="rtl">רק עוד רגע ✨</p>
+                            <p className="text-sm text-[#8B7355]/70" dir="rtl">רק עוד רגע ✨</p>
                           </div>
                         </div>
                       </div>
@@ -2295,7 +2302,7 @@ const [currentPage, setCurrentPage] = useState(0);
                         {(currentVirtual.illustrationUrl || currentVirtual.illustrationPrompt) ? (
                         <div className="order-1 lg:order-2 relative flex-1 min-h-[40dvh] lg:h-full lg:min-h-0 m-2 lg:m-6">
                           {currentVirtual.illustrationUrl ? (
-                            <ReaderIllustration path={currentVirtual.illustrationUrl} />
+                            <ReaderIllustration path={currentVirtual.illustrationUrl} alt={illustrationAlt(currentVirtual.text, currentVirtual.dbPage?.page_number)} />
                           ) : (
                             <div className="absolute inset-0 flex flex-col items-center justify-center gap-2">
                               <div className="w-full max-h-full aspect-[1408/768] rounded-xl bg-paper-muted animate-pulse" />
@@ -2372,7 +2379,7 @@ const [currentPage, setCurrentPage] = useState(0);
               className="absolute bottom-14 left-1/2 -translate-x-1/2 z-40 opacity-30 pointer-events-none select-none"
               aria-hidden="true"
             >
-              <span className="text-xs font-black logo-3d-bubble">
+              <span className="text-sm font-black logo-3d-bubble">
                 <span className="logo-rainbow">SolStorie's™</span>
               </span>
             </div>
@@ -2589,7 +2596,7 @@ const [currentPage, setCurrentPage] = useState(0);
                       )}
                     >
                       <img src={url!} alt={`עמוד ${page.page_number}`} className="w-full h-full object-cover" />
-                      <span className="absolute bottom-0 left-0 right-0 bg-black/50 text-white text-xs text-center py-0.5">
+                      <span className="absolute bottom-0 left-0 right-0 bg-black/50 text-white text-sm text-center py-0.5">
                         עמוד {page.page_number}
                       </span>
                       {isSelected && (
@@ -2802,7 +2809,7 @@ const [currentPage, setCurrentPage] = useState(0);
                   setCachedIllustrationUrl(null);
                   setColoringAction('pick');
                 }}
-                className="w-full text-xs text-purple-400 hover:text-purple-600 transition-colors"
+                className="w-full text-sm text-purple-400 hover:text-purple-600 transition-colors"
               >
                 ← בחרו איור אחר
               </button>

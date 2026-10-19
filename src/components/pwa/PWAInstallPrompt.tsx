@@ -75,8 +75,8 @@ const PWAInstallPrompt = () => {
             <Share className="w-4 h-4" />
           </div>
           <div className="flex-1 min-w-0">
-            <p className="font-bold text-xs leading-tight">התקינו את האפליקציה לגישה מהירה</p>
-            <p className="text-xs opacity-80 leading-tight mt-0.5">
+            <p className="font-bold text-sm leading-tight">התקינו את האפליקציה לגישה מהירה</p>
+            <p className="text-sm opacity-80 leading-tight mt-0.5">
               לחצו <Share className="w-3 h-3 inline mx-0.5" /> ואז "הוסף למסך הבית"
             </p>
           </div>
@@ -100,11 +100,11 @@ const PWAInstallPrompt = () => {
           <div className="w-8 h-8 bg-primary-foreground/20 rounded-lg flex items-center justify-center flex-shrink-0">
             <Download className="w-4 h-4" />
           </div>
-          <p className="flex-1 font-bold text-xs">התקינו את האפליקציה לגישה מהירה</p>
+          <p className="flex-1 font-bold text-sm">התקינו את האפליקציה לגישה מהירה</p>
           <Button
             size="sm"
             onClick={handleInstall}
-            className="bg-background text-primary hover:bg-background/90 font-bold text-xs px-3 h-7"
+            className="bg-background text-primary hover:bg-background/90 font-bold text-sm px-3 h-7"
           >
             התקנה
           </Button>
@@ -123,8 +123,8 @@ const PWAInstallPrompt = () => {
           <Download className="w-4 h-4" />
         </div>
         <div className="flex-1 min-w-0">
-          <p className="font-bold text-xs leading-tight">הוסיפו קיצור דרך למסך הבית</p>
-          <p className="text-xs opacity-80 leading-tight mt-0.5">
+          <p className="font-bold text-sm leading-tight">הוסיפו קיצור דרך למסך הבית</p>
+          <p className="text-sm opacity-80 leading-tight mt-0.5">
             פתחו את התפריט של הדפדפן ולחצו "הוסף למסך הבית"
           </p>
         </div>

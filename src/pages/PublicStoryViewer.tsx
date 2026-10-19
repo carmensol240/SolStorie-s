@@ -255,7 +255,7 @@ const PublicStoryViewer = () => {
                     className="bg-primary text-white font-bold px-6 py-3 rounded-full shadow-xl hover:shadow-2xl transition-all border-2 border-white/50 text-sm">
                     📖 פִּתְחוּ אֶת הַסֵּפֶר
                   </button>
-                  <span className="mt-2 text-xs text-white/60 font-bold">SolStorie's™</span>
+                  <span className="mt-2 text-sm text-white/60 font-bold">SolStorie's™</span>
                 </div>
               </div>
             )}
@@ -327,7 +327,7 @@ const PublicStoryViewer = () => {
                       </div>
                     )}
                     <div className="absolute bottom-1 left-0 right-0 flex justify-center z-0">
-                      <span className="text-xs text-white/50">{currentVirtual.dbPage.page_number} / {dbPageCount}</span>
+                      <span className="text-sm text-white/50">{currentVirtual.dbPage.page_number} / {dbPageCount}</span>
                     </div>
                   </>
                 ) : currentVirtual.type === 'illustration' ? (
@@ -342,7 +342,7 @@ const PublicStoryViewer = () => {
                       </div>
                     )}
                     <div className="absolute bottom-3 left-0 right-0 flex justify-center">
-                      <span className="text-xs text-white/50">{Math.ceil((currentPage + 1) / 2)} / {dbPageCount}</span>
+                      <span className="text-sm text-white/50">{Math.ceil((currentPage + 1) / 2)} / {dbPageCount}</span>
                     </div>
                   </>
                 ) : (
@@ -357,7 +357,7 @@ const PublicStoryViewer = () => {
                     </div>
                     <div className="flex-1" />
                     <div className="pb-4 shrink-0">
-                      <span className="text-xs text-[#5B3E96]/60">{Math.ceil((currentPage + 1) / 2)} / {dbPageCount}</span>
+                      <span className="text-sm text-[#5B3E96]/60">{Math.ceil((currentPage + 1) / 2)} / {dbPageCount}</span>
                     </div>
                   </div>
                 )}
@@ -393,7 +393,7 @@ const PublicStoryViewer = () => {
               <div className={cn("dot", isEndPage && "active")} />
             </>
           ) : (
-             <span className="text-xs text-gray-400">
+             <span className="text-sm text-gray-400">
               {isCoverPage ? '' : isEndPage ? 'סוף' : `${Math.ceil((currentPage + 1) / 2)} / ${dbPageCount}`}
             </span>
           )}
@@ -429,7 +429,7 @@ const PublicStoryViewer = () => {
             <Button
               onClick={() => navigate(`/auth?returnTo=/s/${storySlug}`)}
               size="sm"
-              className="bg-white text-purple-700 hover:bg-purple-50 font-black text-xs shrink-0 rounded-full px-4"
+              className="bg-white text-purple-700 hover:bg-purple-50 font-black text-sm shrink-0 rounded-full px-4"
             >
               הירשמו עכשיו ✨
             </Button>

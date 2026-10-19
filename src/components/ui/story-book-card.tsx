@@ -86,9 +86,9 @@ const StoryBookCard = ({
       {/* Outer wrapper for hover lift */}
       <div
         onClick={handleClick}
-        onKeyDown={(e) => e.key === 'Enter' && handleClick()}
+        onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); handleClick(); } }}
         tabIndex={0}
-        role="article"
+        role="button"
         aria-label={`סיפור של ${childName}: ${topic}`}
         className="group cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
       >
@@ -164,7 +164,7 @@ const StoryBookCard = ({
             {language === 'en' && (
               <div className="absolute top-1.5 right-1.5 z-20 flex items-center gap-0.5 bg-black/50 backdrop-blur-sm rounded-full px-1.5 py-0.5 shadow-md" title="English story">
                 <span className="text-sm leading-none">🇺🇸</span>
-                <span className="text-xs text-white font-bold">EN</span>
+                <span className="text-sm text-white font-bold">EN</span>
               </div>
             )}
 
@@ -200,9 +200,9 @@ const StoryBookCard = ({
               <h3 className="text-white text-sm font-bold leading-tight line-clamp-2 drop-shadow-md">
                 הסיפור של {childName}
               </h3>
-              <p className="text-white/75 text-xs mt-0.5 drop-shadow-sm">{topic}</p>
+              <p className="text-white/75 text-sm mt-0.5 drop-shadow-sm">{topic}</p>
               {isOfflineSaved && offlineSize > 0 && (
-                <p className="text-white/50 text-xs mt-0.5">{formatBytes(offlineSize)}</p>
+                <p className="text-white/50 text-sm mt-0.5">{formatBytes(offlineSize)}</p>
               )}
             </div>
 

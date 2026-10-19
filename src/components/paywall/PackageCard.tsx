@@ -35,7 +35,7 @@ const PackageCard = ({
     >
       {/* Badge */}
       {badge && (
-        <div className="absolute -top-3 left-1/2 -translate-x-1/2 bg-primary text-primary-foreground text-xs font-bold px-3 py-1 rounded-full whitespace-nowrap">
+        <div className="absolute -top-3 left-1/2 -translate-x-1/2 bg-primary text-primary-foreground text-sm font-bold px-3 py-1 rounded-full whitespace-nowrap">
           {badge}
         </div>
       )}
@@ -50,7 +50,7 @@ const PackageCard = ({
       <div className="text-2xl font-bold text-foreground mb-1">
         ₪{price}
       </div>
-      <div className="text-xs text-muted-foreground mb-4">{subtitle}</div>
+      <div className="text-sm text-muted-foreground mb-4">{subtitle}</div>
 
       {/* Selection indicator */}
       {isSelected ? (

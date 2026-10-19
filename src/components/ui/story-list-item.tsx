@@ -90,9 +90,9 @@ const StoryListItem = ({
     <>
       <div
         onClick={handleClick}
-        onKeyDown={(e) => e.key === 'Enter' && handleClick()}
+        onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); handleClick(); } }}
         tabIndex={0}
-        role="article"
+        role="button"
         aria-label={`סיפור של ${childName}: ${topic}`}
         className={cn(
           'flex items-center gap-3 p-3 bg-card rounded-xl',
@@ -122,7 +122,7 @@ const StoryListItem = ({
         <div className="flex-1 min-w-0">
           <h3 className="font-bold text-foreground truncate">הסיפור של {childName}</h3>
           <p className="text-sm text-muted-foreground truncate">{topic}</p>
-          <p className="text-xs text-muted-foreground/70 mt-0.5">{formattedDate}</p>
+          <p className="text-sm text-muted-foreground/70 mt-0.5">{formattedDate}</p>
         </div>
 
         <DropdownMenu open={menuOpen} onOpenChange={setMenuOpen}>

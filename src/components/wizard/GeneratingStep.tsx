@@ -746,7 +746,7 @@ const GeneratingStep = ({ formData, requestId, onComplete }: GeneratingStepProps
           <h2 className="text-lg font-bold bg-primary bg-clip-text text-transparent">
             {currentMessage.text}
           </h2>
-          <p className="text-purple-700/70 text-xs">
+          <p className="text-purple-700/70 text-sm">
             {`יצירת סיפור מותאם אישית עבור ${formData.childName}`}
           </p>
         </div>
@@ -766,7 +766,7 @@ const GeneratingStep = ({ formData, requestId, onComplete }: GeneratingStepProps
               style={{ width: `${progress}%` }}
             />
           </div>
-          <p className="text-xs text-purple-600 font-medium text-center" aria-live="polite">
+          <p className="text-sm text-purple-600 font-medium text-center" aria-live="polite">
             {Math.round(progress)}%
           </p>
         </div>

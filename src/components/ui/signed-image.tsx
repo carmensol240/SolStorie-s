@@ -95,7 +95,7 @@ export const SignedImage = ({
                 </linearGradient>
               </defs>
             </svg>
-            <p className="text-xs text-[#8B7355] font-serif opacity-50">טוען איור...</p>
+            <p className="text-sm text-[#8B7355] font-serif opacity-50">טוען איור...</p>
           </div>
         </div>
       )}

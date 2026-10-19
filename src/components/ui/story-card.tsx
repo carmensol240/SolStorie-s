@@ -89,9 +89,9 @@ const StoryCard = ({
   return (
     <div
       onClick={() => navigate(`/story/${id}`)}
-      onKeyDown={(e) => e.key === 'Enter' && navigate(`/story/${id}`)}
+      onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); navigate(`/story/${id}`); } }}
       tabIndex={0}
-      role="article"
+      role="button"
       aria-label={`סיפור של ${childName}: ${title}`}
       className={cn(
         'relative bg-card rounded-2xl overflow-hidden cursor-pointer',
@@ -200,12 +200,12 @@ const StoryCard = ({
         
         <div className="flex items-center gap-2 flex-wrap">
           {/* Age Badge */}
-          <Badge variant="outline" className="text-xs">
+          <Badge variant="outline" className="text-sm">
             גיל {ageLabel}
           </Badge>
 
           {/* Theme Badge */}
-          <Badge variant="secondary" className="text-xs gap-1">
+          <Badge variant="secondary" className="text-sm gap-1">
             {themeIcons[theme]}
             {themeLabels[theme] || theme}
           </Badge>

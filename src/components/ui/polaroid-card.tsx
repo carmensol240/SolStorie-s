@@ -140,12 +140,7 @@ const PolaroidCard = ({
   return (
     <>
       <div
-        onClick={handleClick}
-        onKeyDown={(e) => e.key === 'Enter' && handleClick()}
-        tabIndex={0}
-        role="article"
-        aria-label={`סיפור של ${childName}: ${topic}`}
-        className="group cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-purple-400 focus-visible:ring-offset-2 flex flex-col items-center"
+        className="group cursor-pointer flex flex-col items-center"
         style={{
           transform: `rotate(${rotation}deg)`,
           transition: 'transform 0.3s ease, filter 0.3s ease',
@@ -183,10 +178,17 @@ const PolaroidCard = ({
             borderRadius: '4px',
           }}
         >
+          {/* Whole card is one real button (stretched over the frame); the share/menu buttons sit above it. */}
+          <button
+            type="button"
+            onClick={handleClick}
+            aria-label={`סיפור של ${childName}: ${topic}`}
+            className="absolute inset-0 z-10 rounded-[4px] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-purple-400 focus-visible:ring-offset-2"
+          />
           {/* Series badge */}
           {seriesCount && seriesCount > 1 && (
             <div
-              className="absolute -top-2 -right-2 z-20 flex items-center gap-0.5 rounded-full px-2 py-0.5 text-white text-xs font-bold shadow-md"
+              className="absolute -top-2 -right-2 z-20 flex items-center gap-0.5 rounded-full px-2 py-0.5 text-white text-sm font-bold shadow-md"
               style={{
                 background: 'linear-gradient(135deg, #a29bfe, #6c5ce7)',
               }}
@@ -215,7 +217,7 @@ const PolaroidCard = ({
             {language === 'en' && (
               <div className="absolute top-1 right-1 z-20 flex items-center gap-0.5 bg-black/50 backdrop-blur-sm rounded-full px-1.5 py-0.5 shadow-md">
                 <span className="text-sm leading-none">🇺🇸</span>
-                <span className="text-xs text-white font-bold">EN</span>
+                <span className="text-sm text-white font-bold">EN</span>
               </div>
             )}
 
@@ -299,18 +301,18 @@ const PolaroidCard = ({
           </div>
 
           {/* Title area */}
-          <div dir="rtl" className="mt-1 px-0.5 text-center" style={{ minHeight: '24px' }}>
+          <div dir="rtl" aria-hidden="true" className="mt-1 px-0.5 text-center" style={{ minHeight: '24px' }}>
             <p
-              className="text-xs font-bold leading-tight line-clamp-2"
+              className="text-sm font-bold leading-tight line-clamp-2"
               style={{ fontFamily: "'Caveat', cursive", fontSize: '14px', color: '#e8d5ff' }}
             >
               {topic}
             </p>
-            <p className="text-[10px] leading-tight text-purple-200/60 mt-0.5 truncate">
+            <p className="text-sm leading-tight text-purple-200/80 mt-0.5 truncate">
               {childName}{createdAt ? ` · ${formatCardDate(createdAt)}` : ''}
             </p>
             {isOfflineSaved && offlineSize > 0 && (
-              <p className="text-xs text-purple-300/60 mt-0.5">{formatBytes(offlineSize)}</p>
+              <p className="text-sm text-purple-300/60 mt-0.5">{formatBytes(offlineSize)}</p>
             )}
           </div>
 
@@ -368,7 +370,7 @@ const PolaroidCard = ({
                   style={{ color: '#e8d5ff', background: 'rgba(255,255,255,0.05)' }}
                 >
                   <span className="font-bold">חלק {idx + 1}</span>
-                  <span className="block text-xs mt-0.5 opacity-70">{part.topic}</span>
+                  <span className="block text-sm mt-0.5 opacity-70">{part.topic}</span>
                 </button>
               ))}
             </div>

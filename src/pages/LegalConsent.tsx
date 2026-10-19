@@ -222,7 +222,7 @@ const LegalConsent = () => {
                       האפליקציה מסופקת "כמות שהיא" (AS IS). אנו ממליצים על פיקוח הורים בעת השימוש.
                     </p>
                   </section>
-                  <p className="text-xs text-muted-foreground pt-4 border-t">
+                  <p className="text-sm text-muted-foreground pt-4 border-t">
                     גרסה {TERMS_VERSION} | עדכון אחרון: ינואר 2026
                   </p>
                 </div>
@@ -268,7 +268,7 @@ const LegalConsent = () => {
                       יש לכם זכות לעיין, לתקן ולמחוק את המידע שלכם בכל עת.
                     </p>
                   </section>
-                  <p className="text-xs text-muted-foreground pt-4 border-t">
+                  <p className="text-sm text-muted-foreground pt-4 border-t">
                     גרסה {TERMS_VERSION} | עדכון אחרון: ינואר 2026
                   </p>
                 </div>

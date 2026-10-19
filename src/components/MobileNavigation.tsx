@@ -36,7 +36,7 @@ const MobileNavigation = React.forwardRef<HTMLElement>((_, ref) => {
               )}
             >
               <Icon className="w-5 h-5" />
-              <span className="text-xs font-medium leading-tight">{item.label}</span>
+              <span className="text-sm font-medium leading-tight">{item.label}</span>
             </button>
           );
         })}

@@ -57,7 +57,7 @@ const ContinueReading = ({ story }: ContinueReadingProps) => {
         <div className="p-4 text-right">
           <h3 className="font-bold text-lg text-foreground">הסיפור של {story.child_name}</h3>
           <p className="text-sm text-muted-foreground mt-1">{story.topic}</p>
-          <p className="text-xs text-primary font-medium mt-2">המשיכו לקרוא ←</p>
+          <p className="text-sm text-primary font-medium mt-2">המשיכו לקרוא ←</p>
         </div>
       </button>
     </section>

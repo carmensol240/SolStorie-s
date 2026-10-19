@@ -228,7 +228,7 @@ const SignupBeforeGenerateModal = ({
                 onCheckedChange={(c) => setTermsAccepted(c === true)}
                 className="border-purple-300 data-[state=checked]:bg-purple-500 data-[state=checked]:border-purple-500"
               />
-              <label htmlFor="modal-terms" className="text-xs text-muted-foreground cursor-pointer">
+              <label htmlFor="modal-terms" className="text-sm text-muted-foreground cursor-pointer">
                 קראתי ואני מסכימ/ה ל
                 <a href="/terms" target="_blank" className="text-purple-500 underline underline-offset-2 mx-0.5">
                   תנאי השימוש

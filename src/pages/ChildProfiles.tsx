@@ -616,7 +616,7 @@ const ChildProfiles = () => {
                 <div className="flex items-center gap-2">
                   <p className="text-muted-foreground">{child.gender === "female" ? "בת" : "בן"} {child.age}</p>
                   {child.avatar_url && (
-                    <span className="text-xs text-primary bg-primary/10 px-2 py-0.5 rounded-full">דמות מוכנה</span>
+                    <span className="text-sm text-primary bg-primary/10 px-2 py-0.5 rounded-full">דמות מוכנה</span>
                   )}
                 </div>
               </div>

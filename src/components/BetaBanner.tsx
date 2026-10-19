@@ -71,12 +71,12 @@ const BetaBanner = () => {
       <div className="w-full bg-gradient-to-r from-purple-600 to-purple-500 text-white py-1 px-2" dir="rtl">
         <div className="flex items-center justify-center gap-2">
           <Sparkles className="w-3 h-3 flex-shrink-0" />
-          <span className="text-xs">גרסת בטא 🚀</span>
+          <span className="text-sm">גרסת בטא 🚀</span>
           <Button
             variant="secondary"
             size="sm"
             onClick={() => setShowFeedback(true)}
-            className="h-5 px-2 text-xs bg-white/20 hover:bg-white/30 text-white border-0 gap-1"
+            className="h-5 px-2 text-sm bg-white/20 hover:bg-white/30 text-white border-0 gap-1"
           >
             <MessageSquare className="w-3 h-3" />
             משוב

@@ -115,7 +115,7 @@ export const BookHeader: React.FC<BookHeaderProps> = ({
               aria-label="חזרה לספרייה"
             >
               <ArrowRight className="w-5 h-5" />
-              <span className="text-[10px] md:text-sm leading-none font-medium">חזרה</span>
+              <span className="text-sm md:text-sm leading-none font-medium">חזרה</span>
             </Button>
           </TooltipTrigger>
           <TooltipContent side="bottom">חזרה לספרייה</TooltipContent>
@@ -135,7 +135,7 @@ export const BookHeader: React.FC<BookHeaderProps> = ({
                 aria-label={`גודל טקסט: ${fontSizeLabel}`}
               >
                 <Type className="w-5 h-5" />
-                <span className="md:hidden text-[10px] leading-none font-medium">גודל</span>
+                <span className="md:hidden text-sm leading-none font-medium">גודל</span>
               </Button>
             </TooltipTrigger>
             <TooltipContent side="bottom">שנה גודל טקסט ({fontSizeLabel})</TooltipContent>
@@ -164,7 +164,7 @@ export const BookHeader: React.FC<BookHeaderProps> = ({
                     />
                   )}
                 </span>
-                <span className="md:hidden text-[10px] leading-none font-medium">PDF</span>
+                <span className="md:hidden text-sm leading-none font-medium">PDF</span>
               </Button>
             </TooltipTrigger>
             <TooltipContent side="bottom">
@@ -276,7 +276,7 @@ export const BookHeader: React.FC<BookHeaderProps> = ({
                 <p className="font-bold text-sm text-slate-700">
                   📖 אהבתם? בבחירה הבאה באותו נושא, מחכה לכם המשך להרפתקה!
                 </p>
-                <p className="text-xs text-muted-foreground leading-relaxed">
+                <p className="text-sm text-muted-foreground leading-relaxed">
                   ב-SolStories, הקסם לא נגמר. המערכת שלנו זוכרת את המסע שלכם, ובפעם הבאה שתבחרו באותו נושא, הגיבור שלכם ימשיך להרפתקה חדשה באותו עולם!
                 </p>
               </div>
@@ -313,7 +313,7 @@ export const BookHeader: React.FC<BookHeaderProps> = ({
                     aria-label="תפריט"
                   >
                     <Menu className="w-5 h-5" />
-                <span className="md:hidden text-[10px] leading-none font-medium">עוד</span>
+                <span className="md:hidden text-sm leading-none font-medium">עוד</span>
                   </Button>
                 </DropdownMenuTrigger>
               </TooltipTrigger>

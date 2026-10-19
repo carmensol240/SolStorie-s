@@ -17,7 +17,7 @@ interface GlobalFooterProps {
 
 const GlobalFooter = ({ compact = false, onDark = false }: GlobalFooterProps) => {
   if (compact) {
-    const linkCls = `text-xs underline underline-offset-2 ${onDark ? "text-white/80 hover:text-white" : "text-muted-foreground hover:text-foreground"}`;
+    const linkCls = `text-sm underline underline-offset-2 ${onDark ? "text-white/80 hover:text-white" : "text-muted-foreground hover:text-foreground"}`;
     return (
       <footer className="w-full shrink-0 py-1" dir="rtl">
         <nav aria-label="קישורים משפטיים" className="flex flex-wrap justify-center gap-x-3 px-4">
@@ -37,16 +37,16 @@ const GlobalFooter = ({ compact = false, onDark = false }: GlobalFooterProps) =>
           <Link
             key={l.to}
             to={l.to}
-            className="text-xs text-muted-foreground hover:text-foreground underline underline-offset-2"
+            className="text-sm text-muted-foreground hover:text-foreground underline underline-offset-2"
           >
             {l.label}
           </Link>
         ))}
-        <button type="button" onClick={openCookieSettings} className="text-xs text-muted-foreground hover:text-foreground underline underline-offset-2">
+        <button type="button" onClick={openCookieSettings} className="text-sm text-muted-foreground hover:text-foreground underline underline-offset-2">
           הגדרות עוגיות
         </button>
       </nav>
-      <p className="text-xs text-muted-foreground font-medium">
+      <p className="text-sm text-muted-foreground font-medium">
         <span dir="ltr" className="inline-block">SolStorie's™</span> | כל הזכויות שמורות
       </p>
       <span data-testid="build-stamp" className="text-[10px] text-muted-foreground/60" dir="ltr">v2</span>

@@ -76,7 +76,7 @@ const UserDetailsForm = forwardRef<UserDetailsRef, UserDetailsFormProps>(({ onVa
 
   return (
     <div className="space-y-2 mb-3" dir="rtl">
-      <p className="text-xs text-white/60 text-center font-medium">פרטי הרוכש</p>
+      <p className="text-sm text-white/60 text-center font-medium">פרטי הרוכש</p>
       <div className="grid grid-cols-2 gap-2">
         <Input
           placeholder="שם פרטי"
@@ -102,7 +102,7 @@ const UserDetailsForm = forwardRef<UserDetailsRef, UserDetailsFormProps>(({ onVa
           className={`bg-white/10 border-white/20 text-white placeholder:text-white/40 text-sm h-9 rounded-lg ${phoneError ? 'border-red-400' : ''}`}
         />
         {phoneError && (
-          <p className="text-red-400 text-xs mt-1 text-right">נא להזין מספר טלפון תקין (05XXXXXXXX)</p>
+          <p className="text-red-400 text-sm mt-1 text-right">נא להזין מספר טלפון תקין (05XXXXXXXX)</p>
         )}
       </div>
       <Input

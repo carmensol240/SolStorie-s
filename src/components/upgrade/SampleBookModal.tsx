@@ -34,7 +34,7 @@ const SampleBookModal = ({ open, onOpenChange }: SampleBookModalProps) => {
           }}
         >
           <div className="px-5 pt-5 pb-2 text-center">
-            <p className="text-xs text-purple-200/70 font-semibold mb-1">
+            <p className="text-sm text-purple-200/70 font-semibold mb-1">
               סיפור לדוגמא 📖
             </p>
             <h3 className="text-white font-black text-base leading-tight line-clamp-1">
@@ -83,10 +83,10 @@ const SampleBookModal = ({ open, onOpenChange }: SampleBookModalProps) => {
           </div>
 
           <div className="px-5 pb-5 text-center">
-            <p className="text-purple-200/60 text-xs">
+            <p className="text-purple-200/60 text-sm">
               צרו את הסיפור הראשון שלכם וקבלו ספר אישי ✨
             </p>
-            <p className="text-purple-200/40 text-xs italic mt-2">
+            <p className="text-purple-200/40 text-sm italic mt-2">
               תצוגה מקדימה בלבד – הספר המודפס יהיה מעוצב במיוחד להדפסה
             </p>
           </div>

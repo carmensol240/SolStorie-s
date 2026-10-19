@@ -114,7 +114,7 @@ const Toolkit = () => {
                   </div>
                   <div className="text-right flex-1">
                     <h3 className="font-bold text-sm text-white mb-1">{benefit.title}</h3>
-                    <p className="text-xs text-white/60 leading-relaxed">{benefit.description}</p>
+                    <p className="text-sm text-white/60 leading-relaxed">{benefit.description}</p>
                   </div>
                 </div>
               );
@@ -127,7 +127,7 @@ const Toolkit = () => {
               <span className="inline-block bg-amber-400/20 text-amber-300 text-sm font-bold px-4 py-1.5 rounded-full border border-amber-300/30">
                 בקרוב
               </span>
-              <p className="text-xs text-white/60 mt-3 leading-relaxed">
+              <p className="text-sm text-white/60 mt-3 leading-relaxed">
                 אנחנו עובדים על משהו מיוחד עבורכם — הישארו מעודכנים!
               </p>
             </div>
@@ -145,7 +145,7 @@ const Toolkit = () => {
             >
               <Crown className="w-5 h-5 ml-2" />
               אני רוצה את ארגז הכלים
-              <span className="mr-2 text-xs bg-white/20 px-2 py-0.5 rounded-full">בקרוב</span>
+              <span className="mr-2 text-sm bg-white/20 px-2 py-0.5 rounded-full">בקרוב</span>
             </Button>
             <button
               onClick={() => navigate("/adventure")}

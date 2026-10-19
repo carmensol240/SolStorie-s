@@ -296,9 +296,11 @@ const PuzzleGame = ({ ageRange, onReadStory, isStoryReady }: PuzzleGameProps) =>
         }}
       >
         {board.map((piece, idx) => (
-          <div
+          <button
+            type="button"
             key={idx}
-            className={`relative border border-dashed border-purple-200 rounded-sm transition-all duration-200 ${
+            aria-label={piece === null ? `משבצת ${idx + 1}, ריקה` : `משבצת ${idx + 1}, תפוסה`}
+            className={`relative p-0 border border-dashed border-purple-200 rounded-sm transition-all duration-200 ${
               piece === null ? "bg-purple-100/40 cursor-pointer hover:bg-purple-200/50" : "cursor-grab active:cursor-grabbing"
             } ${piece === idx ? "ring-2 ring-green-400/60" : ""}`}
             style={{
@@ -315,7 +317,7 @@ const PuzzleGame = ({ ageRange, onReadStory, isStoryReady }: PuzzleGameProps) =>
                 {idx + 1}
               </span>
             )}
-          </div>
+          </button>
         ))}
       </div>
 
@@ -323,9 +325,12 @@ const PuzzleGame = ({ ageRange, onReadStory, isStoryReady }: PuzzleGameProps) =>
       {tray.length > 0 && (
         <div className="flex flex-wrap justify-center gap-2 max-w-sm">
           {tray.map((piece) => (
-            <div
+            <button
+              type="button"
               key={piece}
-              className={`rounded-lg shadow-md cursor-grab active:cursor-grabbing border-2 transition-all duration-150 select-none ${
+              aria-label={`חלק פאזל ${piece + 1}`}
+              aria-pressed={selectedTrayPiece === piece}
+              className={`p-0 rounded-lg shadow-md cursor-grab active:cursor-grabbing border-2 transition-all duration-150 select-none ${
                 selectedTrayPiece === piece 
                   ? "border-purple-500 ring-2 ring-purple-400 scale-105" 
                   : "border-white/80 hover:border-purple-300"

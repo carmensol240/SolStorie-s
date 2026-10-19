@@ -295,7 +295,7 @@ const AuthStep = ({ formData, onAuthenticated }: AuthStepProps) => {
               <button
                 type="button"
                 onClick={() => setShowForgotPassword(true)}
-                className="text-xs text-purple-300 hover:underline"
+                className="text-sm text-purple-300 hover:underline"
               >
                 שכחתי סיסמה
               </button>
@@ -328,7 +328,7 @@ const AuthStep = ({ formData, onAuthenticated }: AuthStepProps) => {
                 <button
                   type="button"
                   onClick={() => setShowForgotPassword(false)}
-                  className="flex-1 text-xs text-white/70 hover:text-white transition-colors"
+                  className="flex-1 text-sm text-white/70 hover:text-white transition-colors"
                 >
                   ביטול
                 </button>
@@ -339,7 +339,7 @@ const AuthStep = ({ formData, onAuthenticated }: AuthStepProps) => {
           {mode === "signup" && (
             <>
               <div className="space-y-1.5">
-                <p className="text-xs text-white/80 font-bold">אני...</p>
+                <p className="text-sm text-white/80 font-bold">אני...</p>
                 <div className="grid grid-cols-2 gap-2">
                   <button
                     type="button"
@@ -351,7 +351,7 @@ const AuthStep = ({ formData, onAuthenticated }: AuthStepProps) => {
                     }`}
                   >
                     <span className="text-xl">👨‍👩‍👧</span>
-                    <span className="text-xs font-bold text-white">הורה</span>
+                    <span className="text-sm font-bold text-white">הורה</span>
                   </button>
                   <button
                     type="button"
@@ -363,7 +363,7 @@ const AuthStep = ({ formData, onAuthenticated }: AuthStepProps) => {
                     }`}
                   >
                     <span className="text-xl">📚</span>
-                    <span className="text-xs font-bold text-white">איש/ת חינוך</span>
+                    <span className="text-sm font-bold text-white">איש/ת חינוך</span>
                   </button>
                 </div>
               </div>
@@ -375,7 +375,7 @@ const AuthStep = ({ formData, onAuthenticated }: AuthStepProps) => {
                   onCheckedChange={(c) => setTermsAccepted(c === true)}
                   className="border-purple-300 data-[state=checked]:bg-purple-500 data-[state=checked]:border-purple-500 h-4 w-4"
                 />
-                <label htmlFor="auth-step-terms" className="text-xs text-white/70 cursor-pointer leading-tight">
+                <label htmlFor="auth-step-terms" className="text-sm text-white/70 cursor-pointer leading-tight">
                   קראתי ואני מסכימ/ה ל
                   <a href="/terms" target="_blank" className="text-purple-300 underline underline-offset-2 mx-0.5">
                     תנאי השימוש
@@ -390,7 +390,7 @@ const AuthStep = ({ formData, onAuthenticated }: AuthStepProps) => {
                   onCheckedChange={(c) => setMarketingConsent(c === true)}
                   className="border-purple-300 data-[state=checked]:bg-purple-500 data-[state=checked]:border-purple-500 h-4 w-4"
                 />
-                <label htmlFor="auth-step-marketing" className="text-xs text-white/70 cursor-pointer leading-tight">
+                <label htmlFor="auth-step-marketing" className="text-sm text-white/70 cursor-pointer leading-tight">
                   אני רוצה לקבל קופונים ומבצעים במייל (אופציונלי)
                 </label>
               </div>

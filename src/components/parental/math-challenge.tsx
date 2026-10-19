@@ -166,7 +166,7 @@ const MathChallenge = ({ onSuccess, onCancel }: MathChallengeProps) => {
           <p className="text-destructive text-sm text-center mb-4">{error}</p>
         )}
 
-        <p className="text-xs text-muted-foreground text-center mb-4">
+        <p className="text-sm text-muted-foreground text-center mb-4">
           נסיונות: {attempts}/{MAX_ATTEMPTS}
         </p>
 

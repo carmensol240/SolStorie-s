@@ -77,7 +77,7 @@ const StorySeriesCard = ({
             {mainStory.topic}
           </h3>
           <div className="flex items-center gap-1.5">
-            <Badge className="bg-primary/90 text-primary-foreground text-xs px-1.5 py-0.5 gap-1 shadow-md">
+            <Badge className="bg-primary/90 text-primary-foreground text-sm px-1.5 py-0.5 gap-1 shadow-md">
               📖 {count} חלקים
             </Badge>
             <ChevronDown
@@ -136,11 +136,11 @@ const StorySeriesCard = ({
                 {/* Info */}
                 <div className="flex-1 min-w-0">
                   <p className="text-sm font-bold text-foreground">חלק {idx + 1}</p>
-                  <p className="text-xs text-muted-foreground truncate">{story.child_name}</p>
+                  <p className="text-sm text-muted-foreground truncate">{story.child_name}</p>
                 </div>
 
                 {/* Read button */}
-                <span className="text-xs font-bold text-primary flex-shrink-0">
+                <span className="text-sm font-bold text-primary flex-shrink-0">
                   קראו &larr;
                 </span>
               </button>

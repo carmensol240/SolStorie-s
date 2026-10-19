@@ -81,7 +81,7 @@ class ErrorBoundary extends Component<Props, State> {
             </div>
 
             {/* Reassuring Text */}
-            <p className="text-xs text-muted-foreground">
+            <p className="text-sm text-muted-foreground">
               אם זה ממשיך לקרות, נסו לרענן את הדף 🔄
             </p>
           </div>
