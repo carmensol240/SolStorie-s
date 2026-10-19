@@ -710,7 +710,7 @@ const [currentPage, setCurrentPage] = useState(0);
             illustration_url: p.illustration_url ?? null,
             illustration_prompt: p.illustration_prompt ?? null,
           })),
-          story.cover_url || null,
+          (story.cover_url ? (getReadingIllustrationUrl(story.cover_url) || story.cover_url) : null),
         );
         autoSavedSigRef.current = sig;
       } catch { /* silent: reading is never affected */ }

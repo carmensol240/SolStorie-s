@@ -1,5 +1,6 @@
 import { Component, ErrorInfo, ReactNode } from 'react';
 import { RefreshCw, Home } from 'lucide-react';
+import { isBrokenBuildError, recoverFromBrokenBuild } from '@/lib/sw-recovery';
 
 interface Props {
   children: ReactNode;
@@ -23,6 +24,8 @@ class ErrorBoundary extends Component<Props, State> {
 
   public componentDidCatch(error: Error, errorInfo: ErrorInfo) {
     console.error('ErrorBoundary caught an error:', error, errorInfo);
+    // Broken/stale build (missing file, undefined name): release the service worker and reload once.
+    if (isBrokenBuildError(error)) void recoverFromBrokenBuild();
   }
 
   private handleRetry = () => {
