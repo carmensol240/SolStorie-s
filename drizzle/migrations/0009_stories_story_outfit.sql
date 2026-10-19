@@ -1,0 +1,2 @@
+ALTER TABLE public.stories ADD COLUMN IF NOT EXISTS story_outfit text;
+COMMENT ON COLUMN public.stories.story_outfit IS 'Fixed English outfit decided once per story when the parent chose no clothes; reused by page retries and coloring pages.';
