@@ -613,7 +613,7 @@ export const OnlineColoringCanvas: React.FC<OnlineColoringCanvasProps> = ({
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-50 bg-white overflow-hidden flex flex-col" style={{
+    <div className="fixed inset-0 z-[110] bg-white overflow-hidden flex flex-col" style={{
       height: '100dvh',
       ...(isLandscape && !orientationLockSupported.current ? {
         transform: 'rotate(-90deg)',

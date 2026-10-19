@@ -26,7 +26,7 @@ export const A4Frame = ({ imageUrl, alt, className }: { imageUrl: string; alt?: 
 export const A4ColoringActions = ({ imageUrl, name, className }: { imageUrl: string; name?: string | null; className?: string }) => {
   const [busy, setBusy] = useState(false);
   return (
-    <div className={cn("flex gap-1.5", className)}>
+    <div className={cn("flex flex-col sm:flex-row gap-1.5", className)}>
       <Button size="sm" variant="outline" className="flex-1 text-sm min-h-[36px] gap-1" onClick={() => printColoringA4(imageUrl)}>
         <Printer className="w-4 h-4" aria-hidden="true" /> הדפסה
       </Button>
