@@ -62,22 +62,32 @@ Modeling rule: one of the gang characters (סול, זואי, מיה, ליאו, �
 - **Transitions:** 11 צפיות, 4 נרמול, 6 הנחת הצלחה, 9 (an anchor object)
 - **Habits:** 1 שפת צמיחה, 10 חיזוק חיובי, 5 ניסוח חיובי, 11 small steps, 13 מודלינג*
 - **Friendship and social:** 2 (feelings of others), 7 מסגור מחדש, 9 (a social strategy), 10 חיזוק חיובי, 13 מודלינג*
-- **General:** 1 שפת צמיחה, 6 הנחת הצלחה, 12 סיום בטוח. Bible keeps its own rules; letters, numbers, colors and shapes are checked for 1 and 12 only.
+- **Safety and protection (new):** 5 ניסוח חיובי, 11 צפיות (clear rules), 9 אסטרטגיה ("להגיד לא, ולספר למבוגר שאוהב אותי"), 4 נרמול ("זה בסדר להגיד לא"), 12 סיום בטוח. Rule: no frightening descriptions, no detailed bad characters, and never blaming the child.
+- **Confidence and growth (new):** 1 שפת צמיחה, 7 מסגור מחדש, 10 חיזוק חיובי, 6 הנחת הצלחה, 13 מודלינג*
+- **General:** 1 שפת צמיחה, 6 הנחת הצלחה, 12 סיום בטוח. Bible stories keep their own rules. Letters, numbers, colors and shapes are checked for 1 and 12 only.
 
 \* only when a gang character appears.
 
+**Sensitive topics rule** (סבא/סבתא חולה, אבא במילואים, שהייה בממ"ד ואזעקות, שני בתים אהבה אחת): הנחת הצלחה applies only to what the child does and feels ("כשתתגעגע, תוכל לחבק את הדובי"). Promising an outcome in real life is forbidden ("סבתא תבריא", "אבא יחזור בשלום", "לא יהיו יותר אזעקות"). The automatic check flags any such sentence as a problem and rewrites it, exactly like a missing technique. The fix is recorded in the report as "הבטחת תוצאה – תוקן".
+
 ### C. Topics by type (147) — please approve
 
-**Fears and hard feelings (17):** סול מגלה שהחושך לא מפחיד, אמא אל תלכי, הנשיקה בכיס של אמא, ביקור אצל רופא השיניים, ביקור אצל הספר, סול וגיבורי הבריאות (בדיקת דם), גזירת ציפורניים, שן נופלת!, שהייה בממ"ד ואזעקות, אבא במילואים, סבא/סבתא חולה, ענן הכעס, מותר לבכות, טעיתי — ומה עכשיו?, הקסם שבניסיון, ויסות רגשות – לנשום ולהירגע, ביטחון עצמי – אני יכול/ה!
+**Fears and hard feelings (14):** סול מגלה שהחושך לא מפחיד, אמא אל תלכי, הנשיקה בכיס של אמא, ביקור אצל רופא השיניים, ביקור אצל הספר, סול וגיבורי הבריאות (בדיקת דם), גזירת ציפורניים, שן נופלת!, שהייה בממ"ד ואזעקות†, אבא במילואים†, סבא/סבתא חולה†, ענן הכעס, מותר לבכות, ויסות רגשות – לנשום ולהירגע
 
-**Transitions (7):** יום ראשון בגן, היום הראשון בכיתה א', עוברים לבית חדש, אח/ות חדש/ה, שני בתים אהבה אחת, טיסה לחופשה, הלילה המיוחד במלכות סבא וסבתא
+**Transitions (7):** יום ראשון בגן, היום הראשון בכיתה א', עוברים לבית חדש, אח/ות חדש/ה, שני בתים אהבה אחת†, טיסה לחופשה, הלילה המיוחד במלכות סבא וסבתא
 
-**Habits (20):** צחצוח שיניים קסום, אמבטיה של כיף, שטיפת ידיים, גמילה מחיתולים, פיית המוצץ, הטועם האמיץ, לסדר את החדר, סיפור לפני השינה, המסך מחכה, אני יכולה לבד!, עזרה בבית, שומרי הדרכים, חגורת בטיחות, שומרי הסודות, הגוף שלי הוא רק שלי, לאכול עם סכו"ם, כוח הקשת – פירות וירקות, המתנה בתור, סבלנות, נימוס
+**Habits (15):** צחצוח שיניים קסום, אמבטיה של כיף, שטיפת ידיים, גמילה מחיתולים, פיית המוצץ, הטועם האמיץ, לסדר את החדר, סיפור לפני השינה, המסך מחכה, עזרה בבית, לאכול עם סכו"ם, כוח הקשת – פירות וירקות, המתנה בתור, סבלנות, נימוס
 
 **Friendship and social (14):** חברים בגן, כמה כיף לחלוק, ללמוד לבקש סליחה, הלב שלי רוצה חבר, משחקים יחד בגינה, חברות אמת, קבלת השונה, כולנו מיוחדים ודומים, הלב של סול, צוות מבצע – אהבת אחים, כללי משחק, כנות, עבודת צוות, כבוד למבוגרים
 
-**General (89):**
-- Values and family (5): אנחנו גיבורי על, שומר כדור הארץ, פשוט להיות אני, הבית של האהבה, המשפחה המיוחדת שלי
+**Safety and protection (4):** הגוף שלי הוא רק שלי, שומרי הסודות, שומרי הדרכים, חגורת בטיחות
+
+**Confidence and growth (7):** טעיתי – ומה עכשיו?, הקסם שבניסיון, ביטחון עצמי – אני יכול/ה!, פשוט להיות אני, אנחנו גיבורי על, המשפחה המיוחדת שלי, אני יכולה לבד!
+
+† sensitive topic (the rule above applies)
+
+**General (86):**
+- Values and family (2): שומר כדור הארץ, הבית של האהבה
 - Imagination and creativity (17): טיול בגן החיות, טיול בעננים, ממלכת הקסם, רוקדים בגשם, הרפתקה במעמקי הים, מסע ביער הקסום, סול מכבסת את השמיים, המפתחות הקסומים, ממלכת העננים, מסיבת הדרקונים, המצאות משונות, דינוזאורים, בית מקרטון, ממתקים שקמו לחיים, צעצועים שמדברים, חיות משק, חד קרן
 - Curiosity (9): טיול משפחתי, מסיבת יום הולדת, מסע בחלל, סודות הטבע, איך הגוף שלנו עובד, שבת שלום!, החיה שלי ואני, שף קטן במטבח, כמה כיף לשמוח!
 - מעגל השנה – חגים ועונות (1)
@@ -120,6 +130,9 @@ For comparison, a story's illustrations cost several shekels, so the added cost 
 - Migration: a new column `nlp_report jsonb` on stories (type, techniques[{code, page, quote}], fixed, version), with no change to RLS.
 - After a targeted rewrite, run the existing niqqud check/cleanup only on the changed pages before saving.
 - Modeling: required only if any gang name (Sol/Zoe/Mia/Leo/Ben, Hebrew forms) appears in the story text.
+- 7 topic types in the mapping; a `sensitive` flag on the 4 topics adds the no-outcome-promise rule to the writing instructions and an `outcome_promise` issue type to the check (flagged → targeted rewrite → niqqud re-run).
+- The safety type adds the no-frightening/no-villain/no-blame rule to the instructions; the check also flags violations of it.
+- Tests: one per new type mapping, sensitive-flag topics, and outcome-promise detection that triggers a rewrite.
 - Admin: a coverage card plus a marked-stories list in AdminDashboard, with a details dialog showing the quotes for each technique (admin-only, reads stories.nlp_report).
 - Tests: mapping topic to type, the required techniques per type, and parsing the check report (missing → triggers a fix; an error → the story is saved without blocking).
 - Publishing is needed for this to reach soulstory.co.il.
