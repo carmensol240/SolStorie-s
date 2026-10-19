@@ -18,7 +18,12 @@ const fontSizeOptions: { value: FontSize; label: string }[] = [
   { value: 'large', label: 'גדול' },
 ];
 
-const AccessibilityMenu = () => {
+interface AccessibilityMenuProps {
+  /** "toolbar" = small icon inside the story reader's top bar (never covers the book). */
+  variant?: "floating" | "toolbar";
+}
+
+const AccessibilityMenu = ({ variant = "floating" }: AccessibilityMenuProps) => {
   const {
     visualAidMode,
     setVisualAidMode,
@@ -29,9 +34,14 @@ const AccessibilityMenu = () => {
     reducedMotion,
     setReducedMotion,
   } = useAccessibility();
+  const location = useLocation();
   const [minimized, setMinimized] = useState(() => localStorage.getItem(DISMISSED_KEY) === 'true');
+  const isToolbar = variant === "toolbar";
 
-  if (minimized) {
+  // In the story reader the button lives in the top bar instead of floating over the page.
+  if (!isToolbar && location.pathname.startsWith("/story/")) return null;
+
+  if (minimized && !isToolbar) {
     return (
       <button
         onClick={() => {
@@ -47,9 +57,21 @@ const AccessibilityMenu = () => {
   }
 
   return (
-    <div className="fixed bottom-28 left-4 z-50 flex items-center gap-1">
+    <div className={isToolbar ? "inline-flex" : "fixed bottom-28 left-4 z-50 flex items-center gap-1"}>
       <Popover>
         <PopoverTrigger asChild>
+          {isToolbar ? (
+            <Button
+              variant="ghost"
+              size="sm"
+              title="נגישות"
+              className="text-slate-600 hover:bg-sky-100/60 min-h-[44px] min-w-[44px] p-1.5 md:p-2 flex-col gap-0.5 h-auto"
+              aria-label="הגדרות נגישות"
+            >
+              <Accessibility className="w-5 h-5" aria-hidden="true" />
+              <span className="md:hidden text-[10px] leading-none font-medium">נגישות</span>
+            </Button>
+          ) : (
           <Button
             variant="default"
             size="icon"
@@ -58,6 +80,7 @@ const AccessibilityMenu = () => {
           >
             <Accessibility className="h-6 w-6 text-white" aria-hidden="true" />
           </Button>
+          )}
         </PopoverTrigger>
         <PopoverContent 
           className="w-72 p-4" 
