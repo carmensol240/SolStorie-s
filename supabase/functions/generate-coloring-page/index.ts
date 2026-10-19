@@ -36,12 +36,14 @@ serve(async (req) => {
 
     // Require authentication — anonymous callers must not consume AI quota
     if (!authHeader.startsWith("Bearer ")) {
+      console.warn("Coloring: missing auth header");
       return jsonResponse({ error: "Unauthorized" }, 401);
     }
     const { data: { user }, error: authErr } = await supabase.auth.getUser(
       authHeader.replace("Bearer ", "")
     );
     if (authErr || !user?.id) {
+      console.warn("Coloring: invalid session", authErr?.message);
       return jsonResponse({ error: "Unauthorized" }, 401);
     }
     const userId: string = user.id;
