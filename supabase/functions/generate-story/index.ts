@@ -1,5 +1,5 @@
 import "https://deno.land/x/xhr@0.1.0/mod.ts";
-import { mergeAppearance, type Appearance } from "../_shared/appearance.ts";
+import { mergeAppearance, kippahForRequest, kippahColor, type Appearance } from "../_shared/appearance.ts";
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.39.3";
 import { logError } from "../_shared/log-error.ts";
@@ -1993,6 +1993,9 @@ ${topic.endsWith('-edu') ? `
 - איכות הטקסט, העלילה ומספר המילים לעמוד חייבים להישאר בדיוק לפי ההנחיות למעלה — הכלל הזה משפיע רק על צורת ה-JSON.`;
     userPrompt = userPrompt + (language === "en" ? illustrationRuleEn : illustrationRuleHe);
     // NLP techniques for this topic type (fixed list + per-type requirements)
+    userPrompt = userPrompt + (kippahOn
+      ? (language === "en" ? "\n\nThe hero wears a small kippah (chosen by the parent); the text may mention it. Never tzitzit or sidelocks.\n" : "\n\nהגיבור חובש כיפה קטנה (לפי בחירת ההורה) — מותר להזכיר אותה בטקסט. ציצית ופאות — אסור תמיד.\n")
+      : (language === "en" ? "\n\nNever mention a kippah, tzitzit, sidelocks or head covering on the hero.\n" : "\n\nאסור להזכיר כיפה, ציצית, פאות או כיסוי ראש על הגיבור/ה.\n"));
     userPrompt = userPrompt + buildNlpInstruction(isCustomTopic ? null : (topicId || topic), language);
 
     console.log("[generate-story] 📡 Calling Lovable AI Gateway (google/gemini-2.5-flash) with retry logic...");
@@ -2381,6 +2384,9 @@ ${fullStoryText}`;
       story_type: isCustomTopic ? "custom" : "text",
     };
     if (nlpReport) storyInsertData.nlp_report = nlpReport;
+    // Kippah: only what the form sent now (never the saved profile); girls never.
+    storyInsertData.kippah = kippahOn;
+    storyInsertData.kippah_color = kippahOn ? kippahColor(reqAppearance) : null;
 
     
     // Only add user_id if we have one (for gallery privacy)
