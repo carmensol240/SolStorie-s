@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Book, Trash2, MoreVertical, Pencil, Download, Check, Loader2, HardDriveDownload, Trash, Share2 } from 'lucide-react';
 import { Button } from './button';
@@ -58,7 +58,26 @@ export interface SeriesPart {
   slug: string | null;
   topic: string;
   created_at: string;
+  coverUrl?: string | null;
+  isTaste?: boolean;
+  isOfflineSaved?: boolean;
+  isDownloading?: boolean;
+  offlineSize?: number;
 }
+
+/** dd.mm.yyyy */
+export const formatDotDate = (value: string): string => {
+  const d = new Date(value);
+  if (isNaN(d.getTime())) return '';
+  const p = (n: number) => String(n).padStart(2, '0');
+  return `${p(d.getDate())}.${p(d.getMonth() + 1)}.${d.getFullYear()}`;
+};
+
+const NewBadge = ({ className = '' }: { className?: string }) => (
+  <span className={`inline-flex items-center rounded-full bg-amber-400 px-2 py-0.5 text-sm font-bold text-amber-950 shadow-md ${className}`}>
+    חדש
+  </span>
+);
 
 interface PolaroidCardProps {
   id: string;
@@ -81,6 +100,9 @@ interface PolaroidCardProps {
   onDeleteOffline?: (id: string) => void;
   canShare?: boolean;
   onLockedShare?: (id: string) => void;
+  isNew?: boolean;
+  onUnlockTaste?: (id: string) => void;
+  unlockingTasteId?: string | null;
 }
 
 const PolaroidCard = ({
@@ -104,6 +126,9 @@ const PolaroidCard = ({
   onDeleteOffline,
   canShare = true,
   onLockedShare,
+  isNew = false,
+  onUnlockTaste,
+  unlockingTasteId,
 }: PolaroidCardProps) => {
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
@@ -117,7 +142,19 @@ const PolaroidCard = ({
     return deg;
   }, [id]);
 
-  const isSeries = seriesParts && seriesParts.length > 1;
+  const isSeries = !!seriesParts && seriesParts.length > 1;
+
+  useEffect(() => {
+    if (!showSeriesDropdown) return;
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key !== 'Escape') return;
+      // Let an open delete confirmation / menu close first.
+      if (document.querySelector('[role="alertdialog"], [role="menu"]')) return;
+      setShowSeriesDropdown(false);
+    };
+    document.addEventListener('keydown', onKey);
+    return () => document.removeEventListener('keydown', onKey);
+  }, [showSeriesDropdown]);
 
   const handleClick = () => {
     if (isSeries) {
@@ -193,7 +230,7 @@ const PolaroidCard = ({
                 background: 'linear-gradient(135deg, #a29bfe, #6c5ce7)',
               }}
             >
-              📖 {seriesCount} חלקים
+              📖 {seriesCount} סיפורים
             </div>
           )}
 
@@ -238,8 +275,10 @@ const PolaroidCard = ({
               <Share2 className="w-3.5 h-3.5" />
             </button>
 
+            {isNew && <NewBadge className="absolute bottom-1 right-1 z-20" />}
+
             {/* Download button */}
-            {onDownloadOffline && !isOfflineSaved && (
+            {!isSeries && onDownloadOffline && !isOfflineSaved && (
               <button
                 onClick={(e) => { e.stopPropagation(); onDownloadOffline(id); }}
                 disabled={isDownloading}
@@ -250,8 +289,8 @@ const PolaroidCard = ({
               </button>
             )}
 
-            {/* Menu button */}
-            <div className="absolute top-1 left-1 z-20 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+            {/* Menu button (single stories only; folder actions live on each story inside) */}
+            {!isSeries && <div className="absolute top-1 left-1 z-20 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
               <DropdownMenu open={menuOpen} onOpenChange={setMenuOpen}>
                 <DropdownMenuTrigger asChild>
                   <Button
@@ -297,7 +336,7 @@ const PolaroidCard = ({
                   </DropdownMenuItem>
                 </DropdownMenuContent>
               </DropdownMenu>
-            </div>
+            </div>}
           </div>
 
           {/* Title area */}
@@ -346,38 +385,158 @@ const PolaroidCard = ({
       {/* Series parts selection dialog */}
       {isSeries && showSeriesDropdown && (
         <div
-          className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm"
-          onClick={() => setShowSeriesDropdown(false)}
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-3"
+          onClick={(e) => { if (e.target === e.currentTarget) setShowSeriesDropdown(false); }}
         >
           <div
             dir="rtl"
-            className="rounded-2xl p-5 w-72 max-h-[70vh] shadow-2xl flex flex-col"
+            role="dialog"
+            aria-modal="true"
+            aria-label={`${topic}: ${seriesParts!.length} סיפורים של ${childName}`}
+            className="rounded-2xl p-4 w-full max-w-sm max-h-[80vh] shadow-2xl flex flex-col"
             style={{ background: 'linear-gradient(145deg, #2d1a6e, #1a0f3a)', border: '1px solid rgba(200,180,255,0.2)' }}
-            onClick={(e) => e.stopPropagation()}
           >
-            <h3 className="text-sm font-bold text-center mb-3" style={{ color: '#e8d5ff' }}>
-              📖 בחרו סיפור ({seriesParts!.length})
-            </h3>
-            <div className="flex flex-col gap-1.5 overflow-y-auto" style={{ scrollbarWidth: 'none' }}>
-              {seriesParts!.map((part, idx) => (
-                <button
-                  key={part.id}
-                  onClick={() => {
-                    setShowSeriesDropdown(false);
-                    onClick(part.id);
-                  }}
-                  className="w-full text-right px-4 py-3 rounded-lg text-sm transition-all hover:bg-white/15 hover:scale-[1.01] active:scale-95"
-                  style={{ color: '#e8d5ff', background: 'rgba(255,255,255,0.05)' }}
-                >
-                  <span className="font-bold">חלק {idx + 1}</span>
-                  <span className="block text-sm mt-0.5 opacity-70">{part.topic}</span>
-                </button>
-              ))}
+            <div className="flex items-center justify-between mb-3 gap-2">
+              <h3 className="text-base font-bold" style={{ color: '#e8d5ff' }}>
+                {topic} · {seriesParts!.length} סיפורים
+              </h3>
+              <button
+                type="button"
+                autoFocus
+                onClick={() => setShowSeriesDropdown(false)}
+                aria-label="סגירה"
+                className="min-h-[40px] min-w-[40px] rounded-full text-lg text-purple-100 hover:bg-white/10"
+              >
+                ✕
+              </button>
             </div>
+            <ul className="flex flex-col gap-2 overflow-y-auto">
+              {seriesParts!.map((part) => (
+                <SeriesRow
+                  key={part.id}
+                  part={part}
+                  childName={childName}
+                  onOpen={(pid) => { setShowSeriesDropdown(false); onClick(pid); }}
+                  onEdit={onEdit ? (pid) => { setShowSeriesDropdown(false); onEdit(pid); } : undefined}
+                  onDelete={onDelete}
+                  onDownloadOffline={onDownloadOffline}
+                  onDeleteOffline={onDeleteOffline}
+                  onUnlockTaste={onUnlockTaste}
+                  unlocking={unlockingTasteId === part.id}
+                />
+              ))}
+            </ul>
           </div>
         </div>
       )}
     </>
+  );
+};
+
+interface SeriesRowProps {
+  part: SeriesPart;
+  childName: string;
+  onOpen: (id: string) => void;
+  onEdit?: (id: string) => void;
+  onDelete: (id: string) => void | Promise<void>;
+  onDownloadOffline?: (id: string) => void;
+  onDeleteOffline?: (id: string) => void;
+  onUnlockTaste?: (id: string) => void;
+  unlocking?: boolean;
+}
+
+const SeriesRow = ({ part, childName, onOpen, onEdit, onDelete, onDownloadOffline, onDeleteOffline, onUnlockTaste, unlocking }: SeriesRowProps) => {
+  const [confirmDelete, setConfirmDelete] = useState(false);
+  const [menuOpen, setMenuOpen] = useState(false);
+  const date = formatDotDate(part.created_at);
+  return (
+    <li className="rounded-xl p-2 flex flex-col gap-2" style={{ background: 'rgba(255,255,255,0.06)' }}>
+      <div className="flex items-center gap-3">
+        <button
+          type="button"
+          onClick={() => onOpen(part.id)}
+          className="flex flex-1 min-w-0 items-center gap-3 text-right rounded-lg hover:bg-white/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-purple-300"
+          aria-label={`פתיחת הסיפור ${part.topic} מתאריך ${date}${part.isTaste ? ', טעימה' : ''}`}
+        >
+          <div className="w-14 h-14 shrink-0 overflow-hidden rounded-md">
+            {part.coverUrl && part.coverUrl.startsWith('http') ? (
+              <CoverImage src={part.coverUrl} alt="" />
+            ) : part.coverUrl ? (
+              <SignedImage src={part.coverUrl} storyId={part.id} alt="" className="w-full h-full object-cover" fallback={<CoverFallback />} />
+            ) : <CoverFallback />}
+          </div>
+          <div className="min-w-0 flex-1">
+            <p className="text-sm font-bold truncate" style={{ color: '#e8d5ff' }}>{part.topic}</p>
+            <p className="text-sm text-purple-200/80 flex items-center gap-1.5 flex-wrap">
+              <span>{date}</span>
+              {part.isTaste && <span className="rounded-full bg-purple-300/25 px-2 text-sm font-bold text-purple-100">טעימה</span>}
+              {part.isOfflineSaved && <Check className="w-3.5 h-3.5 text-green-400" aria-label="שמור לאופליין" />}
+            </p>
+          </div>
+        </button>
+        <DropdownMenu open={menuOpen} onOpenChange={setMenuOpen}>
+          <DropdownMenuTrigger asChild>
+            <Button
+              size="icon"
+              variant="ghost"
+              className="h-10 w-10 shrink-0 text-purple-100 hover:bg-white/10 hover:text-white rounded-full"
+              aria-label={`אפשרויות לסיפור מתאריך ${date}`}
+            >
+              {part.isDownloading ? <Loader2 className="w-4 h-4 animate-spin" /> : <MoreVertical className="w-4 h-4" />}
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end" className="min-w-[170px] z-[110]">
+            {onEdit && (
+              <DropdownMenuItem onSelect={() => onEdit(part.id)} className="gap-2 cursor-pointer text-sm">
+                <Pencil className="w-4 h-4 text-primary" /><span>עריכת סיפור</span>
+              </DropdownMenuItem>
+            )}
+            {onDownloadOffline && !part.isOfflineSaved && (
+              <DropdownMenuItem disabled={part.isDownloading} onSelect={() => onDownloadOffline(part.id)} className="gap-2 cursor-pointer text-sm">
+                <HardDriveDownload className="w-4 h-4 text-green-600" /><span>הורד לאופליין</span>
+              </DropdownMenuItem>
+            )}
+            {part.isOfflineSaved && onDeleteOffline && (
+              <DropdownMenuItem onSelect={() => onDeleteOffline(part.id)} className="gap-2 cursor-pointer text-sm">
+                <Trash className="w-4 h-4 text-orange-500" />
+                <span>מחק גרסה אופליין {part.offlineSize ? `(${formatBytes(part.offlineSize)})` : ''}</span>
+              </DropdownMenuItem>
+            )}
+            <DropdownMenuSeparator />
+            <DropdownMenuItem
+              onSelect={(e) => { e.preventDefault(); setMenuOpen(false); setTimeout(() => setConfirmDelete(true), 100); }}
+              className="gap-2 cursor-pointer text-sm text-destructive focus:text-destructive"
+            >
+              <Trash2 className="w-4 h-4" /><span>מחיקת סיפור</span>
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
+      </div>
+      {part.isTaste && onUnlockTaste && (
+        <Button size="sm" className="min-h-[44px] text-sm font-bold" disabled={unlocking} onClick={() => onUnlockTaste(part.id)}>
+          {unlocking ? 'פותחים…' : 'פתחו בקרדיט אחד'}
+        </Button>
+      )}
+      <AlertDialog open={confirmDelete} onOpenChange={setConfirmDelete}>
+        <AlertDialogContent dir="rtl">
+          <AlertDialogHeader>
+            <AlertDialogTitle>למחוק את הסיפור?</AlertDialogTitle>
+            <AlertDialogDescription>
+              הסיפור "{part.topic}" של {childName} מתאריך {date} יימחק לצמיתות. לא ניתן לבטל פעולה זו.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter className="gap-2 sm:gap-0">
+            <AlertDialogCancel>ביטול</AlertDialogCancel>
+            <AlertDialogAction
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+              onClick={async () => { await onDelete(part.id); setConfirmDelete(false); }}
+            >
+              מחק
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+    </li>
   );
 };
 
