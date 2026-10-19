@@ -71,6 +71,13 @@
       "when": 1792405458096,
       "tag": "0009_stories_story_outfit",
       "breakpoints": true
+    },
+    {
+      "idx": 10,
+      "version": "7",
+      "when": 1792406241775,
+      "tag": "0010_kippah_choice",
+      "breakpoints": true
     }
   ]
 }
