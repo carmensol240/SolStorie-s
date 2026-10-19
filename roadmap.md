@@ -1,4 +1,10 @@
 
+## Empty coloring page repair (Oct 2026)
+- [ ] Enforce server color detection, one retry, and binary output
+- [ ] Safeguard empty-page A4 exports without changing child artwork
+- [ ] Scan and repair existing coloring files; report count
+- [ ] Generate a new page in requesting account, verify and capture both pages
+
 ## Illustration reliability (Oct 2026)
 - [x] Main picture service: 3 tries for temporary errors, no repeat after a safety block
 - [x] Backup with same style/character/reference pictures; Flux only with no page-1 picture and no photo

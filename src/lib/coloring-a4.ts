@@ -1,4 +1,7 @@
 // A4 print + PDF helpers for coloring pages (210 x 297 mm portrait).
+import { binarizeColoringPixels } from "../../supabase/functions/_shared/coloring-pixels";
+
+export interface ColoringExportOptions { preserveColors?: boolean }
 export const A4_MM = { w: 210, h: 297, margin: 10 };
 export const A4_PX = { w: 2480, h: 3508 }; // 300 dpi
 
@@ -23,8 +26,26 @@ async function loadImage(url: string): Promise<HTMLImageElement> {
   return img;
 }
 
-export async function downloadColoringPdfA4(url: string, name?: string | null) {
+export function prepareColoringCanvas(img: HTMLImageElement, options: ColoringExportOptions = {}) {
+  const canvas = document.createElement("canvas");
+  canvas.width = img.naturalWidth;
+  canvas.height = img.naturalHeight;
+  const ctx = canvas.getContext("2d");
+  if (!ctx) throw new Error("Canvas unavailable");
+  ctx.fillStyle = "#ffffff";
+  ctx.fillRect(0, 0, canvas.width, canvas.height);
+  ctx.drawImage(img, 0, 0);
+  if (!options.preserveColors) {
+    const pixels = ctx.getImageData(0, 0, canvas.width, canvas.height);
+    binarizeColoringPixels(pixels.data);
+    ctx.putImageData(pixels, 0, 0);
+  }
+  return canvas;
+}
+
+export async function downloadColoringPdfA4(url: string, name?: string | null, options: ColoringExportOptions = {}) {
   const img = await loadImage(url);
+  const source = prepareColoringCanvas(img, options);
   // Render the printable area (190 x 277 mm) at 300 dpi on white.
   const areaW = A4_MM.w - A4_MM.margin * 2;
   const areaH = A4_MM.h - A4_MM.margin * 2;
@@ -34,28 +55,35 @@ export async function downloadColoringPdfA4(url: string, name?: string | null) {
   const canvas = document.createElement("canvas");
   canvas.width = cw;
   canvas.height = ch;
-  const ctx = canvas.getContext("2d")!;
+  const ctx = canvas.getContext("2d");
+  if (!ctx) throw new Error("Canvas unavailable");
   ctx.fillStyle = "#ffffff";
   ctx.fillRect(0, 0, cw, ch);
   ctx.imageSmoothingEnabled = true;
   ctx.imageSmoothingQuality = "high";
   const f = fitContain(img.naturalWidth, img.naturalHeight, cw, ch);
-  ctx.drawImage(img, f.x, f.y, f.w, f.h);
-  const data = canvas.toDataURL("image/jpeg", 0.95);
+  ctx.drawImage(source, f.x, f.y, f.w, f.h);
+  if (!options.preserveColors) {
+    const pixels = ctx.getImageData(0, 0, cw, ch);
+    binarizeColoringPixels(pixels.data);
+    ctx.putImageData(pixels, 0, 0);
+  }
+  const data = canvas.toDataURL("image/png");
 
   const { jsPDF } = await import("jspdf");
   const pdf = new jsPDF({ orientation: "portrait", unit: "mm", format: "a4" });
-  pdf.addImage(data, "JPEG", A4_MM.margin, A4_MM.margin, areaW, areaH);
+  pdf.addImage(data, "PNG", A4_MM.margin, A4_MM.margin, areaW, areaH);
   pdf.save(coloringPdfFileName(name));
 }
 
 /** Print only the coloring page on one A4 sheet. */
-export function printColoringA4(url: string) {
+export function printColoringA4(url: string, options: ColoringExportOptions = {}) {
   const existing = document.getElementById("a4-print-root");
   existing?.remove();
   const root = document.createElement("div");
   root.id = "a4-print-root";
   const img = document.createElement("img");
+  img.crossOrigin = "anonymous";
   img.src = url;
   img.alt = "coloring page";
   root.appendChild(img);
@@ -83,6 +111,25 @@ export function printColoringA4(url: string) {
   };
   window.addEventListener("afterprint", cleanup);
   const go = () => {
+    if (done) return;
+    try {
+      const source = prepareColoringCanvas(img, options);
+      const printable = document.createElement("img");
+      printable.alt = img.alt;
+      printable.onload = launchPrint;
+      printable.onerror = cleanup;
+      printable.src = source.toDataURL("image/png");
+      root.replaceChildren(printable);
+      if (printable.complete) launchPrint();
+    } catch (error) {
+      cleanup();
+      console.error("Coloring print preparation failed", error);
+    }
+  };
+  let launched = false;
+  const launchPrint = () => {
+    if (done || launched) return;
+    launched = true;
     window.print();
     // Non-blocking print (iPhone etc.): only listen for focus after a delay,
     // so the marker can't be cleared before the page is actually printed.
@@ -94,7 +141,7 @@ export function printColoringA4(url: string) {
   if (img.complete) go();
   else {
     img.onload = go;
-    img.onerror = go;
+    img.onerror = cleanup;
   }
   return cleanup;
 }
