@@ -113,7 +113,7 @@ export const GENDER_SYMBOL_RESTRICTION = `CRITICAL — GENDER-APPROPRIATE APPEAR
 - If the main character is a BOY: he MUST wear masculine clothing only (pants, shorts, t-shirt, hoodie, sweater, jacket, sneakers or boots). ABSOLUTELY NO dresses, NO skirts, NO tutus, NO frilly/princess clothing, NO feminine hair accessories (no flower crowns, no bows, no hair ribbons, no decorative hairpins), NO makeup, NO lipstick, NO purses, NO feminine jewelry or earrings. Hair must be a boy's hairstyle (short or medium length, no decorated ponytails, no buns with flowers).
 - If the main character is a GIRL: NO kippah, NO yarmulke, NO tzitzit, NO male religious clothing or symbols of any kind.
 - Clothing, hairstyle, and accessories MUST clearly match the stated gender of the main character in EVERY scene without exception. Any visual mismatch with the stated gender is a failure.
-- DEFAULT IS SECULAR / UNIVERSAL: NO religious accessories of any kind (no kippah/yarmulke, no tzitzit, no head covering, no veil/hijab, no cross, no rosary, no priestly robes, no monk garb) UNLESS the scene description explicitly requests a religious item as part of the story (e.g. a Bible-story scene). When the scene does not mention religion, the character must look like a regular modern child in everyday clothing.`;
+- NO RELIGIOUS ITEMS ON ANY CHARACTER (boy or girl), on every topic including holidays and Bible stories: no kippah/yarmulke, no tzitzit, no peyot/sidelocks, no head covering, no veil/hijab, no cross, no rosary, no priestly robes. Holiday clothing = festive colors only (e.g. blue and white), with no symbol on the clothes. Holiday symbols appear only as objects in the scene (hanukkiah, sufganiyot, flags, candles on a table), never worn by a character.`;
 
 /** Build an explicit gender + secular header to prepend to every illustration prompt. */
 export function buildGenderHeader(childGender?: string | null): string {
@@ -123,7 +123,7 @@ export function buildGenderHeader(childGender?: string | null): string {
   const femaleRule = `She is a GIRL. Feminine or neutral clothing only. ABSOLUTELY NO kippah, NO yarmulke, NO tzitzit, NO peyot/sidelocks, NO male religious clothing or symbols.`;
   const maleRule = `He is a BOY. Masculine clothing only (pants/shorts/t-shirt/hoodie/sneakers). NO female head covering (no hijab, no veil, no flower crown, no hair bows), NO dresses, NO skirts, NO feminine accessories.`;
   return `MAIN CHARACTER GENDER (ABSOLUTE): The main character is a ${label} (${pronoun}). ${isFemale ? femaleRule : maleRule}
-SECULAR / UNIVERSAL DEFAULT: Do NOT add any religious accessories (kippah, yarmulke, tzitzit, head covering, veil, cross, rosary, etc.) unless the scene description below explicitly asks for one.`;
+NO RELIGIOUS ITEMS: never put a kippah, yarmulke, tzitzit, sidelocks, head covering, veil or cross on the main character, even if the scene mentions a holiday or religion. Uncovered head, hair visible. Holiday symbols only as objects in the scene.`;
 }
 
 // ─── Helpers ───
