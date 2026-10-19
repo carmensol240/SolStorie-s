@@ -9,7 +9,7 @@ const BENEFITS = [
   {
     icon: Sparkles,
     title: "10 טיפים משני חיים בכל חודש",
-    description: "טיפים מעשיים מעולם ה-NLP שיעזרו לכם לגדל ילדים בטוחים ומאושרים",
+    description: "טיפים מעשיים בשילוב כלים מעולם ה-NLP, לרגעים משותפים עם הילדים",
     color: "text-amber-300",
     bgColor: "from-amber-400/20 to-orange-400/20",
   },
@@ -96,7 +96,7 @@ const Toolkit = () => {
               </span>
             </h1>
             <p className="text-white/70 text-sm leading-relaxed max-w-xs mx-auto">
-              כלים מעולם ה-NLP וחינוך מקרב שיעזרו לכם להפוך כל רגע עם הילדים לרגע של חיבור עמוק וצמיחה
+              כלים מעולם ה-NLP והחינוך המקרב לרגעים של חיבור עם הילדים
             </p>
           </div>
 

@@ -119,7 +119,7 @@ const PurchaseSuccessModal = ({
             </DialogTitle>
           </DialogHeader>
           <p className="text-muted-foreground mb-2 leading-relaxed text-sm">
-            שמחה שהצטרפתם. מעכשיו תקבלו כל חודש כלים חדשים מעולם ה-NLP והחינוך המקרב שיעזרו לכם להפוך כל סיפור לרגע של חיבור אמיתי.
+            שמחה שהצטרפתם! הסיפורים שלכם מחכים בספרייה.
           </p>
           <p className="text-sm text-foreground font-medium whitespace-pre-line mb-4">
             {`בהצלחה ובשמחה,\nאמא של סול`}
