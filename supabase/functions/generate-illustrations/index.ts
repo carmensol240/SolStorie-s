@@ -1716,8 +1716,8 @@ serve(async (req) => {
       const cameraAngle = pickCameraAngle(page.page_number, lastPageNumber);
       const lighting = LIGHTING_OPTIONS[(page.page_number + 2) % LIGHTING_OPTIONS.length];
       const charDesc = characterProfile
-        ? `A ${characterProfile.gender === "female" ? "girl" : "boy"} aged ${characterProfile.ageDescription} with ${characterProfile.hairDescription}, ${characterProfile.skinTone} skin, ${characterProfile.eyeColor} eyes, wearing ${storyOutfit}. ${characterProfile.gender === "female" ? "GIRL — feminine/neutral clothing only, no kippah/tzitzit." : "BOY — masculine clothing only, NO dress, skirt, tutu, flower crown, bow, makeup, or feminine accessories."}`
-        : `A child wearing ${storyOutfit}`;
+        ? `A ${characterProfile.gender === "female" ? "girl" : "boy"} aged ${characterProfile.ageDescription} with ${characterProfile.hairDescription}, ${characterProfile.skinTone} skin, ${characterProfile.eyeColor} eyes${kippahPhrase}, wearing ${storyOutfit}. ${characterProfile.gender === "female" ? "GIRL — feminine/neutral clothing only, no kippah/tzitzit." : "BOY — masculine clothing only, NO dress, skirt, tutu, flower crown, bow, makeup, or feminine accessories."}`
+        : `A child${kippahPhrase}, wearing ${storyOutfit}`;
       const sceneBlock = pageNarrative
         ? `SCENE (MUST MATCH THE STORY TEXT EXACTLY — illustrate precisely what happens in this page, not a different action):
 STORY TEXT FOR THIS PAGE: "${pageNarrative}"
@@ -1984,8 +1984,8 @@ The action, objects, characters, and emotions shown MUST come from the STORY TEX
         const cameraAngle2 = pickCameraAngle(page.page_number, lastPageNumber, 3);
         const lighting2 = LIGHTING_OPTIONS[(page.page_number + 5) % LIGHTING_OPTIONS.length];
         const charDesc2 = characterProfile
-          ? `A ${characterProfile.gender === "female" ? "girl" : "boy"} aged ${characterProfile.ageDescription} with ${characterProfile.hairDescription}, ${characterProfile.skinTone} skin, ${characterProfile.eyeColor} eyes, wearing ${storyOutfit}. ${characterProfile.gender === "female" ? "GIRL — feminine/neutral clothing only, no kippah/tzitzit." : "BOY — masculine clothing only, NO dress, skirt, tutu, flower crown, bow, makeup, or feminine accessories."}`
-          : `A child wearing ${storyOutfit}`;
+          ? `A ${characterProfile.gender === "female" ? "girl" : "boy"} aged ${characterProfile.ageDescription} with ${characterProfile.hairDescription}, ${characterProfile.skinTone} skin, ${characterProfile.eyeColor} eyes${kippahPhrase}, wearing ${storyOutfit}. ${characterProfile.gender === "female" ? "GIRL — feminine/neutral clothing only, no kippah/tzitzit." : "BOY — masculine clothing only, NO dress, skirt, tutu, flower crown, bow, makeup, or feminine accessories."}`
+          : `A child${kippahPhrase}, wearing ${storyOutfit}`;
         const sceneBlock2 = pageNarrative
           ? `SCENE (MUST MATCH THE STORY TEXT EXACTLY — illustrate precisely what happens in this page, not a different action):
 STORY TEXT FOR THIS PAGE: "${pageNarrative}"
