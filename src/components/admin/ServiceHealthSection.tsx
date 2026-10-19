@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { AlertTriangle, CheckCircle2, Database, Mail, Sparkles, Image as ImageIcon, Rocket } from "lucide-react";
+import { AlertTriangle, CheckCircle2, Database, Mail, Sparkles, Image as ImageIcon, Globe } from "lucide-react";
 import { format, formatDistanceToNow } from "date-fns";
 
 interface ErrorLogRow {
@@ -26,28 +26,27 @@ interface ServiceHealthResp {
   resend: { sent_this_month: number; ok: boolean; error: string | null };
 }
 
-interface NetlifyStatusResp {
-  build_minutes: { used?: number; included?: number; period_end?: string; error?: string };
-  bandwidth: { used_bytes?: number; included_bytes?: number; period_end?: string; error?: string };
-  last_deploy: { state?: string; created_at?: string; deploy_time?: number | null; branch?: string; url?: string; error?: string };
+interface SiteStatusResp {
+  ok: boolean; status: number | null; response_ms: number; checked_at: string;
+  build_time?: string | null; build_tag?: string | null; error?: string;
 }
 
 const ServiceHealthSection = ({ errorLogs, illustrationLogs }: Props) => {
   const [health, setHealth] = useState<ServiceHealthResp | null>(null);
-  const [netlify, setNetlify] = useState<NetlifyStatusResp | null>(null);
+  const [site, setSite] = useState<SiteStatusResp | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     let cancelled = false;
     const load = async () => {
       try {
-        const [health, netlify] = await Promise.all([
+        const [health, site] = await Promise.all([
           supabase.functions.invoke("admin-service-health"),
-          supabase.functions.invoke("admin-netlify-status"),
+          supabase.functions.invoke("admin-site-status"),
         ]);
         if (!cancelled) {
           if (!health.error) setHealth(health.data as ServiceHealthResp);
-          if (!netlify.error) setNetlify(netlify.data as NetlifyStatusResp);
+          if (!site.error) setSite(site.data as SiteStatusResp);
         }
       } finally {
         if (!cancelled) setLoading(false);
@@ -87,19 +86,7 @@ const ServiceHealthSection = ({ errorLogs, illustrationLogs }: Props) => {
   // Resend
   const resendWarn = !!health && !health.resend.ok;
 
-  // Netlify
-  const nlBM = netlify?.build_minutes;
-  const nlBW = netlify?.bandwidth;
-  const nlDeploy = netlify?.last_deploy;
-  const bmPct = nlBM?.used != null && nlBM?.included
-    ? Math.min(100, (nlBM.used / nlBM.included) * 100)
-    : null;
-  const bwPct = nlBW?.used_bytes != null && nlBW?.included_bytes
-    ? Math.min(100, (nlBW.used_bytes / nlBW.included_bytes) * 100)
-    : null;
-  const deployState = (nlDeploy?.state || "").toLowerCase();
-  const deployError = deployState === "error" || deployState === "failed";
-  const netlifyWarn = (bmPct !== null && bmPct > 90) || (bwPct !== null && bwPct > 90) || deployError;
+  const siteWarn = !!site && !site.ok;
 
   const StatusBadge = ({ warn, label }: { warn: boolean; label?: string }) => (
     warn ? (
@@ -224,84 +211,39 @@ const ServiceHealthSection = ({ errorLogs, illustrationLogs }: Props) => {
         </CardContent>
       </Card>
 
-      {/* Netlify */}
-      <Card className={netlifyWarn ? "border-destructive" : ""}>
+      {/* Live site */}
+      <Card className={siteWarn ? "border-destructive" : ""}>
         <CardHeader className="pb-2 flex-row items-center justify-between space-y-0">
           <CardTitle className="text-sm font-medium flex items-center gap-2">
-            <Rocket className="w-4 h-4" /> Netlify
+            <Globe className="w-4 h-4" /> האתר החי
           </CardTitle>
-          <StatusBadge warn={netlifyWarn} label={deployError ? "Deploy failed" : "Quota > 90%"} />
+          <StatusBadge warn={siteWarn} label="לא עונה" />
         </CardHeader>
         <CardContent className="space-y-2 text-sm">
-          {loading && !netlify ? (
+          {loading && !site ? (
             <div className="text-xs text-muted-foreground">Loading…</div>
+          ) : !site ? (
+            <div className="text-xs text-muted-foreground">לא הצלחנו לבדוק</div>
           ) : (
             <>
-              {/* Build minutes */}
               <div>
-                <div className="text-xs text-muted-foreground">Build minutes:</div>
-                {nlBM?.error ? (
-                  <div className="text-xs text-destructive truncate" title={nlBM.error}>{nlBM.error}</div>
-                ) : nlBM?.used != null ? (
-                  <>
-                    <div className="font-medium">
-                      {nlBM.used} {nlBM.included != null ? `/ ${nlBM.included}` : ""} min
-                    </div>
-                    {bmPct !== null && (
-                      <div className="h-1.5 bg-muted rounded-full overflow-hidden mt-1">
-                        <div
-                          className={`h-full ${bmPct > 90 ? "bg-destructive" : "bg-primary"}`}
-                          style={{ width: `${bmPct}%` }}
-                        />
-                      </div>
-                    )}
-                  </>
-                ) : (
-                  <div className="text-xs text-muted-foreground">—</div>
-                )}
+                <div className="text-xs text-muted-foreground">soulstory.co.il:</div>
+                <div className="font-medium">
+                  {site.ok ? `עונה (${site.status})` : `לא עונה${site.status ? ` (${site.status})` : ""}`} · {site.response_ms}ms
+                </div>
+                {site.error && <div className="text-xs text-destructive truncate" title={site.error}>{site.error}</div>}
+                <div className="text-xs text-muted-foreground">נבדק {format(new Date(site.checked_at), "HH:mm:ss")}</div>
               </div>
-
-              {/* Bandwidth */}
               <div>
-                <div className="text-xs text-muted-foreground">Bandwidth:</div>
-                {nlBW?.error ? (
-                  <div className="text-xs text-destructive truncate" title={nlBW.error}>{nlBW.error}</div>
-                ) : nlBW?.used_bytes != null ? (
+                <div className="text-xs text-muted-foreground">פרסום אחרון ב-Lovable:</div>
+                {site.build_time ? (
                   <div className="font-medium text-xs">
-                    {prettyBytes(nlBW.used_bytes)}
-                    {nlBW.included_bytes != null ? ` / ${prettyBytes(nlBW.included_bytes)}` : ""}
+                    {format(new Date(site.build_time), "yyyy-MM-dd HH:mm")} ({formatDistanceToNow(new Date(site.build_time))} ago)
                   </div>
                 ) : (
-                  <div className="text-xs text-muted-foreground">—</div>
+                  <div className="text-xs text-muted-foreground">יופיע אחרי הפרסום הבא</div>
                 )}
-              </div>
-
-              {/* Last deploy */}
-              <div>
-                <div className="text-xs text-muted-foreground">Last deploy:</div>
-                {nlDeploy?.error ? (
-                  <div className="text-xs text-destructive truncate" title={nlDeploy.error}>{nlDeploy.error}</div>
-                ) : nlDeploy?.created_at ? (
-                  <div className="flex items-center gap-1.5 flex-wrap">
-                    <Badge
-                      variant="secondary"
-                      className={
-                        deployError
-                          ? "bg-destructive/15 text-destructive"
-                          : deployState === "ready"
-                          ? "bg-green-100 text-green-800"
-                          : "bg-yellow-100 text-yellow-800"
-                      }
-                    >
-                      {nlDeploy.state || "?"}
-                    </Badge>
-                    <span className="text-xs text-muted-foreground">
-                      {formatDistanceToNow(new Date(nlDeploy.created_at))} ago
-                    </span>
-                  </div>
-                ) : (
-                  <div className="text-xs text-muted-foreground">—</div>
-                )}
+                {site.build_tag && <div className="text-xs text-muted-foreground">גרסה: {site.build_tag}</div>}
               </div>
             </>
           )}

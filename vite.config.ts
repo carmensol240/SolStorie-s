@@ -13,6 +13,12 @@ export default defineConfig(({ mode }) => ({
   plugins: [
     react(),
     mode === "development" && componentTagger(),
+    {
+      // Stamps the build time into the page so the admin "live site" card can show when it was published.
+      name: "build-time-meta",
+      transformIndexHtml: (html: string) =>
+        html.replace("</head>", `<meta name="build-time" content="${new Date().toISOString()}" />\n</head>`),
+    },
     VitePWA({
       registerType: "autoUpdate",
       devOptions: {
