@@ -30,14 +30,15 @@ last  Back cover
 - Units are mm. Every page is rendered at 300 DPI: 2551x2551 px.
 - Safe area: text, logo, page numbers and the QR code stay at least 13 mm from the file edge (10 mm inside the cut line).
 - Backgrounds, covers and picture fills extend to the file edge.
-- The watermark logo on pictures stays on purpose. It gets moved into the safe area.
-- Text pages get a small page number at the bottom, inside the safe area. Picture, cover and blank pages get no number.
+- The logo (the brand name and site address drawn today at the bottom of the page) is a deliberate watermark. It appears on every picture page and every text page, always inside the safe area.
+- Text pages also get a small page number. The logo and the page number both sit inside the safe area. Cover, blank and back cover pages get no number.
 - Text pages are saved as PNG, so the letters stay sharp. Picture and cover pages are saved as high-quality JPEG to keep the file size down.
 - Before each capture: wait for `document.fonts.ready`, and make sure Heebo has loaded.
 - Emojis (✨💛🎙️🎵🎨🖍️📱🌟) are replaced with small inline SVG icons (star, heart, mic, note, palette, crayon, phone) or removed.
 
 ## Sharpening pictures for print (upscale)
-- A new backend function, `upscale-print-illustrations`, takes a story ID. It checks that the caller owns the story or is an admin, and it does NOT check payment. The download entitlement check in the browser stays exactly as it is.
+- A new backend function, `upscale-print-illustrations`, takes a story ID. On the server it checks that the caller owns the story and is entitled to the print file, using the same logic as `verifyPdfEntitlement`: effective admin, subscriber, a purchase that grants the PDF, or a full unlock of this story. If not, it returns 403 and nothing gets upscaled or charged. The entitlement check in the browser stays exactly as it is.
+- During the first download's upscaling, the parent sees a progress message: "מכינים את האיורים להדפסה, בפעם הראשונה זה לוקח עד דקה וחצי". Later downloads, when everything is already stored, don't show it.
 - For each picture without a stored print version, it calls the FAL upscaler (ESRGAN, 4x) and saves the result at 2551 px or more on the long side to `story-illustrations/{storyId}/print/page-N.jpg` (JPEG, quality 92). The path is saved on the page row (new nullable column `print_illustration_url`).
 - Later downloads reuse the stored file. If upscaling fails or times out for a page, that page uses the original picture and the PDF still gets made.
 - Reader pictures and their creation are not touched. The reader keeps using the original and the WebP reading version.
@@ -61,6 +62,8 @@ Make a print file for "אבא במילואים" and for the latest test book wit
 - `src/hooks/use-pdf-export.ts`: `new jsPDF({ unit: 'mm', format: [216, 216] })`, no px_scaling. `addImage` at (0,0,216,216). Footer drawn in mm inside 13 mm. A `buildPageSequence(story)` pure function returns typed slots (cover / insideCover / dedication / text / illustration / decorative / theEnd / blank / backCover). Fixed texts come from a `PRINT_TEXTS[he|en]` map with `dir` per language, where language = `story.language === 'en'`. The illustration page uses a contain image over a blurred-cover background, and the watermark stays inside the image.
 - New `src/lib/print-layout.ts` (pure: sequence + padding + constants), plus `src/__tests__/print-layout.test.ts`: missing picture → decorative slot, never shifts; total % 4 === 0; back cover last; text on even pages; English → ltr/English strings; 216 mm / 2551 px constants.
 - Before building, the hook calls `upscale-print-illustrations` and waits (with an overall timeout of about 90 s, and pages running in parallel with a limit of 3). It uses the returned print URLs, otherwise the originals.
+- Server entitlement: new `supabase/functions/_shared/pdf-entitlement.ts`, which mirrors `verifyPdfEntitlement` (`is_effective_admin`, `profiles.is_subscriber`, purchases granting the PDF, `story_unlocks` single), plus a test that a non-entitled caller gets 403.
+- Footer (logo + URL, and the page number on text pages) is drawn in mm, at least 13 mm from the file edge, on text, illustration and decorative pages.
 - Migration: `story_pages.print_illustration_url text null`, with no change to RLS (it's covered by existing owner policies). The edge function uses the service key for the storage write, following the project's storage rule.
 - Download note added in `StoryViewer.tsx` next to the download action (UI text only).
 - AGENTS.md: one rule about the print file spec, the print-only upscaled copies, and the page order.
