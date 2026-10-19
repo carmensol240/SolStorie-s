@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Wand2, BookOpen, Volume2, Printer, Palette, ShieldCheck, UserRound, Sparkles, Check, Minus } from "lucide-react";
+import { Wand2, BookOpen, Volume2, Printer, Palette, ShieldCheck, UserRound, Sparkles, Check, Minus, Languages } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import GlobalFooter from "@/components/shared/GlobalFooter";
 import { CATALOG, formatPrice } from "@/config/promo";
