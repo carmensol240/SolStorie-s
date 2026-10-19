@@ -51,3 +51,6 @@
 - [x] Book opened once saved for offline (Safari-safe timing)
 - [x] iPhone/WebKit check on built version (no console errors)
 - [ ] Live test on soulstory.co.il (publish, second publish, same browser updates) — waits on user publishing
+
+## Create form history + tab draft (Oct 2026)
+- [x] Steps in browser history, answers kept per tab/user, cleared on success/sign-out/new profile
