@@ -1,5 +1,7 @@
 # Story form: browser "Back" moves between steps, answers kept for the tab
 
+Answer to the photo question: today you cannot continue past step 2 without a photo. The "continue" button needs both a photo and the photo-use consent. That stays unchanged for now, and the photo part below follows it.
+
 ## How it works today
 - **Moving between steps:** the step is kept only on the screen itself. The address stays `/create` for all steps, so nothing is added to the browser history. That's why the phone's "Back" leaves the form.
 - **The form's own "חזרה" button:** goes back one step. On step 1 it goes to the home page.
