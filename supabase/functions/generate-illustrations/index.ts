@@ -1465,7 +1465,7 @@ serve(async (req) => {
       clothingType: parentClothingType, clothingColor: parentClothingColor,
     });
     const parentHairEn = hairToEnglish(mergedAppearance);
-    const parentOutfitEn = clothingToEnglish(mergedAppearance);
+    const parentOutfitEn = clothingToEnglish(mergedAppearance, childGender);
     console.log(`👤 Parent appearance: hair="${parentHairEn}" outfit="${parentOutfitEn}"`);
 
     // If no saved profile, extract from photo
@@ -1494,6 +1494,7 @@ serve(async (req) => {
     // Apply parent overrides (if present) to the resolved profile, regardless of
     // whether it came from the DB, from photo extraction, or from a default.
     if (characterProfile) {
+      characterProfile.clothingDescription = translateOutfitWords(characterProfile.clothingDescription);
       if (parentHairEn) {
         const override = parentHairEn;
         if (characterProfile.hairDescription !== override) {
