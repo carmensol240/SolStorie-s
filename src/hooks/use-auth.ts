@@ -3,6 +3,7 @@ import { User, Session } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
 import { isDevModeEnabled, MOCK_DEV_USER, MOCK_DEV_SESSION, clearDevMode } from './use-dev-mode';
 import { clearAllUserData, migrateToUserScoped } from '@/lib/user-storage';
+import { clearAllCreateDrafts } from '@/lib/create-draft';
 
 export const useAuth = () => {
   const [user, setUser] = useState<User | null>(null);
