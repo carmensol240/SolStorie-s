@@ -56,6 +56,7 @@ interface PolaroidCardProps {
   id: string;
   childName: string;
   topic: string;
+  createdAt?: string | null;
   coverUrl: string | null;
   language?: string;
   onDelete: (id: string) => void | Promise<void>;
@@ -78,6 +79,7 @@ const PolaroidCard = ({
   id,
   childName,
   topic,
+  createdAt,
   coverUrl,
   language,
   onDelete,
@@ -289,12 +291,15 @@ const PolaroidCard = ({
           </div>
 
           {/* Title area */}
-          <div dir="rtl" className="mt-1 px-0.5 text-center" style={{ height: '24px' }}>
+          <div dir="rtl" className="mt-1 px-0.5 text-center" style={{ minHeight: '24px' }}>
             <p
-              className="text-xs font-bold leading-tight line-clamp-1"
+              className="text-xs font-bold leading-tight line-clamp-2"
               style={{ fontFamily: "'Caveat', cursive", fontSize: '14px', color: '#e8d5ff' }}
             >
               {topic}
+            </p>
+            <p className="text-[10px] leading-tight text-purple-200/60 mt-0.5 truncate">
+              {childName}{createdAt ? ` · ${formatCardDate(createdAt)}` : ''}
             </p>
             {isOfflineSaved && offlineSize > 0 && (
               <p className="text-xs text-purple-300/60 mt-0.5">{formatBytes(offlineSize)}</p>
