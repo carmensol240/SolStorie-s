@@ -1,5 +1,29 @@
-import { describe, it, expect, vi, afterEach } from "vitest";
-import { fitContain, coloringPdfFileName, printColoringA4 } from "@/lib/coloring-a4";
+import { describe, it, expect, vi, afterEach, beforeEach } from "vitest";
+import { fitContain, coloringPdfFileName, printColoringA4, prepareColoringCanvas } from "@/lib/coloring-a4";
+
+const makeContext = () => ({
+  fillStyle: "", fillRect: vi.fn(), drawImage: vi.fn(),
+  getImageData: vi.fn(() => ({ data: new Uint8ClampedArray([255, 0, 0, 255]) })),
+  putImageData: vi.fn(),
+});
+
+describe("empty exports versus painted artwork", () => {
+  afterEach(() => vi.restoreAllMocks());
+  it("removes color from an empty page", () => {
+    const ctx = makeContext();
+    vi.spyOn(HTMLCanvasElement.prototype, "getContext").mockReturnValue(ctx as unknown as CanvasRenderingContext2D);
+    prepareColoringCanvas(new Image());
+    expect([...ctx.putImageData.mock.calls[0][0].data]).toEqual([0, 0, 0, 255]);
+  });
+  it("does not binarize a child's painted artwork", () => {
+    const ctx = makeContext();
+    vi.spyOn(HTMLCanvasElement.prototype, "getContext").mockReturnValue(ctx as unknown as CanvasRenderingContext2D);
+    prepareColoringCanvas(new Image(), { preserveColors: true });
+    expect(ctx.drawImage).toHaveBeenCalledOnce();
+    expect(ctx.getImageData).not.toHaveBeenCalled();
+    expect(ctx.putImageData).not.toHaveBeenCalled();
+  });
+});
 
 describe("A4 coloring", () => {
   it("fits a 2:3 image inside 190x277mm without cropping", () => {
@@ -14,7 +38,11 @@ describe("A4 coloring", () => {
 });
 
 describe("coloring print marker", () => {
-  afterEach(() => vi.useRealTimers());
+  beforeEach(() => {
+    vi.spyOn(HTMLCanvasElement.prototype, "getContext").mockReturnValue(makeContext() as unknown as CanvasRenderingContext2D);
+    vi.spyOn(HTMLCanvasElement.prototype, "toDataURL").mockReturnValue("data:image/png;base64,AAAA");
+  });
+  afterEach(() => { vi.useRealTimers(); vi.restoreAllMocks(); });
 
   const start = () => {
     vi.useFakeTimers();

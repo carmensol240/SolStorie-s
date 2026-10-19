@@ -2,6 +2,8 @@ import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { isLegacyOpenStory } from "../_shared/legacy-access.ts";
 import { mergeAppearance, hairToEnglish, clothingToEnglish, buildCharacterLock, kippahForStory } from "../_shared/appearance.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.49.1";
+import { cleanColoringImage } from "../_shared/coloring-image.ts";
+import { COLOR_FRACTION_LIMIT } from "../_shared/coloring-pixels.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -144,8 +146,9 @@ ${characterLock ? `11. CHARACTER: Keep the main character recognizable. ${charac
       "google/gemini-2.5-flash-image",
     ];
 
-    let generatedImage: string | undefined;
     let lastError = "";
+    const generateImage = async (prompt: string): Promise<string | undefined> => {
+    let generatedImage: string | undefined;
 
     for (const model of imageModels) {
       console.log(`Trying model: ${model}`);
@@ -166,7 +169,7 @@ ${characterLock ? `11. CHARACTER: Keep the main character recognizable. ${charac
               {
                 role: "user",
                 content: [
-                  { type: "text", text: coloringPrompt },
+                  { type: "text", text: prompt },
                   {
                     type: "image_url",
                     image_url: { url: `data:${mimeType};base64,${imgBase64}` },
@@ -189,14 +192,15 @@ ${characterLock ? `11. CHARACTER: Keep the main character recognizable. ${charac
         await new Promise((r) => setTimeout(r, backoffSeconds * 1000));
       }
 
-      if (!aiResponse!.ok) {
-        lastError = await aiResponse!.text();
-        console.error(`Model ${model} failed:`, aiResponse!.status, lastError.slice(0, 300));
+      if (!aiResponse) continue;
+      if (!aiResponse.ok) {
+        lastError = await aiResponse.text();
+        console.error(`Model ${model} failed:`, aiResponse.status, lastError.slice(0, 300));
         continue;
       }
 
       // Parse response - check images array first (Lovable Gateway format)
-      const aiData = await aiResponse!.json();
+      const aiData = await aiResponse.json();
       const choice = aiData.choices?.[0];
       const message = choice?.message;
 
@@ -233,6 +237,10 @@ ${characterLock ? `11. CHARACTER: Keep the main character recognizable. ${charac
       }
     }
 
+    return generatedImage;
+    };
+    let generatedImage = await generateImage(coloringPrompt);
+
     if (!generatedImage) {
       if (lastError.includes("429") || lastError.includes("RESOURCE_EXHAUSTED") || lastError.includes("rate")) {
         return jsonResponse({ error: "השירות עמוס כרגע, נסו שוב בעוד כמה דקות 🎨", retryable: true });
@@ -240,7 +248,26 @@ ${characterLock ? `11. CHARACTER: Keep the main character recognizable. ${charac
       return jsonResponse({ error: "שגיאה ביצירת דף הצביעה" }, 500);
     }
 
-    console.log("Coloring page generated successfully");
+    const imageBytes = async (url: string): Promise<Uint8Array> => {
+      const match = url.match(/^data:image\/[^;]+;base64,(.+)$/s);
+      if (match) return Uint8Array.from(atob(match[1]), (c) => c.charCodeAt(0));
+      const response = await fetch(url);
+      if (!response.ok) throw new Error("Generated image download failed");
+      return new Uint8Array(await response.arrayBuffer());
+    };
+    let cleaned = await cleanColoringImage(await imageBytes(generatedImage));
+    console.log("Coloring colored pixel fraction:", cleaned.coloredFraction);
+    if (cleaned.coloredFraction > COLOR_FRACTION_LIMIT) {
+      // Exactly one quality retry. If unavailable, keep the cleaned first result.
+      const retry = await generateImage(`${coloringPrompt}\nCRITICAL CORRECTION: pure black outlines on pure white, no color, no gray fill, no shading anywhere in the image. Remove ALL colored areas, including clothing, grass and backgrounds.`);
+      if (retry) cleaned = await cleanColoringImage(await imageBytes(retry));
+    }
+    const chunks: string[] = [];
+    for (let i = 0; i < cleaned.bytes.length; i += 8192) {
+      chunks.push(String.fromCharCode(...cleaned.bytes.subarray(i, i + 8192)));
+    }
+    generatedImage = `data:image/png;base64,${btoa(chunks.join(""))}`;
+    console.log("Coloring page normalized to pure black and white");
 
     // ── Upload to storage & cache ──
     if (story_id && userId) {

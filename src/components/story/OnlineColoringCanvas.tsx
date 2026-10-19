@@ -582,7 +582,7 @@ export const OnlineColoringCanvas: React.FC<OnlineColoringCanvasProps> = ({
     const merged = getMergedCanvas();
     if (!merged) return;
     try {
-      await downloadColoringPdfA4(merged.toDataURL('image/png'), childName || storyTitle);
+      await downloadColoringPdfA4(merged.toDataURL('image/png'), childName || storyTitle, { preserveColors: true });
     } catch (e) {
       console.error('coloring PDF error', e);
       toast.error('שגיאה ביצירת PDF');
@@ -592,7 +592,7 @@ export const OnlineColoringCanvas: React.FC<OnlineColoringCanvasProps> = ({
   const handlePrint = useCallback(() => {
     const merged = getMergedCanvas();
     if (!merged) return;
-    printColoringA4(merged.toDataURL('image/png'));
+    printColoringA4(merged.toDataURL('image/png'), { preserveColors: true });
   }, [getMergedCanvas]);
 
   const handleClear = useCallback(() => {
