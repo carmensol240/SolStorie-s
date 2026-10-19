@@ -75,8 +75,28 @@ export async function downloadColoringPdfA4(url: string, name?: string | null, o
   const { jsPDF } = await import("jspdf");
   const pdf = new jsPDF({ orientation: "portrait", unit: "mm", format: "a4" });
   pdf.addImage(data, "PNG", A4_MM.margin, A4_MM.margin, areaW, areaH);
-  pdf.save(coloringPdfFileName(name));
+  const fileName = coloringPdfFileName(name);
+  // Phones: share the A4 PDF itself (never the bare image) when the share sheet supports files.
+  if (await shareA4Pdf(pdf.output("blob"), fileName)) return;
+  pdf.save(fileName);
 }
+
+/** Returns true when the PDF was handed to the share sheet (or the user cancelled it). */
+export async function shareA4Pdf(blob: Blob, fileName: string): Promise<boolean> {
+  if (typeof navigator === "undefined" || !navigator.share || typeof File === "undefined") return false;
+  const touch = typeof window !== "undefined" && window.matchMedia?.("(pointer: coarse)").matches;
+  if (!touch) return false;
+  const file = new File([blob], fileName, { type: "application/pdf" });
+  if (!navigator.canShare?.({ files: [file] })) return false;
+  try {
+    await navigator.share({ files: [file], title: fileName });
+    return true;
+  } catch (e) {
+    return (e as Error)?.name === "AbortError";
+  }
+}
+
+export const A4_PRINT_HINT = "להדפסה בגודל מלא: בחרו A4 וגודל אמיתי (100%)";
 
 /** Print only the coloring page on one A4 sheet. */
 export function printColoringA4(url: string, options: ColoringExportOptions = {}) {

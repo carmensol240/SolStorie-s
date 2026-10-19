@@ -3,7 +3,7 @@ import { Printer, FileDown } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
-import { downloadColoringPdfA4, printColoringA4 } from "@/lib/coloring-a4";
+import { A4_PRINT_HINT, downloadColoringPdfA4, printColoringA4 } from "@/lib/coloring-a4";
 
 interface Props {
   imageUrl: string;
@@ -26,14 +26,15 @@ export const A4Frame = ({ imageUrl, alt, className }: { imageUrl: string; alt?: 
 export const A4ColoringActions = ({ imageUrl, name, className }: { imageUrl: string; name?: string | null; className?: string }) => {
   const [busy, setBusy] = useState(false);
   return (
-    <div className={cn("flex flex-col sm:flex-row gap-1.5", className)}>
-      <Button size="sm" variant="outline" className="flex-1 text-sm min-h-[36px] gap-1" onClick={() => printColoringA4(imageUrl)}>
+    <div className={cn("space-y-1", className)}>
+    <div className="flex flex-col sm:flex-row gap-1.5">
+      <Button size="sm" variant="outline" className="flex-1 text-sm min-h-[44px] gap-1" onClick={() => printColoringA4(imageUrl)}>
         <Printer className="w-4 h-4" aria-hidden="true" /> הדפסה
       </Button>
       <Button
         size="sm"
         variant="outline"
-        className="flex-1 text-sm min-h-[36px] gap-1"
+        className="flex-1 text-sm min-h-[44px] gap-1"
         disabled={busy}
         onClick={async () => {
           setBusy(true);
@@ -49,6 +50,8 @@ export const A4ColoringActions = ({ imageUrl, name, className }: { imageUrl: str
       >
         <FileDown className="w-4 h-4" aria-hidden="true" /> {busy ? "מכינים…" : "הורדת PDF"}
       </Button>
+    </div>
+    <p className="text-xs text-muted-foreground text-center">{A4_PRINT_HINT}</p>
     </div>
   );
 };
