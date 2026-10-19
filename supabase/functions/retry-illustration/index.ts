@@ -1,5 +1,5 @@
 import "https://deno.land/x/xhr@0.1.0/mod.ts";
-import { mergeAppearance, hairToEnglish, clothingToEnglish, pageMentionsOutfit, buildCharacterLock, kippahForStory } from "../_shared/appearance.ts";
+import { mergeAppearance, hairToEnglish, clothingToEnglish, buildCharacterLock, kippahForStory } from "../_shared/appearance.ts";
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.39.3";
 import {
@@ -10,6 +10,8 @@ import {
   CHARACTER_BASE_REFS,
   getSolUrl,
   CHARACTER_CONSISTENCY_PROMPT,
+  buildOutfitLock,
+  SINGLE_HERO_RULE,
   GENDER_SYMBOL_RESTRICTION,
   buildGenderHeader,
 } from "../_shared/style-config.ts";
@@ -357,9 +359,11 @@ serve(async (req) => {
         clothingType: ch?.clothing_type, clothingColor: ch?.clothing_color,
       });
       const hair = hairToEnglish(ap);
-      const outfit = pageMentionsOutfit((page as any).text) ? "" : (clothingToEnglish(ap, (story as any).child_gender) || (story as any).story_outfit || "");
+      const outfit = (clothingToEnglish(ap, (story as any).child_gender) || (story as any).story_outfit || "");
       const kp = kippahForStory(story as any);
       characterLock = buildCharacterLock({ gender: (story as any).child_gender, age: ch?.age ?? null, ageRange: (story as any).age_range, hair, outfit, kippah: kp.kippah, kippahColor: kp.color });
+      if (outfit) characterLock += `\n\n${buildOutfitLock(outfit)}`;
+      characterLock += `\n\n${SINGLE_HERO_RULE}`;
     }
     const prompt = `${customPrompt || page.illustration_prompt || `A cheerful children's book illustration for page ${page.page_number}`}\n\n${characterLock}`;
     const pageNarrative = ((page as any).text || "").toString().slice(0, 400);
@@ -403,7 +407,7 @@ The action, objects, characters, and emotions shown MUST come from the STORY TEX
       const faceOrdinal = childPhoto ? "FIRST" : null;
       const canonOrdinal = childPhoto ? "SECOND" : "FIRST";
 
-      const personalizedPrompt = `${faceOrdinal ? `FACE REFERENCE (${faceOrdinal} IMAGE): The main character's face MUST be an EXACT 3D Pixar rendering of the child in that reference photo. Keep all facial features, hair color, hair texture, and skin tone identical.\n` : ""}${pageOneReferenceUrl ? `\nIDENTITY LOCK — CHARACTER CANON REFERENCE (${canonOrdinal} IMAGE): That image is a finished illustration of the SAME character in this book. Reproduce the character EXACTLY as shown: identical face, hair color / texture / length, eye color, apparent age, skin tone, AND identical clothing (same garments, same colors, same emblems, same cape) and rendering style. Do NOT redesign the character, do NOT change the outfit, do NOT invent new clothes or hair. Only the pose, framing, lighting and background may change.\n` : ""}
+      const personalizedPrompt = `${faceOrdinal ? `FACE REFERENCE (${faceOrdinal} IMAGE): The main character's face MUST be an EXACT 3D Pixar rendering of the child in that reference photo. Keep all facial features, hair color, hair texture, and skin tone identical.\n` : ""}${pageOneReferenceUrl ? `\nIDENTITY LOCK — CHARACTER CANON REFERENCE (${canonOrdinal} IMAGE): That image is a finished illustration of the SAME character in this book. Reproduce the character EXACTLY as shown: identical face, hair color / texture / length, eye color, apparent age, skin tone, AND identical clothing (unless the OUTFIT rule below says otherwise) and the same high-quality 3D rendering style. Do NOT redesign the character or invent new hair. Do NOT copy that image's composition, pose, camera angle or background — draw a completely new picture for this scene.\n` : ""}
 
 STYLE: ${PIXAR_STYLE}
 

@@ -35,8 +35,8 @@ describe("parent appearance choices", () => {
     expect(resolvePageOutfit(parent, "astronaut space suit", "נועה רצה בגן")).toBe("a blue dress");
   });
 
-  it("topic outfit only where the page text says the hero changes into it", () => {
-    expect(resolvePageOutfit("a blue dress", "astronaut space suit", "נועה לובשת חליפת חלל")).toBe("astronaut space suit");
+  it("parent clothes win even when the page text mentions a costume", () => {
+    expect(resolvePageOutfit("blue everyday clothes", "superhero cape", "נועה לובשת גלימה של גיבורת על")).toBe("blue everyday clothes");
   });
 
   it("a plain 'wears' sentence no longer swaps the parent's clothes", () => {
@@ -47,7 +47,7 @@ describe("parent appearance choices", () => {
   it("next page returns to chosen clothes unless it continues the same scene", () => {
     const prev = "נועה מחליפה לפיג'מה";
     expect(resolvePageOutfit("a blue dress", "pajamas", "בבוקר נועה הולכת לגן", prev)).toBe("a blue dress");
-    expect(resolvePageOutfit("a blue dress", "pajamas", "בפיג'מה הרכה נועה נכנסת למיטה", prev)).toBe("pajamas");
+    expect(resolvePageOutfit("a blue dress", "pajamas", "בפיג'מה הרכה נועה נכנסת למיטה", prev)).toBe("a blue dress");
   });
 
   it("no parent clothes → topic outfit as before", () => {
