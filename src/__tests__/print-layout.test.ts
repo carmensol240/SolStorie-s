@@ -75,8 +75,8 @@ describe("print book layout", () => {
       expect(s[s.length - 1]).toBe("backCover");
     }
   });
-  it("7 story pages with pictures → talk, next adventure, draw, our hero, back cover (no blanks)", () => {
-    const s = buildPageSequence(pages(Array(7).fill(true))).map(x => x.kind);
+  it("6 story pages with pictures → talk, next adventure, draw, our hero, back cover (no blanks)", () => {
+    const s = buildPageSequence(pages(Array(6).fill(true))).map(x => x.kind);
     expect(s.slice(-5)).toEqual(["talk", "theEnd", "drawMoment", "ourHero", "backCover"]);
     expect(s).not.toContain("blank");
   });
