@@ -5,6 +5,7 @@ import { createClient } from "https://esm.sh/@supabase/supabase-js@2.39.3";
 import { logError } from "../_shared/log-error.ts";
 import { buildNlpInstruction, runNlpCheck } from "../_shared/nlp-techniques.ts";
 import { splitLongPages, MAX_PAGE_CHARS } from "../_shared/page-split.ts";
+import { editHebrewPages, gatewayEditorCall } from "../_shared/hebrew-editor.ts";
 import { normalizeGender } from "../_shared/gender.ts";
 import { grantStoryAccess, consumeCredit } from "../_shared/story-access.ts";
 import { spendCredit } from "../_shared/taste.ts";
@@ -2384,6 +2385,34 @@ ${fullStoryText}`;
       console.log("Nikud not requested, skipping");
     }
 
+    // === HEBREW LANGUAGE EDITOR: gender agreement, whole sentences, nikud (all pages at once) ===
+    // A failure keeps the original text; the old per-page nikud pass then runs as before.
+    let editorNikudPages = new Set<number>();
+    if (language === "he") {
+      try {
+        const { pages: editedPages, report } = await editHebrewPages({
+          pages: storyData.pages.map((p: any) => ({ page_number: p.page_number, text: String(p.text || "") })),
+          gender: childGender,
+          heroName: childName,
+          nikud: shouldApplyNikud,
+          call: gatewayEditorCall(LOVABLE_API_KEY),
+          maxChars: MAX_PAGE_CHARS,
+        });
+        for (const ep of editedPages) {
+          const target = storyData.pages.find((p: any) => p.page_number === ep.page_number);
+          if (target) target.text = ep.text;
+        }
+        if (!report.error && shouldApplyNikud) {
+          editorNikudPages = new Set(editedPages
+            .filter((p) => !report.rejected.includes(p.page_number) && !report.still_missing_nikud.includes(p.page_number))
+            .map((p) => p.page_number));
+        }
+        console.log(`[generate-story] Hebrew editor: ${JSON.stringify(report)}`);
+      } catch (editorErr) {
+        console.warn("[generate-story] Hebrew editor skipped:", editorErr);
+      }
+    }
+
 
     // Use existing supabase client for database operations
 
@@ -2588,7 +2617,7 @@ ${fullStoryText}`;
           
           if (savedPages) {
             const nikudResults = await Promise.allSettled(
-              savedPages.map(async (page) => {
+              savedPages.filter((page) => !editorNikudPages.has(page.page_number)).map(async (page) => {
                 const nikudText = await addNikudToText(page.text, LOVABLE_API_KEY);
                 if (nikudText !== page.text) {
                   await supabase
