@@ -1,4 +1,5 @@
 import "https://deno.land/x/xhr@0.1.0/mod.ts";
+import { buildMilitaryLock, militaryRoleForStory } from "../_shared/military-family.ts";
 import { mergeAppearance, hairToEnglish, clothingToEnglish, resolvePageOutfit, buildCharacterLock, translateOutfitWords, pickDefaultOutfit, kippahForStory, type Appearance } from "../_shared/appearance.ts";
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.39.3";
@@ -1167,7 +1168,7 @@ const TOPIC_COVER_PROMPTS: Record<string, string> = {
   "making-mistakes": "Children's book cover, Pixar 3D CGI style, a child looking at a broken vase then looking up with courage, a green sprout growing from the pieces. No text. Leave 20% space at top for title.",
   "crying-is-ok": "Children's book cover, Pixar 3D CGI style, a child with a single tear becoming a rainbow, comforting hug from parent, warm safe atmosphere. No text. Leave 20% space at top for title.",
   "safe-room-sirens": "Children's book cover, Pixar 3D CGI style, a family huddled together safely in a cozy shelter room, warm protective light, sense of togetherness. No text. Leave 20% space at top for title.",
-  "dad-in-reserves": "A heartwarming children's book cover illustration in Pixar 3D CGI style, Israeli soldier father in olive green IDF military uniform (yarok tzava fatigues) hugging his young child warmly, emotional reunion, soft warm cinematic lighting, vibrant saturated colors, Disney-Pixar aesthetic, NOT US military, NOT American military. No text. Leave 20% space at top for title.",
+  "dad-in-reserves": "A heartwarming children's book cover illustration in Pixar 3D CGI style, Israeli father wearing Israel Defense Forces olive-green uniform (olive drab shirt and trousers, brown military boots), green army duffel bag, no weapons, no helmet, hugging his young child warmly, emotional reunion, soft warm cinematic lighting, vibrant saturated colors, Disney-Pixar aesthetic, NOT US military, NOT American military. No text. Leave 20% space at top for title.",
 
   // ── Creativity / Imagination ──
   "zoo-adventure": "Children's book cover, Pixar 3D CGI style, a child surrounded by friendly zoo animals - giraffe, lion cub, monkey, colorful zoo entrance, sunny day. No text. Leave 20% space at top for title.",
@@ -1770,14 +1771,12 @@ The action, objects, characters, and emotions shown MUST come from the STORY TEX
         console.log(`[Page ${page.page_number}] 🎭 Injected CAST_DESCRIPTIONS for: ${matchedCast.map(c => c.key).join(", ")}`);
       }
 
-      // Inject IDF military uniform for father in "dad-in-reserves" topic
-      const FATHER_MILITARY_CLOTHING = "Israeli IDF military uniform, olive green (yarok tzava) fatigues, green combat boots, Israeli army green beret - NOT US army, NOT American military";
-      if (topic === "dad-in-reserves") {
-        const fatherKeywords = /father|dad|אב|אבא|daddy|papa/i;
-        if (fatherKeywords.test(illustrationPrompt) || fatherKeywords.test(page.text || "")) {
-          illustrationPrompt += ` IMPORTANT: The father character MUST be wearing: ${FATHER_MILITARY_CLOTHING}. This is consistent across ALL illustrations showing the father.`;
-          console.log(`[Page ${page.page_number}] 🪖 Injected IDF military uniform for father`);
-        }
+      // Family member in the reserves/army (dad-in-reserves or any story about it): fixed IDF uniform lock.
+      const militaryRole = militaryRoleForStory(topic, `${page.text || ""}\n${basePrompt}`);
+      const militaryLock = militaryRole ? buildMilitaryLock(militaryRole, String(page.text || ""), illustrationPrompt) : "";
+      if (militaryLock) {
+        illustrationPrompt += `\n\n${militaryLock}`;
+        console.log(`[Page ${page.page_number}] 🪖 Military lock for ${militaryRole}`);
       }
 
       // Inject learning topic instruction for letter/number stories
