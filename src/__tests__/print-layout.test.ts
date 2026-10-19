@@ -25,9 +25,9 @@ describe("print book layout", () => {
   });
   it("a missing picture becomes a decorative page and nothing shifts", () => {
     const s = buildPageSequence(pages([true, false, true]));
-    expect(s[5]).toEqual({ kind: "decorative", storyIndex: 1 });
-    expect(s[6]).toEqual({ kind: "text", storyIndex: 2 });
-    expect(s[7]).toEqual({ kind: "illustration", storyIndex: 2 });
+    expect(s[6]).toEqual({ kind: "decorative", storyIndex: 1 });
+    expect(s[7]).toEqual({ kind: "text", storyIndex: 2 });
+    expect(s[8]).toEqual({ kind: "illustration", storyIndex: 2 });
   });
   it("total is a multiple of 4 and back cover is always last", () => {
     for (let n = 1; n <= 16; n++) {
