@@ -2202,7 +2202,7 @@ const [currentPage, setCurrentPage] = useState(0);
                     return (
                       <div className="absolute inset-0 bg-paper text-paper-foreground flex flex-col lg:grid lg:grid-cols-2" dir="rtl" data-testid="story-spread">
                         {/* Text page (right on wide screens, below the picture on phones) */}
-                        <div data-story-scroll className="order-2 lg:order-1 flex-none lg:h-full lg:min-h-0 overflow-y-auto flex flex-col lg:justify-center px-5 md:px-10 pt-2 lg:pt-8 pb-14 lg:pb-16 lg:border-l lg:border-paper-muted lg:shadow-[inset_-12px_0_18px_-14px_hsl(var(--paper-foreground)/0.35)]">
+                        <div data-story-scroll className="order-2 lg:order-1 flex-initial min-h-0 lg:h-full lg:min-h-0 overflow-y-auto flex flex-col lg:justify-center px-5 md:px-10 pt-2 lg:pt-8 pb-14 lg:pb-16 lg:border-l lg:border-paper-muted lg:shadow-[inset_-12px_0_18px_-14px_hsl(var(--paper-foreground)/0.35)]">
                           {displayText.trim() && (
                             <p className={cn("text-center font-semibold whitespace-pre-line", currentFontSize.size)} style={{ lineHeight: '1.75', overflowWrap: 'break-word' }} dir="rtl">
                               {displayText}
@@ -2284,7 +2284,7 @@ const [currentPage, setCurrentPage] = useState(0);
           </MagicalBookFrame>
 
           {/* Watermark — non-clickable, shown only on illustration/cover pages */}
-          {!isEndPage && currentVirtual && currentVirtual.type !== 'text' && (
+          {!isEndPage && currentVirtual && (currentVirtual.type === 'illustration' || currentVirtual.type === 'combined') && (
             <div
               className="absolute bottom-14 left-1/2 -translate-x-1/2 z-40 opacity-30 pointer-events-none select-none"
               aria-hidden="true"
