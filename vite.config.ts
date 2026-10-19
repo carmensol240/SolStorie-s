@@ -76,8 +76,20 @@ export default defineConfig(({ mode }) => ({
         // No precache-first navigation fallback: HTML always comes from the network first,
         // and the precached index.html is only used when the network fails (see below).
         navigateFallback: null,
-        globPatterns: ["**/*.{js,css,html,ico,png,svg,jpg,jpeg,woff2}"],
+        // Images are NOT precached (they were ~85MB and made updates fail/stall on phones);
+        // they are cached on first view by the "app-images" rule below.
+        globPatterns: ["**/*.{js,css,html,ico,svg,woff2}", "pwa-icon-*.png", "favicon.png"],
         runtimeCaching: [
+          {
+            // Site images (hashed, never change) — cached on first view, kept across updates.
+            urlPattern: ({ url, sameOrigin }) => sameOrigin && /\.(png|jpe?g|webp)$/i.test(url.pathname),
+            handler: "CacheFirst",
+            options: {
+              cacheName: "app-images",
+              expiration: { maxEntries: 200, maxAgeSeconds: 60 * 60 * 24 * 60 },
+              cacheableResponse: { statuses: [200] },
+            },
+          },
           {
             // Sign-in URLs are never cached.
             urlPattern: ({ url }) => url.pathname.startsWith("/~oauth") || url.pathname === "/auth" || url.pathname.startsWith("/auth/"),
