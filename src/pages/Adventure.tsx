@@ -153,7 +153,10 @@ const Adventure = () => {
 
         {/* Top zone: logo + tagline */}
         <div className="relative z-10 flex flex-col items-center gap-1 px-4 pt-1 text-center">
-          <h1 className="text-5xl leading-tight sm:text-6xl md:text-7xl font-black logo-3d-bubble tracking-tight">
+          <h1
+            className="leading-tight font-black logo-3d-bubble tracking-tight"
+            style={{ fontSize: "clamp(2.5rem, 11vw, 4.5rem)" }}
+          >
             <span className="logo-rainbow">SolStorie's™</span>
           </h1>
           <p className="text-lg sm:text-xl font-bold text-white [text-shadow:0_1px_4px_rgba(0,0,0,0.9)]">
