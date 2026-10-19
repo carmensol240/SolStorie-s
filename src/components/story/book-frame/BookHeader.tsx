@@ -110,11 +110,11 @@ export const BookHeader: React.FC<BookHeaderProps> = ({
               variant="ghost"
               size="sm"
               onClick={onBack}
-              className="text-slate-600 hover:bg-sky-100/60 min-h-[44px] p-2 gap-1"
+              className="text-slate-600 hover:bg-sky-100/60 min-h-[44px] p-1.5 md:p-2 gap-0.5 md:gap-1 flex-col md:flex-row h-auto"
               aria-label="חזרה לספרייה"
             >
               <ArrowRight className="w-5 h-5" />
-              <span className="hidden md:inline text-sm font-medium">חזרה</span>
+              <span className="text-[10px] md:text-sm leading-none font-medium">חזרה</span>
             </Button>
           </TooltipTrigger>
           <TooltipContent side="bottom">חזרה לספרייה</TooltipContent>
@@ -130,10 +130,11 @@ export const BookHeader: React.FC<BookHeaderProps> = ({
                 variant="ghost"
                 size="sm"
                 onClick={onToggleFontSize}
-                className="text-slate-600 hover:bg-sky-100/60 min-h-[44px] min-w-[44px] p-2"
+                className="text-slate-600 hover:bg-sky-100/60 min-h-[44px] min-w-[44px] p-1.5 md:p-2 flex-col gap-0.5 h-auto"
                 aria-label={`גודל טקסט: ${fontSizeLabel}`}
               >
                 <Type className="w-5 h-5" />
+                <span className="md:hidden text-[10px] leading-none font-medium">גודל</span>
               </Button>
             </TooltipTrigger>
             <TooltipContent side="bottom">שנה גודל טקסט ({fontSizeLabel})</TooltipContent>
@@ -147,7 +148,7 @@ export const BookHeader: React.FC<BookHeaderProps> = ({
                 size="sm"
                 onClick={onDownload}
                 disabled={isExporting}
-                className="text-slate-600 hover:bg-sky-100/60 min-h-[44px] min-w-[44px] p-2 disabled:opacity-50"
+                className="text-slate-600 hover:bg-sky-100/60 min-h-[44px] min-w-[44px] p-1.5 md:p-2 disabled:opacity-50 flex-col gap-0.5 h-auto"
                 aria-label="הורדה או הדפסה"
               >
                 <span className="relative inline-flex">
@@ -159,6 +160,7 @@ export const BookHeader: React.FC<BookHeaderProps> = ({
                     />
                   )}
                 </span>
+                <span className="md:hidden text-[10px] leading-none font-medium">PDF</span>
               </Button>
             </TooltipTrigger>
             <TooltipContent side="bottom">
@@ -303,10 +305,11 @@ export const BookHeader: React.FC<BookHeaderProps> = ({
                   <Button
                     variant="ghost"
                     size="sm"
-                    className="text-slate-600 hover:bg-sky-100/60 min-h-[44px] min-w-[44px] p-2"
+                    className="text-slate-600 hover:bg-sky-100/60 min-h-[44px] min-w-[44px] p-1.5 md:p-2 flex-col gap-0.5 h-auto"
                     aria-label="תפריט"
                   >
                     <Menu className="w-5 h-5" />
+                <span className="md:hidden text-[10px] leading-none font-medium">עוד</span>
                   </Button>
                 </DropdownMenuTrigger>
               </TooltipTrigger>
