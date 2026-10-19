@@ -14,6 +14,7 @@ import {
   SINGLE_HERO_RULE,
   GENDER_SYMBOL_RESTRICTION,
   buildGenderHeader,
+  storyTextForPrompt,
 } from "../_shared/style-config.ts";
 
 const corsHeaders = {
@@ -370,7 +371,7 @@ serve(async (req) => {
     const genderHeader = buildGenderHeader((story as any).child_gender, { kippah: kippahForStory(story as any).kippah });
     const sceneBlockRaw = pageNarrative
       ? `SCENE (MUST MATCH THE STORY TEXT EXACTLY — illustrate precisely what happens in this page, not a different action):
-STORY TEXT FOR THIS PAGE: "${pageNarrative}"
+${storyTextForPrompt(pageNarrative)}
 VISUAL DESCRIPTION: ${prompt}
 The action, objects, characters, and emotions shown MUST come from the STORY TEXT above. Do not invent a different scene.`
       : `SCENE (THIS IS THE MOST IMPORTANT PART — illustrate THIS specific scene in detail): ${prompt}`;
