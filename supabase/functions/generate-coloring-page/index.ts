@@ -124,7 +124,7 @@ serve(async (req) => {
 
     const coloringPrompt = `Convert this illustration into a perfect children's coloring book page for printing. Follow these rules strictly:
 
-1. OUTLINES: Use very thick, bold, solid black outlines (minimum 3-4px weight). Every shape must have a clearly defined closed boundary.
+1. OUTLINES: Clean, even black outlines of medium weight (about 2-3px). Every shape must have a clearly defined closed boundary. NEVER fill any area with black: hair, shadows, clothing, eyes' surroundings and dark objects are drawn as outlines with white inside.
 2. CLOSED REGIONS: Every colored area MUST be completely enclosed by black outlines with no gaps whatsoever. Sky, ground, trees, clothing and all elements must be separated by continuous unbroken black lines. No area should bleed into another area. Test: flood-fill from any point should not leak into adjacent regions.
 3. SIMPLICITY: Create large, simple areas for coloring. Merge small details into bigger shapes. A 3-year-old should be able to color inside the lines.
 4. STYLE: Disney/Pixar cartoon style with rounded, friendly shapes. Keep the character recognizable but simplified.
@@ -134,7 +134,7 @@ serve(async (req) => {
 8. RESOLUTION: Output a high-resolution image (at least 2400x3200 pixels) suitable for 300 DPI A4 printing.
 9. BACKGROUND: Pure white (#FFFFFF) background with no marks or artifacts.
 
-10. LAYOUT: full-page portrait composition in A4 proportions, the illustration fills the whole page from edge to edge, pure white background, clean bold black outlines, no gray shading, no text.
+10. LAYOUT: full-page portrait composition in A4 proportions, the illustration fills the whole page from edge to edge, pure white background, clean black outlines, no gray shading, no solid black areas, no text.
 
 ${characterLock ? `11. CHARACTER: Keep the main character recognizable. ${characterLock}\n\n` : ""}Output ONLY the coloring page image, nothing else. Do not include any text, labels, letter names, or written words anywhere in the image.`;
 
