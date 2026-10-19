@@ -3,6 +3,7 @@ import { mergeAppearance, type Appearance } from "../_shared/appearance.ts";
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.39.3";
 import { logError } from "../_shared/log-error.ts";
+import { buildNlpInstruction, runNlpCheck } from "../_shared/nlp-techniques.ts";
 import { normalizeGender } from "../_shared/gender.ts";
 import { grantStoryAccess, consumeCredit } from "../_shared/story-access.ts";
 import { spendCredit } from "../_shared/taste.ts";
@@ -2376,6 +2377,7 @@ ${fullStoryText}`;
       generation_status: "generating_illustrations",
       story_type: isCustomTopic ? "custom" : "text",
     };
+    if (nlpReport) storyInsertData.nlp_report = nlpReport;
 
     
     // Only add user_id if we have one (for gallery privacy)
