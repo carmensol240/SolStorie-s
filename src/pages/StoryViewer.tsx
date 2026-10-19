@@ -1607,11 +1607,24 @@ const [currentPage, setCurrentPage] = useState(0);
         const hasText = page.text && page.text.trim().length > 0;
         const hasIllustration = !!page.illustration_url;
 
+        // Page 1 must not repeat the cover picture: the cover uses the story's
+        // cover image (or page 1's picture); page 1 shows its own picture only
+        // when it differs from the cover, otherwise it is a text-only page.
+        let pageIllustration = page.illustration_url;
+        let pagePrompt = page.illustration_prompt || null;
         if (page.page_number === 1 && hasIllustration) {
+          const coverUrl = story.cover_url || page.illustration_url;
+          const samePicture =
+            (getPublicIllustrationUrl(coverUrl) || coverUrl) ===
+            (getPublicIllustrationUrl(page.illustration_url) || page.illustration_url);
+          if (samePicture) {
+            pageIllustration = null as any;
+            pagePrompt = null;
+          }
           result.push({
             type: 'illustration',
             dbPage: page,
-            illustrationUrl: page.illustration_url,
+            illustrationUrl: coverUrl,
             illustrationPrompt: page.illustration_prompt || null,
             text: '',
             isCover: true,
@@ -1622,8 +1635,8 @@ const [currentPage, setCurrentPage] = useState(0);
           result.push({
             type: 'spread',
             dbPage: page,
-            illustrationUrl: page.illustration_url,
-            illustrationPrompt: page.illustration_prompt || null,
+            illustrationUrl: pageIllustration,
+            illustrationPrompt: pagePrompt,
             text: page.text || '',
           });
         }
@@ -1631,7 +1644,7 @@ const [currentPage, setCurrentPage] = useState(0);
     }
 
     return result;
-  }, [story?.pages, isToddler]);
+  }, [story?.pages, story?.cover_url, isToddler]);
 
   // Preload priority: current page + the next 2 first, then every other
   // illustration in the background (low priority) so a book opened once can be
@@ -2042,7 +2055,7 @@ const [currentPage, setCurrentPage] = useState(0);
                       <div className="absolute top-0 left-0 right-0 z-20 p-4 pt-6 bg-gradient-to-b from-black/60 via-black/30 to-transparent">
                         <div className="text-center text-white drop-shadow-lg flex flex-col items-center gap-2" dir="rtl">
                           <h1 className="text-3xl md:text-5xl font-black leading-tight">{translateTopic(story.topic, story.language)}</h1>
-                          <span className="text-sm md:text-base font-medium text-white/90">הספר הזה נוצר במיוחד עבור {story.child_name}</span>
+                          <span className="text-base md:text-lg font-semibold text-white bg-black/45 backdrop-blur-sm rounded-full px-4 py-1.5 [text-shadow:0_1px_3px_rgba(0,0,0,0.8)]" data-testid="cover-dedication">הספר הזה נוצר במיוחד עבור {story.child_name}</span>
                         </div>
                       </div>
                     )}
@@ -2157,7 +2170,7 @@ const [currentPage, setCurrentPage] = useState(0);
                       <div className="absolute top-0 left-0 right-0 z-20 p-4 pt-6 bg-gradient-to-b from-black/60 via-black/30 to-transparent">
                         <div className="text-center text-white drop-shadow-lg flex flex-col items-center gap-2" dir="rtl">
                           <h1 className="text-3xl md:text-5xl font-black leading-tight">{translateTopic(story.topic, story.language)}</h1>
-                          <span className="text-sm md:text-base font-medium text-white/90">הספר הזה נוצר במיוחד עבור {story.child_name}</span>
+                          <span className="text-base md:text-lg font-semibold text-white bg-black/45 backdrop-blur-sm rounded-full px-4 py-1.5 [text-shadow:0_1px_3px_rgba(0,0,0,0.8)]" data-testid="cover-dedication">הספר הזה נוצר במיוחד עבור {story.child_name}</span>
                         </div>
                       </div>
                     )}
@@ -2217,7 +2230,7 @@ const [currentPage, setCurrentPage] = useState(0);
                         </div>
                         {/* Picture page (left on wide screens, on top on phones) — shrinks when the text is long */}
                         {(currentVirtual.illustrationUrl || currentVirtual.illustrationPrompt) ? (
-                        <div className="order-1 lg:order-2 relative flex-1 min-h-[96px] lg:h-full lg:min-h-0 m-2 lg:m-6">
+                        <div className="order-1 lg:order-2 relative flex-1 min-h-[40dvh] lg:h-full lg:min-h-0 m-2 lg:m-6">
                           {currentVirtual.illustrationUrl ? (
                             <ReaderIllustration path={currentVirtual.illustrationUrl} />
                           ) : (
