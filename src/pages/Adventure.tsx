@@ -10,6 +10,7 @@ import { supabase } from "@/integrations/supabase/client";
 import MobileNavigation from "@/components/MobileNavigation";
 import HomeExplainer from "@/components/home/HomeExplainer";
 import heroVideo from "@/assets/hero-solstories-animation-new.mp4";
+import heroPoster from "@/assets/hero-poster.jpg";
 
 const Adventure = () => {
   const navigate = useNavigate();
@@ -112,6 +113,8 @@ const Adventure = () => {
           loop
           muted
           playsInline
+          poster={heroPoster}
+          preload={videoPlaying ? "auto" : "metadata"}
           aria-hidden="true"
           className="absolute inset-0 w-full h-full object-cover"
         >
@@ -123,7 +126,7 @@ const Adventure = () => {
           className="absolute inset-0 pointer-events-none"
           style={{
             background:
-              "linear-gradient(180deg, rgba(0,0,0,0.15) 0%, transparent 40%, transparent 50%, rgba(0,0,0,0.5) 100%)",
+              "linear-gradient(180deg, rgba(0,0,0,0.45) 0%, rgba(0,0,0,0.2) 35%, transparent 50%, rgba(0,0,0,0.6) 100%)",
           }}
         />
 
@@ -142,15 +145,17 @@ const Adventure = () => {
             <span className="logo-rainbow">SolStorie's™</span>
           </h1>
         </div>
-        <p className="absolute top-36 sm:top-44 left-0 right-0 z-10 px-6 text-center text-lg sm:text-xl font-bold text-white drop-shadow-[0_2px_6px_rgba(0,0,0,0.6)]">
-          ספר מאויר שהילד שלכם הוא הגיבור שלו
+        <p className="absolute top-36 sm:top-44 left-0 right-0 z-10 px-6 text-center">
+          <span className="inline-block rounded-full bg-black/45 backdrop-blur-sm px-4 py-1.5 text-lg sm:text-xl font-bold text-white [text-shadow:0_1px_3px_rgba(0,0,0,0.8)]">
+            ספר מאויר שהילד שלכם הוא הגיבור שלו
+          </span>
         </p>
 
         {/* Top bar - Glassmorphism credits & profile */}
         <div className="absolute top-0 left-0 right-0 z-10 flex items-center justify-between px-4 pt-[max(env(safe-area-inset-top,12px),24px)] pb-2">
           <button
             onClick={() => navigate(user ? "/upgrade" : "/auth")}
-            className="flex items-center gap-1.5 bg-white/15 backdrop-blur-xl border border-white/20 rounded-full px-3 py-1.5 hover:bg-white/25 transition-colors"
+            className="flex items-center gap-1.5 bg-black/40 backdrop-blur-xl border border-white/30 rounded-full px-3 py-1.5 hover:bg-black/55 transition-colors"
             aria-label="צפה בקרדיטים ושדרג"
           >
             <Coins className="w-4 h-4 text-amber-300" />
@@ -163,7 +168,7 @@ const Adventure = () => {
           type="button"
           onClick={() => setVideoPlaying((p) => !p)}
           className="absolute z-20 left-4 top-[max(env(safe-area-inset-top,12px),24px)] flex items-center justify-center w-11 h-11 rounded-full bg-black/30 backdrop-blur-md border border-white/30 text-white hover:bg-black/45 transition-colors"
-          aria-label={videoPlaying ? "עצירת סרטון הרקע" : "הפעלת סרטון הרקע"}
+          aria-label={videoPlaying ? "עצירת האנימציה" : "הפעלת האנימציה"}
           aria-pressed={!videoPlaying}
         >
           {videoPlaying ? <Pause className="w-5 h-5" aria-hidden="true" /> : <Play className="w-5 h-5" aria-hidden="true" />}
