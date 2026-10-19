@@ -645,6 +645,7 @@ const ChildInfoStep = ({ formData, updateFormData, screen = 1, restoredDraft, on
                 hairColor: "",
                 hairStyle: "",
               });
+              onNewProfile?.();
               setIsCreatingNew(true);
               setSelectedChildId(null);
               setAvatarRegenerationCount(0);
