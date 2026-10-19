@@ -666,6 +666,70 @@ const [currentPage, setCurrentPage] = useState(0);
     didRestorePageRef.current = true;
   }, [story, location.pathname, purchaseChecksReady, isDemoUser]);
 
+  // Auto-save a book opened online for offline reading (text, cover, small WebP pictures).
+  // Runs in the background after the page is shown; idle callback when supported, else a
+  // 2s timeout (Safari has no requestIdleCallback). Skips locked/demo/unfinished books,
+  // low storage, and books already saved with the same pictures.
+  const autoSavedSigRef = useRef<string | null>(null);
+  useEffect(() => {
+    if (!story || !user || !purchaseChecksReady || isDemoUser) return;
+    if (typeof navigator !== "undefined" && !navigator.onLine) return;
+    if (!story.user_id || story.user_id !== user.id || story.is_taste) return;
+    if (story.generation_status && story.generation_status !== "ready") return;
+    const pages = (story.pages || []) as any[];
+    if (pages.length === 0 || pages.some((p) => typeof p.illustration_url === "string" && p.illustration_url.startsWith("blob:"))) return;
+    const sig = `${story.id}|${story.cover_url || ""}|${pages.map((p) => `${p.id}:${p.illustration_url || ""}`).join(",")}`;
+    if (autoSavedSigRef.current === sig) return;
+
+    let cancelled = false;
+    const run = async () => {
+      if (cancelled) return;
+      try {
+        try {
+          const est = await (navigator as any).storage?.estimate?.();
+          if (est && est.quota && est.quota - (est.usage || 0) < 30 * 1024 * 1024) return;
+        } catch { /* unsupported: continue */ }
+        const existing = await fullOffline.getOfflineStory(story.id).catch(() => null);
+        if (existing && (existing.meta as any).sig === sig) { autoSavedSigRef.current = sig; return; }
+        await fullOffline.downloadStory(
+          story.id,
+          {
+            id: story.id,
+            slug: story.slug,
+            child_name: story.child_name,
+            topic: story.topic,
+            cover_url: story.cover_url,
+            child_gender: story.child_gender,
+            age_range: story.age_range,
+            sig,
+          } as any,
+          pages.map((p) => ({
+            id: p.id,
+            page_number: p.page_number,
+            text: p.text,
+            illustration_url: p.illustration_url ?? null,
+            illustration_prompt: p.illustration_prompt ?? null,
+          })),
+          story.cover_url || null,
+        );
+        autoSavedSigRef.current = sig;
+      } catch { /* silent: reading is never affected */ }
+    };
+    const w = window as any;
+    let handle: any;
+    if (typeof w.requestIdleCallback === "function") {
+      handle = w.requestIdleCallback(run, { timeout: 8000 });
+    } else {
+      handle = window.setTimeout(run, 2000);
+    }
+    return () => {
+      cancelled = true;
+      if (typeof w.cancelIdleCallback === "function" && typeof w.requestIdleCallback === "function") w.cancelIdleCallback(handle);
+      else window.clearTimeout(handle);
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [story, user, purchaseChecksReady, isDemoUser]);
+
   // Persist current page so we can restore it after a paywall round-trip
   useEffect(() => {
     try {
