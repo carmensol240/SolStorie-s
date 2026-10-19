@@ -1613,7 +1613,7 @@ const [currentPage, setCurrentPage] = useState(0);
         let pageIllustration = page.illustration_url;
         let pagePrompt = page.illustration_prompt || null;
         if (page.page_number === 1 && hasIllustration) {
-          const coverUrl = story.cover_url || page.illustration_url;
+          const coverUrl = (story.cover_url && !story.cover_url.startsWith('blob:')) ? story.cover_url : page.illustration_url;
           const samePicture =
             (getPublicIllustrationUrl(coverUrl) || coverUrl) ===
             (getPublicIllustrationUrl(page.illustration_url) || page.illustration_url);
