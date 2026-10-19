@@ -456,7 +456,9 @@ const SYSTEM_PROMPT = `## 🚨🚨🚨 META-INSTRUCTION: BEFORE WRITING ANY WORD
 - **בדיקה לפני הפלט:** עבור על כל ה-illustration_prompt ברצף וּודא שתיאור הבגדים זהה בכולם, למעט עמודים שבהם הטקסט מציין שינוי מפורש.
 
 ### סמלים חייבים להתאים למגדר
-- **אסור:** כיפה על ילדה (אלא אם ההורה ביקש במפורש)
+- **אסור:** כיפה על ילדה — אף פעם.
+- **אסור בהחלט (לבן ולבת):** לתאר בטקסט הסיפור או ב-illustration_prompt פריטים דתיים על הגיבור/ה — כיפה, ציצית, פאות, כיסוי ראש, רעלה. גם בסיפורי חג ותנ"ך.
+- בגדי חג = צבעים חגיגיים בלבד (למשל כחול-לבן). סמלי החג מופיעים כחפצים בסצנה (חנוכייה, סופגניות, דגלים, נרות), לא על הדמות.
 
 ## 👶 מבנה סיפור לפי גיל
 
@@ -1661,6 +1663,7 @@ ${personalityTraits}
 6. Each stanza: max 4 lines, with a blank line between stanzas.
 7. Use simple, everyday vocabulary appropriate for the child's age.
 8. Gender-match all pronouns and adjectives to the character.
+10. Never describe religious items on the hero (kippah, tzitzit, sidelocks, head covering) in the text or illustration prompts. Holiday clothes = festive colors only; holiday symbols appear as objects in the scene.
 9. ALL text MUST be in English only — no Hebrew words, no words from any other language. Never mix languages under any circumstances.
 
 ## Story structure by age:
