@@ -9,7 +9,9 @@
 
 ## 1. עדכון גרסה אצל משתמשים חוזרים
 - workbox: `skipWaiting: true`, `clientsClaim: true`, `cleanupOutdatedCaches: true`.
-- להוציא html מ-globPatterns ולבטל navigateFallback, כך שניווטים עוברים רק דרך NetworkFirst (מטמון רק כשאין רשת).
+- index.html נשאר ב-precache אבל רק כגיבוי: מבטלים את navigateFallback האוטומטי, ניווטים עוברים דרך NetworkFirst (timeout 3 שניות), וכשאין רשת מוחזר index.html מה-precache (handlerDidError). כך עדכונים מגיעים מיד וכל דף נפתח גם בלי אינטרנט.
+- מטמון ה-html מוארך ל-30 יום ו-100 עמודים; cleanupOutdatedCaches משאיר רק גרסה אחת של index.html.
+- בדיקת offline: לפתוח ספר, לסגור את הדפדפן, לעבור ל-offline ולפתוח מחדש את הספר ואת /library – שניהם נפתחים עם האיורים.
 - להחריג מהמטמון `/~oauth/*` ו-`/auth*` (NetworkOnly).
 - מטמון האיורים `story-illustrations` נשאר באותו שם, ולכן לא נמחק בעדכון (cleanupOutdatedCaches מוחק רק precache ישן). גם IndexedDB לא משתנה.
 - רישום: על `controllerchange` טעינה מחדש אחת (עם דגל נגד לולאה). אם המשתמש נמצא בקורא (/story/) או ביצירת סיפור – לא לטעון, אלא להציג הודעה קטנה "יש גרסה חדשה – רענון" עם כפתור.
