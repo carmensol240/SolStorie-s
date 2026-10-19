@@ -717,6 +717,8 @@ const ChildInfoStep = ({ formData, updateFormData, screen = 1, restoredDraft, on
         <Label className="text-sm font-medium">מגדר</Label>
         <div className="grid grid-cols-2 gap-2">
           <button
+            type="button"
+            aria-pressed={formData.childGender === "male"}
             onClick={() => updateFormData(formData.clothingType === "שמלה" ? { childGender: "male", clothingType: "בגדי יומיום" } : { childGender: "male" })}
             className={cn(
               "p-1.5 rounded-lg border-2 transition-all text-center flex items-center justify-center gap-1.5",
@@ -729,6 +731,8 @@ const ChildInfoStep = ({ formData, updateFormData, screen = 1, restoredDraft, on
             <span className="text-sm font-bold">גיבור</span>
           </button>
           <button
+            type="button"
+            aria-pressed={formData.childGender === "female"}
             onClick={() => updateFormData({ childGender: "female", kippah: false })}
             className={cn(
               "p-1.5 rounded-lg border-2 transition-all text-center flex items-center justify-center gap-1.5",
@@ -768,6 +772,8 @@ const ChildInfoStep = ({ formData, updateFormData, screen = 1, restoredDraft, on
           <Label className="text-sm font-medium text-center block">שפה</Label>
           <div className="flex flex-col gap-1">
             <button
+              type="button"
+              aria-pressed={formData.language === "he"}
               onClick={() => updateFormData({ language: "he", nikud: true })}
               className={cn(
                 "py-1.5 rounded-md border transition-all text-center text-sm font-bold flex items-center justify-center gap-1",
@@ -779,6 +785,8 @@ const ChildInfoStep = ({ formData, updateFormData, screen = 1, restoredDraft, on
               🇮🇱 עברית
             </button>
             <button
+              type="button"
+              aria-pressed={formData.language === "en"}
               onClick={() => updateFormData({ language: "en", nikud: false })}
               className={cn(
                 "py-1.5 rounded-md border transition-all text-center text-sm font-bold flex items-center justify-center gap-1",
@@ -801,6 +809,7 @@ const ChildInfoStep = ({ formData, updateFormData, screen = 1, restoredDraft, on
             <button
               key={item.value}
               type="button"
+              aria-pressed={formData.clothingType === item.value}
               onClick={() => updateFormData({ clothingType: item.value })}
               className={cn(
                 "p-1.5 rounded-lg border-2 transition-all text-center flex items-center justify-center gap-1",
@@ -840,6 +849,7 @@ const ChildInfoStep = ({ formData, updateFormData, screen = 1, restoredDraft, on
             <button
               key={color}
               type="button"
+              aria-pressed={formData.clothingColor === color}
               onClick={() => updateFormData({ clothingColor: color })}
               className={cn(
                 "p-1.5 rounded-lg border-2 transition-all text-center flex items-center justify-center",
@@ -871,6 +881,7 @@ const ChildInfoStep = ({ formData, updateFormData, screen = 1, restoredDraft, on
             <button
               key={color}
               type="button"
+              aria-pressed={formData.hairColor === color}
               onClick={() => updateFormData({ hairColor: color })}
               className={cn(
                 "p-1.5 rounded-lg border-2 transition-all text-center flex items-center justify-center",
@@ -892,6 +903,7 @@ const ChildInfoStep = ({ formData, updateFormData, screen = 1, restoredDraft, on
             <button
               key={item.value}
               type="button"
+              aria-pressed={formData.hairStyle === item.value}
               onClick={() => updateFormData({ hairStyle: item.value })}
               className={cn(
                 "p-1.5 rounded-lg border-2 transition-all text-center flex items-center justify-center gap-1",

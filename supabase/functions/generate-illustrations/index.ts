@@ -23,6 +23,7 @@ import {
   buildOutfitLock,
   SINGLE_HERO_RULE,
   isHeroCastName,
+  storyTextForPrompt,
 } from "../_shared/style-config.ts";
 
 // Strict negative instruction — illustrations must be pure children's book art only
@@ -1730,7 +1731,7 @@ serve(async (req) => {
         : `A child${kippahPhrase}, wearing ${storyOutfit}`;
       const sceneBlock = pageNarrative
         ? `SCENE (MUST MATCH THE STORY TEXT EXACTLY — illustrate precisely what happens in this page, not a different action):
-STORY TEXT FOR THIS PAGE: "${pageNarrative}"
+${storyTextForPrompt(pageNarrative)}
 VISUAL DESCRIPTION: ${basePrompt}
 The action, objects, characters, and emotions shown MUST come from the STORY TEXT above. Do not invent a different scene.`
         : `SCENE (MUST MATCH TEXT EXACTLY): ${basePrompt}`;
@@ -2003,7 +2004,7 @@ The action, objects, characters, and emotions shown MUST come from the STORY TEX
           : `A child${kippahPhrase}, wearing ${storyOutfit}`;
         const sceneBlock2 = pageNarrative
           ? `SCENE (MUST MATCH THE STORY TEXT EXACTLY — illustrate precisely what happens in this page, not a different action):
-STORY TEXT FOR THIS PAGE: "${pageNarrative}"
+${storyTextForPrompt(pageNarrative)}
 VISUAL DESCRIPTION: ${secondPrompt}
 The action, objects, characters, and emotions shown MUST come from the STORY TEXT above. Do not invent a different scene.`
           : `SCENE (MUST MATCH TEXT EXACTLY): ${secondPrompt}`;

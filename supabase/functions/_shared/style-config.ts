@@ -202,3 +202,18 @@ export function buildIllustrationPrompt(
 
   return parts.join("\n");
 }
+
+// ─── Story text inside picture prompts ───
+
+/** Removes Hebrew nikud/cantillation marks. */
+export function stripNikud(s: string): string {
+  return String(s || "").replace(/[\u0591-\u05C7]/g, "");
+}
+
+/**
+ * The page text is given to the picture model for MEANING only. Quoting it raw (with nikud)
+ * made the model sometimes paint it as a caption box / burned-in subtitle.
+ */
+export function storyTextForPrompt(narrative: string): string {
+  return `STORY TEXT FOR THIS PAGE (for meaning only — NEVER write, print or caption these words in the picture: no text box, no subtitle strip, no book page, no letters): "${stripNikud(narrative)}"`;
+}
