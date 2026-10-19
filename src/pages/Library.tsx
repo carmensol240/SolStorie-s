@@ -674,15 +674,6 @@ const Library = () => {
                     <Paintbrush className="w-3 h-3" />
                     צביעה
                   </Button>
-                  <Button
-                    size="sm"
-                    variant="outline"
-                    className="flex-1 text-sm h-7 gap-1"
-                    onClick={() => handleDownloadColoringPage(cp.coloring_image_path, cp.story_topic)}
-                  >
-                    <Download className="w-3 h-3" />
-                    הורדה
-                  </Button>
                 </div>
                 {imgUrl && <A4ColoringActions imageUrl={imgUrl} name={cp.story_child_name || topicLabel} />}
               </div>

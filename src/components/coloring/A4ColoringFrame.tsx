@@ -27,13 +27,13 @@ export const A4ColoringActions = ({ imageUrl, name, className }: { imageUrl: str
   const [busy, setBusy] = useState(false);
   return (
     <div className={cn("flex gap-1.5", className)}>
-      <Button size="sm" variant="outline" className="flex-1 text-sm h-7 gap-1" onClick={() => printColoringA4(imageUrl)}>
-        <Printer className="w-3 h-3" /> Print A4
+      <Button size="sm" variant="outline" className="flex-1 text-sm min-h-[36px] gap-1" onClick={() => printColoringA4(imageUrl)}>
+        <Printer className="w-4 h-4" aria-hidden="true" /> הדפסה
       </Button>
       <Button
         size="sm"
         variant="outline"
-        className="flex-1 text-sm h-7 gap-1"
+        className="flex-1 text-sm min-h-[36px] gap-1"
         disabled={busy}
         onClick={async () => {
           setBusy(true);
@@ -47,7 +47,7 @@ export const A4ColoringActions = ({ imageUrl, name, className }: { imageUrl: str
           }
         }}
       >
-        <FileDown className="w-3 h-3" /> {busy ? "..." : "Download PDF (A4)"}
+        <FileDown className="w-4 h-4" aria-hidden="true" /> {busy ? "מכינים…" : "הורדת PDF"}
       </Button>
     </div>
   );
