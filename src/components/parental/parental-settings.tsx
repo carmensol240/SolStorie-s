@@ -130,7 +130,7 @@ const ParentalSettings = ({ onBack }: ParentalSettingsProps) => {
           step={15}
           className="mt-2"
         />
-        <div className="flex justify-between text-xs text-muted-foreground mt-1">
+        <div className="flex justify-between text-sm text-muted-foreground mt-1">
           <span>15 דק׳</span>
           <span>120 דק׳</span>
         </div>

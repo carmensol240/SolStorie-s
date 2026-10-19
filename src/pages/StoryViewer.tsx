@@ -1997,7 +1997,7 @@ const [currentPage, setCurrentPage] = useState(0);
                   {endFeedbackSent ? (
                     <div className="w-full max-w-xs bg-gradient-to-r from-purple-50 to-pink-50 rounded-xl p-3 shadow-lg border border-purple-100 text-center mx-auto" dir="rtl">
                       <p className="text-base font-bold text-purple-800">תודה רבה! 💛</p>
-                      <p className="text-xs text-purple-600 mt-1">המשוב שלכם עוזר לנו ליצור סיפורים טובים יותר</p>
+                      <p className="text-sm text-purple-600 mt-1">המשוב שלכם עוזר לנו ליצור סיפורים טובים יותר</p>
                     </div>
                   ) : showFeedbackForm ? (
                     <div className="w-full max-w-xs bg-white rounded-xl p-4 shadow-lg border border-purple-100 space-y-3 mx-auto" dir="rtl">
@@ -2013,19 +2013,19 @@ const [currentPage, setCurrentPage] = useState(0);
                         ))}
                       </div>
                       <Textarea value={endFeedbackMessage} onChange={(e) => setEndFeedbackMessage(e.target.value)}
-                        placeholder="ספרו לנו מה אהבתם 💬" className="text-xs min-h-[40px] resize-none" dir="rtl" />
+                        placeholder="ספרו לנו מה אהבתם 💬" className="text-sm min-h-[40px] resize-none" dir="rtl" />
                       <div className="text-right">
-                        <p className="text-xs font-semibold text-purple-800 mb-1">מה תרצו שנוסיף או נשפר? 💬</p>
+                        <p className="text-sm font-semibold text-purple-800 mb-1">מה תרצו שנוסיף או נשפר? 💬</p>
                         <Textarea
                           value={endImprovementSuggestion}
                           onChange={(e) => setEndImprovementSuggestion(e.target.value)}
                           placeholder="יש לכם רעיון? נשמח לשמוע..."
-                          className="text-xs min-h-[40px] resize-none"
+                          className="text-sm min-h-[40px] resize-none"
                           dir="rtl"
                         />
                       </div>
                       <Button onClick={handleEndFeedbackSubmit} disabled={endFeedbackRating === 0 || endFeedbackSending}
-                        size="sm" className="w-full gap-1 text-xs bg-primary hover:bg-primary/90">
+                        size="sm" className="w-full gap-1 text-sm bg-primary hover:bg-primary/90">
                         <Send className="w-3 h-3" />
                         {endFeedbackSending ? "שולח..." : "שליחה"}
                       </Button>
@@ -2078,7 +2078,7 @@ const [currentPage, setCurrentPage] = useState(0);
                                   <span className="text-2xl">✨</span>
                                 </div>
                               </div>
-                              <p className="text-xs text-[#8B7355] font-serif">טוען איור...</p>
+                              <p className="text-sm text-[#8B7355] font-serif">טוען איור...</p>
                             </div>
                           </div>
                         )}
@@ -2180,7 +2180,7 @@ const [currentPage, setCurrentPage] = useState(0);
                                   <span className="text-2xl">✨</span>
                                 </div>
                               </div>
-                              <p className="text-xs text-[#8B7355] font-serif">טוען איור...</p>
+                              <p className="text-sm text-[#8B7355] font-serif">טוען איור...</p>
                             </div>
                           </div>
                         )}
@@ -2221,7 +2221,7 @@ const [currentPage, setCurrentPage] = useState(0);
                           </div>
                           <div className="space-y-1">
                             <p className="text-sm font-semibold text-[#6B4423]" dir="rtl">מכינים איור קסום...</p>
-                            <p className="text-xs text-[#8B7355]/70" dir="rtl">רק עוד רגע ✨</p>
+                            <p className="text-sm text-[#8B7355]/70" dir="rtl">רק עוד רגע ✨</p>
                           </div>
                         </div>
                       </div>
@@ -2379,7 +2379,7 @@ const [currentPage, setCurrentPage] = useState(0);
               className="absolute bottom-14 left-1/2 -translate-x-1/2 z-40 opacity-30 pointer-events-none select-none"
               aria-hidden="true"
             >
-              <span className="text-xs font-black logo-3d-bubble">
+              <span className="text-sm font-black logo-3d-bubble">
                 <span className="logo-rainbow">SolStorie's™</span>
               </span>
             </div>
@@ -2596,7 +2596,7 @@ const [currentPage, setCurrentPage] = useState(0);
                       )}
                     >
                       <img src={url!} alt={`עמוד ${page.page_number}`} className="w-full h-full object-cover" />
-                      <span className="absolute bottom-0 left-0 right-0 bg-black/50 text-white text-xs text-center py-0.5">
+                      <span className="absolute bottom-0 left-0 right-0 bg-black/50 text-white text-sm text-center py-0.5">
                         עמוד {page.page_number}
                       </span>
                       {isSelected && (
@@ -2809,7 +2809,7 @@ const [currentPage, setCurrentPage] = useState(0);
                   setCachedIllustrationUrl(null);
                   setColoringAction('pick');
                 }}
-                className="w-full text-xs text-purple-400 hover:text-purple-600 transition-colors"
+                className="w-full text-sm text-purple-400 hover:text-purple-600 transition-colors"
               >
                 ← בחרו איור אחר
               </button>

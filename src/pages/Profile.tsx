@@ -303,7 +303,7 @@ const Profile = () => {
                 >
                   <img src={char.image} alt={char.name} className="w-full h-full object-cover" />
                 </div>
-                <span className="text-xs font-bold" style={{ color: "hsl(260, 40%, 30%)" }}>
+                <span className="text-sm font-bold" style={{ color: "hsl(260, 40%, 30%)" }}>
                   {char.name}
                 </span>
               </button>
@@ -325,7 +325,7 @@ const Profile = () => {
               <BookOpen className="w-5 h-5 text-purple-600" />
             </div>
             <span className="text-3xl font-black" style={{ color: "hsl(260, 50%, 30%)" }}>{storyCount}</span>
-            <span className="text-xs font-medium text-center" style={{ color: "hsl(260, 30%, 40%)" }}>סיפורים שיצרנו יחד</span>
+            <span className="text-sm font-medium text-center" style={{ color: "hsl(260, 30%, 40%)" }}>סיפורים שיצרנו יחד</span>
           </div>
 
           <div
@@ -342,7 +342,7 @@ const Profile = () => {
             <span className="text-sm font-bold text-center leading-tight line-clamp-2 min-h-[2.5rem] flex items-center" style={{ color: "hsl(260, 50%, 30%)" }}>
               {favoriteStory || "עדיין אין"}
             </span>
-            <span className="text-xs font-medium text-center" style={{ color: "hsl(260, 30%, 40%)" }}>
+            <span className="text-sm font-medium text-center" style={{ color: "hsl(260, 30%, 40%)" }}>
               הסיפור ש{isFemale ? "הכי אוהבת" : "הכי אוהב"}
             </span>
           </div>
@@ -404,7 +404,7 @@ const Profile = () => {
                   >
                     {badge.unlocked ? badge.emoji : <Lock className="w-4 h-4 text-gray-400" />}
                   </div>
-                  <span className="text-xs font-bold text-center leading-tight" style={{ color: "hsl(260, 30%, 40%)" }}>
+                  <span className="text-sm font-bold text-center leading-tight" style={{ color: "hsl(260, 30%, 40%)" }}>
                     {badge.name}
                   </span>
                 </div>
@@ -446,7 +446,7 @@ const Profile = () => {
                       />
                     ) : (
                       <div className="w-full h-40 bg-gradient-to-br from-purple-300 to-pink-300 flex items-center justify-center p-2">
-                        <span className="text-xs font-bold text-white text-center">{story.topic}</span>
+                        <span className="text-sm font-bold text-white text-center">{story.topic}</span>
                       </div>
                     )}
                   </button>
@@ -488,14 +488,14 @@ const Profile = () => {
               dir="rtl"
             />
             <div className="px-4 py-2 flex items-center justify-between border-t" style={{ borderColor: "rgba(180,160,120,0.2)", background: "#FDF8EC" }}>
-              <p className="text-xs" style={{ color: "rgba(120,100,60,0.6)" }}>
+              <p className="text-sm" style={{ color: "rgba(120,100,60,0.6)" }}>
                 🔒 פנקס פרטי — רק אתם רואים
               </p>
               <Button
                 onClick={saveParentNote}
                 disabled={savingNote}
                 size="sm"
-                className={`font-bold rounded-xl text-xs px-4 h-8 transition-all ${
+                className={`font-bold rounded-xl text-sm px-4 h-8 transition-all ${
                   noteSaved
                     ? "bg-green-500 hover:bg-green-500 text-white"
                     : "bg-primary hover:bg-primary/90 text-white"
@@ -517,7 +517,7 @@ const Profile = () => {
         >
           <Crown className="w-5 h-5 ml-2" />
           לארגז הכלים של <span dir="ltr">SolStorie's™</span>
-          <span className="mr-2 text-xs bg-white/30 px-2 py-0.5 rounded-full font-bold">בקרוב</span>
+          <span className="mr-2 text-sm bg-white/30 px-2 py-0.5 rounded-full font-bold">בקרוב</span>
         </Button>
 
         {/* Branded Footer */}

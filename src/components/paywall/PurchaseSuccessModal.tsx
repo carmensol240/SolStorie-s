@@ -131,7 +131,7 @@ const PurchaseSuccessModal = ({
           >
             לערכת הכלים שלי ✨
           </Button>
-          <p className="text-xs text-muted-foreground mt-3">
+          <p className="text-sm text-muted-foreground mt-3">
             מעבר אוטומטי בעוד 3 שניות...
           </p>
         </DialogContent>

@@ -59,7 +59,7 @@ const DedicationDialog = ({
             className="min-h-[120px] text-right resize-none"
             dir="rtl"
           />
-          <p className="text-xs text-muted-foreground mt-2 text-right">
+          <p className="text-sm text-muted-foreground mt-2 text-right">
             ההקדשה תופיע בעמוד הראשון של הספרון
           </p>
         </div>

@@ -33,7 +33,7 @@ const CategorySection = ({ section, colorClass, bgClass, borderClass }: Category
             <h3 className="text-white text-xl font-black drop-shadow-md text-center">
               {section.categoryEmoji} {section.categoryLabel}
             </h3>
-            <span className="text-white text-xs font-bold drop-shadow-md">
+            <span className="text-white text-sm font-bold drop-shadow-md">
               {section.topics.length} נושאים
             </span>
           </div>
@@ -61,7 +61,7 @@ const CategorySection = ({ section, colorClass, bgClass, borderClass }: Category
                         </div>
                         <div className="p-2.5">
                           <h3 className="text-sm font-bold text-foreground leading-tight">{topic.label}</h3>
-                          <p className="text-xs text-muted-foreground mt-1 line-clamp-2">{topic.description}</p>
+                          <p className="text-sm text-muted-foreground mt-1 line-clamp-2">{topic.description}</p>
                         </div>
                       </button>
                     ))}
@@ -82,7 +82,7 @@ const CategorySection = ({ section, colorClass, bgClass, borderClass }: Category
                           </div>
                           <div className="p-2.5">
                             <h3 className="text-sm font-bold text-foreground leading-tight">{topic.label}</h3>
-                            <p className="text-xs text-muted-foreground mt-1 line-clamp-2">{topic.description}</p>
+                            <p className="text-sm text-muted-foreground mt-1 line-clamp-2">{topic.description}</p>
                           </div>
                         </button>
                       ))}
@@ -94,7 +94,7 @@ const CategorySection = ({ section, colorClass, bgClass, borderClass }: Category
           })()}
           <button
             onClick={() => setExpanded(false)}
-            className={`flex items-center justify-center gap-1 w-full py-2 text-xs font-bold ${colorClass} hover:opacity-80 transition-opacity`}
+            className={`flex items-center justify-center gap-1 w-full py-2 text-sm font-bold ${colorClass} hover:opacity-80 transition-opacity`}
           >
             <ChevronUp className="w-4 h-4" />
             הצג פחות
@@ -110,7 +110,7 @@ const CategorySection = ({ section, colorClass, bgClass, borderClass }: Category
           </span>
           <button
             onClick={() => setExpanded(true)}
-            className={`flex items-center gap-1 text-xs font-medium ${colorClass} hover:opacity-80 transition-opacity`}
+            className={`flex items-center gap-1 text-sm font-medium ${colorClass} hover:opacity-80 transition-opacity`}
           >
             הצג הכל
             <ChevronLeft className="w-3.5 h-3.5" />

@@ -86,7 +86,7 @@ const Welcome = () => {
             buttonText
           )}
         </button>
-        <p className="text-xs text-white/50 font-medium mt-3 text-center" style={{ textShadow: '0 1px 2px rgba(0,0,0,0.3)' }}>
+        <p className="text-sm text-white/50 font-medium mt-3 text-center" style={{ textShadow: '0 1px 2px rgba(0,0,0,0.3)' }}>
           כלי עזר טכנולוגי בלבד · אינו תחליף לייעוץ מקצועי
         </p>
       </div>

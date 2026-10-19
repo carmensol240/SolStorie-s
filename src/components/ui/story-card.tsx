@@ -200,12 +200,12 @@ const StoryCard = ({
         
         <div className="flex items-center gap-2 flex-wrap">
           {/* Age Badge */}
-          <Badge variant="outline" className="text-xs">
+          <Badge variant="outline" className="text-sm">
             גיל {ageLabel}
           </Badge>
 
           {/* Theme Badge */}
-          <Badge variant="secondary" className="text-xs gap-1">
+          <Badge variant="secondary" className="text-sm gap-1">
             {themeIcons[theme]}
             {themeLabels[theme] || theme}
           </Badge>

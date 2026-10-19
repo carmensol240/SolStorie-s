@@ -17,7 +17,7 @@ const TrustBadges = () => {
       ))}
       <div className="flex items-center gap-2 text-muted-foreground mt-4 pt-3 border-t border-border">
         <Lock className="w-4 h-4 flex-shrink-0" />
-        <span className="text-xs">מאובטח ובטוח לתשלום</span>
+        <span className="text-sm">מאובטח ובטוח לתשלום</span>
       </div>
     </div>
   );

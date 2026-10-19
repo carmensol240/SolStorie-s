@@ -604,7 +604,7 @@ const ChildInfoStep = ({ formData, updateFormData, screen = 1 }: ChildInfoStepPr
             type="button"
             onClick={() => loadChildProfile(child)}
             className={cn(
-              "px-3 py-1.5 rounded-lg border-2 transition-all flex items-center gap-1.5 text-xs font-medium",
+              "px-3 py-1.5 rounded-lg border-2 transition-all flex items-center gap-1.5 text-sm font-medium",
               selectedChildId === child.id
                 ? "border-purple-500 bg-gradient-to-r from-purple-100 to-pink-100 text-purple-700"
                 : "border-border bg-card hover:border-purple-300"
@@ -669,7 +669,7 @@ const ChildInfoStep = ({ formData, updateFormData, screen = 1 }: ChildInfoStepPr
         <div className="flex flex-col sm:flex-row gap-2">
           {/* Child Name - narrower */}
           <div className="sm:w-1/3 space-y-1">
-            <Label htmlFor="childName" className="text-xs font-medium">
+            <Label htmlFor="childName" className="text-sm font-medium">
               שם הילד/ה
             </Label>
             <Input
@@ -685,7 +685,7 @@ const ChildInfoStep = ({ formData, updateFormData, screen = 1 }: ChildInfoStepPr
           
           {/* Fixed Details - wider */}
           <div className="sm:flex-1 space-y-1">
-            <Label htmlFor="fixedDetails" className="text-xs font-medium">
+            <Label htmlFor="fixedDetails" className="text-sm font-medium">
               פרטים קבועים (אופציונלי)
             </Label>
             <Textarea
@@ -702,7 +702,7 @@ const ChildInfoStep = ({ formData, updateFormData, screen = 1 }: ChildInfoStepPr
 
       {/* Gender Selection */}
       <div className="space-y-1">
-        <Label className="text-xs font-medium">מגדר</Label>
+        <Label className="text-sm font-medium">מגדר</Label>
         <div className="grid grid-cols-2 gap-2">
           <button
             onClick={() => updateFormData(formData.clothingType === "שמלה" ? { childGender: "male", clothingType: "בגדי יומיום" } : { childGender: "male" })}
@@ -714,7 +714,7 @@ const ChildInfoStep = ({ formData, updateFormData, screen = 1 }: ChildInfoStepPr
             )}
           >
             <span className="text-base">🦸‍♂️</span>
-            <span className="text-xs font-bold">גיבור</span>
+            <span className="text-sm font-bold">גיבור</span>
           </button>
           <button
             onClick={() => updateFormData({ childGender: "female", kippah: false })}
@@ -726,7 +726,7 @@ const ChildInfoStep = ({ formData, updateFormData, screen = 1 }: ChildInfoStepPr
             )}
           >
             <span className="text-base">🦸‍♀️</span>
-            <span className="text-xs font-bold">גיבורה</span>
+            <span className="text-sm font-bold">גיבורה</span>
           </button>
         </div>
       </div>
@@ -735,7 +735,7 @@ const ChildInfoStep = ({ formData, updateFormData, screen = 1 }: ChildInfoStepPr
       <div className="grid grid-cols-2 gap-2 items-start">
         {/* Age (numeric input) */}
         <div className="space-y-1">
-          <Label className="text-xs font-medium text-center block">גיל הילד/ה</Label>
+          <Label className="text-sm font-medium text-center block">גיל הילד/ה</Label>
           <div className="flex items-center justify-center gap-2 py-1">
             <Input
               type="number"
@@ -747,13 +747,13 @@ const ChildInfoStep = ({ formData, updateFormData, screen = 1 }: ChildInfoStepPr
               className="w-16 h-10 text-center text-base font-bold border-2 border-purple-300 focus-visible:border-purple-500"
               aria-label="גיל הילד/ה בשנים"
             />
-            <span className="text-xs font-medium text-muted-foreground">שנים</span>
+            <span className="text-sm font-medium text-muted-foreground">שנים</span>
           </div>
         </div>
 
         {/* Language */}
         <div className="space-y-1">
-          <Label className="text-xs font-medium text-center block">שפה</Label>
+          <Label className="text-sm font-medium text-center block">שפה</Label>
           <div className="flex flex-col gap-1">
             <button
               onClick={() => updateFormData({ language: "he", nikud: true })}
@@ -783,7 +783,7 @@ const ChildInfoStep = ({ formData, updateFormData, screen = 1 }: ChildInfoStepPr
 
       {/* Clothing type · Clothing color */}
       <div className="space-y-1">
-        <Label className="text-xs font-medium">סוג לבוש</Label>
+        <Label className="text-sm font-medium">סוג לבוש</Label>
         <div className="grid grid-cols-3 gap-2">
           {CLOTHING_TYPES.filter((item) => item.value !== "שמלה" || formData.childGender === "female").map((item) => (
             <button
@@ -798,7 +798,7 @@ const ChildInfoStep = ({ formData, updateFormData, screen = 1 }: ChildInfoStepPr
               )}
             >
               <span className="text-base">{item.emoji}</span>
-              <span className="text-xs font-bold">{item.value}</span>
+              <span className="text-sm font-bold">{item.value}</span>
             </button>
           ))}
         </div>
@@ -822,7 +822,7 @@ const ChildInfoStep = ({ formData, updateFormData, screen = 1 }: ChildInfoStepPr
       )}
 
       <div className="space-y-1">
-        <Label className="text-xs font-medium">צבע עיקרי</Label>
+        <Label className="text-sm font-medium">צבע עיקרי</Label>
         <div className="grid grid-cols-3 gap-2">
           {CLOTHING_COLORS.map((color) => (
             <button
@@ -836,7 +836,7 @@ const ChildInfoStep = ({ formData, updateFormData, screen = 1 }: ChildInfoStepPr
                   : "border-border bg-card hover:border-purple-300"
               )}
             >
-              <span className="text-xs font-bold">{color}</span>
+              <span className="text-sm font-bold">{color}</span>
             </button>
           ))}
         </div>
@@ -853,7 +853,7 @@ const ChildInfoStep = ({ formData, updateFormData, screen = 1 }: ChildInfoStepPr
 
       {/* Hair color · Hair style */}
       <div className="space-y-1">
-        <Label className="text-xs font-medium">צבע שיער</Label>
+        <Label className="text-sm font-medium">צבע שיער</Label>
         <div className="grid grid-cols-3 gap-2">
           {HAIR_COLORS.map((color) => (
             <button
@@ -867,14 +867,14 @@ const ChildInfoStep = ({ formData, updateFormData, screen = 1 }: ChildInfoStepPr
                   : "border-border bg-card hover:border-purple-300"
               )}
             >
-              <span className="text-xs font-bold">{color}</span>
+              <span className="text-sm font-bold">{color}</span>
             </button>
           ))}
         </div>
       </div>
 
       <div className="space-y-1">
-        <Label className="text-xs font-medium">תסרוקת</Label>
+        <Label className="text-sm font-medium">תסרוקת</Label>
         <div className="grid grid-cols-3 gap-2">
           {HAIR_STYLES.map((item) => (
             <button
@@ -889,7 +889,7 @@ const ChildInfoStep = ({ formData, updateFormData, screen = 1 }: ChildInfoStepPr
               )}
             >
               <span className="text-base">{item.emoji}</span>
-              <span className="text-xs font-bold">{item.value}</span>
+              <span className="text-sm font-bold">{item.value}</span>
             </button>
           ))}
         </div>
@@ -898,7 +898,7 @@ const ChildInfoStep = ({ formData, updateFormData, screen = 1 }: ChildInfoStepPr
       {/* Class/Kindergarten Name - Educators only */}
       {userRole === "educator" && (
         <div className="space-y-1">
-          <Label htmlFor="className" className="text-xs font-medium flex items-center gap-1.5">
+          <Label htmlFor="className" className="text-sm font-medium flex items-center gap-1.5">
             🏫 שם הכיתה / הגן
           </Label>
           <Input
@@ -911,13 +911,13 @@ const ChildInfoStep = ({ formData, updateFormData, screen = 1 }: ChildInfoStepPr
             dir="rtl"
             maxLength={100}
           />
-          <p className="text-xs text-muted-foreground">שם הכיתה ישולב בסיפור בצורה טבעית</p>
+          <p className="text-sm text-muted-foreground">שם הכיתה ישולב בסיפור בצורה טבעית</p>
         </div>
       )}
 
       {/* Photo Upload - Enlarged */}
       <div id="photo-upload-section" className="space-y-1.5 scroll-mt-24">
-        <Label className="text-xs font-medium">תמונה של הילד/ה</Label>
+        <Label className="text-sm font-medium">תמונה של הילד/ה</Label>
         <div className="relative">
           <input
             ref={fileInputRef}
@@ -1010,7 +1010,7 @@ const ChildInfoStep = ({ formData, updateFormData, screen = 1 }: ChildInfoStepPr
                   </div>
 
                   <span
-                    className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-bold text-white shadow-md"
+                    className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-sm font-bold text-white shadow-md"
                     style={{
                       background: "linear-gradient(135deg, hsl(270 80% 60%), hsl(330 85% 65%))",
                     }}
@@ -1029,19 +1029,19 @@ const ChildInfoStep = ({ formData, updateFormData, screen = 1 }: ChildInfoStepPr
                       className="w-full h-full object-cover"
                     />
                   </div>
-                  <span className="text-xs text-muted-foreground">תמונה מקורית</span>
+                  <span className="text-sm text-muted-foreground">תמונה מקורית</span>
                 </div>
               )}
               {/* Photo Validation Criteria */}
               {isValidatingPhoto && (
-                <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                <div className="flex items-center gap-2 text-sm text-muted-foreground">
                   <Loader2 className="w-3.5 h-3.5 animate-spin text-purple-500" />
                   <span>בודק איכות תמונה...</span>
                 </div>
               )}
               {photoValidation && !isValidatingPhoto && (
                 <div className="grid grid-cols-2 gap-x-3 gap-y-1 w-full px-4">
-                  <div className="flex items-center gap-1 text-xs">
+                  <div className="flex items-center gap-1 text-sm">
                     {photoValidation.facingForward ? (
                       <Check className="w-3.5 h-3.5 text-green-500 flex-shrink-0" />
                     ) : (
@@ -1049,7 +1049,7 @@ const ChildInfoStep = ({ formData, updateFormData, screen = 1 }: ChildInfoStepPr
                     )}
                     <span className={photoValidation.facingForward ? "text-foreground" : "text-muted-foreground"}>פנים מסתכלות קדימה</span>
                   </div>
-                  <div className="flex items-center gap-1 text-xs">
+                  <div className="flex items-center gap-1 text-sm">
                     {photoValidation.singlePerson ? (
                       <Check className="w-3.5 h-3.5 text-green-500 flex-shrink-0" />
                     ) : (
@@ -1057,7 +1057,7 @@ const ChildInfoStep = ({ formData, updateFormData, screen = 1 }: ChildInfoStepPr
                     )}
                     <span className={photoValidation.singlePerson ? "text-foreground" : "text-muted-foreground"}>דמות יחידה בתמונה</span>
                   </div>
-                  <div className="flex items-center gap-1 text-xs">
+                  <div className="flex items-center gap-1 text-sm">
                     {photoValidation.noAccessories ? (
                       <Check className="w-3.5 h-3.5 text-green-500 flex-shrink-0" />
                     ) : (
@@ -1065,7 +1065,7 @@ const ChildInfoStep = ({ formData, updateFormData, screen = 1 }: ChildInfoStepPr
                     )}
                     <span className={photoValidation.noAccessories ? "text-foreground" : "text-muted-foreground"}>ללא אביזרים (משקפי שמש, כובע)</span>
                   </div>
-                  <div className="flex items-center gap-1 text-xs">
+                  <div className="flex items-center gap-1 text-sm">
                     {photoValidation.goodLighting ? (
                       <Check className="w-3.5 h-3.5 text-green-500 flex-shrink-0" />
                     ) : (
@@ -1089,7 +1089,7 @@ const ChildInfoStep = ({ formData, updateFormData, screen = 1 }: ChildInfoStepPr
                   </Button>
                 )}
                 {isGeneratingAvatar && (
-                  <div className="flex items-center gap-2 text-xs text-purple-600">
+                  <div className="flex items-center gap-2 text-sm text-purple-600">
                     <Loader2 className="w-4 h-4 animate-spin" />
                     <span>יוצר דמות...</span>
                   </div>
@@ -1147,7 +1147,7 @@ const ChildInfoStep = ({ formData, updateFormData, screen = 1 }: ChildInfoStepPr
               </div>
               <div className="grid grid-cols-2 gap-x-3 gap-y-1.5 sm:gap-y-2.5 w-full">
                 {photoTips.map((tip, index) => (
-                  <div key={index} className="flex items-center gap-1 text-xs sm:text-sm">
+                  <div key={index} className="flex items-center gap-1 text-sm sm:text-sm">
                     {tip.isGood ? (
                       <Check className="w-3 h-3 sm:w-4 sm:h-4 text-green-500 flex-shrink-0" />
                     ) : (
@@ -1183,7 +1183,7 @@ const ChildInfoStep = ({ formData, updateFormData, screen = 1 }: ChildInfoStepPr
               }}
               className={`border-purple-300 data-[state=checked]:bg-purple-500 data-[state=checked]:border-purple-500 h-4 w-4 mt-0.5 ${!formData.photoConsent ? 'animate-[checkbox-pulse-glow_1.5s_infinite]' : ''}`}
             />
-            <label htmlFor="photo-consent" className="text-xs text-muted-foreground cursor-pointer leading-tight">
+            <label htmlFor="photo-consent" className="text-sm text-muted-foreground cursor-pointer leading-tight">
               אני מסכים/ה לשימוש בתמונה לצורך יצירת איורי הסיפור בלבד
             </label>
           </div>
@@ -1210,7 +1210,7 @@ const ChildInfoStep = ({ formData, updateFormData, screen = 1 }: ChildInfoStepPr
       )}
 
       {/* Privacy Note */}
-      <div className="flex items-center justify-center gap-1.5 text-xs text-muted-foreground text-center pt-1">
+      <div className="flex items-center justify-center gap-1.5 text-sm text-muted-foreground text-center pt-1">
         <Shield className="w-2.5 h-2.5" />
         <span>פרטי הילד/ה נשמרים בצורה מאובטחת ופרטית בהתאם לתקנות הפרטיות.</span>
       </div>

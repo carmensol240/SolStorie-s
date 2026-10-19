@@ -350,7 +350,7 @@ const FlipbookViewer = () => {
 
                   {/* Discreet page indicator */}
                   <div className="text-center pt-6 mt-6">
-                    <span className="text-xs text-gray-400 font-light">
+                    <span className="text-sm text-gray-400 font-light">
                       {currentPage + 1} / {pages.length}
                     </span>
                   </div>

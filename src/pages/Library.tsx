@@ -465,12 +465,12 @@ const Library = () => {
                   <Button
                     size="sm"
                     variant="ghost"
-                    className="h-7 min-h-[28px] px-2 gap-1 rounded-full text-xs font-semibold text-muted-foreground hover:text-foreground hover:bg-muted/60"
+                    className="h-7 min-h-[28px] px-2 gap-1 rounded-full text-sm font-semibold text-muted-foreground hover:text-foreground hover:bg-muted/60"
                     onClick={() => buyPdf(story.id)}
                   >
                     <Printer className="w-3.5 h-3.5" aria-hidden="true" />
                     להדפסה
-                    <span className="text-[10px] font-normal opacity-70">{formatPrice("pdf")} ₪</span>
+                    <span className="text-sm font-normal opacity-70">{formatPrice("pdf")} ₪</span>
                   </Button>
                 </div>
               );
@@ -625,16 +625,16 @@ const Library = () => {
               <A4Frame imageUrl={imgUrl || ''} alt={`דף צביעה - ${topicLabel}`} className="border-0 border-b" />
               <div className="p-2 space-y-1.5">
                 {cp.story_child_name && (
-                  <p className="text-xs font-bold text-foreground truncate">{cp.story_child_name}</p>
+                  <p className="text-sm font-bold text-foreground truncate">{cp.story_child_name}</p>
                 )}
                 {topicLabel && (
-                  <p className="text-xs text-muted-foreground truncate">{topicLabel}</p>
+                  <p className="text-sm text-muted-foreground truncate">{topicLabel}</p>
                 )}
                 <div className="flex gap-1.5">
                   <Button
                     size="sm"
                     variant="outline"
-                    className="flex-1 text-xs h-7 gap-1"
+                    className="flex-1 text-sm h-7 gap-1"
                     onClick={() => {
                       const url = getPublicIllustrationUrl(cp.coloring_image_path);
                       if (url) {
@@ -651,7 +651,7 @@ const Library = () => {
                   <Button
                     size="sm"
                     variant="outline"
-                    className="flex-1 text-xs h-7 gap-1"
+                    className="flex-1 text-sm h-7 gap-1"
                     onClick={() => handleDownloadColoringPage(cp.coloring_image_path, cp.story_topic)}
                   >
                     <Download className="w-3 h-3" />
@@ -718,7 +718,7 @@ const Library = () => {
           </h1>
 
           {/* Subtitle */}
-          <p className="text-xs sm:text-sm text-purple-200 text-center font-medium leading-relaxed mb-4 sm:mb-6 max-w-xs">
+          <p className="text-sm sm:text-sm text-purple-200 text-center font-medium leading-relaxed mb-4 sm:mb-6 max-w-xs">
             צרו סיפורים מותאמים אישית עם הילד שלכם כגיבור — ושמרו אותם בספרייה האישית שלכם לתמיד
           </p>
 
@@ -733,7 +733,7 @@ const Library = () => {
             ].map((feature, i) => (
               <div key={i} className="flex items-center gap-2.5 sm:gap-3 rounded-2xl px-3 py-2 sm:px-4 sm:py-3" style={{ background: 'rgba(255,255,255,0.08)', backdropFilter: 'blur(8px)' }}>
                 <span className="text-xl sm:text-2xl flex-shrink-0 leading-none">{feature.emoji}</span>
-                <span className="text-[13px] sm:text-sm font-bold text-white/90 leading-snug">{feature.text}</span>
+                <span className="text-sm sm:text-sm font-bold text-white/90 leading-snug">{feature.text}</span>
               </div>
             ))}
           </div>
@@ -879,11 +879,11 @@ const Library = () => {
                 <div className="text-purple-800 font-black text-sm leading-tight whitespace-pre-line">
                   יש לך {credits} קרדיטים לסיפורים נוספים {"\n"}
                 </div>
-                <div className="text-purple-600/80 text-xs font-semibold mt-0.5">
+                <div className="text-purple-600/80 text-sm font-semibold mt-0.5">
                   ✨ ללא תוקף – הקרדיט שמור לכם לכל החיים
                 </div>
               </div>
-              <div className="text-purple-700 text-xs font-bold whitespace-nowrap">
+              <div className="text-purple-700 text-sm font-bold whitespace-nowrap">
                 צרו עכשיו ←
               </div>
             </div>
@@ -901,11 +901,11 @@ const Library = () => {
                 <div className="text-purple-800 font-bold text-sm leading-tight">
                   אין לכם כרגע קרדיטים זמינים
                 </div>
-                <div className="text-purple-600/80 text-xs font-semibold mt-0.5">
+                <div className="text-purple-600/80 text-sm font-semibold mt-0.5">
                   רכשו סיפור חדש כדי ליצור תוכן מותאם אישית
                 </div>
               </div>
-              <div className="text-purple-700 text-xs font-bold whitespace-nowrap">
+              <div className="text-purple-700 text-sm font-bold whitespace-nowrap">
                 לרכישה ←
               </div>
             </div>
@@ -933,7 +933,7 @@ const Library = () => {
               <div className="flex justify-end mb-3">
                 <button
                   onClick={() => setShowOfflineFilter(!showOfflineFilter)}
-                  className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold transition-all ${
+                  className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm font-bold transition-all ${
                     showOfflineFilter
                       ? 'bg-green-100 text-green-700 border-2 border-green-300'
                       : 'bg-muted text-muted-foreground border-2 border-transparent hover:bg-muted/80'

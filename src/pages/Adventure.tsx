@@ -154,7 +154,7 @@ const Adventure = () => {
             aria-label="צפה בקרדיטים ושדרג"
           >
             <Coins className="w-4 h-4 text-amber-300" />
-            <span className="font-bold text-white text-xs drop-shadow-md">{totalCredits}</span>
+            <span className="font-bold text-white text-sm drop-shadow-md">{totalCredits}</span>
           </button>
         </div>
 

@@ -60,7 +60,7 @@ const RecentStories = ({ stories }: RecentStoriesProps) => {
             </div>
             
             {/* Title */}
-            <p className="mt-2 text-xs font-medium text-foreground truncate text-center">
+            <p className="mt-2 text-sm font-medium text-foreground truncate text-center">
               {story.child_name}
             </p>
           </button>

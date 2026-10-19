@@ -462,7 +462,7 @@ const CreateStory = () => {
             variant="ghost"
             size="sm"
             onClick={handleBack}
-            className="flex items-center gap-1 min-h-[36px] px-2 py-1 text-xs text-purple-600 hover:text-purple-700 hover:bg-purple-50"
+            className="flex items-center gap-1 min-h-[36px] px-2 py-1 text-sm text-purple-600 hover:text-purple-700 hover:bg-purple-50"
             aria-label="חזרה לשלב הקודם"
           >
             <ArrowRight className="w-3.5 h-3.5" aria-hidden="true" />
@@ -477,7 +477,7 @@ const CreateStory = () => {
               <div key={s.number} className="flex items-center">
                 <div className="flex flex-col items-center">
                   <div
-                    className={`w-6 h-6 rounded-full flex items-center justify-center font-bold text-xs transition-all ${
+                    className={`w-6 h-6 rounded-full flex items-center justify-center font-bold text-sm transition-all ${
                       displayStep >= s.number
                         ? "bg-primary text-white shadow-md"
                         : "bg-purple-100 text-purple-400"
@@ -485,7 +485,7 @@ const CreateStory = () => {
                   >
                     {index + 1}
                   </div>
-                  <span className="text-xs mt-0.5 text-purple-500 whitespace-nowrap">
+                  <span className="text-sm mt-0.5 text-purple-500 whitespace-nowrap">
                     {s.label}
                   </span>
                 </div>

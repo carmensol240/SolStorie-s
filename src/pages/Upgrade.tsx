@@ -83,7 +83,7 @@ function CountdownUnit({ value, label }: { value: number; label: string }) {
           {String(value).padStart(2, "0")}
         </span>
       </div>
-      <span className="text-xs sm:text-xs text-white/70 font-semibold mt-1">{label}</span>
+      <span className="text-sm sm:text-sm text-white/70 font-semibold mt-1">{label}</span>
     </div>
   );
 }
@@ -354,7 +354,7 @@ const Upgrade = () => {
               <span className="text-xl font-black text-white/60">:</span>
               <CountdownUnit value={countdown.seconds} label="שניות" />
             </div>
-            <p className="text-xs font-bold text-amber-200/80 mt-3">
+            <p className="text-sm font-bold text-amber-200/80 mt-3">
               אחרי {PROMO_END_LABEL} המחירים יעלו
             </p>
           </div>
@@ -383,17 +383,17 @@ const Upgrade = () => {
                       <div className="flex items-center gap-2 mb-1 flex-wrap">
                         <span className="text-lg font-black text-white">{product.title}</span>
                         {promoActive && (
-                          <span className="inline-flex items-center gap-1 bg-gradient-to-r from-orange-500 to-red-500 text-white text-xs font-black px-2 py-0.5 rounded-full">
+                          <span className="inline-flex items-center gap-1 bg-gradient-to-r from-orange-500 to-red-500 text-white text-sm font-black px-2 py-0.5 rounded-full">
                             <Flame className="w-3 h-3" />
                             מחיר השקה
                           </span>
                         )}
                       </div>
-                      <p className="text-xs text-white/70 font-semibold">{product.description}</p>
+                      <p className="text-sm text-white/70 font-semibold">{product.description}</p>
                     </div>
                     <div className="flex flex-col items-end shrink-0">
                       {promoActive && (
-                        <span className="text-xs text-white/50 line-through font-semibold">
+                        <span className="text-sm text-white/50 line-through font-semibold">
                            ₪{getRegularPrice(product.priceKey).toFixed(2)}
                         </span>
                       )}
@@ -405,7 +405,7 @@ const Upgrade = () => {
 
                   {product.id === "popular" && promoActive && (
                     <div className="mt-2 mb-2 flex items-center gap-1">
-                      <span className="text-xs font-black text-green-300">
+                      <span className="text-sm font-black text-green-300">
                          חסכו ₪{(getRegularPrice(product.priceKey) - getPrice(product.priceKey)).toFixed(2)}
                       </span>
                     </div>
@@ -415,7 +415,7 @@ const Upgrade = () => {
                     {product.features.map((feature, i) => (
                       <div key={feature} className="flex items-center gap-1.5">
                         <Check className="w-3.5 h-3.5 text-green-400 shrink-0" />
-                        <span className={product.id === "popular" && i === product.features.length - 1 ? "text-xs font-black text-primary leading-tight" : "text-xs font-semibold text-white/90 leading-tight"}>
+                        <span className={product.id === "popular" && i === product.features.length - 1 ? "text-sm font-black text-primary leading-tight" : "text-sm font-semibold text-white/90 leading-tight"}>
                           {feature}
                         </span>
                       </div>
@@ -482,7 +482,7 @@ const Upgrade = () => {
           </div>
 
           {/* Terms */}
-          <p className="text-xs text-center text-white/40 mt-2 mb-4">
+          <p className="text-sm text-center text-white/40 mt-2 mb-4">
             בלחיצה על "רכשו" הינך מסכים/ה ל
             <a href="/privacy" className="text-purple-300 underline font-semibold mx-1">מדיניות הפרטיות</a>
             ול
@@ -501,7 +501,7 @@ const Upgrade = () => {
               trackEvent({ eventType: "feature_used", metadata: { feature: "purchase_cta_clicked", product: selectedProduct } });
               handlePurchase();
             }}
-            className="w-full h-auto min-h-12 relative overflow-hidden bg-primary hover:bg-primary/90 text-white font-black text-xs sm:text-sm py-3 px-3 rounded-xl shadow-xl whitespace-normal leading-tight break-words before:absolute before:inset-0 before:bg-[linear-gradient(120deg,transparent_30%,rgba(255,255,255,0.15)_50%,transparent_70%)] before:bg-[length:200%_100%] before:animate-[cta-shimmer_4s_ease-in-out_infinite]"
+            className="w-full h-auto min-h-12 relative overflow-hidden bg-primary hover:bg-primary/90 text-white font-black text-sm sm:text-sm py-3 px-3 rounded-xl shadow-xl whitespace-normal leading-tight break-words before:absolute before:inset-0 before:bg-[linear-gradient(120deg,transparent_30%,rgba(255,255,255,0.15)_50%,transparent_70%)] before:bg-[length:200%_100%] before:animate-[cta-shimmer_4s_ease-in-out_infinite]"
             style={{ boxShadow: "0 0 30px rgba(168, 85, 247, 0.4), 0 0 60px rgba(236, 72, 153, 0.2)" }}
           >
             <span className="inline-flex flex-wrap items-center justify-center gap-x-1 gap-y-0.5 w-full">
@@ -518,7 +518,7 @@ const Upgrade = () => {
               )}
             </span>
           </Button>
-          <p className="text-xs text-white/70 font-semibold mt-1">
+          <p className="text-sm text-white/70 font-semibold mt-1">
             ✏️ סבב עריכה מלא כלול בכל סיפור
           </p>
         </div>

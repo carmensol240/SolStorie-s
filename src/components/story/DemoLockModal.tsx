@@ -143,7 +143,7 @@ const DemoLockModal = ({ open, onOpenChange, title, description, storyId, isTast
             <>
               <div className="flex items-center gap-3 my-1">
                 <div className="flex-1 h-px bg-gradient-to-l from-transparent via-white/30 to-transparent" />
-                <span className="text-white/70 text-xs font-bold px-2">{"\u200B"}או</span>
+                <span className="text-white/70 text-sm font-bold px-2">{"\u200B"}או</span>
                 <div className="flex-1 h-px bg-gradient-to-r from-transparent via-white/30 to-transparent" />
               </div>
 
@@ -159,7 +159,7 @@ const DemoLockModal = ({ open, onOpenChange, title, description, storyId, isTast
                   {CATALOG.full.includes.map((t, i) => (
                     <li
                       key={t}
-                      className={i === CATALOG.full.includes.length - 1 ? "text-xs font-black text-primary leading-snug" : "text-xs font-semibold text-white/80 leading-snug"}
+                      className={i === CATALOG.full.includes.length - 1 ? "text-sm font-black text-primary leading-snug" : "text-sm font-semibold text-white/80 leading-snug"}
                     >
                       {t}
                     </li>
@@ -169,13 +169,13 @@ const DemoLockModal = ({ open, onOpenChange, title, description, storyId, isTast
             </>
           )}
 
-          <p className="text-white/60 text-xs font-semibold text-center pt-1">
+          <p className="text-white/60 text-sm font-semibold text-center pt-1">
             📚 הסיפור נשמר בספרייה החינמית שלך לכל החיים
           </p>
 
           <button
             onClick={() => onOpenChange(false)}
-            className="text-white/50 text-xs font-semibold hover:text-white/80 transition-colors py-2 mt-1"
+            className="text-white/50 text-sm font-semibold hover:text-white/80 transition-colors py-2 mt-1"
           >
             לא עכשיו
           </button>

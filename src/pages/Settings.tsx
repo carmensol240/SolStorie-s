@@ -180,7 +180,7 @@ const Settings = () => {
             <div className="flex items-center gap-2">
               <div className="text-right">
                 <span className="font-bold text-sm text-white block">רכישת חבילת סיפורים</span>
-                <span className="text-xs text-white/80 block">המשיכו את הקסם עם חבילת קרדיטים חדשה</span>
+                <span className="text-sm text-white/80 block">המשיכו את הקסם עם חבילת קרדיטים חדשה</span>
               </div>
               <div className="w-8 h-8 bg-white/20 backdrop-blur-sm rounded-lg flex items-center justify-center flex-shrink-0">
                 <Wand2 className="w-4 h-4 text-yellow-200" aria-hidden="true" />
@@ -193,8 +193,8 @@ const Settings = () => {
             <div className="bg-gradient-to-r from-green-50 to-emerald-50 dark:from-green-950/20 dark:to-emerald-950/20 rounded-lg px-3 py-3 border border-green-200 dark:border-green-800 space-y-2.5">
               <div className="flex items-center gap-2 justify-end">
                 <div className="text-right">
-                  <span className="font-bold text-sm text-foreground block">הזמינו חבר/ה וקבלו סיפור במתנה! 🎉 <Badge variant="secondary" className="text-xs px-1.5 py-0 mr-1 align-middle">בקרוב</Badge></span>
-                  <span className="text-xs text-muted-foreground block">שתפו את הקוד שלכם וקבלו קרדיט סיפור חינם</span>
+                  <span className="font-bold text-sm text-foreground block">הזמינו חבר/ה וקבלו סיפור במתנה! 🎉 <Badge variant="secondary" className="text-sm px-1.5 py-0 mr-1 align-middle">בקרוב</Badge></span>
+                  <span className="text-sm text-muted-foreground block">שתפו את הקוד שלכם וקבלו קרדיט סיפור חינם</span>
                 </div>
                 <div className="w-8 h-8 bg-gradient-to-r from-green-400/20 to-emerald-400/20 rounded-lg flex items-center justify-center flex-shrink-0">
                   <Gift className="w-4 h-4 text-green-600 dark:text-green-400" />
@@ -223,7 +223,7 @@ const Settings = () => {
                 </div>
               </div>
               
-              <p className="text-xs text-muted-foreground text-center leading-relaxed">
+              <p className="text-sm text-muted-foreground text-center leading-relaxed">
                 שתפו את ההודעה עם חברים – כשהם נרשמים עם הקוד שלכם, אתם מקבלים סיפור חינם!
               </p>
             </div>
@@ -235,7 +235,7 @@ const Settings = () => {
               <div className="flex items-center gap-2 justify-end">
                 <div className="text-right">
                   <span className="font-bold text-sm text-foreground block">התקנת <span dir="ltr" className="inline-block">SolStorie's™</span></span>
-                  <span className="text-xs text-muted-foreground block">גישה מהירה לכל הסיפורים שלכם ישירות ממסך הבית.</span>
+                  <span className="text-sm text-muted-foreground block">גישה מהירה לכל הסיפורים שלכם ישירות ממסך הבית.</span>
                 </div>
                 <div className="w-8 h-8 bg-gradient-to-r from-amber-400/20 to-orange-400/20 rounded-lg flex items-center justify-center flex-shrink-0">
                   <Smartphone className="w-4 h-4 text-amber-600 dark:text-amber-400" />
@@ -294,7 +294,7 @@ const Settings = () => {
         {/* Privacy Disclosure */}
         <div className="mt-2 px-1">
           <div className="bg-muted/30 border border-border rounded-lg p-2.5 text-center">
-            <p className="text-xs text-muted-foreground leading-relaxed">
+            <p className="text-sm text-muted-foreground leading-relaxed">
               🔒 כל המידע מטופל בהתאם לתקנות פרטיות ילדים (COPPA/GDPR).{' '}
               <button onClick={() => navigate('/terms')} className="text-primary underline font-medium">מדיניות פרטיות</button>
             </p>
@@ -378,7 +378,7 @@ const Settings = () => {
                   <Share className="w-4 h-4 text-blue-500" />
                 </div>
                 <span className="font-bold text-sm">iPhone / iPad</span>
-                {!isAndroid && <span className="text-xs bg-amber-200 dark:bg-amber-800 text-amber-800 dark:text-amber-200 px-1.5 py-0.5 rounded-full font-medium">המכשיר שלך</span>}
+                {!isAndroid && <span className="text-sm bg-amber-200 dark:bg-amber-800 text-amber-800 dark:text-amber-200 px-1.5 py-0.5 rounded-full font-medium">המכשיר שלך</span>}
               </div>
               <p className="text-sm text-muted-foreground leading-relaxed">
                 לחצו על כפתור השיתוף <Share className="w-3.5 h-3.5 inline mx-0.5 text-blue-500" /> בסרגל הדפדפן ובחרו ב-<strong>"הוספה למסך הבית"</strong> (Add to Home Screen).
@@ -392,7 +392,7 @@ const Settings = () => {
                   <span className="text-sm font-bold text-gray-600 dark:text-gray-300">⋮</span>
                 </div>
                 <span className="font-bold text-sm">Android</span>
-                {isAndroid && <span className="text-xs bg-amber-200 dark:bg-amber-800 text-amber-800 dark:text-amber-200 px-1.5 py-0.5 rounded-full font-medium">המכשיר שלך</span>}
+                {isAndroid && <span className="text-sm bg-amber-200 dark:bg-amber-800 text-amber-800 dark:text-amber-200 px-1.5 py-0.5 rounded-full font-medium">המכשיר שלך</span>}
               </div>
               <p className="text-sm text-muted-foreground leading-relaxed">
                 לחצו על שלוש הנקודות <strong>⋮</strong> בתפריט הדפדפן ובחרו ב-<strong>"התקן אפליקציה"</strong> או <strong>"הוסף למסך הבית"</strong>.
@@ -421,7 +421,7 @@ const Settings = () => {
                   </div>
                   <div className="text-right">
                     <p className="font-medium text-sm text-foreground">ניגודיות גבוהה</p>
-                    <p className="text-xs text-muted-foreground">צבעים בולטים וברורים</p>
+                    <p className="text-sm text-muted-foreground">צבעים בולטים וברורים</p>
                   </div>
                 </div>
                 <Switch checked={visualAidMode} onCheckedChange={setVisualAidMode} aria-label="הפעל ניגודיות גבוהה" />
@@ -435,7 +435,7 @@ const Settings = () => {
                   </div>
                   <div className="text-right">
                     <p className="font-medium text-sm text-foreground">גודל גופן</p>
-                    <p className="text-xs text-muted-foreground">בחרו גודל נוח לקריאה</p>
+                    <p className="text-sm text-muted-foreground">בחרו גודל נוח לקריאה</p>
                   </div>
                 </div>
                 <div className="flex gap-2 pt-1">
@@ -469,7 +469,7 @@ const Settings = () => {
                   </div>
                   <div className="text-right">
                     <p className="font-medium text-sm text-foreground">הקראה קולית</p>
-                    <p className="text-xs text-muted-foreground">הפעלת כפתור הקראה בסיפורים</p>
+                    <p className="text-sm text-muted-foreground">הפעלת כפתור הקראה בסיפורים</p>
                   </div>
                 </div>
                 <Switch
@@ -488,7 +488,7 @@ const Settings = () => {
                   </div>
                   <div className="text-right">
                     <p className="font-medium text-sm text-foreground">הדגשת קישורים</p>
-                    <p className="text-xs text-muted-foreground">סימון בולט לכל הקישורים</p>
+                    <p className="text-sm text-muted-foreground">סימון בולט לכל הקישורים</p>
                   </div>
                 </div>
                 <Switch
@@ -510,7 +510,7 @@ const Settings = () => {
                   </div>
                   <div className="text-right">
                     <p className="font-medium text-sm text-foreground">הפחתת אנימציות</p>
-                    <p className="text-xs text-muted-foreground">הפסקת תנועות והנפשות</p>
+                    <p className="text-sm text-muted-foreground">הפסקת תנועות והנפשות</p>
                   </div>
                 </div>
                 <Switch
@@ -532,7 +532,7 @@ const Settings = () => {
                   </div>
                   <div className="text-right">
                     <p className="font-medium text-sm text-foreground">סמן מוגדל</p>
-                    <p className="text-xs text-muted-foreground">הגדלת סמן העכבר</p>
+                    <p className="text-sm text-muted-foreground">הגדלת סמן העכבר</p>
                   </div>
                 </div>
                 <Switch
@@ -548,7 +548,7 @@ const Settings = () => {
 
               {/* Accessibility Statement */}
               <div className="p-3 rounded-xl bg-muted/30 border border-border">
-                <p className="text-xs text-muted-foreground text-center leading-relaxed">
+                <p className="text-sm text-muted-foreground text-center leading-relaxed">
                   אתר זה פועל בהתאם לחוק שוויון זכויות לאנשים עם מוגבלות ותקן WCAG 2.1 AA.
                   נתקלתם בבעיית נגישות? <button onClick={() => { setAccessibilityOpen(false); navigate('/contact'); }} className="text-primary underline font-medium">צרו קשר</button>
                 </p>

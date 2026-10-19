@@ -192,17 +192,17 @@ const TestimonialsSection = () => {
       <div className="flex items-center justify-center gap-6 pt-2">
         <div className="text-center">
           <p className="text-2xl font-bold text-primary">500+</p>
-          <p className="text-xs text-muted-foreground">משפחות מרוצות</p>
+          <p className="text-sm text-muted-foreground">משפחות מרוצות</p>
         </div>
         <div className="w-px h-8 bg-border" />
         <div className="text-center">
           <p className="text-2xl font-bold text-primary">1,200+</p>
-          <p className="text-xs text-muted-foreground">סיפורים נוצרו</p>
+          <p className="text-sm text-muted-foreground">סיפורים נוצרו</p>
         </div>
         <div className="w-px h-8 bg-border" />
         <div className="text-center">
           <p className="text-2xl font-bold text-primary">4.9</p>
-          <p className="text-xs text-muted-foreground">דירוג ממוצע</p>
+          <p className="text-sm text-muted-foreground">דירוג ממוצע</p>
         </div>
       </div>
     </section>

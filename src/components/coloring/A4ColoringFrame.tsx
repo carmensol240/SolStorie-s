@@ -27,13 +27,13 @@ export const A4ColoringActions = ({ imageUrl, name, className }: { imageUrl: str
   const [busy, setBusy] = useState(false);
   return (
     <div className={cn("flex gap-1.5", className)}>
-      <Button size="sm" variant="outline" className="flex-1 text-xs h-7 gap-1" onClick={() => printColoringA4(imageUrl)}>
+      <Button size="sm" variant="outline" className="flex-1 text-sm h-7 gap-1" onClick={() => printColoringA4(imageUrl)}>
         <Printer className="w-3 h-3" /> Print A4
       </Button>
       <Button
         size="sm"
         variant="outline"
-        className="flex-1 text-xs h-7 gap-1"
+        className="flex-1 text-sm h-7 gap-1"
         disabled={busy}
         onClick={async () => {
           setBusy(true);

@@ -38,7 +38,7 @@ const DemoStory = () => {
             <span className="text-sm font-bold text-slate-700 truncate max-w-[180px] md:max-w-none">
               סיפור לדוגמה
             </span>
-            <span className="text-xs font-bold px-2 py-0.5 rounded-full bg-gradient-to-r from-amber-400 to-pink-400 text-white">
+            <span className="text-sm font-bold px-2 py-0.5 rounded-full bg-gradient-to-r from-amber-400 to-pink-400 text-white">
               סיפור לדוגמה
             </span>
           </div>

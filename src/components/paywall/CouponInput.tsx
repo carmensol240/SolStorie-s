@@ -94,7 +94,7 @@ const CouponInput = ({ onDiscountApplied, onStoriesAdded }: CouponInputProps) =>
                 ? `הנחה ${appliedCoupon.value}% הוחלה!`
                 : `${appliedCoupon.value} סיפורים נוספו!`}
             </p>
-            <p className="text-xs text-green-600">קוד: {appliedCoupon.code}</p>
+            <p className="text-sm text-green-600">קוד: {appliedCoupon.code}</p>
           </div>
         </div>
         <Button

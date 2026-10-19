@@ -223,7 +223,7 @@ const EditPageDialog = ({
         <DialogHeader className="flex-shrink-0">
           <DialogTitle className="flex items-center justify-between">
             <span>עריכת עמוד</span>
-            <span className="text-xs font-normal">
+            <span className="text-sm font-normal">
               {hasFreeEdits ? (
                 <span className="flex items-center gap-1 text-green-600">
                   <span><Gift className="w-3 h-3" /></span>
@@ -350,16 +350,16 @@ const EditPageDialog = ({
                 <AlertCircle className="w-4 h-4" />
                 נגמרו הקרדיטים
               </span>
-              <p className="text-xs text-muted-foreground">
+              <p className="text-sm text-muted-foreground">
                 אין לך עריכות חינם או קרדיטים זמינים. שדרגו את החבילה כדי להמשיך.
               </p>
-              <a href="/upgrade" className="inline-flex items-center gap-1.5 text-xs font-bold text-primary hover:underline">
+              <a href="/upgrade" className="inline-flex items-center gap-1.5 text-sm font-bold text-primary hover:underline">
                 <Coins className="w-3.5 h-3.5" />
                 שדרגו עכשיו →
               </a>
             </div>
           ) : (
-            <div className="flex items-center text-xs text-muted-foreground bg-muted/50 rounded-lg px-3 py-2">
+            <div className="flex items-center text-sm text-muted-foreground bg-muted/50 rounded-lg px-3 py-2">
               <span className="flex items-center gap-1">
                 <span><AlertCircle className="w-3 h-3" /></span>
                 {hasFreeEdits

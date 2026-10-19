@@ -239,7 +239,7 @@ const Contact = () => {
               {errors.message && (
                 <p className="text-sm text-destructive">{errors.message}</p>
               )}
-              <p className="text-xs text-muted-foreground text-left">
+              <p className="text-sm text-muted-foreground text-left">
                 {form.message.length}/5000
               </p>
             </div>
@@ -288,7 +288,7 @@ const Contact = () => {
               solstories.nlp@gmail.com
             </a>
           </p>
-          <p className="text-xs text-muted-foreground mt-2">
+          <p className="text-sm text-muted-foreground mt-2">
             זמן מענה ממוצע: 1-3 ימי עסקים
           </p>
         </div>

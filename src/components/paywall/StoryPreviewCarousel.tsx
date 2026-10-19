@@ -71,7 +71,7 @@ const StoryPreviewCarousel: React.FC = () => {
                         "linear-gradient(135deg, #2d1a6e, #1a0f3a)",
                     }}
                   >
-                    <p className="text-xs font-bold text-purple-300/80 mb-2 text-center">
+                    <p className="text-sm font-bold text-purple-300/80 mb-2 text-center">
                       {pair.title}
                     </p>
                     <p

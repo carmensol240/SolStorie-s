@@ -779,7 +779,7 @@ const Auth = () => {
             </div>
             
             {/* Help text */}
-            <p className="text-xs text-muted-foreground">
+            <p className="text-sm text-muted-foreground">
               אימתם כבר את המייל? <button onClick={() => { setShowEmailVerificationMessage(false); setActiveTab("login"); }} className="text-primary underline">התחברו כאן</button>
             </p>
           </div>
@@ -911,7 +911,7 @@ const Auth = () => {
                         alt="תמונה מקורית"
                         className="w-20 h-20 rounded-full object-cover border-2 border-muted shadow-md" 
                       />
-                      <p className="text-xs text-muted-foreground mt-2">מקור</p>
+                      <p className="text-sm text-muted-foreground mt-2">מקור</p>
                     </div>
                     
                     {/* Arrow */}
@@ -931,7 +931,7 @@ const Auth = () => {
                           <Sparkles className="w-3 h-3 text-white" />
                         </div>
                       </div>
-                      <p className="text-xs text-primary font-medium mt-2">סגנון אנימציה ✨</p>
+                      <p className="text-sm text-primary font-medium mt-2">סגנון אנימציה ✨</p>
                     </div>
                   </div>
                   
@@ -974,7 +974,7 @@ const Auth = () => {
                       <Check className="w-4 h-4" />
                       התמונה נשמרה!
                     </p>
-                    <p className="text-xs text-muted-foreground">
+                    <p className="text-sm text-muted-foreground">
                       הילד/ה יופיעו כך בסיפורים
                     </p>
                   </div>
@@ -1107,7 +1107,7 @@ const Auth = () => {
                         האפליקציה מסופקת "כמות שהיא" (AS IS). אנו ממליצים על פיקוח הורים בעת השימוש.
                       </p>
                     </section>
-                    <p className="text-xs text-muted-foreground pt-4 border-t">
+                    <p className="text-sm text-muted-foreground pt-4 border-t">
                       גרסה {TERMS_VERSION} | עדכון אחרון: ינואר 2026
                     </p>
                   </div>
@@ -1153,7 +1153,7 @@ const Auth = () => {
                         יש לכם זכות לעיין, לתקן ולמחוק את המידע שלכם בכל עת.
                       </p>
                     </section>
-                    <p className="text-xs text-muted-foreground pt-4 border-t">
+                    <p className="text-sm text-muted-foreground pt-4 border-t">
                       גרסה {TERMS_VERSION} | עדכון אחרון: ינואר 2026
                     </p>
                   </div>
@@ -1480,7 +1480,7 @@ const Auth = () => {
                       {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
                     </button>
                   </div>
-                  <p className="text-xs text-muted-foreground mt-1 text-right">
+                  <p className="text-sm text-muted-foreground mt-1 text-right">
                     💡 לידיעתך: יש ליצור סיסמה חדשה לאפליקציה (זו לא חייבת להיות סיסמת המייל שלך)
                   </p>
                 </div>
@@ -1564,7 +1564,7 @@ const Auth = () => {
             <Tablet className="w-5 h-5 text-white drop-shadow-md" />
             <Monitor className="w-5 h-5 text-white drop-shadow-md" />
           </div>
-          <p className="text-xs font-bold text-white drop-shadow-md">זמינה עבורכם בכל מקום</p>
+          <p className="text-sm font-bold text-white drop-shadow-md">זמינה עבורכם בכל מקום</p>
         </div>
       </div>
       <GlobalFooter />

@@ -128,7 +128,7 @@ const ShareAndEarn = () => {
                   <step.icon className="w-4 h-4" />
                 </div>
                 <span className="flex-1 text-sm">{step.text}</span>
-                <span className="w-5 h-5 rounded-full bg-primary/10 text-primary text-xs flex items-center justify-center font-medium">
+                <span className="w-5 h-5 rounded-full bg-primary/10 text-primary text-sm flex items-center justify-center font-medium">
                   {index + 1}
                 </span>
               </div>
@@ -139,7 +139,7 @@ const ShareAndEarn = () => {
         {/* Referral Code */}
         {referralCode && (
           <Card className="p-3 text-center bg-primary/5 border-primary/20">
-            <p className="text-xs text-muted-foreground mb-1">הקוד האישי שלך:</p>
+            <p className="text-sm text-muted-foreground mb-1">הקוד האישי שלך:</p>
             <p className="text-xl font-bold tracking-wider text-primary">{referralCode}</p>
           </Card>
         )}
@@ -209,7 +209,7 @@ const ShareAndEarn = () => {
         )}
 
         {/* Anti-fraud microcopy - clearer explanation */}
-        <p className="text-xs text-muted-foreground text-center leading-relaxed">
+        <p className="text-sm text-muted-foreground text-center leading-relaxed">
           הסיפור החינמי יתקבל רק לאחר שהחבר יסיים להירשם וליצור חשבון ב-<span dir="ltr" className="inline-block">SolStorie's™</span>.
         </p>
       </main>

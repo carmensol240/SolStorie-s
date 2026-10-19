@@ -134,7 +134,7 @@ const HomeExplainer = () => {
               return (
                 <div key={k} className={`relative rounded-2xl bg-card p-5 shadow-sm text-right ${k === "full" ? "border-2 border-primary" : "border-2 border-border"}`}>
                   {k === "full" && (
-                    <span className="absolute -top-3 inset-x-0 mx-auto w-fit rounded-full bg-primary px-3 py-0.5 text-xs font-bold text-primary-foreground">
+                    <span className="absolute -top-3 inset-x-0 mx-auto w-fit rounded-full bg-primary px-3 py-0.5 text-sm font-bold text-primary-foreground">
                       הכי משתלם
                     </span>
                   )}

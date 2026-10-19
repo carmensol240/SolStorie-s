@@ -152,7 +152,7 @@ const AccountExit = () => {
           <p className="text-muted-foreground text-sm leading-relaxed">
             לפני שמוחקים את החשבון – נשמח לדעת מה הסיבה, כדי להשתפר.
           </p>
-          <p className="text-xs text-muted-foreground/70">(אופציונלי בלבד)</p>
+          <p className="text-sm text-muted-foreground/70">(אופציונלי בלבד)</p>
         </div>
 
         {/* Reason Selection */}
@@ -207,7 +207,7 @@ const AccountExit = () => {
           >
             השארת חשבון ללא פעילות
           </Button>
-          <p className="text-center text-xs text-muted-foreground">
+          <p className="text-center text-sm text-muted-foreground">
             הכל יישמר. אין הודעות. אין התחייבות.
           </p>
         </div>
@@ -216,7 +216,7 @@ const AccountExit = () => {
         <div className="text-center pt-2 border-t border-border">
           <button
             onClick={() => setShowConfirmDialog(true)}
-            className="text-xs text-muted-foreground/60 hover:text-destructive transition-colors underline-offset-4 hover:underline"
+            className="text-sm text-muted-foreground/60 hover:text-destructive transition-colors underline-offset-4 hover:underline"
           >
             מחיקת חשבון לצמיתות
           </button>

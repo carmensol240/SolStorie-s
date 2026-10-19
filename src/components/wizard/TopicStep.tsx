@@ -123,7 +123,7 @@ const TopicStep = ({ formData, updateFormData }: TopicStepProps) => {
         />
       </div>
 
-      <div className="text-center text-xs text-muted-foreground font-medium">או בחרו נושא</div>
+      <div className="text-center text-sm text-muted-foreground font-medium">או בחרו נושא</div>
 
       {/* Search */}
       <div className="relative">
@@ -144,7 +144,7 @@ const TopicStep = ({ formData, updateFormData }: TopicStepProps) => {
 
       {isSearching ? (
         <div className="space-y-3">
-          <p className="text-xs text-muted-foreground text-center">
+          <p className="text-sm text-muted-foreground text-center">
             {searchResults.length > 0 ? `נמצאו ${searchResults.length} נושאים` : "לא נמצאו נושאים מתאימים 😕"}
           </p>
           {searchResults.length > 0 && (
@@ -162,7 +162,7 @@ const TopicStep = ({ formData, updateFormData }: TopicStepProps) => {
             <button
               onClick={() => setActiveTab("all")}
               className={cn(
-                "px-3 py-1.5 rounded-full text-xs font-medium whitespace-nowrap border transition-all flex-shrink-0",
+                "px-3 py-1.5 rounded-full text-sm font-medium whitespace-nowrap border transition-all flex-shrink-0",
                 activeTab === "all"
                   ? "bg-primary text-white border-transparent shadow-md"
                   : "border-border bg-card text-foreground hover:border-purple-300"
@@ -175,7 +175,7 @@ const TopicStep = ({ formData, updateFormData }: TopicStepProps) => {
                 key={section.id}
                 onClick={() => setActiveTab(section.id)}
                 className={cn(
-                  "px-3 py-1.5 rounded-full text-xs font-medium whitespace-nowrap border transition-all flex-shrink-0",
+                  "px-3 py-1.5 rounded-full text-sm font-medium whitespace-nowrap border transition-all flex-shrink-0",
                   activeTab === section.id
                     ? "bg-primary text-white border-transparent shadow-md"
                     : "border-border bg-card text-foreground hover:border-purple-300"
@@ -205,13 +205,13 @@ const TopicStep = ({ formData, updateFormData }: TopicStepProps) => {
                     <img src={section.heroImage} alt={section.categoryLabel} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" />
                     <div className="absolute inset-0" style={{ background: "linear-gradient(to top, rgba(0,0,0,0.7) 0%, rgba(0,0,0,0.2) 50%, transparent 100%)" }} />
                     {/* Expand/collapse hint */}
-                    <div className="absolute top-2 left-2 bg-black/40 backdrop-blur-sm rounded-full px-2 py-0.5 text-white text-xs font-bold flex items-center gap-1">
+                    <div className="absolute top-2 left-2 bg-black/40 backdrop-blur-sm rounded-full px-2 py-0.5 text-white text-sm font-bold flex items-center gap-1">
                       {isExpanded ? <ChevronUp className="w-3 h-3" /> : <ChevronDown className="w-3 h-3" />}
                       {isExpanded ? "סגור" : "פתח"}
                     </div>
                     <div className="absolute inset-0 flex flex-col justify-end items-center pb-3 gap-0.5">
                       <h3 className="text-white text-xl font-black drop-shadow-md text-center">{section.categoryEmoji} {section.categoryLabel}</h3>
-                      <span className="text-white text-xs font-bold drop-shadow-md">{section.topics.length} נושאים</span>
+                      <span className="text-white text-sm font-bold drop-shadow-md">{section.topics.length} נושאים</span>
                     </div>
                   </div>
                 </button>
@@ -236,12 +236,12 @@ const TopicStep = ({ formData, updateFormData }: TopicStepProps) => {
                             <span className="text-red-500 text-lg font-black">*</span>
                             <h3 className="text-sm font-black text-foreground leading-tight">{topic.label}</h3>
                           </div>
-                          <p className="text-xs text-muted-foreground mt-1 line-clamp-2">{topic.description}</p>
+                          <p className="text-sm text-muted-foreground mt-1 line-clamp-2">{topic.description}</p>
                         </div>
                         {formData.topic === topic.id && (
                           <div className="pl-2 pr-3">
                             <div className="w-5 h-5 bg-gradient-to-r from-red-500 to-orange-500 rounded-full flex items-center justify-center">
-                              <span className="text-white text-xs">✓</span>
+                              <span className="text-white text-sm">✓</span>
                             </div>
                           </div>
                         )}
@@ -271,7 +271,7 @@ const TopicStep = ({ formData, updateFormData }: TopicStepProps) => {
                         >
                           <span className="text-4xl">{cat.emoji}</span>
                           <span>{cat.label}</span>
-                          <span className="text-xs font-medium opacity-80">
+                          <span className="text-sm font-medium opacity-80">
                             {section.topics.filter(t => t.id.startsWith(cat.prefix)).length} נושאים
                           </span>
                         </button>
@@ -372,13 +372,13 @@ const SimpleTile = ({ topic, isSelected, onSelect }: SimpleTileProps) => {
             <img src={topic.image} alt={topic.label} className="w-full h-full object-cover" loading="lazy" />
             <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/10 to-transparent" />
             {/* Age badge */}
-            <div className="absolute bottom-1.5 left-1.5 bg-black/40 text-white text-xs font-bold px-1.5 py-0.5 rounded-md backdrop-blur-sm">
+            <div className="absolute bottom-1.5 left-1.5 bg-black/40 text-white text-sm font-bold px-1.5 py-0.5 rounded-md backdrop-blur-sm">
               {topic.ageRange}
             </div>
             {/* Selected check */}
             {isSelected && (
               <div className="absolute top-1.5 left-1.5 w-5 h-5 bg-primary rounded-full flex items-center justify-center">
-                <span className="text-white text-xs">✓</span>
+                <span className="text-white text-sm">✓</span>
               </div>
             )}
           </div>
@@ -389,11 +389,11 @@ const SimpleTile = ({ topic, isSelected, onSelect }: SimpleTileProps) => {
 
         {/* Short description */}
         <div className="px-2.5 pb-2">
-          <p className="text-xs text-muted-foreground line-clamp-2">{topic.description}</p>
+          <p className="text-sm text-muted-foreground line-clamp-2">{topic.description}</p>
           {topic.description && (
             <button
               onClick={() => setShowDrawer(true)}
-              className="flex items-center gap-0.5 mt-0.5 text-xs font-semibold text-purple-500 hover:text-purple-700 transition-colors"
+              className="flex items-center gap-0.5 mt-0.5 text-sm font-semibold text-purple-500 hover:text-purple-700 transition-colors"
             >
               <ChevronDown className="w-3 h-3" />
               קרא עוד
@@ -411,7 +411,7 @@ const SimpleTile = ({ topic, isSelected, onSelect }: SimpleTileProps) => {
               <img src={topic.image} alt={topic.label} className="w-full h-full object-cover" />
               <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/10 to-transparent" />
               <div className="absolute bottom-3 right-4 left-4 flex items-end justify-between">
-                <span className="bg-black/50 text-white text-xs font-bold px-2 py-1 rounded-lg backdrop-blur-sm">
+                <span className="bg-black/50 text-white text-sm font-bold px-2 py-1 rounded-lg backdrop-blur-sm">
                   {topic.ageRange}
                 </span>
                 <h2 className="text-white text-xl font-black drop-shadow-md text-right">{topic.label}</h2>

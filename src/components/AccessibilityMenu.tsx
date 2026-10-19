@@ -70,7 +70,7 @@ const AccessibilityMenu = ({ variant = "floating" }: AccessibilityMenuProps) => 
               aria-label="הגדרות נגישות"
             >
               <Accessibility className="w-5 h-5" aria-hidden="true" />
-              <span className="md:hidden text-[10px] leading-none font-medium">נגישות</span>
+              <span className="md:hidden text-sm leading-none font-medium">נגישות</span>
             </Button>
           ) : (
           <Button
@@ -104,7 +104,7 @@ const AccessibilityMenu = ({ variant = "floating" }: AccessibilityMenuProps) => 
                 </div>
                 <div className="text-right">
                   <p className="font-medium text-sm text-foreground">מצב ניגודיות גבוהה</p>
-                  <p className="text-xs text-muted-foreground">גופן גדול וצבעים ברורים</p>
+                  <p className="text-sm text-muted-foreground">גופן גדול וצבעים ברורים</p>
                 </div>
               </div>
               <Switch
@@ -122,7 +122,7 @@ const AccessibilityMenu = ({ variant = "floating" }: AccessibilityMenuProps) => 
                 </div>
                 <div className="text-right">
                   <p className="font-medium text-sm text-foreground">גודל גופן</p>
-                  <p className="text-xs text-muted-foreground">בחרו גודל נוח לקריאה</p>
+                  <p className="text-sm text-muted-foreground">בחרו גודל נוח לקריאה</p>
                 </div>
               </div>
               <div className="flex gap-2 pt-1">
@@ -152,7 +152,7 @@ const AccessibilityMenu = ({ variant = "floating" }: AccessibilityMenuProps) => 
                 </div>
                 <div className="text-right">
                   <p className="font-medium text-sm text-foreground">הקראה קולית</p>
-                  <p className="text-xs text-muted-foreground">הפעלת כפתור הקראה בסיפורים</p>
+                  <p className="text-sm text-muted-foreground">הפעלת כפתור הקראה בסיפורים</p>
                 </div>
               </div>
               <Switch
@@ -170,7 +170,7 @@ const AccessibilityMenu = ({ variant = "floating" }: AccessibilityMenuProps) => 
                 </div>
                 <div className="text-right">
                   <p className="font-medium text-sm text-foreground">עצירת אנימציות</p>
-                  <p className="text-xs text-muted-foreground">מצמצם תנועה ואפקטים על המסך</p>
+                  <p className="text-sm text-muted-foreground">מצמצם תנועה ואפקטים על המסך</p>
                 </div>
               </div>
               <Switch

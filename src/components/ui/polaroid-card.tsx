@@ -188,7 +188,7 @@ const PolaroidCard = ({
           {/* Series badge */}
           {seriesCount && seriesCount > 1 && (
             <div
-              className="absolute -top-2 -right-2 z-20 flex items-center gap-0.5 rounded-full px-2 py-0.5 text-white text-xs font-bold shadow-md"
+              className="absolute -top-2 -right-2 z-20 flex items-center gap-0.5 rounded-full px-2 py-0.5 text-white text-sm font-bold shadow-md"
               style={{
                 background: 'linear-gradient(135deg, #a29bfe, #6c5ce7)',
               }}
@@ -217,7 +217,7 @@ const PolaroidCard = ({
             {language === 'en' && (
               <div className="absolute top-1 right-1 z-20 flex items-center gap-0.5 bg-black/50 backdrop-blur-sm rounded-full px-1.5 py-0.5 shadow-md">
                 <span className="text-sm leading-none">🇺🇸</span>
-                <span className="text-xs text-white font-bold">EN</span>
+                <span className="text-sm text-white font-bold">EN</span>
               </div>
             )}
 
@@ -303,7 +303,7 @@ const PolaroidCard = ({
           {/* Title area */}
           <div dir="rtl" aria-hidden="true" className="mt-1 px-0.5 text-center" style={{ minHeight: '24px' }}>
             <p
-              className="text-xs font-bold leading-tight line-clamp-2"
+              className="text-sm font-bold leading-tight line-clamp-2"
               style={{ fontFamily: "'Caveat', cursive", fontSize: '14px', color: '#e8d5ff' }}
             >
               {topic}
@@ -312,7 +312,7 @@ const PolaroidCard = ({
               {childName}{createdAt ? ` · ${formatCardDate(createdAt)}` : ''}
             </p>
             {isOfflineSaved && offlineSize > 0 && (
-              <p className="text-xs text-purple-300/60 mt-0.5">{formatBytes(offlineSize)}</p>
+              <p className="text-sm text-purple-300/60 mt-0.5">{formatBytes(offlineSize)}</p>
             )}
           </div>
 
@@ -370,7 +370,7 @@ const PolaroidCard = ({
                   style={{ color: '#e8d5ff', background: 'rgba(255,255,255,0.05)' }}
                 >
                   <span className="font-bold">חלק {idx + 1}</span>
-                  <span className="block text-xs mt-0.5 opacity-70">{part.topic}</span>
+                  <span className="block text-sm mt-0.5 opacity-70">{part.topic}</span>
                 </button>
               ))}
             </div>
