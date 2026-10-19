@@ -216,6 +216,7 @@ export function extractOutlines(pixels: Pixels, w: number, h: number, targetFrac
     return boxBlur(boxBlur(a, w, h, b), w, h, b);
   });
   const mag = new Float32Array(n);
+  const horizontal = new Uint8Array(n);
   for (let y = 1; y < h - 1; y++) {
     for (let x = 1; x < w - 1; x++) {
       const p = y * w + x;
@@ -223,22 +224,38 @@ export function extractOutlines(pixels: Pixels, w: number, h: number, targetFrac
       for (const a of chans) {
         const gx = a[p - w + 1] + 2 * a[p + 1] + a[p + w + 1] - a[p - w - 1] - 2 * a[p - 1] - a[p + w - 1];
         const gy = a[p + w - 1] + 2 * a[p + w] + a[p + w + 1] - a[p - w - 1] - 2 * a[p - w] - a[p - w + 1];
-        m = Math.max(m, Math.abs(gx) + Math.abs(gy));
+        const v = Math.abs(gx) + Math.abs(gy);
+        if (v > m) { m = v; horizontal[p] = Math.abs(gx) >= Math.abs(gy) ? 1 : 0; }
       }
       mag[p] = m;
     }
   }
+  // Thin every edge to one pixel (keep only the local maximum across the edge).
+  const ridge = new Float32Array(n);
+  for (let y = 1; y < h - 1; y++) {
+    for (let x = 1; x < w - 1; x++) {
+      const p = y * w + x;
+      const step = horizontal[p] ? 1 : w;
+      if (mag[p] >= mag[p - step] && mag[p] > mag[p + step]) ridge[p] = mag[p];
+    }
+  }
+  const thickness = Math.max(1, Math.round(Math.min(w, h) / 500));
   const hist = new Int32Array(2049);
-  for (let p = 0; p < n; p++) hist[Math.min(2048, Math.round(mag[p]))]++;
+  for (let p = 0; p < n; p++) if (ridge[p] > 0) hist[Math.min(2048, Math.round(ridge[p]))]++;
+  const budget = (n * targetFraction) / (2 * thickness + 1);
   let threshold = 2048, above = 0;
-  while (threshold > 0 && above + hist[threshold] <= n * targetFraction) above += hist[threshold--];
+  while (threshold > 0 && above + hist[threshold] <= budget) above += hist[threshold--];
   threshold = Math.max(60, threshold + 1);
-  const edges = new Uint8Array(n);
-  for (let p = 0; p < n; p++) if (mag[p] >= threshold) edges[p] = 1;
+  let edges = new Uint8Array(n);
+  for (let p = 0; p < n; p++) if (ridge[p] >= threshold) edges[p] = 1;
   // Drop specks and texture: keep only connected lines of a meaningful length.
-  const minSize = Math.max(20, Math.round(Math.min(w, h) * 0.03));
-  components(edges, w, h, (region, size) => {
-    if (size < minSize) for (let k = 0; k < size; k++) edges[region[k]] = 0;
+  const minSize = Math.max(12, Math.round(Math.min(w, h) * 0.02));
+  const linked = morph(edges, w, h, 1, "dilate");
+  const keep = new Uint8Array(n);
+  components(linked, w, h, (region, size) => {
+    if (size >= minSize * 3) for (let k = 0; k < size; k++) keep[region[k]] = 1;
   });
+  for (let p = 0; p < n; p++) edges[p] = edges[p] && keep[p] ? 1 : 0;
+  edges = morph(edges, w, h, thickness, "dilate");
   writeMask(pixels, edges);
 }
