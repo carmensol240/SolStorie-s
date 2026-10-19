@@ -109,7 +109,8 @@ const ChildInfoStep = ({ formData, updateFormData, screen = 1, restoredDraft, on
   const [isCreatingNew, setIsCreatingNew] = useState(false);
   const [selectedChildId, setSelectedChildId] = useState<string | null>(restoredDraft?.selectedChildId ?? null);
   // A restored tab draft counts as "already loaded" so the first profile never overwrites it.
-  const hasAutoLoadedRef = useRef<string | null>(restoredDraft && user?.id ? user.id : null);
+  const hasAutoLoadedRef = useRef<string | null>(null);
+  const skipAutoLoadRef = useRef(!!restoredDraft);
   useEffect(() => {
     if (restoredDraft) setIsCreatingNew(!restoredDraft.selectedChildId);
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -170,7 +171,7 @@ const ChildInfoStep = ({ formData, updateFormData, screen = 1, restoredDraft, on
   useEffect(() => {
     const fetchChildren = async () => {
       const userKey = user?.id || '__guest__';
-      const shouldAutoLoadFirst = hasAutoLoadedRef.current !== userKey;
+      const shouldAutoLoadFirst = !skipAutoLoadRef.current && hasAutoLoadedRef.current !== userKey;
       if (user) {
         // Fetch role
         const { data: profileData } = await supabase
