@@ -354,7 +354,10 @@ const [currentPage, setCurrentPage] = useState(0);
       return data.image as string;
     } catch (err: any) {
       console.error("Coloring error:", err);
-      toast({ title: "שגיאה ביצירת דף צביעה", description: err.message, variant: "destructive" });
+      toast({
+        title: "לא הצלחנו ליצור דף צביעה הפעם, נסו שוב בעוד רגע",
+        action: <ToastAction altText="נסו שוב" onClick={() => onRetry()}>נסו שוב</ToastAction>,
+      });
       return null;
     } finally {
       setColoringLoading(false);

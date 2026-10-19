@@ -36,12 +36,14 @@ serve(async (req) => {
 
     // Require authentication — anonymous callers must not consume AI quota
     if (!authHeader.startsWith("Bearer ")) {
+      console.warn("Coloring: missing auth header");
       return jsonResponse({ error: "Unauthorized" }, 401);
     }
     const { data: { user }, error: authErr } = await supabase.auth.getUser(
       authHeader.replace("Bearer ", "")
     );
     if (authErr || !user?.id) {
+      console.warn("Coloring: invalid session", authErr?.message);
       return jsonResponse({ error: "Unauthorized" }, 401);
     }
     const userId: string = user.id;
@@ -55,18 +57,27 @@ serve(async (req) => {
       .from("stories")
       .select("id, child_id, child_name, child_gender, age_range, user_id, is_taste, created_at, story_outfit, kippah, kippah_color")
       .eq("id", story_id)
-      .eq("user_id", userId)
       .maybeSingle();
     if (!storyOwner) {
-      return jsonResponse({ error: "Forbidden" }, 403);
+      console.warn("Coloring: story not found", story_id);
+      return jsonResponse({ error: "Story not found" }, 404);
     }
+    if (storyOwner.user_id !== userId) {
+      // Admins (not in demo view mode) may make pages for any story; saved under the story owner.
+      const { data: adminOk } = await supabase.rpc("is_effective_admin", { _user_id: userId });
+      if (!adminOk) {
+        console.warn("Coloring: forbidden, not owner", { story_id, userId });
+        return jsonResponse({ error: "Forbidden" }, 403);
+      }
+    }
+    const ownerId: string = storyOwner.user_id;
 
     // ── Access: every purchased story opens all of its coloring pages (no credits) ──
     const [{ data: unlock }, { data: isAdmin }] = await Promise.all([
-      supabase.from("story_unlocks").select("id").eq("story_id", story_id).eq("user_id", userId).maybeSingle(),
+      supabase.from("story_unlocks").select("id").eq("story_id", story_id).eq("user_id", ownerId).maybeSingle(),
       supabase.rpc("is_effective_admin", { _user_id: userId }),
     ]);
-    if (!unlock && !isAdmin && !isLegacyOpenStory(storyOwner, userId)) {
+    if (!unlock && !isAdmin && !isLegacyOpenStory(storyOwner, ownerId)) {
       return jsonResponse({ upsell: true, error: "דפי הצביעה נפתחים עם רכישת הסיפור 🎨" });
     }
 
@@ -75,7 +86,7 @@ serve(async (req) => {
       .from("story_coloring_pages")
       .select("*")
       .eq("story_id", story_id)
-      .eq("user_id", userId)
+      .eq("user_id", ownerId)
       .eq("illustration_url", illustration_url)
       .order("created_at", { ascending: false })
       .limit(1);
@@ -277,7 +288,9 @@ ${characterLock ? `11. CHARACTER: Keep the main character recognizable. ${charac
         if (base64Match) {
           const raw = base64Match[1];
           const bytes = Uint8Array.from(atob(raw), (c) => c.charCodeAt(0));
-          const storagePath = `coloring/${story_id}.png`;
+          // One file per illustration (a per-story name made each new page overwrite the previous one).
+          const pageKey = (illustration_url.split("?")[0].split("/").pop() || "page").replace(/\.[a-z]+$/i, "").replace(/[^a-zA-Z0-9_-]/g, "");
+          const storagePath = `coloring/${story_id}-${pageKey}-${Date.now()}.png`;
 
           const { error: uploadErr } = await supabase.storage
             .from("story-illustrations")
@@ -288,7 +301,7 @@ ${characterLock ? `11. CHARACTER: Keep the main character recognizable. ${charac
           } else {
             await supabase.from("story_coloring_pages").insert({
               story_id,
-              user_id: userId,
+              user_id: ownerId,
               illustration_url,
               coloring_image_path: storagePath,
             });
