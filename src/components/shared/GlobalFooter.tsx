@@ -49,6 +49,7 @@ const GlobalFooter = ({ compact = false, onDark = false }: GlobalFooterProps) =>
       <p className="text-xs text-muted-foreground font-medium">
         <span dir="ltr" className="inline-block">SolStorie's™</span> | כל הזכויות שמורות
       </p>
+      <span data-testid="build-stamp" className="text-[10px] text-muted-foreground/60" dir="ltr">v2</span>
     </footer>
   );
 };
