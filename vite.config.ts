@@ -72,6 +72,22 @@ export default defineConfig(({ mode }) => ({
         globPatterns: ["**/*.{js,css,html,ico,png,svg,jpg,jpeg,woff2}"],
         runtimeCaching: [
           {
+            // Story illustrations (original + resized WebP reading copies) so a
+            // book opened once can be read again without internet.
+            urlPattern: /^https:\/\/[^/]+\.supabase\.co\/storage\/v1\/(object|render\/image)\/public\/story-illustrations\/.*/i,
+            handler: "CacheFirst",
+            options: {
+              cacheName: "story-illustrations",
+              expiration: {
+                maxEntries: 600,
+                maxAgeSeconds: 60 * 60 * 24 * 60 // 60 days
+              },
+              cacheableResponse: {
+                statuses: [0, 200]
+              }
+            }
+          },
+          {
             // HTML navigations: always try network first so a fresh Publish
             // shows up immediately and devices don't lock onto an old shell.
             urlPattern: ({ request }) => request.mode === "navigate",

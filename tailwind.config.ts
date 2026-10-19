@@ -60,6 +60,11 @@ export default {
           DEFAULT: "hsl(var(--popover))",
           foreground: "hsl(var(--popover-foreground))",
         },
+        paper: {
+          DEFAULT: "hsl(var(--paper))",
+          foreground: "hsl(var(--paper-foreground))",
+          muted: "hsl(var(--paper-muted))",
+        },
         card: {
           DEFAULT: "hsl(var(--card))",
           foreground: "hsl(var(--card-foreground))",
