@@ -136,7 +136,7 @@ const CorkBoard = ({ title, children }: CorkBoardProps) => {
         </h2>
       )}
 
-      <div className="grid grid-cols-2" style={{ gap: '28px', minHeight: '200px' }}>
+      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4" style={{ gap: '28px', minHeight: '200px' }}>
         {pageItems}
       </div>
 
