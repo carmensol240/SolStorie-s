@@ -12,6 +12,9 @@ import { Switch } from "@/components/ui/switch";
 import { useAccessibility, type FontSize } from "@/hooks/use-accessibility";
 
 const DISMISSED_KEY = "a11y_button_dismissed";
+// Mobile: a slim tab on the left edge, mid-height, clear of bottom buttons and the bottom menu.
+// Desktop: small round button in the bottom-left corner.
+const FLOATING_POS = "fixed left-0 top-[42%] md:top-auto md:bottom-6 md:left-4";
 
 const fontSizeOptions: { value: FontSize; label: string }[] = [
   { value: 'small', label: 'קטן' },
@@ -49,7 +52,7 @@ const AccessibilityMenu = ({ variant = "floating" }: AccessibilityMenuProps) => 
           localStorage.removeItem(DISMISSED_KEY);
           setMinimized(false);
         }}
-        className="fixed bottom-28 left-4 z-50 h-10 w-10 rounded-full bg-blue-500 hover:bg-blue-600 shadow-md flex items-center justify-center"
+        className={`${FLOATING_POS} z-50 h-11 w-9 md:h-10 md:w-10 rounded-r-full md:rounded-full bg-blue-600 hover:bg-blue-700 shadow-md flex items-center justify-center`}
         aria-label="פתח תפריט נגישות"
       >
         <Accessibility className="h-5 w-5 text-white" />
@@ -58,7 +61,7 @@ const AccessibilityMenu = ({ variant = "floating" }: AccessibilityMenuProps) => 
   }
 
   return (
-    <div className={isToolbar ? "inline-flex" : "fixed bottom-28 left-4 z-50 flex items-center gap-1"}>
+    <div className={isToolbar ? "inline-flex" : `${FLOATING_POS} z-50 flex items-center gap-1`}>
       <Popover>
         <PopoverTrigger asChild>
           {isToolbar ? (
@@ -76,10 +79,10 @@ const AccessibilityMenu = ({ variant = "floating" }: AccessibilityMenuProps) => 
           <Button
             variant="default"
             size="icon"
-            className="h-12 w-12 rounded-full bg-blue-500 hover:bg-blue-600 shadow-lg border-0"
+            className="h-11 w-9 md:h-12 md:w-12 rounded-none rounded-r-full md:rounded-full bg-blue-600 hover:bg-blue-700 shadow-lg border-0"
             aria-label="הגדרות נגישות"
           >
-            <Accessibility className="h-6 w-6 text-white" aria-hidden="true" />
+            <Accessibility className="h-5 w-5 md:h-6 md:w-6 text-white" aria-hidden="true" />
           </Button>
           )}
         </PopoverTrigger>
@@ -202,7 +205,7 @@ const AccessibilityMenu = ({ variant = "floating" }: AccessibilityMenuProps) => 
           localStorage.setItem(DISMISSED_KEY, 'true');
           setMinimized(true);
         }}
-        className="h-6 w-6 rounded-full bg-muted/80 hover:bg-muted flex items-center justify-center shadow-sm"
+        className="hidden md:flex h-6 w-6 rounded-full bg-muted/80 hover:bg-muted items-center justify-center shadow-sm"
         aria-label="מזער תפריט נגישות"
       >
         <X className="h-3.5 w-3.5 text-muted-foreground" aria-hidden="true" />
