@@ -28,6 +28,7 @@ import { useCredits } from "@/hooks/use-credits";
 import { useReferral } from "@/hooks/use-referral";
 import { useChildAvatar } from "@/hooks/use-child-avatar";
 import { useAuth } from "@/hooks/use-auth";
+import { isLegacyOpenStory } from "../../supabase/functions/_shared/legacy-access";
 import { getUserData, setUserData } from "@/lib/user-storage";
 import { translateTopic } from '@/lib/topic-translations';
 import libraryEmptyState from "@/assets/library-empty-state.png";
@@ -451,12 +452,12 @@ const Library = () => {
                 offlineSize={fullOffline.getSize(story.id)}
                 onDownloadOffline={handleDownloadOffline}
                 onDeleteOffline={handleDeleteOffline}
-                canShare={hasAnyPurchase || unlockedStoryIds.has(story.id)}
+                canShare={hasAnyPurchase || isStoryOpen(story)}
                 onLockedShare={handleLockedShare}
               />
             );
             if (!story.is_taste) {
-              if (!unlockedIds.has(story.id) || pdfIds.has(story.id)) return card;
+              if (!isStoryOpen(story) || pdfIds.has(story.id)) return card;
               return (
                 <div key={story.id} className="flex flex-col items-center gap-2">
                   {card}
@@ -514,7 +515,7 @@ const Library = () => {
               offlineSize={fullOffline.getSize(mainStory.id)}
               onDownloadOffline={handleDownloadOffline}
               onDeleteOffline={handleDeleteOffline}
-              canShare={hasAnyPurchase || unlockedStoryIds.has(mainStory.id)}
+              canShare={hasAnyPurchase || isStoryOpen(mainStory)}
               onLockedShare={handleLockedShare}
             />
           );
@@ -564,6 +565,11 @@ const Library = () => {
     setPdfIds(new Set((p ?? []).map((r) => r.story_id).filter(Boolean) as string[]));
   }, [user?.id]);
   useEffect(() => { fetchStoryAccess(); }, [fetchStoryAccess]);
+  // Same "is this story open" rule as the story page: an unlock record, or an
+  // older non-taste story of this parent made before per-story unlock records.
+  const isStoryOpen = (story: { id: string; created_at?: string | null; is_taste?: boolean | null }) =>
+    unlockedIds.has(story.id) || unlockedStoryIds.has(story.id) ||
+    isLegacyOpenStory({ user_id: user?.id, is_taste: !!story.is_taste, created_at: story.created_at }, user?.id);
   const buyPdf = (storyId: string) =>
     openGrowCheckout("pdf", { userId: user?.id ?? null, storyId });
 
