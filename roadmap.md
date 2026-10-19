@@ -27,3 +27,9 @@
 - [x] Fixed list of 13 techniques incl. gang modeling; 7 topic types; sensitive-topic and safety rules
 - [x] Check after writing → targeted fix → niqqud on final text → re-check; report saved per story
 - [x] Control panel: coverage + marked stories with quotes per technique
+
+## Clothing & religious items (Oct 2026)
+- [x] No religious items on the hero unless a religious style is chosen (none exists); holiday = festive colors, symbols as scene objects; story text too
+- [x] Dress only for girls (form + server); swimsuit/superhero per gender
+- [x] Topic outfit only on explicit change pages, back to chosen clothes next page; fixed default outfit saved per story (story_outfit) for retries/coloring
+- [x] Character core (face/skin/eyes/hair/glasses/body) separate from clothes; photo description no longer reads clothes
