@@ -502,8 +502,8 @@ const CreateStory = () => {
         </div>
       </header>
 
-      <main className="flex-1" style={{ WebkitOverflowScrolling: 'touch' }}>
-        <div className="container max-w-lg mx-auto px-2 py-3" style={{ paddingBottom: '180px' }}>
+      <main className="flex-1" style={{ WebkitOverflowScrolling: 'touch', paddingBottom: 'calc(200px + env(safe-area-inset-bottom))' }}>
+        <div className="container max-w-lg mx-auto px-2 py-3 pb-8">
           {(step === 1 || step === 2) && (
             <ChildInfoStep
               formData={formData}
@@ -515,6 +515,7 @@ const CreateStory = () => {
             <TopicStep formData={formData} updateFormData={updateFormData} />
           )}
         </div>
+        <GlobalFooter />
       </main>
 
       {(
@@ -535,7 +536,6 @@ const CreateStory = () => {
               {step === 3 ? "צרו את הסיפור" : "המשיכו"}
               <ArrowLeft className="w-4 h-4 mr-1.5" />
             </Button>
-            <GlobalFooter />
           </div>
         </div>
       )}
