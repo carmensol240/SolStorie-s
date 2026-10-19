@@ -1,8 +1,0 @@
-[build]
-  command = "npm run build"
-
-[[headers]]
-  for = "/.well-known/assetlinks.json"
-  [headers.values]
-    Content-Type = "application/json"
-    Access-Control-Allow-Origin = "*"
