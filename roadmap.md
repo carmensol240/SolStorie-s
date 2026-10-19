@@ -66,3 +66,7 @@
 
 ## Create form history + tab draft (Oct 2026)
 - [x] Steps in browser history, answers kept per tab/user, cleared on success/sign-out/new profile
+
+## Hebrew language editor (Oct 2026)
+- [x] Editor step after writing, before saving (story creation, gender swap, text enhance); nikud retry once; failure keeps original
+- [x] Ran on "אבא במילואים" only and saved
