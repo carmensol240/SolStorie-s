@@ -2,8 +2,7 @@ import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { isLegacyOpenStory } from "../_shared/legacy-access.ts";
 import { mergeAppearance, hairToEnglish, clothingToEnglish, buildCharacterLock, kippahForStory } from "../_shared/appearance.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.49.1";
-import { cleanColoringImage } from "../_shared/coloring-image.ts";
-import { COLOR_FRACTION_LIMIT } from "../_shared/coloring-pixels.ts";
+import { COLORING_RETRY_INSTRUCTION, produceCleanColoringPage } from "../_shared/coloring-pipeline.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -125,7 +124,7 @@ serve(async (req) => {
 
     const coloringPrompt = `Convert this illustration into a perfect children's coloring book page for printing. Follow these rules strictly:
 
-1. OUTLINES: Use very thick, bold, solid black outlines (minimum 3-4px weight). Every shape must have a clearly defined closed boundary.
+1. OUTLINES: Clean, even black outlines of medium weight (about 2-3px). Every shape must have a clearly defined closed boundary. NEVER fill any area with black: hair, shadows, clothing, eyes' surroundings and dark objects are drawn as outlines with white inside.
 2. CLOSED REGIONS: Every colored area MUST be completely enclosed by black outlines with no gaps whatsoever. Sky, ground, trees, clothing and all elements must be separated by continuous unbroken black lines. No area should bleed into another area. Test: flood-fill from any point should not leak into adjacent regions.
 3. SIMPLICITY: Create large, simple areas for coloring. Merge small details into bigger shapes. A 3-year-old should be able to color inside the lines.
 4. STYLE: Disney/Pixar cartoon style with rounded, friendly shapes. Keep the character recognizable but simplified.
@@ -135,7 +134,7 @@ serve(async (req) => {
 8. RESOLUTION: Output a high-resolution image (at least 2400x3200 pixels) suitable for 300 DPI A4 printing.
 9. BACKGROUND: Pure white (#FFFFFF) background with no marks or artifacts.
 
-10. LAYOUT: full-page portrait composition in A4 proportions, the illustration fills the whole page from edge to edge, pure white background, clean bold black outlines, no gray shading, no text.
+10. LAYOUT: full-page portrait composition in A4 proportions, the illustration fills the whole page from edge to edge, pure white background, clean black outlines, no gray shading, no solid black areas, no text.
 
 ${characterLock ? `11. CHARACTER: Keep the main character recognizable. ${characterLock}\n\n` : ""}Output ONLY the coloring page image, nothing else. Do not include any text, labels, letter names, or written words anywhere in the image.`;
 
@@ -255,19 +254,17 @@ ${characterLock ? `11. CHARACTER: Keep the main character recognizable. ${charac
       if (!response.ok) throw new Error("Generated image download failed");
       return new Uint8Array(await response.arrayBuffer());
     };
-    let cleaned = await cleanColoringImage(await imageBytes(generatedImage));
-    console.log("Coloring colored pixel fraction:", cleaned.coloredFraction);
-    if (cleaned.coloredFraction > COLOR_FRACTION_LIMIT) {
-      // Exactly one quality retry. If unavailable, keep the cleaned first result.
-      const retry = await generateImage(`${coloringPrompt}\nCRITICAL CORRECTION: pure black outlines on pure white, no color, no gray fill, no shading anywhere in the image. Remove ALL colored areas, including clothing, grass and backgrounds.`);
-      if (retry) cleaned = await cleanColoringImage(await imageBytes(retry));
-    }
+    const finalBytes = await produceCleanColoringPage({
+      first: generatedImage,
+      regenerate: () => generateImage(`${coloringPrompt}\n\n${COLORING_RETRY_INSTRUCTION}`),
+      imageBytes,
+      original: new Uint8Array(imgBuffer),
+    });
     const chunks: string[] = [];
-    for (let i = 0; i < cleaned.bytes.length; i += 8192) {
-      chunks.push(String.fromCharCode(...cleaned.bytes.subarray(i, i + 8192)));
+    for (let i = 0; i < finalBytes.length; i += 8192) {
+      chunks.push(String.fromCharCode(...finalBytes.subarray(i, i + 8192)));
     }
     generatedImage = `data:image/png;base64,${btoa(chunks.join(""))}`;
-    console.log("Coloring page normalized to pure black and white");
 
     // ── Upload to storage & cache ──
     if (story_id && userId) {

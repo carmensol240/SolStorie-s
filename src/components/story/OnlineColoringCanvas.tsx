@@ -2,6 +2,7 @@ import React, { useRef, useState, useEffect, useCallback, useMemo } from 'react'
 import { Undo2, Redo2, Download, Printer, ArrowRight, PaintBucket, Eraser, Pencil, Trash2, ScreenShare, Smartphone } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { downloadColoringPdfA4, printColoringA4 } from '@/lib/coloring-a4';
+import { normalizeColoringPixels } from '../../../supabase/functions/_shared/coloring-pixels';
 import { toast } from 'sonner';
 
 interface OnlineColoringCanvasProps {
@@ -62,24 +63,13 @@ const ERASER_CURSOR = `url("data:image/svg+xml,<svg xmlns='http://www.w3.org/200
 
 
 /**
- * Binarize the background to pure black-and-white line art.
- * This guarantees no colored/grey pixels remain on the bg layer, so:
- *  - Pages never appear pre-colored from the AI output.
- *  - The eraser (which only clears the draw layer) can remove any color the user paints.
+ * Turn the background into pure black-and-white line art without solid black areas.
+ * A clean page is only thresholded; a page with color or wide dark areas keeps its thin
+ * lines and gets white fills with outlines (never black blobs a child cannot color).
  */
 function binarizeToLineArt(ctx: CanvasRenderingContext2D, w: number, h: number) {
   const imageData = ctx.getImageData(0, 0, w, h);
-  const d = imageData.data;
-  const OUTLINE_THRESHOLD = 170;
-  for (let i = 0; i < d.length; i += 4) {
-    const avg = (d[i] + d[i + 1] + d[i + 2]) / 3;
-    if (avg < OUTLINE_THRESHOLD) {
-      d[i] = d[i + 1] = d[i + 2] = 0;
-    } else {
-      d[i] = d[i + 1] = d[i + 2] = 255;
-    }
-    d[i + 3] = 255;
-  }
+  normalizeColoringPixels(imageData.data, w, h);
   ctx.putImageData(imageData, 0, 0);
 }
 

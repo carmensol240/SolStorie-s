@@ -1,5 +1,5 @@
 // A4 print + PDF helpers for coloring pages (210 x 297 mm portrait).
-import { binarizeColoringPixels } from "../../supabase/functions/_shared/coloring-pixels";
+import { binarizeColoringPixels, normalizeColoringPixels } from "../../supabase/functions/_shared/coloring-pixels";
 
 export interface ColoringExportOptions { preserveColors?: boolean }
 export const A4_MM = { w: 210, h: 297, margin: 10 };
@@ -36,8 +36,9 @@ export function prepareColoringCanvas(img: HTMLImageElement, options: ColoringEx
   ctx.fillRect(0, 0, canvas.width, canvas.height);
   ctx.drawImage(img, 0, 0);
   if (!options.preserveColors) {
+    // Clean page: threshold only. Color or wide dark areas: thin lines + white fills, never black blobs.
     const pixels = ctx.getImageData(0, 0, canvas.width, canvas.height);
-    binarizeColoringPixels(pixels.data);
+    normalizeColoringPixels(pixels.data, canvas.width, canvas.height);
     ctx.putImageData(pixels, 0, 0);
   }
   return canvas;
@@ -64,6 +65,7 @@ export async function downloadColoringPdfA4(url: string, name?: string | null, o
   const f = fitContain(img.naturalWidth, img.naturalHeight, cw, ch);
   ctx.drawImage(source, f.x, f.y, f.w, f.h);
   if (!options.preserveColors) {
+    // Source is already line art here; this only removes scaling gray at line edges.
     const pixels = ctx.getImageData(0, 0, cw, ch);
     binarizeColoringPixels(pixels.data);
     ctx.putImageData(pixels, 0, 0);
