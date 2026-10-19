@@ -3,17 +3,20 @@
 // it is saved. Fixes gender agreement, broken sentences and nikud; never changes plot,
 // names or page length. Any technical failure keeps the original text.
 
+import { talkQuestionsInstruction, sanitizeTalkQuestions } from "./talk-questions.ts";
+
 export const EDITOR_MAX_PAGE_CHARS = 300;
 export const HEBREW_EDITOR_MODEL = "openai/gpt-6-astra";
 
 export interface EditorPage { page_number: number; text: string }
-export type EditorCall = (args: { systemPrompt: string; userPrompt: string; label: string }) => Promise<string | null>;
+export type EditorCall = (args: { systemPrompt: string; userPrompt: string; label: string; schema?: Record<string, unknown> }) => Promise<string | null>;
 
 export interface EditorReport {
   edited: number[];
   rejected: number[];
   nikud_retry: number[];
   still_missing_nikud: number[];
+  talk_questions?: number;
   error?: string;
 }
 
@@ -67,7 +70,17 @@ export function buildEditorSystemPrompt(nikud: boolean) {
 - לא לאחד או לפצל עמודים. אותם מספרי עמודים בדיוק.
 - לא להוסיף כותרות, הסברים או סימוני עמוד בתוך הטקסט.
 
-החזר JSON בלבד: {"pages":[{"page_number":1,"text":"..."}]}`;
+${talkQuestionsInstruction("he", nikud)}
+
+החזר JSON בלבד: {"pages":[{"page_number":1,"text":"..."}],"talk_questions":["...","...","..."]}`;
+}
+
+function parseQuestions(raw: string | null): string[] {
+  try {
+    const c = (raw || "").replace(/^```(?:json)?\s*/i, "").replace(/```\s*$/, "").trim();
+    return Array.isArray(JSON.parse(c.slice(c.indexOf("{"), c.lastIndexOf("}") + 1))?.talk_questions)
+      ? JSON.parse(c.slice(c.indexOf("{"), c.lastIndexOf("}") + 1)).talk_questions : [];
+  } catch { return []; }
 }
 
 function parsePages(raw: string | null): EditorPage[] | null {
@@ -110,7 +123,7 @@ export async function editHebrewPages(input: {
   nikud: boolean;
   call: EditorCall;
   maxChars?: number;
-}): Promise<{ pages: EditorPage[]; report: EditorReport }> {
+}): Promise<{ pages: EditorPage[]; report: EditorReport; talkQuestions: string[] }> {
   const { pages, nikud, call } = input;
   const report: EditorReport = { edited: [], rejected: [], nikud_retry: [], still_missing_nikud: [] };
   const result = pages.map((p) => ({ ...p }));
@@ -118,6 +131,7 @@ export async function editHebrewPages(input: {
   const genderHe = input.gender === "female" ? "נקבה (גיבורה)" : "זכר (גיבור)";
   const system = buildEditorSystemPrompt(nikud);
   const finish = (t: string) => (nikud ? t : stripNikud(t));
+  let talkQuestions: string[] = [];
 
   const runOnce = async (subset: EditorPage[], label: string, extra = "") => {
     const userPrompt = `מגדר הדמות הראשית: ${genderHe}
@@ -126,14 +140,16 @@ ${input.otherNames?.length ? `דמויות נוספות: ${input.otherNames.join
 ${extra}
 העמודים:
 ${JSON.stringify({ pages: subset.map((p) => ({ page_number: p.page_number, text: p.text })) })}`;
-    return parsePages(await call({ systemPrompt: system, userPrompt, label }));
+    const raw = await call({ systemPrompt: system, userPrompt, label });
+    if (label === "hebrew-editor") talkQuestions = sanitizeTalkQuestions(parseQuestions(raw), nikud);
+    return parsePages(raw);
   };
 
   try {
     const edited = await runOnce(result, "hebrew-editor");
     if (!edited) {
       report.error = "editor returned no usable pages";
-      return { pages: result, report };
+      return { pages: result, report, talkQuestions };
     }
     for (const page of result) {
       const e = edited.find((x) => x.page_number === page.page_number);
@@ -164,10 +180,11 @@ ${JSON.stringify({ pages: subset.map((p) => ({ page_number: p.page_number, text:
   } catch (err) {
     report.error = String(err).slice(0, 200);
   }
-  return { pages: result, report };
+  report.talk_questions = talkQuestions.length;
+  return { pages: result, report, talkQuestions };
 }
 
-const PAGES_SCHEMA = {
+const PAGES_SCHEMA: any = {
   type: "object",
   additionalProperties: false,
   required: ["pages"],
@@ -181,12 +198,14 @@ const PAGES_SCHEMA = {
         properties: { page_number: { type: "integer" }, text: { type: "string" } },
       },
     },
+    talk_questions: { type: "array", items: { type: "string" } },
   },
 };
+PAGES_SCHEMA.required = ["pages", "talk_questions"];
 
 /** One streamed Lovable AI call (Responses API, strict JSON). Returns null on any failure. */
 export function gatewayEditorCall(apiKey: string, timeoutMs = 120_000): EditorCall {
-  return async ({ systemPrompt, userPrompt, label }) => {
+  return async ({ systemPrompt, userPrompt, label, schema }) => {
     try {
       const res = await fetch("https://ai.gateway.lovable.dev/v1/responses", {
         method: "POST",
@@ -205,7 +224,7 @@ export function gatewayEditorCall(apiKey: string, timeoutMs = 120_000): EditorCa
           stream: true,
           store: false,
           reasoning: { effort: "low" },
-          text: { format: { type: "json_schema", name: "edited_pages", strict: true, schema: PAGES_SCHEMA } },
+          text: { format: { type: "json_schema", name: schema ? "talk_questions" : "edited_pages", strict: true, schema: schema ?? PAGES_SCHEMA } },
         }),
         signal: AbortSignal.timeout(timeoutMs),
       });
