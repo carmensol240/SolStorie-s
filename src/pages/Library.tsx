@@ -1,7 +1,7 @@
 import GlobalFooter from "@/components/shared/GlobalFooter";
 import React, { useState, useEffect, useMemo, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
-import { ArrowRight, Plus, Coins, Wand2, BookOpen, WifiOff, Plane, Palette, Download, Paintbrush } from "lucide-react";
+import { ArrowRight, Plus, Coins, Wand2, BookOpen, WifiOff, Plane, Palette, Download, Paintbrush, Printer } from "lucide-react";
 import { getPublicIllustrationUrl } from "@/lib/illustration-url";
 import solMagicBookCover from "@/assets/sol-magic-book-cover.png";
 import libraryGirlReading from "@/assets/library-girl-reading.png";
@@ -441,6 +441,7 @@ const Library = () => {
                 storyId={story.id}
                 childName={story.child_name}
                 topic={translateTopic(story.topic)}
+                createdAt={story.created_at}
                 coverUrl={getCoverImage(story)}
                 language={story.language}
                 onDelete={handleDeleteStory}
@@ -459,10 +460,17 @@ const Library = () => {
             if (!story.is_taste) {
               if (!isStoryOpen(story) || pdfIds.has(story.id)) return card;
               return (
-                <div key={story.id} className="flex flex-col items-center gap-2">
+                <div key={story.id} className="flex flex-col items-center gap-1">
                   {card}
-                  <Button size="sm" variant="outline" className="min-h-[48px] text-sm font-bold" onClick={() => buyPdf(story.id)}>
-                    🖨️ קובץ להדפסה – {formatPrice("pdf")} ₪
+                  <Button
+                    size="sm"
+                    variant="ghost"
+                    className="h-7 min-h-[28px] px-2 gap-1 rounded-full text-xs font-semibold text-muted-foreground hover:text-foreground hover:bg-muted/60"
+                    onClick={() => buyPdf(story.id)}
+                  >
+                    <Printer className="w-3.5 h-3.5" aria-hidden="true" />
+                    להדפסה
+                    <span className="text-[10px] font-normal opacity-70">{formatPrice("pdf")} ₪</span>
                   </Button>
                 </div>
               );
@@ -502,6 +510,7 @@ const Library = () => {
               storyId={mainStory.id}
               childName={mainStory.child_name}
               topic={folderLabel}
+              createdAt={mainStory.created_at}
               coverUrl={getCoverImage(mainStory)}
               language={mainStory.language}
               onDelete={handleDeleteStory}
@@ -659,8 +668,8 @@ const Library = () => {
   };
 
   const LoadingSkeleton = React.forwardRef<HTMLDivElement>((_, ref) => (
-    <div ref={ref} className="grid grid-cols-2 gap-3">
-      {[1, 2, 3, 4].map((i) => (
+    <div ref={ref} className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
+      {[1, 2, 3, 4, 5, 6, 7, 8].map((i) => (
         <div key={i} className="aspect-[2/3] rounded-r-xl rounded-l-sm bg-muted animate-pulse" aria-hidden="true">
           <div className="absolute left-0 top-0 w-[6px] h-full bg-muted-foreground/10" />
         </div>
@@ -807,7 +816,7 @@ const Library = () => {
         onChoose={(k) => choiceFor && doUnlockTaste(choiceFor, k)}
       />
 
-      <div className="container max-w-lg mx-auto px-3 py-3">
+      <div className="container max-w-lg md:max-w-3xl lg:max-w-5xl mx-auto px-3 py-3">
         {/* Header */}
         <div
           className="p-4 -mx-3 -mt-3 mb-4"
@@ -847,7 +856,11 @@ const Library = () => {
               )}
               <div className="flex items-center gap-1 bg-white/10 border border-purple-400/40 rounded-full px-3 py-1.5 shadow-md">
                 <BookOpen className="w-4 h-4 text-purple-300" aria-hidden="true" />
-                <span className="font-bold text-purple-200 text-sm">{stories.length}</span>
+                {isLoading || authLoading ? (
+                  <span className="font-bold text-purple-200 text-sm animate-pulse" aria-hidden="true">–</span>
+                ) : (
+                  <span className="font-bold text-purple-200 text-sm">{stories.length}</span>
+                )}
               </div>
             </div>
           </div>
@@ -876,7 +889,7 @@ const Library = () => {
             </div>
           </button>
         )}
-        {(credits ?? 0) <= 0 && (
+        {!isLoading && !authLoading && (credits ?? 0) <= 0 && (
           <button
             onClick={() => navigate('/upgrade')}
             className="w-full mb-3 rounded-2xl px-4 py-3 text-right shadow-lg border border-purple-300/50 bg-gradient-to-l from-purple-500/10 to-pink-500/10 hover:from-purple-500/20 hover:to-pink-500/20 transition-all"
@@ -1053,7 +1066,7 @@ const Library = () => {
 
         {/* Create Button */}
         {stories.length > 0 && (
-          <div className="fixed left-3 bottom-20 z-40">
+          <div className="fixed right-3 bottom-20 z-40">
             <Button
               onClick={() => navigate("/create")}
               size="lg"
