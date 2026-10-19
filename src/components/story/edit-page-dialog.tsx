@@ -131,7 +131,7 @@ const EditPageDialog = ({
     setIsEnhancing(true);
     try {
       const { data, error } = await supabase.functions.invoke('enhance-text', {
-        body: { text: currentText }
+        body: { text: currentText, storyId }
       });
       if (error) throw error;
       if (data?.enhancedText) {

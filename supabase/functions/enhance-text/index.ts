@@ -1,5 +1,6 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.39.3";
+import { editHebrewPages, gatewayEditorCall, textHasNikud } from "../_shared/hebrew-editor.ts";
 import { checkRateLimit, getClientIP, rateLimitResponse, RATE_LIMITS } from "../_shared/rate-limiter.ts";
 
 const corsHeaders = {
@@ -46,7 +47,7 @@ serve(async (req) => {
       return rateLimitResponse(rateLimit, corsHeaders, "יותר מדי בקשות. נסה שוב מאוחר יותר.");
     }
 
-    const { text } = await req.json();
+    const { text, storyId } = await req.json();
     
     if (!text || typeof text !== 'string') {
       return new Response(
@@ -134,10 +135,28 @@ serve(async (req) => {
       );
     }
 
+    // Hebrew language editor: gender agreement, whole sentences, nikud like the original page.
+    let finalText = enhancedText;
+    if (typeof storyId === 'string' && storyId && /[\u05D0-\u05EA]/.test(enhancedText)) {
+      const { data: story } = await supabase
+        .from('stories').select('child_name, child_gender, user_id').eq('id', storyId).maybeSingle();
+      if (story && story.user_id === user.id) {
+        const { pages, report } = await editHebrewPages({
+          pages: [{ page_number: 1, text: enhancedText }],
+          gender: story.child_gender || 'male',
+          heroName: story.child_name || '',
+          nikud: textHasNikud([text]),
+          call: gatewayEditorCall(LOVABLE_API_KEY),
+        });
+        finalText = pages[0].text;
+        console.log('Hebrew editor (enhance-text):', JSON.stringify(report));
+      }
+    }
+
     console.log('Enhanced text successfully');
 
     return new Response(
-      JSON.stringify({ enhancedText }),
+      JSON.stringify({ enhancedText: finalText }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
 

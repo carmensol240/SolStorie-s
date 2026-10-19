@@ -1,4 +1,5 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { editHebrewPages, gatewayEditorCall, textHasNikud } from "../_shared/hebrew-editor.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -185,7 +186,7 @@ Deno.serve(async (req) => {
     // Verify story ownership
     const { data: story, error: storyError } = await supabaseAdmin
       .from("stories")
-      .select("id, user_id, child_gender")
+      .select("id, user_id, child_gender, child_name, language")
       .eq("id", storyId)
       .single();
 
@@ -238,6 +239,21 @@ Deno.serve(async (req) => {
       console.log(`Processing page ${page.page_number}...`);
       const newText = await swapGenderWithAI(page.text, targetGender);
       updatedPages.push({ id: page.id, text: newText });
+    }
+
+    // Hebrew language editor on all swapped pages together (failure keeps the swapped text)
+    const editorKey = Deno.env.get("LOVABLE_API_KEY");
+    if (editorKey && (story as any).language !== "en" && updatedPages.length) {
+      const numbered = (pages || []).map((p, i) => ({ page_number: p.page_number, text: updatedPages[i].text }));
+      const { pages: edited, report } = await editHebrewPages({
+        pages: numbered,
+        gender: targetGender,
+        heroName: (story as any).child_name || "",
+        nikud: textHasNikud(numbered.map((p) => p.text)),
+        call: gatewayEditorCall(editorKey),
+      });
+      edited.forEach((p, i) => { updatedPages[i].text = p.text; });
+      console.log("Hebrew editor (swap-gender):", JSON.stringify(report));
     }
 
     // Update pages in database
