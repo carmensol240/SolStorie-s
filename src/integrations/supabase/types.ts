@@ -896,6 +896,7 @@ export type Database = {
           story_outfit: string | null
           story_type: string | null
           summary: string | null
+          talk_questions: string[] | null
           taste_page_limit: number | null
           taste_resume: Json | null
           theme: string | null
@@ -932,6 +933,7 @@ export type Database = {
           story_outfit?: string | null
           story_type?: string | null
           summary?: string | null
+          talk_questions?: string[] | null
           taste_page_limit?: number | null
           taste_resume?: Json | null
           theme?: string | null
@@ -968,6 +970,7 @@ export type Database = {
           story_outfit?: string | null
           story_type?: string | null
           summary?: string | null
+          talk_questions?: string[] | null
           taste_page_limit?: number | null
           taste_resume?: Json | null
           theme?: string | null
