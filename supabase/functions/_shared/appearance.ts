@@ -52,7 +52,8 @@ const tr = (map: Record<string, string>, v?: string | null) => {
 
 /** Request values win; saved profile values fill any gaps. Each field independent. */
 export function mergeAppearance(fromRequest?: Appearance | null, fromProfile?: Appearance | null): Appearance {
-  const pick = (k: keyof Appearance) => clean(fromRequest?.[k]) || clean(fromProfile?.[k]) || "";
+  // Text fields only; the kippah is never merged from the profile (see kippahForRequest).
+  const pick = (k: "hairColor" | "hairStyle" | "clothingType" | "clothingColor") => clean(fromRequest?.[k]) || clean(fromProfile?.[k]) || "";
   return {
     hairColor: pick("hairColor"),
     hairStyle: pick("hairStyle"),
