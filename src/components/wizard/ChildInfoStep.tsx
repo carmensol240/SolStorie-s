@@ -32,6 +32,10 @@ interface ChildInfoStepProps {
   updateFormData: (updates: Partial<StoryFormData>) => void;
   /** 1 = basics (name/age/gender/language), 2 = personalization (photo/clothing/hair) */
   screen?: 1 | 2;
+  /** Set when a saved tab draft was restored: skip auto-filling the first profile. */
+  restoredDraft?: { selectedChildId: string | null } | null;
+  onSelectedChildChange?: (id: string | null) => void;
+  onNewProfile?: () => void;
 }
 
 interface PhotoTip {
@@ -88,7 +92,7 @@ const rangeToAge = (range: string): number => {
   }
 };
 
-const ChildInfoStep = ({ formData, updateFormData, screen = 1 }: ChildInfoStepProps) => {
+const ChildInfoStep = ({ formData, updateFormData, screen = 1, restoredDraft, onSelectedChildChange, onNewProfile }: ChildInfoStepProps) => {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const { user } = useAuth();
   const [savedChildren, setSavedChildren] = useState<SavedChild[]>([]);
@@ -103,8 +107,14 @@ const ChildInfoStep = ({ formData, updateFormData, screen = 1 }: ChildInfoStepPr
   const [displayName, setDisplayName] = useState<string | null>(null);
   const [priorPhotoConsent, setPriorPhotoConsent] = useState(false);
   const [isCreatingNew, setIsCreatingNew] = useState(false);
-  const [selectedChildId, setSelectedChildId] = useState<string | null>(null);
-  const hasAutoLoadedRef = useRef<string | null>(null);
+  const [selectedChildId, setSelectedChildId] = useState<string | null>(restoredDraft?.selectedChildId ?? null);
+  // A restored tab draft counts as "already loaded" so the first profile never overwrites it.
+  const hasAutoLoadedRef = useRef<string | null>(restoredDraft && user?.id ? user.id : null);
+  useEffect(() => {
+    if (restoredDraft) setIsCreatingNew(!restoredDraft.selectedChildId);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+  useEffect(() => { onSelectedChildChange?.(selectedChildId); }, [selectedChildId, onSelectedChildChange]);
 
   // Persist selected child id so other screens (e.g. Library) can show the matching avatar
   useEffect(() => {
