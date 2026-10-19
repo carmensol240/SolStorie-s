@@ -608,25 +608,6 @@ const Library = () => {
   const buyPdf = (storyId: string) =>
     openGrowCheckout("pdf", { userId: user?.id ?? null, storyId });
 
-  const handleDownloadColoringPage = useCallback(async (coloringImagePath: string, storyTopic?: string) => {
-    try {
-      const url = getPublicIllustrationUrl(coloringImagePath);
-      if (!url) throw new Error('No URL');
-      const res = await fetch(url);
-      const blob = await res.blob();
-      const blobUrl = URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = blobUrl;
-      a.download = `coloring-${storyTopic || 'page'}.png`;
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
-      URL.revokeObjectURL(blobUrl);
-      toast({ title: "📥 דף הצביעה הורד בהצלחה!" });
-    } catch {
-      toast({ variant: "destructive", title: "שגיאה בהורדה" });
-    }
-  }, [toast]);
 
   const renderColoringPages = (pages: ColoringPageRecord[] = coloringPages) => {
     if (pages.length === 0) {
