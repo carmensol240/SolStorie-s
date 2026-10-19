@@ -167,7 +167,6 @@ const About = () => {
                 </p>
               </div>
 
-
               <div className="flex flex-col items-center gap-1.5 relative rounded-xl p-3" style={{ background: 'linear-gradient(135deg, rgba(255,215,0,0.15), rgba(255,165,0,0.10))', border: '1px solid rgba(255,215,0,0.3)' }}>
                 <span className="absolute -top-2 -right-2 bg-amber-400 text-black text-xs font-black px-2 py-0.5 rounded-full shadow">חדש ✨</span>
                 <span className="text-3xl">🎓</span>
