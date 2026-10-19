@@ -7,7 +7,8 @@ import GlobalFooter from "@/components/shared/GlobalFooter";
 import ChildInfoStep from "@/components/wizard/ChildInfoStep";
 import TopicStep from "@/components/wizard/TopicStep";
 import GeneratingStep from "@/components/wizard/GeneratingStep";
-import { useNavigate, useSearchParams } from "react-router-dom";
+import { useNavigate, useSearchParams, useLocation } from "react-router-dom";
+import { saveCreateDraft, loadCreateDraft, clearCreateDraft, type CreateDraft } from "@/lib/create-draft";
 import { useAuth } from "@/hooks/use-auth";
 import { useCredits } from "@/hooks/use-credits";
 import { splitCredits, type CreditKind } from "@/hooks/use-credit-kinds";
@@ -87,10 +88,25 @@ const steps = [
 const CreateStory = () => {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
+  const location = useLocation();
   const { user, loading } = useAuth();
   const { credits, loading: creditsLoading, hasCredits, refetch: refetchCredits } = useCredits();
   const { trackEvent } = useAnalytics();
-  const [step, setStep] = useState(1);
+  // Steps 1-3 live in the address (/create?step=N) so the browser/phone "Back"
+  // moves between steps. Step 5 (creating) is internal and never in history.
+  const [generatingStep, setGeneratingStep] = useState(false);
+  const urlStep = (() => { const n = Number(searchParams.get("step")); return n === 2 || n === 3 ? n : 1; })();
+  const step = generatingStep ? 5 : urlStep;
+  const setStep = useCallback((n: number) => {
+    if (n === 5) { setGeneratingStep(true); return; }
+    setGeneratingStep(false);
+    navigate(`/create?step=${n}`, { replace: true });
+  }, [navigate]);
+  const goToStep = (n: number) => navigate(`/create?step=${n}`, { state: { fromForm: true } });
+  const [draft, setDraft] = useState<CreateDraft | null>(null);
+  const [draftReady, setDraftReady] = useState(false);
+  const selectedChildIdRef = useRef<string | null>(null);
+  const onSelectedChildChange = useCallback((id: string | null) => { selectedChildIdRef.current = id; }, []);
   const [formData, setFormData] = useState<StoryFormData>(INITIAL_DATA);
   const [isGenerating, setIsGenerating] = useState(false);
   const [awaitingGenerationAfterAuth, setAwaitingGenerationAfterAuth] = useState(false);
@@ -161,6 +177,7 @@ const CreateStory = () => {
     
     // Creation finished: drop the in-progress mark and the saved form
     clearGenerationSession(user.id);
+    clearCreateDraft(user.id);
     // Mark that a story was just created so the PDF popup shows
     sessionStorage.setItem("just_created_story", "true");
     // Navigate using slug for clean URLs — guaranteed to run
@@ -246,6 +263,26 @@ const CreateStory = () => {
     return () => clearInterval(t);
   }, [arrival, user]);
 
+  // Restore this tab's saved answers (per user) once, before the form shows.
+  useEffect(() => {
+    if (loading || draftReady) return;
+    if (!user) { if (isDevModeEnabled()) setDraftReady(true); return; }
+    const d = loadCreateDraft(user.id);
+    if (d) {
+      setFormData((prev) => ({ ...prev, ...(d.data as Partial<StoryFormData>) }));
+      selectedChildIdRef.current = d.selectedChildId;
+      setDraft(d);
+    }
+    setDraftReady(true);
+  }, [loading, user, draftReady]);
+
+  // Save answers to this tab as the parent fills the form (never image data).
+  useEffect(() => {
+    if (!draftReady || !user || step === 5) return;
+    const t = setTimeout(() => saveCreateDraft(user.id, formData as unknown as Record<string, unknown>, selectedChildIdRef.current), 300);
+    return () => clearTimeout(t);
+  }, [formData, draftReady, user, step]);
+
   const updateFormData = (updates: Partial<StoryFormData>) => {
     setFormData((prev) => ({ ...prev, ...updates }));
   };
@@ -262,11 +299,18 @@ const CreateStory = () => {
     formData.photoConsent
   );
 
+  // Opening ?step=2/3 with earlier steps incomplete → first incomplete step.
+  useEffect(() => {
+    if (!draftReady || step === 5) return;
+    if (step >= 2 && !canProceedStep1) setStep(1);
+    else if (step === 3 && !canProceedPersonalization) setStep(2);
+  }, [draftReady, step, canProceedStep1, canProceedPersonalization, setStep]);
+
   const canProceedTopic = formData.topic.length > 0 || formData.customTopic.trim().length > 0;
 
   const handleNext = async () => {
     if (step === 1 && canProceedStep1) {
-      setStep(2);
+      goToStep(2);
     } else if (step === 2 && canProceedPersonalization) {
       trackEvent({
         eventType: "child_info_completed",
@@ -280,7 +324,7 @@ const CreateStory = () => {
       if (formData.childPhoto) {
         trackEvent({ eventType: "photo_uploaded" });
       }
-      setStep(3);
+      goToStep(3);
     } else if (step === 3 && canProceedTopic) {
       trackEvent({
         eventType: "topic_selected",
@@ -370,6 +414,7 @@ const CreateStory = () => {
 
   const startNewStory = () => {
     clearGenerationSession(user?.id);
+    clearCreateDraft(user?.id);
     setArrival(null);
     setRequestId(null);
     setFormData(INITIAL_DATA);
@@ -387,7 +432,8 @@ const CreateStory = () => {
     if (step === 1) {
       navigate("/"); // Go back to home from first step
     } else if (step > 1) {
-      setStep(step - 1);
+      if ((location.state as { fromForm?: boolean } | null)?.fromForm) navigate(-1);
+      else setStep(step - 1);
     }
   };
 
@@ -403,7 +449,7 @@ const CreateStory = () => {
   }
 
   // Checking for a creation in progress before showing the form
-  if (!arrivalChecked && user) {
+  if ((!arrivalChecked || !draftReady) && user) {
     return (
       <div className="flex items-center justify-center bg-background" style={{ minHeight: '100dvh' }}>
         <Loader2 className="w-8 h-8 animate-spin text-primary" aria-label="טוען" />
@@ -509,6 +555,9 @@ const CreateStory = () => {
               formData={formData}
               updateFormData={updateFormData}
               screen={step === 1 ? 1 : 2}
+              restoredDraft={draft}
+              onSelectedChildChange={onSelectedChildChange}
+              onNewProfile={() => clearCreateDraft(user?.id)}
             />
           )}
           {step === 3 && (
