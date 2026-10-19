@@ -57,6 +57,7 @@ import { useAutoFitText } from "@/hooks/use-auto-fit-text";
 // useSignedUrls removed - story-illustrations bucket is public
 import { BookFrame, BookPage, BookHeader, NavigationArrows, MagicalBookFrame } from "@/components/story/book-frame";
 import { ReaderIllustration } from "@/components/story/book-frame/ReaderIllustration";
+import { ScrollHintText } from "@/components/story/book-frame/ScrollHintText";
 import { TheaterFrame } from "@/components/story/theater-frame";
 import PdfFeaturePopup from "@/components/story/PdfFeaturePopup";
 import PrintBookPreviewModal from "@/components/story/PrintBookPreviewModal";
@@ -2202,7 +2203,8 @@ const [currentPage, setCurrentPage] = useState(0);
                     return (
                       <div className="absolute inset-0 bg-paper text-paper-foreground flex flex-col lg:grid lg:grid-cols-2" dir="rtl" data-testid="story-spread">
                         {/* Text page (right on wide screens, below the picture on phones) */}
-                        <div data-story-scroll className="order-2 lg:order-1 flex-initial min-h-0 lg:h-full lg:min-h-0 overflow-y-auto flex flex-col lg:justify-center px-5 md:px-10 pt-2 lg:pt-8 pb-14 lg:pb-16 lg:border-l lg:border-paper-muted lg:shadow-[inset_-12px_0_18px_-14px_hsl(var(--paper-foreground)/0.35)]">
+                        <div className={cn("order-2 lg:order-1 min-h-0 flex flex-col lg:h-full lg:border-l lg:border-paper-muted lg:shadow-[inset_-12px_0_18px_-14px_hsl(var(--paper-foreground)/0.35)]", (currentVirtual.illustrationUrl || currentVirtual.illustrationPrompt) ? "flex-initial" : "flex-1 lg:col-span-2 lg:border-l-0 lg:shadow-none justify-center")}>
+                         <ScrollHintText resetKey={`${currentPage}-${fontSizeIndex}-${showNikud}`} className="flex flex-col lg:justify-center lg:h-full px-5 md:px-10 pt-2 lg:pt-8 pb-14 lg:pb-16">
                           {displayText.trim() && (
                             <p className={cn("text-center font-semibold whitespace-pre-line", currentFontSize.size)} style={{ lineHeight: '1.65', overflowWrap: 'break-word' }} dir="rtl">
                               {displayText}
@@ -2211,8 +2213,10 @@ const [currentPage, setCurrentPage] = useState(0);
                           <div className="mt-2 flex justify-center">
                             <span className="text-sm font-bold text-paper-foreground/80" data-testid="page-counter">{currentVirtual.dbPage.page_number} / {story.pages.length}</span>
                           </div>
+                         </ScrollHintText>
                         </div>
                         {/* Picture page (left on wide screens, on top on phones) — shrinks when the text is long */}
+                        {(currentVirtual.illustrationUrl || currentVirtual.illustrationPrompt) ? (
                         <div className="order-1 lg:order-2 relative flex-1 min-h-[96px] lg:h-full lg:min-h-0 m-2 lg:m-6">
                           {currentVirtual.illustrationUrl ? (
                             <ReaderIllustration path={currentVirtual.illustrationUrl} />
@@ -2226,6 +2230,9 @@ const [currentPage, setCurrentPage] = useState(0);
                           )}
                           <div className="absolute top-1 left-1 z-20">{recording}</div>
                         </div>
+                        ) : (
+                          <div className="absolute top-3 left-3 z-20">{recording}</div>
+                        )}
                       </div>
                     );
                   })()
