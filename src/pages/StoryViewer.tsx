@@ -2085,7 +2085,7 @@ const [currentPage, setCurrentPage] = useState(0);
                         <img
                           key={`${currentVirtual.illustrationUrl}-${failedImages[currentVirtual.illustrationUrl] || 0}`}
                           src={`${(failedImages[currentVirtual.illustrationUrl] ? getPublicIllustrationUrl(currentVirtual.illustrationUrl) : getReadingIllustrationUrl(currentVirtual.illustrationUrl)) || ''}${failedImages[currentVirtual.illustrationUrl] ? `?retry=${failedImages[currentVirtual.illustrationUrl]}` : ''}`}
-                          alt={currentVirtual.isCover ? (story?.title || story?.topic || 'כריכת הספר') : illustrationAlt(currentVirtual.text, currentVirtual.dbPage?.page_number)}
+                          alt={currentVirtual.isCover ? (story?.topic || 'כריכת הספר') : illustrationAlt(currentVirtual.text, currentVirtual.dbPage?.page_number)}
                           className={cn("absolute inset-0 w-full h-full transition-opacity duration-500 object-contain bg-paper", imageLoadedMap[currentVirtual.illustrationUrl] ? "opacity-100" : "opacity-0")}
                           loading="eager"
                           onLoad={(e) => {
@@ -2187,7 +2187,7 @@ const [currentPage, setCurrentPage] = useState(0);
                         <img
                           key={`${currentVirtual.illustrationUrl}-${failedImages[currentVirtual.illustrationUrl] || 0}`}
                           src={`${(failedImages[currentVirtual.illustrationUrl] ? getPublicIllustrationUrl(currentVirtual.illustrationUrl) : getReadingIllustrationUrl(currentVirtual.illustrationUrl)) || ''}${failedImages[currentVirtual.illustrationUrl] ? `?retry=${failedImages[currentVirtual.illustrationUrl]}` : ''}`}
-                          alt={currentVirtual.isCover ? (story?.title || story?.topic || 'כריכת הספר') : illustrationAlt(currentVirtual.text, currentVirtual.dbPage?.page_number)}
+                          alt={currentVirtual.isCover ? (story?.topic || 'כריכת הספר') : illustrationAlt(currentVirtual.text, currentVirtual.dbPage?.page_number)}
                            className={cn("absolute inset-0 w-full h-full transition-opacity duration-500 object-contain bg-paper", imageLoadedMap[currentVirtual.illustrationUrl] ? "opacity-100" : "opacity-0")}
                           loading="eager"
                           onLoad={(e) => {
@@ -2302,7 +2302,7 @@ const [currentPage, setCurrentPage] = useState(0);
                         {(currentVirtual.illustrationUrl || currentVirtual.illustrationPrompt) ? (
                         <div className="order-1 lg:order-2 relative flex-1 min-h-[40dvh] lg:h-full lg:min-h-0 m-2 lg:m-6">
                           {currentVirtual.illustrationUrl ? (
-                            <ReaderIllustration path={currentVirtual.illustrationUrl} />
+                            <ReaderIllustration path={currentVirtual.illustrationUrl} alt={illustrationAlt(currentVirtual.text, currentVirtual.dbPage?.page_number)} />
                           ) : (
                             <div className="absolute inset-0 flex flex-col items-center justify-center gap-2">
                               <div className="w-full max-h-full aspect-[1408/768] rounded-xl bg-paper-muted animate-pulse" />
