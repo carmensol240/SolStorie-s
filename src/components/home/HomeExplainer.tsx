@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Wand2, BookOpen, Volume2, Printer, Palette, ShieldCheck, UserRound, Sparkles, Check, Minus } from "lucide-react";
+import { Wand2, BookOpen, Volume2, Printer, Palette, ShieldCheck, UserRound, Sparkles, Check, Minus, Languages } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import GlobalFooter from "@/components/shared/GlobalFooter";
 import { CATALOG, formatPrice } from "@/config/promo";
@@ -42,6 +42,7 @@ const INCLUDED = [
   { icon: Volume2, text: "הקראה בקול, ואפשרות להקליט את הקול שלכם" },
   { icon: Printer, text: "ספר אמיתי ביד: קובץ להדפסה (בסיפור המלא)" },
   { icon: Palette, text: "דפי צביעה מאיורי הסיפור" },
+  { icon: Languages, text: "סיפור בעברית או באנגלית, מעולה למשפחות דו-לשוניות ולסבים וסבתות בחו״ל" },
 ];
 
 // What each option includes (mirrors the Upgrade page products).
@@ -58,7 +59,7 @@ const HomeExplainer = () => {
             כל ילד ראוי לסיפור משלו
           </h2>
           <p className="text-center text-lg text-muted-foreground leading-relaxed">
-            סיפור אישי בעברית, עם השם, המראה והעולם של הילד, על הנושא שהכי חשוב לכם עכשיו.
+            סיפור אישי בעברית או באנגלית, עם השם, המראה והעולם של הילד, על הנושא שהכי חשוב לכם עכשיו.
           </p>
         </section>
 

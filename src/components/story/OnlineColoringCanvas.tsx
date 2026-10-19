@@ -1,6 +1,8 @@
 import React, { useRef, useState, useEffect, useCallback, useMemo } from 'react';
 import { Undo2, Redo2, Download, Printer, ArrowRight, PaintBucket, Eraser, Pencil, Trash2, ScreenShare, Smartphone } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { downloadColoringPdfA4, printColoringA4 } from '@/lib/coloring-a4';
+import { toast } from 'sonner';
 
 interface OnlineColoringCanvasProps {
   isOpen: boolean;
@@ -35,13 +37,29 @@ const SKIN_EARTH_COLORS = [
 
 type Tool = 'fill' | 'brush' | 'eraser';
 
-const BRUSH_SIZES = [4, 8, 16];
+const BRUSH_SIZES = [4, 8, 16]; // on-screen px; scaled to the internal resolution when drawing
+const BRUSH_LABELS: Record<number, string> = { 4: 'מכחול דק', 8: 'מכחול בינוני', 16: 'מכחול עבה' };
+
+/** Fixed internal drawing resolution: long side of the page in canvas pixels. */
+export const CANVAS_LONG_SIDE = 2000;
+const HISTORY_MAX = 10; // full-res snapshots are large; keep phones safe
+
+const COLOR_NAMES: Record<string, string> = {
+  '#FF6B6B': 'אדום בהיר', '#EE5A24': 'כתום אדמדם', '#FF9F43': 'כתום', '#FECA57': 'צהוב',
+  '#A3CB38': 'ירוק ליים', '#1DD1A1': 'ירוק מנטה', '#48DBFB': 'תכלת', '#0ABDE3': 'טורקיז',
+  '#5F27CD': 'סגול כהה', '#FF6FF2': 'ורוד', '#C0C0C0': 'אפור', '#2C3E50': 'כחול כהה',
+  '#E63946': 'אדום', '#2196F3': 'כחול',
+  '#87CEEB': 'כחול שמיים', '#000080': 'כחול נייבי', '#9370DB': 'סגול בהיר', '#8A2BE2': 'סגול', '#FFB6C1': 'ורוד בהיר',
+  '#000000': 'שחור', '#FFDBAC': 'גוון עור בהיר', '#F1C27D': 'גוון עור בהיר-בינוני', '#E0AC69': 'גוון עור בינוני',
+  '#C68642': 'גוון עור שזוף', '#8D5524': 'גוון עור כהה', '#5C3317': 'חום כהה', '#A0522D': 'חום',
+  '#DAA520': 'זהב', '#808000': 'ירוק זית', '#228B22': 'ירוק יער', '#6B8F71': 'ירוק מרווה',
+};
+export const colorName = (hex: string) => COLOR_NAMES[hex.toUpperCase()] || 'צבע';
 
 const FILL_CURSOR = `url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='none' stroke='%23333' stroke-width='2'><path d='M2 22l1-1h3l9-9'/><path d='M3 21v-3l9-9'/><path d='M14.5 5.5l4-4 4 4-4 4z'/><path d='M12 8l4-4'/><path d='M19 15v6a1 1 0 01-1 1h-1a1 1 0 01-1-1v-3.28a1 1 0 01.684-.948L19 15z' fill='%234488ff'/></svg>") 2 22, crosshair`;
 
 const ERASER_CURSOR = `url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' width='24' height='24'><circle cx='12' cy='12' r='10' fill='white' stroke='%23999' stroke-width='2'/></svg>") 12 12, crosshair`;
 
-const ERASER_SIZE = 10;
 
 /**
  * Binarize the background to pure black-and-white line art.
@@ -322,10 +340,10 @@ export const OnlineColoringCanvas: React.FC<OnlineColoringCanvasProps> = ({
     setHistory(prev => {
       const next = prev.slice(0, historyIndex + 1);
       next.push(snap);
-      if (next.length > 30) next.shift();
+      if (next.length > HISTORY_MAX) next.shift();
       return next;
     });
-    setHistoryIndex(prev => Math.min(prev + 1, 29));
+    setHistoryIndex(prev => Math.min(prev + 1, HISTORY_MAX - 1));
   }, [historyIndex]);
 
   const undo = useCallback(() => {
@@ -346,63 +364,58 @@ export const OnlineColoringCanvas: React.FC<OnlineColoringCanvasProps> = ({
     setHistoryIndex(newIdx);
   }, [history, historyIndex]);
 
-  const resizeCanvases = useCallback((img: HTMLImageElement) => {
+  // Set up both canvases ONCE per image at a fixed internal resolution.
+  // Never called on resize — resizing only changes the CSS display size (layoutCanvases).
+  const setupCanvases = useCallback((img: HTMLImageElement) => {
     const bgCanvas = bgCanvasRef.current;
     const drawCanvas = canvasRef.current;
     if (!bgCanvas || !drawCanvas) return;
-
-    // Compute trim bounds once
-    if (!trimBoundsRef.current) {
-      trimBoundsRef.current = getContentBounds(img);
-    }
+    if (!trimBoundsRef.current) trimBoundsRef.current = getContentBounds(img);
     const bounds = trimBoundsRef.current;
-
-    const vw = window.innerWidth;
-    const vh = window.innerHeight;
-    const isMobile = vw < 768;
-    // Measure the canvas container directly — its size is already set by the
-    // flex layout (flex-1 min-h-0) AFTER the top/bottom toolbars take their
-    // natural height. This avoids guessing toolbar heights.
-    const area = canvasAreaRef.current;
-    const areaH = area?.clientHeight ?? 0;
-    const areaW = area?.clientWidth ?? 0;
-    const SAFETY = 4;
-    const canvasMaxH = Math.max(120, (areaH || (vh - 240)) - SAFETY);
-    const canvasMaxW = Math.max(120, (areaW || (isMobile ? vw : vw)) - SAFETY);
-
-    // Fit-contain: preserve the trimmed image aspect ratio so the full
-    // illustration is always visible — never cropped, never larger than the
-    // available area.
-    const imgRatio = bounds.sw / bounds.sh;
-    const areaRatio = canvasMaxW / canvasMaxH;
-    let w: number, h: number;
-    if (imgRatio > areaRatio) {
-      w = canvasMaxW;
-      h = Math.round(canvasMaxW / imgRatio);
-    } else {
-      h = canvasMaxH;
-      w = Math.round(canvasMaxH * imgRatio);
-    }
-
+    const k = CANVAS_LONG_SIDE / Math.max(bounds.sw, bounds.sh);
+    const w = Math.round(bounds.sw * k);
+    const h = Math.round(bounds.sh * k);
     bgCanvas.width = w; bgCanvas.height = h;
     drawCanvas.width = w; drawCanvas.height = h;
-
     const ctx = bgCanvas.getContext('2d');
     if (ctx) {
       ctx.fillStyle = '#FFFFFF';
       ctx.fillRect(0, 0, w, h);
+      ctx.imageSmoothingEnabled = true;
+      ctx.imageSmoothingQuality = 'high';
       ctx.drawImage(img, bounds.sx, bounds.sy, bounds.sw, bounds.sh, 0, 0, w, h);
       binarizeToLineArt(ctx, w, h);
     }
     const dCtx = drawCanvas.getContext('2d');
     if (dCtx) {
-      // Ensure the draw layer starts completely empty on every load.
       dCtx.clearRect(0, 0, w, h);
-      const snap = dCtx.getImageData(0, 0, w, h);
-      setHistory([snap]);
+      setHistory([dCtx.getImageData(0, 0, w, h)]);
       setHistoryIndex(0);
     }
   }, []);
+
+  // Fit-contain the canvases inside the available area via CSS only. Never touches pixels.
+  const layoutCanvases = useCallback(() => {
+    const bgCanvas = bgCanvasRef.current;
+    const drawCanvas = canvasRef.current;
+    const area = canvasAreaRef.current;
+    if (!bgCanvas || !drawCanvas || !bgCanvas.width) return;
+    const SAFETY = 4;
+    const maxW = Math.max(120, (area?.clientWidth || window.innerWidth) - SAFETY);
+    const maxH = Math.max(120, (area?.clientHeight || window.innerHeight - 240) - SAFETY);
+    const k = Math.min(maxW / bgCanvas.width, maxH / bgCanvas.height);
+    const cssW = `${Math.floor(bgCanvas.width * k)}px`;
+    const cssH = `${Math.floor(bgCanvas.height * k)}px`;
+    for (const c of [bgCanvas, drawCanvas]) { c.style.width = cssW; c.style.height = cssH; }
+  }, []);
+
+  /** Internal canvas pixels per on-screen pixel (for brush thickness). */
+  const pxScale = () => {
+    const c = canvasRef.current;
+    if (!c) return 1;
+    const r = c.getBoundingClientRect();
+    return r.width ? c.width / r.width : 1;
+  };
 
   const toggleLandscape = useCallback(async () => {
     const goLandscape = !isLandscape;
@@ -417,10 +430,8 @@ export const OnlineColoringCanvas: React.FC<OnlineColoringCanvasProps> = ({
     } catch {
       orientationLockSupported.current = false;
     }
-    setTimeout(() => {
-      if (bgImageRef.current) resizeCanvases(bgImageRef.current);
-    }, 150);
-  }, [isLandscape, resizeCanvases]);
+    setTimeout(layoutCanvases, 150);
+  }, [isLandscape, layoutCanvases]);
 
   const handleClose = useCallback(() => {
     if (isLandscape) {
@@ -440,17 +451,21 @@ export const OnlineColoringCanvas: React.FC<OnlineColoringCanvasProps> = ({
     img.src = backgroundImage;
     img.onload = () => {
       bgImageRef.current = img;
-      resizeCanvases(img);
+      setupCanvases(img);
+      layoutCanvases();
       setBgLoaded(true);
     };
   }, [isOpen, backgroundImage]);
 
   useEffect(() => {
     if (!isOpen || !bgImageRef.current) return;
-    const handler = () => { if (bgImageRef.current) resizeCanvases(bgImageRef.current); };
-    window.addEventListener('resize', handler);
-    return () => window.removeEventListener('resize', handler);
-  }, [isOpen, resizeCanvases]);
+    window.addEventListener('resize', layoutCanvases);
+    window.addEventListener('orientationchange', layoutCanvases);
+    return () => {
+      window.removeEventListener('resize', layoutCanvases);
+      window.removeEventListener('orientationchange', layoutCanvases);
+    };
+  }, [isOpen, layoutCanvases]);
 
   // Re-measure when toolbar height or canvas area size changes
   // (e.g., color rows wrapping, brush sizes appearing, orientation change).
@@ -460,14 +475,12 @@ export const OnlineColoringCanvas: React.FC<OnlineColoringCanvasProps> = ({
     const top = topBarRef.current;
     const area = canvasAreaRef.current;
     if (typeof ResizeObserver === 'undefined') return;
-    const ro = new ResizeObserver(() => {
-      if (bgImageRef.current) resizeCanvases(bgImageRef.current);
-    });
+    const ro = new ResizeObserver(() => layoutCanvases());
     if (bottom) ro.observe(bottom);
     if (top) ro.observe(top);
     if (area) ro.observe(area);
     return () => ro.disconnect();
-  }, [isOpen, resizeCanvases]);
+  }, [isOpen, layoutCanvases]);
 
   const getCanvasPos = useCallback((e: React.MouseEvent | React.TouchEvent) => {
     const canvas = canvasRef.current;
@@ -505,7 +518,7 @@ export const OnlineColoringCanvas: React.FC<OnlineColoringCanvasProps> = ({
         ctx.globalCompositeOperation = 'source-over';
         ctx.fillStyle = currentColor;
         ctx.beginPath();
-        ctx.arc(pos.x, pos.y, currentBrushSize / 2, 0, Math.PI * 2);
+        ctx.arc(pos.x, pos.y, (currentBrushSize * pxScale()) / 2, 0, Math.PI * 2);
         ctx.fill();
       }
       return;
@@ -535,7 +548,7 @@ export const OnlineColoringCanvas: React.FC<OnlineColoringCanvasProps> = ({
 
     ctx.globalCompositeOperation = 'source-over';
     ctx.strokeStyle = colorRef.current;
-    ctx.lineWidth = brushSizeRef.current;
+    ctx.lineWidth = brushSizeRef.current * pxScale();
     ctx.lineCap = 'round';
     ctx.beginPath();
     ctx.moveTo(lastPos.current.x, lastPos.current.y);
@@ -564,48 +577,22 @@ export const OnlineColoringCanvas: React.FC<OnlineColoringCanvasProps> = ({
     return merged;
   }, []);
 
-  const handleSave = useCallback(() => {
+  // Save = A4 PDF of the colored page; print = the same A4 print as everywhere else.
+  const handleSave = useCallback(async () => {
     const merged = getMergedCanvas();
     if (!merged) return;
-    merged.toBlob((blob) => {
-      if (!blob) return;
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = `צביעה-${storyTitle || 'סיפור'}.png`;
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
-      URL.revokeObjectURL(url);
-    }, 'image/png');
-  }, [getMergedCanvas, storyTitle]);
+    try {
+      await downloadColoringPdfA4(merged.toDataURL('image/png'), childName || storyTitle);
+    } catch (e) {
+      console.error('coloring PDF error', e);
+      toast.error('שגיאה ביצירת PDF');
+    }
+  }, [getMergedCanvas, childName, storyTitle]);
 
   const handlePrint = useCallback(() => {
     const merged = getMergedCanvas();
     if (!merged) return;
-    const dataUrl = merged.toDataURL('image/png');
-    const win = window.open('', '_blank');
-    if (!win) return;
-    win.document.write(`<html><head><title>דף צביעה</title>
-      <style>
-        body{margin:0;display:flex;justify-content:center;align-items:center;min-height:100vh}
-        img{max-width:100%;max-height:100vh;object-fit:contain}
-        @media print{
-          @page { size: A4 portrait; margin: 10mm; }
-          html, body { width: 190mm; height: 277mm; margin: 0; padding: 0; }
-          body > *:not(img) { display: none !important; }
-          img {
-            display: block;
-            width: 190mm;
-            height: 277mm;
-            object-fit: contain;
-            object-position: center;
-            page-break-inside: avoid;
-          }
-        }
-      </style>
-      </head><body><img src="${dataUrl}" alt="דף צביעה" onload="window.print();window.close()" /></body></html>`);
-    win.document.close();
+    printColoringA4(merged.toDataURL('image/png'));
   }, [getMergedCanvas]);
 
   const handleClear = useCallback(() => {
@@ -626,7 +613,7 @@ export const OnlineColoringCanvas: React.FC<OnlineColoringCanvasProps> = ({
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-50 bg-white overflow-hidden flex flex-col" style={{
+    <div className="fixed inset-0 z-[110] bg-white overflow-hidden flex flex-col" style={{
       height: '100dvh',
       ...(isLandscape && !orientationLockSupported.current ? {
         transform: 'rotate(-90deg)',
@@ -655,7 +642,7 @@ export const OnlineColoringCanvas: React.FC<OnlineColoringCanvasProps> = ({
             <Undo2 className="w-4 h-4" />
           </Button>
           <div className="w-px h-5 bg-white/30 mx-0.5" />
-          <Button onClick={handleSave} aria-label="שמירת הציור" variant="ghost" size="icon" className="text-white hover:bg-white/20 rounded-xl w-9 h-9">
+          <Button onClick={handleSave} aria-label="הורדת PDF של הציור" variant="ghost" size="icon" className="text-white hover:bg-white/20 rounded-xl w-9 h-9">
             <Download className="w-4 h-4" />
           </Button>
           <Button onClick={handlePrint} aria-label="הדפסה" variant="ghost" size="icon" className="text-white hover:bg-white/20 rounded-xl w-9 h-9">
@@ -713,19 +700,19 @@ export const OnlineColoringCanvas: React.FC<OnlineColoringCanvasProps> = ({
       <div ref={bottomBarRef} className="relative z-20 shrink-0 bg-white/85 backdrop-blur-sm border-t border-purple-200 px-2 py-1.5 space-y-1.5" style={{ paddingBottom: `calc(env(safe-area-inset-bottom, 8px) + 8px)` }}>
         {/* Tools */}
         <div className="flex items-center justify-center gap-2">
-          <button onPointerDown={(e) => { e.stopPropagation(); toolRef.current = 'fill'; setTool('fill'); }}
+          <button type="button" aria-label="דלי צבע" aria-pressed={tool === 'fill'} onPointerDown={(e) => { e.stopPropagation(); toolRef.current = 'fill'; setTool('fill'); }} onClick={(e) => { if (e.detail === 0) { toolRef.current = 'fill'; setTool('fill'); } }}
             className={`w-9 h-9 rounded-full flex items-center justify-center transition-all touch-manipulation ${
               tool === 'fill' ? 'ring-2 ring-purple-500 ring-offset-1 bg-purple-50 shadow-md' : 'bg-gray-100 hover:bg-gray-200'
             }`}>
             <PaintBucket className="w-4 h-4" style={{ color }} />
           </button>
-          <button onPointerDown={(e) => { e.stopPropagation(); toolRef.current = 'brush'; setTool('brush'); }}
+          <button type="button" aria-label="מכחול" aria-pressed={tool === 'brush'} onPointerDown={(e) => { e.stopPropagation(); toolRef.current = 'brush'; setTool('brush'); }} onClick={(e) => { if (e.detail === 0) { toolRef.current = 'brush'; setTool('brush'); } }}
             className={`w-9 h-9 rounded-full flex items-center justify-center transition-all touch-manipulation ${
               tool === 'brush' ? 'ring-2 ring-purple-500 ring-offset-1 bg-purple-50 shadow-md' : 'bg-gray-100 hover:bg-gray-200'
             }`}>
             <Pencil className="w-4 h-4" style={{ color: tool === 'brush' ? color : undefined }} />
           </button>
-          <button type="button" aria-label="מחק" aria-pressed={tool === 'eraser'} onPointerDown={(e) => { e.stopPropagation(); toolRef.current = 'eraser'; setTool('eraser'); }}
+          <button type="button" aria-label="מחק" aria-pressed={tool === 'eraser'} onPointerDown={(e) => { e.stopPropagation(); toolRef.current = 'eraser'; setTool('eraser'); }} onClick={(e) => { if (e.detail === 0) { toolRef.current = 'eraser'; setTool('eraser'); } }}
             className={`w-9 h-9 rounded-full flex items-center justify-center transition-all touch-manipulation ${
               tool === 'eraser' ? 'ring-2 ring-purple-500 ring-offset-1 bg-purple-50 shadow-md' : 'bg-gray-100 hover:bg-gray-200'
             }`}>
@@ -734,7 +721,7 @@ export const OnlineColoringCanvas: React.FC<OnlineColoringCanvasProps> = ({
           {tool === 'brush' && (
             <div className="flex items-center gap-1 mr-2">
               {BRUSH_SIZES.map((s) => (
-                <button key={s} onPointerDown={(e) => { e.stopPropagation(); brushSizeRef.current = s; setBrushSize(s); }}
+                <button key={s} type="button" aria-label={BRUSH_LABELS[s]} aria-pressed={brushSize === s} onPointerDown={(e) => { e.stopPropagation(); brushSizeRef.current = s; setBrushSize(s); }} onClick={(e) => { if (e.detail === 0) { brushSizeRef.current = s; setBrushSize(s); } }}
                   className={`rounded-full bg-gray-700 transition-all touch-manipulation ${brushSize === s ? 'ring-2 ring-purple-500 ring-offset-1' : ''}`}
                   style={{ width: s + 8, height: s + 8 }}
                 />
@@ -745,8 +732,8 @@ export const OnlineColoringCanvas: React.FC<OnlineColoringCanvasProps> = ({
         {/* Skin & earth tones */}
         <div className="flex items-center justify-center gap-1.5 flex-wrap">
           {SKIN_EARTH_COLORS.map((c) => (
-            <button key={c}
-              onPointerDown={(e) => { e.stopPropagation(); selectColor(c); }}
+            <button key={c} type="button" aria-label={colorName(c)} aria-pressed={color === c && tool !== 'eraser'}
+              onPointerDown={(e) => { e.stopPropagation(); selectColor(c); }} onClick={(e) => { if (e.detail === 0) { selectColor(c); } }}
               className={`w-9 h-9 md:w-11 md:h-11 rounded-full border-2 transition-all active:scale-95 touch-manipulation ${
                 color === c && tool !== 'eraser'
                   ? 'scale-110 shadow-lg border-gray-700'
@@ -759,8 +746,8 @@ export const OnlineColoringCanvas: React.FC<OnlineColoringCanvasProps> = ({
         {/* Colors */}
         <div className="flex items-center justify-center gap-1.5 flex-wrap">
           {COLORS.map((c) => (
-            <button key={c}
-              onPointerDown={(e) => { e.stopPropagation(); selectColor(c); }}
+            <button key={c} type="button" aria-label={colorName(c)} aria-pressed={color === c && tool !== 'eraser'}
+              onPointerDown={(e) => { e.stopPropagation(); selectColor(c); }} onClick={(e) => { if (e.detail === 0) { selectColor(c); } }}
               className={`w-9 h-9 md:w-11 md:h-11 rounded-full border-2 transition-all active:scale-95 touch-manipulation ${
                 color === c && tool !== 'eraser'
                   ? 'scale-110 shadow-lg border-gray-700'
@@ -776,8 +763,8 @@ export const OnlineColoringCanvas: React.FC<OnlineColoringCanvasProps> = ({
         {/* Extra colors */}
         <div className="flex items-center justify-center gap-1.5 flex-wrap">
           {EXTRA_COLORS.map((c) => (
-            <button key={c}
-              onPointerDown={(e) => { e.stopPropagation(); selectColor(c); }}
+            <button key={c} type="button" aria-label={colorName(c)} aria-pressed={color === c && tool !== 'eraser'}
+              onPointerDown={(e) => { e.stopPropagation(); selectColor(c); }} onClick={(e) => { if (e.detail === 0) { selectColor(c); } }}
               className={`w-9 h-9 md:w-11 md:h-11 rounded-full border-2 transition-all active:scale-95 touch-manipulation ${
                 color === c && tool !== 'eraser'
                   ? 'scale-110 shadow-lg border-gray-700'
