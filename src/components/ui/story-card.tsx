@@ -89,9 +89,9 @@ const StoryCard = ({
   return (
     <div
       onClick={() => navigate(`/story/${id}`)}
-      onKeyDown={(e) => e.key === 'Enter' && navigate(`/story/${id}`)}
+      onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); navigate(`/story/${id; } }}`)}
       tabIndex={0}
-      role="article"
+      role="button"
       aria-label={`סיפור של ${childName}: ${title}`}
       className={cn(
         'relative bg-card rounded-2xl overflow-hidden cursor-pointer',

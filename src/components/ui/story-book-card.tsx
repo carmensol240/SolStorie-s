@@ -86,9 +86,9 @@ const StoryBookCard = ({
       {/* Outer wrapper for hover lift */}
       <div
         onClick={handleClick}
-        onKeyDown={(e) => e.key === 'Enter' && handleClick()}
+        onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); handleClick(); } }}
         tabIndex={0}
-        role="article"
+        role="button"
         aria-label={`סיפור של ${childName}: ${topic}`}
         className="group cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
       >

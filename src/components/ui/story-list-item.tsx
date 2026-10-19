@@ -90,9 +90,9 @@ const StoryListItem = ({
     <>
       <div
         onClick={handleClick}
-        onKeyDown={(e) => e.key === 'Enter' && handleClick()}
+        onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); handleClick(); } }}
         tabIndex={0}
-        role="article"
+        role="button"
         aria-label={`סיפור של ${childName}: ${topic}`}
         className={cn(
           'flex items-center gap-3 p-3 bg-card rounded-xl',

@@ -140,12 +140,7 @@ const PolaroidCard = ({
   return (
     <>
       <div
-        onClick={handleClick}
-        onKeyDown={(e) => e.key === 'Enter' && handleClick()}
-        tabIndex={0}
-        role="article"
-        aria-label={`סיפור של ${childName}: ${topic}`}
-        className="group cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-purple-400 focus-visible:ring-offset-2 flex flex-col items-center"
+        className="group cursor-pointer flex flex-col items-center"
         style={{
           transform: `rotate(${rotation}deg)`,
           transition: 'transform 0.3s ease, filter 0.3s ease',
@@ -183,6 +178,13 @@ const PolaroidCard = ({
             borderRadius: '4px',
           }}
         >
+          {/* Whole card is one real button (stretched over the frame); the share/menu buttons sit above it. */}
+          <button
+            type="button"
+            onClick={handleClick}
+            aria-label={`סיפור של ${childName}: ${topic}`}
+            className="absolute inset-0 z-10 rounded-[4px] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-purple-400 focus-visible:ring-offset-2"
+          />
           {/* Series badge */}
           {seriesCount && seriesCount > 1 && (
             <div
@@ -299,14 +301,14 @@ const PolaroidCard = ({
           </div>
 
           {/* Title area */}
-          <div dir="rtl" className="mt-1 px-0.5 text-center" style={{ minHeight: '24px' }}>
+          <div dir="rtl" aria-hidden="true" className="mt-1 px-0.5 text-center" style={{ minHeight: '24px' }}>
             <p
               className="text-xs font-bold leading-tight line-clamp-2"
               style={{ fontFamily: "'Caveat', cursive", fontSize: '14px', color: '#e8d5ff' }}
             >
               {topic}
             </p>
-            <p className="text-[10px] leading-tight text-purple-200/60 mt-0.5 truncate">
+            <p className="text-sm leading-tight text-purple-200/80 mt-0.5 truncate">
               {childName}{createdAt ? ` · ${formatCardDate(createdAt)}` : ''}
             </p>
             {isOfflineSaved && offlineSize > 0 && (
