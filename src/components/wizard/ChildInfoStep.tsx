@@ -929,7 +929,8 @@ const ChildInfoStep = ({ formData, updateFormData, screen = 1, restoredDraft, on
 
       {/* Photo Upload - Enlarged */}
       <div id="photo-upload-section" className="space-y-1.5 scroll-mt-24">
-        <Label className="text-sm font-medium">תמונה של הילד/ה</Label>
+        <Label className="text-sm font-medium">תמונה של הילד/ה (רשות)</Label>
+        <p className="text-sm text-muted-foreground">אפשר גם בלי תמונה. הדמות תאויר לפי התיאור שלכם (שיער, לבוש, צבע).</p>
         <div className="relative">
           <input
             ref={fileInputRef}

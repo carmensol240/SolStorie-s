@@ -1,3 +1,4 @@
+import { canProceedWithPhoto } from "@/lib/photo-optional";
 import { useState, useEffect, useCallback, useRef } from "react";
 import { ArrowRight, ArrowLeft, Loader2 } from "lucide-react";
 
@@ -293,11 +294,8 @@ const CreateStory = () => {
     formData.childAge >= 1 &&
     formData.childAge <= 12;
 
-  const canProceedPersonalization = Boolean(
-    formData.childPhoto &&
-    formData.childPhoto.trim().length > 0 &&
-    formData.photoConsent
-  );
+  // Photo is optional; consent is required only when a photo was added.
+  const canProceedPersonalization = canProceedWithPhoto(formData.childPhoto, formData.photoConsent);
 
   // Opening ?step=2/3 with earlier steps incomplete → first incomplete step.
   useEffect(() => {

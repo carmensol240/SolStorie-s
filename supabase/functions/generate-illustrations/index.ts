@@ -453,7 +453,7 @@ async function generateIllustrationGeminiNoFace(
 
     const coverReferenceBlock = coverReferenceUrl
       ? `\n\nSTYLE & CHARACTER REFERENCE (ATTACHED IMAGE): The attached image is a finished Pixar 3D illustration of the SAME main character from EARLIER in this same storybook. The character in this new page MUST MATCH that image EXACTLY — same face, same hair color/style, same skin tone, same outfit, same proportions, same Pixar 3D rendering style. Treat the attached image as the canonical look of this character. Only the scene/pose/background changes; the character itself does not.`
-      : "";
+      : `\n\nNO PHOTO: Create the main character exactly from the CHARACTER LOCK description above (gender, age, hair, outfit). Keep this exact look.`;
 
     const illustrationPrompt = `${visualAnchor}${coverReferenceBlock}
 
@@ -585,10 +585,9 @@ async function generateIllustrationBackup(
       const b = await refToBlob(references.face);
       if (b) { blobs.push(b); refNotes.push(`IMAGE ${blobs.length} is the real child's photo — the character's face must be a Pixar 3D rendering of this child.`); }
     }
-    if (blobs.length === 0) return null;
 
     const fullPrompt = `Create a NEW full illustration (not an edit of the inputs) for a children's storybook page.
-REFERENCES: ${refNotes.join(" ")}
+REFERENCES: ${refNotes.length ? refNotes.join(" ") : "none — create the main character exactly from the CHARACTER LOCK description."}
 
 ${visualAnchor}
 
@@ -615,11 +614,18 @@ ${NO_UI_NEGATIVE}`;
     form.append("size", "1536x1024"); // book pages are landscape
     blobs.forEach((b, i) => form.append("image[]", b, `ref-${i + 1}.png`));
 
-    const response = await fetch("https://ai.gateway.lovable.dev/v1/images/edits", {
-      method: "POST",
-      headers: { Authorization: `Bearer ${LOVABLE_API_KEY}` },
-      body: form,
-    });
+    // No references at all (page 1 without a photo): text-only generation, same prompt.
+    const response = blobs.length
+      ? await fetch("https://ai.gateway.lovable.dev/v1/images/edits", {
+          method: "POST",
+          headers: { Authorization: `Bearer ${LOVABLE_API_KEY}` },
+          body: form,
+        })
+      : await fetch("https://ai.gateway.lovable.dev/v1/images/generations", {
+          method: "POST",
+          headers: { Authorization: `Bearer ${LOVABLE_API_KEY}`, "Content-Type": "application/json" },
+          body: JSON.stringify({ model: BACKUP_IMAGE_MODEL, prompt: fullPrompt, size: "1536x1024" }),
+        });
     if (!response.ok) {
       const body = await response.text().catch(() => "");
       console.error(`Backup image failed: ${response.status} - ${body.slice(0, 300)}`);
@@ -679,7 +685,7 @@ async function generateIllustration(
       ? `Setting: ${adventureLogic.background}. Theme: ${adventureLogic.theme}.`
       : "";
 
-    const stylePrefix = PIXAR_STYLE_COMPACT;
+    const stylePrefix = PIXAR_STYLE;
 
     const negativePrompt = NEGATIVE_PROMPT_FULL;
 
@@ -1840,16 +1846,15 @@ The action, objects, characters, and emotions shown MUST come from the STORY TEX
       // 2) BACKUP, only after normal failures (never after a safety block or a terminal error).
       if (!base64Image && !refusedReason && !terminalReason) {
         const page1Ref = page.page_number !== 1 ? coverReferenceUrl : null;
-        if (page1Ref || childPhotoSignedUrl) {
-          console.log(`[Page ${page.page_number}] Main service failed ${MAIN_ATTEMPTS}x — trying backup with same style/character/references`);
-          base64Image = await generateIllustrationBackup(
-            illustrationPrompt, visualAnchor, effectiveAdventureLogic,
-            { page1: page1Ref, face: childPhotoSignedUrl },
-            storyId, page.page_number,
-          );
-          if (base64Image) modelUsed = "backup_gpt_image";
-          else fallbackReason = `${fallbackReason}; backup failed`;
-        } else {
+        console.log(`[Page ${page.page_number}] Main service failed ${MAIN_ATTEMPTS}x — trying backup with same style/character/references`);
+        base64Image = await generateIllustrationBackup(
+          illustrationPrompt, visualAnchor, effectiveAdventureLogic,
+          { page1: page1Ref, face: childPhotoSignedUrl },
+          storyId, page.page_number,
+        );
+        if (base64Image) modelUsed = "backup_gpt_image";
+        else fallbackReason = `${fallbackReason}; backup failed`;
+        if (!base64Image && !page1Ref && !childPhotoSignedUrl) {
           // No page-1 picture and no photo at all: Flux text-only is the only option.
           base64Image = await generateIllustration(
             illustrationPrompt, effectivePhoto, characterProfile,
