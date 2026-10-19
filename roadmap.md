@@ -43,3 +43,11 @@
 - [x] Report each of the 3 flagged rules (role, actions, real users)
 - [x] Remove/limit illustration + topic-image write rules; stop anonymous listing; check child-photos privacy
 - [x] Tests + re-run security scan
+
+## Live update fix + offline auto-save (Oct 2026)
+- [x] Navigation preload + cookie-free static downloads in the service worker
+- [x] Emergency release (crash / missing file) with anti-loop flag
+- [x] Leaked-password protection on
+- [x] Book opened once saved for offline (Safari-safe timing)
+- [x] iPhone/WebKit check on built version (no console errors)
+- [ ] Live test on soulstory.co.il (publish, second publish, same browser updates) — waits on user publishing
