@@ -2,8 +2,7 @@ import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { isLegacyOpenStory } from "../_shared/legacy-access.ts";
 import { mergeAppearance, hairToEnglish, clothingToEnglish, buildCharacterLock, kippahForStory } from "../_shared/appearance.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.49.1";
-import { cleanColoringImage } from "../_shared/coloring-image.ts";
-import { COLOR_FRACTION_LIMIT } from "../_shared/coloring-pixels.ts";
+import { COLORING_RETRY_INSTRUCTION, produceCleanColoringPage } from "../_shared/coloring-pipeline.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -255,19 +254,17 @@ ${characterLock ? `11. CHARACTER: Keep the main character recognizable. ${charac
       if (!response.ok) throw new Error("Generated image download failed");
       return new Uint8Array(await response.arrayBuffer());
     };
-    let cleaned = await cleanColoringImage(await imageBytes(generatedImage));
-    console.log("Coloring colored pixel fraction:", cleaned.coloredFraction);
-    if (cleaned.coloredFraction > COLOR_FRACTION_LIMIT) {
-      // Exactly one quality retry. If unavailable, keep the cleaned first result.
-      const retry = await generateImage(`${coloringPrompt}\nCRITICAL CORRECTION: pure black outlines on pure white, no color, no gray fill, no shading anywhere in the image. Remove ALL colored areas, including clothing, grass and backgrounds.`);
-      if (retry) cleaned = await cleanColoringImage(await imageBytes(retry));
-    }
+    const finalBytes = await produceCleanColoringPage({
+      first: generatedImage,
+      regenerate: () => generateImage(`${coloringPrompt}\n\n${COLORING_RETRY_INSTRUCTION}`),
+      imageBytes,
+      original: new Uint8Array(imgBuffer),
+    });
     const chunks: string[] = [];
-    for (let i = 0; i < cleaned.bytes.length; i += 8192) {
-      chunks.push(String.fromCharCode(...cleaned.bytes.subarray(i, i + 8192)));
+    for (let i = 0; i < finalBytes.length; i += 8192) {
+      chunks.push(String.fromCharCode(...finalBytes.subarray(i, i + 8192)));
     }
     generatedImage = `data:image/png;base64,${btoa(chunks.join(""))}`;
-    console.log("Coloring page normalized to pure black and white");
 
     // ── Upload to storage & cache ──
     if (story_id && userId) {
