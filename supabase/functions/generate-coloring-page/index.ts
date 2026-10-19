@@ -2,7 +2,7 @@ import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { isLegacyOpenStory } from "../_shared/legacy-access.ts";
 import { mergeAppearance, hairToEnglish, clothingToEnglish, buildCharacterLock, kippahForStory } from "../_shared/appearance.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.49.1";
-import { COLORING_RETRY_INSTRUCTION, produceCleanColoringPage } from "../_shared/coloring-pipeline.ts";
+import { COLORING_FAILED_MESSAGE, COLORING_RETRY_INSTRUCTION, produceCleanColoringPage } from "../_shared/coloring-pipeline.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -257,9 +257,13 @@ ${characterLock ? `11. CHARACTER: Keep the main character recognizable. ${charac
     const finalBytes = await produceCleanColoringPage({
       first: generatedImage,
       regenerate: () => generateImage(`${coloringPrompt}\n\n${COLORING_RETRY_INSTRUCTION}`),
+      lastAttempt: () => generateImage(coloringPrompt),
       imageBytes,
-      original: new Uint8Array(imgBuffer),
     });
+    if (!finalBytes) {
+      // Nothing saved, nothing charged; the parent sees a "try again" message.
+      return jsonResponse({ coloringFailed: true, retryable: true, error: COLORING_FAILED_MESSAGE });
+    }
     const chunks: string[] = [];
     for (let i = 0; i < finalBytes.length; i += 8192) {
       chunks.push(String.fromCharCode(...finalBytes.subarray(i, i + 8192)));
