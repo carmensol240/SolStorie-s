@@ -111,19 +111,23 @@ export const CHARACTER_CONSISTENCY_PROMPT = `CRITICAL — CHARACTER CONSISTENCY:
 
 export const GENDER_SYMBOL_RESTRICTION = `CRITICAL — GENDER-APPROPRIATE APPEARANCE (ABSOLUTE RULE):
 - If the main character is a BOY: he MUST wear masculine clothing only (pants, shorts, t-shirt, hoodie, sweater, jacket, sneakers or boots). ABSOLUTELY NO dresses, NO skirts, NO tutus, NO frilly/princess clothing, NO feminine hair accessories (no flower crowns, no bows, no hair ribbons, no decorative hairpins), NO makeup, NO lipstick, NO purses, NO feminine jewelry or earrings. Hair must be a boy's hairstyle (short or medium length, no decorated ponytails, no buns with flowers).
-- If the main character is a GIRL: NO kippah, NO yarmulke, NO tzitzit, NO male religious clothing or symbols of any kind.
+- If the main character is a GIRL: NO kippah, NO yarmulke, NO tzitzit, NO sidelocks, NO head covering, NO religious clothing or symbols of any kind — absolute.
 - Clothing, hairstyle, and accessories MUST clearly match the stated gender of the main character in EVERY scene without exception. Any visual mismatch with the stated gender is a failure.
-- NO RELIGIOUS ITEMS ON THE MAIN CHARACTER (boy or girl), on every topic including holidays and Bible stories: no kippah/yarmulke, no tzitzit, no peyot/sidelocks, no head covering, no veil/hijab, no cross, no rosary, no priestly robes. Holiday clothing = festive colors only (e.g. blue and white), with no symbol on the clothes. Holiday symbols appear only as objects in the scene (hanukkiah, sufganiyot, flags, candles on a table), never worn by the main character.`;
+- RELIGIOUS ITEMS ON THE MAIN CHARACTER, on every topic including holidays and Bible stories: NO kippah/yarmulke unless the CHARACTER LOCK explicitly includes one (boys only); NEVER tzitzit, no peyot/sidelocks, no head covering, no veil/hijab, no cross, no rosary, no priestly robes. Holiday clothing = festive colors only (e.g. blue and white), with no symbol on the clothes. Holiday symbols appear only as objects in the scene (hanukkiah, sufganiyot, flags, candles on a table), never worn by the main character.`;
 
 /** Build an explicit gender + secular header to prepend to every illustration prompt. */
-export function buildGenderHeader(childGender?: string | null): string {
+export function buildGenderHeader(childGender?: string | null, opts?: { kippah?: boolean }): string {
   const isFemale = (childGender || "").toLowerCase() === "female";
   const label = isFemale ? "GIRL" : "BOY";
   const pronoun = isFemale ? "she/her" : "he/him";
-  const femaleRule = `She is a GIRL. Feminine or neutral clothing only. ABSOLUTELY NO kippah, NO yarmulke, NO tzitzit, NO peyot/sidelocks, NO male religious clothing or symbols.`;
+  const kippah = !isFemale && !!opts?.kippah;
+  const femaleRule = `She is a GIRL. Feminine or neutral clothing only. ABSOLUTELY NO kippah, NO yarmulke, NO tzitzit, NO peyot/sidelocks, NO head covering, NO religious clothing or symbols.`;
   const maleRule = `He is a BOY. Masculine clothing only (pants/shorts/t-shirt/hoodie/sneakers). NO female head covering (no hijab, no veil, no flower crown, no hair bows), NO dresses, NO skirts, NO feminine accessories.`;
+  const religion = kippah
+    ? `KIPPAH: a small knitted kippah is part of this character and MUST appear on his head on EVERY page. NEVER tzitzit, sidelocks/peyot or any other head covering. Holiday symbols only as objects in the scene.`
+    : `NO RELIGIOUS ITEMS: never put a kippah, yarmulke, tzitzit, sidelocks, head covering, veil or cross on the main character, even if the scene mentions a holiday or religion. Uncovered head, hair visible. Holiday symbols only as objects in the scene.`;
   return `MAIN CHARACTER GENDER (ABSOLUTE): The main character is a ${label} (${pronoun}). ${isFemale ? femaleRule : maleRule}
-NO RELIGIOUS ITEMS: never put a kippah, yarmulke, tzitzit, sidelocks, head covering, veil or cross on the main character, even if the scene mentions a holiday or religion. Uncovered head, hair visible. Holiday symbols only as objects in the scene.`;
+${religion}`;
 }
 
 // ─── Helpers ───

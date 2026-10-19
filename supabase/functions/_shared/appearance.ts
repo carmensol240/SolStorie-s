@@ -7,6 +7,7 @@ export interface Appearance {
   hairStyle?: string | null;
   clothingType?: string | null;
   clothingColor?: string | null;
+  kippah?: boolean | null;
 }
 
 const HAIR_COLOR_EN: Record<string, string> = {
@@ -134,6 +135,22 @@ export function resolvePageOutfit(parentOutfit: string, topicOutfit: string | nu
   return parentOutfit;
 }
 
+/** Kippah from THIS request only (missing = false). Never merged from the saved profile. Girls: never. */
+export function kippahForRequest(gender?: string | null, requestKippah?: unknown): boolean {
+  return !isGirl(gender) && requestKippah === true;
+}
+
+/** Kippah for an existing story: the story's own columns only, never the child profile. Girls: never. */
+export function kippahForStory(story?: { kippah?: boolean | null; child_gender?: string | null; kippah_color?: string | null } | null): { kippah: boolean; color: string } {
+  const on = !!story && !isGirl(story.child_gender) && story.kippah === true;
+  return { kippah: on, color: on ? (clean(story?.kippah_color) || "dark blue") : "" };
+}
+
+/** Kippah color: the chosen clothes color, or dark blue. */
+export function kippahColor(a: Appearance): string {
+  return tr(CLOTHING_COLOR_EN, a.clothingColor) || "dark blue";
+}
+
 /** Religious items are allowed only when the parent chose a religious style. None exists today. */
 export const RELIGIOUS_STYLES: string[] = [];
 export const isReligiousStyle = (type?: string | null) => RELIGIOUS_STYLES.includes(clean(type));
@@ -145,7 +162,9 @@ export const isReligiousStyle = (type?: string | null) => RELIGIOUS_STYLES.inclu
 export function buildCharacterCore(opts: {
   gender?: string | null; age?: number | null; ageRange?: string | null;
   hair?: string; skin?: string; eyes?: string; glasses?: boolean; religiousStyle?: boolean;
+  kippah?: boolean; kippahColor?: string;
 }): string {
+  const kippah = !!opts.kippah && !isGirl(opts.gender);
   const g = isGirl(opts.gender) ? "girl" : "boy";
   const age = opts.age && opts.age > 0 ? `${opts.age}-year-old` : opts.ageRange ? `${opts.ageRange}-year-old` : "young";
   const parts = [`a ${age} ${g}`];
@@ -153,7 +172,10 @@ export function buildCharacterCore(opts: {
   if (opts.skin) parts.push(`${opts.skin} skin`);
   if (opts.eyes) parts.push(`${opts.eyes} eyes`);
   if (opts.glasses) parts.push("wearing glasses");
-  if (!opts.religiousStyle) parts.push("uncovered head, hair visible");
+  if (kippah) {
+    parts.push(`wearing a small knitted ${clean(opts.kippahColor) || "dark blue"} kippah`);
+    parts.push("small kippah on the head, hair visible");
+  } else if (!opts.religiousStyle) parts.push("uncovered head, hair visible");
   return parts.join(", ");
 }
 
@@ -169,11 +191,14 @@ export function buildCharacterLock(opts: {
   outfit: string;
   glasses?: boolean;
   religiousStyle?: boolean;
+  kippah?: boolean;
+  kippahColor?: string;
 }): string {
-  const core = buildCharacterCore({ gender: opts.gender, age: opts.age, ageRange: opts.ageRange, hair: opts.hair, glasses: opts.glasses, religiousStyle: opts.religiousStyle });
+  const core = buildCharacterCore({ gender: opts.gender, age: opts.age, ageRange: opts.ageRange, hair: opts.hair, glasses: opts.glasses, religiousStyle: opts.religiousStyle, kippah: opts.kippah, kippahColor: opts.kippahColor });
   const outfitLine = buildOutfitLine(opts.outfit);
   let lock = `CHARACTER LOCK (identical on every page): The main character is ${core}${outfitLine ? `, ${outfitLine}` : ""}.`;
   if (opts.hair) lock += ` The hair color and hairstyle are chosen by the parent and MUST be exactly as described, even if the reference photo shows different hair.`;
   if (opts.outfit) lock += ` The outfit MUST be exactly as described.`;
+  if (opts.kippah && !isGirl(opts.gender)) lock += ` The small kippah MUST appear on his head on EVERY page, with every outfit (including pajamas, swimwear and costumes).`;
   return lock;
 }
