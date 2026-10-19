@@ -73,6 +73,12 @@ export default defineConfig(({ mode }) => ({
         skipWaiting: true,
         clientsClaim: true,
         cleanupOutdatedCaches: true,
+        // Navigations reach the host as real navigations (Sec-Fetch-Mode: navigate) so it
+        // serves the newest deployment and refreshes its pinning cookie. Workbox enables it
+        // only where supported (silently skipped elsewhere).
+        navigationPreload: true,
+        // Precache/static downloads go out without cookies (see public/sw-no-cookies.js).
+        importScripts: ["/sw-no-cookies.js"],
         // No precache-first navigation fallback: HTML always comes from the network first,
         // and the precached index.html is only used when the network fails (see below).
         navigateFallback: null,
