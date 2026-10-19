@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
-import { getPublicIllustrationUrl } from '@/lib/illustration-url';
+import { getPublicIllustrationUrl, getReadingIllustrationUrl } from '@/lib/illustration-url';
 
 /**
  * Full offline storage using IndexedDB.
@@ -129,8 +129,13 @@ export function useFullOfflineStorage() {
         pages.map(async (p) => {
           let blob: Blob | null = null;
           if (p.illustration_url) {
+            // Prefer the small WebP reading copy; fall back to the original.
+            const readingUrl = getReadingIllustrationUrl(p.illustration_url);
             const publicUrl = getPublicIllustrationUrl(p.illustration_url);
-            if (publicUrl) {
+            if (readingUrl) {
+              blob = await fetchImageAsBlob(readingUrl).catch(() => null);
+            }
+            if (!blob && publicUrl) {
               blob = await fetchImageAsBlob(publicUrl);
             }
           }

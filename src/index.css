@@ -10,6 +10,10 @@
     --background: 37 62% 96%;
     --foreground: 259 32% 19%;
 
+    --paper: 40 65% 96%;
+    --paper-foreground: 25 35% 16%;
+    --paper-muted: 36 38% 88%;
+
     --card: 0 0% 100%;
     --card-foreground: 259 32% 19%;
 
