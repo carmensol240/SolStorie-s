@@ -6,6 +6,7 @@ import { useAuth } from "@/hooks/use-auth";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import FunnelSection from "@/components/admin/FunnelSection";
 import IllustrationIssuesSection from "@/components/admin/IllustrationIssuesSection";
+import NlpQualitySection from "@/components/admin/NlpQualitySection";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
@@ -681,6 +682,7 @@ const AdminDashboard = () => {
           <TabsContent value="funnel">
             <FunnelSection />
             <div className="mt-6"><IllustrationIssuesSection /></div>
+            <div className="mt-6"><NlpQualitySection /></div>
           </TabsContent>
 
           {/* ===== USERS TAB ===== */}

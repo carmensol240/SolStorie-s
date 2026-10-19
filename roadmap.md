@@ -22,3 +22,8 @@
 - [ ] Accessibility audit (IS 5568 / WCAG AA): report findings per section, no changes until approval
 - [ ] Shared story links (/s/...) show generic title/image in WhatsApp/Facebook since leaving Netlify — needs a new preview solution (separate task)
 - [x] Remove spectrum claims and result promises from public texts; topic count unified to 140+ (NLP mentions kept)
+
+## NLP in stories (Oct 2026)
+- [x] Fixed list of 13 techniques incl. gang modeling; 7 topic types; sensitive-topic and safety rules
+- [x] Check after writing → targeted fix → niqqud on final text → re-check; report saved per story
+- [x] Control panel: coverage + marked stories with quotes per technique
