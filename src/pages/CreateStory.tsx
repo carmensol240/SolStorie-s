@@ -48,6 +48,7 @@ export interface StoryFormData {
   fixedDetails: string;
   clothingType: string;
   clothingColor: string;
+  kippah?: boolean;
   hairColor: string;
   hairStyle: string;
   adventureLogic?: AdventureLogic;
@@ -71,6 +72,7 @@ const INITIAL_DATA: StoryFormData = {
   fixedDetails: "",
   clothingType: "",
   clothingColor: "",
+  kippah: false,
   hairColor: "",
   hairStyle: "",
 };

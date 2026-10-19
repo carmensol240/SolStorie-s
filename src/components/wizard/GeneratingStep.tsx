@@ -239,6 +239,8 @@ const GeneratingStep = ({ formData, requestId, onComplete }: GeneratingStepProps
               hairStyle: formData.hairStyle || "",
               clothingType: formData.clothingType || "",
               clothingColor: formData.clothingColor || "",
+              // Only what the parent sends now counts; a girl never gets a kippah.
+              kippah: formData.childGender === "male" && !!(formData as any).kippah,
             },
         };
         
