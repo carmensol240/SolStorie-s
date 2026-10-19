@@ -1,7 +1,7 @@
 // Safety net for stories made with credits before per-story unlock records existed.
 // A story the user owns, that is not a free taste, created before the cutoff, is open
 // even when its unlock record is missing. Shared by the story page and coloring server.
-export const LEGACY_UNLOCK_CUTOFF = "2026-10-18T00:00:00Z";
+export const LEGACY_UNLOCK_CUTOFF = "2026-10-18T09:00:00Z";
 
 export interface LegacyStoryInfo {
   user_id?: string | null;

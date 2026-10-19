@@ -16,6 +16,12 @@ describe("legacy story access", () => {
   it("does not open someone else's story", () => {
     expect(isLegacyOpenStory({ user_id: "other", is_taste: false, created_at: "2026-10-17T10:00:00Z" }, U)).toBe(false);
   });
+  it("opens a story created at 08:59 UTC on 18/10/2026 (before the cutoff)", () => {
+    expect(isLegacyOpenStory({ user_id: U, is_taste: false, created_at: "2026-10-18T08:59:00Z" }, U)).toBe(true);
+  });
+  it("does not open a story created at 09:01 UTC on 18/10/2026 without an unlock record", () => {
+    expect(isLegacyOpenStory({ user_id: U, is_taste: false, created_at: "2026-10-18T09:01:00Z" }, U)).toBe(false);
+  });
 });
 
 describe("unlock record on credit use", () => {
