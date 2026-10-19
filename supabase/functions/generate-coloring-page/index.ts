@@ -1,6 +1,6 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { isLegacyOpenStory } from "../_shared/legacy-access.ts";
-import { mergeAppearance, hairToEnglish, clothingToEnglish, buildCharacterLock } from "../_shared/appearance.ts";
+import { mergeAppearance, hairToEnglish, clothingToEnglish, buildCharacterLock, kippahForStory } from "../_shared/appearance.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.49.1";
 
 const corsHeaders = {
@@ -52,7 +52,7 @@ serve(async (req) => {
     // Verify the story belongs to this user
     const { data: storyOwner } = await supabase
       .from("stories")
-      .select("id, child_id, child_name, child_gender, age_range, user_id, is_taste, created_at, story_outfit")
+      .select("id, child_id, child_name, child_gender, age_range, user_id, is_taste, created_at, story_outfit, kippah, kippah_color")
       .eq("id", story_id)
       .eq("user_id", userId)
       .maybeSingle();
@@ -115,8 +115,9 @@ serve(async (req) => {
       const ap = mergeAppearance(null, { hairColor: ch?.hair_color, hairStyle: ch?.hair_style, clothingType: ch?.clothing_type, clothingColor: ch?.clothing_color });
       const hair = hairToEnglish(ap);
       const outfit = clothingToEnglish(ap, (storyOwner as any).child_gender) || (storyOwner as any).story_outfit || "";
-      if (hair || outfit) {
-        characterLock = buildCharacterLock({ gender: (storyOwner as any).child_gender, age: ch?.age ?? null, ageRange: (storyOwner as any).age_range, hair, outfit });
+      const kp = kippahForStory(storyOwner as any);
+      if (hair || outfit || kp.kippah) {
+        characterLock = buildCharacterLock({ gender: (storyOwner as any).child_gender, age: ch?.age ?? null, ageRange: (storyOwner as any).age_range, hair, outfit, kippah: kp.kippah, kippahColor: kp.color });
       }
     } catch (e) { console.warn("character lock lookup failed", e); }
 

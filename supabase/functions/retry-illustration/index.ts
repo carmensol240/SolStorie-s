@@ -1,5 +1,5 @@
 import "https://deno.land/x/xhr@0.1.0/mod.ts";
-import { mergeAppearance, hairToEnglish, clothingToEnglish, pageMentionsOutfit, buildCharacterLock } from "../_shared/appearance.ts";
+import { mergeAppearance, hairToEnglish, clothingToEnglish, pageMentionsOutfit, buildCharacterLock, kippahForStory } from "../_shared/appearance.ts";
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.39.3";
 import {
@@ -74,7 +74,7 @@ serve(async (req) => {
     // Verify story ownership
     const { data: story, error: storyError } = await supabase
       .from("stories")
-      .select("id, user_id, child_id, child_photo_path, child_gender, age_range, child_name, topic, page1_regen_used, page1_regen_lock_at, story_outfit")
+      .select("id, user_id, child_id, child_photo_path, child_gender, age_range, child_name, topic, page1_regen_used, page1_regen_lock_at, story_outfit, kippah, kippah_color")
       .eq("id", storyId)
       .eq("user_id", user.id)
       .maybeSingle();
@@ -358,11 +358,12 @@ serve(async (req) => {
       });
       const hair = hairToEnglish(ap);
       const outfit = pageMentionsOutfit((page as any).text) ? "" : (clothingToEnglish(ap, (story as any).child_gender) || (story as any).story_outfit || "");
-      characterLock = buildCharacterLock({ gender: (story as any).child_gender, age: ch?.age ?? null, ageRange: (story as any).age_range, hair, outfit });
+      const kp = kippahForStory(story as any);
+      characterLock = buildCharacterLock({ gender: (story as any).child_gender, age: ch?.age ?? null, ageRange: (story as any).age_range, hair, outfit, kippah: kp.kippah, kippahColor: kp.color });
     }
     const prompt = `${customPrompt || page.illustration_prompt || `A cheerful children's book illustration for page ${page.page_number}`}\n\n${characterLock}`;
     const pageNarrative = ((page as any).text || "").toString().slice(0, 400);
-    const genderHeader = buildGenderHeader((story as any).child_gender);
+    const genderHeader = buildGenderHeader((story as any).child_gender, { kippah: kippahForStory(story as any).kippah });
     const sceneBlockRaw = pageNarrative
       ? `SCENE (MUST MATCH THE STORY TEXT EXACTLY — illustrate precisely what happens in this page, not a different action):
 STORY TEXT FOR THIS PAGE: "${pageNarrative}"
