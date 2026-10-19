@@ -63,6 +63,23 @@ describe("print book layout", () => {
       expect(s.filter(x => x.kind === "backCover")).toHaveLength(1);
     }
   });
+  it("after the story: talk page, then next adventure, fillers draw → our hero → blank, back cover last", () => {
+    for (let n = 1; n <= 16; n++) {
+      const s = buildPageSequence(pages(Array(n).fill(true))).map(x => x.kind);
+      const t = s.indexOf("talk");
+      expect(s[t + 1]).toBe("theEnd");
+      expect(s[t - 1]).toBe("illustration");
+      const fill = s.slice(t + 2, -1);
+      const order = ["drawMoment", "ourHero"];
+      fill.forEach((k, i) => expect(k).toBe(order[i] ?? "blank"));
+      expect(s[s.length - 1]).toBe("backCover");
+    }
+  });
+  it("7 story pages with pictures → talk, next adventure, draw, our hero, back cover (no blanks)", () => {
+    const s = buildPageSequence(pages(Array(7).fill(true))).map(x => x.kind);
+    expect(s.slice(-5)).toEqual(["talk", "theEnd", "drawMoment", "ourHero", "backCover"]);
+    expect(s).not.toContain("blank");
+  });
   it("English stories are ltr with English fixed texts", () => {
     expect(printLang("en")).toBe("en");
     expect(PRINT_TEXTS.en.dir).toBe("ltr");
