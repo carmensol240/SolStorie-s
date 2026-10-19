@@ -4,7 +4,6 @@
 export const COLOR_CHANNEL_DELTA = 40;
 export const COLOR_FRACTION_LIMIT = 0.01;
 export const LINE_ART_THRESHOLD = 170;
-export const BLACK_FRACTION_LIMIT = 0.08;
 export const BLACK_BLOB_LIMIT = 0.02;
 
 type Pixels = Uint8Array | Uint8ClampedArray;
@@ -109,7 +108,7 @@ export interface ColoringInspection {
   clean: boolean;
 }
 
-/** Both checks: (a) colored pixels, (b) black share and the largest solid black area. */
+/** Both checks: (a) colored pixels above 1%, (b) a solid black area above 2%. blackFraction is reported only. */
 export function inspectColoringPixels(pixels: Pixels, w: number, h: number): ColoringInspection {
   const n = w * h;
   const dark = new Uint8Array(n);
@@ -125,7 +124,7 @@ export function inspectColoringPixels(pixels: Pixels, w: number, h: number): Col
   const largestBlackBlob = n ? largest / n : 0;
   return {
     coloredFraction, blackFraction, largestBlackBlob,
-    clean: coloredFraction <= COLOR_FRACTION_LIMIT && blackFraction <= BLACK_FRACTION_LIMIT && largestBlackBlob <= BLACK_BLOB_LIMIT,
+    clean: coloredFraction <= COLOR_FRACTION_LIMIT && largestBlackBlob <= BLACK_BLOB_LIMIT,
   };
 }
 
