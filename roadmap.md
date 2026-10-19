@@ -40,6 +40,6 @@
 - [x] Reader: picture ≥40% on phone, accessibility in top bar, page 1 not repeating cover, readable dedication
 
 ## Storage rules (Oct 2026)
-- [ ] Report each of the 3 flagged rules (role, actions, real users)
-- [ ] Remove/limit illustration + topic-image write rules; stop anonymous listing; check child-photos privacy
-- [ ] Tests + re-run security scan
+- [x] Report each of the 3 flagged rules (role, actions, real users)
+- [x] Remove/limit illustration + topic-image write rules; stop anonymous listing; check child-photos privacy
+- [x] Tests + re-run security scan
