@@ -33,6 +33,8 @@ function seedFromStoryId(storyId: string): number {
   return Math.abs(hash) % 2147483647;
 }
 
+import { buildMilitaryLock, militaryRoleForStory } from "../_shared/military-family.ts";
+
 serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
@@ -365,6 +367,10 @@ serve(async (req) => {
       characterLock = buildCharacterLock({ gender: (story as any).child_gender, age: ch?.age ?? null, ageRange: (story as any).age_range, hair, outfit, kippah: kp.kippah, kippahColor: kp.color });
       if (outfit) characterLock += `\n\n${buildOutfitLock(outfit)}`;
       characterLock += `\n\n${SINGLE_HERO_RULE}`;
+      // Family member in the reserves/army: fixed IDF uniform, never weapons or gear.
+      const militaryRole = militaryRoleForStory(story.topic, String((page as any).text || ""));
+      const militaryLock = militaryRole ? buildMilitaryLock(militaryRole, String((page as any).text || ""), String(customPrompt || page.illustration_prompt || "")) : "";
+      if (militaryLock) characterLock += `\n\n${militaryLock}`;
     }
     const prompt = `${customPrompt || page.illustration_prompt || `A cheerful children's book illustration for page ${page.page_number}`}\n\n${characterLock}`;
     const pageNarrative = ((page as any).text || "").toString().slice(0, 400);
