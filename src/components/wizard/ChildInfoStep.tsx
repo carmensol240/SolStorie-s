@@ -173,7 +173,7 @@ const ChildInfoStep = ({ formData, updateFormData, screen = 1 }: ChildInfoStepPr
         // Fetch from database for authenticated users
         const { data, error } = await supabase
           .from("children")
-          .select("id, name, age, gender, photo_url, avatar_url, personality_traits, fixed_details, clothing_type, clothing_color, hair_color, hair_style")
+          .select("id, name, age, gender, photo_url, avatar_url, personality_traits, fixed_details, clothing_type, clothing_color, hair_color, hair_style, kippah")
           .eq("user_id", user.id);
         
         if (!error && data && data.length > 0) {
@@ -193,6 +193,7 @@ const ChildInfoStep = ({ formData, updateFormData, screen = 1 }: ChildInfoStepPr
               personalityTraits: firstChild.personality_traits || "",
               fixedDetails: (firstChild as any).fixed_details || "",
               clothingType: (firstChild as any).clothing_type || "",
+              kippah: !!(firstChild as any).kippah,
               clothingColor: (firstChild as any).clothing_color || "",
               hairColor: (firstChild as any).hair_color || "",
               hairStyle: (firstChild as any).hair_style || "",
@@ -224,6 +225,7 @@ const ChildInfoStep = ({ formData, updateFormData, screen = 1 }: ChildInfoStepPr
               personalityTraits: firstChild.personality_traits || "",
               fixedDetails: firstChild.fixed_details || "",
               clothingType: firstChild.clothing_type || "",
+              kippah: !!(firstChild as any).kippah,
               clothingColor: firstChild.clothing_color || "",
               hairColor: firstChild.hair_color || "",
               hairStyle: firstChild.hair_style || "",
@@ -363,6 +365,7 @@ const ChildInfoStep = ({ formData, updateFormData, screen = 1 }: ChildInfoStepPr
       personalityTraits: child.personality_traits || "",
       fixedDetails: (child as any).fixed_details || "",
       clothingType: (child as any).clothing_type || "",
+      kippah: !!(child as any).kippah,
       clothingColor: (child as any).clothing_color || "",
       hairColor: (child as any).hair_color || "",
       hairStyle: (child as any).hair_style || "",
@@ -405,6 +408,7 @@ const ChildInfoStep = ({ formData, updateFormData, screen = 1 }: ChildInfoStepPr
           personality_traits: formData.personalityTraits || null,
           fixed_details: formData.fixedDetails || null,
           clothing_type: formData.clothingType || null,
+          kippah: formData.childGender === "male" && !!formData.kippah,
           clothing_color: formData.clothingColor || null,
           hair_color: formData.hairColor || null,
           hair_style: formData.hairStyle || null,
@@ -437,6 +441,7 @@ const ChildInfoStep = ({ formData, updateFormData, screen = 1 }: ChildInfoStepPr
               personality_traits: formData.personalityTraits || null,
               fixed_details: formData.fixedDetails || null,
               clothing_type: formData.clothingType || null,
+          kippah: formData.childGender === "male" && !!formData.kippah,
               clothing_color: formData.clothingColor || null,
               hair_color: formData.hairColor || null,
               hair_style: formData.hairStyle || null,
@@ -712,7 +717,7 @@ const ChildInfoStep = ({ formData, updateFormData, screen = 1 }: ChildInfoStepPr
             <span className="text-xs font-bold">גיבור</span>
           </button>
           <button
-            onClick={() => updateFormData({ childGender: "female" })}
+            onClick={() => updateFormData({ childGender: "female", kippah: false })}
             className={cn(
               "p-1.5 rounded-lg border-2 transition-all text-center flex items-center justify-center gap-1.5",
               formData.childGender === "female"
@@ -798,6 +803,23 @@ const ChildInfoStep = ({ formData, updateFormData, screen = 1 }: ChildInfoStepPr
           ))}
         </div>
       </div>
+
+      {formData.childGender === "male" && (
+        <div className="space-y-1">
+          <label htmlFor="kippah-checkbox" className="flex items-center gap-2 text-sm font-medium cursor-pointer">
+            <input
+              id="kippah-checkbox"
+              type="checkbox"
+              className="h-5 w-5 accent-primary"
+              checked={!!formData.kippah}
+              onChange={(e) => updateFormData({ kippah: e.target.checked })}
+              aria-describedby="kippah-help"
+            />
+            כיפה
+          </label>
+          <p id="kippah-help" className="text-sm text-muted-foreground">הכיפה תופיע בכל האיורים בסיפור</p>
+        </div>
+      )}
 
       <div className="space-y-1">
         <Label className="text-xs font-medium">צבע עיקרי</Label>

@@ -125,6 +125,7 @@ export type Database = {
           hair_style: string | null
           hobbies: string | null
           id: string
+          kippah: boolean
           name: string
           personality_traits: string | null
           photo_consent: boolean | null
@@ -146,6 +147,7 @@ export type Database = {
           hair_style?: string | null
           hobbies?: string | null
           id?: string
+          kippah?: boolean
           name: string
           personality_traits?: string | null
           photo_consent?: boolean | null
@@ -167,6 +169,7 @@ export type Database = {
           hair_style?: string | null
           hobbies?: string | null
           id?: string
+          kippah?: boolean
           name?: string
           personality_traits?: string | null
           photo_consent?: boolean | null
@@ -880,6 +883,8 @@ export type Database = {
           is_daily_story: boolean | null
           is_premium: boolean | null
           is_taste: boolean
+          kippah: boolean
+          kippah_color: string | null
           language: string
           max_age: number | null
           min_age: number | null
@@ -914,6 +919,8 @@ export type Database = {
           is_daily_story?: boolean | null
           is_premium?: boolean | null
           is_taste?: boolean
+          kippah?: boolean
+          kippah_color?: string | null
           language?: string
           max_age?: number | null
           min_age?: number | null
@@ -948,6 +955,8 @@ export type Database = {
           is_daily_story?: boolean | null
           is_premium?: boolean | null
           is_taste?: boolean
+          kippah?: boolean
+          kippah_color?: string | null
           language?: string
           max_age?: number | null
           min_age?: number | null
