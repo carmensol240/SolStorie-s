@@ -1988,6 +1988,8 @@ ${topic.endsWith('-edu') ? `
 - מותר לך "לדמיין" בפנימיות את הסצנה גם בעמודים האחרים כדי לשמור על קוהרנטיות הסיפור, אבל אל תוציא אותה ל-JSON.
 - איכות הטקסט, העלילה ומספר המילים לעמוד חייבים להישאר בדיוק לפי ההנחיות למעלה — הכלל הזה משפיע רק על צורת ה-JSON.`;
     userPrompt = userPrompt + (language === "en" ? illustrationRuleEn : illustrationRuleHe);
+    // NLP techniques for this topic type (fixed list + per-type requirements)
+    userPrompt = userPrompt + buildNlpInstruction(isCustomTopic ? null : (topicId || topic), language);
 
     console.log("[generate-story] 📡 Calling Lovable AI Gateway (google/gemini-2.5-flash) with retry logic...");
     const geminiResult = await callGatewayWithRetry({
@@ -2303,6 +2305,30 @@ ${fullStoryText}`;
       }
     } catch (rewriteErr) {
       console.warn("[generate-story] Text rewrite error, using original text:", rewriteErr);
+    }
+
+    // === NLP CHECK: verify required techniques, fix missing ones (niqqud runs later on the final text) ===
+    let nlpReport: any = null;
+    try {
+      const nlp = await runNlpCheck({
+        pages: storyData.pages.map((p: any) => ({ page_number: p.page_number, text: String(p.text || "") })),
+        topicId: isCustomTopic ? null : (topicId || topic),
+        isCustom: !!isCustomTopic,
+        language,
+        childName,
+        call: async ({ systemPrompt: sp, userPrompt: up, label, timeoutMs }) => {
+          const r = await callGatewayWithRetry({ apiKey: LOVABLE_API_KEY, label, maxRetries: 1, timeoutMs, systemPrompt: sp, userPrompt: up, jsonMode: true });
+          return r.ok ? r.text : null;
+        },
+      });
+      for (const np of nlp.pages) {
+        const target = storyData.pages.find((p: any) => p.page_number === np.page_number);
+        if (target && nlp.report.fixed_pages.includes(np.page_number)) target.text = np.text;
+      }
+      nlpReport = nlp.report;
+      console.log(`[generate-story] NLP check: type=${nlpReport.type} fixed=${nlpReport.fixed_pages} flagged=${nlpReport.flagged} ${nlpReport.error || ""}`);
+    } catch (nlpErr) {
+      console.warn("[generate-story] NLP check skipped:", nlpErr);
     }
 
     // === SANITIZE: strip any leaked page markers like [עמוד N] / [Page N] from page text ===
