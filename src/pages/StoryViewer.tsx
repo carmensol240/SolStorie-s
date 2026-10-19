@@ -56,6 +56,7 @@ import { useAutoFitText } from "@/hooks/use-auto-fit-text";
 // useSwipe removed - swipe navigation disabled per user request
 // useSignedUrls removed - story-illustrations bucket is public
 import { BookFrame, BookPage, BookHeader, NavigationArrows, MagicalBookFrame } from "@/components/story/book-frame";
+import { ReaderIllustration } from "@/components/story/book-frame/ReaderIllustration";
 import { TheaterFrame } from "@/components/story/theater-frame";
 import PdfFeaturePopup from "@/components/story/PdfFeaturePopup";
 import PrintBookPreviewModal from "@/components/story/PrintBookPreviewModal";
@@ -1714,7 +1715,7 @@ const [currentPage, setCurrentPage] = useState(0);
   // (cover illustration + text + illustration + text), then trigger DemoLockModal.
   // Toddler mode adds a dedicated cover slide before the page-1 text, so it gets
   // one extra slide to expose the same amount of actual content.
-  const DEMO_VIRTUAL_PAGE_LIMIT = 5; // cover + first pages (same content for all ages)
+  const DEMO_VIRTUAL_PAGE_LIMIT = isToddler ? 5 : 3; // 3+: cover + spread 1 + spread 2 (same 2 story pages as before)
   // Unpaid free taste: only its open pages exist; the lock comes after the last one.
   const isTasteLocked = !!story?.is_taste && !isAdminUser;
   const isLockedVirtualPage = (index: number) => {
