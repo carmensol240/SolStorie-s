@@ -27,3 +27,12 @@ describe("illustration rules", () => {
     expect(isHeroCastName("sol", "")).toBe(false);
   });
 });
+
+import { storyTextForPrompt as _stp } from "../../supabase/functions/_shared/style-config";
+describe("story text in picture prompts", () => {
+  it("removes nikud and forbids writing the words in the picture", () => {
+    const out = _stp("סוֹל שׁוֹמַעַת");
+    expect(out).toContain('"סול שומעת"');
+    expect(out).toMatch(/NEVER write/);
+  });
+});
