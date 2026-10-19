@@ -2395,7 +2395,7 @@ ${fullStoryText}`;
           gender: childGender,
           heroName: childName,
           nikud: shouldApplyNikud,
-          call: gatewayEditorCall(LOVABLE_API_KEY),
+          call: gatewayEditorCall(LOVABLE_API_KEY!),
           maxChars: MAX_PAGE_CHARS,
         });
         for (const ep of editedPages) {
