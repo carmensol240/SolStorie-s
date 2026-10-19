@@ -74,7 +74,7 @@ serve(async (req) => {
     // Verify story ownership
     const { data: story, error: storyError } = await supabase
       .from("stories")
-      .select("id, user_id, child_id, child_photo_path, child_gender, age_range, child_name, topic, page1_regen_used, page1_regen_lock_at")
+      .select("id, user_id, child_id, child_photo_path, child_gender, age_range, child_name, topic, page1_regen_used, page1_regen_lock_at, story_outfit")
       .eq("id", storyId)
       .eq("user_id", user.id)
       .maybeSingle();
@@ -357,7 +357,7 @@ serve(async (req) => {
         clothingType: ch?.clothing_type, clothingColor: ch?.clothing_color,
       });
       const hair = hairToEnglish(ap);
-      const outfit = pageMentionsOutfit((page as any).text) ? "" : clothingToEnglish(ap);
+      const outfit = pageMentionsOutfit((page as any).text) ? "" : (clothingToEnglish(ap, (story as any).child_gender) || (story as any).story_outfit || "");
       characterLock = buildCharacterLock({ gender: (story as any).child_gender, age: ch?.age ?? null, ageRange: (story as any).age_range, hair, outfit });
     }
     const prompt = `${customPrompt || page.illustration_prompt || `A cheerful children's book illustration for page ${page.page_number}`}\n\n${characterLock}`;
