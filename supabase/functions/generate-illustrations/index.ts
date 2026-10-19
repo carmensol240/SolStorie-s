@@ -20,6 +20,9 @@ import {
   CAST_DESCRIPTIONS,
   GENDER_SYMBOL_RESTRICTION,
   buildGenderHeader,
+  buildOutfitLock,
+  SINGLE_HERO_RULE,
+  isHeroCastName,
 } from "../_shared/style-config.ts";
 
 // Strict negative instruction — illustrations must be pure children's book art only
@@ -118,43 +121,37 @@ function isRefusal(data: any): string | null {
   return null;
 }
 
-// Cheap vision check: does the freshly generated page show the SAME child as page 1?
-// Runs on a small/fast model with a strict JSON answer, so it costs a fraction of an
-// image generation. Returns null when the check itself could not run (never blocks).
-// strict=true also requires the same art style (used for backup-service pictures).
+// Cheap vision check of a freshly generated page. With a page-1 reference it checks the
+// same child + same 3D style; on every page it checks that the hero appears once, that no
+// text is drawn, that page 1's composition was not copied and that the clothes match.
+// Returns null when the check itself could not run (never blocks).
 async function checkIdentityMatch(
   pageImageUrl: string,
-  pageOneImageUrl: string,
+  pageOneImageUrl: string | null,
   apiKey: string,
-  strict = false,
+  _strict = false,
+  opts: { outfit?: string; allowText?: boolean } = {},
 ): Promise<{ match: boolean; reason: string } | null> {
   try {
+    const hasRef = !!pageOneImageUrl;
+    const img = hasRef ? "Image B" : "The image";
+    const text =
+      (hasRef ? "Image A is page 1 of a children's book. Image B is another page of the SAME book. " : "The image is a page of a children's book. ") +
+      "Answer each question about " + img + ":\n" +
+      (hasRef ? "- same_child: does B show the same main child as A (hair color/length/texture, face, apparent age)? Ignore pose and background.\n" +
+        "- same_style: is B the same polished Pixar-like 3D CGI render style as A (not flat 2D, not simplified cartoon, not painterly, not photo)?\n" +
+        "- copied_composition: does B nearly copy A's composition (same pose, same camera angle and same layout)?\n" : "") +
+      "- hero_twice: does the main child appear twice, or is there a second child who looks almost identical to the main child (a twin/clone)? Different-looking friends do NOT count.\n" +
+      "- has_text: is there any readable text, letters, words, captions or signs drawn in the picture?\n" +
+      (opts.outfit ? `- outfit_ok: is the main child wearing: "${opts.outfit}" (no cape or costume unless listed)?\n` : "") +
+      'Answer strict JSON only: {"same_child":bool,"same_style":bool,"copied_composition":bool,"hero_twice":bool,"has_text":bool,"outfit_ok":bool,"reason":"<max 12 words>"}';
+    const content: any[] = [{ type: "text", text }];
+    if (pageOneImageUrl) content.push({ type: "image_url", image_url: { url: pageOneImageUrl } });
+    content.push({ type: "image_url", image_url: { url: pageImageUrl } });
     const res = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
       method: "POST",
       headers: { Authorization: `Bearer ${apiKey}`, "Content-Type": "application/json" },
-      body: JSON.stringify({
-        model: "google/gemini-2.5-flash-lite",
-        messages: [
-          {
-            role: "user",
-            content: [
-              {
-                type: "text",
-                text:
-                  "Image A is the reference. Image B is another page of the same children's book and MUST show the same child character. " +
-                  "Compare ONLY the child: hair (color, length, texture), face structure, apparent age, and the colors/layout of the outfit. " +
-                  (strict
-                    ? "ALSO require the SAME art style: both must be the same Pixar-like 3D CGI render style (not flat 2D, not painterly, not photo). Any style difference means same_child=false. "
-                    : "") +
-                  "Ignore pose, camera angle, background and lighting. " +
-                  'Answer with strict JSON only: {"same_child": true|false, "reason": "<max 12 words>"}',
-              },
-              { type: "image_url", image_url: { url: pageOneImageUrl } },
-              { type: "image_url", image_url: { url: pageImageUrl } },
-            ],
-          },
-        ],
-      }),
+      body: JSON.stringify({ model: "google/gemini-2.5-flash-lite", messages: [{ role: "user", content }] }),
     });
     if (!res.ok) {
       console.warn(`[IDENTITY-CHECK] gateway returned ${res.status} — skipping check`);
@@ -166,9 +163,16 @@ async function checkIdentityMatch(
     const start = jsonText.indexOf("{");
     const end = jsonText.lastIndexOf("}");
     if (start === -1 || end === -1) return null;
-    const parsed = JSON.parse(jsonText.slice(start, end + 1));
-    if (typeof parsed?.same_child !== "boolean") return null;
-    return { match: parsed.same_child, reason: String(parsed.reason || "").slice(0, 120) };
+    const p = JSON.parse(jsonText.slice(start, end + 1));
+    const problems: string[] = [];
+    if (hasRef && p.same_child === false) problems.push("different child");
+    if (hasRef && p.same_style === false) problems.push("different style");
+    if (hasRef && p.copied_composition === true) problems.push("copied page 1");
+    if (p.hero_twice === true) problems.push("hero twice");
+    if (!opts.allowText && p.has_text === true) problems.push("text in image");
+    if (opts.outfit && p.outfit_ok === false) problems.push("wrong outfit");
+    const reason = `${problems.join(", ")}${p.reason ? ` (${String(p.reason).slice(0, 80)})` : ""}`;
+    return { match: problems.length === 0, reason: problems.length ? reason : String(p.reason || "ok").slice(0, 120) };
   } catch (e) {
     console.warn("[IDENTITY-CHECK] failed:", (e as Error)?.message);
     return null;
@@ -342,7 +346,7 @@ async function generateIllustrationWithFace(
       : "";
 
     const coverReferenceBlock = coverReferenceUrl
-      ? `\n\nSTYLE & CHARACTER REFERENCE (SECOND IMAGE): The SECOND image attached is a finished Pixar 3D illustration of the SAME main character from EARLIER in this same storybook. The character in this new page MUST MATCH that second image EXACTLY — same face shape, same hair color/style, same skin tone, same outfit, same proportions, same Pixar 3D rendering style. Treat the second image as the canonical look of this character. Only the scene/pose/background changes; the character itself does not.`
+      ? `\n\nSTYLE & CHARACTER REFERENCE (SECOND IMAGE): The SECOND image attached is a finished Pixar 3D illustration of the SAME main character from EARLIER in this same storybook. The character in this new page MUST MATCH that second image EXACTLY — same face shape, same hair color/style, same skin tone, same outfit, same proportions, same Pixar 3D rendering style. Treat the second image as the canonical look of this character. Only the character's identity and rendering style carry over. Do NOT copy its composition, pose, camera angle or background — draw a completely new picture for this scene.`
       : "";
 
     const illustrationPrompt = `FACE REFERENCE (FIRST IMAGE): The main character's face MUST be an EXACT 3D Pixar rendering of the child in the FIRST reference photo. Keep all facial features, hair color, hair texture, and skin tone identical.${coverReferenceBlock}
@@ -452,7 +456,7 @@ async function generateIllustrationGeminiNoFace(
       : "";
 
     const coverReferenceBlock = coverReferenceUrl
-      ? `\n\nSTYLE & CHARACTER REFERENCE (ATTACHED IMAGE): The attached image is a finished Pixar 3D illustration of the SAME main character from EARLIER in this same storybook. The character in this new page MUST MATCH that image EXACTLY — same face, same hair color/style, same skin tone, same outfit, same proportions, same Pixar 3D rendering style. Treat the attached image as the canonical look of this character. Only the scene/pose/background changes; the character itself does not.`
+      ? `\n\nSTYLE & CHARACTER REFERENCE (ATTACHED IMAGE): The attached image is a finished Pixar 3D illustration of the SAME main character from EARLIER in this same storybook. The character in this new page MUST MATCH that image EXACTLY — same face, same hair color/style, same skin tone, same outfit, same proportions, same Pixar 3D rendering style. Treat the attached image as the canonical look of this character. Only the character's identity and rendering style carry over. Do NOT copy its composition, pose, camera angle or background — draw a completely new picture for this scene.`
       : `\n\nNO PHOTO: Create the main character exactly from the CHARACTER LOCK description above (gender, age, hair, outfit). Keep this exact look.`;
 
     const illustrationPrompt = `${visualAnchor}${coverReferenceBlock}
@@ -579,7 +583,7 @@ async function generateIllustrationBackup(
     const blobs: Blob[] = [];
     if (references.page1) {
       const b = await refToBlob(references.page1);
-      if (b) { blobs.push(b); refNotes.push(`IMAGE ${blobs.length} is a finished Pixar 3D page of the SAME main character from this same book — match its face, hair, outfit, proportions and EXACT 3D rendering style.`); }
+      if (b) { blobs.push(b); refNotes.push(`IMAGE ${blobs.length} is a finished Pixar 3D page of the SAME main character from this same book — match its face, hair, proportions and EXACT 3D rendering style, but NEVER copy its composition, pose, camera angle or background.`); }
     }
     if (references.face) {
       const b = await refToBlob(references.face);
@@ -1732,7 +1736,7 @@ The action, objects, characters, and emotions shown MUST come from the STORY TEX
         : `SCENE (MUST MATCH TEXT EXACTLY): ${basePrompt}`;
       const genderHeader = buildGenderHeader(childGender, { kippah: kippahInfo.kippah });
       let illustrationPrompt = `${genderHeader}\n\n${charDesc}. ${sceneBlock}. CAMERA: ${cameraAngle}. LIGHTING: ${lighting}. Pixar 3D CGI style, vibrant colors, fantasy children's book, ${compositionClause(cameraAngle)}\n\n${GENDER_SYMBOL_RESTRICTION}`;
-      illustrationPrompt += `\n\n${characterLock}`;
+      illustrationPrompt += `\n\n${characterLock}\n\n${buildOutfitLock(storyOutfit)}\n\n${SINGLE_HERO_RULE}`;
       if (page.page_number === 1) {
         // Page 1 is also cropped into the square library cover card.
         illustrationPrompt += `\n\nCOMPOSITION (COVER SAFE ZONE): The main character is centered in the frame, full body visible, with at least 15% empty margin on every side and extra headroom at the top. Nothing important touches the edges — this image is also cropped to a square cover card.`;
@@ -1751,8 +1755,11 @@ The action, objects, characters, and emotions shown MUST come from the STORY TEX
         { key: "zoe", patterns: [/\bZoe\b/i, /זואי/] },
       ];
       const haystack = `${page.text || ""}\n${basePrompt}`;
-      const matchedCast = castMatchers.filter(({ patterns }) =>
-        patterns.some((re) => re.test(haystack)),
+      // The hero may share a cast name (e.g. a child named Sol): never inject that cast card,
+      // it would add a second lookalike child and the cast's costume.
+      const heroName = String(childName || "").trim().toLowerCase();
+      const matchedCast = castMatchers.filter(({ key, patterns }) =>
+        !isHeroCastName(key, heroName) && patterns.some((re) => re.test(haystack)),
       );
       if (matchedCast.length > 0) {
         const castBlock = matchedCast
@@ -1778,7 +1785,7 @@ The action, objects, characters, and emotions shown MUST come from the STORY TEX
         const learningLetter = topic?.startsWith('letter-') ? topic.replace('letter-', '').toUpperCase() : null;
         const learningNumber = topic?.startsWith('number-') ? topic.replace('number-', '') : null;
         const learningTarget = learningLetter ? `Hebrew letter ${learningLetter}` : `number ${learningNumber}`;
-        illustrationPrompt += ` CRITICAL LEARNING ELEMENT: This is an educational story. The ${learningTarget} MUST appear prominently in this illustration — it fills half the image and is fully visible, not cropped. The letter/number is large, clear, bold, 3D golden style, complete and uncut. Wide shot showing both the child and the full ${learningTarget}. The ${learningTarget} can appear on a wall, tree, sign, cloud, or magical floating object in the scene.`;
+        illustrationPrompt += ` CRITICAL LEARNING ELEMENT: This is an educational story. The ${learningTarget} MUST appear prominently in this illustration — it fills half the image and is fully visible, not cropped. The letter/number is large, clear, bold, 3D golden style, complete and uncut. Wide shot showing both the child and the full ${learningTarget}. The ${learningTarget} can appear on a wall, tree, sign, cloud, or magical floating object in the scene. EXCEPTION to the no-text rule: this single ${learningTarget} is the ONLY writing allowed — no other text, words or captions.`;
         console.log(`[Page ${page.page_number}] 🎓 Injected learning element: ${learningTarget}`);
       }
 
@@ -1893,16 +1900,19 @@ The action, objects, characters, and emotions shown MUST come from the STORY TEX
       // render a completely different child. Compare against page 1 and regenerate once.
       let identityCheck: string | null = null;
       let identityRetried = false;
-      if (illustrationUrl && page.page_number !== 1 && coverReferenceUrl) {
+      if (illustrationUrl) {
         const publicPageUrl = buildPublicIllustrationUrl(illustrationUrl);
         if (publicPageUrl) {
           const isBackup = modelUsed === "backup_gpt_image";
-          const verdict = await checkIdentityMatch(publicPageUrl, coverReferenceUrl, LOVABLE_API_KEY, isBackup);
+          const pageRef = page.page_number !== 1 ? coverReferenceUrl : null;
+          const verdict = await checkIdentityMatch(publicPageUrl, pageRef, LOVABLE_API_KEY, isBackup, {
+            outfit: parentOutfitEn ? storyOutfit : undefined, allowText: !!isLearningTopic,
+          });
           if (!verdict) {
             identityCheck = "unavailable";
           } else if (verdict.match) {
             identityCheck = "match";
-          } else if (isBackup) {
+          } else if (isBackup && pageRef) {
             // Backup picture doesn't match the book: do NOT save it. Hold for admin.
             identityCheck = `mismatch: ${verdict.reason}`;
             console.warn(`[IDENTITY-CHECK] story=${storyId} page=${page.page_number} backup MISMATCH — ${verdict.reason}; not saving, holding for admin`);

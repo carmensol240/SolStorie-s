@@ -1472,7 +1472,8 @@ const [currentPage, setCurrentPage] = useState(0);
         throw new Error("No illustration returned");
       }
     } catch (error) {
-      console.error("Retry illustration error:", error);
+      console.warn("Retry illustration error:", error);
+      if (isSignedOutError(error)) { toast(SIGNED_OUT_TOAST); return; }
       toast({
         variant: "destructive",
         title: "שגיאה ביצירת האיור",
@@ -1530,7 +1531,8 @@ const [currentPage, setCurrentPage] = useState(0);
         setStory(prev => prev ? { ...prev, page1_regen_used: true } : prev);
       }
     } catch (err) {
-      console.error('Page-1 regeneration error:', err);
+      console.warn('Page-1 regeneration error:', err);
+      if (isSignedOutError(err)) { toast(SIGNED_OUT_TOAST); return; }
       const serverMsg = (() => {
         const raw = (err as any)?.context?.body;
         if (typeof raw === 'string' && raw.trim()) {
@@ -2854,6 +2856,9 @@ const [currentPage, setCurrentPage] = useState(0);
     </div>
   );
 };
+
+const isSignedOutError = (err: unknown) => (err as any)?.context?.status === 401;
+const SIGNED_OUT_TOAST = { title: 'צריך להתחבר מחדש', description: 'פג תוקף ההתחברות. התחברו שוב ונסו שוב — לא חויבתם.', variant: 'destructive' as const };
 
 export default StoryViewer;
 

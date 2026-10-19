@@ -13,9 +13,11 @@ export const FULL_BLEED_INSTRUCTION = `CRITICAL: This must be a PURE ILLUSTRATIO
 
 export const STYLE_DESCRIPTOR = `high-quality 3D animated feature film style, soft global illumination, rounded friendly proportions, large expressive eyes, smooth stylized skin, vibrant warm colors`;
 
-export const PIXAR_STYLE = `${FULL_BLEED_INSTRUCTION} ${STYLE_DESCRIPTOR}. Pixar 3D animation style, realistic proportions, warm lighting, detailed hair and skin texture, cinematic quality, Disney-Pixar movie aesthetic like Inside Out or Encanto. Natural skin with subtle pores and warmth, expressive realistic eyes with detailed irises, detailed flowing hair with individual strands visible, warm cinematic soft lighting, rich colorful environment with depth and detail. NOT chibi, NOT toy-like, NOT bobblehead, NOT oversized head. Full body from head to toe, feet VISIBLE and GROUNDED on the surface.`;
+export const NO_TEXT_RULE = `NO TEXT IN THE IMAGE: no text, no letters, no words, no captions, no signs, no labels, no speech bubbles, no writing of any kind.`;
 
-export const PIXAR_STYLE_COMPACT = `${FULL_BLEED_INSTRUCTION} ${STYLE_DESCRIPTOR}. Pixar 3D animation style, realistic proportions, warm lighting, detailed hair and skin texture, cinematic quality, Disney-Pixar movie aesthetic like Inside Out or Encanto. Natural warm skin, expressive realistic eyes, detailed hair, soft cinematic lighting, rich colorful backgrounds. NOT chibi, NOT toy-like, NOT bobblehead. Characters must look like 3D animated movie characters with consistent realistic proportions. ALWAYS show characters FULL BODY from head to toe with feet VISIBLE and GROUNDED on the surface. Frame the character with generous margin from all edges.`;
+export const PIXAR_STYLE = `${FULL_BLEED_INSTRUCTION} ${STYLE_DESCRIPTOR}. Pixar 3D animation style, realistic proportions, warm lighting, detailed hair and skin texture, cinematic quality, Disney-Pixar movie aesthetic like Inside Out or Encanto. Natural skin with subtle pores and warmth, expressive realistic eyes with detailed irises, detailed flowing hair with individual strands visible, warm cinematic soft lighting, rich colorful environment with depth and detail. NOT chibi, NOT toy-like, NOT bobblehead, NOT oversized head. Full body from head to toe, feet VISIBLE and GROUNDED on the surface. ${NO_TEXT_RULE}`;
+
+export const PIXAR_STYLE_COMPACT = `${FULL_BLEED_INSTRUCTION} ${STYLE_DESCRIPTOR}. Pixar 3D animation style, realistic proportions, warm lighting, detailed hair and skin texture, cinematic quality, Disney-Pixar movie aesthetic like Inside Out or Encanto. Natural warm skin, expressive realistic eyes, detailed hair, soft cinematic lighting, rich colorful backgrounds. NOT chibi, NOT toy-like, NOT bobblehead. Characters must look like 3D animated movie characters with consistent realistic proportions. ALWAYS show characters FULL BODY from head to toe with feet VISIBLE and GROUNDED on the surface. Frame the character with generous margin from all edges. ${NO_TEXT_RULE}`;
 
 // ─── Negative Prompts ───
 
@@ -25,7 +27,7 @@ export const PIXAR_STYLE_COMPACT = `${FULL_BLEED_INSTRUCTION} ${STYLE_DESCRIPTOR
  */
 export const ILLUSTRATION_NEGATIVE_PROMPT = `no UI elements, no borders, no phone frame, no icons, no text overlays, no screenshot artifacts, no black bars, no device frame, no toolbar, no navigation bar, no crop marks, no frame border, no margin, no padding around image, full bleed image, clean illustration only, no screenshot, no phone screen, no device frame, no status bar, no notification bar, no mobile UI, no browser chrome, no app interface visible, no black bars, no black side margins, no letterbox, no pillarbox`;
 
-export const NEGATIVE_PROMPT = `chibi, toy-like, bobblehead, oversized head, doll-like, figurine, realistic, photograph, semi-realistic, dark, muted, bokeh, hyper-realistic, floating head, missing body, extra limbs, cropped feet, text, watermark, UI elements, multiple characters, group shot, black bars, black borders, taskbar, status bar, phone frame, app interface, screenshot artifacts, interface elements, icons, text overlays, buttons, menus, device mockup, no screens, no devices, no phones, no tablets, no frames. Clean illustration only, full bleed image, no borders of any kind. ${ILLUSTRATION_NEGATIVE_PROMPT}`;
+export const NEGATIVE_PROMPT = `chibi, toy-like, bobblehead, oversized head, doll-like, figurine, realistic, photograph, semi-realistic, dark, muted, bokeh, hyper-realistic, floating head, missing body, extra limbs, cropped feet, text, watermark, UI elements, duplicate main character, twins, clones, black bars, black borders, taskbar, status bar, phone frame, app interface, screenshot artifacts, interface elements, icons, text overlays, buttons, menus, device mockup, no screens, no devices, no phones, no tablets, no frames. Clean illustration only, full bleed image, no borders of any kind. ${ILLUSTRATION_NEGATIVE_PROMPT}`;
 
 export const NEGATIVE_PROMPT_FULL = `chibi, toy-like, bobblehead, oversized head, doll-like, figurine, realistic, semi-realistic, real human, photograph, photorealistic, dark, muted colors, cinematic bokeh, hyper-realistic, shallow depth of field, floating head, missing body, missing limbs, extra limbs, deformed, distorted, scary, horror, mutated, cropped feet, cut off legs, floating character, half-body, missing feet, text, watermark, UI elements, black bars, black borders, taskbar, status bar, phone frame, app interface, screenshot artifacts, interface elements, icons, text overlays, buttons, menus, navigation bars, device mockup, no screens, no devices, no phones, no tablets, no frames. Clean illustration only, full bleed image, no borders of any kind. no kippah on girls, no yarmulke on female characters, no male religious clothing on female characters, no gender-inappropriate religious symbols, no tzitzit on girls. boy in dress, boy in skirt, boy wearing tutu, boy with flower crown, boy with bow in hair, boy with hair ribbons, boy with makeup, boy with lipstick, boy with purse, boy with feminine jewelry, boy with earrings, boy with long ponytail with ribbon, feminine clothing on boy, dress on male character, skirt on male character, frilly clothing on boy, pink frilly dress on boy, princess dress on boy. ${ILLUSTRATION_NEGATIVE_PROMPT}`;
 
@@ -91,6 +93,16 @@ export const CAST_DESCRIPTIONS = {
   zoe: "a girl named Zoe with voluminous black curls, a light blue headband, wearing a purple-yellow sporty tracksuit, expressive eyes with detailed irises. Realistic proportions, smooth stylized skin, natural warm lighting.",
 } as const;
 
+const CAST_NAMES: Record<keyof typeof CAST_DESCRIPTIONS, string[]> = {
+  sol: ["sol", "סול"], ben: ["ben", "בן"], mia: ["mia", "מיה", "מיא"], leo: ["leo", "ליאו"], zoe: ["zoe", "זואי"],
+};
+
+/** True when the hero child carries this cast member's name — that cast card must not be added. */
+export function isHeroCastName(key: keyof typeof CAST_DESCRIPTIONS, heroName?: string | null): boolean {
+  const n = String(heroName || "").trim().toLowerCase();
+  return !!n && (CAST_NAMES[key] || []).includes(n);
+}
+
 // ─── Full Character Card Descriptions (detailed, for cover/illustration prompts) ───
 
 export const CHARACTER_CARDS = {
@@ -109,7 +121,22 @@ export const TOPIC_IMAGE_STYLE_SUFFIX = `Pixar 3D animation style, realistic pro
 
 // ─── Character Consistency ───
 
-export const CHARACTER_CONSISTENCY_PROMPT = `CRITICAL — CHARACTER CONSISTENCY: The main character must look IDENTICAL in every illustration throughout the story. Same hair color, same hair style, same eye color, same face shape, same skin tone, same outfit in every scene. Any visual deviation between pages is a failure.`;
+/** The hero child appears once. Named companions (siblings, friends, the regular cast) stay allowed. */
+export const SINGLE_HERO_RULE = `MAIN CHARACTER APPEARS ONCE: the main (hero) child appears EXACTLY ONCE in this image — no duplicates, no twins, no clones, no mirror copy, no lookalike second child who resembles the main character. Other people appear only if the scene text explicitly mentions them; companions named in the scene (friends, siblings, story friends) are welcome, must appear when the scene includes them, and must each look clearly different from the main character.`;
+
+/** Reference pictures carry identity and style only — never the layout. */
+export const NEW_COMPOSITION_RULE = `REFERENCE IMAGES ARE FOR IDENTITY AND RENDERING STYLE ONLY: NEVER copy a reference image's composition, pose, camera angle, framing, background or layout. Draw a completely NEW composition — new pose, new angle, new background — that fits THIS page's scene. Keep the exact same high-quality 3D rendering style (NOT flat, NOT 2D cartoon, NOT simplified).`;
+
+/** Parent-chosen clothes win over any outfit mentioned by the topic or the scene. */
+export function buildOutfitLock(outfit: string): string {
+  return `OUTFIT (ABSOLUTE, SAME ON EVERY PAGE): the main character wears exactly: ${outfit}. This overrides any clothing mentioned in the scene text, the topic or a reference image. NO cape, NO superhero costume, NO space suit, NO costume of any kind unless it is part of the outfit above.`;
+}
+
+export const CHARACTER_CONSISTENCY_PROMPT = `CRITICAL — CHARACTER CONSISTENCY: The main character must look IDENTICAL in every illustration throughout the story. Same hair color, same hair style, same eye color, same face shape, same skin tone, same outfit in every scene. Any visual deviation between pages is a failure.
+
+${SINGLE_HERO_RULE}
+
+${NEW_COMPOSITION_RULE}`;
 
 export const GENDER_SYMBOL_RESTRICTION = `CRITICAL — GENDER-APPROPRIATE APPEARANCE (ABSOLUTE RULE):
 - If the main character is a BOY: he MUST wear masculine clothing only (pants, shorts, t-shirt, hoodie, sweater, jacket, sneakers or boots). ABSOLUTELY NO dresses, NO skirts, NO tutus, NO frilly/princess clothing, NO feminine hair accessories (no flower crowns, no bows, no hair ribbons, no decorative hairpins), NO makeup, NO lipstick, NO purses, NO feminine jewelry or earrings. Hair must be a boy's hairstyle (short or medium length, no decorated ponytails, no buns with flowers).

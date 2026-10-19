@@ -129,11 +129,10 @@ export function pageMentionsOutfit(pageText?: string | null): boolean {
  * (mentions the outfit again). No parent clothes → topic outfit as before.
  */
 export function resolvePageOutfit(parentOutfit: string, topicOutfit: string | null | undefined, pageText?: string | null, prevPageText?: string | null): string {
-  const topic = clean(topicOutfit);
-  if (!parentOutfit) return topic;
-  if (topic && pageMentionsOutfit(pageText)) return topic;
-  if (topic && pageMentionsOutfit(prevPageText) && COSTUME_NOUN_RE.test(clean(pageText))) return topic;
-  return parentOutfit;
+  // The parent's chosen clothes always win, on every topic and every page (even when the
+  // text mentions a costume). The topic outfit is used only when the parent chose nothing.
+  void pageText; void prevPageText;
+  return clean(parentOutfit) || clean(topicOutfit);
 }
 
 /** Kippah from THIS request only (missing = false). Never merged from the saved profile. Girls: never. */
