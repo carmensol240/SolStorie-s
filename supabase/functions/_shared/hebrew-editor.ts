@@ -4,7 +4,7 @@
 // names or page length. Any technical failure keeps the original text.
 
 export const EDITOR_MAX_PAGE_CHARS = 300;
-export const HEBREW_EDITOR_MODEL = "google/gemini-2.5-pro";
+export const HEBREW_EDITOR_MODEL = "openai/gpt-6-astra";
 
 export interface EditorPage { page_number: number; text: string }
 export type EditorCall = (args: { systemPrompt: string; userPrompt: string; label: string }) => Promise<string | null>;
@@ -166,29 +166,74 @@ ${JSON.stringify({ pages: subset.map((p) => ({ page_number: p.page_number, text:
   return { pages: result, report };
 }
 
-/** One Lovable AI call for the editor (JSON response). Returns null on any failure. */
-export function gatewayEditorCall(apiKey: string, timeoutMs = 90_000): EditorCall {
+const PAGES_SCHEMA = {
+  type: "object",
+  additionalProperties: false,
+  required: ["pages"],
+  properties: {
+    pages: {
+      type: "array",
+      items: {
+        type: "object",
+        additionalProperties: false,
+        required: ["page_number", "text"],
+        properties: { page_number: { type: "integer" }, text: { type: "string" } },
+      },
+    },
+  },
+};
+
+/** One streamed Lovable AI call (Responses API, strict JSON). Returns null on any failure. */
+export function gatewayEditorCall(apiKey: string, timeoutMs = 120_000): EditorCall {
   return async ({ systemPrompt, userPrompt, label }) => {
     try {
-      const res = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+      const res = await fetch("https://ai.gateway.lovable.dev/v1/responses", {
         method: "POST",
-        headers: { Authorization: `Bearer ${apiKey}`, "Content-Type": "application/json" },
+        headers: {
+          Authorization: `Bearer ${apiKey}`,
+          "Lovable-API-Key": apiKey,
+          "X-Lovable-AIG-SDK": "fetch",
+          "Content-Type": "application/json",
+        },
         body: JSON.stringify({
           model: HEBREW_EDITOR_MODEL,
-          messages: [{ role: "system", content: systemPrompt }, { role: "user", content: userPrompt }],
-          response_format: { type: "json_object" },
+          input: [
+            { role: "system", content: systemPrompt },
+            { role: "user", content: userPrompt },
+          ],
+          stream: true,
+          store: false,
+          reasoning: { effort: "low" },
+          text: { format: { type: "json_schema", name: "edited_pages", strict: true, schema: PAGES_SCHEMA } },
         }),
         signal: AbortSignal.timeout(timeoutMs),
       });
-      if (!res.ok) {
+      if (!res.ok || !res.body) {
         console.warn(`[${label}] editor call failed`, res.status, (await res.text()).slice(0, 200));
         return null;
       }
-      const data = await res.json();
-      const usage = data.usage ? JSON.stringify(data.usage) : "";
+      const reader = res.body.pipeThrough(new TextDecoderStream()).getReader();
+      let buffer = "", text = "", usage = "";
+      while (true) {
+        const { value, done } = await reader.read();
+        if (done) break;
+        buffer += value;
+        const lines = buffer.split("\n");
+        buffer = lines.pop() || "";
+        for (const line of lines) {
+          if (!line.startsWith("data:")) continue;
+          const payload = line.slice(5).trim();
+          if (!payload || payload === "[DONE]") continue;
+          try {
+            const ev = JSON.parse(payload);
+            if (ev.type === "response.output_text.delta" && typeof ev.delta === "string") text += ev.delta;
+            if (ev.type === "response.completed" && ev.response?.usage) usage = JSON.stringify(ev.response.usage);
+            if (ev.type === "response.failed" || ev.type === "error") console.warn(`[${label}] editor stream error`, payload.slice(0, 200));
+          } catch { /* partial line */ }
+        }
+      }
       console.log(`[${label}] editor usage ${usage}`);
-      const content = data.choices?.[0]?.message?.content;
-      return typeof content === "string" ? content : null;
+      return text || null;
     } catch (err) {
       console.warn(`[${label}] editor call error`, err);
       return null;
