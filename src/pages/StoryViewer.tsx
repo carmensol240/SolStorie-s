@@ -1583,6 +1583,13 @@ const [currentPage, setCurrentPage] = useState(0);
   };
 
   // Build virtual pages — split each DB page into illustration + text
+  // Accessible description for a page picture: the page text (≤150 chars, no nikud), or "איור לעמוד X".
+  const illustrationAlt = (text: string | null | undefined, pageNumber?: number | null) => {
+    const clean = (text || '').replace(/[\u0591-\u05C7]/g, '').replace(/\s+/g, ' ').trim();
+    if (!clean) return pageNumber ? `איור לעמוד ${pageNumber}` : 'איור לסיפור';
+    return clean.length > 150 ? clean.slice(0, 149).trimEnd() + '…' : clean;
+  };
+
   type VirtualPage = {
     type: 'illustration' | 'text' | 'combined' | 'spread';
     dbPage: StoryPage;
@@ -2078,7 +2085,7 @@ const [currentPage, setCurrentPage] = useState(0);
                         <img
                           key={`${currentVirtual.illustrationUrl}-${failedImages[currentVirtual.illustrationUrl] || 0}`}
                           src={`${(failedImages[currentVirtual.illustrationUrl] ? getPublicIllustrationUrl(currentVirtual.illustrationUrl) : getReadingIllustrationUrl(currentVirtual.illustrationUrl)) || ''}${failedImages[currentVirtual.illustrationUrl] ? `?retry=${failedImages[currentVirtual.illustrationUrl]}` : ''}`}
-                          alt="איור"
+                          alt={currentVirtual.isCover ? (story?.title || story?.topic || 'כריכת הספר') : illustrationAlt(currentVirtual.text, currentVirtual.dbPage?.page_number)}
                           className={cn("absolute inset-0 w-full h-full transition-opacity duration-500 object-contain bg-paper", imageLoadedMap[currentVirtual.illustrationUrl] ? "opacity-100" : "opacity-0")}
                           loading="eager"
                           onLoad={(e) => {
@@ -2180,7 +2187,7 @@ const [currentPage, setCurrentPage] = useState(0);
                         <img
                           key={`${currentVirtual.illustrationUrl}-${failedImages[currentVirtual.illustrationUrl] || 0}`}
                           src={`${(failedImages[currentVirtual.illustrationUrl] ? getPublicIllustrationUrl(currentVirtual.illustrationUrl) : getReadingIllustrationUrl(currentVirtual.illustrationUrl)) || ''}${failedImages[currentVirtual.illustrationUrl] ? `?retry=${failedImages[currentVirtual.illustrationUrl]}` : ''}`}
-                          alt="איור"
+                          alt={currentVirtual.isCover ? (story?.title || story?.topic || 'כריכת הספר') : illustrationAlt(currentVirtual.text, currentVirtual.dbPage?.page_number)}
                            className={cn("absolute inset-0 w-full h-full transition-opacity duration-500 object-contain bg-paper", imageLoadedMap[currentVirtual.illustrationUrl] ? "opacity-100" : "opacity-0")}
                           loading="eager"
                           onLoad={(e) => {
