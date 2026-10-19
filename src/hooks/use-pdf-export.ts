@@ -284,10 +284,18 @@ export const usePdfExport = () => {
     const box = el.querySelector('[data-fit-box]') as HTMLElement;
     const ps = Array.from(el.querySelectorAll('[data-fit]')) as HTMLElement[];
     const avail = DESIGN - 180 - 200;
-    for (const step of TEXT_FIT_STEPS) {
-      ps.forEach(p => { p.style.fontSize = `${step.font}px`; p.style.lineHeight = String(step.line); });
-      if (box.scrollHeight <= avail) break;
-    }
+    const tryFit = () => {
+      for (const step of TEXT_FIT_STEPS) {
+        ps.forEach(p => { p.style.fontSize = `${step.font}px`; p.style.lineHeight = String(step.line); });
+        if (box.scrollHeight <= avail) return true;
+      }
+      return false;
+    };
+    if (tryFit()) return;
+    // Still too tall at 40px / 1.6: let one-sentence-per-line text flow as a paragraph
+    // (same words, wider lines) instead of going below the minimum size.
+    ps.forEach(p => { p.style.whiteSpace = 'normal'; });
+    tryFit();
   };
 
   const renderDecorativePage = (): HTMLDivElement => {

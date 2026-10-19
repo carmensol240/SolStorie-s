@@ -52,7 +52,8 @@ export function buildPageSequence(pages: { illustration_url: string | null }[]):
   return seq;
 }
 
-/** Font steps for a text page: 54px down to 40px, then line-height 1.9 down to 1.6 at 40px. */
+/** Font steps for a text page: 54px down to 40px, then line-height 1.9 down to 1.6 at 40px.
+ *  If even that overflows, the renderer reflows the lines into a paragraph and repeats the steps. */
 export const TEXT_FIT_STEPS: { font: number; line: number }[] = [
   ...[54, 52, 50, 48, 46, 44, 42, 40].map(font => ({ font, line: 1.9 })),
   ...[1.8, 1.7, 1.6].map(line => ({ font: 40, line })),
