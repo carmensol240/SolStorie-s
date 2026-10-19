@@ -4,6 +4,7 @@ import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.39.3";
 import { logError } from "../_shared/log-error.ts";
 import { buildNlpInstruction, runNlpCheck } from "../_shared/nlp-techniques.ts";
+import { splitLongPages, MAX_PAGE_CHARS } from "../_shared/page-split.ts";
 import { normalizeGender } from "../_shared/gender.ts";
 import { grantStoryAccess, consumeCredit } from "../_shared/story-access.ts";
 import { spendCredit } from "../_shared/taste.ts";
@@ -1847,6 +1848,8 @@ ${childGender === "female" ? `
 ## מבנה הסיפור לפי גיל - קריטי!
 **צור בדיוק ${ageLengthConfig.pages} עמודים!** לא יותר, לא פחות.
 
+**אורך עמוד:** כל עמוד עד כ-${MAX_PAGE_CHARS} תווים (בלי ניקוד) — 2–4 משפטים קצרים. אם התוכן ארוך יותר, קצר אותו ואל תדחוס משפטים ארוכים.
+
 **הנחיות אורך וסגנון לפי גיל ${ageRange}:**
 ${ageLengthConfig.instruction}
 
@@ -2349,6 +2352,21 @@ ${fullStoryText}`;
       }
     }
 
+    // === PAGE LENGTH: split any page over MAX_PAGE_CHARS (without nikud) into an
+    // extra text-only page, so every page fits on a phone. Picture assignment is
+    // decided on the original numbering; continuation pages never get a picture.
+    {
+      const isToddlerSplit = ageRange === "0-2";
+      const before = storyData.pages.length;
+      storyData.pages = splitLongPages(
+        storyData.pages as any[],
+        (p: any) => isToddlerSplit || (Number(p.page_number) % 2 === 1),
+      );
+      if (storyData.pages.length !== before) {
+        console.log(`[generate-story] Split long pages: ${before} → ${storyData.pages.length} pages`);
+      }
+    }
+
     // === NAME CONSISTENCY: the hero's name must be identical on every page ===
     for (const p of storyData.pages as any[]) {
       if (typeof p.text === "string") p.text = enforceChildName(p.text, childName);
@@ -2450,7 +2468,7 @@ ${fullStoryText}`;
       return `A children's book illustration for page ${pageNumber}. Illustrate EXACTLY what happens in this page's story text: "${safeText}". The main character is a ${genderWord} named ${childName}, aged ${ageRange}. Show the specific action, environment, objects, and characters mentioned in the text — do not invent a different scene. Character appearance and outfit must match the rest of the storybook.`;
     };
     const pagesWithoutIllustrations = storyData.pages.map((page: any) => {
-      const shouldHaveIllustration = isToddlerAge || (page.page_number % 2 === 1);
+      const shouldHaveIllustration = typeof page._illustrate === "boolean" ? page._illustrate : (isToddlerAge || (page.page_number % 2 === 1));
       let promptForPage: string | null = shouldHaveIllustration ? page.illustration_prompt : null;
       // SAFETY NET: model was told to always include illustration_prompt on
       // required pages, but if it slipped, synthesize one from the page text
