@@ -9,9 +9,6 @@ const white = () => new Uint8ClampedArray(W * H * 4).fill(255);
 const paint = (px: Uint8ClampedArray, x0: number, y0: number, x1: number, y1: number, rgb: number[]) => {
   for (let y = y0; y < y1; y++) for (let x = x0; x < x1; x++) px.set([...rgb, 255], (y * W + x) * 4);
 };
-const _blackShare = (px: Uint8ClampedArray) => {
-  let b = 0; for (let i = 0; i < px.length; i += 4) if (px[i] === 0) b++; return b / (px.length / 4);
-};
 
 describe("check (a): colored pixels", () => {
   it("counts only channel differences greater than 40", () => {
