@@ -1,6 +1,7 @@
 import { createRoot } from "react-dom/client";
 import { registerSW } from "virtual:pwa-register";
 import { shouldDeferAutoReload } from "./lib/story-generation-session";
+import { toast } from "sonner";
 import App from "./App.tsx";
 import "./index.css";
 
@@ -46,45 +47,64 @@ if (isInIframe || isPreviewHost) {
 } else {
   registerSW({
     immediate: true,
-    // Never reload in the middle of creating a story — wait until it's safe.
-    onNeedReload: () => {
-      const tryReload = () => {
-        if (shouldDeferAutoReload(window.location.pathname)) {
-          setTimeout(tryReload, 5000);
-        } else {
-          window.location.reload();
-        }
-      };
-      tryReload();
+    onRegisteredSW: (_url, reg) => {
+      // Check for a new version every 30 minutes and whenever the tab comes back.
+      if (!reg) return;
+      setInterval(() => void reg.update().catch(() => {}), 30 * 60 * 1000);
+      document.addEventListener("visibilitychange", () => {
+        if (document.visibilityState === "visible") void reg.update().catch(() => {});
+      });
     },
   });
+
+  // A new service worker took control (skipWaiting + clientsClaim): load the new version once.
+  if ("serviceWorker" in navigator) {
+    const hadController = !!navigator.serviceWorker.controller;
+    navigator.serviceWorker.addEventListener("controllerchange", () => {
+      if (hadController) applyNewVersion();
+    });
+  }
 }
 
 // ---------------------------------------------------------------------------
-// Auto-reload on new deploy
+// Apply a new version: reload once, but never in the middle of reading a book
+// or creating a story — there, show a small "refresh" notice instead.
+// Offline illustration caches are never deleted here.
 // ---------------------------------------------------------------------------
-// Poll the root HTML periodically. If its content hash changes, a new version
-// was deployed — force a hard reload so users (and the Lovable preview) never
-// stay stuck on a stale build.
+let updateHandled = false;
+function isBusyPath(path: string) {
+  return path.startsWith("/story/") || shouldDeferAutoReload(path);
+}
+function applyNewVersion() {
+  if (updateHandled) return;
+  updateHandled = true;
+  const path = window.location.pathname;
+  if (path.startsWith("/story/")) {
+    toast("יש גרסה חדשה", {
+      duration: Infinity,
+      action: { label: "רענון", onClick: () => window.location.reload() },
+    });
+    return;
+  }
+  const tryReload = () => {
+    if (isBusyPath(window.location.pathname)) {
+      setTimeout(tryReload, 5000);
+    } else {
+      window.location.reload();
+    }
+  };
+  tryReload();
+}
+
+// ---------------------------------------------------------------------------
+// Detect a new deploy by polling the root HTML (asset hashes). When it changes,
+// ask the service worker to update (it then takes control → controllerchange),
+// or apply directly when there is no service worker (preview).
+// ---------------------------------------------------------------------------
 (() => {
   const POLL_MS = 30_000;
 
-  const hash = async (s: string) => {
-    try {
-      const buf = new TextEncoder().encode(s);
-      const digest = await crypto.subtle.digest("SHA-256", buf);
-      return Array.from(new Uint8Array(digest))
-        .map((b) => b.toString(16).padStart(2, "0"))
-        .join("");
-    } catch {
-      // Fallback: simple string hash
-      let h = 0;
-      for (let i = 0; i < s.length; i++) h = (h * 31 + s.charCodeAt(i)) | 0;
-      return String(h);
-    }
-  };
-
-  const fetchHtmlHash = async (): Promise<string | null> => {
+  const fetchAssetsSignature = async (): Promise<string | null> => {
     try {
       const res = await fetch(`/?_v=${Date.now()}`, {
         cache: "no-store",
@@ -92,54 +112,36 @@ if (isInIframe || isPreviewHost) {
       });
       if (!res.ok) return null;
       const text = await res.text();
-      // Hash only the <script> + <link> asset references — those change on every
-      // new build (Vite emits hashed filenames). This avoids false positives
-      // from dynamic meta/SSR content.
-      const assets =
-        text.match(/(?:src|href)="[^"]*\/assets\/[^"]+"/g)?.join("|") || text;
-      return await hash(assets);
+      const assets = text.match(/(?:src|href)="[^"]*\/assets\/[^"]+"/g)?.join("|");
+      return assets || null;
     } catch {
       return null;
     }
   };
 
   let initial: string | null = null;
-  let reloading = false;
 
   const check = async () => {
-    if (reloading) return;
-    const current = await fetchHtmlHash();
+    if (updateHandled) return;
+    const current = await fetchAssetsSignature();
     if (!current) return;
     if (initial === null) {
       initial = current;
       return;
     }
-    if (current !== initial) {
-      // A story is being created (or the story form is open): keep polling and
-      // reload only after the user has left that flow.
-      if (shouldDeferAutoReload(window.location.pathname)) return;
-      reloading = true;
-      // Clear caches + SW before hard reload so the new HTML is fetched fresh.
-      try {
-        if ("caches" in window) {
-          const names = await caches.keys();
-          await Promise.all(names.map((n) => caches.delete(n)));
-        }
-        if ("serviceWorker" in navigator) {
-          const regs = await navigator.serviceWorker.getRegistrations();
-          await Promise.all(regs.map((r) => r.unregister()));
-        }
-      } catch {
-        // ignore
-      }
-      window.location.reload();
+    if (current === initial) return;
+    const reg = "serviceWorker" in navigator ? await navigator.serviceWorker.getRegistration() : undefined;
+    if (reg && navigator.serviceWorker.controller) {
+      await reg.update().catch(() => {});
+      // Safety net: if the worker did not take control within 20s, apply anyway.
+      setTimeout(() => applyNewVersion(), 20_000);
+    } else {
+      applyNewVersion();
     }
   };
 
-  // Prime the baseline, then poll.
   void check();
   setInterval(check, POLL_MS);
-  // Also check when the tab regains focus — covers users returning after a deploy.
   window.addEventListener("focus", () => void check());
   document.addEventListener("visibilitychange", () => {
     if (document.visibilityState === "visible") void check();
