@@ -2,6 +2,7 @@ import { createRoot } from "react-dom/client";
 import { registerSW } from "virtual:pwa-register";
 import { shouldDeferAutoReload } from "./lib/story-generation-session";
 import { toast } from "sonner";
+import { recoverFromBrokenBuild, isBrokenBuildError } from "./lib/sw-recovery";
 import App from "./App.tsx";
 import "./index.css";
 
@@ -108,6 +109,9 @@ function applyNewVersion() {
     try {
       const res = await fetch(`/?_v=${Date.now()}`, {
         cache: "no-store",
+        // No cookies: the host pins a visitor to a deployment via a cookie, so a
+        // plain fetch with it would keep seeing the old version.
+        credentials: "omit",
         headers: { "Cache-Control": "no-cache" },
       });
       if (!res.ok) return null;
@@ -147,5 +151,26 @@ function applyNewVersion() {
     if (document.visibilityState === "visible") void check();
   });
 })();
+
+// ---------------------------------------------------------------------------
+// Emergency release: a site file failed to load (404 after a deploy) or a lazy
+// chunk is missing -> unregister the service worker, clear app caches, reload once.
+// ---------------------------------------------------------------------------
+if (!isInIframe && !isPreviewHost) {
+  window.addEventListener("vite:preloadError", () => void recoverFromBrokenBuild());
+  window.addEventListener(
+    "error",
+    (ev) => {
+      const t = ev.target as (HTMLScriptElement | HTMLLinkElement | null);
+      const url = (t && ((t as HTMLScriptElement).src || (t as HTMLLinkElement).href)) || "";
+      if (t && t !== (window as any) && /\/assets\//.test(url)) void recoverFromBrokenBuild();
+      else if (isBrokenBuildError((ev as ErrorEvent).error)) void recoverFromBrokenBuild();
+    },
+    true,
+  );
+  window.addEventListener("unhandledrejection", (ev) => {
+    if (isBrokenBuildError(ev.reason)) void recoverFromBrokenBuild();
+  });
+}
 
 createRoot(document.getElementById("root")!).render(<App />);
