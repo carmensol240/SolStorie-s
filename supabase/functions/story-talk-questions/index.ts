@@ -15,14 +15,13 @@ Deno.serve(async (req) => {
     const auth = req.headers.get("Authorization");
     if (!auth?.startsWith("Bearer ")) return json({ error: "auth required" }, 401);
     const url = Deno.env.get("SUPABASE_URL")!;
-    const userClient = createClient(url, Deno.env.get("SUPABASE_ANON_KEY")!, { global: { headers: { Authorization: auth } } });
-    const { data: { user } } = await userClient.auth.getUser();
-    if (!user) return json({ error: "auth required" }, 401);
+    const admin = createClient(url, Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!);
+    const { data: { user }, error: authErr } = await admin.auth.getUser(auth.slice(7));
+    if (!user) { console.warn("auth failed", authErr?.message); return json({ error: "auth required" }, 401); }
 
     const { storyId } = await req.json().catch(() => ({}));
     if (typeof storyId !== "string" || !/^[0-9a-f-]{36}$/i.test(storyId)) return json({ error: "storyId required" }, 400);
 
-    const admin = createClient(url, Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!);
     const { data: story } = await admin.from("stories")
       .select("id, user_id, child_name, child_gender, topic, language, nikud, talk_questions")
       .eq("id", storyId).maybeSingle();
