@@ -106,7 +106,7 @@ const About = () => {
           שלום, אני אמא של סול והלב הפועם מאחורי <span dir="ltr" className="inline-block bg-gradient-to-r from-purple-300 via-pink-300 to-orange-300 bg-clip-text text-transparent" style={{ textShadow: 'none' }}>SolStorie's</span>
         </p>
         <p className="text-base font-normal text-white/90 leading-[1.8] text-right mb-6 px-1" style={{ textShadow: '0 1px 3px rgba(0,0,0,0.3)' }}>
-          הנולדה מתוך רצון להעניק לבתי <strong className="text-amber-200 font-bold">מרחב קסום</strong>, שמעמיד את עולמה הפנימי במרכז.
+          שנולדה מתוך רצון להעניק לבתי <strong className="text-amber-200 font-bold">מרחב קסום</strong>, שמעמיד את עולמה הפנימי במרכז.
           <br />
           מה שהתחיל כפרויקט אישי קטן, הפך לאפליקציה שמעניקה לכל ילד את היכולת <strong className="text-amber-200 font-bold">להיות הגיבור של הסיפור שלו</strong>.
         </p>
@@ -163,16 +163,10 @@ const About = () => {
               <div className="flex flex-col items-center gap-1.5">
                 <span className="text-3xl">💜</span>
                 <p className="text-base font-normal text-white leading-[1.6] text-right px-4" style={{ textShadow: '0 1px 3px rgba(0,0,0,0.3)' }}>
-                  <strong className="text-purple-200 font-black">סיפורים חברתיים מתוך הלב</strong> — הספרייה שלנו כוללת למעלה מ-90 נושאים לבחירה מהיומיום שנבחרו בקפידה כדי לתווך סיטואציות רגשיות מורכבות בשילוב כלי NLP.
+                  <strong className="text-purple-200 font-black">סיפורים חברתיים מתוך הלב</strong> — הספרייה שלנו כוללת למעלה מ-140 נושאים מהיומיום, שנבחרו בקפידה בשילוב כלים מעולם ה-NLP, ועוזרים לדבר עם ילדים על רגעים מאתגרים.
                 </p>
               </div>
 
-              <div className="flex flex-col items-center gap-1.5">
-                <span className="text-3xl">🧩</span>
-                <p className="text-base font-normal text-white leading-[1.6] text-right px-4" style={{ textShadow: '0 1px 3px rgba(0,0,0,0.3)' }}>
-                  <strong className="text-green-200 font-black">חיבור עמוק לרצף התקשורתי</strong> — האפליקציה מונגשת לבעלי מוגבלויות והתוכן מותאם במיוחד גם עבור ילדים על הרצף. הדיוק הזה מגיע מתוך הבנה עמוקה וניסיון אישי בחשיבותם המכרעת של סיפורים חברתיים ככלי לתווך את המציאות, להנגיש סיטואציות חברתיות ולייצר ביטחון עצמי.
-                </p>
-              </div>
 
               <div className="flex flex-col items-center gap-1.5 relative rounded-xl p-3" style={{ background: 'linear-gradient(135deg, rgba(255,215,0,0.15), rgba(255,165,0,0.10))', border: '1px solid rgba(255,215,0,0.3)' }}>
                 <span className="absolute -top-2 -right-2 bg-amber-400 text-black text-xs font-black px-2 py-0.5 rounded-full shadow">חדש ✨</span>
@@ -185,7 +179,7 @@ const About = () => {
               <div className="flex flex-col items-center gap-1.5">
                 <span className="text-3xl">🏫</span>
                 <p className="text-base font-normal text-white leading-[1.6] text-right px-4" style={{ textShadow: '0 1px 3px rgba(0,0,0,0.3)' }}>
-                  <strong className="text-amber-200 font-black">ארגז כלים לאנשי חינוך</strong> — קטגוריה ייעודית הכוללת תכנים פדגוגיים מבוססי NLP לעבודה רגשית וחברתית בקבוצות ובגנים.
+                  <strong className="text-amber-200 font-black">ארגז כלים לאנשי חינוך</strong> — קטגוריה ייעודית הכוללת תכנים לעבודה רגשית וחברתית בקבוצות ובגנים, בשילוב כלים מעולם ה-NLP.
                 </p>
               </div>
 
@@ -223,7 +217,7 @@ const About = () => {
             className="border-white/40 data-[state=checked]:bg-purple-500 data-[state=checked]:border-purple-500"
           />
           <label htmlFor="terms" className="text-sm text-white/80 cursor-pointer">
-            קראתי ואני מסכימה ל
+            קראתי ואני מסכים/ה ל
             <a href="/terms" target="_blank" className="text-purple-300 underline underline-offset-2 hover:text-purple-200 mx-1">
               תנאי השימוש
             </a>
