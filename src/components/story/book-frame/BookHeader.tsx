@@ -16,6 +16,7 @@ import {
   RefreshCw,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import AccessibilityMenu from "@/components/AccessibilityMenu";
 import {
   Tooltip,
   TooltipContent,
@@ -139,6 +140,9 @@ export const BookHeader: React.FC<BookHeaderProps> = ({
             </TooltipTrigger>
             <TooltipContent side="bottom">שנה גודל טקסט ({fontSizeLabel})</TooltipContent>
           </Tooltip>
+
+          {/* Accessibility (moved here so it never covers the book) */}
+          <AccessibilityMenu variant="toolbar" />
 
           {/* Download PDF */}
           <Tooltip>

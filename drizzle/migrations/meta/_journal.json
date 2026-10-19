@@ -78,6 +78,13 @@
       "when": 1792406241775,
       "tag": "0010_kippah_choice",
       "breakpoints": true
+    },
+    {
+      "idx": 11,
+      "version": "7",
+      "when": 1792409578763,
+      "tag": "0011_tighten_storage_policies",
+      "breakpoints": true
     }
   ]
 }

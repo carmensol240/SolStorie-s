@@ -1,5 +1,6 @@
 import { openCookieSettings } from "@/lib/consent";
 import { useState } from "react";
+import { useLocation } from "react-router-dom";
 import { Accessibility, Eye, Volume2, Type, Wind, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
@@ -85,7 +86,7 @@ const AccessibilityMenu = ({ variant = "floating" }: AccessibilityMenuProps) => 
         <PopoverContent 
           className="w-72 p-4" 
           align="start"
-          side="top"
+          side={isToolbar ? "bottom" : "top"}
           role="dialog"
           aria-label="תפריט נגישות"
         >
@@ -195,6 +196,7 @@ const AccessibilityMenu = ({ variant = "floating" }: AccessibilityMenuProps) => 
         </PopoverContent>
       </Popover>
 
+      {!isToolbar && (
       <button
         onClick={() => {
           localStorage.setItem(DISMISSED_KEY, 'true');
@@ -205,6 +207,7 @@ const AccessibilityMenu = ({ variant = "floating" }: AccessibilityMenuProps) => 
       >
         <X className="h-3.5 w-3.5 text-muted-foreground" aria-hidden="true" />
       </button>
+      )}
     </div>
   );
 };

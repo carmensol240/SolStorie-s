@@ -34,3 +34,12 @@
 - [x] Topic outfit only on explicit change pages, back to chosen clothes next page; fixed default outfit saved per story (story_outfit) for retries/coloring
 - [x] Character core (face/skin/eyes/hair/glasses/body) separate from clothes; photo description no longer reads clothes
 - [x] Kippah checkbox for boys only; form value decides; story-only for redraws/coloring; girl never; tzitzit/sidelocks never
+
+## Auto-update + reader (Oct 2026)
+- [x] New version takes control automatically; HTML network-first with offline shell fallback; sign-in never cached; illustrations kept
+- [x] Reader: picture ≥40% on phone, accessibility in top bar, page 1 not repeating cover, readable dedication
+
+## Storage rules (Oct 2026)
+- [x] Report each of the 3 flagged rules (role, actions, real users)
+- [x] Remove/limit illustration + topic-image write rules; stop anonymous listing; check child-photos privacy
+- [x] Tests + re-run security scan
