@@ -11,6 +11,7 @@ export async function fetchTalkQuestions(storyId: string): Promise<string[]> {
   }
 }
 
-export const TALK_TITLE = { he: 'בּוֹאוּ נְדַבֵּר עַל הַסִּפּוּר', en: "Let's talk about the story" } as const;
+export const talkTitle = (lang: 'he' | 'en', nikud: boolean) =>
+  lang === 'en' ? "Let's talk about the story" : nikud ? 'בּוֹאוּ נְדַבֵּר עַל הַסִּפּוּר' : 'בואו נדבר על הסיפור';
 export const NEXT_ADVENTURE_URL = 'https://soulstory.co.il/create?from=book';
 export const INSTAGRAM_HANDLE = '@sol.stories.kids';
