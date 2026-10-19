@@ -24,6 +24,14 @@ import {
 
 const PIN_COLORS = ['#f0c040', '#9b59b6', '#3498db', '#e84393', '#00cec9', '#6c5ce7'];
 
+const formatCardDate = (value: string): string => {
+  try {
+    return new Date(value).toLocaleDateString('he-IL', { day: '2-digit', month: '2-digit', year: 'numeric' });
+  } catch {
+    return '';
+  }
+};
+
 const CoverFallback = () => (
   <div className="w-full h-full bg-gradient-to-br from-[#2d1a6e]/60 via-[#1a0f3a]/40 to-[#6c5ce7]/30 flex items-center justify-center">
     <Book className="w-10 h-10 text-white/30" />
