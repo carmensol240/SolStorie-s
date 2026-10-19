@@ -1,4 +1,5 @@
 import { describe, it, expect } from "vitest";
+import { buildGenderHeader } from "../../supabase/functions/_shared/style-config";
 import {
   hairToEnglish,
   clothingToEnglish,
@@ -9,6 +10,9 @@ import {
   buildOutfitLine,
   pickDefaultOutfit,
   pageMentionsOutfit,
+  kippahForRequest,
+  kippahForStory,
+  kippahColor,
 } from "../../supabase/functions/_shared/appearance";
 
 const RELIGIOUS = /kippah|yarmulke|tzitzit|sidelock|peyot|head covering|veil|hijab/i;
@@ -89,5 +93,58 @@ describe("character core (future character card)", () => {
       const outfit = buildOutfitLine(clothingToEnglish({ clothingType: t }, "female"));
       expect(`${core} ${outfit}`).not.toMatch(/kippah|yarmulke/i);
     }
+  });
+});
+
+describe("kippah (boy only, when ticked in the form)", () => {
+  const lockFor = (gender: string, kippah: boolean, type: string, color = "") =>
+    buildCharacterLock({ gender, age: 6, hair: "black hair", outfit: clothingToEnglish({ clothingType: type, clothingColor: color }, gender), kippah, kippahColor: kippahColor({ clothingColor: color }) });
+  const NEVER = /tzitzit|sidelock|peyot/i;
+
+  it("boy ticked: kippah on every outfit, in the clothes color or dark blue", () => {
+    for (const t of STYLES) {
+      const l = lockFor("male", kippahForRequest("male", true), t, "כחול");
+      expect(l).toContain("small knitted blue kippah");
+      expect(l).toContain("small kippah on the head, hair visible");
+      expect(l).not.toContain("uncovered head");
+    }
+    expect(lockFor("male", true, "פיג'מה")).toContain("small knitted dark blue kippah");
+  });
+
+  it("boy not ticked: no kippah, uncovered head", () => {
+    const l = lockFor("male", kippahForRequest("male", false), "בגדי יומיום");
+    expect(l).not.toMatch(/kippah/i);
+    expect(l).toContain("uncovered head, hair visible");
+  });
+
+  it("girl: never a kippah, even when a ticked value arrives", () => {
+    expect(kippahForRequest("female", true)).toBe(false);
+    expect(kippahForStory({ kippah: true, child_gender: "female" }).kippah).toBe(false);
+    expect(lockFor("female", true, "שמלה")).not.toMatch(/kippah/i);
+  });
+
+  it("profile with kippah + form unticked (or missing) = no kippah", () => {
+    expect(kippahForRequest("male", false)).toBe(false);
+    expect(kippahForRequest("male", undefined)).toBe(false);
+    expect(kippahForRequest("male", "true")).toBe(false);
+  });
+
+  it("redraw in an older story after the profile changed = no kippah (story columns only)", () => {
+    expect(kippahForStory({ kippah: false, child_gender: "male", kippah_color: null }).kippah).toBe(false);
+  });
+
+  it("story color is kept for the same story", () => {
+    expect(kippahForStory({ kippah: true, child_gender: "male", kippah_color: "red" })).toEqual({ kippah: true, color: "red" });
+  });
+
+  it("never tzitzit or sidelocks in the character or clothes parts", () => {
+    for (const g of ["male", "female"]) for (const k of [true, false]) for (const t of STYLES) {
+      expect(lockFor(g, k, t, "ירוק")).not.toMatch(NEVER);
+    }
+  });
+
+  it("header: boy with kippah requires it; girl header always bans it", () => {
+    expect(buildGenderHeader("male", { kippah: true })).toContain("MUST appear on his head on EVERY page");
+    expect(buildGenderHeader("female", { kippah: true })).not.toContain("MUST appear on his head");
   });
 });
