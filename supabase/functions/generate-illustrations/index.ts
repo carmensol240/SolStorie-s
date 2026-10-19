@@ -1,5 +1,5 @@
 import "https://deno.land/x/xhr@0.1.0/mod.ts";
-import { mergeAppearance, hairToEnglish, clothingToEnglish, resolvePageOutfit, buildCharacterLock, translateOutfitWords, pickDefaultOutfit, type Appearance } from "../_shared/appearance.ts";
+import { mergeAppearance, hairToEnglish, clothingToEnglish, resolvePageOutfit, buildCharacterLock, translateOutfitWords, pickDefaultOutfit, kippahForStory, type Appearance } from "../_shared/appearance.ts";
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.39.3";
 import { logError } from "../_shared/log-error.ts";
@@ -1550,10 +1550,14 @@ serve(async (req) => {
     // No parent clothes and no topic outfit → one fixed everyday outfit per story, saved with the
     // story so page retries and coloring pages reuse exactly the same clothes.
     let savedOutfit: string | null = null;
-    if (!parentOutfitEn && storyId) {
-      const { data: so } = await supabase.from("stories").select("story_outfit").eq("id", storyId).maybeSingle();
-      savedOutfit = (so as any)?.story_outfit || null;
+    // Kippah: the story's own saved choice only (never the child profile); girls never.
+    let kippahInfo = { kippah: false, color: "" };
+    if (storyId) {
+      const { data: so } = await supabase.from("stories").select("story_outfit, kippah, kippah_color, child_gender").eq("id", storyId).maybeSingle();
+      if (!parentOutfitEn) savedOutfit = (so as any)?.story_outfit || null;
+      kippahInfo = kippahForStory(so as any);
     }
+    const kippahPhrase = kippahInfo.kippah ? `, wearing a small knitted ${kippahInfo.color} kippah (small kippah on the head, hair visible)` : ", uncovered head, hair visible";
     storyOutfit = parentOutfitEn || savedOutfit || storyOutfit || pickDefaultOutfit(String(storyId || childName || "story"));
     if (!parentOutfitEn && !savedOutfit && storyId && !singlePageNumber) {
       await supabase.from("stories").update({ story_outfit: storyOutfit }).eq("id", storyId).is("story_outfit", null);
@@ -1703,7 +1707,7 @@ serve(async (req) => {
         : (characterProfile ? buildVisualAnchor(characterProfile, storyOutfit) : `VISUAL ANCHOR: A child wearing ${storyOutfit}. Maintain strict visual character continuity across ALL illustrations.`);
       const characterLock = buildCharacterLock({
         gender: characterProfile?.gender || childGender, age: reqChildAge, ageRange,
-        hair: parentHairEn || characterProfile?.hairDescription || "", outfit: storyOutfit, glasses: !!characterProfile?.glasses,
+        hair: parentHairEn || characterProfile?.hairDescription || "", outfit: storyOutfit, glasses: !!characterProfile?.glasses, kippah: kippahInfo.kippah, kippahColor: kippahInfo.color,
       });
 
       // Build prompt directly from illustration_prompt — skip AI scene analysis for speed
@@ -1720,7 +1724,7 @@ STORY TEXT FOR THIS PAGE: "${pageNarrative}"
 VISUAL DESCRIPTION: ${basePrompt}
 The action, objects, characters, and emotions shown MUST come from the STORY TEXT above. Do not invent a different scene.`
         : `SCENE (MUST MATCH TEXT EXACTLY): ${basePrompt}`;
-      const genderHeader = buildGenderHeader(childGender);
+      const genderHeader = buildGenderHeader(childGender, { kippah: kippahInfo.kippah });
       let illustrationPrompt = `${genderHeader}\n\n${charDesc}. ${sceneBlock}. CAMERA: ${cameraAngle}. LIGHTING: ${lighting}. Pixar 3D CGI style, vibrant colors, fantasy children's book, ${compositionClause(cameraAngle)}\n\n${GENDER_SYMBOL_RESTRICTION}`;
       illustrationPrompt += `\n\n${characterLock}`;
       if (page.page_number === 1) {
@@ -1988,7 +1992,7 @@ STORY TEXT FOR THIS PAGE: "${pageNarrative}"
 VISUAL DESCRIPTION: ${secondPrompt}
 The action, objects, characters, and emotions shown MUST come from the STORY TEXT above. Do not invent a different scene.`
           : `SCENE (MUST MATCH TEXT EXACTLY): ${secondPrompt}`;
-        const secondIllustrationPrompt = `${buildGenderHeader(childGender)}\n\n${charDesc2}. ${sceneBlock2}. CAMERA: ${cameraAngle2}. LIGHTING: ${lighting2}. Pixar 3D CGI style, vibrant colors, fantasy children's book, ${compositionClause(cameraAngle2)}\n\n${GENDER_SYMBOL_RESTRICTION}\n\n${characterLock}`;
+        const secondIllustrationPrompt = `${buildGenderHeader(childGender, { kippah: kippahInfo.kippah })}\n\n${charDesc2}. ${sceneBlock2}. CAMERA: ${cameraAngle2}. LIGHTING: ${lighting2}. Pixar 3D CGI style, vibrant colors, fantasy children's book, ${compositionClause(cameraAngle2)}\n\n${GENDER_SYMBOL_RESTRICTION}\n\n${characterLock}`;
 
         let secondStop = false;
         for (let attempt = 1; attempt <= 3; attempt++) {
