@@ -76,7 +76,7 @@ export function solidAreas(mask: Uint8Array, w: number, h: number, r = solidRadi
   return morph(morph(mask, w, h, r, "erode"), w, h, r, "dilate");
 }
 
-/** Size of every 4-connected region; calls keep(start, size) and returns the largest size. */
+/** Visits every 4-connected region (onRegion gets its pixels) and returns the largest size. */
 function components(mask: Uint8Array, w: number, h: number, onRegion?: (pixels: Int32Array, size: number) => void) {
   const seen = new Uint8Array(w * h);
   const stack = new Int32Array(w * h);
@@ -91,10 +91,10 @@ function components(mask: Uint8Array, w: number, h: number, onRegion?: (pixels: 
       const p = stack[--top];
       region[size++] = p;
       const x = p % w;
-      const next = [x > 0 ? p - 1 : -1, x < w - 1 ? p + 1 : -1, p - w, p + w];
-      for (const q of next) {
-        if (q >= 0 && q < w * h && mask[q] && !seen[q]) { seen[q] = 1; stack[top++] = q; }
-      }
+      if (x > 0 && mask[p - 1] && !seen[p - 1]) { seen[p - 1] = 1; stack[top++] = p - 1; }
+      if (x < w - 1 && mask[p + 1] && !seen[p + 1]) { seen[p + 1] = 1; stack[top++] = p + 1; }
+      if (p >= w && mask[p - w] && !seen[p - w]) { seen[p - w] = 1; stack[top++] = p - w; }
+      if (p + w < w * h && mask[p + w] && !seen[p + w]) { seen[p + w] = 1; stack[top++] = p + w; }
     }
     if (size > largest) largest = size;
     onRegion?.(region, size);
@@ -151,8 +151,8 @@ export function toLineArt(pixels: Pixels, w: number, h: number): void {
       if (ink[p] && !solid[p]) { out[p] = 1; continue; }
       const fill = colored[p] || solid[p];
       if (!fill) continue;
-      const neighbours = [x >= t ? p - t : -1, x < w - t ? p + t : -1, y >= t ? p - t * w : -1, y < h - t ? p + t * w : -1];
-      for (const q of neighbours) {
+      for (let k = 0; k < 4; k++) {
+        const q = k === 0 ? (x >= t ? p - t : -1) : k === 1 ? (x < w - t ? p + t : -1) : k === 2 ? (y >= t ? p - t * w : -1) : (y < h - t ? p + t * w : -1);
         if (q < 0) continue;
         if (!(colored[q] || solid[q])) { out[p] = 1; break; }
         if (colored[p] && colored[q]) {
