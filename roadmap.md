@@ -33,3 +33,4 @@
 - [x] Dress only for girls (form + server); swimsuit/superhero per gender
 - [x] Topic outfit only on explicit change pages, back to chosen clothes next page; fixed default outfit saved per story (story_outfit) for retries/coloring
 - [x] Character core (face/skin/eyes/hair/glasses/body) separate from clothes; photo description no longer reads clothes
+- [x] Kippah checkbox for boys only; form value decides; story-only for redraws/coloring; girl never; tzitzit/sidelocks never
