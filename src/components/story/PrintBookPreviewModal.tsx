@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { PRINT_NOTE, printLang } from "@/lib/print-layout";
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Printer } from "lucide-react";
