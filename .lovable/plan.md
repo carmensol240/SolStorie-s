@@ -39,9 +39,11 @@ Today the character description mixes the face and the clothes into one line (ge
 ## 5. Proposed fix (illustration instructions and form only; no change to stories that already exist)
 
 **A. Religious items only by the parent's choice**
-- Since there is no religious style, a fixed rule applies to every illustration, boy and girl: no kippah, tzitzit, sidelocks, head covering, veil or cross. This holds even on holiday and Bible topics, and even if the story text mentions one. Holiday clothes stay festive and secular (colors, a Star of David necklace for a girl, and so on).
+- Since there is no religious style, a fixed rule applies to every illustration, boy and girl: no kippah, tzitzit, sidelocks, head covering, veil or cross. This holds even on holiday and Bible topics. **Holiday clothes = festive colors only** (for example blue and white), with no symbol on the character. **Holiday symbols appear only as objects in the scene** (a hanukkiah, sufganiyot, flags). The same rule applies to a boy and a girl.
+- **The story text itself** may not describe religious items on the hero (kippah, tzitzit, sidelocks, head covering) unless a religious style was chosen. That way the text and the picture always match.
+- **Positive wording in the character part:** "uncovered head, hair visible" (when no religious style was chosen), in addition to the "no" line.
 - Remove "unless the parent asked" from the girl's rule, and remove the "a kippah only for boys" example from the topic-outfit instructions.
-- An automatic test confirms that no instruction ever contains a kippah or tzitzit unless a religious style was chosen. A separate test confirms a girl never gets a kippah under any circumstances.
+- Automatic tests check that the **character part and the clothes part** never contain a kippah or tzitzit unless a religious style was chosen. They don't run on the "no" line, which mentions these words on purpose. A separate test confirms a girl never gets a kippah under any circumstances.
 - If you'd like to add a "מסורתי" (traditional) style in the future, say so. It would add a kippah and tzitzit only for a boy, and something different for a girl (decided by you), and the rule above would then let them through only with that choice.
 
 **B. A style that matches the gender**
@@ -51,13 +53,15 @@ Today the character description mixes the face and the clothes into one line (ge
 
 **C. The same clothes on every page**
 - The topic outfit replaces the parent's choice only on pages whose text states that the hero changes clothes (pajamas before bed, a raincoat, going into the water). It no longer happens on any page with the word "wears".
-- When nothing is chosen: one fixed outfit is decided once per story (for example "a yellow t-shirt and blue jeans") and repeated on every page, for both a boy and a girl. The fixed superhero costume for a girl is removed.
+- **After a page where the hero changes clothes,** the next page goes back to the chosen clothes, unless its text continues the same scene.
+- When nothing is chosen: one fixed outfit is decided once per story (for example "a yellow t-shirt and blue jeans") and repeated on every page, for both a boy and a girl. **This outfit is saved with the story**, so redrawing a page and the coloring pages use exactly the same clothes. The fixed superhero costume for a girl is removed.
 - The color is always translated to English, including when it comes from the saved profile.
 
 **D. Ready for a future character card**
-- Split the character description into two separate parts: a "character" part with only face, skin, eyes, hair and body/age, and a "clothes" part that comes from this story's choice.
-- The description from the photo is asked for face, skin, eyes and hair only, never the clothes in the photo.
+- Split the character description into two separate parts: a "character" part with only face, skin, eyes, hair, **glasses (if the child wears them)** and body/age, and a "clothes" part that comes from this story's choice.
+- The description from the photo is asked for face, skin, eyes, hair and glasses only, never the clothes in the photo.
 - A test confirms the character part contains no clothes words.
+- Existing stories are not changed.
 
 **What you'll see:** girls never get a kippah, and boys get one only if you ever add a traditional style. "שמלה" disappears from the form for boys, and the clothes stay the same on every page.
 
@@ -65,8 +69,10 @@ Today the character description mixes the face and the clothes into one line (ge
 
 - `_shared/appearance.ts`: gender-aware `clothingToEnglish(a, gender)`; boy + "שמלה" → everyday; swimsuit/superhero per gender; new `buildCharacterCore()` (face/skin/hair/body) + `buildOutfitLine()`; `buildCharacterLock` composes the two. Narrow `pageMentionsOutfit` to explicit hero clothing-change phrases (מחליף/ה ל…, לובש/ת פיג'מה/מעיל/בגד ים…).
 - `_shared/style-config.ts`: `buildGenderHeader` and `GENDER_SYMBOL_RESTRICTION` → strict no-religious-items rule with no scene exception (an `allowReligious` flag stays false until such a style exists).
-- generate-illustrations: remove the kippah example from the topic-outfit prompt and add "no religious items"; translate the profile color; default outfit = one fixed neutral outfit per story; vision prompt drops clothing fields.
-- generate-story: remove "(unless the parent asked explicitly)"; add "no religious items in the outfit description".
+- generate-illustrations: topic-outfit prompt → festive colors only, symbols as scene props, no religious items (remove the kippah and Star of David examples); translate the profile color; default outfit = one fixed neutral outfit per story, saved in `stories.taste_resume`-style new column `story_outfit text` (nullable, existing rows untouched); vision prompt drops clothing fields, keeps glasses; outfit reverts on the next page unless that page continues the change scene.
+- retry-illustration and generate-coloring-page: read `story_outfit` when no parent clothing is set.
+- generate-story: remove "(unless the parent asked explicitly)"; forbid the story text from describing religious items on the hero unless a religious style was chosen; no religious items in the outfit description.
+- Character core adds "uncovered head, hair visible" when no religious style was chosen.
 - ChildInfoStep: filter CLOTHING_TYPES by gender and reset on gender change.
-- Tests in `src/__tests__/appearance.test.ts`: per-gender text for each style; dress for a boy → everyday; no kippah/tzitzit in any built prompt; girl never kippah; character core has no clothing words; outfit-change detection.
+- Tests in `src/__tests__/appearance.test.ts`: per-gender text for each style; dress for a boy → everyday; no kippah/tzitzit in the character core or outfit line (not in the prohibition line); girl never kippah; character core has no clothing words and keeps glasses; outfit-change detection and reverting on the next page.
 - Deploy generate-illustrations, generate-story, retry-illustration and generate-coloring-page, then publish.
