@@ -40,8 +40,7 @@ export const ReaderIllustration: React.FC<ReaderIllustrationProps> = ({ path, al
         src={src}
         alt={alt}
         decoding="async"
-        // eslint-disable-next-line react/no-unknown-property
-        fetchpriority="high"
+        {...({ fetchpriority: "high" } as Record<string, string>)}
         className={cn(
           "max-w-full max-h-full w-auto h-auto object-contain rounded-xl shadow-md transition-opacity duration-300",
           loaded ? "opacity-100" : "absolute opacity-0",
