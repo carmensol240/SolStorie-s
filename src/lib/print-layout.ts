@@ -14,7 +14,7 @@ export type PrintSlot =
   | { kind: 'cover' }
   | { kind: 'insideCover' }
   | { kind: 'dedication' }
-  | { kind: 'text'; storyIndex: number }
+  | { kind: 'text'; storyIndex: number; storyIndexes: number[] }
   | { kind: 'illustration'; storyIndex: number }
   | { kind: 'decorative'; storyIndex: number }
   | { kind: 'theEnd' }
@@ -24,18 +24,40 @@ export type PrintSlot =
 export const printLang = (language?: string | null): PrintLang =>
   language === 'en' ? 'en' : 'he';
 
-/** Builds the full page order. Index 0 = printed page 1. */
+/**
+ * Builds the full page order. Index 0 = printed page 1.
+ * A story page with a picture opens a spread: text (even page) facing its picture (odd page).
+ * A page without a picture joins the previous spread's text when that spread has a picture
+ * (or is itself a picture-less spread) and still holds only one story page (max two per text page). Otherwise it opens
+ * its own spread facing a decorative page — so decorative pages appear only for truly missing pictures.
+ */
 export function buildPageSequence(pages: { illustration_url: string | null }[]): PrintSlot[] {
-  const seq: PrintSlot[] = [{ kind: 'cover' }, { kind: 'insideCover' }, { kind: 'dedication' }];
+  type Spread = { idx: number[]; pic: boolean };
+  const spreads: Spread[] = [];
   pages.forEach((p, i) => {
-    seq.push({ kind: 'text', storyIndex: i }); // even printed page
-    seq.push(p.illustration_url ? { kind: 'illustration', storyIndex: i } : { kind: 'decorative', storyIndex: i });
+    const pic = !!p.illustration_url;
+    const last = spreads[spreads.length - 1];
+    if (!pic && last && last.idx.length === 1) last.idx.push(i);
+    else spreads.push({ idx: [i], pic });
+  });
+  const seq: PrintSlot[] = [{ kind: 'cover' }, { kind: 'insideCover' }, { kind: 'dedication' }];
+  spreads.forEach(sp => {
+    const first = sp.idx[0];
+    seq.push({ kind: 'text', storyIndex: first, storyIndexes: sp.idx }); // even printed page
+    seq.push(sp.pic ? { kind: 'illustration', storyIndex: first } : { kind: 'decorative', storyIndex: first });
   });
   seq.push({ kind: 'theEnd' });
   while ((seq.length + 1) % 4 !== 0) seq.push({ kind: 'blank' });
   seq.push({ kind: 'backCover' });
   return seq;
 }
+
+/** Font steps for a text page: 54px down to 40px, then line-height 1.9 down to 1.6 at 40px.
+ *  If even that overflows, the renderer reflows the lines into a paragraph and repeats the steps. */
+export const TEXT_FIT_STEPS: { font: number; line: number }[] = [
+  ...[54, 52, 50, 48, 46, 44, 42, 40].map(font => ({ font, line: 1.9 })),
+  ...[1.8, 1.7, 1.6].map(line => ({ font: 40, line })),
+];
 
 export const PRINT_TEXTS = {
   he: {

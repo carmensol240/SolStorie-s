@@ -7,7 +7,7 @@ import { useSignedUrls } from '@/hooks/use-signed-urls';
 import { translateTopic } from '@/lib/topic-translations';
 import { supabase } from '@/integrations/supabase/client';
 import solMagicBookCover from '@/assets/sol-magic-book-cover.png';
-import { PAGE_MM, PAGE_PX, SAFE_MM, PRINT_TEXTS, buildPageSequence, containRect, printLang, type PrintLang } from '@/lib/print-layout';
+import { PAGE_MM, PAGE_PX, SAFE_MM, PRINT_TEXTS, buildPageSequence, TEXT_FIT_STEPS, containRect, printLang, type PrintLang } from '@/lib/print-layout';
 
 // Helper function to escape HTML entities and prevent XSS
 const escapeHtml = (unsafe: string): string => {
@@ -264,13 +264,38 @@ export const usePdfExport = () => {
     return el;
   };
 
-  const renderTextOnlyPage = (text: string, lang: PrintLang): HTMLDivElement => {
+  // One or two story paragraphs, stacked, with a small star between them.
+  const renderTextOnlyPage = (texts: string[], lang: PrintLang): HTMLDivElement => {
     const el = document.createElement('div');
-    el.style.cssText = pageBase(PRINT_TEXTS[lang].dir) + `background:#ffffff;display:flex;align-items:center;justify-content:center;padding:180px 160px 200px;`;
-    el.innerHTML = `
-      <p style="color:#1f2937;font-size:54px;line-height:1.9;font-weight:500;margin:0;
-        text-align:center;word-wrap:break-word;overflow-wrap:break-word;white-space:pre-line;">${escapeHtml(text)}</p>`;
+    el.style.cssText = pageBase(PRINT_TEXTS[lang].dir) + `background:#ffffff;display:flex;align-items:center;justify-content:center;padding:180px 160px 200px;box-sizing:border-box;`;
+    const para = (t: string) => `<p data-fit style="color:#1f2937;font-size:54px;line-height:1.9;font-weight:500;margin:0;
+        text-align:center;word-wrap:break-word;overflow-wrap:break-word;white-space:pre-line;">${escapeHtml(t)}</p>`;
+    el.innerHTML = `<div data-fit-box style="width:100%;display:flex;flex-direction:column;align-items:center;gap:36px;">${
+      texts.map(para).join(`<div aria-hidden="true" style="line-height:0;">${starSvg(34, '#F5B942')}</div>`)
+    }</div>`;
     return el;
+  };
+
+  // Shrink font (54→40) then line-height (1.9→1.6) until the text fits inside the padded area.
+  const fitTextPage = async (container: HTMLDivElement, el: HTMLDivElement) => {
+    container.innerHTML = '';
+    container.appendChild(el);
+    await fontsReady();
+    const box = el.querySelector('[data-fit-box]') as HTMLElement;
+    const ps = Array.from(el.querySelectorAll('[data-fit]')) as HTMLElement[];
+    const avail = DESIGN - 180 - 200;
+    const tryFit = () => {
+      for (const step of TEXT_FIT_STEPS) {
+        ps.forEach(p => { p.style.fontSize = `${step.font}px`; p.style.lineHeight = String(step.line); });
+        if (box.scrollHeight <= avail) return true;
+      }
+      return false;
+    };
+    if (tryFit()) return;
+    // Still too tall at 40px / 1.6: let one-sentence-per-line text flow as a paragraph
+    // (same words, wider lines) instead of going below the minimum size.
+    ps.forEach(p => { p.style.whiteSpace = 'normal'; });
+    tryFit();
   };
 
   const renderDecorativePage = (): HTMLDivElement => {
@@ -411,7 +436,11 @@ export const usePdfExport = () => {
             drawFooter(pdf);
             break;
           case 'text':
-            await captureHtml(container, renderTextOnlyPage(story.pages[slot.storyIndex].text, lang), pdf, 'PNG');
+          {
+            const el = renderTextOnlyPage(slot.storyIndexes.map(k => story.pages[k].text), lang);
+            await fitTextPage(container, el);
+            await captureHtml(container, el, pdf, 'PNG');
+          }
             drawFooter(pdf, { pageNumber: pageNo });
             break;
           case 'illustration': {
