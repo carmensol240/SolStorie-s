@@ -700,19 +700,19 @@ export const OnlineColoringCanvas: React.FC<OnlineColoringCanvasProps> = ({
       <div ref={bottomBarRef} className="relative z-20 shrink-0 bg-white/85 backdrop-blur-sm border-t border-purple-200 px-2 py-1.5 space-y-1.5" style={{ paddingBottom: `calc(env(safe-area-inset-bottom, 8px) + 8px)` }}>
         {/* Tools */}
         <div className="flex items-center justify-center gap-2">
-          <button type="button" aria-label="דלי צבע" aria-pressed={tool === 'fill'} onPointerDown={(e) => { e.stopPropagation(); toolRef.current = 'fill'; setTool('fill'); }}
+          <button type="button" aria-label="דלי צבע" aria-pressed={tool === 'fill'} onPointerDown={(e) => { e.stopPropagation(); toolRef.current = 'fill'; setTool('fill'); }} onClick={(e) => { if (e.detail === 0) { toolRef.current = 'fill'; setTool('fill'); } }}
             className={`w-9 h-9 rounded-full flex items-center justify-center transition-all touch-manipulation ${
               tool === 'fill' ? 'ring-2 ring-purple-500 ring-offset-1 bg-purple-50 shadow-md' : 'bg-gray-100 hover:bg-gray-200'
             }`}>
             <PaintBucket className="w-4 h-4" style={{ color }} />
           </button>
-          <button type="button" aria-label="מכחול" aria-pressed={tool === 'brush'} onPointerDown={(e) => { e.stopPropagation(); toolRef.current = 'brush'; setTool('brush'); }}
+          <button type="button" aria-label="מכחול" aria-pressed={tool === 'brush'} onPointerDown={(e) => { e.stopPropagation(); toolRef.current = 'brush'; setTool('brush'); }} onClick={(e) => { if (e.detail === 0) { toolRef.current = 'brush'; setTool('brush'); } }}
             className={`w-9 h-9 rounded-full flex items-center justify-center transition-all touch-manipulation ${
               tool === 'brush' ? 'ring-2 ring-purple-500 ring-offset-1 bg-purple-50 shadow-md' : 'bg-gray-100 hover:bg-gray-200'
             }`}>
             <Pencil className="w-4 h-4" style={{ color: tool === 'brush' ? color : undefined }} />
           </button>
-          <button type="button" aria-label="מחק" aria-pressed={tool === 'eraser'} onPointerDown={(e) => { e.stopPropagation(); toolRef.current = 'eraser'; setTool('eraser'); }}
+          <button type="button" aria-label="מחק" aria-pressed={tool === 'eraser'} onPointerDown={(e) => { e.stopPropagation(); toolRef.current = 'eraser'; setTool('eraser'); }} onClick={(e) => { if (e.detail === 0) { toolRef.current = 'eraser'; setTool('eraser'); } }}
             className={`w-9 h-9 rounded-full flex items-center justify-center transition-all touch-manipulation ${
               tool === 'eraser' ? 'ring-2 ring-purple-500 ring-offset-1 bg-purple-50 shadow-md' : 'bg-gray-100 hover:bg-gray-200'
             }`}>
@@ -721,7 +721,7 @@ export const OnlineColoringCanvas: React.FC<OnlineColoringCanvasProps> = ({
           {tool === 'brush' && (
             <div className="flex items-center gap-1 mr-2">
               {BRUSH_SIZES.map((s) => (
-                <button key={s} type="button" aria-label={BRUSH_LABELS[s]} aria-pressed={brushSize === s} onPointerDown={(e) => { e.stopPropagation(); brushSizeRef.current = s; setBrushSize(s); }}
+                <button key={s} type="button" aria-label={BRUSH_LABELS[s]} aria-pressed={brushSize === s} onPointerDown={(e) => { e.stopPropagation(); brushSizeRef.current = s; setBrushSize(s); }} onClick={(e) => { if (e.detail === 0) { brushSizeRef.current = s; setBrushSize(s); } }}
                   className={`rounded-full bg-gray-700 transition-all touch-manipulation ${brushSize === s ? 'ring-2 ring-purple-500 ring-offset-1' : ''}`}
                   style={{ width: s + 8, height: s + 8 }}
                 />
@@ -733,7 +733,7 @@ export const OnlineColoringCanvas: React.FC<OnlineColoringCanvasProps> = ({
         <div className="flex items-center justify-center gap-1.5 flex-wrap">
           {SKIN_EARTH_COLORS.map((c) => (
             <button key={c} type="button" aria-label={colorName(c)} aria-pressed={color === c && tool !== 'eraser'}
-              onPointerDown={(e) => { e.stopPropagation(); selectColor(c); }}
+              onPointerDown={(e) => { e.stopPropagation(); selectColor(c); }} onClick={(e) => { if (e.detail === 0) { selectColor(c); } }}
               className={`w-9 h-9 md:w-11 md:h-11 rounded-full border-2 transition-all active:scale-95 touch-manipulation ${
                 color === c && tool !== 'eraser'
                   ? 'scale-110 shadow-lg border-gray-700'
@@ -747,7 +747,7 @@ export const OnlineColoringCanvas: React.FC<OnlineColoringCanvasProps> = ({
         <div className="flex items-center justify-center gap-1.5 flex-wrap">
           {COLORS.map((c) => (
             <button key={c} type="button" aria-label={colorName(c)} aria-pressed={color === c && tool !== 'eraser'}
-              onPointerDown={(e) => { e.stopPropagation(); selectColor(c); }}
+              onPointerDown={(e) => { e.stopPropagation(); selectColor(c); }} onClick={(e) => { if (e.detail === 0) { selectColor(c); } }}
               className={`w-9 h-9 md:w-11 md:h-11 rounded-full border-2 transition-all active:scale-95 touch-manipulation ${
                 color === c && tool !== 'eraser'
                   ? 'scale-110 shadow-lg border-gray-700'
@@ -764,7 +764,7 @@ export const OnlineColoringCanvas: React.FC<OnlineColoringCanvasProps> = ({
         <div className="flex items-center justify-center gap-1.5 flex-wrap">
           {EXTRA_COLORS.map((c) => (
             <button key={c} type="button" aria-label={colorName(c)} aria-pressed={color === c && tool !== 'eraser'}
-              onPointerDown={(e) => { e.stopPropagation(); selectColor(c); }}
+              onPointerDown={(e) => { e.stopPropagation(); selectColor(c); }} onClick={(e) => { if (e.detail === 0) { selectColor(c); } }}
               className={`w-9 h-9 md:w-11 md:h-11 rounded-full border-2 transition-all active:scale-95 touch-manipulation ${
                 color === c && tool !== 'eraser'
                   ? 'scale-110 shadow-lg border-gray-700'
