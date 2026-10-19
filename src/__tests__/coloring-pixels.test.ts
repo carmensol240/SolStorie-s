@@ -1,16 +1,13 @@
 import { describe, it, expect } from "vitest";
 import {
   coloredPixelFraction, COLOR_FRACTION_LIMIT, inspectColoringPixels, toLineArt,
-  normalizeColoringPixels, extractOutlines,
+  normalizeColoringPixels,
 } from "../../supabase/functions/_shared/coloring-pixels";
 
 const W = 200, H = 200;
 const white = () => new Uint8ClampedArray(W * H * 4).fill(255);
 const paint = (px: Uint8ClampedArray, x0: number, y0: number, x1: number, y1: number, rgb: number[]) => {
   for (let y = y0; y < y1; y++) for (let x = x0; x < x1; x++) px.set([...rgb, 255], (y * W + x) * 4);
-};
-const blackShare = (px: Uint8ClampedArray) => {
-  let b = 0; for (let i = 0; i < px.length; i += 4) if (px[i] === 0) b++; return b / (px.length / 4);
 };
 
 describe("check (a): colored pixels", () => {
@@ -88,18 +85,5 @@ describe("thin-line conversion", () => {
     expect(coloredPixelFraction(px)).toBe(0);
     normalizeColoringPixels(px, 1, 1);
     expect([...px]).toEqual([255, 255, 255, 255]);
-  });
-});
-
-describe("edge-detection fallback", () => {
-  it("draws the outline of a colored shape, not a fill", () => {
-    const px = white();
-    paint(px, 0, 0, W, H, [120, 180, 230]);
-    paint(px, 60, 60, 140, 140, [230, 200, 40]);
-    extractOutlines(px, W, H);
-    expect(px[(100 * W + 100) * 4]).toBe(255);
-    expect(px[(60 * W + 100) * 4]).toBe(0);
-    expect(blackShare(px)).toBeLessThanOrEqual(0.08);
-    expect(inspectColoringPixels(px, W, H).clean).toBe(true);
   });
 });

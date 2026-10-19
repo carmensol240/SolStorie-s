@@ -9,6 +9,7 @@ import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
+import { ToastAction } from "@/components/ui/toast";
 import { toast as sonnerToast } from "sonner";
 import { cn } from "@/lib/utils";
 import { DrawingCanvas } from "@/components/ui/drawing-canvas";
@@ -330,6 +331,35 @@ const [currentPage, setCurrentPage] = useState(0);
 
     return cachedColoringUrl;
   }, [cachedColoringUrl, cachedIllustrationUrl, getIllustrationComparisonKey, selectedColoringUrl]);
+
+  /** Asks the server for a coloring page; on a failed check shows "try again" (nothing saved/charged). */
+  const requestColoringPage = async (illustrationUrl: string, onRetry: () => void): Promise<string | null> => {
+    if (!story) return null;
+    setColoringLoading(true);
+    try {
+      const response = await supabase.functions.invoke("generate-coloring-page", {
+        body: { illustration_url: illustrationUrl, story_id: story.id },
+      });
+      if (response.error) throw response.error;
+      const data = response.data as any;
+      if (data?.upsell) { setDemoLockOpen(true); return null; }
+      if (data?.coloringFailed) {
+        toast({
+          title: "לא הצלחנו ליצור דף צביעה הפעם, נסו שוב בעוד רגע",
+          action: <ToastAction altText="נסו שוב" onClick={() => onRetry()}>נסו שוב</ToastAction>,
+        });
+        return null;
+      }
+      if (!data?.image) throw new Error("No coloring URL returned");
+      return data.image as string;
+    } catch (err: any) {
+      console.error("Coloring error:", err);
+      toast({ title: "שגיאה ביצירת דף צביעה", description: err.message, variant: "destructive" });
+      return null;
+    } finally {
+      setColoringLoading(false);
+    }
+  };
 
   const preloadStoryCachedColoring = useCallback(async (mode: 'print' | 'online' | null) => {
     if (!story || coloringLoading) return;
@@ -2650,30 +2680,19 @@ const [currentPage, setCurrentPage] = useState(0);
                     return;
                   }
                   setColoringPickerOpen(false);
-                  setColoringLoading(true);
-                  try {
-                    const response = await supabase.functions.invoke("generate-coloring-page", {
-                      body: { illustration_url: getPublicIllustrationUrl(selectedColoringUrl), story_id: story.id },
-                    });
-                    if (response.error) throw response.error;
-                    if ((response.data as any)?.upsell) {
-                      setDemoLockOpen(true);
-                      return;
-                    }
-                    const coloringUrl = (response.data as any)?.image;
-                    if (!coloringUrl) throw new Error("No coloring URL returned");
-                    if (coloringMode === 'online') {
+                  const illustration = getPublicIllustrationUrl(selectedColoringUrl);
+                  const mode = coloringMode;
+                  const run = async () => {
+                    const coloringUrl = await requestColoringPage(illustration, run);
+                    if (!coloringUrl) return;
+                    if (mode === 'online') {
                       setOnlineColoringImageUrl(coloringUrl);
                       setOnlineColoringOpen(true);
                     } else {
                       setA4PreviewUrl(coloringUrl);
                     }
-                  } catch (err: any) {
-                    console.error("Coloring error:", err);
-                    toast({ title: "שגיאה ביצירת דף צביעה", description: err.message, variant: "destructive" });
-                  } finally {
-                    setColoringLoading(false);
-                  }
+                  };
+                  await run();
                 }}
                 disabled={!selectedColoringUrl || coloringLoading}
                 className="w-full bg-primary hover:bg-primary/90 text-white"
@@ -2699,28 +2718,16 @@ const [currentPage, setCurrentPage] = useState(0);
                     await triggerDownload(urlToUse);
                     setColoringPickerOpen(false);
                   } else {
-                    setColoringLoading(true);
-                    try {
-                      const response = await supabase.functions.invoke("generate-coloring-page", {
-                        body: { illustration_url: getPublicIllustrationUrl(selectedColoringUrl), story_id: story.id },
-                      });
-                      if (response.error) throw response.error;
-                      if ((response.data as any)?.upsell) {
-                        setDemoLockOpen(true);
-                        return;
-                      }
-                      const coloringUrl = (response.data as any)?.image;
-                      if (!coloringUrl) throw new Error("No coloring URL returned");
+                    const illustration = getPublicIllustrationUrl(selectedColoringUrl);
+                    const run = async () => {
+                      const coloringUrl = await requestColoringPage(illustration, run);
+                      if (!coloringUrl) return;
                       setCachedColoringUrl(coloringUrl);
-                      setCachedIllustrationUrl(getPublicIllustrationUrl(selectedColoringUrl));
+                      setCachedIllustrationUrl(illustration);
                       await triggerDownload(coloringUrl);
                       setColoringPickerOpen(false);
-                    } catch (err: any) {
-                      console.error("Coloring error:", err);
-                      toast({ title: "שגיאה ביצירת דף צביעה", description: err.message, variant: "destructive" });
-                    } finally {
-                      setColoringLoading(false);
-                    }
+                    };
+                    await run();
                   }
                 }}
                 disabled={coloringLoading}
@@ -2739,28 +2746,16 @@ const [currentPage, setCurrentPage] = useState(0);
                     setColoringPickerOpen(false);
                   } else {
                     setColoringPickerOpen(false);
-                    setColoringLoading(true);
-                    try {
-                      const response = await supabase.functions.invoke("generate-coloring-page", {
-                        body: { illustration_url: getPublicIllustrationUrl(selectedColoringUrl), story_id: story.id },
-                      });
-                      if (response.error) throw response.error;
-                      if ((response.data as any)?.upsell) {
-                        setDemoLockOpen(true);
-                        return;
-                      }
-                      const coloringUrl = (response.data as any)?.image;
-                      if (!coloringUrl) throw new Error("No coloring URL returned");
+                    const illustration = getPublicIllustrationUrl(selectedColoringUrl);
+                    const run = async () => {
+                      const coloringUrl = await requestColoringPage(illustration, run);
+                      if (!coloringUrl) return;
                       setCachedColoringUrl(coloringUrl);
-                      setCachedIllustrationUrl(getPublicIllustrationUrl(selectedColoringUrl));
+                      setCachedIllustrationUrl(illustration);
                       setOnlineColoringImageUrl(coloringUrl);
                       setOnlineColoringOpen(true);
-                    } catch (err: any) {
-                      console.error("Coloring error:", err);
-                      toast({ title: "שגיאה ביצירת דף צביעה", description: err.message, variant: "destructive" });
-                    } finally {
-                      setColoringLoading(false);
-                    }
+                    };
+                    await run();
                   }
                 }}
                 variant="outline"

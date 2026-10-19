@@ -18,33 +18,42 @@ function page(fillBlack: boolean) {
   return img;
 }
 
-Deno.test("a page with a solid black area is regenerated (max 2 retries) and a clean retry is used", async () => {
+Deno.test("a page with a solid black area is regenerated and a clean retry is used", async () => {
   let calls = 0;
   const clean = await dataUrl(page(false));
   const out = await produceCleanColoringPage({
     first: await dataUrl(page(true)),
     regenerate: async () => { calls++; return clean; },
+    lastAttempt: async () => { throw new Error("not needed"); },
     imageBytes: bytesOf,
-    original: new Uint8Array(),
   });
   assertEquals(calls, 1);
-  const decoded = await decodeColoringImage(out);
+  const decoded = await decodeColoringImage(out!);
   assertEquals(decoded.getPixelAt(100, 100), 0xffffffff);
 });
 
-Deno.test("after 2 failed retries, outlines come from the original illustration", async () => {
-  let calls = 0;
+Deno.test("after 2 failed retries, a third attempt with the original prompt is used", async () => {
+  let retries = 0, last = 0;
   const bad = await dataUrl(page(true));
-  const original = new Image(200, 200);
-  original.fill(0x78b4e6ff);
-  for (let y = 60; y <= 140; y++) for (let x = 60; x <= 140; x++) original.setPixelAt(x, y, 0xe6c828ff);
+  const clean = await dataUrl(page(false));
   const out = await produceCleanColoringPage({
     first: bad,
-    regenerate: async () => { calls++; return bad; },
+    regenerate: async () => { retries++; return bad; },
+    lastAttempt: async () => { last++; return clean; },
     imageBytes: bytesOf,
-    original: await original.encode(),
   });
-  assertEquals(calls, 2);
-  const { report } = await inspectColoringImage(out);
+  assertEquals([retries, last], [2, 1]);
+  const { report } = await inspectColoringImage(await (await decodeColoringImage(out!)).encode());
   assert(report.clean);
+});
+
+Deno.test("if every attempt fails, nothing is returned (no save, no charge)", async () => {
+  const bad = await dataUrl(page(true));
+  const out = await produceCleanColoringPage({
+    first: bad,
+    regenerate: async () => bad,
+    lastAttempt: async () => bad,
+    imageBytes: bytesOf,
+  });
+  assertEquals(out, null);
 });
