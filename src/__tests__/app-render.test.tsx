@@ -13,6 +13,8 @@ describe("App smoke render", () => {
     (globalThis as any).IntersectionObserver ||= class { observe() {} unobserve() {} disconnect() {} };
     (globalThis as any).ResizeObserver ||= class { observe() {} unobserve() {} disconnect() {} };
     window.scrollTo = vi.fn() as any;
+    HTMLMediaElement.prototype.play = vi.fn(() => Promise.resolve()) as any;
+    HTMLMediaElement.prototype.pause = vi.fn() as any;
     const errors: unknown[] = [];
     const onErr = (e: ErrorEvent) => errors.push(e.error);
     window.addEventListener("error", onErr);
