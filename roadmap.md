@@ -1,9 +1,9 @@
 
 ## Coloring pages: thin outlines, no solid black (Oct 2026)
-- [x] Two checks (color >1%; black >8% or solid area >2%), up to 2 retries, edge-detection fallback from original
+- [x] Two checks (color >1%; solid black area >2%), up to 2 retries, edge-detection fallback from original
 - [x] Print/PDF/online coloring: clean page untouched, otherwise thin-line conversion (no threshold blobs)
 - [x] Scan 37 saved files (no changes)
-- [ ] Regenerate failed + previously thresholded files — waits on user approval of count, cost and the 8% limit
+- [x] Existing files: cancelled by user — no regeneration or conversion
 
 ## Empty coloring page repair (Oct 2026) — superseded by the section above
 - [x] Enforce server color detection, one retry, and binary output

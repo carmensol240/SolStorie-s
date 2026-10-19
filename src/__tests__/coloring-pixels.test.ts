@@ -33,15 +33,15 @@ describe("check (b): solid black", () => {
     paint(px, 20, 20, 22, 180, [0, 0, 0]); paint(px, 178, 20, 180, 180, [0, 0, 0]);
     expect(inspectColoringPixels(px, W, H).clean).toBe(true);
   });
-  it("more than 8% black fails", () => {
+  it("many thin lines pass (normal pages are 9-21% black)", () => {
     const px = white();
     for (let x = 0; x < W; x += 6) paint(px, x, 0, x + 1, H, [0, 0, 0]); // thin lines, ~17%
     const r = inspectColoringPixels(px, W, H);
     expect(r.blackFraction).toBeGreaterThan(0.08);
     expect(r.largestBlackBlob).toBeLessThanOrEqual(0.02);
-    expect(r.clean).toBe(false);
+    expect(r.clean).toBe(true);
   });
-  it("one solid black patch larger than 2% fails even under 8% total", () => {
+  it("one solid black patch larger than 2% fails", () => {
     const px = white();
     paint(px, 50, 50, 85, 85, [0, 0, 0]); // ~3%
     const r = inspectColoringPixels(px, W, H);
