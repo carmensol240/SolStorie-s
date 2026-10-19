@@ -1,7 +1,7 @@
 import GlobalFooter from "@/components/shared/GlobalFooter";
 import React, { useState, useEffect, useMemo, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
-import { ArrowRight, Plus, Coins, Wand2, BookOpen, WifiOff, Plane, Palette, Download, Paintbrush, Printer } from "lucide-react";
+import { ArrowRight, Plus, Coins, Wand2, BookOpen, WifiOff, Plane, Palette, Download, Paintbrush, Printer, Search, X } from "lucide-react";
 import { getPublicIllustrationUrl } from "@/lib/illustration-url";
 import solMagicBookCover from "@/assets/sol-magic-book-cover.png";
 import libraryGirlReading from "@/assets/library-girl-reading.png";
@@ -96,6 +96,7 @@ const Library = () => {
   const [coloringCanvasIndex, setColoringCanvasIndex] = useState<number>(-1);
   const [hasAnyPurchase, setHasAnyPurchase] = useState(false);
   const [unlockedStoryIds, setUnlockedStoryIds] = useState<Set<string>>(new Set());
+  const [searchQuery, setSearchQuery] = useState('');
 
   // Active child tab used to sync header avatar
   const [activeTabValue, setActiveTabValue] = useState<string>('__all');
@@ -416,13 +417,29 @@ const Library = () => {
       }
       groups.get(key)!.push(story);
     });
-    // Sort each group internally by created_at ascending (oldest first)
-    groups.forEach(group => group.sort((a, b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime()));
+    // Newest story first inside each folder, and folders ordered by their newest story.
+    const t = (s: Story) => new Date(s.created_at).getTime();
+    groups.forEach(group => group.sort((a, b) => t(b) - t(a)));
+    order.sort((a, b) => t(groups.get(b)![0]) - t(groups.get(a)![0]));
     return { groups, order };
   };
 
-  const renderStoryList = (storyList: Story[], tabTitle?: string) => {
-    const { groups, order } = groupStories(storyList);
+  const NEW_MS = 7 * 24 * 60 * 60 * 1000;
+  const isRecent = (iso: string) => Date.now() - new Date(iso).getTime() < NEW_MS;
+  const searchActive = stories.length > 8 && searchQuery.trim().length > 0;
+  const matchesSearch = (s: Story) => {
+    const q = searchQuery.trim().toLowerCase();
+    return [s.topic, translateTopic(s.topic), s.child_name].some(v => (v || '').toLowerCase().includes(q));
+  };
+
+  const renderStoryList = (rawList: Story[], tabTitle?: string) => {
+    const storyList = searchActive ? rawList.filter(matchesSearch) : rawList;
+    if (searchActive && storyList.length === 0) {
+      return <p className="text-center py-10 text-muted-foreground font-medium">לא נמצאו סיפורים מתאימים</p>;
+    }
+    const { groups, order } = searchActive
+      ? { groups: new Map(storyList.map(s => [s.id, [s]])), order: storyList.map(s => s.id) }
+      : groupStories(storyList);
     let cardIndex = 0;
     return (
       <CorkBoard title={tabTitle || 'הסיפורים שלי'}>
@@ -455,6 +472,7 @@ const Library = () => {
                 onDeleteOffline={handleDeleteOffline}
                 canShare={hasAnyPurchase || isStoryOpen(story)}
                 onLockedShare={handleLockedShare}
+                isNew={isRecent(story.created_at)}
               />
             );
             if (!story.is_taste) {
@@ -502,6 +520,11 @@ const Library = () => {
             slug: s.slug,
             topic: translateTopic(s.topic),
             created_at: s.created_at,
+            coverUrl: getCoverImage(s),
+            isTaste: !!s.is_taste,
+            isOfflineSaved: fullOffline.isSaved(s.id),
+            isDownloading: fullOffline.downloadingId === s.id,
+            offlineSize: fullOffline.getSize(s.id),
           }));
           return (
             <PolaroidCard
@@ -526,6 +549,9 @@ const Library = () => {
               onDeleteOffline={handleDeleteOffline}
               canShare={hasAnyPurchase || isStoryOpen(mainStory)}
               onLockedShare={handleLockedShare}
+              isNew={isRecent(mainStory.created_at)}
+              onUnlockTaste={unlockTaste}
+              unlockingTasteId={unlockingTasteId}
             />
           );
         })}
@@ -942,6 +968,30 @@ const Library = () => {
                   <WifiOff className="w-3.5 h-3.5" />
                   סיפורים אופליין ({fullOffline.savedStoryIds.size})
                 </button>
+              </div>
+            )}
+
+            {stories.length > 8 && !(isLoading || authLoading) && (
+              <div className="relative mb-3" dir="rtl">
+                <Search className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" aria-hidden="true" />
+                <input
+                  type="search"
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  placeholder="חיפוש לפי נושא או שם"
+                  aria-label="חיפוש לפי נושא או שם"
+                  className="w-full h-11 rounded-full border border-input bg-background pr-9 pl-11 text-base text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring [&::-webkit-search-cancel-button]:hidden"
+                />
+                {searchQuery && (
+                  <button
+                    type="button"
+                    onClick={() => setSearchQuery('')}
+                    aria-label="ניקוי החיפוש"
+                    className="absolute left-1 top-1/2 -translate-y-1/2 h-9 w-9 rounded-full flex items-center justify-center text-muted-foreground hover:bg-muted"
+                  >
+                    <X className="w-4 h-4" />
+                  </button>
+                )}
               </div>
             )}
 
