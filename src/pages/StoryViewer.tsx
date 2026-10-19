@@ -1614,9 +1614,8 @@ const [currentPage, setCurrentPage] = useState(0);
         let pagePrompt = page.illustration_prompt || null;
         if (page.page_number === 1 && hasIllustration) {
           const coverUrl = (story.cover_url && !story.cover_url.startsWith('blob:')) ? story.cover_url : page.illustration_url;
-          const samePicture =
-            (getPublicIllustrationUrl(coverUrl) || coverUrl) ===
-            (getPublicIllustrationUrl(page.illustration_url) || page.illustration_url);
+          const norm = (u: string) => (getPublicIllustrationUrl(u) || u).split('?')[0];
+          const samePicture = norm(coverUrl) === norm(page.illustration_url);
           if (samePicture) {
             pageIllustration = null as any;
             pagePrompt = null;
