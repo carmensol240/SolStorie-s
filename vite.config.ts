@@ -117,7 +117,7 @@ export default defineConfig(({ mode }) => ({
                   // Offline and this page was never cached: serve the precached app shell
                   // so every page (book, library) still opens without internet.
                   handlerDidError: async () =>
-                    (await caches.match("/index.html", { ignoreSearch: true })) || undefined,
+                    (await (globalThis as any).caches.match("/index.html", { ignoreSearch: true })) || undefined,
                 },
               ]
             }
