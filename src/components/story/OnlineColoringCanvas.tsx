@@ -1,7 +1,7 @@
 import React, { useRef, useState, useEffect, useCallback, useMemo } from 'react';
-import { Undo2, Redo2, Download, Printer, ArrowRight, PaintBucket, Eraser, Pencil, Trash2, ScreenShare, Smartphone } from 'lucide-react';
+import { Undo2, Redo2, Download, Printer, ArrowRight, PaintBucket, Eraser, Pencil, Trash2, ScreenShare, Smartphone, Minimize2, Palette, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { downloadColoringPdfA4, printColoringA4 } from '@/lib/coloring-a4';
+import { A4_PRINT_HINT, downloadColoringPdfA4, printColoringA4 } from '@/lib/coloring-a4';
 import { normalizeColoringPixels } from '../../../supabase/functions/_shared/coloring-pixels';
 import { toast } from 'sonner';
 
@@ -37,6 +37,8 @@ const SKIN_EARTH_COLORS = [
 ];
 
 type Tool = 'fill' | 'brush' | 'eraser';
+const ALL_COLORS = [...COLORS, ...SKIN_EARTH_COLORS, ...EXTRA_COLORS];
+const MAX_ZOOM = 5;
 
 const BRUSH_SIZES = [4, 8, 16]; // on-screen px; scaled to the internal resolution when drawing
 const BRUSH_LABELS: Record<number, string> = { 4: 'מכחול דק', 8: 'מכחול בינוני', 16: 'מכחול עבה' };
@@ -273,7 +275,12 @@ export const OnlineColoringCanvas: React.FC<OnlineColoringCanvasProps> = ({
   const topBarRef = useRef<HTMLDivElement>(null);
   const bottomBarRef = useRef<HTMLDivElement>(null);
   const canvasAreaRef = useRef<HTMLDivElement>(null);
-  const [isDrawing, setIsDrawing] = useState(false);
+  const zoomWrapRef = useRef<HTMLDivElement>(null);
+  const strokeActive = useRef(false);
+  const viewRef = useRef({ s: 1, x: 0, y: 0 });
+  const [zoomed, setZoomed] = useState(false);
+  const [paletteOpen, setPaletteOpen] = useState(false);
+  const [sideLayout, setSideLayout] = useState(false);
   const [color, setColor] = useState(COLORS[0]);
   const [tool, setTool] = useState<Tool>('fill');
   const [brushSize, setBrushSize] = useState(8);
@@ -354,6 +361,18 @@ export const OnlineColoringCanvas: React.FC<OnlineColoringCanvasProps> = ({
     setHistoryIndex(newIdx);
   }, [history, historyIndex]);
 
+  const latest = useRef({ saveSnapshot, history, historyIndex });
+  latest.current = { saveSnapshot, history, historyIndex };
+
+  // Side toolbar when the screen is wider than tall (phone landscape, desktop).
+  useEffect(() => {
+    if (!isOpen) return;
+    const update = () => setSideLayout(isLandscape || window.innerWidth > window.innerHeight);
+    update();
+    window.addEventListener('resize', update);
+    return () => window.removeEventListener('resize', update);
+  }, [isOpen, isLandscape]);
+
   // Set up both canvases ONCE per image at a fixed internal resolution.
   // Never called on resize — resizing only changes the CSS display size (layoutCanvases).
   const setupCanvases = useCallback((img: HTMLImageElement) => {
@@ -397,6 +416,10 @@ export const OnlineColoringCanvas: React.FC<OnlineColoringCanvasProps> = ({
     const cssW = `${Math.floor(bgCanvas.width * k)}px`;
     const cssH = `${Math.floor(bgCanvas.height * k)}px`;
     for (const c of [bgCanvas, drawCanvas]) { c.style.width = cssW; c.style.height = cssH; }
+    // New fit size: go back to "fit to screen" so the page never ends up off-screen.
+    viewRef.current = { s: 1, x: 0, y: 0 };
+    if (zoomWrapRef.current) zoomWrapRef.current.style.transform = '';
+    setZoomed(false);
   }, []);
 
   /** Internal canvas pixels per on-screen pixel (for brush thickness). */
@@ -472,88 +495,179 @@ export const OnlineColoringCanvas: React.FC<OnlineColoringCanvasProps> = ({
     return () => ro.disconnect();
   }, [isOpen, layoutCanvases]);
 
-  const getCanvasPos = useCallback((e: React.MouseEvent | React.TouchEvent) => {
+  // ── Drawing helpers (positions are in internal canvas pixels) ──
+  const posFromClient = useCallback((cx: number, cy: number) => {
     const canvas = canvasRef.current;
     if (!canvas) return { x: 0, y: 0 };
-    const rect = canvas.getBoundingClientRect();
-    const scaleX = canvas.width / rect.width;
-    const scaleY = canvas.height / rect.height;
-    if ('touches' in e) {
-      const touch = e.touches[0] || e.changedTouches[0];
-      return { x: (touch.clientX - rect.left) * scaleX, y: (touch.clientY - rect.top) * scaleY };
-    }
-    return { x: (e.clientX - rect.left) * scaleX, y: (e.clientY - rect.top) * scaleY };
+    const rect = canvas.getBoundingClientRect(); // includes the zoom transform
+    return { x: (cx - rect.left) * (canvas.width / rect.width), y: (cy - rect.top) * (canvas.height / rect.height) };
   }, []);
 
-  const handlePointerDown = useCallback((e: React.MouseEvent | React.TouchEvent) => {
-    e.preventDefault();
-    const pos = getCanvasPos(e);
-    const currentTool = toolRef.current;
-    const currentColor = colorRef.current;
-    const currentBrushSize = brushSizeRef.current;
-
-    if (currentTool === 'eraser') {
-      const drawCtx = canvasRef.current?.getContext('2d');
-      if (!drawCtx || !canvasRef.current) return;
-      floodErase(drawCtx, pos.x, pos.y, canvasRef.current.width, canvasRef.current.height);
-      saveSnapshot();
-      return;
-    }
-
-    if (currentTool === 'brush') {
-      setIsDrawing(true);
-      lastPos.current = pos;
-      const ctx = canvasRef.current?.getContext('2d');
-      if (ctx) {
-        ctx.globalCompositeOperation = 'source-over';
-        ctx.fillStyle = currentColor;
-        ctx.beginPath();
-        ctx.arc(pos.x, pos.y, (currentBrushSize * pxScale()) / 2, 0, Math.PI * 2);
-        ctx.fill();
-      }
-      return;
-    }
-
-    // fill tool
+  const doFill = useCallback((pos: { x: number; y: number }) => {
     const drawCtx = canvasRef.current?.getContext('2d');
     const bgCtx = bgCanvasRef.current?.getContext('2d');
     if (!drawCtx || !bgCtx || !canvasRef.current) return;
-    // Bounds check: ignore clicks outside the trimmed image content
-    // (the canvas is sized exactly to getContentBounds, so canvas dims === content bounds).
-    const cw = canvasRef.current.width;
-    const ch = canvasRef.current.height;
+    const cw = canvasRef.current.width, ch = canvasRef.current.height;
     if (pos.x < 0 || pos.y < 0 || pos.x >= cw || pos.y >= ch) return;
-    floodFill(drawCtx, bgCtx, pos.x, pos.y, currentColor, canvasRef.current.width, canvasRef.current.height);
-    saveSnapshot();
-  }, [getCanvasPos, saveSnapshot]);
+    floodFill(drawCtx, bgCtx, pos.x, pos.y, colorRef.current, cw, ch);
+    latest.current.saveSnapshot();
+  }, []);
 
-  const handlePointerMove = useCallback((e: React.MouseEvent | React.TouchEvent) => {
-    e.preventDefault();
-    if (!isDrawing || !canvasRef.current || !lastPos.current) return;
-    const currentTool = toolRef.current;
-    if (currentTool !== 'brush') return;
-    const ctx = canvasRef.current.getContext('2d');
+  const doErase = useCallback((pos: { x: number; y: number }) => {
+    const drawCtx = canvasRef.current?.getContext('2d');
+    if (!drawCtx || !canvasRef.current) return;
+    floodErase(drawCtx, pos.x, pos.y, canvasRef.current.width, canvasRef.current.height);
+    latest.current.saveSnapshot();
+  }, []);
+
+  const beginStroke = useCallback((pos: { x: number; y: number }) => {
+    strokeActive.current = true;
+    lastPos.current = pos;
+    const ctx = canvasRef.current?.getContext('2d');
     if (!ctx) return;
-    const currentPos = getCanvasPos(e);
+    ctx.globalCompositeOperation = 'source-over';
+    ctx.fillStyle = colorRef.current;
+    ctx.beginPath();
+    ctx.arc(pos.x, pos.y, (brushSizeRef.current * pxScale()) / 2, 0, Math.PI * 2);
+    ctx.fill();
+  }, []);
 
+  const strokeTo = useCallback((pos: { x: number; y: number }) => {
+    const ctx = canvasRef.current?.getContext('2d');
+    if (!ctx || !strokeActive.current || !lastPos.current) return;
     ctx.globalCompositeOperation = 'source-over';
     ctx.strokeStyle = colorRef.current;
     ctx.lineWidth = brushSizeRef.current * pxScale();
     ctx.lineCap = 'round';
     ctx.beginPath();
     ctx.moveTo(lastPos.current.x, lastPos.current.y);
-    ctx.lineTo(currentPos.x, currentPos.y);
+    ctx.lineTo(pos.x, pos.y);
     ctx.stroke();
-    lastPos.current = currentPos;
-  }, [isDrawing, getCanvasPos]);
+    lastPos.current = pos;
+  }, []);
 
-  const stopDrawing = useCallback(() => {
-    if (isDrawing) {
-      setIsDrawing(false);
-      lastPos.current = null;
-      saveSnapshot();
+  const endStroke = useCallback((keep: boolean) => {
+    if (!strokeActive.current) return;
+    strokeActive.current = false;
+    lastPos.current = null;
+    if (keep) latest.current.saveSnapshot();
+    else {
+      // A second finger arrived: undo the accidental mark from the first finger.
+      const { history: h, historyIndex: i } = latest.current;
+      const ctx = canvasRef.current?.getContext('2d');
+      if (ctx && h[i]) ctx.putImageData(h[i], 0, 0);
     }
-  }, [isDrawing, saveSnapshot]);
+  }, []);
+
+  // ── Zoom / pan (CSS transform only; internal pixels never change) ──
+  const applyView = useCallback((v: { s: number; x: number; y: number }) => {
+    if (v.s <= 1.001) v = { s: 1, x: 0, y: 0 };
+    viewRef.current = v;
+    const el = zoomWrapRef.current;
+    if (el) el.style.transform = `translate(${v.x}px, ${v.y}px) scale(${v.s})`;
+    setZoomed(v.s > 1);
+  }, []);
+  const resetView = useCallback(() => applyView({ s: 1, x: 0, y: 0 }), [applyView]);
+
+  /** Point relative to the untransformed top-left of the zoom wrapper. */
+  const localPoint = (cx: number, cy: number) => {
+    const area = canvasAreaRef.current, wrap = zoomWrapRef.current;
+    if (!area || !wrap) return { x: 0, y: 0 };
+    const r = area.getBoundingClientRect();
+    return { x: cx - r.left - wrap.offsetLeft, y: cy - r.top - wrap.offsetTop };
+  };
+
+  // Mouse (desktop): act immediately.
+  const onMouseDown = useCallback((e: React.MouseEvent) => {
+    e.preventDefault();
+    const pos = posFromClient(e.clientX, e.clientY);
+    if (toolRef.current === 'eraser') doErase(pos);
+    else if (toolRef.current === 'brush') beginStroke(pos);
+    else doFill(pos);
+  }, [posFromClient, doErase, beginStroke, doFill]);
+  const onMouseMove = useCallback((e: React.MouseEvent) => {
+    if (strokeActive.current) strokeTo(posFromClient(e.clientX, e.clientY));
+  }, [posFromClient, strokeTo]);
+  const onMouseUp = useCallback(() => endStroke(true), [endStroke]);
+
+  // Touch: one finger colors, two fingers zoom and move. Fill/erase wait for the finger to lift
+  // so the first finger of a pinch never colors anything.
+  useEffect(() => {
+    const area = canvasAreaRef.current;
+    if (!isOpen || !area) return;
+    let pending: { pos: { x: number; y: number }; cx: number; cy: number } | null = null;
+    let pinch: { d: number; m: { x: number; y: number }; v: { s: number; x: number; y: number } } | null = null;
+    let gesture = false;
+    const dist = (t: TouchList) => Math.hypot(t[0].clientX - t[1].clientX, t[0].clientY - t[1].clientY);
+    const mid = (t: TouchList) => localPoint((t[0].clientX + t[1].clientX) / 2, (t[0].clientY + t[1].clientY) / 2);
+
+    const start = (e: TouchEvent) => {
+      e.preventDefault();
+      if (e.touches.length >= 2) {
+        gesture = true;
+        pending = null;
+        endStroke(false);
+        pinch = { d: dist(e.touches) || 1, m: mid(e.touches), v: { ...viewRef.current } };
+        return;
+      }
+      if (gesture) return;
+      const t = e.touches[0];
+      const pos = posFromClient(t.clientX, t.clientY);
+      if (toolRef.current === 'brush') beginStroke(pos);
+      else pending = { pos, cx: t.clientX, cy: t.clientY };
+    };
+    const move = (e: TouchEvent) => {
+      e.preventDefault();
+      if (gesture && pinch && e.touches.length >= 2) {
+        const s = Math.min(MAX_ZOOM, Math.max(1, pinch.v.s * (dist(e.touches) / pinch.d)));
+        const k = s / pinch.v.s;
+        const m = mid(e.touches);
+        applyView({ s, x: m.x - (pinch.m.x - pinch.v.x) * k, y: m.y - (pinch.m.y - pinch.v.y) * k });
+        return;
+      }
+      if (gesture) return;
+      const t = e.touches[0];
+      if (strokeActive.current) strokeTo(posFromClient(t.clientX, t.clientY));
+      else if (pending && Math.hypot(t.clientX - pending.cx, t.clientY - pending.cy) > 12) pending = null;
+    };
+    const end = (e: TouchEvent) => {
+      e.preventDefault();
+      if (gesture) {
+        if (e.touches.length >= 2) pinch = { d: dist(e.touches) || 1, m: mid(e.touches), v: { ...viewRef.current } };
+        if (e.touches.length === 0) { gesture = false; pinch = null; }
+        return;
+      }
+      if (strokeActive.current) endStroke(true);
+      else if (pending) {
+        const p = pending.pos;
+        pending = null;
+        if (toolRef.current === 'eraser') doErase(p); else doFill(p);
+      }
+    };
+    // Desktop trackpad pinch / mouse wheel zoom, anchored at the cursor.
+    const wheel = (e: WheelEvent) => {
+      e.preventDefault();
+      const dy = e.deltaY * (e.deltaMode === 1 ? 16 : e.deltaMode === 2 ? 100 : 1);
+      const v = viewRef.current;
+      const s = Math.min(MAX_ZOOM, Math.max(1, v.s * Math.exp(-dy * 0.0015)));
+      const p = localPoint(e.clientX, e.clientY);
+      const k = s / v.s;
+      applyView({ s, x: p.x - (p.x - v.x) * k, y: p.y - (p.y - v.y) * k });
+    };
+    const opts = { passive: false } as AddEventListenerOptions;
+    area.addEventListener('touchstart', start, opts);
+    area.addEventListener('touchmove', move, opts);
+    area.addEventListener('touchend', end, opts);
+    area.addEventListener('touchcancel', end, opts);
+    area.addEventListener('wheel', wheel, opts);
+    return () => {
+      area.removeEventListener('touchstart', start);
+      area.removeEventListener('touchmove', move);
+      area.removeEventListener('touchend', end);
+      area.removeEventListener('touchcancel', end);
+      area.removeEventListener('wheel', wheel);
+    };
+  }, [isOpen, posFromClient, beginStroke, strokeTo, endStroke, doFill, doErase, applyView]);
 
   const getMergedCanvas = useCallback(() => {
     const bgCanvas = bgCanvasRef.current;
@@ -582,6 +696,7 @@ export const OnlineColoringCanvas: React.FC<OnlineColoringCanvasProps> = ({
   const handlePrint = useCallback(() => {
     const merged = getMergedCanvas();
     if (!merged) return;
+    toast.info(A4_PRINT_HINT);
     printColoringA4(merged.toDataURL('image/png'), { preserveColors: true });
   }, [getMergedCanvas]);
 
@@ -602,6 +717,26 @@ export const OnlineColoringCanvas: React.FC<OnlineColoringCanvasProps> = ({
 
   if (!isOpen) return null;
 
+  const pickTool = (t: Tool) => { toolRef.current = t; setTool(t); };
+  const cycleBrush = () => {
+    const next = BRUSH_SIZES[(BRUSH_SIZES.indexOf(brushSizeRef.current) + 1) % BRUSH_SIZES.length];
+    brushSizeRef.current = next; setBrushSize(next); pickTool('brush');
+  };
+  const toolBtn = (active: boolean) =>
+    `w-11 h-11 shrink-0 rounded-full flex items-center justify-center transition-all touch-manipulation ${
+      active ? 'ring-2 ring-purple-500 ring-offset-1 bg-purple-50 shadow-md' : 'bg-gray-100 hover:bg-gray-200'
+    }`;
+  const swatch = (c: string) => (
+    <button key={c} type="button" aria-label={colorName(c)} aria-pressed={color === c && tool !== 'eraser'}
+      onPointerDown={(e) => { e.stopPropagation(); selectColor(c); }} onClick={(e) => { if (e.detail === 0) selectColor(c); }}
+      className={`w-11 h-11 shrink-0 rounded-full border-2 transition-all active:scale-95 touch-manipulation ${
+        color === c && tool !== 'eraser' ? 'scale-110 shadow-lg border-gray-700' : 'border-white shadow-md hover:scale-105'
+      }`}
+      style={{ backgroundColor: c }}
+    />
+  );
+  const topBtn = 'text-white hover:bg-white/20 rounded-xl w-11 h-11 shrink-0 disabled:opacity-30';
+
   return (
     <div className="fixed inset-0 z-[110] bg-white overflow-hidden flex flex-col" style={{
       height: '100dvh',
@@ -617,47 +752,39 @@ export const OnlineColoringCanvas: React.FC<OnlineColoringCanvasProps> = ({
         marginLeft: 'calc(-50dvh)',
       } : {})
     }}>
-      {/* Top bar — floating overlay */}
-      <div ref={topBarRef} className="relative z-20 shrink-0 flex justify-between items-center px-2 py-1.5 bg-gradient-to-r from-purple-600/80 to-pink-500/80 backdrop-blur-sm" dir="rtl">
-        <Button onClick={handleClose} variant="ghost" size="sm" className="text-white hover:bg-white/20 rounded-xl gap-1 min-h-[36px] px-2 text-sm">
+      {/* Top bar */}
+      <div ref={topBarRef} className="relative z-20 shrink-0 flex justify-between items-center px-1 bg-gradient-to-r from-purple-600/80 to-pink-500/80 backdrop-blur-sm" dir="rtl">
+        <Button onClick={handleClose} variant="ghost" size="sm" className="text-white hover:bg-white/20 rounded-xl gap-1 min-h-[44px] px-2 text-sm">
           <ArrowRight className="w-4 h-4" /> חזרה
         </Button>
-        <div className="flex items-center gap-0.5">
-          <Button onClick={undo} aria-label="ביטול פעולה" variant="ghost" size="icon" disabled={historyIndex <= 0}
-            className="text-white hover:bg-white/20 rounded-xl w-9 h-9 disabled:opacity-30">
+        <div className="flex items-center">
+          <Button onClick={undo} aria-label="ביטול פעולה" variant="ghost" size="icon" disabled={historyIndex <= 0} className={topBtn}>
             <Redo2 className="w-4 h-4" />
           </Button>
-          <Button onClick={redo} aria-label="ביצוע מחדש" variant="ghost" size="icon" disabled={historyIndex >= history.length - 1}
-            className="text-white hover:bg-white/20 rounded-xl w-9 h-9 disabled:opacity-30">
+          <Button onClick={redo} aria-label="ביצוע מחדש" variant="ghost" size="icon" disabled={historyIndex >= history.length - 1} className={topBtn}>
             <Undo2 className="w-4 h-4" />
           </Button>
-          <div className="w-px h-5 bg-white/30 mx-0.5" />
-          <Button onClick={handleSave} aria-label="הורדת PDF של הציור" variant="ghost" size="icon" className="text-white hover:bg-white/20 rounded-xl w-9 h-9">
+          <Button onClick={handleSave} aria-label="הורדת PDF של הציור" variant="ghost" size="icon" className={topBtn}>
             <Download className="w-4 h-4" />
           </Button>
-          <Button onClick={handlePrint} aria-label="הדפסה" variant="ghost" size="icon" className="text-white hover:bg-white/20 rounded-xl w-9 h-9">
+          <Button onClick={handlePrint} aria-label="הדפסה" variant="ghost" size="icon" className={topBtn}>
             <Printer className="w-4 h-4" />
           </Button>
-          <Button onClick={handleClear} aria-label="נקה צביעה" variant="ghost" size="icon" className="text-white hover:bg-white/20 rounded-xl w-9 h-9" title="נקה צביעה">
+          <Button onClick={handleClear} aria-label="נקה צביעה" variant="ghost" size="icon" className={topBtn} title="נקה צביעה">
             <Trash2 className="w-4 h-4" />
           </Button>
-          <Button onClick={toggleLandscape} aria-label={isLandscape ? 'מצב עומד' : 'מצב רוחב'} variant="ghost" size="icon" className="text-white hover:bg-white/20 rounded-xl w-9 h-9" title={isLandscape ? 'מצב עומד' : 'מצב רוחב'}>
+          <Button onClick={toggleLandscape} aria-label={isLandscape ? 'מצב עומד' : 'מצב רוחב'} variant="ghost" size="icon" className={`${topBtn} md:hidden`} title={isLandscape ? 'מצב עומד' : 'מצב רוחב'}>
             {isLandscape ? <Smartphone className="w-4 h-4" /> : <ScreenShare className="w-4 h-4" />}
           </Button>
           {(canGoPrev || canGoNext) && (
             <div className="hidden md:flex items-center">
-              <div className="w-px h-5 bg-white/30 mx-0.5" />
               {canGoPrev && onNavigatePrev && (
-                <Button onClick={onNavigatePrev} variant="ghost" size="icon"
-                  className="text-white hover:bg-white/20 rounded-xl w-9 h-9"
-                  aria-label="דף קודם">
+                <Button onClick={onNavigatePrev} variant="ghost" size="icon" className={topBtn} aria-label="דף קודם">
                   <span className="text-lg font-bold">❮</span>
                 </Button>
               )}
               {canGoNext && onNavigateNext && (
-                <Button onClick={onNavigateNext} variant="ghost" size="icon"
-                  className="text-white hover:bg-white/20 rounded-xl w-9 h-9"
-                  aria-label="דף הבא">
+                <Button onClick={onNavigateNext} variant="ghost" size="icon" className={topBtn} aria-label="דף הבא">
                   <span className="text-lg font-bold">❯</span>
                 </Button>
               )}
@@ -666,106 +793,73 @@ export const OnlineColoringCanvas: React.FC<OnlineColoringCanvasProps> = ({
         </div>
       </div>
 
-      {/* Canvas area */}
-      <div ref={canvasAreaRef} className="relative z-0 flex-1 min-h-0 w-full overflow-hidden bg-white flex items-center justify-center">
-        {!bgLoaded && (
-          <div className="absolute inset-0 flex items-center justify-center z-10">
-            <div className="animate-spin w-10 h-10 border-4 border-purple-400 border-t-transparent rounded-full" />
-          </div>
-        )}
-        <div className="relative" style={{ lineHeight: 0 }}>
-          <canvas ref={bgCanvasRef} className="block" />
-          <canvas
-            ref={canvasRef}
-            className="absolute top-0 left-0 touch-none"
-            style={{ cursor: cursorStyle }}
-            onMouseDown={handlePointerDown} onMouseMove={handlePointerMove}
-            onMouseUp={stopDrawing} onMouseLeave={stopDrawing}
-            onTouchStart={handlePointerDown} onTouchMove={handlePointerMove} onTouchEnd={stopDrawing}
-          />
-        </div>
-      </div>
-
-      {/* Bottom toolbar — floating overlay */}
-      <div ref={bottomBarRef} className="relative z-20 shrink-0 bg-white/85 backdrop-blur-sm border-t border-purple-200 px-2 py-1.5 space-y-1.5" style={{ paddingBottom: `calc(env(safe-area-inset-bottom, 8px) + 8px)` }}>
-        {/* Tools */}
-        <div className="flex items-center justify-center gap-2">
-          <button type="button" aria-label="דלי צבע" aria-pressed={tool === 'fill'} onPointerDown={(e) => { e.stopPropagation(); toolRef.current = 'fill'; setTool('fill'); }} onClick={(e) => { if (e.detail === 0) { toolRef.current = 'fill'; setTool('fill'); } }}
-            className={`w-9 h-9 rounded-full flex items-center justify-center transition-all touch-manipulation ${
-              tool === 'fill' ? 'ring-2 ring-purple-500 ring-offset-1 bg-purple-50 shadow-md' : 'bg-gray-100 hover:bg-gray-200'
-            }`}>
-            <PaintBucket className="w-4 h-4" style={{ color }} />
-          </button>
-          <button type="button" aria-label="מכחול" aria-pressed={tool === 'brush'} onPointerDown={(e) => { e.stopPropagation(); toolRef.current = 'brush'; setTool('brush'); }} onClick={(e) => { if (e.detail === 0) { toolRef.current = 'brush'; setTool('brush'); } }}
-            className={`w-9 h-9 rounded-full flex items-center justify-center transition-all touch-manipulation ${
-              tool === 'brush' ? 'ring-2 ring-purple-500 ring-offset-1 bg-purple-50 shadow-md' : 'bg-gray-100 hover:bg-gray-200'
-            }`}>
-            <Pencil className="w-4 h-4" style={{ color: tool === 'brush' ? color : undefined }} />
-          </button>
-          <button type="button" aria-label="מחק" aria-pressed={tool === 'eraser'} onPointerDown={(e) => { e.stopPropagation(); toolRef.current = 'eraser'; setTool('eraser'); }} onClick={(e) => { if (e.detail === 0) { toolRef.current = 'eraser'; setTool('eraser'); } }}
-            className={`w-9 h-9 rounded-full flex items-center justify-center transition-all touch-manipulation ${
-              tool === 'eraser' ? 'ring-2 ring-purple-500 ring-offset-1 bg-purple-50 shadow-md' : 'bg-gray-100 hover:bg-gray-200'
-            }`}>
-            <Eraser className="w-4 h-4 text-gray-500" />
-          </button>
-          {tool === 'brush' && (
-            <div className="flex items-center gap-1 mr-2">
-              {BRUSH_SIZES.map((s) => (
-                <button key={s} type="button" aria-label={BRUSH_LABELS[s]} aria-pressed={brushSize === s} onPointerDown={(e) => { e.stopPropagation(); brushSizeRef.current = s; setBrushSize(s); }} onClick={(e) => { if (e.detail === 0) { brushSizeRef.current = s; setBrushSize(s); } }}
-                  className={`rounded-full bg-gray-700 transition-all touch-manipulation ${brushSize === s ? 'ring-2 ring-purple-500 ring-offset-1' : ''}`}
-                  style={{ width: s + 8, height: s + 8 }}
-                />
-              ))}
+      <div className={`flex-1 min-h-0 flex ${sideLayout ? 'flex-row' : 'flex-col'}`}>
+        {/* Canvas area */}
+        <div ref={canvasAreaRef} className="relative z-0 flex-1 min-h-0 min-w-0 overflow-hidden bg-white flex items-center justify-center touch-none">
+          {!bgLoaded && (
+            <div className="absolute inset-0 flex items-center justify-center z-10">
+              <div className="animate-spin w-10 h-10 border-4 border-purple-400 border-t-transparent rounded-full" />
             </div>
           )}
-        </div>
-        {/* Skin & earth tones */}
-        <div className="flex items-center justify-center gap-1.5 flex-wrap">
-          {SKIN_EARTH_COLORS.map((c) => (
-            <button key={c} type="button" aria-label={colorName(c)} aria-pressed={color === c && tool !== 'eraser'}
-              onPointerDown={(e) => { e.stopPropagation(); selectColor(c); }} onClick={(e) => { if (e.detail === 0) { selectColor(c); } }}
-              className={`w-9 h-9 md:w-11 md:h-11 rounded-full border-2 transition-all active:scale-95 touch-manipulation ${
-                color === c && tool !== 'eraser'
-                  ? 'scale-110 shadow-lg border-gray-700'
-                  : 'border-white shadow-md hover:scale-105'
-              }`}
-              style={{ backgroundColor: c }}
+          <div ref={zoomWrapRef} className="relative" style={{ lineHeight: 0, transformOrigin: '0 0' }}>
+            <canvas ref={bgCanvasRef} className="block" />
+            <canvas
+              ref={canvasRef}
+              className="absolute top-0 left-0 touch-none"
+              style={{ cursor: cursorStyle }}
+              onMouseDown={onMouseDown} onMouseMove={onMouseMove} onMouseUp={onMouseUp} onMouseLeave={onMouseUp}
             />
-          ))}
+          </div>
         </div>
-        {/* Colors */}
-        <div className="flex items-center justify-center gap-1.5 flex-wrap">
-          {COLORS.map((c) => (
-            <button key={c} type="button" aria-label={colorName(c)} aria-pressed={color === c && tool !== 'eraser'}
-              onPointerDown={(e) => { e.stopPropagation(); selectColor(c); }} onClick={(e) => { if (e.detail === 0) { selectColor(c); } }}
-              className={`w-9 h-9 md:w-11 md:h-11 rounded-full border-2 transition-all active:scale-95 touch-manipulation ${
-                color === c && tool !== 'eraser'
-                  ? 'scale-110 shadow-lg border-gray-700'
-                  : 'border-white shadow-md hover:scale-105'
-              }`}
-              style={{
-                backgroundColor: c,
-                boxShadow: c === '#FFFFFF' ? 'inset 0 0 0 1px #ddd' : undefined,
-              }}
-            />
-          ))}
-        </div>
-        {/* Extra colors */}
-        <div className="flex items-center justify-center gap-1.5 flex-wrap">
-          {EXTRA_COLORS.map((c) => (
-            <button key={c} type="button" aria-label={colorName(c)} aria-pressed={color === c && tool !== 'eraser'}
-              onPointerDown={(e) => { e.stopPropagation(); selectColor(c); }} onClick={(e) => { if (e.detail === 0) { selectColor(c); } }}
-              className={`w-9 h-9 md:w-11 md:h-11 rounded-full border-2 transition-all active:scale-95 touch-manipulation ${
-                color === c && tool !== 'eraser'
-                  ? 'scale-110 shadow-lg border-gray-700'
-                  : 'border-white shadow-md hover:scale-105'
-              }`}
-              style={{ backgroundColor: c }}
-            />
-          ))}
+
+        {/* Tools + colors: one compact row each below the page, or a side column in landscape/desktop */}
+        <div ref={bottomBarRef} dir="rtl"
+          className={sideLayout
+            ? 'relative z-20 shrink-0 h-full w-[164px] lg:w-[220px] overflow-y-auto border-s border-purple-200 bg-white/95 p-2 flex flex-col gap-3'
+            : 'relative z-20 shrink-0 bg-white/95 border-t border-purple-200 px-2 pt-1.5 flex flex-col gap-1.5'}
+          style={sideLayout ? undefined : { paddingBottom: 'calc(env(safe-area-inset-bottom, 0px) + 6px)' }}>
+          <div className={sideLayout ? 'grid grid-cols-3 lg:grid-cols-4 gap-1.5 justify-items-center' : 'flex items-center justify-center gap-1.5'}>
+            <button type="button" aria-label="דלי צבע" aria-pressed={tool === 'fill'} onClick={() => pickTool('fill')} className={toolBtn(tool === 'fill')}>
+              <PaintBucket className="w-5 h-5" style={{ color }} />
+            </button>
+            <button type="button" aria-label="מכחול" aria-pressed={tool === 'brush'} onClick={() => pickTool('brush')} className={toolBtn(tool === 'brush')}>
+              <Pencil className="w-5 h-5" style={{ color: tool === 'brush' ? color : undefined }} />
+            </button>
+            <button type="button" aria-label="מחק" aria-pressed={tool === 'eraser'} onClick={() => pickTool('eraser')} className={toolBtn(tool === 'eraser')}>
+              <Eraser className="w-5 h-5 text-gray-500" />
+            </button>
+            <button type="button" aria-label={`עובי מכחול: ${BRUSH_LABELS[brushSize]}`} onClick={cycleBrush} className={toolBtn(false)}>
+              <span className="rounded-full bg-gray-700" style={{ width: brushSize + 4, height: brushSize + 4 }} />
+            </button>
+            <button type="button" aria-label="התאמה למסך" title="התאמה למסך" onClick={resetView} disabled={!zoomed} className={`${toolBtn(false)} disabled:opacity-40`}>
+              <Minimize2 className="w-5 h-5" />
+            </button>
+            <button type="button" aria-label="עוד צבעים" title="עוד צבעים" onClick={() => setPaletteOpen(true)} className={toolBtn(false)}>
+              <Palette className="w-5 h-5 text-purple-600" />
+            </button>
+          </div>
+          <div role="group" aria-label="צבעים"
+            className={sideLayout ? 'grid grid-cols-3 lg:grid-cols-4 gap-2 justify-items-center' : 'flex items-center gap-2 overflow-x-auto px-1 py-1 snap-x [scrollbar-width:none]'}>
+            {ALL_COLORS.map(swatch)}
+          </div>
         </div>
       </div>
 
+      {paletteOpen && (
+        <div className="absolute inset-0 z-40 bg-black/40 flex items-center justify-center p-4" onClick={() => setPaletteOpen(false)}>
+          <div role="dialog" aria-modal="true" aria-label="כל הצבעים" dir="rtl" className="bg-white rounded-2xl p-4 shadow-xl max-w-sm w-full" onClick={(e) => e.stopPropagation()}>
+            <div className="flex items-center justify-between mb-3">
+              <h2 className="text-base font-bold">כל הצבעים</h2>
+              <button type="button" aria-label="סגירה" onClick={() => setPaletteOpen(false)} className="w-11 h-11 rounded-full hover:bg-gray-100 flex items-center justify-center">
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+            <div className="grid grid-cols-6 gap-2 justify-items-center" onClick={() => setPaletteOpen(false)}>
+              {ALL_COLORS.map(swatch)}
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
