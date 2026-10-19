@@ -130,6 +130,9 @@ For comparison, a story's illustrations cost several shekels, so the added cost 
 - Migration: a new column `nlp_report jsonb` on stories (type, techniques[{code, page, quote}], fixed, version), with no change to RLS.
 - After a targeted rewrite, run the existing niqqud check/cleanup only on the changed pages before saving.
 - Modeling: required only if any gang name (Sol/Zoe/Mia/Leo/Ben, Hebrew forms) appears in the story text.
+- 7 topic types in the mapping; a `sensitive` flag on the 4 topics adds the no-outcome-promise rule to the writing instructions and an `outcome_promise` issue type to the check (flagged → targeted rewrite → niqqud re-run).
+- The safety type adds the no-frightening/no-villain/no-blame rule to the instructions; the check also flags violations of it.
+- Tests: one per new type mapping, sensitive-flag topics, and outcome-promise detection that triggers a rewrite.
 - Admin: a coverage card plus a marked-stories list in AdminDashboard, with a details dialog showing the quotes for each technique (admin-only, reads stories.nlp_report).
 - Tests: mapping topic to type, the required techniques per type, and parsing the check report (missing → triggers a fix; an error → the story is saved without blocking).
 - Publishing is needed for this to reach soulstory.co.il.
