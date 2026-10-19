@@ -1088,6 +1088,8 @@ export type Database = {
           illustration_url: string | null
           illustration_url_2: string | null
           page_number: number
+          print_illustration_url: string | null
+          print_illustration_width: number | null
           story_id: string
           text: string
         }
@@ -1099,6 +1101,8 @@ export type Database = {
           illustration_url?: string | null
           illustration_url_2?: string | null
           page_number: number
+          print_illustration_url?: string | null
+          print_illustration_width?: number | null
           story_id: string
           text: string
         }
@@ -1110,6 +1114,8 @@ export type Database = {
           illustration_url?: string | null
           illustration_url_2?: string | null
           page_number?: number
+          print_illustration_url?: string | null
+          print_illustration_width?: number | null
           story_id?: string
           text?: string
         }

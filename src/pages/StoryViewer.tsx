@@ -2507,6 +2507,7 @@ const [currentPage, setCurrentPage] = useState(0);
           childName={story.child_name}
           storyTitle={translateTopic(story.topic, story.language)}
           coverUrl={story.cover_url}
+          language={story.language}
           pages={(story.pages || []).slice(0, 4).map(p => ({ illustration_url: p.illustration_url || null, text: p.text || '' }))}
           onDownload={() => {
             setShowPrintPreviewModal(false);

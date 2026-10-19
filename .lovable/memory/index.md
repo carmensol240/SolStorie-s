@@ -1,0 +1,1 @@
+- [Print PDF spec](mem://features/print-pdf-spec) — 216mm bleed, safe area, page order, upscale, watermark

@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { PRINT_NOTE, printLang } from "@/lib/print-layout";
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Printer } from "lucide-react";
@@ -13,6 +14,7 @@ interface PrintBookPreviewModalProps {
   coverUrl?: string | null;
   pages: { illustration_url: string | null; text: string }[];
   onDownload: () => void;
+  language?: string;
 }
 
 export const PrintBookPreviewModal = ({
@@ -23,6 +25,7 @@ export const PrintBookPreviewModal = ({
   coverUrl,
   pages,
   onDownload,
+  language,
 }: PrintBookPreviewModalProps) => {
   type Slide =
     | { type: "cover"; src: string }
@@ -154,6 +157,9 @@ export const PrintBookPreviewModal = ({
             <Printer className="w-5 h-5" />
             🖨️ להורדת קובץ ה-PDF המלא
           </Button>
+          <p className="text-center text-white/75 text-sm mt-3 leading-relaxed" dir={language === 'en' ? 'ltr' : 'rtl'}>
+            {PRINT_NOTE[printLang(language)]}
+          </p>
         </div>
       </DialogContent>
     </Dialog>
