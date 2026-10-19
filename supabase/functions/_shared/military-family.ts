@@ -4,6 +4,8 @@
 export const IDF_UNIFORM =
   "wearing Israel Defense Forces olive-green uniform (olive drab shirt and trousers, brown military boots), green army duffel bag";
 
+const plain = (t: string) => String(t || "").replace(/[\u0591-\u05C7]/g, "");
+
 export type MilitaryRole = "father" | "mother" | "brother" | "sister" | "grandfather" | "uncle" | "aunt";
 
 const TOPIC_ROLE: Record<string, MilitaryRole> = { "dad-in-reserves": "father" };
@@ -30,7 +32,7 @@ export function militaryRoleForStory(topic: string | null | undefined, storyText
   if (TOPIC_ROLE[t]) return TOPIC_ROLE[t];
   if (/אבא במילואים/.test(t)) return "father";
   if (/אמא במילואים/.test(t)) return "mother";
-  const source = `${t}\n${storyText}`;
+  const source = plain(`${t}\n${storyText}`);
   if (!ARMY_RE.test(source)) return null;
   // The role named closest to an army word ("אבא במילואים", "אחי החייל").
   for (const [role, re] of ROLE_PATTERNS) {
@@ -47,12 +49,13 @@ const HOME_SCENE_RE = /ארוחה|ארוחת|שולחן|אוכלים|מבשל|מ
 
 export function pageMentionsRole(role: MilitaryRole, text: string) {
   const re = ROLE_PATTERNS.find(([r]) => r === role)?.[1];
-  return !!re && re.test(text);
+  return !!re && re.test(plain(text));
 }
 
 export function uniformRequiredForPage(text: string): boolean {
-  if (UNIFORM_SCENE_RE.test(text)) return true;
-  return !HOME_SCENE_RE.test(text);
+  const p = plain(text);
+  if (UNIFORM_SCENE_RE.test(p)) return true;
+  return !HOME_SCENE_RE.test(p);
 }
 
 /** Character lock block for the family member in the reserves, or "" when not on this page. */
