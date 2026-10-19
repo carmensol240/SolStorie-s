@@ -1,0 +1,2 @@
+ALTER TABLE public.stories ADD COLUMN IF NOT EXISTS nlp_report jsonb;
+COMMENT ON COLUMN public.stories.nlp_report IS 'NLP technique check per story: type, techniques found with quotes, issues, fixed pages, flagged.';
