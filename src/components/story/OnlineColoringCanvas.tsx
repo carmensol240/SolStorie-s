@@ -1,7 +1,7 @@
 import React, { useRef, useState, useEffect, useCallback, useMemo } from 'react';
 import { Undo2, Redo2, Download, Printer, ArrowRight, PaintBucket, Eraser, Pencil, Trash2, ScreenShare, Smartphone, Minimize2, Palette, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { A4_PRINT_HINT, downloadColoringPdfA4, printColoringA4 } from '@/lib/coloring-a4';
+import { A4_PRINT_HINT, coloringCorsUrl, downloadColoringPdfA4, printColoringA4 } from '@/lib/coloring-a4';
 import { normalizeColoringPixels } from '../../../supabase/functions/_shared/coloring-pixels';
 import { toast } from 'sonner';
 
@@ -287,6 +287,8 @@ export const OnlineColoringCanvas: React.FC<OnlineColoringCanvasProps> = ({
   const [isLandscape, setIsLandscape] = useState(false);
   const orientationLockSupported = useRef(false);
   const [bgLoaded, setBgLoaded] = useState(false);
+  const [bgError, setBgError] = useState(false);
+  const [bgRetry, setBgRetry] = useState(0);
   const lastPos = useRef<{ x: number; y: number } | null>(null);
   const bgImageRef = useRef<HTMLImageElement | null>(null);
   const trimBoundsRef = useRef<{ sx: number; sy: number; sw: number; sh: number } | null>(null);
@@ -456,19 +458,21 @@ export const OnlineColoringCanvas: React.FC<OnlineColoringCanvasProps> = ({
   useEffect(() => {
     if (!isOpen) return;
     setBgLoaded(false);
+    setBgError(false);
     setHistory([]);
     setHistoryIndex(-1);
     trimBoundsRef.current = null;
     const img = new Image();
     img.crossOrigin = 'anonymous';
-    img.src = backgroundImage;
+    img.src = coloringCorsUrl(backgroundImage);
     img.onload = () => {
       bgImageRef.current = img;
       setupCanvases(img);
       layoutCanvases();
       setBgLoaded(true);
     };
-  }, [isOpen, backgroundImage]);
+    img.onerror = () => setBgError(true);
+  }, [isOpen, backgroundImage, bgRetry]);
 
   useEffect(() => {
     if (!isOpen || !bgImageRef.current) return;
@@ -796,9 +800,15 @@ export const OnlineColoringCanvas: React.FC<OnlineColoringCanvasProps> = ({
       <div className={`flex-1 min-h-0 flex ${sideLayout ? 'flex-row' : 'flex-col'}`}>
         {/* Canvas area */}
         <div ref={canvasAreaRef} className="relative z-0 flex-1 min-h-0 min-w-0 overflow-hidden bg-white flex items-center justify-center touch-none">
-          {!bgLoaded && (
+          {!bgLoaded && !bgError && (
             <div className="absolute inset-0 flex items-center justify-center z-10">
               <div className="animate-spin w-10 h-10 border-4 border-purple-400 border-t-transparent rounded-full" />
+            </div>
+          )}
+          {bgError && (
+            <div className="absolute inset-0 flex flex-col items-center justify-center gap-3 z-10 bg-white/95 px-6 text-center">
+              <p className="text-sm text-gray-700">לא הצלחנו לטעון את הדף, נסו שוב</p>
+              <Button size="sm" variant="outline" onClick={() => setBgRetry((n) => n + 1)}>נסו שוב</Button>
             </div>
           )}
           <div ref={zoomWrapRef} className="relative" style={{ lineHeight: 0, transformOrigin: '0 0' }}>
