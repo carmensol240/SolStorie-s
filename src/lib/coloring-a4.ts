@@ -18,10 +18,16 @@ export function coloringPdfFileName(name?: string | null) {
   return `${clean}-coloring-page-A4.pdf`;
 }
 
+/** Separate cache key for crossOrigin loads: the plain <img> in the library caches the
+ *  same URL without CORS headers, and reusing that entry fails the canvas load. */
+export function coloringCorsUrl(url: string): string {
+  return url + (url.includes("?") ? "&" : "?") + "cors=1";
+}
+
 async function loadImage(url: string): Promise<HTMLImageElement> {
   const img = new Image();
   img.crossOrigin = "anonymous";
-  img.src = url;
+  img.src = coloringCorsUrl(url);
   await img.decode();
   return img;
 }
@@ -106,7 +112,7 @@ export function printColoringA4(url: string, options: ColoringExportOptions = {}
   root.id = "a4-print-root";
   const img = document.createElement("img");
   img.crossOrigin = "anonymous";
-  img.src = url;
+  img.src = coloringCorsUrl(url);
   img.alt = "coloring page";
   root.appendChild(img);
   document.body.appendChild(root);
