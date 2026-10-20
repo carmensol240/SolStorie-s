@@ -21,6 +21,7 @@ export function coloringPdfFileName(name?: string | null) {
 /** Separate cache key for crossOrigin loads: the plain <img> in the library caches the
  *  same URL without CORS headers, and reusing that entry fails the canvas load. */
 export function coloringCorsUrl(url: string): string {
+  if (url.startsWith("data:") || url.startsWith("blob:")) return url;
   return url + (url.includes("?") ? "&" : "?") + "cors=1";
 }
 
