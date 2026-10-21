@@ -118,7 +118,6 @@ const GuestLanding = ({ user, isLoggedIn }: GuestLandingProps) => {
           <h1 className="text-3xl sm:text-4xl font-black logo-3d-bubble">
             <span className="logo-rainbow">SolStorie's™</span>
           </h1>
-          <p className="text-sm font-semibold text-purple-600/80 leading-tight" style={{ textShadow: '1px 1px 2px rgba(255,255,255,0.9)' }}>עולמה הקסום של סול</p>
         </div>
 
         {/* Title Section - Compact & Centered */}
