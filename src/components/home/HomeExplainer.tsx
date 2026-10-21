@@ -7,18 +7,18 @@ import topicFearOfDark from "@/assets/topic-fear-of-dark.jpg";
 import topicNewSibling from "@/assets/topic-new-sibling.jpeg";
 import topicKindergarten from "@/assets/topic-first-day-kindergarten.jpg";
 import topicSpace from "@/assets/topic-space-hero.jpg";
-import castSol from "@/assets/cast-thumbs/sol.webp";
-import castBen from "@/assets/cast-thumbs/ben.webp";
-import castMia from "@/assets/cast-thumbs/mia.webp";
-import castZoe from "@/assets/cast-thumbs/zoe.webp";
-import castLeo from "@/assets/cast-thumbs/leo.webp";
+import castSolAsset from "@/assets/cast-thumbs/sol.webp.asset.json";
+import castBenAsset from "@/assets/cast-thumbs/ben.webp.asset.json";
+import castMiaAsset from "@/assets/cast-thumbs/mia.webp.asset.json";
+import castZoeAsset from "@/assets/cast-thumbs/zoe.webp.asset.json";
+import castLeoAsset from "@/assets/cast-thumbs/leo.webp.asset.json";
 
 const CAST: { img: string; name: string; text: string }[] = [
-  { img: castSol, name: "סול", text: "גיבורת העל שמובילה את החבורה" },
-  { img: castBen, name: "בן", text: "האח הקטן של סול שכולם אוהבים" },
-  { img: castMia, name: "מיה", text: "ילדת הפרחים" },
-  { img: castZoe, name: "זואי", text: "הספורטאית" },
-  { img: castLeo, name: "ליאו", text: "הצייר" },
+  { img: castSolAsset.url, name: "סול", text: "גיבורת העל שמובילה את החבורה" },
+  { img: castBenAsset.url, name: "בן", text: "האח הקטן של סול שכולם אוהבים" },
+  { img: castMiaAsset.url, name: "מיה", text: "ילדת הפרחים" },
+  { img: castZoeAsset.url, name: "זואי", text: "הספורטאית" },
+  { img: castLeoAsset.url, name: "ליאו", text: "הצייר" },
 ];
 
 // Content shown below the hero video on the landing page: what the service
