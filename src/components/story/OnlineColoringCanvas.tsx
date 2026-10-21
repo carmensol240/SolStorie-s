@@ -623,6 +623,7 @@ export const OnlineColoringCanvas: React.FC<OnlineColoringCanvasProps> = ({
       else pending = { pos, cx: t.clientX, cy: t.clientY };
     };
     const move = (e: TouchEvent) => {
+      if ((e.target as Element | null)?.closest?.('[data-coloring-overlay]')) return;
       e.preventDefault();
       if (gesture && pinch && e.touches.length >= 2) {
         const s = Math.min(MAX_ZOOM, Math.max(1, pinch.v.s * (dist(e.touches) / pinch.d)));
@@ -637,6 +638,7 @@ export const OnlineColoringCanvas: React.FC<OnlineColoringCanvasProps> = ({
       else if (pending && Math.hypot(t.clientX - pending.cx, t.clientY - pending.cy) > 12) pending = null;
     };
     const end = (e: TouchEvent) => {
+      if ((e.target as Element | null)?.closest?.('[data-coloring-overlay]')) return;
       e.preventDefault();
       if (gesture) {
         if (e.touches.length >= 2) pinch = { d: dist(e.touches) || 1, m: mid(e.touches), v: { ...viewRef.current } };
