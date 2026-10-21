@@ -431,7 +431,6 @@ const [currentPage, setCurrentPage] = useState(0);
   // story-illustrations bucket is public - using direct URLs via getPublicIllustrationUrl
   
   const [editStoryId, setEditStoryId] = useState<string>('');
-  const { fetchEditCount, editCount, freeEditsRemaining } = useStoryEdit(editStoryId);
   const hasTrackedStart = useRef(false);
   const { audioSupport } = useAccessibility();
   const { startReading } = useTextToSpeech();
@@ -1309,8 +1308,7 @@ const [currentPage, setCurrentPage] = useState(0);
     setIsDrawingMode(true);
   };
 
-  const handleEditClick = async () => {
-    if (resolvedId) await fetchEditCount(resolvedId);
+  const handleEditClick = () => {
     setShowEditConfirmDialog(true);
   };
 
@@ -1863,6 +1861,8 @@ const [currentPage, setCurrentPage] = useState(0);
 
   // Page 1 doubles as the book cover — only its real owner may regenerate it.
   const isStoryOwner = !!user?.id && !!story?.user_id && story.user_id === user.id;
+  // Free text editing: owner (or admin) only, and never while still locked as a taste.
+  const canEditText = !story?.is_taste && (isStoryOwner || isAdminUser);
   const canRegenerateCover =
     isStoryOwner &&
     !isDemoUser &&
@@ -1943,7 +1943,7 @@ const [currentPage, setCurrentPage] = useState(0);
         pdfLocked={!canDownloadPdf}
         onShareWhatsApp={guardDemo(handleShareWhatsApp)}
         onToggleFontSize={() => setFontSizeIndex((fontSizeIndex + 1) % FONT_SIZES.length)}
-        onEdit={showPageActions ? handleEditClick : undefined}
+        onEdit={showPageActions && canEditText ? handleEditClick : undefined}
         onAddNikud={showPageActions ? handleAddNikud : undefined}
         onReport={handleReportIssue}
         onToggleNikud={() => setShowNikud(prev => !prev)}
@@ -2510,22 +2510,13 @@ const [currentPage, setCurrentPage] = useState(0);
           <AlertDialogHeader>
             <AlertDialogTitle>אישור עריכה</AlertDialogTitle>
             <AlertDialogDescription className="text-right leading-relaxed">
-              ה-AI שלנו לפעמים טועה, ולכן אנחנו מעניקים עריכות חינם בכל חבילה!
-              {freeEditsRemaining > 0 ? (
-                <span className="block mt-2 font-medium text-green-600">
-                  נותרו לך {freeEditsRemaining} עריכות בחינם בחבילה
-                </span>
-              ) : (
-                <span className="block mt-2 font-medium text-foreground">
-                  העריכות בחינם נוצלו. כל עריכה עולה 1 קרדיט
-                </span>
-              )}
+              ה-AI שלנו לפעמים טועה, ולכן תיקון טקסט חינם בכל עמודי הסיפור.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter className="gap-2 sm:gap-0">
             <AlertDialogCancel>ביטול</AlertDialogCancel>
             <AlertDialogAction onClick={handleEditConfirmed}>
-              {freeEditsRemaining > 0 ? 'ערוך בחינם' : 'המשך לעריכה'}
+              המשך לעריכה
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
