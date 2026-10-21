@@ -7,6 +7,19 @@ import topicFearOfDark from "@/assets/topic-fear-of-dark.jpg";
 import topicNewSibling from "@/assets/topic-new-sibling.jpeg";
 import topicKindergarten from "@/assets/topic-first-day-kindergarten.jpg";
 import topicSpace from "@/assets/topic-space-hero.jpg";
+import castSol from "@/assets/cast-sol-adventure.jpg";
+import castBen from "@/assets/cast-ben-reference.jpg";
+import castMia from "@/assets/cast-mia-nature.jpg";
+import castZoe from "@/assets/cast-zoe-sports.jpg";
+import castLeo from "@/assets/cast-leo-science.jpg";
+
+const CAST: { img: string; name: string; text: string; pos: string; zoom?: number }[] = [
+  { img: castSol, name: "סול", text: "גיבורת העל שמובילה את החבורה", pos: "50% 45%", zoom: 1.4 },
+  { img: castBen, name: "בן", text: "האח הקטן של סול שכולם אוהבים", pos: "50% 35%", zoom: 1.5 },
+  { img: castMia, name: "מיה", text: "ילדת הפרחים", pos: "45% 40%", zoom: 1.6 },
+  { img: castZoe, name: "זואי", text: "הספורטאית", pos: "50% 30%", zoom: 1.6 },
+  { img: castLeo, name: "ליאו", text: "הצייר", pos: "48% 30%", zoom: 3.5 },
+];
 
 // Content shown below the hero video on the landing page: what the service
 // is, how it works, example topics, what you get, prices and a CTA.
@@ -80,6 +93,33 @@ const HomeExplainer = () => {
               </li>
             ))}
           </ol>
+        </section>
+
+        {/* Meet the cast */}
+        <section aria-labelledby="home-cast" className="space-y-5">
+          <h2 id="home-cast" className="text-2xl font-black text-foreground text-center">
+            הכירו את סול והחבורה
+          </h2>
+          <ul className="grid grid-cols-3 sm:grid-cols-5 gap-3">
+            {CAST.map((c) => (
+              <li key={c.name} className="bg-card rounded-2xl border p-3 text-center shadow-sm flex flex-col items-center">
+                <div className="w-20 h-20 rounded-full overflow-hidden border-4 border-primary/20 mb-2">
+                  <img
+                    src={c.img}
+                    alt={c.name}
+                    loading="lazy"
+                    className="w-full h-full object-cover"
+                    style={{ objectPosition: c.pos, transform: c.zoom ? `scale(${c.zoom})` : undefined, transformOrigin: c.pos }}
+                  />
+                </div>
+                <h3 className="text-center text-base font-black text-foreground">{c.name}</h3>
+                <p className="text-center text-sm text-muted-foreground leading-snug">{c.text}</p>
+              </li>
+            ))}
+          </ul>
+          <p className="text-center text-lg font-bold text-foreground">
+            הצטרפו גם אתם להרפתקאות של סול וחברים. הילד שלכם הוא הגיבור הבא ✨
+          </p>
         </section>
 
         {/* Example topics */}

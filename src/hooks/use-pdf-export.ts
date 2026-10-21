@@ -394,6 +394,7 @@ export const usePdfExport = () => {
         <div style="display:inline-flex;align-items:center;gap:16px;background:#ffffff;border-radius:999px;padding:14px 34px;direction:ltr;">
           ${instagramSvg(44)}<span style="color:#1a0a3e;font-size:38px;font-weight:800;">${INSTAGRAM_HANDLE}</span>
         </div>
+        <p style="color:#ffffff;font-size:28px;font-weight:700;margin:18px 0 0 0;">${escapeHtml(T.joinWorld)}</p>
         <p style="color:#FFD66B;font-size:26px;font-weight:600;margin:24px 0 0 0;direction:ltr;">soulstory.co.il</p>
       </div>
       <div style="display:flex;flex-direction:column;align-items:center;gap:10px;">
