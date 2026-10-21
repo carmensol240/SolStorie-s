@@ -2506,7 +2506,7 @@ const [currentPage, setCurrentPage] = useState(0);
           text={page.text}
           illustrationUrl={page.illustration_url || undefined}
           onUpdate={handleEditSave}
-          onRoundClosed={handleEditRoundClosed}
+          onRoundClosed={isStoryOwner && !story?.edit_round_closed_at ? handleEditRoundClosed : undefined}
           allPages={story.pages.map(p => ({
             id: p.id,
             page_number: p.page_number,
