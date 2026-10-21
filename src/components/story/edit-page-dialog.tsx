@@ -1,5 +1,9 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import {
+  AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
+  AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -27,6 +31,8 @@ interface EditPageDialogProps {
   illustrationUrl?: string;
   onUpdate: (newText: string, pageId?: string) => void;
   allPages?: PageData[];
+  /** Called after the owner closes the free edit round (server-confirmed). */
+  onRoundClosed?: (closedAt: string) => void;
 }
 
 const EditPageDialog = ({
@@ -40,8 +46,27 @@ const EditPageDialog = ({
   illustrationUrl,
   onUpdate,
   allPages,
+  onRoundClosed,
 }: EditPageDialogProps) => {
   const [currentPageIndex, setCurrentPageIndex] = useState(0);
+  const [showCloseRound, setShowCloseRound] = useState(false);
+  const [isClosingRound, setIsClosingRound] = useState(false);
+
+  const handleCloseRound = async () => {
+    setIsClosingRound(true);
+    try {
+      const { data, error } = await supabase.rpc('close_edit_round', { p_story_id: storyId });
+      if (error) throw error;
+      setShowCloseRound(false);
+      toast({ title: 'סבב העריכה הושלם ✓' });
+      onRoundClosed?.((data as string) || new Date().toISOString());
+    } catch (e) {
+      console.error('close_edit_round failed', e);
+      toast({ title: 'לא הצלחנו לסגור את סבב העריכה, נסו שוב', variant: 'destructive' });
+    } finally {
+      setIsClosingRound(false);
+    }
+  };
   const [editedTexts, setEditedTexts] = useState<Record<string, string>>({});
   const [isLoading, setIsLoading] = useState(false);
   const [isEnhancing, setIsEnhancing] = useState(false);
@@ -352,7 +377,38 @@ const EditPageDialog = ({
             ביטול
           </Button>
         </div>
+        {onRoundClosed && (
+          <div className="flex-shrink-0 pt-2 flex flex-col items-center gap-1">
+            <Button
+              variant="outline"
+              className="w-full min-h-11"
+              onClick={() => setShowCloseRound(true)}
+              disabled={hasAnyChanges || isLoading || isClosingRound}
+            >
+              סיימתי — סגירת סבב העריכה
+            </Button>
+            {hasAnyChanges && (
+              <span className="text-xs text-muted-foreground">שמרו את השינויים לפני סגירת הסבב</span>
+            )}
+          </div>
+        )}
       </DialogContent>
+      <AlertDialog open={showCloseRound} onOpenChange={setShowCloseRound}>
+        <AlertDialogContent dir="rtl">
+          <AlertDialogHeader>
+            <AlertDialogTitle>סגירת סבב העריכה</AlertDialogTitle>
+            <AlertDialogDescription className="text-right leading-relaxed">
+              אחרי האישור סבב העריכה החינמי יסתיים ולא תוכלו לערוך שוב את הסיפור. ודאו שעברתם על כל העמודים.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter className="gap-2 sm:gap-0">
+            <AlertDialogCancel>חזרה לעריכה</AlertDialogCancel>
+            <AlertDialogAction onClick={handleCloseRound} disabled={isClosingRound}>
+              כן, סיימתי
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </Dialog>
   );
 };
