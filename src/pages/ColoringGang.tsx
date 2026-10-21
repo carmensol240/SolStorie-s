@@ -4,7 +4,7 @@ import { Printer, Palette, ArrowRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/hooks/use-auth";
 import { printColoringA4 } from "@/lib/coloring-a4";
-import OnlineColoringCanvas from "@/components/story/OnlineColoringCanvas";
+import { OnlineColoringCanvas } from "@/components/story/OnlineColoringCanvas";
 import GlobalFooter from "@/components/shared/GlobalFooter";
 import solPage from "@/assets/coloring-gang/sol.png.asset.json";
 import benPage from "@/assets/coloring-gang/ben.png.asset.json";
