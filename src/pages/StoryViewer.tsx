@@ -104,6 +104,7 @@ interface Story {
   generation_status?: string;
   page1_regen_used?: boolean;
   is_taste?: boolean;
+  edit_round_closed_at?: string | null;
 }
 
 
@@ -1108,6 +1109,7 @@ const [currentPage, setCurrentPage] = useState(0);
         generation_status: status,
         page1_regen_used: !!(storyData as any).page1_regen_used,
         is_taste: !!(storyData as any).is_taste,
+        edit_round_closed_at: (storyData as any).edit_round_closed_at ?? null,
       };
 
       
@@ -1313,7 +1315,14 @@ const [currentPage, setCurrentPage] = useState(0);
 
   const handleEditConfirmed = () => {
     setShowEditConfirmDialog(false);
+    // Same gate as the menu item: a closed round never reopens the editor for a parent.
+    if (!isAdminUser && story?.edit_round_closed_at) return;
     setIsEditingPage(true);
+  };
+
+  const handleEditRoundClosed = (closedAt: string) => {
+    setIsEditingPage(false);
+    setStory((prev) => (prev ? { ...prev, edit_round_closed_at: closedAt } : prev));
   };
 
   const handleEditSave = async (newText: string, editedPageId?: string) => {
@@ -1861,7 +1870,9 @@ const [currentPage, setCurrentPage] = useState(0);
   // Page 1 doubles as the book cover — only its real owner may regenerate it.
   const isStoryOwner = !!user?.id && !!story?.user_id && story.user_id === user.id;
   // Free text editing: owner (or admin) only, and never while still locked as a taste.
-  const canEditText = !story?.is_taste && (isStoryOwner || isAdminUser);
+  // One free edit round: after the owner closes it, only admins can still open the editor.
+  const editLockedForUser = !story?.is_taste && isStoryOwner && !!story?.edit_round_closed_at && !isAdminUser;
+  const canEditText = !story?.is_taste && (isStoryOwner || isAdminUser) && !editLockedForUser;
   const canRegenerateCover =
     isStoryOwner &&
     !isDemoUser &&
@@ -1943,6 +1954,7 @@ const [currentPage, setCurrentPage] = useState(0);
         onShareWhatsApp={guardDemo(handleShareWhatsApp)}
         onToggleFontSize={() => setFontSizeIndex((fontSizeIndex + 1) % FONT_SIZES.length)}
         onEdit={showPageActions && canEditText ? handleEditClick : undefined}
+        editRoundClosed={showPageActions && editLockedForUser}
         onAddNikud={showPageActions ? handleAddNikud : undefined}
         onReport={handleReportIssue}
         onToggleNikud={() => setShowNikud(prev => !prev)}
