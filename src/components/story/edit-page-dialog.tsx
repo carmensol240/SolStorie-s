@@ -6,10 +6,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { useNikud } from '@/hooks/use-nikud';
-import { useStoryEdit } from '@/hooks/use-story-edit';
-import { useEditCredits } from '@/hooks/use-edit-credits';
 import { SignedImage } from '@/components/ui/signed-image';
-import { Sparkles, Bold, Check, AlertCircle, Coins, Gift, ChevronRight, ChevronLeft } from 'lucide-react';
+import { Sparkles, Bold, Check, Gift, ChevronRight, ChevronLeft } from 'lucide-react';
 
 interface PageData {
   id: string;
