@@ -6,10 +6,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { useNikud } from '@/hooks/use-nikud';
-import { useStoryEdit } from '@/hooks/use-story-edit';
-import { useEditCredits } from '@/hooks/use-edit-credits';
 import { SignedImage } from '@/components/ui/signed-image';
-import { Sparkles, Bold, Check, AlertCircle, Coins, Gift, ChevronRight, ChevronLeft } from 'lucide-react';
+import { Sparkles, Bold, Check, Gift, ChevronRight, ChevronLeft } from 'lucide-react';
 
 interface PageData {
   id: string;
@@ -53,8 +51,6 @@ const EditPageDialog = ({
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const { toast } = useToast();
   const { addNikud, isLoading: isAddingNikud, error: nikudError } = useNikud();
-  const { canEdit, performEdit, fetchEditCount, editCount } = useStoryEdit(storyId);
-  const { freeEditsRemaining, refetch: refetchEditCredits } = useEditCredits();
 
   const pages: PageData[] = allPages && allPages.length > 0
     ? allPages
@@ -91,13 +87,6 @@ const EditPageDialog = ({
     autoResize();
   }, [currentText, currentPageIndex, autoResize]);
 
-  useEffect(() => {
-    if (open && storyId) {
-      fetchEditCount(storyId);
-      // Always re-validate credits from DB to prevent back-button exploit
-      refetchEditCredits();
-    }
-  }, [open, storyId, fetchEditCount, refetchEditCredits]);
 
   const setCurrentText = (val: string) => {
     setEditedTexts(prev => ({ ...prev, [currentPageId]: val }));
@@ -161,20 +150,11 @@ const EditPageDialog = ({
 
   const handleSave = async () => {
     if (!hasAnyChanges) return;
-    
-    if (!canEdit()) {
-      toast({ title: 'נגמרו הקרדיטים 😔', description: 'שדרגו את החבילה כדי להמשיך לערוך סיפורים', variant: 'destructive' });
-      return;
-    }
 
     setIsLoading(true);
     try {
-      // Consume only 1 credit for the entire batch
-      const editResult = await performEdit();
-      if (!editResult.success) {
-        toast({ title: editResult.errorMessage || 'שגיאה בביצוע העריכה', variant: 'destructive' });
-        return;
-      }
+      // Text editing is free and unlimited — no credits, no counter.
+
 
       // Save all modified pages in one batch
       for (const modifiedPage of modifiedPages) {
@@ -215,7 +195,6 @@ const EditPageDialog = ({
   const displayPageNumber = currentPage?.page_number ?? pageNumber;
   const displayTotalPages = pages.length || totalPages;
   const currentIllustration = currentPage?.illustration_url || (currentPageIndex === 0 ? illustrationUrl : undefined);
-  const hasFreeEdits = freeEditsRemaining > 0;
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -224,17 +203,10 @@ const EditPageDialog = ({
           <DialogTitle className="flex items-center justify-between">
             <span>עריכת עמוד</span>
             <span className="text-sm font-normal">
-              {hasFreeEdits ? (
-                <span className="flex items-center gap-1 text-green-600">
-                  <span><Gift className="w-3 h-3" /></span>
-                  נותרו {freeEditsRemaining} עריכות חינם
-                </span>
-              ) : (
-                <span className="flex items-center gap-1 text-muted-foreground">
-                  <span><Coins className="w-3 h-3" /></span>
-                  עלות: 1 קרדיט
-                </span>
-              )}
+              <span className="flex items-center gap-1 text-green-600">
+                <Gift className="w-3 h-3" />
+                חינם
+              </span>
             </span>
           </DialogTitle>
         </DialogHeader>
@@ -343,31 +315,12 @@ const EditPageDialog = ({
             style={{ minHeight: '200px' }}
           />
 
-          {/* Edit credit info / Out of credits banner */}
-          {!canEdit() ? (
-            <div className="flex flex-col items-center gap-2 bg-destructive/10 border border-destructive/30 rounded-lg px-3 py-3 text-center">
-              <span className="flex items-center gap-1.5 text-sm font-bold text-destructive">
-                <AlertCircle className="w-4 h-4" />
-                נגמרו הקרדיטים
-              </span>
-              <p className="text-sm text-muted-foreground">
-                אין לך עריכות חינם או קרדיטים זמינים. שדרגו את החבילה כדי להמשיך.
-              </p>
-              <a href="/upgrade" className="inline-flex items-center gap-1.5 text-sm font-bold text-primary hover:underline">
-                <Coins className="w-3.5 h-3.5" />
-                שדרגו עכשיו →
-              </a>
-            </div>
-          ) : (
-            <div className="flex items-center text-sm text-muted-foreground bg-muted/50 rounded-lg px-3 py-2">
-              <span className="flex items-center gap-1">
-                <span><AlertCircle className="w-3 h-3" /></span>
-                {hasFreeEdits
-                  ? `נותרו לך ${freeEditsRemaining} עריכות בחינם בחבילה`
-                  : 'העריכות בחינם נוצלו. כל עריכה עולה 1 קרדיט'}
-              </span>
-            </div>
-          )}
+          <div className="flex items-center text-sm text-muted-foreground bg-muted/50 rounded-lg px-3 py-2">
+            <span className="flex items-center gap-1">
+              <Gift className="w-3 h-3" />
+              תיקון טקסט חינם בכל עמודי הסיפור
+            </span>
+          </div>
         </div>
 
         {/* Footer */}

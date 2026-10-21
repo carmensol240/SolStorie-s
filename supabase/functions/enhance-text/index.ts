@@ -56,6 +56,25 @@ serve(async (req) => {
       );
     }
 
+    // Ownership: a storyId, when sent, must belong to the caller (or the caller is an admin).
+    if (storyId !== undefined && storyId !== null && storyId !== '') {
+      if (typeof storyId !== 'string') {
+        return new Response(JSON.stringify({ error: 'Invalid storyId' }),
+          { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
+      }
+      const { data: owned } = await supabase
+        .from('stories').select('user_id').eq('id', storyId).maybeSingle();
+      let allowed = !!owned && owned.user_id === user.id;
+      if (!allowed) {
+        const { data: isAdmin } = await supabase.rpc('has_role', { _user_id: user.id, _role: 'admin' });
+        allowed = !!isAdmin;
+      }
+      if (!allowed) {
+        return new Response(JSON.stringify({ error: 'אין הרשאה לסיפור הזה' }),
+          { status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
+      }
+    }
+
     // Input validation - max 5,000 characters
     const MAX_TEXT_LENGTH = 5000;
     if (text.length > MAX_TEXT_LENGTH) {
