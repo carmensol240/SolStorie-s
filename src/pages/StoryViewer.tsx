@@ -2506,6 +2506,7 @@ const [currentPage, setCurrentPage] = useState(0);
           text={page.text}
           illustrationUrl={page.illustration_url || undefined}
           onUpdate={handleEditSave}
+          onRoundClosed={handleEditRoundClosed}
           allPages={story.pages.map(p => ({
             id: p.id,
             page_number: p.page_number,
@@ -2521,7 +2522,7 @@ const [currentPage, setCurrentPage] = useState(0);
           <AlertDialogHeader>
             <AlertDialogTitle>אישור עריכה</AlertDialogTitle>
             <AlertDialogDescription className="text-right leading-relaxed">
-              ה-AI שלנו לפעמים טועה, ולכן תיקון טקסט חינם בכל עמודי הסיפור.
+              ה-AI שלנו לפעמים טועה, ולכן כל סיפור כולל סבב עריכה מלא בחינם: אפשר לתקן את כל העמודים, ובסוף לסגור את הסבב.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter className="gap-2 sm:gap-0">
