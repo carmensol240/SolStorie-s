@@ -119,6 +119,14 @@ const HomeExplainer = () => {
           <p className="text-center text-lg font-bold text-foreground">
             הצטרפו גם אתם להרפתקאות של סול וחברים. הילד שלכם הוא הגיבור הבא ✨
           </p>
+          <div className="text-center">
+            <button
+              onClick={() => navigate("/coloring-gang")}
+              className="inline-flex items-center justify-center min-h-11 px-5 rounded-full border-2 border-primary text-primary font-bold hover:bg-primary/10 transition-colors"
+            >
+              🎨 דפי צביעה של החבורה — חינם
+            </button>
+          </div>
         </section>
 
         {/* Example topics */}

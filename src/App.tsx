@@ -37,6 +37,7 @@ import Upgrade from "./pages/Upgrade";
 
 import ShareAndEarn from "./pages/ShareAndEarn";
 import Contact from "./pages/Contact";
+import ColoringGang from "./pages/ColoringGang";
 import NotFound from "./pages/NotFound";
 import RequireTerms from "./components/RequireTerms";
 import RequireAdmin from "./components/RequireAdmin";
@@ -111,6 +112,7 @@ function App() { useTimeTheme(); return (
             <Route path="/admin/reviews" element={<RequireAdmin><AdminReviews /></RequireAdmin>} />
             <Route path="/share" element={<RequireTerms><ShareAndEarn /></RequireTerms>} />
             <Route path="/contact" element={<Contact />} />
+            <Route path="/coloring-gang" element={<ColoringGang />} />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />
           </Routes>
