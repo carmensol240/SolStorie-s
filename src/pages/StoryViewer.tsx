@@ -52,7 +52,6 @@ import { useAccessibility } from "@/hooks/use-accessibility";
 
 import { useAuth } from "@/hooks/use-auth";
 import { useColoringCredits } from "@/hooks/use-coloring-credits";
-import { useStoryEdit } from "@/hooks/use-story-edit";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { useAutoFitText } from "@/hooks/use-auto-fit-text";
 // useSwipe removed - swipe navigation disabled per user request
