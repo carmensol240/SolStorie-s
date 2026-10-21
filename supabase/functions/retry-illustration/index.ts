@@ -123,6 +123,13 @@ serve(async (req) => {
         console.log(`[page1_regen] admin bypass user=${user.id} story=${storyId}`);
       }
     }
+    // Redrawing an arbitrary page (no mode) is admin-only; parents only get the page-1 one-shot.
+    if (!isPage1Regen && !isAdmin) {
+      console.warn(`[retry-illustration] refused no-mode redraw for non-admin user=${user.id} story=${storyId}`);
+      return new Response(JSON.stringify({ error: "Forbidden" }), {
+        status: 403, headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
     const candidatePath = `${storyId}/page-1-candidate.png`;
     const finalPage1Path = `${storyId}/page-1.png`;
     const publicUrl = (path: string) =>

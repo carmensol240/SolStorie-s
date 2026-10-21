@@ -44,6 +44,8 @@ interface BookHeaderProps {
   onDigitalBook?: () => void;
   onToggleFontSize: () => void;
   onEdit?: () => void;
+  /** Shown as a non-clickable "round completed" row instead of the edit item. */
+  editRoundClosed?: boolean;
   onRate?: () => void;
   onReport?: () => void;
   onAddNikud?: () => void;
@@ -80,6 +82,7 @@ export const BookHeader: React.FC<BookHeaderProps> = ({
   onShareWhatsApp,
   onToggleFontSize,
   onEdit,
+  editRoundClosed = false,
   onReport,
   onAddNikud,
   onToggleNikud,
@@ -323,12 +326,16 @@ export const BookHeader: React.FC<BookHeaderProps> = ({
             <DropdownMenuContent align="start" className="w-48">
               {showPageActions && (
                 <>
-                  {onEdit && (
+                  {onEdit ? (
                     <DropdownMenuItem onClick={onEdit} className="gap-2 cursor-pointer">
                       <span>✏️</span>
                       <span>עריכת טקסט</span>
                     </DropdownMenuItem>
-                  )}
+                  ) : editRoundClosed ? (
+                    <DropdownMenuItem disabled className="gap-2">
+                      <span>סבב העריכה הושלם ✓</span>
+                    </DropdownMenuItem>
+                  ) : null}
                   {onAddNikud && (
                     <DropdownMenuItem 
                       onClick={onAddNikud} 

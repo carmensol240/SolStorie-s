@@ -878,6 +878,7 @@ export type Database = {
           created_at: string
           daily_story_date: string | null
           edit_count: number
+          edit_round_closed_at: string | null
           generation_status: string | null
           id: string
           is_daily_story: boolean | null
@@ -915,6 +916,7 @@ export type Database = {
           created_at?: string
           daily_story_date?: string | null
           edit_count?: number
+          edit_round_closed_at?: string | null
           generation_status?: string | null
           id?: string
           is_daily_story?: boolean | null
@@ -952,6 +954,7 @@ export type Database = {
           created_at?: string
           daily_story_date?: string | null
           edit_count?: number
+          edit_round_closed_at?: string | null
           generation_status?: string | null
           id?: string
           is_daily_story?: boolean | null
@@ -1322,6 +1325,7 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      close_edit_round: { Args: { p_story_id: string }; Returns: string }
       consume_coloring_credit: {
         Args: { p_story_id: string; p_user_id: string }
         Returns: string
