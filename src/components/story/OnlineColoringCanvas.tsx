@@ -606,6 +606,8 @@ export const OnlineColoringCanvas: React.FC<OnlineColoringCanvasProps> = ({
     const mid = (t: TouchList) => localPoint((t[0].clientX + t[1].clientX) / 2, (t[0].clientY + t[1].clientY) / 2);
 
     const start = (e: TouchEvent) => {
+      // Let taps on overlays (e.g. the "נסו שוב" button) through as normal clicks.
+      if ((e.target as Element | null)?.closest?.('[data-coloring-overlay]')) return;
       e.preventDefault();
       if (e.touches.length >= 2) {
         gesture = true;
@@ -621,6 +623,7 @@ export const OnlineColoringCanvas: React.FC<OnlineColoringCanvasProps> = ({
       else pending = { pos, cx: t.clientX, cy: t.clientY };
     };
     const move = (e: TouchEvent) => {
+      if ((e.target as Element | null)?.closest?.('[data-coloring-overlay]')) return;
       e.preventDefault();
       if (gesture && pinch && e.touches.length >= 2) {
         const s = Math.min(MAX_ZOOM, Math.max(1, pinch.v.s * (dist(e.touches) / pinch.d)));
@@ -635,6 +638,7 @@ export const OnlineColoringCanvas: React.FC<OnlineColoringCanvasProps> = ({
       else if (pending && Math.hypot(t.clientX - pending.cx, t.clientY - pending.cy) > 12) pending = null;
     };
     const end = (e: TouchEvent) => {
+      if ((e.target as Element | null)?.closest?.('[data-coloring-overlay]')) return;
       e.preventDefault();
       if (gesture) {
         if (e.touches.length >= 2) pinch = { d: dist(e.touches) || 1, m: mid(e.touches), v: { ...viewRef.current } };
@@ -806,7 +810,7 @@ export const OnlineColoringCanvas: React.FC<OnlineColoringCanvasProps> = ({
             </div>
           )}
           {bgError && (
-            <div className="absolute inset-0 flex flex-col items-center justify-center gap-3 z-10 bg-white/95 px-6 text-center">
+            <div data-coloring-overlay className="absolute inset-0 flex flex-col items-center justify-center gap-3 z-30 bg-white/95 px-6 text-center touch-auto">
               <p className="text-sm text-gray-700">לא הצלחנו לטעון את הדף, נסו שוב</p>
               <Button size="sm" variant="outline" onClick={() => setBgRetry((n) => n + 1)}>נסו שוב</Button>
             </div>
