@@ -7,18 +7,18 @@ import topicFearOfDark from "@/assets/topic-fear-of-dark.jpg";
 import topicNewSibling from "@/assets/topic-new-sibling.jpeg";
 import topicKindergarten from "@/assets/topic-first-day-kindergarten.jpg";
 import topicSpace from "@/assets/topic-space-hero.jpg";
-import castSol from "@/assets/cast-sol-adventure.jpg";
-import castBen from "@/assets/cast-ben-reference.jpg";
-import castMia from "@/assets/cast-mia-nature.jpg";
-import castZoe from "@/assets/cast-zoe-sports.jpg";
-import castLeo from "@/assets/cast-leo-science.jpg";
+import castSol from "@/assets/cast-thumbs/sol.webp";
+import castBen from "@/assets/cast-thumbs/ben.webp";
+import castMia from "@/assets/cast-thumbs/mia.webp";
+import castZoe from "@/assets/cast-thumbs/zoe.webp";
+import castLeo from "@/assets/cast-thumbs/leo.webp";
 
-const CAST: { img: string; name: string; text: string; pos: string; zoom?: number }[] = [
-  { img: castSol, name: "סול", text: "גיבורת העל שמובילה את החבורה", pos: "50% 45%", zoom: 1.4 },
-  { img: castBen, name: "בן", text: "האח הקטן של סול שכולם אוהבים", pos: "50% 35%", zoom: 1.5 },
-  { img: castMia, name: "מיה", text: "ילדת הפרחים", pos: "45% 40%", zoom: 1.6 },
-  { img: castZoe, name: "זואי", text: "הספורטאית", pos: "50% 30%", zoom: 1.6 },
-  { img: castLeo, name: "ליאו", text: "הצייר", pos: "48% 30%", zoom: 3.5 },
+const CAST: { img: string; name: string; text: string }[] = [
+  { img: castSol, name: "סול", text: "גיבורת העל שמובילה את החבורה" },
+  { img: castBen, name: "בן", text: "האח הקטן של סול שכולם אוהבים" },
+  { img: castMia, name: "מיה", text: "ילדת הפרחים" },
+  { img: castZoe, name: "זואי", text: "הספורטאית" },
+  { img: castLeo, name: "ליאו", text: "הצייר" },
 ];
 
 // Content shown below the hero video on the landing page: what the service
@@ -109,7 +109,6 @@ const HomeExplainer = () => {
                     alt={c.name}
                     loading="lazy"
                     className="w-full h-full object-cover"
-                    style={{ objectPosition: c.pos, transform: c.zoom ? `scale(${c.zoom})` : undefined, transformOrigin: c.pos }}
                   />
                 </div>
                 <h3 className="text-center text-base font-black text-foreground">{c.name}</h3>
