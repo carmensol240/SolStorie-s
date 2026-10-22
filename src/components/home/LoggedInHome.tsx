@@ -166,7 +166,7 @@ const LoggedInHome = ({ user, displayName }: LoggedInHomeProps) => {
               </div>
               <div className="text-right">
                 <h3 className="font-black text-xl md:text-2xl text-white drop-shadow-md">יוצאים להרפתקה</h3>
-                <p className="text-sm md:text-base text-white/80 font-medium">סיפור מותאם אישית ✨</p>
+                <p className="text-sm md:text-base text-white drop-shadow-md font-medium">סיפור מותאם אישית ✨</p>
               </div>
             </button>
           </div>
