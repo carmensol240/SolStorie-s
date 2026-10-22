@@ -5,12 +5,22 @@ import { supabase } from "@/integrations/supabase/client";
 import { printColoringA4, coloringCorsUrl } from "@/lib/coloring-a4";
 import { OnlineColoringCanvas } from "@/components/story/OnlineColoringCanvas";
 import { COLORING_FAILED_TEXT } from "./portrait-coloring-text";
+import { normalizeGender } from "../../../supabase/functions/_shared/gender";
 
 interface Props {
   childId: string;
   childName: string;
+  gender?: string | null;
   isAdmin: boolean;
 }
+
+/** "כגיבורה" for a girl, "כגיבור" for a boy, "כגיבור/ה" when gender is unknown. */
+const heroWord = (gender?: string | null) => {
+  const g = normalizeGender(gender);
+  if (g === "female") return "כגיבורה";
+  if (g === "male") return "כגיבור";
+  return "כגיבור/ה";
+};
 
 const publicUrl = (path: string) =>
   `${import.meta.env.VITE_SUPABASE_URL}/storage/v1/object/public/story-illustrations/${path}`;
@@ -39,7 +49,8 @@ async function withCaption(url: string, name: string): Promise<string> {
   return c.toDataURL("image/png");
 }
 
-export function ChildPortraitColoringCard({ childId, childName, isAdmin }: Props) {
+export function ChildPortraitColoringCard({ childId, childName, gender, isAdmin }: Props) {
+  const hero = heroWord(gender);
   const [path, setPath] = useState<string | null>(null);
   const [page, setPage] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
@@ -81,12 +92,12 @@ export function ChildPortraitColoringCard({ childId, childName, isAdmin }: Props
   };
 
   return (
-    <section className="rounded-2xl border border-border bg-card p-4 mb-4 flex items-center gap-4" aria-label={`דף צביעה של ${childName} כגיבור`}>
+    <section className="rounded-2xl border border-border bg-card p-4 mb-4 flex items-center gap-4" aria-label={`דף צביעה של ${childName} ${hero}`}>
       {page && (
-        <img src={page} alt={`דף צביעה של ${childName}`} className="w-20 h-28 object-contain rounded-md border border-border bg-background" />
+        <img src={page} alt={`דף צביעה של ${childName} ${hero}`} className="w-20 h-28 object-contain rounded-md border border-border bg-background" />
       )}
       <div className="flex-1 min-w-0">
-        <h3 className="font-bold text-foreground">🎨 {childName} כגיבור — דף צביעה</h3>
+        <h3 className="font-bold text-foreground">🎨 {childName} {hero} — דף צביעה</h3>
         {failed && <p className="text-sm text-destructive mt-1" role="alert">{COLORING_FAILED_TEXT}</p>}
         <div className="flex flex-wrap gap-2 mt-3">
           {!path ? (
@@ -112,7 +123,7 @@ export function ChildPortraitColoringCard({ childId, childName, isAdmin }: Props
         </div>
       </div>
       {coloring && page && (
-        <OnlineColoringCanvas isOpen onClose={() => setColoring(false)} backgroundImage={page} childName={childName} storyTitle={`${childName} כגיבור`} />
+        <OnlineColoringCanvas isOpen onClose={() => setColoring(false)} backgroundImage={page} childName={childName} storyTitle={`${childName} ${hero}`} />
       )}
     </section>
   );
