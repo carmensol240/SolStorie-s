@@ -109,6 +109,36 @@ export type Database = {
           },
         ]
       }
+      child_portrait_coloring: {
+        Row: {
+          child_id: string
+          coloring_image_path: string | null
+          created_at: string
+          id: string
+          status: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          child_id: string
+          coloring_image_path?: string | null
+          created_at?: string
+          id?: string
+          status?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          child_id?: string
+          coloring_image_path?: string | null
+          created_at?: string
+          id?: string
+          status?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       children: {
         Row: {
           age: number

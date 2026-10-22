@@ -33,6 +33,7 @@ import { getUserData, setUserData } from "@/lib/user-storage";
 import { translateTopic } from '@/lib/topic-translations';
 import libraryEmptyState from "@/assets/library-empty-state.png";
 import { OnlineColoringCanvas } from "@/components/story/OnlineColoringCanvas";
+import { ChildPortraitColoringCard } from "@/components/library/ChildPortraitColoringCard";
 import { A4Frame, A4ColoringActions } from "@/components/coloring/A4ColoringFrame";
 
 interface StoryPage {
@@ -62,6 +63,7 @@ interface Story {
 interface ChildRecord {
   id: string;
   name: string;
+  avatar_url?: string | null;
 }
 
 interface ColoringPageRecord {
@@ -166,7 +168,7 @@ const Library = () => {
     try {
       const { data } = await supabase
         .from("children")
-        .select("id, name")
+        .select("id, name, avatar_url")
         .eq("user_id", user.id)
         .order("created_at", { ascending: true });
       setChildren(data || []);
@@ -605,6 +607,18 @@ const Library = () => {
   const isStoryOpen = (story: { id: string; created_at?: string | null; is_taste?: boolean | null }) =>
     unlockedIds.has(story.id) || unlockedStoryIds.has(story.id) ||
     isLegacyOpenStory({ user_id: user?.id, is_taste: !!story.is_taste, created_at: story.created_at }, user?.id);
+  // Portrait coloring page: only after at least one bought story (server checks again).
+  const [isEffAdmin, setIsEffAdmin] = useState(false);
+  useEffect(() => {
+    if (!user?.id) { setIsEffAdmin(false); return; }
+    supabase.rpc("is_effective_admin", { _user_id: user.id }).then(({ data }) => setIsEffAdmin(!!data));
+  }, [user?.id]);
+  const hasBoughtStory = isEffAdmin || stories.some((s) => isStoryOpen(s as any));
+  const portraitCard = (childId?: string) => {
+    const child = children.find((c) => c.id === childId);
+    if (!child?.avatar_url || !hasBoughtStory) return null;
+    return <ChildPortraitColoringCard key={child.id} childId={child.id} childName={child.name} isAdmin={isEffAdmin} />;
+  };
   const buyPdf = (storyId: string) =>
     openGrowCheckout("pdf", { userId: user?.id ?? null, storyId });
 
@@ -1069,6 +1083,7 @@ const Library = () => {
                 </TabsContent>
                 {coloringChildTabs.map(tab => (
                   <TabsContent key={tab.key} value={tab.key}>
+                    {portraitCard(tab.key)}
                     {tab.pages.length === 0 ? (
                       <div className="text-center py-10">
                         <p className="text-muted-foreground font-medium">אין עדיין דפי צביעה עבור {tab.label}</p>
@@ -1081,7 +1096,10 @@ const Library = () => {
                 ))}
               </Tabs>
             ) : (
-              renderColoringPages()
+              <>
+                {children.length === 1 && portraitCard(children[0].id)}
+                {renderColoringPages()}
+              </>
             )}
           </TabsContent>
         </Tabs>
