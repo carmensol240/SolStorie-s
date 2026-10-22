@@ -95,7 +95,7 @@ serve(async (req) => {
       imageUrl = `data:${r.headers.get("content-type") || "image/png"};base64,${btoa(s)}`;
     }
 
-    const models = ["google/gemini-3.1-flash-image-preview", "google/gemini-2.5-flash-image"];
+    const models = ["google/gemini-3.1-flash-image", "google/gemini-2.5-flash-image"];
     const generate = async (prompt: string): Promise<string | undefined> => {
       for (const model of models) {
         const res = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
