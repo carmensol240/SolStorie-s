@@ -2,7 +2,6 @@ import { useState, useEffect, useCallback, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { Wand2, Coins, Pause, Play, ChevronDown } from "lucide-react";
 import { useCredits } from "@/hooks/use-credits";
-import { useReferral } from "@/hooks/use-referral";
 import { useAuth } from "@/hooks/use-auth";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
@@ -16,7 +15,6 @@ const Adventure = () => {
   const navigate = useNavigate();
   const { user, loading } = useAuth();
   const { credits } = useCredits();
-  const { shareCoins } = useReferral();
   const { toast } = useToast();
   const [displayName, setDisplayName] = useState<string | null>(null);
   const [storyCount, setStoryCount] = useState<number>(0);
@@ -100,7 +98,7 @@ const Adventure = () => {
     navigate("/create");
   }, [navigate]);
 
-  const totalCredits = (credits ?? 0) + shareCoins;
+  const totalCredits = (credits ?? 0);
 
   return (
     <div id="main-content" className="min-h-[100dvh] flex flex-col bg-gradient-to-b from-amber-50/50 to-background dark:from-background animate-fade-in" dir="rtl">

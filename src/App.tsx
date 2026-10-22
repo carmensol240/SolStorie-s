@@ -35,7 +35,6 @@ import AccountExit from "./pages/AccountExit";
 import Settings from "./pages/Settings";
 import Upgrade from "./pages/Upgrade";
 
-import ShareAndEarn from "./pages/ShareAndEarn";
 import Contact from "./pages/Contact";
 import ColoringGang from "./pages/ColoringGang";
 import NotFound from "./pages/NotFound";
@@ -110,7 +109,7 @@ function App() { useTimeTheme(); return (
             <Route path="/toolkit" element={<RequireTerms><Toolkit /></RequireTerms>} />
             <Route path="/admin/dashboard" element={<RequireAdmin><AdminDashboard /></RequireAdmin>} />
             <Route path="/admin/reviews" element={<RequireAdmin><AdminReviews /></RequireAdmin>} />
-            <Route path="/share" element={<RequireTerms><ShareAndEarn /></RequireTerms>} />
+            <Route path="/share" element={<Navigate to="/" replace />} />
             <Route path="/contact" element={<Contact />} />
             <Route path="/coloring-gang" element={<ColoringGang />} />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
