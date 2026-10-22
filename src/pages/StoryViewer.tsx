@@ -2162,7 +2162,7 @@ const [currentPage, setCurrentPage] = useState(0);
                         <img
                           key={`${currentVirtual.illustrationUrl}-${failedImages[currentVirtual.illustrationUrl] || 0}`}
                           src={`${(failedImages[currentVirtual.illustrationUrl] ? getPublicIllustrationUrl(currentVirtual.illustrationUrl) : getReadingIllustrationUrl(currentVirtual.illustrationUrl)) || ''}${failedImages[currentVirtual.illustrationUrl] ? `?retry=${failedImages[currentVirtual.illustrationUrl]}` : ''}`}
-                          alt={currentVirtual.isCover ? (story?.topic || 'כריכת הספר') : illustrationAlt(currentVirtual.text, currentVirtual.dbPage?.page_number)}
+                          alt={currentVirtual.isCover ? (story?.topic ? `כריכת הספר: ${translateTopic(story.topic, story.language)}` : 'כריכת הספר') : illustrationAlt(currentVirtual.text, currentVirtual.dbPage?.page_number)}
                           className={cn("absolute inset-0 w-full h-full transition-opacity duration-500 object-contain bg-paper", imageLoadedMap[currentVirtual.illustrationUrl] ? "opacity-100" : "opacity-0")}
                           loading="eager"
                           onLoad={(e) => {
@@ -2264,7 +2264,7 @@ const [currentPage, setCurrentPage] = useState(0);
                         <img
                           key={`${currentVirtual.illustrationUrl}-${failedImages[currentVirtual.illustrationUrl] || 0}`}
                           src={`${(failedImages[currentVirtual.illustrationUrl] ? getPublicIllustrationUrl(currentVirtual.illustrationUrl) : getReadingIllustrationUrl(currentVirtual.illustrationUrl)) || ''}${failedImages[currentVirtual.illustrationUrl] ? `?retry=${failedImages[currentVirtual.illustrationUrl]}` : ''}`}
-                          alt={currentVirtual.isCover ? (story?.topic || 'כריכת הספר') : illustrationAlt(currentVirtual.text, currentVirtual.dbPage?.page_number)}
+                          alt={currentVirtual.isCover ? (story?.topic ? `כריכת הספר: ${translateTopic(story.topic, story.language)}` : 'כריכת הספר') : illustrationAlt(currentVirtual.text, currentVirtual.dbPage?.page_number)}
                            className={cn("absolute inset-0 w-full h-full transition-opacity duration-500 object-contain bg-paper", imageLoadedMap[currentVirtual.illustrationUrl] ? "opacity-100" : "opacity-0")}
                           loading="eager"
                           onLoad={(e) => {

@@ -143,7 +143,7 @@ const HomeExplainer = () => {
                   loading="lazy"
                   className="absolute inset-0 w-full h-full object-cover"
                 />
-                <span className="absolute bottom-0 inset-x-0 bg-gradient-to-t from-black/75 to-transparent pt-8 pb-2 px-3 text-white font-bold text-base">
+                <span className="absolute bottom-0 inset-x-0 bg-gradient-to-t from-black/75 to-transparent pt-8 pb-2 px-3 text-white font-bold text-base [text-shadow:0_1px_3px_rgba(0,0,0,0.9)]">
                   {t.label}
                 </span>
               </li>

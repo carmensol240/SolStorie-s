@@ -391,8 +391,10 @@ const ChildInfoStep = ({ formData, updateFormData, screen = 1, restoredDraft, on
     }
   };
 
+  const [nameError, setNameError] = useState(false);
   const handleSaveChildProfile = async () => {
     if (!formData.childName.trim()) {
+      setNameError(true);
       toast.error("נא להזין את שם הילד/ה");
       return;
     }
@@ -689,10 +691,17 @@ const ChildInfoStep = ({ formData, updateFormData, screen = 1, restoredDraft, on
               type="text"
               placeholder="שם הילד/ה"
               value={formData.childName}
-              onChange={(e) => updateFormData({ childName: e.target.value })}
+              onChange={(e) => { updateFormData({ childName: e.target.value }); if (e.target.value.trim()) setNameError(false); }}
+              onBlur={(e) => setNameError(!e.target.value.trim())}
+              aria-required="true"
+              aria-invalid={nameError}
+              aria-describedby={nameError ? "childName-error" : undefined}
               className="h-9 text-sm font-medium border-purple-200 focus:border-purple-400"
               dir="rtl"
             />
+            {nameError && (
+              <p id="childName-error" role="alert" className="text-sm text-destructive">נא להזין את שם הילד/ה</p>
+            )}
           </div>
           
           {/* Fixed Details - wider */}
@@ -714,8 +723,8 @@ const ChildInfoStep = ({ formData, updateFormData, screen = 1, restoredDraft, on
 
       {/* Gender Selection */}
       <div className="space-y-1">
-        <Label className="text-sm font-medium">מגדר</Label>
-        <div className="grid grid-cols-2 gap-2">
+        <Label id="child-gender-label" className="text-sm font-medium">מגדר</Label>
+        <div role="group" aria-labelledby="child-gender-label" className="grid grid-cols-2 gap-2">
           <button
             type="button"
             aria-pressed={formData.childGender === "male"}
@@ -751,8 +760,8 @@ const ChildInfoStep = ({ formData, updateFormData, screen = 1, restoredDraft, on
       <div className="grid grid-cols-2 gap-2 items-start">
         {/* Age (numeric input) */}
         <div className="space-y-1">
-          <Label className="text-sm font-medium text-center block">גיל הילד/ה</Label>
-          <div className="flex items-center justify-center gap-2 py-1">
+          <Label id="child-age-label" className="text-sm font-medium text-center block">גיל הילד/ה</Label>
+          <div role="group" aria-labelledby="child-age-label" className="flex items-center justify-center gap-2 py-1">
             <Input
               type="number"
               min={1}
@@ -769,8 +778,8 @@ const ChildInfoStep = ({ formData, updateFormData, screen = 1, restoredDraft, on
 
         {/* Language */}
         <div className="space-y-1">
-          <Label className="text-sm font-medium text-center block">שפה</Label>
-          <div className="flex flex-col gap-1">
+          <Label id="child-language-label" className="text-sm font-medium text-center block">שפה</Label>
+          <div role="group" aria-labelledby="child-language-label" className="flex flex-col gap-1">
             <button
               type="button"
               aria-pressed={formData.language === "he"}
@@ -803,8 +812,8 @@ const ChildInfoStep = ({ formData, updateFormData, screen = 1, restoredDraft, on
 
       {/* Clothing type · Clothing color */}
       <div className="space-y-1">
-        <Label className="text-sm font-medium">סוג לבוש</Label>
-        <div className="grid grid-cols-3 gap-2">
+        <Label id="child-clothing-label" className="text-sm font-medium">סוג לבוש</Label>
+        <div role="group" aria-labelledby="child-clothing-label" className="grid grid-cols-3 gap-2">
           {CLOTHING_TYPES.filter((item) => item.value !== "שמלה" || formData.childGender === "female").map((item) => (
             <button
               key={item.value}
@@ -843,8 +852,8 @@ const ChildInfoStep = ({ formData, updateFormData, screen = 1, restoredDraft, on
       )}
 
       <div className="space-y-1">
-        <Label className="text-sm font-medium">צבע עיקרי</Label>
-        <div className="grid grid-cols-3 gap-2">
+        <Label id="child-color-label" className="text-sm font-medium">צבע עיקרי</Label>
+        <div role="group" aria-labelledby="child-color-label" className="grid grid-cols-3 gap-2">
           {CLOTHING_COLORS.map((color) => (
             <button
               key={color}
@@ -875,8 +884,8 @@ const ChildInfoStep = ({ formData, updateFormData, screen = 1, restoredDraft, on
 
       {/* Hair color · Hair style */}
       <div className="space-y-1">
-        <Label className="text-sm font-medium">צבע שיער</Label>
-        <div className="grid grid-cols-3 gap-2">
+        <Label id="child-hair-color-label" className="text-sm font-medium">צבע שיער</Label>
+        <div role="group" aria-labelledby="child-hair-color-label" className="grid grid-cols-3 gap-2">
           {HAIR_COLORS.map((color) => (
             <button
               key={color}
@@ -897,8 +906,8 @@ const ChildInfoStep = ({ formData, updateFormData, screen = 1, restoredDraft, on
       </div>
 
       <div className="space-y-1">
-        <Label className="text-sm font-medium">תסרוקת</Label>
-        <div className="grid grid-cols-3 gap-2">
+        <Label id="child-hairstyle-label" className="text-sm font-medium">תסרוקת</Label>
+        <div role="group" aria-labelledby="child-hairstyle-label" className="grid grid-cols-3 gap-2">
           {HAIR_STYLES.map((item) => (
             <button
               key={item.value}

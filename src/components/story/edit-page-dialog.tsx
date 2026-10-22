@@ -388,7 +388,7 @@ const EditPageDialog = ({
               סיימתי — סגירת סבב העריכה
             </Button>
             {hasAnyChanges && (
-              <span className="text-xs text-muted-foreground">שמרו את השינויים לפני סגירת הסבב</span>
+              <span className="text-sm text-muted-foreground">שמרו את השינויים לפני סגירת הסבב</span>
             )}
           </div>
         )}

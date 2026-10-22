@@ -1,11 +1,19 @@
 import GlobalFooter from "@/components/shared/GlobalFooter";
 import { useNavigate } from "react-router-dom";
-import { ArrowRight, Wand2, MessageCircle } from "lucide-react";
+import { ArrowRight, Wand2, MessageCircle, Pause, Play } from "lucide-react";
+import { useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
 import demoVideo from "@/assets/demo-story-video.mp4";
 
 const DemoStory = () => {
   const navigate = useNavigate();
+  const videoRef = useRef<HTMLVideoElement>(null);
+  const [playing, setPlaying] = useState(false);
+  const toggleVideo = () => {
+    const v = videoRef.current;
+    if (!v) return;
+    if (v.paused) void v.play().catch(() => {}); else v.pause();
+  };
 
   const handleWhatsAppShare = () => {
     let childName = "ילד שלי";
@@ -48,12 +56,22 @@ const DemoStory = () => {
       <main className="flex-1 flex flex-col items-center justify-center px-3 py-4 md:py-8">
         <div className="w-full max-w-3xl mx-auto">
           <video
+            ref={videoRef}
+            onPlay={() => setPlaying(true)}
+            onPause={() => setPlaying(false)}
+            onEnded={() => setPlaying(false)}
             src={demoVideo}
             controls
             playsInline
             preload="metadata"
             className="w-full aspect-video rounded-2xl overflow-hidden shadow-xl border border-white/40 bg-black"
           />
+          <div className="flex justify-center mt-3">
+            <Button type="button" variant="outline" onClick={toggleVideo} className="min-h-11 gap-2" aria-pressed={playing}>
+              {playing ? <Pause className="w-5 h-5" aria-hidden="true" /> : <Play className="w-5 h-5" aria-hidden="true" />}
+              {playing ? "עצירת הסרטון" : "הפעלת הסרטון"}
+            </Button>
+          </div>
         </div>
 
         {/* WhatsApp share */}

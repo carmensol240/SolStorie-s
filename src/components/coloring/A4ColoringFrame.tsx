@@ -51,7 +51,7 @@ export const A4ColoringActions = ({ imageUrl, name, className }: { imageUrl: str
         <FileDown className="w-4 h-4" aria-hidden="true" /> {busy ? "מכינים…" : "הורדת PDF"}
       </Button>
     </div>
-    <p className="text-xs text-muted-foreground text-center">{A4_PRINT_HINT}</p>
+    <p className="text-sm text-muted-foreground text-center">{A4_PRINT_HINT}</p>
     </div>
   );
 };

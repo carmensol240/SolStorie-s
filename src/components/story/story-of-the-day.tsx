@@ -4,6 +4,7 @@ import { Star, ArrowLeft, Sparkles } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { supabase } from '@/integrations/supabase/client';
 import { cn } from '@/lib/utils';
+import { translateTopic } from '@/lib/topic-translations';
 
 interface StoryPage {
   illustration_url: string | null;
@@ -95,7 +96,7 @@ const StoryOfTheDay = () => {
             {(story.cover_url || story.story_pages?.[0]?.illustration_url) ? (
               <img
                 src={story.cover_url || story.story_pages?.[0]?.illustration_url || ''}
-                alt={story.topic}
+                alt={`כריכת הספר: ${translateTopic(story.topic, (story as { language?: string }).language)}`}
                 className="w-full h-full object-cover"
                 style={{ imageOrientation: 'none' }}
               />
