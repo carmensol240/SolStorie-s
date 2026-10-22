@@ -20,7 +20,6 @@ const debugRoutes = [
   { path: "/children", label: "👶 הילדים שלי" },
   { path: "/settings", label: "⚙️ הגדרות" },
   { path: "/upgrade", label: "💳 שדרוג" },
-  { path: "/share", label: "🎁 שתף והרווח" },
   { path: "/terms", label: "📄 תנאי שימוש" },
   { path: "/privacy", label: "🔒 מדיניות פרטיות" },
   { path: "/consent", label: "✅ הסכמה משפטית" },

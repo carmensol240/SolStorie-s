@@ -2,7 +2,6 @@ import React, { useState, useEffect } from "react";
 import { Wand2, Coins, X, GraduationCap, Palette, Pencil } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useCredits } from "@/hooks/use-credits";
-import { useReferral } from "@/hooks/use-referral";
 import { useChildAvatar } from "@/hooks/use-child-avatar";
 import { useAuth } from "@/hooks/use-auth";
 import { useColoringCredits } from "@/hooks/use-coloring-credits";
@@ -19,7 +18,6 @@ interface LoggedInHomeProps {
 const LoggedInHome = ({ user, displayName }: LoggedInHomeProps) => {
   const navigate = useNavigate();
   const { credits } = useCredits();
-  const { shareCoins } = useReferral();
   const { avatarUrl } = useChildAvatar();
   const { coloringCredits } = useColoringCredits();
   const { editingCredits } = useEditingCredits();
@@ -49,7 +47,7 @@ const LoggedInHome = ({ user, displayName }: LoggedInHomeProps) => {
     fetchData();
   }, [user?.id]);
 
-  const totalCredits = (credits ?? 0) + shareCoins;
+  const totalCredits = (credits ?? 0);
   const showWelcomeBanner = credits === 1 && storyCount === 0;
   const isEducator = userRole === 'educator';
 

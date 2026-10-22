@@ -79,7 +79,6 @@ const Auth = () => {
   
   // User role selection
   const [userRole, setUserRole] = useState<"parent" | "educator">("parent");
-  const [referralCodeInput, setReferralCodeInput] = useState("");
   
   // Profile data for trial offer
   const [displayName, setDisplayName] = useState<string>("");
@@ -220,62 +219,6 @@ const Auth = () => {
   };
 
   const canSubmitConsent = hasReadTerms && isParentConsent;
-
-  // Store referral code from URL
-  useEffect(() => {
-    const refCode = searchParams.get('ref');
-    if (refCode) {
-      localStorage.setItem('referral_code', refCode);
-    }
-  }, [searchParams]);
-
-  // Process referral after signup
-  const processReferral = async (newUserId: string) => {
-    const refCode = localStorage.getItem('referral_code');
-    if (!refCode) return;
-
-    try {
-      const { data: referrer, error: referrerError } = await supabase
-        .from('profiles')
-        .select('id')
-        .eq('referral_code', refCode)
-        .maybeSingle();
-
-      if (referrerError || !referrer) return;
-      if (referrer.id === newUserId) return;
-
-      await supabase.from('referrals').insert({
-        referrer_id: referrer.id,
-        referred_id: newUserId,
-        referral_code: refCode,
-        status: 'completed',
-        completed_at: new Date().toISOString(),
-      });
-
-      const { data: referrerProfile } = await supabase
-        .from('profiles')
-        .select('story_credits')
-        .eq('id', referrer.id)
-        .single();
-
-      if (referrerProfile) {
-        await supabase
-          .from('profiles')
-          .update({ story_credits: (referrerProfile.story_credits ?? 0) + 1 })
-          .eq('id', referrer.id);
-      }
-
-      trackEvent({ 
-        eventType: 'referral_signup_completed', 
-        metadata: { referrer_id: referrer.id } 
-      });
-      trackEvent({ eventType: 'referral_credit_awarded' });
-
-      localStorage.removeItem('referral_code');
-    } catch (error) {
-      console.error('Error processing referral:', error);
-    }
-  };
 
   // Get return URL - default to home/adventure page (with open redirect protection)
   const getReturnTo = () => {
@@ -523,10 +466,6 @@ const Auth = () => {
 
     setIsSubmitting(true);
     
-    // Save referral code input to localStorage so processReferral picks it up
-    if (referralCodeInput.trim()) {
-      localStorage.setItem('referral_code', referralCodeInput.trim().toUpperCase());
-    }
     
     const { error, data } = await signUpWithEmail(email, password, { user_role: userRole });
     
@@ -543,7 +482,6 @@ const Auth = () => {
     } else if (data?.user) {
       // Signup successful - save terms acceptance immediately
       if (data?.user?.id) {
-        await processReferral(data.user.id);
       }
       trackEvent({ eventType: "signup_completed", metadata: { method: "email", user_role: userRole } });
       // User already consented in the signup form — persist now to skip /onboarding

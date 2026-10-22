@@ -25,7 +25,6 @@ import { useToast } from "@/hooks/use-toast";
 import { useOfflineStorage } from "@/hooks/use-offline-storage";
 import { useFullOfflineStorage, OfflineStory } from "@/hooks/use-full-offline-storage";
 import { useCredits } from "@/hooks/use-credits";
-import { useReferral } from "@/hooks/use-referral";
 import { useChildAvatar } from "@/hooks/use-child-avatar";
 import { useAuth } from "@/hooks/use-auth";
 import { isLegacyOpenStory } from "../../supabase/functions/_shared/legacy-access";
@@ -83,7 +82,6 @@ const Library = () => {
   const { toast } = useToast();
   const { isOnline } = useOfflineStorage();
   const { credits } = useCredits();
-  const { shareCoins } = useReferral();
   const { user, loading: authLoading } = useAuth();
   const [stories, setStories] = useState<Story[]>([]);
   const [children, setChildren] = useState<ChildRecord[]>([]);
@@ -123,7 +121,7 @@ const Library = () => {
 
   const fullOffline = useFullOfflineStorage();
 
-  const totalCredits = (credits ?? 0) + shareCoins;
+  const totalCredits = (credits ?? 0);
 
   // Load offline stories when offline
   useEffect(() => {
