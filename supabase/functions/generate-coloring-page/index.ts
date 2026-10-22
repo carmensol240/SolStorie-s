@@ -2,7 +2,7 @@ import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { isLegacyOpenStory } from "../_shared/legacy-access.ts";
 import { mergeAppearance, hairToEnglish, clothingToEnglish, buildCharacterLock, kippahForStory } from "../_shared/appearance.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.49.1";
-import { COLORING_FAILED_MESSAGE, COLORING_RETRY_INSTRUCTION, produceCleanColoringPage } from "../_shared/coloring-pipeline.ts";
+import { COLORING_FAILED_MESSAGE, COLORING_RETRY_INSTRUCTION, COLORING_NO_TEXT_RULE, produceCleanColoringPage } from "../_shared/coloring-pipeline.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -147,7 +147,9 @@ serve(async (req) => {
 
 10. LAYOUT: full-page portrait composition in A4 proportions, the illustration fills the whole page from edge to edge, pure white background, clean black outlines, no gray shading, no solid black areas, no text.
 
-${characterLock ? `11. CHARACTER: Keep the main character recognizable. ${characterLock}\n\n` : ""}Output ONLY the coloring page image, nothing else. Do not include any text, labels, letter names, or written words anywhere in the image.`;
+${characterLock ? `11. CHARACTER: Keep the main character recognizable. ${characterLock}\n\n` : ""}Output ONLY the coloring page image, nothing else. Do not include any text, labels, letter names, or written words anywhere in the image.
+
+${COLORING_NO_TEXT_RULE}`;
 
     console.log("Sending to Lovable AI Gateway for coloring page conversion...");
 

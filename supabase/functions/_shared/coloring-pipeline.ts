@@ -5,6 +5,9 @@ export const COLORING_MAX_RETRIES = 2;
 export const COLORING_RETRY_INSTRUCTION =
   "CRITICAL CORRECTION: clean coloring book line art: thin black outlines only, pure white background and fills, no color, no gray, no solid black areas, no shading, no filled hair or shadows.";
 export const COLORING_FAILED_MESSAGE = "לא הצלחנו ליצור דף צביעה הפעם, נסו שוב בעוד רגע";
+/** Added to every coloring-page prompt (story pages, child portrait, gang pages). */
+export const COLORING_NO_TEXT_RULE =
+  "ABSOLUTELY NO TEXT: no letters, words, numbers or symbols in any language anywhere in the image. If the source image contains writing (signs, crowns, hats, labels, books, shirts with prints or logos), draw that object plain and blank, or leave it out. Clothing must be plain, without printed characters, logos or animals.";
 
 interface Options {
   /** First AI page (original prompt). */
