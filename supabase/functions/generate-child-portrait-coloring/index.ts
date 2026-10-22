@@ -1,7 +1,7 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.49.1";
 import { isLegacyOpenStory } from "../_shared/legacy-access.ts";
-import { COLORING_FAILED_MESSAGE, COLORING_RETRY_INSTRUCTION, produceCleanColoringPage } from "../_shared/coloring-pipeline.ts";
+import { COLORING_FAILED_MESSAGE, COLORING_NO_TEXT_RULE, COLORING_RETRY_INSTRUCTION, produceCleanColoringPage } from "../_shared/coloring-pipeline.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -25,7 +25,7 @@ const PROMPT = `Convert this character portrait into a perfect children's colori
 7. MINIMAL DETAILS: Remove textures and small decorations.
 8. RESOLUTION: High resolution (at least 2400x3200 pixels) for 300 DPI A4 printing.
 9. COMPOSITION: ONE single character only, full body, large and centered, filling most of a portrait A4 page, simple pure white background (at most a few simple ground lines or stars), no other people.
-10. No text, letters, names or words anywhere in the image.
+10. ${COLORING_NO_TEXT_RULE}
 
 Output ONLY the coloring page image.`;
 
@@ -86,10 +86,29 @@ serve(async (req) => {
     const KEY = Deno.env.get("LOVABLE_API_KEY");
     if (!KEY) throw new Error("LOVABLE_API_KEY missing");
 
+    // Source: page-1 Pixar illustration of this child's latest story (bought first), else the avatar.
     let imageUrl: string = child.avatar_url;
+    {
+      const { data: kidStories } = await supabase.from("stories").select("id, created_at")
+        .eq("child_id", childId).eq("user_id", ownerId).order("created_at", { ascending: false }).limit(30);
+      const ids = (kidStories ?? []).map((s: { id: string }) => s.id);
+      if (ids.length) {
+        const { data: unl } = await supabase.from("story_unlocks").select("story_id").in("story_id", ids);
+        const boughtIds = new Set((unl ?? []).map((u: { story_id: string }) => u.story_id));
+        const ordered = [...ids.filter((i) => boughtIds.has(i)), ...ids.filter((i) => !boughtIds.has(i))];
+        const { data: p1 } = await supabase.from("story_pages").select("story_id, illustration_url")
+          .in("story_id", ids).eq("page_number", 1).not("illustration_url", "is", null);
+        const byStory = new Map((p1 ?? []).map((p: { story_id: string; illustration_url: string }) => [p.story_id, p.illustration_url]));
+        const pick = ordered.map((i) => byStory.get(i)).find((u) => !!u);
+        if (pick) {
+          imageUrl = /^https?:\/\//.test(pick) ? pick
+            : `${Deno.env.get("SUPABASE_URL")}/storage/v1/object/public/story-illustrations/${pick.replace(/^\/+/, "")}`;
+        }
+      }
+    }
     if (!imageUrl.startsWith("data:")) {
       const r = await fetch(imageUrl);
-      if (!r.ok) throw new Error("avatar download failed");
+      if (!r.ok) throw new Error("source image download failed");
       const b = new Uint8Array(await r.arrayBuffer());
       let s = ""; for (let i = 0; i < b.length; i += 8192) s += String.fromCharCode(...b.subarray(i, i + 8192));
       imageUrl = `data:${r.headers.get("content-type") || "image/png"};base64,${btoa(s)}`;
