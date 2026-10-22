@@ -64,6 +64,7 @@ interface ChildRecord {
   id: string;
   name: string;
   avatar_url?: string | null;
+  gender?: string | null;
 }
 
 interface ColoringPageRecord {
@@ -168,7 +169,7 @@ const Library = () => {
     try {
       const { data } = await supabase
         .from("children")
-        .select("id, name, avatar_url")
+        .select("id, name, avatar_url, gender")
         .eq("user_id", user.id)
         .order("created_at", { ascending: true });
       setChildren(data || []);
@@ -617,7 +618,7 @@ const Library = () => {
   const portraitCard = (childId?: string) => {
     const child = children.find((c) => c.id === childId);
     if (!child?.avatar_url || !hasBoughtStory) return null;
-    return <ChildPortraitColoringCard key={child.id} childId={child.id} childName={child.name} isAdmin={isEffAdmin} />;
+    return <ChildPortraitColoringCard key={child.id} childId={child.id} childName={child.name} gender={child.gender} isAdmin={isEffAdmin} />;
   };
   const buyPdf = (storyId: string) =>
     openGrowCheckout("pdf", { userId: user?.id ?? null, storyId });
