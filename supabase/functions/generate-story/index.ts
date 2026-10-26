@@ -696,10 +696,11 @@ interface GatewayCallOptions {
   timeoutMs?: number;
   label?: string;
   maxOutputTokens?: number;
+  reasoningEffort?: "low" | "medium" | "high";
 }
 
 async function callGatewayWithRetry(opts: GatewayCallOptions): Promise<{ ok: true; text: string } | { ok: false; status: number; body: string; isBillingError: boolean }> {
-  const { apiKey, model = "google/gemini-2.5-flash", systemPrompt, userPrompt, jsonMode = false, maxRetries = 4, timeoutMs = 120_000, label = "gateway", maxOutputTokens } = opts;
+  const { apiKey, model = "google/gemini-2.5-flash", systemPrompt, userPrompt, jsonMode = false, maxRetries = 4, timeoutMs = 120_000, label = "gateway", maxOutputTokens, reasoningEffort } = opts;
   const url = "https://ai.gateway.lovable.dev/v1/chat/completions";
   const RETRYABLE = new Set([429, 500, 502, 503, 504]);
 
@@ -714,6 +715,7 @@ async function callGatewayWithRetry(opts: GatewayCallOptions): Promise<{ ok: tru
   };
   if (jsonMode) requestBody.response_format = { type: "json_object" };
   if (maxOutputTokens) requestBody.max_completion_tokens = maxOutputTokens;
+  if (reasoningEffort) requestBody.reasoning_effort = reasoningEffort;
 
   for (let attempt = 0; attempt <= maxRetries; attempt++) {
     try {
