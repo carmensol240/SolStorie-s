@@ -2621,7 +2621,7 @@ ${fullStoryText}`;
 
       for (const page of illustrationPages) {
         console.log(`  → Dispatching illustration for page ${page.page_number}`);
-        const p = fetch(`${supabaseUrl}/functions/v1/generate-illustrations`, {
+        const dispatchOnce = () => fetch(`${supabaseUrl}/functions/v1/generate-illustrations`, {
           method: "POST",
           headers: {
             "Authorization": `Bearer ${serviceRoleKey}`,
@@ -2641,16 +2641,28 @@ ${fullStoryText}`;
             appearance: reqAppearance,
             childAge: childAgeRaw,
           }),
-        }).then(response => {
-          console.log(`generate-illustrations (page ${page.page_number}) response: ${response.status}`);
-          if (!response.ok) {
-            response.text().then(text => {
-              console.error(`generate-illustrations page ${page.page_number} error:`, text);
-            });
-          }
-        }).catch(err => {
-          console.error(`Error triggering illustration for page ${page.page_number}:`, err);
         });
+        const p = (async () => {
+          // A BOOT_ERROR means the illustration function never started (nothing was drawn),
+          // so sending the same page again is safe. Up to 2 more tries, a few seconds apart.
+          for (let attempt = 1; attempt <= 3; attempt++) {
+            try {
+              const response = await dispatchOnce();
+              console.log(`generate-illustrations (page ${page.page_number}) response: ${response.status}`);
+              if (response.ok) { await response.body?.cancel(); return; }
+              const text = await response.text();
+              console.error(`generate-illustrations page ${page.page_number} error:`, text);
+              if (!(response.status === 503 && text.includes("BOOT_ERROR")) || attempt === 3) return;
+            } catch (err) {
+              console.error(`Error triggering illustration for page ${page.page_number}:`, err);
+              return;
+            }
+            console.warn(`generate-illustrations page ${page.page_number}: function did not start, retrying (${attempt + 1}/3)...`);
+            await new Promise(r => setTimeout(r, 4000 * attempt));
+          }
+        })();
+        // Keep the retries alive after the response is sent.
+        (globalThis as any).EdgeRuntime?.waitUntil?.(p);
         fetchPromises.push(p);
       }
 
