@@ -2328,7 +2328,9 @@ ${fullStoryText}`;
           gender: childGender,
           heroName: childName,
           nikud: shouldApplyNikud,
-          call: gatewayEditorCall(LOVABLE_API_KEY!),
+          // Normally ~30-45s. If it stalls, stop by ~125s after the request began so the
+          // story is still saved (original text, per-page nikud) before the connection is cut.
+          call: gatewayEditorCall(LOVABLE_API_KEY!, Math.min(120_000, Math.max(20_000, 125_000 - (Date.now() - requestStartedAt)))),
           maxChars: MAX_PAGE_CHARS,
         });
         talkQuestions = tq;
