@@ -226,6 +226,18 @@ serve(async (req) => {
           finish_reason: result.data?.choices?.[0]?.finish_reason,
         }).slice(0, 1500),
       );
+
+      // The image service's safety filter refused this photo. A refusal is
+      // final: don't send the same photo to other models, tell the parent.
+      const finishReason = String(result.data?.choices?.[0]?.finish_reason ?? "").toLowerCase();
+      if (finishReason === "content_filter" || message?.refusal) {
+        return jsonResponse({
+          error: "AVATAR_PHOTO_REFUSED",
+          fallback: true,
+          message:
+            "שירות האיורים לא הסכים לעבוד עם התמונה הזו. נסו תמונה אחרת: פנים ברורות מלפנים, ילד/ה אחד/ת בלבד, לבוש מלא, בלי כיתובים ובלי אנשים נוספים. אפשר גם להמשיך בלי אוואטר.",
+        }, 200);
+      }
     }
 
     // All strategies failed — return 200 with a fallback signal so the
