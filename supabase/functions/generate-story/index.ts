@@ -946,6 +946,8 @@ async function handleGenerateStory(req: Request, ctx: RequestCtx): Promise<Respo
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
   }
+  // The platform cuts the browser connection at ~150s; slow optional steps must end before that.
+  const requestStartedAt = Date.now();
 
   try {
     // Parse request body once
