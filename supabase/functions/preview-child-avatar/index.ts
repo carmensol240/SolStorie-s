@@ -121,64 +121,6 @@ const callImageModel = async (
   };
 };
 
-const DESCRIBE_PROMPT =
-  "Look at the child in this photo and describe ONLY their visible appearance for an animator, in English, in one short paragraph: approximate age, boy or girl, hair color, hair length, hair texture (straight/wavy/curly) and style, eye color, skin tone, face shape, freckles, glasses, and any other notable facial features. Do not mention clothing, background, text or the person's identity. Output the description only.";
-
-const describeThenDraw = async (apiKey: string, childPhoto: string): Promise<string | null> => {
-  const describeRes = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
-    method: "POST",
-    headers: { Authorization: `Bearer ${apiKey}`, "Content-Type": "application/json" },
-    body: JSON.stringify({
-      model: "openai/gpt-6-astra",
-      reasoning_effort: "low",
-      messages: [
-        {
-          role: "user",
-          content: [
-            { type: "text", text: DESCRIBE_PROMPT },
-            { type: "image_url", image_url: { url: childPhoto } },
-          ],
-        },
-      ],
-    }),
-  });
-  if (!describeRes.ok) {
-    console.error("Describe step failed:", describeRes.status, (await describeRes.text()).slice(0, 500));
-    return null;
-  }
-  const describeData = await describeRes.json();
-  const description = String(describeData?.choices?.[0]?.message?.content ?? "").trim();
-  if (!description) {
-    console.error("Describe step returned no text, finish_reason:", describeData?.choices?.[0]?.finish_reason);
-    return null;
-  }
-  console.log("Describe step ok, description length:", description.length);
-
-  const drawPrompt =
-    `Pixar/Disney 3D animation portrait of a child character (like Encanto, Coco, Inside Out). Appearance: ${description.slice(0, 1200)} ` +
-    "Head-and-shoulders, centered, friendly smile, plain simple t-shirt without any print, warm cinematic lighting, soft clean pastel background. No text, letters or logos. Return image only.";
-
-  const drawRes = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
-    method: "POST",
-    headers: { Authorization: `Bearer ${apiKey}`, "Content-Type": "application/json" },
-    body: JSON.stringify({
-      model: "google/gemini-3.1-flash-image",
-      modalities: ["image", "text"],
-      messages: [{ role: "user", content: drawPrompt }],
-    }),
-  });
-  if (!drawRes.ok) {
-    console.error("Draw step failed:", drawRes.status, (await drawRes.text()).slice(0, 500));
-    return null;
-  }
-  const drawData = await drawRes.json();
-  const url = extractPreviewUrl(drawData);
-  if (!url) {
-    console.error("Draw step returned no image, finish_reason:", drawData?.choices?.[0]?.finish_reason);
-  }
-  return url;
-};
-
 serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
@@ -284,19 +226,6 @@ serve(async (req) => {
           finish_reason: result.data?.choices?.[0]?.finish_reason,
         }).slice(0, 1500),
       );
-    }
-
-    // Photo-editing attempts were all refused (usually the provider's image
-    // safety filter on real photos). Fallback: describe the child's visible
-    // features in words, then draw a Pixar character from text only.
-    try {
-      const previewUrl = await describeThenDraw(lovableApiKey, childPhoto);
-      if (previewUrl) {
-        console.log("Preview generated via describe-then-draw fallback");
-        return jsonResponse({ previewUrl });
-      }
-    } catch (fallbackError) {
-      console.error("Describe-then-draw fallback failed:", fallbackError);
     }
 
     // All strategies failed — return 200 with a fallback signal so the
