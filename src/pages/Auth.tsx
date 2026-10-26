@@ -19,6 +19,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { z } from "zod";
 import QuickSignIn from "@/components/auth/QuickSignIn";
 import { safeReturnTo } from "@/lib/safe-return-to";
+import { avatarPhotoInput } from "@/lib/avatar-photo-input";
 // Background is now CSS-only (adventure sky theme)
 
 const emailSchema = z.string().email("כתובת אימייל לא תקינה");
@@ -117,10 +118,11 @@ const Auth = () => {
       
       // 2. Call Edge Function to generate 3D preview
       const { data, error } = await supabase.functions.invoke('preview-child-avatar', {
-        body: { childPhoto: base64 }
+        body: { childPhoto: await avatarPhotoInput(base64) }
       });
       
       if (error) throw error;
+      if (data?.error) throw new Error(data.message || data.error);
       if (!data?.previewUrl) throw new Error("No preview generated");
       
       setPreviewPhoto(data.previewUrl);

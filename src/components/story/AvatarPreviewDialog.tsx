@@ -5,6 +5,7 @@ import { Loader2, Sparkles, RefreshCw, Check, AlertCircle, Lock } from 'lucide-r
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { isDevModeEnabled } from '@/hooks/use-dev-mode';
+import { avatarPhotoInput } from '@/lib/avatar-photo-input';
 
 const MAX_AVATAR_REGENERATIONS = 2;
 
@@ -75,10 +76,8 @@ const AvatarPreviewDialog = ({
       console.log('Starting avatar generation (auth optional)');
       
       const { data, error } = await supabase.functions.invoke('preview-child-avatar', {
-        body: { childPhoto: originalPhoto }
+        body: { childPhoto: await avatarPhotoInput(originalPhoto) }
       });
-
-      console.log('Avatar generation response:', { data, error });
 
       if (error) {
         console.error('Supabase function error:', error);
@@ -86,7 +85,7 @@ const AvatarPreviewDialog = ({
       }
 
       if (data?.error) {
-        throw new Error(data.error);
+        throw new Error(data.message || data.error);
       }
 
       if (data?.previewUrl) {

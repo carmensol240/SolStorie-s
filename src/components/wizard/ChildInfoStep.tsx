@@ -15,6 +15,7 @@ import { toast } from "sonner";
 
 import { getUserData, setUserData } from "@/lib/user-storage";
 import { stripBase64ForStorage } from "@/lib/strip-base64";
+import { avatarPhotoInput } from "@/lib/avatar-photo-input";
 
 interface SavedChild {
   id: string;
@@ -316,10 +317,10 @@ const ChildInfoStep = ({ formData, updateFormData, screen = 1, restoredDraft, on
     setIsGeneratingAvatar(true);
     try {
       const { data, error } = await supabase.functions.invoke('preview-child-avatar', {
-        body: { childPhoto: photoToUse }
+        body: { childPhoto: await avatarPhotoInput(photoToUse) }
       });
       if (error) throw new Error(error.message || 'שגיאה בשרת');
-      if (data?.error) throw new Error(data.error);
+      if (data?.error) throw new Error(data.message || data.error);
       if (data?.previewUrl) {
         updateFormData({ childAvatarUrl: data.previewUrl });
         const newCount = avatarRegenerationCount + 1;
