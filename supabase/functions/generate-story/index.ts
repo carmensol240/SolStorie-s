@@ -2647,7 +2647,7 @@ ${fullStoryText}`;
           }),
         });
         const p = (async () => {
-          // A BOOT_ERROR means the illustration function never started (nothing was drawn),
+          // A 503 here means the illustration function never started (nothing was drawn),
           // so sending the same page again is safe. Up to 2 more tries, a few seconds apart.
           for (let attempt = 1; attempt <= 3; attempt++) {
             try {
@@ -2656,7 +2656,8 @@ ${fullStoryText}`;
               if (response.ok) { await response.body?.cancel(); return; }
               const text = await response.text();
               console.error(`generate-illustrations page ${page.page_number} error:`, text);
-              if (!(response.status === 503 && text.includes("BOOT_ERROR")) || attempt === 3) return;
+              // 503 = the function did not start (BOOT_ERROR, or the connection reset ~10s in before it ran).
+              if (response.status !== 503 || attempt === 3) return;
             } catch (err) {
               console.error(`Error triggering illustration for page ${page.page_number}:`, err);
               return;
