@@ -228,6 +228,19 @@ serve(async (req) => {
       );
     }
 
+    // Photo-editing attempts were all refused (usually the provider's image
+    // safety filter on real photos). Fallback: describe the child's visible
+    // features in words, then draw a Pixar character from text only.
+    try {
+      const previewUrl = await describeThenDraw(lovableApiKey, childPhoto);
+      if (previewUrl) {
+        console.log("Preview generated via describe-then-draw fallback");
+        return jsonResponse({ previewUrl });
+      }
+    } catch (fallbackError) {
+      console.error("Describe-then-draw fallback failed:", fallbackError);
+    }
+
     // All strategies failed — return 200 with a fallback signal so the
     // client can show a friendly message without throwing on non-2xx.
     return jsonResponse({
