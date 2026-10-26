@@ -1936,6 +1936,9 @@ ${topic.endsWith('-edu') ? `
       maxRetries: 4,
       timeoutMs: 120_000,
       maxOutputTokens: 12000,
+      // The served model "thinks" by default; its hidden thinking ate the 12k budget,
+      // cut the JSON off and pushed the request past the platform time limit.
+      reasoningEffort: "low",
       systemPrompt: systemPrompt,
       userPrompt: userPrompt,
       jsonMode: true,
@@ -2081,6 +2084,7 @@ ${topic.endsWith('-edu') ? `
             label: "generate-story-retry",
             maxRetries: 2,
             timeoutMs: 120_000,
+            reasoningEffort: "low",
             systemPrompt: systemPrompt,
             userPrompt: userPrompt,
             jsonMode: true,
