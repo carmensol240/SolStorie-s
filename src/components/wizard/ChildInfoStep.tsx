@@ -145,6 +145,14 @@ const ChildInfoStep = ({ formData, updateFormData, screen = 1, restoredDraft, on
       }
     })();
   }, [user]);
+
+  // A restored draft resets photoConsent to false while the consent checkbox stays
+  // hidden for users who already consented — re-apply the prior consent.
+  useEffect(() => {
+    if (priorPhotoConsent && formData.childPhoto && !formData.photoConsent) {
+      updateFormData({ photoConsent: true });
+    }
+  }, [priorPhotoConsent, formData.childPhoto, formData.photoConsent]);
   const [photoValidation, setPhotoValidation] = useState<{
     facingForward: boolean;
     singlePerson: boolean;
