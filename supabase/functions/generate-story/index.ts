@@ -696,10 +696,11 @@ interface GatewayCallOptions {
   timeoutMs?: number;
   label?: string;
   maxOutputTokens?: number;
+  reasoningEffort?: "low" | "medium" | "high";
 }
 
 async function callGatewayWithRetry(opts: GatewayCallOptions): Promise<{ ok: true; text: string } | { ok: false; status: number; body: string; isBillingError: boolean }> {
-  const { apiKey, model = "google/gemini-2.5-flash", systemPrompt, userPrompt, jsonMode = false, maxRetries = 4, timeoutMs = 120_000, label = "gateway", maxOutputTokens } = opts;
+  const { apiKey, model = "google/gemini-2.5-flash", systemPrompt, userPrompt, jsonMode = false, maxRetries = 4, timeoutMs = 120_000, label = "gateway", maxOutputTokens, reasoningEffort } = opts;
   const url = "https://ai.gateway.lovable.dev/v1/chat/completions";
   const RETRYABLE = new Set([429, 500, 502, 503, 504]);
 
@@ -714,6 +715,7 @@ async function callGatewayWithRetry(opts: GatewayCallOptions): Promise<{ ok: tru
   };
   if (jsonMode) requestBody.response_format = { type: "json_object" };
   if (maxOutputTokens) requestBody.max_completion_tokens = maxOutputTokens;
+  if (reasoningEffort) requestBody.reasoning_effort = reasoningEffort;
 
   for (let attempt = 0; attempt <= maxRetries; attempt++) {
     try {
@@ -944,6 +946,8 @@ async function handleGenerateStory(req: Request, ctx: RequestCtx): Promise<Respo
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
   }
+  // The platform cuts the browser connection at ~150s; slow optional steps must end before that.
+  const requestStartedAt = Date.now();
 
   try {
     // Parse request body once
@@ -1934,6 +1938,9 @@ ${topic.endsWith('-edu') ? `
       maxRetries: 4,
       timeoutMs: 120_000,
       maxOutputTokens: 12000,
+      // The served model "thinks" by default; its hidden thinking ate the 12k budget,
+      // cut the JSON off and pushed the request past the platform time limit.
+      reasoningEffort: "low",
       systemPrompt: systemPrompt,
       userPrompt: userPrompt,
       jsonMode: true,
@@ -2079,6 +2086,7 @@ ${topic.endsWith('-edu') ? `
             label: "generate-story-retry",
             maxRetries: 2,
             timeoutMs: 120_000,
+            reasoningEffort: "low",
             systemPrompt: systemPrompt,
             userPrompt: userPrompt,
             jsonMode: true,
@@ -2320,7 +2328,9 @@ ${fullStoryText}`;
           gender: childGender,
           heroName: childName,
           nikud: shouldApplyNikud,
-          call: gatewayEditorCall(LOVABLE_API_KEY!),
+          // Normally ~30-45s. If it stalls, stop by ~125s after the request began so the
+          // story is still saved (original text, per-page nikud) before the connection is cut.
+          call: gatewayEditorCall(LOVABLE_API_KEY!, Math.min(120_000, Math.max(20_000, 125_000 - (Date.now() - requestStartedAt)))),
           maxChars: MAX_PAGE_CHARS,
         });
         talkQuestions = tq;
@@ -2615,7 +2625,7 @@ ${fullStoryText}`;
 
       for (const page of illustrationPages) {
         console.log(`  → Dispatching illustration for page ${page.page_number}`);
-        const p = fetch(`${supabaseUrl}/functions/v1/generate-illustrations`, {
+        const dispatchOnce = () => fetch(`${supabaseUrl}/functions/v1/generate-illustrations`, {
           method: "POST",
           headers: {
             "Authorization": `Bearer ${serviceRoleKey}`,
@@ -2635,16 +2645,29 @@ ${fullStoryText}`;
             appearance: reqAppearance,
             childAge: childAgeRaw,
           }),
-        }).then(response => {
-          console.log(`generate-illustrations (page ${page.page_number}) response: ${response.status}`);
-          if (!response.ok) {
-            response.text().then(text => {
-              console.error(`generate-illustrations page ${page.page_number} error:`, text);
-            });
-          }
-        }).catch(err => {
-          console.error(`Error triggering illustration for page ${page.page_number}:`, err);
         });
+        const p = (async () => {
+          // A 503 here means the illustration function never started (nothing was drawn),
+          // so sending the same page again is safe. Up to 2 more tries, a few seconds apart.
+          for (let attempt = 1; attempt <= 3; attempt++) {
+            try {
+              const response = await dispatchOnce();
+              console.log(`generate-illustrations (page ${page.page_number}) response: ${response.status}`);
+              if (response.ok) { await response.body?.cancel(); return; }
+              const text = await response.text();
+              console.error(`generate-illustrations page ${page.page_number} error:`, text);
+              // 503 = the function did not start (BOOT_ERROR, or the connection reset ~10s in before it ran).
+              if (response.status !== 503 || attempt === 3) return;
+            } catch (err) {
+              console.error(`Error triggering illustration for page ${page.page_number}:`, err);
+              return;
+            }
+            console.warn(`generate-illustrations page ${page.page_number}: function did not start, retrying (${attempt + 1}/3)...`);
+            await new Promise(r => setTimeout(r, 4000 * attempt));
+          }
+        })();
+        // Keep the retries alive after the response is sent.
+        (globalThis as any).EdgeRuntime?.waitUntil?.(p);
         fetchPromises.push(p);
       }
 
