@@ -44,13 +44,17 @@ export function withColoringFooter(url: string, childName?: string | null): Prom
       ctx.drawImage(img, 0, 0, 2480, 3508);
     }
     ctx.textAlign = "center";
-    ctx.direction = "rtl";
+    ctx.direction = "ltr";
     ctx.fillStyle = "#444444";
     ctx.font = "40px Heebo, Arial, sans-serif";
-    ctx.fillText(COLORING_COPYRIGHT, 1240, 3450, 2240);
+    ctx.fillText("© 2026 SolStories · \u2067לשימוש אישי בלבד\u2069 · \u2067אין למכור או להפיץ מחדש\u2069", 1240, 3450, 2240);
     return canvas.toDataURL("image/png");
   })();
   pages.set(key, result);
+  if (pages.size > 16) {
+    const oldest = pages.keys().next().value;
+    if (oldest !== undefined) pages.delete(oldest);
+  }
   result.catch(() => pages.delete(key));
   return result;
 }
