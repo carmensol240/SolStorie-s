@@ -73,6 +73,7 @@ interface ColoringPageRecord {
   coloring_image_path: string;
   created_at: string;
   story_child_name?: string;
+  story_child_id?: string | null;
   story_topic?: string;
   story_slug?: string;
 }
@@ -189,7 +190,7 @@ const Library = () => {
       const storyIds = [...new Set(data.map(cp => cp.story_id))];
       const { data: storiesData } = await supabase
         .from("stories")
-        .select("id, child_name, topic, slug")
+        .select("id, child_name, child_id, topic, slug")
         .in("id", storyIds);
 
       const storyMap = new Map(storiesData?.map(s => [s.id, s]) || []);
@@ -199,6 +200,7 @@ const Library = () => {
         return {
           ...cp,
           story_child_name: story?.child_name,
+          story_child_id: story?.child_id,
           story_topic: story?.topic,
           story_slug: story?.slug,
         };
@@ -640,9 +642,10 @@ const Library = () => {
         {pages.map(cp => {
           const imgUrl = getPublicIllustrationUrl(cp.coloring_image_path);
           const topicLabel = cp.story_topic ? translateTopic(cp.story_topic) : '';
+          const childName = children.find(c => c.id === cp.story_child_id)?.name || cp.story_child_name;
           return (
             <div key={cp.id} className="rounded-xl border bg-card shadow-sm overflow-hidden">
-              <A4Frame imageUrl={imgUrl || ''} alt={`דף צביעה - ${topicLabel}`} className="border-0 border-b" />
+              <A4Frame imageUrl={imgUrl || ''} name={childName} alt={`דף צביעה - ${topicLabel}`} className="border-0 border-b" />
               <div className="p-2 space-y-1.5">
                 {cp.story_child_name && (
                   <p className="text-sm font-bold text-foreground truncate">{cp.story_child_name}</p>
@@ -669,7 +672,7 @@ const Library = () => {
                     צביעה
                   </Button>
                 </div>
-                {imgUrl && <A4ColoringActions imageUrl={imgUrl} name={cp.story_child_name || topicLabel} />}
+                {imgUrl && <A4ColoringActions imageUrl={imgUrl} name={childName} />}
               </div>
             </div>
           );
@@ -1146,6 +1149,7 @@ const Library = () => {
         isOpen={!!coloringCanvasImage}
         onClose={() => { setColoringCanvasImage(null); setColoringCanvasIndex(-1); }}
         backgroundImage={coloringCanvasImage || ''}
+        childName={children.find(c => c.id === coloringPages[coloringCanvasIndex]?.story_child_id)?.name || coloringPages[coloringCanvasIndex]?.story_child_name}
         storyTitle={coloringCanvasTitle}
         onNavigatePrev={() => {
           if (coloringCanvasIndex > 0) {

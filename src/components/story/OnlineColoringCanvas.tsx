@@ -4,12 +4,15 @@ import { Button } from '@/components/ui/button';
 import { A4_PRINT_HINT, coloringCorsUrl, downloadColoringPdfA4, printColoringA4 } from '@/lib/coloring-a4';
 import { normalizeColoringPixels } from '../../../supabase/functions/_shared/coloring-pixels';
 import { toast } from 'sonner';
+import { useColoringFooter } from '@/hooks/use-coloring-footer';
+import { COLORING_FOOTER_TOP } from '@/lib/coloring-footer';
 
 interface OnlineColoringCanvasProps {
   isOpen: boolean;
   onClose: () => void;
   backgroundImage: string;
   childName?: string;
+  footerIncluded?: boolean;
   storyTitle?: string;
   onNavigatePrev?: () => void;
   onNavigateNext?: () => void;
@@ -267,9 +270,11 @@ function floodErase(
 }
 
 export const OnlineColoringCanvas: React.FC<OnlineColoringCanvasProps> = ({
-  isOpen, onClose, backgroundImage, childName, storyTitle,
+  isOpen, onClose, backgroundImage, childName, storyTitle, footerIncluded = false,
   onNavigatePrev, onNavigateNext, canGoPrev, canGoNext,
 }) => {
+  const footerPage = useColoringFooter(footerIncluded ? '' : backgroundImage, childName);
+  const pageImage = footerIncluded ? backgroundImage : footerPage;
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const bgCanvasRef = useRef<HTMLCanvasElement>(null);
   const topBarRef = useRef<HTMLDivElement>(null);
@@ -381,7 +386,8 @@ export const OnlineColoringCanvas: React.FC<OnlineColoringCanvasProps> = ({
     const bgCanvas = bgCanvasRef.current;
     const drawCanvas = canvasRef.current;
     if (!bgCanvas || !drawCanvas) return;
-    if (!trimBoundsRef.current) trimBoundsRef.current = getContentBounds(img);
+    // Keep the whole A4 sheet, including its footer, rather than trimming away margins.
+    if (!trimBoundsRef.current) trimBoundsRef.current = { sx: 0, sy: 0, sw: img.naturalWidth, sh: img.naturalHeight };
     const bounds = trimBoundsRef.current;
     const k = CANVAS_LONG_SIDE / Math.max(bounds.sw, bounds.sh);
     const w = Math.round(bounds.sw * k);
@@ -395,7 +401,6 @@ export const OnlineColoringCanvas: React.FC<OnlineColoringCanvasProps> = ({
       ctx.imageSmoothingEnabled = true;
       ctx.imageSmoothingQuality = 'high';
       ctx.drawImage(img, bounds.sx, bounds.sy, bounds.sw, bounds.sh, 0, 0, w, h);
-      binarizeToLineArt(ctx, w, h);
     }
     const dCtx = drawCanvas.getContext('2d');
     if (dCtx) {
@@ -464,7 +469,8 @@ export const OnlineColoringCanvas: React.FC<OnlineColoringCanvasProps> = ({
     trimBoundsRef.current = null;
     const img = new Image();
     img.crossOrigin = 'anonymous';
-    img.src = coloringCorsUrl(backgroundImage);
+    if (!pageImage) return;
+    img.src = coloringCorsUrl(pageImage);
     img.onload = () => {
       bgImageRef.current = img;
       setupCanvases(img);
@@ -472,7 +478,7 @@ export const OnlineColoringCanvas: React.FC<OnlineColoringCanvasProps> = ({
       setBgLoaded(true);
     };
     img.onerror = () => setBgError(true);
-  }, [isOpen, backgroundImage, bgRetry]);
+  }, [isOpen, pageImage, bgRetry]);
 
   useEffect(() => {
     if (!isOpen || !bgImageRef.current) return;
@@ -683,9 +689,13 @@ export const OnlineColoringCanvas: React.FC<OnlineColoringCanvasProps> = ({
     if (!bgCanvas || !drawCanvas) return null;
     const merged = document.createElement('canvas');
     merged.width = bgCanvas.width; merged.height = bgCanvas.height;
-    const ctx = merged.getContext('2d')!;
+    const ctx = merged.getContext('2d');
+    if (!ctx) return null;
     ctx.drawImage(bgCanvas, 0, 0);
     ctx.drawImage(drawCanvas, 0, 0);
+    // A painted/erased footer must still export with the original names and notice.
+    const footerY = Math.round(bgCanvas.height * COLORING_FOOTER_TOP);
+    ctx.drawImage(bgCanvas, 0, footerY, bgCanvas.width, bgCanvas.height - footerY, 0, footerY, bgCanvas.width, bgCanvas.height - footerY);
     return merged;
   }, []);
 
