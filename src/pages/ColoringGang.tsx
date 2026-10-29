@@ -4,6 +4,7 @@ import { Printer, Palette, ArrowRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/hooks/use-auth";
 import { printColoringA4 } from "@/lib/coloring-a4";
+import { useColoringFooter } from "@/hooks/use-coloring-footer";
 import { OnlineColoringCanvas } from "@/components/story/OnlineColoringCanvas";
 import GlobalFooter from "@/components/shared/GlobalFooter";
 import solPage from "@/assets/coloring-gang/sol.png.asset.json";
@@ -21,6 +22,18 @@ const PAGES = [
 ];
 
 const RETURN_TO = "/coloring-gang";
+
+function GangPageImage({ url, name, locked }: { url: string; name: string; locked: boolean }) {
+  const page = useColoringFooter(url);
+  return page ? <img src={page} alt={`דף צביעה של ${name}`} loading="lazy" className={`w-full h-full object-contain ${locked ? "blur-[3px] select-none pointer-events-none" : ""}`} /> : null;
+}
+
+function GangPrint({ url, loading }: { url: string; loading: boolean }) {
+  const page = useColoringFooter(url);
+  return <Button variant="outline" className="min-h-11" disabled={loading || !page} onClick={() => page && printColoringA4(page, { preserveColors: true })}>
+    <Printer className="w-4 h-4 ms-1" aria-hidden /> הדפסה
+  </Button>;
+}
 
 export default function ColoringGang() {
   const navigate = useNavigate();
@@ -54,20 +67,13 @@ export default function ColoringGang() {
           {PAGES.map((p, i) => (
             <li key={p.name} className="bg-card border rounded-2xl p-3 shadow-sm flex flex-col gap-3">
               <div className="aspect-[210/297] overflow-hidden rounded-lg border bg-white">
-                <img
-                  src={p.url}
-                  alt={`דף צביעה של ${p.name}`}
-                  loading="lazy"
-                  className={`w-full h-full object-contain ${locked ? "blur-[3px] select-none pointer-events-none" : ""}`}
-                />
+                <GangPageImage url={p.url} name={p.name} locked={locked} />
               </div>
               {locked ? (
                 <Button variant="outline" onClick={signUp} className="min-h-11">הירשמו כדי לקבל</Button>
               ) : (
                 <div className="flex flex-col gap-2">
-                  <Button variant="outline" className="min-h-11" disabled={loading} onClick={() => printColoringA4(p.url)}>
-                    <Printer className="w-4 h-4 ms-1" aria-hidden /> הדפסה
-                  </Button>
+                  <GangPrint url={p.url} loading={loading} />
                   <Button className="min-h-11" disabled={loading} onClick={() => setColoring(i)}>
                     <Palette className="w-4 h-4 ms-1" aria-hidden /> צביעה אונליין
                   </Button>

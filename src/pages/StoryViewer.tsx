@@ -94,6 +94,7 @@ interface Story {
   slug?: string;
   user_id?: string | null;
   child_name: string;
+  child_id?: string | null;
   child_gender?: string;
   topic: string;
   language?: string;
@@ -210,6 +211,17 @@ const StoryViewer = () => {
   
   const [resolvedId, setResolvedId] = useState<string | null>(null);
   const [story, setStory] = useState<Story | null>(null);
+  const [coloringProfile, setColoringProfile] = useState<{ id: string; name: string } | null>(null);
+  const coloringChildName = coloringProfile?.id === story?.child_id ? coloringProfile?.name : story?.child_name;
+  useEffect(() => {
+    if (!story?.child_id) return;
+    let alive = true;
+    const childId = story.child_id;
+    supabase.from("children").select("name").eq("id", childId).maybeSingle().then(({ data }) => {
+      if (alive && data?.name) setColoringProfile({ id: childId, name: data.name });
+    });
+    return () => { alive = false; };
+  }, [story?.child_id]);
   const [seriesParts, setSeriesParts] = useState<SeriesPart[]>([]);
   const { avatarUrl: childAvatarUrl } = useChildAvatar(story?.child_name);
 
@@ -1099,6 +1111,7 @@ const [currentPage, setCurrentPage] = useState(0);
         slug: storyData.slug || undefined,
         user_id: (storyData as any).user_id ?? null,
         child_name: storyData.child_name,
+        child_id: storyData.child_id,
         child_gender: (storyData as any).child_gender || 'female',
         topic: storyData.topic,
         language: (storyData as any).language || 'he',
@@ -2791,14 +2804,14 @@ const [currentPage, setCurrentPage] = useState(0);
       <Dialog open={!!a4PreviewUrl} onOpenChange={(o) => !o && setA4PreviewUrl(null)}>
         <DialogContent className="max-w-sm" dir="rtl">
           <DialogHeader><DialogTitle>דף צביעה A4</DialogTitle></DialogHeader>
-          {a4PreviewUrl && <A4ColoringFrame imageUrl={a4PreviewUrl} name={story?.child_name} />}
+          {a4PreviewUrl && <A4ColoringFrame imageUrl={a4PreviewUrl} name={coloringChildName} />}
         </DialogContent>
       </Dialog>
       <OnlineColoringCanvas
         isOpen={onlineColoringOpen}
         onClose={() => setOnlineColoringOpen(false)}
         backgroundImage={onlineColoringImageUrl || ''}
-        childName={story?.child_name}
+        childName={coloringChildName}
         storyTitle={story?.topic}
       />
 

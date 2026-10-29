@@ -1,4 +1,8 @@
 
+## Coloring footer (Oct 2026)
+- [x] Keep free character/app captions; use child's profile name on paid pages
+- [x] Add shared copyright to screen, PDF/image downloads and print; verify existing flows
+
 ## Coloring pages: thin outlines, no solid black (Oct 2026)
 - [x] Two checks (color >1%; solid black area >2%), up to 2 retries, edge-detection fallback from original
 - [x] Print/PDF/online coloring: clean page untouched, otherwise thin-line conversion (no threshold blobs)
