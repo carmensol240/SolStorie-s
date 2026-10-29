@@ -211,6 +211,17 @@ const StoryViewer = () => {
   
   const [resolvedId, setResolvedId] = useState<string | null>(null);
   const [story, setStory] = useState<Story | null>(null);
+  const [coloringProfile, setColoringProfile] = useState<{ id: string; name: string } | null>(null);
+  const coloringChildName = coloringProfile?.id === story?.child_id ? coloringProfile?.name : story?.child_name;
+  useEffect(() => {
+    if (!story?.child_id) return;
+    let alive = true;
+    const childId = story.child_id;
+    supabase.from("children").select("name").eq("id", childId).maybeSingle().then(({ data }) => {
+      if (alive && data?.name) setColoringProfile({ id: childId, name: data.name });
+    });
+    return () => { alive = false; };
+  }, [story?.child_id]);
   const [seriesParts, setSeriesParts] = useState<SeriesPart[]>([]);
   const { avatarUrl: childAvatarUrl } = useChildAvatar(story?.child_name);
 
