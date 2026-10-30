@@ -1,4 +1,5 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
+import { checkRateLimit, getClientIP, rateLimitResponse, RATE_LIMITS } from "../_shared/rate-limiter.ts";
 
 const RESEND_API_KEY = Deno.env.get("RESEND_API_KEY");
 
@@ -32,6 +33,13 @@ const handler = async (req: Request): Promise<Response> => {
   }
 
   try {
+    const clientIP = getClientIP(req);
+    const ipRateLimit = checkRateLimit(clientIP, "feedback-notification", RATE_LIMITS.feedback);
+    if (!ipRateLimit.allowed) {
+      console.log(`Feedback notification rate limit exceeded for IP: ${clientIP}`);
+      return rateLimitResponse(ipRateLimit, corsHeaders, "יותר מדי בקשות. נסו שוב מאוחר יותר.");
+    }
+
     const { storyName, childName, rating, message, userEmail }: FeedbackNotificationRequest = await req.json();
 
     const stars = "⭐".repeat(rating || 0);

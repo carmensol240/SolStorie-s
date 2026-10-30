@@ -113,6 +113,13 @@
       "when": 1792659406962,
       "tag": "0015_child_portrait_coloring",
       "breakpoints": true
+    },
+    {
+      "idx": 16,
+      "version": "7",
+      "when": 1793345502965,
+      "tag": "0016_lock_redeem_coupon_atomic",
+      "breakpoints": true
     }
   ]
 }

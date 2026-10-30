@@ -151,6 +151,14 @@ export const RATE_LIMITS = {
     maxRequests: 100,
     windowMs: 60 * 1000, // 1 minute
   },
+  tts: {
+    maxRequests: 30,
+    windowMs: 60 * 60 * 1000, // 1 hour
+  },
+  feedback: {
+    maxRequests: 10,
+    windowMs: 60 * 60 * 1000, // 1 hour
+  },
   aiFunction: {
     maxRequests: 10,
     windowMs: 60 * 1000, // 1 minute
