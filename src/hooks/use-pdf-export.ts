@@ -48,6 +48,11 @@ interface VirtualPdfPage {
 // Rainbow gradient for decorative fallback
 const RAINBOW_CSS = 'linear-gradient(135deg, #FFE4E1 0%, #FFDAB9 15%, #FFFACD 30%, #E0FFE0 45%, #E0F0FF 60%, #E8D8FF 75%, #FFE4F0 90%, #FFE4E1 100%)';
 
+export const PRINT_NOT_READY_MESSAGE = 'האיורים עדיין בהכנה להדפסה, נסו שוב בעוד דקה';
+export class PrintNotReadyError extends Error {
+  constructor() { super(PRINT_NOT_READY_MESSAGE); this.name = 'PrintNotReadyError'; }
+}
+
 export const usePdfExport = () => {
   const [isExporting, setIsExporting] = useState(false);
   const { toast } = useToast();
