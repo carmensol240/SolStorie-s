@@ -273,7 +273,7 @@ export const OnlineColoringCanvas: React.FC<OnlineColoringCanvasProps> = ({
   isOpen, onClose, backgroundImage, childName, storyTitle, footerIncluded = false,
   onNavigatePrev, onNavigateNext, canGoPrev, canGoNext,
 }) => {
-  const footerPage = useColoringFooter(footerIncluded ? '' : backgroundImage, childName);
+  const footerPage = useColoringFooter(!isOpen || footerIncluded ? '' : backgroundImage, childName, 'full');
   const pageImage = footerIncluded ? backgroundImage : footerPage;
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const bgCanvasRef = useRef<HTMLCanvasElement>(null);
