@@ -1,7 +1,7 @@
 
 ## Coloring memory stability (Oct 2026)
-- [ ] Small serialized previews; full pages only for print/PDF/online; release canvases and blob URLs
-- [ ] Verify 30 pages at 390px, full-resolution print/PDF and online
+- [x] Small serialized previews; full pages only for print/PDF/online; release canvases and blob URLs
+- [x] Verify 30 pages at 390px (browser-only duplication of existing records, no saved changes), full-resolution print/PDF and online; gang previews; 11 tests passed
 
 ## Coloring footer (Oct 2026)
 - [x] Keep free character/app captions; use child's profile name on paid pages
