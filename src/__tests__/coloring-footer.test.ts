@@ -9,7 +9,7 @@ function setup() {
   let active = 0;
   let maxActive = 0;
   Object.defineProperty(document, "fonts", { configurable: true, value: { ready: Promise.resolve() } });
-  vi.spyOn(HTMLImageElement.prototype, "decode").mockResolvedValue(undefined);
+  Object.defineProperty(HTMLImageElement.prototype, "decode", { configurable: true, value: vi.fn().mockResolvedValue(undefined) });
   vi.spyOn(HTMLCanvasElement.prototype, "getContext").mockReturnValue({
     scale: vi.fn(), fillRect: vi.fn(), drawImage: vi.fn(), fillText: vi.fn(),
     measureText: () => ({ width: 20 }),
