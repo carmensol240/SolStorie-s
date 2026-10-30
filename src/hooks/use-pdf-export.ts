@@ -405,16 +405,19 @@ export const usePdfExport = () => {
   };
 
   // ─── Print-quality illustrations (upscaled once on the server, reused later) ──
+  // Throws PrintNotReadyError unless every illustration has a print copy — never a silent low-res PDF.
   const getPrintIllustrations = async (story: Story): Promise<Record<string, string>> => {
+    let withPic: any[] = [];
+    const ready: Record<string, string> = {};
     try {
-      const { data: rows } = await supabase
+      const { data: rows, error } = await supabase
         .from('story_pages')
         .select('illustration_url, print_illustration_url')
         .eq('story_id', story.id);
-      const withPic = (rows ?? []).filter((r: any) => r.illustration_url);
-      const ready: Record<string, string> = {};
+      if (error) throw error;
+      withPic = (rows ?? []).filter((r: any) => r.illustration_url);
       withPic.forEach((r: any) => { if (r.print_illustration_url) ready[r.illustration_url] = r.print_illustration_url; });
-      if (withPic.length > 0 && Object.keys(ready).length === withPic.length) return ready;
+      if (Object.keys(ready).length === withPic.length) return ready;
 
       toast({ title: 'מכינים את האיורים להדפסה, בפעם הראשונה זה לוקח עד דקה וחצי' });
       const { data: { session } } = await supabase.auth.getSession();
@@ -433,16 +436,17 @@ export const usePdfExport = () => {
         });
         if (res.ok) {
           const data = await res.json();
-          for (const [k, v] of Object.entries<any>(data.images ?? {})) ready[k] = v.url;
+          for (const [k, v] of Object.entries<any>(data.images ?? {})) if (v?.url) ready[k] = v.url;
         }
       } finally {
         clearTimeout(timer);
       }
-      return ready;
     } catch (e) {
-      console.warn('Print upscale unavailable, using original illustrations', e);
-      return {};
+      console.warn('Print upscale unavailable', e);
+      throw new PrintNotReadyError();
     }
+    if (withPic.some((r: any) => !ready[r.illustration_url])) throw new PrintNotReadyError();
+    return ready;
   };
 
   // ─── Square 21x21 cm book with 3 mm bleed ──
@@ -462,9 +466,10 @@ export const usePdfExport = () => {
     container.style.cssText = `position:absolute;left:-99999px;top:0;width:${DESIGN}px;height:${DESIGN}px;`;
     document.body.appendChild(container);
 
-    const seq = buildPageSequence(story.pages);
-    const storyNikud = lang === 'he' && /[\u05B0-\u05BC]/.test(story.pages.map(p => p.text).join(' '));
     const talkQuestions = await fetchTalkQuestions(story.id);
+    // Questions missing → the talk page already shows "draw the moment", so don't repeat it as a filler.
+    const seq = buildPageSequence(story.pages, { skipDrawMomentFiller: talkQuestions.length === 0 });
+    const storyNikud = lang === 'he' && /[\u05B0-\u05BC]/.test(story.pages.map(p => p.text).join(' '));
     try {
       for (let i = 0; i < seq.length; i++) {
         const slot = seq[i];
@@ -505,12 +510,10 @@ export const usePdfExport = () => {
               try { await addIllustrationPage(pdf, signedUrlMap[u] || u); }
               catch { await captureHtml(container, renderDecorativePage(), pdf, 'JPEG'); }
             }
-            drawFooter(pdf, { onPicture: true });
             break;
           }
           case 'decorative':
             await captureHtml(container, renderDecorativePage(), pdf, 'JPEG');
-            drawFooter(pdf, { onPicture: true });
             break;
           case 'talk':
             if (talkQuestions.length) await captureHtml(container, renderTalkPage(talkQuestions, lang, storyNikud), pdf, 'PNG');
@@ -592,7 +595,8 @@ export const usePdfExport = () => {
       }
     } catch (error) {
       console.error('Error exporting PDF:', error);
-      toast({ title: 'שגיאה ביצירת ה-PDF', variant: 'destructive' });
+      if (error instanceof PrintNotReadyError) toast({ title: PRINT_NOT_READY_MESSAGE, variant: 'destructive' });
+      else toast({ title: 'שגיאה ביצירת ה-PDF', variant: 'destructive' });
     } finally {
       setIsExporting(false);
     }

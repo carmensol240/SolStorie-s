@@ -34,7 +34,10 @@ export const printLang = (language?: string | null): PrintLang =>
  * (or is itself a picture-less spread) and still holds only one story page (max two per text page). Otherwise it opens
  * its own spread facing a decorative page — so decorative pages appear only for truly missing pictures.
  */
-export function buildPageSequence(pages: { illustration_url: string | null }[]): PrintSlot[] {
+export function buildPageSequence(
+  pages: { illustration_url: string | null }[],
+  opts: { skipDrawMomentFiller?: boolean } = {},
+): PrintSlot[] {
   type Spread = { idx: number[]; pic: boolean };
   const spreads: Spread[] = [];
   pages.forEach((p, i) => {
@@ -51,7 +54,9 @@ export function buildPageSequence(pages: { illustration_url: string | null }[]):
   });
   // Ending: talk page and "next adventure" always; fillers to a multiple of 4 in this order, blank only after them.
   seq.push({ kind: 'talk' }, { kind: 'theEnd' });
-  const fillers: PrintSlot[] = [{ kind: 'drawMoment' }, { kind: 'ourHero' }];
+  const fillers: PrintSlot[] = opts.skipDrawMomentFiller
+    ? [{ kind: 'ourHero' }]
+    : [{ kind: 'drawMoment' }, { kind: 'ourHero' }];
   while ((seq.length + 1) % 4 !== 0) seq.push(fillers.shift() ?? { kind: 'blank' });
   seq.push({ kind: 'backCover' });
   return seq;
