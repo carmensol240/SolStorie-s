@@ -2,7 +2,8 @@ import { useEffect, useRef, useState } from "react";
 import { Loader2, Palette, Printer, RefreshCw } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
-import { printColoringA4 } from "@/lib/coloring-a4";
+import { printColoringPage } from "@/lib/coloring-footer";
+import { toast } from "sonner";
 import { useColoringFooter } from "@/hooks/use-coloring-footer";
 import { OnlineColoringCanvas } from "@/components/story/OnlineColoringCanvas";
 import { COLORING_FAILED_TEXT } from "./portrait-coloring-text";
@@ -33,6 +34,7 @@ export function ChildPortraitColoringCard({ childId, childName, gender, isAdmin 
   const [busy, setBusy] = useState(false);
   const [failed, setFailed] = useState(false);
   const [coloring, setColoring] = useState(false);
+  const [printing, setPrinting] = useState(false);
   const lock = useRef(false);
 
   useEffect(() => {
@@ -77,7 +79,13 @@ export function ChildPortraitColoringCard({ childId, childName, gender, isAdmin 
             </Button>
           ) : (
             <>
-              <Button variant="outline" className="min-h-11" disabled={!page} onClick={() => page && printColoringA4(page, { preserveColors: true })}>
+              <Button variant="outline" className="min-h-11" disabled={printing} onClick={async () => {
+                if (!path) return;
+                setPrinting(true);
+                try { await printColoringPage(publicUrl(path), childName); }
+                catch (error) { console.error(error); toast.error("שגיאה בהכנת הדפסה"); }
+                finally { setPrinting(false); }
+              }}>
                 <Printer className="w-4 h-4 ms-1" aria-hidden /> הדפסה
               </Button>
               <Button className="min-h-11" disabled={!page} onClick={() => setColoring(true)}>
@@ -92,8 +100,8 @@ export function ChildPortraitColoringCard({ childId, childName, gender, isAdmin 
           )}
         </div>
       </div>
-      {coloring && page && (
-        <OnlineColoringCanvas isOpen onClose={() => setColoring(false)} backgroundImage={page} footerIncluded childName={childName} storyTitle={`${childName} ${hero}`} />
+      {coloring && path && (
+        <OnlineColoringCanvas isOpen onClose={() => setColoring(false)} backgroundImage={publicUrl(path)} childName={childName} storyTitle={`${childName} ${hero}`} />
       )}
     </section>
   );

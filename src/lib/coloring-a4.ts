@@ -1,7 +1,7 @@
 // A4 print + PDF helpers for coloring pages (210 x 297 mm portrait).
 import { binarizeColoringPixels, normalizeColoringPixels } from "../../supabase/functions/_shared/coloring-pixels";
 
-export interface ColoringExportOptions { preserveColors?: boolean }
+export interface ColoringExportOptions { preserveColors?: boolean; onCleanup?: () => void }
 export const A4_MM = { w: 210, h: 297, margin: 10 };
 export const A4_PX = { w: 2480, h: 3508 }; // 300 dpi
 
@@ -77,7 +77,14 @@ export async function downloadColoringPdfA4(url: string, name?: string | null, o
     binarizeColoringPixels(pixels.data);
     ctx.putImageData(pixels, 0, 0);
   }
-  const data = canvas.toDataURL("image/png");
+  const blob = await new Promise<Blob>((resolve, reject) => {
+    canvas.toBlob((value) => value ? resolve(value) : reject(new Error("Canvas export failed")), "image/png");
+  }).finally(() => {
+    canvas.width = 0; canvas.height = 0;
+    source.width = 0; source.height = 0;
+    img.src = "";
+  });
+  const data = new Uint8Array(await blob.arrayBuffer());
 
   const { jsPDF } = await import("jspdf");
   const pdf = new jsPDF({ orientation: "portrait", unit: "mm", format: "a4" });
@@ -137,10 +144,13 @@ export function printColoringA4(url: string, options: ColoringExportOptions = {}
     window.removeEventListener("focus", cleanup);
     if (focusTimer) clearTimeout(focusTimer);
     if (fallbackTimer) clearTimeout(fallbackTimer);
+    options.onCleanup?.();
   };
   window.addEventListener("afterprint", cleanup);
   const go = () => {
     if (done) return;
+    // A composed page is already ready to print: avoid a second full-size canvas and base64 copy.
+    if (options.preserveColors) { launchPrint(); return; }
     try {
       const source = prepareColoringCanvas(img, options);
       const printable = document.createElement("img");

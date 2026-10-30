@@ -3,7 +3,7 @@ import { Printer, FileDown } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
-import { A4_PRINT_HINT, downloadColoringPdfA4, printColoringA4 } from "@/lib/coloring-a4";
+import { A4_PRINT_HINT, downloadColoringPdfA4 } from "@/lib/coloring-a4";
 import { useColoringFooter } from "@/hooks/use-coloring-footer";
 import { printColoringPage, withColoringFooter } from "@/lib/coloring-footer";
 
@@ -17,6 +17,7 @@ interface Props {
 
 /** White A4 portrait frame (210/297) — image is never cropped. */
 export const A4Frame = ({ imageUrl, name, alt, className }: { imageUrl: string; name?: string | null; alt?: string; className?: string }) => {
+  const page = useColoringFooter(imageUrl, name);
   return (
   <div
     className={cn("w-full bg-white flex items-center justify-center p-[4%] border border-border/40", className)}
@@ -29,7 +30,6 @@ export const A4Frame = ({ imageUrl, name, alt, className }: { imageUrl: string; 
 
 export const A4ColoringActions = ({ imageUrl, name, className }: { imageUrl: string; name?: string | null; className?: string }) => {
   const [busy, setBusy] = useState(false);
-  const page = useColoringFooter(imageUrl, name);
   return (
     <div className={cn("space-y-1", className)}>
     <div className="flex flex-col sm:flex-row gap-1.5">

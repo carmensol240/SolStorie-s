@@ -3,7 +3,8 @@ import { useNavigate } from "react-router-dom";
 import { Printer, Palette, ArrowRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/hooks/use-auth";
-import { printColoringA4 } from "@/lib/coloring-a4";
+import { printColoringPage } from "@/lib/coloring-footer";
+import { toast } from "sonner";
 import { useColoringFooter } from "@/hooks/use-coloring-footer";
 import { OnlineColoringCanvas } from "@/components/story/OnlineColoringCanvas";
 import GlobalFooter from "@/components/shared/GlobalFooter";
@@ -29,8 +30,13 @@ function GangPageImage({ url, name, locked }: { url: string; name: string; locke
 }
 
 function GangPrint({ url, loading }: { url: string; loading: boolean }) {
-  const page = useColoringFooter(url);
-  return <Button variant="outline" className="min-h-11" disabled={loading || !page} onClick={() => page && printColoringA4(page, { preserveColors: true })}>
+  const [busy, setBusy] = useState(false);
+  return <Button variant="outline" className="min-h-11" disabled={loading || busy} onClick={async () => {
+    setBusy(true);
+    try { await printColoringPage(url); }
+    catch (error) { console.error(error); toast.error("שגיאה בהכנת הדפסה"); }
+    finally { setBusy(false); }
+  }}>
     <Printer className="w-4 h-4 ms-1" aria-hidden /> הדפסה
   </Button>;
 }

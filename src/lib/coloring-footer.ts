@@ -1,5 +1,5 @@
 import solPage from "@/assets/coloring-gang/sol.png.asset.json";
-import { coloringCorsUrl, prepareColoringCanvas, fitContain } from "@/lib/coloring-a4";
+import { coloringCorsUrl, prepareColoringCanvas, fitContain, printColoringA4 } from "@/lib/coloring-a4";
 import { normalizeColoringPixels } from "../../supabase/functions/_shared/coloring-pixels";
 
 /** Visual order right-to-left: the line is drawn segment by segment from the right edge. */
@@ -118,4 +118,15 @@ export function withColoringFooter(url: string, childName?: string | null, size:
   // A failed/cancelled page must not prevent subsequent jobs; yield to rendering between pages.
   drawingQueue = result.catch(() => {}).then(() => new Promise<void>((resolve) => setTimeout(resolve, 0)));
   return result;
+}
+
+/** Keep the full page alive until the print root is removed, including non-blocking phone printing. */
+export async function printColoringPage(url: string, childName?: string | null) {
+  const page = await withColoringFooter(url, childName);
+  try {
+    return printColoringA4(page, { preserveColors: true, onCleanup: () => URL.revokeObjectURL(page) });
+  } catch (error) {
+    URL.revokeObjectURL(page);
+    throw error;
+  }
 }
