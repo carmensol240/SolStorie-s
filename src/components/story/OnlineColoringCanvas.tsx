@@ -478,6 +478,16 @@ export const OnlineColoringCanvas: React.FC<OnlineColoringCanvasProps> = ({
       setBgLoaded(true);
     };
     img.onerror = () => setBgError(true);
+    return () => {
+      img.onload = null;
+      img.onerror = null;
+      img.src = '';
+      bgImageRef.current = null;
+      for (const canvas of [canvasRef.current, bgCanvasRef.current]) {
+        if (canvas) { canvas.width = 0; canvas.height = 0; }
+      }
+      setHistory([]);
+    };
   }, [isOpen, pageImage, bgRetry]);
 
   useEffect(() => {

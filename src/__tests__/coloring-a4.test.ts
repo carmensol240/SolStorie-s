@@ -40,7 +40,8 @@ describe("A4 coloring", () => {
 describe("coloring print marker", () => {
   beforeEach(() => {
     vi.spyOn(HTMLCanvasElement.prototype, "getContext").mockReturnValue(makeContext() as unknown as CanvasRenderingContext2D);
-    vi.spyOn(HTMLCanvasElement.prototype, "toDataURL").mockReturnValue("data:image/png;base64,AAAA");
+    vi.spyOn(HTMLCanvasElement.prototype, "toBlob").mockImplementation((callback) => callback(new Blob(["image"], { type: "image/png" })));
+    vi.stubGlobal("URL", Object.assign(URL, { createObjectURL: vi.fn(() => "blob:print"), revokeObjectURL: vi.fn() }));
   });
   afterEach(() => { vi.useRealTimers(); vi.restoreAllMocks(); });
 

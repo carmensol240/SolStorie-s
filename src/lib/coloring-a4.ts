@@ -134,6 +134,7 @@ export function printColoringA4(url: string, options: ColoringExportOptions = {}
   let done = false;
   let focusTimer: ReturnType<typeof setTimeout> | undefined;
   let fallbackTimer: ReturnType<typeof setTimeout> | undefined;
+  let printableUrl: string | undefined;
   const cleanup = () => {
     if (done) return;
     done = true;
@@ -144,6 +145,7 @@ export function printColoringA4(url: string, options: ColoringExportOptions = {}
     window.removeEventListener("focus", cleanup);
     if (focusTimer) clearTimeout(focusTimer);
     if (fallbackTimer) clearTimeout(fallbackTimer);
+    if (printableUrl) URL.revokeObjectURL(printableUrl);
     options.onCleanup?.();
   };
   window.addEventListener("afterprint", cleanup);
@@ -157,9 +159,15 @@ export function printColoringA4(url: string, options: ColoringExportOptions = {}
       printable.alt = img.alt;
       printable.onload = launchPrint;
       printable.onerror = cleanup;
-      printable.src = source.toDataURL("image/png");
-      root.replaceChildren(printable);
-      if (printable.complete) launchPrint();
+      source.toBlob((blob) => {
+        source.width = 0; source.height = 0;
+        if (done) return;
+        if (!blob) { cleanup(); return; }
+        printableUrl = URL.createObjectURL(blob);
+        printable.src = printableUrl;
+        root.replaceChildren(printable);
+        if (printable.complete) launchPrint();
+      }, "image/png");
     } catch (error) {
       cleanup();
       console.error("Coloring print preparation failed", error);
