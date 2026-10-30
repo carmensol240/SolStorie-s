@@ -3,8 +3,9 @@ import { Printer, FileDown } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
-import { A4_PRINT_HINT, downloadColoringPdfA4, printColoringA4 } from "@/lib/coloring-a4";
+import { A4_PRINT_HINT, downloadColoringPdfA4 } from "@/lib/coloring-a4";
 import { useColoringFooter } from "@/hooks/use-coloring-footer";
+import { printColoringPage, withColoringFooter } from "@/lib/coloring-footer";
 
 interface Props {
   imageUrl: string;
@@ -29,26 +30,33 @@ export const A4Frame = ({ imageUrl, name, alt, className }: { imageUrl: string; 
 
 export const A4ColoringActions = ({ imageUrl, name, className }: { imageUrl: string; name?: string | null; className?: string }) => {
   const [busy, setBusy] = useState(false);
-  const page = useColoringFooter(imageUrl, name);
   return (
     <div className={cn("space-y-1", className)}>
     <div className="flex flex-col sm:flex-row gap-1.5">
-      <Button size="sm" variant="outline" className="flex-1 text-sm min-h-[44px] gap-1" disabled={!page} onClick={() => page && printColoringA4(page, { preserveColors: true })}>
+      <Button size="sm" variant="outline" className="flex-1 text-sm min-h-[44px] gap-1" disabled={busy || !imageUrl} onClick={async () => {
+        setBusy(true);
+        try { await printColoringPage(imageUrl, name); }
+        catch (e) { console.error(e); toast.error("שגיאה בהכנת הדפסה"); }
+        finally { setBusy(false); }
+      }}>
         <Printer className="w-4 h-4" aria-hidden="true" /> הדפסה
       </Button>
       <Button
         size="sm"
         variant="outline"
         className="flex-1 text-sm min-h-[44px] gap-1"
-        disabled={busy || !page}
+        disabled={busy || !imageUrl}
         onClick={async () => {
           setBusy(true);
+          let page: string | undefined;
           try {
-            if (page) await downloadColoringPdfA4(page, name, { preserveColors: true });
+            page = await withColoringFooter(imageUrl, name);
+            await downloadColoringPdfA4(page, name, { preserveColors: true });
           } catch (e) {
             console.error("A4 PDF error", e);
             toast.error("שגיאה ביצירת PDF");
           } finally {
+            if (page) URL.revokeObjectURL(page);
             setBusy(false);
           }
         }}
