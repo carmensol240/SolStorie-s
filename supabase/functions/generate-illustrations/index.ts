@@ -152,7 +152,7 @@ async function notifyIllustrationIssue(supabase: any, storyId: string, pageNumbe
         html: `<div dir="rtl" style="font-family:Arial,sans-serif">
           <p>${esc(message)}</p>
           <p>סיפור: ${esc(story?.child_name || "")} (${storyId})<br/>עמוד: ${pageNumber}</p>
-          <p><a href="${link}">פתיחת הסיפור</a> · <a href="https://soulstory.co.il/admin">ניהול</a></p></div>`,
+          <p><a href="${link}">פתיחת הסיפור</a> · <a href="https://soulstory.co.il/admin/dashboard">ניהול</a></p></div>`,
       }),
     });
     if (!res.ok) console.warn("[ILLUSTRATION-ALERT] email failed", res.status, await res.text());
