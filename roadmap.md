@@ -88,3 +88,5 @@
 - [x] Check for realistic style + hero face visible; recheck every redraw, max 2; keep best if only hero hidden, else hold; admin alert + email
 - [x] Report last month's saved pictures (read-only)
 - [x] Test story in test account; screenshot of a held page
+
+- [ ] Redraw Adel story 3a2d5c15 (page 1 gate) — blocked: server call rejected (403), waiting on user decision
