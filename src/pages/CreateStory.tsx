@@ -311,7 +311,7 @@ const CreateStory = () => {
   // Age written for the child in "fixed details" that differs from the chosen age → ask, never change alone.
   const [ageQuestion, setAgeQuestion] = useState<number | null>(null);
   const answerAge = (age: number) => {
-    const range = age <= 2 ? "0-2" : age <= 6 ? "3-6" : "7-8";
+    const range = age <= 2 ? "0-2" : age <= 4 ? "2-4" : age <= 7 ? "5-7" : "8-10";
     updateFormData({ childAge: age, ageRange: range } as Partial<StoryFormData>);
     setAgeQuestion(null);
     goToStep(2);
