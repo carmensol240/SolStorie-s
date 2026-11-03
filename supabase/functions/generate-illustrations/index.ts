@@ -973,7 +973,8 @@ async function uploadImageToStorage(
   supabase: any,
   base64Data: string,
   storyId: string,
-  pageNumber: number
+  pageNumber: number,
+  candidate = false,
 ): Promise<string | null> {
   try {
     const base64Content = base64Data.includes(",") 
@@ -986,7 +987,11 @@ async function uploadImageToStorage(
       bytes[i] = binaryString.charCodeAt(i);
     }
 
-    const filePath = `${storyId}/page-${pageNumber}.png`;
+    // A redraw of a page that already has a picture is saved aside first, so the old
+    // picture stays until the new one passes the look check.
+    const filePath = candidate
+      ? `${storyId}/candidates/page-${pageNumber}-${Date.now()}.png`
+      : `${storyId}/page-${pageNumber}.png`;
     
     const { data, error } = await supabase.storage
       .from("story-illustrations")
@@ -1954,7 +1959,15 @@ The action, objects, characters, and emotions shown MUST come from the STORY TEX
         return null;
       }
 
-      let illustrationUrl = await uploadImageToStorage(supabase, base64Image, storyId, page.page_number);
+      const hadExisting = !!page.illustration_url;
+      const candidatePaths: string[] = [];
+      const cleanupCandidates = async () => {
+        if (candidatePaths.length) await supabase.storage.from("story-illustrations").remove(candidatePaths).catch(() => {});
+      };
+      const keptOldNote = "האיור הקודם נשאר בעמוד";
+      let acceptedImage = base64Image;
+      let illustrationUrl = await uploadImageToStorage(supabase, base64Image, storyId, page.page_number, hadExisting);
+      if (hadExisting && illustrationUrl) candidatePaths.push(illustrationUrl);
 
       // === IDENTITY SAFETY NET ===
       // Even with the page-1 reference attached, a single model call can occasionally
@@ -1985,6 +1998,11 @@ The action, objects, characters, and emotions shown MUST come from the STORY TEX
               had_page1_reference: !!coverReferenceUrl, camera_angle: cameraAngle,
               attempts: attemptsUsed, identity_check: identityCheck, identity_retried: false,
             });
+            await cleanupCandidates();
+            if (hadExisting) {
+              await notifyIllustrationIssue(supabase, storyId, page.page_number,
+                `הציור החדש נכשל בבדיקה (${verdict.reason}); ${keptOldNote}`, true);
+            }
             return null;
           } else {
             // Redraw up to 2 times; every redraw is checked again.
@@ -2010,9 +2028,11 @@ The action, objects, characters, and emotions shown MUST come from the STORY TEX
                 console.warn(`[IDENTITY-CHECK] story=${storyId} page=${page.page_number} redraw ${r} failed`);
                 continue;
               }
-              const retryUrl = await uploadImageToStorage(supabase, retryImage, storyId, page.page_number);
+              const retryUrl = await uploadImageToStorage(supabase, retryImage, storyId, page.page_number, hadExisting);
               if (!retryUrl) continue;
+              if (hadExisting) candidatePaths.push(retryUrl);
               illustrationUrl = retryUrl;
+              acceptedImage = retryImage;
               identityRetried = true;
               const retryPublic = buildPublicIllustrationUrl(retryUrl);
               const v2 = retryPublic ? await checkIdentityMatch(retryPublic, pageRef, LOVABLE_API_KEY, false, {
@@ -2032,7 +2052,23 @@ The action, objects, characters, and emotions shown MUST come from the STORY TEX
             }
             if (!passed) {
               const onlyHidden = tries.filter((t) => t.problems.length === 1 && t.problems[0] === "hero not visible");
-              if (onlyHidden.length > 0) {
+              if (hadExisting) {
+                // Redraw of an existing page that never passed: keep the old picture.
+                const last = tries[tries.length - 1];
+                identityCheck = `redraw failed, old kept: ${last.reason}`.slice(0, 300);
+                await supabase.from("illustration_logs").insert({
+                  story_id: storyId, page_number: page.page_number,
+                  model_used: "kept_previous",
+                  fallback_reason: `new picture failed check after ${MAX_IDENTITY_REDRAWS} redraws: ${last.reason}`,
+                  had_face_reference: !!childPhotoSignedUrl, duration_ms: Date.now() - genStart,
+                  had_page1_reference: !!coverReferenceUrl, camera_angle: cameraAngle,
+                  attempts: attemptsUsed + tries.length - 1, identity_check: identityCheck, identity_retried: true,
+                });
+                await cleanupCandidates();
+                await notifyIllustrationIssue(supabase, storyId, page.page_number,
+                  `הציור החדש נכשל בבדיקה אחרי ${MAX_IDENTITY_REDRAWS} ציורים חוזרים (${last.reason}); ${keptOldNote}`, true);
+                return null;
+              } else if (onlyHidden.length > 0) {
                 const best = onlyHidden[onlyHidden.length - 1];
                 if (best !== tries[tries.length - 1]) {
                   const bestUrl = await uploadImageToStorage(supabase, best.image, storyId, page.page_number);
@@ -2059,6 +2095,12 @@ The action, objects, characters, and emotions shown MUST come from the STORY TEX
             }
           }
         }
+      }
+
+      if (illustrationUrl && hadExisting) {
+        // The new picture passed: only now replace the old one at its usual place.
+        illustrationUrl = await uploadImageToStorage(supabase, acceptedImage, storyId, page.page_number);
+        await cleanupCandidates();
       }
 
       if (illustrationUrl) {
