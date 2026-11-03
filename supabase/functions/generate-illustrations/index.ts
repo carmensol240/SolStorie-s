@@ -1412,7 +1412,15 @@ serve(async (req) => {
         .eq("id", storyId)
         .eq("user_id", user.id)
         .maybeSingle();
-      if (!ownerCheck) {
+      // Admin (server-checked) may redraw a single page of any story. This function never
+      // charges credits or touches page1_regen_used, and redraws keep the old picture on failure.
+      let adminRedraw = false;
+      if (!ownerCheck && singlePageNumber !== undefined && singlePageNumber !== null) {
+        const { data: isAdmin } = await supabase.rpc("is_effective_admin", { _user_id: user.id });
+        adminRedraw = isAdmin === true;
+        if (adminRedraw) console.log(`[ADMIN-REDRAW] admin=${user.id} story=${storyId} page=${singlePageNumber}`);
+      }
+      if (!ownerCheck && !adminRedraw) {
         return new Response(JSON.stringify({ error: "Forbidden" }), {
           status: 403, headers: { ...corsHeaders, "Content-Type": "application/json" },
         });
