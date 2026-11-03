@@ -70,6 +70,15 @@ export function hairToEnglish(a: Appearance): string {
   return `${color ? color + " " : ""}hair${style ? " " + style : ""}`;
 }
 
+/**
+ * Hair for the character lock. With a face picture (avatar/photo) the hair comes
+ * from the picture's own description only; form hair is used only without one.
+ */
+export function heroHair(formHairEn: string, profileHair: string, hasFaceRef: boolean): string {
+  if (hasFaceRef) return (profileHair || "").trim();
+  return (formHairEn || profileHair || "").trim();
+}
+
 const isGirl = (g?: string | null) => (g || "").toLowerCase() === "female";
 
 /** Gender-aware clothing type text. A dress is never given to a boy. */

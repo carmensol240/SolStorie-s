@@ -1,6 +1,6 @@
 import "https://deno.land/x/xhr@0.1.0/mod.ts";
 import { buildMilitaryLock, militaryRoleForStory } from "../_shared/military-family.ts";
-import { mergeAppearance, hairToEnglish, clothingToEnglish, resolvePageOutfit, buildCharacterLock, translateOutfitWords, pickDefaultOutfit, kippahForStory, type Appearance } from "../_shared/appearance.ts";
+import { mergeAppearance, hairToEnglish, heroHair, clothingToEnglish, resolvePageOutfit, buildCharacterLock, translateOutfitWords, pickDefaultOutfit, kippahForStory, type Appearance } from "../_shared/appearance.ts";
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.39.3";
 import { logError } from "../_shared/log-error.ts";
@@ -1432,7 +1432,9 @@ serve(async (req) => {
     console.log("LOVABLE_API_KEY is configured, proceeding with illustration generation...");
 
     // Use avatar URL if available, otherwise use original photo
-    const effectivePhoto = childAvatarUrl || childPhoto;
+    let effectivePhoto: string | null = childAvatarUrl || childPhoto || null;
+    // True when the child has a saved avatar — then a face reference is mandatory.
+    let childHasSavedAvatar = false;
 
     // === AVATAR PERSISTENCE LOGIC ===
     // Check if we already have a saved character profile for this child
@@ -1455,6 +1457,13 @@ serve(async (req) => {
         .eq('name', childName)
         .maybeSingle();
 
+      if (existingChild?.avatar_url) {
+        childHasSavedAvatar = true;
+        if (!effectivePhoto) {
+          console.warn("🛟 No face picture in request — using the child's saved avatar");
+          effectivePhoto = existingChild.avatar_url;
+        }
+      }
       parentHairColor = (existingChild?.hair_color || "").trim();
       parentHairStyle = (existingChild?.hair_style || "").trim();
       parentClothingType = (existingChild?.clothing_type || "").trim();
@@ -1507,7 +1516,8 @@ serve(async (req) => {
     // whether it came from the DB, from photo extraction, or from a default.
     if (characterProfile) {
       characterProfile.clothingDescription = translateOutfitWords(characterProfile.clothingDescription);
-      if (parentHairEn) {
+      // With a face picture, hair comes from the picture; form hair only without one.
+      if (parentHairEn && !effectivePhoto) {
         const override = parentHairEn;
         if (characterProfile.hairDescription !== override) {
           console.log(`👤 Parent hair override: "${characterProfile.hairDescription}" -> "${override}"`);
@@ -1686,6 +1696,15 @@ serve(async (req) => {
       }
     }
 
+    // A child with a saved avatar must never be drawn without their face.
+    if ((childHasSavedAvatar || effectivePhoto) && !childPhotoSignedUrl) {
+      console.error("❌ Face reference could not be prepared — refusing to draw a different child");
+      return new Response(
+        JSON.stringify({ success: false, error: "face_reference_unavailable" }),
+        { status: 422, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
     // Persist the reference path once per story (best effort — never blocks generation).
     if (childPhotoRefPath) {
       const { error: refErr } = await supabase
@@ -1719,7 +1738,7 @@ serve(async (req) => {
         : (characterProfile ? buildVisualAnchor(characterProfile, storyOutfit) : `VISUAL ANCHOR: A child wearing ${storyOutfit}. Maintain strict visual character continuity across ALL illustrations.`);
       const characterLock = buildCharacterLock({
         gender: characterProfile?.gender || childGender, age: reqChildAge, ageRange,
-        hair: parentHairEn || characterProfile?.hairDescription || "", outfit: storyOutfit, glasses: !!characterProfile?.glasses, kippah: kippahInfo.kippah, kippahColor: kippahInfo.color,
+        hair: heroHair(parentHairEn, characterProfile?.hairDescription || "", !!childPhotoSignedUrl), outfit: storyOutfit, glasses: !!characterProfile?.glasses, kippah: kippahInfo.kippah, kippahColor: kippahInfo.color,
       });
 
       // Build prompt directly from illustration_prompt — skip AI scene analysis for speed
