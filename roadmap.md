@@ -89,4 +89,4 @@
 - [x] Report last month's saved pictures (read-only)
 - [x] Test story in test account; screenshot of a held page
 
-- [ ] Redraw Adel story 3a2d5c15 (page 1 gate) — blocked: server call rejected (403), waiting on user decision
+- [x] Redraw Adel story 3a2d5c15 (all 8 pages passed)
