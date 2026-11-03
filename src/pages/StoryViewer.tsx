@@ -2502,7 +2502,20 @@ const [currentPage, setCurrentPage] = useState(0);
         </div>
       </main>
 
+      {/* Permanent print-file button, below the book and above the footer links */}
+      {showPdfAddOn && (
+        <div className="shrink-0 flex justify-center px-4 pb-1">
+          <button
+            onClick={buyPdfForStory}
+            className="min-h-[48px] rounded-full bg-card border border-border shadow-lg px-4 text-sm font-bold text-foreground"
+          >
+            🖨️ קובץ להדפסה – {formatPrice("pdf")} ₪
+          </button>
+        </div>
+      )}
+
       <GlobalFooter compact onDark />
+
 
       {/* Drawing Canvas */}
       <DrawingCanvas isOpen={isDrawingMode} onClose={() => setIsDrawingMode(false)} />
