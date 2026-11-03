@@ -8,8 +8,13 @@ import { supabase } from "@/integrations/supabase/client";
 
 import MobileNavigation from "@/components/MobileNavigation";
 import HomeExplainer from "@/components/home/HomeExplainer";
-import heroVideo from "@/assets/hero-solstories-animation-new.mp4";
-import heroPoster from "@/assets/hero-poster.jpg";
+import heroVideoAsset from "@/assets/hero-promo.mp4.asset.json";
+import heroPosterAsset from "@/assets/hero-promo-poster.jpg.asset.json";
+
+const heroVideo = heroVideoAsset.url;
+const heroPoster = heroPosterAsset.url;
+const HERO_VIDEO_LABEL =
+  "סרטון קצר: הילד שלכם הופך לגיבור של ספר מאויר. מעל 100 נושאים, כתיבה חופשית, הקלטת קול, סיפורים באנגלית, דפי צביעה, קובץ להדפסה וספרייה לכל החיים";
 
 const Adventure = () => {
   const navigate = useNavigate();
@@ -104,7 +109,14 @@ const Adventure = () => {
     <div id="main-content" className="min-h-[100dvh] flex flex-col bg-gradient-to-b from-amber-50/50 to-background dark:from-background animate-fade-in" dir="rtl">
       {/* Hero Video Section */}
       <div className="relative w-full h-[92vh] h-[92svh] min-h-[540px] flex-shrink-0 overflow-hidden flex flex-col">
-        {/* Video Background */}
+        {/* Blurred poster fills the area around the portrait (9:16) video */}
+        <img
+          src={heroPoster}
+          alt=""
+          aria-hidden="true"
+          className="absolute inset-0 w-full h-full object-cover scale-110 blur-2xl opacity-80"
+        />
+        {/* Portrait video: whole frame visible (never cropped or stretched) */}
         <video
           ref={videoRef}
           autoPlay={videoPlaying}
@@ -112,12 +124,13 @@ const Adventure = () => {
           muted
           playsInline
           poster={heroPoster}
-          preload={videoPlaying ? "auto" : "metadata"}
-          aria-hidden="true"
-          className="absolute inset-0 w-full h-full object-cover [object-position:center_35%]"
+          preload="metadata"
+          aria-label={HERO_VIDEO_LABEL}
+          className="absolute inset-0 w-full h-full object-contain"
         >
           <source src={heroVideo} type="video/mp4" />
         </video>
+        <p className="sr-only">{HERO_VIDEO_LABEL}</p>
 
         {/* Soft dark gradients: top (title) and bottom (button) only */}
         <div
