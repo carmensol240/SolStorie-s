@@ -119,7 +119,6 @@ const Adventure = () => {
           aria-label={HERO_VIDEO_LABEL}
           className="absolute inset-0 w-full h-full object-cover [object-position:center_35%]"
         >
-
           <source src={heroVideo} type="video/mp4" />
         </video>
         <p className="sr-only">{HERO_VIDEO_LABEL}</p>
