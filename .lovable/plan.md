@@ -35,3 +35,41 @@ Nothing on the website will change.
 
 ## Possible middle ground (only if you want it later, not part of this)
 - Make the picture area use the space better on phones, e.g. a slightly taller box with a light crop only at the top and bottom edges, or tap-to-enlarge to full screen. Characters must still never be cut.
+
+---
+
+# Adel's coloring pages: why only 2 (check only, nothing changed)
+
+## What's in the database
+- Story opened: yes, `credit_full` at 19:06 today (from the coupon).
+- Print file access: yes (gift_coupon:ORTAL-FULL-7K3Q).
+- Coloring pages created from the story: **1** (from page 1, at 20:57, after our redraw).
+- Child portrait coloring page: **1** (ready, 20:56).
+- Per-story coloring allowance rows: none. General coloring credits: 0. Neither is needed (see below).
+- No errors logged for her today.
+
+## How many she should have
+- **8**, one per story picture. The server rule: if a story is opened (has an opened-story row) or the user is an admin, **every** picture in it can become a coloring page, free, with no credits.
+- Her story passes this rule, so the server would make all 8.
+
+## Why she sees only 2
+- Coloring pages are **not made in advance**. Each one is made only when the parent picks a picture and taps "Continue", one at a time, about 20-40 seconds each.
+- She made one (page 1). The library lists only pages that were actually made, so it shows 2: the portrait page and page 1.
+- After the first one, tapping "Coloring" on the story jumps straight to the page already made. Choosing another picture is only a small gray link, "← בחרו איור אחר", so it's easy to think there are no more pages.
+
+## Ruled out
+- **Coupon vs Grow:** not the cause. The server only checks that the story is opened, and it is.
+- **Today's coupon fix:** not the cause. Coloring pages never read the credit records it changed.
+- **Today's redraw:** not the cause. The redraw didn't delete anything, and her one coloring page was made after it, from the new picture.
+- Leftover code: the story screen reads a per-story coloring allowance, but only to show a "N pages included" line. It doesn't limit anything, and she has no such row, so the line doesn't appear.
+
+## Same for regular Grow buyers?
+Yes. Any full or digital buyer sees only the pages they create one by one, and lands on the last page they made. It's a display and flow issue, not a missing permission.
+
+## Proposed fix (waiting for your approval)
+1. In the coloring window, always open the **picture picker** showing all story pictures. Already-made pages get a "ready" mark and open instantly; the rest show "tap to create".
+2. Make "choose another picture" a clear button instead of the small gray link.
+3. Optional: in the library, under each opened story, show all of its pictures as coloring pages, with "tap to create" on the ones not made yet.
+4. Not proposed: making all 8 automatically when a story is opened. That costs AI for every story, including pages parents may never use. I can add it if you prefer.
+
+Nothing changes for prices, credits or access rules.
