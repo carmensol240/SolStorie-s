@@ -117,6 +117,13 @@ const ChildInfoStep = ({ formData, updateFormData, screen = 1, restoredDraft, on
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
   useEffect(() => { onSelectedChildChange?.(selectedChildId); }, [selectedChildId, onSelectedChildChange]);
+  // The chosen child's ID goes with the story, so the server can find their saved avatar.
+  useEffect(() => {
+    if ((formData as any).childId !== (selectedChildId ?? undefined)) updateFormData({ childId: selectedChildId ?? undefined } as any);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [selectedChildId]);
+  // A restored form never keeps image data — reload the chosen child's avatar/photo once.
+  const restoredFaceRef = useRef(false);
 
   // Persist selected child id so other screens (e.g. Library) can show the matching avatar
   useEffect(() => {
@@ -153,6 +160,17 @@ const ChildInfoStep = ({ formData, updateFormData, screen = 1, restoredDraft, on
       updateFormData({ photoConsent: true });
     }
   }, [priorPhotoConsent, formData.childPhoto, formData.photoConsent]);
+  useEffect(() => {
+    if (restoredFaceRef.current || !restoredDraft?.selectedChildId || savedChildren.length === 0) return;
+    restoredFaceRef.current = true;
+    const child = savedChildren.find((c) => c.id === restoredDraft.selectedChildId);
+    if (!child || child.name !== formData.childName) return;
+    const updates: Record<string, unknown> = {};
+    if (!formData.childAvatarUrl && child.avatar_url) updates.childAvatarUrl = child.avatar_url;
+    if (!formData.childPhoto && child.photo_url) updates.childPhoto = child.photo_url;
+    if (Object.keys(updates).length) updateFormData(updates as any);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [savedChildren]);
   const [photoValidation, setPhotoValidation] = useState<{
     facingForward: boolean;
     singlePerson: boolean;
@@ -720,7 +738,7 @@ const ChildInfoStep = ({ formData, updateFormData, screen = 1, restoredDraft, on
             </Label>
             <Textarea
               id="fixedDetails"
-              placeholder="למשל: בן 4, מבנה משפחתי, חיית מחמד..."
+              placeholder="למשל: אח גדול בן 10, כלב בשם בוני, אוהב/ת לרקוד (את הגיל של הילד/ה בוחרים למעלה)"
               value={formData.fixedDetails || ""}
               onChange={(e) => updateFormData({ fixedDetails: e.target.value })}
               className="min-h-[36px] h-9 text-sm border-purple-200 focus:border-purple-400 resize-none"
@@ -769,7 +787,7 @@ const ChildInfoStep = ({ formData, updateFormData, screen = 1, restoredDraft, on
       <div className="grid grid-cols-2 gap-2 items-start">
         {/* Age (numeric input) */}
         <div className="space-y-1">
-          <Label id="child-age-label" className="text-sm font-medium text-center block">גיל הילד/ה</Label>
+          <Label id="child-age-label" className="text-sm font-medium text-center block">בן/בת כמה הילד/ה היום?</Label>
           <div role="group" aria-labelledby="child-age-label" className="flex items-center justify-center gap-2 py-1">
             <Input
               type="number"

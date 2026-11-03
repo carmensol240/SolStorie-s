@@ -1082,7 +1082,7 @@ async function handleGenerateStory(req: Request, ctx: RequestCtx): Promise<Respo
 
     // Old saved profiles use "boy"/"girl" — accept both formats.
     if (reqBody.childGender != null) reqBody.childGender = normalizeGender(reqBody.childGender) ?? reqBody.childGender;
-    const { childName, childGender = "male", ageRange, childAge: childAgeRaw, storyLength = "short", topic, topicId, nikud, childPhoto, childAvatarUrl, personalityTraits, adventureLogic, language = "he", className, topicDescription, childId, isCustomTopic = false } = reqBody;
+    const { childName, childGender = "male", ageRange, childAge: childAgeRaw, storyLength = "short", topic, topicId, nikud, childPhoto, childAvatarUrl: childAvatarUrlRaw, personalityTraits, adventureLogic, language = "he", className, topicDescription, childId, isCustomTopic = false } = reqBody;
 
     // === LEARNING TOPIC DETECTION ===
     // Use topicId (e.g. "letter-yod") for detection — topic contains the Hebrew label
@@ -1291,7 +1291,7 @@ async function handleGenerateStory(req: Request, ctx: RequestCtx): Promise<Respo
       await grantStoryAccess(supabase, userId, claim.storyId, claim.creditKind);
     }
 
-    console.log("Generating story for:", { childName, childGender, ageRange, storyLength, topic, nikud, hasPhoto: !!childPhoto, hasAvatar: !!childAvatarUrl, hasTraits: !!personalityTraits, hasAdventureLogic: !!adventureLogic, className: className || null });
+    console.log("Generating story for:", { childName, childGender, ageRange, storyLength, topic, nikud, hasPhoto: !!childPhoto, hasAvatar: !!childAvatarUrlRaw, hasTraits: !!personalityTraits, hasAdventureLogic: !!adventureLogic, className: className || null });
     
     // === FETCH CHILD PERSONALIZATION FROM DB ===
     // Appearance chosen in the form (sent with the request) wins over the saved profile.
@@ -1322,7 +1322,7 @@ async function handleGenerateStory(req: Request, ctx: RequestCtx): Promise<Respo
           }
         } else if (childData) {
           const parts: string[] = [];
-          if (childData.fixed_details?.trim()) parts.push(`רקע קבוע על הילד/ה: ${childData.fixed_details.trim()}`);
+          if (childData.fixed_details?.trim()) parts.push(`רקע קבוע על הילד/ה: ${childData.fixed_details.trim()}\n(שימו לב: כל גיל שמופיע ברקע הזה שייך לאחים, לחברים או לבני משפחה בלבד — הגיל של ${childName} נקבע רק לפי טווח הגיל שנבחר.)`);
           if (childData.hobbies?.trim()) parts.push(`תחביבים ואהבות: ${childData.hobbies.trim()}`);
           if (childData.challenges?.trim()) parts.push(`אתגרים נוכחיים: ${childData.challenges.trim()}`);
           if (childData.favorite_friends?.trim()) parts.push(`חברים וצעצועים אהובים: ${childData.favorite_friends.trim()}`);
@@ -1338,6 +1338,30 @@ async function handleGenerateStory(req: Request, ctx: RequestCtx): Promise<Respo
         }
       } catch (e) {
         console.warn("[generate-story] children lookup threw (non-fatal):", e instanceof Error ? e.message : String(e));
+      }
+    }
+
+    // Face picture safety net: a child with a saved avatar is always drawn from it.
+    // If the browser didn't send a picture (e.g. a restored form), use the saved one;
+    // if it can't be used, stop here — before any AI work or charge.
+    let childAvatarUrl: string | null = typeof childAvatarUrlRaw === "string" && childAvatarUrlRaw ? childAvatarUrlRaw : null;
+    let verifiedChildId: string | null = null;
+    if (userId) {
+      const validChildId = typeof childId === "string" && /^[0-9a-f-]{36}$/i.test(childId) ? childId : null;
+      let q = supabase.from("children").select("id, avatar_url").eq("user_id", userId);
+      q = validChildId ? q.eq("id", validChildId) : q.eq("name", childName);
+      const { data: faceRow } = await q.limit(1).maybeSingle();
+      if (validChildId && faceRow) verifiedChildId = validChildId;
+      const saved = (faceRow as any)?.avatar_url as string | null | undefined;
+      if (saved) {
+        if (!childAvatarUrl && !childPhoto) {
+          console.warn("[generate-story] 🛟 no face picture in request — using saved avatar");
+          childAvatarUrl = saved;
+        }
+        const usable = (v: unknown) => typeof v === "string" && (v.startsWith("data:image/") || v.startsWith("http") || /^[\w-]+\//.test(v));
+        if (!usable(childAvatarUrl) && !usable(childPhoto)) {
+          throw new Error("שגיאה: לא הצלחנו לטעון את התמונה של הילד/ה, נסו שוב");
+        }
       }
     }
 
@@ -1716,7 +1740,7 @@ ${sequelInstruction}
 - **אסור** לכתוב משפטים כמו "${childGender === "female" ? "היא בת ארבע" : "הוא בן ארבע"}" או "${childName} ${childGender === "female" ? "המתוקה בת ה-שש" : "המתוק בן ה-שש"}".
 - טווח הגיל למעלה הוא **רק לכותב/ת** — לכיול אוצר המילים, אורך המשפטים ומורכבות העלילה. לא להעלות אותו לטקסט.
 - אם רוצים לרמוז על גיל — דרך התנהגות/יכולות בלבד: "${childGender === "female" ? "היא עדיין קטנה, אבל ליבה גדול" : "הוא עדיין קטן, אבל ליבו גדול"}".
-- **חריג יחיד:** אם ב"רקע קבוע על הילד/ה" שצוין על-ידי המשתמש מופיע גיל מפורש — מותר להשתמש בו בדיוק כפי שנכתב. אחרת — אין שום ציון גיל.
+- הגיל של הגיבור/ה נקבע **רק** לפי טווח הגיל שנבחר. כל גיל שכתוב ב"רקע קבוע על הילד/ה" שייך לאחים, לחברים או לבני משפחה, ומשמש רק כדי לתאר אותם — לעולם לא את הגיבור/ה.
 
 **נושא הסיפור:** ${topic}
 ${hasCustomDescription ? `**תיאור חופשי:** ${personalityTraits}` : ""}
@@ -2381,8 +2405,8 @@ ${fullStoryText}`;
     }
     
     // Save child_id if provided
-    if (childId) {
-      storyInsertData.child_id = childId;
+    if (verifiedChildId) {
+      storyInsertData.child_id = verifiedChildId;
     }
     if (ctx.taste) {
       // Saved so the remaining pictures can be made after payment with the same character.
