@@ -86,5 +86,5 @@
 ## Realistic / back-view pages (Nov 2026)
 - [x] Diagnose page 5 of test story (redraw was saved unchecked; behind-camera angle)
 - [x] Check for realistic style + hero face visible; recheck every redraw, max 2; keep best if only hero hidden, else hold; admin alert + email
-- [ ] Report last month's saved pictures (read-only)
-- [ ] Test story in test account; screenshot of a held page
+- [x] Report last month's saved pictures (read-only)
+- [x] Test story in test account; screenshot of a held page
