@@ -2632,15 +2632,6 @@ const [currentPage, setCurrentPage] = useState(0);
       {/* PDF Feature Popup - one-time per user */}
       <PdfFeaturePopup userId={user?.id} />
 
-      {/* Permanent print-file button for digital-only stories (not a pop-up) */}
-      {showPdfAddOn && (
-        <button
-          onClick={buyPdfForStory}
-          className="fixed top-20 left-3 z-40 min-h-[48px] rounded-full bg-card border border-border shadow-lg px-4 text-sm font-bold text-foreground"
-        >
-          🖨️ קובץ להדפסה – {formatPrice("pdf")} ₪
-        </button>
-      )}
 
       {/* Install App Prompt - shown only after reaching last page */}
       <InstallAppPrompt justCreatedFirstStory={justCreatedStory && isEndPage} />
