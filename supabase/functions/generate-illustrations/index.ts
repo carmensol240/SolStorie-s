@@ -1949,28 +1949,75 @@ The action, objects, characters, and emotions shown MUST come from the STORY TEX
             });
             return null;
           } else {
+            // Redraw up to 2 times; every redraw is checked again.
             identityCheck = `mismatch: ${verdict.reason}`;
-            console.warn(`[IDENTITY-CHECK] story=${storyId} page=${page.page_number} MISMATCH — ${verdict.reason}; regenerating once`);
-            const retryImage = childPhotoSignedUrl
-              ? await generateIllustrationWithFace(
-                  illustrationPrompt, childPhotoSignedUrl, characterProfile,
-                  storyOutfit, visualAnchor, effectiveAdventureLogic,
-                  coverReferenceUrl,
-                )
-              : await generateIllustrationGeminiNoFace(
-                  illustrationPrompt, characterProfile,
-                  storyOutfit, visualAnchor, effectiveAdventureLogic,
-                  coverReferenceUrl,
-                );
-            if (retryImage) {
-              const retryUrl = await uploadImageToStorage(supabase, retryImage, storyId, page.page_number);
-              if (retryUrl) {
-                illustrationUrl = retryUrl;
-                identityRetried = true;
-                console.log(`[IDENTITY-CHECK] story=${storyId} page=${page.page_number} regenerated after identity mismatch`);
+            console.warn(`[IDENTITY-CHECK] story=${storyId} page=${page.page_number} MISMATCH — ${verdict.reason}; redrawing (max ${MAX_IDENTITY_REDRAWS})`);
+            const tries: { image: string; problems: string[]; reason: string }[] = [
+              { image: base64Image, problems: verdict.problems, reason: verdict.reason },
+            ];
+            let passed = false;
+            for (let r = 1; r <= MAX_IDENTITY_REDRAWS && !passed; r++) {
+              const retryImage = childPhotoSignedUrl
+                ? await generateIllustrationWithFace(
+                    illustrationPrompt, childPhotoSignedUrl, characterProfile,
+                    storyOutfit, visualAnchor, effectiveAdventureLogic,
+                    coverReferenceUrl,
+                  )
+                : await generateIllustrationGeminiNoFace(
+                    illustrationPrompt, characterProfile,
+                    storyOutfit, visualAnchor, effectiveAdventureLogic,
+                    coverReferenceUrl,
+                  );
+              if (!retryImage) {
+                console.warn(`[IDENTITY-CHECK] story=${storyId} page=${page.page_number} redraw ${r} failed`);
+                continue;
               }
-            } else {
-              console.warn(`[IDENTITY-CHECK] story=${storyId} page=${page.page_number} regeneration failed — keeping original image`);
+              const retryUrl = await uploadImageToStorage(supabase, retryImage, storyId, page.page_number);
+              if (!retryUrl) continue;
+              illustrationUrl = retryUrl;
+              identityRetried = true;
+              const retryPublic = buildPublicIllustrationUrl(retryUrl);
+              const v2 = retryPublic ? await checkIdentityMatch(retryPublic, pageRef, LOVABLE_API_KEY, false, {
+                outfit: parentOutfitEn ? storyOutfit : undefined, allowText: !!isLearningTopic,
+              }) : null;
+              if (!v2) {
+                identityCheck = `redraw ${r}: check unavailable`;
+                passed = true; // same as today when the check cannot run
+              } else if (v2.match) {
+                identityCheck = `match after redraw ${r}`;
+                passed = true;
+              } else {
+                identityCheck = `mismatch after redraw ${r}: ${v2.reason}`;
+                tries.push({ image: retryImage, problems: v2.problems, reason: v2.reason });
+                console.warn(`[IDENTITY-CHECK] story=${storyId} page=${page.page_number} redraw ${r} MISMATCH — ${v2.reason}`);
+              }
+            }
+            if (!passed) {
+              const onlyHidden = tries.filter((t) => t.problems.length === 1 && t.problems[0] === "hero not visible");
+              if (onlyHidden.length > 0) {
+                const best = onlyHidden[onlyHidden.length - 1];
+                if (best !== tries[tries.length - 1]) {
+                  const bestUrl = await uploadImageToStorage(supabase, best.image, storyId, page.page_number);
+                  if (bestUrl) illustrationUrl = bestUrl;
+                }
+                identityCheck = `kept best (hero not visible): ${best.reason}`.slice(0, 300);
+                await notifyIllustrationIssue(supabase, storyId, page.page_number,
+                  `העמוד נשמר, אבל הגיבור לא נראה מלפנים אחרי ${MAX_IDENTITY_REDRAWS} ציורים חוזרים (${best.reason})`, false);
+              } else {
+                const last = tries[tries.length - 1];
+                identityCheck = `held after ${MAX_IDENTITY_REDRAWS} redraws: ${last.reason}`.slice(0, 300);
+                await supabase.from("illustration_logs").insert({
+                  story_id: storyId, page_number: page.page_number,
+                  model_used: "held_mismatch",
+                  fallback_reason: `picture failed check after ${MAX_IDENTITY_REDRAWS} redraws: ${last.reason}`,
+                  had_face_reference: !!childPhotoSignedUrl, duration_ms: Date.now() - genStart,
+                  had_page1_reference: !!coverReferenceUrl, camera_angle: cameraAngle,
+                  attempts: attemptsUsed + tries.length - 1, identity_check: identityCheck, identity_retried: true,
+                });
+                await notifyIllustrationIssue(supabase, storyId, page.page_number,
+                  `העמוד לא נשמר וממתין לטיפול: הציור נכשל בבדיקה אחרי ${MAX_IDENTITY_REDRAWS} ציורים חוזרים (${last.reason})`, true);
+                return null;
+              }
             }
           }
         }
