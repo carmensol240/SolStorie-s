@@ -123,6 +123,44 @@ function isRefusal(data: any): string | null {
   return null;
 }
 
+// How many times a page that fails the look check is redrawn (each redraw is checked again).
+const MAX_IDENTITY_REDRAWS = 2;
+
+// Admin alert + email for a page that still fails the look check after all redraws.
+// Never throws: a failed alert must not stop the drawing.
+async function notifyIllustrationIssue(supabase: any, storyId: string, pageNumber: number, message: string, held: boolean) {
+  try {
+    const { data: story } = await supabase.from("stories").select("user_id, child_name").eq("id", storyId).maybeSingle();
+    if (story?.user_id) {
+      await supabase.from("admin_alerts").insert({
+        user_id: story.user_id,
+        alert_type: held ? "illustration_held" : "illustration_hero_hidden",
+        message: `סיפור ${storyId} עמוד ${pageNumber}: ${message}`.slice(0, 1000),
+      });
+    }
+    const key = Deno.env.get("RESEND_API_KEY");
+    if (!key) { console.warn("[ILLUSTRATION-ALERT] RESEND_API_KEY missing — email skipped"); return; }
+    const esc = (s: string) => s.replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]!));
+    const link = `https://soulstory.co.il/story/${storyId}`;
+    const res = await fetch("https://api.resend.com/emails", {
+      method: "POST",
+      headers: { Authorization: `Bearer ${key}`, "Content-Type": "application/json" },
+      body: JSON.stringify({
+        from: "SolStorie's™ <noreply@soulstory.co.il>",
+        to: ["solstories.nlp@gmail.com"],
+        subject: `${held ? "⚠️ עמוד ממתין לטיפול" : "ℹ️ עמוד נשמר, הגיבור לא נראה מלפנים"} – ${story?.child_name || ""} עמוד ${pageNumber}`,
+        html: `<div dir="rtl" style="font-family:Arial,sans-serif">
+          <p>${esc(message)}</p>
+          <p>סיפור: ${esc(story?.child_name || "")} (${storyId})<br/>עמוד: ${pageNumber}</p>
+          <p><a href="${link}">פתיחת הסיפור</a> · <a href="https://soulstory.co.il/admin/dashboard">ניהול</a></p></div>`,
+      }),
+    });
+    if (!res.ok) console.warn("[ILLUSTRATION-ALERT] email failed", res.status, await res.text());
+  } catch (e) {
+    console.warn("[ILLUSTRATION-ALERT] failed:", (e as Error)?.message);
+  }
+}
+
 // Cheap vision check of a freshly generated page. With a page-1 reference it checks the
 // same child + same 3D style; on every page it checks that the hero appears once, that no
 // text is drawn, that page 1's composition was not copied and that the clothes match.
@@ -133,7 +171,7 @@ async function checkIdentityMatch(
   apiKey: string,
   _strict = false,
   opts: { outfit?: string; allowText?: boolean } = {},
-): Promise<{ match: boolean; reason: string } | null> {
+): Promise<{ match: boolean; reason: string; problems: string[] } | null> {
   try {
     const hasRef = !!pageOneImageUrl;
     const img = hasRef ? "Image B" : "The image";
@@ -143,10 +181,12 @@ async function checkIdentityMatch(
       (hasRef ? "- same_child: does B show the same main child as A (hair color/length/texture, face, apparent age)? Ignore pose and background.\n" +
         "- same_style: is B the same polished Pixar-like 3D CGI render style as A (not flat 2D, not simplified cartoon, not painterly, not photo)?\n" +
         "- copied_composition: does B nearly copy A's composition (same pose, same camera angle and same layout)?\n" : "") +
+      "- photo_realistic: does it look like a real photograph or photorealistic image of real people, instead of a stylized Pixar-like 3D animated render?\n" +
+      "- hero_face_visible: is the main child's face visible (front, three-quarter or side profile all count)? false only if the main child is seen only from behind or the face is hidden/not shown.\n" +
       "- hero_twice: does the main child appear twice, or is there a second child who looks almost identical to the main child (a twin/clone)? Different-looking friends do NOT count.\n" +
       "- has_text: is there any readable text, letters, words, captions or signs drawn in the picture?\n" +
       (opts.outfit ? `- outfit_ok: is the main child wearing: "${opts.outfit}" (no cape or costume unless listed)?\n` : "") +
-      'Answer strict JSON only: {"same_child":bool,"same_style":bool,"copied_composition":bool,"hero_twice":bool,"has_text":bool,"outfit_ok":bool,"reason":"<max 12 words>"}';
+      'Answer strict JSON only: {"same_child":bool,"same_style":bool,"copied_composition":bool,"photo_realistic":bool,"hero_face_visible":bool,"hero_twice":bool,"has_text":bool,"outfit_ok":bool,"reason":"<max 12 words>"}';
     const content: any[] = [{ type: "text", text }];
     if (pageOneImageUrl) content.push({ type: "image_url", image_url: { url: pageOneImageUrl } });
     content.push({ type: "image_url", image_url: { url: pageImageUrl } });
@@ -170,11 +210,13 @@ async function checkIdentityMatch(
     if (hasRef && p.same_child === false) problems.push("different child");
     if (hasRef && p.same_style === false) problems.push("different style");
     if (hasRef && p.copied_composition === true) problems.push("copied page 1");
+    if (p.photo_realistic === true) problems.push("realistic style");
+    if (p.hero_face_visible === false) problems.push("hero not visible");
     if (p.hero_twice === true) problems.push("hero twice");
     if (!opts.allowText && p.has_text === true) problems.push("text in image");
     if (opts.outfit && p.outfit_ok === false) problems.push("wrong outfit");
     const reason = `${problems.join(", ")}${p.reason ? ` (${String(p.reason).slice(0, 80)})` : ""}`;
-    return { match: problems.length === 0, reason: problems.length ? reason : String(p.reason || "ok").slice(0, 120) };
+    return { match: problems.length === 0, problems, reason: problems.length ? reason : String(p.reason || "ok").slice(0, 120) };
   } catch (e) {
     console.warn("[IDENTITY-CHECK] failed:", (e as Error)?.message);
     return null;
@@ -763,7 +805,7 @@ const CAMERA_ANGLES = [
   "medium shot from waist up with environment visible behind",
   "bird's eye view looking down at the scene from above",
   "low angle shot looking up at the character heroically",
-  "over-the-shoulder shot from behind the character looking at the scene ahead",
+  "three-quarter front view at the character's eye level, face clearly visible, scene around",
 ];
 
 const LIGHTING_OPTIONS = [
@@ -1945,28 +1987,75 @@ The action, objects, characters, and emotions shown MUST come from the STORY TEX
             });
             return null;
           } else {
+            // Redraw up to 2 times; every redraw is checked again.
             identityCheck = `mismatch: ${verdict.reason}`;
-            console.warn(`[IDENTITY-CHECK] story=${storyId} page=${page.page_number} MISMATCH — ${verdict.reason}; regenerating once`);
-            const retryImage = childPhotoSignedUrl
-              ? await generateIllustrationWithFace(
-                  illustrationPrompt, childPhotoSignedUrl, characterProfile,
-                  storyOutfit, visualAnchor, effectiveAdventureLogic,
-                  coverReferenceUrl,
-                )
-              : await generateIllustrationGeminiNoFace(
-                  illustrationPrompt, characterProfile,
-                  storyOutfit, visualAnchor, effectiveAdventureLogic,
-                  coverReferenceUrl,
-                );
-            if (retryImage) {
-              const retryUrl = await uploadImageToStorage(supabase, retryImage, storyId, page.page_number);
-              if (retryUrl) {
-                illustrationUrl = retryUrl;
-                identityRetried = true;
-                console.log(`[IDENTITY-CHECK] story=${storyId} page=${page.page_number} regenerated after identity mismatch`);
+            console.warn(`[IDENTITY-CHECK] story=${storyId} page=${page.page_number} MISMATCH — ${verdict.reason}; redrawing (max ${MAX_IDENTITY_REDRAWS})`);
+            const tries: { image: string; problems: string[]; reason: string }[] = [
+              { image: base64Image, problems: verdict.problems, reason: verdict.reason },
+            ];
+            let passed = false;
+            for (let r = 1; r <= MAX_IDENTITY_REDRAWS && !passed; r++) {
+              const retryImage = childPhotoSignedUrl
+                ? await generateIllustrationWithFace(
+                    illustrationPrompt, childPhotoSignedUrl, characterProfile,
+                    storyOutfit, visualAnchor, effectiveAdventureLogic,
+                    coverReferenceUrl,
+                  )
+                : await generateIllustrationGeminiNoFace(
+                    illustrationPrompt, characterProfile,
+                    storyOutfit, visualAnchor, effectiveAdventureLogic,
+                    coverReferenceUrl,
+                  );
+              if (!retryImage) {
+                console.warn(`[IDENTITY-CHECK] story=${storyId} page=${page.page_number} redraw ${r} failed`);
+                continue;
               }
-            } else {
-              console.warn(`[IDENTITY-CHECK] story=${storyId} page=${page.page_number} regeneration failed — keeping original image`);
+              const retryUrl = await uploadImageToStorage(supabase, retryImage, storyId, page.page_number);
+              if (!retryUrl) continue;
+              illustrationUrl = retryUrl;
+              identityRetried = true;
+              const retryPublic = buildPublicIllustrationUrl(retryUrl);
+              const v2 = retryPublic ? await checkIdentityMatch(retryPublic, pageRef, LOVABLE_API_KEY, false, {
+                outfit: parentOutfitEn ? storyOutfit : undefined, allowText: !!isLearningTopic,
+              }) : null;
+              if (!v2) {
+                identityCheck = `redraw ${r}: check unavailable`;
+                passed = true; // same as today when the check cannot run
+              } else if (v2.match) {
+                identityCheck = `match after redraw ${r}`;
+                passed = true;
+              } else {
+                identityCheck = `mismatch after redraw ${r}: ${v2.reason}`;
+                tries.push({ image: retryImage, problems: v2.problems, reason: v2.reason });
+                console.warn(`[IDENTITY-CHECK] story=${storyId} page=${page.page_number} redraw ${r} MISMATCH — ${v2.reason}`);
+              }
+            }
+            if (!passed) {
+              const onlyHidden = tries.filter((t) => t.problems.length === 1 && t.problems[0] === "hero not visible");
+              if (onlyHidden.length > 0) {
+                const best = onlyHidden[onlyHidden.length - 1];
+                if (best !== tries[tries.length - 1]) {
+                  const bestUrl = await uploadImageToStorage(supabase, best.image, storyId, page.page_number);
+                  if (bestUrl) illustrationUrl = bestUrl;
+                }
+                identityCheck = `kept best (hero not visible): ${best.reason}`.slice(0, 300);
+                await notifyIllustrationIssue(supabase, storyId, page.page_number,
+                  `העמוד נשמר, אבל הגיבור לא נראה מלפנים אחרי ${MAX_IDENTITY_REDRAWS} ציורים חוזרים (${best.reason})`, false);
+              } else {
+                const last = tries[tries.length - 1];
+                identityCheck = `held after ${MAX_IDENTITY_REDRAWS} redraws: ${last.reason}`.slice(0, 300);
+                await supabase.from("illustration_logs").insert({
+                  story_id: storyId, page_number: page.page_number,
+                  model_used: "held_mismatch",
+                  fallback_reason: `picture failed check after ${MAX_IDENTITY_REDRAWS} redraws: ${last.reason}`,
+                  had_face_reference: !!childPhotoSignedUrl, duration_ms: Date.now() - genStart,
+                  had_page1_reference: !!coverReferenceUrl, camera_angle: cameraAngle,
+                  attempts: attemptsUsed + tries.length - 1, identity_check: identityCheck, identity_retried: true,
+                });
+                await notifyIllustrationIssue(supabase, storyId, page.page_number,
+                  `העמוד לא נשמר וממתין לטיפול: הציור נכשל בבדיקה אחרי ${MAX_IDENTITY_REDRAWS} ציורים חוזרים (${last.reason})`, true);
+                return null;
+              }
             }
           }
         }
