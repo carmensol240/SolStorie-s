@@ -1,4 +1,6 @@
 import { canProceedWithPhoto } from "@/lib/photo-optional";
+import { selfAgeMismatch } from "@/lib/self-age";
+import { AlertDialog, AlertDialogContent, AlertDialogHeader, AlertDialogTitle, AlertDialogDescription, AlertDialogFooter } from "@/components/ui/alert-dialog";
 import { useState, useEffect, useCallback, useRef } from "react";
 import { ArrowRight, ArrowLeft, Loader2 } from "lucide-react";
 
@@ -306,8 +308,19 @@ const CreateStory = () => {
 
   const canProceedTopic = formData.topic.length > 0 || formData.customTopic.trim().length > 0;
 
+  // Age written for the child in "fixed details" that differs from the chosen age → ask, never change alone.
+  const [ageQuestion, setAgeQuestion] = useState<number | null>(null);
+  const answerAge = (age: number) => {
+    const range = age <= 2 ? "0-2" : age <= 6 ? "3-6" : "7-8";
+    updateFormData({ childAge: age, ageRange: range } as Partial<StoryFormData>);
+    setAgeQuestion(null);
+    goToStep(2);
+  };
+
   const handleNext = async () => {
     if (step === 1 && canProceedStep1) {
+      const other = selfAgeMismatch(formData.fixedDetails, formData.childAge);
+      if (other !== null) { setAgeQuestion(other); return; }
       goToStep(2);
     } else if (step === 2 && canProceedPersonalization) {
       trackEvent({
@@ -587,6 +600,20 @@ const CreateStory = () => {
         </div>
       )}
 
+      <AlertDialog open={ageQuestion !== null} onOpenChange={(o) => { if (!o) setAgeQuestion(null); }}>
+        <AlertDialogContent dir="rtl">
+          <AlertDialogHeader>
+            <AlertDialogTitle>איזה גיל נכון?</AlertDialogTitle>
+            <AlertDialogDescription>
+              בפרטים הקבועים כתוב גיל {ageQuestion}, ולמעלה נבחר גיל {formData.childAge}. בן/בת כמה {formData.childName || "הילד/ה"} היום?
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter className="gap-2 sm:gap-2">
+            <Button onClick={() => ageQuestion !== null && answerAge(ageQuestion)}>{ageQuestion}</Button>
+            <Button variant="outline" onClick={() => answerAge(formData.childAge as number)}>{formData.childAge}</Button>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
       <MobileNavigation />
     </div>
   );
