@@ -15,6 +15,7 @@ Story 3a2d5c15 (Adel). Only this story and this child are touched.
 4. **Redraw:** redraw the 8 pages one at a time, using the system's own redraw path with Adel's avatar as the face picture. Each page goes through the new check (same girl, Pixar 3D, face visible).
    - If a page passes, the new picture replaces the old one.
    - If a page fails after 2 redraws, the old picture stays and you get an alert and email.
+   - **Page 1 first, as a gate:** if page 1 fails and keeps its old picture, stop and don't draw the other pages. I'll report what the check found so we can decide together. The other 7 pages are drawn only after the new page 1 passes and is saved.
 5. **No charge:** redrawing doesn't use credits. I'll confirm the tester's credits are the same before and after.
 6. **Report:** check in the drawing log that every one of the 8 pages used a face picture. Then list which pages passed and which kept the old picture.
 
