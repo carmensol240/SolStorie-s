@@ -361,14 +361,16 @@ serve(async (req) => {
     // Same fixed character description as the original illustrations.
     let characterLock = "";
     {
-      let q = supabase.from("children").select("age, hair_color, hair_style, clothing_type, clothing_color").eq("user_id", user.id);
+      let q = supabase.from("children").select("age, hair_color, hair_style, clothing_type, clothing_color, avatar_url").eq("user_id", user.id);
       q = (story as any).child_id ? q.eq("id", (story as any).child_id) : q.eq("name", story.child_name);
       const { data: ch } = await q.limit(1).maybeSingle();
       const ap = mergeAppearance(null, {
         hairColor: ch?.hair_color, hairStyle: ch?.hair_style,
         clothingType: ch?.clothing_type, clothingColor: ch?.clothing_color,
       });
-      const hair = hairToEnglish(ap);
+      // With a face picture (avatar / saved reference) the hair comes from the picture.
+      const hasFaceRef = !!((ch as any)?.avatar_url || (story as any).child_photo_path);
+      const hair = hasFaceRef ? "" : hairToEnglish(ap);
       const outfit = (clothingToEnglish(ap, (story as any).child_gender) || (story as any).story_outfit || "");
       const kp = kippahForStory(story as any);
       characterLock = buildCharacterLock({ gender: (story as any).child_gender, age: ch?.age ?? null, ageRange: (story as any).age_range, hair, outfit, kippah: kp.kippah, kippahColor: kp.color });
