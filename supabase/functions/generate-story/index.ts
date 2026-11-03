@@ -1291,7 +1291,7 @@ async function handleGenerateStory(req: Request, ctx: RequestCtx): Promise<Respo
       await grantStoryAccess(supabase, userId, claim.storyId, claim.creditKind);
     }
 
-    console.log("Generating story for:", { childName, childGender, ageRange, storyLength, topic, nikud, hasPhoto: !!childPhoto, hasAvatar: !!childAvatarUrl, hasTraits: !!personalityTraits, hasAdventureLogic: !!adventureLogic, className: className || null });
+    console.log("Generating story for:", { childName, childGender, ageRange, storyLength, topic, nikud, hasPhoto: !!childPhoto, hasAvatar: !!childAvatarUrlRaw, hasTraits: !!personalityTraits, hasAdventureLogic: !!adventureLogic, className: className || null });
     
     // === FETCH CHILD PERSONALIZATION FROM DB ===
     // Appearance chosen in the form (sent with the request) wins over the saved profile.
@@ -1345,10 +1345,13 @@ async function handleGenerateStory(req: Request, ctx: RequestCtx): Promise<Respo
     // If the browser didn't send a picture (e.g. a restored form), use the saved one;
     // if it can't be used, stop here — before any AI work or charge.
     let childAvatarUrl: string | null = typeof childAvatarUrlRaw === "string" && childAvatarUrlRaw ? childAvatarUrlRaw : null;
+    let verifiedChildId: string | null = null;
     if (userId) {
-      let q = supabase.from("children").select("avatar_url").eq("user_id", userId);
-      q = childId ? q.eq("id", childId) : q.eq("name", childName);
+      const validChildId = typeof childId === "string" && /^[0-9a-f-]{36}$/i.test(childId) ? childId : null;
+      let q = supabase.from("children").select("id, avatar_url").eq("user_id", userId);
+      q = validChildId ? q.eq("id", validChildId) : q.eq("name", childName);
       const { data: faceRow } = await q.limit(1).maybeSingle();
+      if (validChildId && faceRow) verifiedChildId = validChildId;
       const saved = (faceRow as any)?.avatar_url as string | null | undefined;
       if (saved) {
         if (!childAvatarUrl && !childPhoto) {
@@ -2402,8 +2405,8 @@ ${fullStoryText}`;
     }
     
     // Save child_id if provided
-    if (childId) {
-      storyInsertData.child_id = childId;
+    if (verifiedChildId) {
+      storyInsertData.child_id = verifiedChildId;
     }
     if (ctx.taste) {
       // Saved so the remaining pictures can be made after payment with the same character.
