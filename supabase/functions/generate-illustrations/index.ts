@@ -133,7 +133,7 @@ async function checkIdentityMatch(
   apiKey: string,
   _strict = false,
   opts: { outfit?: string; allowText?: boolean } = {},
-): Promise<{ match: boolean; reason: string } | null> {
+): Promise<{ match: boolean; reason: string; problems: string[] } | null> {
   try {
     const hasRef = !!pageOneImageUrl;
     const img = hasRef ? "Image B" : "The image";
@@ -143,10 +143,12 @@ async function checkIdentityMatch(
       (hasRef ? "- same_child: does B show the same main child as A (hair color/length/texture, face, apparent age)? Ignore pose and background.\n" +
         "- same_style: is B the same polished Pixar-like 3D CGI render style as A (not flat 2D, not simplified cartoon, not painterly, not photo)?\n" +
         "- copied_composition: does B nearly copy A's composition (same pose, same camera angle and same layout)?\n" : "") +
+      "- photo_realistic: does it look like a real photograph or photorealistic image of real people, instead of a stylized Pixar-like 3D animated render?\n" +
+      "- hero_face_visible: is the main child's face visible (front, three-quarter or side profile all count)? false only if the main child is seen only from behind or the face is hidden/not shown.\n" +
       "- hero_twice: does the main child appear twice, or is there a second child who looks almost identical to the main child (a twin/clone)? Different-looking friends do NOT count.\n" +
       "- has_text: is there any readable text, letters, words, captions or signs drawn in the picture?\n" +
       (opts.outfit ? `- outfit_ok: is the main child wearing: "${opts.outfit}" (no cape or costume unless listed)?\n` : "") +
-      'Answer strict JSON only: {"same_child":bool,"same_style":bool,"copied_composition":bool,"hero_twice":bool,"has_text":bool,"outfit_ok":bool,"reason":"<max 12 words>"}';
+      'Answer strict JSON only: {"same_child":bool,"same_style":bool,"copied_composition":bool,"photo_realistic":bool,"hero_face_visible":bool,"hero_twice":bool,"has_text":bool,"outfit_ok":bool,"reason":"<max 12 words>"}';
     const content: any[] = [{ type: "text", text }];
     if (pageOneImageUrl) content.push({ type: "image_url", image_url: { url: pageOneImageUrl } });
     content.push({ type: "image_url", image_url: { url: pageImageUrl } });
@@ -170,11 +172,13 @@ async function checkIdentityMatch(
     if (hasRef && p.same_child === false) problems.push("different child");
     if (hasRef && p.same_style === false) problems.push("different style");
     if (hasRef && p.copied_composition === true) problems.push("copied page 1");
+    if (p.photo_realistic === true) problems.push("realistic style");
+    if (p.hero_face_visible === false) problems.push("hero not visible");
     if (p.hero_twice === true) problems.push("hero twice");
     if (!opts.allowText && p.has_text === true) problems.push("text in image");
     if (opts.outfit && p.outfit_ok === false) problems.push("wrong outfit");
     const reason = `${problems.join(", ")}${p.reason ? ` (${String(p.reason).slice(0, 80)})` : ""}`;
-    return { match: problems.length === 0, reason: problems.length ? reason : String(p.reason || "ok").slice(0, 120) };
+    return { match: problems.length === 0, problems, reason: problems.length ? reason : String(p.reason || "ok").slice(0, 120) };
   } catch (e) {
     console.warn("[IDENTITY-CHECK] failed:", (e as Error)?.message);
     return null;
@@ -763,7 +767,7 @@ const CAMERA_ANGLES = [
   "medium shot from waist up with environment visible behind",
   "bird's eye view looking down at the scene from above",
   "low angle shot looking up at the character heroically",
-  "over-the-shoulder shot from behind the character looking at the scene ahead",
+  "three-quarter front view at the character's eye level, face clearly visible, scene around",
 ];
 
 const LIGHTING_OPTIONS = [
