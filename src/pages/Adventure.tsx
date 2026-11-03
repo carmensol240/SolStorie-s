@@ -109,14 +109,7 @@ const Adventure = () => {
     <div id="main-content" className="min-h-[100dvh] flex flex-col bg-gradient-to-b from-amber-50/50 to-background dark:from-background animate-fade-in" dir="rtl">
       {/* Hero Video Section */}
       <div className="relative w-full h-[92vh] h-[92svh] min-h-[540px] flex-shrink-0 overflow-hidden flex flex-col">
-        {/* Blurred poster fills the area around the portrait (9:16) video */}
-        <img
-          src={heroPoster}
-          alt=""
-          aria-hidden="true"
-          className="absolute inset-0 w-full h-full object-cover scale-110 blur-2xl opacity-80"
-        />
-        {/* Portrait video: whole frame visible (never cropped or stretched) */}
+        {/* Video fills the hero area (same framing as the original layout) */}
         <video
           ref={videoRef}
           autoPlay={videoPlaying}
@@ -124,10 +117,11 @@ const Adventure = () => {
           muted
           playsInline
           poster={heroPoster}
-          preload="metadata"
+          preload={videoPlaying ? "auto" : "metadata"}
           aria-label={HERO_VIDEO_LABEL}
-          className="absolute inset-0 w-full h-full object-contain"
+          className="absolute inset-0 w-full h-full object-cover [object-position:center_35%]"
         >
+
           <source src={heroVideo} type="video/mp4" />
         </video>
         <p className="sr-only">{HERO_VIDEO_LABEL}</p>
