@@ -376,6 +376,9 @@ const [currentPage, setCurrentPage] = useState(0);
     }
   };
 
+  // Coloring pages already made for this story, keyed by the picture's public URL.
+  const [readyColoring, setReadyColoring] = useState<Record<string, string>>({});
+
   const preloadStoryCachedColoring = useCallback(async (mode: 'print' | 'online' | null) => {
     if (!story || coloringLoading) return;
 
@@ -393,20 +396,17 @@ const [currentPage, setCurrentPage] = useState(0);
         .select("*")
         .eq("story_id", story.id)
         .eq("user_id", user.id)
-        .order("created_at", { ascending: false })
-        .limit(1);
-      const cached = (cachedRows as any[] | null)?.[0];
-
-      if (cached) {
-        const cachedIllustration = getPublicIllustrationUrl((cached as any).illustration_url);
-        const publicUrl = `${import.meta.env.VITE_SUPABASE_URL || 'https://qvdwmkxviaqcgmjotsxe.supabase.co'}/storage/v1/object/public/story-illustrations/${(cached as any).coloring_image_path}`;
-        setCachedColoringUrl(publicUrl);
-        setCachedIllustrationUrl(cachedIllustration);
-        setSelectedColoringUrl(cachedIllustration);
-        setColoringAction('choose-action');
-        setColoringPickerOpen(true);
-        return;
+        .order("created_at", { ascending: false });
+      const map: Record<string, string> = {};
+      for (const row of (cachedRows as any[] | null) || []) {
+        const key = getPublicIllustrationUrl(row.illustration_url);
+        if (key && !map[key]) {
+          map[key] = `${import.meta.env.VITE_SUPABASE_URL || 'https://qvdwmkxviaqcgmjotsxe.supabase.co'}/storage/v1/object/public/story-illustrations/${row.coloring_image_path}`;
+        }
       }
+      setReadyColoring(map);
+    } else {
+      setReadyColoring({});
     }
 
     setSelectedColoringUrl(null);
@@ -2673,6 +2673,7 @@ const [currentPage, setCurrentPage] = useState(0);
                 {story?.pages?.filter(p => p.illustration_url).map((page, idx) => {
                   const url = getPublicIllustrationUrl(page.illustration_url!);
                   const isSelected = selectedColoringUrl === page.illustration_url;
+                  const isReady = !!(url && readyColoring[url]);
                   return (
                     <button
                       key={page.id || idx}
@@ -2686,6 +2687,12 @@ const [currentPage, setCurrentPage] = useState(0);
                       <span className="absolute bottom-0 left-0 right-0 bg-black/50 text-white text-sm text-center py-0.5">
                         עמוד {page.page_number}
                       </span>
+                      <span className={cn(
+                        "absolute top-1 right-1 rounded-full px-1.5 py-0.5 text-[11px] font-bold shadow",
+                        isReady ? "bg-primary text-primary-foreground" : "bg-background/90 text-foreground",
+                      )}>
+                        {isReady ? "✓ מוכן" : "ליצירה"}
+                      </span>
                       {isSelected && (
                         <div className="absolute inset-0 bg-purple-500/20 flex items-center justify-center">
                           <div className="bg-purple-600 text-white rounded-full w-6 h-6 flex items-center justify-center text-sm">✓</div>
@@ -2698,6 +2705,16 @@ const [currentPage, setCurrentPage] = useState(0);
               <Button
                 onClick={async () => {
                   if (!selectedColoringUrl || !story) return;
+                  const readyKey = getPublicIllustrationUrl(selectedColoringUrl);
+                  const readyUrl = readyKey ? readyColoring[readyKey] : undefined;
+                  if (readyUrl) {
+                    // Already made: open it right away, no new drawing.
+                    setCachedColoringUrl(readyUrl);
+                    setCachedIllustrationUrl(readyKey);
+                    setSelectedColoringUrl(readyKey);
+                    setColoringAction('choose-action');
+                    return;
+                  }
                   if (!coloringMode) {
                     setColoringAction('choose-action');
                     return;
@@ -2788,17 +2805,18 @@ const [currentPage, setCurrentPage] = useState(0);
                 {coloringLoading ? <><Loader2 className="w-4 h-4 animate-spin mr-2" /> מכין דף צביעה...</> : '🎨 צבעו אונליין באפליקציה'}
               </Button>
 
-              <button
+              <Button
+                variant="outline"
                 onClick={() => {
                   setSelectedColoringUrl(null);
                   setCachedColoringUrl(null);
                   setCachedIllustrationUrl(null);
                   setColoringAction('pick');
                 }}
-                className="w-full text-sm text-purple-400 hover:text-purple-600 transition-colors"
+                className="w-full min-h-[44px]"
               >
                 ← בחרו איור אחר
-              </button>
+              </Button>
             </div>
           )}
         </DialogContent>
