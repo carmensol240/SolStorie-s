@@ -8,13 +8,11 @@ import { supabase } from "@/integrations/supabase/client";
 
 import MobileNavigation from "@/components/MobileNavigation";
 import HomeExplainer from "@/components/home/HomeExplainer";
-import heroVideoAsset from "@/assets/hero-promo.mp4.asset.json";
-import heroPosterAsset from "@/assets/hero-promo-poster.jpg.asset.json";
+import heroVideo from "@/assets/hero-solstories-animation-new.mp4";
+import heroPoster from "@/assets/hero-poster.jpg";
 
-const heroVideo = heroVideoAsset.url;
-const heroPoster = heroPosterAsset.url;
-const HERO_VIDEO_LABEL =
-  "סרטון קצר: הילד שלכם הופך לגיבור של ספר מאויר. מעל 100 נושאים, כתיבה חופשית, הקלטת קול, סיפורים באנגלית, דפי צביעה, קובץ להדפסה וספרייה לכל החיים";
+const HERO_VIDEO_LABEL = "סרטון קצר: סול והחבורה";
+
 
 const Adventure = () => {
   const navigate = useNavigate();
