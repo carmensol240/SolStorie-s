@@ -1658,9 +1658,6 @@ const [currentPage, setCurrentPage] = useState(0);
   const isToddler = story?.age_range === '0-2';
   // Open book (picture + text side by side) on desktop and on phones held sideways.
   const isWideReader = useWideReader();
-  const pictureFrameColor = useIllustrationAccent(
-    (currentPage >= 0 ? virtualPagesRefForAccent.current[currentPage]?.dbPage?.illustration_url : null) || null,
-  );
   const isLearningTopic = story?.topic?.startsWith('אות ') || story?.topic?.startsWith('מספר ') || story?.topic?.startsWith('צבע ') || story?.topic?.startsWith('צורת ');
 
   // Cover page removed — all ages start at page 0
@@ -1809,6 +1806,11 @@ const [currentPage, setCurrentPage] = useState(0);
     if (pick.i !== currentPage) setCurrentPage(pick.i);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [virtualPages]);
+
+  // Decoration color for the current page, sampled from its own picture.
+  const pageAccent = useIllustrationAccent(
+    (currentPage >= 0 && currentPage < virtualPages.length ? virtualPages[currentPage]?.dbPage?.illustration_url : null) || null,
+  );
 
   // Preload priority: current page + the next 2 first, then every other
   // illustration in the background (low priority) so a book opened once can be
