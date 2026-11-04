@@ -120,10 +120,12 @@ const Adventure = () => {
 
   return (
     <div id="main-content" className="min-h-[100dvh] flex flex-col bg-gradient-to-b from-amber-50/50 to-background dark:from-background animate-fade-in" dir="rtl">
-      {/* Hero Section: header above, portrait video in the middle, CTA below */}
-      <div className="relative w-full flex-shrink-0 flex flex-col">
+      {/* Hero Section: header above, portrait video in the middle, CTA below.
+          The whole section is exactly one screen tall so the full 9:16 frame
+          (logo + title above, buttons below) is visible without scrolling. */}
+      <div className="relative w-full h-[100dvh] min-h-[560px] flex-shrink-0 flex flex-col">
         {/* Top bar - credits, sound & pause */}
-        <div className="relative z-20 flex items-center justify-between px-4 pt-[max(env(safe-area-inset-top,12px),20px)]">
+        <div className="relative z-20 shrink-0 flex items-center justify-between px-4 pt-[max(env(safe-area-inset-top,12px),20px)]">
           <button
             onClick={() => navigate(user ? "/upgrade" : "/auth")}
             className="flex items-center gap-1.5 bg-foreground/70 backdrop-blur-xl border border-background/30 rounded-full px-3 py-1.5 hover:bg-foreground/80 transition-colors"
@@ -156,7 +158,7 @@ const Adventure = () => {
         </div>
 
         {/* Logo + tagline (above the video, never on top of it) */}
-        <div className="relative z-10 flex flex-col items-center gap-1 px-4 pt-1 pb-3 text-center">
+        <div className="relative z-10 shrink-0 flex flex-col items-center gap-1 px-4 pt-1 pb-3 text-center">
           <h1
             className="leading-tight font-black tracking-tight"
             style={{ fontSize: "clamp(2.5rem, 11vw, 4.5rem)", fontFamily: "'Baloo 2', 'Heebo', sans-serif" }}
@@ -171,34 +173,34 @@ const Adventure = () => {
           </p>
         </div>
 
-        {/* Portrait video: full width on phone, centered with blurred poster sides on desktop */}
-        <div className="relative w-full overflow-hidden">
+        {/* Portrait video: takes exactly the space left on screen (flex-1),
+            never cropped and never taller than the fold. Blurred poster fills
+            the sides whenever the 9:16 frame is narrower than the area. */}
+        <div className="relative w-full flex-1 min-h-0 overflow-hidden">
           <div
-            className="absolute inset-0 hidden md:block bg-cover bg-center blur-2xl scale-110 opacity-60"
+            className="absolute inset-0 bg-cover bg-center blur-2xl scale-110 opacity-60"
             style={{ backgroundImage: `url(${heroPoster})` }}
             aria-hidden="true"
           />
-          <div className="relative mx-auto w-full md:w-auto md:h-[75vh] aspect-[9/16]">
-            <video
-              ref={videoRef}
-              autoPlay={videoPlaying}
-              loop
-              muted
-              playsInline
-              poster={heroPoster}
-              preload="metadata"
-              aria-label={HERO_VIDEO_LABEL}
-              className="absolute inset-0 w-full h-full object-contain"
-              onPause={() => { if (videoRef.current && !videoRef.current.ended) setVideoPlaying(false); }}
-            >
-              <source src={heroVideo} type="video/mp4" />
-            </video>
-          </div>
+          <video
+            ref={videoRef}
+            autoPlay={videoPlaying}
+            loop
+            muted
+            playsInline
+            poster={heroPoster}
+            preload="metadata"
+            aria-label={HERO_VIDEO_LABEL}
+            className="absolute inset-0 w-full h-full object-contain"
+            onPause={() => { if (videoRef.current && !videoRef.current.ended) setVideoPlaying(false); }}
+          >
+            <source src={heroVideo} type="video/mp4" />
+          </video>
         </div>
         <p className="sr-only">{HERO_VIDEO_LABEL}</p>
 
         {/* CTA + scroll hint (below the video) */}
-        <div className="relative z-10 flex flex-col items-center gap-1 px-4 pt-4 pb-[calc(env(safe-area-inset-bottom,0px)+76px)] md:pb-6">
+        <div className="relative z-10 shrink-0 flex flex-col items-center gap-1 px-4 pt-4 pb-[calc(env(safe-area-inset-bottom,0px)+76px)] md:pb-6">
           <button
             onClick={handleAdventureCTA}
             className="group flex items-center justify-center gap-2.5 rounded-full px-6 py-3 w-full max-w-[300px] bg-primary shadow-[0_0_20px_rgba(251,191,36,0.4)] hover:shadow-[0_0_30px_rgba(251,191,36,0.6)] hover:scale-[1.03] active:scale-95 transition-all duration-300 adventure-cta-pulse border border-white/30"
