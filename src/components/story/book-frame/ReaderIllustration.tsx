@@ -6,6 +6,8 @@ interface ReaderIllustrationProps {
   path: string;
   alt?: string;
   className?: string;
+  /** When set: shown like a photo mounted in a book (thin frame in this color + soft shadow). */
+  frameColor?: string;
 }
 
 /**
@@ -13,7 +15,7 @@ interface ReaderIllustrationProps {
  * whole (object-contain, never cropped), with a soft skeleton while loading.
  * Falls back to the original file if the reading copy fails, then retries.
  */
-export const ReaderIllustration: React.FC<ReaderIllustrationProps> = ({ path, alt = "איור", className }) => {
+export const ReaderIllustration: React.FC<ReaderIllustrationProps> = ({ path, alt = "איור", className, frameColor }) => {
   const [useOriginal, setUseOriginal] = useState(false);
   const [retry, setRetry] = useState(0);
   const [loaded, setLoaded] = useState(false);
@@ -42,9 +44,11 @@ export const ReaderIllustration: React.FC<ReaderIllustrationProps> = ({ path, al
         decoding="async"
         {...({ fetchpriority: "high" } as Record<string, string>)}
         className={cn(
-          "max-w-full max-h-full w-auto h-auto object-contain rounded-xl shadow-md transition-opacity duration-300",
+          "max-w-full max-h-full w-auto h-auto object-contain rounded-xl transition-opacity duration-300",
+          frameColor ? "border-2 shadow-[0_6px_18px_rgba(60,45,10,0.22)]" : "shadow-md",
           loaded ? "opacity-100" : "absolute opacity-0",
         )}
+        style={frameColor ? { borderColor: frameColor } : undefined}
         onLoad={() => setLoaded(true)}
         onError={() => {
           if (!useOriginal) {
