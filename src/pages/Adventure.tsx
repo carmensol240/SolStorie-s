@@ -174,10 +174,12 @@ const Adventure = () => {
           </p>
         </div>
 
-        {/* Portrait video: takes exactly the space left on screen (flex-1),
-            never cropped and never taller than the fold. Blurred poster fills
-            the sides whenever the 9:16 frame is narrower than the area. */}
-        <div className="relative w-full flex-1 min-h-0 overflow-hidden">
+        {/* Landscape 16:9 video, never cropped (object-contain).
+            On phone it keeps its natural 16:9 height at full screen width, so
+            there is no empty band above or below it. On desktop it takes exactly
+            the space left on screen, and the blurred poster fills the sides
+            whenever the 16:9 frame is wider than the space available. */}
+        <div className="relative w-full aspect-video shrink-0 overflow-hidden md:aspect-auto md:flex-1 md:min-h-0">
           <div
             className="absolute inset-0 bg-cover bg-center blur-2xl scale-110 opacity-60"
             style={{ backgroundImage: `url(${heroPoster})` }}
