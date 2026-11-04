@@ -11,12 +11,14 @@ export function talkQuestionsInstruction(lang: "he" | "en", nikud: boolean) {
   if (lang === "en") {
     return `Also write "talk_questions": ${TALK_MIN}-${TALK_MAX} short questions a parent asks the child after reading, about THIS story's topic and plot.
 - Simple everyday parent-to-child language, no therapy words, each under ${TALK_MAX_CHARS} characters, ending with "?".
-- Mix: what the hero felt / did in the story (use the hero's name and correct pronouns), and one or two about the child's own life ("What helps you when you miss someone?").
+- The child reading IS the hero. Always speak to the child directly as "you", about what happened in the story (e.g. "How did you feel when the ball stopped next to the beam?"), plus one or two about the child's own life.
+- NEVER write the hero's name in the questions and NEVER compare the child to the hero (no "like Noam"). Other characters (friends, the gang, family) may be named, in third person.
 - English only.`;
   }
   return `בנוסף, כתוב "talk_questions": ${TALK_MIN}–${TALK_MAX} שאלות קצרות שההורה שואל את הילד אחרי הקריאה, לפי הנושא והעלילה של הסיפור הזה בדיוק.
 - שפה פשוטה של הורה לילד, בלי מונחים טיפוליים, כל שאלה עד ${TALK_MAX_CHARS} תווים ומסתיימת ב-"?".
-- שילוב: מה הגיבור/ה הרגיש/ה או עשה/תה בסיפור (בשם הגיבור/ה ובמגדר הנכון), ושאלה או שתיים על החיים של הילד עצמו (פנייה לילד במגדר של הגיבור/ה, למשל "מה עוזר לך כשאתה מתגעגע?" לבן, "כשאת מתגעגעת" לבת).
+- הילד/ה שקורא/ת הוא/היא הגיבור/ה. תמיד לפנות לילד/ה בגוף שני במגדר של הגיבור/ה (אתה לבן, את לבת), ולהתייחס למה שקרה בסיפור, למשל: "איך הרגשת בסיפור כשהכדור נעצר ליד הקורה?" — ושאלה או שתיים על החיים של הילד/ה עצמו/ה.
+- אסור לכתוב את שם הגיבור/ה בשאלות, ואסור להשוות את הילד/ה לגיבור/ה (בלי "כמו נועם"). דמויות אחרות (חברים, החבורה, המשפחה) אפשר להזכיר בשם, בגוף שלישי.
 - ${nikud ? "ניקוד מלא ונכון לכל מילה, כמו בסיפור." : "בלי ניקוד בכלל."}
 - עברית בלבד.`;
 }
