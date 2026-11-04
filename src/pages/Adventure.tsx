@@ -173,34 +173,34 @@ const Adventure = () => {
           </p>
         </div>
 
-        {/* Portrait video: full width on phone, centered with blurred poster sides on desktop */}
-        <div className="relative w-full overflow-hidden">
+        {/* Portrait video: takes exactly the space left on screen (flex-1),
+            never cropped and never taller than the fold. Blurred poster fills
+            the sides whenever the 9:16 frame is narrower than the area. */}
+        <div className="relative w-full flex-1 min-h-0 overflow-hidden">
           <div
-            className="absolute inset-0 hidden md:block bg-cover bg-center blur-2xl scale-110 opacity-60"
+            className="absolute inset-0 bg-cover bg-center blur-2xl scale-110 opacity-60"
             style={{ backgroundImage: `url(${heroPoster})` }}
             aria-hidden="true"
           />
-          <div className="relative mx-auto w-full md:w-auto md:h-[75vh] aspect-[9/16]">
-            <video
-              ref={videoRef}
-              autoPlay={videoPlaying}
-              loop
-              muted
-              playsInline
-              poster={heroPoster}
-              preload="metadata"
-              aria-label={HERO_VIDEO_LABEL}
-              className="absolute inset-0 w-full h-full object-contain"
-              onPause={() => { if (videoRef.current && !videoRef.current.ended) setVideoPlaying(false); }}
-            >
-              <source src={heroVideo} type="video/mp4" />
-            </video>
-          </div>
+          <video
+            ref={videoRef}
+            autoPlay={videoPlaying}
+            loop
+            muted
+            playsInline
+            poster={heroPoster}
+            preload="metadata"
+            aria-label={HERO_VIDEO_LABEL}
+            className="absolute inset-0 w-full h-full object-contain"
+            onPause={() => { if (videoRef.current && !videoRef.current.ended) setVideoPlaying(false); }}
+          >
+            <source src={heroVideo} type="video/mp4" />
+          </video>
         </div>
         <p className="sr-only">{HERO_VIDEO_LABEL}</p>
 
         {/* CTA + scroll hint (below the video) */}
-        <div className="relative z-10 flex flex-col items-center gap-1 px-4 pt-4 pb-[calc(env(safe-area-inset-bottom,0px)+76px)] md:pb-6">
+        <div className="relative z-10 shrink-0 flex flex-col items-center gap-1 px-4 pt-4 pb-[calc(env(safe-area-inset-bottom,0px)+76px)] md:pb-6">
           <button
             onClick={handleAdventureCTA}
             className="group flex items-center justify-center gap-2.5 rounded-full px-6 py-3 w-full max-w-[300px] bg-primary shadow-[0_0_20px_rgba(251,191,36,0.4)] hover:shadow-[0_0_30px_rgba(251,191,36,0.6)] hover:scale-[1.03] active:scale-95 transition-all duration-300 adventure-cta-pulse border border-white/30"
