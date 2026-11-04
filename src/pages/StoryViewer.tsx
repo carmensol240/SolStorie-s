@@ -2466,8 +2466,9 @@ const [currentPage, setCurrentPage] = useState(0);
                                 )}
                               </ScrollHintText>
                             </div>
-                            <div className="absolute bottom-6 left-0 right-0 flex justify-center pointer-events-none">
+                            <div className="absolute bottom-6 left-0 right-0 flex justify-center items-baseline gap-2 pointer-events-none">
                               <span className="text-sm font-bold text-paper-foreground/80" data-testid="page-counter">{currentVirtual.dbPage.page_number} / {story.pages.length}</span>
+                              <span dir="ltr" className="text-xs font-semibold tracking-wide opacity-80" style={{ color: pageAccent }} data-testid="text-page-brand">SolStorie's™</span>
                             </div>
                             <div className="absolute top-5 left-5 z-20">{recording}</div>
                           </BookPaper>
