@@ -4,6 +4,13 @@ import { saveCreateDraft, loadCreateDraft, clearCreateDraft, clearAllCreateDraft
 describe("create form draft", () => {
   beforeEach(() => { sessionStorage.clear(); localStorage.clear(); });
 
+  it("keeps the saved child's ID so a reload can refill the avatar", () => {
+    saveCreateDraft("u1", { childName: "נועם", childId: "6d347dfb", childAvatarUrl: "data:image/png;base64,AAAA" }, "6d347dfb");
+    const d = loadCreateDraft("u1")!;
+    expect(d.data.childId).toBe("6d347dfb");
+    expect(d.selectedChildId).toBe("6d347dfb");
+  });
+
   it("never stores uploaded image data", () => {
     saveCreateDraft("u1", { childName: "סול", childPhoto: "data:image/jpeg;base64,AAAA", childAvatarUrl: "https://x/a.png" }, null);
     const d = loadCreateDraft("u1")!;
