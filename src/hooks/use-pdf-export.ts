@@ -247,20 +247,43 @@ export const usePdfExport = () => {
       const canvas = document.createElement('canvas');
       canvas.width = S; canvas.height = S;
       const ctx = canvas.getContext('2d')!;
-      // Blur by downscale → upscale (works in Safari, which lacks ctx.filter)
-      const small = document.createElement('canvas');
-      small.width = 48; small.height = 48;
-      const sctx = small.getContext('2d')!;
-      const k = Math.max(48 / img.naturalWidth, 48 / img.naturalHeight);
-      sctx.drawImage(img, (48 - img.naturalWidth * k) / 2, (48 - img.naturalHeight * k) / 2, img.naturalWidth * k, img.naturalHeight * k);
       ctx.imageSmoothingEnabled = true;
       ctx.imageSmoothingQuality = 'high';
-      ctx.drawImage(small, 0, 0, S, S);
-      ctx.fillStyle = 'rgba(255,255,255,0.12)';
-      ctx.fillRect(0, 0, S, S);
-      freeCanvas(small);
-      const r = containRect(img.naturalWidth, img.naturalHeight, S);
-      ctx.drawImage(img, r.x, r.y, r.w, r.h);
+      const ratio = img.naturalWidth / img.naturalHeight;
+      if (Math.abs(ratio - 1) < 0.03) {
+        // Square picture: fills the whole page to the bleed.
+        ctx.drawImage(img, 0, 0, S, S);
+      } else {
+        // Landscape/other: same paper as the text page, picture "pasted" on it inside the safe area.
+        const look = await makePaperLook(url);
+        ctx.fillStyle = '#fbf8ef';
+        ctx.fillRect(0, 0, S, S);
+        if (look.bg) {
+          const bgImg = new Image();
+          await new Promise<void>((res) => { bgImg.onload = () => res(); bgImg.onerror = () => res(); bgImg.src = look.bg!; });
+          if (bgImg.naturalWidth) ctx.drawImage(bgImg, 0, 0, S, S);
+        }
+        const safe = Math.ceil((SAFE_MM / PAGE_MM) * S);
+        const avail = S - safe * 2;
+        const k = Math.min(avail / img.naturalWidth, avail / img.naturalHeight);
+        const w = img.naturalWidth * k, h = img.naturalHeight * k;
+        const x = (S - w) / 2, y = (S - h) / 2;
+        const rad = Math.round(S * 0.022);
+        const path = () => { ctx.beginPath(); ctx.roundRect(x, y, w, h, rad); };
+        ctx.save();
+        ctx.shadowColor = 'rgba(60,45,15,0.28)';
+        ctx.shadowBlur = Math.round(S * 0.018);
+        ctx.shadowOffsetY = Math.round(S * 0.006);
+        path(); ctx.fillStyle = '#fbf8ef'; ctx.fill();
+        ctx.restore();
+        ctx.save(); path(); ctx.clip();
+        ctx.drawImage(img, x, y, w, h);
+        ctx.restore();
+        path();
+        ctx.lineWidth = Math.max(3, Math.round(S * 0.0025));
+        ctx.strokeStyle = look.accent;
+        ctx.stroke();
+      }
       if (band && band.text.trim()) {
         // Ages 0–4: white text in a dark translucent band at the bottom of the picture.
         const el = renderTextBand(band.text, band.lang);

@@ -121,7 +121,7 @@ export const PRINT_TEXTS = {
     dedication: 'הַסִּפּוּר הַזֶּה נִכְתַּב בִּמְיֻחָד עֲבוּר ______________',
     theEnd: 'סוֹף',
     nextAdventure: (n: string, male: boolean) => `לאן ${male ? 'ייצא' : 'תצא'} ${n} להרפתקה הבאה?`,
-    scanNext: 'סרקו ויוצרים את הסיפור הבא',
+    scanNext: 'סרקו וצרו את הסיפור הבא',
     drawMoment: 'ציירו את הרגע האהוב עליכם בסיפור',
     ourHero: (male: boolean) => (male ? 'הגיבור שלנו' : 'הגיבורה שלנו'),
     photoHere: 'הדביקו כאן תמונה',
