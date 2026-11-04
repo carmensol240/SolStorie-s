@@ -13,6 +13,10 @@
 
 4. **Bottom menu**: rename "ספרייה" to "הסיפורים שלי". The current tab already sets aria-current. Its highlight will also apply when inside a story or on library sub-pages, and I'll add a small dot under the active tab so it's clearer.
 
+5. **Same name everywhere**: there is no separate desktop side menu. The desktop uses the same bottom menu, so item 4 covers it. The other places that still say "library" will also change to "הסיפורים שלי": the page title of the library page, the reader back-button tooltip, the back button in the flipbook view, and the "go to library" link in the "taking a few more moments" message on the create page.
+
+6. **Shared/public story page** (visitors without an account): no "לכל הסיפורים שלי" button. Its end page shows only "✨ ליצור סיפור חדש", which opens the create page. It replaces the current "צרו סיפור משלכם" button, which goes to the home page. The one-time hint never appears there.
+
 ## Not touched
 Payments, credits, story creation, story text, the print file.
 
