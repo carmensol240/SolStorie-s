@@ -909,52 +909,6 @@ const ChildInfoStep = ({ formData, updateFormData, screen = 1, restoredDraft, on
         <h1 className="text-lg font-black bg-primary bg-clip-text text-transparent">נוסיף תמונה והתאמה אישית</h1>
       </div>
 
-      {/* Hair color · Hair style */}
-      <div className="space-y-1">
-        <Label id="child-hair-color-label" className="text-sm font-medium">צבע שיער</Label>
-        <div role="group" aria-labelledby="child-hair-color-label" className="grid grid-cols-3 gap-2">
-          {HAIR_COLORS.map((color) => (
-            <button
-              key={color}
-              type="button"
-              aria-pressed={formData.hairColor === color}
-              onClick={() => updateFormData({ hairColor: color })}
-              className={cn(
-                "p-1.5 rounded-lg border-2 transition-all text-center flex items-center justify-center",
-                formData.hairColor === color
-                  ? "border-purple-500 bg-gradient-to-r from-purple-100 to-pink-100"
-                  : "border-border bg-card hover:border-purple-300"
-              )}
-            >
-              <span className="text-sm font-bold">{color}</span>
-            </button>
-          ))}
-        </div>
-      </div>
-
-      <div className="space-y-1">
-        <Label id="child-hairstyle-label" className="text-sm font-medium">תסרוקת</Label>
-        <div role="group" aria-labelledby="child-hairstyle-label" className="grid grid-cols-3 gap-2">
-          {HAIR_STYLES.map((item) => (
-            <button
-              key={item.value}
-              type="button"
-              aria-pressed={formData.hairStyle === item.value}
-              onClick={() => updateFormData({ hairStyle: item.value })}
-              className={cn(
-                "p-1.5 rounded-lg border-2 transition-all text-center flex items-center justify-center gap-1",
-                formData.hairStyle === item.value
-                  ? "border-purple-500 bg-gradient-to-r from-purple-100 to-pink-100"
-                  : "border-border bg-card hover:border-purple-300"
-              )}
-            >
-              <span className="text-base">{item.emoji}</span>
-              <span className="text-sm font-bold">{item.value}</span>
-            </button>
-          ))}
-        </div>
-      </div>
-
       {/* Class/Kindergarten Name - Educators only */}
       {userRole === "educator" && (
         <div className="space-y-1">
@@ -1250,6 +1204,60 @@ const ChildInfoStep = ({ formData, updateFormData, screen = 1, restoredDraft, on
           </div>
         )}
       </div>
+
+      {/* Hair fields only without a face picture; with one, face and hair come from it. Saved values are kept. */}
+      {formData.childAvatarUrl ? (
+        <p className="text-sm text-muted-foreground text-center">השיער והפנים נלקחים מהאוואטר</p>
+      ) : !formData.childPhoto ? (
+      <>
+      {/* Hair color · Hair style */}
+      <div className="space-y-1">
+        <Label id="child-hair-color-label" className="text-sm font-medium">צבע שיער</Label>
+        <div role="group" aria-labelledby="child-hair-color-label" className="grid grid-cols-3 gap-2">
+          {HAIR_COLORS.map((color) => (
+            <button
+              key={color}
+              type="button"
+              aria-pressed={formData.hairColor === color}
+              onClick={() => updateFormData({ hairColor: color })}
+              className={cn(
+                "p-1.5 rounded-lg border-2 transition-all text-center flex items-center justify-center",
+                formData.hairColor === color
+                  ? "border-purple-500 bg-gradient-to-r from-purple-100 to-pink-100"
+                  : "border-border bg-card hover:border-purple-300"
+              )}
+            >
+              <span className="text-sm font-bold">{color}</span>
+            </button>
+          ))}
+        </div>
+      </div>
+
+      <div className="space-y-1">
+        <Label id="child-hairstyle-label" className="text-sm font-medium">תסרוקת</Label>
+        <div role="group" aria-labelledby="child-hairstyle-label" className="grid grid-cols-3 gap-2">
+          {HAIR_STYLES.map((item) => (
+            <button
+              key={item.value}
+              type="button"
+              aria-pressed={formData.hairStyle === item.value}
+              onClick={() => updateFormData({ hairStyle: item.value })}
+              className={cn(
+                "p-1.5 rounded-lg border-2 transition-all text-center flex items-center justify-center gap-1",
+                formData.hairStyle === item.value
+                  ? "border-purple-500 bg-gradient-to-r from-purple-100 to-pink-100"
+                  : "border-border bg-card hover:border-purple-300"
+              )}
+            >
+              <span className="text-base">{item.emoji}</span>
+              <span className="text-sm font-bold">{item.value}</span>
+            </button>
+          ))}
+        </div>
+      </div>
+
+      </>
+      ) : null}
 
       {/* Save Button - clearly visible above the fixed Continue button */}
       <div className="pt-2 pb-4">

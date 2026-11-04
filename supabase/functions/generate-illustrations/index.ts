@@ -1366,7 +1366,9 @@ serve(async (req) => {
     const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
     const requestBody = await req.json();
-    const { storyId, childPhoto, childAvatarUrl, childGender: reqChildGender, ageRange, adventureLogic, userId, childName, topic, singlePageNumber } = requestBody;
+    const { storyId, childPhoto, childAvatarUrl, childGender: reqChildGender, ageRange, adventureLogic, userId, childName, topic, singlePageNumber, firstDrawing } = requestBody;
+    // generate-story dispatches first drawings one page at a time; only a real redraw reuses the saved outfit as-is.
+    const isRedraw = singlePageNumber !== undefined && singlePageNumber !== null && firstDrawing !== true;
     const reqAppearance: Appearance = (requestBody && typeof requestBody.appearance === "object" && requestBody.appearance) ? requestBody.appearance : {};
     const reqChildAge: number | null = Number.isFinite(Number(requestBody?.childAge)) ? Number(requestBody.childAge) : null;
     
@@ -1692,13 +1694,13 @@ serve(async (req) => {
     if (storyId) {
       const { data: so } = await supabase.from("stories").select("story_outfit, kippah, kippah_color, child_gender").eq("id", storyId).maybeSingle();
       // A redraw always reuses the story's saved outfit; a first drawing uses it only without parent clothes.
-      if (!parentOutfitEn || singlePageNumber) savedOutfit = (so as any)?.story_outfit || null;
+      if (!parentOutfitEn || isRedraw) savedOutfit = (so as any)?.story_outfit || null;
       kippahInfo = kippahForStory(so as any);
     }
     const kippahPhrase = kippahInfo.kippah ? `, wearing a small knitted ${kippahInfo.color} kippah (small kippah on the head, hair visible)` : ", uncovered head, hair visible";
-    storyOutfit = (singlePageNumber && savedOutfit) || parentOutfitEn || savedOutfit || storyOutfit || pickDefaultOutfit(String(storyId || childName || "story"));
+    storyOutfit = (isRedraw && savedOutfit) || parentOutfitEn || savedOutfit || storyOutfit || pickDefaultOutfit(String(storyId || childName || "story"));
     // Every first drawing saves the final outfit (parent clothes included) for redraws/coloring.
-    if (!savedOutfit && storyId && !singlePageNumber) {
+    if (!savedOutfit && storyId && !isRedraw) {
       await supabase.from("stories").update({ story_outfit: storyOutfit }).eq("id", storyId).is("story_outfit", null);
     }
     console.log(`🎽 Story outfit locked for all pages: "${storyOutfit}"`);
@@ -1847,7 +1849,7 @@ serve(async (req) => {
       }
 
       // Per-page outfit: parent clothes by default, topic outfit only where the text describes it.
-      const storyOutfit = (parentOutfitEn && !(singlePageNumber && savedOutfit))
+      const storyOutfit = (parentOutfitEn && !(isRedraw && savedOutfit))
         ? resolvePageOutfit(parentOutfitEn, topicOutfit, page.text, pages.find((pp) => pp.page_number === page.page_number - 1)?.text)
         : baseStoryOutfit;
       const visualAnchor = storyOutfit === baseStoryOutfit

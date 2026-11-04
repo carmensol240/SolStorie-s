@@ -2666,6 +2666,7 @@ ${fullStoryText}`;
             childName: childName,
             topic: topic,
             singlePageNumber: page.page_number,
+            firstDrawing: true,
             appearance: reqAppearance,
             childAge: childAgeRaw,
           }),
