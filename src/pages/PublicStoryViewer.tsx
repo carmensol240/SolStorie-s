@@ -290,9 +290,8 @@ const PublicStoryViewer = () => {
                   <p className="text-4xl">📚✨</p>
                   <h2 className="text-2xl font-bold text-[#8B4513]">תודה שקראתם!</h2>
                   <p className="text-[#6B4423]">נוצר באהבה ב-SolStorie's™</p>
-                  <Button onClick={() => navigate("/")} variant="outline" className="border-purple-300 text-purple-700 hover:bg-purple-50 mt-4">
-                    <Home className="w-4 h-4 ml-2" />
-                    צרו סיפור משלכם
+                  <Button onClick={() => navigate("/create")} className="mt-4 min-h-[52px] text-lg font-bold px-6">
+                    ✨ ליצור סיפור חדש
                   </Button>
                 </div>
                 <button onClick={() => handlePageNav('prev')} aria-label="עמוד קודם"

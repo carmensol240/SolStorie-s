@@ -1840,6 +1840,22 @@ const [currentPage, setCurrentPage] = useState(0);
     };
   }, [currentPage, virtualPages, preloadIllustration]);
 
+  // One-time hint pointing at the "My stories" back button (per user, per browser).
+  const backHintKey = user?.id ? `user_${user.id}_story_back_hint_seen` : null;
+  const [showBackHint, setShowBackHint] = useState(false);
+  useEffect(() => {
+    if (!backHintKey) return;
+    try { setShowBackHint(!localStorage.getItem(backHintKey)); } catch { /* storage blocked */ }
+  }, [backHintKey]);
+  const dismissBackHint = useCallback(() => {
+    setShowBackHint(false);
+    if (backHintKey) { try { localStorage.setItem(backHintKey, '1'); } catch { /* ignore */ } }
+  }, [backHintKey]);
+  const hintStartPage = useRef(currentPage);
+  useEffect(() => {
+    if (showBackHint && currentPage !== hintStartPage.current) dismissBackHint();
+  }, [currentPage, showBackHint, dismissBackHint]);
+
   // "Let's talk about the story" — shown at the end; made once on the server for older stories.
   const [talkQuestions, setTalkQuestions] = useState<string[]>([]);
   const reachedEnd = !!story && virtualPages.length > 0 && currentPage >= virtualPages.length;
@@ -2005,7 +2021,9 @@ const [currentPage, setCurrentPage] = useState(0);
       
       {/* Header */}
       <BookHeader
-        onBack={() => navigate("/library")}
+        onBack={() => { dismissBackHint(); navigate("/library"); }}
+        showBackHint={showBackHint}
+        onDismissBackHint={dismissBackHint}
         onShare={guardDemo(handleShare)}
             onDownload={guardPdfDownload(() => story && exportToPdf(story))}
         pdfLocked={!canDownloadPdf}
@@ -2091,7 +2109,7 @@ const [currentPage, setCurrentPage] = useState(0);
                 <button
                   onClick={() => navigate('/library')}
                   className="absolute top-3 right-3 z-10 p-2 rounded-full hover:bg-purple-50 transition-colors"
-                  aria-label="חזרה לספרייה"
+                  aria-label="חזרה להסיפורים שלי"
                 >
                   <ChevronRight className="w-5 h-5 text-purple-500" />
                 </button>
@@ -2189,6 +2207,16 @@ const [currentPage, setCurrentPage] = useState(0);
                       </Button>
                     </div>
                   )}
+
+                  {/* Way back: big, obvious buttons */}
+                  <nav aria-label="מה עכשיו?" className="w-full max-w-xs mx-auto flex flex-col gap-3 pt-2">
+                    <Button onClick={() => navigate('/library')} className="w-full min-h-[52px] text-lg font-bold">
+                      📚 לכל הסיפורים שלי
+                    </Button>
+                    <Button onClick={() => navigate('/create')} variant="outline" className="w-full min-h-[52px] text-lg font-bold border-2 border-primary text-primary">
+                      ✨ ליצור סיפור חדש
+                    </Button>
+                  </nav>
 
                   {/* Footer message */}
                   <p className="text-sm text-purple-600 pt-2">נתראה בסיפור הבא 💜</p>

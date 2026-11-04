@@ -18,7 +18,7 @@ const ROUTE_TITLES: { match: RegExp; title: string }[] = [
   { match: /^\/create/, title: "יצירת סיפור" },
   { match: /^\/demo-story/, title: "סיפור לדוגמא" },
   { match: /^\/story\//, title: "צפייה בסיפור" },
-  { match: /^\/library/, title: "הספרייה שלי" },
+  { match: /^\/library/, title: "הסיפורים שלי" },
   { match: /^\/flipbook/, title: "ספרון דיגיטלי" },
   { match: /^\/s\//, title: "סיפור משותף" },
   { match: /^\/view\//, title: "סיפור משותף" },

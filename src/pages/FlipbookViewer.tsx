@@ -240,10 +240,10 @@ const FlipbookViewer = () => {
           size="sm"
           onClick={() => navigate("/library")}
           className="text-purple-700 hover:bg-purple-100 gap-1"
-          aria-label="חזרה לספרייה"
+          aria-label="חזרה להסיפורים שלי"
         >
           <ArrowRight className="w-5 h-5" />
-          <span className="text-sm">לספרייה</span>
+          <span className="text-sm">הסיפורים שלי</span>
         </Button>
         
         <h1 className="font-serif text-lg font-semibold bg-primary bg-clip-text text-transparent">

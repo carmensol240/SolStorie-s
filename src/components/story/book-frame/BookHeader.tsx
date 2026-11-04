@@ -38,6 +38,9 @@ import { cn } from "@/lib/utils";
 
 interface BookHeaderProps {
   onBack: () => void;
+  /** One-time bubble under the back button. */
+  showBackHint?: boolean;
+  onDismissBackHint?: () => void;
   onShare: () => void;
   onDownload: () => void;
   onShareWhatsApp?: () => void;
@@ -77,6 +80,8 @@ interface BookHeaderProps {
 
 export const BookHeader: React.FC<BookHeaderProps> = ({
   onBack,
+  showBackHint = false,
+  onDismissBackHint,
   onShare,
   onDownload,
   onShareWhatsApp,
@@ -108,21 +113,35 @@ export const BookHeader: React.FC<BookHeaderProps> = ({
     <header className="sticky top-0 z-40 backdrop-blur-md border-b border-white/30 px-3 py-2 shadow-sm" style={{ background: 'rgba(255, 255, 255, 0.75)' }}>
       <div className="flex items-center justify-between max-w-6xl mx-auto">
         {/* Back Button */}
-        <Tooltip>
-          <TooltipTrigger asChild>
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={onBack}
-              className="text-slate-600 hover:bg-sky-100/60 min-h-[44px] p-1.5 md:p-2 gap-0.5 md:gap-1 flex-col md:flex-row h-auto"
-              aria-label="חזרה לספרייה"
+        <div className="relative">
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={onBack}
+            className="text-primary font-bold hover:bg-primary/10 min-h-[44px] px-2 md:px-3 gap-1 h-auto border border-primary/30 rounded-full"
+            aria-label="חזרה להסיפורים שלי"
+          >
+            <ArrowRight className="w-5 h-5" aria-hidden="true" />
+            <span className="text-sm leading-none whitespace-nowrap">הסיפורים שלי</span>
+          </Button>
+          {showBackHint && (
+            <div
+              role="status"
+              className="absolute top-full right-0 mt-2 z-50 w-56 rounded-xl bg-primary text-primary-foreground shadow-lg p-3 pe-8 text-sm font-bold leading-snug"
             >
-              <ArrowRight className="w-5 h-5" />
-              <span className="text-sm md:text-sm leading-none font-medium">חזרה</span>
-            </Button>
-          </TooltipTrigger>
-          <TooltipContent side="bottom">חזרה לספרייה</TooltipContent>
-        </Tooltip>
+              <span className="absolute -top-1.5 right-6 w-3 h-3 rotate-45 bg-primary" aria-hidden="true" />
+              כאן חוזרים לכל הסיפורים שלכם
+              <button
+                type="button"
+                onClick={onDismissBackHint}
+                aria-label="סגירה"
+                className="absolute top-1 left-1 w-7 h-7 rounded-full flex items-center justify-center hover:bg-primary-foreground/20"
+              >
+                ✕
+              </button>
+            </div>
+          )}
+        </div>
 
         {/* Center Actions - Essentials Only */}
         <div className="flex items-center gap-1 md:gap-2">
