@@ -2251,8 +2251,10 @@ const [currentPage, setCurrentPage] = useState(0);
                     ) : (
                       <div className="absolute inset-0 w-full h-full" style={{ background: getTopicTheme(story.topic).bg }} />
                     )}
-                    {/* Dark gradient overlay for text readability */}
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-transparent z-[1]" />
+                    {/* Dark translucent band at the bottom, only behind the text */}
+                    {currentVirtual.text && currentVirtual.text.trim() && !currentVirtual.isCover && (
+                      <div className="absolute inset-x-0 bottom-0 h-1/2 bg-gradient-to-t from-black/80 via-black/55 to-transparent z-[1] pointer-events-none" />
+                    )}
                     {/* Dedication overlay on first page */}
                     {currentVirtual.isCover && story && (
                       <div className="absolute top-0 left-0 right-0 z-20 p-4 pt-6 bg-gradient-to-b from-black/60 via-black/30 to-transparent">
@@ -2395,6 +2397,37 @@ const [currentPage, setCurrentPage] = useState(0);
                       />
                     </div>
                   </>
+                ) : currentVirtual.type === 'picture' ? (
+                  /* Phone picture page — the whole picture mounted on book paper */
+                  <BookPaper illustrationPath={currentVirtual.illustrationUrl}>
+                    <div className="absolute inset-0 p-3" data-testid="story-picture-page">
+                      <div className="relative h-full w-full">
+                        {currentVirtual.illustrationUrl ? (
+                          <ReaderIllustration path={currentVirtual.illustrationUrl} alt={illustrationAlt(currentVirtual.text, currentVirtual.dbPage?.page_number)} frameColor={pageAccent} />
+                        ) : (
+                          <div className="absolute inset-0 flex items-center justify-center">
+                            <div className="w-full aspect-[1408/768] rounded-xl bg-paper-muted animate-pulse" />
+                            <p className="absolute text-sm font-semibold text-paper-foreground/70" dir="rtl">מכינים איור קסום...</p>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                    <div className="absolute top-3 left-3 z-20">
+                      <PageRecordingControls
+                        pageNumber={currentVirtual.dbPage.page_number}
+                        isRecording={pageRecording.recordingPage === currentVirtual.dbPage.page_number}
+                        hasPendingBlob={pageRecording.pendingBlob?.page === currentVirtual.dbPage.page_number}
+                        hasSaved={pageRecording.hasSavedRecording(currentVirtual.dbPage.page_number)}
+                        isPlaying={pageRecording.playingPage === currentVirtual.dbPage.page_number}
+                        onStartRecording={guardDemo(() => pageRecording.startRecording(currentVirtual.dbPage.page_number))}
+                        onStopRecording={pageRecording.stopRecording}
+                        onSave={guardDemo(pageRecording.saveRecording)}
+                        onDiscard={pageRecording.discardPending}
+                        onPlay={guardDemo(() => pageRecording.playRecording(currentVirtual.dbPage.page_number))}
+                        onStopPlaying={pageRecording.stopPlaying}
+                      />
+                    </div>
+                  </BookPaper>
                 ) : currentVirtual.type === 'spread' ? (
                   /* Story page: phone = picture on top + text below (one screen, no scroll);
                      wide screen = open book, text on the right page, picture on the left page. */
@@ -2417,37 +2450,44 @@ const [currentPage, setCurrentPage] = useState(0);
                       />
                     );
                     return (
-                      <div className="absolute inset-0 bg-paper text-paper-foreground flex flex-col lg:grid lg:grid-cols-2" dir="rtl" data-testid="story-spread">
-                        {/* Text page (right on wide screens, below the picture on phones) */}
-                        <div className={cn("order-2 lg:order-1 min-h-0 flex flex-col lg:h-full lg:border-l lg:border-paper-muted lg:shadow-[inset_-12px_0_18px_-14px_hsl(var(--paper-foreground)/0.35)]", (currentVirtual.illustrationUrl || currentVirtual.illustrationPrompt) ? "flex-initial" : "flex-1 lg:col-span-2 lg:border-l-0 lg:shadow-none justify-center")}>
-                         <ScrollHintText resetKey={`${currentPage}-${fontSizeIndex}-${showNikud}`} className="flex flex-col lg:justify-center lg:h-full px-5 md:px-10 pt-2 lg:pt-8 pb-14 lg:pb-16">
-                          {displayText.trim() && (
-                            <p className={cn("text-center font-semibold whitespace-pre-line", currentFontSize.size)} style={{ lineHeight: '1.65', overflowWrap: 'break-word' }} dir="rtl">
-                              {displayText}
-                            </p>
-                          )}
-                          <div className="mt-2 flex justify-center">
-                            <span className="text-sm font-bold text-paper-foreground/80" data-testid="page-counter">{currentVirtual.dbPage.page_number} / {story.pages.length}</span>
-                          </div>
-                         </ScrollHintText>
-                        </div>
-                        {/* Picture page (left on wide screens, on top on phones) — shrinks when the text is long */}
-                        {(currentVirtual.illustrationUrl || currentVirtual.illustrationPrompt) ? (
-                        <div className="order-1 lg:order-2 relative flex-1 min-h-[40dvh] lg:h-full lg:min-h-0 m-2 lg:m-6">
-                          {currentVirtual.illustrationUrl ? (
-                            <ReaderIllustration path={currentVirtual.illustrationUrl} alt={illustrationAlt(currentVirtual.text, currentVirtual.dbPage?.page_number)} />
-                          ) : (
-                            <div className="absolute inset-0 flex flex-col items-center justify-center gap-2">
-                              <div className="w-full max-h-full aspect-[1408/768] rounded-xl bg-paper-muted animate-pulse" />
-                              {currentVirtual.illustrationPrompt && (
-                                <p className="absolute text-sm font-semibold text-paper-foreground/70">מכינים איור קסום...</p>
-                              )}
+                      <div className={cn("absolute inset-0 bg-paper text-paper-foreground flex", isWideReader ? "flex-row" : "flex-col")} dir="rtl" data-testid="story-spread">
+                        {/* Text page (left on wide screens; the whole page on phones) */}
+                        <div className={cn("relative min-h-0", isWideReader ? "order-2 w-1/2 border-r border-paper-muted" : "flex-1", !(currentVirtual.illustrationUrl || currentVirtual.illustrationPrompt) && isWideReader && "w-full border-r-0")}>
+                          <BookPaper illustrationPath={currentVirtual.dbPage.illustration_url}>
+                            <BookTextFrame accent={pageAccent} />
+                            <div className="absolute inset-3.5 md:inset-5 flex flex-col">
+                              <ScrollHintText resetKey={`${currentPage}-${fontSizeIndex}-${showNikud}`} className="flex flex-col justify-center h-full px-6 md:px-12 pt-10 pb-12">
+                                {displayText.trim() && (
+                                  <p className={cn("text-center font-medium whitespace-pre-line text-paper-foreground", currentFontSize.book)} style={{ lineHeight: '1.75', overflowWrap: 'break-word' }} dir="rtl">
+                                    {displayText}
+                                  </p>
+                                )}
+                              </ScrollHintText>
                             </div>
-                          )}
-                          <div className="absolute top-1 left-1 z-20">{recording}</div>
+                            <div className="absolute bottom-6 left-0 right-0 flex justify-center pointer-events-none">
+                              <span className="text-sm font-bold text-paper-foreground/80" data-testid="page-counter">{currentVirtual.dbPage.page_number} / {story.pages.length}</span>
+                            </div>
+                            <div className="absolute top-5 left-5 z-20">{recording}</div>
+                          </BookPaper>
                         </div>
-                        ) : (
-                          <div className="absolute top-3 left-3 z-20">{recording}</div>
+                        {/* Picture page (right on wide screens) — mounted like a photo in a book */}
+                        {isWideReader && (currentVirtual.illustrationUrl || currentVirtual.illustrationPrompt) && (
+                          <div className="relative order-1 w-1/2 min-h-0">
+                            <BookPaper illustrationPath={currentVirtual.illustrationUrl}>
+                              <div className="absolute inset-0 p-4 md:p-6">
+                                <div className="relative h-full w-full">
+                                  {currentVirtual.illustrationUrl ? (
+                                    <ReaderIllustration path={currentVirtual.illustrationUrl} alt={illustrationAlt(currentVirtual.text, currentVirtual.dbPage?.page_number)} frameColor={pageAccent} />
+                                  ) : (
+                                    <div className="absolute inset-0 flex items-center justify-center">
+                                      <div className="w-full max-h-full aspect-[1408/768] rounded-xl bg-paper-muted animate-pulse" />
+                                      <p className="absolute text-sm font-semibold text-paper-foreground/70">מכינים איור קסום...</p>
+                                    </div>
+                                  )}
+                                </div>
+                              </div>
+                            </BookPaper>
+                          </div>
                         )}
                       </div>
                     );
