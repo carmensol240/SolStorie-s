@@ -120,10 +120,12 @@ const Adventure = () => {
 
   return (
     <div id="main-content" className="min-h-[100dvh] flex flex-col bg-gradient-to-b from-amber-50/50 to-background dark:from-background animate-fade-in" dir="rtl">
-      {/* Hero Section: header above, portrait video in the middle, CTA below */}
-      <div className="relative w-full flex-shrink-0 flex flex-col">
+      {/* Hero Section: header above, portrait video in the middle, CTA below.
+          The whole section is exactly one screen tall so the full 9:16 frame
+          (logo + title above, buttons below) is visible without scrolling. */}
+      <div className="relative w-full h-[100dvh] min-h-[560px] flex-shrink-0 flex flex-col">
         {/* Top bar - credits, sound & pause */}
-        <div className="relative z-20 flex items-center justify-between px-4 pt-[max(env(safe-area-inset-top,12px),20px)]">
+        <div className="relative z-20 shrink-0 flex items-center justify-between px-4 pt-[max(env(safe-area-inset-top,12px),20px)]">
           <button
             onClick={() => navigate(user ? "/upgrade" : "/auth")}
             className="flex items-center gap-1.5 bg-foreground/70 backdrop-blur-xl border border-background/30 rounded-full px-3 py-1.5 hover:bg-foreground/80 transition-colors"
@@ -156,7 +158,7 @@ const Adventure = () => {
         </div>
 
         {/* Logo + tagline (above the video, never on top of it) */}
-        <div className="relative z-10 flex flex-col items-center gap-1 px-4 pt-1 pb-3 text-center">
+        <div className="relative z-10 shrink-0 flex flex-col items-center gap-1 px-4 pt-1 pb-3 text-center">
           <h1
             className="leading-tight font-black tracking-tight"
             style={{ fontSize: "clamp(2.5rem, 11vw, 4.5rem)", fontFamily: "'Baloo 2', 'Heebo', sans-serif" }}
