@@ -2278,7 +2278,20 @@ The action, objects, characters, and emotions shown MUST come from the STORY TEX
     const neededPages = (allIllustrationPages ?? []).filter(p =>
       !tasteState?.is_taste || p.page_number <= (tasteState.taste_page_limit ?? 0));
     const totalNeeded = neededPages.length;
-    const totalDone = neededPages.filter(p => p.illustration_url).length;
+    // A page held for admin (held_mismatch log, no picture) counts as finished so the
+    // story still becomes ready; the reader shows the placeholder for that page.
+    const missingNums = neededPages.filter(p => !p.illustration_url).map(p => p.page_number);
+    let heldNums = new Set<number>();
+    if (missingNums.length > 0) {
+      const { data: heldLogs } = await supabase
+        .from("illustration_logs")
+        .select("page_number")
+        .eq("story_id", storyId)
+        .eq("model_used", "held_mismatch")
+        .in("page_number", missingNums);
+      heldNums = new Set((heldLogs ?? []).map(l => l.page_number as number));
+    }
+    const totalDone = neededPages.filter(p => p.illustration_url || heldNums.has(p.page_number)).length;
     console.log(`Illustration progress: ${totalDone}/${totalNeeded} pages completed`);
 
     if (totalDone >= totalNeeded) {
