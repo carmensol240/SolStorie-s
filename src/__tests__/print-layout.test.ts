@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { buildPageSequence, PAGE_MM, PAGE_PX, SAFE_MM, PRINT_TEXTS, printLang, containRect, TEXT_FIT_STEPS } from "@/lib/print-layout";
+import { buildPageSequence, PAGE_MM, PAGE_PX, SAFE_MM, PRINT_TEXTS, printLang, containRect, textFitSteps, PX_PER_PT, isTextOnPictureAge, isYoungReader } from "@/lib/print-layout";
 import { hasPdfEntitlement } from "../../supabase/functions/_shared/pdf-entitlement";
 
 const pages = (pics: boolean[]) => pics.map(p => ({ illustration_url: p ? "x.png" : null }));
@@ -51,9 +51,14 @@ describe("print book layout", () => {
     expect(s.filter(x => x.kind === "decorative")).toHaveLength(1);
   });
   it("text fit goes 54px→40px, then line-height 1.9→1.6", () => {
-    expect(TEXT_FIT_STEPS[0]).toEqual({ font: 54, line: 1.9 });
-    expect(TEXT_FIT_STEPS[TEXT_FIT_STEPS.length - 1]).toEqual({ font: 40, line: 1.6 });
-    expect(Math.min(...TEXT_FIT_STEPS.map(s => s.font))).toBe(40);
+    // Print text never goes below 20 pt for young readers and 16 pt for older ones.
+    const young = textFitSteps(true), older = textFitSteps(false);
+    expect(Math.min(...young.map(s => s.font)) / PX_PER_PT).toBeGreaterThanOrEqual(20);
+    expect(Math.min(...older.map(s => s.font)) / PX_PER_PT).toBeGreaterThanOrEqual(16);
+    expect(Math.min(...young.map(s => s.font)) / PX_PER_PT).toBeLessThan(21);
+    expect(Math.min(...older.map(s => s.font)) / PX_PER_PT).toBeLessThan(17);
+    expect(young[0].font / PX_PER_PT).toBeCloseTo(30, 0);
+    expect(older[0].font / PX_PER_PT).toBeCloseTo(24, 0);
   });
   it("total is a multiple of 4 and back cover is always last", () => {
     for (let n = 1; n <= 16; n++) {
@@ -120,5 +125,18 @@ describe("server print entitlement (upscale)", () => {
     expect(await hasPdfEntitlement(fakeClient({ sub: true }), "u", "s")).toBe(true);
     expect(await hasPdfEntitlement(fakeClient({ pkgs: ["single_story_full"] }), "u", "s")).toBe(true);
     expect(await hasPdfEntitlement(fakeClient({ unlock: true }), "u", "s")).toBe(true);
+  });
+  it("ages 0-4 print the text on the picture: one page per story page, total a multiple of 4", () => {
+    expect(isTextOnPictureAge("0-2")).toBe(true);
+    expect(isTextOnPictureAge("2-4")).toBe(true);
+    expect(isTextOnPictureAge("5-7")).toBe(false);
+    expect(isYoungReader("2-4")).toBe(true);
+    expect(isYoungReader("5-7")).toBe(false);
+    for (let n = 1; n <= 14; n++) {
+      const s = buildPageSequence(pages(Array(n).fill(true)), { textOnPicture: true });
+      expect(s.length % 4).toBe(0);
+      expect(s.filter(x => x.kind === "illustration" && x.withText)).toHaveLength(n);
+      expect(s.filter(x => x.kind === "text")).toHaveLength(0);
+    }
   });
 });

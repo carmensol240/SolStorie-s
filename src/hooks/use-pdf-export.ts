@@ -616,7 +616,13 @@ export const usePdfExport = () => {
             } catch {
               // print copy failed to load → try the original, else a decorative page (never skip)
               try { await addIllustrationPage(pdf, signedUrlMap[u] || u, band); }
-              catch { await captureHtml(container, renderDecorativePage(), pdf, 'JPEG'); }
+              catch {
+                if (band && band.text.trim()) {
+                  const el = renderTextOnlyPage([band.text], lang);
+                  await fitTextPage(container, el, young);
+                  await captureHtml(container, el, pdf, 'JPEG');
+                } else await captureHtml(container, renderDecorativePage(), pdf, 'JPEG');
+              }
             }
             break;
           }
