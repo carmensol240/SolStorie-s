@@ -2549,17 +2549,7 @@ const [currentPage, setCurrentPage] = useState(0);
           </div>
           </MagicalBookFrame>
 
-          {/* Watermark — non-clickable, shown only on illustration/cover pages */}
-          {!isEndPage && currentVirtual && (currentVirtual.type === 'illustration' || currentVirtual.type === 'combined') && (
-            <div
-              className="absolute bottom-14 left-1/2 -translate-x-1/2 z-40 opacity-30 pointer-events-none select-none"
-              aria-hidden="true"
-            >
-              <span className="text-sm font-black logo-3d-bubble">
-                <span className="logo-rainbow">SolStorie's™</span>
-              </span>
-            </div>
-          )}
+          {/* No logo/watermark on pictures — the small brand lives on text pages only. */}
 
           {/* Bottom nav arrows */}
           <div className="absolute bottom-2 left-0 right-0 z-40 flex items-center justify-between px-4">
