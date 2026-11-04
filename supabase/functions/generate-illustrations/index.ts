@@ -43,6 +43,10 @@ const corsHeaders = {
 // on subsequent pages, locking character appearance across the story.
 const SUPABASE_PUBLIC_URL = Deno.env.get("SUPABASE_URL") || "";
 const STORY_ILLUSTRATIONS_PUBLIC_BASE = `${SUPABASE_PUBLIC_URL}/storage/v1/object/public/story-illustrations`;
+function withIllustrationVersion(path: string): string {
+  return `${path.split("?")[0]}?v=${Date.now()}`;
+}
+
 function buildPublicIllustrationUrl(path: string | null | undefined): string | null {
   if (!path) return null;
   if (path.startsWith("http://") || path.startsWith("https://")) return path;
@@ -2178,7 +2182,13 @@ The action, objects, characters, and emotions shown MUST come from the STORY TEX
       if (illustrationUrl) {
         const { error: updateError } = await supabase
           .from("story_pages")
-          .update({ illustration_url: illustrationUrl })
+          // Version suffix: the file name stays page-N.png, so without it phones,
+          // the service worker and offline copies keep showing the old picture.
+          // A redraw also drops the stale print-only upscaled copy.
+          .update({
+            illustration_url: withIllustrationVersion(illustrationUrl),
+            ...(hadExisting ? { print_illustration_url: null, print_illustration_width: null } : {}),
+          })
           .eq("id", page.id);
 
         if (updateError) {
