@@ -130,18 +130,19 @@ const GeneratingStep = ({ formData, requestId, onComplete }: GeneratingStepProps
   // Build dynamic cast list including the child as a superhero
   const allCharacters = useMemo(() => {
     const base = [...CAST_CHARACTERS];
-    if (formData.childAvatarUrl) {
+    const childImage = formData.childAvatarUrl || formData.childPhoto;
+    if (childImage) {
       const childHero = {
         name: formData.childName || "הגיבור שלנו",
-        image: formData.childAvatarUrl,
+        image: childImage,
         emoji: "🦸",
         verb: formData.childGender === "female" ? "מכינה" : "מכין",
       };
-      // Insert child at position 1 so they appear early
-      base.splice(1, 0, childHero);
+      // The child always comes first; the gang follows.
+      base.unshift(childHero);
     }
     return base;
-  }, [formData.childAvatarUrl, formData.childName, formData.childGender]);
+  }, [formData.childAvatarUrl, formData.childPhoto, formData.childName, formData.childGender]);
 
   const isSessionExpiredError = useCallback((e: unknown): boolean => {
     const msg = e instanceof Error ? e.message : String((e as any)?.message ?? e ?? "");

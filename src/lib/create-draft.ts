@@ -8,7 +8,7 @@ const FIELDS = [
   "childName", "childGender", "ageRange", "childAge", "storyLength", "nikud", "language",
   "hairColor", "hairStyle", "clothingType", "clothingColor", "kippah",
   "personalityTraits", "fixedDetails", "className", "photoConsent",
-  "topic", "customTopic", "childPhoto", "childAvatarUrl",
+  "topic", "customTopic", "childPhoto", "childAvatarUrl", "childId",
 ] as const;
 
 export interface CreateDraft {
