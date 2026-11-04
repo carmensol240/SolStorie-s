@@ -8,8 +8,8 @@ import { supabase } from "@/integrations/supabase/client";
 
 import MobileNavigation from "@/components/MobileNavigation";
 import HomeExplainer from "@/components/home/HomeExplainer";
-import heroVideoAsset from "@/assets/hero-noam.mp4.asset.json";
-import heroPosterAsset from "@/assets/hero-noam-poster.jpg.asset.json";
+import heroVideoAsset from "@/assets/hero-noam-land.mp4.asset.json";
+import heroPosterAsset from "@/assets/hero-noam-land-poster.jpg.asset.json";
 
 const heroVideo = heroVideoAsset.url;
 const heroPoster = heroPosterAsset.url;
