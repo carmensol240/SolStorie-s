@@ -120,10 +120,11 @@ const Adventure = () => {
 
   return (
     <div id="main-content" className="min-h-[100dvh] flex flex-col bg-gradient-to-b from-amber-50/50 to-background dark:from-background animate-fade-in" dir="rtl">
-      {/* Hero Section: header above, portrait video in the middle, CTA below.
-          The whole section is exactly one screen tall so the full 9:16 frame
-          (logo + title above, buttons below) is visible without scrolling. */}
-      <div className="relative w-full h-[100dvh] min-h-[560px] flex-shrink-0 flex flex-col">
+      {/* Hero Section: header above, landscape 16:9 video in the middle, CTA below.
+          On desktop the section is exactly one screen tall so the whole frame
+          (logo + title above, buttons below) is visible without scrolling.
+          On phone the video sits at its natural 16:9 height and the page flows on. */}
+      <div className="relative w-full flex-shrink-0 flex flex-col md:h-[100dvh] md:min-h-[560px]">
         {/* Top bar - credits, sound & pause */}
         <div className="relative z-20 shrink-0 flex items-center justify-between px-4 pt-[max(env(safe-area-inset-top,12px),20px)]">
           <button
