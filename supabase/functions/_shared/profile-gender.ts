@@ -5,7 +5,6 @@ export interface GenderedProfile {
   genderHebrew: string;
   hairDescription: string;
   clothingDescription: string;
-  [k: string]: unknown;
 }
 
 const OTHER_WORDS: Record<"male" | "female", RegExp> = {
