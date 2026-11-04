@@ -1,12 +1,7 @@
-import { useState } from "react";
-import { Wand2, BookOpen, Volume2, Printer, Palette, ShieldCheck, UserRound, Sparkles, Check, Minus, Languages } from "lucide-react";
+import { Wand2, BookOpen, Camera, Sparkles, Check } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import GlobalFooter from "@/components/shared/GlobalFooter";
 import { CATALOG, formatPrice } from "@/config/promo";
-import topicFearOfDark from "@/assets/topic-fear-of-dark.jpg";
-import topicNewSibling from "@/assets/topic-new-sibling.jpeg";
-import topicKindergarten from "@/assets/topic-first-day-kindergarten.jpg";
-import topicSpace from "@/assets/topic-space-hero.jpg";
 import castSolAsset from "@/assets/cast-thumbs/sol.webp.asset.json";
 import castBenAsset from "@/assets/cast-thumbs/ben.webp.asset.json";
 import castMiaAsset from "@/assets/cast-thumbs/mia.webp.asset.json";
@@ -26,36 +21,14 @@ const CAST: { img: string; name: string; text: string }[] = [
 // No testimonials here until there are real customer reviews.
 
 const STEPS = [
-  {
-    icon: UserRound,
-    title: "מספרים לנו על הילד",
-    text: "שם, גיל ומראה. אפשר להוסיף תמונה כדי שהדמות תהיה דומה לו.",
-  },
-  {
-    icon: BookOpen,
-    title: "בוחרים נושא",
-    text: "הרפתקה, חגיגה, או משהו שהילד מתמודד איתו עכשיו.",
-  },
-  {
-    icon: Sparkles,
-    title: "מקבלים ספר מאויר",
-    text: "סיפור אישי עם איורים, שהילד שלכם הוא הגיבור שלו.",
-  },
+  { icon: Camera, title: "מעלים תמונה" },
+  { icon: BookOpen, title: "בוחרים נושא" },
+  { icon: Sparkles, title: "מקבלים ספר" },
 ];
 
-const TOPICS = [
-  { img: topicFearOfDark, label: "פחד מחושך" },
-  { img: topicNewSibling, label: "אח או אחות חדשים" },
-  { img: topicKindergarten, label: "יום ראשון בגן" },
-  { img: topicSpace, label: "הרפתקה בחלל" },
-];
-
-const INCLUDED = [
-  { icon: BookOpen, text: "ספר מאויר לקריאה בטלפון ובמחשב" },
-  { icon: Volume2, text: "הקראה בקול, ואפשרות להקליט את הקול שלכם" },
-  { icon: Printer, text: "ספר אמיתי ביד: קובץ להדפסה (בסיפור המלא)" },
-  { icon: Palette, text: "דפי צביעה מאיורי הסיפור" },
-  { icon: Languages, text: "סיפור בעברית או באנגלית, מעולה למשפחות דו-לשוניות ולסבים וסבתות בחו״ל" },
+const TOPIC_CHIPS = [
+  "פחד מחושך", "אח או אחות חדשים", "יום ראשון בגן", "הרפתקה בחלל", "היגיינה", "סיפורי תנ\"ך",
+  "גמילה מטיטול", "יום הולדת", "חברות", "לבקש סליחה", "חגים", "הליכה לרופא",
 ];
 
 // What each option includes (mirrors the Upgrade page products).
@@ -65,60 +38,36 @@ const HomeExplainer = () => {
 
   return (
     <div className="w-full bg-gradient-to-b from-amber-50 to-background dark:from-background dark:to-background" dir="rtl">
-      <div className="max-w-2xl mx-auto px-4 pt-12 pb-28 space-y-14">
-        {/* What it is */}
-        <section className="text-center space-y-3" aria-labelledby="home-what">
-          <h2 id="home-what" className="text-center text-3xl sm:text-4xl font-black text-foreground leading-tight">
-            כל ילד ראוי לסיפור משלו
-          </h2>
-          <p className="text-center text-lg text-muted-foreground leading-relaxed">
-            סיפור אישי בעברית או באנגלית, עם השם, המראה והעולם של הילד, על הנושא שהכי חשוב לכם עכשיו.
-          </p>
-        </section>
-
-        {/* How it works */}
-        <section aria-labelledby="home-how" className="space-y-5">
-          <h2 id="home-how" className="text-2xl font-black text-foreground text-center">
-            איך זה עובד
-          </h2>
-          <ol className="grid gap-4 sm:grid-cols-3">
+      <div className="max-w-2xl mx-auto px-4 pt-6 pb-10 space-y-8">
+        {/* How it works — one compact row */}
+        <section aria-labelledby="home-how" className="space-y-3">
+          <h2 id="home-how" className="text-2xl font-black text-foreground text-center">איך זה עובד</h2>
+          <ol className="grid grid-cols-3 gap-2">
             {STEPS.map((s, i) => (
-              <li key={s.title} className="bg-card rounded-2xl border p-5 text-center shadow-sm">
-                <div className="mx-auto mb-3 w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center">
+              <li key={s.title} className="flex flex-col items-center gap-1.5 text-center">
+                <div className="relative w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center">
                   <s.icon className="w-6 h-6 text-primary" aria-hidden="true" />
+                  <span className="absolute -top-1 -end-1 w-5 h-5 rounded-full bg-primary text-primary-foreground text-xs font-bold flex items-center justify-center" aria-hidden="true">{i + 1}</span>
                 </div>
-                <p className="text-center text-sm font-bold text-primary mb-1">שלב {i + 1}</p>
-                <h3 className="text-center text-lg font-black text-foreground mb-1">{s.title}</h3>
-                <p className="text-center text-base text-muted-foreground leading-relaxed">{s.text}</p>
+                <h3 className="text-center text-base font-bold text-foreground leading-tight">{s.title}</h3>
               </li>
             ))}
           </ol>
         </section>
 
-        {/* Meet the cast */}
-        <section aria-labelledby="home-cast" className="space-y-5">
-          <h2 id="home-cast" className="text-2xl font-black text-foreground text-center">
-            הכירו את סול והחבורה
-          </h2>
-          <ul className="grid grid-cols-3 sm:grid-cols-5 gap-3">
+        {/* Meet the cast — one sideways row */}
+        <section aria-labelledby="home-cast" className="space-y-3">
+          <h2 id="home-cast" className="text-2xl font-black text-foreground text-center">הכירו את החבורה</h2>
+          <ul className="flex gap-4 overflow-x-auto snap-x pb-2 -mx-4 px-4 sm:justify-center scrollbar-hide">
             {CAST.map((c) => (
-              <li key={c.name} className="bg-card rounded-2xl border p-3 text-center shadow-sm flex flex-col items-center">
-                <div className="w-20 h-20 rounded-full overflow-hidden border-4 border-primary/20 mb-2">
-                  <img
-                    src={c.img}
-                    alt={c.name}
-                    loading="lazy"
-                    className="w-full h-full object-cover"
-                  />
+              <li key={c.name} className="snap-start shrink-0 flex flex-col items-center w-20">
+                <div className="w-16 h-16 rounded-full overflow-hidden border-4 border-primary/20 mb-1">
+                  <img src={c.img} alt={`${c.name}, ${c.text}`} loading="lazy" className="w-full h-full object-cover" />
                 </div>
-                <h3 className="text-center text-base font-black text-foreground">{c.name}</h3>
-                <p className="text-center text-sm text-muted-foreground leading-snug">{c.text}</p>
+                <h3 className="text-center text-sm font-black text-foreground">{c.name}</h3>
               </li>
             ))}
           </ul>
-          <p className="text-center text-lg font-bold text-foreground">
-            הצטרפו גם אתם להרפתקאות של סול וחברים. הילד שלכם הוא הגיבור הבא ✨
-          </p>
           <div className="text-center">
             <button
               onClick={() => navigate("/coloring-gang")}
@@ -129,48 +78,15 @@ const HomeExplainer = () => {
           </div>
         </section>
 
-        {/* Example topics */}
-        <section aria-labelledby="home-topics" className="space-y-5">
-          <h2 id="home-topics" className="text-2xl font-black text-foreground text-center">
-            נושאים שהורים בוחרים
-          </h2>
-          <ul className="grid grid-cols-2 gap-3">
-            {TOPICS.map((t) => (
-              <li key={t.label} className="relative rounded-2xl overflow-hidden shadow-md aspect-square">
-                <img
-                  src={t.img}
-                  alt={`איור מתוך סיפור בנושא ${t.label}`}
-                  loading="lazy"
-                  className="absolute inset-0 w-full h-full object-cover"
-                />
-                <span className="absolute bottom-0 inset-x-0 bg-gradient-to-t from-black/75 to-transparent pt-8 pb-2 px-3 text-white font-bold text-base [text-shadow:0_1px_3px_rgba(0,0,0,0.9)]">
-                  {t.label}
-                </span>
-              </li>
+        {/* Topics — one sideways row of chips */}
+        <section aria-labelledby="home-topics" className="space-y-3">
+          <h2 id="home-topics" className="text-2xl font-black text-foreground text-center">מעל 100 נושאים</h2>
+          <ul className="flex gap-2 overflow-x-auto snap-x pb-2 -mx-4 px-4 scrollbar-hide">
+            {TOPIC_CHIPS.map((t) => (
+              <li key={t} className="snap-start shrink-0 rounded-full border-2 border-border bg-card px-4 py-2 text-base font-semibold text-foreground whitespace-nowrap">{t}</li>
             ))}
+            <li className="snap-start shrink-0 rounded-full border-2 border-primary bg-primary/10 px-4 py-2 text-base font-bold text-primary whitespace-nowrap">✍️ או נושא משלכם</li>
           </ul>
-          <p className="text-center text-base text-muted-foreground">ועוד עשרות נושאים לכל גיל ולכל מצב.</p>
-        </section>
-
-        {/* What you get */}
-        <section aria-labelledby="home-included" className="bg-card rounded-2xl border p-6 shadow-sm space-y-4">
-          <h2 id="home-included" className="text-2xl font-black text-foreground text-center">
-            מה מקבלים
-          </h2>
-          <ul className="space-y-3">
-            {INCLUDED.map((f) => (
-              <li key={f.text} className="flex items-center gap-3 text-base text-foreground">
-                <f.icon className="w-5 h-5 text-primary shrink-0" aria-hidden="true" />
-                {f.text}
-              </li>
-            ))}
-          </ul>
-          <div className="flex items-start gap-3 rounded-xl bg-muted/60 p-3 text-sm text-muted-foreground">
-            <ShieldCheck className="w-5 h-5 text-green-600 shrink-0 mt-0.5" aria-hidden="true" />
-            <p>
-              בלי פרסומות. התמונה של הילד משמשת רק ליצירת הדמות, ונמחקת כשמוחקים את פרופיל הילד.
-            </p>
-          </div>
         </section>
 
         {/* Prices — every card lists what it includes (central catalog) */}
@@ -188,14 +104,21 @@ const HomeExplainer = () => {
                   )}
                   <h3 className="text-center text-lg font-black text-foreground">{p.title}</h3>
                   <p className="text-center text-2xl font-black text-primary mt-1">₪{formatPrice(k)}</p>
+                  {k === "full" ? (
+                    <p className="mt-4 flex items-center justify-center gap-2 text-base font-black text-primary">
+                      <Check className="w-5 h-5 text-green-600 shrink-0" aria-hidden="true" />
+                      כל מה שבדיגיטלי + ספר להדפסה
+                    </p>
+                  ) : (
                   <ul className="mt-4 space-y-2">
-                    {p.includes.map((t, i) => (
+                    {p.includes.map((t) => (
                       <li key={t} className="flex items-start gap-2 text-base text-foreground">
                         <Check className="w-5 h-5 text-green-600 shrink-0 mt-0.5" aria-hidden="true" />
-                        <span className={k === "full" && i === p.includes.length - 1 ? "text-primary font-black" : undefined}>{t}</span>
+                        <span>{t}</span>
                       </li>
                     ))}
                   </ul>
+                  )}
                 </div>
               );
             })}
