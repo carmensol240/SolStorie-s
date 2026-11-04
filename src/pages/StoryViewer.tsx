@@ -1646,7 +1646,7 @@ const [currentPage, setCurrentPage] = useState(0);
   };
 
   type VirtualPage = {
-    type: 'illustration' | 'text' | 'combined' | 'spread';
+    type: 'illustration' | 'text' | 'combined' | 'spread' | 'picture';
     dbPage: StoryPage;
     illustrationUrl: string | null;
     illustrationPrompt: string | null;
@@ -1656,6 +1656,11 @@ const [currentPage, setCurrentPage] = useState(0);
   };
 
   const isToddler = story?.age_range === '0-2';
+  // Open book (picture + text side by side) on desktop and on phones held sideways.
+  const isWideReader = useWideReader();
+  const pictureFrameColor = useIllustrationAccent(
+    (currentPage >= 0 ? virtualPagesRefForAccent.current[currentPage]?.dbPage?.illustration_url : null) || null,
+  );
   const isLearningTopic = story?.topic?.startsWith('אות ') || story?.topic?.startsWith('מספר ') || story?.topic?.startsWith('צבע ') || story?.topic?.startsWith('צורת ');
 
   // Cover page removed — all ages start at page 0
@@ -1756,6 +1761,21 @@ const [currentPage, setCurrentPage] = useState(0);
           });
         }
 
+        // Portrait phones: the picture and its text are two separate book pages.
+        if (!isWideReader && (pageIllustration || pagePrompt)) {
+          result.push({
+            type: 'picture',
+            dbPage: page,
+            illustrationUrl: pageIllustration,
+            illustrationPrompt: pagePrompt,
+            text: page.text || '',
+          });
+          if (hasText) {
+            result.push({ type: 'spread', dbPage: page, illustrationUrl: null, illustrationPrompt: null, text: page.text || '' });
+          }
+          continue;
+        }
+
         if (hasIllustration || hasText || page.illustration_prompt) {
           result.push({
             type: 'spread',
@@ -1769,7 +1789,26 @@ const [currentPage, setCurrentPage] = useState(0);
     }
 
     return result;
-  }, [story?.pages, story?.cover_url, isToddler]);
+  }, [story?.pages, story?.cover_url, isToddler, isWideReader]);
+
+  // Rotating the phone switches between one-page and open-book layouts:
+  // stay on the same story page instead of jumping elsewhere.
+  const prevVirtualPagesRef = useRef(virtualPages);
+  useEffect(() => {
+    const prev = prevVirtualPagesRef.current;
+    prevVirtualPagesRef.current = virtualPages;
+    if (prev === virtualPages || prev.length === 0 || virtualPages.length === 0) return;
+    if (currentPage >= prev.length) { setCurrentPage(virtualPages.length); return; }
+    const was = prev[currentPage];
+    if (!was?.dbPage) return;
+    const matches = virtualPages
+      .map((v, i) => ({ v, i }))
+      .filter(({ v }) => v.dbPage?.page_number === was.dbPage.page_number && !!v.isCover === !!was.isCover);
+    if (!matches.length) return;
+    const pick = (was.type === 'spread' && !was.illustrationUrl && matches.length > 1) ? matches[matches.length - 1] : matches[0];
+    if (pick.i !== currentPage) setCurrentPage(pick.i);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [virtualPages]);
 
   // Preload priority: current page + the next 2 first, then every other
   // illustration in the background (low priority) so a book opened once can be
@@ -1864,7 +1903,7 @@ const [currentPage, setCurrentPage] = useState(0);
   // (cover illustration + text + illustration + text), then trigger DemoLockModal.
   // Toddler mode adds a dedicated cover slide before the page-1 text, so it gets
   // one extra slide to expose the same amount of actual content.
-  const DEMO_VIRTUAL_PAGE_LIMIT = isToddler ? 5 : 3; // 3+: cover + spread 1 + spread 2 (same 2 story pages as before)
+  const DEMO_VIRTUAL_PAGE_LIMIT = isToddler ? 5 : (isWideReader ? 3 : 5); // 3+: cover + spread 1 + spread 2 (same 2 story pages as before)
   // Unpaid free taste: only its open pages exist; the lock comes after the last one.
   const isTasteLocked = !!story?.is_taste && !isAdminUser;
   const isLockedVirtualPage = (index: number) => {
