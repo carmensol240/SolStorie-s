@@ -73,12 +73,13 @@ function buildTextOnPictureSequence(
 }
 
 function finishSequence(seq: PrintSlot[], opts: { skipDrawMomentFiller?: boolean }): PrintSlot[] {
-  seq.push({ kind: 'talk' }, { kind: 'theEnd' }, { kind: 'copyright' });
+  seq.push({ kind: 'talk' }, { kind: 'theEnd' });
   const fillers: PrintSlot[] = opts.skipDrawMomentFiller
     ? [{ kind: 'ourHero' }]
     : [{ kind: 'drawMoment' }, { kind: 'ourHero' }];
-  while ((seq.length + 1) % 4 !== 0) seq.push(fillers.shift() ?? { kind: 'blank' });
-  seq.push({ kind: 'backCover' });
+  // Rights page + back cover close the book; fillers bring the total to a multiple of 4.
+  while ((seq.length + 2) % 4 !== 0) seq.push(fillers.shift() ?? { kind: 'blank' });
+  seq.push({ kind: 'copyright' }, { kind: 'backCover' });
   return seq;
 }
 
