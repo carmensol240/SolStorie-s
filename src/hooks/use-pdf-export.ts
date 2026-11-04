@@ -259,8 +259,9 @@ export const usePdfExport = () => {
         ctx.fillStyle = '#fbf8ef';
         ctx.fillRect(0, 0, S, S);
         if (look.bg) {
-          const { img: bgImg, revoke: rv } = await loadImage(look.bg);
-          try { ctx.drawImage(bgImg, 0, 0, S, S); } finally { rv(); }
+          const bgImg = new Image();
+          await new Promise<void>((res) => { bgImg.onload = () => res(); bgImg.onerror = () => res(); bgImg.src = look.bg!; });
+          if (bgImg.naturalWidth) ctx.drawImage(bgImg, 0, 0, S, S);
         }
         const safe = Math.ceil((SAFE_MM / PAGE_MM) * S);
         const avail = S - safe * 2;
