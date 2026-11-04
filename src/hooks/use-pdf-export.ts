@@ -8,7 +8,8 @@ import { translateTopic } from '@/lib/topic-translations';
 import { supabase } from '@/integrations/supabase/client';
 import solMagicBookCover from '@/assets/sol-magic-book-cover.png';
 import { fetchTalkQuestions, talkTitle, NEXT_ADVENTURE_URL, INSTAGRAM_HANDLE } from '@/lib/talk-questions';
-import { PAGE_MM, PAGE_PX, SAFE_MM, PRINT_TEXTS, buildPageSequence, TEXT_FIT_STEPS, containRect, printLang, type PrintLang } from '@/lib/print-layout';
+import { PAGE_MM, PAGE_PX, SAFE_MM, PRINT_TEXTS, buildPageSequence, textFitSteps, isTextOnPictureAge, isYoungReader, containRect, printLang, type PrintLang } from '@/lib/print-layout';
+import { accentFromPixels } from '@/lib/illustration-accent';
 
 // Helper function to escape HTML entities and prevent XSS
 const escapeHtml = (unsafe: string): string => {
@@ -132,7 +133,7 @@ export const usePdfExport = () => {
   };
 
   // ─── Native jsPDF footer: logo watermark + optional page number, inside the safe area ──
-  const drawFooter = (pdf: jsPDF, opts: { pageNumber?: number; onPicture?: boolean } = {}) => {
+  const drawFooter = (pdf: jsPDF, opts: { pageNumber?: number; onPicture?: boolean; noLine?: boolean } = {}) => {
     const W = PAGE_MM;
     const urlY = W - SAFE_MM;          // 203 mm — lowest baseline
     const brandY = urlY - 5;           // 198 mm
@@ -142,7 +143,7 @@ export const usePdfExport = () => {
       pdf.setFillColor(255, 255, 255);
       pdf.roundedRect(W / 2 - 20, brandY - 5, 40, 11, 3, 3, 'F');
       if (GState) pdf.setGState(new GState({ opacity: 1 }));
-    } else {
+    } else if (!opts.noLine) {
       pdf.setDrawColor(212, 165, 116);
       pdf.setLineWidth(0.2);
       pdf.line(SAFE_MM, brandY - 6, W - SAFE_MM, brandY - 6);
@@ -167,18 +168,21 @@ export const usePdfExport = () => {
   // ─── html2canvas capture of a 1240px design page at 300 DPI ──
   const DESIGN = 1240;
   const SAFE_PX = Math.ceil((SAFE_MM / PAGE_MM) * DESIGN); // ~75 design px
-  const captureHtml = async (container: HTMLDivElement, el: HTMLElement, pdf: jsPDF, format: 'PNG' | 'JPEG') => {
+  const captureCanvas = async (container: HTMLDivElement, el: HTMLElement, transparent = false) => {
     container.innerHTML = '';
     container.appendChild(el);
     await fontsReady();
-    const canvas = await html2canvas(container, {
+    return html2canvas(container, {
       scale: PAGE_PX / DESIGN,
       useCORS: true,
       allowTaint: false,
-      backgroundColor: '#ffffff',
+      backgroundColor: transparent ? null : '#ffffff',
       width: DESIGN,
       height: DESIGN,
     });
+  };
+  const captureHtml = async (container: HTMLDivElement, el: HTMLElement, pdf: jsPDF, format: 'PNG' | 'JPEG') => {
+    const canvas = await captureCanvas(container, el);
     if (format === 'PNG') pdf.addImage(canvas, 'PNG', 0, 0, PAGE_MM, PAGE_MM, undefined, 'FAST');
     else pdf.addImage(canvas.toDataURL('image/jpeg', 0.92), 'JPEG', 0, 0, PAGE_MM, PAGE_MM);
     freeCanvas(canvas);
@@ -186,7 +190,7 @@ export const usePdfExport = () => {
   };
 
   // ─── Illustration page drawn directly on canvas: full picture + blurred fill to the bleed ──
-  const addIllustrationPage = async (pdf: jsPDF, url: string) => {
+  const addIllustrationPage = async (pdf: jsPDF, url: string, band?: { container: HTMLDivElement; text: string; lang: PrintLang; young: boolean }) => {
     const { img, revoke } = await loadImage(url);
     try {
       const S = PAGE_PX;
@@ -207,6 +211,17 @@ export const usePdfExport = () => {
       freeCanvas(small);
       const r = containRect(img.naturalWidth, img.naturalHeight, S);
       ctx.drawImage(img, r.x, r.y, r.w, r.h);
+      if (band && band.text.trim()) {
+        // Ages 0–4: white text in a dark translucent band at the bottom of the picture.
+        const el = renderTextBand(band.text, band.lang);
+        band.container.innerHTML = '';
+        band.container.appendChild(el);
+        await fitBand(el, band.young);
+        const overlay = await captureCanvas(band.container, el, true);
+        ctx.drawImage(overlay, 0, 0, S, S);
+        freeCanvas(overlay);
+        band.container.innerHTML = '';
+      }
       pdf.addImage(canvas.toDataURL('image/jpeg', 0.92), 'JPEG', 0, 0, PAGE_MM, PAGE_MM);
       freeCanvas(canvas);
     } finally {
@@ -270,38 +285,121 @@ export const usePdfExport = () => {
     return el;
   };
 
-  // One or two story paragraphs, stacked, with a small star between them.
-  const renderTextOnlyPage = (texts: string[], lang: PrintLang): HTMLDivElement => {
+  // ─── Text page paper: very light blurred wash of the page's own picture + a decoration color from it ──
+  type PaperLook = { bg: string | null; accent: string };
+  const GOLD = 'rgb(168, 145, 63)';
+  const makePaperLook = async (url: string | null): Promise<PaperLook> => {
+    if (!url) return { bg: null, accent: GOLD };
+    try {
+      const { img, revoke } = await loadImage(url);
+      try {
+        const tiny = document.createElement('canvas');
+        tiny.width = 24; tiny.height = 24;
+        const tctx = tiny.getContext('2d')!;
+        tctx.drawImage(img, 0, 0, 24, 24);
+        const accent = accentFromPixels(tctx.getImageData(0, 0, 24, 24).data) || GOLD;
+        // Blur by downscale → upscale, then wash with paper so it stays very light.
+        const out = document.createElement('canvas');
+        out.width = 620; out.height = 620;
+        const octx = out.getContext('2d')!;
+        octx.imageSmoothingEnabled = true;
+        octx.imageSmoothingQuality = 'high';
+        const k = Math.max(24 / img.naturalWidth, 24 / img.naturalHeight);
+        tctx.clearRect(0, 0, 24, 24);
+        tctx.drawImage(img, (24 - img.naturalWidth * k) / 2, (24 - img.naturalHeight * k) / 2, img.naturalWidth * k, img.naturalHeight * k);
+        octx.drawImage(tiny, 0, 0, 620, 620);
+        const g = octx.createRadialGradient(310, 310, 0, 310, 310, 440);
+        g.addColorStop(0, 'rgba(255,252,243,0.95)');
+        g.addColorStop(0.5, 'rgba(255,252,243,0.92)');
+        g.addColorStop(1, 'rgba(255,252,243,0.78)');
+        octx.fillStyle = g;
+        octx.fillRect(0, 0, 620, 620);
+        const bg = out.toDataURL('image/jpeg', 0.9);
+        freeCanvas(tiny); freeCanvas(out);
+        return { bg, accent };
+      } finally { revoke(); }
+    } catch {
+      return { bg: null, accent: GOLD };
+    }
+  };
+
+  const bookStar = (size: number, color: string) =>
+    `<svg width="${size}" height="${size}" viewBox="0 0 24 24" style="display:block;"><path d="M12 2l2.9 6.3 6.9.7-5.2 4.6 1.5 6.8L12 17l-6.1 3.4 1.5-6.8L2.2 9l6.9-.7z" fill="${color}"/></svg>`;
+
+  // Text page layout (design px). The frame sits ~8 mm in; the text box stays well inside the 13 mm safe area
+  // and above the footer (brand + page number at 192–203 mm).
+  const FRAME_INSET = 45;
+  const TEXT_PAD_Y = 150;
+  const TEXT_PAD_X = 130;
+
+  // One or two story paragraphs on light paper, inside a thin frame with stars in the picture's color.
+  const renderTextOnlyPage = (texts: string[], lang: PrintLang, look: PaperLook = { bg: null, accent: GOLD }): HTMLDivElement => {
     const el = document.createElement('div');
-    el.style.cssText = pageBase(PRINT_TEXTS[lang].dir) + `background:#ffffff;display:flex;align-items:center;justify-content:center;padding:180px 160px 200px;box-sizing:border-box;`;
-    const para = (t: string) => `<p data-fit style="color:#1f2937;font-size:54px;line-height:1.9;font-weight:500;margin:0;
+    const paper = look.bg ? `background:#fbf8ef url(${look.bg}) center/cover no-repeat;` : 'background:#fbf8ef;';
+    el.style.cssText = pageBase(PRINT_TEXTS[lang].dir) + paper;
+    const para = (t: string) => `<p data-fit style="color:#3a2e10;font-weight:500;margin:0;
         text-align:center;word-wrap:break-word;overflow-wrap:break-word;white-space:pre-line;">${escapeHtml(t)}</p>`;
-    el.innerHTML = `<div data-fit-box style="width:100%;display:flex;flex-direction:column;align-items:center;gap:36px;">${
-      texts.map(para).join(`<div aria-hidden="true" style="line-height:0;">${starSvg(34, '#F5B942')}</div>`)
-    }</div>`;
+    el.innerHTML = `
+      <div style="position:absolute;inset:${FRAME_INSET}px;border:3px solid ${look.accent};opacity:0.4;border-radius:40px;"></div>
+      <div style="position:absolute;top:${FRAME_INSET - 22}px;left:50%;transform:translateX(-50%);background:#fbf8ef;padding:0 14px;">${bookStar(44, look.accent)}</div>
+      <div style="position:absolute;bottom:${FRAME_INSET - 14}px;left:50%;transform:translateX(-50%);display:flex;align-items:flex-end;gap:12px;background:#fbf8ef;padding:0 14px;">
+        ${bookStar(18, look.accent)}${bookStar(26, look.accent)}${bookStar(18, look.accent)}
+      </div>
+      <div style="position:absolute;inset:${TEXT_PAD_Y}px ${TEXT_PAD_X}px;display:flex;align-items:center;justify-content:center;">
+        <div data-fit-box style="width:100%;display:flex;flex-direction:column;align-items:center;gap:36px;">${
+          texts.map(para).join(`<div aria-hidden="true" style="line-height:0;">${bookStar(30, look.accent)}</div>`)
+        }</div>
+      </div>`;
     return el;
   };
 
-  // Shrink font (54→40) then line-height (1.9→1.6) until the text fits inside the padded area.
-  const fitTextPage = async (container: HTMLDivElement, el: HTMLDivElement) => {
+  // Largest size first, down to the age minimum (20 pt young / 16 pt older), then tighter line-height.
+  const fitTextPage = async (container: HTMLDivElement, el: HTMLDivElement, young: boolean) => {
     container.innerHTML = '';
     container.appendChild(el);
     await fontsReady();
     const box = el.querySelector('[data-fit-box]') as HTMLElement;
     const ps = Array.from(el.querySelectorAll('[data-fit]')) as HTMLElement[];
-    const avail = DESIGN - 180 - 200;
+    const avail = DESIGN - TEXT_PAD_Y * 2;
+    const steps = textFitSteps(young);
     const tryFit = () => {
-      for (const step of TEXT_FIT_STEPS) {
+      for (const step of steps) {
         ps.forEach(p => { p.style.fontSize = `${step.font}px`; p.style.lineHeight = String(step.line); });
         if (box.scrollHeight <= avail) return true;
       }
       return false;
     };
     if (tryFit()) return;
-    // Still too tall at 40px / 1.6: let one-sentence-per-line text flow as a paragraph
+    // Still too tall at the minimum size: let one-sentence-per-line text flow as a paragraph
     // (same words, wider lines) instead of going below the minimum size.
     ps.forEach(p => { p.style.whiteSpace = 'normal'; });
     tryFit();
+  };
+
+  // Ages 0–4: transparent page with a dark band + white text at the bottom (composited onto the picture).
+  const BAND_MAX = Math.round(DESIGN * 0.42);
+  const renderTextBand = (text: string, lang: PrintLang): HTMLDivElement => {
+    const el = document.createElement('div');
+    el.style.cssText = pageBase(PRINT_TEXTS[lang].dir) + 'background:transparent;';
+    el.innerHTML = `
+      <div data-band style="position:absolute;left:0;right:0;bottom:0;padding:70px ${SAFE_PX + 40}px ${SAFE_PX + 60}px;
+        background:linear-gradient(to top, rgba(20,14,4,0.82) 0%, rgba(20,14,4,0.7) 60%, rgba(20,14,4,0) 100%);">
+        <p data-fit style="color:#ffffff;font-weight:700;margin:0;text-align:center;white-space:pre-line;
+          overflow-wrap:break-word;text-shadow:0 2px 6px rgba(0,0,0,0.6);">${escapeHtml(text)}</p>
+      </div>`;
+    return el;
+  };
+  const fitBand = async (el: HTMLDivElement, young: boolean) => {
+    await fontsReady();
+    const band = el.querySelector('[data-band]') as HTMLElement;
+    const p = el.querySelector('[data-fit]') as HTMLElement;
+    const steps = textFitSteps(young).map(s => ({ ...s, font: Math.round(s.font * 0.95) }));
+    for (const step of steps) {
+      p.style.fontSize = `${Math.max(step.font, Math.ceil(textFitSteps(young).slice(-1)[0].font))}px`;
+      p.style.lineHeight = String(Math.min(step.line, 1.6));
+      if (band.offsetHeight <= BAND_MAX) return;
+    }
+    p.style.whiteSpace = 'normal';
   };
 
   const renderDecorativePage = (): HTMLDivElement => {
@@ -473,7 +571,9 @@ export const usePdfExport = () => {
 
     const talkQuestions = await fetchTalkQuestions(story.id);
     // Questions missing → the talk page already shows "draw the moment", so don't repeat it as a filler.
-    const seq = buildPageSequence(story.pages, { skipDrawMomentFiller: talkQuestions.length === 0 });
+    const textOnPicture = isTextOnPictureAge(story.age_range);
+    const young = isYoungReader(story.age_range);
+    const seq = buildPageSequence(story.pages, { skipDrawMomentFiller: talkQuestions.length === 0, textOnPicture });
     const storyNikud = lang === 'he' && /[\u05B0-\u05BC]/.test(story.pages.map(p => p.text).join(' '));
     try {
       for (let i = 0; i < seq.length; i++) {
@@ -500,19 +600,22 @@ export const usePdfExport = () => {
             break;
           case 'text':
           {
-            const el = renderTextOnlyPage(slot.storyIndexes.map(k => story.pages[k].text), lang);
-            await fitTextPage(container, el);
-            await captureHtml(container, el, pdf, 'PNG');
+            const own = story.pages[slot.storyIndex]?.illustration_url;
+            const look = await makePaperLook(own ? picUrl(own) : null);
+            const el = renderTextOnlyPage(slot.storyIndexes.map(k => story.pages[k].text), lang, look);
+            await fitTextPage(container, el, young);
+            await captureHtml(container, el, pdf, 'JPEG');
           }
-            drawFooter(pdf, { pageNumber: pageNo });
+            drawFooter(pdf, { pageNumber: pageNo, noLine: true });
             break;
           case 'illustration': {
             const u = story.pages[slot.storyIndex].illustration_url!;
+            const band = slot.withText ? { container, text: story.pages[slot.storyIndex].text || '', lang, young } : undefined;
             try {
-              await addIllustrationPage(pdf, picUrl(u));
+              await addIllustrationPage(pdf, picUrl(u), band);
             } catch {
               // print copy failed to load → try the original, else a decorative page (never skip)
-              try { await addIllustrationPage(pdf, signedUrlMap[u] || u); }
+              try { await addIllustrationPage(pdf, signedUrlMap[u] || u, band); }
               catch { await captureHtml(container, renderDecorativePage(), pdf, 'JPEG'); }
             }
             break;
