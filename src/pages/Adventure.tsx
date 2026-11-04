@@ -54,6 +54,12 @@ const Adventure = () => {
     else v.pause();
   }, [videoPlaying]);
   const [soundOn, setSoundOn] = useState(false);
+  // Gentle pulse on the sound button during the first seconds only.
+  const [soundHint, setSoundHint] = useState(true);
+  useEffect(() => {
+    const t = window.setTimeout(() => setSoundHint(false), 5000);
+    return () => window.clearTimeout(t);
+  }, []);
   useEffect(() => {
     const v = videoRef.current;
     if (v) v.muted = !soundOn;
