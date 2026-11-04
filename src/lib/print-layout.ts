@@ -15,7 +15,7 @@ export type PrintSlot =
   | { kind: 'insideCover' }
   | { kind: 'dedication' }
   | { kind: 'text'; storyIndex: number; storyIndexes: number[] }
-  | { kind: 'illustration'; storyIndex: number }
+  | { kind: 'illustration'; storyIndex: number; withText?: boolean }
   | { kind: 'decorative'; storyIndex: number }
   | { kind: 'talk' }
   | { kind: 'theEnd' }
@@ -36,8 +36,9 @@ export const printLang = (language?: string | null): PrintLang =>
  */
 export function buildPageSequence(
   pages: { illustration_url: string | null }[],
-  opts: { skipDrawMomentFiller?: boolean } = {},
+  opts: { skipDrawMomentFiller?: boolean; textOnPicture?: boolean } = {},
 ): PrintSlot[] {
+  if (opts.textOnPicture) return buildTextOnPictureSequence(pages, opts);
   type Spread = { idx: number[]; pic: boolean };
   const spreads: Spread[] = [];
   pages.forEach((p, i) => {
@@ -53,6 +54,24 @@ export function buildPageSequence(
     seq.push(sp.pic ? { kind: 'illustration', storyIndex: first } : { kind: 'decorative', storyIndex: first });
   });
   // Ending: talk page and "next adventure" always; fillers to a multiple of 4 in this order, blank only after them.
+  return finishSequence(seq, opts);
+}
+
+/** Ages 0–4: one page per story page — the picture with its text on it (a text page only when there is no picture). */
+function buildTextOnPictureSequence(
+  pages: { illustration_url: string | null }[],
+  opts: { skipDrawMomentFiller?: boolean },
+): PrintSlot[] {
+  const seq: PrintSlot[] = [{ kind: 'cover' }, { kind: 'insideCover' }, { kind: 'dedication' }];
+  pages.forEach((p, i) => {
+    seq.push(p.illustration_url
+      ? { kind: 'illustration', storyIndex: i, withText: true }
+      : { kind: 'text', storyIndex: i, storyIndexes: [i] });
+  });
+  return finishSequence(seq, opts);
+}
+
+function finishSequence(seq: PrintSlot[], opts: { skipDrawMomentFiller?: boolean }): PrintSlot[] {
   seq.push({ kind: 'talk' }, { kind: 'theEnd' });
   const fillers: PrintSlot[] = opts.skipDrawMomentFiller
     ? [{ kind: 'ourHero' }]
@@ -62,12 +81,35 @@ export function buildPageSequence(
   return seq;
 }
 
-/** Font steps for a text page: 54px down to 40px, then line-height 1.9 down to 1.6 at 40px.
- *  If even that overflows, the renderer reflows the lines into a paragraph and repeats the steps. */
-export const TEXT_FIT_STEPS: { font: number; line: number }[] = [
-  ...[54, 52, 50, 48, 46, 44, 42, 40].map(font => ({ font, line: 1.9 })),
-  ...[1.8, 1.7, 1.6].map(line => ({ font: 40, line })),
-];
+/** Design pixels per typographic point on the 1240px design page (216 mm wide). */
+export const DESIGN_PX = 1240;
+export const PX_PER_PT = (25.4 / 72) * (DESIGN_PX / PAGE_MM); // ≈ 2.07
+
+/** Ages 0–4 (age ranges "0-2" and "2-4"): the text is printed on the picture, in a dark band at the bottom. */
+export const isTextOnPictureAge = (ageRange?: string | null): boolean =>
+  ageRange === '0-2' || ageRange === '2-4';
+
+/** Young readers (age range starting below 5) get the larger minimum print size. */
+export const isYoungReader = (ageRange?: string | null): boolean => {
+  const first = parseInt(String(ageRange ?? '').split('-')[0], 10);
+  return Number.isFinite(first) ? first < 5 : true;
+};
+
+/** Minimum print text size in points: 20 pt for young readers, 16 pt for older ones. */
+export const minPrintPt = (young: boolean) => (young ? 20 : 16);
+/** Starting (largest) print text size in points, so the text fills about 60% of the page. */
+export const maxPrintPt = (young: boolean) => (young ? 30 : 24);
+
+/** Font steps (design px) for a text page: largest size down to the age minimum, then line-height 1.75 → 1.6.
+ *  Never goes below the minimum; if still too tall the renderer reflows lines into a paragraph. */
+export function textFitSteps(young: boolean): { font: number; line: number }[] {
+  const max = Math.round(maxPrintPt(young) * PX_PER_PT);
+  const min = Math.ceil(minPrintPt(young) * PX_PER_PT);
+  const steps: { font: number; line: number }[] = [];
+  for (let f = max; f > min; f -= 2) steps.push({ font: f, line: 1.75 });
+  steps.push({ font: min, line: 1.75 }, { font: min, line: 1.65 }, { font: min, line: 1.6 });
+  return steps;
+}
 
 export const PRINT_TEXTS = {
   he: {
