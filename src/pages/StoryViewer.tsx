@@ -2109,7 +2109,7 @@ const [currentPage, setCurrentPage] = useState(0);
                 <button
                   onClick={() => navigate('/library')}
                   className="absolute top-3 right-3 z-10 p-2 rounded-full hover:bg-purple-50 transition-colors"
-                  aria-label="חזרה לספרייה"
+                  aria-label="חזרה להסיפורים שלי"
                 >
                   <ChevronRight className="w-5 h-5 text-purple-500" />
                 </button>
