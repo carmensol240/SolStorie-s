@@ -444,9 +444,37 @@ const CreateStory = () => {
     }
   };
 
-  const launchGeneration = (uid: string | null, creditKind?: CreditKind) => {
+  // The draft never keeps image data, so after a reload (e.g. back from payment)
+  // the saved child's avatar/photo/ID are refilled from the profile before creating.
+  const fillChildFromProfile = async (uid: string | null): Promise<Partial<StoryFormData>> => {
+    if (!uid || isDevModeEnabled()) return {};
+    const fd = formData as any;
+    if (fd.childId && formData.childAvatarUrl && formData.childPhoto) return {};
+    const name = formData.childName?.trim();
+    const id = fd.childId || selectedChildIdRef.current;
+    if (!id && !name) return {};
+    try {
+      let q = supabase.from("children").select("id, name, avatar_url, photo_url").eq("user_id", uid);
+      q = id ? q.eq("id", id) : q.eq("name", name);
+      const { data: child } = await q.limit(1).maybeSingle();
+      if (!child || (name && child.name !== name)) return {};
+      const updates: Record<string, unknown> = {};
+      if (!fd.childId) updates.childId = child.id;
+      if (!formData.childAvatarUrl && child.avatar_url) updates.childAvatarUrl = child.avatar_url;
+      if (!formData.childPhoto && child.photo_url) updates.childPhoto = child.photo_url;
+      return updates as Partial<StoryFormData>;
+    } catch (e) {
+      console.warn("[create] refill child from profile failed", e);
+      return {};
+    }
+  };
+
+  const launchGeneration = async (uid: string | null, creditKind?: CreditKind) => {
     {
-      const data = creditKind ? { ...formData, creditKind } : formData;
+      const refill = await fillChildFromProfile(uid);
+      if (Object.keys(refill).length) updateFormData(refill);
+      const base = { ...formData, ...refill };
+      const data = creditKind ? { ...base, creditKind } : base;
       if (creditKind) updateFormData({ creditKind } as any);
       trackEvent({ eventType: "generation_started" });
       // One-time ID + saved form: a reload / re-login resumes this same creation
