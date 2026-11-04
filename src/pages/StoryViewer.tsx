@@ -60,6 +60,7 @@ import { BookFrame, BookPage, BookHeader, NavigationArrows, MagicalBookFrame } f
 import { ReaderIllustration } from "@/components/story/book-frame/ReaderIllustration";
 import { BookPaper, BookTextFrame, useIllustrationAccent } from "@/components/story/book-frame/BookPaper";
 import { useWideReader } from "@/hooks/use-wide-reader";
+import { isTextOnPictureAge } from "@/lib/print-layout";
 import { ScrollHintText } from "@/components/story/book-frame/ScrollHintText";
 import { TheaterFrame } from "@/components/story/theater-frame";
 import PdfFeaturePopup from "@/components/story/PdfFeaturePopup";
@@ -1657,7 +1658,8 @@ const [currentPage, setCurrentPage] = useState(0);
     isCover?: boolean;
   };
 
-  const isToddler = story?.age_range === '0-2';
+  // Ages 0–4: text on the picture, in a dark band at the bottom.
+  const isToddler = isTextOnPictureAge(story?.age_range);
   // Open book (picture + text side by side) on desktop and on phones held sideways.
   const isWideReader = useWideReader();
   const isLearningTopic = story?.topic?.startsWith('אות ') || story?.topic?.startsWith('מספר ') || story?.topic?.startsWith('צבע ') || story?.topic?.startsWith('צורת ');
@@ -2269,7 +2271,7 @@ const [currentPage, setCurrentPage] = useState(0);
                       <div className="absolute bottom-0 left-0 right-0 z-10 p-4 md:p-6" dir="rtl">
                         <div className="max-w-lg mx-auto text-center">
                           <p className={cn(
-                            "font-semibold whitespace-pre-line text-white drop-shadow-[0_2px_4px_rgba(0,0,0,0.7)]",
+                            "font-bold whitespace-pre-line text-white drop-shadow-[0_2px_4px_rgba(0,0,0,0.7)]",
                             currentFontSize.size,
                           )} style={{
                             lineHeight: '1.8',
