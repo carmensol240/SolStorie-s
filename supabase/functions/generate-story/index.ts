@@ -2404,7 +2404,9 @@ ${fullStoryText}`;
       let ownerIsAdmin = false;
       if (mode === "test" && userId) {
         const { data: isAdm } = await supabase.rpc("has_role", { _user_id: userId, _role: "admin" });
-        ownerIsAdmin = isAdm === true;
+        // Optional narrower test list (comma-separated user IDs): only those admin accounts get squares.
+        const only = String(Deno.env.get("SQUARE_TEST_USER_IDS") ?? "").split(",").map((s) => s.trim()).filter(Boolean);
+        ownerIsAdmin = isAdm === true && (only.length === 0 || only.includes(userId));
       }
       storyInsertData.illustration_format = decideFormat(mode, ownerIsAdmin);
     } catch { storyInsertData.illustration_format = "landscape"; }
