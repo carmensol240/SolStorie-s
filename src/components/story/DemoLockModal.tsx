@@ -7,6 +7,7 @@ import PersonalizedStoryCover from "@/components/paywall/PersonalizedStoryCover"
 import { openGrowCheckout } from "@/config/grow-links";
 import { useAuth } from "@/hooks/use-auth";
 import { CATALOG, formatPrice } from "@/config/promo";
+import { WHATSAPP_ORDER_LABEL, WHATSAPP_ORDER_URL } from "@/lib/whatsapp-order";
 import { useCreditKinds, type CreditKind } from "@/hooks/use-credit-kinds";
 import CreditChoiceDialog from "@/components/story/CreditChoiceDialog";
 
@@ -172,6 +173,18 @@ const DemoLockModal = ({ open, onOpenChange, title, description, storyId, isTast
           <p className="text-white/60 text-sm font-semibold text-center pt-1">
             📚 הסיפור נשמר בספרייה החינמית שלך לכל החיים
           </p>
+
+          {/* Secondary option under the package buttons: we prepare the story.
+              A plain text link, never bigger than the orange package buttons. */}
+          <a
+            href={WHATSAPP_ORDER_URL}
+            target="_blank"
+            rel="noopener noreferrer"
+            aria-label={WHATSAPP_ORDER_LABEL}
+            className="text-white/70 text-sm font-semibold underline underline-offset-4 hover:text-white transition-colors py-1 text-center"
+          >
+            💬 מעדיפים שנכין את הסיפור בשבילכם? כתבו לנו בוואטסאפ
+          </a>
 
           <button
             onClick={() => onOpenChange(false)}
