@@ -8,8 +8,8 @@ import { supabase } from "@/integrations/supabase/client";
 
 import MobileNavigation from "@/components/MobileNavigation";
 import HomeExplainer from "@/components/home/HomeExplainer";
-import heroVideoAsset from "@/assets/hero-noam.mp4.asset.json";
-import heroPosterAsset from "@/assets/hero-noam-poster.jpg.asset.json";
+import heroVideoAsset from "@/assets/hero-noam-land.mp4.asset.json";
+import heroPosterAsset from "@/assets/hero-noam-land-poster.jpg.asset.json";
 
 const heroVideo = heroVideoAsset.url;
 const heroPoster = heroPosterAsset.url;
@@ -120,10 +120,11 @@ const Adventure = () => {
 
   return (
     <div id="main-content" className="min-h-[100dvh] flex flex-col bg-gradient-to-b from-amber-50/50 to-background dark:from-background animate-fade-in" dir="rtl">
-      {/* Hero Section: header above, portrait video in the middle, CTA below.
-          The whole section is exactly one screen tall so the full 9:16 frame
-          (logo + title above, buttons below) is visible without scrolling. */}
-      <div className="relative w-full h-[100dvh] min-h-[560px] flex-shrink-0 flex flex-col">
+      {/* Hero Section: header above, landscape 16:9 video in the middle, CTA below.
+          On desktop the section is exactly one screen tall so the whole frame
+          (logo + title above, buttons below) is visible without scrolling.
+          On phone the video sits at its natural 16:9 height and the page flows on. */}
+      <div className="relative w-full flex-shrink-0 flex flex-col md:h-[100dvh] md:min-h-[560px]">
         {/* Top bar - credits, sound & pause */}
         <div className="relative z-20 shrink-0 flex items-center justify-between px-4 pt-[max(env(safe-area-inset-top,12px),20px)]">
           <button
@@ -173,10 +174,12 @@ const Adventure = () => {
           </p>
         </div>
 
-        {/* Portrait video: takes exactly the space left on screen (flex-1),
-            never cropped and never taller than the fold. Blurred poster fills
-            the sides whenever the 9:16 frame is narrower than the area. */}
-        <div className="relative w-full flex-1 min-h-0 overflow-hidden">
+        {/* Landscape 16:9 video, never cropped (object-contain).
+            On phone it keeps its natural 16:9 height at full screen width, so
+            there is no empty band above or below it. On desktop it takes exactly
+            the space left on screen, and the blurred poster fills the sides
+            whenever the 16:9 frame is wider than the space available. */}
+        <div className="relative w-full aspect-video shrink-0 overflow-hidden md:aspect-auto md:flex-1 md:min-h-0">
           <div
             className="absolute inset-0 bg-cover bg-center blur-2xl scale-110 opacity-60"
             style={{ backgroundImage: `url(${heroPoster})` }}
