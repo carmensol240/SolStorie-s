@@ -1809,7 +1809,7 @@ serve(async (req) => {
       }
 
       // Per-page outfit: parent clothes by default, topic outfit only where the text describes it.
-      const storyOutfit = parentOutfitEn
+      const storyOutfit = (parentOutfitEn && !(singlePageNumber && savedOutfit))
         ? resolvePageOutfit(parentOutfitEn, topicOutfit, page.text, pages.find((pp) => pp.page_number === page.page_number - 1)?.text)
         : baseStoryOutfit;
       const visualAnchor = storyOutfit === baseStoryOutfit
