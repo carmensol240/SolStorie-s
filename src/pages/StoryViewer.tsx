@@ -2221,7 +2221,7 @@ const [currentPage, setCurrentPage] = useState(0);
                           key={`${currentVirtual.illustrationUrl}-${failedImages[currentVirtual.illustrationUrl] || 0}`}
                           src={`${(failedImages[currentVirtual.illustrationUrl] ? getPublicIllustrationUrl(currentVirtual.illustrationUrl) : getReadingIllustrationUrl(currentVirtual.illustrationUrl)) || ''}${failedImages[currentVirtual.illustrationUrl] ? `?retry=${failedImages[currentVirtual.illustrationUrl]}` : ''}`}
                           alt={currentVirtual.isCover ? (story?.topic ? `כריכת הספר: ${translateTopic(story.topic, story.language)}` : 'כריכת הספר') : illustrationAlt(currentVirtual.text, currentVirtual.dbPage?.page_number)}
-                          className={cn("absolute inset-0 w-full h-full transition-opacity duration-500 object-contain bg-paper", imageLoadedMap[currentVirtual.illustrationUrl] ? "opacity-100" : "opacity-0")}
+                          className={cn("absolute inset-0 w-full h-full transition-opacity duration-500 object-contain object-top bg-paper", imageLoadedMap[currentVirtual.illustrationUrl] ? "opacity-100" : "opacity-0")}
                           loading="eager"
                           onLoad={(e) => {
                             handleImageLoad(e);
@@ -2466,8 +2466,9 @@ const [currentPage, setCurrentPage] = useState(0);
                                 )}
                               </ScrollHintText>
                             </div>
-                            <div className="absolute bottom-6 left-0 right-0 flex justify-center pointer-events-none">
+                            <div className="absolute bottom-6 left-0 right-0 flex justify-center items-baseline gap-2 pointer-events-none">
                               <span className="text-sm font-bold text-paper-foreground/80" data-testid="page-counter">{currentVirtual.dbPage.page_number} / {story.pages.length}</span>
+                              <span dir="ltr" className="text-xs font-semibold tracking-wide opacity-80" style={{ color: pageAccent }} data-testid="text-page-brand">SolStorie's™</span>
                             </div>
                             <div className="absolute top-5 left-5 z-20">{recording}</div>
                           </BookPaper>
@@ -2548,17 +2549,7 @@ const [currentPage, setCurrentPage] = useState(0);
           </div>
           </MagicalBookFrame>
 
-          {/* Watermark — non-clickable, shown only on illustration/cover pages */}
-          {!isEndPage && currentVirtual && (currentVirtual.type === 'illustration' || currentVirtual.type === 'combined') && (
-            <div
-              className="absolute bottom-14 left-1/2 -translate-x-1/2 z-40 opacity-30 pointer-events-none select-none"
-              aria-hidden="true"
-            >
-              <span className="text-sm font-black logo-3d-bubble">
-                <span className="logo-rainbow">SolStorie's™</span>
-              </span>
-            </div>
-          )}
+          {/* No logo/watermark on pictures — the small brand lives on text pages only. */}
 
           {/* Bottom nav arrows */}
           <div className="absolute bottom-2 left-0 right-0 z-40 flex items-center justify-between px-4">
