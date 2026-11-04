@@ -94,4 +94,5 @@
 ## Nov 4 2026 — sound button, stale redraws, book design
 - [x] A: big orange sound button + pause on the video
 - [x] B: version on redrawn picture addresses; Adel's 8 pages updated
-- [ ] C: mockups (option 2 + option 4 square sample page from Noam 071b5ff4) — screenshots, wait for approval before building
+- [x] C: mockups + square sample (screenshots delivered)
+- [ ] C: build chosen design — waiting for approval of screenshots
