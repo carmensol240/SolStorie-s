@@ -557,7 +557,7 @@ const CreateStory = () => {
             </Button>
           ) : (
             <Button size="lg" className="w-full min-h-[48px] text-base font-bold" onClick={() => navigate('/library')}>
-              לספרייה
+              לכל הסיפורים שלי
             </Button>
           )}
           <Button size="lg" variant="outline" className="w-full min-h-[48px] text-base" onClick={startNewStory}>
