@@ -162,7 +162,7 @@ serve(async (req) => {
           });
         }
         // Page 1 IS the cover — keep both pointers identical.
-        await supabase.from("story_pages").update({ illustration_url: finalPage1Path }).eq("id", pageId);
+        await supabase.from("story_pages").update({ illustration_url: `${finalPage1Path}?v=${Date.now()}`, print_illustration_url: null, print_illustration_width: null }).eq("id", pageId);
         await supabase.from("stories")
           .update({ cover_url: `${publicUrl(finalPage1Path)}?v=${Date.now()}` })
           .eq("id", storyId);
@@ -606,7 +606,7 @@ NEGATIVE: ${NEGATIVE_PROMPT}`;
     } else {
       await supabase
         .from("story_pages")
-        .update({ illustration_url: filePath })
+        .update({ illustration_url: `${filePath.split("?")[0]}?v=${Date.now()}`, print_illustration_url: null, print_illustration_width: null })
         .eq("id", pageId);
     }
 
