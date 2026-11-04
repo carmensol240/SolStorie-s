@@ -126,6 +126,9 @@ Deno.serve(async (req) => {
     const expectedToken = Deno.env.get("GROW_WEBHOOK_SECRET");
     if (!expectedToken) {
       console.error("[GROW-WEBHOOK] GROW_WEBHOOK_SECRET not configured — refusing all requests");
+      await sendPurchaseFailureAlert("webhook_secret_missing", {
+        note: "תשלום מ-Grow נדחה: סיסמת החיבור לא מוגדרת בשרת. הרכישה לא נרשמה.",
+      }).catch(() => {});
       return new Response(JSON.stringify({ error: "Webhook not configured" }), {
         status: 503,
         headers: { ...CORS, "Content-Type": "application/json" },
@@ -138,6 +141,10 @@ Deno.serve(async (req) => {
       "";
     if (providedToken !== expectedToken) {
       console.warn("[GROW-WEBHOOK] Rejected unauthenticated request");
+      await sendPurchaseFailureAlert("webhook_token_mismatch", {
+        note: "קריאה ל-Grow webhook נדחתה: token חסר או שגוי בכתובת. אם זו רכישה אמיתית — לבדוק את כתובת ה-webhook בעמוד Grow.",
+        hasToken: providedToken.length > 0,
+      }).catch(() => {});
       return new Response(JSON.stringify({ error: "Unauthorized" }), {
         status: 401,
         headers: { ...CORS, "Content-Type": "application/json" },

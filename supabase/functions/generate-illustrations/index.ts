@@ -1585,7 +1585,28 @@ serve(async (req) => {
     // If no saved profile, extract from photo
     if (!characterProfile && effectivePhoto) {
       console.log("Extracting character profile from photo...");
-      characterProfile = await extractCharacterProfile(effectivePhoto, childGender || "male", ageRange || "3-6", LOVABLE_API_KEY);
+      // The AI provider can't fetch storage paths / signed URLs (HTTP 400) — send inline bytes.
+      let profilePhoto: string = effectivePhoto;
+      try {
+        let fetchUrl: string | null = null;
+        if (effectivePhoto.startsWith("http")) fetchUrl = effectivePhoto;
+        else if (!effectivePhoto.startsWith("data:")) {
+          const { data: sd } = await supabase.storage.from("child-photos").createSignedUrl(effectivePhoto, 600);
+          fetchUrl = sd?.signedUrl || null;
+        }
+        if (fetchUrl) {
+          const r = await fetch(fetchUrl);
+          if (r.ok) {
+            const buf = new Uint8Array(await r.arrayBuffer());
+            let bin = "";
+            for (let i = 0; i < buf.length; i += 0x8000) bin += String.fromCharCode(...buf.subarray(i, i + 0x8000));
+            profilePhoto = `data:${r.headers.get("content-type") || "image/jpeg"};base64,${btoa(bin)}`;
+          } else await r.text();
+        }
+      } catch (e) {
+        console.warn("Could not inline photo for character profile:", e);
+      }
+      characterProfile = await extractCharacterProfile(profilePhoto, childGender || "male", ageRange || "3-6", LOVABLE_API_KEY);
       console.log("Character profile extracted:", characterProfile);
 
       // Save the profile for future stories (only if we have userId and childName)
