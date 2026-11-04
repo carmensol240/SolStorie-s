@@ -184,33 +184,33 @@ const Adventure = () => {
           >
             <source src={heroVideo} type="video/mp4" />
           </video>
-          {/* Sound + pause on the video itself, bottom corner, big enough for a finger */}
-          <div className="absolute bottom-3 start-3 z-10 flex items-center gap-2">
-            <button
-              type="button"
-              onClick={toggleSound}
-              className={`flex items-center gap-2 min-h-12 px-4 rounded-full bg-primary text-primary-foreground text-base font-bold shadow-lg border-2 border-background/70 hover:scale-105 active:scale-95 transition-transform ${!soundOn && soundHint ? "motion-safe:animate-pulse" : ""}`}
-              aria-label={soundOn ? "השתקה" : "הפעילו את השיר"}
-              aria-pressed={soundOn}
-            >
-              {soundOn ? <VolumeX className="w-5 h-5" aria-hidden="true" /> : <Volume2 className="w-5 h-5" aria-hidden="true" />}
-              <span>{soundOn ? "השתקה" : "הפעילו את השיר"}</span>
-            </button>
-            <button
-              type="button"
-              onClick={() => setVideoPlaying((p) => !p)}
-              className="flex items-center justify-center w-12 h-12 rounded-full bg-foreground/70 backdrop-blur-md border-2 border-background/70 text-background hover:bg-foreground/80 transition-colors"
-              aria-label={videoPlaying ? "עצירת האנימציה" : "הפעלת האנימציה"}
-              aria-pressed={!videoPlaying}
-            >
-              {videoPlaying ? <Pause className="w-5 h-5" aria-hidden="true" /> : <Play className="w-5 h-5" aria-hidden="true" />}
-            </button>
-          </div>
+        </div>
+        {/* Sound + pause, centered below the video so they never cover its captions */}
+        <div className="relative z-10 shrink-0 flex items-center justify-center gap-3 pt-3 px-4">
+          <button
+            type="button"
+            onClick={toggleSound}
+            className={`flex items-center gap-2 min-h-12 px-4 rounded-full bg-primary text-primary-foreground text-base font-bold shadow-lg border-2 border-primary hover:scale-105 active:scale-95 transition-transform ${!soundOn && soundHint ? "motion-safe:animate-pulse" : ""}`}
+            aria-label={soundOn ? "השתקה" : "הפעילו את השיר"}
+            aria-pressed={soundOn}
+          >
+            {soundOn ? <VolumeX className="w-5 h-5" aria-hidden="true" /> : <Volume2 className="w-5 h-5" aria-hidden="true" />}
+            <span>{soundOn ? "השתקה" : "הפעילו את השיר"}</span>
+          </button>
+          <button
+            type="button"
+            onClick={() => setVideoPlaying((p) => !p)}
+            className="flex items-center justify-center w-12 h-12 rounded-full bg-card border-2 border-border text-foreground shadow hover:bg-muted transition-colors"
+            aria-label={videoPlaying ? "עצירת האנימציה" : "הפעלת האנימציה"}
+            aria-pressed={!videoPlaying}
+          >
+            {videoPlaying ? <Pause className="w-5 h-5" aria-hidden="true" /> : <Play className="w-5 h-5" aria-hidden="true" />}
+          </button>
         </div>
         <p className="sr-only">{HERO_VIDEO_LABEL}</p>
 
         {/* CTA + scroll hint (below the video) */}
-        <div className="relative z-10 shrink-0 flex flex-col items-center gap-1 px-4 pt-4 pb-[calc(env(safe-area-inset-bottom,0px)+76px)] md:pb-6">
+        <div className="relative z-10 shrink-0 flex flex-col items-center gap-1 px-4 pt-3 pb-2 md:pb-4">
           <button
             onClick={handleAdventureCTA}
             className="group flex items-center justify-center gap-2.5 rounded-full px-6 py-3 w-full max-w-[300px] bg-primary shadow-[0_0_20px_rgba(251,191,36,0.4)] hover:shadow-[0_0_30px_rgba(251,191,36,0.6)] hover:scale-[1.03] active:scale-95 transition-all duration-300 adventure-cta-pulse border border-white/30"
@@ -222,7 +222,7 @@ const Adventure = () => {
           </button>
           <button
             type="button"
-            onClick={() => document.getElementById("home-what")?.scrollIntoView({ behavior: "smooth", block: "start" })}
+            onClick={() => document.getElementById("home-how")?.scrollIntoView({ behavior: "smooth", block: "start" })}
             className="flex flex-col items-center text-foreground text-sm font-semibold min-h-[44px] px-3 pt-1"
             aria-label="גללו למטה לגלות עוד על הסיפורים"
           >
