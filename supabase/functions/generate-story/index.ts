@@ -2400,12 +2400,13 @@ ${fullStoryText}`;
     storyInsertData.kippah_color = kippahOn ? kippahColor(reqAppearance) : null;
     // Picture shape for the whole story, decided once here (switch off → landscape, as today).
     try {
-      const mode = readSwitch(Deno.env.get("SQUARE_ILLUSTRATIONS"));
+      let mode = readSwitch(Deno.env.get("SQUARE_ILLUSTRATIONS"));
+      // Test accounts listed in SQUARE_TEST_USER_IDS (comma-separated) get squares while the main switch is off.
+      const only = String(Deno.env.get("SQUARE_TEST_USER_IDS") ?? "").split(",").map((s) => s.trim()).filter(Boolean);
+      if (mode !== "on" && userId && only.includes(userId)) mode = "test";
       let ownerIsAdmin = false;
       if (mode === "test" && userId) {
         const { data: isAdm } = await supabase.rpc("has_role", { _user_id: userId, _role: "admin" });
-        // Optional narrower test list (comma-separated user IDs): only those admin accounts get squares.
-        const only = String(Deno.env.get("SQUARE_TEST_USER_IDS") ?? "").split(",").map((s) => s.trim()).filter(Boolean);
         ownerIsAdmin = isAdm === true && (only.length === 0 || only.includes(userId));
       }
       storyInsertData.illustration_format = decideFormat(mode, ownerIsAdmin);
