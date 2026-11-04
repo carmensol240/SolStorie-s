@@ -134,6 +134,13 @@
       "when": 1793780104351,
       "tag": "0018_credit_reset_backup_20261104",
       "breakpoints": true
+    },
+    {
+      "idx": 19,
+      "version": "7",
+      "when": 1793801311289,
+      "tag": "0019_story_illustration_format",
+      "breakpoints": true
     }
   ]
 }
