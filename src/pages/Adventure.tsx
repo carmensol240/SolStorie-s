@@ -120,75 +120,85 @@ const Adventure = () => {
 
   return (
     <div id="main-content" className="min-h-[100dvh] flex flex-col bg-gradient-to-b from-amber-50/50 to-background dark:from-background animate-fade-in" dir="rtl">
-      {/* Hero Video Section */}
-      <div className="relative w-full h-[92vh] h-[92svh] min-h-[540px] flex-shrink-0 overflow-hidden flex flex-col">
-        {/* Video fills the hero area (same framing as the original layout) */}
-        <video
-          ref={videoRef}
-          autoPlay={videoPlaying}
-          loop
-          muted
-          playsInline
-          poster={heroPoster}
-          preload={videoPlaying ? "auto" : "metadata"}
-          aria-label={HERO_VIDEO_LABEL}
-          className="absolute inset-0 w-full h-full object-cover [object-position:center_35%]"
-        >
-          <source src={heroVideo} type="video/mp4" />
-        </video>
-        <p className="sr-only">{HERO_VIDEO_LABEL}</p>
-
-        {/* Soft dark gradients: top (title) and bottom (button) only */}
-        <div
-          className="absolute inset-0 pointer-events-none"
-          style={{
-            background:
-              "linear-gradient(180deg, rgba(0,0,0,0.6) 0%, rgba(0,0,0,0.3) 22%, transparent 36%, transparent 62%, rgba(0,0,0,0.65) 100%)",
-          }}
-        />
-
-        {/* Top bar - credits & pause */}
+      {/* Hero Section: header above, portrait video in the middle, CTA below */}
+      <div className="relative w-full flex-shrink-0 flex flex-col">
+        {/* Top bar - credits, sound & pause */}
         <div className="relative z-20 flex items-center justify-between px-4 pt-[max(env(safe-area-inset-top,12px),20px)]">
           <button
             onClick={() => navigate(user ? "/upgrade" : "/auth")}
-            className="flex items-center gap-1.5 bg-black/40 backdrop-blur-xl border border-white/30 rounded-full px-3 py-1.5 hover:bg-black/55 transition-colors"
+            className="flex items-center gap-1.5 bg-foreground/70 backdrop-blur-xl border border-background/30 rounded-full px-3 py-1.5 hover:bg-foreground/80 transition-colors"
             aria-label="צפה בקרדיטים ושדרג"
           >
             <Coins className="w-4 h-4 text-amber-300" />
-            <span className="font-bold text-white text-sm drop-shadow-md">{totalCredits}</span>
+            <span className="font-bold text-background text-sm">{totalCredits}</span>
           </button>
-          <button
-            type="button"
-            onClick={() => setVideoPlaying((p) => !p)}
-            className="flex items-center justify-center w-11 h-11 rounded-full bg-black/50 backdrop-blur-md border border-white/40 text-white hover:bg-black/65 transition-colors"
-            aria-label={videoPlaying ? "עצירת האנימציה" : "הפעלת האנימציה"}
-            aria-pressed={!videoPlaying}
-          >
-            {videoPlaying ? <Pause className="w-5 h-5" aria-hidden="true" /> : <Play className="w-5 h-5" aria-hidden="true" />}
-          </button>
+          <div className="flex items-center gap-2">
+            <button
+              type="button"
+              onClick={toggleSound}
+              className="flex items-center gap-1.5 h-11 px-3 rounded-full bg-foreground/70 backdrop-blur-md border border-background/40 text-background text-sm font-semibold hover:bg-foreground/80 transition-colors"
+              aria-label={soundOn ? "השתקה" : "הפעלת קול"}
+              aria-pressed={soundOn}
+            >
+              {soundOn ? <Volume2 className="w-5 h-5" aria-hidden="true" /> : <VolumeX className="w-5 h-5" aria-hidden="true" />}
+              <span>{soundOn ? "השתקה" : "הפעלת קול"}</span>
+            </button>
+            <button
+              type="button"
+              onClick={() => setVideoPlaying((p) => !p)}
+              className="flex items-center justify-center w-11 h-11 rounded-full bg-foreground/70 backdrop-blur-md border border-background/40 text-background hover:bg-foreground/80 transition-colors"
+              aria-label={videoPlaying ? "עצירת האנימציה" : "הפעלת האנימציה"}
+              aria-pressed={!videoPlaying}
+            >
+              {videoPlaying ? <Pause className="w-5 h-5" aria-hidden="true" /> : <Play className="w-5 h-5" aria-hidden="true" />}
+            </button>
+          </div>
         </div>
 
-        {/* Top zone: logo + tagline */}
-        <div className="relative z-10 flex flex-col items-center gap-1 px-4 pt-1 text-center">
+        {/* Logo + tagline (above the video, never on top of it) */}
+        <div className="relative z-10 flex flex-col items-center gap-1 px-4 pt-1 pb-3 text-center">
           <h1
             className="leading-tight font-black tracking-tight"
             style={{ fontSize: "clamp(2.5rem, 11vw, 4.5rem)", fontFamily: "'Baloo 2', 'Heebo', sans-serif" }}
           >
             <span className="logo-rainbow">SolStorie's™</span>
           </h1>
-          <p className="-mt-1 text-sm font-semibold text-white/90 [text-shadow:0_1px_3px_rgba(0,0,0,0.85)]">
+          <p className="-mt-1 text-sm font-semibold text-muted-foreground">
             עולמה הקסום של סול
           </p>
-          <p className="text-lg sm:text-xl font-bold text-white [text-shadow:0_1px_4px_rgba(0,0,0,0.9)]">
+          <p className="text-lg sm:text-xl font-bold text-foreground">
             ספר מאויר שהילד שלכם הוא הגיבור שלו
           </p>
         </div>
 
-        {/* Middle zone: free for the video */}
-        <div className="flex-1" aria-hidden="true" />
+        {/* Portrait video: full width on phone, centered with blurred poster sides on desktop */}
+        <div className="relative w-full overflow-hidden">
+          <div
+            className="absolute inset-0 hidden md:block bg-cover bg-center blur-2xl scale-110 opacity-60"
+            style={{ backgroundImage: `url(${heroPoster})` }}
+            aria-hidden="true"
+          />
+          <div className="relative mx-auto w-full md:w-auto md:h-[75vh] aspect-[9/16]">
+            <video
+              ref={videoRef}
+              autoPlay={videoPlaying}
+              loop
+              muted
+              playsInline
+              poster={heroPoster}
+              preload="metadata"
+              aria-label={HERO_VIDEO_LABEL}
+              className="absolute inset-0 w-full h-full object-contain"
+              onPause={() => { if (videoRef.current && !videoRef.current.ended) setVideoPlaying(false); }}
+            >
+              <source src={heroVideo} type="video/mp4" />
+            </video>
+          </div>
+        </div>
+        <p className="sr-only">{HERO_VIDEO_LABEL}</p>
 
-        {/* Bottom zone: CTA + scroll hint */}
-        <div className="relative z-10 flex flex-col items-center gap-1 px-4 pb-[calc(env(safe-area-inset-bottom,0px)+76px)] md:pb-6">
+        {/* CTA + scroll hint (below the video) */}
+        <div className="relative z-10 flex flex-col items-center gap-1 px-4 pt-4 pb-[calc(env(safe-area-inset-bottom,0px)+76px)] md:pb-6">
           <button
             onClick={handleAdventureCTA}
             className="group flex items-center justify-center gap-2.5 rounded-full px-6 py-3 w-full max-w-[300px] bg-primary shadow-[0_0_20px_rgba(251,191,36,0.4)] hover:shadow-[0_0_30px_rgba(251,191,36,0.6)] hover:scale-[1.03] active:scale-95 transition-all duration-300 adventure-cta-pulse border border-white/30"
@@ -201,7 +211,7 @@ const Adventure = () => {
           <button
             type="button"
             onClick={() => document.getElementById("home-what")?.scrollIntoView({ behavior: "smooth", block: "start" })}
-            className="flex flex-col items-center text-white text-sm font-semibold min-h-[44px] px-3 pt-1 [text-shadow:0_1px_3px_rgba(0,0,0,0.9)]"
+            className="flex flex-col items-center text-foreground text-sm font-semibold min-h-[44px] px-3 pt-1"
             aria-label="גללו למטה לגלות עוד על הסיפורים"
           >
             <span>גללו לגלות עוד</span>
