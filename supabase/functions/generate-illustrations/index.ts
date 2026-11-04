@@ -330,7 +330,7 @@ Return only the JSON, no other text.`
       `extractCharacterProfile threw — using generic defaults: ${(error as Error)?.message || error}`,
       { gender: childGender, ageRange },
     );
-    return getDefaultProfile(childGender, genderHebrew, ageRange);
+    return getDefaultProfile(childGender, childGender === "female" ? "ילדה" : "ילד", ageRange);
   }
 }
 
