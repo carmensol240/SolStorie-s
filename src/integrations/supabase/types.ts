@@ -938,6 +938,7 @@ export type Database = {
           edit_round_closed_at: string | null
           generation_status: string | null
           id: string
+          illustration_format: string
           is_daily_story: boolean | null
           is_premium: boolean | null
           is_taste: boolean
@@ -976,6 +977,7 @@ export type Database = {
           edit_round_closed_at?: string | null
           generation_status?: string | null
           id?: string
+          illustration_format?: string
           is_daily_story?: boolean | null
           is_premium?: boolean | null
           is_taste?: boolean
@@ -1014,6 +1016,7 @@ export type Database = {
           edit_round_closed_at?: string | null
           generation_status?: string | null
           id?: string
+          illustration_format?: string
           is_daily_story?: boolean | null
           is_premium?: boolean | null
           is_taste?: boolean

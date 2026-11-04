@@ -1,4 +1,5 @@
 import "https://deno.land/x/xhr@0.1.0/mod.ts";
+import { formatRule } from "../_shared/illustration-format.ts";
 import { mergeAppearance, hairToEnglish, clothingToEnglish, buildCharacterLock, kippahForStory } from "../_shared/appearance.ts";
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.39.3";
@@ -80,7 +81,7 @@ serve(async (req) => {
     // Verify story ownership
     const { data: story, error: storyError } = await supabase
       .from("stories")
-      .select("id, user_id, child_id, child_photo_path, child_gender, age_range, child_name, topic, page1_regen_used, page1_regen_lock_at, story_outfit, kippah, kippah_color")
+      .select("id, user_id, child_id, child_photo_path, child_gender, age_range, child_name, topic, page1_regen_used, page1_regen_lock_at, story_outfit, kippah, kippah_color, illustration_format")
       .eq("id", storyId)
       .eq("user_id", user.id)
       .maybeSingle();
@@ -432,7 +433,7 @@ ${sceneBlock}
 
 ${CHARACTER_CONSISTENCY_PROMPT}
 
-NEGATIVE: ${NEGATIVE_PROMPT}`;
+NEGATIVE: ${NEGATIVE_PROMPT}${formatRule((story as any).illustration_format)}`;
 
       for (let attempt = 1; attempt <= MAX_ATTEMPTS; attempt++) {
         try {

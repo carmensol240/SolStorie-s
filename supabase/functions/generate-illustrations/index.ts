@@ -4,6 +4,7 @@ import { mergeAppearance, hairToEnglish, heroHair, clothingToEnglish, resolvePag
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.39.3";
 import { logError } from "../_shared/log-error.ts";
+import { formatRule, backupSizeFor } from "../_shared/illustration-format.ts";
 import { alignProfileGender } from "../_shared/profile-gender.ts";
 import { normalizeGender } from "../_shared/gender.ts";
 import {
@@ -666,7 +667,7 @@ ${NO_UI_NEGATIVE}`;
     const form = new FormData();
     form.append("model", BACKUP_IMAGE_MODEL);
     form.append("prompt", fullPrompt);
-    form.append("size", "1536x1024"); // book pages are landscape
+    form.append("size", backupSizeFor(fullPrompt)); // landscape, or square for square stories
     blobs.forEach((b, i) => form.append("image[]", b, `ref-${i + 1}.png`));
 
     // No references at all (page 1 without a photo): text-only generation, same prompt.
@@ -1693,10 +1694,12 @@ serve(async (req) => {
     // No parent clothes and no topic outfit → one fixed everyday outfit per story, saved with the
     // story so page retries and coloring pages reuse exactly the same clothes.
     let savedOutfit: string | null = null;
+    let storyFormatRule = "";
     // Kippah: the story's own saved choice only (never the child profile); girls never.
     let kippahInfo = { kippah: false, color: "" };
     if (storyId) {
-      const { data: so } = await supabase.from("stories").select("story_outfit, kippah, kippah_color, child_gender").eq("id", storyId).maybeSingle();
+      const { data: so } = await supabase.from("stories").select("story_outfit, kippah, kippah_color, child_gender, illustration_format").eq("id", storyId).maybeSingle();
+      storyFormatRule = formatRule((so as any)?.illustration_format);
       // A redraw always reuses the story's saved outfit; a first drawing uses it only without parent clothes.
       if (!parentOutfitEn || isRedraw) savedOutfit = (so as any)?.story_outfit || null;
       kippahInfo = kippahForStory(so as any);
@@ -1880,7 +1883,7 @@ The action, objects, characters, and emotions shown MUST come from the STORY TEX
         : `SCENE (MUST MATCH TEXT EXACTLY): ${basePrompt}`;
       const genderHeader = buildGenderHeader(childGender, { kippah: kippahInfo.kippah });
       let illustrationPrompt = `${genderHeader}\n\n${charDesc}. ${sceneBlock}. CAMERA: ${cameraAngle}. LIGHTING: ${lighting}. Pixar 3D CGI style, vibrant colors, fantasy children's book, ${compositionClause(cameraAngle)}\n\n${genderSymbolRestriction(childGender)}`;
-      illustrationPrompt += `\n\n${characterLock}\n\n${buildOutfitLock(storyOutfit)}\n\n${SINGLE_HERO_RULE}`;
+      illustrationPrompt += `\n\n${characterLock}\n\n${buildOutfitLock(storyOutfit)}\n\n${SINGLE_HERO_RULE}${storyFormatRule}`;
       if (page.page_number === 1) {
         // Page 1 is also cropped into the square library cover card.
         illustrationPrompt += `\n\nCOMPOSITION (COVER SAFE ZONE): The main character is centered in the frame, full body visible, with at least 15% empty margin on every side and extra headroom at the top. Nothing important touches the edges — this image is also cropped to a square cover card.`;
@@ -2239,7 +2242,7 @@ ${storyTextForPrompt(pageNarrative)}
 VISUAL DESCRIPTION: ${secondPrompt}
 The action, objects, characters, and emotions shown MUST come from the STORY TEXT above. Do not invent a different scene.`
           : `SCENE (MUST MATCH TEXT EXACTLY): ${secondPrompt}`;
-        const secondIllustrationPrompt = `${buildGenderHeader(childGender, { kippah: kippahInfo.kippah })}\n\n${charDesc2}. ${sceneBlock2}. CAMERA: ${cameraAngle2}. LIGHTING: ${lighting2}. Pixar 3D CGI style, vibrant colors, fantasy children's book, ${compositionClause(cameraAngle2)}\n\n${genderSymbolRestriction(childGender)}\n\n${characterLock}`;
+        const secondIllustrationPrompt = `${buildGenderHeader(childGender, { kippah: kippahInfo.kippah })}\n\n${charDesc2}. ${sceneBlock2}. CAMERA: ${cameraAngle2}. LIGHTING: ${lighting2}. Pixar 3D CGI style, vibrant colors, fantasy children's book, ${compositionClause(cameraAngle2)}\n\n${genderSymbolRestriction(childGender)}\n\n${characterLock}${storyFormatRule}`;
 
         let secondStop = false;
         for (let attempt = 1; attempt <= 3; attempt++) {

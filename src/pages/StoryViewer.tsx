@@ -58,6 +58,9 @@ import { useAutoFitText } from "@/hooks/use-auto-fit-text";
 // useSignedUrls removed - story-illustrations bucket is public
 import { BookFrame, BookPage, BookHeader, NavigationArrows, MagicalBookFrame } from "@/components/story/book-frame";
 import { ReaderIllustration } from "@/components/story/book-frame/ReaderIllustration";
+import { BookPaper, BookTextFrame, useIllustrationAccent } from "@/components/story/book-frame/BookPaper";
+import { useWideReader } from "@/hooks/use-wide-reader";
+import { isTextOnPictureAge } from "@/lib/print-layout";
 import { ScrollHintText } from "@/components/story/book-frame/ScrollHintText";
 import { TheaterFrame } from "@/components/story/theater-frame";
 import PdfFeaturePopup from "@/components/story/PdfFeaturePopup";
@@ -110,9 +113,9 @@ interface Story {
 
 
 const FONT_SIZES = [
-  { label: 'קטן', size: 'text-xl md:text-2xl' },
-  { label: 'בינוני', size: 'text-2xl md:text-3xl' },
-  { label: 'גדול', size: 'text-3xl md:text-4xl' },
+  { label: 'קטן', size: 'text-xl md:text-2xl', book: 'text-[22px] md:text-[24px]' },
+  { label: 'בינוני', size: 'text-2xl md:text-3xl', book: 'text-[25px] md:text-[28px]' },
+  { label: 'גדול', size: 'text-3xl md:text-4xl', book: 'text-[28px] md:text-[32px]' },
 ];
 
 // Rainbow gradient used for dedication, closing, and text-only pages
@@ -1646,7 +1649,7 @@ const [currentPage, setCurrentPage] = useState(0);
   };
 
   type VirtualPage = {
-    type: 'illustration' | 'text' | 'combined' | 'spread';
+    type: 'illustration' | 'text' | 'combined' | 'spread' | 'picture';
     dbPage: StoryPage;
     illustrationUrl: string | null;
     illustrationPrompt: string | null;
@@ -1655,7 +1658,10 @@ const [currentPage, setCurrentPage] = useState(0);
     isCover?: boolean;
   };
 
-  const isToddler = story?.age_range === '0-2';
+  // Ages 0–4: text on the picture, in a dark band at the bottom.
+  const isToddler = isTextOnPictureAge(story?.age_range);
+  // Open book (picture + text side by side) on desktop and on phones held sideways.
+  const isWideReader = useWideReader();
   const isLearningTopic = story?.topic?.startsWith('אות ') || story?.topic?.startsWith('מספר ') || story?.topic?.startsWith('צבע ') || story?.topic?.startsWith('צורת ');
 
   // Cover page removed — all ages start at page 0
@@ -1756,6 +1762,21 @@ const [currentPage, setCurrentPage] = useState(0);
           });
         }
 
+        // Portrait phones: the picture and its text are two separate book pages.
+        if (!isWideReader && (pageIllustration || pagePrompt)) {
+          result.push({
+            type: 'picture',
+            dbPage: page,
+            illustrationUrl: pageIllustration,
+            illustrationPrompt: pagePrompt,
+            text: page.text || '',
+          });
+          if (hasText) {
+            result.push({ type: 'spread', dbPage: page, illustrationUrl: null, illustrationPrompt: null, text: page.text || '' });
+          }
+          continue;
+        }
+
         if (hasIllustration || hasText || page.illustration_prompt) {
           result.push({
             type: 'spread',
@@ -1769,7 +1790,31 @@ const [currentPage, setCurrentPage] = useState(0);
     }
 
     return result;
-  }, [story?.pages, story?.cover_url, isToddler]);
+  }, [story?.pages, story?.cover_url, isToddler, isWideReader]);
+
+  // Rotating the phone switches between one-page and open-book layouts:
+  // stay on the same story page instead of jumping elsewhere.
+  const prevVirtualPagesRef = useRef(virtualPages);
+  useEffect(() => {
+    const prev = prevVirtualPagesRef.current;
+    prevVirtualPagesRef.current = virtualPages;
+    if (prev === virtualPages || prev.length === 0 || virtualPages.length === 0) return;
+    if (currentPage >= prev.length) { setCurrentPage(virtualPages.length); return; }
+    const was = prev[currentPage];
+    if (!was?.dbPage) return;
+    const matches = virtualPages
+      .map((v, i) => ({ v, i }))
+      .filter(({ v }) => v.dbPage?.page_number === was.dbPage.page_number && !!v.isCover === !!was.isCover);
+    if (!matches.length) return;
+    const pick = (was.type === 'spread' && !was.illustrationUrl && matches.length > 1) ? matches[matches.length - 1] : matches[0];
+    if (pick.i !== currentPage) setCurrentPage(pick.i);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [virtualPages]);
+
+  // Decoration color for the current page, sampled from its own picture.
+  const pageAccent = useIllustrationAccent(
+    (currentPage >= 0 && currentPage < virtualPages.length ? virtualPages[currentPage]?.dbPage?.illustration_url : null) || null,
+  );
 
   // Preload priority: current page + the next 2 first, then every other
   // illustration in the background (low priority) so a book opened once can be
@@ -1864,7 +1909,7 @@ const [currentPage, setCurrentPage] = useState(0);
   // (cover illustration + text + illustration + text), then trigger DemoLockModal.
   // Toddler mode adds a dedicated cover slide before the page-1 text, so it gets
   // one extra slide to expose the same amount of actual content.
-  const DEMO_VIRTUAL_PAGE_LIMIT = isToddler ? 5 : 3; // 3+: cover + spread 1 + spread 2 (same 2 story pages as before)
+  const DEMO_VIRTUAL_PAGE_LIMIT = isToddler ? 5 : (isWideReader ? 3 : 5); // 3+: cover + spread 1 + spread 2 (same 2 story pages as before)
   // Unpaid free taste: only its open pages exist; the lock comes after the last one.
   const isTasteLocked = !!story?.is_taste && !isAdminUser;
   const isLockedVirtualPage = (index: number) => {
@@ -2208,8 +2253,10 @@ const [currentPage, setCurrentPage] = useState(0);
                     ) : (
                       <div className="absolute inset-0 w-full h-full" style={{ background: getTopicTheme(story.topic).bg }} />
                     )}
-                    {/* Dark gradient overlay for text readability */}
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-transparent z-[1]" />
+                    {/* Dark translucent band at the bottom, only behind the text */}
+                    {currentVirtual.text && currentVirtual.text.trim() && !currentVirtual.isCover && (
+                      <div className="absolute inset-x-0 bottom-0 h-1/2 bg-gradient-to-t from-black/80 via-black/55 to-transparent z-[1] pointer-events-none" />
+                    )}
                     {/* Dedication overlay on first page */}
                     {currentVirtual.isCover && story && (
                       <div className="absolute top-0 left-0 right-0 z-20 p-4 pt-6 bg-gradient-to-b from-black/60 via-black/30 to-transparent">
@@ -2224,7 +2271,7 @@ const [currentPage, setCurrentPage] = useState(0);
                       <div className="absolute bottom-0 left-0 right-0 z-10 p-4 md:p-6" dir="rtl">
                         <div className="max-w-lg mx-auto text-center">
                           <p className={cn(
-                            "font-semibold whitespace-pre-line text-white drop-shadow-[0_2px_4px_rgba(0,0,0,0.7)]",
+                            "font-bold whitespace-pre-line text-white drop-shadow-[0_2px_4px_rgba(0,0,0,0.7)]",
                             currentFontSize.size,
                           )} style={{
                             lineHeight: '1.8',
@@ -2352,6 +2399,37 @@ const [currentPage, setCurrentPage] = useState(0);
                       />
                     </div>
                   </>
+                ) : currentVirtual.type === 'picture' ? (
+                  /* Phone picture page — the whole picture mounted on book paper */
+                  <BookPaper illustrationPath={currentVirtual.illustrationUrl}>
+                    <div className="absolute inset-0 p-3" data-testid="story-picture-page">
+                      <div className="relative h-full w-full">
+                        {currentVirtual.illustrationUrl ? (
+                          <ReaderIllustration path={currentVirtual.illustrationUrl} alt={illustrationAlt(currentVirtual.text, currentVirtual.dbPage?.page_number)} frameColor={pageAccent} />
+                        ) : (
+                          <div className="absolute inset-0 flex items-center justify-center">
+                            <div className="w-full aspect-[1408/768] rounded-xl bg-paper-muted animate-pulse" />
+                            <p className="absolute text-sm font-semibold text-paper-foreground/70" dir="rtl">מכינים איור קסום...</p>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                    <div className="absolute top-3 left-3 z-20">
+                      <PageRecordingControls
+                        pageNumber={currentVirtual.dbPage.page_number}
+                        isRecording={pageRecording.recordingPage === currentVirtual.dbPage.page_number}
+                        hasPendingBlob={pageRecording.pendingBlob?.page === currentVirtual.dbPage.page_number}
+                        hasSaved={pageRecording.hasSavedRecording(currentVirtual.dbPage.page_number)}
+                        isPlaying={pageRecording.playingPage === currentVirtual.dbPage.page_number}
+                        onStartRecording={guardDemo(() => pageRecording.startRecording(currentVirtual.dbPage.page_number))}
+                        onStopRecording={pageRecording.stopRecording}
+                        onSave={guardDemo(pageRecording.saveRecording)}
+                        onDiscard={pageRecording.discardPending}
+                        onPlay={guardDemo(() => pageRecording.playRecording(currentVirtual.dbPage.page_number))}
+                        onStopPlaying={pageRecording.stopPlaying}
+                      />
+                    </div>
+                  </BookPaper>
                 ) : currentVirtual.type === 'spread' ? (
                   /* Story page: phone = picture on top + text below (one screen, no scroll);
                      wide screen = open book, text on the right page, picture on the left page. */
@@ -2374,37 +2452,44 @@ const [currentPage, setCurrentPage] = useState(0);
                       />
                     );
                     return (
-                      <div className="absolute inset-0 bg-paper text-paper-foreground flex flex-col lg:grid lg:grid-cols-2" dir="rtl" data-testid="story-spread">
-                        {/* Text page (right on wide screens, below the picture on phones) */}
-                        <div className={cn("order-2 lg:order-1 min-h-0 flex flex-col lg:h-full lg:border-l lg:border-paper-muted lg:shadow-[inset_-12px_0_18px_-14px_hsl(var(--paper-foreground)/0.35)]", (currentVirtual.illustrationUrl || currentVirtual.illustrationPrompt) ? "flex-initial" : "flex-1 lg:col-span-2 lg:border-l-0 lg:shadow-none justify-center")}>
-                         <ScrollHintText resetKey={`${currentPage}-${fontSizeIndex}-${showNikud}`} className="flex flex-col lg:justify-center lg:h-full px-5 md:px-10 pt-2 lg:pt-8 pb-14 lg:pb-16">
-                          {displayText.trim() && (
-                            <p className={cn("text-center font-semibold whitespace-pre-line", currentFontSize.size)} style={{ lineHeight: '1.65', overflowWrap: 'break-word' }} dir="rtl">
-                              {displayText}
-                            </p>
-                          )}
-                          <div className="mt-2 flex justify-center">
-                            <span className="text-sm font-bold text-paper-foreground/80" data-testid="page-counter">{currentVirtual.dbPage.page_number} / {story.pages.length}</span>
-                          </div>
-                         </ScrollHintText>
-                        </div>
-                        {/* Picture page (left on wide screens, on top on phones) — shrinks when the text is long */}
-                        {(currentVirtual.illustrationUrl || currentVirtual.illustrationPrompt) ? (
-                        <div className="order-1 lg:order-2 relative flex-1 min-h-[40dvh] lg:h-full lg:min-h-0 m-2 lg:m-6">
-                          {currentVirtual.illustrationUrl ? (
-                            <ReaderIllustration path={currentVirtual.illustrationUrl} alt={illustrationAlt(currentVirtual.text, currentVirtual.dbPage?.page_number)} />
-                          ) : (
-                            <div className="absolute inset-0 flex flex-col items-center justify-center gap-2">
-                              <div className="w-full max-h-full aspect-[1408/768] rounded-xl bg-paper-muted animate-pulse" />
-                              {currentVirtual.illustrationPrompt && (
-                                <p className="absolute text-sm font-semibold text-paper-foreground/70">מכינים איור קסום...</p>
-                              )}
+                      <div className={cn("absolute inset-0 bg-paper text-paper-foreground flex", isWideReader ? "flex-row" : "flex-col")} dir="rtl" data-testid="story-spread">
+                        {/* Text page (left on wide screens; the whole page on phones) */}
+                        <div className={cn("relative min-h-0", isWideReader ? "order-2 w-1/2 border-r border-paper-muted" : "flex-1", !(currentVirtual.illustrationUrl || currentVirtual.illustrationPrompt) && isWideReader && "w-full border-r-0")}>
+                          <BookPaper illustrationPath={currentVirtual.dbPage.illustration_url}>
+                            <BookTextFrame accent={pageAccent} />
+                            <div className="absolute inset-3.5 md:inset-5 flex flex-col">
+                              <ScrollHintText resetKey={`${currentPage}-${fontSizeIndex}-${showNikud}`} className="flex flex-col justify-center h-full px-6 md:px-12 pt-10 pb-12">
+                                {displayText.trim() && (
+                                  <p className={cn("text-center font-medium whitespace-pre-line text-paper-foreground", currentFontSize.book)} style={{ lineHeight: '1.75', overflowWrap: 'break-word' }} dir="rtl">
+                                    {displayText}
+                                  </p>
+                                )}
+                              </ScrollHintText>
                             </div>
-                          )}
-                          <div className="absolute top-1 left-1 z-20">{recording}</div>
+                            <div className="absolute bottom-6 left-0 right-0 flex justify-center pointer-events-none">
+                              <span className="text-sm font-bold text-paper-foreground/80" data-testid="page-counter">{currentVirtual.dbPage.page_number} / {story.pages.length}</span>
+                            </div>
+                            <div className="absolute top-5 left-5 z-20">{recording}</div>
+                          </BookPaper>
                         </div>
-                        ) : (
-                          <div className="absolute top-3 left-3 z-20">{recording}</div>
+                        {/* Picture page (right on wide screens) — mounted like a photo in a book */}
+                        {isWideReader && (currentVirtual.illustrationUrl || currentVirtual.illustrationPrompt) && (
+                          <div className="relative order-1 w-1/2 min-h-0">
+                            <BookPaper illustrationPath={currentVirtual.illustrationUrl}>
+                              <div className="absolute inset-0 p-4 md:p-6">
+                                <div className="relative h-full w-full">
+                                  {currentVirtual.illustrationUrl ? (
+                                    <ReaderIllustration path={currentVirtual.illustrationUrl} alt={illustrationAlt(currentVirtual.text, currentVirtual.dbPage?.page_number)} frameColor={pageAccent} />
+                                  ) : (
+                                    <div className="absolute inset-0 flex items-center justify-center">
+                                      <div className="w-full max-h-full aspect-[1408/768] rounded-xl bg-paper-muted animate-pulse" />
+                                      <p className="absolute text-sm font-semibold text-paper-foreground/70">מכינים איור קסום...</p>
+                                    </div>
+                                  )}
+                                </div>
+                              </div>
+                            </BookPaper>
+                          </div>
                         )}
                       </div>
                     );
