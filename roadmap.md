@@ -90,3 +90,8 @@
 - [x] Test story in test account; screenshot of a held page
 
 - [x] Redraw Adel story 3a2d5c15 (all 8 pages passed)
+
+## Nov 4 2026 — sound button, stale redraws, book design
+- [x] A: big orange sound button + pause on the video
+- [x] B: version on redrawn picture addresses; Adel's 8 pages updated
+- [ ] C: mockups (option 2 + option 4 square sample page from Noam 071b5ff4) — screenshots, wait for approval before building
