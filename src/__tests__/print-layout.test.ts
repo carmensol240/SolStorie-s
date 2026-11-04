@@ -74,15 +74,17 @@ describe("print book layout", () => {
       const t = s.indexOf("talk");
       expect(s[t + 1]).toBe("theEnd");
       expect(s[t - 1]).toBe("illustration");
-      const fill = s.slice(t + 2, -1);
+      expect(s[s.length - 2]).toBe("copyright");
+      const fill = s.slice(t + 2, -2);
       const order = ["drawMoment", "ourHero"];
       fill.forEach((k, i) => expect(k).toBe(order[i] ?? "blank"));
       expect(s[s.length - 1]).toBe("backCover");
     }
   });
-  it("6 story pages with pictures → talk, next adventure, draw, our hero, back cover (no blanks)", () => {
+  it("6 story pages with pictures → talk, next adventure, draw, rights page, back cover", () => {
     const s = buildPageSequence(pages(Array(6).fill(true))).map(x => x.kind);
-    expect(s.slice(-5)).toEqual(["talk", "theEnd", "drawMoment", "ourHero", "backCover"]);
+    expect(s.slice(-5)).toEqual(["talk", "theEnd", "drawMoment", "copyright", "backCover"]);
+    expect(s.length % 4).toBe(0);
     expect(s).not.toContain("blank");
   });
   it("English stories are ltr with English fixed texts", () => {
