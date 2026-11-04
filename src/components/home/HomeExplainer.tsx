@@ -62,7 +62,7 @@ const HomeExplainer = () => {
             {CAST.map((c) => (
               <li key={c.name} className="snap-start shrink-0 flex flex-col items-center w-20">
                 <div className="w-16 h-16 rounded-full overflow-hidden border-4 border-primary/20 mb-1">
-                  <img src={c.img} alt={`${c.name}, ${c.text}`} loading="lazy" className="w-full h-full object-cover" />
+                  <img src={c.img} alt={c.name} loading="lazy" className="w-full h-full object-cover" />
                 </div>
                 <h3 className="text-center text-sm font-black text-foreground">{c.name}</h3>
               </li>
