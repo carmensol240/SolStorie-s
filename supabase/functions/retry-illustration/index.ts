@@ -371,7 +371,7 @@ serve(async (req) => {
       // With a face picture (avatar / saved reference) the hair comes from the picture.
       const hasFaceRef = !!((ch as any)?.avatar_url || (story as any).child_photo_path);
       const hair = hasFaceRef ? "" : hairToEnglish(ap);
-      const outfit = (clothingToEnglish(ap, (story as any).child_gender) || (story as any).story_outfit || "");
+      const outfit = ((story as any).story_outfit || clothingToEnglish(ap, (story as any).child_gender) || "");
       const kp = kippahForStory(story as any);
       characterLock = buildCharacterLock({ gender: (story as any).child_gender, age: ch?.age ?? null, ageRange: (story as any).age_range, hair, outfit, kippah: kp.kippah, kippahColor: kp.color });
       if (outfit) characterLock += `\n\n${buildOutfitLock(outfit)}`;

@@ -1503,14 +1503,23 @@ serve(async (req) => {
     let parentClothingType = "";
     let parentClothingColor = "";
 
-    if (userId && childName) {
-      console.log(`Checking for existing avatar profile for ${childName}...`);
-      const { data: existingChild } = await supabase
+    // The story's own owner/child/face picture — never the caller (an admin redraw runs
+    // under the admin's account, which has no children of its own).
+    const { data: storyFaceRow } = storyId
+      ? await supabase.from("stories").select("user_id, child_id, child_name, child_photo_path").eq("id", storyId).maybeSingle()
+      : { data: null };
+    const ownerId: string | null = (storyFaceRow as any)?.user_id || userId || null;
+    const lookupChildId: string | null = (storyFaceRow as any)?.child_id || null;
+    const lookupName: string | null = childName || (storyFaceRow as any)?.child_name || null;
+
+    if (ownerId && (lookupChildId || lookupName)) {
+      console.log(`Checking for existing avatar profile (child_id=${lookupChildId ?? "-"} name=${lookupName ?? "-"})...`);
+      let childQ = supabase
         .from('children')
         .select('avatar_description, avatar_url, hair_color, hair_style, clothing_type, clothing_color')
-        .eq('user_id', userId)
-        .eq('name', childName)
-        .maybeSingle();
+        .eq('user_id', ownerId);
+      childQ = lookupChildId ? childQ.eq('id', lookupChildId) : childQ.eq('name', lookupName as string);
+      const { data: existingChild } = await childQ.limit(1).maybeSingle();
 
       if (existingChild?.avatar_url) {
         childHasSavedAvatar = true;
@@ -1533,6 +1542,19 @@ serve(async (req) => {
           console.log("Could not parse saved profile, will generate new one");
         }
       }
+    }
+
+    // Face fallback: the face picture saved with the story itself.
+    if (!effectivePhoto && (storyFaceRow as any)?.child_photo_path) {
+      effectivePhoto = (storyFaceRow as any).child_photo_path;
+      console.log("🛟 Using the story's saved face picture (child_photo_path)");
+    }
+    // A single-page redraw is never drawn without a face reference.
+    if (singlePageNumber !== undefined && singlePageNumber !== null && !effectivePhoto) {
+      console.error(`[REDRAW] story=${storyId} page=${singlePageNumber}: no face reference (no child avatar, no story face picture) — refusing`);
+      return new Response(JSON.stringify({ error: "no_face_reference", message: "No face picture found for this story" }), {
+        status: 422, headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
     }
 
     // Form values (sent with the request) win over the saved profile; each field independent.
@@ -1631,12 +1653,14 @@ serve(async (req) => {
     let kippahInfo = { kippah: false, color: "" };
     if (storyId) {
       const { data: so } = await supabase.from("stories").select("story_outfit, kippah, kippah_color, child_gender").eq("id", storyId).maybeSingle();
-      if (!parentOutfitEn) savedOutfit = (so as any)?.story_outfit || null;
+      // A redraw always reuses the story's saved outfit; a first drawing uses it only without parent clothes.
+      if (!parentOutfitEn || singlePageNumber) savedOutfit = (so as any)?.story_outfit || null;
       kippahInfo = kippahForStory(so as any);
     }
     const kippahPhrase = kippahInfo.kippah ? `, wearing a small knitted ${kippahInfo.color} kippah (small kippah on the head, hair visible)` : ", uncovered head, hair visible";
-    storyOutfit = parentOutfitEn || savedOutfit || storyOutfit || pickDefaultOutfit(String(storyId || childName || "story"));
-    if (!parentOutfitEn && !savedOutfit && storyId && !singlePageNumber) {
+    storyOutfit = (singlePageNumber && savedOutfit) || parentOutfitEn || savedOutfit || storyOutfit || pickDefaultOutfit(String(storyId || childName || "story"));
+    // Every first drawing saves the final outfit (parent clothes included) for redraws/coloring.
+    if (!savedOutfit && storyId && !singlePageNumber) {
       await supabase.from("stories").update({ story_outfit: storyOutfit }).eq("id", storyId).is("story_outfit", null);
     }
     console.log(`🎽 Story outfit locked for all pages: "${storyOutfit}"`);
@@ -1785,7 +1809,7 @@ serve(async (req) => {
       }
 
       // Per-page outfit: parent clothes by default, topic outfit only where the text describes it.
-      const storyOutfit = parentOutfitEn
+      const storyOutfit = (parentOutfitEn && !(singlePageNumber && savedOutfit))
         ? resolvePageOutfit(parentOutfitEn, topicOutfit, page.text, pages.find((pp) => pp.page_number === page.page_number - 1)?.text)
         : baseStoryOutfit;
       const visualAnchor = storyOutfit === baseStoryOutfit

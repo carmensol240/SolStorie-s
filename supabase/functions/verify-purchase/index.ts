@@ -7,7 +7,6 @@ const CORS = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
-const WHITELISTED_TEST_EMAILS = ["shirley.u85@gmail.com"];
 const MAX_TEST_PURCHASES = 3;
 
 Deno.serve(async (req) => {
@@ -76,8 +75,10 @@ Deno.serve(async (req) => {
         );
       }
       const email = (userData.user.email || "").toLowerCase();
-      if (!WHITELISTED_TEST_EMAILS.map((e) => e.toLowerCase()).includes(email)) {
-        console.error("[VERIFY-PURCHASE] testMode rejected for non-test user:", email);
+      // Test purchases are allowed only for admins (server-checked role).
+      const { data: isAdmin } = await supabase.rpc("has_role", { _user_id: userId, _role: "admin" });
+      if (isAdmin !== true) {
+        console.error("[VERIFY-PURCHASE] testMode rejected for non-admin user:", email);
         return new Response(
           JSON.stringify({ error: "Forbidden" }),
           { status: 403, headers: { ...CORS, "Content-Type": "application/json" } }

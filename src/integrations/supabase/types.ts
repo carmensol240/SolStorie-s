@@ -321,6 +321,33 @@ export type Database = {
         }
         Relationships: []
       }
+      credit_reset_backup_20261104: {
+        Row: {
+          backed_up_at: string
+          coloring_credits: number | null
+          email: string | null
+          full_lots_remaining: number | null
+          story_credits: number | null
+          user_id: string
+        }
+        Insert: {
+          backed_up_at?: string
+          coloring_credits?: number | null
+          email?: string | null
+          full_lots_remaining?: number | null
+          story_credits?: number | null
+          user_id: string
+        }
+        Update: {
+          backed_up_at?: string
+          coloring_credits?: number | null
+          email?: string | null
+          full_lots_remaining?: number | null
+          story_credits?: number | null
+          user_id?: string
+        }
+        Relationships: []
+      }
       digital_books: {
         Row: {
           created_at: string
