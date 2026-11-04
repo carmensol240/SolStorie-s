@@ -13,7 +13,7 @@ export const FULL_BLEED_INSTRUCTION = `CRITICAL: This must be a PURE ILLUSTRATIO
 
 export const STYLE_DESCRIPTOR = `high-quality 3D animated feature film style, soft global illumination, rounded friendly proportions, large expressive eyes, smooth stylized skin, vibrant warm colors`;
 
-export const NO_TEXT_RULE = `NO TEXT IN THE IMAGE: no text, no letters, no words, no captions, no signs, no labels, no speech bubbles, no writing of any kind.`;
+export const NO_TEXT_RULE = `NO TEXT IN THE IMAGE: no text, no letters, no words, no captions, no signs, no labels, no speech bubbles, no writing of any kind. Absolutely no text, letters, words or signs in the image.`;
 
 export const PIXAR_STYLE = `${FULL_BLEED_INSTRUCTION} ${STYLE_DESCRIPTOR}. Pixar 3D animation style, realistic proportions, warm lighting, detailed hair and skin texture, cinematic quality, Disney-Pixar movie aesthetic like Inside Out or Encanto. Natural skin with subtle pores and warmth, expressive realistic eyes with detailed irises, detailed flowing hair with individual strands visible, warm cinematic soft lighting, rich colorful environment with depth and detail. NOT chibi, NOT toy-like, NOT bobblehead, NOT oversized head. Full body from head to toe, feet VISIBLE and GROUNDED on the surface. ${NO_TEXT_RULE}`;
 

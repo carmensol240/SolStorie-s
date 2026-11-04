@@ -187,7 +187,7 @@ async function checkIdentityMatch(
       "- photo_realistic: does it look like a real photograph or photorealistic image of real people, instead of a stylized Pixar-like 3D animated render?\n" +
       "- hero_face_visible: is the main child's face visible (front, three-quarter or side profile all count)? false only if the main child is seen only from behind or the face is hidden/not shown.\n" +
       "- hero_twice: does the main child appear twice, or is there a second child who looks almost identical to the main child (a twin/clone)? Different-looking friends do NOT count.\n" +
-      "- has_text: is there any readable text, letters, words, captions or signs drawn in the picture?\n" +
+      "- has_text: are there clearly readable written letters or words drawn in the picture (captions, signs, labels, speech bubbles)? Toy blocks, logos, emblems, patterns and textures are NOT text. Answer false unless you can actually read letters.\n" +
       (opts.outfit ? `- outfit_ok: is the main child wearing: "${opts.outfit}" (no cape or costume unless listed)?\n` : "") +
       'Answer strict JSON only: {"same_child":bool,"same_style":bool,"copied_composition":bool,"photo_realistic":bool,"hero_face_visible":bool,"hero_twice":bool,"has_text":bool,"outfit_ok":bool,"reason":"<max 12 words>"}';
     const content: any[] = [{ type: "text", text }];
@@ -2340,7 +2340,7 @@ The action, objects, characters, and emotions shown MUST come from the STORY TEX
     const neededPages = (allIllustrationPages ?? []).filter(p =>
       !tasteState?.is_taste || p.page_number <= (tasteState.taste_page_limit ?? 0));
     const totalNeeded = neededPages.length;
-    // A page held for admin (held_mismatch log, no picture) counts as finished so the
+    // A page held for admin (any held_* log: mismatch, refused…; no picture) counts as finished so the
     // story still becomes ready; the reader shows the placeholder for that page.
     const missingNums = neededPages.filter(p => !p.illustration_url).map(p => p.page_number);
     let heldNums = new Set<number>();
@@ -2349,7 +2349,7 @@ The action, objects, characters, and emotions shown MUST come from the STORY TEX
         .from("illustration_logs")
         .select("page_number")
         .eq("story_id", storyId)
-        .eq("model_used", "held_mismatch")
+        .like("model_used", "held_%")
         .in("page_number", missingNums);
       heldNums = new Set((heldLogs ?? []).map(l => l.page_number as number));
     }
