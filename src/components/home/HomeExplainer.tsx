@@ -111,10 +111,10 @@ const HomeExplainer = () => {
                     </p>
                   ) : (
                   <ul className="mt-4 space-y-2">
-                    {p.includes.map((t, i) => (
+                    {p.includes.map((t) => (
                       <li key={t} className="flex items-start gap-2 text-base text-foreground">
                         <Check className="w-5 h-5 text-green-600 shrink-0 mt-0.5" aria-hidden="true" />
-                        <span className={k === "full" && i === p.includes.length - 1 ? "text-primary font-black" : undefined}>{t}</span>
+                        <span>{t}</span>
                       </li>
                     ))}
                   </ul>
