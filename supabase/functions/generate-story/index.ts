@@ -1,5 +1,6 @@
 import "https://deno.land/x/xhr@0.1.0/mod.ts";
 import { mergeAppearance, kippahForRequest, kippahColor, type Appearance } from "../_shared/appearance.ts";
+import { readSwitch, decideFormat } from "../_shared/illustration-format.ts";
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.39.3";
 import { logError } from "../_shared/log-error.ts";
@@ -2397,6 +2398,16 @@ ${fullStoryText}`;
     // Kippah: only what the form sent now (never the saved profile); girls never.
     storyInsertData.kippah = kippahOn;
     storyInsertData.kippah_color = kippahOn ? kippahColor(reqAppearance) : null;
+    // Picture shape for the whole story, decided once here (switch off → landscape, as today).
+    try {
+      const mode = readSwitch(Deno.env.get("SQUARE_ILLUSTRATIONS"));
+      let ownerIsAdmin = false;
+      if (mode === "test" && userId) {
+        const { data: isAdm } = await supabase.rpc("has_role", { _user_id: userId, _role: "admin" });
+        ownerIsAdmin = isAdm === true;
+      }
+      storyInsertData.illustration_format = decideFormat(mode, ownerIsAdmin);
+    } catch { storyInsertData.illustration_format = "landscape"; }
 
     
     // Only add user_id if we have one (for gallery privacy)
