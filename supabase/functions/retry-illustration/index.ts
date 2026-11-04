@@ -12,7 +12,8 @@ import {
   CHARACTER_CONSISTENCY_PROMPT,
   buildOutfitLock,
   SINGLE_HERO_RULE,
-  GENDER_SYMBOL_RESTRICTION,
+  genderSymbolRestriction,
+  negativePromptFor,
   buildGenderHeader,
   storyTextForPrompt,
 } from "../_shared/style-config.ts";
@@ -393,7 +394,7 @@ The action, objects, characters, and emotions shown MUST come from the STORY TEX
     // Page 1 is also used as the library cover card (square/landscape crop), so it needs a
     // safe composition: character centered, generous margins, headroom for title overlays.
     const COVER_SAFE_ZONE = `COMPOSITION (COVER SAFE ZONE): The main character is centered in the frame, full body visible, with at least 15% empty margin on every side and extra headroom at the top. Nothing important touches the edges — this image is also cropped to a square cover card.`;
-    const sceneBlock = `${genderHeader}\n\n${sceneBlockRaw}\n\n${page.page_number === 1 ? `${COVER_SAFE_ZONE}\n\n` : ""}${GENDER_SYMBOL_RESTRICTION}`;
+    const sceneBlock = `${genderHeader}\n\n${sceneBlockRaw}\n\n${page.page_number === 1 ? `${COVER_SAFE_ZONE}\n\n` : ""}${genderSymbolRestriction((story as any).child_gender)}`;
 
     let imageUrl: string | null = null;
     let modelUsed = "unknown";
@@ -503,7 +504,7 @@ NEGATIVE: ${NEGATIVE_PROMPT}`;
       if (!FAL_KEY) {
         return await failure("FAL_KEY not configured");
       }
-      const fullPrompt = `${PIXAR_STYLE}\n\n${sceneBlock}\n\n${CHARACTER_CONSISTENCY_PROMPT}\n\nNEGATIVE: ${NEGATIVE_PROMPT_FULL}`;
+      const fullPrompt = `${PIXAR_STYLE}\n\n${sceneBlock}\n\n${CHARACTER_CONSISTENCY_PROMPT}\n\nNEGATIVE: ${negativePromptFor((story as any).child_gender)}`;
       console.log(`Retrying illustration via Flux Schnell for story ${storyId}, page ${page.page_number}...`);
 
       for (let attempt = 1; attempt <= MAX_ATTEMPTS; attempt++) {
