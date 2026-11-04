@@ -317,6 +317,45 @@ const CreateStory = () => {
     goToStep(2);
   };
 
+  // A new child the parent filled in but did not save is saved automatically on Next,
+  // so the story gets linked to the child (name, photo, avatar kept for later pages/redraws).
+  const ensureChildProfileSaved = async () => {
+    const name = formData.childName?.trim();
+    if (!user || isDevModeEnabled() || !name || (formData as any).childId) return;
+    try {
+      const { data: existing } = await supabase
+        .from("children").select("id").eq("user_id", user.id).eq("name", name).limit(1).maybeSingle();
+      let id = existing?.id as string | undefined;
+      if (!id) {
+        const ageMap: Record<string, number> = { "0-2": 1, "2-4": 4, "5-7": 6, "8-10": 9 };
+        const age = formData.childAge && formData.childAge > 0 ? formData.childAge : (ageMap[formData.ageRange] ?? 4);
+        const { data, error } = await supabase.from("children").insert({
+          user_id: user.id,
+          name,
+          age,
+          gender: formData.childGender,
+          photo_url: formData.childPhoto || null,
+          avatar_url: formData.childAvatarUrl || null,
+          personality_traits: formData.personalityTraits || null,
+          fixed_details: formData.fixedDetails || null,
+          clothing_type: formData.clothingType || null,
+          clothing_color: formData.clothingColor || null,
+          hair_color: formData.hairColor || null,
+          hair_style: formData.hairStyle || null,
+          kippah: formData.childGender === "male" && !!formData.kippah,
+        }).select("id").single();
+        if (error) throw error;
+        id = data?.id;
+      }
+      if (id) {
+        updateFormData({ childId: id } as any);
+        onSelectedChildChange(id);
+      }
+    } catch (e) {
+      console.warn("[create] auto-save child profile failed", e);
+    }
+  };
+
   const handleNext = async () => {
     if (step === 1 && canProceedStep1) {
       const other = selfAgeMismatch(formData.fixedDetails, formData.childAge);
@@ -335,6 +374,7 @@ const CreateStory = () => {
       if (formData.childPhoto) {
         trackEvent({ eventType: "photo_uploaded" });
       }
+      await ensureChildProfileSaved();
       goToStep(3);
     } else if (step === 3 && canProceedTopic) {
       trackEvent({
