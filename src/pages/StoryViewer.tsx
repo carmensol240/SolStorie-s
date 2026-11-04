@@ -58,6 +58,8 @@ import { useAutoFitText } from "@/hooks/use-auto-fit-text";
 // useSignedUrls removed - story-illustrations bucket is public
 import { BookFrame, BookPage, BookHeader, NavigationArrows, MagicalBookFrame } from "@/components/story/book-frame";
 import { ReaderIllustration } from "@/components/story/book-frame/ReaderIllustration";
+import { BookPaper, BookTextFrame, useIllustrationAccent } from "@/components/story/book-frame/BookPaper";
+import { useWideReader } from "@/hooks/use-wide-reader";
 import { ScrollHintText } from "@/components/story/book-frame/ScrollHintText";
 import { TheaterFrame } from "@/components/story/theater-frame";
 import PdfFeaturePopup from "@/components/story/PdfFeaturePopup";
@@ -110,9 +112,9 @@ interface Story {
 
 
 const FONT_SIZES = [
-  { label: 'קטן', size: 'text-xl md:text-2xl' },
-  { label: 'בינוני', size: 'text-2xl md:text-3xl' },
-  { label: 'גדול', size: 'text-3xl md:text-4xl' },
+  { label: 'קטן', size: 'text-xl md:text-2xl', book: 'text-[22px] md:text-[24px]' },
+  { label: 'בינוני', size: 'text-2xl md:text-3xl', book: 'text-[25px] md:text-[28px]' },
+  { label: 'גדול', size: 'text-3xl md:text-4xl', book: 'text-[28px] md:text-[32px]' },
 ];
 
 // Rainbow gradient used for dedication, closing, and text-only pages
