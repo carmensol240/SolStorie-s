@@ -22,6 +22,7 @@ export type PrintSlot =
   | { kind: 'drawMoment' }
   | { kind: 'ourHero' }
   | { kind: 'blank' }
+  | { kind: 'copyright' }
   | { kind: 'backCover' };
 
 export const printLang = (language?: string | null): PrintLang =>
@@ -72,7 +73,7 @@ function buildTextOnPictureSequence(
 }
 
 function finishSequence(seq: PrintSlot[], opts: { skipDrawMomentFiller?: boolean }): PrintSlot[] {
-  seq.push({ kind: 'talk' }, { kind: 'theEnd' });
+  seq.push({ kind: 'talk' }, { kind: 'theEnd' }, { kind: 'copyright' });
   const fillers: PrintSlot[] = opts.skipDrawMomentFiller
     ? [{ kind: 'ourHero' }]
     : [{ kind: 'drawMoment' }, { kind: 'ourHero' }];

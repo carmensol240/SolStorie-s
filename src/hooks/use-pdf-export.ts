@@ -163,6 +163,56 @@ export const usePdfExport = () => {
     }
   };
 
+  // Story text page: small, quiet logo next to the page number, in the page's decoration color (never on a picture).
+  const drawTextPageFooter = (pdf: jsPDF, pageNumber: number, accent: string) => {
+    const m = accent.match(/(\d+)\D+(\d+)\D+(\d+)/);
+    const [r, g, b] = m ? [Number(m[1]), Number(m[2]), Number(m[3])] : [168, 145, 63];
+    const y = PAGE_MM - SAFE_MM;
+    pdf.setFont('helvetica', 'bold');
+    pdf.setFontSize(9);
+    pdf.setTextColor(110, 110, 110);
+    const num = String(pageNumber);
+    const numW = pdf.getTextWidth(num);
+    pdf.setFont('helvetica', 'normal');
+    pdf.setFontSize(7.5);
+    const brand = "SolStorie's\u2122";
+    const brandW = pdf.getTextWidth(brand);
+    const gap = 2.5;
+    const start = PAGE_MM / 2 - (numW + gap + brandW) / 2;
+    pdf.setFont('helvetica', 'bold');
+    pdf.setFontSize(9);
+    pdf.text(num, start, y);
+    pdf.setFont('helvetica', 'normal');
+    pdf.setFontSize(7.5);
+    pdf.setTextColor(r, g, b);
+    pdf.text(brand, start + numW + gap, y);
+  };
+
+  // Small rights page inside the book (counted in the multiple of 4).
+  const drawCopyrightPage = (pdf: jsPDF, childName: string) => {
+    const W = PAGE_MM;
+    const c = document.createElement('canvas');
+    const S = 1200;
+    c.width = S; c.height = S;
+    const ctx = c.getContext('2d');
+    if (!ctx) return;
+    ctx.fillStyle = '#ffffff';
+    ctx.fillRect(0, 0, S, S);
+    ctx.direction = 'rtl';
+    ctx.textAlign = 'center';
+    ctx.fillStyle = '#5b5b5b';
+    const lines = [
+      `נוצר במיוחד עבור ${childName}`,
+      '\u200E© 2026 SolStorie\'s™\u200E',
+      'soulstory.co.il',
+      'כל הזכויות שמורות · לשימוש אישי בלבד',
+    ];
+    ctx.font = '600 30px Rubik, Heebo, Arial, sans-serif';
+    lines.forEach((t, i) => ctx.fillText(t, S / 2, S * 0.72 + i * 46));
+    pdf.addImage(c.toDataURL('image/png'), 'PNG', 0, 0, W, W);
+    c.width = 0; c.height = 0;
+  };
+
   const freeCanvas = (c: HTMLCanvasElement) => { c.width = 0; c.height = 0; };
 
   // ─── html2canvas capture of a 1240px design page at 300 DPI ──
@@ -605,8 +655,11 @@ export const usePdfExport = () => {
             const el = renderTextOnlyPage(slot.storyIndexes.map(k => story.pages[k].text), lang, look);
             await fitTextPage(container, el, young);
             await captureHtml(container, el, pdf, 'JPEG');
+            drawTextPageFooter(pdf, pageNo, look.accent);
           }
-            drawFooter(pdf, { pageNumber: pageNo, noLine: true });
+            break;
+          case 'copyright':
+            drawCopyrightPage(pdf, story.child_name);
             break;
           case 'illustration': {
             const u = story.pages[slot.storyIndex].illustration_url!;
