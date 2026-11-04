@@ -2,6 +2,7 @@ import { Wand2, BookOpen, Camera, Sparkles, Check } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import GlobalFooter from "@/components/shared/GlobalFooter";
 import { CATALOG, formatPrice } from "@/config/promo";
+import { WHATSAPP_ORDER_LABEL, WHATSAPP_ORDER_URL } from "@/lib/whatsapp-order";
 import castSolAsset from "@/assets/cast-thumbs/sol.webp.asset.json";
 import castBenAsset from "@/assets/cast-thumbs/ben.webp.asset.json";
 import castMiaAsset from "@/assets/cast-thumbs/mia.webp.asset.json";
@@ -124,6 +125,19 @@ const HomeExplainer = () => {
             })}
           </div>
           <p className="text-center text-sm text-muted-foreground">התשלום רק אחרי שרואים את תחילת הסיפור.</p>
+          {/* Secondary option: we prepare the story for the parent. Outlined and
+              deliberately smaller than the main orange CTA below. */}
+          <div className="text-center">
+            <a
+              href={WHATSAPP_ORDER_URL}
+              target="_blank"
+              rel="noopener noreferrer"
+              aria-label={WHATSAPP_ORDER_LABEL}
+              className="inline-flex items-center justify-center gap-2 min-h-11 px-5 rounded-full border-2 border-primary/60 text-primary text-sm font-bold hover:bg-primary/10 transition-colors"
+            >
+              💬 מעדיפים שנכין בשבילכם? שלחו לנו בוואטסאפ
+            </a>
+          </div>
         </section>
 
         {/* CTA */}

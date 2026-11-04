@@ -6,7 +6,7 @@ import GlobalFooter from "@/components/shared/GlobalFooter";
 // limitations current whenever accessibility work is done.
 const LAST_UPDATED = "22/10/2026";
 const CONTACT_NAME = "כהן כרמית";
-const CONTACT_PHONE = "050-2480020";
+const CONTACT_PHONE = "053-5577007";
 const CONTACT_EMAIL = "solstories.nlp@gmail.com";
 
 const AccessibilityStatement = () => {
