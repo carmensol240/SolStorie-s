@@ -7,7 +7,6 @@ import { PACK_STORY_COUNT } from "../../supabase/functions/_shared/catalog";
 
 const WHITELISTED_TEST_EMAILS = [
   "carmit1901+test@gmail.com",
-  "souldesign06@gmail.com",
 ];
 import { Button } from "@/components/ui/button";
 import PurchaseSuccessModal from "@/components/paywall/PurchaseSuccessModal";
