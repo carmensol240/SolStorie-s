@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback, useRef } from "react";
 import { useNavigate } from "react-router-dom";
-import { Wand2, Coins, Pause, Play, ChevronDown } from "lucide-react";
+import { Wand2, Coins, Pause, Play, ChevronDown, Volume2, VolumeX } from "lucide-react";
 import { useCredits } from "@/hooks/use-credits";
 import { useAuth } from "@/hooks/use-auth";
 import { useToast } from "@/hooks/use-toast";
@@ -8,10 +8,13 @@ import { supabase } from "@/integrations/supabase/client";
 
 import MobileNavigation from "@/components/MobileNavigation";
 import HomeExplainer from "@/components/home/HomeExplainer";
-import heroVideo from "@/assets/hero-solstories-animation-new.mp4";
-import heroPoster from "@/assets/hero-poster.jpg";
+import heroVideoAsset from "@/assets/hero-noam.mp4.asset.json";
+import heroPosterAsset from "@/assets/hero-noam-poster.jpg.asset.json";
 
-const HERO_VIDEO_LABEL = "סרטון קצר: סול והחבורה";
+const heroVideo = heroVideoAsset.url;
+const heroPoster = heroPosterAsset.url;
+const HERO_VIDEO_LABEL =
+  "סרטון קצר: צילום של ילד הופך לדמות מצוירת ולגיבור של ספר מאויר, עם דפי צביעה מהסיפור";
 
 
 const Adventure = () => {
@@ -50,6 +53,18 @@ const Adventure = () => {
     if (videoPlaying) v.play().catch(() => {});
     else v.pause();
   }, [videoPlaying]);
+  const [soundOn, setSoundOn] = useState(false);
+  useEffect(() => {
+    const v = videoRef.current;
+    if (v) v.muted = !soundOn;
+  }, [soundOn]);
+  const toggleSound = () => {
+    const next = !soundOn;
+    const v = videoRef.current;
+    if (v) v.muted = !next;
+    setSoundOn(next);
+    if (next && !videoPlaying) setVideoPlaying(true);
+  };
 
   useEffect(() => {
     if (!user) return;
