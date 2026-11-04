@@ -135,27 +135,6 @@ const Adventure = () => {
             <Coins className="w-4 h-4 text-amber-300" />
             <span className="font-bold text-background text-sm">{totalCredits}</span>
           </button>
-          <div className="flex items-center gap-2">
-            <button
-              type="button"
-              onClick={toggleSound}
-              className="flex items-center gap-1.5 h-11 px-3 rounded-full bg-foreground/70 backdrop-blur-md border border-background/40 text-background text-sm font-semibold hover:bg-foreground/80 transition-colors"
-              aria-label={soundOn ? "השתקה" : "הפעלת קול"}
-              aria-pressed={soundOn}
-            >
-              {soundOn ? <Volume2 className="w-5 h-5" aria-hidden="true" /> : <VolumeX className="w-5 h-5" aria-hidden="true" />}
-              <span>{soundOn ? "השתקה" : "הפעלת קול"}</span>
-            </button>
-            <button
-              type="button"
-              onClick={() => setVideoPlaying((p) => !p)}
-              className="flex items-center justify-center w-11 h-11 rounded-full bg-foreground/70 backdrop-blur-md border border-background/40 text-background hover:bg-foreground/80 transition-colors"
-              aria-label={videoPlaying ? "עצירת האנימציה" : "הפעלת האנימציה"}
-              aria-pressed={!videoPlaying}
-            >
-              {videoPlaying ? <Pause className="w-5 h-5" aria-hidden="true" /> : <Play className="w-5 h-5" aria-hidden="true" />}
-            </button>
-          </div>
         </div>
 
         {/* Logo + tagline (above the video, never on top of it) */}
@@ -199,6 +178,28 @@ const Adventure = () => {
           >
             <source src={heroVideo} type="video/mp4" />
           </video>
+          {/* Sound + pause on the video itself, bottom corner, big enough for a finger */}
+          <div className="absolute bottom-3 start-3 z-10 flex items-center gap-2">
+            <button
+              type="button"
+              onClick={toggleSound}
+              className={`flex items-center gap-2 min-h-12 px-4 rounded-full bg-primary text-primary-foreground text-base font-bold shadow-lg border-2 border-background/70 hover:scale-105 active:scale-95 transition-transform ${!soundOn && soundHint ? "motion-safe:animate-pulse" : ""}`}
+              aria-label={soundOn ? "השתקה" : "הפעילו את השיר"}
+              aria-pressed={soundOn}
+            >
+              {soundOn ? <VolumeX className="w-5 h-5" aria-hidden="true" /> : <Volume2 className="w-5 h-5" aria-hidden="true" />}
+              <span>{soundOn ? "השתקה" : "הפעילו את השיר"}</span>
+            </button>
+            <button
+              type="button"
+              onClick={() => setVideoPlaying((p) => !p)}
+              className="flex items-center justify-center w-12 h-12 rounded-full bg-foreground/70 backdrop-blur-md border-2 border-background/70 text-background hover:bg-foreground/80 transition-colors"
+              aria-label={videoPlaying ? "עצירת האנימציה" : "הפעלת האנימציה"}
+              aria-pressed={!videoPlaying}
+            >
+              {videoPlaying ? <Pause className="w-5 h-5" aria-hidden="true" /> : <Play className="w-5 h-5" aria-hidden="true" />}
+            </button>
+          </div>
         </div>
         <p className="sr-only">{HERO_VIDEO_LABEL}</p>
 
