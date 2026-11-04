@@ -96,3 +96,7 @@
 - [x] B: version on redrawn picture addresses; Adel's 8 pages updated
 - [x] C: mockups + square sample (screenshots delivered)
 - [ ] C: build chosen design — waiting for approval of screenshots
+- [x] C2: new book design for all stories (reader paper page, big text, 0–4 band, open book, print text pages)
+- [x] C3: square pictures behind switch (SQUARE_ILLUSTRATIONS=test → admin accounts only)
+- [ ] C3: 3 square test stories (boy, girl, age 0–4) — waiting for user to pick test account/children
+- [ ] Turn square on for everyone — only after user approves test stories
