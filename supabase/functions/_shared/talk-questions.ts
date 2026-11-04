@@ -24,12 +24,15 @@ export function talkQuestionsInstruction(lang: "he" | "en", nikud: boolean) {
 }
 
 /** Keeps 3-4 clean questions; anything else → [] so the caller can try again later. */
-export function sanitizeTalkQuestions(list: unknown, nikud: boolean): string[] {
+export function sanitizeTalkQuestions(list: unknown, nikud: boolean, heroName?: string): string[] {
   if (!Array.isArray(list)) return [];
+  const hero = stripNikud(heroName || "").trim().toLowerCase();
   const out = list
     .filter((q): q is string => typeof q === "string")
     .map((q) => (nikud ? q : stripNikud(q)).replace(/\s+/g, " ").trim())
     .filter((q) => q.length >= 6 && stripNikud(q).length <= TALK_MAX_CHARS + 20)
+    // the child IS the hero: a question naming the hero is dropped
+    .filter((q) => !hero || hero.length < 2 || !stripNikud(q).toLowerCase().includes(hero))
     .map((q) => (/[?？]$/.test(q) ? q : `${q.replace(/[.!]+$/, "")}?`))
     .slice(0, TALK_MAX);
   return out.length >= TALK_MIN ? out : [];
@@ -63,7 +66,7 @@ export async function generateTalkQuestions(input: {
   const raw = await input.call({ systemPrompt: system, userPrompt: user, label: "talk-questions", schema: SCHEMA });
   try {
     const c = (raw || "").trim();
-    return sanitizeTalkQuestions(JSON.parse(c.slice(c.indexOf("{"), c.lastIndexOf("}") + 1)).talk_questions, nikud);
+    return sanitizeTalkQuestions(JSON.parse(c.slice(c.indexOf("{"), c.lastIndexOf("}") + 1)).talk_questions, nikud, input.heroName);
   } catch {
     return [];
   }
