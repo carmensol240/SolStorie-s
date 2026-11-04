@@ -141,7 +141,7 @@ ${extra}
 העמודים:
 ${JSON.stringify({ pages: subset.map((p) => ({ page_number: p.page_number, text: p.text })) })}`;
     const raw = await call({ systemPrompt: system, userPrompt, label });
-    if (label === "hebrew-editor") talkQuestions = sanitizeTalkQuestions(parseQuestions(raw), nikud);
+    if (label === "hebrew-editor") talkQuestions = sanitizeTalkQuestions(parseQuestions(raw), nikud, input.heroName);
     return parsePages(raw);
   };
 

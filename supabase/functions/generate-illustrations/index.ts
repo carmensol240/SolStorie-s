@@ -4,6 +4,8 @@ import { mergeAppearance, hairToEnglish, heroHair, clothingToEnglish, resolvePag
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.39.3";
 import { logError } from "../_shared/log-error.ts";
+import { alignProfileGender } from "../_shared/profile-gender.ts";
+import { normalizeGender } from "../_shared/gender.ts";
 import {
   PIXAR_STYLE,
   PIXAR_STYLE_COMPACT,
@@ -19,7 +21,8 @@ import {
   buildCharacterRefs,
   CHARACTER_CONSISTENCY_PROMPT,
   CAST_DESCRIPTIONS,
-  GENDER_SYMBOL_RESTRICTION,
+  genderSymbolRestriction,
+  negativePromptFor,
   buildGenderHeader,
   buildOutfitLock,
   SINGLE_HERO_RULE,
@@ -327,7 +330,7 @@ Return only the JSON, no other text.`
       `extractCharacterProfile threw — using generic defaults: ${(error as Error)?.message || error}`,
       { gender: childGender, ageRange },
     );
-    return getDefaultProfile(childGender, genderHebrew, ageRange);
+    return getDefaultProfile(childGender, childGender === "female" ? "ילדה" : "ילד", ageRange);
   }
 }
 
@@ -735,7 +738,7 @@ async function generateIllustration(
 
     const stylePrefix = PIXAR_STYLE;
 
-    const negativePrompt = NEGATIVE_PROMPT_FULL;
+    const negativePrompt = negativePromptFor(characterProfile?.gender);
 
     const fullPrompt = `${stylePrefix}\n\n${visualAnchor}\n\n${characterInstruction}\n${adventureInstruction}\n\nSCENE: ${prompt}\n\n${CHARACTER_CONSISTENCY_PROMPT}\n\nNEGATIVE: ${negativePrompt}\n\n${NO_UI_NEGATIVE}`;
 
@@ -1363,7 +1366,7 @@ serve(async (req) => {
     const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
     const requestBody = await req.json();
-    const { storyId, childPhoto, childAvatarUrl, childGender, ageRange, adventureLogic, userId, childName, topic, singlePageNumber } = requestBody;
+    const { storyId, childPhoto, childAvatarUrl, childGender: reqChildGender, ageRange, adventureLogic, userId, childName, topic, singlePageNumber } = requestBody;
     const reqAppearance: Appearance = (requestBody && typeof requestBody.appearance === "object" && requestBody.appearance) ? requestBody.appearance : {};
     const reqChildAge: number | null = Number.isFinite(Number(requestBody?.childAge)) ? Number(requestBody.childAge) : null;
     
@@ -1371,7 +1374,7 @@ serve(async (req) => {
       storyId, 
       hasChildPhoto: !!childPhoto, 
       hasChildAvatarUrl: !!childAvatarUrl,
-      childGender,
+      childGender: reqChildGender,
       ageRange,
       hasAdventureLogic: !!adventureLogic,
       userId: userId ? userId.substring(0, 8) + "..." : "none",
@@ -1506,12 +1509,15 @@ serve(async (req) => {
     // The story's own owner/child/face picture — never the caller (an admin redraw runs
     // under the admin's account, which has no children of its own).
     const { data: storyFaceRow } = storyId
-      ? await supabase.from("stories").select("user_id, child_id, child_name, child_photo_path").eq("id", storyId).maybeSingle()
+      ? await supabase.from("stories").select("user_id, child_id, child_name, child_photo_path, child_gender").eq("id", storyId).maybeSingle()
       : { data: null };
+    // The story's gender (chosen in the form for THIS story) wins everywhere — first drawing and redraws.
+    const childGender: "male" | "female" = normalizeGender((storyFaceRow as any)?.child_gender) || normalizeGender(reqChildGender) || "male";
     const ownerId: string | null = (storyFaceRow as any)?.user_id || userId || null;
     const lookupChildId: string | null = (storyFaceRow as any)?.child_id || null;
     const lookupName: string | null = childName || (storyFaceRow as any)?.child_name || null;
 
+    let savedChildFilter: { col: string; val: string } | null = null;
     if (ownerId && (lookupChildId || lookupName)) {
       console.log(`Checking for existing avatar profile (child_id=${lookupChildId ?? "-"} name=${lookupName ?? "-"})...`);
       let childQ = supabase
@@ -1519,6 +1525,7 @@ serve(async (req) => {
         .select('avatar_description, avatar_url, hair_color, hair_style, clothing_type, clothing_color')
         .eq('user_id', ownerId);
       childQ = lookupChildId ? childQ.eq('id', lookupChildId) : childQ.eq('name', lookupName as string);
+      savedChildFilter = lookupChildId ? { col: 'id', val: lookupChildId } : { col: 'name', val: lookupName as string };
       const { data: existingChild } = await childQ.limit(1).maybeSingle();
 
       if (existingChild?.avatar_url) {
@@ -1537,6 +1544,15 @@ serve(async (req) => {
         try {
           characterProfile = JSON.parse(existingChild.avatar_description);
           savedProfileFromDb = true;
+          const aligned = alignProfileGender(characterProfile as CharacterProfile, childGender);
+          characterProfile = aligned.profile;
+          if (aligned.changed && savedChildFilter) {
+            console.log(`⚧ Saved profile gender replaced with this story's gender (${childGender})`);
+            const { error: gErr } = await supabase.from('children')
+              .update({ avatar_description: JSON.stringify(characterProfile) })
+              .eq('user_id', ownerId).eq(savedChildFilter.col, savedChildFilter.val);
+            if (gErr) console.warn("Could not update saved profile gender:", gErr);
+          }
           console.log(`✅ Reusing saved avatar profile for ${childName}:`, characterProfile);
         } catch (e) {
           console.log("Could not parse saved profile, will generate new one");
@@ -1592,6 +1608,7 @@ serve(async (req) => {
     // Apply parent overrides (if present) to the resolved profile, regardless of
     // whether it came from the DB, from photo extraction, or from a default.
     if (characterProfile) {
+      characterProfile = alignProfileGender(characterProfile, childGender).profile;
       characterProfile.clothingDescription = translateOutfitWords(characterProfile.clothingDescription);
       // With a face picture, hair comes from the picture; form hair only without one.
       if (parentHairEn && !effectivePhoto) {
@@ -1835,7 +1852,7 @@ VISUAL DESCRIPTION: ${basePrompt}
 The action, objects, characters, and emotions shown MUST come from the STORY TEXT above. Do not invent a different scene.`
         : `SCENE (MUST MATCH TEXT EXACTLY): ${basePrompt}`;
       const genderHeader = buildGenderHeader(childGender, { kippah: kippahInfo.kippah });
-      let illustrationPrompt = `${genderHeader}\n\n${charDesc}. ${sceneBlock}. CAMERA: ${cameraAngle}. LIGHTING: ${lighting}. Pixar 3D CGI style, vibrant colors, fantasy children's book, ${compositionClause(cameraAngle)}\n\n${GENDER_SYMBOL_RESTRICTION}`;
+      let illustrationPrompt = `${genderHeader}\n\n${charDesc}. ${sceneBlock}. CAMERA: ${cameraAngle}. LIGHTING: ${lighting}. Pixar 3D CGI style, vibrant colors, fantasy children's book, ${compositionClause(cameraAngle)}\n\n${genderSymbolRestriction(childGender)}`;
       illustrationPrompt += `\n\n${characterLock}\n\n${buildOutfitLock(storyOutfit)}\n\n${SINGLE_HERO_RULE}`;
       if (page.page_number === 1) {
         // Page 1 is also cropped into the square library cover card.
@@ -2189,7 +2206,7 @@ ${storyTextForPrompt(pageNarrative)}
 VISUAL DESCRIPTION: ${secondPrompt}
 The action, objects, characters, and emotions shown MUST come from the STORY TEXT above. Do not invent a different scene.`
           : `SCENE (MUST MATCH TEXT EXACTLY): ${secondPrompt}`;
-        const secondIllustrationPrompt = `${buildGenderHeader(childGender, { kippah: kippahInfo.kippah })}\n\n${charDesc2}. ${sceneBlock2}. CAMERA: ${cameraAngle2}. LIGHTING: ${lighting2}. Pixar 3D CGI style, vibrant colors, fantasy children's book, ${compositionClause(cameraAngle2)}\n\n${GENDER_SYMBOL_RESTRICTION}\n\n${characterLock}`;
+        const secondIllustrationPrompt = `${buildGenderHeader(childGender, { kippah: kippahInfo.kippah })}\n\n${charDesc2}. ${sceneBlock2}. CAMERA: ${cameraAngle2}. LIGHTING: ${lighting2}. Pixar 3D CGI style, vibrant colors, fantasy children's book, ${compositionClause(cameraAngle2)}\n\n${genderSymbolRestriction(childGender)}\n\n${characterLock}`;
 
         let secondStop = false;
         for (let attempt = 1; attempt <= 3; attempt++) {

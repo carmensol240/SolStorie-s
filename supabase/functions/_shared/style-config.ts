@@ -144,6 +144,28 @@ export const GENDER_SYMBOL_RESTRICTION = `CRITICAL — GENDER-APPROPRIATE APPEAR
 - Clothing, hairstyle, and accessories MUST clearly match the stated gender of the main character in EVERY scene without exception. Any visual mismatch with the stated gender is a failure.
 - RELIGIOUS ITEMS ON THE MAIN CHARACTER, on every topic including holidays and Bible stories: NO kippah/yarmulke unless the CHARACTER LOCK explicitly includes one (boys only); NEVER tzitzit, no peyot/sidelocks, no head covering, no veil/hijab, no cross, no rosary, no priestly robes. Holiday clothing = festive colors only (e.g. blue and white), with no symbol on the clothes. Holiday symbols appear only as objects in the scene (hanukkiah, sufganiyot, flags, candles on a table), never worn by the main character.`;
 
+/** The appearance rule for ONE gender only — a story prompt never names the other gender. */
+export function genderSymbolRestriction(childGender?: string | null): string {
+  const isFemale = (childGender || "").toLowerCase() === "female";
+  const rule = isFemale
+    ? `- The main character is a GIRL: NO kippah, NO yarmulke, NO tzitzit, NO sidelocks, NO head covering, NO religious clothing or symbols of any kind — absolute.`
+    : `- The main character is a BOY: he MUST wear masculine clothing only (pants, shorts, t-shirt, hoodie, sweater, jacket, sneakers or boots). ABSOLUTELY NO dresses, NO skirts, NO tutus, NO frilly/princess clothing, NO feminine hair accessories (no flower crowns, no bows, no hair ribbons, no decorative hairpins), NO makeup, NO lipstick, NO purses, NO feminine jewelry or earrings. Hair must be short or medium length, no decorated ponytails, no buns with flowers.`;
+  return `CRITICAL — GENDER-APPROPRIATE APPEARANCE (ABSOLUTE RULE):
+${rule}
+- Clothing, hairstyle, and accessories MUST clearly match the stated gender of the main character in EVERY scene without exception.
+- RELIGIOUS ITEMS ON THE MAIN CHARACTER, on every topic including holidays and Bible stories: NO kippah/yarmulke unless the CHARACTER LOCK explicitly includes one; NEVER tzitzit, no peyot/sidelocks, no head covering, no veil/hijab, no cross, no rosary, no priestly robes. Holiday clothing = festive colors only (e.g. blue and white), with no symbol on the clothes. Holiday symbols appear only as objects in the scene (hanukkiah, sufganiyot, flags, candles on a table), never worn by the main character.`;
+}
+
+/** Negative prompt for ONE gender only. */
+export function negativePromptFor(childGender?: string | null): string {
+  const isFemale = (childGender || "").toLowerCase() === "female";
+  const base = NEGATIVE_PROMPT_FULL.split(" no kippah on girls")[0];
+  const genderPart = isFemale
+    ? "kippah, yarmulke, tzitzit, sidelocks, head covering, religious symbols on the main character."
+    : "dress, skirt, tutu, flower crown, bow in hair, hair ribbons, makeup, lipstick, purse, feminine jewelry, earrings, long ponytail with ribbon, frilly clothing, princess dress on the main character.";
+  return `${base} ${genderPart} ${ILLUSTRATION_NEGATIVE_PROMPT}`;
+}
+
 /** Build an explicit gender + secular header to prepend to every illustration prompt. */
 export function buildGenderHeader(childGender?: string | null, opts?: { kippah?: boolean }): string {
   const isFemale = (childGender || "").toLowerCase() === "female";
