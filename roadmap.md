@@ -100,3 +100,8 @@
 - [x] C3: square pictures behind switch (SQUARE_ILLUSTRATIONS=test → admin accounts only)
 - [ ] C3: 3 square test stories (boy, girl, age 0–4) — waiting for user to pick test account/children
 - [ ] Turn square on for everyone — only after user approves test stories
+
+## Square pictures test + branding (Nov 2026)
+- [x] 3 square test stories in carmit1901+test (Noam copy, Shuga, new AI toddler "Mika"), all pages face+check passed, credits returned
+- [x] Small brand on text pages (reader + print), no logo on pictures, rights page before back cover
+- [ ] Turn square pictures on for everyone — waits for owner approval
