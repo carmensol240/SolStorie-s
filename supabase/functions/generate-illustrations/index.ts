@@ -2303,7 +2303,7 @@ The action, objects, characters, and emotions shown MUST come from the STORY TEX
         if (secondImage) {
           const secondUrl = await uploadImageToStorage(supabase, secondImage, storyId, page.page_number * 10 + 2);
           if (secondUrl) {
-            await supabase.from("story_pages").update({ illustration_url_2: secondUrl }).eq("id", page.id);
+            await supabase.from("story_pages").update({ illustration_url_2: withIllustrationVersion(secondUrl) }).eq("id", page.id);
             console.log(`[Page ${page.page_number}] ✅ SECOND illustration saved`);
           }
         } else {
