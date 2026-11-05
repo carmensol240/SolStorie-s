@@ -2289,7 +2289,7 @@ const [currentPage, setCurrentPage] = useState(0);
                     {currentVirtual.isCover && story && (
                       <div className="absolute top-0 left-0 right-0 z-20 p-4 pt-6 bg-gradient-to-b from-black/60 via-black/30 to-transparent">
                         <div className="text-center text-white drop-shadow-lg flex flex-col items-center gap-2" dir="rtl">
-                          <h1 className="text-3xl md:text-5xl font-black leading-tight">{translateTopic(story.topic, story.language)}</h1>
+                          <h1 className="px-14 md:px-16 text-3xl md:text-5xl font-black leading-tight">{translateTopic(story.topic, story.language)}</h1>
                           <span className="text-base md:text-lg font-semibold text-white bg-black/45 backdrop-blur-sm rounded-full px-4 py-1.5 [text-shadow:0_1px_3px_rgba(0,0,0,0.8)]" data-testid="cover-dedication">הספר הזה נוצר במיוחד עבור {story.child_name}</span>
                         </div>
                       </div>
@@ -2404,7 +2404,7 @@ const [currentPage, setCurrentPage] = useState(0);
                     {(currentVirtual.isCover || currentPage === 0) && story && (
                       <div className="absolute top-0 left-0 right-0 z-20 p-4 pt-6 bg-gradient-to-b from-black/60 via-black/30 to-transparent">
                         <div className="text-center text-white drop-shadow-lg flex flex-col items-center gap-2" dir="rtl">
-                          <h1 className="text-3xl md:text-5xl font-black leading-tight">{translateTopic(story.topic, story.language)}</h1>
+                          <h1 className="px-14 md:px-16 text-3xl md:text-5xl font-black leading-tight">{translateTopic(story.topic, story.language)}</h1>
                           <span className="text-base md:text-lg font-semibold text-white bg-black/45 backdrop-blur-sm rounded-full px-4 py-1.5 [text-shadow:0_1px_3px_rgba(0,0,0,0.8)]" data-testid="cover-dedication">הספר הזה נוצר במיוחד עבור {story.child_name}</span>
                         </div>
                       </div>
