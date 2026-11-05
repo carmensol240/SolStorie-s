@@ -686,7 +686,7 @@ const CreateStory = () => {
                     : !canProceedTopic
               }
               size="lg"
-              className="w-full bg-primary hover:bg-primary/90 text-white font-black text-sm py-3 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed shadow-lg hover:shadow-xl transition-all"
+              className={`w-full bg-primary hover:bg-primary/90 text-white font-black text-sm py-3 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed shadow-lg hover:shadow-xl transition-all ${step === 2 && !canProceedPersonalization ? "opacity-50" : ""}`}
             >
               {step === 3 ? "צרו את הסיפור" : "המשיכו"}
               <ArrowLeft className="w-4 h-4 mr-1.5" />
