@@ -2486,9 +2486,9 @@ const [currentPage, setCurrentPage] = useState(0);
                           <BookPaper illustrationPath={currentVirtual.dbPage.illustration_url}>
                             <BookTextFrame accent={pageAccent} />
                             <div className="absolute inset-3.5 md:inset-5 flex flex-col">
-                              <ScrollHintText resetKey={`${currentPage}-${fontSizeIndex}-${showNikud}`} className="flex flex-col justify-center h-full px-6 md:px-12 pt-10 pb-12">
+                              <ScrollHintText resetKey={`${currentPage}-${fontSizeIndex}-${showNikud}`} fitMinPx={isWideReader ? undefined : (parseInt((story.age_range || '').split('-').pop() || '6', 10) <= 4 ? 20 : 18)} className="px-6 md:px-12 pt-14 pb-14">
                                 {displayText.trim() && (
-                                  <p className={cn("text-center font-medium whitespace-pre-line text-paper-foreground", currentFontSize.book)} style={{ lineHeight: '1.75', overflowWrap: 'break-word' }} dir="rtl">
+                                  <p data-fit-text className={cn("text-center font-medium whitespace-pre-line text-paper-foreground", currentFontSize.book)} style={{ lineHeight: '1.75', overflowWrap: 'break-word' }} dir="rtl">
                                     {displayText}
                                   </p>
                                 )}
