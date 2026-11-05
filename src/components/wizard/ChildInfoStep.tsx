@@ -250,7 +250,7 @@ const ChildInfoStep = ({ formData, updateFormData, screen = 1, restoredDraft, on
         const localChildren = JSON.parse(getUserData(user?.id, 'savedChildren') || '[]');
         if (localChildren.length > 0) {
           setSavedChildren(localChildren);
-          if (shouldAutoLoadFirst) {
+          if (canAutoLoadFirst()) {
             hasAutoLoadedRef.current = userKey;
             const firstChild = localChildren[0];
             setIsCreatingNew(false);
@@ -669,6 +669,7 @@ const ChildInfoStep = ({ formData, updateFormData, screen = 1, restoredDraft, on
                 childAge: 4,
                 childPhoto: null,
                 childAvatarUrl: null,
+                photoConsent: false,
                 personalityTraits: "",
                 className: "",
                 fixedDetails: "",
@@ -677,6 +678,9 @@ const ChildInfoStep = ({ formData, updateFormData, screen = 1, restoredDraft, on
                 hairColor: "",
                 hairStyle: "",
               });
+              // Block any in-flight profile load from filling this clean form.
+              skipAutoLoadRef.current = true;
+              hasAutoLoadedRef.current = user?.id || '__guest__';
               onNewProfile?.();
               setIsCreatingNew(true);
               setSelectedChildId(null);
