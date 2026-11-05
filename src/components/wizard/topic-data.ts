@@ -1,7 +1,8 @@
 // Cast hero images
 import castSol from "@/assets/cast-sol-adventure.jpg";
 import castMia from "@/assets/cast-mia-nature.jpg";
-import castLeo from "@/assets/cast-leo-science.jpg";
+import castLeoAsset from "@/assets/leo-painter-studio.jpg.asset.json";
+const castLeo = castLeoAsset.url;
 import castZoe from "@/assets/cast-zoe-sports.jpg";
 
 // Topic images

@@ -44,7 +44,6 @@ export const MOM_CARMEN_URL = `${CHARACTER_ASSETS_BASE}/mom-carmen.jpeg`;
 export const CHARACTER_BASE_REFS = [
   `${CHARACTER_ASSETS_BASE}/ben.jpeg`,
   `${CHARACTER_ASSETS_BASE}/zoe.jpeg`,
-  `${CHARACTER_ASSETS_BASE}/leo.jpeg`,
   `${CHARACTER_ASSETS_BASE}/mia.jpeg`,
 ];
 
@@ -52,6 +51,28 @@ export const CHARACTER_BASE_REFS_WITH_MOM = [
   ...CHARACTER_BASE_REFS,
   MOM_CARMEN_URL,
 ];
+
+// ─── Official Leo (one description + one identity reference picture) ───
+
+/** The ONLY Leo description — used by cast cards, character cards, illustrations, redraws and covers. */
+export const LEO_DESCRIPTION = "a 7-8 year old boy named Leo, the gang's painter, with straight short black hair, round black glasses, warm brown eyes, light warm skin, rosy cheeks and small colorful paint spots on his cheeks, wearing a red-yellow striped t-shirt under blue denim overalls covered in colorful paint stains, a paintbrush in his hand and another paintbrush in the overalls chest pocket, red sneakers. Realistic proportions, smooth stylized skin, natural warm lighting.";
+
+/** Official full-body Leo picture in our own public storage (identity reference only). */
+export const LEO_REF_URL = "https://qvdwmkxviaqcgmjotsxe.supabase.co/storage/v1/object/public/topic-images/cast/leo-official-full.jpg";
+
+const LEO_PATTERNS = [/\bLeo\b/i, /ליאו/];
+
+/** True when Leo is named in this page's text/prompt and the hero child is not called Leo. */
+export function leoOnPage(text: string, heroName?: string | null): boolean {
+  const n = String(heroName || "").trim().toLowerCase();
+  if (n === "leo" || n === "ליאו") return false;
+  return LEO_PATTERNS.some((re) => re.test(text || ""));
+}
+
+/** Label for the Leo reference picture; it always comes after the hero's own pictures. */
+export function leoRefNote(ordinal: string): string {
+  return `LEO REFERENCE (${ordinal} IMAGE) — IDENTITY ONLY: that image shows Leo, a friend in the story — copy only his face, hair, glasses, eye color and clothes (striped shirt, paint-stained overalls, paintbrush). He is NOT the main character. NEVER copy that image's pose, layout, camera angle or background.`;
+}
 
 // ─── Adventure Topics (Sol Hero vs Sol Casual) ───
 
@@ -89,7 +110,7 @@ export const CAST_DESCRIPTIONS = {
   sol: "a 4-year-old girl named Sol with tanned olive skin, freckles, expressive eyes with detailed irises, long brown wavy hair tied in a high bun with a pink scrunchie, wearing a superhero outfit: a red cape, a light blue t-shirt with a golden star emblem on the chest, purple pants and white sneakers. Realistic proportions, smooth stylized skin, natural warm lighting.",
   ben: "a toddler boy named Ben with very dark brown extremely curly voluminous hair, expressive eyes with detailed irises, tanned skin, wearing a green t-shirt. He is the smallest character. Realistic proportions, smooth stylized skin, natural warm lighting.",
   mia: "a girl named Mia with a smooth brown bob haircut, a small flower crown, wearing a green dress, expressive eyes with detailed irises. Realistic proportions, smooth stylized skin, natural warm lighting.",
-  leo: "a boy named Leo with straight black hair, round glasses, wearing denim overalls over a red-yellow striped shirt, expressive eyes with detailed irises. Realistic proportions, smooth stylized skin, natural warm lighting.",
+  leo: LEO_DESCRIPTION,
   zoe: "a girl named Zoe with voluminous black curls, a light blue headband, wearing a purple-yellow sporty tracksuit, expressive eyes with detailed irises. Realistic proportions, smooth stylized skin, natural warm lighting.",
 } as const;
 
@@ -110,7 +131,7 @@ export const CHARACTER_CARDS = {
   sol_casual: `Sol – 7-8 year old girl. Dark brown slightly wavy hair, loose with colorful hair tie. Large brown eyes, rosy cheeks, warm medium skin. White t-shirt, jeans.`,
   ben: `Ben – Sol's little brother, 3-4 years old. Dark very curly voluminous hair, large brown eyes, chubby rosy cheeks, warm medium skin, big joyful smile. Colorful toddler clothing.`,
   mia: `Mia – 6-7 year old girl. Dark brown short curly hair in loose bun with WHITE DAISY FLOWER CROWN. Large wonder-filled brown eyes, light warm skin, rosy chubby cheeks. Green dress with floral embroidery, white sneakers.`,
-  leo: `Leo – 7-8 year old boy. Dark brown short messy hair, light warm skin, rosy cheeks, large brown eyes, big joyful smile. Paint splatter on face. Red-yellow striped shirt, blue denim overalls with paint stains, brown sneakers.`,
+  leo: `Leo – ${LEO_DESCRIPTION}`,
   zoe: `Zoe – 7-8 year old girl. Big wild dark brown curls, dark warm skin, large brown eyes, chubby cheeks, confident smile. Backwards black cap, light blue headband. Colorful sporty tracksuit (red/yellow/purple), orange sneakers.`,
   mom_carmen: `Carmen – Sol's mom, mid-30s. Long dark brown wavy hair, warm olive skin, gentle brown eyes, kind smile. Casual colorful clothing.`,
 } as const;
