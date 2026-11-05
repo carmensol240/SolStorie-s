@@ -105,3 +105,8 @@
 - [x] 3 square test stories in carmit1901+test (Noam copy, Shuga, new AI toddler "Mika"), all pages face+check passed, credits returned
 - [x] Small brand on text pages (reader + print), no logo on pictures, rights page before back cover
 - [ ] Turn square pictures on for everyone — waits for owner approval
+
+## New official Leo (Nov 2026)
+- [ ] Homepage thumb, coloring page, studio picture (4 places), storage reference from new brown-eyed pictures
+- [ ] One Leo description (brown eyes) + Leo reference image in illustrations/redraws
+- [ ] Screenshots: homepage gang row, /coloring-gang, coloring page full size, 4 places
