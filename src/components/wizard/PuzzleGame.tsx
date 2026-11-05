@@ -6,7 +6,8 @@ import PuzzleCompleteCelebration from "./PuzzleCompleteCelebration";
 import castSol from "@/assets/cast-sol-adventure.jpg";
 import castBen from "@/assets/cast-ben-art.jpg";
 import castMia from "@/assets/cast-mia-nature.jpg";
-import castLeo from "@/assets/cast-leo-science.jpg";
+import castLeoAsset from "@/assets/leo-painter-studio.jpg.asset.json";
+const castLeo = castLeoAsset.url;
 import castZoe from "@/assets/cast-zoe-sports.jpg";
 
 const PUZZLE_IMAGES = [castSol, castBen, castMia, castLeo, castZoe];
