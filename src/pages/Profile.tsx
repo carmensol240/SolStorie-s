@@ -14,7 +14,8 @@ import useEmblaCarousel from "embla-carousel-react";
 
 // Character assets
 import castSol from "@/assets/cast-sol-adventure.jpg";
-import castBen from "@/assets/cast-ben-art.jpg";
+import castBenAsset from "@/assets/cast-thumbs/ben.webp.asset.json";
+const castBen = castBenAsset.url;
 import castMia from "@/assets/cast-mia-nature.jpg";
 import castLeoAsset from "@/assets/leo-painter-studio.jpg.asset.json";
 const castLeo = castLeoAsset.url;
