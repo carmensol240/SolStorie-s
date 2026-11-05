@@ -19,6 +19,8 @@ import {
   MOM_CARMEN_URL,
   CHARACTER_BASE_REFS,
   CHARACTER_BASE_REFS_WITH_MOM,
+  LEO_REF_URL,
+  leoRefNote,
   buildCharacterRefs,
   CHARACTER_CONSISTENCY_PROMPT,
   CAST_DESCRIPTIONS,
@@ -376,6 +378,11 @@ interface IllustrationResult {
 
 // Helper: generate illustration with face reference via Gemini Image Generation
 // Uses google/gemini-3-pro-image-preview for text-to-image with face reference
+/** Leo's cast card is in the prompt only when Leo is named on the page (and the hero is not called Leo). */
+function pageHasLeo(prompt: string): boolean {
+  return prompt.includes("\n- LEO: ");
+}
+
 async function generateIllustrationWithFace(
   prompt: string,
   childPhotoUrl: string,
@@ -423,6 +430,11 @@ ${NO_UI_NEGATIVE}`;
     ];
     if (coverReferenceUrl) {
       messageContent.push({ type: "image_url", image_url: { url: coverReferenceUrl } });
+    }
+    // Leo's official picture always goes after the hero's own pictures.
+    if (pageHasLeo(prompt)) {
+      messageContent.push({ type: "image_url", image_url: { url: LEO_REF_URL } });
+      messageContent.push({ type: "text", text: leoRefNote(coverReferenceUrl ? "THIRD" : "SECOND") });
     }
     messageContent.push({ type: "text", text: illustrationPrompt });
 
@@ -528,9 +540,14 @@ ${NO_UI_NEGATIVE}`;
     console.log(`[IMG-GEN-FULL-PROMPT] ${JSON.stringify(illustrationPrompt)}`);
     console.log(`Generating illustration via Gemini Image Generation (no face reference${coverReferenceUrl ? ", with cover reference" : ""})...`);
 
-    const messageContent: any = coverReferenceUrl
+    const withLeo = pageHasLeo(prompt);
+    const messageContent: any = coverReferenceUrl || withLeo
       ? [
-          { type: "image_url", image_url: { url: coverReferenceUrl } },
+          ...(coverReferenceUrl ? [{ type: "image_url", image_url: { url: coverReferenceUrl } }] : []),
+          ...(withLeo ? [
+            { type: "image_url", image_url: { url: LEO_REF_URL } },
+            { type: "text", text: leoRefNote(coverReferenceUrl ? "SECOND" : "FIRST") },
+          ] : []),
           { type: "text", text: illustrationPrompt },
         ]
       : illustrationPrompt;
@@ -640,6 +657,10 @@ async function generateIllustrationBackup(
     if (references.face) {
       const b = await refToBlob(references.face);
       if (b) { blobs.push(b); refNotes.push(`IMAGE ${blobs.length} is the real child's photo — the character's face must be a Pixar 3D rendering of this child.`); }
+    }
+    if (pageHasLeo(prompt)) {
+      const b = await refToBlob(LEO_REF_URL);
+      if (b) { blobs.push(b); refNotes.push(leoRefNote(`IMAGE ${blobs.length}`).replace(/\(IMAGE (\d+) IMAGE\)/, "(IMAGE $1)")); }
     }
 
     const fullPrompt = `Create a NEW full illustration (not an edit of the inputs) for a children's storybook page.
