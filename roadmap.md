@@ -107,6 +107,6 @@
 - [ ] Turn square pictures on for everyone — waits for owner approval
 
 ## New official Leo (Nov 2026)
-- [ ] Homepage thumb, coloring page, studio picture (4 places), storage reference from new brown-eyed pictures
-- [ ] One Leo description (brown eyes) + Leo reference image in illustrations/redraws
-- [ ] Screenshots: homepage gang row, /coloring-gang, coloring page full size, 4 places
+- [x] Homepage thumb, coloring page, studio picture (4 places), storage reference from new brown-eyed pictures
+- [x] One Leo description (brown eyes) + Leo reference image in illustrations/redraws
+- [x] Screenshots: homepage gang row, /coloring-gang, coloring page full size, 4 places
