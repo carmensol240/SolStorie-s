@@ -299,7 +299,8 @@ const CreateStory = () => {
 
   // A saved child profile with avatar/photo counts as a usable face (the form may not hold it yet).
   const [savedFace, setSavedFace] = useState<{ id: string | null; has: boolean; loading: boolean }>({ id: null, has: false, loading: false });
-  const savedChildId = ((formData as any).childId as string | undefined) || selectedChildId || null;
+  // Only the profile currently selected in the form (a stale childId survives "new profile").
+  const savedChildId = selectedChildId;
   useEffect(() => {
     if (!user || !savedChildId) { setSavedFace({ id: null, has: false, loading: false }); return; }
     let cancelled = false;
