@@ -198,7 +198,9 @@ const ChildInfoStep = ({ formData, updateFormData, screen = 1, restoredDraft, on
   useEffect(() => {
     const fetchChildren = async () => {
       const userKey = user?.id || '__guest__';
-      const shouldAutoLoadFirst = !skipAutoLoadRef.current && hasAutoLoadedRef.current !== userKey;
+      // Re-checked when the fetch resolves: a "new profile" click during the
+      // load must never be overwritten by the late-arriving saved profiles.
+      const canAutoLoadFirst = () => !skipAutoLoadRef.current && hasAutoLoadedRef.current !== userKey;
       if (user) {
         // Fetch role
         const { data: profileData } = await supabase
@@ -216,7 +218,7 @@ const ChildInfoStep = ({ formData, updateFormData, screen = 1, restoredDraft, on
         
         if (!error && data && data.length > 0) {
           setSavedChildren(data);
-          if (shouldAutoLoadFirst) {
+          if (canAutoLoadFirst()) {
             hasAutoLoadedRef.current = userKey;
             const firstChild = data[0];
             setIsCreatingNew(false);
@@ -248,7 +250,7 @@ const ChildInfoStep = ({ formData, updateFormData, screen = 1, restoredDraft, on
         const localChildren = JSON.parse(getUserData(user?.id, 'savedChildren') || '[]');
         if (localChildren.length > 0) {
           setSavedChildren(localChildren);
-          if (shouldAutoLoadFirst) {
+          if (canAutoLoadFirst()) {
             hasAutoLoadedRef.current = userKey;
             const firstChild = localChildren[0];
             setIsCreatingNew(false);
@@ -667,6 +669,7 @@ const ChildInfoStep = ({ formData, updateFormData, screen = 1, restoredDraft, on
                 childAge: 4,
                 childPhoto: null,
                 childAvatarUrl: null,
+                photoConsent: false,
                 personalityTraits: "",
                 className: "",
                 fixedDetails: "",
@@ -675,6 +678,9 @@ const ChildInfoStep = ({ formData, updateFormData, screen = 1, restoredDraft, on
                 hairColor: "",
                 hairStyle: "",
               });
+              // Block any in-flight profile load from filling this clean form.
+              skipAutoLoadRef.current = true;
+              hasAutoLoadedRef.current = user?.id || '__guest__';
               onNewProfile?.();
               setIsCreatingNew(true);
               setSelectedChildId(null);
