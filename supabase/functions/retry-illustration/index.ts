@@ -10,6 +10,10 @@ import {
   CAST_NEGATIVE_PROMPT,
   CHARACTER_BASE_REFS,
   getSolUrl,
+  CAST_DESCRIPTIONS,
+  LEO_REF_URL,
+  leoOnPage,
+  leoRefNote,
   CHARACTER_CONSISTENCY_PROMPT,
   buildOutfitLock,
   SINGLE_HERO_RULE,
@@ -383,6 +387,9 @@ serve(async (req) => {
       const militaryLock = militaryRole ? buildMilitaryLock(militaryRole, String((page as any).text || ""), String(customPrompt || page.illustration_prompt || "")) : "";
       if (militaryLock) characterLock += `\n\n${militaryLock}`;
     }
+    // Leo named on this page (hero not called Leo): same official description + picture as first drawings.
+    const withLeo = leoOnPage(`${(page as any).text || ""}\n${customPrompt || page.illustration_prompt || ""}`, story.child_name);
+    if (withLeo) characterLock += `\n\nCAST CHARACTER REFERENCE (render EXACTLY as described):\n- LEO: ${CAST_DESCRIPTIONS.leo}`;
     const prompt = `${customPrompt || page.illustration_prompt || `A cheerful children's book illustration for page ${page.page_number}`}\n\n${characterLock}`;
     const pageNarrative = ((page as any).text || "").toString().slice(0, 400);
     const genderHeader = buildGenderHeader((story as any).child_gender, { kippah: kippahForStory(story as any).kippah });
@@ -421,6 +428,11 @@ The action, objects, characters, and emotions shown MUST come from the STORY TEX
       const refImages = [
         ...(childPhoto ? [{ type: "image_url", image_url: { url: childPhoto } }] : []),
         ...(pageOneReferenceUrl ? [{ type: "image_url", image_url: { url: pageOneReferenceUrl } }] : []),
+        // Leo's official picture always comes after the hero's own pictures.
+        ...(withLeo ? [
+          { type: "image_url", image_url: { url: LEO_REF_URL } },
+          { type: "text", text: leoRefNote(["FIRST", "SECOND", "THIRD"][(childPhoto ? 1 : 0) + (pageOneReferenceUrl ? 1 : 0)]) },
+        ] : []),
       ];
       const faceOrdinal = childPhoto ? "FIRST" : null;
       const canonOrdinal = childPhoto ? "SECOND" : "FIRST";
