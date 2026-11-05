@@ -109,7 +109,8 @@ const CreateStory = () => {
   const [draft, setDraft] = useState<CreateDraft | null>(null);
   const [draftReady, setDraftReady] = useState(false);
   const selectedChildIdRef = useRef<string | null>(null);
-  const onSelectedChildChange = useCallback((id: string | null) => { selectedChildIdRef.current = id; }, []);
+  const [selectedChildId, setSelectedChildId] = useState<string | null>(null);
+  const onSelectedChildChange = useCallback((id: string | null) => { selectedChildIdRef.current = id; setSelectedChildId(id); }, []);
   const [formData, setFormData] = useState<StoryFormData>(INITIAL_DATA);
   const [isGenerating, setIsGenerating] = useState(false);
   const [awaitingGenerationAfterAuth, setAwaitingGenerationAfterAuth] = useState(false);
@@ -296,15 +297,32 @@ const CreateStory = () => {
     formData.childAge >= 1 &&
     formData.childAge <= 12;
 
-  // Photo is optional; consent is required only when a photo was added.
-  const canProceedPersonalization = canProceedWithPhoto(formData.childPhoto, formData.photoConsent);
+  // A saved child profile with avatar/photo counts as a usable face (the form may not hold it yet).
+  const [savedFace, setSavedFace] = useState<{ id: string | null; has: boolean; loading: boolean }>({ id: null, has: false, loading: false });
+  const savedChildId = ((formData as any).childId as string | undefined) || selectedChildId || null;
+  useEffect(() => {
+    if (!user || !savedChildId) { setSavedFace({ id: null, has: false, loading: false }); return; }
+    let cancelled = false;
+    setSavedFace({ id: savedChildId, has: false, loading: true });
+    supabase.from("children").select("avatar_url, photo_url").eq("id", savedChildId).eq("user_id", user.id).maybeSingle()
+      .then(({ data }) => {
+        if (cancelled) return;
+        setSavedFace({ id: savedChildId, has: Boolean(data?.avatar_url || data?.photo_url), loading: false });
+      });
+    return () => { cancelled = true; };
+  }, [user, savedChildId]);
+
+  // A usable face is required: new photo + consent, or a saved profile with avatar/photo.
+  const canProceedPersonalization = canProceedWithPhoto(formData.childPhoto, formData.photoConsent, savedFace.has);
+  const [photoHint, setPhotoHint] = useState(false);
+  useEffect(() => { if (canProceedPersonalization) setPhotoHint(false); }, [canProceedPersonalization]);
 
   // Opening ?step=2/3 with earlier steps incomplete → first incomplete step.
   useEffect(() => {
     if (!draftReady || step === 5) return;
     if (step >= 2 && !canProceedStep1) setStep(1);
-    else if (step === 3 && !canProceedPersonalization) setStep(2);
-  }, [draftReady, step, canProceedStep1, canProceedPersonalization, setStep]);
+    else if (step === 3 && !savedFace.loading && !canProceedPersonalization) setStep(2);
+  }, [draftReady, step, canProceedStep1, canProceedPersonalization, savedFace.loading, setStep]);
 
   const canProceedTopic = formData.topic.length > 0 || formData.customTopic.trim().length > 0;
 
@@ -376,6 +394,9 @@ const CreateStory = () => {
       }
       await ensureChildProfileSaved();
       goToStep(3);
+    } else if (step === 2) {
+      setPhotoHint(true);
+      document.getElementById("photo-upload-section")?.scrollIntoView({ behavior: "smooth", block: "center" });
     } else if (step === 3 && canProceedTopic) {
       trackEvent({
         eventType: "topic_selected",
@@ -649,13 +670,19 @@ const CreateStory = () => {
       {(
         <div className="fixed bottom-[4.5rem] left-0 right-0 z-[50] bg-gradient-to-t from-background via-background to-transparent pt-6 pb-2 px-3 pb-safe">
           <div className="container max-w-lg mx-auto">
+            {step === 2 && photoHint && !canProceedPersonalization && (
+              <p role="status" className="mb-2 rounded-lg bg-accent px-3 py-2 text-center text-sm font-medium text-accent-foreground">
+                צריך תמונה אחת כדי שהדמות תהיה דומה ל{formData.childName?.trim() || "ילד/ה"} 📸
+              </p>
+            )}
             <Button
               onClick={handleNext}
+              aria-disabled={step === 2 && !canProceedPersonalization ? true : undefined}
               disabled={
                 step === 1
                   ? !canProceedStep1
                   : step === 2
-                    ? !canProceedPersonalization
+                    ? false
                     : !canProceedTopic
               }
               size="lg"
