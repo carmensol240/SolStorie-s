@@ -151,6 +151,15 @@
   );
 }
 
+/* Card as tall as its content (phone, picture on top + text below) */
+.dream-wrapper--fit {
+  justify-content: center;
+}
+.dream-wrapper--fit .dream-card,
+.dream-wrapper--fit .dream-content {
+  flex: 0 1 auto;
+}
+
 /* ---- Content ---- */
 .dream-content {
   flex: 1;

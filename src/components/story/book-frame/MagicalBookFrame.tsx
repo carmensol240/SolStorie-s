@@ -6,6 +6,8 @@ interface MagicalBookFrameProps {
   children: React.ReactNode;
   className?: string;
   skipAnimation?: boolean;
+  /** Card is only as tall as its content (centered), instead of filling the area. */
+  fitContent?: boolean;
 }
 
 /** Soft wind-chime sound */
@@ -33,6 +35,7 @@ export const MagicalBookFrame: React.FC<MagicalBookFrameProps> = ({
   children,
   className,
   skipAnimation = false,
+  fitContent = false,
 }) => {
   const [isOpen, setIsOpen] = useState(skipAnimation);
   const soundPlayed = useRef(skipAnimation);
@@ -50,7 +53,7 @@ export const MagicalBookFrame: React.FC<MagicalBookFrameProps> = ({
   }, [skipAnimation]);
 
   return (
-    <div className={cn("dream-wrapper", className)}>
+    <div className={cn("dream-wrapper", fitContent && "dream-wrapper--fit", className)}>
       {/* Sky gradient background */}
       <div className="dream-sky" />
 
