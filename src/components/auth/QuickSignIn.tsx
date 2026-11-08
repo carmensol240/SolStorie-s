@@ -98,8 +98,13 @@ const QuickSignIn = ({ returnTo, onPasswordLogin }: QuickSignInProps) => {
     const { error } = await supabase.functions.invoke("send-login-code", { body: { email: clean, returnTo } });
     setBusy(null);
     if (error) {
-      let busySite = false;
-      try { busySite = (await (error as any).context?.json())?.error === "busy"; } catch {}
+      let reason = "";
+      try { reason = (await (error as any).context?.json())?.error ?? ""; } catch {}
+      if (reason === "disposable_email") {
+        toast({ title: "אי אפשר להירשם עם כתובת מייל זמנית. נסו כתובת מייל קבועה.", variant: "destructive" });
+        return;
+      }
+      const busySite = reason === "busy";
       toast({
         title: busySite ? "יש עומס כרגע" : "לא הצלחנו לשלוח קוד",
         description: busySite ? "נסו שוב מאוחר יותר, או המשיכו עם Google." : "בדקו את כתובת המייל ונסו שוב.",
