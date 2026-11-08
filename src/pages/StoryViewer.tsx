@@ -62,6 +62,8 @@ import { BookPaper, BookTextFrame, useIllustrationAccent } from "@/components/st
 import { useWideReader } from "@/hooks/use-wide-reader";
 import { isTextOnPictureAge } from "@/lib/print-layout";
 import { ScrollHintText } from "@/components/story/book-frame/ScrollHintText";
+import { PhonePictureTextPage } from "@/components/story/book-frame/PhonePictureTextPage";
+import type { PhonePictureLayout } from "@/lib/phone-picture-layout";
 import { TheaterFrame } from "@/components/story/theater-frame";
 import PdfFeaturePopup from "@/components/story/PdfFeaturePopup";
 import PrintBookPreviewModal from "@/components/story/PrintBookPreviewModal";
@@ -1881,6 +1883,28 @@ const [currentPage, setCurrentPage] = useState(0);
     showNikud,
   ]);
 
+  // Ages 0–4 on a portrait phone: picture fills the card, or picture on top + text below
+  // when the text would cover more than a third of it (then the card fits its content).
+  const [bookAreaEl, setBookAreaEl] = useState<HTMLDivElement | null>(null);
+  const [bookAreaHeight, setBookAreaHeight] = useState(0);
+  useEffect(() => {
+    if (!bookAreaEl) return;
+    const update = () => setBookAreaHeight(bookAreaEl.clientHeight);
+    update();
+    if (typeof ResizeObserver === 'undefined') {
+      window.addEventListener('resize', update);
+      return () => window.removeEventListener('resize', update);
+    }
+    const ro = new ResizeObserver(update);
+    ro.observe(bookAreaEl);
+    return () => ro.disconnect();
+  }, [bookAreaEl]);
+  // Card margins (6px each side on phones) + its 1px border.
+  const phoneCardHeight = Math.max(0, bookAreaHeight - 14);
+  const [phonePictureLayout, setPhonePictureLayout] = useState<PhonePictureLayout>('cover');
+  const usesPhonePicturePage = !isWideReader && _fitVirtual?.type === 'combined' && !!_fitVirtual.illustrationUrl;
+  const fitPhoneCard = usesPhonePicturePage && phonePictureLayout === 'stacked';
+
   if (isLoading) {
     return (
       <div className="min-h-screen bg-gradient-to-b from-purple-50 via-pink-50 to-orange-50 flex items-center justify-center" dir="rtl">
@@ -2093,11 +2117,12 @@ const [currentPage, setCurrentPage] = useState(0);
 
       {/* Book Container - Vertical Single Page */}
       <main className="flex-1 flex flex-col min-h-0 px-4 md:px-12 lg:px-20 py-2">
-        <div className="relative w-full max-w-2xl lg:max-w-6xl mx-auto flex-1 min-h-0 flex flex-col">
-          <MagicalBookFrame className="flex-1 min-h-0">
+        <div ref={setBookAreaEl} className="relative w-full max-w-2xl lg:max-w-6xl mx-auto flex-1 min-h-0 flex flex-col">
+          <MagicalBookFrame className="flex-1 min-h-0" fitContent={fitPhoneCard}>
             {/* Page content with fade transition */}
             <div className={cn(
-              "relative w-full h-full overflow-hidden",
+              "relative w-full overflow-hidden",
+              fitPhoneCard ? "h-auto" : "h-full",
               "transition-opacity duration-300 ease-in-out",
               isFlipping ? "opacity-0" : "opacity-100",
             )}>
@@ -2226,8 +2251,76 @@ const [currentPage, setCurrentPage] = useState(0);
 
             ) : currentVirtual ? (
               /* Story Content Pages */
-              <div className="h-full w-full relative animate-fade-in">
-                {currentVirtual.type === 'combined' ? (
+              <div className={cn("w-full relative animate-fade-in", fitPhoneCard ? "h-auto" : "h-full")}>
+                {currentVirtual.type === 'combined' && !isWideReader && currentVirtual.illustrationUrl ? (
+                  /* Ages 0–4, portrait phone: picture fills the card with the text on it,
+                     or picture on top + text below when the text is long. */
+                  (() => {
+                    const url = currentVirtual.illustrationUrl;
+                    const retries = failedImages[url] || 0;
+                    const src = `${(retries ? getPublicIllustrationUrl(url) : getReadingIllustrationUrl(url)) || ''}${retries ? `?retry=${retries}` : ''}`;
+                    const rawText = currentVirtual.isCover ? '' : (currentVirtual.text || '');
+                    const displayText = showNikud ? rawText : rawText.replace(/[\u0591-\u05C7]/g, '');
+                    return (
+                      <PhonePictureTextPage
+                        key={`${currentPage}-${url}-${retries}`}
+                        src={src}
+                        alt={currentVirtual.isCover ? (story?.topic ? `כריכת הספר: ${translateTopic(story.topic, story.language)}` : 'כריכת הספר') : illustrationAlt(currentVirtual.text, currentVirtual.dbPage?.page_number)}
+                        loaded={!!imageLoadedMap[url]}
+                        onLoad={() => setImageLoadedMap(prev => ({ ...prev, [url]: true }))}
+                        onError={() => {
+                          if (retries < 3) {
+                            setTimeout(() => setFailedImages(prev => ({ ...prev, [url]: retries + 1 })), 2000);
+                          } else {
+                            console.error('Illustration failed to load after 3 retries:', url);
+                          }
+                        }}
+                        text={displayText}
+                        fontClass={currentFontSize.size}
+                        cardHeight={phoneCardHeight}
+                        onLayoutChange={setPhonePictureLayout}
+                        loadingFallback={
+                          <div className="absolute inset-0 w-full h-full flex items-center justify-center bg-gradient-to-br from-[#FFF8F0] via-[#F5E6D3] to-[#FAF3E8] z-[1]">
+                            <div className="relative z-10 text-center space-y-3">
+                              <div className="relative w-16 h-16 mx-auto">
+                                <div className="absolute inset-0 rounded-full bg-gradient-to-br from-purple-300 via-pink-300 to-orange-300 animate-spin" style={{ animationDuration: '3s' }} />
+                                <div className="absolute inset-1 rounded-full bg-white/90 flex items-center justify-center">
+                                  <span className="text-2xl">✨</span>
+                                </div>
+                              </div>
+                              <p className="text-sm text-[#8B7355] font-serif">טוען איור...</p>
+                            </div>
+                          </div>
+                        }
+                        topOverlay={currentVirtual.isCover && story ? (
+                          <div className="absolute top-0 left-0 right-0 z-20 p-4 pt-6 bg-gradient-to-b from-black/60 via-black/30 to-transparent">
+                            <div className="text-center text-white drop-shadow-lg flex flex-col items-center gap-2" dir="rtl">
+                              <h1 className="px-14 text-3xl font-black leading-tight">{translateTopic(story.topic, story.language)}</h1>
+                              <span className="text-base font-semibold text-white bg-black/45 backdrop-blur-sm rounded-full px-4 py-1.5 [text-shadow:0_1px_3px_rgba(0,0,0,0.8)]" data-testid="cover-dedication">הספר הזה נוצר במיוחד עבור {story.child_name}</span>
+                            </div>
+                          </div>
+                        ) : undefined}
+                        pageLabel={`${currentVirtual.dbPage.page_number} / ${story.pages.length}`}
+                        controls={
+                          <PageRecordingControls
+                            pageNumber={currentVirtual.dbPage.page_number}
+                            isRecording={pageRecording.recordingPage === currentVirtual.dbPage.page_number}
+                            hasPendingBlob={pageRecording.pendingBlob?.page === currentVirtual.dbPage.page_number}
+                            hasSaved={pageRecording.hasSavedRecording(currentVirtual.dbPage.page_number)}
+                            isPlaying={pageRecording.playingPage === currentVirtual.dbPage.page_number}
+                            onStartRecording={guardDemo(() => pageRecording.startRecording(currentVirtual.dbPage.page_number))}
+                            onStopRecording={pageRecording.stopRecording}
+                            onSave={guardDemo(pageRecording.saveRecording)}
+                            onDiscard={pageRecording.discardPending}
+                            onPlay={guardDemo(() => pageRecording.playRecording(currentVirtual.dbPage.page_number))}
+                            onStopPlaying={pageRecording.stopPlaying}
+                            light
+                          />
+                        }
+                      />
+                    );
+                  })()
+                ) : currentVirtual.type === 'combined' ? (
                   /* Combined page (ages 0-2) — fullscreen illustration + text overlay */
                   <>
                     {currentVirtual.illustrationUrl ? (
