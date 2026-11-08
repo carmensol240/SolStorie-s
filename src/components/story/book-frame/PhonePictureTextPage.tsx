@@ -1,6 +1,8 @@
 import React, { useLayoutEffect, useRef, useState } from "react";
 import { cn } from "@/lib/utils";
-import { choosePhonePictureLayout, type PhonePictureLayout } from "@/lib/phone-picture-layout";
+import { choosePhonePictureLayout, stackedPictureHeight, type PhonePictureLayout } from "@/lib/phone-picture-layout";
+
+const LABEL_ROW_PX = 48;
 
 interface PhonePictureTextPageProps {
   src: string;
@@ -36,13 +38,14 @@ export const PhonePictureTextPage: React.FC<PhonePictureTextPageProps> = ({
 }) => {
   const measureRef = useRef<HTMLDivElement>(null);
   const [textHeight, setTextHeight] = useState(0);
+  const [cardWidth, setCardWidth] = useState(0);
   const [ratio, setRatio] = useState<number | null>(null);
   const hasText = text.trim().length > 0;
 
   useLayoutEffect(() => {
     const el = measureRef.current;
     if (!el) { setTextHeight(0); return; }
-    const measure = () => setTextHeight(el.offsetHeight);
+    const measure = () => { setTextHeight(el.offsetHeight); setCardWidth(el.offsetWidth); };
     measure();
     let ro: ResizeObserver | null = null;
     if (typeof ResizeObserver !== "undefined") {
@@ -100,6 +103,11 @@ export const PhonePictureTextPage: React.FC<PhonePictureTextPageProps> = ({
   ) : null;
 
   if (layout === "stacked") {
+    // Whole picture, full width; a tall (portrait) picture is shrunk (never cropped) so the
+    // text still starts on screen.
+    const pictureHeight = stackedPictureHeight({
+      cardWidth, cardHeight, ratio: ratio ?? 1408 / 768, textHeight: textHeight + (pageLabel ? LABEL_ROW_PX : 0),
+    });
     return (
       <div
         data-story-scroll
@@ -108,14 +116,17 @@ export const PhonePictureTextPage: React.FC<PhonePictureTextPageProps> = ({
         style={{ maxHeight: cardHeight > 0 ? cardHeight : undefined }}
       >
         {measurer}
-        <div className="relative w-full" style={{ aspectRatio: ratio ? String(ratio) : "1408 / 768" }}>
+        <div
+          className="relative w-full"
+          style={pictureHeight ? { height: pictureHeight } : { aspectRatio: ratio ? String(ratio) : "1408 / 768" }}
+        >
           {!loaded && loadingFallback}
           {img("object-contain")}
           {controls && <div className="absolute top-3 left-3 z-20">{controls}</div>}
         </div>
         {textBlock(false)}
         {pageLabel && (
-          <div className="h-12 flex items-center justify-center">
+          <div className="flex items-center justify-center" style={{ height: LABEL_ROW_PX }}>
             <span className="text-sm font-bold text-paper-foreground/80">{pageLabel}</span>
           </div>
         )}
