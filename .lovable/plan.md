@@ -1,45 +1,46 @@
-# AI balance: findings and proposal
+# בדיקת הטקסט בשתי הטעימות של נועם, והצעת תיקון
 
-## 1. Where the balance comes from today
-| Service | What it does | Who pays |
+לא שיניתי כלום. הבדיקה מבוססת על הטקסט ששמור בשני הסיפורים, ועל ההוראות שהשרת נותן לכתיבת הסיפור.
+
+## מה מצאתי
+
+| בעיה | 0ed6eab5 (הרפתקה אישית) | 7bcceda8 (אבא במילואים) |
 |---|---|---|
-| Story writing, Hebrew proofreading, nikud, text improvement | Gemini Flash | Lovable AI (workspace credits) |
-| Main illustrations, cover, avatar, redraws, coloring pages | Gemini Pro Image | Lovable AI |
-| Backup illustrations | GPT Image | Lovable AI |
-| Last-resort backup illustrations + print upscaling | Flux (fal.ai) | Your own fal.ai key |
-| Read-aloud | ElevenLabs / Azure | Your own keys (accessibility only) |
+| דמות מהחבורה בלי הצגה | בעמוד 3: "מיה החברה מגיעה". מאויר, אבל לא מוסבר מי היא | בעמוד 4: "סול מגיעה לבקר". העמוד לא מאויר, והטעימה נגמרת בו |
+| העמוד האחרון בטעימה בלי איור | עמוד 4 (ארנב) בלי איור | עמוד 4 (סול) בלי איור |
+| תיאור בגדים בטקסט | עמוד 1: "חולצה כחולה ומכנסיים ירוקים". גם בעמוד 3 על מיה: "שמלה ירוקה ויפה" | עמוד 1: "חולצה כחולה ומכנסיים אפורים". גם בעמוד 4: "עם שמלה צהובה יפה" |
+| משפט לא ברור | עמוד 5: "הבטן של נועם נרגעת", אבל לפני כן לא נאמר שהוא היה לחוץ (הארנב היה זה שהיסס) | עמוד 4: "גם אני מתגעגעת לפעמים", ולא כתוב למי |
 
-So it's mixed, but almost everything that matters (writing + illustrations) comes from Lovable credits. Important: it's the same credit pool used for building the site with me, so build work also uses up the balance customers rely on.
+## למה זה קורה (איפה בהוראות)
 
-## 2. What 77 credits buys (estimate from the last week's logs)
-- One illustration: ~0.5–0.6 credits. Writing + checks: ~0.3 per story.
-- **Full story (~6 illustrations + avatar + checks): ~4–5 credits.**
-- **Taste (2 illustrations): ~1.5–2 credits.**
-- Current balance (68.7 right now): about **14 full stories** or **35 tastes**.
+1. **דמויות החבורה.** ההוראה אומרת להשתמש בסול, מיה, ליאו, זואי ובן לפי הצורך, ומפרטת איך הן נראות ומה הבגדים שלהן. אין בה דרישה להציג דמות בפעם הראשונה שהיא מופיעה, וגם לא דרישה שתופיע באיור. ההוראה מעודדת לכתוב את צבע השמלה, ולכן זה נכנס לטקסט.
+2. **איור בעמוד האחרון.** רק העמודים האי-זוגיים (1, 3, 5...) מאוירים בגיל 2–4, והטעימה נעצרת אחרי 4 עמודים (3 בגיל 0–2). לכן העמוד האחרון בטעימה הוא תמיד עמוד בלי איור. כותב הסיפור לא יודע מראש באילו עמודים יהיה איור.
+3. **בגדים בטקסט.** יש לזה שתי סיבות. פרטי הלבוש של הילד נשלחים לכותב הסיפור, עם המשפט "יש לשמור על הלבוש הזה זהה בכל עמודי הסיפור". בנוסף, הכלל "אסור רשימת בגדים" נותן כדוגמה טובה משפט שמתאר בגדים ("ארי לובש... חולצה צהובה, מכנסיים אדומים"), וכך בעצם מזמין לכתוב בגדים בטקסט.
+4. **משפטים לא ברורים.** אין כלל שדורש שכל תחושה בגוף או רגש יופיעו קודם כבעיה בעלילה, או שמשפט כמו "גם אני מתגעגעת" יאמר למי.
 
-## 3. Automatic top-up
-Already on: when the balance drops below 50, 100 credits are added. Monthly cap 400; **200 already used this month**, so two more top-ups remain, then it stops until Dec 1. Change it in Settings -> Plans & credits (workspace owner). Recommendation: raise the monthly cap (e.g. 800–1000) so it never stops mid-month.
+## התיקון המוצע (רק לסיפורים חדשים)
 
-## 4. Your own keys (Google Gemini + OpenAI)
-- Needed: a Google AI Studio account with billing + a key, and optionally OpenAI; I store them as secrets and change the address/key in ~12 functions.
-- Cost: on a monthly plan Lovable charges exactly the provider price, so per-story cost stays about the same (~4–5 credits' worth).
-- Pros: completely separate from build credits; payment by credit card without a monthly cap.
-- Cons: two more bills to manage, loss of usage logs/alerts here, provider rate limits fall on you, no automatic fallback between providers.
-- Recommendation: first raise the top-up cap; switch only if you want a full separation.
+1. **הצגה של דמות מהחבורה:** בפעם הראשונה שדמות מופיעה, הטקסט יכלול משפט הצגה קצר וחם, למשל "סול, הגיבורה הקטנה מחבורת סול וחברים, באה לבקר". לפני השמירה, השרת יבדוק שזה אכן נכתב. בנוסף, עמוד שבו דמות מופיעה לראשונה חייב להיות מאויר, והדמות חייבת להופיע באיור הזה.
+2. **העמוד האחרון בטעימה מאויר תמיד:** כותב הסיפור יקבל מראש את רשימת העמודים שיהיו מאוירים. הכלל יהיה שדמות חדשה לא מופיעה לראשונה בעמוד בלי איור. בטעימה, יש שתי אפשרויות להחליט ביניהן:
+   - **א.** לאייר גם את העמוד האחרון של הטעימה (עמוד 4, או עמוד 3 בגיל 0–2). זה מוסיף איור אחד לכל טעימה.
+   - **ב.** לעצור את הטעימה בעמוד האי-זוגי שמאויר: 3 עמודים בגיל 2–4. בזה אין עלות נוספת, אבל הטעימה קצרה בעמוד אחד.
+3. **בלי בגדים בטקסט:** פרטי הלבוש יגיעו רק להוראה למאייר. בטקסט שהולך לכותב תופיע הוראה מפורשת: "אסור לתאר בגדים בטקסט הסיפור". את הדוגמה של "ארי לובש..." אמחק. השרת גם ימחק אוטומטית משפטים כמו "לובש/לובשת + חולצה/מכנסיים/שמלה", חוץ ממצב שבו העלילה עצמה היא החלפת בגדים (פיג'מה, מעיל גשם).
+4. **בהירות:** אוסיף כללים לכתיבה. רגש או תחושה בגוף שנרגעים חייבים להופיע קודם כבעיה בעלילה, ושייכים לאותה דמות. משפט כמו "גם אני מתגעגעת" חייב לומר למי ("גם אני מתגעגעת לפעמים לסבתא שלי"). כינוי כמו "הוא" או "היא" צריך להתייחס בבירור לדמות אחת. הכללים האלה ייכנסו גם לבדיקת העורך שכבר רצה על הטקסט.
 
-## 5. Low-balance alert
-Yes: in Settings -> Usage limits & alerts, add a "low balance" alert (e.g. below 100 credits) -> email. Nothing in the code needed. The red banner already built remains for when it truly runs out.
+לא אשנה את שני הסיפורים הקיימים, ולא אכתוב או אאייר אותם מחדש, אלא אם תבקשי.
 
-## 6. "Your story is queued" when the balance runs out
-What it requires:
-1. In generate-story: on a 402/credit error **before** charging -> save the request (child, topic, photo path) as a queued story with status `queued`, no credit charged, and return "queued" to the screen.
-2. If it fails after charging (mid-illustration): keep the credit, mark the story `queued` from the step it stopped at.
-3. Parent screen: "Your story is queued and will be sent to you soon", the story shows in the library as "in preparation".
-4. A scheduled job every 10 minutes: if the balance is paused, try one story only; if it succeeds, release the queue one at a time and charge then.
-5. When ready: email to the parent with a link (Resend, already exists).
-6. Admin dashboard: number of stories in the queue.
-Risk: the story data and child photo must be kept until generation; the credit is charged only on success, preserving the "never charge twice" rule.
+## עלות משוערת
 
-## Order of actions proposed
-1. (You, now) raise the monthly top-up cap + add a low-balance alert.
-2. (Me, after approval) build the queue in section 6.
+- **ביצוע התיקון:** בערך 3–6 קרדיטים של Lovable. השינוי הוא בהוראות לכתיבה, בבדיקה אחת בשרת ובבדיקות קבועות, ואחריו סיפור טעימה אחד לבדיקה בחשבון carmit1901+test.
+- **עלות לכל סיפור חדש:** ההוראות הארוכות יותר עולות כמעט כלום. באפשרות א נוסף איור אחד לכל טעימה, בערך 4–7 סנט של יתרת AI. אפשרות ב לא מוסיפה עלות.
+- **סיפור הבדיקה:** כתיבה ו-2–3 איורים, בערך 10–20 סנט של יתרת AI.
+
+## פרטים טכניים
+
+- `supabase/functions/generate-story/index.ts`:
+  - בלוק "החברים של סול" (בערך שורות 1907–1916): להוסיף כלל הצגה ולהוריד את פרטי הבגדים מהטקסט שהולך לכותב.
+  - כלל "אסור רשימת בגדים" (בערך שורות 482–490, ו-2250): להחליף ב"אין בגדים בטקסט".
+  - `appendAppearanceParts` (בערך שורה 920): פרטי הלבוש ילכו רק להוראה למאייר.
+  - רשימת העמודים המאוירים (בערך שורה 1522) תועבר לכותב. אם דמות מהחבורה מופיעה לראשונה בעמוד לא מאויר, העמוד הזה יסומן כמאויר.
+- `supabase/functions/_shared/taste.ts` `tastePageLimit`: לשנות רק אם תבחרי באפשרות ב.
+- בדיקות קבועות: דמות חדשה מופיעה תמיד בעמוד מאויר, העמוד האחרון בטעימה מאויר, משפטי בגדים נמחקים.
