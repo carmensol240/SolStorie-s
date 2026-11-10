@@ -1,5 +1,6 @@
 import "https://deno.land/x/xhr@0.1.0/mod.ts";
 import { buildMilitaryLock, militaryRoleForStory } from "../_shared/military-family.ts";
+import { castInText, castReferenceBlock, pageCastRule } from "../_shared/story-cast-pages.ts";
 import { mergeAppearance, hairToEnglish, heroHair, clothingToEnglish, resolvePageOutfit, buildCharacterLock, translateOutfitWords, pickDefaultOutfit, kippahForStory, type Appearance } from "../_shared/appearance.ts";
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.39.3";
@@ -1931,31 +1932,17 @@ The action, objects, characters, and emotions shown MUST come from the STORY TEX
       }
       console.log(`[Page ${page.page_number}] 📝 Direct prompt (${illustrationPrompt.length} chars, text-anchored=${!!pageNarrative})`);
 
-      // Inject CAST_DESCRIPTIONS for any recurring cast character that
-      // appears in this page so the illustrator renders them with the
-      // canonical traits (hair, outfit, accessories) instead of inventing
-      // a new look each time.
-      const castMatchers: Array<{ key: keyof typeof CAST_DESCRIPTIONS; patterns: RegExp[] }> = [
-        { key: "sol", patterns: [/\bSol\b/i, /סול/] },
-        { key: "ben", patterns: [/\bBen\b/i, /\bבן\b/] },
-        { key: "mia", patterns: [/\bMia\b/i, /מיה|מיא/] },
-        { key: "leo", patterns: [/\bLeo\b/i, /ליאו/] },
-        { key: "zoe", patterns: [/\bZoe\b/i, /זואי/] },
-      ];
-      const haystack = `${page.text || ""}\n${basePrompt}`;
-      // The hero may share a cast name (e.g. a child named Sol): never inject that cast card,
-      // it would add a second lookalike child and the cast's costume.
-      const heroName = String(childName || "").trim().toLowerCase();
-      const matchedCast = castMatchers.filter(({ key, patterns }) =>
-        !isHeroCastName(key, heroName) && patterns.some((re) => re.test(haystack)),
-      );
-      if (matchedCast.length > 0) {
-        const castBlock = matchedCast
-          .map(({ key }) => `- ${key.toUpperCase()}: ${CAST_DESCRIPTIONS[key]}`)
-          .join("\n");
-        illustrationPrompt += `\n\nCAST CHARACTER REFERENCE (these characters appear on this page — render them EXACTLY as described, keep traits consistent across every page):\n${castBlock}`;
-        console.log(`[Page ${page.page_number}] 🎭 Injected CAST_DESCRIPTIONS for: ${matchedCast.map(c => c.key).join(", ")}`);
+      // Cast members come ONLY from this page's story text (never from the writer's scene
+      // description): their official look is added, every character appears once, and cast
+      // members not named on this page must not be drawn. The hero may share a cast name
+      // (e.g. a child named Sol): that cast card is never added.
+      const castText = String(page.text || "");
+      const castBlock = castReferenceBlock(castText, childName);
+      if (castBlock) {
+        illustrationPrompt += `\n\n${castBlock}`;
+        console.log(`[Page ${page.page_number}] 🎭 Cast on page: ${castInText(castText, childName).join(", ")}`);
       }
+      illustrationPrompt += `\n\n${pageCastRule(castText, childName)}`;
 
       // Family member in the reserves/army (dad-in-reserves or any story about it): fixed IDF uniform lock.
       const militaryRole = militaryRoleForStory(topic, `${page.text || ""}\n${basePrompt}`);
