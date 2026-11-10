@@ -27,3 +27,22 @@ describe("style instruction", () => {
     }
   });
 });
+
+import { shouldBounceToPhotoStep } from "@/lib/photo-optional";
+describe("refresh on step 3 with a saved child", () => {
+  it("stays on step 3 while the restored child's face check has not run yet", () => {
+    expect(shouldBounceToPhotoStep({ step: 3, selectedChildId: "c1", savedFace: { id: null, has: false, loading: false }, canProceed: false })).toBe(false);
+  });
+  it("stays on step 3 while the face check is loading", () => {
+    expect(shouldBounceToPhotoStep({ step: 3, selectedChildId: "c1", savedFace: { id: "c1", has: false, loading: true }, canProceed: false })).toBe(false);
+  });
+  it("stays on step 3 when the saved child has a face", () => {
+    expect(shouldBounceToPhotoStep({ step: 3, selectedChildId: "c1", savedFace: { id: "c1", has: true, loading: false }, canProceed: true })).toBe(false);
+  });
+  it("goes back to step 2 when the saved child has no face", () => {
+    expect(shouldBounceToPhotoStep({ step: 3, selectedChildId: "c1", savedFace: { id: "c1", has: false, loading: false }, canProceed: false })).toBe(true);
+  });
+  it("goes back to step 2 with no saved child and no photo", () => {
+    expect(shouldBounceToPhotoStep({ step: 3, selectedChildId: null, savedFace: { id: null, has: false, loading: false }, canProceed: false })).toBe(true);
+  });
+});
