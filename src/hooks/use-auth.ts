@@ -5,6 +5,8 @@ import { isDevModeEnabled, MOCK_DEV_USER, MOCK_DEV_SESSION, clearDevMode } from 
 import { clearAllUserData, migrateToUserScoped } from '@/lib/user-storage';
 import { clearAllCreateDrafts } from '@/lib/create-draft';
 
+const PASSWORD_SIGNUP_CLOSED = true;
+
 export const useAuth = () => {
   const [user, setUser] = useState<User | null>(null);
   const [session, setSession] = useState<Session | null>(null);
