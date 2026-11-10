@@ -6,6 +6,15 @@ import { CAST_DESCRIPTIONS } from "./style-config.ts";
 
 export type CastKey = keyof typeof CAST_DESCRIPTIONS;
 
+/** The ONLY introduction of each cast member, used word for word in the introduction sentence. */
+export const CAST_INTRO_HE: Record<CastKey, string> = {
+  sol: "סול – הגיבורה שמובילה את החבורה",
+  ben: "בן – אחיה הקטן של סול",
+  mia: "מיה – ילדת הפרחים",
+  zoe: "זואי – הספורטאית",
+  leo: "ליאו – הצייר של החבורה",
+};
+
 const NIKUD_RE = /[\u0591-\u05C7]/g;
 // One optional Hebrew prefix letter (ו, ל, ש, ה, כ, מ, ב) before the name.
 const PREFIX = "[ולשהכמב]?";
