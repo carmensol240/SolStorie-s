@@ -7,11 +7,20 @@ export function decideStoryReadiness(
   neededPages: number[],
   withPicture: Set<number>,
   triedWithoutPicture: Set<number>,
+  textIssues: unknown = null,
 ): StoryReadiness {
   const missing = neededPages.filter((p) => !withPicture.has(p));
-  if (missing.length === 0) return "ready";
+  // Text that failed the final check (stories.text_issues) never counts as finished.
+  if (missing.length === 0) return hasTextIssues(textIssues) ? "needs_attention" : "ready";
   if (missing.every((p) => triedWithoutPicture.has(p))) return "needs_attention";
   return "waiting";
+}
+
+/** stories.text_issues holds at least one failing page. */
+export function hasTextIssues(textIssues: unknown): boolean {
+  if (!textIssues || typeof textIssues !== "object") return false;
+  const pages = (textIssues as any).pages ?? textIssues;
+  return !!pages && typeof pages === "object" && Object.keys(pages).length > 0;
 }
 
 // Log names of a page attempt that ended with no picture.
@@ -27,7 +36,7 @@ export async function refreshStoryReadiness(
   opts: { onlyIfNeedsAttention?: boolean } = {},
 ): Promise<StoryReadiness | null> {
   const { data: story } = await supabase.from("stories")
-    .select("generation_status, is_taste, taste_page_limit").eq("id", storyId).maybeSingle();
+    .select("generation_status, is_taste, taste_page_limit, text_issues").eq("id", storyId).maybeSingle();
   if (!story) return null;
   if (opts.onlyIfNeedsAttention && story.generation_status !== "needs_attention") return null;
 
@@ -43,7 +52,7 @@ export async function refreshStoryReadiness(
       .eq("story_id", storyId).in("model_used", NO_PICTURE_MODELS).in("page_number", missing);
     tried = new Set((logs ?? []).map((l: any) => l.page_number as number));
   }
-  const decision = decideStoryReadiness(neededNums, withPic, tried);
+  const decision = decideStoryReadiness(neededNums, withPic, tried, story.text_issues);
   if (decision !== "waiting" && story.generation_status !== decision) {
     const { error } = await supabase.from("stories").update({ generation_status: decision }).eq("id", storyId);
     if (error) console.error("[story-readiness] status update failed:", error.message);

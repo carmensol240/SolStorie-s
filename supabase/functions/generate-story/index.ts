@@ -8,13 +8,15 @@ import { isBlockedEmail, DISPOSABLE_EMAIL_MESSAGE_HE } from "../_shared/disposab
 import { hasFaceSource, NO_FACE_MESSAGE } from "../_shared/face-required.ts";
 import { buildNlpInstruction, runNlpCheck } from "../_shared/nlp-techniques.ts";
 import { splitLongPages, MAX_PAGE_CHARS } from "../_shared/page-split.ts";
-import { editHebrewPages, gatewayEditorCall } from "../_shared/hebrew-editor.ts";
+import { editHebrewPages, gatewayEditorCall, retryFailingPages, pageProblems, wordsMissingNikud, SAFETY_NET_MAX_RETRIES, type EditorInput, type EditorState, type EditorReport } from "../_shared/hebrew-editor.ts";
+import { refreshStoryReadiness } from "../_shared/story-readiness.ts";
+import { reportStoryTextIssue } from "../_shared/story-text-alert.ts";
 import { normalizeGender } from "../_shared/gender.ts";
 import { grantStoryAccess, consumeCredit } from "../_shared/story-access.ts";
 import { spendCredit } from "../_shared/taste.ts";
 import { claimStoryRequest, releaseStoryRequest, supabaseStoryRequestStore, isValidRequestId, claimTasteRequest, releaseTasteRequest, supabaseTasteClaimStore } from "../_shared/story-request.ts";
 import { normalizeEmail, decideTasteEligibility, tastePageLimit, emailTasteHash } from "../_shared/taste.ts";
-import { plannedIllustrationPages, enforceCastAndTastePictures, castPromptAddition, type CastKey } from "../_shared/story-cast-pages.ts";
+import { plannedIllustrationPages, enforceCastAndTastePictures, castPromptAddition, CAST_INTRO_HE, type CastKey } from "../_shared/story-cast-pages.ts";
 import { isHeroCastName } from "../_shared/style-config.ts";
 
 async function sha256Hex(s: string): Promise<string> {
@@ -1909,16 +1911,17 @@ ${childName} הוא/היא ילד/ה מודרני/ת שמגיע/ה לעולם ה
 
 ## 🌍 עולם SolStorie's™ - דמויות משנה (Supporting Characters)
 **כאשר העלילה דורשת חברים או דמויות תומכות מעבר לגיבור הראשי, אין ליצור דמויות חדשות אקראיות!**
-השתמש אך ורק ב"חברים של סול" - הקאסט הקבוע של עולם SolStorie's™:
-1. **סול (Sol) - המארחת/מרכז העולם** - תפקיד: הרפתקה ורגש. לובשת שמלה צהובה בהירה, שיער חום ארוך וישר עד גלי קלות אסוף בקוקו גבוה, עיניים חומות. לעיתים קרובות מחזיקה מצפן. סול היא דמות הרקע של העולם - היא יכולה להופיע כדמות תומכת אך הגיבור הראשי הוא תמיד הילד של המשתמש.
-2. **מיה (Mia) - ילדת הטבע** - תפקיד: טבע, בעלי חיים וקסם. לובשת שמלה ירוקה, **שיער חום קצר וישר בתספורת בוב (bob cut)**. אוהבת טבע ובעלי חיים (נראית לעיתים קרובות עם פרפרים או ארנבונים).
-3. **ליאו (Leo) - הילד החכם** - תפקיד: מדע, חלל ותעלומות. לובש אפודת סוודר כחולה ומשקפיים, שיער שחור. אוהב לקרוא ותמיד שואל "למה?". לעיתים קרובות מחזיק ספר או טלסקופ.
-4. **זואי (Zoe) - הילדה הספורטיבית** - תפקיד: פעולה, ספורט ואנרגיה. לובשת חליפת ספורט סגולה-צהובה, שיער מתולתל/אפרו גדול ושופע, **גוון עור כהה**. לעיתים קרובות מחזיקה כדורגל. נמרצת ואמיצה.
-5. **בן (Ben) - אחיה הקטן של סול** - תפקיד: פעוט, אחות גדולה, משפחה. לובש חולצה ירוקה בהירה או תכולה, שיער חום כהה מתולתל מאוד ונפחי. פעוט חמוד שתמיד הולך בעקבות סול. **חשוב: כאשר בן וסול מופיעים ביחד בסיפור, יש לתאר אותם כאחים — השתמש בביטויים: "אחיה הקטן", "אחותו הגדולה", "ביניהם כימיה של אחים".**
-- **שלב 1-2 מהחברים האלו לפי הצורך** - בחר את הדמויות המתאימות ביותר לנושא הסיפור. השתמש בשמות הדמויות (מיה, ליאו, זואי, בן) בטקסט הסיפור.
-- באיורים (illustration_prompt), תאר את מראה החברים בדיוק לפי התיאורים למעלה כדי לשמור על עקביות ויזואלית. **המראה והבגדים של החברים נכתבים רק ב-illustration_prompt, לעולם לא בטקסט הסיפור.**
-- **הצגה בפעם הראשונה (חובה):** הורה וילד לא מכירים את החבורה. בפעם הראשונה שדמות מהחבורה מופיעה, כתוב משפט הצגה קצר וחם שמסביר מי היא, למשל: "סול, הגיבורה הקטנה מחבורת סול וחברים, באה לבקר." / "מיה, ילדת הטבע מחבורת סול וחברים, מגיעה עם חיוך." אסור שדמות "פשוט תופיע" בלי הסבר.
-- **דמות חדשה מופיעה לראשונה רק בעמוד מאויר:** העמודים המאוירים הם [${illustrationPagesListStr}]. בעמוד שבו דמות מהחבורה מופיעה לראשונה, ה-illustration_prompt חייב לכלול אותה ואת המראה שלה.
+השתמש אך ורק ב"חברים של סול" - הקאסט הקבוע של עולם SolStorie's™. אלה התיאורים הרשמיים, בדיוק כך:
+1. **${CAST_INTRO_HE.sol}.** היא יכולה להופיע כדמות תומכת, אבל הגיבור הראשי הוא תמיד הילד של המשתמש.
+2. **${CAST_INTRO_HE.ben}.** פעוט חמוד שתמיד הולך בעקבות סול. **חשוב: כאשר בן וסול מופיעים ביחד בסיפור, יש לתאר אותם כאחים — "אחיה הקטן", "אחותו הגדולה".**
+3. **${CAST_INTRO_HE.mia}.** אוהבת טבע, פרחים ובעלי חיים.
+4. **${CAST_INTRO_HE.zoe}.** נמרצת, אמיצה, אוהבת כדורגל.
+5. **${CAST_INTRO_HE.leo}.** אוהב לצייר ולגלות דברים חדשים.
+- **שלב 1-2 מהחברים האלו לפי הצורך** - בחר את הדמויות המתאימות ביותר לנושא הסיפור. השתמש בשמות הדמויות (סול, מיה, ליאו, זואי, בן) בטקסט הסיפור.
+- **משפט ההצגה (חובה):** הורה וילד לא מכירים את החבורה. בפעם הראשונה שדמות מהחבורה מופיעה, הצג אותה עם התיאור הרשמי שלה מהרשימה למעלה, מילה במילה, למשל: "ליאו, הצייר של החבורה, בא לבקר." / "מיה, ילדת הפרחים, מגיעה עם חיוך." / "בן, אחיה הקטן של סול, רץ אחריה." אסור תיאור אחר (לא "הילד החכם", לא "ילדת הטבע"), ואסור שדמות "פשוט תופיע" בלי הצגה.
+- **מראה ובגדים של החבורה:** אל תתאר בגדים או מראה של דמות מהחבורה — לא בטקסט הסיפור ולא ב-illustration_prompt. ב-illustration_prompt כתוב רק את השם באנגלית (Leo, Mia, Zoe, Ben, Sol) ומה הוא עושה; המראה והבגדים הרשמיים מתווספים אוטומטית.
+- **מי מופיע באיור:** ה-illustration_prompt של כל עמוד מתאר רק דמויות שמוזכרות בטקסט של אותו עמוד, וכל דמות פעם אחת בלבד. אל תוסיף דמות מהחבורה לאיור של עמוד שבו היא לא מוזכרת.
+- **דמות חדשה מופיעה לראשונה רק בעמוד מאויר:** העמודים המאוירים הם [${illustrationPagesListStr}]. בעמוד שבו דמות מהחבורה מופיעה לראשונה, ה-illustration_prompt חייב לכלול את שמה.
 
 **⚠️ כלל אחים מחייב:** כאשר בן מופיע בסיפור שבו גם סול נוכחת, **אסור** לתארם כחברים. השתמש תמיד בשפה של אחווה: "בֶּן, אָחִיהָ הַקָּטָן שֶׁל סוֹל", "סוֹל הִבִּיטָה בְּאָחִיהָ הַקָּטָן", "שְׁנֵי הָאַחִים". הם משפחה, לא חברים.
 
@@ -1987,8 +1990,9 @@ ${topic.endsWith('-edu') ? `
 - For every OTHER page, DO NOT include an "illustration_prompt" key at all — not empty string, not null, not placeholder. Just omit the field.
 - You MAY still mentally visualize the scene for those pages to keep the narrative coherent, but do not serialize it.
 - The text quality, plot, and per-page word counts must remain exactly as instructed above — this rule affects only the JSON output shape.
-- A new character (including a SolStories cast member) first appears ONLY on one of these illustrated pages, introduced with a short warm sentence saying who they are.${tastePages ? ` This is a free taste: its last page, page ${tastePages}, is illustrated.` : ""}
-- Never describe clothes in the story text (only in illustration_prompt), except a wardrobe change that is part of the plot.
+- A new character (including a SolStories cast member) first appears ONLY on one of these illustrated pages, introduced with a short warm sentence saying who they are — for the cast, use their official description word for word (Sol: the heroine who leads the gang; Ben: Sol's little brother; Mia: the flower girl; Zoe: the athlete; Leo: the gang's painter).${tastePages ? ` This is a free taste: its last page, page ${tastePages}, is illustrated.` : ""}
+- Never describe clothes in the story text (only in illustration_prompt), except a wardrobe change that is part of the plot. Never describe a cast member's clothes or looks at all — in illustration_prompt write only their English name and what they do (their official look is added automatically).
+- Each illustration_prompt shows ONLY characters named in that page's text, each one once; never add a cast member who is not named on that page.
 - Clarity: a feeling that calms down must first appear as that same character's difficulty; "I miss ... too" must say whom; every he/she must clearly refer to one character.`;
     const illustrationRuleHe = `
 
@@ -2405,38 +2409,46 @@ ${fullStoryText}`;
     }
 
     // === HEBREW LANGUAGE EDITOR: gender agreement, whole sentences, nikud (all pages at once) ===
-    // A failure keeps the original text; the old per-page nikud pass then runs as before.
-    let editorNikudPages = new Set<number>();
+    // Safety net: failing pages (editor failed / edit refused / English letters / missing nikud)
+    // go back to the editor up to 2 more times. Runs that don't fit before ~125s continue in the
+    // background after the response; whatever still fails is saved in stories.text_issues, which
+    // keeps the story "needs_attention" and alerts the admin. Never blocks or changes the charge.
     let talkQuestions: string[] = [];
+    let editorInput: EditorInput | null = null;
+    let editorState: EditorState | null = null;
+    let textIssues: Record<string, string[]> | null = null;
     if (language === "he") {
+      const editorDeadline = requestStartedAt + 125_000;
       try {
-        const { pages: editedPages, report, talkQuestions: tq } = await editHebrewPages({
+        editorInput = {
           pages: storyData.pages.map((p: any) => ({ page_number: p.page_number, text: String(p.text || "") })),
           gender: childGender,
           heroName: childName,
           nikud: shouldApplyNikud,
           newStory: true,
-          // Normally ~30-45s. If it stalls, stop by ~125s after the request began so the
-          // story is still saved (original text, per-page nikud) before the connection is cut.
-          call: gatewayEditorCall(LOVABLE_API_KEY!, Math.min(120_000, Math.max(20_000, 125_000 - (Date.now() - requestStartedAt)))),
+          safetyNet: true,
+          // Another in-request run only with ~40s left; the rest happens after the response.
+          canRetry: () => editorDeadline - Date.now() >= 40_000,
+          // Normally ~30-45s. Each call stops by ~125s after the request began so the story is
+          // saved before the connection is cut.
+          call: gatewayEditorCall(LOVABLE_API_KEY!, () => Math.min(120_000, Math.max(20_000, editorDeadline - Date.now()))),
           maxChars: MAX_PAGE_CHARS,
-        });
+        };
+        const { pages: editedPages, report, talkQuestions: tq, state } = await editHebrewPages(editorInput);
+        editorState = state;
         talkQuestions = tq;
         for (const ep of editedPages) {
           const target = storyData.pages.find((p: any) => p.page_number === ep.page_number);
           if (target) target.text = ep.text;
         }
-        if (!report.error && shouldApplyNikud) {
-          editorNikudPages = new Set(editedPages
-            .filter((p) => !report.rejected.includes(p.page_number) && !report.still_missing_nikud.includes(p.page_number))
-            .map((p) => p.page_number));
-        }
+        const problems = report.problems ?? {};
+        textIssues = Object.keys(problems).length ? problems : null;
         console.log(`[generate-story] Hebrew editor: ${JSON.stringify(report)}`);
       } catch (editorErr) {
-        console.warn("[generate-story] Hebrew editor skipped:", editorErr);
+        console.warn("[generate-story] Hebrew editor crashed:", editorErr);
+        textIssues = Object.fromEntries((storyData.pages as any[]).map((p) => [String(p.page_number), ["not_edited:editor_failed"]]));
       }
     }
-
 
     // Use existing supabase client for database operations
 
@@ -2458,6 +2470,8 @@ ${fullStoryText}`;
     if (nlpReport) storyInsertData.nlp_report = nlpReport;
     // "Let's talk about the story" questions from the editor call (English/old stories: made later on demand).
     if (talkQuestions.length) storyInsertData.talk_questions = talkQuestions;
+    // Pages that still fail the text check: keeps the story "needs_attention" until fixed.
+    storyInsertData.text_issues = textIssues ? { pages: textIssues, stage: "before_save" } : null;
     // Kippah: only what the form sent now (never the saved profile); girls never.
     storyInsertData.kippah = kippahOn;
     storyInsertData.kippah_color = kippahOn ? kippahColor(reqAppearance) : null;
@@ -2642,37 +2656,59 @@ ${fullStoryText}`;
       }
     })();
 
-    // === DEFERRED NIKUD: runs in parallel with illustrations ===
-    let nikudPromise: Promise<void> = Promise.resolve();
-    if (shouldApplyNikud) {
-      console.log("Deferring nikud to parallel processing...");
-      nikudPromise = (async () => {
-        try {
-          const { data: savedPages } = await supabase
-            .from("story_pages")
-            .select("id, text, page_number")
-            .eq("story_id", story.id)
-            .order("page_number");
-          
-          if (savedPages) {
-            const nikudResults = await Promise.allSettled(
-              savedPages.filter((page) => !editorNikudPages.has(page.page_number)).map(async (page) => {
-                const nikudText = await addNikudToText(page.text, LOVABLE_API_KEY);
-                if (nikudText !== page.text) {
-                  await supabase
-                    .from("story_pages")
-                    .update({ text: nikudText })
-                    .eq("id", page.id);
-                }
-              })
-            );
-            console.log(`Nikud: ${nikudResults.filter(r => r.status === 'fulfilled').length}/${nikudResults.length} pages updated`);
+    // === TEXT SAFETY NET (background): remaining editor runs → nikud for pages still missing it →
+    // final check of the saved text → stories.text_issues + admin alert/email when anything fails.
+    const textCheckPromise: Promise<void> = (async () => {
+      if (!textIssues) return; // every page already passed the check before saving
+      try {
+        const current = (storyData.pages as any[]).map((p) => ({ page_number: p.page_number, text: String(p.text || "") }));
+        const before = new Map(current.map((p) => [p.page_number, p.text]));
+        if (editorInput && editorState && editorState.retries < SAFETY_NET_MAX_RETRIES) {
+          const report: EditorReport = { edited: [], rejected: [], nikud_retry: [], still_missing_nikud: [] };
+          await retryFailingPages({ ...editorInput, canRetry: undefined, call: gatewayEditorCall(LOVABLE_API_KEY!, 90_000) },
+            current, editorState, SAFETY_NET_MAX_RETRIES - editorState.retries, report);
+          console.log(`[generate-story] Hebrew editor (background): ${JSON.stringify(report)}`);
+          for (const p of current) {
+            if (p.text !== before.get(p.page_number)) {
+              await supabase.from("story_pages").update({ text: p.text }).eq("story_id", story.id).eq("page_number", p.page_number);
+            }
           }
-        } catch (err) {
-          console.error("Background nikud error:", err);
         }
-      })();
-    }
+        if (shouldApplyNikud) {
+          const { data: savedPages } = await supabase.from("story_pages").select("id, text, page_number").eq("story_id", story.id);
+          const needNikud = (savedPages || []).filter((pg: any) => wordsMissingNikud(String(pg.text || "")).length > 0);
+          const results = await Promise.allSettled(needNikud.map(async (pg: any) => {
+            const nikudText = await addNikudToText(pg.text, LOVABLE_API_KEY);
+            if (nikudText !== pg.text) await supabase.from("story_pages").update({ text: nikudText }).eq("id", pg.id);
+          }));
+          console.log(`Nikud: ${results.filter((r) => r.status === "fulfilled").length}/${results.length} pages updated`);
+        }
+        const { data: finalPages } = await supabase.from("story_pages").select("page_number, text").eq("story_id", story.id);
+        const names = [childName].filter(Boolean);
+        const finalIssues: Record<string, string[]> = {};
+        for (const pg of (finalPages || []) as any[]) {
+          const codes = pageProblems(String(pg.text || ""), {
+            nikud: shouldApplyNikud, names,
+            edited: editorState ? editorState.edited.has(pg.page_number) : false,
+            rejectReason: editorState?.rejectReasons.get(pg.page_number) ?? null,
+          });
+          if (codes.length) finalIssues[String(pg.page_number)] = codes;
+        }
+        const failing = Object.keys(finalIssues).length > 0;
+        await supabase.from("stories").update({ text_issues: failing ? { pages: finalIssues, stage: "final" } : null }).eq("id", story.id);
+        console.log(`[generate-story] Final text check: ${failing ? JSON.stringify(finalIssues) : "all pages OK"}`);
+        if (failing) {
+          await logError("story_text_issue", `Story text failed the final check on pages ${Object.keys(finalIssues).join(", ")}`,
+            { story_id: story.id, issues: finalIssues }, userId ?? undefined);
+          await reportStoryTextIssue(story.id, childName, finalIssues, userId);
+        }
+        await refreshStoryReadiness(supabase, story.id);
+      } catch (err) {
+        console.error("[generate-story] text safety net error:", err);
+      }
+    })();
+    (globalThis as any).EdgeRuntime?.waitUntil?.(textCheckPromise);
+    const nikudPromise = textCheckPromise;
 
     console.log("Story pages created (text only), triggering illustration generation...");
 

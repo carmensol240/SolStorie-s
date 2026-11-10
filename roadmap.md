@@ -123,3 +123,9 @@
 
 ## Admin dashboard display (Nov 2026)
 - [x] Hide own accounts (toggle), real-user count, story labels + open link, monthly real revenue/purchases, "mark handled"
+
+## Story text & picture safety (Nov 2026)
+- [x] Editor safety net: up to 2 re-runs with the reason; final check (no English letters, nikud when required); failing pages → "needs attention" + alert/email
+- [x] Official cast introductions in the writer prompt
+- [x] Pictures: only characters named on the page, each once; cast official outfits; no US/foreign flags (IDF only)
+- [x] Test taste via admin path (dad-in-reserves) — text passed; pictures: page 4 OK, page 1 held by the look check, page 3 stopped mid-redraw (reported, not fixed)

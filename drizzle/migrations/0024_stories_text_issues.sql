@@ -1,0 +1,2 @@
+ALTER TABLE public.stories ADD COLUMN IF NOT EXISTS text_issues jsonb;
+COMMENT ON COLUMN public.stories.text_issues IS 'Pages whose text failed the final check after the Hebrew editor (page -> reason codes). Non-null keeps the story in needs_attention.';
