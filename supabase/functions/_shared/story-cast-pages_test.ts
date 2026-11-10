@@ -41,3 +41,39 @@ Deno.test("hero named Sol: Sol is not treated as a cast member", () => {
   const pages = [{ page_number: 2, text: "סול משחקת.", illustration_prompt: null, _illustrate: false }];
   assertEquals(enforceCastAndTastePictures(pages, { tastePages: null, skip: ["sol"] }), []);
 });
+
+import { CAST_INTRO_HE, castInText, pageCastRule } from "./story-cast-pages.ts";
+import { decideStoryReadiness } from "./story-readiness.ts";
+import { negativePromptFor, CHARACTER_CONSISTENCY_PROMPT } from "./style-config.ts";
+
+Deno.test("cast introductions are exactly the official wording", () => {
+  assertEquals(CAST_INTRO_HE, {
+    sol: "סול – הגיבורה שמובילה את החבורה",
+    ben: "בן – אחיה הקטן של סול",
+    mia: "מיה – ילדת הפרחים",
+    zoe: "זואי – הספורטאית",
+    leo: "ליאו – הצייר של החבורה",
+  });
+});
+
+Deno.test("picture cast comes only from the page text; others are excluded", () => {
+  assertEquals(castInText("ליאו, הצייר של החבורה, בא לבקר את נועם."), ["leo"]);
+  assertEquals(castInText("ליאור משחק בחצר."), []); // Lior is not Leo
+  const rule = pageCastRule("ליאו בא לבקר את נועם.", "נועם");
+  assertEquals(rule.includes("EXACTLY ONCE"), true);
+  assertEquals(/NOT ON THIS PAGE: Sol, Ben, Mia, Zoe/.test(rule), true);
+  assertEquals(/CAST OUTFIT \(ABSOLUTE\): Leo/.test(rule), true);
+  // A hero called Sol is drawn as the hero, never excluded as a cast member.
+  assertEquals(pageCastRule("סול מחייכת.", "סול").includes("NOT ON THIS PAGE: Sol"), false);
+});
+
+Deno.test("no US/foreign flags in every page prompt and negative prompt", () => {
+  assertEquals(CHARACTER_CONSISTENCY_PROMPT.includes("no American / US flag"), true);
+  assertEquals(negativePromptFor("male").includes("American flag"), true);
+});
+
+Deno.test("text that failed the final check keeps a fully drawn story in needs attention", () => {
+  assertEquals(decideStoryReadiness([1, 3], new Set([1, 3]), new Set(), null), "ready");
+  assertEquals(decideStoryReadiness([1, 3], new Set([1, 3]), new Set(), { pages: { "3": ["english:Leo"] } }), "needs_attention");
+  assertEquals(decideStoryReadiness([1, 3], new Set([1]), new Set(), { pages: { "3": ["english:Leo"] } }), "waiting");
+});
