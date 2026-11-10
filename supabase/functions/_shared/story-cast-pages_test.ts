@@ -61,7 +61,7 @@ Deno.test("picture cast comes only from the page text; others are excluded", () 
   assertEquals(castInText("ליאור משחק בחצר."), []); // Lior is not Leo
   const rule = pageCastRule("ליאו בא לבקר את נועם.", "נועם");
   assertEquals(rule.includes("EXACTLY ONCE"), true);
-  assertEquals(/NOT ON THIS PAGE: Sol, Ben, Mia, Zoe/.test(rule), true);
+  assertEquals(/NOT ON THIS PAGE: Sol, Mia, Zoe, Ben /.test(rule), true);
   assertEquals(/CAST OUTFIT \(ABSOLUTE\): Leo/.test(rule), true);
   // A hero called Sol is drawn as the hero, never excluded as a cast member.
   assertEquals(pageCastRule("סול מחייכת.", "סול").includes("NOT ON THIS PAGE: Sol"), false);
