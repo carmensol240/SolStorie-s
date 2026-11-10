@@ -4,7 +4,7 @@ import {
   CODE_TTL_MS, EMAIL_COOLDOWN_MS, EMAIL_PER_HOUR, IP_PER_HOUR, SITE_PER_DAY,
   hmac, randomCode, randomToken, normalizeEmail, safeReturnTo, clientIp,
 } from "../_shared/login-code.ts";
-import { isDisposableEmail } from "../_shared/disposable-email.ts";
+import { isBlockedEmail } from "../_shared/disposable-email.ts";
 
 const json = (body: unknown, status = 200) =>
   new Response(JSON.stringify(body), { status, headers: { ...corsHeaders, "Content-Type": "application/json" } });
@@ -20,10 +20,10 @@ Deno.serve(async (req) => {
   try { body = await req.json(); } catch { return json({ error: "invalid_body" }, 400); }
   const email = normalizeEmail(body?.email);
   if (!email) return json({ error: "invalid_email" }, 400);
-  if (isDisposableEmail(email)) return json({ ok: false, error: "disposable_email" }, 400);
   const returnTo = safeReturnTo(body?.returnTo);
 
   const admin = createClient(Deno.env.get("SUPABASE_URL")!, Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!);
+  if (await isBlockedEmail(admin, email)) return json({ ok: false, error: "disposable_email" }, 400);
   const ipHash = await hmac("ip:" + clientIp(req));
   const now = Date.now();
   const hourAgo = new Date(now - 3600_000).toISOString();

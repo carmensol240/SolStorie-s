@@ -17,6 +17,28 @@ export const DISPOSABLE_EMAIL_DOMAINS = [
 
 const KEYWORDS = ["mailosaur", "guerrillamail", "mailinator", "yopmail", "tempmail", "temp-mail", "10minutemail", "throwaway", "trashmail"];
 
+/**
+ * Full check: the short local list above + the big public list in the database
+ * (public.blocked_email_domains via is_disposable_email, includes subdomains).
+ * On a database error only the local list decides (never lock out real parents).
+ */
+// deno-lint-ignore no-explicit-any
+export async function isBlockedEmail(admin: any, email: string | null | undefined): Promise<boolean> {
+  const e = String(email ?? "").trim().toLowerCase();
+  if (!e) return false;
+  if (isDisposableEmail(e)) return true;
+  try {
+    const { data, error } = await admin.rpc("is_disposable_email", { p_email: e });
+    if (error) { console.error("[disposable-email] rpc failed", error.message); return false; }
+    return data === true;
+  } catch (err) {
+    console.error("[disposable-email] rpc threw", err);
+    return false;
+  }
+}
+
+export const DISPOSABLE_EMAIL_MESSAGE_HE = "אי אפשר להירשם עם כתובת מייל זמנית. נסו כתובת מייל קבועה.";
+
 export function isDisposableEmail(email: string): boolean {
   const domain = email.trim().toLowerCase().split("@")[1] ?? "";
   if (!domain) return false;
