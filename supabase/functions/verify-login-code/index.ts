@@ -47,7 +47,7 @@ Deno.serve(async (req) => {
   if (!claimed?.length) return json({ error: "expired" }, 400);
 
   // Account is created only now, after verification. Existing address → same account.
-  const { error: createErr } = await admin.auth.admin.createUser({ email: row.email, email_confirm: true });
+  const { error: createErr } = await admin.auth.admin.createUser({ email: row.email, email_confirm: true, app_metadata: { via: "login_code" } });
   if (createErr && !/already|registered|exists/i.test(createErr.message)) {
     console.error("[verify-login-code] createUser failed", createErr);
     return json({ error: "server" }, 500);
