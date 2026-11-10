@@ -1,7 +1,7 @@
 // Admin dashboard display rules (no effect on purchases, credits or stories).
 
-// The owner's own/test accounts: carmit1901 (any +alias) at gmail, plus these exact addresses.
-const OWN_ACCOUNT_EMAILS = new Set(["solstories.nlp@gmail.com", "souldesign06@gmail.com"]);
+// The owner's own/test accounts: carmit1901 and souldesign06 (any +alias) at gmail, plus solstories.nlp.
+const OWN_ACCOUNT_EMAILS = new Set(["solstories.nlp@gmail.com"]);
 
 // Individual purchases the owner marked as her own tests (Grow order IDs inside package_name).
 // Hidden from totals only; the purchase rows themselves are never changed.
@@ -11,7 +11,7 @@ export function isOwnAccountEmail(email?: string | null): boolean {
   const e = (email || "").trim().toLowerCase();
   if (!e) return false;
   if (OWN_ACCOUNT_EMAILS.has(e)) return true;
-  return /^carmit1901(\+[^@]*)?@gmail\.com$/.test(e);
+  return /^(carmit1901|souldesign06)(\+[^@]*)?@gmail\.com$/.test(e);
 }
 
 // A real purchase for the monthly totals: status exactly "completed" (not test_completed),

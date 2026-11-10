@@ -7,6 +7,7 @@ describe("admin dashboard display rules", () => {
     expect(isOwnAccountEmail("carmit1901@gmail.com")).toBe(true);
     expect(isOwnAccountEmail("carmit1901+test@gmail.com")).toBe(true);
     expect(isOwnAccountEmail("souldesign06@gmail.com")).toBe(true);
+    expect(isOwnAccountEmail("souldesign06+test@gmail.com")).toBe(true);
     expect(isOwnAccountEmail("liorcohen11111@gmail.com")).toBe(false);
   });
 
