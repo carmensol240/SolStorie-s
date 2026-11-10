@@ -118,4 +118,5 @@
 - [x] Audit every story/AI/credit/webhook function; table to user
 - [x] Explain shirley.u85 and uziahamail free stories
 - [x] Live check (gmail code send ok; disposable blocked at send-login-code, auth sign-up, account trigger; generate-story check not live-tested with a disposable session): gmail works, disposable blocked at each entry point
-- [ ] Proposals awaiting approval: Grow transaction re-check via Grow API (needs Grow API details), generate-illustrations owner redraw limit, signed-illustration-url per-path ownership, sign-in for add-nikud / enhance-text / preview-child-avatar / validate-child-photo / azure-tts / swap-gender
+- [x] Signed picture links checked per story; redraw limits 2/page 6/story; small AI actions sign-in only
+- [ ] Grow transaction re-check via Grow API — not approved yet (needs Grow API details)
