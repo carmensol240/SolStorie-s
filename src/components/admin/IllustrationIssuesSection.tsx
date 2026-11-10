@@ -30,6 +30,14 @@ type Row = {
 export default function IllustrationIssuesSection() {
   const [rows, setRows] = useState<Row[] | null>(null);
   const [error, setError] = useState<string | null>(null);
+  // Stories finished with a page left without a picture (never marked ready).
+  const [attention, setAttention] = useState<{ id: string; slug: string | null; child_name: string; created_at: string }[]>([]);
+
+  useEffect(() => {
+    supabase.from("stories").select("id, slug, child_name, created_at").eq("generation_status", "needs_attention")
+      .order("created_at", { ascending: false }).limit(100)
+      .then(({ data }) => setAttention((data as any) || []));
+  }, []);
 
   useEffect(() => {
     (async () => {
@@ -77,6 +85,23 @@ export default function IllustrationIssuesSection() {
         <CardTitle>עמודים שדורשים תיקון איור</CardTitle>
       </CardHeader>
       <CardContent>
+        <div className="mb-4">
+          <h3 className="font-bold mb-2">דורש טיפול: סיפורים עם עמוד בלי איור ({attention.length})</h3>
+          {attention.length === 0 ? (
+            <p className="text-sm text-muted-foreground">אין סיפורים שממתינים</p>
+          ) : (
+            <ul className="text-sm space-y-1">
+              {attention.map((s) => (
+                <li key={s.id}>
+                  <a href={`/story/${s.id}`} target="_blank" rel="noreferrer" className="text-primary underline">
+                    {s.child_name} · {s.slug || s.id.slice(0, 8)}
+                  </a>{" "}
+                  <span className="text-muted-foreground">{new Date(s.created_at).toLocaleDateString("he-IL")}</span>
+                </li>
+              ))}
+            </ul>
+          )}
+        </div>
         {error && <p className="text-destructive text-sm">{error}</p>}
         {!rows && !error && <Loader2 className="h-5 w-5 animate-spin" />}
         {rows && rows.length === 0 && <p className="text-sm text-muted-foreground">אין עמודים בעייתיים</p>}
