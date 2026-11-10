@@ -15,7 +15,9 @@ import { Input } from "@/components/ui/input";
 import { Users, ShoppingCart, BookOpen, TrendingUp, ArrowRight, AlertTriangle, EyeOff, Eye, Trash2, Palette, Image, Ticket, ChevronDown, ChevronUp, Activity, Copy, Mail, CalendarPlus, RefreshCw, Clock, Search, RotateCcw, XCircle, Unlock, Lock } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { format, subDays, startOfDay } from "date-fns";
+import { format, subDays, startOfDay, startOfMonth } from "date-fns";
+import { Switch } from "@/components/ui/switch";
+import { isOwnAccountEmail, isRealPurchase, storyLabel, STORY_LABEL_CLASS } from "@/lib/admin-dashboard-filters";
 import { ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart";
 import { LineChart, Line, XAxis, YAxis, CartesianGrid } from "recharts";
 import { useToast } from "@/hooks/use-toast";
@@ -69,6 +71,8 @@ interface StoryRow {
   created_at: string;
   user_id: string | null;
   generation_status: string | null;
+  is_taste?: boolean | null;
+  slug?: string | null;
 }
 
 interface ErrorLogRow {
@@ -176,9 +180,18 @@ const AdminDashboard = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
   const [isAdmin, setIsAdmin] = useState<boolean | null>(null);
-  const [profiles, setProfiles] = useState<ProfileRow[]>([]);
-  const [purchases, setPurchases] = useState<PurchaseRow[]>([]);
-  const [stories, setStories] = useState<StoryRow[]>([]);
+  const [rawProfiles, setProfiles] = useState<ProfileRow[]>([]);
+  const [rawPurchases, setPurchases] = useState<PurchaseRow[]>([]);
+  const [rawStories, setStories] = useState<StoryRow[]>([]);
+  const [emailById, setEmailById] = useState<Map<string, string>>(new Map());
+  const [userFlags, setUserFlags] = useState<Map<string, { disposable: boolean; banned: boolean }>>(new Map());
+  // Display only: the owner's own accounts are hidden everywhere unless this is on.
+  const [showOwn, setShowOwn] = useState(false);
+  const ownIds = useMemo(() => new Set([...emailById.entries()].filter(([, e]) => isOwnAccountEmail(e)).map(([id]) => id)), [emailById]);
+  const isOwn = (uid?: string | null) => !!uid && ownIds.has(uid);
+  const profiles = useMemo(() => showOwn ? rawProfiles : rawProfiles.filter(p => !isOwn(p.id)), [rawProfiles, showOwn, ownIds]);
+  const stories = useMemo(() => showOwn ? rawStories : rawStories.filter(s => !isOwn(s.user_id)), [rawStories, showOwn, ownIds]);
+  const purchases = useMemo(() => showOwn ? rawPurchases : rawPurchases.filter(p => !isOwn(p.user_id)), [rawPurchases, showOwn, ownIds]);
   const [errorLogs, setErrorLogs] = useState<ErrorLogRow[]>([]);
   const [illustrationLogs, setIllustrationLogs] = useState<IllustrationLogRow[]>([]);
   const [coverLogs, setCoverLogs] = useState<CoverLogRow[]>([]);
@@ -370,14 +383,14 @@ const AdminDashboard = () => {
     if (!isAdmin) return;
     setLoading(true);
 
-    const [profilesRes, purchasesRes, storiesRes, emailsRes, couponsRes, redemptionsRes, errorsRes, illustrationsRes, coversRes, fbRes, unlocksRes] = await Promise.all([
-      supabase.from("profiles").select("id, display_name, email, created_at, story_credits, coloring_credits, editing_credits, is_subscriber, user_role").not("id", "in", `(${EXCLUDED_IDS.join(",")})`).order("created_at", { ascending: false }).limit(500),
+    const [profilesRes, purchasesRes, storiesRes, emailsRes, couponsRes, redemptionsRes, errorsRes, illustrationsRes, coversRes, fbRes, unlocksRes, flagsRes] = await Promise.all([
+      supabase.from("profiles").select("id, display_name, email, created_at, story_credits, coloring_credits, editing_credits, is_subscriber, user_role").order("created_at", { ascending: false }).limit(500),
       // Do NOT exclude admin/test users from purchases — they need to be
       // visible in the dashboard so admins can verify that the Grow
       // flow actually produced a row. Filtering by EXCLUDED_IDS here was
       // hiding every recorded purchase and making the counter read 0.
       supabase.from("purchases").select("*").order("created_at", { ascending: false }).limit(500),
-      supabase.from("stories").select("id, child_name, topic, created_at, user_id, generation_status").not("user_id", "in", `(${EXCLUDED_IDS.join(",")})`).order("created_at", { ascending: false }).limit(500),
+      supabase.from("stories").select("id, child_name, topic, created_at, user_id, generation_status, is_taste, slug").order("created_at", { ascending: false }).limit(500),
       supabase.rpc("get_admin_user_emails"),
       supabase.from("coupons").select("*").order("created_at", { ascending: false }),
       supabase.from("coupon_redemptions").select("*"),
@@ -386,7 +399,12 @@ const AdminDashboard = () => {
       supabase.from("cover_logs").select("*").order("created_at", { ascending: false }).limit(200),
       supabase.from("user_feedback").select("id, user_id, rating, message, display_name, page_url, created_at, is_approved").order("created_at", { ascending: false }).limit(200),
       supabase.from("story_unlocks").select("user_id, story_id").limit(2000),
+      supabase.rpc("get_admin_user_flags"),
     ]);
+    if (flagsRes.data) {
+      setUserFlags(new Map((flagsRes.data as { user_id: string; is_disposable: boolean; is_banned: boolean }[])
+        .map(f => [f.user_id, { disposable: !!f.is_disposable, banned: !!f.is_banned }])));
+    }
 
     const emailMap = new Map<string, string>();
     if (emailsRes.data) {
@@ -394,19 +412,14 @@ const AdminDashboard = () => {
     } else if (emailsRes.error) {
       console.warn('[AdminDashboard] get_admin_user_emails RPC failed:', emailsRes.error);
     }
-    const adminUserIds = [...emailMap.entries()].filter(([, email]) => ADMIN_EMAILS.includes(email)).map(([id]) => id);
-
+    // Own accounts are kept here and hidden in the display (showOwn toggle).
     if (profilesRes.data) {
+      profilesRes.data.forEach(p => { if ((p as any).email && !emailMap.has(p.id)) emailMap.set(p.id, (p as any).email); });
       setProfiles(profilesRes.data
-        .filter(p => !ADMIN_EMAILS.includes(emailMap.get(p.id) || (p as any).email || ""))
         .map(p => ({ ...p, email: emailMap.get(p.id) || (p as any).email || undefined })) as ProfileRow[]);
     }
-
-    const filterAdmin = <T extends { user_id?: string | null }>(data: T[] | null): T[] => {
-      if (!data) return [];
-      if (adminUserIds.length === 0) return data;
-      return data.filter(item => !item.user_id || !adminUserIds.includes(item.user_id));
-    };
+    setEmailById(emailMap);
+    const filterAdmin = <T,>(data: T[] | null): T[] => data ?? [];
 
     // Keep ALL purchases visible — including those made by admin/test accounts
     // — so the dashboard reflects what actually landed in the DB.
@@ -495,7 +508,12 @@ const AdminDashboard = () => {
   const weekAgo = subDays(new Date(), 7);
   const thirtyMinAgo = new Date(Date.now() - 30 * 60 * 1000);
 
-  const totalRevenue = purchases.filter(p => p.status === "completed").reduce((sum, p) => sum + Number(p.amount_ils), 0);
+  // Real users: not own accounts, not temporary-email, not blocked.
+  const realUsersCount = rawProfiles.filter(p => !isOwn(p.id) && !userFlags.get(p.id)?.disposable && !userFlags.get(p.id)?.banned).length;
+  // This month's real purchases (status "completed" only, never test_completed or own accounts).
+  const monthStart = startOfMonth(new Date());
+  const monthPurchases = rawPurchases.filter(p => isRealPurchase(p, monthStart, isOwn(p.user_id)));
+  const monthRevenue = monthPurchases.reduce((sum, p) => sum + Number(p.amount_ils), 0);
   const errorsToday = errorLogs.filter(e => new Date(e.created_at) >= todayStart).length;
   const registeredThisWeek = profiles.filter(p => new Date(p.created_at) >= weekAgo).length;
   const storiesToday = stories.filter(s => new Date(s.created_at) >= todayStart).length;
@@ -599,7 +617,13 @@ const AdminDashboard = () => {
     <div className="min-h-screen bg-background p-3 md:p-8" dir="rtl">
       <div className="max-w-7xl mx-auto space-y-4">
         <AiCreditAlertBanner />
-        <div className="max-w-sm"><AdminModeSwitch /></div>
+        <div className="flex flex-wrap items-center gap-4">
+          <div className="max-w-sm"><AdminModeSwitch /></div>
+          <label className="flex items-center gap-2 text-sm cursor-pointer">
+            <Switch checked={showOwn} onCheckedChange={setShowOwn} aria-label="הצג גם את החשבונות שלי" />
+            הצג גם את החשבונות שלי
+          </label>
+        </div>
         {/* Header */}
         <div className="flex items-center gap-3 flex-wrap">
           <Button variant="outline" size="icon" onClick={() => navigate("/")} aria-label="חזרה לדף הבית">
@@ -623,12 +647,12 @@ const AdminDashboard = () => {
 
         {/* Stats Cards */}
         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-7 gap-3">
-          <StatCard title="משתמשים" value={profiles.length} icon={<Users className="h-4 w-4" />} />
+          <StatCard title="משתמשים" value={realUsersCount} icon={<Users className="h-4 w-4" />} />
           <StatCard title="נרשמו השבוע" value={registeredThisWeek} icon={<CalendarPlus className="h-4 w-4" />} />
           <StatCard title="פעילים היום" value={activeUsersToday} icon={<Activity className="h-4 w-4" />} color="green" />
           <StatCard title="סיפורים היום" value={storiesToday} icon={<BookOpen className="h-4 w-4" />} color="green" />
-          <StatCard title="רכישות" value={purchases.filter(p => p.status === "completed").length} icon={<ShoppingCart className="h-4 w-4" />} />
-          <StatCard title="הכנסות" value={`₪${totalRevenue.toLocaleString()}`} icon={<TrendingUp className="h-4 w-4" />} />
+          <StatCard title="הכנסות החודש" value={`₪${monthRevenue.toLocaleString()}`} icon={<TrendingUp className="h-4 w-4" />} />
+          <StatCard title="רכישות החודש" value={monthPurchases.length} icon={<ShoppingCart className="h-4 w-4" />} />
           <StatCard title="שגיאות היום" value={errorsToday} icon={<AlertTriangle className="h-4 w-4" />} color={errorsToday > 0 ? "red" : undefined} />
         </div>
 
@@ -735,7 +759,7 @@ const AdminDashboard = () => {
 
                         return (
                           <TableRow key={p.id} className={hasErrors ? "bg-destructive/5" : ""}>
-                            <TableCell className="font-medium">{p.display_name || displayName}</TableCell>
+                            <TableCell className="font-medium">{p.display_name || displayName}{isOwn(p.id) && <Badge variant="outline" className="text-[10px] mr-1">בדיקה</Badge>}</TableCell>
                             <TableCell className="text-xs text-muted-foreground">{p.email || "—"}</TableCell>
                             <TableCell><Badge variant="outline" className="text-xs">{p.user_role}</Badge></TableCell>
                             <TableCell>{userStories.length}</TableCell>
@@ -857,18 +881,24 @@ const AdminDashboard = () => {
                         ) : filteredStories.map((s) => {
                           const profile = profiles.find(p => p.id === s.user_id);
                           const isReady = s.generation_status === "ready";
-                          return (
+                           return (
                             <TableRow key={s.id}>
                               <TableCell className="text-xs">
-                                <div>{profile?.display_name || "—"}</div>
+                                <div className="flex items-center gap-1">{profile?.display_name || "—"}
+                                  {isOwn(s.user_id) && <Badge variant="outline" className="text-[10px]">בדיקה</Badge>}
+                                </div>
                                 <div className="text-muted-foreground">{profile?.email || "—"}</div>
+                                <div className="flex flex-wrap items-center gap-1 mt-1">
+                                  {storyLabel(s).map(l => <Badge key={l} className={`text-[10px] ${STORY_LABEL_CLASS[l]}`}>{l}</Badge>)}
+                                  <a href={`/story/${s.slug || s.id}`} target="_blank" rel="noreferrer" className="text-primary underline text-[11px]">פתח סיפור</a>
+                                </div>
                               </TableCell>
                               <TableCell>{s.child_name}</TableCell>
                               <TableCell>{s.topic}</TableCell>
                               <TableCell className="text-xs whitespace-nowrap">{formatDate(s.created_at)}</TableCell>
                               <TableCell>
                                  <Badge className={`text-xs ${isReady ? "bg-green-100 text-green-800" : "bg-red-100 text-red-800"}`}>
-                                  {isReady ? "הושלם" : "נכשל"}
+                                  {isReady ? "הושלם" : s.generation_status === "needs_attention" ? "דורש טיפול" : s.generation_status?.startsWith("generating") ? "בהכנה" : "נכשל"}
                                 </Badge>
                               </TableCell>
                               <TableCell>
