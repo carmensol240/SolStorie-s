@@ -1250,7 +1250,13 @@ async function handleGenerateStory(req: Request, ctx: RequestCtx): Promise<Respo
     }
 
     // === ONE-TIME REQUEST: save the row first, then charge ===
-    const tastePages = tasteClaim ? tastePageLimit(ageRange) : null;
+    // Admin-only test: make a taste-shaped story (same page limit and pictures) without a taste claim.
+    let adminTasteTest = false;
+    if (!tasteClaim && userId && reqBody?.adminTasteTest === true) {
+      const { data: isAdm } = await supabase.rpc("has_role", { _user_id: userId, _role: "admin" });
+      adminTasteTest = isAdm === true;
+    }
+    const tastePages = tasteClaim || adminTasteTest ? tastePageLimit(ageRange) : null;
     if (userId && !guestMode && tasteClaim) {
       const tc = await claimTasteRequest(
         supabaseStoryRequestStore(supabase),
@@ -1302,6 +1308,7 @@ async function handleGenerateStory(req: Request, ctx: RequestCtx): Promise<Respo
           language,
           story_type: isCustomTopic ? "custom" : "text",
           ...(childId ? { child_id: childId } : {}),
+          ...(adminTasteTest ? { is_taste: true, taste_page_limit: tastePages } : {}),
         },
         reqBody.creditKind === "full" || reqBody.creditKind === "digital" ? reqBody.creditKind : null,
       );
@@ -2477,7 +2484,7 @@ ${fullStoryText}`;
     if (verifiedChildId) {
       storyInsertData.child_id = verifiedChildId;
     }
-    if (ctx.taste) {
+    if (ctx.taste || adminTasteTest) {
       // Saved so the remaining pictures can be made after payment with the same character.
       storyInsertData.taste_resume = {
         childAvatarUrl: childAvatarUrl || null,
