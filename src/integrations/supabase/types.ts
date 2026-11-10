@@ -1018,6 +1018,7 @@ export type Database = {
           talk_questions: string[] | null
           taste_page_limit: number | null
           taste_resume: Json | null
+          text_issues: Json | null
           theme: string | null
           topic: string
           user_id: string | null
@@ -1057,6 +1058,7 @@ export type Database = {
           talk_questions?: string[] | null
           taste_page_limit?: number | null
           taste_resume?: Json | null
+          text_issues?: Json | null
           theme?: string | null
           topic: string
           user_id?: string | null
@@ -1096,6 +1098,7 @@ export type Database = {
           talk_questions?: string[] | null
           taste_page_limit?: number | null
           taste_resume?: Json | null
+          text_issues?: Json | null
           theme?: string | null
           topic?: string
           user_id?: string | null
