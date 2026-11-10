@@ -508,7 +508,12 @@ const AdminDashboard = () => {
   const weekAgo = subDays(new Date(), 7);
   const thirtyMinAgo = new Date(Date.now() - 30 * 60 * 1000);
 
-  const totalRevenue = purchases.filter(p => p.status === "completed").reduce((sum, p) => sum + Number(p.amount_ils), 0);
+  // Real users: not own accounts, not temporary-email, not blocked.
+  const realUsersCount = rawProfiles.filter(p => !isOwn(p.id) && !userFlags.get(p.id)?.disposable && !userFlags.get(p.id)?.banned).length;
+  // This month's real purchases (status "completed" only, never test_completed or own accounts).
+  const monthStart = startOfMonth(new Date());
+  const monthPurchases = rawPurchases.filter(p => isRealPurchase(p, monthStart, isOwn(p.user_id)));
+  const monthRevenue = monthPurchases.reduce((sum, p) => sum + Number(p.amount_ils), 0);
   const errorsToday = errorLogs.filter(e => new Date(e.created_at) >= todayStart).length;
   const registeredThisWeek = profiles.filter(p => new Date(p.created_at) >= weekAgo).length;
   const storiesToday = stories.filter(s => new Date(s.created_at) >= todayStart).length;
@@ -612,7 +617,13 @@ const AdminDashboard = () => {
     <div className="min-h-screen bg-background p-3 md:p-8" dir="rtl">
       <div className="max-w-7xl mx-auto space-y-4">
         <AiCreditAlertBanner />
-        <div className="max-w-sm"><AdminModeSwitch /></div>
+        <div className="flex flex-wrap items-center gap-4">
+          <div className="max-w-sm"><AdminModeSwitch /></div>
+          <label className="flex items-center gap-2 text-sm cursor-pointer">
+            <Switch checked={showOwn} onCheckedChange={setShowOwn} aria-label="הצג גם את החשבונות שלי" />
+            הצג גם את החשבונות שלי
+          </label>
+        </div>
         {/* Header */}
         <div className="flex items-center gap-3 flex-wrap">
           <Button variant="outline" size="icon" onClick={() => navigate("/")} aria-label="חזרה לדף הבית">
@@ -636,12 +647,12 @@ const AdminDashboard = () => {
 
         {/* Stats Cards */}
         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-7 gap-3">
-          <StatCard title="משתמשים" value={profiles.length} icon={<Users className="h-4 w-4" />} />
+          <StatCard title="משתמשים" value={realUsersCount} icon={<Users className="h-4 w-4" />} />
           <StatCard title="נרשמו השבוע" value={registeredThisWeek} icon={<CalendarPlus className="h-4 w-4" />} />
           <StatCard title="פעילים היום" value={activeUsersToday} icon={<Activity className="h-4 w-4" />} color="green" />
           <StatCard title="סיפורים היום" value={storiesToday} icon={<BookOpen className="h-4 w-4" />} color="green" />
-          <StatCard title="רכישות" value={purchases.filter(p => p.status === "completed").length} icon={<ShoppingCart className="h-4 w-4" />} />
-          <StatCard title="הכנסות" value={`₪${totalRevenue.toLocaleString()}`} icon={<TrendingUp className="h-4 w-4" />} />
+          <StatCard title="הכנסות החודש" value={`₪${monthRevenue.toLocaleString()}`} icon={<TrendingUp className="h-4 w-4" />} />
+          <StatCard title="רכישות החודש" value={monthPurchases.length} icon={<ShoppingCart className="h-4 w-4" />} />
           <StatCard title="שגיאות היום" value={errorsToday} icon={<AlertTriangle className="h-4 w-4" />} color={errorsToday > 0 ? "red" : undefined} />
         </div>
 
@@ -870,11 +881,17 @@ const AdminDashboard = () => {
                         ) : filteredStories.map((s) => {
                           const profile = profiles.find(p => p.id === s.user_id);
                           const isReady = s.generation_status === "ready";
-                          return (
+                           return (
                             <TableRow key={s.id}>
                               <TableCell className="text-xs">
-                                <div>{profile?.display_name || "—"}</div>
+                                <div className="flex items-center gap-1">{profile?.display_name || "—"}
+                                  {isOwn(s.user_id) && <Badge variant="outline" className="text-[10px]">בדיקה</Badge>}
+                                </div>
                                 <div className="text-muted-foreground">{profile?.email || "—"}</div>
+                                <div className="flex flex-wrap items-center gap-1 mt-1">
+                                  {storyLabel(s).map(l => <Badge key={l} className={`text-[10px] ${STORY_LABEL_CLASS[l]}`}>{l}</Badge>)}
+                                  <a href={`/story/${s.slug || s.id}`} target="_blank" rel="noreferrer" className="text-primary underline text-[11px]">פתח סיפור</a>
+                                </div>
                               </TableCell>
                               <TableCell>{s.child_name}</TableCell>
                               <TableCell>{s.topic}</TableCell>
