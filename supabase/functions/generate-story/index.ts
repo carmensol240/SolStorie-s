@@ -14,7 +14,7 @@ import { grantStoryAccess, consumeCredit } from "../_shared/story-access.ts";
 import { spendCredit } from "../_shared/taste.ts";
 import { claimStoryRequest, releaseStoryRequest, supabaseStoryRequestStore, isValidRequestId, claimTasteRequest, releaseTasteRequest, supabaseTasteClaimStore } from "../_shared/story-request.ts";
 import { normalizeEmail, decideTasteEligibility, tastePageLimit, emailTasteHash } from "../_shared/taste.ts";
-import { plannedIllustrationPages, enforceCastAndTastePictures, castPromptAddition, type CastKey } from "../_shared/story-cast-pages.ts";
+import { plannedIllustrationPages, enforceCastAndTastePictures, castPromptAddition, CAST_INTRO_HE, type CastKey } from "../_shared/story-cast-pages.ts";
 import { isHeroCastName } from "../_shared/style-config.ts";
 
 async function sha256Hex(s: string): Promise<string> {
