@@ -383,14 +383,14 @@ const AdminDashboard = () => {
     if (!isAdmin) return;
     setLoading(true);
 
-    const [profilesRes, purchasesRes, storiesRes, emailsRes, couponsRes, redemptionsRes, errorsRes, illustrationsRes, coversRes, fbRes, unlocksRes] = await Promise.all([
-      supabase.from("profiles").select("id, display_name, email, created_at, story_credits, coloring_credits, editing_credits, is_subscriber, user_role").not("id", "in", `(${EXCLUDED_IDS.join(",")})`).order("created_at", { ascending: false }).limit(500),
+    const [profilesRes, purchasesRes, storiesRes, emailsRes, couponsRes, redemptionsRes, errorsRes, illustrationsRes, coversRes, fbRes, unlocksRes, flagsRes] = await Promise.all([
+      supabase.from("profiles").select("id, display_name, email, created_at, story_credits, coloring_credits, editing_credits, is_subscriber, user_role").order("created_at", { ascending: false }).limit(500),
       // Do NOT exclude admin/test users from purchases — they need to be
       // visible in the dashboard so admins can verify that the Grow
       // flow actually produced a row. Filtering by EXCLUDED_IDS here was
       // hiding every recorded purchase and making the counter read 0.
       supabase.from("purchases").select("*").order("created_at", { ascending: false }).limit(500),
-      supabase.from("stories").select("id, child_name, topic, created_at, user_id, generation_status").not("user_id", "in", `(${EXCLUDED_IDS.join(",")})`).order("created_at", { ascending: false }).limit(500),
+      supabase.from("stories").select("id, child_name, topic, created_at, user_id, generation_status, is_taste, slug").order("created_at", { ascending: false }).limit(500),
       supabase.rpc("get_admin_user_emails"),
       supabase.from("coupons").select("*").order("created_at", { ascending: false }),
       supabase.from("coupon_redemptions").select("*"),
@@ -399,7 +399,12 @@ const AdminDashboard = () => {
       supabase.from("cover_logs").select("*").order("created_at", { ascending: false }).limit(200),
       supabase.from("user_feedback").select("id, user_id, rating, message, display_name, page_url, created_at, is_approved").order("created_at", { ascending: false }).limit(200),
       supabase.from("story_unlocks").select("user_id, story_id").limit(2000),
+      supabase.rpc("get_admin_user_flags"),
     ]);
+    if (flagsRes.data) {
+      setUserFlags(new Map((flagsRes.data as { user_id: string; is_disposable: boolean; is_banned: boolean }[])
+        .map(f => [f.user_id, { disposable: !!f.is_disposable, banned: !!f.is_banned }])));
+    }
 
     const emailMap = new Map<string, string>();
     if (emailsRes.data) {
@@ -407,19 +412,14 @@ const AdminDashboard = () => {
     } else if (emailsRes.error) {
       console.warn('[AdminDashboard] get_admin_user_emails RPC failed:', emailsRes.error);
     }
-    const adminUserIds = [...emailMap.entries()].filter(([, email]) => ADMIN_EMAILS.includes(email)).map(([id]) => id);
-
+    // Own accounts are kept here and hidden in the display (showOwn toggle).
     if (profilesRes.data) {
+      profilesRes.data.forEach(p => { if ((p as any).email && !emailMap.has(p.id)) emailMap.set(p.id, (p as any).email); });
       setProfiles(profilesRes.data
-        .filter(p => !ADMIN_EMAILS.includes(emailMap.get(p.id) || (p as any).email || ""))
         .map(p => ({ ...p, email: emailMap.get(p.id) || (p as any).email || undefined })) as ProfileRow[]);
     }
-
-    const filterAdmin = <T extends { user_id?: string | null }>(data: T[] | null): T[] => {
-      if (!data) return [];
-      if (adminUserIds.length === 0) return data;
-      return data.filter(item => !item.user_id || !adminUserIds.includes(item.user_id));
-    };
+    setEmailById(emailMap);
+    const filterAdmin = <T,>(data: T[] | null): T[] => data ?? [];
 
     // Keep ALL purchases visible — including those made by admin/test accounts
     // — so the dashboard reflects what actually landed in the DB.
