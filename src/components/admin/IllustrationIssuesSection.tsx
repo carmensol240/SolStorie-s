@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import { Loader2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -33,11 +34,27 @@ export default function IllustrationIssuesSection() {
   // Stories finished with a page left without a picture (never marked ready).
   const [attention, setAttention] = useState<{ id: string; slug: string | null; child_name: string; created_at: string }[]>([]);
 
+  // Display only: stories the admin marked as handled are hidden from the list (status unchanged).
+  const [handled, setHandled] = useState<Set<string>>(new Set());
+  const [showHandled, setShowHandled] = useState(false);
   useEffect(() => {
     supabase.from("stories").select("id, slug, child_name, created_at").eq("generation_status", "needs_attention")
       .order("created_at", { ascending: false }).limit(100)
       .then(({ data }) => setAttention((data as any) || []));
+    supabase.from("admin_handled_items").select("item_id").eq("item_type", "story_attention")
+      .then(({ data }) => setHandled(new Set((data || []).map((r: any) => r.item_id))));
   }, []);
+  const toggleHandled = async (id: string) => {
+    const isHandled = handled.has(id);
+    const { data: { user } } = await supabase.auth.getUser();
+    const { error: e } = isHandled
+      ? await supabase.from("admin_handled_items").delete().eq("item_type", "story_attention").eq("item_id", id)
+      : await supabase.from("admin_handled_items").insert({ item_type: "story_attention", item_id: id, handled_by: user?.id ?? null });
+    if (e) { setError(e.message); return; }
+    setHandled((prev) => { const n = new Set(prev); isHandled ? n.delete(id) : n.add(id); return n; });
+  };
+  const openAttention = attention.filter((s) => !handled.has(s.id));
+  const shownAttention = showHandled ? attention : openAttention;
 
   useEffect(() => {
     (async () => {
@@ -86,17 +103,25 @@ export default function IllustrationIssuesSection() {
       </CardHeader>
       <CardContent>
         <div className="mb-4">
-          <h3 className="font-bold mb-2">דורש טיפול: סיפורים עם עמוד בלי איור ({attention.length})</h3>
-          {attention.length === 0 ? (
+          <h3 className="font-bold mb-2">דורש טיפול: סיפורים עם עמוד בלי איור ({openAttention.length})</h3>
+          {attention.length > openAttention.length && (
+            <button type="button" className="text-xs text-muted-foreground underline mb-2" onClick={() => setShowHandled((v) => !v)}>
+              {showHandled ? "הסתר טופלו" : `הצג גם טופלו (${attention.length - openAttention.length})`}
+            </button>
+          )}
+          {shownAttention.length === 0 ? (
             <p className="text-sm text-muted-foreground">אין סיפורים שממתינים</p>
           ) : (
             <ul className="text-sm space-y-1">
-              {attention.map((s) => (
-                <li key={s.id}>
+              {shownAttention.map((s) => (
+                <li key={s.id} className="flex flex-wrap items-center gap-2">
                   <a href={`/story/${s.id}`} target="_blank" rel="noreferrer" className="text-primary underline">
                     {s.child_name} · {s.slug || s.id.slice(0, 8)}
-                  </a>{" "}
+                  </a>
                   <span className="text-muted-foreground">{new Date(s.created_at).toLocaleDateString("he-IL")}</span>
+                  <Button size="sm" variant="outline" className="h-6 text-xs" onClick={() => toggleHandled(s.id)}>
+                    {handled.has(s.id) ? "בטל סימון" : "סמן כטופל"}
+                  </Button>
                 </li>
               ))}
             </ul>
