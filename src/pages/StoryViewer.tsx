@@ -80,6 +80,7 @@ import { usePageRecording } from "@/hooks/use-page-recording";
 import PageRecordingControls from "@/components/story/PageRecordingControls";
 import { OnlineColoringCanvas } from "@/components/story/OnlineColoringCanvas";
 import A4ColoringFrame from "@/components/coloring/A4ColoringFrame";
+import { readFunctionErrorText, REDRAW_LIMIT_MESSAGE } from "@/lib/function-error";
 
 import castWavingFarewell from "@/assets/cast-waving-farewell.png";
 
