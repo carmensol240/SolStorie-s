@@ -1511,7 +1511,14 @@ const [currentPage, setCurrentPage] = useState(0);
         body: { storyId, pageId, customPrompt: customPrompt || undefined },
       });
 
-      if (error) throw error;
+      if (error) {
+        const msg = await readFunctionErrorText(error);
+        if (msg.includes('REDRAW_LIMIT')) {
+          toast({ title: REDRAW_LIMIT_MESSAGE, variant: 'destructive' });
+          return;
+        }
+        throw error;
+      }
 
       if (data?.illustrationUrl) {
         setStory(prev => {
@@ -1566,8 +1573,11 @@ const [currentPage, setCurrentPage] = useState(0);
       });
       loadingToast.dismiss();
       if (error) {
-        const raw = (error as any)?.context?.body ?? '';
-        const msg = typeof raw === 'string' ? raw : JSON.stringify(raw);
+        const msg = await readFunctionErrorText(error);
+        if (msg.includes('REDRAW_LIMIT')) {
+          toast({ title: REDRAW_LIMIT_MESSAGE, variant: 'destructive' });
+          return;
+        }
         if (msg.includes('already_used')) {
           toast({ title: 'כבר השתמשתם בניסיון היחיד', description: 'אפשר לייצר איור חדש לעמוד 1 פעם אחת בלבד', variant: 'destructive' });
           return;
