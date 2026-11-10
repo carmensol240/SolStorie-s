@@ -275,6 +275,7 @@ const CreateStory = () => {
     if (d) {
       setFormData((prev) => ({ ...prev, ...(d.data as Partial<StoryFormData>) }));
       selectedChildIdRef.current = d.selectedChildId;
+      setSelectedChildId(d.selectedChildId ?? null);
       setDraft(d);
     }
     setDraftReady(true);

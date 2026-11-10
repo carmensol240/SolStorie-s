@@ -1230,6 +1230,25 @@ async function handleGenerateStory(req: Request, ctx: RequestCtx): Promise<Respo
       );
     }
 
+    // === FACE REQUIRED: refuse before any row, charge or AI call ===
+    {
+      let savedFace: { avatar_url?: string | null; photo_url?: string | null } | null = null;
+      if (userId && !hasFaceSource(childPhoto, childAvatarUrlRaw, null)) {
+        const validId = typeof childId === "string" && /^[0-9a-f-]{36}$/i.test(childId) ? childId : null;
+        let fq = supabase.from("children").select("avatar_url, photo_url").eq("user_id", userId);
+        fq = validId ? fq.eq("id", validId) : fq.eq("name", childName);
+        const { data } = await fq.limit(1).maybeSingle();
+        savedFace = (data as any) || null;
+      }
+      if (!hasFaceSource(childPhoto, childAvatarUrlRaw, savedFace)) {
+        console.warn("[generate-story] REFUSED: no face source (no photo, no avatar, no saved child face)");
+        return new Response(
+          JSON.stringify({ error: NO_FACE_MESSAGE, code: "no_face" }),
+          { status: 422, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        );
+      }
+    }
+
     // === ONE-TIME REQUEST: save the row first, then charge ===
     const tastePages = tasteClaim ? tastePageLimit(ageRange) : null;
     if (userId && !guestMode && tasteClaim) {
