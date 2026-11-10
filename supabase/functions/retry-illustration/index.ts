@@ -43,7 +43,7 @@ function seedFromStoryId(storyId: string): number {
 }
 
 import { buildMilitaryLock, militaryRoleForStory } from "../_shared/military-family.ts";
-import { castReferenceBlock, pageCastRule } from "../_shared/story-cast-pages.ts";
+import { castInText, castReferenceBlock, pageCastRule } from "../_shared/story-cast-pages.ts";
 
 serve(async (req) => {
   if (req.method === "OPTIONS") {
@@ -410,7 +410,7 @@ serve(async (req) => {
     // Leo named on this page (hero not called Leo): same official description + picture as first drawings.
     // Cast comes only from the page text (plus an admin's own prompt): official look, each once, others not drawn.
     const castText = `${(page as any).text || ""}\n${customPrompt || ""}`;
-    const withLeo = leoOnPage(castText, story.child_name);
+    const withLeo = castInText(castText, story.child_name).includes("leo");
     const castBlock = castReferenceBlock(castText, story.child_name);
     if (castBlock) characterLock += `\n\n${castBlock}`;
     characterLock += `\n\n${pageCastRule(castText, story.child_name)}`;
