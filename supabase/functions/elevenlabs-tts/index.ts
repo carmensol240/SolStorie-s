@@ -11,6 +11,18 @@ serve(async (req) => {
   }
 
   try {
+    // Signed-in users only (paid voice service).
+    const authHeader = req.headers.get('Authorization') || '';
+    if (!authHeader.startsWith('Bearer ')) {
+      return new Response(JSON.stringify({ error: 'Unauthorized' }), { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
+    }
+    const { createClient } = await import('npm:@supabase/supabase-js@2');
+    const sb = createClient(Deno.env.get('SUPABASE_URL')!, Deno.env.get('SUPABASE_ANON_KEY')!);
+    const { data: authData, error: authErr } = await sb.auth.getUser(authHeader.slice(7));
+    if (authErr || !authData?.user) {
+      return new Response(JSON.stringify({ error: 'Unauthorized' }), { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
+    }
+
     const { text, language = 'he' } = await req.json();
 
     if (!text || typeof text !== 'string') {

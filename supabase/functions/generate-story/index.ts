@@ -982,7 +982,15 @@ async function handleGenerateStory(req: Request, ctx: RequestCtx): Promise<Respo
     let tasteClaim: Record<string, unknown> | null = null;
 
     if (guestMode) {
-      // === GUEST MODE: Rate limit by IP, no auth required ===
+      // Guest stories are closed: every story needs a signed-in account (credit or approved taste).
+      console.warn("[generate-story] guestMode request refused");
+      return new Response(
+        JSON.stringify({ error: "נדרשת התחברות", code: "LOGIN_REQUIRED" }),
+        { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+    if (false) {
+      // === (legacy) GUEST MODE — unreachable ===
       const forwardedFor = req.headers.get("x-forwarded-for");
       const clientIP = forwardedFor ? forwardedFor.split(",")[0].trim() : (req.headers.get("x-real-ip") || "unknown");
       
