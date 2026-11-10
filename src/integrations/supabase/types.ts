@@ -109,6 +109,18 @@ export type Database = {
           },
         ]
       }
+      blocked_email_domains: {
+        Row: {
+          domain: string
+        }
+        Insert: {
+          domain: string
+        }
+        Update: {
+          domain?: string
+        }
+        Relationships: []
+      }
       child_portrait_coloring: {
         Row: {
           child_id: string
@@ -1429,6 +1441,7 @@ export type Database = {
         }
         Returns: boolean
       }
+      is_disposable_email: { Args: { p_email: string }; Returns: boolean }
       is_effective_admin: { Args: { _user_id: string }; Returns: boolean }
       redeem_coupon_atomic: {
         Args: { p_code: string; p_user_id: string }

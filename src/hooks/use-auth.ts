@@ -5,6 +5,8 @@ import { isDevModeEnabled, MOCK_DEV_USER, MOCK_DEV_SESSION, clearDevMode } from 
 import { clearAllUserData, migrateToUserScoped } from '@/lib/user-storage';
 import { clearAllCreateDrafts } from '@/lib/create-draft';
 
+const PASSWORD_SIGNUP_CLOSED = true;
+
 export const useAuth = () => {
   const [user, setUser] = useState<User | null>(null);
   const [session, setSession] = useState<Session | null>(null);
@@ -95,6 +97,10 @@ export const useAuth = () => {
   };
 
   const signUpWithEmail = async (email: string, password: string, metadata?: Record<string, string>) => {
+    // Password sign-up is closed on the server; new accounts come only from the email code or Google.
+    if (PASSWORD_SIGNUP_CLOSED) {
+      return { data: null, error: new Error('ההרשמה עם סיסמה נסגרה. היכנסו עם קוד במייל או עם גוגל.') };
+    }
     const { data, error } = await supabase.auth.signUp({
       email,
       password,

@@ -141,6 +141,20 @@
       "when": 1793801311289,
       "tag": "0019_story_illustration_format",
       "breakpoints": true
+    },
+    {
+      "idx": 20,
+      "version": "7",
+      "when": 1794300006459,
+      "tag": "0020_block_disposable_and_password_signup",
+      "breakpoints": true
+    },
+    {
+      "idx": 21,
+      "version": "7",
+      "when": 1794300114922,
+      "tag": "0021_password_signup_check_by_origin",
+      "breakpoints": true
     }
   ]
 }

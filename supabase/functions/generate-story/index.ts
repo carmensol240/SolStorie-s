@@ -4,6 +4,7 @@ import { readSwitch, decideFormat } from "../_shared/illustration-format.ts";
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.39.3";
 import { logError } from "../_shared/log-error.ts";
+import { isBlockedEmail, DISPOSABLE_EMAIL_MESSAGE_HE } from "../_shared/disposable-email.ts";
 import { buildNlpInstruction, runNlpCheck } from "../_shared/nlp-techniques.ts";
 import { splitLongPages, MAX_PAGE_CHARS } from "../_shared/page-split.ts";
 import { editHebrewPages, gatewayEditorCall } from "../_shared/hebrew-editor.ts";
@@ -981,7 +982,15 @@ async function handleGenerateStory(req: Request, ctx: RequestCtx): Promise<Respo
     let tasteClaim: Record<string, unknown> | null = null;
 
     if (guestMode) {
-      // === GUEST MODE: Rate limit by IP, no auth required ===
+      // Guest stories are closed: every story needs a signed-in account (credit or approved taste).
+      console.warn("[generate-story] guestMode request refused");
+      return new Response(
+        JSON.stringify({ error: "נדרשת התחברות", code: "LOGIN_REQUIRED" }),
+        { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+    if (false) {
+      // === (legacy) GUEST MODE — unreachable ===
       const forwardedFor = req.headers.get("x-forwarded-for");
       const clientIP = forwardedFor ? forwardedFor.split(",")[0].trim() : (req.headers.get("x-real-ip") || "unknown");
       
@@ -1015,6 +1024,15 @@ async function handleGenerateStory(req: Request, ctx: RequestCtx): Promise<Respo
       
       userId = user.id;
       console.log("Authenticated user:", userId.substring(0, 8) + "...");
+
+      // Temporary / test mailboxes never get a story (taste or paid), checked before any charge or AI call.
+      if (await isBlockedEmail(supabase, user.email)) {
+        console.log("[generate-story] blocked disposable email");
+        return new Response(
+          JSON.stringify({ error: DISPOSABLE_EMAIL_MESSAGE_HE, code: "DISPOSABLE_EMAIL" }),
+          { status: 403, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        );
+      }
 
       // === CREDIT CHECK ===
       // No signup credit and no auto-grant "welcome credit" safety net.

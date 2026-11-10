@@ -110,3 +110,12 @@
 - [x] Homepage thumb, coloring page, studio picture (4 places), storage reference from new brown-eyed pictures
 - [x] One Leo description (brown eyes) + Leo reference image in illustrations/redraws
 - [x] Screenshots: homepage gang row, /coloring-gang, coloring page full size, 4 places
+
+## Disposable email & free-story lockdown (Nov 2026)
+- [x] Ban x2kyd / h5rok (mailosaur) + revoke sessions, no delete
+- [x] Big public disposable list + subdomains, enforced in send-login-code, verify-login-code, generate-story (taste + paid)
+- [x] Close password signup on server; login only via code / Google
+- [x] Audit every story/AI/credit/webhook function; table to user
+- [x] Explain shirley.u85 and uziahamail free stories
+- [x] Live check (gmail code send ok; disposable blocked at send-login-code, auth sign-up, account trigger; generate-story check not live-tested with a disposable session): gmail works, disposable blocked at each entry point
+- [ ] Proposals awaiting approval: Grow transaction re-check via Grow API (needs Grow API details), generate-illustrations owner redraw limit, signed-illustration-url per-path ownership, sign-in for add-nikud / enhance-text / preview-child-avatar / validate-child-photo / azure-tts / swap-gender

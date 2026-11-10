@@ -1,6 +1,7 @@
 import { createClient } from "npm:@supabase/supabase-js@2";
 import { corsHeaders } from "npm:@supabase/supabase-js@2/cors";
 import { MAX_ATTEMPTS, hmac, normalizeEmail } from "../_shared/login-code.ts";
+import { isBlockedEmail } from "../_shared/disposable-email.ts";
 
 const json = (body: unknown, status = 200) =>
   new Response(JSON.stringify(body), { status, headers: { ...corsHeaders, "Content-Type": "application/json" } });
@@ -38,13 +39,15 @@ Deno.serve(async (req) => {
     row = data;
   }
 
+  if (await isBlockedEmail(admin, row.email)) return json({ error: "disposable_email" }, 400);
+
   // Single use: only the first request that flips used_at continues
   const { data: claimed } = await admin.from("login_codes").update({ used_at: nowIso })
     .eq("id", row.id).is("used_at", null).select("id");
   if (!claimed?.length) return json({ error: "expired" }, 400);
 
   // Account is created only now, after verification. Existing address → same account.
-  const { error: createErr } = await admin.auth.admin.createUser({ email: row.email, email_confirm: true });
+  const { error: createErr } = await admin.auth.admin.createUser({ email: row.email, email_confirm: true, app_metadata: { via: "login_code" } });
   if (createErr && !/already|registered|exists/i.test(createErr.message)) {
     console.error("[verify-login-code] createUser failed", createErr);
     return json({ error: "server" }, 500);
