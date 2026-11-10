@@ -1601,7 +1601,7 @@ serve(async (req) => {
       console.log("🛟 Using the story's saved face picture (child_photo_path)");
     }
     // A single-page redraw is never drawn without a face reference.
-    if (singlePageNumber !== undefined && singlePageNumber !== null && !effectivePhoto) {
+    if (isRedraw && !effectivePhoto) {
       console.error(`[REDRAW] story=${storyId} page=${singlePageNumber}: no face reference (no child avatar, no story face picture) — refusing`);
       return new Response(JSON.stringify({ error: "no_face_reference", message: "No face picture found for this story" }), {
         status: 422, headers: { ...corsHeaders, "Content-Type": "application/json" },

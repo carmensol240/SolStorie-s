@@ -1,4 +1,4 @@
-import { canProceedWithPhoto } from "@/lib/photo-optional";
+import { canProceedWithPhoto, shouldBounceToPhotoStep } from "@/lib/photo-optional";
 import { selfAgeMismatch } from "@/lib/self-age";
 import { AlertDialog, AlertDialogContent, AlertDialogHeader, AlertDialogTitle, AlertDialogDescription, AlertDialogFooter } from "@/components/ui/alert-dialog";
 import { useState, useEffect, useCallback, useRef } from "react";
@@ -275,6 +275,7 @@ const CreateStory = () => {
     if (d) {
       setFormData((prev) => ({ ...prev, ...(d.data as Partial<StoryFormData>) }));
       selectedChildIdRef.current = d.selectedChildId;
+      setSelectedChildId(d.selectedChildId ?? null);
       setDraft(d);
     }
     setDraftReady(true);
@@ -322,8 +323,8 @@ const CreateStory = () => {
   useEffect(() => {
     if (!draftReady || step === 5) return;
     if (step >= 2 && !canProceedStep1) setStep(1);
-    else if (step === 3 && !savedFace.loading && !canProceedPersonalization) setStep(2);
-  }, [draftReady, step, canProceedStep1, canProceedPersonalization, savedFace.loading, setStep]);
+    else if (shouldBounceToPhotoStep({ step, selectedChildId, savedFace, canProceed: canProceedPersonalization })) setStep(2);
+  }, [draftReady, step, canProceedStep1, canProceedPersonalization, savedFace, selectedChildId, setStep]);
 
   const canProceedTopic = formData.topic.length > 0 || formData.customTopic.trim().length > 0;
 

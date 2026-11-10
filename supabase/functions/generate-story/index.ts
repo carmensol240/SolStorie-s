@@ -5,6 +5,7 @@ import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.39.3";
 import { logError } from "../_shared/log-error.ts";
 import { isBlockedEmail, DISPOSABLE_EMAIL_MESSAGE_HE } from "../_shared/disposable-email.ts";
+import { hasFaceSource, NO_FACE_MESSAGE } from "../_shared/face-required.ts";
 import { buildNlpInstruction, runNlpCheck } from "../_shared/nlp-techniques.ts";
 import { splitLongPages, MAX_PAGE_CHARS } from "../_shared/page-split.ts";
 import { editHebrewPages, gatewayEditorCall } from "../_shared/hebrew-editor.ts";
@@ -1228,6 +1229,25 @@ async function handleGenerateStory(req: Request, ctx: RequestCtx): Promise<Respo
         JSON.stringify({ error: `שם הכיתה/הגן ארוך מדי (מקסימום ${MAX_CLASS_NAME_LENGTH} תווים)` }),
         { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
+    }
+
+    // === FACE REQUIRED: refuse before any row, charge or AI call ===
+    {
+      let savedFace: { avatar_url?: string | null; photo_url?: string | null } | null = null;
+      if (userId && !hasFaceSource(childPhoto, childAvatarUrlRaw, null)) {
+        const validId = typeof childId === "string" && /^[0-9a-f-]{36}$/i.test(childId) ? childId : null;
+        let fq = supabase.from("children").select("avatar_url, photo_url").eq("user_id", userId);
+        fq = validId ? fq.eq("id", validId) : fq.eq("name", childName);
+        const { data } = await fq.limit(1).maybeSingle();
+        savedFace = (data as any) || null;
+      }
+      if (!hasFaceSource(childPhoto, childAvatarUrlRaw, savedFace)) {
+        console.warn("[generate-story] REFUSED: no face source (no photo, no avatar, no saved child face)");
+        return new Response(
+          JSON.stringify({ error: NO_FACE_MESSAGE, code: "no_face" }),
+          { status: 422, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        );
+      }
     }
 
     // === ONE-TIME REQUEST: save the row first, then charge ===
