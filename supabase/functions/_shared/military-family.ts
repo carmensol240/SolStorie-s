@@ -63,7 +63,7 @@ export function buildMilitaryLock(role: MilitaryRole, pageText: string, prompt =
   const both = `${pageText}\n${prompt}`;
   if (!pageMentionsRole(role, both)) return "";
   const who = ROLE_EN[role];
-  const noGear = "ABSOLUTELY NO weapons, NO rifle or gun, NO helmet, NO vest, NO combat or tactical gear, NO beret. Not US or American military. Warm, calm, reassuring children's book scene.";
+  const noGear = "ABSOLUTELY NO weapons, NO rifle or gun, NO helmet, NO vest, NO combat or tactical gear, NO beret. Not US or American military: NO American flag or any foreign flag/insignia on the uniform, the bag, the walls or framed photos. Warm, calm, reassuring children's book scene.";
   if (uniformRequiredForPage(both)) {
     return `CHARACTER LOCK — ${who} (in the IDF reserves): the same face, hair and body on every page, ${IDF_UNIFORM}. This exact uniform on this page (departure, return at the door / first hug, or a call from far away). ${noGear}`;
   }

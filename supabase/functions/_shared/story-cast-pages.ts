@@ -2,7 +2,7 @@
 // Rules: the last page of a free taste is always illustrated; the page where a cast member
 // (Sol, Mia, Leo, Zoe, Ben) first appears is always illustrated and its picture shows them.
 
-import { CAST_DESCRIPTIONS } from "./style-config.ts";
+import { CAST_DESCRIPTIONS, isHeroCastName } from "./style-config.ts";
 
 export type CastKey = keyof typeof CAST_DESCRIPTIONS;
 
@@ -90,4 +90,35 @@ export function enforceCastAndTastePictures<T extends { page_number: number; tex
 export function castPromptAddition(text: string, skip: CastKey[] = []): string {
   const keys = (Object.keys(CAST_HE) as CastKey[]).filter((k) => !skip.includes(k) && mentions(text, k));
   return keys.map((k) => ` Also in the scene, clearly visible next to the hero: ${CAST_DESCRIPTIONS[k]}`).join("");
+}
+
+const CAST_EN: Record<CastKey, string> = { sol: "Sol", ben: "Ben", mia: "Mia", zoe: "Zoe", leo: "Leo" };
+
+/** Cast members named in this text (Hebrew or English), minus a cast name the hero carries. */
+export function castInText(text: string, heroName?: string | null): CastKey[] {
+  return (Object.keys(CAST_HE) as CastKey[]).filter((k) => !isHeroCastName(k, heroName) && mentions(text, k));
+}
+
+/**
+ * Who may be in this page's picture: only characters named in the page text, each exactly once,
+ * cast members in their official outfit (overriding any clothes in the scene description).
+ * `text` is the page's story text (plus an admin's own redraw prompt, if any).
+ */
+export function pageCastRule(text: string, heroName?: string | null): string {
+  const on = castInText(text, heroName);
+  const off = (Object.keys(CAST_HE) as CastKey[]).filter((k) => !on.includes(k) && !isHeroCastName(k, heroName));
+  const onNames = on.map((k) => CAST_EN[k]);
+  const lines = [
+    `WHO IS IN THIS PICTURE (ABSOLUTE): draw ONLY characters named in this page's STORY TEXT — the main child${onNames.length ? `, ${onNames.join(", ")}` : ""} and any other person the text names (e.g. a parent). EVERY character appears EXACTLY ONCE: never draw the same character twice (no duplicate, no twin, no second copy of a friend, no copy in a mirror, photo or poster). No extra children or people who are not named in the text.`,
+  ];
+  if (off.length) lines.push(`NOT ON THIS PAGE: ${off.map((k) => CAST_EN[k]).join(", ")} — do NOT draw them anywhere (not in the scene, not in photos or posters on the wall), even if the visual description mentions them. No girl in a cape or superhero costume unless the main child is described that way.`);
+  if (on.length) lines.push(`CAST OUTFIT (ABSOLUTE): ${onNames.join(", ")} wear ONLY their official outfit exactly as in the CAST CHARACTER REFERENCE — this overrides any clothing written in the visual description.`);
+  return lines.join("\n");
+}
+
+/** Official description block for the cast members on this page ("" when none). */
+export function castReferenceBlock(text: string, heroName?: string | null): string {
+  const on = castInText(text, heroName);
+  if (!on.length) return "";
+  return `CAST CHARACTER REFERENCE (these characters appear on this page — render them EXACTLY as described, keep traits consistent across every page):\n${on.map((k) => `- ${k.toUpperCase()}: ${CAST_DESCRIPTIONS[k]}`).join("\n")}`;
 }
