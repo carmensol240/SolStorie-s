@@ -4,6 +4,7 @@ import { mergeAppearance, hairToEnglish, heroHair, clothingToEnglish, resolvePag
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.39.3";
 import { logError } from "../_shared/log-error.ts";
+import { refreshStoryReadiness } from "../_shared/story-readiness.ts";
 import { formatRule, backupSizeFor } from "../_shared/illustration-format.ts";
 import { reserveRedraws, REDRAW_LIMIT_MESSAGE_HE } from "../_shared/redraw-limit.ts";
 import { alignProfileGender } from "../_shared/profile-gender.ts";
@@ -2066,6 +2067,9 @@ The action, objects, characters, and emotions shown MUST come from the STORY TEX
 
       if (!base64Image) {
         console.log(`[Page ${page.page_number}] No image generated`);
+        await logError("illustration_page_failed", `story ${storyId} page ${page.page_number}: ${fallbackReason || "All attempts failed"}`, {
+          storyId, page: page.page_number, model: modelUsed, reason: fallbackReason || null, attempts: attemptsUsed,
+        });
         await supabase.from("illustration_logs").insert({
           story_id: storyId, page_number: page.page_number,
           model_used: modelUsed === "unknown" ? "none_failed" : modelUsed,
@@ -2391,39 +2395,15 @@ The action, objects, characters, and emotions shown MUST come from the STORY TEX
       .eq("story_id", storyId)
       .not("illustration_prompt", "is", null);
 
-    const { data: tasteState } = await supabase.from("stories").select("is_taste, taste_page_limit").eq("id", storyId).maybeSingle();
-    const neededPages = (allIllustrationPages ?? []).filter(p =>
-      !tasteState?.is_taste || p.page_number <= (tasteState.taste_page_limit ?? 0));
-    const totalNeeded = neededPages.length;
-    // A page held for admin (any held_* log: mismatch, refused…; no picture) counts as finished so the
-    // story still becomes ready; the reader shows the placeholder for that page.
-    const missingNums = neededPages.filter(p => !p.illustration_url).map(p => p.page_number);
-    let heldNums = new Set<number>();
-    if (missingNums.length > 0) {
-      const { data: heldLogs } = await supabase
-        .from("illustration_logs")
-        .select("page_number")
-        .eq("story_id", storyId)
-        .like("model_used", "held_%")
-        .in("page_number", missingNums);
-      heldNums = new Set((heldLogs ?? []).map(l => l.page_number as number));
-    }
-    const totalDone = neededPages.filter(p => p.illustration_url || heldNums.has(p.page_number)).length;
-    console.log(`Illustration progress: ${totalDone}/${totalNeeded} pages completed`);
-
-    if (totalDone >= totalNeeded) {
-      const { error: statusError } = await supabase
-        .from("stories")
-        .update({ generation_status: "ready" })
-        .eq("id", storyId);
-
-      if (statusError) {
-        console.error("Error updating story status:", statusError);
-      }
-      console.log(`✅ Story ${storyId} ALL illustrations completed — status set to ready!`);
-    } else {
-      console.log(`Story ${storyId}: ${totalDone}/${totalNeeded} done, waiting for other invocations`);
-    }
+    void allIllustrationPages;
+    // Ready only when every needed page has a picture. A page tried and left without one
+    // (held / all services failed) makes the story "needs_attention" (admin list), never ready.
+    const readiness = await refreshStoryReadiness(supabase, storyId);
+    if (readiness === "ready") console.log(`✅ Story ${storyId} ALL illustrations completed — status set to ready!`);
+    else if (readiness === "needs_attention") {
+      console.warn(`⚠️ Story ${storyId}: finished with page(s) missing a picture — status needs_attention`);
+      await logError("story_needs_attention", `story ${storyId} finished with missing picture(s)`, { storyId });
+    } else console.log(`Story ${storyId}: waiting for other invocations`);
 
     return new Response(
       JSON.stringify({ 
