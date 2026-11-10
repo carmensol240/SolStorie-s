@@ -31,7 +31,9 @@ export const NEGATIVE_PROMPT = `chibi, toy-like, bobblehead, oversized head, dol
 
 export const NEGATIVE_PROMPT_FULL = `chibi, toy-like, bobblehead, oversized head, doll-like, figurine, realistic, semi-realistic, real human, photograph, photorealistic, dark, muted colors, cinematic bokeh, hyper-realistic, shallow depth of field, floating head, missing body, missing limbs, extra limbs, deformed, distorted, scary, horror, mutated, cropped feet, cut off legs, floating character, half-body, missing feet, text, watermark, UI elements, black bars, black borders, taskbar, status bar, phone frame, app interface, screenshot artifacts, interface elements, icons, text overlays, buttons, menus, navigation bars, device mockup, no screens, no devices, no phones, no tablets, no frames. Clean illustration only, full bleed image, no borders of any kind. no kippah on girls, no yarmulke on female characters, no male religious clothing on female characters, no gender-inappropriate religious symbols, no tzitzit on girls. boy in dress, boy in skirt, boy wearing tutu, boy with flower crown, boy with bow in hair, boy with hair ribbons, boy with makeup, boy with lipstick, boy with purse, boy with feminine jewelry, boy with earrings, boy with long ponytail with ribbon, feminine clothing on boy, dress on male character, skirt on male character, frilly clothing on boy, pink frilly dress on boy, princess dress on boy. ${ILLUSTRATION_NEGATIVE_PROMPT}`;
 
-export const CAST_NEGATIVE_PROMPT = `${NEGATIVE_PROMPT_FULL}, ${"American flag, US flag, stars and stripes, foreign flag, foreign military insignia, US army uniform, flag patch"}`;
+export const NO_FLAGS_NEGATIVE = "American flag, US flag, stars and stripes, foreign flag, foreign military insignia, US army uniform, flag patch";
+
+export const CAST_NEGATIVE_PROMPT = `${NEGATIVE_PROMPT_FULL}, ${NO_FLAGS_NEGATIVE}`;
 
 // ─── Character Asset URLs ───
 
@@ -156,7 +158,6 @@ export function buildOutfitLock(outfit: string): string {
 /** No US/foreign flags or foreign military symbols anywhere; army in the story → IDF uniform only. */
 export const NO_FOREIGN_FLAGS_RULE = `NO FLAGS OR FOREIGN MILITARY SYMBOLS (ABSOLUTE): no American / US flag (no stars-and-stripes pattern), no flag of any other foreign country, and no foreign military insignia, emblems, badges or patches — anywhere in the picture: not on walls, not in framed photos or posters, not on bags, clothes, mugs or any object. The only flag ever allowed is the Israeli flag (white with a blue Star of David). If the story has an army, soldiers or reserves, the ONLY military clothing is the Israeli IDF olive-green uniform, with no flag patches and no foreign insignia.`;
 
-export const NO_FLAGS_NEGATIVE = "American flag, US flag, stars and stripes, foreign flag, foreign military insignia, US army uniform, flag patch";
 
 export const CHARACTER_CONSISTENCY_PROMPT = `CRITICAL — CHARACTER CONSISTENCY: The main character must look IDENTICAL in every illustration throughout the story. Same hair color, same hair style, same eye color, same face shape, same skin tone, same outfit in every scene. Any visual deviation between pages is a failure.
 
