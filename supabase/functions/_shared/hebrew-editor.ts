@@ -19,6 +19,12 @@ export interface EditorReport {
   still_missing_nikud: number[];
   talk_questions?: number;
   error?: string;
+  /** Safety-net mode: extra editor runs used for failing pages (max 2). */
+  retries?: number;
+  /** Safety-net mode: pages that still fail after all runs → reason codes (see pageProblems). */
+  problems?: Record<string, string[]>;
+  /** Why an edit was refused, per page (last refusal). */
+  reject_reasons?: Record<string, string>;
 }
 
 const NIKUD_RE = /[\u0591-\u05C7]/g;
@@ -63,11 +69,12 @@ export function buildEditorSystemPrompt(nikud: boolean, newStory = false) {
 3. ${nikud
     ? "ניקוד מלא ונכון לכל מילה ומילה, כולל שמות פרטיים ומילים קצרות. אין להשאיר אף מילה בלי ניקוד. הניקוד חייב להתאים למשמעות בהקשר (למשל: אַבָּא, לְיָדָהּ, הַשָּׁנָה/הַשֵּׁנָה)."
     : "בלי ניקוד בכלל: אף סימן ניקוד או טעם."}
-${newStory ? `4. בגדים: כל משפט שמתאר בגדים של דמות כלשהי ("הוא לובש חולצה כחולה ומכנסיים ירוקים", "עם שמלה צהובה יפה") — נסח מחדש כמשפט באורך דומה על פעולה, רגש או המקום, בלי בגדים. החריג היחיד: החלפת בגדים שהיא חלק מהעלילה (לובש/ת פיג'מה לפני השינה, מעיל גשם לפני שיוצאים לגשם) — אותה משאירים.
-5. בהירות: משפט כמו "גם אני מתגעגעת לפעמים" — הוסף למי או למה, לפי ההקשר. כינוי גוף שלא ברור למי הוא מתייחס — החלף בשם הדמות.` : ""}
+4. בלי אותיות לועזיות: אסור שתישאר בטקסט אף מילה או אות באנגלית (שאריות כמו "Leo", "and", "the"). כל שארית כזאת — תרגם לעברית טבעית.
+${newStory ? `5. בגדים: כל משפט שמתאר בגדים של דמות כלשהי ("הוא לובש חולצה כחולה ומכנסיים ירוקים", "עם שמלה צהובה יפה") — נסח מחדש כמשפט באורך דומה על פעולה, רגש או המקום, בלי בגדים. החריג היחיד: החלפת בגדים שהיא חלק מהעלילה (לובש/ת פיג'מה לפני השינה, מעיל גשם לפני שיוצאים לגשם) — אותה משאירים.
+6. בהירות: משפט כמו "גם אני מתגעגעת לפעמים" — הוסף למי או למה, לפי ההקשר. כינוי גוף שלא ברור למי הוא מתייחס — החלף בשם הדמות.` : ""}
 
 מה אסור:
-- לא לשנות את התוכן, את העלילה, את סדר האירועים או את שמות הדמויות${newStory ? " (חוץ מהניסוח מחדש בסעיפים 4–5)" : ""}.
+- לא לשנות את התוכן, את העלילה, את סדר האירועים או את שמות הדמויות${newStory ? " (חוץ מהניסוח מחדש בסעיפים 5–6)" : ""}.
 - לא להוסיף מילים מעבר למה שנדרש לתיקון, ולא למחוק תוכן.
 - לא להאריך עמוד: כל עמוד עד ${EDITOR_MAX_PAGE_CHARS} תווים (בלי ניקוד), ובאורך דומה למקור.
 - לא לאחד או לפצל עמודים. אותם מספרי עמודים בדיוק.
@@ -102,23 +109,74 @@ function parsePages(raw: string | null): EditorPage[] | null {
   }
 }
 
-/** Safety checks so an edit can never change the story beyond a language fix. */
-export function acceptEdit(original: string, edited: string, opts: { nikud: boolean; names: string[]; maxChars?: number }): boolean {
+/**
+ * Safety checks so an edit can never change the story beyond a language fix.
+ * Returns null when the edit is acceptable, otherwise a short reason code.
+ */
+export function editRejectReason(original: string, edited: string, opts: { nikud: boolean; names: string[]; maxChars?: number }): string | null {
   const max = opts.maxChars ?? EDITOR_MAX_PAGE_CHARS;
   const a = stripNikud(original).trim();
   const b = stripNikud(edited).trim();
-  if (!b) return false;
-  if (b.length > Math.max(max, Math.ceil(a.length * 1.1))) return false;
-  if (b.length < a.length * 0.7 || b.length > a.length * 1.35 + 12) return false;
-  if (/\[\s*(?:עמוד|page)\s*\d+\s*\]/i.test(b)) return false;
+  if (!b) return "empty";
+  if (b.length > Math.max(max, Math.ceil(a.length * 1.1))) return `too_long:${b.length}/${Math.max(max, Math.ceil(a.length * 1.1))}`;
+  if (b.length < a.length * 0.7) return `too_short:${b.length}/${a.length}`;
+  if (b.length > a.length * 1.35 + 12) return `too_long:${b.length}/${Math.floor(a.length * 1.35 + 12)}`;
+  if (/\[\s*(?:עמוד|page)\s*\d+\s*\]/i.test(b)) return "page_marker";
   for (const name of opts.names) {
     const n = stripNikud(name).trim();
-    if (n && a.includes(n) && !b.includes(n)) return false;
+    if (n && a.includes(n) && !b.includes(n)) return `name_dropped:${n}`;
   }
-  return true;
+  return null;
 }
 
-export async function editHebrewPages(input: {
+export function acceptEdit(original: string, edited: string, opts: { nikud: boolean; names: string[]; maxChars?: number }): boolean {
+  return editRejectReason(original, edited, opts) === null;
+}
+
+/** Latin letters left in a Hebrew page (character names written in Latin letters are allowed). */
+export function latinLeftovers(text: string, names: string[] = []): string[] {
+  let t = String(text || "");
+  for (const n of names) if (n && /[A-Za-z]/.test(n)) t = t.split(n).join(" ");
+  return [...new Set(t.match(/[A-Za-z]+/g) || [])];
+}
+
+/**
+ * Final page check before a new story is saved. Reason codes:
+ * not_edited:<why> (raw writer text — the editor failed or every edit was refused),
+ * english:<words>, nikud:<words>.
+ */
+export function pageProblems(text: string, opts: { nikud: boolean; names: string[]; edited: boolean; rejectReason?: string | null }): string[] {
+  const out: string[] = [];
+  if (!opts.edited) out.push(`not_edited:${opts.rejectReason || "editor_failed"}`);
+  const latin = latinLeftovers(text, opts.names);
+  if (latin.length) out.push(`english:${latin.slice(0, 5).join(",")}`);
+  if (opts.nikud) {
+    const missing = wordsMissingNikud(text);
+    if (missing.length) out.push(`nikud:${missing.slice(0, 5).join(",")}`);
+  }
+  return out;
+}
+
+/** Hebrew feedback for the editor's next run, from a page's reason codes. */
+export function retryFeedback(codes: string[]): string {
+  const parts: string[] = [];
+  for (const c of codes) {
+    const [kind, detail = ""] = c.split(/:(.*)/s);
+    if (kind === "not_edited") {
+      const [why, num = ""] = detail.split(/:(.*)/s);
+      if (why === "too_long") parts.push(`התיקון הקודם נדחה כי הטקסט התארך מדי (${num} תווים). שמור על אורך דומה למקור.`);
+      else if (why === "too_short") parts.push(`התיקון הקודם נדחה כי הטקסט התקצר מדי (${num} תווים). אל תמחק תוכן.`);
+      else if (why === "name_dropped") parts.push(`התיקון הקודם נדחה כי השם "${num}" נמחק. השם חייב להישאר.`);
+      else if (why === "missing") parts.push("העמוד לא הוחזר בתיקון הקודם. החזר אותו.");
+      else if (why === "empty") parts.push("התיקון הקודם החזיר טקסט ריק.");
+      else parts.push("העמוד עוד לא נערך. ערוך אותו לפי כל הכללים.");
+    } else if (kind === "english") parts.push(`יש בעמוד אותיות באנגלית (${detail}). תרגם אותן לעברית.`);
+    else if (kind === "nikud") parts.push(`מילים בלי ניקוד (${detail}) — נקד את כל המילים.`);
+  }
+  return parts.join(" ");
+}
+
+export interface EditorInput {
   pages: EditorPage[];
   gender: "male" | "female" | string;
   heroName: string;
@@ -126,59 +184,157 @@ export async function editHebrewPages(input: {
   nikud: boolean;
   /** New story from generate-story: also rewrite clothing sentences and unclear lines. */
   newStory?: boolean;
+  /**
+   * New story from generate-story: failing pages (editor failed, edit refused, English letters,
+   * missing nikud) are sent back up to 2 more times with the reason, and pages that still fail
+   * are listed in report.problems. Without it: the old single nikud retry only.
+   */
+  safetyNet?: boolean;
+  /** Safety net only: false when there is no time left for another editor run. */
+  canRetry?: () => boolean;
   call: EditorCall;
   maxChars?: number;
-}): Promise<{ pages: EditorPage[]; report: EditorReport; talkQuestions: string[] }> {
-  const { pages, nikud, call } = input;
-  const report: EditorReport = { edited: [], rejected: [], nikud_retry: [], still_missing_nikud: [] };
-  const result = pages.map((p) => ({ ...p }));
-  const names = [input.heroName, ...(input.otherNames || [])].filter(Boolean);
-  const genderHe = input.gender === "female" ? "נקבה (גיבורה)" : "זכר (גיבור)";
-  const system = buildEditorSystemPrompt(nikud, input.newStory === true);
-  const finish = (t: string) => (nikud ? t : stripNikud(t));
-  let talkQuestions: string[] = [];
+}
 
-  const runOnce = async (subset: EditorPage[], label: string, extra = "") => {
-    const userPrompt = `מגדר הדמות הראשית: ${genderHe}
+/** Editor progress that can be continued later (e.g. in the background after the response). */
+export interface EditorState {
+  originals: Map<number, string>;
+  edited: Set<number>;
+  rejectReasons: Map<number, string>;
+  retries: number;
+}
+
+export const SAFETY_NET_MAX_RETRIES = 2;
+
+function genderLabel(g: string) { return g === "female" ? "נקבה (גיבורה)" : "זכר (גיבור)"; }
+
+async function runEditor(input: EditorInput, subset: EditorPage[], label: string, extra = ""): Promise<{ pages: EditorPage[] | null; raw: string | null }> {
+  const userPrompt = `מגדר הדמות הראשית: ${genderLabel(String(input.gender))}
 שם הדמות הראשית: ${input.heroName}
-${input.otherNames?.length ? `דמויות נוספות: ${input.otherNames.join(", ")}\n` : ""}ניקוד: ${nikud ? "כן — ניקוד מלא לכל מילה" : "לא — בלי ניקוד בכלל"}
+${input.otherNames?.length ? `דמויות נוספות: ${input.otherNames.join(", ")}\n` : ""}ניקוד: ${input.nikud ? "כן — ניקוד מלא לכל מילה" : "לא — בלי ניקוד בכלל"}
 ${extra}
 העמודים:
 ${JSON.stringify({ pages: subset.map((p) => ({ page_number: p.page_number, text: p.text })) })}`;
-    const raw = await call({ systemPrompt: system, userPrompt, label });
-    if (label === "hebrew-editor") talkQuestions = sanitizeTalkQuestions(parseQuestions(raw), nikud, input.heroName);
-    return parsePages(raw);
+  const raw = await input.call({ systemPrompt: buildEditorSystemPrompt(input.nikud, input.newStory === true), userPrompt, label });
+  return { pages: parsePages(raw), raw };
+}
+
+function namesOf(input: EditorInput) {
+  return [input.heroName, ...(input.otherNames || [])].filter(Boolean);
+}
+
+/** Current problems of every page (safety-net mode). */
+export function currentProblems(input: EditorInput, pages: EditorPage[], state: EditorState): Record<string, string[]> {
+  const out: Record<string, string[]> = {};
+  for (const p of pages) {
+    const codes = pageProblems(p.text, {
+      nikud: input.nikud, names: namesOf(input),
+      edited: state.edited.has(p.page_number), rejectReason: state.rejectReasons.get(p.page_number),
+    });
+    if (codes.length) out[String(p.page_number)] = codes;
+  }
+  return out;
+}
+
+/**
+ * Safety net: send failing pages back to the editor with the reason, up to `attempts` runs.
+ * The page's writer text (state.originals) is the yardstick for every length/name check.
+ */
+export async function retryFailingPages(input: EditorInput, pages: EditorPage[], state: EditorState, attempts: number, report: EditorReport) {
+  const names = namesOf(input);
+  const finish = (t: string) => (input.nikud ? t : stripNikud(t));
+  for (let i = 0; i < attempts; i++) {
+    const problems = currentProblems(input, pages, state);
+    const failing = pages.filter((p) => problems[String(p.page_number)]);
+    if (!failing.length) break;
+    if (input.canRetry && !input.canRetry()) break;
+    state.retries++;
+    // A page never accepted goes back as the writer's text; an accepted one as its current text.
+    const subset = failing.map((p) => ({
+      page_number: p.page_number,
+      text: state.edited.has(p.page_number) ? p.text : (state.originals.get(p.page_number) ?? p.text),
+    }));
+    const feedback = failing.map((p) => `עמוד ${p.page_number}: ${retryFeedback(problems[String(p.page_number)])}`).join("\n");
+    const { pages: got } = await runEditor(input, subset, `hebrew-editor-retry-${state.retries}`,
+      `תיקון חוזר — העמודים האלה נכשלו בבדיקה. תקן כל עמוד לפי כל הכללים ולפי הסיבה שלו:\n${feedback}`);
+    for (const page of failing) {
+      const e = got?.find((x) => x.page_number === page.page_number);
+      if (!e) { if (!state.edited.has(page.page_number)) state.rejectReasons.set(page.page_number, got ? "missing" : "editor_failed"); continue; }
+      const text = finish(e.text);
+      const orig = state.originals.get(page.page_number) ?? page.text;
+      const why = editRejectReason(orig, text, { nikud: input.nikud, names, maxChars: input.maxChars });
+      if (why === null) {
+        page.text = text;
+        state.edited.add(page.page_number);
+        state.rejectReasons.delete(page.page_number);
+        if (!report.edited.includes(page.page_number)) report.edited.push(page.page_number);
+      } else {
+        if (!state.edited.has(page.page_number)) state.rejectReasons.set(page.page_number, why);
+        console.warn(`[hebrew-editor] retry ${state.retries} rejected page ${page.page_number}: ${why}`);
+      }
+    }
+  }
+  report.retries = state.retries;
+  report.reject_reasons = Object.fromEntries([...state.rejectReasons].map(([k, v]) => [String(k), v]));
+  const left = currentProblems(input, pages, state);
+  report.problems = left;
+  report.rejected = Object.keys(left).filter((k) => left[k].some((c) => c.startsWith("not_edited"))).map(Number);
+  if (input.nikud) report.still_missing_nikud = pages.filter((p) => wordsMissingNikud(p.text).length > 0).map((p) => p.page_number);
+}
+
+export async function editHebrewPages(input: EditorInput): Promise<{ pages: EditorPage[]; report: EditorReport; talkQuestions: string[]; state: EditorState }> {
+  const { pages, nikud } = input;
+  const report: EditorReport = { edited: [], rejected: [], nikud_retry: [], still_missing_nikud: [] };
+  const result = pages.map((p) => ({ ...p }));
+  const names = namesOf(input);
+  const finish = (t: string) => (nikud ? t : stripNikud(t));
+  const state: EditorState = {
+    originals: new Map(pages.map((p) => [p.page_number, p.text])),
+    edited: new Set(), rejectReasons: new Map(), retries: 0,
   };
+  let talkQuestions: string[] = [];
 
   try {
-    const edited = await runOnce(result, "hebrew-editor");
+    const { pages: edited, raw } = await runEditor(input, result, "hebrew-editor");
+    talkQuestions = sanitizeTalkQuestions(parseQuestions(raw), nikud, input.heroName);
     if (!edited) {
       report.error = "editor returned no usable pages";
-      return { pages: result, report, talkQuestions };
+      if (input.safetyNet) {
+        for (const p of result) state.rejectReasons.set(p.page_number, "editor_failed");
+        await retryFailingPages(input, result, state, SAFETY_NET_MAX_RETRIES, report);
+      }
+      report.talk_questions = talkQuestions.length;
+      return { pages: result, report, talkQuestions, state };
     }
     for (const page of result) {
       const e = edited.find((x) => x.page_number === page.page_number);
-      if (!e) continue;
+      if (!e) { state.rejectReasons.set(page.page_number, "missing"); continue; }
       const text = finish(e.text);
-      if (acceptEdit(page.text, text, { nikud, names, maxChars: input.maxChars })) {
+      const why = editRejectReason(page.text, text, { nikud, names, maxChars: input.maxChars });
+      if (why === null) {
         if (text !== page.text) report.edited.push(page.page_number);
         page.text = text;
+        state.edited.add(page.page_number);
       } else {
         report.rejected.push(page.page_number);
+        state.rejectReasons.set(page.page_number, why);
         // Diagnostic only: why a page edit was refused (lengths without nikud, first characters).
-        console.warn(`[hebrew-editor] rejected page ${page.page_number}`, JSON.stringify({
+        console.warn(`[hebrew-editor] rejected page ${page.page_number}: ${why}`, JSON.stringify({
           origLen: stripNikud(page.text).trim().length, editLen: stripNikud(text).trim().length,
           orig: stripNikud(page.text).slice(0, 80), edit: stripNikud(text).slice(0, 80),
         }));
       }
     }
 
-    if (nikud) {
+    if (input.safetyNet) {
+      await retryFailingPages(input, result, state, SAFETY_NET_MAX_RETRIES, report);
+    } else if (nikud) {
+      // Old behaviour (gender swap, text edits): one nikud retry for unvocalized words.
       const missing = result.filter((p) => wordsMissingNikud(p.text).length > 0);
       if (missing.length) {
         report.nikud_retry = missing.map((p) => p.page_number);
         const words = [...new Set(missing.flatMap((p) => wordsMissingNikud(p.text)))].slice(0, 60);
-        const retry = await runOnce(missing, "hebrew-editor-nikud",
+        const { pages: retry } = await runEditor(input, missing, "hebrew-editor-nikud",
           `תיקון חוזר: המילים הבאות נשארו בלי ניקוד וחייבות לקבל ניקוד מלא ונכון: ${words.join(", ")}. אל תשנה שום דבר אחר.`);
         for (const page of missing) {
           const e = retry?.find((x) => x.page_number === page.page_number);
@@ -189,9 +345,10 @@ ${JSON.stringify({ pages: subset.map((p) => ({ page_number: p.page_number, text:
     }
   } catch (err) {
     report.error = String(err).slice(0, 200);
+    if (input.safetyNet) report.problems = currentProblems(input, result, state);
   }
   report.talk_questions = talkQuestions.length;
-  return { pages: result, report, talkQuestions };
+  return { pages: result, report, talkQuestions, state };
 }
 
 const PAGES_SCHEMA: any = {
@@ -214,7 +371,7 @@ const PAGES_SCHEMA: any = {
 PAGES_SCHEMA.required = ["pages", "talk_questions"];
 
 /** One streamed Lovable AI call (Responses API, strict JSON). Returns null on any failure. */
-export function gatewayEditorCall(apiKey: string, timeoutMs = 120_000): EditorCall {
+export function gatewayEditorCall(apiKey: string, timeoutMs: number | (() => number) = 120_000): EditorCall {
   return async ({ systemPrompt, userPrompt, label, schema }) => {
     try {
       const res = await fetch("https://ai.gateway.lovable.dev/v1/responses", {
@@ -236,7 +393,7 @@ export function gatewayEditorCall(apiKey: string, timeoutMs = 120_000): EditorCa
           reasoning: { effort: "low" },
           text: { format: { type: "json_schema", name: schema ? "talk_questions" : "edited_pages", strict: true, schema: schema ?? PAGES_SCHEMA } },
         }),
-        signal: AbortSignal.timeout(timeoutMs),
+        signal: AbortSignal.timeout(typeof timeoutMs === "function" ? timeoutMs() : timeoutMs),
       });
       if (!res.ok || !res.body) {
         const failBody = (await res.text()).slice(0, 500);
