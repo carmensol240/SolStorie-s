@@ -27,7 +27,7 @@ serve(async (req) => {
           global: { headers: { Authorization: authHeader } }
         });
 
-        const { data: { user } } = await supabase.auth.getUser();
+        const { data: { user } } = await supabase.auth.getUser(authHeader.slice(7));
         if (user) {
           rateLimitKey = user.id;
         }
