@@ -5,6 +5,7 @@ import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.39.3";
 import { logError } from "../_shared/log-error.ts";
 import { isBlockedEmail, DISPOSABLE_EMAIL_MESSAGE_HE } from "../_shared/disposable-email.ts";
+import { hasFaceSource, NO_FACE_MESSAGE } from "../_shared/face-required.ts";
 import { buildNlpInstruction, runNlpCheck } from "../_shared/nlp-techniques.ts";
 import { splitLongPages, MAX_PAGE_CHARS } from "../_shared/page-split.ts";
 import { editHebrewPages, gatewayEditorCall } from "../_shared/hebrew-editor.ts";
