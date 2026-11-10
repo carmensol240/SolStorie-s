@@ -111,3 +111,8 @@ Deno.test("safety net: no time left → no extra run, page still reported", asyn
   assertEquals(calls, 1);
   assertEquals(r.report.problems, { "1": ["nikud:יודעת"] });
 });
+
+Deno.test("a vocalized name without its vowel letter (נֹעַם for נועם) is not a dropped name", () => {
+  assert(acceptEdit("נועם לוקח קופסה.", "נֹעַם לוֹקֵחַ קֻפְסָה.", { nikud: true, names: ["נועם"] }));
+  assert(!acceptEdit("נועם לוקח קופסה.", "הוּא לוֹקֵחַ קֻפְסָה.", { nikud: true, names: ["נועם"] }));
+});

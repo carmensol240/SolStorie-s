@@ -122,9 +122,12 @@ export function editRejectReason(original: string, edited: string, opts: { nikud
   if (b.length < a.length * 0.7) return `too_short:${b.length}/${a.length}`;
   if (b.length > a.length * 1.35 + 12) return `too_long:${b.length}/${Math.floor(a.length * 1.35 + 12)}`;
   if (/\[\s*(?:עמוד|page)\s*\d+\s*\]/i.test(b)) return "page_marker";
+  // With nikud a name is often written without its vowel letters (נוֹעַם → נֹעַם): compare
+  // without ו/י too, so the correct vocalized spelling never counts as a dropped name.
+  const loose = (t: string) => stripNikud(t).replace(/[וי]/g, "");
   for (const name of opts.names) {
     const n = stripNikud(name).trim();
-    if (n && a.includes(n) && !b.includes(n)) return `name_dropped:${n}`;
+    if (n && a.includes(n) && !b.includes(n) && !loose(b).includes(loose(n))) return `name_dropped:${n}`;
   }
   return null;
 }
