@@ -1,30 +1,45 @@
-# Check of the two alerts (nothing was changed)
+# AI balance: findings and proposal
 
-## Alert 1: "Stories created without a photo never get illustrations"
-**Status: half real.** The danger exists, but no parent can reach it through the site today.
+## 1. Where the balance comes from today
+| Service | What it does | Who pays |
+|---|---|---|
+| Story writing, Hebrew proofreading, nikud, text improvement | Gemini Flash | Lovable AI (workspace credits) |
+| Main illustrations, cover, avatar, redraws, coloring pages | Gemini Pro Image | Lovable AI |
+| Backup illustrations | GPT Image | Lovable AI |
+| Last-resort backup illustrations + print upscaling | Flux (fal.ai) | Your own fal.ai key |
+| Read-aloud | ElevenLabs / Azure | Your own keys (accessibility only) |
 
-- **Not caused by today's changes.** It comes from an earlier rule in the picture function: "never draw a single page without a face". New stories are drawn one page at a time, so this rule also applies to first drawings. If a story has no face at all, every page is refused and the story stays stuck on "preparing illustrations".
-- **Through the form: not possible.** The photo-optional check now means the opposite of its name: step 2 continues only with a new photo + consent, or with a saved child who has a photo or avatar. The old plan, "the child's photo is optional, not required", was never carried out. The alert describes how the code worked before.
-- **Free taste / saved child:** these go through the same step 2, so the same rule applies.
-- **The real gap:** the step 2 check runs only on the screen. Someone who calls the server directly, with no photo and no saved child, still gets a story written and charged, and then it gets stuck without pictures.
-- **Live data:** all 3 stories from the last 3 days had a photo, and all were drawn fully (2 free tastes with 2 pictures each, 1 paid story with 6). No new stuck story.
+So it's mixed, but almost everything that matters (writing + illustrations) comes from Lovable credits. Important: it's the same credit pool used for building the site with me, so build work also uses up the balance customers rely on.
 
-**Proposed fix:** make the server refuse a story without a face before any charge or AI call, with a clear Hebrew message. Also fix the picture rule so it applies only to a redraw, as a backup.
+## 2. What 77 credits buys (estimate from the last week's logs)
+- One illustration: ~0.5–0.6 credits. Writing + checks: ~0.3 per story.
+- **Full story (~6 illustrations + avatar + checks): ~4–5 credits.**
+- **Taste (2 illustrations): ~1.5–2 credits.**
+- Current balance (68.7 right now): about **14 full stories** or **35 tastes**.
 
-## Alert 2: "Refreshing the topic step sends parents back to the photo step"
-**Status: real, still happens.** A parent picks a saved child and reaches the topic step. After a refresh, or when coming back from payment, the page sends them back to the photo step. The page restores the chosen child only in its memory, not on the screen, so it "doesn't know" the child has a photo.
+## 3. Automatic top-up
+Already on: when the balance drops below 50, 100 credits are added. Monthly cap 400; **200 already used this month**, so two more top-ups remain, then it stops until Dec 1. Change it in Settings -> Plans & credits (workspace owner). Recommendation: raise the monthly cap (e.g. 800–1000) so it never stops mid-month.
 
-**Proposed fix:** when restoring the saved answers, also restore the chosen child on the screen, and wait for the face check before sending back. Add a test for "refresh on step 3 with a saved child stays on step 3".
+## 4. Your own keys (Google Gemini + OpenAI)
+- Needed: a Google AI Studio account with billing + a key, and optionally OpenAI; I store them as secrets and change the address/key in ~12 functions.
+- Cost: on a monthly plan Lovable charges exactly the provider price, so per-story cost stays about the same (~4–5 credits' worth).
+- Pros: completely separate from build credits; payment by credit card without a monthly cap.
+- Cons: two more bills to manage, loss of usage logs/alerts here, provider rate limits fall on you, no automatic fallback between providers.
+- Recommendation: first raise the top-up cap; switch only if you want a full separation.
 
-## Test story (to run after approval)
-A test story with a photo in carmit1901+test. Plan mode doesn't let me create it now.
-1. Create one regular story with a photo for a saved child.
-2. Confirm it reaches "ready" and that every page has a picture (also checked in the picture logs).
-3. Report: how long it took, which drawing service was used, and screenshots of the reader.
-4. No credit is charged: the account is an admin.
+## 5. Low-balance alert
+Yes: in Settings -> Usage limits & alerts, add a "low balance" alert (e.g. below 100 credits) -> email. Nothing in the code needed. The red banner already built remains for when it truly runs out.
 
-## Technical details
-- Picture guard: generate-illustrations/index.ts around line 1603. Proposed condition: `isRedraw && !effectivePhoto`.
-- Server face requirement: generate-story/index.ts around line 1388. Return 422 when `effectivePhoto` is empty and no saved child has a face, before the story row is inserted or anything is charged.
-- Refresh: CreateStory.tsx line 277. Also call `setSelectedChildId(d.selectedChildId)`.
-- After the fixes, mark both alerts as fixed.
+## 6. "Your story is queued" when the balance runs out
+What it requires:
+1. In generate-story: on a 402/credit error **before** charging -> save the request (child, topic, photo path) as a queued story with status `queued`, no credit charged, and return "queued" to the screen.
+2. If it fails after charging (mid-illustration): keep the credit, mark the story `queued` from the step it stopped at.
+3. Parent screen: "Your story is queued and will be sent to you soon", the story shows in the library as "in preparation".
+4. A scheduled job every 10 minutes: if the balance is paused, try one story only; if it succeeds, release the queue one at a time and charge then.
+5. When ready: email to the parent with a link (Resend, already exists).
+6. Admin dashboard: number of stories in the queue.
+Risk: the story data and child photo must be kept until generation; the credit is charged only on success, preserving the "never charge twice" rule.
+
+## Order of actions proposed
+1. (You, now) raise the monthly top-up cap + add a low-balance alert.
+2. (Me, after approval) build the queue in section 6.
