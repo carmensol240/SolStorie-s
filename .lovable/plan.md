@@ -1,26 +1,30 @@
-# חסימה מיידית ודוח: סיפורים חינמיים ממיילים זמניים
+# Check of the two alerts (nothing was changed)
 
-## מה נמצא (נבדק בלי לשנות שום דבר)
-- **שני חשבונות שונים, לא חשבון אחד:**
-  - x2kyd@pnqsmtnz.mailosaur.net: נוצר ב-06:10:47 שעון ישראל, וסיפור "נועם" נוצר ב-06:12.
-  - h5rok@pnqsmtnz.mailosaur.net: נוצר ב-08:35:31, וסיפור "נועם" נוצר ב-08:36.
-- **למה החסימה לא תפסה אותם:** הם לא נכנסו עם קוד במייל. אין להם אף קוד כניסה, ולכל אחד יש סיסמה. המייל "אומת" 0.2 שניות אחרי יצירת החשבון. כלומר הם נרשמו ישירות בהרשמה עם מייל וסיסמה, שעדיין פתוחה בשרת (הקוד הישן של הרשמה עם סיפור קיים באתר), ואישור המייל שם אוטומטי. בהרשמה הזו אין בדיקה של מיילים זמניים.
-- **איך קיבלו סיפור בלי לשלם:** דרך "טעימה חינמית". אין קרדיט, אין קופון, אין תשלום ואין הודעה מ-Grow. כל סיפור הוא טעימה (רק העמודים הראשונים מאוירים, 2 איורים בכל סיפור).
-- **למה הטעימה ניתנה פעמיים:** הבדיקה מגבילה טעימה אחת לחשבון, למייל ולמכשיר, אבל עד 3 טעימות לאותה רשת ב-30 יום. שתי הטעימות הגיעו מאותה רשת, אבל מספר מכשיר שונה. לכן כל ההגבלות עברו.
-- **עלות AI:** לכל סיפור: כתיבת הסיפור ועריכת העברית, 2 איורים בשירות הראשי (כל אחד בניסיון אחד, בלי ניסיונות חוזרים) ואווטאר. בערך עלות של סיפור טעימה רגיל. לא שלפתי את הסכום המדויק ביומן קריאות ה-AI, ואוכל לשלוף אותו אם תרצי.
-- **משתמשים נוספים עם סיפורים בלי תשלום תואם:** 74 משתמשים בכל התקופה. 69 מהם מפברואר עד מאי, כשהרשמה עוד נתנה קרדיט חינם. חלק גדול מהם במיילים זמניים (okcpress, kjkpc, jbsze, gzeos, hitzcart, ifcoat ועוד). מאוגוסט ואילך היו רק 5:
-  - shirley.u85 (12.8) ו-uziahamail (12.7): בלי רכישה ובלי קופון. צריך לבדוק.
-  - ortalvan21: 3 קופונים, אז כנראה תקין.
-  - mmnreut12 (7.11): קופון REUT-FULL-1, תקין.
-  - souldesign06 (4.11): 2 סיפורים ורכישה אחת, עם קרדיט שניתן ידנית אחרי תקלה בתשלום מ-Grow.
-  - אני מכינה את הרשימה המלאה כקובץ.
-- **הודעת התשלום מ-Grow:** במקרה הזה היא לא הייתה מעורבת. מה שידוע עליה (מכלל קיים של הפרויקט): השרת מעניק חבילה רק כשהסכום ששולם תואם מחיר. בבדיקה הזו לא בדקתי אם השרת מוודא שההודעה באמת הגיעה מ-Grow, ואבדוק את זה בשלב 2.
+## Alert 1: "Stories created without a photo never get illustrations"
+**Status: half real.** The danger exists, but no parent can reach it through the site today.
 
-## מה אעשה אחרי אישור
-1. **חסימה מיידית (בלי מחיקה):** אחסום את שני החשבונות מלהתחבר, ואנתק את החיבורים הפתוחים שלהם. לא אשנה שום דבר אחר.
-2. **בדיקת הודעת התשלום מ-Grow:** אבדוק בקוד אם השרת מוודא שההודעה באמת מ-Grow, ואדווח.
-3. **הצעות תיקון (רק אחרי אישור נפרד):**
-   - לסגור את ההרשמה עם מייל וסיסמה בשרת (כולם נכנסים עם קוד או גוגל), או לפחות לבטל בה את האישור האוטומטי של המייל.
-   - לבדוק מיילים זמניים גם לפני טעימה, כדי שחשבון קיים כזה לא יקבל סיפור.
-   - להחמיר את ההגבלה לטעימה אחת בלבד לרשת ב-30 יום.
-   - לשקול לחסום חשבונות ישנים במיילים זמניים.
+- **Not caused by today's changes.** It comes from an earlier rule in the picture function: "never draw a single page without a face". New stories are drawn one page at a time, so this rule also applies to first drawings. If a story has no face at all, every page is refused and the story stays stuck on "preparing illustrations".
+- **Through the form: not possible.** The photo-optional check now means the opposite of its name: step 2 continues only with a new photo + consent, or with a saved child who has a photo or avatar. The old plan, "the child's photo is optional, not required", was never carried out. The alert describes how the code worked before.
+- **Free taste / saved child:** these go through the same step 2, so the same rule applies.
+- **The real gap:** the step 2 check runs only on the screen. Someone who calls the server directly, with no photo and no saved child, still gets a story written and charged, and then it gets stuck without pictures.
+- **Live data:** all 3 stories from the last 3 days had a photo, and all were drawn fully (2 free tastes with 2 pictures each, 1 paid story with 6). No new stuck story.
+
+**Proposed fix:** make the server refuse a story without a face before any charge or AI call, with a clear Hebrew message. Also fix the picture rule so it applies only to a redraw, as a backup.
+
+## Alert 2: "Refreshing the topic step sends parents back to the photo step"
+**Status: real, still happens.** A parent picks a saved child and reaches the topic step. After a refresh, or when coming back from payment, the page sends them back to the photo step. The page restores the chosen child only in its memory, not on the screen, so it "doesn't know" the child has a photo.
+
+**Proposed fix:** when restoring the saved answers, also restore the chosen child on the screen, and wait for the face check before sending back. Add a test for "refresh on step 3 with a saved child stays on step 3".
+
+## Test story (to run after approval)
+A test story with a photo in carmit1901+test. Plan mode doesn't let me create it now.
+1. Create one regular story with a photo for a saved child.
+2. Confirm it reaches "ready" and that every page has a picture (also checked in the picture logs).
+3. Report: how long it took, which drawing service was used, and screenshots of the reader.
+4. No credit is charged: the account is an admin.
+
+## Technical details
+- Picture guard: generate-illustrations/index.ts around line 1603. Proposed condition: `isRedraw && !effectivePhoto`.
+- Server face requirement: generate-story/index.ts around line 1388. Return 422 when `effectivePhoto` is empty and no saved child has a face, before the story row is inserted or anything is charged.
+- Refresh: CreateStory.tsx line 277. Also call `setSelectedChildId(d.selectedChildId)`.
+- After the fixes, mark both alerts as fixed.
