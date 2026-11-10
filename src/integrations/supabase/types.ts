@@ -47,6 +47,27 @@ export type Database = {
         }
         Relationships: []
       }
+      admin_handled_items: {
+        Row: {
+          handled_at: string
+          handled_by: string | null
+          item_id: string
+          item_type: string
+        }
+        Insert: {
+          handled_at?: string
+          handled_by?: string | null
+          item_id: string
+          item_type: string
+        }
+        Update: {
+          handled_at?: string
+          handled_by?: string | null
+          item_id?: string
+          item_type?: string
+        }
+        Relationships: []
+      }
       admin_view_mode: {
         Row: {
           mode: string
@@ -1446,6 +1467,14 @@ export type Database = {
         Args: never
         Returns: {
           email: string
+          user_id: string
+        }[]
+      }
+      get_admin_user_flags: {
+        Args: never
+        Returns: {
+          is_banned: boolean
+          is_disposable: boolean
           user_id: string
         }[]
       }
