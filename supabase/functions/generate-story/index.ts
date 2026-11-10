@@ -14,6 +14,8 @@ import { grantStoryAccess, consumeCredit } from "../_shared/story-access.ts";
 import { spendCredit } from "../_shared/taste.ts";
 import { claimStoryRequest, releaseStoryRequest, supabaseStoryRequestStore, isValidRequestId, claimTasteRequest, releaseTasteRequest, supabaseTasteClaimStore } from "../_shared/story-request.ts";
 import { normalizeEmail, decideTasteEligibility, tastePageLimit, emailTasteHash } from "../_shared/taste.ts";
+import { plannedIllustrationPages, enforceCastAndTastePictures, castPromptAddition, type CastKey } from "../_shared/story-cast-pages.ts";
+import { isHeroCastName } from "../_shared/style-config.ts";
 
 async function sha256Hex(s: string): Promise<string> {
   const buf = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(s));
@@ -480,13 +482,10 @@ const SYSTEM_PROMPT = `## 🚨🚨🚨 META-INSTRUCTION: BEFORE WRITING ANY WORD
   עמוד 4: "לילה טוב, [שם].\nחלומות מתוקים."
 - **אסור:** משפטים ארוכים, מילים מורכבות, עלילה מסובכת, דיאלוגים ארוכים
 
-## 👕 אסור "רשימת בגדים" — תיאור לבוש חייב להיות סיפורי
-- ❌ **אסור בהחלט** לכתוב טקסט שנשמע כמו קטלוג/תיאור טכני של הבגדים:
-  "מעל החולצה, יש לו מכנסיים אדומים. למטה, יש לו טייץ כחול. יש לו גם גלימה אדומה."
-- ❌ אסור להשתמש במבנים "יש לו/יש לה + פריט לבוש", "מעל/מתחת/למטה + פריט לבוש" כדי לפרט בגדים.
-- ✅ נכון: משפט אחד חם וסיפורי שמחבר את הלבוש לרגש ולעלילה:
-  "ארי לובש את התלבושת האהובה עליו — חולצה צהובה, מכנסיים אדומים וגלימה שמתנופפת ברוח. הוא מוכן להרפתקה גדולה!"
-- כלל: לכל היותר **משפט אחד** בכל הסיפור עוסק בלבוש, והוא תמיד מוביל לפעולה או לרגש — לא רשימה.
+## 👕 אין בגדים בטקסט הסיפור
+- ❌ **אסור** לתאר בגדים בטקסט הסיפור — לא של הגיבור/ה ולא של דמויות אחרות (לא "הוא לובש חולצה כחולה ומכנסיים", לא "עם שמלה צהובה יפה").
+- הבגדים נכתבים **רק** בשדה illustration_prompt (באנגלית), כדי שהמאייר ישמור עליהם.
+- **החריג היחיד:** החלפת בגדים שהיא חלק מהעלילה (לובש/ת פיג'מה לפני השינה, מעיל גשם לפני שיוצאים לגשם).
 - כל עמוד חייב לקדם את הסיפור (פעולה/רגש/גילוי) — עמוד שכולו תיאור חיצוני הוא פסול.
 
 ### גילאי 3-6 (ברירת מחדל)
@@ -918,7 +917,7 @@ function enforceChildName(text: string, childName: string): string {
 
 function appendAppearanceParts(parts: string[], ap: Appearance) {
   const clothes = [ap.clothingType, ap.clothingColor ? `בצבע ${ap.clothingColor}` : ""].filter(Boolean).join(" ");
-  if (clothes) parts.push(`לבוש קבוע של הדמות: ${clothes} — יש לשמור על הלבוש הזה זהה בכל עמודי הסיפור.`);
+  if (clothes) parts.push(`לבוש קבוע של הדמות (להוראה למאייר בלבד — לכתוב רק בשדה illustration_prompt, זהה בכל העמודים; אסור לתאר את הבגדים בטקסט הסיפור): ${clothes}`);
   const hair = [ap.hairColor ? `שיער ${ap.hairColor}` : "שיער", ap.hairStyle ? `בתסרוקת ${ap.hairStyle}` : ""].filter(Boolean).join(", ");
   if (ap.hairColor || ap.hairStyle) parts.push(`שיער הדמות: ${hair} — יש לשמור על מראה השיער הזה זהה בכל עמודי הסיפור.`);
 }
@@ -1251,7 +1250,13 @@ async function handleGenerateStory(req: Request, ctx: RequestCtx): Promise<Respo
     }
 
     // === ONE-TIME REQUEST: save the row first, then charge ===
-    const tastePages = tasteClaim ? tastePageLimit(ageRange) : null;
+    // Admin-only test: make a taste-shaped story (same page limit and pictures) without a taste claim.
+    let adminTasteTest = false;
+    if (!tasteClaim && userId && reqBody?.adminTasteTest === true) {
+      const { data: isAdm } = await supabase.rpc("has_role", { _user_id: userId, _role: "admin" });
+      adminTasteTest = isAdm === true;
+    }
+    const tastePages = tasteClaim || adminTasteTest ? tastePageLimit(ageRange) : null;
     if (userId && !guestMode && tasteClaim) {
       const tc = await claimTasteRequest(
         supabaseStoryRequestStore(supabase),
@@ -1303,6 +1308,7 @@ async function handleGenerateStory(req: Request, ctx: RequestCtx): Promise<Respo
           language,
           story_type: isCustomTopic ? "custom" : "text",
           ...(childId ? { child_id: childId } : {}),
+          ...(adminTasteTest ? { is_taste: true, taste_page_limit: tastePages } : {}),
         },
         reqBody.creditKind === "full" || reqBody.creditKind === "digital" ? reqBody.creditKind : null,
       );
@@ -1517,10 +1523,9 @@ ${rule(40, 50)}` };
     // so we don't pay output tokens for prompts that get discarded.
     // IMPORTANT: the parity logic itself is NOT changed here.
     const isToddlerAgeForPrompt = ageRange === "0-2";
-    const illustrationPageNumbers: number[] = [];
-    for (let i = 1; i <= ageLengthConfig.pages; i++) {
-      if (isToddlerAgeForPrompt || i % 2 === 1) illustrationPageNumbers.push(i);
-    }
+    // A free taste also gets a picture on its last page (it ends there).
+    void isToddlerAgeForPrompt;
+    const illustrationPageNumbers: number[] = plannedIllustrationPages(ageLengthConfig.pages, ageRange, tastePages);
     const illustrationPagesListStr = illustrationPageNumbers.join(", ");
 
     // === SEQUEL LOGIC: Check for previous stories on the same topic by same child ===
@@ -1911,7 +1916,9 @@ ${childName} הוא/היא ילד/ה מודרני/ת שמגיע/ה לעולם ה
 4. **זואי (Zoe) - הילדה הספורטיבית** - תפקיד: פעולה, ספורט ואנרגיה. לובשת חליפת ספורט סגולה-צהובה, שיער מתולתל/אפרו גדול ושופע, **גוון עור כהה**. לעיתים קרובות מחזיקה כדורגל. נמרצת ואמיצה.
 5. **בן (Ben) - אחיה הקטן של סול** - תפקיד: פעוט, אחות גדולה, משפחה. לובש חולצה ירוקה בהירה או תכולה, שיער חום כהה מתולתל מאוד ונפחי. פעוט חמוד שתמיד הולך בעקבות סול. **חשוב: כאשר בן וסול מופיעים ביחד בסיפור, יש לתאר אותם כאחים — השתמש בביטויים: "אחיה הקטן", "אחותו הגדולה", "ביניהם כימיה של אחים".**
 - **שלב 1-2 מהחברים האלו לפי הצורך** - בחר את הדמויות המתאימות ביותר לנושא הסיפור. השתמש בשמות הדמויות (מיה, ליאו, זואי, בן) בטקסט הסיפור.
-- באיורים (illustration_prompt), תאר את מראה החברים בדיוק לפי התיאורים למעלה כדי לשמור על עקביות ויזואלית.
+- באיורים (illustration_prompt), תאר את מראה החברים בדיוק לפי התיאורים למעלה כדי לשמור על עקביות ויזואלית. **המראה והבגדים של החברים נכתבים רק ב-illustration_prompt, לעולם לא בטקסט הסיפור.**
+- **הצגה בפעם הראשונה (חובה):** הורה וילד לא מכירים את החבורה. בפעם הראשונה שדמות מהחבורה מופיעה, כתוב משפט הצגה קצר וחם שמסביר מי היא, למשל: "סול, הגיבורה הקטנה מחבורת סול וחברים, באה לבקר." / "מיה, ילדת הטבע מחבורת סול וחברים, מגיעה עם חיוך." אסור שדמות "פשוט תופיע" בלי הסבר.
+- **דמות חדשה מופיעה לראשונה רק בעמוד מאויר:** העמודים המאוירים הם [${illustrationPagesListStr}]. בעמוד שבו דמות מהחבורה מופיעה לראשונה, ה-illustration_prompt חייב לכלול אותה ואת המראה שלה.
 
 **⚠️ כלל אחים מחייב:** כאשר בן מופיע בסיפור שבו גם סול נוכחת, **אסור** לתארם כחברים. השתמש תמיד בשפה של אחווה: "בֶּן, אָחִיהָ הַקָּטָן שֶׁל סוֹל", "סוֹל הִבִּיטָה בְּאָחִיהָ הַקָּטָן", "שְׁנֵי הָאַחִים". הם משפחה, לא חברים.
 
@@ -1979,14 +1986,24 @@ ${topic.endsWith('-edu') ? `
 - Include the "illustration_prompt" field in the JSON ONLY for these page_numbers: [${illustrationPagesListStr}].
 - For every OTHER page, DO NOT include an "illustration_prompt" key at all — not empty string, not null, not placeholder. Just omit the field.
 - You MAY still mentally visualize the scene for those pages to keep the narrative coherent, but do not serialize it.
-- The text quality, plot, and per-page word counts must remain exactly as instructed above — this rule affects only the JSON output shape.`;
+- The text quality, plot, and per-page word counts must remain exactly as instructed above — this rule affects only the JSON output shape.
+- A new character (including a SolStories cast member) first appears ONLY on one of these illustrated pages, introduced with a short warm sentence saying who they are.${tastePages ? ` This is a free taste: its last page, page ${tastePages}, is illustrated.` : ""}
+- Never describe clothes in the story text (only in illustration_prompt), except a wardrobe change that is part of the plot.
+- Clarity: a feeling that calms down must first appear as that same character's difficulty; "I miss ... too" must say whom; every he/she must clearly refer to one character.`;
     const illustrationRuleHe = `
 
 ## 🖼️ שדה illustration_prompt — כלל פלט (חובה, קריטי לעלות)
 - כלול את השדה "illustration_prompt" ב-JSON **רק** בעמודים הבאים: [${illustrationPagesListStr}].
 - בכל שאר העמודים **אל תכלול** את המפתח "illustration_prompt" בכלל — לא מחרוזת ריקה, לא null, לא placeholder. פשוט השמט את השדה.
 - מותר לך "לדמיין" בפנימיות את הסצנה גם בעמודים האחרים כדי לשמור על קוהרנטיות הסיפור, אבל אל תוציא אותה ל-JSON.
-- איכות הטקסט, העלילה ומספר המילים לעמוד חייבים להישאר בדיוק לפי ההנחיות למעלה — הכלל הזה משפיע רק על צורת ה-JSON.`;
+- איכות הטקסט, העלילה ומספר המילים לעמוד חייבים להישאר בדיוק לפי ההנחיות למעלה — הכלל הזה משפיע רק על צורת ה-JSON.
+- **דמות חדשה (כולל דמות מהחבורה) מופיעה לראשונה רק באחד מהעמודים האלה**, ולא בעמוד בלי איור.${tastePages ? `
+- זהו סיפור טעימה: העמוד האחרון בטעימה הוא עמוד ${tastePages}, והוא מאויר.` : ""}
+
+## 🧭 בהירות — חובה
+- רגש או תחושה בגוף שנרגעים ("הבטן נרגעת", "הלב נרגע") חייבים להופיע קודם כקושי של **אותה דמות** בעלילה. אסור "להרגיע" משהו שלא נאמר קודם.
+- משפט כמו "גם אני מתגעגעת" חייב לומר למי או למה ("גם אני מתגעגעת לפעמים לסבתא שלי").
+- כל "הוא"/"היא" מתייחס בבירור לדמות אחת. אם יש ספק — כתוב את השם.`;
     userPrompt = userPrompt + (language === "en" ? illustrationRuleEn : illustrationRuleHe);
     // NLP techniques for this topic type (fixed list + per-type requirements)
     userPrompt = userPrompt + (kippahOn
@@ -2247,7 +2264,7 @@ CRITICAL RULES:
 - Keep [עמוד X] markers exactly as they are
 - The child's name in the story is "${childName}". Preserve it EXACTLY as it appears — never replace, shorten, transliterate, or "correct" it.
 - The name "${childName}" must be spelled IDENTICALLY on every page — never add or drop a letter (e.g. never turn a short name into a longer similar-looking word).
-- **אסור "רשימת בגדים":** אם עמוד כלשהו מתאר בגדים בסגנון טכני ("מעל החולצה, יש לו מכנסיים אדומים. למטה, יש לו טייץ כחול. יש לו גם גלימה אדומה.") — נסח אותו מחדש כמשפט סיפורי אחד שמחבר את הלבוש לרגש ולפעולה, למשל: "${childName} לובש/ת את התלבושת האהובה — חולצה צהובה, מכנסיים אדומים וגלימה שמתנופפת ברוח. הוא/היא מוכן/ה להרפתקה!"
+- **אין בגדים בטקסט:** כל משפט שמתאר בגדים (של כל דמות) — נסח אותו מחדש כמשפט על פעולה או רגש באותו אורך בערך, בלי בגדים. החריג היחיד: החלפת בגדים שהיא חלק מהעלילה (פיג'מה לפני השינה, מעיל לגשם).
 - Fix spelling mistakes in Hebrew words (e.g. "כחל" → "כחול").
 - Preserve illustration_prompt content if present - only rewrite the Hebrew story text
 - Do NOT add nikud (vowel marks) — write clean text without nikud
@@ -2356,11 +2373,18 @@ ${fullStoryText}`;
       const before = storyData.pages.length;
       storyData.pages = splitLongPages(
         storyData.pages as any[],
-        (p: any) => isToddlerSplit || (Number(p.page_number) % 2 === 1),
+        (p: any) => isToddlerSplit || (Number(p.page_number) % 2 === 1) || (tastePages != null && Number(p.page_number) === tastePages),
       );
       if (storyData.pages.length !== before) {
         console.log(`[generate-story] Split long pages: ${before} → ${storyData.pages.length} pages`);
       }
+    }
+
+    // === PICTURES: the taste's last page and every cast member's first page are illustrated ===
+    const castSkip = (["sol", "mia", "leo", "zoe", "ben"] as CastKey[]).filter((k) => isHeroCastName(k, childName));
+    {
+      const forced = enforceCastAndTastePictures(storyData.pages as any[], { tastePages, skip: castSkip });
+      if (forced.length) console.log(`[generate-story] Pictures forced/updated on pages: ${forced.join(", ")}`);
     }
 
     // === NAME CONSISTENCY: the hero's name must be identical on every page ===
@@ -2460,7 +2484,7 @@ ${fullStoryText}`;
     if (verifiedChildId) {
       storyInsertData.child_id = verifiedChildId;
     }
-    if (ctx.taste) {
+    if (ctx.taste || adminTasteTest) {
       // Saved so the remaining pictures can be made after payment with the same character.
       storyInsertData.taste_resume = {
         childAvatarUrl: childAvatarUrl || null,
@@ -2517,7 +2541,7 @@ ${fullStoryText}`;
       // required pages, but if it slipped, synthesize one from the page text
       // so the paid story never ships with a missing illustration.
       if (shouldHaveIllustration && (!promptForPage || String(promptForPage).trim() === "")) {
-        promptForPage = buildFallbackPromptFromText(page.text, page.page_number);
+        promptForPage = buildFallbackPromptFromText(page.text, page.page_number) + castPromptAddition(page.text, castSkip);
         fallbackPromptCount += 1;
         console.warn(
           `Fallback illustration prompt generated for page ${page.page_number} - model omitted prompt`,
