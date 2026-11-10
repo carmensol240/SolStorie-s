@@ -53,7 +53,7 @@ export function textHasNikud(texts: string[]): boolean {
   return words > 0 && marked / words >= 0.3;
 }
 
-export function buildEditorSystemPrompt(nikud: boolean) {
+export function buildEditorSystemPrompt(nikud: boolean, newStory = false) {
   return `אתה עורך לשון עברית מקצועי לספרי ילדים. אתה מקבל את כל עמודי הסיפור יחד ומחזיר אותם מתוקנים באותו מבנה בדיוק.
 
 מה לתקן:
@@ -63,11 +63,11 @@ export function buildEditorSystemPrompt(nikud: boolean) {
 3. ${nikud
     ? "ניקוד מלא ונכון לכל מילה ומילה, כולל שמות פרטיים ומילים קצרות. אין להשאיר אף מילה בלי ניקוד. הניקוד חייב להתאים למשמעות בהקשר (למשל: אַבָּא, לְיָדָהּ, הַשָּׁנָה/הַשֵּׁנָה)."
     : "בלי ניקוד בכלל: אף סימן ניקוד או טעם."}
-4. בגדים: כל משפט שמתאר בגדים של דמות כלשהי ("הוא לובש חולצה כחולה ומכנסיים ירוקים", "עם שמלה צהובה יפה") — נסח מחדש כמשפט באורך דומה על פעולה, רגש או המקום, בלי בגדים. החריג היחיד: החלפת בגדים שהיא חלק מהעלילה (לובש/ת פיג'מה לפני השינה, מעיל גשם לפני שיוצאים לגשם) — אותה משאירים.
-5. בהירות: משפט כמו "גם אני מתגעגעת לפעמים" — הוסף למי או למה, לפי ההקשר. כינוי גוף שלא ברור למי הוא מתייחס — החלף בשם הדמות.
+${newStory ? `4. בגדים: כל משפט שמתאר בגדים של דמות כלשהי ("הוא לובש חולצה כחולה ומכנסיים ירוקים", "עם שמלה צהובה יפה") — נסח מחדש כמשפט באורך דומה על פעולה, רגש או המקום, בלי בגדים. החריג היחיד: החלפת בגדים שהיא חלק מהעלילה (לובש/ת פיג'מה לפני השינה, מעיל גשם לפני שיוצאים לגשם) — אותה משאירים.
+5. בהירות: משפט כמו "גם אני מתגעגעת לפעמים" — הוסף למי או למה, לפי ההקשר. כינוי גוף שלא ברור למי הוא מתייחס — החלף בשם הדמות.` : ""}
 
 מה אסור:
-- לא לשנות את התוכן, את העלילה, את סדר האירועים או את שמות הדמויות (חוץ מהניסוח מחדש בסעיפים 4–5).
+- לא לשנות את התוכן, את העלילה, את סדר האירועים או את שמות הדמויות${newStory ? " (חוץ מהניסוח מחדש בסעיפים 4–5)" : ""}.
 - לא להוסיף מילים מעבר למה שנדרש לתיקון, ולא למחוק תוכן.
 - לא להאריך עמוד: כל עמוד עד ${EDITOR_MAX_PAGE_CHARS} תווים (בלי ניקוד), ובאורך דומה למקור.
 - לא לאחד או לפצל עמודים. אותם מספרי עמודים בדיוק.
@@ -124,6 +124,8 @@ export async function editHebrewPages(input: {
   heroName: string;
   otherNames?: string[];
   nikud: boolean;
+  /** New story from generate-story: also rewrite clothing sentences and unclear lines. */
+  newStory?: boolean;
   call: EditorCall;
   maxChars?: number;
 }): Promise<{ pages: EditorPage[]; report: EditorReport; talkQuestions: string[] }> {
@@ -132,7 +134,7 @@ export async function editHebrewPages(input: {
   const result = pages.map((p) => ({ ...p }));
   const names = [input.heroName, ...(input.otherNames || [])].filter(Boolean);
   const genderHe = input.gender === "female" ? "נקבה (גיבורה)" : "זכר (גיבור)";
-  const system = buildEditorSystemPrompt(nikud);
+  const system = buildEditorSystemPrompt(nikud, input.newStory === true);
   const finish = (t: string) => (nikud ? t : stripNikud(t));
   let talkQuestions: string[] = [];
 
@@ -163,6 +165,11 @@ ${JSON.stringify({ pages: subset.map((p) => ({ page_number: p.page_number, text:
         page.text = text;
       } else {
         report.rejected.push(page.page_number);
+        // Diagnostic only: why a page edit was refused (lengths without nikud, first characters).
+        console.warn(`[hebrew-editor] rejected page ${page.page_number}`, JSON.stringify({
+          origLen: stripNikud(page.text).trim().length, editLen: stripNikud(text).trim().length,
+          orig: stripNikud(page.text).slice(0, 80), edit: stripNikud(text).slice(0, 80),
+        }));
       }
     }
 
