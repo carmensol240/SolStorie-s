@@ -1016,6 +1016,15 @@ async function handleGenerateStory(req: Request, ctx: RequestCtx): Promise<Respo
       userId = user.id;
       console.log("Authenticated user:", userId.substring(0, 8) + "...");
 
+      // Temporary / test mailboxes never get a story (taste or paid), checked before any charge or AI call.
+      if (await isBlockedEmail(supabase, user.email)) {
+        console.log("[generate-story] blocked disposable email");
+        return new Response(
+          JSON.stringify({ error: DISPOSABLE_EMAIL_MESSAGE_HE, code: "DISPOSABLE_EMAIL" }),
+          { status: 403, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        );
+      }
+
       // === CREDIT CHECK ===
       // No signup credit and no auto-grant "welcome credit" safety net.
       // A user with 0 story_credits must purchase before generating.
