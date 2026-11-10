@@ -4,6 +4,7 @@
 // names or page length. Any technical failure keeps the original text.
 
 import { talkQuestionsInstruction, sanitizeTalkQuestions } from "./talk-questions.ts";
+import { logError } from "./log-error.ts";
 
 export const EDITOR_MAX_PAGE_CHARS = 300;
 export const HEBREW_EDITOR_MODEL = "openai/gpt-6-astra";
@@ -229,7 +230,9 @@ export function gatewayEditorCall(apiKey: string, timeoutMs = 120_000): EditorCa
         signal: AbortSignal.timeout(timeoutMs),
       });
       if (!res.ok || !res.body) {
-        console.warn(`[${label}] editor call failed`, res.status, (await res.text()).slice(0, 200));
+        const failBody = (await res.text()).slice(0, 500);
+        console.warn(`[${label}] editor call failed`, res.status, failBody.slice(0, 200));
+        await logError("story_editor_error", `${label} editor AI ${res.status}`, { status: res.status, body: failBody, source: label });
         return null;
       }
       const reader = res.body.pipeThrough(new TextDecoderStream()).getReader();

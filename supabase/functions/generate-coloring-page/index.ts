@@ -1,4 +1,5 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+import { logError } from "../_shared/log-error.ts";
 import { isLegacyOpenStory } from "../_shared/legacy-access.ts";
 import { mergeAppearance, hairToEnglish, clothingToEnglish, buildCharacterLock, kippahForStory } from "../_shared/appearance.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.49.1";
@@ -208,6 +209,7 @@ ${COLORING_NO_TEXT_RULE}`;
       if (!aiResponse.ok) {
         lastError = await aiResponse.text();
         console.error(`Model ${model} failed:`, aiResponse.status, lastError.slice(0, 300));
+        await logError("coloring_ai_error", `coloring AI ${aiResponse.status}`, { status: aiResponse.status, body: lastError.slice(0, 500), model, source: "generate-coloring-page" });
         continue;
       }
 

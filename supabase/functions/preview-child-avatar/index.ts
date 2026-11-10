@@ -1,4 +1,5 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+import { logError } from "../_shared/log-error.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.39.3";
 import { checkRateLimit, getClientIP, rateLimitResponse, RATE_LIMITS } from "../_shared/rate-limiter.ts";
 
@@ -202,6 +203,9 @@ serve(async (req) => {
 
         if (result.status === 429) {
           return jsonResponse({ error: "יותר מדי בקשות. נסו שוב בעוד כמה דקות." }, 429);
+        }
+        if (result.status === 402 || result.status === 403) {
+          await logError("ai_credit_error", `preview-child-avatar AI ${result.status}`, { status: result.status, body: result.rawText.slice(0, 500), source: "preview-child-avatar" });
         }
         if (result.status === 402) {
           return jsonResponse({ error: "השירות אינו זמין זמנית." }, 402);

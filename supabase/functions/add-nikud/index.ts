@@ -1,4 +1,5 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+import { logError } from "../_shared/log-error.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.39.3";
 import { checkRateLimit, getClientIP, rateLimitResponse, RATE_LIMITS } from "../_shared/rate-limiter.ts";
 
@@ -113,6 +114,7 @@ serve(async (req) => {
         );
       }
       if (response.status === 402) {
+        await logError("ai_credit_error", "add-nikud AI 402", { status: 402, source: "add-nikud" });
         return new Response(
           JSON.stringify({ error: "נדרש תשלום. אנא הוסף קרדיטים לחשבון." }),
           { status: 402, headers: { ...corsHeaders, "Content-Type": "application/json" } }

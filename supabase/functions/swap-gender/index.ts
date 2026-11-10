@@ -1,4 +1,5 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { logError } from "../_shared/log-error.ts";
 import { editHebrewPages, gatewayEditorCall, textHasNikud } from "../_shared/hebrew-editor.ts";
 
 const corsHeaders = {
@@ -56,6 +57,7 @@ ${text}`
 
     if (!response.ok) {
       console.error("AI API error:", response.status);
+      await logError("ai_gateway_error", `swap-gender AI ${response.status}`, { status: response.status, source: "swap-gender" });
       return swapGenderWithRegex(text, targetGender);
     }
 
