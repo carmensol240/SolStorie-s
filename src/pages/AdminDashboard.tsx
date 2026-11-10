@@ -6,6 +6,7 @@ import { useAuth } from "@/hooks/use-auth";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import FunnelSection from "@/components/admin/FunnelSection";
 import IllustrationIssuesSection from "@/components/admin/IllustrationIssuesSection";
+import AiCreditAlertBanner from "@/components/admin/AiCreditAlertBanner";
 import NlpQualitySection from "@/components/admin/NlpQualitySection";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
@@ -597,6 +598,7 @@ const AdminDashboard = () => {
   return (
     <div className="min-h-screen bg-background p-3 md:p-8" dir="rtl">
       <div className="max-w-7xl mx-auto space-y-4">
+        <AiCreditAlertBanner />
         <div className="max-w-sm"><AdminModeSwitch /></div>
         {/* Header */}
         <div className="flex items-center gap-3 flex-wrap">

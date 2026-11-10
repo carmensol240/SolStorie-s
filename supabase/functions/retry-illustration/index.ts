@@ -1,4 +1,6 @@
 import "https://deno.land/x/xhr@0.1.0/mod.ts";
+import { logError } from "../_shared/log-error.ts";
+import { refreshStoryReadiness } from "../_shared/story-readiness.ts";
 import { formatRule } from "../_shared/illustration-format.ts";
 import { reserveRedraws, releaseRedraws, REDRAW_LIMIT_MESSAGE_HE } from "../_shared/redraw-limit.ts";
 import { mergeAppearance, hairToEnglish, clothingToEnglish, buildCharacterLock, kippahForStory } from "../_shared/appearance.ts";
@@ -492,6 +494,7 @@ NEGATIVE: ${NEGATIVE_PROMPT}${formatRule((story as any).illustration_format)}`;
             const errorBody = await response.text().catch(() => "no body");
             console.error(`Gemini attempt ${attempt} failed: ${response.status} - ${errorBody}`);
             fallbackReason = `Gemini with reference failed: HTTP ${response.status}`;
+            await logError("illustration_retry_error", `retry Gemini ${response.status}`, { status: response.status, body: errorBody.slice(0, 500), storyId, page: page?.page_number, source: "retry-illustration" });
             if (attempt < MAX_ATTEMPTS) { await new Promise(r => setTimeout(r, 3000)); continue; }
             break;
           }
@@ -561,6 +564,7 @@ NEGATIVE: ${NEGATIVE_PROMPT}${formatRule((story as any).illustration_format)}`;
           if (!response.ok) {
             const errorBody = await response.text().catch(() => "no body");
             console.error(`Schnell attempt ${attempt} failed: ${response.status} - ${errorBody}`);
+            await logError("illustration_retry_error", `retry Flux ${response.status}`, { status: response.status, body: errorBody.slice(0, 500), storyId, source: "retry-illustration" });
             if (attempt < MAX_ATTEMPTS) { await new Promise(r => setTimeout(r, 1000)); continue; }
             return await failure("Image generation failed");
           }
@@ -651,6 +655,8 @@ NEGATIVE: ${NEGATIVE_PROMPT}${formatRule((story as any).illustration_format)}`;
     });
 
     console.log(`✅ Retry illustration success for page ${page.page_number} (model: ${modelUsed})`);
+    // A story waiting for admin ("needs_attention") becomes ready once every page has a picture.
+    await refreshStoryReadiness(supabase, storyId, { onlyIfNeedsAttention: true });
 
     return new Response(
       JSON.stringify({
@@ -664,6 +670,7 @@ NEGATIVE: ${NEGATIVE_PROMPT}${formatRule((story as any).illustration_format)}`;
     );
   } catch (error) {
     console.error("retry-illustration error:", error);
+    await logError("illustration_retry_error", `retry-illustration crash: ${(error as Error)?.message || error}`, { source: "retry-illustration" });
     return new Response(
       JSON.stringify({ error: "Internal error" }),
       { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }

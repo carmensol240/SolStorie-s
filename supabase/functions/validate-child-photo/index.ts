@@ -1,4 +1,5 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+import { logError } from "../_shared/log-error.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.39.3";
 
 const corsHeaders = {
@@ -153,6 +154,7 @@ Return exactly this JSON format:
         );
       }
       if (response.status === 402) {
+        await logError("ai_credit_error", "validate-child-photo AI 402", { status: 402, source: "validate-child-photo" });
         return new Response(
           JSON.stringify({ error: "השירות אינו זמין זמנית" }),
           { status: 402, headers: { ...corsHeaders, "Content-Type": "application/json" } }

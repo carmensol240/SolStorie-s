@@ -1,4 +1,5 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+import { logError } from "../_shared/log-error.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.49.1";
 import { isLegacyOpenStory } from "../_shared/legacy-access.ts";
 import { COLORING_FAILED_MESSAGE, COLORING_NO_TEXT_RULE, COLORING_RETRY_INSTRUCTION, produceCleanColoringPage } from "../_shared/coloring-pipeline.ts";
@@ -127,7 +128,7 @@ serve(async (req) => {
             image_config: { aspect_ratio: "2:3" },
           }),
         });
-        if (!res.ok) { console.warn("portrait coloring model failed", model, res.status); continue; }
+        if (!res.ok) { console.warn("portrait coloring model failed", model, res.status); await logError("coloring_ai_error", `portrait coloring AI ${res.status}`, { status: res.status, model, source: "generate-child-portrait-coloring" }); continue; }
         const data = await res.json();
         const url = data?.choices?.[0]?.message?.images?.[0]?.image_url?.url;
         if (url) return url;
