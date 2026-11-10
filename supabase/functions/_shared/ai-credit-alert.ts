@@ -32,10 +32,9 @@ export async function reportAiCreditIssue(source: string, status: number, userId
     const sb = createClient(url, key);
 
     const since = new Date(Date.now() - AI_CREDIT_ALERT_INTERVAL_MS).toISOString();
-    const { data: recent } = await sb.from("admin_alerts").select("id, created_at")
-      .eq("alert_type", AI_CREDIT_ALERT_TYPE).gte("created_at", since)
-      .order("created_at", { ascending: true }).limit(1);
-    if (recent && recent.length > 0) return; // already alerted this hour
+    const { data: last } = await sb.from("admin_alerts").select("created_at")
+      .eq("alert_type", AI_CREDIT_ALERT_TYPE).order("created_at", { ascending: false }).limit(1).maybeSingle();
+    if (!shouldRaiseCreditAlert((last as any)?.created_at)) return; // already alerted this hour
 
     // admin_alerts.user_id is required: the affected user, else the first admin.
     let alertUser = userId || null;
