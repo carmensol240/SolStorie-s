@@ -1,21 +1,29 @@
 // Admin dashboard display rules (no effect on purchases, credits or stories).
 
-// The owner's own/test accounts: carmit1901 (any +alias) at gmail, and solstories.nlp.
+// The owner's own/test accounts: carmit1901 and souldesign06 (any +alias) at gmail, plus solstories.nlp.
+const OWN_ACCOUNT_EMAILS = new Set(["solstories.nlp@gmail.com"]);
+
+// Individual purchases the owner marked as her own tests (Grow order IDs inside package_name).
+// Hidden from totals only; the purchase rows themselves are never changed.
+const TEST_PURCHASE_ORDER_IDS = ["grow_530661331"];
+
 export function isOwnAccountEmail(email?: string | null): boolean {
   const e = (email || "").trim().toLowerCase();
   if (!e) return false;
-  if (e === "solstories.nlp@gmail.com") return true;
-  return /^carmit1901(\+[^@]*)?@gmail\.com$/.test(e);
+  if (OWN_ACCOUNT_EMAILS.has(e)) return true;
+  return /^(carmit1901|souldesign06)(\+[^@]*)?@gmail\.com$/.test(e);
 }
 
 // A real purchase for the monthly totals: status exactly "completed" (not test_completed),
 // made this month, and not by an own account.
 export function isRealPurchase(
-  p: { status?: string | null; created_at?: string | null },
+  p: { status?: string | null; created_at?: string | null; package_name?: string | null },
   monthStart: Date,
   byOwnAccount: boolean,
 ): boolean {
   if (byOwnAccount || p.status !== "completed" || !p.created_at) return false;
+  const pkg = p.package_name || "";
+  if (TEST_PURCHASE_ORDER_IDS.some(id => pkg === id || pkg.startsWith(id + "_"))) return false;
   return new Date(p.created_at) >= monthStart;
 }
 
