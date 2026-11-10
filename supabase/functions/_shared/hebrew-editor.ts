@@ -163,6 +163,11 @@ ${JSON.stringify({ pages: subset.map((p) => ({ page_number: p.page_number, text:
         page.text = text;
       } else {
         report.rejected.push(page.page_number);
+        // Diagnostic only: why a page edit was refused (lengths without nikud, first characters).
+        console.warn(`[hebrew-editor] rejected page ${page.page_number}`, JSON.stringify({
+          origLen: stripNikud(page.text).trim().length, editLen: stripNikud(text).trim().length,
+          orig: stripNikud(page.text).slice(0, 80), edit: stripNikud(text).slice(0, 80),
+        }));
       }
     }
 
