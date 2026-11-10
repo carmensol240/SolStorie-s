@@ -15,7 +15,9 @@ import { Input } from "@/components/ui/input";
 import { Users, ShoppingCart, BookOpen, TrendingUp, ArrowRight, AlertTriangle, EyeOff, Eye, Trash2, Palette, Image, Ticket, ChevronDown, ChevronUp, Activity, Copy, Mail, CalendarPlus, RefreshCw, Clock, Search, RotateCcw, XCircle, Unlock, Lock } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { format, subDays, startOfDay } from "date-fns";
+import { format, subDays, startOfDay, startOfMonth } from "date-fns";
+import { Switch } from "@/components/ui/switch";
+import { isOwnAccountEmail, isRealPurchase, storyLabel, STORY_LABEL_CLASS } from "@/lib/admin-dashboard-filters";
 import { ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart";
 import { LineChart, Line, XAxis, YAxis, CartesianGrid } from "recharts";
 import { useToast } from "@/hooks/use-toast";
@@ -69,6 +71,8 @@ interface StoryRow {
   created_at: string;
   user_id: string | null;
   generation_status: string | null;
+  is_taste?: boolean | null;
+  slug?: string | null;
 }
 
 interface ErrorLogRow {
@@ -176,9 +180,18 @@ const AdminDashboard = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
   const [isAdmin, setIsAdmin] = useState<boolean | null>(null);
-  const [profiles, setProfiles] = useState<ProfileRow[]>([]);
-  const [purchases, setPurchases] = useState<PurchaseRow[]>([]);
-  const [stories, setStories] = useState<StoryRow[]>([]);
+  const [rawProfiles, setProfiles] = useState<ProfileRow[]>([]);
+  const [rawPurchases, setPurchases] = useState<PurchaseRow[]>([]);
+  const [rawStories, setStories] = useState<StoryRow[]>([]);
+  const [emailById, setEmailById] = useState<Map<string, string>>(new Map());
+  const [userFlags, setUserFlags] = useState<Map<string, { disposable: boolean; banned: boolean }>>(new Map());
+  // Display only: the owner's own accounts are hidden everywhere unless this is on.
+  const [showOwn, setShowOwn] = useState(false);
+  const ownIds = useMemo(() => new Set([...emailById.entries()].filter(([, e]) => isOwnAccountEmail(e)).map(([id]) => id)), [emailById]);
+  const isOwn = (uid?: string | null) => !!uid && ownIds.has(uid);
+  const profiles = useMemo(() => showOwn ? rawProfiles : rawProfiles.filter(p => !isOwn(p.id)), [rawProfiles, showOwn, ownIds]);
+  const stories = useMemo(() => showOwn ? rawStories : rawStories.filter(s => !isOwn(s.user_id)), [rawStories, showOwn, ownIds]);
+  const purchases = useMemo(() => showOwn ? rawPurchases : rawPurchases.filter(p => !isOwn(p.user_id)), [rawPurchases, showOwn, ownIds]);
   const [errorLogs, setErrorLogs] = useState<ErrorLogRow[]>([]);
   const [illustrationLogs, setIllustrationLogs] = useState<IllustrationLogRow[]>([]);
   const [coverLogs, setCoverLogs] = useState<CoverLogRow[]>([]);
