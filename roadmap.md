@@ -120,3 +120,6 @@
 - [x] Live check (gmail code send ok; disposable blocked at send-login-code, auth sign-up, account trigger; generate-story check not live-tested with a disposable session): gmail works, disposable blocked at each entry point
 - [x] Signed picture links checked per story; redraw limits 2/page 6/story; small AI actions sign-in only
 - [ ] Grow transaction re-check via Grow API — not approved yet (needs Grow API details)
+
+## Admin dashboard display (Nov 2026)
+- [x] Hide own accounts (toggle), real-user count, story labels + open link, monthly real revenue/purchases, "mark handled"
