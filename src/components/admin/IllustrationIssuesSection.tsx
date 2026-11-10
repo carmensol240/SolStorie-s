@@ -17,6 +17,25 @@ const LABELS: Record<string, string> = {
   backup_gpt_image: "נוצר בגיבוי חדש",
 };
 
+// stories.text_issues = { pages: { "3": ["english:Leo", "nikud:..."] }, stage }
+const TEXT_REASON: Record<string, string> = { not_edited: "העורך לא תיקן", english: "אנגלית", nikud: "חסר ניקוד" };
+function issuePages(t: any): Record<string, string[]> {
+  const pages = t?.pages ?? null;
+  return pages && typeof pages === "object" ? pages : {};
+}
+function textIssuePages(t: any): string {
+  return Object.keys(issuePages(t)).sort((a, b) => Number(a) - Number(b)).map((n) => `עמ׳ ${n}`).join(", ");
+}
+function textIssueSummary(t: any): string {
+  return Object.entries(issuePages(t))
+    .map(([n, codes]) => `עמוד ${n}: ${(codes || []).map((c) => {
+      const i = c.indexOf(":");
+      const kind = i < 0 ? c : c.slice(0, i);
+      return `${TEXT_REASON[kind] || kind}${i < 0 ? "" : ` (${c.slice(i + 1)})`}`;
+    }).join(", ")}`)
+    .join(" · ");
+}
+
 type Row = {
   story_id: string;
   page_number: number;
@@ -32,13 +51,13 @@ export default function IllustrationIssuesSection() {
   const [rows, setRows] = useState<Row[] | null>(null);
   const [error, setError] = useState<string | null>(null);
   // Stories finished with a page left without a picture (never marked ready).
-  const [attention, setAttention] = useState<{ id: string; slug: string | null; child_name: string; created_at: string }[]>([]);
+  const [attention, setAttention] = useState<{ id: string; slug: string | null; child_name: string; created_at: string; text_issues: any }[]>([]);
 
   // Display only: stories the admin marked as handled are hidden from the list (status unchanged).
   const [handled, setHandled] = useState<Set<string>>(new Set());
   const [showHandled, setShowHandled] = useState(false);
   useEffect(() => {
-    supabase.from("stories").select("id, slug, child_name, created_at").eq("generation_status", "needs_attention")
+    supabase.from("stories").select("id, slug, child_name, created_at, text_issues").eq("generation_status", "needs_attention")
       .order("created_at", { ascending: false }).limit(100)
       .then(({ data }) => setAttention((data as any) || []));
     supabase.from("admin_handled_items").select("item_id").eq("item_type", "story_attention")
@@ -103,7 +122,7 @@ export default function IllustrationIssuesSection() {
       </CardHeader>
       <CardContent>
         <div className="mb-4">
-          <h3 className="font-bold mb-2">דורש טיפול: סיפורים עם עמוד בלי איור ({openAttention.length})</h3>
+          <h3 className="font-bold mb-2">דורש טיפול: סיפורים עם עמוד בלי איור או טקסט לא תקין ({openAttention.length})</h3>
           {attention.length > openAttention.length && (
             <button type="button" className="text-xs text-muted-foreground underline mb-2" onClick={() => setShowHandled((v) => !v)}>
               {showHandled ? "הסתר טופלו" : `הצג גם טופלו (${attention.length - openAttention.length})`}
@@ -119,6 +138,9 @@ export default function IllustrationIssuesSection() {
                     {s.child_name} · {s.slug || s.id.slice(0, 8)}
                   </a>
                   <span className="text-muted-foreground">{new Date(s.created_at).toLocaleDateString("he-IL")}</span>
+                  {textIssueSummary(s.text_issues) && (
+                    <Badge variant="destructive" title={textIssueSummary(s.text_issues)}>טקסט לא תקין: {textIssuePages(s.text_issues)}</Badge>
+                  )}
                   <Button size="sm" variant="outline" className="h-6 text-xs" onClick={() => toggleHandled(s.id)}>
                     {handled.has(s.id) ? "בטל סימון" : "סמן כטופל"}
                   </Button>
