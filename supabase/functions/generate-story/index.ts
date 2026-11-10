@@ -1988,8 +1988,9 @@ ${topic.endsWith('-edu') ? `
 - For every OTHER page, DO NOT include an "illustration_prompt" key at all — not empty string, not null, not placeholder. Just omit the field.
 - You MAY still mentally visualize the scene for those pages to keep the narrative coherent, but do not serialize it.
 - The text quality, plot, and per-page word counts must remain exactly as instructed above — this rule affects only the JSON output shape.
-- A new character (including a SolStories cast member) first appears ONLY on one of these illustrated pages, introduced with a short warm sentence saying who they are.${tastePages ? ` This is a free taste: its last page, page ${tastePages}, is illustrated.` : ""}
-- Never describe clothes in the story text (only in illustration_prompt), except a wardrobe change that is part of the plot.
+- A new character (including a SolStories cast member) first appears ONLY on one of these illustrated pages, introduced with a short warm sentence saying who they are — for the cast, use their official description word for word (Sol: the heroine who leads the gang; Ben: Sol's little brother; Mia: the flower girl; Zoe: the athlete; Leo: the gang's painter).${tastePages ? ` This is a free taste: its last page, page ${tastePages}, is illustrated.` : ""}
+- Never describe clothes in the story text (only in illustration_prompt), except a wardrobe change that is part of the plot. Never describe a cast member's clothes or looks at all — in illustration_prompt write only their English name and what they do (their official look is added automatically).
+- Each illustration_prompt shows ONLY characters named in that page's text, each one once; never add a cast member who is not named on that page.
 - Clarity: a feeling that calms down must first appear as that same character's difficulty; "I miss ... too" must say whom; every he/she must clearly refer to one character.`;
     const illustrationRuleHe = `
 
