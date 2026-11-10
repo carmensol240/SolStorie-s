@@ -95,6 +95,10 @@ export const useAuth = () => {
   };
 
   const signUpWithEmail = async (email: string, password: string, metadata?: Record<string, string>) => {
+    // Password sign-up is closed on the server; new accounts come only from the email code or Google.
+    if (PASSWORD_SIGNUP_CLOSED) {
+      return { data: null, error: new Error('ההרשמה עם סיסמה נסגרה. היכנסו עם קוד במייל או עם גוגל.') };
+    }
     const { data, error } = await supabase.auth.signUp({
       email,
       password,
