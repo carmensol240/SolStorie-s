@@ -5,6 +5,7 @@ import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.39.3";
 import { logError } from "../_shared/log-error.ts";
 import { formatRule, backupSizeFor } from "../_shared/illustration-format.ts";
+import { reserveRedraws, REDRAW_LIMIT_MESSAGE_HE } from "../_shared/redraw-limit.ts";
 import { alignProfileGender } from "../_shared/profile-gender.ts";
 import { normalizeGender } from "../_shared/gender.ts";
 import {
@@ -1430,6 +1431,8 @@ serve(async (req) => {
       });
     }
     const isServiceRole = bearer === supabaseServiceKey;
+    // Set for a parent (story owner, not an effective admin): their redraws count toward the limits.
+    let limitedOwnerId: string | null = null;
     if (!isServiceRole) {
       const { data: { user }, error: authError } = await supabase.auth.getUser(bearer);
       if (authError || !user) {
@@ -1455,6 +1458,10 @@ serve(async (req) => {
         return new Response(JSON.stringify({ error: "Forbidden" }), {
           status: 403, headers: { ...corsHeaders, "Content-Type": "application/json" },
         });
+      }
+      if (ownerCheck && !adminRedraw) {
+        const { data: ownerIsAdmin } = await supabase.rpc("is_effective_admin", { _user_id: user.id });
+        if (ownerIsAdmin !== true) limitedOwnerId = user.id;
       }
     }
 
@@ -1771,6 +1778,18 @@ serve(async (req) => {
       }
     }
     
+    // Parent redraw limits: a page that already has a picture counts as a redraw (missing pictures are free).
+    if (limitedOwnerId) {
+      const redrawPages = pagesToIllustrate.filter((p: any) => !!p.illustration_url).map((p: any) => p.page_number as number);
+      const reserved = await reserveRedraws(supabase, storyId, limitedOwnerId, redrawPages, "generate-illustrations");
+      if (reserved === null) {
+        console.warn(`[REDRAW-LIMIT] story=${storyId} owner=${limitedOwnerId} pages=${redrawPages.join(",")}`);
+        return new Response(JSON.stringify({ error: REDRAW_LIMIT_MESSAGE_HE, code: "REDRAW_LIMIT" }), {
+          status: 429, headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+    }
+
     let firstIllustrationUrl: string | null = null;
 
     console.log(`Generating ${pagesToIllustrate.length} illustrations in PARALLEL via Promise.all...`);

@@ -155,6 +155,13 @@
       "when": 1794300114922,
       "tag": "0021_password_signup_check_by_origin",
       "breakpoints": true
+    },
+    {
+      "idx": 22,
+      "version": "7",
+      "when": 1794300522837,
+      "tag": "0022_illustration_redraws",
+      "breakpoints": true
     }
   ]
 }

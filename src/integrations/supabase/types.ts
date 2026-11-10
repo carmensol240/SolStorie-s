@@ -506,6 +506,33 @@ export type Database = {
         }
         Relationships: []
       }
+      illustration_redraws: {
+        Row: {
+          created_at: string
+          id: string
+          page_number: number
+          source: string
+          story_id: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          page_number: number
+          source: string
+          story_id: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          page_number?: number
+          source?: string
+          story_id?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       login_codes: {
         Row: {
           attempts: number
