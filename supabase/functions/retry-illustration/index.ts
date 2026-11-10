@@ -43,6 +43,7 @@ function seedFromStoryId(storyId: string): number {
 }
 
 import { buildMilitaryLock, militaryRoleForStory } from "../_shared/military-family.ts";
+import { castReferenceBlock, pageCastRule } from "../_shared/story-cast-pages.ts";
 
 serve(async (req) => {
   if (req.method === "OPTIONS") {
@@ -407,8 +408,12 @@ serve(async (req) => {
       if (militaryLock) characterLock += `\n\n${militaryLock}`;
     }
     // Leo named on this page (hero not called Leo): same official description + picture as first drawings.
-    const withLeo = leoOnPage(`${(page as any).text || ""}\n${customPrompt || page.illustration_prompt || ""}`, story.child_name);
-    if (withLeo) characterLock += `\n\nCAST CHARACTER REFERENCE (render EXACTLY as described):\n- LEO: ${CAST_DESCRIPTIONS.leo}`;
+    // Cast comes only from the page text (plus an admin's own prompt): official look, each once, others not drawn.
+    const castText = `${(page as any).text || ""}\n${customPrompt || ""}`;
+    const withLeo = leoOnPage(castText, story.child_name);
+    const castBlock = castReferenceBlock(castText, story.child_name);
+    if (castBlock) characterLock += `\n\n${castBlock}`;
+    characterLock += `\n\n${pageCastRule(castText, story.child_name)}`;
     const prompt = `${customPrompt || page.illustration_prompt || `A cheerful children's book illustration for page ${page.page_number}`}\n\n${characterLock}`;
     const pageNarrative = ((page as any).text || "").toString().slice(0, 400);
     const genderHeader = buildGenderHeader((story as any).child_gender, { kippah: kippahForStory(story as any).kippah });
