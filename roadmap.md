@@ -112,9 +112,9 @@
 - [x] Screenshots: homepage gang row, /coloring-gang, coloring page full size, 4 places
 
 ## Disposable email & free-story lockdown (Nov 2026)
-- [ ] Ban x2kyd / h5rok (mailosaur) + revoke sessions, no delete
-- [ ] Big public disposable list + subdomains, enforced in send-login-code, verify-login-code, generate-story (taste + paid)
-- [ ] Close password signup on server; login only via code / Google
+- [x] Ban x2kyd / h5rok (mailosaur) + revoke sessions, no delete
+- [x] Big public disposable list + subdomains, enforced in send-login-code, verify-login-code, generate-story (taste + paid)
+- [x] Close password signup on server; login only via code / Google
 - [ ] Audit every story/AI/credit/webhook function; table to user
-- [ ] Explain shirley.u85 and uziahamail free stories
+- [x] Explain shirley.u85 and uziahamail free stories
 - [ ] Live check: gmail works, disposable blocked at each entry point
