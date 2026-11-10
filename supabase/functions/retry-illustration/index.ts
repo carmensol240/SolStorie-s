@@ -228,6 +228,21 @@ serve(async (req) => {
       lockAcquired = true;
     }
 
+    // Parent redraw limits (per page / per story). Admins are never limited.
+    let redrawIds: string[] = [];
+    if (!isAdmin) {
+      const reserved = await reserveRedraws(supabase, storyId, user.id, [page.page_number], "retry-illustration");
+      if (reserved === null) {
+        if (lockAcquired) {
+          await supabase.from("stories").update({ page1_regen_lock_at: null }).eq("id", storyId);
+        }
+        return new Response(JSON.stringify({ error: REDRAW_LIMIT_MESSAGE_HE, code: "REDRAW_LIMIT" }), {
+          status: 429, headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+      redrawIds = reserved;
+    }
+
     const releaseLock = async () => {
       if (lockAcquired) {
         await supabase.from("stories").update({ page1_regen_lock_at: null }).eq("id", storyId);
@@ -237,6 +252,7 @@ serve(async (req) => {
 
     const failure = async (message: string, status = 500) => {
       await releaseLock(); // generation failed → flag stays false, user may retry
+      await releaseRedraws(supabase, redrawIds).catch(() => {}); // a failed try does not count
       return new Response(JSON.stringify({ error: message }), {
         status, headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
