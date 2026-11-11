@@ -63,6 +63,7 @@ import { useWideReader } from "@/hooks/use-wide-reader";
 import { isTextOnPictureAge } from "@/lib/print-layout";
 import { ScrollHintText } from "@/components/story/book-frame/ScrollHintText";
 import { PhonePictureTextPage } from "@/components/story/book-frame/PhonePictureTextPage";
+import { TextOnlyPage } from "@/components/story/book-frame/TextOnlyPage";
 import type { PhonePictureLayout } from "@/lib/phone-picture-layout";
 import { TheaterFrame } from "@/components/story/theater-frame";
 import PdfFeaturePopup from "@/components/story/PdfFeaturePopup";
@@ -2329,6 +2330,74 @@ const [currentPage, setCurrentPage] = useState(0);
                           />
                         }
                       />
+                    );
+                  })()
+                ) : currentVirtual.type === 'combined' && !currentVirtual.isCover && !currentVirtual.illustrationUrl && !currentVirtual.dbPage.illustration_prompt && currentVirtual.text?.trim() ? (
+                  /* Ages 0–4, page without a picture (all screens): text centred on paper */
+                  <TextOnlyPage
+                    text={showNikud ? currentVirtual.text : currentVirtual.text.replace(/[\u0591-\u05C7]/g, '')}
+                    fontClass={FONT_SIZES[Math.min(fontSizeIndex + 1, FONT_SIZES.length - 1)].size}
+                    pageLabel={`${currentVirtual.dbPage.page_number} / ${story.pages.length}`}
+                    controls={<PageRecordingControls
+                        pageNumber={currentVirtual.dbPage.page_number}
+                        isRecording={pageRecording.recordingPage === currentVirtual.dbPage.page_number}
+                        hasPendingBlob={pageRecording.pendingBlob?.page === currentVirtual.dbPage.page_number}
+                        hasSaved={pageRecording.hasSavedRecording(currentVirtual.dbPage.page_number)}
+                        isPlaying={pageRecording.playingPage === currentVirtual.dbPage.page_number}
+                        onStartRecording={guardDemo(() => pageRecording.startRecording(currentVirtual.dbPage.page_number))}
+                        onStopRecording={pageRecording.stopRecording}
+                        onSave={guardDemo(pageRecording.saveRecording)}
+                        onDiscard={pageRecording.discardPending}
+                        onPlay={guardDemo(() => pageRecording.playRecording(currentVirtual.dbPage.page_number))}
+                        onStopPlaying={pageRecording.stopPlaying}
+                      />}
+                  />
+                ) : currentVirtual.type === 'combined' && isWideReader && !currentVirtual.isCover && currentVirtual.illustrationUrl && currentVirtual.text?.trim() ? (
+                  /* Ages 0–4, wide screen: open book — picture on the left, text on the right page */
+                  (() => {
+                    const url = currentVirtual.illustrationUrl;
+                    const retries = failedImages[url] || 0;
+                    const src = `${(retries ? getPublicIllustrationUrl(url) : getReadingIllustrationUrl(url)) || ''}${retries ? `?retry=${retries}` : ''}`;
+                    return (
+                      <div className="absolute inset-0 flex flex-row-reverse bg-paper" dir="ltr">
+                        <div className="w-1/2 h-full border-l border-paper-muted shadow-[inset_8px_0_16px_-12px_hsl(var(--paper-foreground)/0.35)]">
+                          <TextOnlyPage
+                            text={showNikud ? currentVirtual.text : currentVirtual.text.replace(/[\u0591-\u05C7]/g, '')}
+                            fontClass={currentFontSize.size}
+                            pageLabel={`${currentVirtual.dbPage.page_number} / ${story.pages.length}`}
+                            controls={<PageRecordingControls
+                        pageNumber={currentVirtual.dbPage.page_number}
+                        isRecording={pageRecording.recordingPage === currentVirtual.dbPage.page_number}
+                        hasPendingBlob={pageRecording.pendingBlob?.page === currentVirtual.dbPage.page_number}
+                        hasSaved={pageRecording.hasSavedRecording(currentVirtual.dbPage.page_number)}
+                        isPlaying={pageRecording.playingPage === currentVirtual.dbPage.page_number}
+                        onStartRecording={guardDemo(() => pageRecording.startRecording(currentVirtual.dbPage.page_number))}
+                        onStopRecording={pageRecording.stopRecording}
+                        onSave={guardDemo(pageRecording.saveRecording)}
+                        onDiscard={pageRecording.discardPending}
+                        onPlay={guardDemo(() => pageRecording.playRecording(currentVirtual.dbPage.page_number))}
+                        onStopPlaying={pageRecording.stopPlaying}
+                      />}
+                          />
+                        </div>
+                        <div className="relative w-1/2 h-full bg-paper-muted">
+                          {!imageLoadedMap[url] && (
+                            <div className="absolute inset-0 flex items-center justify-center text-sm text-paper-foreground/70 font-serif">טוען איור...</div>
+                          )}
+                          <img
+                            key={`${url}-${retries}`}
+                            src={src}
+                            alt={illustrationAlt(currentVirtual.text, currentVirtual.dbPage?.page_number)}
+                            className={cn("absolute inset-0 w-full h-full object-contain transition-opacity duration-500", imageLoadedMap[url] ? "opacity-100" : "opacity-0")}
+                            loading="eager"
+                            onLoad={(e) => { handleImageLoad(e); setImageLoadedMap(prev => ({ ...prev, [url]: true })); }}
+                            onError={() => {
+                              if (retries < 3) setTimeout(() => setFailedImages(prev => ({ ...prev, [url]: retries + 1 })), 2000);
+                              else console.error('Illustration failed to load after 3 retries:', url);
+                            }}
+                          />
+                        </div>
+                      </div>
                     );
                   })()
                 ) : currentVirtual.type === 'combined' ? (
