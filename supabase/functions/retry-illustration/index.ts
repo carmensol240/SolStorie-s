@@ -78,7 +78,7 @@ serve(async (req) => {
       });
     }
 
-    const { storyId, pageId, customPrompt, mode, choice } = await req.json();
+    const { storyId, pageId, customPrompt, mode, choice, referencePage } = await req.json();
     console.log(`[retry-illustration] request story=${storyId} page=${pageId} mode=${mode ?? "default"} choice=${choice ?? "-"} user=${user.id}`);
     if (!storyId || !pageId) {
       return new Response(JSON.stringify({ error: "Missing storyId or pageId" }), {
@@ -86,15 +86,24 @@ serve(async (req) => {
       });
     }
 
-    // Verify story ownership
+    // Admins (server-checked) may redraw any story; never charged and never counted for the owner.
+    // Admin in demo mode is treated like a parent.
+    let isAdmin = false;
+    {
+      const { data: adminRow, error: adminErr } = await supabase
+        .rpc("is_effective_admin", { _user_id: user.id });
+      if (adminErr) console.warn("[retry-illustration] admin lookup failed:", adminErr.message);
+      isAdmin = !!adminRow;
+    }
+
+    // Verify story ownership (or admin)
     const { data: story, error: storyError } = await supabase
       .from("stories")
       .select("id, user_id, child_id, child_photo_path, child_gender, age_range, child_name, topic, page1_regen_used, page1_regen_lock_at, story_outfit, kippah, kippah_color, illustration_format")
       .eq("id", storyId)
-      .eq("user_id", user.id)
       .maybeSingle();
 
-    if (storyError || !story) {
+    if (storyError || !story || (story.user_id !== user.id && !isAdmin)) {
       return new Response(JSON.stringify({ error: "Story not found" }), {
         status: 404, headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
@@ -120,19 +129,10 @@ serve(async (req) => {
     // storage — a failed generation leaves it false so the user can try again.
     const isPage1Regen = mode === "page1_regen" || mode === "page1_confirm";
 
-    // Admins (public.user_roles) get unlimited page-1 retries for QA purposes.
-    // Ownership is still enforced above — this only lifts the one-shot quota.
-    let isAdmin = false;
-    {
-      // Admin in demo mode is treated like a parent.
-      const { data: adminRow, error: adminErr } = await supabase
-        .rpc("is_effective_admin", { _user_id: user.id });
-      if (adminErr) console.warn("[page1_regen] admin lookup failed:", adminErr.message);
-      isAdmin = !!adminRow;
-      if (isAdmin && isPage1Regen) {
-        console.log(`[page1_regen] admin bypass user=${user.id} story=${storyId}`);
-      }
-    }
+    // Admins get unlimited page-1 retries for QA purposes (isAdmin is checked above).
+    // The story owner's data (children, photo, lock) is always read by the story's own user_id.
+    const ownerId: string = story.user_id;
+    if (isAdmin) console.log(`[retry-illustration] admin redraw admin=${user.id} owner=${ownerId} story=${storyId} mode=${mode ?? "default"}`);
     // Redrawing an arbitrary page (no mode) is admin-only; parents only get the page-1 one-shot.
     if (!isPage1Regen && !isAdmin) {
       console.warn(`[retry-illustration] refused no-mode redraw for non-admin user=${user.id} story=${storyId}`);
@@ -200,7 +200,7 @@ serve(async (req) => {
           .from("stories")
           .update({ page1_regen_lock_at: new Date().toISOString() })
           .eq("id", storyId)
-          .eq("user_id", user.id);
+          .eq("user_id", ownerId);
         // Non-admins: the quota flag is part of the atomic guard.
         if (!isAdmin) q = q.eq("page1_regen_used", false);
         q = variant === "free"
@@ -279,7 +279,7 @@ serve(async (req) => {
         .from("children")
         .select("avatar_url, photo_url")
         .eq("id", (story as any).child_id)
-        .eq("user_id", user.id)
+        .eq("user_id", ownerId)
         .maybeSingle();
       photoPath = childById?.photo_url || childById?.avatar_url || null;
       if (photoPath) photoSource = "child_id";
@@ -289,7 +289,7 @@ serve(async (req) => {
       const { data: child } = await supabase
         .from("children")
         .select("avatar_url, photo_url")
-        .eq("user_id", user.id)
+        .eq("user_id", ownerId)
         .eq("name", story.child_name)
         .maybeSingle();
       photoPath = child?.photo_url || child?.avatar_url || null;
@@ -300,7 +300,7 @@ serve(async (req) => {
       const { data: profile } = await supabase
         .from("profiles")
         .select("child_photo_url, child_avatar_url")
-        .eq("id", user.id)
+        .eq("id", ownerId)
         .maybeSingle();
       photoPath = profile?.child_photo_url || profile?.child_avatar_url || null;
       if (photoPath) photoSource = "profile";
@@ -317,7 +317,7 @@ serve(async (req) => {
           const binaryStr = atob(base64Content);
           const bytes = new Uint8Array(binaryStr.length);
           for (let i = 0; i < binaryStr.length; i++) bytes[i] = binaryStr.charCodeAt(i);
-          const tempPath = `temp-refs/${user.id}/${Date.now()}.png`;
+          const tempPath = `temp-refs/${ownerId}/${Date.now()}.png`;
           const { error: uploadErr } = await supabase.storage
             .from("child-photos")
             .upload(tempPath, bytes, { contentType: "image/png", upsert: true });
@@ -367,13 +367,18 @@ serve(async (req) => {
     // page being retried is NOT page 1, so the regenerated art matches the rest of the book.
     // When regenerating page 1 itself, the CURRENT page-1 art is the canonical look of the
     // character — it must be used as the reference so the redo keeps the same child.
+    // An admin may name another page whose finished art is the canon reference
+    // (e.g. page 1 has no picture yet); everyone else always uses page 1.
+    const refPageNumber = isAdmin && Number.isInteger(referencePage) && referencePage > 0 && referencePage !== page.page_number
+      ? referencePage as number
+      : 1;
     let pageOneReferenceUrl: string | null = null;
     {
       const { data: firstPage } = await supabase
         .from("story_pages")
         .select("illustration_url")
         .eq("story_id", storyId)
-        .eq("page_number", 1)
+        .eq("page_number", refPageNumber)
         .maybeSingle();
       const raw = (firstPage as { illustration_url?: string } | null)?.illustration_url;
       if (raw) {
@@ -381,13 +386,13 @@ serve(async (req) => {
           ? raw.split("?")[0]
           : supabase.storage.from("story-illustrations").getPublicUrl(raw).data?.publicUrl || null;
       }
-      console.log(`🔗 page-1 character reference: ${pageOneReferenceUrl ? "found" : "not available"}`);
+      console.log(`🔗 page-${refPageNumber} character reference: ${pageOneReferenceUrl ? "found" : "not available"}`);
     }
 
     // Same fixed character description as the original illustrations.
     let characterLock = "";
     {
-      let q = supabase.from("children").select("age, hair_color, hair_style, clothing_type, clothing_color, avatar_url").eq("user_id", user.id);
+      let q = supabase.from("children").select("age, hair_color, hair_style, clothing_type, clothing_color, avatar_url").eq("user_id", ownerId);
       q = (story as any).child_id ? q.eq("id", (story as any).child_id) : q.eq("name", story.child_name);
       const { data: ch } = await q.limit(1).maybeSingle();
       const ap = mergeAppearance(null, {
@@ -643,10 +648,15 @@ NEGATIVE: ${NEGATIVE_PROMPT}${formatRule((story as any).illustration_format)}`;
         .eq("id", storyId);
       lockAcquired = false;
     } else {
+      const v = Date.now();
       await supabase
         .from("story_pages")
-        .update({ illustration_url: `${filePath.split("?")[0]}?v=${Date.now()}`, print_illustration_url: null, print_illustration_width: null })
+        .update({ illustration_url: `${filePath.split("?")[0]}?v=${v}`, print_illustration_url: null, print_illustration_width: null })
         .eq("id", pageId);
+      // Page 1 IS the cover (library card + share page) — keep both pointers identical.
+      if (page.page_number === 1) {
+        await supabase.from("stories").update({ cover_url: `${publicUrl(filePath)}?v=${v}` }).eq("id", storyId);
+      }
     }
 
     // Log the illustration generation
