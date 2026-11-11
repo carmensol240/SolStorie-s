@@ -1,3 +1,4 @@
+import { pagesWithLookIssue } from "./look-check.ts";
 // When is a story "ready"? Every needed page has a picture.
 // A page that was tried and ended without a picture (held for admin or all services failed)
 // makes the story "needs_attention" instead of ready; untried pages mean "waiting".
@@ -8,10 +9,15 @@ export function decideStoryReadiness(
   withPicture: Set<number>,
   triedWithoutPicture: Set<number>,
   textIssues: unknown = null,
+  lookIssues: Set<number> = new Set(),
 ): StoryReadiness {
   const missing = neededPages.filter((p) => !withPicture.has(p));
-  // Text that failed the final check (stories.text_issues) never counts as finished.
-  if (missing.length === 0) return hasTextIssues(textIssues) ? "needs_attention" : "ready";
+  // Text that failed the final check (stories.text_issues) never counts as finished,
+  // nor does a picture kept although it differs from page 1 (look-check.ts).
+  if (missing.length === 0) {
+    const look = neededPages.some((p) => lookIssues.has(p));
+    return hasTextIssues(textIssues) || look ? "needs_attention" : "ready";
+  }
   if (missing.every((p) => triedWithoutPicture.has(p))) return "needs_attention";
   return "waiting";
 }
@@ -52,7 +58,10 @@ export async function refreshStoryReadiness(
       .eq("story_id", storyId).in("model_used", NO_PICTURE_MODELS).in("page_number", missing);
     tried = new Set((logs ?? []).map((l: any) => l.page_number as number));
   }
-  const decision = decideStoryReadiness(neededNums, withPic, tried, story.text_issues);
+  const { data: lookLogs } = await supabase.from("illustration_logs")
+    .select("page_number, identity_check, created_at").eq("story_id", storyId).not("identity_check", "is", null);
+  const lookIssues = pagesWithLookIssue(lookLogs ?? []);
+  const decision = decideStoryReadiness(neededNums, withPic, tried, story.text_issues, lookIssues);
   if (decision !== "waiting" && story.generation_status !== decision) {
     const { error } = await supabase.from("stories").update({ generation_status: decision }).eq("id", storyId);
     if (error) console.error("[story-readiness] status update failed:", error.message);
